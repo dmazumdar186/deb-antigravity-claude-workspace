@@ -64,8 +64,6 @@ These are auto-FAIL if found:
 | `googleapiclient.build()` | Must use `AuthorizedSession` for Google Sheets. `build()` causes silent hangs. |
 | Bare `except:` or `except Exception:` without re-raise | Swallows errors silently, masks bugs. Use specific exceptions. |
 | `chr(65+n)` for column letters | Breaks past column Z. Use `gspread.utils.rowcol_to_a1` or explicit mapping. |
-| `X \| None` type syntax | Workspace uses Python 3.9. Must use `Optional[X]` from typing. |
-| `list[str]`, `dict[str, int]` lowercase generics | Python 3.9 requires `List[str]`, `Dict[str, int]` from typing. |
 | Hardcoded sheet IDs, campaign IDs, API keys | Must be arguments or env vars. |
 | `import *` | Pollutes namespace, hides dependencies. |
 
