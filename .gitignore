@@ -1,0 +1,32 @@
+# Secrets & credentials — NEVER commit
+.env
+credentials.json
+token.json
+*.json.key
+credentials/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Workspace temp & archive
+.tmp/
+.archive/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude worktrees
+.claude/worktrees/
