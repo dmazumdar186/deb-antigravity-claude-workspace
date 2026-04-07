@@ -7,7 +7,8 @@
 
 FILE_PATH="${1:-}"
 
-if [[ "$FILE_PATH" == *"directives/"* ]] || [[ "$FILE_PATH" == *"execution/"* ]]; then
+if [[ "$FILE_PATH" == *"directives/"* ]] || [[ "$FILE_PATH" == *"directives\\"* ]] || \
+   [[ "$FILE_PATH" == *"execution/"* ]]  || [[ "$FILE_PATH" == *"execution\\"* ]]; then
   echo "NOTE-TAKER: $FILE_PATH was modified."
   echo "Did you learn something new? If yes, capture it:"
   echo "  - Unexpected errors fixed → .claude/notes/execution/{category}/{script}.md"
