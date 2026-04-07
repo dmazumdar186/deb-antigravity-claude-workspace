@@ -1,7 +1,7 @@
 """
 generate_registry.py
 
-Scans all Python scripts in the execution/ directory and regenerates REGISTRY.md.
+Scans all Python scripts in execution/ subdirectories and regenerates REGISTRY.md.
 Each script should have a module-level docstring in this format:
 
     \"\"\"
@@ -14,7 +14,6 @@ Usage:
     python execution/generate_registry.py
 """
 
-import os
 import ast
 from pathlib import Path
 from datetime import date
@@ -43,15 +42,18 @@ def extract_docstring_fields(filepath: Path) -> dict:
 
 
 def build_registry() -> str:
+    # Scan all .py files recursively, skip utility files and modules/
     scripts = sorted(
-        p for p in EXECUTION_DIR.glob("*.py") if p.name not in SKIP_FILES
+        p for p in EXECUTION_DIR.rglob("*.py")
+        if p.name not in SKIP_FILES and "modules" not in p.parts
     )
 
     rows = []
     for script in scripts:
+        relative = script.relative_to(EXECUTION_DIR)
         fields = extract_docstring_fields(script)
         rows.append(
-            f"| `{script.name}` "
+            f"| `{relative}` "
             f"| {fields.get('description') or '—'} "
             f"| {fields.get('inputs') or '—'} "
             f"| {fields.get('outputs') or '—'} |"
