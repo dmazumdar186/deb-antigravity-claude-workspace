@@ -28,6 +28,7 @@ try:
     from reportlab.lib.enums import TA_LEFT, TA_JUSTIFY
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfbase.pdfmetrics import registerFontFamily
 except ImportError:
     print("ERROR: pip install reportlab")
     sys.exit(1)
@@ -38,7 +39,7 @@ MARGIN_LR = 1.8 * cm
 MARGIN_TB = 1.5 * cm
 TEXT_W = PAGE_W - 2 * MARGIN_LR
 
-# ── Colours (matching existing CV palette) ────────────────────────────────────
+# ── Colours ────────────────────────────────────────────────────────────────────
 NAVY   = HexColor('#1A1A2E')
 TEAL   = HexColor('#1B9AAA')
 DKGRY  = HexColor('#2C2C2C')
@@ -46,29 +47,33 @@ MDGRY  = HexColor('#666666')
 LTBLUE = HexColor('#EAF4F7')
 
 
-# ── Font registration ─────────────────────────────────────────────────────────
+# ── Font registration ──────────────────────────────────────────────────────────
 def _register_fonts():
     """Use Arial (Windows) for full Unicode; fall back to Helvetica."""
     win_fonts = os.path.join(os.environ.get('WINDIR', 'C:/Windows'), 'Fonts')
     regular = os.path.join(win_fonts, 'arial.ttf')
     bold    = os.path.join(win_fonts, 'arialbd.ttf')
     if os.path.exists(regular) and os.path.exists(bold):
-        pdfmetrics.registerFont(TTFont('CV',     regular))
+        pdfmetrics.registerFont(TTFont('CV',      regular))
         pdfmetrics.registerFont(TTFont('CV-Bold', bold))
+        registerFontFamily('CV', normal='CV', bold='CV-Bold',
+                           italic='CV', boldItalic='CV-Bold')
         return 'CV', 'CV-Bold'
+    registerFontFamily('Helvetica', normal='Helvetica', bold='Helvetica-Bold',
+                       italic='Helvetica-Oblique', boldItalic='Helvetica-BoldOblique')
     return 'Helvetica', 'Helvetica-Bold'
 
 FONT, FONT_BOLD = _register_fonts()
 
 
-# ── Custom flowable: coloured section header ───────────────────────────────────
+# ── Custom flowable: coloured section header ────────────────────────────────────
 class SectionHeader(Flowable):
     HEIGHT = 19
 
     def __init__(self, text, width=TEXT_W):
         super().__init__()
-        self.text  = text
-        self.width = width
+        self.text   = text
+        self.width  = width
         self.height = self.HEIGHT
 
     def draw(self):
@@ -83,7 +88,7 @@ class SectionHeader(Flowable):
         c.line(0, 0, self.width, 0)
 
 
-# ── Paragraph styles ──────────────────────────────────────────────────────────
+# ── Paragraph styles ────────────────────────────────────────────────────────────
 def _s(**kw):
     defaults = dict(fontName=FONT, fontSize=8.4, textColor=DKGRY,
                     leading=12.5, spaceAfter=0)
@@ -99,8 +104,10 @@ S = {
     'role':      _s(fontName=FONT_BOLD, fontSize=9.3, textColor=NAVY,
                     leading=12, spaceAfter=1),
     'employer':  _s(fontSize=8.3, textColor=MDGRY, leading=11, spaceAfter=3),
+    # bulletIndent=0 places the bullet; leftIndent=11 is where ALL text lines start.
+    # This guarantees wrapped lines are flush with the first line of text, not the bullet.
     'bullet':    _s(fontSize=8.3, alignment=TA_JUSTIFY, leading=12.5,
-                    leftIndent=10, firstLineIndent=-10, spaceAfter=2.5),
+                    leftIndent=11, bulletIndent=0, spaceAfter=2.5),
     'oneliner':  _s(fontSize=8.2, textColor=MDGRY, leading=11, spaceAfter=3),
     'skill_cat': _s(fontName=FONT_BOLD, fontSize=8.4, textColor=NAVY,
                     leading=11, spaceAfter=0),
@@ -110,11 +117,11 @@ S = {
     'edu_sub':   _s(fontSize=8.2, textColor=MDGRY, leading=11, spaceAfter=5),
     'lang':      _s(fontSize=8.5, leading=12, spaceAfter=2),
     'project':   _s(fontSize=8.2, alignment=TA_JUSTIFY, leading=12,
-                    leftIndent=10, firstLineIndent=-10, spaceAfter=2.5),
+                    leftIndent=11, bulletIndent=0, spaceAfter=2.5),
 }
 
 
-# ── Content helpers ───────────────────────────────────────────────────────────
+# ── Content helpers ─────────────────────────────────────────────────────────────
 def accroche(text, kpi_line):
     inner = Paragraph(text + '<br/><br/>' + kpi_line, S['accroche'])
     t = Table([[inner]], colWidths=[TEXT_W])
@@ -137,7 +144,8 @@ def exp_entry(title, company_line, bullets):
         ])
     ]
     for b in bullets:
-        elems.append(Paragraph('\u2022\u2002' + b, S['bullet']))
+        # <bullet> tag places • at bulletIndent=0; text wraps at leftIndent=11
+        elems.append(Paragraph('<bullet>\u2022</bullet>' + b, S['bullet']))
     elems.append(Spacer(1, 5))
     return elems
 
@@ -158,11 +166,11 @@ def skill_row(cat, val):
     return t
 
 
-# ── CV story ──────────────────────────────────────────────────────────────────
+# ── CV story ────────────────────────────────────────────────────────────────────
 def build_story():
     st = []
 
-    # ── Header ────────────────────────────────────────────────────────────────
+    # ── Header ──────────────────────────────────────────────────────────────────
     st += [
         Paragraph('Debanjan Mazumdar', S['name']),
         Paragraph(
@@ -172,9 +180,13 @@ def build_story():
             S['subtitle']
         ),
         Spacer(1, 3),
+        # LinkedIn and GitHub as clickable hyperlinks
         Paragraph(
             'debanjan186@gmail.com\u2002\u2022\u20020755807658\u2002\u2022\u2002Paris, France'
-            '\u2002\u2022\u2002linkedin.com/in/dmazumdar\u2002\u2022\u2002github.com/dmazumdar186',
+            '\u2002\u2022\u2002'
+            '<a href="https://linkedin.com/in/dmazumdar/" color="#1B9AAA">linkedin.com/in/dmazumdar</a>'
+            '\u2002\u2022\u2002'
+            '<a href="https://github.com/dmazumdar186" color="#1B9AAA">github.com/dmazumdar186</a>',
             S['contact']
         ),
         Spacer(1, 5),
@@ -182,20 +194,20 @@ def build_story():
         Spacer(1, 7),
     ]
 
-    # ── Accroche ──────────────────────────────────────────────────────────────
+    # ── Accroche ────────────────────────────────────────────────────────────────
     st.append(accroche(
-        "AI Product Manager avec 14 ans d\u2019exp\u00e9rience en environnements data-intensifs, sp\u00e9cialis\u00e9 "
-        "dans la conception et le d\u00e9ploiement de capacit\u00e9s IA g\u00e9n\u00e9ratives en production "
-        "(LLM, RAG, syst\u00e8mes multi-agents). Expert en cadrage de fonctionnalit\u00e9s IA complexes \u2014 de "
-        "la discovery \u00e0 la mise en production \u2014 avec une ma\u00eetrise des enjeux \u00e9thiques, "
-        "r\u00e9glementaires (RGPD) et de gouvernance.",
+        "AI Product Manager avec 14 ans d\u2019exp\u00e9rience en environnements data-intensifs, "
+        "sp\u00e9cialis\u00e9 dans la conception et le d\u00e9ploiement de capacit\u00e9s IA g\u00e9n\u00e9ratives "
+        "en production (LLM, RAG, syst\u00e8mes multi-agents). Expert en cadrage de fonctionnalit\u00e9s IA "
+        "complexes \u2014 de la discovery \u00e0 la mise en production \u2014 avec une ma\u00eetrise des enjeux "
+        "\u00e9thiques, r\u00e9glementaires (RGPD) et de gouvernance.",
         "<b>R\u00e9sultats\u00a0:</b>\u2002+30\u202f% adoption\u2002\u2022\u2002+20\u202f% CSAT\u2002"
         "\u2022\u2002\u221240\u202f% latence\u2002\u2022\u2002\u221235\u202f% cycles d\u2019it\u00e9ration"
         "\u2002\u2022\u2002+40\u202f% adoption BU",
     ))
     st.append(Spacer(1, 9))
 
-    # ── Expériences professionnelles ──────────────────────────────────────────
+    # ── Expériences professionnelles ────────────────────────────────────────────
     st.append(SectionHeader('Exp\u00e9riences Professionnelles'))
     st.append(Spacer(1, 5))
 
@@ -205,11 +217,11 @@ def build_story():
         [
             "Con\u00e7u et d\u00e9ploy\u00e9 des capacit\u00e9s IA g\u00e9n\u00e9ratives en production "
             "(triage, recommandation, support client RAG, alertes intelligentes) avec OpenAI Assistants, "
-            "Claude et syst\u00e8mes multi-agents (MCP, A2A) \u2192 \u221240\u202f% latence, "
-            "+25\u202f% pr\u00e9cision, +25\u202f% adoption",
+            "Claude et syst\u00e8mes multi-agents (MCP, A2A) \u2192 "
+            "<b>\u221240\u202f% latence, +25\u202f% pr\u00e9cision, +25\u202f% adoption</b>",
 
             "D\u00e9fini la vision IA et la roadmap de capacit\u00e9s avec hypoth\u00e8ses de valeur, "
-            "crit\u00e8res go/no-go et plans de rollback\u202f; align\u00e9 5 \u00e9quipes cross-BU "
+            "crit\u00e8res go/no-go et plans de rollback\u202f; align\u00e9 <b>5 \u00e9quipes cross-BU</b> "
             "(Data/AI, MLOps, architecture, s\u00e9curit\u00e9, m\u00e9tier) sur une vision commune",
 
             "R\u00e9dig\u00e9 des PRDs orient\u00e9s IA (contrats API/donn\u00e9es, seuils d\u2019\u00e9valuation, "
@@ -217,11 +229,12 @@ def build_story():
             "faisabilit\u00e9 technique avec les \u00e9quipes Data/AI",
 
             "Orchestr\u00e9 le d\u00e9ploiement GTM mondial avec plans d\u2019enablement et playbooks "
-            "terrain \u2192 +40\u202f% adoption BU, +30\u202f% adoption utilisateur, +20\u202f% CSAT",
+            "terrain \u2192 <b>+40\u202f% adoption BU, +30\u202f% adoption utilisateur, +20\u202f% CSAT</b>",
 
             "Mis en place des dashboards analytics (usage/couverture/qualit\u00e9) et signaux "
-            "op\u00e9rationnels (drift, incidents) \u2192 +25\u201330\u202f% pr\u00e9cision de livraison, "
-            "\u221225\u202f% ambigu\u00eft\u00e9 en sprint via DoR/DoD et QA pr\u00e9-prod",
+            "op\u00e9rationnels (drift, incidents) \u2192 "
+            "<b>+25\u201330\u202f% pr\u00e9cision de livraison, \u221225\u202f% ambigu\u00eft\u00e9</b> "
+            "en sprint via DoR/DoD et QA pr\u00e9-prod",
         ]
     ):
         st.append(item)
@@ -231,8 +244,8 @@ def build_story():
         'InfoTnT, Paris\u2002|\u2002Juin 2021 \u2013 Nov. 2022',
         [
             "Pilot\u00e9 la discovery produit pour un moteur de recommandation data-driven "
-            "(quant/qual, JTBD) \u2192 \u221235\u202f% cycles d\u2019it\u00e9ration, "
-            "+25\u202f% ad\u00e9quation post-lancement",
+            "(quant/qual, JTBD) \u2192 "
+            "<b>\u221235\u202f% cycles d\u2019it\u00e9ration, +25\u202f% ad\u00e9quation post-lancement</b>",
 
             "Traduit les enjeux m\u00e9tiers en capacit\u00e9s backend, \u00e9pics et contrats de "
             "donn\u00e9es avec m\u00e9triques de succ\u00e8s et contraintes d\u2019int\u00e9gration",
@@ -248,8 +261,8 @@ def build_story():
         'Senior Data Product Owner',
         'Pitney Bowes Inc, Pune\u2002|\u2002Avr. \u2013 Sept. 2019',
         [
-            "R\u00e9duit le time-to-market de \u221220\u202f% en cartographiant les d\u00e9pendances "
-            "cross-squads et en am\u00e9liorant la cadence de release",
+            "R\u00e9duit le time-to-market de <b>\u221220\u202f%</b> en cartographiant les "
+            "d\u00e9pendances cross-squads et en am\u00e9liorant la cadence de release",
 
             "Renforc\u00e9 la stabilit\u00e9 op\u00e9rationnelle via des checklists pr\u00e9-prod, "
             "indicateurs d\u2019incidents et revues RAID structur\u00e9es",
@@ -261,9 +274,9 @@ def build_story():
         'Senior Data Product Owner',
         'Evolent International, Pune\u2002|\u2002Juin 2018 \u2013 F\u00e9v. 2019',
         [
-            "Am\u00e9lior\u00e9 la scalabilit\u00e9 et la performance de la plateforme (+30\u202f%) "
-            "par l\u2019introduction de SLA/SLO pour arbitrer les priorit\u00e9s run/change\u202f; "
-            "int\u00e9gr\u00e9 des checkpoints gouvernance et QA dans le flux de livraison",
+            "Am\u00e9lior\u00e9 la scalabilit\u00e9 et la performance de la plateforme "
+            "(<b>+30\u202f%</b>) par l\u2019introduction de SLA/SLO pour arbitrer les priorit\u00e9s "
+            "run/change\u202f; int\u00e9gr\u00e9 des checkpoints gouvernance et QA dans le flux de livraison",
         ]
     ):
         st.append(item)
@@ -272,9 +285,9 @@ def build_story():
         'Senior Product Owner',
         'Avaya India Pvt Ltd, Pune\u2002|\u2002Juil. 2015 \u2013 Mars 2018',
         [
-            "Acc\u00e9l\u00e9r\u00e9 la v\u00e9locit\u00e9 de livraison (+30\u202f%) via discipline "
+            "Acc\u00e9l\u00e9r\u00e9 la v\u00e9locit\u00e9 de livraison (<b>+30\u202f%</b>) via discipline "
             "Scrum renforc\u00e9e et alignement OKR \u2194 roadmap\u202f; r\u00e9duit l\u2019instabilit\u00e9 "
-            "des exigences (\u221225\u202f%) pour am\u00e9liorer la pr\u00e9paration aux releases",
+            "des exigences (<b>\u221225\u202f%</b>) pour am\u00e9liorer la pr\u00e9paration aux releases",
         ]
     ):
         st.append(item)
@@ -292,42 +305,45 @@ def build_story():
     ))
     st.append(Spacer(1, 8))
 
-    # ── Compétences ───────────────────────────────────────────────────────────
-    st.append(SectionHeader('Comp\u00e9tences'))
-    st.append(Spacer(1, 5))
+    # ── Compétences ─────────────────────────────────────────────────────────────
+    # KeepTogether forces the entire section (header + all rows) onto the same page,
+    # preventing the header from being stranded at the bottom of page 1.
+    competences = [
+        SectionHeader('Comp\u00e9tences'),
+        Spacer(1, 5),
+        skill_row(
+            'IA & GenAI',
+            'LLM, RAG, Agentic AI, Syst\u00e8mes Multi-Agents, OpenAI Assistants, Claude, MCP, A2A, '
+            'ML supervis\u00e9/non supervis\u00e9, Frameworks d\u2019\u00e9valuation IA '
+            '(pr\u00e9cision, coh\u00e9rence, robustesse), gestion du non-d\u00e9terminisme',
+        ),
+        skill_row(
+            'Product Mgt',
+            'Vision & Roadmap, Discovery (quant/qual, JTBD), PRD, Contrats API/donn\u00e9es, '
+            'Backlog, KPI/OKR, A/B tests, DoR/DoD, Enablement & GTM',
+        ),
+        skill_row(
+            'Gouvernance',
+            'RGPD/privacy-by-design, contr\u00f4le d\u2019acc\u00e8s, pistes d\u2019audit, '
+            'souverainet\u00e9 technologique, \u00e9thique IA',
+        ),
+        skill_row(
+            'Collaboration',
+            'Cross-fonctionnel (Data/AI, D\u00e9v, CSM, Sales, MLOps, S\u00e9curit\u00e9), '
+            'animation d\u2019ateliers, stakeholder management',
+        ),
+        skill_row(
+            'Outils',
+            'Jira, Confluence, Google AntiGravity, N8N, Make, Figma, Miro, Mixpanel, SQL, '
+            'GenAI APIs (OpenAI, Google, Anthropic)',
+        ),
+        Spacer(1, 8),
+    ]
+    st.append(KeepTogether(competences))
 
-    st.append(skill_row(
-        'IA & GenAI',
-        'LLM, RAG, Agentic AI, Syst\u00e8mes Multi-Agents, OpenAI Assistants, Claude, MCP, A2A, '
-        'ML supervis\u00e9/non supervis\u00e9, Frameworks d\u2019\u00e9valuation IA '
-        '(pr\u00e9cision, coh\u00e9rence, robustesse), gestion du non-d\u00e9terminisme',
-    ))
-    st.append(skill_row(
-        'Product Mgt',
-        'Vision & Roadmap, Discovery (quant/qual, JTBD), PRD, Contrats API/donn\u00e9es, '
-        'Backlog, KPI/OKR, A/B tests, DoR/DoD, Enablement & GTM',
-    ))
-    st.append(skill_row(
-        'Gouvernance',
-        'RGPD/privacy-by-design, contr\u00f4le d\u2019acc\u00e8s, pistes d\u2019audit, '
-        'souverainet\u00e9 technologique, \u00e9thique IA',
-    ))
-    st.append(skill_row(
-        'Collaboration',
-        'Cross-fonctionnel (Data/AI, D\u00e9v, CSM, Sales, MLOps, S\u00e9curit\u00e9), '
-        'animation d\u2019ateliers, stakeholder management',
-    ))
-    st.append(skill_row(
-        'Outils',
-        'Jira, Confluence, Google AntiGravity, N8N, Make, Figma, Miro, Mixpanel, SQL, '
-        'GenAI APIs (OpenAI, Google, Anthropic)',
-    ))
-    st.append(Spacer(1, 8))
-
-    # ── Formation ─────────────────────────────────────────────────────────────
+    # ── Formation ────────────────────────────────────────────────────────────────
     st.append(SectionHeader('Formation'))
     st.append(Spacer(1, 5))
-
     st.append(Paragraph('MSc International Strategic Business', S['edu_title']))
     st.append(Paragraph(
         'Toulouse Business School, Paris\u2002|\u20022019\u20132021', S['edu_sub']))
@@ -335,7 +351,7 @@ def build_story():
     st.append(Paragraph(
         'CMR Institute of Technology, Bengaluru\u2002|\u20022006\u20132010', S['edu_sub']))
 
-    # ── Langues ───────────────────────────────────────────────────────────────
+    # ── Langues ──────────────────────────────────────────────────────────────────
     st.append(SectionHeader('Langues'))
     st.append(Spacer(1, 5))
     st.append(Paragraph(
@@ -347,22 +363,24 @@ def build_story():
     ))
     st.append(Spacer(1, 8))
 
-    # ── Projets personnels ────────────────────────────────────────────────────
+    # ── Projets personnels ───────────────────────────────────────────────────────
     st.append(SectionHeader('Projets Personnels'))
     st.append(Spacer(1, 5))
 
     for p in [
-        'ProdCraft (YouTube, sept. 2025\u2013pr\u00e9sent)\u2002: Cha\u00eene ed-tech d\u00e9di\u00e9e aux '
-        'futurs Product Managers \u2014 fondamentaux & bonnes pratiques',
+        # ProdCraft with clickable YouTube link
+        '<a href="https://www.youtube.com/@ProdCraft" color="#1B9AAA">ProdCraft</a> '
+        '(YouTube, sept. 2025\u2013pr\u00e9sent)\u2002: Cha\u00eene ed-tech d\u00e9di\u00e9e '
+        'aux futurs Product Managers \u2014 fondamentaux &amp; bonnes pratiques',
         'G\u00e9n\u00e9rateur de lettres de motivation narratives \u2014 GPT Plugin (f\u00e9v. 2025)',
         'Optimiseur de CV pour ATS et RH \u2014 GPT Plugin (mars 2025)',
     ]:
-        st.append(Paragraph('\u2022\u2002' + p, S['project']))
+        st.append(Paragraph('<bullet>\u2022</bullet>' + p, S['project']))
 
     return st
 
 
-# ── Build PDF ─────────────────────────────────────────────────────────────────
+# ── Build PDF ────────────────────────────────────────────────────────────────────
 def build_cv(output: Path):
     doc = BaseDocTemplate(
         str(output),
@@ -381,7 +399,7 @@ def build_cv(output: Path):
     doc.build(build_story())
 
 
-# ── CLI ───────────────────────────────────────────────────────────────────────
+# ── CLI ──────────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--company', default='sahar')
