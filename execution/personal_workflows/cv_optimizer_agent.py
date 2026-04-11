@@ -15,7 +15,6 @@ Dependencies:
 """
 
 import io
-import json
 import os
 import re
 import sys
@@ -52,7 +51,7 @@ try:
         Paragraph, Spacer, Table, TableStyle,
         Flowable, KeepTogether, HRFlowable,
     )
-    from reportlab.lib.enums import TA_LEFT, TA_JUSTIFY, TA_CENTER
+    from reportlab.lib.enums import TA_JUSTIFY
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.pdfbase.pdfmetrics import registerFontFamily
@@ -163,7 +162,8 @@ def make_styles(body_size=8.4):
 
 # ── Content helpers ─────────────────────────────────────────────────────────────
 def make_accroche(text, kpi_line, S):
-    inner = Paragraph(text + '<br/><br/>' + kpi_line, S['accroche'])
+    body = text + ('<br/><br/>' + kpi_line if kpi_line else '')
+    inner = Paragraph(body, S['accroche'])
     t = Table([[inner]], colWidths=[TEXT_W])
     t.setStyle(TableStyle([
         ('BACKGROUND',    (0, 0), (-1, -1), LTBLUE),
@@ -186,7 +186,7 @@ def make_exp_entry(title, company_line, bullets, is_oneliner, S):
             Paragraph(company_line, S['employer']),
         ])
     ]
-    for b in bullets:
+    for b in (bullets or []):
         elems.append(Paragraph('<bullet>\u2022</bullet>' + b, S['bullet']))
     elems.append(Spacer(1, 5))
     return elems
@@ -213,7 +213,7 @@ def _slugify(s: str) -> str:
     s = (s or '').strip().lower()
     s = re.sub(r'[\\/:*?"<>|]', '', s)   # strip Windows-illegal chars
     s = re.sub(r'\s+', '_', s)
-    return s or 'unknown'
+    return (s or 'unknown')[:80]
 
 
 def format_contact_line(contact: dict) -> str:
@@ -524,12 +524,18 @@ def run_analysis(cv_text: str, jd_text: str, client) -> dict:
 
     response = client.messages.create(
         model='claude-opus-4-6',
-        max_tokens=8096,
+        max_tokens=16000,
         system=CV_ADVISOR_SYSTEM,
         tools=[ANALYSIS_TOOL],
         tool_choice={"type": "tool", "name": "cv_analysis_result"},
         messages=[{"role": "user", "content": user_msg}],
     )
+
+    if response.stop_reason == 'max_tokens':
+        raise RuntimeError(
+            "Claude response was truncated (max_tokens hit). "
+            "Try shortening the CV or contact the maintainer to increase the limit."
+        )
 
     # Extract tool result
     for block in response.content:
@@ -647,8 +653,8 @@ def build_cv_story(opt_cv: dict, labels: dict, S: dict) -> list:
     ]
 
     # ── Summary / Accroche ───────────────────────────────────────────────────────
-    summary     = opt_cv.get('summary', '')
-    summary_kpi = opt_cv.get('summary_kpis', '')
+    summary     = opt_cv.get('summary') or ''
+    summary_kpi = opt_cv.get('summary_kpis') or ''
     if summary:
         st.append(make_accroche(summary, summary_kpi, S))
         st.append(Spacer(1, 9))
@@ -777,8 +783,6 @@ def build_cv_pdf(opt_cv: dict, labels: dict, output_path: Path,
 # ── Cover Letter PDF builder ────────────────────────────────────────────────────
 def build_cover_letter_pdf(cover_letter_text: str, opt_cv: dict, output_path: Path) -> int:
     """Render the cover letter as a single-page PDF."""
-    S = make_styles(body_size=10.5)
-
     # Override cl_body and cl_meta with bigger, more letter-appropriate sizes
     cl_body_style = ParagraphStyle('', fontName=FONT, fontSize=10.5,
                                    textColor=DKGRY, leading=16,
@@ -848,6 +852,9 @@ def main():
     # --- Extract CV ---
     print('  Extracting CV text...')
     cv_text, page_count = extract_cv_pdf(cv_path)
+    if page_count == 0:
+        print('ERROR: CV PDF appears to have 0 pages — file may be corrupted or encrypted.')
+        sys.exit(1)
     if not cv_text:
         print('ERROR: Could not extract text from the CV PDF. '
               'Ensure it is not a scanned/image-only PDF.')
@@ -866,9 +873,14 @@ def main():
 
     print_report(analysis, cv_filename, page_count, cv_chars)
 
-    opt_cv  = analysis.get('optimized_cv', {})
-    labels  = analysis.get('section_labels', {})
-    language = analysis.get('language', 'English')
+    opt_cv  = analysis.get('optimized_cv') or {}
+    labels  = analysis.get('section_labels') or {}
+    language = analysis.get('language') or 'English'
+
+    if not opt_cv or not opt_cv.get('name'):
+        print('ERROR: Claude returned an empty or malformed CV structure. '
+              'This may be a max_tokens truncation issue. Please re-run.')
+        sys.exit(1)
 
     # Derive output filename from candidate's last name
     name_parts   = opt_cv.get('name', 'candidate').split()
@@ -890,7 +902,7 @@ def main():
               f'{page_note}  \u2713')
     except Exception as e:
         print(f'ERROR generating CV PDF: {e}')
-        raise
+        sys.exit(1)
 
     # --- Claude Call 2: Cover Letter ---
     print('  Generating cover letter (this takes ~15–30 seconds)...')
@@ -900,7 +912,7 @@ def main():
         )
     except Exception as e:
         print(f'ERROR during cover letter generation: {e}')
-        raise
+        sys.exit(1)
 
     # --- Build Cover Letter PDF ---
     try:
@@ -910,7 +922,7 @@ def main():
               f'{page_note_cl}  \u2713')
     except Exception as e:
         print(f'ERROR generating cover letter PDF: {e}')
-        raise
+        sys.exit(1)
 
     # --- Done ---
     print()
