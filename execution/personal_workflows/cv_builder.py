@@ -25,7 +25,7 @@ try:
         Paragraph, Spacer, Table, TableStyle,
         Flowable, KeepTogether, HRFlowable,
     )
-    from reportlab.lib.enums import TA_LEFT, TA_JUSTIFY
+    from reportlab.lib.enums import TA_JUSTIFY
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.pdfbase.pdfmetrics import registerFontFamily
@@ -372,8 +372,9 @@ def build_story():
         '<a href="https://www.youtube.com/@ProdCraft" color="#1B9AAA">ProdCraft</a> '
         '(YouTube, sept. 2025\u2013pr\u00e9sent)\u2002: Cha\u00eene ed-tech d\u00e9di\u00e9e '
         'aux futurs Product Managers \u2014 fondamentaux &amp; bonnes pratiques',
-        'G\u00e9n\u00e9rateur de lettres de motivation narratives \u2014 GPT Plugin (f\u00e9v. 2025)',
-        'Optimiseur de CV pour ATS et RH \u2014 GPT Plugin (mars 2025)',
+        'CV Optimizer Agent \u2014 agent IA local (Python + Claude API\u00a0/ Opus 4) : '
+        'scoring ATS, g\u00e9n\u00e9ration de CV optimis\u00e9 &amp; lettre de motivation en PDF, '
+        'multilingue (avr. 2025)',
     ]:
         st.append(Paragraph('<bullet>\u2022</bullet>' + p, S['project']))
 
