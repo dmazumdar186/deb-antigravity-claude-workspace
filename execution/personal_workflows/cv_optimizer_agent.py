@@ -627,6 +627,8 @@ def print_report(analysis: dict, cv_filename: str, page_count: int, cv_chars: in
         print('  Key Recommendations:')
         for r in recs[:6]:
             wrapped = textwrap.wrap(r, width=72)
+            if not wrapped:
+                continue
             print(f'    \u2022 {wrapped[0]}')
             for line in wrapped[1:]:
                 print(f'      {line}')
@@ -895,6 +897,9 @@ def main():
     print('  Generating optimised CV PDF...')
     try:
         actual_pages = build_cv_pdf(opt_cv, labels, cv_out, target_pages=page_count)
+        if actual_pages == 0:
+            print('ERROR: Generated CV PDF has 0 pages — ReportLab build failure.')
+            sys.exit(1)
         page_note = ''
         if actual_pages != page_count:
             page_note = f'  (note: target was {page_count}p, result is {actual_pages}p)'
@@ -912,6 +917,10 @@ def main():
         )
     except Exception as e:
         print(f'ERROR during cover letter generation: {e}')
+        sys.exit(1)
+
+    if not cover_letter_text:
+        print('ERROR: Cover letter text returned empty. Please re-run.')
         sys.exit(1)
 
     # --- Build Cover Letter PDF ---
