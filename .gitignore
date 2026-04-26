@@ -32,3 +32,13 @@ Thumbs.db
 
 # Claude worktrees
 .claude/worktrees/
+
+# Personal Claude overrides (machine-specific, not shared)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Generated output files
+output/
+
+# Firecrawl cache
+.firecrawl/

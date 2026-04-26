@@ -1,5 +1,54 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "claude-opus-4-6",
+  "autoMemoryEnabled": true,
+  "permissions": {
+    "allow": [
+      "Bash(python execution/**/*.py)",
+      "Bash(py execution/**/*.py)",
+      "Bash(python3 execution/**/*.py)",
+      "Bash(python execution/generate_registry.py)",
+      "Bash(pip install *)",
+      "Bash(pip3 install *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(echo *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git checkout -- *)",
+      "Bash(git clean *)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "attribution": {
+    "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
+  },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \".claude/hooks/safety-guard.sh\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -7,6 +56,15 @@
           {
             "type": "command",
             "command": "bash \".claude/hooks/note-taker.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \".claude/hooks/format-python.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\""
           }
         ]
       }

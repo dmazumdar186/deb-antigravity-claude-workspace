@@ -1,0 +1,17 @@
+# Core PDF generation
+reportlab>=4.0.0
+
+# PDF reading (used by cv_optimizer_agent)
+pdfplumber>=0.11.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Anthropic / Claude API
+anthropic>=0.39.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Formatting (used by format-python.sh hook)
+black>=24.0.0

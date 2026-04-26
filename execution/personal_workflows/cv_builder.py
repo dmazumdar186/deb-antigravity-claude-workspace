@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 cv_builder.py
-Generate an ATS-optimised, French-language PDF CV for Debanjan Mazumdar.
+description: Generate an ATS-optimized, French-language PDF CV for Debanjan Mazumdar
+inputs: --company (str), --role (str) via CLI args
+outputs: .tmp/cv_{company}_debanjan_mazumdar.pdf
 
 Usage:
     py execution/personal_workflows/cv_builder.py --company sahar --role "AI Product Manager"
 
-Output: .tmp/cv_{company}_debanjan_mazumdar.pdf
 Dependencies: pip install reportlab
 """
 
