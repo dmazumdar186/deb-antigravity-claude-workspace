@@ -1,0 +1,76 @@
+{
+  "client": "accessory_masters",
+  "version": "1.0",
+  "icp": {
+    "industries": [
+      "car wash",
+      "pizzeria",
+      "laundromat",
+      "marina",
+      "small oil company",
+      "auto repair",
+      "dry cleaner",
+      "bakery",
+      "printing shop",
+      "pest control"
+    ],
+    "geography": {
+      "city": "Houston",
+      "state": "TX",
+      "include_suburbs": true,
+      "suburbs": [
+        "Katy",
+        "Sugar Land",
+        "The Woodlands",
+        "Pearland",
+        "Pasadena"
+      ]
+    },
+    "employee_range": [5, 50],
+    "revenue_range": [1000000, 20000000]
+  },
+  "sourcing": {
+    "serper_results_per_query": 100,
+    "serper_api_url": "https://google.serper.dev/maps",
+    "prospeo_api_url": "https://api.prospeo.io",
+    "use_prospeo_for": ["manufacturing", "professional services"]
+  },
+  "enrichment": {
+    "anymailfinder_api_url": "https://api.anymailfinder.com",
+    "anymailfinder_min_confidence": 50,
+    "million_verifier_api_url": "https://api.millionverifier.com/api/v3",
+    "million_verifier_accept": ["ok", "catch_all"],
+    "million_verifier_reject": ["invalid", "disposable"]
+  },
+  "personalization": {
+    "model": "claude-haiku-4-5-20251001",
+    "tone_config": "config/tone.json",
+    "max_opener_tokens": 100,
+    "batch_size": 50
+  },
+  "instantly": {
+    "api_url": "https://api.instantly.ai/api/v2",
+    "campaign_id": null
+  },
+  "ghl": {
+    "api_url": "https://services.leadconnectorhq.com",
+    "pipeline_id": null,
+    "pipeline_stages": {
+      "new": null,
+      "contacted": null,
+      "interested": null,
+      "booked": null,
+      "closed": null
+    }
+  },
+  "notifications": {
+    "slack_enabled": true,
+    "sms_enabled": false
+  },
+  "pipeline": {
+    "output_dir": ".tmp",
+    "state_file": ".tmp/pipeline_state.json",
+    "daily_lead_target": 800,
+    "reply_poll_interval_minutes": 30
+  }
+}

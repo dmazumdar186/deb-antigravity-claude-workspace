@@ -1,0 +1,16 @@
+{
+  "voice": "I",
+  "sender_name": "Aleksandar",
+  "company_name": "Accessory Masters",
+  "backing": "Hedgestone Capital Group",
+  "backing_proof": "$100M+ in deals closed",
+  "differentiator": "TBD — awaiting client input",
+  "never_say": [],
+  "tone_description": "Blunt, direct, no fluff. Like a text message from someone who doesn't waste your time. No exclamation marks. No sales-y language.",
+  "opener_instruction": "Write a single sentence referencing something specific about the prospect's business — their industry, location, review count, or a notable detail. Keep it under 20 words. No exclamation marks. No questions. Just a factual observation that shows you looked them up.",
+  "example_openers": [
+    "I noticed your car wash on Main St has been open since 2012.",
+    "Your pizzeria has 200+ reviews and a 4.7 rating — that's hard to pull off in Houston.",
+    "I saw your laundromat expanded to a second location last year."
+  ]
+}
