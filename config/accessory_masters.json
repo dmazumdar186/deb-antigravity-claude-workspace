@@ -93,6 +93,17 @@
     "slack_template": null,
     "sms_enabled": false
   },
+  "reporting": {
+    "enabled": true,
+    "frequency": "weekly",
+    "day_of_week": "monday",
+    "recipients": [],
+    "slack_enabled": true,
+    "email_enabled": false,
+    "smtp_config": null,
+    "html_template": null,
+    "slack_template": null
+  },
   "pipeline": {
     "output_dir": ".tmp",
     "state_file": ".tmp/pipeline_state.json",

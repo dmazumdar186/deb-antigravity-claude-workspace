@@ -55,6 +55,7 @@ Run the end-to-end cold email pipeline for Accessory Masters: source business le
 | `execution/modules/outputs/ghl.py` | GoHighLevel V2 API — create contacts, opportunities, route replies |
 | `execution/modules/outputs/slack.py` | Slack webhook notifications — send alerts for positive replies |
 | `execution/modules/reply_classifier.py` | AI reply classifier — mock (keyword) or real (Claude Haiku) |
+| `execution/modules/outputs/report_generator.py` | Weekly report generator — Instantly + GHL metrics, HTML/Slack output |
 
 ### PRD
 | Document | Purpose |
@@ -206,3 +207,4 @@ All modules under `execution/modules/` are client-agnostic. To create a new GTM 
 |------|--------|
 | 2026-04-29 | Created — initial master directive covering full pipeline |
 | 2026-04-29 | Block 2A — extracted reusable modules (instantly, ghl, slack, reply_classifier), slimmed pipeline from 584→310 lines |
+| 2026-04-29 | Block 3 — added weekly report generator module (report_generator.py) with Instantly/GHL metric aggregation, HTML email + Slack formatting, SMTP sending, mock mode; added reporting config to accessory_masters.json |
