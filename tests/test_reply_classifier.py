@@ -7,6 +7,7 @@ outputs: Pass/fail results to stdout
 usage: py tests/test_reply_classifier.py
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -63,6 +64,12 @@ def run_mock_tests():
 
 def run_real_tests():
     print("=== Real Claude Classifier Tests ===")
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        print("  SKIPPED — ANTHROPIC_API_KEY not set in .env")
+        print("  To enable: add your key from console.anthropic.com to .env\n")
+        return True
+
     passed = 0
     for case in SAMPLE_REPLIES:
         result = classify(case["body"], mock=False)

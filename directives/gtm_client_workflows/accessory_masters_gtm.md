@@ -47,10 +47,14 @@ Run the end-to-end cold email pipeline for Accessory Masters: source business le
 | `execution/personalization/ai_opener_generator.py` | AI opener generation |
 | `execution/gtm_client_workflows/accessory_masters_pipeline.py` | Master orchestration |
 
-### Shared Modules
+### Reusable Modules
 | Module | Purpose |
 |--------|---------|
 | `execution/modules/pipeline_utils.py` | Retry logic, dedup, lead I/O, config loading, logging |
+| `execution/modules/outputs/instantly.py` | Instantly.ai API client — upload leads, fetch/normalize replies |
+| `execution/modules/outputs/ghl.py` | GoHighLevel V2 API — create contacts, opportunities, route replies |
+| `execution/modules/outputs/slack.py` | Slack webhook notifications — send alerts for positive replies |
+| `execution/modules/reply_classifier.py` | AI reply classifier — mock (keyword) or real (Claude Haiku) |
 
 ### PRD
 | Document | Purpose |
@@ -185,7 +189,20 @@ serper_maps_scraper.py          prospeo_leads.py
 - **GHL pipeline_id/stage_id not set**: Reply routing logs a warning and skips opportunity creation. Contact creation still works.
 - **No verified leads after enrichment**: Normal for some batches. Pipeline continues but there's nothing to personalize or upload.
 
+### Tests
+| Test | Purpose |
+|------|---------|
+| `tests/test_reply_classifier.py` | Mock + real classifier tests (5 sample replies) |
+
+## Reusability
+
+All modules under `execution/modules/` are client-agnostic. To create a new GTM client pipeline:
+1. Copy `config/accessory_masters.json` → `config/{client}.json` and customize
+2. Create `execution/gtm_client_workflows/{client}_pipeline.py` (~300 lines of orchestration)
+3. Everything else (modules, utils, individual scripts) is shared
+
 ## Changelog
 | Date | Change |
 |------|--------|
 | 2026-04-29 | Created — initial master directive covering full pipeline |
+| 2026-04-29 | Block 2A — extracted reusable modules (instantly, ghl, slack, reply_classifier), slimmed pipeline from 584→310 lines |
