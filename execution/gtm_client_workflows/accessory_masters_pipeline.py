@@ -13,13 +13,11 @@ usage:
 """
 
 import argparse
-import importlib
 import json
 import os
 import sys
 from pathlib import Path
 
-import requests
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -31,10 +29,17 @@ from modules.pipeline_utils import (
     load_config,
     load_leads,
     now_iso,
-    retry_with_backoff,
     save_leads,
     setup_logging,
 )
+from modules.outputs.instantly import (
+    fetch_replies,
+    normalize_replies,
+    upload_leads,
+)
+from modules.outputs.ghl import route_positive_reply
+from modules.outputs.slack import notify_positive_reply
+from modules.reply_classifier import classify
 
 load_dotenv(ROOT / ".env")
 logger = setup_logging("pipeline", log_dir=ROOT / ".tmp")
@@ -47,7 +52,6 @@ TMP = ROOT / ".tmp"
 # ---------------------------------------------------------------------------
 
 def load_pipeline_state(state_file: Path) -> dict:
-    """Load pipeline checkpoint state from JSON file."""
     if state_file.exists():
         with open(state_file, encoding="utf-8") as f:
             return json.load(f)
@@ -55,19 +59,16 @@ def load_pipeline_state(state_file: Path) -> dict:
 
 
 def save_pipeline_state(state: dict, state_file: Path):
-    """Save pipeline checkpoint state."""
     state_file.parent.mkdir(parents=True, exist_ok=True)
     with open(state_file, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
 
 
 def stage_complete(state: dict, stage_name: str) -> bool:
-    """Check if a stage has been completed."""
     return state.get("stages", {}).get(stage_name, {}).get("completed", False)
 
 
 def mark_stage_complete(state: dict, stage_name: str, output_file: str):
-    """Mark a stage as completed with its output path."""
     if "stages" not in state:
         state["stages"] = {}
     state["stages"][stage_name] = {
@@ -82,7 +83,6 @@ def mark_stage_complete(state: dict, stage_name: str, output_file: str):
 # ---------------------------------------------------------------------------
 
 def stage_source(config: dict, mock: bool, run_id: str) -> str:
-    """Run lead sourcing (Serper Maps + Prospeo). Returns output file path."""
     output = str(TMP / "serper_leads.json")
 
     serper_args = [
@@ -122,7 +122,6 @@ def stage_source(config: dict, mock: bool, run_id: str) -> str:
 
 
 def stage_enrich(config: dict, input_file: str, mock: bool) -> str:
-    """Run email enrichment (AnymailFinder). Returns output file path."""
     output = str(TMP / "enriched_leads.json")
 
     enrich_args = [
@@ -142,7 +141,6 @@ def stage_enrich(config: dict, input_file: str, mock: bool) -> str:
 
 
 def stage_verify(config: dict, input_file: str, mock: bool) -> str:
-    """Run email verification (Million Verifier). Returns output file path."""
     output = str(TMP / "verified_leads.json")
 
     accept = config.get("enrichment", {}).get("million_verifier_accept", ["ok", "catch_all"])
@@ -162,7 +160,6 @@ def stage_verify(config: dict, input_file: str, mock: bool) -> str:
 
 
 def stage_personalize(config: dict, input_file: str, mock: bool) -> str:
-    """Run AI opener generation. Returns output file path."""
     output = str(TMP / "personalized_leads.json")
 
     pers_config = config.get("personalization", {})
@@ -184,7 +181,6 @@ def stage_personalize(config: dict, input_file: str, mock: bool) -> str:
 
 
 def stage_upload_instantly(config: dict, input_file: str, mock: bool) -> str:
-    """Upload personalized leads to Instantly.ai via API."""
     instantly_config = config.get("instantly", {})
     campaign_id = instantly_config.get("campaign_id")
     api_url = instantly_config.get("api_url", "https://api.instantly.ai/api/v2")
@@ -215,44 +211,20 @@ def stage_upload_instantly(config: dict, input_file: str, mock: bool) -> str:
         logger.error("INSTANTLY_API_KEY not set — cannot upload.")
         return input_file
 
-    uploaded = 0
-    for lead in personalized:
-        try:
-            payload = {
-                "campaign": campaign_id,
-                "email": lead.get("owner_email", ""),
-                "first_name": (lead.get("owner_name", "") or "").split()[0] if lead.get("owner_name") else "",
-                "last_name": " ".join((lead.get("owner_name", "") or "").split()[1:]) if lead.get("owner_name") else "",
-                "company_name": lead.get("business_name", ""),
-                "custom_variables": {
-                    "opener": lead.get("personalized_opener", ""),
-                    "industry": lead.get("industry", ""),
-                    "city": lead.get("city", ""),
-                },
-            }
-            resp = requests.post(
-                f"{api_url}/leads",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=30,
-            )
-            resp.raise_for_status()
+    field_mapping = instantly_config.get("field_mapping")
+    rate_limit = instantly_config.get("upload_rate_limit_delay", 1.0)
 
-            lead["uploaded_to_instantly"] = True
-            lead["campaign_id"] = campaign_id
-            lead["instantly_lead_id"] = resp.json().get("id")
-            lead["status"] = "uploaded"
-            uploaded += 1
-        except Exception:
-            logger.exception("Failed to upload lead %s", lead.get("owner_email"))
-            lead["status"] = "error"
-            lead["error_message"] = "Instantly upload failed"
+    result = upload_leads(
+        api_url=api_url,
+        api_key=api_key,
+        campaign_id=campaign_id,
+        leads=personalized,
+        field_mapping=field_mapping,
+        rate_limit_delay=rate_limit,
+    )
+    logger.info("Instantly upload complete: %d/%d succeeded", result["uploaded"], result["total"])
 
     save_leads(leads, input_file)
-    logger.info("Uploaded %d/%d leads to Instantly", uploaded, len(personalized))
     return input_file
 
 
@@ -261,9 +233,11 @@ def stage_upload_instantly(config: dict, input_file: str, mock: bool) -> str:
 # ---------------------------------------------------------------------------
 
 def poll_replies(config: dict, mock: bool):
-    """Poll Instantly for new replies, classify, route to GHL, notify."""
     instantly_config = config.get("instantly", {})
     api_url = instantly_config.get("api_url", "https://api.instantly.ai/api/v2")
+    classification_config = config.get("classification", {})
+    ghl_config = config.get("ghl", {})
+    notif_config = config.get("notifications", {})
 
     if mock:
         replies = _get_mock_replies()
@@ -273,14 +247,21 @@ def poll_replies(config: dict, mock: bool):
         if not api_key:
             logger.error("INSTANTLY_API_KEY not set.")
             return
-        replies = _fetch_replies(api_url, api_key)
+        raw_replies = fetch_replies(api_url, api_key)
+        replies = normalize_replies(raw_replies)
 
     if not replies:
         logger.info("No new replies found.")
         return
 
     for reply in replies:
-        classification = classify_reply(reply, mock)
+        classification = classify(
+            body=reply.get("body", ""),
+            mock=mock,
+            model=classification_config.get("model"),
+            system_prompt=classification_config.get("system_prompt"),
+            mock_signals=classification_config.get("mock_signals"),
+        )
         logger.info(
             "Reply from %s classified as: %s",
             reply.get("from_email", "unknown"),
@@ -288,12 +269,44 @@ def poll_replies(config: dict, mock: bool):
         )
 
         if classification == "positive":
-            route_to_ghl(reply, config, mock)
-            send_notification(reply, config, mock)
+            _handle_positive_reply(reply, ghl_config, notif_config, mock)
+
+
+def _handle_positive_reply(reply: dict, ghl_config: dict, notif_config: dict, mock: bool):
+    if mock:
+        logger.info(
+            "MOCK: Would route + notify for %s (%s)",
+            reply.get("from_name"),
+            reply.get("from_email"),
+        )
+        return
+
+    ghl_api_key = os.environ.get("GHL_API_KEY", "")
+    if ghl_api_key:
+        route_positive_reply(
+            api_url=ghl_config.get("api_url", "https://services.leadconnectorhq.com"),
+            api_key=ghl_api_key,
+            location_id=ghl_config.get("location_id"),
+            pipeline_id=ghl_config.get("pipeline_id"),
+            stage_id=ghl_config.get("pipeline_stages", {}).get("new"),
+            reply=reply,
+            tags=ghl_config.get("tags"),
+            source=ghl_config.get("source", "cold email pipeline"),
+            api_version=ghl_config.get("api_version"),
+        )
+    else:
+        logger.warning("GHL_API_KEY not set — skipping CRM routing.")
+
+    slack_url = os.environ.get("SLACK_WEBHOOK_URL", "")
+    if notif_config.get("slack_enabled", True):
+        notify_positive_reply(
+            webhook_url=slack_url,
+            reply=reply,
+            template=notif_config.get("slack_template"),
+        )
 
 
 def _get_mock_replies() -> list[dict]:
-    """Return mock replies for testing."""
     return [
         {
             "from_email": "john.miller@sparklecarwash.com",
@@ -322,180 +335,11 @@ def _get_mock_replies() -> list[dict]:
     ]
 
 
-@retry_with_backoff(max_retries=3, base_delay=2.0)
-def _fetch_replies(api_url: str, api_key: str) -> list[dict]:
-    """Fetch new replies from Instantly Unibox API."""
-    resp = requests.get(
-        f"{api_url}/unibox/emails",
-        headers={"Authorization": f"Bearer {api_key}"},
-        params={"email_type": "received", "limit": 50},
-        timeout=30,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    return data.get("data", [])
-
-
-def classify_reply(reply: dict, mock: bool) -> str:
-    """Classify a reply as positive, negative, or neutral."""
-    body = (reply.get("body", "") or "").lower()
-
-    if mock:
-        negative_signals = ["not interested", "remove", "stop", "unsubscribe", "no thanks", "don't", "no longer"]
-        neutral_signals = ["out of office", "auto-reply", "vacation", "will return"]
-        positive_signals = ["interested", "sell", "process", "tell me more", "call me", "yes"]
-
-        for signal in negative_signals:
-            if signal in body:
-                return "negative"
-        for signal in neutral_signals:
-            if signal in body:
-                return "neutral"
-        for signal in positive_signals:
-            if signal in body:
-                return "positive"
-        return "neutral"
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not api_key:
-        logger.error("ANTHROPIC_API_KEY not set for reply classification.")
-        return "neutral"
-
-    try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
-
-        resp = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=10,
-            system=(
-                "Classify this cold email reply as exactly one of: positive, negative, neutral.\n"
-                "positive = interested in selling their business, wants to talk, asks about the process\n"
-                "negative = not interested, asks to be removed, hostile\n"
-                "neutral = out of office, auto-reply, bounce, unclear\n"
-                "Reply with exactly one word: positive, negative, or neutral."
-            ),
-            messages=[{"role": "user", "content": body}],
-        )
-        result = resp.content[0].text.strip().lower()
-        if result in ("positive", "negative", "neutral"):
-            return result
-        return "neutral"
-    except Exception:
-        logger.exception("Reply classification failed, defaulting to neutral")
-        return "neutral"
-
-
-def route_to_ghl(reply: dict, config: dict, mock: bool):
-    """Create a contact and opportunity in GoHighLevel for a positive reply."""
-    ghl_config = config.get("ghl", {})
-    api_url = ghl_config.get("api_url", "https://services.leadconnectorhq.com")
-    pipeline_id = ghl_config.get("pipeline_id")
-    stages = ghl_config.get("pipeline_stages", {})
-    new_stage_id = stages.get("new")
-
-    if mock:
-        logger.info(
-            "MOCK: Would create GHL contact + opportunity for %s (%s)",
-            reply.get("from_name"),
-            reply.get("from_email"),
-        )
-        return
-
-    api_key = os.environ.get("GHL_API_KEY", "")
-    if not api_key:
-        logger.error("GHL_API_KEY not set — cannot route to GHL.")
-        return
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "Version": "2021-07-28",
-    }
-
-    name_parts = (reply.get("from_name", "") or "").split()
-    first_name = name_parts[0] if name_parts else ""
-    last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
-
-    try:
-        contact_resp = requests.post(
-            f"{api_url}/contacts/",
-            headers=headers,
-            json={
-                "firstName": first_name,
-                "lastName": last_name,
-                "email": reply.get("from_email", ""),
-                "companyName": reply.get("company", ""),
-                "tags": ["cold email", "positive reply"],
-                "source": "cold email pipeline",
-                "customFields": [
-                    {"key": "reply_text", "value": reply.get("body", "")[:500]},
-                ],
-            },
-            timeout=30,
-        )
-        contact_resp.raise_for_status()
-        contact_id = contact_resp.json().get("contact", {}).get("id")
-        logger.info("Created GHL contact: %s", contact_id)
-
-        if pipeline_id and new_stage_id and contact_id:
-            opp_resp = requests.post(
-                f"{api_url}/opportunities/",
-                headers=headers,
-                json={
-                    "pipelineId": pipeline_id,
-                    "stageId": new_stage_id,
-                    "contactId": contact_id,
-                    "name": f"{reply.get('from_name', 'Unknown')} — {reply.get('company', 'Unknown')}",
-                    "status": "open",
-                },
-                timeout=30,
-            )
-            opp_resp.raise_for_status()
-            logger.info("Created GHL opportunity for contact %s", contact_id)
-    except Exception:
-        logger.exception("GHL routing failed for %s", reply.get("from_email"))
-
-
-def send_notification(reply: dict, config: dict, mock: bool):
-    """Send a Slack notification for a positive reply."""
-    if mock:
-        logger.info(
-            "MOCK: Would send Slack notification — Positive reply from %s (%s): %s",
-            reply.get("from_name"),
-            reply.get("company"),
-            (reply.get("body", "")[:100]),
-        )
-        return
-
-    webhook_url = os.environ.get("SLACK_WEBHOOK_URL", "")
-    if not webhook_url:
-        logger.warning("SLACK_WEBHOOK_URL not set — skipping notification.")
-        return
-
-    try:
-        message = {
-            "text": (
-                f":white_check_mark: *Positive Reply Detected*\n"
-                f"*From:* {reply.get('from_name', 'Unknown')} ({reply.get('from_email', '')})\n"
-                f"*Company:* {reply.get('company', 'Unknown')}\n"
-                f"*Reply:* {reply.get('body', '')[:200]}\n"
-                f"*Time:* {reply.get('received_at', now_iso())}"
-            )
-        }
-        resp = requests.post(webhook_url, json=message, timeout=10)
-        resp.raise_for_status()
-        logger.info("Slack notification sent for %s", reply.get("from_email"))
-    except Exception:
-        logger.exception("Slack notification failed")
-
-
 # ---------------------------------------------------------------------------
 # Main orchestration
 # ---------------------------------------------------------------------------
 
 def run_pipeline(config: dict, stage: str, mock: bool, force: bool):
-    """Run the pipeline stages with checkpoint resume."""
     state_file = Path(config.get("pipeline", {}).get("state_file", str(TMP / "pipeline_state.json")))
     state = load_pipeline_state(state_file) if not force else {"stages": {}}
 

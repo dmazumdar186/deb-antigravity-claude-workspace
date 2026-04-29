@@ -50,10 +50,24 @@
   },
   "instantly": {
     "api_url": "https://api.instantly.ai/api/v2",
-    "campaign_id": null
+    "campaign_id": null,
+    "upload_rate_limit_delay": 1.0,
+    "field_mapping": {
+      "email": "owner_email",
+      "first_name_from": "owner_name",
+      "last_name_from": "owner_name",
+      "company_name": "business_name",
+      "custom_variables": {
+        "opener": "personalized_opener",
+        "industry": "industry",
+        "city": "city"
+      }
+    }
   },
   "ghl": {
     "api_url": "https://services.leadconnectorhq.com",
+    "api_version": "2021-07-28",
+    "location_id": null,
     "pipeline_id": null,
     "pipeline_stages": {
       "new": null,
@@ -61,10 +75,22 @@
       "interested": null,
       "booked": null,
       "closed": null
+    },
+    "tags": ["cold email", "positive reply"],
+    "source": "cold email pipeline"
+  },
+  "classification": {
+    "model": "claude-haiku-4-5-20251001",
+    "system_prompt": null,
+    "mock_signals": {
+      "negative": ["not interested", "remove", "stop", "unsubscribe", "no thanks", "don't", "no longer"],
+      "neutral": ["out of office", "auto-reply", "vacation", "will return"],
+      "positive": ["interested", "sell", "process", "tell me more", "call me", "yes"]
     }
   },
   "notifications": {
     "slack_enabled": true,
+    "slack_template": null,
     "sms_enabled": false
   },
   "pipeline": {
