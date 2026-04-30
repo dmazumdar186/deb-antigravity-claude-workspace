@@ -7,10 +7,21 @@
   "differentiator": "TBD — awaiting client input",
   "never_say": [],
   "tone_description": "Blunt, direct, no fluff. Like a text message from someone who doesn't waste your time. No exclamation marks. No sales-y language.",
+  "copy_philosophy": "Ultra-short. One sentence if possible. No paragraphs. Business owners read this walking their dog or in bed. Under 60 words total. Subject line alone can be the entire email.",
+  "max_body_words": 60,
+  "track_metrics": "response_rate",
+  "never_track": "open_rate — open tracking puts links in emails that cause spam and bounces",
   "opener_instruction": "Write a single sentence referencing something specific about the prospect's business — their industry, location, review count, or a notable detail. Keep it under 20 words. No exclamation marks. No questions. Just a factual observation that shows you looked them up.",
+  "auto_reply_instruction": "Write 2-3 short sentences max. Sound like a human text. Personable, direct, no corporate speak. Use first-person 'I' as Aleksandar. Never promise specific valuations. Never mention AI or automation.",
   "example_openers": [
     "I noticed your car wash on Main St has been open since 2012.",
     "Your pizzeria has 200+ reviews and a 4.7 rating — that's hard to pull off in Houston.",
     "I saw your laundromat expanded to a second location last year."
-  ]
+  ],
+  "sequence": {
+    "step_1": "Cold open — short, direct, one sentence. Personalized opener + one-line ask.",
+    "step_2": "Bump — 'Hey, just checking in, see if you got my email.' Can be subject-line only.",
+    "step_3": "Case study — 'I saw you own a [business type]. We sold one a couple weeks ago in your area.'",
+    "step_4": "Free value — Lead magnet PDF with tips to optimize business before selling."
+  }
 }

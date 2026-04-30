@@ -82,14 +82,40 @@
   "classification": {
     "model": "claude-haiku-4-5-20251001",
     "system_prompt": null,
+    "categories": ["hot_positive", "positive", "negative", "neutral"],
     "mock_signals": {
+      "hot_positive": ["phone number", "call me at", "my number is", "ready to sell", "want to sell now"],
       "negative": ["not interested", "remove", "stop", "unsubscribe", "no thanks", "don't", "no longer"],
       "neutral": ["out of office", "auto-reply", "vacation", "will return"],
       "positive": ["interested", "sell", "process", "tell me more", "call me", "yes"]
     }
   },
+  "auto_reply": {
+    "enabled": true,
+    "model": "claude-haiku-4-5-20251001",
+    "delay_min_seconds": 120,
+    "delay_max_seconds": 420,
+    "delay_increases_with_time_of_day": true,
+    "max_sentences": 3,
+    "max_words": 60,
+    "voice": "I",
+    "sender_persona": "Aleksandar, business broker backed by Hedgestone Capital Group",
+    "objection_responses": null,
+    "hot_lead_signals": ["phone number", "my number", "call me at", "ready to sell", "want to sell", "schedule a call"],
+    "stop_on_hot_lead": true,
+    "guard_rails": [
+      "Never promise specific valuations",
+      "Never use exclamation marks",
+      "Never write more than 3 sentences",
+      "Never mention AI or automation",
+      "Never use sales-y or corporate language"
+    ]
+  },
   "notifications": {
-    "slack_enabled": true,
+    "telegram_enabled": true,
+    "telegram_bot_token": null,
+    "telegram_chat_id": null,
+    "slack_enabled": false,
     "slack_template": null,
     "sms_enabled": false
   },
@@ -98,11 +124,13 @@
     "frequency": "weekly",
     "day_of_week": "monday",
     "recipients": [],
-    "slack_enabled": true,
+    "telegram_enabled": true,
+    "slack_enabled": false,
     "email_enabled": false,
     "smtp_config": null,
     "html_template": null,
-    "slack_template": null
+    "slack_template": null,
+    "telegram_template": null
   },
   "pipeline": {
     "output_dir": ".tmp",

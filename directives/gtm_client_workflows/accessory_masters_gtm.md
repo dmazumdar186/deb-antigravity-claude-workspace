@@ -53,9 +53,11 @@ Run the end-to-end cold email pipeline for Accessory Masters: source business le
 | `execution/modules/pipeline_utils.py` | Retry logic, dedup, lead I/O, config loading, logging |
 | `execution/modules/outputs/instantly.py` | Instantly.ai API client — upload leads, fetch/normalize replies |
 | `execution/modules/outputs/ghl.py` | GoHighLevel V2 API — create contacts, opportunities, route replies |
-| `execution/modules/outputs/slack.py` | Slack webhook notifications — send alerts for positive replies |
-| `execution/modules/reply_classifier.py` | AI reply classifier — mock (keyword) or real (Claude Haiku) |
-| `execution/modules/outputs/report_generator.py` | Weekly report generator — Instantly + GHL metrics, HTML/Slack output |
+| `execution/modules/outputs/slack.py` | Slack webhook notifications — send alerts for positive replies (legacy, kept for reuse) |
+| `execution/modules/outputs/telegram.py` | Telegram Bot API notifications — primary notification channel for Accessory Masters |
+| `execution/modules/outputs/auto_reply.py` | AI auto-reply — delay engine, objection handling, human handoff for hot leads |
+| `execution/modules/reply_classifier.py` | AI reply classifier — mock (keyword) or real (Claude Haiku), 4 categories incl. hot_positive |
+| `execution/modules/outputs/report_generator.py` | Weekly report generator — Instantly + GHL metrics, HTML/Telegram output |
 
 ### PRD
 | Document | Purpose |
@@ -73,7 +75,8 @@ Run the end-to-end cold email pipeline for Accessory Masters: source business le
 - `.tmp/pipeline.log` — execution log
 - Leads uploaded to Instantly.ai campaign via API
 - Positive replies routed to GoHighLevel (contacts + opportunities)
-- Slack notifications for positive replies
+- AI auto-replies for positive (non-hot) leads with 2-7 min delay
+- Telegram notifications for hot positive replies (human handoff)
 
 ## Steps — Full Pipeline (Daily)
 
@@ -208,3 +211,4 @@ All modules under `execution/modules/` are client-agnostic. To create a new GTM 
 | 2026-04-29 | Created — initial master directive covering full pipeline |
 | 2026-04-29 | Block 2A — extracted reusable modules (instantly, ghl, slack, reply_classifier), slimmed pipeline from 584→310 lines |
 | 2026-04-29 | Block 3 — added weekly report generator module (report_generator.py) with Instantly/GHL metric aggregation, HTML email + Slack formatting, SMTP sending, mock mode; added reporting config to accessory_masters.json |
+| 2026-04-30 | Call 4 PRD update — Telegram replaces Slack for notifications, AI auto-reply system added (D6 expansion), self-optimizing copy loop (D12), email sequence structure, ultra-short copy philosophy (<60 words), website pixel + /signup page, hot_positive classification category, auto_reply config section, tone.json expanded with copy_philosophy + sequence + auto_reply_instruction |
