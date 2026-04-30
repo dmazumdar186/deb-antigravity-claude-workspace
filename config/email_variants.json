@@ -1,0 +1,51 @@
+{
+  "variants": [
+    {
+      "variant_id": "v1_cold_open",
+      "type": "human",
+      "label": "Cold Open",
+      "subject": "Quick question about {{business_name}}",
+      "body": "{{opener}} I help business owners in {{city}} explore what their business could sell for. Worth a quick chat?",
+      "created_at": "2026-04-30T00:00:00Z",
+      "created_by": "Bryce",
+      "active": true,
+      "instantly_step_id": null
+    },
+    {
+      "variant_id": "v2_bump",
+      "type": "human",
+      "label": "Bump",
+      "subject": "Re: Quick question about {{business_name}}",
+      "body": "Hey, just checking in — did you get my last email?",
+      "created_at": "2026-04-30T00:00:00Z",
+      "created_by": "Bryce",
+      "active": true,
+      "instantly_step_id": null
+    },
+    {
+      "variant_id": "v3_case_study",
+      "type": "human",
+      "label": "Case Study",
+      "subject": "Sold a {{industry}} in {{city}} recently",
+      "body": "{{opener}} We sold a {{industry}} a couple weeks ago in your area. Owner walked away with more than he expected. Happy to share what we learned.",
+      "created_at": "2026-04-30T00:00:00Z",
+      "created_by": "Bryce",
+      "active": true,
+      "instantly_step_id": null
+    },
+    {
+      "variant_id": "v4_free_value",
+      "type": "human",
+      "label": "Free Value",
+      "subject": "Free guide for {{industry}} owners",
+      "body": "{{opener}} I put together a short PDF on the 3 things that increase what a {{industry}} sells for. Want me to send it over?",
+      "created_at": "2026-04-30T00:00:00Z",
+      "created_by": "Bryce",
+      "active": true,
+      "instantly_step_id": null
+    }
+  ],
+  "ai_challengers": [],
+  "replacement_history": [],
+  "config_notes": "Bryce fills in real copy before launch. Map instantly_step_id after configuring variants in Instantly UI."
+}

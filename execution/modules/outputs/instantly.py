@@ -146,3 +146,32 @@ def normalize_reply(raw: dict) -> dict:
 def normalize_replies(raw_replies: list[dict]) -> list[dict]:
     """Normalize a batch of raw Instantly replies."""
     return [normalize_reply(r) for r in raw_replies]
+
+
+@retry_with_backoff(max_retries=3, base_delay=2.0)
+def fetch_step_analytics(
+    api_url: str, api_key: str, campaign_id: str,
+) -> list[dict]:
+    """Fetch per-step campaign analytics from Instantly for variant tracking."""
+    resp = requests.get(
+        f"{api_url}/campaigns/{campaign_id}/analytics/steps",
+        headers={"Authorization": f"Bearer {api_key}"},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    steps = data.get("steps", data.get("data", []))
+
+    results = []
+    for i, step in enumerate(steps):
+        sent = step.get("total_sent", step.get("sent", 0))
+        replied = step.get("total_replied", step.get("replied", 0))
+        results.append({
+            "step_id": step.get("id", step.get("step_id", f"step_{i}")),
+            "label": step.get("subject", step.get("name", f"Step {i + 1}")),
+            "emails_sent": sent,
+            "replies": replied,
+            "response_rate_pct": round(replied / sent * 100, 1) if sent > 0 else 0.0,
+        })
+
+    return results

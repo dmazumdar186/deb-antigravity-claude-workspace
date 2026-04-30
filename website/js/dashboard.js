@@ -35,6 +35,13 @@ const DEMO_DATA = {
     appointments_booked: 4,
     pipeline_value: 285000,
   },
+  variants: [
+    { variant_id: "v1_cold_open", type: "human", label: "Cold Open", emails_sent: 250, replies: 10, response_rate_pct: 4.0 },
+    { variant_id: "v2_bump", type: "human", label: "Bump", emails_sent: 220, replies: 7, response_rate_pct: 3.2 },
+    { variant_id: "v3_case_study", type: "human", label: "Case Study", emails_sent: 200, replies: 9, response_rate_pct: 4.5 },
+    { variant_id: "v4_free_value", type: "human", label: "Free Value", emails_sent: 180, replies: 5, response_rate_pct: 2.8 },
+    { variant_id: "ai_20260430", type: "ai", label: "AI Challenger", emails_sent: 150, replies: 7, response_rate_pct: 4.7 },
+  ],
   generated_at: new Date().toISOString(),
 };
 
@@ -74,6 +81,9 @@ function cacheElements() {
   els.demoBanner = document.getElementById("demoBanner");
   els.refreshBtn = document.getElementById("refreshBtn");
   els.refreshIcon = document.getElementById("refreshIcon");
+  els.variantsGrid = document.getElementById("variants-grid");
+  els.variantRecommendation = document.getElementById("variant-recommendation");
+  els.variantRecommendationText = document.getElementById("variant-recommendation-text");
 }
 
 // ---------------------------------------------------------------------------
@@ -217,6 +227,62 @@ function renderData(data) {
   els.lastUpdated.textContent = fmtTimestamp(data.generated_at || new Date().toISOString());
 }
 
+/**
+ * Render variant performance cards into the variants grid.
+ * @param {Array|null} variants  Array of variant objects from the API.
+ */
+function renderVariants(variants) {
+  if (!els.variantsGrid || !variants || !variants.length) return;
+
+  els.variantsGrid.innerHTML = "";
+
+  let bestRate = -1, worstRate = Infinity;
+  variants.forEach((v) => {
+    if (v.response_rate_pct > bestRate) bestRate = v.response_rate_pct;
+    if (v.response_rate_pct < worstRate) worstRate = v.response_rate_pct;
+  });
+
+  variants.forEach((v) => {
+    const isAi = v.type === "ai";
+    const isBest = v.response_rate_pct === bestRate;
+    const isWorst = v.response_rate_pct === worstRate;
+
+    const card = document.createElement("div");
+    card.className = "metric-card bg-ink-900 p-6" +
+      (isBest ? " indicator-green-bg" : "") +
+      (isWorst ? " indicator-orange-bg" : "");
+
+    let labelHtml = `<div class="text-[10px] tracking-widest uppercase text-bone-400 font-mono mb-3">${v.label}`;
+    if (isAi) {
+      labelHtml += ` <span class="accent-bg text-[9px] px-1.5 py-0.5 rounded-full ml-1 normal-case tracking-normal">AI</span>`;
+    }
+    labelHtml += `</div>`;
+
+    const rateClass = isBest ? "indicator-green" : isWorst ? "indicator-orange" : "";
+    const rateHtml = `<div class="flex items-baseline gap-2">
+      <span class="font-serif text-4xl md:text-5xl ${rateClass}" style="letter-spacing:-0.02em;">${fmtPct(v.response_rate_pct)}</span>
+      <span class="text-xl accent-fg ${rateClass}">%</span>
+    </div>`;
+
+    const sentHtml = `<div class="text-xs font-mono text-bone-400 mt-2">${fmtInt(v.emails_sent)} sent &middot; ${fmtInt(v.replies)} replies</div>`;
+
+    card.innerHTML = labelHtml + rateHtml + sentHtml;
+    els.variantsGrid.appendChild(card);
+  });
+
+  const aiVariant = variants.find((v) => v.type === "ai");
+  const humanVariants = variants.filter((v) => v.type === "human");
+  const worstHuman = humanVariants.reduce((min, v) => v.response_rate_pct < min.response_rate_pct ? v : min, humanVariants[0]);
+
+  if (aiVariant && worstHuman && aiVariant.response_rate_pct > worstHuman.response_rate_pct) {
+    els.variantRecommendation.classList.remove("hidden");
+    els.variantRecommendationText.textContent =
+      `AI variant "${aiVariant.label}" (${fmtPct(aiVariant.response_rate_pct)}%) outperforms "${worstHuman.label}" (${fmtPct(worstHuman.response_rate_pct)}%). Consider replacing.`;
+  } else {
+    els.variantRecommendation.classList.add("hidden");
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Data fetching
 // ---------------------------------------------------------------------------
@@ -238,11 +304,13 @@ async function fetchData(range) {
     isDemo = false;
     els.demoBanner.classList.add("hidden");
     renderData(data);
+    renderVariants(data.variants || null);
   } catch {
     // Worker not reachable — fall back to demo data
     isDemo = true;
     els.demoBanner.classList.remove("hidden");
     renderData(DEMO_DATA);
+    renderVariants(DEMO_DATA.variants);
   } finally {
     setLoading(false);
   }

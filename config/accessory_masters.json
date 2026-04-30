@@ -48,6 +48,20 @@
     "max_opener_tokens": 100,
     "batch_size": 50
   },
+  "copy_optimization": {
+    "enabled": true,
+    "model": "claude-haiku-4-5-20251001",
+    "max_variants": 5,
+    "human_variant_count": 4,
+    "min_sends_for_comparison": 100,
+    "replacement_threshold_pct": 0.5,
+    "variants_file": "config/email_variants.json",
+    "variant_constraints": {
+      "max_words": 60,
+      "max_sentences": 3,
+      "no_exclamation_marks": true
+    }
+  },
   "instantly": {
     "api_url": "https://api.instantly.ai/api/v2",
     "campaign_id": null,

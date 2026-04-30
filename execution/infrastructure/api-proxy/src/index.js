@@ -38,6 +38,10 @@ export default {
         return corsResponse(request, env, await handleReplyWebhook(request));
       }
 
+      if (method === "GET" && pathname === "/api/variants") {
+        return corsResponse(request, env, await handleVariants(url, env));
+      }
+
       return corsResponse(
         request,
         env,
@@ -178,6 +182,51 @@ async function handleReplyWebhook(request) {
   console.log("Reply webhook received:", JSON.stringify(payload));
 
   return jsonResponse({ success: true, received: true });
+}
+
+/**
+ * GET /api/variants?campaign_id=X
+ * Fetches per-step analytics from Instantly for variant performance.
+ */
+async function handleVariants(url, env) {
+  const campaignId = url.searchParams.get("campaign_id");
+  if (!campaignId) {
+    return jsonResponse({ error: "campaign_id parameter required" }, 400);
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.instantly.ai/api/v2/campaigns/${campaignId}/analytics/steps`,
+      {
+        headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` },
+      },
+    );
+
+    if (!res.ok) {
+      throw new Error(`Instantly API ${res.status}: ${await res.text()}`);
+    }
+
+    const data = await res.json();
+    const steps = data.steps || data.data || [];
+
+    const variants = steps.map((step, i) => ({
+      step_id: step.id || step.step_id || `step_${i}`,
+      label: step.subject || step.name || `Step ${i + 1}`,
+      emails_sent: step.total_sent ?? step.sent ?? 0,
+      replies: step.total_replied ?? step.replied ?? 0,
+      response_rate_pct: (step.total_sent ?? step.sent ?? 0) > 0
+        ? +((step.total_replied ?? step.replied ?? 0) / (step.total_sent ?? step.sent ?? 0) * 100).toFixed(1)
+        : 0,
+    }));
+
+    return jsonResponse({ campaign_id: campaignId, variants });
+  } catch (err) {
+    console.error("Variants fetch failed:", err);
+    return jsonResponse(
+      { error: "Failed to fetch variant analytics" },
+      502,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
