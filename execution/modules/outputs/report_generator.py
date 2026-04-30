@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 
 import requests
 
+from modules.outputs.telegram import send_message as telegram_send_message
 from modules.pipeline_utils import retry_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -467,6 +468,51 @@ def format_slack_report(report: dict, template: str | None = None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Telegram formatting
+# ---------------------------------------------------------------------------
+
+DEFAULT_TELEGRAM_TEMPLATE = (
+    "*{client} — Weekly Report*\n"
+    "_{date_range_start} to {date_range_end}_\n\n"
+    "*Email Performance*\n"
+    "Sent: *{emails_sent}*  |  Deliverability: *{deliverability_pct}%*\n"
+    "Replies: *{replies}* ({reply_rate_pct}%)  |  Bounces: {bounce_rate_pct}%\n\n"
+    "*CRM Pipeline*\n"
+    "Contacts: *{contacts_created}*  |  Appointments: *{appointments_booked}*\n"
+    "Pipeline: *${pipeline_value}*"
+)
+
+
+def format_telegram_report(report: dict, template: str | None = None) -> str:
+    """Render a report dict as a Telegram Markdown message.
+
+    Args:
+        report: Output of generate_report().
+        template: Optional custom Telegram template with {placeholder} tokens.
+
+    Returns:
+        Formatted Telegram message string.
+    """
+    tmpl = template or DEFAULT_TELEGRAM_TEMPLATE
+    email = report.get("email", {})
+    crm = report.get("crm", {})
+
+    return tmpl.format(
+        client=report.get("client", "Client"),
+        date_range_start=report.get("date_range", {}).get("start", ""),
+        date_range_end=report.get("date_range", {}).get("end", ""),
+        emails_sent=email.get("emails_sent", 0),
+        deliverability_pct=email.get("deliverability_pct", 0),
+        replies=email.get("replies", 0),
+        reply_rate_pct=email.get("reply_rate_pct", 0),
+        bounce_rate_pct=email.get("bounce_rate_pct", 0),
+        contacts_created=crm.get("contacts_created", 0),
+        appointments_booked=crm.get("appointments_booked", 0),
+        pipeline_value=f"{crm.get('pipeline_value', 0):,.0f}",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Sending
 # ---------------------------------------------------------------------------
 
@@ -542,6 +588,30 @@ def send_report_slack(report_slack: str, webhook_url: str) -> bool:
     resp.raise_for_status()
     logger.info("Report sent to Slack.")
     return True
+
+
+def send_report_telegram(
+    report_text: str, bot_token: str, chat_id: str,
+) -> bool:
+    """Send a formatted Telegram report via the telegram module.
+
+    Args:
+        report_text: Formatted Telegram message string.
+        bot_token: Telegram Bot API token.
+        chat_id: Telegram chat ID to send to.
+
+    Returns:
+        True on success, False on failure.
+    """
+    if not bot_token or not chat_id:
+        logger.warning("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set — skipping report Telegram send.")
+        return False
+
+    try:
+        return telegram_send_message(bot_token, chat_id, report_text, parse_mode="Markdown")
+    except Exception:
+        logger.exception("Failed to send report via Telegram")
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -640,7 +710,7 @@ def run_weekly_report(
     # --- Generate report ---
     report = generate_report(instantly_metrics, ghl_metrics, config)
 
-    result = {"report": report, "html_sent": False, "slack_sent": False}
+    result = {"report": report, "html_sent": False, "slack_sent": False, "telegram_sent": False}
 
     # --- Send via configured channels ---
     client_name = config.get("client", "Client")
@@ -663,5 +733,15 @@ def run_weekly_report(
         except Exception:
             logger.exception("Slack report delivery failed")
             result["slack_sent"] = False
+
+    if reporting_cfg.get("telegram_enabled"):
+        bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+        chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+        tg_msg = format_telegram_report(report, reporting_cfg.get("telegram_template"))
+        try:
+            result["telegram_sent"] = send_report_telegram(tg_msg, bot_token, chat_id)
+        except Exception:
+            logger.exception("Telegram report delivery failed")
+            result["telegram_sent"] = False
 
     return result

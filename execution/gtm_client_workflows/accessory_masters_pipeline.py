@@ -39,6 +39,8 @@ from modules.outputs.instantly import (
 )
 from modules.outputs.ghl import route_positive_reply
 from modules.outputs.slack import notify_positive_reply
+from modules.outputs.telegram import notify_positive_reply as telegram_notify
+from modules.outputs.auto_reply import handle_reply as auto_reply_handle
 from modules.reply_classifier import classify
 
 load_dotenv(ROOT / ".env")
@@ -262,14 +264,19 @@ def poll_replies(config: dict, mock: bool):
             system_prompt=classification_config.get("system_prompt"),
             mock_signals=classification_config.get("mock_signals"),
         )
+        reply["classification"] = classification
         logger.info(
             "Reply from %s classified as: %s",
             reply.get("from_email", "unknown"),
             classification,
         )
 
-        if classification == "positive":
+        if classification in ("hot_positive", "positive"):
             _handle_positive_reply(reply, ghl_config, notif_config, mock)
+
+        ar_result = auto_reply_handle(reply, config, mock)
+        logger.info("Auto-reply decision for %s: %s",
+                     reply.get("from_email", "unknown"), ar_result.get("action"))
 
 
 def _handle_positive_reply(reply: dict, ghl_config: dict, notif_config: dict, mock: bool):
@@ -297,8 +304,18 @@ def _handle_positive_reply(reply: dict, ghl_config: dict, notif_config: dict, mo
     else:
         logger.warning("GHL_API_KEY not set — skipping CRM routing.")
 
-    slack_url = os.environ.get("SLACK_WEBHOOK_URL", "")
-    if notif_config.get("slack_enabled", True):
+    if notif_config.get("telegram_enabled", False):
+        bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+        chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+        telegram_notify(
+            bot_token=bot_token,
+            chat_id=chat_id,
+            reply=reply,
+            template=notif_config.get("telegram_template"),
+        )
+
+    if notif_config.get("slack_enabled", False):
+        slack_url = os.environ.get("SLACK_WEBHOOK_URL", "")
         notify_positive_reply(
             webhook_url=slack_url,
             reply=reply,
@@ -309,11 +326,21 @@ def _handle_positive_reply(reply: dict, ghl_config: dict, notif_config: dict, mo
 def _get_mock_replies() -> list[dict]:
     return [
         {
+            "from_email": "maria.garcia@katymarina.com",
+            "from_name": "Maria Garcia",
+            "subject": "Re: Quick question",
+            "body": "I'm ready to sell. Call me at 832-555-0199, my number is best after 5pm.",
+            "company": "Katy Marina & Boat Storage",
+            "industry": "marina",
+            "received_at": now_iso(),
+        },
+        {
             "from_email": "john.miller@sparklecarwash.com",
             "from_name": "John Miller",
             "subject": "Re: Quick question",
             "body": "Yes, I've been thinking about selling. What's the process?",
             "company": "Sparkle Car Wash",
+            "industry": "car wash",
             "received_at": now_iso(),
         },
         {
@@ -322,6 +349,7 @@ def _get_mock_replies() -> list[dict]:
             "subject": "Re: Quick question",
             "body": "Not interested, please remove me from your list.",
             "company": "Tony's Pizza Palace",
+            "industry": "pizzeria",
             "received_at": now_iso(),
         },
         {
@@ -330,6 +358,7 @@ def _get_mock_replies() -> list[dict]:
             "subject": "Out of Office",
             "body": "I am currently out of the office and will return on Monday.",
             "company": "Clean & Fresh Laundromat",
+            "industry": "laundromat",
             "received_at": now_iso(),
         },
     ]

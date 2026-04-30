@@ -22,6 +22,11 @@ from modules.reply_classifier import classify, classify_mock
 
 SAMPLE_REPLIES = [
     {
+        "body": "I'm ready to sell. Call me at 832-555-0199, my number is best after 5pm.",
+        "expected": "hot_positive",
+        "label": "hot lead with phone number",
+    },
+    {
         "body": "Yes, I've been thinking about selling. What's the process?",
         "expected": "positive",
         "label": "interested seller",
@@ -45,6 +50,11 @@ SAMPLE_REPLIES = [
         "body": "Stop emailing me. I'm not selling anything.",
         "expected": "negative",
         "label": "hostile refusal",
+    },
+    {
+        "body": "I want to sell now. Schedule a call with me.",
+        "expected": "hot_positive",
+        "label": "hot lead ready to sell",
     },
 ]
 

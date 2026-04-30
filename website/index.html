@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Keelson & Rowe — Business Brokerage</title>
+
+<!-- Google Analytics — replace GA_MEASUREMENT_ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
+
+<!-- Meta Pixel — replace META_PIXEL_ID -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', 'META_PIXEL_ID');
+  fbq('track', 'PageView');
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          serif: ['Newsreader', 'ui-serif', 'Georgia', 'serif'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          ink: {
+            900: 'oklch(0.14 0.008 80)',
+            800: 'oklch(0.18 0.010 80)',
+            700: 'oklch(0.24 0.012 80)',
+          },
+          bone: {
+            100: 'oklch(0.97 0.010 85)',
+            200: 'oklch(0.92 0.012 85)',
+            300: 'oklch(0.82 0.010 85)',
+            400: 'oklch(0.68 0.010 85)',
+          },
+          brass: {
+            300: 'oklch(0.82 0.08 75)',
+            400: 'oklch(0.75 0.09 70)',
+            500: 'oklch(0.68 0.10 65)',
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  html, body {
+    background: oklch(0.14 0.008 80);
+    color: oklch(0.97 0.010 85);
+    font-family: 'Geist', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  .font-serif-italic { font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 300; }
+  .font-serif { font-family: 'Newsreader', Georgia, serif; font-weight: 300; }
+  .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* Liquid glass */
+  .liquid-glass {
+    background: rgba(10, 8, 6, 0.38);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.10);
+    position: relative;
+    overflow: hidden;
+  }
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.32) 0%,
+      rgba(255,255,255,0.10) 20%,
+      rgba(255,255,255,0.00) 40%,
+      rgba(255,255,255,0.00) 60%,
+      rgba(255,255,255,0.10) 80%,
+      rgba(255,255,255,0.30) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Video */
+  .hero-video {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    z-index: 0;
+  }
+  .hero-vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 60%, transparent 45%, rgba(0,0,0,0.35) 100%);
+    z-index: 1;
+  }
+
+  /* Character animation */
+  .ch {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(-18px);
+    transition: opacity 500ms cubic-bezier(.2,.7,.2,1), transform 500ms cubic-bezier(.2,.7,.2,1);
+    will-change: opacity, transform;
+  }
+  .ch.in { opacity: 1; transform: translateX(0); }
+
+  .fade-in { opacity: 0; transition: opacity 1000ms ease; }
+  .fade-in.in { opacity: 1; }
+
+  /* Placeholder stripes */
+  .ph-stripes {
+    background-image: repeating-linear-gradient(
+      135deg,
+      oklch(0.22 0.010 80) 0 10px,
+      oklch(0.18 0.010 80) 10px 20px
+    );
+  }
+  .ph-stripes-bone {
+    background-image: repeating-linear-gradient(
+      135deg,
+      oklch(0.90 0.012 85) 0 10px,
+      oklch(0.85 0.012 85) 10px 20px
+    );
+  }
+
+  .hairline { border-color: rgba(255,255,255,0.10); }
+  .hairline-dark { border-color: oklch(0.30 0.010 80); }
+
+  /* Ticker */
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker 60s linear infinite;
+  }
+
+  /* Accent var */
+  :root { --accent: oklch(0.75 0.09 70); --accent-ink: oklch(0.14 0.008 80); }
+  .accent-fg { color: var(--accent); }
+  .accent-bg { background: var(--accent); color: var(--accent-ink); }
+  .accent-border { border-color: var(--accent); }
+</style>
+</head>
+
+<body class="min-h-screen antialiased">
+
+<!-- ============================================================ -->
+<!-- HERO                                                          -->
+<!-- ============================================================ -->
+<section id="hero" class="relative w-full h-screen overflow-hidden">
+
+  <!-- Background video -->
+  <video class="hero-video" autoplay loop muted playsinline poster="">
+    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4" type="video/mp4" />
+  </video>
+
+  <div class="hero-vignette"></div>
+
+  <!-- Navbar -->
+  <div class="relative z-10 px-6 md:px-12 lg:px-16 pt-6">
+    <nav class="liquid-glass rounded-xl px-4 py-2 flex items-center justify-center">
+      <div class="flex items-center gap-6 text-sm text-bone-200">
+        <a href="#sell" class="hover:text-white transition">Sell a Business</a>
+        <a href="#process" class="hover:text-white transition">Process</a>
+        <a href="#team" class="hover:text-white transition">Team</a>
+        <a href="#valuation" class="hover:text-white transition">Free Valuation</a>
+        <a href="signup.html" class="bg-white text-black px-4 py-1.5 rounded-lg font-medium hover:bg-bone-200 transition">Book a Call</a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Hero content -->
+  <div class="relative z-10 px-6 md:px-12 lg:px-16 flex-1 flex flex-col justify-end absolute inset-0"
+       style="display:flex; flex-direction:column; justify-content:flex-end; padding-bottom: 3rem;">
+    <div class="lg:grid lg:grid-cols-12 lg:items-end gap-10 pb-4 lg:pb-6 w-full">
+
+      <!-- Left -->
+      <div class="lg:col-span-7">
+        <h1 id="headline"
+            class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-normal mb-6"
+            style="letter-spacing:-0.035em; line-height:1.02;"
+            data-text="Quietly selling the businesses\nothers spent a lifetime building.">
+        </h1>
+
+        <p class="text-base md:text-lg text-bone-300 max-w-xl mb-7 fade-in" data-delay="900">
+          We represent owners of privately-held companies between <span class="text-bone-100">$2M&nbsp;and&nbsp;$80M</span> in revenue. No listings, no auctions — just a curated, confidential path to the right buyer.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-3 fade-in" data-delay="1200">
+          <a href="#contact" class="bg-white text-black px-6 py-3 rounded-lg font-medium text-sm hover:bg-bone-200 transition">
+            Request a Confidential Valuation
+          </a>
+          <a href="#process" class="liquid-glass text-white px-6 py-3 rounded-lg font-medium text-sm hover:bg-white/10 transition inline-flex items-center gap-2">
+            How we sell
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8m0 0-3-3m3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="lg:col-span-5 flex items-end lg:justify-end mt-10 lg:mt-0 fade-in" data-delay="1400">
+        <div class="liquid-glass rounded-xl p-5 w-full max-w-sm">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] tracking-[0.2em] uppercase text-bone-300 font-mono">Current engagement</span>
+            <span class="text-[10px] font-mono accent-fg">&#9679; LIVE</span>
+          </div>
+          <div class="font-serif text-xl md:text-2xl mb-1" style="letter-spacing:-0.015em;">
+            Regional HVAC services firm
+          </div>
+          <div class="text-sm text-bone-300 mb-4">Mid-Atlantic &middot; 214 employees &middot; EBITDA $6.8M</div>
+          <div class="h-px bg-white/10 my-4"></div>
+          <div class="grid grid-cols-3 gap-3 text-left">
+            <div>
+              <div class="text-[10px] tracking-widest uppercase text-bone-300 font-mono">Stage</div>
+              <div class="text-sm mt-1">IOIs<br/>received</div>
+            </div>
+            <div>
+              <div class="text-[10px] tracking-widest uppercase text-bone-300 font-mono">Bidders</div>
+              <div class="text-sm mt-1 font-serif text-2xl">14</div>
+            </div>
+            <div>
+              <div class="text-[10px] tracking-widest uppercase text-bone-300 font-mono">Close</div>
+              <div class="text-sm mt-1">Q3<br/>2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- bottom-right badge -->
+  <div class="absolute bottom-6 right-6 md:right-12 lg:right-16 z-10 text-[10px] tracking-widest uppercase text-bone-300 font-mono fade-in" data-delay="1600">
+    <span class="opacity-60">scroll</span> &nbsp;&darr;
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TICKER                                                        -->
+<!-- ============================================================ -->
+<section class="border-y hairline-dark bg-ink-900 py-4 overflow-hidden">
+  <div class="ticker-track">
+    <div class="flex items-center gap-10 pr-10 font-mono text-[11px] text-bone-400 tracking-widest uppercase whitespace-nowrap">
+      <span>&#9679; Signed LOI — Precision Machining Firm — $42M EV</span>
+      <span>&#9679;</span>
+      <span>Closed — Regional Logistics Company — 7.8&times; EBITDA</span>
+      <span>&#9679;</span>
+      <span>In Market — Specialty Food Manufacturer — EBITDA $4.1M</span>
+      <span>&#9679;</span>
+      <span>Closed — MedTech Distributor — Strategic buyer</span>
+      <span>&#9679;</span>
+      <span>Signed LOI — Plastics Manufacturer — $18M EV</span>
+      <span>&#9679;</span>
+      <span>Closed — Managed IT Services Provider — 9.2&times; EBITDA</span>
+      <span>&#9679;</span>
+      <span>In Market — Multi-site Car Wash Operator — 12 locations</span>
+      <span>&#9679;</span>
+      <span>Closed — Regional HVAC Services — 8.4&times; EBITDA</span>
+      <span>&#9679;</span>
+    </div>
+    <div class="flex items-center gap-10 pr-10 font-mono text-[11px] text-bone-400 tracking-widest uppercase whitespace-nowrap" aria-hidden="true">
+      <span>&#9679; Signed LOI — Precision Machining Firm — $42M EV</span>
+      <span>&#9679;</span>
+      <span>Closed — Regional Logistics Company — 7.8&times; EBITDA</span>
+      <span>&#9679;</span>
+      <span>In Market — Specialty Food Manufacturer — EBITDA $4.1M</span>
+      <span>&#9679;</span>
+      <span>Closed — MedTech Distributor — Strategic buyer</span>
+      <span>&#9679;</span>
+      <span>Signed LOI — Plastics Manufacturer — $18M EV</span>
+      <span>&#9679;</span>
+      <span>Closed — Managed IT Services Provider — 9.2&times; EBITDA</span>
+      <span>&#9679;</span>
+      <span>In Market — Multi-site Car Wash Operator — 12 locations</span>
+      <span>&#9679;</span>
+      <span>Closed — Regional HVAC Services — 8.4&times; EBITDA</span>
+      <span>&#9679;</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- VALUE PROPS                                                   -->
+<!-- ============================================================ -->
+<section id="sell" class="px-6 md:px-12 lg:px-16 py-24 lg:py-32 border-b hairline-dark">
+  <div class="grid lg:grid-cols-12 gap-12">
+    <div class="lg:col-span-4">
+      <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-6">/ 01 — Who we are</div>
+      <h2 class="text-4xl md:text-5xl font-normal" style="letter-spacing:-0.03em; line-height:1.05;">
+        A brokerage built for <span class="font-serif-italic text-bone-200">owners,</span> not listings.
+      </h2>
+    </div>
+    <div class="lg:col-span-7 lg:col-start-6 text-bone-300 space-y-5 text-lg" style="line-height:1.5;">
+      <p>Most brokerages push volume. Every seller works directly with a partner from first conversation through wire transfer.</p>
+      <p>The businesses we represent were built over decades — usually by a single family, occasionally by two. Selling one is rarely just a transaction. We treat it that way.</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-px mt-20 bg-white/10 border hairline">
+    <div class="bg-ink-900 p-8">
+      <div class="font-serif text-5xl mb-3" style="letter-spacing:-0.02em;">92<span class="accent-fg text-3xl">%</span></div>
+      <div class="text-sm text-bone-300 max-w-xs">of our engagements close. The industry average is 38%.</div>
+    </div>
+    <div class="bg-ink-900 p-8">
+      <div class="font-serif text-5xl mb-3" style="letter-spacing:-0.02em;">7.4<span class="accent-fg text-3xl">&times;</span></div>
+      <div class="text-sm text-bone-300 max-w-xs">median EBITDA multiple across closed deals in the last 36 months.</div>
+    </div>
+    <div class="bg-ink-900 p-8">
+      <div class="font-serif text-5xl mb-3" style="letter-spacing:-0.02em;">164<span class="accent-fg text-3xl"> days</span></div>
+      <div class="text-sm text-bone-300 max-w-xs">from kickoff to signed LOI. Confidentiality preserved throughout.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PROCESS                                                       -->
+<!-- ============================================================ -->
+<section id="process" class="px-6 md:px-12 lg:px-16 py-24 lg:py-32 border-b hairline-dark bg-ink-800">
+  <div class="grid lg:grid-cols-12 gap-12 mb-16">
+    <div class="lg:col-span-5">
+      <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-6">/ 02 — How we work</div>
+      <h2 class="text-4xl md:text-5xl font-normal" style="letter-spacing:-0.03em; line-height:1.05;">
+        Five stages.<br/>
+        <span class="font-serif-italic text-bone-200">One partner, start to finish.</span>
+      </h2>
+    </div>
+    <div class="lg:col-span-6 lg:col-start-7 text-bone-300 text-lg self-end">
+      No junior associates. No handoffs. When you sign with us, you sign with a partner whose name is on the door — and who will sit across from every buyer in every room.
+    </div>
+  </div>
+
+  <div class="border-t hairline">
+    <div class="grid grid-cols-12 gap-4 py-6 border-b hairline items-baseline">
+      <div class="col-span-2 md:col-span-1 font-mono text-xs text-bone-400">01</div>
+      <div class="col-span-10 md:col-span-3 font-serif text-2xl">Discovery</div>
+      <div class="col-span-12 md:col-span-8 text-bone-300">Weeks of conversation, not meetings. We learn your business the way you learned it — by asking the same questions, over and over, until the picture is unmistakable.</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-6 border-b hairline items-baseline">
+      <div class="col-span-2 md:col-span-1 font-mono text-xs text-bone-400">02</div>
+      <div class="col-span-10 md:col-span-3 font-serif text-2xl">Positioning</div>
+      <div class="col-span-12 md:col-span-8 text-bone-300">The CIM. The teaser. The financial model. Every document is written in-house by the partner running your deal. Never outsourced. Never templated.</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-6 border-b hairline items-baseline">
+      <div class="col-span-2 md:col-span-1 font-mono text-xs text-bone-400">03</div>
+      <div class="col-span-10 md:col-span-3 font-serif text-2xl">Quiet Outreach</div>
+      <div class="col-span-12 md:col-span-8 text-bone-300">A shortlist of 40–120 buyers. Every approach NDA'd. Your customers, employees, and competitors never learn the company is for sale.</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-6 border-b hairline items-baseline">
+      <div class="col-span-2 md:col-span-1 font-mono text-xs text-bone-400">04</div>
+      <div class="col-span-10 md:col-span-3 font-serif text-2xl">Competitive Process</div>
+      <div class="col-span-12 md:col-span-8 text-bone-300">Management meetings, IOIs, LOIs. We orchestrate tension without theatrics — so the highest bidder is also the right fit for what you've built.</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-6 items-baseline">
+      <div class="col-span-2 md:col-span-1 font-mono text-xs text-bone-400">05</div>
+      <div class="col-span-10 md:col-span-3 font-serif text-2xl">Close</div>
+      <div class="col-span-12 md:col-span-8 text-bone-300">Diligence, purchase agreement, escrow, wire. We've closed through bank collapses, pandemics, and two recessions. The steps don't change.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PRACTICE AREAS                                                -->
+<!-- ============================================================ -->
+<section id="practice" class="px-6 md:px-12 lg:px-16 py-24 lg:py-32 border-b hairline-dark">
+  <div class="flex items-end justify-between mb-12 flex-wrap gap-4">
+    <div>
+      <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-6">/ 03 — Where we focus</div>
+      <h2 class="text-4xl md:text-5xl font-normal max-w-2xl" style="letter-spacing:-0.03em; line-height:1.05;">
+        Eight practices. One principle — <span class="font-serif-italic">businesses with something real to sell.</span>
+      </h2>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 border hairline">
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&w=1200&q=70" alt="Industrial manufacturing plant" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ MANUFACTURING ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Industrial Manufacturing</div>
+      <div class="text-sm text-bone-300">Precision machining, fabrication, specialty chemicals.</div>
+    </div>
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=70" alt="Construction site" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ SERVICES ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Home &amp; Commercial Services</div>
+      <div class="text-sm text-bone-300">HVAC, plumbing, electrical, commercial cleaning, landscaping, and pest control.</div>
+    </div>
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=1200&q=70" alt="Medical spa" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ HEALTHCARE ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Healthcare Services</div>
+      <div class="text-sm text-bone-300">Multi-site dental, vet, and specialty practices.</div>
+    </div>
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=70" alt="Semi truck on highway" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ LOGISTICS ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Transport &amp; Logistics</div>
+      <div class="text-sm text-bone-300">Regional trucking, last-mile, warehousing.</div>
+    </div>
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=70" alt="Restaurant interior" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ FOOD &amp; BEV ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Food &amp; Beverage</div>
+      <div class="text-sm text-bone-300">Branded CPG, specialty, regional distribution.</div>
+    </div>
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=1200&q=70" alt="Car wash" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ CAR WASHES ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Car Washes</div>
+      <div class="text-sm text-bone-300">Express tunnel, in-bay automatic, multi-site chains.</div>
+    </div>
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=70" alt="Laundromat" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ LAUNDROMATS ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Laundromats</div>
+      <div class="text-sm text-bone-300">Multi-location coin and card operations.</div>
+    </div>
+    <div class="bg-ink-900 p-6 group hover:bg-ink-700 transition">
+      <div class="aspect-[4/3] mb-5 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=70" alt="Commercial real estate building" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <span class="absolute inset-0 flex items-end p-3 font-mono text-[10px] text-bone-100 tracking-widest bg-gradient-to-t from-black/70 to-transparent">[ COMMERCIAL RE ]</span>
+      </div>
+      <div class="font-serif text-xl mb-1">Commercial Real Estate</div>
+      <div class="text-sm text-bone-300">Office, retail, industrial, multifamily, hospitality, medical office, self-storage, and mixed-use.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- RECENT DEALS                                                  -->
+<!-- ============================================================ -->
+<section id="deals" class="px-6 md:px-12 lg:px-16 py-24 lg:py-32 border-b hairline-dark bg-ink-800">
+  <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-6">/ 04 — Selected transactions</div>
+  <h2 class="text-4xl md:text-5xl font-normal max-w-3xl mb-16" style="letter-spacing:-0.03em; line-height:1.05;">
+    We'll gladly show you the rest — <span class="font-serif-italic">in person, under NDA.</span>
+  </h2>
+
+  <div class="border-t hairline text-sm">
+    <div class="grid grid-cols-12 gap-4 py-3 text-[10px] tracking-[0.2em] uppercase text-bone-400 font-mono border-b hairline">
+      <div class="col-span-1">Year</div>
+      <div class="col-span-5">Business</div>
+      <div class="col-span-2">Sector</div>
+      <div class="col-span-2">Buyer Type</div>
+      <div class="col-span-2 text-right">Consideration</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-4 border-b hairline items-baseline hover:bg-ink-700/50 transition">
+      <div class="col-span-1 font-mono text-bone-400">2026</div>
+      <div class="col-span-5 font-serif text-lg">Regional Logistics Company</div>
+      <div class="col-span-2 text-bone-300">Logistics</div>
+      <div class="col-span-2 text-bone-300">Private Equity</div>
+      <div class="col-span-2 text-right">$64M</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-4 border-b hairline items-baseline hover:bg-ink-700/50 transition">
+      <div class="col-span-1 font-mono text-bone-400">2026</div>
+      <div class="col-span-5 font-serif text-lg">MedTech Distributor</div>
+      <div class="col-span-2 text-bone-300">Healthcare</div>
+      <div class="col-span-2 text-bone-300">Strategic</div>
+      <div class="col-span-2 text-right">$46M</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-4 border-b hairline items-baseline hover:bg-ink-700/50 transition">
+      <div class="col-span-1 font-mono text-bone-400">2026</div>
+      <div class="col-span-5 font-serif text-lg">Managed IT Services Provider</div>
+      <div class="col-span-2 text-bone-300">IT Services</div>
+      <div class="col-span-2 text-bone-300">PE-backed</div>
+      <div class="col-span-2 text-right">$38M</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-4 border-b hairline items-baseline hover:bg-ink-700/50 transition">
+      <div class="col-span-1 font-mono text-bone-400">2026</div>
+      <div class="col-span-5 font-serif text-lg">Plastics Manufacturer</div>
+      <div class="col-span-2 text-bone-300">Manufacturing</div>
+      <div class="col-span-2 text-bone-300">Strategic</div>
+      <div class="col-span-2 text-right">$18M</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-4 border-b hairline items-baseline hover:bg-ink-700/50 transition">
+      <div class="col-span-1 font-mono text-bone-400">2026</div>
+      <div class="col-span-5 font-serif text-lg">Multi-site Dental Group</div>
+      <div class="col-span-2 text-bone-300">Healthcare</div>
+      <div class="col-span-2 text-bone-300">Private Equity</div>
+      <div class="col-span-2 text-right">$27M</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-4 border-b hairline items-baseline hover:bg-ink-700/50 transition">
+      <div class="col-span-1 font-mono text-bone-400">2026</div>
+      <div class="col-span-5 font-serif text-lg">Regional HVAC Services</div>
+      <div class="col-span-2 text-bone-300">Services</div>
+      <div class="col-span-2 text-bone-300">Family Office</div>
+      <div class="col-span-2 text-right">$51M</div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4 py-4 items-baseline hover:bg-ink-700/50 transition">
+      <div class="col-span-1 font-mono text-bone-400">2026</div>
+      <div class="col-span-5 font-serif text-lg">Specialty Food Manufacturer</div>
+      <div class="col-span-2 text-bone-300">CPG</div>
+      <div class="col-span-2 text-bone-300">Strategic</div>
+      <div class="col-span-2 text-right">$29M</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TESTIMONIAL                                                   -->
+<!-- ============================================================ -->
+<section class="px-6 md:px-12 lg:px-16 py-24 lg:py-32 border-b hairline-dark">
+  <div class="grid lg:grid-cols-12 gap-12 items-start">
+    <div class="lg:col-span-2">
+      <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono">/ 05</div>
+    </div>
+    <div class="lg:col-span-8">
+      <blockquote class="font-serif text-3xl md:text-4xl lg:text-5xl leading-tight mb-10" style="letter-spacing:-0.02em;">
+        <span class="accent-fg">&ldquo;</span>We talked to four brokers. The other three pitched us a process. Keelson &amp; Rowe pitched us a buyer — and then went and found them. Thirty-one years of work sold in one quiet afternoon.<span class="accent-fg">&rdquo;</span>
+      </blockquote>
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full ph-stripes-bone"></div>
+        <div>
+          <div class="text-sm">Daniel Ostrow</div>
+          <div class="text-sm text-bone-400">Founder, Ostrow Precision (sold 2025)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TEAM                                                          -->
+<!-- ============================================================ -->
+<section id="team" class="px-6 md:px-12 lg:px-16 py-24 lg:py-32 border-b hairline-dark bg-ink-800">
+  <div class="grid lg:grid-cols-12 gap-12 items-end mb-16">
+    <div class="lg:col-span-7">
+      <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-6">/ 06 — Team</div>
+      <h2 class="text-4xl md:text-5xl lg:text-6xl font-normal" style="letter-spacing:-0.035em; line-height:1.02;">
+        Two partners. <span class="font-serif-italic">Every engagement.</span>
+      </h2>
+    </div>
+    <div class="lg:col-span-4 lg:col-start-9">
+      <p class="text-bone-300 text-base md:text-lg">
+        You won't be handed off to a junior associate. From first call through closing wire, you work directly with the partner who signed the engagement.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-10 lg:gap-16">
+
+    <!-- Simon Walder -->
+    <article class="grid grid-cols-5 gap-6 items-start">
+      <div class="col-span-2">
+        <div class="aspect-[4/5] overflow-hidden rounded-sm bg-ink-900">
+          <img src="assets/simon-walder.jpeg" alt="Simon Walder" class="w-full h-full object-cover grayscale contrast-105" />
+        </div>
+      </div>
+      <div class="col-span-3">
+        <div class="text-[10px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-3">Managing Partner</div>
+        <h3 class="font-serif text-3xl md:text-4xl mb-1" style="letter-spacing:-0.02em;">Simon Walder</h3>
+        <div class="text-sm text-bone-400 mb-5 font-mono">SW &middot; Sell-side &middot; Healthcare, Services</div>
+        <div class="space-y-4 text-[15px] text-bone-200 leading-relaxed">
+          <p>Simon co-founded the firm to build the kind of advisory practice he wished had existed when he first started in the industry — small by design, partner-led, and patient enough to do the work properly.</p>
+          <p>His background spans sell-side advisory and leveraged finance, with an early career in Indiana before relocating to lead the firm's healthcare and services practice. He holds an M.Sc. in Finance from the University of Notre Dame.</p>
+          <p class="text-bone-400 italic font-serif">"My job is to be the calmest person in the room on the worst day of the deal."</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Aleksandar Urdarevik -->
+    <article class="grid grid-cols-5 gap-6 items-start">
+      <div class="col-span-2">
+        <div class="aspect-[4/5] overflow-hidden rounded-sm bg-ink-900">
+          <img src="assets/aleksandar-urdarevik.png" alt="Aleksandar Urdarevik" class="w-full h-full object-cover grayscale contrast-105" />
+        </div>
+      </div>
+      <div class="col-span-3">
+        <div class="text-[10px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-3">Partner</div>
+        <h3 class="font-serif text-3xl md:text-4xl mb-1" style="letter-spacing:-0.02em;">Aleksandar Urdarevik</h3>
+        <div class="text-sm text-bone-400 mb-5 font-mono">AU &middot; Buyer network &middot; Tech, Finance, Industrial</div>
+        <div class="space-y-4 text-[15px] text-bone-200 leading-relaxed">
+          <p>Aleksandar leads the firm's buyer-coverage practice, focused on cultivating long-standing relationships with private-equity groups, family offices, and strategic acquirers across North America and Europe.</p>
+          <p>His background is in principal investing, with earlier experience on the buy-side of the lower-middle market. He holds a B.A. in Economics from Western Michigan University and is fluent in three languages.</p>
+          <p class="text-bone-400 italic font-serif">"The right buyer is rarely the loudest. We find the ones who will still be good stewards in five years."</p>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CTA / CONTACT FORM                                            -->
+<!-- ============================================================ -->
+<section id="contact" class="px-6 md:px-12 lg:px-16 py-24 lg:py-32 border-b hairline-dark bg-ink-900">
+  <div class="grid lg:grid-cols-12 gap-12 items-end">
+    <div class="lg:col-span-7">
+      <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-6">/ 07 — Next step</div>
+      <h2 class="text-5xl md:text-6xl lg:text-7xl font-normal mb-8" style="letter-spacing:-0.04em; line-height:0.98;">
+        Start with a <span class="font-serif-italic">thirty-minute</span> conversation.
+      </h2>
+      <p class="text-bone-300 text-lg max-w-xl mb-8">
+        No pitch deck. No sales call. We'll ask three questions about your business, tell you honestly whether we're a fit, and — if we are — send a valuation framework within a week.
+      </p>
+
+      <form id="contactForm" class="max-w-xl">
+        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+          <input type="text" name="firstName" placeholder="First name" class="bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition" required/>
+          <input type="text" name="lastName" placeholder="Last name" class="bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition" required/>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+          <input type="email" name="email" placeholder="Email" class="bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition" required/>
+          <input type="tel" name="phone" placeholder="Phone number" class="bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition"/>
+        </div>
+        <div class="flex items-center gap-4 flex-wrap mt-6">
+          <button type="submit" class="bg-white text-black px-7 py-3 rounded-lg font-medium text-sm hover:bg-bone-200 transition">Request a conversation</button>
+          <a href="signup.html" class="text-sm text-bone-300 hover:text-white transition underline underline-offset-4 decoration-bone-400">Or book a call directly &rarr;</a>
+        </div>
+        <div id="formSuccess" class="hidden mt-6 text-sm accent-fg font-mono">&#10003; Received. A partner will respond within one business day.</div>
+        <div id="formError" class="hidden mt-6 text-sm text-red-400 font-mono">Something went wrong. Please try again or email us directly.</div>
+      </form>
+    </div>
+
+    <div class="lg:col-span-4 lg:col-start-9">
+      <div class="rounded-xl overflow-hidden border hairline aspect-[4/5] relative">
+        <img src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?auto=format&fit=crop&w=1200&q=70" alt="A quiet meeting room" class="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-6">
+          <div class="text-[10px] tracking-[0.2em] uppercase text-bone-300 font-mono mb-2">The first meeting</div>
+          <div class="font-serif text-xl text-bone-100" style="letter-spacing:-0.015em;">
+            Usually over coffee. Always off the record.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                        -->
+<!-- ============================================================ -->
+<footer class="px-6 md:px-12 lg:px-16 py-12 bg-ink-900">
+  <div class="flex flex-wrap items-center justify-between gap-6 text-xs text-bone-400 font-mono">
+    <div class="flex items-center gap-3">
+      <svg width="18" height="18" viewBox="0 0 22 22"><rect x="3" y="4" width="3" height="14" fill="currentColor" /><rect x="9" y="4" width="3" height="14" fill="currentColor" opacity="0.55" /><rect x="15" y="4" width="3" height="14" fill="currentColor" opacity="0.25" /></svg>
+      <span>KEELSON &amp; ROWE &middot; LLC &middot; EST. 2006</span>
+    </div>
+    <div class="flex items-center gap-6">
+      <a href="#" class="hover:text-white">Privacy</a>
+      <a href="#" class="hover:text-white">Licensing</a>
+      <a href="#" class="hover:text-white">Disclaimers</a>
+      <span>&copy; 2026</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================ -->
+<!-- Scripts                                                       -->
+<!-- ============================================================ -->
+<script>
+/* ---------- Headline character animation ---------- */
+(function(){
+  const el = document.getElementById('headline');
+  if (!el) return;
+  const raw = el.dataset.text;
+  const lines = raw.split('\\n');
+  let longest = 0;
+  lines.forEach(l => longest = Math.max(longest, l.length));
+
+  const charDelay = 30;
+  const initialDelay = 200;
+  let html = '';
+  lines.forEach((line, li) => {
+    html += '<span style="display:block;">';
+    for (let ci = 0; ci < line.length; ci++) {
+      const c = line[ci] === ' ' ? ' ' : line[ci];
+      const d = initialDelay + (li * longest * charDelay) + (ci * charDelay);
+      html += `<span class="ch" style="transition-delay:${d}ms;">${c}</span>`;
+    }
+    html += '</span>';
+  });
+  el.innerHTML = html;
+  requestAnimationFrame(() => {
+    el.querySelectorAll('.ch').forEach(s => s.classList.add('in'));
+  });
+})();
+
+/* ---------- Fade-in ---------- */
+document.querySelectorAll('.fade-in').forEach(el => {
+  const d = parseInt(el.dataset.delay || '0', 10);
+  setTimeout(() => el.classList.add('in'), d);
+});
+</script>
+
+<!-- Form handler (GHL integration) -->
+<script src="js/form.js"></script>
+
+</body>
+</html>

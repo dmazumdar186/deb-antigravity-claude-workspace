@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Book a Call — Keelson & Rowe</title>
+
+<!-- Google Analytics — replace GA_MEASUREMENT_ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
+
+<!-- Meta Pixel — replace META_PIXEL_ID -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', 'META_PIXEL_ID');
+  fbq('track', 'PageView');
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          serif: ['Newsreader', 'ui-serif', 'Georgia', 'serif'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          ink: {
+            900: 'oklch(0.14 0.008 80)',
+            800: 'oklch(0.18 0.010 80)',
+            700: 'oklch(0.24 0.012 80)',
+          },
+          bone: {
+            100: 'oklch(0.97 0.010 85)',
+            200: 'oklch(0.92 0.012 85)',
+            300: 'oklch(0.82 0.010 85)',
+            400: 'oklch(0.68 0.010 85)',
+          },
+          brass: {
+            300: 'oklch(0.82 0.08 75)',
+            400: 'oklch(0.75 0.09 70)',
+            500: 'oklch(0.68 0.10 65)',
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  html, body {
+    background: oklch(0.14 0.008 80);
+    color: oklch(0.97 0.010 85);
+    font-family: 'Geist', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  .font-serif-italic { font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 300; }
+  .font-serif { font-family: 'Newsreader', Georgia, serif; font-weight: 300; }
+  .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  .liquid-glass {
+    background: rgba(10, 8, 6, 0.38);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.10);
+    position: relative;
+    overflow: hidden;
+  }
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.32) 0%,
+      rgba(255,255,255,0.10) 20%,
+      rgba(255,255,255,0.00) 40%,
+      rgba(255,255,255,0.00) 60%,
+      rgba(255,255,255,0.10) 80%,
+      rgba(255,255,255,0.30) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .hairline { border-color: rgba(255,255,255,0.10); }
+  .hairline-dark { border-color: oklch(0.30 0.010 80); }
+
+  :root { --accent: oklch(0.75 0.09 70); --accent-ink: oklch(0.14 0.008 80); }
+  .accent-fg { color: var(--accent); }
+</style>
+</head>
+
+<body class="min-h-screen antialiased flex flex-col">
+
+<!-- ============================================================ -->
+<!-- NAVBAR                                                        -->
+<!-- ============================================================ -->
+<div class="px-6 md:px-12 lg:px-16 pt-6">
+  <nav class="liquid-glass rounded-xl px-4 py-2 flex items-center justify-center">
+    <div class="flex items-center gap-6 text-sm text-bone-200">
+      <a href="index.html" class="hover:text-white transition">&larr; Back to Home</a>
+      <a href="index.html#sell" class="hover:text-white transition hidden md:inline">Sell a Business</a>
+      <a href="index.html#process" class="hover:text-white transition hidden md:inline">Process</a>
+      <a href="index.html#team" class="hover:text-white transition hidden md:inline">Team</a>
+    </div>
+  </nav>
+</div>
+
+<!-- ============================================================ -->
+<!-- MAIN CONTENT                                                  -->
+<!-- ============================================================ -->
+<main class="flex-1 px-6 md:px-12 lg:px-16 py-16 lg:py-24">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <div class="text-center mb-16">
+      <div class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono mb-6">Book a call</div>
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-normal mb-6" style="letter-spacing:-0.035em; line-height:1.02;">
+        Let's start with a <span class="font-serif-italic">conversation.</span>
+      </h1>
+      <p class="text-bone-300 text-lg max-w-xl mx-auto">
+        Pick a time that works, or fill out the form below and a partner will reach out within one business day.
+      </p>
+    </div>
+
+    <!-- Two-column: Calendly + Form -->
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-16">
+
+      <!-- Calendly embed -->
+      <div>
+        <h2 class="text-sm font-mono text-bone-400 tracking-[0.15em] uppercase mb-6">Schedule directly</h2>
+        <!-- Calendly inline widget — replace CALENDLY_URL -->
+        <div class="calendly-inline-widget" data-url="CALENDLY_URL" style="min-width:320px;height:700px;"></div>
+        <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+      </div>
+
+      <!-- Contact form -->
+      <div>
+        <h2 class="text-sm font-mono text-bone-400 tracking-[0.15em] uppercase mb-6">Or send us a message</h2>
+
+        <form id="contactForm" class="space-y-5">
+          <div>
+            <input type="text" name="firstName" placeholder="First name"
+                   class="w-full bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition" required />
+          </div>
+          <div>
+            <input type="text" name="lastName" placeholder="Last name"
+                   class="w-full bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition" required />
+          </div>
+          <div>
+            <input type="email" name="email" placeholder="Email"
+                   class="w-full bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition" required />
+          </div>
+          <div>
+            <input type="tel" name="phone" placeholder="Phone number"
+                   class="w-full bg-transparent border-b hairline py-3 text-bone-100 placeholder-bone-400 focus:outline-none focus:border-white transition" />
+          </div>
+          <div class="pt-4">
+            <button type="submit" class="w-full bg-white text-black px-7 py-3 rounded-lg font-medium text-sm hover:bg-bone-200 transition">
+              Request a conversation
+            </button>
+          </div>
+          <div class="text-center">
+            <span class="text-xs text-bone-400 font-mono">Strictly confidential &middot; NDA on request</span>
+          </div>
+          <div id="formSuccess" class="hidden text-sm accent-fg font-mono text-center">&#10003; Received. A partner will respond within one business day.</div>
+          <div id="formError" class="hidden text-sm text-red-400 font-mono text-center">Something went wrong. Please try again or email us directly.</div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                        -->
+<!-- ============================================================ -->
+<footer class="px-6 md:px-12 lg:px-16 py-12 bg-ink-900 border-t hairline-dark">
+  <div class="flex flex-wrap items-center justify-between gap-6 text-xs text-bone-400 font-mono">
+    <div class="flex items-center gap-3">
+      <svg width="18" height="18" viewBox="0 0 22 22"><rect x="3" y="4" width="3" height="14" fill="currentColor" /><rect x="9" y="4" width="3" height="14" fill="currentColor" opacity="0.55" /><rect x="15" y="4" width="3" height="14" fill="currentColor" opacity="0.25" /></svg>
+      <span>KEELSON &amp; ROWE &middot; LLC &middot; EST. 2006</span>
+    </div>
+    <div class="flex items-center gap-6">
+      <a href="#" class="hover:text-white">Privacy</a>
+      <a href="#" class="hover:text-white">Licensing</a>
+      <a href="#" class="hover:text-white">Disclaimers</a>
+      <span>&copy; 2026</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Form handler (GHL integration) -->
+<script src="js/form.js"></script>
+
+</body>
+</html>

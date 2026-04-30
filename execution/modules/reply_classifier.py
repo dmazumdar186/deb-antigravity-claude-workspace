@@ -13,14 +13,19 @@ logger = logging.getLogger(__name__)
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 DEFAULT_SYSTEM_PROMPT = (
-    "Classify this cold email reply as exactly one of: positive, negative, neutral.\n"
+    "Classify this cold email reply as exactly one of: hot_positive, positive, negative, neutral.\n"
+    "hot_positive = gives a phone number, says ready to sell, wants to schedule a call immediately\n"
     "positive = interested in selling their business, wants to talk, asks about the process\n"
     "negative = not interested, asks to be removed, hostile\n"
     "neutral = out of office, auto-reply, bounce, unclear\n"
-    "Reply with exactly one word: positive, negative, or neutral."
+    "Reply with exactly one word: hot_positive, positive, negative, or neutral."
 )
 
 DEFAULT_MOCK_SIGNALS = {
+    "hot_positive": [
+        "phone number", "call me at", "my number is", "ready to sell",
+        "want to sell now", "schedule a call",
+    ],
     "negative": [
         "not interested", "remove", "stop", "unsubscribe",
         "no thanks", "don't", "no longer",
@@ -33,7 +38,7 @@ DEFAULT_MOCK_SIGNALS = {
     ],
 }
 
-VALID_CLASSES = {"positive", "negative", "neutral"}
+VALID_CLASSES = {"hot_positive", "positive", "negative", "neutral"}
 
 
 def classify_mock(body: str, signals: dict | None = None) -> str:
@@ -41,6 +46,9 @@ def classify_mock(body: str, signals: dict | None = None) -> str:
     sigs = signals or DEFAULT_MOCK_SIGNALS
     text = (body or "").lower()
 
+    for signal in sigs.get("hot_positive", []):
+        if signal in text:
+            return "hot_positive"
     for signal in sigs.get("negative", []):
         if signal in text:
             return "negative"

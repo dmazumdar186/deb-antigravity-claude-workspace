@@ -1,0 +1,11 @@
+name = "accessory-masters-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+GHL_LOCATION_ID = "sCxQ92Y8b7PpfLloGqOn"
+ALLOWED_ORIGINS = "https://accessorymasters.com,http://localhost:3000"
+
+# Secrets (set via `wrangler secret put`):
+# GHL_API_KEY
+# INSTANTLY_API_KEY
