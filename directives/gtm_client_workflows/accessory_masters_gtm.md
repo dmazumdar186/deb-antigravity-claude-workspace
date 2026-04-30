@@ -1,7 +1,7 @@
 # Accessory Masters — GTM Pipeline Master Directive
 
 ## Goal
-Run the end-to-end cold email pipeline for Accessory Masters: source business leads, find and verify emails, generate personalized openers, upload to Instantly.ai, detect replies, classify positive/negative/neutral, route positive leads to GoHighLevel CRM, and notify the team via Slack.
+Run the end-to-end cold email pipeline for Accessory Masters: source business leads, find and verify emails, generate personalized openers, upload to Instantly.ai, detect replies, classify hot_positive/positive/negative/neutral, route positive leads to GoHighLevel CRM, auto-reply to nurture positive leads, and notify the team via Telegram for hot leads requiring human takeover.
 
 ## When to Use
 - **Daily**: Run the sourcing-to-upload pipeline for new leads
@@ -21,7 +21,8 @@ Run the end-to-end cold email pipeline for Accessory Masters: source business le
 | `ANTHROPIC_API_KEY` | AI openers + reply classification | Already in .env |
 | `INSTANTLY_API_KEY` | Lead upload + reply polling | Already in .env |
 | `GHL_API_KEY` | CRM contact/opportunity creation | Client provides (May 1) |
-| `SLACK_WEBHOOK_URL` | Positive reply notifications | Configure after Slack channel created |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot API — positive reply + hot lead notifications | Client creates bot, shares token |
+| `TELEGRAM_CHAT_ID` | Telegram group chat ID for notifications | Client creates group, shares chat ID |
 
 ### Config Files
 - `config/accessory_masters.json` — ICP, geography, thresholds, API URLs, pipeline settings
@@ -182,7 +183,9 @@ serper_maps_scraper.py          prospeo_leads.py
               v               v
       GHL contact +       log only
       opportunity +
-      Slack notification
+      Telegram notification
+      (hot lead → human takeover)
+      (positive → AI auto-reply)
 ```
 
 ## Edge Cases
