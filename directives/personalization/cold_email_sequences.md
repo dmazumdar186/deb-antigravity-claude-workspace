@@ -12,7 +12,7 @@ After enrichment + verification. This is the third stage in the pipeline, runnin
 - `--tone-config`: Path to tone config (default: `config/tone.json`)
 - `--batch-size`: Leads per batch (default: 50)
 - `--mock`: Use template-based mock openers instead of real API
-- Env var: `ANTHROPIC_API_KEY` (already in `.env`)
+- Env var: `OPENROUTER_API_KEY` (already in `.env`)
 
 ## Tools/Scripts
 - `execution/personalization/ai_opener_generator.py` — AI opener generator

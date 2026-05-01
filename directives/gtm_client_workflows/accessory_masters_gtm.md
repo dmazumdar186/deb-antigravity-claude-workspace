@@ -18,7 +18,7 @@ Run the end-to-end cold email pipeline for Accessory Masters: source business le
 | `PROSPEO_API_KEY` | B2B lead database | Client provides (May 1) |
 | `ANYMAILFINDER_API_KEY` | Email finder | Client provides (May 1) |
 | `MILLION_VERIFIER_API_KEY` | Email verification | Client provides (May 1) |
-| `ANTHROPIC_API_KEY` | AI openers + reply classification | Already in .env |
+| `OPENROUTER_API_KEY` | AI openers + reply classification | Already in .env |
 | `INSTANTLY_API_KEY` | Lead upload + reply polling | Already in .env |
 | `GHL_API_KEY` | CRM contact/opportunity creation | Client provides (May 1) |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot API — positive reply + hot lead notifications | Client creates bot, shares token |
