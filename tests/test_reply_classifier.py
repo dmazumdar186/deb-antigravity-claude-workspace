@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 test_reply_classifier.py
-description: Tests the reply classifier module with both mock and real Claude Haiku calls.
-inputs: ANTHROPIC_API_KEY in .env (for real mode)
+description: Tests the reply classifier module with both mock and real LLM calls.
+inputs: OPENROUTER_API_KEY in .env (for real mode)
 outputs: Pass/fail results to stdout
 usage: py tests/test_reply_classifier.py
 """
@@ -74,10 +74,10 @@ def run_mock_tests():
 
 def run_real_tests():
     print("=== Real Claude Classifier Tests ===")
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not api_key:
-        print("  SKIPPED — ANTHROPIC_API_KEY not set in .env")
-        print("  To enable: add your key from console.anthropic.com to .env\n")
+        print("  SKIPPED — OPENROUTER_API_KEY not set in .env")
+        print("  To enable: add your key from openrouter.ai to .env\n")
         return True
 
     passed = 0
