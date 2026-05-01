@@ -7,8 +7,8 @@ pdfplumber>=0.11.0
 # Environment variables
 python-dotenv>=1.0.0
 
-# Anthropic / Claude API
-anthropic>=0.39.0
+# OpenRouter (OpenAI-compatible API)
+openai>=1.0.0
 
 # HTTP requests
 requests>=2.31.0

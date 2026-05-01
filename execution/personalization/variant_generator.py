@@ -2,7 +2,7 @@
 """
 variant_generator.py
 description: Generate AI challenger email variants and analyze per-variant performance for A/B testing.
-inputs: --action (generate|analyze|recommend|report), --config, --mock; env: ANTHROPIC_API_KEY, INSTANTLY_API_KEY
+inputs: --action (generate|analyze|recommend|report), --config, --mock; env: OPENROUTER_API_KEY, INSTANTLY_API_KEY
 outputs: Updated config/email_variants.json, .tmp/variant_report.json
 usage:
     py execution/personalization/variant_generator.py --action generate --mock
@@ -26,7 +26,7 @@ from modules.pipeline_utils import load_config, now_iso, setup_logging
 load_dotenv(ROOT / ".env")
 logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 
-DEFAULT_MODEL = "claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
 
 
 def load_variants(variants_file: str) -> dict:
@@ -119,25 +119,25 @@ def generate_challenger_variant(
     human_variants: list[dict],
     tone_config: dict,
     constraints: dict,
-    client,
     model: str,
     mock: bool,
 ) -> dict:
     if mock:
         return generate_mock_variant(human_variants)
 
+    from modules.llm_client import chat_completion
+
     system_prompt = build_variant_system_prompt(tone_config, human_variants)
     user_prompt = "Generate one new cold email variant as JSON with \"subject\" and \"body\" fields."
 
     for attempt in range(2):
         try:
-            resp = client.messages.create(
+            raw = chat_completion(
+                system=system_prompt,
+                user_message=user_prompt,
                 model=model,
                 max_tokens=300,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}],
             )
-            raw = resp.content[0].text.strip()
             raw = raw.strip("`").removeprefix("json").strip()
             parsed = json.loads(raw)
             subject = parsed.get("subject", "")
@@ -372,15 +372,6 @@ def main():
     model = args.model or copy_config.get("model", DEFAULT_MODEL)
 
     if args.action == "generate":
-        client = None
-        if not args.mock:
-            api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-            if not api_key:
-                logger.error("ANTHROPIC_API_KEY not set.")
-                sys.exit(1)
-            import anthropic
-            client = anthropic.Anthropic(api_key=api_key)
-
         max_variants = copy_config.get("max_variants", 5)
         current_ai = len(variants_data.get("ai_challengers", []))
         if current_ai >= max_variants:
@@ -388,7 +379,7 @@ def main():
             sys.exit(0)
 
         new_variant = generate_challenger_variant(
-            human_variants, tone_config, constraints, client, model, args.mock
+            human_variants, tone_config, constraints, model, args.mock
         )
         variants_data["ai_challengers"].append(new_variant)
         saved_path = save_variants(variants_data, variants_file)

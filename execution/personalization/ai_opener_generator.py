@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 ai_opener_generator.py
-description: Generate personalized cold email first lines using Claude API.
-inputs: --input, --output, --tone-config, --batch-size, --mock; env: ANTHROPIC_API_KEY
+description: Generate personalized cold email first lines using OpenRouter LLM API.
+inputs: --input, --output, --tone-config, --batch-size, --mock; env: OPENROUTER_API_KEY
 outputs: .tmp/personalized_leads.json
 usage:
     py execution/personalization/ai_opener_generator.py --input .tmp/verified_leads.json --mock
@@ -10,7 +10,6 @@ usage:
 """
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -30,7 +29,7 @@ from modules.pipeline_utils import (
 load_dotenv(ROOT / ".env")
 logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 
-DEFAULT_MODEL = "claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
 
 
 def get_mock_opener(lead: dict) -> str:
@@ -123,24 +122,24 @@ def validate_opener(opener: str, tone_config: dict) -> bool:
 
 def generate_opener(
     lead: dict,
-    client,
     system_prompt: str,
     model: str,
     tone_config: dict,
 ) -> str:
-    """Generate a personalized opener via Claude API. Retries once on validation failure."""
+    """Generate a personalized opener via OpenRouter LLM. Retries once on validation failure."""
+    from modules.llm_client import chat_completion
+
     user_prompt = build_user_prompt(lead)
 
     for attempt in range(2):
         try:
-            resp = client.messages.create(
+            raw = chat_completion(
+                system=system_prompt,
+                user_message=user_prompt,
                 model=model,
                 max_tokens=100,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}],
             )
-            opener = resp.content[0].text.strip()
-            opener = opener.strip('"').strip("'")
+            opener = raw.strip('"').strip("'")
 
             if validate_opener(opener, tone_config):
                 return opener
@@ -153,7 +152,7 @@ def generate_opener(
                 )
         except Exception:
             logger.exception(
-                "Claude API error for %s (attempt %d)",
+                "LLM API error for %s (attempt %d)",
                 lead.get("business_name"),
                 attempt + 1,
             )
@@ -163,7 +162,6 @@ def generate_opener(
 
 def process_leads(
     leads: list[dict],
-    client,
     system_prompt: str,
     model: str,
     tone_config: dict,
@@ -181,7 +179,7 @@ def process_leads(
         if mock:
             opener = get_mock_opener(lead)
         else:
-            opener = generate_opener(lead, client, system_prompt, model, tone_config)
+            opener = generate_opener(lead, system_prompt, model, tone_config)
 
         lead["personalized_opener"] = opener
         lead["opener_model"] = model if not mock else "mock"
@@ -213,19 +211,10 @@ def main():
     leads = load_leads(args.input)
     logger.info("Loaded %d leads from %s", len(leads), args.input)
 
-    client = None
-    if not args.mock:
-        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-        if not api_key:
-            logger.error("ANTHROPIC_API_KEY not set.")
-            sys.exit(1)
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
-
     system_prompt = build_system_prompt(tone_config)
 
     leads = process_leads(
-        leads, client, system_prompt, args.model, tone_config, args.mock, args.batch_size
+        leads, system_prompt, args.model, tone_config, args.mock, args.batch_size
     )
 
     output_path = save_leads(leads, args.output)

@@ -1,16 +1,15 @@
 """
 reply_classifier.py
 description: Reusable AI reply classifier — classifies cold email replies as positive/negative/neutral.
-inputs: Reply body text, API key (env or param), model config, signal lists for mock mode.
+inputs: Reply body text, model config, signal lists for mock mode; env: OPENROUTER_API_KEY.
 outputs: Classification string: "positive", "negative", or "neutral".
 """
 
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
 
 DEFAULT_SYSTEM_PROMPT = (
     "Classify this cold email reply as exactly one of: hot_positive, positive, negative, neutral.\n"
@@ -67,23 +66,16 @@ def classify_real(
     model: str | None = None,
     system_prompt: str | None = None,
 ) -> str:
-    """Classify using Claude API. Returns 'positive', 'negative', or 'neutral'."""
-    key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
-    if not key:
-        logger.error("ANTHROPIC_API_KEY not set for reply classification.")
-        return "neutral"
-
+    """Classify using OpenRouter LLM. Returns 'positive', 'negative', or 'neutral'."""
     try:
-        import anthropic
+        from modules.llm_client import chat_completion
 
-        client = anthropic.Anthropic(api_key=key)
-        resp = client.messages.create(
+        result = chat_completion(
+            system=system_prompt or DEFAULT_SYSTEM_PROMPT,
+            user_message=body or "",
             model=model or DEFAULT_MODEL,
             max_tokens=10,
-            system=system_prompt or DEFAULT_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": body or ""}],
-        )
-        result = resp.content[0].text.strip().lower()
+        ).lower()
         if result in VALID_CLASSES:
             return result
         logger.warning("Unexpected classifier output: %r — defaulting to neutral", result)

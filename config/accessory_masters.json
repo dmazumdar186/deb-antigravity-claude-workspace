@@ -43,14 +43,14 @@
     "million_verifier_reject": ["invalid", "disposable"]
   },
   "personalization": {
-    "model": "claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4-5-20251001",
     "tone_config": "config/tone.json",
     "max_opener_tokens": 100,
     "batch_size": 50
   },
   "copy_optimization": {
     "enabled": true,
-    "model": "claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4-5-20251001",
     "max_variants": 5,
     "human_variant_count": 4,
     "min_sends_for_comparison": 100,
@@ -81,7 +81,7 @@
   "ghl": {
     "api_url": "https://services.leadconnectorhq.com",
     "api_version": "2021-07-28",
-    "location_id": null,
+    "location_id": "sCxQ92Y8b7PpfLloGqOn",
     "pipeline_id": null,
     "pipeline_stages": {
       "new": null,
@@ -94,7 +94,7 @@
     "source": "cold email pipeline"
   },
   "classification": {
-    "model": "claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4-5-20251001",
     "system_prompt": null,
     "categories": ["hot_positive", "positive", "negative", "neutral"],
     "mock_signals": {
@@ -106,7 +106,7 @@
   },
   "auto_reply": {
     "enabled": true,
-    "model": "claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4-5-20251001",
     "delay_min_seconds": 120,
     "delay_max_seconds": 420,
     "delay_increases_with_time_of_day": true,

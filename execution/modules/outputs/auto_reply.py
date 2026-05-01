@@ -1,18 +1,17 @@
 """
 auto_reply.py
 description: AI auto-reply engine — generates human-sounding responses to positive cold email replies.
-inputs: Reply dict (body, from_email, from_name, company, classification), config dict, API key (env or param).
+inputs: Reply dict (body, from_email, from_name, company, classification), config dict; env: OPENROUTER_API_KEY.
 outputs: Action dict with reply_text and delay, or skip/handoff reason.
 """
 
 import logging
-import os
 import random
 import time
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
 DEFAULT_HOT_LEAD_SIGNALS = [
     "phone number", "my number", "call me at",
     "ready to sell", "want to sell", "schedule a call",
@@ -32,11 +31,6 @@ def generate_reply(
     api_key: str | None = None, model: str | None = None,
     system_prompt: str | None = None, guard_rails: list[str] | None = None,
 ) -> str:
-    key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
-    if not key:
-        logger.error("ANTHROPIC_API_KEY not set for auto-reply generation.")
-        return FALLBACK_REPLY
-
     if not system_prompt:
         system_prompt = (
             ("Rules:\n" + "\n".join(f"- {r}" for r in guard_rails))
@@ -44,15 +38,14 @@ def generate_reply(
         )
 
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=key)
-        resp = client.messages.create(
-            model=model or DEFAULT_MODEL, max_tokens=150,
+        from modules.llm_client import chat_completion
+
+        return chat_completion(
             system=system_prompt,
-            messages=[{"role": "user",
-                       "content": f"Reply to this email naturally:\n\n{body}\n\nContext: {context}"}],
+            user_message=f"Reply to this email naturally:\n\n{body}\n\nContext: {context}",
+            model=model or DEFAULT_MODEL,
+            max_tokens=150,
         )
-        return resp.content[0].text.strip()
     except Exception:
         logger.exception("Auto-reply generation failed, using fallback")
         return FALLBACK_REPLY

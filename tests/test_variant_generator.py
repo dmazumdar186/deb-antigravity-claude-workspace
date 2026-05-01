@@ -110,7 +110,6 @@ class TestVariantGeneration:
             sample_variants,
             sample_tone_config,
             copy_optimization_config.get("variant_constraints", {}),
-            client=None,
             model=None,
             mock=True,
         )
