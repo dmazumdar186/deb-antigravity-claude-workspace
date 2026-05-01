@@ -215,3 +215,5 @@ All modules under `execution/modules/` are client-agnostic. To create a new GTM 
 | 2026-04-29 | Block 2A — extracted reusable modules (instantly, ghl, slack, reply_classifier), slimmed pipeline from 584→310 lines |
 | 2026-04-29 | Block 3 — added weekly report generator module (report_generator.py) with Instantly/GHL metric aggregation, HTML email + Slack formatting, SMTP sending, mock mode; added reporting config to accessory_masters.json |
 | 2026-04-30 | Call 4 PRD update — Telegram replaces Slack for notifications, AI auto-reply system added (D6 expansion), self-optimizing copy loop (D12), email sequence structure, ultra-short copy philosophy (<60 words), website pixel + /signup page, hot_positive classification category, auto_reply config section, tone.json expanded with copy_philosophy + sequence + auto_reply_instruction |
+| 2026-05-01 | Prospeo API migrated to V2 (search-person + enrich-person). use_prospeo_for set to empty — Serper handles all 12 niches. Prospeo available for domain-based contact enrichment only. |
+| 2026-05-01 | Serper ratingCount field fix applied to reviews_count parsing. |

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://accessory-masters-api.SUBDOMAIN.workers.dev/api/:path*"
+      "destination": "https://accessory-masters-api.accessory-masters.workers.dev/api/:path*"
     }
   ]
 }

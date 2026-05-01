@@ -155,7 +155,7 @@ def parse_serper_results(
             phone=place.get("phoneNumber", ""),
             website=place.get("website", ""),
             rating=place.get("rating"),
-            reviews_count=place.get("reviewsCount") or place.get("reviews"),
+            reviews_count=place.get("ratingCount") or place.get("reviewsCount") or place.get("reviews"),
             industry=industry,
             source_query=query,
             run_id=run_id,

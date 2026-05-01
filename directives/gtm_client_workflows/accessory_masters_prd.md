@@ -685,3 +685,18 @@ Payment is released when the main campaign goes live:
 - Pre-warmed test subscription cancelled
 
 **Upwork contract has not yet started as of April 28.** Milestone payments will be initiated once systems are validated (Aleksandar's requirement from Call 3).
+
+## Post-Build Updates
+
+### Prospeo API Migration (May 1, 2026)
+- Prospeo deprecated old API endpoints (company-email-finder, domain-search) on March 1, 2026
+- New API: POST /search-person with X-KEY header + POST /enrich-person (1 credit/enrichment)
+- Houston small business coverage is poor through Prospeo's industry/location filters
+- Decision: Serper Maps now handles ALL 12 niches (including manufacturing, professional services)
+- Config updated: `use_prospeo_for` set to empty array
+- Prospeo remains available for domain-based contact enrichment as a secondary tool
+- References in Pillar 1, Deliverable 1, and tech stack table reflect original plan — actual implementation uses Serper-only sourcing
+
+### Serper Maps Field Fix (May 1, 2026)
+- Serper API returns review count as `ratingCount`, not `reviewsCount` or `reviews`
+- Fixed in serper_maps_scraper.py to check `ratingCount` first

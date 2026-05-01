@@ -132,47 +132,100 @@ def _build_lead(record: dict, run_id: str, timestamp: str) -> dict:
 @retry_with_backoff(max_retries=3, base_delay=1.0)
 def search_by_domain(domain: str, api_key: str) -> list[dict]:
     """Search Prospeo for contacts at a given domain."""
-    resp = requests.post(
-        f"{PROSPEO_BASE_URL}/domain-search",
-        headers={"Content-Type": "application/json"},
-        json={"key": api_key, "domain": domain},
-        timeout=30,
-    )
-    resp.raise_for_status()
+    try:
+        resp = requests.post(
+            f"{PROSPEO_BASE_URL}/search-person",
+            headers={"Content-Type": "application/json", "X-KEY": api_key},
+            json={"filters": {"company": {"domains": {"include": [domain]}}}, "page": 1},
+            timeout=30,
+        )
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError:
+        data = resp.json() if resp.content else {}
+        if data.get("error_code") == "NO_RESULTS":
+            return []
+        raise
     data = resp.json()
-    return data.get("response", {}).get("email_list", [])
+    return data.get("results", [])
 
 
 @retry_with_backoff(max_retries=3, base_delay=1.0)
 def search_by_company(company: str, api_key: str) -> list[dict]:
     """Search Prospeo for contacts at a given company name."""
-    resp = requests.post(
-        f"{PROSPEO_BASE_URL}/company-email-finder",
-        headers={"Content-Type": "application/json"},
-        json={"key": api_key, "company": company},
-        timeout=30,
-    )
-    resp.raise_for_status()
+    try:
+        resp = requests.post(
+            f"{PROSPEO_BASE_URL}/search-person",
+            headers={"Content-Type": "application/json", "X-KEY": api_key},
+            json={"filters": {"company": {"names": {"include": [company]}}}, "page": 1},
+            timeout=30,
+        )
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError:
+        data = resp.json() if resp.content else {}
+        if data.get("error_code") == "NO_RESULTS":
+            return []
+        raise
     data = resp.json()
-    return data.get("response", {}).get("email_list", [])
+    return data.get("results", [])
+
+
+@retry_with_backoff(max_retries=3, base_delay=1.0)
+def enrich_person(person_id: str, api_key: str) -> dict | None:
+    """Enrich a person by ID to reveal their email. Costs 1 credit."""
+    try:
+        resp = requests.post(
+            f"{PROSPEO_BASE_URL}/enrich-person",
+            headers={"Content-Type": "application/json", "X-KEY": api_key},
+            json={"data": {"person_id": person_id}},
+            timeout=30,
+        )
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError:
+        data = resp.json() if resp.content else {}
+        if data.get("error_code") == "NO_RESULTS":
+            return None
+        raise
+    data = resp.json()
+    return data.get("person")
 
 
 def parse_prospeo_results(
-    raw_results: list[dict], industry: str, run_id: str, timestamp: str
+    raw_results: list[dict], industry: str, run_id: str, timestamp: str,
+    api_key: str | None = None,
 ) -> list[dict]:
     """Transform raw Prospeo results into pipeline lead records."""
     leads = []
     for r in raw_results:
+        person = r.get("person", {})
+        company = r.get("company", {})
+
+        email_obj = person.get("email", {})
+        email = email_obj.get("email", "") if email_obj.get("revealed") else ""
+
+        if not email and api_key:
+            pid = person.get("person_id")
+            if pid:
+                enriched = enrich_person(pid, api_key)
+                if enriched:
+                    person = enriched
+                    email_obj = person.get("email", {})
+                    email = email_obj.get("email", "") if email_obj.get("revealed") else ""
+
+        location = person.get("location", {})
+        city = location.get("city", "")
+        state = location.get("state", "")
+        address = ", ".join(p for p in [city, state] if p)
+
         record = {
-            "company": r.get("company", ""),
-            "domain": r.get("domain", ""),
-            "first_name": r.get("first_name", ""),
-            "last_name": r.get("last_name", ""),
-            "email": r.get("email", ""),
-            "position": r.get("position", ""),
-            "linkedin_url": r.get("linkedin_url", ""),
+            "company": company.get("name", ""),
+            "domain": company.get("domain", ""),
+            "first_name": person.get("first_name", ""),
+            "last_name": person.get("last_name", ""),
+            "email": email,
+            "position": person.get("current_job_title", ""),
+            "linkedin_url": person.get("linkedin_url", ""),
             "industry": industry,
-            "address": "",
+            "address": address,
         }
         lead = _build_lead(record, run_id, timestamp)
         if lead["business_name"] or lead["domain"]:
@@ -198,7 +251,7 @@ def run_from_config(config_path: str, api_key: str, run_id: str) -> list[dict]:
         logger.info("Prospeo search: %s", query)
         try:
             raw = search_by_company(query, api_key)
-            leads = parse_prospeo_results(raw, niche, run_id, now_iso())
+            leads = parse_prospeo_results(raw, niche, run_id, now_iso(), api_key=api_key)
             all_leads.extend(leads)
             logger.info("Got %d results for '%s'", len(leads), niche)
         except Exception:
@@ -231,7 +284,7 @@ def main():
             logger.error("PROSPEO_API_KEY not set.")
             sys.exit(1)
         raw = search_by_domain(args.domain, api_key)
-        leads = parse_prospeo_results(raw, "", run_id, now_iso())
+        leads = parse_prospeo_results(raw, "", run_id, now_iso(), api_key=api_key)
         leads = deduplicate(leads)
     elif args.company:
         api_key = os.environ.get("PROSPEO_API_KEY")
@@ -239,7 +292,7 @@ def main():
             logger.error("PROSPEO_API_KEY not set.")
             sys.exit(1)
         raw = search_by_company(args.company, api_key)
-        leads = parse_prospeo_results(raw, "", run_id, now_iso())
+        leads = parse_prospeo_results(raw, "", run_id, now_iso(), api_key=api_key)
         leads = deduplicate(leads)
     elif args.config:
         api_key = os.environ.get("PROSPEO_API_KEY")

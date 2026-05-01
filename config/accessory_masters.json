@@ -12,7 +12,9 @@
       "dry cleaner",
       "bakery",
       "printing shop",
-      "pest control"
+      "pest control",
+      "manufacturing",
+      "professional services"
     ],
     "geography": {
       "city": "Houston",
@@ -33,7 +35,8 @@
     "serper_results_per_query": 100,
     "serper_api_url": "https://google.serper.dev/maps",
     "prospeo_api_url": "https://api.prospeo.io",
-    "use_prospeo_for": ["manufacturing", "professional services"]
+    "use_prospeo_for": [],
+    "prospeo_note": "Prospeo V2 API deprecated company-email-finder. Use Serper for all niches. Prospeo available for domain-based contact enrichment."
   },
   "enrichment": {
     "anymailfinder_api_url": "https://api.anymailfinder.com",

@@ -42,3 +42,6 @@ output/
 
 # Firecrawl cache
 .firecrawl/
+
+# Wrangler build artifacts
+.wrangler/
