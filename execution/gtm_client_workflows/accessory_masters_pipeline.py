@@ -4,12 +4,13 @@ accessory_masters_pipeline.py
 description: End-to-end orchestration pipeline for Accessory Masters cold email system.
              Runs: source -> enrich -> verify -> personalize -> upload to Instantly.
              Also handles: reply polling, AI classification, GHL routing, notifications.
-inputs: --config, --stage, --mock, --force, --poll-replies; env: multiple API keys
+inputs: --config, --stage, --mock, --force, --poll-replies, --weekly-report; env: multiple API keys
 outputs: .tmp/pipeline_state.json, .tmp/personalized_leads.json
 usage:
     py execution/gtm_client_workflows/accessory_masters_pipeline.py --mock
     py execution/gtm_client_workflows/accessory_masters_pipeline.py --stage source --mock
     py execution/gtm_client_workflows/accessory_masters_pipeline.py --poll-replies --mock
+    py execution/gtm_client_workflows/accessory_masters_pipeline.py --weekly-report --mock
 """
 
 import argparse
@@ -35,12 +36,14 @@ from modules.pipeline_utils import (
 from modules.outputs.instantly import (
     fetch_replies,
     normalize_replies,
+    send_reply,
     upload_leads,
 )
 from modules.outputs.ghl import route_positive_reply
 from modules.outputs.slack import notify_positive_reply
 from modules.outputs.telegram import notify_positive_reply as telegram_notify
 from modules.outputs.auto_reply import handle_reply as auto_reply_handle
+from modules.outputs.report_generator import run_weekly_report
 from modules.reply_classifier import classify
 
 load_dotenv(ROOT / ".env")
@@ -274,7 +277,15 @@ def poll_replies(config: dict, mock: bool):
         if classification in ("hot_positive", "positive"):
             _handle_positive_reply(reply, ghl_config, notif_config, mock)
 
-        ar_result = auto_reply_handle(reply, config, mock)
+        def _send_fn(text):
+            send_reply(
+                api_url, api_key,
+                reply_to_email=reply.get("from_email", ""),
+                from_email=reply.get("lead_email", ""),
+                reply_text=text,
+            )
+
+        ar_result = auto_reply_handle(reply, config, mock, send_fn=_send_fn)
         logger.info("Auto-reply decision for %s: %s",
                      reply.get("from_email", "unknown"), ar_result.get("action"))
 
@@ -441,12 +452,20 @@ def main():
     parser.add_argument("--mock", action="store_true", help="Use mock data for all stages")
     parser.add_argument("--force", action="store_true", help="Ignore checkpoint state, re-run all")
     parser.add_argument("--poll-replies", action="store_true", help="Run reply polling instead of pipeline")
+    parser.add_argument("--weekly-report", action="store_true", help="Generate and send weekly report")
     args = parser.parse_args()
 
     TMP.mkdir(exist_ok=True)
     config = load_config(args.config)
 
-    if args.poll_replies:
+    if args.weekly_report:
+        logger.info("=== Weekly Report Mode ===")
+        result = run_weekly_report(config, args.mock)
+        logger.info(
+            "Report generated. Email sent: %s | Slack sent: %s | Telegram sent: %s",
+            result.get("html_sent"), result.get("slack_sent"), result.get("telegram_sent"),
+        )
+    elif args.poll_replies:
         logger.info("=== Reply Polling Mode ===")
         poll_replies(config, args.mock)
     else:

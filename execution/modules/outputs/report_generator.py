@@ -745,3 +745,27 @@ def run_weekly_report(
             result["telegram_sent"] = False
 
     return result
+
+
+if __name__ == "__main__":
+    import argparse
+    import sys
+    from pathlib import Path
+
+    from dotenv import load_dotenv
+
+    _ROOT = Path(__file__).resolve().parent.parent.parent.parent
+    sys.path.insert(0, str(_ROOT / "execution"))
+    load_dotenv(_ROOT / ".env")
+
+    from modules.pipeline_utils import load_config
+
+    parser = argparse.ArgumentParser(description="Generate and send weekly report")
+    parser.add_argument("--config", default=str(_ROOT / "config" / "accessory_masters.json"))
+    parser.add_argument("--mock", action="store_true", help="Use mock data")
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
+    config = load_config(args.config)
+    result = run_weekly_report(config, mock=args.mock)
+    print(f"Email: {result['html_sent']} | Slack: {result['slack_sent']} | Telegram: {result['telegram_sent']}")

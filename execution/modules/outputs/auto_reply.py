@@ -83,7 +83,7 @@ def schedule_delayed_send(
     return delay
 
 
-def handle_reply(reply: dict, config: dict, mock: bool = False) -> dict:
+def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) -> dict:
     ar = config.get("auto_reply", {})
     if not ar.get("enabled", False):
         logger.info("Auto-reply disabled, skipping")
@@ -128,7 +128,15 @@ def handle_reply(reply: dict, config: dict, mock: bool = False) -> dict:
             system_prompt=system_prompt, guard_rails=guard_rails,
         )
 
-    delay = random.randint(ar.get("delay_min_seconds", 120), ar.get("delay_max_seconds", 420))
+    delay_min = ar.get("delay_min_seconds", 120)
+    delay_max = ar.get("delay_max_seconds", 420)
+
+    if send_fn:
+        delay = schedule_delayed_send(reply_text, delay_min, delay_max, send_fn, mock)
+    else:
+        delay = random.randint(delay_min, delay_max)
+        logger.warning("No send_fn provided — reply generated but not sent")
+
     return {"action": "auto_reply", "reply_text": reply_text, "delay_seconds": delay}
 
 

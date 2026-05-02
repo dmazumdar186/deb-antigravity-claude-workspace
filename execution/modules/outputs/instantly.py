@@ -149,6 +149,33 @@ def normalize_replies(raw_replies: list[dict]) -> list[dict]:
 
 
 @retry_with_backoff(max_retries=3, base_delay=2.0)
+def send_reply(
+    api_url: str, api_key: str, reply_to_email: str,
+    from_email: str, reply_text: str, subject: str = "",
+) -> dict:
+    """Send a reply via Instantly Unibox API (replies in the existing thread)."""
+    payload = {
+        "reply_to_email": reply_to_email,
+        "from": from_email,
+        "body": reply_text,
+    }
+    if subject:
+        payload["subject"] = subject
+    resp = requests.post(
+        f"{api_url}/unibox/emails",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=30,
+    )
+    resp.raise_for_status()
+    logger.info("Reply sent to %s via Instantly", reply_to_email)
+    return resp.json()
+
+
+@retry_with_backoff(max_retries=3, base_delay=2.0)
 def fetch_step_analytics(
     api_url: str, api_key: str, campaign_id: str,
 ) -> list[dict]:

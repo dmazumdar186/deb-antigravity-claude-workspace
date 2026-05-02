@@ -5,6 +5,7 @@ account_id = "26e5b8612be35e5d23a9186fcf5288d0"
 
 [vars]
 GHL_LOCATION_ID = "sCxQ92Y8b7PpfLloGqOn"
+CAMPAIGN_ID = ""
 ALLOWED_ORIGINS = "https://accessorymasters.com,https://accessory-masters-site.pages.dev,http://localhost:3000"
 
 # Secrets (set via `wrangler secret put`):

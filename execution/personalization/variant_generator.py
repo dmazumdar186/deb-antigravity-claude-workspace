@@ -349,9 +349,11 @@ def main():
     parser.add_argument(
         "--action",
         required=True,
-        choices=["generate", "analyze", "recommend", "report"],
+        choices=["generate", "analyze", "recommend", "report", "activate"],
         help="Action to perform",
     )
+    parser.add_argument("--variant-id", help="Variant ID (for activate action)")
+    parser.add_argument("--step-id", help="Instantly step ID (for activate action)")
     parser.add_argument("--config", default=str(ROOT / "config" / "accessory_masters.json"))
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--mock", action="store_true", help="Use mock data")
@@ -388,6 +390,14 @@ def main():
             new_variant["variant_id"],
             saved_path,
         )
+        logger.info(
+            "Next step: Add this variant to Instantly as a campaign step, "
+            "then run: py execution/personalization/variant_generator.py "
+            "--action activate --variant-id %s --step-id <INSTANTLY_STEP_ID>",
+            new_variant["variant_id"],
+        )
+        logger.info("Subject: %s", new_variant["subject"])
+        logger.info("Body: %s", new_variant["body"])
 
     elif args.action == "analyze":
         performance = fetch_variant_performance(
@@ -441,6 +451,33 @@ def main():
             json.dump(report_data, f, indent=2, ensure_ascii=False)
             f.write("\n")
         logger.info("Report saved to %s", report_path)
+
+    elif args.action == "activate":
+        if not args.variant_id or not args.step_id:
+            logger.error("--variant-id and --step-id are required for activate")
+            sys.exit(1)
+
+        found = False
+        for section in ("variants", "ai_challengers"):
+            for v in variants_data.get(section, []):
+                if v["variant_id"] == args.variant_id:
+                    v["instantly_step_id"] = args.step_id
+                    v["active"] = True
+                    v["activated_at"] = now_iso()
+                    found = True
+                    break
+            if found:
+                break
+
+        if not found:
+            logger.error("Variant '%s' not found in %s", args.variant_id, variants_file)
+            sys.exit(1)
+
+        save_variants(variants_data, variants_file)
+        logger.info(
+            "Activated variant '%s' with Instantly step_id '%s'",
+            args.variant_id, args.step_id,
+        )
 
 
 if __name__ == "__main__":

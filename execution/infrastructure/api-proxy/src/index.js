@@ -141,11 +141,17 @@ async function handleDashboard(url, env) {
 
   const startDate = rangeToDate(range);
 
-  // Fetch both sources in parallel; tolerate partial failures.
-  const [emailData, crmData] = await Promise.allSettled([
+  // Fetch all sources in parallel; tolerate partial failures.
+  const fetches = [
     fetchInstantlyMetrics(env, startDate),
     fetchGHLMetrics(env, startDate),
-  ]);
+  ];
+  if (env.CAMPAIGN_ID) {
+    fetches.push(fetchVariantData(env));
+  }
+
+  const results = await Promise.allSettled(fetches);
+  const [emailData, crmData] = results;
 
   const response = { generated_at: new Date().toISOString() };
 
@@ -161,6 +167,14 @@ async function handleDashboard(url, env) {
   } else {
     console.error("GHL fetch failed:", crmData.reason);
     response.crm = { error: "CRM metrics unavailable" };
+  }
+
+  if (results[2]) {
+    if (results[2].status === "fulfilled") {
+      response.variants = results[2].value;
+    } else {
+      console.error("Variants fetch failed:", results[2].reason);
+    }
   }
 
   return jsonResponse(response);
@@ -268,6 +282,28 @@ async function fetchInstantlyMetrics(env, startDate) {
     bounce_rate_pct: sent ? +(bounces / sent * 100).toFixed(1) : 0,
     unsubscribes: data.total_unsubscribed ?? 0,
   };
+}
+
+async function fetchVariantData(env) {
+  const res = await fetch(
+    `https://api.instantly.ai/api/v2/campaigns/${env.CAMPAIGN_ID}/analytics/steps`,
+    { headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` } },
+  );
+  if (!res.ok) {
+    throw new Error(`Instantly steps API ${res.status}`);
+  }
+  const data = await res.json();
+  const steps = data.steps || data.data || [];
+  return steps.map((step, i) => ({
+    variant_id: step.id || step.step_id || `step_${i}`,
+    type: "human",
+    label: step.subject || step.name || `Step ${i + 1}`,
+    emails_sent: step.total_sent ?? step.sent ?? 0,
+    replies: step.total_replied ?? step.replied ?? 0,
+    response_rate_pct: (step.total_sent ?? step.sent ?? 0) > 0
+      ? +((step.total_replied ?? step.replied ?? 0) / (step.total_sent ?? step.sent ?? 0) * 100).toFixed(1)
+      : 0,
+  }));
 }
 
 async function fetchGHLMetrics(env, startDate) {
