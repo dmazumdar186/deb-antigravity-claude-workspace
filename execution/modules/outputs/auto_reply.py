@@ -19,7 +19,21 @@ DEFAULT_HOT_LEAD_SIGNALS = [
 FALLBACK_REPLY = "Thanks for getting back to me. Let me follow up with more details shortly."
 
 
-def generate_reply_mock(body: str, context: str) -> str:
+def _match_objection(body: str, objection_responses: dict | None) -> dict | None:
+    if not objection_responses or not body:
+        return None
+    text = body.lower()
+    for key, obj in objection_responses.items():
+        triggers = obj.get("triggers", [])
+        if any(t in text for t in triggers):
+            return obj
+    return None
+
+
+def generate_reply_mock(body: str, context: str, objection_responses: dict | None = None) -> str:
+    match = _match_objection(body, objection_responses)
+    if match:
+        return match["response"]
     return (
         "Thanks for reaching out. I'd love to learn more about your business. "
         "Would a quick call this week work?"
@@ -88,14 +102,26 @@ def handle_reply(reply: dict, config: dict, mock: bool = False) -> dict:
     tone = config.get("tone", {})
     persona = ar.get("sender_persona", "")
     guard_rails = ar.get("guard_rails", [])
+    objection_responses = ar.get("objection_responses")
+
+    objection_section = None
+    match = _match_objection(body, objection_responses)
+    if match:
+        objection_section = (
+            f"The prospect's message matches this objection: \"{match.get('triggers', [''])[0]}\"\n"
+            f"Example response for this objection: \"{match['response']}\"\n"
+            f"Use this as a guide but vary the wording naturally."
+        )
+
     system_prompt = "\n\n".join(filter(None, [
         f"You are {persona}." if persona else None,
         tone.get("auto_reply_instruction", ""),
         ("Rules:\n" + "\n".join(f"- {r}" for r in guard_rails)) if guard_rails else None,
+        objection_section,
     ]))
 
     if mock:
-        reply_text = generate_reply_mock(body, context)
+        reply_text = generate_reply_mock(body, context, objection_responses)
     else:
         reply_text = generate_reply(
             body, context, model=ar.get("model"),

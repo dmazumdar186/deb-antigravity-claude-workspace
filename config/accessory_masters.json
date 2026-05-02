@@ -98,7 +98,7 @@
   },
   "classification": {
     "model": "anthropic/claude-haiku-4-5-20251001",
-    "system_prompt": null,
+    "system_prompt": "Classify this cold email reply as exactly one of: hot_positive, positive, negative, neutral.\nhot_positive = prospect gives a phone number, says ready to sell, wants to schedule a call immediately\npositive = interested in selling their business, wants to talk, asks about the process\nnegative = not interested, asks to be removed, hostile, unsubscribe\nneutral = out of office, auto-reply, bounce, unclear intent\nReply with exactly one word: hot_positive, positive, negative, or neutral.",
     "categories": ["hot_positive", "positive", "negative", "neutral"],
     "mock_signals": {
       "hot_positive": ["phone number", "call me at", "my number is", "ready to sell", "want to sell now"],
@@ -117,7 +117,20 @@
     "max_words": 60,
     "voice": "I",
     "sender_persona": "Aleksandar, business broker backed by Hedgestone Capital Group",
-    "objection_responses": null,
+    "objection_responses": {
+      "not_ready": {
+        "triggers": ["not ready", "not right now", "maybe later", "not the right time"],
+        "response": "Totally understand. Actually, now's a great time to at least get a valuation — the market's moving fast. No pressure, happy to chat whenever."
+      },
+      "valuation": {
+        "triggers": ["how much", "what's it worth", "business worth", "valuation"],
+        "response": "Depends on a few things — revenue, industry, location. I can give you a rough range on a quick call. Want to set one up?"
+      },
+      "who_are_you": {
+        "triggers": ["who are you", "who is this", "what company", "never heard of"],
+        "response": "I'm Alex with Accessory Masters, backed by Hedgestone Capital Group. We've closed over $100M in deals. Happy to share more on a call."
+      }
+    },
     "hot_lead_signals": ["phone number", "my number", "call me at", "ready to sell", "want to sell", "schedule a call"],
     "stop_on_hot_lead": true,
     "guard_rails": [

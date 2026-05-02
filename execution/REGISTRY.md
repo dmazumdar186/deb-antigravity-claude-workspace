@@ -12,6 +12,7 @@ Last updated: 2026-05-01
 | `enrichment\anymailfinder_lookup.py` | Find business owner emails via AnymailFinder API. | --input, --output, --min-confidence, --mock; env: ANYMAILFINDER_API_KEY | .tmp/enriched_leads.json |
 | `enrichment\million_verifier.py` | Verify email deliverability via Million Verifier API. | --input, --output, --accept, --mock; env: MILLION_VERIFIER_API_KEY | .tmp/verified_leads.json |
 | `gtm_client_workflows\accessory_masters_pipeline.py` | End-to-end orchestration pipeline for Accessory Masters cold email system. | --config, --stage, --mock, --force, --poll-replies; env: multiple API keys | .tmp/pipeline_state.json, .tmp/personalized_leads.json |
+| `gtm_client_workflows\generate_qa_test_plan.py` | Generates a professional XLSX QA test plan for the Accessory Masters | --output (default .tmp/accessory_masters_qa_test_plan.xlsx) | XLSX file at the specified path |
 | `lead_sourcing\prospeo_leads.py` | Source B2B leads via Prospeo API for niches not indexed on Google Maps. | --domain, --company, --config, --output, --mock; env: PROSPEO_API_KEY | .tmp/prospeo_leads.json |
 | `lead_sourcing\serper_maps_scraper.py` | Scrape Google Maps business listings via Serper.dev Maps API. | --query or --config, --limit, --output, --mock; env: SERPER_API_KEY | .tmp/serper_leads.json |
 | `personal_workflows\cv_builder.py` | Generate an ATS-optimized, French-language PDF CV for Debanjan Mazumdar | --company (str), --role (str) via CLI args | .tmp/cv_{company}_debanjan_mazumdar.pdf |
