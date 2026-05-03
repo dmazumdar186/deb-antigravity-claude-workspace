@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "execution"))
 
 from modules.outputs.auto_reply import handle_reply, schedule_delayed_send
+from modules.outputs.ghl import create_appointment, suggest_booking
 from modules.outputs.report_generator import run_weekly_report
 from personalization.variant_generator import (
     generate_challenger_variant,
@@ -332,3 +333,36 @@ class TestInstantlySendReply:
         assert "api_key" in params
         assert "reply_to_email" in params
         assert "reply_text" in params
+
+
+# ---------------------------------------------------------------------------
+# Flow 6: GHL Appointment — create_appointment signature & suggest_booking
+# ---------------------------------------------------------------------------
+
+class TestGHLAppointmentFlow:
+
+    def test_create_appointment_has_correct_signature(self):
+        import inspect
+        sig = inspect.signature(create_appointment)
+        params = list(sig.parameters.keys())
+        assert "api_url" in params
+        assert "api_key" in params
+        assert "calendar_id" in params
+        assert "contact_id" in params
+        assert "start_time" in params
+        assert "end_time" in params
+        assert "title" in params
+        assert "appointment_status" in params
+        assert "api_version" in params
+
+    def test_suggest_booking_without_calendar_id(self):
+        result = suggest_booking(contact_id="c123", reply={}, calendar_id=None)
+        assert result == {"booking_suggested": True, "contact_id": "c123", "calendar_id": None}
+
+    def test_suggest_booking_with_calendar_id(self):
+        result = suggest_booking(contact_id="c123", reply={}, calendar_id="cal_abc")
+        assert result["calendar_id"] == "cal_abc"
+
+    def test_suggest_booking_imported_in_pipeline(self):
+        import gtm_client_workflows.accessory_masters_pipeline as pipeline
+        assert hasattr(pipeline, "suggest_booking")

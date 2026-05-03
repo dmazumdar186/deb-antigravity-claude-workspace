@@ -155,9 +155,10 @@
       <!-- Calendly embed -->
       <div>
         <h2 class="text-sm font-mono text-bone-400 tracking-[0.15em] uppercase mb-6">Schedule directly</h2>
-        <!-- Calendly inline widget — replace CALENDLY_URL -->
-        <div class="calendly-inline-widget" data-url="CALENDLY_URL" style="min-width:320px;height:700px;"></div>
-        <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+        <!-- GHL booking widget — replace GHL_CALENDAR_URL with the embed URL from GoHighLevel -->
+        <div id="ghl-booking-widget" style="min-width:320px;min-height:700px;">
+          <iframe src="GHL_CALENDAR_URL" style="width:100%;height:700px;border:none;" loading="lazy"></iframe>
+        </div>
       </div>
 
       <!-- Contact form -->

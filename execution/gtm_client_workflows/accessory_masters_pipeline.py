@@ -39,7 +39,7 @@ from modules.outputs.instantly import (
     send_reply,
     upload_leads,
 )
-from modules.outputs.ghl import route_positive_reply
+from modules.outputs.ghl import route_positive_reply, suggest_booking
 from modules.outputs.slack import notify_positive_reply
 from modules.outputs.telegram import notify_positive_reply as telegram_notify
 from modules.outputs.auto_reply import handle_reply as auto_reply_handle
@@ -301,7 +301,7 @@ def _handle_positive_reply(reply: dict, ghl_config: dict, notif_config: dict, mo
 
     ghl_api_key = os.environ.get("GHL_API_KEY", "")
     if ghl_api_key:
-        route_positive_reply(
+        ghl_result = route_positive_reply(
             api_url=ghl_config.get("api_url", "https://services.leadconnectorhq.com"),
             api_key=ghl_api_key,
             location_id=ghl_config.get("location_id"),
@@ -312,6 +312,12 @@ def _handle_positive_reply(reply: dict, ghl_config: dict, notif_config: dict, mo
             source=ghl_config.get("source", "cold email pipeline"),
             api_version=ghl_config.get("api_version"),
         )
+        booking = suggest_booking(
+            contact_id=ghl_result.get("contact_id"),
+            reply=reply,
+            calendar_id=ghl_config.get("calendar_id"),
+        )
+        logger.info("Booking suggestion: %s", booking)
     else:
         logger.warning("GHL_API_KEY not set — skipping CRM routing.")
 

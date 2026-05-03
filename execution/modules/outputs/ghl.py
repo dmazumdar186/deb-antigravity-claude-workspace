@@ -1,8 +1,8 @@
 """
 ghl.py
-description: Reusable GoHighLevel V2 API client — contact and opportunity creation.
-inputs: API key (env), location ID, pipeline config, contact/reply data.
-outputs: Created contact ID, opportunity ID.
+description: Reusable GoHighLevel V2 API client — contact, opportunity, and appointment creation.
+inputs: API key (env), location ID, pipeline config, calendar config, contact/reply data.
+outputs: Created contact ID, opportunity ID, appointment ID.
 """
 
 import logging
@@ -89,6 +89,54 @@ def create_opportunity(
     opp_id = resp.json().get("opportunity", {}).get("id")
     logger.info("Created GHL opportunity: %s", opp_id)
     return opp_id
+
+
+@retry_with_backoff(max_retries=3, base_delay=2.0)
+def create_appointment(
+    api_url: str,
+    api_key: str,
+    calendar_id: str,
+    contact_id: str,
+    start_time: str,
+    end_time: str,
+    title: str = "Discovery Call",
+    appointment_status: str = "new",
+    api_version: str | None = None,
+) -> str | None:
+    """Create a calendar appointment in GHL. Returns the appointment ID or None."""
+    payload = {
+        "calendarId": calendar_id,
+        "contactId": contact_id,
+        "startTime": start_time,
+        "endTime": end_time,
+        "title": title,
+        "appointmentStatus": appointment_status,
+    }
+
+    resp = requests.post(
+        f"{api_url}/calendars/events/appointments",
+        headers=_build_headers(api_key, api_version),
+        json=payload,
+        timeout=30,
+    )
+    resp.raise_for_status()
+    appointment_id = resp.json().get("id")
+    logger.info("Created GHL appointment: %s", appointment_id)
+    return appointment_id
+
+
+def suggest_booking(
+    contact_id: str | None,
+    reply: dict,
+    calendar_id: str | None = None,
+) -> dict:
+    """Prepare booking data and log readiness. Does not create the appointment."""
+    if calendar_id:
+        logger.info("Appointment can be created for %s", contact_id)
+    else:
+        logger.warning("calendar_id not configured — booking requires manual action")
+
+    return {"booking_suggested": True, "contact_id": contact_id, "calendar_id": calendar_id}
 
 
 def route_positive_reply(

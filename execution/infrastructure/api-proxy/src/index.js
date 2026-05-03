@@ -315,25 +315,35 @@ async function fetchGHLMetrics(env, startDate) {
 
   const locationId = env.GHL_LOCATION_ID;
 
-  // Contacts count
   const contactsUrl = new URL(
     "https://services.leadconnectorhq.com/contacts/",
   );
   contactsUrl.searchParams.set("locationId", locationId);
-  contactsUrl.searchParams.set("limit", "1"); // we only need the total
+  contactsUrl.searchParams.set("limit", "1");
   if (startDate) {
     contactsUrl.searchParams.set("startAfter", startDate);
   }
 
-  // Opportunities
   const oppsUrl = new URL(
     "https://services.leadconnectorhq.com/opportunities/search",
   );
   oppsUrl.searchParams.set("location_id", locationId);
 
-  const [contactsRes, oppsRes] = await Promise.all([
+  const calendarUrl = new URL(
+    "https://services.leadconnectorhq.com/calendars/events",
+  );
+  calendarUrl.searchParams.set("locationId", locationId);
+  if (startDate) {
+    calendarUrl.searchParams.set("startTime", startDate);
+  }
+
+  const [contactsRes, oppsRes, calendarRes] = await Promise.all([
     fetch(contactsUrl.toString(), { headers }),
     fetch(oppsUrl.toString(), { headers }),
+    fetch(calendarUrl.toString(), { headers }).catch((err) => {
+      console.error("GHL calendar fetch error:", err);
+      return null;
+    }),
   ]);
 
   let contactsCreated = 0;
@@ -362,12 +372,21 @@ async function fetchGHLMetrics(env, startDate) {
     console.error("GHL opportunities error:", oppsRes.status);
   }
 
+  let appointmentsBooked = 0;
+  if (calendarRes && calendarRes.ok) {
+    const calendarData = await calendarRes.json();
+    const events = calendarData.events || [];
+    appointmentsBooked = events.length;
+  } else if (calendarRes) {
+    console.error("GHL calendar error:", calendarRes.status);
+  }
+
   return {
     contacts_created: contactsCreated,
     opportunities_total: opportunitiesTotal,
     opportunities_open: opportunitiesOpen,
     opportunities_won: opportunitiesWon,
-    appointments_booked: 0,
+    appointments_booked: appointmentsBooked,
     pipeline_value: pipelineValue,
   };
 }

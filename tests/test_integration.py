@@ -140,3 +140,49 @@ class TestPipelineUtilsFunctions:
         config = load_config(str(ROOT / "config" / "accessory_masters.json"))
         assert isinstance(config, dict)
         assert "icp" in config
+
+
+class TestLeadImport:
+    """Verify import_leads column detection, mapping, validation, and lead building."""
+
+    def test_auto_detect_email_column(self):
+        from gtm_client_workflows.import_leads import auto_detect_columns
+        mapping = auto_detect_columns(["Email", "Name", "Company"])
+        assert mapping["owner_email"] == "Email"
+
+    def test_auto_detect_first_last_name(self):
+        from gtm_client_workflows.import_leads import auto_detect_columns
+        mapping = auto_detect_columns(["email", "first_name", "last_name"])
+        assert mapping["_first_name"] == "first_name"
+        assert mapping["_last_name"] == "last_name"
+
+    def test_parse_manual_mapping(self):
+        from gtm_client_workflows.import_leads import parse_manual_mapping
+        result = parse_manual_mapping("email=Email Address,name=Contact Name")
+        assert result == {"owner_email": "Email Address", "owner_name": "Contact Name"}
+
+    def test_validate_lead_accepts_valid_email(self):
+        from gtm_client_workflows.import_leads import validate_lead
+        assert validate_lead({"owner_email": "test@example.com"}, 1) is None
+
+    def test_validate_lead_rejects_missing_email(self):
+        from gtm_client_workflows.import_leads import validate_lead
+        error = validate_lead({"owner_email": ""}, 1)
+        assert "missing email" in error
+
+    def test_validate_lead_rejects_invalid_email(self):
+        from gtm_client_workflows.import_leads import validate_lead
+        error = validate_lead({"owner_email": "not-an-email"}, 1)
+        assert "invalid email" in error
+
+    def test_build_lead_produces_correct_format(self):
+        from gtm_client_workflows.import_leads import _build_lead
+        lead = _build_lead(
+            {"Email": "a@b.com", "Name": "John"},
+            {"owner_email": "Email", "owner_name": "Name"},
+        )
+        assert lead["owner_email"] == "a@b.com"
+        assert lead["owner_name"] == "John"
+        assert "business_name" in lead
+        assert "source" in lead
+        assert lead["source"] == "csv_import"

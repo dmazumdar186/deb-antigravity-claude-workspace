@@ -93,6 +93,7 @@
       "booked": null,
       "closed": null
     },
+    "calendar_id": null,
     "tags": ["cold email", "positive reply"],
     "source": "cold email pipeline"
   },
