@@ -173,7 +173,7 @@ def stage_personalize(config: dict, input_file: str, mock: bool) -> str:
         "--output", output,
         "--tone-config", str(ROOT / pers_config.get("tone_config", "config/tone.json")),
         "--batch-size", str(pers_config.get("batch_size", 50)),
-        "--model", pers_config.get("model", "claude-haiku-4-5-20251001"),
+        "--model", pers_config.get("model", "anthropic/claude-haiku-4.5"),
     ]
     if mock:
         pers_args.append("--mock")

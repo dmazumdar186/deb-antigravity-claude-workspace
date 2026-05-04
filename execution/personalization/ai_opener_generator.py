@@ -29,7 +29,7 @@ from modules.pipeline_utils import (
 load_dotenv(ROOT / ".env")
 logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 
-DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4.5"
 
 
 def get_mock_opener(lead: dict) -> str:

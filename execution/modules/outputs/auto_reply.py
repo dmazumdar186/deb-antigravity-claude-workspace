@@ -11,7 +11,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4.5"
 DEFAULT_HOT_LEAD_SIGNALS = [
     "phone number", "my number", "call me at",
     "ready to sell", "want to sell", "schedule a call",

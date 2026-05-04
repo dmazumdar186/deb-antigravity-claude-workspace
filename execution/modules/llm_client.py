@@ -28,7 +28,7 @@ def _get_client():
 def chat_completion(
     system: str,
     user_message: str,
-    model: str = "anthropic/claude-haiku-4-5-20251001",
+    model: str = "anthropic/claude-haiku-4.5",
     max_tokens: int = 150,
 ) -> str:
     """Single-turn chat completion via OpenRouter. Raises on failure."""

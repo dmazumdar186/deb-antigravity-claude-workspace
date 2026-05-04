@@ -9,7 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4.5"
 
 DEFAULT_SYSTEM_PROMPT = (
     "Classify this cold email reply as exactly one of: hot_positive, positive, negative, neutral.\n"

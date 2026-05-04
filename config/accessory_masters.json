@@ -46,14 +46,14 @@
     "million_verifier_reject": ["invalid", "disposable"]
   },
   "personalization": {
-    "model": "anthropic/claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4.5",
     "tone_config": "config/tone.json",
     "max_opener_tokens": 100,
     "batch_size": 50
   },
   "copy_optimization": {
     "enabled": true,
-    "model": "anthropic/claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4.5",
     "max_variants": 5,
     "human_variant_count": 4,
     "min_sends_for_comparison": 100,
@@ -98,7 +98,7 @@
     "source": "cold email pipeline"
   },
   "classification": {
-    "model": "anthropic/claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4.5",
     "system_prompt": "Classify this cold email reply as exactly one of: hot_positive, positive, negative, neutral.\nhot_positive = prospect gives a phone number, says ready to sell, wants to schedule a call immediately\npositive = interested in selling their business, wants to talk, asks about the process\nnegative = not interested, asks to be removed, hostile, unsubscribe\nneutral = out of office, auto-reply, bounce, unclear intent\nReply with exactly one word: hot_positive, positive, negative, or neutral.",
     "categories": ["hot_positive", "positive", "negative", "neutral"],
     "mock_signals": {
@@ -110,7 +110,7 @@
   },
   "auto_reply": {
     "enabled": true,
-    "model": "anthropic/claude-haiku-4-5-20251001",
+    "model": "anthropic/claude-haiku-4.5",
     "delay_min_seconds": 120,
     "delay_max_seconds": 420,
     "delay_increases_with_time_of_day": true,

@@ -49,7 +49,7 @@ def auto_reply_config():
     return {
         "auto_reply": {
             "enabled": True,
-            "model": "claude-haiku-4-5-20251001",
+            "model": "anthropic/claude-haiku-4.5",
             "delay_min_seconds": 120,
             "delay_max_seconds": 420,
             "sender_persona": "Aleksandar, business broker backed by Hedgestone Capital Group",

@@ -26,7 +26,7 @@ from modules.pipeline_utils import load_config, now_iso, setup_logging
 load_dotenv(ROOT / ".env")
 logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 
-DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4.5"
 
 
 def load_variants(variants_file: str) -> dict:
@@ -109,7 +109,7 @@ def generate_mock_variant(human_variants: list[dict]) -> dict:
         "subject": "Thought about selling?",
         "body": "{{opener}} Business owners in {{city}} are getting serious offers right now. Worth a conversation?",
         "created_at": now_iso(),
-        "created_by": "claude-haiku-4-5-20251001",
+        "created_by": "claude-haiku-4.5",
         "active": False,
         "instantly_step_id": None,
     }

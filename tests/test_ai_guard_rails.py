@@ -112,7 +112,7 @@ OPENER_LEADS = [
     },
 ]
 
-DEFAULT_MODEL = "anthropic/claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "anthropic/claude-haiku-4.5"
 
 
 # ---------------------------------------------------------------------------
