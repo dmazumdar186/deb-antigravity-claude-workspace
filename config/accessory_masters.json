@@ -67,7 +67,7 @@
   },
   "instantly": {
     "api_url": "https://api.instantly.ai/api/v2",
-    "campaign_id": null,
+    "campaign_id": "bfa5c268-d8b9-466e-ae0c-50a18b5783c7",
     "upload_rate_limit_delay": 1.0,
     "field_mapping": {
       "email": "owner_email",
@@ -85,15 +85,15 @@
     "api_url": "https://services.leadconnectorhq.com",
     "api_version": "2021-07-28",
     "location_id": "sCxQ92Y8b7PpfLloGqOn",
-    "pipeline_id": null,
+    "pipeline_id": "WbV29bqIWVC0idhvmvqg",
     "pipeline_stages": {
-      "new": null,
-      "contacted": null,
-      "interested": null,
-      "booked": null,
-      "closed": null
+      "new": "b8a7ff51-11c5-4775-a229-d3d9d19b1c9a",
+      "contacted": "5af460b6-7034-41e3-9c3f-f2e313f6650c",
+      "interested": "5729dba8-bd1d-4333-89e3-7ce804a71f57",
+      "booked": "741cd0a7-ca08-4686-b19e-b093ec3f7a94",
+      "closed": "15d654a5-9360-47ae-aee5-729d888c2986"
     },
-    "calendar_id": null,
+    "calendar_id": "0bwcyzJOtxKScDfIDCRw",
     "tags": ["cold email", "positive reply"],
     "source": "cold email pipeline"
   },
