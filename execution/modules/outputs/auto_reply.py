@@ -7,6 +7,7 @@ outputs: Action dict with reply_text and delay, or skip/handoff reason.
 
 import logging
 import random
+import re
 import time
 
 logger = logging.getLogger(__name__)
@@ -127,6 +128,17 @@ def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) ->
             body, context, model=ar.get("model"),
             system_prompt=system_prompt, guard_rails=guard_rails,
         )
+
+    max_words = ar.get("max_words", 60)
+    words = reply_text.split()
+    if len(words) > max_words:
+        reply_text = " ".join(words[:max_words]).rstrip(",;:—-") + "."
+        logger.info("Trimmed auto-reply from %d to %d words", len(words), max_words)
+
+    if re.search(r'\$\s*[\d,]+', reply_text):
+        reply_text = re.sub(r'\$\s*[\d,]+[A-Za-z]*', '', reply_text)
+        reply_text = re.sub(r'\s{2,}', ' ', reply_text).strip()
+        logger.info("Stripped dollar amounts from auto-reply")
 
     delay_min = ar.get("delay_min_seconds", 120)
     delay_max = ar.get("delay_max_seconds", 420)
