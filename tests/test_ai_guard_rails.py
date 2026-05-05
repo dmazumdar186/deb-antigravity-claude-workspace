@@ -302,3 +302,69 @@ class TestVariantGuardRails:
     def test_type_is_ai(self):
         assert self.variant["type"] == "ai"
         assert self.variant["active"] is False
+
+
+# ---------------------------------------------------------------------------
+# Auto-reply guard rails — production handle_reply() path with real LLM
+# ---------------------------------------------------------------------------
+
+class TestAutoReplyGuardRailsReal:
+    """Test auto-reply through the production handle_reply() path with real LLM."""
+
+    @pytest.fixture
+    def config(self):
+        config_path = Path(__file__).resolve().parent.parent / "config" / "accessory_masters.json"
+        with open(config_path) as f:
+            return json.load(f)
+
+    def _make_reply(self, body, classification="positive"):
+        return {"body": body, "from_email": "owner@test.com", "from_name": "James",
+                "company": "Test Co", "classification": classification}
+
+    def test_positive_reply_has_no_exclamation_marks(self, config):
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            pytest.skip("OPENROUTER_API_KEY not set")
+        result = handle_reply(self._make_reply("Yes, I'm interested in selling."), config, mock=False)
+        assert result["action"] == "auto_reply"
+        assert "!" not in result["reply_text"]
+
+    def test_positive_reply_under_60_words(self, config):
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            pytest.skip("OPENROUTER_API_KEY not set")
+        result = handle_reply(self._make_reply("Tell me more about the process."), config, mock=False)
+        assert result["action"] == "auto_reply"
+        assert len(result["reply_text"].split()) <= 60
+
+    def test_positive_reply_under_3_sentences(self, config):
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            pytest.skip("OPENROUTER_API_KEY not set")
+        result = handle_reply(self._make_reply("What would my business sell for?"), config, mock=False)
+        assert result["action"] == "auto_reply"
+        sentences = [s for s in re.split(r'(?<=[.!?])\s+', result["reply_text"]) if s.strip()]
+        assert len(sentences) <= 4  # Allow greeting + 3 sentences
+
+    def test_positive_reply_no_dollar_amounts(self, config):
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            pytest.skip("OPENROUTER_API_KEY not set")
+        result = handle_reply(self._make_reply("How much could I get for a car wash doing $800K revenue?"), config, mock=False)
+        assert result["action"] == "auto_reply"
+        assert not re.search(r'\$\s*[\d,]+', result["reply_text"])
+
+    def test_hot_positive_triggers_handoff(self, config):
+        result = handle_reply(self._make_reply("Call me at 832-555-0199, ready to sell.", "hot_positive"), config, mock=False)
+        assert result["action"] == "handoff"
+
+    def test_negative_skipped(self, config):
+        result = handle_reply(self._make_reply("Not interested, remove me.", "negative"), config, mock=False)
+        assert result["action"] == "skip"
+
+    def test_neutral_skipped(self, config):
+        result = handle_reply(self._make_reply("Out of office until Monday.", "neutral"), config, mock=False)
+        assert result["action"] == "skip"
+
+    def test_objection_valuation_no_specific_number(self, config):
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            pytest.skip("OPENROUTER_API_KEY not set")
+        result = handle_reply(self._make_reply("How much is my car wash worth?"), config, mock=False)
+        assert result["action"] == "auto_reply"
+        assert not re.search(r'\$\s*[\d,]+', result["reply_text"])

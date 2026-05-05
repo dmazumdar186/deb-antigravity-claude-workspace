@@ -19,7 +19,7 @@ from modules.reply_classifier import classify_mock, classify, DEFAULT_MOCK_SIGNA
 from modules.outputs.auto_reply import (
     handle_reply,
     should_handoff,
-    generate_reply_mock,
+    _generate_reply_mock,
 )
 from modules.outputs.telegram import format_positive_reply, notify_positive_reply
 from modules.outputs.report_generator import (
@@ -284,7 +284,7 @@ class TestAutoReply:
         assert should_handoff("Normal text", hot_lead_signals=custom) is False
 
     def test_generate_reply_mock_returns_nonempty(self):
-        result = generate_reply_mock("Tell me about the process", "From: James at Joe's Diner")
+        result = _generate_reply_mock("Tell me about the process", "From: James at Joe's Diner")
         assert isinstance(result, str)
         assert len(result) > 0
 

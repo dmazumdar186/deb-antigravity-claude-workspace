@@ -31,7 +31,7 @@ def _match_objection(body: str, objection_responses: dict | None) -> dict | None
     return None
 
 
-def generate_reply_mock(body: str, context: str, objection_responses: dict | None = None) -> str:
+def _generate_reply_mock(body: str, context: str, objection_responses: dict | None = None) -> str:
     match = _match_objection(body, objection_responses)
     if match:
         return match["response"]
@@ -41,7 +41,7 @@ def generate_reply_mock(body: str, context: str, objection_responses: dict | Non
     )
 
 
-def generate_reply(
+def _generate_reply(
     body: str, context: str,
     api_key: str | None = None, model: str | None = None,
     system_prompt: str | None = None, guard_rails: list[str] | None = None,
@@ -91,7 +91,7 @@ def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) ->
         return {"action": "skip", "reason": "auto_reply disabled"}
 
     body = reply.get("body", "")
-    if should_handoff(body, ar.get("hot_lead_signals")):
+    if ar.get("stop_on_hot_lead", True) and should_handoff(body, ar.get("hot_lead_signals")):
         return {"action": "handoff", "reason": "hot lead detected"}
 
     if reply.get("classification", "neutral") in ("negative", "neutral"):
@@ -122,9 +122,9 @@ def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) ->
     ]))
 
     if mock:
-        reply_text = generate_reply_mock(body, context, objection_responses)
+        reply_text = _generate_reply_mock(body, context, objection_responses)
     else:
-        reply_text = generate_reply(
+        reply_text = _generate_reply(
             body, context, model=ar.get("model"),
             system_prompt=system_prompt, guard_rails=guard_rails,
         )
@@ -132,12 +132,21 @@ def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) ->
     max_words = ar.get("max_words", 60)
     words = reply_text.split()
     if len(words) > max_words:
-        reply_text = " ".join(words[:max_words]).rstrip(",;:—-") + "."
-        logger.info("Trimmed auto-reply from %d to %d words", len(words), max_words)
+        truncated = " ".join(words[:max_words])
+        last_end = max(truncated.rfind('.'), truncated.rfind('?'), truncated.rfind('!'))
+        if last_end > len(truncated) // 2:
+            reply_text = truncated[:last_end + 1]
+        else:
+            reply_text = truncated.rstrip(",;:—-") + "."
+        logger.info("Trimmed auto-reply from %d to %d words", len(words), len(reply_text.split()))
 
     if re.search(r'\$\s*[\d,]+', reply_text):
         reply_text = re.sub(r'\$\s*[\d,]+[A-Za-z]*', '', reply_text)
         reply_text = re.sub(r'\s{2,}', ' ', reply_text).strip()
+        parts = [s.strip() for s in re.split(r'(?<=[.!?])\s+', reply_text) if s.strip()]
+        parts = [s for s in parts if len(s.split()) >= 3]
+        if parts:
+            reply_text = " ".join(parts)
         logger.info("Stripped dollar amounts from auto-reply")
 
     if "!" in reply_text:

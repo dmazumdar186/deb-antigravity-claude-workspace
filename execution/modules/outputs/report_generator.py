@@ -266,7 +266,7 @@ def generate_report(
     now = datetime.now(timezone.utc)
 
     report = {
-        "client": cfg.get("client", "Unknown Client"),
+        "client": cfg.get("client_display_name", cfg.get("client", "Unknown Client")).replace("_", " ").title(),
         "generated_at": now.isoformat(),
         "date_range": {
             "start": (now - timedelta(days=7)).strftime("%Y-%m-%d"),
@@ -713,7 +713,7 @@ def run_weekly_report(
     result = {"report": report, "html_sent": False, "slack_sent": False, "telegram_sent": False}
 
     # --- Send via configured channels ---
-    client_name = config.get("client", "Client")
+    client_name = config.get("client_display_name", config.get("client", "Client")).replace("_", " ").title()
     subject = f"{client_name} — Weekly Pipeline Report ({dr['start']} to {dr['end']})"
 
     if reporting_cfg.get("email_enabled"):

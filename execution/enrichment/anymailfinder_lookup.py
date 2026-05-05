@@ -31,7 +31,8 @@ from modules.pipeline_utils import (
 load_dotenv(ROOT / ".env")
 logger = setup_logging("anymailfinder", log_dir=ROOT / ".tmp")
 
-ANYMAILFINDER_URL = "https://api.anymailfinder.com/v5.0/search/person.json"
+ANYMAILFINDER_PERSON_URL = "https://api.anymailfinder.com/v5.0/search/person.json"
+ANYMAILFINDER_COMPANY_URL = "https://api.anymailfinder.com/v5.0/search/company.json"
 
 MOCK_EMAILS = {
     "sparklecarwash.com": {"email": "john.miller@sparklecarwash.com", "name": "John Miller", "confidence": 92, "type": "personal"},
@@ -48,26 +49,65 @@ MOCK_EMAILS = {
 
 
 @retry_with_backoff(max_retries=3, base_delay=1.0)
-def find_email(domain: str, company_name: str, api_key: str) -> dict | None:
-    """Call AnymailFinder to find email for a domain/company. Returns dict or None."""
+def find_email_person(domain: str, first_name: str, last_name: str, api_key: str) -> dict | None:
+    """Find email by person name + domain. Use when owner name is known."""
     resp = requests.post(
-        ANYMAILFINDER_URL,
+        ANYMAILFINDER_PERSON_URL,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        json={"domain": domain, "first_name": first_name, "last_name": last_name},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    results = data.get("results", {})
+
+    email = results.get("email")
+    if not email:
+        return None
+
+    return {
+        "email": email,
+        "name": f"{first_name} {last_name}".strip(),
+        "confidence": 90 if results.get("validation") == "valid" else 60,
+        "type": "generic" if _is_generic(email) else "personal",
+    }
+
+
+@retry_with_backoff(max_retries=3, base_delay=1.0)
+def find_email_company(domain: str, company_name: str, api_key: str) -> dict | None:
+    """Find email by domain + company name. Fallback when no owner name available."""
+    resp = requests.post(
+        ANYMAILFINDER_COMPANY_URL,
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         json={"domain": domain, "company_name": company_name},
         timeout=30,
     )
     resp.raise_for_status()
     data = resp.json()
+    results = data.get("results", {})
 
-    if not data.get("email"):
+    emails = results.get("emails", [])
+    if not emails:
         return None
 
+    email = emails[0]
     return {
-        "email": data["email"],
-        "name": data.get("full_name", ""),
-        "confidence": data.get("confidence", 0),
-        "type": "generic" if _is_generic(data["email"]) else "personal",
+        "email": email,
+        "name": "",
+        "confidence": 70 if results.get("validation") == "valid" else 50,
+        "type": "generic" if _is_generic(email) else "personal",
     }
+
+
+def find_email(domain: str, company_name: str, api_key: str, owner_name: str = "") -> dict | None:
+    """Try person search first (if name available), fall back to company search."""
+    if owner_name and " " in owner_name.strip():
+        parts = owner_name.strip().split(None, 1)
+        result = find_email_person(domain, parts[0], parts[1], api_key)
+        if result:
+            return result
+
+    return find_email_company(domain, company_name, api_key)
 
 
 def _is_generic(email: str) -> bool:
@@ -94,7 +134,7 @@ def enrich_lead(lead: dict, api_key: str, min_confidence: int, mock: bool) -> di
         result = MOCK_EMAILS.get(domain)
     else:
         try:
-            result = find_email(domain, lead.get("business_name", ""), api_key)
+            result = find_email(domain, lead.get("business_name", ""), api_key, lead.get("owner_name", ""))
         except Exception:
             logger.exception("AnymailFinder error for %s", domain)
             lead["status"] = "error"

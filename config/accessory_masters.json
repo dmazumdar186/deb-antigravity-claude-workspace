@@ -113,10 +113,8 @@
     "model": "anthropic/claude-haiku-4.5",
     "delay_min_seconds": 120,
     "delay_max_seconds": 420,
-    "delay_increases_with_time_of_day": true,
     "max_sentences": 3,
     "max_words": 60,
-    "voice": "I",
     "sender_persona": "Aleksandar, business broker backed by Hedgestone Capital Group",
     "objection_responses": {
       "not_ready": {

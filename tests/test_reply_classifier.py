@@ -3,13 +3,15 @@
 test_reply_classifier.py
 description: Tests the reply classifier module with both mock and real LLM calls.
 inputs: OPENROUTER_API_KEY in .env (for real mode)
-outputs: Pass/fail results to stdout
-usage: py tests/test_reply_classifier.py
+outputs: pytest results
+usage: pytest tests/test_reply_classifier.py
 """
 
 import os
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "execution"))
@@ -204,48 +206,55 @@ SAMPLE_REPLIES = [
 ]
 
 
-def run_mock_tests():
-    """Mock classifier only tested against the original keyword-compatible cases."""
-    mock_cases = SAMPLE_REPLIES[:MOCK_COMPATIBLE]
-    print(f"=== Mock Classifier Tests ({len(mock_cases)} keyword-compatible cases) ===")
-    passed = 0
-    for case in mock_cases:
+class TestMockClassifier:
+    @pytest.mark.parametrize(
+        "case",
+        SAMPLE_REPLIES[:MOCK_COMPATIBLE],
+        ids=[c["label"] for c in SAMPLE_REPLIES[:MOCK_COMPATIBLE]],
+    )
+    def test_mock_classification(self, case):
         result = classify_mock(case["body"])
-        status = "PASS" if result == case["expected"] else "FAIL"
-        if status == "PASS":
-            passed += 1
-        print(f"  [{status}] {case['label']}: expected={case['expected']}, got={result}")
-    print(f"  Mock: {passed}/{len(mock_cases)} passed\n")
-    return passed == len(mock_cases)
+        assert result == case["expected"], f"got={result}"
 
 
-def run_real_tests():
-    """Real LLM classifier tested against the full 32-case golden set."""
-    print(f"=== Real Claude Classifier Tests ({len(SAMPLE_REPLIES)} golden set cases) ===")
-    api_key = os.environ.get("OPENROUTER_API_KEY", "")
-    if not api_key:
-        print("  SKIPPED — OPENROUTER_API_KEY not set in .env")
-        print("  To enable: add your key from openrouter.ai to .env\n")
-        return True
-
-    passed = 0
-    for case in SAMPLE_REPLIES:
+class TestRealClassifier:
+    @pytest.mark.parametrize(
+        "case",
+        SAMPLE_REPLIES,
+        ids=[c["label"] for c in SAMPLE_REPLIES],
+    )
+    def test_real_classification(self, case):
+        api_key = os.environ.get("OPENROUTER_API_KEY", "")
+        if not api_key:
+            pytest.skip("OPENROUTER_API_KEY not set")
         result = classify(case["body"], mock=False)
         accept = case.get("accept", [case["expected"]])
-        status = "PASS" if result in accept else "FAIL"
-        if status == "PASS":
-            passed += 1
-        print(f"  [{status}] {case['label']}: expected={case['expected']}, got={result}")
-    print(f"  Real: {passed}/{len(SAMPLE_REPLIES)} passed\n")
-    return passed == len(SAMPLE_REPLIES)
+        assert result in accept, f"expected one of {accept}, got={result}"
 
 
-if __name__ == "__main__":
-    mock_ok = run_mock_tests()
-    real_ok = run_real_tests()
+class TestClassifierMalformedOutput:
+    """Test that classify_real() handles edge-case LLM responses."""
 
-    if mock_ok and real_ok:
-        print("ALL TESTS PASSED")
-    else:
-        print("SOME TESTS FAILED")
-        sys.exit(1)
+    @pytest.mark.parametrize(
+        "raw_output,expected",
+        [
+            ("positive.", "positive"),
+            (" positive\n", "positive"),
+            ("POSITIVE", "positive"),
+            ("negative!", "negative"),
+            ("hot_positive,", "hot_positive"),
+            ("The answer is neutral", "neutral"),
+            ("", "neutral"),
+            ("maybe", "neutral"),
+            ("I think positive", "neutral"),  # "I" is not in VALID_CLASSES
+        ],
+    )
+    def test_malformed_output_handling(self, raw_output, expected, monkeypatch):
+        """Mock chat_completion to return malformed strings, verify robust parsing."""
+        import modules.llm_client as llm_mod
+
+        monkeypatch.setattr(llm_mod, "chat_completion", lambda **kwargs: raw_output)
+        from modules.reply_classifier import classify_real
+
+        result = classify_real("test body")
+        assert result == expected, f"input={raw_output!r}, expected={expected}, got={result}"

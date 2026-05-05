@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "execution"))
 
 from modules.reply_classifier import classify_mock
-from modules.outputs.auto_reply import handle_reply, should_handoff, generate_reply_mock
+from modules.outputs.auto_reply import handle_reply, should_handoff, _generate_reply_mock
 from modules.outputs.telegram import format_positive_reply
 
 
@@ -130,17 +130,17 @@ class TestGenerateReplyMockEdgeCases:
     """generate_reply_mock should handle edge case inputs."""
 
     def test_empty_body(self):
-        result = generate_reply_mock("", "context")
+        result = _generate_reply_mock("", "context")
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_none_context(self):
-        result = generate_reply_mock("Tell me more", None)
+        result = _generate_reply_mock("Tell me more", None)
         assert isinstance(result, str)
 
     def test_very_long_body(self):
         long = "Tell me about selling " * 1000
-        result = generate_reply_mock(long, "context")
+        result = _generate_reply_mock(long, "context")
         assert isinstance(result, str)
         assert len(result) > 0
 

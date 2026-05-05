@@ -38,7 +38,8 @@ DEFAULT_MOCK_SIGNALS = {
     ],
     "negative": [
         "not interested", "remove", "stop", "unsubscribe",
-        "no thanks", "don't", "no longer",
+        "no thanks", "don't contact", "don't email", "don't call",
+        "no longer",
     ],
     "neutral": [
         "out of office", "auto-reply", "vacation", "will return",
@@ -81,15 +82,19 @@ def classify_real(
     try:
         from modules.llm_client import chat_completion
 
-        result = chat_completion(
+        raw = chat_completion(
             system=system_prompt or DEFAULT_SYSTEM_PROMPT,
             user_message=body or "",
             model=model or DEFAULT_MODEL,
             max_tokens=10,
-        ).lower()
+        )
+        result = raw.strip().strip(".,!?\"'").lower()
         if result in VALID_CLASSES:
             return result
-        logger.warning("Unexpected classifier output: %r — defaulting to neutral", result)
+        first_word = result.split()[0].strip(".,!?\"'") if result.split() else ""
+        if first_word in VALID_CLASSES:
+            return first_word
+        logger.warning("Unexpected classifier output: %r — defaulting to neutral", raw)
         return "neutral"
     except Exception:
         logger.exception("Reply classification failed, defaulting to neutral")
