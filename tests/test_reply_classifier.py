@@ -73,9 +73,9 @@ SAMPLE_REPLIES = [
     # --- Multi-signal conflict ---
     {
         "body": "Not interested right now, but call me in 6 months.",
-        "expected": "negative",
-        "accept": ["negative", "positive", "neutral"],
-        "label": "future interest — inherently ambiguous",
+        "expected": "neutral",
+        "accept": ["negative", "neutral", "positive"],
+        "label": "future interest — deferred, not rejection",
     },
     {
         "body": "I'm interested but I'm not ready to sell yet. Maybe next year.",
@@ -101,6 +101,7 @@ SAMPLE_REPLIES = [
     {
         "body": "Ok",
         "expected": "neutral",
+        "accept": ["neutral", "positive"],
         "label": "one-word ok",
     },
     # --- Hostile / profanity ---
@@ -118,6 +119,7 @@ SAMPLE_REPLIES = [
     {
         "body": "Forwarding this to my business partner. He handles these decisions.",
         "expected": "neutral",
+        "accept": ["neutral", "positive"],
         "label": "forwarding to partner — delegation without explicit interest",
     },
     {

@@ -240,6 +240,7 @@ def stage_upload_instantly(config: dict, input_file: str, mock: bool) -> str:
 def poll_replies(config: dict, mock: bool):
     instantly_config = config.get("instantly", {})
     api_url = instantly_config.get("api_url", "https://api.instantly.ai/api/v2")
+    api_key = ""
     classification_config = config.get("classification", {})
     ghl_config = config.get("ghl", {})
     notif_config = config.get("notifications", {})

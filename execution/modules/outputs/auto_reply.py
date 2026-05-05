@@ -140,6 +140,18 @@ def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) ->
         reply_text = re.sub(r'\s{2,}', ' ', reply_text).strip()
         logger.info("Stripped dollar amounts from auto-reply")
 
+    if "!" in reply_text:
+        reply_text = reply_text.replace("!", ".")
+        logger.info("Replaced exclamation marks in auto-reply")
+
+    max_sentences = ar.get("max_sentences", 3)
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', reply_text) if s.strip()]
+    if len(sentences) > max_sentences:
+        reply_text = " ".join(sentences[:max_sentences])
+        if not reply_text.endswith((".", "?", "!")):
+            reply_text += "."
+        logger.info("Trimmed auto-reply from %d to %d sentences", len(sentences), max_sentences)
+
     delay_min = ar.get("delay_min_seconds", 120)
     delay_max = ar.get("delay_max_seconds", 420)
 

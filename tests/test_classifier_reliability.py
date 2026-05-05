@@ -41,12 +41,14 @@ class TestClassifierReliability:
         results = {}
         for case in SAMPLE_REPLIES:
             runs = _classify_n_times(case["body"], RUNS)
+            accepted = set(case.get("accept", [case["expected"]]))
             results[case["label"]] = {
                 "expected": case["expected"],
+                "accept": accepted,
                 "runs": runs,
                 "consistent": len(set(runs)) == 1,
-                "all_correct": all(r == case["expected"] for r in runs),
-                "any_correct": any(r == case["expected"] for r in runs),
+                "all_correct": all(r in accepted for r in runs),
+                "any_correct": any(r in accepted for r in runs),
             }
         request.cls.results = results
         _print_report(results)

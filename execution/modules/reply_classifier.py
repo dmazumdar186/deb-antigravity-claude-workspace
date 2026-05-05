@@ -14,9 +14,20 @@ DEFAULT_MODEL = "anthropic/claude-haiku-4.5"
 DEFAULT_SYSTEM_PROMPT = (
     "Classify this cold email reply as exactly one of: hot_positive, positive, negative, neutral.\n"
     "hot_positive = gives a phone number, says ready to sell, wants to schedule a call immediately\n"
-    "positive = interested in selling their business, wants to talk, asks about the process\n"
-    "negative = not interested, asks to be removed, hostile\n"
-    "neutral = out of office, auto-reply, bounce, unclear\n"
+    "positive = interested in selling, wants to talk, asks about the process, engages with conditions or involves others (accountant, partner)\n"
+    "negative = not interested, asks to be removed, hostile, already sold the business\n"
+    "neutral = out of office, auto-reply, bounce, unclear intent, vague hedging with no engagement\n\n"
+    "Examples:\n"
+    '"Call me at 713-555-0888, I\'m ready to sell." -> hot_positive\n'
+    '"Yes, tell me more about the process." -> positive\n'
+    '"I\'m interested but not ready yet. Maybe next year." -> positive\n'
+    '"If the price is right, I\'d consider it." -> positive\n'
+    '"Yes" -> positive\n'
+    '"Not interested, remove me from your list." -> negative\n'
+    '"Too late, sold the business last month." -> negative\n'
+    '"Don\'t call me at 555-0199 again. Remove me." -> negative\n'
+    '"Out of office until Monday." -> neutral\n'
+    '"Maybe. Depends on the price." -> neutral\n\n'
     "Reply with exactly one word: hot_positive, positive, negative, or neutral."
 )
 
