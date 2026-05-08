@@ -339,7 +339,7 @@ async function pollAndProcessReplies(env) {
       await markProcessed(env, replyId, result);
       processed.push({ email: reply.from_email, ...result });
     } catch (err) {
-      await env.REPLY_STATE.delete(replyId);
+      await env.REPLY_STATE?.delete(replyId);
       console.error(`Reply processing failed for ${replyId}:`, err.message);
     }
   }
@@ -503,6 +503,11 @@ async function generateAndSendAutoReply(reply, env) {
   }
 
   replyText = applyGuardRails(replyText);
+
+  if (!replyText || !replyText.trim()) {
+    console.warn(`Auto-reply for ${reply.from_email} was fully stripped by guardrails`);
+    return null;
+  }
 
   if (reply.id && reply.lead_email && env.INSTANTLY_API_KEY) {
     const delaySeconds = 120 + Math.floor(Math.random() * 300);
@@ -741,13 +746,15 @@ async function sendTelegramNotification(reply, env) {
     ? `https://app.gohighlevel.com/v2/location/${env.GHL_LOCATION_ID}/contacts/detail/${reply.contact_id}`
     : "#";
 
+  const esc = (s) => (s || "").replace(/[*_`[\]]/g, "");
+
   const message =
     `${emoji} *${label}*\n` +
-    `*Lead:* ${reply.from_name || "Unknown"} (${reply.from_email || ""})\n` +
-    `*Company:* ${reply.company || "Unknown"}\n` +
-    `*Industry:* ${reply.industry || "Unknown"}\n` +
-    `*Email Sent:* ${reply.email_subject || ""}\n` +
-    `*Response:* ${(reply.body || "").slice(0, 200)}\n` +
+    `*Lead:* ${esc(reply.from_name) || "Unknown"} (${esc(reply.from_email) || ""})\n` +
+    `*Company:* ${esc(reply.company) || "Unknown"}\n` +
+    `*Industry:* ${esc(reply.industry) || "Unknown"}\n` +
+    `*Email Sent:* ${esc(reply.email_subject) || ""}\n` +
+    `*Response:* ${esc((reply.body || "").slice(0, 200))}\n` +
     `*Time:* ${reply.received_at || new Date().toISOString()}\n` +
     `[View in GHL](${ghlLink})`;
 
