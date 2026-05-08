@@ -1,6 +1,6 @@
 name = "accessory-masters-api"
 main = "src/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-01-01"
 account_id = "26e5b8612be35e5d23a9186fcf5288d0"
 
 [triggers]

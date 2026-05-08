@@ -112,7 +112,7 @@ const CONFIG = {
     tags: ["cold email", "positive reply"],
     source: "cold email pipeline",
     calendar_id: "0bwcyzJOtxKScDfIDCRw",
-    custom_fields: { reply_text: "tUwBgk4HB3kS3ZDje45P" },
+    custom_fields: { reply_text: "tUwBgk4HB3kS3ZDje45P", revenue_range: "RC5rvAO6J65tGFFHs0Ib" },
   },
   tone: {
     voice: "I",
@@ -303,6 +303,10 @@ export default {
  * Main orchestration: poll Instantly, classify, route, auto-reply.
  */
 async function pollAndProcessReplies(env) {
+  if (!env.INSTANTLY_API_KEY) {
+    console.warn("INSTANTLY_API_KEY not set — skipping reply polling");
+    return { processed: 0 };
+  }
   console.log("Cron: starting reply polling");
 
   let replies;
@@ -440,7 +444,7 @@ function classifyMock(body) {
     negative: [
       "not interested", "remove", "stop", "unsubscribe",
       "no thanks", "don't contact", "don't email", "don't call",
-      "no longer",
+      "no longer", "already sold", "sold the business", "too late",
     ],
     neutral: ["out of office", "auto-reply", "vacation", "will return"],
     positive: [
@@ -799,11 +803,13 @@ async function sendSlackNotification(reply, env) {
       ? "Hot Lead Detected"
       : "Positive Reply Detected";
 
+  const esc = (s) => (s || "").replace(/[*_`~<>]/g, "");
+
   const message =
     `${emoji} *${label}*\n` +
-    `*From:* ${reply.from_name || "Unknown"} (${reply.from_email || ""})\n` +
-    `*Company:* ${reply.company || "Unknown"}\n` +
-    `*Reply:* ${(reply.body || "").slice(0, 200)}\n` +
+    `*From:* ${esc(reply.from_name) || "Unknown"} (${esc(reply.from_email) || ""})\n` +
+    `*Company:* ${esc(reply.company) || "Unknown"}\n` +
+    `*Reply:* ${esc((reply.body || "").slice(0, 200))}\n` +
     `*Time:* ${reply.received_at || new Date().toISOString()}`;
 
   try {
@@ -866,6 +872,12 @@ async function processDelayedReplies(env) {
       continue;
     }
     if (data.sending) continue;
+    const retries = data.retry_count || 0;
+    if (retries >= 3) {
+      console.error(`Delayed reply for ${data.reply_to_uuid} failed 3 times — giving up`);
+      await env.REPLY_STATE.delete(key.name);
+      continue;
+    }
     const sendAfter = new Date(data.send_after);
 
     if (new Date() < sendAfter) continue;
@@ -882,9 +894,9 @@ async function processDelayedReplies(env) {
       sent++;
       await env.REPLY_STATE.delete(key.name);
     } catch (err) {
-      console.error(`Failed to send delayed reply for ${data.reply_to_uuid}:`, err);
+      console.error(`Failed to send delayed reply for ${data.reply_to_uuid} (attempt ${retries + 1}):`, err);
       try {
-        await env.REPLY_STATE.put(key.name, JSON.stringify({ ...data, sending: false }), { expirationTtl: 60 * 60 * 24 });
+        await env.REPLY_STATE.put(key.name, JSON.stringify({ ...data, sending: false, retry_count: retries + 1 }), { expirationTtl: 60 * 60 * 24 });
       } catch (_) {}
     }
   }
@@ -902,7 +914,7 @@ async function fetchInstantlyReplies(env) {
   const maxPages = 10;
 
   for (let page = 0; page < maxPages; page++) {
-    let url = `https://api.instantly.ai/api/v2/emails?email_type=received&limit=50`;
+    let url = `https://api.instantly.ai/api/v2/emails?email_type=received&limit=50&campaign_id=${env.CAMPAIGN_ID || ""}`;
     if (cursor) url += `&starting_after=${cursor}`;
 
     const res = await fetch(url, {
@@ -926,7 +938,7 @@ function normalizeReply(raw) {
   return {
     id: raw.id || raw.message_id || "",
     from_email: raw.from_address_email || "",
-    from_name: raw.from_address_name || raw.lead || "",
+    from_name: raw.from_address_name || "",
     subject: raw.subject || "",
     email_subject: raw.subject || raw.email_subject || "",
     body: bodyText,
@@ -1062,6 +1074,13 @@ async function handleFormSubmit(request, env) {
     );
   }
 
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return jsonResponse(
+      { success: false, error: "Invalid email format" },
+      400,
+    );
+  }
+
   const { firstName, lastName } = parseName(name);
 
   const ghlBody = {
@@ -1072,7 +1091,7 @@ async function handleFormSubmit(request, env) {
     companyName: company || "",
     source: "website",
     tags: ["website lead"],
-    customFields: [{ id: "revenue_range", field_value: revenue || "" }],
+    customFields: [{ id: CONFIG.ghl.custom_fields.revenue_range, field_value: revenue || "" }],
   };
 
   try {
@@ -1168,7 +1187,7 @@ async function handleReplyWebhook(request, env) {
     return jsonResponse({ success: false, error: "Invalid JSON body" }, 400);
   }
 
-  console.log("Reply webhook received:", JSON.stringify(payload));
+  console.log("Reply webhook received:", payload?.id || payload?.message_id || "unknown");
 
   if (payload && (payload.from_email || payload.from_address_email || payload.body)) {
     const reply = normalizeReply(payload);
@@ -1378,6 +1397,7 @@ async function fetchGHLMetrics(env, startDate) {
   calendarUrl.searchParams.set("calendarId", CONFIG.ghl.calendar_id);
   if (startDate) {
     calendarUrl.searchParams.set("startTime", new Date(startDate).toISOString());
+    calendarUrl.searchParams.set("endTime", new Date().toISOString());
   }
 
   const [contactsRes, oppsRes, calendarRes] = await Promise.all([
@@ -1475,7 +1495,7 @@ function corsResponse(request, env, response) {
 
   const headers = new Headers(response.headers);
   headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Worker-Secret");
   headers.set("Access-Control-Max-Age", "86400");
 
   if (origin && allowed.includes(origin)) {
@@ -1580,6 +1600,7 @@ async function stageSource(env, runId) {
       } catch (err) {
         console.error(`Serper query failed: ${query}`, err);
       }
+      await sleep(100);
     }
   }
 
@@ -2171,7 +2192,9 @@ async function handlePipelineStatus(env) {
   const states = [];
   for (const key of list.keys) {
     const val = await env.REPLY_STATE.get(key.name);
-    if (val) states.push(JSON.parse(val));
+    if (val) {
+      try { states.push(JSON.parse(val)); } catch (_) {}
+    }
   }
 
   return jsonResponse({ recent_runs: states });
