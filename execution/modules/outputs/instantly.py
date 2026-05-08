@@ -120,26 +120,31 @@ def fetch_replies(
         default_params.update(params)
 
     resp = requests.get(
-        f"{api_url}/unibox/emails",
+        f"{api_url}/emails",
         headers={"Authorization": f"Bearer {api_key}"},
         params=default_params,
         timeout=30,
     )
     resp.raise_for_status()
-    return resp.json().get("data", [])
+    return resp.json().get("items", [])
 
 
 def normalize_reply(raw: dict) -> dict:
-    """Map Instantly API reply fields to internal format."""
+    """Map Instantly API v2 reply fields to internal format."""
+    body = raw.get("body", "")
+    if isinstance(body, dict):
+        body = body.get("text", body.get("html", ""))
     return {
-        "from_email": raw.get("from_address_email", raw.get("from_email", "")),
-        "from_name": raw.get("from_address_name", raw.get("from_name", "")),
+        "id": raw.get("id", raw.get("message_id", "")),
+        "from_email": raw.get("from_address_email", ""),
+        "from_name": raw.get("from_address_name", raw.get("lead", "")),
         "subject": raw.get("subject", ""),
-        "body": raw.get("body", raw.get("text_body", "")),
+        "body": body,
         "company": raw.get("company_name", raw.get("company", "")),
-        "received_at": raw.get("timestamp", raw.get("received_at", "")),
+        "received_at": raw.get("timestamp_email", raw.get("timestamp_created", "")),
         "campaign_id": raw.get("campaign_id", ""),
-        "lead_email": raw.get("to_address_email", ""),
+        "lead_email": (raw.get("to_address_email_list") or [""])[0],
+        "is_auto_reply": raw.get("is_auto_reply", False),
     }
 
 
@@ -155,14 +160,14 @@ def send_reply(
 ) -> dict:
     """Send a reply via Instantly Unibox API (replies in the existing thread)."""
     payload = {
-        "reply_to_email": reply_to_email,
+        "reply_to_uuid": reply_to_email,
         "from": from_email,
-        "body": reply_text,
+        "body": {"text": reply_text},
     }
     if subject:
         payload["subject"] = subject
     resp = requests.post(
-        f"{api_url}/unibox/emails",
+        f"{api_url}/emails/reply",
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
@@ -171,7 +176,7 @@ def send_reply(
         timeout=30,
     )
     resp.raise_for_status()
-    logger.info("Reply sent to %s via Instantly", reply_to_email)
+    logger.info("Reply sent for %s via Instantly", reply_to_email)
     return resp.json()
 
 

@@ -340,6 +340,7 @@ async function processReply(reply, env) {
   if (classification === "hot_positive" || classification === "positive") {
     const ghlResult = await routeToGHL(reply, env);
     result.ghl = ghlResult;
+    reply.contact_id = ghlResult?.contact_id || null;
 
     await sendTelegramNotification(reply, env);
     await sendSlackNotification(reply, env);
@@ -473,12 +474,11 @@ async function generateAndSendAutoReply(reply, env) {
 
   replyText = applyGuardRails(replyText);
 
-  if (reply.from_email && reply.lead_email && env.INSTANTLY_API_KEY) {
-    // Queue delayed send (2-7 min) — picked up by next cron run
+  if (reply.id && reply.lead_email && env.INSTANTLY_API_KEY) {
     const delaySeconds = 120 + Math.floor(Math.random() * 300);
     const sendAfter = new Date(Date.now() + delaySeconds * 1000).toISOString();
     await queueDelayedReply(env, {
-      reply_to_email: reply.from_email,
+      reply_to_uuid: reply.id,
       from_email: reply.lead_email,
       reply_text: replyText,
       send_after: sendAfter,
@@ -486,7 +486,7 @@ async function generateAndSendAutoReply(reply, env) {
     });
     console.log(`Auto-reply queued for ${reply.from_email} — send after ${delaySeconds}s delay`);
   } else {
-    console.warn("Missing from_email, lead_email, or INSTANTLY_API_KEY — reply generated but not sent");
+    console.warn("Missing reply id, lead_email, or INSTANTLY_API_KEY — reply generated but not sent");
   }
 
   return replyText;
@@ -800,15 +800,15 @@ async function processDelayedReplies(env) {
 
     try {
       await sendInstantlyReply(
-        data.reply_to_email,
+        data.reply_to_uuid,
         data.from_email,
         data.reply_text,
         env,
       );
-      console.log(`Delayed reply sent to ${data.reply_to_email}`);
+      console.log(`Delayed reply sent for ${data.reply_to_uuid}`);
       sent++;
     } catch (err) {
-      console.error(`Failed to send delayed reply to ${data.reply_to_email}:`, err);
+      console.error(`Failed to send delayed reply for ${data.reply_to_uuid}:`, err);
     }
 
     await env.REPLY_STATE.delete(key.name);
@@ -823,7 +823,7 @@ async function processDelayedReplies(env) {
 
 async function fetchInstantlyReplies(env) {
   const res = await fetch(
-    "https://api.instantly.ai/api/v2/unibox/emails?email_type=received&limit=50",
+    "https://api.instantly.ai/api/v2/emails?email_type=received&limit=50",
     {
       headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` },
     },
@@ -834,33 +834,37 @@ async function fetchInstantlyReplies(env) {
   }
 
   const data = await res.json();
-  return data.data || [];
+  return data.items || [];
 }
 
 function normalizeReply(raw) {
+  const bodyText =
+    typeof raw.body === "object" ? (raw.body?.text || raw.body?.html || "") : (raw.body || "");
   return {
-    from_email: raw.from_address_email || raw.from_email || "",
-    from_name: raw.from_address_name || raw.from_name || "",
+    id: raw.id || raw.message_id || "",
+    from_email: raw.from_address_email || "",
+    from_name: raw.from_address_name || raw.lead || "",
     subject: raw.subject || "",
-    body: raw.body || raw.text_body || "",
+    body: bodyText,
     company: raw.company_name || raw.company || "",
-    received_at: raw.timestamp || raw.received_at || "",
+    received_at: raw.timestamp_email || raw.timestamp_created || "",
     campaign_id: raw.campaign_id || "",
-    lead_email: raw.to_address_email || "",
+    lead_email: (raw.to_address_email_list || [])[0] || "",
+    is_auto_reply: raw.is_auto_reply || false,
   };
 }
 
-async function sendInstantlyReply(replyToEmail, fromEmail, replyText, env) {
-  const res = await fetch("https://api.instantly.ai/api/v2/unibox/emails", {
+async function sendInstantlyReply(replyToUuid, fromEmail, replyText, env) {
+  const res = await fetch("https://api.instantly.ai/api/v2/emails/reply", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${env.INSTANTLY_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      reply_to_email: replyToEmail,
+      reply_to_uuid: replyToUuid,
       from: fromEmail,
-      body: replyText,
+      body: { text: replyText },
     }),
   });
 
@@ -1115,36 +1119,48 @@ async function handleVariants(url, env) {
   }
 
   try {
-    const res = await fetch(
-      `https://api.instantly.ai/api/v2/campaigns/${campaignId}/analytics/steps`,
-      {
+    const [campaignRes, analyticsRes] = await Promise.all([
+      fetch(`https://api.instantly.ai/api/v2/campaigns?id=${campaignId}&limit=1`, {
         headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` },
-      },
-    );
+      }),
+      fetch(`https://api.instantly.ai/api/v2/campaigns/analytics/overview?id=${campaignId}`, {
+        headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` },
+      }),
+    ]);
 
-    if (!res.ok) {
-      throw new Error(`Instantly API ${res.status}: ${await res.text()}`);
+    if (!campaignRes.ok) {
+      throw new Error(`Instantly campaigns API ${campaignRes.status}`);
     }
 
-    const data = await res.json();
-    const steps = data.steps || data.data || [];
+    const campaignData = await campaignRes.json();
+    const campaign = campaignData.items?.[0];
+    if (!campaign) {
+      return jsonResponse({ error: "Campaign not found" }, 404);
+    }
+
+    const analytics = analyticsRes.ok ? await analyticsRes.json() : {};
+    const steps = campaign.sequences?.[0]?.steps || [];
 
     const variants = steps.map((step, i) => ({
-      step_id: step.id || step.step_id || `step_${i}`,
-      label: step.subject || step.name || `Step ${i + 1}`,
-      emails_sent: step.total_sent ?? step.sent ?? 0,
-      replies: step.total_replied ?? step.replied ?? 0,
-      response_rate_pct:
-        (step.total_sent ?? step.sent ?? 0) > 0
-          ? +(
-              ((step.total_replied ?? step.replied ?? 0) /
-                (step.total_sent ?? step.sent ?? 0)) *
-              100
-            ).toFixed(1)
-          : 0,
+      step: i + 1,
+      type: step.type || "email",
+      delay_days: step.delay || 0,
+      variant_count: step.variants?.length || 0,
+      subjects: (step.variants || []).map((v) => v.subject || "(no subject)"),
     }));
 
-    return jsonResponse({ campaign_id: campaignId, variants });
+    return jsonResponse({
+      campaign_id: campaignId,
+      campaign_name: campaign.name,
+      status: campaign.status,
+      analytics: {
+        emails_sent: analytics.emails_sent_count ?? 0,
+        replies: analytics.reply_count ?? 0,
+        opens: analytics.open_count_unique ?? 0,
+        bounces: analytics.bounced_count ?? 0,
+      },
+      variants,
+    });
   } catch (err) {
     console.error("Variants fetch failed:", err);
     return jsonResponse(
@@ -1214,28 +1230,23 @@ async function fetchInstantlyMetrics(env, startDate) {
 
 async function fetchVariantData(env) {
   const res = await fetch(
-    `https://api.instantly.ai/api/v2/campaigns/${env.CAMPAIGN_ID}/analytics/steps`,
+    `https://api.instantly.ai/api/v2/campaigns?id=${env.CAMPAIGN_ID}&limit=1`,
     { headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` } },
   );
   if (!res.ok) {
-    throw new Error(`Instantly steps API ${res.status}`);
+    throw new Error(`Instantly campaigns API ${res.status}`);
   }
   const data = await res.json();
-  const steps = data.steps || data.data || [];
+  const campaign = data.items?.[0];
+  if (!campaign) return [];
+
+  const steps = campaign.sequences?.[0]?.steps || [];
   return steps.map((step, i) => ({
-    variant_id: step.id || step.step_id || `step_${i}`,
-    type: "human",
-    label: step.subject || step.name || `Step ${i + 1}`,
-    emails_sent: step.total_sent ?? step.sent ?? 0,
-    replies: step.total_replied ?? step.replied ?? 0,
-    response_rate_pct:
-      (step.total_sent ?? step.sent ?? 0) > 0
-        ? +(
-            ((step.total_replied ?? step.replied ?? 0) /
-              (step.total_sent ?? step.sent ?? 0)) *
-            100
-          ).toFixed(1)
-        : 0,
+    step: i + 1,
+    type: step.type || "email",
+    delay_days: step.delay || 0,
+    variant_count: step.variants?.length || 0,
+    subjects: (step.variants || []).map((v) => v.subject || "(no subject)"),
   }));
 }
 
