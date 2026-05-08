@@ -112,7 +112,7 @@ const CONFIG = {
     tags: ["cold email", "positive reply"],
     source: "cold email pipeline",
     calendar_id: "0bwcyzJOtxKScDfIDCRw",
-    custom_fields: { reply_text: "reply_text" }, // TODO: replace with actual GHL custom field ID
+    custom_fields: { reply_text: "tUwBgk4HB3kS3ZDje45P" },
   },
   tone: {
     voice: "I",
