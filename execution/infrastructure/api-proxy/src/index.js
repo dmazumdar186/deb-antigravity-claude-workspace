@@ -488,6 +488,11 @@ function matchObjection(body) {
 }
 
 async function generateAndSendAutoReply(reply, env) {
+  if (!reply.id || !reply.lead_email || !env.INSTANTLY_API_KEY) {
+    console.warn(`Missing reply id, lead_email, or INSTANTLY_API_KEY — skipping auto-reply for ${reply.from_email}`);
+    return null;
+  }
+
   const body = reply.body || "";
   const context = `From: ${reply.from_name || ""} at ${reply.company || ""} (${reply.from_email || ""})`;
 
@@ -513,21 +518,16 @@ async function generateAndSendAutoReply(reply, env) {
     return null;
   }
 
-  if (reply.id && reply.lead_email && env.INSTANTLY_API_KEY) {
-    const delaySeconds = 120 + Math.floor(Math.random() * 300);
-    const sendAfter = new Date(Date.now() + delaySeconds * 1000).toISOString();
-    await queueDelayedReply(env, {
-      reply_to_uuid: reply.id,
-      from_email: reply.lead_email,
-      reply_text: replyText,
-      send_after: sendAfter,
-      delay_seconds: delaySeconds,
-    });
-    console.log(`Auto-reply queued for ${reply.from_email} — send after ${delaySeconds}s delay`);
-  } else {
-    console.warn("Missing reply id, lead_email, or INSTANTLY_API_KEY — reply generated but not sent");
-    return null;
-  }
+  const delaySeconds = 120 + Math.floor(Math.random() * 300);
+  const sendAfter = new Date(Date.now() + delaySeconds * 1000).toISOString();
+  await queueDelayedReply(env, {
+    reply_to_uuid: reply.id,
+    from_email: reply.lead_email,
+    reply_text: replyText,
+    send_after: sendAfter,
+    delay_seconds: delaySeconds,
+  });
+  console.log(`Auto-reply queued for ${reply.from_email} — send after ${delaySeconds}s delay`);
 
   return replyText;
 }
@@ -680,7 +680,7 @@ async function routeToGHL(reply, env, classification) {
           source: CONFIG.ghl.source,
           tags: CONFIG.ghl.tags,
           customFields: [
-            { id: CONFIG.ghl.custom_fields.reply_text, field_value: (reply.body || "").slice(0, 500) },
+            { id: CONFIG.ghl.custom_fields.reply_text, value: (reply.body || "").slice(0, 500) },
           ],
         }),
       },
@@ -750,11 +750,11 @@ async function sendTelegramNotification(reply, env) {
     ? `https://app.gohighlevel.com/v2/location/${env.GHL_LOCATION_ID}/contacts/detail/${reply.contact_id}`
     : "#";
 
-  const esc = (s) => (s || "").replace(/[*_`[\]]/g, "");
+  const esc = (s) => (s || "").replace(/[*_`[\]()]/g, "");
 
   const message =
     `${emoji} *${label}*\n` +
-    `*Lead:* ${esc(reply.from_name) || "Unknown"} (${esc(reply.from_email) || ""})\n` +
+    `*Lead:* ${esc(reply.from_name) || "Unknown"} — ${esc(reply.from_email) || ""}\n` +
     `*Company:* ${esc(reply.company) || "Unknown"}\n` +
     `*Industry:* ${esc(reply.industry) || "Unknown"}\n` +
     `*Email Sent:* ${esc(reply.email_subject) || ""}\n` +
@@ -803,11 +803,11 @@ async function sendSlackNotification(reply, env) {
       ? "Hot Lead Detected"
       : "Positive Reply Detected";
 
-  const esc = (s) => (s || "").replace(/[*_`~<>]/g, "");
+  const esc = (s) => (s || "").replace(/[*_`~<>()[\]]/g, "");
 
   const message =
     `${emoji} *${label}*\n` +
-    `*From:* ${esc(reply.from_name) || "Unknown"} (${esc(reply.from_email) || ""})\n` +
+    `*From:* ${esc(reply.from_name) || "Unknown"} — ${esc(reply.from_email) || ""}\n` +
     `*Company:* ${esc(reply.company) || "Unknown"}\n` +
     `*Reply:* ${esc((reply.body || "").slice(0, 200))}\n` +
     `*Time:* ${reply.received_at || new Date().toISOString()}`;
@@ -1091,7 +1091,7 @@ async function handleFormSubmit(request, env) {
     companyName: company || "",
     source: "website",
     tags: ["website lead"],
-    customFields: [{ id: CONFIG.ghl.custom_fields.revenue_range, field_value: revenue || "" }],
+    customFields: [{ id: CONFIG.ghl.custom_fields.revenue_range, value: revenue || "" }],
   };
 
   try {
@@ -1215,6 +1215,10 @@ async function handleReplyWebhook(request, env) {
         });
       }
     }
+  }
+
+  if (!payload || (!payload.from_email && !payload.from_address_email && !payload.body)) {
+    return jsonResponse({ success: true, received: true, skipped: "unrecognized_payload" });
   }
 
   return jsonResponse({ success: true, received: true, already_processed: true });
@@ -2188,7 +2192,7 @@ async function handlePipelineStatus(env) {
     return jsonResponse({ status: "no_kv_namespace" });
   }
 
-  const list = await env.REPLY_STATE.list({ prefix: "pipeline_", limit: 5 });
+  const list = await env.REPLY_STATE.list({ prefix: "pipeline_", limit: 20 });
   const states = [];
   for (const key of list.keys) {
     const val = await env.REPLY_STATE.get(key.name);
@@ -2197,7 +2201,8 @@ async function handlePipelineStatus(env) {
     }
   }
 
-  return jsonResponse({ recent_runs: states });
+  states.sort((a, b) => new Date(b.started_at || b.generated_at || 0) - new Date(a.started_at || a.generated_at || 0));
+  return jsonResponse({ recent_runs: states.slice(0, 5) });
 }
 
 async function handleWeeklyReport(env) {
