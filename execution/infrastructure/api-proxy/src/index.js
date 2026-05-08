@@ -158,7 +158,7 @@ const CONFIG = {
     anymailfinder_company_url: "https://api.anymailfinder.com/v5.0/search/company.json",
     anymailfinder_min_confidence: 50,
     million_verifier_url: "https://api.millionverifier.com/api/v3",
-    million_verifier_accept: ["ok", "catch_all"],
+    million_verifier_accept: ["ok", "catch_all", "unknown"],
   },
   personalization: {
     model: "anthropic/claude-haiku-4.5",
@@ -325,7 +325,7 @@ async function pollAndProcessReplies(env) {
     if (reply.is_auto_reply) continue;
 
     const replyId =
-      raw.id || raw.message_id || `${reply.from_email}_${reply.received_at}`;
+      raw.id || raw.message_id || `fallback_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     const already = await isAlreadyProcessed(env, replyId);
     if (already) {
@@ -339,7 +339,7 @@ async function pollAndProcessReplies(env) {
       await markProcessed(env, replyId, result);
       processed.push({ email: reply.from_email, ...result });
     } catch (err) {
-      await env.REPLY_STATE.delete(`processed_${replyId}`);
+      await env.REPLY_STATE.delete(replyId);
       console.error(`Reply processing failed for ${replyId}:`, err.message);
     }
   }
@@ -375,11 +375,17 @@ async function processReply(reply, env) {
     }
   }
 
-  if (classification === "positive" && CONFIG.auto_reply.enabled) {
-    const replyText = await generateAndSendAutoReply(reply, env);
-    if (replyText) {
-      result.action = "auto_reply";
-      result.reply_text = replyText;
+  if (classification === "positive") {
+    if (CONFIG.auto_reply.enabled) {
+      const replyText = await generateAndSendAutoReply(reply, env);
+      if (replyText) {
+        result.action = "auto_reply";
+        result.reply_text = replyText;
+      } else {
+        result.action = "ghl_only";
+      }
+    } else {
+      result.action = "ghl_only";
     }
   }
 
@@ -511,6 +517,7 @@ async function generateAndSendAutoReply(reply, env) {
     console.log(`Auto-reply queued for ${reply.from_email} — send after ${delaySeconds}s delay`);
   } else {
     console.warn("Missing reply id, lead_email, or INSTANTLY_API_KEY — reply generated but not sent");
+    return null;
   }
 
   return replyText;
@@ -689,6 +696,7 @@ async function routeToGHL(reply, env, classification) {
           method: "POST",
           headers: ghlHeaders,
           body: JSON.stringify({
+            locationId: env.GHL_LOCATION_ID,
             pipelineId: CONFIG.ghl.pipeline_id,
             stageId,
             contactId: result.contact_id,
@@ -843,8 +851,14 @@ async function processDelayedReplies(env) {
     const val = await env.REPLY_STATE.get(key.name);
     if (!val) continue;
 
-    const data = JSON.parse(val);
-    if (data.sending) continue; // Already being sent by prior run
+    let data;
+    try {
+      data = JSON.parse(val);
+    } catch (_) {
+      await env.REPLY_STATE.delete(key.name);
+      continue;
+    }
+    if (data.sending) continue;
     const sendAfter = new Date(data.send_after);
 
     if (new Date() < sendAfter) continue;
@@ -862,6 +876,9 @@ async function processDelayedReplies(env) {
       await env.REPLY_STATE.delete(key.name);
     } catch (err) {
       console.error(`Failed to send delayed reply for ${data.reply_to_uuid}:`, err);
+      try {
+        await env.REPLY_STATE.put(key.name, JSON.stringify({ ...data, sending: false }), { expirationTtl: 60 * 60 * 24 });
+      } catch (_) {}
     }
   }
 
@@ -925,7 +942,7 @@ async function sendInstantlyReply(replyToUuid, fromEmail, replyText, env) {
     body: JSON.stringify({
       reply_to_uuid: replyToUuid,
       eaccount: fromEmail,
-      body: { text: replyText },
+      body: replyText,
     }),
   });
 
@@ -1048,7 +1065,7 @@ async function handleFormSubmit(request, env) {
     companyName: company || "",
     source: "website",
     tags: ["website lead"],
-    customFields: [{ key: "revenue_range", value: revenue || "" }],
+    customFields: [{ id: "revenue_range", field_value: revenue || "" }],
   };
 
   try {
@@ -1157,11 +1174,13 @@ async function handleReplyWebhook(request, env) {
 
     const already = await isAlreadyProcessed(env, replyId);
     if (!already) {
+      await markProcessed(env, replyId, { status: "processing", started: Date.now() });
       try {
         const result = await processReply(reply, env);
         await markProcessed(env, replyId, result);
         return jsonResponse({ success: true, received: true, processed: result });
       } catch (err) {
+        await env.REPLY_STATE?.delete(replyId);
         console.error("Webhook reply processing error:", err);
         return jsonResponse({
           success: true,
@@ -1351,7 +1370,7 @@ async function fetchGHLMetrics(env, startDate) {
   calendarUrl.searchParams.set("locationId", locationId);
   calendarUrl.searchParams.set("calendarId", CONFIG.ghl.calendar_id);
   if (startDate) {
-    calendarUrl.searchParams.set("startTime", startDate);
+    calendarUrl.searchParams.set("startTime", new Date(startDate).toISOString());
   }
 
   const [contactsRes, oppsRes, calendarRes] = await Promise.all([
@@ -1452,7 +1471,7 @@ function corsResponse(request, env, response) {
   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   headers.set("Access-Control-Max-Age", "86400");
 
-  if (allowed.includes(origin)) {
+  if (origin && allowed.includes(origin)) {
     headers.set("Access-Control-Allow-Origin", origin);
   }
 
@@ -1611,7 +1630,7 @@ function parseAddress(address) {
     const last = parts[parts.length - 1];
     const tokens = last.split(/\s+/);
     const state = tokens[0] || "";
-    const city = parts.length >= 3 ? parts[parts.length - 2] : parts[parts.length - 1];
+    const city = parts.length >= 3 ? parts[parts.length - 2] : parts[0];
     return { city, state };
   }
   return { city: "", state: "" };
@@ -1707,15 +1726,13 @@ async function findEmailPerson(domain, firstName, lastName, env) {
 
   if (!res.ok) return null;
   const data = await res.json();
-  const results = data.results || {};
-  if (!results.email) return null;
+  if (!data.email) return null;
 
-  const email = results.email;
   return {
-    email,
+    email: data.email,
     name: `${firstName} ${lastName}`.trim(),
-    confidence: results.validation === "valid" ? 90 : 60,
-    type: isGenericEmail(email) ? "generic" : "personal",
+    confidence: data.validation === "valid" ? 90 : 60,
+    type: isGenericEmail(data.email) ? "generic" : "personal",
   };
 }
 
@@ -1731,15 +1748,19 @@ async function findEmailCompany(domain, companyName, env) {
 
   if (!res.ok) return null;
   const data = await res.json();
-  const results = data.results || {};
-  const emails = results.emails || [];
+  const emails = data.emails || [];
   if (!emails.length) return null;
 
-  const email = emails[0];
+  const sorted = [...emails].sort((a, b) => {
+    const aGeneric = isGenericEmail(a) ? 1 : 0;
+    const bGeneric = isGenericEmail(b) ? 1 : 0;
+    return aGeneric - bGeneric;
+  });
+  const email = sorted[0];
   return {
     email,
     name: "",
-    confidence: results.validation === "valid" ? 70 : 50,
+    confidence: data.validation === "valid" ? 70 : 50,
     type: isGenericEmail(email) ? "generic" : "personal",
   };
 }
@@ -1758,7 +1779,14 @@ function isGenericEmail(email) {
 
 async function stageVerify(leads, env) {
   if (!env.MILLION_VERIFIER_API_KEY) {
-    console.warn("MILLION_VERIFIER_API_KEY not set — skipping verification");
+    console.warn("MILLION_VERIFIER_API_KEY not set — promoting enriched leads to verified");
+    for (const lead of leads) {
+      if (lead.status === "enriched" && lead.owner_email) {
+        lead.status = "verified";
+        lead.email_verified = true;
+        lead.email_verification_result = "skipped";
+      }
+    }
     return leads;
   }
 
@@ -2044,7 +2072,7 @@ async function runWeeklyReport(env) {
       `Pipeline: *$${(crm.pipeline_value || 0).toLocaleString()}*`;
 
     try {
-      await fetch(
+      const tgRes = await fetch(
         `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
           method: "POST",
@@ -2056,7 +2084,11 @@ async function runWeeklyReport(env) {
           }),
         },
       );
-      console.log("Weekly report sent via Telegram");
+      if (!tgRes.ok) {
+        console.error("Telegram weekly report failed:", tgRes.status);
+      } else {
+        console.log("Weekly report sent via Telegram");
+      }
     } catch (err) {
       console.error("Telegram weekly report failed:", err);
     }
@@ -2077,12 +2109,16 @@ async function runWeeklyReport(env) {
       `:moneybag: Pipeline: *$${(crm.pipeline_value || 0).toLocaleString()}*`;
 
     try {
-      await fetch(env.SLACK_WEBHOOK_URL, {
+      const slkRes = await fetch(env.SLACK_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: slackMsg }),
       });
-      console.log("Weekly report sent via Slack");
+      if (!slkRes.ok) {
+        console.error("Slack weekly report failed:", slkRes.status);
+      } else {
+        console.log("Weekly report sent via Slack");
+      }
     } catch (err) {
       console.error("Slack weekly report failed:", err);
     }
