@@ -632,7 +632,7 @@ function applyGuardRails(text) {
   }
 
   // Remove sentences mentioning AI
-  result = result.replace(/[^.!?]*\b(artificial intelligence|language model|chatbot|gpt|claude)\b[^.!?]*[.!?]/gi, "").trim();
+  result = result.replace(/[^.!?]*\b(artificial intelligence|language model|chatbot|gpt|claude)\b[^.!?]*[.!?]?/gi, "").trim();
   // Remove never_say phrases
   for (const phrase of CONFIG.tone.never_say) {
     result = result.replace(new RegExp(phrase, "gi"), "").trim();
@@ -699,27 +699,46 @@ async function routeToGHL(reply, env, classification) {
     if (result.contact_id && CONFIG.ghl.pipeline_id) {
       const pipelineStageId = classification === "hot_positive" ? CONFIG.ghl.pipeline_stages.interested : CONFIG.ghl.pipeline_stages.new;
 
-      const oppRes = await fetch(
-        `${CONFIG.ghl.api_url}/opportunities/`,
-        {
-          method: "POST",
-          headers: ghlHeaders,
-          body: JSON.stringify({
-            locationId: env.GHL_LOCATION_ID,
-            pipelineId: CONFIG.ghl.pipeline_id,
-            pipelineStageId,
-            contactId: result.contact_id,
-            name: `${reply.from_name || "Unknown"} — ${reply.company || "Unknown"}`,
-            status: "open",
-          }),
-        },
-      );
+      const searchUrl = new URL(`${CONFIG.ghl.api_url}/opportunities/search`);
+      searchUrl.searchParams.set("location_id", env.GHL_LOCATION_ID);
+      searchUrl.searchParams.set("pipeline_id", CONFIG.ghl.pipeline_id);
+      searchUrl.searchParams.set("contact_id", result.contact_id);
+      const existingRes = await fetch(searchUrl.toString(), { headers: ghlHeaders });
+      const existingOpps = existingRes.ok ? ((await existingRes.json()).opportunities || []) : [];
+      const openOpp = existingOpps.find((o) => o.status === "open");
 
-      if (oppRes.ok) {
-        const oppData = await oppRes.json();
-        result.opportunity_id = oppData?.opportunity?.id;
+      if (openOpp) {
+        result.opportunity_id = openOpp.id;
+        if (classification === "hot_positive" && openOpp.pipelineStageId !== CONFIG.ghl.pipeline_stages.interested) {
+          await fetch(`${CONFIG.ghl.api_url}/opportunities/${openOpp.id}`, {
+            method: "PUT",
+            headers: ghlHeaders,
+            body: JSON.stringify({ pipelineStageId: CONFIG.ghl.pipeline_stages.interested }),
+          });
+        }
       } else {
-        console.error("GHL opportunity creation failed:", oppRes.status);
+        const oppRes = await fetch(
+          `${CONFIG.ghl.api_url}/opportunities/`,
+          {
+            method: "POST",
+            headers: ghlHeaders,
+            body: JSON.stringify({
+              locationId: env.GHL_LOCATION_ID,
+              pipelineId: CONFIG.ghl.pipeline_id,
+              pipelineStageId,
+              contactId: result.contact_id,
+              name: `${reply.from_name || "Unknown"} — ${reply.company || "Unknown"}`,
+              status: "open",
+            }),
+          },
+        );
+
+        if (oppRes.ok) {
+          const oppData = await oppRes.json();
+          result.opportunity_id = oppData?.opportunity?.id;
+        } else {
+          console.error("GHL opportunity creation failed:", oppRes.status);
+        }
       }
     }
   } catch (err) {
@@ -871,7 +890,13 @@ async function processDelayedReplies(env) {
       await env.REPLY_STATE.delete(key.name);
       continue;
     }
-    if (data.sending) continue;
+    if (data.sending) {
+      const stuckMs = Date.now() - (data.sending_since || 0);
+      if (stuckMs < 5 * 60 * 1000) continue;
+      console.warn(`Unsticking delayed reply ${key.name} — stuck in sending for ${Math.round(stuckMs / 1000)}s`);
+      data.sending = false;
+      data.retry_count = (data.retry_count || 0) + 1;
+    }
     const retries = data.retry_count || 0;
     if (retries >= 3) {
       console.error(`Delayed reply for ${data.reply_to_uuid} failed 3 times — giving up`);
@@ -883,7 +908,7 @@ async function processDelayedReplies(env) {
     if (new Date() < sendAfter) continue;
 
     try {
-      await env.REPLY_STATE.put(key.name, JSON.stringify({ ...data, sending: true }), { expirationTtl: 60 * 60 * 24 });
+      await env.REPLY_STATE.put(key.name, JSON.stringify({ ...data, sending: true, sending_since: Date.now() }), { expirationTtl: 60 * 60 * 24 });
       await sendInstantlyReply(
         data.reply_to_uuid,
         data.from_email,
@@ -1959,7 +1984,7 @@ function validateOpener(opener) {
   if (!opener) return false;
   const words = opener.split(/\s+/);
   if (words.length < 5 || words.length > 25) return false;
-  if (opener.includes("!") || opener.trim().endsWith("?")) return false;
+  if (opener.includes("!") || opener.includes("?")) return false;
   const lower = opener.toLowerCase();
   for (const phrase of CONFIG.tone.never_say) {
     if (lower.includes(phrase.toLowerCase())) return false;
