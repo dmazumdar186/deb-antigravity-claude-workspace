@@ -667,7 +667,7 @@ async function routeToGHL(reply, env, classification) {
 
   try {
     const contactRes = await fetch(
-      `${CONFIG.ghl.api_url}/contacts/`,
+      `${CONFIG.ghl.api_url}/contacts/upsert`,
       {
         method: "POST",
         headers: ghlHeaders,
@@ -1095,7 +1095,7 @@ async function handleFormSubmit(request, env) {
   };
 
   try {
-    const res = await fetch("https://services.leadconnectorhq.com/contacts/", {
+    const res = await fetch("https://services.leadconnectorhq.com/contacts/upsert", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${env.GHL_API_KEY}`,
@@ -1959,7 +1959,7 @@ function validateOpener(opener) {
   if (!opener) return false;
   const words = opener.split(/\s+/);
   if (words.length < 5 || words.length > 25) return false;
-  if (opener.includes("!")) return false;
+  if (opener.includes("!") || opener.trim().endsWith("?")) return false;
   const lower = opener.toLowerCase();
   for (const phrase of CONFIG.tone.never_say) {
     if (lower.includes(phrase.toLowerCase())) return false;
