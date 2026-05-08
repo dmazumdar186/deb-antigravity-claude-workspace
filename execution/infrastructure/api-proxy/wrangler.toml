@@ -3,6 +3,13 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 account_id = "26e5b8612be35e5d23a9186fcf5288d0"
 
+[triggers]
+crons = ["*/30 * * * *", "0 6 * * *", "0 7 * * 1"]
+
+[[kv_namespaces]]
+binding = "REPLY_STATE"
+id = "e38c04f316594621bacb3b0c3d7fd444"
+
 [vars]
 GHL_LOCATION_ID = "sCxQ92Y8b7PpfLloGqOn"
 CAMPAIGN_ID = "bfa5c268-d8b9-466e-ae0c-50a18b5783c7"
@@ -11,3 +18,10 @@ ALLOWED_ORIGINS = "https://accessorymasters.com,https://accessory-masters-site.p
 # Secrets (set via `wrangler secret put`):
 # GHL_API_KEY
 # INSTANTLY_API_KEY
+# OPENROUTER_API_KEY
+# SERPER_API_KEY
+# ANYMAILFINDER_API_KEY
+# MILLION_VERIFIER_API_KEY
+# TELEGRAM_BOT_TOKEN (when provided)
+# TELEGRAM_CHAT_ID (when provided)
+# SLACK_WEBHOOK_URL (when provided)
