@@ -47,6 +47,16 @@
             "command": "bash \".claude/hooks/safety-guard.sh\""
           }
         ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \".claude/hooks/notify-done.sh\" Alarm01.wav",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
