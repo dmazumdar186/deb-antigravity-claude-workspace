@@ -697,7 +697,7 @@ async function routeToGHL(reply, env, classification) {
     result.contact_id = contactData?.contact?.id;
 
     if (result.contact_id && CONFIG.ghl.pipeline_id) {
-      const stageId = classification === "hot_positive" ? CONFIG.ghl.pipeline_stages.interested : CONFIG.ghl.pipeline_stages.new;
+      const pipelineStageId = classification === "hot_positive" ? CONFIG.ghl.pipeline_stages.interested : CONFIG.ghl.pipeline_stages.new;
 
       const oppRes = await fetch(
         `${CONFIG.ghl.api_url}/opportunities/`,
@@ -707,7 +707,7 @@ async function routeToGHL(reply, env, classification) {
           body: JSON.stringify({
             locationId: env.GHL_LOCATION_ID,
             pipelineId: CONFIG.ghl.pipeline_id,
-            stageId,
+            pipelineStageId,
             contactId: result.contact_id,
             name: `${reply.from_name || "Unknown"} — ${reply.company || "Unknown"}`,
             status: "open",
