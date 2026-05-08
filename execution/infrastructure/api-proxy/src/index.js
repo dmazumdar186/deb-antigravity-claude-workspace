@@ -112,6 +112,7 @@ const CONFIG = {
     tags: ["cold email", "positive reply"],
     source: "cold email pipeline",
     calendar_id: "0bwcyzJOtxKScDfIDCRw",
+    custom_fields: { reply_text: "reply_text" }, // TODO: replace with actual GHL custom field ID
   },
   tone: {
     voice: "I",
@@ -199,6 +200,9 @@ export default {
       }
 
       if (method === "GET" && pathname === "/api/dashboard") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
         return corsResponse(request, env, await handleDashboard(url, env));
       }
 
@@ -211,6 +215,9 @@ export default {
       }
 
       if (method === "GET" && pathname === "/api/variants") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
         return corsResponse(request, env, await handleVariants(url, env));
       }
 
@@ -237,6 +244,9 @@ export default {
       }
 
       if (method === "GET" && pathname === "/api/pipeline-status") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
         return corsResponse(
           request,
           env,
@@ -322,16 +332,15 @@ async function pollAndProcessReplies(env) {
       continue;
     }
 
+    await markProcessed(env, replyId, { status: "processing", started: Date.now() });
+
     try {
       const result = await processReply(reply, env);
       await markProcessed(env, replyId, result);
       processed.push({ email: reply.from_email, ...result });
     } catch (err) {
-      console.error(`Error processing reply from ${reply.from_email}:`, err);
-      await markProcessed(env, replyId, {
-        classification: "error",
-        error: err.message,
-      });
+      await env.REPLY_STATE.delete(`processed_${replyId}`);
+      console.error(`Reply processing failed for ${replyId}:`, err.message);
     }
   }
 
@@ -352,7 +361,7 @@ async function processReply(reply, env) {
   const result = { classification, action: "skip" };
 
   if (classification === "hot_positive" || classification === "positive") {
-    const ghlResult = await routeToGHL(reply, env);
+    const ghlResult = await routeToGHL(reply, env, classification);
     result.ghl = ghlResult;
     reply.contact_id = ghlResult?.contact_id || null;
 
@@ -401,6 +410,7 @@ async function classifyReply(body, env) {
     );
 
     let result = raw.trim().replace(/[.,!?"']/g, "").toLowerCase();
+    result = result.replace(/\bhot\s+positive\b/i, "hot_positive");
     if (VALID_CLASSES.has(result)) return result;
 
     const firstWord = result.split(/\s+/)[0] || "";
@@ -525,6 +535,8 @@ async function generateReplyViaLLM(body, context, env) {
       ? "Rules:\n" +
         CONFIG.auto_reply.guard_rails.map((r) => `- ${r}`).join("\n")
       : null,
+    `NEVER use these words or phrases: ${CONFIG.tone.never_say.join(", ")}`,
+    `NEVER mention artificial intelligence, language models, chatbots, GPT, Claude, or that you are automated.`,
     objectionSection,
   ].filter(Boolean);
 
@@ -603,6 +615,15 @@ function applyGuardRails(text) {
     }
   }
 
+  // Remove sentences mentioning AI
+  result = result.replace(/[^.!?]*\b(artificial intelligence|language model|chatbot|gpt|claude)\b[^.!?]*[.!?]/gi, "").trim();
+  // Remove never_say phrases
+  for (const phrase of CONFIG.tone.never_say) {
+    result = result.replace(new RegExp(phrase, "gi"), "").trim();
+  }
+  // Clean up double spaces
+  result = result.replace(/\s{2,}/g, " ").trim();
+
   return result;
 }
 
@@ -610,7 +631,7 @@ function applyGuardRails(text) {
 // GHL Routing (port of ghl.py:route_positive_reply)
 // ---------------------------------------------------------------------------
 
-async function routeToGHL(reply, env) {
+async function routeToGHL(reply, env, classification) {
   if (!env.GHL_API_KEY) {
     console.warn("GHL_API_KEY not set — skipping CRM routing");
     return { error: "GHL_API_KEY not set" };
@@ -643,7 +664,7 @@ async function routeToGHL(reply, env) {
           source: CONFIG.ghl.source,
           tags: CONFIG.ghl.tags,
           customFields: [
-            { key: "reply_text", value: (reply.body || "").slice(0, 500) },
+            { id: CONFIG.ghl.custom_fields.reply_text, field_value: (reply.body || "").slice(0, 500) },
           ],
         }),
       },
@@ -660,7 +681,7 @@ async function routeToGHL(reply, env) {
     result.contact_id = contactData?.contact?.id;
 
     if (result.contact_id && CONFIG.ghl.pipeline_id) {
-      const stageId = CONFIG.ghl.pipeline_stages.new;
+      const stageId = classification === "hot_positive" ? CONFIG.ghl.pipeline_stages.interested : CONFIG.ghl.pipeline_stages.new;
 
       const oppRes = await fetch(
         `${CONFIG.ghl.api_url}/opportunities/`,
@@ -797,26 +818,39 @@ async function queueDelayedReply(env, replyData) {
   if (!env.REPLY_STATE) return;
   const key = `pending_reply_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   await env.REPLY_STATE.put(key, JSON.stringify(replyData), {
-    expirationTtl: 60 * 60,
+    expirationTtl: 60 * 60 * 24,
   });
 }
 
 async function processDelayedReplies(env) {
   if (!env.REPLY_STATE || !env.INSTANTLY_API_KEY) return 0;
 
-  const list = await env.REPLY_STATE.list({ prefix: "pending_reply_", limit: 50 });
+  let allKeys = [];
+  let listCursor = null;
+  const maxEntries = 200;
+
+  do {
+    const listOpts = { prefix: "pending_reply_", limit: 50 };
+    if (listCursor) listOpts.cursor = listCursor;
+    const list = await env.REPLY_STATE.list(listOpts);
+    allKeys.push(...list.keys);
+    listCursor = list.list_complete ? null : list.cursor;
+  } while (listCursor && allKeys.length < maxEntries);
+
   let sent = 0;
 
-  for (const key of list.keys) {
+  for (const key of allKeys) {
     const val = await env.REPLY_STATE.get(key.name);
     if (!val) continue;
 
     const data = JSON.parse(val);
+    if (data.sending) continue; // Already being sent by prior run
     const sendAfter = new Date(data.send_after);
 
     if (new Date() < sendAfter) continue;
 
     try {
+      await env.REPLY_STATE.put(key.name, JSON.stringify({ ...data, sending: true }), { expirationTtl: 60 * 60 * 24 });
       await sendInstantlyReply(
         data.reply_to_uuid,
         data.from_email,
@@ -839,19 +873,27 @@ async function processDelayedReplies(env) {
 // ---------------------------------------------------------------------------
 
 async function fetchInstantlyReplies(env) {
-  const res = await fetch(
-    "https://api.instantly.ai/api/v2/emails?email_type=received&limit=50",
-    {
-      headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` },
-    },
-  );
+  const allReplies = [];
+  let cursor = null;
+  const maxPages = 10;
 
-  if (!res.ok) {
-    throw new Error(`Instantly API ${res.status}: ${await res.text()}`);
+  for (let page = 0; page < maxPages; page++) {
+    let url = `https://api.instantly.ai/api/v2/emails?email_type=received&limit=50`;
+    if (cursor) url += `&starting_after=${cursor}`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${env.INSTANTLY_API_KEY}` },
+    });
+    if (!res.ok) throw new Error(`Instantly fetch failed: ${res.status}`);
+    const data = await res.json();
+    const items = data.items || data.data || [];
+    allReplies.push(...items);
+
+    cursor = data.next_starting_after;
+    if (!cursor || items.length === 0) break;
   }
 
-  const data = await res.json();
-  return data.items || [];
+  return allReplies;
 }
 
 function normalizeReply(raw) {
@@ -862,8 +904,10 @@ function normalizeReply(raw) {
     from_email: raw.from_address_email || "",
     from_name: raw.from_address_name || raw.lead || "",
     subject: raw.subject || "",
+    email_subject: raw.subject || raw.email_subject || "",
     body: bodyText,
     company: raw.company_name || raw.company || "",
+    industry: raw.custom_variables?.industry || raw.industry || "Unknown",
     received_at: raw.timestamp_email || raw.timestamp_created || "",
     campaign_id: raw.campaign_id || "",
     lead_email: (raw.to_address_email_list || [])[0] || "",
@@ -1104,6 +1148,11 @@ async function handleReplyWebhook(request, env) {
 
   if (payload && (payload.from_email || payload.from_address_email || payload.body)) {
     const reply = normalizeReply(payload);
+
+    if (reply.is_auto_reply) {
+      return jsonResponse({ success: true, skipped: "auto_reply" });
+    }
+
     const replyId = payload.id || payload.message_id || `webhook_${Date.now()}`;
 
     const already = await isAlreadyProcessed(env, replyId);
@@ -1383,7 +1432,7 @@ function rangeToDate(range) {
 }
 
 function checkAdminAuth(request, env) {
-  if (!env.WORKER_SECRET) return true;
+  if (!env.WORKER_SECRET) return false;
   return request.headers.get("X-Worker-Secret") === env.WORKER_SECRET;
 }
 
@@ -1609,6 +1658,9 @@ async function stageEnrich(leads, env) {
       const result = await findEmail(lead, env);
       if (result && result.confidence >= minConf) {
         lead.owner_name = result.name || lead.owner_name || "";
+        if (!lead.owner_name) {
+          lead.owner_name = lead.business_name ? lead.business_name.split(/\s+/)[0] : "there";
+        }
         lead.owner_email = result.email;
         lead.email_confidence = result.confidence;
         lead.email_type = result.type;
