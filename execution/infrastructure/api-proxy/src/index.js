@@ -642,10 +642,7 @@ async function routeToGHL(reply, env) {
     result.contact_id = contactData?.contact?.id;
 
     if (result.contact_id && CONFIG.ghl.pipeline_id) {
-      const stageId =
-        reply.classification === "hot_positive"
-          ? CONFIG.ghl.pipeline_stages.interested
-          : CONFIG.ghl.pipeline_stages.new;
+      const stageId = CONFIG.ghl.pipeline_stages.new;
 
       const oppRes = await fetch(
         `${CONFIG.ghl.api_url}/opportunities/`,
@@ -693,12 +690,19 @@ async function sendTelegramNotification(reply, env) {
       ? "Hot Lead Detected"
       : "Positive Reply Detected";
 
+  const ghlLink = reply.contact_id
+    ? `https://app.gohighlevel.com/v2/location/${env.GHL_LOCATION_ID}/contacts/detail/${reply.contact_id}`
+    : "#";
+
   const message =
     `${emoji} *${label}*\n` +
     `*Lead:* ${reply.from_name || "Unknown"} (${reply.from_email || ""})\n` +
     `*Company:* ${reply.company || "Unknown"}\n` +
+    `*Industry:* ${reply.industry || "Unknown"}\n` +
+    `*Email Sent:* ${reply.email_subject || ""}\n` +
     `*Response:* ${(reply.body || "").slice(0, 200)}\n` +
-    `*Time:* ${reply.received_at || new Date().toISOString()}`;
+    `*Time:* ${reply.received_at || new Date().toISOString()}\n` +
+    `[View in GHL](${ghlLink})`;
 
   try {
     const res = await fetch(
@@ -1185,11 +1189,11 @@ async function fetchInstantlyMetrics(env, startDate) {
 
   const data = await res.json();
 
-  const sent = data.total_sent ?? 0;
-  const delivered = data.total_delivered ?? sent;
-  const opened = data.total_opened ?? 0;
-  const replies = data.total_replied ?? 0;
-  const bounces = data.total_bounced ?? 0;
+  const sent = data.emails_sent_count ?? 0;
+  const bounces = data.bounced_count ?? 0;
+  const delivered = sent - bounces;
+  const opened = data.open_count_unique ?? data.open_count ?? 0;
+  const replies = data.reply_count ?? 0;
 
   return {
     emails_sent: sent,
@@ -1204,7 +1208,7 @@ async function fetchInstantlyMetrics(env, startDate) {
       : 0,
     bounces,
     bounce_rate_pct: sent ? +(((bounces / sent) * 100).toFixed(1)) : 0,
-    unsubscribes: data.total_unsubscribed ?? 0,
+    unsubscribes: data.unsubscribed_count ?? 0,
   };
 }
 
@@ -1262,7 +1266,7 @@ async function fetchGHLMetrics(env, startDate) {
   }
 
   const calendarUrl = new URL(
-    "https://services.leadconnectorhq.com/calendars/events",
+    "https://services.leadconnectorhq.com/calendars/events/appointments",
   );
   calendarUrl.searchParams.set("locationId", locationId);
   if (startDate) {
@@ -1442,8 +1446,10 @@ async function stageSource(env, runId) {
   const industries = CONFIG.icp.industries;
   const geo = CONFIG.icp.geography;
   const cities = [`${geo.city}, ${geo.state}`];
-  for (const suburb of geo.suburbs) {
-    cities.push(`${suburb}, ${geo.state}`);
+  if (geo.include_suburbs) {
+    for (const suburb of geo.suburbs) {
+      cities.push(`${suburb}, ${geo.state}`);
+    }
   }
 
   const limit = CONFIG.sourcing.serper_results_per_query;
@@ -1538,7 +1544,7 @@ function extractDomain(url) {
 function deduplicateLeads(leads) {
   const seen = new Set();
   return leads.filter((lead) => {
-    const name = (lead.business_name || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+    const name = (lead.business_name || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
     const domain = (lead.domain || "").toLowerCase();
     const key = `${domain}|${name}`;
     if (seen.has(key)) return false;
@@ -1844,29 +1850,39 @@ async function stageUpload(leads, env) {
   let errors = 0;
 
   for (const lead of personalized) {
-    try {
-      const payload = buildInstantlyPayload(lead, env.CAMPAIGN_ID);
-      const res = await fetch(`${CONFIG.instantly.api_url}/leads`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${env.INSTANTLY_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+    let success = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const payload = buildInstantlyPayload(lead, env.CAMPAIGN_ID);
+        const res = await fetch(`${CONFIG.instantly.api_url}/leads`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.INSTANTLY_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
 
-      if (res.ok) {
-        lead.uploaded_to_instantly = true;
-        lead.campaign_id = env.CAMPAIGN_ID;
-        lead.status = "uploaded";
-        uploaded++;
-      } else {
-        console.error(`Instantly upload failed for ${lead.owner_email}: ${res.status}`);
-        lead.status = "error";
-        errors++;
+        if (res.ok) {
+          lead.uploaded_to_instantly = true;
+          lead.campaign_id = env.CAMPAIGN_ID;
+          lead.status = "uploaded";
+          uploaded++;
+          success = true;
+          break;
+        } else if (res.status >= 500 || res.status === 429) {
+          console.warn(`Instantly upload attempt ${attempt + 1} failed for ${lead.owner_email}: ${res.status}`);
+          if (attempt < 2) await sleep(2000 * (attempt + 1));
+        } else {
+          console.error(`Instantly upload failed for ${lead.owner_email}: ${res.status}`);
+          break;
+        }
+      } catch (err) {
+        console.warn(`Upload attempt ${attempt + 1} error for ${lead.owner_email}:`, err.message);
+        if (attempt < 2) await sleep(2000 * (attempt + 1));
       }
-    } catch (err) {
-      console.error(`Upload error for ${lead.owner_email}:`, err);
+    }
+    if (!success) {
       lead.status = "error";
       errors++;
     }

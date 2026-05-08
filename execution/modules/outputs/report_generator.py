@@ -96,12 +96,12 @@ def fetch_instantly_metrics(
         logger.exception("Failed to fetch Instantly analytics overview")
         overview = {}
 
-    sent = overview.get("total_emails_sent", 0)
-    delivered = overview.get("total_emails_delivered", sent)
-    opened = overview.get("total_emails_opened", 0)
-    replies = overview.get("total_replies", 0)
-    bounces = overview.get("total_bounces", 0)
-    unsubscribes = overview.get("total_unsubscribes", 0)
+    sent = overview.get("emails_sent_count", 0)
+    bounces = overview.get("bounced_count", 0)
+    delivered = sent - bounces
+    opened = overview.get("open_count_unique", overview.get("open_count", 0))
+    replies = overview.get("reply_count", 0)
+    unsubscribes = overview.get("unsubscribed_count", 0)
 
     return {
         "emails_sent": sent,
