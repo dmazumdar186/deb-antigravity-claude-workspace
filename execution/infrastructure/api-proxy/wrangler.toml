@@ -4,7 +4,7 @@ compatibility_date = "2024-01-01"
 account_id = "26e5b8612be35e5d23a9186fcf5288d0"
 
 [triggers]
-crons = ["*/30 * * * *", "0 6 * * *", "0 7 * * 1"]
+crons = ["5/30 * * * *", "0 6 * * *", "0 7 * * 1"]
 
 [[kv_namespaces]]
 binding = "REPLY_STATE"
@@ -16,6 +16,7 @@ CAMPAIGN_ID = "bfa5c268-d8b9-466e-ae0c-50a18b5783c7"
 ALLOWED_ORIGINS = "https://accessorymasters.com,https://accessory-masters-site.pages.dev,http://localhost:3000"
 
 # Secrets (set via `wrangler secret put`):
+# WORKER_SECRET (auth for admin endpoints — /api/run-pipeline, /api/process-replies, /api/weekly-report)
 # GHL_API_KEY
 # INSTANTLY_API_KEY
 # OPENROUTER_API_KEY

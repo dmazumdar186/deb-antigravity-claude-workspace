@@ -111,6 +111,7 @@ const CONFIG = {
     },
     tags: ["cold email", "positive reply"],
     source: "cold email pipeline",
+    calendar_id: "0bwcyzJOtxKScDfIDCRw",
   },
   tone: {
     voice: "I",
@@ -142,6 +143,7 @@ const CONFIG = {
     geography: {
       city: "Houston",
       state: "TX",
+      include_suburbs: true,
       suburbs: ["Katy", "Sugar Land", "The Woodlands", "Pearland", "Pasadena"],
     },
   },
@@ -164,7 +166,7 @@ const CONFIG = {
   },
   instantly: {
     api_url: "https://api.instantly.ai/api/v2",
-    upload_rate_limit_ms: 1000,
+    upload_rate_limit_ms: 200,
     field_mapping: {
       email: "owner_email",
       first_name_from: "owner_name",
@@ -213,6 +215,9 @@ export default {
       }
 
       if (method === "POST" && pathname === "/api/process-replies") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
         return corsResponse(
           request,
           env,
@@ -221,6 +226,9 @@ export default {
       }
 
       if (method === "POST" && pathname === "/api/run-pipeline") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
         return corsResponse(
           request,
           env,
@@ -237,6 +245,9 @@ export default {
       }
 
       if (method === "POST" && pathname === "/api/weekly-report") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
         return corsResponse(
           request,
           env,
@@ -300,6 +311,9 @@ async function pollAndProcessReplies(env) {
   const processed = [];
   for (const raw of replies) {
     const reply = normalizeReply(raw);
+
+    if (reply.is_auto_reply) continue;
+
     const replyId =
       raw.id || raw.message_id || `${reply.from_email}_${reply.received_at}`;
 
@@ -517,13 +531,17 @@ async function generateReplyViaLLM(body, context, env) {
   const systemPrompt = systemParts.join("\n\n");
 
   try {
-    return await callOpenRouter(
+    const result = await callOpenRouter(
       systemPrompt,
       `Reply to this email naturally:\n\n${body}\n\nContext: ${context}`,
       CONFIG.auto_reply.model,
       150,
       env,
     );
+    if (!result || !result.trim()) {
+      return "Thanks for getting back to me. I'll follow up shortly.";
+    }
+    return result;
   } catch (err) {
     console.error("Auto-reply generation failed, using fallback:", err);
     return "Thanks for getting back to me. Let me follow up with more details shortly.";
@@ -807,11 +825,10 @@ async function processDelayedReplies(env) {
       );
       console.log(`Delayed reply sent for ${data.reply_to_uuid}`);
       sent++;
+      await env.REPLY_STATE.delete(key.name);
     } catch (err) {
       console.error(`Failed to send delayed reply for ${data.reply_to_uuid}:`, err);
     }
-
-    await env.REPLY_STATE.delete(key.name);
   }
 
   return sent;
@@ -863,7 +880,7 @@ async function sendInstantlyReply(replyToUuid, fromEmail, replyText, env) {
     },
     body: JSON.stringify({
       reply_to_uuid: replyToUuid,
-      from: fromEmail,
+      eaccount: fromEmail,
       body: { text: replyText },
     }),
   });
@@ -1192,6 +1209,9 @@ async function fetchInstantlyMetrics(env, startDate) {
   if (startDate) {
     params.set("start_date", startDate);
   }
+  if (env.CAMPAIGN_ID) {
+    params.set("id", env.CAMPAIGN_ID);
+  }
 
   const url = `https://api.instantly.ai/api/v2/campaigns/analytics/overview?${params.toString()}`;
 
@@ -1280,6 +1300,7 @@ async function fetchGHLMetrics(env, startDate) {
     "https://services.leadconnectorhq.com/calendars/events/appointments",
   );
   calendarUrl.searchParams.set("locationId", locationId);
+  calendarUrl.searchParams.set("calendarId", CONFIG.ghl.calendar_id);
   if (startDate) {
     calendarUrl.searchParams.set("startTime", startDate);
   }
@@ -1359,6 +1380,11 @@ function rangeToDate(range) {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return d.toISOString().split("T")[0];
+}
+
+function checkAdminAuth(request, env) {
+  if (!env.WORKER_SECRET) return true;
+  return request.headers.get("X-Worker-Secret") === env.WORKER_SECRET;
 }
 
 function jsonResponse(data, status = 200) {
