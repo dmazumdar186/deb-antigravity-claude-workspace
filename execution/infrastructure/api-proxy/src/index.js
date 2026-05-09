@@ -7,6 +7,9 @@
  *   POST /api/webhook/reply     — Instantly reply webhook (triggers processing)
  *   GET  /api/variants          — Campaign variant analytics
  *   POST /api/process-replies   — Manual trigger for reply processing
+ *   POST /api/run-pipeline      — Manual trigger for daily pipeline
+ *   GET  /api/pipeline-status   — Recent pipeline run history
+ *   POST /api/weekly-report     — Manual trigger for weekly report
  *
  * Scheduled:
  *   Cron every 30 min           — Poll Instantly for new replies, classify, route, auto-reply
@@ -395,8 +398,8 @@ async function processReply(reply, env) {
 
   if (classification === "negative") {
     result.reason = "not actionable";
-    if (reply.from_email && reply.campaign_id) {
-      await removeFromInstantlyCampaign(reply.from_email, reply.campaign_id, env);
+    if (reply.from_email) {
+      await removeFromInstantlyCampaign(reply.from_email, reply.campaign_id || "", env);
       result.action = "unsubscribed";
     }
   }
