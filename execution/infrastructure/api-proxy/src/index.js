@@ -12,11 +12,14 @@
  *   POST /api/weekly-report     — Manual trigger for weekly report
  *
  * Scheduled:
- *   Cron every 30 min           — Poll Instantly for new replies, classify, route, auto-reply
+ *   Cron every 30 min           — Process delayed replies + poll Instantly for new ones
+ *   Cron daily 6:00 AM UTC      — Source → Enrich → Verify → Personalize → Upload pipeline
+ *   Cron Monday 7:00 AM UTC     — Weekly performance report via Telegram/Slack
  *
  * Secrets (wrangler secret put):
- *   GHL_API_KEY, INSTANTLY_API_KEY, OPENROUTER_API_KEY
- *   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID (when provided)
+ *   GHL_API_KEY, INSTANTLY_API_KEY, OPENROUTER_API_KEY, WORKER_SECRET
+ *   SERPER_API_KEY, ANYMAILFINDER_API_KEY, MILLION_VERIFIER_API_KEY
+ *   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, SLACK_WEBHOOK_URL (optional)
  *
  * KV Namespace:
  *   REPLY_STATE — tracks processed reply IDs
