@@ -393,7 +393,15 @@ async function processReply(reply, env) {
     }
   }
 
-  if (classification === "negative" || classification === "neutral") {
+  if (classification === "negative") {
+    result.reason = "not actionable";
+    if (reply.from_email && reply.campaign_id) {
+      await removeFromInstantlyCampaign(reply.from_email, reply.campaign_id, env);
+      result.action = "unsubscribed";
+    }
+  }
+
+  if (classification === "neutral") {
     result.reason = "not actionable";
   }
 
@@ -518,7 +526,12 @@ async function generateAndSendAutoReply(reply, env) {
     return null;
   }
 
-  const delaySeconds = 120 + Math.floor(Math.random() * 300);
+  // Houston is UTC-5 (CDT); scale delay longer as the day progresses
+  const houstonHour = (new Date().getUTCHours() - 5 + 24) % 24;
+  let minDelay = 120, maxDelay = 420; // default: 2-7 min
+  if (houstonHour >= 17) { minDelay = 300; maxDelay = 600; } // evening: 5-10 min
+  else if (houstonHour >= 12) { minDelay = 180; maxDelay = 420; } // afternoon: 3-7 min
+  const delaySeconds = minDelay + Math.floor(Math.random() * (maxDelay - minDelay));
   const sendAfter = new Date(Date.now() + delaySeconds * 1000).toISOString();
   await queueDelayedReply(env, {
     reply_to_uuid: reply.id,
@@ -974,6 +987,27 @@ function normalizeReply(raw) {
     lead_email: (raw.to_address_email_list || [])[0] || "",
     is_auto_reply: raw.is_auto_reply || false,
   };
+}
+
+async function removeFromInstantlyCampaign(email, campaignId, env) {
+  if (!env.INSTANTLY_API_KEY) return;
+  try {
+    const res = await fetch("https://api.instantly.ai/api/v2/block-lists-entries", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.INSTANTLY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ bl_value: email }),
+    });
+    if (res.ok) {
+      console.log(`Blocklisted ${email} (negative reply from campaign ${campaignId})`);
+    } else {
+      console.warn(`Blocklist failed for ${email}: ${res.status}`);
+    }
+  } catch (err) {
+    console.error(`Blocklist error for ${email}:`, err);
+  }
 }
 
 async function sendInstantlyReply(replyToUuid, fromEmail, replyText, env) {
