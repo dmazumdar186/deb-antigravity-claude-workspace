@@ -103,7 +103,7 @@ const CONFIG = {
           "never heard of",
         ],
         response:
-          "I'm Alex with Accessory Masters, backed by Hedgestone Capital Group. We've closed over $100M in deals. Happy to share more on a call.",
+          "I'm Alex with Accessory Masters, backed by Hedgestone Capital Group. We acquire profitable aftermarket auto accessory businesses. Happy to share more on a call.",
       },
     },
   },
