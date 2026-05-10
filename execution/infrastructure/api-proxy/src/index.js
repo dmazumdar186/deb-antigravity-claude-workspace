@@ -478,13 +478,13 @@ function classifyMock(body) {
     if (text.includes(signal)) return "negative";
   }
   for (const signal of signals.hot_positive) {
-    if (text.includes(signal)) return "hot_positive";
+    if (text.includes(signal) && !containsNegated(text, signal)) return "hot_positive";
   }
   for (const signal of signals.neutral) {
     if (text.includes(signal)) return "neutral";
   }
   for (const signal of signals.positive) {
-    if (text.includes(signal)) return "positive";
+    if (text.includes(signal) && !containsNegated(text, signal)) return "positive";
   }
   return "neutral";
 }
@@ -493,6 +493,30 @@ function classifyMock(body) {
 // Auto-Reply Generation (port of auto_reply.py)
 // ---------------------------------------------------------------------------
 
+// Returns true if `signal` is preceded by a common negation in `text`.
+// Catches: "not X", "don't X", "won't X", "never X", "no longer X", "isn't X",
+// "haven't X", "wasn't X", "couldn't X", and common contractions.
+// Used to suppress false positives on hot-lead signals like "ready to sell"
+// matching "not ready to sell".
+function containsNegated(text, signal) {
+  // Build a regex: optional word boundary + any negation + optional fillers + signal
+  // Negations: not, no, never, neither, none, hardly, barely
+  // Contractions: don't, doesn't, didn't, won't, wouldn't, can't, couldn't,
+  //               isn't, aren't, wasn't, weren't, haven't, hasn't, hadn't,
+  //               shouldn't, mustn't, ain't
+  // Allow up to 3 short filler words between negation and signal (e.g.,
+  // "not really ready to sell", "don't quite want to sell").
+  const escaped = signal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const negationPattern =
+    "\\b(?:not|no|never|neither|none|hardly|barely|" +
+    "don'?t|doesn'?t|didn'?t|won'?t|wouldn'?t|can'?t|couldn'?t|" +
+    "isn'?t|aren'?t|wasn'?t|weren'?t|haven'?t|hasn'?t|hadn'?t|" +
+    "shouldn'?t|mustn'?t|ain'?t)\\b" +
+    "(?:\\s+\\w+){0,3}\\s+" +
+    escaped;
+  return new RegExp(negationPattern, "i").test(text);
+}
+
 function isHotLead(body) {
   const text = (body || "").toLowerCase();
   // "call me at" requires a phone-number-like sequence after it to avoid
@@ -500,7 +524,8 @@ function isHotLead(body) {
   if (/call me at\s+[\d\s\-\(\)+\.]{7,}/.test(text)) return true;
   for (const signal of CONFIG.auto_reply.hot_lead_signals) {
     if (signal === "call me at") continue; // handled above with phone guard
-    if (text.includes(signal)) return true;
+    const sigLower = signal.toLowerCase();
+    if (text.includes(sigLower) && !containsNegated(text, sigLower)) return true;
   }
   return false;
 }
