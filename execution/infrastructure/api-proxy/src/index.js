@@ -382,6 +382,12 @@ async function processReply(reply, env) {
     await sendSlackNotification(reply, env);
 
     if (classification === "hot_positive") {
+      // Stop the cold sequence in this specific campaign — prospect said yes,
+      // broker is taking over. Per-campaign removal (NOT global blocklist) so
+      // future re-engagement campaigns can still reach them if the deal stalls.
+      if (reply.from_email) {
+        await pauseLeadInInstantly(reply.from_email, reply.campaign_id || "", env);
+      }
       result.action = "handoff";
       result.reason = "hot lead — human takeover";
       return result;
@@ -1023,6 +1029,55 @@ async function removeFromInstantlyCampaign(email, campaignId, env) {
     }
   } catch (err) {
     console.error(`Blocklist error for ${email}:`, err);
+  }
+}
+
+// Removes a single lead from one specific campaign (per-campaign, NOT global blocklist).
+// Safe for hot leads — does not prevent future campaign re-engagement.
+async function pauseLeadInInstantly(email, campaignId, env) {
+  if (!email || !campaignId) {
+    console.warn("pauseLeadInInstantly: missing email or campaignId — skipping");
+    return;
+  }
+  if (!env.INSTANTLY_API_KEY) return;
+  try {
+    // Step 1: look up the lead's UUID by email + campaign
+    const listRes = await fetch("https://api.instantly.ai/api/v2/leads/list", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.INSTANTLY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ contacts: [email], campaign: campaignId }),
+    });
+    if (!listRes.ok) {
+      console.error(`pauseLeadInInstantly: lead lookup failed for ${email}: ${listRes.status}`);
+      return;
+    }
+    const listData = await listRes.json();
+    const lead = (listData.items || [])[0];
+    if (!lead?.id) {
+      console.warn(`pauseLeadInInstantly: lead not found for ${email} in campaign ${campaignId}`);
+      return;
+    }
+
+    // Step 2: delete the lead from this campaign only (campaign-scoped DELETE)
+    const delRes = await fetch("https://api.instantly.ai/api/v2/leads", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${env.INSTANTLY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ campaign_id: campaignId, ids: [lead.id] }),
+    });
+    if (delRes.ok) {
+      console.log(`Paused lead in Instantly campaign: ${email} ${campaignId}`);
+    } else {
+      const detail = await delRes.text();
+      console.error(`Failed to pause lead in Instantly: ${email} ${delRes.status} ${detail}`);
+    }
+  } catch (err) {
+    console.error(`pauseLeadInInstantly error for ${email}:`, err);
   }
 }
 
