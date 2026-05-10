@@ -212,7 +212,7 @@ export default {
       }
 
       if (method === "POST" && pathname === "/api/webhook/reply") {
-        if (!checkAdminAuth(request, env)) {
+        if (!checkWebhookAuth(request, env)) {
           return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
         }
         return corsResponse(
@@ -1699,6 +1699,11 @@ function rangeToDate(range) {
 function checkAdminAuth(request, env) {
   if (!env.WORKER_SECRET) return false;
   return request.headers.get("X-Worker-Secret") === env.WORKER_SECRET;
+}
+
+function checkWebhookAuth(request, env) {
+  if (!env.INSTANTLY_WEBHOOK_SECRET) return false;
+  return request.headers.get("X-Webhook-Secret") === env.INSTANTLY_WEBHOOK_SECRET;
 }
 
 function jsonResponse(data, status = 200) {
