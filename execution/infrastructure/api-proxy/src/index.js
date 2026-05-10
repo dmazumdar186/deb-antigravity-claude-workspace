@@ -732,11 +732,15 @@ async function routeToGHL(reply, env, classification) {
       if (openOpp) {
         result.opportunity_id = openOpp.id;
         if (classification === "hot_positive" && openOpp.pipelineStageId !== CONFIG.ghl.pipeline_stages.interested) {
-          await fetch(`${CONFIG.ghl.api_url}/opportunities/${openOpp.id}`, {
+          const stageRes = await fetch(`${CONFIG.ghl.api_url}/opportunities/${openOpp.id}`, {
             method: "PUT",
             headers: ghlHeaders,
             body: JSON.stringify({ pipelineStageId: CONFIG.ghl.pipeline_stages.interested }),
           });
+          if (!stageRes.ok) {
+            const detail = await stageRes.text();
+            console.error("GHL opportunity stage update failed:", stageRes.status, detail);
+          }
         }
       } else {
         const oppRes = await fetch(
