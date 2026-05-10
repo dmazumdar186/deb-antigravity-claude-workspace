@@ -532,8 +532,11 @@ async function generateAndSendAutoReply(reply, env) {
     return null;
   }
 
-  // Houston is UTC-5 (CDT); scale delay longer as the day progresses
-  const houstonHour = (new Date().getUTCHours() - 5 + 24) % 24;
+  // Houston hour with DST handled (America/Chicago = CST/CDT)
+  const houstonHour = parseInt(
+    new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", hour: "numeric", hour12: false }).format(new Date()),
+    10
+  );
   let minDelay = 120, maxDelay = 420; // default: 2-7 min
   if (houstonHour >= 17) { minDelay = 300; maxDelay = 600; } // evening: 5-10 min
   else if (houstonHour >= 12) { minDelay = 180; maxDelay = 420; } // afternoon: 3-7 min
