@@ -213,6 +213,9 @@ export default {
       }
 
       if (method === "POST" && pathname === "/api/webhook/reply") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
         return corsResponse(
           request,
           env,
