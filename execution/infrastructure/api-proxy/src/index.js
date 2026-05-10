@@ -169,7 +169,6 @@ const CONFIG = {
   personalization: {
     model: "anthropic/claude-haiku-4.5",
     max_opener_tokens: 100,
-    batch_size: 50,
   },
   instantly: {
     api_url: "https://api.instantly.ai/api/v2",
@@ -475,11 +474,11 @@ function classifyMock(body) {
     ],
   };
 
-  for (const signal of signals.hot_positive) {
-    if (text.includes(signal)) return "hot_positive";
-  }
   for (const signal of signals.negative) {
     if (text.includes(signal)) return "negative";
+  }
+  for (const signal of signals.hot_positive) {
+    if (text.includes(signal)) return "hot_positive";
   }
   for (const signal of signals.neutral) {
     if (text.includes(signal)) return "neutral";
@@ -496,7 +495,14 @@ function classifyMock(body) {
 
 function isHotLead(body) {
   const text = (body || "").toLowerCase();
-  return CONFIG.auto_reply.hot_lead_signals.some((s) => text.includes(s));
+  // "call me at" requires a phone-number-like sequence after it to avoid
+  // false positives like "please don't call me at the office".
+  if (/call me at\s+[\d\s\-\(\)+\.]{7,}/.test(text)) return true;
+  for (const signal of CONFIG.auto_reply.hot_lead_signals) {
+    if (signal === "call me at") continue; // handled above with phone guard
+    if (text.includes(signal)) return true;
+  }
+  return false;
 }
 
 function matchObjection(body) {
@@ -1507,15 +1513,6 @@ async function fetchGHLMetrics(env, startDate) {
 
   const locationId = env.GHL_LOCATION_ID;
 
-  const contactsUrl = new URL(
-    "https://services.leadconnectorhq.com/contacts/",
-  );
-  contactsUrl.searchParams.set("locationId", locationId);
-  contactsUrl.searchParams.set("limit", "1");
-  if (startDate) {
-    contactsUrl.searchParams.set("startAfter", startDate);
-  }
-
   const oppsUrl = new URL(
     "https://services.leadconnectorhq.com/opportunities/search",
   );
@@ -1534,8 +1531,7 @@ async function fetchGHLMetrics(env, startDate) {
     calendarUrl.searchParams.set("endTime", new Date().toISOString());
   }
 
-  const [contactsRes, oppsRes, calendarRes] = await Promise.all([
-    fetch(contactsUrl.toString(), { headers }),
+  const [oppsRes, calendarRes] = await Promise.all([
     fetch(oppsUrl.toString(), { headers }),
     fetch(calendarUrl.toString(), { headers }).catch((err) => {
       console.error("GHL calendar fetch error:", err);
@@ -1543,12 +1539,76 @@ async function fetchGHLMetrics(env, startDate) {
     }),
   ]);
 
+  // Count contacts created within the date range.
+  //
+  // GHL v2 GET /contacts startAfter is a pagination cursor (epoch ms of the
+  // last seen contact's dateAdded), not a date filter — meta.total always
+  // returns the all-time location count regardless of startAfter. POST
+  // /contacts/search supports field/operator/value filters but the exact
+  // operator string for dateAdded is not publicly documented in a
+  // machine-readable form. We therefore page through contacts sorted by
+  // dateAdded desc (newest first) and count until we hit a contact older
+  // than startDate, capped at 1000 contacts to prevent runaway fetches.
   let contactsCreated = 0;
-  if (contactsRes.ok) {
-    const contactsData = await contactsRes.json();
-    contactsCreated = contactsData.meta?.total ?? contactsData.total ?? 0;
+  if (startDate) {
+    const startMs = new Date(startDate).getTime();
+    const PAGE_SIZE = 100;
+    const CAP = 1000;
+    let fetched = 0;
+    let cursorAfter = null;
+    let cursorAfterId = null;
+    let done = false;
+
+    while (!done && fetched < CAP) {
+      const url = new URL("https://services.leadconnectorhq.com/contacts/");
+      url.searchParams.set("locationId", locationId);
+      url.searchParams.set("limit", String(PAGE_SIZE));
+      url.searchParams.set("sortBy", "dateAdded");
+      url.searchParams.set("sortDirection", "desc");
+      if (cursorAfter !== null) url.searchParams.set("startAfter", String(cursorAfter));
+      if (cursorAfterId !== null) url.searchParams.set("startAfterId", cursorAfterId);
+
+      // eslint-disable-next-line no-await-in-loop
+      const res = await fetch(url.toString(), { headers });
+      if (!res.ok) {
+        console.error("GHL contacts page error:", res.status);
+        break;
+      }
+      const data = await res.json();
+      const page = data.contacts || [];
+      if (page.length === 0) break;
+
+      for (const contact of page) {
+        const addedMs = contact.dateAdded ? new Date(contact.dateAdded).getTime() : 0;
+        if (addedMs < startMs) {
+          done = true;
+          break;
+        }
+        contactsCreated++;
+        fetched++;
+      }
+
+      // Advance pagination cursors from meta
+      const meta = data.meta || {};
+      if (!done && meta.startAfter !== undefined && meta.startAfter !== cursorAfter) {
+        cursorAfter = meta.startAfter;
+        cursorAfterId = meta.startAfterId ?? null;
+      } else {
+        break; // no more pages or cursor didn't advance
+      }
+    }
   } else {
-    console.error("GHL contacts error:", contactsRes.status);
+    // No date range — fall back to all-time total from a single lightweight call
+    const url = new URL("https://services.leadconnectorhq.com/contacts/");
+    url.searchParams.set("locationId", locationId);
+    url.searchParams.set("limit", "1");
+    const res = await fetch(url.toString(), { headers });
+    if (res.ok) {
+      const data = await res.json();
+      contactsCreated = data.meta?.total ?? data.total ?? 0;
+    } else {
+      console.error("GHL contacts error:", res.status);
+    }
   }
 
   let opportunitiesTotal = 0;
