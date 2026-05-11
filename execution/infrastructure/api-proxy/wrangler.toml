@@ -17,6 +17,7 @@ ALLOWED_ORIGINS = "https://website-flame-phi-90.vercel.app,https://accessorymast
 
 # Secrets (set via `wrangler secret put`):
 # WORKER_SECRET (auth for admin endpoints — /api/run-pipeline, /api/process-replies, /api/weekly-report)
+# INSTANTLY_WEBHOOK_SECRET (auth for /api/webhook/reply — set/rotate via execution/infrastructure/setup_instantly_webhook.py)
 # GHL_API_KEY
 # INSTANTLY_API_KEY
 # OPENROUTER_API_KEY
