@@ -76,6 +76,10 @@ const CONFIG = {
       "want to sell",
       "schedule a call",
     ],
+    // Day-2 follow-up sent if the prospect doesn't reply to our first auto-reply.
+    // Wording from Alex's spec in the May 12 call.
+    followup_message:
+      "Hey — did you get my last email? Just checking in to see if you had a chance to schedule a quick call.",
     // Voice reference — mirror of config/accessory_masters_voice.md, embedded
     // because the Worker can't read files at runtime. Keep in sync with that file.
     voice_reference:
@@ -318,6 +322,22 @@ export default {
         );
       }
 
+      if (pathname === "/api/exclusions") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
+        if (method === "GET") {
+          return corsResponse(request, env, await handleExclusionsList(env));
+        }
+        if (method === "POST") {
+          return corsResponse(request, env, await handleExclusionsAdd(request, env));
+        }
+        if (method === "DELETE") {
+          return corsResponse(request, env, await handleExclusionsDelete(url, env));
+        }
+        return corsResponse(request, env, jsonResponse({ error: "Method not allowed" }, 405));
+      }
+
       if (method === "POST" && pathname === "/api/webhook/telegram") {
         // Telegram verifies via the X-Telegram-Bot-Api-Secret-Token header,
         // set during setWebhook. Reject if it doesn't match.
@@ -408,9 +428,12 @@ export default {
     } else if (cron === "0 7 * * 1") {
       ctx.waitUntil(runWeeklyReport(env));
     } else {
-      // Every 30 min: process delayed replies first, then poll for new ones
+      // Every 30 min: process delayed replies, send any due day-2 follow-ups,
+      // then poll for new inbound replies.
       ctx.waitUntil(
-        processDelayedReplies(env).then(() => pollAndProcessReplies(env)),
+        processDelayedReplies(env)
+          .then(() => processPendingFollowups(env))
+          .then(() => pollAndProcessReplies(env)),
       );
     }
   },
@@ -478,6 +501,12 @@ async function pollAndProcessReplies(env) {
  */
 async function processReply(reply, env) {
   const body = reply.body || "";
+
+  // Any new inbound reply from this prospect means they responded — cancel
+  // the day-2 follow-up if one was scheduled. Defensive: cheap if no record.
+  if (reply.from_email) {
+    await cancelPendingFollowup(env, reply.from_email);
+  }
 
   const classification = await classifyReply(body, env);
   reply.classification = classification;
@@ -668,6 +697,13 @@ async function generateAndSendAutoReply(reply, env) {
     return null;
   }
 
+  // One-and-done gate: if we've already auto-replied to this prospect, skip.
+  // Human takes over from here (or the day-2 follow-up cron fires).
+  if (await hasAutoReplied(env, reply.from_email)) {
+    console.log(`Already auto-replied to ${reply.from_email} — skipping (human handoff)`);
+    return null;
+  }
+
   let replyText;
   if (!env.OPENROUTER_API_KEY) {
     const objection = matchObjection(body);
@@ -703,6 +739,15 @@ async function generateAndSendAutoReply(reply, env) {
     delay_seconds: delaySeconds,
   });
   console.log(`Auto-reply queued for ${reply.from_email} — send after ${delaySeconds}s delay`);
+
+  // Mark this prospect as auto-replied so subsequent inbound replies don't
+  // trigger another bot reply. Schedule the day-2 follow-up at the same time.
+  await markAutoReplied(env, reply.from_email, reply.id);
+  await schedulePendingFollowup(env, {
+    from_email: reply.from_email,
+    reply_id: reply.id,
+    original_subject: reply.email_subject || null,
+  });
 
   return replyText;
 }
@@ -2087,7 +2132,7 @@ function corsResponse(request, env, response) {
   const allowed = (env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim());
 
   const headers = new Headers(response.headers);
-  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Worker-Secret");
   headers.set("Access-Control-Max-Age", "86400");
 
@@ -2258,10 +2303,28 @@ async function stageSource(env, runId, dryRun = false) {
   }
 
   const deduped = deduplicateLeads(allLeads);
+
+  // Filter against the manual exclusion list (Bryce's call ask).
+  // Batched in chunks of 20 leads — each isExcluded does up to 2 sequential
+  // KV reads, so ~40 KV calls per chunk (parallelised across the 20 leads
+  // but serial within each isExcluded). Tradeoff: more parallelism vs.
+  // hitting KV rate limits.
+  const EXCLUSION_BATCH_SIZE = 20;
+  const final = [];
+  let excludedCount = 0;
+  for (let i = 0; i < deduped.length; i += EXCLUSION_BATCH_SIZE) {
+    const batch = deduped.slice(i, i + EXCLUSION_BATCH_SIZE);
+    const checks = await Promise.all(batch.map((lead) => isExcluded(env, lead)));
+    for (let j = 0; j < batch.length; j++) {
+      if (checks[j]) excludedCount++;
+      else final.push(batch[j]);
+    }
+  }
+
   console.log(
-    `Sourced ${allLeads.length} raw leads (maps=${counts.serper_maps}, places=${counts.serper_places}); ${deduped.length} after dedup`
+    `Sourced ${allLeads.length} raw (maps=${counts.serper_maps}, places=${counts.serper_places}); ${deduped.length} after dedup; ${final.length} after exclusions (${excludedCount} blocked)`
   );
-  return deduped;
+  return final;
 }
 
 async function searchSerperMaps(query, limit, env) {
@@ -2399,6 +2462,292 @@ async function markBusinessSeen(env, lead) {
   } catch (err) {
     console.warn("seen-business KV write error:", err);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Auto-reply gate (one-and-done) + day-2 follow-up scheduling
+//
+// From Bryce's May 12 client call, Alex's spec for the AI:
+//   "It's really just kind of like, all right, sounds good. Here's a link,
+//    and then set up some sort of follow up, like a day out, if they show
+//    interest, we send them the link. If they don't respond, then the next
+//    day, send a follow up. Hey, did you get my email?"
+//
+// So the AI sends ONE auto-reply with a link, schedules ONE follow-up for
+// 24h later, then stops. Human takes over from there.
+// ---------------------------------------------------------------------------
+
+const AUTO_REPLIED_TTL = 30 * 24 * 60 * 60; // 30 days
+const PENDING_FOLLOWUP_TTL = 7 * 24 * 60 * 60; // 7 days
+const FOLLOWUP_DELAY_HOURS = 24;
+
+function normalizeEmail(email) {
+  return (email || "").toLowerCase().trim();
+}
+
+async function hasAutoReplied(env, fromEmail) {
+  if (!env.REPLY_STATE) return false;
+  const key = `auto_replied_${normalizeEmail(fromEmail)}`;
+  try {
+    const val = await env.REPLY_STATE.get(key);
+    return val !== null;
+  } catch (err) {
+    console.warn("auto_replied KV read error:", err);
+    return false;
+  }
+}
+
+async function markAutoReplied(env, fromEmail, replyId) {
+  if (!env.REPLY_STATE) return;
+  const norm = normalizeEmail(fromEmail);
+  if (!norm) return;
+  const key = `auto_replied_${norm}`;
+  try {
+    await env.REPLY_STATE.put(
+      key,
+      JSON.stringify({ at: new Date().toISOString(), reply_id: replyId || null }),
+      { expirationTtl: AUTO_REPLIED_TTL },
+    );
+  } catch (err) {
+    console.warn("auto_replied KV write error:", err);
+  }
+}
+
+async function schedulePendingFollowup(env, data) {
+  if (!env.REPLY_STATE) return;
+  const norm = normalizeEmail(data.from_email);
+  if (!norm) return;
+  const key = `pending_followup_${norm}`;
+  const dueAt = new Date(Date.now() + FOLLOWUP_DELAY_HOURS * 60 * 60 * 1000).toISOString();
+  try {
+    await env.REPLY_STATE.put(
+      key,
+      JSON.stringify({
+        from_email: norm,
+        reply_to_uuid: data.reply_id || null,
+        original_subject: data.original_subject || null,
+        scheduled_at: new Date().toISOString(),
+        followup_due_at: dueAt,
+      }),
+      { expirationTtl: PENDING_FOLLOWUP_TTL },
+    );
+    console.log(`Follow-up scheduled for ${norm} at ${dueAt}`);
+  } catch (err) {
+    console.warn("pending_followup KV write error:", err);
+  }
+}
+
+async function cancelPendingFollowup(env, fromEmail) {
+  if (!env.REPLY_STATE) return;
+  const norm = normalizeEmail(fromEmail);
+  if (!norm) return;
+  try {
+    await env.REPLY_STATE.delete(`pending_followup_${norm}`);
+  } catch (err) {
+    console.warn("pending_followup KV delete error:", err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Manual exclusion list (Bryce, call: "exclusion lists that you could add to")
+// Differs from seen_business_ (60-day auto dedup) — these are user-driven and
+// don't expire. Stored as `excluded_<domain>` or `excluded_<name_normalized>`.
+// ---------------------------------------------------------------------------
+
+function normalizeBusinessName(name) {
+  return (name || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function buildExclusionKeys({ domain, business_name }) {
+  const keys = [];
+  const d = (domain || "").toLowerCase().trim();
+  if (d) keys.push(`excluded_domain_${d}`);
+  const n = normalizeBusinessName(business_name);
+  if (n) keys.push(`excluded_name_${n}`);
+  return keys;
+}
+
+async function isExcluded(env, lead) {
+  if (!env.REPLY_STATE) return false;
+  const keys = buildExclusionKeys({ domain: lead.domain, business_name: lead.business_name });
+  if (keys.length === 0) return false;
+  try {
+    for (const k of keys) {
+      const v = await env.REPLY_STATE.get(k);
+      if (v !== null) return true;
+    }
+  } catch (err) {
+    // Fail-open: a KV outage shouldn't block sourcing entirely.
+    // Promoted to error-level so monitoring catches it.
+    console.error("exclusion KV read error:", err);
+  }
+  return false;
+}
+
+async function listExclusions(env) {
+  if (!env.REPLY_STATE) return [];
+  const entries = [];
+  let cursor = undefined;
+  do {
+    let listing;
+    try {
+      listing = await env.REPLY_STATE.list({ prefix: "excluded_", cursor });
+    } catch (err) {
+      console.error("exclusions list error:", err);
+      break;
+    }
+    for (const k of listing.keys) {
+      try {
+        const raw = await env.REPLY_STATE.get(k.name);
+        if (raw) entries.push({ key: k.name, ...JSON.parse(raw) });
+      } catch {
+        entries.push({ key: k.name });
+      }
+    }
+    cursor = listing.list_complete ? undefined : listing.cursor;
+  } while (cursor);
+  return entries;
+}
+
+async function handleExclusionsList(env) {
+  const entries = await listExclusions(env);
+  return jsonResponse({ count: entries.length, exclusions: entries });
+}
+
+async function handleExclusionsAdd(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
+  }
+  const { domain, business_name, reason } = body || {};
+  if (!domain && !business_name) {
+    return jsonResponse({ error: "Provide at least one of: domain, business_name" }, 400);
+  }
+  const keys = buildExclusionKeys({ domain, business_name });
+  if (keys.length === 0) {
+    return jsonResponse({ error: "Inputs normalized to empty strings — nothing to add" }, 400);
+  }
+  const record = JSON.stringify({
+    domain: (domain || "").toLowerCase().trim() || null,
+    business_name: business_name || null,
+    reason: reason || null,
+    added_at: new Date().toISOString(),
+  });
+  try {
+    for (const k of keys) {
+      await env.REPLY_STATE.put(k, record);
+    }
+  } catch (err) {
+    console.error("exclusions add error:", err);
+    return jsonResponse({ error: "KV write failed" }, 500);
+  }
+  return jsonResponse({ success: true, added_keys: keys });
+}
+
+async function handleExclusionsDelete(url, env) {
+  const key = url.searchParams.get("key");
+  if (!key || !/^excluded_(domain|name)_/.test(key)) {
+    return jsonResponse({ error: "Provide ?key=excluded_(domain|name)_..." }, 400);
+  }
+  try {
+    await env.REPLY_STATE.delete(key);
+    return jsonResponse({ success: true, deleted: key });
+  } catch (err) {
+    console.error("exclusions delete error:", err);
+    return jsonResponse({ error: "KV delete failed" }, 500);
+  }
+}
+
+// Cron handler: scan all due follow-ups, send each via Instantly, then delete.
+async function processPendingFollowups(env) {
+  if (!env.REPLY_STATE || !env.INSTANTLY_API_KEY) {
+    return { sent: 0, skipped_no_kv_or_instantly: true };
+  }
+  const now = Date.now();
+  let cursor = undefined;
+  let sent = 0;
+  let scanned = 0;
+  do {
+    let listing;
+    try {
+      listing = await env.REPLY_STATE.list({ prefix: "pending_followup_", cursor });
+    } catch (err) {
+      console.error("pending_followup KV list error:", err);
+      break;
+    }
+    for (const k of listing.keys) {
+      scanned++;
+      let record;
+      try {
+        const raw = await env.REPLY_STATE.get(k.name);
+        if (!raw) continue;
+        record = JSON.parse(raw);
+      } catch (err) {
+        console.warn(`pending_followup parse error on ${k.name}:`, err);
+        continue;
+      }
+      const dueAt = Date.parse(record.followup_due_at || "");
+      if (!dueAt || dueAt > now) continue;
+
+      // Idempotency: if a sentinel is already present, another worker
+      // (or a previous tick where delete failed) already sent this one.
+      // Skip and try to clean up. On KV read error, skip entirely — we
+      // refuse to send unless we can prove a duplicate hasn't been sent.
+      // Re-normalize the stored email defensively, in case a record was
+      // written by a future/older code path with different casing.
+      const sentinelKey = `followup_sent_${normalizeEmail(record.from_email)}`;
+      try {
+        const alreadySent = await env.REPLY_STATE.get(sentinelKey);
+        if (alreadySent !== null) {
+          await env.REPLY_STATE.delete(k.name).catch(() => {});
+          continue;
+        }
+      } catch (err) {
+        console.error(`followup_sent KV read error for ${record.from_email} — skipping to avoid duplicate send:`, err);
+        continue;
+      }
+
+      // Write sentinel BEFORE sending, so a duplicate send can never happen
+      // even if the delete below fails. Sentinel TTL matches AUTO_REPLIED_TTL
+      // (30 days) — same window as the auto-reply gate.
+      try {
+        await env.REPLY_STATE.put(
+          sentinelKey,
+          JSON.stringify({ at: new Date().toISOString() }),
+          { expirationTtl: AUTO_REPLIED_TTL },
+        );
+      } catch (err) {
+        console.error(`followup_sent KV write error for ${record.from_email}; aborting send to avoid duplicate:`, err);
+        continue;
+      }
+
+      try {
+        await queueDelayedReply(env, {
+          reply_to_uuid: record.reply_to_uuid,
+          from_email: record.from_email,
+          reply_text: CONFIG.auto_reply.followup_message,
+          send_after: new Date().toISOString(),
+          delay_seconds: 0,
+        });
+        sent++;
+      } catch (err) {
+        console.error(`Follow-up send failed for ${record.from_email}:`, err);
+        // Roll back the sentinel so a future tick can retry.
+        await env.REPLY_STATE.delete(sentinelKey).catch(() => {});
+        continue;
+      }
+      try {
+        await env.REPLY_STATE.delete(k.name);
+      } catch (err) {
+        console.warn(`pending_followup delete error on ${k.name}:`, err);
+      }
+    }
+    cursor = listing.list_complete ? undefined : listing.cursor;
+  } while (cursor);
+  console.log(`processPendingFollowups: scanned ${scanned}, sent ${sent}`);
+  return { scanned, sent };
 }
 
 // --- stageEnrich ---
