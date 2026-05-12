@@ -13,7 +13,11 @@ id = "e38c04f316594621bacb3b0c3d7fd444"
 [vars]
 GHL_LOCATION_ID = "sCxQ92Y8b7PpfLloGqOn"
 CAMPAIGN_ID = "bfa5c268-d8b9-466e-ae0c-50a18b5783c7"
-ALLOWED_ORIGINS = "https://website-flame-phi-90.vercel.app,https://accessorymasters.com,https://accessory-masters-site.pages.dev,http://localhost:3000"
+# ALLOWED_ORIGINS: comma-separated list of front-end origins permitted to call /api/*.
+# Includes the marketing site (website/) and the standalone dashboard project
+# (website-dashboard/). Add the dashboard project's Vercel URL here after creating
+# the new Vercel project from website-dashboard/.
+ALLOWED_ORIGINS = "https://website-flame-phi-90.vercel.app,https://accessorymasters.com,https://accessory-masters-site.pages.dev,https://elitebrokergroup.com,http://localhost:3000"
 
 # Secrets (set via `wrangler secret put`):
 # WORKER_SECRET (auth for admin endpoints — /api/run-pipeline, /api/process-replies, /api/weekly-report)
