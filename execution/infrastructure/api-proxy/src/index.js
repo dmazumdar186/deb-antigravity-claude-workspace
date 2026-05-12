@@ -10,6 +10,7 @@
  *   POST /api/run-pipeline      — Manual trigger for daily pipeline
  *   GET  /api/pipeline-status   — Recent pipeline run history
  *   POST /api/weekly-report     — Manual trigger for weekly report
+ *   GET  /api/dashboard-extras  — Hot leads, recent activity, latest pipeline run (from KV)
  *
  * Scheduled:
  *   Cron every 30 min           — Process delayed replies + poll Instantly for new ones
@@ -271,6 +272,13 @@ export default {
           env,
           await handleWeeklyReport(env),
         );
+      }
+
+      if (method === "GET" && pathname === "/api/dashboard-extras") {
+        if (!checkAdminAuth(request, env)) {
+          return corsResponse(request, env, jsonResponse({ error: "Unauthorized" }, 401));
+        }
+        return corsResponse(request, env, await handleDashboardExtras(url, env));
       }
 
       return corsResponse(
@@ -1338,6 +1346,128 @@ async function handleDashboard(url, env) {
 }
 
 /**
+ * GET /api/dashboard-extras?range=7d|30d|all
+ * Returns hot leads, recent activity feed, and latest pipeline run from KV.
+ */
+async function handleDashboardExtras(url, env) {
+  const range = url.searchParams.get("range") || "7d";
+
+  const emptyResponse = {
+    range,
+    generated_at: new Date().toISOString(),
+    hot_leads_this_week: [],
+    recent_activity: [],
+    latest_pipeline_run: null,
+    counts: { total_replies_in_range: 0, hot_leads: 0 },
+  };
+
+  if (!env.REPLY_STATE) {
+    return jsonResponse(emptyResponse);
+  }
+
+  // Compute start timestamp for date-range filtering
+  const startDate = rangeToDate(range);
+  const startMs = startDate ? new Date(startDate).getTime() : 0;
+
+  // Scan all KV keys (bare reply IDs only)
+  const listResult = await env.REPLY_STATE.list({ limit: 1000 });
+  const allReplies = [];
+  const pipelineEntries = [];
+
+  for (const key of listResult.keys) {
+    const name = key.name;
+
+    // Collect pipeline entries separately
+    if (name.startsWith("pipeline_")) {
+      const raw = await env.REPLY_STATE.get(name);
+      if (raw) {
+        try { pipelineEntries.push(JSON.parse(raw)); } catch (_) {}
+      }
+      continue;
+    }
+
+    // Skip non-reply system keys
+    if (name.startsWith("pending_reply_") || name.startsWith("seen_business_")) {
+      continue;
+    }
+
+    const raw = await env.REPLY_STATE.get(name);
+    if (!raw) continue;
+    let record;
+    try { record = JSON.parse(raw); } catch (_) { continue; }
+
+    // Must have classification to be a reply record
+    if (!record.classification) continue;
+
+    allReplies.push({ key: name, ...record });
+  }
+
+  // Sort all replies by timestamp descending
+  allReplies.sort((a, b) => {
+    const ta = new Date(a.processed_at || a.started_at || 0).getTime();
+    const tb = new Date(b.processed_at || b.started_at || 0).getTime();
+    return tb - ta;
+  });
+
+  // Filter replies within the date range
+  const repliesInRange = allReplies.filter((r) => {
+    const t = new Date(r.processed_at || r.started_at || 0).getTime();
+    return t >= startMs;
+  });
+
+  // Hot leads: hot_positive in date range, top 25
+  const hotLeadsRaw = repliesInRange
+    .filter((r) => r.classification === "hot_positive")
+    .slice(0, 25);
+
+  const hot_leads_this_week = hotLeadsRaw.map((r) => {
+    const contactId = r.contact_id || null;
+    const ghlUrl = contactId && env.GHL_LOCATION_ID
+      ? `https://app.gohighlevel.com/v2/location/${env.GHL_LOCATION_ID}/contacts/detail/${contactId}`
+      : null;
+    const replyText = r.reply_text || r.body || r.text || "";
+    return {
+      reply_id: r.key,
+      from_email: r.from_email || r.from_address_email || null,
+      from_name: r.from_name || null,
+      business: r.company || r.business || null,
+      processed_at: r.processed_at || r.started_at || null,
+      reply_quote_short: replyText.slice(0, 240),
+      classification: r.classification,
+      contact_id: contactId,
+      ghl_url: ghlUrl,
+    };
+  });
+
+  // Recent activity: top 10 across all classifications (already sorted desc)
+  const recent_activity = allReplies.slice(0, 10).map((r) => ({
+    reply_id: r.key,
+    from_email: r.from_email || r.from_address_email || null,
+    classification: r.classification,
+    action: r.action || (r.auto_reply_sent ? "auto-replied" : "classified"),
+    processed_at: r.processed_at || r.started_at || null,
+  }));
+
+  // Latest pipeline run
+  pipelineEntries.sort((a, b) =>
+    new Date(b.started_at || b.generated_at || 0) - new Date(a.started_at || a.generated_at || 0)
+  );
+  const latest_pipeline_run = pipelineEntries[0] || null;
+
+  return jsonResponse({
+    range,
+    generated_at: new Date().toISOString(),
+    hot_leads_this_week,
+    recent_activity,
+    latest_pipeline_run,
+    counts: {
+      total_replies_in_range: repliesInRange.length,
+      hot_leads: hot_leads_this_week.length,
+    },
+  });
+}
+
+/**
  * POST /api/webhook/reply — now triggers processing instead of just logging.
  */
 async function handleReplyWebhook(request, env) {
@@ -1736,15 +1866,15 @@ function corsResponse(request, env, response) {
 // DAILY PIPELINE: Source → Enrich → Verify → Personalize → Upload
 // ===================================================================
 
-async function runDailyPipeline(env) {
+async function runDailyPipeline(env, dryRun = false) {
   const runId = `run_${Date.now()}`;
-  console.log(`Pipeline ${runId}: starting daily pipeline`);
+  console.log(`Pipeline ${runId}: starting daily pipeline${dryRun ? " [DRY RUN]" : ""}`);
 
-  const state = { run_id: runId, started_at: new Date().toISOString(), stages: {} };
+  const state = { run_id: runId, started_at: new Date().toISOString(), stages: {}, dry_run: dryRun };
 
   try {
     // Stage 1: Source leads via Serper Maps
-    const leads = await stageSource(env, runId);
+    const leads = await stageSource(env, runId, dryRun);
     state.stages.source = { count: leads.length, status: "complete" };
     console.log(`Pipeline ${runId}: sourced ${leads.length} leads`);
 
@@ -1755,30 +1885,32 @@ async function runDailyPipeline(env) {
     }
 
     // Stage 2: Enrich with AnymailFinder
-    const enriched = await stageEnrich(leads, env);
+    const enriched = await stageEnrich(leads, env, dryRun);
     const enrichedCount = enriched.filter((l) => l.status === "enriched").length;
-    state.stages.enrich = { count: enrichedCount, status: "complete" };
-    console.log(`Pipeline ${runId}: enriched ${enrichedCount}/${leads.length}`);
+    const skippedAlreadySeen = enriched.filter((l) => l.status === "seen_already").length;
+    state.stages.enrich = { count: enrichedCount, skipped_already_seen: skippedAlreadySeen, status: "complete" };
+    console.log(`Pipeline ${runId}: enriched ${enrichedCount}/${leads.length} (${skippedAlreadySeen} skipped — already seen)`);
 
     // Stage 3: Verify with Million Verifier
-    const verified = await stageVerify(enriched, env);
+    const verified = await stageVerify(enriched, env, dryRun);
     const verifiedCount = verified.filter((l) => l.status === "verified").length;
     state.stages.verify = { count: verifiedCount, status: "complete" };
     console.log(`Pipeline ${runId}: verified ${verifiedCount}/${enrichedCount}`);
 
     // Stage 4: Personalize with OpenRouter
-    const personalized = await stagePersonalize(verified, env);
+    const personalized = await stagePersonalize(verified, env, dryRun);
     const personalizedCount = personalized.filter((l) => l.status === "personalized").length;
     state.stages.personalize = { count: personalizedCount, status: "complete" };
     console.log(`Pipeline ${runId}: personalized ${personalizedCount}/${verifiedCount}`);
 
     // Stage 5: Upload to Instantly
-    const uploadResult = await stageUpload(personalized, env);
+    const uploadResult = await stageUpload(personalized, env, dryRun);
     state.stages.upload = uploadResult;
     console.log(`Pipeline ${runId}: uploaded ${uploadResult.uploaded}/${uploadResult.total}`);
 
     state.status = "complete";
     state.completed_at = new Date().toISOString();
+    state.skipped_already_seen = skippedAlreadySeen;
   } catch (err) {
     console.error(`Pipeline ${runId} error:`, err);
     state.status = "error";
@@ -1793,7 +1925,52 @@ async function runDailyPipeline(env) {
 // Stage 1: Serper Maps Lead Sourcing
 // ---------------------------------------------------------------------------
 
-async function stageSource(env, runId) {
+async function stageSource(env, runId, dryRun = false) {
+  if (dryRun) {
+    console.log("stageSource [DRY RUN]: returning mock leads");
+    const ts = new Date().toISOString();
+    const industries = CONFIG.icp.industries;
+    const mockBusinesses = [
+      { name: "Sparkle Car Wash", domain: "sparklecarwash.com", city: "Houston", state: "TX", industry: industries[0], rating: 4.5, reviews_count: 213, phone: "713-555-0101" },
+      { name: "Tony's Pizzeria", domain: "tonyspizzeria.com", city: "Houston", state: "TX", industry: industries[1], rating: 4.7, reviews_count: 387, phone: "713-555-0102" },
+      { name: "Hometown Laundromat", domain: "hometownlaundromat.com", city: "Houston", state: "TX", industry: industries[2], rating: 4.1, reviews_count: 89, phone: "713-555-0103" },
+      { name: "Gulf Coast Marina", domain: "gulfcoastmarina.com", city: "Pasadena", state: "TX", industry: industries[3], rating: 4.6, reviews_count: 145, phone: "713-555-0104" },
+      { name: "Lone Star Oil Co", domain: "lonestaroil.com", city: "Katy", state: "TX", industry: industries[4], rating: 4.3, reviews_count: 62, phone: "713-555-0105" },
+      { name: "Quick Fix Auto Repair", domain: "quickfixauto.com", city: "Sugar Land", state: "TX", industry: industries[5], rating: 4.8, reviews_count: 521, phone: "713-555-0106" },
+      { name: "Prestige Dry Cleaners", domain: "prestigedrycleaner.com", city: "The Woodlands", state: "TX", industry: industries[6], rating: 4.4, reviews_count: 177, phone: "713-555-0107" },
+      { name: "Sweet Crumbs Bakery", domain: "sweetcrumbs.com", city: "Pearland", state: "TX", industry: industries[7], rating: 4.9, reviews_count: 302, phone: "713-555-0108" },
+      { name: "Houston Print House", domain: "houstonprinthouse.com", city: "Houston", state: "TX", industry: industries[8], rating: 4.2, reviews_count: 54, phone: "713-555-0109" },
+      { name: "Texan Pest Solutions", domain: "texanpest.com", city: "Houston", state: "TX", industry: industries[9], rating: 4.5, reviews_count: 198, phone: "713-555-0110" },
+      { name: "Bayou Manufacturing", domain: "bayoumanufacturing.com", city: "Pasadena", state: "TX", industry: industries[10], rating: 4.0, reviews_count: 41, phone: "713-555-0111" },
+      { name: "Riverside Consulting Group", domain: "riversideconsulting.com", city: "Houston", state: "TX", industry: industries[11], rating: 4.6, reviews_count: 83, phone: "713-555-0112" },
+      { name: "Katy Car Wash Express", domain: "katycarwash.com", city: "Katy", state: "TX", industry: industries[0], rating: 4.3, reviews_count: 156, phone: "713-555-0113" },
+      { name: "Mama Rosa's Pizza", domain: "mamarosaspizza.com", city: "Sugar Land", state: "TX", industry: industries[1], rating: 4.8, reviews_count: 441, phone: "713-555-0114" },
+      { name: "Sudz Laundromat", domain: "sudzlaundromat.com", city: "Katy", state: "TX", industry: industries[2], rating: 3.9, reviews_count: 67, phone: "713-555-0115" },
+      { name: "Woodlands Auto Care", domain: "woodlandsautocare.com", city: "The Woodlands", state: "TX", industry: industries[5], rating: 4.7, reviews_count: 289, phone: "713-555-0116" },
+      { name: "Pearl Clean Dry Cleaning", domain: "pearlcleandry.com", city: "Pearland", state: "TX", industry: industries[6], rating: 4.5, reviews_count: 102, phone: "713-555-0117" },
+      { name: "Harvest Moon Bakery", domain: "harvestmoonbakery.com", city: "Katy", state: "TX", industry: industries[7], rating: 4.6, reviews_count: 234, phone: "713-555-0118" },
+      { name: "Gulf Print & Signs", domain: "gulfprintsigns.com", city: "Pasadena", state: "TX", industry: industries[8], rating: 4.1, reviews_count: 38, phone: "713-555-0119" },
+      { name: "Cypress Pest Control", domain: "cypresspest.com", city: "The Woodlands", state: "TX", industry: industries[9], rating: 4.4, reviews_count: 171, phone: "713-555-0120" },
+    ];
+    return mockBusinesses.map((b) => ({
+      business_name: b.name,
+      domain: b.domain,
+      city: b.city,
+      state: b.state,
+      industry: b.industry,
+      rating: b.rating,
+      reviews_count: b.reviews_count,
+      phone: b.phone,
+      website: `https://www.${b.domain}`,
+      address: `123 Main St, ${b.city}, ${b.state}`,
+      source: "mock_dry_run",
+      source_query: `${b.industry} ${b.city}, ${b.state}`,
+      sourced_at: ts,
+      status: "sourced",
+      pipeline_run_id: runId,
+    }));
+  }
+
   if (!env.SERPER_API_KEY) {
     console.warn("SERPER_API_KEY not set — skipping sourcing");
     return [];
@@ -1914,7 +2091,60 @@ function deduplicateLeads(leads) {
 // Stage 2: AnymailFinder Email Enrichment
 // ---------------------------------------------------------------------------
 
-async function stageEnrich(leads, env) {
+// --- Cross-run dedup helpers (Feature 2) ---
+
+function buildSeenBusinessKey(lead) {
+  const domain = (lead.domain || "").toLowerCase().trim();
+  const name = (lead.business_name || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  if (!domain && !name) return null;
+  return `seen_business_${domain}|${name}`;
+}
+
+async function isBusinessSeen(env, lead) {
+  if (!env.REPLY_STATE) return false;
+  const key = buildSeenBusinessKey(lead);
+  if (!key) return false;
+  try {
+    const val = await env.REPLY_STATE.get(key);
+    return val !== null;
+  } catch (err) {
+    console.warn("seen-business KV read error:", err);
+    return false;
+  }
+}
+
+async function markBusinessSeen(env, lead) {
+  if (!env.REPLY_STATE) return;
+  const key = buildSeenBusinessKey(lead);
+  if (!key) return;
+  try {
+    await env.REPLY_STATE.put(key, JSON.stringify({
+      seen_at: new Date().toISOString(),
+      business_name: lead.business_name,
+      domain: lead.domain,
+    }), { expirationTtl: 60 * 24 * 60 * 60 }); // 60 days
+  } catch (err) {
+    console.warn("seen-business KV write error:", err);
+  }
+}
+
+// --- stageEnrich ---
+
+async function stageEnrich(leads, env, dryRun = false) {
+  if (dryRun) {
+    console.log("stageEnrich [DRY RUN]: faking enrichment, skipping AnymailFinder");
+    for (const lead of leads) {
+      if (lead.status !== "sourced") continue;
+      lead.owner_email = `owner@${lead.domain || "example.com"}`;
+      lead.owner_name = lead.owner_name || lead.business_name.split(/\s+/)[0] || "there";
+      lead.email_confidence = 80;
+      lead.email_type = "generic";
+      lead.enriched_at = new Date().toISOString();
+      lead.status = "enriched";
+    }
+    return leads;
+  }
+
   if (!env.ANYMAILFINDER_API_KEY) {
     console.warn("ANYMAILFINDER_API_KEY not set — skipping enrichment");
     return leads;
@@ -1923,7 +2153,16 @@ async function stageEnrich(leads, env) {
   const minConf = CONFIG.enrichment.anymailfinder_min_confidence;
 
   for (const lead of leads) {
+    if (lead.status !== "sourced") continue;
     if (lead.owner_email || !lead.domain) continue;
+
+    // Cross-run dedup: skip leads we already enriched in a prior pipeline run
+    const seen = await isBusinessSeen(env, lead);
+    if (seen) {
+      console.log(`stageEnrich: skipping already-seen business "${lead.business_name}" (${lead.domain})`);
+      lead.status = "seen_already";
+      continue;
+    }
 
     try {
       const result = await findEmail(lead, env);
@@ -1937,6 +2176,8 @@ async function stageEnrich(leads, env) {
         lead.email_type = result.type;
         lead.enriched_at = new Date().toISOString();
         lead.status = "enriched";
+        // Mark as seen so future runs skip re-enriching this business
+        await markBusinessSeen(env, lead);
       } else if (result) {
         lead.status = "low_confidence";
         lead.email_confidence = result.confidence;
@@ -2029,7 +2270,20 @@ function isGenericEmail(email) {
 // Stage 3: Million Verifier Email Verification
 // ---------------------------------------------------------------------------
 
-async function stageVerify(leads, env) {
+async function stageVerify(leads, env, dryRun = false) {
+  if (dryRun) {
+    console.log("stageVerify [DRY RUN]: marking all enriched leads as verified, skipping Million Verifier");
+    for (const lead of leads) {
+      if (lead.status === "enriched" && lead.owner_email) {
+        lead.status = "verified";
+        lead.email_verified = true;
+        lead.email_verification_result = "mock_ok";
+        lead.verified_at = new Date().toISOString();
+      }
+    }
+    return leads;
+  }
+
   if (!env.MILLION_VERIFIER_API_KEY) {
     console.warn("MILLION_VERIFIER_API_KEY not set — promoting enriched leads to verified");
     for (const lead of leads) {
@@ -2090,7 +2344,19 @@ async function verifyEmail(email, env) {
 // Stage 4: AI Opener Personalization
 // ---------------------------------------------------------------------------
 
-async function stagePersonalize(leads, env) {
+async function stagePersonalize(leads, env, dryRun = false) {
+  if (dryRun) {
+    console.log("stagePersonalize [DRY RUN]: using mock openers, skipping OpenRouter");
+    for (const lead of leads) {
+      if (lead.status !== "verified") continue;
+      lead.personalized_opener = getMockOpener(lead);
+      lead.opener_model = "mock_dry_run";
+      lead.personalized_at = new Date().toISOString();
+      lead.status = "personalized";
+    }
+    return leads;
+  }
+
   if (!env.OPENROUTER_API_KEY) {
     console.warn("OPENROUTER_API_KEY not set — using mock openers");
   }
@@ -2204,13 +2470,20 @@ function getMockOpener(lead) {
 // Stage 5: Upload to Instantly
 // ---------------------------------------------------------------------------
 
-async function stageUpload(leads, env) {
+async function stageUpload(leads, env, dryRun = false) {
+  const personalized = leads.filter((l) => l.status === "personalized");
+  const personalizedCount = personalized.length;
+
+  if (dryRun) {
+    console.log(`stageUpload [DRY RUN]: would upload ${personalizedCount} leads — skipping Instantly POST`);
+    return { uploaded: 0, errors: 0, total: personalizedCount, would_upload: personalizedCount, dry: true };
+  }
+
   if (!env.INSTANTLY_API_KEY || !env.CAMPAIGN_ID) {
     console.warn("INSTANTLY_API_KEY or CAMPAIGN_ID not set — skipping upload");
     return { uploaded: 0, errors: 0, total: 0 };
   }
 
-  const personalized = leads.filter((l) => l.status === "personalized");
   if (!personalized.length) {
     return { uploaded: 0, errors: 0, total: 0 };
   }
@@ -2399,8 +2672,10 @@ async function savePipelineState(env, state) {
 
 async function handleRunPipeline(request, env) {
   try {
-    const result = await runDailyPipeline(env);
-    return jsonResponse({ success: true, ...result });
+    const url = new URL(request.url);
+    const dryRun = url.searchParams.get("dry_run") === "true";
+    const result = await runDailyPipeline(env, dryRun);
+    return jsonResponse({ success: true, dry_run: dryRun, ...result });
   } catch (err) {
     console.error("Pipeline error:", err);
     return jsonResponse({ success: false, error: err.message }, 500);

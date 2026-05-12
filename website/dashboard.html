@@ -176,6 +176,27 @@
 </header>
 
 <!-- ============================================================ -->
+<!-- SECRET INPUT WIDGET (top bar, right-aligned)                  -->
+<!-- ============================================================ -->
+<div class="px-6 md:px-12 lg:px-16 mb-4">
+  <div id="secretBanner" class="hidden demo-banner rounded-lg px-4 py-2.5 text-sm text-bone-200 font-mono flex items-center gap-2 mb-3">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="8" cy="8" r="6.5" /><path d="M8 5v3" /><circle cx="8" cy="11" r="0.5" fill="currentColor" />
+    </svg>
+    Set the admin secret to view live data.
+  </div>
+  <div class="flex items-center gap-3 justify-end">
+    <label class="text-xs text-bone-400 font-mono whitespace-nowrap">Admin secret (saved locally)</label>
+    <input id="workerSecretInput" type="password" placeholder="••••••••"
+      class="bg-ink-800 border hairline rounded-lg px-3 py-1.5 text-xs font-mono text-bone-100 placeholder-bone-400 focus:outline-none focus:ring-1 focus:ring-brass-400 w-48" />
+    <button id="setSecretBtn"
+      class="liquid-glass rounded-lg px-3 py-1.5 text-xs font-mono text-bone-200 hover:text-white transition">
+      Set
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
 <!-- DEMO BANNER (hidden when live data loads)                     -->
 <!-- ============================================================ -->
 <div id="demoBanner" class="hidden px-6 md:px-12 lg:px-16 mb-6">
@@ -186,6 +207,19 @@
     Showing demo data — connect the API endpoint to see live metrics
   </div>
 </div>
+
+<!-- ============================================================ -->
+<!-- HOT LEADS                                                     -->
+<!-- ============================================================ -->
+<section class="px-6 md:px-12 lg:px-16 pb-10">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono">&#x1F525; Hot leads to call</h2>
+    <span id="hot-leads-count" class="text-xs text-bone-400 font-mono"></span>
+  </div>
+  <div id="hot-leads-container" class="liquid-glass rounded-xl p-6">
+    <p class="text-sm text-bone-400 font-mono italic">Loading&hellip;</p>
+  </div>
+</section>
 
 <!-- ============================================================ -->
 <!-- EMAIL PERFORMANCE                                             -->
@@ -245,6 +279,18 @@
       </div>
     </div>
 
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PIPELINE STATUS BANNER                                        -->
+<!-- ============================================================ -->
+<section class="px-6 md:px-12 lg:px-16 pb-10">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono">Last pipeline run</h2>
+  </div>
+  <div id="pipeline-banner" class="liquid-glass rounded-xl px-6 py-4">
+    <p class="text-sm text-bone-400 font-mono italic">Loading&hellip;</p>
   </div>
 </section>
 
@@ -313,6 +359,18 @@
 </section>
 
 <!-- ============================================================ -->
+<!-- RECENT ACTIVITY FEED                                          -->
+<!-- ============================================================ -->
+<section class="px-6 md:px-12 lg:px-16 pb-10">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-[11px] tracking-[0.2em] uppercase text-bone-400 font-mono">Recent activity</h2>
+  </div>
+  <div id="recent-activity-container" class="liquid-glass rounded-xl p-6">
+    <p class="text-sm text-bone-400 font-mono italic">Loading&hellip;</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
 <!-- LAST UPDATED                                                  -->
 <!-- ============================================================ -->
 <div class="px-6 md:px-12 lg:px-16 pb-8">
@@ -327,6 +385,29 @@
 <!-- ============================================================ -->
 <!-- FOOTER                                                        -->
 <!-- ============================================================ -->
+<!-- ============================================================ -->
+<!-- DRY-RUN TRIGGER                                               -->
+<!-- ============================================================ -->
+<div class="px-6 md:px-12 lg:px-16 pb-8">
+  <div class="liquid-glass rounded-xl px-6 py-5 flex flex-col gap-4">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <div class="text-[10px] tracking-widest uppercase text-bone-400 font-mono mb-1">Pipeline controls</div>
+        <p class="text-xs text-bone-300 font-mono">Run the sourcing pipeline without consuming API credits or sending emails.</p>
+      </div>
+      <button id="dryRunBtn"
+        class="liquid-glass rounded-lg px-4 py-2 text-xs font-mono text-bone-200 hover:text-white transition flex items-center gap-2">
+        <svg id="dryRunSpinner" class="hidden" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2v4h-4" /><path d="M2 14v-4h4" />
+          <path d="M13.5 6A6 6 0 0 0 3.8 3.8L2 6" /><path d="M2.5 10a6 6 0 0 0 9.7 2.2L14 10" />
+        </svg>
+        Trigger test run (no credits used)
+      </button>
+    </div>
+    <pre id="dryRunResult" class="hidden text-xs font-mono text-bone-300 bg-ink-800 rounded-lg p-4 whitespace-pre-wrap break-all overflow-auto max-h-64"></pre>
+  </div>
+</div>
+
 <footer class="px-6 md:px-12 lg:px-16 py-12 bg-ink-900 border-t hairline-dark">
   <div class="flex flex-wrap items-center justify-between gap-6 text-xs text-bone-400 font-mono">
     <div class="flex items-center gap-3">

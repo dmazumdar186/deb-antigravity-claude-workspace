@@ -87,6 +87,40 @@ function cacheElements() {
 }
 
 // ---------------------------------------------------------------------------
+// Admin secret helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Retrieve the admin worker secret from localStorage.
+ * @returns {string}
+ */
+function getWorkerSecret() {
+  return localStorage.getItem("worker_secret") || "";
+}
+
+/**
+ * Format an ISO timestamp as a human-readable relative time string.
+ * @param {string|null} iso
+ * @returns {string}
+ */
+function fmtRelativeTime(iso) {
+  if (!iso) return "—";
+  const now = Date.now();
+  const t = new Date(iso).getTime();
+  const diffMs = now - t;
+  if (isNaN(diffMs)) return "—";
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const days = Math.floor(hr / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+// ---------------------------------------------------------------------------
 // Formatting helpers
 // ---------------------------------------------------------------------------
 
@@ -284,6 +318,261 @@ function renderVariants(variants) {
 }
 
 // ---------------------------------------------------------------------------
+// Dashboard extras: hot leads, recent activity, pipeline banner
+// ---------------------------------------------------------------------------
+
+/** Classification badge color map */
+const CLASSIFICATION_COLORS = {
+  hot_positive: "bg-amber-500 text-black",
+  positive: "bg-emerald-600 text-white",
+  negative: "bg-red-700 text-white",
+  neutral: "bg-stone-600 text-white",
+};
+
+/**
+ * Render hot leads into #hot-leads-container.
+ * @param {Array} leads
+ */
+function renderHotLeads(leads) {
+  const container = document.getElementById("hot-leads-container");
+  const countEl = document.getElementById("hot-leads-count");
+  if (!container) return;
+
+  if (countEl) {
+    countEl.textContent = leads.length ? `${leads.length} lead${leads.length === 1 ? "" : "s"}` : "";
+  }
+
+  if (!leads || !leads.length) {
+    container.innerHTML =
+      '<p class="text-sm text-bone-400 font-mono italic">No hot leads in this range yet — the system will surface them here the moment a prospect replies with intent.</p>';
+    return;
+  }
+
+  const rows = leads.map((lead) => {
+    const quote = lead.reply_quote_short
+      ? `<blockquote class="mt-2 text-sm font-serif-italic text-bone-300 bg-ink-800 rounded-lg px-4 py-3 border-l-2" style="border-color:var(--accent);">${esc(lead.reply_quote_short)}</blockquote>`
+      : "";
+    const ghlBtn = lead.ghl_url
+      ? `<a href="${esc(lead.ghl_url)}" target="_blank" rel="noopener"
+            class="liquid-glass rounded-lg px-3 py-1.5 text-xs font-mono text-bone-200 hover:text-white transition whitespace-nowrap">
+            Open in GHL &#x2197;
+         </a>`
+      : `<button disabled class="liquid-glass rounded-lg px-3 py-1.5 text-xs font-mono text-bone-400 cursor-not-allowed whitespace-nowrap opacity-50">Open in GHL</button>`;
+
+    return `<div class="border-b hairline last:border-0 py-5 first:pt-0 last:pb-0">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="flex-1 min-w-0">
+          <div class="text-base font-medium text-white truncate">${esc(lead.business || "Unknown business")}</div>
+          <div class="text-xs text-bone-400 font-mono mt-0.5">
+            ${esc(lead.from_email || "—")} &middot; ${fmtRelativeTime(lead.processed_at)}
+          </div>
+          ${quote}
+        </div>
+        <div class="flex-shrink-0">${ghlBtn}</div>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = rows.join("");
+}
+
+/**
+ * Render recent activity into #recent-activity-container.
+ * @param {Array} items
+ */
+function renderRecentActivity(items) {
+  const container = document.getElementById("recent-activity-container");
+  if (!container) return;
+
+  if (!items || !items.length) {
+    container.innerHTML = '<p class="text-sm text-bone-400 font-mono italic">No replies yet in this range.</p>';
+    return;
+  }
+
+  const rows = items.map((item) => {
+    const cls = item.classification || "neutral";
+    const badgeClass = CLASSIFICATION_COLORS[cls] || "bg-stone-600 text-white";
+    const email = (item.from_email || "—").slice(0, 30);
+    const action = item.action || "classified";
+
+    return `<div class="flex items-center gap-3 py-3 border-b hairline last:border-0 last:pb-0 first:pt-0 flex-wrap">
+      <span class="text-[10px] font-mono px-2 py-0.5 rounded-full ${badgeClass} whitespace-nowrap">${esc(cls)}</span>
+      <span class="text-sm text-bone-200 font-mono flex-1 min-w-0 truncate">${esc(email)}</span>
+      <span class="text-xs text-bone-400 font-mono">${esc(action)}</span>
+      <span class="text-xs text-bone-400 font-mono whitespace-nowrap">${fmtRelativeTime(item.processed_at)}</span>
+    </div>`;
+  });
+
+  container.innerHTML = rows.join("");
+}
+
+/**
+ * Render pipeline status banner into #pipeline-banner.
+ * @param {object|null} run
+ */
+function renderPipelineBanner(run) {
+  const banner = document.getElementById("pipeline-banner");
+  if (!banner) return;
+
+  if (!run) {
+    banner.innerHTML = '<p class="text-sm text-bone-400 font-mono italic">No pipeline runs recorded yet.</p>';
+    return;
+  }
+
+  const ts = run.started_at || run.generated_at || null;
+  const relTime = fmtRelativeTime(ts);
+  const ageMs = ts ? Date.now() - new Date(ts).getTime() : Infinity;
+  const ageH = ageMs / (1000 * 60 * 60);
+
+  let statusBadge, statusClass;
+  if (run.error) {
+    statusBadge = "Error";
+    statusClass = "bg-red-700 text-white";
+  } else if (ageH > 48) {
+    statusBadge = "Stale";
+    statusClass = "bg-red-700 text-white";
+  } else if (ageH > 30) {
+    statusBadge = "Aging";
+    statusClass = "bg-amber-500 text-black";
+  } else {
+    statusBadge = "OK";
+    statusClass = "bg-emerald-600 text-white";
+  }
+
+  const stages = run.stages || {};
+  const stagePills = Object.entries(stages).map(([name, data]) => {
+    const count = typeof data === "object" ? (data.count ?? data.uploaded ?? data.skipped ?? "") : data;
+    return `<span class="text-xs font-mono text-bone-300 bg-ink-800 rounded px-2 py-0.5">
+      <span class="text-bone-400">${esc(name)}</span>
+      ${count !== "" ? `<span class="text-white ml-1">${count}</span>` : ""}
+    </span>`;
+  }).join("");
+
+  const dryRunBadge = run.dry_run
+    ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500 text-black ml-2">dry run</span>`
+    : "";
+
+  banner.innerHTML = `
+    <div class="flex flex-wrap items-center gap-3">
+      <span class="text-xs font-mono px-2 py-0.5 rounded-full ${statusClass}">${statusBadge}</span>
+      <span class="text-sm text-bone-200 font-mono">${relTime}</span>
+      ${dryRunBadge}
+    </div>
+    ${stagePills ? `<div class="flex flex-wrap gap-2 mt-3">${stagePills}</div>` : ""}
+    ${run.error ? `<p class="text-xs text-red-400 font-mono mt-2">${esc(String(run.error))}</p>` : ""}
+  `;
+}
+
+/**
+ * Fetch /api/dashboard-extras and render hot leads, activity, and pipeline banner.
+ * @param {string} range
+ */
+async function loadDashboardExtras(range) {
+  const secret = getWorkerSecret();
+
+  // Show secret banner if not set
+  const secretBanner = document.getElementById("secretBanner");
+  if (secretBanner) {
+    if (!secret) {
+      secretBanner.classList.remove("hidden");
+    } else {
+      secretBanner.classList.add("hidden");
+    }
+  }
+
+  if (!secret) {
+    const hotEl = document.getElementById("hot-leads-container");
+    const actEl = document.getElementById("recent-activity-container");
+    const plEl = document.getElementById("pipeline-banner");
+    if (hotEl) hotEl.innerHTML = '<p class="text-sm text-bone-400 font-mono italic">Set admin secret to view hot leads.</p>';
+    if (actEl) actEl.innerHTML = '<p class="text-sm text-bone-400 font-mono italic">Set admin secret to view activity.</p>';
+    if (plEl) plEl.innerHTML = '<p class="text-sm text-bone-400 font-mono italic">Set admin secret to view pipeline status.</p>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/dashboard-extras?range=${encodeURIComponent(range)}`, {
+      headers: { "X-Worker-Secret": secret },
+    });
+    if (!res.ok) {
+      const msg = `Could not load extras (HTTP ${res.status})`;
+      ["hot-leads-container", "recent-activity-container", "pipeline-banner"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `<p class="text-sm text-bone-400 font-mono">${esc(msg)}</p>`;
+      });
+      return;
+    }
+    const data = await res.json();
+    renderHotLeads(data.hot_leads_this_week || []);
+    renderRecentActivity(data.recent_activity || []);
+    renderPipelineBanner(data.latest_pipeline_run || null);
+  } catch (err) {
+    console.error("loadDashboardExtras error:", err);
+    const msg = `Network error: ${err.message || "unreachable"}`;
+    ["hot-leads-container", "recent-activity-container", "pipeline-banner"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = `<p class="text-sm text-bone-400 font-mono">${esc(msg)}</p>`;
+    });
+  }
+}
+
+/**
+ * Trigger a dry-run of the pipeline (no credits used).
+ */
+async function triggerDryRun() {
+  const btn = document.getElementById("dryRunBtn");
+  const spinner = document.getElementById("dryRunSpinner");
+  const resultEl = document.getElementById("dryRunResult");
+  if (!btn || !resultEl) return;
+
+  const secret = getWorkerSecret();
+  if (!secret) {
+    resultEl.textContent = "Error: set the admin secret first.";
+    resultEl.classList.remove("hidden");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.classList.add("opacity-60", "cursor-not-allowed");
+  if (spinner) { spinner.classList.remove("hidden"); spinner.classList.add("spin"); }
+  resultEl.classList.add("hidden");
+  resultEl.textContent = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/run-pipeline?dry_run=true`, {
+      method: "POST",
+      headers: { "X-Worker-Secret": secret },
+    });
+    const text = await res.text();
+    let pretty;
+    try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch (_) { pretty = text; }
+    resultEl.textContent = pretty;
+    resultEl.classList.remove("hidden");
+  } catch (err) {
+    resultEl.textContent = `Error: ${err.message}`;
+    resultEl.classList.remove("hidden");
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("opacity-60", "cursor-not-allowed");
+    if (spinner) { spinner.classList.add("hidden"); spinner.classList.remove("spin"); }
+  }
+}
+
+/**
+ * Simple HTML escape to prevent XSS in dynamically inserted content.
+ * @param {string} str
+ * @returns {string}
+ */
+function esc(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ---------------------------------------------------------------------------
 // Data fetching
 // ---------------------------------------------------------------------------
 
@@ -351,13 +640,41 @@ function setupEventListeners() {
       btn.classList.remove("text-bone-300");
 
       fetchData(currentRange);
+      loadDashboardExtras(currentRange);
     });
   });
 
   // Refresh button
   els.refreshBtn.addEventListener("click", () => {
     fetchData(currentRange);
+    loadDashboardExtras(currentRange);
   });
+
+  // Admin secret: pre-fill from localStorage
+  const secretInput = document.getElementById("workerSecretInput");
+  const setSecretBtn = document.getElementById("setSecretBtn");
+  if (secretInput) {
+    const stored = localStorage.getItem("worker_secret") || "";
+    if (stored) secretInput.value = stored;
+  }
+  if (setSecretBtn && secretInput) {
+    setSecretBtn.addEventListener("click", () => {
+      const val = secretInput.value.trim();
+      if (val) {
+        localStorage.setItem("worker_secret", val);
+      } else {
+        localStorage.removeItem("worker_secret");
+      }
+      // Reload extras with the new secret
+      loadDashboardExtras(currentRange);
+    });
+  }
+
+  // Dry-run button
+  const dryRunBtn = document.getElementById("dryRunBtn");
+  if (dryRunBtn) {
+    dryRunBtn.addEventListener("click", triggerDryRun);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -368,4 +685,5 @@ document.addEventListener("DOMContentLoaded", () => {
   cacheElements();
   setupEventListeners();
   fetchData(currentRange);
+  loadDashboardExtras(currentRange);
 });
