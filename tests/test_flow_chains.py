@@ -147,6 +147,44 @@ class TestAutoReplySendFlow:
         assert result["action"] == "auto_reply"
         assert "valuation" in result["reply_text"].lower() or "range" in result["reply_text"].lower()
 
+    @pytest.mark.parametrize("body,expected_key", [
+        ("I don't want to sell my business right now", "dont_want_to_sell"),
+        ("I get calls like this all the time", "too_many_calls"),
+        ("I already have a broker working on it", "have_broker"),
+        ("Sorry, I'm too busy this week", "too_busy"),
+        ("Not interested, please remove me from consideration", "not_interested"),
+        ("My business isn't big enough yet, not ready", "not_ready"),
+        ("What's your fee for doing this?", "fee"),
+        ("How did you get my information?", "who_are_you"),
+        ("I don't want my employees to know about this", "confidentiality"),
+        ("I'll just sell it myself, thanks", "sell_myself"),
+    ])
+    def test_training_objection_triggers_match(self, full_config, body, expected_key):
+        from modules.outputs.auto_reply import _match_objection
+        objections = full_config["auto_reply"]["objection_responses"]
+        match = _match_objection(body, objections)
+        assert match is not None, f"No match for body: {body!r}"
+        expected = objections[expected_key]
+        assert match["response"] == expected["response"], (
+            f"Wrong objection matched for {body!r}: got {match['response'][:40]!r}"
+        )
+
+    def test_voice_reference_loaded_into_system_prompt(self, full_config, positive_reply):
+        from modules.outputs import auto_reply as ar_mod
+        ar_mod._VOICE_REFERENCE_CACHE.clear()
+        captured = {}
+
+        def fake_chat(system, user_message, model, max_tokens):
+            captured["system"] = system
+            return "Thanks. Got 10 minutes tomorrow to chat?"
+
+        with patch("modules.llm_client.chat_completion", side_effect=fake_chat, create=True):
+            handle_reply(positive_reply, full_config, mock=False, send_fn=MagicMock())
+
+        assert "Voice and tone reference" in captured["system"]
+        assert "Accessory Masters" in captured["system"]
+        assert "If a call-to-action fits" in captured["system"]
+
 
 # ---------------------------------------------------------------------------
 # Flow 2: Weekly report — generate AND send

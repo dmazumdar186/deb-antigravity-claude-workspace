@@ -9,6 +9,7 @@ import logging
 import random
 import re
 import time
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,25 @@ DEFAULT_HOT_LEAD_SIGNALS = [
     "ready to sell", "want to sell", "schedule a call",
 ]
 FALLBACK_REPLY = "Thanks for getting back to me. Let me follow up with more details shortly."
+
+_VOICE_REFERENCE_CACHE: dict[str, str] = {}
+
+
+def _load_voice_reference(path_str: str | None) -> str | None:
+    if not path_str:
+        return None
+    if path_str in _VOICE_REFERENCE_CACHE:
+        return _VOICE_REFERENCE_CACHE[path_str]
+    path = Path(path_str)
+    if not path.is_absolute():
+        path = Path(__file__).resolve().parents[3] / path_str
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        logger.warning("Voice reference file not found: %s", path)
+        return None
+    _VOICE_REFERENCE_CACHE[path_str] = text
+    return text
 
 
 def _match_objection(body: str, objection_responses: dict | None) -> dict | None:
@@ -104,6 +124,8 @@ def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) ->
     persona = ar.get("sender_persona", "")
     guard_rails = ar.get("guard_rails", [])
     objection_responses = ar.get("objection_responses")
+    cta_variants = ar.get("cta_variants") or []
+    voice_reference = _load_voice_reference(ar.get("voice_reference_file"))
 
     objection_section = None
     match = _match_objection(body, objection_responses)
@@ -114,11 +136,25 @@ def handle_reply(reply: dict, config: dict, mock: bool = False, send_fn=None) ->
             f"Use this as a guide but vary the wording naturally."
         )
 
+    cta_section = None
+    if cta_variants:
+        cta_section = (
+            "If a call-to-action fits, pick one of these phrasings and never repeat the same one across replies:\n"
+            + "\n".join(f"- {c}" for c in cta_variants)
+        )
+
+    voice_section = (
+        f"Voice and tone reference (match the rhythm, never copy verbatim):\n{voice_reference}"
+        if voice_reference else None
+    )
+
     system_prompt = "\n\n".join(filter(None, [
         f"You are {persona}." if persona else None,
         tone.get("auto_reply_instruction", ""),
         ("Rules:\n" + "\n".join(f"- {r}" for r in guard_rails)) if guard_rails else None,
+        voice_section,
         objection_section,
+        cta_section,
     ]))
 
     if mock:
@@ -188,6 +224,8 @@ if __name__ == "__main__":
             "enabled": True, "model": DEFAULT_MODEL,
             "delay_min_seconds": 120, "delay_max_seconds": 420,
             "sender_persona": "Aleksandar, business broker backed by Hedgestone Capital Group",
+            "voice_reference_file": "config/accessory_masters_voice.md",
+            "cta_variants": ["Got 10 minutes tomorrow to chat?", "Open to a quick call this week?"],
             "hot_lead_signals": DEFAULT_HOT_LEAD_SIGNALS,
             "guard_rails": ["Never promise specific valuations", "Never use exclamation marks",
                             "Never write more than 3 sentences", "Never mention AI or automation"],

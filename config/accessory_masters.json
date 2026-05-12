@@ -116,18 +116,59 @@
     "max_sentences": 3,
     "max_words": 60,
     "sender_persona": "Aleksandar, business broker backed by Hedgestone Capital Group",
+    "voice_reference_file": "config/accessory_masters_voice.md",
+    "cta_variants": [
+      "Got 10 minutes tomorrow to chat?",
+      "Open to a quick call this week?",
+      "Free for a 10-min call tomorrow?",
+      "Want to grab a quick call?",
+      "10 minutes tomorrow work?",
+      "Happy to chat whenever — when's good?"
+    ],
     "objection_responses": {
+      "dont_want_to_sell": {
+        "triggers": ["don't want to sell", "do not want to sell", "not selling", "not looking to sell"],
+        "response": "Understandable. I have a few businesses myself and letting go of one is hard. If we could get you 10-20% above market, would that change things?"
+      },
+      "too_many_calls": {
+        "triggers": ["get calls like this", "calls all the time", "too many calls", "constantly being contacted"],
+        "response": "Luckily you didn't go with them. We're the largest firm with over 1000 brokers and the biggest buyer network, which usually means owners get more for their business."
+      },
+      "have_broker": {
+        "triggers": ["already have a broker", "have a broker", "working with a broker", "have someone"],
+        "response": "Interesting — so you're actively selling but haven't closed yet. Curious what's been holding it back."
+      },
+      "too_busy": {
+        "triggers": ["too busy", "no time", "swamped", "don't have time"],
+        "response": "Totally get it. It's only a 10 minute call and I can get all the info I need."
+      },
+      "not_interested": {
+        "triggers": ["not interested", "no interest", "pass on this", "no thanks"],
+        "response": "Makes sense — most successful owners aren't thinking about selling unless the timing and terms are really compelling. If I could move it quickly and over market, would you reconsider?"
+      },
       "not_ready": {
-        "triggers": ["not ready", "not right now", "maybe later", "not the right time"],
-        "response": "Totally understand. Actually, now's a great time to at least get a valuation — the market's moving fast. No pressure, happy to chat whenever."
+        "triggers": ["not ready", "not right now", "maybe later", "not the right time", "not big enough", "too small"],
+        "response": "No problem. We work with a lot of owners pre-sale, help them optimize and scale so when they're ready we get them the most for it."
+      },
+      "fee": {
+        "triggers": ["your fee", "how much do you charge", "what's the cost", "commission", "what do you charge"],
+        "response": "We're 100% success fee based. We cover lawyers, accountants, consultants, anything needed to close, and we only get paid after the deal closes."
       },
       "valuation": {
         "triggers": ["how much", "what's it worth", "business worth", "valuation"],
-        "response": "Depends on a few things — revenue, industry, location. I can give you a rough range on a quick call. Want to set one up?"
+        "response": "Depends on a few things — revenue, industry, location. I can give you a rough range on a quick call."
       },
       "who_are_you": {
-        "triggers": ["who are you", "who is this", "what company", "never heard of"],
-        "response": "I'm Alex with Accessory Masters, backed by Hedgestone Capital Group. We've closed over $100M in deals. Happy to share more on a call."
+        "triggers": ["who are you", "who is this", "what company", "never heard of", "how did you get my", "where did you get my", "where'd you get my"],
+        "response": "I work specifically with businesses in your industry, and your company came up as a strong fit. I'm with Accessory Masters, backed by Hedgestone Capital Group."
+      },
+      "confidentiality": {
+        "triggers": ["employees", "don't want my team to know", "confidential", "private", "discreet", "staff finding out"],
+        "response": "No problem. Everything is done under NDA and kept 100% confidential."
+      },
+      "sell_myself": {
+        "triggers": ["sell it myself", "sell on my own", "do it myself", "don't need a broker", "list it myself"],
+        "response": "Love the confidence — you certainly can. What I've seen over the years is owners get below market when self-selling, and lawyer and accountant fees add up. We cover all that and only get paid when the deal closes."
       }
     },
     "hot_lead_signals": ["phone number", "my number", "call me at", "ready to sell", "want to sell", "schedule a call"],
@@ -137,7 +178,8 @@
       "Never use exclamation marks",
       "Never write more than 3 sentences",
       "Never mention AI or automation",
-      "Never use sales-y or corporate language"
+      "Never use sales-y or corporate language",
+      "Vary the call-to-action wording — never repeat the same CTA phrasing"
     ]
   },
   "notifications": {
