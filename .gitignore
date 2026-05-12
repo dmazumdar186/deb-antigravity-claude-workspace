@@ -36,6 +36,9 @@ Thumbs.db
 # Claude worktrees
 .claude/worktrees/
 
+# Dashboard source — deployed to Vercel via CLI from local disk, not tracked here
+website-dashboard/
+
 # Personal Claude overrides (machine-specific, not shared)
 CLAUDE.local.md
 .claude/settings.local.json
