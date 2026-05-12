@@ -26,6 +26,9 @@ Thumbs.db
 *.png
 *.msix
 
+# Website assets — these PNGs are intentionally tracked (override *.png above)
+!website/assets/*.png
+
 # IDE
 .vscode/
 .idea/

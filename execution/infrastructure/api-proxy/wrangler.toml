@@ -25,5 +25,9 @@ ALLOWED_ORIGINS = "https://website-flame-phi-90.vercel.app,https://accessorymast
 # ANYMAILFINDER_API_KEY
 # MILLION_VERIFIER_API_KEY
 # TELEGRAM_BOT_TOKEN (when provided)
-# TELEGRAM_CHAT_ID (when provided)
+# TELEGRAM_CHAT_ID (fallback chat ID; used if the channel-specific IDs below aren't set)
+# TELEGRAM_CHAT_ID_HIGH_PRIORITY (hot leads go here — Alex keeps notifications on)
+# TELEGRAM_CHAT_ID_REGULAR (positive replies, weekly reports, mild interest)
+# TELEGRAM_AUTHORIZED_USERS (comma-separated Telegram user IDs allowed to send commands like /status — Alex + Simon)
+# TELEGRAM_WEBHOOK_SECRET (set via execution/infrastructure/setup_telegram_webhook.py — Telegram passes this back as X-Telegram-Bot-Api-Secret-Token)
 # SLACK_WEBHOOK_URL (when provided)

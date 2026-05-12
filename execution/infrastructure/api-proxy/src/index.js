@@ -66,6 +66,7 @@ const CONFIG = {
       "Never write more than 3 sentences",
       "Never mention AI or automation",
       "Never use sales-y or corporate language",
+      "Vary the call-to-action wording — never repeat the same CTA phrasing",
     ],
     hot_lead_signals: [
       "phone number",
@@ -75,26 +76,92 @@ const CONFIG = {
       "want to sell",
       "schedule a call",
     ],
+    // Voice reference — mirror of config/accessory_masters_voice.md, embedded
+    // because the Worker can't read files at runtime. Keep in sync with that file.
+    voice_reference:
+      "Voice principles:\n" +
+      "- Sound like a confident human texter, not a corporate rep.\n" +
+      "- Acknowledge first, then redirect.\n" +
+      "- Short. Two or three sentences. Never more.\n" +
+      "- No hype, no caps, no exclamation, no emoji.\n" +
+      "- Vary the call-to-action — never repeat the same phrasing twice.",
+    cta_variants: [
+      "Got 10 minutes tomorrow to chat?",
+      "Open to a quick call this week?",
+      "Free for a 10-min call tomorrow?",
+      "Want to grab a quick call?",
+      "10 minutes tomorrow work?",
+      "Happy to chat whenever — when's good?",
+    ],
     objection_responses: {
+      dont_want_to_sell: {
+        triggers: [
+          "don't want to sell",
+          "do not want to sell",
+          "not selling",
+          "not looking to sell",
+        ],
+        response:
+          "Understandable. I have a few businesses myself and letting go of one is hard. If we could get you 10-20% above market, would that change things?",
+      },
+      too_many_calls: {
+        triggers: [
+          "get calls like this",
+          "calls all the time",
+          "too many calls",
+          "constantly being contacted",
+        ],
+        response:
+          "Luckily you didn't go with them. We're the largest firm with over 1000 brokers and the biggest buyer network, which usually means owners get more for their business.",
+      },
+      have_broker: {
+        triggers: [
+          "already have a broker",
+          "have a broker",
+          "working with a broker",
+          "have someone",
+        ],
+        response:
+          "Interesting — so you're actively selling but haven't closed yet. Curious what's been holding it back.",
+      },
+      too_busy: {
+        triggers: ["too busy", "no time", "swamped", "don't have time"],
+        response:
+          "Totally get it. It's only a 10 minute call and I can get all the info I need.",
+      },
+      not_interested: {
+        triggers: ["not interested", "no interest", "pass on this", "no thanks"],
+        response:
+          "Makes sense — most successful owners aren't thinking about selling unless the timing and terms are really compelling. If I could move it quickly and over market, would you reconsider?",
+      },
       not_ready: {
         triggers: [
           "not ready",
           "not right now",
           "maybe later",
           "not the right time",
+          "not big enough",
+          "isn't big enough",
+          "too small",
         ],
         response:
-          "Totally understand. Actually, now's a great time to at least get a valuation — the market's moving fast. No pressure, happy to chat whenever.",
+          "No problem. We work with a lot of owners pre-sale, help them optimize and scale so when they're ready we get them the most for it.",
+      },
+      fee: {
+        triggers: [
+          "your fee",
+          "how much do you charge",
+          "what's the cost",
+          "commission",
+          "what do you charge",
+        ],
+        response:
+          "We're 100% success fee based. We cover lawyers, accountants, consultants, anything needed to close, and we only get paid after the deal closes.",
       },
       valuation: {
-        triggers: [
-          "how much",
-          "what's it worth",
-          "business worth",
-          "valuation",
-        ],
+        triggers: ["how much", "what's it worth", "business worth", "valuation"],
         response:
-          "Depends on a few things — revenue, industry, location. I can give you a rough range on a quick call. Want to set one up?",
+          "Depends on a few things — revenue, industry, location. I can give you a rough range on a quick call.",
       },
       who_are_you: {
         triggers: [
@@ -102,9 +169,36 @@ const CONFIG = {
           "who is this",
           "what company",
           "never heard of",
+          "how did you get my",
+          "where did you get my",
+          "where'd you get my",
         ],
         response:
-          "I'm Alex with Accessory Masters, backed by Hedgestone Capital Group. We acquire profitable aftermarket auto accessory businesses. Happy to share more on a call.",
+          "I work specifically with businesses in your industry, and your company came up as a strong fit. I'm with Accessory Masters, backed by Hedgestone Capital Group.",
+      },
+      confidentiality: {
+        triggers: [
+          "employees",
+          "don't want my team to know",
+          "keep it confidential",
+          "keep it private",
+          "stay private",
+          "discreet",
+          "staff finding out",
+        ],
+        response:
+          "No problem. Everything is done under NDA and kept 100% confidential.",
+      },
+      sell_myself: {
+        triggers: [
+          "sell it myself",
+          "sell on my own",
+          "do it myself",
+          "don't need a broker",
+          "list it myself",
+        ],
+        response:
+          "Love the confidence — you certainly can. What I've seen over the years is owners get below market when self-selling, and lawyer and accountant fees add up. We cover all that and only get paid when the deal closes.",
       },
     },
   },
@@ -158,6 +252,7 @@ const CONFIG = {
   sourcing: {
     serper_results_per_query: 100,
     serper_api_url: "https://google.serper.dev/maps",
+    serper_places_url: "https://google.serper.dev/places",
     use_prospeo_for: [],
   },
   enrichment: {
@@ -221,6 +316,16 @@ export default {
           env,
           await handleReplyWebhook(request, env),
         );
+      }
+
+      if (method === "POST" && pathname === "/api/webhook/telegram") {
+        // Telegram verifies via the X-Telegram-Bot-Api-Secret-Token header,
+        // set during setWebhook. Reject if it doesn't match.
+        const tgSecret = request.headers.get("X-Telegram-Bot-Api-Secret-Token");
+        if (!env.TELEGRAM_WEBHOOK_SECRET || tgSecret !== env.TELEGRAM_WEBHOOK_SECRET) {
+          return jsonResponse({ error: "Unauthorized" }, 401);
+        }
+        return await handleTelegramWebhook(request, env);
       }
 
       if (method === "GET" && pathname === "/api/variants") {
@@ -612,6 +717,16 @@ async function generateReplyViaLLM(body, context, env) {
       `Use this as a guide but vary the wording naturally.`;
   }
 
+  const voiceSection = CONFIG.auto_reply.voice_reference
+    ? `Voice and tone reference (match the rhythm, never copy verbatim):\n${CONFIG.auto_reply.voice_reference}`
+    : null;
+
+  const ctaSection =
+    Array.isArray(CONFIG.auto_reply.cta_variants) && CONFIG.auto_reply.cta_variants.length
+      ? "If a call-to-action fits, pick one of these phrasings and never repeat the same one across replies:\n" +
+        CONFIG.auto_reply.cta_variants.map((c) => `- ${c}`).join("\n")
+      : null;
+
   const systemParts = [
     CONFIG.auto_reply.sender_persona
       ? `You are ${CONFIG.auto_reply.sender_persona}.`
@@ -623,7 +738,9 @@ async function generateReplyViaLLM(body, context, env) {
       : null,
     `NEVER use these words or phrases: ${CONFIG.tone.never_say.join(", ")}`,
     `NEVER mention artificial intelligence, language models, chatbots, GPT, Claude, or that you are automated.`,
+    voiceSection,
     objectionSection,
+    ctaSection,
   ].filter(Boolean);
 
   const systemPrompt = systemParts.join("\n\n");
@@ -827,8 +944,151 @@ async function routeToGHL(reply, env, classification) {
 // Telegram Notification (port of telegram.py)
 // ---------------------------------------------------------------------------
 
+// Picks the correct Telegram chat ID for a notification.
+// Hot leads go to the high-priority channel (Alex keeps notifications on for that one).
+// Everything else (positive replies, mild interest) goes to the regular channel.
+// Falls back to TELEGRAM_CHAT_ID if the channel-specific IDs aren't set.
+function pickTelegramChatId(classification, env) {
+  const isHot = classification === "hot_positive";
+  if (isHot && env.TELEGRAM_CHAT_ID_HIGH_PRIORITY) {
+    return env.TELEGRAM_CHAT_ID_HIGH_PRIORITY;
+  }
+  if (!isHot && env.TELEGRAM_CHAT_ID_REGULAR) {
+    return env.TELEGRAM_CHAT_ID_REGULAR;
+  }
+  return env.TELEGRAM_CHAT_ID || null;
+}
+
+async function sendTelegramMessage(env, chatId, text) {
+  if (!env.TELEGRAM_BOT_TOKEN || !chatId) return false;
+  try {
+    const res = await fetch(
+      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          parse_mode: "Markdown",
+        }),
+      },
+    );
+    if (!res.ok) {
+      console.error("Telegram sendMessage failed:", res.status, await res.text());
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Telegram sendMessage error:", err);
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Telegram incoming webhook — handles interactive commands (/status, etc.)
+// from authorized users (Alex + Simon). Bryce sets up the bot, runs
+// execution/infrastructure/setup_telegram_webhook.py once to register
+// this endpoint with Telegram and set the secret.
+// ---------------------------------------------------------------------------
+
+function isTelegramUserAuthorized(userId, env) {
+  if (!env.TELEGRAM_AUTHORIZED_USERS) return false;
+  const allowed = env.TELEGRAM_AUTHORIZED_USERS.split(",").map((s) => s.trim()).filter(Boolean);
+  return allowed.includes(String(userId));
+}
+
+async function buildStatusSummary(env) {
+  // Reuse the dashboard handler so /status matches the dashboard UI exactly.
+  const dummyUrl = new URL("https://x/api/dashboard?range=7d");
+  const resp = await handleDashboard(dummyUrl, env);
+  let data;
+  try {
+    data = await resp.json();
+  } catch {
+    return "Couldn't reach the dashboard service. Try again in a minute.";
+  }
+
+  const email = data.email || {};
+  const crm = data.crm || {};
+
+  if (email.error && crm.error) {
+    return "Both Instantly and GHL are returning errors right now. Worker is up but upstream data is unavailable.";
+  }
+
+  const lines = [
+    "*Accessory Masters — last 7 days*",
+    "",
+    "*Email*",
+    `Sent: *${email.emails_sent ?? 0}*  |  Delivered: *${email.deliverability_pct ?? 0}%*`,
+    `Replies: *${email.replies ?? 0}* (${email.reply_rate_pct ?? 0}%)  |  Bounces: ${email.bounce_rate_pct ?? 0}%`,
+    "",
+    "*CRM*",
+    `Contacts: *${crm.contacts_created ?? 0}*  |  Interested: *${crm.opportunities_open ?? 0}*`,
+    `Appointments: *${crm.appointments_booked ?? 0}*  |  Pipeline: *$${(crm.pipeline_value ?? 0).toLocaleString()}*`,
+  ];
+
+  return lines.join("\n");
+}
+
+async function handleTelegramWebhook(request, env) {
+  let update;
+  try {
+    update = await request.json();
+  } catch {
+    return jsonResponse({ ok: true }); // ack even on bad payload — Telegram retries forever on 4xx
+  }
+
+  const message = update.message || update.edited_message;
+  if (!message || !message.text) {
+    return jsonResponse({ ok: true });
+  }
+
+  const fromId = message.from && message.from.id;
+  const chatId = message.chat && message.chat.id;
+  const text = (message.text || "").trim();
+
+  if (!isTelegramUserAuthorized(fromId, env)) {
+    console.warn(`Telegram: unauthorized user ${fromId} — ignoring`);
+    return jsonResponse({ ok: true });
+  }
+
+  const lower = text.toLowerCase();
+  const isStatus =
+    lower.startsWith("/status") ||
+    lower === "status" ||
+    lower === "update" ||
+    lower.includes("give me an update") ||
+    lower.includes("what's the status") ||
+    lower.includes("how are we doing");
+
+  if (isStatus) {
+    const summary = await buildStatusSummary(env);
+    await sendTelegramMessage(env, chatId, summary);
+    return jsonResponse({ ok: true });
+  }
+
+  if (lower.startsWith("/help") || lower === "help" || lower === "?") {
+    const help =
+      "*Available commands*\n" +
+      "/status — last 7 days of emails, replies, pipeline\n" +
+      "(or just say \"give me an update\")";
+    await sendTelegramMessage(env, chatId, help);
+    return jsonResponse({ ok: true });
+  }
+
+  // Unrecognized text — gentle nudge, not silence
+  await sendTelegramMessage(
+    env,
+    chatId,
+    "Try `/status` or `/help`. I respond to those for now.",
+  );
+  return jsonResponse({ ok: true });
+}
+
 async function sendTelegramNotification(reply, env) {
-  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) {
+  const chatId = pickTelegramChatId(reply.classification, env);
+  if (!env.TELEGRAM_BOT_TOKEN || !chatId) {
     console.warn("Telegram credentials not set — skipping notification");
     return false;
   }
@@ -855,30 +1115,9 @@ async function sendTelegramNotification(reply, env) {
     `*Time:* ${reply.received_at || new Date().toISOString()}\n` +
     `[View in GHL](${ghlLink})`;
 
-  try {
-    const res = await fetch(
-      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: env.TELEGRAM_CHAT_ID,
-          text: message,
-          parse_mode: "Markdown",
-        }),
-      },
-    );
-
-    if (!res.ok) {
-      console.error("Telegram notification failed:", res.status);
-      return false;
-    }
-    console.log("Telegram notification sent");
-    return true;
-  } catch (err) {
-    console.error("Telegram notification error:", err);
-    return false;
-  }
+  const ok = await sendTelegramMessage(env, chatId, message);
+  if (ok) console.log(`Telegram notification sent (chat=${chatId})`);
+  return ok;
 }
 
 // ---------------------------------------------------------------------------
@@ -1987,6 +2226,7 @@ async function stageSource(env, runId, dryRun = false) {
 
   const limit = CONFIG.sourcing.serper_results_per_query;
   const allLeads = [];
+  const counts = { serper_maps: 0, serper_places: 0 };
   const ts = new Date().toISOString();
 
   for (const industry of industries) {
@@ -1996,17 +2236,32 @@ async function stageSource(env, runId, dryRun = false) {
         const places = await searchSerperMaps(query, limit, env);
         for (const place of places) {
           const lead = buildLeadFromSerper(place, industry, query, runId, ts);
-          if (lead.business_name) allLeads.push(lead);
+          if (lead.business_name) { allLeads.push(lead); counts.serper_maps++; }
         }
       } catch (err) {
-        console.error(`Serper query failed: ${query}`, err);
+        console.error(`Serper Maps query failed: ${query}`, err);
+      }
+      await sleep(100);
+
+      try {
+        const places = await searchSerperPlaces(query, limit, env);
+        for (const place of places) {
+          const lead = buildLeadFromSerper(place, industry, query, runId, ts);
+          lead.source = "serper_places";
+          if (lead.business_name) { allLeads.push(lead); counts.serper_places++; }
+        }
+      } catch (err) {
+        console.error(`Serper Places query failed: ${query}`, err);
       }
       await sleep(100);
     }
   }
 
-  console.log(`Sourced ${allLeads.length} raw leads`);
-  return deduplicateLeads(allLeads);
+  const deduped = deduplicateLeads(allLeads);
+  console.log(
+    `Sourced ${allLeads.length} raw leads (maps=${counts.serper_maps}, places=${counts.serper_places}); ${deduped.length} after dedup`
+  );
+  return deduped;
 }
 
 async function searchSerperMaps(query, limit, env) {
@@ -2021,6 +2276,24 @@ async function searchSerperMaps(query, limit, env) {
 
   if (!res.ok) {
     throw new Error(`Serper ${res.status}: ${await res.text()}`);
+  }
+
+  const data = await res.json();
+  return data.places || [];
+}
+
+async function searchSerperPlaces(query, limit, env) {
+  const res = await fetch(CONFIG.sourcing.serper_places_url, {
+    method: "POST",
+    headers: {
+      "X-API-KEY": env.SERPER_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ q: query, num: limit }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Serper Places ${res.status}: ${await res.text()}`);
   }
 
   const data = await res.json();
@@ -2585,7 +2858,9 @@ async function runWeeklyReport(env) {
     crm,
   };
 
-  if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+  // Weekly report goes to the regular channel (or the fallback chat).
+  const weeklyChatId = env.TELEGRAM_CHAT_ID_REGULAR || env.TELEGRAM_CHAT_ID;
+  if (env.TELEGRAM_BOT_TOKEN && weeklyChatId) {
     const msg =
       `*Accessory Masters — Weekly Report*\n` +
       `_${report.date_range.start} to ${report.date_range.end}_\n\n` +
@@ -2596,27 +2871,9 @@ async function runWeeklyReport(env) {
       `Contacts: *${crm.contacts_created || 0}*  |  Appointments: *${crm.appointments_booked || 0}*\n` +
       `Pipeline: *$${(crm.pipeline_value || 0).toLocaleString()}*`;
 
-    try {
-      const tgRes = await fetch(
-        `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: env.TELEGRAM_CHAT_ID,
-            text: msg,
-            parse_mode: "Markdown",
-          }),
-        },
-      );
-      if (!tgRes.ok) {
-        console.error("Telegram weekly report failed:", tgRes.status);
-      } else {
-        console.log("Weekly report sent via Telegram");
-      }
-    } catch (err) {
-      console.error("Telegram weekly report failed:", err);
-    }
+    const ok = await sendTelegramMessage(env, weeklyChatId, msg);
+    if (ok) console.log("Weekly report sent via Telegram");
+    else console.error("Telegram weekly report failed");
   }
 
   if (env.SLACK_WEBHOOK_URL) {
