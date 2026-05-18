@@ -15,3 +15,16 @@ requests>=2.31.0
 
 # Formatting (used by format-python.sh hook)
 black>=24.0.0
+
+# YouTube video analyzer (execution/video/youtube_video_analyzer.py)
+yt-dlp>=2024.10.0
+youtube-transcript-api>=0.6.2
+imageio-ffmpeg>=0.5.1
+anthropic>=0.40.0
+scenedetect>=0.6.7
+imagehash>=4.3.2
+Pillow>=10.0.0
+google-genai>=1.0.0
+
+# Testing
+pytest>=7.0
