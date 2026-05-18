@@ -1,0 +1,22 @@
+[
+  {
+    "board": "apec",
+    "source_url": "https://www.apec.fr/candidat/recherche-emploi.html/emploi/detail-offre/ref/APE-0001234",
+    "title": "Chef de Produit Senior",
+    "company_name": "BlaBlaCar",
+    "location": "Paris, 75010",
+    "posted_at": "2026-05-10T10:00:00+00:00",
+    "description_snippet": "BlaBlaCar recherche un Chef de Produit Senior pour piloter l'évolution de sa plateforme de covoiturage. Vous travaillerez en étroite collaboration avec les équipes engineering et data pour maximiser l'expérience utilisateur.",
+    "raw_extracted_at": "2026-05-14T06:10:00+00:00"
+  },
+  {
+    "board": "apec",
+    "source_url": "https://www.apec.fr/candidat/recherche-emploi.html/emploi/detail-offre/ref/APE-0005678",
+    "title": "Junior Product Manager",
+    "company_name": "Qonto",
+    "location": "Paris, 75008",
+    "posted_at": "2026-05-13T11:00:00+00:00",
+    "description_snippet": "Rejoignez Qonto en tant que Junior Product Manager pour contribuer à la simplification de la finance des PME. Poste idéal pour un profil junior souhaitant évoluer dans un environnement fintech en forte croissance.",
+    "raw_extracted_at": "2026-05-14T06:10:00+00:00"
+  }
+]

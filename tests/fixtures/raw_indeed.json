@@ -1,0 +1,12 @@
+[
+  {
+    "board": "indeed",
+    "source_url": "https://fr.indeed.com/viewjob?jk=abc123def456",
+    "title": "Product Manager",
+    "company_name": "Alan",
+    "location": "Paris, Île-de-France",
+    "posted_at": "2026-05-13T08:00:00+00:00",
+    "description_snippet": "Alan recherche un Product Manager expérimenté pour rejoindre notre équipe produit. Vous serez responsable de la définition et de l'exécution de la stratégie produit pour nos solutions d'assurance santé digitale.",
+    "raw_extracted_at": "2026-05-14T06:05:00+00:00"
+  }
+]

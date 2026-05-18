@@ -1,1 +1,10 @@
-{}
+{
+  "job_tracker_pm_france": {
+    "schedule": "0 6 * * *",
+    "tz": "Europe/Paris",
+    "script": "execution/personal_workflows/job_tracker_pm_france.py",
+    "args": ["--send"],
+    "timeout_seconds": 900,
+    "description": "Daily PM/PO job tracker — France digital sector. Emails HTML digest to JOB_TRACKER_RECIPIENT."
+  }
+}

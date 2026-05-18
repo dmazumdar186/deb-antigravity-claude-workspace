@@ -1,0 +1,22 @@
+[
+  {
+    "board": "google",
+    "source_url": "https://jobs.mirakl.com/senior-product-manager-marketplace-paris",
+    "title": "Senior Product Manager — Marketplace",
+    "company_name": "Mirakl",
+    "location": "Paris, France",
+    "posted_at": "2026-05-13T12:00:00+00:00",
+    "description_snippet": "Mirakl is looking for a Senior Product Manager to shape the future of our marketplace platform. You will own core marketplace features used by hundreds of global enterprise retailers and drive adoption across our SaaS product.",
+    "raw_extracted_at": "2026-05-14T06:20:00+00:00"
+  },
+  {
+    "board": "google",
+    "source_url": "https://www.welcometothejungle.com/fr/companies/doctolib/jobs/senior-product-manager-patient-journey_paris",
+    "title": "Senior Product Manager — Patient Journey",
+    "company_name": "Doctolib",
+    "location": "Paris, France",
+    "posted_at": "2026-05-12T09:00:00+00:00",
+    "description_snippet": "Doctolib is looking for a Senior Product Manager to lead the patient journey product area — cross-board duplicate of the WttJ listing, same source_url, for dedup testing.",
+    "raw_extracted_at": "2026-05-14T06:20:00+00:00"
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "recipient_email_env": "JOB_TRACKER_RECIPIENT",
+  "boards": [
+    { "name": "wttj",          "enabled": true, "queries": ["product manager","product owner"], "country": "FR" },
+    { "name": "indeed",        "enabled": true, "queries": ["product manager","product owner"], "country": "FR" },
+    { "name": "apec",          "enabled": true, "queries": ["product manager","product owner"], "country": "FR" },
+    { "name": "francetravail", "enabled": true, "queries": ["product manager","product owner"], "rome_code": "M1707" },
+    { "name": "google",        "enabled": true, "queries": ["product manager France","product owner France"] }
+  ],
+  "title_keywords_include": ["product manager","product owner","chef de produit","proprietaire de produit","propriétaire de produit"],
+  "title_keywords_exclude": ["junior","jr","stage","stagiaire","alternance","alternant","alternante","apprenti","apprentie","apprentissage","internship","intern","trainee","assistant","graduate","entry-level","entry level"],
+  "languages_allowed": ["fr","en"],
+  "digest_window_days": 7,
+  "contact_cache_days": 60,
+  "sirene_naf_digital": ["58.21Z","58.29A","58.29C","62.01Z","62.02A","62.02B","62.03Z","62.09Z","63.11Z","63.12Z"],
+  "smtp": { "host": "smtp.gmail.com", "port": 587, "use_tls": true },
+  "db_path_env": "JOB_TRACKER_DB_PATH",
+  "default_db_path": ".tmp/job_tracker.db",
+  "tmp_dir": ".tmp/job_tracker"
+}
