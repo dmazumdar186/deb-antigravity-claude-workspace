@@ -1,0 +1,28 @@
+{
+  "_README": "Voice profile template for the humanizer. Copy this file to voices/{name}.json, fill in all fields, then pass --voice {name} to humanizer.py. The 'examples' field is the most important: include 5-10 real sentences written by the person, captured verbatim from their messages/posts. The more natural the examples, the better the LLM can match cadence.",
+  "name": "your_voice_name",
+  "display_name": "Full Name",
+  "description": "One-line description: role, location, writing style in plain English",
+  "traits": {
+    "sentence_length": "short/medium/long; describe typical sentence structure",
+    "register": "formal/casual/technical; describe tone and any signature quirks",
+    "punctuation": "describe comma usage, dashes, ellipses, exclamation marks",
+    "formatting": "does the person use bullets? headers? prose only? numbers?"
+  },
+  "lexicon": {
+    "uses": ["words", "phrases", "filler_words", "the person", "says_naturally"],
+    "avoids": [
+      "AI-tell words the person would never say",
+      "marketing jargon",
+      "Certainly", "I'd be happy to", "delve", "leverage", "robust"
+    ]
+  },
+  "examples": [
+    "First real sentence written by this person verbatim.",
+    "Second real sentence.",
+    "Third real sentence.",
+    "Fourth real sentence.",
+    "Fifth real sentence.",
+    "Add more for better style matching."
+  ]
+}
