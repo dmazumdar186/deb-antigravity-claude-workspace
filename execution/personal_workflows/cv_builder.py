@@ -197,11 +197,12 @@ def build_story():
 
     # ── Accroche ────────────────────────────────────────────────────────────────
     st.append(accroche(
-        "AI Product Manager avec 14 ans d\u2019exp\u00e9rience en environnements data-intensifs, "
+        "AI Product Manager avec 15 ans d\u2019exp\u00e9rience en environnements data-intensifs, "
         "sp\u00e9cialis\u00e9 dans la conception et le d\u00e9ploiement de capacit\u00e9s IA g\u00e9n\u00e9ratives "
         "en production (LLM, RAG, syst\u00e8mes multi-agents). Expert en cadrage de fonctionnalit\u00e9s IA "
         "complexes \u2014 de la discovery \u00e0 la mise en production \u2014 avec une ma\u00eetrise des enjeux "
-        "\u00e9thiques, r\u00e9glementaires (RGPD) et de gouvernance.",
+        "\u00e9thiques, r\u00e9glementaires (RGPD) et de gouvernance, doubl\u00e9e d\u2019une pratique builder "
+        "hands-on (Python, Cloudflare Workers, Modal cron, audit-loops self-it\u00e9rants).",
         "<b>R\u00e9sultats\u00a0:</b>\u2002+30\u202f% adoption\u2002\u2022\u2002+20\u202f% CSAT\u2002"
         "\u2022\u2002\u221240\u202f% latence\u2002\u2022\u2002\u221235\u202f% cycles d\u2019it\u00e9ration"
         "\u2002\u2022\u2002+40\u202f% adoption BU",
@@ -241,6 +242,27 @@ def build_story():
         st.append(item)
 
     for item in exp_entry(
+        'AI Product Engineer \u2014 Mission Freelance',
+        'Accessory Masters (Elite Broker Group), remote\u2002|\u2002D\u00e9c. 2025 \u2013 Mars 2026',
+        [
+            "Con\u00e7u et livr\u00e9 un pipeline cold email autonome \u00e0 grande \u00e9chelle "
+            "(<b>24\u202f000 emails/mois, ~800/jour sur 32 inboxes warm\u00e9es</b>) avec "
+            "personnalisation IA Claude, classification de r\u00e9ponses et auto-reply contextuel "
+            "\u2192 <b>4\u202f% de r\u00e9ponse</b>, SLA hot-lead 3\u202fh via Telegram",
+
+            "Architectur\u00e9 une stack serverless event-driven (Cloudflare Workers + KV cron, "
+            "Instantly.ai webhooks, GoHighLevel CRM V2 API, Modal jobs planifi\u00e9s) avec "
+            "idempotency keys, dedup KV TTL 60\u202fj et garde-fous LLM (limites, voix, fallbacks)",
+
+            "Productis\u00e9 monitoring & gouvernance\u202f: dashboard op\u00e9rateur (Vercel), "
+            "endpoint <b>/api/health</b>, modes <b>--dry-run</b> sur chaque chemin payant, "
+            "canary synth\u00e9tique \u2192 d\u00e9rive silencieuse d\u00e9tect\u00e9e avant impact "
+            "cr\u00e9dits API",
+        ]
+    ):
+        st.append(item)
+
+    for item in exp_entry(
         'Data Product Manager',
         'InfoTnT, Paris\u2002|\u2002Juin 2021 \u2013 Nov. 2022',
         [
@@ -262,11 +284,9 @@ def build_story():
         'Senior Data Product Owner',
         'Pitney Bowes Inc, Pune\u2002|\u2002Avr. \u2013 Sept. 2019',
         [
-            "R\u00e9duit le time-to-market de <b>\u221220\u202f%</b> en cartographiant les "
-            "d\u00e9pendances cross-squads et en am\u00e9liorant la cadence de release",
-
-            "Renforc\u00e9 la stabilit\u00e9 op\u00e9rationnelle via des checklists pr\u00e9-prod, "
-            "indicateurs d\u2019incidents et revues RAID structur\u00e9es",
+            "R\u00e9duit le time-to-market de <b>\u221220\u202f%</b> via cartographie des "
+            "d\u00e9pendances cross-squads, cadence de release renforc\u00e9e, checklists pr\u00e9-prod "
+            "et revues RAID structur\u00e9es",
         ]
     ):
         st.append(item)
@@ -316,7 +336,9 @@ def build_story():
             'IA & GenAI',
             'LLM, RAG, Agentic AI, Syst\u00e8mes Multi-Agents, OpenAI Assistants, Claude, MCP, A2A, '
             'ML supervis\u00e9/non supervis\u00e9, Frameworks d\u2019\u00e9valuation IA '
-            '(pr\u00e9cision, coh\u00e9rence, robustesse), gestion du non-d\u00e9terminisme',
+            '(pr\u00e9cision, coh\u00e9rence, robustesse), gestion du non-d\u00e9terminisme, '
+            'prompt caching, garde-fous LLM, audit-loops self-it\u00e9rants (anneal), '
+            'model routing (OpenRouter), Cloudflare Workers, Modal cron, Firecrawl',
         ),
         skill_row(
             'Product Mgt',
@@ -369,13 +391,35 @@ def build_story():
     st.append(Spacer(1, 5))
 
     for p in [
-        # ProdCraft with clickable YouTube link
-        '<a href="https://www.youtube.com/@ProdCraft" color="#1B9AAA">ProdCraft</a> '
-        '(YouTube, sept. 2025\u2013pr\u00e9sent)\u2002: Cha\u00eene ed-tech d\u00e9di\u00e9e '
-        'aux futurs Product Managers \u2014 fondamentaux &amp; bonnes pratiques',
-        'CV Optimizer Agent \u2014 agent IA local (Python + Claude API\u00a0/ Opus 4) : '
-        'scoring ATS, g\u00e9n\u00e9ration de CV optimis\u00e9 &amp; lettre de motivation en PDF, '
-        'multilingue (avr. 2025)',
+        '<b>Anneal</b> (mars 2026) \u2014 CLI Python d\u2019audit-loop auto-it\u00e9ratif sur '
+        '<i>git diff</i> (classique + adversarial Red-vs-Blue) ; dual-adapter LLM '
+        '(Anthropic + OpenRouter), tiers cheap/balanced/premium ; termine sur 2 rondes '
+        'cons\u00e9cutives sans bug',
+
+        '<a href="https://github.com/dmazumdar186/youtube-video-analyzer" color="#1B9AAA">'
+        '<b>YouTube Video Analyzer</b></a> (mai 2026) \u2014 d\u00e9composition frame-by-frame de '
+        'vid\u00e9os YouTube : PySceneDetect + dedup perceptuel + tiling 3\u00d73 (\u221285 % tokens vision) '
+        '+ routing multi-mod\u00e8le (Claude / Gemini gratuit / OpenRouter) ; 73 tests, '
+        '8 rounds d\u2019audit clean',
+
+        '<b>Job Tracker PM France</b> (mai 2026) \u2014 pipeline ETL quotidien : 5 job boards '
+        'scrap\u00e9s (WTTJ, Indeed, APEC, France Travail, Google Jobs), filtrage ICP, '
+        'enrichissement contacts via INSEE SIRENE + Firecrawl, digest HTML par email ; '
+        'stack Firecrawl, Serper, Modal cron, SQLite',
+
+        '<b>Self-Outbound Engine</b> (janv. 2026) \u2014 moteur autonome de prospection : '
+        '180\u2013270 emails/jour sur 6\u20139 inboxes warm\u00e9es, classification de r\u00e9ponses, '
+        'auto-reply Cal.com avec d\u00e9lai humain randomis\u00e9, alertes Telegram ; stack '
+        'Cloudflare Workers, Apollo, Gemini, Claude Haiku',
+
+        '<a href="https://github.com/dmazumdar186/cv-optimizer-agent" color="#1B9AAA">'
+        '<b>CV Optimizer Agent</b></a> (avr. 2026) \u2014 agent IA (Streamlit + Gemini) : '
+        'scoring ATS d\u2019un CV vs JD, g\u00e9n\u00e9ration de CV optimis\u00e9 &amp; lettre de motivation '
+        'PDF, multilingue',
+
+        '<a href="https://www.youtube.com/@ProdCraft" color="#1B9AAA"><b>ProdCraft</b></a> '
+        '(YouTube, sept. 2025 \u2013 pr\u00e9sent) \u2014 cha\u00eene ed-tech d\u00e9di\u00e9e aux futurs '
+        'Product Managers : fondamentaux &amp; bonnes pratiques',
     ]:
         st.append(Paragraph('<bullet>\u2022</bullet>' + p, S['project']))
 
