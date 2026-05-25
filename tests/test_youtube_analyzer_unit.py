@@ -12,7 +12,7 @@ load_dotenv(str(WORKSPACE / '.env'))
 
 from youtube_video_analyzer import (
     extract_video_id, slugify, _auto_detect_provider,
-    _to_openai_tool_format, TOOL_SCHEMA,
+    _to_openai_tool_format, TOOL_SCHEMA, render_breakdown_markdown,
 )
 from model_registry import (
     ALLOWED_FAMILIES, LAST_KNOWN_GOOD, resolve_model, _resolve_openrouter,
@@ -204,6 +204,44 @@ def t_get_or_fetch_transcript_force_refresh_bypasses_cache():
         assert raised, 'expected SystemExit when live-fetching invalid video ID FAKE_ID'
 
 
+# --- v4.1.1 renderer coercion regression guards (Opus XML-tagged-string output) --- #
+
+_FAKE_META = {'title': 'Test', 'channel': 'Ch', 'duration_sec': 60}
+
+def _render(structured):
+    return render_breakdown_markdown(
+        url='https://youtu.be/x', metadata=_FAKE_META, structured_data=structured,
+        transcript_text=None, frame_count=0, tier='premium',
+    )
+
+def t_render_key_takeaways_xml_string():
+    # Opus 4 returned key_takeaways as a single XML string; renderer must parse <item> blocks
+    md = _render({'summary': 'S.', 'key_takeaways': '<item>First takeaway sentence.</item><item>Second one.</item>'})
+    assert '- First takeaway sentence.' in md, 'XML <item> blocks must be parsed into list items'
+    assert '- Second one.' in md
+    assert '- <\n- i\n- t\n- e' not in md, 'must NOT iterate string char-by-char'
+
+def t_render_pacing_xml_string_with_inner_tags():
+    raw = '<item><timestamp>00:05</timestamp><what_changes>Opens with face cam</what_changes></item>'
+    md = _render({'summary': '', 'pacing_cuts': raw})
+    assert '**00:05**' in md and 'Opens with face cam' in md, 'inner <timestamp>/<what_changes> tags must be parsed'
+
+def t_render_transcript_highlights_xml_string_with_quotes():
+    raw = '<item><timestamp>01:00</timestamp><quote>Hello world</quote></item>'
+    md = _render({'summary': '', 'transcript_highlights': raw})
+    assert '**01:00**' in md and 'Hello world' in md, 'inner <timestamp>/<quote> tags must be parsed'
+
+def t_render_proper_lists_unchanged():
+    # Gemini path returns proper lists — must pass through unchanged (no double-wrapping)
+    md = _render({
+        'summary': 'S.',
+        'key_takeaways': ['Bullet one.', 'Bullet two.'],
+        'content_ideas': ['Idea A', 'Idea B'],
+    })
+    assert '- Bullet one.' in md and '- Bullet two.' in md
+    assert '- Idea A' in md and '- Idea B' in md
+
+
 if __name__ == '__main__':
     print('=== TIER 1: UNIT TESTS ===')
     print()
@@ -236,6 +274,10 @@ if __name__ == '__main__':
     run('_resolve_openrouter: meta-llama/llama-4 blocked by allowlist', t_allowlist_blocks_llama)
     run('--refresh-transcript: flag in --help + accepted by --dry-run', t_refresh_transcript_flag_propagates)
     run('get_or_fetch_transcript: force_refresh=False reads cache; force_refresh=True bypasses cache', t_get_or_fetch_transcript_force_refresh_bypasses_cache)
+    run('v4.1.1: render coerces XML-tagged key_takeaways string -> list (no char-iter)', t_render_key_takeaways_xml_string)
+    run('v4.1.1: render parses inner <timestamp>/<what_changes> in pacing_cuts XML', t_render_pacing_xml_string_with_inner_tags)
+    run('v4.1.1: render parses inner <timestamp>/<quote> in transcript_highlights XML', t_render_transcript_highlights_xml_string_with_quotes)
+    run('v4.1.1: render passes proper lists through unchanged (Gemini path guard)', t_render_proper_lists_unchanged)
     print()
     print(f'Unit: {PASS_COUNT} passed, {FAIL_COUNT} failed')
     if FAILURES:
