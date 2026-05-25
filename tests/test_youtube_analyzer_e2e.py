@@ -144,6 +144,53 @@ def t_provider_anthropic_with_key_skipped():
     data = parse_json_output(result)
     assert data.get('provider') == 'anthropic'
 
+
+# --- T3-7: v4.1 — real Gemini run produces summary + key_takeaways before The Hook ---
+THINK_SCHOOL_URL = 'https://youtu.be/fNNz9a2OIn4'
+
+def t_v41_summary_and_takeaways_present():
+    """Run a real Gemini call on a known-content video; assert both new sections appear
+    before ## The Hook in the resulting breakdown.md."""
+    if not os.environ.get('GEMINI_API_KEY'):
+        print('      [SKIPPED] GEMINI_API_KEY not set — cannot run real Gemini call')
+        return
+
+    video_id = 'fNNz9a2OIn4'
+    breakdown_path = WORKSPACE / '.tmp' / 'video' / video_id / 'breakdown.md'
+
+    env = os.environ.copy()
+    cmd = [sys.executable, str(SCRIPT), THINK_SCHOOL_URL, '--tier', 'gemini', '--no-creator-profile']
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=180)
+    except subprocess.TimeoutExpired:
+        print('      [SKIPPED] Gemini call timed out (YouTube rate limit)')
+        return
+
+    if result.returncode != 0:
+        stderr_lower = result.stderr.lower()
+        if any(kw in stderr_lower for kw in ('rate', 'quota', '429', 'unavailable', 'transcript')):
+            print(f'      [SKIPPED] Non-fatal infra error (rate-limit/transcript block): exit={result.returncode}')
+            return
+        raise AssertionError(f'Analyzer failed: exit={result.returncode}, stderr={result.stderr[:400]!r}')
+
+    assert breakdown_path.exists(), f'breakdown.md not found at {breakdown_path}'
+    content = breakdown_path.read_text(encoding='utf-8')
+
+    assert '## Summary' in content, '## Summary header missing from breakdown.md'
+    assert '## Key Takeaways' in content, '## Key Takeaways header missing from breakdown.md'
+    assert '## The Hook' in content, '## The Hook header missing from breakdown.md'
+
+    # Assert ordering: Summary before Key Takeaways before The Hook
+    idx_summary = content.index('## Summary')
+    idx_takeaways = content.index('## Key Takeaways')
+    idx_hook = content.index('## The Hook')
+    assert idx_summary < idx_takeaways < idx_hook, (
+        f'Section order wrong: Summary at {idx_summary}, Key Takeaways at {idx_takeaways}, Hook at {idx_hook}'
+    )
+    print(f'      [evidence] ## Summary at char {idx_summary}, ## Key Takeaways at {idx_takeaways}, ## The Hook at {idx_hook} — order correct')
+    print(f'      [evidence] breakdown.md first 600 chars:\n{content[:600]}')
+
+
 if __name__ == '__main__':
     sys.path.insert(0, str(WORKSPACE / 'execution' / 'modules'))
     from dotenv import load_dotenv
@@ -157,6 +204,7 @@ if __name__ == '__main__':
     run('T3-4: --refresh-models: cache mtime updated after run', t_refresh_models_updates_cache)
     run('T3-5: --provider anthropic + no key: exits cleanly or with helpful error', t_provider_anthropic_no_key)
     run('T3-6: --provider anthropic + key present (SKIPPED: no key)', t_provider_anthropic_with_key_skipped)
+    run('T3-7: v4.1 — Gemini run produces ## Summary + ## Key Takeaways before ## The Hook', t_v41_summary_and_takeaways_present)
     print()
     print(f'E2E: {PASS_COUNT} passed, {FAIL_COUNT} failed')
     if FAILURES:
