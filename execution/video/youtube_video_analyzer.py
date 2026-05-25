@@ -996,7 +996,6 @@ def analyze_with_claude_v2(
         tools=tools_payload,
         tool_choice={"type": "tool", "name": "submit_breakdown"},
         messages=messages_payload,
-        betas=["prompt-caching-2024-07-31"],
     )
 
     usage = resp.usage
@@ -1258,22 +1257,50 @@ def render_breakdown_markdown(
     ss = duration_sec % 60
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # Pacing & Cuts
-    pacing_items = structured_data.get("pacing_cuts") or []
-    pacing_md = "\n".join(
-        f"- **{item.get('timestamp', '?')}** — {item.get('what_changes', '')}"
-        for item in pacing_items
-    )
+    def _coerce_to_list(value, inner_keys: list[str] | None = None) -> list:
+        """Opus sometimes returns list fields as XML-tagged strings. Parse them back."""
+        if isinstance(value, list):
+            return value
+        if not isinstance(value, str) or not value.strip():
+            return []
+        item_pattern = re.compile(r"<item>(.*?)</item>", re.DOTALL)
+        items = item_pattern.findall(value)
+        if not items:
+            return [value.strip()] if not inner_keys else []
+        if inner_keys:
+            result = []
+            for raw in items:
+                d = {}
+                for key in inner_keys:
+                    m = re.search(rf"<{key}>(.*?)</{key}>", raw, re.DOTALL)
+                    if m:
+                        d[key] = m.group(1).strip()
+                result.append(d if d else raw.strip())
+            return result
+        return [item.strip() for item in items]
 
-    # Transcript highlights
-    highlights = structured_data.get("transcript_highlights") or []
-    highlights_md = "\n".join(
-        f'- **{item.get("timestamp", "?")}** — "{item.get("quote", "")}"'
-        for item in highlights
+    def _render_timestamped(items: list, ts_key: str, body_key: str, quote: bool = False) -> str:
+        lines = []
+        for item in items:
+            if isinstance(item, dict):
+                ts = item.get(ts_key, "?")
+                body = item.get(body_key, "")
+                lines.append(f'- **{ts}** — "{body}"' if quote else f"- **{ts}** — {body}")
+            elif isinstance(item, str):
+                lines.append(f"- {item}")
+        return "\n".join(lines)
+
+    pacing_md = _render_timestamped(
+        _coerce_to_list(structured_data.get("pacing_cuts"), ["timestamp", "what_changes"]),
+        "timestamp", "what_changes",
+    )
+    highlights_md = _render_timestamped(
+        _coerce_to_list(structured_data.get("transcript_highlights"), ["timestamp", "quote"]),
+        "timestamp", "quote", quote=True,
     )
 
     # Content ideas
-    ideas = structured_data.get("content_ideas") or []
+    ideas = _coerce_to_list(structured_data.get("content_ideas"))
     ideas_md = "\n".join(f"- {idea}" for idea in ideas)
 
     # Frame line (only meaningful for Claude/OR path)
@@ -1302,7 +1329,7 @@ def render_breakdown_markdown(
 
     # Summary and Key Takeaways (v4.1 — content-first sections)
     summary = structured_data.get("summary") or ""
-    key_takeaways = structured_data.get("key_takeaways") or []
+    key_takeaways = _coerce_to_list(structured_data.get("key_takeaways"))
     summary_section = f"\n## Summary\n\n{summary}\n" if summary else ""
     takeaways_md = "\n".join(f"- {t}" for t in key_takeaways)
     takeaways_section = f"\n## Key Takeaways\n\n{takeaways_md}\n" if takeaways_md else ""
@@ -1603,6 +1630,13 @@ def _analyze_single_url(
                 dedup_frame_count=dedup_frame_count,
                 creator_context=creator_context,
             )
+
+        try:
+            (work_dir / "structured_response.json").write_text(
+                json.dumps(structured, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        except Exception as exc:
+            log.warning("Could not cache structured_response.json: %s", exc)
 
         breakdown_md = render_breakdown_markdown(
             url=url,
