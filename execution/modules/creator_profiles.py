@@ -405,6 +405,8 @@ def format_creator_context(profile: dict) -> str | None:
     - creator_signature is the placeholder (case-insensitive, stripped comparison)
     - creator_signature is empty/null
     """
+    if not profile:
+        return None
     style = profile.get("style_profile")
     if not style:
         return None
