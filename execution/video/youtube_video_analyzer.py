@@ -8,6 +8,9 @@ description: Frame-by-frame breakdown of a YouTube video using PySceneDetect +
              v3: added OpenRouter routing (one key reaches Claude/Gemini/GPT-4o vision),
              provider auto-detection from env vars, --provider flag, and
              strict ALLOWED_FAMILIES allowlist enforced in model_registry.py.
+             v4: added batch mode (multiple URLs / --urls-file), creator-profile cache
+             (per-channel style distillation, injected as context into analysis),
+             and channel_id extraction from yt-dlp metadata.
 inputs:
   - Positional arg: YouTube URL
   - --tier {default,premium,gemini}  (default: default)
@@ -430,9 +433,19 @@ def fetch_metadata_and_download(url: str, work_dir: Path) -> tuple[dict, Path]:
     if info.get("is_live") or info.get("was_live"):
         raise SystemExit("Live streams are not supported.")
 
+    # Resolve channel_id; fall back to sanitized uploader slug if missing (Shorts/embeds)
+    channel_id = info.get("channel_id")
+    if not channel_id:
+        uploader = info.get("uploader") or info.get("channel") or "unknown"
+        channel_id = re.sub(r"[^a-z0-9]+", "-", uploader.lower()).strip("-") or "unknown"
+        log.warning(
+            "channel_id missing from yt-dlp response — using uploader slug: %r", channel_id
+        )
+
     metadata = {
         "title": info.get("title", "Untitled"),
         "channel": info.get("uploader") or info.get("channel", "Unknown"),
+        "channel_id": channel_id,
         "duration_sec": int(info.get("duration") or 0),
         "view_count": info.get("view_count"),
         "upload_date": info.get("upload_date"),
@@ -463,9 +476,19 @@ def fetch_metadata_only(url: str) -> dict:
     with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True, "no_warnings": True, "socket_timeout": 30}) as ydl:
         info = ydl.extract_info(url, download=False)
 
+    # Resolve channel_id; fall back to sanitized uploader slug if missing (Shorts/embeds)
+    channel_id = info.get("channel_id")
+    if not channel_id:
+        uploader = info.get("uploader") or info.get("channel") or "unknown"
+        channel_id = re.sub(r"[^a-z0-9]+", "-", uploader.lower()).strip("-") or "unknown"
+        log.warning(
+            "channel_id missing from yt-dlp response — using uploader slug: %r", channel_id
+        )
+
     return {
         "title": info.get("title", "Untitled"),
         "channel": info.get("uploader") or info.get("channel", "Unknown"),
+        "channel_id": channel_id,
         "duration_sec": int(info.get("duration") or 0),
         "upload_date": info.get("upload_date"),
     }
@@ -1574,6 +1597,8 @@ def main() -> int:
         print(json.dumps({
             "video_id": video_id,
             "title": metadata["title"],
+            "channel": metadata.get("channel"),
+            "channel_id": metadata.get("channel_id"),
             "duration_sec": metadata["duration_sec"],
             "tier": tier,
             "provider": provider,
