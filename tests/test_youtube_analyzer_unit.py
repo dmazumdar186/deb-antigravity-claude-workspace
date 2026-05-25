@@ -242,6 +242,49 @@ def t_render_proper_lists_unchanged():
     assert '- Idea A' in md and '- Idea B' in md
 
 
+# --- v4.1.1 model registry: prefer undated rev IDs over date-stamped legacy IDs --- #
+
+def t_anthropic_sort_prefers_undated_rev_over_dated():
+    # Regression: claude-opus-4-7 (rev 7, undated) must beat claude-opus-4-20250514
+    # (rev=20250514 looks larger numerically but is an older dated release).
+    # Calls the real _resolve_anthropic via a stubbed models.list() to exercise
+    # the sort end-to-end without an HTTP call.
+    from datetime import datetime, timezone
+    import model_registry as mr
+
+    class _M:
+        def __init__(self, id_, created):
+            self.id = id_
+            self.created_at = datetime.fromisoformat(created).replace(tzinfo=timezone.utc) if 'T' not in created else datetime.fromisoformat(created)
+
+    fake_models = [
+        _M('claude-opus-4-20250514', '2025-05-22T00:00:00+00:00'),
+        _M('claude-opus-4-6',        '2026-02-04T00:00:00+00:00'),
+        _M('claude-opus-4-7',        '2026-04-14T00:00:00+00:00'),
+    ]
+
+    class _Client:
+        class models:
+            @staticmethod
+            def list(): return iter(fake_models)
+    class _Anthropic:
+        @staticmethod
+        def Anthropic(api_key=''): return _Client()
+
+    saved_env = os.environ.get('ANTHROPIC_API_KEY')
+    os.environ['ANTHROPIC_API_KEY'] = 'sk-fake'
+    saved_mod = sys.modules.get('anthropic')
+    sys.modules['anthropic'] = _Anthropic
+    try:
+        mid, _ = mr._resolve_anthropic('premium')
+        assert mid == 'claude-opus-4-7', f'expected claude-opus-4-7, got {mid!r}'
+    finally:
+        if saved_mod is not None: sys.modules['anthropic'] = saved_mod
+        else: sys.modules.pop('anthropic', None)
+        if saved_env is None: os.environ.pop('ANTHROPIC_API_KEY', None)
+        else: os.environ['ANTHROPIC_API_KEY'] = saved_env
+
+
 if __name__ == '__main__':
     print('=== TIER 1: UNIT TESTS ===')
     print()
@@ -278,6 +321,7 @@ if __name__ == '__main__':
     run('v4.1.1: render parses inner <timestamp>/<what_changes> in pacing_cuts XML', t_render_pacing_xml_string_with_inner_tags)
     run('v4.1.1: render parses inner <timestamp>/<quote> in transcript_highlights XML', t_render_transcript_highlights_xml_string_with_quotes)
     run('v4.1.1: render passes proper lists through unchanged (Gemini path guard)', t_render_proper_lists_unchanged)
+    run('v4.1.1: anthropic sort prefers undated rev (4-7) over dated legacy (4-20250514)', t_anthropic_sort_prefers_undated_rev_over_dated)
     print()
     print(f'Unit: {PASS_COUNT} passed, {FAIL_COUNT} failed')
     if FAILURES:

@@ -155,8 +155,15 @@ def _resolve_anthropic(tier: str) -> tuple[str, str | None]:
             if family == preferred_family
         ]
         if candidates:
-            # Sort by (maj, min) descending → pick latest
-            best = sorted(candidates, key=lambda x: (x[1], x[2]), reverse=True)[0]
+            # Sort by created_at desc (API's authoritative recency), then prefer
+            # undated IDs (rev<10000) over date-stamped legacy IDs (e.g. prefer
+            # claude-opus-4-7 over claude-opus-4-20250514 — min=20250514 looks
+            # numerically larger but is actually an older dated release).
+            def _key(item):
+                _, maj, min_, created = item
+                is_undated = 1 if min_ < 10000 else 0
+                return (created or "", is_undated, maj, min_)
+            best = sorted(candidates, key=_key, reverse=True)[0]
             return best[0], best[3]
 
     # Family-unknown fallback: most recently created for premium, second-most for default
