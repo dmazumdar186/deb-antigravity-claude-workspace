@@ -17,9 +17,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
+
+# Semgrep on Windows Python 3.14 calls Path.home() which raises
+# RuntimeError when neither HOME nor USERPROFILE is set (e.g. in
+# restricted hook subprocess contexts). Establish a fallback early so
+# both the anneal-import path and the subprocess-fallback path see it.
+if not os.environ.get("HOME") and not os.environ.get("USERPROFILE"):
+    _fallback = tempfile.gettempdir()
+    os.environ["HOME"] = _fallback
+    if os.name == "nt":
+        os.environ["USERPROFILE"] = _fallback
 
 # ── Workspace root ───────────────────────────────────────────────────────────
 WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
