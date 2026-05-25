@@ -871,6 +871,7 @@ def analyze_with_claude_v2(
     model_id: str,
     raw_frame_count: int,
     dedup_frame_count: int,
+    creator_context: str | None = None,
 ) -> dict:
     """
     Send grid images + transcript to Claude via tool-use (forced submit_breakdown).
@@ -920,6 +921,9 @@ def analyze_with_claude_v2(
         }
     ]
 
+    if creator_context:
+        log.info("Injecting creator context (%d chars) as pre-analysis user message.", len(creator_context))
+
     log.info(
         "Calling Claude (model=%s, grids=%d, dedup_frames=%d, transcript_chars=%d)...",
         model_id,
@@ -928,13 +932,20 @@ def analyze_with_claude_v2(
         len(transcript_text),
     )
 
+    # Build message list: [system(cached)] → [user(creator_context)?] → [user(grids+transcript)]
+    # creator_context block has NO cache_control (per-channel, low reuse — would break caching)
+    messages_payload: list[dict] = []
+    if creator_context:
+        messages_payload.append({"role": "user", "content": creator_context})
+    messages_payload.append({"role": "user", "content": user_content})
+
     resp = client.messages.create(
         model=model_id,
         max_tokens=CLAUDE_MAX_TOKENS,
         system=system_payload,
         tools=tools_payload,
         tool_choice={"type": "tool", "name": "submit_breakdown"},
-        messages=[{"role": "user", "content": user_content}],
+        messages=messages_payload,
         betas=["prompt-caching-2024-07-31"],
     )
 
@@ -969,6 +980,7 @@ def analyze_with_openrouter(
     model_id: str,
     raw_frame_count: int,
     dedup_frame_count: int,
+    creator_context: str | None = None,
 ) -> dict:
     """
     Send grid images + transcript to any vision+tools model via OpenRouter.
@@ -1014,12 +1026,16 @@ def analyze_with_openrouter(
 
     tool_def = _to_openai_tool_format(TOOL_SCHEMA)
 
+    # Build message list: system → [user(creator_context)?] → user(grids+transcript)
+    or_messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if creator_context:
+        log.info("Injecting creator context (%d chars) as pre-analysis user message (OR).", len(creator_context))
+        or_messages.append({"role": "user", "content": creator_context})
+    or_messages.append({"role": "user", "content": user_content})
+
     kwargs: dict = {
         "model": model_id,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_content},
-        ],
+        "messages": or_messages,
         "tools": [tool_def],
         "tool_choice": {"type": "function", "function": {"name": "submit_breakdown"}},
         "max_tokens": CLAUDE_MAX_TOKENS,
@@ -1100,7 +1116,7 @@ Be specific, not generic. No compliments to the creator. This is a working resea
 """
 
 
-def analyze_with_gemini(url: str, metadata: dict, model_id: str) -> dict:
+def analyze_with_gemini(url: str, metadata: dict, model_id: str, creator_context: str | None = None) -> dict:
     """
     Pass YouTube URL directly to Gemini (no frame extraction needed).
     Returns the same structured dict shape as analyze_with_claude_v2.
@@ -1119,15 +1135,22 @@ def analyze_with_gemini(url: str, metadata: dict, model_id: str) -> dict:
 
     client = genai.Client(api_key=api_key)
 
+    if creator_context:
+        log.info("Injecting creator context (%d chars) as leading Part (Gemini).", len(creator_context))
+
     log.info("Calling Gemini (model=%s) with YouTube URL...", model_id)
+
+    # Build contents: [creator_context Part?] + URL Part + analysis prompt Part
+    gemini_contents: list = []
+    if creator_context:
+        gemini_contents.append(genai_types.Part.from_text(text=creator_context))
+    gemini_contents.append(genai_types.Part.from_uri(file_uri=url, mime_type="video/*"))
+    gemini_contents.append(genai_types.Part.from_text(text=GEMINI_STRUCTURED_PROMPT))
 
     try:
         response = client.models.generate_content(
             model=model_id,
-            contents=[
-                genai_types.Part.from_uri(file_uri=url, mime_type="video/*"),
-                genai_types.Part.from_text(text=GEMINI_STRUCTURED_PROMPT),
-            ],
+            contents=gemini_contents,
         )
     except Exception as exc:
         raise SystemExit(f"Gemini API call failed: {exc}") from exc
@@ -1253,6 +1276,42 @@ def render_breakdown_markdown(
 
 
 # --------------------------------------------------------------------------- #
+# Pricing table (shared between main and _run_batch)                          #
+# --------------------------------------------------------------------------- #
+
+_TIER_COST_PER_M_TOKENS: dict[str, float] = {
+    # OpenRouter models (approx $ per M input tokens, incl. 5.5% OR fee)
+    "anthropic/claude-sonnet-4.6": 3.17,
+    "anthropic/claude-sonnet-4-6": 3.17,
+    "anthropic/claude-opus-4.7": 15.86,
+    "anthropic/claude-opus-4-7": 15.86,
+    "google/gemini-2.5-pro": 1.27,
+    "openai/gpt-4o": 2.65,
+    "openai/gpt-4o-mini": 0.16,
+    # Direct Anthropic (no OR fee)
+    "claude-sonnet-4-6": 3.00,
+    "claude-opus-4-7": 15.00,
+    # Gemini direct (free quota)
+    "gemini-2.5-flash": 0.00,
+    "gemini-3.1-flash-lite-preview": 0.00,
+}
+
+
+def _estimate_cost(mid: str, est_input_tokens: int, est_output_tokens: int = 2000) -> str:
+    price_per_m = _TIER_COST_PER_M_TOKENS.get(mid)
+    if price_per_m is None:
+        # Try prefix match for unknown variants (e.g. gemini-2.5-flash-*)
+        for key, val in _TIER_COST_PER_M_TOKENS.items():
+            if mid.startswith(key) or key.startswith(mid):
+                price_per_m = val
+                break
+    if price_per_m is None:
+        return "~$? unknown pricing"
+    total = price_per_m * (est_input_tokens + est_output_tokens) / 1_000_000
+    return f"~${total:.3f} expected"
+
+
+# --------------------------------------------------------------------------- #
 # Step 8: Output writers  (PRESERVED from v1)                                 #
 # --------------------------------------------------------------------------- #
 
@@ -1285,15 +1344,407 @@ def write_outputs(
 
 
 # --------------------------------------------------------------------------- #
+# Single-URL analysis core (extracted for reuse by both main and _run_batch)  #
+# --------------------------------------------------------------------------- #
+
+
+def _analyze_single_url(
+    url: str,
+    provider: str,
+    tier: str,
+    model_id: str,
+    vault_path_obj: Path | None,
+    args,  # argparse Namespace — carries max_frames, keep_source, refresh_transcript, etc.
+    creator_profiles_mod=None,  # optional: the imported creator_profiles module
+) -> dict:
+    """
+    Analyze a single YouTube URL end-to-end.
+
+    Returns a result dict:
+      {url, video_id, status, breakdown_path, tokens_used, cost, error,
+       metadata, channel_id, channel_name}
+
+    status: "ok" | "error"
+    """
+    result: dict = {
+        "url": url,
+        "video_id": None,
+        "status": "error",
+        "breakdown_path": None,
+        "tokens_used": 0,
+        "cost": "~$0.000",
+        "error": None,
+        "channel_id": None,
+        "channel_name": None,
+    }
+
+    # SSRF guard
+    if not _YOUTUBE_HOST_RE.match(url):
+        result["error"] = f"URL must be a YouTube URL; got: {url!r}"
+        return result
+
+    try:
+        video_id = extract_video_id(url)
+    except ValueError as e:
+        result["error"] = str(e)
+        return result
+
+    result["video_id"] = video_id
+    work_dir = TMP_BASE / video_id
+    work_dir.mkdir(parents=True, exist_ok=True)
+
+    log.info("=== Analyzing %s (video_id=%s) ===", url, video_id)
+
+    try:
+        # ------------------------------------------------------------------
+        # Gemini-direct path
+        # ------------------------------------------------------------------
+        if provider == "gemini-direct":
+            metadata = fetch_metadata_only(url)
+            metadata["video_id"] = video_id
+            (work_dir / "metadata.json").write_text(
+                json.dumps(metadata, indent=2), encoding="utf-8"
+            )
+            result["channel_id"] = metadata.get("channel_id")
+            result["channel_name"] = metadata.get("channel", "Unknown")
+
+            # Creator-profile READ
+            creator_context: str | None = None
+            use_profiles = creator_profiles_mod and not getattr(args, "no_creator_profile", False)
+            if use_profiles:
+                profile = creator_profiles_mod.load_profile(metadata["channel_id"])
+                if profile:
+                    creator_context = creator_profiles_mod.format_creator_context(profile)
+                    if creator_context:
+                        log.info(
+                            "Using creator profile for %s (%d prior videos)",
+                            metadata["channel"],
+                            profile.get("build_count", 0),
+                        )
+
+            structured = analyze_with_gemini(url, metadata, model_id, creator_context=creator_context)
+
+            breakdown_md = render_breakdown_markdown(
+                url=url,
+                metadata=metadata,
+                structured_data=structured,
+                tier="gemini",
+            )
+            primary, vault_path = write_outputs(breakdown_md, work_dir, metadata, vault_path_obj)
+            result["breakdown_path"] = str(primary)
+            result["status"] = "ok"
+
+            # Creator-profile WRITE + distill
+            if use_profiles:
+                breakdown_text = primary.read_text(encoding="utf-8")
+                updated = creator_profiles_mod.append_video_to_profile(
+                    metadata["channel_id"], metadata["channel"], metadata, breakdown_text
+                )
+                if getattr(args, "refresh_creator_profile", False) or creator_profiles_mod.should_distill(updated):
+                    updated = creator_profiles_mod.distill_profile(updated, tier=tier)
+                    log.info(
+                        "Distilled creator profile for %s from %d videos",
+                        metadata["channel"],
+                        updated.get("build_count", 0),
+                    )
+
+            return result
+
+        # ------------------------------------------------------------------
+        # Claude / OpenRouter path
+        # ------------------------------------------------------------------
+        transcript_entries = get_or_fetch_transcript(
+            video_id, work_dir,
+            force_refresh=getattr(args, "refresh_transcript", False),
+        )
+        transcript_text = format_transcript(transcript_entries)
+        log.info("Transcript ready: %d entries, %d chars", len(transcript_entries), len(transcript_text))
+
+        metadata, video_path = fetch_metadata_and_download(url, work_dir)
+        metadata["video_id"] = video_id
+        (work_dir / "metadata.json").write_text(
+            json.dumps(metadata, indent=2), encoding="utf-8"
+        )
+        result["channel_id"] = metadata.get("channel_id")
+        result["channel_name"] = metadata.get("channel", "Unknown")
+
+        max_frames = getattr(args, "max_frames", MAX_FRAMES_DEFAULT)
+        deduped_frames, grid_paths, raw_frame_count = build_frame_grids(video_path, work_dir, max_frames)
+        dedup_frame_count = len(deduped_frames)
+        grid_count = len(grid_paths)
+
+        est_visual_tokens = grid_count * 1400
+        est_transcript_tokens = len(transcript_text) // 4
+        est_total_tokens = est_visual_tokens + est_transcript_tokens + 500
+
+        # ------------------------------------------------------------------
+        # Deep-dry-run check (inside single-URL core so batch can trigger it)
+        # ------------------------------------------------------------------
+        if getattr(args, "deep_dry_run", False):
+            print(json.dumps({
+                "video_id": video_id,
+                "title": metadata["title"],
+                "channel": metadata.get("channel"),
+                "channel_id": metadata.get("channel_id"),
+                "duration_sec": metadata["duration_sec"],
+                "tier": tier,
+                "provider": provider,
+                "model_id": model_id,
+                "transcript_chars": len(transcript_text),
+                "raw_frames_before_dedup": raw_frame_count,
+                "distinct_frames_after_dedup": dedup_frame_count,
+                "grid_count": grid_count,
+                "estimated_input_tokens": est_total_tokens,
+                "estimated_cost": _estimate_cost(model_id, est_total_tokens),
+                "work_dir": str(work_dir),
+            }, indent=2))
+            if not getattr(args, "keep_source", False) and video_path.exists():
+                try:
+                    video_path.unlink()
+                except (PermissionError, OSError) as exc:
+                    log.warning("Could not delete source .mp4: %s", exc)
+            result["status"] = "ok"
+            return result
+
+        # Creator-profile READ
+        creator_context = None
+        use_profiles = creator_profiles_mod and not getattr(args, "no_creator_profile", False)
+        if use_profiles:
+            profile = creator_profiles_mod.load_profile(metadata["channel_id"])
+            if profile:
+                creator_context = creator_profiles_mod.format_creator_context(profile)
+                if creator_context:
+                    log.info(
+                        "Using creator profile for %s (%d prior videos)",
+                        metadata["channel"],
+                        profile.get("build_count", 0),
+                    )
+
+        if provider == "openrouter":
+            structured = analyze_with_openrouter(
+                metadata=metadata,
+                transcript_text=transcript_text,
+                grid_paths=grid_paths,
+                model_id=model_id,
+                raw_frame_count=raw_frame_count,
+                dedup_frame_count=dedup_frame_count,
+                creator_context=creator_context,
+            )
+        else:
+            # provider == "anthropic"
+            structured = analyze_with_claude_v2(
+                metadata=metadata,
+                transcript_text=transcript_text,
+                grid_paths=grid_paths,
+                model_id=model_id,
+                raw_frame_count=raw_frame_count,
+                dedup_frame_count=dedup_frame_count,
+                creator_context=creator_context,
+            )
+
+        breakdown_md = render_breakdown_markdown(
+            url=url,
+            metadata=metadata,
+            structured_data=structured,
+            transcript_text=transcript_text,
+            frame_count=dedup_frame_count,
+            tier=tier,
+        )
+        primary, vault_path = write_outputs(breakdown_md, work_dir, metadata, vault_path_obj)
+
+        # Fix 8 — wrap unlink() in try/except for Windows PermissionError
+        if not getattr(args, "keep_source", False) and video_path.exists():
+            try:
+                video_path.unlink()
+                log.info("Deleted source .mp4 to save disk.")
+            except (PermissionError, OSError) as exc:
+                log.warning("Could not delete source .mp4 (file in use): %s", exc)
+
+        result["breakdown_path"] = str(primary)
+        result["cost"] = _estimate_cost(model_id, est_total_tokens)
+        result["tokens_used"] = est_total_tokens
+        result["status"] = "ok"
+
+        # Creator-profile WRITE + distill (per-video, not batch-end — R2 fix)
+        if use_profiles:
+            breakdown_text = primary.read_text(encoding="utf-8")
+            updated = creator_profiles_mod.append_video_to_profile(
+                metadata["channel_id"], metadata["channel"], metadata, breakdown_text
+            )
+            if getattr(args, "refresh_creator_profile", False) or creator_profiles_mod.should_distill(updated):
+                updated = creator_profiles_mod.distill_profile(updated, tier=tier)
+                log.info(
+                    "Distilled creator profile for %s from %d videos",
+                    metadata["channel"],
+                    updated.get("build_count", 0),
+                )
+
+        return result
+
+    except SystemExit as exc:
+        result["error"] = str(exc)
+        return result
+    except Exception as exc:
+        log.exception("Unexpected error analyzing %s", url)
+        result["error"] = str(exc)
+        return result
+
+
+# --------------------------------------------------------------------------- #
+# Batch loop                                                                   #
+# --------------------------------------------------------------------------- #
+
+
+def _run_batch(urls: list[str], args, provider: str, tier: str, model_id: str,
+               vault_path_obj: Path | None, creator_profiles_mod=None) -> int:
+    """
+    Process multiple YouTube URLs sequentially (or in parallel with --parallel N).
+
+    Returns exit code:
+      0 — all succeeded
+      1 — all failed
+      2 — partial (some succeeded, some failed)
+    """
+    import uuid
+    import concurrent.futures
+
+    run_id = uuid.uuid4().hex[:8]
+    batch_dir = TMP_BASE / f"_batch_{run_id}"
+    batch_dir.mkdir(parents=True, exist_ok=True)
+
+    log.info("Batch run %s: %d URLs", run_id, len(urls))
+
+    parallel = getattr(args, "parallel", 1) or 1
+
+    results: list[dict] = []
+
+    if parallel > 1:
+        log.info("Parallel mode: N=%d", parallel)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
+            futures = {
+                executor.submit(
+                    _analyze_single_url,
+                    url, provider, tier, model_id, vault_path_obj, args, creator_profiles_mod,
+                ): url
+                for url in urls
+            }
+            for future in concurrent.futures.as_completed(futures):
+                results.append(future.result())
+    else:
+        for url in urls:
+            r = _analyze_single_url(
+                url, provider, tier, model_id, vault_path_obj, args, creator_profiles_mod
+            )
+            results.append(r)
+            status_sym = "[OK]" if r["status"] == "ok" else "[FAIL]"
+            log.info("%s %s", status_sym, url)
+
+    # ------------------------------------------------------------------
+    # Batch summary
+    # ------------------------------------------------------------------
+    successes = [r for r in results if r["status"] == "ok"]
+    failures  = [r for r in results if r["status"] != "ok"]
+
+    total_tokens = sum(r.get("tokens_used", 0) for r in successes)
+
+    print("\n" + "=" * 60)
+    print(f"BATCH SUMMARY  (run_id={run_id})")
+    print("=" * 60)
+    print(f"  {len(urls)} URLs processed, {len(successes)} succeeded, {len(failures)} failed")
+    if total_tokens:
+        print(f"  Total estimated tokens: {total_tokens:,}")
+    print()
+
+    if successes:
+        print("  Breakdowns written:")
+        for r in successes:
+            print(f"    [OK]   {r['url']} -> {r['breakdown_path']}")
+    if failures:
+        print("  Failures:")
+        for r in failures:
+            print(f"    [FAIL] {r['url']} — {r['error']}")
+
+    # R3 finding 2: surface "no profile context yet" for channels below threshold
+    if creator_profiles_mod and not getattr(args, "no_creator_profile", False):
+        channels_below: dict[str, dict] = {}
+        for r in successes:
+            cid = r.get("channel_id")
+            cname = r.get("channel_name", "Unknown")
+            if cid:
+                profile = creator_profiles_mod.load_profile(cid)
+                if profile:
+                    bc = profile.get("build_count", 0)
+                    thresh = profile.get("next_distillation_threshold", 3)
+                    if bc < thresh:
+                        channels_below[cid] = {
+                            "name": cname, "build_count": bc, "threshold": thresh
+                        }
+        if channels_below:
+            print()
+            for cid, info in channels_below.items():
+                bc, thresh = info["build_count"], info["threshold"]
+                lo, hi = max(1, bc - len(urls) + 1), bc
+                print(
+                    f"  NOTE: Videos {lo}-{hi} processed without creator-profile context "
+                    f"for {info['name']} "
+                    f"(threshold of {thresh} not yet reached — distill on next run)."
+                )
+
+    print("=" * 60)
+
+    # Write summary markdown
+    summary_lines = [
+        f"# Batch Analysis Summary\n",
+        f"**Run ID:** {run_id}  ",
+        f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}  ",
+        f"**Total URLs:** {len(urls)}  ",
+        f"**Succeeded:** {len(successes)}  ",
+        f"**Failed:** {len(failures)}  ",
+        "",
+        "## Results",
+        "",
+    ]
+    for r in results:
+        sym = "OK" if r["status"] == "ok" else "FAIL"
+        line = f"- [{sym}] {r['url']}"
+        if r["status"] == "ok":
+            line += f" — [{r.get('breakdown_path', '')}]({r.get('breakdown_path', '')})"
+        else:
+            line += f" — ERROR: {r.get('error', '')}"
+        summary_lines.append(line)
+
+    summary_path = batch_dir / "summary.md"
+    summary_path.write_text("\n".join(summary_lines), encoding="utf-8")
+    print(f"\n  Summary written: {summary_path}")
+
+    if not failures:
+        return 0
+    if not successes:
+        return 1
+    return 2
+
+
+# --------------------------------------------------------------------------- #
 # Main                                                                         #
 # --------------------------------------------------------------------------- #
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="YouTube video analyzer — v3 (OpenRouter routing + provider auto-detect)."
+        description="YouTube video analyzer — v4 (batch mode + creator-profile cache)."
     )
-    parser.add_argument("url", help="YouTube video URL")
+    # v4: accept multiple positional URLs
+    parser.add_argument(
+        "urls",
+        nargs="*",
+        help="One or more YouTube video URLs. Combine with --urls-file for larger batches.",
+    )
+    parser.add_argument(
+        "--urls-file",
+        type=str,
+        default=None,
+        help="Path to a file with one YouTube URL per line. '#' lines and blank lines are skipped.",
+    )
     parser.add_argument(
         "--tier",
         choices=["default", "premium", "gemini"],
@@ -1321,7 +1772,7 @@ def main() -> int:
         type=str,
         default=None,
         help=(
-            "Exact model ID -- escape hatch that bypasses the registry. "
+            "Exact model ID — escape hatch that bypasses the registry. "
             "Requires --tier to know which provider path to use."
         ),
     )
@@ -1368,9 +1819,88 @@ def main() -> int:
     parser.add_argument(
         "--refresh-transcript",
         action="store_true",
-        help="Force re-fetch transcript from YouTube even if a cached transcript.txt exists in the work dir.",
+        help="Force re-fetch transcript from YouTube even if a cached transcript.txt exists.",
+    )
+    # v4: creator-profile flags
+    parser.add_argument(
+        "--parallel",
+        type=int,
+        default=1,
+        metavar="N",
+        help="Process N URLs in parallel (default: 1 = sequential). Use with caution — YouTube may rate-limit.",
+    )
+    parser.add_argument(
+        "--refresh-creator-profile",
+        action="store_true",
+        help="Force re-distillation of the creator profile even if threshold not yet reached.",
+    )
+    parser.add_argument(
+        "--show-creator-profile",
+        type=str,
+        default=None,
+        metavar="CHANNEL_ID",
+        help="Print the creator profile JSON for a given channel_id and exit. Requires --no-analyze.",
+    )
+    parser.add_argument(
+        "--no-creator-profile",
+        action="store_true",
+        help="Skip creator-profile read AND write for this run (regression-safe escape hatch).",
+    )
+    parser.add_argument(
+        "--no-analyze",
+        action="store_true",
+        help="Skip the analysis pipeline entirely. Used with --show-creator-profile.",
     )
     args = parser.parse_args()
+
+    # ------------------------------------------------------------------
+    # --show-creator-profile validation
+    # ------------------------------------------------------------------
+    if args.show_creator_profile and not args.no_analyze:
+        parser.error("--show-creator-profile requires --no-analyze")
+
+    if args.show_creator_profile and args.no_analyze:
+        sys.path.insert(0, str(WORKSPACE_ROOT / "execution" / "modules"))
+        try:
+            import creator_profiles as cp  # type: ignore[import-not-found]
+        except ImportError as e:
+            raise SystemExit(f"Could not import creator_profiles: {e}") from e
+        profile = cp.load_profile(args.show_creator_profile)
+        if profile is None:
+            print(
+                f"No profile found for channel_id={args.show_creator_profile!r}. "
+                f"Profiles are stored in {cp.get_profile_path(args.show_creator_profile)}",
+                file=sys.stderr,
+            )
+            return 1
+        print(json.dumps(profile, indent=2, ensure_ascii=False))
+        return 0
+
+    # ------------------------------------------------------------------
+    # Collect + validate URLs upfront (fail fast)
+    # ------------------------------------------------------------------
+    all_urls: list[str] = list(args.urls or [])
+
+    if args.urls_file:
+        urls_file = Path(args.urls_file)
+        if not urls_file.exists():
+            parser.error(f"--urls-file not found: {args.urls_file!r}")
+        for line in urls_file.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                all_urls.append(stripped)
+
+    if not all_urls:
+        parser.error("Provide at least one URL as a positional argument or via --urls-file.")
+
+    # Validate all URLs upfront
+    for url in all_urls:
+        if not _YOUTUBE_HOST_RE.match(url):
+            parser.error(f"URL must be a YouTube URL; got: {url!r}")
+        try:
+            extract_video_id(url)
+        except ValueError as e:
+            parser.error(str(e))
 
     # Fix 2 — validate --max-frames range
     if args.max_frames < 1 or args.max_frames > 200:
@@ -1399,10 +1929,6 @@ def main() -> int:
         provider = args.provider
 
     # R2-3 — full tier/provider cross-validation matrix
-    # Valid (tier, provider) combos:
-    #   default  / anthropic, openrouter, auto
-    #   premium  / anthropic, openrouter, auto
-    #   gemini   / gemini-direct, openrouter, auto
     _VALID_COMBOS = {
         "default":  {"anthropic", "openrouter", "auto"},
         "premium":  {"anthropic", "openrouter", "auto"},
@@ -1415,20 +1941,15 @@ def main() -> int:
         )
 
     # ------------------------------------------------------------------
-    # Model resolution
+    # Model resolution (once, outside any loop)
     # ------------------------------------------------------------------
-    # R2-4 — shallow dry-run must make no network calls.
-    # Pass allow_network=False when --dry-run is set; the registry uses cache →
-    # LAST_KNOWN_GOOD without hitting the OR /models endpoint or any provider API.
     _allow_net = not args.dry_run
 
     if args.model:
-        # Escape hatch: user-supplied exact model ID
         model_id = args.model
         log.info("Using user-supplied model override: %s", model_id)
     else:
         if provider == "openrouter":
-            # For --tier gemini with OR: use the 'gemini' sub-tier in the registry
             or_tier = "gemini" if tier == "gemini" else ("premium" if tier == "premium" else "default")
             model_id = resolve_model("openrouter", or_tier, refresh=args.refresh_models, allow_network=_allow_net)
         elif provider == "anthropic":
@@ -1438,71 +1959,20 @@ def main() -> int:
             model_id = resolve_model("gemini", "default", refresh=args.refresh_models, allow_network=_allow_net)
         else:
             raise SystemExit(f"Unknown provider: {provider!r}")
-
         log.info("Resolved model: %s -> %s", provider, model_id)
-
-    # ------------------------------------------------------------------
-    # Fix 11 — Honest cost projection via a small pricing lookup table
-    # ------------------------------------------------------------------
-    _TIER_COST_PER_M_TOKENS: dict[str, float] = {
-        # OpenRouter models (approx $ per M input tokens, incl. 5.5% OR fee)
-        "anthropic/claude-sonnet-4.6": 3.17,
-        "anthropic/claude-sonnet-4-6": 3.17,
-        "anthropic/claude-opus-4.7": 15.86,
-        "anthropic/claude-opus-4-7": 15.86,
-        "google/gemini-2.5-pro": 1.27,
-        "openai/gpt-4o": 2.65,
-        "openai/gpt-4o-mini": 0.16,
-        # Direct Anthropic (no OR fee)
-        "claude-sonnet-4-6": 3.00,
-        "claude-opus-4-7": 15.00,
-        # Gemini direct (free quota)
-        "gemini-2.5-flash": 0.00,
-    }
-
-    def _estimate_cost(mid: str, est_input_tokens: int, est_output_tokens: int = 2000) -> str:
-        price_per_m = _TIER_COST_PER_M_TOKENS.get(mid)
-        if price_per_m is None:
-            return "~$? unknown pricing"
-        total = price_per_m * (est_input_tokens + est_output_tokens) / 1_000_000
-        return f"~${total:.3f} expected"
 
     # Mode log line
     if provider == "openrouter":
-        if tier == "gemini":
-            cost_note = f"paid frame-grid mode via OR -- NOT free URL-native"
-        else:
-            cost_note = f"paid via OR (incl. 5.5% OR fee)"
+        cost_note = "paid frame-grid mode via OR -- NOT free URL-native" if tier == "gemini" else "paid via OR (incl. 5.5% OR fee)"
     elif provider == "anthropic":
         cost_note = "paid direct"
     else:
         cost_note = "FREE (URL-native Gemini)"
-
     log.info("Mode: %s / %s / %s", provider, model_id, cost_note)
 
     # ------------------------------------------------------------------
-    # SSRF guard (Fix 7) — validate YouTube host before any network call
+    # Obsidian vault
     # ------------------------------------------------------------------
-    if not _YOUTUBE_HOST_RE.match(args.url):
-        parser.error(f"URL must be a YouTube URL; got: {args.url!r}")
-
-    # ------------------------------------------------------------------
-    # Video ID + working directory
-    # ------------------------------------------------------------------
-    try:
-        video_id = extract_video_id(args.url)
-    except ValueError as e:
-        print(f"ERROR: {e}", file=sys.stderr)
-        return 1
-
-    work_dir = TMP_BASE / video_id
-    work_dir.mkdir(parents=True, exist_ok=True)
-
-    log.info("Video ID: %s", video_id)
-    log.info("Work dir: %s", work_dir)
-
-    # Fix 9 / R2-1 — validate --obsidian-vault is absolute BEFORE calling resolve()
-    # (Path.resolve() always returns absolute, so the check must happen first)
     vault_arg = args.obsidian_vault or os.environ.get("OBSIDIAN_VAULT")
     if vault_arg:
         if not Path(vault_arg).is_absolute():
@@ -1512,12 +1982,14 @@ def main() -> int:
         vault_path_obj = None
 
     # ------------------------------------------------------------------
-    # Fix 4 — SHALLOW dry-run gate BEFORE any network calls
+    # SHALLOW dry-run gate (single URL only — before any network calls)
     # ------------------------------------------------------------------
     if args.dry_run:
-        # Estimate a rough cost without real token counts
+        url = all_urls[0]
+        video_id = extract_video_id(url)
+        work_dir = TMP_BASE / video_id
         est_grids_guess = max(1, args.max_frames // 9)
-        est_visual_tokens_guess = est_grids_guess * 1400   # Fix 12: calibrated to ~1400/grid
+        est_visual_tokens_guess = est_grids_guess * 1400
         est_total_guess = est_visual_tokens_guess + 2500 + 500
         print(json.dumps({
             "video_id": video_id,
@@ -1538,133 +2010,39 @@ def main() -> int:
         return 0
 
     # ------------------------------------------------------------------
-    # Gemini-direct path (no transcript, no download, no frames)
+    # Creator-profiles module (lazy import, skipped if --no-creator-profile)
     # ------------------------------------------------------------------
-    if provider == "gemini-direct":
-        # Fix 13 — use metadata-only fetch (no video download)
-        metadata = fetch_metadata_only(args.url)
-        (work_dir / "metadata.json").write_text(
-            json.dumps(metadata, indent=2), encoding="utf-8"
-        )
-
-        structured = analyze_with_gemini(args.url, metadata, model_id)
-
-        breakdown_md = render_breakdown_markdown(
-            url=args.url,
-            metadata=metadata,
-            structured_data=structured,
-            tier="gemini",
-        )
-
-        primary, vault_path = write_outputs(breakdown_md, work_dir, metadata, vault_path_obj)
-
-        print(f"\n[OK] Breakdown written: {primary}")
-        if vault_path:
-            print(f"[OK] Copied to Obsidian vault: {vault_path}")
-        return 0
-
-    # ------------------------------------------------------------------
-    # Claude / OpenRouter path (default / premium / gemini-via-OR)
-    # Requires: transcript + download + frame pipeline
-    # ------------------------------------------------------------------
-    transcript_entries = get_or_fetch_transcript(video_id, work_dir, force_refresh=args.refresh_transcript)
-    transcript_text = format_transcript(transcript_entries)
-    log.info(
-        "Transcript ready: %d entries, %d chars",
-        len(transcript_entries),
-        len(transcript_text),
-    )
-
-    metadata, video_path = fetch_metadata_and_download(args.url, work_dir)
-    (work_dir / "metadata.json").write_text(
-        json.dumps(metadata, indent=2), encoding="utf-8"
-    )
-
-    deduped_frames, grid_paths, raw_frame_count = build_frame_grids(
-        video_path, work_dir, args.max_frames
-    )
-    dedup_frame_count = len(deduped_frames)
-    grid_count = len(grid_paths)
-
-    # Fix 12 — calibrated to ~1400 tokens/grid (was 750)
-    # Each 384x216 grid cell; Anthropic actual measurement ~155 tokens/cell x 9 = ~1400/grid
-    est_visual_tokens = grid_count * 1400
-    est_transcript_tokens = len(transcript_text) // 4
-    est_total_tokens = est_visual_tokens + est_transcript_tokens + 500  # system + prompt overhead
-
-    # Fix 4 — --deep-dry-run: full pipeline without AI call (old dry-run behavior)
-    if args.deep_dry_run:
-        print(json.dumps({
-            "video_id": video_id,
-            "title": metadata["title"],
-            "channel": metadata.get("channel"),
-            "channel_id": metadata.get("channel_id"),
-            "duration_sec": metadata["duration_sec"],
-            "tier": tier,
-            "provider": provider,
-            "model_id": model_id,
-            "transcript_chars": len(transcript_text),
-            "raw_frames_before_dedup": raw_frame_count,
-            "distinct_frames_after_dedup": dedup_frame_count,
-            "grid_count": grid_count,
-            "estimated_input_tokens": est_total_tokens,
-            "estimated_cost": _estimate_cost(model_id, est_total_tokens),
-            "work_dir": str(work_dir),
-        }, indent=2))
-        if not args.keep_source and video_path.exists():
-            try:
-                video_path.unlink()
-                log.info("Deleted source .mp4 to save disk.")
-            except (PermissionError, OSError) as exc:
-                log.warning("Could not delete source .mp4 (file in use): %s", exc)
-        return 0
-
-    # ------------------------------------------------------------------
-    # AI call — branch on provider
-    # ------------------------------------------------------------------
-    if provider == "openrouter":
-        structured = analyze_with_openrouter(
-            metadata=metadata,
-            transcript_text=transcript_text,
-            grid_paths=grid_paths,
-            model_id=model_id,
-            raw_frame_count=raw_frame_count,
-            dedup_frame_count=dedup_frame_count,
-        )
-    else:
-        # provider == "anthropic"
-        structured = analyze_with_claude_v2(
-            metadata=metadata,
-            transcript_text=transcript_text,
-            grid_paths=grid_paths,
-            model_id=model_id,
-            raw_frame_count=raw_frame_count,
-            dedup_frame_count=dedup_frame_count,
-        )
-
-    breakdown_md = render_breakdown_markdown(
-        url=args.url,
-        metadata=metadata,
-        structured_data=structured,
-        transcript_text=transcript_text,
-        frame_count=dedup_frame_count,
-        tier=tier,
-    )
-
-    primary, vault_path = write_outputs(breakdown_md, work_dir, metadata, vault_path_obj)
-
-    # Fix 8 — wrap unlink() in try/except for Windows PermissionError
-    if not args.keep_source and video_path.exists():
+    creator_profiles_mod = None
+    if not args.no_creator_profile:
         try:
-            video_path.unlink()
-            log.info("Deleted source .mp4 to save disk.")
-        except (PermissionError, OSError) as exc:
-            log.warning("Could not delete source .mp4 (file in use): %s", exc)
+            import creator_profiles as cp_mod  # type: ignore[import-not-found]
+            creator_profiles_mod = cp_mod
+        except ImportError:
+            log.warning(
+                "creator_profiles module not found — creator-profile features disabled. "
+                "Ensure execution/modules/creator_profiles.py exists."
+            )
 
-    print(f"\n[OK] Breakdown written: {primary}")
-    if vault_path:
-        print(f"[OK] Copied to Obsidian vault: {vault_path}")
-    return 0
+    # ------------------------------------------------------------------
+    # Single-URL path (v3 backward compat) vs batch path
+    # ------------------------------------------------------------------
+    if len(all_urls) == 1:
+        # Single-URL: preserve original print behavior
+        url = all_urls[0]
+        result = _analyze_single_url(
+            url, provider, tier, model_id, vault_path_obj, args, creator_profiles_mod
+        )
+        if result["status"] == "ok":
+            if result["breakdown_path"]:
+                print(f"\n[OK] Breakdown written: {result['breakdown_path']}")
+            return 0
+        else:
+            print(f"\nERROR: {result['error']}", file=sys.stderr)
+            return 1
+    else:
+        return _run_batch(
+            all_urls, args, provider, tier, model_id, vault_path_obj, creator_profiles_mod
+        )
 
 
 if __name__ == "__main__":
