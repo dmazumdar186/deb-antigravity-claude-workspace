@@ -108,6 +108,8 @@ The Gemini path skips steps 2–5 entirely — Gemini reads the YouTube URL nati
 
 After the script finishes, read the `.tmp/video/{video_id}/breakdown.md` file and present the breakdown to the user. Highlight the path so the user can find the file. If it was also written to their Obsidian vault, mention that.
 
+The breakdown now leads with **## Summary** (3-5 sentence prose overview of what the video says) and **## Key Takeaways** (1-7 synthesized content bullets) before the craft sections (The Hook, Pacing & Cuts, etc.). Surface the summary + takeaways first when presenting to the user — they answer "what does this video say" before "how was it made".
+
 ## Creator-profile cache (v4)
 
 If you analyze 3 or more videos from the same channel, a creator-style profile builds automatically. After the third video, the analyzer runs a distillation pass (using Gemini free tier by default) to synthesize recurring patterns — hook styles, pacing, visual style, common topics — into a compact profile stored at `.tmp/creator_profiles/{channel_id}.json`.

@@ -66,6 +66,8 @@ Take a YouTube URL and produce a structured markdown breakdown that captures the
 **Tier:** ...
 **Frames processed:** N (after dedup)
 
+## Summary
+## Key Takeaways
 ## The Hook (0:00–0:15)
 ## Pacing & Cuts
 ## Visual Storytelling
@@ -304,6 +306,7 @@ Calculation: 3 grids × ~1400 tokens/grid (R3 calibrated: ~155 tokens/cell × 9 
 
 ## Changelog
 
+- **2026-05-25** — v4.1: added summary + key_takeaways as leading sections (end-user content focus)
 - **2026-05-18** — v4: Added batch mode (multiple positional URLs + `--urls-file`, composable; fail-fast URL validation; sequential default + `--parallel N`; partial-failure tolerance; exit codes 0/1/2; `.tmp/video/_batch_{run_id}/summary.md`). Added creator-profile cache (`execution/modules/creator_profiles.py`): per-channel JSON profile built from accumulated breakdowns, distilled via LLM every N videos (default threshold 3 then +5), injected as context into all 3 analysis paths. New CLI flags: `--urls-file`, `--parallel N`, `--refresh-creator-profile`, `--show-creator-profile`, `--no-creator-profile`, `--no-analyze`. Both metadata functions patched to extract `channel_id` with uploader-slug fallback. `format_creator_context` has case-insensitive placeholder guard.
 - **2026-05-18** — v3: Added OpenRouter routing with strict `ALLOWED_FAMILIES = ("anthropic/", "openai/", "google/")` allowlist enforced before any other filter (Llama/Grok/Mistral never picked). One OR key now reaches Claude, Gemini, and GPT-4o vision via `--provider openrouter`. Added `_auto_detect_provider()` — prefers OR key over Anthropic key; prefers Gemini direct key for free URL-native path. Added `--provider {openrouter,anthropic,gemini-direct,auto}` flag. Added `analyze_with_openrouter()` using OpenAI-compatible SDK (`base_url=https://openrouter.ai/api/v1`). `--tier gemini` with OR key uses frame-grid mode (paid ~$0.02), not free URL-native — warning surfaced in logs. OR adds 5.5% platform fee vs direct. `OPENROUTER_API_KEY` added as preferred env var.
 - **2026-05-18** — v2 refactor. Replaced ffmpeg scene-change filter with PySceneDetect ContentDetector. Added perceptual-hash dedup (imagehash.dhash). Added 3×3 grid tiling (24 frames → 3 grid images, ~85% vision token reduction). Rewrote Claude call as tool-use with forced `submit_breakdown` + prompt caching. Added dynamic model resolution via `model_registry.py` — no hardcoded model IDs. Added `--tier {default,premium,gemini}`, `--refresh-models`, `--model` (escape hatch). Default `--max-frames` dropped 60 → 24. Added Gemini free path (URL-native, no frame extraction). Cost: ~$0.03 default, ~$0.05 premium, $0.00 gemini (vs ~$0.30 in v1).
