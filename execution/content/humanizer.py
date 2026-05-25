@@ -143,12 +143,14 @@ def _to_anthropic_tool_format(schema: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Tier pricing for cost estimation — separate input/output prices (USD per million tokens)
+# Tier pricing for cost estimation — 4-rate shape (USD per million tokens).
+# cache_read  = Anthropic: 0.10× input;  Gemini/OpenRouter: 0 (not tracked here).
+# cache_write = Anthropic: 1.25× input;  Gemini/OpenRouter: 0 (not tracked here).
 # ---------------------------------------------------------------------------
 _TIER_COST_PER_M = {
-    "default":  {"input": 3.0,  "output": 15.0},   # Sonnet-class
-    "premium":  {"input": 5.0,  "output": 25.0},   # Opus-class
-    "gemini":   {"input": 0.0,  "output": 0.0},    # Free tier
+    "default":  {"input": 3.0,  "cache_read": 0.30,  "cache_write": 3.75,  "output": 15.0},   # claude-sonnet-4-6
+    "premium":  {"input": 15.0, "cache_read": 1.50,  "cache_write": 18.75, "output": 75.0},   # claude-opus-4-7
+    "gemini":   {"input": 0.0,  "cache_read": 0.0,   "cache_write": 0.0,   "output": 0.0},    # Free tier
 }
 
 
@@ -362,10 +364,13 @@ def _call_llm_humanize(
     """
     if dry_run:
         estimated_input_tokens = (len(system) + len(user_msg)) // 4 + 200
-        prices = _TIER_COST_PER_M.get(tier, {"input": 5.0, "output": 25.0})
-        # Fix 10: separate input/output pricing; estimate ~200 output tokens
+        prices = _TIER_COST_PER_M.get(tier, {"input": 5.0, "cache_read": 0.0, "cache_write": 0.0, "output": 25.0})
+        # Fix 10: separate input/output pricing; estimate ~200 output tokens; no cache on dry-run
         estimated_cost_usd = (
-            estimated_input_tokens * prices["input"] + 200 * prices["output"]
+            estimated_input_tokens * prices["input"]
+            + 0 * prices.get("cache_read", 0)
+            + 0 * prices.get("cache_write", 0)
+            + 200 * prices["output"]
         ) / 1_000_000
         log.info(
             "[dry-run] Estimated tokens: ~%d in, ~200 out | Cost: ~$%.5f",
@@ -410,15 +415,22 @@ def _call_llm_humanize(
                 msg = "[redacted credentials]"
             raise SystemExit(f"OpenRouter API call failed: {msg[:200]}")
 
-        # Fix 10: separate input/output pricing
+        # Fix 10: separate input/output pricing; extract cache tokens if OpenRouter forwards them
         if response.usage:
             in_tok = response.usage.prompt_tokens or 0
             out_tok = response.usage.completion_tokens or 0
-            prices = _TIER_COST_PER_M.get(tier, {"input": 5.0, "output": 25.0})
-            cost = (in_tok * prices["input"] + out_tok * prices["output"]) / 1_000_000
+            cache_read = getattr(response.usage, "cache_read_input_tokens", 0) or 0
+            cache_write = getattr(response.usage, "cache_creation_input_tokens", 0) or 0
+            prices = _TIER_COST_PER_M.get(tier, {"input": 5.0, "cache_read": 0.0, "cache_write": 0.0, "output": 25.0})
+            cost = (
+                in_tok * prices["input"]
+                + cache_read * prices.get("cache_read", 0)
+                + cache_write * prices.get("cache_write", 0)
+                + out_tok * prices["output"]
+            ) / 1_000_000
             log.info(
-                "Tokens: %d in + %d out = %d total | Est. cost: $%.5f",
-                in_tok, out_tok, in_tok + out_tok, cost,
+                "Tokens: %d in + %d cache_read + %d cache_write + %d out = %d total | Est. cost: $%.5f",
+                in_tok, cache_read, cache_write, out_tok, in_tok + out_tok, cost,
             )
 
         # Parse tool call — Fix 1: wrap JSON parse
@@ -471,15 +483,23 @@ def _call_llm_humanize(
             raise SystemExit(f"Anthropic API call failed: {msg[:200]}")
 
         # Fix 10: separate input/output pricing (Anthropic SDK: input_tokens/output_tokens)
+        # Anthropic SDK surfaces cache_read_input_tokens + cache_creation_input_tokens in usage
         usage = response.usage
         if usage:
             in_tok = getattr(usage, "input_tokens", 0) or 0
             out_tok = getattr(usage, "output_tokens", 0) or 0
-            prices = _TIER_COST_PER_M.get(tier, {"input": 5.0, "output": 25.0})
-            cost = (in_tok * prices["input"] + out_tok * prices["output"]) / 1_000_000
+            cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0
+            cache_write = getattr(usage, "cache_creation_input_tokens", 0) or 0
+            prices = _TIER_COST_PER_M.get(tier, {"input": 5.0, "cache_read": 0.0, "cache_write": 0.0, "output": 25.0})
+            cost = (
+                in_tok * prices["input"]
+                + cache_read * prices.get("cache_read", 0)
+                + cache_write * prices.get("cache_write", 0)
+                + out_tok * prices["output"]
+            ) / 1_000_000
             log.info(
-                "Tokens: %d in + %d out = %d total | Est. cost: $%.5f",
-                in_tok, out_tok, in_tok + out_tok, cost,
+                "Tokens: %d in + %d cache_read + %d cache_write + %d out = %d total | Est. cost: $%.5f",
+                in_tok, cache_read, cache_write, out_tok, in_tok + out_tok, cost,
             )
 
         # Parse tool use block — Fix 1: tool_call JSON handled via block.input (dict, no JSON parse needed)
@@ -547,8 +567,16 @@ def _call_llm_humanize(
             out_tok = response.usage_metadata.candidates_token_count
         except (AttributeError, TypeError):
             in_tok = out_tok = 0
-        prices = _TIER_COST_PER_M.get(tier, {"input": 0.0, "output": 0.0})
-        cost = (in_tok * prices["input"] + out_tok * prices["output"]) / 1_000_000
+        # Gemini usage_metadata has no cache-token breakdown; cache_read/cache_write default to 0
+        prices = _TIER_COST_PER_M.get(tier, {"input": 0.0, "cache_read": 0.0, "cache_write": 0.0, "output": 0.0})
+        cache_read = 0   # Gemini caching not tracked at this granularity
+        cache_write = 0  # Gemini caching not tracked at this granularity
+        cost = (
+            in_tok * prices["input"]
+            + cache_read * prices.get("cache_read", 0)
+            + cache_write * prices.get("cache_write", 0)
+            + out_tok * prices["output"]
+        ) / 1_000_000
         log.info(
             "Gemini usage: input=%d, output=%d tokens (~$%.4f, FREE tier)",
             in_tok, out_tok, cost,
