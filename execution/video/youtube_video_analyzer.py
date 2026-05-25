@@ -94,6 +94,8 @@ TOOL_SCHEMA = {
     "input_schema": {
         "type": "object",
         "required": [
+            "summary",
+            "key_takeaways",
             "hook",
             "pacing_cuts",
             "visual_storytelling",
@@ -101,6 +103,31 @@ TOOL_SCHEMA = {
             "content_ideas",
         ],
         "properties": {
+            "summary": {
+                "type": "string",
+                "description": (
+                    "A 3-5 sentence overview of what the video is actually about — "
+                    "the subject, the argument or thesis, and the conclusion. Plain prose, "
+                    "no marketing tone. Should let a reader understand the video's content "
+                    "without watching it."
+                ),
+            },
+            "key_takeaways": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1,
+                "maxItems": 7,
+                "description": (
+                    "1-7 substantive takeaways from the video's content (NOT how it was "
+                    "made — what it claims, argues, or teaches). Each bullet is a complete "
+                    "sentence stating a specific point the viewer would walk away knowing. "
+                    "On very short videos (under 1 minute) returning 1-2 bullets is fine — "
+                    "do NOT fabricate to fill quota. "
+                    "DISAMBIGUATION: transcript_highlights captures verbatim quote moments "
+                    "with timestamps; summary + key_takeaways are SYNTHESIZED content. "
+                    "Different purposes; don't duplicate."
+                ),
+            },
             "hook": {
                 "type": "string",
                 "description": (
@@ -172,6 +199,29 @@ Metadata:
 
 === TRANSCRIPT ===
 {transcript_text}
+
+Fill out each section below:
+
+## Summary
+A 3-5 sentence prose overview of what this video is about, what it argues, and what it concludes. Plain language. No marketing voice. Should stand alone — a reader should understand the video's substance from this paragraph without watching it.
+
+## Key Takeaways
+1-7 specific, complete-sentence bullets capturing what the viewer would walk away KNOWING. Substance, not style. NOT "the creator uses fast cuts" (that's craft). YES "global wheat prices have risen 40% in the last quarter due to X" (that's content). On very short videos returning 1-2 bullets is fine — do not fabricate to fill quota.
+
+## The Hook (0:00–0:15)
+What grabs attention in the first 15 seconds. Combine opening visual + opening line. Be specific.
+
+## Pacing & Cuts
+List the major cut/scene transitions with timestamps and what changes.
+
+## Visual Storytelling
+Patterns in text overlays, b-roll, camera moves, color, and framing.
+
+## Transcript Highlights
+3-5 verbatim quote moments with timestamps.
+
+## Content Ideas Inspired by This
+3-5 video concepts this breakdown could inspire.
 
 Call submit_breakdown exactly once with the structured breakdown.
 """
@@ -1099,6 +1149,11 @@ You are a video content analyst. Watch this YouTube video and produce a structur
 
 Return ONLY a valid JSON object with these exact keys:
 {{
+  "summary": "<string — a 3-5 sentence prose overview of what the video is actually about: the subject, the argument or thesis, and the conclusion. Plain language. No marketing tone. Should let a reader understand the video's content without watching it.>",
+  "key_takeaways": [
+    "<string — complete sentence stating a specific point the viewer would walk away knowing>",
+    ... 1-7 entries. Substantive content only (NOT craft observations like 'creator uses fast cuts'). On very short videos returning 1-2 bullets is fine — do NOT fabricate to fill quota. DISAMBIGUATION: transcript_highlights captures verbatim quote moments with timestamps; summary + key_takeaways are SYNTHESIZED content. Different purposes; don't duplicate."
+  ],
   "hook": "<string — what grabs attention in first 15s; combine opening visual + opening line>",
   "pacing_cuts": [
     {{"timestamp": "MM:SS", "what_changes": "<string>"}},
@@ -1245,6 +1300,13 @@ def render_breakdown_markdown(
 </details>
 """
 
+    # Summary and Key Takeaways (v4.1 — content-first sections)
+    summary = structured_data.get("summary") or ""
+    key_takeaways = structured_data.get("key_takeaways") or []
+    summary_section = f"\n## Summary\n\n{summary}\n" if summary else ""
+    takeaways_md = "\n".join(f"- {t}" for t in key_takeaways)
+    takeaways_section = f"\n## Key Takeaways\n\n{takeaways_md}\n" if takeaways_md else ""
+
     return f"""# {metadata['title']}
 
 **Channel:** {metadata['channel']}
@@ -1252,7 +1314,7 @@ def render_breakdown_markdown(
 **URL:** {url}
 **Analyzed:** {now}
 **Tier:** {tier}
-{frames_line}
+{frames_line}{summary_section}{takeaways_section}
 ## The Hook (0:00–0:15)
 
 {structured_data.get('hook', '—')}
