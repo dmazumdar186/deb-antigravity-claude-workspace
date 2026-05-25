@@ -80,6 +80,12 @@ py execution/video/youtube_video_analyzer.py "<URL>" --tier premium
 # Free Gemini path
 py execution/video/youtube_video_analyzer.py "<URL>" --tier gemini
 
+# Batch mode — analyze multiple videos in one command (free Gemini path)
+py execution/video/youtube_video_analyzer.py URL1 URL2 URL3 --tier gemini
+
+# Batch from a file (one URL per line, # comments skipped)
+py execution/video/youtube_video_analyzer.py --urls-file my_videos.txt --tier gemini
+
 # Force model registry refresh
 py execution/video/youtube_video_analyzer.py "<URL>" --refresh-models
 
@@ -102,12 +108,19 @@ The Gemini path skips steps 2–5 entirely — Gemini reads the YouTube URL nati
 
 After the script finishes, read the `.tmp/video/{video_id}/breakdown.md` file and present the breakdown to the user. Highlight the path so the user can find the file. If it was also written to their Obsidian vault, mention that.
 
+## Creator-profile cache (v4)
+
+If you analyze 3 or more videos from the same channel, a creator-style profile builds automatically. After the third video, the analyzer runs a distillation pass (using Gemini free tier by default) to synthesize recurring patterns — hook styles, pacing, visual style, common topics — into a compact profile stored at `.tmp/creator_profiles/{channel_id}.json`.
+
+Subsequent breakdowns from that channel automatically receive this context: the analysis prompt is pre-loaded with past observations so the breakdown can note where the new video follows or diverges from the creator's established patterns.
+
+The profile updates every 5 additional videos (threshold: 3, 8, 13, …). Use `--refresh-creator-profile` to force re-distillation immediately. Use `--show-creator-profile "UCxxx" --no-analyze` to inspect the current profile. Use `--no-creator-profile` to skip profile features for a single run.
+
 ## When NOT to use this skill
 
 - Non-YouTube URLs (TikTok, Instagram — not supported)
 - Videos without captions (Claude path will error out; warn user up front; suggest Gemini path as it doesn't rely on captions)
 - Live streams (script refuses)
-- Bulk-analyzing many videos at once (single URL per invocation; for many, loop yourself)
 
 ## Common follow-up tasks
 

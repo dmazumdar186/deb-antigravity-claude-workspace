@@ -16,7 +16,8 @@ Take a YouTube URL and produce a structured markdown breakdown that captures the
 
 | Flag | Required | Default | Description |
 |---|---|---|---|
-| `url` (positional) | Yes | — | YouTube video URL (watch / youtu.be / shorts / embed) |
+| `url` (positional, 1+) | Yes* | — | One or more YouTube video URLs. Multiple URLs activate batch mode. |
+| `--urls-file PATH` | No | — | Path to a text file with one URL per line. `#` lines and blank lines are skipped. Composable with positional URLs. |
 | `--tier` | No | `default` | `default` = latest Sonnet-equivalent (cheap); `premium` = latest Opus-equivalent (best quality); `gemini` = free URL-native via Gemini direct, or paid frame-grid via OR if no `GEMINI_API_KEY` |
 | `--provider` | No | `auto` | `openrouter` / `anthropic` / `gemini-direct` / `auto`. Auto selects based on env vars (see Provider selection below). |
 | `--model <exact-id>` | No | — | Escape hatch — bypass registry and use this exact model ID. Requires `--tier` to indicate which provider path to use (Claude or Gemini). |
@@ -27,6 +28,13 @@ Take a YouTube URL and produce a structured markdown breakdown that captures the
 | `--deep-dry-run` | No | false | Run the full pipeline (download, scene detection, frame extraction, grid tiling) and print pipeline stats + cost estimate, BUT skip the actual AI API call. Useful for cost forecasting before a real run. |
 | `--keep-source` | No | false | Don't delete the downloaded .mp4 |
 | `--refresh-transcript` | No | false | Force a fresh transcript fetch from YouTube even if `transcript.txt` already exists in the work dir. |
+| `--parallel N` | No | 1 | Process N URLs in parallel. Default is sequential (1). Use with caution — YouTube may rate-limit concurrent transcript fetches. |
+| `--refresh-creator-profile` | No | false | Force re-distillation of the creator profile even if threshold not yet reached. |
+| `--show-creator-profile CHANNEL_ID` | No | — | Print the stored creator profile JSON for the given channel ID and exit. Requires `--no-analyze`. |
+| `--no-creator-profile` | No | false | Skip creator-profile read and write for this run (regression-safe escape hatch). |
+| `--no-analyze` | No | false | Skip the analysis pipeline entirely. Used with `--show-creator-profile`. |
+
+*At least one URL must be provided either as a positional arg or via `--urls-file`.
 
 ### Env vars
 
@@ -43,6 +51,8 @@ Take a YouTube URL and produce a structured markdown breakdown that captures the
 - `.tmp/video/{video_id}/frames/*.jpg` — scene-change frames with timestamp overlays (Claude path only)
 - `.tmp/video/{video_id}/grids/grid_*.jpg` — 3×3 tiled grid images sent to Claude (Claude path only)
 - `{OBSIDIAN_VAULT}/Video Breakdowns/{YYYY-MM-DD}_{slug}.md` — if vault is set
+- `.tmp/creator_profiles/{channel_id}.json` — per-channel creator profile (created/updated after each successful analysis)
+- `.tmp/video/_batch_{run_id}/summary.md` — batch run summary with per-URL status, cost totals, and profile notices (batch mode only)
 - Source `.mp4` is deleted after analysis unless `--keep-source`
 
 ### Breakdown structure
@@ -63,6 +73,85 @@ Take a YouTube URL and produce a structured markdown breakdown that captures the
 ## Content Ideas Inspired by This
 
 ## Full Transcript (collapsed)
+```
+
+## Batch mode
+
+Pass multiple URLs as positional args, or use `--urls-file`, or both:
+
+```bash
+# Multiple positional URLs
+py execution/video/youtube_video_analyzer.py URL1 URL2 URL3 --tier gemini
+
+# From a file (one URL per line, # comments and blank lines skipped)
+py execution/video/youtube_video_analyzer.py --urls-file urls.txt --tier gemini
+
+# Composable: positional + file
+py execution/video/youtube_video_analyzer.py URL1 --urls-file more.txt --tier gemini
+```
+
+Batch mode activates when `len(urls) > 1`. Single-URL invocations use the v3 path unchanged.
+
+**Mechanics:**
+1. All URLs are validated upfront before any processing begins (fail-fast on malformed URLs).
+2. Each URL is processed sequentially by default; use `--parallel N` to process N at a time.
+3. Partial failure tolerance: if one URL fails (e.g. no captions), processing continues for the remaining URLs.
+4. Exit codes: `0` = all succeeded, `1` = all failed, `2` = partial (some succeeded, some failed).
+5. A batch summary is printed to stdout and written to `.tmp/video/_batch_{run_id}/summary.md`.
+
+**Below-threshold notice:** If channels in the batch have not yet reached their distillation threshold, the summary includes a note like:
+```
+NOTE: Videos 1-2 processed without creator-profile context for IBM Technology
+(threshold of 3 not yet reached — distill on next run).
+```
+
+## Creator-profile cache
+
+After each successful breakdown, the analyzer appends the video to a per-channel profile at `.tmp/creator_profiles/{channel_id}.json`. After every N videos from the same channel (default: 3, then +5 each time), a distillation pass runs and synthesizes a cross-video style profile. Subsequent analyses from the same channel receive this profile as context.
+
+**Schema (`.tmp/creator_profiles/{channel_id}.json`):**
+```json
+{
+  "schema_version": 1,
+  "channel_id": "UCxxx...",
+  "channel_name": "IBM Technology",
+  "profile_built_from": [
+    {"video_id": "...", "title": "...", "duration_sec": 851, "analyzed_at": "...", "breakdown_snippet": "..."}
+  ],
+  "style_profile": {
+    "hook_patterns": ["..."],
+    "pacing_patterns": ["..."],
+    "visual_style": ["..."],
+    "common_topics": ["..."],
+    "creator_signature": "minimalist tech-explainer, presenter-driven",
+    "common_b_roll_choices": ["..."],
+    "average_cuts_per_minute": 5.7
+  },
+  "build_count": 3,
+  "last_updated": "...",
+  "last_distillation_at": "...",
+  "next_distillation_threshold": 8
+}
+```
+
+**Distillation cadence:** Distillation fires at `build_count == next_distillation_threshold` (first at 3, then 8, 13, …). In a batch run, distillation fires per-video so that later videos in the same batch benefit from a freshly-distilled profile.
+
+**Context injection:** When a valid profile exists and `creator_signature` is not the placeholder (`"insufficient data to characterize"`), the profile is injected as a separate pre-analysis message. The injection includes a Goodhart-law guard: *"USE THESE AS CONTEXT ONLY. Describe what is actually in THIS video."*
+
+**`channel_id` fallback:** If yt-dlp does not return a `channel_id` (rare, occurs on some Shorts/embeds), the analyzer falls back to a sanitized `uploader` slug and logs a WARNING.
+
+**Schema versioning:** `schema_version: 1` is checked on load. A mismatch (future schema change) causes the profile to be treated as missing and forces re-distillation — no migration logic.
+
+**Useful commands:**
+```bash
+# View current profile for a channel
+py execution/video/youtube_video_analyzer.py --show-creator-profile "UCxxx..." --no-analyze
+
+# Force re-distillation (e.g. after manual edits to breakdowns)
+py execution/video/youtube_video_analyzer.py URL --refresh-creator-profile
+
+# Skip profile features for a single run
+py execution/video/youtube_video_analyzer.py URL --no-creator-profile
 ```
 
 ## How to run
@@ -215,6 +304,7 @@ Calculation: 3 grids × ~1400 tokens/grid (R3 calibrated: ~155 tokens/cell × 9 
 
 ## Changelog
 
+- **2026-05-18** — v4: Added batch mode (multiple positional URLs + `--urls-file`, composable; fail-fast URL validation; sequential default + `--parallel N`; partial-failure tolerance; exit codes 0/1/2; `.tmp/video/_batch_{run_id}/summary.md`). Added creator-profile cache (`execution/modules/creator_profiles.py`): per-channel JSON profile built from accumulated breakdowns, distilled via LLM every N videos (default threshold 3 then +5), injected as context into all 3 analysis paths. New CLI flags: `--urls-file`, `--parallel N`, `--refresh-creator-profile`, `--show-creator-profile`, `--no-creator-profile`, `--no-analyze`. Both metadata functions patched to extract `channel_id` with uploader-slug fallback. `format_creator_context` has case-insensitive placeholder guard.
 - **2026-05-18** — v3: Added OpenRouter routing with strict `ALLOWED_FAMILIES = ("anthropic/", "openai/", "google/")` allowlist enforced before any other filter (Llama/Grok/Mistral never picked). One OR key now reaches Claude, Gemini, and GPT-4o vision via `--provider openrouter`. Added `_auto_detect_provider()` — prefers OR key over Anthropic key; prefers Gemini direct key for free URL-native path. Added `--provider {openrouter,anthropic,gemini-direct,auto}` flag. Added `analyze_with_openrouter()` using OpenAI-compatible SDK (`base_url=https://openrouter.ai/api/v1`). `--tier gemini` with OR key uses frame-grid mode (paid ~$0.02), not free URL-native — warning surfaced in logs. OR adds 5.5% platform fee vs direct. `OPENROUTER_API_KEY` added as preferred env var.
 - **2026-05-18** — v2 refactor. Replaced ffmpeg scene-change filter with PySceneDetect ContentDetector. Added perceptual-hash dedup (imagehash.dhash). Added 3×3 grid tiling (24 frames → 3 grid images, ~85% vision token reduction). Rewrote Claude call as tool-use with forced `submit_breakdown` + prompt caching. Added dynamic model resolution via `model_registry.py` — no hardcoded model IDs. Added `--tier {default,premium,gemini}`, `--refresh-models`, `--model` (escape hatch). Default `--max-frames` dropped 60 → 24. Added Gemini free path (URL-native, no frame extraction). Cost: ~$0.03 default, ~$0.05 premium, $0.00 gemini (vs ~$0.30 in v1).
 - **2026-05-18** — Initial build (v1). Captions-only mode, ffmpeg scene-change frames, hardcoded Sonnet model. Single-URL invocation.
