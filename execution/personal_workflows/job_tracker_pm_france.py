@@ -29,39 +29,35 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from execution.personal_workflows._jt_utils import (
-    retry_with_backoff,
+from execution.personal_workflows._jt_utils import (  # noqa: E402
     setup_logging,
     now_iso,
     generate_run_id,
     load_jt_config,
     save_json,
     load_json,
-    normalize_company,
 )
-from execution.personal_workflows.job_tracker_db import (
+from execution.personal_workflows.job_tracker_db import (  # noqa: E402
     init_db,
     upsert_company,
     upsert_job,
     upsert_contact,
     mark_expired,
-    query_active_within_window,
-    get_contacts_for_company,
     recent_contact_cache_hit,
     log_notification,
 )
-from execution.custom_scrapers.job_filter import filter_jobs
-from execution.custom_scrapers import (
+from execution.custom_scrapers.job_filter import filter_jobs  # noqa: E402
+from execution.custom_scrapers import (  # noqa: E402
     wttj_jobs,
     indeed_jobs,
     apec_jobs,
     france_travail_jobs,
     google_jobs_serper,
 )
-from execution.lead_sourcing.sirene_company_lookup import lookup_company
-from execution.enrichment.firecrawl_linkedin_dork import find_contacts_for_company
-from execution.personal_workflows.job_digest_renderer import render_digest_html
-from execution.google.gmail_send_digest import send_digest
+from execution.lead_sourcing.sirene_company_lookup import lookup_company  # noqa: E402
+from execution.enrichment.firecrawl_linkedin_dork import find_contacts_for_company  # noqa: E402
+from execution.personal_workflows.job_digest_renderer import render_digest_html  # noqa: E402
+from execution.google.gmail_send_digest import send_digest  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

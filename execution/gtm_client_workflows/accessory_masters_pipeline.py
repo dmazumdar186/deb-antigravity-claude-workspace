@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "execution"))
 
-from modules.pipeline_utils import (
+from modules.pipeline_utils import (  # noqa: E402
     export_csv,
     generate_run_id,
     load_config,
@@ -33,18 +33,18 @@ from modules.pipeline_utils import (
     save_leads,
     setup_logging,
 )
-from modules.outputs.instantly import (
+from modules.outputs.instantly import (  # noqa: E402
     fetch_replies,
     normalize_replies,
     send_reply,
     upload_leads,
 )
-from modules.outputs.ghl import route_positive_reply, suggest_booking
-from modules.outputs.slack import notify_positive_reply
-from modules.outputs.telegram import notify_positive_reply as telegram_notify
-from modules.outputs.auto_reply import handle_reply as auto_reply_handle
-from modules.outputs.report_generator import run_weekly_report
-from modules.reply_classifier import classify
+from modules.outputs.ghl import route_positive_reply, suggest_booking  # noqa: E402
+from modules.outputs.slack import notify_positive_reply  # noqa: E402
+from modules.outputs.telegram import notify_positive_reply as telegram_notify  # noqa: E402
+from modules.outputs.auto_reply import handle_reply as auto_reply_handle  # noqa: E402
+from modules.outputs.report_generator import run_weekly_report  # noqa: E402
+from modules.reply_classifier import classify  # noqa: E402
 
 load_dotenv(ROOT / ".env")
 logger = setup_logging("pipeline", log_dir=ROOT / ".tmp")

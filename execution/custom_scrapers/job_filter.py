@@ -20,10 +20,10 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from langdetect import detect, DetectorFactory, LangDetectException
+from langdetect import detect, DetectorFactory, LangDetectException  # noqa: E402
 DetectorFactory.seed = 0
 
-from execution.personal_workflows._jt_utils import (
+from execution.personal_workflows._jt_utils import (  # noqa: E402
     normalize_title,
     normalize_company,
     compute_job_hash,

@@ -18,7 +18,6 @@ Notes:
 
 import argparse
 import json
-import logging
 import os
 import sys
 from pathlib import Path
@@ -35,7 +34,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from execution.personal_workflows._jt_utils import (
+from execution.personal_workflows._jt_utils import (  # noqa: E402
     load_jt_config,
     normalize_company,
     now_iso,

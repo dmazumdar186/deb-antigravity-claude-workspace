@@ -20,8 +20,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from execution.personal_workflows._jt_utils import setup_logging, now_iso, load_jt_config
-from execution.personal_workflows.job_tracker_db import init_db, log_notification
+from execution.personal_workflows._jt_utils import setup_logging, load_jt_config  # noqa: E402
+from execution.personal_workflows.job_tracker_db import init_db, log_notification  # noqa: E402
 
 logger = setup_logging("gmail_send_digest")
 

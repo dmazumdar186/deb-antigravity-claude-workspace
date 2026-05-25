@@ -1830,7 +1830,7 @@ def _run_batch(urls: list[str], args, provider: str, tier: str, model_id: str,
 
     # Write summary markdown
     summary_lines = [
-        f"# Batch Analysis Summary\n",
+        "# Batch Analysis Summary\n",
         f"**Run ID:** {run_id}  ",
         f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}  ",
         f"**Total URLs:** {len(urls)}  ",

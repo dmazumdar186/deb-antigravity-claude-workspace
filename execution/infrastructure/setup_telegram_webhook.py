@@ -142,9 +142,9 @@ def main() -> int:
 
     print()
     print("Next steps:")
-    print(f"  1. Set TELEGRAM_CHAT_ID_HIGH_PRIORITY and TELEGRAM_CHAT_ID_REGULAR on Cloudflare via wrangler secret put.")
-    print(f"  2. Set TELEGRAM_AUTHORIZED_USERS to comma-separated user IDs for Alex + Simon.")
-    print(f"  3. From Telegram, message the bot /status — it should reply with last-7-day metrics.")
+    print("  1. Set TELEGRAM_CHAT_ID_HIGH_PRIORITY and TELEGRAM_CHAT_ID_REGULAR on Cloudflare via wrangler secret put.")
+    print("  2. Set TELEGRAM_AUTHORIZED_USERS to comma-separated user IDs for Alex + Simon.")
+    print("  3. From Telegram, message the bot /status — it should reply with last-7-day metrics.")
     return 0
 
 

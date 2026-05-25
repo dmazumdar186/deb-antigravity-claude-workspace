@@ -14,7 +14,6 @@ usage:
 
 import argparse
 import csv
-import json
 import os
 import re
 import sys
@@ -25,7 +24,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "execution"))
 
-from modules.pipeline_utils import load_config, save_leads, setup_logging
+from modules.pipeline_utils import load_config, save_leads, setup_logging  # noqa: E402
 
 logger = setup_logging("import_leads", log_dir=ROOT / ".tmp")
 
@@ -327,7 +326,7 @@ def main():
             save_leads(leads, output_path)
 
     # ---- Summary ----
-    print(f"\n--- Import Summary ---")
+    print("\n--- Import Summary ---")
     print(f"  CSV file:   {csv_path}")
     print(f"  Total rows: {len(rows)}")
     print(f"  Imported:   {len(leads)}")

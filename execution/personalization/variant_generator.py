@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "execution"))
 
-from modules.pipeline_utils import load_config, now_iso, setup_logging
+from modules.pipeline_utils import load_config, now_iso, setup_logging  # noqa: E402
 
 load_dotenv(ROOT / ".env")
 logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")

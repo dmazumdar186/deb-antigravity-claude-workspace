@@ -7,9 +7,8 @@ outputs: HTML string returned from render_digest_html(); optionally written to -
 
 import argparse
 import os
-import re
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -19,12 +18,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from execution.personal_workflows._jt_utils import setup_logging, now_iso, load_jt_config, save_json
-from execution.personal_workflows.job_tracker_db import (
+from execution.personal_workflows._jt_utils import setup_logging, now_iso, load_jt_config  # noqa: E402
+from execution.personal_workflows.job_tracker_db import (  # noqa: E402
     init_db,
     query_active_within_window,
     get_contacts_for_company,
-    log_notification,
     mark_expired,
 )
 

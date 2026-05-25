@@ -13,7 +13,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv; load_dotenv()
 
-from execution.personal_workflows._jt_utils import now_iso
+from execution.personal_workflows._jt_utils import now_iso  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

@@ -22,7 +22,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import argparse
+import argparse  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -129,7 +129,7 @@ def _print_next_steps(missing_vars: list[str], missing_pkgs: list[str]) -> None:
     if missing_pkgs:
         print(
             "  2. Install missing packages:\n"
-            f"       py execution\\personal_workflows\\job_tracker_setup.py --install-deps"
+            "       py execution\\personal_workflows\\job_tracker_setup.py --install-deps"
         )
     print(
         "  3. Initialise the database (first time only):\n"
