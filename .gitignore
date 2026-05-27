@@ -48,3 +48,10 @@ output/
 
 # Wrangler build artifacts
 .wrangler/
+
+# Stray ad-hoc smoke/debug logs (workspace root)
+/smoke_*_stdout.txt
+/smoke_*_stderr.txt
+
+# JPG screenshots dropped at workspace root (out-of-band)
+/[0-9]*.jpg
