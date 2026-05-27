@@ -33,7 +33,7 @@ You operate within a 3-layer architecture that separates concerns to maximize re
 
 **Layer 1: Directive (What to do)**
 - SOPs written in Markdown, organized by category in `directives/{category}/`
-- Categories: `lead_sourcing/`, `enrichment/`, `personalization/`, `gtm_icp_filters/`, `gtm_client_workflows/`, `custom_scrapers/`, `infrastructure/`, `content/`, `image_generation/`, `video/`, `personal_workflows/`, `n8n_workflows/`, `crm_and_pm/`, `google/`, `rag/`, `subagent/`
+- Categories: `lead_sourcing/`, `enrichment/`, `personalization/`, `gtm_icp_filters/`, `gtm_client_workflows/`, `custom_scrapers/`, `infrastructure/`, `content/`, `image_generation/`, `video/`, `personal_workflows/`, `n8n_workflows/`, `crm_and_pm/`, `google/`, `rag/`, `subagent/`, `mobile_apps/`
 - Define the goals, inputs, tools/scripts to use, outputs, and edge cases
 - Natural language instructions, like you'd give a mid-level employee
 
@@ -44,7 +44,7 @@ You operate within a 3-layer architecture that separates concerns to maximize re
 
 **Layer 3: Execution (Doing the work)**
 - Deterministic Python scripts organized by category in `execution/{category}/`
-- Categories mirror directives: `lead_sourcing/`, `enrichment/`, `personalization/`, `gtm_icp_filters/`, `gtm_client_workflows/`, `custom_scrapers/`, `infrastructure/`, `content/`, `image_generation/`, `video/`, `personal_workflows/`, `n8n_workflows/`, `crm_and_pm/`, `google/`, `rag/`, `subagent/`
+- Categories mirror directives: `lead_sourcing/`, `enrichment/`, `personalization/`, `gtm_icp_filters/`, `gtm_client_workflows/`, `custom_scrapers/`, `infrastructure/`, `content/`, `image_generation/`, `video/`, `personal_workflows/`, `n8n_workflows/`, `crm_and_pm/`, `google/`, `rag/`, `subagent/`, `mobile_apps/`
 - Shared Python modules live in `execution/modules/` (sources, scrapers, enrichers, personalizers, outputs)
 - Environment variables, api tokens, etc are stored in `.env`
 - Handle API calls, data processing, file operations, database interactions
@@ -164,6 +164,7 @@ Task(subagent_type="general-purpose", description="Document script changes",
 | `google/` | Google Workspace integrations (Gmail, Calendar, Meet, Sheets, Docs) |
 | `rag/` | Retrieval-augmented generation, conversation memory |
 | `subagent/` | Internal agent workflows (note_taker, documenter, reviewer) |
+| `mobile_apps/` | Mobile app development — Expo + RN scaffolding, EAS Build, TestFlight/Play deploy, AI integration |
 
 **Shared modules** (`execution/modules/` only — no directive equivalent):
 | Module | Purpose |
@@ -335,6 +336,17 @@ Banked from anneal v0.1 + workspace audit pass (2026-05-25). Apply to every new 
 - `runner/sandbox.py` — env-stripped subprocess pattern
 - `suppressions/store.py` — threading.Lock around concurrent writes
 - `runner/javascript_test_runner.py` / `go_test_runner.py` — path-traversal guard pattern
+
+## Mobile App Development (Hybrid Workspace)
+
+Directives and execution scripts for mobile apps live in this workspace under `directives/mobile_apps/` and `execution/mobile_apps/`. **Actual app source code lives in separate per-app repos** at `C:\Users\deban\dev\mobile-apps\{app-slug}\`, cloned from `C:\Users\deban\dev\mobile-apps\_template\`.
+
+- **Registry**: `execution/mobile_apps/registry.json` is the single source of truth tracking every app (slug, repo path, bundle IDs, EAS project ID, last build SHA, /api/health URL, Play tester gate state).
+- **Builds**: all iOS/Android builds go through **EAS Build (cloud)** — no Xcode / Mac required (user is on Windows).
+- **Preflight required**: always run `/mobile-app preflight` before starting a new app. Phase 4-5 are gated on `APPLE_ENROLLMENT_STATUS=active`.
+- **Template versioning**: pinned per-app in `.template-version`. Do not auto-upgrade existing apps when the template changes.
+- **AM-locked path**: `execution/infrastructure/api-proxy/` is locked under the Accessory Masters handoff (`CLAUDE.local.md`). The mobile_apps Phase 4 Worker is scaffolded from scratch via `wrangler init <slug>-api --yes` — never cloned from api-proxy.
+- **Anneal audit**: after each phase, the `/mobile-app` skill runs `py -m anneal.cli classic --diff-file <patch> --repo <app-repo>` (phases 1-3) or `py -m anneal.cli adversarial <base-ref> --repo <app-repo>` (phases 4-5) from `C:\Users\deban\dev\anneal\`. Adversarial mode does NOT accept `--diff-file`.
 
 ## Summary
 
