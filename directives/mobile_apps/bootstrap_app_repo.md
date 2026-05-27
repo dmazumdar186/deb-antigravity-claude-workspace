@@ -7,7 +7,7 @@ Create a new per-app repo at `C:\Users\deban\dev\mobile-apps\<slug>\` from the w
 ## Inputs
 
 - App slug (kebab-case, 3-32 chars, alphanumeric + hyphens only)
-- `_template/` repo present at `C:\Users\deban\dev\mobile-apps\_template\` (cloned once, manually, before app #1)
+- `_template/` repo present at `C:\Users\deban\dev\mobile-apps\_template\` (cloned once, manually, before app #1). **Remote backup**: https://github.com/dmazumdar186/deb-mobile-template (public). If the local dir is missing, clone with `git clone https://github.com/dmazumdar186/deb-mobile-template C:\Users\deban\dev\mobile-apps\_template` then continue. Bootstrap script always reads from the local path for speed.
 - `execution/mobile_apps/registry.json` exists (initialized as `{"apps": []}` on first run)
 
 ## Tools/Scripts
