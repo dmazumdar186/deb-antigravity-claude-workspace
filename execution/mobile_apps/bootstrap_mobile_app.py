@@ -163,7 +163,10 @@ def replace_slug_in_tree(target: Path, slug: str) -> int:
 
 # ---------- create ----------
 
-def cmd_create(slug: str, dry_run: bool, force: bool) -> int:
+VALID_BACKEND_STACKS = ("cf_modal", "supabase")
+
+
+def cmd_create(slug: str, dry_run: bool, force: bool, backend_stack: str | None = None) -> int:
     validate_slug(slug)
     target = resolve_app_dir(slug)
 
@@ -228,10 +231,16 @@ def cmd_create(slug: str, dry_run: bool, force: bool) -> int:
 
     # Update registry
     now_iso = datetime.now(timezone.utc).isoformat()
+    # Validate backend_stack if provided
+    if backend_stack is not None and backend_stack not in VALID_BACKEND_STACKS:
+        raise ValueError(
+            f"invalid --backend-stack: {backend_stack!r} (expected one of {VALID_BACKEND_STACKS})"
+        )
+
     new_entry = {
         "slug": slug,
         "repo_path": str(target),
-        "backend_stack": None,  # "cf_modal" | "supabase" — set by /mobile-app skill before phase 4
+        "backend_stack": backend_stack,  # "cf_modal" | "supabase" | None (set later by /mobile-app skill)
         "spec_summary": None,  # one-line from APP_SPEC.md § Core Function — written by app_design directive
         "ios_bundle_id": None,
         "android_package": None,
@@ -329,6 +338,10 @@ def main() -> int:
                         help="Print planned operations, do not write anything.")
     parser.add_argument("--force", action="store_true",
                         help="Overwrite existing target dir and registry entry on create.")
+    parser.add_argument("--backend-stack", choices=VALID_BACKEND_STACKS, default=None,
+                        help="Backend track for this app: cf_modal (CF Worker + Modal cron) "
+                             "or supabase (Postgres + Auth + Edge Functions). "
+                             "Optional — can be set later via the /mobile-app skill.")
     parser.add_argument("--remove", metavar="SLUG",
                         help="Remove the given app (dir + registry entry).")
     parser.add_argument("--force-remove", action="store_true",
@@ -341,7 +354,12 @@ def main() -> int:
 
         if not args.slug:
             parser.error("slug is required unless --remove is used")
-        return cmd_create(args.slug, dry_run=args.dry_run, force=args.force)
+        return cmd_create(
+            args.slug,
+            dry_run=args.dry_run,
+            force=args.force,
+            backend_stack=args.backend_stack,
+        )
 
     except ValueError as e:
         print(f"ERROR: {e}", file=sys.stderr)

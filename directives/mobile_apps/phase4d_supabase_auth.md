@@ -42,7 +42,8 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapter 18
    - **GitHub** (optional): only if the app's audience is technical.
 2. **Build the auth provider.** `src/lib/auth.tsx`:
    ```tsx
-   import { createContext, useContext, useEffect, useState } from 'react'
+   import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+   import AsyncStorage from '@react-native-async-storage/async-storage'
    import { supabase } from './supabase'
    import type { Session, User } from '@supabase/supabase-js'
 
@@ -56,8 +57,17 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapter 18
        const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
        return () => sub.subscription.unsubscribe()
      }, [])
-     const signOut = async () => { await supabase.auth.signOut(); await AsyncStorage.clear() }
-     return <AuthCtx.Provider value={{ user: session?.user ?? null, session, loading, signOut }}>{children}</AuthCtx.Provider>
+     const signOut = useCallback(async () => {
+       await supabase.auth.signOut()
+       await AsyncStorage.clear()
+     }, [])
+     // Memoize the context value so consumers of useUser() only re-render when
+     // user / session / loading actually change.
+     const value = useMemo(
+       () => ({ user: session?.user ?? null, session, loading, signOut }),
+       [session, loading, signOut],
+     )
+     return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
    }
    export const useUser = () => useContext(AuthCtx)
    ```

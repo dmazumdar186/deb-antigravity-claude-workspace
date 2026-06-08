@@ -18,7 +18,7 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
 - `supabase functions new <name>` — scaffolds `supabase/functions/<name>/index.ts` (Deno runtime, TypeScript)
 - `supabase functions deploy <name>` — pushes the function to the project's edge runtime
 - `supabase secrets set KEY=value` — sets a runtime secret (NOT `Deno.env` defaults in the function code itself)
-- `supabase functions invoke <name> --no-verify-jwt false --body '{...}'` — local test (always with JWT verification on)
+- `supabase functions invoke <name> --body '{...}'` — local test (JWT verification is fixed at deploy time via the deploy flag below, not at invoke time)
 - New tables in app repo migration: `coaching_messages`, `reflection_summaries` (or whatever the spec needs)
 - Client SDK helper: `supabase.functions.invoke('<name>', { body: {...} })` — already typed via Phase 4c's client
 
@@ -58,16 +58,15 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
    supabase functions new generate-coaching
    ```
    Creates `supabase/functions/generate-coaching/index.ts`.
-3. **Implement the function.** TypeScript / Deno:
+3. **Implement the function.** TypeScript / Deno (uses `Deno.serve`, the current Supabase Edge runtime entrypoint — `std/http/server` is deprecated and will eventually be removed):
    ```ts
-   import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
    const ANTHROPIC = Deno.env.get('ANTHROPIC_API_KEY')!
    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
    const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-   serve(async (req) => {
+   Deno.serve(async (req) => {
      // 1. Extract + verify JWT from Authorization header
      const jwt = req.headers.get('Authorization')?.replace('Bearer ', '')
      if (!jwt) return new Response('unauthorized', { status: 401 })
@@ -107,6 +106,7 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
      return Response.json({ message: body })
    })
    ```
+   Note: `Deno.serve` returns immediately and registers the handler; the Supabase Edge runtime takes over from there. Do not wrap it in `await`.
    `user.id` comes from the verified JWT — **never** trust a `user_id` field in the request body (the security audit will flag CRITICAL otherwise).
 4. **Set secrets.**
    ```
@@ -120,6 +120,9 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
    `--no-verify-jwt false` (the default) means the Supabase edge runtime rejects requests without a valid JWT *before* the function code runs. This is a defense-in-depth layer on top of the explicit `getUser(jwt)` check in step 3. **Never deploy with `--no-verify-jwt true`** — it removes the auth gate and turns the function into a public Anthropic credit drain (see Edge Cases).
 6. **Cache-aware cost estimation.** Implement `estimateCost(usage)` in the function. Per CLAUDE.md hardening rule #4 — four entries for Sonnet:
    ```ts
+   // Reference implementation lives at C:\Users\deban\dev\anneal\src\anneal\cost.py
+   // (Python). The TS port below is a 1:1 transcription kept in sync MANUALLY —
+   // when Sonnet pricing changes, update both this snippet AND cost.py, or one will drift.
    const PRICING = {
      'claude-sonnet-4-6': { input: 3.00, cache_read: 0.30, cache_write: 3.75, output: 15.00 },
    } // USD per 1M tokens
@@ -131,7 +134,7 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
            + (u.output_tokens ?? 0) * m.output) / 1_000_000
    }
    ```
-   Flat-rate pricing under-estimates 5-10x once caching kicks in.
+   Flat-rate pricing under-estimates 5-10x once caching kicks in. **Drift risk**: the canonical pricing table is in `anneal/src/anneal/cost.py`; this TS copy must track it. If you change one without the other, the canary's monthly-cost report will diverge from anneal's. Future improvement: generate this TS from a shared JSON dumped by cost.py at build time.
 7. **Client-side invocation.** From the app:
    ```ts
    const { data, error } = await supabase.functions.invoke('generate-coaching', {
@@ -154,7 +157,7 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
 - **No streaming in Edge Functions to React Native.** Even though Anthropic supports SSE streaming, the Supabase Edge runtime doesn't proxy SSE cleanly to the RN SDK's `functions.invoke()` (which awaits the full response). Nick mentions this in chapter 22. If streaming matters: either use a Worker + custom client, or accept "wait for full response" UX (typically 3-15s for Sonnet). For most apps in this workspace, accept the wait — streaming adds significant complexity for marginal UX.
 - **Service-role key bleed into client.** If the function returns the wrong shape (e.g. `JSON.stringify(adminClient)` for debug) the service-role key can leak in the response body. Sanitize every error path; never `Response.json(err)` where `err` includes the client. Test by triggering a malformed request and reading the 500 body.
 - **Service-role key in `Deno.env.get(...)` defaults.** Same pattern as Anthropic — never embed a default. Set via `supabase secrets set SUPABASE_SERVICE_ROLE_KEY=...` (Supabase actually provides this one automatically at the function runtime, but other apps' projects sometimes override it; verify with `supabase secrets list`).
-- **Em-dash leakage.** Nick chapter 22 specifically calls out em-dashes (`—`) as an AI tell. Add `no em-dashes` to the system prompt explicitly. The model still slips occasionally — post-process with `text.replace(/—/g, ', ')` if it matters.
+- **Em-dash leakage.** Nick chapter 22 specifically calls out em-dashes (`—`) as an AI tell. Add `no em-dashes` to the system prompt explicitly. The model still slips occasionally — post-process with a regex covering every dash codepoint Sonnet emits, not just U+2014: `text.replace(/[—–―−]|--+/g, ', ')` (em-dash, en-dash, horizontal bar, minus sign, plain ASCII double-hyphen).
 - **Token-cost spike during testing.** Iterating on the prompt with real Sonnet calls runs up costs fast. Add a `--dry-run` body field that returns a mocked response without hitting Anthropic — same pattern as Phase 5a's dry-run.
 - **JWT verification skipped via misconfigured CORS proxy.** If a CORS-permissive Worker sits in front of the Edge Function (e.g. for browser access), it can strip the `Authorization` header on cross-origin preflight. Verify the proxy passes Authorization through; otherwise the Edge Function 401s on every browser-origin call.
 - **PII in coaching prompts.** Habit data is mildly sensitive. Don't send raw email addresses or display names into Anthropic if the spec doesn't require them. Filter the payload to only what the prompt needs.

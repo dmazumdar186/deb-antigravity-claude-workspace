@@ -81,11 +81,14 @@ silently, then continue with design.
    - **Supabase** (per Nick transcript chapters 16-19): integrated
      Postgres + Auth + Edge Functions, faster setup. Phases 4c/4d/5b_supabase.
    Record as `backend_stack: "cf_modal" | "supabase"` in the registry.
-3. Run the bootstrap script:
+3. Run the bootstrap script, **passing the backend_stack from step 2**:
    ```
-   py execution/mobile_apps/bootstrap_mobile_app.py <slug>
+   py execution/mobile_apps/bootstrap_mobile_app.py <slug> --backend-stack <cf_modal|supabase>
    ```
-   Pass `--dry-run` first if the user wants a preview.
+   Pass `--dry-run` first if the user wants a preview. The flag is also
+   accepted by direct CLI invocations — if a user runs bootstrap manually
+   without it, `backend_stack` stays `None` in the registry and `phase {n}`
+   will refuse to route until the skill (or the user) sets it.
 4. Confirm registry write + repo creation at
    `C:\Users\deban\dev\mobile-apps\<slug>\`.
 5. Suggest `/mobile-app design <slug>` as the next step. Do not auto-run

@@ -70,9 +70,9 @@ If any of the above is missing, fix first; `eas submit` will fail late and the c
    - Closed testing track → create a "Closed test" release
 4. **Submit the build to closed testing.**
    ```
-   eas submit --platform android --profile production --latest --track closed
+   eas submit --platform android --profile production --latest --track alpha
    ```
-   `--track closed` routes to the closed-testing track instead of production. The service account must have permission for the closed track in Play Console.
+   The EAS CLI's `--track` accepts `internal | alpha | beta | production` only — there is no `closed` value. Play Console's UI label "Closed testing" maps to the **`alpha`** track in the CLI (or `beta` for a wider closed pool). The service account must have Release-manager permission on whichever track you pick.
 5. **Recruit ≥20 testers.** Add their email addresses to a Google Group OR use Play Console's "Opt-in URL" → share the URL, anyone who joins counts. Tester opt-in is **not** automated; user does this manually.
 6. **Track the count.** User manually reads tester count from Play Console (Testers tab → count of opted-in users) and updates `registry.json`:
    ```
@@ -104,7 +104,7 @@ If any of the above is missing, fix first; `eas submit` will fail late and the c
 - **Manual count drift.** User forgets to update `play_tester_count_manual` for a week → gate script says blocked when it's actually clear. Cross-check Play Console UI before final submit.
 - **Package name conflict.** Two apps can't share `com.debanjan.<slug>` in Play Console even after deletion. Pick a fresh package name if you ever need to start over.
 - **AAB vs APK.** Play Console requires AAB for new apps since Aug 2021. Don't try to upload an APK.
-- **Internal vs Closed vs Open testing.** Internal testing (up to 100 users) does NOT count toward the 20/14 gate — must be **Closed** track. Verify in Play Console UI which track the build is on.
+- **Internal vs Closed vs Open testing.** Internal testing (up to 100 users) does NOT count toward the 20/14 gate — must be a **Closed** track (Play Console label), which is `--track alpha` or `--track beta` in the EAS CLI. `--track internal` does NOT clear the gate. Verify in Play Console UI which track the build is on.
 
 ## Notes
 

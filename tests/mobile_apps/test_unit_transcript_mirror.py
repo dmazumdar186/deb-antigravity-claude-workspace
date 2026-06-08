@@ -286,6 +286,34 @@ class TestBootstrapDryRun:
         reg_after_remove = json.loads(isolated_registry.read_text(encoding="utf-8"))
         assert reg_after_remove["apps"] == []
 
+    def test_cmd_create_with_backend_stack_supabase(self, isolated_registry, isolated_mobile_apps_base):
+        import bootstrap_mobile_app as bma
+        assert bma.cmd_create("supabase-app", dry_run=False, force=False, backend_stack="supabase") == 0
+        reg = json.loads(isolated_registry.read_text(encoding="utf-8"))
+        assert reg["apps"][0]["backend_stack"] == "supabase"
+
+    def test_cmd_create_with_backend_stack_cf_modal(self, isolated_registry, isolated_mobile_apps_base):
+        import bootstrap_mobile_app as bma
+        assert bma.cmd_create("cf-modal-app", dry_run=False, force=False, backend_stack="cf_modal") == 0
+        reg = json.loads(isolated_registry.read_text(encoding="utf-8"))
+        assert reg["apps"][0]["backend_stack"] == "cf_modal"
+
+    def test_cmd_create_rejects_invalid_backend_stack(self, isolated_registry, isolated_mobile_apps_base):
+        import bootstrap_mobile_app as bma
+        with pytest.raises(ValueError, match="invalid --backend-stack"):
+            bma.cmd_create("bad-app", dry_run=False, force=False, backend_stack="firebase")
+
+    def test_cli_accepts_backend_stack_flag(self):
+        """--help should list --backend-stack as a documented flag."""
+        result = subprocess.run(
+            [sys.executable, str(PROJECT_ROOT / "execution" / "mobile_apps" / "bootstrap_mobile_app.py"), "--help"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
+        )
+        assert result.returncode == 0
+        assert "--backend-stack" in result.stdout
+        assert "cf_modal" in result.stdout
+        assert "supabase" in result.stdout
+
     def test_cmd_create_includes_new_fields(self, isolated_registry, isolated_mobile_apps_base):
         import bootstrap_mobile_app as bma
         rc = bma.cmd_create("transcript-mirror-test", dry_run=False, force=False)
