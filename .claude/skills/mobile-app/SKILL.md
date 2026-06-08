@@ -3,15 +3,17 @@ name: mobile-app
 description: |
   Scaffold and ship cross-platform mobile apps (Expo + React Native) from
   zero to TestFlight / Play Store on a Windows machine. Wraps Nick Saraev's
-  5-phase build (local stack -> network -> SQLite -> CF Worker + Modal cron
-  -> OpenRouter AI) with sub-agent decomposition and per-phase anneal audit
-  loops. All iOS/Android builds go through EAS cloud (no Xcode required).
+  full course (transcript: Claude Code Mobile App Dev 1.pdf) — 5-principle
+  app design framework, 3-tier testing, two backend tracks (CF Worker +
+  Modal cron OR Supabase), 2-pass security audit, and EAS cloud builds
+  (no Xcode required).
 
   Triggers on: "build a mobile app", "new expo app", "/mobile-app",
   "ship to TestFlight", "ship to Play Store", "scaffold a mobile app".
 
-  Sub-commands: `preflight`, `new {slug}`, `phase {n}` (1, 2, 3, 4a, 4b, 5a,
-  5b), `ship ios`, `ship android`.
+  Sub-commands: `preflight`, `design {slug}`, `new {slug}`, `phase {n}`
+  (1, 2, 3, 4a, 4b, 4c, 4d, 5a, 5b, 5b_supabase), `audit {slug}`,
+  `ship ios`, `ship android`.
 ---
 
 # Mobile App
@@ -59,20 +61,37 @@ What the agent checks:
   developer.apple.com before phases 4-5."
 - `node --version` < 18 -> block all phases with upgrade instructions.
 
+### `design {slug}`
+
+Runs `directives/mobile_apps/app_design.md` — Nick's 5-principle MVP
+framework (core function / core loop / accessory features / surface area /
+retention hook). Produces `APP_SPEC.md` in the app repo. Must run before
+`phase 1`; Phase 1 reads the spec.
+
+Pre-condition: `new {slug}` must have already run (repo must exist). If
+the slug doesn't exist in the registry yet, run `new {slug}` first
+silently, then continue with design.
+
 ### `new {slug}`
 
 1. Run `preflight` (abort on red unless user overrides).
-2. Run the bootstrap script:
+2. **Pick a backend stack.** Ask the user once via AskUserQuestion:
+   - **CF Worker + Modal cron** (current default): heavier infra, more
+     control, all free tier. Phases 4a/4b/5a.
+   - **Supabase** (per Nick transcript chapters 16-19): integrated
+     Postgres + Auth + Edge Functions, faster setup. Phases 4c/4d/5b_supabase.
+   Record as `backend_stack: "cf_modal" | "supabase"` in the registry.
+3. Run the bootstrap script:
    ```
    py execution/mobile_apps/bootstrap_mobile_app.py <slug>
    ```
    Pass `--dry-run` first if the user wants a preview.
-3. Confirm registry write + repo creation at
+4. Confirm registry write + repo creation at
    `C:\Users\deban\dev\mobile-apps\<slug>\`.
-4. Walk the user through phases 1 -> 5 interactively, asking after each
-   phase whether to proceed. Auto-`--app <slug>` on every `phase` call.
+5. Suggest `/mobile-app design <slug>` as the next step. Do not auto-run
+   Phase 1 — the design directive must produce `APP_SPEC.md` first.
 
-### `phase {n}` (n in {1, 2, 3, 4a, 4b, 5a, 5b})
+### `phase {n}` (n in {1, 2, 3, 4a, 4b, 4c, 4d, 5a, 5b, 5b_supabase})
 
 Auto-detect the current app from the cwd (match against
 `registry.json`). Fall back to `--app <slug>` if the user passes it.
@@ -89,15 +108,24 @@ agent must fit the ~3-4 min / ~6-8 file budget. If `pipeline-auditor`
 sub-agent type is registered, use it for audit agents only — otherwise
 fall back to `general-purpose`.
 
-| Phase | Directive | Agent | Anneal mode |
-|---|---|---|---|
-| 1 | `directives/mobile_apps/phase1_local_standalone.md` | `general-purpose` | classic |
-| 2 | `directives/mobile_apps/phase2_network_layer.md` | `general-purpose` | classic |
-| 3 | `directives/mobile_apps/phase3_local_db.md` | `general-purpose` | classic |
-| 4a | `directives/mobile_apps/phase4a_cf_worker.md` | `general-purpose` | adversarial |
-| 4b | `directives/mobile_apps/phase4b_modal_cron.md` | `general-purpose` | adversarial |
-| 5a | `directives/mobile_apps/phase5a_openrouter_routing.md` | `general-purpose` | adversarial |
-| 5b | `directives/mobile_apps/phase5b_vision_pipeline.md` (created on demand — see below) | `general-purpose` | adversarial |
+| Phase | Directive | Stack | Agent | Anneal mode |
+|---|---|---|---|---|
+| 1 | `phase1_local_standalone.md` | both | `general-purpose` | classic |
+| 2 | `phase2_network_layer.md` | both | `general-purpose` | classic |
+| 3 | `phase3_local_db.md` | both | `general-purpose` | classic |
+| 4a | `phase4a_cf_worker.md` | cf_modal | `general-purpose` | adversarial |
+| 4b | `phase4b_modal_cron.md` | cf_modal | `general-purpose` | adversarial |
+| 4c | `phase4c_supabase_setup.md` | supabase | `general-purpose` | adversarial |
+| 4d | `phase4d_supabase_auth.md` | supabase | `general-purpose` | adversarial |
+| 5a | `phase5a_openrouter_routing.md` | cf_modal | `general-purpose` | adversarial |
+| 5b | `phase5b_vision_pipeline.md` (on-demand, vision/video apps) | both | `general-purpose` | adversarial |
+| 5b_supabase | `phase5b_supabase_ai.md` | supabase | `general-purpose` | adversarial |
+
+**Routing by stack**: read `<slug>.backend_stack` from `registry.json`.
+- `cf_modal` → phases 1, 2, 3, 4a, 4b, 5a (+ optional 5b vision)
+- `supabase` → phases 1, 2, 3, 4c, 4d, 5b_supabase (+ optional 5b vision)
+If `backend_stack` is missing, ask the user once and write it before
+running the phase agent.
 
 Phase 4a scaffolds the per-app Cloudflare Worker from scratch with:
 ```
@@ -144,10 +172,29 @@ py -m anneal.cli adversarial <base-ref-sha> --repo C:\Users\deban\dev\mobile-app
 If anneal returns findings, report them to the user and ask whether to
 spawn a fixer sub-agent or skip.
 
+### `audit {slug}`
+
+Runs `directives/mobile_apps/security_audit.md` — Nick's 2-pass
+vibecoded-app security audit. Pre-condition: app has a backend (Phase 4
+shipped). The directive walks two independent passes of the canonical
+prompt at `directives/mobile_apps/security_audit_prompt.md`, separated
+by `/clear`, then optionally a third anneal-adversarial pass for paid-AI
+apps.
+
+Refuse to run before Phase 4 is shipped — there's nothing to audit.
+
 ### `ship ios` / `ship android`
 
 Auto-detect app from cwd. Verify `APPLE_ENROLLMENT_STATUS=active` (iOS)
-or that the Play Console signup is paid (Android). Invoke the directive:
+or that the Play Console signup is paid (Android). **Also verify the
+pre-submission content checklist** in each directive — web-accessible
+privacy policy + support page on a domain you control, app icon (and
+adaptive icon for Android), splash screen, `app.json` fields all set
+(per Nick transcript chapter 35). Refuse to ship if the checklist is
+incomplete; the submission will fail late and burn EAS build minutes.
+
+Recommend running `audit {slug}` first if `last_security_audit_at` in
+the registry is missing or > 7 days old.
 
 - iOS: `directives/mobile_apps/ios_deploy.md`
   (runs `eas build --platform ios` + TestFlight invite via
@@ -164,11 +211,19 @@ enrollment still pending. Finish at developer.apple.com first."
 ```
 /mobile-app preflight
 
-/mobile-app new receipt-scanner
+/mobile-app new receipt-scanner          # asks: cf_modal or supabase?
+
+/mobile-app design receipt-scanner       # 5-principle MVP framework → APP_SPEC.md
 
 /mobile-app phase 1 --app receipt-scanner
 
-/mobile-app phase 4a   # cwd is C:\Users\deban\dev\mobile-apps\receipt-scanner
+/mobile-app phase 4c   # supabase track; cwd is C:\Users\deban\dev\mobile-apps\receipt-scanner
+
+/mobile-app phase 4d   # supabase auth
+
+/mobile-app phase 5b_supabase   # AI features via Edge Functions
+
+/mobile-app audit receipt-scanner        # 2-pass security audit
 
 /mobile-app ship ios
 

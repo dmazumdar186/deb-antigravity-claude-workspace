@@ -19,9 +19,22 @@ Build a production iOS `.ipa` via EAS cloud (no Xcode, no Mac), submit it to App
 - `execution/mobile_apps/testflight_invite.py` — adds testers via ASC API (JWT auth)
 - `execution/mobile_apps/eas_build_helper.py` — wraps `eas build`, captures logs (utf-8), posts status
 
+## Pre-submission content checklist (per Nick transcript chapter 35)
+
+Apple App Store Connect blocks submission without these. Verify before running step 1:
+
+- **Web-accessible privacy policy** at a URL on a domain you control (e.g. `https://yourdomain.com/<slug>/privacy`). Apple checks this URL is live during review. Cheapest path: have Claude generate the policy text from the App Store guidelines, host on the same domain as your contact email (matches Nick's `leftclick.ai/caltracker/privacy` pattern). REQUIRED.
+- **Web-accessible support page** at the same domain (a "contact us" / FAQ page is sufficient). REQUIRED.
+- **App icon** at `assets/icon.png` — `1024x1024` PNG, no transparency, no rounded corners (Apple applies the mask). The template ships a placeholder; replace before ship.
+- **Splash screen** at `assets/splash.png` — `1284x2778` PNG (iPhone 15 Pro Max safe), single solid background colour matches `app.json` `splash.backgroundColor`.
+- **`app.json` fields** — confirm `expo.name` (display name on home screen), `expo.slug`, `expo.version` (semver), `expo.ios.bundleIdentifier` are all set correctly. Nick chapter 35 walks Claude through generating this file; you can let Claude rewrite it from `APP_SPEC.md` if it's still placeholder.
+- **App Store Connect metadata** — name, subtitle, description, keywords, category, age rating, screenshots (6.7" + 6.5" + 5.5" displays each, 1242x2208 px minimum). Fill via App Store Connect web UI before `eas submit`.
+
+If any of the above is missing, fix first; `eas submit` will fail late and wastes EAS build minutes.
+
 ## Steps
 
-1. **Preflight gate.** Confirm `APPLE_ENROLLMENT_STATUS=active`. If `pending`, refuse — `eas submit` will fail and a build is non-trivial cost ($).
+1. **Preflight gate.** Confirm `APPLE_ENROLLMENT_STATUS=active`. If `pending`, refuse — `eas submit` will fail and a build is non-trivial cost ($). Also confirm the pre-submission content checklist above is complete.
 2. **Confirm `eas.json` has a production profile.** Minimal example:
    ```json
    {

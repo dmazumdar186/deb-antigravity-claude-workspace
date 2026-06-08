@@ -30,6 +30,26 @@ Build a production Android `.aab` via EAS cloud, submit to Google Play Console, 
 
 This applies to the **developer account**, not per-app — once cleared once, future apps from the same account submit directly to production.
 
+## Pre-submission content checklist (per Nick transcript chapter 35)
+
+Play Console blocks submission without these. Verify before running step 1:
+
+- **Web-accessible privacy policy** at a URL on a domain you control (e.g. `https://yourdomain.com/<slug>/privacy`). Play Console asks for this URL in the Data Safety form. Same pattern as iOS: have Claude generate the text from Play's content guidelines and host on the same domain as your support email. REQUIRED.
+- **Web-accessible support page** at the same domain. REQUIRED for any app that handles user data.
+- **App icon** at `assets/icon.png` — `1024x1024` PNG.
+- **Adaptive icon assets** (Play requires; per Nick chapter 35):
+  - `assets/android-icon-foreground.png` — foreground image (logo only)
+  - `assets/android-icon-background.png` — solid colour or pattern background
+  - `assets/android-icon-monochrome.png` — single-colour version for themed icons (Android 13+)
+- **Splash screen** at `assets/splash.png`.
+- **`app.json` fields** — `expo.name`, `expo.android.package` (Java reverse-DNS, e.g. `com.debanjan.<slug>`), `expo.version`, `expo.android.versionCode` (integer, must increment per build).
+- **Data Safety form** — Play Console UI walks you through which data your app collects. REQUIRED before any submission. Account for Supabase auth (email collected) and any AI/analytics SDKs.
+- **Content rating questionnaire** — Play Console UI.
+- **Business email recommended** (per Nick): a Google Workspace email on your domain (~$6/mo) significantly speeds Google's developer-account verification, since the domain is already verified.
+- **Android device to verify on** — Google requires you to confirm access to an Android phone during account setup. The tester gate (below) also requires real installs.
+
+If any of the above is missing, fix first; `eas submit` will fail late and the closed-testing track will reject the build.
+
 ## Steps
 
 1. **Confirm gate state.** `py execution/mobile_apps/play_console_tester_gate.py --slug <slug>`. Reads `play_tester_gate_started_at` + `play_tester_count_manual` from registry and prints:

@@ -231,6 +231,8 @@ def cmd_create(slug: str, dry_run: bool, force: bool) -> int:
     new_entry = {
         "slug": slug,
         "repo_path": str(target),
+        "backend_stack": None,  # "cf_modal" | "supabase" — set by /mobile-app skill before phase 4
+        "spec_summary": None,  # one-line from APP_SPEC.md § Core Function — written by app_design directive
         "ios_bundle_id": None,
         "android_package": None,
         "eas_project_id": None,
@@ -238,6 +240,8 @@ def cmd_create(slug: str, dry_run: bool, force: bool) -> int:
         "health_url": None,
         "play_tester_gate_started_at": None,
         "play_tester_count_manual": None,
+        "last_security_audit_at": None,  # ISO timestamp — written by security_audit directive
+        "audit_passes_run": 0,
         "created_at": now_iso,
     }
 
