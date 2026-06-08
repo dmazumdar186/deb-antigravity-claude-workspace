@@ -1,0 +1,85 @@
+archetype: cultural_community
+description: >
+  Editorial template for cultural community organizations (e.g., diaspora
+  associations, expat groups, cultural societies). Warm-formal register,
+  community-first framing, bilingual-friendly.
+
+sections:
+
+  - id: intro
+    title: Intro
+    word_range: [60, 80]
+    required: true
+    source: theme
+    prompt: |
+      Write a warm, brief opening to this month's newsletter. State this issue's
+      theme in one sentence. Use 'we' / 'our community' framing. Bilingual mix
+      OK if the voice profile supports it. NO emoji in the headline; NO
+      exclamation marks.
+      Use ONLY the theme below. If theme is missing, write 'TBD' as the theme.
+      Theme: {theme}
+
+  - id: event_recap
+    title: Event Recap
+    word_range: [80, 120]
+    max_items: 2
+    omit_if_empty: true
+    source: ig_event_posts
+    prompt: |
+      Write a {word_range[0]}-{word_range[1]} word recap of this past event.
+      Use ONLY facts from the source caption + image alt-text below. If a date,
+      attendee count, or speaker name is not in the source, write 'TBD' instead
+      of inventing one. End with one sentence on what the community took from it.
+      Source post:
+      {item}
+
+  - id: upcoming_events
+    title: Upcoming Events
+    word_range: [40, 60]
+    max_items: 3
+    omit_if_empty: true
+    source: ig_upcoming_posts
+    prompt: |
+      Write a {word_range[0]}-{word_range[1]} word teaser for this upcoming
+      event. Lead with date and one-line value prop. Use ONLY facts from the
+      source. RSVP link / venue info copied verbatim from source if present.
+      Source post:
+      {item}
+
+  - id: community_spotlight
+    title: Community Spotlight
+    word_range: [60, 80]
+    required: false
+    omit_if_empty: true
+    source: manual_spotlight
+    llm_generated: false
+    prompt: |
+      THIS SECTION IS NOT LLM-GENERATED. Use the manual spotlight input
+      verbatim with light formatting only. Never invent a person, achievement,
+      or quote.
+      Spotlight input:
+      {spotlight}
+
+  - id: news_roundup
+    title: News Roundup
+    word_range: [30, 40]
+    max_items: 3
+    omit_if_empty: true
+    source: tavily_news
+    prompt: |
+      Write a {word_range[0]}-{word_range[1]} word summary of this news item
+      relevant to our community. Include source publication name. Link kept as
+      footnote. Use ONLY facts from the headline + summary below.
+      Source:
+      {item}
+
+  - id: closing
+    title: Closing
+    word_range: [40, 60]
+    required: true
+    source: theme
+    prompt: |
+      Close the newsletter with one CTA (membership, event RSVP, or feedback
+      reply) and a warm sign-off. Match the intro's tone. Use ONLY the CTA
+      provided below.
+      CTA: {cta}

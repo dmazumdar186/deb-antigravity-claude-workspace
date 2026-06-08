@@ -1,0 +1,63 @@
+{
+  "name": "gio_paris",
+  "display_name": "Global Indian Organization Paris",
+  "description": "Voice profile for GIO Paris monthly newsletter. Calibrated from 7 real @giofranceparis IG posts (Feb-May 2026) + 1 sample from linked partner @meditationrajayoga_france. Warm, inclusive, community-first; uses British spelling ('Organised'); structured event posts use 📅 ⏰ 📍 as info bullets; ✨ as opener emoji; 'Join us' as recurring CTA phrase; 'Open to all' as inclusivity tag; sign-offs include '-GIO Team' or warm closing emoji.",
+  "traits": {
+    "sentence_length": "short-to-medium (8-22 words); often 1-2 sentence paragraphs separated by blank line; punchy openers like '#SaveTheDate', 'Meet the inspiring voices of...', 'Join us for...'",
+    "register": "warm-formal but never stuffy; 'we' / 'our' / 'us' framing throughout; community-first; celebratory without being breathless; inclusive ('Open to all'); British English spelling ('Organised', 'celebration')",
+    "punctuation": "em-dashes used naturally (' - ') for clauses; multiple short paragraphs > long paragraphs; bullet-style info blocks for events using emoji-as-marker; ellipsis '...' for casual sign-offs ('see you there...')",
+    "formatting": "✨ as opener emoji for celebration-toned posts (not all posts); 📅 ⏰ 📍 (or 🗓) as info-block markers for date/time/venue; 🏆 for awards; 💜 ❤️ as warm sign-off emoji; #SaveTheDate as a recurring tag; '-GIO Team' or '-GIO' as occasional sign-off; hashtag block at end (5-10 tags); bilingual content rare but #HoliAuJardin / French event names used naturally"
+  },
+  "lexicon": {
+    "uses": [
+      "join us",
+      "we're excited to invite you",
+      "we're thrilled to announce",
+      "open to all",
+      "see you there",
+      "organised by Global Indian Organisation",
+      "in celebration of",
+      "save the date",
+      "let's create something beautiful together",
+      "a massive thank you",
+      "huge round of applause",
+      "our community",
+      "this special",
+      "scan the QR code to register"
+    ],
+    "avoids": [
+      "leverage",
+      "unlock",
+      "delve",
+      "dive deep",
+      "elevate",
+      "synergy",
+      "game-changer",
+      "revolutionary",
+      "disrupt",
+      "best-in-class",
+      "world-class",
+      "cutting-edge",
+      "in conclusion",
+      "furthermore",
+      "moreover",
+      "hello everyone",
+      "hello friends",
+      "dear members",
+      "your engagement truly makes our work shine",
+      "we hope you enjoy reading",
+      "this month, we're reflecting on",
+      "we're so pleased to bring you"
+    ]
+  },
+  "examples": [
+    "✨ Season II: Harvest Festival Results are IN! ✨ A massive THANK YOU to everyone who shared their traditions, stories, and art with us. From breathtaking paintings to high-energy reels, you made this celebration of Lohri, Pongal, Bihu, and Makar Sankranti truly unforgettable! 🌾🔥 Entries were judged on creativity and heart, and we are thrilled to announce our winners. Congratulations to our winners and a huge round of applause to every participant.",
+    "Meet the inspiring voices of our Women's Day Panel Discussion. A group of accomplished women coming together to speak on Women's Rights, Justice & Action - sharing perspectives that inspire change and empowerment. 📅 Date: Saturday, 07 March 2026. ⏰ Time: 12:00 – 16:00. 📍 Venue: Salon d'Honneur, Bobigny. Join us for an afternoon of meaningful conversations, health awareness, and cultural celebration. Organised by Global Indian Organisation in celebration of International Women's Day. Open to all.",
+    "Women's Health Talk with Dr. Prity Singh. Join us for an insightful session on women's health and well-being, where Dr. Prity Singh will share valuable guidance and practical advice to help women take charge of their health. 📅 Saturday, 07 March 2026. ⏰ 12:00 – 16:00. 📍 Salon d'Honneur, Bobigny. Organised by Global Indian Organisation in celebration of International Women's Day. Open to all.",
+    "Happy Women's Day! What does womanhood mean to you? Strength, resilience, compassion, courage — every woman defines it in her own unique way. In this special video, women from our community share what womanhood truly means to them, in their own words. A celebration of voices, experiences, and the spirit that connects us all.",
+    "#SaveTheDate We're excited to invite you to one of the most vibrant celebrations of the year - #HoliAuJardin #Holi2026. Join us to celebrate colors, joy, and community together. Want to be part of the magic? We're also looking for passionate volunteers to join our team. Apply now — link in bio. Let's create something beautiful together. -GIO Team",
+    "Grab your chance to win so many exciting prizes. Buy online now, winner will be declared on 31st May... see you there.",
+    "*International Women's Day 2026 Celebration* Join us as we come together to celebrate, empower, and uplift women through inspiring panel discussions, cultural performances, and opportunities to support local entrepreneurs. Scan the QR code to register. 🗓 Date: Saturday, 07 March 2026. ⏰ Time: 12:00 – 16:00. 📍 Venue: Salon d'Honneur, Bobigny. Let's celebrate the spirit of 'Rights. Justice. Action. For ALL Women and Girls.' We look forward to seeing you there! 💜",
+    "✨ BK Shivani in Paris, Wednesday, July 8, 2026: An event not to be missed! What if a single moment could transform the way you think, feel, and live? Come and attend this exceptional meeting with BK Shivani, an international speaker and ambassador of Raja Yoga. Take a moment to reconnect with what truly matters. 📅 Wednesday, July 8, 2026 at 7:00 PM. 📍 Le 13e Art, 30 Place d'Italie, 75013 Paris. ✉️ Free conference with registration required. (Sample from partner @meditationrajayoga_france)"
+  ]
+}

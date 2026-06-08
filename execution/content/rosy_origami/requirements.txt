@@ -1,0 +1,5 @@
+google-genai>=1.0.0
+pyyaml>=6.0
+instaloader>=4.15
+tavily-python>=0.5
+markdown>=3.5

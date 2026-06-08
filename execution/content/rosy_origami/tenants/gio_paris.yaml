@@ -1,0 +1,8 @@
+slug: gio_paris
+display_name: Global Indian Organization Paris
+voice_profile: gio_paris
+archetype: cultural_community
+ig_handle: TBD  # fill from user
+news_query: "Indian expats France OR Paris Indian community OR France visa Indian"
+languages: ["en", "fr"]
+sandbox: true  # GIO is free internal sandbox; first paid tenant is the SECOND community org
