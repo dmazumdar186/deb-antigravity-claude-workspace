@@ -167,7 +167,15 @@ VALID_BACKEND_STACKS = ("cf_modal", "supabase")
 
 
 def cmd_create(slug: str, dry_run: bool, force: bool, backend_stack: str | None = None) -> int:
+    # Validate all inputs BEFORE any side effects. If we deferred the
+    # backend_stack check until after the template clone + git init, an
+    # invalid value would leave an orphan repo on disk with no registry entry.
     validate_slug(slug)
+    if backend_stack is not None and backend_stack not in VALID_BACKEND_STACKS:
+        raise ValueError(
+            f"invalid --backend-stack: {backend_stack!r} (expected one of {VALID_BACKEND_STACKS})"
+        )
+
     target = resolve_app_dir(slug)
 
     print(f"Bootstrap mobile app: slug={slug}")
@@ -231,12 +239,6 @@ def cmd_create(slug: str, dry_run: bool, force: bool, backend_stack: str | None 
 
     # Update registry
     now_iso = datetime.now(timezone.utc).isoformat()
-    # Validate backend_stack if provided
-    if backend_stack is not None and backend_stack not in VALID_BACKEND_STACKS:
-        raise ValueError(
-            f"invalid --backend-stack: {backend_stack!r} (expected one of {VALID_BACKEND_STACKS})"
-        )
-
     new_entry = {
         "slug": slug,
         "repo_path": str(target),

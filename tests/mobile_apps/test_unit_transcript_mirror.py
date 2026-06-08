@@ -303,6 +303,16 @@ class TestBootstrapDryRun:
         with pytest.raises(ValueError, match="invalid --backend-stack"):
             bma.cmd_create("bad-app", dry_run=False, force=False, backend_stack="firebase")
 
+        # Verify validation happens BEFORE any side effects (the round-2 altitude
+        # fix). If the ValueError fires after template clone + git init, an
+        # orphan directory is left behind with no registry entry.
+        assert not (isolated_mobile_apps_base / "bad-app").exists(), (
+            "cmd_create created an orphan directory before raising ValueError — "
+            "backend_stack validation must run before any side effects"
+        )
+        reg = json.loads(isolated_registry.read_text(encoding="utf-8"))
+        assert reg["apps"] == [], "registry must not contain an entry for the rejected app"
+
     def test_cli_accepts_backend_stack_flag(self):
         """--help should list --backend-stack as a documented flag."""
         result = subprocess.run(

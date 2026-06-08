@@ -87,8 +87,11 @@ silently, then continue with design.
    ```
    Pass `--dry-run` first if the user wants a preview. The flag is also
    accepted by direct CLI invocations — if a user runs bootstrap manually
-   without it, `backend_stack` stays `None` in the registry and `phase {n}`
-   will refuse to route until the skill (or the user) sets it.
+   without it, `backend_stack` stays `None` in the registry. In that case
+   `phase {n}` does **not** error; it falls through to the routing-table
+   logic below (prompts once via AskUserQuestion, writes the answer back to
+   the registry, then proceeds). Single source of truth: see "Routing by
+   stack" under `phase {n}`.
 4. Confirm registry write + repo creation at
    `C:\Users\deban\dev\mobile-apps\<slug>\`.
 5. Suggest `/mobile-app design <slug>` as the next step. Do not auto-run
