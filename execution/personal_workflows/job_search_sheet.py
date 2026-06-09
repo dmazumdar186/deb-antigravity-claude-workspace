@@ -768,6 +768,10 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
         "written_per_tab": write_counts,
     }
 
+    # RUNS_LOG is a local-only audit log uploaded as a GH Actions artifact
+    # (7-day retention) for post-mortem debugging. NOT the source of truth for
+    # the Summary dashboard — that comes from the _history tab in the workbook
+    # (which persists across ephemeral runners). Kept here intentionally.
     RUNS_LOG.parent.mkdir(parents=True, exist_ok=True)
     with RUNS_LOG.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(summary, default=str) + "\n")
