@@ -90,7 +90,7 @@ def _normalise_contract_type(jooble_type: str | None) -> str | None:
 
 def _parse_posted_at(raw: str) -> str | None:
     """Strip Jooble ISO date-time string to YYYY-MM-DD, or return None."""
-    if not raw:
+    if not raw or len(raw) < 10:
         return None
     try:
         return raw[:10]

@@ -135,7 +135,20 @@ def _check_sheets_api(verbose: bool) -> tuple[bool, str, object]:
         hint = str(exc)
         # Detect common failure modes and give actionable guidance
         if "403" in hint or "PERMISSION_DENIED" in hint.upper():
-            hint = "403 Forbidden — share the spreadsheet with the service account email (Editor)"
+            # Include the service-account email so the user knows exactly who to share with
+            sa_email = "unknown"
+            try:
+                raw_path = os.environ.get("GOOGLE_SERVICE_ACCOUNT_PATH", "").strip()
+                if raw_path:
+                    key_path = Path(raw_path)
+                    if not key_path.is_absolute():
+                        key_path = _PROJECT_ROOT / key_path
+                    with key_path.open(encoding="utf-8", errors="replace") as _fh:
+                        _key_data = json.load(_fh)
+                    sa_email = _key_data.get("client_email", "unknown")
+            except Exception:  # noqa: BLE001 — fallback to generic message is safe
+                pass
+            hint = f"403 Forbidden — share the spreadsheet with {sa_email} (Editor)"
         elif "404" in hint or "not found" in hint.lower():
             hint = "404 Not Found — verify SHEETS_SPREADSHEET_ID is the correct spreadsheet ID"
         elif "401" in hint or "UNAUTHENTICATED" in hint.upper():

@@ -69,10 +69,12 @@ def _trigrams(text: str) -> set[str]:
 
 
 def _jaccard_trigram(a: str, b: str) -> float:
-    """Jaccard similarity of two strings by character trigrams."""
+    """Jaccard similarity of two strings by character trigrams.
+
+    Returns 0.0 if either (or both) inputs are empty — a missing snippet
+    should never trigger an automatic merge; that is the dedup hash's job.
+    """
     ta, tb = _trigrams(a), _trigrams(b)
-    if not ta and not tb:
-        return 1.0
     if not ta or not tb:
         return 0.0
     intersection = len(ta & tb)
@@ -309,12 +311,12 @@ def _build_sheet_row(
     """
     dedup_hash = job.get("dedup_hash", "")
 
-    # First Seen: preserve from carry-forward; otherwise today
+    # First Seen: preserve from carry-forward; fall back to raw_extracted_at; then today
     if carry_forward and carry_forward.get("first_seen"):
         first_seen = carry_forward["first_seen"]
     else:
-        # Try to pull from the job's raw_extracted_at if it looks like a date
-        first_seen = now
+        raw_ts = job.get("raw_extracted_at") or ""
+        first_seen = raw_ts[:10] if len(raw_ts) >= 10 else now
 
     # Also Seen On: merge carry_forward boards + current_run boards
     cf_boards: list[str] = []
@@ -497,6 +499,7 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
 
     after_llm: list[dict] = []
     llm_dropped = 0
+    llm_irrelevant_log = PROJECT_ROOT / ".tmp" / "job_search" / run_id / "llm_irrelevant.jsonl"
 
     if args.no_llm:
         logger.info("Stage 2.5: --no-llm set; skipping LLM gate.")
@@ -540,6 +543,19 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
                     job.get("company_name"),
                     verdict.reason,
                 )
+                # Write to recovery log so users can inspect/restore LLM-dropped jobs
+                llm_irrelevant_log.parent.mkdir(parents=True, exist_ok=True)
+                with llm_irrelevant_log.open("a", encoding="utf-8") as _fh:
+                    _fh.write(json.dumps({
+                        "run_id": run_id,
+                        "title": job.get("title"),
+                        "company": job.get("company_name"),
+                        "link": job.get("source_url"),
+                        "verdict": {
+                            "relevance": verdict.relevance,
+                            "reason": verdict.reason,
+                        },
+                    }, default=str) + "\n")
                 continue
 
             # CA/US contract_filter: after LLM fills contract_type, drop non-freelance/contract
@@ -608,6 +624,7 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
 
     today_str = run_start.strftime("%Y-%m-%d")
     write_counts: dict[str, int] = {}
+    dropped_no_tab_match = 0
 
     for tab in visible_tabs:
         # Find the title key(s) that map to this tab
@@ -676,6 +693,15 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
                 except Exception as exc:  # noqa: BLE001 — tab write fail is non-fatal
                     logger.error("Stage 5: write_tab(%s) failed: %s", tab, exc)
 
+    # Count jobs that passed all prior stages but matched no tab at all
+    dropped_no_tab_match = sum(
+        1 for job in deduped_jobs if not _assign_titles(job, titles_config)
+    )
+    logger.info(
+        "Stage 5: %d jobs did not match any tab synonym (dropped)",
+        dropped_no_tab_match,
+    )
+
     # -----------------------------------------------------------------------
     # Stage 6: Update _meta + log + exit
     # -----------------------------------------------------------------------
@@ -699,6 +725,7 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
         "after_llm_gate": len(after_llm),
         "llm_dropped": llm_dropped,
         "after_dedup": len(deduped_jobs),
+        "dropped_no_tab_match": dropped_no_tab_match,
         "written_per_tab": write_counts,
     }
 

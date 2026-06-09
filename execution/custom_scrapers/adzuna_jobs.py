@@ -83,7 +83,7 @@ def _parse_contract_type(r: dict, country: str) -> str | None:
 
 def _parse_posted_at(raw: str) -> str | None:
     """Strip Adzuna ISO 8601 datetime to YYYY-MM-DD, or return None."""
-    if not raw:
+    if not raw or len(raw) < 10:
         return None
     # Adzuna returns e.g. "2026-06-01T00:00:00Z"
     try:

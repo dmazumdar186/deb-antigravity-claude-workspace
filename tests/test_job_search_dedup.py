@@ -19,6 +19,7 @@ from execution.personal_workflows.job_search_sheet import (  # noqa: E402
     _dedup_jobs,
     _assign_titles,
     _build_sheet_row,
+    _jaccard_trigram,
 )
 from execution.personal_workflows._jt_utils import compute_job_hash, normalize_company, normalize_title  # noqa: E402
 
@@ -342,3 +343,29 @@ def test_assign_titles_no_match():
     job = {"title": "Software Engineer — Backend Python"}
     tabs = _assign_titles(job, titles_config)
     assert tabs == []
+
+
+# ---------------------------------------------------------------------------
+# Test: _jaccard_trigram edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_jaccard_both_empty_returns_zero():
+    """Two empty strings must return 0.0, not 1.0.
+
+    Returning 1.0 would auto-merge any two jobs that both lack a description
+    snippet, defeating the purpose of the Jaccard guard.
+    """
+    assert _jaccard_trigram("", "") == 0.0
+
+
+def test_jaccard_one_empty_returns_zero():
+    """One empty, one non-empty → 0.0 (no similarity, no merge)."""
+    assert _jaccard_trigram("", "some description text here") == 0.0
+    assert _jaccard_trigram("some description text here", "") == 0.0
+
+
+def test_jaccard_identical_nonempty_returns_one():
+    """Sanity: identical non-empty strings must still return 1.0."""
+    text = "Looking for a senior product manager to lead our platform roadmap."
+    assert _jaccard_trigram(text, text) == 1.0
