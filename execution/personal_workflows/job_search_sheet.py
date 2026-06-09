@@ -43,6 +43,7 @@ from execution.google.google_sheets_writer import (  # noqa: E402
     write_meta_last_run_at,
     read_tab,
     write_tab,
+    write_summary,
 )
 
 # ---------------------------------------------------------------------------
@@ -354,6 +355,60 @@ def _build_sheet_row(
     ]
 
 
+def _load_recent_runs(runs_log: Path, limit: int = 14) -> list[dict]:
+    """Read the JSONL runs log; return up to `limit` most-recent runs in dashboard shape.
+
+    Each entry: {date, total_added, errors, discovered, after_keyword_filter, after_dedup}.
+    `errors` is best-effort: 0 unless a future error_count key is added to summaries.
+    Returns [] on any I/O error (non-fatal — Summary tab still renders without history)."""
+    if not runs_log.exists():
+        return []
+    out: list[dict] = []
+    try:
+        with runs_log.open(encoding="utf-8", errors="replace") as fh:
+            lines = fh.readlines()
+        for raw in lines[-limit * 2:]:  # over-read in case some lines are malformed
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                d = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            date_str = (d.get("run_at") or "")[:10]
+            total_added = sum(int(v) for v in (d.get("written_per_tab") or {}).values())
+            out.append({
+                "date":                  date_str,
+                "total_added":           total_added,
+                "errors":                d.get("error_count", 0),
+                "discovered":            d.get("discovered", ""),
+                "after_keyword_filter":  d.get("after_keyword_filter", ""),
+                "after_dedup":           d.get("after_dedup", ""),
+            })
+    except Exception:  # noqa: BLE001 — Summary should not fail because of history I/O
+        return []
+    # Newest first
+    out.reverse()
+    return out[:limit]
+
+
+def filter_titles(titles_config: dict, title_arg: str | None) -> dict:
+    """Filter titles_config to entries matching title_arg by key, tab name, or any synonym
+    (case-insensitive). Returns the full config if title_arg is empty/None. Returns an
+    empty dict if title_arg is given but matches nothing — caller must handle this
+    explicitly (do NOT silently filter to zero)."""
+    if not title_arg:
+        return dict(titles_config)
+    needle = title_arg.lower()
+    return {
+        k: v
+        for k, v in titles_config.items()
+        if (k.lower() == needle
+            or v.get("tab", "").lower() == needle
+            or any(s.lower() == needle for s in v.get("synonyms", [])))
+    }
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
@@ -429,14 +484,14 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
             if geo.upper() == args.geo.upper()
         }
 
-    active_titles: dict[str, dict] = dict(titles_config)
-    if args.title:
-        # Match by key or by tab name
-        active_titles = {
-            k: v
-            for k, v in titles_config.items()
-            if k.lower() == args.title.lower() or v.get("tab", "").lower() == args.title.lower()
-        }
+    active_titles = filter_titles(titles_config, args.title)
+    if args.title and not active_titles:
+        available = sorted({k for k in titles_config} | {v.get("tab", "") for v in titles_config.values()})
+        logger.error(
+            "--title %r matched no title key, tab, or synonym. Available keys/tabs: %s. Aborting to avoid silent empty run.",
+            args.title, available,
+        )
+        sys.exit(2)
 
     # -----------------------------------------------------------------------
     # Stage 1: Discover
@@ -715,6 +770,28 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
     RUNS_LOG.parent.mkdir(parents=True, exist_ok=True)
     with RUNS_LOG.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(summary, default=str) + "\n")
+
+    # Render the Summary dashboard tab (first tab on open — user-facing glance)
+    if not args.dry_run and sp:
+        try:
+            recent_runs = _load_recent_runs(RUNS_LOG, limit=14)
+            write_summary(
+                sp,
+                visible_tabs=cfg.get("visible_tabs", []),
+                write_counts=write_counts,
+                run_at_iso=run_start.strftime("%Y-%m-%d %H:%M UTC"),
+                recent_runs=recent_runs,
+            )
+        except Exception as exc:  # noqa: BLE001 — summary is non-fatal
+            logger.error("Stage 6: write_summary failed: %s", exc)
+
+    # Send the daily-summary email (graceful skip if SMTP creds missing)
+    if not args.dry_run:
+        try:
+            from execution.personal_workflows.job_search_notify import send_run_summary
+            send_run_summary(summary)
+        except Exception as exc:  # noqa: BLE001 — email failure must not break the run
+            logger.error("Stage 6: send_run_summary failed: %s", exc)
 
     print(
         f"\nRun {run_id} complete:\n"
