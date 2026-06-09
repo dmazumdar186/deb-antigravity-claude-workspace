@@ -34,7 +34,7 @@
     }
   },
   "geos": {
-    "FR": {"phase": "1a", "adzuna_country": "fr", "jooble_country": "France", "france_travail": true, "contract_filter": null},
+    "FR": {"phase": "1a", "adzuna_country": "fr", "jooble_country": "France", "france_travail": false, "contract_filter": null},
     "DE": {"phase": "1b", "adzuna_country": "de", "jooble_country": "Germany", "france_travail": false, "contract_filter": null},
     "NL": {"phase": "1b", "adzuna_country": "nl", "jooble_country": "Netherlands", "france_travail": false, "contract_filter": null},
     "ES": {"phase": "1b", "adzuna_country": "es", "jooble_country": "Spain", "france_travail": false, "contract_filter": null},

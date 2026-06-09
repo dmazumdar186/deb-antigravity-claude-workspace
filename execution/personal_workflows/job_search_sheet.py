@@ -1,6 +1,6 @@
 """
 description: Main orchestrator for the job-search-sheet pipeline. Runs the full DAG (Stages 0-6): bootstrap + idempotency check, multi-source discovery via Adzuna+Jooble+FranceTravail, keyword filter, LLM relevance gate, dedup with Jaccard guard, sheet materialization with Status/Notes preservation.
-inputs:  Optional CLI flags --mock, --dry-run, --title <name>, --geo <iso2>, --sheet-id <override>, --no-llm. Env vars: SHEETS_SPREADSHEET_ID, GOOGLE_SERVICE_ACCOUNT_PATH, ADZUNA_APP_*, JOOBLE_API_KEY, FRANCE_TRAVAIL_CLIENT_*, ANTHROPIC_API_KEY, GEMINI_API_KEY.
+inputs:  Optional CLI flags --mock, --dry-run, --title <name>, --geo <iso2>, --sheet-id <override>, --no-llm. Env vars: SHEETS_SPREADSHEET_ID, GOOGLE_SERVICE_ACCOUNT_PATH, ADZUNA_APP_*, JOOBLE_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY.
 outputs: Writes the Google Sheet 'Job Applications' (6 visible tabs + _meta). Appends a run summary line to .tmp/job_search/job_search_runs.jsonl.
 """
 
@@ -138,20 +138,7 @@ def _scrape_source(
     """
     results: list[dict] = []
 
-    if source == "france_travail":
-        if mock:
-            results = []  # France Travail mock returns []
-            logger.info("mock: france_travail → returning []")
-        else:
-            try:
-                import execution.custom_scrapers.france_travail_jobs as ft  # noqa: PLC0415
-
-                results = ft.scrape(queries=queries, run_id=run_id)
-            except Exception as exc:  # noqa: BLE001 — per-source fault isolation
-                logger.warning("Stage 1: france_travail scrape failed: %s", exc)
-                return []
-
-    elif source == "adzuna":
+    if source == "adzuna":
         if mock:
             # Best-effort: load raw_adzuna_fr.json for FR; empty for others
             fixture = f"raw_adzuna_{geo.lower()}.json"
@@ -459,11 +446,7 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
     all_raw_jobs: list[dict] = []
 
     for geo, geo_cfg in active_geos.items():
-        sources: list[str] = []
-        if geo_cfg.get("france_travail"):
-            sources.append("france_travail")
-        sources.append("adzuna")
-        sources.append("jooble")
+        sources: list[str] = ["adzuna", "jooble"]
 
         for title_key, title_cfg in active_titles.items():
             queries = title_cfg.get("synonyms", [title_key])

@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This pipeline runs daily at 09:00 Europe/Paris, scrapes free job boards (France Travail, Adzuna, Jooble) for six target titles across configured geographies, deduplicates the results across portals, gates them through an LLM relevance filter, and writes a clean, sorted Google Sheet called **"Job Applications"** — one tab per job title. The sheet is the single place Debanjan reviews new roles and tracks application status. No email digests. No notifications. Just a sheet that is always current when he opens it.
+This pipeline runs daily at 09:00 Europe/Paris, scrapes free job boards (Adzuna, Jooble) for six target titles across configured geographies, deduplicates the results across portals, gates them through an LLM relevance filter, and writes a clean, sorted Google Sheet called **"Job Applications"** — one tab per job title. The sheet is the single place Debanjan reviews new roles and tracks application status. No email digests. No notifications. Just a sheet that is always current when he opens it.
 
 ---
 
@@ -58,7 +58,6 @@ Claude reads this directive and calls the execution scripts in the correct order
 | `execution/google/google_sheets_writer.py` | Batch 1a (shipped) | Sheets auth, read/write, _meta tab |
 | `execution/custom_scrapers/adzuna_jobs.py` | Batch 1c (not built yet) | Adzuna free-tier scraper |
 | `execution/custom_scrapers/jooble_jobs.py` | Batch 1c (not built yet) | Jooble free-tier scraper |
-| `execution/custom_scrapers/france_travail_jobs.py` | Reused as-is | France Travail official API scraper |
 | `execution/custom_scrapers/job_filter.py` | Reused as-is (config-only extension) | Keyword + language filter |
 | `execution/personal_workflows/job_search_llm_gate.py` | Batch 1d (not built yet) | Claude Haiku primary + Gemini Flash failover |
 | `config/job_search.json` | Batch 1b (this batch) | Single source of truth: titles, geos, filter, LLM gate config |
@@ -76,7 +75,7 @@ Claude reads this directive and calls the execution scripts in the correct order
   - if (now - last_run_at) < 23h: exit 0 ("already ran today")
         |
 [Stage 1: Discover (free sources only)]
-  Phase 1a sources: france_travail, adzuna (gl=fr), jooble (gl=fr)
+  Phase 1a sources: adzuna (gl=fr), jooble (gl=fr)
   Phase 1b adds: adzuna + jooble for DE, NL, ES, IT, BE, AT, PL, PT (no contract filter)
                  adzuna + jooble for CA, US (contract_type in {contract, freelance} filter)
   For each (title, geo) in config:
@@ -146,7 +145,7 @@ Claude reads this directive and calls the execution scripts in the correct order
 | G | `Location` | City or region from source |
 | H | `Remote?` | `Yes` / `No` / `Hybrid` / `Unknown` |
 | I | `Contract` | `CDI` / `CDD` / `Freelance` / `Contract` / `Permanent` / `Unknown` |
-| J | `Source` | Board name (adzuna, jooble, france_travail) |
+| J | `Source` | Board name (adzuna, jooble) |
 | K | `Also Seen On` | Comma-separated list of other boards where same role appeared |
 | L | `Link` | Apply URL |
 | M | `Status` | Dropdown: `New` / `Applied` / `Saved` / `Skip` / `Interview` / `Rejected` |
@@ -160,7 +159,7 @@ Row 1 is frozen. No data in row 1 except column headers.
 
 | Geo | Phase | Free Sources | Contract Filter |
 |---|---|---|---|
-| France (FR) | 1a | France Travail API + Adzuna-FR + Jooble-FR | All contracts |
+| France (FR) | 1a | Adzuna-FR + Jooble-FR | All contracts |
 | Germany (DE) | 1b | Adzuna-DE + Jooble-DE | All contracts |
 | Netherlands (NL) | 1b | Adzuna-NL + Jooble-NL | All contracts |
 | Spain (ES) | 1b | Adzuna-ES + Jooble-ES | All contracts |
@@ -212,7 +211,7 @@ Each job gets one classification call:
 | # | Failure | Phase-1 response |
 |---|---|---|
 | a | Adzuna 250/day quota exhausted mid-run | Log `adzuna_quota_exhausted=true`, skip remaining Adzuna calls, continue with other sources |
-| b | Jooble key revoked | Per-source try/except; sheet still updates from France Travail + Adzuna |
+| b | Jooble key revoked | Per-source try/except; sheet still updates from Adzuna |
 | c | Google Sheets API 429 (300 reads/min limit) | Exponential backoff via `tenacity`, max 3 retries |
 | d | User edits sheet during write | Documented caveat (see Section 12); ~10-second write window |
 | e | DST transition | Dual-cron + 23h idempotency check handles it |
@@ -268,21 +267,14 @@ Complete these before running any pipeline scripts.
    ```
    JOOBLE_API_KEY=<your_api_key>
    ```
-7. **France Travail credentials:** Register at `https://francetravail.io`. Fill the existing empty placeholders in `.env`:
-   ```
-   FRANCE_TRAVAIL_CLIENT_ID=<your_client_id>
-   FRANCE_TRAVAIL_CLIENT_SECRET=<your_client_secret>
-   ```
-8. **Verify ANTHROPIC_API_KEY and GEMINI_API_KEY** are already present in `.env` (they should be from prior projects).
-9. **Install Python deps:** `py -m pip install gspread tenacity` (or `py -m pip install -r requirements.txt`).
-10. **GitHub Actions secrets:** Add these 8 secrets to the repo Settings -> Secrets -> Actions:
+7. **Verify ANTHROPIC_API_KEY and GEMINI_API_KEY** are already present in `.env` (they should be from prior projects).
+8. **Install Python deps:** `py -m pip install gspread tenacity` (or `py -m pip install -r requirements.txt`).
+9. **GitHub Actions secrets:** Add these 7 secrets to the repo Settings -> Secrets -> Actions:
     - `SHEETS_SPREADSHEET_ID`
     - `GOOGLE_SERVICE_ACCOUNT_JSON_B64` (base64-encode the JSON file: `base64 credentials/service_account.json`)
     - `ADZUNA_APP_ID`
     - `ADZUNA_APP_KEY`
     - `JOOBLE_API_KEY`
-    - `FRANCE_TRAVAIL_CLIENT_ID`
-    - `FRANCE_TRAVAIL_CLIENT_SECRET`
     - `ANTHROPIC_API_KEY` (if not already present)
     - `GEMINI_API_KEY` (if not already present)
 
@@ -342,16 +334,11 @@ py execution/personal_workflows/job_search_sheet.py
 - Verify `ADZUNA_APP_ID` and `ADZUNA_APP_KEY` are correct and not expired.
 - Test directly: `py execution/custom_scrapers/adzuna_jobs.py --title "product manager" --geo FR --limit 5`.
 
-### "France Travail returning 401"
-- The France Travail OAuth token may have expired. Re-run the OAuth flow:
-  `py execution/custom_scrapers/france_travail_jobs.py --refresh-token`
-- If that fails, re-register at `https://francetravail.io`.
-
 ---
 
 ## GitHub Actions secrets — provisioning
 
-Add these 9 secrets at `Repo Settings → Secrets and variables → Actions → New repository secret`:
+Add these 7 secrets at `Repo Settings → Secrets and variables → Actions → New repository secret`:
 
 | Secret | Value source |
 |---|---|
@@ -360,8 +347,6 @@ Add these 9 secrets at `Repo Settings → Secrets and variables → Actions → 
 | `ADZUNA_APP_ID` | Adzuna developer dashboard |
 | `ADZUNA_APP_KEY` | Adzuna developer dashboard |
 | `JOOBLE_API_KEY` | Email from Jooble after form submission |
-| `FRANCE_TRAVAIL_CLIENT_ID` | francetravail.io developer portal, your app |
-| `FRANCE_TRAVAIL_CLIENT_SECRET` | francetravail.io developer portal, your app |
 | `ANTHROPIC_API_KEY` | Copy from your `.env` (Anthropic console) |
 | `GEMINI_API_KEY` | Copy from your `.env` (AI Studio) |
 

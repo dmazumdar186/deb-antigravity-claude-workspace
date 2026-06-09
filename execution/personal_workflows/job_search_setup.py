@@ -5,7 +5,7 @@ description: Validates Phase 0 provisioning for job-search-sheet pipeline. Check
     bootstraps the workbook tabs.
 inputs:  CLI flags --check-only, --bootstrap, --verbose. Env vars (SHEETS_SPREADSHEET_ID,
     GOOGLE_SERVICE_ACCOUNT_PATH, ADZUNA_APP_ID, ADZUNA_APP_KEY, JOOBLE_API_KEY,
-    FRANCE_TRAVAIL_CLIENT_ID, FRANCE_TRAVAIL_CLIENT_SECRET, ANTHROPIC_API_KEY, GEMINI_API_KEY).
+    ANTHROPIC_API_KEY, GEMINI_API_KEY).
 outputs: Stdout report of [OK] / [--MISSING] per check; exit code 0 if all OK, 1 otherwise.
     With --bootstrap: creates the 6 visible tabs + _meta tab via
     google_sheets_writer.ensure_workbook_initialized.
@@ -47,8 +47,6 @@ _REQUIRED_VARS: list[tuple[str, str]] = [
     ("ADZUNA_APP_ID",                  "sign up at https://developer.adzuna.com/signup"),
     ("ADZUNA_APP_KEY",                 "sign up at https://developer.adzuna.com/signup"),
     ("JOOBLE_API_KEY",                 "register at https://jooble.org/api/about"),
-    ("FRANCE_TRAVAIL_CLIENT_ID",       "register at https://francetravail.io"),
-    ("FRANCE_TRAVAIL_CLIENT_SECRET",   "register at https://francetravail.io"),
     ("ANTHROPIC_API_KEY",              ""),
     ("GEMINI_API_KEY",                 ""),
 ]
