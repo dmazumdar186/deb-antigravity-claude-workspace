@@ -144,7 +144,8 @@ def ensure_workbook_initialized(
     visible_tabs: list[str],
     column_headers: list[str],
 ) -> None:
-    """Create missing tabs and write headers row 1; also create/hide _meta tab.
+    """Create missing tabs and write headers row 1; also create/hide _meta tab
+    and create/move Summary tab to position 0.
 
     Idempotent: existing tabs and existing headers in row 1 are not touched.
 
@@ -182,9 +183,135 @@ def ensure_workbook_initialized(
         else:
             logger.debug("_meta tab already exists.")
 
+        # Ensure Summary tab exists at position 0 (first/default tab on open)
+        ensure_summary_tab(spreadsheet)
+
+        # Clean up the default "Sheet1" if Google Drive created one and it's untouched
+        _delete_default_sheet1(spreadsheet, visible_tabs)
+
     except Exception as exc:
         logger.error("ensure_workbook_initialized failed: %s", exc)
         raise
+
+
+def _delete_default_sheet1(spreadsheet: gspread.Spreadsheet, visible_tabs: list[str]) -> None:
+    """Delete Google Drive's default 'Sheet1' tab if it exists, has no data, and isn't
+    one of our intended visible tabs. Best-effort; failures are logged and ignored."""
+    try:
+        for ws in spreadsheet.worksheets():
+            if ws.title != "Sheet1":
+                continue
+            if "Sheet1" in visible_tabs:
+                return  # user intentionally wants it
+            vals = ws.get_all_values()
+            non_empty = any(any(cell.strip() for cell in row) for row in vals)
+            if non_empty:
+                logger.debug("Default Sheet1 has data — keeping.")
+                return
+            logger.info("Deleting empty default Sheet1.")
+            spreadsheet.del_worksheet(ws)
+            return
+    except Exception as exc:  # noqa: BLE001 — non-fatal cleanup
+        logger.warning("Could not delete default Sheet1: %s", exc)
+
+
+def ensure_summary_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Worksheet:
+    """Create the Summary tab if missing and move it to index 0 so it opens by default."""
+    titles = {ws.title: ws for ws in spreadsheet.worksheets()}
+    if "Summary" in titles:
+        ws = titles["Summary"]
+        logger.debug("Summary tab already exists.")
+    else:
+        logger.info("Creating Summary tab")
+        ws = spreadsheet.add_worksheet(title="Summary", rows=50, cols=6)
+    # Move to position 0 (does no harm if already there)
+    try:
+        spreadsheet.batch_update({"requests": [{
+            "updateSheetProperties": {
+                "properties": {"sheetId": ws.id, "index": 0},
+                "fields": "index",
+            }
+        }]})
+    except Exception as exc:  # noqa: BLE001 — non-fatal; tab still works at any index
+        logger.warning("Could not move Summary tab to index 0: %s", exc)
+    return ws
+
+
+def write_summary(
+    spreadsheet: gspread.Spreadsheet,
+    visible_tabs: list[str],
+    write_counts: dict[str, int],
+    run_at_iso: str,
+    recent_runs: list[dict] | None = None,
+) -> None:
+    """Render an intuitive dashboard into the Summary tab.
+
+    Args:
+        spreadsheet: open gspread spreadsheet
+        visible_tabs: list of tab names in display order (excluding Summary/_meta)
+        write_counts: dict {tab_name: jobs_added_in_last_run}
+        run_at_iso: ISO timestamp of the run that just finished
+        recent_runs: optional list of {date, total_added, errors} dicts (newest first),
+            shown in a small history section. Pass [] or None to skip the history.
+    """
+    ws = ensure_summary_tab(spreadsheet)
+
+    # Query current row counts per tab so "Total jobs" reflects the live sheet
+    totals: dict[str, int] = {}
+    for tab in visible_tabs:
+        try:
+            tab_ws = spreadsheet.worksheet(tab)
+            # row count excluding header row
+            vals = tab_ws.get_all_values()
+            totals[tab] = max(0, len(vals) - 1)
+        except Exception:  # noqa: BLE001 — missing tab → 0
+            totals[tab] = 0
+
+    total_added = sum(int(v) for v in write_counts.values())
+    total_jobs = sum(totals.values())
+
+    rows: list[list[str]] = [
+        ["JOB SEARCH DASHBOARD", "", "", "", "", ""],
+        [f"Last updated: {run_at_iso}", "", "", "", "", ""],
+        [f"Last run added: {total_added} new jobs across {len(visible_tabs)} tabs", "", "", "", "", ""],
+        ["", "", "", "", "", ""],
+        ["Tab", "Total jobs", "Added in last run", "Open tab", "", ""],
+    ]
+    workbook_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet.id}/edit"
+    for tab in visible_tabs:
+        # Use HYPERLINK formula so the user can click straight into each tab
+        tab_link = f'=HYPERLINK("{workbook_url}#gid={spreadsheet.worksheet(tab).id}", "Open {tab}")'
+        rows.append([tab, str(totals.get(tab, 0)), str(write_counts.get(tab, 0)), tab_link, "", ""])
+    rows.append(["TOTAL", str(total_jobs), str(total_added), "", "", ""])
+
+    if recent_runs:
+        rows.append(["", "", "", "", "", ""])
+        rows.append(["Recent runs", "", "", "", "", ""])
+        rows.append(["Date", "New jobs", "Errors", "Discovered", "Filtered", "Deduped"])
+        for r in recent_runs[:14]:
+            rows.append([
+                str(r.get("date", "")),
+                str(r.get("total_added", "")),
+                str(r.get("errors", "")),
+                str(r.get("discovered", "")),
+                str(r.get("after_keyword_filter", "")),
+                str(r.get("after_dedup", "")),
+            ])
+
+    # Clear existing content first so old rows beyond new content don't linger
+    try:
+        ws.clear()
+    except Exception as exc:  # noqa: BLE001 — clear is best-effort
+        logger.warning("Could not clear Summary before write: %s", exc)
+
+    # Write with USER_ENTERED so HYPERLINK formulas evaluate
+    end_col = chr(ord("A") + len(rows[0]) - 1)
+    ws.update(
+        values=rows,
+        range_name=f"A1:{end_col}{len(rows)}",
+        value_input_option="USER_ENTERED",
+    )
+    logger.info("write_summary: wrote %d rows to Summary tab", len(rows))
 
 
 def _write_headers(ws: gspread.Worksheet, column_headers: list[str]) -> None:
