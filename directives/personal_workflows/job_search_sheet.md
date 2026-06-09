@@ -346,3 +346,33 @@ py execution/personal_workflows/job_search_sheet.py
 - The France Travail OAuth token may have expired. Re-run the OAuth flow:
   `py execution/custom_scrapers/france_travail_jobs.py --refresh-token`
 - If that fails, re-register at `https://francetravail.io`.
+
+---
+
+## GitHub Actions secrets — provisioning
+
+Add these 9 secrets at `Repo Settings → Secrets and variables → Actions → New repository secret`:
+
+| Secret | Value source |
+|---|---|
+| `SHEETS_SPREADSHEET_ID` | Phase 0 step 5 |
+| `GOOGLE_SERVICE_ACCOUNT_JSON_B64` | Base64-encode the service-account JSON file (see encoding cmd below) |
+| `ADZUNA_APP_ID` | Adzuna developer dashboard |
+| `ADZUNA_APP_KEY` | Adzuna developer dashboard |
+| `JOOBLE_API_KEY` | Email from Jooble after form submission |
+| `FRANCE_TRAVAIL_CLIENT_ID` | francetravail.io developer portal, your app |
+| `FRANCE_TRAVAIL_CLIENT_SECRET` | francetravail.io developer portal, your app |
+| `ANTHROPIC_API_KEY` | Copy from your `.env` (Anthropic console) |
+| `GEMINI_API_KEY` | Copy from your `.env` (AI Studio) |
+
+**Base64-encode the service-account JSON (Windows PowerShell):**
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("credentials/service_account.json")) | Set-Clipboard
+```
+
+The base64 string is now in your clipboard — paste it as the value for `GOOGLE_SERVICE_ACCOUNT_JSON_B64`.
+
+**Verify secrets are present:** trigger the workflow manually once via the Actions tab → "Run workflow" with `no_llm=true` first (fast, doesn't burn LLM tokens). Check the logs — `--check-only` should report `[OK]` for every key. If anything reports `[--MISSING]`, that secret name is wrong or empty.
+
+**DST handling:** the workflow has two crons (07:00 UTC and 08:00 UTC). One of them fires at 09:00 Paris regardless of summer/winter. The 23h idempotency check in `job_search_sheet.py` ensures the second cron exits cleanly without re-writing the sheet.

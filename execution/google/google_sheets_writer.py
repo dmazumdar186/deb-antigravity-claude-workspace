@@ -279,8 +279,9 @@ def read_tab(
 
     Returns:
         A tuple of:
-        - carry_forward_map: dict mapping dedup_hash -> {"status": str, "notes": str,
-          "also_seen_on": list[str]}.  Keys are the values in column A (index 0).
+        - carry_forward_map: dict mapping dedup_hash -> {"first_seen": str,
+          "status": str, "notes": str, "also_seen_on": list[str]}.
+          Keys are the values in column A (index 0).
           Rows with an empty column A are excluded from this map.
         - user_added_rows: list of raw row lists (list[str]) for rows where
           column A is empty (manually added by the user). Order-preserved.
@@ -308,10 +309,12 @@ def read_tab(
         # Row 0 is the header row — skip it
         # Column indices (0-based):
         #   0 = _id (dedup_hash)  A
-        #   12 = Status            M  (index 12)
-        #   13 = Notes             N  (index 13)
-        #   10 = Also Seen On      K  (index 10)
+        #   1 = First Seen        B
+        #   10 = Also Seen On     K  (index 10)
+        #   12 = Status           M  (index 12)
+        #   13 = Notes            N  (index 13)
         _IDX_HASH = 0
+        _IDX_FIRST_SEEN = 1
         _IDX_ALSO_SEEN = 10
         _IDX_STATUS = 12
         _IDX_NOTES = 13
@@ -331,6 +334,7 @@ def read_tab(
                     else []
                 )
                 carry_forward_map[dedup_hash] = {
+                    "first_seen": padded[_IDX_FIRST_SEEN].strip(),
                     "status": padded[_IDX_STATUS].strip(),
                     "notes": padded[_IDX_NOTES].strip(),
                     "also_seen_on": also_seen_list,

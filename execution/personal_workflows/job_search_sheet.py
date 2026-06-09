@@ -588,10 +588,8 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
         for tab in visible_tabs:
             try:
                 cf, ur = read_tab(sp, tab)
-                # read_tab returns {hash: {status, notes, also_seen_on}}
-                # We add first_seen from column B (index 1) — but read_tab doesn't expose it.
-                # We inject first_seen=None here; _build_sheet_row falls back to now_iso().
-                # TODO(phase2): extend read_tab to also return first_seen for exact date preservation.
+                # read_tab returns {hash: {first_seen, status, notes, also_seen_on}}
+                # first_seen (col B) is preserved across runs — _build_sheet_row uses it.
                 carry_forward_map[tab] = cf
                 user_rows_map[tab] = ur
             except Exception as exc:  # noqa: BLE001 — tab read fail is non-fatal

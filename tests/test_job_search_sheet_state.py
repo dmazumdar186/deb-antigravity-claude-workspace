@@ -160,6 +160,7 @@ def test_read_tab_returns_carry_forward_and_user_rows():
 
     assert "abc123hash" in carry_forward
     entry = carry_forward["abc123hash"]
+    assert entry["first_seen"] == "2026-06-07"
     assert entry["status"] == "Applied"
     assert entry["notes"] == "Interesting role"
     assert "jooble" in entry["also_seen_on"]

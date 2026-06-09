@@ -1,0 +1,91 @@
+name: job-search-daily
+
+on:
+  schedule:
+    # Dual-cron for DST: 07:00 UTC = 09:00 Paris CEST (summer); 08:00 UTC = 09:00 Paris CET (winter)
+    # The 23h idempotency check in the script makes the second cron exit cleanly when the first already ran.
+    - cron: "0 7 * * *"
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      no_llm:
+        description: "Skip the LLM relevance gate (faster, no Claude/Gemini calls)"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: job-search-daily
+  cancel-in-progress: false  # let in-flight runs complete; second cron will exit via 23h idempotency
+
+permissions:
+  contents: read  # we don't push commits from the workflow
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"  # GH Actions doesn't have stable 3.14 runners yet (2026-06)
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Decode service-account JSON
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+        run: |
+          mkdir -p credentials
+          echo "$GOOGLE_SERVICE_ACCOUNT_JSON_B64" | base64 -d > credentials/service_account.json
+          # Sanity: verify it parses as JSON before letting the pipeline use it
+          python -c "import json; json.load(open('credentials/service_account.json'))"
+
+      - name: Run setup --check-only (smoke test, non-blocking)
+        env:
+          SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
+          FRANCE_TRAVAIL_CLIENT_ID: ${{ secrets.FRANCE_TRAVAIL_CLIENT_ID }}
+          FRANCE_TRAVAIL_CLIENT_SECRET: ${{ secrets.FRANCE_TRAVAIL_CLIENT_SECRET }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python execution/personal_workflows/job_search_setup.py --check-only --verbose
+        continue-on-error: true  # don't fail the cron if one key is missing — log and proceed
+
+      - name: Run the pipeline
+        env:
+          SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
+          FRANCE_TRAVAIL_CLIENT_ID: ${{ secrets.FRANCE_TRAVAIL_CLIENT_ID }}
+          FRANCE_TRAVAIL_CLIENT_SECRET: ${{ secrets.FRANCE_TRAVAIL_CLIENT_SECRET }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.no_llm }}" = "true" ]; then
+            FLAGS="$FLAGS --no-llm"
+          fi
+          python execution/personal_workflows/job_search_sheet.py $FLAGS
+
+      - name: Upload run-log artifact (last 7 days)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job-search-run-log-${{ github.run_id }}
+          path: .tmp/job_search/job_search_runs.jsonl
+          if-no-files-found: ignore
+          retention-days: 7
