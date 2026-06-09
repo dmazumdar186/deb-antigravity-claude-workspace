@@ -26,5 +26,9 @@ imagehash>=4.3.2
 Pillow>=10.0.0
 google-genai>=1.0.0
 
+# Google Sheets (job-search-sheet pipeline)
+gspread>=6.0
+tenacity>=8.0
+
 # Testing
 pytest>=7.0
