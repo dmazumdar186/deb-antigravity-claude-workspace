@@ -70,12 +70,33 @@ jobs:
           JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Optional: daily summary email. Set GMAIL_SMTP_USER + GMAIL_SMTP_APP_PASSWORD
+          # secrets to enable; if missing, the pipeline logs a warning and skips email.
+          GMAIL_SMTP_USER: ${{ secrets.GMAIL_SMTP_USER }}
+          GMAIL_SMTP_APP_PASSWORD: ${{ secrets.GMAIL_SMTP_APP_PASSWORD }}
+          GMAIL_NOTIFY_TO: ${{ secrets.GMAIL_NOTIFY_TO }}
         run: |
           FLAGS=""
           if [ "${{ github.event.inputs.no_llm }}" = "true" ]; then
             FLAGS="$FLAGS --no-llm"
           fi
           python execution/personal_workflows/job_search_sheet.py $FLAGS
+
+      - name: Write GitHub Step Summary (visible on the workflow run page)
+        if: always()
+        run: |
+          if [ -f .tmp/job_search/job_search_runs.jsonl ]; then
+            LAST_RUN=$(tail -1 .tmp/job_search/job_search_runs.jsonl)
+            echo "### Job Search — latest run" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            echo "$LAST_RUN" | python -m json.tool >> "$GITHUB_STEP_SUMMARY" || echo "$LAST_RUN" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Sheet: https://docs.google.com/spreadsheets/d/${{ secrets.SHEETS_SPREADSHEET_ID }}/edit" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No run log found (pipeline likely exited at Stage 0 via idempotency check)." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload run-log artifact (last 7 days)
         if: always()
