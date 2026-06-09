@@ -1,0 +1,97 @@
+{
+  "count": 5,
+  "results": [
+    {
+      "id": "4521837291",
+      "title": "Senior Product Manager — Fintech Platform",
+      "redirect_url": "https://www.adzuna.fr/jobs/details/4521837291?v=1",
+      "created": "2026-06-07T08:00:00Z",
+      "description": "Nous recherchons un Senior Product Manager pour piloter notre plateforme de paiement B2B. Poste en CDI, basé à Paris 9e avec 2 jours de télétravail par semaine. Vous travaillerez en étroite collaboration avec les équipes ingénierie et data. Expérience minimale de 5 ans en gestion de produit dans un environnement fintech ou SaaS exigée. Stack produit: Jira, Figma, Amplitude, dbt. Salaire: 65–80k€ + BSPCE.",
+      "company": {
+        "display_name": "Lyra Network"
+      },
+      "location": {
+        "display_name": "Paris, Île-de-France"
+      },
+      "contract_type": "permanent",
+      "contract_time": "full_time",
+      "category": {
+        "label": "IT Jobs"
+      },
+      "salary_min": 65000,
+      "salary_max": 80000
+    },
+    {
+      "id": "4521990042",
+      "title": "AI Product Manager — LLM Applications",
+      "redirect_url": "https://www.adzuna.fr/jobs/details/4521990042?v=1",
+      "created": "2026-06-08T10:30:00Z",
+      "description": "Join our AI product team to define and ship LLM-powered features for our enterprise SaaS product. You will work with ML engineers, data scientists, and UX researchers. Required: 4+ years PM experience, prior exposure to generative AI products, strong analytical skills. Location: Paris or full remote (France). Contract: permanent position (CDI). Compensation: 75–95k€.",
+      "company": {
+        "display_name": "Mistral AI"
+      },
+      "location": {
+        "display_name": "Paris, Île-de-France"
+      },
+      "contract_type": "permanent",
+      "contract_time": "full_time",
+      "category": {
+        "label": "IT Jobs"
+      },
+      "salary_min": 75000,
+      "salary_max": 95000
+    },
+    {
+      "id": "4521773310",
+      "title": "Product Manager — Mission Freelance 6 mois",
+      "redirect_url": "https://www.adzuna.fr/jobs/details/4521773310?v=1",
+      "created": "2026-06-05T14:00:00Z",
+      "description": "Mission freelance de 6 mois pour accompagner la refonte du parcours client sur notre plateforme e-commerce. Vous définirez la roadmap produit, animerez les cérémonies agile et livrerez des spécifications fonctionnelles détaillées. Profil senior requis (7 ans minimum). TJM: 600–750€. Démarrage dès que possible.",
+      "company": {
+        "display_name": "Cdiscount"
+      },
+      "location": {
+        "display_name": "Bordeaux, Nouvelle-Aquitaine"
+      },
+      "contract_type": "contract",
+      "contract_time": "full_time",
+      "category": {
+        "label": "IT Jobs"
+      }
+    },
+    {
+      "id": "4521654887",
+      "title": "Chef de Produit Digital — Assurance",
+      "redirect_url": "https://www.adzuna.fr/jobs/details/4521654887?v=1",
+      "created": "2026-06-06T09:15:00Z",
+      "description": "Nous recrutons un Chef de Produit pour notre division assurance digitale. Ce rôle en CDI couvre la gestion du backlog produit, la coordination avec les partenaires techniques et le suivi des KPIs d'adoption. Idéalement issu(e) du secteur assurance ou bancaire. Localisation: Lyon Part-Dieu. Avantages: tickets restaurant, mutuelle entreprise, 2j télétravail.",
+      "company": {
+        "display_name": "Generali France"
+      },
+      "location": null,
+      "contract_type": null,
+      "contract_time": "full_time",
+      "category": {
+        "label": "Insurance Jobs"
+      }
+    },
+    {
+      "id": "4521501122",
+      "title": "Junior Product Manager — Stage de fin d'études",
+      "redirect_url": "https://www.adzuna.fr/jobs/details/4521501122?v=1",
+      "created": "2026-06-01T11:00:00Z",
+      "description": "Stage de fin d'études pour rejoindre notre équipe produit en tant que Junior Product Manager. Vous participez à la rédaction des user stories, aux sessions de découverte utilisateur et aux revues sprint. Profil: école de commerce ou ingénieur, curiosité, esprit analytique. Gratification légale + tickets restaurant.",
+      "company": {
+        "display_name": "Doctolib"
+      },
+      "location": {
+        "display_name": "Paris, Île-de-France"
+      },
+      "contract_type": null,
+      "contract_time": "full_time",
+      "category": {
+        "label": "Healthcare IT Jobs"
+      }
+    }
+  ]
+}

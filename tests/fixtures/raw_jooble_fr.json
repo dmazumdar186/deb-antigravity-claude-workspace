@@ -1,0 +1,65 @@
+{
+  "totalCount": 5,
+  "jobs": [
+    {
+      "title": "Senior Product Manager — Marketplace",
+      "location": "Paris, France",
+      "snippet": "We are looking for a Senior Product Manager to lead our marketplace product. You will own the roadmap, work with engineering teams across 3 countries, and drive OKR delivery. Required: 6+ years PM experience, marketplace or platform background preferred. Full-time permanent position (CDI). Compensation package: 70–90k€ + bonus.",
+      "salary": "70000-90000 EUR",
+      "source": "Welcome to the Jungle",
+      "type": "Full-time",
+      "link": "https://fr.jooble.org/jjobs/4839201/senior-product-manager-marketplace",
+      "company": "Back Market",
+      "updated": "2026-06-08T00:00:00+00:00",
+      "id": "4839201"
+    },
+    {
+      "title": "AI Product Manager — NLP & Conversational AI",
+      "location": "Remote (France)",
+      "snippet": "Exciting opportunity to join a fast-growing AI startup as AI Product Manager focused on NLP and conversational AI products. You will translate customer problems into product specs, run discovery interviews, and work hand-in-hand with ML researchers. 4+ years PM experience required, familiarity with AI/ML workflows essential. Contract: CDI, full remote with quarterly Paris meetups.",
+      "salary": "",
+      "source": "LinkedIn",
+      "type": "Full-time",
+      "link": "https://fr.jooble.org/jjobs/4839322/ai-product-manager-nlp",
+      "company": "Hugging Face",
+      "updated": "2026-06-07T00:00:00+00:00",
+      "id": "4839322"
+    },
+    {
+      "title": "Product Manager — CDD 12 mois remplacement",
+      "location": "Lyon, France",
+      "snippet": "CDD 12 mois pour remplacement congé maternité. Prise en charge du backlog produit e-commerce, animation des squads agile et coordination des livraisons avec les équipes IT. Profil: 3–5 ans d'expérience produit, connaissance du retail digital appréciée. Rémunération: 45–55k€ brut annuel.",
+      "salary": "45000-55000 EUR",
+      "source": "Apec",
+      "type": "Contract",
+      "link": "https://fr.jooble.org/jjobs/4839488/product-manager-cdd-12-mois",
+      "company": "Fnac Darty",
+      "updated": "2026-06-06T00:00:00+00:00",
+      "id": "4839488"
+    },
+    {
+      "title": "Freelance Product Manager — Mission Data Platform",
+      "location": "Paris, France",
+      "snippet": "Recherche Product Manager freelance pour une mission de 4 mois sur notre plateforme data interne. Vous définirez les besoins métier, prioriserez le backlog avec l'équipe data engineering et piloterez la relation avec les stakeholders. TJM cible: 550–700€. Démarrage: juillet 2026.",
+      "salary": "",
+      "source": "Malt",
+      "type": "Freelance",
+      "link": "https://fr.jooble.org/jjobs/4839600/freelance-product-manager-data",
+      "company": "TotalEnergies Digital Factory",
+      "updated": "2026-06-05T00:00:00+00:00",
+      "id": "4839600"
+    },
+    {
+      "title": "Assistant Product Manager — Stage 6 mois",
+      "location": "Nantes, France",
+      "snippet": "Stage de 6 mois pour rejoindre l'équipe produit en tant qu'Assistant Product Manager. Vous contribuerez à la rédaction des user stories, participerez aux réunions de sprint et réaliserez des benchmarks concurrentiels. Profil: étudiant(e) Bac+4/5 en école de commerce ou d'ingénieur. Gratification SMIC stagiaire.",
+      "salary": "",
+      "source": "JobTeaser",
+      "type": "Internship",
+      "link": "https://fr.jooble.org/jjobs/4839705/assistant-product-manager-stage",
+      "company": "Decathlon Digital",
+      "updated": "2026-06-04T00:00:00+00:00",
+      "id": "4839705"
+    }
+  ]
+}
