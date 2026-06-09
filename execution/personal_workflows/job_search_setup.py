@@ -67,11 +67,17 @@ def _fmt(status: str, label: str, hint: str = "") -> str:
 
 
 def _check_dotenv(verbose: bool) -> tuple[bool, str]:
+    """A missing .env is OK if env vars are otherwise populated (e.g. GitHub Actions
+    injects them from secrets). Only flag MISSING when both the file is absent
+    AND no required env var is set."""
     env_path = _PROJECT_ROOT / ".env"
     if env_path.exists():
         if verbose:
             return True, _fmt("[OK]", ".env file found", str(env_path))
         return True, _fmt("[OK]", ".env file found")
+    # No .env file — fine if env vars are already in the process environment
+    if any(os.environ.get(var, "") for var, _ in _REQUIRED_VARS):
+        return True, _fmt("[OK]", ".env file not present (env vars injected by host — OK for CI)")
     return False, _fmt("[--MISSING]", ".env file", f"create {env_path} with required vars")
 
 
