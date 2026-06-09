@@ -55,3 +55,6 @@ output/
 
 # JPG screenshots dropped at workspace root (out-of-band)
 /[0-9]*.jpg
+
+# anneal transcripts (local audit logs)
+.anneal/
