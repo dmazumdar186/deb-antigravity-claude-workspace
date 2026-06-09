@@ -239,7 +239,7 @@ def ensure_summary_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Worksheet:
 
 _HISTORY_TAB = "_history"
 _HISTORY_HEADER = ["Date", "Total", "Discovered", "Per-tab JSON"]
-_HISTORY_MAX_ROWS = 90  # ~3 months of daily runs; SPARKLINE in Summary shows last 30
+HISTORY_MAX_ROWS = 90  # ~3 months of daily runs; SPARKLINE in Summary shows last 30
 
 
 def ensure_history_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Worksheet:
@@ -261,7 +261,7 @@ def append_history(
     discovered: int,
     write_counts: dict[str, int],
 ) -> None:
-    """Append one row to the _history tab and trim to the last _HISTORY_MAX_ROWS.
+    """Append one row to the _history tab and trim to the last HISTORY_MAX_ROWS.
     Per-tab counts go in column D as JSON so the schema doesn't depend on tab list."""
     import json as _json
     ws = ensure_history_tab(spreadsheet)
@@ -272,9 +272,9 @@ def append_history(
     try:
         # Read current row count and trim if over cap (1 header + N data rows)
         n = len(ws.col_values(1))
-        if n > _HISTORY_MAX_ROWS + 1:
-            # Delete oldest data rows so only header + last _HISTORY_MAX_ROWS remain
-            rows_to_delete = n - (_HISTORY_MAX_ROWS + 1)
+        if n > HISTORY_MAX_ROWS + 1:
+            # Delete oldest data rows so only header + last HISTORY_MAX_ROWS remain
+            rows_to_delete = n - (HISTORY_MAX_ROWS + 1)
             ws.delete_rows(2, 2 + rows_to_delete - 1)
             logger.info("Trimmed %d old rows from %s", rows_to_delete, _HISTORY_TAB)
     except Exception as exc:  # noqa: BLE001 — trim is best-effort

@@ -236,11 +236,11 @@ def test_append_history_writes_row():
 
 
 def test_append_history_trims_above_cap():
-    """When the _history tab has more than _HISTORY_MAX_ROWS+1 rows, oldest get deleted."""
-    from execution.google.google_sheets_writer import _HISTORY_MAX_ROWS
+    """When the _history tab has more than HISTORY_MAX_ROWS+1 rows, oldest get deleted."""
+    from execution.google.google_sheets_writer import HISTORY_MAX_ROWS
     existing = _make_ws("_history")
     # Simulate col_values returning more rows than the cap
-    existing.col_values.return_value = ["Date"] + [f"2026-06-{i:02d}" for i in range(1, _HISTORY_MAX_ROWS + 5)]
+    existing.col_values.return_value = ["Date"] + [f"2026-06-{i:02d}" for i in range(1, HISTORY_MAX_ROWS + 5)]
     sp, _ = _make_sp([existing])
     append_history(sp, "2026-06-09", total=1, discovered=1, write_counts={})
     existing.delete_rows.assert_called_once()
