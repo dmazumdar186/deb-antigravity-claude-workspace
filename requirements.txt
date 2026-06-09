@@ -30,5 +30,8 @@ google-genai>=1.0.0
 gspread>=6.0
 tenacity>=8.0
 
+# Language detection (used by execution/custom_scrapers/job_filter.py)
+langdetect>=1.0.9
+
 # Testing
 pytest>=7.0
