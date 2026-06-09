@@ -83,15 +83,17 @@ STATUS_DROPDOWN = ["New", "Applied", "Saved", "Skip", "Interview", "Rejected"]
 
 
 def test_ensure_workbook_initialized_empty_sheet():
-    """On a completely empty workbook, all 6 visible tabs + _meta must be created."""
+    """On a completely empty workbook, all 6 visible tabs + _meta + Summary must be created."""
     sp = _make_spreadsheet([])  # no worksheets
 
     ensure_workbook_initialized(sp, VISIBLE_TABS, COLUMN_HEADERS)
 
-    # 7 tabs should have been created: 6 visible + _meta
-    assert sp.add_worksheet.call_count == 7, (
-        f"Expected 7 add_worksheet calls, got {sp.add_worksheet.call_count}"
+    # 8 tabs should have been created: 6 visible + _meta + Summary
+    assert sp.add_worksheet.call_count == 8, (
+        f"Expected 8 add_worksheet calls (6 visible + _meta + Summary), got {sp.add_worksheet.call_count}"
     )
+    created_titles = [c.kwargs.get("title") or c.args[0] for c in sp.add_worksheet.call_args_list]
+    assert "Summary" in created_titles, f"Summary tab must be created. Got: {created_titles}"
 
 
 def test_ensure_workbook_initialized_partial_sheet():
