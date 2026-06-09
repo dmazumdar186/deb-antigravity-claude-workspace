@@ -1,0 +1,76 @@
+{
+  "spreadsheet_name": "Job Applications",
+  "visible_tabs": ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"],
+  "column_headers": [
+    "_id", "First Seen", "Posted", "Company", "Title", "Country",
+    "Location", "Remote?", "Contract", "Source", "Also Seen On",
+    "Link", "Status", "Notes"
+  ],
+  "status_dropdown_values": ["New", "Applied", "Saved", "Skip", "Interview", "Rejected"],
+  "titles": {
+    "PM": {
+      "synonyms": ["product manager", "chef de produit", "senior product manager", "lead product manager"],
+      "tab": "PM"
+    },
+    "AI PM": {
+      "synonyms": ["ai product manager", "product manager ai", "product manager - ai", "ml product manager", "product manager ml"],
+      "tab": "AI PM"
+    },
+    "AI Automation": {
+      "synonyms": ["ai automation engineer", "automation engineer ai", "ai automation specialist", "ai automation consultant"],
+      "tab": "AI Automation"
+    },
+    "AI Mobile": {
+      "synonyms": ["ai mobile app developer", "ai mobile developer", "mobile ai engineer", "mobile ai developer"],
+      "tab": "AI Mobile"
+    },
+    "AI Process": {
+      "synonyms": ["ai process automation expert", "ai process automation", "process automation ai expert", "ai process consultant"],
+      "tab": "AI Process"
+    },
+    "AI Consultant": {
+      "synonyms": ["ai consultant", "ai strategy consultant", "ai transformation consultant", "ai solutions consultant"],
+      "tab": "AI Consultant"
+    }
+  },
+  "geos": {
+    "FR": {"phase": "1a", "adzuna_country": "fr", "jooble_country": "France", "france_travail": true, "contract_filter": null},
+    "DE": {"phase": "1b", "adzuna_country": "de", "jooble_country": "Germany", "france_travail": false, "contract_filter": null},
+    "NL": {"phase": "1b", "adzuna_country": "nl", "jooble_country": "Netherlands", "france_travail": false, "contract_filter": null},
+    "ES": {"phase": "1b", "adzuna_country": "es", "jooble_country": "Spain", "france_travail": false, "contract_filter": null},
+    "IT": {"phase": "1b", "adzuna_country": "it", "jooble_country": "Italy", "france_travail": false, "contract_filter": null},
+    "BE": {"phase": "1b", "adzuna_country": "be", "jooble_country": "Belgium", "france_travail": false, "contract_filter": null},
+    "AT": {"phase": "1b", "adzuna_country": "at", "jooble_country": "Austria", "france_travail": false, "contract_filter": null},
+    "PL": {"phase": "1b", "adzuna_country": "pl", "jooble_country": "Poland", "france_travail": false, "contract_filter": null},
+    "PT": {"phase": "1b", "adzuna_country": "pt", "jooble_country": "Portugal", "france_travail": false, "contract_filter": null},
+    "CA": {"phase": "1b", "adzuna_country": "ca", "jooble_country": "Canada", "france_travail": false, "contract_filter": ["contract", "freelance"]},
+    "US": {"phase": "1b", "adzuna_country": "us", "jooble_country": "USA", "france_travail": false, "contract_filter": ["contract", "freelance"]}
+  },
+  "filter": {
+    "title_keywords_include": [
+      "product manager", "chef de produit",
+      "ai product manager", "product manager ai", "ml product manager",
+      "ai automation", "automation engineer ai",
+      "ai mobile", "mobile ai",
+      "ai process automation", "process automation ai",
+      "ai consultant", "ai strategy consultant", "ai transformation"
+    ],
+    "title_keywords_exclude": ["junior", "jr", "stage", "stagiaire", "alternance", "alternant", "alternante", "apprenti", "apprentie", "apprentissage", "intern", "internship", "trainee", "assistant", "graduate", "entry-level", "entry level"],
+    "languages_allowed": ["fr", "en"]
+  },
+  "llm_gate": {
+    "primary": "claude-haiku-4-5",
+    "failover": "gemini-2.0-flash",
+    "max_jobs_per_run": 200
+  },
+  "dedup": {
+    "jaccard_threshold": 0.4,
+    "snippet_chars": 200
+  },
+  "schedule": {
+    "cron_utc_summer": "0 7 * * *",
+    "cron_utc_winter": "0 8 * * *",
+    "idempotency_window_hours": 23,
+    "tz_display": "Europe/Paris"
+  }
+}
