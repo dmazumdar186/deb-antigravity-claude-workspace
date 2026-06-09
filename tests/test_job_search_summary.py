@@ -23,6 +23,9 @@ from execution.google.google_sheets_writer import (  # noqa: E402
     ensure_summary_tab,
     write_summary,
     _delete_default_sheet1,
+    ensure_history_tab,
+    append_history,
+    read_history,
 )
 from execution.personal_workflows.job_search_sheet import _load_recent_runs  # noqa: E402
 
@@ -133,15 +136,19 @@ def test_write_summary_writes_header_and_per_tab(summary_workbook):
         visible_tabs=["PM", "AI PM"],
         write_counts={"PM": 3, "AI PM": 1},
         run_at_iso="2026-06-09 18:00 UTC",
+        recent_runs=[],  # explicitly skip history to keep this test focused on the dashboard
     )
     # Summary tab gets a single .update call with USER_ENTERED
     assert summary.update.call_count == 1
     kwargs = summary.update.call_args.kwargs
     rows = kwargs["values"]
-    # Title + 'last updated' + 'last run added' + blank + header + 2 data + TOTAL = 8 rows minimum
+    # Title + 'last updated' + 'last run added/sparkline' + blank + header + 2 data + TOTAL = 8 rows minimum
     assert len(rows) >= 8
     assert rows[0][0].startswith("JOB SEARCH DASHBOARD")
     assert "2026-06-09 18:00 UTC" in rows[1][0]
+    # Sparkline row: col B labels it, col C holds the formula
+    assert rows[2][1] == "30-day trend:"
+    assert rows[2][2].startswith("=IFERROR(SPARKLINE("), f"Expected SPARKLINE formula, got: {rows[2][2]!r}"
     # Per-tab row data
     pm_row = next(r for r in rows if r[0] == "PM")
     assert pm_row[1] == "5"  # total
@@ -157,7 +164,7 @@ def test_write_summary_writes_header_and_per_tab(summary_workbook):
 
 def test_write_summary_uses_user_entered_for_hyperlinks(summary_workbook):
     sp, summary = summary_workbook
-    write_summary(sp, ["PM", "AI PM"], {"PM": 1, "AI PM": 0}, "2026-06-09")
+    write_summary(sp, ["PM", "AI PM"], {"PM": 1, "AI PM": 0}, "2026-06-09", recent_runs=[])
     assert summary.update.call_args.kwargs.get("value_input_option") == "USER_ENTERED"
     rows = summary.update.call_args.kwargs["values"]
     # HYPERLINK formula in column D (index 3)
@@ -169,24 +176,141 @@ def test_write_summary_uses_user_entered_for_hyperlinks(summary_workbook):
 
 def test_write_summary_clears_before_writing(summary_workbook):
     sp, summary = summary_workbook
-    write_summary(sp, ["PM"], {"PM": 1}, "2026-06-09")
+    write_summary(sp, ["PM"], {"PM": 1}, "2026-06-09", recent_runs=[])
     summary.clear.assert_called_once()
 
 
 def test_write_summary_with_recent_runs(summary_workbook):
     sp, summary = summary_workbook
     recent = [
-        {"date": "2026-06-09", "total_added": 124, "errors": 0,
-         "discovered": 205, "after_keyword_filter": 108, "after_dedup": 102},
-        {"date": "2026-06-08", "total_added": 80, "errors": 0,
-         "discovered": 150, "after_keyword_filter": 90, "after_dedup": 80},
+        {"date": "2026-06-09", "total_added": 124, "discovered": 205},
+        {"date": "2026-06-08", "total_added": 80, "discovered": 150},
     ]
     write_summary(sp, ["PM"], {"PM": 124}, "2026-06-09", recent_runs=recent)
     rows = summary.update.call_args.kwargs["values"]
-    recent_header_idx = next(i for i, r in enumerate(rows) if r[0] == "Recent runs")
+    # Recent runs section header now reads "Recent runs (last 14)"
+    recent_header_idx = next(i for i, r in enumerate(rows) if r[0].startswith("Recent runs"))
+    # data_idx = header + column-headers + first data
     data_idx = recent_header_idx + 2
     assert rows[data_idx][0] == "2026-06-09"
     assert rows[data_idx][1] == "124"
+
+
+# ---------------------------------------------------------------------------
+# ensure_history_tab / append_history / read_history
+# ---------------------------------------------------------------------------
+
+def test_ensure_history_tab_creates_hidden_when_absent():
+    sp, new_ws = _make_sp([])
+    ws = ensure_history_tab(sp)
+    sp.add_worksheet.assert_called_once_with(title="_history", rows=200, cols=4)
+    # Header row written
+    new_ws.update.assert_called_once()
+    assert "Date" in new_ws.update.call_args.kwargs.get("values", [[]])[0]
+    # Hidden via the new worksheet's spreadsheet.batch_update (per _hide_worksheet impl)
+    assert new_ws.spreadsheet.batch_update.called
+    assert ws is new_ws
+
+
+def test_ensure_history_tab_reuses_existing():
+    existing = _make_ws("_history", sheet_id=99)
+    sp, _ = _make_sp([existing])
+    ws = ensure_history_tab(sp)
+    sp.add_worksheet.assert_not_called()
+    assert ws is existing
+
+
+def test_append_history_writes_row():
+    existing = _make_ws("_history", [["Date","Total","Discovered","Per-tab JSON"]] + [["2026-06-08","50","100","{}"]])
+    sp, _ = _make_sp([existing])
+    append_history(sp, "2026-06-09", total=124, discovered=205,
+                   write_counts={"PM": 89, "AI PM": 26})
+    existing.append_row.assert_called_once()
+    args, kwargs = existing.append_row.call_args
+    row = args[0]
+    assert row[0] == "2026-06-09"
+    assert row[1] == "124"
+    assert row[2] == "205"
+    assert '"PM": 89' in row[3]
+    assert '"AI PM": 26' in row[3]
+
+
+def test_append_history_trims_above_cap():
+    """When the _history tab has more than _HISTORY_MAX_ROWS+1 rows, oldest get deleted."""
+    from execution.google.google_sheets_writer import _HISTORY_MAX_ROWS
+    existing = _make_ws("_history")
+    # Simulate col_values returning more rows than the cap
+    existing.col_values.return_value = ["Date"] + [f"2026-06-{i:02d}" for i in range(1, _HISTORY_MAX_ROWS + 5)]
+    sp, _ = _make_sp([existing])
+    append_history(sp, "2026-06-09", total=1, discovered=1, write_counts={})
+    existing.delete_rows.assert_called_once()
+    # Args: start_row=2, end_row=2+extra-1 (3 rows to delete in this fixture)
+    args = existing.delete_rows.call_args.args
+    assert args[0] == 2  # always trim from row 2 (after header)
+
+
+def test_read_history_returns_newest_first():
+    rows = [
+        ["Date", "Total", "Discovered", "Per-tab JSON"],
+        ["2026-06-07", "50", "100", '{"PM": 50}'],
+        ["2026-06-08", "75", "150", '{"PM": 60, "AI PM": 15}'],
+        ["2026-06-09", "120", "200", '{"PM": 100, "AI PM": 20}'],
+    ]
+    ws = _make_ws("_history", rows)
+    sp, _ = _make_sp([ws])
+    out = read_history(sp, limit=5)
+    assert len(out) == 3
+    assert out[0]["date"] == "2026-06-09"
+    assert out[0]["total"] == 120
+    assert out[0]["per_tab"] == {"PM": 100, "AI PM": 20}
+    assert out[2]["date"] == "2026-06-07"
+
+
+def test_read_history_returns_empty_when_tab_absent():
+    sp, _ = _make_sp([])  # no _history tab
+    out = read_history(sp, limit=10)
+    assert out == []
+
+
+def test_read_history_tolerates_malformed_per_tab_json():
+    rows = [
+        ["Date", "Total", "Discovered", "Per-tab JSON"],
+        ["2026-06-09", "50", "100", "{not valid json}"],
+    ]
+    ws = _make_ws("_history", rows)
+    sp, _ = _make_sp([ws])
+    out = read_history(sp, limit=5)
+    assert len(out) == 1
+    assert out[0]["per_tab"] == {}  # gracefully degraded
+
+
+def test_read_history_respects_limit():
+    rows = [["Date", "Total", "Discovered", "Per-tab JSON"]]
+    for i in range(1, 25):
+        rows.append([f"2026-05-{i:02d}", str(i), str(i*5), "{}"])
+    ws = _make_ws("_history", rows)
+    sp, _ = _make_sp([ws])
+    out = read_history(sp, limit=10)
+    assert len(out) == 10
+    assert out[0]["date"] == "2026-05-24"  # newest
+
+
+def test_write_summary_falls_back_to_history_tab(summary_workbook):
+    """If recent_runs is None (default), Summary reads from _history tab."""
+    sp, summary = summary_workbook
+    # Add a populated _history tab to the workbook
+    history_ws = _make_ws("_history", [
+        ["Date", "Total", "Discovered", "Per-tab JSON"],
+        ["2026-06-09", "47", "50", '{"PM": 46, "AI PM": 1}'],
+    ])
+    sp.worksheets.return_value = list(sp.worksheets.return_value) + [history_ws]
+    sp.worksheet.side_effect = lambda name: next(
+        w for w in sp.worksheets.return_value if w.title == name
+    )
+    write_summary(sp, ["PM"], {"PM": 47}, "2026-06-09")  # no recent_runs arg
+    rows = summary.update.call_args.kwargs["values"]
+    history_section = [r for r in rows if r[0] == "2026-06-09" and r[1] == "47"]
+    assert len(history_section) == 1, f"Expected history row from _history tab in Summary; got: {rows}"
 
 
 # ---------------------------------------------------------------------------

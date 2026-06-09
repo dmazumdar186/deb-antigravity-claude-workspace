@@ -44,6 +44,7 @@ from execution.google.google_sheets_writer import (  # noqa: E402
     read_tab,
     write_tab,
     write_summary,
+    append_history,
 )
 
 # ---------------------------------------------------------------------------
@@ -771,16 +772,29 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
     with RUNS_LOG.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(summary, default=str) + "\n")
 
-    # Render the Summary dashboard tab (first tab on open — user-facing glance)
+    # Append to persistent _history tab (survives ephemeral cloud runners)
     if not args.dry_run and sp:
         try:
-            recent_runs = _load_recent_runs(RUNS_LOG, limit=14)
+            append_history(
+                sp,
+                run_at_iso=run_start.strftime("%Y-%m-%d"),
+                total=sum(int(v) for v in write_counts.values()),
+                discovered=len(all_raw_jobs),
+                write_counts=write_counts,
+            )
+        except Exception as exc:  # noqa: BLE001 — history is non-fatal
+            logger.error("Stage 6: append_history failed: %s", exc)
+
+    # Render the Summary dashboard tab (first tab on open — user-facing glance).
+    # write_summary reads the recent-runs history from the _history tab itself,
+    # so we no longer need to pass recent_runs here.
+    if not args.dry_run and sp:
+        try:
             write_summary(
                 sp,
                 visible_tabs=cfg.get("visible_tabs", []),
                 write_counts=write_counts,
                 run_at_iso=run_start.strftime("%Y-%m-%d %H:%M UTC"),
-                recent_runs=recent_runs,
             )
         except Exception as exc:  # noqa: BLE001 — summary is non-fatal
             logger.error("Stage 6: write_summary failed: %s", exc)

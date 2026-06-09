@@ -237,6 +237,81 @@ def ensure_summary_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Worksheet:
     return ws
 
 
+_HISTORY_TAB = "_history"
+_HISTORY_HEADER = ["Date", "Total", "Discovered", "Per-tab JSON"]
+_HISTORY_MAX_ROWS = 90  # ~3 months of daily runs; SPARKLINE in Summary shows last 30
+
+
+def ensure_history_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Worksheet:
+    """Create a hidden _history tab with header row, if absent. Returns the worksheet."""
+    titles = {ws.title: ws for ws in spreadsheet.worksheets()}
+    if _HISTORY_TAB in titles:
+        return titles[_HISTORY_TAB]
+    logger.info("Creating hidden %s tab", _HISTORY_TAB)
+    ws = spreadsheet.add_worksheet(title=_HISTORY_TAB, rows=200, cols=4)
+    ws.update(values=[_HISTORY_HEADER], range_name="A1", value_input_option="RAW")
+    _hide_worksheet(ws)
+    return ws
+
+
+def append_history(
+    spreadsheet: gspread.Spreadsheet,
+    run_at_iso: str,
+    total: int,
+    discovered: int,
+    write_counts: dict[str, int],
+) -> None:
+    """Append one row to the _history tab and trim to the last _HISTORY_MAX_ROWS.
+    Per-tab counts go in column D as JSON so the schema doesn't depend on tab list."""
+    import json as _json
+    ws = ensure_history_tab(spreadsheet)
+    ws.append_row(
+        [run_at_iso, str(total), str(discovered), _json.dumps(write_counts)],
+        value_input_option="RAW",
+    )
+    try:
+        # Read current row count and trim if over cap (1 header + N data rows)
+        n = len(ws.col_values(1))
+        if n > _HISTORY_MAX_ROWS + 1:
+            # Delete oldest data rows so only header + last _HISTORY_MAX_ROWS remain
+            rows_to_delete = n - (_HISTORY_MAX_ROWS + 1)
+            ws.delete_rows(2, 2 + rows_to_delete - 1)
+            logger.info("Trimmed %d old rows from %s", rows_to_delete, _HISTORY_TAB)
+    except Exception as exc:  # noqa: BLE001 — trim is best-effort
+        logger.warning("Could not trim %s: %s", _HISTORY_TAB, exc)
+
+
+def read_history(spreadsheet: gspread.Spreadsheet, limit: int = 14) -> list[dict]:
+    """Read the last `limit` rows of the _history tab. Newest first.
+    Returns list of {date, total, discovered, per_tab (dict)}."""
+    import json as _json
+    titles = {ws.title for ws in spreadsheet.worksheets()}
+    if _HISTORY_TAB not in titles:
+        return []
+    try:
+        ws = spreadsheet.worksheet(_HISTORY_TAB)
+        rows = ws.get_all_values()
+    except Exception as exc:  # noqa: BLE001 — non-fatal
+        logger.warning("Could not read %s: %s", _HISTORY_TAB, exc)
+        return []
+    out: list[dict] = []
+    for row in rows[1:]:  # skip header
+        if not row or not row[0]:
+            continue
+        try:
+            per_tab = _json.loads(row[3]) if len(row) > 3 and row[3] else {}
+        except (_json.JSONDecodeError, ValueError):
+            per_tab = {}
+        out.append({
+            "date":       row[0],
+            "total":      int(row[1]) if len(row) > 1 and row[1].isdigit() else 0,
+            "discovered": int(row[2]) if len(row) > 2 and row[2].isdigit() else 0,
+            "per_tab":    per_tab,
+        })
+    out.reverse()  # newest first
+    return out[:limit]
+
+
 def write_summary(
     spreadsheet: gspread.Spreadsheet,
     visible_tabs: list[str],
@@ -270,10 +345,21 @@ def write_summary(
     total_added = sum(int(v) for v in write_counts.values())
     total_jobs = sum(totals.values())
 
+    # SPARKLINE formula: 30-day trend of "Total" column in _history.
+    # OFFSET picks the last 30 data rows (skips header); SPARKLINE plots them.
+    # If _history has fewer rows, SPARKLINE gracefully shows what's there.
+    sparkline_formula = (
+        '=IFERROR('
+        'SPARKLINE('
+        'OFFSET(_history!B2, MAX(0, COUNTA(_history!B:B)-31), 0, MIN(30, COUNTA(_history!B:B)-1), 1),'
+        '{"charttype","line";"linewidth",2;"color","#1a73e8"}'
+        '), "")'
+    )
+
     rows: list[list[str]] = [
         ["JOB SEARCH DASHBOARD", "", "", "", "", ""],
         [f"Last updated: {run_at_iso}", "", "", "", "", ""],
-        [f"Last run added: {total_added} new jobs across {len(visible_tabs)} tabs", "", "", "", "", ""],
+        [f"Last run added: {total_added} new jobs", "30-day trend:", sparkline_formula, "", "", ""],
         ["", "", "", "", "", ""],
         ["Tab", "Total jobs", "Added in last run", "Open tab", "", ""],
     ]
@@ -284,19 +370,26 @@ def write_summary(
         rows.append([tab, str(totals.get(tab, 0)), str(write_counts.get(tab, 0)), tab_link, "", ""])
     rows.append(["TOTAL", str(total_jobs), str(total_added), "", "", ""])
 
-    if recent_runs:
+    # Recent runs: read from _history tab (persistent across cloud runs).
+    # Caller may still pass recent_runs explicitly (used by tests + back-compat).
+    history = recent_runs
+    if history is None:
+        try:
+            history = read_history(spreadsheet, limit=14)
+        except Exception as exc:  # noqa: BLE001 — non-fatal
+            logger.warning("Could not read _history for Summary: %s", exc)
+            history = []
+    if history:
         rows.append(["", "", "", "", "", ""])
-        rows.append(["Recent runs", "", "", "", "", ""])
-        rows.append(["Date", "New jobs", "Errors", "Discovered", "Filtered", "Deduped"])
-        for r in recent_runs[:14]:
-            rows.append([
-                str(r.get("date", "")),
-                str(r.get("total_added", "")),
-                str(r.get("errors", "")),
-                str(r.get("discovered", "")),
-                str(r.get("after_keyword_filter", "")),
-                str(r.get("after_dedup", "")),
-            ])
+        rows.append(["Recent runs (last 14)", "", "", "", "", ""])
+        rows.append(["Date", "New jobs", "Discovered", "", "", ""])
+        for r in history[:14]:
+            # Accept both schemas: from read_history ({date,total,discovered,per_tab})
+            # and from legacy recent_runs ({date,total_added,discovered,...})
+            date = r.get("date", "")
+            total = r.get("total", r.get("total_added", ""))
+            disc = r.get("discovered", "")
+            rows.append([str(date), str(total), str(disc), "", "", ""])
 
     # Clear existing content first so old rows beyond new content don't linger
     try:
