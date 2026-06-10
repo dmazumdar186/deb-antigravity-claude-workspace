@@ -78,7 +78,7 @@
     "tz_display": "Europe/Paris"
   },
   "top_matches": {
-    "enabled": false,
+    "enabled": true,
     "threshold": 80,
     "max_rows": 25
   }
