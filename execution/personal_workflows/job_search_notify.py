@@ -89,7 +89,9 @@ def send_run_summary(summary: dict) -> bool:
     subject, body = _build_body(summary, sheet_id)
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
-    msg["From"] = user
+    # Friendly display name so the inbox shows "Job Search Bot" instead of "me"
+    # for self-addressed runs. RFC 5322 display-name + addr-spec form.
+    msg["From"] = f"Job Search Bot <{user}>"
     msg["To"] = to
 
     try:
