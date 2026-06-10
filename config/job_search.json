@@ -70,7 +70,7 @@
   "schedule": {
     "cron_utc_summer": "0 7 * * *",
     "cron_utc_winter": "0 8 * * *",
-    "idempotency_window_hours": 23,
+    "idempotency_mode": "utc_calendar_day",
     "tz_display": "Europe/Paris"
   }
 }

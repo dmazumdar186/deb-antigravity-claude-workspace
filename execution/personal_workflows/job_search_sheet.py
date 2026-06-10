@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -393,6 +393,19 @@ def _load_recent_runs(runs_log: Path, limit: int = 14) -> list[dict]:
     return out[:limit]
 
 
+def already_ran_today_utc(last_run_at: "datetime | None", now: datetime) -> bool:
+    """True if last_run_at is on the same UTC calendar day as `now`.
+
+    Used by Stage 0 idempotency: blocks the dual 07:00+08:00 UTC cron pair from
+    double-running on the same day, while releasing the lock at UTC midnight so
+    a manual mid-day run doesn't block the next day's scheduled cron.
+    Returns False if last_run_at is None (no prior run recorded — proceed).
+    """
+    if last_run_at is None:
+        return False
+    return last_run_at.date() == now.date()
+
+
 def filter_titles(titles_config: dict, title_arg: str | None) -> dict:
     """Filter titles_config to entries matching title_arg by key, tab name, or any synonym
     (case-insensitive). Returns the full config if title_arg is empty/None. Returns an
@@ -453,24 +466,20 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
 
     if sp:
         last_run_at = read_meta_last_run_at(sp)
-        if last_run_at is not None:
+        if already_ran_today_utc(last_run_at, run_start):
             age = run_start - last_run_at
-            idempotency_window = timedelta(hours=cfg.get("schedule", {}).get("idempotency_window_hours", 23))
-            if age < idempotency_window:
-                if args.dry_run:
-                    logger.info(
-                        "Stage 0: would exit (already ran %s ago < %sh window) — dry-run continues.",
-                        age,
-                        idempotency_window.total_seconds() / 3600,
-                    )
-                else:
-                    logger.info(
-                        "Stage 0: already ran %s ago (< %sh window). Exiting cleanly.",
-                        age,
-                        idempotency_window.total_seconds() / 3600,
-                    )
-                    print(f"Already ran today ({last_run_at.isoformat()}). Exiting.")
-                    sys.exit(0)
+            if args.dry_run:
+                logger.info(
+                    "Stage 0: would exit (already ran %s ago, same UTC day) — dry-run continues.",
+                    age,
+                )
+            else:
+                logger.info(
+                    "Stage 0: already ran %s ago on the same UTC day. Exiting cleanly.",
+                    age,
+                )
+                print(f"Already ran today ({last_run_at.isoformat()}). Exiting.")
+                sys.exit(0)
 
     # Apply geo / title filters from CLI args
     active_geos: dict[str, dict] = {
