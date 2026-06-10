@@ -1,0 +1,8 @@
+{
+  "slug": "{{SLUG}}",
+  "title": "{{TITLE}}",
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "duration_in_frames": 900
+}

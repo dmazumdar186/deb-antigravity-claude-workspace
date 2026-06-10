@@ -1,0 +1,4 @@
+upstream_repo=remotion-dev/template-three
+upstream_sha=PINNED_AT_BOOTSTRAP
+overlay_version=1.0.0
+created_at_machine=2026-06-10
