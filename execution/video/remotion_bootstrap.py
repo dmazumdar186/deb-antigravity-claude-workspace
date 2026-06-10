@@ -41,7 +41,7 @@ _RESERVED_SLUGS = {"_template"}      # _smoketest is allowed via --force / any c
 # Module-level lock guards concurrent registry writes (Windows hardening rule #2).
 _REGISTRY_LOCK = threading.Lock()
 
-SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,48}[a-z0-9]$|^[a-z0-9]$")
+SLUG_RE = re.compile(r"^[a-z0-9_][a-z0-9_-]{0,48}[a-z0-9]$|^[a-z0-9_]$")
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -67,8 +67,8 @@ def validate_slug(slug: str, *, force: bool = False) -> None:
 
 
 def humanize_slug(slug: str) -> str:
-    """'my-cool-video_2' -> 'My Cool Video 2'"""
-    return re.sub(r"[-_]+", " ", slug).title()
+    """'my-cool-video_2' -> 'My Cool Video 2', '_smoketest' -> 'Smoketest'"""
+    return re.sub(r"[-_]+", " ", slug).strip().title()
 
 
 def run_cmd(
@@ -77,13 +77,16 @@ def run_cmd(
     check: bool = True,
     live_output: bool = False,
     timeout: int | None = None,
+    shell: bool = False,
 ) -> subprocess.CompletedProcess:
-    """subprocess.run with mandatory utf-8 encoding (Windows hardening rule #1)."""
+    """subprocess.run with mandatory utf-8 encoding (Windows hardening rule #1).
+    Pass shell=True for npm/npx commands on Windows so .cmd wrappers resolve."""
     kwargs: dict = dict(
         cwd=str(cwd) if cwd else None,
         text=True,
         encoding="utf-8",
         errors="replace",
+        shell=shell,
     )
     if live_output:
         result = subprocess.run(args, check=check, timeout=timeout, **kwargs)
@@ -278,6 +281,7 @@ def cmd_create(
             cwd=PROJECTS_DIR,
             live_output=True,
             timeout=600,   # 10-minute hard cap; plan says hang = ≥10min
+            shell=True,    # Windows: npx resolves as npx.cmd, needs shell
         )
     except subprocess.CalledProcessError as exc:
         print(
@@ -288,6 +292,31 @@ def cmd_create(
     except subprocess.TimeoutExpired:
         print(
             "ERROR: npx create-video@latest timed out after 600 s. "
+            "Check network connectivity and try again.",
+            file=sys.stderr,
+        )
+        return 1
+
+    # ── Step 2b: npm install (create-video copies files but does NOT install) ──
+    print(f"\n  running: npm install  (cwd={project_dir})")
+    print("  (installing ~300 MB of packages on first run — may take 3-5 min)\n")
+    try:
+        run_cmd(
+            ["npm", "install"],
+            cwd=project_dir,
+            live_output=True,
+            timeout=600,
+            shell=True,    # Windows: npm.cmd wrapper needs shell
+        )
+    except subprocess.CalledProcessError as exc:
+        print(
+            f"ERROR: npm install exited with code {exc.returncode}.",
+            file=sys.stderr,
+        )
+        return 1
+    except subprocess.TimeoutExpired:
+        print(
+            "ERROR: npm install timed out after 600 s. "
             "Check network connectivity and try again.",
             file=sys.stderr,
         )
