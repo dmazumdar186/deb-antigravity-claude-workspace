@@ -59,8 +59,12 @@
     "languages_allowed": ["fr", "en"]
   },
   "llm_gate": {
-    "primary": "claude-haiku-4-5",
-    "failover": "gemini-2.0-flash",
+    "primary": "gemini-2.5-flash",
+    "secondary": "gemini-2.5-flash-lite",
+    "anthropic_optin": false,
+    "anthropic_model": "claude-sonnet-4-6",
+    "batch_size": 10,
+    "throttle_s": 7.0,
     "max_jobs_per_run": 200
   },
   "dedup": {
@@ -72,5 +76,10 @@
     "cron_utc_winter": "0 8 * * *",
     "idempotency_mode": "utc_calendar_day",
     "tz_display": "Europe/Paris"
+  },
+  "top_matches": {
+    "enabled": false,
+    "threshold": 80,
+    "max_rows": 25
   }
 }

@@ -237,6 +237,70 @@ def ensure_summary_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Worksheet:
     return ws
 
 
+_TOP_MATCHES_TAB = "Top Matches"
+_TOP_MATCHES_HEADER = ["Rank", "Fit", "Identity", "Title", "Company", "Location", "Contract", "Source Tab", "Why", "Link"]
+_TOP_MATCHES_EMPTY_STATE = "No new strong matches today — see title tabs"
+
+
+def ensure_top_matches_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Worksheet:
+    """Create the 'Top Matches' tab if missing and move it to index 1 (after Summary).
+
+    Non-fatal on move failure — tab still works at any position.
+    """
+    titles = {ws.title: ws for ws in spreadsheet.worksheets()}
+    if _TOP_MATCHES_TAB in titles:
+        ws = titles[_TOP_MATCHES_TAB]
+        logger.debug("Top Matches tab already exists.")
+    else:
+        logger.info("Creating Top Matches tab")
+        ws = spreadsheet.add_worksheet(title=_TOP_MATCHES_TAB, rows=50, cols=len(_TOP_MATCHES_HEADER))
+    # Move to index 1 (after Summary at index 0)
+    try:
+        spreadsheet.batch_update({"requests": [{
+            "updateSheetProperties": {
+                "properties": {"sheetId": ws.id, "index": 1},
+                "fields": "index",
+            }
+        }]})
+    except Exception as exc:  # noqa: BLE001 — non-fatal; tab still works at any index
+        logger.warning("Could not move Top Matches tab to index 1: %s", exc)
+    return ws
+
+
+def write_top_matches(spreadsheet: gspread.Spreadsheet, rows: list[list]) -> None:
+    """Clear the Top Matches tab and write header + rows.
+
+    Columns: Rank | Fit | Identity | Title | Company | Location | Contract |
+             Source Tab (HYPERLINK) | Why | Link.
+    If rows is empty, writes a single empty-state message row.
+    """
+    ws = ensure_top_matches_tab(spreadsheet)
+    try:
+        ws.clear()
+    except Exception as exc:  # noqa: BLE001 — clear is best-effort
+        logger.warning("Could not clear Top Matches before write: %s", exc)
+
+    if rows:
+        all_rows = [_TOP_MATCHES_HEADER] + rows
+    else:
+        # Empty state: one informational row under the header
+        all_rows = [_TOP_MATCHES_HEADER, [_TOP_MATCHES_EMPTY_STATE] + [""] * (len(_TOP_MATCHES_HEADER) - 1)]
+
+    n_cols = len(_TOP_MATCHES_HEADER)
+    normalized = [
+        (row + [""] * max(0, n_cols - len(row)))[:n_cols]
+        for row in all_rows
+    ]
+    end_col = chr(ord("A") + n_cols - 1)
+    # USER_ENTERED so HYPERLINK formulas in the Source Tab column evaluate
+    ws.update(
+        values=normalized,
+        range_name=f"A1:{end_col}{len(normalized)}",
+        value_input_option="USER_ENTERED",
+    )
+    logger.info("write_top_matches: wrote %d data row(s) to Top Matches tab", len(rows))
+
+
 _HISTORY_TAB = "_history"
 _HISTORY_HEADER = ["Date", "Total", "Discovered", "Per-tab JSON"]
 HISTORY_MAX_ROWS = 90  # ~3 months of daily runs; SPARKLINE in Summary shows last 30

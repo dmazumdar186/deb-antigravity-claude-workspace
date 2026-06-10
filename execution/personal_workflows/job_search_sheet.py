@@ -45,6 +45,7 @@ from execution.google.google_sheets_writer import (  # noqa: E402
     write_tab,
     write_summary,
     append_history,
+    write_top_matches,
 )
 
 # ---------------------------------------------------------------------------
@@ -424,6 +425,43 @@ def filter_titles(titles_config: dict, title_arg: str | None) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Top Matches selection (pure, unit-tested)
+# ---------------------------------------------------------------------------
+
+
+def select_top_matches(
+    jobs: list[dict],
+    known_hashes: set[str],
+    threshold: int,
+    max_rows: int,
+) -> list[dict]:
+    """Select the Top-Matches shortlist from scored jobs.
+
+    Pure function (no I/O) so it can be unit-tested directly.
+    - Keeps only NEW jobs: dedup_hash not in `known_hashes` (the union of carry-forward
+      hashes already present in the sheet → "first seen today").
+    - Keeps only jobs with `_fit_score >= threshold` (safe .get with -1 default, so a job
+      that never got scored — cap-exceeded or --no-llm — is never included).
+    - Sorts by `_fit_score` desc, tie-break `posted_at` (fallback `raw_extracted_at`) desc.
+    - Caps to `max_rows`.
+    """
+    pool = [
+        j
+        for j in jobs
+        if j.get("dedup_hash", "") not in known_hashes
+        and j.get("_fit_score", -1) >= threshold
+    ]
+    pool.sort(
+        key=lambda j: (
+            j.get("_fit_score", 0),
+            j.get("posted_at") or j.get("raw_extracted_at") or "",
+        ),
+        reverse=True,
+    )
+    return pool[:max_rows]
+
+
+# ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
 
@@ -442,6 +480,20 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
     llm_gate_cfg: dict = cfg.get("llm_gate", {})
     dedup_cfg: dict = cfg.get("dedup", {})
     status_dropdown: list[str] = cfg.get("status_dropdown_values", [])
+    top_matches_cfg: dict = cfg.get("top_matches", {"enabled": False, "threshold": 80, "max_rows": 25})
+
+    # Load candidate profile for fit-scoring (fail-soft: absent file → None → gate falls back)
+    _profile_path = PROJECT_ROOT / "config" / "job_search_profile.md"
+    profile_text: str | None = None
+    try:
+        profile_text = _profile_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        logger.warning(
+            "config/job_search_profile.md not found — LLM gate will use fallback hint string. "
+            "fit_score values will be 0 for all jobs; Top Matches tab will be empty."
+        )
+    except Exception as exc:  # noqa: BLE001 — non-fatal; pipeline continues without profile
+        logger.warning("Could not load job_search_profile.md: %s", exc)
 
     # Sheet ID override
     sheet_id = args.sheet_id or os.environ.get("SHEETS_SPREADSHEET_ID", "").strip()
@@ -552,16 +604,25 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
     if args.no_llm:
         logger.info("Stage 2.5: --no-llm set; skipping LLM gate.")
         after_llm = kept_candidates
+        # Belt-and-braces: ensure every job has fit keys so Stage 5.5 never KeyErrors.
+        # Stage 5.5 also short-circuits on args.no_llm, but defaults here are the safety net.
+        for job in after_llm:
+            job["_fit_score"] = -1
+            job["_match_identity"] = None
+            job["_fit_reason"] = "no_llm"
     else:
         max_jobs_gate = llm_gate_cfg.get("max_jobs_per_run", 200)
-        primary_model = llm_gate_cfg.get("primary", "claude-haiku-4-5")
-        failover_model = llm_gate_cfg.get("failover", "gemini-2.0-flash")
 
         verdicts: list[GateVerdict | None] = classify_batch(
             kept_candidates,
             max_jobs=max_jobs_gate,
-            primary_model=primary_model,
-            failover_model=failover_model,
+            primary_model=llm_gate_cfg.get("primary", "gemini-2.5-flash"),
+            secondary_model=llm_gate_cfg.get("secondary", "gemini-2.5-flash-lite"),
+            anthropic_optin=llm_gate_cfg.get("anthropic_optin", False),
+            anthropic_model=llm_gate_cfg.get("anthropic_model", "claude-sonnet-4-6"),
+            batch_size=llm_gate_cfg.get("batch_size", 10),
+            throttle_s=llm_gate_cfg.get("throttle_s", 7.0),
+            profile_text=profile_text,
         )
 
         contract_filter_geos: set[str] = {
@@ -573,6 +634,9 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
         for job, verdict in zip(kept_candidates, verdicts):
             if verdict is None:
                 # Exceeded cap — pass through without LLM classification
+                job["_fit_score"] = -1
+                job["_match_identity"] = None
+                job["_fit_reason"] = "cap_exceeded"
                 after_llm.append(job)
                 continue
 
@@ -620,6 +684,10 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
                     )
                     continue
 
+            # Attach fit fields from verdict for Stage 5.5
+            job["_fit_score"] = verdict.fit_score
+            job["_match_identity"] = verdict.match_identity
+            job["_fit_reason"] = verdict.reason
             after_llm.append(job)
 
         logger.info(
@@ -749,6 +817,88 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
         "Stage 5: %d jobs did not match any tab synonym (dropped)",
         dropped_no_tab_match,
     )
+
+    # -----------------------------------------------------------------------
+    # Stage 5.5: Top Matches tab
+    # -----------------------------------------------------------------------
+    logger.info("=== Stage 5.5: Top Matches ===")
+
+    if args.no_llm or not top_matches_cfg.get("enabled"):
+        logger.info(
+            "Stage 5.5: skipped (no_llm=%s, enabled=%s).",
+            args.no_llm,
+            top_matches_cfg.get("enabled"),
+        )
+    elif sp is None:
+        logger.info("Stage 5.5: skipped (no spreadsheet connection).")
+    else:
+        threshold: int = int(top_matches_cfg.get("threshold", 80))
+        max_rows: int = int(top_matches_cfg.get("max_rows", 25))
+
+        # Collect all dedup_hashes seen in the carry-forward maps (i.e. already known jobs)
+        all_carry_forward_hashes: set[str] = set()
+        for tab_cf in carry_forward_map.values():
+            all_carry_forward_hashes.update(tab_cf.keys())
+
+        # Pure selection (unit-tested in test_job_search_top_matches.py):
+        # new jobs only, fit >= threshold, ranked best-first, capped.
+        match_pool = select_top_matches(
+            deduped_jobs, all_carry_forward_hashes, threshold, max_rows
+        )
+
+        workbook_url = f"https://docs.google.com/spreadsheets/d/{sp.id}/edit"
+
+        def _source_tab_hyperlink(job: dict) -> str:
+            """Build a HYPERLINK formula to the job's home title tab (mirrors write_summary pattern)."""
+            job_title_norm = normalize_title(job.get("title", ""))
+            home_tab: str | None = None
+            for title_key, title_cfg in titles_config.items():
+                tab = title_cfg.get("tab", title_key)
+                synonyms = title_cfg.get("synonyms", [])
+                if any(normalize_title(syn) in job_title_norm for syn in synonyms):
+                    home_tab = tab
+                    break
+            if home_tab is None:
+                return ""
+            try:
+                tab_ws = sp.worksheet(home_tab)
+                return f'=HYPERLINK("{workbook_url}#gid={tab_ws.id}", "Open {home_tab}")'
+            except Exception:  # noqa: BLE001 — best-effort; leave blank if tab missing
+                return home_tab
+
+        top_rows = []
+        for rank, job in enumerate(match_pool, start=1):
+            top_rows.append([
+                str(rank),
+                str(job.get("_fit_score", "")),
+                job.get("_match_identity") or "",
+                job.get("title", ""),
+                job.get("company_name", ""),
+                job.get("location") or "",
+                _normalise_contract(job.get("contract_type")),
+                _source_tab_hyperlink(job),
+                job.get("_fit_reason") or "",
+                job.get("source_url", ""),
+            ])
+
+        if args.dry_run:
+            logger.info(
+                "Stage 5.5 [dry-run]: would write %d Top Match row(s) (threshold=%d).",
+                len(top_rows),
+                threshold,
+            )
+            for row in top_rows[:3]:
+                print(f"  [Top Match] rank={row[0]} fit={row[1]} identity={row[2]} {row[3]!r} @ {row[4]!r}")
+        else:
+            try:
+                write_top_matches(sp, top_rows)
+                logger.info(
+                    "Stage 5.5: wrote %d Top Match row(s) to '%s' tab.",
+                    len(top_rows),
+                    "Top Matches",
+                )
+            except Exception as exc:  # noqa: BLE001 — Top Matches failure must not break the run
+                logger.error("Stage 5.5: write_top_matches failed: %s", exc)
 
     # -----------------------------------------------------------------------
     # Stage 6: Update _meta + log + exit
