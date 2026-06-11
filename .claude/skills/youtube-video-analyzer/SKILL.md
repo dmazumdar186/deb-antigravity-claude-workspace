@@ -11,6 +11,7 @@ description: |
   down", "study", or "extract ideas from" the video. Also triggers on "what's
   the hook in this video", "how is this video structured", or any request to
   learn from a specific YouTube creator with a link attached.
+user_invocable: true
 ---
 
 # YouTube Video Analyzer

@@ -2,6 +2,7 @@
 name: reverse-prompt
 description: Before implementing any non-trivial build, ask the user 5+ dynamically generated clarifying questions to surface non-obvious preferences, assumptions, and constraints. Triggers on build/implementation requests, new features, new skills, new scripts, refactors, or any task that produces code or configuration.
 allowed-tools: AskUserQuestion
+user_invocable: true
 ---
 
 # Reverse Prompt

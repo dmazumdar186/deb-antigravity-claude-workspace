@@ -14,6 +14,7 @@ description: |
   Sub-commands: `preflight`, `design {slug}`, `new {slug}`, `phase {n}`
   (1, 2, 3, 4a, 4b, 4c, 4d, 5a, 5b, 5b_supabase), `audit {slug}`,
   `ship ios`, `ship android`.
+user_invocable: true
 ---
 
 # Mobile App

@@ -2,6 +2,7 @@
 name: prompt-contract
 description: Before implementing any non-trivial task, generate a structured Prompt Contract (GOAL, CONSTRAINTS, FORMAT, FAILURE) that defines success, limits, output shape, and explicit failure conditions. Triggers on build/implementation requests, new features, skills, scripts, refactors, or any task that produces code or configuration. Also triggers on "contract", "prompt contract", or /prompt-contract.
 allowed-tools: AskUserQuestion, Read, Grep, Glob, Bash, Edit, Write, TodoWrite
+user_invocable: true
 ---
 
 # Prompt Contract

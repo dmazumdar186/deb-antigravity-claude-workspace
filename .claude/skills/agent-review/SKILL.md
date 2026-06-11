@@ -2,6 +2,7 @@
 name: agent-review
 description: Spawn a sub-agent to review, simplify, and verify output. Use after completing any non-trivial implementation task. Triggers on "review this", "agent review", "self-review", or /agent-review.
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
+user_invocable: true
 ---
 
 # Agent-Reviews-Agent

@@ -16,6 +16,7 @@ description: |
   Also triggers when the user pastes a block of AI-generated text and says
   "fix this" or "send this to [person/platform]" — it almost certainly needs
   humanizing first.
+user_invocable: true
 ---
 
 # Humanizer
