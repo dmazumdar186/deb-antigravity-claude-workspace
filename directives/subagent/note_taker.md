@@ -40,6 +40,16 @@ Also invokable manually when you discover something worth saving.
 
 4. **Update `general.md`** if the learning applies broadly across multiple directives or scripts.
 
+### Step 5: Append to chronological log
+
+After writing the topic note (above), ALSO append a one-line entry to `.claude/notes/log.md`:
+
+```
+## [YYYY-MM-DD HH:MM] {tag} {subject}: {one-sentence summary}
+```
+
+This is the Karpathy llm-wiki append-only pattern — a frozen chronological record of every learning. Never edit existing entries; only append new ones at the bottom. The topic files (`.claude/notes/general.md` and scoped paths) hold the distilled knowledge; `log.md` is the raw feed.
+
 ## What NOT to capture
 - Things already documented in the directive or script
 - Things obvious from reading the code

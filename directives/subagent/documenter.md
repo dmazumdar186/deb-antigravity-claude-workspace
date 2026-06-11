@@ -9,6 +9,18 @@ Spawn this agent after:
 - Fixing a bug that revealed an API constraint or edge case
 - Refactoring a script in a way that changes its inputs, outputs, or behaviour
 
+## Exit Criteria
+
+The documenter agent is DONE when ALL of these hold:
+- The directive's `## Inputs` section lists every argument the script accepts (matches `argparse` exactly).
+- The directive's `## Outputs` section lists every file/URL/return value the script produces.
+- The directive's `## Edge cases` section lists every error path with a non-empty handler in the script.
+- The directive's `## Changelog` has a new entry with today's date and a one-line summary of what changed in the script.
+- No other section of the directive was modified.
+- No file outside `directives/{category}/{name}.md` was modified.
+
+The agent should NOT claim done if any of these is false.
+
 ## Inputs
 - Script name and category (e.g. `lead_sourcing/scrape_apollo.py`)
 - Description of what changed and what was learned
