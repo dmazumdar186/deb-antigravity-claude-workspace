@@ -23,7 +23,16 @@
       "Bash(git stash *)",
       "Bash(ls *)",
       "Bash(cat *)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "Read(C:\\Users\\deban\\dev\\anneal\\**)",
+      "Read(C:\\Users\\deban\\dev\\humanizer\\**)",
+      "Read(C:\\Users\\deban\\dev\\youtube-video-analyzer\\**)",
+      "Read(C:\\Users\\deban\\dev\\cv-optimizer-agent\\**)",
+      "Read(C:\\Users\\deban\\dev\\mobile-apps\\**)",
+      "Glob(C:\\Users\\deban\\dev\\**)",
+      "Grep(C:\\Users\\deban\\dev\\**)",
+      "Bash(ls C:\\Users\\deban\\dev\\**)",
+      "Bash(dir C:\\Users\\deban\\dev\\**)"
     ],
     "deny": [
       "Bash(rm -rf *)",
