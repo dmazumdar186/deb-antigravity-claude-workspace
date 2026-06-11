@@ -110,6 +110,20 @@ User: "Add a logout button to the navbar"
 
 **Why this matters:** Sub-agents get fresh context windows. Heavy code exploration and writing happens there, then results return as concise summaries. Main conversation stays focused on orchestration.
 
+## Dynamic Workflows + Agent Teams (when to choose what)
+
+Three orchestration tiers exist. Choose by parallelism + context-share needs:
+
+| Pattern | Best for | Parallelism | Context | Cost |
+|---|---|---|---|---|
+| Sub-agent (`Agent(...)`) | 1–3 independent tasks, tight result loop | 1–3 | Fresh per agent | Low |
+| Dynamic Workflow (`ultracode:`) | 5–16+ independent fan-out tasks, long jobs, runs in background | up to 16 concurrent, 1000 total | Out-of-process | Low–medium (use Haiku 4.5 workers) |
+| Agent Team (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) | Long-running parallel sessions with shared task list + peer messaging | N teammates | Each has own context, shared mailbox | Medium–high |
+
+See `.claude/workflows/README.md` for Dynamic Workflows triggers and `.claude/SETTINGS_NOTES.md` for Agent Teams enablement notes.
+
+The global `plan-skeptic` skill at `~/.claude/skills/plan-skeptic/SKILL.md` remains the source of truth for adversarial plan review — no workspace-local `.claude/agents/plan-skeptic.md` exists or should be added (avoids parallel definitions).
+
 **Parallel sub-agents:** When tasks are independent, spawn multiple sub-agents in a single message:
 ```
 # Good: parallel execution
