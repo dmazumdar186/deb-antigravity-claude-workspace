@@ -23,7 +23,7 @@ def _run(*args, extra_env=None):
         env.update(extra_env)
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        capture_output=True, text=True, env=env, cwd=str(WORKSPACE),
+        capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(WORKSPACE),
     )
 
 

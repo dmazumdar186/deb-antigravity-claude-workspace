@@ -564,7 +564,7 @@ def t_parallel_flag_accepted():
     """--parallel N is accepted without error (verified via --help and --dry-run)."""
     help_result = subprocess.run(
         [sys.executable, str(SCRIPT), "--help"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     assert "--parallel" in help_result.stdout, "--parallel flag not in --help output"
 

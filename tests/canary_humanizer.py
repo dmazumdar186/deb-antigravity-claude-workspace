@@ -89,7 +89,7 @@ def check_help():
     try:
         r = subprocess.run(
             [PY, str(HUMANIZER), "--help"],
-            capture_output=True, text=True, timeout=15,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
         )
         expected = ["--text", "--file", "--voice", "--platform", "--tier", "--dry-run"]
         missing = [f for f in expected if f not in r.stdout]
@@ -110,7 +110,7 @@ def check_prepass():
     try:
         r = subprocess.run(
             [PY, str(HUMANIZER), "--text", test_input, "--dry-run"],
-            capture_output=True, text=True, timeout=20, cwd=str(WORKSPACE),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20, cwd=str(WORKSPACE),
         )
         combined = r.stdout + r.stderr
         certainly_stripped = "Certainly" not in r.stdout
@@ -154,7 +154,7 @@ def check_llm_smoke():
     try:
         r = subprocess.run(
             [PY, str(HUMANIZER), "--text", "Hello world", "--tier", "gemini"],
-            capture_output=True, text=True, timeout=60, cwd=str(WORKSPACE),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60, cwd=str(WORKSPACE),
         )
         output = r.stdout.strip()
         if r.returncode == 0 and output:
@@ -173,7 +173,7 @@ def check_build_sha():
     try:
         r = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, timeout=5, cwd=str(WORKSPACE),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5, cwd=str(WORKSPACE),
         )
         sha = r.stdout.strip() if r.returncode == 0 else "unavailable"
     except Exception:
@@ -186,7 +186,7 @@ def check_cost_estimation():
     try:
         r = subprocess.run(
             [PY, str(HUMANIZER), "--text", "X" * 100, "--dry-run"],
-            capture_output=True, text=True, timeout=20, cwd=str(WORKSPACE),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20, cwd=str(WORKSPACE),
         )
         m = re.search(r"Cost[\s:~$]*([\d.]+)", r.stderr, re.IGNORECASE)
         if m:
@@ -209,7 +209,7 @@ def check_secret_leakage():
     try:
         r = subprocess.run(
             [PY, str(HUMANIZER), "--text", "Hello world", "--dry-run"],
-            capture_output=True, text=True, timeout=20, cwd=str(WORKSPACE),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20, cwd=str(WORKSPACE),
         )
         combined = r.stdout + r.stderr
         found = [p for p in LEAK_PATTERNS if p in combined]

@@ -188,7 +188,10 @@ def _run_semgrep_fallback(files: list[str]) -> list[dict]:
 # ── Workspace-native rules ───────────────────────────────────────────────────
 
 # Directories to skip for subprocess-encoding scan
-_SKIP_DIRS_PY = {".venv", "__pycache__", ".tmp", "node_modules", ".git"}
+# .anneal/ is a throwaway audit-worktree created by the anneal tool — its files
+# are snapshots of other repos, not authoritative workspace source, and should
+# never be patched by workspace SAST.
+_SKIP_DIRS_PY = {".venv", "__pycache__", ".tmp", "node_modules", ".git", ".anneal"}
 # Subagent directives that legitimately skip Exit Criteria
 _SUBAGENT_DIR = WORKSPACE_ROOT / "directives" / "subagent"
 

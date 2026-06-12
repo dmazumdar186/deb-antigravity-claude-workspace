@@ -29,7 +29,7 @@ def _run(*args):
     t0 = time.perf_counter()
     result = subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        capture_output=True, text=True, env=env, cwd=str(WORKSPACE),
+        capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(WORKSPACE),
     )
     elapsed = time.perf_counter() - t0
     return result, elapsed
@@ -140,7 +140,7 @@ def test_p8_concurrent_dry_runs():
         env = copy.copy(os.environ)
         r = subprocess.run(
             [sys.executable, str(SCRIPT), url, "--dry-run"],
-            capture_output=True, text=True, env=env, cwd=str(WORKSPACE),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(WORKSPACE),
         )
         results[idx] = r
 

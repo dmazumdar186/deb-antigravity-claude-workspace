@@ -462,7 +462,7 @@ def t_no_creator_profile_flag():
     # Verify flag appears in --help
     help_result = subprocess.run(
         [sys.executable, str(SCRIPT), "--help"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     assert "--no-creator-profile" in help_result.stdout, "--no-creator-profile missing from --help"
 
@@ -475,7 +475,7 @@ def t_refresh_creator_profile_flag():
     """--refresh-creator-profile appears in --help output."""
     help_result = subprocess.run(
         [sys.executable, str(SCRIPT), "--help"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     assert "--refresh-creator-profile" in help_result.stdout, (
         "--refresh-creator-profile missing from --help"

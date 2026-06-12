@@ -153,7 +153,7 @@ def get_build_sha():
     try:
         r = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
             cwd=str(WORKSPACE), timeout=5,
         )
         if r.returncode == 0:

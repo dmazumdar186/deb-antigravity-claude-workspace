@@ -161,7 +161,7 @@ def t_refresh_transcript_flag_propagates():
     # 1. --help must list --refresh-transcript
     help_result = subprocess.run(
         [sys.executable, str(WORKSPACE / 'execution' / 'video' / 'youtube_video_analyzer.py'), '--help'],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     assert help_result.returncode == 0, f'--help failed: {help_result.stderr}'
     assert '--refresh-transcript' in help_result.stdout, (
@@ -171,7 +171,7 @@ def t_refresh_transcript_flag_propagates():
     run_result = subprocess.run(
         [sys.executable, str(WORKSPACE / 'execution' / 'video' / 'youtube_video_analyzer.py'),
          'https://youtu.be/jNQXAC9IVRw', '--dry-run', '--refresh-transcript'],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     assert run_result.returncode == 0, (
         f'--dry-run --refresh-transcript returned non-zero: {run_result.returncode}\n'

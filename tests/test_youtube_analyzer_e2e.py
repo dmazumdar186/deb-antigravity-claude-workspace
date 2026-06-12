@@ -27,7 +27,7 @@ def run_analyzer(*extra_args, env_overrides=None):
             if v is None: env.pop(k, None)
             else: env[k] = v
     cmd = [sys.executable, str(SCRIPT), TEST_URL, '--dry-run'] + list(extra_args)
-    result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=120)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=120)
     return result
 
 def parse_json_output(result):
@@ -161,7 +161,7 @@ def t_v41_summary_and_takeaways_present():
     env = os.environ.copy()
     cmd = [sys.executable, str(SCRIPT), THINK_SCHOOL_URL, '--tier', 'gemini', '--no-creator-profile']
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=180)
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=180)
     except subprocess.TimeoutExpired:
         print('      [SKIPPED] Gemini call timed out (YouTube rate limit)')
         return

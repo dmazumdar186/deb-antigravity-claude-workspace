@@ -84,15 +84,15 @@ def run_cmd(
     kwargs: dict = dict(
         cwd=str(cwd) if cwd else None,
         text=True,
-        encoding="utf-8",
-        errors="replace",
         shell=shell,
     )
     if live_output:
-        result = subprocess.run(args, check=check, timeout=timeout, **kwargs)
+        result = subprocess.run(args, check=check, timeout=timeout,
+                                encoding="utf-8", errors="replace", **kwargs)
     else:
         result = subprocess.run(
-            args, capture_output=True, check=check, timeout=timeout, **kwargs
+            args, capture_output=True, check=check, timeout=timeout,
+            encoding="utf-8", errors="replace", **kwargs
         )
     return result
 

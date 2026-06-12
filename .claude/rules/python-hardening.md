@@ -11,6 +11,8 @@ These 5 rules apply to every Python script in this workspace. They are platform/
 
 Every `subprocess.run/Popen(text=True)` or `capture_output=True` MUST include `encoding="utf-8", errors="replace"`. Windows cp1252 default crashes on bytes ≥ 0x80 (e.g. 0x9d). The `_readerthread` exception is hard to debug because it's swallowed by `subprocess`.
 
+Scope note: `.anneal/` subdirectories are throwaway audit worktrees (snapshots of other repos created by the anneal tool) and are excluded from this rule. The workspace SAST scanner skips `.anneal/` paths — do not patch files there.
+
 ## 2. Threading locks
 
 Any shared mutable state inside `ThreadPoolExecutor` / `threading.Thread` MUST be guarded by `threading.Lock`. GIL protects single reference reads/writes but NOT `+=` (read-modify-write) nor concurrent filesystem writes to the same directory (e.g. `mkdir(exist_ok=True)` is racy across threads writing to a shared output dir).

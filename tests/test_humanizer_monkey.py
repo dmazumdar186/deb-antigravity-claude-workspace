@@ -25,7 +25,9 @@ def run(name, fn):
 
 def _cli(*args, stdin_text=None, stdin_bytes=None):
     if stdin_bytes is not None:
-        return subprocess.run([PY, SCRIPT, *args], input=stdin_bytes, capture_output=True, cwd=str(WORKSPACE))
+        # bytes-mode path: stdout/stderr returned as bytes; no text codec needed
+        return subprocess.run([PY, SCRIPT, *args], input=stdin_bytes,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=str(WORKSPACE))
     return subprocess.run([PY, SCRIPT, *args], input=stdin_text, capture_output=True,
                          text=True, encoding="utf-8", errors="replace", cwd=str(WORKSPACE))
 
