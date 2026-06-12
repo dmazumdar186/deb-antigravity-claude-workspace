@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV Optimizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>CV Optimizer</h1>
+    <p class="tagline">Paste a job, drop your CV, get an ATS-optimized version. <span class="badge">Personal use · Free · Gemini Flash</span></p>
+  </header>
+
+  <main class="container">
+    <section class="card form-card">
+      <h2>Inputs</h2>
+
+      <div class="field">
+        <label for="jd-url">Job posting URL</label>
+        <input id="jd-url" type="url" placeholder="https://www.welcometothejungle.com/en/companies/anthropic/jobs/senior-product-manager">
+        <p class="hint">Works on WTTJ, Indeed, Greenhouse, Lever, company career pages. LinkedIn job pages are login-walled — use the textarea below instead.</p>
+      </div>
+
+      <div class="field">
+        <label for="jd-text">Or paste the JD text</label>
+        <textarea id="jd-text" rows="8" placeholder="Paste the job description here if the URL is behind a login wall or wasn't scraped successfully."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="cv-file">CV PDF</label>
+        <input id="cv-file" type="file" accept="application/pdf">
+        <p class="hint" id="cv-status">No file selected.</p>
+      </div>
+
+      <button id="optimize-btn" type="button" disabled>Optimize</button>
+
+      <div id="error-banner" class="banner hidden" role="alert"></div>
+      <div id="status-banner" class="banner status hidden" role="status"></div>
+    </section>
+
+    <section class="card preview-card hidden" id="preview-card">
+      <div class="preview-header">
+        <h2>Preview</h2>
+        <button id="print-btn" type="button">Print to PDF (Ctrl+P)</button>
+      </div>
+      <iframe id="preview-iframe" title="CV preview"></iframe>
+    </section>
+  </main>
+
+  <script src="lib/pdf.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

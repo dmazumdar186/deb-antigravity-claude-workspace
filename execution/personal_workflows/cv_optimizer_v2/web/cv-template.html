@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  :root { --navy: #0d1b3d; --teal: #14a085; --muted: #555; --rule: #ddd; }
+  * { box-sizing: border-box; }
+  body { font-family: "Helvetica", "Arial", sans-serif; color: #1a1a1a; margin: 0; padding: 1.5cm 1.7cm; line-height: 1.35; font-size: 10pt; }
+  h1, h2, h3 { margin: 0; }
+  .header { border-bottom: 2px solid var(--navy); padding-bottom: 0.4rem; margin-bottom: 0.7rem; }
+  .name { font-size: 22pt; font-weight: 700; color: var(--navy); }
+  .title { font-size: 12pt; color: var(--teal); margin-top: 0.1rem; }
+  .contact { font-size: 9pt; color: var(--muted); margin-top: 0.3rem; }
+  .ats-pill {
+    float: right; background: var(--teal); color: white; padding: 0.2rem 0.7rem;
+    border-radius: 999px; font-size: 9pt; font-weight: 600;
+  }
+  .section { margin-top: 0.7rem; }
+  .section-h { color: var(--navy); border-bottom: 1px solid var(--rule); font-size: 11pt; font-weight: 700; padding-bottom: 0.15rem; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .accroche {
+    background: #f0faf6;
+    border-left: 3px solid var(--teal);
+    padding: 0.5rem 0.7rem;
+    margin: 0.3rem 0 0.5rem;
+    font-size: 10pt;
+  }
+  .kpis { color: var(--muted); font-style: italic; font-size: 9pt; margin-top: 0.2rem; }
+  .exp { margin-bottom: 0.5rem; }
+  .exp-role { font-weight: 700; }
+  .exp-company { color: var(--muted); font-size: 9pt; margin-bottom: 0.2rem; }
+  .exp-bullets { margin: 0.15rem 0 0; padding-left: 1.1rem; }
+  .exp-bullets li { margin-bottom: 0.1rem; }
+  .skill-row { display: flex; gap: 0.5rem; font-size: 9.5pt; margin-bottom: 0.15rem; }
+  .skill-cat { font-weight: 700; min-width: 6rem; color: var(--navy); }
+  .skill-val { color: #333; }
+  .edu { margin-bottom: 0.3rem; }
+  .edu-degree { font-weight: 700; font-size: 10pt; }
+  .edu-inst { color: var(--muted); font-size: 9pt; }
+  ul { margin: 0; padding-left: 1.1rem; }
+  li { margin-bottom: 0.1rem; }
+  .recs {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--rule);
+    font-size: 8.5pt;
+    color: var(--muted);
+  }
+  .recs-h { font-weight: 700; color: var(--navy); margin-bottom: 0.2rem; }
+  @media print { body { padding: 0; } .ats-pill, .recs { display: none; } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="ats-pill">ATS {{ats_score}} · {{language_detected}}</div>
+    <div class="name">{{name}}</div>
+    <div class="title">{{title}}</div>
+    <div class="contact">
+      {{contact_email}} · {{contact_phone}} · {{contact_location}}
+      · <span>{{contact_linkedin}}</span>
+      · <span>{{contact_github}}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-h">Profile</div>
+    <div class="accroche">{{summary}}</div>
+    <div class="kpis">{{summary_kpis}}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-h">Experience</div>
+    {{experience_block}}
+  </div>
+
+  <div class="section">
+    <div class="section-h">Skills</div>
+    {{skills_block}}
+  </div>
+
+  <div class="section">
+    <div class="section-h">Education</div>
+    {{education_block}}
+  </div>
+
+  <div class="section">
+    <div class="section-h">Languages</div>
+    <div>{{languages}}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-h">Certifications</div>
+    {{certifications_block}}
+  </div>
+
+  <div class="section">
+    <div class="section-h">Projects</div>
+    {{projects_block}}
+  </div>
+
+  <div class="recs">
+    <div class="recs-h">Recommendations (not auto-applied — preview only):</div>
+    <ul>{{recommendations_block}}</ul>
+  </div>
+</body>
+</html>
