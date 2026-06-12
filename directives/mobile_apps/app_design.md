@@ -22,8 +22,24 @@ This spec is what Phase 1's "App spec" input expects. A spec produced here also 
 
 ## Tools/Scripts
 
-- None deterministic — this is a Claude reasoning pass with the user. Output is a Markdown file.
+- None deterministic for spec authoring — this is a Claude reasoning pass with the user. Output is a Markdown file.
 - Voice transcription (Aqua or similar) is the recommended input method per Nick — long-form spoken intent gets richer specs than typed prompts.
+- **`execution/mobile_apps/app_store_research.py`** — optional competitive ASO research before drafting the spec. Scrapes App Store and/or Play Store search results for a competitor keyword. Runs in parallel for multi-competitor batches.
+
+  Single competitor:
+  ```
+  py execution/mobile_apps/app_store_research.py --query "Headspace" --store appstore
+  ```
+
+  Multiple competitors (fan-out, parallel scraping, 8 workers):
+  ```
+  py execution/mobile_apps/app_store_research.py \
+    --competitors-file competitors.csv \
+    --stores ios android \
+    --max-workers 8
+  ```
+
+  `--max-workers N` (default 8) controls ThreadPoolExecutor concurrency. Keep ≤ 8 to stay within Firecrawl rate limits. For 5+ competitors across both stores, use the Dynamic Workflow at `.claude/workflows/aso-research.md` instead — it fans out to 16 parallel Haiku sub-agents and cuts wall-clock from ~10 min to ~75s.
 
 ## Outputs
 
