@@ -410,7 +410,10 @@ def main() -> int:
     p.add_argument("--spotlight-member", default=None,
                    help="JSON: {\"name\":..,\"photo\":..,\"why\":..}")
     p.add_argument("--archetype", default="cultural_community")
-    p.add_argument("--tier", default="gemini")
+    p.add_argument("--mode", default="cheap",
+                   choices=["cheap", "balanced", "premium"],
+                   help="LLM tier: cheap (Gemini free), balanced (Sonnet via OR), "
+                        "premium (Opus via OR). Renamed from --tier for workspace consistency.")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--out", default=None)
     args = p.parse_args()

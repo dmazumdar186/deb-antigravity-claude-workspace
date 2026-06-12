@@ -122,6 +122,23 @@ A PNG with RGBA channels. Verify the alpha plane with any image viewer that
 renders transparency (e.g. Photoshop, GIMP, or the Python check in the
 smoke-test protocol in `remotion_bootstrap.md`).
 
+## Exit Criteria
+
+A render is complete only when ALL of the following predicates are true:
+
+| Predicate | Check |
+|-----------|-------|
+| Output file exists | `out/{slug}.{ext}` is present on disk (`.mov`, `.webm`, or `.mp4` depending on preset) |
+| File size > 1 MB | `Get-Item out/{slug}.{ext} \| Select-Object -ExpandProperty Length` returns > 1048576 bytes. Suspiciously small files indicate a corrupt render or a composition that produced no frames. |
+| ffprobe duration > 0 | `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 out/{slug}.{ext}` returns a positive float. A duration of 0 or N/A means the container is corrupt. |
+| Frame count > 0 | `ffprobe -v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames -of default=noprint_wrappers=1:nokey=1 out/{slug}.{ext}` returns a positive integer. |
+| Audio track present (if expected) | If the composition includes audio, `ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 out/{slug}.{ext}` must return a non-empty codec name. Skip this check for silent compositions. |
+
+If any predicate fails, the render is NOT done. Common fixes:
+- File size = 0: `out/` directory was missing at render time. Run `mkdir out` and re-render.
+- Duration = 0 / N/A: The composition produced no frames. Check for unhandled promise rejections in the component with `--log=verbose`.
+- Frame count = 0 but file > 0 bytes: container header written but frames dropped — often a Chromium crash mid-render. Re-run with `--concurrency=1` to serialize frame rendering.
+
 ## Edge Cases
 
 | Case | Handling |

@@ -1,0 +1,9 @@
+# Notes — execution/content/rosy_origami/composer.py
+
+- [technical] Gemini model name: active free model is `gemini-2.5-flash-lite-preview-06-17` (not "Gemini 2.0 Flash" listed in directive's Known API limits). Check for model name updates each session — Gemini preview model names change without notice.
+- [technical] Gemini free tier rate limit is 5 RPM in practice (not 15 RPM) for the 2.5-flash-lite-preview. The 13s throttle sleep between section LLM calls is load-bearing — removing it causes 429s mid-newsletter.
+- [technical] `resp.text or ""` in composer.py guards against None but is fragile if Gemini SDK changes the return type to raise instead of returning None. Add a null-guard comment on this line if the SDK is updated.
+- [learned] The Gemini client (`_client()`) must be initialized once and shared across section calls. Reinitializing per-call causes auth overhead and slows runs noticeably.
+- [constraint] OR credits at $0 as of 2026-06-08 (see memory/reference_api_key_status.md). `--mode balanced` and `--mode premium` fall through to Gemini silently when OR is empty. This must be logged, not silent — add a warning when OR key is set but credits appear exhausted.
+- [technical] `find_hallucinated_dates()` uses a regex for date patterns (DD Month YYYY, Month DD YYYY, YYYY-MM-DD). False positives are possible when event titles contain numbers. The `.meta.json` flagged list is advisory — not auto-strike — but editors rarely check it without a stdout reminder.
+- [pattern] composer.py is imported via `from composer import ...` (relative import). Running `generate_demo.py` from any directory other than `execution/content/rosy_origami/` will fail with ImportError unless sys.path is adjusted. Always invoke as `py execution/content/rosy_origami/generate_demo.py` from repo root, or add the script's parent to sys.path.
