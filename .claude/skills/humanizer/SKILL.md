@@ -32,7 +32,54 @@ The user will either:
 
 If the text is not obvious, ask: "Paste the text you want humanized."
 
-## Step 2 — Pick the voice
+## Step 2 — Single text or batch?
+
+**Single text (default):** paste or pipe one block of text and run the single-input commands in Step 4.
+
+**Batch mode:** use `--batch` when you have more than ~5 texts to humanize in one session, or when you need structured CSV output (text_id, original, humanized, tier, cost, error). Batch fans out across parallel workers and isolates per-row failures — a single bad row does not abort the run.
+
+### Batch mode
+
+Trigger: user has a list of AI-drafted texts (cold emails, LinkedIn posts, tweet thread, etc.) and wants all of them humanized in one shot.
+
+**Input CSV format:**
+```
+text_id,text_to_humanize,voice_name
+row1,"Certainly! I'd be happy to delve into this...",debanjan
+row2,"Absolutely! Let's leverage synergies...",debanjan
+row3,"It's worth noting that this is a game-changer...",
+```
+- `text_id` — any unique string identifier
+- `text_to_humanize` — the AI text to rewrite
+- `voice_name` — optional; falls back to `--voice` CLI default if blank
+
+**Run:**
+```bash
+py execution/content/humanizer.py --batch input.csv --max-workers 4 --tier default --out output.csv
+```
+
+**Output CSV columns:** `text_id, original, humanized, tier, cost_usd, error`
+
+Failed rows have a non-empty `error` column; all other rows complete normally. After the run, a summary line is printed to stdout:
+```
+BATCH SUMMARY: 10 total, 9 succeeded, 1 failed, $0.00312 total cost
+```
+
+**Batch + dry-run** (no API calls, no cost):
+```bash
+py execution/content/humanizer.py --batch input.csv --dry-run --out preview.csv
+```
+
+**Batch flags:**
+| Flag | Default | Purpose |
+|------|---------|---------|
+| `--batch <csv>` | — | Input CSV path (mutually exclusive with `--text` / `--file`) |
+| `--max-workers N` | 4 | Parallel threads |
+| `--out <csv>` | `humanized_<stem>.csv` | Output CSV path |
+
+All other single-input flags (`--voice`, `--platform`, `--tier`, `--max-length`, `--dry-run`, etc.) apply to every row in the batch. Per-row `voice_name` column overrides `--voice` for that row.
+
+## Step 2b — Pick the voice
 
 Default to `--voice debanjan` unless the user specifies otherwise.
 
@@ -104,3 +151,12 @@ py execution/content/humanizer.py --file draft.md --platform email --show-diff
 - The user wants to write something from scratch (use Claude to draft, then humanize)
 - The text is already short and direct (e.g., a single sentence reply) -- skip humanizing, it adds latency for minimal gain
 - The user explicitly says they like the AI's phrasing and just wants to send it as-is
+
+## Choosing single vs batch
+
+| Situation | Use |
+|-----------|-----|
+| 1–4 texts in a session | Single-input (`--text` / `--file` / stdin) |
+| 5+ texts, or structured CSV output needed | `--batch` |
+| Campaign of N cold emails to humanize | `--batch input.csv --max-workers 4` |
+| Quick preview before spending credits | `--batch input.csv --dry-run` |
