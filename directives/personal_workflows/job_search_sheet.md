@@ -74,14 +74,15 @@ Claude reads this directive and calls the execution scripts in the correct order
   - read _meta!A1 -> last_run_at (ISO). If empty / unparseable -> treat as epoch zero (proceed)
   - if (now - last_run_at) < 23h: exit 0 ("already ran today")
         |
-[Stage 1: Discover (free sources only)]
+[Stage 1: Discover (free sources only) — parallelized via ThreadPoolExecutor]
   Phase 1a sources: adzuna (gl=fr), jooble (gl=fr)
   Phase 1b adds: adzuna + jooble for DE, NL, ES, IT, BE, AT, PL, PT (no contract filter)
                  adzuna + jooble for CA, US (contract_type in {contract, freelance} filter)
-  For each (title, geo) in config:
-    for each source applicable to geo:
-      raw_jobs += source.scrape(queries=[title_synonyms], country=geo, contract_filter=...)
-  Per-source try/except; on failure log + continue
+  Fan-out: (N geos × M titles × 2 sources) tuples submitted concurrently
+  Default --max-workers=4; set to 1 for serial debugging
+  threading.Lock() guards all_raw_jobs.extend() across workers
+  Per-tuple try/except: failures log + skip (never halt the batch)
+  Post-collection sort by (country, title, board) for stable dedup ordering across runs
         |
 [Stage 2: Normalize + keyword-filter]
   use existing job_filter.filter_jobs with expanded config:
@@ -294,7 +295,7 @@ py execution/personal_workflows/job_search_setup.py --bootstrap
 py execution/personal_workflows/job_search_setup.py --bootstrap --verbose
 ```
 
-### Phase 1 — Run the pipeline (batch 1d — not built yet)
+### Phase 1 — Run the pipeline
 ```bash
 # Dry run with mock fixtures (no API calls, no sheet writes)
 py execution/personal_workflows/job_search_sheet.py --mock --dry-run
@@ -304,7 +305,25 @@ py execution/personal_workflows/job_search_sheet.py --title "Product Manager" --
 
 # Full run (all titles, all active-phase geos)
 py execution/personal_workflows/job_search_sheet.py
+
+# Disable Stage 1 parallelism (serial, useful for debugging API errors)
+py execution/personal_workflows/job_search_sheet.py --max-workers 1
+
+# Adjust worker count (default 4; tune down if source APIs rate-limit aggressively)
+py execution/personal_workflows/job_search_sheet.py --max-workers 2
 ```
+
+### CLI flags reference
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `--mock` | off | Use fixture files instead of live API calls |
+| `--dry-run` | off | Full DAG, no Google Sheets writes; prints what would be written |
+| `--title NAME` | all | Restrict to one title tab (e.g. `PM`) |
+| `--geo ISO2` | all | Restrict to one geo (e.g. `FR`) |
+| `--sheet-id ID` | env var | Override `SHEETS_SPREADSHEET_ID` (for sandbox testing) |
+| `--no-llm` | off | Skip Stage 2.5 LLM gate (fast dry runs or quota exhaustion) |
+| `--max-workers N` | 4 | Parallel workers for Stage 1 fan-out; set to 1 for serial debugging |
 
 ---
 

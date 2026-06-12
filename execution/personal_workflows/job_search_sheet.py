@@ -11,6 +11,8 @@ import json
 import logging
 import os
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -556,25 +558,90 @@ def run_pipeline(args: argparse.Namespace) -> None:  # noqa: C901 — long but l
         sys.exit(2)
 
     # -----------------------------------------------------------------------
-    # Stage 1: Discover
+    # Stage 1: Discover (parallelized via ThreadPoolExecutor)
     # -----------------------------------------------------------------------
-    logger.info("=== Stage 1: Discover (%d geos × %d titles) ===", len(active_geos), len(active_titles))
+    sources: list[str] = ["adzuna", "jooble"]
+
+    # Build the full list of (geo, title_key, source) tuples upfront so we know
+    # the fan-out scale before kicking off workers.
+    fan_out_tuples: list[tuple[str, dict, str, dict, str]] = [
+        (geo, geo_cfg, title_key, title_cfg, source)
+        for geo, geo_cfg in active_geos.items()
+        for title_key, title_cfg in active_titles.items()
+        for source in sources
+    ]
+
+    logger.info(
+        "=== Stage 1: Discover (%d geos × %d titles × %d sources = %d calls, max_workers=%d) ===",
+        len(active_geos),
+        len(active_titles),
+        len(sources),
+        len(fan_out_tuples),
+        args.max_workers,
+    )
 
     all_raw_jobs: list[dict] = []
+    _jobs_lock = threading.Lock()
 
-    for geo, geo_cfg in active_geos.items():
-        sources: list[str] = ["adzuna", "jooble"]
+    def _fetch_one(
+        geo: str,
+        geo_cfg: dict,
+        title_key: str,
+        title_cfg: dict,
+        source: str,
+    ) -> None:
+        """Fetch one (geo, title, source) tuple and append results to all_raw_jobs.
 
-        for title_key, title_cfg in active_titles.items():
-            queries = title_cfg.get("synonyms", [title_key])
+        Per-tuple failures are logged and skipped; they never halt the batch.
+        The lock guards the shared all_raw_jobs list against concurrent .extend() calls.
+        """
+        queries = title_cfg.get("synonyms", [title_key])
+        logger.info("Stage 1: %s / %s / %s", geo, title_key, source)
+        try:
+            batch = _scrape_source(source, queries, geo, geo_cfg, run_id, args.mock)
+        except Exception as exc:  # noqa: BLE001 — per-tuple fault isolation; never kill the batch
+            logger.warning(
+                "Stage 1: unhandled error for (%s, %s, %s): %s — skipping tuple.",
+                geo, title_key, source, exc,
+            )
+            return
+        # Tag with the title key that fetched them (for tab assignment later)
+        for job in batch:
+            job.setdefault("_fetched_by_title", title_key)
+        with _jobs_lock:
+            all_raw_jobs.extend(batch)
 
-            for source in sources:
-                logger.info("Stage 1: %s / %s / %s", geo, title_key, source)
-                batch = _scrape_source(source, queries, geo, geo_cfg, run_id, args.mock)
-                # Tag with the title key that fetched them (for tab assignment later)
-                for job in batch:
-                    job.setdefault("_fetched_by_title", title_key)
-                all_raw_jobs.extend(batch)
+    if args.max_workers == 1:
+        # Serial fallback — useful for debugging; avoids ThreadPoolExecutor overhead
+        for geo, geo_cfg, title_key, title_cfg, source in fan_out_tuples:
+            _fetch_one(geo, geo_cfg, title_key, title_cfg, source)
+    else:
+        with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
+            futures = {
+                executor.submit(_fetch_one, geo, geo_cfg, title_key, title_cfg, source): (geo, title_key, source)
+                for geo, geo_cfg, title_key, title_cfg, source in fan_out_tuples
+            }
+            for future in as_completed(futures):
+                geo, title_key, source = futures[future]
+                exc = future.exception()
+                if exc is not None:
+                    # _fetch_one already logs per-tuple errors; this catches any
+                    # unexpected exception that escaped the inner try/except.
+                    logger.error(
+                        "Stage 1: future for (%s, %s, %s) raised unexpectedly: %s",
+                        geo, title_key, source, exc,
+                    )
+
+    # Sort by (geo, title_key, source) for stable dedup ordering across runs.
+    # _scrape_source is stateless so result order between parallel calls is
+    # non-deterministic; sorting here makes output deterministic.
+    all_raw_jobs.sort(
+        key=lambda j: (
+            j.get("country", ""),
+            j.get("_fetched_by_title", ""),
+            j.get("board", ""),
+        )
+    )
 
     logger.info("Stage 1: discovered %d raw jobs total.", len(all_raw_jobs))
 
@@ -1024,6 +1091,17 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="no_llm",
         help="Skip Stage 2.5 (LLM gate). Useful when quota is exhausted or for fast dry runs.",
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        dest="max_workers",
+        metavar="N",
+        help=(
+            "Number of parallel workers for Stage 1 fan-out (default: 4). "
+            "Set to 1 to disable parallelism and run serially (useful for debugging)."
+        ),
     )
     return parser
 
