@@ -2,12 +2,20 @@
 """
 variant_generator.py
 description: Generate AI challenger email variants and analyze per-variant performance for A/B testing.
-inputs: --action (generate|analyze|recommend|report), --config, --mock; env: OPENROUTER_API_KEY, INSTANTLY_API_KEY
+inputs: --action (generate|analyze|recommend|report), --config, --mode, --model, --mock;
+        env: OPENROUTER_API_KEY, INSTANTLY_API_KEY
 outputs: Updated config/email_variants.json, .tmp/variant_report.json
 usage:
     py execution/personalization/variant_generator.py --action generate --mock
+    py execution/personalization/variant_generator.py --action generate --mode cheap
+    py execution/personalization/variant_generator.py --action generate --mode premium
     py execution/personalization/variant_generator.py --action analyze --mock
     py execution/personalization/variant_generator.py --action recommend --mock
+
+Modes:
+    cheap     — Haiku 4.5, fast.
+    balanced  — Sonnet 4.6, standard depth (default).
+    premium   — Opus 4.7, deep quality.
 """
 
 import argparse
@@ -26,7 +34,15 @@ from modules.pipeline_utils import load_config, now_iso, setup_logging  # noqa: 
 load_dotenv(ROOT / ".env")
 logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 
-DEFAULT_MODEL = "anthropic/claude-haiku-4.5"
+# Workspace-standard model routing per --mode (matches _TEMPLATE.py pattern).
+# OpenRouter uses dot notation and anthropic/ prefix.
+MODE_TO_MODEL = {
+    "cheap": "anthropic/claude-haiku-4.5",
+    "balanced": "anthropic/claude-sonnet-4.6",
+    "premium": "anthropic/claude-opus-4.7",
+}
+DEFAULT_MODE = "balanced"
+DEFAULT_MODEL = MODE_TO_MODEL[DEFAULT_MODE]  # kept for fallback config reads
 
 
 def load_variants(variants_file: str) -> dict:
@@ -355,7 +371,18 @@ def main():
     parser.add_argument("--variant-id", help="Variant ID (for activate action)")
     parser.add_argument("--step-id", help="Instantly step ID (for activate action)")
     parser.add_argument("--config", default=str(ROOT / "config" / "accessory_masters.json"))
-    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument(
+        "--mode",
+        choices=list(MODE_TO_MODEL.keys()),
+        default=DEFAULT_MODE,
+        help="Tier: cheap (Haiku 4.5) / balanced (Sonnet 4.6, default) / premium (Opus 4.7).",
+    )
+    parser.add_argument(
+        "--model",
+        default=None,
+        help="Override model ID explicitly (bypasses --mode). "
+             "Use OpenRouter format (e.g. anthropic/claude-sonnet-4.6).",
+    )
     parser.add_argument("--mock", action="store_true", help="Use mock data")
     args = parser.parse_args()
 
@@ -371,7 +398,19 @@ def main():
     all_variants = variants_data.get("variants", []) + variants_data.get("ai_challengers", [])
     human_variants = [v for v in variants_data.get("variants", []) if v.get("type") == "human"]
     constraints = copy_config.get("variant_constraints", {})
-    model = args.model or copy_config.get("model", DEFAULT_MODEL)
+
+    # --model explicit override > --mode > config file > DEFAULT_MODEL
+    if args.model:
+        model = args.model
+    else:
+        mode_model = MODE_TO_MODEL[args.mode]
+        model = copy_config.get("model", mode_model) if args.mode == DEFAULT_MODE else mode_model
+
+    logger.info(
+        "Mode: %s | Model: %s",
+        args.mode if not args.model else "explicit",
+        model,
+    )
 
     if args.action == "generate":
         max_variants = copy_config.get("max_variants", 5)
