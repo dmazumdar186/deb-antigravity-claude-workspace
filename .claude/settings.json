@@ -109,6 +109,16 @@
             "command": "bash \".claude/hooks/format-python.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \".claude/hooks/documenter-prompt.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "async": true
+          }
+        ]
       }
     ],
     "SessionStart": [

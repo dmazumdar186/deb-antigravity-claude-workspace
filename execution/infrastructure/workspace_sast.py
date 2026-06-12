@@ -4,6 +4,10 @@ Runs ruff and semgrep over Python files in execution/ and surfaces findings
 as a markdown report.  Designed to run as a Claude Code PostToolUse hook
 (warn-mode) or manually before PRs.
 
+Also includes two workspace-native rules that don't require external tools:
+  - exit-criteria-missing : directives/**/*.md without an ## Exit Criteria heading
+  - subprocess-encoding   : execution/**/*.py subprocess.run() missing encoding=
+
 Plan ref: ~/.claude/plans/i-need-to-write-bubbly-pelican.md (Tier 3)
 Architecture ref: CLAUDE.md — 3-layer directives/execution/orchestration
 
@@ -18,6 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -44,7 +49,8 @@ _AM_PATTERNS = ("accessory", "hedgestone", "elite-broker", "elitebrokergroup")
 _SKIP_DIRS = {".venv", "__pycache__", ".tmp", "node_modules", ".git", "modules"}
 
 # ── Severity ordering ────────────────────────────────────────────────────────
-_SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+# "warn" sits between low and info (advisory, non-blocking)
+_SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "warn": 4, "info": 5}
 
 
 # ── AM-lockdown guard ────────────────────────────────────────────────────────
@@ -179,6 +185,144 @@ def _run_semgrep_fallback(files: list[str]) -> list[dict]:
     return findings
 
 
+# ── Workspace-native rules ───────────────────────────────────────────────────
+
+# Directories to skip for subprocess-encoding scan
+_SKIP_DIRS_PY = {".venv", "__pycache__", ".tmp", "node_modules", ".git"}
+# Subagent directives that legitimately skip Exit Criteria
+_SUBAGENT_DIR = WORKSPACE_ROOT / "directives" / "subagent"
+
+
+def _rule_exit_criteria_missing() -> list[dict]:
+    """Rule: every directives/**/*.md must contain '## Exit Criteria'.
+
+    Exceptions (not flagged):
+    - directives/_TEMPLATE.md
+    - directives/subagent/* (internal SOPs, no Exit Criteria required)
+    - Files < 30 lines (stubs)
+    - Files whose name starts with '_'
+    """
+    directives_root = WORKSPACE_ROOT / "directives"
+    if not directives_root.exists():
+        return []
+
+    findings = []
+    for md_path in directives_root.rglob("*.md"):
+        # Skip subagent/ directory
+        try:
+            md_path.relative_to(_SUBAGENT_DIR)
+            continue  # inside subagent/
+        except ValueError:
+            pass
+
+        # Skip template-like files (name starts with _)
+        if md_path.name.startswith("_"):
+            continue
+
+        # Read and check
+        try:
+            content = md_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+
+        lines = content.splitlines()
+        if len(lines) < 30:
+            continue  # stub
+
+        if not re.search(r"^## Exit Criteria", content, re.MULTILINE):
+            rel = str(md_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+            findings.append(
+                {
+                    "severity": "info",
+                    "file": rel,
+                    "line": 0,
+                    "rule_id": "exit-criteria-missing",
+                    "message": "Directive is missing an '## Exit Criteria' section.",
+                    "tool": "workspace-native",
+                }
+            )
+
+    return findings
+
+
+# Regex to find subprocess.run( calls.  We look for the opening and then
+# capture everything up to the matching close-paren.  A simple line-level
+# grep is fast and catches the overwhelming majority of real-world usages
+# (multi-line calls where text=True / capture_output=True appear on later
+# lines are rare in this codebase).  The per-file approach reads each file
+# once and checks line-by-line for the violation pattern.
+
+_SUBPROC_OPEN = re.compile(r"\bsubprocess\.run\s*\(")
+# kwargs that trigger the encoding requirement
+_SUBPROC_TRIGGER = re.compile(r"\b(?:text\s*=\s*True|capture_output\s*=\s*True)\b")
+_SUBPROC_ENCODING = re.compile(r"\bencoding\s*=")
+
+
+def _rule_subprocess_encoding() -> list[dict]:
+    """Rule: subprocess.run() with text=True or capture_output=True must include encoding=.
+
+    Scans all .py files in the workspace except excluded dirs and AM-locked paths.
+    Uses a sliding-window approach: once subprocess.run( is found, accumulate
+    lines until the call closes (balanced parentheses), then check kwargs.
+    """
+    findings = []
+
+    # Gather all .py files under the workspace root (not just execution/)
+    for py_path in WORKSPACE_ROOT.rglob("*.py"):
+        # Skip excluded dirs
+        if any(skip in py_path.parts for skip in _SKIP_DIRS_PY):
+            continue
+        if _is_am_locked(str(py_path)):
+            continue
+
+        try:
+            lines = py_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            # Detect start of subprocess.run(
+            if _SUBPROC_OPEN.search(line):
+                # Accumulate the full call block (balance parens)
+                call_lines = [line]
+                start_lineno = i + 1  # 1-based
+                depth = line.count("(") - line.count(")")
+                j = i + 1
+                while depth > 0 and j < len(lines):
+                    call_lines.append(lines[j])
+                    depth += lines[j].count("(") - lines[j].count(")")
+                    j += 1
+
+                call_text = "\n".join(call_lines)
+
+                # Only flag if a trigger kwarg is present
+                if _SUBPROC_TRIGGER.search(call_text):
+                    # Check if encoding= is also present
+                    if not _SUBPROC_ENCODING.search(call_text):
+                        rel = str(py_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+                        findings.append(
+                            {
+                                "severity": "warn",
+                                "file": rel,
+                                "line": start_lineno,
+                                "rule_id": "subprocess-encoding",
+                                "message": (
+                                    'subprocess.run() with text=True or capture_output=True '
+                                    'is missing encoding="utf-8", errors="replace". '
+                                    "Windows cp1252 default crashes on bytes >= 0x80."
+                                ),
+                                "tool": "workspace-native",
+                            }
+                        )
+                i = j  # skip past the call block
+            else:
+                i += 1
+
+    return findings
+
+
 # ── File collection ──────────────────────────────────────────────────────────
 
 def _collect_changed_files() -> list[Path]:
@@ -229,16 +373,18 @@ def _collect_all_files() -> list[Path]:
 # ── Markdown report ──────────────────────────────────────────────────────────
 
 def _render_report(findings: list[dict], n_scanned: int, quiet: bool = False) -> str:
-    counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+    counts: dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "warn": 0, "info": 0}
     for f in findings:
-        counts[f["severity"]] = counts.get(f["severity"], 0) + 1
+        sev = f["severity"]
+        counts[sev] = counts.get(sev, 0) + 1
 
     total = sum(counts.values())
+    scanned_label = str(n_scanned) if n_scanned else "(workspace-native)"
     header = (
         "## Workspace SAST report\n"
-        f"Scanned: {n_scanned} files\n"
+        f"Scanned: {scanned_label} files\n"
         f"Findings: {total} (critical: {counts['critical']}, high: {counts['high']}, "
-        f"medium: {counts['medium']}, low: {counts['low']})\n"
+        f"medium: {counts['medium']}, low: {counts['low']}, warn: {counts['warn']}, info: {counts['info']})\n"
     )
 
     if quiet and total == 0:
@@ -255,10 +401,20 @@ def _render_report(findings: list[dict], n_scanned: int, quiet: bool = False) ->
     return "\n".join(lines)
 
 
+# ── Known native rules ────────────────────────────────────────────────────────
+
+_NATIVE_RULES: dict[str, callable] = {
+    "exit-criteria-missing": _rule_exit_criteria_missing,
+    "subprocess-encoding": _rule_subprocess_encoding,
+}
+
+_ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Workspace SAST pre-pass (ruff + semgrep)")
+    parser = argparse.ArgumentParser(description="Workspace SAST pre-pass (ruff + semgrep + native rules)")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--changed", action="store_true", default=True,
                       help="Scan changed .py files in execution/ vs HEAD (default)")
@@ -268,9 +424,41 @@ def main() -> int:
                       help="Scan explicit file paths")
     parser.add_argument("--quiet", action="store_true",
                         help="Suppress output when there are no findings")
+    parser.add_argument(
+        "--rules",
+        metavar="RULE[,RULE...]",
+        default=None,
+        help=(
+            "Comma-separated list of workspace-native rules to run in isolation "
+            "(skips ruff/semgrep). Available: "
+            + ", ".join(_ALL_NATIVE_RULE_NAMES)
+        ),
+    )
     args = parser.parse_args()
 
-    # Resolve file list
+    # ── Native-rules-only mode ────────────────────────────────────────────────
+    if args.rules is not None:
+        requested = [r.strip() for r in args.rules.split(",") if r.strip()]
+        unknown = [r for r in requested if r not in _NATIVE_RULES]
+        if unknown:
+            print(f"Unknown rule(s): {', '.join(unknown)}", file=sys.stderr)
+            print(f"Available: {', '.join(_ALL_NATIVE_RULE_NAMES)}", file=sys.stderr)
+            return 1
+
+        native_findings: list[dict] = []
+        for rule_name in requested:
+            native_findings.extend(_NATIVE_RULES[rule_name]())
+
+        # "warn" severity is informational for the report but not high/critical
+        n_scanned_native = 0  # we scan directives/py files independently
+        report = _render_report(native_findings, n_scanned_native, quiet=args.quiet)
+        if report:
+            print(report)
+        elif not args.quiet:
+            print(f"## Workspace SAST report\nScanned: (workspace-native)\nFindings: 0\n(no issues found for rules: {', '.join(requested)})")
+        return 0  # native rules are advisory — never block
+
+    # ── Resolve Python file list for ruff/semgrep ─────────────────────────────
     if args.files:
         file_paths = [Path(f) for f in args.files if not _is_am_locked(f)]
     elif args.all_files:
@@ -337,13 +525,17 @@ def main() -> int:
 
         findings_raw = _run_ruff_fallback(py_files) + _run_semgrep_fallback(py_files)
 
+    # ── Always append workspace-native rule findings ──────────────────────────
+    for rule_fn in _NATIVE_RULES.values():
+        findings_raw.extend(rule_fn())
+
     report = _render_report(findings_raw, n_scanned, quiet=args.quiet)
     if report:
         print(report)
         # Also emit which runner path was used (stderr so it doesn't pollute markdown)
         print(f"[sast-runner: {used_path}]", file=sys.stderr)
 
-    # Exit code
+    # Exit code: native rules are advisory (info/warn) — don't affect exit code
     has_critical = any(f["severity"] == "critical" for f in findings_raw)
     has_high = any(f["severity"] == "high" for f in findings_raw)
     return 1 if (has_critical or has_high) else 0

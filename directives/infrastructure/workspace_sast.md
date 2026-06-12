@@ -33,6 +33,26 @@ No API keys, no network calls, no paid resources.
 | `C:/Users/deban/dev/anneal/src/anneal/sast/` | Anneal's RuffRunner, SemgrepRunner, CompositeSastRunner (reused via try-import) |
 | `directives/infrastructure/canary_monitoring.md` | Companion directive for deployed-service canary probes |
 
+### Workspace-native rules (no external tools required)
+
+These rules run in-process and require neither ruff nor semgrep. They fire in both `--rules` isolation mode and automatically appended to every normal SAST run.
+
+| Rule ID | Severity | Scope | What it checks |
+|---------|----------|-------|----------------|
+| `exit-criteria-missing` | `info` | `directives/**/*.md` | Each directive must contain an `## Exit Criteria` heading. Skips: `subagent/`, files < 30 lines, filenames starting with `_`. |
+| `subprocess-encoding` | `warn` | `**/*.py` | Every `subprocess.run()` with `text=True` or `capture_output=True` must also pass `encoding="utf-8", errors="replace"`. Skips AM-locked paths and excluded dirs. |
+
+Run in isolation (no ruff/semgrep required):
+```bash
+py execution/infrastructure/workspace_sast.py --rules exit-criteria-missing,subprocess-encoding
+```
+
+Multiple rules can be combined or run individually:
+```bash
+py execution/infrastructure/workspace_sast.py --rules exit-criteria-missing
+py execution/infrastructure/workspace_sast.py --rules subprocess-encoding
+```
+
 ## Outputs
 
 Markdown report to stdout. Example:
@@ -142,3 +162,4 @@ Anneal v0.1 ships the same runners at `C:/Users/deban/dev/anneal/src/anneal/sast
 ## Changelog
 
 - **2026-05-25** — Initial version. try-import anneal path + subprocess fallback. Warn-mode hook in `.claude/settings.local.json`. AM-lockdown guard applied.
+- **2026-06-12** — Wave 4: added two workspace-native rules (`exit-criteria-missing`, `subprocess-encoding`). Added `--rules <comma-list>` isolation mode. New async PostToolUse hook `documenter-prompt.sh` registered in `.claude/settings.json`.
