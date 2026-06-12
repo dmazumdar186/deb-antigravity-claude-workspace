@@ -1,0 +1,165 @@
+{
+  "type": "object",
+  "description": "CVSpec — the full optimized CV plus metadata returned by Gemini Flash",
+  "required": [
+    "language_detected",
+    "ats_score",
+    "name",
+    "title",
+    "contact",
+    "summary",
+    "summary_kpis",
+    "experience",
+    "skills",
+    "education",
+    "languages",
+    "recommendations"
+  ],
+  "properties": {
+    "language_detected": {
+      "type": "string",
+      "description": "ISO 639-1 language code of the job description",
+      "enum": ["en", "fr", "es", "de"]
+    },
+    "ats_score": {
+      "type": "integer",
+      "description": "ATS keyword match score for the optimized CV against this JD, 0-100"
+    },
+    "name": {
+      "type": "string",
+      "description": "Candidate full name, unchanged from CV"
+    },
+    "title": {
+      "type": "string",
+      "description": "Professional headline in the JD language, tailored to this role"
+    },
+    "contact": {
+      "type": "object",
+      "description": "Contact details block",
+      "required": ["email", "phone", "location"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Candidate email address"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Candidate phone number"
+        },
+        "location": {
+          "type": "string",
+          "description": "City and country (e.g. Paris, France)"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn profile URL if present in the CV, empty string otherwise"
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub profile URL if present in the CV, empty string otherwise"
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "2-3 sentence ATS-optimized professional summary in the JD language. Must answer why this candidate fits this specific role."
+    },
+    "summary_kpis": {
+      "type": "string",
+      "description": "One-line key metrics from the CV only (e.g. 12+ yrs PM | 50M EUR ARR shipped | Bilingual FR/EN). No invented numbers."
+    },
+    "experience": {
+      "type": "array",
+      "description": "Work experience entries in reverse-chronological order. Each entry is one role.",
+      "items": {
+        "type": "object",
+        "required": ["role", "company_line", "bullets", "is_oneliner"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "description": "Job title exactly as it appears in the CV — do not change"
+          },
+          "company_line": {
+            "type": "string",
+            "description": "Company name, location, and date range (e.g. Wiser Solutions — Paris, France — Nov 2022 to present)"
+          },
+          "bullets": {
+            "type": "array",
+            "description": "Impact-first bullet points for this role, 3-6 entries. Each starts with a past-tense action verb. Include verbatim JD keywords where natural.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_oneliner": {
+            "type": "boolean",
+            "description": "Set true for very early-career or short roles that should be collapsed to a single line to save space"
+          }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "description": "Skill categories in priority order — most JD-relevant first",
+      "items": {
+        "type": "object",
+        "required": ["category", "value"],
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Skill category label (e.g. Product, Languages, Tooling, Data, Leadership)"
+          },
+          "value": {
+            "type": "string",
+            "description": "Comma-separated list of skills in this category"
+          }
+        }
+      }
+    },
+    "education": {
+      "type": "array",
+      "description": "Education entries in reverse-chronological order",
+      "items": {
+        "type": "object",
+        "required": ["degree", "institution_line"],
+        "properties": {
+          "degree": {
+            "type": "string",
+            "description": "Degree or qualification name"
+          },
+          "institution_line": {
+            "type": "string",
+            "description": "Institution name, location, and year (e.g. HEC Paris — Paris — 2010)"
+          }
+        }
+      }
+    },
+    "languages": {
+      "type": "array",
+      "description": "Language proficiencies (e.g. English: Bilingual, French: Native)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "certifications": {
+      "type": "array",
+      "description": "Professional certifications. Empty array if none.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "projects": {
+      "type": "array",
+      "description": "Notable projects or side work. Empty array if none or if dropped for space.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "description": "5-10 short advisory items the candidate should consider but were NOT auto-applied. Each is one actionable sentence.",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
