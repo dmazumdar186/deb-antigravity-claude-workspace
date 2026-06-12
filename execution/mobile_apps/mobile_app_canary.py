@@ -1,17 +1,21 @@
 """
 mobile_app_canary.py
-description: Iterate registry.json, ping each app's /api/health endpoint in parallel (httpx + ThreadPoolExecutor), and report green/red/missing per app. Designed to be invoked manually or from a Modal cron. Shared results dict guarded by threading.Lock (Windows hardening rule #2).
-inputs: CLI: --dry-run (skip HTTP, just parse registry), --timeout <seconds> (default 10); reads execution/mobile_apps/registry.json
-outputs: Per-app status line + final JSON summary to stdout; exit 0 if all green or --dry-run, exit 1 if any red
+description: Iterate registry.json, ping each app's /api/health endpoint in parallel (httpx + ThreadPoolExecutor), and report green/red/missing per app. Deduplicates alerts via .tmp/canary_state.json — only fires on status transitions or consecutive-failure threshold breaches. Designed to be invoked manually or from a Modal cron.
+inputs: CLI: --dry-run (skip HTTP, just parse registry), --timeout <seconds> (default 10), --alert {none,console,webhook,both} (default console), --webhook-url <url> (or env MOBILE_CANARY_WEBHOOK_URL), --alert-threshold <N> (default 3); reads execution/mobile_apps/registry.json
+outputs: Per-app status line + final JSON summary to stdout; .tmp/canary_state.json updated each run; alert banner/webhook on transition or threshold breach; exit 0 if all green or --dry-run, exit 1 if any red
 usage:
     py execution/mobile_apps/mobile_app_canary.py
     py execution/mobile_apps/mobile_app_canary.py --dry-run
     py execution/mobile_apps/mobile_app_canary.py --timeout 20
+    py execution/mobile_apps/mobile_app_canary.py --alert webhook --webhook-url https://hooks.example.com/canary
+    py execution/mobile_apps/mobile_app_canary.py --alert both --alert-threshold 5
 """
 
 import argparse
 import json
+import os
 import sys
+import tempfile
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -32,7 +36,27 @@ if load_dotenv is not None:
     load_dotenv(ROOT / ".env")
 
 REGISTRY_PATH = ROOT / "execution" / "mobile_apps" / "registry.json"
+TMP_DIR = ROOT / ".tmp"
+STATE_PATH = TMP_DIR / "canary_state.json"
 
+# ANSI colours — used for console alerts only; stripped when stdout is not a TTY.
+_RED = "\033[1;31m"
+_YELLOW = "\033[1;33m"
+_GREEN = "\033[1;32m"
+_RESET = "\033[0m"
+
+
+def _colour_supported() -> bool:
+    return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+
+
+def _c(code: str, text: str) -> str:
+    return f"{code}{text}{_RESET}" if _colour_supported() else text
+
+
+# ---------------------------------------------------------------------------
+# Registry
+# ---------------------------------------------------------------------------
 
 def load_registry() -> dict:
     if not REGISTRY_PATH.exists():
@@ -40,6 +64,10 @@ def load_registry() -> dict:
     with REGISTRY_PATH.open("r", encoding="utf-8") as f:
         return json.load(f)
 
+
+# ---------------------------------------------------------------------------
+# Health probing
+# ---------------------------------------------------------------------------
 
 def ping_health(slug: str, url: str, timeout: float) -> dict:
     """Single health-check. Returns a result dict, never raises."""
@@ -66,6 +94,184 @@ def ping_health(slug: str, url: str, timeout: float) -> dict:
         return {"slug": slug, "url": url, "status": "red", "error": str(e)}
 
 
+# ---------------------------------------------------------------------------
+# State persistence  (.tmp/canary_state.json)
+# ---------------------------------------------------------------------------
+
+def load_state() -> dict:
+    """Load prior run state; return empty skeleton on any read error."""
+    if not STATE_PATH.exists():
+        return {"last_run_at": None, "checks": {}}
+    try:
+        with STATE_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        # Corrupted or missing state — start fresh. Intentional swallow: this
+        # is a best-effort dedup file; the canary must keep running regardless.
+        print(f"  [state] could not read {STATE_PATH}: {e} — starting fresh",
+              file=sys.stderr)
+        return {"last_run_at": None, "checks": {}}
+
+
+def save_state(state: dict) -> None:
+    """Atomically write state to .tmp/canary_state.json via temp-file rename."""
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    # Write to a sibling temp file then rename — atomic on POSIX; best-effort on Windows.
+    fd, tmp_path = tempfile.mkstemp(dir=TMP_DIR, prefix="canary_state_", suffix=".json.tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2, ensure_ascii=False)
+        Path(tmp_path).replace(STATE_PATH)
+    except OSError as e:
+        # Non-fatal: state dedup is best-effort. Log and continue.
+        print(f"  [state] failed to save {STATE_PATH}: {e}", file=sys.stderr)
+        try:
+            Path(tmp_path).unlink(missing_ok=True)
+        except OSError:
+            pass  # Can't clean up the temp file — ignore; it's under .tmp/ (gitignored).
+
+
+# ---------------------------------------------------------------------------
+# Alert logic
+# ---------------------------------------------------------------------------
+
+def _canonical_status(raw_status: str) -> str:
+    """Map result statuses to pass/fail for state tracking."""
+    return "pass" if raw_status == "green" else "fail"
+
+
+def compute_alerts(
+    results: dict[str, dict],
+    prior_state: dict,
+    alert_threshold: int,
+    now_iso: str,
+) -> tuple[dict, list[dict]]:
+    """
+    Compare current results against prior state.
+
+    Returns:
+      - updated checks dict (merge of prior + current run)
+      - list of alert payloads that should fire this run
+    """
+    checks = prior_state.get("checks", {})
+    alerts = []
+
+    for slug, result in results.items():
+        current_status = _canonical_status(result.get("status", "fail"))
+        prior = checks.get(slug, {})
+        prior_status = prior.get("status")
+        consecutive = prior.get("consecutive_failures", 0)
+        last_change = prior.get("last_status_change_at", now_iso)
+
+        transitioned = prior_status is not None and current_status != prior_status
+        if current_status == "fail":
+            consecutive += 1
+        else:
+            consecutive = 0
+
+        threshold_breach = (
+            current_status == "fail"
+            and consecutive >= alert_threshold
+            and consecutive % alert_threshold == 0
+        )
+
+        if transitioned or threshold_breach:
+            if transitioned:
+                last_change = now_iso
+            alerts.append({
+                "check_name": slug,
+                "status": current_status,
+                "message": result.get("error") or result.get("detail") or
+                           f"http_status={result.get('http_status')}",
+                "consecutive_failures": consecutive,
+                "last_status_change_at": last_change,
+                "trigger": "transition" if transitioned else "threshold",
+            })
+
+        checks[slug] = {
+            "status": current_status,
+            "last_status_change_at": last_change,
+            "consecutive_failures": consecutive,
+        }
+
+    return checks, alerts
+
+
+def fire_console_alert(alert: dict) -> None:
+    """Print a clearly-formatted ANSI banner for the alert."""
+    status = alert["status"]
+    colour = _RED if status == "fail" else _GREEN
+    trigger = alert.get("trigger", "unknown")
+    slug = alert["check_name"]
+    consecutive = alert["consecutive_failures"]
+    msg = alert["message"]
+    last_change = alert["last_status_change_at"]
+
+    banner = (
+        "\n" +
+        _c(colour, "=" * 60) + "\n" +
+        _c(colour, f"  CANARY ALERT [{trigger.upper()}]") + "\n" +
+        _c(colour, f"  App:    {slug}") + "\n" +
+        _c(colour, f"  Status: {status.upper()}") + "\n" +
+        _c(colour, f"  Consecutive failures: {consecutive}") + "\n" +
+        _c(colour, f"  Last change: {last_change}") + "\n" +
+        _c(colour, f"  Detail: {msg}") + "\n" +
+        _c(colour, "=" * 60) + "\n"
+    )
+    print(banner)
+
+
+def fire_webhook_alert(alert: dict, webhook_url: str) -> None:
+    """POST alert payload to webhook URL. Logs warning on delivery failure — never raises."""
+    if httpx is None:
+        print("  [alert] webhook skipped — httpx not installed", file=sys.stderr)
+        return
+    try:
+        resp = httpx.post(
+            webhook_url,
+            json=alert,
+            timeout=10.0,
+            headers={"Content-Type": "application/json"},
+        )
+        if resp.status_code >= 400:
+            print(
+                f"  [alert] webhook delivery returned HTTP {resp.status_code} "
+                f"for slug={alert['check_name']}",
+                file=sys.stderr,
+            )
+    except httpx.HTTPError as e:
+        # Delivery failure is non-fatal — log and move on; don't crash the canary.
+        print(f"  [alert] webhook delivery failed for slug={alert['check_name']}: {e}",
+              file=sys.stderr)
+
+
+def dispatch_alerts(
+    alerts: list[dict],
+    alert_mode: str,
+    webhook_url: str | None,
+) -> None:
+    """Route each alert to the appropriate channel(s)."""
+    if alert_mode == "none" or not alerts:
+        return
+
+    for alert in alerts:
+        if alert_mode in ("console", "both"):
+            fire_console_alert(alert)
+        if alert_mode in ("webhook", "both"):
+            if webhook_url:
+                fire_webhook_alert(alert, webhook_url)
+            else:
+                print(
+                    "  [alert] webhook mode requested but no URL provided "
+                    "(--webhook-url or MOBILE_CANARY_WEBHOOK_URL)",
+                    file=sys.stderr,
+                )
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[2])
     parser.add_argument("--dry-run", action="store_true",
@@ -74,12 +280,31 @@ def main() -> int:
                         help="Per-request timeout in seconds (default 10).")
     parser.add_argument("--max-workers", type=int, default=8,
                         help="Thread pool size (default 8).")
+    parser.add_argument(
+        "--alert",
+        choices=["none", "console", "webhook", "both"],
+        default="console",
+        help="Alert delivery mode (default: console).",
+    )
+    parser.add_argument(
+        "--webhook-url",
+        default=os.environ.get("MOBILE_CANARY_WEBHOOK_URL"),
+        help="Webhook URL for alert POSTs (or env MOBILE_CANARY_WEBHOOK_URL).",
+    )
+    parser.add_argument(
+        "--alert-threshold",
+        type=int,
+        default=3,
+        metavar="N",
+        help="Fire alert every N consecutive failures even without a transition (default 3).",
+    )
     args = parser.parse_args()
 
     registry = load_registry()
     apps = registry.get("apps", [])
     print(f"mobile_app_canary: {len(apps)} app(s) in registry "
-          f"(dry_run={args.dry_run}, timeout={args.timeout}s)")
+          f"(dry_run={args.dry_run}, timeout={args.timeout}s, "
+          f"alert={args.alert}, threshold={args.alert_threshold})")
 
     results: dict[str, dict] = {}
     results_lock = threading.Lock()
@@ -135,11 +360,33 @@ def main() -> int:
     n_red = sum(1 for r in results.values() if r.get("status") == "red")
     n_missing = sum(1 for r in results.values() if r.get("status") == "missing-health-url")
 
+    # State dedup + alert dispatch
+    now_iso = datetime.now(timezone.utc).isoformat()
+    prior_state = load_state()
+
+    # Only include pingable results (exclude missing-health-url) in state tracking
+    pingable_results = {
+        slug: r for slug, r in results.items()
+        if r.get("status") not in ("missing-health-url",)
+    }
+    updated_checks, alerts = compute_alerts(
+        pingable_results, prior_state, args.alert_threshold, now_iso
+    )
+
+    new_state = {
+        "last_run_at": now_iso,
+        "checks": updated_checks,
+    }
+    save_state(new_state)
+
+    dispatch_alerts(alerts, args.alert, args.webhook_url)
+
     summary = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": now_iso,
         "dry_run": False,
         "counts": {"green": n_green, "red": n_red, "missing": n_missing,
                    "total": len(apps)},
+        "alerts_fired": len(alerts),
         "results": list(results.values()),
     }
     print(json.dumps(summary, indent=2, ensure_ascii=False))

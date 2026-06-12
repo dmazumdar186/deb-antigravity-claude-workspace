@@ -13,9 +13,54 @@ Every deployed mobile app (anything past Phase 4a) must implement the three cana
 
 ## Tools/Scripts
 
-- `execution/mobile_apps/mobile_app_canary.py` — iterates `registry.json`, pings each app's `/api/health`, asserts invariants, alerts on failure
+- `execution/mobile_apps/mobile_app_canary.py` — iterates `registry.json`, pings each app's `/api/health`, asserts invariants, alerts on failure; deduplicates alerts via `.tmp/canary_state.json`
 - `directives/infrastructure/canary_monitoring.md` — the general principle (read first)
 - Modal cron (every 15 min) — the scheduler
+
+### CLI Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--dry-run` | off | Parse registry only; no HTTP calls, no state written |
+| `--timeout <s>` | 10 | Per-request timeout in seconds |
+| `--max-workers <N>` | 8 | Thread pool size for parallel pings |
+| `--alert {none,console,webhook,both}` | `console` | Alert delivery mode |
+| `--webhook-url <url>` | `$MOBILE_CANARY_WEBHOOK_URL` | Webhook endpoint for alert POSTs |
+| `--alert-threshold <N>` | 3 | Fire repeated alert every N consecutive failures (even without a transition) |
+
+### Alert Dedup Semantics
+
+State is persisted at `.tmp/canary_state.json` (gitignored). Schema per check:
+
+```json
+{
+  "last_run_at": "<ISO-8601>",
+  "checks": {
+    "<slug>": {
+      "status": "pass|fail",
+      "last_status_change_at": "<ISO-8601>",
+      "consecutive_failures": 0
+    }
+  }
+}
+```
+
+An alert fires **only** when:
+1. The check status transitions (`pass→fail` or `fail→pass`), **or**
+2. `consecutive_failures` reaches `--alert-threshold` (default 3) and every subsequent multiple of that threshold (3, 6, 9 …).
+
+Apps with no `health_url` (`missing-health-url`) are excluded from state tracking and never trigger alerts.
+
+### Alert Delivery
+
+- **console**: prints an ANSI-coloured banner with slug, status, consecutive_failures, last_status_change_at, detail message.
+- **webhook**: HTTP POST (10s timeout) to `--webhook-url` with JSON payload `{check_name, status, message, consecutive_failures, last_status_change_at, trigger}`. Delivery failures are logged to stderr but do not crash the canary.
+- **both**: console + webhook simultaneously.
+- **none**: state is still updated; no alerts emitted.
+
+### State File Safety
+
+Writes are atomic: canary writes to a sibling `.tmp/canary_state_<uuid>.json.tmp` then renames to `canary_state.json`. A failed rename logs to stderr but does not abort the run.
 
 ## Required `/api/health` shape (mobile apps)
 
@@ -71,7 +116,7 @@ Every cost-incurring function must accept `--dry-run` (CLI) or `?dry_run=true` (
        subprocess.run(["py", "mobile_app_canary.py"], encoding="utf-8", errors="replace", check=True)
    ```
    Modal-side scheduling, not Cloudflare Cron Triggers — the canary monitors Workers, so it shouldn't share their infra.
-6. **Alert dedup.** Canary tracks last alert state in `.tmp/canary_state.json`. Only alert on state change (`ok → fail`, `fail → ok`) or sustained-fail every 30 min.
+6. **Alert dedup.** Canary tracks last alert state in `.tmp/canary_state.json`. Only alert on status transitions (`pass→fail` or `fail→pass`) or when `consecutive_failures` hits `--alert-threshold` (default 3). See "Alert Dedup Semantics" in Tools/Scripts above for the full schema and firing rules.
 7. **Manual smoke.** Run `py execution/mobile_apps/mobile_app_canary.py --dry-run` (canary itself supports dry-run — no alert sent, just prints what it would assert). Then deliberately break something (rotate the Worker secret) and confirm a real alert fires.
 8. **Document the alert channel** in registry: `<slug>.canary_alert_channel: "telegram:<chat-id>"` or `"slack:<webhook>"`.
 
