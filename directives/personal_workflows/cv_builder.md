@@ -9,7 +9,13 @@ for a specific job role. Output is a PDF ready to send — no manual editing req
 - `--role`: Target role (used in console output only)
 
 ## Tools/Scripts
-`execution/personal_workflows/cv_builder.py`
+
+| Script | Purpose |
+|--------|---------|
+| `execution/personal_workflows/cv_builder_core.py` | Shared rendering primitives: `_register_fonts()`, `SectionHeader` base, `make_style()`, `accroche()`, `exp_entry()`, `skill_row()`, `build_cv_doc()`. Import-only module; not run directly. |
+| `execution/personal_workflows/cv_builder.py` | French CV variant — defines content (`build_story()`) and colour palette, delegates rendering to core. |
+| `execution/personal_workflows/cv_builder_en.py` | English CV variant — same structure as `cv_builder.py`, English content. |
+| `execution/personal_workflows/cv_builder_skott.py` | SKOTT Group variant — corporate navy palette, different section layout (`PROFIL → COMPÉTENCES → EXPÉRIENCES → FORMATION`), `skill_line()` helper instead of table rows. |
 
 ## Output
 `.tmp/cv_{company}_debanjan_mazumdar.pdf`
@@ -74,3 +80,4 @@ A CV build is considered successful when ALL of the following are true:
 - 2026-04-08: Initial creation. Sahar AI Product Manager role (French). Exactly 2 pages, ATS ≥95%.
 - 2026-05-19: Master CV upgrade for FR AI PM job applications. Bumped 14→15 ans. Added Mission Freelance entry (Accessory Masters, Déc. 2025 – Mars 2026). Trimmed Pitney Bowes 2→1 bullet. Expanded IA & GenAI skills (anneal, OpenRouter, Cloudflare Workers, Modal, Firecrawl, prompt caching, garde-fous LLM). Rewrote PROJETS PERSONNELS 2→6 items (Anneal, YouTube Video Analyzer, Job Tracker PM France, Self-Outbound Engine, CV Optimizer Agent, ProdCraft) with clickable GitHub/YouTube links. Self-iterating audit: 3 consecutive clean rounds (`tests/cv_ats_check.py`: 2 pages, 20/20 keywords; visual + French syntax; independent code-reviewer agent). Output: `.tmp/cv_master_debanjan_mazumdar.pdf`.
 - 2026-05-19: English sibling `cv_builder_en.py` created — same content, translated, same layout. `exp_entry()` helper bundles title+employer+first bullet in `KeepTogether` (fixes orphan title at page break). `tests/cv_ats_check.py` extended with `--lang {fr,en}` flag and a per-language checklist dict (sections, entries, keywords, dates, default PDF). EN audit: 4-round loop — Round 1 ATS 20/20 clean, Round 2 visual found orphan title (Avaya), fixed via the KeepTogether tweak, Round 3 re-audit clean, Round 4 independent code-reviewer PASS 0 critical issues. Output: `.tmp/cv_master_debanjan_mazumdar_en.pdf`. Run: `py execution/personal_workflows/cv_builder_en.py --company <name> --role "<role>"` and audit with `py tests/cv_ats_check.py --lang en`.
+- 2026-06-12: Extracted shared rendering primitives into `cv_builder_core.py` (INDEX row 40). Font registration, `SectionHeader` base class, `make_style()`, `accroche()`, `exp_entry()`, `skill_row()`, `build_cv_doc()` now live in the core. Each variant defines only its colour palette, `SectionHeader` draw override, style dict `S`, and `build_story()` content. No behavior change; PDF output structurally identical.
