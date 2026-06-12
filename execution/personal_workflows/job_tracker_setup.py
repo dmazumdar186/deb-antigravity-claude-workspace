@@ -165,6 +165,8 @@ def _install_missing_packages(missing: list[str]) -> bool:
             [sys.executable, "-m", "pip", "install", pkg],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         if result.returncode == 0:

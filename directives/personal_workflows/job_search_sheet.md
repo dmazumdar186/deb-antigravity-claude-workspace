@@ -361,3 +361,18 @@ The base64 string is now in your clipboard — paste it as the value for `GOOGLE
 **Verify secrets are present:** trigger the workflow manually once via the Actions tab → "Run workflow" with `no_llm=true` first (fast, doesn't burn LLM tokens). Check the logs — `--check-only` should report `[OK]` for every key. If anything reports `[--MISSING]`, that secret name is wrong or empty.
 
 **DST handling:** the workflow has two crons (07:00 UTC and 08:00 UTC). One of them fires at 09:00 Paris regardless of summer/winter. The 23h idempotency check in `job_search_sheet.py` ensures the second cron exits cleanly without re-writing the sheet.
+
+---
+
+## Exit Criteria
+
+The pipeline is considered fully operational when ALL of the following are true:
+
+1. **Sheet exists and tabs created** — Google Sheet `Job Applications` is accessible via the service account; `py execution/personal_workflows/job_search_setup.py --check-only` exits 0 and reports `[OK]` for all 7 env vars (`SHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_PATH`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `JOOBLE_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`).
+2. **All 6 title tabs present** — tabs `PM`, `AI PM`, `AI Automation`, `AI Mobile`, `AI Process`, `AI Consultant` exist; each has the 14-column header row frozen in row 1 and column A hidden.
+3. **Sheet has N rows** — after the first successful live run, each active tab has at least 1 data row (≥1 job found per title for Phase 1a: France); total across all tabs ≥ 6 rows.
+4. **Key columns populated** — columns B (`First Seen`), D (`Company`), E (`Title`), F (`Country`), J (`Source`), L (`Link`) are non-empty on every pipeline-written row; no cell contains `None` or `null` as a string.
+5. **`_meta!A1` timestamp fresh** — `_meta!A1` contains an ISO datetime within the last 25 hours (23 h idempotency window + 2 h buffer). Stale or empty = cron not running.
+6. **Status column is `New` on fresh rows** — newly written rows default to `New` in column M; user edits to `Status` and `Notes` on existing rows survive the next daily run unchanged.
+7. **No API errors in last run** — `.tmp/job_search_runs.jsonl` last entry shows `discovered > 0`, `filtered > 0`, and no `adzuna_quota_exhausted=true` or `jooble_error=true` for all active sources.
+8. **GitHub Actions green** — the `job-search-daily` workflow last run status is `success` in the Actions tab; no failed steps.

@@ -289,6 +289,18 @@ When a board degrades:
 - Cron host: Modal (`modal deploy execution/modal_webhook.py`)
 - DB: SQLite at `.tmp/job_tracker.db`
 
+## Exit Criteria
+
+The pipeline is considered fully operational when ALL of the following are true:
+
+1. **Modal cron deployed** — `modal deploy execution/modal_webhook.py` exits 0 and the `job_tracker_pm_france` key appears in `execution/webhooks.json` with the correct args (`["--send"]`).
+2. **All 8 env vars set** — `py execution\personal_workflows\job_tracker_setup.py --check-only` reports `[OK]` for: `FIRECRAWL_API_KEY`, `SERPER_API_KEY`, `FRANCE_TRAVAIL_CLIENT_ID`, `FRANCE_TRAVAIL_CLIENT_SECRET`, `INSEE_SIRENE_API_KEY`, `GMAIL_SMTP_USER`, `GMAIL_SMTP_APP_PASSWORD`, `JOB_TRACKER_RECIPIENT`.
+3. **DB initialised** — `.tmp/job_tracker.db` exists and contains the four tables (`companies`, `jobs`, `contacts`, `notifications_log`); verified via `py execution\personal_workflows\job_tracker_setup.py --init-db` (idempotent).
+4. **Mock dry-run clean** — `py execution\personal_workflows\job_tracker_pm_france.py --mock --dry-run` exits 0, produces `.tmp/job_tracker/{run_id}/digest.html`, and the log contains no `ERROR` events.
+5. **Daily Sheet row appended** — after a live `--send` run, the SQLite `jobs` table has at least one row with `first_seen_at` = today (UTC), and `.tmp/job_tracker_pm_france.log` contains `"event": "send_done"` with `"status": "ok"`.
+6. **No API errors in last 24 h** — `.tmp/job_tracker_pm_france.log` (last 24 h) contains zero `ERROR`-level events and no `BOARD_DEGRADED` events for all 5 boards simultaneously (partial degradation is acceptable).
+7. **Digest renders** — `.tmp/job_tracker/{run_id}/digest.html` opens in a browser without blank body; at least one job card is visible when at least one board returns results.
+
 ## Changelog
 
 - 2026-05-14: created.

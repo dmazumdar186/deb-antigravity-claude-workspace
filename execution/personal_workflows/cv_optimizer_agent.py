@@ -4,16 +4,25 @@ cv_optimizer_agent.py
 description: Interactive CV optimizer — scores any CV against a job description,
              generates an optimized ATS-ready CV PDF and a matching cover letter PDF
              in the language of the job description.
-inputs: interactive prompts (JD text/path, CV PDF path, company name)
+inputs: interactive prompts (JD text/path, CV PDF path, company name);
+        optional --mode {cheap,balanced,premium} flag (default: balanced)
 outputs: .tmp/cv_opt_{company}_{lastname}.pdf, .tmp/cover_letter_{company}_{lastname}.pdf
 
 Usage:
     py execution/personal_workflows/cv_optimizer_agent.py
+    py execution/personal_workflows/cv_optimizer_agent.py --mode cheap
+    py execution/personal_workflows/cv_optimizer_agent.py --mode premium
+
+Mode → model mapping:
+    cheap    → claude-sonnet-4-6  (fast, low cost)
+    balanced → claude-opus-4-7   (default, best balance)
+    premium  → claude-opus-4-7   (same model, reserved for future tier)
 
 Dependencies:
     pip install reportlab pdfplumber anthropic python-dotenv
 """
 
+import argparse
 import io
 import os
 import re
@@ -513,7 +522,7 @@ def extract_cv_pdf(cv_path: Path) -> tuple[str, int]:
 
 
 # ── Claude API: Analysis + Optimised CV ─────────────────────────────────────────
-def run_analysis(cv_text: str, jd_text: str, client) -> dict:
+def run_analysis(cv_text: str, jd_text: str, client, model: str) -> dict:
     """Call Claude to analyse the CV against the JD and return structured JSON."""
     user_msg = (
         f"<cv>\n{cv_text}\n</cv>\n\n"
@@ -523,7 +532,7 @@ def run_analysis(cv_text: str, jd_text: str, client) -> dict:
     )
 
     response = client.messages.create(
-        model='claude-opus-4-6',
+        model=model,
         max_tokens=16000,
         system=CV_ADVISOR_SYSTEM,
         tools=[ANALYSIS_TOOL],
@@ -547,7 +556,7 @@ def run_analysis(cv_text: str, jd_text: str, client) -> dict:
 
 # ── Claude API: Cover Letter ────────────────────────────────────────────────────
 def run_cover_letter(cv_text: str, jd_text: str, language: str,
-                     optimized_cv: dict, company: str, client) -> str:
+                     optimized_cv: dict, company: str, client, model: str) -> str:
     """Call Claude to generate a cover letter. Returns plain text."""
     summary = optimized_cv.get('summary', '')
     name    = optimized_cv.get('name', '')
@@ -566,7 +575,7 @@ def run_cover_letter(cv_text: str, jd_text: str, language: str,
     )
 
     response = client.messages.create(
-        model='claude-opus-4-6',
+        model=model,
         max_tokens=2048,
         system=COVER_LETTER_SYSTEM,
         messages=[{"role": "user", "content": user_msg}],
@@ -833,8 +842,30 @@ def build_cover_letter_pdf(cover_letter_text: str, opt_cv: dict, output_path: Pa
     return actual_pages
 
 
+# ── Mode → model mapping ───────────────────────────────────────────────────────
+_MODE_MODELS = {
+    'cheap':    'claude-sonnet-4-6',
+    'balanced': 'claude-opus-4-7',
+    'premium':  'claude-opus-4-7',
+}
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────────
 def main():
+    # --- Parse CLI args ---
+    parser = argparse.ArgumentParser(
+        description='CV Optimizer Agent — score, optimise, and generate PDF + cover letter.',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        '--mode',
+        choices=['cheap', 'balanced', 'premium'],
+        default='balanced',
+        help='Model tier: cheap=Sonnet (fast), balanced/premium=Opus (default: balanced)',
+    )
+    args = parser.parse_args()
+    model = _MODE_MODELS[args.mode]
+
     # --- Get API key ---
     api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
     if not api_key:
@@ -866,9 +897,9 @@ def main():
     cv_filename = cv_path.name
 
     # --- Claude Call 1: Analysis ---
-    print('  Analysing CV against job description (this takes ~30–60 seconds)...')
+    print(f'  Analysing CV against job description [{args.mode} / {model}] ...')
     try:
-        analysis = run_analysis(cv_text, jd_text, client)
+        analysis = run_analysis(cv_text, jd_text, client, model)
     except Exception as e:
         print(f'ERROR during analysis: {e}')
         sys.exit(1)
@@ -884,7 +915,7 @@ def main():
               'This may be a max_tokens truncation issue. Please re-run.')
         sys.exit(1)
 
-    # Derive output filename from candidate's last name
+    # Derive output filename from candidate's last name (LLM-supplied: harden per rule 3)
     name_parts   = opt_cv.get('name', 'candidate').split()
     last_name    = _slugify(name_parts[-1]) if name_parts else 'candidate'
     company_slug = _slugify(company)
@@ -892,6 +923,12 @@ def main():
     TMP.mkdir(exist_ok=True)
     cv_out = TMP / f'cv_opt_{company_slug}_{last_name}.pdf'
     cl_out = TMP / f'cover_letter_{company_slug}_{last_name}.pdf'
+
+    # Boundary check: LLM-derived slugs must not escape .tmp/ (path-traversal guard)
+    for _path in (cv_out, cl_out):
+        if not _path.resolve().is_relative_to(TMP.resolve()):
+            print(f'ERROR: Resolved output path {_path} escapes .tmp/ boundary — aborting.')
+            sys.exit(1)
 
     # --- Build CV PDF ---
     print('  Generating optimised CV PDF...')
@@ -913,7 +950,7 @@ def main():
     print('  Generating cover letter (this takes ~15–30 seconds)...')
     try:
         cover_letter_text = run_cover_letter(
-            cv_text, jd_text, language, opt_cv, company, client
+            cv_text, jd_text, language, opt_cv, company, client, model
         )
     except Exception as e:
         print(f'ERROR during cover letter generation: {e}')

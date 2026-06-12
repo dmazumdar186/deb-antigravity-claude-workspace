@@ -59,6 +59,17 @@ To tailor the CV for a different company/role:
 pip install reportlab
 ```
 
+## Exit Criteria
+
+A CV build is considered successful when ALL of the following are true:
+
+1. **PDF generated** — the output file `.tmp/cv_{company}_debanjan_mazumdar.pdf` exists and has a file size > 30 KB (a blank/empty PDF is typically < 5 KB).
+2. **Exactly 2 pages** — `py tests/cv_ats_check.py` (or `pdfplumber` page count) reports exactly 2 pages; any overflow to 3 pages requires reducing `spaceAfter` or shortening bullet text.
+3. **Font registration succeeded** — console output does NOT contain `"Arial not found"` or `"Falling back to Helvetica"` on a Windows machine with standard fonts installed; TTFont `CV` / `CV-Bold` registered successfully.
+4. **All sections present** — the PDF contains all required sections: Summary/Accroche, Expérience Professionnelle, Compétences, Formation, Langues, Certifications, Projets Personnels. Verified visually or via `py tests/cv_ats_check.py --lang fr`.
+5. **ATS keyword score ≥ 95%** — `py tests/cv_ats_check.py` reports ≥ 19/20 keywords matched for the target JD (or the equivalent threshold for the role's keyword list).
+6. **Text is selectable** — opening the PDF in any reader and selecting text confirms it is not a raster/image-only render (ATS-readable).
+
 ## Changelog
 - 2026-04-08: Initial creation. Sahar AI Product Manager role (French). Exactly 2 pages, ATS ≥95%.
 - 2026-05-19: Master CV upgrade for FR AI PM job applications. Bumped 14→15 ans. Added Mission Freelance entry (Accessory Masters, Déc. 2025 – Mars 2026). Trimmed Pitney Bowes 2→1 bullet. Expanded IA & GenAI skills (anneal, OpenRouter, Cloudflare Workers, Modal, Firecrawl, prompt caching, garde-fous LLM). Rewrote PROJETS PERSONNELS 2→6 items (Anneal, YouTube Video Analyzer, Job Tracker PM France, Self-Outbound Engine, CV Optimizer Agent, ProdCraft) with clickable GitHub/YouTube links. Self-iterating audit: 3 consecutive clean rounds (`tests/cv_ats_check.py`: 2 pages, 20/20 keywords; visual + French syntax; independent code-reviewer agent). Output: `.tmp/cv_master_debanjan_mazumdar.pdf`.
