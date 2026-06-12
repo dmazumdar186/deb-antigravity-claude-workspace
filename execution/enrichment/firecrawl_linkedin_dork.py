@@ -20,7 +20,9 @@ import json
 import os
 import re
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -254,19 +256,58 @@ def find_contacts_bulk(
     company_names: list[str],
     *,
     max_total_per_company: int = 5,
+    max_workers: int = 3,
 ) -> dict[str, list[dict]]:
     """Batch wrapper for find_contacts_for_company.
 
-    Sleeps 1.0s between companies to respect Firecrawl rate limits.
+    Parallelises across companies using ThreadPoolExecutor (default: 3 workers,
+    capped at 5 — Firecrawl rate-limits at low concurrency so higher values risk
+    429s). Each company's dork calls are fully independent; a threading.Lock
+    guards the shared results dict.
+
+    Falls back to a 1.0s inter-company sleep in the single-worker case so the
+    polite-delay behaviour is preserved when max_workers=1.
+
     Returns a dict keyed by company_name.
     """
+    _MAX_WORKERS_CEILING = 5
+    workers = max(1, min(max_workers, _MAX_WORKERS_CEILING, len(company_names) or 1))
     results: dict[str, list[dict]] = {}
-    for idx, company_name in enumerate(company_names):
-        if idx > 0:
-            time.sleep(1.0)
-        results[company_name] = find_contacts_for_company(
+    results_lock = threading.Lock()
+
+    def _fetch(company_name: str) -> tuple[str, list[dict]]:
+        """Fetch contacts for one company; 429-aware backoff applied inside _run_search."""
+        contacts = find_contacts_for_company(
             company_name, max_total=max_total_per_company
         )
+        return company_name, contacts
+
+    if workers == 1:
+        # Sequential path — preserve original 1.0s inter-company sleep.
+        for idx, company_name in enumerate(company_names):
+            if idx > 0:
+                time.sleep(1.0)
+            _, contacts = _fetch(company_name)
+            results[company_name] = contacts
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {
+                executor.submit(_fetch, name): name for name in company_names
+            }
+            for future in as_completed(futures):
+                try:
+                    company_name, contacts = future.result()
+                except Exception as exc:
+                    # Per-company failure isolation: log and store empty list.
+                    company_name = futures[future]
+                    logger.warning(
+                        "firecrawl_dork: bulk fetch failed for %r — %s",
+                        company_name, exc,
+                    )
+                    contacts = []
+                with results_lock:
+                    results[company_name] = contacts
+
     return results
 
 
@@ -304,6 +345,18 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="N",
         help="Max contacts per company (default: 5).",
     )
+    parser.add_argument(
+        "--max-workers",
+        dest="max_workers",
+        type=int,
+        default=3,
+        metavar="N",
+        help=(
+            "Parallel workers for bulk mode (default: 3, ceiling: 5). "
+            "Keep low — Firecrawl rate-limits at low concurrency. "
+            "Use 1 to fall back to sequential mode with 1.0s inter-company sleep."
+        ),
+    )
     return parser
 
 
@@ -311,7 +364,11 @@ def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
 
-    results = find_contacts_bulk(args.companies, max_total_per_company=args.max_total)
+    results = find_contacts_bulk(
+        args.companies,
+        max_total_per_company=args.max_total,
+        max_workers=args.max_workers,
+    )
 
     output_payload = {
         "run_at": now_iso(),

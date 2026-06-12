@@ -16,7 +16,9 @@ import os
 import re
 import statistics
 import sys
+import threading
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -223,8 +225,14 @@ def run_pipeline(args: argparse.Namespace) -> int:
     # ---- Stage A: Discover ---------------------------------------------------
     per_board_raw: dict[str, list[dict]] = {}
     per_board_counts: dict[str, int] = {}
+    _board_lock = threading.Lock()
 
-    for board in active_boards:
+    def _scrape_board(board: str) -> tuple[str, list[dict]]:
+        """Scrape a single board; returns (board_name, raw_results).
+
+        Failure-isolated: any exception returns an empty list so one bad
+        scraper cannot abort the whole run.
+        """
         board_cfg = config_boards_by_name.get(board, {})
         try:
             if args.mock:
@@ -250,8 +258,7 @@ def run_pipeline(args: argparse.Namespace) -> int:
                         {"event": "board_scraped", "board": board, "count": len(raw)}
                     )
                 )
-            per_board_raw[board] = raw
-            per_board_counts[board] = len(raw)
+            return board, raw
         except Exception as exc:
             logger.error(
                 json.dumps(
@@ -262,8 +269,16 @@ def run_pipeline(args: argparse.Namespace) -> int:
                     }
                 )
             )
-            per_board_raw[board] = []
-            per_board_counts[board] = 0
+            return board, []
+
+    max_workers = min(args.max_workers, len(active_boards)) if active_boards else 1
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_scrape_board, board): board for board in active_boards}
+        for future in as_completed(futures):
+            board_name, raw_results = future.result()
+            with _board_lock:
+                per_board_raw[board_name] = raw_results
+                per_board_counts[board_name] = len(raw_results)
 
     # Degraded-board detection
     medians = _update_board_counts_history(PROJECT_ROOT, run_id, per_board_counts)
@@ -687,6 +702,16 @@ def _build_parser() -> argparse.ArgumentParser:
         default=200,
         metavar="N",
         help="Cap raw results per board (default: 200).",
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        metavar="N",
+        help=(
+            "Max parallel workers for Stage A board scraping "
+            "(default: 4). Capped at the number of active boards."
+        ),
     )
     return parser
 
