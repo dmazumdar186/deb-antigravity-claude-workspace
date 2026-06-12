@@ -155,7 +155,7 @@ Sort by (impact × ease), descending.
 
 ## Deferred (requires more info or external setup)
 
-- **CV Optimizer** — DEFERRED, no local clone. See [`external/cv_optimizer_agent.md`](.claude/upgrades/external/cv_optimizer_agent.md) for re-audit instructions. Re-audit after `git clone https://github.com/dmazumdar186/cv-optimizer-agent.git` into `C:\Users\deban\dev\`.
+- **CV Optimizer** — SUPERSEDED by v2 (2026-06-12) — see `directives/personal_workflows/cv_optimizer_v2.md`. The public repo clone + audit path is no longer the priority; v2 (Cloudflare Pages + Worker + Gemini Flash, 7-phase scaffold) is now the canonical personal tool. The old Streamlit/Anthropic agent (`cv_optimizer_agent.py`) remains as offline CLI fallback. Original audit card: [`external/cv_optimizer_agent.md`](.claude/upgrades/external/cv_optimizer_agent.md).
 - **`humanizer` — CI / GitHub Actions** — Tests require API keys for non-dry runs. Deferred until repo has external contributors or the no-key subset (`test_sanity.py`, `test_monkey.py`) is confirmed to run cleanly without creds.
 - **`youtube_video_analyzer` — `--deep-dry-run` test + `--obsidian-vault` test** — Good coverage gaps but not crashing anything now. Defer to next v4.x work session.
 - **Rosy Origami — Dynamic Workflow (multi-tenant)** — Fan-out trigger (>5 parallel tasks) not yet met. Triggered at Phase 4 multi-tenant. Save `.claude/workflows/rosy-ingest.md` at that point.
