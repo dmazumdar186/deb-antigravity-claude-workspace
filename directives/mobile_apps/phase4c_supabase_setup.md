@@ -102,6 +102,21 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
 - **`gen_random_uuid()` requires the `pgcrypto` extension.** Supabase enables it by default in new projects, but old / migrated projects may not. If `gen_random_uuid()` errors at push time: `create extension if not exists pgcrypto;` at the top of the migration.
 - **`auth.uid()` returns null when called from the service-role key.** RLS policies using `auth.uid() = user_id` fail-deny under service-role calls. That's correct behavior — service-role bypasses RLS deliberately. If you need authenticated calls, use the anon key + a JWT.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- Supabase project `<slug>` exists in the dashboard; all services (Database, GoTrue, PostgREST, Realtime) show `healthy`.
+- `supabase/config.toml` and at least one migration file (`supabase/migrations/<ts>_init.sql`) exist in the app repo.
+- `supabase status` (run after `supabase link`) shows `Linked project: <expected-project-ref>`.
+- `supabase db push` exits with code 0 and every table appears in the dashboard's Table Editor with the `RLS enabled` badge green.
+- Every user-owned table has at least 4 RLS policies (select, insert, update, delete) visible under `Authentication → Policies` in the dashboard.
+- `src/lib/supabase.ts` exists, imports `createClient`, and passes `AsyncStorage` as `auth.storage`.
+- `.env` (and `.env.example`) contains non-empty `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`. `SUPABASE_SERVICE_ROLE_KEY` is present **without** an `EXPO_PUBLIC_` prefix.
+- `execution/mobile_apps/registry.json` entry for `<slug>` has non-null `supabase_project_ref`, `supabase_url`, and `last_db_push_at`.
+
+If any predicate fails, fix before claiming Phase 4c complete. Do NOT proceed to Phase 4d (auth) until RLS is verified on every user-owned table.
+
 ## Notes
 
 - Anneal mode for this phase: **adversarial**. The Worker has paid infra and auth at stake even on the free tier — RLS holes, service-key leaks, and policy regressions are exactly the bug class that the Red-vs-Blue duel catches better than a single-pass audit.

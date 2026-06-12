@@ -106,6 +106,20 @@ If any of the above is missing, fix first; `eas submit` will fail late and the c
 - **AAB vs APK.** Play Console requires AAB for new apps since Aug 2021. Don't try to upload an APK.
 - **Internal vs Closed vs Open testing.** Internal testing (up to 100 users) does NOT count toward the 20/14 gate — must be a **Closed** track (Play Console label), which is `--track alpha` or `--track beta` in the EAS CLI. `--track internal` does NOT clear the gate. Verify in Play Console UI which track the build is on.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- Pre-submission content checklist complete: privacy policy URL live, support page live, `assets/icon.png` 1024x1024 PNG, adaptive icon assets present (`android-icon-foreground.png`, `android-icon-background.png`, `android-icon-monochrome.png`), `app.json` has `expo.android.package` and `expo.android.versionCode`.
+- `py execution/mobile_apps/eas_build_helper.py --slug <slug> --platform android --profile production` exits with code 0 and produces an `.aab`.
+- `execution/mobile_apps/registry.json` entry for `<slug>` has non-null `last_build_sha` and `last_build_url`.
+- `eas submit --platform android --profile production --latest --track alpha` exits with code 0 (build on closed-testing track confirmed in Play Console UI).
+- `py execution/mobile_apps/play_console_tester_gate.py --slug <slug>` prints gate status; if `CLEARED`, `play_gate_cleared_at` is non-null in registry.
+- For production submission: `eas submit --platform android --profile production --latest --track production` exits with code 0 AND Play Console submission track shows `production` (not `alpha`/`beta`).
+- `registry.json` entry has non-null `play_submission_track` and (once gate is cleared) `play_gate_cleared_at`.
+
+If any predicate fails, fix before claiming Android deploy complete. Do NOT submit to production track until `play_console_tester_gate.py` prints `Status: CLEARED`.
+
 ## Notes
 
 - The 20/14 gate is enforced by Google's Play Console UI, not by Wrangler or EAS. The gate script is a **reader / reminder**, never a blocker — Google blocks the actual submit.

@@ -162,6 +162,22 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
 - **JWT verification skipped via misconfigured CORS proxy.** If a CORS-permissive Worker sits in front of the Edge Function (e.g. for browser access), it can strip the `Authorization` header on cross-origin preflight. Verify the proxy passes Authorization through; otherwise the Edge Function 401s on every browser-origin call.
 - **PII in coaching prompts.** Habit data is mildly sensitive. Don't send raw email addresses or display names into Anthropic if the spec doesn't require them. Filter the payload to only what the prompt needs.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- At least one Edge Function exists at `supabase/functions/<name>/index.ts` and uses `Deno.serve` as the entrypoint.
+- `supabase functions deploy <name> --no-verify-jwt false` exits with code 0 (JWT verification ON confirmed in deploy output).
+- Probe without JWT returns HTTP 401: `curl https://<project-ref>.supabase.co/functions/v1/<name>` (no Authorization header) → 401.
+- `supabase secrets list` shows `ANTHROPIC_API_KEY` present (not embedded as a default in `Deno.env.get(...)` in the function code).
+- The AI artifact table (`coaching_messages` or equivalent) exists in Postgres with RLS enabled and a `user_id uuid references auth.users` column; confirmed via dashboard or `supabase db status`.
+- End-to-end test in the app: triggering the AI feature writes a row to the artifact table visible in the Supabase dashboard under the authenticated user's ID.
+- `cost_usd` field in the artifact table row is non-zero and computed from all 4 token-count fields (not flat-rate).
+- `execution/mobile_apps/registry.json` entry for `<slug>` has non-null `edge_functions` (array) and `last_ai_cost_check_at`.
+- Security audit (`directives/mobile_apps/security_audit.md`) re-run after this phase — `last_security_audit_at` timestamp in registry is newer than the Phase 5b commit timestamp.
+
+If any predicate fails, fix before claiming Phase 5b complete. CRITICAL: never ship with `--no-verify-jwt true` or with `ANTHROPIC_API_KEY` as a code default.
+
 ## Notes
 
 - Anneal mode for this phase: **adversarial**. Paid AI on a deployed Worker with auth gates and cost-amplification vectors is exactly the class the Red-vs-Blue duel catches better than a single audit pass. Run:

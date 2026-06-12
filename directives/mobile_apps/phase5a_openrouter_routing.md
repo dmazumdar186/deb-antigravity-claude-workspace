@@ -88,6 +88,21 @@ Add LLM functionality to the app via OpenRouter, with a cheap/premium routing ma
 - **PII in prompts.** Don't send user-identifying info to OpenRouter without considering retention. OpenRouter's "data policy" can be set per model; review for sensitive apps.
 - **Dollar-amount stripping is regex-naive.** Catches `$5`, `$5.00`, `$1,234.56` but not `5 dollars`, `USD 5`, `five bucks`. Document the limit; expand the regex case-by-case as it bites.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `backend/llm.py` exists with a `ROUTES` dict defining at least `simple` and `complex` tiers (each with `model`, `fallback`, `max_tokens`).
+- `backend/llm.py` contains a `PRICING` table with 4 entries per Claude model (`input`, `cache_read`, `cache_write`, `output`) — never flat-rate.
+- `call_llm(..., dry_run=True)` returns a dict with `would_call` and `estimated_cost_usd` keys (no HTTP call made).
+- At least one LLM task in the Modal cron (`backend/cron.py`) calls `call_llm(...)` rather than calling OpenRouter directly.
+- `modal run backend/cron.py::refresh_job` (real run) logs a `cost_usd` value computed from all 4 token-count fields (`input_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens`, `output_tokens`).
+- Response guards are applied: max-sentence limit and dollar-amount strip are present in `apply_guards()` (or equivalent); empty-response fallback returns the static safe string.
+- `OPENROUTER_API_KEY` is present in Modal secrets (`modal secret list` shows `<slug>-openrouter`); never present in the app bundle.
+- Phase 5a commit exists: `git log --oneline` includes a commit with "phase 5a".
+
+If any predicate fails, fix before claiming Phase 5a complete. Do NOT proceed to production builds with flat-rate pricing or without the empty-response fallback.
+
 ## Notes
 
 - This is the **generic** AI integration. Vision/video pipelines (frame dedup, OCR, 3x3 tile analysis) are Phase 5b, created on demand only when an app needs them.

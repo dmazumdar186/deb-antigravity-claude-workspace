@@ -79,6 +79,19 @@ Add a Modal cron that runs every 6 hours (configurable), performs the app's back
 - **Duplicate runs.** If Modal retries a transient failure, the same `current_function_call_id()` is reused — idempotency-key dedup at the Worker catches the replay.
 - **`pip_install` mismatch.** If `cron.py` imports something not in the image, Modal fails at import time. Always list every dep in `pip_install(...)`.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `backend/cron.py` exists in the app repo and defines a `modal.App` + at least one `@app.function(schedule=modal.Cron(...))` handler.
+- `modal deploy backend/cron.py` exits with code 0 (Modal app `<slug>-cron` deployed).
+- `modal run backend/cron.py::refresh_job --dry-run` exits with code 0 and returns a dict containing `would_call_openrouter` and `would_post_to_kv` (dry-run path verified).
+- A real run (`modal run backend/cron.py::refresh_job`) exits with code 0 and the Worker's `/api/health` response reflects a non-null `last_success_per_job.refresh` value.
+- `execution/mobile_apps/registry.json` entry for `<slug>` has non-null `modal_app` and `cron_schedule` fields.
+- `WORKER_SECRET` is present in Modal secrets: `modal secret list` shows `<slug>-worker-secret`.
+
+If any predicate fails, fix before claiming Phase 4b complete. Do NOT rely on the canary to validate Phase 4b — the dry-run test is required here explicitly.
+
 ## Notes
 
 - This phase is optional if the app is offline-only or doesn't need a backend. Skip on apps where Phase 1-3 + Phase 4a's webhook receivers cover all server work.

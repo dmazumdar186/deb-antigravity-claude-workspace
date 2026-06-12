@@ -68,6 +68,22 @@ Account / cost reminder (printed once):
 - **OAuth keys (ASC private key) on Windows path with spaces** — must be quoted in `.env` (`ASC_PRIVATE_KEY_PATH="C:\Users\deban\OneDrive\path with space\key.p8"`); unquoted will silently truncate.
 - **`eas whoami` flakes on cold network** — retry once with 5s backoff before marking red.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `node --version` exits 0 and reports ≥ 18.0.0.
+- `eas --version` exits 0 (eas-cli present).
+- `eas whoami` exits 0 and prints an account name (not "not logged in").
+- `wrangler --version` exits 0 (wrangler present).
+- `wrangler whoami` exits 0 and prints a non-AM account name; user has confirmed it is the correct account.
+- `modal token current` exits 0.
+- `.env` contains non-empty values for `EXPO_TOKEN`, `OPENROUTER_API_KEY`, and `FIRECRAWL_API_KEY`.
+- `APPLE_ENROLLMENT_STATUS` is either `active` (Phase 4-5 unblocked) or explicitly `pending` with Phases 4-5 logged as blocked.
+- The aggregate output table shows **zero RED** required items.
+
+If any predicate fails, fix before claiming preflight complete. Do NOT proceed to any phase until the required items are all green.
+
 ## Notes
 
 - Preflight is the **gate** for every other directive. The `/mobile-app` skill runs it before any `new` / `phase` / `ship` command.

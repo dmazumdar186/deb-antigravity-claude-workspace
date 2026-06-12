@@ -93,6 +93,21 @@ Stand up a brand-new Cloudflare Worker dedicated to this app, with a `/api/healt
 - **`WORKER_SECRET` rotation.** Rotating requires updating both the Worker secret (`wrangler secret put`) and every client (`EXPO_PUBLIC_*` requires a new app build). Plan rotations in maintenance windows.
 - **Forbidden: api-proxy/ peek.** If a sub-agent reads `execution/infrastructure/api-proxy/` for "reference", stop the sub-agent and reassign. AM-locked per `CLAUDE.local.md`.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `wrangler deploy` completed with exit code 0 and printed a public Worker URL (`https://<slug>-api.<account>.workers.dev`).
+- `curl https://<slug>-api.<account>.workers.dev/api/health` returns HTTP 200 with a JSON body containing `status`, `version`, `kv_check`, and `timestamp` fields.
+- `curl /api/health` response includes `secrets_present` (boolean map, no secret values) per the canary directive contract.
+- KV namespaces `<slug>-state` (production) and `<slug>-state` (preview) both listed in `wrangler.toml` under `[[kv_namespaces]]` with non-null IDs.
+- Idempotency smoke test: same `POST /api/webhook/test` with identical `X-Idempotency-Key` returns HTTP 200 on both first call and replay — and with the same JSON body.
+- `WORKER_SECRET` set via `wrangler secret put` (confirmed in `wrangler secret list` output — key present, value not echoed).
+- `EXPO_PUBLIC_API_BASE_URL` in the app's `.env` points to the deployed Worker URL.
+- `execution/mobile_apps/registry.json` entry for `<slug>` has non-null `health_url` and `worker_url`.
+
+If any predicate fails, fix before claiming Phase 4a complete. Do NOT proceed to Phase 4b until `/api/health` returns 200 and idempotency replay is verified.
+
 ## Notes
 
 - The Worker is the source of truth for the app's API. Phase 4b's Modal cron writes status back into this Worker's KV via the webhook.

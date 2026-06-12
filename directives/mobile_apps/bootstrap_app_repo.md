@@ -85,6 +85,19 @@ For smoke-test rollback or fully retiring an app:
 - **`--force` semantics.** Overwrites the dir AND the registry entry. Destructive. Confirm with user before passing.
 - **`--remove` race with an open VS Code session.** Windows may hold file locks. Refuse with a clear error; user closes editors and retries.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- Directory `C:\Users\deban\dev\mobile-apps\<slug>\` exists and is non-empty.
+- `C:\Users\deban\dev\mobile-apps\<slug>\.template-version` exists and contains the pinned semver from the source template.
+- `execution/mobile_apps/registry.json` contains an entry with `"slug": "<slug>"` and non-null `"repo_path"`, `"ios_bundle_id"`, `"android_package"`, and `"created_at"`.
+- `git -C C:\Users\deban\dev\mobile-apps\<slug> log --oneline -1` returns a commit containing "initial commit from template" (initial commit exists).
+- No placeholder strings (`__SLUG__`, `__BUNDLE_ID__`, `__APP_NAME__`) remain in any text file under the new repo: `grep -r "__SLUG__" C:\Users\deban\dev\mobile-apps\<slug>` returns no matches.
+- Running `npx expo start --non-interactive` in the app repo exits without an immediate fatal error (Metro bundler starts).
+
+If any predicate fails, fix before claiming bootstrap complete. Do NOT start Phase 1 without a clean repo and valid registry entry.
+
 ## Notes
 
 - The script must inherit all 5 Python-on-Windows hardening rules (subprocess encoding, threading lock, path validation, no bare except). Reference `C:\Users\deban\dev\anneal\src\anneal\` for hardened patterns.

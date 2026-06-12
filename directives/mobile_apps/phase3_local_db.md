@@ -59,6 +59,22 @@ Replace AsyncStorage with `expo-sqlite` for any data that's relational, large, o
 - **Reset for dev.** `expo-sqlite` does NOT clear the DB on Metro reload. To start fresh: `npx expo start --clear` only clears bundler cache; the DB persists on the device. Manually delete in Expo Go: settings → app → clear data, or uninstall.
 - **`PRAGMA user_version` is 0 by default.** First boot: current=0, target=1, run 001_initial.sql. Subsequent boots: current=1, target=1, skip.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `src/db/schema.sql` exists and contains at least one `CREATE TABLE` statement with `PRAGMA user_version = N;` at the end.
+- `src/db/migrate.ts` exists and reads `PRAGMA user_version` before applying migrations.
+- At least one migration file exists at `src/db/migrations/001_initial.sql`.
+- One `src/db/<entity>.ts` CRUD wrapper exists per table defined in the schema; each exports typed `insert*` and `list*` functions using parameterized queries.
+- Cold-boot test: app started with `npx expo start --clear`, schema created, `PRAGMA user_version` returns the expected version (confirmed via console log in `migrate.ts`).
+- Persistence test: sample data inserted, app killed and reopened, data still present.
+- Migration bump test: schema bumped to version N+1, app booted, new column present with no data loss.
+- `AsyncStorage.removeItem('app_state')` runs on first SQLite boot (one-shot migration from Phase 1 confirmed in code).
+- Phase 3 commit exists: `git log --oneline` includes a commit with "phase 3".
+
+If any predicate fails, fix before claiming Phase 3 complete. Do NOT advance to Phase 4 with an unverified migration runner.
+
 ## Notes
 
 - Raw SQL > ORM here. Drizzle / Prisma / TypeORM add native deps, weight, and another schema source of truth. The 3-layer pattern says deterministic, simple, debuggable wins.

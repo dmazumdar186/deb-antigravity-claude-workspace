@@ -103,6 +103,21 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapter 18
 - **AsyncStorage stale after sign-out + sign-in as different user.** Even with `AsyncStorage.clear()` on sign-out, race conditions during navigation can re-write the previous user's data back into storage. Defensive pattern: namespace every cache key with the current `user.id` and on read check it matches the active session's user.
 - **Anonymous sign-in temptation.** Supabase supports anonymous sessions (`signInAnonymously`). For habit-tracker-style apps this seems convenient ("let users try before signing up") but the data dies on first uninstall and the conversion path to a real account adds an entire screen. For most apps in this workspace: ship email+password as the only gate, defer anonymous as a P1 feature.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `src/lib/auth.tsx` exists and exports `<AuthProvider>` and `useUser()`.
+- `src/screens/AuthScreen.tsx` exists with sign-up and sign-in flows (email + password minimum).
+- The app's root navigator enforces the 4-state gate: `loading → AuthScreen → Onboarding → Main` — no screen other than `AuthScreen` is reachable without `user !== null`.
+- End-to-end sign-up test on a real device: new email signs up, onboarding renders, main app renders, app killed and reopened, goes straight to main (session persisted via AsyncStorage).
+- Sign-out test: sign-out triggers `supabase.auth.signOut()` + `AsyncStorage.clear()`; re-opening shows `AuthScreen` with no prior-user data visible.
+- The new user row appears in Supabase dashboard → Authentication → Users after sign-up.
+- At least one OAuth provider (Google or Apple) configured and tested end-to-end on a real device (Apple gated on `APPLE_ENROLLMENT_STATUS=active`).
+- `execution/mobile_apps/registry.json` entry for `<slug>` has `auth_providers` (non-empty array) and `last_auth_test_at` (non-null ISO timestamp).
+
+If any predicate fails, fix before claiming Phase 4d complete. Do NOT proceed to Phase 5b until the full auth flow (including sign-out cache wipe) is verified on a real device.
+
 ## Notes
 
 - Anneal mode for this phase: **adversarial**. Auth holes are the highest-severity bug class in vibe-coded apps — RLS misconfig, JWT trust, token expiry, OAuth redirect, sign-out cascades. Adversarial mode (`py -m anneal.cli adversarial <base-ref-sha> --repo C:\Users\deban\dev\mobile-apps\<slug>`) covers more failure modes than a single classic pass.

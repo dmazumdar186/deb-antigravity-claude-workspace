@@ -54,6 +54,20 @@ Wrap every outbound HTTP call in a single configured axios client with retry, ti
 - **CORS in dev.** Expo dev server runs at `exp://192.168.x.x:8081`, the API may reject. Set permissive CORS in dev Worker, strict in prod.
 - **`EXPO_PUBLIC_` prefix.** Without it, the env var is bundled but unreachable at runtime — common silent failure.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `src/api/client.ts` exists and exports an axios singleton with `baseURL`, `timeout`, and at least one response interceptor.
+- `src/api/useApi.ts` exists and exports a hook returning `{data, loading, error, refetch}`.
+- `src/api/types.ts` exists and exports an `ApiError` type with at least `status`, `code`, and `message` fields.
+- Smoke test against `https://httpbin.org/status/200` exits without error (2xx response received).
+- Smoke test against `https://httpbin.org/status/500` confirms retry logic fired: console shows at least 2 retry attempts before final error envelope returned.
+- `EXPO_PUBLIC_API_BASE_URL` is documented in `.env.example` (and set in `.env` for dev).
+- Phase 2 commit exists: `git log --oneline` includes a commit with "phase 2".
+
+If any predicate fails, fix before claiming Phase 2 complete. Do NOT wire screens to real API calls until the retry and error-envelope logic is verified.
+
 ## Notes
 
 - Never let screens see raw axios errors. Always go through `useApi` → `ApiError`.

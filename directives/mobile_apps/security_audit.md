@@ -83,6 +83,22 @@ Skip pass 3 for hobby apps with no paid APIs or PII.
 - **App uses Supabase Edge Functions.** Confirm Edge Function secrets are set via `supabase secrets set`, not env vars in the function code. Pass-1 commonly catches the literal env-var-in-code case but misses *unset* secrets that fall back to undefined at runtime — add a runtime startup-validation check.
 - **CWE references in findings.** Common Weakness Enumeration IDs (e.g., CWE-798 hardcoded credentials) are informational only — useful for severity calibration, not required for the fix. If Claude doesn't include them, do not re-ask.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `.audit/pass1_findings.md` exists in the app repo with a findings table containing severity rankings (critical / high / medium / low).
+- `.audit/pass1_fixes.diff` exists and is non-empty (`git diff` snapshot of pass-1 changes).
+- Pass-1 commit exists: `git log --oneline` includes a commit with "security: pass 1 audit fixes".
+- `.audit/pass2_findings.md` exists (written after a `/clear` to ensure zero context bleed from pass 1).
+- `.audit/pass2_fixes.diff` exists and is non-empty.
+- Pass-2 commit exists: `git log --oneline` includes a commit with "security: pass 2 audit fixes".
+- Zero CRITICAL findings remain after pass 2 (`.audit/pass2_findings.md` contains no rows ranked `critical`). If any CRITICAL persists, it must be listed under `## Manual follow-ups` with an explicit owner action required.
+- `execution/mobile_apps/registry.json` entry for `<slug>` has non-null `last_security_audit_at` (ISO timestamp) and `audit_passes_run = 2` (or `3` if anneal adversarial pass was run).
+- For Phase 5 apps: `last_security_audit_at` timestamp is newer than the Phase 5b deploy commit timestamp.
+
+If any predicate fails, fix before claiming the security audit complete. Do NOT submit to TestFlight or Play Console with outstanding CRITICAL findings.
+
 ## Notes
 
 - Two passes minimum is non-negotiable per Nick chapter 23. The whole point is that fixes-introduce-new-bugs happens reliably, and the only catch is an independent re-audit with zero context bleed.

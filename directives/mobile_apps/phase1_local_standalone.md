@@ -61,6 +61,21 @@ Ship a runnable Expo TypeScript app on the user's phone via Expo Go in under an 
 - **Expo Go SDK mismatch.** If the user has an older Expo Go on their phone, the QR scan will say "this project requires SDK X". Either pin the SDK in `app.json` to match Expo Go, or have the user update Expo Go.
 - **Hot reload eats state.** When Metro hot-reloads, the Context provider re-mounts and re-reads from AsyncStorage — usually fine, but state-mid-typing can flash. Acceptable for dev; never ship hot-reload to TestFlight.
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `APP_SPEC.md` exists at `C:\Users\deban\dev\mobile-apps\<slug>\APP_SPEC.md` and is non-empty (design directive completed first).
+- `src/state/types.ts` exists and exports at least one TypeScript interface for the app's state shape.
+- `src/state/Context.tsx` exists, exports `<AppStateProvider>` and `useAppState()`, and contains at least one `AsyncStorage.getItem` call.
+- One `.tsx` file per screen listed in `APP_SPEC.md` § Surface Area exists under `src/screens/`.
+- `npx expo start --web` launches without a red-screen error (Tier 1 test passes).
+- The app was verified on a real phone via Expo Go QR scan (Tier 3 test): kill + reopen confirms state persists (AsyncStorage round-trip).
+- Per-app `CLAUDE.md` was regenerated via `/init` in the app repo (template placeholder replaced).
+- Phase 1 commit exists: `git log --oneline` includes a commit with "phase 1".
+
+If any predicate fails, fix before claiming Phase 1 complete. Do NOT start Phase 2 until all tiers of the test protocol pass.
+
 ## Notes
 
 - This phase is the **single fastest** in the pipeline. If the sub-agent spends more than 30 minutes here, something is wrong — pause and ask.

@@ -119,6 +119,22 @@ Alternative: **MacInCloud** rental ($1-2/hr) for a 1-hour session if GitHub Acti
 - **First submission requires manual app metadata.** App Store Connect needs name, description, screenshots, category, age rating — set via the ASC web UI before `eas submit`. `testflight_invite.py` cannot fill these.
 - **Privacy nutrition labels.** Required for ASC submission. Fill via the ASC web UI; declare every SDK that collects data (analytics, crash reporting).
 
+## Exit Criteria
+
+The directive is "done" when ALL of these hold (each must be machine-verifiable):
+
+- `APPLE_ENROLLMENT_STATUS=active` is set in `.env` (preflight gate passed).
+- Pre-submission content checklist complete: privacy policy URL live and reachable, support page live, `assets/icon.png` is 1024x1024 PNG without transparency, `app.json` has correct `expo.name`, `expo.slug`, `expo.version`, and `expo.ios.bundleIdentifier`.
+- `py execution/mobile_apps/eas_build_helper.py --slug <slug> --platform ios --profile production` exits with code 0.
+- `execution/mobile_apps/registry.json` entry for `<slug>` has non-null `last_build_sha` and `last_build_url`.
+- `eas submit --platform ios --profile production --latest` exits with code 0 (build uploaded to App Store Connect).
+- TestFlight build status in App Store Connect shows "Ready to Test" (not "Processing" or "Invalid").
+- `py execution/mobile_apps/testflight_invite.py --slug <slug> --emails <tester-emails> --group internal` exits with code 0 and testers receive invite emails.
+- At least one tester installed the build via TestFlight on a real iOS device and confirmed the core flow works.
+- `registry.json` entry has non-null `testflight_submitted_at` and `testflight_testers_count > 0`.
+
+If any predicate fails, fix before claiming iOS deploy complete. Do NOT submit to App Store review until TestFlight testing is confirmed.
+
 ## Notes
 
 - EAS Build fully supports Windows for iOS. The fallback (GitHub macOS runner) is rare — most builds work first-try.
