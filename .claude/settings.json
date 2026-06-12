@@ -29,10 +29,18 @@
       "Read(C:\\Users\\deban\\dev\\youtube-video-analyzer\\**)",
       "Read(C:\\Users\\deban\\dev\\cv-optimizer-agent\\**)",
       "Read(C:\\Users\\deban\\dev\\mobile-apps\\**)",
+      "Edit(C:\\Users\\deban\\dev\\anneal\\**)",
+      "Edit(C:\\Users\\deban\\dev\\humanizer\\**)",
+      "Edit(C:\\Users\\deban\\dev\\youtube-video-analyzer\\**)",
+      "Write(C:\\Users\\deban\\dev\\anneal\\**)",
+      "Write(C:\\Users\\deban\\dev\\humanizer\\**)",
+      "Write(C:\\Users\\deban\\dev\\youtube-video-analyzer\\**)",
       "Glob(C:\\Users\\deban\\dev\\**)",
       "Grep(C:\\Users\\deban\\dev\\**)",
       "Bash(ls C:\\Users\\deban\\dev\\**)",
-      "Bash(dir C:\\Users\\deban\\dev\\**)"
+      "Bash(dir C:\\Users\\deban\\dev\\**)",
+      "Bash(git -C C:\\Users\\deban\\dev\\humanizer\\* *)",
+      "Bash(cd C:\\Users\\deban\\dev\\humanizer\\* && *)"
     ],
     "deny": [
       "Bash(rm -rf *)",
