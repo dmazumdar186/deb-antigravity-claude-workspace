@@ -136,6 +136,32 @@ Rows N+1..M: user-added rows (order-preserved from the previous read)
   py execution\google\google_sheets_writer.py [--spreadsheet-id <ID>]
   ```
 
+## Steps
+
+1. **Authenticate.** `get_client()` loads `GOOGLE_SERVICE_ACCOUNT_PATH` from env, opens the JSON key, and returns a `gspread.Client`. Raises `FileNotFoundError` if key is missing; `403` if the service account is not an Editor on the sheet.
+2. **Open workbook.** `open_spreadsheet(client, spreadsheet_id)` opens the `Job Applications` workbook by ID. Raises if the ID is wrong or the account lacks access.
+3. **Bootstrap tabs.** For each target job title, call `ensure_tab(spreadsheet, title)` — creates the tab if it does not exist and writes the frozen header row (14 columns, row 1).
+4. **Bootstrap `_meta` tab.** Create if absent; hide via `updateSheetProperties`. Do not write data here in this step.
+5. **Read existing data.** For each tab, call `read_tab(worksheet)` to build the `carry_forward_map` (`{dedup_hash: {status, notes, also_seen_on}}`).
+6. **Write new data.** Call `write_tab(worksheet, rows, carry_forward_map)` for each tab:
+   - Apply carry-forward to preserve user `Status`/`Notes` edits.
+   - Merge `Also Seen On` across runs.
+   - `worksheet.clear()` then `worksheet.update()` with the new matrix.
+   - Hide column A (`_id`) via `updateDimensionProperties`.
+7. **Update `_meta!A1`.** Write the current UTC ISO 8601 timestamp as the last-success marker.
+8. **Log.** Emit one log line per tab: rows written, rows carried forward, user-added rows preserved.
+
+## Exit Criteria
+
+- Exit code 0. All target tabs exist in the workbook and contain the correct 14-column header row.
+- `_meta!A1` holds a fresh UTC ISO 8601 timestamp (within the last 60 seconds of run completion).
+- Each tab's row count = (computed rows) + (user-added rows). No rows lost.
+- `Status` and `Notes` values from the previous run are preserved for any row whose `_id` hash appears in both the old and new data.
+- `Also Seen On` column is a superset of all previous runs — no source drops out of the history.
+- Column A (`_id`) is hidden in every data tab.
+- No `403` or `429` errors propagate to the caller; tenacity retries resolve within the run.
+- Smoke-test command `py execution\google\google_sheets_writer.py` prints `[OK] Opened 'Job Applications' — N tab(s)` (or `[--MISSING]` per missing env var) and exits 0.
+
 ## Edge cases & gotchas
 
 - **Service-account sharing is required.** The Sheets API returns a 403 (`insufficientPermissions`)

@@ -116,6 +116,18 @@ When a specific seniority tier consistently returns 0 results:
 1. Consider adding alternative title variants to that tier's dork. For example, `vp_product` could be extended with `"VP of Product"` or `"VP, Product"`.
 2. Or add a sixth dork for a new seniority tier if needed.
 
+## Exit Criteria
+
+- Exit code 0. Results dict/JSON written to `--output` path (or stdout) without error.
+- Every requested company appears as a key in the results dict; value is a list (possibly empty).
+- Each contact record contains: `full_name`, `title`, `seniority`, `linkedin_url`, `source="firecrawl_dork"`.
+- `linkedin_url` values are canonicalized (no `?` or `#` query parameters).
+- Deduplication applied: no two contacts share the same canonical `linkedin_url` within a company.
+- Contact count per company is `<= --max` (default 5).
+- Firecrawl search failures for individual dork tiers are logged as warnings, not exceptions — pipeline continues for remaining companies.
+- 1-second inter-company sleep preserved in bulk mode (not removed or skipped).
+
 ## Changelog
 
 - 2026-05-14: created.
+- 2026-06-12: Added Exit Criteria (batch 2B).

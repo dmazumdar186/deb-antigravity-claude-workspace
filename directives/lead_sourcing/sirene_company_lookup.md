@@ -119,6 +119,16 @@ If the INSEE API endpoint URL changes (SIRENE undergoes periodic versioning):
 2. Update `SIRENE_BASE` constant in `sirene_company_lookup.py`.
 3. Add a Changelog entry here.
 
+## Exit Criteria
+
+- Exit code 0. Results JSON written to `--output` path (or printed to stdout) without error.
+- Every requested company name appears in the results dict, even if the lookup yielded a null record (`source="unconfigured"` or `source="error"` is acceptable — missing keys are not).
+- `siren` is a 9-digit string or `null`; never an empty string or malformed value.
+- `is_digital_sector` is `1`, `0`, or `null` — never a boolean `True`/`False`.
+- No 401/403 errors propagated to the caller; auth failures produce null records with `source="error"` and a logged warning.
+- In-process cache functioning: duplicate company names in a batch are fetched only once (verify via log count vs. input count).
+
 ## Changelog
 
 - 2026-05-14: created.
+- 2026-06-12: Added Exit Criteria (batch 2B).

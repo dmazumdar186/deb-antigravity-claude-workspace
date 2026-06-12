@@ -45,7 +45,16 @@ When sourcing a new batch of leads for a target city + industry combination, or 
 - **Serper returns <100 results**: Normal for niche + suburb combos. The limit parameter is a max, not a guarantee.
 - **Rate limiting**: Serper has generous limits, but use `@retry_with_backoff` on all API calls.
 
+## Exit Criteria
+
+- Exit code 0. Output JSON file exists at the specified path and is a valid JSON array.
+- At least 1 lead record written (0 leads = log a warning and investigate; do not silently succeed).
+- Every record contains at minimum: `business_name`, `dedup_key`, `source`, `status="sourced"`.
+- Log line emitted with total records sourced, duplicates removed, and records per industry.
+- No uncaught exceptions. Rate-limit retries resolved within the run.
+
 ## Changelog
 | Date | Change |
 |------|--------|
 | 2026-04-29 | Created — initial directive for Accessory Masters pipeline |
+| 2026-06-12 | Added Exit Criteria (batch 2B) |

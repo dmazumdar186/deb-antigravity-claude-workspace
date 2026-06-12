@@ -115,6 +115,16 @@ The runner automatically skips any path matching `*accessory*`, `*hedgestone*`, 
 5. **Render report.** Sort by severity order; emit markdown to stdout.
 6. **Exit.** 0 = clean or warn-only, 1 = critical/high found, 2 = no tools.
 
+## Exit Criteria
+
+- **Exit code 0** — clean run: no critical or high findings. Medium/low/info findings are present only in the report; they do not block.
+- **Exit code 1** — at least one critical or high finding present. The finding must appear in the markdown report with severity, file path, line number, and rule ID.
+- **Exit code 2** — neither ruff nor semgrep is installed on PATH. A human-readable message is emitted; no crash, no missing output.
+- Report is written to stdout (not a file). No exceptions propagate to the caller.
+- AM-locked paths (`*accessory*`, `*hedgestone*`, `*elite-broker*`, `*elitebrokergroup*`) are silently excluded — they must not appear in the findings list.
+- In `--changed` mode: only files in `git diff HEAD` that match `execution/*.py` are scanned. Unchanged files are not re-scanned.
+- Subprocess calls use `encoding="utf-8", errors="replace"` — no cp1252 crash on non-ASCII output.
+
 ## Edge Cases
 
 - **ruff/semgrep not installed:** runner exits 2 with a human-readable message — no crash, no missing message.
