@@ -1,0 +1,17 @@
+# DO NOT commit account_id or KV ids. They get pasted during deploy per the README. Leave blank in source control.
+
+name = "cv-optimizer-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+account_id = ""  # Set via: wrangler whoami | sed-n find, OR by user before deploy. Leave blank in repo.
+
+# KV namespace for rate-limiting per-IP request counters.
+# IDs filled in after `wrangler kv:namespace create RATE_LIMIT` (see README).
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = ""           # paste production KV id here
+preview_id = ""   # paste preview KV id here
+
+[vars]
+# Version stamp shown in /api/health. Bump on each release.
+APP_VERSION = "0.1.0"

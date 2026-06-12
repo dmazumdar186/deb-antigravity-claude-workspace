@@ -46,6 +46,9 @@ output/
 # Firecrawl cache
 .firecrawl/
 
+# Node / Workers dev dependencies
+node_modules/
+
 # Wrangler build artifacts
 .wrangler/
 
