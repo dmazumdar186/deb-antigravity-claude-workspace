@@ -20,6 +20,8 @@ Use Agent Teams when:
 - Multiple long-running sessions, each with their own context.
 - Useful for multi-hypothesis research, parallel module development, "two teams competing on the same problem."
 
+**Autoresearch loop (4th tier)**: when the work is propose → deploy → measure → mutate against an objective metric, see `.claude/workflows/autoresearch.md`. Distinct from anneal (which is propose → audit → fix → re-audit against a static checklist) — autoresearch optimizes a live business metric, anneal optimizes code quality.
+
 ## How to trigger
 
 Prefix any prompt with `ultracode:` — Claude writes the orchestration script, runs it in the background, you see progress events, and the result is saved.

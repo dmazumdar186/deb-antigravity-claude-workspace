@@ -85,6 +85,7 @@ Delegate implementation work to sub-agents to keep main context lean. Full tier-
 | Sub-agent (`Agent(...)`) | 1–3 independent tasks, tight result loop | 1–3 | Fresh per agent | Low |
 | Dynamic Workflow (`ultracode:`) | 5–16+ independent fan-out tasks, long jobs, runs in background | up to 16 concurrent, 1000 total | Out-of-process | Low–medium (use Haiku 4.5 workers) |
 | Agent Team (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) | Long-running parallel sessions with shared task list + peer messaging | N teammates | Each has own context, shared mailbox | Medium–high |
+| Autoresearch loop (`.claude/workflows/autoresearch.md`) | propose-deploy-measure-mutate against a live metric | sequential rounds, hours-to-days each | persistent learnings.md log | $ per round × N rounds (cost-capped) |
 
 See `.claude/workflows/README.md` for Dynamic Workflows triggers and `.claude/SETTINGS_NOTES.md` for Agent Teams enablement notes.
 
