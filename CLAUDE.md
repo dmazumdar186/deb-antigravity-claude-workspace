@@ -74,45 +74,11 @@ Before writing code, researching a topic, or building a workflow from scratch, c
 - **Ask the user before proceeding without a skill.** If a relevant skill exists but doesn't perfectly fit, confirm with the user: "There's a `/skill-name` skill that covers most of this — should I use it, or do you want a custom approach?"
 - **Don't modify CLAUDE.md, directives, or execution scripts without checking with the user first.** Propose the change, explain why, and wait for approval.
 
-## Sub-Agent Delegation (Context Preservation)
+## Sub-Agent Delegation
 
-To keep the main conversation lean and preserve context, delegate implementation work to sub-agents.
+Delegate implementation work to sub-agents to keep main context lean. Full tier-selection rules auto-load from `.claude/rules/sub-agent-delegation.md` when editing agents/workflows/directives.
 
-**Always spawn a sub-agent for:**
-- Writing or modifying code (more than trivial changes)
-- Exploring unfamiliar parts of the codebase
-- Running tests and fixing failures iteratively
-- Multi-file changes or refactors
-- Any task that requires reading many files
-
-**Keep in main context:**
-- Planning and user clarification
-- Final summaries and reporting
-- Quick single-file lookups
-- Decision-making and routing
-
-**Sub-agent pattern:**
-```
-Task(
-  subagent_type="general-purpose",
-  description="[3-5 word summary]",
-  prompt="[Detailed task with all context needed. Include: what to do, which files/directories, expected output format, any constraints.]"
-)
-```
-
-**Example workflow:**
-
-User: "Add a logout button to the navbar"
-
-1. **Main context (you):** Plan the approach, identify navbar location
-2. **Sub-agent:** Read navbar component, implement button, handle click event, test
-3. **Main context (you):** Report completion with file paths changed
-
-**Why this matters:** Sub-agents get fresh context windows. Heavy code exploration and writing happens there, then results return as concise summaries. Main conversation stays focused on orchestration.
-
-## Dynamic Workflows + Agent Teams (when to choose what)
-
-Three orchestration tiers exist. Choose by parallelism + context-share needs:
+**Three orchestration tiers — choose by parallelism + context-share needs:**
 
 | Pattern | Best for | Parallelism | Context | Cost |
 |---|---|---|---|---|
@@ -124,12 +90,7 @@ See `.claude/workflows/README.md` for Dynamic Workflows triggers and `.claude/SE
 
 The global `plan-skeptic` skill at `~/.claude/skills/plan-skeptic/SKILL.md` remains the source of truth for adversarial plan review — no workspace-local `.claude/agents/plan-skeptic.md` exists or should be added (avoids parallel definitions).
 
-**Parallel sub-agents:** When tasks are independent, spawn multiple sub-agents in a single message:
-```
-# Good: parallel execution
-Task(subagent_type="general-purpose", description="Update frontend", prompt="...")
-Task(subagent_type="general-purpose", description="Update backend", prompt="...")
-```
+**Parallel sub-agents:** When tasks are independent, spawn multiple sub-agents in a single message.
 
 ## Self-annealing loop
 
@@ -192,36 +153,11 @@ Task(subagent_type="general-purpose", description="Document script changes",
 
 ### Creating New Directives/Scripts
 
-When creating a new workflow, directive, or execution script:
-
-**1. Choose the right category:**
-- Review the category table above and pick the best fit
-- Lead generation pipeline? → `lead_sourcing/`
-- Adding emails/contacts/data to existing leads? → `enrichment/`
-- Cold email copy, personalization, sending? → `personalization/`
-- ICP research, scoring, filtering? → `gtm_icp_filters/`
-- Client-specific end-to-end GTM pipeline? → `gtm_client_workflows/`
-- Generic web scraping or research tool? → `custom_scrapers/`
-- Server/cloud/LLM infrastructure? → `infrastructure/`
-- CRM or project management tool? → `crm_and_pm/`
-- Internal agent tools (like documenter, reviewer) go in `subagent/`
-
-**2. When to create a new category:**
-- Only create a new category folder if you have 3+ related files that don't fit existing categories
-- Ask the user before creating a new category
-- New categories should be broad enough to accommodate future growth
-
-**3. Naming conventions:**
-- Use `snake_case` for all filenames
-- Prefix with the domain when helpful for discoverability (e.g., `slack_messenger.md`, `slack_channel_manager.md`)
-- Directive and script names should match when possible (e.g., `directives/google/gmail.md` ↔ `execution/google/gmail.py`)
-
-**4. File creation checklist:**
 ```
 □ Directive: directives/{category}/{name}.md
 □ Script: execution/{category}/{name}.py
-□ Both use the same {category} subfolder
-□ Names are descriptive and use snake_case
+□ Both use the same {category} subfolder — snake_case names
+□ Only create a new category if you have 3+ related files that don't fit existing ones (ask first)
 □ Update directives/subagent/documenter.md mapping table if adding new script
 ```
 
@@ -229,71 +165,11 @@ When creating a new workflow, directive, or execution script:
 
 ## Notes & Context Engineering
 
-Context is fuel for decision-making. Capture it well.
-
-### Note Categories
-
-| Tag | Purpose | Example |
-|-----|---------|---------|
-| `[preference]` | User wants/style | "User prefers terse output" |
-| `[technical]` | API quirks, gotchas | "Sheets API needs RAW valueInputOption" |
-| `[learned]` | Discovered via error | "Rate limit is 60/min not 100" |
-| `[pattern]` | Reusable approach | "Always check for existing before creating" |
-| `[constraint]` | Hard limits | "Max 5000 chars for Modal endpoint" |
-
-### Note Format
-
-Keep notes atomic and scannable:
-```
-- [tag] Subject: Detail. Source/date if relevant.
-```
-
-Good: `- [technical] Google Docs: Use batchUpdate API, not markdown asterisks`
-Bad: `- I learned that when working with Google Docs you should use the batchUpdate API instead of trying to use markdown asterisks because they don't render properly`
-
-### Where Notes Live
-
-Notes mirror the source structure for easy lookup:
-
-```
-.claude/notes/
-├── general.md                          # Cross-cutting learnings
-├── directives/
-│   └── {category}/
-│       └── {directive_name}.md         # Notes for specific directive
-└── execution/
-    └── {category}/
-        └── {script_name}.md            # Notes for specific script
-```
-
-**Examples:**
-- Working with `directives/n8n_workflows/n8n_workflow_builder.md`? Check `.claude/notes/directives/n8n_workflows/n8n_workflow_builder.md`
-- Running `execution/google/gmail.py`? Check `.claude/notes/execution/google/gmail.md`
-
-**Lookup protocol:**
-1. When activating a directive, also read its notes file if it exists
-2. When running a script, check for notes about that script
-3. Always load `general.md` at session start
-
-### When to Capture
-
-Capture a note when you:
-1. Hit an unexpected error and fix it
-2. Discover an API constraint not in docs
-3. Learn a user preference through feedback
-4. Find a pattern that worked well
-
-### Context Injection Rules
-
-Not all notes belong in every conversation:
-- Load `.claude/notes/general.md` at session start
-- When reading `directives/{category}/foo.md`, also read `.claude/notes/directives/{category}/foo.md` if it exists
-- When running `execution/{category}/bar.py`, check `.claude/notes/execution/{category}/bar.md` first
-- Don't dump everything—relevance > completeness
-
-### Automatic Note Capture
-
-A hook (`.claude/hooks/note-taker.sh`) runs after edits to `directives/` or `execution/` files. It prompts you to update notes if you learned something new. See `directives/subagent/note_taker.md` for the full process.
+Full note-taking protocol is in `directives/subagent/note_taker.md`. Summary:
+- Notes live in `.claude/notes/` mirroring the source structure (`directives/`, `execution/`, `general.md`).
+- Format: `- [tag] Subject: Detail.` Tags: `[preference]`, `[technical]`, `[learned]`, `[pattern]`, `[constraint]`.
+- Load `general.md` at session start. Load the note file paired to any directive/script you open.
+- Capture when: unexpected error fixed, API constraint found, user preference observed, reusable pattern found.
 
 ## Conversation Memory (Long-term RAG)
 
@@ -334,22 +210,9 @@ The system supports event-driven execution via **Modal webhooks** and **Cloudfla
 - `execution/infrastructure/` - Cloudflare Workers scripts
 - `directives/add_webhook.md` - Complete setup guide
 
-## Universal Python-on-Windows hardening rules
+## Python Hardening
 
-Banked from anneal v0.1 + workspace audit pass (2026-05-25). Apply to every new Python script in `execution/`.
-
-1. **Subprocess encoding** — every `subprocess.run/Popen(text=True)` or `capture_output=True` MUST include `encoding="utf-8", errors="replace"`. Windows cp1252 default crashes on bytes ≥ 0x80 (e.g. 0x9d). The `_readerthread` exception is hard to debug because it's swallowed by `subprocess`.
-2. **Threading locks** — any shared mutable state inside `ThreadPoolExecutor`/`threading.Thread` MUST be guarded by `threading.Lock`. GIL protects single reference reads/writes but NOT `+=` (read-modify-write) nor concurrent filesystem writes to the same directory (e.g. `mkdir(exist_ok=True)` is racy across threads writing to a shared output dir).
-3. **LLM-supplied path validation** — any filename derived from LLM output or external API MUST be `.resolve()`ed and checked `resolved.is_relative_to(boundary)` before being passed to filesystem ops or subprocesses. Pattern: `if not (worktree / user_path).resolve().is_relative_to(worktree.resolve()): raise ValueError(...)`.
-4. **Cache-aware Claude pricing** — pricing tables must include 4 entries per Claude model: `input`, `cache_read` (0.1× input), `cache_write` (1.25× input), `output`. Flat-rate over-estimates 5–10× under prompt caching. Cost-calc must accept all 4 token counts from `response.usage.cache_read_input_tokens`/`cache_creation_input_tokens`/`input_tokens`/`output_tokens`.
-5. **Never `except Exception: pass`** without a log line and a comment explaining why it's safe. Bare swallows mask the bugs you most need to see (e.g. an OAuth token refresh failing silently → 24h of broken cron).
-
-**Reference implementation**: `C:\Users\deban\dev\anneal\src\anneal\` has hardened versions of all 5 patterns. Crib from there before writing new code:
-- `sast/ruff_runner.py` + `sast/semgrep_runner.py` — subprocess-encoding-safe runners
-- `cost.py` — cache-aware pricing
-- `runner/sandbox.py` — env-stripped subprocess pattern
-- `suppressions/store.py` — threading.Lock around concurrent writes
-- `runner/javascript_test_runner.py` / `go_test_runner.py` — path-traversal guard pattern
+Python hardening rules (subprocess encoding, threading locks, LLM path validation, cache-aware pricing, bare-except) auto-load from `.claude/rules/python-hardening.md` when editing `.py` files. Reference implementation: `C:\Users\deban\dev\anneal\src\anneal\`.
 
 ## Mobile App Development (Hybrid Workspace)
 

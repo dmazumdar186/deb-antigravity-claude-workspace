@@ -218,6 +218,11 @@ def _rule_exit_criteria_missing() -> list[dict]:
         except ValueError:
             pass
 
+        # Skip AM-locked directives (frozen project, no-touch per CLAUDE.local.md).
+        # These files legitimately have no Exit Criteria and can never be edited.
+        if _is_am_locked(str(md_path)):
+            continue
+
         # Skip template-like files (name starts with _)
         if md_path.name.startswith("_"):
             continue

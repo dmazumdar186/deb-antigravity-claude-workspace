@@ -27,6 +27,7 @@ Every deployed mobile app (anything past Phase 4a) must implement the three cana
 | `--alert {none,console,webhook,both}` | `console` | Alert delivery mode |
 | `--webhook-url <url>` | `$MOBILE_CANARY_WEBHOOK_URL` | Webhook endpoint for alert POSTs |
 | `--alert-threshold <N>` | 3 | Fire repeated alert every N consecutive failures (even without a transition) |
+| `--silence-first-run` | off | When set, a check seen for the very first time (not yet in state) will not fire an alert on its first failure. The failure is still recorded in state; subsequent runs apply normal threshold rules. Recommended when adding new apps. |
 
 ### Alert Dedup Semantics
 
@@ -48,6 +49,8 @@ State is persisted at `.tmp/canary_state.json` (gitignored). Schema per check:
 An alert fires **only** when:
 1. The check status transitions (`pass→fail` or `fail→pass`), **or**
 2. `consecutive_failures` reaches `--alert-threshold` (default 3) and every subsequent multiple of that threshold (3, 6, 9 …).
+
+**First-run noise suppression**: if `--silence-first-run` is passed and a check has never appeared in the state file (`prior_status is None`), no alert fires on its very first observed failure — the state is still written, so the second consecutive failure will apply normal threshold rules. Use this flag when adding new apps to the registry to avoid alert spam on the initial canary sweep.
 
 Apps with no `health_url` (`missing-health-url`) are excluded from state tracking and never trigger alerts.
 

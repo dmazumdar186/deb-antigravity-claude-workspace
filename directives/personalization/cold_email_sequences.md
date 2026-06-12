@@ -44,7 +44,17 @@ After enrichment + verification. This is the third stage in the pipeline, runnin
 - **Client tone not finalized**: Default to examples in `tone.json`. Update when client provides differentiator and never-say list.
 - **Batch failures**: If a batch partially fails, save successful openers and retry failed ones. Never lose completed work.
 
+## Exit Criteria
+
+- `.tmp/personalized_leads.json` exists and contains at least one record with non-empty `personalized_opener`, `opener_model`, and `personalized_at` fields.
+- Every opener passes the inline validator: 5–25 words, no exclamation marks, no phrase from the `never-say` list in `config/tone.json`.
+- Validation failure rate is ≤ 10% (at most 1 in 10 leads required a re-generate; fallbacks are acceptable but should be flagged in the log).
+- The run log shows `total_processed`, `average_opener_length`, `validation_failures`, and `estimated_cost_usd` — all four fields present and non-null.
+- `estimated_cost_usd` is consistent with the Haiku pricing floor (< $0.05 per 100 leads at standard input-token volumes).
+- If sequences are destined for Instantly: sequences uploaded to the correct campaign in Instantly, daily send cap confirmed < the campaign limit, and reply-detection webhook is active for the campaign.
+
 ## Changelog
 | Date | Change |
 |------|--------|
 | 2026-04-29 | Created — initial directive for Accessory Masters pipeline |
+| 2026-06-12 | Added Exit Criteria section (Wave 7A audit fix) |

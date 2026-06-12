@@ -1,7 +1,7 @@
 """
 mobile_app_canary.py
 description: Iterate registry.json, ping each app's /api/health endpoint in parallel (httpx + ThreadPoolExecutor), and report green/red/missing per app. Deduplicates alerts via .tmp/canary_state.json — only fires on status transitions or consecutive-failure threshold breaches. Designed to be invoked manually or from a Modal cron.
-inputs: CLI: --dry-run (skip HTTP, just parse registry), --timeout <seconds> (default 10), --alert {none,console,webhook,both} (default console), --webhook-url <url> (or env MOBILE_CANARY_WEBHOOK_URL), --alert-threshold <N> (default 3); reads execution/mobile_apps/registry.json
+inputs: CLI: --dry-run (skip HTTP, just parse registry), --timeout <seconds> (default 10), --alert {none,console,webhook,both} (default console), --webhook-url <url> (or env MOBILE_CANARY_WEBHOOK_URL), --alert-threshold <N> (default 3), --silence-first-run (suppress alerts for checks seen for the very first time); reads execution/mobile_apps/registry.json
 outputs: Per-app status line + final JSON summary to stdout; .tmp/canary_state.json updated each run; alert banner/webhook on transition or threshold breach; exit 0 if all green or --dry-run, exit 1 if any red
 usage:
     py execution/mobile_apps/mobile_app_canary.py
@@ -9,6 +9,7 @@ usage:
     py execution/mobile_apps/mobile_app_canary.py --timeout 20
     py execution/mobile_apps/mobile_app_canary.py --alert webhook --webhook-url https://hooks.example.com/canary
     py execution/mobile_apps/mobile_app_canary.py --alert both --alert-threshold 5
+    py execution/mobile_apps/mobile_app_canary.py --silence-first-run
 """
 
 import argparse
@@ -145,13 +146,25 @@ def compute_alerts(
     prior_state: dict,
     alert_threshold: int,
     now_iso: str,
+    silence_first_run: bool = False,
 ) -> tuple[dict, list[dict]]:
     """
     Compare current results against prior state.
 
+    Args:
+        results:           Per-slug result dicts from the current run.
+        prior_state:       The loaded .tmp/canary_state.json (or empty skeleton).
+        alert_threshold:   Fire repeated alert every N consecutive failures.
+        now_iso:           ISO-8601 timestamp string for this run.
+        silence_first_run: When True, a check whose slug has *never* appeared in the
+                           state file (prior_status is None) will not fire an alert
+                           on its first observed failure — the failure is recorded in
+                           state so subsequent runs apply normal threshold rules.
+                           Default False (backwards-compatible behaviour: first
+                           observation at threshold=1 does fire an alert).
+
     Returns:
-      - updated checks dict (merge of prior + current run)
-      - list of alert payloads that should fire this run
+        (updated_checks, alerts) — updated checks dict and list of alert payloads.
     """
     checks = prior_state.get("checks", {})
     alerts = []
@@ -163,7 +176,8 @@ def compute_alerts(
         consecutive = prior.get("consecutive_failures", 0)
         last_change = prior.get("last_status_change_at", now_iso)
 
-        transitioned = prior_status is not None and current_status != prior_status
+        is_first_observation = prior_status is None
+        transitioned = not is_first_observation and current_status != prior_status
         if current_status == "fail":
             consecutive += 1
         else:
@@ -174,6 +188,13 @@ def compute_alerts(
             and consecutive >= alert_threshold
             and consecutive % alert_threshold == 0
         )
+
+        # When --silence-first-run is set, suppress both transition AND threshold
+        # alerts for a check that has never been seen before. The state file is
+        # still written so the next run observes consecutive=1 already recorded.
+        if silence_first_run and is_first_observation:
+            threshold_breach = False
+            # transitioned is already False for first observations
 
         if transitioned or threshold_breach:
             if transitioned:
@@ -298,6 +319,18 @@ def main() -> int:
         metavar="N",
         help="Fire alert every N consecutive failures even without a transition (default 3).",
     )
+    parser.add_argument(
+        "--silence-first-run",
+        action="store_true",
+        default=False,
+        help=(
+            "When set, a check whose slug has never appeared in the state file will not "
+            "fire an alert on its very first observed failure. The failure is recorded in "
+            "state, so subsequent runs apply normal threshold rules. Recommended when "
+            "adding new apps to registry.json to avoid noisy first-run alerts. "
+            "Default off for backwards compatibility."
+        ),
+    )
     args = parser.parse_args()
 
     registry = load_registry()
@@ -370,7 +403,8 @@ def main() -> int:
         if r.get("status") not in ("missing-health-url",)
     }
     updated_checks, alerts = compute_alerts(
-        pingable_results, prior_state, args.alert_threshold, now_iso
+        pingable_results, prior_state, args.alert_threshold, now_iso,
+        silence_first_run=args.silence_first_run,
     )
 
     new_state = {
