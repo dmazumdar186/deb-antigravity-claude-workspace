@@ -113,6 +113,14 @@ When `posted_at_raw` values accumulate in the digest with unparseable formats:
 1. Add the new format to `_parse_relative_date()` in `google_jobs_serper.py`.
 2. Add a Changelog entry here.
 
+## Exit Criteria
+
+- Output JSON file exists at the resolved output path and is a valid non-empty JSON array containing at least 1 `RawJob` object.
+- Each `RawJob` has a non-null `source_url` — jobs without a navigable link are never included (confirmed by absence of `None` values in the `source_url` column).
+- `SERPER_API_KEY` is present and recognised — no `missing_credentials` log entry and no HTTP 401 from Serper in stderr.
+- `scraper_done` log event appears in stderr with `count ≥ 1` for a query of `"product manager France"`.
+- Credit spend for a standard 2-query run is ≤ 10 Serper credits (confirmed by checking Serper dashboard usage delta).
+
 ## Changelog
 
 - 2026-05-14: created.

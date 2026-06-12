@@ -80,6 +80,14 @@ Side effects:
 - **CTA repetition**: Enforced only at the prompt level (no state across replies). Variants must be set in config; the model is told to pick one and never repeat. Tracking actual repetition across sends would require persisting state per-recipient (not currently implemented).
 - **Voice reference caching**: Cached per-process, keyed on the config path string. Edits to the voice file are not picked up until the process restarts.
 
+## Exit Criteria
+
+- `handle_reply(positive_reply, config, mock=True)` returns `{"action": "auto_reply", "reply_text": "...", "delay_seconds": N}` with `delay_seconds` in `[delay_min_seconds, delay_max_seconds]` from config.
+- `reply_text` contains no exclamation marks (`!`), no dollar amounts (`$\d+`), and is ≤ `max_sentences` sentences (post-processing guard rails confirmed).
+- A `hot_lead_signals` match in the reply body causes `handle_reply` to return `{"action": "handoff", "reason": "hot lead detected"}` — not an auto-reply.
+- `classification == "negative"` or `classification == "neutral"` causes `handle_reply` to return `{"action": "skip", "reason": "..."}`.
+- `OPENROUTER_API_KEY` is present; a real (non-mock) call exits without raising an `EnvironmentError` and produces a `reply_text` string of at least 5 words.
+
 ## Changelog
 | Date | Change |
 |------|--------|

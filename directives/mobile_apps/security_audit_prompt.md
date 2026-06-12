@@ -161,6 +161,14 @@ second prompt.
 
 ---
 
+## Exit Criteria
+
+- The audit prompt has been pasted into Claude Code and produced a `### Ranked findings` table with at least the 14 category headers evaluated (each marked `PASS`, `PARTIAL`, or `FAIL`).
+- All `CRITICAL` findings in the ranked table have been addressed — confirmed by re-running the audit on the updated code and receiving 0 CRITICAL findings.
+- No `EXPO_PUBLIC_*_SECRET` or `EXPO_PUBLIC_*_KEY` variables for paid APIs appear in any tracked file (grep exits with no matches).
+- Every backend route that calls a paid API has an auth check or per-user rate limit — confirmed by the Category 10 result being `PASS`.
+- The final ranked-findings table is saved to the app repo at `security_audit_{date}.md` for future reference.
+
 ## Update history
 
 - 2026-06-08 — initial canonical prompt, adapted from Nick Saraev's "security for vibecoded apps" module (transcript chapter 23). Added Supabase-specific checks (categories 6, 7, 8) not in Nick's original.

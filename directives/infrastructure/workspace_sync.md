@@ -38,6 +38,14 @@ Examples:
 3. Commit: `git commit -m "type: message"`
 4. Push: `git push origin main`
 
+## Exit Criteria
+
+- `git status` shows `nothing to commit, working tree clean` after a sync (no uncommitted local changes remain).
+- `git log --oneline -1` on both local and remote (`origin/main`) shows the same commit SHA.
+- `.env`, `credentials.json`, `token.json`, `.tmp/`, `.venv/`, and `*.pyc` files do not appear in `git log --name-only HEAD` (they are gitignored and were never committed).
+- Every commit message starts with one of the defined type prefixes (`feat`, `fix`, `update`, `docs`, `config`).
+- `git push origin main` exits `0` with no force-push flag used.
+
 ## Changelog
 | Date | Change |
 |------|--------|

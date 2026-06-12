@@ -50,6 +50,14 @@ Provision (or rotate) the Telegram bot webhook so incoming user commands (like `
 - **Secret rotation** — running the script again rotates the secret. The old secret stops working immediately; any in-flight Telegram retries fail. Telegram does its own retry queue, so this is generally safe but expect a brief gap.
 - **`getWebhookInfo` shows non-zero `pending_update_count`** — Telegram is queueing updates. Either the worker is failing or the secret is mismatched. Check Cloudflare logs.
 
+## Exit Criteria
+
+- `py execution/infrastructure/setup_telegram_webhook.py --info` exits `0` and prints the current webhook URL, pending update count, and last error code — no `TELEGRAM_BOT_TOKEN` error.
+- `getWebhookInfo` response shows `pending_update_count == 0` within 60 seconds of provisioning (Telegram is delivering updates to the worker successfully).
+- `npx wrangler secret list` from the worker directory lists `TELEGRAM_WEBHOOK_SECRET` as a present secret.
+- Sending `/status` to the bot from Telegram results in a reply from the Worker within 10 seconds.
+- Re-running the provisioning script on an already-configured webhook completes without error and leaves exactly one webhook registered (idempotency confirmed by `--info` output).
+
 ## Verification
 ```bash
 # Inspect current state

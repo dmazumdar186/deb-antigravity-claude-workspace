@@ -382,6 +382,14 @@ py -m pytest tests/test_monkey.py -v --tb=short
 
 ---
 
+## Exit Criteria
+
+- `py -m pytest tests/ -v --tb=short` exits with code `0` (0 failures, 0 errors).
+- All 6 tiers have at least one test file present: `test_sanity.py`, `test_api_payloads.py` or `test_llm_client.py`, `test_integration.py` or `test_flow_chains.py`, `test_e2e.py` or `test_pipeline.py`, `test_monkey.py`, and at least one of `test_ai_guard_rails.py` / `test_classifier_reliability.py` / `test_reply_classifier.py`.
+- `py -m pytest tests/ -v --tb=short -k "not Real and not Reliability"` (fast suite, tiers 1-5) completes in under 30 seconds.
+- Tier 1 sanity scan produces 0 hardcoded-secret hits (no pattern from `FORBIDDEN` list in any `*.py` file under `execution/`).
+- Every public LLM-output function is private (`_prefix`) — confirmed by attempting `from <module> import _private_fn` from an external file and receiving `ImportError`.
+
 ## Checklist: Before Declaring a Feature Complete
 
 - [ ] Tier 1: Sanity tests pass (files exist, config valid, no secrets)

@@ -304,6 +304,14 @@ Calculation: 3 grids × ~1400 tokens/grid (R3 calibrated: ~155 tokens/cell × 9 
 - If Claude does not call `submit_breakdown`, check that `tool_choice={"type": "tool", "name": "submit_breakdown"}` is set.
 - If LAST_KNOWN_GOOD in model_registry.py shows stale model IDs in logs, update them.
 
+## Exit Criteria
+
+- `.tmp/video/{video_id}/breakdown.md` exists after a successful run and contains all 8 required sections: `## Summary`, `## Key Takeaways`, `## The Hook`, `## Pacing & Cuts`, `## Visual Storytelling`, `## Transcript Highlights`, `## Content Ideas Inspired by This`, and `## Full Transcript (collapsed)`.
+- `py execution/video/youtube_video_analyzer.py "URL" --dry-run` exits `0` and prints `would_*` fields without making any network calls (confirmed by 0 bytes of network traffic from the process).
+- `py execution/video/youtube_video_analyzer.py "URL" --tier gemini` (with `GEMINI_API_KEY` set) exits `0` and total cost is `$0.00` (Gemini free URL-native path, no frame extraction).
+- Model IDs in the breakdown's `## Tier` section are resolved dynamically (not hardcoded) — confirmed by checking that the model string matches the current Anthropic or Gemini model list, not a stale ID.
+- Batch mode with `--urls-file` exits with code `0` (all succeeded), `1` (all failed), or `2` (partial) — never exits `0` when any URL in the file failed.
+
 ## Changelog
 
 - **2026-05-25** — v4.1: added summary + key_takeaways as leading sections (end-user content focus)

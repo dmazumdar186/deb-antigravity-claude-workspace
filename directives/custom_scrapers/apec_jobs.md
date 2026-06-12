@@ -107,6 +107,14 @@ When card count drops unexpectedly:
 4. If the date label changed, update `date_re` in `_parse_markdown()`.
 5. Add a Changelog entry here after fixing.
 
+## Exit Criteria
+
+- Output JSON file exists at the resolved output path and is a valid non-empty JSON array containing at least 1 `RawJob` object.
+- Each `RawJob` in the array has a non-null `source_url` matching the pattern `https://www.apec.fr/candidat/offre-emploi-detail/`.
+- `FIRECRAWL_API_KEY` is recognised (no `EnvironmentError` on startup and no HTTP 401 from Firecrawl in stderr).
+- `scraper_done` log event is present in stderr with a `count` ≥ 1 for a query of `"product manager"`.
+- Standalone run completes in under 90 seconds for 1 query × 1 page (accounting for the 2-second JS wait).
+
 ## Changelog
 
 - 2026-05-14: created.

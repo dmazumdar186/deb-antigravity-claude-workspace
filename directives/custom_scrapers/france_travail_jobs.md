@@ -119,6 +119,14 @@ On `5xx` errors from the API:
 1. The `@retry_with_backoff` decorator handles transient errors.
 2. If the France Travail API is down for an extended period, the board will emit `scraper_failed` and return `[]`. Other boards continue normally.
 
+## Exit Criteria
+
+- Output JSON file exists at the resolved output path and is a valid non-empty JSON array containing at least 1 `RawJob` object.
+- Each `RawJob` has a non-null `posted_at` in `YYYY-MM-DD` format (France Travail API reliably returns `dateCreation`).
+- OAuth2 token is obtained without error — no `401`/`403` from the token endpoint (`entreprise.francetravail.fr`) logged in stderr.
+- `scraper_done` log event appears in stderr with `count ≥ 1` for a query of `"product manager"`.
+- Standalone run using credentials from `.env` exits code `0` with no `missing_credentials` log entry.
+
 ## Changelog
 
 - 2026-05-14: created.

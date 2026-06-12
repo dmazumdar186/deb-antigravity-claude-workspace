@@ -107,6 +107,14 @@ Based on a 15-step generation process:
 
 ---
 
+## Exit Criteria
+
+- `.tmp/cv_opt_{company}_{lastname}.pdf` exists, is a valid PDF (opens without error), and has the same page count as the original CV.
+- `.tmp/cover_letter_{company}_{lastname}.pdf` exists, is a valid single-page PDF, and contains no `__PLACEHOLDER__` strings or `[Company Name]`-style unfilled tokens.
+- Both PDFs are in the language of the job description (confirmed by opening and reading the first paragraph).
+- The ATS compatibility score printed to stdout is ≥ 9/10 for the optimized CV (script output includes `Improved score: 9+`).
+- `ANTHROPIC_API_KEY` is present in `.env`; running the script exits without a key-missing prompt when the env file is loaded.
+
 ## Self-Annealing Notes
 
 - If Claude returns malformed JSON / skips the tool call → check `ANALYSIS_TOOL` schema in script

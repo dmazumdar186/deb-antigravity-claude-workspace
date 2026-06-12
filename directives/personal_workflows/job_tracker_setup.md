@@ -86,6 +86,14 @@ py execution\personal_workflows\job_tracker_setup.py --install-deps --init-db
 
 This script has no API calls and cannot fail in a recoverable way. If `--init-db` fails, it prints the exception and exits 1. Common causes: the `.tmp/` directory does not exist (create it manually or let the orchestrator create it on first run), or a permissions issue with OneDrive sync locking the file.
 
+## Exit Criteria
+
+- `py execution\personal_workflows\job_tracker_setup.py --check-only` exits `0` and prints a status report with `[✓ set]` for all 7 required env vars (no `[✗ MISSING]` lines).
+- `py execution\personal_workflows\job_tracker_setup.py --check-only` prints `[✓ found]` for all 6 required packages (`firecrawl-py`, `langdetect`, `requests`, `python-dotenv`, `freezegun`, `pytest`).
+- `py execution\personal_workflows\job_tracker_setup.py --init-db` exits `0` and creates the SQLite file at the configured path with tables `companies`, `jobs`, `contacts`, and `notifications_log` (confirmed via `sqlite3 <db_path> ".tables"`).
+- Re-running `--init-db` on an already-initialised DB exits `0` without error (idempotency confirmed by the `CREATE TABLE IF NOT EXISTS` pattern).
+- `--check-only` exits `0` (not `1`) regardless of missing vars — purely informational.
+
 ## Changelog
 
 - 2026-05-14: created.

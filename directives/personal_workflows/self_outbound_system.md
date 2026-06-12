@@ -100,6 +100,14 @@ The implementation (Cloudflare Worker + config + tests) lives in a **separate pu
 - **AM lockdown** — this system uses entirely separate accounts, domains, inboxes, credentials, and a separate Cloudflare account. Do not import code or copy paths from `execution/infrastructure/api-proxy/`. See `CLAUDE.local.md` "ACCESSORY MASTERS — LOCKDOWN" for the no-touch list.
 - **GDPR opt-out received** — Worker honors automatically (suppression KV). If a recipient explicitly emails "unsubscribe" without using the link, the classifier routes to `negative` and the contact lands in suppression permanently.
 
+## Exit Criteria
+
+- `GET <worker-url>/api/health` returns HTTP 200 with `status` field — confirms the Worker is deployed and reachable.
+- `npm run dry-run -- --segment=<segment>` (run locally from the outbound-engine repo) exits `0` and prints `would_send > 0` with non-zero `rejection_reasons` breakdown — confirms the pipeline would process real inputs without paying credits.
+- At least one inbox in `config/outbound.json` has `"state": "active"` (warmup complete) and `mail-tester.com` score ≥ 9 for that domain.
+- A hot-lead Telegram ping arrives within 5 minutes of manually triggering the reply-classification path with a "ready to sell" sample reply (confirms Telegram bot credentials are valid and chat ID is correct).
+- `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` is set as a Cloudflare Worker secret (`wrangler secret list` shows it present) — no `missing key` errors in Worker logs.
+
 ## Changelog
 
 - **2026-05-16** — Initial version. Codifies the self-outbound build for Debanjan's personal outreach. Implementation in `github.com/dmazumdar186/outbound-engine`. Plan trace: `~/.claude/plans/what-were-your-biggest-parsed-babbage.md` (v2/v3 sections under "Self-Outbound System").

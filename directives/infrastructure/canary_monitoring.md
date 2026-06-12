@@ -163,6 +163,14 @@ Without dedup, an outage spams the operator every 5 min. Either:
 - **Build SHA is useful for "is the deploy I just pushed the one running?"** Always emit it. `git rev-parse --short HEAD` at build time, injected as env var.
 - **Don't canary the canary.** One layer is enough. Two layers is over-engineering for ~99% of cases.
 
+## Exit Criteria
+
+- `/api/health` on the deployed service returns HTTP 200 with a JSON body containing `status`, `build_sha`, `secrets`, and `upstreams` keys — no missing fields.
+- `status` is `"green"` when all required secrets are present, all upstreams are above threshold, and no cron job is overdue (confirmed by a manual `GET /api/health` immediately after deploy).
+- A dry-run POST to the main entrypoint (`?dry_run=true` or `--dry-run`) returns HTTP 200 with at least one `would_*` counter > 0 — confirming the dry-run path is wired and the pipeline would process real inputs.
+- The scheduled canary probe (Cloudflare Cron, GitHub Actions, or equivalent) has at least one successful run recorded in its scheduler dashboard.
+- A deliberately-broken canary (e.g. rotate a secret out) triggers an alert on the configured channel within 2× the probe interval.
+
 ## Changelog
 
 - **2026-05-14** — Initial version. Generalizes the pattern from the Accessory Masters retrospective into a cross-project default for deployed services.

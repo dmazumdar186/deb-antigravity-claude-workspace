@@ -56,6 +56,14 @@ When the user says "add a webhook that does X" or needs an HTTP endpoint to trig
 - `execution/modal_webhook.py` — Modal app entry point (do not modify unless necessary)
 - `execution/infrastructure/` — Cloudflare Worker scripts
 
+## Exit Criteria
+
+- Webhook slug appears in `execution/webhooks.json` (Modal path) or the worker script file exists under `execution/infrastructure/` (Cloudflare path).
+- `curl -X POST <endpoint-url> -H "Content-Type: application/json" -d '{"test":true}'` returns HTTP 200 with a JSON body (no `500` or connection refused).
+- Response body contains a `status` field (`"ok"` or `"error"` with a `message`) — never raw text.
+- No API key, secret, or credential value appears in any log or response body produced by the webhook.
+- `--dry-run` invocation (Modal: via `--dry-run` flag; Cloudflare: via `?dry_run=true` query param) returns `would_*` counters without making paid external calls.
+
 ## Edge Cases
 - Validate all incoming request bodies before processing
 - Return structured JSON responses (never raw text)

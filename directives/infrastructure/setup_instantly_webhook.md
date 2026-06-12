@@ -79,6 +79,15 @@ To verify the accept path, capture the secret once at run time (e.g., `INSTANTLY
 - **`Instantly create webhook failed: 422` / validation error** — Instantly v2 API contract may have changed. Run with `--list` and inspect existing webhooks for the current shape, update the script accordingly.
 - **Worker still returns 401 after setup** — the Cloudflare deploy may not have picked up the new secret. Run `npx wrangler deploy` from the worker dir; secrets propagate within seconds but a redeploy forces it.
 
+## Exit Criteria
+
+<!-- TODO: tighten these predicates next time this directive is touched — AM lockdown means this can only be confirmed via read-only verification, not by running the script -->
+- `npx wrangler secret list` from the worker directory lists `INSTANTLY_WEBHOOK_SECRET` (presence confirmed, value never shown).
+- `curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"test":true}' <worker-url>/api/webhook/reply` returns `401` (confirming the worker rejects unauthenticated requests).
+- Instantly webhook list (`GET /api/v2/webhooks`) contains exactly one entry pointing at the worker URL with `event_type == "reply_received"`.
+- A curl with a valid `X-Webhook-Secret` header returns `200` with `{"success": true, "received": true}` (or `skipped` for unrecognized payloads).
+- Re-running the script on an already-provisioned URL produces the same four outcomes above (idempotency confirmed).
+
 ## Related
 
 - Worker auth function: `checkWebhookAuth` (`execution/infrastructure/api-proxy/src/index.js:1704`)

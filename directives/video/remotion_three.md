@@ -205,6 +205,14 @@ export const ProductHeroScene: React.FC = () => {
 };
 ```
 
+## Exit Criteria
+
+- `npx tsc --noEmit` exits `0` on the composition file — no TypeScript errors in the Three.js scene code.
+- `<ThreeCanvas>` has `gl={{ alpha: true }}` — confirmed by searching the composition file for `alpha: true`.
+- No `useFrame` call appears anywhere in the 3D composition files (grep for `useFrame` returns 0 hits; only `useCurrentFrame` is used).
+- A single-frame headless render (`npx remotion render <SceneName> out/test.png --frame 0`) exits `0` and produces a non-blank PNG at the correct canvas dimensions.
+- The composition appears and renders without console errors in `npx remotion studio`; scrubbing from frame 0 to frame N produces a smooth, frame-correct animation (objects move — not static).
+
 ## Edge Cases
 
 | Case | Handling |

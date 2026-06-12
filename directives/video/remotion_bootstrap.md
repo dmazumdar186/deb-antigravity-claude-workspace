@@ -200,6 +200,14 @@ subsequent ones. Schema:
 The write is guarded by `threading.Lock` (per workspace Python hardening rule #2)
 in case the script is ever invoked concurrently.
 
+## Exit Criteria
+
+- `execution/video/remotion-projects/{slug}/` directory exists and contains `project.json`, `src/Root.tsx`, `src/CompositionWithAlpha.tsx`, `src/lib/easings.ts`, and `.template-version`.
+- `execution/video/remotion-projects/{slug}/node_modules` is an NTFS junction (not a real directory) pointing to `C:\Users\deban\dev\remotion-node-cache\{slug}\node_modules`.
+- Single-frame smoke-test render (`npx remotion render CompositionWithAlpha out/alpha_test.png --frame 0`) exits `0` and the PNG has mean brightness > 20 and dimensions 1920×1080.
+- `execution/video/registry.json` contains an entry for the slug with `slug`, `fps`, `width`, `height`, `duration_in_frames`, and `template_version` all populated.
+- `py execution/video/remotion_bootstrap.py --slug {slug} --dry-run` exits `0` and prints `would_create_project`, `would_create_junction`, and `would_write_registry_entry` as truthy without touching the filesystem.
+
 ## Edge Cases
 
 | Case | Handling |

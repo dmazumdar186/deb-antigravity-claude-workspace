@@ -138,6 +138,14 @@ Every cost-incurring function must accept `--dry-run` (CLI) or `?dry_run=true` (
 - **`would_send = 0` after Phase 5a is integrated.** The Phase 5a LLM helper's `would_call` should be truthy in dry-run; if it goes false, alert. (Anomaly detection threshold baseline: 7-day rolling per app.)
 - **Secret leak in `/api/health`.** `secrets_present` is boolean per key — NEVER include values. If a sub-agent accidentally returns secret values, the canary's first job is to detect it (regex for secret-like substrings in the response) and alert.
 
+## Exit Criteria
+
+- `py execution/mobile_apps/mobile_app_canary.py --dry-run` exits `0` and prints which apps it would assert against (registry parsed successfully), without making any HTTP calls.
+- For every app in `registry.json` with `health_url` set: a live probe to `/api/health` returns HTTP 200 with the required JSON shape (`status`, `version`, `build_sha`, `kv_check`, `upstream_credit_balances`, `secrets_present`, `last_success_per_job`).
+- A deliberately-broken app (rotate Worker secret to an invalid value) causes `mobile_app_canary.py` to print a console alert within one run and set `"status": "fail"` in `.tmp/canary_state.json`.
+- `.tmp/canary_state.json` exists after the first real run and contains a `checks` object with one entry per probed app slug.
+- The Modal cron entry `*/15 * * * *` is visible in the Modal dashboard for the canary function.
+
 ## Notes
 
 - This is the **sole canary mechanism** — no separate Worker per the plan (skeptic round 1 removed that). The Modal-cron-driven Python canary covers all mobile apps.

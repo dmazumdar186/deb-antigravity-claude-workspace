@@ -45,6 +45,15 @@ Reference when onboarding new team members, when inbox capacity changes, when do
 - **Pre-warmed test cancellation**: Cancel the $50/month test domain + inboxes after Milestone 1 validation is complete (~1 month).
 - **Sending volume per inbox**: ~25 emails/inbox/day to maintain reputation. 32 inboxes x 25 = 800/day target.
 
+## Exit Criteria
+
+<!-- TODO: tighten these predicates next time this directive is touched — it is an operational SOP with no executable script, so automated assertions aren't available -->
+- All 10 sending domains have SPF, DKIM, and DMARC records configured — confirmed by running each domain through MXToolbox DMARC check and receiving a `PASS` result.
+- All 32 inboxes appear as `active` in Instantly.ai and are assigned to at least one campaign.
+- Instantly.ai warmup dashboard shows all 32 inboxes have completed ≥ 21 days of warmup (warmup start date ≤ today − 21 days).
+- A test push of one lead to the pre-warmed campaign via `POST /api/v2/leads` returns HTTP 200 with a lead ID (no `401` or `422`).
+- The `$50/month` pre-warmed test domain subscription is cancelled after Milestone 1 validation (no active test domain in Instantly billing).
+
 ## Changelog
 | Date | Change |
 |------|--------|

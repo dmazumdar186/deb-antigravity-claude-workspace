@@ -45,6 +45,14 @@ After the sourcing stage has produced a lead list. This is always the second sta
 - **Rate limiting**: Both APIs have rate limits. Use `@retry_with_backoff`. Log warnings.
 - **Cost awareness**: AnymailFinder charges per lookup. Million Verifier is ~$0.0004/email. Filter aggressively at the AnymailFinder stage to reduce MV costs.
 
+## Exit Criteria
+
+- `.tmp/enriched_leads.json` exists and is a non-empty valid JSON array; each element contains `owner_email`, `email_confidence`, and `email_type` fields.
+- `.tmp/verified_leads.json` exists and every element with `status == "verified"` has `email_verified == true` and `email_verification_result` in the accepted list (default: `["ok", "catch_all"]`).
+- No element in `.tmp/verified_leads.json` has an empty string for `owner_email`.
+- `ANYMAILFINDER_API_KEY` and `MILLION_VERIFIER_API_KEY` are present in `.env` (confirmed by running with `--mock` flag exiting `0` and no `missing key` error in real mode).
+- Log output includes the summary line with `total processed`, `emails found`, `verified`, `rejected`, and `skipped` counts — none of which are `None` or negative.
+
 ## Changelog
 | Date | Change |
 |------|--------|

@@ -120,6 +120,14 @@ On digest appearing in spam:
 1. Add a display name to the `From` header (see gotchas above).
 2. Mark the digest as "Not Spam" in Gmail once — this trains the filter for future messages.
 
+## Exit Criteria
+
+- `py execution\google\gmail_send_digest.py --html <path> --dry-run` exits `0` and prints the subject, recipient, and SMTP config to stdout without connecting to `smtp.gmail.com`.
+- All three env vars (`GMAIL_SMTP_USER`, `GMAIL_SMTP_APP_PASSWORD`, `JOB_TRACKER_RECIPIENT`) are present in `.env`; `--dry-run` does not print any `MISSING` warning.
+- Real send (`--html <path>` without `--dry-run`) returns `(True, None)` from `send_digest()` — confirmed by a `Digest sent to` log line in stdout.
+- The sent email is received at the `JOB_TRACKER_RECIPIENT` address and renders HTML in the client (not raw tags), with a plain-text fallback part also present.
+- No `SMTPAuthenticationError` in stderr — confirming the App Password is a valid 16-character token with no embedded spaces.
+
 ## Changelog
 
 - 2026-05-14: created.

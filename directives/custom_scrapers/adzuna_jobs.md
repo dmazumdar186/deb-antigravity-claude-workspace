@@ -110,6 +110,14 @@ py execution/custom_scrapers/adzuna_jobs.py --country fr \
 
 ---
 
+## Exit Criteria
+
+- Output JSON file exists at the resolved output path and is a non-empty valid JSON array (`[]` is acceptable only when the query returns genuinely zero results on Adzuna, confirmed by a `no_results_on_page` log entry).
+- Each element in the array contains at least `board`, `source_url`, `title`, and `company_name` keys — no `__PLACEHOLDER__` strings.
+- `ADZUNA_APP_ID` and `ADZUNA_APP_KEY` are present in `.env`; a run with valid keys exits `0` without any `missing_credentials` log entry.
+- Total Adzuna API requests for a standard Phase 1a run (6 synonyms × 1 page × 1 country) is ≤ 6 — confirmed by counting `fetching_page` log events.
+- No HTTP 401/403 in stderr (confirming credentials are recognised by the Adzuna API).
+
 ## Notes
 
 - Results are written to `.tmp/job_search/<run_id>/raw_adzuna_<country>.json` by default.

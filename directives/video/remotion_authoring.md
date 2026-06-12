@@ -221,6 +221,14 @@ See `remotion_render.md` for exact CLI commands and codec presets.
 | Large images cause memory pressure | Downscale to 1920×1080 before import; Remotion renders per-frame so full-resolution images are reloaded on every frame |
 | OneDrive sync races with hot-reload | OneDrive may hold write locks briefly during save. If hot-reload is erratic, pause OneDrive sync while authoring |
 
+## Exit Criteria
+
+- `src/{CompositionName}.tsx` exists in the project directory and has no TypeScript errors (confirmed by `npx tsc --noEmit` exiting `0`).
+- The composition is registered in `src/Root.tsx` with a unique `id` matching the component name.
+- `npx remotion studio` starts without error and the composition appears in the left panel in the browser at `http://localhost:3000`.
+- Scrubbing the timeline from frame 0 to the last frame produces no console errors in the browser dev tools.
+- A single-frame render (`npx remotion render <CompositionId> out/test.png --frame 0`) exits `0` and produces a non-blank PNG at the expected canvas size (`width × height` from `project.json`).
+
 ## Roadmap
 
 ### v1.1

@@ -103,6 +103,14 @@ Then `/clear` to reset token usage before Phase 2.
 - **Spec drift mid-Phase-1.** If the implementing agent finds the spec impractical (e.g., the chosen state shape can't represent the surface area), update `APP_SPEC.md` *before* fixing the code, not after. The spec is the source of truth.
 - **User wants to skip this directive and go straight to Phase 1.** Allowed, but Phase 1's "App spec" input then comes from the user verbally — quality is lower and rework is more likely. Flag this once and proceed.
 
+## Exit Criteria
+
+- `APP_SPEC.md` exists at `C:\Users\deban\dev\mobile-apps\<slug>\APP_SPEC.md` with all 5 sections: `## Core Function`, `## Core Loop`, `## Accessory Features`, `## Surface Area`, and `## Retention Hook`.
+- `## Surface Area` lists ≤ 7 screens — confirmed by counting the numbered lines in that section.
+- `## Core Loop` contains `Action:`, `Reward:`, and `Latency:` sub-bullets, and the latency value is ≤ 30s.
+- `execution/mobile_apps/registry.json` contains an entry for the slug with a non-empty `spec_summary` field.
+- A git commit on the app repo's `main` branch shows `APP_SPEC.md` as a tracked file with message `chore: app spec (5-principle framework)`.
+
 ## Notes
 
 - This directive is reasoning-only. No paid APIs, no scripts. Cost is Claude token time only.

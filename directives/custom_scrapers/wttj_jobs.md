@@ -109,6 +109,14 @@ When WttJ changes their HTML/markdown structure:
    d. Re-run, confirm counts recover.
    e. Add a Changelog entry here with the date and what changed.
 
+## Exit Criteria
+
+- Output JSON file exists at the resolved output path and is a valid non-empty JSON array containing at least 1 `RawJob` object.
+- Each `RawJob` has a non-null `source_url` matching `welcometothejungle.com` and `board == "wttj"`.
+- `FIRECRAWL_API_KEY` is present — no `EnvironmentError` on startup and no HTTP 401 from Firecrawl in stderr.
+- `scraper_done` log event appears in stderr with `count ≥ 1` for a query of `"product manager"`.
+- URLs in the output are unique within the result set (dedup confirmed by checking for duplicate `source_url` values in the array).
+
 ## Changelog
 
 - 2026-05-14: created.

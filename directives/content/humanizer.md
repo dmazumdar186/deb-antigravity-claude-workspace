@@ -123,6 +123,14 @@ The humanizer runs a four-stage pipeline:
 | LLM returns no tool call | Falls back to raw content or text block; logs a warning |
 | Very short input (< 10 chars) | Pre-pass runs normally; LLM rewrites may be odd for single words |
 
+## Exit Criteria
+
+- `py execution/content/humanizer.py --text "Certainly! I'd be happy to help you with that!" --dry-run` exits with code `0`, prints pre-pass output to stdout, and prints estimated cost to stderr — no errors.
+- `py execution/content/humanizer.py --text "Certainly! I'd be happy to help!" --voice debanjan` (real call) exits `0` and stdout contains no em-dashes (`—`), no opening fluff ("Certainly", "I'd be happy to"), and no exclamation marks in the humanized output.
+- Stdout contains only the humanized text (pipe-safe); all logs and cost lines appear on stderr only.
+- `py execution/content/humanizer.py --voice nonexistent` exits non-zero and stderr lists the available voice names and template path.
+- `execution/content/voices/debanjan.json` exists, is valid JSON, and has a non-empty `examples` array of at least 5 strings.
+
 ## Adding a new voice
 
 1. Copy `execution/content/voices/_template.json` to `voices/{name}.json`

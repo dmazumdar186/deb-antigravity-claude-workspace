@@ -136,6 +136,14 @@ py execution/custom_scrapers/jooble_jobs.py --country France \
 
 ---
 
+## Exit Criteria
+
+- Output JSON file exists at the resolved output path and is a valid non-empty JSON array containing at least 1 `RawJob` object.
+- Each `RawJob` contains `board`, `source_url`, `title`, `company_name`, and `country` keys — no `__PLACEHOLDER__` values.
+- `JOOBLE_API_KEY` is present in `.env`; run exits `0` with no `missing_credentials` or `jooble_bad_api_key` log entry.
+- `contract_type` field in each `RawJob` is one of the normalised values (`Permanent`, `Part-time`, `Contract`, `Freelance`, `Internship`) or `None` — no raw Jooble `type` strings leak through.
+- Run completes in under 30 seconds for a single query + country combination.
+
 ## Notes
 
 - Results are written to `.tmp/job_search/<run_id>/raw_jooble_<iso2>.json` by default.

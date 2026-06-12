@@ -110,6 +110,14 @@ When the HTML/markdown structure changes (headings or URL patterns differ):
 2. Update `_parse_markdown()` in `indeed_jobs.py` to match the new card structure.
 3. Add a Changelog entry here.
 
+## Exit Criteria
+
+- Output JSON file exists at the resolved output path and is a valid JSON array (may be empty if Indeed returned a captcha block on all pages, in which case `indeed_blocked` events appear in stderr for every page).
+- `FIRECRAWL_API_KEY` is present — no `EnvironmentError` on startup and no HTTP 401 from Firecrawl in stderr.
+- `scraper_done` log event appears in stderr regardless of whether any cards were parsed (confirms the scraper completed without an unhandled exception).
+- When at least one page is not blocked, the array contains ≥ 1 `RawJob` with `board == "indeed"` and a non-null `source_url`.
+- Run completes in under 120 seconds for 1 query × 5 pages (the worst-case wall clock given stealth-proxy latency).
+
 ## Changelog
 
 - 2026-05-14: created.
