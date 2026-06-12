@@ -157,6 +157,22 @@ If the assertion fails, the script exits 1 and prints a message with the
 `.template-version` SHA and instructions to review the upstream template before
 proceeding.
 
+### Visual quality check (added 2026-06-12)
+
+After the smoke-test exports the PNG (single-frame render of `CompositionWithAlpha`
+via `npx remotion render CompositionWithAlpha out/alpha_test.png --frame 0`),
+verify it is a real frame, not blank or fully transparent:
+
+```python
+from PIL import Image, ImageStat
+img = Image.open(out_path).convert("RGB")
+mean_brightness = sum(ImageStat.Stat(img).mean) / 3
+assert mean_brightness > 20, f"smoke-test PNG is too dark/blank: brightness {mean_brightness:.1f}"
+assert img.size == (1920, 1080), f"smoke-test PNG wrong size: {img.size}"
+```
+
+If this assertion fails, the bootstrap is broken — DO NOT proceed to Step 7.
+
 ### 7. Write registry entry
 
 `execution/video/registry.json` is created on first project and appended on
