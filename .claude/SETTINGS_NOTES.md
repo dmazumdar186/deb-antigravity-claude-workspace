@@ -13,8 +13,8 @@ Hook events for Agent Teams (`TeammateIdle`, `TaskCreated`, `TaskCompleted`) int
 
 ### Did NOT change in Phase 2
 
-- `model` key in `.claude/settings.json` — stays `claude-opus-4-7`. Reason: the global TIME-BOUND MODEL POLICY (`~/.claude/CLAUDE.md`) mandates `claude-fable-5[1m]` for Plan Mode until 2026-06-21 23:59. Bumping the session default mid-policy invites confusion. Reconsidered post-expiry.
-- `.claude/settings.local.json` `model` key — same reason.
+- `model` key in `.claude/settings.json` — at Phase 2 time (2026-06-11) stayed `claude-opus-4-7` because the global TIME-BOUND MODEL POLICY mandated `claude-fable-5[1m]` for Plan Mode. **Updated 2026-06-13:** `~/.claude/settings.json` `model` is now `claude-opus-4-8`. Reason: Plan-mode default per MODEL POLICY in `~/.claude/CLAUDE.md`. Fable 5 / Mythos 5 are no longer available (2026-06-12 US export-control directive).
+- `.claude/settings.local.json` `model` key — file does not exist.
 
 ## Reverting
 

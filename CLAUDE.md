@@ -235,8 +235,8 @@ Be pragmatic. Be reliable. Self-anneal.
 ## Environment
 
 - Python: 3.14
-- Default session model: `claude-opus-4-7` (orchestration) until 2026-06-21; revisit after Fable-5 plan-mode policy expires.
-- Plan Mode reasoning: `claude-fable-5[1m]` until 2026-06-21 23:59 (global rule from `~/.claude/CLAUDE.md`).
+- Default session model: `claude-opus-4-8` (orchestration + Plan Mode).
+- Note: Fable 5 / Mythos 5 unavailable as of 2026-06-12 (US export-control directive). See `~/.claude/CLAUDE.md` MODEL POLICY section.
 - Implementation / exploration sub-agents: `claude-sonnet-4-6` (default for Agent calls without model override).
 - High-volume fan-out workers (Dynamic Workflows / agent teams of N parallel workers): `claude-haiku-4-5`.
 - Per-agent model override: `model:` frontmatter in `.claude/agents/*.md`.
