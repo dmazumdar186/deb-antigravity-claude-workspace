@@ -1,4 +1,5 @@
-# DO NOT commit account_id or KV ids. They get pasted during deploy per the README. Leave blank in source control.
+# account_id is auto-detected from `wrangler whoami` — leave blank.
+# KV ids are resource IDs, not secrets — safe to commit (standard Cloudflare practice).
 
 name = "cv-optimizer-api"
 main = "src/index.ts"
@@ -6,11 +7,10 @@ compatibility_date = "2024-01-01"
 account_id = ""  # Set via: wrangler whoami | sed-n find, OR by user before deploy. Leave blank in repo.
 
 # KV namespace for rate-limiting per-IP request counters.
-# IDs filled in after `wrangler kv:namespace create RATE_LIMIT` (see README).
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = ""           # paste production KV id here
-preview_id = ""   # paste preview KV id here
+id = "5df8e98dde324937aa5dc922b3c20464"
+preview_id = "b37c69519eea405e8a9daf5597455ce1"
 
 [vars]
 # Version stamp shown in /api/health. Bump on each release.
