@@ -304,18 +304,21 @@ async function handleOptimize(req: Request, env: Env): Promise<Response> {
     console.error(`[rate-limit] KV read failed for key ${rlKey}: ${err instanceof Error ? err.message : String(err)}`);
   }
 
+  const nowMs = Date.now();
+  const nextHourMs = new Date(hourBucket() + ":00:00Z").getTime() + 3600_000;
+  // Cloudflare KV requires expirationTtl >= 60s; clamp accordingly.
+  const secondsToNextHour = Math.max(60, Math.ceil((nextHourMs - nowMs) / 1000));
+
   if (currentCount >= 10) {
-    const nowMs = Date.now();
-    const nextHourMs = new Date(hourBucket() + ":00:00Z").getTime() + 3600_000;
-    const retryAfterSeconds = Math.max(0, Math.ceil((nextHourMs - nowMs) / 1000));
     return Response.json(
-      { error: "rate_limit", retry_after_seconds: retryAfterSeconds },
+      { error: "rate_limit", retry_after_seconds: secondsToNextHour },
       { status: 429 },
     );
   }
 
   // Increment counter; fire-and-forget (no await) to not block the response path.
-  env.RATE_LIMIT.put(rlKey, String(currentCount + 1), { expirationTtl: 3600 }).catch((err: unknown) => {
+  // TTL aligned to next hour bucket boundary so counter clears at the same instant the bucket key rolls over.
+  env.RATE_LIMIT.put(rlKey, String(currentCount + 1), { expirationTtl: secondsToNextHour }).catch((err: unknown) => {
     console.error(`[rate-limit] KV write failed for key ${rlKey}: ${err instanceof Error ? err.message : String(err)}`);
   });
 

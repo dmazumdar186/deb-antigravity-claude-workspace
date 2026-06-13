@@ -17,6 +17,11 @@ export async function onRequestPost({ request, env }) {
   const body = await request.text();
   const target = `${env.WORKER_URL.replace(/\/$/, "")}/api/optimize`;
 
+  // 25s timeout — Pages Functions have a 30s wall-clock; bail before that so we can
+  // return a structured 504 instead of getting hard-killed.
+  const ctrl = new AbortController();
+  const timeoutId = setTimeout(() => ctrl.abort(), 25_000);
+
   let resp;
   try {
     resp = await fetch(target, {
@@ -26,15 +31,19 @@ export async function onRequestPost({ request, env }) {
         "X-Worker-Secret": env.WORKER_SECRET,
       },
       body,
+      signal: ctrl.signal,
     });
   } catch (err) {
+    const aborted = err instanceof Error && err.name === "AbortError";
     return new Response(
       JSON.stringify({
-        error: "worker_fetch_failed",
+        error: aborted ? "worker_timeout" : "worker_fetch_failed",
         detail: err instanceof Error ? err.message : String(err),
       }),
-      { status: 502, headers: { "Content-Type": "application/json" } }
+      { status: aborted ? 504 : 502, headers: { "Content-Type": "application/json" } }
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   const responseBody = await resp.text();
