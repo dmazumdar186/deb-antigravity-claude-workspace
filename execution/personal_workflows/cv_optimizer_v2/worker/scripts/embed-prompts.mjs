@@ -20,8 +20,14 @@ const systemPromptPath = resolve(promptsDir, "system_prompt.md");
 const schemaPath = resolve(promptsDir, "cv_response_schema.json");
 const outPath = resolve(workerRoot, "src", "embedded.generated.ts");
 
-const systemPrompt = readFileSync(systemPromptPath, "utf8");
-const schemaText = readFileSync(schemaPath, "utf8");
+// Normalize CRLF -> LF before fingerprinting so Windows autocrlf checkouts produce
+// the same fingerprint as Linux/CI checkouts. Without this, the deployed worker's
+// fingerprint mismatches a freshly-checked-out tree on Windows.
+function readLF(p) {
+  return readFileSync(p, "utf8").replace(/\r\n/g, "\n");
+}
+const systemPrompt = readLF(systemPromptPath);
+const schemaText = readLF(schemaPath);
 
 // Validate schema parses as JSON before embedding.
 let schemaParsed;

@@ -162,10 +162,15 @@ function fnv1a(s: string): string {
   return h.toString(16).padStart(8, "0");
 }
 
+// Normalize CRLF -> LF before fingerprinting so Windows autocrlf checkouts
+// produce the same fingerprint as the embed script does.
+function readLF(p: string): string {
+  return readFileSync(p, "utf8").replace(/\r\n/g, "\n");
+}
+
 test("embedded prompt fingerprint matches source file (no drift)", () => {
   const sourcePath = resolve(here, "..", "..", "prompts", "system_prompt.md");
-  const source = readFileSync(sourcePath, "utf8");
-  const live = fnv1a(source);
+  const live = fnv1a(readLF(sourcePath));
   assert.equal(
     PROMPT_FINGERPRINT,
     live,
@@ -175,8 +180,7 @@ test("embedded prompt fingerprint matches source file (no drift)", () => {
 
 test("embedded schema fingerprint matches source file (no drift)", () => {
   const sourcePath = resolve(here, "..", "..", "prompts", "cv_response_schema.json");
-  const source = readFileSync(sourcePath, "utf8");
-  const live = fnv1a(source);
+  const live = fnv1a(readLF(sourcePath));
   assert.equal(
     SCHEMA_FINGERPRINT,
     live,
