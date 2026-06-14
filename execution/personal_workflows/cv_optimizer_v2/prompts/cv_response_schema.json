@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "CVSpec — the full optimized CV plus metadata returned by Gemini Flash",
+  "description": "CVSpec — the full optimized CV plus metadata returned by the LLM",
   "required": [
     "language_detected",
     "ats_score",
@@ -18,7 +18,7 @@
   "properties": {
     "language_detected": {
       "type": "string",
-      "description": "ISO 639-1 language code of the job description",
+      "description": "ISO 639-1 language code matching the JD body text — this is the language EVERY output field must be written in",
       "enum": ["en", "fr", "es", "de"]
     },
     "ats_score": {
@@ -156,7 +156,7 @@
     },
     "recommendations": {
       "type": "array",
-      "description": "5-10 short advisory items the candidate should consider but were NOT auto-applied. Each is one actionable sentence.",
+      "description": "Exactly 5 short advisory items the candidate should consider but were NOT auto-applied. Each is one actionable sentence.",
       "items": {
         "type": "string"
       }

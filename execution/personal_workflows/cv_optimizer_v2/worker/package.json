@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "embed": "node scripts/embed-prompts.mjs",
+    "test": "node scripts/embed-prompts.mjs && node --import tsx --test tests/unit.test.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240208.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.4.0",
     "wrangler": "^4.0.0"
   }
