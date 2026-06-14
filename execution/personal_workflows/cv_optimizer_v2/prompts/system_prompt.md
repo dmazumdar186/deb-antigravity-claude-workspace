@@ -77,7 +77,7 @@ These caps exist so the response fits within the model's output budget. Exceedin
 - **Recommendations array: exactly 5 items.** Pick the highest-impact 5.
 - **Bullets per experience entry: at most 4.** Pick the most JD-relevant 4.
 - **Bullet length: at most 24 words each.**
-- **Summary: 2 sentences, at most 50 words total.**
+- **Summary: AT MOST 2 sentences AND AT MOST 50 words combined.** Count words yourself before returning. If draft is over 50 words, cut the second sentence shorter. This is the most-violated cap — check it explicitly.
 - **Skills `value` strings: at most 80 characters each.** Group, don't enumerate every keyword.
 
 ## Recommendations array

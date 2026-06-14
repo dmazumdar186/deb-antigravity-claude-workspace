@@ -32,13 +32,15 @@ This is the only path that gives a phone **write access to local files**.
 
 **Setup (one-time, requires the laptop available):**
 
-Run from the laptop terminal:
+A desktop shortcut named **"Claude Remote Control"** has been installed on the Desktop. Double-click it. A real `cmd.exe` window opens (the only reliable way to give Claude the interactive tty it needs on Windows — subprocess redirection from another shell collapses to print-mode and fails). After a few seconds, the window prints a URL like `https://claude.ai/code/remote/<token>` plus a QR code. On the phone, scan the QR or open the URL on a phone signed into the same Anthropic account — you'll see a chat that drives the laptop session.
+
+To re-create the shortcut (e.g. after profile reset, new machine), run inline PowerShell or the helper at `execution/personal_workflows/remote_control_mobile/install_shortcut.ps1`.
+
+Manual command (if you ever need it):
 
 ```powershell
 claude --remote-control "AntiGravity-CV-Optimizer"
 ```
-
-The CLI prints a URL like `https://claude.ai/code/remote/<token>` plus a QR code in the terminal. On the phone, scan the QR (or open the URL on a phone signed into the same Anthropic account) — you'll see a chat that drives the laptop session.
 
 **Launch helper** (PowerShell, persists across logout — see `execution/personal_workflows/remote_control_mobile/launch.ps1`):
 

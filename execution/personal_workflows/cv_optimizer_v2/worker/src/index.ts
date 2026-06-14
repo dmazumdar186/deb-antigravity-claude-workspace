@@ -4,10 +4,15 @@
 // To update them, edit prompts/system_prompt.md or prompts/cv_response_schema.json
 // and re-run `node scripts/embed-prompts.mjs` (wrangler runs this automatically).
 
-import { optimizeCvAnthropic } from "./anthropic.js";
+import { optimizeCvGemini } from "./gemini.js";
 import { handleScrape } from "./scrape.js";
 import { handleRefreshProfile, getCachedProfile } from "./profile.js";
 import { SYSTEM_PROMPT, RESPONSE_SCHEMA, PROMPT_FINGERPRINT, SCHEMA_FINGERPRINT } from "./embedded.generated.js";
+
+// Provider note: pivoted from Anthropic Sonnet 4.6 → Gemini 2.5 Flash on 2026-06-14.
+// Reason: Anthropic API requires $20 minimum top-up; the user can't afford that for a
+// personal tool. Gemini 2.5 Flash has a 1500 req/day free tier that comfortably covers
+// ~50 calls/year. anthropic.ts kept on disk for fallback / future use when budget allows.
 
 // ---------------------------------------------------------------------------
 // Env bindings
@@ -17,7 +22,8 @@ export interface Env {
   APP_VERSION: string;
   // Secrets (set via `wrangler secret put`):
   WORKER_SECRET?: string;
-  ANTHROPIC_API_KEY?: string;
+  GEMINI_API_KEY?: string;       // active optimizer provider (free tier)
+  ANTHROPIC_API_KEY?: string;    // kept for future / fallback; not currently called
   FIRECRAWL_API_KEY?: string;
 }
 
@@ -102,6 +108,7 @@ async function handleHealth(env: Env): Promise<Response> {
   // Secret-presence map — booleans only, NEVER values.
   const secretsPresent = {
     worker_secret: Boolean(env.WORKER_SECRET),
+    gemini: Boolean(env.GEMINI_API_KEY),
     anthropic: Boolean(env.ANTHROPIC_API_KEY),
     firecrawl: Boolean(env.FIRECRAWL_API_KEY),
   };
@@ -210,22 +217,22 @@ async function handleOptimize(req: Request, env: Env): Promise<Response> {
 
   console.log(`[optimize] cv_chars=${cv_text.length} jd_chars=${jd_text.length} profile_chars=${profileContext.length}`);
 
-  // Optimize via Anthropic Haiku 4.5 — see anthropic.ts for model rationale.
+  // Optimize via Gemini 2.5 Flash (free tier). See gemini.ts for provider rationale.
   const tLLM = Date.now();
   try {
-    const cvSpec = await optimizeCvAnthropic(
+    const cvSpec = await optimizeCvGemini(
       cv_text,
       jd_text,
       SYSTEM_PROMPT,
       RESPONSE_SCHEMA,
-      env.ANTHROPIC_API_KEY ?? "",
+      env.GEMINI_API_KEY ?? "",
       profileContext,
     );
-    console.log(`[timing] anthropic ${Date.now() - tLLM}ms total ${Date.now() - t0}ms`);
+    console.log(`[timing] gemini ${Date.now() - tLLM}ms total ${Date.now() - t0}ms`);
     return Response.json(cvSpec, { status: 200 });
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200);
-    console.error(`[optimize] Anthropic call failed after ${Date.now() - tLLM}ms: ${detail}`);
+    console.error(`[optimize] Gemini call failed after ${Date.now() - tLLM}ms: ${detail}`);
     return Response.json({ error: "optimize_failed", detail }, { status: 502 });
   }
 }
