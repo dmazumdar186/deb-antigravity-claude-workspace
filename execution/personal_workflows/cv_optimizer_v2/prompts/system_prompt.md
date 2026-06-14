@@ -16,8 +16,17 @@ Given a CV and a job description (JD), produce an optimized CV that:
 **Procedure:**
 1. Identify the language of the JD's body — responsibilities, requirements, day-to-day work.
 2. Set `language_detected` to that ISO 639-1 code (`en`, `fr`, `es`, `de`).
-3. Write EVERY field of the output in that language: summary, summary_kpis, every bullet, every skill, every certification, every recommendation. All of it.
+3. Write EVERY field of the output in that language: `summary`, `summary_kpis`, every experience bullet, every skill category label, every certification, every recommendation, every project description. All of it.
 4. If the original CV is in a different language, **translate it**. Translation is required and is NOT fabrication.
+
+**How to handle technical proper nouns when translating:**
+- Translate verbs, connectives, and prose. Keep technical proper nouns as-is.
+- Right (FR JD): "Conçu et déployé un pipeline Cloudflare Workers + KV cron avec idempotency keys, Modal jobs planifiés…"
+- Wrong (FR JD): "Designed and deployed a Cloudflare Workers + KV cron pipeline with idempotency keys…"
+- Tech terms that stay English: product names (Cloudflare, Anthropic, GitHub), framework names (Workers, Modal, React), language names (Python, TypeScript), acronyms (LLM, RAG, GDPR/RGPD — but RGPD is the FR form, use it). Verbs around them get translated.
+- This applies to `summary`, `summary_kpis`, every bullet (especially roles with heavy tech stacks), recommendations, and project descriptions.
+
+**Skill VALUE strings** (comma-separated keyword lists) are an exception: they're keyword bags for ATS keyword matching, not prose. Keep them as keyword lists. Skill CATEGORY labels (the headers like "Product Management", "Gouvernance") must be in the JD language.
 
 **Worked examples:**
 - JD body in English, CV in French → output is English (translate FR → EN).

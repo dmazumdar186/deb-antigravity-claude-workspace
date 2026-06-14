@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d1b3d">
+  <title>Workspace Status</title>
+  <style>
+    :root {
+      --navy: #0d1b3d;
+      --teal: #14a085;
+      --muted: #6a7280;
+      --rule: #e5e7eb;
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --ok: #14a085;
+      --warn: #d97706;
+      --err: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: var(--bg);
+      color: #111;
+      line-height: 1.4;
+      font-size: 15px;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 4px;
+      color: var(--navy);
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .card-h {
+      font-weight: 600;
+      color: var(--navy);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill.ok { background: #e6f7f1; color: var(--ok); }
+    .pill.warn { background: #fef3c7; color: var(--warn); }
+    .pill.err { background: #fee2e2; color: var(--err); }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 14px;
+    }
+    .row:last-child { border-bottom: none; }
+    .row .k { color: var(--muted); }
+    .row .v { font-weight: 500; font-family: ui-monospace, "Cascadia Mono", monospace; font-size: 13px; }
+    pre {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 6px 0 0;
+      font-family: ui-monospace, "Cascadia Mono", monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .status-md {
+      font-size: 14px;
+    }
+    .status-md h1 { font-size: 18px; margin: 8px 0 4px; }
+    .status-md h2 { font-size: 15px; margin: 12px 0 4px; color: var(--navy); }
+    .status-md p { margin: 4px 0; }
+    .status-md ul { padding-left: 20px; margin: 4px 0; }
+    .status-md li { margin: 2px 0; }
+    .status-md blockquote { margin: 4px 0; padding: 4px 8px; border-left: 3px solid var(--teal); color: var(--muted); background: #f0faf6; }
+    .status-md code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .status-md a { color: var(--teal); }
+    .refresh-btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 0;
+      background: var(--navy);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .ts { color: var(--muted); font-size: 11px; margin-top: 4px; }
+    .lbl { color: var(--muted); font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Workspace Status</h1>
+    <div class="subtitle">Bookmarkable mobile dashboard for cv_optimizer_v2 + workspace at large.</div>
+
+    <div class="card">
+      <div class="card-h">Worker health</div>
+      <div id="health-loading">Loading…</div>
+      <div id="health" style="display:none;">
+        <div class="row"><span class="k">Status</span><span class="v"><span id="h-status" class="pill"></span></span></div>
+        <div class="row"><span class="k">Version</span><span class="v" id="h-version">—</span></div>
+        <div class="row"><span class="k">KV check</span><span class="v" id="h-kv">—</span></div>
+        <div class="row"><span class="k">Prompt fingerprint</span><span class="v" id="h-prompt">—</span></div>
+        <div class="row"><span class="k">Schema fingerprint</span><span class="v" id="h-schema">—</span></div>
+        <div class="row"><span class="k">Secrets present</span><span class="v" id="h-secrets">—</span></div>
+        <div class="ts" id="h-ts">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Status notes</div>
+      <div id="status-md" class="status-md">Loading…</div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Recent commits</div>
+      <div id="commits">Loading…</div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadAll()">Refresh</button>
+    <div class="ts" style="text-align:center;" id="last-refresh"></div>
+  </div>
+
+<script>
+const REPO = "dmazumdar186/deb-antigravity-claude-workspace";
+const BRANCH = "main";
+const STATUS_PATH = "STATUS.md";
+
+async function loadHealth() {
+  try {
+    const r = await fetch("https://cv-optimizer-api.debanjan186.workers.dev/api/health", { cache: "no-store" });
+    const j = await r.json();
+    document.getElementById("health-loading").style.display = "none";
+    document.getElementById("health").style.display = "block";
+    const stPill = document.getElementById("h-status");
+    stPill.textContent = j.status;
+    stPill.className = "pill " + (j.status === "ok" ? "ok" : "warn");
+    document.getElementById("h-version").textContent = j.version;
+    document.getElementById("h-kv").textContent = j.kv_check;
+    document.getElementById("h-prompt").textContent = j.prompt_fingerprint || "—";
+    document.getElementById("h-schema").textContent = j.schema_fingerprint || "—";
+    const sp = j.secrets_present || {};
+    document.getElementById("h-secrets").textContent =
+      Object.entries(sp).map(([k, v]) => `${k}:${v ? "✓" : "✗"}`).join(" ");
+    document.getElementById("h-ts").textContent = j.timestamp;
+  } catch (err) {
+    document.getElementById("health-loading").textContent = "Health endpoint unreachable: " + err.message;
+  }
+}
+
+// Minimal markdown renderer — handles h1/h2/lists/links/code/bold/blockquote.
+function renderMd(md) {
+  const lines = md.split(/\r?\n/);
+  let html = "";
+  let inList = false;
+  for (const raw of lines) {
+    let line = raw;
+    // Block delimiters
+    if (line.startsWith("# ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h1>${esc(line.slice(2))}</h1>`; continue; }
+    if (line.startsWith("## ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h2>${esc(line.slice(3))}</h2>`; continue; }
+    if (line.startsWith("> ")) { if (inList) { html += "</ul>"; inList = false; } html += `<blockquote>${inline(line.slice(2))}</blockquote>`; continue; }
+    if (line.match(/^[-*]\s+/)) {
+      if (!inList) { html += "<ul>"; inList = true; }
+      html += `<li>${inline(line.replace(/^[-*]\s+/, ""))}</li>`;
+      continue;
+    }
+    if (inList) { html += "</ul>"; inList = false; }
+    if (line.trim().length === 0) { html += "<p></p>"; continue; }
+    html += `<p>${inline(line)}</p>`;
+  }
+  if (inList) html += "</ul>";
+  return html;
+}
+function inline(s) {
+  let x = esc(s);
+  // bold **text**
+  x = x.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  // inline code `text`
+  x = x.replace(/`([^`]+)`/g, "<code>$1</code>");
+  // links [text](url)
+  x = x.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // bare urls
+  x = x.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  return x;
+}
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+async function loadStatusMd() {
+  try {
+    // Pull from raw.githubusercontent for fresh content (no caching layer).
+    const url = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${STATUS_PATH}?t=${Date.now()}`;
+    const r = await fetch(url, { cache: "no-store" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const md = await r.text();
+    document.getElementById("status-md").innerHTML = renderMd(md);
+  } catch (err) {
+    document.getElementById("status-md").textContent = "Could not load STATUS.md: " + err.message;
+  }
+}
+
+async function loadCommits() {
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=5&sha=${BRANCH}`, { cache: "no-store" });
+    const arr = await r.json();
+    const div = document.getElementById("commits");
+    div.innerHTML = "";
+    for (const c of arr) {
+      const sha = c.sha.slice(0, 7);
+      const msg = (c.commit.message || "").split("\n")[0];
+      const when = new Date(c.commit.author.date).toLocaleString();
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `<span class="k">${esc(sha)}</span><span class="v" style="text-align:right; max-width: 70%;">${esc(msg)}<div class="lbl">${esc(when)}</div></span>`;
+      div.appendChild(row);
+    }
+  } catch (err) {
+    document.getElementById("commits").textContent = "Could not load commits: " + err.message;
+  }
+}
+
+async function loadAll() {
+  document.getElementById("last-refresh").textContent = "Refreshing…";
+  await Promise.all([loadHealth(), loadStatusMd(), loadCommits()]);
+  document.getElementById("last-refresh").textContent = "Refreshed " + new Date().toLocaleTimeString();
+}
+
+loadAll();
+// Auto-refresh every 60s while page is foreground
+setInterval(() => { if (document.visibilityState === "visible") loadAll(); }, 60_000);
+</script>
+</body>
+</html>

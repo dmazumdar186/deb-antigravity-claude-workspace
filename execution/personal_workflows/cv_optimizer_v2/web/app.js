@@ -84,7 +84,7 @@
   optimizeBtn.addEventListener("click", async () => {
     clearError();
     optimizeBtn.disabled = true;
-    showStatus("Calling Gemini ... this typically takes 8-15 seconds.");
+    showStatus("Optimizing with Sonnet 4.6 ... this typically takes 25-50 seconds.");
 
     try {
       const resp = await fetch("/api/optimize", {

@@ -12,12 +12,15 @@ import { isCVSpec } from "./cv_schema.js";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 
-// Model selection — measured 2026-06-13 with the live system prompt + cv_response_schema:
-//   - Sonnet 4.6:    53s on real CV+JD (TIMES OUT under 30s Cloudflare Pages wall)
-//   - Haiku 4.5:     25s on same input  (FITS — same ATS score, same correct language detection)
-//   - Opus 4.8:      not benchmarked (would be slower than Sonnet; not viable for sync request)
-// Haiku 4.5 also ~4x cheaper. Upgrade to Sonnet only if quality degrades on real use.
-const DEFAULT_MODEL = "claude-haiku-4-5";
+// Model: Sonnet 4.6. Per workspace model-tier policy (2026-06-14), Haiku is BANNED
+// for user-facing single-shot work. The earlier Haiku choice was justified by a 30s
+// "Pages wall" which turned out to be self-imposed (Phase A removed it). Deep-eval on
+// 2026-06-14 then exposed Haiku producing English connective syntax in bullets under
+// FR JDs (langdetect flagged experience[1].bullets[1] across 4 of 8 cases). Sonnet
+// handles the multi-lingual "translate prose, keep tech nouns" instruction reliably.
+// Cost delta: ~$0.05/call vs ~$0.015/call → $2.50/yr vs $0.75/yr at 50 calls. Rounding
+// error against a career-relevant artifact.
+const DEFAULT_MODEL = "claude-sonnet-4-6";
 
 export async function optimizeCvAnthropic(
   cvText: string,
