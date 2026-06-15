@@ -81,13 +81,19 @@ def test_perf_pre_pass_adversarial():
 
 
 def test_perf_real_gemini_300chars():
+    import pytest as _pytest
     if not os.environ.get("GEMINI_API_KEY"):
-        print("      SKIP: GEMINI_API_KEY not set")
-        return
+        _pytest.skip("GEMINI_API_KEY not set")
     text = "Certainly! I'd be happy to explain how this comprehensive system leverages robust synergies."
     start = time.perf_counter()
     r = _cli("--text", text, "--tier", "gemini")
     elapsed = time.perf_counter() - start
+    if r.returncode != 0:
+        # Gemini free-tier 429 is environmental — skip, don't fail
+        stderr_low = (r.stderr or "").lower()
+        for m in ("resource_exhausted", "exceeded your current quota", "free_tier_requests", "quota exceeded"):
+            if m in stderr_low:
+                _pytest.skip(f"Gemini free-tier quota exhausted: {m}")
     assert r.returncode == 0, f"Gemini call failed: {r.stderr}"
     assert elapsed < 30.0, f"Gemini 300ch call took {elapsed:.2f}s (threshold: 30s)"
     print(f"      Gemini real call 300ch: {elapsed:.2f}s (< 30s OK)")

@@ -15,15 +15,22 @@ SCRIPT = WORKSPACE / "execution" / "video" / "youtube_video_analyzer.py"
 TEST_URL = "https://youtu.be/BedAaB1RKgE"
 
 
+from conftest import skip_if_youtube_blocked
+
+
 def _run(*args, env_override=None):
-    import copy
-    env = copy.copy(os.environ)
+    # dict(os.environ), NOT copy.copy(os.environ): copy.copy returns an _Environ
+    # proxy that shares state with the parent — mutations leak across tests.
+    env = dict(os.environ)
     if env_override:
         env.update(env_override)
-    return subprocess.run(
+    r = subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(WORKSPACE),
     )
+    if r.returncode != 0:
+        skip_if_youtube_blocked(r.stderr)
+    return r
 
 
 # ---------------------------------------------------------------------------

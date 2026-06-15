@@ -409,11 +409,106 @@ def _render_report(findings: list[dict], n_scanned: int, quiet: bool = False) ->
     return "\n".join(lines)
 
 
+def _rule_haiku_banned() -> list[dict]:
+    """Rule: Claude Haiku 4.5 is banned workspace-wide per ~/.claude/rules/model-tier.md (2026-06-14).
+
+    Flags any source/config reference to a Haiku 4.5 model id in actively-
+    executing code. Skips:
+      - AM-locked paths (frozen project)
+      - api-proxy/ (explicit AM lockdown)
+      - Docs (.md), workspace templates (_TEMPLATE*), and HARDENING_BACKLOG /
+        HANDOFF / CLAUDE.md (these describe the ban, not invoke Haiku)
+      - tests/ (may legitimately exercise Haiku-handling code paths)
+      - lines that explicitly mark Haiku as banned/forbidden
+
+    Scope: .py / .ts / .js / .json under execution/ (and equivalent).
+    """
+    findings = []
+    haiku_re = re.compile(
+        r"(?:anthropic[/.])?claude[-.]haiku[-.]4[-.]\d",
+        re.IGNORECASE,
+    )
+    ban_marker_re = re.compile(
+        r"haiku.*(?:banned|ban\b|forbidden|do[- ]?not[- ]?use|frozen|legacy|previous|earlier)",
+        re.IGNORECASE,
+    )
+    # Only flag actively-executing source code; skip docs/notes/templates/tests.
+    suffixes = (".py", ".ts", ".js", ".jsx", ".tsx", ".json", ".toml")
+    skip_dirs = _SKIP_DIRS_PY | {".anneal", ".claude", "out", "dist", "build", "tests", "docs"}
+    # Workspace-level docs that discuss the ban itself.
+    skip_filenames = {"HANDOFF.md", "CLAUDE.md", "CLAUDE.local.md", "HARDENING_BACKLOG.md", "STATUS.md", "README.md"}
+    # AM-coupled-by-purpose shared modules (not name-locked but functionally frozen
+    # per the AM handoff). Listed by relative path so the operator can review and
+    # remove later if they become non-AM.
+    skip_relpaths = {
+        "execution/modules/outputs/auto_reply.py",
+        "execution/modules/reply_classifier.py",
+    }
+
+    for path in WORKSPACE_ROOT.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.suffix not in suffixes:
+            continue
+        if any(s in path.parts for s in skip_dirs):
+            continue
+        # Explicit AM lockdown (api-proxy/) beyond the name-pattern check.
+        rel_parts = path.relative_to(WORKSPACE_ROOT).parts if path.is_relative_to(WORKSPACE_ROOT) else path.parts
+        if "api-proxy" in rel_parts:
+            continue
+        if _is_am_locked(str(path)):
+            continue
+        if path.name in skip_filenames:
+            continue
+        # Templates show example tier maps but don't execute.
+        if path.name.startswith("_TEMPLATE"):
+            continue
+        # AM-coupled-by-purpose modules listed above.
+        rel_str = str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/") if path.is_relative_to(WORKSPACE_ROOT) else ""
+        if rel_str in skip_relpaths:
+            continue
+        # Never flag the SAST rule itself (this file contains the pattern).
+        if path.resolve() == Path(__file__).resolve():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if not haiku_re.search(text):
+            continue
+        rel = str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+        text_lines = text.splitlines()
+        for lineno, line in enumerate(text_lines, start=1):
+            if not haiku_re.search(line):
+                continue
+            # Skip if this line OR the previous 2 lines mark Haiku as banned.
+            prev_window = "\n".join(text_lines[max(0, lineno - 3):lineno])
+            if ban_marker_re.search(prev_window):
+                continue
+            if not ban_marker_re.search(line):
+                findings.append(
+                    {
+                        "severity": "critical",
+                        "file": rel,
+                        "line": lineno,
+                        "rule_id": "haiku-banned",
+                        "message": (
+                            "Claude Haiku 4.5 reference found. Haiku 4.5 is banned "
+                            "workspace-wide per ~/.claude/rules/model-tier.md "
+                            "(2026-06-14). Use Sonnet 4.6 minimum."
+                        ),
+                        "tool": "workspace-native",
+                    }
+                )
+    return findings
+
+
 # ── Known native rules ────────────────────────────────────────────────────────
 
 _NATIVE_RULES: dict[str, callable] = {
     "exit-criteria-missing": _rule_exit_criteria_missing,
     "subprocess-encoding": _rule_subprocess_encoding,
+    "haiku-banned": _rule_haiku_banned,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())

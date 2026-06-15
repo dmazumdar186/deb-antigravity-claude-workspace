@@ -33,6 +33,10 @@ def _classify_n_times(body: str, n: int) -> list[str]:
 
 
 @pytest.mark.skipif(not HAS_API_KEY, reason=SKIP_REASON)
+@pytest.mark.skipif(
+    os.environ.get("OR_CREDITS_OK", "") != "1",
+    reason="OR_CREDITS_OK!=1 — OpenRouter credit balance unknown/empty; set OR_CREDITS_OK=1 after top-up",
+)
 class TestClassifierReliability:
 
     @pytest.fixture(scope="class", autouse=True)
@@ -40,7 +44,13 @@ class TestClassifierReliability:
         """Run the full golden set RUNS times and store results on the class."""
         results = {}
         for case in SAMPLE_REPLIES:
-            runs = _classify_n_times(case["body"], RUNS)
+            try:
+                runs = _classify_n_times(case["body"], RUNS)
+            except Exception as e:
+                low = str(e).lower()
+                if "402" in low or "insufficient credits" in low or "rate limit" in low:
+                    pytest.skip(f"OpenRouter exhausted: {e}")
+                raise
             accepted = set(case.get("accept", [case["expected"]]))
             results[case["label"]] = {
                 "expected": case["expected"],

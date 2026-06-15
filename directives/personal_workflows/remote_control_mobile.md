@@ -79,6 +79,12 @@ That script:
 - Layer 3 launch script (`execution/personal_workflows/remote_control_mobile/launch.ps1`) needs operator verification — the Windows console behaviour for detached `claude --remote-control` was unreliable when first tested 2026-06-14. Confirm URL extraction works end-to-end before treating Layer 3 as production-ready.
 - Telegram notification path (optional in the launcher) needs `TELEGRAM_BOT_TOKEN` provisioning. Defer to when user has time.
 
+## Exit Criteria
+
+- Layer 1: `STATUS.md` edits propagate to `https://cv-optimizer.pages.dev/status` within 60s (manual mobile reload).
+- Layer 2: claude.ai/code accepts a phone-issued prompt and returns a coherent reply for this workspace (signed into same Anthropic account).
+- Layer 3: double-clicking the desktop shortcut opens a real cmd.exe console, `claude --remote-control` prints a connection URL within 30s, the URL opens on phone, and a phone-issued prompt executes a file edit + commit on the laptop. **Not yet verified.**
+
 ## Related
 
 - Layer 1 status page source: `execution/personal_workflows/cv_optimizer_v2/web/status.html`

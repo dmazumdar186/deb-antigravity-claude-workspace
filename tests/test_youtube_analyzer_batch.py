@@ -54,15 +54,21 @@ VALID_URL_1 = "https://youtu.be/jNQXAC9IVRw"   # Me at the zoo
 VALID_URL_2 = "https://youtu.be/BedAaB1RKgE"   # IBM MCP/ADK video
 
 
+from conftest import skip_if_youtube_blocked
+
+
 def _cli(*args: str, timeout: int = 30) -> subprocess.CompletedProcess:
     """Run the analyzer script with the given args; short timeout for dry-run tests."""
-    return subprocess.run(
+    r = subprocess.run(
         [sys.executable, str(SCRIPT)] + list(args),
         capture_output=True,
         text=True,
         encoding="utf-8",
         timeout=timeout,
     )
+    if r.returncode != 0:
+        skip_if_youtube_blocked(r.stderr)
+    return r
 
 
 def _make_urls_file(lines: list[str]) -> Path:

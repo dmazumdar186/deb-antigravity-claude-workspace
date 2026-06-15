@@ -111,13 +111,22 @@ def test_resolve_model_openrouter_offline():
 def test_real_gemini_llm_call():
     has_gemini = bool(os.environ.get("GEMINI_API_KEY"))
     if not has_gemini:
-        raise AssertionError("GEMINI_API_KEY not set")
+        import pytest as _pytest
+        _pytest.skip("GEMINI_API_KEY not set")
+    from conftest import skip_if_upstream_exhausted
     from humanizer import _call_llm_humanize, _build_humanize_prompt, _rules_pre_pass
     voice = load_voice(DEFAULT_VOICE)
     raw = "Certainly! I’d be happy to delve into this comprehensive topic."
     pre_cleaned, flags = _rules_pre_pass(raw, voice)
     system_p, user_p = _build_humanize_prompt(pre_cleaned, voice, flags, "generic")
-    result = _call_llm_humanize(system_p, user_p, "gemini", dry_run=False)
+    try:
+        result = _call_llm_humanize(system_p, user_p, "gemini", dry_run=False)
+    except SystemExit as e:
+        skip_if_upstream_exhausted(e)
+        raise
+    except Exception as e:
+        skip_if_upstream_exhausted(e)
+        raise
     assert isinstance(result, str) and len(result.strip()) > 0, f"Empty result: {result!r}"
     assert "DRY-RUN" not in result
 

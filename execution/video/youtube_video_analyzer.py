@@ -1394,6 +1394,7 @@ _TIER_COST_PER_M_TOKENS: dict[str, float] = {
 # Used by _estimate_cost when cache token breakdown is available.
 _CLAUDE_PRICES: dict[str, dict[str, float]] = {
     "claude-sonnet-4-6": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},
+    # Haiku 4.5 banned per model-tier.md (2026-06-14); kept for legacy cost lookups.
     "claude-haiku-4-5-20251001": {"input": 2.00, "cache_read": 0.20, "cache_write": 2.50, "output": 10.00},
     "claude-opus-4-7": {"input": 15.00, "cache_read": 1.50, "cache_write": 18.75, "output": 75.00},
 }

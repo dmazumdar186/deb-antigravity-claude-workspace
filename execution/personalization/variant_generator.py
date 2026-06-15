@@ -36,8 +36,10 @@ logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 
 # Workspace-standard model routing per --mode (matches _TEMPLATE.py pattern).
 # OpenRouter uses dot notation and anthropic/ prefix.
+# Haiku 4.5 banned per ~/.claude/rules/model-tier.md (2026-06-14). "cheap" maps
+# to Sonnet 4.6 — the rule's floor for any LLM call in this workspace.
 MODE_TO_MODEL = {
-    "cheap": "anthropic/claude-haiku-4.5",
+    "cheap": "anthropic/claude-sonnet-4.6",
     "balanced": "anthropic/claude-sonnet-4.6",
     "premium": "anthropic/claude-opus-4.7",
 }
@@ -125,7 +127,7 @@ def generate_mock_variant(human_variants: list[dict]) -> dict:
         "subject": "Thought about selling?",
         "body": "{{opener}} Business owners in {{city}} are getting serious offers right now. Worth a conversation?",
         "created_at": now_iso(),
-        "created_by": "claude-haiku-4.5",
+        "created_by": "claude-sonnet-4-6",
         "active": False,
         "instantly_step_id": None,
     }

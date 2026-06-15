@@ -35,7 +35,10 @@ def _get_client():
 def chat_completion(
     system: str,
     user_message: str,
-    model: str = "anthropic/claude-haiku-4.5",
+    # Default Sonnet 4.6 per ~/.claude/rules/model-tier.md (2026-06-14).
+    # Haiku 4.5 is banned workspace-wide. AM-frozen callers that need Haiku
+    # for compatibility pass `model=` explicitly.
+    model: str = "anthropic/claude-sonnet-4.6",
     max_tokens: int = 150,
 ) -> str:
     """Single-turn chat completion via OpenRouter. Retries on rate limit / server errors."""

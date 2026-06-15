@@ -72,6 +72,13 @@ The Worker remains live at `cv-optimizer.pages.dev` as:
 
 The Worker is no longer the "official" CV-generation path. The local CLI is.
 
+## Exit Criteria
+
+- `py execution/personal_workflows/cv_optimizer_local/tests/front_door.py --runs 5` exits 0 with 5/5 PASS.
+- Each run emits `cvspec.json`, `cv.html`, `cv.pdf`, `cv.png`, `run.log` in `--out-dir`.
+- Run latency < 360s per run; ATS score >= 80 on the en-EN fixture.
+- `claude --print --model claude-sonnet-4-6` resolves without error before the run starts.
+
 ## Related
 
 - `~/.claude/rules/front-door-synthetic.md` — the synthetic requirement.

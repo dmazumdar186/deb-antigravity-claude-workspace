@@ -57,14 +57,20 @@ VALID_URL_1 = "https://youtu.be/jNQXAC9IVRw"
 VALID_URL_2 = "https://youtu.be/BedAaB1RKgE"
 
 
+from conftest import skip_if_youtube_blocked
+
+
 def _cli(*args: str, timeout: int = 30) -> subprocess.CompletedProcess:
-    return subprocess.run(
+    r = subprocess.run(
         [sys.executable, str(SCRIPT)] + list(args),
         capture_output=True,
         text=True,
         encoding="utf-8",
         timeout=timeout,
     )
+    if r.returncode != 0:
+        skip_if_youtube_blocked(r.stderr)
+    return r
 
 
 def _fake_profile(channel_id: str = "UC_test", build_count: int = 2,

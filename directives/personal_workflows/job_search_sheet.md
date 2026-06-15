@@ -59,7 +59,7 @@ Claude reads this directive and calls the execution scripts in the correct order
 | `execution/custom_scrapers/adzuna_jobs.py` | Batch 1c (not built yet) | Adzuna free-tier scraper |
 | `execution/custom_scrapers/jooble_jobs.py` | Batch 1c (not built yet) | Jooble free-tier scraper |
 | `execution/custom_scrapers/job_filter.py` | Reused as-is (config-only extension) | Keyword + language filter |
-| `execution/personal_workflows/job_search_llm_gate.py` | Batch 1d (not built yet) | Claude Haiku primary + Gemini Flash failover |
+| `execution/personal_workflows/job_search_llm_gate.py` | Batch 1d (not built yet) | Claude Sonnet 4.6 primary + Gemini Flash failover (Haiku 4.5 banned per model-tier.md) |
 | `config/job_search.json` | Batch 1b (this batch) | Single source of truth: titles, geos, filter, LLM gate config |
 
 ---
@@ -94,7 +94,7 @@ Claude reads this directive and calls the execution scripts in the correct order
 [Stage 2.5: LLM relevance gate (Phase 1 -- uses Anthropic Max-plan credits)]
   cap: max 200 jobs/run sent to gate
   for each candidate job:
-    classify via Claude Haiku 4.5 (primary) -- if 429/5xx after 2 retries, failover to Gemini 2.0 Flash
+    classify via Claude Sonnet 4.6 (primary; Haiku 4.5 banned per model-tier.md) -- if 429/5xx after 2 retries, failover to Gemini 2.0 Flash
     -> {relevance: relevant|borderline|irrelevant, contract_type: ...}
   relevant + borderline -> continue to dedup
   irrelevant -> tag for Archive range (still written, just not in main band)
@@ -192,8 +192,8 @@ Uses the existing `compute_job_hash` function from `execution/personal_workflows
 
 Runs at Stage 2.5, after keyword filter, before dedup. Caps at **200 jobs/run** to bound wall-clock time and token spend.
 
-**Primary:** Claude Haiku 4.5 (user's Anthropic Max plan — zero incremental cost).
-**Failover:** Gemini 2.0 Flash (user's Gemini paid plan — zero incremental cost). Triggers after 2 failed retries on 429 or 5xx from Haiku.
+**Primary:** Claude Sonnet 4.6 (user's Anthropic Max plan — zero incremental cost).
+**Failover:** Gemini 2.0 Flash (user's Gemini paid plan — zero incremental cost). Triggers after 2 failed retries on 429 or 5xx from Sonnet.
 
 Each job gets one classification call:
 ```

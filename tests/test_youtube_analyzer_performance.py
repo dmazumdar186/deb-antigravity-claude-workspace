@@ -23,15 +23,21 @@ TEST_URL = "https://youtu.be/BedAaB1RKgE"
 SHORT_URL = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 
 
+from conftest import skip_if_youtube_blocked as _skip_if_youtube_blocked
+
+
 def _run(*args):
-    import copy
-    env = copy.copy(os.environ)
+    # dict(os.environ), NOT copy.copy(os.environ): copy.copy returns an _Environ
+    # proxy that shares state with the parent — mutations leak across tests.
+    env = dict(os.environ)
     t0 = time.perf_counter()
     result = subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(WORKSPACE),
     )
     elapsed = time.perf_counter() - t0
+    if result.returncode != 0:
+        _skip_if_youtube_blocked(result.stderr or "")
     return result, elapsed
 
 
@@ -136,8 +142,7 @@ def test_p8_concurrent_dry_runs():
     results = [None, None]
 
     def _run_bg(url, idx):
-        import copy
-        env = copy.copy(os.environ)
+        env = dict(os.environ)  # independent copy; _Environ proxy leaks
         r = subprocess.run(
             [sys.executable, str(SCRIPT), url, "--dry-run"],
             capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(WORKSPACE),

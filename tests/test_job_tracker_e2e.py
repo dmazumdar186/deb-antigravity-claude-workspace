@@ -75,6 +75,7 @@ def _make_args(tmp_path: Path, **overrides) -> argparse.Namespace:
         "send": False,
         "db": str(tmp_path / "jt.db"),
         "max_per_board": 200,
+        "max_workers": 4,
     }
     defaults.update(overrides)
     return argparse.Namespace(**defaults)
@@ -144,24 +145,21 @@ def test_happy_path_run(tmp_path):
     with freeze_time("2026-05-14T08:00:00+00:00"):
         exit_code = _run_with_mocks(args)
 
-    assert exit_code == 0, f"run_pipeline returned non-zero exit code: {exit_code}"
+        assert exit_code == 0, f"run_pipeline returned non-zero exit code: {exit_code}"
 
-    # Inspect DB directly
-    from execution.personal_workflows.job_tracker_db import init_db, query_active_within_window
-    import sqlite3
+        from execution.personal_workflows.job_tracker_db import init_db, query_active_within_window
+        conn = init_db(args.db)
 
-    conn = init_db(args.db)
+        jobs = query_active_within_window(conn, 7)
+        assert len(jobs) > 0, "No active jobs found after happy-path run"
 
-    jobs = query_active_within_window(conn, 7)
-    assert len(jobs) > 0, "No active jobs found after happy-path run"
+        companies = conn.execute("SELECT * FROM companies").fetchall()
+        assert len(companies) > 0, "No companies found after happy-path run"
 
-    companies = conn.execute("SELECT * FROM companies").fetchall()
-    assert len(companies) > 0, "No companies found after happy-path run"
+        contacts = conn.execute("SELECT * FROM contacts").fetchall()
+        assert len(contacts) > 0, "No contacts found after happy-path run"
 
-    contacts = conn.execute("SELECT * FROM contacts").fetchall()
-    assert len(contacts) > 0, "No contacts found after happy-path run"
-
-    conn.close()
+        conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -306,17 +304,17 @@ def test_digest_html_contains_expected_content(tmp_path):
     with freeze_time("2026-05-14T08:00:00+00:00"):
         _run_with_mocks(args)
 
-    from execution.personal_workflows.job_tracker_db import init_db, query_active_within_window
-    from execution.personal_workflows.job_digest_renderer import render_digest_html
+        from execution.personal_workflows.job_tracker_db import init_db, query_active_within_window
+        from execution.personal_workflows.job_digest_renderer import render_digest_html
 
-    conn = init_db(args.db)
-    jobs = query_active_within_window(conn, 7)
-    company_names = list({j["company_name"] for j in jobs})
-    conn.close()
+        conn = init_db(args.db)
+        jobs = query_active_within_window(conn, 7)
+        company_names = list({j["company_name"] for j in jobs})
+        conn.close()
 
-    html, included_ids = render_digest_html(args.db, window_days=7)
+        html, included_ids = render_digest_html(args.db, window_days=7)
 
-    assert len(included_ids) > 0, "Digest included no job IDs"
+        assert len(included_ids) > 0, "Digest included no job IDs"
     assert "<html" in html.lower(), "Digest output is not valid HTML"
 
     # At least one company name should appear in the HTML

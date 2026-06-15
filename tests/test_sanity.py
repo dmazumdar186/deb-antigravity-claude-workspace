@@ -125,7 +125,12 @@ class TestGitignore:
 
 
 class TestNoHardcodedSecrets:
-    """No API keys should be hardcoded in Python source files."""
+    """No API keys should be hardcoded in Python source files.
+
+    Patterns require enough trailing key-shape characters that bare prefix
+    references in redaction/detection logic (e.g. `if "sk-ant-" in msg`) do
+    not false-positive.
+    """
 
     @pytest.fixture
     def all_py_sources(self):
@@ -134,9 +139,18 @@ class TestNoHardcodedSecrets:
             sources.append((py_file.relative_to(ROOT), py_file.read_text(encoding="utf-8", errors="ignore")))
         return sources
 
-    FORBIDDEN_PATTERNS = ["sk-ant-", "pk_690ab", "cfat_H3o", "NDU3MzA4"]
+    import re as _re
+    FORBIDDEN_PATTERNS = [
+        _re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}"),
+        _re.compile(r"sk-or-v1-[A-Za-z0-9_-]{20,}"),
+        _re.compile(r"AIza[A-Za-z0-9_-]{30,}"),
+        _re.compile(r"pk_690ab[A-Za-z0-9]+"),
+        _re.compile(r"cfat_H3o[A-Za-z0-9]+"),
+        _re.compile(r"NDU3MzA4[A-Za-z0-9]+"),
+    ]
 
-    @pytest.mark.parametrize("pattern", FORBIDDEN_PATTERNS)
+    @pytest.mark.parametrize("pattern", FORBIDDEN_PATTERNS, ids=lambda p: p.pattern)
     def test_no_hardcoded_key(self, pattern, all_py_sources):
         for rel_path, content in all_py_sources:
-            assert pattern not in content, f"Hardcoded key pattern '{pattern}' found in {rel_path}"
+            match = pattern.search(content)
+            assert match is None, f"Hardcoded key pattern '{pattern.pattern}' found in {rel_path}: {match.group(0)[:32]}..."

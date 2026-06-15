@@ -4,7 +4,6 @@ Run: py -m pytest tests/test_youtube_analyzer_monkey.py -v -s
 All tests verify graceful failure. No API spend. Non-destructive.
 """
 from __future__ import annotations
-import copy
 import json
 import os
 import pathlib
@@ -17,14 +16,22 @@ TEST_URL = "https://youtu.be/BedAaB1RKgE"
 CACHE_PATH = WORKSPACE / ".tmp" / "model_registry.json"
 
 
+from conftest import skip_if_youtube_blocked
+
+
 def _run(*args, extra_env=None):
-    env = copy.copy(os.environ)
+    # dict(os.environ), NOT copy.copy(os.environ): the latter returns an
+    # _Environ proxy that shares state with the parent — mutations leak.
+    env = dict(os.environ)
     if extra_env:
         env.update(extra_env)
-    return subprocess.run(
+    r = subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(WORKSPACE),
     )
+    if r.returncode != 0:
+        skip_if_youtube_blocked(r.stderr)
+    return r
 
 
 def _no_stack_trace(stderr):
@@ -158,13 +165,21 @@ def test_m13_tampered_model_registry():
 
 
 def test_m14_empty_api_key_treated_as_missing():
-    env_override = copy.copy(os.environ)
+    # Set all three to empty strings (not pop) so load_dotenv() in the child
+    # process sees them as "already set" and does not refill from .env.
+    # dict() not copy.copy() — _Environ proxy leaks mutations into the parent.
+    env_override = dict(os.environ)
     env_override["OPENROUTER_API_KEY"] = ""
-    env_override.pop("ANTHROPIC_API_KEY", None)
-    env_override.pop("GEMINI_API_KEY", None)
+    env_override["ANTHROPIC_API_KEY"] = ""
+    env_override["GEMINI_API_KEY"] = ""
     r = _run(TEST_URL, "--dry-run", extra_env=env_override)
-    assert r.returncode != 0, f"Should fail with no valid API keys"
-    assert "OPENROUTER_API_KEY" in r.stderr or "ANTHROPIC_API_KEY" in r.stderr
+    assert r.returncode != 0, f"Should fail with no valid API keys; stdout={r.stdout[-400:]} stderr={r.stderr[-400:]}"
+    assert (
+        "OPENROUTER_API_KEY" in r.stderr
+        or "ANTHROPIC_API_KEY" in r.stderr
+        or "GEMINI_API_KEY" in r.stderr
+        or "API key" in r.stderr
+    )
 
 
 def test_m15_massive_url():

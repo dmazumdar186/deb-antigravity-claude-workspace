@@ -90,3 +90,10 @@ After first real run:
 - Does NOT poll faster than once per 24h. Hourly polling burns Firecrawl credit without proportional signal.
 - Does NOT include broad LLM/AI news (OpenAI, Google, Meta) — Anthropic-ecosystem only.
 - Does NOT propose its own opinions — only surfaces dated, sourced announcements with Claude-generated tldr.
+
+## Exit Criteria
+
+- `py execution/personal_workflows/anthropic_watch/run.py --dry-run` exits 0 with `would_*` counters logged per source.
+- A real run appends >=1 dated row to `.claude/watch/anthropic_ledger.jsonl` without duplicate `entry_id` collisions.
+- Firecrawl 429s log a single WARN and do not abort the remaining sources.
+- Digest output contains source URLs for every claim — no Claude-fabricated dates or links.

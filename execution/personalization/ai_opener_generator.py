@@ -38,13 +38,15 @@ logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 
 # Workspace-standard model routing per --mode (matches _TEMPLATE.py pattern).
 # OpenRouter uses dot notation and anthropic/ prefix; Anthropic SDK uses dash notation.
+# Haiku 4.5 banned per ~/.claude/rules/model-tier.md (2026-06-14). "cheap" maps
+# to Sonnet 4.6 — the rule's floor for user-facing LLM output.
 MODE_TO_MODEL_OPENROUTER = {
-    "cheap": "anthropic/claude-haiku-4.5",
+    "cheap": "anthropic/claude-sonnet-4.6",
     "balanced": "anthropic/claude-sonnet-4.6",
     "premium": "anthropic/claude-opus-4.7",
 }
 MODE_TO_MODEL_ANTHROPIC = {
-    "cheap": "claude-haiku-4-5",
+    "cheap": "claude-sonnet-4-6",
     "balanced": "claude-sonnet-4-6",
     "premium": "claude-opus-4-7",
 }
@@ -53,6 +55,8 @@ DEFAULT_MODE = "balanced"
 # Per python-hardening rule 4: 4 entries per model (input, cache_read, cache_write, output).
 # Prices in USD per million tokens.
 ANTHROPIC_PRICING: dict[str, dict[str, float]] = {
+    # Haiku 4.5 banned per model-tier.md (2026-06-14); entry kept only so that
+    # legacy cost calculations on AM-frozen call records still resolve.
     "claude-haiku-4-5": {
         "input": 0.80,
         "cache_read": 0.08,   # 0.1× input
