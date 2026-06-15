@@ -1,0 +1,6 @@
+# Per-run synthetic outputs (timestamped dirs)
+tests/out/
+
+# Python bytecode
+__pycache__/
+*.pyc

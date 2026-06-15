@@ -1,0 +1,26 @@
+Senior AI Product Manager - Generative AI Platform
+Acme AI - Remote (Europe)
+
+About the role:
+We are looking for a Senior Product Manager to lead our Generative AI platform. You will own the strategy and roadmap for LLM-powered features used by enterprise customers globally. The role partners with engineering, data science, design, and go-to-market teams.
+
+What you will do:
+- Define the vision and 12-month roadmap for our AI platform
+- Write detailed PRDs covering API contracts, evaluation thresholds, latency budgets, and non-determinism handling
+- Drive go-to-market for new AI capabilities including enablement playbooks and customer success workflows
+- Build measurement frameworks for adoption, accuracy, drift, and incident response
+- Partner with security, legal, and privacy teams on GDPR-compliant AI deployment
+
+What we are looking for:
+- 8+ years of product management experience including 3+ years building production AI/ML or LLM-powered products
+- Track record of shipping high-impact features with measurable outcomes (adoption, latency, precision)
+- Strong technical depth: comfortable reading API docs, writing SQL, sketching architecture
+- Experience with RAG, multi-agent systems, prompt engineering, and evaluation frameworks
+- Excellent written and verbal English; ability to influence cross-functional stakeholders
+
+Nice to have:
+- Hands-on experience with OpenAI, Anthropic Claude, Gemini APIs
+- Familiarity with Cloudflare Workers, edge compute, serverless architectures
+- AWS Solutions Architect or equivalent certification
+
+Compensation: 110-150K EUR base plus equity. Generous remote work policy across Europe.
