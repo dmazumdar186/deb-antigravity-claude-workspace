@@ -233,6 +233,26 @@ async function handleOptimize(req: Request, env: Env): Promise<Response> {
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200);
     console.error(`[optimize] Gemini call failed after ${Date.now() - tLLM}ms: ${detail}`);
+
+    // Typed Gemini quota-exhausted error from gemini.ts — surface as 429 with
+    // structured body so the Pages frontend can show a useful message instead
+    // of a generic 502. Note: the operator's daily Gemini quota resets at ~9am
+    // Paris time; the body includes a retry hint when Google provided one.
+    const typed = err as Error & { code?: string; retryAfterSeconds?: number };
+    if (typed?.code === "gemini_quota_exhausted") {
+      return Response.json(
+        {
+          error: "gemini_quota_exhausted",
+          detail,
+          retry_after_seconds: typed.retryAfterSeconds,
+          message:
+            "Gemini free-tier daily quota exhausted. Resets around 09:00 Paris time. " +
+            "Use the local CLI (execution/personal_workflows/cv_optimizer_local/) as fallback.",
+        },
+        { status: 429 },
+      );
+    }
+
     return Response.json({ error: "optimize_failed", detail }, { status: 502 });
   }
 }

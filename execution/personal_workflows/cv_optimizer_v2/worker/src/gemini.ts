@@ -66,6 +66,35 @@ export async function optimizeCvGemini(
 
   if (!res.ok) {
     const errText = await res.text();
+    // Gemini free-tier quota exhaustion returns 429 with body containing
+    // `RESOURCE_EXHAUSTED`. Surface this as a typed error so the Worker can
+    // return a structured 429 to the client (with retry_after) instead of
+    // bubbling up as a generic 500.
+    if (res.status === 429 || /resource_exhausted/i.test(errText)) {
+      // Try to extract Google's suggested retry delay if present.
+      let retryAfterSeconds: number | undefined;
+      try {
+        const parsed = JSON.parse(errText) as {
+          error?: { details?: { '@type'?: string; retryDelay?: string }[] };
+        };
+        const retry = parsed?.error?.details?.find(
+          (d) => typeof d?.retryDelay === "string",
+        )?.retryDelay;
+        if (retry) {
+          const m = /^(\d+)(?:\.\d+)?s$/.exec(retry);
+          if (m) retryAfterSeconds = parseInt(m[1], 10);
+        }
+      } catch {
+        // Body wasn't JSON — leave retryAfterSeconds undefined.
+      }
+      const err = new Error(
+        `gemini_quota_exhausted: free-tier limit reached${retryAfterSeconds ? `; retry in ${retryAfterSeconds}s` : ""}`,
+      );
+      // Attach typed metadata so the Worker layer can build the client response.
+      (err as Error & { code?: string; retryAfterSeconds?: number }).code = "gemini_quota_exhausted";
+      (err as Error & { retryAfterSeconds?: number }).retryAfterSeconds = retryAfterSeconds;
+      throw err;
+    }
     throw new Error(`gemini_http_${res.status}: ${errText.slice(0, 400)}`);
   }
 
