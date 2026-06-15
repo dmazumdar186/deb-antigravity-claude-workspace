@@ -1,4 +1,21 @@
 {
   "schema_version": 1,
-  "apps": []
+  "apps": [
+    {
+      "slug": "demo-app-001",
+      "repo_path": "C:\\Users\\deban\\dev\\mobile-apps\\demo-app-001",
+      "backend_stack": null,
+      "spec_summary": null,
+      "ios_bundle_id": null,
+      "android_package": null,
+      "eas_project_id": null,
+      "last_build_sha": null,
+      "health_url": null,
+      "play_tester_gate_started_at": null,
+      "play_tester_count_manual": null,
+      "last_security_audit_at": null,
+      "audit_passes_run": 0,
+      "created_at": "2026-06-15T13:46:50.269415+00:00"
+    }
+  ]
 }
