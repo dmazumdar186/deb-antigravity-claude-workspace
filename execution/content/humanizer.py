@@ -67,6 +67,13 @@ WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 VOICES_DIR = Path(__file__).resolve().parent / "voices"
 MAX_INPUT_CHARS = 5000
 DEFAULT_VOICE = "debanjan"
+# Minimum text length before langdetect output becomes reliable. Shorter
+# strings produce coin-flip results and would fire false-positive language
+# guards; we silently skip the guard below this threshold.
+MIN_LANGDETECT_CHARS = 30
+# Languages that langdetect commonly confuses with each other; treat them as
+# equivalent so the guard does not flap on borderline FR/EN cases.
+_LANG_EQUIV = {("en", "ca"), ("ca", "en"), ("fr", "ca"), ("ca", "fr")}
 
 # ---------------------------------------------------------------------------
 # Regex AI-tell patterns
@@ -660,6 +667,51 @@ def _show_diff(original: str, humanized: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Language guard (per eval-first.md — per-field langdetect on LLM output)
+# ---------------------------------------------------------------------------
+
+def _detect_lang(text: str) -> str | None:
+    """Return ISO 639-1 lang code or None if text is too short / detection fails."""
+    if not text or len(text.strip()) < MIN_LANGDETECT_CHARS:
+        return None
+    try:
+        from langdetect import detect, DetectorFactory  # local import: keeps module load cheap
+        DetectorFactory.seed = 0  # deterministic across calls
+        return detect(text)
+    except Exception:
+        # LangDetectException is the typical failure (e.g. "No features in text")
+        # Don't crash the humanizer — just skip the guard.
+        return None
+
+
+def _check_language_match(input_text: str, output_text: str, force_lang: str | None) -> tuple[bool, str | None]:
+    """Compare detected input vs output language.
+
+    Returns (matched, message). `matched` is True if either:
+      - --lang FORCE matches the output
+      - input and output detect to the same language
+      - input/output too short to detect reliably (no guard fires)
+      - input and output are in an equivalent-pair (e.g. en/ca confusion)
+
+    The message is a human-readable diagnostic suitable for stderr.
+    """
+    out_lang = _detect_lang(output_text)
+    if force_lang:
+        if out_lang is None:
+            return True, None  # too short to verify; trust the force
+        if out_lang == force_lang or (out_lang, force_lang) in _LANG_EQUIV:
+            return True, None
+        return False, f"forced --lang={force_lang} but output detected as {out_lang}"
+
+    in_lang = _detect_lang(input_text)
+    if in_lang is None or out_lang is None:
+        return True, None  # one side too short — no signal
+    if in_lang == out_lang or (in_lang, out_lang) in _LANG_EQUIV:
+        return True, None
+    return False, f"input detected as {in_lang} but output detected as {out_lang}"
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -693,6 +745,25 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--dry-run", action="store_true",
                         help="Skip LLM call -> show pre-pass output and cost estimate")
+    parser.add_argument(
+        "--lang",
+        default=None,
+        metavar="CODE",
+        help="Force output language (ISO 639-1, e.g. fr, en). When set, "
+             "the language guard requires the output to match this code; "
+             "otherwise it requires the output to match the input language.",
+    )
+    parser.add_argument(
+        "--no-lang-guard",
+        action="store_true",
+        help="Skip the post-LLM langdetect check (e.g. for code/numbers-only inputs).",
+    )
+    parser.add_argument(
+        "--strict-lang",
+        action="store_true",
+        help="Treat a language mismatch as a fatal error (exit 3). "
+             "Without this flag, mismatches log a WARN and the text still prints.",
+    )
     return parser
 
 
@@ -789,6 +860,17 @@ def main() -> int:
         max_len = 280
 
     humanized = _platform_post_process(humanized, args.platform, max_len)
+
+    # ---------------------------------------------------------------------------
+    # Stage 5: Language guard (eval-first.md — per-field langdetect on output)
+    # ---------------------------------------------------------------------------
+    if not args.no_lang_guard and not args.dry_run:
+        ok, msg = _check_language_match(original_input, humanized, args.lang)
+        if not ok:
+            if args.strict_lang:
+                log.error("language guard failed: %s — refusing to emit output", msg)
+                return 3
+            log.warning("language guard: %s", msg)
 
     # ---------------------------------------------------------------------------
     # Output
