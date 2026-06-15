@@ -198,6 +198,38 @@ def apply_overlay(project_dir: Path, slug: str, title: str,
     print(f"  .template-version: SHA = {upstream_sha}")
 
 
+def tsc_compile_check(project_dir: Path) -> tuple[bool, str]:
+    """Post-overlay TypeScript compile check.
+
+    Runs `npx tsc --noEmit` inside the project to verify Root.tsx imports and
+    schema types compile cleanly. Returns (ok, message). Soft-skip if `npx`
+    isn't on PATH — operators on a machine without Node still get a warning,
+    not a bootstrap failure.
+
+    Audit gap: a Root.tsx import drift against the upstream template used to
+    only surface when the operator ran `npm run dev` for the first time. The
+    compile check catches it at scaffolding time.
+    """
+    if shutil.which("npx") is None:
+        return True, "skip: npx not on PATH"
+    try:
+        r = subprocess.run(
+            ["npx", "tsc", "--noEmit"],
+            cwd=str(project_dir),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        return True, f"skip: tsc invocation failed ({type(e).__name__}: {e})"
+    if r.returncode == 0:
+        return True, "tsc --noEmit: OK"
+    tail = (r.stderr or r.stdout or "").splitlines()[-12:]
+    return False, "tsc --noEmit failed:\n" + "\n".join(tail)
+
+
 # ── Create ───────────────────────────────────────────────────────────────────
 
 def cmd_create(
@@ -387,6 +419,19 @@ def cmd_create(
     apply_overlay(
         project_dir, slug, title, fps, width, height, duration_in_frames, upstream_sha
     )
+
+    # Post-overlay tsc compile check — catches Root.tsx import drift against
+    # the upstream template at scaffold time, not at first `npm run dev`.
+    print("\n  running tsc --noEmit (post-overlay compile check)…")
+    tsc_ok, tsc_msg = tsc_compile_check(project_dir)
+    print(f"  {tsc_msg}")
+    if not tsc_ok:
+        print(
+            "\n  WARNING: TypeScript compile failed after overlay. The project is "
+            "scaffolded but Root.tsx/Scene.tsx will not run as-is. Likely cause: "
+            "upstream template renamed an export this overlay depends on. Update "
+            "execution/video/remotion_template_overlay/src/* and re-run bootstrap."
+        )
 
     # ── Step 7: Register in registry.json ─────────────────────────────────
     now_iso = datetime.now(timezone.utc).isoformat()
