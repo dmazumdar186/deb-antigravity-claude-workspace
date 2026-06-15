@@ -268,20 +268,28 @@ def ensure_top_matches_tab(spreadsheet: gspread.Spreadsheet) -> gspread.Workshee
 
 
 def write_top_matches(spreadsheet: gspread.Spreadsheet, rows: list[list]) -> None:
-    """Clear the Top Matches tab and write header + rows.
+    """Atomically overwrite the Top Matches tab with header + rows.
 
     Columns: Rank | Fit | Identity | Title | Company | Location | Contract |
              Source Tab (HYPERLINK) | Why | Link.
     If rows is empty, writes a single empty-state message row.
+
+    Atomic-write strategy
+    ---------------------
+    The previous version called `ws.clear()` then `ws.update(...)` — two
+    network calls with a race window in between. If the operator edited a
+    cell during that window, the edit was lost. If `update()` failed after
+    `clear()` succeeded, the sheet was left empty.
+
+    This version uses a single `ws.update()` call sized to MAX(previous
+    row count, new row count). Trailing rows (rows in the old data but not
+    in the new data) are explicitly blanked in the same call, so there is
+    no intermediate "empty sheet" state.
     """
     ws = ensure_top_matches_tab(spreadsheet)
-    try:
-        ws.clear()
-    except Exception as exc:  # noqa: BLE001 — clear is best-effort
-        logger.warning("Could not clear Top Matches before write: %s", exc)
 
     if rows:
-        all_rows = [_TOP_MATCHES_HEADER] + rows
+        all_rows: list[list] = [_TOP_MATCHES_HEADER] + rows
     else:
         # Empty state: one informational row under the header
         all_rows = [_TOP_MATCHES_HEADER, [_TOP_MATCHES_EMPTY_STATE] + [""] * (len(_TOP_MATCHES_HEADER) - 1)]
@@ -291,6 +299,14 @@ def write_top_matches(spreadsheet: gspread.Spreadsheet, rows: list[list]) -> Non
         (row + [""] * max(0, n_cols - len(row)))[:n_cols]
         for row in all_rows
     ]
+
+    # Pad with blank rows up to the previously-occupied extent so trailing
+    # rows from prior writes disappear in this single update.
+    prev_rows = max(ws.row_count, len(normalized))
+    pad_count = prev_rows - len(normalized)
+    if pad_count > 0:
+        normalized.extend([[""] * n_cols for _ in range(pad_count)])
+
     end_col = chr(ord("A") + n_cols - 1)
     # USER_ENTERED so HYPERLINK formulas in the Source Tab column evaluate
     ws.update(
@@ -298,7 +314,10 @@ def write_top_matches(spreadsheet: gspread.Spreadsheet, rows: list[list]) -> Non
         range_name=f"A1:{end_col}{len(normalized)}",
         value_input_option="USER_ENTERED",
     )
-    logger.info("write_top_matches: wrote %d data row(s) to Top Matches tab", len(rows))
+    logger.info(
+        "write_top_matches: wrote %d data row(s) (+ %d blank trailing rows) to Top Matches",
+        len(rows), pad_count,
+    )
 
 
 _HISTORY_TAB = "_history"
