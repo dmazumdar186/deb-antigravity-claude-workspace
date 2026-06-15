@@ -13,7 +13,7 @@ Verify every CLI, account, and `.env` key required to ship a mobile app is prese
 
 ## Tools/Scripts
 
-- `execution/mobile_apps/preflight.py` (future — currently the skill runs the checks inline as shell calls)
+- `execution/mobile_apps/preflight.py` — implemented 2026-06-15. Run with `py execution/mobile_apps/preflight.py` for human output, or `py execution/mobile_apps/preflight.py --json > preflight.json` for the machine-readable contract the skill consumes. Exit 0 iff all required items are GREEN. APPLE_ENROLLMENT_STATUS=pending sets `phase_4_5_blocked: true` in the JSON but does NOT make exit non-zero (Phases 1-3 still proceed).
 - `node --version`, `eas --version`, `wrangler --version`, `modal token current` — CLI presence
 - `eas whoami`, `wrangler whoami` — session presence (read-only, never invoke `login`)
 - `.env` parser — read keys without echoing values
