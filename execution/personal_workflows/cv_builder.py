@@ -262,15 +262,13 @@ def build_story():
     ):
         st.append(item)
 
-    # One-liner roles
+    # Condensed early-career line: TCS + IDrive collapsed into one row under Avaya.
     st.append(Paragraph(
-        'QA Engineer / Release Coordinator — '
-        'IDrive India Pvt Ltd, Bengaluru | Avr. 2013 – Juil. 2015',
-        S['oneliner']
-    ))
-    st.append(Paragraph(
-        'Software Engineer — '
-        'Tata Consultancy Services, Bengaluru | Nov. 2010 – Mars 2013',
+        '<b>2010 – 2015 :</b> Software Engineer '
+        '(Tata Consultancy Services, Bengaluru | Nov. 2010 – Mars 2013) → '
+        'QA Engineer / Release Coordinator '
+        '(IDrive India, Bengaluru | Avr. 2013 – Juil. 2015) — '
+        '<i>fondations techniques en systèmes distribués et release management</i>',
         S['oneliner']
     ))
     st.append(Spacer(1, 8))
@@ -327,8 +325,8 @@ def build_story():
     st.append(SectionHeader('Langues'))
     st.append(Spacer(1, 5))
     st.append(Paragraph(
-        '<b>Anglais</b> : Bilingue • '
-        '<b>Français</b> : Bilingue • '
+        '<b>Anglais</b> : Bilingue (C2) • '
+        '<b>Français</b> : Bilingue (C2) • '
         '<b>Hindi</b> : Natif • '
         '<b>Bengali</b> : Natif',
         S['lang']
@@ -340,6 +338,12 @@ def build_story():
     st.append(Spacer(1, 5))
 
     for p in [
+        '<b>job_search_v2</b> (juin 2026) — Agrégateur multi-sources quotidien '
+        '(France Travail REST + LinkedIn/Indeed via Gmail-IMAP + WTTJ/APEC fixtures) ; '
+        'dedup SQLite persistant (TTL <b>60 j</b>), ranker Gemini 2.5 Flash A/B/C avec '
+        'fallback flash-lite, <b>5 couches</b> typées Pydantic v2 ; '
+        '<b>3</b> wet-runs idempotents consécutifs, coût <b>0 €/mois</b>',
+
         '<b>Anneal</b> (mars 2026) — CLI Python d’audit-loop auto-itératif sur '
         '<i>git diff</i> (classique + adversarial Red-vs-Blue) ; dual-adapter LLM '
         '(Anthropic + OpenRouter), tiers cheap/balanced/premium ; termine sur 2 rondes '
