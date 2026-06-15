@@ -6,10 +6,12 @@ outputs: Email sent via SMTP; stdout confirmation or error message; notification
 """
 
 import argparse
+import html as _html
 import os
 import re
 import smtplib
 import sys
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -82,13 +84,53 @@ def _build_smtp_config(override: "dict | None" = None) -> dict:
     return base
 
 
+_SCRIPT_RE = re.compile(r"<script\b[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL)
+_STYLE_RE = re.compile(r"<style\b[^>]*>.*?</style>", re.IGNORECASE | re.DOTALL)
+_CDATA_RE = re.compile(r"<!\[CDATA\[.*?\]\]>", re.DOTALL)
+_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
+_BR_RE = re.compile(r"<br\s*/?\s*>", re.IGNORECASE)
+_BLOCK_RE = re.compile(r"</(?:p|div|li|h[1-6]|tr|td|th)\s*>", re.IGNORECASE)
+
+
 def _plain_text_fallback(html: str) -> str:
-    """Strip HTML tags and collapse whitespace for a plain-text MIME part."""
-    stripped = re.sub(r"<[^>]+>", " ", html)
-    # Collapse multiple spaces / newlines
-    collapsed = re.sub(r"[ \t]+", " ", stripped)
-    collapsed = re.sub(r"\n{3,}", "\n\n", collapsed)
-    return collapsed.strip()
+    """HTML -> plain text suitable for an SMTP alternative part.
+
+    Order matters:
+      1. Drop <script>, <style>, CDATA, HTML comments (their content is not text).
+      2. Map <br> and end-of-block tags to newlines so paragraph structure survives.
+      3. Strip remaining tags.
+      4. Decode HTML entities (&nbsp;, &amp;, &#160;, ...) via stdlib html.unescape.
+      5. Collapse whitespace.
+    """
+    if not html:
+        return ""
+    s = _SCRIPT_RE.sub(" ", html)
+    s = _STYLE_RE.sub(" ", s)
+    s = _CDATA_RE.sub(" ", s)
+    s = _COMMENT_RE.sub(" ", s)
+    s = _BR_RE.sub("\n", s)
+    s = _BLOCK_RE.sub("\n", s)
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = _html.unescape(s)
+    # Collapse whitespace while preserving paragraph breaks.
+    s = re.sub(r"[ \t]+", " ", s)
+    s = re.sub(r" *\n *", "\n", s)
+    s = re.sub(r"\n{3,}", "\n\n", s)
+    return s.strip()
+
+
+# Transient SMTP exceptions worth retrying. Auth and quota failures are NOT
+# included — those should fail fast so the operator sees the real problem.
+_TRANSIENT_SMTP_EXCEPTIONS = (
+    smtplib.SMTPServerDisconnected,
+    smtplib.SMTPConnectError,
+    smtplib.SMTPHeloError,
+)
+# OSError covers DNS / TCP failures. Auth failures are SMTPAuthenticationError
+# which is a subclass of SMTPResponseException, not in the transient set.
+
+SMTP_MAX_ATTEMPTS = 3
+SMTP_BASE_BACKOFF_S = 1.0  # 1s, 2s, 4s; tests can shrink to 0.
 
 
 # ---------------------------------------------------------------------------
@@ -150,30 +192,45 @@ def send_digest(
             server.login(smtp_user, smtp_password)
             server.send_message(msg)
 
-    # Primary attempt
-    try:
-        _attempt_send()
-        logger.info("Digest sent to %s via %s:%s", to_addr, smtp_host, smtp_port)
-        return (True, None)
-    except smtplib.SMTPServerDisconnected as exc:
-        # One internal retry for transient disconnection
-        logger.warning("SMTP server disconnected on first attempt; retrying once. (%s)", type(exc).__name__)
+    last_exc: Exception | None = None
+    for attempt in range(1, SMTP_MAX_ATTEMPTS + 1):
         try:
             _attempt_send()
-            logger.info("Digest sent (retry) to %s via %s:%s", to_addr, smtp_host, smtp_port)
+            note = "" if attempt == 1 else f" (after {attempt - 1} retr{'y' if attempt == 2 else 'ies'})"
+            logger.info("Digest sent to %s via %s:%s%s", to_addr, smtp_host, smtp_port, note)
             return (True, None)
-        except smtplib.SMTPServerDisconnected as retry_exc:
-            return (False, f"SMTPServerDisconnected on retry: {type(retry_exc).__name__}")
-        except smtplib.SMTPException as retry_exc:
-            return (False, f"SMTPException on retry: {type(retry_exc).__name__}: {retry_exc}")
-        except OSError as retry_exc:
-            return (False, f"OSError on retry: {type(retry_exc).__name__}: {retry_exc}")
-    except smtplib.SMTPException as exc:
-        return (False, f"SMTPException: {type(exc).__name__}: {exc}")
-    except OSError as exc:
-        return (False, f"OSError connecting to {smtp_host}:{smtp_port}: {type(exc).__name__}: {exc}")
-    except Exception as exc:  # noqa: BLE001
-        return (False, f"Unexpected error: {type(exc).__name__}: {exc}")
+        except _TRANSIENT_SMTP_EXCEPTIONS as exc:
+            last_exc = exc
+            if attempt == SMTP_MAX_ATTEMPTS:
+                return (False, f"{type(exc).__name__} after {attempt} attempts: {exc}")
+            backoff = SMTP_BASE_BACKOFF_S * (2 ** (attempt - 1))
+            logger.warning(
+                "SMTP transient %s (attempt %d/%d); retrying in %.1fs",
+                type(exc).__name__, attempt, SMTP_MAX_ATTEMPTS, backoff,
+            )
+            time.sleep(backoff)
+        except smtplib.SMTPAuthenticationError as exc:
+            # Auth failures are NOT transient — fail fast so the operator rotates the App Password.
+            return (False, f"SMTPAuthenticationError: {exc}")
+        except smtplib.SMTPException as exc:
+            # Other SMTP errors (data error, recipient refused, quota) are not retried.
+            return (False, f"SMTPException: {type(exc).__name__}: {exc}")
+        except OSError as exc:
+            # Treat as transient: DNS hiccup, TCP reset. Retry like SMTP transient.
+            last_exc = exc
+            if attempt == SMTP_MAX_ATTEMPTS:
+                return (False, f"OSError after {attempt} attempts to {smtp_host}:{smtp_port}: {exc}")
+            backoff = SMTP_BASE_BACKOFF_S * (2 ** (attempt - 1))
+            logger.warning(
+                "SMTP OSError %s (attempt %d/%d); retrying in %.1fs",
+                type(exc).__name__, attempt, SMTP_MAX_ATTEMPTS, backoff,
+            )
+            time.sleep(backoff)
+        except Exception as exc:  # noqa: BLE001
+            # Defensive: any unanticipated exception is non-retryable.
+            return (False, f"Unexpected error: {type(exc).__name__}: {exc}")
+
+    return (False, f"send_digest exhausted attempts: {last_exc}")
 
 
 # ---------------------------------------------------------------------------
