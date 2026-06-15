@@ -6,6 +6,10 @@ Each fetcher returns a list of dicts:
 Failures are soft: a source that errors logs a WARN line and returns [].
 Empty results log WARN explicitly so the operator can disambiguate scrape-failure
 from no-new-items.
+
+Firecrawl scrapes go through `_firecrawl_scrape` which retries up to 3 times on
+transient errors (429, 5xx, socket timeout) with exponential backoff + jitter.
+Non-retryable errors (4xx other than 429, missing API key) raise immediately.
 """
 
 from __future__ import annotations
@@ -13,9 +17,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+import random
 import re
+import socket
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 from typing import Callable
@@ -28,9 +35,23 @@ log = logging.getLogger("anthropic_watch.fetch")
 
 FIRECRAWL_API_URL = "https://api.firecrawl.dev/v2/scrape"
 
+# Retry config — exposed so tests can shrink to 0 sleep.
+FIRECRAWL_MAX_ATTEMPTS = 3
+FIRECRAWL_BASE_BACKOFF_S = 1.0  # 1s, 2s, 4s baseline + ±0.5s jitter
+
+
+def _is_retryable_http(err: urllib.error.HTTPError) -> bool:
+    """429 (rate limit) and 5xx (server errors) are retryable; 4xx-other is not."""
+    return err.code == 429 or 500 <= err.code < 600
+
 
 def _firecrawl_scrape(url: str, wait_for_ms: int = 0) -> str:
-    """POST to Firecrawl /v2/scrape and return markdown. Raises on HTTP error."""
+    """POST to Firecrawl /v2/scrape and return markdown.
+
+    Retries up to FIRECRAWL_MAX_ATTEMPTS on 429, 5xx, and socket timeout with
+    exponential backoff + jitter. Non-retryable HTTP errors and config errors
+    raise immediately.
+    """
     api_key = os.environ.get("FIRECRAWL_API_KEY")
     if not api_key:
         raise RuntimeError("FIRECRAWL_API_KEY not set in environment")
@@ -39,20 +60,53 @@ def _firecrawl_scrape(url: str, wait_for_ms: int = 0) -> str:
     if wait_for_ms:
         payload["waitFor"] = wait_for_ms
 
-    req = urllib.request.Request(
-        FIRECRAWL_API_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        body = json.loads(resp.read().decode("utf-8"))
-    if not body.get("success"):
-        raise RuntimeError(f"firecrawl scrape failed: {body!r}")
-    return body.get("data", {}).get("markdown", "")
+    last_err: Exception | None = None
+    for attempt in range(1, FIRECRAWL_MAX_ATTEMPTS + 1):
+        req = urllib.request.Request(
+            FIRECRAWL_API_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                body = json.loads(resp.read().decode("utf-8"))
+            if not body.get("success"):
+                # Firecrawl returns 200 with success=False on some upstream errors.
+                # Treat as non-retryable (auth/quota messages) so the operator sees them.
+                raise RuntimeError(f"firecrawl scrape failed: {body!r}")
+            return body.get("data", {}).get("markdown", "")
+        except urllib.error.HTTPError as err:
+            last_err = err
+            if not _is_retryable_http(err) or attempt == FIRECRAWL_MAX_ATTEMPTS:
+                raise
+            backoff = FIRECRAWL_BASE_BACKOFF_S * (2 ** (attempt - 1)) + random.uniform(-0.5, 0.5)
+            log.warning(
+                "firecrawl %s attempt %d/%d failed (HTTP %d); retrying in %.2fs",
+                url, attempt, FIRECRAWL_MAX_ATTEMPTS, err.code, max(backoff, 0.1),
+            )
+            time.sleep(max(backoff, 0.1))
+        except (socket.timeout, TimeoutError, urllib.error.URLError) as err:
+            # URLError wraps socket-level errors; only retry timeout-ish ones.
+            last_err = err
+            is_timeout = (
+                isinstance(err, (socket.timeout, TimeoutError))
+                or "timed out" in str(err).lower()
+            )
+            if not is_timeout or attempt == FIRECRAWL_MAX_ATTEMPTS:
+                raise
+            backoff = FIRECRAWL_BASE_BACKOFF_S * (2 ** (attempt - 1)) + random.uniform(-0.5, 0.5)
+            log.warning(
+                "firecrawl %s attempt %d/%d timed out; retrying in %.2fs",
+                url, attempt, FIRECRAWL_MAX_ATTEMPTS, max(backoff, 0.1),
+            )
+            time.sleep(max(backoff, 0.1))
+
+    # Defensive — should never reach here because loop either returns or raises.
+    raise RuntimeError(f"firecrawl scrape exhausted attempts: {last_err}")
 
 
 def _log_count(source: str, items: list) -> list:
