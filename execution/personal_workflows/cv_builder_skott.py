@@ -61,7 +61,11 @@ class SectionHeader(_SectionHeaderBase):
 
 # ── Paragraph styles ────────────────────────────────────────────────────────────
 def _s(**kw):
-    return make_style(FONT, fontSize=8.6, leading=12.6, **kw)
+    # Default font size / leading. Caller kwargs win — using kwargs.setdefault
+    # avoids `multiple values for keyword argument` when callers pass fontSize.
+    kw.setdefault("fontSize", 8.6)
+    kw.setdefault("leading", 12.6)
+    return make_style(FONT, **kw)
 
 
 S = {
