@@ -1,6 +1,29 @@
 # Hardening Backlog — 2026-06-15
 
-## Update 2026-06-15 (operator scope decisions)
+## Update 2026-06-15 evening (session 3 — landings)
+
+Three parallel hardenings landed today + one mobile skeleton. Pytest gate after the work: **1018 passed, 53 skipped, 0 failed** (up from 992).
+
+- **Row 4 (cv_optimizer_v2 Worker)** — Keep + harden chosen. Two pieces:
+  - POST `/api/optimize` front-door synthetic at `tests/test_cv_optimizer_v2_front_door_optimize.py` (4 tests, gated by `CV_OPTIMIZE_LIVE=1`; bad-secret rejection live-verified; authenticated tests skip until `WORKER_SECRET` lands in workspace `.env`).
+  - Per-field language validator at `worker/src/lang_validator.ts` covering `summary`/`summary_kpis`/`experience.role`/`bullets[]`/`projects[]`/`recommendations[]`. Stopword-frequency heuristic, no extra dep. Retry-once on mismatch. 36/36 Worker unit tests passing. **NOT yet deployed** — operator approves separately.
+- **Row 28 (mobile_apps)** — first registered app: `demo-app-001`. Skeleton scaffolded at `C:\Users\deban\dev\mobile-apps\demo-app-001\` via `bootstrap_mobile_app.py`. Per-app front-door stub at `tests/front_door.py` reports PARTIAL (3 PASS — source integrity, tsc, registry entry; 1 SKIP — deployed health, phase-4 gated). Preflight RED — operator-owned blockers: `eas login`, `pip install modal`, 7 mobile env keys, `APPLE_ENROLLMENT_STATUS`.
+- **Row 30 (remotion_bootstrap)** — render wrapper at `execution/video/remotion_render.py` (CLI + auto-composition-detect from Root.tsx). 26 unit tests + 1 E2E (gated by `REMOTION_LIVE=1`). Directive `directives/video/remotion_render.md` updated. The "render wrapper deferred to v1.1" item from `project_remotion.md` is closed.
+- **Row 31 (remotion_template_overlay)** — `tsc --noEmit` gate already landed in prior session (per memory). No-op this session.
+
+---
+
+## Update 2026-06-15 evening (session 3 — verified state)
+
+- **Haiku-4.5 rows (1, 2, 3) are STALE.** Verified all three:
+  - `execution/personalization/ai_opener_generator.py:43-52` — `cheap` already maps to `claude-sonnet-4.6`. Haiku entry remains only in the pricing dict (lines 60-65) with an explicit comment that it's kept for legacy AM cost-lookups on frozen records — does not violate the ban.
+  - `execution/personalization/variant_generator.py:41-47` — `cheap` already maps to `claude-sonnet-4.6`.
+  - `directives/personal_workflows/job_search_sheet.md:195` — already "Claude Sonnet 4.6 (user's Anthropic Max plan)".
+  - Banner from morning was authored against an older tree.
+- **Row 4 (cv_optimizer_v2 fate)** — operator decision: **Keep + harden.** Worker stays the canonical CV path. Live at `https://cv-optimizer.pages.dev` / `https://cv-optimizer-api.debanjan186.workers.dev`. Provider is Gemini 2.5 Flash (free tier, ~50 calls/year). Session-3 work: POST `/api/optimize` synthetic + per-field langdetect on CVSpec output.
+- **Row 5 (cv_optimizer_agent.py)** — already deleted in prior session per morning banner. Row is moot.
+
+## Update 2026-06-15 (morning, operator scope decisions)
 
 - **Sundowned (deleted from tree, history preserved in git)**:
   - `execution/personal_workflows/cv_optimizer_agent.py` (Streamlit + Gemini prototype). The Cloudflare Worker at `execution/personal_workflows/cv_optimizer_v2/` is the canonical CV path going forward. The local CLI at `execution/personal_workflows/cv_optimizer_local/` is operator-personal and remains as a fallback but is not the focus of future CV work.
