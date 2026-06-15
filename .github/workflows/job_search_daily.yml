@@ -1,25 +1,37 @@
 name: job-search-daily
 
+# v2 — multi-source FR PM aggregator (France Travail + LinkedIn-via-Gmail-IMAP).
+# Replaces v1 (Adzuna-only) as of 2026-06-15. See JOB_SEARCH_SHEET_AUDIT.md for
+# the rationale and directives/personal_workflows/job_search_sheet_v2.md for the spec.
+#
+# The cron is in PROBATIONARY status until the front-door synthetic passes 5
+# consecutive days per ~/.claude/rules/front-door-synthetic.md. Day 1 = 2026-06-15.
+
 on:
   schedule:
-    # Dual-cron for DST: 07:00 UTC = 09:00 Paris CEST (summer); 08:00 UTC = 09:00 Paris CET (winter)
-    # The 23h idempotency check in the script makes the second cron exit cleanly when the first already ran.
+    # Dual-cron for DST: 07:00 UTC = 09:00 Paris CEST (summer); 08:00 UTC = 09:00 Paris CET (winter).
+    # Idempotency: v2 dedup persists across runs via SQLite seen-set, so a double-fire is harmless.
     - cron: "0 7 * * *"
     - cron: "0 8 * * *"
   workflow_dispatch:
     inputs:
-      no_llm:
-        description: "Skip the LLM relevance gate (faster, no Claude/Gemini calls)"
+      dry_run:
+        description: "Don't append to sheet / send email — just produce the run summary."
+        required: false
+        default: false
+        type: boolean
+      no_location_filter:
+        description: "Skip the FR-locked location filter (debugging only)."
         required: false
         default: false
         type: boolean
 
 concurrency:
   group: job-search-daily
-  cancel-in-progress: false  # let in-flight runs complete; second cron will exit via 23h idempotency
+  cancel-in-progress: false  # let in-flight runs complete
 
 permissions:
-  contents: read  # we don't push commits from the workflow
+  contents: read
 
 jobs:
   run:
@@ -32,7 +44,7 @@ jobs:
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"  # GH Actions doesn't have stable 3.14 runners yet (2026-06)
+          python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
@@ -46,63 +58,75 @@ jobs:
         run: |
           mkdir -p credentials
           echo "$GOOGLE_SERVICE_ACCOUNT_JSON_B64" | base64 -d > credentials/service_account.json
-          # Sanity: verify it parses as JSON before letting the pipeline use it
           python -c "import json; json.load(open('credentials/service_account.json'))"
 
-      - name: Run setup --check-only (smoke test, non-blocking)
-        env:
-          SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
-          GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
-          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
-          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
-          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python execution/personal_workflows/job_search_setup.py --check-only --verbose
-        continue-on-error: true  # don't fail the cron if one key is missing — log and proceed
+      - name: Restore persistent dedup DB across runs
+        # The SQLite seen-set must survive between cron invocations so a job seen yesterday
+        # is not reported as "new" today. Cache key = workflow + month (so the DB rolls
+        # over monthly, keeping cache size bounded while preserving cross-day dedup).
+        uses: actions/cache@v4
+        with:
+          path: .tmp/job_search_v2/seen.db
+          key: job-search-v2-seen-db-${{ github.workflow }}-$(date +%Y-%m)
+          restore-keys: |
+            job-search-v2-seen-db-${{ github.workflow }}-
 
-      - name: Run the pipeline
+      - name: Run job_search_v2 orchestrator
         env:
-          SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
-          GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
-          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
-          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
-          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          # Optional: daily summary email. Set GMAIL_SMTP_USER + GMAIL_SMTP_APP_PASSWORD
-          # secrets to enable; if missing, the pipeline logs a warning and skips email.
+          # France Travail OAuth2
+          FRANCE_TRAVAIL_CLIENT_ID: ${{ secrets.FRANCE_TRAVAIL_CLIENT_ID }}
+          FRANCE_TRAVAIL_CLIENT_SECRET: ${{ secrets.FRANCE_TRAVAIL_CLIENT_SECRET }}
+          # LinkedIn via Gmail IMAP (reuses v1's SMTP App Password)
           GMAIL_SMTP_USER: ${{ secrets.GMAIL_SMTP_USER }}
           GMAIL_SMTP_APP_PASSWORD: ${{ secrets.GMAIL_SMTP_APP_PASSWORD }}
           GMAIL_NOTIFY_TO: ${{ secrets.GMAIL_NOTIFY_TO }}
+          # Google Sheets append
+          SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
         run: |
           FLAGS=""
-          if [ "${{ github.event.inputs.no_llm }}" = "true" ]; then
-            FLAGS="$FLAGS --no-llm"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            FLAGS="$FLAGS --dry-run"
           fi
-          python execution/personal_workflows/job_search_sheet.py $FLAGS
+          if [ "${{ github.event.inputs.no_location_filter }}" = "true" ]; then
+            FLAGS="$FLAGS --no-location-filter"
+          fi
+          # WTTJ + APEC sources are present but live ingest is gated (consent-blocked); they
+          # return [] cleanly. Pipeline still ships with France Travail + LinkedIn-via-Gmail.
+          python execution/personal_workflows/job_search_v2/run.py --mode live $FLAGS
 
-      - name: Write GitHub Step Summary (visible on the workflow run page)
+      - name: Run front-door synthetic
+        # Per ~/.claude/rules/front-door-synthetic.md, v2 is PROBATIONARY until this
+        # passes 5 consecutive days. The synthetic uses fixtures so it doesn't double-bill APIs.
+        if: always()
+        run: bash tests/front_door_job_search_v2.sh
+        continue-on-error: true  # surface the result in the summary; don't fail the cron
+
+      - name: Write GitHub Step Summary
         if: always()
         run: |
-          if [ -f .tmp/job_search/job_search_runs.jsonl ]; then
-            LAST_RUN=$(tail -1 .tmp/job_search/job_search_runs.jsonl)
-            echo "### Job Search — latest run" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f .tmp/job_search_v2/run_log.jsonl ]; then
+            LAST_RUN=$(tail -1 .tmp/job_search_v2/run_log.jsonl)
+            echo "### Job Search v2 — latest run" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo '```json' >> "$GITHUB_STEP_SUMMARY"
             echo "$LAST_RUN" | python -m json.tool >> "$GITHUB_STEP_SUMMARY" || echo "$LAST_RUN" >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "Sheet: https://docs.google.com/spreadsheets/d/${{ secrets.SHEETS_SPREADSHEET_ID }}/edit" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "⚠️  PROBATIONARY FRONT-DOOR SYNTHETIC — v2 is not 'ready' until 5 consecutive green days." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "No run log found (pipeline likely exited at Stage 0 via idempotency check)." >> "$GITHUB_STEP_SUMMARY"
+            echo "No run_log.jsonl produced — pipeline likely errored before Stage 5." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Upload run-log artifact (last 7 days)
+      - name: Upload run-log artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: job-search-run-log-${{ github.run_id }}
-          path: .tmp/job_search/job_search_runs.jsonl
+          name: job-search-v2-run-log-${{ github.run_id }}
+          path: |
+            .tmp/job_search_v2/run_log.jsonl
+            .tmp/job_search_v2/runs/
           if-no-files-found: ignore
           retention-days: 7

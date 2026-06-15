@@ -1,0 +1,65 @@
+<!--
+  Minimal LinkedIn Job-Alert email fixture for linkedin_gmail source adapter.
+  Mimics the recognizable structure of LinkedIn's templated alert emails (June 2026):
+    - one <table> per job card
+    - <a href="https://www.linkedin.com/comm/jobs/view/{id}?..."> wrapping <strong>title</strong>
+    - company name and location as sibling text nodes in the same card
+    - a relative-time phrase near the bottom of each card
+  Three plausible senior-PM Paris jobs. Companies and IDs are invented but URL-shape-correct.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Your LinkedIn Job Alert</title></head>
+<body>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+  <tr><td><h1>3 new jobs match your alert: Product Manager &middot; Paris, France</h1></td></tr>
+
+  <!-- ============ Job 1 ============ -->
+  <tr><td>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="job-card">
+      <tr><td>
+        <a href="https://www.linkedin.com/comm/jobs/view/394125837?refId=abc123&trk=eml-jobs_jymbii_digest-job-card-0-jobcard_body&trackingId=xyz">
+          <strong>Senior Product Manager</strong>
+        </a>
+      </td></tr>
+      <tr><td><p>Demo Fintech</p></td></tr>
+      <tr><td><p>Paris, &Icirc;le-de-France, France</p></td></tr>
+      <tr><td><span>2 hours ago &middot; 38 applicants</span></td></tr>
+      <tr><td><a href="https://www.linkedin.com/comm/jobs/view/394125837?refId=abc123&trk=eml-jobs_jymbii_digest-job-card-0-view_job_button">View job</a></td></tr>
+    </table>
+  </td></tr>
+
+  <!-- ============ Job 2 ============ -->
+  <tr><td>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="job-card">
+      <tr><td>
+        <a href="https://www.linkedin.com/comm/jobs/view/418937204?refId=def456&trk=eml-jobs_jymbii_digest-job-card-1-jobcard_body&trackingId=uvw">
+          <strong>Head of Product</strong>
+        </a>
+      </td></tr>
+      <tr><td><p>Demo AI Startup</p></td></tr>
+      <tr><td><p>Paris, &Icirc;le-de-France, France &middot; Hybrid</p></td></tr>
+      <tr><td><span>1 day ago &middot; 12 applicants</span></td></tr>
+      <tr><td><a href="https://www.linkedin.com/comm/jobs/view/418937204?refId=def456&trk=eml-jobs_jymbii_digest-job-card-1-view_job_button">View job</a></td></tr>
+    </table>
+  </td></tr>
+
+  <!-- ============ Job 3 ============ -->
+  <tr><td>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="job-card">
+      <tr><td>
+        <a href="https://www.linkedin.com/comm/jobs/view/507218399?refId=ghi789&trk=eml-jobs_jymbii_digest-job-card-2-jobcard_body&trackingId=rst">
+          <strong>Principal Product Manager</strong>
+        </a>
+      </td></tr>
+      <tr><td><p>Demo B2B SaaS</p></td></tr>
+      <tr><td><p>Paris, &Icirc;le-de-France, France</p></td></tr>
+      <tr><td><span>3 days ago &middot; 5 applicants</span></td></tr>
+      <tr><td><a href="https://www.linkedin.com/comm/jobs/view/507218399?refId=ghi789&trk=eml-jobs_jymbii_digest-job-card-2-view_job_button">View job</a></td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td><p style="font-size:11px;color:#888">You're receiving this because you set up a Job Alert on LinkedIn. <a href="https://www.linkedin.com/comm/jobs/alerts">Manage alerts</a>.</p></td></tr>
+</table>
+</body>
+</html>

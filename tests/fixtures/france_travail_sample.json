@@ -1,0 +1,37 @@
+{
+  "resultats": [
+    {
+      "id": "2026-FT-DEMO-0001",
+      "intitule": "Senior Product Manager",
+      "entreprise": {"nom": "Demo Tech SAS"},
+      "lieuTravail": {"libelle": "75001 - PARIS"},
+      "description": "Nous recherchons un(e) Senior Product Manager pour piloter notre roadmap produit. CDI, télétravail partiel, équipe internationale.",
+      "typeContrat": "CDI",
+      "typeContratLibelle": "Contrat à durée indéterminée",
+      "dateCreation": "2026-06-15T08:00:00.000Z",
+      "dateActualisation": "2026-06-15T08:00:00.000Z",
+      "origineOffre": {"urlOrigine": "https://candidat.francetravail.fr/offres/recherche/detail/2026-FT-DEMO-0001"}
+    },
+    {
+      "id": "2026-FT-DEMO-0002",
+      "intitule": "Head of Product",
+      "entreprise": {"nom": "Demo Fintech"},
+      "lieuTravail": {"libelle": "75008 - PARIS"},
+      "description": "Head of Product, scale-up B2B SaaS. Reports to CEO. Hybride 3j bureau / 2j télétravail.",
+      "typeContrat": "CDI",
+      "typeContratLibelle": "Contrat à durée indéterminée",
+      "dateCreation": "2026-06-15T07:30:00.000Z",
+      "origineOffre": {"urlOrigine": "https://candidat.francetravail.fr/offres/recherche/detail/2026-FT-DEMO-0002"}
+    },
+    {
+      "id": "2026-FT-DEMO-0003",
+      "intitule": "AI Product Manager",
+      "entreprise": {"nom": "Demo AI Lab"},
+      "lieuTravail": {"libelle": "PARIS 09"},
+      "description": "AI Product Manager pour notre suite LLM-powered. Full remote possible (France).",
+      "typeContratLibelle": "CDI",
+      "dateCreation": "2026-06-14T16:00:00.000Z",
+      "origineOffre": {"urlOrigine": "https://candidat.francetravail.fr/offres/recherche/detail/2026-FT-DEMO-0003"}
+    }
+  ]
+}
