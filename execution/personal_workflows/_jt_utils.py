@@ -151,8 +151,27 @@ def normalize_company(name: str) -> str:
 # Hashing
 # ---------------------------------------------------------------------------
 
-def compute_job_hash(company_normalized: str, title_normalized: str, location: str | None) -> str:
-    """SHA-1 hexdigest of '{company_normalized}|{title_normalized}|{location_lower}'."""
+def compute_job_hash(company_normalized: str, title_normalized: str, location) -> str:
+    """SHA-1 hexdigest of '{company_normalized}|{title_normalized}|{location_lower}'.
+
+    `location` is typed loose because upstream boards return inconsistent
+    shapes: france_travail returns ``{"libelle": "Paris (75)"}`` while most
+    others return a plain string. The synthetic surfaced this as an
+    AttributeError on dict.strip(); we now coerce defensively here so a
+    contract change on one board never breaks dedup for the whole pipeline.
+    """
+    if isinstance(location, dict):
+        # Common keys across boards: libelle (france_travail), name, display.
+        for key in ("libelle", "name", "display"):
+            v = location.get(key)
+            if isinstance(v, str) and v.strip():
+                location = v
+                break
+        else:
+            location = ""
+    elif not isinstance(location, (str, type(None))):
+        # Last-ditch coerce: numbers, lists — stringify rather than crash.
+        location = str(location)
     loc = (location or "").strip().lower()
     payload = f"{company_normalized}|{title_normalized}|{loc}"
     return hashlib.sha1(payload.encode("utf-8")).hexdigest()

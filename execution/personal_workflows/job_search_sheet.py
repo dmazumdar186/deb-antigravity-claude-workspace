@@ -332,7 +332,13 @@ def _build_sheet_row(
     contract = _normalise_contract(job.get("contract_type"))
 
     # Remote? heuristic
-    location_raw = (job.get("location") or "").lower()
+    # Coerce location defensively — france_travail returns a {libelle: "..."} dict
+    # while every other board returns a plain string; without this guard the
+    # synthetic blows up on dict.lower().
+    raw_loc = job.get("location")
+    if isinstance(raw_loc, dict):
+        raw_loc = raw_loc.get("libelle") or raw_loc.get("name") or raw_loc.get("display") or ""
+    location_raw = (raw_loc or "").lower() if isinstance(raw_loc, str) else ""
     snippet_raw = (job.get("description_snippet") or "").lower()
     if "remote" in location_raw or "télétravail" in location_raw or "full remote" in snippet_raw:
         remote = "Yes"
