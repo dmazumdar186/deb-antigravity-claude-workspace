@@ -302,7 +302,13 @@ def write_top_matches(spreadsheet: gspread.Spreadsheet, rows: list[list]) -> Non
 
     # Pad with blank rows up to the previously-occupied extent so trailing
     # rows from prior writes disappear in this single update.
-    prev_rows = max(ws.row_count, len(normalized))
+    # Defensive int() so callers that mock the worksheet without a numeric
+    # row_count (existing tests) still produce a valid pad count.
+    try:
+        prev_extent = int(ws.row_count)
+    except (TypeError, ValueError):
+        prev_extent = 0
+    prev_rows = max(prev_extent, len(normalized))
     pad_count = prev_rows - len(normalized)
     if pad_count > 0:
         normalized.extend([[""] * n_cols for _ in range(pad_count)])
