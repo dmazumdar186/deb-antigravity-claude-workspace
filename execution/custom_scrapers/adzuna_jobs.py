@@ -10,6 +10,7 @@ import re
 import argparse
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -81,15 +82,27 @@ def _parse_contract_type(r: dict, country: str) -> str | None:
     return None
 
 
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+
+
 def _parse_posted_at(raw: str) -> str | None:
-    """Strip Adzuna ISO 8601 datetime to YYYY-MM-DD, or return None."""
+    """Strip Adzuna ISO 8601 datetime to YYYY-MM-DD, or return None.
+
+    Validates that the first 10 characters look like a date (yyyy-mm-dd) AND
+    that the date is actually constructable. A bare slice without validation
+    silently emitted strings like "not-a-dat" for malformed upstream values
+    (regression-tested in tests/test_custom_scrapers.py).
+    """
     if not raw or len(raw) < 10:
         return None
-    # Adzuna returns e.g. "2026-06-01T00:00:00Z"
-    try:
-        return raw[:10]
-    except Exception:  # noqa: BLE001 — defensive; string slice never raises but guard anyway
+    head = raw[:10]
+    if not _ISO_DATE_RE.match(head):
         return None
+    try:
+        datetime.strptime(head, "%Y-%m-%d")  # raises on impossible dates (e.g. 2026-13-40)
+    except (ValueError, TypeError):
+        return None
+    return head
 
 
 @retry_with_backoff(max_retries=3)
