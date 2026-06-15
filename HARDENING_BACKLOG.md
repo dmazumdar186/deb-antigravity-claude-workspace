@@ -1,5 +1,17 @@
 # Hardening Backlog — 2026-06-15
 
+## Update 2026-06-15 (operator scope decisions)
+
+- **Sundowned (deleted from tree, history preserved in git)**:
+  - `execution/personal_workflows/cv_optimizer_agent.py` (Streamlit + Gemini prototype). The Cloudflare Worker at `execution/personal_workflows/cv_optimizer_v2/` is the canonical CV path going forward. The local CLI at `execution/personal_workflows/cv_optimizer_local/` is operator-personal and remains as a fallback but is not the focus of future CV work.
+  - `execution/content/wedding_card_generator.py` (one-time artifact; event date 2026-05-07 is past).
+  - `execution/infrastructure/setup_telegram_webhook.py` (AM-coupled; AM is frozen, this script will never be re-run from this workspace).
+- **In active hardening focus** (operator-stated near-term priorities): video projects (`youtube_video_analyzer`, `remotion_*`) and the mobile apps scaffolder (`mobile_apps/`).
+- **Hardened this session** (per-project commits already on `origin/main`): `workspace_sast`, `anthropic_watch`, `gmail_send_digest`, `google_sheets_writer`, `job_tracker_db` (country-aware key + migration), `humanizer` (langdetect guard), `cv_builder` (3 variants render + skott `make_style` kwarg fix), `custom_scrapers` (8 files + adzuna `_parse_posted_at` fix).
+
+---
+
+
 Workspace-wide triage of every active project against the four always-active rules: **eval-first**, **front-door-synthetic**, **model-tier** (Haiku 4.5 banned; free-tier-as-production flagged), and the matching **DoD template** (`~/.claude/templates/dod-{llm-ui,cold-email,cron-pipeline}.md`).
 
 Source: 11 read-only Explore agents fanned out across `execution/{category}/` on 2026-06-15. Per-category raw reports are summarized below; this file is the decision deliverable.

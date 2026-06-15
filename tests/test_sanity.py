@@ -44,17 +44,22 @@ class TestFileExistence:
 
 
 class TestExecutionScripts:
-    """All 10 registered execution scripts must exist."""
+    """Registered execution scripts must exist on disk.
+
+    Retired 2026-06-15 (sundown):
+      - content/wedding_card_generator.py (one-time artifact, event past)
+      - personal_workflows/cv_optimizer_agent.py (Streamlit prototype superseded
+        by cv_optimizer_v2 Cloudflare Worker)
+    AM-coupled entries below remain (the AM project is frozen, not retired).
+    """
 
     SCRIPTS = [
-        "content/wedding_card_generator.py",
         "enrichment/anymailfinder_lookup.py",
         "enrichment/million_verifier.py",
         "gtm_client_workflows/accessory_masters_pipeline.py",
         "lead_sourcing/prospeo_leads.py",
         "lead_sourcing/serper_maps_scraper.py",
         "personal_workflows/cv_builder.py",
-        "personal_workflows/cv_optimizer_agent.py",
         "personalization/ai_opener_generator.py",
         "personalization/variant_generator.py",
     ]

@@ -291,8 +291,10 @@ else
   fail ".mcp.json refs missing in .env: $M"
 fi
 
-# 3.8 All 3 scripts have registry-compatible docstrings
-SCRIPTS=("execution/content/wedding_card_generator.py" "execution/personal_workflows/cv_builder.py" "execution/personal_workflows/cv_optimizer_agent.py")
+# 3.8 Active scripts have registry-compatible docstrings.
+# Sundowned 2026-06-15: content/wedding_card_generator.py,
+# personal_workflows/cv_optimizer_agent.py.
+SCRIPTS=("execution/personal_workflows/cv_builder.py")
 DOC_OK=0; DOC_FAILS=()
 for S in "${SCRIPTS[@]}"; do
   R=$(py -c "
