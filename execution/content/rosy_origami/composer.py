@@ -39,6 +39,53 @@ def _throttle() -> None:
         time.sleep(wait)
     _last_call_ts = time.monotonic()
 
+
+# ---------------------------------------------------------------------------
+# Per-section language guard (eval-first.md)
+# ---------------------------------------------------------------------------
+
+# Minimum length before langdetect output is reliable. Sections shorter than
+# this (e.g. very brief closings) skip the check rather than firing false
+# positives on coin-flip detection.
+_MIN_LANGDETECT_CHARS = 30
+
+# Langdetect ambiguity pairs commonly seen on borderline FR/EN/CA text.
+_LANG_EQUIV = {("en", "ca"), ("ca", "en"), ("fr", "ca"), ("ca", "fr")}
+
+
+def check_section_language(
+    section_name: str,
+    text: str,
+    allowed_langs: list[str] | None,
+) -> tuple[bool, str | None]:
+    """Verify a composed section's detected language is in `allowed_langs`.
+
+    Returns (ok, message). `ok` is True when the section is acceptable or
+    when there isn't enough signal to judge (short text, detection error,
+    no allowed_langs configured). The message is a one-line diagnostic
+    suitable for stderr; None when ok.
+    """
+    if not allowed_langs:
+        return True, None
+    if not text or len(text.strip()) < _MIN_LANGDETECT_CHARS:
+        return True, None
+    try:
+        from langdetect import detect, DetectorFactory
+        DetectorFactory.seed = 0
+        detected = detect(text)
+    except Exception:
+        # LangDetectException or anything else: skip rather than fail the run.
+        return True, None
+    if detected in allowed_langs:
+        return True, None
+    for cand in allowed_langs:
+        if (detected, cand) in _LANG_EQUIV:
+            return True, None
+    return False, (
+        f"[lang-guard] section {section_name!r} detected as {detected!r}; "
+        f"tenant allows {allowed_langs}"
+    )
+
 ROOT = Path(__file__).resolve().parents[3]
 VOICES_DIR = ROOT / "execution" / "content" / "voices"
 

@@ -174,13 +174,33 @@ def fetch_news(query: str, days: int) -> list[ContentItem]:
 
     client = TavilyClient(api_key=_os.environ["TAVILY_API_KEY"])
     print(f"  [news] Tavily search: {query!r} (days={days})", file=sys.stderr)
-    resp = client.search(
-        query=query,
-        max_results=5,
-        topic="news",
-        days=days,
-        search_depth="basic",
-    )
+    try:
+        resp = client.search(
+            query=query,
+            max_results=5,
+            topic="news",
+            days=days,
+            search_depth="basic",
+        )
+    except Exception as e:
+        # Tavily free-tier 429 / quota / network errors must NOT abort the
+        # newsletter compose. The news section is optional; surface the cause
+        # on stderr and drop the section gracefully so intro / event / closing
+        # still ship.
+        s = str(e).lower()
+        if any(m in s for m in ("429", "rate limit", "quota", "resource_exhausted", "too many requests")):
+            print(
+                f"  [news] WARN: Tavily quota/rate-limit hit; news section omitted "
+                f"({type(e).__name__}: {str(e)[:120]})",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"  [news] WARN: Tavily call failed; news section omitted "
+                f"({type(e).__name__}: {str(e)[:120]})",
+                file=sys.stderr,
+            )
+        return []
     items: list[ContentItem] = []
     for r in resp.get("results", []):
         ts_raw = r.get("published_date") or datetime.now().isoformat()
