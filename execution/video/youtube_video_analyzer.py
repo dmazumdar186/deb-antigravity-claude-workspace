@@ -351,14 +351,33 @@ def slugify(text: str, max_len: int = 60) -> str:
 # --------------------------------------------------------------------------- #
 
 
+# Transcript-fetch retry config. Exposed so tests can shrink the sleeps to ~0.
+TRANSCRIPT_MAX_ATTEMPTS = 3
+TRANSCRIPT_BASE_BACKOFF_S = 2.0  # 2s, 4s, 8s ± 0.5s jitter
+
+
 def fetch_transcript(video_id: str) -> list[dict]:
-    """Return list of {start, duration, text}. Raises if no captions exist."""
+    """Return list of {start, duration, text}. Raises if no captions exist.
+
+    Retries up to TRANSCRIPT_MAX_ATTEMPTS on transient YouTube errors
+    (RequestBlocked, IpBlocked, YouTubeRequestFailed, HTTPError) with
+    exponential backoff + jitter. Permanent errors (NoTranscriptFound,
+    TranscriptsDisabled, VideoUnavailable, InvalidVideoId) raise
+    immediately — no retry burns wall-clock for a known-impossible result.
+    """
+    import random
+    import time
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
         from youtube_transcript_api._errors import (
             NoTranscriptFound,
             TranscriptsDisabled,
             VideoUnavailable,
+            InvalidVideoId,
+            RequestBlocked,
+            IpBlocked,
+            YouTubeRequestFailed,
+            HTTPError as _YTHTTPError,
         )
     except ImportError as e:
         raise SystemExit(
@@ -366,32 +385,57 @@ def fetch_transcript(video_id: str) -> list[dict]:
             "  py -m pip install youtube-transcript-api"
         ) from e
 
-    try:
-        try:
-            api = YouTubeTranscriptApi()
-            fetched = api.fetch(video_id, languages=["en", "en-US", "en-GB"])
-            entries = [
-                {"start": s.start, "duration": s.duration, "text": s.text}
-                for s in fetched
-            ]
-        except AttributeError:
-            entries = YouTubeTranscriptApi.get_transcript(
-                video_id, languages=["en", "en-US", "en-GB"]
-            )
-    except (NoTranscriptFound, TranscriptsDisabled) as e:
-        raise SystemExit(
-            f"No captions available for video {video_id}. "
-            "This tool requires captions (captions-only mode). "
-            "Try a different video or enable captions on YouTube."
-        ) from e
-    except VideoUnavailable as e:
-        raise SystemExit(
-            f"Video {video_id} is unavailable (private, deleted, or region-blocked)."
-        ) from e
+    transient = (RequestBlocked, IpBlocked, YouTubeRequestFailed, _YTHTTPError)
 
-    if not entries:
-        raise SystemExit(f"Empty transcript returned for video {video_id}.")
-    return entries
+    last_err: Exception | None = None
+    for attempt in range(1, TRANSCRIPT_MAX_ATTEMPTS + 1):
+        try:
+            try:
+                api = YouTubeTranscriptApi()
+                fetched = api.fetch(video_id, languages=["en", "en-US", "en-GB"])
+                entries = [
+                    {"start": s.start, "duration": s.duration, "text": s.text}
+                    for s in fetched
+                ]
+            except AttributeError:
+                entries = YouTubeTranscriptApi.get_transcript(
+                    video_id, languages=["en", "en-US", "en-GB"]
+                )
+        except (NoTranscriptFound, TranscriptsDisabled) as e:
+            # Permanent — no captions on this video. Don't retry.
+            raise SystemExit(
+                f"No captions available for video {video_id}. "
+                "This tool requires captions (captions-only mode). "
+                "Try a different video or enable captions on YouTube."
+            ) from e
+        except VideoUnavailable as e:
+            raise SystemExit(
+                f"Video {video_id} is unavailable (private, deleted, or region-blocked)."
+            ) from e
+        except InvalidVideoId as e:
+            raise SystemExit(f"Invalid YouTube video id: {video_id}") from e
+        except transient as e:
+            last_err = e
+            if attempt == TRANSCRIPT_MAX_ATTEMPTS:
+                raise SystemExit(
+                    f"YouTube transcript fetch for {video_id} exhausted "
+                    f"{TRANSCRIPT_MAX_ATTEMPTS} attempts. Last error: "
+                    f"{type(e).__name__}: {e}"
+                ) from e
+            backoff = TRANSCRIPT_BASE_BACKOFF_S * (2 ** (attempt - 1)) + random.uniform(-0.5, 0.5)
+            log.warning(
+                "transcript fetch %s attempt %d/%d failed (%s); retrying in %.2fs",
+                video_id, attempt, TRANSCRIPT_MAX_ATTEMPTS, type(e).__name__, max(backoff, 0.5),
+            )
+            time.sleep(max(backoff, 0.5))
+            continue
+
+        if not entries:
+            raise SystemExit(f"Empty transcript returned for video {video_id}.")
+        return entries
+
+    # Defensive — loop above either returns or raises.
+    raise SystemExit(f"transcript fetch logic exhausted unexpectedly: {last_err}")
 
 
 def format_transcript(entries: list[dict]) -> str:
