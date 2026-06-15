@@ -14,7 +14,7 @@ preview_id = "b37c69519eea405e8a9daf5597455ce1"
 
 [vars]
 # Version stamp shown in /api/health. Bump on each release.
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 
 # Single source of truth: regenerate src/embedded.generated.ts from prompts/*.{md,json}
 # before every dev/deploy run. The generated file is gitignored.
