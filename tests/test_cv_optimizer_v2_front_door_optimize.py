@@ -87,7 +87,10 @@ def _post_optimize(payload: dict, secret: str, timeout: int = 60) -> tuple[int, 
                 return r.status, None, raw
     except urllib.error.HTTPError as e:
         raw = e.read().decode("utf-8", errors="replace") if e.fp else ""
-        return e.code, None, raw
+        try:
+            return e.code, json.loads(raw), raw
+        except json.JSONDecodeError:
+            return e.code, None, raw
     except (urllib.error.URLError, TimeoutError, OSError) as e:
         return -1, None, f"{type(e).__name__}: {e}"
 
