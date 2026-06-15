@@ -503,12 +503,57 @@ def _rule_haiku_banned() -> list[dict]:
     return findings
 
 
+def _rule_environ_copy() -> list[dict]:
+    """Rule: never `copy.copy(os.environ)` (or copy.deepcopy) — use `dict(os.environ)`.
+
+    `os.environ` is an `_Environ` proxy, not a dict. `copy.copy` returns another
+    proxy that SHARES state with the live process env — mutations leak. See
+    ~/.claude/rules/environ-not-copy-copy.md for the 2026-06-15 exhibit.
+    """
+    findings = []
+    pat = re.compile(r"copy\.(?:copy|deepcopy)\(\s*os\.environ\s*\)")
+    for py_path in WORKSPACE_ROOT.rglob("*.py"):
+        if any(s in py_path.parts for s in _SKIP_DIRS_PY):
+            continue
+        if _is_am_locked(str(py_path)):
+            continue
+        if py_path.resolve() == Path(__file__).resolve():
+            continue
+        try:
+            lines = py_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        rel = str(py_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+        for lineno, line in enumerate(lines, start=1):
+            stripped = line.lstrip()
+            # Skip comments and docstring-like lines mentioning the anti-pattern.
+            if stripped.startswith("#"):
+                continue
+            if pat.search(line):
+                findings.append(
+                    {
+                        "severity": "high",
+                        "file": rel,
+                        "line": lineno,
+                        "rule_id": "environ-copy",
+                        "message": (
+                            "copy.copy(os.environ) shares state with the live process env. "
+                            "Use dict(os.environ) for an independent snapshot. "
+                            "See ~/.claude/rules/environ-not-copy-copy.md."
+                        ),
+                        "tool": "workspace-native",
+                    }
+                )
+    return findings
+
+
 # ── Known native rules ────────────────────────────────────────────────────────
 
 _NATIVE_RULES: dict[str, callable] = {
     "exit-criteria-missing": _rule_exit_criteria_missing,
     "subprocess-encoding": _rule_subprocess_encoding,
     "haiku-banned": _rule_haiku_banned,
+    "environ-copy": _rule_environ_copy,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())

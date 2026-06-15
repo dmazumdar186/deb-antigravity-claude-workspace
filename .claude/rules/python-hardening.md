@@ -34,6 +34,14 @@ Pricing tables MUST include 4 entries per Claude model: `input`, `cache_read` (0
 
 Without a log line AND a comment explaining why it's safe. Bare swallows mask the bugs you most need to see (e.g. an OAuth token refresh failing silently → 24h of broken cron).
 
+## 6. Never `copy.copy(os.environ)` — use `dict(os.environ)`
+
+`os.environ` is an `_Environ` proxy, not a dict. `copy.copy(os.environ)` returns another `_Environ` that **shares state with the live process environment** — mutations on the "copy" leak into `os.environ`. Use `dict(os.environ)` for a real independent snapshot.
+
+Bug class: subprocess-spawning tests that blank API keys on a "copy" silently pollute the parent process env, making every subsequent test inherit empty keys. Looks like flaky cumulative failure. (Exhibit: 2026-06-15, 13 test failures → 0 after a 1-character-class fix.)
+
+Full rule and minimal repro: `~/.claude/rules/environ-not-copy-copy.md`.
+
 ## Reference implementation
 
 `C:\Users\deban\dev\anneal\src\anneal\` has hardened versions of all 5 patterns. Crib from there before writing new code.
