@@ -28,6 +28,7 @@ FIXTURE_FT="tests/fixtures/france_travail_sample.json"
 FIXTURE_WTTJ="tests/fixtures/wttj_sample.html"
 FIXTURE_APEC="tests/fixtures/apec_sample.html"
 FIXTURE_LI="tests/fixtures/linkedin_email_sample.html"
+FIXTURE_IND="tests/fixtures/indeed_email_sample.html"
 
 TMP_DIR=".tmp/job_search_v2/synthetic"
 DB_PATH="$TMP_DIR/synthetic_seen.db"
@@ -72,14 +73,17 @@ run_source_fixture "apec" \
 run_source_fixture "linkedin_gmail" \
     "execution/personal_workflows/job_search_v2/sources/linkedin_gmail.py" \
     "$FIXTURE_LI"
+run_source_fixture "indeed_gmail" \
+    "execution/personal_workflows/job_search_v2/sources/indeed_gmail.py" \
+    "$FIXTURE_IND"
 
 # Concatenate all source JSONLs for the combined normalize step.
 COMBINED_SRC="$TMP_DIR/all_sources.jsonl"
 cat "$SRC_DIR"/*.jsonl > "$COMBINED_SRC"
 TOTAL_SRC=$(wc -l < "$COMBINED_SRC" | tr -d ' \r')
 echo "[total] $TOTAL_SRC SourceJob lines across all sources"
-if [ "$TOTAL_SRC" -lt 12 ]; then
-    echo "FAIL: expected ≥12 combined SourceJob lines (3 per source × 4 sources), got $TOTAL_SRC" >&2
+if [ "$TOTAL_SRC" -lt 15 ]; then
+    echo "FAIL: expected ≥15 combined SourceJob lines (3 per source × 5 sources), got $TOTAL_SRC" >&2
     exit 1
 fi
 
@@ -92,8 +96,8 @@ NORM_OUT="$TMP_DIR/normalized.jsonl"
 
 NORM_LINES=$(wc -l < "$NORM_OUT" | tr -d ' \r')
 echo "      → $NORM_LINES NormalizedJob lines"
-if [ "$NORM_LINES" -lt 12 ]; then
-    echo "FAIL: normalize produced $NORM_LINES lines, expected ≥12" >&2
+if [ "$NORM_LINES" -lt 15 ]; then
+    echo "FAIL: normalize produced $NORM_LINES lines, expected ≥15" >&2
     exit 1
 fi
 
@@ -127,6 +131,29 @@ if stats["new"] != stats["total_in"]:
     print(f"FAIL: run 1 should admit all {stats['total_in']} as new, got {stats['new']}", file=sys.stderr)
     sys.exit(1)
 PYRUN1
+
+# ---------- Assertion 6: tab routing actually maps jobs to expected tabs ----------
+
+echo "[route] tab-routing assigns jobs to PM / AI PM correctly"
+"$PYTHON" - <<PYROUTE
+import json, sys
+from pathlib import Path
+from execution.personal_workflows.job_search_v2.contracts import NormalizedJob
+from execution.personal_workflows.job_search_v2.notifier.sheet import route_to_tab
+from execution.personal_workflows.job_search_v2.normalizer.location_filter import load_config
+
+cfg = load_config().get("tab_routing", {})
+jobs = [NormalizedJob.model_validate_json(ln) for ln in Path(r"$NORM_OUT").read_text(encoding="utf-8").splitlines() if ln.strip()]
+counts = {}
+for j in jobs:
+    tab = route_to_tab(j.title, cfg)
+    counts[tab] = counts.get(tab, 0) + 1
+print(f"      routing: {counts}")
+# Fixtures should route to at least PM + AI PM
+if "PM" not in counts:
+    print("FAIL: routing produced no PM-tab assignments — fallback may be broken", file=sys.stderr)
+    sys.exit(1)
+PYROUTE
 
 echo "[dedup] run 2 (warm DB) → expect zero-new"
 "$PYTHON" - <<PYRUN2

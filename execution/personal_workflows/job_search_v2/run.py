@@ -59,6 +59,7 @@ from execution.personal_workflows.job_search_v2.normalizer.normalize import (  #
 )
 from execution.personal_workflows.job_search_v2.notifier import email as email_notifier  # noqa: E402
 from execution.personal_workflows.job_search_v2.notifier import sheet as sheet_notifier  # noqa: E402
+from execution.personal_workflows.job_search_v2.ranker import score as ranker  # noqa: E402
 
 load_dotenv()
 logger = logging.getLogger("run")
@@ -103,11 +104,23 @@ def _fetch_linkedin_gmail(mode: str, max_pages: int) -> list[SourceJob]:
     return linkedin_gmail.fetch()
 
 
+def _fetch_indeed_gmail(mode: str, max_pages: int) -> list[SourceJob]:
+    from execution.personal_workflows.job_search_v2.sources import indeed_gmail
+    if mode == "fixture":
+        return indeed_gmail.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "indeed_email_sample.html")
+    try:
+        return indeed_gmail.fetch()
+    except indeed_gmail.IndeedGmailAuthError as exc:
+        logger.warning("run: indeed_gmail auth failure — %s. Skipping source.", exc)
+        return []
+
+
 _DISPATCH = {
     JobSource.FRANCE_TRAVAIL.value: _fetch_france_travail,
     JobSource.WTTJ.value: _fetch_wttj,
     JobSource.APEC.value: _fetch_apec,
     JobSource.LINKEDIN_GMAIL.value: _fetch_linkedin_gmail,
+    JobSource.INDEED_GMAIL.value: _fetch_indeed_gmail,
 }
 
 
@@ -122,6 +135,8 @@ def _call_source(name: str, mode: str, max_pages: int, posted_within_days: int) 
             return _fetch_apec(mode, max_pages)
         if name == JobSource.LINKEDIN_GMAIL.value:
             return _fetch_linkedin_gmail(mode, max_pages)
+        if name == JobSource.INDEED_GMAIL.value:
+            return _fetch_indeed_gmail(mode, max_pages)
     except Exception as exc:  # noqa: BLE001 — per-source fault isolation
         logger.error("run: source %s failed: %s", name, exc, exc_info=True)
     return []
@@ -137,13 +152,15 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Skip sheet append + email send.")
     parser.add_argument(
         "--sources",
-        default="france_travail,wttj,apec,linkedin_gmail",
+        default="france_travail,wttj,apec,linkedin_gmail,indeed_gmail",
         help="Comma-separated subset of sources to run.",
     )
     parser.add_argument("--max-pages", type=int, default=3)
     parser.add_argument("--posted-within-days", type=int, default=1)
     parser.add_argument("--no-location-filter", action="store_true",
                         help="Skip the FR-locked location filter. Useful for debugging.")
+    parser.add_argument("--no-ranker", action="store_true",
+                        help="Skip Gemini ranking (jobs still flow through; all tier=B placeholder).")
     args = parser.parse_args()
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:6]
@@ -192,16 +209,39 @@ def main() -> int:
     logger.info("run: dedup stats %s", dedup_stats)
 
     # Stage 3.5: location filter (FR-locked unless --no-location-filter)
+    cfg = load_config()
     if args.no_location_filter:
         loc_stats = {"total_in": len(new_jobs), "kept": len(new_jobs), "rejected": 0, "by_reason": {"disabled": len(new_jobs)}}
         filtered_jobs = new_jobs
     else:
-        cfg = load_config()
         filtered_jobs, loc_stats = filter_by_location(new_jobs, config=cfg)
     logger.info("run: location_filter %s", loc_stats)
 
-    # Stage 4: notify
-    sheet_count, sheet_ok = sheet_notifier.append_jobs(filtered_jobs, dry_run=args.dry_run)
+    # Stage 3.7: Gemini 2.5 Flash ranker (free tier)
+    ranker_cfg = cfg.get("ranker", {}) if isinstance(cfg, dict) else {}
+    ranker_enabled = bool(ranker_cfg.get("enabled", True)) and not args.no_ranker
+    ranked_by_hash, ranker_stats = ranker.rank_jobs(filtered_jobs, enabled=ranker_enabled)
+    logger.info("run: ranker %s", ranker_stats)
+
+    # Drop jobs the ranker tagged SKIP (still record them in the dedup DB so they don't
+    # reappear, but don't push them to the sheet or digest).
+    if ranker_enabled:
+        ranked_filtered = [
+            j for j in filtered_jobs
+            if ranked_by_hash.get(j.content_hash) is None
+            or ranked_by_hash[j.content_hash].tier.value != "SKIP"
+        ]
+    else:
+        ranked_filtered = filtered_jobs
+
+    # Stage 4: notify (route to PM / AI PM / etc. tabs via title synonyms)
+    routing_cfg = cfg.get("tab_routing", {"fallback_tab": "PM", "titles": {}})
+    sheet_count, per_tab_counts, sheet_ok = sheet_notifier.append_jobs(
+        ranked_filtered,
+        ranked_by_hash=ranked_by_hash,
+        routing_config=routing_cfg,
+        dry_run=args.dry_run,
+    )
     pipeline_stats = {
         "run_id": run_id,
         "mode": args.mode,
@@ -215,10 +255,13 @@ def main() -> int:
         "after_location_filter": loc_stats["kept"],
         "location_rejected": loc_stats["rejected"],
         "location_by_reason": loc_stats["by_reason"],
+        "ranker": ranker_stats,
+        "after_ranker_skip": len(ranked_filtered),
         "sheet_appended": sheet_count,
+        "sheet_per_tab": per_tab_counts,
         "sheet_ok": sheet_ok,
     }
-    email_sent, subject, body = email_notifier.send_digest(filtered_jobs, pipeline_stats, dry_run=args.dry_run)
+    email_sent, subject, body = email_notifier.send_digest(ranked_filtered, pipeline_stats, dry_run=args.dry_run, ranked_by_hash=ranked_by_hash)
     pipeline_stats["email_sent"] = email_sent
     pipeline_stats["email_subject"] = subject
 
@@ -229,8 +272,13 @@ def main() -> int:
         f.write(json.dumps(pipeline_stats) + "\n")
 
     logger.info("run: done. summary at %s", run_dir / "summary.json")
-    # Stdout = the digest body so caller can pipe / log it
-    sys.stdout.write(body + "\n")
+    # Stdout = the digest body so caller can pipe / log it.
+    # On Windows cp1252 consoles certain characters (em-dash, middle-dot) can't be
+    # encoded — write through the stream's buffer with errors='replace' so we never crash.
+    try:
+        sys.stdout.write(body + "\n")
+    except UnicodeEncodeError:
+        sys.stdout.buffer.write((body + "\n").encode("utf-8", errors="replace"))
     return 0
 
 

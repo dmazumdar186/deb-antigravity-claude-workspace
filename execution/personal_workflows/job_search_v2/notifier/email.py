@@ -29,7 +29,7 @@ _PKG_DIR = Path(__file__).resolve().parent.parent
 if str(_PKG_DIR.parent.parent.parent) not in sys.path:
     sys.path.insert(0, str(_PKG_DIR.parent.parent.parent))
 
-from execution.personal_workflows.job_search_v2.contracts import NormalizedJob  # noqa: E402
+from execution.personal_workflows.job_search_v2.contracts import NormalizedJob, RankedJob  # noqa: E402
 
 load_dotenv()
 logger = logging.getLogger("notifier.email")
@@ -38,12 +38,24 @@ _SMTP_HOST = "smtp.gmail.com"
 _SMTP_PORT = 587
 
 
-def build_digest(jobs: list[NormalizedJob], stats: dict, sheet_id: str | None) -> tuple[str, str]:
+def build_digest(
+    jobs: list[NormalizedJob],
+    stats: dict,
+    sheet_id: str | None,
+    ranked_by_hash: dict[str, RankedJob] | None = None,
+) -> tuple[str, str]:
     """Compose (subject, body). Pure function — safe to unit-test."""
     new_count = len(jobs)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    ranked_by_hash = ranked_by_hash or {}
 
-    subject = f"Job Search v2 — {new_count} new for {today}"
+    # Subject reflects ranker tier breakdown when present.
+    by_tier = stats.get("ranker", {}).get("by_tier", {}) if stats.get("ranker") else {}
+    if by_tier:
+        tier_summary = f" (A:{by_tier.get('A', 0)} B:{by_tier.get('B', 0)} C:{by_tier.get('C', 0)})"
+    else:
+        tier_summary = ""
+    subject = f"Job Search v2 — {new_count} new for {today}{tier_summary}"
 
     # Per-source breakdown
     per_source: dict[str, int] = {}
@@ -51,18 +63,26 @@ def build_digest(jobs: list[NormalizedJob], stats: dict, sheet_id: str | None) -
         per_source[j.source.value] = per_source.get(j.source.value, 0) + 1
     src_lines = "\n".join(f"  {src:<18} {n}" for src, n in sorted(per_source.items())) or "  (none)"
 
-    # Top 10 by posted_at desc (None → bottom)
+    # Sort top jobs: tier A > B > C > placeholder, then by posted_at desc.
+    tier_order = {"A": 0, "B": 1, "C": 2, "SKIP": 3}
     def _key(j: NormalizedJob):
-        return j.posted_at or datetime.min.replace(tzinfo=timezone.utc)
-    top = sorted(jobs, key=_key, reverse=True)[:10]
+        rj = ranked_by_hash.get(j.content_hash)
+        tier_rank = tier_order.get(rj.tier.value, 99) if rj else 99
+        posted = j.posted_at or datetime.min.replace(tzinfo=timezone.utc)
+        # Negative posted for desc within tier
+        return (tier_rank, -posted.timestamp())
+    top = sorted(jobs, key=_key)[:15]
 
     job_lines = []
     for j in top:
         posted = j.posted_at.strftime("%Y-%m-%d") if j.posted_at else "?"
         also = f" (also on: {', '.join(s.value for s in j.also_seen_on)})" if j.also_seen_on else ""
+        rj = ranked_by_hash.get(j.content_hash)
+        tier_tag = f"[{rj.tier.value}] " if rj and rj.tier.value != "B" else ""
+        reasoning = f"\n      -> {rj.reasoning}" if rj and rj.reasoning else ""
         job_lines.append(
-            f"  [{j.source.value}] {posted}  {j.title}\n"
-            f"      {j.company} — {j.location} — {j.contract_type.value} — {j.remote_mode.value}{also}\n"
+            f"  {tier_tag}[{j.source.value}] {posted}  {j.title}\n"
+            f"      {j.company} — {j.location} — {j.contract_type.value} — {j.remote_mode.value}{also}{reasoning}\n"
             f"      {j.url}"
         )
     top_block = "\n\n".join(job_lines) or "  (no top jobs)"
@@ -106,10 +126,11 @@ def send_digest(
     stats: dict,
     *,
     dry_run: bool = False,
+    ranked_by_hash: dict[str, RankedJob] | None = None,
 ) -> tuple[bool, str, str]:
     """Compose + send. Returns (sent, subject, body) so callers can log/inspect."""
     sheet_id = os.environ.get("SHEETS_SPREADSHEET_ID", "").strip() or None
-    subject, body = build_digest(jobs, stats, sheet_id)
+    subject, body = build_digest(jobs, stats, sheet_id, ranked_by_hash=ranked_by_hash)
 
     if dry_run:
         logger.info("notifier.email [dry-run]: subject=%r body_lines=%d", subject, body.count("\n"))

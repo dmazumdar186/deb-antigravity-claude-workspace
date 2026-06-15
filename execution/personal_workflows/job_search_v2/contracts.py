@@ -13,8 +13,6 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 
@@ -25,6 +23,7 @@ class JobSource(str, Enum):
     WTTJ = "wttj"
     APEC = "apec"
     LINKEDIN_GMAIL = "linkedin_gmail"
+    INDEED_GMAIL = "indeed_gmail"
     FIXTURE = "fixture"  # used by tests/synthetic only
 
 

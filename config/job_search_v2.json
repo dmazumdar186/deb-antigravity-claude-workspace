@@ -1,88 +1,100 @@
 {
   "user_locale": "fr",
   "target_locations": {
-    "comment": "Accept jobs whose location or description contains any pattern below (case-insensitive substring). Goal: all of France + Île-de-France region + Germany (LinkedIn surfaces many German PM roles) + EU-remote. Reject only clearly non-target geographies.",
+    "comment": "Accept jobs whose location or description contains any pattern below (case-insensitive substring). Scope: all of France + Île-de-France + Germany + EU-remote. Reject only clearly non-target geographies.",
     "accept_patterns": [
-      "france",
-      "français",
-      "francais",
-      "paris",
-      "île-de-france",
-      "ile-de-france",
-      "lyon",
-      "toulouse",
-      "marseille",
-      "bordeaux",
-      "nantes",
-      "lille",
-      "strasbourg",
-      "rennes",
-      "montpellier",
-      "nice",
-      "grenoble",
-      "germany",
-      "deutschland",
-      "berlin",
-      "munich",
-      "münchen",
-      "hamburg",
-      "frankfurt",
-      "köln",
-      "cologne",
-      "düsseldorf",
-      "stuttgart",
-      "remote",
-      "télétravail",
-      "teletravail",
-      "full remote",
-      "remote (europe)",
-      "remote (eu)",
-      "remote (france)",
-      "remote (germany)",
+      "france", "français", "francais",
+      "paris", "île-de-france", "ile-de-france",
+      "lyon", "toulouse", "marseille", "bordeaux", "nantes", "lille",
+      "strasbourg", "rennes", "montpellier", "nice", "grenoble",
+      "germany", "deutschland",
+      "berlin", "munich", "münchen", "hamburg", "frankfurt", "köln", "cologne", "düsseldorf", "stuttgart",
+      "remote", "télétravail", "teletravail", "full remote",
+      "remote (europe)", "remote (eu)", "remote (france)", "remote (germany)",
       "hybrid"
     ],
     "reject_patterns_priority": [
-      "united states",
-      "usa",
-      "u.s.a.",
-      "(us)",
-      ", us)",
-      "canada",
-      "mexico",
-      "brazil",
-      "argentina",
-      "australia",
-      "new zealand",
-      "japan",
-      "india",
-      "singapore",
-      "hong kong",
-      "south africa",
-      "uae",
-      "dubai",
-      "south america",
-      "latin america",
-      "apac",
-      "americas"
-    ],
-    "note_on_uk": "United Kingdom intentionally NOT in reject list — many EU-remote roles still tag location as UK. Filter at apply-time if needed."
-  },
-  "titles": {
-    "comment": "Reserved for v2.1 ranker rubric — not used yet by orchestrator.",
-    "wanted": [
-      "product manager",
-      "senior product manager",
-      "head of product",
-      "lead product manager",
-      "principal product manager",
-      "ai product manager",
-      "product manager ai",
-      "chef de produit"
+      "united states", "usa", "u.s.a.", "(us)", ", us)",
+      "canada", "mexico", "brazil", "argentina",
+      "australia", "new zealand",
+      "japan", "india", "singapore", "hong kong",
+      "south africa", "uae", "dubai",
+      "south america", "latin america", "apac", "americas"
     ]
+  },
+  "tab_routing": {
+    "comment": "Title-synonym → destination tab. First matching synonym wins. Fallback tab is used when no synonym matches.",
+    "fallback_tab": "PM",
+    "titles": {
+      "PM": {
+        "tab": "PM",
+        "synonyms": [
+          "product manager", "senior product manager", "lead product manager", "principal product manager",
+          "head of product", "vp product", "vp of product", "chief product officer",
+          "chef de produit", "directeur produit", "directrice produit",
+          "group product manager", "product lead", "staff product manager"
+        ]
+      },
+      "AI PM": {
+        "tab": "AI PM",
+        "synonyms": [
+          "ai product manager", "product manager ai", "product manager - ai", "product manager (ai",
+          "ml product manager", "product manager ml", "product manager - ml",
+          "generative ai product manager", "genai product manager",
+          "ai/ml product manager"
+        ]
+      },
+      "AI Automation": {
+        "tab": "AI Automation",
+        "synonyms": [
+          "ai automation engineer", "automation engineer ai", "ai automation specialist",
+          "ai automation consultant", "automation product manager"
+        ]
+      },
+      "AI Mobile": {
+        "tab": "AI Mobile",
+        "synonyms": [
+          "ai mobile app developer", "ai mobile developer", "mobile ai engineer",
+          "mobile ai developer", "ai mobile product manager"
+        ]
+      },
+      "AI Process": {
+        "tab": "AI Process",
+        "synonyms": [
+          "ai process automation", "process automation ai", "ai process consultant",
+          "ai process expert", "process intelligence"
+        ]
+      },
+      "AI Consultant": {
+        "tab": "AI Consultant",
+        "synonyms": [
+          "ai consultant", "ai strategy consultant", "ai transformation consultant",
+          "ai solutions consultant", "ai advisor"
+        ]
+      }
+    }
+  },
+  "ranker": {
+    "comment": "Gemini 2.5 Flash ranker — free tier (250 RPD, 10 RPM). Inserts tier A/B/C/SKIP labels in the digest and sheet.",
+    "enabled": true,
+    "model": "gemini-2.5-flash",
+    "min_score_to_keep": 0.0,
+    "preferred_titles_weight": 0.4,
+    "preferred_locations_weight": 0.3,
+    "preferred_signals_weight": 0.3
   },
   "fan_out": {
     "comment": "Per-source defaults passed by run.py. Override via CLI.",
     "max_pages": 3,
     "posted_within_days": 1
+  },
+  "gmail_alert_sources": {
+    "comment": "Each entry = one Gmail label + a parser name. Filter your inbox so each alert sender auto-routes to its label.",
+    "labels": [
+      {"label": "JobAlerts/LinkedIn", "parser": "linkedin"},
+      {"label": "JobAlerts/Indeed", "parser": "indeed"},
+      {"label": "JobAlerts/WTTJ", "parser": "wttj_email"},
+      {"label": "JobAlerts/APEC", "parser": "apec_email"}
+    ]
   }
 }
