@@ -53,6 +53,35 @@ The system is "done" when ALL of these hold (each must be machine-verifiable):
 - **Worker rate limit (10/hr/IP)** → user gets 429 with retry_after_seconds; legitimate use should never hit this.
 - **AM lockdown reminder**: this tool does NOT touch AM credentials, endpoints, or data. AM remains frozen.
 
+## Front-door synthetic
+
+**Rule:** `~/.claude/rules/front-door-synthetic.md` — the project cannot be called "working" until this synthetic passes 5 consecutive runs.
+
+### Health synthetic (no quota cost)
+```
+py execution/personal_workflows/cv_optimizer_v2/tests/front_door.py --runs 5
+```
+Tests `GET /api/health` and `HEAD` on the Pages site. No Gemini calls. Safe to run in CI and on every deploy.
+
+### POST /api/optimize synthetic (opt-in — burns ~1 Gemini call per run)
+```
+# Requires WORKER_SECRET in .env:
+#   echo "WORKER_SECRET=<your-secret>" >> .env
+# Then:
+CV_OPTIMIZE_LIVE=1 py -m pytest tests/test_cv_optimizer_v2_front_door_optimize.py -v -s
+```
+- Gate env var: `CV_OPTIMIZE_LIVE=1` (skipped by default to protect free-tier quota).
+- Fixture: `tests/fixtures/cv_optimize_request.json` — synthetic PM CV + OpenAI-style JD.
+- Artifact saved to: `tests/.tmp/cv_optimizer_v2_synthetic_latest.json` after each run.
+- On HTTP 429 (Gemini quota): `pytest.skip` — degraded-state, not regression.
+- On HTTP 200 with invalid CVSpec: hard `FAIL` — contract regression.
+
+**Required secrets for full live run:**
+- `WORKER_SECRET` — add to workspace `.env` (same value as Cloudflare secret `WORKER_SECRET`).
+
+**Last verified:** 2026-06-15 — `test_optimize_rejects_bad_secret` PASS (Worker live, auth enforced). Full CVSpec run pending `WORKER_SECRET` in local `.env`.
+
 ## Changelog
 
+- 2026-06-15: Front-door POST synthetic added (`tests/test_cv_optimizer_v2_front_door_optimize.py`).
 - 2026-06-12: Initial scaffold — Phase 1-3 (schema gate, Worker, Frontend) shipped. Deploy pending user wrangler auth.

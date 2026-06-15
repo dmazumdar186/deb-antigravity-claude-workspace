@@ -8,6 +8,7 @@ import { optimizeCvGemini } from "./gemini.js";
 import { handleScrape } from "./scrape.js";
 import { handleRefreshProfile, getCachedProfile } from "./profile.js";
 import { SYSTEM_PROMPT, RESPONSE_SCHEMA, PROMPT_FINGERPRINT, SCHEMA_FINGERPRINT } from "./embedded.generated.js";
+import { LANG_VALIDATOR_FINGERPRINT } from "./lang_validator.js";
 
 // Provider note: pivoted from Anthropic Sonnet 4.6 → Gemini 2.5 Flash on 2026-06-14.
 // Reason: Anthropic API requires $20 minimum top-up; the user can't afford that for a
@@ -123,6 +124,7 @@ async function handleHealth(env: Env): Promise<Response> {
     secrets_present: secretsPresent,
     prompt_fingerprint: PROMPT_FINGERPRINT,
     schema_fingerprint: SCHEMA_FINGERPRINT,
+    lang_validator_fingerprint: LANG_VALIDATOR_FINGERPRINT,
     timestamp: new Date().toISOString(),
   });
 }

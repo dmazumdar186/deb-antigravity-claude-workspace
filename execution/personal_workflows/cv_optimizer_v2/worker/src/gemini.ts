@@ -8,26 +8,19 @@
 
 import type { CVSpec } from "./cv_schema.js";
 import { isCVSpec } from "./cv_schema.js";
+import { validateCvSpecLanguage } from "./lang_validator.js";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-export async function optimizeCvGemini(
-  cvText: string,
-  jdText: string,
-  systemPrompt: string,
+/**
+ * Inner call to Gemini — extracted so we can call it twice on lang-mismatch retry.
+ */
+async function callGemini(
+  userText: string,
   responseSchema: object,
   apiKey: string,
-  profileContext?: string,
 ): Promise<CVSpec> {
-  // User message assembly: CV → [optional Current activity] → JD.
-  // Same shape as anthropic.ts — keeps prompt-engineering portable across providers.
-  const profileBlock = profileContext && profileContext.trim().length > 0
-    ? `\n\n---\n\n${profileContext.trim()}`
-    : "";
-
-  const userText = `${systemPrompt}\n\n---\n\nCV (original):\n${cvText}${profileBlock}\n\n---\n\nJD (target):\n${jdText}\n\nReturn the optimized CV JSON now.`;
-
   const body = {
     contents: [
       {
@@ -66,12 +59,7 @@ export async function optimizeCvGemini(
 
   if (!res.ok) {
     const errText = await res.text();
-    // Gemini free-tier quota exhaustion returns 429 with body containing
-    // `RESOURCE_EXHAUSTED`. Surface this as a typed error so the Worker can
-    // return a structured 429 to the client (with retry_after) instead of
-    // bubbling up as a generic 500.
     if (res.status === 429 || /resource_exhausted/i.test(errText)) {
-      // Try to extract Google's suggested retry delay if present.
       let retryAfterSeconds: number | undefined;
       try {
         const parsed = JSON.parse(errText) as {
@@ -90,7 +78,6 @@ export async function optimizeCvGemini(
       const err = new Error(
         `gemini_quota_exhausted: free-tier limit reached${retryAfterSeconds ? `; retry in ${retryAfterSeconds}s` : ""}`,
       );
-      // Attach typed metadata so the Worker layer can build the client response.
       (err as Error & { code?: string; retryAfterSeconds?: number }).code = "gemini_quota_exhausted";
       (err as Error & { retryAfterSeconds?: number }).retryAfterSeconds = retryAfterSeconds;
       throw err;
@@ -125,4 +112,52 @@ export async function optimizeCvGemini(
   }
 
   return parsed;
+}
+
+export async function optimizeCvGemini(
+  cvText: string,
+  jdText: string,
+  systemPrompt: string,
+  responseSchema: object,
+  apiKey: string,
+  profileContext?: string,
+): Promise<CVSpec> {
+  // User message assembly: CV → [optional Current activity] → JD.
+  // Same shape as anthropic.ts — keeps prompt-engineering portable across providers.
+  const profileBlock = profileContext && profileContext.trim().length > 0
+    ? `\n\n---\n\n${profileContext.trim()}`
+    : "";
+
+  const userText = `${systemPrompt}\n\n---\n\nCV (original):\n${cvText}${profileBlock}\n\n---\n\nJD (target):\n${jdText}\n\nReturn the optimized CV JSON now.`;
+
+  // First attempt.
+  const cvSpec = await callGemini(userText, responseSchema, apiKey);
+  const expectedLang = cvSpec.language_detected;
+
+  // Per-field language validation (eval-first.md — no summary-only check).
+  // On mismatch: retry once with an explicit per-field language reinforcement.
+  // Rationale: one retry is cheap (free tier); a second retry risks burning quota.
+  const validation = validateCvSpecLanguage(cvSpec, expectedLang);
+  if (!validation.ok) {
+    const mismatched = validation.mismatches.map((m) => m.field).join(", ");
+    console.warn(
+      `[lang-validator] ${validation.mismatches.length} field(s) in wrong language (expected=${expectedLang}): ${mismatched}. Retrying with stronger language instruction.`,
+    );
+
+    // Build a retry prompt that names the problem fields explicitly.
+    const langHint =
+      `\n\nCRITICAL LANGUAGE RULE: Every single field in the JSON output MUST be written in ${expectedLang.toUpperCase()}. ` +
+      `The previous attempt had the wrong language in: ${mismatched}. ` +
+      `Do not use any ${expectedLang === "fr" ? "English" : expectedLang === "en" ? "French/Spanish/German" : "other-language"} words in those fields. ` +
+      `ALL bullets, roles, summary, projects, and recommendations must be in ${expectedLang.toUpperCase()} only.`;
+
+    const retryText = userText + langHint;
+    const retried = await callGemini(retryText, responseSchema, apiKey);
+    return retried;
+  }
+
+  console.log(
+    `[lang-validator] ok (expected=${expectedLang} checked=${validation.checked} skipped=${validation.skipped})`,
+  );
+  return cvSpec;
 }
