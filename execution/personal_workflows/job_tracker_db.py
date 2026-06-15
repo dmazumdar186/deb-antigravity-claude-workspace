@@ -28,13 +28,14 @@ CREATE TABLE IF NOT EXISTS companies (
   siren TEXT UNIQUE,
   name TEXT NOT NULL,
   name_normalized TEXT NOT NULL,
+  country TEXT NOT NULL DEFAULT 'FR',
   naf_code TEXT,
   website TEXT,
   is_digital_sector INTEGER,
   first_seen_at TEXT NOT NULL,
   last_seen_at TEXT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_companies_norm ON companies(name_normalized);
+CREATE INDEX IF NOT EXISTS idx_companies_norm ON companies(name_normalized, country);
 CREATE INDEX IF NOT EXISTS idx_companies_siren ON companies(siren);
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -103,10 +104,32 @@ def init_db(db_path: Path | str) -> sqlite3.Connection:
     )
     conn.row_factory = sqlite3.Row
 
+    # Migrate older DBs FIRST so the DDL's multi-column index over (name_normalized, country)
+    # can compile cleanly when re-applied below.
+    _migrate(conn)
+
     # Apply full DDL (CREATE IF NOT EXISTS statements are idempotent)
     conn.executescript(_DDL)
 
     return conn
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Apply additive migrations to an existing database.
+
+    Idempotent: each migration is gated on a `column exists?` check, and the
+    function no-ops on a brand-new DB (no `companies` table yet — DDL will
+    create it with all current columns).
+    """
+    has_table = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='companies'"
+    ).fetchone() is not None
+    if not has_table:
+        return
+    cols = {row["name"] for row in conn.execute("PRAGMA table_info(companies)").fetchall()}
+    if "country" not in cols:
+        conn.execute("ALTER TABLE companies ADD COLUMN country TEXT NOT NULL DEFAULT 'FR'")
+        conn.execute("DROP INDEX IF EXISTS idx_companies_norm")
 
 
 # ---------------------------------------------------------------------------
@@ -122,13 +145,17 @@ def upsert_company(
     naf_code: str | None = None,
     website: str | None = None,
     is_digital_sector: int | None = None,
+    country: str = "FR",
 ) -> int:
     """Insert or update a company row; returns company_id.
 
     Match logic (in order):
     1. If siren is provided and a row with that siren exists → update and return its id.
-    2. Else if a row with name_normalized exists → update and return its id.
-    3. Else insert a new row.
+    2. Else if a row with (name_normalized, country) exists → update and return its id.
+       The country segment of the key is what prevents two distinct multi-country
+       same-name companies (e.g. Siemens France vs Siemens Germany) from
+       collapsing into one row when neither has a SIREN.
+    3. Else insert a new row with the supplied country (default 'FR').
 
     On update: refreshes last_seen_at and fills in any previously-null fields
     (naf_code, website, is_digital_sector) if the caller now supplies them.
@@ -142,10 +169,11 @@ def upsert_company(
         if row:
             existing_id = row["id"]
 
-    # Fall back to name_normalized match
+    # Fall back to (name_normalized, country) match
     if existing_id is None:
         row = conn.execute(
-            "SELECT id FROM companies WHERE name_normalized = ?", (name_normalized,)
+            "SELECT id FROM companies WHERE name_normalized = ? AND country = ?",
+            (name_normalized, country),
         ).fetchone()
         if row:
             existing_id = row["id"]
@@ -169,10 +197,10 @@ def upsert_company(
     # Insert new row
     cursor = conn.execute(
         """
-        INSERT INTO companies (siren, name, name_normalized, naf_code, website, is_digital_sector, first_seen_at, last_seen_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO companies (siren, name, name_normalized, country, naf_code, website, is_digital_sector, first_seen_at, last_seen_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (siren, name, name_normalized, naf_code, website, is_digital_sector, ts, ts),
+        (siren, name, name_normalized, country, naf_code, website, is_digital_sector, ts, ts),
     )
     return cursor.lastrowid
 
