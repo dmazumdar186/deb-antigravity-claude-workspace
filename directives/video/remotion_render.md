@@ -9,18 +9,43 @@ for DaVinci Resolve compositing) and **final** (delivery-ready H.264 MP4).
 **Local render is free.** Lambda parallel render requires an AWS account plus a
 Remotion company license at >3 developer seats — out of scope for v1.
 
+## Tools / Scripts
+
+| Script | Purpose |
+|---|---|
+| `execution/video/remotion_render.py` | Python wrapper — resolves slug via registry, validates project, invokes `npx remotion render`. Use this for automated / scripted renders. |
+| Manual `npx remotion render` | Direct CLI render — use the manual commands below for one-off experiments or when the wrapper is overkill. |
+
+**Python wrapper CLI:**
+```
+py execution/video/remotion_render.py --slug <slug> [--composition <id>] [--out <path>] [--frames <range>]
+```
+
+- `--slug`: must exist in `execution/video/registry.json` (created by `remotion_bootstrap.py`)
+- `--composition`: composition ID to render (default: auto-detected from Root.tsx)
+- `--out`: output file path (default: `.tmp/remotion-renders/<slug>-<timestamp>.mp4`)
+- `--frames`: frame range, e.g. `0-29` or `15` (default: full composition)
+
+**E2E smoke test** (gated by `REMOTION_LIVE=1`):
+```
+REMOTION_LIVE=1 py -m pytest tests/test_remotion_render_e2e.py -v
+```
+Bootstraps `_smoketest`, renders 30 frames, asserts mp4 > 50 KB, checks ffprobe duration ~1 s.
+
 ## When to use
 
 - User says "render the video", "export to ProRes", "export to WebM", "export
   to MP4", or asks to produce a final file from a Remotion composition.
 - User needs an alpha-channel file to drop into DaVinci Resolve on V2.
+- For scripted / automated renders, use `remotion_render.py` (wrapper handles registry
+  validation, output dir creation, error surfacing, and subprocess hardening).
 
 ## Inputs
 
 | Input | Source |
 |---|---|
-| Composition ID | From `src/Root.tsx` — the `id` field on the `<Composition>` element |
-| Project slug | From `project.json` — used to name the output file |
+| Composition ID | From `src/Root.tsx` — the `id` field on the `<Composition>` element (auto-detected by wrapper) |
+| Project slug | From `execution/video/registry.json` — must have been bootstrapped first |
 | Target preset | User intent: overlay (alpha) or final (delivery) |
 
 ## Outputs

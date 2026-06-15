@@ -2,6 +2,13 @@
 description: Scaffold a new Remotion project using the official --three template, apply workspace overlay, junction-symlink node_modules outside OneDrive, and register in registry.json.
 inputs: CLI: --slug <slug>, --dry-run, --title "...", --fps 30, --width 1920, --height 1080, --duration-frames 900, --force; or --remove <slug> [--purge-cache]
 outputs: execution/video/remotion-projects/{slug}/, C:/Users/deban/dev/remotion-node-cache/{slug}/node_modules, execution/video/registry.json entry
+
+After bootstrapping, render the project using the companion render wrapper:
+  py execution/video/remotion_render.py --slug <slug> [--composition <id>] [--out <path>] [--frames <range>]
+
+E2E render smoke test (requires REMOTION_LIVE=1):
+  REMOTION_LIVE=1 py -m pytest tests/test_remotion_render_e2e.py -v
+See execution/video/remotion_render.py and directives/video/remotion_render.md for details.
 """
 
 import argparse
