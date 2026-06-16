@@ -106,6 +106,42 @@ py execution/.../linkedin_gmail.py --auth imap --label JobAlerts/LinkedIn
 py execution/.../linkedin_gmail.py --auth oauth  # uses GMAIL_TOKEN_PATH
 ```
 
+## Source: Indeed via Gmail (LIVE as of 2026-06-15)
+
+Same IMAP pattern as LinkedIn. Reuses `GMAIL_SMTP_USER` + `GMAIL_SMTP_APP_PASSWORD`. Module: [`sources/indeed_gmail.py`](../../execution/personal_workflows/job_search_v2/sources/indeed_gmail.py). User setup: Gmail label `JobAlerts/Indeed` + filter `from:(noreply@match.indeed.com OR jobsalerts@indeed.com OR alerts@indeed.com)`, plus a saved-search alert at fr.indeed.com.
+
+## Source: Hellowork via Gmail (PROBATIONARY as of 2026-06-16)
+
+**Pattern:** identical to `indeed_gmail` / `linkedin_gmail` — IMAP read, parse alert HTML, emit `SourceJob`. Module: [`sources/hellowork_gmail.py`](../../execution/personal_workflows/job_search_v2/sources/hellowork_gmail.py). Reuses `GMAIL_SMTP_USER` + `GMAIL_SMTP_APP_PASSWORD`. **Status: parser uses heuristic regex until a real alert email is captured to `tests/fixtures/hellowork_email_sample.html` and the parser is locked.**
+
+User setup (once):
+1. Create Gmail label `JobAlerts/Hellowork`.
+2. Create a Gmail filter — pin the actual sender after the first alert arrives; placeholder:
+   ```
+   from:(noreply@hellowork.com OR alertes@hellowork.com OR no-reply@hellowork.com)
+   ```
+   Apply label `JobAlerts/Hellowork`, Skip the Inbox.
+3. Sign up at hellowork.com → create a saved search (`Product Manager` / `Chef de produit`, Île-de-France) → enable daily email alert.
+4. After the first alert, save its raw HTML to `tests/fixtures/hellowork_email_sample.html` and re-run the front-door synthetic.
+
+## Source: Jobgether via Gmail (PROBATIONARY as of 2026-06-16)
+
+**Pattern:** identical to `hellowork_gmail`. Module: [`sources/jobgether_gmail.py`](../../execution/personal_workflows/job_search_v2/sources/jobgether_gmail.py). Adds remote-first European PM coverage that France Travail / Hellowork / APEC under-index. **Status: parser uses heuristic regex until a real alert email is captured to `tests/fixtures/jobgether_email_sample.html` and the parser is locked.**
+
+User setup (once):
+1. Create Gmail label `JobAlerts/Jobgether`.
+2. Create a Gmail filter — pin the actual sender after the first alert arrives; placeholder:
+   ```
+   from:(noreply@jobgether.com OR alerts@jobgether.com OR no-reply@jobgether.com)
+   ```
+   Apply label `JobAlerts/Jobgether`, Skip the Inbox.
+3. Sign up at jobgether.com → create a saved search (`Product Manager`, remote-first, Europe) → enable daily email alert.
+4. After the first alert, save its raw HTML to `tests/fixtures/jobgether_email_sample.html` and re-run the front-door synthetic.
+
+### Parser drift detection (applies to all *_gmail sources)
+
+Each `*_gmail` parser emits a WARNING `"parsed 0 jobs from email id=… — {site} may have shifted template"` when it processes a non-empty email but extracts zero jobs. That warning is the canary for template drift — surface it in the daily digest summary, not silently in logs.
+
 ---
 
 ## Cross-day dedup
@@ -193,3 +229,13 @@ py execution/personal_workflows/job_search_v2/sources/france_travail.py --query 
 - [ ] Build `notifier/email.py` (Gmail MCP draft) and `notifier/sheet.py` (reuse existing sheets writer).
 - [ ] Build `eval/` golden-set + weekly precision@5 / recall report.
 - [ ] Cut the GH-Actions cron over to v2.
+- [ ] Once `JobAlerts/Hellowork` and `JobAlerts/Jobgether` labels receive their first real alert: save raw HTML to `tests/fixtures/{site}_email_sample.html` and lock parser regexes against real layout.
+
+## Exit Criteria
+
+- `tests/front_door_job_search_v2.sh` passes 5 consecutive runs against the live system (per `~/.claude/rules/front-door-synthetic.md`).
+- Every live source (`france_travail`, `linkedin_gmail`, `indeed_gmail`, `hellowork_gmail`, `jobgether_gmail`) emits at least 1 `SourceJob` in a 7-day window, or is explicitly logged as "no new postings in window" in the digest.
+- Per-source jsonl files in `.tmp/job_search_v2/runs/run_<id>/` exist for every source listed in `--sources`.
+- `seen.db` contains rows with `first_seen_at` < today, demonstrating cross-day dedup is active (not just an empty-DB cold start).
+- The daily email digest output contains no Adzuna URLs (the v1 anti-pattern).
+- Every `*_gmail` parser logs the "parsed 0 jobs from email" warning when an email contained no extractable job cards — silent zero from a known label is treated as template drift, not "no jobs today."

@@ -115,12 +115,36 @@ def _fetch_indeed_gmail(mode: str, max_pages: int) -> list[SourceJob]:
         return []
 
 
+def _fetch_hellowork_gmail(mode: str, max_pages: int) -> list[SourceJob]:
+    from execution.personal_workflows.job_search_v2.sources import hellowork_gmail
+    if mode == "fixture":
+        return hellowork_gmail.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "hellowork_email_sample.html")
+    try:
+        return hellowork_gmail.fetch()
+    except hellowork_gmail.HelloworkGmailAuthError as exc:
+        logger.warning("run: hellowork_gmail auth failure — %s. Skipping source.", exc)
+        return []
+
+
+def _fetch_jobgether_gmail(mode: str, max_pages: int) -> list[SourceJob]:
+    from execution.personal_workflows.job_search_v2.sources import jobgether_gmail
+    if mode == "fixture":
+        return jobgether_gmail.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "jobgether_email_sample.html")
+    try:
+        return jobgether_gmail.fetch()
+    except jobgether_gmail.JobgetherGmailAuthError as exc:
+        logger.warning("run: jobgether_gmail auth failure — %s. Skipping source.", exc)
+        return []
+
+
 _DISPATCH = {
     JobSource.FRANCE_TRAVAIL.value: _fetch_france_travail,
     JobSource.WTTJ.value: _fetch_wttj,
     JobSource.APEC.value: _fetch_apec,
     JobSource.LINKEDIN_GMAIL.value: _fetch_linkedin_gmail,
     JobSource.INDEED_GMAIL.value: _fetch_indeed_gmail,
+    JobSource.HELLOWORK_GMAIL.value: _fetch_hellowork_gmail,
+    JobSource.JOBGETHER_GMAIL.value: _fetch_jobgether_gmail,
 }
 
 
@@ -137,6 +161,10 @@ def _call_source(name: str, mode: str, max_pages: int, posted_within_days: int) 
             return _fetch_linkedin_gmail(mode, max_pages)
         if name == JobSource.INDEED_GMAIL.value:
             return _fetch_indeed_gmail(mode, max_pages)
+        if name == JobSource.HELLOWORK_GMAIL.value:
+            return _fetch_hellowork_gmail(mode, max_pages)
+        if name == JobSource.JOBGETHER_GMAIL.value:
+            return _fetch_jobgether_gmail(mode, max_pages)
     except Exception as exc:  # noqa: BLE001 — per-source fault isolation
         logger.error("run: source %s failed: %s", name, exc, exc_info=True)
     return []
@@ -152,7 +180,7 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Skip sheet append + email send.")
     parser.add_argument(
         "--sources",
-        default="france_travail,wttj,apec,linkedin_gmail,indeed_gmail",
+        default="france_travail,wttj,apec,linkedin_gmail,indeed_gmail,hellowork_gmail,jobgether_gmail",
         help="Comma-separated subset of sources to run.",
     )
     parser.add_argument("--max-pages", type=int, default=3)
