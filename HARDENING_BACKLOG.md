@@ -1,5 +1,45 @@
 # Hardening Backlog — 2026-06-15
 
+## Update 2026-06-16 — Panel-pass rule backport triage
+
+New always-active rule landed: `~/.claude/rules/panel-pass.md` (4-lens "would Karpathy / Cherny / Amodei / Anthropic research team leave satisfied?" rigor floor before declaring work done). Per `rule-backport-cadence.md`, a read-only backport triage was run within 24 hours of the rule landing.
+
+**Triage scope:** 5 active project wrap-ups assessed against the 4 lenses (Karpathy=empirical, Cherny=dogfood, Amodei=deployment, Honest-gaps).
+
+| Project | Karpathy | Cherny | Amodei | Honest gaps | Overall |
+|---|---|---|---|---|---|
+| anneal v0.1 | WARN | PASS | PASS | FAIL | FAIL |
+| cv_optimizer_v2 | WARN | WARN | WARN | FAIL | FAIL |
+| job_search_v2 | FAIL | WARN | WARN | FAIL | FAIL |
+| mobile_apps (preflight) | PASS | PASS | INSUFFICIENT | INSUFFICIENT | WARN |
+| anthropic_watch | PASS | INSUFFICIENT | INSUFFICIENT | WARN | WARN |
+
+**Aggregate:** 0 of 5 projects fully pass the 4-lens panel-pass. Most common failing lens: **Honest gaps** (4/5 projects declare features done without explicitly surfacing what remains). Second most common: **Karpathy / measurement** (3/5 lack real empirical validation).
+
+### Top 3 owed-work items (priority by leverage)
+
+1. **`job_search_v2` live cutover gate** (~2h, daily-driver impact). Run front-door synthetic 5 consecutive days on live sources; measure per-source counts + dedup accuracy; cut GitHub Actions cron to v2. Currently "PROBATIONARY" in directive but the probation has not started.
+2. **`anneal` real-LLM loop-with-memory benchmark** (~1.5h, validates this turn's anneal shipping). Execute against planted-bug + SWE-Bench Lite; record rounds-to-convergence delta, oscillation rates, cost per round. Update anneal `CHANGELOG.md` with results. Recipe in `C:/Users/deban/dev/anneal/HANDOFF.md` §5.
+3. **`cv_optimizer_v2` end-to-end dogfood** (~1h, blocks user adoption confidence). Verify `WORKER_SECRET` provisioning; run full CVSpec synthetic on a real WTTJ URL; print output to PDF and inspect. Add a rubric (e.g., "ATS score ≥10pt increase") to satisfy Karpathy lens.
+
+### Per-project owed-work detail
+
+**anneal** — (a) full-pipeline canary with `--audit-samples 3 --vote-threshold 2`, (b) loop-with-memory benchmark execution per HANDOFF §5, (c) loop_adversarial determinism patch if reproducible replays needed.
+
+**cv_optimizer_v2** — (a) `WORKER_SECRET` in `.env` + full CVSpec synthetic, (b) curl pages-url + inspect PDF on real WTTJ URL, (c) quality rubric + sample-of-3 ATS-score comparison.
+
+**job_search_v2** — (a) 5-consecutive-day live front-door synthetic, (b) cron cutover to v2 in `.github/workflows/job_search_daily.yml`, (c) 7-day dedup accuracy verification from `seen.db`.
+
+**mobile_apps preflight** — (a) run `py execution/mobile_apps/preflight.py --json` and include current-state snapshot in directive or new `STATUS.md`.
+
+**anthropic_watch** — (a) live run (not `--dry-run`) verifying Fable 5 oracle entry appears in digest, (b) cron wiring via `/schedule` command.
+
+### Mechanical guardrail (per rule-backport-cadence)
+
+Panel-pass is meta and hard to grep for. Primary enforcement is at model-write-time (the discipline of running the 4 lenses before saying "done"). Partial guardrail: the forbidden-framings list in `panel-pass.md` (`"we're done"`, `"all set"`, `"100% complete"`, etc.) is regex-anchorable. A future workspace-SAST extension could scan session transcripts at finalize time and flag forbidden-framing matches that lack a preceding "Honest gaps" block. **Not implemented this turn — logged as low-priority workspace-tooling item.**
+
+---
+
 ## Update 2026-06-15 evening (session 3 — landings)
 
 Three parallel hardenings landed today + one mobile skeleton. Pytest gate after the work: **1018 passed, 53 skipped, 0 failed** (up from 992).
