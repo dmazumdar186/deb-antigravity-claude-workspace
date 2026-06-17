@@ -4,6 +4,7 @@ credentials.json
 token.json
 *.json.key
 credentials/
+tokens/
 
 # Python
 .venv/

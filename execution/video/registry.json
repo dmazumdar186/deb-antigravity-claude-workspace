@@ -1,3 +1,15 @@
 {
-  "projects": []
+  "projects": [
+    {
+      "slug": "prodcraft_smoke",
+      "created_at": "2026-06-16T20:31:16.128692+00:00",
+      "template_version": "c92bcbf7a6e09f9064c79d36e3a562b2cb5ee9eb",
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "duration_in_frames": 900,
+      "project_path": "C:\\Users\\deban\\OneDrive\\Documents\\AntiGravity Project Space\\execution\\video\\remotion-projects\\prodcraft_smoke",
+      "node_modules_symlink_target": "C:\\Users\\deban\\dev\\remotion-node-cache\\prodcraft_smoke\\node_modules"
+    }
+  ]
 }

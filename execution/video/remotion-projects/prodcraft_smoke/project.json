@@ -1,0 +1,8 @@
+{
+  "slug": "prodcraft_smoke",
+  "title": "ProdCraft smoke test",
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "duration_in_frames": 900
+}

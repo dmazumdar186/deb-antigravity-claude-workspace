@@ -1,0 +1,4 @@
+upstream_repo=remotion-dev/template-three
+upstream_sha=c92bcbf7a6e09f9064c79d36e3a562b2cb5ee9eb
+overlay_version=1.0.0
+created_at_machine=2026-06-10
