@@ -3,6 +3,13 @@ import { Composition, staticFile } from "remotion";
 import { Scene, myCompSchema } from "./Scene";
 import { getMediaMetadata } from "./helpers/get-media-metadata";
 import { CompositionWithAlpha } from "./CompositionWithAlpha";
+import {
+  ProdCraftPhase1,
+  type Beat,
+  type Word,
+} from "./ProdCraftPhase1";
+import { ProdCraftLivingPRD } from "./living-prd/ProdCraftLivingPRD";
+import type { LivingPRDPlan, Word as LPWord } from "./living-prd/types";
 
 // ---------------------------------------------------------------------------
 // RemotionRoot — OVERLAY (overwriting upstream)
@@ -68,6 +75,90 @@ export const RemotionRoot: React.FC = () => {
         fps={30}
         width={1920}
         height={1080}
+      />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* ProdCraftPhase1 — Phase 1 end-to-end PRD video                     */}
+      {/* Loads beats.json + words.json + audio.wav from public/ at runtime  */}
+      {/* durationInFrames derived from beats.json's audio_duration_sec       */}
+      {/* ------------------------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* ProdCraftLivingPRD — Living PRD POC                                 */}
+      {/* Loads living_prd_plan.json + words.json + audio.wav from public/    */}
+      {/* ------------------------------------------------------------------ */}
+      <Composition
+        id="ProdCraftLivingPRD"
+        component={ProdCraftLivingPRD}
+        fps={30}
+        width={1920}
+        height={1080}
+        durationInFrames={1500}
+        defaultProps={{
+          audioSrc: staticFile("audio.wav"),
+          plan: {
+            doc_title: "Loading…",
+            audio_duration_sec: 50,
+            ops: [],
+          } as LivingPRDPlan,
+          words: [] as LPWord[],
+        }}
+        calculateMetadata={async () => {
+          const planRes = await fetch(staticFile("living_prd_plan.json"));
+          const plan = (await planRes.json()) as LivingPRDPlan;
+          const wordsRes = await fetch(staticFile("words.json"));
+          const words = (await wordsRes.json()) as LPWord[];
+          const fps = 30;
+          const durationInFrames = Math.max(
+            1,
+            Math.ceil(plan.audio_duration_sec * fps),
+          );
+          return {
+            durationInFrames,
+            props: {
+              audioSrc: staticFile("audio.wav"),
+              plan,
+              words,
+            },
+          };
+        }}
+      />
+
+      <Composition
+        id="ProdCraftPhase1"
+        component={ProdCraftPhase1}
+        fps={30}
+        width={1920}
+        height={1080}
+        durationInFrames={4440}
+        defaultProps={{
+          audioSrc: staticFile("audio.wav"),
+          beats: [] as Beat[],
+          words: [] as Word[],
+        }}
+        calculateMetadata={async () => {
+          const beatsRes = await fetch(staticFile("beats.json"));
+          const beatsData = (await beatsRes.json()) as {
+            audio_duration_sec: number;
+            beats: Beat[];
+          };
+          const wordsRes = await fetch(staticFile("words.json"));
+          const wordsData = (await wordsRes.json()) as Word[];
+
+          const fps = 30;
+          const durationInFrames = Math.max(
+            1,
+            Math.ceil(beatsData.audio_duration_sec * fps),
+          );
+
+          return {
+            durationInFrames,
+            props: {
+              audioSrc: staticFile("audio.wav"),
+              beats: beatsData.beats,
+              words: wordsData,
+            },
+          };
+        }}
       />
     </>
   );
