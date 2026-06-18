@@ -23,7 +23,16 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-PYTHON="${PYTHON:-py}"
+# Cross-platform python launcher: `py` on Windows (Microsoft launcher); `python3` on Linux/macOS; `python` as final fallback.
+if [ -z "${PYTHON:-}" ]; then
+    if command -v py >/dev/null 2>&1; then
+        PYTHON="py"
+    elif command -v python3 >/dev/null 2>&1; then
+        PYTHON="python3"
+    else
+        PYTHON="python"
+    fi
+fi
 FIXTURE_FT="tests/fixtures/france_travail_sample.json"
 FIXTURE_WTTJ="tests/fixtures/wttj_sample.html"
 FIXTURE_APEC="tests/fixtures/apec_sample.html"
