@@ -211,3 +211,65 @@ Before any of the above gets touched, I need three answers:
 1. **Worker retirement (row 4)**: retire / banner / rebuild? (Recommendation: retire, since the local CLI is now the production path.)
 2. **`cv_optimizer_agent.py` (row 5)**: retire or keep? It was an earlier Streamlit/Gemini prototype superseded by `cv_optimizer_local/`.
 3. **Sequencing**: green-light Day 1 (the three Haiku swaps) now? It's <1 hour total and unblocks the model-tier rule across the workspace.
+
+---
+
+## Update 2026-06-18 — Prior-art-first backport triage
+
+New always-active rule landed earlier today: `~/.claude/rules/prior-art-first.md`. Before writing any code that fetches data from / scrapes / integrates with an external service, do a 10-minute prior-art pass (DevTools Network tab + GitHub search for "$service python") and report a synthesis paragraph to the operator before touching a directive or a script.
+
+Per `~/.claude/rules/rule-backport-cadence.md`, a read-only triage of every existing source/scraper/enricher module was run within 24 hours of the rule landing. Findings below.
+
+### Scope
+
+- `execution/personal_workflows/job_search_v2/sources/` — 9 source adapters
+- `execution/modules/scrapers/` — empty (.gitkeep only)
+- `execution/modules/sources/` — empty (.gitkeep only)
+- `execution/modules/enrichers/` — empty (.gitkeep only)
+
+The modules/ folders being empty is itself a signal: the workspace's reusable scraper/source/enricher tier is unbuilt. Out-of-scope for this triage.
+
+### Findings (source adapters)
+
+| File | Service | Mechanism | Risk | Why |
+|---|---|---|---|---|
+| linkedin_gmail.py | LinkedIn | gmail_alert_imap | HIGH (already deprecated) | Replaced by linkedin_guest_api.py 2026-06-18. Kept as opt-in belt-and-suspenders. |
+| wttj.py | WTTJ | playwright_browser | HIGH (already deprecated) | Replaced by wttj_algolia.py 2026-06-18. Kept for fixture-only parser test. |
+| indeed_gmail.py | Indeed | gmail_alert_imap | **HIGH (rewrite candidate)** | Indeed has RSS feeds + a public job API. Same Gmail-IMAP anti-pattern as the deprecated linkedin_gmail. |
+| hellowork_gmail.py | Hellowork | gmail_alert_imap | **HIGH (rewrite candidate)** | Hellowork likely has a GraphQL endpoint (~2-3h reverse-engineering on GitHub). |
+| jobgether_gmail.py | Jobgether | gmail_alert_imap | **MEDIUM (audit first)** | Small service; public API existence unknown. Needs a 10-min GitHub audit before deciding rewrite vs deprecate. |
+| apec.py | APEC | playwright_browser + css_html_scrape | MEDIUM (Playwright fragile) | Didomi consent gate blocks headless. APEC may have a partner/Pole-Emploi-style API. Investigate. |
+| france_travail.py | France Travail | oauth_api | LOW | Official government REST API. Best practice already. |
+| linkedin_guest_api.py | LinkedIn | public_api | LOW | Unauthenticated jobs-guest API. Best practice (and the textbook exhibit for this rule). |
+| wttj_algolia.py | WTTJ | public_api | LOW | Public Algolia backend (referer-gated public credentials). Best practice. |
+
+### Top rewrite candidates by leverage
+
+1. **indeed_gmail.py → indeed_rss.py** (HIGH impact, MEDIUM effort). Indeed offers an RSS feed per saved search and an XML job-detail surface. ~3h work, eliminates a Gmail label + filter + brittle email parser. Adds a 5th LIVE-VERIFIED source.
+
+2. **linkedin_gmail.py → fully deprecate** (HIGH impact, LOW effort). Replacement (`linkedin_guest_api.py`) already exists + is now the primary LinkedIn signal. Confirm no orchestrator path still depends on Gmail, then remove from `_DISPATCH`. ~15 min.
+
+3. **apec.py → apec_api.py** (MEDIUM impact, MEDIUM-HIGH effort). APEC is a major FR PM source. The Didomi gate is a known anti-pattern that a backend-API path solves. Worth a 30-min DevTools audit before committing time.
+
+4. **hellowork_gmail.py → hellowork_graphql.py** (MEDIUM impact, MEDIUM effort). Hellowork's SPA likely has a discoverable GraphQL endpoint.
+
+5. **jobgether_gmail.py → ?** (LOW-MEDIUM impact). Small service; do the prior-art-first audit first, then decide: rewrite if public API exists, deprecate if not.
+
+### Mechanical guardrails (SAST grep) — owed
+
+Per `~/.claude/rules/rule-backport-cadence.md`, a mechanical guardrail is required:
+
+- [ ] Workspace SAST scanner (`execution/infrastructure/workspace_sast.py` or equivalent) gets a `re.compile(r"copy\.(copy|deepcopy)\(\s*os\.environ\s*\)")` check (for the 2026-06-15 environ-not-copy-copy rule).
+- [ ] Same scanner gets a presence check: every directive that adds a new source/scraper module (`execution/{category}/sources/*.py` or `execution/modules/scrapers/*.py`) must have a `## Prior art pass` section in its paired directive. Flag missing ones at directive-creation time.
+
+These are added in the same commit as this HARDENING_BACKLOG update.
+
+### Why the rule was needed
+
+The 5 HIGH RISK files represent ~12 hours of engineering lost to building workarounds for problems that didn't exist:
+- linkedin_gmail.py (~6h Gmail IMAP + alert subscription + filter + parser drift detection): LinkedIn has had a public unauthenticated jobs-guest API for years. 30 seconds of GitHub search would have found it.
+- wttj.py (~4h Playwright + Didomi consent + __NEXT_DATA__ debugging): WTTJ's search box has always been a client-side Algolia call. 30 seconds of DevTools Network tab would have shown the request.
+- 3 still-HIGH files (indeed/hellowork/jobgether Gmail-IMAP, ~6h combined): same anti-pattern, not yet rewritten.
+
+Going forward, the prior-art-first rule and its 10-minute pass are the floor. The rewrites above are the backport — they make the workspace's existing code consistent with the new rule, not just new code.
+

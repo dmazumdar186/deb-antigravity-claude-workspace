@@ -547,6 +547,78 @@ def _rule_environ_copy() -> list[dict]:
     return findings
 
 
+def _rule_prior_art_pass_missing() -> list[dict]:
+    """Rule: any directive that pairs with a source/scraper/enricher integration
+    must include a '## Prior art pass' section per ~/.claude/rules/prior-art-first.md.
+
+    Triggers: directive files at directives/**/*.md whose name matches
+    *_source_*, *_scraper, *_api, *_gmail, *_rss, *_algolia, *_sheet*, OR whose
+    paired execution script lives under sources/, scrapers/, enrichers/.
+
+    Skip: subagent/ + AM-locked + files < 30 lines + names starting with _.
+    """
+    directives_root = WORKSPACE_ROOT / "directives"
+    if not directives_root.exists():
+        return []
+
+    integration_name_hints = re.compile(
+        r"(source|scraper|enricher|_api|_gmail|_rss|_algolia|_sheet|scrape|crawl)",
+        re.IGNORECASE,
+    )
+
+    findings = []
+    for md_path in directives_root.rglob("*.md"):
+        try:
+            md_path.relative_to(_SUBAGENT_DIR)
+            continue
+        except ValueError:
+            pass
+        if _is_am_locked(str(md_path)):
+            continue
+        if md_path.name.startswith("_"):
+            continue
+
+        if not integration_name_hints.search(md_path.name):
+            try:
+                content = md_path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            # Also fire if the body explicitly references sources/ or scrapers/
+            if not re.search(
+                r"execution/.+/(sources|scrapers|enrichers)/|sources/.+\.py|scrapers/.+\.py",
+                content,
+            ):
+                continue
+        else:
+            try:
+                content = md_path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+
+        if len(content.splitlines()) < 30:
+            continue
+
+        if not re.search(r"^## Prior art pass", content, re.MULTILINE):
+            rel = str(md_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+            findings.append(
+                {
+                    "severity": "info",
+                    "file": rel,
+                    "line": 0,
+                    "rule_id": "prior-art-pass-missing",
+                    "message": (
+                        "Directive integrates with an external service but is missing a "
+                        "'## Prior art pass' section. Per ~/.claude/rules/prior-art-first.md, "
+                        "every external-service integration directive must record the "
+                        "10-min DevTools + GitHub prior-art pass output."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+
+    return findings
+
+
 # ── Known native rules ────────────────────────────────────────────────────────
 
 _NATIVE_RULES: dict[str, callable] = {
@@ -554,6 +626,7 @@ _NATIVE_RULES: dict[str, callable] = {
     "subprocess-encoding": _rule_subprocess_encoding,
     "haiku-banned": _rule_haiku_banned,
     "environ-copy": _rule_environ_copy,
+    "prior-art-pass-missing": _rule_prior_art_pass_missing,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())
