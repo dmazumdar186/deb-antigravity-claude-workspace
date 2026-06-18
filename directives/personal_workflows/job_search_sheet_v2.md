@@ -5,6 +5,17 @@
 
 ---
 
+## Prior art pass (2026-06-18, per `~/.claude/rules/prior-art-first.md`)
+
+- **Public API exists?** YES for LinkedIn (jobs-guest, unauthenticated). YES for WTTJ (public Algolia backend, referer-restricted public key). YES for France Travail (official OAuth2 REST). NO known public for Indeed / Hellowork / Jobgether (those remain Gmail-alert-based).
+- **Best existing OSS approach:** [sivad259-alt/job-scanner](https://github.com/sivad259-alt/job-scanner) (MIT). Two-source scanner (LinkedIn jobs-guest + WTTJ Algolia) using plain `requests.get` / POST — no browser, no login, no paid scraping API. Volume per the live smoke (2026-06-18): ~30 hits/keyword/page from WTTJ, ~10 from LinkedIn.
+- **Why crib:** the friend's approach solves the WTTJ Didomi-consent-gate problem and the LinkedIn auth-wall problem that our v2.0 Playwright + Gmail-IMAP approach failed at. Adapted to our SourceJob contract, PM-Paris keywords, IDF geoId. MIT attribution in module headers.
+- **Recommended architecture:** replace `sources/linkedin_gmail.py` and `sources/wttj.py` (Playwright) with `sources/linkedin_guest_api.py` and `sources/wttj_algolia.py`. Keep `linkedin_gmail` as opt-in belt-and-suspenders. Demote `wttj` / `apec` / `*_gmail` (probationary) from the default `--sources` list.
+
+This pass is the post-hoc record. The lesson cost ~12 hours of build that the 10-minute pass at the top would have eliminated; the rule now exists so future "fetch from $service" tasks open with it.
+
+---
+
 ## Why v2 exists
 
 v1 has three compounding defects:
@@ -31,7 +42,7 @@ v2 fixes all three by switching to a free FR-native source stack with persistent
 
 | Layer | Purpose | Files |
 |---|---|---|
-| 1. Sources | One adapter per origin. Each returns `list[SourceJob]`. | `sources/france_travail.py`, later `sources/wttj.py`, `sources/apec.py`, `sources/linkedin_gmail.py` |
+| 1. Sources | One adapter per origin. Each returns `list[SourceJob]`. | LIVE-VERIFIED (default cron): `sources/france_travail.py`, `sources/linkedin_guest_api.py`, `sources/wttj_algolia.py`, `sources/linkedin_gmail.py`. DARK or opt-in only: `sources/wttj.py` (Playwright, broken), `sources/apec.py` (Playwright, consent-gate), `sources/indeed_gmail.py`, `sources/hellowork_gmail.py`, `sources/jobgether_gmail.py` (probationary, no fixture). |
 | 2. Normalizer | `SourceJob -> NormalizedJob` (clean, typed). + cross-day dedup via SQLite. | `normalizer/normalize.py`, `normalizer/dedup.py` |
 | 3. Ranker | LLM-judge that tiers each job A/B/C/SKIP against a cached rubric. | `ranker/score.py`, `ranker/rubric.md` (v2.1 — not built yet) |
 | 4. Notifier | Drafts the morning Gmail digest + updates the Google Sheet. | `notifier/email.py`, `notifier/sheet.py` (v2.0 — not built yet) |
@@ -62,15 +73,22 @@ py execution/personal_workflows/job_search_v2/sources/france_travail.py --query 
 py execution/personal_workflows/job_search_v2/sources/france_travail.py --fixture tests/fixtures/france_travail_sample.json --out .tmp/job_search_v2/ft.jsonl
 ```
 
-## Source: WTTJ (fixture-only as of 2026-06-15)
+## Source: WTTJ — superseded by `wttj_algolia` (2026-06-18)
 
-Built but **not live-functional.** Status:
+The `sources/wttj.py` Playwright module is **DARK and superseded.** It remains in the codebase for fixture-only parser tests, but the production cron no longer invokes it. The replacement `sources/wttj_algolia.py` hits WTTJ's public Algolia search backend directly:
+
+- Endpoint: POST `https://csekhvms53-dsn.algolia.net/1/indexes/wk_cms_jobs_production_published_at_desc/query` with referer-gated public credentials (NOT secrets — same credentials WTTJ ships to every anonymous browser).
+- No browser, no consent gate, no `__NEXT_DATA__` parsing. The Algolia backend doesn't care about Didomi modals because it's the API the modal-gated SPA itself calls.
+- Live smoke (2026-06-18): 224 hits across the PM keyword set, 48h window, FR-wide. After in-batch dedup (Algolia returns multi-language clones with different `objectID`s for the same job): ~30 unique/keyword/page.
+- If WTTJ rotates the Algolia key, re-harvest from a live page load (DevTools → Network → request to `*-dsn.algolia.net` → copy `x-algolia-api-key` header). The module raises `WttjAlgoliaBlockedError` on 403 so silent failure isn't possible.
+
+## Source: WTTJ (Playwright) — DARK, kept for fixture parser only
+
+Original status notes preserved for context:
 - httpx + `__NEXT_DATA__` extraction path: WTTJ moved their hydration off of `__NEXT_DATA__`; the blob is no longer in the response.
 - Playwright fallback: page renders, but job cards require interactive search submission (the bare URL with query params shows marketing copy, not results). Headless `goto + networkidle` is insufficient.
 
-To make WTTJ live: either (a) extend the Playwright path to dismiss cookies + submit the search form + wait for cards (brittle, ~2h work), or (b) route through Firecrawl (`firecrawl_scrape` with JSON extraction) which handles consent + render — ~1 credit/run, robust to template churn. **Recommended**: Firecrawl when its token is restored.
-
-Module is left in place with fixture support so the synthetic still passes layer integration.
+Module is left in place for the fixture-only parser test. Not invoked by the production cron.
 
 ## Source: APEC (fixture-only as of 2026-06-15)
 
@@ -79,6 +97,20 @@ Built but **not live-functional.** Status:
 - Playwright direct goto: page renders the Didomi cookie-consent modal + "Vous avez déjà un compte?" gate before any job results. Headless render doesn't get past the consent layer.
 
 Same recommendation as WTTJ: Firecrawl when restored, or extend Playwright to accept-cookies + wait for `/cms/webservices/rechercheOffre` XHR response, or self-throttled Apify actor as paid fallback.
+
+## Source: LinkedIn jobs-guest API (LIVE-VERIFIED as of 2026-06-18) — preferred LinkedIn source
+
+`sources/linkedin_guest_api.py` hits LinkedIn's public unauthenticated `jobs-guest` API:
+
+- Search: `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=...&geoId=...&f_TPR=r172800&start=0`
+- No auth, no Gmail middleman, no alert subscription. The endpoint is what LinkedIn serves to logged-out browsers.
+- Default geoId = `104246759` (Île-de-France). Paris-only = `104196728`. France-wide = `105015875`. Configurable via `--geo-id`.
+- Default keyword set: `product manager`, `senior product manager`, `lead product manager`, `principal product manager`, `head of product`, `chef de produit`, `AI product manager`, `product owner`. One search request per keyword; results merged by jobId; ~10 unique/keyword/page on a typical day.
+- Live smoke (2026-06-18): 94 SourceJobs across the full PM keyword set, 48h window, IDF.
+- Anti-bot: module raises `LinkedInBlockedError` on a captcha/checkpoint/verify marker, with a hard-stop on suspicious page-1 sizes. Won't hammer a rotated/blocked state.
+- Search cards carry title/company/location/canonical_url/posted_at but NOT description text. The ranker works on title+company. If we want richer scoring, add a detail-fetch pass against `/jobs/view/{job_id}` later — out of MVP scope.
+
+This source replaces `linkedin_gmail` as the primary LinkedIn signal. `linkedin_gmail` is retained as opt-in belt-and-suspenders (already-configured Gmail label survives the migration).
 
 ## Source: LinkedIn via Gmail (LIVE as of 2026-06-15)
 

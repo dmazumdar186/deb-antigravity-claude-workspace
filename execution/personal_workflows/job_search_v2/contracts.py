@@ -21,8 +21,10 @@ class JobSource(str, Enum):
 
     FRANCE_TRAVAIL = "france_travail"
     WTTJ = "wttj"
+    WTTJ_ALGOLIA = "wttj_algolia"
     APEC = "apec"
     LINKEDIN_GMAIL = "linkedin_gmail"
+    LINKEDIN_GUEST_API = "linkedin_guest_api"
     INDEED_GMAIL = "indeed_gmail"
     HELLOWORK_GMAIL = "hellowork_gmail"
     JOBGETHER_GMAIL = "jobgether_gmail"

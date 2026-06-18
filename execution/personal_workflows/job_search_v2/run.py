@@ -72,7 +72,7 @@ RUN_LOG = PROJECT_ROOT / ".tmp" / "job_search_v2" / "run_log.jsonl"
 # ----- source dispatch -----
 
 
-def _fetch_france_travail(mode: str, max_pages: int, posted_within_days: int) -> list[SourceJob]:
+def _fetch_france_travail(mode: str, max_pages: int, posted_within_days: int = 1) -> list[SourceJob]:
     from execution.personal_workflows.job_search_v2.sources import france_travail as ft
     if mode == "fixture":
         return ft.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "france_travail_sample.json")
@@ -137,11 +137,35 @@ def _fetch_jobgether_gmail(mode: str, max_pages: int) -> list[SourceJob]:
         return []
 
 
+def _fetch_linkedin_guest_api(mode: str, max_pages: int) -> list[SourceJob]:
+    from execution.personal_workflows.job_search_v2.sources import linkedin_guest_api as lga
+    if mode == "fixture":
+        return lga.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "linkedin_guest_api_sample.html")
+    try:
+        return lga.fetch(max_pages_per_keyword=max_pages, posted_within_hours=48)
+    except lga.LinkedInBlockedError as exc:
+        logger.warning("run: linkedin_guest_api blocked — %s. Skipping source.", exc)
+        return []
+
+
+def _fetch_wttj_algolia(mode: str, max_pages: int) -> list[SourceJob]:
+    from execution.personal_workflows.job_search_v2.sources import wttj_algolia
+    if mode == "fixture":
+        return wttj_algolia.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "wttj_algolia_sample.json")
+    try:
+        return wttj_algolia.fetch(max_pages=max_pages, posted_within_hours=48)
+    except wttj_algolia.WttjAlgoliaBlockedError as exc:
+        logger.warning("run: wttj_algolia blocked — %s. Skipping source.", exc)
+        return []
+
+
 _DISPATCH = {
     JobSource.FRANCE_TRAVAIL.value: _fetch_france_travail,
     JobSource.WTTJ.value: _fetch_wttj,
+    JobSource.WTTJ_ALGOLIA.value: _fetch_wttj_algolia,
     JobSource.APEC.value: _fetch_apec,
     JobSource.LINKEDIN_GMAIL.value: _fetch_linkedin_gmail,
+    JobSource.LINKEDIN_GUEST_API.value: _fetch_linkedin_guest_api,
     JobSource.INDEED_GMAIL.value: _fetch_indeed_gmail,
     JobSource.HELLOWORK_GMAIL.value: _fetch_hellowork_gmail,
     JobSource.JOBGETHER_GMAIL.value: _fetch_jobgether_gmail,
@@ -149,25 +173,34 @@ _DISPATCH = {
 
 
 def _call_source(name: str, mode: str, max_pages: int, posted_within_days: int) -> list[SourceJob]:
-    """Wrapper so each source's failure can't kill the pipeline."""
+    """Wrapper so each source's failure can't kill the pipeline.
+
+    Dispatches via _DISPATCH using a unified (mode, max_pages) signature. The one
+    function that needs posted_within_days (france_travail) is bound via partial
+    at dispatch-table construction time, not via a hand-rolled if-branch — the
+    earlier if-branch caused the 2026-06-18 silent-zero-jobs regression.
+    """
     try:
-        if name == JobSource.FRANCE_TRAVAIL.value:
-            return _fetch_france_travail(mode, max_pages, posted_within_days)
-        if name == JobSource.WTTJ.value:
-            return _fetch_wttj(mode, max_pages)
-        if name == JobSource.APEC.value:
-            return _fetch_apec(mode, max_pages)
-        if name == JobSource.LINKEDIN_GMAIL.value:
-            return _fetch_linkedin_gmail(mode, max_pages)
-        if name == JobSource.INDEED_GMAIL.value:
-            return _fetch_indeed_gmail(mode, max_pages)
-        if name == JobSource.HELLOWORK_GMAIL.value:
-            return _fetch_hellowork_gmail(mode, max_pages)
-        if name == JobSource.JOBGETHER_GMAIL.value:
-            return _fetch_jobgether_gmail(mode, max_pages)
-    except Exception as exc:  # noqa: BLE001 — per-source fault isolation
+        fn = _build_dispatch(posted_within_days).get(name)
+        if fn is None:
+            logger.error("run: unknown source %s", name)
+            return []
+        return fn(mode, max_pages)
+    except Exception as exc:  # noqa: BLE001 — per-source fault isolation; logged on next line.
         logger.error("run: source %s failed: %s", name, exc, exc_info=True)
-    return []
+        return []
+
+
+def _build_dispatch(posted_within_days: int) -> dict:
+    """Build the per-run dispatch dict. Binds posted_within_days into france_travail
+    via functools.partial so every entry shares the same (mode, max_pages) signature.
+    Module-level _DISPATCH (above) still exists for tests that introspect source coverage.
+    """
+    from functools import partial
+    return {
+        **_DISPATCH,
+        JobSource.FRANCE_TRAVAIL.value: partial(_fetch_france_travail, posted_within_days=posted_within_days),
+    }
 
 
 # ----- main -----
@@ -180,7 +213,17 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Skip sheet append + email send.")
     parser.add_argument(
         "--sources",
-        default="france_travail,wttj,apec,linkedin_gmail,indeed_gmail,hellowork_gmail,jobgether_gmail",
+        # Default = LIVE-VERIFIED sources only (2026-06-18 smoke):
+        #   france_travail        — official OAuth2 REST API (needs GH Secrets)
+        #   linkedin_guest_api    — public unauthenticated jobs-guest endpoint, ~10 jobs/keyword/page
+        #   wttj_algolia          — public Algolia backend, ~30 hits/keyword/page
+        #   linkedin_gmail        — kept as belt-and-suspenders (already-configured Gmail label)
+        # DARK / probationary sources (excluded from default):
+        #   wttj                  — Playwright + __NEXT_DATA__, broken since WTTJ moved hydration
+        #   apec                  — Playwright + Didomi consent gate blocks headless
+        #   indeed_gmail / hellowork_gmail / jobgether_gmail — require user-side alert setup
+        # Opt them back in by passing --sources explicitly.
+        default="france_travail,linkedin_guest_api,wttj_algolia,linkedin_gmail",
         help="Comma-separated subset of sources to run.",
     )
     parser.add_argument("--max-pages", type=int, default=3)
