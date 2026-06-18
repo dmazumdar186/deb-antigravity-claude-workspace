@@ -2,6 +2,21 @@
 
 End-to-end pipeline for ProdCraft (@ProdCraft) — generate a publishable YouTube video from a topic prompt. Phase 1 produces a watchable MP4 with cloned voice + Living PRD visual; Phases 2-6 add approval gating, upload, scheduling, and FR variants.
 
+## Prior art pass (2026-06-18, retroactively recorded per `~/.claude/rules/prior-art-first.md`)
+
+The rule landed 2026-06-18 morning. This directive's first commit (e420344) was earlier the same day, so the pass is recorded here retroactively from what the work actually did. Future revisions must keep this section current.
+
+- **Public API status (per external service):**
+  - **Google Gemini API (script generation):** YES, public, free tier. Used directly.
+  - **Hugging Face Spaces (TTS):** YES, public (`ResembleAI/Chatterbox`). Used via `gradio_client`. Free ZeroGPU quota.
+  - **Modal (TTS fallback):** Serverless deployment, not third-party.
+  - **Pexels (b-roll):** Public REST API + free key. Used directly.
+  - **YouTube transcripts:** `youtube_transcript_api` OSS library wrapping YouTube's public transcript endpoints.
+  - **Remotion:** Local Node toolchain.
+- **Best existing OSS approach for the pipeline shape:** No public OSS combines voice-clone + Living-PRD doc-as-teacher visual + free-tier-only. This pipeline is novel.
+- **Why no workaround anti-pattern present:** every external integration uses a documented public API or established OSS wrapper. F5-TTS quality issues are a model-quality problem, not a prior-art gap (Chatterbox is the prior-art-recommended path).
+- **Recommended architecture (current):** Gemini script-gen → ChatterboxTTS (HF Space → Modal fallback) → faster-whisper word timings → Remotion (Living PRD).
+
 ## Goal
 
 Given a topic and a creator profile, autonomously produce a 2-5 minute educational YouTube video that:
