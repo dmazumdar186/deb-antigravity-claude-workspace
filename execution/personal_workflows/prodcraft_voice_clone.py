@@ -105,38 +105,74 @@ def _split_paragraphs(text: str) -> list[str]:
     return chunks
 
 
-def _split_sentences(text: str) -> list[str]:
-    """Split text into sentences for F5-TTS. Each sentence becomes one API call.
+def _split_sentences(text: str, max_chars: int | None = None) -> list[str]:
+    """Split text into sentences. Each sentence becomes one TTS call.
 
     Strategy: first strip markdown/frontmatter via paragraph split, then within each
     paragraph split on . ! ? followed by whitespace. Preserves the terminating
-    punctuation (F5-TTS needs it for natural prosody). Merges sentences shorter than
-    25 chars with the next one to avoid micro-chunks.
+    punctuation (TTS models need it for natural prosody). Merges sentences shorter
+    than 25 chars with the next one to avoid micro-chunks.
+
+    When `max_chars` is set (e.g. 280 for the HF Chatterbox Space's 300-char cap),
+    any chunk that would exceed it is further split on commas or whitespace so no
+    chunk exceeds the limit. Required for Chatterbox HF; harmless for F5.
     """
     import re
     sentences: list[str] = []
     for para in _split_paragraphs(text):
-        # Split keeping the terminator.
         raw_parts = re.split(r"(?<=[.!?])\s+", para)
         buf = ""
         for part in raw_parts:
             part = part.strip()
             if not part:
                 continue
-            if buf:
-                buf = f"{buf} {part}"
-            else:
-                buf = part
+            buf = f"{buf} {part}" if buf else part
             if len(buf) >= 25:
                 sentences.append(buf)
                 buf = ""
         if buf:
-            # Append any trailing short fragment to the previous sentence to avoid micro-chunks.
             if sentences:
                 sentences[-1] = f"{sentences[-1]} {buf}"
             else:
                 sentences.append(buf)
-    return sentences
+
+    if max_chars is None:
+        return sentences
+
+    # Hard cap: split any sentence > max_chars on comma boundaries, then on
+    # whitespace as a last resort. Preserves order; no chunk exceeds max_chars.
+    capped: list[str] = []
+    for s in sentences:
+        if len(s) <= max_chars:
+            capped.append(s)
+            continue
+        pieces = re.split(r"(?<=,)\s+", s)
+        buf = ""
+        for piece in pieces:
+            candidate = f"{buf} {piece}" if buf else piece
+            if len(candidate) <= max_chars:
+                buf = candidate
+            else:
+                if buf:
+                    capped.append(buf)
+                if len(piece) <= max_chars:
+                    buf = piece
+                else:
+                    # Last-resort whitespace split for one comma-less mega-clause.
+                    words = piece.split()
+                    wbuf = ""
+                    for w in words:
+                        cand = f"{wbuf} {w}" if wbuf else w
+                        if len(cand) <= max_chars:
+                            wbuf = cand
+                        else:
+                            if wbuf:
+                                capped.append(wbuf)
+                            wbuf = w
+                    buf = wbuf
+        if buf:
+            capped.append(buf)
+    return capped
 
 
 def _read_wav_pcm(path: Path) -> tuple[bytes, int, int, int]:
@@ -197,6 +233,93 @@ def _call_f5(client, ref_wav: Path, ref_text: str, gen_text: str, remove_silence
     return Path(result_path)
 
 
+def _chatterbox_cache_path(ref_wav: Path, gen_text: str, exaggeration: float, temperature: float, seed: int, cfg_weight: float, vad_trim: bool) -> Path:
+    """Deterministic cache filename so a re-run after a transient HF flake skips
+    chunks that already synthesized cleanly. Keyed on the inputs that affect the
+    output: ref-audio bytes, gen text, and the generation params."""
+    import hashlib
+    h = hashlib.sha256()
+    h.update(ref_wav.read_bytes())
+    h.update(gen_text.encode("utf-8"))
+    h.update(f"|exa={exaggeration}|t={temperature}|s={seed}|cfg={cfg_weight}|vad={vad_trim}".encode("utf-8"))
+    cache_dir = WORKSPACE_ROOT / ".tmp" / "prodcraft" / "chatterbox_chunks"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir / f"{h.hexdigest()[:16]}.wav"
+
+
+def _call_hf_chatterbox(
+    client,
+    ref_wav: Path,
+    gen_text: str,
+    exaggeration: float = 0.5,
+    temperature: float = 0.8,
+    seed: int = 0,
+    cfg_weight: float = 0.5,
+    vad_trim: bool = False,
+    max_retries: int = 3,
+) -> Path:
+    """One ChatterboxTTS call via the public ResembleAI/Chatterbox HF Space.
+
+    The Space's /generate_tts_audio endpoint caps text at 300 chars per call;
+    caller is responsible for chunking (use chunk_by='sentence' + max_chars=280).
+    Returns local result wav path.
+    """
+    from gradio_client import handle_file
+    if len(gen_text) > 300:
+        raise SystemExit(
+            f"hf-chatterbox chunk too long ({len(gen_text)} chars > 300 limit). "
+            f"Use --chunk-by sentence; _split_sentences max_chars=280 is enforced."
+        )
+
+    # Resume support: deterministic on-disk cache. If a prior run already
+    # synthesized this exact (ref, text, params) tuple, return the cached wav.
+    cache_path = _chatterbox_cache_path(ref_wav, gen_text, exaggeration, temperature, seed, cfg_weight, vad_trim)
+    if cache_path.exists() and cache_path.stat().st_size > 1024:
+        return cache_path
+
+    # Retry-with-backoff: HF Zero-GPU Spaces hit transient RuntimeError ~1-2%
+    # of the time on multi-call batches. Single retry usually recovers.
+    for attempt in range(max_retries):
+        try:
+            result = client.predict(
+                text_input=gen_text,
+                audio_prompt_path_input=handle_file(str(ref_wav)),
+                exaggeration_input=exaggeration,
+                temperature_input=temperature,
+                seed_num_input=seed,
+                cfgw_input=cfg_weight,
+                vad_trim_input=vad_trim,
+                api_name="/generate_tts_audio",
+            )
+            break
+        except Exception as exc:
+            if attempt == max_retries - 1:
+                raise SystemExit(
+                    f"hf-chatterbox failed after {max_retries} attempts on chunk "
+                    f"({len(gen_text)} chars): {type(exc).__name__}: {exc}"
+                ) from exc
+            wait_s = 5 * (4 ** attempt)  # 5s, 20s, 80s
+            print(
+                f"  WARN: hf-chatterbox attempt {attempt + 1}/{max_retries} failed "
+                f"({type(exc).__name__}); retry in {wait_s}s...",
+                file=sys.stderr,
+            )
+            time.sleep(wait_s)
+
+    if isinstance(result, tuple):
+        result_path = result[0]
+    elif isinstance(result, dict) and "path" in result:
+        result_path = result["path"]
+    else:
+        result_path = result
+    if not result_path or not Path(result_path).exists():
+        raise SystemExit(f"hf-chatterbox returned unexpected result shape: {result!r}")
+
+    # Persist to the deterministic cache for resume on the next run.
+    shutil.copy2(result_path, cache_path)
+    return cache_path
+
+
 def _call_f5_modal(modal_cls, ref_wav: Path, ref_text: str, gen_text: str, remove_silence: bool) -> Path:
     """One F5-TTS call via the Modal deployment. Writes returned bytes to a temp wav and returns the path."""
     import tempfile
@@ -247,11 +370,30 @@ def clone(
 
     ref_wav, ref_text, ref_meta = _load_reference(sample_dir)
 
+    # hf-chatterbox caps per-call text at 300 chars; enforce a 280-char ceiling
+    # on sentence chunks so we never hit the API limit. Other backends pass None.
+    sentence_max = 280 if backend == "hf-chatterbox" else None
+
     if chunk_by == "paragraph":
         chunks = _split_paragraphs(gen_text)
+        if sentence_max:
+            # Even on paragraph mode, Chatterbox needs the hard cap. Re-chunk
+            # any oversized paragraph via the sentence splitter.
+            refined: list[str] = []
+            for p in chunks:
+                if len(p) <= sentence_max:
+                    refined.append(p)
+                else:
+                    refined.extend(_split_sentences(p, max_chars=sentence_max))
+            chunks = refined
     elif chunk_by == "sentence":
-        chunks = _split_sentences(gen_text)
+        chunks = _split_sentences(gen_text, max_chars=sentence_max)
     elif chunk_by == "none":
+        if sentence_max and len(gen_text) > sentence_max:
+            raise SystemExit(
+                f"hf-chatterbox requires chunking (text is {len(gen_text)} chars > 300). "
+                f"Pass --chunk-by sentence."
+            )
         chunks = [gen_text]
     else:
         raise SystemExit(f"Unknown --chunk-by mode: {chunk_by!r}")
@@ -268,6 +410,18 @@ def clone(
         token = os.environ.get("HF_API_TOKEN") or None
         print(f"Connecting to HF Space: {space}...", file=sys.stderr)
         hf_client = Client(space, token=token, verbose=False)
+        modal_cls = None
+    elif backend == "hf-chatterbox":
+        try:
+            from gradio_client import Client
+        except ImportError as e:
+            raise SystemExit("Run: py -m pip install gradio_client") from e
+        token = os.environ.get("HF_API_TOKEN") or None
+        cb_space = space if space != DEFAULT_SPACE else "ResembleAI/Chatterbox"
+        print(f"Connecting to HF Chatterbox Space: {cb_space}...", file=sys.stderr)
+        hf_client = Client(cb_space, token=token, verbose=False)
+        # Re-expose the resolved space name in the metadata.
+        space = cb_space
         modal_cls = None
     elif backend == "modal":
         try:
@@ -300,6 +454,8 @@ def clone(
         )
         if backend == "hf":
             result_path = _call_f5(hf_client, ref_wav, ref_text, chunk, remove_silence)
+        elif backend == "hf-chatterbox":
+            result_path = _call_hf_chatterbox(hf_client, ref_wav, chunk)
         else:
             result_path = _call_f5_modal(modal_cls, ref_wav, ref_text, chunk, remove_silence)
         chunk_paths.append(result_path)
@@ -372,8 +528,10 @@ def main() -> int:
     p.add_argument("--chunk-by", choices=["none", "paragraph", "sentence"], default="none",
                    help="paragraph = one F5 call per blank-line-separated paragraph; sentence = one F5 call per . ! ? (smallest chunks, most resilient to F5 long-context drift)")
     p.add_argument("--pause-ms", type=int, default=700, help="Inter-chunk silence (ms) when chunk-by != none")
-    p.add_argument("--backend", choices=["hf", "modal", "chatterbox"], default="hf",
-                   help="hf = public F5 HF Space; modal = F5 on Modal; chatterbox = ChatterboxTTS on Modal (better long-form)")
+    p.add_argument("--backend", choices=["hf", "hf-chatterbox", "modal", "chatterbox"], default="hf",
+                   help="hf = public F5 HF Space; hf-chatterbox = ResembleAI/Chatterbox HF Space "
+                        "(free; 300-char per-call cap, requires --chunk-by sentence); "
+                        "modal = F5 on Modal; chatterbox = ChatterboxTTS on Modal (billing-blocked currently)")
     p.add_argument("--modal-app", default="prodcraft-f5-tts",
                    help="Modal app name (default: prodcraft-f5-tts; chatterbox auto-routes to prodcraft-chatterbox-tts)")
     args = p.parse_args()

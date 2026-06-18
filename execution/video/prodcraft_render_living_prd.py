@@ -68,11 +68,47 @@ def stage(audio: Path, plan_path: Path, words_path: Path, project_dir: Path) -> 
     }
 
 
-def render(project_dir: Path, comp_id: str, out_path: Path, concurrency: int) -> None:
+def _get_ffmpeg_bin() -> str:
+    """Bundled ffmpeg via imageio_ffmpeg — avoids PATH dependency on Windows."""
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError as e:
+        raise SystemExit("Run: py -m pip install imageio-ffmpeg") from e
+
+
+def _windows_player_fix(src: Path, dst: Path) -> None:
+    """Re-encode Remotion's yuvj420p+bt470bg output to yuv420p(tv)+bt709 so
+    Windows Films & TV / Media Player render the video instead of showing a
+    near-black screen. VLC/Chrome/QuickTime tolerate the Remotion default; native
+    Windows players don't. ~30s for a 2-3min 1080p MP4 at CRF 20."""
+    ffmpeg = _get_ffmpeg_bin()
+    cmd = [
+        ffmpeg, "-y",
+        "-i", str(src),
+        "-c:v", "libx264", "-preset", "fast", "-crf", "20",
+        "-vf", "scale=in_range=full:out_range=tv,format=yuv420p",
+        "-color_range", "tv",
+        "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
+        "-movflags", "+faststart",
+        "-c:a", "copy",
+        str(dst),
+    ]
+    result = subprocess.run(
+        cmd, capture_output=True, encoding="utf-8", errors="replace",
+    )
+    if result.returncode != 0:
+        raise SystemExit(f"player-fix ffmpeg failed (code {result.returncode}):\n{result.stderr[-1500:]}")
+
+
+def render(project_dir: Path, comp_id: str, out_path: Path, concurrency: int, skip_player_fix: bool = False) -> None:
     cmd_npx = "npx.cmd"
+    # Render to a .raw.mp4 alongside the final out so the player-fix pass can
+    # produce the final file at the user-requested path.
+    raw_out = out_path.with_suffix(".raw.mp4")
     cmd = [
         cmd_npx, "remotion", "render",
-        comp_id, str(out_path),
+        comp_id, str(raw_out),
         "--concurrency", str(concurrency),
         "--log", "info",
     ]
@@ -82,7 +118,24 @@ def render(project_dir: Path, comp_id: str, out_path: Path, concurrency: int) ->
     elapsed = time.monotonic() - t0
     if r.returncode != 0:
         raise SystemExit(f"Remotion render failed (code {r.returncode}) after {elapsed:.1f}s")
-    print(f"\nOK | living_prd render | elapsed={elapsed:.1f}s | out={out_path}", file=sys.stderr)
+    print(f"\nOK | remotion render | elapsed={elapsed:.1f}s | raw={raw_out}", file=sys.stderr)
+
+    if skip_player_fix:
+        shutil.move(str(raw_out), str(out_path))
+        return
+
+    t1 = time.monotonic()
+    _windows_player_fix(raw_out, out_path)
+    fix_elapsed = time.monotonic() - t1
+    try:
+        raw_out.unlink()
+    except OSError as exc:
+        # Cleanup-only; .raw.mp4 is regenerable on next run.
+        print(f"WARN: could not delete {raw_out}: {exc}", file=sys.stderr)
+    print(
+        f"OK | player-fix (yuv420p+bt709) | elapsed={fix_elapsed:.1f}s | out={out_path}",
+        file=sys.stderr,
+    )
 
 
 def main() -> int:
