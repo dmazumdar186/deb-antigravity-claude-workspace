@@ -51,14 +51,15 @@ topic
 
 ## TTS — the painful learnings
 
-Voice clone TTS quality is the entire bottleneck of this pipeline. Models tried and ranked by quality-on-long-form (2026-06-17 session):
+TTS quality + cost was the entire bottleneck. Models tried and ranked, with 2026-06-19 update after `[[no-paid-tts]]` + HF Zero-GPU quota math:
 
-| Model / Provider | Quality | Cost | Status |
-|---|---|---|---|
-| ChatterboxTTS via HF Space (`ResembleAI/Chatterbox`) | **Best free option** — clean prosody for educational content | $0 (HF ZeroGPU free, ~5min/day) | **Use this** — sentence-chunked, one call per sentence |
-| ChatterboxTTS via Modal (own deployment) | Same model, no quota | ~$0.08/video on A10G, free tier `$30/mo` | Fallback when HF quota exhausted |
-| F5-TTS via HF / Modal | Has reference-bleeding + word-scrambling on long-form. NOT suitable for this use case. | Same | **Do not use** — burned hours on this |
-| ElevenLabs | Best paid quality | $5+/mo | Out of budget |
+| Model / Provider | Voice clone? | Quality | Cost / Quota math | Status |
+|---|---|---|---|---|
+| **Gemini Native TTS** (`gemini-2.5-flash-preview-tts`) | NO (30 prebuilt voices: Orus/Charon/Kore/...) | Excellent prosody + in-prompt style instructions for cadence control | $0 (free 250 RPD, 10 RPM). Single 8K-token call handles entire 3-minute script in one API hit (~55s wall-clock). | **Use this for now** — operator approved Orus on 2026-06-19 |
+| ChatterboxTTS via HF Space (`ResembleAI/Chatterbox`) | YES | Best free clone option for voice fidelity | **Structurally infeasible at $0 for full scripts.** Space requests 90s GPU per call vs 300s/day cap → 3 chunks/day → 33-chunk script = 11 days. | Defer until HF PRO ($9/mo) is in budget |
+| ChatterboxTTS via Modal (own deployment) | YES | Same model, no quota | ~$0.08/video on A10G. Operator's Modal workspace hit spend-cap as of 2026-06-17. | Blocked on Modal billing |
+| F5-TTS via HF Space (`mrfakename/E2-F5-TTS`) | YES | Reference-bleeding + word-scrambling on long-form. Same 60s/call GPU request as Chatterbox. | $0 if quota available, but same daily cap math. | **Do not use** — burned hours on this |
+| ElevenLabs | Cloned via paid plan | Best paid quality | $5+/mo | Out of budget |
 
 ### F5-TTS failure modes (avoid)
 - **Reference bleeding**: if ref text ends mid-sentence (e.g. "...wouldn't give"), F5 inserts that phrase into generated output. *Fix*: trim ref to end at a sentence boundary.
@@ -66,11 +67,22 @@ Voice clone TTS quality is the entire bottleneck of this pipeline. Models tried 
 - **Reference-too-long bleed**: 9-10s reference more prone to bleeding than 5-6s. But 5s ref → poor cadence model. **Sweet spot is 7-8 seconds with a complete sentence end.**
 - **Cascaded atempo = drunk sound**: never apply ffmpeg atempo on top of TTS speed param. Use one OR the other.
 
-### Chatterbox usage
+### Chatterbox usage (reference; not the active path)
 - Free path: gradio_client → `ResembleAI/Chatterbox` HF Space → `/generate_tts_audio` endpoint
 - Per-call limit: ~10s audio per call (~300 char text). MUST chunk by sentence.
 - Pause padding between sentences: 250-400ms.
 - Optimal exaggeration: 0.5 (neutral). Higher = more dramatic (avoid for educational).
+- **Quota wall**: HF free Zero-GPU charges the Space's REQUESTED GPU allocation (90s), not actual usage. 300s/day daily cap → 3 calls/day → infeasible for >3-chunk scripts.
+
+### Gemini Native TTS usage (active path, 2026-06-19)
+- API: `from google import genai; client = genai.Client(api_key=GEMINI_API_KEY)`
+- Model: `gemini-2.5-flash-preview-tts` (2.5-pro variant available for higher quality, same free tier)
+- Endpoint: `client.models.generate_content(model=..., contents=..., config=GenerateContentConfig(response_modalities=["AUDIO"], speech_config=SpeechConfig(voice_config=VoiceConfig(prebuilt_voice_config=PrebuiltVoiceConfig(voice_name="Orus")))))`
+- Free tier: 250 RPD, 10 RPM. 3-minute script = 1 API call.
+- Output: raw PCM s16le mono at 24kHz → wrap in WAV header before passing downstream
+- **Cadence lever (critical for the "no breath" complaint)**: prepend a natural-language style instruction to the text. Default for ProdCraft: `"Read this in a warm, conversational tone, like explaining to a curious learner. Pause naturally at punctuation and take breath between sentences."` Override via `--gemini-style "your instruction"`.
+- Voice selection (top 3 sampled 2026-06-19): **Orus** (calm, professional, current pick), Charon (deep, authoritative), Kore (warm, friendly). 27 more available.
+- Hardening in `prodcraft_voice_clone.py`: deterministic per-chunk cache keyed on sha256(text + voice + style + model) → resumable across runs; retry-with-backoff 5s/20s/80s on transient API errors.
 
 ## Voice sample (reference clip)
 
@@ -116,9 +128,23 @@ Plan format:
 
 ### Timing rules
 - Each typewriter / checklist op has an `end_t` — reveal rate is `(t_now - t_start) / (end_t - t_start)`. Hard-locked to audio.
-- Section appearance is staggered slightly *before* the narrator references it (e.g. add at t-0.5s).
+- Section appearance is staggered ~2-3s *before* the narrator references it (e.g. "What is a PRD?" at 8.5s; narrator says "What exactly is" at 10.58s). Tighter than 2s feels reactive; wider than 4s feels disconnected.
 - Highlights happen at the moment the narration LANDS the concept (often end of paragraph).
 - No camera zooms in the POC — they were noisy. Auto-scroll when content exceeds viewport.
+
+### Precision-anchored plan generation (2026-06-19)
+- After transcribing v5 audio (`prodcraft_transcribe.py`), grep the words.json for anchor phrases (e.g. "Conduit of Clarity", "Add to cart", "comments") and set each section's `t` ~2s before the anchor's `start_sec`.
+- Linear-scaling all plan timings by `new_duration / old_duration` (the 1.2x hack) is OK for a v0 quick-look but produces 5-10s drift on long sections. Replace with precision anchors for ship-quality.
+
+### DocCanvas auto-scroll (fix landed 2026-06-19, commit `2ee17f1`)
+- Previous: `SECTION_BASE_H = 230` fixed constant. Real section heights vary 226-350px depending on body style. CTA section (last) fell ~400px below viewport at the outro because cumulative shortfall added up.
+- Current: `estimateSectionHeight(body_lines, body_style)` — paragraph height = (text chars / 60) × 50px line + 128px chrome; list/checklist = items × 59px + 128px chrome.
+- If sections grow longer or fonts change, re-tune `PARAGRAPH_LINE_PX`, `LIST_ITEM_PX`, `PARAGRAPH_CHARS_PER_LINE`, `SECTION_CHROME_PX` in `DocCanvas.tsx`.
+
+### Renderer Windows-player fix (commit `a368b82`)
+- Remotion's default H.264 encoder emits `yuvj420p` (full-range) + `bt470bg` (PAL/SD) primaries. VLC/Chrome handle this; Windows Films & TV + Media Player render as near-black.
+- `prodcraft_render_living_prd.py` now post-processes every Remotion render through ffmpeg with `scale=in_range=full:out_range=tv,format=yuv420p` + bt709 color tags. Adds ~30s per 3-minute 1080p MP4 at CRF 20, no visible quality loss.
+- Skippable via `skip_player_fix=True` on the `render()` function if you ever want the raw output.
 
 ### Body styles
 - `paragraph` — joined into one block, wraps naturally, char-by-char typewriter
@@ -137,13 +163,14 @@ py execution/personal_workflows/prodcraft_voice_sample.py --video-id <id> --dura
 # 3) Generate script from topic
 py execution/personal_workflows/prodcraft_script_gen.py --topic "..."
 
-# 4) Render audio (sentence-chunked, Chatterbox HF Space)
+# 4) Render audio (Gemini Native TTS, single-call, in-prompt style instruction)
 py execution/personal_workflows/prodcraft_voice_clone.py \
   --in .tmp/prodcraft/scripts/<slug>.md \
-  --backend hf-chatterbox \
-  --chunk-by sentence \
-  --pause-ms 300 \
+  --backend gemini \
+  --gemini-voice Orus \
   --out .tmp/prodcraft/phase1_audio.wav
+#   (Chatterbox HF path was the prior recommendation; see TTS table for why it
+#    was pulled. Use --backend hf-chatterbox only if HF PRO budget exists.)
 
 # 5) Word-level transcribe for caption timing
 py execution/personal_workflows/prodcraft_transcribe.py \
@@ -174,15 +201,21 @@ py execution/video/prodcraft_render_living_prd.py
 - **Modal free tier**: $30/month for new accounts, but workspace-level spend caps can hit lower. Verify on `https://modal.com/settings/<user>/billing` before relying.
 - **Python 3.14 / PyTorch**: as of 2026-06, no PyTorch wheels for 3.14. Local TTS install requires Python 3.11/3.12 in a separate env.
 
-## Status (2026-06-17)
+## Status (2026-06-19)
 
 - **Phase 0/0.5**: ✅ shipped (ingest, voice profile, script gen, TTS wrapper, Remotion bootstrap)
-- **Phase 1 (v1 - F5 single-call)**: shipped but audio has minor reference-bleed artifacts ("If hey guys", "you wouldn't even give"). Visual = beat-grid (deprecated in favor of Living PRD).
+- **Phase 1 (v1 - F5 single-call)**: superseded — audio had reference-bleed artifacts ("If hey guys", "you wouldn't even give"). Visual = beat-grid (deprecated).
 - **Phase 1 (v2 - F5 post-processed)**: rejected — cascaded atempo + injected silences = "drunk" sound.
-- **Phase 1 (Living PRD design)**: ✅ POC v2 visual validated by user 2026-06-17. Full plan in `prodcraft_living_prd_plan.py`. **This is the production visual.**
-- **Phase 1 (Modal F5/Chatterbox iterations)**: burned through Modal free credit chasing F5 quality before discovering ChatterboxTTS HF Space. Lesson logged.
-- **Phase 2** (approval gating): not started — pending Phase 1 acceptance
+- **Phase 1 (v3 - Gemini Orus + 1.2x linear scale)**: superseded — audio approved, but CTA section off-screen due to DocCanvas auto-scroll bug.
+- **Phase 1 (v4 - Gemini Orus + precision anchors + DocCanvas fix)**: ✅ **SHIP-GRADE.** `.tmp/prodcraft/phase1_v4.mp4`. Gemini Orus voice + conversational style instruction + per-section height auto-scroll + Windows-compat codec + sub-second visual/narration sync.
+- **Phase 1.5 (3D self-avatar)**: in exploration. Operator wants a 3D rendering of themselves for intro/outro segments. 2D Wav2Lip rejected on quality. Real3DPortrait verified as one-shot (no Colab pretrain) BUT needs BFM-2009 academic license (2-5d wait, uncertain approval) + reliable GPU (free Colab documented flaky). Hallo2 smoke-test pending as a cheaper-to-verify alternative.
+- **Phase 2** (approval gating): not started — pending Phase 1 user acceptance + Phase 1.5 path decision
 - **Phase 3-6**: queued
+
+### Commits this branch (Phase 1 ship)
+- `a368b82` — renderer Windows-player compat + hf-chatterbox backend (kept for future HF PRO budget)
+- `be6d9c4` — Gemini Native TTS backend (current active path)
+- `2ee17f1` — DocCanvas auto-scroll per-section height estimator (fixes CTA off-screen)
 
 ## When to update this directive
 
