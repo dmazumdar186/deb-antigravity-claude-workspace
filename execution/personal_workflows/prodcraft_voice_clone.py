@@ -233,6 +233,106 @@ def _call_f5(client, ref_wav: Path, ref_text: str, gen_text: str, remove_silence
     return Path(result_path)
 
 
+GEMINI_DEFAULT_VOICE = "Orus"
+GEMINI_DEFAULT_STYLE = (
+    "Read this in a warm, conversational tone, like explaining to a curious learner. "
+    "Pause naturally at punctuation and take breath between sentences."
+)
+GEMINI_DEFAULT_MODEL = "gemini-2.5-flash-preview-tts"
+
+
+def _pcm16_to_wav(pcm_bytes: bytes, sample_rate: int = 24000) -> bytes:
+    """Wrap raw PCM s16le mono in a minimal WAV header. Gemini TTS returns raw
+    PCM at 24kHz; needed because the rest of the pipeline expects WAV."""
+    import struct
+    n_channels = 1
+    sampwidth = 2
+    data_size = len(pcm_bytes)
+    byte_rate = sample_rate * n_channels * sampwidth
+    header = b"RIFF" + struct.pack("<I", 36 + data_size) + b"WAVE"
+    header += b"fmt " + struct.pack(
+        "<IHHIIHH", 16, 1, n_channels, sample_rate, byte_rate,
+        n_channels * sampwidth, 16,
+    )
+    header += b"data" + struct.pack("<I", data_size)
+    return header + pcm_bytes
+
+
+def _gemini_cache_path(gen_text: str, voice: str, style: str, model: str) -> Path:
+    """Deterministic cache filename for resume-safe re-runs."""
+    import hashlib
+    h = hashlib.sha256()
+    h.update(gen_text.encode("utf-8"))
+    h.update(f"|voice={voice}|style={style}|model={model}".encode("utf-8"))
+    cache_dir = WORKSPACE_ROOT / ".tmp" / "prodcraft" / "gemini_chunks"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir / f"{h.hexdigest()[:16]}.wav"
+
+
+def _call_gemini_tts(
+    gen_text: str,
+    voice: str = GEMINI_DEFAULT_VOICE,
+    style: str = GEMINI_DEFAULT_STYLE,
+    model: str = GEMINI_DEFAULT_MODEL,
+    max_retries: int = 3,
+) -> Path:
+    """One Gemini Native TTS call. Returns a local WAV file path.
+
+    Caches by sha256(text + voice + style + model) so a transient mid-batch
+    failure doesn't burn the successful chunks. Retries 3x with 5s/20s/80s
+    backoff on transient API errors (429, 503, network)."""
+    cache_path = _gemini_cache_path(gen_text, voice, style, model)
+    if cache_path.exists() and cache_path.stat().st_size > 1024:
+        return cache_path
+
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError as e:
+        raise SystemExit("Run: py -m pip install google-genai") from e
+
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if not api_key:
+        raise SystemExit("GEMINI_API_KEY (or GOOGLE_API_KEY) required in .env")
+
+    client = genai.Client(api_key=api_key)
+    prompt = f"{style}\n\n{gen_text}" if style else gen_text
+
+    for attempt in range(max_retries):
+        try:
+            resp = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice)
+                        )
+                    ),
+                ),
+            )
+            break
+        except Exception as exc:
+            if attempt == max_retries - 1:
+                raise SystemExit(
+                    f"gemini-tts failed after {max_retries} attempts on chunk "
+                    f"({len(gen_text)} chars): {type(exc).__name__}: {exc}"
+                ) from exc
+            wait_s = 5 * (4 ** attempt)
+            print(
+                f"  WARN: gemini-tts attempt {attempt + 1}/{max_retries} failed "
+                f"({type(exc).__name__}); retry in {wait_s}s...",
+                file=sys.stderr,
+            )
+            time.sleep(wait_s)
+
+    audio_pcm = resp.candidates[0].content.parts[0].inline_data.data
+    wav_bytes = _pcm16_to_wav(audio_pcm, sample_rate=24000)
+    cache_path.write_bytes(wav_bytes)
+    return cache_path
+
+
 def _chatterbox_cache_path(ref_wav: Path, gen_text: str, exaggeration: float, temperature: float, seed: int, cfg_weight: float, vad_trim: bool) -> Path:
     """Deterministic cache filename so a re-run after a transient HF flake skips
     chunks that already synthesized cleanly. Keyed on the inputs that affect the
@@ -363,15 +463,26 @@ def clone(
     pause_ms: int = 700,
     backend: str = "hf",
     modal_app: str = "prodcraft-f5-tts",
+    gemini_voice: str = GEMINI_DEFAULT_VOICE,
+    gemini_style: str = GEMINI_DEFAULT_STYLE,
+    gemini_model: str = GEMINI_DEFAULT_MODEL,
 ) -> dict:
     gen_text = gen_text.strip()
     if not gen_text:
         raise SystemExit("Empty text — nothing to synthesize.")
 
-    ref_wav, ref_text, ref_meta = _load_reference(sample_dir)
+    # Gemini doesn't need a voice-clone reference; skip the loader for that backend.
+    if backend == "gemini":
+        ref_wav = None
+        ref_text = ""
+        ref_meta = {}
+    else:
+        ref_wav, ref_text, ref_meta = _load_reference(sample_dir)
 
     # hf-chatterbox caps per-call text at 300 chars; enforce a 280-char ceiling
     # on sentence chunks so we never hit the API limit. Other backends pass None.
+    # Gemini Native TTS handles up to 8K tokens so single-call is preferred;
+    # if the caller still picks chunked, no hard cap is needed.
     sentence_max = 280 if backend == "hf-chatterbox" else None
 
     if chunk_by == "paragraph":
@@ -423,6 +534,17 @@ def clone(
         # Re-expose the resolved space name in the metadata.
         space = cb_space
         modal_cls = None
+    elif backend == "gemini":
+        # No connection setup needed; google-genai client is constructed per call
+        # so retry-with-backoff can recover from auth/network transients.
+        print(
+            f"Using Gemini Native TTS: model={gemini_model}, voice={gemini_voice}",
+            file=sys.stderr,
+        )
+        hf_client = None
+        modal_cls = None
+        # Re-purpose `space` field in metadata so downstream tools see the model.
+        space = f"gemini:{gemini_model}"
     elif backend == "modal":
         try:
             import modal as _modal
@@ -456,6 +578,10 @@ def clone(
             result_path = _call_f5(hf_client, ref_wav, ref_text, chunk, remove_silence)
         elif backend == "hf-chatterbox":
             result_path = _call_hf_chatterbox(hf_client, ref_wav, chunk)
+        elif backend == "gemini":
+            result_path = _call_gemini_tts(
+                chunk, voice=gemini_voice, style=gemini_style, model=gemini_model,
+            )
         else:
             result_path = _call_f5_modal(modal_cls, ref_wav, ref_text, chunk, remove_silence)
         chunk_paths.append(result_path)
@@ -528,12 +654,21 @@ def main() -> int:
     p.add_argument("--chunk-by", choices=["none", "paragraph", "sentence"], default="none",
                    help="paragraph = one F5 call per blank-line-separated paragraph; sentence = one F5 call per . ! ? (smallest chunks, most resilient to F5 long-context drift)")
     p.add_argument("--pause-ms", type=int, default=700, help="Inter-chunk silence (ms) when chunk-by != none")
-    p.add_argument("--backend", choices=["hf", "hf-chatterbox", "modal", "chatterbox"], default="hf",
+    p.add_argument("--backend", choices=["hf", "hf-chatterbox", "modal", "chatterbox", "gemini"], default="hf",
                    help="hf = public F5 HF Space; hf-chatterbox = ResembleAI/Chatterbox HF Space "
                         "(free; 300-char per-call cap, requires --chunk-by sentence); "
-                        "modal = F5 on Modal; chatterbox = ChatterboxTTS on Modal (billing-blocked currently)")
+                        "modal = F5 on Modal; chatterbox = ChatterboxTTS on Modal (billing-blocked); "
+                        "gemini = Gemini Native TTS (free 250 RPD, prebuilt voices, NOT voice clone)")
     p.add_argument("--modal-app", default="prodcraft-f5-tts",
                    help="Modal app name (default: prodcraft-f5-tts; chatterbox auto-routes to prodcraft-chatterbox-tts)")
+    p.add_argument("--gemini-voice", default=GEMINI_DEFAULT_VOICE,
+                   help=f"Gemini prebuilt voice name (default: {GEMINI_DEFAULT_VOICE}). "
+                        f"Options: Charon, Kore, Orus, Aoede, Puck, Algenib, Zephyr, Fenrir, Leda, ...")
+    p.add_argument("--gemini-style", default=GEMINI_DEFAULT_STYLE,
+                   help="Natural-language style instruction prepended to text. "
+                        "Pass '' to disable.")
+    p.add_argument("--gemini-model", default=GEMINI_DEFAULT_MODEL,
+                   help=f"Gemini TTS model (default: {GEMINI_DEFAULT_MODEL})")
     args = p.parse_args()
 
     if args.text:
@@ -557,6 +692,9 @@ def main() -> int:
         pause_ms=args.pause_ms,
         backend=args.backend,
         modal_app=args.modal_app,
+        gemini_voice=args.gemini_voice,
+        gemini_style=args.gemini_style,
+        gemini_model=args.gemini_model,
     )
     print(json.dumps(meta, indent=2))
     return 0
