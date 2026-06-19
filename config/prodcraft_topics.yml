@@ -1,0 +1,36 @@
+# ProdCraft weekly topic queue.
+# The scheduler picks the first unprocessed item (no `processed_at`) on each run
+# and feeds it to prodcraft_orchestrate.py. Add new topics at the bottom.
+#
+# Schema per item:
+#   topic:        the prompt fed to script_gen (required)
+#   slug:         override the auto-derived slug (optional)
+#   language:     en | fr (default: en)
+#   target_duration: seconds (default: 180)
+#   processed_at: ISO8601 timestamp (set by scheduler; do not edit by hand)
+#   queued_slug:  the slug that landed in the pending queue (set by scheduler)
+
+topics:
+  - topic: "What is a PRD and how to write one for new Product Managers"
+    slug: prd-foundations-en
+    language: en
+    target_duration: 180
+    processed_at: "2026-06-19T17:00:00Z"
+    queued_slug: prd-foundations-en
+
+  - topic: "How to run a great product discovery interview without leading the witness"
+    language: en
+    target_duration: 180
+
+  - topic: "The activation metric trap: why DAU is lying to you"
+    language: en
+    target_duration: 200
+
+  - topic: "Comment écrire un PRD efficace pour les nouveaux Product Managers"
+    slug: prd-foundations-fr
+    language: fr
+    target_duration: 180
+
+  - topic: "Prioritization frameworks for product managers: RICE, MoSCoW, and when to skip them"
+    language: en
+    target_duration: 210

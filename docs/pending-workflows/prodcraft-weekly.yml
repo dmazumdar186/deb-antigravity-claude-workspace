@@ -1,0 +1,93 @@
+name: ProdCraft weekly autopilot
+
+on:
+  schedule:
+    # Wed 09:00 UTC = 10:00 Paris (winter) / 11:00 Paris (summer)
+    - cron: "0 9 * * 3"
+  workflow_dispatch:
+    inputs:
+      max_topics:
+        description: "Max topics to process"
+        required: false
+        default: "1"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node (for Remotion)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install python-dotenv google-genai google-api-python-client google-auth-oauthlib pyyaml pillow imageio-ffmpeg faster-whisper gradio-client requests
+
+      - name: Install Node deps
+        working-directory: execution/video/remotion-projects/prodcraft_smoke
+        run: npm ci || npm install
+
+      - name: Restore voice assets cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tmp/prodcraft/voice_profile.json
+            .tmp/prodcraft/voice_sample/
+          key: prodcraft-voice-${{ hashFiles('directives/personal_workflows/prodcraft_autopilot.md') }}
+
+      - name: Run scheduler
+        run: |
+          python execution/personal_workflows/prodcraft_schedule.py \
+            --max-topics ${{ github.event.inputs.max_topics || '1' }}
+
+      - name: Restore YouTube OAuth token
+        if: ${{ secrets.YOUTUBE_TOKEN_JSON != '' }}
+        run: |
+          mkdir -p .tmp/prodcraft
+          echo "$YOUTUBE_TOKEN_JSON" > .tmp/prodcraft/youtube_token.json
+          echo "$YOUTUBE_CLIENT_SECRET_JSON" > .tmp/prodcraft/youtube_client_secret.json
+        env:
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+          YOUTUBE_CLIENT_SECRET_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRET_JSON }}
+
+      - name: Auto-approve + upload (private privacy on YouTube)
+        if: ${{ secrets.YOUTUBE_TOKEN_JSON != '' }}
+        run: |
+          # The scheduler put the new video in pending/. In cloud mode we trust
+          # the topic list to be operator-curated and auto-approve, then upload
+          # as PRIVATE. Operator reviews via YouTube Studio + flips to public.
+          for d in .tmp/prodcraft/queue/pending/*/; do
+            slug=$(basename "$d")
+            python execution/personal_workflows/prodcraft_queue.py approve --slug "$slug"
+          done
+          python execution/personal_workflows/prodcraft_youtube_upload.py
+
+      - name: Commit topic-list updates
+        run: |
+          git config user.name "prodcraft-autopilot"
+          git config user.email "noreply@anthropic.com"
+          if [[ -n "$(git status --porcelain config/prodcraft_topics.yml)" ]]; then
+            git add config/prodcraft_topics.yml
+            git commit -m "chore(prodcraft): mark topic processed by weekly cron"
+            git push
+          else
+            echo "No changes to commit"
+          fi

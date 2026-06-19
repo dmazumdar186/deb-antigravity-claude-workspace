@@ -96,7 +96,7 @@ def load_profile() -> dict:
     return json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
 
 
-def generate(topic: str, length_sec: int, fmt: str, source: str | None) -> dict:
+def generate(topic: str, length_sec: int, fmt: str, source: str | None, language: str = "en") -> dict:
     from google.genai import types as genai_types
     client = _gemini_client()
     profile = load_profile()
@@ -105,6 +105,12 @@ def generate(topic: str, length_sec: int, fmt: str, source: str | None) -> dict:
     pacing_favors = profile.get("pacing_norms", {}).get("favors", "medium-paragraph")
     beat_words = max(50, words_total // 5)  # rough beat target
     source_block = f"SOURCE TO WEAVE IN (cite naturally): {source}" if source else "SOURCE: (none — pure original frame)"
+    lang_clause = (
+        "\nLANGUAGE: Write the full_script_md, hook, body_beats[*].spoken_text, and cta in fluent natural French (français). "
+        "The title can stay bilingual or be in French. Keep proper nouns like ProdCraft as-is."
+        if language == "fr"
+        else ""
+    )
 
     prompt = PROMPT_TEMPLATE.format(
         profile_json=json.dumps(profile, indent=2, ensure_ascii=False),
@@ -115,7 +121,7 @@ def generate(topic: str, length_sec: int, fmt: str, source: str | None) -> dict:
         avg_sent=avg_sent,
         pacing_favors=pacing_favors,
         beat_words=beat_words,
-        source_block=source_block,
+        source_block=source_block + lang_clause,
     )
     print(f"  prompt size: {len(prompt):,} chars (~{len(prompt) // 4:,} tokens)", file=sys.stderr)
 
@@ -146,8 +152,8 @@ def generate(topic: str, length_sec: int, fmt: str, source: str | None) -> dict:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    print(f"Generating script | topic={args.topic!r} | length={args.length_sec}s | format={args.format}", file=sys.stderr)
-    script = generate(args.topic, args.length_sec, args.format, args.source)
+    print(f"Generating script | topic={args.topic!r} | length={args.length_sec}s | format={args.format} | lang={args.language}", file=sys.stderr)
+    script = generate(args.topic, args.length_sec, args.format, args.source, args.language)
 
     out_path = Path(args.out) if args.out else SCRIPTS_DIR / f"{slugify(args.topic)}.md"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -164,7 +170,19 @@ def cmd_run(args: argparse.Namespace) -> int:
         f"voice_profile: .tmp/prodcraft/voice_profile.json\n"
         "---\n\n"
     )
-    body = script.get("full_script_md", "").strip() + "\n"
+    body = (script.get("full_script_md") or "").strip()
+    if not body:
+        parts: list[str] = []
+        if script.get("hook"):
+            parts.append(script["hook"].strip())
+        for beat in script.get("body_beats") or []:
+            t = (beat.get("spoken_text") or "").strip()
+            if t:
+                parts.append(t)
+        if script.get("cta"):
+            parts.append(script["cta"].strip())
+        body = "\n\n".join(parts)
+    body = body + "\n"
     out_path.write_text(frontmatter + body, encoding="utf-8")
 
     json_path = out_path.with_suffix(".md.json")
@@ -186,6 +204,8 @@ def main() -> int:
     p.add_argument("--format", default="explainer-3-act", help="Structural template name (see voice_profile.structural_templates)")
     p.add_argument("--source", default=None, help="Optional source citation to weave in")
     p.add_argument("--out", default=None, help="Output path (default .tmp/prodcraft/scripts/{slug}.md)")
+    p.add_argument("--language", default="en", choices=("en", "fr"),
+                   help="Output language for the spoken script (en or fr). Title can stay English-friendly.")
     args = p.parse_args()
     return cmd_run(args)
 
