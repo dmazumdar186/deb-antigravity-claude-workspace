@@ -118,6 +118,7 @@ export const RemotionRoot: React.FC = () => {
               audioSrc: staticFile("audio.wav"),
               plan,
               words,
+              enableBookends: true,
             },
           };
         }}

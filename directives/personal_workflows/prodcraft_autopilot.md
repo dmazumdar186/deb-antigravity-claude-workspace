@@ -208,9 +208,9 @@ py execution/video/prodcraft_render_living_prd.py
 - **Phase 1 (v2 - F5 post-processed)**: rejected — cascaded atempo + injected silences = "drunk" sound.
 - **Phase 1 (v3 - Gemini Orus + 1.2x linear scale)**: superseded — audio approved, but CTA section off-screen due to DocCanvas auto-scroll bug.
 - **Phase 1 (v4 - Gemini Orus + precision anchors + DocCanvas fix)**: ✅ **SHIP-GRADE.** `.tmp/prodcraft/phase1_v4.mp4`. Gemini Orus voice + conversational style instruction + per-section height auto-scroll + Windows-compat codec + sub-second visual/narration sync.
-- **Phase 1.5 (3D self-avatar)**: **DEFERRED indefinitely** (2026-06-19). Empirical conclusion after 4 smoke tests: strict $0 + cloud-only 3D talking-head is not viable on HF Zero-GPU. Wav2Lip works free but operator rejected ("no expression, not 3D, not my face"). EchoMimic + LivePortrait + Hallo2 all blocked by per-call GPU-duration cap on the free tier (Hallo2 sat in queue 3.6h before CancelledError). Real3DPortrait verified one-shot-capable but needs BFM-2009 academic license + reliable GPU (free Colab documented flaky). Operator chose to keep Living PRD as ProdCraft's signature visual identity rather than commit paid budget for 3D. Revisit when: (a) `[[no-paid-tts]]` budget opens, (b) a new free 3D talking-head tool emerges with a clean Python API, or (c) operator's preferences change.
-- **Phase 2** (approval gating): not started — pending Phase 1 user acceptance + Phase 1.5 path decision
-- **Phase 3-6**: queued
+- **Phase 1.5 (Brand signature, $0 path)**: ✅ **SHIPPED** (2026-06-19 evening). Operator re-opened the deferred 3D-avatar phase and re-scoped it to "enhance Living PRD signature instead" after rejecting paid paths (Replicate/HeyGen/Real3DPortrait+Colab Pro). New `BrandBookends.tsx` component overlays a branded intro card (first ~2.2s) and outro subscribe card (last ~4.5s) on top of the existing Living PRD canvas — no audio padding, no paid services. Toggleable via `enableBookends` prop (default ON). Ship artifact: `.tmp/prodcraft/phase1_v5_bookends.mp4` (177.7s, with intro+outro). Verified frames at 0.8s (intro card), 60s (doc canvas intact), 177s (outro subscribe overlay).
+- **Phase 2** (approval gating): not started — see below
+- **Phase 3-7**: queued
 
 ### Commits this branch (Phase 1 ship)
 - `a368b82` — renderer Windows-player compat + hf-chatterbox backend (kept for future HF PRO budget)
