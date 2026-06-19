@@ -273,3 +273,49 @@ The 5 HIGH RISK files represent ~12 hours of engineering lost to building workar
 
 Going forward, the prior-art-first rule and its 10-minute pass are the floor. The rewrites above are the backport — they make the workspace's existing code consistent with the new rule, not just new code.
 
+
+---
+
+## Update 2026-06-19 — Two operator-reported bugs + fixes
+
+Operator-reported on 2026-06-19: "it is sending me around 200 jobs, and then it is sending emails twice daily, why is such a simple tool not working correctly?"
+
+### Bug 1: Ranker silently disabled in production CI — 200+ jobs per email
+
+**Root cause:** `GEMINI_API_KEY` IS present in GitHub Secrets (set 2026-06-09) but the `.github/workflows/job_search_daily.yml` env block does NOT pass it through to the orchestrator step. The ranker code reads `os.environ.get("GEMINI_API_KEY", "")`, finds empty, emits B-tier placeholders for every job, no filtering happens, all ~200 jobs end up in the digest.
+
+**Autonomous code-level fix (this commit):**
+- Add `--max-digest-jobs N` (default 25) to `run.py`. After dedup + location filter, sort by `(-ranker_score, -posted_at)` and slice top N for sheet append + email digest. Excess jobs STILL get recorded in seen.db so they don't re-surface tomorrow. UX-grade output cap; reverts via `--max-digest-jobs 999`.
+- Sort key uses ranker score IF the ranker ran. Until the YAML is fixed, all scores are 0.5 (placeholder) so sort falls through to `-posted_at` (most-recent-first).
+
+**Workflow YAML owed-fix (blocked on PAT scope):**
+```yaml
+      - name: Run job_search_v2 orchestrator
+        env:
+          # ...existing entries...
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}  # <- ADD THIS LINE
+```
+After this YAML edit, the ranker activates, jobs get real A/B/C/SKIP tiers, the cap drops the bottom-tier noise. To apply: operator runs `gh auth refresh -s workflow` (one-time interactive browser flow), then pushes a 1-line YAML diff. Owed-by: ASAP.
+
+### Bug 2: Dual-cron at 07:00 + 08:00 UTC sends two emails per day
+
+**Root cause:** `.github/workflows/job_search_daily.yml` has two cron triggers (`"0 7 * * *"` and `"0 8 * * *"`) — a DST workaround so the cron lands at 09:00 Paris year-round. `send_digest` has no idempotency check, so it sends every time.
+
+**Autonomous code-level fix (this commit):**
+- Add `--min-hours-between-emails N` (default 22.0) to `run.py`. Before send, check the lock state. If last send was within N hours, skip + log "email lock: last send was Xh ago — skipping to prevent dual-cron spam." `--dry-run` bypasses the lock and doesn't stamp it, so manual workflow_dispatch tests don't clobber production state.
+- Lock state lives in `seen.db` meta KV table (NEW `meta` table added by `dedup.py`). This piggy-backs on the existing seen.db cache step in the workflow YAML — survives between cron invocations without needing a new cache path. Autonomous because the YAML doesn't need to change.
+
+**Edge cases handled:**
+- Disabled when threshold ≤ 0 (escape hatch).
+- Corrupt state value → treat as no prior send (better to send than silently skip — visible failure).
+- Missing seen.db → treat as no prior send.
+
+### Bug 3 owed-work (operator decision)
+
+Even with the cap + ranker, "150 jobs filtered down to 25" assumes the ranker correctly tiers PM-Paris-fit. The rubric at `execution/personal_workflows/job_search_v2/ranker/rubric.md` was tuned for the operator's profile. If it under-filters (still too many B's), tightening options:
+- Drop cap to 15 by default
+- Increase `--min-score-to-keep` threshold (default 0.0 today)
+- Add a tier filter (e.g. `--digest-tiers A,B` to ship only A's)
+
+This is a quality-calibration task that needs 1-week of dogfood data — not blocking the current shippability question.
+

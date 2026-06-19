@@ -61,7 +61,38 @@ CREATE TABLE IF NOT EXISTS seen (
 );
 CREATE INDEX IF NOT EXISTS idx_seen_canonical_url ON seen(canonical_url);
 CREATE INDEX IF NOT EXISTS idx_seen_last_seen_at ON seen(last_seen_at);
+
+-- Single-row key/value table piggy-backing on the seen.db cache so the email
+-- send-lock survives between cron invocations without needing the workflow YAML
+-- to mount an extra cache path. Added 2026-06-19 to fix dual-cron double-send.
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
+
+
+def get_meta(db_path: Path, key: str) -> str | None:
+    """Read a single value from the meta KV table. None if missing."""
+    conn = _open_db(db_path)
+    try:
+        row = conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
+        return row["value"] if row else None
+    finally:
+        conn.close()
+
+
+def set_meta(db_path: Path, key: str, value: str) -> None:
+    """Upsert a single value in the meta KV table."""
+    conn = _open_db(db_path)
+    try:
+        conn.execute(
+            "INSERT INTO meta(key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (key, value),
+        )
+    finally:
+        conn.close()
 
 
 def _open_db(db_path: Path) -> sqlite3.Connection:
