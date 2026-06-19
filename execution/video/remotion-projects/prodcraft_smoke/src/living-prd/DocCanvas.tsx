@@ -20,10 +20,31 @@ type Props = {
 
 const HEADER_PAD_TOP = 56;
 const HEADER_BLOCK_H = 220; // title + subtitle + spacing
+const TITLE_BLOCK_PAD_TOP = 40; // matches paddingTop inside title block JSX
+const SECTION_COLUMN_MARGIN_TOP = 40; // matches "40px auto 0" margin on sections column
 const SECTION_GAP = 40;
-// Each section's *minimum* visual height (sections grow naturally as content types).
-const SECTION_BASE_H = 230;
 const CONTENT_MAX_W = 1560;
+const SECTION_CHROME_PX = 128; // title row + vertical padding (32+32) + borders
+const PARAGRAPH_LINE_PX = 50; // font-size 34 × line-height 1.45
+const LIST_ITEM_PX = 59; // font-size 32 × line-height 1.4 + 14 gap
+const PARAGRAPH_CHARS_PER_LINE = 60; // empirical wrap at 1560-1480 max-width, font-size 34
+
+// Estimate a section's rendered height from its content. Replaces the prior
+// fixed 230px assumption which over-scrolled tall sections off the viewport
+// (CTA section landed ~400px below the 1080 cutoff in v3).
+const estimateSectionHeight = (
+  bodyLines: string[],
+  bodyStyle: "paragraph" | "list" | "checklist",
+): number => {
+  if (bodyLines.length === 0) return SECTION_CHROME_PX + 40;
+  if (bodyStyle === "paragraph") {
+    const text = bodyLines.join(" ");
+    const lines = Math.max(1, Math.ceil(text.length / PARAGRAPH_CHARS_PER_LINE));
+    return SECTION_CHROME_PX + lines * PARAGRAPH_LINE_PX;
+  }
+  // list / checklist: gap between items is included in LIST_ITEM_PX
+  return SECTION_CHROME_PX + bodyLines.length * LIST_ITEM_PX - 14;
+};
 
 export const DocCanvas: React.FC<Props> = ({ plan }) => {
   const frame = useCurrentFrame();
@@ -33,15 +54,19 @@ export const DocCanvas: React.FC<Props> = ({ plan }) => {
   const snap = computeDocSnapshot(plan, t);
 
   // Auto-scroll: when sections accumulate beyond viewport, the doc translates
-  // upward to keep the NEWEST section near visual center / 60% from top.
-  const visibleSectionCount = snap.sections.length;
-  // Approximate accumulated content height before the newest section.
-  const contentHeightBeforeNewest = HEADER_PAD_TOP + HEADER_BLOCK_H +
-    Math.max(0, visibleSectionCount - 1) * (SECTION_BASE_H + SECTION_GAP);
-  // We want the top of the newest section to sit at ~0.55 * viewport (just above center).
+  // upward to keep the NEWEST section near visual center.
+  // Real per-section heights vary 226-350px; prior fixed-230 assumption left
+  // tall sections 200-400px below the viewport at the outro.
+  const titleBlockH =
+    HEADER_PAD_TOP + TITLE_BLOCK_PAD_TOP + HEADER_BLOCK_H + SECTION_COLUMN_MARGIN_TOP;
+  let contentHeightBeforeNewest = titleBlockH;
+  for (let i = 0; i < snap.sections.length - 1; i++) {
+    const s = snap.sections[i];
+    contentHeightBeforeNewest += estimateSectionHeight(s.body_lines, s.body_style);
+    contentHeightBeforeNewest += SECTION_GAP;
+  }
   const desiredNewestSectionTop = height * 0.55;
   const naiveOffset = desiredNewestSectionTop - contentHeightBeforeNewest;
-  // Don't scroll UP (positive offset) — only down (negative). Cap at 0.
   const targetOffset = Math.min(0, naiveOffset);
 
   // Smooth the offset over time to avoid sudden jumps when a section is added.
