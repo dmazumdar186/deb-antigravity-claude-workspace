@@ -11,25 +11,26 @@ import time
 
 logger = logging.getLogger(__name__)
 
-_client = None
+# Cached clients keyed by base_url. Round-2 plan-skeptic Issue B: a bare
+# singleton silently routes calls to whichever base_url was registered first.
+# A dict keyed on base_url lets OR and Z.AI-direct coexist without cross-talk.
+_clients: dict[str, object] = {}
 
 MAX_RETRIES = 2
 BASE_DELAY = 1.0
 
+_OR_BASE_URL = "https://openrouter.ai/api/v1"
 
-def _get_client():
-    global _client
-    if _client is None:
+
+def _get_client(base_url: str = _OR_BASE_URL):
+    if base_url not in _clients:
         from openai import OpenAI
 
         api_key = os.environ.get("OPENROUTER_API_KEY", "")
         if not api_key:
             raise RuntimeError("OPENROUTER_API_KEY not set")
-        _client = OpenAI(
-            api_key=api_key,
-            base_url="https://openrouter.ai/api/v1",
-        )
-    return _client
+        _clients[base_url] = OpenAI(api_key=api_key, base_url=base_url)
+    return _clients[base_url]
 
 
 def chat_completion(
@@ -40,11 +41,13 @@ def chat_completion(
     # for compatibility pass `model=` explicitly.
     model: str = "anthropic/claude-sonnet-4.6",
     max_tokens: int = 150,
+    base_url: str = _OR_BASE_URL,
 ) -> str:
-    """Single-turn chat completion via OpenRouter. Retries on rate limit / server errors."""
+    """Single-turn chat completion via OpenRouter (or Z.AI-direct if base_url overridden).
+    Retries on rate limit / server errors."""
     from openai import APIStatusError, RateLimitError
 
-    client = _get_client()
+    client = _get_client(base_url)
     last_exc = None
     for attempt in range(MAX_RETRIES + 1):
         try:

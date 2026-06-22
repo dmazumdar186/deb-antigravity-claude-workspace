@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # Models outside these families are NEVER considered, regardless of recency.
 # Edit this list to add/remove provider families as the landscape evolves.
 # ---------------------------------------------------------------------------
-ALLOWED_FAMILIES = ("anthropic/", "openai/", "google/")
+ALLOWED_FAMILIES = ("anthropic/", "openai/", "google/", "z-ai/")
 
 # ---------------------------------------------------------------------------
 # LAST_KNOWN_GOOD — the ONLY place model IDs appear as literals in this file.
@@ -55,6 +55,11 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
         "default": "anthropic/claude-sonnet-4.6",
         "premium": "anthropic/claude-opus-4.7",
         "gemini":  "google/gemini-2.5-pro",  # for OR-only setup, Gemini tier via OR
+        # GLM 5.2 — Z.AI's flagship open model, ~$1/M input tokens via OR.
+        # Use ONLY for creative/non-sensitive artifacts. Never for PII / AM-scoped /
+        # cold-email / recruiter-facing content. See ~/.claude/rules/model-tier.md
+        # and directives/infrastructure/glm_5_2_integration.md.
+        "glm":     "z-ai/glm-5.2",
     },
 }
 
@@ -255,6 +260,10 @@ _OR_GEMINI3_RE = re.compile(r"^google/gemini-3", re.IGNORECASE)
 _OR_GEMINI25PRO_RE = re.compile(r"^google/gemini-2\.5-pro", re.IGNORECASE)
 _OR_GEMINI25FLASH_RE = re.compile(r"^google/gemini-2\.5-flash", re.IGNORECASE)
 _OR_GPT4O_MINI_RE = re.compile(r"^openai/gpt-4o-mini", re.IGNORECASE)
+# GLM family — match z-ai/glm-X.Y but EXCLUDE variants (-air / -flash / -turbo / vision -v)
+# to keep the main "glm" tier resolution focused on the flagship line. Variants can be
+# named explicitly when needed.
+_OR_GLM_RE = re.compile(r"^z-ai/glm-(\d+(?:\.\d+)?)$", re.IGNORECASE)
 
 
 def _or_unix_to_iso(created: int | float | None) -> str | None:
@@ -366,6 +375,26 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
                     best_m = m
         return best_m
 
+    # Helper: pick highest-versioned z-ai/glm-X.Y model.
+    # GLM uses semver-ish versions (4.7, 5.0, 5.1, 5.2) so we compare as (major, minor).
+    def _best_glm_family(pool: list[dict]) -> dict | None:
+        """Return the z-ai/glm-* model with the highest (major, minor) version."""
+        best_m: dict | None = None
+        best_key: tuple[int, int] = (-1, -1)
+        for m in pool:
+            match = _OR_GLM_RE.match(m.get("id", ""))
+            if match:
+                try:
+                    parts = match.group(1).split(".")
+                    major = int(parts[0])
+                    minor = int(parts[1]) if len(parts) > 1 else 0
+                except (IndexError, ValueError):
+                    major, minor = 0, 0
+                if (major, minor) > best_key:
+                    best_key = (major, minor)
+                    best_m = m
+        return best_m
+
     # ---------------------------------------------------------------------------
     # Premium ladder: opus > gpt-5 > gpt-4o > gemini-3 > gemini-2.5-pro > sonnet
     # ---------------------------------------------------------------------------
@@ -406,6 +435,24 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
                 created_iso = _or_unix_to_iso(chosen.get("created"))
                 logger.info("OR %s → %s (matched %s)", tier, model_id, label)
                 return model_id, created_iso
+
+    # ---------------------------------------------------------------------------
+    # GLM tier: Z.AI's flagship line. Auto-picks the highest (major, minor) version
+    # available — when GLM-6 ships, this resolver picks it up with no code change.
+    # NB: GLM models on OR may not advertise "tools" in supported_parameters; we
+    # search the FULL allowlisted pool (pre-tools-filter), since GLM is used for
+    # creative/HTML/3D code rather than tool-calling agent loops.
+    # ---------------------------------------------------------------------------
+    elif tier == "glm":
+        # Re-derive the pool WITHOUT the tools-capability filter — capable[] was
+        # narrowed by tools support which GLM may not declare.
+        glm_pool = [m for m in raw_models if _is_allowed_id(m.get("id", ""))]
+        chosen = _best_glm_family(glm_pool)
+        if chosen:
+            model_id = chosen["id"]
+            created_iso = _or_unix_to_iso(chosen.get("created"))
+            logger.info("OR glm → %s (latest GLM family member)", model_id)
+            return model_id, created_iso
 
     raise RuntimeError(f"No suitable OpenRouter model found for tier='{tier}'")
 
