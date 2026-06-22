@@ -1,5 +1,15 @@
 # Firecrawl LinkedIn Dork — Contact Enrichment SOP
 
+## Prior art pass
+
+Retrospective per `~/.claude/rules/prior-art-first.md`. This directive pre-dates the rule (2026-06-18):
+
+- **Public LinkedIn API for people search?** No usable public path. LinkedIn's official API gates contact discovery behind partner agreements; the public site rate-limits and bans non-authenticated scrapers fast.
+- **Existing tools**: Apollo, ZoomInfo, Hunter.io, Anymailfinder all monetize this exact use case. Workspace already has `ANYMAILFINDER_API_KEY` + `PROSPEO_API_KEY` for email verification once we have profile URLs.
+- **Discovery path chosen**: Google dork via Firecrawl `/search` -- queries like `site:linkedin.com/in "Head of Product" "<company>"`. Surfaces LinkedIn profile URLs without scraping LinkedIn directly (ToS-safe), the operator's existing FIRECRAWL_API_KEY covers the search cost, and the URLs feed into Anymailfinder/Prospeo for the email step.
+- **Why this path**: stays in compliance with LinkedIn's ToS, reuses existing keys, and the Firecrawl `/search` endpoint is the integration the workspace already pays for.
+- **Architecture**: tiered dork batches per seniority level (CPO > VP > Head > Senior PM > HR), dedup by canonical `linkedin.com/in/{slug}`, then handoff to email enrichers.
+
 ## Goal
 
 Find 3–5 contactable people per company (CPO, VP Product, Head of Product, Senior PM, HR/Talent) by running Google dork searches via Firecrawl's `/search` endpoint. This approach surfaces LinkedIn profile URLs without scraping LinkedIn directly — which would violate LinkedIn's ToS and trigger rapid blocks. Results are collected by seniority tier, deduplicated by canonical LinkedIn URL, and returned as structured contact records.

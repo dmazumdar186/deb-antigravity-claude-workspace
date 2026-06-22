@@ -1,5 +1,14 @@
 # Google Sheets Writer — Job Search Pipeline SOP
 
+## Prior art pass
+
+Retrospective per `~/.claude/rules/prior-art-first.md`. This directive pre-dates the rule (2026-06-18):
+
+- **Public API exists?** Yes -- Google Sheets API v4 (`sheets.googleapis.com`). Service-account auth via `credentials.json` / `token.json` is already wired into the workspace (existing files in `.gitignore`).
+- **Existing GitHub prior art**: `gspread` Python library is the de-facto wrapper around Sheets API v4; well-maintained, used by the workspace's other Google-integration scripts.
+- **Why this path**: official API, service-account auth (no OAuth flow per run), `gspread` handles auth + retries + batch updates. No screen-scraping, no headless browser.
+- **Architecture**: `execution/google/google_sheets_writer.py` opens a sheet by ID, formats jobs per-tab, applies named ranges + conditional formatting via batched calls (cheaper than per-cell writes).
+
 ## Goal
 
 Write daily job-search results from multiple aggregator APIs into a shared Google Sheet

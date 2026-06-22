@@ -1,5 +1,13 @@
 # Job Search Sheet — Daily Multi-Portal Job Aggregator — Master SOP
 
+## Prior art pass
+
+Retrospective per `~/.claude/rules/prior-art-first.md`. This directive pre-dates the rule (2026-06-18):
+
+- **For each aggregator integrated**: see the per-source directives' own Prior art pass sections (`directives/custom_scrapers/adzuna_jobs.md`, `directives/custom_scrapers/jooble_jobs.md`, `directives/custom_scrapers/france_travail.md`). All use public REST/POST APIs with operator-provisioned keys -- no scraping, no Playwright, no ToS conflicts.
+- **Aggregation pattern**: this directive orchestrates the per-source scrapers and writes to a Google Sheet (see `directives/google/google_sheets_writer.md`). No new external service is integrated here beyond what the sub-directives already cover.
+- **Why a sheet rather than email digest**: per `memory/project_job_search_sheet.md`, the operator explicitly chose "sheet that is always current when he opens it" over email noise. Earlier `job_tracker_pm_france` pipeline emitted daily emails; this one supersedes that pattern.
+
 ## 1. Purpose
 
 This pipeline runs daily at 09:00 Europe/Paris, scrapes free job boards (Adzuna, Jooble) for six target titles across configured geographies, deduplicates the results across portals, gates them through an LLM relevance filter, and writes a clean, sorted Google Sheet called **"Job Applications"** — one tab per job title. The sheet is the single place Debanjan reviews new roles and tracks application status. No email digests. No notifications. Just a sheet that is always current when he opens it.

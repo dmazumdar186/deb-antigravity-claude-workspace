@@ -1,5 +1,14 @@
 # Adzuna Jobs Scraper
 
+## Prior art pass
+
+Retrospective per `~/.claude/rules/prior-art-first.md`. This directive pre-dates the rule (2026-06-18) but the same conclusions hold today:
+
+- **Public API exists?** Yes -- Adzuna offers a free public REST API at `https://api.adzuna.com/v1/api/jobs/{country}/search/{page}` with `app_id` + `app_key`. No scraping needed.
+- **Best existing approach**: direct REST calls with operator-provisioned `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` (already in `.env`). Returns structured JSON with title, company, location, salary, redirect_url. Free tier: 25 calls/min, 250/day per app.
+- **Why this path**: Adzuna's TOS permits API use, structured output beats HTML scraping for stability, the workspace already has keys provisioned. No Playwright/Selenium needed.
+- **Architecture**: thin Python wrapper at `execution/custom_scrapers/adzuna_jobs.py` that pages through results, normalizes to the workspace `SourceJob` contract, dedupes by `redirect_url`.
+
 ## Purpose
 
 Fetch job listings from Adzuna's free REST API. Used in the job-search-sheet pipeline (Phase 1a: France; Phase 1b: Schengen + CA + US). Returns structured `RawJob` dicts including `contract_type` and `country` fields.

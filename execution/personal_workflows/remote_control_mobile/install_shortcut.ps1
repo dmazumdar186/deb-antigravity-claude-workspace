@@ -1,5 +1,5 @@
 # Creates a desktop shortcut for Claude Remote Control.
-# Double-clicking the shortcut opens a real cmd.exe window — provides the
+# Double-clicking the shortcut opens a real cmd.exe window -- provides the
 # interactive tty that `claude --remote-control` needs but cannot get when
 # spawned from a redirected subprocess.
 #
@@ -40,7 +40,7 @@ $lnk.TargetPath = "$env:WINDIR\System32\cmd.exe"
 $lnk.Arguments = $cmdArgs
 $lnk.WorkingDirectory = $workspace
 $lnk.IconLocation = "$env:WINDIR\System32\cmd.exe,0"
-$lnk.Description = "Start Claude Remote Control session — phone connects via printed URL"
+$lnk.Description = "Start Claude Remote Control session -- phone connects via printed URL"
 $lnk.WindowStyle = 1  # Normal window
 $lnk.Save()
 
@@ -48,8 +48,8 @@ Write-Host "Created: $lnkPath" -ForegroundColor Green
 Write-Host ""
 Write-Host "How to use:"
 Write-Host "  1. Double-click the 'Claude Remote Control' icon on your Desktop."
-Write-Host "  2. A black console window opens — Claude prints a URL after a few seconds."
+Write-Host "  2. A black console window opens -- Claude prints a URL after a few seconds."
 Write-Host "  3. Open that URL on your phone browser (signed into the same Anthropic account)."
-Write-Host "  4. The phone now drives the laptop session — file edits, commits, deploys."
+Write-Host "  4. The phone now drives the laptop session -- file edits, commits, deploys."
 Write-Host ""
 Write-Host "To stop: close the console window (this kills the remote-control session)."

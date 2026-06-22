@@ -1,5 +1,14 @@
 # Jooble Jobs Scraper
 
+## Prior art pass
+
+Retrospective per `~/.claude/rules/prior-art-first.md`. This directive pre-dates the rule (2026-06-18):
+
+- **Public API exists?** Yes -- Jooble offers a free POST API at `https://jooble.org/api/{api_key}` returning aggregated listings from 140,000+ job boards.
+- **Best existing approach**: direct POST calls with operator-provisioned `JOOBLE_API_KEY` (already in `.env`). Returns structured JSON with title, company, location, type (contract), updated, snippet, link. Free tier rate limits apply per Jooble's TOS.
+- **Why this path**: Jooble's API exposes the aggregated set without per-board ToS conflicts and without needing per-board scrapers. Single key, single rate limit, single JSON shape.
+- **Architecture**: thin Python wrapper at `execution/custom_scrapers/jooble_jobs.py` that POSTs the JSON query body, normalizes to the workspace `SourceJob` contract, dedupes by `link`.
+
 ## Purpose
 
 Fetch job listings from Jooble's free POST API. Used in the job-search-sheet pipeline alongside Adzuna and France Travail. Jooble aggregates listings from 140,000+ job boards globally and returns a structured `type` field for contract classification. Returns `RawJob` dicts with `contract_type` and `country` fields.

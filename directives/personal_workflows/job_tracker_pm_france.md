@@ -1,5 +1,16 @@
 # French PM/PO Job Tracker — Master Orchestrator SOP
 
+## Prior art pass
+
+Retrospective per `~/.claude/rules/prior-art-first.md`. This directive pre-dates the rule (2026-06-18) and was effectively superseded by `directives/personal_workflows/job_search_sheet.md`. Retained for reference and the email-digest pattern it documents.
+
+- **For source/scraper integrations**: see the per-source directives' own Prior art pass sections (Adzuna, Jooble, France Travail).
+- **For contact enrichment**: see `directives/enrichment/firecrawl_linkedin_dork.md` -- Firecrawl Google dork pattern, ToS-safe.
+- **For INSEE SIRENE company resolution**: French government public API (no scraping), `INSEE_SIRENE_API_KEY` in `.env` (currently empty -- this pipeline no longer runs).
+- **For email rendering + delivery**: rendered HTML via Python template, SMTP send. No new service integration in this directive.
+
+**Status**: superseded by `job_search_sheet.md` (operator preference for sheet over email digest, per `memory/project_job_search_sheet.md`). This file remains as historical context.
+
 ## Goal
 
 Run a daily ETL pipeline that discovers Product Manager and Product Owner job openings posted at French digital-sector companies, filters out junior/intern/alternance roles and non-FR/EN postings, deduplicates against a 7-day rolling SQLite window, resolves company identity via the INSEE SIRENE API, enriches 3–5 contactable people per company (HR, CPO, VP Product, Head of Product, Senior PM) via Firecrawl Google dorks, and emails a rendered HTML digest to the operator. The pipeline is deterministic — same inputs always produce the same outputs. It is NOT probabilistic or ML-based; every decision (filter, dedup, classification) follows explicit rules in code.

@@ -319,3 +319,140 @@ Even with the cap + ranker, "150 jobs filtered down to 25" assumes the ranker co
 
 This is a quality-calibration task that needs 1-week of dogfood data — not blocking the current shippability question.
 
+
+---
+
+## Update 2026-06-22 — GLM 5.2 integration sensitivity guardrail
+
+New always-active addition to `~/.claude/rules/model-tier.md` (Exhibit C): GLM 5.2 is permitted for creative/non-sensitive content only — never PII, CV/recruiter content, cold-email leads, AM-scoped data, or client/customer data. The guardrail is policy-only today.
+
+### Owed mechanical guardrail
+
+Add a SAST grep in `execution/infrastructure/workspace_sast.py` (or wherever the workspace scanner lives) that flags Python files matching BOTH conditions in the same function:
+
+- `chat_completion(...model="z-ai/...")` OR `chat_completion(...model=resolve_model("openrouter", "glm")...)`
+- AND PII keyword tokens nearby: `email`, `recipient`, `lead`, `candidate`, `cv`, `resume`, `cover_letter`, `phone`, `address`, `client`, `customer`
+
+Trigger: at least one match for the GLM call AND at least one PII keyword in the same function body. Output: list each callsite with file:line and the PII keyword that triggered.
+
+### Owed read-only backport triage
+
+Per `~/.claude/rules/rule-backport-cadence.md`, within 24 hours of the rule landing (2026-06-22): run the grep above against the workspace, write findings here. Likely audit-clean today since GLM 5.2 has just been added — but if any pre-existing module already passes user input to `model="z-ai/..."` without sanitization, surface it.
+
+### Revert path
+
+If GLM 5.2 needs to be backed out entirely:
+1. `mv ~/.claude/rules/model-tier.md.bak-2026-06-20 ~/.claude/rules/model-tier.md`
+2. Revert two edits in `execution/modules/model_registry.py` (drop `"z-ai/"` from `ALLOWED_FAMILIES`, drop `"glm"` key)
+3. Revert `execution/modules/llm_client.py` to bare singleton (drops Z.AI-direct capability, keeps OR working)
+
+Or partial: keep the code, revert only the rule.
+
+### Status
+
+- Code shipped: model_registry.py + llm_client.py edits committed (or pending — operator decides)
+- Rule shipped: model-tier.md Exhibit C added
+- Directive shipped: directives/infrastructure/glm_5_2_integration.md
+- SAST grep: NOT shipped (owed)
+- Backport triage: NOT run (owed within 24h of code commit)
+
+### Block on GLM-calling work
+
+OpenRouter balance is $0 as of 2026-06-22. No GLM 5.2 calls can be made until the operator approves one of:
+- (a) Z.AI Lite $3/mo flat plan
+- (b) OpenRouter top-up ($5 minimum)
+- (c) Cancel GLM project work and keep the infrastructure dormant
+
+Phase 2/3/4 of `~/.claude/plans/chapter-1-introduction-and-calm-sonnet.md` are paused pending this decision.
+
+---
+
+## Update 2026-06-22 — PowerShell ASCII-only rule
+
+New always-active rule shipped: `~/.claude/rules/powershell-ascii-only.md`. PowerShell 5.1 reads UTF-8-no-BOM files as cp1252; multi-byte UTF-8 sequences (em dash, smart quotes, ellipsis) break parsing several lines downstream with misleading error messages.
+
+### Owed mechanical guardrail
+
+SAST scanner extension: for every `*.ps1` file not starting with the UTF-8 BOM `EF BB BF`, flag any byte > 0x7F with file:line and the offending character.
+
+### Owed read-only backport triage
+
+Within 24h of rule landing: grep workspace for all existing `.ps1` files and check ASCII-only OR BOM-flagged. Known clean (2026-06-22 cleanup): all 6 files in `execution/infrastructure/launchers/`. Other `.ps1` files in workspace: not yet audited.
+
+### Universal model chooser shipped 2026-06-22 evening
+
+- Dispatcher: `execution/modules/model_router.py` — `call_model(alias, ...)` for 8 aliases (opus / sonnet / gpt / gpt4o / o1 / gemini / gemini-pro / glm). CLI: `py execution/modules/model_router.py <alias> "<prompt>"`.
+- Launchers: 5 PowerShell + 5 Bash + interactive picker in `execution/infrastructure/launchers/`.
+- Directive: `directives/infrastructure/model_chooser.md`.
+
+Live-tested 2026-06-22: only `gemini` (free) works today. Anthropic balance = 0, OpenAI restricted key missing `model.request` scope, OR balance = 0. Chooser correct; budget/scope gates upstream.
+
+---
+
+## Update 2026-06-22 (evening) - Universal model chooser + free-claude-code proxy
+
+Major additions to the workspace cost-routing layer:
+
+### What shipped
+- `execution/modules/model_router.py` - added `mode` ('client' | 'personal') + `sensitivity` ('public' | 'sensitive') parameters to `call_model()`. Personal-mode remaps Opus/Sonnet/GPT to `glm` (latest GLM via OR). Sensitivity guardrail raises `RuntimeError` when sensitive payload targets a public-only alias (GLM).
+- `execution/modules/model_registry.py` - added `_OR_GLM_RE` + `_best_glm_family` helper + a `glm` tier branch in `_resolve_openrouter`. Auto-picks the highest `z-ai/glm-X.Y` from OR's catalog (currently 5.2; will auto-pick 5.3 / 6.0 when listed).
+- `execution/modules/llm_client.py` - already had `base_url` parameter and dict-keyed client cache from prior turn; `_call_openrouter` now passes `base_url` through for Z.AI-direct (deferred).
+- `execution/infrastructure/launchers/claude-{client,personal,pick}.ps1` + `.sh` - mode-aware launchers. `claude-personal.ps1` reads port from `C:/Users/deban/dev/free-claude-code/.fcc-port`, auto-starts the proxy if down.
+- `directives/infrastructure/free_cc_proxy.md` - trust boundary, install path, pinned SHA `d281d52`, revert procedure.
+- `directives/infrastructure/model_chooser.md` - already exists from prior turn; covers the chooser surface.
+- `~/.claude/rules/model-tier.md` - new "Client vs Personal mode" section + GLM-5.2 auto-latest note + NIM-vs-OR rationale clarification. Backup at `.bak-2026-06-22-2`.
+- Local install: free-claude-code pinned to commit `d281d52` at `C:/Users/deban/dev/free-claude-code/`, installed via `uv tool install --force <local_path>` (NOT via the upstream's `irm | iex` PowerShell remote-exec, which the auto-mode classifier correctly blocked).
+- Proxy is running; smoke-tested end-to-end (Anthropic-protocol → proxy → OR; routing chain verified, only blocker is the OR $0 balance which surfaces as a clean 402 in the response).
+
+### Owed mechanical guardrails
+
+1. **SAST grep for `mode='personal'` x PII keyword in same function body**. Extends the prior-turn grep (for `chat_completion(model='z-ai/...')` x PII). Flag any Python file where a function contains BOTH `call_model(...mode='personal'...)` AND any of: `email`, `recipient`, `lead`, `candidate`, `cv`, `resume`, `cover_letter`, `phone`, `address`, `client`, `customer`. Defense in depth on top of the runtime `RuntimeError` raised in `call_model`.
+
+2. **SAST grep for non-ASCII bytes in `.ps1` files (no BOM)** - already noted in the powershell-ascii-only.md backport item.
+
+### Owed empirical work (Karpathy lens)
+
+Ship ONE ProdCraft video end-to-end using `claude-personal.ps1` (proxy -> GLM-5.2). Compare quality vs a Sonnet baseline. Gated on $5 OR top-up (operator action).
+
+### Status today (2026-06-22 evening)
+
+- Proxy: installed, running on `localhost:8082`, healthy.
+- Routing chain: verified end-to-end via curl POST to /v1/messages (got expected 402 from OR with $0 balance).
+- Working live routes today: `gemini` direct (free). All other routes return clean credit/scope errors. Top-up unblocks.
+- Documentation: trust boundary directive shipped, model-tier rule updated, model_chooser cheat sheet still current.
+
+### Revert path
+
+See `directives/infrastructure/free_cc_proxy.md` § Revert procedure. One-line per component; partial revert valid.
+
+---
+
+## Update 2026-06-22 (late evening) - Personal-mode SAST grep + PS1 ASCII rule shipped
+
+### What shipped (after operator topped up $5 OR)
+
+- **Live verification**: `call_model('glm', ...)` and `call_model('sonnet', mode='personal', ...)` both return real GLM-5.2 output. Personal-mode remap (sonnet -> glm) verified end-to-end. Proxy chain (Anthropic protocol -> proxy -> OR -> GLM) verified via direct curl POST to /v1/messages.
+- **Karpathy-lens empirical**: same "rainbow explainer" prompt run through GLM-5.2 and Sonnet 4.6, both via OR. Outputs at `.tmp/glm_baseline/rainbow_{glm5.2,sonnet}.html`. GLM-5.2: 11213 bytes, 7 interaction handlers, 34s wall-clock, ~$0.008. Sonnet: 12312 bytes, 4 handlers, 57s wall-clock, ~$0.045 (5.6x cost). Both structurally valid; operator's eyeball test on visual quality is the final word.
+- **SAST `personal-mode-with-pii` rule**: implemented in `execution/infrastructure/workspace_sast.py`. AST-based: extracts each function body, checks if BOTH `call_model(...mode='personal'...)` AND any PII keyword (`email`, `recipient`, `lead`, `candidate`, `cv`, `resume`, `cover_letter`, `phone`, `address`, `customer`, `pii`) appear in the same span. Severity HIGH. Verified with synthetic offender.
+- **SAST `ps1-non-ascii` rule**: implemented in same file. Scans `.ps1` files (skipping AM-locked + node_modules + .anneal); flags files without UTF-8 BOM that contain any byte > 0x7F. Severity MEDIUM. Defends against the PowerShell-em-dash bug class (rule `powershell-ascii-only.md`).
+
+### Backport triage results (read-only audit)
+
+- `personal-mode-with-pii`: **0 findings** on workspace. No existing code combines `mode='personal'` with PII keywords. Expected — mode shipped today.
+- `ps1-non-ascii`: **1 finding** at `execution/personal_workflows/remote_control_mobile/install_shortcut.ps1` line 2. Em dash in comment. **FIXED in-place** with the ASCII substitution sweep; re-scan returns 0 findings.
+
+### What remains owed (pre-existing, not regressions from today's work)
+
+The full SAST run also surfaced pre-existing findings on other rules, NOT introduced by today's work:
+- `environ-copy`: 1 hit in `tests/test_workspace_sast.py` line 213 (likely test fixture exercising the rule — verify intent before fixing).
+- `prior-art-pass-missing`: 6 directives missing the `## Prior art pass` section (adzuna_jobs, jooble_jobs, firecrawl_linkedin_dork, google_sheets_writer, job_search_sheet, job_tracker_pm_france). All `info` severity. These pre-date the rule landing 2026-06-18 — backport-triage owed but not blocking.
+
+### Status (2026-06-22 late evening)
+
+- OR balance: ~$5.00 minus tonight's smoke tests (~$0.06 total spend)
+- Personal mode: WORKING end-to-end
+- Client mode: working through Anthropic native (when balance available), through OR (verified, $0.0001 per call for Opus)
+- Sensitivity guardrail: enforced at runtime by `call_model()` + defense-in-depth by SAST rule
+- ASCII PS1 rule: enforced by SAST
+- Trust boundary: documented, pinned SHA d281d52, revert procedure one-line per component
+- Nothing committed: operator has clean working tree to review

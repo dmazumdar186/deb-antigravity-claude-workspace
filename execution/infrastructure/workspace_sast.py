@@ -512,8 +512,12 @@ def _rule_environ_copy() -> list[dict]:
     """
     findings = []
     pat = re.compile(r"copy\.(?:copy|deepcopy)\(\s*os\.environ\s*\)")
+    # Skip tests/ — test fixtures legitimately write files containing this exact pattern
+    # to verify the SAST rule itself works. The runtime rule + this SAST guard the
+    # actual production code; the test fixtures are documentation-by-example.
+    skip_dirs = _SKIP_DIRS_PY | {"tests"}
     for py_path in WORKSPACE_ROOT.rglob("*.py"):
-        if any(s in py_path.parts for s in _SKIP_DIRS_PY):
+        if any(s in py_path.parts for s in skip_dirs):
             continue
         if _is_am_locked(str(py_path)):
             continue
@@ -619,6 +623,162 @@ def _rule_prior_art_pass_missing() -> list[dict]:
     return findings
 
 
+def _rule_personal_mode_with_pii() -> list[dict]:
+    """Rule: `call_model(... mode='personal' ...)` MUST NOT appear in the same function
+    body as PII-handling keywords.
+
+    Defense-in-depth on top of the runtime `RuntimeError` raised by `call_model()` when
+    sensitivity='sensitive' is passed. This SAST catches the silent case: a caller
+    handling PII who forgets to pass sensitivity='sensitive' but enables personal-mode,
+    which would leak data to GLM-5.2 (China-jurisdiction weights) via OpenRouter.
+
+    Scope: .py files under execution/, directives/, tests/. Skips workspace_sast.py
+    itself (this file documents the pattern), AM-locked paths, .anneal/.
+
+    Severity: HIGH (sensitive data leak vector).
+
+    Pattern: function body contains BOTH a `call_model(...)` invocation with `mode='personal'`
+    AND any PII keyword: email, recipient, lead, candidate, cv, resume, cover_letter,
+    phone, address, customer, pii.
+
+    See: ~/.claude/rules/model-tier.md ("Client vs Personal mode" + Exhibit C).
+    """
+    import ast
+
+    findings: list[dict] = []
+    pii_re = re.compile(
+        r"\b(email|recipient|lead|candidate|cv|resume|cover_letter|phone|address|customer|pii|personally_identifiable)\b",
+        re.IGNORECASE,
+    )
+    # call_model(... mode="personal" ...) — string literal value, single or double quoted
+    personal_mode_re = re.compile(
+        r"\bcall_model\s*\([^)]*mode\s*=\s*['\"]personal['\"]",
+        re.MULTILINE | re.DOTALL,
+    )
+
+    skip_dirs = _SKIP_DIRS | {".anneal", ".claude", "out", "dist", "build"}
+
+    for path in WORKSPACE_ROOT.rglob("*.py"):
+        if not path.is_file():
+            continue
+        if any(s in path.parts for s in skip_dirs):
+            continue
+        if _is_am_locked(str(path)):
+            continue
+        # Don't flag the SAST rule itself (contains the pattern as documentation).
+        if path.resolve() == Path(__file__).resolve():
+            continue
+        # Don't flag the call_model implementation file (defines `mode='personal'` semantics).
+        rel_str = str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/") if path.is_relative_to(WORKSPACE_ROOT) else ""
+        if rel_str.endswith("execution/modules/model_router.py"):
+            continue
+
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if "mode=" not in text or "call_model" not in text:
+            continue
+
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            continue
+
+        # For each FunctionDef, AsyncFunctionDef: extract the source span and check.
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            try:
+                func_src = ast.get_source_segment(text, node) or ""
+            except Exception:
+                continue
+            if not personal_mode_re.search(func_src):
+                continue
+            pii_match = pii_re.search(func_src)
+            if not pii_match:
+                continue
+            findings.append(
+                {
+                    "severity": "high",
+                    "file": rel_str,
+                    "line": node.lineno,
+                    "rule_id": "personal-mode-with-pii",
+                    "message": (
+                        f"Function '{node.name}' uses call_model(mode='personal') and references "
+                        f"PII keyword '{pii_match.group(0)}'. Personal-mode routes through GLM (Z.AI, "
+                        f"public-only) — sensitive payloads MUST pass sensitivity='sensitive' to "
+                        f"trigger the runtime guardrail, OR use mode='client'. "
+                        f"See ~/.claude/rules/model-tier.md Exhibit C + Client/Personal mode section."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+    return findings
+
+
+def _rule_ps1_non_ascii() -> list[dict]:
+    """Rule: .ps1 files MUST be ASCII-only OR saved with UTF-8 BOM (EF BB BF).
+
+    PowerShell 5.1 (default `powershell.exe` on Windows) reads BOM-less files as
+    the system code page (cp1252). Multi-byte UTF-8 sequences (em dash, smart
+    quotes, ellipsis, accented chars) get misinterpreted, breaking string parsing
+    several lines downstream with misleading errors like "missing string terminator".
+
+    See: ~/.claude/rules/powershell-ascii-only.md (2026-06-22 Exhibit A).
+
+    Severity: MEDIUM (silent runtime failure on Windows PowerShell 5.1).
+    """
+    findings: list[dict] = []
+    skip_dirs = _SKIP_DIRS | {".anneal", "out", "dist", "build", "node_modules"}
+    UTF8_BOM = b"\xef\xbb\xbf"
+
+    for path in WORKSPACE_ROOT.rglob("*.ps1"):
+        if not path.is_file():
+            continue
+        if any(s in path.parts for s in skip_dirs):
+            continue
+        if _is_am_locked(str(path)):
+            continue
+        try:
+            raw = path.read_bytes()
+        except OSError:
+            continue
+        if raw.startswith(UTF8_BOM):
+            continue  # BOM-flagged file — explicit opt-in to Unicode
+        # Find first non-ASCII byte
+        bad_idx = None
+        for i, b in enumerate(raw):
+            if b > 0x7F:
+                bad_idx = i
+                break
+        if bad_idx is None:
+            continue
+        # Find line number
+        lineno = raw[:bad_idx].count(b"\n") + 1
+        # Decode the problem char for the message
+        try:
+            char = raw[bad_idx:bad_idx + 4].decode("utf-8", errors="replace")[:1]
+        except Exception:
+            char = "?"
+        rel = str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/") if path.is_relative_to(WORKSPACE_ROOT) else str(path)
+        findings.append(
+            {
+                "severity": "medium",
+                "file": rel,
+                "line": lineno,
+                "rule_id": "ps1-non-ascii",
+                "message": (
+                    f".ps1 contains non-ASCII byte 0x{raw[bad_idx]:02x} (char {char!r}) at line {lineno}. "
+                    f"PowerShell 5.1 will misread as cp1252 and break parsing downstream. "
+                    f"Replace with ASCII OR save with UTF-8 BOM. See ~/.claude/rules/powershell-ascii-only.md."
+                ),
+                "tool": "workspace-native",
+            }
+        )
+    return findings
+
+
 # ── Known native rules ────────────────────────────────────────────────────────
 
 _NATIVE_RULES: dict[str, callable] = {
@@ -627,6 +787,8 @@ _NATIVE_RULES: dict[str, callable] = {
     "haiku-banned": _rule_haiku_banned,
     "environ-copy": _rule_environ_copy,
     "prior-art-pass-missing": _rule_prior_art_pass_missing,
+    "personal-mode-with-pii": _rule_personal_mode_with_pii,
+    "ps1-non-ascii": _rule_ps1_non_ascii,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())
