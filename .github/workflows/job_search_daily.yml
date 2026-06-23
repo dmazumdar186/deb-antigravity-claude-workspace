@@ -60,15 +60,26 @@ jobs:
           echo "$GOOGLE_SERVICE_ACCOUNT_JSON_B64" | base64 -d > credentials/service_account.json
           python -c "import json; json.load(open('credentials/service_account.json'))"
 
+      - name: Compute cache key bits
+        id: cache_keys
+        # GitHub Actions does NOT run shell substitution inside `key:` — the previous
+        # `$(date +%Y-%m)` literal was treated as a constant string, which made the
+        # cache key the same forever and (per actions/cache@v4 semantics) the cache
+        # was saved exactly once and never updated. seen.db therefore stayed empty
+        # across runs and every job was "new" every day.
+        run: |
+          echo "month=$(date -u +%Y-%m)" >> $GITHUB_OUTPUT
+          echo "run_key=${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_OUTPUT
+
       - name: Restore persistent dedup DB across runs
-        # The SQLite seen-set must survive between cron invocations so a job seen yesterday
-        # is not reported as "new" today. Cache key = workflow + month (so the DB rolls
-        # over monthly, keeping cache size bounded while preserving cross-day dedup).
+        # Save with a unique-per-run key so every run writes a fresh snapshot; restore
+        # from the most recent snapshot via restore-keys so cross-day dedup actually works.
         uses: actions/cache@v4
         with:
           path: .tmp/job_search_v2/seen.db
-          key: job-search-v2-seen-db-${{ github.workflow }}-$(date +%Y-%m)
+          key: job-search-v2-seen-db-${{ github.workflow }}-${{ steps.cache_keys.outputs.month }}-${{ steps.cache_keys.outputs.run_key }}
           restore-keys: |
+            job-search-v2-seen-db-${{ github.workflow }}-${{ steps.cache_keys.outputs.month }}-
             job-search-v2-seen-db-${{ github.workflow }}-
 
       - name: Run job_search_v2 orchestrator
@@ -83,6 +94,9 @@ jobs:
           # Google Sheets append
           SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
           GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
+          # Gemini 2.5 Flash ranker (free tier). Without this, every job becomes a
+          # tier-B placeholder and the "Top Matches" tab is unrankable.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           FLAGS=""
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
