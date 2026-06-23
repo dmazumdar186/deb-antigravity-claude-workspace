@@ -392,6 +392,15 @@ def main() -> int:
         routing_config=routing_cfg,
         dry_run=args.dry_run,
     )
+
+    # Stage 4b: refresh Top Matches + Summary dashboards. Both fully overwrite their tabs
+    # on every run so they always reflect the latest pipeline state, never stale data.
+    top_count, top_ok = sheet_notifier.refresh_top_matches(
+        ranked_filtered,
+        ranked_by_hash=ranked_by_hash,
+        routing_config=routing_cfg,
+        dry_run=args.dry_run,
+    )
     pipeline_stats = {
         "run_id": run_id,
         "mode": args.mode,
@@ -410,6 +419,8 @@ def main() -> int:
         "sheet_appended": sheet_count,
         "sheet_per_tab": per_tab_counts,
         "sheet_ok": sheet_ok,
+        "top_matches_written": top_count,
+        "top_matches_ok": top_ok,
     }
     # Email lock — prevents dual-cron (07:00 UTC + 08:00 UTC DST workaround) double-send.
     # Dry-run runs never check the lock and never stamp it (so manual workflow_dispatch
@@ -440,6 +451,22 @@ def main() -> int:
                 _stamp_email_sent(now_utc)
     pipeline_stats["email_sent"] = email_sent
     pipeline_stats["email_subject"] = subject
+
+    # Stage 4c: refresh Summary tab with full pipeline_stats + all-time totals.
+    role_tabs = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
+    per_tab_totals: dict[str, int] = {}
+    if not args.dry_run:
+        try:
+            per_tab_totals = sheet_notifier.count_existing_rows(role_tabs)
+        except Exception as exc:  # noqa: BLE001 — best-effort summary input
+            logger.warning("run: count_existing_rows failed: %s", exc)
+    summary_ok = sheet_notifier.refresh_summary(
+        pipeline_stats,
+        per_tab_totals=per_tab_totals,
+        dry_run=args.dry_run,
+    )
+    pipeline_stats["summary_ok"] = summary_ok
+    pipeline_stats["per_tab_totals"] = per_tab_totals
 
     # Stage 5: write summary + append run-log
     (run_dir / "summary.json").write_text(json.dumps(pipeline_stats, indent=2), encoding="utf-8")

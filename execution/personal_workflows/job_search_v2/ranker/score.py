@@ -151,94 +151,200 @@ def rank_jobs(
     rubric = _load_rubric()
     client = genai.Client(api_key=api_key)
 
-    # Structured-output schema (Pydantic-like dict — Gemini supports JSON schema natively).
-    schema = {
+    # BATCH MODE — the Gemini free tier dropped from 250 RPD to 20 RPD on
+    # gemini-2.5-flash (observed 2026-06-23). One-call-per-job blew through the
+    # quota after ~20 jobs and the rest fell to placeholders. The fix is a single
+    # batched call: one prompt scoring every job, one response with a list of
+    # rankings. Gemini 2.5 Flash's 1M-context comfortably holds 200+ jobs at ~600
+    # tokens each.
+    batch_schema = {
         "type": "object",
         "properties": {
-            "tier": {"type": "string", "enum": ["A", "B", "C", "SKIP"]},
-            "score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
-            "reasoning": {"type": "string", "maxLength": 200},
+            "results": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "job_id": {"type": "string"},
+                        "tier": {"type": "string", "enum": ["A", "B", "C", "SKIP"]},
+                        "score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+                        "reasoning": {"type": "string", "maxLength": 200},
+                    },
+                    "required": ["job_id", "tier", "score", "reasoning"],
+                },
+            }
         },
-        "required": ["tier", "score", "reasoning"],
+        "required": ["results"],
     }
 
     cfg = types.GenerateContentConfig(
-        system_instruction=rubric,
+        system_instruction=rubric + "\n\nYou will receive a JSON array of jobs. Return one ranking per job, "
+                                    "matching the job_id field exactly. Output must be JSON {results: [...]}.",
         response_mime_type="application/json",
-        response_schema=schema,
+        response_schema=batch_schema,
         temperature=0.2,
-        max_output_tokens=200,
+        max_output_tokens=64000,
     )
 
-    # Retry-with-fallback policy: try primary model up to 2 times with backoff.
-    # On persistent 503/429, fall through to `fallback_model` once.
     fallback_model = "gemini-2.5-flash-lite"
 
-    def _call_once(model_name: str, payload: str):
-        return client.models.generate_content(model=model_name, contents=payload, config=cfg)
+    # Build a job_id → job map so we can stitch the LLM response back to each job.
+    id_to_job: dict[str, NormalizedJob] = {}
+    payload_items = []
+    for j in jobs:
+        short_id = j.content_hash[:16]
+        id_to_job[short_id] = j
+        payload_items.append({
+            "job_id": short_id,
+            "title": j.title,
+            "company": j.company,
+            "location": j.location,
+            "source": j.source.value,
+            "contract_type": j.contract_type.value,
+            "remote_mode": j.remote_mode.value,
+            "posted_at": j.posted_at.isoformat() if j.posted_at else "unknown",
+            "description_snippet": j.description_snippet[:400],
+        })
+    batch_payload = json.dumps({"jobs": payload_items}, ensure_ascii=False)
 
-    for i, job in enumerate(jobs):
-        payload = _job_to_prompt_payload(job)
-        resp = None
-        used_model = model
-        last_exc: Exception | None = None
+    def _call_once(model_name: str):
+        return client.models.generate_content(model=model_name, contents=batch_payload, config=cfg)
 
-        for attempt in (1, 2, 3):
-            try:
-                use = model if attempt < 3 else fallback_model
-                resp = _call_once(use, payload)
-                used_model = use
-                last_exc = None
+    resp = None
+    used_model = model
+    last_exc: Exception | None = None
+    for attempt in (1, 2, 3):
+        try:
+            use = model if attempt < 3 else fallback_model
+            resp = _call_once(use)
+            used_model = use
+            last_exc = None
+            break
+        except Exception as exc:  # noqa: BLE001 — Gemini surface; backoff + retry
+            last_exc = exc
+            msg = str(exc)
+            if not any(k in msg for k in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")):
                 break
-            except Exception as exc:  # noqa: BLE001 — Gemini surface; backoff + retry
-                last_exc = exc
-                msg = str(exc)
-                # 503 / 429 / UNAVAILABLE / RESOURCE_EXHAUSTED → retry. Other errors → break early.
-                if not any(k in msg for k in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")):
-                    break
-                # Exponential backoff: 1.5s, 4s, then fallback model on attempt 3.
-                time.sleep(1.5 * attempt)
+            time.sleep(2.0 * attempt)
 
-        if resp is None or last_exc is not None:
-            logger.warning("ranker: job %d/%d failed after retries (%s) — placeholder",
-                           i + 1, len(jobs), last_exc)
-            placeholder = _placeholder_ranked(job, f"ranker unavailable: {type(last_exc).__name__ if last_exc else 'unknown'}")
-            out[job.content_hash] = placeholder
+    if resp is None or last_exc is not None:
+        # Quota exhausted or transient failure — heuristic fallback so the dashboard
+        # is never blank. Score by simple title-keyword match against high-signal phrases.
+        logger.warning("ranker: batch call failed (%s) — using heuristic fallback", last_exc)
+        for j in jobs:
+            score = _heuristic_score(j)
+            tier = _tier_from_score(score)
+            reasoning = f"heuristic (LLM unavailable: {type(last_exc).__name__ if last_exc else 'unknown'})"
+            out[j.content_hash] = RankedJob(
+                content_hash=j.content_hash,
+                score=score,
+                tier=tier,
+                reasoning=reasoning,
+                rubric_version="heuristic-v1",
+                ranker_model="heuristic",
+            )
             stats["placeholder"] += 1
-            stats["by_tier"]["B"] += 1
-        else:
-            try:
-                raw = resp.text or "{}"
-                data = json.loads(raw)
-                score = float(data.get("score", 0.5))
-                tier_str = str(data.get("tier", "B")).upper()
-                tier = JobTier(tier_str) if tier_str in {"A", "B", "C", "SKIP"} else _tier_from_score(score)
-                reasoning = str(data.get("reasoning", ""))[:600]
-                ranked = RankedJob(
-                    content_hash=job.content_hash,
-                    score=max(0.0, min(1.0, score)),
-                    tier=tier,
-                    reasoning=reasoning,
-                    rubric_version=RUBRIC_VERSION,
-                    ranker_model=used_model,
-                )
-                out[job.content_hash] = ranked
-                stats["scored"] += 1
-                stats["by_tier"][tier.value] += 1
-            except (ValueError, json.JSONDecodeError, KeyError) as exc:
-                logger.warning("ranker: job %d/%d response parse failed (%s) — placeholder",
-                               i + 1, len(jobs), exc)
-                placeholder = _placeholder_ranked(job, f"parse error: {type(exc).__name__}")
-                out[job.content_hash] = placeholder
-                stats["placeholder"] += 1
-                stats["by_tier"]["B"] += 1
+            stats["by_tier"][tier.value] += 1
+        logger.info("ranker: %s", stats)
+        return out, stats
 
-        # Throttle to stay under 10 RPM (Gemini free-tier cap).
-        if i < len(jobs) - 1:
-            time.sleep(throttle_s)
+    try:
+        data = json.loads(resp.text or "{}")
+        results = data.get("results", [])
+    except (ValueError, json.JSONDecodeError) as exc:
+        logger.warning("ranker: batch response parse failed (%s) — heuristic fallback", exc)
+        results = []
+
+    scored_ids: set[str] = set()
+    for r in results:
+        jid = str(r.get("job_id", "")).strip()
+        if jid not in id_to_job:
+            continue
+        job = id_to_job[jid]
+        try:
+            score = max(0.0, min(1.0, float(r.get("score", 0.5))))
+            tier_str = str(r.get("tier", "B")).upper()
+            tier = JobTier(tier_str) if tier_str in {"A", "B", "C", "SKIP"} else _tier_from_score(score)
+            reasoning = str(r.get("reasoning", ""))[:600]
+            out[job.content_hash] = RankedJob(
+                content_hash=job.content_hash,
+                score=score,
+                tier=tier,
+                reasoning=reasoning,
+                rubric_version=RUBRIC_VERSION,
+                ranker_model=used_model,
+            )
+            stats["scored"] += 1
+            stats["by_tier"][tier.value] += 1
+            scored_ids.add(jid)
+        except (ValueError, KeyError) as exc:
+            logger.warning("ranker: result for %s malformed (%s) — heuristic", jid, exc)
+
+    # Any job not in the response → heuristic fallback (don't drop on the floor).
+    for j in jobs:
+        if j.content_hash[:16] in scored_ids:
+            continue
+        score = _heuristic_score(j)
+        tier = _tier_from_score(score)
+        out[j.content_hash] = RankedJob(
+            content_hash=j.content_hash,
+            score=score,
+            tier=tier,
+            reasoning="heuristic (LLM omitted this job from response)",
+            rubric_version="heuristic-v1",
+            ranker_model="heuristic",
+        )
+        stats["placeholder"] += 1
+        stats["by_tier"][tier.value] += 1
 
     logger.info("ranker: %s", stats)
     return out, stats
+
+
+# ----- heuristic fallback -----
+
+
+_HIGH_SIGNAL_TITLE_TERMS = (
+    "ai product manager", "genai product manager", "ml product manager",
+    "senior product manager", "lead product manager", "principal product manager",
+    "head of product", "staff product manager",
+    "chef de produit senior", "product lead",
+)
+_MEDIUM_SIGNAL_TITLE_TERMS = (
+    "product manager", "chef de produit", "product owner",
+)
+_HIGH_SIGNAL_LOCATIONS = ("paris", "île-de-france", "ile-de-france", "remote (france)", "remote (eu)")
+
+
+def _heuristic_score(job: NormalizedJob) -> float:
+    """Deterministic 0..1 score for when the LLM is unavailable.
+
+    Weights (sum to 1.0):
+      title  0.6  — high-signal phrase 1.0, medium 0.6, else 0.3
+      loc    0.3  — Paris/Île-de-France/EU-remote 1.0, France 0.7, other 0.4
+      type   0.1  — CDI 1.0, Freelance 0.7, CDD 0.5, else 0.3
+    """
+    title = (job.title or "").lower()
+    loc = (job.location or "").lower()
+    contract = (job.contract_type.value or "").lower()
+
+    if any(t in title for t in _HIGH_SIGNAL_TITLE_TERMS):
+        title_s = 1.0
+    elif any(t in title for t in _MEDIUM_SIGNAL_TITLE_TERMS):
+        title_s = 0.6
+    else:
+        title_s = 0.3
+
+    if any(t in loc for t in _HIGH_SIGNAL_LOCATIONS):
+        loc_s = 1.0
+    elif "france" in loc:
+        loc_s = 0.7
+    else:
+        loc_s = 0.4
+
+    type_s = {"cdi": 1.0, "freelance": 0.7, "cdd": 0.5}.get(contract, 0.3)
+
+    return round(0.6 * title_s + 0.3 * loc_s + 0.1 * type_s, 4)
 
 
 def main() -> int:

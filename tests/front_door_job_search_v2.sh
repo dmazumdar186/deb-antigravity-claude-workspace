@@ -42,13 +42,22 @@ echo "------------------------------------------------"
 bash "$(dirname "$0")/parser_job_search_v2.sh"
 echo
 
-# --- Phase 2: TRUE live synthetic (reads run_log.jsonl) ---
-echo "[phase 2/2] live synthetic (reads .tmp/job_search_v2/run_log.jsonl)"
+# --- Phase 2: live pipeline-stats synthetic (reads run_log.jsonl) ---
+echo "[phase 2/3] live pipeline-stats synthetic (reads .tmp/job_search_v2/run_log.jsonl)"
 echo "-----------------------------------------------------------------"
 "$PYTHON" "$(dirname "$0")/live_front_door_job_search_v2.py" \
     --fetch-floor 5 \
     --nonzero-sources-floor 2 \
     --window 1
+echo
+
+# --- Phase 3: customer-POV synthetic (opens the actual Google Sheet) ---
+# The previous front-door only watched the conveyor belt; this opens the box.
+# Asserts per-tab column alignment (Contract holds contracts, Source holds sources),
+# Link cells are URLs, Top Matches has data rows, Summary has the dashboard rows.
+echo "[phase 3/3] customer-POV synthetic (opens the live Google Sheet)"
+echo "-----------------------------------------------------------------"
+"$PYTHON" "$(dirname "$0")/customer_pov_job_search_v2.py"
 echo
 
 echo "== front_door_job_search_v2: ALL PHASES PASS =="

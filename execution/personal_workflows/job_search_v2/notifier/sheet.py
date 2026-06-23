@@ -1,22 +1,22 @@
 """
-description: Route v2 NormalizedJobs into the 6 destination tabs (PM, AI PM, AI Automation,
-    AI Mobile, AI Process, AI Consultant) by title-synonym matching. Same 14-column schema
-    as v1 so the existing Excel/Sheet layout works unchanged.
+description: Route v2 NormalizedJobs into per-role destination tabs (PM, AI PM, AI Automation,
+    AI Mobile, AI Process, AI Consultant) using a column-by-NAME writer that survives
+    arbitrary column reorderings in the live sheet. Also refreshes the Top Matches and
+    Summary dashboards on every run.
 inputs:
     - list[NormalizedJob] (filtered, ranked)
     - env: SHEETS_SPREADSHEET_ID, GOOGLE_SERVICE_ACCOUNT_PATH (default credentials/service_account.json)
     - config: tab_routing section of config/job_search_v2.json
 outputs:
-    - Rows appended to the matching destination tab in the Google Sheet
+    - New rows appended to each per-role tab (column-by-name, dedup'd against existing _id)
+    - Top Matches tab fully refreshed with the current run's best tier-A/B jobs
+    - Summary tab fully refreshed with this run's pipeline stats + per-tab totals
     - Returns (rows_appended, per_tab_counts, ok)
 
-14-column schema (matches v1 exactly so existing user filters/formats keep working):
-    A: _id            B: First Seen    C: Posted       D: Company
-    E: Title          F: Country       G: Location     H: Remote?
-    I: Contract       J: Source        K: Also Seen On L: Link
-    M: Status         N: Notes
-
-Optionally a 15th column (O: Tier) is appended when ranker results are available.
+Why a name-based writer: gspread.append_rows is positional. If the destination sheet's
+"data range" ever drifts (operator inserts a column, header gets renamed, etc.) the writer
+silently misaligns every value forever. Exhibit: pre-2026-06-23 the PM tab data was shifted
+one column right because the Sheets API table-range had captured an empty leading column.
 """
 
 from __future__ import annotations
@@ -41,11 +41,23 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
 load_dotenv()
 logger = logging.getLogger("notifier.sheet")
 
-HEADERS = [
+# Canonical header set for per-role tabs. The writer matches by name, so the actual
+# column order in the destination tab can differ; cells just land where the headers
+# say they should.
+STANDARD_HEADERS = [
     "_id", "First Seen", "Posted", "Company", "Title", "Country",
     "Location", "Remote?", "Contract", "Source", "Also Seen On",
     "Link", "Status", "Notes", "Tier",
 ]
+
+# Top Matches dashboard schema (operator-defined; we just write into it).
+TOP_MATCHES_HEADERS = [
+    "Rank", "Fit", "Identity", "Title", "Company", "Location",
+    "Contract", "Source Tab", "Why", "Link",
+]
+TOP_MATCHES_TAB = "Top Matches"
+SUMMARY_TAB = "Summary"
+TOP_MATCHES_MAX = 25
 
 
 def route_to_tab(title: str, routing_config: dict) -> str:
@@ -57,7 +69,6 @@ def route_to_tab(title: str, routing_config: dict) -> str:
     title_lower = title.lower().strip()
     titles_cfg = routing_config.get("titles", {})
 
-    # Flatten to (synonym, tab) tuples, then sort by synonym length descending.
     all_synonyms: list[tuple[str, str]] = []
     for key, cfg in titles_cfg.items():
         tab = cfg.get("tab", key)
@@ -71,27 +82,166 @@ def route_to_tab(title: str, routing_config: dict) -> str:
     return routing_config.get("fallback_tab", "PM")
 
 
-def _job_to_row(job: NormalizedJob, ranked: RankedJob | None, run_now: str) -> list[str]:
+def _job_to_dict(job: NormalizedJob, ranked: RankedJob | None, run_now: str) -> dict[str, str]:
+    """Build a {header_name: value} dict so the writer can place each value by name."""
     posted = job.posted_at.isoformat()[:10] if job.posted_at else ""
     also_seen = ", ".join(s.value for s in job.also_seen_on) if job.also_seen_on else ""
     tier = ranked.tier.value if ranked else ""
-    return [
-        job.content_hash[:16],                          # A: _id (truncated for readability)
-        run_now[:10],                                   # B: First Seen
-        posted,                                          # C: Posted
-        job.company,                                     # D: Company
-        job.title,                                       # E: Title
-        "",                                              # F: Country (we don't normalize country yet)
-        job.location,                                    # G: Location
-        job.remote_mode.value,                           # H: Remote?
-        job.contract_type.value,                         # I: Contract
-        job.source.value,                                # J: Source
-        also_seen,                                       # K: Also Seen On
-        str(job.url),                                    # L: Link
-        "New",                                           # M: Status
-        ranked.reasoning if ranked else "",              # N: Notes (use ranker reasoning if present)
-        tier,                                            # O: Tier
-    ]
+    return {
+        "_id": job.content_hash[:16],
+        "First Seen": run_now[:10],
+        "Posted": posted,
+        "Company": job.company,
+        "Title": job.title,
+        "Country": "",
+        "Location": job.location,
+        "Remote?": job.remote_mode.value,
+        "Contract": job.contract_type.value,
+        "Source": job.source.value,
+        "Also Seen On": also_seen,
+        "Link": str(job.url),
+        "Status": "New",
+        "Notes": ranked.reasoning if ranked else "",
+        "Tier": tier,
+    }
+
+
+def _col_index_to_letter(idx: int) -> str:
+    """1-based column index → A1 letter (1→A, 27→AA)."""
+    s = ""
+    while idx > 0:
+        idx, r = divmod(idx - 1, 26)
+        s = chr(65 + r) + s
+    return s
+
+
+def _read_header_map(ws) -> dict[str, int]:
+    """Return {header_name: 1-based-col-index} for non-empty header cells in row 1."""
+    header = ws.row_values(1)
+    return {name: idx + 1 for idx, name in enumerate(header) if name and name.strip()}
+
+
+def _next_empty_row(ws) -> int:
+    """First fully-empty row index after the last row containing any data."""
+    all_vals = ws.get_all_values()
+    return len(all_vals) + 1
+
+
+def _existing_ids(ws, id_col_1based: int) -> set[str]:
+    """Return the set of _id values already in the tab (skipping the header)."""
+    vals = ws.col_values(id_col_1based)
+    return {v.strip() for v in vals[1:] if v and v.strip()}
+
+
+def _ensure_headers(ws, expected: list[str]) -> dict[str, int]:
+    """Make sure every expected header is present in row 1. Add any that are missing
+    at the next free column. Returns the header→col map.
+    """
+    header_map = _read_header_map(ws)
+    missing = [h for h in expected if h not in header_map]
+    if not missing:
+        return header_map
+
+    start_col = (max(header_map.values()) if header_map else 0) + 1
+    # Expand the worksheet if needed.
+    needed_cols = start_col + len(missing) - 1
+    if ws.col_count < needed_cols:
+        try:
+            ws.resize(rows=ws.row_count, cols=needed_cols)
+        except Exception as exc:  # noqa: BLE001 — quota-time resize may fail; log + continue
+            logger.warning("notifier.sheet: resize %s failed: %s", ws.title, exc)
+
+    end_col_letter = _col_index_to_letter(needed_cols)
+    start_col_letter = _col_index_to_letter(start_col)
+    ws.update(
+        range_name=f"{start_col_letter}1:{end_col_letter}1",
+        values=[missing],
+        value_input_option="USER_ENTERED",
+    )
+    logger.info("notifier.sheet: added missing headers to %s: %s", ws.title, missing)
+    return _read_header_map(ws)
+
+
+def _append_dicts(ws, dicts: list[dict[str, str]], dedup_id_field: str = "_id") -> int:
+    """Append rows by column-name mapping. Returns count actually written.
+
+    Behavior:
+      - Reads the existing header row.
+      - For each dict, builds a row by header position, leaving unknown columns blank.
+      - Dedups against existing values in the dedup_id_field column.
+      - Uses explicit A:Z range write rather than append_rows so phantom columns can't
+        shift data.
+    """
+    if not dicts:
+        return 0
+
+    header_map = _ensure_headers(ws, STANDARD_HEADERS)
+    id_col = header_map.get(dedup_id_field)
+    if id_col is None:
+        logger.warning("notifier.sheet: tab %s has no %s column — appending without dedup", ws.title, dedup_id_field)
+        existing_ids: set[str] = set()
+    else:
+        existing_ids = _existing_ids(ws, id_col)
+
+    fresh = [d for d in dicts if d.get(dedup_id_field, "").strip() not in existing_ids]
+    if not fresh:
+        logger.info("notifier.sheet: %s — all %d candidates already present, 0 written", ws.title, len(dicts))
+        return 0
+
+    max_col = max(header_map.values())
+    rows: list[list[str]] = []
+    for d in fresh:
+        row = [""] * max_col
+        for header_name, col_1based in header_map.items():
+            if header_name in d:
+                row[col_1based - 1] = str(d[header_name])
+        rows.append(row)
+
+    start_row = _next_empty_row(ws)
+    end_row = start_row + len(rows) - 1
+    end_col_letter = _col_index_to_letter(max_col)
+    range_str = f"A{start_row}:{end_col_letter}{end_row}"
+
+    # Resize rows if needed.
+    if ws.row_count < end_row:
+        try:
+            ws.resize(rows=end_row + 100, cols=ws.col_count)
+        except Exception as exc:  # noqa: BLE001 — quota-time resize may fail; log + continue
+            logger.warning("notifier.sheet: row-resize %s failed: %s", ws.title, exc)
+
+    ws.update(range_name=range_str, values=rows, value_input_option="USER_ENTERED")
+    logger.info("notifier.sheet: appended %d rows to %s at %s", len(rows), ws.title, range_str)
+    return len(rows)
+
+
+def _open_sheet(spreadsheet_id: str | None, service_account_path: Path | None):
+    """Authenticate and return the gspread Spreadsheet, or (None, reason) on failure."""
+    spreadsheet_id = spreadsheet_id or os.environ.get("SHEETS_SPREADSHEET_ID", "").strip()
+    sa_path = service_account_path or Path(
+        os.environ.get("GOOGLE_SERVICE_ACCOUNT_PATH", "credentials/service_account.json")
+    )
+
+    if not spreadsheet_id:
+        return None, "SHEETS_SPREADSHEET_ID missing"
+
+    try:
+        import gspread  # type: ignore
+        from google.oauth2.service_account import Credentials  # type: ignore
+    except ImportError as exc:
+        return None, f"gspread / google-auth not installed ({exc})"
+
+    if not sa_path.exists():
+        return None, f"service account JSON not found at {sa_path}"
+
+    try:
+        creds = Credentials.from_service_account_file(
+            str(sa_path),
+            scopes=["https://www.googleapis.com/auth/spreadsheets"],
+        )
+        client = gspread.authorize(creds)
+        return client.open_by_key(spreadsheet_id), None
+    except Exception as exc:  # noqa: BLE001 — auth or open failure
+        return None, f"setup failed: {exc}"
 
 
 def append_jobs(
@@ -103,12 +253,13 @@ def append_jobs(
     service_account_path: Path | None = None,
     dry_run: bool = False,
 ) -> tuple[int, dict[str, int], bool]:
-    """Append jobs to their routed tabs. Returns (total_rows, per_tab_counts, ok).
+    """Append jobs to their routed tabs by COLUMN NAME (not position).
 
-    Failure modes:
-      - gspread / google-auth not installed → log + return (0, {}, False).
+    Returns (total_rows_written, per_tab_counts, ok).
+
+    Failure modes — all soft-fail:
       - missing creds / spreadsheet_id → log + return (0, {}, False).
-      - per-tab append failure → log + skip that tab; other tabs still attempt.
+      - per-tab failure → log + skip that tab; other tabs still attempt.
     """
     if not jobs:
         logger.info("notifier.sheet: 0 jobs to append, skipping")
@@ -116,82 +267,308 @@ def append_jobs(
 
     routing_config = routing_config or {"fallback_tab": "PM", "titles": {}}
     ranked_by_hash = ranked_by_hash or {}
-    spreadsheet_id = spreadsheet_id or os.environ.get("SHEETS_SPREADSHEET_ID", "").strip()
-    sa_path = service_account_path or Path(
-        os.environ.get("GOOGLE_SERVICE_ACCOUNT_PATH", "credentials/service_account.json")
-    )
     now_iso = datetime.now(timezone.utc).isoformat()
 
-    # Group rows by destination tab so each tab gets a single batched append call.
-    per_tab: dict[str, list[list[str]]] = {}
+    per_tab: dict[str, list[dict[str, str]]] = {}
     for job in jobs:
         tab = route_to_tab(job.title, routing_config)
         ranked = ranked_by_hash.get(job.content_hash)
-        per_tab.setdefault(tab, []).append(_job_to_row(job, ranked, now_iso))
+        per_tab.setdefault(tab, []).append(_job_to_dict(job, ranked, now_iso))
 
     per_tab_counts = {tab: len(rows) for tab, rows in per_tab.items()}
 
     if dry_run:
-        logger.info("notifier.sheet [dry-run]: would append %s", per_tab_counts)
+        logger.info("notifier.sheet [dry-run]: would consider %s", per_tab_counts)
         return sum(per_tab_counts.values()), per_tab_counts, True
 
-    if not spreadsheet_id:
-        logger.warning("notifier.sheet: SHEETS_SPREADSHEET_ID missing — skipping append")
+    sp, err = _open_sheet(spreadsheet_id, service_account_path)
+    if sp is None:
+        logger.warning("notifier.sheet: %s — skipping append", err)
         return 0, {}, False
 
-    try:
-        import gspread  # type: ignore
-        from google.oauth2.service_account import Credentials  # type: ignore
-    except ImportError as exc:
-        logger.warning("notifier.sheet: gspread / google-auth not installed (%s) — skipping append", exc)
-        return 0, {}, False
+    import gspread  # type: ignore
 
-    if not sa_path.exists():
-        logger.warning("notifier.sheet: service account JSON not found at %s — skipping append", sa_path)
-        return 0, {}, False
-
-    try:
-        creds = Credentials.from_service_account_file(
-            str(sa_path),
-            scopes=["https://www.googleapis.com/auth/spreadsheets"],
-        )
-        client = gspread.authorize(creds)
-        sp = client.open_by_key(spreadsheet_id)
-
-        total_written = 0
-        ok = True
-        for tab, rows in per_tab.items():
+    total_written = 0
+    written_per_tab: dict[str, int] = {}
+    ok = True
+    for tab, dicts in per_tab.items():
+        try:
             try:
                 ws = sp.worksheet(tab)
             except gspread.WorksheetNotFound:
-                ws = sp.add_worksheet(title=tab, rows="1000", cols=str(len(HEADERS)))
-                ws.append_row(HEADERS)
-                logger.info("notifier.sheet: created missing tab %s with headers", tab)
+                ws = sp.add_worksheet(title=tab, rows="1000", cols=str(len(STANDARD_HEADERS)))
+                ws.update(
+                    range_name=f"A1:{_col_index_to_letter(len(STANDARD_HEADERS))}1",
+                    values=[STANDARD_HEADERS],
+                    value_input_option="USER_ENTERED",
+                )
+                logger.info("notifier.sheet: created missing tab %s with canonical headers", tab)
 
-            # Expand to 15 cols if the worksheet was provisioned narrower (v1 used 14).
-            if ws.col_count < len(HEADERS):
-                try:
-                    ws.resize(rows=ws.row_count, cols=len(HEADERS))
-                except Exception as exc:  # noqa: BLE001 — resize may fail under quota; log + continue
-                    logger.warning("notifier.sheet: resize %s to %d cols failed: %s", tab, len(HEADERS), exc)
+            written = _append_dicts(ws, dicts)
+            total_written += written
+            written_per_tab[tab] = written
+        except Exception as exc:  # noqa: BLE001 — gspread surface; log + continue with other tabs
+            logger.error("notifier.sheet: append to %s failed: %s", tab, exc, exc_info=True)
+            written_per_tab[tab] = 0
+            ok = False
 
-            # Ensure header is present (covers fresh / wiped tabs).
-            first_row = ws.row_values(1)
-            if not first_row:
-                ws.append_row(HEADERS)
-            elif len(first_row) < len(HEADERS):
-                # v1 had 14-col header; we ship 15 (added Tier). Patch the 15th cell.
-                ws.update_acell("O1", "Tier")
+    return total_written, written_per_tab, ok
 
+
+# ----- Top Matches dashboard -----
+
+
+def refresh_top_matches(
+    jobs: list[NormalizedJob],
+    *,
+    ranked_by_hash: dict[str, RankedJob],
+    routing_config: dict | None = None,
+    spreadsheet_id: str | None = None,
+    service_account_path: Path | None = None,
+    dry_run: bool = False,
+    top_n: int = TOP_MATCHES_MAX,
+) -> tuple[int, bool]:
+    """Fully refresh the Top Matches tab with the best jobs from this run.
+
+    Selection: take the top-n jobs sorted by ranker.score desc (ties broken by tier A>B>C).
+    Skip jobs with tier=SKIP. Writes Rank / Fit / Identity / Title / Company / Location /
+    Contract / Source Tab / Why / Link.
+
+    Returns (rows_written, ok).
+    """
+    routing_config = routing_config or {"fallback_tab": "PM", "titles": {}}
+
+    tier_priority = {"A": 0, "B": 1, "C": 2, "SKIP": 3}
+    candidates = []
+    for job in jobs:
+        ranked = ranked_by_hash.get(job.content_hash)
+        if ranked is None or ranked.tier.value == "SKIP":
+            continue
+        candidates.append((job, ranked))
+
+    candidates.sort(key=lambda jr: (tier_priority.get(jr[1].tier.value, 9), -jr[1].score))
+    top = candidates[:top_n]
+
+    if dry_run:
+        logger.info("notifier.sheet [dry-run]: would refresh Top Matches with %d rows", len(top))
+        return len(top), True
+
+    sp, err = _open_sheet(spreadsheet_id, service_account_path)
+    if sp is None:
+        logger.warning("notifier.sheet: Top Matches skipped — %s", err)
+        return 0, False
+
+    import gspread  # type: ignore
+    try:
+        try:
+            ws = sp.worksheet(TOP_MATCHES_TAB)
+        except gspread.WorksheetNotFound:
+            ws = sp.add_worksheet(title=TOP_MATCHES_TAB, rows="100", cols=str(len(TOP_MATCHES_HEADERS)))
+
+        # Ensure header in row 1 matches our expected dashboard schema.
+        header_map = _read_header_map(ws)
+        if not header_map:
+            ws.update(
+                range_name=f"A1:{_col_index_to_letter(len(TOP_MATCHES_HEADERS))}1",
+                values=[TOP_MATCHES_HEADERS],
+                value_input_option="USER_ENTERED",
+            )
+            header_map = _read_header_map(ws)
+
+        # Clear everything below the header.
+        end_col_letter = _col_index_to_letter(max(header_map.values()))
+        clear_range = f"A2:{end_col_letter}{max(ws.row_count, top_n + 5)}"
+        try:
+            ws.batch_clear([clear_range])
+        except Exception as exc:  # noqa: BLE001 — pre-clear is best-effort
+            logger.warning("notifier.sheet: clear Top Matches body failed: %s", exc)
+
+        if not top:
+            logger.info("notifier.sheet: Top Matches refreshed — 0 candidates")
+            return 0, True
+
+        max_col = max(header_map.values())
+        rows: list[list[str]] = []
+        for rank, (job, ranked) in enumerate(top, start=1):
+            tab = route_to_tab(job.title, routing_config)
+            payload = {
+                "Rank": str(rank),
+                "Fit": ranked.tier.value,
+                "Identity": f"{job.title} @ {job.company}",
+                "Title": job.title,
+                "Company": job.company,
+                "Location": job.location,
+                "Contract": job.contract_type.value,
+                "Source Tab": tab,
+                "Why": ranked.reasoning,
+                "Link": str(job.url),
+            }
+            row = [""] * max_col
+            for name, col in header_map.items():
+                if name in payload:
+                    row[col - 1] = payload[name]
+            rows.append(row)
+
+        end_row = 1 + len(rows)
+        range_str = f"A2:{end_col_letter}{end_row}"
+        if ws.row_count < end_row:
             try:
-                ws.append_rows(rows, value_input_option="USER_ENTERED")
-                total_written += len(rows)
-                logger.info("notifier.sheet: appended %d rows to %s", len(rows), tab)
-            except Exception as exc:  # noqa: BLE001 — gspread surface; log + continue with other tabs
-                logger.error("notifier.sheet: append to %s failed: %s", tab, exc)
-                ok = False
+                ws.resize(rows=end_row + 20, cols=ws.col_count)
+            except Exception as exc:  # noqa: BLE001 — quota-time resize may fail; log + continue
+                logger.warning("notifier.sheet: row-resize Top Matches failed: %s", exc)
 
-        return total_written, per_tab_counts, ok
-    except Exception as exc:  # noqa: BLE001 — auth or open_by_key failure
-        logger.error("notifier.sheet: setup failed: %s", exc)
-        return 0, per_tab_counts, False
+        ws.update(range_name=range_str, values=rows, value_input_option="USER_ENTERED")
+        logger.info("notifier.sheet: refreshed Top Matches with %d rows", len(rows))
+        return len(rows), True
+    except Exception as exc:  # noqa: BLE001 — sheet surface; log + return ok=False
+        logger.error("notifier.sheet: refresh_top_matches failed: %s", exc, exc_info=True)
+        return 0, False
+
+
+# ----- Summary dashboard -----
+
+
+def refresh_summary(
+    pipeline_stats: dict,
+    *,
+    per_tab_totals: dict[str, int] | None = None,
+    spreadsheet_id: str | None = None,
+    service_account_path: Path | None = None,
+    dry_run: bool = False,
+) -> bool:
+    """Fully refresh the Summary tab with this run's pipeline stats.
+
+    Layout written into the Summary tab:
+        A1:      JOB SEARCH DASHBOARD
+        A3:      Last Updated  |  B3: <iso datetime>
+        A5:      METRIC        |  B5: VALUE          (header row)
+        A6..    Per-source fetched, normalized, new, location-kept, ranker by tier,
+                per-tab added today, sheet append status.
+
+    Returns ok.
+    """
+    if dry_run:
+        logger.info("notifier.sheet [dry-run]: would refresh Summary")
+        return True
+
+    sp, err = _open_sheet(spreadsheet_id, service_account_path)
+    if sp is None:
+        logger.warning("notifier.sheet: Summary skipped — %s", err)
+        return False
+
+    import gspread  # type: ignore
+    try:
+        try:
+            ws = sp.worksheet(SUMMARY_TAB)
+        except gspread.WorksheetNotFound:
+            ws = sp.add_worksheet(title=SUMMARY_TAB, rows="100", cols="6")
+
+        # Clear everything below row 1 (we keep the dashboard title in A1).
+        try:
+            ws.batch_clear([f"A2:F{max(ws.row_count, 60)}"])
+        except Exception as exc:  # noqa: BLE001 — pre-clear is best-effort
+            logger.warning("notifier.sheet: clear Summary body failed: %s", exc)
+
+        ranker = pipeline_stats.get("ranker", {}) or {}
+        by_tier = ranker.get("by_tier", {}) or {}
+        per_source = pipeline_stats.get("per_source", {}) or {}
+        sheet_per_tab = pipeline_stats.get("sheet_per_tab", {}) or {}
+
+        now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+        rows: list[list[str]] = []
+
+        def add(metric: str, value):
+            rows.append([metric, str(value)])
+
+        add("Last Updated (UTC)", now_iso)
+        add("Run ID", pipeline_stats.get("run_id", ""))
+        add("Mode", pipeline_stats.get("mode", ""))
+        rows.append([""])
+        rows.append(["PIPELINE STATS", ""])
+        add("Total fetched", pipeline_stats.get("total_fetched", 0))
+        add("After normalize", pipeline_stats.get("after_normalize", 0))
+        add("New (post cross-day dedup)", pipeline_stats.get("after_dedup_new", 0))
+        add("Already seen (dedup hit)", pipeline_stats.get("already_seen", 0))
+        add("After location filter", pipeline_stats.get("after_location_filter", 0))
+        add("Location rejected", pipeline_stats.get("location_rejected", 0))
+        add("After ranker (SKIP dropped)", pipeline_stats.get("after_ranker_skip", 0))
+        rows.append([""])
+        rows.append(["PER-SOURCE FETCHED", ""])
+        for src, n in sorted(per_source.items(), key=lambda kv: -kv[1]):
+            add(src, n)
+        rows.append([""])
+        rows.append(["RANKER (this run)", ""])
+        add("Tier A", by_tier.get("A", 0))
+        add("Tier B", by_tier.get("B", 0))
+        add("Tier C", by_tier.get("C", 0))
+        add("Tier SKIP", by_tier.get("SKIP", 0))
+        add("Scored (LLM-actually-ran)", ranker.get("scored", 0))
+        add("Placeholder (LLM-skipped)", ranker.get("placeholder", 0) + ranker.get("skipped", 0))
+        rows.append([""])
+        rows.append(["ADDED TO SHEET TODAY", ""])
+        if sheet_per_tab:
+            for tab_name, n in sheet_per_tab.items():
+                add(tab_name, n)
+        else:
+            add("(no rows appended)", 0)
+        add("Sheet write ok?", pipeline_stats.get("sheet_ok", False))
+        add("Email sent?", pipeline_stats.get("email_sent", False))
+        add("Email lock state", pipeline_stats.get("email_lock", ""))
+
+        if per_tab_totals:
+            rows.append([""])
+            rows.append(["ALL-TIME ROW TOTALS", ""])
+            for tab_name, n in per_tab_totals.items():
+                add(tab_name, n)
+
+        end_row = 1 + len(rows)
+        if ws.row_count < end_row:
+            try:
+                ws.resize(rows=end_row + 20, cols=max(ws.col_count, 2))
+            except Exception as exc:  # noqa: BLE001 — quota-time resize may fail; log + continue
+                logger.warning("notifier.sheet: row-resize Summary failed: %s", exc)
+
+        # Header row 1 — overwrite the dashboard title (idempotent).
+        ws.update(range_name="A1:B1", values=[["JOB SEARCH DASHBOARD", ""]], value_input_option="USER_ENTERED")
+        ws.update(
+            range_name=f"A2:B{1 + len(rows)}",
+            values=rows,
+            value_input_option="USER_ENTERED",
+        )
+        logger.info("notifier.sheet: refreshed Summary with %d rows", len(rows))
+        return True
+    except Exception as exc:  # noqa: BLE001 — sheet surface; log + return False
+        logger.error("notifier.sheet: refresh_summary failed: %s", exc, exc_info=True)
+        return False
+
+
+def count_existing_rows(
+    tabs: list[str],
+    *,
+    spreadsheet_id: str | None = None,
+    service_account_path: Path | None = None,
+) -> dict[str, int]:
+    """Return {tab_name: row_count_excluding_header} for the given tabs.
+
+    Used by run.py to feed all-time totals into the Summary dashboard. Best-effort:
+    a tab that doesn't exist returns 0.
+    """
+    sp, err = _open_sheet(spreadsheet_id, service_account_path)
+    if sp is None:
+        logger.warning("notifier.sheet: count_existing_rows skipped — %s", err)
+        return {t: 0 for t in tabs}
+
+    import gspread  # type: ignore
+    out: dict[str, int] = {}
+    for t in tabs:
+        try:
+            ws = sp.worksheet(t)
+            ids = [v for v in ws.col_values(1)[1:] if v and v.strip()]
+            out[t] = len(ids)
+        except gspread.WorksheetNotFound:
+            out[t] = 0
+        except Exception as exc:  # noqa: BLE001 — sheet surface; log + continue
+            logger.warning("notifier.sheet: count_existing_rows %s failed: %s", t, exc)
+            out[t] = 0
+    return out
