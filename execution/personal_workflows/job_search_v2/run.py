@@ -36,7 +36,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 _HERE = Path(__file__).resolve()
 _WORKSPACE = _HERE.parents[3]
@@ -63,8 +63,9 @@ from execution.personal_workflows.job_search_v2.normalizer.normalize import (  #
 from execution.personal_workflows.job_search_v2.notifier import email as email_notifier  # noqa: E402
 from execution.personal_workflows.job_search_v2.notifier import sheet as sheet_notifier  # noqa: E402
 from execution.personal_workflows.job_search_v2.ranker import score as ranker  # noqa: E402
+from execution.personal_workflows.job_search_v2.ranker import sonnet_rerank  # noqa: E402
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("run")
 
 PROJECT_ROOT = _WORKSPACE
@@ -183,26 +184,61 @@ def _fetch_jobgether_gmail(mode: str, max_pages: int) -> list[SourceJob]:
         return []
 
 
+# LinkedIn geoIds for the 4 target countries (verified stable on linkedin.com/jobs).
+# Île-de-France is preferred over France-wide so Paris-area jobs aren't drowned out.
+LINKEDIN_GEO_IDS = {
+    "FR_idf": "104246759",   # Île-de-France region (Paris)
+    "DE":     "101282230",   # Germany
+    "BE":     "100565514",   # Belgium
+    "CH":     "106693272",   # Switzerland
+}
+
+
 def _fetch_linkedin_guest_api(mode: str, max_pages: int) -> list[SourceJob]:
     from execution.personal_workflows.job_search_v2.sources import linkedin_guest_api as lga
     if mode == "fixture":
         return lga.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "linkedin_guest_api_sample.html")
-    try:
-        return lga.fetch(max_pages_per_keyword=max_pages, posted_within_hours=48)
-    except lga.LinkedInBlockedError as exc:
-        logger.warning("run: linkedin_guest_api blocked — %s. Skipping source.", exc)
-        return []
+
+    # Fan out across all 4 country geoIds. Each call is rate-limited internally
+    # (~1-2s per page) so 4 countries x ~9 keywords stays well below LinkedIn's
+    # block threshold. Cross-region dedup happens in the normalizer.
+    all_jobs: list[SourceJob] = []
+    for label, geo_id in LINKEDIN_GEO_IDS.items():
+        try:
+            jobs = lga.fetch(
+                geo_id=geo_id,
+                max_pages_per_keyword=max_pages,
+                posted_within_hours=48,
+            )
+            logger.info("run: linkedin_guest_api[%s geoId=%s] -> %d jobs", label, geo_id, len(jobs))
+            all_jobs.extend(jobs)
+        except lga.LinkedInBlockedError as exc:
+            logger.warning("run: linkedin_guest_api[%s] blocked - %s. Continuing with other regions.", label, exc)
+            # Don't return early — a block on DE doesn't mean FR is blocked too.
+            continue
+    return all_jobs
+
+
+# WTTJ country codes. WTTJ has FR + BE + CH presence; DE is sparse but the
+# Algolia index supports it (returns ~0 most days, costs ~0 to ask).
+WTTJ_COUNTRY_CODES = ["FR", "BE", "CH", "DE"]
 
 
 def _fetch_wttj_algolia(mode: str, max_pages: int) -> list[SourceJob]:
     from execution.personal_workflows.job_search_v2.sources import wttj_algolia
     if mode == "fixture":
         return wttj_algolia.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "wttj_algolia_sample.json")
-    try:
-        return wttj_algolia.fetch(max_pages=max_pages, posted_within_hours=48)
-    except wttj_algolia.WttjAlgoliaBlockedError as exc:
-        logger.warning("run: wttj_algolia blocked — %s. Skipping source.", exc)
-        return []
+
+    all_jobs: list[SourceJob] = []
+    for cc in WTTJ_COUNTRY_CODES:
+        try:
+            jobs = wttj_algolia.fetch(country_code=cc, max_pages=max_pages, posted_within_hours=48)
+            logger.info("run: wttj_algolia[%s] -> %d jobs", cc, len(jobs))
+            all_jobs.extend(jobs)
+        except wttj_algolia.WttjAlgoliaBlockedError as exc:
+            logger.warning("run: wttj_algolia[%s] blocked - %s. Continuing.", cc, exc)
+            continue
+    return all_jobs
 
 
 _DISPATCH = {
@@ -278,6 +314,11 @@ def main() -> int:
                         help="Skip the FR-locked location filter. Useful for debugging.")
     parser.add_argument("--no-ranker", action="store_true",
                         help="Skip Gemini ranking (jobs still flow through; all tier=B placeholder).")
+    parser.add_argument("--no-sonnet-rerank", action="store_true",
+                        help="Skip the Sonnet shortlist re-rank pass. Default: on iff "
+                             "ANTHROPIC_API_KEY is in env. Costs ~$0.12 per run when active.")
+    parser.add_argument("--sonnet-rerank-top-n", type=int, default=25,
+                        help="How many top-of-first-pass jobs to send to Sonnet (default 25).")
     parser.add_argument("--max-digest-jobs", type=int, default=25,
                         help="Cap on jobs in the email digest + sheet append (default 25). "
                              "Sorted by ranker score descending if scored, else posted_at descending. "
@@ -348,6 +389,19 @@ def main() -> int:
     ranked_by_hash, ranker_stats = ranker.rank_jobs(filtered_jobs, enabled=ranker_enabled)
     logger.info("run: ranker %s", ranker_stats)
 
+    # Stage 3.75: optional Sonnet shortlist re-rank. Auto-skips silently if
+    # ANTHROPIC_API_KEY is not in env (so the code is safe to ship before the
+    # console top-up clears). Refines only the top-N entries that actually end
+    # up in Top Matches / email digest — the cheap upgrade for the cells the
+    # operator actually reads.
+    ranked_by_hash, rerank_stats = sonnet_rerank.rerank_shortlist(
+        filtered_jobs,
+        ranked_by_hash,
+        top_n=args.sonnet_rerank_top_n,
+        enabled=not args.no_sonnet_rerank,
+    )
+    logger.info("run: sonnet_rerank %s", rerank_stats)
+
     # Drop jobs the ranker tagged SKIP (still record them in the dedup DB so they don't
     # reappear, but don't push them to the sheet or digest).
     if ranker_enabled:
@@ -415,6 +469,7 @@ def main() -> int:
         "location_rejected": loc_stats["rejected"],
         "location_by_reason": loc_stats["by_reason"],
         "ranker": ranker_stats,
+        "sonnet_rerank": rerank_stats,
         "after_ranker_skip": len(ranked_filtered),
         "sheet_appended": sheet_count,
         "sheet_per_tab": per_tab_counts,

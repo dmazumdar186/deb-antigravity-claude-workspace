@@ -137,6 +137,11 @@ def check_alignment(snapshots: dict[str, list[list[str]]], report: Report) -> No
         data = [r for r in all_rows[1:] if any(c.strip() for c in r)][-10:]
         if not data:
             continue
+        # First-Seen index — used to scope the Notes-placeholder check to recent
+        # writes only. Older rows with stale ranker-failure text are immutable
+        # history; we shouldn't keep failing on them after the bug is fixed.
+        fs_idx = idx.get("First Seen", -1)
+        recent_cutoff = (datetime.now(timezone.utc) - timedelta(days=2)).date()
         violations = []
         for row in data:
             if len(row) <= max(idx.get(k, 0) for k in ("Contract", "Source", "Link")):
@@ -148,6 +153,13 @@ def check_alignment(snapshots: dict[str, list[list[str]]], report: Report) -> No
             notes = row[idx.get("Notes", -1)].strip() if "Notes" in idx else ""
             remote = row[idx.get("Remote?", -1)].strip() if "Remote?" in idx else ""
 
+            row_is_recent = False
+            if fs_idx >= 0 and len(row) > fs_idx:
+                try:
+                    row_is_recent = datetime.strptime(row[fs_idx], "%Y-%m-%d").date() >= recent_cutoff
+                except ValueError:
+                    pass
+
             if contract and contract not in VALID_CONTRACT:
                 violations.append(f"Contract='{contract}' not in enum")
             if source and source not in KNOWN_SOURCES:
@@ -156,8 +168,9 @@ def check_alignment(snapshots: dict[str, list[list[str]]], report: Report) -> No
                 violations.append(f"Remote?='{remote}' not in enum")
             if link and not (link.startswith("http://") or link.startswith("https://")):
                 violations.append(f"Link not URL: {link[:30]}...")
-            if notes and PLACEHOLDER_RX.search(notes):
-                violations.append(f"Notes shows ranker failure: {notes[:40]}...")
+            # Only flag placeholder Notes on recent rows — old rows are immutable history.
+            if row_is_recent and notes and PLACEHOLDER_RX.search(notes):
+                violations.append(f"Notes shows ranker failure (recent row): {notes[:40]}...")
         if violations:
             report.fail(f"alignment[{tab}]", "; ".join(sorted(set(violations))[:3]))
             bad_tabs.append(tab)

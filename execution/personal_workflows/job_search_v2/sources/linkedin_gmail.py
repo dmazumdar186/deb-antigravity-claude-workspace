@@ -64,7 +64,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 # Local import bootstrap — works under `py execution/personal_workflows/job_search_v2/sources/linkedin_gmail.py`
 # AND `python -m execution.personal_workflows.job_search_v2.sources.linkedin_gmail`.
@@ -76,7 +76,7 @@ if str(_WORKSPACE_ROOT) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.contracts import JobSource, SourceJob  # noqa: E402
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("linkedin_gmail")
 
 PROJECT_ROOT = _WORKSPACE_ROOT

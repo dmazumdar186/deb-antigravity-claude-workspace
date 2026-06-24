@@ -27,7 +27,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 _PKG_DIR = Path(__file__).resolve().parent.parent
 if str(_PKG_DIR.parent.parent.parent.parent) not in sys.path:
@@ -38,7 +38,7 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
     RankedJob,
 )
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("notifier.sheet")
 
 # Canonical header set for per-role tabs. The writer matches by name, so the actual

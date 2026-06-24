@@ -43,7 +43,7 @@ from pathlib import Path
 from typing import Optional
 
 import httpx
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 _PKG_DIR = Path(__file__).resolve().parent.parent
 if str(_PKG_DIR.parent.parent.parent) not in sys.path:
@@ -51,7 +51,7 @@ if str(_PKG_DIR.parent.parent.parent) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.contracts import JobSource, SourceJob  # noqa: E402
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("wttj_algolia")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
@@ -67,13 +67,21 @@ JOB_PAGE_URL_FMT = "https://www.welcometothejungle.com/en/companies/{org}/jobs/{
 DEFAULT_COUNTRY = "FR"
 
 DEFAULT_KEYWORDS = [
+    # English (covers all 4 countries WTTJ serves)
     "product manager",
     "senior product manager",
     "lead product manager",
     "head of product",
-    "chef de produit",
     "AI product manager",
     "product owner",
+    # French (FR + BE Wallonia + CH Romandie)
+    "chef de produit",
+    "responsable produit",
+    # German (DE + CH Deutschschweiz + BE)
+    "produktmanager",
+    "leiter produktmanagement",
+    # Dutch (BE Flanders)
+    "productmanager",
 ]
 
 DEFAULT_POSTED_WITHIN_HOURS = 48

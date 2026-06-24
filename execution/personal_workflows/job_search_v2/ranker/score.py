@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 _PKG_DIR = Path(__file__).resolve().parent.parent
 if str(_PKG_DIR.parent.parent.parent.parent) not in sys.path:
@@ -40,7 +40,7 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
     RankedJob,
 )
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("ranker.score")
 
 RUBRIC_PATH = Path(__file__).resolve().parent / "rubric.md"
@@ -128,10 +128,19 @@ def rank_jobs(
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
-        logger.warning("ranker: GEMINI_API_KEY missing — emitting placeholders. "
-                       "Sign up free at https://aistudio.google.com/apikey")
+        # Diagnostic: tell the operator exactly where we looked so they can stop
+        # debugging "I have it in .env, why is it missing?" — the prior message
+        # said "no GEMINI_API_KEY in .env" which was misleading because we actually
+        # check os.environ, not the .env file directly. Most common cause in CI:
+        # the workflow YAML doesn't pass the secret through to the run step's env.
+        dotenv_path = find_dotenv(usecwd=False)
+        if dotenv_path:
+            where = f"env var not set; .env was located at {dotenv_path} but did not provide it"
+        else:
+            where = "env var not set; no .env file found walking up from this script"
+        logger.warning("ranker: GEMINI_API_KEY missing — %s. Falling back to heuristic.", where)
         for j in jobs:
-            out[j.content_hash] = _placeholder_ranked(j, "no GEMINI_API_KEY in .env")
+            out[j.content_hash] = _placeholder_ranked(j, f"GEMINI_API_KEY missing ({where})")
             stats["skipped"] += 1
             stats["by_tier"]["B"] += 1
         return out, stats

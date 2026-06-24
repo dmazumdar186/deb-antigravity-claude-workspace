@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 _PKG_DIR = Path(__file__).resolve().parent.parent
 if str(_PKG_DIR.parent.parent.parent) not in sys.path:
@@ -31,7 +31,7 @@ if str(_PKG_DIR.parent.parent.parent) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.contracts import NormalizedJob, RankedJob  # noqa: E402
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("notifier.email")
 
 _SMTP_HOST = "smtp.gmail.com"

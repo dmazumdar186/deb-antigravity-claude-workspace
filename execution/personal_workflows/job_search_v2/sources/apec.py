@@ -36,7 +36,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 _PKG_DIR = Path(__file__).resolve().parent.parent
 if str(_PKG_DIR.parent.parent.parent) not in sys.path:
@@ -44,7 +44,7 @@ if str(_PKG_DIR.parent.parent.parent) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.contracts import JobSource, SourceJob  # noqa: E402
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("apec")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]

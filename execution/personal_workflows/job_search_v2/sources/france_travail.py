@@ -32,7 +32,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import httpx
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 # Local import — works when run as `py execution/personal_workflows/job_search_v2/sources/france_travail.py`
 # or as `python -m execution.personal_workflows.job_search_v2.sources.france_travail`.
@@ -42,7 +42,7 @@ if str(_PKG_DIR) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.contracts import JobSource, SourceJob  # noqa: E402
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("france_travail")
 
 TOKEN_URL = "https://entreprise.francetravail.fr/connexion/oauth2/access_token"

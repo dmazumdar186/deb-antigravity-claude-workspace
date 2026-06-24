@@ -44,7 +44,7 @@ from typing import Optional
 
 import httpx
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 _PKG_DIR = Path(__file__).resolve().parent.parent
 if str(_PKG_DIR.parent.parent.parent) not in sys.path:
@@ -52,7 +52,7 @@ if str(_PKG_DIR.parent.parent.parent) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.contracts import JobSource, SourceJob  # noqa: E402
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("linkedin_guest_api")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
@@ -67,16 +67,31 @@ DETAIL_URL_FMT = "https://www.linkedin.com/jobs/view/{job_id}"  # canonical publ
 #   Île-de-France (region)= 104246759   <-- default; broader than Paris alone, fits a PM
 DEFAULT_GEO_ID = "104246759"
 
-# PM-Paris focused keywords. Each is a separate search request; results merged by jobId.
+# PM keywords across FR / DE / BE / CH. English + French cover most posts even outside
+# France; the German, Dutch, and Italian variants pick up jobs the English search
+# would miss in DE / CH-Deutschschweiz / BE-Flanders / CH-Ticino respectively. Each
+# entry is a separate search request; cross-keyword overlap dedups by jobId for free.
 DEFAULT_KEYWORDS = [
+    # English (global)
     "product manager",
     "senior product manager",
     "lead product manager",
     "principal product manager",
     "head of product",
-    "chef de produit",
     "AI product manager",
     "product owner",
+    # French (FR + BE Wallonia + CH Romandie)
+    "chef de produit",
+    "responsable produit",
+    # German (DE + CH Deutschschweiz + BE German-speaking)
+    "produktmanager",
+    "senior produktmanager",
+    "leiter produktmanagement",
+    # Dutch (BE Flanders)
+    "productmanager",
+    "product eigenaar",
+    # Italian (CH Ticino)
+    "responsabile di prodotto",
 ]
 
 # 48h window matches sivad259's pattern and gives the dedup layer enough new variety
