@@ -67,27 +67,27 @@ JOB_PAGE_URL_FMT = "https://www.welcometothejungle.com/en/companies/{org}/jobs/{
 DEFAULT_COUNTRY = "FR"
 
 DEFAULT_KEYWORDS = [
-    # --- PM core (English) ---
-    "product manager",
+    # 2026-06-24 reset: EN + FR only (operator hard constraint). German /
+    # Dutch keywords removed — those listings flooded the dashboard with
+    # non-applicable rows.
+    # --- Track A: Permanent AI PM (EN + FR) ---
+    "AI product manager",
+    "head of product",
     "senior product manager",
     "lead product manager",
-    "head of product",
-    "AI product manager",
+    "product manager",
     "product owner",
-    # --- PM core (French) ---
     "chef de produit",
     "responsable produit",
-    # --- PM core (German) ---
-    "produktmanager",
-    "leiter produktmanagement",
-    # --- PM core (Dutch) ---
-    "productmanager",
-    # --- AI Automation / Engineering (added 2026-06-24 to feed AI tabs) ---
+    "directeur produit",
+    # --- Track B: Freelance AI Automation / Builder ---
     "AI automation",
-    "AI engineer",
-    "AI mobile",
-    "AI process",
     "AI consultant",
+    "AI engineer",
+    "claude code",
+    "react native",
+    "automatisation IA",
+    "consultant IA",
 ]
 
 DEFAULT_POSTED_WITHIN_HOURS = 48

@@ -1,7 +1,7 @@
 {
   "user_locale": "fr",
   "target_locations": {
-    "comment": "Accept jobs whose location or description contains any pattern below (case-insensitive substring). Scope: all of France + Île-de-France + Germany + Belgium + Switzerland + EU-remote. Reject only clearly non-target geographies.",
+    "comment": "2026-06-24 v2: France + DE + BE + CH + EU-remote accepted geographically. Language filter (filter_by_language) handles the EN/FR-only constraint separately — a Berlin-based job written in English is acceptable; a Berlin-based job written in German is rejected at the language stage.",
     "accept_patterns": [
       "france", "français", "francais",
       "paris", "île-de-france", "ile-de-france",

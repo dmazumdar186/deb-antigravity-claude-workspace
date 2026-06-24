@@ -385,34 +385,45 @@ def rank_jobs(
 # ----- heuristic fallback -----
 
 
-_HIGH_SIGNAL_TITLE_TERMS = (
-    # English
+# Track A (Permanent AI PM) signals.
+_TRACK_A_HIGH = (
     "ai product manager", "genai product manager", "ml product manager",
-    "senior product manager", "lead product manager", "principal product manager",
-    "head of product", "staff product manager", "product lead",
-    # French
-    "chef de produit senior", "responsable produit senior", "directeur produit",
-    "directrice produit",
-    # German (matches "Senior Produktmanager", "Leiter(in) Produktmanagement",
-    # "Head of Produktmanagement" via substring on the lowercased title).
-    "senior produktmanager", "leiter produktmanagement", "leiterin produktmanagement",
-    "head of produktmanagement", "principal produktmanager",
-    # Dutch
-    "senior productmanager", "lead productmanager", "hoofd product",
-    # Italian
-    "responsabile di prodotto senior", "responsabile prodotto senior",
+    "llm product manager", "ai/ml product manager",
+    "head of product", "vp product", "vp of product", "chief product officer",
+    "senior ai product manager", "lead ai product manager",
+    "chef de produit ia", "responsable produit ia",
+    "directeur produit", "directrice produit",
 )
-_MEDIUM_SIGNAL_TITLE_TERMS = (
-    # English
+_TRACK_A_MEDIUM = (
+    "senior product manager", "lead product manager", "principal product manager",
+    "staff product manager", "product lead",
+    "chef de produit senior", "responsable produit senior",
     "product manager", "product owner",
-    # French
     "chef de produit", "responsable produit",
-    # German
-    "produktmanager", "produkt manager", "product owner",
-    # Dutch
-    "productmanager", "product eigenaar",
-    # Italian
-    "responsabile di prodotto", "responsabile prodotto",
+)
+
+# Track B (Freelance AI Automation / Claude Code / React Native) signals.
+_TRACK_B_HIGH = (
+    "ai automation engineer", "ai automation specialist", "ai automation consultant",
+    "ai engineer", "claude code",
+    "ai consultant", "ai strategy consultant", "ai transformation consultant",
+    "ai solutions consultant", "ai advisor",
+    "react native developer", "react native engineer",
+    "consultant ia", "automatisation ia",
+)
+_TRACK_B_MEDIUM = (
+    "ai mobile", "mobile ai", "automation engineer",
+    "process automation", "ai process",
+    "freelance ai", "ai contractor",
+    "head of ai", "ai lead",
+)
+
+# Signals in the description that boost Track B (the listing IS a freelance/
+# mission framing). Track B is about role TYPE as much as title.
+_FREELANCE_DESC_TELLS = (
+    "freelance", "contract", "contractor", "consultant",
+    "mission", "tjm", "/jour", "/day", "daily rate",
+    "indépendant", "independant",
 )
 # Major-city / region targets across all 4 in-scope countries. Anything in this
 # tuple gets the full location weight; "france/germany/belgium/switzerland"
@@ -444,50 +455,81 @@ _TARGET_COUNTRY_NAMES = (
 def _heuristic_score(job: NormalizedJob) -> float:
     """Deterministic 0..1 score for when the LLM is unavailable.
 
-    Weights (sum to 1.0):
-      title  0.6  — high-signal phrase 1.0, medium 0.6, else 0.3
-      loc    0.3  — high-signal city/region in any of FR/DE/BE/CH = 1.0;
-                   country-name only = 0.7; remote/hybrid = 0.7; else 0.4
-      type   0.1  — CDI 1.0, Freelance 0.7, CDD 0.5, Unknown = 0.7 when
-                   location is in a target country (German jobs report no
-                   contract type but are still legitimate full-time roles)
+    Tracks-aware (2026-06-24 reset against operator's CV + Malt + GitHub):
+      Track A — Permanent AI PM. Title-driven.
+      Track B — Freelance AI Automation / Claude Code / React Native.
+                Title + freelance-tells in description.
+    Final score = max(track_a_score, track_b_score) so a job that's a
+    great fit for EITHER track gets credit.
+
+    Per-track weights (sum to 1.0 inside each track):
+      title  0.6  — track-specific high (1.0), medium (0.6), else (0.2)
+      loc    0.25 — high-signal city = 1.0; target country = 0.7;
+                    remote/hybrid = 0.7; else 0.3
+      type   0.15 — Track A wants CDI; Track B wants Freelance/Contract.
+                    Unknown contract in target country = neutral 0.6.
     """
     title = (job.title or "").lower()
+    desc = (job.description_snippet or "").lower()
     loc = (job.location or "").lower()
     contract = (job.contract_type.value or "").lower()
 
-    if any(t in title for t in _HIGH_SIGNAL_TITLE_TERMS):
-        title_s = 1.0
-    elif any(t in title for t in _MEDIUM_SIGNAL_TITLE_TERMS):
-        title_s = 0.6
+    # Track-specific title scores.
+    if any(t in title for t in _TRACK_A_HIGH):
+        track_a_title = 1.0
+    elif any(t in title for t in _TRACK_A_MEDIUM):
+        track_a_title = 0.6
     else:
-        title_s = 0.3
+        track_a_title = 0.2
 
+    if any(t in title for t in _TRACK_B_HIGH):
+        track_b_title = 1.0
+    elif any(t in title for t in _TRACK_B_MEDIUM):
+        track_b_title = 0.6
+    else:
+        track_b_title = 0.2
+
+    # Location score — shared across tracks. Paris+50km is operator's stated
+    # on-site zone; rest of France is fine; DE/BE/CH-English is fine (the
+    # language filter ensures the listing is in EN/FR).
     if any(t in loc for t in _HIGH_SIGNAL_LOCATIONS):
         loc_s = 1.0
     elif any(c in loc for c in _TARGET_COUNTRY_NAMES) or "remote" in loc or "hybrid" in loc:
         loc_s = 0.7
     else:
-        loc_s = 0.4
+        loc_s = 0.3
 
-    in_target_country = (
-        loc_s >= 0.7  # i.e. we matched a city/country/remote pattern above
-    )
+    in_target_country = loc_s >= 0.7
+
+    # Contract scores DIFFER per track.
     if contract == "cdi":
-        type_s = 1.0
+        track_a_type = 1.0
+        track_b_type = 0.2  # CDI not what Track B is looking for
     elif contract == "freelance":
-        type_s = 0.7
+        track_a_type = 0.3
+        track_b_type = 1.0
     elif contract == "cdd":
-        type_s = 0.5
+        track_a_type = 0.5
+        track_b_type = 0.4
     elif contract in ("unknown", "") and in_target_country:
-        # Non-FR jobs commonly report "Unknown" because the source doesn't
-        # expose a French-shaped contract enum. Don't penalize them for that
-        # — they are most likely permanent full-time roles.
-        type_s = 0.7
+        # Source didn't expose contract — neutral.
+        track_a_type = 0.6
+        track_b_type = 0.6
     else:
-        type_s = 0.3
+        track_a_type = 0.2
+        track_b_type = 0.2
 
-    return round(0.6 * title_s + 0.3 * loc_s + 0.1 * type_s, 4)
+    # Freelance-tell boost for Track B — if the description explicitly mentions
+    # freelance/mission/TJM/daily-rate, this is more clearly a Track B fit.
+    if any(t in desc for t in _FREELANCE_DESC_TELLS):
+        track_b_type = max(track_b_type, 0.8)
+        # Also boost Track B title a notch (signals are reinforcing).
+        track_b_title = min(1.0, track_b_title + 0.2)
+
+    track_a_score = 0.6 * track_a_title + 0.25 * loc_s + 0.15 * track_a_type
+    track_b_score = 0.6 * track_b_title + 0.25 * loc_s + 0.15 * track_b_type
+
+    return round(max(track_a_score, track_b_score), 4)
 
 
 def main() -> int:

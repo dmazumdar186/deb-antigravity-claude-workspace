@@ -481,6 +481,18 @@ def refresh_summary(
         def add(metric: str, value):
             rows.append([metric, str(value)])
 
+        # ---- HEALTH SCORE block (top of Summary) ----
+        try:
+            from execution.personal_workflows.job_search_v2.notifier.health_score import (
+                calculate_health, render_for_sheet,
+            )
+            health = calculate_health(pipeline_stats, per_tab_totals=per_tab_totals)
+            for r in render_for_sheet(health):
+                rows.append(r if len(r) == 2 else (r + [""])[:2])
+            rows.append(["", ""])
+        except Exception as exc:  # noqa: BLE001 — health score is non-critical; log and skip
+            logger.warning("notifier.sheet: health score render failed: %s", exc)
+
         add("Last Updated (UTC)", now_iso)
         add("Run ID", pipeline_stats.get("run_id", ""))
         add("Mode", pipeline_stats.get("mode", ""))

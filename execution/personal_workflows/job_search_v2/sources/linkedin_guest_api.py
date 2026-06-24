@@ -72,10 +72,18 @@ DEFAULT_GEO_ID = "104246759"
 # would miss in DE / CH-Deutschschweiz / BE-Flanders / CH-Ticino respectively. Each
 # entry is a separate search request; cross-keyword overlap dedups by jobId for free.
 DEFAULT_KEYWORDS = [
-    # --- AI tabs FIRST so they reach LinkedIn before the per-region block
-    # threshold (~25 calls/region on 2026-06-24's run). Keyword reordering done
-    # 2026-06-24 evening — previously the AI keywords were at the bottom and the
-    # CH-region block triggered after the PM block, leaving AI tabs empty. ---
+    # 2026-06-24 reset: EN + FR ONLY. The prior expansion to DE/NL/IT was a
+    # mistake — operator's hard constraint is English / French job postings only
+    # (Malt profile + CV both monolingual EN/FR). German "Senior Produktmanager"
+    # listings flooded the dashboard with non-applicable rows.
+    #
+    # Two role tracks the operator actually applies for:
+    #   Track A — Permanent AI PM (CV — Wiser/InfoTnT lineage)
+    #   Track B — Freelance AI Automation / Claude Code / React Native
+    #             (Malt — 750€/day, 4-week sprint missions)
+    # AI keywords first so they reach LinkedIn before any per-region block.
+
+    # --- Track B: Freelance AI Automation / Builder ---
     "AI automation engineer",
     "AI automation specialist",
     "AI automation consultant",
@@ -83,33 +91,29 @@ DEFAULT_KEYWORDS = [
     "AI consultant",
     "AI strategy consultant",
     "AI transformation consultant",
-    "AI solutions consultant",
     "AI process automation",
     "process automation engineer",
-    "process intelligence",
-    "AI mobile developer",
-    "mobile AI engineer",
-    "automation product manager",
-    # --- PM core (English, global) ---
-    "product manager",
+    "react native developer",
+    "mobile developer freelance",
+    "claude code",          # niche but operator's branded skill
+    # --- Track A: Permanent AI PM ---
+    "AI product manager",
+    "head of product AI",
+    "GenAI product manager",
+    "LLM product manager",
     "senior product manager",
     "lead product manager",
     "principal product manager",
     "head of product",
-    "AI product manager",
+    "product manager",
     "product owner",
-    # --- PM core (French) ---
+    # --- French equivalents ---
     "chef de produit",
     "responsable produit",
-    # --- PM core (German) ---
-    "produktmanager",
-    "senior produktmanager",
-    "leiter produktmanagement",
-    # --- PM core (Dutch) ---
-    "productmanager",
-    "product eigenaar",
-    # --- PM core (Italian) ---
-    "responsabile di prodotto",
+    "responsable produit IA",
+    "directeur produit",
+    "consultant IA",
+    "automatisation IA",
 ]
 
 # 48h window matches sivad259's pattern and gives the dedup layer enough new variety

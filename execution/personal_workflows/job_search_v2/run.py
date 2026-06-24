@@ -56,6 +56,9 @@ from execution.personal_workflows.job_search_v2.normalizer.dedup import (  # noq
 from execution.personal_workflows.job_search_v2.normalizer.contract_filter import (  # noqa: E402
     filter_by_contract,
 )
+from execution.personal_workflows.job_search_v2.normalizer.language_filter import (  # noqa: E402
+    filter_by_language,
+)
 from execution.personal_workflows.job_search_v2.normalizer.location_filter import (  # noqa: E402
     filter_by_location,
     load_config,
@@ -507,8 +510,15 @@ def main() -> int:
     # Stage 3.6: contract filter — INTERNSHIP always dropped; UNKNOWN only when
     # source is FR-aware AND location is FR (otherwise the source legitimately
     # can't tell us the contract type for DE/BE/CH and we keep it).
-    filtered_jobs, contract_stats = filter_by_contract(loc_kept)
+    contract_kept, contract_stats = filter_by_contract(loc_kept)
     logger.info("run: contract_filter %s", contract_stats)
+
+    # Stage 3.7: language filter — EN/FR only per operator hard constraint
+    # (2026-06-24). Runs AFTER location because location-rejected jobs are
+    # already gone; the cost is detection-per-kept-job only. A Berlin-based
+    # role written in English passes here; one written in German is rejected.
+    filtered_jobs, language_stats = filter_by_language(contract_kept)
+    logger.info("run: language_filter %s", language_stats)
 
     # Stage 3.7: Gemini 2.5 Flash ranker (free tier)
     ranker_cfg = cfg.get("ranker", {}) if isinstance(cfg, dict) else {}
@@ -597,6 +607,7 @@ def main() -> int:
         "location_rejected": loc_stats["rejected"],
         "location_by_reason": loc_stats["by_reason"],
         "contract_filter": contract_stats,
+        "language_filter": language_stats,
         "ranker": ranker_stats,
         "sonnet_rerank": rerank_stats,
         "after_ranker_skip": len(ranked_filtered),
