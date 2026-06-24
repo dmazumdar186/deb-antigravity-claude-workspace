@@ -314,15 +314,59 @@ def rank_jobs(
 
 
 _HIGH_SIGNAL_TITLE_TERMS = (
+    # English
     "ai product manager", "genai product manager", "ml product manager",
     "senior product manager", "lead product manager", "principal product manager",
-    "head of product", "staff product manager",
-    "chef de produit senior", "product lead",
+    "head of product", "staff product manager", "product lead",
+    # French
+    "chef de produit senior", "responsable produit senior", "directeur produit",
+    "directrice produit",
+    # German (matches "Senior Produktmanager", "Leiter(in) Produktmanagement",
+    # "Head of Produktmanagement" via substring on the lowercased title).
+    "senior produktmanager", "leiter produktmanagement", "leiterin produktmanagement",
+    "head of produktmanagement", "principal produktmanager",
+    # Dutch
+    "senior productmanager", "lead productmanager", "hoofd product",
+    # Italian
+    "responsabile di prodotto senior", "responsabile prodotto senior",
 )
 _MEDIUM_SIGNAL_TITLE_TERMS = (
-    "product manager", "chef de produit", "product owner",
+    # English
+    "product manager", "product owner",
+    # French
+    "chef de produit", "responsable produit",
+    # German
+    "produktmanager", "produkt manager", "product owner",
+    # Dutch
+    "productmanager", "product eigenaar",
+    # Italian
+    "responsabile di prodotto", "responsabile prodotto",
 )
-_HIGH_SIGNAL_LOCATIONS = ("paris", "île-de-france", "ile-de-france", "remote (france)", "remote (eu)")
+# Major-city / region targets across all 4 in-scope countries. Anything in this
+# tuple gets the full location weight; "france/germany/belgium/switzerland"
+# country-name match gets a slightly lower weight; everything else is the floor.
+_HIGH_SIGNAL_LOCATIONS = (
+    # France
+    "paris", "île-de-france", "ile-de-france",
+    "lyon", "toulouse", "marseille", "bordeaux", "nantes", "lille",
+    # Germany
+    "berlin", "munich", "münchen", "muenchen", "hamburg",
+    "frankfurt", "köln", "koeln", "cologne", "düsseldorf", "duesseldorf", "stuttgart",
+    # Belgium
+    "brussels", "bruxelles", "brussel", "antwerp", "anvers", "antwerpen",
+    "ghent", "gent", "gand", "leuven", "louvain", "liège", "liege",
+    # Switzerland
+    "geneva", "genève", "geneve", "genf",
+    "zurich", "zürich", "lausanne", "bern", "berne", "basel", "bâle", "lugano",
+    # Remote-EU friendlies
+    "remote (france)", "remote (germany)", "remote (belgium)", "remote (switzerland)",
+    "remote (europe)", "remote (eu)",
+)
+_TARGET_COUNTRY_NAMES = (
+    "france", "germany", "deutschland",
+    "belgium", "belgique", "belgië", "belgie",
+    "switzerland", "suisse", "schweiz", "svizzera",
+)
 
 
 def _heuristic_score(job: NormalizedJob) -> float:
@@ -330,8 +374,11 @@ def _heuristic_score(job: NormalizedJob) -> float:
 
     Weights (sum to 1.0):
       title  0.6  — high-signal phrase 1.0, medium 0.6, else 0.3
-      loc    0.3  — Paris/Île-de-France/EU-remote 1.0, France 0.7, other 0.4
-      type   0.1  — CDI 1.0, Freelance 0.7, CDD 0.5, else 0.3
+      loc    0.3  — high-signal city/region in any of FR/DE/BE/CH = 1.0;
+                   country-name only = 0.7; remote/hybrid = 0.7; else 0.4
+      type   0.1  — CDI 1.0, Freelance 0.7, CDD 0.5, Unknown = 0.7 when
+                   location is in a target country (German jobs report no
+                   contract type but are still legitimate full-time roles)
     """
     title = (job.title or "").lower()
     loc = (job.location or "").lower()
@@ -346,12 +393,27 @@ def _heuristic_score(job: NormalizedJob) -> float:
 
     if any(t in loc for t in _HIGH_SIGNAL_LOCATIONS):
         loc_s = 1.0
-    elif "france" in loc:
+    elif any(c in loc for c in _TARGET_COUNTRY_NAMES) or "remote" in loc or "hybrid" in loc:
         loc_s = 0.7
     else:
         loc_s = 0.4
 
-    type_s = {"cdi": 1.0, "freelance": 0.7, "cdd": 0.5}.get(contract, 0.3)
+    in_target_country = (
+        loc_s >= 0.7  # i.e. we matched a city/country/remote pattern above
+    )
+    if contract == "cdi":
+        type_s = 1.0
+    elif contract == "freelance":
+        type_s = 0.7
+    elif contract == "cdd":
+        type_s = 0.5
+    elif contract in ("unknown", "") and in_target_country:
+        # Non-FR jobs commonly report "Unknown" because the source doesn't
+        # expose a French-shaped contract enum. Don't penalize them for that
+        # — they are most likely permanent full-time roles.
+        type_s = 0.7
+    else:
+        type_s = 0.3
 
     return round(0.6 * title_s + 0.3 * loc_s + 0.1 * type_s, 4)
 
