@@ -26,6 +26,7 @@ if str(_WORKSPACE) not in sys.path:
     sys.path.insert(0, str(_WORKSPACE))
 
 from execution.personal_workflows.job_search_v2.normalizer.title_filter import classify_title  # noqa: E402
+from execution.personal_workflows.job_search_v2.normalizer.language_filter import classify_language  # noqa: E402
 from execution.personal_workflows.job_search_v2.notifier.sheet import (  # noqa: E402
     TOP_MATCHES_TAB,
     _col_index_to_letter,
@@ -56,8 +57,9 @@ def _purge_tab(ws, dry_run: bool) -> tuple[int, int, list[str]]:
     removed_titles = []
     for row in data_rows:
         title = row[title_i] if len(row) > title_i else ""
-        ok, _ = classify_title(title)
-        if ok:
+        rel_ok, _ = classify_title(title)
+        lang_ok, _ = classify_language(title, "")
+        if rel_ok and lang_ok:
             kept_rows.append(row)
         else:
             removed_titles.append(title)

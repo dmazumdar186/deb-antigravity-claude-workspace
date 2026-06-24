@@ -16,6 +16,7 @@ silently dropping borderline rows. Edge case logged.
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -28,10 +29,33 @@ from execution.personal_workflows.job_search_v2.contracts import NormalizedJob  
 logger = logging.getLogger("normalizer.language_filter")
 
 ACCEPT_LANGS = {"en", "fr"}
+
+# Gender / diversity markers that are NOT language content. German job titles
+# carry "(m/w/d)", French ones carry "(H/F)" or "M/W", inclusive ones "(all
+# genders)" — none of these tell us the POSTING language. They wreck langdetect
+# on short titles (e.g. "Staff AI Engineer - M/W" in Paris detected as German).
+# Strip them before detection. (Removed " m/w/d" from DE_TELLS for the same
+# reason — it marks the German *market*, but the operator accepts English-
+# language jobs located in Germany; the description-level detection decides.)
+_GENDER_MARKER_RE = re.compile(
+    r"""
+    \(\s*(?:all\s+genders?|divers|gn|[mwfdhx](?:\s*/\s*[mwfdhx]){1,3})\s*\)  # (m/w/d), (all genders), (gn)
+    | \b[mwfh](?:\s*/\s*[mwfdhx]){1,3}\b   # standalone m/w/d, h/f, m/w
+    | \(\s*[mwfh]\s*/\s*[mwfh]\s*\)        # (h/f), (f/m)
+    | \ball\s+genders?\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+def _strip_gender_markers(s: str) -> str:
+    return _GENDER_MARKER_RE.sub(" ", s)
+
+
 # Substring tells for languages we explicitly want to reject. Catches cases
 # where langdetect under-confidence fails open. These are language-specific
 # stopwords that don't appear in EN/FR text.
-DE_TELLS = (" und ", " mit ", " für ", " der ", " die ", " das ", " bei ", " m/w/d", " (m/w/d)", " im ", " ein ", " auch ", " sind ", " sich ", " sowie ")
+DE_TELLS = (" und ", " mit ", " für ", " der ", " die ", " das ", " bei ", " im ", " ein ", " auch ", " sind ", " sich ", " sowie ", " unseren ", " unserem ", " standort ", "traineeprogramm", "produktmanager", " gmbh")
 NL_TELLS = (" een ", " voor ", " naar ", " bij ", " over ", " ook ", " als ", " het ", " maar ", " moet ")
 IT_TELLS = (" del ", " della ", " che ", " sono ", " per ", " sulla ", " con ", " nel ", " nella ", " degli ", " uno ", " una ")
 ES_TELLS = (" del ", " los ", " las ", " una ", " uno ", " con ", " sus ", " para ", " sobre ", " entre ", " donde ")
@@ -40,6 +64,11 @@ NON_EN_FR_TELLS = DE_TELLS + NL_TELLS + IT_TELLS + ES_TELLS
 
 def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
     """Return (kept, reason). Reason is 'accept:<lang>' or 'reject:<lang>'."""
+    # Strip gender/diversity markers first — they are not language content and
+    # break detection on short titles.
+    title = _strip_gender_markers(title)
+    description_snippet = _strip_gender_markers(description_snippet)
+
     # Quick substring screen first — catches DE/NL/IT/ES tells that langdetect
     # might miss on short samples. Adds " " padding to avoid mid-word matches.
     haystack_low = f" {title.lower()}. {description_snippet[:400].lower()} "
@@ -56,10 +85,19 @@ def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
                 return False, "reject:es_tell"
 
     sample = f"{title}. {description_snippet[:400]}".strip()
-    if len(sample) < 12:
-        # Too short to detect reliably — pass through (accept). The title-only
-        # gate above already runs.
-        return True, "accept:too_short"
+
+    # CRITICAL: langdetect is unreliable on short text. "Staff AI Engineer" gets
+    # mis-detected as German; "Product Owner Secteur Immobilier" (French) as
+    # German. So we only let langdetect REJECT when there is enough text to be
+    # reliable (a real description, >= 60 chars). For short title-only samples,
+    # the tell-word screen above is the authoritative gate — if no foreign tell
+    # fired, we ACCEPT (English + French dominate the keyword searches, so a
+    # tell-free short title is almost certainly EN/FR). This errs toward keeping
+    # borderline-English titles rather than dropping real matches.
+    LANGDETECT_MIN_CHARS = 60
+
+    if len(sample) < LANGDETECT_MIN_CHARS:
+        return True, "accept:short_no_foreign_tell"
 
     try:
         from langdetect import detect_langs, DetectorFactory  # type: ignore
@@ -72,17 +110,18 @@ def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
     if not langs:
         return True, "accept:no_detection"
 
-    # Top language must be EN or FR with confidence ≥ 0.7. Otherwise reject.
+    # Enough text + a real detection. Top language must be EN or FR with
+    # high confidence to keep; reject only on a CONFIDENT non-EN/FR call.
     top = langs[0]
-    if top.lang in ACCEPT_LANGS and top.prob >= 0.7:
-        return True, f"accept:{top.lang}"
     if top.lang in ACCEPT_LANGS:
-        # Low confidence — check if any of top-2 is EN/FR
-        for candidate in langs[:2]:
-            if candidate.lang in ACCEPT_LANGS and candidate.prob >= 0.4:
-                return True, f"accept:{candidate.lang}_low_conf"
-        return False, f"reject:{top.lang}_low_conf"
-    return False, f"reject:{top.lang}"
+        return True, f"accept:{top.lang}"
+    # Top is non-EN/FR. Only reject if confident; otherwise check top-2 for EN/FR.
+    if top.prob >= 0.85:
+        return False, f"reject:{top.lang}"
+    for candidate in langs[:2]:
+        if candidate.lang in ACCEPT_LANGS:
+            return True, f"accept:{candidate.lang}_low_conf"
+    return False, f"reject:{top.lang}_low_conf"
 
 
 def filter_by_language(jobs: list[NormalizedJob]) -> tuple[list[NormalizedJob], dict]:
