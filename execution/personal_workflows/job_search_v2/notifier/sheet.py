@@ -41,19 +41,19 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
 load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("notifier.sheet")
 
-# Canonical header set for per-role tabs. The writer matches by name, so the actual
-# column order in the destination tab can differ; cells just land where the headers
-# say they should.
+# Canonical header set for per-role tabs. Trimmed 2026-06-24 per operator request:
+# dropped _id / First Seen / Posted / Remote? / Source / Also Seen On / Status /
+# Notes / Tier — cross-day dedup is handled by seen.db at the pipeline level, so
+# the in-sheet _id column is no longer load-bearing for correctness.
 STANDARD_HEADERS = [
-    "_id", "First Seen", "Posted", "Company", "Title", "Country",
-    "Location", "Remote?", "Contract", "Source", "Also Seen On",
-    "Link", "Status", "Notes", "Tier",
+    "Company", "Title", "Country", "Location", "Contract", "Link",
 ]
 
-# Top Matches dashboard schema (operator-defined; we just write into it).
+# Top Matches dashboard schema. Trimmed 2026-06-24 per operator request: dropped
+# Rank (row order already conveys it) / Identity (Title + Company is already in
+# the next two cols) / Why (Sonnet reasoning is in the sheet's role tabs).
 TOP_MATCHES_HEADERS = [
-    "Rank", "Fit", "Identity", "Title", "Company", "Location",
-    "Contract", "Source Tab", "Why", "Link",
+    "Fit", "Title", "Company", "Location", "Contract", "Source Tab", "Link",
 ]
 TOP_MATCHES_TAB = "Top Matches"
 SUMMARY_TAB = "Summary"

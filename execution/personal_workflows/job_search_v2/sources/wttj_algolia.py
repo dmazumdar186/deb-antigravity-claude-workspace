@@ -67,21 +67,27 @@ JOB_PAGE_URL_FMT = "https://www.welcometothejungle.com/en/companies/{org}/jobs/{
 DEFAULT_COUNTRY = "FR"
 
 DEFAULT_KEYWORDS = [
-    # English (covers all 4 countries WTTJ serves)
+    # --- PM core (English) ---
     "product manager",
     "senior product manager",
     "lead product manager",
     "head of product",
     "AI product manager",
     "product owner",
-    # French (FR + BE Wallonia + CH Romandie)
+    # --- PM core (French) ---
     "chef de produit",
     "responsable produit",
-    # German (DE + CH Deutschschweiz + BE)
+    # --- PM core (German) ---
     "produktmanager",
     "leiter produktmanagement",
-    # Dutch (BE Flanders)
+    # --- PM core (Dutch) ---
     "productmanager",
+    # --- AI Automation / Engineering (added 2026-06-24 to feed AI tabs) ---
+    "AI automation",
+    "AI engineer",
+    "AI mobile",
+    "AI process",
+    "AI consultant",
 ]
 
 DEFAULT_POSTED_WITHIN_HOURS = 48

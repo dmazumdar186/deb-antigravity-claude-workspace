@@ -44,79 +44,69 @@ def build_digest(
     sheet_id: str | None,
     ranked_by_hash: dict[str, RankedJob] | None = None,
 ) -> tuple[str, str]:
-    """Compose (subject, body). Pure function — safe to unit-test."""
+    """Compose (subject, body). Pure function — safe to unit-test.
+
+    Body is a short dashboard summary (~25 lines), not a job dump. The full
+    list lives in the sheet — body is the at-a-glance for the morning skim.
+    """
     new_count = len(jobs)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     ranked_by_hash = ranked_by_hash or {}
 
-    # Subject reflects ranker tier breakdown when present.
-    by_tier = stats.get("ranker", {}).get("by_tier", {}) if stats.get("ranker") else {}
-    if by_tier:
-        tier_summary = f" (A:{by_tier.get('A', 0)} B:{by_tier.get('B', 0)} C:{by_tier.get('C', 0)})"
-    else:
-        tier_summary = ""
-    subject = f"Job Search v2 — {new_count} new for {today}{tier_summary}"
-
-    # Per-source breakdown
     per_source: dict[str, int] = {}
     for j in jobs:
         per_source[j.source.value] = per_source.get(j.source.value, 0) + 1
-    src_lines = "\n".join(f"  {src:<18} {n}" for src, n in sorted(per_source.items())) or "  (none)"
+    src_count = len(per_source)
 
-    # Sort top jobs: tier A > B > C > placeholder, then by posted_at desc.
+    subject = f"Job Search — {new_count} new jobs for {today}"
+
+    # Per-source line: at most 6, sorted by count desc.
+    src_lines = [f"  {src:<22} {n}" for src, n in sorted(per_source.items(), key=lambda kv: -kv[1])[:6]] or ["  (none)"]
+    src_block = "\n".join(src_lines)
+
+    # Tier breakdown.
+    by_tier = stats.get("ranker", {}).get("by_tier", {}) if stats.get("ranker") else {}
+    tier_block = (
+        f"  A (top match):    {by_tier.get('A', 0)}\n"
+        f"  B (promising):    {by_tier.get('B', 0)}\n"
+        f"  C (skim):         {by_tier.get('C', 0)}"
+    )
+
+    # Top 5 picks: tier A > B > C, score desc, then posted_at desc.
     tier_order = {"A": 0, "B": 1, "C": 2, "SKIP": 3}
+
     def _key(j: NormalizedJob):
         rj = ranked_by_hash.get(j.content_hash)
         tier_rank = tier_order.get(rj.tier.value, 99) if rj else 99
+        score = rj.score if rj else 0.0
         posted = j.posted_at or datetime.min.replace(tzinfo=timezone.utc)
-        # Negative posted for desc within tier
-        return (tier_rank, -posted.timestamp())
-    top = sorted(jobs, key=_key)[:15]
+        return (tier_rank, -score, -posted.timestamp())
 
-    job_lines = []
-    for j in top:
-        posted = j.posted_at.strftime("%Y-%m-%d") if j.posted_at else "?"
-        also = f" (also on: {', '.join(s.value for s in j.also_seen_on)})" if j.also_seen_on else ""
-        rj = ranked_by_hash.get(j.content_hash)
-        tier_tag = f"[{rj.tier.value}] " if rj and rj.tier.value != "B" else ""
-        reasoning = f"\n      -> {rj.reasoning}" if rj and rj.reasoning else ""
-        job_lines.append(
-            f"  {tier_tag}[{j.source.value}] {posted}  {j.title}\n"
-            f"      {j.company} — {j.location} — {j.contract_type.value} — {j.remote_mode.value}{also}{reasoning}\n"
-            f"      {j.url}"
+    top = sorted(jobs, key=_key)[:5]
+    top_lines = []
+    for i, j in enumerate(top, start=1):
+        top_lines.append(
+            f"  {i}. {j.title} — {j.company} — {j.location}\n"
+            f"     {j.url}"
         )
-    top_block = "\n\n".join(job_lines) or "  (no top jobs)"
+    top_block = "\n".join(top_lines) or "  (no jobs ranked today)"
 
-    dashboard = ""
-    if sheet_id:
-        dashboard = f"\nDashboard: https://docs.google.com/spreadsheets/d/{sheet_id}/edit\n"
-
-    loc_reasons = stats.get("location_by_reason", {})
-    loc_breakdown = ""
-    if loc_reasons:
-        loc_breakdown = "\n  location filter reasons:\n" + "\n".join(
-            f"    {k:<24} {v}" for k, v in sorted(loc_reasons.items())
-        ) + "\n"
-    pipeline_totals = (
-        f"\nPipeline counters:\n"
-        f"  total_fetched:        {stats.get('total_fetched', '?')}\n"
-        f"  after_normalize:     {stats.get('after_normalize', '?')}\n"
-        f"  after_dedup_new:     {stats.get('after_dedup_new', '?')}\n"
-        f"  already_seen:        {stats.get('already_seen', '?')}\n"
-        f"  after_location_filter: {stats.get('after_location_filter', '?')}\n"
-        f"  location_rejected:   {stats.get('location_rejected', '?')}\n"
-        f"{loc_breakdown}"
+    dashboard = (
+        f"https://docs.google.com/spreadsheets/d/{sheet_id}/edit"
+        if sheet_id else "(SHEETS_SPREADSHEET_ID not set)"
     )
 
     body = (
-        f"Job Search v2 — {today}\n"
-        f"========================\n\n"
-        f"{new_count} new job(s) added.\n\n"
-        f"Per source:\n{src_lines}\n\n"
-        f"Top 10 (most recent):\n\n{top_block}\n"
-        f"{pipeline_totals}"
-        f"{dashboard}\n"
-        f"— job_search_v2"
+        f"Job Search — {today}\n"
+        f"{new_count} new jobs from {src_count} sources today\n"
+        f"\n"
+        f"Per source:\n{src_block}\n"
+        f"\n"
+        f"Tier breakdown:\n{tier_block}\n"
+        f"\n"
+        f"Top 5 picks:\n{top_block}\n"
+        f"\n"
+        f"Full sheet: {dashboard}\n"
     )
     return subject, body
 

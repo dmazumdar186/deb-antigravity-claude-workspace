@@ -45,14 +45,38 @@ def _normalize_contract(raw: str) -> ContractType:
     s = (raw or "").strip().lower()
     if not s:
         return ContractType.UNKNOWN
-    if "cdi" in s or "permanent" in s or "indéterminée" in s or "indeterminee" in s or "full_time" in s or "full-time" in s:
-        return ContractType.CDI
-    if "cdd" in s or "fixed-term" in s or "déterminée" in s or "determinee" in s:
-        return ContractType.CDD
-    if "freelance" in s or "indep" in s or "contract" in s or "mission" in s:
-        return ContractType.FREELANCE
-    if "stage" in s or "intern" in s or "alternance" in s:
+    # Internship/apprentice FIRST so "stage" / "alternance" don't get caught by
+    # the broader "contract" / "permanent" rules below.
+    if (
+        "stage" in s or "intern" in s or "alternance" in s
+        or "apprenti" in s or "praktikum" in s or "werkstudent" in s
+        or "stagista" in s
+    ):
         return ContractType.INTERNSHIP
+    if (
+        "cdi" in s or "permanent" in s
+        or "indéterminée" in s or "indeterminee" in s
+        or "full_time" in s or "full-time" in s
+        or "unbefristet" in s
+        or "vast contract" in s or "vaste" in s
+        or "tempo indeterminato" in s
+    ):
+        return ContractType.CDI
+    if (
+        "cdd" in s or "fixed-term" in s or "fixed term" in s
+        or "déterminée" in s or "determinee" in s
+        or "befristet" in s
+        or "bepaalde duur" in s
+        or "tempo determinato" in s
+    ):
+        return ContractType.CDD
+    if (
+        "freelance" in s or "indep" in s or "contract" in s or "mission" in s
+        or "selbständig" in s or "selbstaendig" in s
+        or "indépendant" in s or "independant" in s
+        or "zzp" in s
+    ):
+        return ContractType.FREELANCE
     return ContractType.UNKNOWN
 
 

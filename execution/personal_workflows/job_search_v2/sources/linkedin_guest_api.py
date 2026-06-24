@@ -72,7 +72,7 @@ DEFAULT_GEO_ID = "104246759"
 # would miss in DE / CH-Deutschschweiz / BE-Flanders / CH-Ticino respectively. Each
 # entry is a separate search request; cross-keyword overlap dedups by jobId for free.
 DEFAULT_KEYWORDS = [
-    # English (global)
+    # --- PM core (English, global) ---
     "product manager",
     "senior product manager",
     "lead product manager",
@@ -80,18 +80,36 @@ DEFAULT_KEYWORDS = [
     "head of product",
     "AI product manager",
     "product owner",
-    # French (FR + BE Wallonia + CH Romandie)
+    # --- PM core (French) ---
     "chef de produit",
     "responsable produit",
-    # German (DE + CH Deutschschweiz + BE German-speaking)
+    # --- PM core (German) ---
     "produktmanager",
     "senior produktmanager",
     "leiter produktmanagement",
-    # Dutch (BE Flanders)
+    # --- PM core (Dutch) ---
     "productmanager",
     "product eigenaar",
-    # Italian (CH Ticino)
+    # --- PM core (Italian) ---
     "responsabile di prodotto",
+    # --- AI Automation / Engineering (added 2026-06-24 to feed AI tabs) ---
+    "AI automation engineer",
+    "AI automation specialist",
+    "AI automation consultant",
+    "automation product manager",
+    "AI engineer",
+    # --- AI Mobile ---
+    "AI mobile developer",
+    "mobile AI engineer",
+    # --- AI Process ---
+    "AI process automation",
+    "process automation engineer",
+    "process intelligence",
+    # --- AI Consultant ---
+    "AI consultant",
+    "AI strategy consultant",
+    "AI transformation consultant",
+    "AI solutions consultant",
 ]
 
 # 48h window matches sivad259's pattern and gives the dedup layer enough new variety

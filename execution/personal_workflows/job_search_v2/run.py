@@ -53,12 +53,18 @@ from execution.personal_workflows.job_search_v2.normalizer.dedup import (  # noq
     get_meta,
     set_meta,
 )
+from execution.personal_workflows.job_search_v2.normalizer.contract_filter import (  # noqa: E402
+    filter_by_contract,
+)
 from execution.personal_workflows.job_search_v2.normalizer.location_filter import (  # noqa: E402
     filter_by_location,
     load_config,
 )
 from execution.personal_workflows.job_search_v2.normalizer.normalize import (  # noqa: E402
     batch_normalize,
+)
+from execution.personal_workflows.job_search_v2.normalizer.title_filter import (  # noqa: E402
+    filter_by_title,
 )
 from execution.personal_workflows.job_search_v2.notifier import email as email_notifier  # noqa: E402
 from execution.personal_workflows.job_search_v2.notifier import sheet as sheet_notifier  # noqa: E402
@@ -374,14 +380,25 @@ def main() -> int:
     new_jobs, dedup_stats = filter_new(normalized, db_path=DEFAULT_DB_PATH)
     logger.info("run: dedup stats %s", dedup_stats)
 
+    # Stage 3.4: title filter — reject project-manager / alternance / internship /
+    # graduate-program rows that the source keyword search fuzzy-matched into the PM set.
+    title_kept, title_stats = filter_by_title(new_jobs)
+    logger.info("run: title_filter %s", title_stats)
+
     # Stage 3.5: location filter (FR-locked unless --no-location-filter)
     cfg = load_config()
     if args.no_location_filter:
-        loc_stats = {"total_in": len(new_jobs), "kept": len(new_jobs), "rejected": 0, "by_reason": {"disabled": len(new_jobs)}}
-        filtered_jobs = new_jobs
+        loc_stats = {"total_in": len(title_kept), "kept": len(title_kept), "rejected": 0, "by_reason": {"disabled": len(title_kept)}}
+        loc_kept = title_kept
     else:
-        filtered_jobs, loc_stats = filter_by_location(new_jobs, config=cfg)
+        loc_kept, loc_stats = filter_by_location(title_kept, config=cfg)
     logger.info("run: location_filter %s", loc_stats)
+
+    # Stage 3.6: contract filter — INTERNSHIP always dropped; UNKNOWN only when
+    # source is FR-aware AND location is FR (otherwise the source legitimately
+    # can't tell us the contract type for DE/BE/CH and we keep it).
+    filtered_jobs, contract_stats = filter_by_contract(loc_kept)
+    logger.info("run: contract_filter %s", contract_stats)
 
     # Stage 3.7: Gemini 2.5 Flash ranker (free tier)
     ranker_cfg = cfg.get("ranker", {}) if isinstance(cfg, dict) else {}
@@ -465,9 +482,11 @@ def main() -> int:
         "after_dedup_new": len(new_jobs),
         "already_seen": dedup_stats["already_seen"],
         "expired_swept": dedup_stats["expired_swept"],
+        "title_filter": title_stats,
         "after_location_filter": loc_stats["kept"],
         "location_rejected": loc_stats["rejected"],
         "location_by_reason": loc_stats["by_reason"],
+        "contract_filter": contract_stats,
         "ranker": ranker_stats,
         "sonnet_rerank": rerank_stats,
         "after_ranker_skip": len(ranked_filtered),

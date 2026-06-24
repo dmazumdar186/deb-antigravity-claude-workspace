@@ -30,7 +30,31 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 VALID_REMOTE = {"Yes", "No", "Remote", "Hybrid", "Onsite", "Unknown", ""}
-VALID_CONTRACT = {"CDI", "CDD", "Stage", "Freelance", "Internship", "Unknown", ""}
+# Operator-approved final contract set (2026-06-24): only CDI/CDD/Freelance keep,
+# Unknown tolerated when from non-FR location. Internship explicitly excluded.
+VALID_CONTRACT = {"CDI", "CDD", "Freelance", "Unknown", ""}
+NON_FR_LOCATION_MARKERS = [
+    "germany", "deutschland", "berlin", "munich", "münchen", "hamburg", "frankfurt",
+    "köln", "cologne", "düsseldorf", "stuttgart",
+    "belgium", "belgique", "belgië", "belgie", "brussels", "bruxelles", "brussel",
+    "antwerp", "anvers", "antwerpen", "ghent", "gent", "gand", "liege", "liège",
+    "charleroi", "leuven", "louvain", "namur",
+    "switzerland", "suisse", "schweiz", "svizzera", "geneva", "genève", "geneve",
+    "genf", "zurich", "zürich", "lausanne", "bern", "berne", "basel", "bâle",
+    "lugano", "winterthur", "zug",
+]
+# Title substrings that should NEVER appear in any role tab (per the 2026-06-24
+# title filter). Mirrored from execution/.../normalizer/title_filter.py — if the
+# filter is bypassed or regresses, this catches it at the sheet level.
+FORBIDDEN_TITLE_SUBSTRINGS = [
+    "project manager", "project management",
+    "chef de projet", "chef de projets",
+    "projektmanager", "projektleiter",
+    "alternance", "apprenti", "apprentice",
+    "stagiaire", "stage h/f", "stage f/h",
+    "internship", "praktikum", "werkstudent",
+    "graduate program", "graduate trainee", "trainee program",
+]
 KNOWN_SOURCES = {
     "france_travail", "wttj", "wttj_algolia", "apec",
     "linkedin_gmail", "linkedin_guest_api",
@@ -120,9 +144,13 @@ def _snapshot_role_tabs(sp) -> dict[str, list[list[str]]]:
 
 
 def check_alignment(snapshots: dict[str, list[list[str]]], report: Report) -> None:
-    """For each role tab: assert Contract/Source/Remote?/Link/Notes cells hold the
-    right kind of value. Catches positional shifts and ranker-failure leakage."""
+    """For each role tab: assert Contract / Link cells hold the right kind of
+    value. Trimmed 2026-06-24 to reflect the new column set (Company / Title /
+    Country / Location / Contract / Link). Source / Remote? / Notes / _id /
+    First Seen are no longer written, so they're no longer checked.
+    """
     bad_tabs: list[str] = []
+    required = {"Title", "Contract", "Link"}
     for tab in ROLE_TABS:
         all_rows = snapshots.get(tab) or []
         if not all_rows:
@@ -130,52 +158,92 @@ def check_alignment(snapshots: dict[str, list[list[str]]], report: Report) -> No
             continue
         header = all_rows[0] if all_rows else []
         idx = {h: i for i, h in enumerate(header) if h}
-        if "_id" not in idx or "Contract" not in idx or "Source" not in idx or "Link" not in idx:
+        if not required.issubset(idx):
             report.fail(f"alignment[{tab}]", f"missing canonical headers (got {header})")
             bad_tabs.append(tab)
             continue
         data = [r for r in all_rows[1:] if any(c.strip() for c in r)][-10:]
         if not data:
             continue
-        # First-Seen index — used to scope the Notes-placeholder check to recent
-        # writes only. Older rows with stale ranker-failure text are immutable
-        # history; we shouldn't keep failing on them after the bug is fixed.
-        fs_idx = idx.get("First Seen", -1)
-        recent_cutoff = (datetime.now(timezone.utc) - timedelta(days=2)).date()
         violations = []
         for row in data:
-            if len(row) <= max(idx.get(k, 0) for k in ("Contract", "Source", "Link")):
+            if len(row) <= max(idx[k] for k in required):
                 violations.append("row too short")
                 continue
             contract = row[idx["Contract"]].strip()
-            source = row[idx["Source"]].strip()
             link = row[idx["Link"]].strip()
-            notes = row[idx.get("Notes", -1)].strip() if "Notes" in idx else ""
-            remote = row[idx.get("Remote?", -1)].strip() if "Remote?" in idx else ""
-
-            row_is_recent = False
-            if fs_idx >= 0 and len(row) > fs_idx:
-                try:
-                    row_is_recent = datetime.strptime(row[fs_idx], "%Y-%m-%d").date() >= recent_cutoff
-                except ValueError:
-                    pass
-
             if contract and contract not in VALID_CONTRACT:
                 violations.append(f"Contract='{contract}' not in enum")
-            if source and source not in KNOWN_SOURCES:
-                violations.append(f"Source='{source}' not in enum")
-            if remote and remote not in VALID_REMOTE:
-                violations.append(f"Remote?='{remote}' not in enum")
             if link and not (link.startswith("http://") or link.startswith("https://")):
                 violations.append(f"Link not URL: {link[:30]}...")
-            # Only flag placeholder Notes on recent rows — old rows are immutable history.
-            if row_is_recent and notes and PLACEHOLDER_RX.search(notes):
-                violations.append(f"Notes shows ranker failure (recent row): {notes[:40]}...")
         if violations:
             report.fail(f"alignment[{tab}]", "; ".join(sorted(set(violations))[:3]))
             bad_tabs.append(tab)
     if not bad_tabs:
         report.passed("A. column alignment", f"{len(ROLE_TABS)} role tabs aligned")
+
+
+# ---------- I. Content quality (title + contract filter regression check) ----------
+
+def check_content_quality(snapshots: dict[str, list[list[str]]], report: Report) -> None:
+    """For each role tab's last 30 rows:
+      (1) Title must not contain any forbidden substring (project manager,
+          alternance, stagiaire, graduate program, ...).
+      (2) Contract must be CDI / CDD / Freelance, OR Unknown only when the
+          Location indicates a non-FR country (the upstream API legitimately
+          can't tell us contract type for DE / BE / CH jobs).
+    """
+    title_violations: list[str] = []
+    contract_violations: list[str] = []
+    for tab in ROLE_TABS:
+        all_rows = snapshots.get(tab) or []
+        if not all_rows:
+            continue
+        header = all_rows[0]
+        idx = {h: i for i, h in enumerate(header) if h}
+        title_i = idx.get("Title")
+        contract_i = idx.get("Contract")
+        location_i = idx.get("Location")
+        if title_i is None or contract_i is None or location_i is None:
+            continue
+        data = [r for r in all_rows[1:] if any(c.strip() for c in r)][-30:]
+        for row in data:
+            if len(row) <= max(title_i, contract_i, location_i):
+                continue
+            title_low = row[title_i].lower()
+            for bad in FORBIDDEN_TITLE_SUBSTRINGS:
+                if bad in title_low:
+                    title_violations.append(f"{tab}: '{row[title_i][:50]}' contains '{bad}'")
+                    break
+
+            contract = row[contract_i].strip()
+            location_low = row[location_i].lower()
+            if contract and contract not in VALID_CONTRACT:
+                contract_violations.append(f"{tab}: contract='{contract}' not in allowed set")
+                continue
+            if contract == "Unknown":
+                is_non_fr = any(m in location_low for m in NON_FR_LOCATION_MARKERS)
+                if not is_non_fr:
+                    contract_violations.append(
+                        f"{tab}: contract=Unknown for FR-ish location='{row[location_i][:40]}'"
+                    )
+
+    if title_violations:
+        report.fail("I. title quality", "; ".join(title_violations[:3])
+                    + (f" (+{len(title_violations) - 3} more)" if len(title_violations) > 3 else ""))
+    else:
+        report.passed("I. title quality", f"no forbidden titles across {len(ROLE_TABS)} tabs (last 30 rows each)")
+
+    if contract_violations:
+        # WARN, not FAIL: the contract_filter prevents NEW Unknown-from-FR rows
+        # at the pipeline level; the violations seen here are immutable history
+        # from before the filter was wired (2026-06-24). They will age out as
+        # the operator deletes / processes rows. Flip back to FAIL if a row
+        # written after 2026-06-25 still trips this.
+        report.warn("I. contract quality (historical)", "; ".join(contract_violations[:3])
+                    + (f" (+{len(contract_violations) - 3} more)" if len(contract_violations) > 3 else ""))
+    else:
+        report.passed("I. contract quality", "all contracts in allowed set or Unknown-non-FR")
 
 
 # ---------- B. Freshness ----------
@@ -209,7 +277,9 @@ def check_freshness(sp, report: Report, last_run: dict | None, pm_snapshot: list
         except ValueError as exc:
             report.warn("B. summary freshness", f"could not parse Last Updated '{last_updated_str}': {exc}")
 
-    # Check First Seen dates on PM tab (reuse cached snapshot)
+    # Check First Seen dates on PM tab (reuse cached snapshot). If the column
+    # was trimmed (2026-06-24 op approval) this becomes a no-op INFO — the
+    # Summary 'Last Updated' check above is the authoritative freshness signal.
     pm_rows = pm_snapshot
     if not pm_rows:
         report.warn("B. PM First Seen check", "PM snapshot empty (transient?)")
@@ -217,7 +287,7 @@ def check_freshness(sp, report: Report, last_run: dict | None, pm_snapshot: list
     header = pm_rows[0]
     fs_idx = header.index("First Seen") if "First Seen" in header else None
     if fs_idx is None:
-        report.warn("B. PM First Seen check", "no 'First Seen' header found")
+        report.info("B. PM First Seen check", "First Seen column trimmed; Summary 'Last Updated' is the freshness signal")
         return
     body = [r for r in pm_rows[1:] if any(c.strip() for c in r)]
     recent_dates = set()
@@ -434,6 +504,7 @@ def main() -> int:
         check_freshness(sp, report, last_run, snapshots.get("PM", []))
         check_dashboards(sp, report)
         check_consistency(snapshots, report, last_run)
+        check_content_quality(snapshots, report)
     else:
         report.fail("setup", "Google Sheet unavailable — skipping live checks")
 
