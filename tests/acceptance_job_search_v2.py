@@ -55,6 +55,81 @@ OUT_OF_SCOPE_LOCATIONS = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# FROZEN REGRESSION CORPUS — independence layer.
+#
+# The live-sheet check above reuses the pipeline's own classify_title /
+# classify_language. If a bug were introduced into THAT shared logic, the
+# pipeline and the test would agree and both pass junk. This frozen corpus is
+# the guard against that: it pins expected verdicts for real titles the
+# operator personally flagged (must stay REJECTED) and real titles he wants
+# (must stay KEPT). If anyone weakens the gate, this fails — regardless of
+# whether the pipeline agrees with itself.
+#
+# DO NOT relax these to make a run pass. If a corpus entry needs to change,
+# that is a deliberate profile decision, made explicitly, not a quiet edit.
+# ---------------------------------------------------------------------------
+MUST_REJECT = [
+    # The exact 19 the operator pasted on 2026-06-24 as wrong matches.
+    "Consultant Cybersécurité Industrielle/OT (F/H)",
+    "Consultant GRC cybersécurité confirmé (F/H)",
+    "Directeur.ice de clientèle H/F",
+    "Directeur SEO / GEO f/h",
+    "Consultant SEO / GEO - Full remote / Strasbourg",
+    "Consultant SEO / GEO - Full remote / Bordeaux f/h",
+    "Consultant SEO / GEO - full remote / Lille f/h",
+    "VP of Engineering (H/F)",
+    "Senior Fullstack Software Engineer",
+    "CDI - Property & Facility Manager",
+    "DTNUM 75 - SDAN BADM - Directeur(trice) de projet SI Protection des usagers",
+    "DTNUM 75 SDAN BADM Directeur(trice) de projet SI - Gestion des crises",
+    "Planneur·se Stratégique / Creative Strategist CDI",
+    "Consultant.e Tracking & Analytics Senior",
+    "Senior Expertise Conseil H/F - Assistance Opérationnelle",
+    "Chef de mission comptable H/F - PME & Groupes",
+    "Senior Manager Expertise Conseil H/F - International Business Services",
+    "Collaborateur comptable H/F - Equipe Immobilier",
+    "Collaborateur comptable H/F - International Business Services",
+    # Genuinely-German titles that must stay out.
+    "Senior Produktmanager",
+    "Product Owner für unseren Standort in Berlin",
+]
+MUST_KEEP = [
+    "AI Product Manager",
+    "Senior Product Manager",
+    "Head of Product",
+    "Chef de produit IA",
+    "Consultant IA (production images & vidéos) (H/F/X) - Freelance",
+    "React Native Developer",
+    "AI Automation Engineer",
+    "AI Consultant",
+    "Product Manager / Project Manager",
+    # The langdetect false-positives caught 2026-06-24 — must stay kept.
+    "Staff AI Engineer - M/W",
+    "Senior Product Manager - Engagement (all genders)",
+    "Product Owner Secteur Immobilier (H/F)",
+]
+
+
+def check_regression_corpus() -> list[str]:
+    """Run the frozen corpus through the gate. Returns list of failures (empty=OK)."""
+    from execution.personal_workflows.job_search_v2.normalizer.title_filter import classify_title
+    from execution.personal_workflows.job_search_v2.normalizer.language_filter import classify_language
+
+    failures: list[str] = []
+    for t in MUST_REJECT:
+        rel_ok, _ = classify_title(t)
+        lang_ok, _ = classify_language(t, "")
+        if rel_ok and lang_ok:  # both must NOT keep it
+            failures.append(f"MUST_REJECT but kept: '{t[:55]}'")
+    for t in MUST_KEEP:
+        rel_ok, _ = classify_title(t)
+        lang_ok, _ = classify_language(t, "")
+        if not (rel_ok and lang_ok):
+            failures.append(f"MUST_KEEP but dropped: '{t[:55]}'")
+    return failures
+
+
 def _open_sheet():
     import gspread  # type: ignore
     from google.oauth2.service_account import Credentials  # type: ignore
@@ -95,6 +170,21 @@ def _check_row(tab: str, title: str, location: str, link: str) -> list[str]:
 
 
 def main() -> int:
+    # --- Layer 1: frozen regression corpus (no sheet needed; independent of
+    # whether the pipeline agrees with itself). ---
+    corpus_failures = check_regression_corpus()
+    print("=" * 72)
+    print("REGRESSION CORPUS (frozen — your real flagged jobs must stay rejected)")
+    print("=" * 72)
+    if corpus_failures:
+        for f in corpus_failures:
+            print(f"  [FAIL] {f}")
+        print(f"\nRESULT: FAIL — the gate was weakened; {len(corpus_failures)} corpus expectations broke.")
+        return 1
+    print(f"  [OK] all {len(MUST_REJECT)} must-reject + {len(MUST_KEEP)} must-keep titles classify correctly.")
+    print()
+
+    # --- Layer 2: live-sheet check ---
     sp = _open_sheet()
     if sp is None:
         print("[SETUP FAIL] Cannot open the live Google Sheet (creds / SHEETS_SPREADSHEET_ID).")

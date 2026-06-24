@@ -431,6 +431,10 @@ def main() -> int:
     parser.add_argument("--posted-within-days", type=int, default=1)
     parser.add_argument("--no-location-filter", action="store_true",
                         help="Skip the FR-locked location filter. Useful for debugging.")
+    parser.add_argument("--no-acceptance", action="store_true",
+                        help="Skip the post-run acceptance gate (debugging only). "
+                             "Normally the run EXITS NON-ZERO if the sheet ends up with "
+                             "any irrelevant / non-EN-FR / out-of-scope row.")
     parser.add_argument("--no-ranker", action="store_true",
                         help="Skip Gemini ranking (jobs still flow through; all tier=B placeholder).")
     parser.add_argument("--no-sonnet-rerank", action="store_true",
@@ -663,6 +667,33 @@ def main() -> int:
     pipeline_stats["summary_ok"] = summary_ok
     pipeline_stats["per_tab_totals"] = per_tab_totals
 
+    # Stage 5b: ACCEPTANCE GATE (unskippable). After the sheet is written, run
+    # the acceptance test on what actually landed. A run that produced junk
+    # output (irrelevant / non-EN-FR / out-of-scope rows) is a FAILED run, even
+    # though every prior stage "succeeded". This is the guardrail that does not
+    # depend on a human remembering to look. Skipped on --dry-run (nothing
+    # written) and on --no-acceptance (escape hatch for debugging).
+    acceptance_ok = True
+    if not args.dry_run and not args.no_acceptance:
+        try:
+            import subprocess
+            proc = subprocess.run(
+                [sys.executable, str(PROJECT_ROOT / "tests" / "acceptance_job_search_v2.py")],
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
+                cwd=str(PROJECT_ROOT), timeout=180,
+            )
+            acceptance_ok = proc.returncode == 0
+            pipeline_stats["acceptance"] = "PASS" if acceptance_ok else "FAIL"
+            # Surface the acceptance verdict + any violation lines into the log.
+            tail = "\n".join((proc.stdout or "").strip().splitlines()[-15:])
+            logger.info("run: ACCEPTANCE %s\n%s", pipeline_stats["acceptance"], tail)
+        except Exception as exc:  # noqa: BLE001 — acceptance harness failure is itself a FAIL
+            acceptance_ok = False
+            pipeline_stats["acceptance"] = f"FAIL (harness error: {exc})"
+            logger.error("run: acceptance harness error: %s", exc)
+    else:
+        pipeline_stats["acceptance"] = "skipped (dry_run or --no-acceptance)"
+
     # Stage 5: write summary + append run-log
     (run_dir / "summary.json").write_text(json.dumps(pipeline_stats, indent=2), encoding="utf-8")
     RUN_LOG.parent.mkdir(parents=True, exist_ok=True)
@@ -677,7 +708,10 @@ def main() -> int:
         sys.stdout.write(body + "\n")
     except UnicodeEncodeError:
         sys.stdout.buffer.write((body + "\n").encode("utf-8", errors="replace"))
-    return 0
+    # Non-zero exit on acceptance failure so the cron / caller SEES a junk run as
+    # a failed run, not a green one. The sheet write already happened, but the
+    # alarm is loud and the run-log records acceptance=FAIL.
+    return 0 if acceptance_ok else 3
 
 
 if __name__ == "__main__":
