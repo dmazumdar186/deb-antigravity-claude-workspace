@@ -523,6 +523,21 @@ def refresh_summary(
         add("Last updated", friendly_time)
         if plain_status:
             add("", plain_status)
+        # Acceptance gate + reliability streak (measured, not claimed). The
+        # acceptance verdict is computed AFTER this summary is written (run.py
+        # Stage 5b > Stage 4c), so read the persisted streak file for the
+        # last-known value rather than in-run stats.
+        try:
+            import json as _json
+            from pathlib import Path as _Path
+            streak_file = _Path(__file__).resolve().parents[4] / ".tmp" / "job_search_v2" / "acceptance_streak.json"
+            if streak_file.exists():
+                st = _json.loads(streak_file.read_text(encoding="utf-8"))
+                n = int(st.get("consecutive_pass", 0))
+                add("Output check (last run)", f"{st.get('last_verdict','?')} — {n}/5 consecutive clean"
+                    + (" (SHIPPABLE)" if st.get("shippable") else " (not yet shippable)"))
+        except Exception as exc:  # noqa: BLE001 — non-critical display line
+            logger.warning("notifier.sheet: streak read failed: %s", exc)
         rows.append(["", ""])
 
         # --- Today's results ---

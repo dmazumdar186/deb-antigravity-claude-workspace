@@ -1,5 +1,30 @@
 # Hardening Backlog — 2026-06-15
 
+## Update 2026-06-24 — Output-acceptance-gate rule backport triage
+
+New always-active rule landed: `~/.claude/rules/output-acceptance-gate.md` (every user-facing artifact needs an unskippable, hard-failing, corpus-backed gate that asserts on the OUTPUT a user reads, not on mechanics). Born from job_search_v2 shipping cybersecurity/accounting/SEO rows into a PM sheet while "verified" checks (row counts, exit codes) passed. Per `rule-backport-cadence.md`, a read-only triage was run within the hour. Mechanical guardrail added: `workspace_sast.py` rule `acceptance-gate-missing` (registry-driven presence check).
+
+**Triage scope:** the 5 artifact-producing projects in `_ACCEPTANCE_GATE_PROJECTS`. Each assessed for a hard-failing, unskippable, corpus-backed output-acceptance gate.
+
+| Project | Has gate? | Hard-fail? | Unskippable (wired to run)? | Frozen corpus? | Grade |
+|---|---|---|---|---|---|
+| job_search_v2 | YES (`acceptance_job_search_v2.py`) | YES (exit 1/3) | YES (run.py Stage 5b) | YES (19 reject + 12 keep) | **DONE (1/5 days)** |
+| cv_optimizer | NO | — | — | — | **OWED** |
+| humanizer | NO (has lang-guard + e2e, not an output-acceptance gate) | — | — | — | **OWED** |
+| youtube_video_analyzer | NO | — | — | — | **OWED** |
+| job_tracker_pm_france | NO | — | — | — | **OWED** |
+
+**Aggregate:** 1 of 5 compliant. SAST `acceptance-gate-missing` flags the other 4 (info-severity) on every scan until closed.
+
+### Owed-work (priority by user-facing leverage; NO fixes applied without operator approval)
+
+1. **cv_optimizer** (~1.5h, high leverage — career artifact). Output-acceptance gate: given a CV+JD, assert the generated CV/cover-letter is (a) in the JD's language, (b) ATS-score ≥ baseline+10, (c) no placeholder/`[INSÉRER]`/TODO tokens, (d) no language-switched bullets. Frozen corpus: 1 known-good + 1 known-bad CV/JD pair. Aligns with `eval-first.md` Exhibit A (the 9/9-PASS-but-2/8-real incident).
+2. **humanizer** (~1h). Gate: given AI text + voice profile, assert output (a) passes the AI-tell detectors it claims to strip, (b) stays in the source language, (c) preserves meaning (length within band). Corpus: 1 robotic input that MUST be de-tell'd, 1 already-human input that MUST pass through ~unchanged.
+3. **youtube_video_analyzer** (~1h). Gate: given a known fixture video, assert the breakdown has non-empty hook/scenes/transcript-highlights and N≥threshold real scene cuts (not 1 giant scene). Corpus: 1 known multi-cut video.
+4. **job_tracker_pm_france** (~45m). Overlaps job_search_v2; may be retired in favour of v2. Confirm status before building a gate (don't gate a deprecated pipeline).
+
+---
+
 ## Update 2026-06-16 — Panel-pass rule backport triage
 
 New always-active rule landed: `~/.claude/rules/panel-pass.md` (4-lens "would Karpathy / Cherny / Amodei / Anthropic research team leave satisfied?" rigor floor before declaring work done). Per `rule-backport-cadence.md`, a read-only backport triage was run within 24 hours of the rule landing.

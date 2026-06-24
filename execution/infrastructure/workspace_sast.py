@@ -781,6 +781,59 @@ def _rule_ps1_non_ascii() -> list[dict]:
 
 # ── Known native rules ────────────────────────────────────────────────────────
 
+# Projects that produce a user-facing artifact (sheet / digest / CV / lead
+# list / rendered doc) and therefore owe an output-acceptance gate per
+# ~/.claude/rules/output-acceptance-gate.md. Registry-driven (vs heuristic)
+# because "artifact-producing" is a judgement call the operator should curate.
+# Each entry: slug -> glob(s) under tests/ that would satisfy the gate.
+_ACCEPTANCE_GATE_PROJECTS: dict[str, tuple[str, ...]] = {
+    "job_search_v2": ("acceptance_job_search_v2.*",),
+    "cv_optimizer": ("acceptance_cv*.*", "*cv*acceptance*.*"),
+    "humanizer": ("acceptance_humanizer.*", "*humanizer*acceptance*.*"),
+    "youtube_video_analyzer": ("acceptance_youtube*.*", "*youtube*acceptance*.*"),
+    "job_tracker_pm_france": ("acceptance_job_tracker*.*",),
+}
+
+
+def _rule_acceptance_gate_missing() -> list[dict]:
+    """Rule: every artifact-producing project in _ACCEPTANCE_GATE_PROJECTS must
+    have a hard-failing, unskippable output-acceptance test under tests/
+    (per ~/.claude/rules/output-acceptance-gate.md).
+
+    Presence check only — it does not verify the gate is wired to fail the run
+    or that it has a frozen corpus (that's a human review item). But presence
+    forces the conversation. info-severity (advisory).
+    """
+    tests_root = WORKSPACE_ROOT / "tests"
+    findings: list[dict] = []
+    for slug, patterns in _ACCEPTANCE_GATE_PROJECTS.items():
+        found = False
+        if tests_root.exists():
+            for pat in patterns:
+                if any(tests_root.glob(pat)):
+                    found = True
+                    break
+        if not found:
+            findings.append(
+                {
+                    "severity": "info",
+                    "file": f"tests/ (project: {slug})",
+                    "line": 0,
+                    "rule_id": "acceptance-gate-missing",
+                    "message": (
+                        f"Artifact-producing project '{slug}' has no output-acceptance "
+                        f"gate (expected tests/{patterns[0]}). Per "
+                        f"~/.claude/rules/output-acceptance-gate.md, every user-facing "
+                        f"artifact needs an unskippable, hard-failing, corpus-backed gate "
+                        f"that asserts on the OUTPUT (not mechanics). See "
+                        f"tests/acceptance_job_search_v2.py for the reference shape."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+    return findings
+
+
 _NATIVE_RULES: dict[str, callable] = {
     "exit-criteria-missing": _rule_exit_criteria_missing,
     "subprocess-encoding": _rule_subprocess_encoding,
@@ -789,6 +842,7 @@ _NATIVE_RULES: dict[str, callable] = {
     "prior-art-pass-missing": _rule_prior_art_pass_missing,
     "personal-mode-with-pii": _rule_personal_mode_with_pii,
     "ps1-non-ascii": _rule_ps1_non_ascii,
+    "acceptance-gate-missing": _rule_acceptance_gate_missing,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())

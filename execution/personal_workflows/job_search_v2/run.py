@@ -694,6 +694,35 @@ def main() -> int:
     else:
         pipeline_stats["acceptance"] = "skipped (dry_run or --no-acceptance)"
 
+    # Reliability counter — n=1 is not reliability. Track CONSECUTIVE acceptance
+    # PASS runs in a small JSON state file. A PASS increments; any FAIL resets to
+    # 0. "Shippable" per ~/.claude/rules/front-door-synthetic.md = 5 consecutive.
+    # This makes the reliability claim MEASURED, not asserted. Skipped on dry-run.
+    if not args.dry_run and not args.no_acceptance:
+        streak_path = PROJECT_ROOT / ".tmp" / "job_search_v2" / "acceptance_streak.json"
+        prior_streak = 0
+        try:
+            if streak_path.exists():
+                prior_streak = int(json.loads(streak_path.read_text(encoding="utf-8")).get("consecutive_pass", 0))
+        except (OSError, ValueError, json.JSONDecodeError):
+            prior_streak = 0
+        new_streak = (prior_streak + 1) if acceptance_ok else 0
+        try:
+            streak_path.parent.mkdir(parents=True, exist_ok=True)
+            streak_path.write_text(json.dumps({
+                "consecutive_pass": new_streak,
+                "last_run_id": run_id,
+                "last_verdict": pipeline_stats["acceptance"],
+                "shippable": new_streak >= 5,
+                "updated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            }), encoding="utf-8")
+        except OSError as exc:
+            logger.warning("run: could not write acceptance streak: %s", exc)
+        pipeline_stats["acceptance_streak"] = new_streak
+        pipeline_stats["shippable"] = new_streak >= 5
+        logger.info("run: acceptance streak = %d/5 consecutive PASS (shippable=%s)",
+                    new_streak, new_streak >= 5)
+
     # Stage 5: write summary + append run-log
     (run_dir / "summary.json").write_text(json.dumps(pipeline_stats, indent=2), encoding="utf-8")
     RUN_LOG.parent.mkdir(parents=True, exist_ok=True)
