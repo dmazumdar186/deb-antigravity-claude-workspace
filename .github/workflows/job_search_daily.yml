@@ -9,10 +9,12 @@ name: job-search-daily
 
 on:
   schedule:
-    # Dual-cron for DST: 07:00 UTC = 09:00 Paris CEST (summer); 08:00 UTC = 09:00 Paris CET (winter).
-    # Idempotency: v2 dedup persists across runs via SQLite seen-set, so a double-fire is harmless.
+    # Single cron — 07:00 UTC = 09:00 Paris CEST (summer) / 08:00 Paris CET (winter).
+    # Operator accepts the +1h drift in winter rather than the dual-fire of the prior
+    # 07:00 + 08:00 setup, which was sending two daily emails (the email_lock in run.py
+    # relies on seen.db meta-KV persisting across runs, and the cache key bug fix that
+    # enables that persistence is still local-only pending workflow PAT scope).
     - cron: "0 7 * * *"
-    - cron: "0 8 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
