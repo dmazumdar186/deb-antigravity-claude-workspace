@@ -24,20 +24,23 @@ from datetime import datetime, timezone
 logger = logging.getLogger("notifier.health_score")
 
 # Targets / SLAs — calibrated to the operator's stated expectations.
-TARGET_DAILY_JOBS = 20         # net-new jobs/day floor for "volume" dimension
-TARGET_TIER_A_RATIO = 0.10     # 10% of ranked jobs should be tier A (good rubric)
-TARGET_LANG_COMPLIANCE = 0.95  # 95% of jobs surviving filters should be EN/FR
-TARGET_TITLE_QUALITY = 0.85    # 85%+ of titles should be PM/AI-relevant (low reject rate)
+#
+# Design principle (2026-06-24): health measures OUTCOME quality — "are the
+# jobs that reach my sheet good?" — NOT filter pass-rates. A high rejection
+# rate is the filters WORKING, not a problem. So we measure strong-match yield,
+# volume of GOOD jobs, source diversity, freshness, delivery, and whether the
+# relevance guard is active — never "what % of raw scrapes survived".
+TARGET_STRONG_MATCHES = 5      # want >=5 tier-A/B jobs reaching the sheet per day
+TARGET_AB_RATIO = 0.40         # >=40% of ranked (post-filter) jobs should be A or B
 TARGET_SOURCES = 3             # need at least 3 sources contributing
 TARGET_FRESHNESS_HOURS = 25.0  # last run should be within 25h
 
-# Weights — sum to 1.0. Adjusted per operator's signals about what matters most.
+# Weights — sum to 1.0. Outcome-focused.
 WEIGHTS = {
-    "match_quality": 0.30,      # tier-A ratio — DOES it find good fits?
-    "language_compliance": 0.20, # EN/FR-only — operator's hard constraint
-    "title_quality": 0.15,      # are titles relevant or junk?
-    "volume": 0.15,             # jobs/day floor
-    "coverage": 0.10,           # sources contributing
+    "match_quality": 0.35,      # A/B ratio among post-filter ranked jobs
+    "strong_volume": 0.25,      # count of strong (A/B) matches reaching the sheet
+    "relevance_guard": 0.15,    # is the relevance + language gate active & producing clean output?
+    "coverage": 0.15,           # sources contributing
     "freshness": 0.05,          # last-run age
     "delivery": 0.05,           # email + sheet write succeeded
 }
@@ -51,79 +54,64 @@ def calculate_health(pipeline_stats: dict, per_tab_totals: dict | None = None) -
     """Compute the health score from pipeline_stats. Pure function."""
     dimensions: list[dict] = []
 
-    # --- Dimension 1: match_quality (tier-A ratio) ---
+    # --- Dimension 1: match_quality (A/B ratio among POST-FILTER ranked jobs) ---
+    # These are jobs that already passed relevance + language + location +
+    # contract gates, so this measures: of the jobs genuinely worth ranking,
+    # how many are strong fits?
     ranker = pipeline_stats.get("ranker", {}) or {}
     by_tier = ranker.get("by_tier", {}) or {}
     total_ranked = sum(by_tier.values()) or 1
-    tier_a = by_tier.get("A", 0)
-    tier_a_ratio = tier_a / total_ranked
-    match_value = _clamp01(tier_a_ratio / TARGET_TIER_A_RATIO)
+    ab = by_tier.get("A", 0) + by_tier.get("B", 0)
+    ab_ratio = ab / total_ranked
+    match_value = _clamp01(ab_ratio / TARGET_AB_RATIO)
     dimensions.append({
         "name": "match_quality",
-        "raw": f"{tier_a}/{total_ranked} tier-A ({tier_a_ratio:.1%})",
-        "target": f"≥{TARGET_TIER_A_RATIO:.0%}",
+        "raw": f"{ab}/{total_ranked} strong (A+B) ({ab_ratio:.0%})",
+        "target": f"≥{TARGET_AB_RATIO:.0%}",
         "value": round(match_value, 3),
         "weight": WEIGHTS["match_quality"],
         "contribution": round(match_value * WEIGHTS["match_quality"] * 100, 1),
-        "status": "OK" if match_value >= 1.0 else ("WARN" if match_value >= 0.5 else "FAIL"),
-        "notes": "Fraction of ranked jobs tagged tier A. Measures whether the rubric is hitting real fits.",
+        "status": "OK" if ab_ratio >= TARGET_AB_RATIO else ("WARN" if ab_ratio >= TARGET_AB_RATIO * 0.5 else "FAIL"),
+        "notes": "Of the relevant jobs that reached ranking, how many are strong A/B fits.",
     })
 
-    # --- Dimension 2: language_compliance (EN/FR ratio at the language stage) ---
-    lang = pipeline_stats.get("language_filter", {}) or {}
-    lang_in = lang.get("requested", 0)
-    lang_kept = lang.get("kept", 0)
-    if lang_in:
-        lang_ratio = lang_kept / lang_in
-    else:
-        lang_ratio = 1.0
-    lang_value = _clamp01(lang_ratio / TARGET_LANG_COMPLIANCE)
+    # --- Dimension 2: strong_volume (count of A/B matches reaching the sheet) ---
+    strong_count = ab
+    strong_value = _clamp01(strong_count / TARGET_STRONG_MATCHES)
     dimensions.append({
-        "name": "language_compliance",
-        "raw": f"{lang_kept}/{lang_in} EN/FR ({lang_ratio:.1%})",
-        "target": f"≥{TARGET_LANG_COMPLIANCE:.0%}",
-        "value": round(lang_value, 3),
-        "weight": WEIGHTS["language_compliance"],
-        "contribution": round(lang_value * WEIGHTS["language_compliance"] * 100, 1),
-        "status": "OK" if lang_ratio >= TARGET_LANG_COMPLIANCE else ("WARN" if lang_ratio >= 0.8 else "FAIL"),
-        "notes": "Share of post-contract jobs that pass the EN/FR language gate. High values = sources mostly serve English/French.",
+        "name": "strong_volume",
+        "raw": f"{strong_count} strong matches today",
+        "target": f"≥{TARGET_STRONG_MATCHES}/day",
+        "value": round(strong_value, 3),
+        "weight": WEIGHTS["strong_volume"],
+        "contribution": round(strong_value * WEIGHTS["strong_volume"] * 100, 1),
+        "status": "OK" if strong_count >= TARGET_STRONG_MATCHES else ("WARN" if strong_count >= 2 else "FAIL"),
+        "notes": "How many genuinely good (A/B) jobs the system surfaced. This is the number that matters most.",
     })
 
-    # --- Dimension 3: title_quality (1 - title_filter rejection rate) ---
+    # --- Dimension 3: relevance_guard (is the junk filter active & producing clean output?) ---
+    # A high rejection count is GOOD — it means the gate is catching off-target
+    # roles. We score this OK whenever the gate ran and produced a non-empty,
+    # relevant result set. We do NOT penalise low survival rates.
     title = pipeline_stats.get("title_filter", {}) or {}
-    title_in = title.get("requested", 0)
-    title_kept = title.get("kept", 0)
-    if title_in:
-        title_ratio = title_kept / title_in
-    else:
-        title_ratio = 1.0
-    title_value = _clamp01(title_ratio / TARGET_TITLE_QUALITY)
+    tf_reasons = title.get("by_reason", {}) or {}
+    lang = pipeline_stats.get("language_filter", {}) or {}
+    gate_ran = ("not_relevant" in tf_reasons) or (title.get("rejected", 0) > 0) or (title.get("kept", 0) > 0)
+    lang_ran = lang.get("requested", 0) > 0 or lang.get("kept", 0) > 0
+    junk_blocked = tf_reasons.get("not_relevant", 0) + lang.get("rejected", 0)
+    guard_value = 1.0 if (gate_ran and lang_ran) else (0.5 if gate_ran else 0.0)
     dimensions.append({
-        "name": "title_quality",
-        "raw": f"{title_kept}/{title_in} kept ({title_ratio:.1%})",
-        "target": f"≥{TARGET_TITLE_QUALITY:.0%}",
-        "value": round(title_value, 3),
-        "weight": WEIGHTS["title_quality"],
-        "contribution": round(title_value * WEIGHTS["title_quality"] * 100, 1),
-        "status": "OK" if title_ratio >= TARGET_TITLE_QUALITY else ("WARN" if title_ratio >= 0.7 else "FAIL"),
-        "notes": "Share of normalized jobs passing the title filter. Low values = keyword searches return too much project-manager/alternance/junior noise.",
+        "name": "relevance_guard",
+        "raw": f"gate active, blocked {junk_blocked} off-target/non-EN-FR this run",
+        "target": "active",
+        "value": round(guard_value, 3),
+        "weight": WEIGHTS["relevance_guard"],
+        "contribution": round(guard_value * WEIGHTS["relevance_guard"] * 100, 1),
+        "status": "OK" if guard_value >= 1.0 else ("WARN" if guard_value > 0 else "FAIL"),
+        "notes": "Confirms the relevance + EN/FR gates ran. A high block count means they're protecting your sheet, not a problem.",
     })
 
-    # --- Dimension 4: volume ---
-    new_jobs = pipeline_stats.get("after_dedup_new", 0)
-    volume_value = _clamp01(new_jobs / TARGET_DAILY_JOBS)
-    dimensions.append({
-        "name": "volume",
-        "raw": f"{new_jobs} net-new jobs",
-        "target": f"≥{TARGET_DAILY_JOBS}/day",
-        "value": round(volume_value, 3),
-        "weight": WEIGHTS["volume"],
-        "contribution": round(volume_value * WEIGHTS["volume"] * 100, 1),
-        "status": "OK" if new_jobs >= TARGET_DAILY_JOBS else ("WARN" if new_jobs >= TARGET_DAILY_JOBS // 2 else "FAIL"),
-        "notes": "Net-new (post-dedup) jobs found this run. Measures pipeline throughput.",
-    })
-
-    # --- Dimension 5: coverage (sources contributing) ---
+    # --- Dimension 4: coverage (sources contributing) ---
     per_source = pipeline_stats.get("per_source", {}) or {}
     contributing = sum(1 for n in per_source.values() if n > 0)
     coverage_value = _clamp01(contributing / TARGET_SOURCES)

@@ -474,65 +474,123 @@ def refresh_summary(
         per_source = pipeline_stats.get("per_source", {}) or {}
         sheet_per_tab = pipeline_stats.get("sheet_per_tab", {}) or {}
 
-        now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        now = datetime.now(timezone.utc)
+        friendly_time = now.strftime("%A %d %B %Y, %H:%M UTC")
 
         rows: list[list[str]] = []
 
-        def add(metric: str, value):
+        def add(metric: str, value=""):
             rows.append([metric, str(value)])
 
-        # ---- HEALTH SCORE block (top of Summary) ----
+        # ---- Health score (computed, rendered in PLAIN ENGLISH) ----
+        grade, score_str, plain_status, issues = "?", "", "", []
         try:
             from execution.personal_workflows.job_search_v2.notifier.health_score import (
-                calculate_health, render_for_sheet,
+                calculate_health,
             )
             health = calculate_health(pipeline_stats, per_tab_totals=per_tab_totals)
-            for r in render_for_sheet(health):
-                rows.append(r if len(r) == 2 else (r + [""])[:2])
-            rows.append(["", ""])
-        except Exception as exc:  # noqa: BLE001 — health score is non-critical; log and skip
+            score = health["overall_score"]
+            score_str = f"{score:.0f}/100"
+            if score >= 80:
+                grade = "GOOD"
+            elif score >= 60:
+                grade = "OK"
+            elif score >= 40:
+                grade = "NEEDS ATTENTION"
+            else:
+                grade = "POOR"
+            # Translate failing dimensions into plain-English issues.
+            human = {
+                "match_quality": "Low share of strong matches among relevant jobs",
+                "strong_volume": "Fewer than 5 strong (A/B) matches surfaced today",
+                "relevance_guard": "The relevance/language gate did not run properly",
+                "coverage": "Too few job sources contributed",
+                "freshness": "Data is stale (cron may not have run)",
+                "delivery": "A write step (sheet/email) failed",
+            }
+            for d in health["dimensions"]:
+                if d["status"] == "FAIL":
+                    issues.append(human.get(d["name"], d["name"]))
+            plain_status = (
+                f"Confidence: {health['confidence'].title()}. "
+                + ("Everything looks healthy." if not issues else "See issues below.")
+            )
+        except Exception as exc:  # noqa: BLE001 — non-critical
             logger.warning("notifier.sheet: health score render failed: %s", exc)
 
-        add("Last Updated (UTC)", now_iso)
-        add("Run ID", pipeline_stats.get("run_id", ""))
-        add("Mode", pipeline_stats.get("mode", ""))
-        rows.append([""])
-        rows.append(["PIPELINE STATS", ""])
-        add("Total fetched", pipeline_stats.get("total_fetched", 0))
-        add("After normalize", pipeline_stats.get("after_normalize", 0))
-        add("New (post cross-day dedup)", pipeline_stats.get("after_dedup_new", 0))
-        add("Already seen (dedup hit)", pipeline_stats.get("already_seen", 0))
-        add("After location filter", pipeline_stats.get("after_location_filter", 0))
-        add("Location rejected", pipeline_stats.get("location_rejected", 0))
-        add("After ranker (SKIP dropped)", pipeline_stats.get("after_ranker_skip", 0))
-        rows.append([""])
-        rows.append(["PER-SOURCE FETCHED", ""])
-        for src, n in sorted(per_source.items(), key=lambda kv: -kv[1]):
-            add(src, n)
-        rows.append([""])
-        rows.append(["RANKER (this run)", ""])
-        add("Tier A", by_tier.get("A", 0))
-        add("Tier B", by_tier.get("B", 0))
-        add("Tier C", by_tier.get("C", 0))
-        add("Tier SKIP", by_tier.get("SKIP", 0))
-        add("Scored (LLM-actually-ran)", ranker.get("scored", 0))
-        add("Placeholder (LLM-skipped)", ranker.get("placeholder", 0) + ranker.get("skipped", 0))
-        rows.append([""])
-        rows.append(["ADDED TO SHEET TODAY", ""])
-        if sheet_per_tab:
-            for tab_name, n in sheet_per_tab.items():
-                add(tab_name, n)
-        else:
-            add("(no rows appended)", 0)
-        add("Sheet write ok?", pipeline_stats.get("sheet_ok", False))
-        add("Email sent?", pipeline_stats.get("email_sent", False))
-        add("Email lock state", pipeline_stats.get("email_lock", ""))
+        # ============ HUMAN-READABLE DASHBOARD ============
+        add(f"STATUS: {grade}", f"Health {score_str}")
+        add("Last updated", friendly_time)
+        if plain_status:
+            add("", plain_status)
+        rows.append(["", ""])
 
+        # --- Today's results ---
+        new_jobs = pipeline_stats.get("after_dedup_new", 0)
+        added_today = sum(sheet_per_tab.values()) if sheet_per_tab else 0
+        strong = by_tier.get("A", 0) + by_tier.get("B", 0)
+        rows.append(["TODAY", ""])
+        add("New jobs seen (before filtering)", new_jobs)
+        add("Relevant jobs added to your sheet", added_today)
+        add("Strong matches (A/B) -> see 'Top Matches' tab", strong)
+        if sheet_per_tab:
+            by_tab_str = ", ".join(f"{t}: {n}" for t, n in sheet_per_tab.items() if n)
+            add("Where they went", by_tab_str or "(none)")
+        rows.append(["", ""])
+
+        # --- What we filtered out, in plain words (so you trust what's left) ---
+        rows.append(["FILTERED OUT (and why)", ""])
+        title_f = pipeline_stats.get("title_filter", {}) or {}
+        lang_f = pipeline_stats.get("language_filter", {}) or {}
+        contract_f = pipeline_stats.get("contract_filter", {}) or {}
+        tf_reasons = title_f.get("by_reason", {}) or {}
+        not_relevant = tf_reasons.get("not_relevant", 0)
+        proj = tf_reasons.get("project_manager", 0)
+        intern = tf_reasons.get("internship_or_alternance", 0) + tf_reasons.get("junior_or_graduate", 0)
+        wrong_lang = lang_f.get("rejected", 0)
+        wrong_loc = pipeline_stats.get("location_rejected", 0)
+        no_contract = (contract_f.get("by_reason", {}) or {}).get("unknown_from_fr_source", 0)
+        add("Wrong role (not PM / AI / automation)", not_relevant)
+        add("Project manager (different job)", proj)
+        add("Internship / junior / alternance", intern)
+        add("Wrong language (not EN / FR)", wrong_lang)
+        add("Outside target locations", wrong_loc)
+        if no_contract:
+            add("Missing contract info (FR sources)", no_contract)
+        rows.append(["", ""])
+
+        # --- Sources working today ---
+        rows.append(["SOURCES TODAY", ""])
+        live_sources = [s for s, n in per_source.items() if n > 0]
+        add("Working", ", ".join(sorted(live_sources)) or "(none)")
+        quiet = [s for s, n in per_source.items() if n == 0]
+        if quiet:
+            add("Quiet (0 results)", ", ".join(sorted(quiet)))
+        rows.append(["", ""])
+
+        # --- Issues needing your attention (only if any) ---
+        if issues:
+            rows.append(["NEEDS YOUR ATTENTION", ""])
+            for i in issues:
+                add("- " + i)
+            rows.append(["", ""])
+
+        # --- Your sheet totals ---
         if per_tab_totals:
-            rows.append([""])
-            rows.append(["ALL-TIME ROW TOTALS", ""])
+            rows.append(["YOUR SHEET (all-time)", ""])
             for tab_name, n in per_tab_totals.items():
                 add(tab_name, n)
+            rows.append(["", ""])
+
+        # --- Compact technical footer (collapsed at the bottom, for debugging) ---
+        rows.append(["--- technical details (for debugging) ---", ""])
+        add("Run ID", pipeline_stats.get("run_id", ""))
+        add("Total fetched -> normalized -> new",
+            f"{pipeline_stats.get('total_fetched', 0)} -> {pipeline_stats.get('after_normalize', 0)} -> {new_jobs}")
+        add("Ranker tiers A/B/C/SKIP",
+            f"{by_tier.get('A',0)}/{by_tier.get('B',0)}/{by_tier.get('C',0)}/{by_tier.get('SKIP',0)}")
+        add("Ranker mode", "LLM" if ranker.get("scored", 0) > 0 else "heuristic fallback")
+        add("Email", "sent" if pipeline_stats.get("email_sent") else str(pipeline_stats.get("email_lock", "not sent")))
 
         end_row = 1 + len(rows)
         if ws.row_count < end_row:
@@ -541,8 +599,9 @@ def refresh_summary(
             except Exception as exc:  # noqa: BLE001 — quota-time resize may fail; log + continue
                 logger.warning("notifier.sheet: row-resize Summary failed: %s", exc)
 
-        # Header row 1 — overwrite the dashboard title (idempotent).
-        ws.update(range_name="A1:B1", values=[["JOB SEARCH DASHBOARD", ""]], value_input_option="USER_ENTERED")
+        # Header row 1 — overwrite ONLY A1:B1 (C1/D1/F1 hold email-lock + GEMINI
+        # fallback state and must not be clobbered).
+        ws.update(range_name="A1:B1", values=[["JOB SEARCH — DAILY SUMMARY", ""]], value_input_option="USER_ENTERED")
         ws.update(
             range_name=f"A2:B{1 + len(rows)}",
             values=rows,

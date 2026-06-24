@@ -81,36 +81,86 @@ PRODUCT_RESCUE_TOKENS = [
 # title also says "Product Manager".
 HARD_REJECT_REASONS = {"internship_or_alternance", "junior_or_graduate"}
 
+# ---------------------------------------------------------------------------
+# RELEVANCE ALLOWLIST (2026-06-24 — the core fix)
+#
+# The prior filter was REJECT-ONLY: it blocked known-bad words and let
+# EVERYTHING else through to the fallback PM tab. That is why "Consultant
+# Cybersécurité", "Directeur SEO", "Chef de mission comptable" (accounting),
+# "Property & Facility Manager", "Directeur de projet SI" all landed in the
+# PM tab — none of them contain a banned word.
+#
+# A job must now POSITIVELY match one of Debanjan's two tracks (from CV +
+# Malt + GitHub) or it is rejected as `not_relevant`. These are lowercased
+# substring anchors; each is specific enough that a generic role word alone
+# ("consultant", "directeur", "manager", "engineer") does NOT pass — it must
+# be paired with a product/AI/automation domain.
+# ---------------------------------------------------------------------------
+RELEVANCE_ANCHORS = [
+    # --- Track A: Product Management ---
+    "product manager", "product owner", "product lead", "lead product",
+    "head of product", "product director", "director of product",
+    "vp product", "vp of product", "chief product", "cpo",
+    "product management", "group product manager", "staff product manager",
+    "principal product manager", "senior product manager",
+    "chef de produit", "responsable produit", "directeur produit",
+    "directrice produit", "gestionnaire de produit", "directeur de produit",
+    # --- Track A: AI-flavoured PM ---
+    "ai product", "ai pm", "genai product", "llm product", "ml product",
+    "machine learning product", "ai/ml product",
+    "product manager ai", "product manager - ai", "product manager (ai",
+    # --- Track B: AI automation / builder / consultant ---
+    "ai automation", "automatisation ia", "ai engineer", "ai consultant",
+    "consultant ia", "consultant ai", "ai developer", "ai builder",
+    "ai architect", "ai solutions", "ai specialist", "ai lead", "head of ai",
+    "machine learning engineer", "ml engineer", "mlops", "llm engineer",
+    "generative ai", "prompt engineer", "ingénieur ia", "ingenieur ia",
+    # --- Track B: mobile / Claude Code ---
+    "react native", "claude code", "mobile ai",
+]
+
+
+def _has_relevance_anchor(t: str) -> bool:
+    return any(a in t for a in RELEVANCE_ANCHORS)
+
 
 def classify_title(title: str) -> tuple[bool, str]:
-    """Return (kept, reason). reason='accept' if kept, else 'reject:<reason_key>'."""
+    """Return (kept, reason). reason='accept...' if kept, else 'reject:<reason_key>'.
+
+    Two-gate logic:
+      1. Hard reject (internship/alternance/junior) — overrides everything.
+      2. Relevance allowlist — the title MUST positively match one of the two
+         tracks, otherwise reject as `not_relevant`. This is what stops
+         accounting / SEO / cybersecurity / facilities roles from leaking into
+         the PM fallback tab.
+      3. Project-manager exclusion — if the title says "project manager"
+         (≠ product) AND has no other relevance anchor, reject.
+    """
     t = (title or "").lower().strip()
     if not t:
         return False, "reject:empty_title"
 
-    hit_reason: str | None = None
+    # Gate 1: hard rejects (contract-type / seniority) override everything.
     for reason, substrs in REJECT_SUBSTRINGS.items():
-        for s in substrs:
-            if s in t:
-                hit_reason = reason
-                break
-        if hit_reason:
-            break
+        if reason not in HARD_REJECT_REASONS:
+            continue
+        if any(s in t for s in substrs):
+            return False, f"reject:{reason}"
 
-    if hit_reason is None:
-        return True, "accept"
+    has_anchor = _has_relevance_anchor(t)
 
-    # Apprenticeship / internship reasons are never rescued.
-    if hit_reason in HARD_REJECT_REASONS:
-        return False, f"reject:{hit_reason}"
+    # Gate 3: project-manager exclusion. "AI Project Manager" / "Chef de
+    # projet" are a different role. Reject UNLESS a genuine product/AI anchor
+    # also appears (e.g. "Product Manager / Project Manager").
+    pm_project_hit = any(s in t for s in REJECT_SUBSTRINGS["project_manager"])
+    if pm_project_hit and not has_anchor:
+        return False, "reject:project_manager"
 
-    # For project_manager / junior_or_graduate: rescue if the title ALSO
-    # carries a clear PM/AI-role token.
-    for rescue in PRODUCT_RESCUE_TOKENS:
-        if rescue in t and rescue not in ("project manager", "project management"):
-            return True, "accept:rescued"
+    # Gate 2: relevance allowlist. No anchor → not his profile.
+    if not has_anchor:
+        return False, "reject:not_relevant"
 
-    return False, f"reject:{hit_reason}"
+    return True, ("accept:rescued" if pm_project_hit else "accept")
 
 
 def filter_by_title(jobs: list[NormalizedJob]) -> tuple[list[NormalizedJob], dict]:
