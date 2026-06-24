@@ -111,6 +111,27 @@ MUST_KEEP = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# DESCRIPTION-LEVEL language corpus (audit 2026-06-24).
+#
+# The title-only corpus above passes classify_language(title, "") with an empty
+# description, so it CANNOT catch false-positives that only fire on description
+# text — e.g. the " per " tell wrongly flagging "90k per year" as Italian, which
+# silently dropped English descriptions from RemoteOK / WeWorkRemotely. These
+# entries exercise the description path explicitly. (title, description, keep?)
+# ---------------------------------------------------------------------------
+LANG_DESC_CORPUS = [
+    # English descriptions with words that previously collided with tells.
+    ("AI Product Manager", "Salary: 90k per year. You will own the product roadmap and work with engineering.", True),
+    ("AI Automation Engineer", "Compensation is per market rate. Ship features per sprint cycle.", True),
+    ("React Native Developer", "We weigh the pros and cons of each approach. Build mobile apps.", True),
+    ("Senior Product Manager", "Reviewed per quarter. Manage stakeholders across the org.", True),
+    # Genuinely non-EN/FR descriptions must still be rejected.
+    ("Produktmanager", "Wir suchen einen erfahrenen Produktmanager für unseren Standort mit Verantwortung für die Produktstrategie.", False),
+    ("Product Manager", "Cerchiamo un product manager con esperienza nella gestione della roadmap e degli stakeholder aziendali.", False),
+]
+
+
 def check_regression_corpus() -> list[str]:
     """Run the frozen corpus through the gate. Returns list of failures (empty=OK)."""
     from execution.personal_workflows.job_search_v2.normalizer.title_filter import classify_title
@@ -127,6 +148,12 @@ def check_regression_corpus() -> list[str]:
         lang_ok, _ = classify_language(t, "")
         if not (rel_ok and lang_ok):
             failures.append(f"MUST_KEEP but dropped: '{t[:55]}'")
+    # Description-level language checks (the title-only loop above can't see these).
+    for title, desc, want_keep in LANG_DESC_CORPUS:
+        lang_ok, reason = classify_language(title, desc)
+        if lang_ok != want_keep:
+            verb = "dropped" if want_keep else "kept"
+            failures.append(f"LANG_DESC want_keep={want_keep} but {verb}: '{title[:40]}' ({reason})")
     return failures
 
 

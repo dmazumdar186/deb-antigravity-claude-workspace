@@ -54,11 +54,20 @@ def _strip_gender_markers(s: str) -> str:
 
 # Substring tells for languages we explicitly want to reject. Catches cases
 # where langdetect under-confidence fails open. These are language-specific
-# stopwords that don't appear in EN/FR text.
-DE_TELLS = (" und ", " mit ", " für ", " der ", " die ", " das ", " bei ", " im ", " ein ", " auch ", " sind ", " sich ", " sowie ", " unseren ", " unserem ", " standort ", "traineeprogramm", "produktmanager", " gmbh")
-NL_TELLS = (" een ", " voor ", " naar ", " bij ", " over ", " ook ", " als ", " het ", " maar ", " moet ")
-IT_TELLS = (" del ", " della ", " che ", " sono ", " per ", " sulla ", " con ", " nel ", " nella ", " degli ", " uno ", " una ")
-ES_TELLS = (" del ", " los ", " las ", " una ", " uno ", " con ", " sus ", " para ", " sobre ", " entre ", " donde ")
+# stopwords.
+#
+# HARD CONSTRAINT (audit 2026-06-24): every tell here MUST NOT appear in normal
+# English or French job text. The first cut included " per ", " con ", " una ",
+# " uno ", " del ", " als ", " im ", " ein ", " bij ", " ook ", " het " — all of
+# which collide with English/French ("90k per year", "pros and cons", etc.) and
+# silently dropped valid English descriptions from RemoteOK / WeWorkRemotely.
+# Removed. Only high-specificity multi-char stopwords with no EN/FR collision
+# remain. If a tell could plausibly appear in an English sentence, it does not
+# belong here — let langdetect (>=60 char, >=0.85 conf) make that call instead.
+DE_TELLS = (" und ", " mit ", " für ", " der ", " die ", " das ", " bei ", " sind ", " sich ", " sowie ", " unseren ", " unserem ", " standort ", "traineeprogramm", "produktmanager", " gmbh")
+NL_TELLS = (" een ", " voor ", " naar ", " maar ", " moet ")
+IT_TELLS = (" della ", " degli ", " nella ", " sono ", " sulla ", " nel ", " che ")
+ES_TELLS = (" los ", " las ", " sus ", " para ", " sobre ", " entre ", " donde ")
 NON_EN_FR_TELLS = DE_TELLS + NL_TELLS + IT_TELLS + ES_TELLS
 
 

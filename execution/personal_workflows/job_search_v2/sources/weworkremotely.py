@@ -78,12 +78,34 @@ def _strip_html(html: str) -> str:
     return text[:1500]
 
 
+# Role/seniority words that, if they appear in the pre-colon segment, mean the
+# colon is INSIDE the job title (e.g. "Sr. Product Manager: AI Focus"), not the
+# WWR "Company: Role" separator. In that case we must NOT treat the pre-colon
+# text as the company (audit 2026-06-24).
+_TITLE_WORDS_IN_PRECOLON = (
+    "manager", "engineer", "developer", "lead", "head", "director", "senior",
+    "sr.", "sr ", "principal", "staff", "consultant", "owner", "product",
+    "designer", "architect", "specialist", "analyst", "officer", "vp",
+)
+
+
 def _parse_title(raw_title: str) -> tuple[str, str]:
     """WWR titles often shape as 'CompanyName: Role Title'. Split when present.
-    Returns (company, title). Falls back to ('Unknown', raw_title) if no colon."""
+    Returns (company, title). Falls back to ('Unknown', raw_title) if no colon,
+    or if the pre-colon segment looks like part of the role title rather than a
+    company name (contains a role/seniority word, or is implausibly long)."""
     if ":" in raw_title:
         a, b = raw_title.split(":", 1)
-        return a.strip(), b.strip()
+        company = a.strip()
+        title = b.strip()
+        company_low = company.lower()
+        looks_like_title = (
+            len(company) > 40
+            or any(w in company_low for w in _TITLE_WORDS_IN_PRECOLON)
+            or not title
+        )
+        if not looks_like_title:
+            return company, title
     return "Unknown", raw_title.strip()
 
 

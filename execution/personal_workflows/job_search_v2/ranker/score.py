@@ -47,9 +47,9 @@ RUBRIC_PATH = Path(__file__).resolve().parent / "rubric.md"
 DEFAULT_MODEL = "gemini-2.5-flash"
 RUBRIC_VERSION = "v1-2026-06-15"
 
-# Sheets fallback cell for GEMINI_API_KEY. Lives in Summary!F1 — row 1 survives
-# the per-run `A2:F` clear in refresh_summary(), and column H is outside any
-# range the dashboard writes to. This is a stopgap until the workflow YAML
+# Sheets fallback cell for GEMINI_API_KEY. Lives in Summary!F1 — row 1 is
+# excluded from the `A2:F{n}` batch_clear in refresh_summary(), so this cell
+# survives every run. This is a stopgap until the workflow YAML
 # (which would pass secrets.GEMINI_API_KEY through to the cron env) can land
 # at origin — the PAT lacks `workflow` scope, so direct push is rejected.
 GEMINI_KEY_SHEET_CELL = "F1"

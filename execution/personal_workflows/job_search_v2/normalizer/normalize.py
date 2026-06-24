@@ -47,10 +47,14 @@ def _normalize_contract(raw: str) -> ContractType:
         return ContractType.UNKNOWN
     # Internship/apprentice FIRST so "stage" / "alternance" don't get caught by
     # the broader "contract" / "permanent" rules below.
+    # NB: use a word-boundary regex for "intern" so a source sending "internal"
+    # (e.g. "internal hire") is NOT misclassified as INTERNSHIP and silently
+    # dropped by the contract_filter (audit 2026-06-24).
     if (
-        "stage" in s or "intern" in s or "alternance" in s
+        "stage" in s or "alternance" in s
         or "apprenti" in s or "praktikum" in s or "werkstudent" in s
         or "stagista" in s
+        or re.search(r"\bintern(s|ship|ships)?\b", s)
     ):
         return ContractType.INTERNSHIP
     if (

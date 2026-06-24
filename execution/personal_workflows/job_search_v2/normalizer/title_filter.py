@@ -17,6 +17,7 @@ don't keep re-surfacing, but they never reach the sheet or digest.
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -40,7 +41,6 @@ REJECT_SUBSTRINGS: dict[str, list[str]] = {
     "internship_or_alternance": [
         "alternance", "apprenti", "apprentice", "apprenticeship",
         "stagiaire", "stage h/f", "stage f/h", "stage de fin",
-        "internship", "intern -", "intern,", "intern (",
         "praktikum", "werkstudent",
         "stagista",
     ],
@@ -80,6 +80,14 @@ PRODUCT_RESCUE_TOKENS = [
 # operator doesn't want apprenticeship/internship contracts even if the role
 # title also says "Product Manager".
 HARD_REJECT_REASONS = {"internship_or_alternance", "junior_or_graduate"}
+
+# Word-boundary intern matcher. Catches "Intern", "Interns", "Internship(s)"
+# anywhere in the title — suffix ("AI Automation Intern"), parenthetical
+# ("AI Engineer (Intern)"), or prefix ("Intern - Product"). The \b guards make
+# sure "internal", "international", "alternance" do NOT trip it (audit
+# 2026-06-24: bare-substring "intern" matched "internal"; bare "internship"
+# missed "Intern" at end-of-title). This regex closes both gaps.
+_INTERN_RE = re.compile(r"\bintern(s|ship|ships)?\b", re.IGNORECASE)
 
 # ---------------------------------------------------------------------------
 # RELEVANCE ALLOWLIST (2026-06-24 — the core fix)
@@ -141,6 +149,10 @@ def classify_title(title: str) -> tuple[bool, str]:
         return False, "reject:empty_title"
 
     # Gate 1: hard rejects (contract-type / seniority) override everything.
+    # Intern check uses a word-boundary regex (not substring) so it catches
+    # "Intern" as a suffix / parenthetical without matching "internal".
+    if _INTERN_RE.search(t):
+        return False, "reject:internship_or_alternance"
     for reason, substrs in REJECT_SUBSTRINGS.items():
         if reason not in HARD_REJECT_REASONS:
             continue

@@ -178,6 +178,17 @@ def calculate_health(pipeline_stats: dict, per_tab_totals: dict | None = None) -
     fresh_ok = age_h < TARGET_FRESHNESS_HOURS
     coverage_ok = contributing >= TARGET_SOURCES
     confidence_signals = sum([sample_ok, fresh_ok, coverage_ok])
+
+    # Ranker quality: if Gemini did NOT score anything (down / quota / no key)
+    # and the A/B tiers came entirely from the heuristic fallback, the tiers are
+    # less trustworthy — the score must NOT read HIGH off heuristic estimates
+    # (audit 2026-06-24: heuristic-only run inflated to 94.5 GOOD/HIGH). We don't
+    # change the score math; we cap confidence and surface the fallback loudly.
+    scored = ranker.get("scored", 0) or 0
+    placeholder = ranker.get("placeholder", 0) or 0
+    llm_used = scored > 0
+    heuristic_only = (not llm_used) and (placeholder > 0 or total_ranked > 1)
+
     if confidence_signals == 3:
         confidence_label = "HIGH"
         confidence_score = 0.95
@@ -191,6 +202,13 @@ def calculate_health(pipeline_stats: dict, per_tab_totals: dict | None = None) -
         confidence_label = "VERY LOW"
         confidence_score = 0.15
 
+    if heuristic_only:
+        # Heuristic estimates can't earn HIGH confidence. Cap one level down.
+        if confidence_label == "HIGH":
+            confidence_label, confidence_score = "MEDIUM", 0.65
+        elif confidence_label == "MEDIUM":
+            confidence_label, confidence_score = "LOW", 0.4
+
     return {
         "overall_score": overall,
         "confidence": confidence_label,
@@ -201,6 +219,8 @@ def calculate_health(pipeline_stats: dict, per_tab_totals: dict | None = None) -
             "coverage_ok": coverage_ok,
             "passing": f"{confidence_signals}/3",
         },
+        "llm_used": llm_used,
+        "heuristic_only": heuristic_only,
         "dimensions": dimensions,
         "math": "overall = sum(dim.value * dim.weight) * 100. confidence = HIGH if all 3 of (sample≥50, fresh<25h, sources≥3) else MEDIUM if 2/3 else LOW.",
     }
@@ -216,6 +236,13 @@ def render_for_sheet(health: dict) -> list[list[str]]:
         f"confidence: sample_ok={cc.get('sample_size_ok')} fresh_ok={cc.get('freshness_ok')} coverage_ok={cc.get('coverage_ok')} ({cc.get('passing')})",
         "",
     ])
+    if health.get("heuristic_only"):
+        rows.append([
+            "LLM ranking: NO (heuristic fallback)",
+            "Gemini did not score this run — A/B tiers are rule-of-thumb estimates, not LLM-judged. Treat fit scores as approximate.",
+        ])
+    else:
+        rows.append(["LLM ranking: yes", "Gemini scored the jobs this run."])
     rows.append(["math:", health.get("math", "")])
     rows.append(["", ""])
     rows.append(["DIMENSION", "STATUS  |  raw  |  value × weight = contribution  |  target  |  notes"])

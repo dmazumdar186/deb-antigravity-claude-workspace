@@ -667,12 +667,19 @@ def main() -> int:
     pipeline_stats["summary_ok"] = summary_ok
     pipeline_stats["per_tab_totals"] = per_tab_totals
 
-    # Stage 5b: ACCEPTANCE GATE (unskippable). After the sheet is written, run
-    # the acceptance test on what actually landed. A run that produced junk
-    # output (irrelevant / non-EN-FR / out-of-scope rows) is a FAILED run, even
-    # though every prior stage "succeeded". This is the guardrail that does not
-    # depend on a human remembering to look. Skipped on --dry-run (nothing
-    # written) and on --no-acceptance (escape hatch for debugging).
+    # Stage 5b: ACCEPTANCE GATE. After the sheet is written, run the acceptance
+    # test on what actually landed. A run that produced junk output (irrelevant /
+    # non-EN-FR / out-of-scope rows) is a FAILED run, even though every prior
+    # stage "succeeded". This is the guardrail that does not depend on a human
+    # remembering to look.
+    #   - Runs by default on every real run (cron MUST NOT pass --no-acceptance).
+    #   - Skippable ONLY via --no-acceptance, a debugging escape hatch; never add
+    #     it to the GH Actions cron YAML.
+    #   - LIMITATION: the gate runs AFTER the sheet write, so junk is already on
+    #     the sheet when it fails — the non-zero exit (code 3) flags the run red
+    #     but does not roll the rows back. A failed run's rows are purged on the
+    #     next clean run's Stage 4 clear; for an immediate scrub run
+    #     purge_irrelevant_rows.py.
     acceptance_ok = True
     if not args.dry_run and not args.no_acceptance:
         try:
@@ -693,6 +700,12 @@ def main() -> int:
             logger.error("run: acceptance harness error: %s", exc)
     else:
         pipeline_stats["acceptance"] = "skipped (dry_run or --no-acceptance)"
+        if not args.dry_run and args.no_acceptance:
+            logger.warning(
+                "run: ACCEPTANCE GATE SKIPPED via --no-acceptance on a REAL run — "
+                "output quality is UNVERIFIED. This flag is for debugging only and "
+                "must never be set in the cron."
+            )
 
     # Reliability counter — n=1 is not reliability. Track CONSECUTIVE acceptance
     # PASS runs in a small JSON state file. A PASS increments; any FAIL resets to
