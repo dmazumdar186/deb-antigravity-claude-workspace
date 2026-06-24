@@ -42,6 +42,10 @@ NON_FR_LOCATION_MARKERS = [
     "switzerland", "suisse", "schweiz", "svizzera", "geneva", "genève", "geneve",
     "genf", "zurich", "zürich", "lausanne", "bern", "berne", "basel", "bâle",
     "lugano", "winterthur", "zug",
+    # Place-agnostic markers for remote-only sources (RemoteOK / WeWorkRemotely)
+    # — these jobs are legitimately Unknown-contract because the listing carries
+    # no country-specific employment classification.
+    "remote", "anywhere", "worldwide", "global",
 ]
 # Title substrings that should NEVER appear in any role tab (per the 2026-06-24
 # title filter). Mirrored from execution/.../normalizer/title_filter.py — if the
@@ -59,6 +63,7 @@ KNOWN_SOURCES = {
     "france_travail", "wttj", "wttj_algolia", "apec",
     "linkedin_gmail", "linkedin_guest_api",
     "indeed_gmail", "hellowork_gmail", "jobgether_gmail",
+    "remoteok", "weworkremotely",
     "fixture", "",
 }
 ROLE_TABS = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]

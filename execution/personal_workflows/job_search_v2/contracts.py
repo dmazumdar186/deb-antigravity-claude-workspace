@@ -28,6 +28,8 @@ class JobSource(str, Enum):
     INDEED_GMAIL = "indeed_gmail"
     HELLOWORK_GMAIL = "hellowork_gmail"
     JOBGETHER_GMAIL = "jobgether_gmail"
+    REMOTEOK = "remoteok"
+    WEWORKREMOTELY = "weworkremotely"
     FIXTURE = "fixture"  # used by tests/synthetic only
 
 

@@ -84,6 +84,84 @@ RUN_LOG = PROJECT_ROOT / ".tmp" / "job_search_v2" / "run_log.jsonl"
 # the existing GH Actions cache step, so the lock state piggy-backs on it for free.
 EMAIL_LOCK_KEY = "last_email_sent_utc"
 
+# File-based fallback lock — survives even when seen.db is wiped because the
+# GH Actions cache key for seen.db has been broken on origin/main (cache-key
+# fix `7cae20a` is local-only pending workflow PAT scope). The Summary tab
+# Gmail-side state OR the Google Sheets-side meta cell would be more robust
+# still, but the simplest available durable surface that survives a cron
+# invocation is the Google Sheet itself — see _gsheet_email_lock_get / _set
+# below for that path. The local file is used in dev mode + as a belt-and-
+# suspenders inside one process.
+EMAIL_LOCK_FILE = PROJECT_ROOT / ".tmp" / "job_search_v2" / "last_email_sent_utc.txt"
+
+# Google Sheets meta cell — Summary tab, cell `D1`. Persists across cron runs
+# regardless of seen.db cache state. Empty if never written.
+GSHEET_EMAIL_LOCK_CELL = "D1"
+
+
+def _gsheet_email_lock_get() -> str | None:
+    """Read the email-lock timestamp from the Summary tab's D1 cell. Returns
+    None on any failure (creds missing / sheet unreachable / cell empty)."""
+    try:
+        from execution.personal_workflows.job_search_v2.notifier.sheet import _open_sheet
+    except ImportError:
+        return None
+    try:
+        sp, err = _open_sheet(None, None)
+        if sp is None:
+            return None
+        ws = sp.worksheet("Summary")
+        val = ws.acell(GSHEET_EMAIL_LOCK_CELL).value
+        return val.strip() if val else None
+    except Exception as exc:  # noqa: BLE001 — best-effort read
+        logger.warning("email_lock: gsheet read failed: %s", exc)
+        return None
+
+
+def _gsheet_email_lock_set(now_iso: str) -> None:
+    try:
+        from execution.personal_workflows.job_search_v2.notifier.sheet import _open_sheet
+    except ImportError:
+        return
+    try:
+        sp, err = _open_sheet(None, None)
+        if sp is None:
+            return
+        ws = sp.worksheet("Summary")
+        ws.update(range_name=GSHEET_EMAIL_LOCK_CELL, values=[[now_iso]], value_input_option="USER_ENTERED")
+    except Exception as exc:  # noqa: BLE001 — best-effort write
+        logger.warning("email_lock: gsheet write failed: %s", exc)
+
+
+def _read_prior_iso(db_path: Path = DEFAULT_DB_PATH) -> tuple[str | None, str]:
+    """Read the prior-email-sent timestamp from the most authoritative source
+    that's available. Returns (prior_iso, source_label).
+
+    Order: Google Sheets meta-cell → seen.db meta KV → local file.
+    The Sheets cell is the only one that survives a cache-key-broken cron, so
+    it wins ties. Sources that aren't available are silently skipped.
+    """
+    prior = _gsheet_email_lock_get()
+    if prior:
+        return prior, "gsheet:Summary!D1"
+
+    try:
+        prior = get_meta(db_path, EMAIL_LOCK_KEY)
+    except Exception as exc:  # noqa: BLE001 — seen.db absent / corrupt
+        logger.warning("email_lock: seen.db meta read failed: %s", exc)
+        prior = None
+    if prior:
+        return prior, "seen.db:meta"
+
+    try:
+        if EMAIL_LOCK_FILE.exists():
+            prior = EMAIL_LOCK_FILE.read_text(encoding="utf-8").strip()
+            if prior:
+                return prior, str(EMAIL_LOCK_FILE)
+    except OSError as exc:
+        logger.warning("email_lock: file read failed: %s", exc)
+    return None, "none"
+
 
 def _email_lock_blocks_send(
     min_hours_between_emails: float,
@@ -93,33 +171,45 @@ def _email_lock_blocks_send(
     """Check whether the email lock should block this send.
 
     Returns (blocked, reason). Blocked=True if the last send was less than
-    min_hours_between_emails ago. State lives in seen.db meta KV (cached across cron).
+    min_hours_between_emails ago. State lives in (priority order): Google
+    Sheets Summary!D1 → seen.db meta KV → local file. The gsheet path
+    survives even when the CI cache key for seen.db is broken.
     """
     if min_hours_between_emails <= 0:
         return False, "email_lock disabled (min_hours_between_emails <= 0)"
-    try:
-        prior_iso = get_meta(db_path, EMAIL_LOCK_KEY)
-    except Exception as exc:  # noqa: BLE001 — seen.db absent / corrupt → treat as no prior send.
-        return False, f"meta read failed ({exc}); treating as no prior send"
+    prior_iso, source = _read_prior_iso(db_path)
     if not prior_iso:
-        return False, "no prior send recorded"
+        return False, "no prior send recorded across any source"
     try:
         prior = datetime.fromisoformat(prior_iso.replace("Z", "+00:00"))
     except ValueError as exc:
-        return False, f"state value unreadable ({exc}); treating as no prior send"
+        return False, f"state value unreadable from {source} ({exc}); treating as no prior send"
     if prior.tzinfo is None:
         prior = prior.replace(tzinfo=timezone.utc)
     delta_hours = (now_utc - prior).total_seconds() / 3600.0
     if delta_hours < min_hours_between_emails:
         return True, (
-            f"email lock: last send was {delta_hours:.1f}h ago "
+            f"email lock [{source}]: last send was {delta_hours:.1f}h ago "
             f"(< {min_hours_between_emails:.1f}h floor) — skipping to prevent dual-cron spam"
         )
-    return False, f"email lock cleared: last send was {delta_hours:.1f}h ago"
+    return False, f"email lock cleared [{source}]: last send was {delta_hours:.1f}h ago"
 
 
 def _stamp_email_sent(now_utc: datetime, db_path: Path = DEFAULT_DB_PATH) -> None:
-    set_meta(db_path, EMAIL_LOCK_KEY, now_utc.isoformat())
+    """Stamp ALL three persistence layers so any of them can answer the next
+    check. Defense in depth: if Sheets is unreachable today, file and seen.db
+    still record the send; if CI wipes seen.db, the Sheets cell still wins."""
+    iso = now_utc.isoformat()
+    try:
+        set_meta(db_path, EMAIL_LOCK_KEY, iso)
+    except Exception as exc:  # noqa: BLE001 — seen.db absent
+        logger.warning("email_lock: seen.db meta write failed: %s", exc)
+    try:
+        EMAIL_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+        EMAIL_LOCK_FILE.write_text(iso, encoding="utf-8")
+    except OSError as exc:
+        logger.warning("email_lock: file write failed: %s", exc)
+    _gsheet_email_lock_set(iso)
 
 
 # ----- source dispatch -----
@@ -247,6 +337,24 @@ def _fetch_wttj_algolia(mode: str, max_pages: int) -> list[SourceJob]:
     return all_jobs
 
 
+def _fetch_remoteok(mode: str, max_pages: int) -> list[SourceJob]:
+    from execution.personal_workflows.job_search_v2.sources import remoteok
+    if mode == "fixture":
+        return remoteok.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "remoteok_sample.json")
+    try:
+        return remoteok.fetch(max_jobs=200)
+    except remoteok.RemoteOKBlockedError as exc:
+        logger.warning("run: remoteok blocked - %s. Skipping source.", exc)
+        return []
+
+
+def _fetch_weworkremotely(mode: str, max_pages: int) -> list[SourceJob]:
+    from execution.personal_workflows.job_search_v2.sources import weworkremotely
+    if mode == "fixture":
+        return weworkremotely.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "weworkremotely_sample.xml")
+    return weworkremotely.fetch(max_jobs=200)
+
+
 _DISPATCH = {
     JobSource.FRANCE_TRAVAIL.value: _fetch_france_travail,
     JobSource.WTTJ.value: _fetch_wttj,
@@ -257,6 +365,8 @@ _DISPATCH = {
     JobSource.INDEED_GMAIL.value: _fetch_indeed_gmail,
     JobSource.HELLOWORK_GMAIL.value: _fetch_hellowork_gmail,
     JobSource.JOBGETHER_GMAIL.value: _fetch_jobgether_gmail,
+    JobSource.REMOTEOK.value: _fetch_remoteok,
+    JobSource.WEWORKREMOTELY.value: _fetch_weworkremotely,
 }
 
 
@@ -311,7 +421,7 @@ def main() -> int:
         #   apec                  — Playwright + Didomi consent gate blocks headless
         #   indeed_gmail / hellowork_gmail / jobgether_gmail — require user-side alert setup
         # Opt them back in by passing --sources explicitly.
-        default="france_travail,linkedin_guest_api,wttj_algolia,linkedin_gmail",
+        default="france_travail,linkedin_guest_api,wttj_algolia,linkedin_gmail,remoteok,weworkremotely",
         help="Comma-separated subset of sources to run.",
     )
     parser.add_argument("--max-pages", type=int, default=3)

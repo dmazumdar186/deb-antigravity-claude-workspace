@@ -72,6 +72,24 @@ DEFAULT_GEO_ID = "104246759"
 # would miss in DE / CH-Deutschschweiz / BE-Flanders / CH-Ticino respectively. Each
 # entry is a separate search request; cross-keyword overlap dedups by jobId for free.
 DEFAULT_KEYWORDS = [
+    # --- AI tabs FIRST so they reach LinkedIn before the per-region block
+    # threshold (~25 calls/region on 2026-06-24's run). Keyword reordering done
+    # 2026-06-24 evening — previously the AI keywords were at the bottom and the
+    # CH-region block triggered after the PM block, leaving AI tabs empty. ---
+    "AI automation engineer",
+    "AI automation specialist",
+    "AI automation consultant",
+    "AI engineer",
+    "AI consultant",
+    "AI strategy consultant",
+    "AI transformation consultant",
+    "AI solutions consultant",
+    "AI process automation",
+    "process automation engineer",
+    "process intelligence",
+    "AI mobile developer",
+    "mobile AI engineer",
+    "automation product manager",
     # --- PM core (English, global) ---
     "product manager",
     "senior product manager",
@@ -92,24 +110,6 @@ DEFAULT_KEYWORDS = [
     "product eigenaar",
     # --- PM core (Italian) ---
     "responsabile di prodotto",
-    # --- AI Automation / Engineering (added 2026-06-24 to feed AI tabs) ---
-    "AI automation engineer",
-    "AI automation specialist",
-    "AI automation consultant",
-    "automation product manager",
-    "AI engineer",
-    # --- AI Mobile ---
-    "AI mobile developer",
-    "mobile AI engineer",
-    # --- AI Process ---
-    "AI process automation",
-    "process automation engineer",
-    "process intelligence",
-    # --- AI Consultant ---
-    "AI consultant",
-    "AI strategy consultant",
-    "AI transformation consultant",
-    "AI solutions consultant",
 ]
 
 # 48h window matches sivad259's pattern and gives the dedup layer enough new variety

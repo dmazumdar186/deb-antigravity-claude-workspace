@@ -192,18 +192,18 @@ def rank_jobs(
         response_mime_type="application/json",
         response_schema=batch_schema,
         temperature=0.2,
-        max_output_tokens=64000,
+        max_output_tokens=20000,
     )
 
     fallback_model = "gemini-2.5-flash-lite"
 
     # Build a job_id → job map so we can stitch the LLM response back to each job.
     id_to_job: dict[str, NormalizedJob] = {}
-    payload_items = []
+    all_payload_items = []
     for j in jobs:
         short_id = j.content_hash[:16]
         id_to_job[short_id] = j
-        payload_items.append({
+        all_payload_items.append({
             "job_id": short_id,
             "title": j.title,
             "company": j.company,
@@ -214,82 +214,97 @@ def rank_jobs(
             "posted_at": j.posted_at.isoformat() if j.posted_at else "unknown",
             "description_snippet": j.description_snippet[:400],
         })
-    batch_payload = json.dumps({"jobs": payload_items}, ensure_ascii=False)
 
-    def _call_once(model_name: str):
-        return client.models.generate_content(model=model_name, contents=batch_payload, config=cfg)
+    # CHUNKING — 445-job single calls had been timing out ("Server disconnected
+    # without sending a response") because the model takes ~30-60s to produce a
+    # 64k-token output and the default httpx timeout fires. Split into chunks
+    # of ~80 jobs each; sleep 7s between (10 RPM free-tier budget). Each chunk
+    # gets its own 3-retry + fallback-model loop, so one chunk's failure only
+    # drops ~80 jobs to heuristic, not all 445.
+    CHUNK_SIZE = 80
+    SLEEP_BETWEEN_CHUNKS = 7.0
+    # Retriable error markers (added: "disconnected" / "timeout" / "INTERNAL"
+    # to catch the mid-batch socket close + the Gemini-side 500s.).
+    RETRY_MARKERS = (
+        "503", "429", "500",
+        "UNAVAILABLE", "RESOURCE_EXHAUSTED", "INTERNAL", "DEADLINE_EXCEEDED",
+        "disconnected", "timeout", "Timeout",
+    )
 
-    resp = None
-    used_model = model
-    last_exc: Exception | None = None
-    for attempt in (1, 2, 3):
-        try:
-            use = model if attempt < 3 else fallback_model
-            resp = _call_once(use)
-            used_model = use
-            last_exc = None
-            break
-        except Exception as exc:  # noqa: BLE001 — Gemini surface; backoff + retry
-            last_exc = exc
-            msg = str(exc)
-            if not any(k in msg for k in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")):
-                break
-            time.sleep(2.0 * attempt)
-
-    if resp is None or last_exc is not None:
-        # Quota exhausted or transient failure — heuristic fallback so the dashboard
-        # is never blank. Score by simple title-keyword match against high-signal phrases.
-        logger.warning("ranker: batch call failed (%s) — using heuristic fallback", last_exc)
-        for j in jobs:
-            score = _heuristic_score(j)
-            tier = _tier_from_score(score)
-            reasoning = f"heuristic (LLM unavailable: {type(last_exc).__name__ if last_exc else 'unknown'})"
-            out[j.content_hash] = RankedJob(
-                content_hash=j.content_hash,
-                score=score,
-                tier=tier,
-                reasoning=reasoning,
-                rubric_version="heuristic-v1",
-                ranker_model="heuristic",
-            )
-            stats["placeholder"] += 1
-            stats["by_tier"][tier.value] += 1
-        logger.info("ranker: %s", stats)
-        return out, stats
-
-    try:
-        data = json.loads(resp.text or "{}")
-        results = data.get("results", [])
-    except (ValueError, json.JSONDecodeError) as exc:
-        logger.warning("ranker: batch response parse failed (%s) — heuristic fallback", exc)
-        results = []
+    def _call_chunk(model_name: str, payload_items: list[dict]):
+        payload = json.dumps({"jobs": payload_items}, ensure_ascii=False)
+        return client.models.generate_content(model=model_name, contents=payload, config=cfg)
 
     scored_ids: set[str] = set()
-    for r in results:
-        jid = str(r.get("job_id", "")).strip()
-        if jid not in id_to_job:
-            continue
-        job = id_to_job[jid]
-        try:
-            score = max(0.0, min(1.0, float(r.get("score", 0.5))))
-            tier_str = str(r.get("tier", "B")).upper()
-            tier = JobTier(tier_str) if tier_str in {"A", "B", "C", "SKIP"} else _tier_from_score(score)
-            reasoning = str(r.get("reasoning", ""))[:600]
-            out[job.content_hash] = RankedJob(
-                content_hash=job.content_hash,
-                score=score,
-                tier=tier,
-                reasoning=reasoning,
-                rubric_version=RUBRIC_VERSION,
-                ranker_model=used_model,
-            )
-            stats["scored"] += 1
-            stats["by_tier"][tier.value] += 1
-            scored_ids.add(jid)
-        except (ValueError, KeyError) as exc:
-            logger.warning("ranker: result for %s malformed (%s) — heuristic", jid, exc)
+    chunk_failures: list[str] = []  # store exception class names for stats
+    chunks = [all_payload_items[i:i + CHUNK_SIZE] for i in range(0, len(all_payload_items), CHUNK_SIZE)]
 
-    # Any job not in the response → heuristic fallback (don't drop on the floor).
+    for chunk_idx, chunk in enumerate(chunks):
+        if chunk_idx > 0:
+            time.sleep(SLEEP_BETWEEN_CHUNKS)
+
+        resp = None
+        used_model = model
+        last_exc: Exception | None = None
+        for attempt in (1, 2, 3):
+            try:
+                use = model if attempt < 3 else fallback_model
+                resp = _call_chunk(use, chunk)
+                used_model = use
+                last_exc = None
+                break
+            except Exception as exc:  # noqa: BLE001 — Gemini surface; backoff + retry
+                last_exc = exc
+                msg = str(exc)
+                if not any(k in msg for k in RETRY_MARKERS):
+                    break
+                time.sleep(2.0 * attempt)
+
+        if resp is None or last_exc is not None:
+            logger.warning(
+                "ranker: chunk %d/%d failed (%s: %s) — chunk falls to heuristic",
+                chunk_idx + 1, len(chunks), type(last_exc).__name__ if last_exc else "unknown",
+                last_exc,
+            )
+            chunk_failures.append(type(last_exc).__name__ if last_exc else "unknown")
+            continue
+
+        try:
+            data = json.loads(resp.text or "{}")
+            results = data.get("results", [])
+        except (ValueError, json.JSONDecodeError) as exc:
+            logger.warning("ranker: chunk %d response parse failed (%s)", chunk_idx + 1, exc)
+            chunk_failures.append("ParseError")
+            continue
+
+        for r in results:
+            jid = str(r.get("job_id", "")).strip()
+            if jid not in id_to_job:
+                continue
+            job = id_to_job[jid]
+            try:
+                score = max(0.0, min(1.0, float(r.get("score", 0.5))))
+                tier_str = str(r.get("tier", "B")).upper()
+                tier = JobTier(tier_str) if tier_str in {"A", "B", "C", "SKIP"} else _tier_from_score(score)
+                reasoning = str(r.get("reasoning", ""))[:600]
+                out[job.content_hash] = RankedJob(
+                    content_hash=job.content_hash,
+                    score=score,
+                    tier=tier,
+                    reasoning=reasoning,
+                    rubric_version=RUBRIC_VERSION,
+                    ranker_model=used_model,
+                )
+                stats["scored"] += 1
+                stats["by_tier"][tier.value] += 1
+                scored_ids.add(jid)
+            except (ValueError, KeyError) as exc:
+                logger.warning("ranker: result for %s malformed (%s) — heuristic", jid, exc)
+
+    if chunk_failures:
+        stats["chunk_failures"] = chunk_failures
+
+    # Any job not in any response → heuristic fallback (don't drop on the floor).
     for j in jobs:
         if j.content_hash[:16] in scored_ids:
             continue
@@ -299,7 +314,7 @@ def rank_jobs(
             content_hash=j.content_hash,
             score=score,
             tier=tier,
-            reasoning="heuristic (LLM omitted this job from response)",
+            reasoning="heuristic (LLM unavailable or omitted this job)",
             rubric_version="heuristic-v1",
             ranker_model="heuristic",
         )
