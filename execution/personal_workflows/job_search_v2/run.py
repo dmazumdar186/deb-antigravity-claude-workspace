@@ -114,8 +114,12 @@ def _gsheet_email_lock_get() -> str | None:
         if sp is None:
             return None
         ws = sp.worksheet("Summary")
-        val = ws.acell(GSHEET_EMAIL_LOCK_CELL).value
-        return val.strip() if val else None
+        # FORMULA bypasses Sheets' display formatter, so a previously-USER_ENTERED
+        # write that got coerced to a date is still readable as text. New writes go
+        # in as RAW (see _gsheet_email_lock_set) so this matters mainly for the
+        # transition cron after the TZ-bug fix.
+        val = ws.acell(GSHEET_EMAIL_LOCK_CELL, value_render_option="FORMULA").value
+        return str(val).strip() if val else None
     except Exception as exc:  # noqa: BLE001 — best-effort read
         logger.warning("email_lock: gsheet read failed: %s", exc)
         return None
@@ -131,7 +135,13 @@ def _gsheet_email_lock_set(now_iso: str) -> None:
         if sp is None:
             return
         ws = sp.worksheet("Summary")
-        ws.update(range_name=GSHEET_EMAIL_LOCK_CELL, values=[[now_iso]], value_input_option="USER_ENTERED")
+        # RAW (not USER_ENTERED) so Sheets stores the literal ISO string. USER_ENTERED
+        # made Sheets parse the timestamp through the operator's locale (Europe/Paris),
+        # dropping the UTC offset and replaying ~2-4h earlier on read-back — which made
+        # next-day same-time runs trip the 22h floor and skip the digest. See incident
+        # 2026-06-25: dual cron at 10:13+10:36 UTC both reported "19.8h ago" anchored
+        # on yesterday's 10:44 UTC send rendered through Paris locale.
+        ws.update(range_name=GSHEET_EMAIL_LOCK_CELL, values=[[now_iso]], value_input_option="RAW")
     except Exception as exc:  # noqa: BLE001 — best-effort write
         logger.warning("email_lock: gsheet write failed: %s", exc)
 
@@ -621,65 +631,18 @@ def main() -> int:
         "top_matches_written": top_count,
         "top_matches_ok": top_ok,
     }
-    # Email lock — prevents dual-cron (07:00 UTC + 08:00 UTC DST workaround) double-send.
-    # Dry-run runs never check the lock and never stamp it (so manual workflow_dispatch
-    # tests don't clobber the production state).
-    now_utc = datetime.now(timezone.utc)
-    if args.dry_run:
-        email_sent, subject, body = email_notifier.send_digest(
-            ranked_filtered, pipeline_stats, dry_run=True, ranked_by_hash=ranked_by_hash,
-        )
-        pipeline_stats["email_lock"] = "skipped (dry_run)"
-    else:
-        blocked, reason = _email_lock_blocks_send(args.min_hours_between_emails, now_utc)
-        pipeline_stats["email_lock"] = reason
-        if blocked:
-            logger.info("notifier.email: %s", reason)
-            # Still build the body so we have it in the run-log for debugging, but don't send.
-            subject, body = email_notifier.build_digest(
-                ranked_filtered, pipeline_stats,
-                os.environ.get("SHEETS_SPREADSHEET_ID", "").strip() or None,
-                ranked_by_hash=ranked_by_hash,
-            )
-            email_sent = False
-        else:
-            email_sent, subject, body = email_notifier.send_digest(
-                ranked_filtered, pipeline_stats, dry_run=False, ranked_by_hash=ranked_by_hash,
-            )
-            if email_sent:
-                _stamp_email_sent(now_utc)
-    pipeline_stats["email_sent"] = email_sent
-    pipeline_stats["email_subject"] = subject
-
-    # Stage 4c: refresh Summary tab with full pipeline_stats + all-time totals.
-    role_tabs = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
-    per_tab_totals: dict[str, int] = {}
-    if not args.dry_run:
-        try:
-            per_tab_totals = sheet_notifier.count_existing_rows(role_tabs)
-        except Exception as exc:  # noqa: BLE001 — best-effort summary input
-            logger.warning("run: count_existing_rows failed: %s", exc)
-    summary_ok = sheet_notifier.refresh_summary(
-        pipeline_stats,
-        per_tab_totals=per_tab_totals,
-        dry_run=args.dry_run,
-    )
-    pipeline_stats["summary_ok"] = summary_ok
-    pipeline_stats["per_tab_totals"] = per_tab_totals
-
-    # Stage 5b: ACCEPTANCE GATE. After the sheet is written, run the acceptance
-    # test on what actually landed. A run that produced junk output (irrelevant /
-    # non-EN-FR / out-of-scope rows) is a FAILED run, even though every prior
-    # stage "succeeded". This is the guardrail that does not depend on a human
-    # remembering to look.
-    #   - Runs by default on every real run (cron MUST NOT pass --no-acceptance).
+    # Stage 4c: ACCEPTANCE GATE — runs BEFORE the email so a junk-output day
+    # never reaches the operator's inbox. The gate reads every row actually on
+    # the live sheet (post-Stage 4 append) and rejects irrelevant / non-EN-FR /
+    # out-of-scope / broken-link rows against a frozen corpus.
+    #   - PASS → email is allowed to fire (subject to the dual-cron lock).
+    #   - FAIL → email is blocked, run exits non-zero (code 3) so the cron is red.
     #   - Skippable ONLY via --no-acceptance, a debugging escape hatch; never add
     #     it to the GH Actions cron YAML.
-    #   - LIMITATION: the gate runs AFTER the sheet write, so junk is already on
-    #     the sheet when it fails — the non-zero exit (code 3) flags the run red
-    #     but does not roll the rows back. A failed run's rows are purged on the
-    #     next clean run's Stage 4 clear; for an immediate scrub run
-    #     purge_irrelevant_rows.py.
+    #   - LIMITATION: rows are already on the sheet when the gate fails — the
+    #     non-zero exit flags the run red but does not roll rows back. They get
+    #     purged on the next clean run's Stage 4 clear; for an immediate scrub
+    #     run purge_irrelevant_rows.py.
     acceptance_ok = True
     if not args.dry_run and not args.no_acceptance:
         try:
@@ -706,6 +669,67 @@ def main() -> int:
                 "output quality is UNVERIFIED. This flag is for debugging only and "
                 "must never be set in the cron."
             )
+
+    # Stage 4d: Email — gated on the acceptance result above. Dry-run runs never
+    # check the lock and never stamp it (so manual workflow_dispatch tests don't
+    # clobber the production state).
+    now_utc = datetime.now(timezone.utc)
+    if args.dry_run:
+        email_sent, subject, body = email_notifier.send_digest(
+            ranked_filtered, pipeline_stats, dry_run=True, ranked_by_hash=ranked_by_hash,
+        )
+        pipeline_stats["email_lock"] = "skipped (dry_run)"
+    elif not acceptance_ok:
+        # Acceptance failed — build the body for the run-log but do NOT send.
+        # The operator gets silence + a red cron instead of a junk inbox.
+        subject, body = email_notifier.build_digest(
+            ranked_filtered, pipeline_stats,
+            os.environ.get("SHEETS_SPREADSHEET_ID", "").strip() or None,
+            ranked_by_hash=ranked_by_hash,
+        )
+        email_sent = False
+        pipeline_stats["email_lock"] = "skipped (acceptance gate FAIL — see acceptance field)"
+        logger.warning(
+            "notifier.email: skipped because acceptance gate FAILED — "
+            "operator would otherwise receive a junk digest."
+        )
+    else:
+        blocked, reason = _email_lock_blocks_send(args.min_hours_between_emails, now_utc)
+        pipeline_stats["email_lock"] = reason
+        if blocked:
+            logger.info("notifier.email: %s", reason)
+            # Still build the body so we have it in the run-log for debugging, but don't send.
+            subject, body = email_notifier.build_digest(
+                ranked_filtered, pipeline_stats,
+                os.environ.get("SHEETS_SPREADSHEET_ID", "").strip() or None,
+                ranked_by_hash=ranked_by_hash,
+            )
+            email_sent = False
+        else:
+            email_sent, subject, body = email_notifier.send_digest(
+                ranked_filtered, pipeline_stats, dry_run=False, ranked_by_hash=ranked_by_hash,
+            )
+            if email_sent:
+                _stamp_email_sent(now_utc)
+    pipeline_stats["email_sent"] = email_sent
+    pipeline_stats["email_subject"] = subject
+
+    # Stage 4e: refresh Summary tab with full pipeline_stats + all-time totals.
+    # Runs AFTER email so the Summary tab reflects the final email/acceptance status.
+    role_tabs = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
+    per_tab_totals: dict[str, int] = {}
+    if not args.dry_run:
+        try:
+            per_tab_totals = sheet_notifier.count_existing_rows(role_tabs)
+        except Exception as exc:  # noqa: BLE001 — best-effort summary input
+            logger.warning("run: count_existing_rows failed: %s", exc)
+    summary_ok = sheet_notifier.refresh_summary(
+        pipeline_stats,
+        per_tab_totals=per_tab_totals,
+        dry_run=args.dry_run,
+    )
+    pipeline_stats["summary_ok"] = summary_ok
+    pipeline_stats["per_tab_totals"] = per_tab_totals
 
     # Reliability counter — n=1 is not reliability. Track CONSECUTIVE acceptance
     # PASS runs in a small JSON state file. A PASS increments; any FAIL resets to
@@ -750,10 +774,32 @@ def main() -> int:
         sys.stdout.write(body + "\n")
     except UnicodeEncodeError:
         sys.stdout.buffer.write((body + "\n").encode("utf-8", errors="replace"))
-    # Non-zero exit on acceptance failure so the cron / caller SEES a junk run as
-    # a failed run, not a green one. The sheet write already happened, but the
-    # alarm is loud and the run-log records acceptance=FAIL.
-    return 0 if acceptance_ok else 3
+    # Non-zero exit conditions (richer than just acceptance) so the cron / caller
+    # SEES every silent-failure class as a red run, not a green one. The sheet
+    # write already happened in failure cases, but the alarm is loud and the
+    # run-log records the verdict for forensics.
+    #   exit 3 = acceptance gate FAILED (junk in output — email was blocked)
+    #   exit 4 = email send was expected but did NOT happen for any unexpected
+    #            reason (SMTP error, missing creds, etc.) — i.e. acceptance passed
+    #            and the lock did not block, but email_sent is still false.
+    #   exit 0 = all-good OR the skip was deliberate (dry-run, lock-blocked, or
+    #            acceptance FAIL which already returned 3)
+    if not acceptance_ok:
+        return 3
+    if not args.dry_run:
+        lock_reason = str(pipeline_stats.get("email_lock", ""))
+        deliberate_skip = (
+            lock_reason.startswith("email lock [")  # lock fired — within floor
+            or "skipped (acceptance" in lock_reason  # acceptance gate killed it (covered by exit 3 above)
+        )
+        if not email_sent and not deliberate_skip:
+            logger.error(
+                "run: email_sent=false on a real run with no deliberate skip "
+                "(acceptance=%s, lock=%s). Surfacing as exit 4 so the cron is red.",
+                pipeline_stats.get("acceptance"), lock_reason,
+            )
+            return 4
+    return 0
 
 
 if __name__ == "__main__":
