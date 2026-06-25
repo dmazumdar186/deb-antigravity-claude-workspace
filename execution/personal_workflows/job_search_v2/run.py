@@ -456,7 +456,7 @@ def main() -> int:
                         help="Cap on jobs in the email digest + sheet append (default 25). "
                              "Sorted by ranker score descending if scored, else posted_at descending. "
                              "Excess jobs are still recorded in the dedup DB so they don't re-surface tomorrow.")
-    parser.add_argument("--min-hours-between-emails", type=float, default=22.0,
+    parser.add_argument("--min-hours-between-emails", type=float, default=6.0,
                         help="Skip the email send if a digest was already sent in the last N hours "
                              "(default 22h). Stops the dual-cron-at-07:00+08:00-UTC double-send. "
                              "Idempotency state at .tmp/job_search_v2/last_email_sent_utc.txt.")
