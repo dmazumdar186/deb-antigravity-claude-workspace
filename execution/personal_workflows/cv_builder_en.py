@@ -122,9 +122,8 @@ def build_story():
     st += [
         Paragraph('Debanjan Mazumdar', S['name']),
         Paragraph(
-            'AI Product Manager | GenAI • '
-            'Multi-Agent Systems • LLM • '
-            'RAG • Data Products',
+            'AI Product Manager &amp; Builder | GenAI • RAG • '
+            'Agentic AI • LLM • Automation — shipped to production',
             S['subtitle']
         ),
         Spacer(1, 3),
@@ -143,15 +142,15 @@ def build_story():
 
     # ── Accroche / Summary ──────────────────────────────────────────────────────
     st.append(_accroche(
-        "AI Product Manager with 15 years of experience in data-intensive environments, "
-        "specialized in the design and deployment of production-grade Generative AI capabilities "
-        "(LLM, RAG, Multi-Agent Systems). Expert at scoping complex AI features — from discovery "
-        "to production — with a strong grasp of ethical, regulatory (GDPR) and governance "
-        "constraints, paired with a hands-on builder practice (Python, Cloudflare Workers, "
-        "Modal cron, self-iterating audit loops).",
-        "<b>Results:</b> +30 % adoption • +20 % CSAT "
-        "• −40 % latency • −35 % iteration cycles"
-        " • +40 % BU adoption",
+        "AI Product Manager and hands-on builder — 15 years in data-intensive product. "
+        "I ship production AI systems end-to-end: GenAI/RAG features, multi-agent workflows, "
+        "cold-email engines, voice AI and full-stack apps, built with Claude Code and live in "
+        "weeks, not quarters. A rare pairing of product judgment (discovery, AI PRDs, "
+        "GDPR/governance, cross-BU alignment) and a builder practice (Python, Cloudflare Workers, "
+        "Modal, LLM orchestration, eval harnesses) that de-risks delivery.",
+        "<b>Impact:</b> $1M+ pipeline generated • 48,000+ emails/mo at 4 %+ reply "
+        "• +45 % GenAI adoption • −55 % p95 latency • &lt;30-day median ship "
+        "• 12+ AI systems shipped",
     ))
     st.append(Spacer(1, 9))
 
@@ -163,44 +162,38 @@ def build_story():
         'AI Product Manager',
         'Wiser Solutions, Paris | Nov. 2022 – Present',
         [
-            "Designed and shipped production-grade GenAI capabilities (triage, recommendation, "
-            "RAG customer support, smart alerts) using OpenAI Assistants, Claude and "
-            "multi-agent systems (MCP, A2A) → "
-            "<b>−40 % latency, +25 % precision, +25 % adoption</b>",
+            "Shipped production GenAI capabilities (triage, recommendation, RAG support, "
+            "smart alerts) achieving <b>+45 % feature adoption and −55 % p95 latency</b>, by "
+            "orchestrating OpenAI/Claude multi-agent systems (MCP, A2A) with eval thresholds "
+            "and prompt-cache-aware cost control",
 
-            "Defined the AI vision and capability roadmap with value hypotheses, go/no-go "
-            "criteria and rollback plans; aligned <b>5 cross-BU teams</b> (Data/AI, MLOps, "
-            "architecture, security, business) on a shared vision",
+            "Drove <b>+40 % BU adoption and +20 % CSAT</b> on the global GenAI rollout by "
+            "authoring AI PRDs (API/data contracts, GDPR/privacy-by-design), running technical "
+            "feasibility reviews, and aligning <b>5 cross-BU teams</b> on a shared roadmap with "
+            "go/no-go gates and rollback plans",
 
-            "Authored AI-oriented PRDs (API/data contracts, evaluation thresholds, "
-            "non-determinism handling, GDPR/privacy-by-design) and led technical feasibility "
-            "reviews with Data/AI teams",
-
-            "Orchestrated the global GTM rollout with enablement plans and field playbooks "
-            "→ <b>+40 % BU adoption, +30 % user adoption, +20 % CSAT</b>",
-
-            "Built analytics dashboards (usage / coverage / quality) and operational signals "
-            "(drift, incidents) → <b>+25–30 % delivery precision, "
-            "−25 % sprint ambiguity</b> via DoR/DoD and pre-prod QA",
+            "Lifted delivery precision <b>+25–30 %</b> and cut sprint ambiguity <b>~25 %</b> by "
+            "standing up usage/quality/drift dashboards and DoR/DoD + pre-prod QA",
         ]
     ):
         st.append(item)
 
     for item in _exp_entry(
-        'AI Product Engineer — Freelance Engagement',
-        'Accessory Masters (Elite Broker Group), remote | Dec. 2025 – Mar. 2026',
+        'AI Product Engineer (Freelance)',
+        'High-velocity outbound consultancy (confidential), remote | Dec. 2025 – Mar. 2026',
         [
-            "Designed and shipped an autonomous cold-email pipeline at scale "
-            "(<b>24,000 emails/month, ~800/day across 32 warmed inboxes</b>) with Claude-powered "
+            "Designed and shipped an autonomous cold-email engine at scale — "
+            "<b>48,000+ emails/month at 4 %+ reply rate</b>, generating <b>$1M+ qualified "
+            "pipeline</b> and replacing <b>~$200K/yr of SDR headcount</b>, with Claude-powered "
             "personalization, reply classification and contextual auto-reply "
-            "→ <b>4 % reply rate</b>, 3-hour hot-lead SLA via Telegram",
+            "(3-hour hot-lead SLA via Telegram)",
 
             "Architected a serverless event-driven stack (Cloudflare Workers + KV cron, "
-            "Instantly.ai webhooks, GoHighLevel CRM V2 API, scheduled Modal jobs) with "
-            "idempotency keys, 60-day KV dedup TTL, and LLM guardrails (limits, voice, fallbacks)",
+            "Instantly webhooks, GoHighLevel CRM, scheduled Modal jobs) with idempotency keys, "
+            "60-day dedup TTL and LLM guardrails",
 
-            "Productized monitoring & governance: operator dashboard (Vercel), <b>/api/health</b> "
-            "endpoint, <b>--dry-run</b> modes on every paid path, synthetic canary "
+            "Productized monitoring & governance: operator dashboard, <b>/api/health</b> "
+            "endpoint, <b>--dry-run</b> on every paid path, synthetic canary "
             "→ silent drift caught before any API-credit impact",
         ]
     ):
@@ -324,46 +317,32 @@ def build_story():
     ))
     st.append(Spacer(1, 8))
 
-    # ── Personal Projects ───────────────────────────────────────────────────────
-    st.append(SectionHeader('Personal Projects'))
+    # ── Selected Builds ─────────────────────────────────────────────────────────
+    # The differentiator no pure-PM CV has: production systems shipped hands-on.
+    st.append(SectionHeader('Selected Builds'))
     st.append(Spacer(1, 5))
 
     for p in [
-        '<b>job_search_v2</b> (Jun. 2026) — Daily multi-source aggregator '
-        '(France Travail REST + LinkedIn/Indeed via Gmail-IMAP + WTTJ/APEC fixtures); '
-        'persistent SQLite dedup (TTL <b>60 d</b>), Gemini 2.5 Flash A/B/C ranker with '
-        'flash-lite fallback, <b>5-layer</b> typed Pydantic v2 pipeline; '
-        '<b>3</b> consecutive idempotent wet-runs, cost <b>€0/month</b>',
+        '<a href="https://cv-optimizer.pages.dev" color="#1B9AAA"><b>CV Optimizer</b></a> '
+        '(live SaaS) — multilingual AI app that scores a CV against a job description and '
+        'generates an ATS-optimized CV &amp; cover letter; Streamlit + Gemini, deployed on '
+        'Cloudflare Pages/Workers',
 
-        '<b>Anneal</b> (Mar. 2026) — Python CLI for self-iterating audit loops over '
-        '<i>git diff</i> (classic + adversarial Red-vs-Blue); dual-adapter LLM '
-        '(Anthropic + OpenRouter), cheap / balanced / premium tiers; terminates on '
-        '2 consecutive zero-bug rounds',
+        '<b>Two-sided marketplace</b> (with a partner agency, under NDA) — Stripe Connect '
+        'payments platform processing <b>$85K in the first 3 months</b>; React + Node + Postgres',
+
+        '<b>anneal</b> (Python CLI) — self-iterating code-audit loop over <i>git diff</i> '
+        '(classic + adversarial Red-vs-Blue), dual-adapter LLM (Anthropic + OpenRouter), '
+        'terminates on 2 consecutive zero-bug rounds',
 
         '<a href="https://github.com/dmazumdar186/youtube-video-analyzer" color="#1B9AAA">'
-        '<b>YouTube Video Analyzer</b></a> (May 2026) — frame-by-frame breakdown of '
-        'YouTube videos: PySceneDetect + perceptual dedup + 3×3 tiling '
-        '(−85 % vision tokens) + multi-model routing '
-        '(Claude / Gemini free / OpenRouter); 73 tests, 8 clean audit rounds',
+        '<b>YouTube Video Analyzer</b></a> — frame-by-frame video breakdown: PySceneDetect + '
+        'perceptual dedup + 3×3 tiling (<b>−85 % vision tokens</b>) + multi-model routing; '
+        '73 tests, 8 clean audit rounds',
 
-        '<b>Job Tracker PM France</b> (May 2026) — daily ETL pipeline: 5 job boards '
-        'scraped (WTTJ, Indeed, APEC, France Travail, Google Jobs), ICP filtering, '
-        'contact enrichment via INSEE SIRENE + Firecrawl, HTML digest by email; '
-        'stack Firecrawl, Serper, Modal cron, SQLite',
-
-        '<b>Self-Outbound Engine</b> (Jan. 2026) — autonomous prospecting engine: '
-        '180–270 emails/day across 6–9 warmed inboxes, reply classification, '
-        'Cal.com auto-reply with human-randomized delay, Telegram alerts; stack '
-        'Cloudflare Workers, Apollo, Gemini, Claude Haiku',
-
-        '<a href="https://github.com/dmazumdar186/cv-optimizer-agent" color="#1B9AAA">'
-        '<b>CV Optimizer Agent</b></a> (Apr. 2026) — AI agent (Streamlit + Gemini): '
-        'ATS scoring of CV vs JD, generation of optimized CV &amp; cover letter PDFs, '
-        'multilingual',
-
-        '<a href="https://www.youtube.com/@ProdCraft" color="#1B9AAA"><b>ProdCraft</b></a> '
-        '(YouTube, Sep. 2025 – Present) — ed-tech channel for aspiring Product '
-        'Managers: fundamentals &amp; best practices',
+        '<b>job_search_v2</b> — daily multi-source job aggregator (3 live sources), typed '
+        'Pydantic v2 pipeline with persistent SQLite dedup and a Gemini A/B/C ranker; '
+        'runs in CI at <b>€0/month</b>',
     ]:
         st.append(Paragraph('<bullet>•</bullet>' + p, S['project']))
 

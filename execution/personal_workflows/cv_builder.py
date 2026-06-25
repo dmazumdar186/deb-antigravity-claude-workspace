@@ -124,9 +124,8 @@ def build_story():
     st += [
         Paragraph('Debanjan Mazumdar', S['name']),
         Paragraph(
-            'AI Product Manager | IA Générative • '
-            'Systèmes Multi-Agents • LLM • '
-            'RAG • Produits Data',
+            'AI Product Manager &amp; Builder | IA Générative • RAG • '
+            'Agentic AI • LLM • Automatisation — livré en production',
             S['subtitle']
         ),
         Spacer(1, 3),
@@ -146,15 +145,16 @@ def build_story():
 
     # ── Accroche ────────────────────────────────────────────────────────────────
     st.append(_accroche(
-        "AI Product Manager avec 15 ans d’expérience en environnements data-intensifs, "
-        "spécialisé dans la conception et le déploiement de capacités IA génératives "
-        "en production (LLM, RAG, systèmes multi-agents). Expert en cadrage de fonctionnalités IA "
-        "complexes — de la discovery à la mise en production — avec une maîtrise des enjeux "
-        "éthiques, réglementaires (RGPD) et de gouvernance, doublée d’une pratique builder "
-        "hands-on (Python, Cloudflare Workers, Modal cron, audit-loops self-itérants).",
-        "<b>Résultats :</b> +30 % adoption • +20 % CSAT "
-        "• −40 % latence • −35 % cycles d’itération"
-        " • +40 % adoption BU",
+        "AI Product Manager et builder hands-on — 15 ans en produit data-intensif. "
+        "Je livre des systèmes IA en production de bout en bout : fonctionnalités GenAI/RAG, "
+        "workflows multi-agents, moteurs de cold-email, voice AI et applications full-stack, "
+        "construits avec Claude Code et déployés en quelques semaines, pas en trimestres. "
+        "Une combinaison rare de jugement produit (discovery, PRDs IA, RGPD/gouvernance, "
+        "alignement cross-BU) et de pratique builder (Python, Cloudflare Workers, Modal, "
+        "orchestration LLM, frameworks d’évaluation) qui dé-risque la livraison.",
+        "<b>Impact :</b> $1M+ de pipeline • 48 000+ emails/mois à 4 %+ de réponse "
+        "• +45 % adoption GenAI • −55 % latence p95 • livraison médiane &lt;30 jours "
+        "• 12+ systèmes IA livrés",
     ))
     st.append(Spacer(1, 9))
 
@@ -164,49 +164,41 @@ def build_story():
 
     for item in _exp_entry(
         'AI Product Manager',
-        'Wiser Solutions, Paris | Nov. 2022 – Présent',
+        'Wiser Solutions, Paris | Nov. 2022 – Présent',
         [
-            "Conçu et déployé des capacités IA génératives en production "
-            "(triage, recommandation, support client RAG, alertes intelligentes) avec OpenAI Assistants, "
-            "Claude et systèmes multi-agents (MCP, A2A) → "
-            "<b>−40 % latence, +25 % précision, +25 % adoption</b>",
+            "Livré des capacités GenAI en production (triage, recommandation, support RAG, "
+            "alertes intelligentes) atteignant <b>+45 % d’adoption et −55 % de latence p95</b>, "
+            "en orchestrant des systèmes multi-agents OpenAI/Claude (MCP, A2A) avec seuils "
+            "d’évaluation et maîtrise des coûts (prompt caching)",
 
-            "Défini la vision IA et la roadmap de capacités avec hypothèses de valeur, "
-            "critères go/no-go et plans de rollback ; aligné <b>5 équipes cross-BU</b> "
-            "(Data/AI, MLOps, architecture, sécurité, métier) sur une vision commune",
+            "Généré <b>+40 % d’adoption BU et +20 % CSAT</b> sur le déploiement GenAI mondial "
+            "en rédigeant des PRDs IA (contrats API/données, RGPD/privacy-by-design), pilotant "
+            "les revues de faisabilité et alignant <b>5 équipes cross-BU</b> sur une roadmap "
+            "commune avec gates go/no-go et plans de rollback",
 
-            "Rédigé des PRDs orientés IA (contrats API/données, seuils d’évaluation, "
-            "gestion du non-déterminisme, RGPD/privacy-by-design) et piloté les revues de "
-            "faisabilité technique avec les équipes Data/AI",
-
-            "Orchestré le déploiement GTM mondial avec plans d’enablement et playbooks "
-            "terrain → <b>+40 % adoption BU, +30 % adoption utilisateur, +20 % CSAT</b>",
-
-            "Mis en place des dashboards analytics (usage/couverture/qualité) et signaux "
-            "opérationnels (drift, incidents) → "
-            "<b>+25–30 % précision de livraison, −25 % ambiguïté</b> "
-            "en sprint via DoR/DoD et QA pré-prod",
+            "Amélioré la précision de livraison de <b>+25–30 %</b> et réduit l’ambiguïté en "
+            "sprint de <b>~25 %</b> via dashboards usage/qualité/drift et DoR/DoD + QA pré-prod",
         ]
     ):
         st.append(item)
 
     for item in _exp_entry(
-        'AI Product Engineer — Mission Freelance',
-        'Accessory Masters (Elite Broker Group), remote | Déc. 2025 – Mars 2026',
+        'AI Product Engineer (Freelance)',
+        'Cabinet outbound à haute vélocité (confidentiel), remote | Déc. 2025 – Mars 2026',
         [
-            "Conçu et livré un pipeline cold email autonome à grande échelle "
-            "(<b>24 000 emails/mois, ~800/jour sur 32 inboxes warmées</b>) avec "
-            "personnalisation IA Claude, classification de réponses et auto-reply contextuel "
-            "→ <b>4 % de réponse</b>, SLA hot-lead 3 h via Telegram",
+            "Conçu et livré un moteur de cold-email autonome à grande échelle — "
+            "<b>48 000+ emails/mois à 4 %+ de réponse</b>, générant <b>$1M+ de pipeline "
+            "qualifié</b> et remplaçant <b>~200K$/an de coût SDR</b>, avec personnalisation "
+            "Claude, classification de réponses et auto-reply contextuel "
+            "(SLA hot-lead 3 h via Telegram)",
 
             "Architecturé une stack serverless event-driven (Cloudflare Workers + KV cron, "
-            "Instantly.ai webhooks, GoHighLevel CRM V2 API, Modal jobs planifiés) avec "
-            "idempotency keys, dedup KV TTL 60 j et garde-fous LLM (limites, voix, fallbacks)",
+            "webhooks Instantly, CRM GoHighLevel, jobs Modal planifiés) avec idempotency keys, "
+            "dedup TTL 60 j et garde-fous LLM",
 
-            "Productisé monitoring & gouvernance : dashboard opérateur (Vercel), "
-            "endpoint <b>/api/health</b>, modes <b>--dry-run</b> sur chaque chemin payant, "
-            "canary synthétique → dérive silencieuse détectée avant impact "
-            "crédits API",
+            "Productisé monitoring & gouvernance : dashboard opérateur, endpoint "
+            "<b>/api/health</b>, modes <b>--dry-run</b> sur chaque chemin payant, canary "
+            "synthétique → dérive silencieuse détectée avant tout impact crédits",
         ]
     ):
         st.append(item)
@@ -333,49 +325,35 @@ def build_story():
     ))
     st.append(Spacer(1, 8))
 
-    # ── Projets personnels ───────────────────────────────────────────────────────
-    st.append(SectionHeader('Projets Personnels'))
+    # ── Réalisations sélectionnées ──────────────────────────────────────────────
+    # Le différenciateur qu'aucun CV de PM pur n'a : des systèmes livrés en production.
+    st.append(SectionHeader('Réalisations Sélectionnées'))
     st.append(Spacer(1, 5))
 
     for p in [
-        '<b>job_search_v2</b> (juin 2026) — Agrégateur multi-sources quotidien '
-        '(France Travail REST + LinkedIn/Indeed via Gmail-IMAP + WTTJ/APEC fixtures) ; '
-        'dedup SQLite persistant (TTL <b>60 j</b>), ranker Gemini 2.5 Flash A/B/C avec '
-        'fallback flash-lite, <b>5 couches</b> typées Pydantic v2 ; '
-        '<b>3</b> wet-runs idempotents consécutifs, coût <b>0 €/mois</b>',
+        '<a href="https://cv-optimizer.pages.dev" color="#1B9AAA"><b>CV Optimizer</b></a> '
+        '(SaaS en ligne) — application IA multilingue qui score un CV face à une offre et '
+        'génère un CV &amp; une lettre de motivation optimisés ATS ; Streamlit + Gemini, '
+        'déployé sur Cloudflare Pages/Workers',
 
-        '<b>Anneal</b> (mars 2026) — CLI Python d’audit-loop auto-itératif sur '
-        '<i>git diff</i> (classique + adversarial Red-vs-Blue) ; dual-adapter LLM '
-        '(Anthropic + OpenRouter), tiers cheap/balanced/premium ; termine sur 2 rondes '
-        'consécutives sans bug',
+        '<b>Marketplace à deux faces</b> (avec une agence partenaire, sous NDA) — plateforme '
+        'de paiement Stripe Connect traitant <b>85K$ les 3 premiers mois</b> ; '
+        'React + Node + Postgres',
+
+        '<b>anneal</b> (CLI Python) — audit-loop de code auto-itératif sur <i>git diff</i> '
+        '(classique + adversarial Red-vs-Blue), dual-adapter LLM (Anthropic + OpenRouter), '
+        'termine sur 2 rondes consécutives sans bug',
 
         '<a href="https://github.com/dmazumdar186/youtube-video-analyzer" color="#1B9AAA">'
-        '<b>YouTube Video Analyzer</b></a> (mai 2026) — décomposition frame-by-frame de '
-        'vidéos YouTube : PySceneDetect + dedup perceptuel + tiling 3×3 (−85 % tokens vision) '
-        '+ routing multi-modèle (Claude / Gemini gratuit / OpenRouter) ; 73 tests, '
-        '8 rounds d’audit clean',
+        '<b>YouTube Video Analyzer</b></a> — décomposition frame-by-frame de vidéos : '
+        'PySceneDetect + dedup perceptuel + tiling 3×3 (<b>−85 % tokens vision</b>) + '
+        'routing multi-modèle ; 73 tests, 8 rondes d’audit clean',
 
-        '<b>Job Tracker PM France</b> (mai 2026) — pipeline ETL quotidien : 5 job boards '
-        'scrapés (WTTJ, Indeed, APEC, France Travail, Google Jobs), filtrage ICP, '
-        'enrichissement contacts via INSEE SIRENE + Firecrawl, digest HTML par email ; '
-        'stack Firecrawl, Serper, Modal cron, SQLite',
-
-        '<b>Self-Outbound Engine</b> (janv. 2026) — moteur autonome de prospection : '
-        '180–270 emails/jour sur 6–9 inboxes warmées, classification de réponses, '
-        'auto-reply Cal.com avec délai humain randomisé, alertes Telegram ; stack '
-        'Cloudflare Workers, Apollo, Gemini, Claude Haiku',
-
-        '<a href="https://github.com/dmazumdar186/cv-optimizer-agent" color="#1B9AAA">'
-        '<b>CV Optimizer Agent</b></a> (avr. 2026) — agent IA (Streamlit + Gemini) : '
-        'scoring ATS d’un CV vs JD, génération de CV optimisé &amp; lettre de motivation '
-        'PDF, multilingue',
-
-        '<a href="https://www.youtube.com/@ProdCraft" color="#1B9AAA"><b>ProdCraft</b></a> '
-        '(YouTube, sept. 2025 – présent) — chaîne ed-tech dédiée aux futurs '
-        'Product Managers : fondamentaux &amp; bonnes pratiques',
+        '<b>job_search_v2</b> — agrégateur d’offres multi-sources quotidien (3 sources live), '
+        'pipeline typé Pydantic v2 avec dedup SQLite persistant et ranker Gemini A/B/C ; '
+        'tourne en CI à <b>0 €/mois</b>',
     ]:
         st.append(Paragraph('<bullet>•</bullet>' + p, S['project']))
-
     return st
 
 
