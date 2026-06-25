@@ -9,10 +9,12 @@ name: job-search-daily
 
 on:
   schedule:
-    # Dual-cron for DST: 07:00 UTC = 09:00 Paris CEST (summer); 08:00 UTC = 09:00 Paris CET (winter).
-    # Idempotency: v2 dedup persists across runs via SQLite seen-set, so a double-fire is harmless.
+    # Single cron — 07:00 UTC = 09:00 Paris CEST (summer) / 08:00 Paris CET (winter).
+    # Operator accepts the +1h drift in winter rather than the dual-fire of the prior
+    # 07:00 + 08:00 setup, which was sending two daily emails (the email_lock in run.py
+    # relies on seen.db meta-KV persisting across runs, and the cache key bug fix that
+    # enables that persistence is still local-only pending workflow PAT scope).
     - cron: "0 7 * * *"
-    - cron: "0 8 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -60,15 +62,26 @@ jobs:
           echo "$GOOGLE_SERVICE_ACCOUNT_JSON_B64" | base64 -d > credentials/service_account.json
           python -c "import json; json.load(open('credentials/service_account.json'))"
 
+      - name: Compute cache key bits
+        id: cache_keys
+        # GitHub Actions does NOT run shell substitution inside `key:` — the previous
+        # `$(date +%Y-%m)` literal was treated as a constant string, which made the
+        # cache key the same forever and (per actions/cache@v4 semantics) the cache
+        # was saved exactly once and never updated. seen.db therefore stayed empty
+        # across runs and every job was "new" every day.
+        run: |
+          echo "month=$(date -u +%Y-%m)" >> $GITHUB_OUTPUT
+          echo "run_key=${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_OUTPUT
+
       - name: Restore persistent dedup DB across runs
-        # The SQLite seen-set must survive between cron invocations so a job seen yesterday
-        # is not reported as "new" today. Cache key = workflow + month (so the DB rolls
-        # over monthly, keeping cache size bounded while preserving cross-day dedup).
+        # Save with a unique-per-run key so every run writes a fresh snapshot; restore
+        # from the most recent snapshot via restore-keys so cross-day dedup actually works.
         uses: actions/cache@v4
         with:
           path: .tmp/job_search_v2/seen.db
-          key: job-search-v2-seen-db-${{ github.workflow }}-$(date +%Y-%m)
+          key: job-search-v2-seen-db-${{ github.workflow }}-${{ steps.cache_keys.outputs.month }}-${{ steps.cache_keys.outputs.run_key }}
           restore-keys: |
+            job-search-v2-seen-db-${{ github.workflow }}-${{ steps.cache_keys.outputs.month }}-
             job-search-v2-seen-db-${{ github.workflow }}-
 
       - name: Run job_search_v2 orchestrator
@@ -83,6 +96,9 @@ jobs:
           # Google Sheets append
           SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
           GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
+          # Gemini 2.5 Flash ranker (free tier). Without this, every job becomes a
+          # tier-B placeholder and the "Top Matches" tab is unrankable.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           FLAGS=""
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
@@ -97,10 +113,16 @@ jobs:
 
       - name: Run front-door synthetic
         # Per ~/.claude/rules/front-door-synthetic.md, v2 is PROBATIONARY until this
-        # passes 5 consecutive days. The synthetic uses fixtures so it doesn't double-bill APIs.
+        # passes 5 consecutive days. Phases 1+2 use fixtures (no API spend); phase 3
+        # opens the LIVE sheet — needs SHEETS_SPREADSHEET_ID + service-account creds.
+        # No longer continue-on-error: a failing synthetic must fail the cron, not be
+        # masked by an `if: always()` success-summary step. (Previously the missing
+        # SHEETS_SPREADSHEET_ID was silently failing phase 3 on every run.)
         if: always()
+        env:
+          SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
         run: bash tests/front_door_job_search_v2.sh
-        continue-on-error: true  # surface the result in the summary; don't fail the cron
 
       - name: Write GitHub Step Summary
         if: always()
@@ -119,6 +141,41 @@ jobs:
           else
             echo "No run_log.jsonl produced — pipeline likely errored before Stage 5." >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Assert email fired or skipped deliberately
+        # Last line of defense — even if the orchestrator returned 0, sanity-check
+        # the run-log: either the email actually went out, or the skip was for an
+        # explicit, named reason (dual-cron lock OR acceptance gate). A False-with-
+        # no-reason is the silent-failure class this assertion exists to surface.
+        if: always()
+        run: |
+          if [ ! -f .tmp/job_search_v2/run_log.jsonl ]; then
+            echo "::error::no run_log.jsonl — pipeline died before Stage 5"
+            exit 1
+          fi
+          python - <<'PY'
+          import json, sys, pathlib
+          last = pathlib.Path(".tmp/job_search_v2/run_log.jsonl").read_text(encoding="utf-8").strip().splitlines()[-1]
+          rec = json.loads(last)
+          email_sent = bool(rec.get("email_sent"))
+          lock = str(rec.get("email_lock") or "")
+          acceptance = str(rec.get("acceptance") or "")
+          dry = bool(rec.get("dry_run"))
+          deliberate = (
+              dry
+              or lock.startswith("email lock [")
+              or "skipped (acceptance" in lock
+              or acceptance.startswith("FAIL")
+          )
+          if email_sent:
+              print(f"::notice::email fired (subject={rec.get('email_subject')!r})")
+              sys.exit(0)
+          if deliberate:
+              print(f"::warning::email skipped deliberately — lock={lock!r} acceptance={acceptance!r}")
+              sys.exit(0)
+          print(f"::error::email_sent=false with NO deliberate skip — lock={lock!r} acceptance={acceptance!r}")
+          sys.exit(1)
+          PY
 
       - name: Upload run-log artifact
         if: always()
