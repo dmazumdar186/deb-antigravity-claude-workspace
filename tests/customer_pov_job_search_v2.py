@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -41,35 +42,48 @@ def _open_sheet():
 
 VALID_REMOTE = {"Yes", "No", "Remote", "Hybrid", "Onsite", "Unknown", ""}
 VALID_CONTRACT = {"CDI", "CDD", "Stage", "Freelance", "Internship", "Unknown", ""}
-KNOWN_SOURCES = {
-    "france_travail", "wttj", "wttj_algolia", "apec",
-    "linkedin_gmail", "linkedin_guest_api",
-    "indeed_gmail", "hellowork_gmail", "jobgether_gmail",
-    "fixture", "",
-}
+
+
+def _retry_429(fn, *, attempts: int = 3, base_delay: float = 6.0):
+    """Call fn(); on a Sheets 429 (read-quota), sleep and retry. The synthetic opens
+    8 tabs in ~4s right after the writer made ~50 calls, so the 60/min read quota is
+    often saturated. One backoff is enough — quota refills per-minute."""
+    last_exc = None
+    for n in range(attempts):
+        try:
+            return fn()
+        except Exception as exc:  # noqa: BLE001 — gspread surface; inspect message
+            msg = str(exc)
+            if "429" in msg or "Quota exceeded" in msg:
+                last_exc = exc
+                time.sleep(base_delay * (n + 1))
+                continue
+            raise
+    raise last_exc  # type: ignore[misc]
 
 
 def check_role_tab(ws, failures: list[str]) -> None:
-    """Assert per-role tab columns are aligned BY NAME — Contract holds contract
-    values, Source holds source values, Link holds URLs."""
+    """Assert per-role tab columns are aligned BY NAME. Headers were trimmed
+    2026-06-24 per operator request — STANDARD_HEADERS is now
+    ['Company', 'Title', 'Country', 'Location', 'Contract', 'Link']; _id / Source
+    / Tier / Notes / Remote? / Status are no longer written. Column alignment is
+    still validated via Contract values + Link URL shape."""
     name = ws.title
-    header = ws.row_values(1)
+    header = _retry_429(lambda: ws.row_values(1))
     if not header:
         failures.append(f"{name}: header row is empty")
         return
     idx = {h: i for i, h in enumerate(header) if h}
 
-    required = ["_id", "Contract", "Source", "Link", "Tier"]
+    required = ["Company", "Title", "Contract", "Link"]
     missing = [r for r in required if r not in idx]
     if missing:
         failures.append(f"{name}: missing required headers {missing}")
         return
 
-    # Sample the latest 10 data rows.
-    all_rows = ws.get_all_values()
+    all_rows = _retry_429(lambda: ws.get_all_values())
     data = [r for r in all_rows[1:] if any(c.strip() for c in r)][-10:]
     if not data:
-        # Empty role tab is allowed (e.g. AI Mobile until a match arrives).
         return
 
     for ri, row in enumerate(data):
@@ -78,20 +92,13 @@ def check_role_tab(ws, failures: list[str]) -> None:
             continue
 
         contract = row[idx["Contract"]].strip()
-        source = row[idx["Source"]].strip()
         link = row[idx["Link"]].strip()
         remote = row[idx.get("Remote?", -1)].strip() if "Remote?" in idx else ""
-        notes = row[idx.get("Notes", -1)].strip() if "Notes" in idx else ""
 
         if contract not in VALID_CONTRACT:
             failures.append(
                 f"{name}: row contains '{contract}' in Contract column — "
                 f"expected one of {sorted(VALID_CONTRACT)}. Column-alignment likely broken."
-            )
-        if source not in KNOWN_SOURCES:
-            failures.append(
-                f"{name}: row contains '{source}' in Source column — "
-                f"expected a JobSource enum value. Column-alignment likely broken."
             )
         if "Remote?" in idx and remote not in VALID_REMOTE:
             failures.append(
@@ -102,22 +109,20 @@ def check_role_tab(ws, failures: list[str]) -> None:
             failures.append(
                 f"{name}: Link column value is not a URL: {link[:60]!r}"
             )
-        if "parse error" in notes.lower() or "no gemini_api_key" in notes.lower():
-            failures.append(
-                f"{name}: Notes column shows ranker-failure placeholder: {notes!r} — "
-                f"ranker is dead in production"
-            )
 
 
 def check_top_matches(ws, failures: list[str]) -> None:
-    header = ws.row_values(1)
-    expected = {"Rank", "Fit", "Title", "Company", "Link"}
+    """Top Matches schema was trimmed 2026-06-24: dropped Rank (row order conveys
+    it), Identity, and Why. Current TOP_MATCHES_HEADERS in the writer is
+    ['Fit', 'Title', 'Company', 'Location', 'Contract', 'Source Tab', 'Link']."""
+    header = _retry_429(lambda: ws.row_values(1))
+    expected = {"Fit", "Title", "Company", "Link"}
     missing = expected - set(header)
     if missing:
         failures.append(f"Top Matches: missing headers {sorted(missing)}")
         return
 
-    all_rows = ws.get_all_values()
+    all_rows = _retry_429(lambda: ws.get_all_values())
     data = [r for r in all_rows[1:] if any(c.strip() for c in r)]
     if not data:
         failures.append("Top Matches: 0 data rows — dashboard not populated")
@@ -134,18 +139,20 @@ def check_top_matches(ws, failures: list[str]) -> None:
 
 
 def check_summary(ws, failures: list[str]) -> None:
-    all_rows = ws.get_all_values()
+    """Summary dashboard was rewritten 2026-06-24 to be human-readable. Anchors:
+    'Last updated' (lowercase 'u' now), 'TODAY' section header, 'SOURCES TODAY'.
+    The old 'Total fetched' / 'Tier A' labels live in the technical footer."""
+    all_rows = _retry_429(lambda: ws.get_all_values())
     if len(all_rows) < 5:
         failures.append(f"Summary: only {len(all_rows)} rows — dashboard not populated")
         return
-    # Expect "Last Updated (UTC)" somewhere in column A and some numeric values.
     col_a = [r[0] if r else "" for r in all_rows]
-    if not any("Last Updated" in v for v in col_a):
-        failures.append("Summary: 'Last Updated' label missing — Summary tab not refreshed by this run")
-    if not any("Total fetched" in v for v in col_a):
-        failures.append("Summary: 'Total fetched' label missing")
-    if not any("Tier A" in v for v in col_a):
-        failures.append("Summary: 'Tier A' breakdown missing")
+    if not any("Last updated" in v or "Last Updated" in v for v in col_a):
+        failures.append("Summary: 'Last updated' label missing — Summary tab not refreshed by this run")
+    if not any("TODAY" == v.strip() for v in col_a):
+        failures.append("Summary: 'TODAY' section header missing")
+    if not any("SOURCES TODAY" in v for v in col_a):
+        failures.append("Summary: 'SOURCES TODAY' section missing")
 
 
 def main() -> int:
