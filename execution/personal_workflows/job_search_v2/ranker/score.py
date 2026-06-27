@@ -44,8 +44,76 @@ load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("ranker.score")
 
 RUBRIC_PATH = Path(__file__).resolve().parent / "rubric.md"
+PROFILE_PATH = (
+    Path(__file__).resolve().parent.parent / "profile" / "profile.json"
+)
 DEFAULT_MODEL = "gemini-2.5-flash"
-RUBRIC_VERSION = "v1-2026-06-15"
+RUBRIC_VERSION = "v3-2026-06-27-profile-grounded"
+
+# Deterministic dimension weights. Sum to 1.0. Changed here = changed
+# everywhere (the LLM never sees these — it only scores per-dimension).
+DIMENSION_WEIGHTS = {
+    "title_fit": 0.30,
+    "skill_overlap": 0.30,
+    "contract_fit": 0.15,
+    "seniority_fit": 0.10,
+    "location_fit": 0.15,
+}
+# Tier thresholds applied to final_score.
+TIER_THRESHOLDS = (("A", 0.75), ("B", 0.50), ("C", 0.25))
+
+
+def _load_profile_for_prompt() -> str:
+    """Read profile.json and serialize it for prompt injection. Returns an
+    empty string if the file is missing (caller falls back to legacy behavior)."""
+    if not PROFILE_PATH.exists():
+        logger.warning("ranker: profile.json missing at %s — falling back "
+                       "to legacy prose rubric.", PROFILE_PATH)
+        return ""
+    try:
+        return PROFILE_PATH.read_text(encoding="utf-8")
+    except OSError as exc:
+        logger.warning("ranker: profile.json read failed (%s) — legacy fallback.", exc)
+        return ""
+
+
+def _compute_final_score(dims: dict) -> float:
+    """Weighted arithmetic mean of the five dimensions. Penalty: if any of
+    title_fit / contract_fit / location_fit is 0, the job is auto-SKIP
+    (final = 0). This prevents one weak dim from being masked by strong others
+    (e.g. wrong country with great skill match should NOT survive)."""
+    hard_zero_dims = ("title_fit", "contract_fit", "location_fit")
+    if any(float(dims.get(d, 0.0)) == 0.0 for d in hard_zero_dims):
+        return 0.0
+    total = 0.0
+    for k, w in DIMENSION_WEIGHTS.items():
+        total += w * max(0.0, min(1.0, float(dims.get(k, 0.0))))
+    return round(total, 4)
+
+
+def _tier_from_final(score: float) -> JobTier:
+    for tier_name, threshold in TIER_THRESHOLDS:
+        if score >= threshold:
+            return JobTier(tier_name)
+    return JobTier.SKIP
+
+
+def _format_reasoning(track: str, dims: dict, matched: list[str],
+                      missing: list[str], llm_reason: str) -> str:
+    """Render the audit-trail string that goes into RankedJob.reasoning.
+    Format: '[track X] title=0.85 skills=0.90 contract=1.0 sen=1.0 loc=1.0 |
+    matched: A, B, C | missing: none | <one-sentence why>'.
+    Capped at 800 chars (RankedJob.reasoning max_length)."""
+    dim_str = " ".join(
+        f"{k.split('_')[0]}={float(dims.get(k, 0.0)):.2f}"
+        for k in ("title_fit", "skill_overlap", "contract_fit",
+                  "seniority_fit", "location_fit")
+    )
+    matched_str = ", ".join(matched[:8]) if matched else "none"
+    missing_str = ", ".join(missing[:4]) if missing else "none"
+    out = (f"[track {track}] {dim_str} | matched: {matched_str} | "
+           f"missing: {missing_str} | {llm_reason}")
+    return out[:800]
 
 # Sheets fallback cell for GEMINI_API_KEY. Lives in Summary!F1 — row 1 is
 # excluded from the `A2:F{n}` batch_clear in refresh_summary(), so this cell
@@ -215,14 +283,13 @@ def rank_jobs(
         return out, stats
 
     rubric = _load_rubric()
+    profile_json = _load_profile_for_prompt()
     client = genai.Client(api_key=api_key)
 
-    # BATCH MODE — the Gemini free tier dropped from 250 RPD to 20 RPD on
-    # gemini-2.5-flash (observed 2026-06-23). One-call-per-job blew through the
-    # quota after ~20 jobs and the rest fell to placeholders. The fix is a single
-    # batched call: one prompt scoring every job, one response with a list of
-    # rankings. Gemini 2.5 Flash's 1M-context comfortably holds 200+ jobs at ~600
-    # tokens each.
+    # v3 schema (2026-06-27): per-dimension scoring grounded in profile.json.
+    # The LLM scores 5 dims + returns matched_skills (audit trail). Python
+    # combines them deterministically (see _compute_final_score) so the final
+    # tier never depends on the model "feeling" a score.
     batch_schema = {
         "type": "object",
         "properties": {
@@ -232,24 +299,65 @@ def rank_jobs(
                     "type": "object",
                     "properties": {
                         "job_id": {"type": "string"},
-                        "tier": {"type": "string", "enum": ["A", "B", "C", "SKIP"]},
-                        "score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+                        "track": {"type": "string", "enum": ["A", "B"]},
+                        "dimensions": {
+                            "type": "object",
+                            "properties": {
+                                "title_fit": {"type": "number"},
+                                "skill_overlap": {"type": "number"},
+                                "contract_fit": {"type": "number"},
+                                "seniority_fit": {"type": "number"},
+                                "location_fit": {"type": "number"},
+                            },
+                            "required": ["title_fit", "skill_overlap",
+                                         "contract_fit", "seniority_fit",
+                                         "location_fit"],
+                        },
+                        "matched_skills": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "missing_critical": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
                         "reasoning": {"type": "string", "maxLength": 200},
                     },
-                    "required": ["job_id", "tier", "score", "reasoning"],
+                    "required": ["job_id", "track", "dimensions",
+                                 "matched_skills", "missing_critical",
+                                 "reasoning"],
                 },
             }
         },
         "required": ["results"],
     }
 
+    # System instruction = rubric + profile JSON. Profile is verbatim so the
+    # model can grep for skill names and quote them in matched_skills.
+    if profile_json:
+        system_text = (
+            rubric
+            + "\n\n<PROFILE>\n" + profile_json + "\n</PROFILE>\n\n"
+            + "You will receive a JSON array of jobs. Return one ranking per "
+              "job, matching the job_id field exactly. Output must be JSON "
+              "{results: [...]}. Cite specific profile skill names verbatim "
+              "in matched_skills."
+        )
+    else:
+        # Legacy fallback (profile.json missing). Should never hit in prod.
+        system_text = (
+            rubric
+            + "\n\nYou will receive a JSON array of jobs. Return one ranking "
+              "per job, matching the job_id field exactly. Output must be "
+              "JSON {results: [...]}."
+        )
+
     cfg = types.GenerateContentConfig(
-        system_instruction=rubric + "\n\nYou will receive a JSON array of jobs. Return one ranking per job, "
-                                    "matching the job_id field exactly. Output must be JSON {results: [...]}.",
+        system_instruction=system_text,
         response_mime_type="application/json",
         response_schema=batch_schema,
         temperature=0.2,
-        max_output_tokens=20000,
+        max_output_tokens=30000,
     )
 
     fallback_model = "gemini-2.5-flash-lite"
@@ -340,13 +448,28 @@ def rank_jobs(
                 continue
             job = id_to_job[jid]
             try:
-                score = max(0.0, min(1.0, float(r.get("score", 0.5))))
-                tier_str = str(r.get("tier", "B")).upper()
-                tier = JobTier(tier_str) if tier_str in {"A", "B", "C", "SKIP"} else _tier_from_score(score)
-                reasoning = str(r.get("reasoning", ""))[:600]
+                # v3: dimensions drive the score; legacy 'score'/'tier' from
+                # the model are IGNORED. This keeps the final number
+                # deterministic given a fixed dimension vector.
+                dims_raw = r.get("dimensions") or {}
+                dims = {
+                    k: max(0.0, min(1.0, float(dims_raw.get(k, 0.0))))
+                    for k in DIMENSION_WEIGHTS
+                }
+                final_score = _compute_final_score(dims)
+                tier = _tier_from_final(final_score)
+                track = str(r.get("track", "A")).upper()
+                if track not in ("A", "B"):
+                    track = "A"
+                matched = [str(s) for s in (r.get("matched_skills") or [])][:12]
+                missing = [str(s) for s in (r.get("missing_critical") or [])][:8]
+                llm_reason = str(r.get("reasoning", ""))[:300]
+                reasoning = _format_reasoning(
+                    track, dims, matched, missing, llm_reason
+                )
                 out[job.content_hash] = RankedJob(
                     content_hash=job.content_hash,
-                    score=score,
+                    score=final_score,
                     tier=tier,
                     reasoning=reasoning,
                     rubric_version=RUBRIC_VERSION,
@@ -355,25 +478,36 @@ def rank_jobs(
                 stats["scored"] += 1
                 stats["by_tier"][tier.value] += 1
                 scored_ids.add(jid)
-            except (ValueError, KeyError) as exc:
+            except (ValueError, KeyError, TypeError) as exc:
                 logger.warning("ranker: result for %s malformed (%s) — heuristic", jid, exc)
 
     if chunk_failures:
         stats["chunk_failures"] = chunk_failures
 
-    # Any job not in any response → heuristic fallback (don't drop on the floor).
+    # Any job not in any response → profile-aware heuristic fallback. The
+    # legacy substring heuristic (kept below as `_heuristic_score_legacy`)
+    # had no profile context and ranked anything matching keywords. The new
+    # path runs the SAME 5-dim algorithm the LLM uses, just deterministically
+    # in Python — so the fallback path now produces operator-coherent tiers
+    # even when Gemini is hard-rate-limited.
+    profile_data = _load_profile_data()
     for j in jobs:
         if j.content_hash[:16] in scored_ids:
             continue
-        score = _heuristic_score(j)
-        tier = _tier_from_score(score)
+        dims, track, matched, missing = _profile_aware_heuristic(j, profile_data)
+        final_score = _compute_final_score(dims)
+        tier = _tier_from_final(final_score)
+        reasoning = _format_reasoning(
+            track, dims, matched, missing,
+            "profile-aware heuristic (LLM unavailable)"
+        )
         out[j.content_hash] = RankedJob(
             content_hash=j.content_hash,
-            score=score,
+            score=final_score,
             tier=tier,
-            reasoning="heuristic (LLM unavailable or omitted this job)",
-            rubric_version="heuristic-v1",
-            ranker_model="heuristic",
+            reasoning=reasoning,
+            rubric_version="heuristic-v2-profile-grounded",
+            ranker_model="heuristic-profile",
         )
         stats["placeholder"] += 1
         stats["by_tier"][tier.value] += 1
@@ -382,7 +516,195 @@ def rank_jobs(
     return out, stats
 
 
-# ----- heuristic fallback -----
+# ----- profile-aware heuristic (v2 fallback) -----
+
+
+_profile_cache: dict | None = None
+
+
+def _load_profile_data() -> dict:
+    """Memoized profile.json read. Returns {} on missing/unreadable so the
+    heuristic still runs (degraded to legacy keyword scoring)."""
+    global _profile_cache
+    if _profile_cache is not None:
+        return _profile_cache
+    if not PROFILE_PATH.exists():
+        _profile_cache = {}
+        return _profile_cache
+    try:
+        _profile_cache = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("heuristic: profile.json unreadable (%s); empty fallback", exc)
+        _profile_cache = {}
+    return _profile_cache
+
+
+_SKILL_LEVEL_WEIGHT = {"expert": 3.0, "strong": 2.0, "familiar": 1.0}
+_SKILL_OVERLAP_NORM = 8.0  # matches rubric: score = min(1, weight / 8)
+_SENIORITY_TOKENS = (
+    "senior", "lead", "principal", "head ", "head of", "director",
+    "staff", "vp ", "vp of", "chief", "fractional",
+)
+_JUNIOR_TOKENS = (
+    "junior", "intern", "stagiaire", "alternance", "trainee",
+    "graduate", "apprenti",
+)
+_FOREIGN_LANG_TELLS = (
+    "wir suchen", "een ervaren", "cerchiamo", "buscamos",
+    "muttersprache", "moedertaal", "madrelingua",
+)
+
+
+def _profile_aware_heuristic(
+    job: NormalizedJob, profile: dict,
+) -> tuple[dict, str, list[str], list[str]]:
+    """Deterministic 5-dim scoring grounded in profile.json. Returns
+    (dimensions, track, matched_skills, missing_critical) for downstream
+    _compute_final_score + _format_reasoning.
+
+    No LLM involved. Same algorithm the LLM uses, applied in Python."""
+    title = (job.title or "").lower()
+    desc = (job.description_snippet or "").lower()
+    haystack = title + " " + desc
+    loc = (job.location or "").lower()
+    contract = (job.contract_type.value or "").lower()
+
+    tracks = profile.get("tracks", []) or []
+    skills = profile.get("skills", []) or []
+    locations_cfg = profile.get("locations", {}) or {}
+    hard = profile.get("hard_filters", {}) or {}
+
+    # Hard-zero short-circuit: skip-list substring or blocked country or
+    # foreign-language tell. Returning all-zero dims here makes
+    # _compute_final_score emit 0 → SKIP.
+    skip_subs = [s.lower() for s in hard.get("skip_title_substrings", [])]
+    skip_descs = [s.lower() for s in hard.get("skip_description_substrings", [])]
+    blocked = [b.lower() for b in locations_cfg.get("blocked_countries", [])]
+
+    def _zero(reason_tag: str) -> tuple[dict, str, list[str], list[str]]:
+        dims = {k: 0.0 for k in DIMENSION_WEIGHTS}
+        return dims, "A", [], [reason_tag]
+
+    if any(s in title for s in skip_subs):
+        return _zero("title-skip-filter")
+    if any(s in desc for s in skip_descs):
+        return _zero("desc-skip-filter")
+    if any(b in loc for b in blocked) or any(
+        c in loc for c in ("new york", "san francisco", "bangalore",
+                           "mumbai", "delhi", "singapore", "sydney",
+                           " usa", " us ", "united states")
+    ):
+        return _zero("blocked-country")
+    if any(t in haystack for t in _FOREIGN_LANG_TELLS):
+        return _zero("foreign-language-jd")
+
+    # Decide track. Try Track A title patterns first; if Track B titles fit
+    # better, switch. Used to pick which targeted_titles + contract_types
+    # apply.
+    def _title_score(target_titles: list[str], anti_titles: list[str]) -> float:
+        for t in (anti_titles or []):
+            if t.lower() in title:
+                return 0.0
+        for t in (target_titles or []):
+            tl = t.lower()
+            if tl in title:
+                return 1.0
+            # token overlap as near-literal
+            ttokens = [w for w in tl.split() if len(w) > 2]
+            if ttokens and all(w in title for w in ttokens):
+                return 0.9
+        # adjacent role family — at least 2 of the title's words appear
+        # somewhere in the target list (e.g. "AI" + "Engineer" in any
+        # target — drift)
+        title_words = {w for w in title.split() if len(w) > 2}
+        for t in (target_titles or []):
+            tw = {w for w in t.lower().split() if len(w) > 2}
+            overlap = len(title_words & tw)
+            if overlap >= 2:
+                return 0.7
+            if overlap == 1:
+                return 0.4
+        return 0.0
+
+    track_a = next((t for t in tracks if t.get("id") == "A"), {})
+    track_b = next((t for t in tracks if t.get("id") == "B"), {})
+    title_a = _title_score(track_a.get("targeted_titles", []),
+                           track_a.get("anti_titles", []))
+    title_b = _title_score(track_b.get("targeted_titles", []),
+                           track_b.get("anti_titles", []))
+
+    # Description tells: "freelance" / "mission" / "tjm" boost Track B
+    track_b_desc_tells = ("freelance", "mission", "tjm", "/jour", "daily rate",
+                          "indépendant", "independant", "contract")
+    if any(t in haystack for t in track_b_desc_tells):
+        title_b = min(1.0, title_b + 0.2)
+
+    if title_b > title_a:
+        chosen_track = "B"
+        track_cfg = track_b
+        title_fit = title_b
+    else:
+        chosen_track = "A"
+        track_cfg = track_a
+        title_fit = title_a
+
+    # Skill overlap: scan profile.skills for names in haystack, weighted.
+    matched: list[str] = []
+    weight_sum = 0.0
+    for s in skills:
+        name = (s.get("name") or "").lower()
+        if not name:
+            continue
+        # match by name; also by simpler base form (strip parens / dots)
+        bases = {name, name.split("(")[0].strip(), name.replace(".", "")}
+        if any(b and b in haystack for b in bases):
+            matched.append(s["name"])
+            weight_sum += _SKILL_LEVEL_WEIGHT.get(s.get("level", "familiar"), 1.0)
+    skill_overlap = min(1.0, weight_sum / _SKILL_OVERLAP_NORM)
+
+    # Contract fit.
+    track_contracts = [c.lower() for c in track_cfg.get("contract_types", [])]
+    if contract and contract in track_contracts:
+        contract_fit = 1.0
+    elif not contract or contract == "unknown":
+        contract_fit = 0.6
+    else:
+        contract_fit = 0.0  # wrong contract for chosen track
+
+    # Seniority fit.
+    if any(t in haystack for t in _JUNIOR_TOKENS):
+        seniority_fit = 0.0
+    elif any(t in haystack for t in _SENIORITY_TOKENS):
+        seniority_fit = 1.0
+    else:
+        seniority_fit = 0.6
+
+    # Location fit.
+    preferred = [p.lower() for p in locations_cfg.get("preferred", [])]
+    ok_remote = [r.lower() for r in locations_cfg.get("ok_remote", [])]
+    if any(p in loc for p in preferred) or "paris" in loc or "île-de-france" in loc or "ile-de-france" in loc:
+        location_fit = 1.0
+    elif any(r in loc for r in ok_remote) or "remote" in loc:
+        location_fit = 1.0 if "eu" in loc or "europe" in loc else 0.7
+    elif any(c in loc for c in ("france", "germany", "belgium", "switzerland",
+                                 "schengen", "deutschland")):
+        location_fit = 0.7
+    elif any(c in loc for c in ("spain", "italy", "netherlands", "portugal")):
+        location_fit = 0.3
+    else:
+        location_fit = 0.3
+
+    dims = {
+        "title_fit": title_fit,
+        "skill_overlap": skill_overlap,
+        "contract_fit": contract_fit,
+        "seniority_fit": seniority_fit,
+        "location_fit": location_fit,
+    }
+    return dims, chosen_track, matched[:12], []
+
+
+# ----- legacy heuristic (kept for reference; no longer the fallback path) -----
 
 
 # Track A (Permanent AI PM) signals.

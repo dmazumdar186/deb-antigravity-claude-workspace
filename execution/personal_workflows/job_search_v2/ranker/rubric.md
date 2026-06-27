@@ -1,88 +1,78 @@
-# Ranking rubric — job_search_v2 (v2 — 2026-06-24)
+# Ranking rubric — job_search_v2 (v3 — 2026-06-27)
 
-You are scoring jobs for **Debanjan Mazumdar**. His real profile (from CV +
-Malt + GitHub) is below. Score against THIS profile, not a generic Senior PM
-template.
+You are scoring jobs for **Debanjan Mazumdar** against a STRUCTURED PROFILE
+that is injected verbatim into the system prompt below this rubric. The
+profile is the single source of truth — every match decision must cite specific
+skills, titles, contracts, or proof-points from it.
 
-## Candidate profile (single source of truth)
+You will receive a JSON array of jobs and must return a per-job ranking. Do
+NOT compute a final score yourself — return the per-dimension scores and the
+caller will combine them deterministically.
 
-**Two role tracks** — score each job against the better-fitting track:
+## Algorithm (what you ARE responsible for)
 
-### Track A — Permanent AI Product Manager (CDI)
-- Current role: AI Product Manager at Wiser Solutions, Paris (Nov 2022 →)
-- Prior: Data PM at InfoTnT Paris, Senior Data PO at Pitney Bowes / Evolent
-- Shipped production GenAI features (RAG, multi-agent, OpenAI Assistants,
-  Claude, MCP, A2A) with measured impact (−40% latency, +25% precision,
-  +25% adoption)
-- Strong on: AI-oriented PRDs, API/data contracts, evaluation thresholds,
-  GDPR / privacy-by-design, cross-BU alignment, GTM rollout
-- Looking for: **AI PM / Head of Product (AI) / Senior PM at AI-native or
-  AI-heavy companies**. Paris-based (CDI) OR remote-EN/FR (CDI).
+For each job, decide which TRACK fits best (A or B), then score five dimensions
+in [0, 1]:
 
-### Track B — Freelance AI Automation / Claude Code / React Native
-- Malt: "Automatisation IA | Claude Code | React Native" at €750/day
-- 4-week sprint missions (audit + roadmap → build → ops handover)
-- Shipped: outbound-engine (Cloudflare Worker + Gemini + Cal.com),
-  deb-mobile-template (Expo + Claude Code + EAS Cloud), anneal (LLM audit
-  loop), humaniser (voice-matched pipeline)
-- Strong on: Cold outbound automation, CRM↔Slack↔Calendar sync, AI scrapers
-  + icebreakers, mobile MVPs (Expo + EAS), n8n / Make.com workflows,
-  Cloudflare Workers, Modal cron
-- Looking for: **Freelance / Contract / Mission roles** with
-  AI Automation Engineer / AI Consultant / Claude Code expert / React Native
-  developer / Builder-type framings, Paris+50km or fully remote
+1. **title_fit** — does the job title appear in (or strongly resemble) one of
+   the chosen track's `targeted_titles`?
+   - 1.0 = literal or near-literal match (e.g. "Senior AI Product Manager" vs
+     "AI Product Manager")
+   - 0.7 = same role family with one drift (e.g. "AI Engineer" for track B's
+     "AI Systems Engineer")
+   - 0.4 = adjacent role, plausible stretch
+   - 0.0 = different role family OR matches an `anti_titles` entry
 
-### Tracks A & B BOTH require:
-- **Language**: English OR French only (this is HARD-filtered before you
-  see the job; just double-check you're not scoring something obviously
-  German/Italian/Dutch/Spanish that slipped through)
-- **Seniority**: Senior / Lead / Principal / Head — NO junior, intern,
-  alternance, stagiaire, apprenticeship, graduate program
-- **Sectors of demonstrated interest** (slight boost):
-  E-commerce, SaaS / software publishing, IT services, conseil/audit,
-  film/audiovisual
+2. **skill_overlap** — count of profile skills that appear (literally or
+   paraphrased) in the title+description.
+   - Weight `expert` skills 3×, `strong` 2×, `familiar` 1×.
+   - Normalize: score = min(1.0, matched_weight / 8.0). Returning matches in
+     the `matched_skills` array is REQUIRED for audit; without it the row is
+     invalid.
 
-### Strong NO signals
-- Pure marketing PM, pure data analytics PM (no AI/product surface)
-- "Project Manager" / "Chef de projet" (different role)
-- Pure backend engineering with no PM responsibility (unless Freelance
-  builder track is clearly framed)
-- US / Canada / APAC / India / Latin America locations
-- German-only / Dutch-only / Italian-only / Spanish-only job descriptions
+3. **contract_fit** — does the job's contract type match one of the track's
+   `contract_types`?
+   - 1.0 = exact (CDI for Track A, Freelance/Mission/Contract for Track B)
+   - 0.6 = ambiguous ("contract type unknown" for a target country)
+   - 0.0 = wrong (CDD for Track A; CDI for Track B)
 
-## Output
+4. **seniority_fit** — does the title/description imply ≥ `min_seniority`?
+   - 1.0 = explicit Senior / Lead / Principal / Head / Director / Staff
+   - 0.6 = no seniority signal either way
+   - 0.0 = junior / intern / alternance / stagiaire / graduate (these should
+     be SKIP-able upstream too)
 
-For each job:
+5. **location_fit** — does the location match `locations.preferred` or
+   `locations.ok_remote`, and is it NOT in `locations.blocked_countries`?
+   - 1.0 = preferred city (Paris, Île-de-France) OR explicit "remote (EU)"
+   - 0.7 = same country (France) OR generic "remote"
+   - 0.3 = elsewhere in Schengen with no language conflict
+   - 0.0 = blocked country (US, India, APAC) OR non-EN/FR-only listing
 
-- **tier**: one of `A`, `B`, `C`, `SKIP`.
-  - `A` — strong fit for one of the two tracks. Examples:
-    * Track A: "Senior AI Product Manager" at a Paris AI scale-up,
-      CDI, mentions LLM/RAG/Claude/OpenAI in JD
-    * Track B: "AI Automation Engineer (Freelance)" Paris-area, mentions
-      Cloudflare Workers / n8n / cold outbound / Claude Code
-  - `B` — promising. Right role family, but signals less explicit
-    (e.g. generic Senior PM at a non-AI company; freelance "Python
-    automation" without specific Claude/LLM mention).
-  - `C` — weak fit. Title family adjacent but seniority / contract type /
-    sector is meaningfully off.
-  - `SKIP` — apply NONE of the above; he won't apply.
-- **score**: float 0.0–1.0. A≥0.8, B 0.5–0.8, C 0.2–0.5, SKIP <0.2.
-- **reasoning**: ONE sentence ≤30 words IN ENGLISH. Cite the SPECIFIC
-  signal that drove the tier and which track (A or B) you matched against.
-  Example: "Track B: freelance AI Automation Engineer with Cloudflare
-  Workers + n8n mention, Paris."
+Also return:
 
-## Hard rules (override everything else)
+- **track** — "A" or "B" (the better-fitting track for this job)
+- **matched_skills** — list of profile skill names (verbatim from
+  profile.skills[].name) that appear in the JD. Empty list = honest zero,
+  don't pad.
+- **missing_critical** — list of profile skills that the JD seems to demand
+  but are NOT in the profile (e.g. JD says "Rust required", profile has no
+  Rust). Used to flag near-misses.
+- **reasoning** — ONE sentence ≤30 words IN ENGLISH explaining the track
+  choice and the strongest signal. Cite specifics, not vibes.
 
-- contract_type == Internship → SKIP
-- title contains "Project Manager" / "Chef de projet" / "Alternance" /
-  "Stagiaire" / "Graduate" / "Trainee" / "Junior" → SKIP (this is also
-  filtered upstream; double-check)
-- description contains "Wir suchen" / "Een ervaren" / "Cerchiamo" /
-  "Buscamos" → SKIP (German/Dutch/Italian/Spanish — should be filtered
-  upstream)
-- US/Canada/APAC/India location words in title or company → SKIP
+## Hard rules (override the dimensions if triggered)
+
+- If title contains ANY substring from `hard_filters.skip_title_substrings`,
+  set all dimensions to 0 and reasoning = "hard filter: <substring>".
+- If description contains ANY string from `hard_filters.skip_description_substrings`,
+  same treatment.
+- If location matches `locations.blocked_countries`, location_fit = 0 and the
+  caller will SKIP the job.
+- If language of title+description is detected as anything other than EN/FR
+  (German, Dutch, Italian, Spanish, etc.), all dimensions = 0.
 
 ## Output
 
-Structured JSON only. Never hallucinate company info.
+Strict JSON only, matching the response schema (the caller enforces the
+schema; deviations get re-queried).

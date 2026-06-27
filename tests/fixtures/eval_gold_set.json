@@ -1,0 +1,339 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-27T11:30:00+00:00",
+  "method": "deterministic hand-authored grounded in profile.json (no LLM). Each item maps to specific profile fields cited in `rationale`. The operator can flip any expected_tier — the eval re-runs against whatever this file says.",
+  "items": [
+    {
+      "expected_tier": "A",
+      "expected_track": "A",
+      "rationale": "profile.tracks[A].targeted_titles: 'Senior AI Product Manager' + Paris in locations.preferred + CDI in contract_types + names 6 profile skills (LLM, RAG, multi-agent, eval, PRD, GDPR)",
+      "title": "Senior AI Product Manager",
+      "company": "Mistral AI",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Lead AI product strategy across our LLM platform. Own PRDs, KPIs, evaluation frameworks, and GTM rollout. Strong RAG and multi-agent system experience required. Partner with research and engineering on agentic workflows, prompt engineering, and GDPR-compliant deployments. 7+ yrs PM in AI/ML."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "A",
+      "rationale": "Head of Product (AI) in targeted_titles, Paris, CDI, AI-native scale-up matching Wiser-like proof-points",
+      "title": "Head of Product",
+      "company": "Hugging Face",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "remote",
+      "description": "Lead product for our Inference and Spaces business. Own roadmap, strategy, GTM. Drive feature adoption, partner with ML research, build evaluation rigor. RAG, multi-agent, prompt caching, MLOps. Cross-BU alignment with model team. Senior PM background required."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "B",
+      "rationale": "profile.tracks[B].targeted_titles 'AI Automation Specialist' + Freelance in contract_types + names CF Workers + n8n + Claude + Instantly + GHL (5 profile skills) + Paris in preferred",
+      "title": "AI Automation Engineer (Freelance)",
+      "company": "Outbound Studio",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "remote",
+      "description": "Mission 3 mois TJM 750€. Build outbound automation: Cloudflare Workers + n8n + Claude Code for icebreaker generation + Instantly.ai for sending + GoHighLevel CRM for hot-lead handoff. Cold email at scale, 3-hour SLA on replies. Senior, autonomous."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "B",
+      "rationale": "Fractional AI Builder in targeted_titles + Mission in contract_types + Paris + matches CF Workers + Modal + Claude Code stack",
+      "title": "Fractional AI Engineer",
+      "company": "B2B SaaS scale-up",
+      "location": "Paris (remote OK)",
+      "contract_type": "freelance",
+      "remote_mode": "remote",
+      "description": "Fractional / advisory engagement. Ship our AI agent pipeline: Cloudflare Workers + Modal cron + Claude Code + Anthropic API. Builder-led role, autonomous shipping, voice & cold-outbound systems. Mission 4 mois, TJM 700-850."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "A",
+      "rationale": "Senior AI PM CDI Paris at AI-heavy company, names 5+ profile skills including evaluation + multi-agent",
+      "title": "Lead AI Product Manager",
+      "company": "Owkin",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Drive AI products in oncology research platform. Own LLM/multi-agent feature roadmap, evaluation thresholds, non-determinism handling, prompt caching, GDPR + HIPAA compliance. Cross-functional with ML research and clinical advisors. Senior PM with shipped AI products required."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "B",
+      "rationale": "AI Consultant in targeted_titles + Mission + Paris + matches Voice AI + Vapi/Retell + Cal.com profile skills",
+      "title": "AI Consultant — Voice AI Mission",
+      "company": "Restaurant chain",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "remote",
+      "description": "6-week mission. Deploy voice AI reception (Vapi or Retell). Integrate with Cal.com for booking, GHL CRM for follow-up. Cold email warm-up via Instantly. Independent contractor, TJM 800. Builder-type framing — ship it, hand over ops."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "A",
+      "rationale": "Senior AI PM CDI remote-EU, AI-native B2B SaaS with RAG and eval focus",
+      "title": "Senior AI Product Manager",
+      "company": "Algolia",
+      "location": "Remote (Europe)",
+      "contract_type": "cdi",
+      "remote_mode": "remote",
+      "description": "Drive AI search and generative experiences across the platform. Own roadmap, evaluation rubrics, PRD. RAG architecture, multi-agent flows, prompt engineering. Strong cross-BU collaboration with retrieval + ranking teams. EN required, FR plus. 6+ yrs PM, 2+ in AI."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "B",
+      "rationale": "React Native developer (Track B targeted) + Freelance + Paris+remote + Expo/EAS match profile skills",
+      "title": "Freelance React Native + AI Developer",
+      "company": "Mobile-first AI startup",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "remote",
+      "description": "Build our mobile MVP: Expo + React Native + Claude API + TestFlight pipeline (EAS Cloud Build). 0-to-TestFlight in 14 days target. Builder track, autonomous shipping, TJM 700. Mission length 2-3 months with option to extend."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "A",
+      "rationale": "Senior PM CDI Paris in AI-heavy company with proof-point-style metrics in JD (adoption + latency)",
+      "title": "Senior Product Manager — AI Platform",
+      "company": "Doctolib",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Own AI roadmap across booking and clinical assistant. Drive +45% feature adoption, -55% p95 latency targets. Multi-agent flows, RAG over clinical content, evaluation discipline, GDPR + HDS. Senior PM, AI-platform experience, French + English."
+    },
+    {
+      "expected_tier": "A",
+      "expected_track": "B",
+      "rationale": "AI Builder + Mission/Freelance + matches 7+ profile skills (Modal, Cloudflare, Anthropic, Telegram, Instantly)",
+      "title": "AI Builder — Cold-Email System (Mission)",
+      "company": "High-velocity outbound consultancy",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "remote",
+      "description": "Ship a 48k/mo cold-email engine: Apollo lead sourcing, Anthropic API icebreakers, Instantly sending, Telegram 3-hour hot-lead SLA, GHL handoff. Builder track. Mission 3 mois, TJM 750. We need someone who ships, not someone who slide-decks."
+    },
+
+    {
+      "expected_tier": "B",
+      "expected_track": "A",
+      "rationale": "Senior PM CDI Paris but NON-AI (B2B SaaS, no LLM/RAG mention)",
+      "title": "Senior Product Manager",
+      "company": "Payfit",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Own roadmap for the payroll platform. Discovery, PRDs, KPIs, GTM. 6+ yrs PM in B2B SaaS. Strong cross-functional collaboration with engineering and CS. French + English."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "B",
+      "rationale": "Freelance Python automation Paris but no Claude/Cloudflare/specific stack mention",
+      "title": "Freelance Python Automation Developer",
+      "company": "Ops consultancy",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "hybrid",
+      "description": "Build Python automation scripts to streamline back-office ops. APIs, web scraping, scheduled jobs. Mission 2-3 mois, TJM 500-600."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "A",
+      "rationale": "Senior AI Engineer CDI Paris with strong AI but lacks the PM framing of Track A (engineering-only)",
+      "title": "Senior AI Engineer",
+      "company": "Contentsquare",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Build production LLM features across our digital experience analytics platform. RAG over user-session data, prompt engineering, evaluation. Strong Python, MLOps. 5+ yrs ML engineering."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "A",
+      "rationale": "Senior PM at AI scale-up but country is Spain (ok_remote 'Schengen' but adds language risk)",
+      "title": "Senior AI Product Manager",
+      "company": "Glovo",
+      "location": "Barcelona, Spain",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Drive AI roadmap for our marketplace. LLM-powered search, recommendation, agentic delivery routing. Senior PM with AI/ML experience. EN required, ES bonus."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "B",
+      "rationale": "Freelance AI consultant at NON-tech firm (legal) Paris — off-domain but right contract+location",
+      "title": "Freelance AI Consultant — Legal Tech",
+      "company": "BCG Law (Paris office)",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "onsite",
+      "description": "Advise our legal practice on AI adoption: document analysis, contract review, knowledge management. 3-month engagement. Senior consultant, AI strategy background. Daily rate negotiable."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "A",
+      "rationale": "Senior PM CDI Paris at AI-tangential company (martech) — adjacent but not AI-native",
+      "title": "Senior Product Manager — Recommendation",
+      "company": "Criteo",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Own the recommendation product across the ad platform. Strong ML literacy required (not necessarily AI/LLM). PRDs, evaluation, GTM. 6+ yrs PM, B2B SaaS."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "B",
+      "rationale": "Freelance AI Engineer Paris — right contract/location but description heavy on infrastructure-only (no Claude/Cloudflare/n8n)",
+      "title": "Freelance AI Engineer — Infra",
+      "company": "Mid-size SaaS",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "remote",
+      "description": "Mission 4 mois. Build LLM-serving infra: vLLM, Triton, Kubernetes. Backend Python. Cost optimization. TJM 700-800."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "A",
+      "rationale": "Lead PM at AI-native CDI Berlin — DE risk (Schengen ok_remote, may have EN/FR-only JD assumption)",
+      "title": "Lead AI Product Manager",
+      "company": "DeepL",
+      "location": "Berlin, Germany",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Lead AI product across our translation and writing tools. RAG, multi-agent, evaluation. Cross-functional with ML research. EN required, DE optional."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "B",
+      "rationale": "Freelance Voice AI mission Paris but vague stack (no Vapi/Retell named, just generic 'voice')",
+      "title": "Freelance Voice AI Consultant",
+      "company": "Hospitality group",
+      "location": "Paris, France",
+      "contract_type": "freelance",
+      "remote_mode": "onsite",
+      "description": "Deploy voice agent for front-desk inquiries. Mission 8 weeks. Voice provider TBD. Daily rate 600-700."
+    },
+    {
+      "expected_tier": "B",
+      "expected_track": "A",
+      "rationale": "Senior PM CDI remote-EU at fintech with light AI surface (recommendations only)",
+      "title": "Senior Product Manager — Personalization",
+      "company": "Qonto",
+      "location": "Remote (EU)",
+      "contract_type": "cdi",
+      "remote_mode": "remote",
+      "description": "Own personalization across the SMB banking platform. Recommendation systems, A/B testing, KPIs. Some ML literacy useful but not required. 5+ yrs PM in B2B SaaS."
+    },
+
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Cybersecurity Analyst — off-domain (no AI, no PM)",
+      "title": "Cybersecurity Analyst",
+      "company": "BNP Paribas",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "onsite",
+      "description": "Lead our SOC. SIEM tuning, incident response, threat intelligence. CISSP preferred. 5+ yrs cybersecurity."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Junior AI role — junior is in skip_title_substrings + skip_seniority",
+      "title": "Junior AI Product Manager",
+      "company": "Early-stage startup",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Entry-level PM role for new graduates. AI Product Management Junior — 0-2 yrs experience. Training program included."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Senior PM in New York — US is in blocked_countries",
+      "title": "Senior AI Product Manager",
+      "company": "OpenAI",
+      "location": "New York, NY, USA",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Lead AI product for the API platform. Tier-A role at a tier-A AI company. US-based, NYC office, hybrid."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Senior PM in Bangalore — APAC is in blocked_countries",
+      "title": "Senior AI Product Manager",
+      "company": "Walmart Labs",
+      "location": "Bangalore, India",
+      "contract_type": "cdi",
+      "remote_mode": "onsite",
+      "description": "Drive AI product for the global e-commerce engine. 8+ yrs PM, AI focus. India-based, onsite."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "German-only JD — language hard filter (Wir suchen prefix)",
+      "title": "Senior AI Product Manager",
+      "company": "Münich AI GmbH",
+      "location": "Munich, Germany",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Wir suchen einen erfahrenen AI Product Manager für unser Berliner Büro. Verantwortlich für LLM-Produkte. Deutsche Muttersprache erforderlich, Englisch fließend."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Comptable / Accountant — off-domain (off-skill, off-track)",
+      "title": "Chief Accounting Officer",
+      "company": "FrenchCo",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "onsite",
+      "description": "Lead our accounting team. IFRS, statutory reporting, audit coordination. 10+ yrs in finance leadership. CPA / DSCG required."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Chef de Projet — chef de projet is in anti_titles + hard_filters.skip_title_substrings",
+      "title": "Chef de Projet Digital",
+      "company": "Digital agency",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Pilote des projets digitaux clients de bout en bout. Gestion d'équipe, planning, budget. 5 ans d'expérience en agence."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Backend Engineer Java/Spring CDI Paris — no AI mention, no PM responsibility (off-track engineering)",
+      "title": "Senior Backend Engineer (Java/Spring)",
+      "company": "BankCo",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Build microservices on Java/Spring. Kafka, Kubernetes, PostgreSQL. 7+ yrs backend engineering. No AI/ML focus."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Marketing PM at luxury brand — off-skill (no AI, no software product)",
+      "title": "Marketing Product Manager",
+      "company": "LVMH",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "onsite",
+      "description": "Drive marketing strategy for our flagship leather goods line. Brand positioning, campaigns, retail rollout. 8+ yrs in luxury marketing."
+    },
+    {
+      "expected_tier": "SKIP",
+      "expected_track": "A",
+      "rationale": "Power BI / Tableau data analyst — off-skill (no AI, no product surface)",
+      "title": "Senior Data Analyst — Power BI",
+      "company": "Insurance group",
+      "location": "Paris, France",
+      "contract_type": "cdi",
+      "remote_mode": "hybrid",
+      "description": "Build dashboards in Power BI and Tableau. SQL, ETL, business reporting. 5+ yrs as an analyst in insurance/finance."
+    }
+  ]
+}

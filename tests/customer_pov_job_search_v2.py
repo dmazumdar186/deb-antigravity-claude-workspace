@@ -44,10 +44,15 @@ VALID_REMOTE = {"Yes", "No", "Remote", "Hybrid", "Onsite", "Unknown", ""}
 VALID_CONTRACT = {"CDI", "CDD", "Stage", "Freelance", "Internship", "Unknown", ""}
 
 
-def _retry_429(fn, *, attempts: int = 3, base_delay: float = 6.0):
-    """Call fn(); on a Sheets 429 (read-quota), sleep and retry. The synthetic opens
-    8 tabs in ~4s right after the writer made ~50 calls, so the 60/min read quota is
-    often saturated. One backoff is enough — quota refills per-minute."""
+def _retry_429(fn, *, attempts: int = 4, base_delay: float = 12.0):
+    """Call fn(); on a Sheets 429 (read-quota), sleep and retry. The synthetic
+    opens 8 tabs in ~4s right after the writer made ~50 calls, so the 60/min
+    read quota is often saturated. 4 attempts × 12s baseline = up to 90s of
+    backoff which always covers a per-minute quota refill window.
+
+    Update 2026-06-27: bumped from 3×6s → 4×12s after CI run 28285143644 showed
+    three tabs (AI Consultant / Top Matches / Summary) failing even with the
+    earlier retry budget."""
     last_exc = None
     for n in range(attempts):
         try:
@@ -60,6 +65,13 @@ def _retry_429(fn, *, attempts: int = 3, base_delay: float = 6.0):
                 continue
             raise
     raise last_exc  # type: ignore[misc]
+
+
+# Per-tab throttle — Sheets allows ~60 reads/min/user. Each check_role_tab
+# performs 2 reads (row_values + get_all_values) so 6 role tabs = 12 reads
+# minimum. With Top Matches + Summary that climbs to ~16. 1.5s between tab
+# opens caps the per-minute rate at ~40 reads, well under the 60 limit.
+INTER_TAB_SLEEP_S = 1.5
 
 
 def check_role_tab(ws, failures: list[str]) -> None:
@@ -162,18 +174,27 @@ def main() -> int:
 
     for tab in role_tabs:
         try:
-            check_role_tab(sp.worksheet(tab), failures)
-        except Exception as exc:
+            # sp.worksheet() can itself be a network call when the cached list
+            # is stale — wrap in _retry_429 so a 429 here doesn't surface as
+            # an uncaught "could not open" (this was the exact failure mode in
+            # CI run 28285143644).
+            ws = _retry_429(lambda t=tab: sp.worksheet(t))
+            check_role_tab(ws, failures)
+        except Exception as exc:  # noqa: BLE001 — keep the synthetic running across tabs
             failures.append(f"{tab}: could not open ({exc})")
+        time.sleep(INTER_TAB_SLEEP_S)
 
     try:
-        check_top_matches(sp.worksheet("Top Matches"), failures)
-    except Exception as exc:
+        ws = _retry_429(lambda: sp.worksheet("Top Matches"))
+        check_top_matches(ws, failures)
+    except Exception as exc:  # noqa: BLE001
         failures.append(f"Top Matches: could not open ({exc})")
+    time.sleep(INTER_TAB_SLEEP_S)
 
     try:
-        check_summary(sp.worksheet("Summary"), failures)
-    except Exception as exc:
+        ws = _retry_429(lambda: sp.worksheet("Summary"))
+        check_summary(ws, failures)
+    except Exception as exc:  # noqa: BLE001
         failures.append(f"Summary: could not open ({exc})")
 
     if failures:

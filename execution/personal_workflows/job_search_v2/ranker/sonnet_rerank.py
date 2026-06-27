@@ -10,7 +10,7 @@ inputs:
 outputs:
     - dict[str, RankedJob] (same shape; entries for the top-N are replaced with
       Sonnet-refined scores; entries outside the top-N pass through unchanged)
-    - stats dict: {requested, refined, failed, by_tier_after, cost_usd_estimate}
+    - stats dict: {requested, refined, failed, by_tier_after, cost_eur_estimate}
 
 Cost: one tool-use call per pipeline run. At ~25 jobs x ~600 input tokens each
 = ~15K input + ~5K output. Sonnet 4.6 pricing $3/M input + $15/M output =
@@ -45,10 +45,14 @@ logger = logging.getLogger("ranker.sonnet_rerank")
 DEFAULT_MODEL = "claude-sonnet-4-5"
 RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 
-# Sonnet 4.6 pricing (USD per million tokens). Update if Anthropic changes the
-# rate card. Cache pricing not used here — re-rank is one-shot per run, no cache hit.
-PRICE_INPUT_PER_M = 3.0
-PRICE_OUTPUT_PER_M = 15.0
+# Sonnet 4.6 pricing — Anthropic publishes in USD per million tokens. We store
+# the USD rate card as the source-of-truth and convert to EUR for operator
+# display per ~/.claude/rules/currency-eur.md (Paris-based operator). Cache
+# pricing not used here — re-rank is one-shot per run, no cache hit.
+PRICE_INPUT_PER_M_USD = 3.0
+PRICE_OUTPUT_PER_M_USD = 15.0
+# 2026-06-27 reference rate. Refresh when EUR/USD moves >5%.
+USD_TO_EUR = 0.92
 
 
 def _tier_from_score(score: float) -> JobTier:
@@ -133,7 +137,7 @@ def rerank_shortlist(
         "refined": 0,
         "failed": 0,
         "by_tier_after": {"A": 0, "B": 0, "C": 0, "SKIP": 0},
-        "cost_usd_estimate": 0.0,
+        "cost_eur_estimate": 0.0,
         "skipped_reason": "",
         "model": model,
     }
@@ -260,14 +264,16 @@ def rerank_shortlist(
             stats["failed"] += 1
             logger.warning("sonnet_rerank: result for %s malformed (%s)", jid, exc)
 
-    # Cost estimate (read directly from the response's usage block).
+    # Cost estimate (read directly from the response's usage block). Stored as
+    # cost_eur_estimate per ~/.claude/rules/currency-eur.md — operator reads
+    # numbers in EUR; Anthropic bills in USD so we convert at emit time.
     try:
         usage = resp.usage
         in_tok = getattr(usage, "input_tokens", 0) or 0
         out_tok = getattr(usage, "output_tokens", 0) or 0
-        stats["cost_usd_estimate"] = round(
-            (in_tok * PRICE_INPUT_PER_M + out_tok * PRICE_OUTPUT_PER_M) / 1_000_000.0, 4
-        )
+        cost_usd = (in_tok * PRICE_INPUT_PER_M_USD
+                    + out_tok * PRICE_OUTPUT_PER_M_USD) / 1_000_000.0
+        stats["cost_eur_estimate"] = round(cost_usd * USD_TO_EUR, 4)
         stats["input_tokens"] = in_tok
         stats["output_tokens"] = out_tok
     except Exception as exc:  # noqa: BLE001 — usage block shape may vary; cost is informational.

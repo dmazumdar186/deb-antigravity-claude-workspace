@@ -1,0 +1,1069 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-27T11:07:45.609885+00:00",
+  "tracks": [
+    {
+      "id": "A",
+      "title": "Permanent AI Product Manager",
+      "targeted_titles": [
+        "AI Product Manager",
+        "Head of Product (AI)",
+        "Senior PM at AI-native or AI-heavy companies",
+        "Senior AI Product Manager"
+      ],
+      "anti_titles": [
+        "Chef de Projet",
+        "Junior Product Manager",
+        "Intern Product Manager",
+        "Stagiaire",
+        "Alternance",
+        "Graduate Program"
+      ],
+      "contract_types": [
+        "CDI"
+      ],
+      "min_seniority": "senior"
+    },
+    {
+      "id": "B",
+      "title": "Freelance AI Automation / Claude Code / React Native",
+      "targeted_titles": [
+        "Fractional AI Builder",
+        "Freelance AI Systems Engineer",
+        "AI Automation Specialist",
+        "AI Product Engineer",
+        "AI Consultant"
+      ],
+      "anti_titles": [
+        "Junior AI Engineer",
+        "Intern AI Engineer",
+        "Full-time AI Engineer"
+      ],
+      "contract_types": [
+        "Freelance",
+        "Fractional",
+        "Advisory",
+        "Contract",
+        "Mission",
+        "Indépendant"
+      ],
+      "min_seniority": "senior"
+    }
+  ],
+  "skills": [
+    {
+      "name": "LLM",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "job_search_v2",
+        "Anneal",
+        "YouTube Video Analyzer",
+        "Self-Outbound Engine",
+        "CV Optimizer Agent",
+        "prodcraft_autopilot"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "RAG",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Agentic AI",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Multi-Agent Systems",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "OpenAI Assistants",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Claude",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Freelance Engagement",
+        "ProdCraft",
+        "Anneal",
+        "YouTube Video Analyzer",
+        "Self-Outbound Engine",
+        "CV Optimizer Agent",
+        "cv_optimizer_local"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "MCP (Multi-Agent Communication Protocol)",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "A2A (Agent-to-Agent)",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Supervised ML",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Unsupervised ML",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "AI evaluation frameworks",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Non-determinism handling",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Prompt caching",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "LLM guardrails",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Freelance Engagement"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Self-iterating audit loops (Anneal)",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "Personal Projects (Anneal)"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Model routing (OpenRouter)",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Personal Projects (Anneal, YouTube Video Analyzer)"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Cloudflare Workers",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Freelance Engagement",
+        "ProdCraft",
+        "Personal Projects (Self-Outbound Engine)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Modal cron",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Freelance Engagement",
+        "ProdCraft",
+        "Personal Projects (Job Tracker PM France)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Firecrawl",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Personal Projects (Job Tracker PM France)",
+        "anthropic_watch"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Prompt Engineering",
+      "level": "strong",
+      "evidence": [
+        "LinkedIn",
+        "InfoTnT experience"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "MLOps",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Python",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Personal Projects",
+        "Project Signals"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "React",
+      "level": "strong",
+      "evidence": [
+        "ProdCraft experience (marketplace)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Node",
+      "level": "strong",
+      "evidence": [
+        "ProdCraft experience (marketplace)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Postgres",
+      "level": "strong",
+      "evidence": [
+        "ProdCraft experience (marketplace)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Expo",
+      "level": "strong",
+      "evidence": [
+        "ProdCraft experience (mobile apps)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "TestFlight",
+      "level": "strong",
+      "evidence": [
+        "ProdCraft experience (mobile apps)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Whisper",
+      "level": "strong",
+      "evidence": [
+        "client_call_followup"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Gradio_client",
+      "level": "familiar",
+      "evidence": [
+        "prodcraft_autopilot"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Remotion",
+      "level": "familiar",
+      "evidence": [
+        "prodcraft_autopilot"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Hugging Face Spaces",
+      "level": "familiar",
+      "evidence": [
+        "prodcraft_autopilot"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Pexels API",
+      "level": "familiar",
+      "evidence": [
+        "prodcraft_autopilot"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "YouTube Transcript API",
+      "level": "familiar",
+      "evidence": [
+        "prodcraft_autopilot"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Astro",
+      "level": "familiar",
+      "evidence": [
+        "portfolio_site"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Vision & Roadmap",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience",
+        "LinkedIn"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Discovery (quant/qual, JTBD)",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "InfoTnT experience",
+        "LinkedIn",
+        "reddit_pain_mining"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "PRD",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience",
+        "LinkedIn"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "API/data contracts",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience",
+        "InfoTnT experience"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Backlog",
+      "level": "strong",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "KPI/OKR",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Avaya experience",
+        "LinkedIn"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "A/B testing",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "Personal Projects (job_search_v2)"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "DoR/DoD",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Enablement & GTM",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Product Strategy",
+      "level": "expert",
+      "evidence": [
+        "LinkedIn"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Roadmapping",
+      "level": "expert",
+      "evidence": [
+        "LinkedIn"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "GDPR / privacy-by-design",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience",
+        "LinkedIn"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Access control",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Audit trails",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Tech sovereignty",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "AI ethics",
+      "level": "strong",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Cross-functional collaboration",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "Wiser Solutions experience"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Workshop facilitation",
+      "level": "strong",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Stakeholder management",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Jira",
+      "level": "strong",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Confluence",
+      "level": "strong",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Google AntiGravity",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "N8N",
+      "level": "strong",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "ProdCraft experience"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Make",
+      "level": "strong",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Figma",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Miro",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "Mixpanel",
+      "level": "familiar",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "SQL",
+      "level": "strong",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A"
+      ]
+    },
+    {
+      "name": "GenAI APIs (OpenAI, Google, Anthropic)",
+      "level": "expert",
+      "evidence": [
+        "CV"
+      ],
+      "tracks": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "Instantly.ai",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "ProdCraft experience",
+        "client_call_followup"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "GoHighLevel CRM",
+      "level": "expert",
+      "evidence": [
+        "CV",
+        "LinkedIn",
+        "ProdCraft experience"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Vercel",
+      "level": "strong",
+      "evidence": [
+        "CV (Freelance Engagement)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Telegram",
+      "level": "strong",
+      "evidence": [
+        "CV (Freelance Engagement)",
+        "Personal Projects (Self-Outbound Engine)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Stripe Connect",
+      "level": "strong",
+      "evidence": [
+        "LinkedIn",
+        "ProdCraft experience"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Vapi",
+      "level": "strong",
+      "evidence": [
+        "LinkedIn",
+        "ProdCraft experience"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Retell",
+      "level": "strong",
+      "evidence": [
+        "LinkedIn",
+        "ProdCraft experience"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Apollo",
+      "level": "strong",
+      "evidence": [
+        "Personal Projects (Self-Outbound Engine)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Cal.com",
+      "level": "strong",
+      "evidence": [
+        "Personal Projects (Self-Outbound Engine)",
+        "LinkedIn Featured"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "SQLite",
+      "level": "strong",
+      "evidence": [
+        "Personal Projects (job_search_v2, Job Tracker PM France)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Serper",
+      "level": "strong",
+      "evidence": [
+        "Personal Projects (Job Tracker PM France)"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Cold Email",
+      "level": "expert",
+      "evidence": [
+        "LinkedIn",
+        "ProdCraft experience"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Voice AI",
+      "level": "strong",
+      "evidence": [
+        "LinkedIn",
+        "ProdCraft experience"
+      ],
+      "tracks": [
+        "B"
+      ]
+    },
+    {
+      "name": "Fractional Consulting",
+      "level": "strong",
+      "evidence": [
+        "LinkedIn",
+        "Brand Strategy"
+      ],
+      "tracks": [
+        "B"
+      ]
+    }
+  ],
+  "domains": [
+    "Retail Tech",
+    "Digital Shelf",
+    "Promotional Intelligence",
+    "B2B SaaS",
+    "Outbound Sales",
+    "Marketing Automation",
+    "E-commerce",
+    "Fintech",
+    "Logistics"
+  ],
+  "languages": [
+    {
+      "code": "en",
+      "level": "C2"
+    },
+    {
+      "code": "fr",
+      "level": "C2"
+    },
+    {
+      "code": "hi",
+      "level": "Native"
+    },
+    {
+      "code": "bn",
+      "level": "Native"
+    }
+  ],
+  "locations": {
+    "preferred": [
+      "Paris, France"
+    ],
+    "ok_remote": [
+      "Remote",
+      "Schengen region"
+    ],
+    "blocked_countries": [
+      "United States",
+      "APAC"
+    ]
+  },
+  "hard_filters": {
+    "skip_title_substrings": [
+      "junior",
+      "intern",
+      "stagiaire",
+      "alternance",
+      "graduate program",
+      "trainee",
+      "chef de projet"
+    ],
+    "skip_description_substrings": [
+      "internship only",
+      "stage obligatoire",
+      "alternance uniquement"
+    ],
+    "skip_seniority": [
+      "junior",
+      "intern",
+      "alternance",
+      "graduate"
+    ]
+  },
+  "proof_points": [
+    {
+      "system": "Outbound / cold-email engine",
+      "metric": "48,000+ emails / month",
+      "track": "B"
+    },
+    {
+      "system": "Outbound / cold-email engine",
+      "metric": "4%+ reply rate",
+      "track": "B"
+    },
+    {
+      "system": "Outbound / cold-email engine",
+      "metric": "$1M+ qualified pipeline",
+      "track": "B"
+    },
+    {
+      "system": "Outbound / cold-email engine",
+      "metric": "~$200K/yr SDR headcount replaced",
+      "track": "B"
+    },
+    {
+      "system": "Enterprise GenAI / RAG (Wiser Solutions)",
+      "metric": "+45% feature adoption",
+      "track": "A"
+    },
+    {
+      "system": "Enterprise GenAI / RAG (Wiser Solutions)",
+      "metric": "−55% p95 latency",
+      "track": "A"
+    },
+    {
+      "system": "Enterprise GenAI / RAG (Wiser Solutions)",
+      "metric": "+40% BU adoption",
+      "track": "A"
+    },
+    {
+      "system": "Enterprise GenAI / RAG (Wiser Solutions)",
+      "metric": "+20% CSAT",
+      "track": "A"
+    },
+    {
+      "system": "Shipping speed / build track record",
+      "metric": "<30-day median ship cycle",
+      "track": "B"
+    },
+    {
+      "system": "Shipping speed / build track record",
+      "metric": "12+ AI systems shipped",
+      "track": "B"
+    },
+    {
+      "system": "Marketplace",
+      "metric": "$85K processed in first 3 months",
+      "track": "B"
+    },
+    {
+      "system": "Career-level / experience",
+      "metric": "15 years in data-intensive product/tech",
+      "track": "A"
+    }
+  ],
+  "raw_source_paths": [
+    "CV MAZUMDAR Debanjan EN.pdf",
+    "execution/personal_workflows/personal_brand/linkedin_profile.md",
+    "execution/personal_workflows/personal_brand/brand_strategy.md",
+    "execution/personal_workflows/personal_brand/metrics_canonical.md",
+    "directives/personal_workflows/anthropic_watch.md",
+    "directives/personal_workflows/client_call_followup.md",
+    "directives/personal_workflows/cv_builder.md",
+    "directives/personal_workflows/cv_optimizer_local.md",
+    "directives/personal_workflows/cv_optimizer_v2.md",
+    "directives/personal_workflows/job_search_sheet.md",
+    "directives/personal_workflows/job_search_sheet_v2.md",
+    "directives/personal_workflows/job_tracker_pm_france.md",
+    "directives/personal_workflows/job_tracker_setup.md",
+    "directives/personal_workflows/portfolio_site.md",
+    "directives/personal_workflows/prodcraft_autopilot.md",
+    "directives/personal_workflows/reddit_pain_mining.md"
+  ]
+}
