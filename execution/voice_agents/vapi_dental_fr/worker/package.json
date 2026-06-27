@@ -1,0 +1,16 @@
+{
+  "name": "vapi-dental-fr-worker",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cloudflare Worker — Vapi tool webhooks for the FR dental voice agent; proxies to Cal.com v2.",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240924.0",
+    "typescript": "^5.6.2",
+    "wrangler": "^3.78.0"
+  }
+}
