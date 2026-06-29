@@ -14,42 +14,32 @@ const CAL_API_VERSION_BOOKINGS = "2024-08-13";
 export interface Slot {
   slot_id: string;
   start_iso: string;
-  human_fr: string;
+  display: string;
   treatment: string;
 }
 
 export interface BookingResult {
   status: "confirmed" | "duplicate" | "error";
   event_id?: string;
-  human_fr?: string;
+  display?: string;
   reason?: string;
 }
 
-const FR_DAY: Record<number, string> = {
-  0: "dimanche", 1: "lundi", 2: "mardi", 3: "mercredi",
-  4: "jeudi", 5: "vendredi", 6: "samedi",
-};
-const FR_MONTH: Record<number, string> = {
-  1: "janvier", 2: "février", 3: "mars", 4: "avril", 5: "mai", 6: "juin",
-  7: "juillet", 8: "août", 9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre",
-};
-
-function humanFr(iso: string, tz: string): string {
-  // Parse ISO; render in the clinic's TZ for the human-readable string.
-  // Cloudflare Workers support Intl with timeZone option.
+// English-only demo. The prior French slot strings ("lundi 29 juin a 10h") shipped
+// the U+00E0 accented character through the Worker -> Vapi -> Gemini hop and got
+// double-encoded into mojibake (U+00C3 U+00A0), which Gemini's strict content
+// validator rejected with HTTP 400 -- call dropped silently after Lisa said
+// "One moment." (operator listen-test 2026-06-27 13:20). Switching to ASCII
+// English eliminates the corruption path entirely and matches the demo's
+// English-only voice (en-US-AriaNeural). All output here MUST stay ASCII.
+function humanEn(iso: string, tz: string): string {
   const d = new Date(iso);
-  const parts = new Intl.DateTimeFormat("fr-FR", {
+  const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: tz, weekday: "long", day: "numeric", month: "long",
-    hour: "2-digit", minute: "2-digit", hour12: false,
+    hour: "numeric", minute: "2-digit", hour12: true,
   }).formatToParts(d);
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-  const weekday = get("weekday").toLowerCase();
-  const day = get("day");
-  const month = get("month").toLowerCase();
-  const hour = get("hour");
-  const minute = get("minute");
-  const h = minute === "00" ? `${parseInt(hour, 10)}h` : `${parseInt(hour, 10)}h${minute}`;
-  return `${weekday} ${day} ${month} à ${h}`;
+  return `${get("weekday")} ${get("month")} ${get("day")} at ${get("hour")}:${get("minute")} ${get("dayPeriod")}`;
 }
 
 function calHeaders(env: Env, kind: "slots" | "bookings"): HeadersInit {
@@ -117,7 +107,7 @@ export async function calListSlots(
   return flat.slice(0, 3).map((iso) => ({
     slot_id: iso,
     start_iso: iso,
-    human_fr: humanFr(iso, tz),
+    display: humanEn(iso, tz),
     treatment,
   }));
 }
@@ -169,6 +159,6 @@ export async function calBookSlot(
   return {
     status: "confirmed",
     event_id,
-    human_fr: humanFr(startIso, tz),
+    display: humanEn(startIso, tz),
   };
 }

@@ -443,6 +443,13 @@ SCENARIOS: list[Scenario] = [
 # Main
 
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--only", help="comma-separated scenario ids to run (default: all)")
+    ap.add_argument("--limit", type=int, default=0,
+                    help="run only the first N scenarios (default: 0 = unlimited)")
+    cli_args = ap.parse_args()
+
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         print("GEMINI_API_KEY required", file=sys.stderr)
@@ -466,10 +473,19 @@ def main() -> int:
         return 1
     print(f"PASS  first_message clean\n")
 
-    print(f"running {len(SCENARIOS)} scenarios; transcripts in {RUN_DIR}\n")
+    # Filter SCENARIOS per CLI before running -- lets us stay inside Gemini's free-tier
+    # RPM budget by picking the highest-leverage cases.
+    scenarios = list(SCENARIOS)
+    if cli_args.only:
+        keep = {s.strip() for s in cli_args.only.split(",") if s.strip()}
+        scenarios = [s for s in scenarios if s.id in keep]
+    if cli_args.limit > 0:
+        scenarios = scenarios[: cli_args.limit]
+
+    print(f"running {len(scenarios)} scenarios; transcripts in {RUN_DIR}\n")
 
     pass_count = fail_count = 0
-    for s in SCENARIOS:
+    for s in scenarios:
         t0 = time.time()
         res = run_scenario(s, client, sp, first_message)
         persist(res)

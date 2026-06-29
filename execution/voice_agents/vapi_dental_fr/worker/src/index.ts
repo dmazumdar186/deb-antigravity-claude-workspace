@@ -104,7 +104,7 @@ async function handleHealth(req: Request, env: Env): Promise<Response> {
     try {
       const slots = await calListSlots(env, "consultation", 0);
       body.cal_reachable = true;
-      body.sample_slot = slots[0]?.human_fr ?? null;
+      body.sample_slot = slots[0]?.display ?? null;
     } catch (err) {
       body.cal_reachable = false;
       body.cal_error = (err instanceof Error ? err.message : String(err)).slice(0, 200);
@@ -112,6 +112,36 @@ async function handleHealth(req: Request, env: Env): Promise<Response> {
   }
 
   return Response.json(body, { headers: corsHeaders() });
+}
+
+// Vapi custom-tool webhook contract (per docs.vapi.ai/tools/custom-tools-troubleshooting,
+// confirmed 2026-06-27 by deep-research after the 13:20 vapifault-google-400 incident):
+//
+//   - `result` and `error` MUST be SINGLE-LINE STRINGS. Objects/arrays are silently
+//     stringified by Vapi with an encoding path that has mangled non-ASCII bytes
+//     (this is exactly how `lundi 29 juin a 10h` arrived at Gemini as mojibake).
+//   - Always return HTTP 200, even on error. Any other status is ignored.
+//   - No newlines inside the string (line breaks cause parsing errors).
+//
+// We compose plain-English single-line summaries the LLM can read directly, with
+// machine-parseable structure preserved in [brackets] so Gemini can extract slot_id
+// for book_slot. Defense in depth: humanEn() already returns ASCII only.
+function formatSlotsForLlm(slots: Array<{ slot_id: string; display: string }>): string {
+  if (slots.length === 0) {
+    return "No slots available in the next 14 days. Recommend transferring to clinic.";
+  }
+  const parts = slots.map((s, i) => `(${i + 1}) ${s.display} [slot_id=${s.slot_id}]`);
+  return `Available slots: ${parts.join("; ")}.`;
+}
+
+function formatBookingForLlm(b: { status: string; event_id?: string; display?: string; reason?: string }): string {
+  if (b.status === "confirmed") {
+    return `Booking confirmed: ${b.display ?? "(time unavailable)"} [event_id=${b.event_id ?? "unknown"}].`;
+  }
+  if (b.status === "duplicate") {
+    return `Slot already booked; tell the caller it just got taken and offer to re-list available slots.`;
+  }
+  return `Booking failed: ${b.reason ?? "unknown reason"}. Tell the caller you are hitting a technical issue and a staff member will call back within the hour.`;
 }
 
 async function handleListSlots(req: Request, env: Env): Promise<Response> {
@@ -124,7 +154,7 @@ async function handleListSlots(req: Request, env: Env): Promise<Response> {
         const treatment = typeof args.treatment === "string" ? args.treatment : "consultation";
         const days_offset = typeof args.days_offset === "number" ? args.days_offset : 0;
         const slots = await calListSlots(env, treatment, days_offset);
-        return { toolCallId: tc.id, result: { slots } };
+        return { toolCallId: tc.id, result: formatSlotsForLlm(slots) };
       } catch (err) {
         return {
           toolCallId: tc.id,
@@ -151,7 +181,7 @@ async function handleBookSlot(req: Request, env: Env): Promise<Response> {
           return { toolCallId: tc.id, error: "missing required args" };
         }
         const booking = await calBookSlot(env, slot_id, caller_name, callback, treatment);
-        return { toolCallId: tc.id, result: booking };
+        return { toolCallId: tc.id, result: formatBookingForLlm(booking) };
       } catch (err) {
         return {
           toolCallId: tc.id,

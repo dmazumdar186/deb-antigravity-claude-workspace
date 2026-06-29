@@ -11,14 +11,38 @@
       "id": "book_consultation_paul",
       "must_pass": true,
       "transcript": [
-        {"who": "caller", "fr": "Bonjour, je voudrais prendre un rendez-vous pour une consultation."},
-        {"who": "agent_expected_intent", "treatment": "consultation"},
-        {"who": "caller", "fr": "Paul Diallo, mon numéro c'est 0612345678."},
-        {"who": "caller", "fr": "Le premier créneau me va."}
+        {
+          "who": "caller",
+          "fr": "Bonjour, je voudrais prendre un rendez-vous pour une consultation."
+        },
+        {
+          "who": "agent_expected_intent",
+          "treatment": "consultation"
+        },
+        {
+          "who": "caller",
+          "fr": "Paul Diallo, mon numéro c'est 0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Le premier créneau me va."
+        }
       ],
       "expected_tool_sequence": [
-        {"name": "list_slots", "args": {"treatment": "consultation"}},
-        {"name": "book_slot", "args_pattern": {"treatment": "consultation", "caller_name": "Paul Diallo", "callback": "0612345678"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "consultation",
+            "caller_name": "Paul Diallo",
+            "callback": "0612345678"
+          }
+        }
       ],
       "expected_close_pattern": "(?i)(bonne journée|à bientôt|au revoir)"
     },
@@ -26,13 +50,33 @@
       "id": "book_detartrage_marie",
       "must_pass": true,
       "transcript": [
-        {"who": "caller", "fr": "Bonjour, c'est pour un détartrage."},
-        {"who": "caller", "fr": "Marie Dubois, 0723456789."},
-        {"who": "caller", "fr": "Le mercredi à 14h, parfait."}
+        {
+          "who": "caller",
+          "fr": "Bonjour, c'est pour un détartrage."
+        },
+        {
+          "who": "caller",
+          "fr": "Marie Dubois, 0723456789."
+        },
+        {
+          "who": "caller",
+          "fr": "Le mercredi à 14h, parfait."
+        }
       ],
       "expected_tool_sequence": [
-        {"name": "list_slots", "args": {"treatment": "detartrage"}},
-        {"name": "book_slot", "args_pattern": {"treatment": "detartrage", "caller_name": "Marie Dubois"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "detartrage"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "detartrage",
+            "caller_name": "Marie Dubois"
+          }
+        }
       ],
       "expected_close_pattern": "(?i)(bonne journée|à bientôt|au revoir)"
     },
@@ -40,15 +84,44 @@
       "id": "book_controle_with_reroll",
       "must_pass": true,
       "transcript": [
-        {"who": "caller", "fr": "Je veux un contrôle annuel."},
-        {"who": "caller", "fr": "Karim Mansouri, 0698765432."},
-        {"who": "caller", "fr": "Vous avez pas quelque chose la semaine d'après ?"},
-        {"who": "caller", "fr": "Le jeudi à 11h15 me va."}
+        {
+          "who": "caller",
+          "fr": "Je veux un contrôle annuel."
+        },
+        {
+          "who": "caller",
+          "fr": "Karim Mansouri, 0698765432."
+        },
+        {
+          "who": "caller",
+          "fr": "Vous avez pas quelque chose la semaine d'après ?"
+        },
+        {
+          "who": "caller",
+          "fr": "Le jeudi à 11h15 me va."
+        }
       ],
       "expected_tool_sequence": [
-        {"name": "list_slots", "args": {"treatment": "controle"}},
-        {"name": "list_slots", "args": {"treatment": "controle", "days_offset": 7}},
-        {"name": "book_slot", "args_pattern": {"treatment": "controle", "caller_name": "Karim Mansouri"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "controle"
+          }
+        },
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "controle",
+            "days_offset": 7
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "controle",
+            "caller_name": "Karim Mansouri"
+          }
+        }
       ],
       "expected_close_pattern": "(?i)(bonne journée|à bientôt|au revoir)"
     },
@@ -56,34 +129,65 @@
       "id": "handoff_pain_keyword",
       "must_pass": true,
       "transcript": [
-        {"who": "caller", "fr": "Bonjour, j'ai très mal à une dent, ça saigne."}
+        {
+          "who": "caller",
+          "fr": "Bonjour, j'ai très mal à une dent, ça saigne."
+        }
       ],
       "expected_tool_sequence": [],
       "expected_close_pattern": "(?i)(transf[èe]re|au cabinet|reste[zr]? en ligne)",
-      "must_not_call": ["book_slot"]
+      "must_not_call": [
+        "book_slot"
+      ]
     },
     {
       "id": "handoff_operator_keyword",
       "must_pass": true,
       "transcript": [
-        {"who": "caller", "fr": "Opérateur."}
+        {
+          "who": "caller",
+          "fr": "Opérateur."
+        }
       ],
       "expected_tool_sequence": [],
       "expected_close_pattern": "(?i)(humain|au cabinet|transf[èe]re|reste[zr]? en ligne)",
-      "must_not_call": ["book_slot"]
+      "must_not_call": [
+        "book_slot"
+      ]
     },
     {
       "id": "book_consultation_english_paul",
       "must_pass": true,
       "_note": "EN caller — bilingual Lisa serves them in English, books normally.",
       "transcript": [
-        {"who": "caller", "fr": "Hi, I'd like to book a consultation appointment."},
-        {"who": "caller", "fr": "Paul Diallo, my phone number is 0612345678."},
-        {"who": "caller", "fr": "The first slot works for me."}
+        {
+          "who": "caller",
+          "fr": "Hi, I'd like to book a consultation appointment."
+        },
+        {
+          "who": "caller",
+          "fr": "Paul Diallo, my phone number is 0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "The first slot works for me."
+        }
       ],
       "expected_tool_sequence": [
-        {"name": "list_slots", "args": {"treatment": "consultation"}},
-        {"name": "book_slot", "args_pattern": {"treatment": "consultation", "caller_name": "Paul Diallo", "callback": "0612345678"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "consultation",
+            "caller_name": "Paul Diallo",
+            "callback": "0612345678"
+          }
+        }
       ],
       "expected_close_pattern": "(?i)(have a good day|see you soon|goodbye|à bientôt|bonne journée)"
     },
@@ -92,39 +196,82 @@
       "must_pass": true,
       "_note": "EN urgence keyword — same immediate-transfer behavior as the FR case.",
       "transcript": [
-        {"who": "caller", "fr": "Hi, I have severe pain in my tooth and it's bleeding."}
+        {
+          "who": "caller",
+          "fr": "Hi, I have severe pain in my tooth and it's bleeding."
+        }
       ],
       "expected_tool_sequence": [],
       "expected_close_pattern": "(?i)(transfer|clinic|hold|stay on the line|humain|au cabinet)",
-      "must_not_call": ["book_slot"]
+      "must_not_call": [
+        "book_slot"
+      ]
     },
     {
       "id": "oos_german_caller_full_sentence",
       "must_pass": true,
       "_note": "Truly out-of-scope language: a full German sentence (not just a name). Handoff after asking to repeat in FR/EN.",
       "transcript": [
-        {"who": "caller", "fr": "Guten Tag, ich brauche einen Termin beim Zahnarzt bitte."},
-        {"who": "caller", "fr": "Ich verstehe nicht. Ich brauche einen Zahnarzttermin."}
+        {
+          "who": "caller",
+          "fr": "Guten Tag, ich brauche einen Termin beim Zahnarzt bitte."
+        },
+        {
+          "who": "caller",
+          "fr": "Ich verstehe nicht. Ich brauche einen Zahnarzttermin."
+        }
       ],
       "expected_tool_sequence": [],
       "expected_close_pattern": "(?i)(transfer|hold|connect|humain|au cabinet|please hold)",
-      "must_not_call": ["book_slot"]
+      "must_not_call": [
+        "book_slot"
+      ]
     },
     {
       "id": "book_consultation_foreign_name_debanjan",
       "must_pass": true,
       "_note": "Regression for the 2026-06-26 bug: FR caller with an Indian name was wrongly handed off as 'third language'. Names are data, not language switches. Lisa MUST book normally.",
       "transcript": [
-        {"who": "caller", "fr": "Bonjour, je voudrais une consultation."},
-        {"who": "caller", "fr": "Mon prénom c'est Debanjan."},
-        {"who": "caller", "fr": "Mon nom de famille c'est Mazumdar."},
-        {"who": "caller", "fr": "Mon numéro c'est 0612345678."},
-        {"who": "caller", "fr": "Oui, c'est bien ça."},
-        {"who": "caller", "fr": "Le premier créneau me va."}
+        {
+          "who": "caller",
+          "fr": "Bonjour, je voudrais une consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Mon prénom c'est Debanjan."
+        },
+        {
+          "who": "caller",
+          "fr": "Mon nom de famille c'est Mazumdar."
+        },
+        {
+          "who": "caller",
+          "fr": "Mon numéro c'est 0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Oui, c'est bien ça."
+        },
+        {
+          "who": "caller",
+          "fr": "Le premier créneau me va."
+        }
       ],
       "expected_tool_sequence": [
-        {"name": "list_slots", "args": {"treatment": "consultation"}},
-        {"name": "book_slot", "args_pattern": {"treatment": "consultation", "caller_name": "Debanjan Mazumdar", "callback": "0612345678"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "consultation",
+            "caller_name": "Debanjan Mazumdar",
+            "callback": "0612345678"
+          }
+        }
       ],
       "expected_close_pattern": "(?i)(bonne journée|à bientôt|au revoir|have a good day)",
       "must_not_call": []
@@ -134,16 +281,46 @@
       "must_pass": true,
       "_note": "Same as above but EN caller with a normal Anglo name surrounded by an Indian first name. Should still book.",
       "transcript": [
-        {"who": "caller", "fr": "Hi, I'd like a cleaning appointment."},
-        {"who": "caller", "fr": "My first name is Arjun."},
-        {"who": "caller", "fr": "My last name is Patel."},
-        {"who": "caller", "fr": "My phone is 0612345678."},
-        {"who": "caller", "fr": "Yes, that's correct."},
-        {"who": "caller", "fr": "The first slot works."}
+        {
+          "who": "caller",
+          "fr": "Hi, I'd like a cleaning appointment."
+        },
+        {
+          "who": "caller",
+          "fr": "My first name is Arjun."
+        },
+        {
+          "who": "caller",
+          "fr": "My last name is Patel."
+        },
+        {
+          "who": "caller",
+          "fr": "My phone is 0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes, that's correct."
+        },
+        {
+          "who": "caller",
+          "fr": "The first slot works."
+        }
       ],
       "expected_tool_sequence": [
-        {"name": "list_slots", "args": {"treatment": "detartrage"}},
-        {"name": "book_slot", "args_pattern": {"treatment": "detartrage", "caller_name": "Arjun Patel", "callback": "0612345678"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "detartrage"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "detartrage",
+            "caller_name": "Arjun Patel",
+            "callback": "0612345678"
+          }
+        }
       ],
       "expected_close_pattern": "(?i)(bonne journée|à bientôt|have a good day|see you soon)",
       "must_not_call": []
@@ -152,29 +329,74 @@
       "id": "oos_hostile_caller",
       "must_pass": true,
       "transcript": [
-        {"who": "caller", "fr": "Vous êtes nuls, je vais porter plainte."}
+        {
+          "who": "caller",
+          "fr": "Vous êtes nuls, je vais porter plainte."
+        }
       ],
       "expected_tool_sequence": [],
       "expected_close_pattern": "(?i)(humain|au cabinet|transf[èe]re|opérateur)",
-      "must_not_call": ["book_slot"]
+      "must_not_call": [
+        "book_slot"
+      ]
     },
     {
       "id": "dedup_same_caller_twice",
       "must_pass": true,
       "transcript": [
-        {"who": "caller", "fr": "Bonjour, je voudrais une consultation."},
-        {"who": "caller", "fr": "Sophie Martin, 0611111111."},
-        {"who": "caller", "fr": "Le premier créneau."},
-        {"who": "_session_break"},
-        {"who": "caller", "fr": "Bonjour, je voudrais une consultation."},
-        {"who": "caller", "fr": "Sophie Martin, 0611111111."},
-        {"who": "caller", "fr": "Le premier créneau."}
+        {
+          "who": "caller",
+          "fr": "Bonjour, je voudrais une consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Sophie Martin, 0611111111."
+        },
+        {
+          "who": "caller",
+          "fr": "Le premier créneau."
+        },
+        {
+          "who": "_session_break"
+        },
+        {
+          "who": "caller",
+          "fr": "Bonjour, je voudrais une consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Sophie Martin, 0611111111."
+        },
+        {
+          "who": "caller",
+          "fr": "Le premier créneau."
+        }
       ],
       "expected_tool_sequence": [
-        {"name": "list_slots", "args": {"treatment": "consultation"}},
-        {"name": "book_slot", "args_pattern": {"caller_name": "Sophie Martin"}},
-        {"name": "list_slots", "args": {"treatment": "consultation"}},
-        {"name": "book_slot", "args_pattern": {"caller_name": "Sophie Martin"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "caller_name": "Sophie Martin"
+          }
+        },
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "caller_name": "Sophie Martin"
+          }
+        }
       ],
       "expected_dedup_status_on_second_book": "duplicate",
       "expected_close_pattern": "(?i)(d[ée]j[àa]|m[êe]me|existe)"
@@ -184,14 +406,565 @@
       "must_pass": false,
       "soft_target": "WER on the intent classification turn should be <= 15% vs metropolitan FR reference",
       "transcript": [
-        {"who": "caller", "fr": "Salam, je voudrais oun rendez-vous pour un détartrage svp.", "accent": "maghrebi", "note": "non-metropolitan FR; if Gemini Live fails intent, the agent must fall back to 'opérateur' rather than guess."},
-        {"who": "caller", "fr": "Yacoub Benali, 0788889999."},
-        {"who": "caller", "fr": "Le premier qui va."}
+        {
+          "who": "caller",
+          "fr": "Salam, je voudrais oun rendez-vous pour un détartrage svp.",
+          "accent": "maghrebi",
+          "note": "non-metropolitan FR; if Gemini Live fails intent, the agent must fall back to 'opérateur' rather than guess."
+        },
+        {
+          "who": "caller",
+          "fr": "Yacoub Benali, 0788889999."
+        },
+        {
+          "who": "caller",
+          "fr": "Le premier qui va."
+        }
       ],
       "expected_tool_sequence_or_handoff": [
-        {"name": "list_slots", "args": {"treatment": "detartrage"}}
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "detartrage"
+          }
+        }
       ],
       "expected_close_pattern": "(?i)(bonne journée|à bientôt|au revoir|humain|au cabinet)"
+    },
+    {
+      "id": "regression_filler_then_silence_2026_06_27",
+      "must_pass": false,
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks",
+      "_note": "2026-06-27 13:20 production bug: Lisa said 'One moment.' then dead air for 5s+ before Gemini 400-vapifaulted on the mojibake'd slot string. Post-fix: list_slots returns ASCII English, and the prompt FORBIDS bare filler turns. The audit script (tests/audit_vapi_calls.py) is the production gate — this corpus row locks the offline expectation.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Hi, I'd like to book a consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Debanjan."
+        },
+        {
+          "who": "caller",
+          "fr": "Mazumdar."
+        },
+        {
+          "who": "caller",
+          "fr": "Zero seven, double five, eight zero, seven six, five eight."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes that's right."
+        },
+        {
+          "who": "caller",
+          "fr": "The first one works."
+        }
+      ],
+      "expected_tool_sequence": [
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "consultation",
+            "caller_name": "Debanjan Mazumdar"
+          }
+        }
+      ],
+      "must_not_appear_in_transcript": [
+        "One moment.",
+        "Please wait.",
+        "Let me check.",
+        "Hold on.",
+        "Give me a moment.",
+        "Just a moment."
+      ],
+      "must_not_appear_in_tool_result_bytes_above_0x7f": true
+    },
+    {
+      "id": "regression_asr_goodbye_misheard_as_name",
+      "must_pass": false,
+      "_note": "2026-06-27 10:53 production bug: ASR turned 'Debanjan' into 'Goodbye' on the first-name turn. Lisa interpreted as exit-intent and said 'Are you sure you want to go ... have a wonderful day' — both forbidden phrases. Post-fix: hard rule forces spell-back on any single-word ambiguous response.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Hi, I want a checkup."
+        },
+        {
+          "who": "caller",
+          "fr": "Goodbye.",
+          "_note": "ASR garbled 'Debanjan'. Lisa MUST spell-back, not exit."
+        },
+        {
+          "who": "caller",
+          "fr": "D-E-B-A-N-J-A-N."
+        },
+        {
+          "who": "caller",
+          "fr": "Mazumdar."
+        },
+        {
+          "who": "caller",
+          "fr": "0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes."
+        },
+        {
+          "who": "caller",
+          "fr": "First slot."
+        }
+      ],
+      "expected_tool_sequence": [
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "controle"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "controle",
+            "caller_name": "Debanjan Mazumdar"
+          }
+        }
+      ],
+      "must_not_appear_in_transcript": [
+        "are you sure you want",
+        "have a wonderful day",
+        "if there's nothing else"
+      ],
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "boundary_silence_after_phone_digits",
+      "must_pass": false,
+      "_note": "Boundary: caller dictates digits then goes silent (thinking). Lisa MUST prompt 'Are you still there?' — not end the call.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation please."
+        },
+        {
+          "who": "caller",
+          "fr": "Paul."
+        },
+        {
+          "who": "caller",
+          "fr": "Smith."
+        },
+        {
+          "who": "caller",
+          "fr": "Zero six, one two, three four,"
+        },
+        {
+          "who": "_silence_8s"
+        },
+        {
+          "who": "caller",
+          "fr": "Sorry, five six seven eight."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes correct."
+        },
+        {
+          "who": "caller",
+          "fr": "First slot."
+        }
+      ],
+      "expected_tool_sequence": [
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "treatment": "consultation",
+            "caller_name": "Paul Smith"
+          }
+        }
+      ],
+      "expected_keep_alive_pattern": "(?i)(still there|are you there|take your time)",
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "negative_caller_hangs_up_mid_booking",
+      "must_pass": false,
+      "_note": "Caller hangs up after dictating name but BEFORE confirming phone. Lisa MUST NOT call book_slot.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Cleaning please."
+        },
+        {
+          "who": "caller",
+          "fr": "Marie."
+        },
+        {
+          "who": "caller",
+          "fr": "Dupont."
+        },
+        {
+          "who": "_hangup"
+        }
+      ],
+      "expected_tool_sequence": [],
+      "must_not_call": [
+        "book_slot"
+      ],
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "negative_caller_refuses_phone_number",
+      "must_pass": false,
+      "_note": "Caller will not share phone. Lisa MUST NOT proceed to slot listing/booking without it; transfer to operator is acceptable.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Sarah."
+        },
+        {
+          "who": "caller",
+          "fr": "Connor."
+        },
+        {
+          "who": "caller",
+          "fr": "I'd rather not give my phone number over the phone."
+        }
+      ],
+      "expected_tool_sequence": [],
+      "must_not_call": [
+        "book_slot",
+        "list_slots"
+      ],
+      "expected_close_pattern": "(?i)(transfer|clinic|human|operator|stay on the line|cabinet)",
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "boundary_phone_9_digits_too_short",
+      "must_pass": false,
+      "_note": "Caller gives 9 digits instead of 10. Lisa MUST re-ask, not proceed.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Paul."
+        },
+        {
+          "who": "caller",
+          "fr": "Smith."
+        },
+        {
+          "who": "caller",
+          "fr": "Zero six, one two, three four, five six, seven."
+        }
+      ],
+      "expected_tool_sequence": [],
+      "must_not_call": [
+        "book_slot",
+        "list_slots"
+      ],
+      "expected_followup_pattern": "(?i)(could you|repeat|didn't catch|one more digit|missed|all ten)",
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "boundary_phone_11_digits_too_long",
+      "must_pass": false,
+      "_note": "Caller gives 11 digits. Lisa MUST confirm or re-read which digits she captured.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Paul."
+        },
+        {
+          "who": "caller",
+          "fr": "Smith."
+        },
+        {
+          "who": "caller",
+          "fr": "Zero zero six, one two, three four, five six, seven eight."
+        }
+      ],
+      "expected_tool_sequence": [],
+      "must_not_call": [
+        "book_slot"
+      ],
+      "expected_followup_pattern": "(?i)(let me read|repeat|got it|is that correct|too many)",
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "negative_french_mid_call_switch",
+      "must_pass": false,
+      "_note": "English caller switches to a full French sentence mid-call. Lisa says 'this line is English only' and transfers.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Hi, I'd like a consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Bonjour, en fait je préférerais parler en français si c'est possible."
+        }
+      ],
+      "expected_tool_sequence": [],
+      "must_not_call": [
+        "book_slot",
+        "list_slots"
+      ],
+      "expected_close_pattern": "(?i)(english|transfer|clinic|operator|human|hold)",
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "boundary_barge_in_mid_sentence",
+      "must_pass": false,
+      "_note": "Caller speaks while Lisa is still mid-sentence (Vapi barge-in). Behavior: Lisa stops and processes the caller's input. Acceptance: she does NOT continue her abandoned sentence after responding.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation."
+        },
+        {
+          "who": "_barge_in",
+          "_note": "caller interrupts Lisa's name question with 'Paul Smith'"
+        },
+        {
+          "who": "caller",
+          "fr": "Paul Smith."
+        }
+      ],
+      "expected_tool_sequence": [],
+      "expected_followup_pattern": "(?i)(got it|paul|phone|number)",
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "negative_calcom_zero_slots",
+      "must_pass": false,
+      "_note": "list_slots returns 0 slots (calendar fully booked next 14d). Lisa MUST NOT invent slots; she transfers to operator.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Paul."
+        },
+        {
+          "who": "caller",
+          "fr": "Smith."
+        },
+        {
+          "who": "caller",
+          "fr": "0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes."
+        },
+        {
+          "who": "_tool_response_override",
+          "name": "list_slots",
+          "result": {
+            "slots": []
+          }
+        }
+      ],
+      "expected_tool_sequence": [
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        }
+      ],
+      "must_not_call": [
+        "book_slot"
+      ],
+      "expected_close_pattern": "(?i)(transfer|clinic|operator|stay on the line|technical issue|call you back)",
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "negative_calcom_409_slot_taken",
+      "must_pass": false,
+      "_note": "book_slot returns status=duplicate (slot just got taken). Lisa MUST re-list and offer alternatives, NOT confirm.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Paul."
+        },
+        {
+          "who": "caller",
+          "fr": "Smith."
+        },
+        {
+          "who": "caller",
+          "fr": "0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes."
+        },
+        {
+          "who": "caller",
+          "fr": "First slot."
+        },
+        {
+          "who": "_tool_response_override",
+          "name": "book_slot",
+          "result": {
+            "status": "duplicate",
+            "reason": "slot conflict"
+          }
+        }
+      ],
+      "expected_followup_pattern": "(?i)(taken|another|different|other slot|just got booked|try)",
+      "expected_tool_sequence_must_contain": [
+        "list_slots",
+        "book_slot"
+      ],
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "boundary_caller_changes_slot_choice",
+      "must_pass": false,
+      "_note": "Caller picks slot 3, then says 'actually, the first one'. Lisa MUST book the first, not the third.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Cleaning."
+        },
+        {
+          "who": "caller",
+          "fr": "Sarah."
+        },
+        {
+          "who": "caller",
+          "fr": "Connor."
+        },
+        {
+          "who": "caller",
+          "fr": "0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes."
+        },
+        {
+          "who": "caller",
+          "fr": "The third one."
+        },
+        {
+          "who": "caller",
+          "fr": "Actually, can we do the first one instead?"
+        }
+      ],
+      "expected_tool_sequence": [
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "detartrage"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "caller_name": "Sarah Connor",
+            "_picked_slot_index": 0
+          }
+        }
+      ],
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
+    },
+    {
+      "id": "negative_yes_before_slots_proposed",
+      "must_pass": false,
+      "_note": "Caller says 'yes' before Lisa has finished listing slots. Lisa MUST ignore and complete the slot list before booking.",
+      "transcript": [
+        {
+          "who": "caller",
+          "fr": "Consultation."
+        },
+        {
+          "who": "caller",
+          "fr": "Paul."
+        },
+        {
+          "who": "caller",
+          "fr": "Smith."
+        },
+        {
+          "who": "caller",
+          "fr": "0612345678."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes."
+        },
+        {
+          "who": "caller",
+          "fr": "Yes.",
+          "_note": "premature yes before slots heard"
+        },
+        {
+          "who": "caller",
+          "fr": "Sorry, the first one."
+        }
+      ],
+      "expected_tool_sequence": [
+        {
+          "name": "list_slots",
+          "args": {
+            "treatment": "consultation"
+          }
+        },
+        {
+          "name": "book_slot",
+          "args_pattern": {
+            "_picked_slot_index": 0
+          }
+        }
+      ],
+      "_simulator_coverage": false,
+      "_real_gate": "audit_vapi_calls.py + front_door_voice_agent.sh sentinel checks"
     }
   ]
 }

@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 account_id = ""
 
 [vars]
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.4.0"
 CLINIC_NAME = "Cabinet Dentylis"
 CLINIC_PHONE = "01 85 00 57 05"
 DEMO_MODE = "true"
