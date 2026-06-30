@@ -70,12 +70,13 @@ FORBIDDEN_REGEX = [
 ]
 FORBIDDEN = [(re.compile(p, re.IGNORECASE), tag) for p, tag in FORBIDDEN_REGEX]
 
-# Bot-utterance regex that = "just a filler with no follow-up question or action".
-# This is the 2026-06-27 regression class: Lisa says "One moment." and then the
-# next thing the caller hears is silence (Gemini 400'd or the tool stalled).
-FILLER_ONLY = re.compile(
-    r"^\s*(?:one moment\.?|please wait\.?|let me check\.?|hold on\.?|"
-    r"give me a (?:sec|second|moment)\.?|just a moment\.?)\s*$",
+# Bot-utterance regex: matches if any standalone filler phrase appears AT ALL in the
+# turn (originally required the WHOLE turn to be filler; that let "Just a sec. Got it."
+# slip through -- the 2026-06-30 11:47 production bug audited as clean by mistake).
+FILLER_ANYWHERE = re.compile(
+    r"\b(?:one moment|please wait|let me check|hold on|"
+    r"give me a (?:sec|second|moment)|just a (?:sec|second|moment)|"
+    r"bear with me|one sec)\b",
     re.IGNORECASE,
 )
 
@@ -166,16 +167,42 @@ def grade_call(c: dict) -> dict:
             for tag in find_forbidden_in_text(txt):
                 findings.append(f"forbidden({tag}) in bot turn: {txt[:160]!r}")
                 severity = "FAIL"
-            if FILLER_ONLY.match(txt):
-                # Was this filler the LAST bot turn before the call ended? Then it's
-                # the 2026-06-27 bug class: filler with no follow-up.
-                # Heuristic: any filler-only turn is a smell, even if recovered.
-                # If it's the LAST bot turn, escalate to FAIL; else WARN.
-                idx = bot_turns.index(txt)
-                tag = "filler-only turn (forbidden per 2026-06-27 hard rule)"
-                findings.append(f"{tag}: {txt!r}")
+            if FILLER_ANYWHERE.search(txt):
+                findings.append(f"filler phrase in bot turn (forbidden): {txt[:160]!r}")
                 if severity != "FAIL":
                     severity = "WARN"
+
+    # Eager-tool-call detection (the 2026-06-30 11:47 production bug). list_slots
+    # must NOT fire before the caller has given first_name + last_name + confirmed
+    # phone. Heuristic: walk messages in order; count user turns BEFORE the first
+    # list_slots tool_calls message; require >= 4 user turns AND an affirmation
+    # ("yes", "yeah", "correct") between the last digit-dictation and the tool call.
+    user_turns_before_ls = 0
+    saw_phone_confirmation = False
+    fired_ls_early = False
+    for m in c.get("messages") or []:
+        role = (m.get("role") or "").lower()
+        if role == "user":
+            user_turns_before_ls += 1
+            content = (m.get("message") or "").lower()
+            if user_turns_before_ls >= 4 and any(
+                w in content for w in ("yes", "yeah", "yep", "correct", "right")
+            ):
+                saw_phone_confirmation = True
+        elif role == "tool_calls":
+            for tc in m.get("toolCalls") or []:
+                if (tc.get("function") or {}).get("name") == "list_slots":
+                    if user_turns_before_ls < 4 or not saw_phone_confirmation:
+                        fired_ls_early = True
+                    break
+            if fired_ls_early:
+                break
+    if fired_ls_early:
+        findings.append(
+            f"EAGER list_slots: fired after only {user_turns_before_ls} user turn(s), "
+            f"phone_confirmed={saw_phone_confirmation} -- 2026-06-30 bug class."
+        )
+        severity = "FAIL"
 
     # Mojibake check on tool results (would indicate the worker leaked non-ASCII).
     for m in c.get("messages") or []:
