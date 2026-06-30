@@ -193,6 +193,66 @@ async function handleBookSlot(req: Request, env: Env): Promise<Response> {
   return Response.json({ results }, { headers: corsHeaders() });
 }
 
+// --- Retell custom-function handlers ---
+// Body shape (Payload: args only mode): { treatment?: string, days_offset?: number, ... }
+// Response shape: arbitrary JSON; Retell pulls fields via response_variables JSON paths.
+
+async function handleRetellListSlots(req: Request, env: Env): Promise<Response> {
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    body = {};
+  }
+  const argsObj = (body.args ?? body) as Record<string, unknown>;
+  const treatment = typeof argsObj.treatment === "string" ? argsObj.treatment : "consultation";
+  const days_offset = typeof argsObj.days_offset === "number" ? argsObj.days_offset : 0;
+  try {
+    const slots = await calListSlots(env, treatment, days_offset);
+    return Response.json(
+      { ok: true, summary: formatSlotsForLlm(slots), slots },
+      { headers: corsHeaders() }
+    );
+  } catch (err) {
+    return Response.json(
+      { ok: false, summary: "Could not retrieve slots; tell the caller you are hitting a technical issue and offer to transfer.", error: (err instanceof Error ? err.message : String(err)).slice(0, 200) },
+      { headers: corsHeaders() }
+    );
+  }
+}
+
+async function handleRetellBookSlot(req: Request, env: Env): Promise<Response> {
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    body = {};
+  }
+  const argsObj = (body.args ?? body) as Record<string, unknown>;
+  const slot_id = String(argsObj.slot_id ?? "");
+  const caller_name = String(argsObj.caller_name ?? "");
+  const callback = String(argsObj.callback ?? "");
+  const treatment = String(argsObj.treatment ?? "consultation");
+  if (!slot_id || !caller_name || !callback) {
+    return Response.json(
+      { ok: false, summary: "Missing required booking details; ask the caller for the missing item." },
+      { headers: corsHeaders() }
+    );
+  }
+  try {
+    const booking = await calBookSlot(env, slot_id, caller_name, callback, treatment);
+    return Response.json(
+      { ok: true, summary: formatBookingForLlm(booking), booking },
+      { headers: corsHeaders() }
+    );
+  } catch (err) {
+    return Response.json(
+      { ok: false, summary: "Booking failed; tell the caller you are hitting a technical issue and a staff member will call back.", error: (err instanceof Error ? err.message : String(err)).slice(0, 200) },
+      { headers: corsHeaders() }
+    );
+  }
+}
+
 export default {
   async fetch(req: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
@@ -224,6 +284,19 @@ export default {
 
     if (req.method === "POST" && url.pathname === "/vapi/tools/book_slot") {
       return await handleBookSlot(req, env);
+    }
+
+    // Retell custom-function endpoints. Retell ships args directly in the body
+    // (when 'Payload: args only' is enabled in the function config) and expects
+    // a plain JSON object back -- the 'response_variables' mapping pulls fields
+    // out via JSON-path. We return the same English-formatted string the Vapi
+    // path returns, plus the raw slots array for variable extraction.
+    if (req.method === "POST" && url.pathname === "/retell/tools/list_slots") {
+      return await handleRetellListSlots(req, env);
+    }
+
+    if (req.method === "POST" && url.pathname === "/retell/tools/book_slot") {
+      return await handleRetellBookSlot(req, env);
     }
 
     return new Response("not found", { status: 404, headers: corsHeaders() });

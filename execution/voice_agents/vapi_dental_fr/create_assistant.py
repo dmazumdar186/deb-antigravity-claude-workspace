@@ -87,7 +87,22 @@ def build_assistant_payload(tools_url: str, gemini_key: str) -> dict:
                     "type": "function",
                     "function": {
                         "name": "list_slots",
-                        "description": "Liste les 3 prochains créneaux disponibles pour un type de RDV donné.",
+                        # PRECONDITION-GATED description (2026-06-30 fix for eager-tool-call bug):
+                        # the previous one-line description "Liste les 3 prochains creneaux..."
+                        # was vague enough that Gemini fired this immediately on hearing the
+                        # treatment word ("Consultation."), before name/phone collection. The
+                        # explicit prerequisite-list language below is the strongest
+                        # prompt-level guard against eager firing.
+                        "description": (
+                            "List the next 3 available appointment slots. "
+                            "PRECONDITIONS (ALL required before calling): "
+                            "(1) caller's first name is captured; "
+                            "(2) caller's last name is captured; "
+                            "(3) caller's 10-digit phone number is captured AND read back to them digit-by-digit AND confirmed with a 'yes'. "
+                            "DO NOT call this tool until ALL three preconditions are met. "
+                            "If any precondition is missing, ASK FOR THE MISSING ONE instead of calling this tool. "
+                            "Calling this tool early WILL break the call."
+                        ),
                         "parameters": {
                             "type": "object",
                             "properties": {
@@ -107,7 +122,14 @@ def build_assistant_payload(tools_url: str, gemini_key: str) -> dict:
                     "type": "function",
                     "function": {
                         "name": "book_slot",
-                        "description": "Réserve un créneau retourné par list_slots.",
+                        "description": (
+                            "Book a slot previously returned by list_slots. "
+                            "PRECONDITIONS (ALL required): "
+                            "(1) list_slots was called in this conversation; "
+                            "(2) caller picked a specific slot AND you read it back AND they confirmed; "
+                            "(3) you have first name + last name + confirmed phone. "
+                            "Calling this tool without all three WILL create a wrong or duplicate booking."
+                        ),
                         "parameters": {
                             "type": "object",
                             "properties": {
