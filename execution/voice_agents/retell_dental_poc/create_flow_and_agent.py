@@ -70,8 +70,15 @@ def build_flow_payload(tools_url: str) -> dict:
             "Do NOT ask 'are you a new or returning patient'. Do NOT ask 'what days work for you'. "
             "Stick to the node instruction. "
             "Never offer to end the call. "
-            "Use 'Are you still there?' ONLY if the caller has been completely silent for at "
-            "least 8 seconds since the last bot or user utterance. Do not use it as a transition filler."
+            "**HARD RULE: NEVER, under any circumstance, say 'Are you still there?' or any "
+            "variation ('Hello?', 'You there?', 'Can you hear me?'). Retell's silence detection "
+            "handles dead air natively. Saying it kills the call rhythm and is the #1 listen-test "
+            "complaint. The only acceptable behavior on silence is to stay silent and wait.** "
+            "**HARD RULE: After you ask a question, STOP SPEAKING. Do not append a second "
+            "sentence to the same turn. Wait for the caller's reply.** "
+            "**HARD RULE: If the caller says a single short word ('And', 'At', 'Um', 'Uh') that "
+            "does not answer your question, treat it as filler -- DO NOT repeat the question, "
+            "DO NOT restart the list. Wait for the next user turn instead.**"
         ),
         "tools": [
             {
@@ -347,7 +354,12 @@ def build_flow_payload(tools_url: str) -> dict:
                         "and transition to handoff. "
                         "Otherwise speak the summary as a natural-English list and ask "
                         "'Which one works for you?' Map their answer to {{first_slot_id}}, "
-                        "{{second_slot_id}}, or {{third_slot_id}} and store as {{chosen_slot_id}}."
+                        "{{second_slot_id}}, or {{third_slot_id}} and store as {{chosen_slot_id}}. "
+                        "If the caller asks for a DIFFERENT day, evening, afternoon, or week "
+                        "(any 'do you have something else / different time / later / "
+                        "Thursday / next week' phrasing), DO NOT just repeat the list -- "
+                        "transition to the reroll path so we can fetch more slots. "
+                        "Maximum 2 rerolls; after that, transition to handoff."
                     ),
                 },
                 "edges": [
@@ -355,9 +367,84 @@ def build_flow_payload(tools_url: str) -> dict:
                         "id": "slot_chosen",
                         "transition_condition": {
                             "type": "prompt",
-                            "prompt": "Caller picked one of the three slots; {{chosen_slot_id}} is set.",
+                            "prompt": "Caller named one specific slot from the offered list (e.g. 'the first', 'nine AM', '9:30').",
+                        },
+                        "destination_node_id": "confirm_slot",
+                    },
+                    {
+                        "id": "request_reroll",
+                        "transition_condition": {
+                            "type": "prompt",
+                            "prompt": "Caller asked for a different day, a different time of day, evening, afternoon, or any non-listed time.",
+                        },
+                        "destination_node_id": "reroll_slots_call",
+                    },
+                ],
+            },
+            {
+                # Slot confirmation step (Bug #5 fix from 2026-06-30 16:25 listen test:
+                # book_slot fired immediately on "AM. Ten AM." without reading back the
+                # full datetime. A single misheard digit could book the wrong slot).
+                "id": "confirm_slot",
+                "type": "conversation",
+                "instruction": {
+                    "type": "prompt",
+                    "text": (
+                        "Read back the chosen slot in full natural English (day, date, time, "
+                        "AM/PM), then ask 'Is that correct?'. "
+                        "Example: 'Just to confirm, Wednesday July 1st at 10 AM. Is that correct?' "
+                        "Do NOT proceed without an explicit yes."
+                    ),
+                },
+                "edges": [
+                    {
+                        "id": "slot_confirmed",
+                        "transition_condition": {
+                            "type": "prompt",
+                            "prompt": "Caller confirmed with a clear 'yes', 'yeah', 'correct', or 'that's right'.",
                         },
                         "destination_node_id": "book_slot_call",
+                    },
+                    {
+                        "id": "slot_rejected",
+                        "transition_condition": {
+                            "type": "prompt",
+                            "prompt": "Caller said no, that's wrong, or named a different slot.",
+                        },
+                        "destination_node_id": "read_slots",
+                    },
+                ],
+            },
+            {
+                # Reroll path -- calls list_slots with days_offset based on the
+                # caller's request. The function node instruction passes days_offset
+                # that the LLM should derive from the caller's last utterance
+                # ("next week" -> 7, "Thursday" if today is Wednesday -> 1, etc).
+                "id": "reroll_slots_call",
+                "type": "function",
+                "tool_id": "list_slots",
+                "tool_type": "local",
+                "wait_for_result": True,
+                "speak_during_execution": False,
+                "speak_after_execution": False,
+                "instruction": {
+                    "type": "prompt",
+                    "text": (
+                        "Call list_slots with treatment={{treatment}} and an appropriate "
+                        "days_offset based on the caller's request. Examples: "
+                        "'tomorrow' -> 1; 'next week' -> 7; 'in two days' -> 2; "
+                        "'next Monday' -> compute days until next Monday. "
+                        "If unclear, default to days_offset=1."
+                    ),
+                },
+                "edges": [
+                    {
+                        "id": "reroll_returned",
+                        "transition_condition": {
+                            "type": "prompt",
+                            "prompt": "list_slots returned and {{slots_summary}} is updated.",
+                        },
+                        "destination_node_id": "read_slots",
                     },
                 ],
             },
@@ -506,15 +593,15 @@ def build_agent_payload(flow_id: str) -> dict:
             # Treatments (these were in the Vapi build keyword list)
             "consultation", "cleaning", "checkup", "emergency",
         ],
-        # Responsiveness controls how eager Lisa is to fill silences. The default 1.0
-        # caused "Are you still there?" to fire IMMEDIATELY after Lisa's first
-        # acknowledgment on the 2026-06-30 14:43 listen test, before the caller
-        # could respond. Lowered to 0.5 for a more patient turn-taking cadence.
-        # Per Retell docs: lower = wait longer before agent speaks; higher = jumps in.
-        "responsiveness": 0.5,
-        # Interruption sensitivity controls how readily Lisa stops speaking when
-        # the caller talks over her. 0.7 was OK on the listen test. Leaving as-is.
-        "interruption_sensitivity": 0.7,
+        # Responsiveness 0.5 was too patient (e2e latency 3.3s on 2026-06-30 16:25
+        # listen test, causing caller confusion and "are you still there" cascade).
+        # 1.0 was too eager (filled silences with greetings). 0.7 is the compromise.
+        "responsiveness": 0.7,
+        # Interruption sensitivity 0.7 caused mid-utterance pickup on partial words
+        # ("And", "At", "Um") on the 2026-06-30 16:25 call -- Lisa restarted the
+        # slot list on every filler. Lowered to 0.4 so Lisa keeps speaking through
+        # filler tokens and only stops on substantive interruption.
+        "interruption_sensitivity": 0.4,
         "enable_backchannel": False,
         "ambient_sound": None,
         "max_call_duration_ms": 600000,

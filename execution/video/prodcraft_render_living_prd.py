@@ -38,7 +38,7 @@ DEFAULT_PROJECT = WORKSPACE_ROOT / "execution" / "video" / "remotion-projects" /
 DEFAULT_OUT = WORKSPACE_ROOT / ".tmp" / "prodcraft" / "living_prd_poc.mp4"
 
 
-def stage(audio: Path, plan_path: Path, words_path: Path, project_dir: Path) -> dict:
+def stage(audio: Path, plan_path: Path, words_path: Path, project_dir: Path, plan_filename: str = "living_prd_plan.json") -> dict:
     public = project_dir / "public"
     public.mkdir(parents=True, exist_ok=True)
 
@@ -52,7 +52,7 @@ def stage(audio: Path, plan_path: Path, words_path: Path, project_dir: Path) -> 
     shutil.copy2(audio, public / "audio.wav")
 
     plan = json.loads(plan_path.read_text(encoding="utf-8"))
-    (public / "living_prd_plan.json").write_text(json.dumps(plan, indent=2), encoding="utf-8")
+    (public / plan_filename).write_text(json.dumps(plan, indent=2), encoding="utf-8")
 
     # Trim word list to the plan's duration so captions stop with the comp.
     duration = plan.get("audio_duration_sec", 0)
@@ -62,7 +62,8 @@ def stage(audio: Path, plan_path: Path, words_path: Path, project_dir: Path) -> 
 
     return {
         "audio": str(public / "audio.wav"),
-        "ops": len(plan.get("ops", [])),
+        "plan_file": plan_filename,
+        "ops_or_scenes": len(plan.get("ops", plan.get("scenes", []))),
         "duration_sec": duration,
         "words_trimmed": len(trimmed),
     }
@@ -146,6 +147,9 @@ def main() -> int:
     p.add_argument("--project-dir", default=str(DEFAULT_PROJECT))
     p.add_argument("--out", default=str(DEFAULT_OUT))
     p.add_argument("--comp-id", default="ProdCraftLivingPRD")
+    p.add_argument("--plan-filename", default="living_prd_plan.json",
+                   help="Filename under public/ where the plan JSON is staged. "
+                        "Must match the file the Remotion composition fetches.")
     p.add_argument("--concurrency", type=int, default=4)
     p.add_argument("--no-render", action="store_true")
     args = p.parse_args()
@@ -156,6 +160,7 @@ def main() -> int:
         Path(args.plan).resolve(),
         Path(args.words).resolve(),
         project_dir,
+        plan_filename=args.plan_filename,
     )
     print(json.dumps(info, indent=2))
 

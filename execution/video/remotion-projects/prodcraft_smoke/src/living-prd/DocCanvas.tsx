@@ -103,25 +103,8 @@ export const DocCanvas: React.FC<Props> = ({ plan }) => {
         }}
       />
 
-      {/* Top breadcrumb / channel label — gives the video an identity */}
-      <div
-        style={{
-          position: "absolute",
-          left: 56,
-          top: 40,
-          color: SUBTITLE_COLOR,
-          fontFamily: FONT,
-          fontSize: 22,
-          fontWeight: 600,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          opacity: 0.65,
-        }}
-      >
-        ProdCraft · Product Manager Foundations
-      </div>
-
-      {/* Document body, translated to auto-scroll */}
+      {/* Document body, translated to auto-scroll. Sits BELOW the watermark
+          chrome so scrolling text never overshadows the channel label. */}
       <div
         style={{
           position: "absolute",
@@ -129,6 +112,7 @@ export const DocCanvas: React.FC<Props> = ({ plan }) => {
           right: 0,
           top: 0,
           transform: `translateY(${smoothedOffset}px)`,
+          zIndex: 1,
         }}
       >
         {/* Title block */}
@@ -215,6 +199,41 @@ export const DocCanvas: React.FC<Props> = ({ plan }) => {
             />
           ))}
         </div>
+      </div>
+
+      {/* Watermark backdrop — soft page-color fade that dims any text scrolling
+          underneath, so the channel label stays legible. Sits above the doc
+          body (zIndex 2) but below the label itself (zIndex 3). */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: 0,
+          height: 110,
+          background: `linear-gradient(180deg, ${PAGE_BG_TOP} 0%, ${PAGE_BG_TOP} 55%, rgba(250,251,253,0) 100%)`,
+          pointerEvents: "none",
+          zIndex: 2,
+        }}
+      />
+
+      {/* Channel watermark — pinned above the scrolling doc body. */}
+      <div
+        style={{
+          position: "absolute",
+          left: 56,
+          top: 40,
+          color: SUBTITLE_COLOR,
+          fontFamily: FONT,
+          fontSize: 22,
+          fontWeight: 600,
+          letterSpacing: 1.2,
+          textTransform: "uppercase",
+          opacity: 0.85,
+          zIndex: 3,
+        }}
+      >
+        ProdCraft · Product Manager Foundations
       </div>
     </AbsoluteFill>
   );

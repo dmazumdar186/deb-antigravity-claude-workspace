@@ -178,3 +178,72 @@ Aim 15–25 keywords total, 3–5 per section. **Do not stuff** (≥~30% density
 - [ ] LinkedIn **Services page**: enable, list the freelance offers (freelance discovery surface)
 - [ ] All-Star check: profile photo ✅, banner ✅, headline, about, 2+ experiences, skills, education → All-Star = 40× more searches
 - [ ] Verify search appearance lift over 3–7 days (Settings → search appearances)
+- [ ] Add the **French secondary-language profile** (section 8) — Settings → "Add profile in another language"
+
+---
+
+## 8. FRENCH PROFILE (LinkedIn secondary-language mirror — `Français`)
+
+> LinkedIn lets ONE profile carry multiple languages (Me → Add profile in another
+> language → Français). It mirrors: **headline, About, and every position's title +
+> description.** **Skills are shared** across languages (no FR version needed).
+> Paste these into the French version. All numbers from `metrics_canonical.md`.
+
+### Headline FR (≤220 chars)
+```
+AI Builder & Product Manager — je livre GenAI, RAG, agents & automatisation en production avec Claude Code | Systèmes IA en freelance / fractional | Cold-email · Voice AI · apps LLM | Ouvert aux postes IA senior
+```
+
+### About FR
+→ Use the **FR About variant in section 2** (already drafted, ≤2 600 chars).
+
+### Experience FR
+
+**ProdCraft — Fondateur & Lead AI Builder · Sep. 2025 – Présent · Paris (Freelance)**
+```
+Studio de build IA. Je conçois et livre des systèmes IA en production pour fondateurs et équipes — rapidement, hands-on, avec Claude Code.
+
+• Livré un moteur de cold-email/outbound pour un cabinet outbound à haute vélocité — 48 000+ emails/mois à 4 %+ de réponse, générant $1M+ de pipeline qualifié et remplaçant ~200K$/an de coût SDR, via Cloudflare Workers + KV cron + Instantly + GHL (idempotency, dedup, garde-fous LLM).
+• Co-construit une marketplace Stripe Connect à deux faces — 85K$ traités les 3 premiers mois (React + Node + Postgres).
+• Livré 12+ systèmes IA de bout en bout, médiane <30 jours, dont un SaaS CV-optimizer multilingue en ligne (cv-optimizer.pages.dev) et un CLI d'audit de code itératif.
+• Services : cold-email & outbound, assistants commerciaux IA voix/chat 24/7 (Vapi/Retell), agents/RAG sur mesure, automatisation n8n/Modal, apps mobiles (Expo → TestFlight).
+
+Stack : Claude Code, Cloudflare Workers/Pages, Modal, Python, Vapi/Retell, n8n, Instantly, GHL. Vitrine : prodcraft.fyi
+```
+
+**AI Product Manager — Wiser Solutions · Nov. 2022 – Présent · Paris**
+```
+B2B SaaS · Retail Tech · Digital Shelf + Promotional Intelligence.
+
+• Livré des capacités GenAI en production (triage, recommandation, support RAG, alertes intelligentes) atteignant +45 % d'adoption et −55 % de latence p95, en orchestrant des systèmes multi-agents OpenAI/Claude (MCP, A2A) avec seuils d'évaluation et maîtrise des coûts (prompt caching).
+• Généré +40 % d'adoption BU et +20 % CSAT sur le déploiement GenAI mondial en rédigeant des PRDs IA (contrats API/données, RGPD/privacy-by-design) et alignant 5 équipes cross-BU sur une roadmap commune (gates go/no-go, plans de rollback).
+• Réduit l'ambiguïté en sprint d'~25 % et amélioré la précision de livraison de +25–30 % via dashboards usage/qualité/drift et DoR/DoD + QA pré-prod.
+```
+
+**AI Product Engineer (Freelance) — Cabinet outbound à haute vélocité (confidentiel) · Déc. 2025 – Mars 2026 · Remote**
+```
+• Conçu et livré un pipeline cold-email autonome à grande échelle — 48 000+ emails/mois à 4 %+ de réponse, $1M+ de pipeline — avec personnalisation Claude, classification de réponses et auto-reply contextuel.
+• Architecturé une stack serverless event-driven (Cloudflare Workers + KV cron, webhooks Instantly, CRM GoHighLevel, jobs Modal) avec idempotency keys, dedup 60 j et garde-fous LLM.
+• Productisé le monitoring : dashboard opérateur, /api/health, --dry-run sur chaque chemin payant, canary synthétique → dérive silencieuse détectée avant tout impact crédits.
+```
+*(Si vous préférez ne pas afficher une ligne freelance distincte pendant un emploi, fusionnez-la dans l'entrée ProdCraft. Gardez-la anonymisée — ne jamais nommer le client.)*
+
+**Data Product Manager — InfoTnT · Juin 2021 – Nov. 2022 · Paris**
+```
+• Réduit les cycles d'itération de −35 % et amélioré l'adéquation post-lancement de +25 % en pilotant une discovery data-driven (quant/qual, JTBD) sur 3 clients entreprise.
+• Standardisé prompts, templates et versioning des composants IA → comportements prédictibles et déploiements fiables.
+```
+
+**Plus tôt (condensé — une ligne)**
+```
+Senior Data Product Owner — Pitney Bowes (2019) · Evolent (2018–19) · Avaya (2015–18) : shipping/logistique, modernisation plateforme (refactor legacy 55 %), Scrum + alignement OKR (+30 % vélocité, −25 % instabilité des exigences). Fondations : QA/Release (IDrive) + Systems Engineer (TCS), 2010–2015.
+```
+
+### Featured FR (captions)
+1. **prodcraft.fyi** — « Studio de build IA — voyez ce que je livre »
+2. **cv-optimizer.pages.dev** — « SaaS IA en ligne, à tester maintenant »
+3. **Cal.com** — `cal.com/debanjan-mazumdar-ben5rd/30min` — « Réservez une session de cadrage gratuite »
+4. Un build phare ou le cas marketplace (lien)
+
+### Skills FR
+→ **Aucune action** : les compétences sont partagées entre les deux langues. La liste de la section 5 s'applique telle quelle.

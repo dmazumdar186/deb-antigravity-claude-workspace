@@ -1,0 +1,19 @@
+---
+import data from '../content/how_i_work.en.json';
+---
+<section class="container-page py-20 md:py-28">
+  <header class="max-w-3xl mb-12 md:mb-16">
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-brass-500 mb-4" data-reveal>{data.section_eyebrow}</p>
+    <h2 class="headline-serif text-4xl md:text-5xl leading-[1.05]" data-reveal>{data.section_title}</h2>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+    {data.tiles.map((tile) => (
+      <article class="tile flex flex-col gap-4">
+        <p class="font-mono text-xs uppercase tracking-[0.18em] text-ink-700/80">"{tile.objection}"</p>
+        <h3 class="font-serif text-2xl md:text-3xl tracking-tightest text-ink-900 leading-tight">{tile.answer}</h3>
+        <p class="text-ink-700 leading-relaxed">{tile.detail}</p>
+      </article>
+    ))}
+  </div>
+</section>

@@ -8,8 +8,9 @@ inputs:
         --gemini-voice NAME    default: Orus (EN) or Aoede (FR)
         --target-duration N    seconds (default: 180)
         --skip RENDERING       comma list of phases to skip (script,audio,transcribe,plan,render,thumbnail,queue)
+        --provider NAME        gemini (default, free Flash) | personal (GLM 5.2 via OR) | client (Sonnet 4.6 via Anthropic). LLM steps only — TTS stays on Gemini.
         --dry-run              show what would run; don't execute
-    env: GEMINI_API_KEY
+    env: GEMINI_API_KEY (always — TTS); OPENROUTER_API_KEY (--provider personal); ANTHROPIC_API_KEY (--provider client)
 outputs:
     .tmp/prodcraft/scripts/<slug>.md
     .tmp/prodcraft/runs/<slug>/audio.wav
@@ -104,6 +105,7 @@ def orchestrate(args: argparse.Namespace) -> dict:
                 "--topic", args.topic,
                 "--length-sec", str(args.target_duration),
                 "--language", language,
+                "--provider", args.provider,
                 "--out", str(script_path),
             ],
             "script_gen",
@@ -144,6 +146,7 @@ def orchestrate(args: argparse.Namespace) -> dict:
                 "--script", str(script_path),
                 "--words", str(words_path),
                 "--topic", args.topic,
+                "--provider", args.provider,
                 "--out", str(plan_path),
             ],
             "plan_gen",
@@ -227,6 +230,8 @@ def main() -> int:
     p.add_argument("--gemini-voice", default=None)
     p.add_argument("--target-duration", type=int, default=180)
     p.add_argument("--skip", default="")
+    p.add_argument("--provider", default="gemini", choices=("gemini", "personal", "client"),
+                   help="LLM provider for script_gen + plan_gen. gemini=Flash free; personal=GLM 5.2 via OR; client=Sonnet 4.6 via Anthropic. TTS stays on Gemini.")
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
 

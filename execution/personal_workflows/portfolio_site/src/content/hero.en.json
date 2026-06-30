@@ -1,0 +1,19 @@
+{
+  "brand": "ProdCraft",
+  "brand_tagline": "AI builds, shipped.",
+  "operator_name": "Debanjan Mazumdar",
+  "operator_role": "Founder · lead engineer",
+  "operator_location": "Paris · 15+ yrs",
+  "headline": "The senior AI engineer your roadmap is missing.",
+  "subhead": "Without the FTE, the agency timeline, or the slide-deck demos. Built with Claude Code. Live in your stack in weeks.",
+  "primary_cta": {
+    "label": "Book a free build session",
+    "href": "https://cal.com/debanjan-mazumdar-ben5rd/30min"
+  },
+  "secondary_cta": {
+    "label": "See what we've shipped",
+    "href": "#systems"
+  },
+  "headshot_src": "/headshot.jpg",
+  "headshot_alt": "Debanjan Mazumdar, founder of ProdCraft"
+}

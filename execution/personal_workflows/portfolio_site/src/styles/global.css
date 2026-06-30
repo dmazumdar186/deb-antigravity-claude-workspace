@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-bone-100 text-ink-800 font-sans;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  ::selection {
+    @apply bg-brass-400/40 text-ink-900;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-[1280px] px-6 md:px-10;
+  }
+  .tile {
+    @apply rounded-2xl border border-ink-900/8 bg-bone-50 p-6 md:p-8 transition-all duration-300;
+  }
+  .tile-dark {
+    @apply rounded-2xl border border-bone-100/8 bg-ink-900 p-6 md:p-8 text-bone-100;
+  }
+  .tile-hoverable {
+    @apply hover:-translate-y-1 hover:border-brass-400/40 hover:shadow-[0_10px_40px_-20px_rgba(0,0,0,0.25)];
+  }
+  .metric-number {
+    @apply font-mono text-4xl md:text-6xl tracking-tightest text-ink-900;
+  }
+  .metric-number-dark {
+    @apply font-mono text-4xl md:text-6xl tracking-tightest text-brass-400;
+  }
+  .headline-serif {
+    @apply font-serif tracking-tightest text-ink-900;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-full bg-ink-900 px-6 py-3 text-bone-100 font-medium transition hover:bg-ink-950;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-full border border-ink-900/15 px-6 py-3 text-ink-800 font-medium transition hover:border-brass-400 hover:text-ink-900;
+  }
+  .brass-underline {
+    @apply relative;
+  }
+  .brass-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 h-[2px] w-0 bg-brass-400 transition-all duration-300;
+  }
+  .brass-underline:hover::after {
+    @apply w-full;
+  }
+}

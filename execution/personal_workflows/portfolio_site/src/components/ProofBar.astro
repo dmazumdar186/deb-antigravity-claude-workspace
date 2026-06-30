@@ -1,0 +1,19 @@
+---
+import data from '../content/proof_bar.en.json';
+---
+<section class="bg-ink-900 text-bone-100 py-16 md:py-24">
+  <div class="container-page">
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-brass-400 mb-10 text-center" data-reveal>The receipts</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+      {data.tiles.map((t) => (
+        <div class="tile-dark text-center md:text-left flex flex-col gap-3">
+          <div class="metric-number-dark leading-none flex items-baseline justify-center md:justify-start gap-0">
+            <span>{t.value}{t.value_suffix || ''}</span>
+          </div>
+          <div class="font-mono text-sm uppercase tracking-wider text-bone-100/70">{t.unit}</div>
+          <div class="text-sm text-bone-100/60 leading-relaxed">{t.label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

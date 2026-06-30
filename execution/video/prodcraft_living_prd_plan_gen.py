@@ -1,14 +1,15 @@
 """
-description: Generate a Living PRD doc-ops plan from an arbitrary script + word timings using Gemini Flash with structured-JSON output. Replaces the hand-authored prodcraft_living_prd_plan.py for non-PRD topics in the Phase 7 orchestrator.
+description: Generate a Living PRD doc-ops plan from a script + word timings via Gemini Flash (default), GLM 5.2 (personal mode), or Sonnet 4.6 (client mode).
 inputs:
     CLI:
         --script PATH        script.md (frontmatter stripped automatically; default: stdin if omitted)
         --words PATH         word timings JSON (provides audio_duration_sec)
         --topic "..."        topic one-liner (for fallback if script frontmatter lacks `topic`)
         --out PATH           output plan JSON (default: .tmp/prodcraft/living_prd_plan.json)
-        --model NAME         Gemini model (default: gemini-2.5-flash)
+        --model NAME         Gemini model (default: gemini-2.5-flash; ignored unless --provider=gemini)
         --max-sections N     plan section count (default: 6)
-    env: GEMINI_API_KEY
+        --provider NAME      gemini (default, free) | personal (GLM 5.2 via OR) | client (Sonnet 4.6 via Anthropic)
+    env: GEMINI_API_KEY (gemini); OPENROUTER_API_KEY (personal); ANTHROPIC_API_KEY (client)
 outputs:
     {out}                    JSON conforming to LivingPRDPlan schema in living-prd/types.ts
 """
@@ -152,6 +153,41 @@ def _gemini_generate(prompt: str, model: str) -> str:
     raise SystemExit(f"Gemini failed after {len(backoffs)} retries: {last_exc}")
 
 
+# JSON-mode for plan_gen requires precise op-level constraints. GLM / Sonnet don't have native
+# response_mime_type, so we lean on the prompt itself + robust extraction (strip markdown fences).
+_NON_GEMINI_SYSTEM = (
+    "You are a precision JSON emitter. Return ONLY a single valid JSON object that conforms exactly "
+    "to the schema given in the user prompt. No prose. No preamble. No markdown fences."
+)
+
+
+def _router_generate(prompt: str, provider: str) -> str:
+    """Dispatch plan_gen to call_model (personal -> GLM 5.2, client -> Sonnet 4.6 via Anthropic)."""
+    try:
+        from execution.modules.model_router import call_model
+    except ImportError:
+        sys.path.insert(0, str(WORKSPACE_ROOT))
+        from execution.modules.model_router import call_model
+
+    mode = "personal" if provider == "personal" else "client"
+    result = call_model(
+        "sonnet",
+        system=_NON_GEMINI_SYSTEM,
+        user=prompt,
+        max_tokens=4096,
+        mode=mode,
+        sensitivity="public",
+    )
+    print(f"  routed via {result['provider']} ({result['model']})", file=sys.stderr)
+    return result["text"] or ""
+
+
+def _llm_generate(prompt: str, model: str, provider: str) -> str:
+    if provider == "gemini":
+        return _gemini_generate(prompt, model)
+    return _router_generate(prompt, provider)
+
+
 def _validate_plan(plan: dict, audio_duration: float) -> None:
     if "doc_title" not in plan or "ops" not in plan:
         raise SystemExit("Plan missing doc_title or ops")
@@ -169,7 +205,7 @@ def _validate_plan(plan: dict, audio_duration: float) -> None:
             op["end_t"] = min(op["t"] + 10.0, audio_duration)
 
 
-def generate_plan(script_path: Path, words_path: Path, topic: str, model: str, max_sections: int) -> dict:
+def generate_plan(script_path: Path, words_path: Path, topic: str, model: str, max_sections: int, provider: str = "gemini") -> dict:
     raw = script_path.read_text(encoding="utf-8")
     body, fm = _strip_frontmatter(raw)
     topic = topic or fm.get("topic") or "Untitled"
@@ -179,7 +215,7 @@ def generate_plan(script_path: Path, words_path: Path, topic: str, model: str, m
         raise SystemExit(f"words JSON has invalid duration_sec: {words_data.get('duration_sec')}")
 
     prompt = _build_prompt(body, audio_duration, topic, max_sections)
-    raw_json = _gemini_generate(prompt, model)
+    raw_json = _llm_generate(prompt, model, provider)
     # Strip accidental ```json fences if any
     raw_json = re.sub(r"^\s*```(?:json)?\s*", "", raw_json)
     raw_json = re.sub(r"\s*```\s*$", "", raw_json)
@@ -199,6 +235,8 @@ def main() -> int:
     p.add_argument("--out", default=str(DEFAULT_OUT))
     p.add_argument("--model", default="gemini-2.5-flash")
     p.add_argument("--max-sections", type=int, default=6)
+    p.add_argument("--provider", default="gemini", choices=("gemini", "personal", "client"),
+                   help="gemini (default, free) | personal (GLM 5.2 via OR) | client (Sonnet 4.6 via Anthropic).")
     args = p.parse_args()
 
     plan = generate_plan(
@@ -207,6 +245,7 @@ def main() -> int:
         args.topic,
         args.model,
         args.max_sections,
+        args.provider,
     )
     out_path = Path(args.out).resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)

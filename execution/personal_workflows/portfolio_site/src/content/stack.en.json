@@ -1,0 +1,19 @@
+{
+  "section_eyebrow": "The stack",
+  "section_title": "What we actually use to ship.",
+  "section_intro": "No theory. These are the tools running the systems above, right now, in production.",
+  "groups": [
+    {
+      "label": "AI models",
+      "items": ["Claude", "Gemini", "GPT", "Vapi / Retell", "Whisper"]
+    },
+    {
+      "label": "Build & deploy",
+      "items": ["Claude Code", "Cloudflare Workers", "Cloudflare Pages", "Modal", "Expo + EAS Build", "Remotion"]
+    },
+    {
+      "label": "Ops & GTM",
+      "items": ["Instantly", "SmartLead", "GHL", "n8n", "Anymailfinder", "Million Verifier"]
+    }
+  ]
+}

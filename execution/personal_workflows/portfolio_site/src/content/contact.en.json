@@ -1,0 +1,21 @@
+{
+  "section_eyebrow": "Stop reading. Start shipping.",
+  "section_title": "Book 30 minutes. We'll show you what's possible.",
+  "section_intro": "No deck. No sales pitch. Grab 30 minutes and we scope a first build on the call.",
+  "primary_cta": {
+    "label": "Book a free build session",
+    "href": "https://cal.com/debanjan-mazumdar-ben5rd/30min"
+  },
+  "secondary_cta": {
+    "label": "Or email a brief",
+    "href": "mailto:debanjan186@gmail.com?subject=Free%20build%20session%20%E2%80%94%20ProdCraft"
+  },
+  "links": [
+    { "label": "Email", "href": "mailto:debanjan186@gmail.com" },
+    { "label": "LinkedIn", "href": "https://linkedin.com/in/dmazumdar/" },
+    { "label": "Malt", "href": "https://www.malt.fr/profile/debanjanmazumdar", "_status": "placeholder_slug" },
+    { "label": "Upwork", "href": "https://www.upwork.com/freelancers/~debanjanmazumdar", "_status": "placeholder_slug" },
+    { "label": "ProdCraft", "href": "https://www.youtube.com/@prodcraft" }
+  ],
+  "_link_status_note": "Malt, Upwork, Cal.com URLs are placeholder slugs; replace with your real profile URLs once provisioned."
+}

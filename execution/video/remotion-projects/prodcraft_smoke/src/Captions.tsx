@@ -40,29 +40,27 @@ export const Captions: React.FC<Props> = ({ words, windowSize = 6 }) => {
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none", justifyContent: "flex-end" }}>
-      {/* Dark rounded pill that survives any background — even pure white frames. */}
+      {/* Thin caption strip at the very bottom edge -- low visual weight so it
+          doesn't compete with on-canvas content. No pill, no border, smaller
+          type. The audio carries the story; captions are accessibility, not
+          decoration. */}
       <div
         style={{
-          marginBottom: 110,
+          marginBottom: 32,
           display: "flex",
           justifyContent: "center",
           alignSelf: "center",
-          // Pill container
-          backgroundColor: "rgba(8,12,22,0.78)",
-          backdropFilter: "blur(2px)",
-          border: "1.5px solid rgba(93,214,199,0.28)",
-          borderRadius: 999,
-          padding: "18px 36px",
-          maxWidth: 1500,
-          boxShadow:
-            "0 6px 30px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05) inset",
+          backgroundColor: "rgba(11,18,32,0.85)",
+          borderRadius: 12,
+          padding: "8px 22px",
+          maxWidth: 1400,
         }}
       >
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 14,
+            gap: 10,
             flexWrap: "nowrap",
           }}
         >
@@ -73,12 +71,12 @@ export const Captions: React.FC<Props> = ({ words, windowSize = 6 }) => {
               <span
                 key={`${globalIdx}-${w.w}`}
                 style={{
-                  color: isActive ? "#ffffff" : "rgba(220,228,240,0.55)",
+                  color: isActive ? "#ffffff" : "rgba(220,228,240,0.6)",
                   fontFamily:
                     "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                  fontWeight: isActive ? 800 : 600,
-                  fontSize: isActive ? 50 : 42,
-                  letterSpacing: -0.4,
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: isActive ? 30 : 26,
+                  letterSpacing: -0.2,
                   whiteSpace: "nowrap",
                 }}
               >

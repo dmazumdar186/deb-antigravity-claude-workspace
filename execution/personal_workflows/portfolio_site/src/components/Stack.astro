@@ -1,0 +1,23 @@
+---
+import data from '../content/stack.en.json';
+---
+<section class="container-page py-20 md:py-24">
+  <header class="max-w-3xl mb-10">
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-brass-500 mb-4" data-reveal>{data.section_eyebrow}</p>
+    <h2 class="headline-serif text-3xl md:text-4xl lg:text-5xl leading-[1.05] mb-4" data-reveal>{data.section_title}</h2>
+    <p class="text-base md:text-lg text-ink-700 leading-relaxed" data-reveal>{data.section_intro}</p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+    {data.groups.map((g) => (
+      <div class="tile">
+        <div class="font-mono text-xs uppercase tracking-[0.18em] text-brass-500 mb-4">{g.label}</div>
+        <ul class="flex flex-wrap gap-2">
+          {g.items.map((item) => (
+            <li class="font-mono text-xs px-3 py-1.5 rounded-full bg-ink-900/5 text-ink-800 border border-ink-900/8">{item}</li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</section>

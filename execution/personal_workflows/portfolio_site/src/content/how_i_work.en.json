@@ -1,0 +1,21 @@
+{
+  "section_eyebrow": "How we work",
+  "section_title": "Three things you don't have to worry about.",
+  "tiles": [
+    {
+      "objection": "Will this take six months?",
+      "answer": "Ship in days, not months.",
+      "detail": "Claude Code + senior product instincts = 5× the throughput of a typical agency. First working slice in week one."
+    },
+    {
+      "objection": "Do I get a sales rep, a PM, and a junior dev?",
+      "answer": "You get one senior operator on every call.",
+      "detail": "15 years of product. The same operator writes the prompts, codes the system, deploys it, and watches the metrics. No relay race."
+    },
+    {
+      "objection": "What if I want to fire you?",
+      "answer": "All code, all credentials — yours. Day one.",
+      "detail": "Repo in your GitHub. Keys in your accounts. Walk away whenever. We work to be re-hired, not to be locked in."
+    }
+  ]
+}

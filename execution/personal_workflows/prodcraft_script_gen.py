@@ -1,14 +1,15 @@
 """
-description: Generate a ProdCraft YouTube script via Gemini 2.5 Flash, conditioned on the distilled voice profile. Phase 0 = script.md only; full visual_beats.json comes in Phase 1.
+description: Generate a ProdCraft YouTube script via Gemini 2.5 Flash (default), GLM 5.2 (personal mode), or Sonnet 4.6 (client mode), conditioned on the distilled voice profile.
 inputs:
     Files: .tmp/prodcraft/voice_profile.json (from prodcraft_voice_profile.py)
-    Env: GEMINI_API_KEY
+    Env: GEMINI_API_KEY (for --provider gemini); OPENROUTER_API_KEY (for --provider personal); ANTHROPIC_API_KEY (for --provider client)
     CLI:
         --topic "..."        topic to script (required)
         --length-sec N       target spoken duration in seconds (default 180 = 3 min)
         --source "..."       optional one-line source citation (Substack/Lenny/etc) to weave in
         --format NAME        one of voice_profile.structural_templates names (default: explainer-3-act)
         --out PATH           where to write (default .tmp/prodcraft/scripts/{slug}.md)
+        --provider NAME      gemini (default, free) | personal (GLM 5.2 via OR, ~$0.001) | client (Sonnet 4.6 via Anthropic)
 outputs:
     {out}                    script.md with YAML frontmatter (title, topic, format, duration) + body
     {out}.json               same content + structured beat breakdown for downstream tools
@@ -85,6 +86,42 @@ def _gemini_client():
     return genai.Client(api_key=api_key)
 
 
+def _llm_generate_json(prompt: str, system: str, provider: str) -> str:
+    """Dispatch a JSON-mode generation across providers. Returns raw text the caller parses."""
+    if provider == "gemini":
+        from google.genai import types as genai_types
+        client = _gemini_client()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[genai_types.Part.from_text(text=prompt)],
+            config=genai_types.GenerateContentConfig(
+                system_instruction=system,
+                response_mime_type="application/json",
+            ),
+        )
+        return (response.text or "").strip()
+
+    # personal -> GLM 5.2 via OR (sonnet alias gets auto-remapped); client -> Sonnet via Anthropic.
+    # ProdCraft topics are public PM education — sensitivity='public' is correct.
+    try:
+        from execution.modules.model_router import call_model
+    except ImportError:
+        sys.path.insert(0, str(WORKSPACE_ROOT))
+        from execution.modules.model_router import call_model
+
+    mode = "personal" if provider == "personal" else "client"
+    result = call_model(
+        "sonnet",
+        system=system,
+        user=prompt,
+        max_tokens=4096,
+        mode=mode,
+        sensitivity="public",
+    )
+    print(f"  routed via {result['provider']} ({result['model']})", file=sys.stderr)
+    return (result["text"] or "").strip()
+
+
 def slugify(s: str) -> str:
     s = re.sub(r"[^a-zA-Z0-9]+", "-", s).strip("-").lower()
     return (s or "untitled")[:60]
@@ -96,9 +133,7 @@ def load_profile() -> dict:
     return json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
 
 
-def generate(topic: str, length_sec: int, fmt: str, source: str | None, language: str = "en") -> dict:
-    from google.genai import types as genai_types
-    client = _gemini_client()
+def generate(topic: str, length_sec: int, fmt: str, source: str | None, language: str = "en", provider: str = "gemini") -> dict:
     profile = load_profile()
     words_total = int(length_sec * 150 / 60)  # ~150 wpm for natural pace
     avg_sent = profile.get("pacing_norms", {}).get("avg_sentence_len_words", 18)
@@ -125,17 +160,9 @@ def generate(topic: str, length_sec: int, fmt: str, source: str | None, language
     )
     print(f"  prompt size: {len(prompt):,} chars (~{len(prompt) // 4:,} tokens)", file=sys.stderr)
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=[genai_types.Part.from_text(text=prompt)],
-        config=genai_types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            response_mime_type="application/json",
-        ),
-    )
-    raw = (response.text or "").strip()
+    raw = _llm_generate_json(prompt, SYSTEM_PROMPT, provider)
     if not raw:
-        raise SystemExit("Empty response from Gemini.")
+        raise SystemExit(f"Empty response from provider={provider}.")
     if raw.startswith("```"):
         lines = raw.splitlines()
         raw = "\n".join(lines[1:-1]) if lines[-1].strip().startswith("```") else "\n".join(lines[1:])
@@ -152,8 +179,8 @@ def generate(topic: str, length_sec: int, fmt: str, source: str | None, language
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    print(f"Generating script | topic={args.topic!r} | length={args.length_sec}s | format={args.format} | lang={args.language}", file=sys.stderr)
-    script = generate(args.topic, args.length_sec, args.format, args.source, args.language)
+    print(f"Generating script | topic={args.topic!r} | length={args.length_sec}s | format={args.format} | lang={args.language} | provider={args.provider}", file=sys.stderr)
+    script = generate(args.topic, args.length_sec, args.format, args.source, args.language, args.provider)
 
     out_path = Path(args.out) if args.out else SCRIPTS_DIR / f"{slugify(args.topic)}.md"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -206,6 +233,8 @@ def main() -> int:
     p.add_argument("--out", default=None, help="Output path (default .tmp/prodcraft/scripts/{slug}.md)")
     p.add_argument("--language", default="en", choices=("en", "fr"),
                    help="Output language for the spoken script (en or fr). Title can stay English-friendly.")
+    p.add_argument("--provider", default="gemini", choices=("gemini", "personal", "client"),
+                   help="gemini=Flash free path (default); personal=GLM 5.2 via OR ($0.001/call); client=Sonnet 4.6 via Anthropic.")
     args = p.parse_args()
     return cmd_run(args)
 

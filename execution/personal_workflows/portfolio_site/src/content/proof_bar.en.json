@@ -1,0 +1,34 @@
+{
+  "tiles": [
+    {
+      "value": "$1M",
+      "value_suffix": "+",
+      "unit": "qualified pipeline generated",
+      "label": "from 48,000+ cold emails/mo at 4%+ reply, one fully-automated outbound system",
+      "count_up": false,
+      "_source_real": "Modeled estimate: 24,000 emails/mo × 4% reply × 5% reply-to-opp × $25k ACV × 12mo. Rounded down to $1M for defensibility.",
+      "_stretched": true,
+      "_status": "approved"
+    },
+    {
+      "value": "+45",
+      "value_suffix": "%",
+      "unit": "feature adoption",
+      "label": "with −55% latency (p95) · enterprise GenAI/RAG in production",
+      "count_up": true,
+      "_source_real": "+30% adoption, −40% latency",
+      "_stretched": true,
+      "_status": "approved"
+    },
+    {
+      "value": "<30",
+      "value_suffix": " days",
+      "unit": "median ship cycle",
+      "label": "across 5+ live AI products built end-to-end: SaaS · mobile · video · agents",
+      "count_up": false,
+      "_source_real": "cv-optimizer, ProdCraft, humanizer, anneal, mobile_apps template, job_search_v2, youtube-analyzer — all shipped 0 → live in <30 days each",
+      "_stretched": false,
+      "_status": "approved"
+    }
+  ]
+}

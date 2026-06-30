@@ -1,0 +1,60 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'ProdCraft — the senior AI engineer your roadmap is missing. Cold-email, voice AI, mobile, agents, video. Built with Claude Code, shipped in weeks.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  />
+</head>
+<body class="min-h-screen antialiased">
+  <slot />
+
+  <!-- Motion One: lightweight ESM CDN load, ~3KB gz, only triggers if user has motion preference -->
+  <script type="module">
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      import('https://cdn.jsdelivr.net/npm/motion@11.18.0/+esm').then(({ animate, inView }) => {
+
+        // Reveal-on-scroll for section heads
+        document.querySelectorAll('[data-reveal]').forEach((el) => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(16px)';
+          inView(el, () => {
+            animate(el, { opacity: [0, 1], transform: ['translateY(16px)', 'translateY(0)'] }, { duration: 0.8, easing: [0.16, 1, 0.3, 1] });
+          }, { amount: 0.3 });
+        });
+
+        // Hero headshot subtle ken-burns
+        const heroPhoto = document.querySelector('[data-ken-burns]');
+        if (heroPhoto) {
+          animate(heroPhoto, { transform: ['scale(1)', 'scale(1.04)'] }, { duration: 12, easing: 'ease-in-out', repeat: Infinity, direction: 'alternate' });
+        }
+      }).catch(() => { /* motion is progressive enhancement; silent fail is fine */ });
+    }
+  </script>
+</body>
+</html>

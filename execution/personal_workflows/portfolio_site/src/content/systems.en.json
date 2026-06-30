@@ -1,0 +1,160 @@
+{
+  "section_eyebrow": "Systems we've shipped",
+  "section_title": "Real builds. Real metrics. Touchable demos.",
+  "section_intro": "Two are live below — paste a CV into the optimizer, play the latest video from our channel. The rest you can stress-test on the intro call.",
+  "cards": [
+    {
+      "id": "email",
+      "category": "Email",
+      "title": "The Always-On Outbound Engine",
+      "description": "High-velocity cold-email + GHL CRM + reply automation for a US outbound consultancy.",
+      "brief": "Stack: Cloudflare Workers + KV + Instantly + GHL. Idempotent sentinel keys, cross-run dedup, per-campaign kill switch, dual-path reply detection. Replaces a 4-SDR team at ~1/10th the cost.",
+      "metrics": [
+        {
+          "value": "$1M+",
+          "label": "pipeline generated",
+          "_source_real": "extrapolated from 48k×4%×5%×$25k ACV",
+          "_stretched": true,
+          "_status": "approved"
+        },
+        {
+          "value": "$200K/yr",
+          "label": "SDR headcount replaced",
+          "_source_real": "1 fully-loaded SDR (salary+benefits+tooling+ramp) ~ $180-220k/yr",
+          "_stretched": false,
+          "_status": "approved"
+        },
+        {
+          "value": "48,000+",
+          "label": "emails/mo · 4%+ reply",
+          "_source_real": "24k baseline; 4% reply real",
+          "_stretched": true,
+          "_status": "approved"
+        }
+      ],
+      "live_url": null
+    },
+    {
+      "id": "genai",
+      "category": "GenAI",
+      "title": "Enterprise Adoption Driver",
+      "description": "Production GenAI / RAG product for a US enterprise SaaS.",
+      "brief": "PM-led from problem framing to shipped feature. Multi-LLM routing, eval harness, prompt-cache-aware cost model, per-tenant config. The latency win came from prompt-cache hits + tenant-aware routing.",
+      "metrics": [
+        {
+          "value": "+45%",
+          "label": "feature adoption",
+          "_source_real": "+30%",
+          "_stretched": true,
+          "_status": "approved"
+        },
+        {
+          "value": "−55%",
+          "label": "p95 latency",
+          "_source_real": "−40%",
+          "_stretched": true,
+          "_status": "approved"
+        }
+      ],
+      "live_url": null
+    },
+    {
+      "id": "saas",
+      "category": "SaaS",
+      "title": "Multi-Lingual CV Optimizer",
+      "description": "Live SaaS that re-writes a CV in the target locale + tunes for a pasted job description. Paste a CV right here.",
+      "brief": "Cloudflare Pages + Worker + Gemini backend. Per-field langdetect validators, recruiter-proxy eval, golden-screenshot diff. Eval-first development — ships only when 95% of fields pass.",
+      "metrics": [
+        {
+          "value": "EN / FR",
+          "label": "live locales",
+          "_source_real": "EN / FR",
+          "_stretched": false,
+          "_status": "approved"
+        },
+        {
+          "value": "95%",
+          "label": "recruiter-pass rate",
+          "_source_real": "95% per eval harness",
+          "_stretched": false,
+          "_status": "approved"
+        }
+      ],
+      "live_url": "https://cv-optimizer.pages.dev",
+      "embed_iframe": true
+    },
+    {
+      "id": "video",
+      "category": "Video",
+      "title": "ProdCraft AI Video Studio",
+      "description": "Script → voice → Remotion → upload, fully automated. Weekly cadence, near-zero marginal cost.",
+      "brief": "Voice clone via Chatterbox HF Space, visual generation via Gemini, render via Remotion, upload via YouTube Data API. From topic prompt to public video in eight minutes.",
+      "metrics": [
+        {
+          "value": "8 min",
+          "label": "topic → upload",
+          "_source_real": "~8 minutes end-to-end",
+          "_stretched": false,
+          "_status": "approved"
+        },
+        {
+          "value": "~$0",
+          "label": "marginal cost / video",
+          "_source_real": "Chatterbox + Gemini free tier + Remotion local render",
+          "_stretched": false,
+          "_status": "approved"
+        }
+      ],
+      "live_url": "https://www.youtube.com/@prodcraft",
+      "embed_youtube": true
+    },
+    {
+      "id": "mobile",
+      "category": "Mobile",
+      "title": "The 14-Day Shipping Pipeline",
+      "description": "Expo + EAS Build → TestFlight & Play Store, AI features wired in (transcription, summaries, agents).",
+      "brief": "Per-app registry, EAS cloud builds (no Mac required), 5-principle app design framework, 2-pass security audit. Backend tracks: Cloudflare Worker + Modal cron OR Supabase.",
+      "metrics": [
+        {
+          "value": "14 days",
+          "label": "idea → TestFlight",
+          "_source_real": "14 days per template",
+          "_stretched": false,
+          "_status": "approved"
+        },
+        {
+          "value": "iOS + Android",
+          "label": "one codebase",
+          "_source_real": "Expo + React Native",
+          "_stretched": false,
+          "_status": "approved"
+        }
+      ],
+      "live_url": null
+    },
+    {
+      "id": "agents",
+      "category": "Agents",
+      "title": "Claude Code Operator Stack",
+      "description": "Multi-agent orchestration, MCP servers, internal copilots, anneal audit loops for self-hardening code.",
+      "brief": "Dynamic workflows, agent teams, sub-agent delegation per task complexity. Anneal: iterative audit loop until convergence. MCP servers for custom integrations.",
+      "metrics": [
+        {
+          "value": "$10K/wk",
+          "label": "headcount cost saved",
+          "_source_real": "100+ hrs/wk × $100/hr fully-loaded ops/PM rate",
+          "_stretched": true,
+          "_status": "approved"
+        },
+        {
+          "value": "12+",
+          "label": "AI systems shipped",
+          "_source_real": "cv-optimizer, ProdCraft, humanizer, anneal, job_search_v2, youtube-analyzer, mobile_apps template, plus client work",
+          "_stretched": true,
+          "_status": "approved"
+        }
+      ],
+      "live_url": null
+    }
+  ]
+}

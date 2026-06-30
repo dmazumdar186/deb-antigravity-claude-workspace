@@ -49,17 +49,38 @@ def chat_completion(
 
     client = _get_client(base_url)
     last_exc = None
+    # Disable reasoning/thinking for Z.AI GLM models — they default to "thinking
+    # mode" which burns the entire output budget on internal reasoning before
+    # emitting a single visible token. On long creative outputs this manifests
+    # as `content=None` + `finish_reason='length'`. The OR-canonical way to
+    # opt out is `reasoning: { enabled: false }` via extra_body.
+    extra: dict | None = None
+    if model.lower().startswith("z-ai/"):
+        extra = {"reasoning": {"enabled": False}}
     for attempt in range(MAX_RETRIES + 1):
         try:
-            resp = client.chat.completions.create(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[
+            create_kwargs: dict = {
+                "model": model,
+                "max_tokens": max_tokens,
+                "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user_message},
                 ],
-            )
-            return resp.choices[0].message.content.strip()
+            }
+            if extra is not None:
+                create_kwargs["extra_body"] = extra
+            resp = client.chat.completions.create(**create_kwargs)
+            # Defensive extraction: some providers (notably GLM via OR on long
+            # outputs) can return message.content=None alongside a non-empty
+            # finish_reason. Treat empty as empty rather than AttributeError.
+            if not resp.choices:
+                return ""
+            msg = resp.choices[0].message
+            content = getattr(msg, "content", None) or ""
+            finish = getattr(resp.choices[0], "finish_reason", None)
+            if not content and finish:
+                logger.warning("Empty content from %s, finish_reason=%r", model, finish)
+            return content.strip()
         except RateLimitError as e:
             last_exc = e
             if attempt < MAX_RETRIES:
@@ -74,4 +95,6 @@ def chat_completion(
                 time.sleep(delay)
             else:
                 raise
+    if last_exc is None:
+        raise RuntimeError("chat_completion exhausted retries with no exception captured")
     raise last_exc

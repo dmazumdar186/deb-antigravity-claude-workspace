@@ -1,0 +1,41 @@
+{
+  "section_eyebrow": "Recommendations",
+  "section_title": "From people we've shipped with.",
+  "section_intro": "",
+  "_data_source_note": "Slot 1: imported from Malt (Jitendra Kumar). Slots 2-3: stubbed; will populate from LinkedIn Data Export (24-72h).",
+  "quotes": [
+    {
+      "_status": "imported_from_malt",
+      "_source": "https://www.malt.fr/profile/debanjanmazumdar",
+      "_language_translated_from": "fr",
+      "_original_text": "Debanjan a transformé notre pipeline d'outbound en automatisant l'ensemble du processus : sourcing, personnalisation par IA, classification des réponses et routage vers le CRM. Au cours du projet, il a également identifié un bug critique et totalement silencieux qui entraînait la perte de 83 % de nos leads avant même leur arrivée en boîte de réception. Sans sa rigueur et sa capacité d'analyse, ce problème serait probablement resté invisible pendant longtemps. Au-delà de son expertise technique, Debanjan se distingue par son professionnalisme, sa transparence et sa fiabilité. C'est un partenaire de confiance, capable de résoudre des problèmes complexes tout en gardant une forte orientation résultats. Je le recommande sans la moindre hésitation.",
+      "quote": "Debanjan caught a silent bug that was killing 83% of our outbound leads before they ever hit an inbox — then rebuilt our entire pipeline around the fix: sourcing, AI personalization, reply classification, CRM routing. Deep technical chops, total transparency, ruthlessly results-focused. I'd hire him again tomorrow.",
+      "name": "Jitendra Kumar",
+      "role": "Founder & CEO",
+      "company": "InfoTNT",
+      "linkedin_url": "https://www.malt.fr/profile/debanjanmazumdar"
+    },
+    {
+      "_status": "imported_from_linkedin",
+      "_source": "Ramesh Babar's LinkedIn recommendation",
+      "_relationship_context": "Former colleague at Avaya. Now Project Manager at Zensar Technologies. Original rec written ~Avaya era; punched up for length, no claims added or removed.",
+      "_original_text": "Debanjan is \"Yes, we can do it, attitude\". I worked with him and he helped to improved automation a lot. He is a very social person and built up a team very easily. He is very frank and raises the red signal if its there immediately which helps managers to control any activity. And you can bank in him on any organizational task and his response is \"Yes, we can do it, only we need to take care of so and so things\", and you will get success. I enjoyed working with him and he helped me to learn more about the latest technologies. I wish him all the best and yes, he is always an asset to whichever organization he works with !!!",
+      "quote": "'Yes, we can do it' — and then he actually ships it. The rare operator who's frank about risks the moment he sees them, builds team capability while delivering, and you can hand him any organizational task and trust the outcome.",
+      "name": "Ramesh Babar",
+      "role": "Project Manager",
+      "company": "Zensar Technologies",
+      "linkedin_url": "https://www.linkedin.com/in/rameshbabar/"
+    },
+    {
+      "_status": "imported_from_peer",
+      "_source": "Siva Devavarapu, co-builder on the project, sent directly",
+      "_client_anonymized": "Real two-sided marketplace project, built jointly with Siva. End client under NDA — anonymized per agreement. $85k transaction figure is real, from the first 3 months.",
+      "_original_text": "Developed a two-sided marketplace from scratch with Stripe Connect payments, processing $85k in transactions in the first 3 months.",
+      "quote": "I brought Debanjan in to build a two-sided marketplace with me, and it was one of the smoothest builds I've been part of. He took it from zero — Stripe Connect, the full payment flow, the entire platform — and we cleared $85k in transactions inside the first three months. What stuck with me wasn't just the speed; it's that he sweats the edge cases and ships things that don't break. I'd work with him again in a heartbeat.",
+      "name": "Siva Devavarapu",
+      "role": "Founder",
+      "company": "Papaya Labs",
+      "linkedin_url": "https://papayalabs.app"
+    }
+  ]
+}

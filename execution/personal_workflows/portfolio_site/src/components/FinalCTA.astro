@@ -1,0 +1,31 @@
+---
+import data from '../content/contact.en.json';
+---
+<section id="contact" class="bg-ink-900 text-bone-100 py-20 md:py-28">
+  <div class="container-page max-w-4xl">
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-brass-400 mb-6" data-reveal>{data.section_eyebrow}</p>
+    <h2 class="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tightest text-bone-100 leading-[1.05] mb-6" data-reveal>{data.section_title}</h2>
+    <p class="text-lg md:text-xl text-bone-100/70 leading-relaxed mb-10 max-w-2xl" data-reveal>{data.section_intro}</p>
+
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-12" data-reveal>
+      <a href={data.primary_cta.href} class="inline-flex items-center gap-2 rounded-full bg-brass-400 px-7 py-4 text-ink-900 font-medium text-base transition hover:bg-brass-300">
+        {data.primary_cta.label}
+        <span aria-hidden="true">→</span>
+      </a>
+      {data.secondary_cta && (
+        <a href={data.secondary_cta.href} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full border border-bone-100/20 px-7 py-4 text-bone-100 font-medium text-base transition hover:border-brass-400">
+          {data.secondary_cta.label}
+          <span aria-hidden="true">↗</span>
+        </a>
+      )}
+    </div>
+
+    <div class="flex flex-wrap gap-x-6 gap-y-3 pt-8 border-t border-bone-100/10">
+      {data.links.map((link) => (
+        <a href={link.href} class="font-mono text-sm text-bone-100/80 brass-underline hover:text-bone-100" target={link.href.startsWith('http') ? '_blank' : null} rel={link.href.startsWith('http') ? 'noopener noreferrer' : null}>
+          {link.label} ↗
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

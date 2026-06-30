@@ -1,0 +1,19 @@
+---
+import heroData from '../content/hero.en.json';
+---
+<header class="sticky top-0 z-50 w-full backdrop-blur-md bg-bone-100/80 border-b border-ink-900/8">
+  <nav class="container-page flex items-center justify-between py-4">
+    <a href="#top" class="flex items-center gap-2.5 text-ink-900">
+      <img src="/logo.png" alt="ProdCraft logo" width="52" height="52" class="h-12 w-12 object-contain" />
+      <span class="hidden sm:inline font-sans text-base font-semibold tracking-tight">ProdCraft</span>
+    </a>
+    <div class="flex items-center gap-2 sm:gap-6 text-sm">
+      <a href="#services" class="hidden sm:inline-block text-ink-700 brass-underline hover:text-ink-900">Services</a>
+      <a href="#systems" class="hidden sm:inline-block text-ink-700 brass-underline hover:text-ink-900">Systems</a>
+      <a href="#contact" class="hidden sm:inline-block text-ink-700 brass-underline hover:text-ink-900">Contact</a>
+      <a href={heroData.primary_cta.href} class="btn-primary text-sm py-2 px-4">
+        {heroData.primary_cta.label}
+      </a>
+    </div>
+  </nav>
+</header>

@@ -1,0 +1,45 @@
+---
+import data from '../content/services.en.json';
+
+const iconPaths: Record<string, string> = {
+  mail: 'M2.5 6.5h15v11h-15v-11zm0 0l7.5 5 7.5-5',
+  phone: 'M5 4h3l2 5-2.5 1.5a11 11 0 005 5L14 13l5 2v3a2 2 0 01-2 2A15 15 0 013 6a2 2 0 012-2z',
+  cpu: 'M6 6h8v8H6V6zm-2 4h2m12 0h-2M10 4v2m0 12v-2M4 14h2m12 0h-2M10 18v-2',
+};
+---
+<section id="services" class="container-page py-20 md:py-28">
+  <header class="max-w-3xl mb-12 md:mb-16">
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-brass-500 mb-4" data-reveal>{data.section_eyebrow}</p>
+    <h2 class="headline-serif text-4xl md:text-5xl lg:text-6xl leading-[1.05] mb-5" data-reveal>{data.section_title}</h2>
+    <p class="text-lg text-ink-700 leading-relaxed" data-reveal>{data.section_intro}</p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+    {data.tiles.map((tile) => (
+      <article class="tile tile-hoverable flex flex-col gap-5">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-ink-900 text-brass-400">
+            <svg viewBox="0 0 20 20" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d={iconPaths[tile.icon] || iconPaths.cpu} />
+            </svg>
+          </span>
+          <h3 class="font-serif text-2xl tracking-tightest text-ink-900">{tile.title}</h3>
+        </div>
+        <p class="text-ink-700 leading-relaxed">{tile.blurb}</p>
+        <ul class="space-y-2 text-sm text-ink-700">
+          {tile.features.map((f) => (
+            <li class="flex items-start gap-2">
+              <span class="mt-1.5 h-1 w-1 rounded-full bg-brass-500 flex-shrink-0"></span>
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+        <div class="mt-auto pt-4 border-t border-ink-900/8">
+          <a href="#contact" class="inline-flex items-center gap-2 font-mono text-sm text-ink-900 brass-underline">
+            {tile.cta_label} <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>

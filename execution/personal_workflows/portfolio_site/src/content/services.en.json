@@ -1,0 +1,45 @@
+{
+  "section_eyebrow": "What we build",
+  "section_title": "Three things we ship, fast.",
+  "section_intro": "Senior operator on every call. No agency overhead. Walk-away day one.",
+  "tiles": [
+    {
+      "icon": "mail",
+      "title": "Cold-email & outbound systems",
+      "blurb": "Instantly / SmartLead pipelines, GHL CRM, reply detection, deliverability hardening, sequences that compound.",
+      "features": [
+        "Inbox warmup + domain rotation",
+        "AI-personalized first lines",
+        "Reply classification + auto-routing",
+        "Pipeline reporting in your CRM"
+      ],
+      "cta_label": "Talk outbound"
+    },
+    {
+      "icon": "phone",
+      "title": "24/7 AI sales assistants",
+      "blurb": "Voice + chat (Vapi / Retell / Bland), inbound qualification, outbound dialers, calls transcribed straight into your CRM.",
+      "features": [
+        "Inbound lead qualification",
+        "Outbound dialing + follow-up",
+        "Live transcript → CRM sync",
+        "Sandbox demo on request"
+      ],
+      "cta_label": "Hear a sample call",
+      "_demo_status": "sandbox_owed",
+      "_demo_note": "Sandbox Vapi demo to be built; tile copy is honest about 'on request' until live."
+    },
+    {
+      "icon": "cpu",
+      "title": "Custom AI operations",
+      "blurb": "Agents, RAG, document workflows, internal copilots, n8n / Modal automations — anything Claude Code can ship in days.",
+      "features": [
+        "Multi-agent orchestration",
+        "Document Q&A + RAG stacks",
+        "Internal Slack / Teams copilots",
+        "Modal + Cloudflare deploys"
+      ],
+      "cta_label": "Show me an example"
+    }
+  ]
+}
