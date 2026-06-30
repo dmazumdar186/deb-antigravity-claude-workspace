@@ -65,10 +65,14 @@ DETAIL_API_URL_FMT = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{j
 # at ~600ms/job + sleep would take ~5min. Threaded at 4 workers brings it under
 # 90s. LinkedIn's anon rate-limit is generous on this endpoint (no auth, no UA
 # pinning) but we still throttle per-worker to avoid 429 storms.
-DETAIL_MAX_WORKERS = 4
+# Anti-bot tightening 2026-06-30: cron run 28441297021 hit LinkedIn blocks on
+# 2 of 30 keywords (search-side) and produced only 131/264 enriched JDs (50%
+# detail-side). Cutting concurrency in half + doubling per-request sleep is
+# the gentler-crawl trade-off that keeps coverage real instead of paper.
+DETAIL_MAX_WORKERS = 2
 DETAIL_RETRIES = 2
 DETAIL_TIMEOUT = 15.0
-DETAIL_PER_REQ_SLEEP = (0.2, 0.5)
+DETAIL_PER_REQ_SLEEP = (0.5, 1.0)
 DETAIL_DESC_MAX_CHARS = 2000
 
 # LinkedIn geoIds (looked up on linkedin.com/jobs and stable for years):
@@ -82,47 +86,29 @@ DEFAULT_GEO_ID = "104246759"
 # would miss in DE / CH-Deutschschweiz / BE-Flanders / CH-Ticino respectively. Each
 # entry is a separate search request; cross-keyword overlap dedups by jobId for free.
 DEFAULT_KEYWORDS = [
-    # 2026-06-24 reset: EN + FR ONLY. The prior expansion to DE/NL/IT was a
-    # mistake — operator's hard constraint is English / French job postings only
-    # (Malt profile + CV both monolingual EN/FR). German "Senior Produktmanager"
-    # listings flooded the dashboard with non-applicable rows.
+    # 2026-06-30 anti-bot tightening: cut from 30 keywords to 10. The prior
+    # set caused LinkedIn search-side blocks on 2/30 queries in cron run
+    # 28441297021 ("AI automation specialist", "mobile developer freelance"
+    # both returned page-1 < 1024 bytes after retries — soft rate-limit
+    # signal). 10 high-signal keywords cover both tracks via cross-keyword
+    # overlap (the dedup layer collapses any duplicates) and keep us under
+    # LinkedIn's anon-tier crawl ceiling.
     #
-    # Two role tracks the operator actually applies for:
-    #   Track A — Permanent AI PM (CV — Wiser/InfoTnT lineage)
-    #   Track B — Freelance AI Automation / Claude Code / React Native
-    #             (Malt — 750€/day, 4-week sprint missions)
-    # AI keywords first so they reach LinkedIn before any per-region block.
+    # EN + FR ONLY (operator hard constraint). Track A = Permanent AI PM,
+    # Track B = Freelance AI Automation / Claude Code / React Native.
 
-    # --- Track B: Freelance AI Automation / Builder ---
-    "AI automation engineer",
-    "AI automation specialist",
-    "AI automation consultant",
-    "AI engineer",
-    "AI consultant",
-    "AI strategy consultant",
-    "AI transformation consultant",
-    "AI process automation",
-    "process automation engineer",
-    "react native developer",
-    "mobile developer freelance",
-    "claude code",          # niche but operator's branded skill
-    # --- Track A: Permanent AI PM ---
+    # --- Track A: Permanent AI PM (5 keywords) ---
     "AI product manager",
-    "head of product AI",
-    "GenAI product manager",
-    "LLM product manager",
     "senior product manager",
     "lead product manager",
-    "principal product manager",
     "head of product",
-    "product manager",
-    "product owner",
-    # --- French equivalents ---
-    "chef de produit",
-    "responsable produit",
-    "responsable produit IA",
-    "directeur produit",
-    "consultant IA",
+    "chef de produit",        # FR core
+    # --- Track B: Freelance AI Automation / Builder (4 keywords) ---
+    "AI automation engineer",
+    "AI engineer",
+    "AI consultant",
+    "claude code",            # niche but operator-branded
+    # --- FR Track B catch ---
     "automatisation IA",
 ]
 

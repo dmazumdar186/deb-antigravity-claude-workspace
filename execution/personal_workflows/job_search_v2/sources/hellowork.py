@@ -88,10 +88,14 @@ DEFAULT_LOCATIONS = ["paris", "ile-de-france"]
 
 DEFAULT_POSTED_WITHIN_HOURS = 48
 DEFAULT_MAX_PAGES_PER_KEYWORD = 3
-DETAIL_MAX_WORKERS = 4
+# Anti-bot tightening 2026-06-30: first prod run (28441297021) detected our
+# 4-worker enrichment pattern and 403'd partway through. Reducing to 2
+# workers + doubling per-req sleep produces a gentler crawl that should
+# stay under Hellowork's threshold for our daily volume (~50 jobs/run).
+DETAIL_MAX_WORKERS = 2
 DETAIL_TIMEOUT = 20.0
 DETAIL_RETRIES = 2
-DETAIL_PER_REQ_SLEEP = (0.2, 0.5)
+DETAIL_PER_REQ_SLEEP = (0.5, 1.0)
 SEARCH_DELAY_MIN = 0.7
 SEARCH_DELAY_MAX = 1.4
 SEARCH_TIMEOUT = 20.0
