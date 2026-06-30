@@ -417,9 +417,16 @@ def build_agent_payload(flow_id: str) -> dict:
             "type": "conversation-flow",
             "conversation_flow_id": flow_id,
         },
-        # 11Labs voice closest to en-US-AriaNeural in feel. Retell default voices listed at
-        # docs.retellai.com -- the prefix 'eleven_' uses 11Labs.
-        "voice_id": "11labs-Adrian",
+        # Feminine voice to match the "Lisa" identity. 11labs-Lily is American, warm,
+        # professional -- the closest 11Labs match to en-US-AriaNeural that the operator
+        # approved on the Vapi build. Operator picked Retell over Vapi 2026-06-30 after
+        # finding the call flow "much smoother".
+        # Alternatives if Lily's prosody is off:
+        #   retell-Lily     platform-bundled (potentially cheaper, no 11Labs per-min add-on)
+        #   retell-Grace    platform-bundled, neutral
+        #   cartesia-Sarah  Cartesia provider, lower latency than 11Labs
+        #   11labs-Anna     clean, slightly more neutral than Lily
+        "voice_id": "11labs-Lily",
         "voice_speed": 1.0,
         "language": "en-US",
         # Boost Deepgram for foreign-origin names that the Vapi build had to keyword-boost.
