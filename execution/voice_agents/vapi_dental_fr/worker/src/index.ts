@@ -94,7 +94,7 @@ async function handleHealth(req: Request, env: Env): Promise<Response> {
 
   const body: Record<string, unknown> = {
     ok: true,
-    build: "vapi-dental-fr",
+    build: "dental-receptionist",
     version: env.APP_VERSION,
     demo_mode: env.DEMO_MODE === "true",
     secrets_present: {

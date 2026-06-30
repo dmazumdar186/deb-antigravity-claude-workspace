@@ -6,7 +6,7 @@
 
 set -eu -o pipefail
 
-WORKER_URL="${WORKER_URL:-https://vapi-dental-fr.debanjan186.workers.dev}"
+WORKER_URL="${WORKER_URL:-https://dental-receptionist.debanjan186.workers.dev}"
 
 if [ -f .env ]; then
   set -a; . ./.env; set +a
@@ -118,7 +118,7 @@ f = json.load(sys.stdin)
 tools = f.get('tools') or []
 for t in tools:
     url = t.get('url', '')
-    assert 'vapi-dental-fr.debanjan186.workers.dev' in url, f'tool {t.get(\"name\")} url not on live worker: {url}'
+    assert 'dental-receptionist.debanjan186.workers.dev' in url, f'tool {t.get(\"name\")} url not on live worker: {url}'
     assert '/retell/tools/' in url, f'tool {t.get(\"name\")} not pointing at Retell endpoint: {url}'
 " || fail "Retell flow tool URL not pointing at live Worker"
 pass "5. Retell flow tools point at live Worker /retell/tools/* endpoints"

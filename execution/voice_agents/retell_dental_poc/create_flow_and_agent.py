@@ -15,7 +15,7 @@ inputs (env, from .env):
     RETELL_API_KEY            required
     RETELL_FLOW_ID            optional (set after first creation; reuses on update)
     RETELL_AGENT_ID           optional (set after first creation; reuses on update)
-    TOOLS_SERVER_URL          required (https://vapi-dental-fr.debanjan186.workers.dev)
+    TOOLS_SERVER_URL          required (https://dental-receptionist.debanjan186.workers.dev)
 
 outputs:
     stdout: flow_id, agent_id, and the call-creation curl one-liner for the operator
@@ -518,7 +518,7 @@ def retell_request(method: str, path: str, api_key: str, body: dict | None = Non
 
 def main() -> int:
     api_key = os.environ.get("RETELL_API_KEY")
-    tools_url = os.environ.get("TOOLS_SERVER_URL", "https://vapi-dental-fr.debanjan186.workers.dev")
+    tools_url = os.environ.get("TOOLS_SERVER_URL", "https://dental-receptionist.debanjan186.workers.dev")
     if not api_key:
         print("RETELL_API_KEY required in .env", file=sys.stderr)
         return 2

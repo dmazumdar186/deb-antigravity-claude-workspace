@@ -13,7 +13,7 @@ Captures the bug class the corpus + simulator cannot:
 - Premature graceful-exit defaults from Gemini's pre-training
 
 Self-tool-execution: when Gemini calls list_slots / book_slot, this test runs them against the
-LIVE Cloudflare Worker (https://vapi-dental-fr.debanjan186.workers.dev) — so the full Cal.com
+LIVE Cloudflare Worker (https://dental-receptionist.debanjan186.workers.dev) — so the full Cal.com
 round-trip is exercised end-to-end.
 
 inputs (env):
@@ -56,7 +56,7 @@ from google.genai import types  # type: ignore[import-untyped]
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKER_URL = "https://vapi-dental-fr.debanjan186.workers.dev"
+WORKER_URL = "https://dental-receptionist.debanjan186.workers.dev"
 RUN_DIR = ROOT / ".tmp" / "voice_flow_runs" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 

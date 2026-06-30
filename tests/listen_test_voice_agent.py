@@ -10,7 +10,7 @@ let the operator drive a real call and get a structured verdict without manually
 inputs (env, from .env):
     VAPI_API_KEY          required
     VAPI_ASSISTANT_ID     required
-    WORKER_URL            optional (default https://vapi-dental-fr.debanjan186.workers.dev)
+    WORKER_URL            optional (default https://dental-receptionist.debanjan186.workers.dev)
 
 CLI:
     --no-browser          skip auto-opening the widget (useful when the operator already has it open)
@@ -60,7 +60,7 @@ def main() -> int:
 
     api_key = os.environ.get("VAPI_API_KEY")
     assistant_id = os.environ.get("VAPI_ASSISTANT_ID")
-    worker_url = os.environ.get("WORKER_URL", "https://vapi-dental-fr.debanjan186.workers.dev")
+    worker_url = os.environ.get("WORKER_URL", "https://dental-receptionist.debanjan186.workers.dev")
 
     if not api_key or not assistant_id:
         print("VAPI_API_KEY and VAPI_ASSISTANT_ID required", file=sys.stderr)

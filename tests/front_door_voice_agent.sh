@@ -22,7 +22,7 @@
 
 set -eu -o pipefail
 
-WORKER_URL="${WORKER_URL:-https://vapi-dental-fr.debanjan186.workers.dev}"
+WORKER_URL="${WORKER_URL:-https://dental-receptionist.debanjan186.workers.dev}"
 
 if [ -f .env ]; then
   set -a; . ./.env; set +a
