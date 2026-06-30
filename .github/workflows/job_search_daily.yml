@@ -9,17 +9,24 @@ name: job-search-daily
 
 on:
   schedule:
-    # Dual cron targeting 09:00 Paris time year-round (operator in Paris).
+    # Dual cron targeting ~09:13 Paris time year-round (operator in Paris).
     # GitHub Actions cron has no timezone support, so DST is handled via
     # month-gated parallel schedules:
-    #   - Apr-Oct (CEST = UTC+2): 07:00 UTC = 09:00 Paris
-    #   - Nov-Mar (CET  = UTC+1): 08:00 UTC = 09:00 Paris
+    #   - Apr-Oct (CEST = UTC+2): 07:13 UTC = 09:13 Paris
+    #   - Nov-Mar (CET  = UTC+1): 08:13 UTC = 09:13 Paris
+    #
+    # The :13 minute is deliberate. GitHub Actions docs warn that schedules at
+    # the top of the hour ("0 7 * * *") collide with the workload peak — runs
+    # were delayed 2-5 hours in late June 2026 on this repo (28370125041
+    # scheduled 2026-06-29T07:00Z, started 11:54Z; 4h54 lag). Off-peak minutes
+    # reduce the delay materially.
+    #
     # On DST-transition weeks (last Sunday of March / October) the cron fires
     # 1h early; this is unavoidable without an external scheduler. The
     # email_lock floor (6h, run.py default) prevents both schedules from
     # double-sending on overlap days.
-    - cron: "0 7 * 4-10 *"
-    - cron: "0 8 * 1-3,11-12 *"
+    - cron: "13 7 * 4-10 *"
+    - cron: "13 8 * 1-3,11-12 *"
   workflow_dispatch:
     inputs:
       dry_run:
