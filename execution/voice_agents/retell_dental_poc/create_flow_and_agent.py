@@ -179,13 +179,17 @@ def build_flow_payload(tools_url: str) -> dict:
                         "Briefly acknowledge what the caller said and map it to ONE of: "
                         "consultation, cleaning (detartrage), checkup (controle), emergency. "
                         "Store as {{treatment}}. "
-                        "STRICT RULES: Say at most one sentence of acknowledgment. "
+                        "STRICT RULES: Say AT MOST one short sentence of acknowledgment and "
+                        "then IMMEDIATELY transition. "
+                        "Do NOT add a second sentence. Do NOT ask 'are you still there?' here -- "
+                        "the next node will handle the first-name question. "
                         "Do NOT ask 'are you a new or returning patient'. "
                         "Do NOT ask 'what days work for you'. "
                         "Do NOT ask for any time preference. "
                         "Do NOT ask for their name yet. "
-                        "Do NOT ask any question other than clarifying the treatment if it is unclear. "
-                        "Transition silently to the next step once the treatment type is identified."
+                        "Do NOT ask any clarifying question unless the treatment word was "
+                        "genuinely unintelligible. "
+                        "Example correct turn: 'Got it, a consultation.' (then transition)"
                     ),
                 },
                 "edges": [
@@ -481,16 +485,35 @@ def build_agent_payload(flow_id: str) -> dict:
         "voice_id": "11labs-Lily",
         "voice_speed": 1.0,
         "language": "en-US",
-        # Boost Deepgram for foreign-origin names that the Vapi build had to keyword-boost.
+        # Boost Deepgram for foreign-origin names + time/number words. The 2026-06-30
+        # listen test exhibited a real failure: "Nine AM" was misheard as "Chen in"
+        # twice in a row when picking a slot. Times + days + clock numerals must be
+        # in the boost list since slot-picking is the highest-stakes turn.
         "boosted_keywords": [
+            # Operator-name and clinic-area foreign-origin first/last names
             "Debanjan", "Mazumdar", "Patel",
             "Singh", "Kumar", "Sharma", "Khan",
             "Diallo", "Yacoub", "Benali",
             "Chen", "Tanaka", "Nguyen",
             "Garcia", "Rodriguez",
+            # Clock numbers spelled out (Deepgram sometimes mishears digits as words)
+            "nine", "ten", "eleven", "twelve",
+            "thirty", "fifteen", "forty-five",
+            # AM/PM markers
+            "AM", "PM",
+            # Days
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+            # Treatments (these were in the Vapi build keyword list)
+            "consultation", "cleaning", "checkup", "emergency",
         ],
-        # End-of-utterance tuning; 500ms is the documented default and a good baseline.
-        "responsiveness": 1.0,
+        # Responsiveness controls how eager Lisa is to fill silences. The default 1.0
+        # caused "Are you still there?" to fire IMMEDIATELY after Lisa's first
+        # acknowledgment on the 2026-06-30 14:43 listen test, before the caller
+        # could respond. Lowered to 0.5 for a more patient turn-taking cadence.
+        # Per Retell docs: lower = wait longer before agent speaks; higher = jumps in.
+        "responsiveness": 0.5,
+        # Interruption sensitivity controls how readily Lisa stops speaking when
+        # the caller talks over her. 0.7 was OK on the listen test. Leaving as-is.
         "interruption_sensitivity": 0.7,
         "enable_backchannel": False,
         "ambient_sound": None,
