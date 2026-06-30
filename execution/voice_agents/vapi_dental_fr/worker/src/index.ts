@@ -26,6 +26,11 @@ export interface Env {
   VAPI_PUBLIC_KEY?: string;
   VAPI_ASSISTANT_ID?: string;
   WORKER_SECRET?: string;
+  // Retell-side secrets (operator picked Retell over Vapi 2026-06-30 listen test).
+  // The Worker mints web-call access tokens server-side so the API key never reaches
+  // the browser. Tokens are short-lived (10 min) and scoped to one LiveKit room per call.
+  RETELL_API_KEY?: string;
+  RETELL_AGENT_ID?: string;
 }
 
 /**
@@ -193,6 +198,114 @@ async function handleBookSlot(req: Request, env: Env): Promise<Response> {
   return Response.json({ results }, { headers: corsHeaders() });
 }
 
+// --- Retell widget handler (replaces the Vapi widget at GET /) ---
+// Mints a short-lived web-call access token server-side via Retell's REST API,
+// then serves a self-contained HTML page that joins the call via the Retell
+// client SDK. The RETELL_API_KEY never reaches the browser.
+async function handleRetellWidget(req: Request, env: Env): Promise<Response> {
+  if (!env.RETELL_API_KEY || !env.RETELL_AGENT_ID) {
+    return new Response(
+      "Retell not configured (RETELL_API_KEY or RETELL_AGENT_ID missing).",
+      { status: 503 }
+    );
+  }
+  let callId = "";
+  let accessToken = "";
+  try {
+    const r = await fetch("https://api.retellai.com/v2/create-web-call", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RETELL_API_KEY}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ agent_id: env.RETELL_AGENT_ID }),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      return new Response(`Retell create-web-call failed (${r.status}): ${t.slice(0, 200)}`,
+        { status: 502 });
+    }
+    const j = (await r.json()) as { call_id?: string; access_token?: string };
+    callId = j.call_id ?? "";
+    accessToken = j.access_token ?? "";
+  } catch (err) {
+    return new Response(
+      `Retell create-web-call exception: ${(err instanceof Error ? err.message : String(err)).slice(0, 200)}`,
+      { status: 502 }
+    );
+  }
+  return new Response(renderRetellWidget(env.CLINIC_NAME, callId, accessToken), {
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
+function renderRetellWidget(clinic: string, callId: string, accessToken: string): string {
+  // Minimal self-contained widget. Uses ES modules from jsdelivr for the Retell
+  // client SDK; no build step. The page creates one call per load.
+  return `<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${clinic} — voice receptionist (Retell)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 640px;
+         margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+  h2 { margin: 0 0 4px; }
+  .sub { color: #777; font-size: 13px; margin-bottom: 24px; }
+  button { font-size: 18px; padding: 14px 28px; border-radius: 10px; cursor: pointer;
+           border: none; font-weight: 600; }
+  #start { background: #14a37f; color: white; }
+  #stop  { background: #c0392b; color: white; margin-left: 10px; }
+  #status { margin-top: 24px; font-weight: 600; }
+  #log { white-space: pre-wrap; background: #f4f4f4; padding: 16px; border-radius: 10px;
+         margin-top: 16px; font-family: ui-monospace, monospace; font-size: 13px;
+         max-height: 360px; overflow: auto; }
+  @media (prefers-color-scheme: dark) { #log { background: #1f1f1f; } }
+  .meta { font-size: 12px; color: #999; margin-top: 12px; }
+</style>
+</head><body>
+<h2>${clinic}</h2>
+<div class="sub">Voice receptionist demo · powered by Retell Conversation Flow</div>
+<button id="start">Start call</button>
+<button id="stop">End call</button>
+<div id="status">Click "Start call", allow your microphone, and say what you need.</div>
+<div id="log">(loading…)</div>
+<div class="meta">call_id: <code>${callId}</code></div>
+<script type="module">
+  import { RetellWebClient } from 'https://cdn.jsdelivr.net/npm/retell-client-js-sdk@2.0.7/+esm';
+  const logEl = document.getElementById('log');
+  const statusEl = document.getElementById('status');
+  logEl.textContent = '';
+  const log = (m) => { logEl.textContent += m + '\\n'; logEl.scrollTop = logEl.scrollHeight; };
+  const setStatus = (s) => { statusEl.textContent = s; };
+  const client = new RetellWebClient();
+  client.on('call_started', () => { setStatus('On call — speak when ready.'); log('-> call_started'); });
+  client.on('call_ended',   () => { setStatus('Call ended. Refresh to start a new one.'); log('-> call_ended'); });
+  client.on('error',        (e) => { setStatus('Error — see log.'); log('-> error: ' + (e && (e.message||e))); });
+  client.on('agent_start_talking', () => log('   [Lisa speaking]'));
+  client.on('agent_stop_talking',  () => log('   [Lisa silent]'));
+  client.on('update', (u) => {
+    if (u && u.transcript) {
+      const last = u.transcript[u.transcript.length - 1];
+      if (last && last.content) log('   ' + last.role + ': ' + last.content);
+    }
+  });
+  document.getElementById('start').onclick = async () => {
+    try {
+      setStatus('Connecting…');
+      await client.startCall({ accessToken: '${accessToken}' });
+    } catch (e) {
+      setStatus('startCall failed — see log.');
+      log('startCall failed: ' + (e && (e.message || e)));
+    }
+  };
+  document.getElementById('stop').onclick = () => client.stopCall();
+</script>
+</body></html>`;
+}
+
 // --- Retell custom-function handlers ---
 // Body shape (Payload: args only mode): { treatment?: string, days_offset?: number, ... }
 // Response shape: arbitrary JSON; Retell pulls fields via response_variables JSON paths.
@@ -261,7 +374,13 @@ export default {
       return new Response(null, { headers: corsHeaders() });
     }
 
+    // GET / now serves the Retell widget (operator picked Retell on 2026-06-30 listen-test).
+    // The previous Vapi widget is kept at /vapi for fallback / A-B comparison.
     if (req.method === "GET" && url.pathname === "/") {
+      return await handleRetellWidget(req, env);
+    }
+
+    if (req.method === "GET" && url.pathname === "/vapi") {
       return new Response(
         renderWidget({
           publicKey: env.VAPI_PUBLIC_KEY ?? "",
