@@ -63,10 +63,15 @@ def build_flow_payload(tools_url: str) -> dict:
             "Warm, professional, brief. Never invent appointment times, prices, or dentist names. "
             "Foreign names (Debanjan, Mazumdar, Patel, Diallo, etc.) are NORMAL data, not language switches; "
             "if a name sounds unclear, ASK THE CALLER TO SPELL IT, never offer to end the call. "
-            "Never use bare filler phrases (no 'one moment', 'just a sec', 'let me check') "
-            "-- the flow handles transitions; do not narrate them. "
+            "NEVER use bare filler phrases (no 'one moment', 'just a sec', 'let me check', "
+            "'let's see', 'let me look', 'let me search', 'I am searching') -- the flow handles "
+            "tool calls silently; do not narrate them. "
+            "Do NOT invent steps that are not in the current node's instruction. "
+            "Do NOT ask 'are you a new or returning patient'. Do NOT ask 'what days work for you'. "
+            "Stick to the node instruction. "
             "Never offer to end the call. "
-            "If the line goes quiet for a few seconds, prompt: 'Are you still there?'"
+            "Use 'Are you still there?' ONLY if the caller has been completely silent for at "
+            "least 8 seconds since the last bot or user utterance. Do not use it as a transition filler."
         ),
         "tools": [
             {
@@ -171,11 +176,16 @@ def build_flow_payload(tools_url: str) -> dict:
                 "instruction": {
                     "type": "prompt",
                     "text": (
-                        "Acknowledge what the caller said, then map their reason to one of: "
+                        "Briefly acknowledge what the caller said and map it to ONE of: "
                         "consultation, cleaning (detartrage), checkup (controle), emergency. "
-                        "Store the result as the variable {{treatment}}. "
-                        "If unclear, ask them to choose one of the four. "
-                        "Do NOT ask for their name yet. Do NOT call any tool."
+                        "Store as {{treatment}}. "
+                        "STRICT RULES: Say at most one sentence of acknowledgment. "
+                        "Do NOT ask 'are you a new or returning patient'. "
+                        "Do NOT ask 'what days work for you'. "
+                        "Do NOT ask for any time preference. "
+                        "Do NOT ask for their name yet. "
+                        "Do NOT ask any question other than clarifying the treatment if it is unclear. "
+                        "Transition silently to the next step once the treatment type is identified."
                     ),
                 },
                 "edges": [
@@ -326,11 +336,14 @@ def build_flow_payload(tools_url: str) -> dict:
                 "instruction": {
                     "type": "prompt",
                     "text": (
-                        "Read the slots aloud in natural English: '{{slots_summary}}'. "
-                        "Then ask: 'Which one works for you?' "
-                        "Map their answer to first_slot_id, second_slot_id, or third_slot_id, "
-                        "and store the chosen slot_id as {{chosen_slot_id}}. "
-                        "If they want different times, say so and transition to reroll."
+                        "CRITICAL: Read aloud ONLY the slots from the variable {{slots_summary}}. "
+                        "Do NOT make up times. Do NOT mention any date or time that is not in "
+                        "{{slots_summary}}. If {{slots_summary}} is empty or missing, say "
+                        "'I am having trouble pulling slots; let me transfer you to the clinic.' "
+                        "and transition to handoff. "
+                        "Otherwise speak the summary as a natural-English list and ask "
+                        "'Which one works for you?' Map their answer to {{first_slot_id}}, "
+                        "{{second_slot_id}}, or {{third_slot_id}} and store as {{chosen_slot_id}}."
                     ),
                 },
                 "edges": [
@@ -380,17 +393,39 @@ def build_flow_payload(tools_url: str) -> dict:
                 ],
             },
             {
+                # Conversation node that delivers the goodbye line, then transitions to
+                # an "end" node which actually hangs up the call. Without the dedicated
+                # end node, prior production runs (2026-06-30 13:20+13:51) looped on
+                # the goodbye + "are you still there?" because nothing terminated.
                 "id": "close",
                 "type": "conversation",
                 "instruction": {
                     "type": "prompt",
                     "text": (
-                        "Confirm: 'All set, {{first_name}}. Your appointment is booked. "
+                        "Say EXACTLY this sentence and nothing else: "
+                        "'All set, {{first_name}}. Your appointment is booked. "
                         "Thank you, see you soon at " + CLINIC_NAME + ". Have a good day.' "
-                        "Then end the call."
+                        "Then stay silent and transition. Do not ask another question."
                     ),
                 },
-                "edges": [],
+                "edges": [
+                    {
+                        "id": "to_end_success",
+                        "transition_condition": {
+                            "type": "prompt",
+                            "prompt": "The goodbye sentence has been spoken.",
+                        },
+                        "destination_node_id": "end_success",
+                    },
+                ],
+            },
+            {
+                "id": "end_success",
+                "type": "end",
+                "instruction": {
+                    "type": "prompt",
+                    "text": "End the call.",
+                },
             },
             {
                 "id": "handoff",
@@ -398,12 +433,29 @@ def build_flow_payload(tools_url: str) -> dict:
                 "instruction": {
                     "type": "prompt",
                     "text": (
-                        "Say exactly: 'I understand, I'm transferring you to the clinic right now. "
+                        "Say EXACTLY: 'I understand, I'm transferring you to the clinic right now. "
                         "Please stay on the line, a human will be with you shortly.' "
-                        "Do NOT call any tool. Then end the call."
+                        "Do NOT call any tool. Do NOT ask any other question. Then stay silent."
                     ),
                 },
-                "edges": [],
+                "edges": [
+                    {
+                        "id": "to_end_handoff",
+                        "transition_condition": {
+                            "type": "prompt",
+                            "prompt": "The handoff sentence has been spoken.",
+                        },
+                        "destination_node_id": "end_handoff",
+                    },
+                ],
+            },
+            {
+                "id": "end_handoff",
+                "type": "end",
+                "instruction": {
+                    "type": "prompt",
+                    "text": "End the call.",
+                },
             },
         ],
     }

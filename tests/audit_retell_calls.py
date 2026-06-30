@@ -96,14 +96,22 @@ def grade_call(c: dict) -> dict:
         findings.append(f"disconnection_reason={disc} (runtime error)")
         severity = "FAIL"
 
-    # Retell exposes transcript as transcript_object (per-turn list) and a tool_calls list.
+    # Retell call shape (verified against /v2/get-call response 2026-06-30):
+    #   - transcript_object: per-turn list, roles in {agent, user}
+    #   - tool_calls (top level): array of {name, start_time_sec, tool_call_id, type, success}
+    #   - transcript_with_tool_calls: interleaved view with the tool calls inline
+    # Earlier version of this auditor looked for tool calls inside transcript_object roles
+    # like "tool_call_invocation" -- they don't exist in Retell's shape, so every call
+    # graded as "0 tool calls" even when both list_slots and book_slot fired successfully.
+    # That blind spot lasted the entire 2026-06-30 listen-test session.
     transcript = c.get("transcript_object") or []
-    bot_turns: list[tuple[int, str]] = []  # (index_in_transcript, content)
-    for i, turn in enumerate(transcript):
+    twtc = c.get("transcript_with_tool_calls") or []
+    tool_calls_top = c.get("tool_calls") or []
+
+    for turn in transcript:
         role = (turn.get("role") or "").lower()
         if role == "agent":
             content = turn.get("content") or ""
-            bot_turns.append((i, content))
             for tag in find_forbidden_in_text(content):
                 findings.append(f"forbidden({tag}) in agent turn: {content[:160]!r}")
                 severity = "FAIL"
@@ -112,43 +120,79 @@ def grade_call(c: dict) -> dict:
                 if severity != "FAIL":
                     severity = "WARN"
 
-    # Eager-tool-call regression class. list_slots must NOT fire before the caller has
-    # given first_name, last_name, AND confirmed phone. Heuristic: walk through transcript
-    # in order; before encountering list_slots, we must have observed at least 4 user
-    # turns (reason, first_name, last_name, phone) AND a phone-confirm exchange.
-    tool_calls = []
-    for turn in transcript:
-        if (turn.get("role") or "").lower() in ("tool_call_invocation", "tool", "function_call"):
-            name = turn.get("name") or turn.get("tool_name") or ""
-            tool_calls.append({"name": name, "turn": turn})
-
-    # Walk transcript chronologically, count user turns before first list_slots.
-    user_turns_before_list_slots = 0
+    # Eager-tool-call detection: walk the interleaved transcript_with_tool_calls in
+    # chronological order. Count user turns BEFORE the first list_slots invocation;
+    # require >=4 user turns AND a phone-confirm 'yes' before list_slots fires.
+    user_turns_before_ls = 0
     saw_phone_confirmation = False
-    fired_list_slots_early = False
-    for turn in transcript:
-        role = (turn.get("role") or "").lower()
-        content = (turn.get("content") or "").lower()
+    fired_ls_early = False
+    for entry in twtc:
+        role = (entry.get("role") or "").lower()
+        # The interleaved structure uses 'tool_call_invocation' or 'tool_call_result' as roles.
         if role == "user":
-            user_turns_before_list_slots += 1
-            if any(w in content for w in ("yes", "yeah", "yep", "correct", "right", "that's right")):
-                # Possible phone confirmation -- we'll trust the flow's gating.
-                # We treat this as a soft signal only when it follows >=3 prior user turns.
-                if user_turns_before_list_slots >= 4:
-                    saw_phone_confirmation = True
-        elif role in ("tool_call_invocation", "tool", "function_call"):
-            name = (turn.get("name") or turn.get("tool_name") or "").lower()
+            user_turns_before_ls += 1
+            content = (entry.get("content") or "").lower()
+            if user_turns_before_ls >= 4 and any(
+                w in content for w in ("yes", "yeah", "yep", "correct", "right", "that's right")
+            ):
+                saw_phone_confirmation = True
+        elif role in ("tool_call_invocation", "tool_call", "function_call"):
+            name = (entry.get("name") or entry.get("tool_name") or "").lower()
             if name == "list_slots":
-                if user_turns_before_list_slots < 4 or not saw_phone_confirmation:
-                    fired_list_slots_early = True
-                break  # we only care about the FIRST list_slots call
+                if user_turns_before_ls < 4 or not saw_phone_confirmation:
+                    fired_ls_early = True
+                break
 
-    if fired_list_slots_early:
+    # Fallback: if transcript_with_tool_calls doesn't carry role-labeled invocations,
+    # use the top-level tool_calls array + start_time_sec to compare against user turn
+    # timestamps. The 2026-06-30 calls had tool_calls populated but no inline invocations
+    # in transcript_with_tool_calls (just inline at the right time).
+    if not fired_ls_early and tool_calls_top:
+        first_ls = next((tc for tc in tool_calls_top if (tc.get("name") or "").lower() == "list_slots"), None)
+        if first_ls:
+            ls_t = first_ls.get("start_time_sec") or 0.0
+            user_turns_before = 0
+            saw_yes_before = False
+            for turn in transcript:
+                if (turn.get("role") or "").lower() != "user":
+                    continue
+                # word-level timing: take the first word's start as the turn start
+                words = turn.get("words") or []
+                t_start = (words[0].get("start") if words else None) or 0.0
+                if t_start >= ls_t:
+                    break
+                user_turns_before += 1
+                if user_turns_before >= 4 and any(
+                    w in (turn.get("content") or "").lower()
+                    for w in ("yes", "yeah", "yep", "correct", "right")
+                ):
+                    saw_yes_before = True
+            if user_turns_before < 4 or not saw_yes_before:
+                fired_ls_early = True
+                user_turns_before_ls = user_turns_before
+                saw_phone_confirmation = saw_yes_before
+
+    if fired_ls_early:
         findings.append(
-            f"EAGER list_slots: fired after only {user_turns_before_list_slots} user turn(s) "
+            f"EAGER list_slots: fired after only {user_turns_before_ls} user turn(s) "
             f"and phone_confirmation={saw_phone_confirmation} -- this is the 2026-06-30 bug class."
         )
         severity = "FAIL"
+
+    # Repeated-goodbye detection: the "All set... Have a good day" close didn't end
+    # the call on 2026-06-30 prod runs; Lisa repeated it 2-3 times because the close
+    # node had no terminal action. Flag any call where the same agent goodbye-shaped
+    # turn appears more than once.
+    goodbye_count = sum(
+        1 for t in transcript
+        if (t.get("role") or "").lower() == "agent"
+        and "all set" in (t.get("content") or "").lower()
+        and "have a good day" in (t.get("content") or "").lower()
+    )
+    if goodbye_count >= 2:
+        findings.append(f"close-loop: goodbye repeated {goodbye_count}x (end node missing)")
+        if severity != "FAIL":
+            severity = "WARN"
 
     return {
         "id": c.get("call_id", "?"),
@@ -158,7 +202,7 @@ def grade_call(c: dict) -> dict:
         "findings": findings,
         "severity": severity,
         "turn_count": len(transcript),
-        "tool_call_count": len(tool_calls),
+        "tool_call_count": len(tool_calls_top),
     }
 
 
