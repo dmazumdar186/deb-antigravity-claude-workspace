@@ -27,6 +27,7 @@ class JobSource(str, Enum):
     LINKEDIN_GUEST_API = "linkedin_guest_api"
     INDEED_GMAIL = "indeed_gmail"
     HELLOWORK_GMAIL = "hellowork_gmail"
+    HELLOWORK = "hellowork"  # public web scrape (search → JobPosting JSON-LD)
     JOBGETHER_GMAIL = "jobgether_gmail"
     REMOTEOK = "remoteok"
     WEWORKREMOTELY = "weworkremotely"

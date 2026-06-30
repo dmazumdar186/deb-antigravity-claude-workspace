@@ -60,6 +60,16 @@ TMP_DIR = PROJECT_ROOT / ".tmp" / "job_search_v2"
 
 SEARCH_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 DETAIL_URL_FMT = "https://www.linkedin.com/jobs/view/{job_id}"  # canonical public page
+DETAIL_API_URL_FMT = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{job_id}"  # JD fetch
+# Detail enrichment knobs. Daily cron processes ~500 LinkedIn jobs; serial fetch
+# at ~600ms/job + sleep would take ~5min. Threaded at 4 workers brings it under
+# 90s. LinkedIn's anon rate-limit is generous on this endpoint (no auth, no UA
+# pinning) but we still throttle per-worker to avoid 429 storms.
+DETAIL_MAX_WORKERS = 4
+DETAIL_RETRIES = 2
+DETAIL_TIMEOUT = 15.0
+DETAIL_PER_REQ_SLEEP = (0.2, 0.5)
+DETAIL_DESC_MAX_CHARS = 2000
 
 # LinkedIn geoIds (looked up on linkedin.com/jobs and stable for years):
 #   France                = 105015875
@@ -260,6 +270,8 @@ def _card_to_source_job(card: dict) -> SourceJob | None:
                     posted_at = posted_at.replace(tzinfo=timezone.utc)
             except ValueError:
                 posted_at = None
+        # description_snippet is populated post-card by _enrich_with_jd() in
+        # fetch(). The card itself only carries title/company/location/url.
         return SourceJob(
             source=JobSource.LINKEDIN_GUEST_API,
             source_id=card["job_id"],
@@ -267,7 +279,7 @@ def _card_to_source_job(card: dict) -> SourceJob | None:
             title=card["title"],
             company=card["company"] or "Unknown",
             location_raw=card["location"],
-            description_snippet="",  # search cards don't carry JD text; ranker uses title+company
+            description_snippet=card.get("description_snippet", "")[:DETAIL_DESC_MAX_CHARS],
             posted_at=posted_at,
             contract_type_raw="",
         )
@@ -276,22 +288,110 @@ def _card_to_source_job(card: dict) -> SourceJob | None:
         return None
 
 
+def _fetch_job_detail(client: httpx.Client, job_id: str) -> str:
+    """Fetch the public JD text for a single LinkedIn job_id.
+
+    Hits the unauthenticated guest detail endpoint and parses the
+    `show-more-less-html__markup` (or `description__text`) container that
+    holds the JD body. Soft-fails on rate-limit/block/empty — returns ''
+    so the caller's row still flows; pipeline never aborts on one stuck JD.
+    """
+    url = DETAIL_API_URL_FMT.format(job_id=job_id)
+    for attempt in range(DETAIL_RETRIES + 1):
+        try:
+            resp = client.get(url, timeout=DETAIL_TIMEOUT)
+        except httpx.HTTPError as exc:
+            if attempt == DETAIL_RETRIES:
+                logger.debug("linkedin detail %s: %s — soft-fail", job_id, exc)
+                return ""
+            time.sleep(BACKOFF_BASE * (attempt + 1))
+            continue
+        if resp.status_code in (429, 999, 503):
+            time.sleep(BACKOFF_BASE * (attempt + 1) * 2)
+            continue
+        if resp.status_code != 200 or len(resp.text) < 500:
+            return ""
+        text = resp.text
+        if _looks_blocked(text):
+            logger.warning("linkedin detail %s: block marker — stop further detail fetches",
+                           job_id)
+            raise LinkedInBlockedError("detail-endpoint block marker")
+        soup = BeautifulSoup(text, "html.parser")
+        block = (soup.select_one(".show-more-less-html__markup")
+                 or soup.select_one(".description__text")
+                 or soup.select_one("section.description"))
+        if not block:
+            return ""
+        body = block.get_text(" ", strip=True)
+        return body[:DETAIL_DESC_MAX_CHARS]
+    return ""
+
+
+def _enrich_with_jd(
+    client: httpx.Client,
+    cards: list[dict],
+    *,
+    max_workers: int = DETAIL_MAX_WORKERS,
+) -> tuple[int, int]:
+    """Mutate `cards` in-place: each card gains `description_snippet`.
+
+    Concurrent across `max_workers` threads. Stops on LinkedInBlockedError
+    (raised by _fetch_job_detail on captcha) — already-enriched cards keep
+    their descriptions; the rest get empty. Returns (enriched, attempted).
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    if not cards:
+        return 0, 0
+    attempted = 0
+    enriched = 0
+    blocked = False
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(_fetch_job_detail, client, c["job_id"]): c for c in cards}
+        for fut in as_completed(futures):
+            card = futures[fut]
+            attempted += 1
+            try:
+                desc = fut.result()
+            except LinkedInBlockedError:
+                blocked = True
+                break
+            except Exception as exc:  # noqa: BLE001 — per-job soft-fail
+                logger.debug("linkedin detail %s: %s — soft-fail",
+                             card["job_id"], exc)
+                desc = ""
+            card["description_snippet"] = desc or ""
+            if desc:
+                enriched += 1
+            time.sleep(random.uniform(*DETAIL_PER_REQ_SLEEP))
+    if blocked:
+        logger.warning("linkedin_guest_api: detail enrichment hit a block marker; "
+                       "partial enrichment retained (%d/%d).", enriched, len(cards))
+    return enriched, attempted
+
+
 def fetch(
     keywords: Optional[list[str]] = None,
     geo_id: str = DEFAULT_GEO_ID,
     posted_within_hours: int = DEFAULT_POSTED_WITHIN_HOURS,
     max_pages_per_keyword: int = 4,
+    enrich_descriptions: bool = True,
 ) -> list[SourceJob]:
     """Run a search per keyword, merge by jobId, return list[SourceJob].
 
     Per-keyword pagination stops early on a streak of empty pages so a low-volume
     keyword doesn't waste requests. A LinkedInBlockedError aborts the whole run
     immediately (don't hammer a credential-rotated state).
+
+    When enrich_descriptions=True (default), each card's description is fetched
+    from the jobPosting detail endpoint after search completes. This adds
+    ~60-90s for ~500 cards but is the difference between the ranker scoring on
+    title-only data (skill_overlap=0) and on real JD text. Set False for the
+    smoke-test path / fixture flow where detail fetches aren't desired.
     """
     keywords = keywords or DEFAULT_KEYWORDS
     f_tpr = f"r{posted_within_hours * 3600}"
     seen_ids: set[str] = set()
-    out: list[SourceJob] = []
+    cards_by_id: dict[str, dict] = {}  # collect first, enrich + emit second
 
     with httpx.Client(headers=HEADERS) as client:
         for kw in keywords:
@@ -307,7 +407,8 @@ def fetch(
                     )
                 except LinkedInBlockedError as exc:
                     logger.error("linkedin_guest_api: BLOCKED on keyword=%r start=%d — %s", kw, start, exc)
-                    return out
+                    # emit what we have so far (without enrichment) and bail
+                    return _cards_to_source_jobs(list(cards_by_id.values()))
                 if html is None:
                     empty_streak += 1
                     if empty_streak >= MAX_EMPTY_STREAK:
@@ -326,12 +427,32 @@ def fetch(
                     if jid in seen_ids:
                         continue
                     seen_ids.add(jid)
-                    sj = _card_to_source_job(card)
-                    if sj is not None:
-                        out.append(sj)
-                        added += 1
+                    cards_by_id[jid] = card
+                    added += 1
                 logger.info("linkedin_guest_api: keyword=%r start=%d → %d cards, %d new", kw, start, len(cards), added)
                 time.sleep(random.uniform(SEARCH_DELAY_MIN, SEARCH_DELAY_MAX))
+
+        # Detail-enrichment pass: turn each card from {title, company,
+        # location, url} into {... + description_snippet}. Done AFTER
+        # search-and-dedup so we never fetch the same JD twice (one of the
+        # 30+ keyword variants will surface the same job).
+        if enrich_descriptions and cards_by_id:
+            all_cards = list(cards_by_id.values())
+            enriched, attempted = _enrich_with_jd(client, all_cards)
+            logger.info(
+                "linkedin_guest_api: enriched %d/%d cards with JD text",
+                enriched, attempted,
+            )
+
+    return _cards_to_source_jobs(list(cards_by_id.values()))
+
+
+def _cards_to_source_jobs(cards: list[dict]) -> list[SourceJob]:
+    out: list[SourceJob] = []
+    for card in cards:
+        sj = _card_to_source_job(card)
+        if sj is not None:
+            out.append(sj)
     return out
 
 

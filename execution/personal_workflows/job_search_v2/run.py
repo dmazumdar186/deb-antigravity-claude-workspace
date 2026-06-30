@@ -350,6 +350,27 @@ def _fetch_wttj_algolia(mode: str, max_pages: int) -> list[SourceJob]:
     return all_jobs
 
 
+def _fetch_hellowork(mode: str, max_pages: int) -> list[SourceJob]:
+    """Hellowork public web scrape (search → JobPosting JSON-LD).
+
+    Every offer page reliably carries a schema.org JobPosting blob with the
+    full description (verified 24/24 in 2026-06-30 smoke), giving us the
+    third source whose rows reach the ranker with non-empty
+    description_snippet. The hellowork_gmail flow above is the older
+    alert-based source; this one is direct web.
+    """
+    from execution.personal_workflows.job_search_v2.sources import hellowork
+    if mode == "fixture":
+        return hellowork.fetch_from_fixture(
+            PROJECT_ROOT / "tests" / "fixtures" / "hellowork_sample.html"
+        )
+    try:
+        return hellowork.fetch(max_pages_per_keyword=max_pages, posted_within_hours=48)
+    except hellowork.HelloworkBlockedError as exc:
+        logger.warning("run: hellowork blocked - %s. Skipping source.", exc)
+        return []
+
+
 def _fetch_remoteok(mode: str, max_pages: int) -> list[SourceJob]:
     from execution.personal_workflows.job_search_v2.sources import remoteok
     if mode == "fixture":
@@ -377,6 +398,7 @@ _DISPATCH = {
     JobSource.LINKEDIN_GUEST_API.value: _fetch_linkedin_guest_api,
     JobSource.INDEED_GMAIL.value: _fetch_indeed_gmail,
     JobSource.HELLOWORK_GMAIL.value: _fetch_hellowork_gmail,
+    JobSource.HELLOWORK.value: _fetch_hellowork,
     JobSource.JOBGETHER_GMAIL.value: _fetch_jobgether_gmail,
     JobSource.REMOTEOK.value: _fetch_remoteok,
     JobSource.WEWORKREMOTELY.value: _fetch_weworkremotely,
@@ -434,7 +456,7 @@ def main() -> int:
         #   apec                  — Playwright + Didomi consent gate blocks headless
         #   indeed_gmail / hellowork_gmail / jobgether_gmail — require user-side alert setup
         # Opt them back in by passing --sources explicitly.
-        default="france_travail,linkedin_guest_api,wttj_algolia,linkedin_gmail,remoteok,weworkremotely",
+        default="france_travail,linkedin_guest_api,wttj_algolia,linkedin_gmail,hellowork,remoteok,weworkremotely",
         help="Comma-separated subset of sources to run.",
     )
     parser.add_argument("--max-pages", type=int, default=3)

@@ -175,6 +175,19 @@ def _hit_to_source_job(hit: dict) -> SourceJob | None:
         loc_parts = [office.get("city"), office.get("country") or "France"]
         location_raw = ", ".join(p for p in loc_parts if p)
 
+        # WTTJ's Algolia hit DOES carry the full JD in the `profile` field —
+        # it just doesn't surface in the default UI response shape. Verified
+        # 2026-06-30: across 250 hits spanning 5 keyword queries, 89% have
+        # `profile` filled with 400-2000 chars of description HTML. The prior
+        # implementation ignored this field and emitted an empty snippet,
+        # which starved the profile-grounded ranker's skill_overlap signal
+        # on every WTTJ row (566 of 1121 jobs in the 2026-06-30 cron run).
+        # Bug-class: data-stage assumption from the legacy substring-keyword
+        # ranker (which only needed title) carried into a v3 ranker (which
+        # needs description).
+        raw_profile = hit.get("profile") or ""
+        description = _strip_html(raw_profile)[:2000]
+
         return SourceJob(
             source=JobSource.WTTJ_ALGOLIA,
             source_id=object_id,
@@ -182,7 +195,7 @@ def _hit_to_source_job(hit: dict) -> SourceJob | None:
             title=title,
             company=company,
             location_raw=location_raw,
-            description_snippet="",  # Algolia hit is metadata-only; ranker uses title+company
+            description_snippet=description,
             posted_at=_parse_iso(hit.get("published_at") or ""),
             contract_type_raw=(hit.get("contract_type") or "").upper(),
         )
