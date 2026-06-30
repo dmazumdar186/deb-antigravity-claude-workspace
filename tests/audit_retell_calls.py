@@ -65,8 +65,15 @@ FILLER_ONLY = re.compile(
 ERROR_DISCONNECT_REASONS = {
     "error_llm_websocket_open", "error_llm_websocket_lost_connection",
     "error_llm_websocket_runtime", "error_llm_websocket_corrupt_payload",
-    "error_no_audio_received", "error_user_not_joined", "error_retell",
+    "error_no_audio_received", "error_retell",
     "error_unknown", "error_inactivity",
+}
+# Tokens minted by our /retell widget that the user never used (opened the page
+# but didn't click Start, or token expired before connect). Not a real failure.
+# These ARE legitimate Retell disconnects but they are widget-design noise,
+# not voice-agent behavior failures, so the auditor SKIPs them.
+NOISE_DISCONNECT_REASONS = {
+    "error_user_not_joined",
 }
 
 
@@ -92,7 +99,20 @@ def grade_call(c: dict) -> dict:
     severity = "PASS"
 
     disc = (c.get("disconnection_reason") or "").lower()
-    if disc in ERROR_DISCONNECT_REASONS or "error" in disc:
+    if disc in NOISE_DISCONNECT_REASONS:
+        # Token minted by our widget that the operator/visitor never used.
+        # Not a real failure -- return SKIP shape so the summary doesn't count it.
+        return {
+            "id": c.get("call_id", "?"),
+            "startedAt": (c.get("start_timestamp")
+                           and datetime.fromtimestamp(c["start_timestamp"] / 1000, tz=timezone.utc).isoformat()),
+            "disconnection_reason": disc,
+            "findings": [f"widget-noise: {disc} (token not used; not a real call)"],
+            "severity": "SKIP",
+            "turn_count": 0,
+            "tool_call_count": 0,
+        }
+    if disc in ERROR_DISCONNECT_REASONS or ("error" in disc and disc not in NOISE_DISCONNECT_REASONS):
         findings.append(f"disconnection_reason={disc} (runtime error)")
         severity = "FAIL"
 
@@ -237,7 +257,7 @@ def main() -> int:
 
     print(f"audit: {len(recent)} retell calls in the last {args.since_hours}h (of {len(calls)} fetched)")
 
-    clean = warn = fail = 0
+    clean = warn = fail = skip = 0
     for c in recent:
         g = grade_call(c)
         print(f"{g['severity']:<4}  {g['startedAt']}  {g['id'][:24]}  "
@@ -248,10 +268,14 @@ def main() -> int:
             fail += 1
         elif g["severity"] == "WARN":
             warn += 1
+        elif g["severity"] == "SKIP":
+            skip += 1
         else:
             clean += 1
 
-    print(f"\nsummary: {clean} clean, {warn} warn, {fail} fail")
+    real_count = len(recent) - skip
+    print(f"\nsummary: {clean} clean, {warn} warn, {fail} fail (of {real_count} real calls; "
+          f"{skip} widget-noise skipped)")
     if fail > 0:
         return 1
     if args.strict and warn > 0:
