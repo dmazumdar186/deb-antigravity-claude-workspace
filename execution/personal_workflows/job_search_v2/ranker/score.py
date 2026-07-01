@@ -350,16 +350,29 @@ def rank_jobs(
     CHUNK_SIZE = 40
     SLEEP_BETWEEN_CHUNKS = 7.0
     # Retriable error markers (added: "disconnected" / "timeout" / "INTERNAL"
-    # to catch the mid-batch socket close + the Gemini-side 500s.).
+    # to catch the mid-batch socket close + the Gemini-side 500s. Added
+    # 2026-07-01 audit: JSON parse errors from truncated responses — the
+    # response comes back 200 OK but is cut mid-string. Prior form skipped
+    # retry because the exception fires after resp.ok. Now the parse is
+    # inside the retry try-block so a truncated response triggers backoff.
     RETRY_MARKERS = (
         "503", "429", "500",
         "UNAVAILABLE", "RESOURCE_EXHAUSTED", "INTERNAL", "DEADLINE_EXCEEDED",
         "disconnected", "timeout", "Timeout",
+        "JSONDecodeError", "Unterminated", "Expecting value",
     )
 
     def _call_chunk(model_name: str, payload_items: list[dict]):
+        """Call Gemini AND parse the response. Parsing lives inside so a
+        truncated-response ValueError propagates back through the retry
+        loop rather than falling out silently — the 2026-07-01 audit
+        exposed that a 200-OK-but-truncated JSON never re-entered retry."""
         payload = json.dumps({"jobs": payload_items}, ensure_ascii=False)
-        return client.models.generate_content(model=model_name, contents=payload, config=cfg)
+        resp = client.models.generate_content(model=model_name, contents=payload, config=cfg)
+        # Force-parse here so any JSONDecodeError is retriable. Return
+        # (resp, parsed_data) tuple so callers can access usage / etc.
+        data = json.loads(resp.text or "{}")
+        return resp, data
 
     scored_ids: set[str] = set()
     chunk_failures: list[str] = []  # store exception class names for stats
@@ -370,12 +383,17 @@ def rank_jobs(
             time.sleep(SLEEP_BETWEEN_CHUNKS)
 
         resp = None
+        data: dict = {}
         used_model = model
         last_exc: Exception | None = None
         for attempt in (1, 2, 3):
             try:
                 use = model if attempt < 3 else fallback_model
-                resp = _call_chunk(use, chunk)
+                # _call_chunk now returns (resp, parsed_data) — parse is
+                # inside so JSONDecodeError from a truncated response is
+                # retriable via RETRY_MARKERS. Prior form parsed AFTER the
+                # retry loop, so truncations silently fell to heuristic.
+                resp, data = _call_chunk(use, chunk)
                 used_model = use
                 last_exc = None
                 break
@@ -395,13 +413,7 @@ def rank_jobs(
             chunk_failures.append(type(last_exc).__name__ if last_exc else "unknown")
             continue
 
-        try:
-            data = json.loads(resp.text or "{}")
-            results = data.get("results", [])
-        except (ValueError, json.JSONDecodeError) as exc:
-            logger.warning("ranker: chunk %d response parse failed (%s)", chunk_idx + 1, exc)
-            chunk_failures.append("ParseError")
-            continue
+        results = data.get("results", [])
 
         for r in results:
             jid = str(r.get("job_id", "")).strip()

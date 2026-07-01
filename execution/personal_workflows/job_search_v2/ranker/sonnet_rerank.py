@@ -42,7 +42,7 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
 load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("ranker.sonnet_rerank")
 
-DEFAULT_MODEL = "claude-sonnet-4-5"
+DEFAULT_MODEL = "claude-sonnet-4-6"
 RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 
 # Sonnet 4.6 pricing — Anthropic publishes in USD per million tokens. We store

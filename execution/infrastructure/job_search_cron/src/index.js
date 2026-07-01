@@ -38,18 +38,31 @@ async function dispatchWorkflow(env) {
 
 export default {
   async scheduled(event, env, ctx) {
-    // DST split: only fire the cron that matches the current TZ offset.
-    // Paris is CEST (UTC+2) Apr-Oct → primary cron at 07:15 UTC.
-    // Paris is CET  (UTC+1) Nov-Mar → primary cron at 08:15 UTC.
-    // wrangler.toml declares BOTH crons; this guard makes the wrong one
-    // no-op on any given day. Manual fetch triggers bypass this guard.
+    // DST-accurate cron guard: wrangler.toml declares TWO crons (07:15 and
+    // 08:15 UTC) year-round. Only one should actually dispatch on any
+    // given day — the one that corresponds to 09:15 Paris local time.
+    //
+    // Prior form used `month >= 4 && month <= 10` to detect CEST, which
+    // is 3-7 days wrong at each transition (Paris switches on the last
+    // Sunday of March / October, not on month boundary). Result: on ~10
+    // days per year the Worker fires ZERO triggers because both crons
+    // are skipped by the wrong hour check.
+    //
+    // Correct: compute the actual Paris local hour via Intl.DateTimeFormat
+    // with timeZone: 'Europe/Paris'. This uses the runtime's built-in
+    // tzdata, so DST transitions are handled exactly.
     const now = new Date(event.scheduledTime);
-    const month = now.getUTCMonth() + 1;  // 1-12
-    const hour = now.getUTCHours();
-    const inCest = month >= 4 && month <= 10;
-    const expectedHour = inCest ? 7 : 8;
-    if (hour !== expectedHour) {
-      console.log(`skip: month=${month} hour=${hour} expected=${expectedHour} (DST mismatch)`);
+    const parisHour = parseInt(
+      new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        hour12: false,
+        timeZone: "Europe/Paris",
+      }).format(now),
+      10,
+    );
+    const TARGET_PARIS_HOUR = 9;  // 09:15 Paris local time
+    if (parisHour !== TARGET_PARIS_HOUR) {
+      console.log(`skip: paris_hour=${parisHour} target=${TARGET_PARIS_HOUR} (wrong half of DST split fires)`);
       return;
     }
     const status = await dispatchWorkflow(env);
