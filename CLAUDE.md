@@ -215,6 +215,12 @@ The system supports event-driven execution via **Modal webhooks** and **Cloudfla
 
 Python hardening rules (subprocess encoding, threading locks, LLM path validation, cache-aware pricing, bare-except) auto-load from `.claude/rules/python-hardening.md` when editing `.py` files. Reference implementation: `C:\Users\deban\dev\anneal\src\anneal\`.
 
+## Always Parallelize
+
+**Independent work MUST fire concurrently in the same tool-call batch.** Long-running verification (CI runs, live probes, `sleep`+poll) uses `run_in_background: true` and the next independent unit of work starts immediately in the same message. Serial-only when B genuinely consumes A's output.
+
+Full rule: `.claude/rules/always-parallelize.md`. Born 2026-07-01 from a war-room session where >20 min idled polling CI while independent work (external cron scaffold, L3 alarm push, source pruning) sat waiting. The operator's wall clock is the scarce resource; the assistant must not burn it on serialized independent work.
+
 ## Mobile App Development (Hybrid Workspace)
 
 Directives and execution scripts for mobile apps live in this workspace under `directives/mobile_apps/` and `execution/mobile_apps/`. **Actual app source code lives in separate per-app repos** at `C:\Users\deban\dev\mobile-apps\{app-slug}\`, cloned from `C:\Users\deban\dev\mobile-apps\_template\`.
