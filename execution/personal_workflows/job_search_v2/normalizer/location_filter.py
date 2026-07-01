@@ -26,6 +26,7 @@ if str(_PKG_DIR.parent.parent.parent) not in sys.path:
     sys.path.insert(0, str(_PKG_DIR.parent.parent.parent))
 
 from execution.personal_workflows.job_search_v2.contracts import NormalizedJob  # noqa: E402
+from execution.personal_workflows.job_search_v2.profile import loader as profile_loader  # noqa: E402
 
 logger = logging.getLogger("normalizer.location_filter")
 
@@ -78,6 +79,46 @@ def matches(haystack: str, accept: list[str], reject_priority: list[str]) -> tup
     return False, "no_match"
 
 
+def _profile_augmented_patterns(
+    config_accept: list[str],
+    config_reject: list[str],
+) -> tuple[list[str], list[str]]:
+    """Union the config-declared accept/reject patterns with profile.json's
+    locations. Additive: config stays as the primary source, profile
+    contributes extra terms so a profile edit propagates automatically.
+
+    2026-07-01 pipeline-auditor gap: prior form read only from
+    config/job_search_v2.json, silently ignoring profile.locations.preferred /
+    ok_remote / blocked_countries. A profile change to add "Berlin remote" or
+    block "United Kingdom" had zero effect unless the operator also updated
+    the config JSON — two sources of truth, guaranteed to drift.
+    """
+    prof_preferred = profile_loader.get_preferred_locations()
+    prof_ok_remote = profile_loader.get_ok_remote_locations()
+    prof_blocked = profile_loader.get_blocked_countries()
+
+    # Accept: union in a stable order; preserve config priority by putting
+    # config patterns first.
+    accept_seen: set[str] = set()
+    accept_out: list[str] = []
+    for p in list(config_accept) + prof_preferred + prof_ok_remote:
+        key = p.strip().lower()
+        if key and key not in accept_seen:
+            accept_seen.add(key)
+            accept_out.append(p)
+
+    # Reject: union with the same dedup pattern.
+    reject_seen: set[str] = set()
+    reject_out: list[str] = []
+    for p in list(config_reject) + prof_blocked:
+        key = p.strip().lower()
+        if key and key not in reject_seen:
+            reject_seen.add(key)
+            reject_out.append(p)
+
+    return accept_out, reject_out
+
+
 def filter_by_location(
     jobs: list[NormalizedJob],
     config: dict | None = None,
@@ -90,13 +131,18 @@ def filter_by_location(
         "rejected": int,
         "by_reason": {"reject:germany": int, "no_match": int, ...}
     }
+
+    Sources of truth (unioned):
+      1. config/job_search_v2.json target_locations.{accept,reject}_patterns
+      2. profile.json locations.{preferred, ok_remote, blocked_countries}
     """
     if config is None:
         config = load_config()
 
     tl = config.get("target_locations", {})
-    accept = tl.get("accept_patterns", [])
-    reject = tl.get("reject_patterns_priority", [])
+    config_accept = tl.get("accept_patterns", [])
+    config_reject = tl.get("reject_patterns_priority", [])
+    accept, reject = _profile_augmented_patterns(config_accept, config_reject)
 
     kept: list[NormalizedJob] = []
     by_reason: dict[str, int] = {}
