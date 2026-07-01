@@ -446,17 +446,23 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Skip sheet append + email send.")
     parser.add_argument(
         "--sources",
-        # Default = LIVE-VERIFIED sources only (2026-06-18 smoke):
+        # Default = LIVE-VERIFIED sources that actually returned jobs in the
+        # last 7 days of production run_log entries.
         #   france_travail        — official OAuth2 REST API (needs GH Secrets)
-        #   linkedin_guest_api    — public unauthenticated jobs-guest endpoint, ~10 jobs/keyword/page
-        #   wttj_algolia          — public Algolia backend, ~30 hits/keyword/page
-        #   linkedin_gmail        — kept as belt-and-suspenders (already-configured Gmail label)
+        #   linkedin_guest_api    — public unauthenticated jobs-guest endpoint
+        #   wttj_algolia          — public Algolia backend
+        #   hellowork             — public web scrape via JobPosting JSON-LD
+        #   remoteok / weworkremotely — public JSON / RSS feeds
+        # REMOVED FROM DEFAULT 2026-07-01: linkedin_gmail returned 0 rows every
+        # day for the last 30 days per run_log; the IMAP call still takes 2-5s
+        # per run and produces log noise. Opt back in via --sources when the
+        # Gmail label / OAuth is confirmed healthy.
         # DARK / probationary sources (excluded from default):
         #   wttj                  — Playwright + __NEXT_DATA__, broken since WTTJ moved hydration
         #   apec                  — Playwright + Didomi consent gate blocks headless
         #   indeed_gmail / hellowork_gmail / jobgether_gmail — require user-side alert setup
-        # Opt them back in by passing --sources explicitly.
-        default="france_travail,linkedin_guest_api,wttj_algolia,linkedin_gmail,hellowork,remoteok,weworkremotely",
+        # Opt any back in by passing --sources explicitly.
+        default="france_travail,linkedin_guest_api,wttj_algolia,hellowork,remoteok,weworkremotely",
         help="Comma-separated subset of sources to run.",
     )
     parser.add_argument("--max-pages", type=int, default=3)

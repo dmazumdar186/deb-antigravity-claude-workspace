@@ -1,0 +1,31 @@
+name = "job-search-cron"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+# External Cloudflare Cron Trigger that fires GH workflow_dispatch on the
+# job_search_daily.yml workflow. Belt-and-suspenders vs. GitHub Actions
+# scheduled-workflow drops (2026-06-30 dropped, 2026-06-29 delayed 4h41m).
+#
+# Independent of GitHub Actions infrastructure -> even if GH Actions is
+# entirely degraded, this Worker still fires on time. CF Cron Triggers have
+# a documented 99.9% SLA and fire within seconds of the scheduled minute.
+#
+# Deploy:
+#   cd execution/infrastructure/job_search_cron
+#   wrangler secret put GITHUB_PAT           # paste a PAT with `workflow` scope
+#   wrangler deploy
+#
+# Revert:
+#   wrangler delete job-search-cron
+
+# Fires 09:15 Paris (07:15 UTC Apr-Oct / 08:15 UTC Nov-Mar). Cron ignores
+# DST — the Worker code below detects month and skips the wrong half of
+# the year to avoid dual-fires on transition weeks.
+[triggers]
+crons = ["15 7 * * *", "15 8 * * *"]
+
+[vars]
+GITHUB_OWNER = "dmazumdar186"
+GITHUB_REPO = "deb-antigravity-claude-workspace"
+WORKFLOW_FILE = "job_search_daily.yml"
+REF = "main"
