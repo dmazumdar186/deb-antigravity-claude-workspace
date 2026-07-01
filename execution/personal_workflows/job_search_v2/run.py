@@ -669,10 +669,21 @@ def main() -> int:
     if not args.dry_run and not args.no_acceptance:
         try:
             import subprocess
+            # Pass current-run stats to acceptance via tempfile — the run_log
+            # append (Stage 5) happens AFTER acceptance runs, so without this
+            # the L3 silent-degradation gate would read the *previous* run's
+            # stats (or none on a fresh CI runner). Path is env-var, so the
+            # acceptance script can also be invoked manually without it.
+            current_stats_path = run_dir / "current_stats.json"
+            current_stats_path.write_text(
+                json.dumps(pipeline_stats), encoding="utf-8",
+            )
+            acceptance_env = dict(os.environ)
+            acceptance_env["CURRENT_RUN_STATS_PATH"] = str(current_stats_path)
             proc = subprocess.run(
                 [sys.executable, str(PROJECT_ROOT / "tests" / "acceptance_job_search_v2.py")],
                 capture_output=True, text=True, encoding="utf-8", errors="replace",
-                cwd=str(PROJECT_ROOT), timeout=180,
+                cwd=str(PROJECT_ROOT), timeout=180, env=acceptance_env,
             )
             acceptance_ok = proc.returncode == 0
             pipeline_stats["acceptance"] = "PASS" if acceptance_ok else "FAIL"

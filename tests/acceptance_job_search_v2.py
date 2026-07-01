@@ -28,6 +28,7 @@ Run before claiming the system works. 5 consecutive clean runs = shippable
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -196,6 +197,123 @@ def _check_row(tab: str, title: str, location: str, link: str) -> list[str]:
     return violations
 
 
+# ---------------------------------------------------------------------------
+# Layer 3: SILENT-DEGRADATION alarm (audit 2026-07-01).
+#
+# The prior two layers assert per-row correctness: every sheet row is relevant,
+# EN/FR, in-scope, linked. But they do NOT catch pipeline-quality collapse: the
+# case where every ROW passes filters, but the RANKER silently returned
+# placeholder-B for 96% of them because Gemini truncated its JSON response.
+# Result: 25 rows in Top Matches are effectively random.
+#
+# This layer reads the last pipeline_stats entry from run_log.jsonl and hard-
+# fails if any of these regressed:
+#   - ranker.placeholder / ranker.requested > 0.30 (LLM silently degraded)
+#   - ranker.chunk_failures non-empty
+#   - non-zero-sources < 3 (source diversity collapsed)
+#   - sheet_ok == False (write path broken)
+#   - top_matches_ok == False
+#   - summary_ok == False
+#
+# Exhibit: 2026-07-01 morning run had 96% placeholder ratio; the operator
+# would have received 25 random "top matches" if the layer hadn't existed.
+# ---------------------------------------------------------------------------
+RUN_LOG_PATH = Path(__file__).resolve().parents[1] / ".tmp" / "job_search_v2" / "run_log.jsonl"
+
+DEGRADATION_THRESHOLDS = {
+    "placeholder_ratio_max": 0.30,  # >30% placeholder = ranker silently failed
+    "non_zero_sources_min": 3,
+}
+
+
+def check_pipeline_degradation() -> list[str]:
+    """Read the CURRENT run's pipeline_stats and hard-fail on quality
+    regressions. Returns [] if healthy.
+
+    Two-source read (in priority order):
+      1. CURRENT_RUN_STATS_PATH env var -> JSON tempfile written by run.py
+         Stage 4c BEFORE the acceptance call. This is the authoritative
+         source when acceptance runs inside a live pipeline: it captures the
+         *current* run's stats, before the run_log.jsonl append at Stage 5.
+      2. Fallback to run_log.jsonl's last live entry — for standalone /
+         manual invocations of the acceptance test.
+
+    Dry-run entries in the log are skipped: we only guard runs that touch
+    the operator's inbox.
+    """
+    stats: dict | None = None
+
+    # Path 1: run.py passes a tempfile with the current run's stats.
+    current_path = os.environ.get("CURRENT_RUN_STATS_PATH", "").strip()
+    if current_path and Path(current_path).exists():
+        try:
+            stats = json.loads(Path(current_path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            return [f"CURRENT_RUN_STATS_PATH unreadable ({current_path}): {exc}"]
+
+    # Path 2: fall back to run_log.jsonl's last live entry.
+    if stats is None:
+        if not RUN_LOG_PATH.exists():
+            # Nothing to check yet — first-ever run, no prior state.
+            return []
+        lines = RUN_LOG_PATH.read_text(encoding="utf-8").strip().splitlines()
+        if not lines:
+            return []
+        for line in reversed(lines):
+            try:
+                candidate = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not candidate.get("dry_run", False) and candidate.get("mode") == "live":
+                stats = candidate
+                break
+        if stats is None:
+            return []
+
+    failures: list[str] = []
+    ranker = stats.get("ranker", {}) or {}
+    requested = int(ranker.get("requested", 0) or 0)
+    placeholder = int(ranker.get("placeholder", 0) or 0)
+    chunk_failures = ranker.get("chunk_failures", []) or []
+
+    if requested > 0:
+        ratio = placeholder / requested
+        if ratio > DEGRADATION_THRESHOLDS["placeholder_ratio_max"]:
+            failures.append(
+                f"RANKER DEGRADED: {placeholder}/{requested} = "
+                f"{ratio:.0%} placeholder (threshold "
+                f"{DEGRADATION_THRESHOLDS['placeholder_ratio_max']:.0%}). "
+                f"Top Matches is effectively random. "
+                f"chunk_failures={chunk_failures}"
+            )
+    if chunk_failures:
+        failures.append(
+            f"RANKER CHUNK FAILURES: {chunk_failures} — Gemini truncated or "
+            f"errored on {len(chunk_failures)} chunk(s); those jobs fell to "
+            f"heuristic-placeholder."
+        )
+
+    per_source = stats.get("per_source", {}) or {}
+    non_zero_sources = sum(1 for _, n in per_source.items() if int(n or 0) > 0)
+    if non_zero_sources < DEGRADATION_THRESHOLDS["non_zero_sources_min"]:
+        failures.append(
+            f"SOURCE COVERAGE DEGRADED: only {non_zero_sources} of "
+            f"{len(per_source)} sources returned data (threshold "
+            f"{DEGRADATION_THRESHOLDS['non_zero_sources_min']}). "
+            f"per_source={per_source}"
+        )
+
+    for key, label in (
+        ("sheet_ok", "sheet append"),
+        ("top_matches_ok", "Top Matches refresh"),
+        ("summary_ok", "Summary refresh"),
+    ):
+        if stats.get(key) is False:
+            failures.append(f"WRITE FAILED: {label} returned False in the run-log.")
+
+    return failures
+
+
 def main() -> int:
     # --- Layer 1: frozen regression corpus (no sheet needed; independent of
     # whether the pipeline agrees with itself). ---
@@ -279,11 +397,26 @@ def main() -> int:
         print("[FAIL] Top Matches is EMPTY — system surfaced zero strong jobs.")
         failed = True
 
+    # --- Layer 3: silent-degradation alarm (pipeline quality, not per-row). ---
+    print()
+    print("=" * 72)
+    print("SILENT-DEGRADATION ALARM (run_log.jsonl -> last LIVE run's pipeline_stats)")
+    print("=" * 72)
+    degradation_failures = check_pipeline_degradation()
+    if degradation_failures:
+        for f in degradation_failures:
+            print(f"  [FAIL] {f}")
+        print(f"\nRESULT: FAIL — pipeline silently degraded on the last LIVE run.")
+        print("The rows may look clean, but the ranker/coverage/write path is broken.")
+        failed = True
+    else:
+        print("  [OK] ranker placeholder ratio, chunk failures, source coverage, "
+              "and write paths all within thresholds.")
+
     if failed:
-        print("\nRESULT: FAIL — the sheet contains jobs that do not match the profile.")
-        print("This is what the operator would have caught by hand. Fix before claiming done.")
+        print("\nRESULT: FAIL — see failures above. Fix before claiming done.")
         return 1
-    print("\nRESULT: PASS — every row in every tab is relevant, EN/FR, in-scope, linked.")
+    print("\nRESULT: PASS — every row is clean AND the pipeline shipped ranked data.")
     print("(Per front-door-synthetic rule: needs 5 consecutive PASS runs to be called shippable.)")
     return 0
 
