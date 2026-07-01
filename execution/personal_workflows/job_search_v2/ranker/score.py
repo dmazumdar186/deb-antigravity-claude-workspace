@@ -357,7 +357,9 @@ def rank_jobs(
         response_mime_type="application/json",
         response_schema=batch_schema,
         temperature=0.2,
-        max_output_tokens=30000,
+        # 60k output budget — 2026-07-01 audit: 30k was truncating 40-80 job
+        # chunks mid-JSON. Gemini 2.5 Flash supports up to 65k output tokens.
+        max_output_tokens=60000,
     )
 
     fallback_model = "gemini-2.5-flash-lite"
@@ -377,16 +379,25 @@ def rank_jobs(
             "contract_type": j.contract_type.value,
             "remote_mode": j.remote_mode.value,
             "posted_at": j.posted_at.isoformat() if j.posted_at else "unknown",
-            "description_snippet": j.description_snippet[:400],
+            # 220 chars per description — 2026-07-01 audit: 400 chars × 40
+            # jobs pushed output tokens over budget. 220 keeps the ranker
+            # decisive (contains skill/seniority tells) without runaway
+            # tokens in the request.
+            "description_snippet": j.description_snippet[:220],
         })
 
-    # CHUNKING — 445-job single calls had been timing out ("Server disconnected
-    # without sending a response") because the model takes ~30-60s to produce a
-    # 64k-token output and the default httpx timeout fires. Split into chunks
-    # of ~80 jobs each; sleep 7s between (10 RPM free-tier budget). Each chunk
-    # gets its own 3-retry + fallback-model loop, so one chunk's failure only
-    # drops ~80 jobs to heuristic, not all 445.
-    CHUNK_SIZE = 80
+    # CHUNKING — Audit 2026-07-01: 80-job chunks were blowing the 30k-token
+    # output budget and Gemini truncated responses mid-JSON. Today's run:
+    # 160/166 jobs (96%) fell to heuristic-placeholder because chunk 1 + 2
+    # returned `Unterminated string at char 3325` / `Expecting value at char
+    # 3496` — both are truncation signatures, not network errors, so the
+    # retry loop (which only re-fires on RETRY_MARKERS) never engaged.
+    #
+    # Fixes: (a) halve CHUNK_SIZE to 40, (b) trim per-job description_snippet
+    # from 400 to 220 chars in the payload, (c) raise max_output_tokens from
+    # 30k to 60k as a safety margin. Together: worst-case chunk output
+    # ~40 * 300 tok/response ≈ 12k tokens, well under 60k budget.
+    CHUNK_SIZE = 40
     SLEEP_BETWEEN_CHUNKS = 7.0
     # Retriable error markers (added: "disconnected" / "timeout" / "INTERNAL"
     # to catch the mid-batch socket close + the Gemini-side 500s.).

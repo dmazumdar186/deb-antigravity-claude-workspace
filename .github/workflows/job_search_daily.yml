@@ -25,8 +25,16 @@ on:
     # 1h early; this is unavoidable without an external scheduler. The
     # email_lock floor (6h, run.py default) prevents both schedules from
     # double-sending on overlap days.
+    # Belt-and-suspenders: TWO scheduled fires per day, ~40min apart. GitHub
+    # Actions drops scheduled workflows under platform load (2026-06-30 dropped
+    # entirely; 2026-06-29 delayed 4h41m). The concurrency group below
+    # (cancel-in-progress: false) means the second fire is queued if the first
+    # is still running, or fires cleanly if the first was dropped. External CF
+    # Cron trigger is the real fix; this is the in-repo mitigation.
     - cron: "13 7 * 4-10 *"
+    - cron: "53 7 * 4-10 *"
     - cron: "13 8 * 1-3,11-12 *"
+    - cron: "53 8 * 1-3,11-12 *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -121,7 +129,14 @@ jobs:
           fi
           # WTTJ + APEC sources are present but live ingest is gated (consent-blocked); they
           # return [] cleanly. Pipeline still ships with France Travail + LinkedIn-via-Gmail.
-          python execution/personal_workflows/job_search_v2/run.py --mode live $FLAGS
+          #
+          # --no-sonnet-rerank: the Anthropic console balance is €0. The rerank code
+          # path still calls the API (something in GH secrets is providing a key),
+          # gets "credit balance too low", and burns a slot with `failed:25` in every
+          # run_log. Explicit --no-sonnet-rerank makes the run-log show a clean
+          # `skipped_reason: "sonnet rerank disabled (flag or config)"`. Remove this
+          # flag the moment the console gets topped up.
+          python execution/personal_workflows/job_search_v2/run.py --mode live --no-sonnet-rerank $FLAGS
 
       - name: Run front-door synthetic
         # Per ~/.claude/rules/front-door-synthetic.md, v2 is PROBATIONARY until this

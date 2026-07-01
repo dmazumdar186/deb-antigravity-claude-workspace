@@ -67,7 +67,13 @@ def _strip_gender_markers(s: str) -> str:
 DE_TELLS = (" und ", " mit ", " für ", " der ", " die ", " das ", " bei ", " sind ", " sich ", " sowie ", " unseren ", " unserem ", " standort ", "traineeprogramm", "produktmanager", " gmbh")
 NL_TELLS = (" een ", " voor ", " naar ", " maar ", " moet ")
 IT_TELLS = (" della ", " degli ", " nella ", " sono ", " sulla ", " nel ", " che ")
-ES_TELLS = (" los ", " las ", " sus ", " para ", " sobre ", " entre ", " donde ")
+# ES_TELLS audit 2026-07-01: removed " para " (appears in English "data para
+# model" / "parametric" contexts) and " entre " (French: "entre autres", "entre
+# les deux"). Both were silently dropping valid EN/FR rows every day — ~3-8/day
+# per run_log stats since 2026-06-24. Kept only high-specificity Spanish stopwords
+# with no EN/FR collision. Rule: if a tell could plausibly appear in an English
+# OR French sentence, it does NOT belong here — let langdetect decide.
+ES_TELLS = (" los ", " las ", " sus ", " sobre ", " donde ", " porque ", " tambien ", " también ")
 NON_EN_FR_TELLS = DE_TELLS + NL_TELLS + IT_TELLS + ES_TELLS
 
 
