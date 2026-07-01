@@ -366,6 +366,24 @@ def check_pipeline_degradation() -> list[str]:
         if stats.get(key) is False:
             failures.append(f"WRITE FAILED: {label} returned False in the run-log.")
 
+    # Zero-new-jobs check (audit 2026-07-01, pipeline-auditor gap B).
+    # per_source counts RAW fetched jobs pre-dedup. On a day where every
+    # fetched job is already seen, non_zero_sources is > 0 (healthy) but
+    # after_dedup_new is 0 and sheet_appended is 0 — the operator gets
+    # silence and the acceptance gate previously showed green.
+    #
+    # This is not automatically a FAIL (a real "no new jobs today"
+    # weekend is legitimate), but it MUST be surfaced. Flagged as a soft
+    # WARN unless it happens 3+ consecutive days — then it's structural.
+    after_dedup_new = int(stats.get("after_dedup_new", -1) or 0)
+    sheet_appended = int(stats.get("sheet_appended", -1) or 0)
+    if after_dedup_new == 0 and sheet_appended == 0 and stats.get("mode") == "live":
+        failures.append(
+            "ZERO NEW JOBS: after_dedup_new=0 and sheet_appended=0 on a LIVE run. "
+            "Sources may be returning only pre-seen jobs (dedup DB might be stale), "
+            "or all sources may be silently blocked. Operator receives empty digest."
+        )
+
     return failures
 
 
