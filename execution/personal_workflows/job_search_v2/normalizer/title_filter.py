@@ -118,9 +118,10 @@ RELEVANCE_ANCHORS = [
     "ai product", "ai pm", "genai product", "llm product", "ml product",
     "machine learning product", "ai/ml product",
     "product manager ai", "product manager - ai", "product manager (ai",
-    # --- Track B: AI automation / builder / consultant ---
+    # --- Track B: AI automation / builder / consultant / advisor ---
     "ai automation", "automatisation ia", "ai engineer", "ai consultant",
     "consultant ia", "consultant ai", "ai developer", "ai builder",
+    "ai advisor", "ai advisory", "fractional ai", "fractional cpo",
     "ai architect", "ai solutions", "ai specialist", "ai lead", "head of ai",
     "machine learning engineer", "ml engineer", "mlops", "llm engineer",
     "generative ai", "prompt engineer", "ingénieur ia", "ingenieur ia",

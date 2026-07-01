@@ -123,6 +123,14 @@ MUST_KEEP = [
     "AI Automation Engineer",
     "AI Consultant",
     "Product Manager / Project Manager",
+    # 2026-07-01 data-flow auditor: these Track B titles were being silently
+    # dropped at title_filter (not in RELEVANCE_ANCHORS, not in profile
+    # targeted_titles). Added to profile.json + RELEVANCE_ANCHORS + this
+    # corpus so a future regression trips both the profile-sync and this
+    # frozen-corpus check.
+    "AI Advisor",
+    "Fractional AI Advisor",
+    "AI Advisory",
     # The langdetect false-positives caught 2026-06-24 — must stay kept.
     "Staff AI Engineer - M/W",
     "Senior Product Manager - Engagement (all genders)",

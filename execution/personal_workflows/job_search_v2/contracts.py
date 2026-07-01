@@ -92,6 +92,11 @@ class NormalizedJob(BaseModel):
     description_snippet: str
     posted_at: datetime | None
     contract_type: ContractType
+    # 2026-07-01 data-flow auditor: preserve the raw label so downstream
+    # filters can check it directly instead of pattern-matching on title.
+    # Defaults to "" so existing serialized JSONL still parses. Populated
+    # from SourceJob.contract_type_raw in normalize.py.
+    contract_type_raw: str = Field(default="", description="Original contract label from source, pre-enum. Empty if source didn't expose it.")
     remote_mode: RemoteMode
     fetched_at: datetime
     content_hash: str = Field(..., description="SHA256(title|company|canonical_url) — exact-match dedup key.")

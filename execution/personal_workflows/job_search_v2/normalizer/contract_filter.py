@@ -104,17 +104,24 @@ def classify_contract(job: NormalizedJob) -> tuple[bool, str]:
     # blast radius. Terms like "fractional advisory" or "freelance mission"
     # in the title or JD reliably signal a Track B contract even when the
     # enum resolves to UNKNOWN.
+    # 2026-07-01 data-flow auditor: prefer the RAW contract label if the
+    # normalizer preserved it (NormalizedJob.contract_type_raw). This is
+    # the authoritative field — direct match against profile-declared
+    # accepted labels. Only fall back to title-word matching if raw is
+    # empty (older serialized data or a source that didn't expose contract).
     profile_ok = _profile_accepted_contract_labels()
     if profile_ok:
-        # 2026-07-01 pipeline-auditor fix: description-level match on English
-        # words like "advisory" ("advisory board") or "contract" ("we offer
-        # a contract") was rescuing unrelated FR-source UNKNOWN jobs — a
-        # Senior Data Engineer JD mentioning "our technical advisory board"
-        # would silently pass through as if it were a profile-declared
-        # contract match. Restricted rescue to TITLE-ONLY matching, which
-        # is where contract labels legitimately appear ("Fractional AI
-        # Advisor", "Advisory Role — Product"). The description search is
-        # too noisy for common English words.
+        raw = (getattr(job, "contract_type_raw", "") or "").strip().lower()
+        if raw:
+            if raw in profile_ok:
+                return True, f"accept:profile_raw:{raw[:30]}"
+            for label in profile_ok:
+                if label and (label in raw or raw in label):
+                    return True, f"accept:profile_raw_partial:{label[:30]}"
+
+        # Fallback: title-only word-boundary match. Description-level match
+        # on English words like "advisory" was rescuing unrelated FR-source
+        # UNKNOWN jobs — restricted to TITLE-ONLY to avoid the noise.
         title_lower = job.title.lower()
         title_padded = f" {title_lower} "
         for label in profile_ok:

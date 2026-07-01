@@ -110,6 +110,11 @@ def to_normalized(src: SourceJob) -> NormalizedJob:
         description_snippet=src.description_snippet,
         posted_at=src.posted_at,
         contract_type=_normalize_contract(src.contract_type_raw),
+        # 2026-07-01 data-flow auditor fix: preserve the raw label so
+        # downstream filters can check it directly instead of pattern-
+        # matching on title. Contract_filter's profile-label rescue now
+        # has a direct path when title doesn't carry the label.
+        contract_type_raw=src.contract_type_raw,
         remote_mode=_detect_remote(src.location_raw, src.description_snippet),
         fetched_at=src.fetched_at,
         content_hash=compute_content_hash(src.title, src.company, canonical),

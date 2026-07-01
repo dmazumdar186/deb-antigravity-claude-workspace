@@ -85,8 +85,15 @@ def build_digest(
     top = sorted(jobs, key=_key)[:5]
     top_lines = []
     for i, j in enumerate(top, start=1):
+        rj = ranked_by_hash.get(j.content_hash) if ranked_by_hash else None
+        # 2026-07-01 data-flow auditor: contract type and per-pick tier
+        # were absent from the email top-5. Operator couldn't tell CDI
+        # from Freelance from Unknown without opening the sheet.
+        tier_label = f"[{rj.tier.value}] " if rj else ""
+        contract_label = j.contract_type.value if j.contract_type else ""
+        contract_part = f" [{contract_label}]" if contract_label and contract_label != "Unknown" else ""
         top_lines.append(
-            f"  {i}. {j.title} — {j.company} — {j.location}\n"
+            f"  {i}. {tier_label}{j.title} — {j.company}{contract_part} — {j.location}\n"
             f"     {j.url}"
         )
     top_block = "\n".join(top_lines) or "  (no jobs ranked today)"
