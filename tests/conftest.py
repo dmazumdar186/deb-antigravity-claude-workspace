@@ -16,6 +16,11 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
+# 2026-07-01: exclude legacy tests from collection. tests/_archived_v1/*
+# import from execution/personal_workflows/job_search/ (v1, deleted when v2
+# replaced it in 2026-06). Kept in-tree as historical audit only.
+collect_ignore_glob = ["_archived_v1/*"]
+
 
 _YT_BLOCK_MARKERS = (
     "Sign in to confirm",

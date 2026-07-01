@@ -26,6 +26,7 @@ if str(_PKG_DIR.parent.parent.parent) not in sys.path:
     sys.path.insert(0, str(_PKG_DIR.parent.parent.parent))
 
 from execution.personal_workflows.job_search_v2.contracts import NormalizedJob  # noqa: E402
+from execution.personal_workflows.job_search_v2.profile import loader as profile_loader  # noqa: E402
 
 logger = logging.getLogger("normalizer.title_filter")
 
@@ -128,8 +129,37 @@ RELEVANCE_ANCHORS = [
 ]
 
 
+def _profile_targeted_title_substrings() -> list[str]:
+    """profile.json Track A + B targeted_titles, unioned with RELEVANCE_ANCHORS.
+
+    Additive: hardcoded RELEVANCE_ANCHORS stays as the fallback layer; the
+    profile-derived list is unioned on top. Any title in profile.json is
+    automatically accepted, closing the sync gap the 2026-07-01 pipeline-
+    auditor flagged (profile said "Fractional AI Builder", filter didn't).
+    """
+    return profile_loader.get_targeted_title_substrings()
+
+
+def _profile_hard_reject_substrings() -> list[str]:
+    """profile.hard_filters.skip_title_substrings + Track A/B anti_titles.
+
+    These override the relevance allowlist — a title that matches ANY of
+    these gets rejected regardless of whether it also matches a targeted
+    title. Prevents "Junior AI Product Manager" from being rescued by the
+    "AI Product Manager" anchor when the operator's profile says junior
+    is hard-reject.
+    """
+    return profile_loader.get_hard_filter_titles() + profile_loader.get_anti_title_substrings()
+
+
 def _has_relevance_anchor(t: str) -> bool:
-    return any(a in t for a in RELEVANCE_ANCHORS)
+    # Union: hardcoded anchors + profile-declared targeted_titles.
+    if any(a in t for a in RELEVANCE_ANCHORS):
+        return True
+    for anchor in _profile_targeted_title_substrings():
+        if anchor in t:
+            return True
+    return False
 
 
 def classify_title(title: str) -> tuple[bool, str]:
@@ -158,6 +188,27 @@ def classify_title(title: str) -> tuple[bool, str]:
             continue
         if any(s in t for s in substrs):
             return False, f"reject:{reason}"
+
+    # Gate 1b: profile-driven hard rejects. Any substring the operator
+    # explicitly listed in hard_filters.skip_title_substrings OR any track's
+    # anti_titles wins over the relevance allowlist.
+    #
+    # Word-boundary match: short profile terms like "intern" and "junior"
+    # otherwise trip on "International" / "junior-friendly" — the same class
+    # the built-in _INTERN_RE guards against for the hardcoded intern check.
+    # Multi-word phrases ("chef de projet", "graduate program") are matched
+    # as literal substrings since they're already distinctive.
+    for hard in _profile_hard_reject_substrings():
+        if not hard:
+            continue
+        if " " in hard:
+            # Multi-word phrase — literal substring match is safe.
+            if hard in t:
+                return False, f"reject:profile_hard:{hard[:30]}"
+        else:
+            # Single word — require word boundary. Escape regex special chars.
+            if re.search(rf"\b{re.escape(hard)}\b", t):
+                return False, f"reject:profile_hard:{hard[:30]}"
 
     has_anchor = _has_relevance_anchor(t)
 

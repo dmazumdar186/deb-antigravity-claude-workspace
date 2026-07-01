@@ -564,4 +564,10 @@ for fn in [t_monkey_missing_tenant_exits_cleanly, t_monkey_missing_archetype_exi
 # Final report
 # ─────────────────────────────────────────────────────────────────────────
 
-sys.exit(R.report())
+# 2026-07-01: guarded behind __name__ == "__main__" because a bare
+# sys.exit() at module-load-time crashed pytest's collector on the whole
+# tests/ tree (INTERNALERROR: SystemExit: 0). This is a standalone script,
+# not a pytest module; running it directly still exits with the R.report()
+# code as before.
+if __name__ == "__main__":
+    sys.exit(R.report())

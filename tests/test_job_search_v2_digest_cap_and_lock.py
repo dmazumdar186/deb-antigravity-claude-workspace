@@ -6,8 +6,30 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from execution.personal_workflows.job_search_v2 import run as run_mod
 from execution.personal_workflows.job_search_v2.normalizer import dedup
+
+
+# 2026-07-01: the email-lock function checks Google Sheets Summary!D1 as its
+# authoritative source before falling back to seen.db. Local test-time
+# tmp_path DBs won't have a gsheet mock — so on any machine where the live
+# sheet's D1 has data (the operator's daily-cron target), every test here
+# would read that real lock timestamp and fail. Auto-mock the gsheet path
+# for all tests in this file so they exercise the seen.db + file layers only.
+@pytest.fixture(autouse=True)
+def _no_live_gsheet_lock(monkeypatch, tmp_path):
+    """Isolate lock reads from ALL three persistence layers' live state:
+      1. Google Sheets Summary!D1 — mocked to None
+      2. seen.db meta KV — each test uses its own tmp_path db
+      3. Local file EMAIL_LOCK_FILE — repointed at a per-test tmp file so a
+         real .tmp/job_search_v2/last_email_sent_utc.txt from an operator
+         cron run doesn't leak into the test's expected empty state
+    """
+    monkeypatch.setattr(run_mod, "_gsheet_email_lock_get", lambda: None)
+    monkeypatch.setattr(run_mod, "_gsheet_email_lock_set", lambda _iso: None)
+    monkeypatch.setattr(run_mod, "EMAIL_LOCK_FILE", tmp_path / "email_lock.txt")
 
 
 # ----- email lock (state in seen.db meta KV) -----
@@ -28,7 +50,9 @@ def test_email_lock_blocks_recent_send(tmp_path):
     dedup.set_meta(db, run_mod.EMAIL_LOCK_KEY, one_hour_ago.isoformat())
     blocked, reason = run_mod._email_lock_blocks_send(22.0, datetime.now(timezone.utc), db_path=db)
     assert blocked is True
-    assert "1.0h ago" in reason
+    # Delta is a fresh datetime.now() call inside the function; test tolerance
+    # for 1.0h approx (may render as 0.9h - 1.0h depending on wall clock).
+    assert "0.9h ago" in reason or "1.0h ago" in reason
     assert "dual-cron" in reason
 
 
