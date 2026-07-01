@@ -834,6 +834,72 @@ def _rule_acceptance_gate_missing() -> list[dict]:
     return findings
 
 
+def _rule_audit_stack_framing_without_evidence() -> list[dict]:
+    """Rule (2026-07-01): the last 5 commit messages on the current branch
+    that use 'done / shipped / ready / wrapped / 100% / good to go / clean
+    forever' framing MUST reference at least 2 of the 6 mandatory audit-stack
+    tools (per ~/.claude/rules/mandatory-audit-stack.md).
+
+    Advisory (warn severity). The rule's own text acknowledges enforcement is
+    prototype-level; this is the first mechanical layer.
+
+    Audit-stack tools whose names satisfy the reference: 'front-door',
+    'customer-pov' / 'acceptance', 'anneal', 'panel-pass' / 'lens', 'test suite'
+    / 'pytest', 'pipeline-auditor' / 'adversarial'.
+    """
+    findings: list[dict] = []
+    forbidden = re.compile(
+        r"\b(done|shipped|ready|wrapped|100%|good to go|all set|clean forever|verified)\b",
+        re.IGNORECASE,
+    )
+    audit_refs = re.compile(
+        r"\b(front[-\s]?door|customer[-\s]?pov|acceptance|anneal|panel[-\s]?pass|"
+        r"lens|pytest|test suite|pipeline[-\s]?auditor|adversarial|code[-\s]?reviewer)\b",
+        re.IGNORECASE,
+    )
+
+    try:
+        proc = subprocess.run(
+            ["git", "log", "-5", "--format=%H%n%B%n---END---"],
+            cwd=str(WORKSPACE_ROOT), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return findings
+    if proc.returncode != 0:
+        return findings
+
+    commits = [c.strip() for c in proc.stdout.split("---END---") if c.strip()]
+    for commit in commits:
+        lines = commit.splitlines()
+        if not lines:
+            continue
+        sha = lines[0][:8]
+        body = "\n".join(lines[1:])
+        if not forbidden.search(body):
+            continue
+        # Framing found — require at least 2 audit refs.
+        matches = audit_refs.findall(body)
+        if len(set(m.lower() for m in matches)) < 2:
+            findings.append(
+                {
+                    "severity": "warn",
+                    "file": f"git commit {sha}",
+                    "line": 0,
+                    "rule_id": "audit-stack-framing-without-evidence",
+                    "message": (
+                        f"Commit {sha} uses 'done/shipped/ready/wrapped/verified' "
+                        f"framing but references < 2 of the 6 mandatory audit-stack "
+                        f"tools. Per ~/.claude/rules/mandatory-audit-stack.md, "
+                        f"'done' claims must be paired with evidence that at least "
+                        f"the front-door synthetic + one adversarial audit fired."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+    return findings
+
+
 _NATIVE_RULES: dict[str, callable] = {
     "exit-criteria-missing": _rule_exit_criteria_missing,
     "subprocess-encoding": _rule_subprocess_encoding,
@@ -843,6 +909,7 @@ _NATIVE_RULES: dict[str, callable] = {
     "personal-mode-with-pii": _rule_personal_mode_with_pii,
     "ps1-non-ascii": _rule_ps1_non_ascii,
     "acceptance-gate-missing": _rule_acceptance_gate_missing,
+    "audit-stack-framing-without-evidence": _rule_audit_stack_framing_without_evidence,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())
