@@ -39,6 +39,12 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
     RankedJob,
 )
 
+
+class EmptyGeminiResponseError(ValueError):
+    """Raised when Gemini returns 200 OK with an empty body. Retriable via
+    RETRY_MARKERS. Prior to 2026-07-01 pipeline-auditor exhibit, this class
+    silently fell to heuristic with no chunk_failures record."""
+
 load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("ranker.score")
 
@@ -360,18 +366,26 @@ def rank_jobs(
         "UNAVAILABLE", "RESOURCE_EXHAUSTED", "INTERNAL", "DEADLINE_EXCEEDED",
         "disconnected", "timeout", "Timeout",
         "JSONDecodeError", "Unterminated", "Expecting value",
+        "EmptyGeminiResponseError",
     )
 
     def _call_chunk(model_name: str, payload_items: list[dict]):
         """Call Gemini AND parse the response. Parsing lives inside so a
         truncated-response ValueError propagates back through the retry
         loop rather than falling out silently — the 2026-07-01 audit
-        exposed that a 200-OK-but-truncated JSON never re-entered retry."""
+        exposed that a 200-OK-but-truncated JSON never re-entered retry.
+
+        Additionally (2026-07-01 pipeline-auditor): also detect the empty-
+        response 200-OK class. If resp.text is empty, `json.loads("" or "{}")`
+        returns `{}`, no exception, `data.get("results", [])` returns []
+        and the chunk silently degrades. Raise EmptyGeminiResponseError
+        instead so retry engages and chunk_failures records it.
+        """
         payload = json.dumps({"jobs": payload_items}, ensure_ascii=False)
         resp = client.models.generate_content(model=model_name, contents=payload, config=cfg)
-        # Force-parse here so any JSONDecodeError is retriable. Return
-        # (resp, parsed_data) tuple so callers can access usage / etc.
-        data = json.loads(resp.text or "{}")
+        if not (resp.text or "").strip():
+            raise EmptyGeminiResponseError("Gemini returned 200 OK with empty body")
+        data = json.loads(resp.text)
         return resp, data
 
     scored_ids: set[str] = set()

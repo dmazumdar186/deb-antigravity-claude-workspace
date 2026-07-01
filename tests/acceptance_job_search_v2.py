@@ -373,13 +373,23 @@ def check_pipeline_degradation() -> list[str]:
             f"per_source={per_source}"
         )
 
+    # 2026-07-01 pipeline-auditor fix: summary_ok is set at Stage 4e (after
+    # email + after acceptance gate runs) in run.py, so via CURRENT_RUN_STATS_PATH
+    # this key is ALWAYS None at gate time — check was dead code. Only
+    # sheet_ok and top_matches_ok are computed BEFORE the gate. Summary tab
+    # write failures surface on the NEXT day's run when Layer 3 falls back to
+    # run_log.jsonl (the summary_ok field is present in the final run_log line).
     for key, label in (
         ("sheet_ok", "sheet append"),
         ("top_matches_ok", "Top Matches refresh"),
-        ("summary_ok", "Summary refresh"),
     ):
         if stats.get(key) is False:
             failures.append(f"WRITE FAILED: {label} returned False in the run-log.")
+    # summary_ok check ONLY meaningful when reading a completed run_log entry
+    # (via the fallback path). If stats came from CURRENT_RUN_STATS_PATH, the
+    # field is None (not False) at this point and the check silently passes.
+    if stats.get("summary_ok") is False:
+        failures.append("WRITE FAILED: Summary refresh returned False in the run-log.")
 
     # Zero-new-jobs check (audit 2026-07-01, pipeline-auditor gap B).
     # per_source counts RAW fetched jobs pre-dedup. On a day where every
@@ -387,17 +397,40 @@ def check_pipeline_degradation() -> list[str]:
     # after_dedup_new is 0 and sheet_appended is 0 — the operator gets
     # silence and the acceptance gate previously showed green.
     #
-    # This is not automatically a FAIL (a real "no new jobs today"
-    # weekend is legitimate), but it MUST be surfaced. Flagged as a soft
-    # WARN unless it happens 3+ consecutive days — then it's structural.
+    # A single "no new jobs" day is legitimate (weekend, low posting day).
+    # Only fail hard when it recurs 3+ consecutive days — that's a structural
+    # signal (all sources silently blocked, dedup DB stale, etc.). Consecutive
+    # count tracked in .tmp/job_search_v2/zero_new_streak.txt (survives runs).
     after_dedup_new = int(stats.get("after_dedup_new", -1) or 0)
     sheet_appended = int(stats.get("sheet_appended", -1) or 0)
-    if after_dedup_new == 0 and sheet_appended == 0 and stats.get("mode") == "live":
-        failures.append(
-            "ZERO NEW JOBS: after_dedup_new=0 and sheet_appended=0 on a LIVE run. "
-            "Sources may be returning only pre-seen jobs (dedup DB might be stale), "
-            "or all sources may be silently blocked. Operator receives empty digest."
-        )
+    if stats.get("mode") == "live":
+        streak_path = Path(RUN_LOG_PATH.parent) / "zero_new_streak.txt"
+        prior_streak = 0
+        try:
+            if streak_path.exists():
+                prior_streak = int(streak_path.read_text(encoding="utf-8").strip() or "0")
+        except (OSError, ValueError):
+            prior_streak = 0
+        is_zero = (after_dedup_new == 0 and sheet_appended == 0)
+        new_streak = prior_streak + 1 if is_zero else 0
+        try:
+            streak_path.parent.mkdir(parents=True, exist_ok=True)
+            streak_path.write_text(str(new_streak), encoding="utf-8")
+        except OSError:
+            pass  # best-effort — streak state is advisory
+        ZERO_NEW_HARD_FAIL_AFTER = 3
+        if is_zero and new_streak >= ZERO_NEW_HARD_FAIL_AFTER:
+            failures.append(
+                f"ZERO NEW JOBS ({new_streak} consecutive days): after_dedup_new=0 "
+                f"and sheet_appended=0. Beyond the {ZERO_NEW_HARD_FAIL_AFTER}-day "
+                f"soft-fail floor — this is structural (sources silently blocked "
+                f"OR dedup DB stale). Operator inbox has been silent for {new_streak} days."
+            )
+        elif is_zero:
+            # Soft-warn: informational log line only, not a failure.
+            print(f"  [WARN] ZERO NEW JOBS today (streak={new_streak}/{ZERO_NEW_HARD_FAIL_AFTER}). "
+                  f"Legitimate on weekends / low-posting days; escalates to FAIL at day "
+                  f"{ZERO_NEW_HARD_FAIL_AFTER}.")
 
     return failures
 

@@ -106,18 +106,22 @@ def classify_contract(job: NormalizedJob) -> tuple[bool, str]:
     # enum resolves to UNKNOWN.
     profile_ok = _profile_accepted_contract_labels()
     if profile_ok:
-        haystack = f"{job.title} {job.description_snippet[:400]}".lower()
+        # 2026-07-01 pipeline-auditor fix: description-level match on English
+        # words like "advisory" ("advisory board") or "contract" ("we offer
+        # a contract") was rescuing unrelated FR-source UNKNOWN jobs — a
+        # Senior Data Engineer JD mentioning "our technical advisory board"
+        # would silently pass through as if it were a profile-declared
+        # contract match. Restricted rescue to TITLE-ONLY matching, which
+        # is where contract labels legitimately appear ("Fractional AI
+        # Advisor", "Advisory Role — Product"). The description search is
+        # too noisy for common English words.
         title_lower = job.title.lower()
-        # Require the label to appear as a whole word / phrase — NOT a raw
-        # substring. Both branches use whitespace-padded containment so a
-        # profile label "mission" cannot match "Omission Specialist" via a
-        # bare substring hit. Multi-word phrases still match (their inner
-        # whitespace is preserved on both sides of the padded check).
+        title_padded = f" {title_lower} "
         for label in profile_ok:
             if not label or len(label) < 4:
                 continue
             padded = f" {label} "
-            if padded in f" {haystack} " or padded in f" {title_lower} ":
+            if padded in title_padded:
                 return True, f"accept:profile_label:{label[:30]}"
 
     # UNKNOWN with no profile-label rescue.
