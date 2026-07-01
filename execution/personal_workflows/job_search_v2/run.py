@@ -696,6 +696,13 @@ def main() -> int:
             # Surface the acceptance verdict + any violation lines into the log.
             tail = "\n".join((proc.stdout or "").strip().splitlines()[-15:])
             logger.info("run: ACCEPTANCE %s\n%s", pipeline_stats["acceptance"], tail)
+            # On failure, ALSO surface stderr — the last 15 stdout lines
+            # may be empty if the acceptance script crashed on import
+            # (e.g. gspread missing in a bare CI env). Without this, the
+            # ACCEPTANCE FAIL line above would have no root-cause signal.
+            if not acceptance_ok and (proc.stderr or "").strip():
+                err_tail = "\n".join((proc.stderr or "").strip().splitlines()[-15:])
+                logger.error("run: acceptance stderr tail:\n%s", err_tail)
         except Exception as exc:  # noqa: BLE001 — acceptance harness failure is itself a FAIL
             acceptance_ok = False
             pipeline_stats["acceptance"] = f"FAIL (harness error: {exc})"

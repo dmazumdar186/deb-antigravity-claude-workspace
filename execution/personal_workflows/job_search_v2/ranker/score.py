@@ -25,7 +25,6 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv, find_dotenv
@@ -115,51 +114,13 @@ def _format_reasoning(track: str, dims: dict, matched: list[str],
            f"missing: {missing_str} | {llm_reason}")
     return out[:800]
 
-# Sheets fallback cell for GEMINI_API_KEY. Lives in Summary!F1 — row 1 is
-# excluded from the `A2:F{n}` batch_clear in refresh_summary(), so this cell
-# survives every run. This is a stopgap until the workflow YAML
-# (which would pass secrets.GEMINI_API_KEY through to the cron env) can land
-# at origin — the PAT lacks `workflow` scope, so direct push is rejected.
-GEMINI_KEY_SHEET_CELL = "F1"
-GEMINI_KEY_SHEET_TAB = "Summary"
-
-
-def _gsheet_gemini_key_get() -> str | None:
-    """Read the GEMINI_API_KEY fallback from Summary!F1. Returns None on any
-    failure (creds missing / sheet unreachable / cell empty)."""
-    try:
-        from execution.personal_workflows.job_search_v2.notifier.sheet import _open_sheet
-    except ImportError:
-        return None
-    try:
-        sp, err = _open_sheet(None, None)
-        if sp is None:
-            return None
-        ws = sp.worksheet(GEMINI_KEY_SHEET_TAB)
-        val = ws.acell(GEMINI_KEY_SHEET_CELL).value
-        return val.strip() if val else None
-    except Exception as exc:  # noqa: BLE001 — best-effort read; falls back to heuristic
-        logger.warning("ranker: Sheets fallback read failed: %s", exc)
-        return None
-
-
-def _gsheet_gemini_key_set(key: str) -> bool:
-    """Write a new GEMINI_API_KEY into Summary!F1. Returns True on success."""
-    try:
-        from execution.personal_workflows.job_search_v2.notifier.sheet import _open_sheet
-    except ImportError:
-        return False
-    try:
-        sp, err = _open_sheet(None, None)
-        if sp is None:
-            logger.error("ranker: Sheets fallback write — could not open sheet: %s", err)
-            return False
-        ws = sp.worksheet(GEMINI_KEY_SHEET_TAB)
-        ws.update(range_name=GEMINI_KEY_SHEET_CELL, values=[[key]], value_input_option="USER_ENTERED")
-        return True
-    except Exception as exc:  # noqa: BLE001 — log and return False
-        logger.error("ranker: Sheets fallback write failed: %s", exc)
-        return False
+# REMOVED 2026-07-01 per code-reviewer audit: the previous _gsheet_gemini_key_get /
+# _gsheet_gemini_key_set functions stored GEMINI_API_KEY as plaintext in the
+# operator's Google Sheet (Summary!F1) as a "stopgap" until the workflow YAML
+# could pass secrets.GEMINI_API_KEY through — a stopgap that leaks credentials
+# to any reader of the sheet. The workflow YAML now passes GEMINI_API_KEY in
+# every run (job_search_daily.yml line 121). Fail hard on missing key rather
+# than silently fall back to a spreadsheet-stored copy.
 
 
 def _load_rubric() -> str:
@@ -242,17 +203,6 @@ def rank_jobs(
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
-        # Sheets fallback — the workflow YAML at origin doesn't plumb
-        # GEMINI_API_KEY through (the YAML fix is local-only pending workflow
-        # PAT scope). As a stopgap, the key is written to a private cell in
-        # the Summary tab from a local environment that DOES have it; the
-        # cron-side script reads it from there. Removable as soon as the
-        # YAML lands.
-        api_key = _gsheet_gemini_key_get() or ""
-        if api_key:
-            logger.info("ranker: GEMINI_API_KEY missing from env — using Sheets fallback (Summary!F1)")
-
-    if not api_key:
         # Diagnostic: tell the operator exactly where we looked so they can stop
         # debugging "I have it in .env, why is it missing?" — the prior message
         # said "no GEMINI_API_KEY in .env" which was misleading because we actually
@@ -260,9 +210,9 @@ def rank_jobs(
         # the workflow YAML doesn't pass the secret through to the run step's env.
         dotenv_path = find_dotenv(usecwd=False)
         if dotenv_path:
-            where = f"env var not set; .env was located at {dotenv_path} but did not provide it; Sheets fallback also empty"
+            where = f"env var not set; .env was located at {dotenv_path} but did not provide it"
         else:
-            where = "env var not set; no .env file found walking up from this script; Sheets fallback also empty"
+            where = "env var not set; no .env file found walking up from this script"
         logger.warning("ranker: GEMINI_API_KEY missing — %s. Falling back to heuristic.", where)
         for j in jobs:
             out[j.content_hash] = _placeholder_ranked(j, f"GEMINI_API_KEY missing ({where})")

@@ -14,12 +14,35 @@
 // GITHUB_PAT is a secret injected via `wrangler secret put GITHUB_PAT`. Must
 // have `workflow` scope. Rotate anytime with the same command.
 
+// Fires the actual workflow_dispatch. Extracted so both scheduled and
+// manual-trigger paths can share it without inheriting each other's guards.
+async function dispatchWorkflow(env) {
+  const url = `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/${env.WORKFLOW_FILE}/dispatches`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_PAT}`,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "job-search-cron-worker",
+    },
+    body: JSON.stringify({ ref: env.REF }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    console.error(`dispatch failed: ${resp.status} ${text}`);
+    throw new Error(`dispatch failed: ${resp.status}`);
+  }
+  return resp.status;
+}
+
 export default {
   async scheduled(event, env, ctx) {
     // DST split: only fire the cron that matches the current TZ offset.
     // Paris is CEST (UTC+2) Apr-Oct → primary cron at 07:15 UTC.
     // Paris is CET  (UTC+1) Nov-Mar → primary cron at 08:15 UTC.
-    // GitHub Actions cron has no TZ awareness so we do the check here.
+    // wrangler.toml declares BOTH crons; this guard makes the wrong one
+    // no-op on any given day. Manual fetch triggers bypass this guard.
     const now = new Date(event.scheduledTime);
     const month = now.getUTCMonth() + 1;  // 1-12
     const hour = now.getUTCHours();
@@ -29,38 +52,30 @@ export default {
       console.log(`skip: month=${month} hour=${hour} expected=${expectedHour} (DST mismatch)`);
       return;
     }
-
-    const url = `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/${env.WORKFLOW_FILE}/dispatches`;
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${env.GITHUB_PAT}`,
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "job-search-cron-worker",
-      },
-      body: JSON.stringify({ ref: env.REF }),
-    });
-
-    if (!resp.ok) {
-      const text = await resp.text();
-      console.error(`dispatch failed: ${resp.status} ${text}`);
-      throw new Error(`dispatch failed: ${resp.status}`);
-    }
-    console.log(`dispatched ${env.WORKFLOW_FILE} on ${env.REF} — status ${resp.status}`);
+    const status = await dispatchWorkflow(env);
+    console.log(`dispatched ${env.WORKFLOW_FILE} on ${env.REF} — status ${status}`);
   },
 
-  // Optional: a fetch handler for manual test.
-  //   curl https://job-search-cron.<subdomain>.workers.dev/?secret=<X-Worker-Secret>
+  // Manual-trigger endpoint. Auth: WORKER_SECRET MUST be set as a Worker
+  // secret AND the caller MUST present it. If the secret isn't set, all
+  // fetches are rejected (fail-closed, not fail-open). Unlike scheduled
+  // above, this path deliberately bypasses the DST guard — the caller
+  // already knows what time it is and explicitly wants a dispatch.
+  //   wrangler secret put WORKER_SECRET
+  //   curl https://job-search-cron.<subdomain>.workers.dev/?secret=<value>
   async fetch(req, env, ctx) {
+    if (!env.WORKER_SECRET) {
+      return new Response("forbidden (WORKER_SECRET not configured on this Worker)", { status: 403 });
+    }
     const url = new URL(req.url);
-    // Reject unauthenticated fetches — this endpoint would otherwise be a
-    // free dispatch button for anyone who knows the Worker URL.
-    if (url.searchParams.get("secret") !== (env.WORKER_SECRET || "___never_set___")) {
+    if (url.searchParams.get("secret") !== env.WORKER_SECRET) {
       return new Response("forbidden", { status: 403 });
     }
-    // Fake a scheduled event and reuse the handler above.
-    await this.scheduled({ scheduledTime: Date.now() }, env, ctx);
-    return new Response("dispatched", { status: 200 });
+    try {
+      const status = await dispatchWorkflow(env);
+      return new Response(`dispatched (gh status ${status})`, { status: 200 });
+    } catch (err) {
+      return new Response(`dispatch error: ${err.message}`, { status: 502 });
+    }
   },
 };

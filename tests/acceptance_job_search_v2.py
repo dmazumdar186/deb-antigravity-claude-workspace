@@ -70,8 +70,18 @@ OUT_OF_SCOPE_LOCATIONS = [
 # DO NOT relax these to make a run pass. If a corpus entry needs to change,
 # that is a deliberate profile decision, made explicitly, not a quiet edit.
 # ---------------------------------------------------------------------------
-MUST_REJECT = [
-    # The exact 19 the operator pasted on 2026-06-24 as wrong matches.
+# Split into two per-gate corpora so each gate is verified INDEPENDENTLY.
+# Prior form was a single MUST_REJECT list checked with `if rel_ok AND lang_ok`
+# which only fired if BOTH gates accepted — a single-gate regression (title
+# gate correctly rejects, but lang gate silently starts accepting foreign
+# titles) would go undetected because the title gate would "save" us today.
+# The split makes each gate carry its own guarantee.
+
+# Titles the RELEVANCE (title) gate must reject. These are legitimate French /
+# English titles for wrong roles (cybersecurity, SEO, accounting, engineering
+# management). The language gate correctly accepts them as EN/FR — the title
+# gate is the only line of defense, so we verify it independently.
+MUST_REJECT_BY_TITLE = [
     "Consultant Cybersécurité Industrielle/OT (F/H)",
     "Consultant GRC cybersécurité confirmé (F/H)",
     "Directeur.ice de clientèle H/F",
@@ -91,10 +101,18 @@ MUST_REJECT = [
     "Senior Manager Expertise Conseil H/F - International Business Services",
     "Collaborateur comptable H/F - Equipe Immobilier",
     "Collaborateur comptable H/F - International Business Services",
-    # Genuinely-German titles that must stay out.
+]
+
+# Titles the LANGUAGE gate must reject. These are genuinely-German (or other
+# non-EN/FR) titles that the title gate could plausibly accept on keyword
+# match — the language gate is the intended primary blocker.
+MUST_REJECT_BY_LANGUAGE = [
     "Senior Produktmanager",
     "Product Owner für unseren Standort in Berlin",
 ]
+
+# Combined view for the pipeline-outcome check (backwards compat).
+MUST_REJECT = MUST_REJECT_BY_TITLE + MUST_REJECT_BY_LANGUAGE
 MUST_KEEP = [
     "AI Product Manager",
     "Senior Product Manager",
@@ -134,21 +152,41 @@ LANG_DESC_CORPUS = [
 
 
 def check_regression_corpus() -> list[str]:
-    """Run the frozen corpus through the gate. Returns list of failures (empty=OK)."""
+    """Run the frozen corpus through the gate. Returns list of failures (empty=OK).
+
+    Per-gate independent verification:
+      - MUST_REJECT_BY_TITLE: the TITLE gate must reject. If the language gate
+        accepts them (correctly — they're EN/FR text), that's not a bug, but
+        if the title gate accepts them, the pipeline would ship a wrong role.
+      - MUST_REJECT_BY_LANGUAGE: the LANGUAGE gate must reject. Title gate
+        may or may not catch these — the language gate is the primary blocker.
+      - MUST_KEEP: both gates must accept.
+
+    2026-07-01 audit exhibit: the prior `if rel_ok AND lang_ok` check only
+    fired when both gates accepted a MUST_REJECT title. If one gate silently
+    regressed while the other still rejected, the pipeline behavior looked
+    correct today but became a single-point-of-failure for tomorrow. The
+    per-gate split catches that regression before it manifests in output.
+    """
     from execution.personal_workflows.job_search_v2.normalizer.title_filter import classify_title
     from execution.personal_workflows.job_search_v2.normalizer.language_filter import classify_language
 
     failures: list[str] = []
-    for t in MUST_REJECT:
-        rel_ok, _ = classify_title(t)
-        lang_ok, _ = classify_language(t, "")
-        if rel_ok and lang_ok:  # both must NOT keep it
-            failures.append(f"MUST_REJECT but kept: '{t[:55]}'")
+    for t in MUST_REJECT_BY_TITLE:
+        rel_ok, reason = classify_title(t)
+        if rel_ok:
+            failures.append(f"MUST_REJECT_BY_TITLE but title-gate accepted: '{t[:55]}' ({reason})")
+    for t in MUST_REJECT_BY_LANGUAGE:
+        lang_ok, reason = classify_language(t, "")
+        if lang_ok:
+            failures.append(f"MUST_REJECT_BY_LANGUAGE but lang-gate accepted: '{t[:55]}' ({reason})")
     for t in MUST_KEEP:
-        rel_ok, _ = classify_title(t)
-        lang_ok, _ = classify_language(t, "")
-        if not (rel_ok and lang_ok):
-            failures.append(f"MUST_KEEP but dropped: '{t[:55]}'")
+        rel_ok, rel_reason = classify_title(t)
+        lang_ok, lang_reason = classify_language(t, "")
+        if not rel_ok:
+            failures.append(f"MUST_KEEP but title-gate dropped: '{t[:55]}' ({rel_reason})")
+        if not lang_ok:
+            failures.append(f"MUST_KEEP but lang-gate dropped: '{t[:55]}' ({lang_reason})")
     # Description-level language checks (the title-only loop above can't see these).
     for title, desc, want_keep in LANG_DESC_CORPUS:
         lang_ok, reason = classify_language(title, desc)
@@ -222,7 +260,12 @@ RUN_LOG_PATH = Path(__file__).resolve().parents[1] / ".tmp" / "job_search_v2" / 
 
 DEGRADATION_THRESHOLDS = {
     "placeholder_ratio_max": 0.30,  # >30% placeholder = ranker silently failed
-    "non_zero_sources_min": 3,
+    # 2026-07-01 audit: raised from 3 to 4. Default --sources list runs 6
+    # sources (france_travail, linkedin_guest_api, wttj_algolia, hellowork,
+    # remoteok, weworkremotely). At threshold 3, losing HALF the sources on
+    # a given day was treated as healthy — masking source-block regressions.
+    # 4/6 = 66% source coverage minimum.
+    "non_zero_sources_min": 4,
 }
 
 
@@ -252,6 +295,13 @@ def check_pipeline_degradation() -> list[str]:
             return [f"CURRENT_RUN_STATS_PATH unreadable ({current_path}): {exc}"]
 
     # Path 2: fall back to run_log.jsonl's last live entry.
+    #
+    # WARNING to standalone/manual invokers: this fallback reads the last
+    # LIVE run — which may be a prior BAD run (e.g. yesterday's degraded
+    # ranker output before today's fix). If you're re-running acceptance
+    # after a fix but before triggering a fresh pipeline run, the L3 gate
+    # will report FAIL based on the stale prior run. The pipeline-invoked
+    # path (CURRENT_RUN_STATS_PATH env var) does not have this issue.
     if stats is None:
         if not RUN_LOG_PATH.exists():
             # Nothing to check yet — first-ever run, no prior state.
@@ -269,6 +319,11 @@ def check_pipeline_degradation() -> list[str]:
                 break
         if stats is None:
             return []
+        # Flag the standalone-fallback read so operator knows the FAIL may
+        # be about a prior run, not the run they just triggered.
+        run_id = str(stats.get("run_id", "unknown"))
+        print(f"  [INFO] Layer 3 reading STALE run_log.jsonl entry (run_id={run_id[:30]}); "
+              f"pipeline-invoked path via CURRENT_RUN_STATS_PATH is the authoritative source.")
 
     failures: list[str] = []
     ranker = stats.get("ranker", {}) or {}
@@ -406,7 +461,7 @@ def main() -> int:
     if degradation_failures:
         for f in degradation_failures:
             print(f"  [FAIL] {f}")
-        print(f"\nRESULT: FAIL — pipeline silently degraded on the last LIVE run.")
+        print("\nRESULT: FAIL — pipeline silently degraded on the last LIVE run.")
         print("The rows may look clean, but the ranker/coverage/write path is broken.")
         failed = True
     else:

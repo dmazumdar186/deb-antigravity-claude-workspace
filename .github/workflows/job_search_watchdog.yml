@@ -40,9 +40,15 @@ jobs:
         uses: actions/github-script@v7
         env:
           # Hours since the last successful primary run before we dispatch.
-          # 20h: allows the primary 07:13 UTC cron to land normally; only
-          # kicks in after 03:13 UTC next day if nothing has fired.
-          MAX_HOURS_SINCE_SUCCESS: "20"
+          # 26h: gives the primary cron (07:13/07:53 UTC) a full buffer.
+          # 2026-07-01 audit found 20h caused a spurious morning dispatch:
+          # if yesterday's run succeeded at 07:30 UTC and today's watchdog
+          # fires at 06:07 UTC (=22.6h since), it would dispatch a redundant
+          # run BEFORE the primary had a chance to fire at 07:13. The email
+          # lock prevented double-send but the CI slot was wasted.
+          # 26h means the watchdog only fires if the primary has genuinely
+          # missed a full day+2h — well past all its own retries.
+          MAX_HOURS_SINCE_SUCCESS: "26"
         with:
           script: |
             const owner = context.repo.owner;
