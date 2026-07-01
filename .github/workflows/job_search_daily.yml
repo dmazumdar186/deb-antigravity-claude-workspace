@@ -119,6 +119,11 @@ jobs:
           # Gemini 2.5 Flash ranker (free tier). Without this, every job becomes a
           # tier-B placeholder and the "Top Matches" tab is unrankable.
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # ANTHROPIC_API_KEY: passed through so that removing --no-sonnet-rerank
+          # (below) is a one-line change once the Anthropic console is topped up.
+          # If the secret is unset, sonnet_rerank silently no-ops with a clean
+          # skipped_reason ("ANTHROPIC_API_KEY not in environment"). No error.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           FLAGS=""
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then

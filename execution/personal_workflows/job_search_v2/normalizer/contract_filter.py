@@ -107,15 +107,17 @@ def classify_contract(job: NormalizedJob) -> tuple[bool, str]:
     profile_ok = _profile_accepted_contract_labels()
     if profile_ok:
         haystack = f"{job.title} {job.description_snippet[:400]}".lower()
-        # Require the label to appear as a whole word / phrase, not a
-        # substring. "advisory" is safer than "ai" for false-positive risk.
-        # Simple approach: check for the label bracketed by whitespace or
-        # punctuation. Multi-word phrases match directly (they're distinctive).
+        title_lower = job.title.lower()
+        # Require the label to appear as a whole word / phrase — NOT a raw
+        # substring. Both branches use whitespace-padded containment so a
+        # profile label "mission" cannot match "Omission Specialist" via a
+        # bare substring hit. Multi-word phrases still match (their inner
+        # whitespace is preserved on both sides of the padded check).
         for label in profile_ok:
             if not label or len(label) < 4:
                 continue
             padded = f" {label} "
-            if padded in f" {haystack} " or label in job.title.lower():
+            if padded in f" {haystack} " or padded in f" {title_lower} ":
                 return True, f"accept:profile_label:{label[:30]}"
 
     # UNKNOWN with no profile-label rescue.

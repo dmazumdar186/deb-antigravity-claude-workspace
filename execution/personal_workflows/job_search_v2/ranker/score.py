@@ -399,8 +399,14 @@ def rank_jobs(
                 break
             except Exception as exc:  # noqa: BLE001 — Gemini surface; backoff + retry
                 last_exc = exc
+                # Match RETRY_MARKERS against BOTH the exception message and
+                # the exception class name. `str(exc)` for a JSONDecodeError
+                # is "Expecting value: line 1 col 1", NOT "JSONDecodeError" —
+                # so a class-name-only marker like "JSONDecodeError" would
+                # never match str(exc). Checking both catches both shapes.
                 msg = str(exc)
-                if not any(k in msg for k in RETRY_MARKERS):
+                exc_name = type(exc).__name__
+                if not any(k in msg or k in exc_name for k in RETRY_MARKERS):
                     break
                 time.sleep(2.0 * attempt)
 
