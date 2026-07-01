@@ -44,8 +44,9 @@ minute automatically; no additional configuration.
 # Wait for the next scheduled fire, then check:
 gh run list --workflow=job_search_daily.yml --limit 3
 
-# Or trigger manually via HTTP:
-curl "https://job-search-cron.<subdomain>.workers.dev/?secret=<WORKER_SECRET>"
+# Or trigger manually via HTTP (secret goes in a HEADER, NOT the URL —
+# putting it in the query string leaks it to CF request logs + shell history):
+curl -H "X-Worker-Secret: <WORKER_SECRET>" https://job-search-cron.<subdomain>.workers.dev/
 ```
 
 You should see a fresh `workflow_dispatch` run appear in `gh run list`.

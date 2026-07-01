@@ -84,8 +84,23 @@ def _get_access_token(client: httpx.Client) -> str:
         timeout=15.0,
     )
     if r.status_code != 200:
+        # 2026-07-01 security audit: prior form echoed r.text[:200] into
+        # the exception, which propagated to run.py's logger.error with
+        # exc_info=True — surfacing OAuth error bodies (potentially with
+        # partial credential echo) into GitHub Actions run logs readable by
+        # any repo collaborator. Log only the status code; write the full
+        # body to .tmp/ if a human wants to forensically inspect it.
+        try:
+            from pathlib import Path as _P
+            _P(".tmp/job_search_v2").mkdir(parents=True, exist_ok=True)
+            _P(".tmp/job_search_v2/ft_auth_error.txt").write_text(
+                r.text[:2000], encoding="utf-8"
+            )
+        except OSError:
+            pass  # best-effort forensic dump
         raise FranceTravailAuthError(
-            f"Token endpoint returned {r.status_code}: {r.text[:200]}"
+            f"Token endpoint returned {r.status_code} "
+            f"(body redacted from log; see .tmp/job_search_v2/ft_auth_error.txt)"
         )
     body = r.json()
     token = body.get("access_token")
