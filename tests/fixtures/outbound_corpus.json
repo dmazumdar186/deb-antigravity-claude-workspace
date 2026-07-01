@@ -1,0 +1,115 @@
+{
+  "_comment": "Frozen acceptance corpus for the outbound engine (SPEC G1/G4/G5/G7). SYNTHETIC SEED — replace/augment must_keep and must_reject with the operator's REAL v0 flagged examples after v0 validation (plan: corpus optimism caveat). Each must_reject row violates exactly ONE rule so the gate's reason is assertable.",
+  "config": {
+    "icp": {"titles_target": ["Founder", "Co-founder", "CEO", "COO", "Head of Operations", "Operations Manager", "Head of RevOps", "Head of Growth"], "employee_range": [10, 200], "geos_include": ["US", "GB", "AU", "IE", "NL", "DE", "FR", "SG", "AE"], "industries_include": ["SaaS", "DTC", "E-commerce", "Agency", "Marketing"]},
+    "geo_exclude": ["CA"],
+    "geo_exclude_terms": ["canada", "toronto", "vancouver", "montreal", ".ca"],
+    "max_body_words": 60,
+    "max_links": 2
+  },
+
+  "must_keep": [
+    {
+      "id": "keep_1_hiring",
+      "prospect": {"name": "Sarah Lin", "title": "Head of Operations", "company": "Fluxpay", "email": "sarah@fluxpay.io", "domain": "fluxpay.io", "geo": "US", "industry": "SaaS", "employees": 45},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "reconcile Stripe payouts by hand"},
+      "email_subject": "Stripe payout reconciliation",
+      "email_body": "Saw you're hiring an ops manager to reconcile Stripe payouts by hand. I built a Stripe-to-Xero reconciliation bot for a 40-person SaaS last month that cut it to zero. Worth a quick look? Unsubscribe: {{unsub}}",
+      "send_from_inbox": "inbox_1",
+      "unsubscribe_token": "abc123",
+      "verification": "valid"
+    },
+    {
+      "id": "keep_2_stack",
+      "prospect": {"name": "Tom Reyes", "title": "Founder", "company": "Brightcart", "email": "tom@brightcart.com", "domain": "brightcart.com", "geo": "GB", "industry": "DTC", "employees": 22},
+      "signal": {"type": "intent", "source": "upwork", "detail": "Zapier flow keeps breaking on new orders"},
+      "email_subject": "your Zapier order flow",
+      "email_body": "You posted that your Zapier flow keeps breaking on new orders. I rebuilt one like it into a small Make scenario for a DTC brand and it stopped dropping orders. Happy to show you how. {{unsub}}",
+      "send_from_inbox": "inbox_2",
+      "unsubscribe_token": "def456",
+      "verification": "valid"
+    }
+  ],
+
+  "must_reject": [
+    {
+      "id": "reject_offtarget_title",
+      "_violates": "icp_fit (junior, non-decision-maker title)",
+      "prospect": {"name": "Amy Wu", "title": "Junior Data Analyst", "company": "Fluxpay", "email": "amy@fluxpay.io", "domain": "fluxpay.io", "geo": "US", "industry": "SaaS", "employees": 45},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "reconcile Stripe payouts by hand"},
+      "email_subject": "Stripe payout reconciliation",
+      "email_body": "Saw you're hiring an ops manager to reconcile Stripe payouts by hand. I built a reconciliation bot last month. Worth a look? {{unsub}}",
+      "send_from_inbox": "inbox_1", "unsubscribe_token": "x1", "verification": "valid"
+    },
+    {
+      "id": "reject_canada_geo",
+      "_violates": "geo_exclude (Canada)",
+      "prospect": {"name": "Marc Roy", "title": "COO", "company": "Northform", "email": "marc@northform.io", "domain": "northform.io", "geo": "CA", "industry": "SaaS", "employees": 60},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "manual invoice entry"},
+      "email_subject": "manual invoice entry", "email_body": "Saw you're hiring for manual invoice entry. I built an OCR invoice pipeline last month. Worth a look? {{unsub}}",
+      "send_from_inbox": "inbox_1", "unsubscribe_token": "x2", "verification": "valid"
+    },
+    {
+      "id": "reject_ca_domain",
+      "_violates": "geo_exclude_terms (.ca domain)",
+      "prospect": {"name": "Jen Park", "title": "Founder", "company": "Maple", "email": "jen@maplestore.ca", "domain": "maplestore.ca", "geo": "US", "industry": "DTC", "employees": 30},
+      "signal": {"type": "stack", "source": "builtwith", "detail": "uses Airtable for fulfillment"},
+      "email_subject": "Airtable fulfillment", "email_body": "You run fulfillment in Airtable. I automated one like it last month for a DTC brand. Worth a look? {{unsub}}",
+      "send_from_inbox": "inbox_2", "unsubscribe_token": "x3", "verification": "valid"
+    },
+    {
+      "id": "reject_generic_hook",
+      "_violates": "hook_specificity (generic, no signal reference)",
+      "prospect": {"name": "Dave Ng", "title": "CEO", "company": "Acme", "email": "dave@acme.com", "domain": "acme.com", "geo": "US", "industry": "SaaS", "employees": 50},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "reconcile Stripe payouts by hand"},
+      "email_subject": "quick one",
+      "email_body": "I noticed you're in SaaS and thought I'd reach out. We help companies leverage automation to transform your operations. Worth a look? {{unsub}}",
+      "send_from_inbox": "inbox_1", "unsubscribe_token": "x4", "verification": "valid"
+    },
+    {
+      "id": "reject_too_long",
+      "_violates": "max_body_words (>60)",
+      "prospect": {"name": "Lena Ford", "title": "Head of Growth", "company": "Growly", "email": "lena@growly.io", "domain": "growly.io", "geo": "US", "industry": "Marketing", "employees": 40},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "manual lead routing in spreadsheets"},
+      "email_subject": "manual lead routing",
+      "email_body": "Saw you're hiring someone to route leads by hand in spreadsheets and honestly that is exactly the kind of repetitive manual work that eats a growth team alive every single week and it never really scales no matter how many people you throw at it so I wanted to write to you because last month I built a small automation for a very similar company that took their entire manual lead routing process and turned it into something that runs completely on its own without anyone touching a spreadsheet ever again. {{unsub}}",
+      "send_from_inbox": "inbox_1", "unsubscribe_token": "x5", "verification": "valid"
+    },
+    {
+      "id": "reject_too_many_links",
+      "_violates": "max_links (3 links)",
+      "prospect": {"name": "Omar Vale", "title": "Founder", "company": "Stackly", "email": "omar@stackly.io", "domain": "stackly.io", "geo": "US", "industry": "SaaS", "employees": 35},
+      "signal": {"type": "intent", "source": "upwork", "detail": "needs Make automation help"},
+      "email_subject": "Make automation",
+      "email_body": "You need Make automation help. See https://a.com and https://b.com and https://c.com for examples. {{unsub}}",
+      "send_from_inbox": "inbox_2", "unsubscribe_token": "x6", "verification": "valid"
+    },
+    {
+      "id": "reject_spam_word",
+      "_violates": "spam_words (act now / 100% guaranteed)",
+      "prospect": {"name": "Priya Sen", "title": "COO", "company": "Zenops", "email": "priya@zenops.io", "domain": "zenops.io", "geo": "US", "industry": "SaaS", "employees": 55},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "manual data entry"},
+      "email_subject": "manual data entry",
+      "email_body": "Saw your manual data entry role. Act now for a 100% guaranteed automation. {{unsub}}",
+      "send_from_inbox": "inbox_1", "unsubscribe_token": "x7", "verification": "valid"
+    },
+    {
+      "id": "reject_missing_unsub",
+      "_violates": "unsubscribe (missing)",
+      "prospect": {"name": "Karl Bos", "title": "Founder", "company": "Opsy", "email": "karl@opsy.io", "domain": "opsy.io", "geo": "US", "industry": "SaaS", "employees": 28},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "reconcile payouts by hand"},
+      "email_subject": "payout reconciliation",
+      "email_body": "Saw you're hiring to reconcile payouts by hand. I built a bot for that last month. Worth a look?",
+      "send_from_inbox": "inbox_1", "unsubscribe_token": "", "verification": "valid"
+    },
+    {
+      "id": "reject_unverified_email",
+      "_violates": "deliverability (invalid email must not queue)",
+      "prospect": {"name": "Nina Roy", "title": "Founder", "company": "Failmail", "email": "nina@failmail.io", "domain": "failmail.io", "geo": "US", "industry": "SaaS", "employees": 33},
+      "signal": {"type": "hiring", "source": "linkedin_jobs_guest", "detail": "reconcile payouts by hand"},
+      "email_subject": "payout reconciliation",
+      "email_body": "Saw you're hiring to reconcile payouts by hand. I built a bot for that last month. Worth a look? {{unsub}}",
+      "send_from_inbox": "inbox_1", "unsubscribe_token": "x9", "verification": "invalid"
+    }
+  ]
+}

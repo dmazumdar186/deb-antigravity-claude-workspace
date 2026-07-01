@@ -1,0 +1,41 @@
+{
+  "_comment": "Copy to config/tone_debanjan.json. Voice profile for Debanjan's AI/automation build outreach. FILL example_openers + writing_samples from the v0 3-warmest-conversation debrief BEFORE Phase 2a. This is NOT the AM 'Aleksandar' voice.",
+  "voice": "I",
+  "sender_name": "Debanjan",
+  "sender_identity": "AI Product Manager who builds AI agents / automations that remove manual work. 15 yrs product experience. Runs the ProdCraft channel.",
+  "credibility_anchors": ["ProdCraft (YouTube)", "recent fixed-price automation builds", "AI PM background"],
+  "differentiator": "I build the automation in 1-3 weeks fixed-price, not an hourly agency retainer.",
+
+  "never_say": [
+    "exciting opportunity", "game-changing", "transform your", "synergy", "leverage",
+    "utilize", "solution", "partnership", "disrupt", "innovative", "cutting-edge",
+    "best-in-class", "reach out", "touch base", "circle back", "take it to the next level",
+    "I hope this email finds you well", "quick question"
+  ],
+  "must_not_conceal": "Debanjan builds with AI/automation. The copy and auto-replies must NOT hide or deny this.",
+
+  "tone_description": "Direct, specific, peer-to-peer founder tone. No fluff, no exclamation marks, no sales language. Reads like a short note from someone who actually looked at their business.",
+  "copy_philosophy": "Under 60 words. Plain text. Name ONE specific observed thing (a workflow, a tool in their stack, a role they are hiring). Then one concrete line about a build I did. Then a soft ask.",
+  "max_body_words": 60,
+  "max_links": 2,
+  "track_metrics": "response_rate",
+  "never_track": "open_rate (open tracking injects links that hurt deliverability)",
+
+  "opener_instruction": "Write ONE sentence referencing a SPECIFIC signal about this prospect's company (the exact ops/VA role they are hiring, a tool in their stack, a manual workflow implied by the job post). Under 20 words. No exclamation marks. No generic 'I noticed you are in SaaS'. It must be something only someone who read their posting would say.",
+  "auto_reply_instruction": "2-3 short sentences, human text tone, first-person 'I' as Debanjan. Offer the Cal.com discovery link. Be honest that I build with AI/automation. Never overpromise a specific outcome or price.",
+
+  "example_openers": [
+    "FILL_FROM_V0 — e.g. 'Saw you're hiring an ops manager to reconcile Stripe payouts by hand.'",
+    "FILL_FROM_V0",
+    "FILL_FROM_V0"
+  ],
+  "writing_samples": [
+    "FILL_FROM_V0 — paste 3-5 real short messages Debanjan has written, for /humanizer voice matching."
+  ],
+
+  "sequence": {
+    "step_1": "Cold open — specific signal opener + one concrete build reference + soft ask (Cal.com or 'worth a quick look?').",
+    "step_2": "Bump after 3 days — one line, can be subject-only. 'Did this land?'",
+    "step_3": "Value after 5 days — a specific mini-idea for automating the exact workflow named in step 1."
+  }
+}

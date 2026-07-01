@@ -1,0 +1,103 @@
+{
+  "_comment": "Copy to config/outbound_debanjan.json (gitignored). Never commit real values. Personal client-acquisition outbound engine. Fully AM-isolated: uses ONLY fresh personal keys, never Accessory Masters credentials.",
+  "project": "outbound_client_acquisition",
+  "owner": "debanjan",
+  "brand_domain": "prodcraft.fyi",
+  "_brand_note": "CONFIRM spelling: prodcraft.fyi vs broadcraft.fyi. Brand domain NEVER sends cold email.",
+
+  "icp": {
+    "segments": [
+      {
+        "name": "founder_led_saas_dtc_agency",
+        "geos_include": ["US", "GB", "AU", "IE", "NL", "DE", "FR", "SG", "AE"],
+        "employee_range": [10, 200],
+        "titles_target": ["Founder", "Co-founder", "CEO", "COO", "Head of Operations", "Operations Manager", "Head of RevOps", "Head of Growth"],
+        "industries_include": ["SaaS", "DTC", "E-commerce", "Agency", "Marketing"],
+        "industries_exclude": [],
+        "manual_work_signals": ["hiring ops/VA/data-entry role", "uses Zapier/Make/Airtable", "recent Upwork automation request", "seed/Series-A recent funding"]
+      }
+    ]
+  },
+
+  "geo_exclude": ["CA"],
+  "geo_exclude_terms": ["canada", "toronto", "vancouver", "montreal", "ottawa", "calgary", ".ca"],
+
+  "send": {
+    "daily_total_target": 20,
+    "daily_total_max": 40,
+    "per_inbox_daily_cap": 25,
+    "inter_send_min_seconds": 120,
+    "inter_send_jitter_seconds": 180,
+    "plain_text_only": true,
+    "max_links": 2,
+    "active_inboxes": [
+      { "id": "inbox_1", "email": "REPLACE_WITH_REAL_INBOX_1", "smtp_host": "smtp.zoho.eu", "smtp_port": 587, "status": "warmup", "warmup_started_at": null },
+      { "id": "inbox_2", "email": "REPLACE_WITH_REAL_INBOX_2", "smtp_host": "smtp.zoho.eu", "smtp_port": 587, "status": "warmup", "warmup_started_at": null },
+      { "id": "inbox_3", "email": "REPLACE_WITH_REAL_INBOX_3", "smtp_host": "smtp.zoho.eu", "smtp_port": 587, "status": "warmup", "warmup_started_at": null }
+    ]
+  },
+
+  "warmup": {
+    "schedule_weeks": [
+      { "week": 1, "per_inbox_daily": 5 },
+      { "week": 2, "per_inbox_daily": 10 },
+      { "week": 3, "per_inbox_daily": 15 },
+      { "week": 4, "per_inbox_daily": 20 }
+    ],
+    "seed_pool": ["REPLACE_WITH_SEED_GMAIL_1", "REPLACE_WITH_SEED_GMAIL_2"]
+  },
+
+  "sourcing": {
+    "signal_feeds": ["linkedin_jobs_guest", "weworkremotely", "yc_work_at_a_startup", "wellfound", "indeed_rss"],
+    "signal_keywords": ["operations manager", "virtual assistant", "data entry", "back office", "automation", "revops", "ops coordinator"],
+    "finder_free_tiers": ["hunter_domain_search", "apollo_people_export", "lusha", "kaspr", "wiza", "prospeo"],
+    "finder_paid": "anymailfinder",
+    "verify": ["reoon", "million_verifier"]
+  },
+
+  "scoring": {
+    "weights": { "icp_fit": 0.4, "signal_strength": 0.4, "deliverability_confidence": 0.2 },
+    "min_score_to_queue": 0.6
+  },
+
+  "dedup": { "store": "sqlite", "path": ".tmp/outbound/state.sqlite", "ttl_days_seen": 60, "ttl_days_unsubscribed": 99999 },
+
+  "reply": {
+    "classifier_model": "gemini-2.5-flash",
+    "auto_reply_model": "gemini-2.5-flash",
+    "_model_note": "Haiku is BANNED per workspace model-tier rule. Never claude-haiku-*.",
+    "auto_reply_delay_seconds_min": 120,
+    "auto_reply_delay_seconds_max": 420,
+    "calcom_link": "https://cal.com/REPLACE_WITH_HANDLE/discovery",
+    "one_and_done": true
+  },
+
+  "notifications": {
+    "telegram_on": ["hot"],
+    "gmail_label_on": ["hot", "positive"],
+    "gmail_label_name": "Interested"
+  },
+
+  "compliance": {
+    "unsubscribe_handler": "immediate",
+    "unsubscribe_suppress_max_seconds": 60,
+    "physical_address_footer": "REPLACE_WITH_FRENCH_REGISTERED_ADDRESS",
+    "lia_doc": "config/outbound_lia.md",
+    "honor_unsub_within_hours": 24,
+    "exclude_geos": ["CA"]
+  },
+
+  "thresholds": {
+    "mail_tester_minimum_score": 8,
+    "bounce_max_pct": 2.0,
+    "upstream_credit_warn_pct": 20,
+    "upstream_credit_red_pct": 5
+  },
+
+  "kill_criteria": {
+    "v0_min_interested_replies": 1,
+    "v0_touches": 30,
+    "v1_min_positive_reply_pct": 0.3,
+    "v1_evaluate_after_sends": 500
+  }
+}
