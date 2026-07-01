@@ -47,8 +47,14 @@ RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 
 # Sonnet 4.6 pricing — Anthropic publishes in USD per million tokens. We store
 # the USD rate card as the source-of-truth and convert to EUR for operator
-# display per ~/.claude/rules/currency-eur.md (Paris-based operator). Cache
-# pricing not used here — re-rank is one-shot per run, no cache hit.
+# display per ~/.claude/rules/currency-eur.md (Paris-based operator).
+#
+# RULE-4-EXEMPT (cache-aware Claude pricing): rerank_shortlist() issues a
+# single one-shot messages.create() per run with no prior turn. Prompt
+# caching cannot activate (no cache-eligible ≥1024-token prefix + no
+# subsequent cache-hit turn). Cache pricing constants intentionally omitted;
+# if a future edit adds multi-turn behavior, re-add cache_read (0.1× input)
+# and cache_write (1.25× input) per workspace Python hardening rule 4.
 PRICE_INPUT_PER_M_USD = 3.0
 PRICE_OUTPUT_PER_M_USD = 15.0
 # 2026-06-27 reference rate. Refresh when EUR/USD moves >5%.

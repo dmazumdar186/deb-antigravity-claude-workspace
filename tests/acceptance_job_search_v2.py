@@ -287,12 +287,27 @@ def check_pipeline_degradation() -> list[str]:
     stats: dict | None = None
 
     # Path 1: run.py passes a tempfile with the current run's stats.
+    # Path validation (workspace Python hardening rule 3): CURRENT_RUN_STATS_PATH
+    # is env-supplied, so we must resolve() + check the resolved path is inside
+    # .tmp/. Prevents a crafted env var from making the acceptance script open
+    # a file outside the workspace (e.g., CURRENT_RUN_STATS_PATH=../.env).
     current_path = os.environ.get("CURRENT_RUN_STATS_PATH", "").strip()
-    if current_path and Path(current_path).exists():
+    if current_path:
         try:
-            stats = json.loads(Path(current_path).read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            return [f"CURRENT_RUN_STATS_PATH unreadable ({current_path}): {exc}"]
+            resolved = Path(current_path).resolve()
+            tmp_root = (Path(__file__).resolve().parents[1] / ".tmp").resolve()
+            if not resolved.is_relative_to(tmp_root):
+                return [
+                    f"CURRENT_RUN_STATS_PATH points outside .tmp/ "
+                    f"({resolved}); refusing to read as a safety guard."
+                ]
+        except (OSError, ValueError) as exc:
+            return [f"CURRENT_RUN_STATS_PATH could not be resolved ({current_path}): {exc}"]
+        if resolved.exists():
+            try:
+                stats = json.loads(resolved.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                return [f"CURRENT_RUN_STATS_PATH unreadable ({resolved}): {exc}"]
 
     # Path 2: fall back to run_log.jsonl's last live entry.
     #

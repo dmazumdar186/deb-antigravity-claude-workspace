@@ -18,9 +18,12 @@ compatibility_date = "2026-07-01"
 # Revert:
 #   wrangler delete job-search-cron
 
-# Fires 09:15 Paris (07:15 UTC Apr-Oct / 08:15 UTC Nov-Mar). Cron ignores
-# DST — the Worker code below detects month and skips the wrong half of
-# the year to avoid dual-fires on transition weeks.
+# Fires 09:15 Paris (07:15 UTC Apr-Oct / 08:15 UTC Nov-Mar). CF Cron ignores
+# DST — the Worker code (src/index.js) uses Intl.DateTimeFormat with
+# timeZone: "Europe/Paris" to detect the actual Paris local hour on each
+# fire and skip the cron that doesn't correspond to 09:15 Paris. This is
+# DST-accurate at the last-Sunday-of-March/October boundaries (the earlier
+# month-number check was off by up to a week on transition days).
 [triggers]
 crons = ["15 7 * * *", "15 8 * * *"]
 
