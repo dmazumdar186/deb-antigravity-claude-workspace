@@ -101,6 +101,25 @@ py execution/personal_workflows/yoga_jitendra_site/generate.py
 - **Custom domain.** Deferred. When Jitendra buys a domain, bind in the CF
   Pages dashboard (Settings → Custom domains). No code change needed.
 
+## Exit criteria
+
+The project is only describable as "shipped / live / ready" once ALL of the
+following hold:
+
+1. `py tests/acceptance_yoga_jitendra.py` exits `0` — 43+ assertions green.
+2. `bash tests/front_door_yoga_jitendra.sh` exits `0` against
+   `https://yoga-jitendra.pages.dev` — 24+ live assertions green.
+3. Steps 1-2 have both passed for **5 consecutive daily runs** (per
+   `~/.claude/rules/front-door-synthetic.md`). Until day 5 the site status is
+   `LIVE-PROBATIONARY: day N of 5`.
+4. Jitendra has personally reviewed the FR + EN copy (proxy PM = operator).
+5. RGPD / droit-à-l'image warranty from operator on any group photo showing
+   identifiable non-Jitendra faces.
+6. Lighthouse mobile audit: Performance ≥85, Accessibility ≥95, LCP <2.5 s.
+
+Any FAIL on 1-3 blocks the "live" claim. Skip on 4-6 is allowed but must be
+logged in the wrap-up.
+
 ## Related
 
 - Approved plan: `~/.claude/plans/https-sites-google-com-view-yogaavecjite-synthetic-sunrise.md`
