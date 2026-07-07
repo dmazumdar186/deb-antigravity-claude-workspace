@@ -1,0 +1,9 @@
+{
+  "_comment": "Fixture for --check-plan lint. Shot[1] is ai_edited + shot[2] is same 'talking_head' shot_type — expected to emit Rule-4 warning.",
+  "shots": [
+    {"id": "shot0", "shot_type": "wide_establishing", "ai_edited": false},
+    {"id": "shot1", "shot_type": "talking_head", "ai_edited": true},
+    {"id": "shot2", "shot_type": "talking_head", "ai_edited": false},
+    {"id": "shot3", "shot_type": "screen_share", "ai_edited": false}
+  ]
+}

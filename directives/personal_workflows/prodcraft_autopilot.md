@@ -2,6 +2,13 @@
 
 End-to-end pipeline for ProdCraft (@ProdCraft) — generate a publishable YouTube video from a topic prompt. Phase 1 produces a watchable MP4 with cloned voice + Living PRD visual; Phases 2-6 add approval gating, upload, scheduling, and FR variants.
 
+## Routing note (added 2026-07-07): two pipelines, different jobs
+
+- **This pipeline (stills-composed motion graphics from a text brief, no source footage):** use `execution/video/prodcraft_creative_pipeline.py` (critique-reroll loop over Remotion stills). Best for the ProdCraft Living-PRD look and any text-only-brief animation.
+- **Footage-based edits (client has real source clip, wants magical/AI transformation, Nick Saraev v2v method):** use `execution/video/prodcraft_video_edit_pipeline.py`. Best for ad creative touch-ups, hook-shot transitions, wardrobe/prop swaps, cinematic relighting. Directive: `directives/video/prodcraft_video_edit_pipeline.md`. Client-work variant: `directives/gtm_client_workflows/video_edit_client_pipeline.md`.
+
+Decision tree: does the input contain real source footage that should be MODIFIED (not composed)? → v2v pipeline. Else → this stills-composed pipeline.
+
 ## Prior art pass (2026-06-18, retroactively recorded per `~/.claude/rules/prior-art-first.md`)
 
 The rule landed 2026-06-18 morning. This directive's first commit (e420344) was earlier the same day, so the pass is recorded here retroactively from what the work actually did. Future revisions must keep this section current.

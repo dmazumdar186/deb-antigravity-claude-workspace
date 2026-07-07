@@ -1,0 +1,9 @@
+- [technical] Structured errors: PipelineError class carries `code` for orchestrators (`SENSITIVITY_BLOCKED`, `CONSENT_MISSING_FLAG`, `SCHEMA_TRIGGER_VAGUE`, `SOURCE_TOO_LONG`, `LIVE_MODE_NOT_YET_WIRED`, etc.). exit code 2 = user-recoverable pipeline failure.
+- [pattern] Gate execution order matters: schema → sensitivity → consent → duration → cost. Sensitivity fires BEFORE consent so kling+sensitive rejects fast without needing a consent file.
+- [technical] MODEL_CATALOG dict is the single source of truth for jurisdiction + sensitivity-eligibility + cost. Add new models here; UI/directive tables must mirror it (owed: workspace_sast check for divergence).
+- [pattern] Spend log at `.tmp/video/spend_log.jsonl` is shared across all v2v runs. Daily rolling gate reads today's UTC entries + estimates today's total. Corrupt lines are skipped-with-WARN, not fatal.
+- [technical] Consent audit: SHA-256 hash of the release file + mtime_iso + size_bytes captured in manifest.json + run.log. Enables post-hoc detection of stale-release reuse (skeptic round-2 residual concern 1).
+- [pattern] Two standalone modes: `--check-plan <plan.json>` (seam-rule lint) and `--winner <ID>` (post-select promote). Both bypass the source/prompt validation because they don't do generation.
+- [technical] `--skip-duration-check` bypasses ffprobe for CI/test environments without ffmpeg installed. WARN-logged so it's not silent. Phase 3 dogfood removes the need for this flag.
+- [test] Acceptance corpus at `tests/fixtures/video_edit_pipeline/corpus.json`: 3 positive + 3 negative + 2 lint. Hard-fails on jurisdiction / cost / manifest / prompt-preservation mismatch. Front-door `tests/front_door_video_edit_pipeline.sh` wraps this + adds 4 CLI-level assertions.
+- [constraint] Fixture MP4s are empty-touch marker files (0 bytes). Real source clips arrive at Phase 3 dogfood. This is why acceptance uses `--skip-duration-check` — fixtures don't have real duration.

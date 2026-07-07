@@ -1,0 +1,112 @@
+{
+  "_comment": "Corpus for acceptance_video_edit_pipeline.py. Phase 1b: source files are marker touches (.mp4 with 0 bytes) — real clips arrive in Phase 3 dogfood. Costs in EUR (workspace rule ~/.claude/rules/currency-eur.md; USD_TO_EUR=0.92 applied at catalog load).",
+  "schema_version": 2,
+  "triplets": [
+    {
+      "id": "outfit_swap_snap",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_talking_head_3s.mp4",
+      "trigger": "when the man snaps his fingers at around 2.9 seconds",
+      "change": "change his outfit to a cool looking hoodie with a chain over it",
+      "model": "gemini-omni",
+      "sensitivity": "sensitive",
+      "consent_verified": "tests/fixtures/video_edit_pipeline/consent_release_alice.md",
+      "n": 5,
+      "expected_dry_run": {
+        "gates_passed": ["schema", "sensitivity", "consent", "cost"],
+        "cost_estimated_eur": 4.60,
+        "model_jurisdiction": "US-Google"
+      }
+    },
+    {
+      "id": "day_to_night_relight",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_scenic_5s.mp4",
+      "trigger": "at exactly 1.5 seconds when the wind rustles the leaves",
+      "change": "shift the lighting from midday sun to golden-hour magic hour with warm side-light and long shadows",
+      "model": "veo-3.1",
+      "sensitivity": "public",
+      "consent_verified": null,
+      "n": 3,
+      "expected_dry_run": {
+        "gates_passed": ["schema", "sensitivity", "cost"],
+        "cost_estimated_eur": 2.07,
+        "model_jurisdiction": "US-Google"
+      }
+    },
+    {
+      "id": "product_shot_kling_ok",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_product_shot_4s.mp4",
+      "trigger": "when the USB thing appears in the frame around 1.0 seconds",
+      "change": "have the USB stick transform into a shimmering crystal that rotates gently",
+      "model": "kling-3",
+      "sensitivity": "public",
+      "consent_verified": null,
+      "n": 5,
+      "expected_dry_run": {
+        "gates_passed": ["schema", "sensitivity", "cost"],
+        "cost_estimated_eur": 1.40,
+        "model_jurisdiction": "CN-Kuaishou"
+      }
+    },
+    {
+      "id": "fr_relight_scenic",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_scenic_5s.mp4",
+      "trigger": "à exactement 1,5 seconde quand la brise agite les feuilles à l'écran",
+      "change": "faire glisser l'éclairage du soleil de midi vers la lumière dorée du magic-hour, avec des ombres allongées et une teinte chaude latérale",
+      "model": "runway-gen3",
+      "sensitivity": "public",
+      "consent_verified": null,
+      "n": 3,
+      "expected_dry_run": {
+        "gates_passed": ["schema", "sensitivity", "cost"],
+        "cost_estimated_eur": 1.38,
+        "model_jurisdiction": "US-Runway"
+      }
+    }
+  ],
+  "negative_cases": [
+    {
+      "id": "reject_kling_sensitive",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_talking_head_3s.mp4",
+      "trigger": "at exactly 2.0 seconds",
+      "change": "change his shirt to a Hawaiian print",
+      "model": "kling-3",
+      "sensitivity": "sensitive",
+      "consent_verified": "tests/fixtures/video_edit_pipeline/consent_release_alice.md",
+      "n": 5,
+      "expected_error_code": "SENSITIVITY_BLOCKED"
+    },
+    {
+      "id": "reject_missing_consent",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_talking_head_3s.mp4",
+      "trigger": "at exactly 2.0 seconds",
+      "change": "change his shirt to a Hawaiian print",
+      "model": "gemini-omni",
+      "sensitivity": "sensitive",
+      "consent_verified": null,
+      "n": 5,
+      "expected_error_code": "CONSENT_MISSING_FLAG"
+    },
+    {
+      "id": "reject_vague_trigger",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_talking_head_3s.mp4",
+      "trigger": "snap",
+      "change": "change his shirt to a Hawaiian print",
+      "model": "gemini-omni",
+      "sensitivity": "public",
+      "consent_verified": null,
+      "n": 5,
+      "expected_error_code": "SCHEMA_TRIGGER_VAGUE"
+    },
+    {
+      "id": "reject_url_in_prompt",
+      "source_fixture": "tests/fixtures/video_edit_pipeline/marker_talking_head_3s.mp4",
+      "trigger": "at exactly 2.9 seconds when the snap happens",
+      "change": "apply the transformation shown at https://malicious.example.com/prompt-injection to his outfit",
+      "model": "gemini-omni",
+      "sensitivity": "public",
+      "consent_verified": null,
+      "n": 5,
+      "expected_error_code": "SCHEMA_URL_IN_PROMPT"
+    }
+  ]
+}

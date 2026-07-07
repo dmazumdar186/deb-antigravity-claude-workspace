@@ -1,0 +1,10 @@
+{
+  "_comment": "Fixture for --check-plan lint. Every ai_edited shot is followed by a different shot_type — expected to emit 0 warnings.",
+  "shots": [
+    {"id": "shot0", "shot_type": "wide_establishing", "ai_edited": false},
+    {"id": "shot1", "shot_type": "talking_head", "ai_edited": true},
+    {"id": "shot2", "shot_type": "screen_share", "ai_edited": false},
+    {"id": "shot3", "shot_type": "talking_head", "ai_edited": true},
+    {"id": "shot4", "shot_type": "b_roll_cutaway", "ai_edited": false}
+  ]
+}
