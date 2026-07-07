@@ -1,0 +1,65 @@
+---
+import fr from '../content/contact.fr.json';
+import en from '../content/contact.en.json';
+
+const waNumber = '33758255583';
+const waFr = `https://wa.me/${waNumber}?text=${encodeURIComponent(fr.whatsapp_prefill)}`;
+const waEn = `https://wa.me/${waNumber}?text=${encodeURIComponent(en.whatsapp_prefill)}`;
+---
+<section id="contact" class="section">
+  <div class="section-inner">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+      <div class="md:col-span-6">
+        <p class="eyebrow mb-4" data-reveal>
+          <span class="breathing-dot"></span>
+          <span data-lang-content="fr">{fr.eyebrow}</span>
+          <span data-lang-content="en">{en.eyebrow}</span>
+        </p>
+        <h2 class="text-4xl md:text-5xl mb-4" data-reveal>
+          <span data-lang-content="fr">{fr.title}</span>
+          <span data-lang-content="en">{en.title}</span>
+        </h2>
+        <p class="text-lg text-[color:var(--ink-soft)] mb-6 max-w-prose2" data-reveal>
+          <span data-lang-content="fr">{fr.subtitle}</span>
+          <span data-lang-content="en">{en.subtitle}</span>
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3" data-reveal>
+          <a href={waFr} data-lang-content="fr" class="btn btn-primary">{fr.primary_cta.label} →</a>
+          <a href={waEn} data-lang-content="en" class="btn btn-primary">{en.primary_cta.label} →</a>
+          <a href={fr.phone_href} class="btn btn-ghost">{fr.phone_display}</a>
+        </div>
+        <p class="mt-5 text-sm text-[color:var(--ink-soft)] italic max-w-md" data-reveal>
+          <span data-lang-content="fr">{fr.desktop_note}</span>
+          <span data-lang-content="en">{en.desktop_note}</span>
+        </p>
+      </div>
+
+      <div class="md:col-span-6" data-reveal>
+        <div class="card space-y-4">
+          <div>
+            <div class="eyebrow mb-1">
+              <span data-lang-content="fr">{fr.phone_label}</span>
+              <span data-lang-content="en">{en.phone_label}</span>
+            </div>
+            <a href={fr.phone_href} class="font-serif text-xl text-ink-900 hover:text-[color:var(--terracotta)]">{fr.phone_display}</a>
+          </div>
+          <div class="pt-4 border-t border-[rgba(46,42,38,0.08)]">
+            <div class="eyebrow mb-1">
+              <span data-lang-content="fr">{fr.email_label}</span>
+              <span data-lang-content="en">{en.email_label}</span>
+            </div>
+            <a href={fr.email_href} class="font-serif text-xl text-ink-900 hover:text-[color:var(--terracotta)] break-all">{fr.email_display}</a>
+          </div>
+          <div class="pt-4 border-t border-[rgba(46,42,38,0.08)]">
+            <div class="eyebrow mb-1">
+              <span data-lang-content="fr">{fr.address_label}</span>
+              <span data-lang-content="en">{en.address_label}</span>
+            </div>
+            <div class="font-serif text-xl leading-snug text-ink-900">{fr.address_line1}</div>
+            <div class="text-[color:var(--ink-soft)]">{fr.address_line2}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

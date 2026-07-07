@@ -1,0 +1,18 @@
+{
+  "eyebrow": "Where to find me",
+  "title": "Studio & regular sessions",
+  "location_label": "Main studio",
+  "location_line1": "22 rue Eugène Manuel",
+  "location_line2": "75016 Paris · Passy",
+  "map_link": "https://maps.google.com/?q=22+rue+Eugène+Manuel+75016+Paris",
+  "map_link_label": "Open in Google Maps",
+  "notes": [
+    "Private sessions by appointment — availability shifts weekly, message me and we'll find a slot.",
+    "Open-air group sessions announced on MeetUp « Paris Hatha yoga » — free, open to everyone.",
+    "Home sessions available across Paris and the inner suburbs."
+  ],
+  "gallery": [
+    { "src": "/assets/images/teaching-backbend.jpg", "alt": "Jitendra guiding a student through a back-opening posture" },
+    { "src": "/assets/images/meditation-portrait.jpg", "alt": "Jitendra in lotus meditation in a Paris park" }
+  ]
+}

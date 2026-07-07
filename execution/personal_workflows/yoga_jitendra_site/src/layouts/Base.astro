@@ -1,0 +1,372 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kumar — Studio Paris 16, à domicile, en entreprise, en plein air. Certifié Tapovan 500h.' } = Astro.props;
+---
+<!doctype html>
+<html lang="fr" data-lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content="/assets/images/champ-de-mars-eiffel.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Explicit stylesheet link (belt-and-braces alongside the @import in global.css). -->
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap"
+  />
+
+  <!-- Favicon: inline SVG Om in terracotta -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Preload the hero image so LCP lands quickly -->
+  <link rel="preload" as="image" href="/assets/images/champ-de-mars-eiffel.jpg" fetchpriority="high" />
+
+  <!-- Bilingual SEO — both languages live on the same URL for now -->
+  <link rel="canonical" href="https://yoga-jitendra.pages.dev/" />
+  <link rel="alternate" hreflang="fr" href="https://yoga-jitendra.pages.dev/" />
+  <link rel="alternate" hreflang="en" href="https://yoga-jitendra.pages.dev/" />
+  <link rel="alternate" hreflang="x-default" href="https://yoga-jitendra.pages.dev/" />
+
+  <!-- LocalBusiness structured data — Paris studio -->
+  <script type="application/ld+json" is:inline>
+    {
+      "@context": "https://schema.org",
+      "@type": "HealthAndBeautyBusiness",
+      "name": "Yoga avec Jitendra",
+      "image": "https://yoga-jitendra.pages.dev/assets/images/portrait-namaste.jpg",
+      "url": "https://yoga-jitendra.pages.dev/",
+      "telephone": "+33758255583",
+      "priceRange": "€€",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "22 rue Eugène Manuel",
+        "addressLocality": "Paris",
+        "postalCode": "75016",
+        "addressCountry": "FR"
+      },
+      "areaServed": { "@type": "City", "name": "Paris" },
+      "founder": { "@type": "Person", "name": "Jitendra Kumar" },
+      "sameAs": [
+        "https://www.instagram.com/jitendrakuma/",
+        "https://www.meetup.com/paris-hatha-yoga/",
+        "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html"
+      ]
+    }
+  </script>
+
+  <!-- Boot the saved language BEFORE any painting to avoid FOUC -->
+  <script is:inline>
+    (function() {
+      try {
+        var saved = localStorage.getItem('yj_lang');
+        var nav   = (navigator.language || 'fr').slice(0, 2).toLowerCase();
+        var lang  = saved || (nav === 'en' ? 'en' : 'fr');
+        document.documentElement.setAttribute('data-lang', lang);
+        document.documentElement.setAttribute('lang', lang);
+      } catch (e) { /* localStorage may be blocked — safe fallback: fr already set */ }
+    })();
+  </script>
+</head>
+<body class="min-h-screen antialiased">
+  <slot />
+
+  <!-- Motion One: fade-up reveals; skipped under prefers-reduced-motion -->
+  <script type="module">
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      import('https://cdn.jsdelivr.net/npm/motion@11.18.0/+esm').then(({ animate, inView }) => {
+        document.querySelectorAll('[data-reveal]').forEach((el) => {
+          inView(el, () => {
+            animate(el, { opacity: [0, 1], transform: ['translateY(16px)', 'translateY(0)'] }, { duration: 0.9, easing: [0.16, 1, 0.3, 1] });
+            el.classList.add('is-visible');
+          }, { amount: 0.25 });
+        });
+      }).catch(() => {
+        // graceful degradation — reveal all
+        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
+      });
+    } else {
+      document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
+    }
+  </script>
+
+  <!-- Language toggle -->
+  <script is:inline>
+    document.addEventListener('click', function(e) {
+      var t = e.target && e.target.closest && e.target.closest('[data-lang-switch]');
+      if (!t) return;
+      e.preventDefault();
+      var next = t.getAttribute('data-lang-switch');
+      document.documentElement.setAttribute('data-lang', next);
+      document.documentElement.setAttribute('lang', next);
+      try { localStorage.setItem('yj_lang', next); } catch (e) {}
+    });
+  </script>
+
+  <!--
+    Ambient audio: three-layer procedural traditional yoga soundscape, fully invisible
+    (no UI button). Auto-starts on the first user gesture — any mousemove, pointer,
+    touch, scroll, or keydown fires it once. Layers:
+      (1) TANPURA drone — Sa (C3) + slight detune + Pa (G3) + upper Sa (C4)
+      (2) BANSURI-like flute notes on Raga Bhairav, played stochastically every 4-11s
+      (3) OM chant — formant-synthesised A-U-M voice, 3 detuned voices in chorus,
+          slow attack, mouth-closes-to-M transition, repeated every ~18-32s
+    Browsers forbid true autoplay-with-sound; this is as close as legal.
+  -->
+  <script is:inline>
+    (function() {
+      var ctx = null, master = null, drone = null;
+      var fluteTimer = null, omTimer = null;
+      var playing = false, started = false;
+
+      function buildDrone() {
+        master = ctx.createGain();
+        master.gain.value = 0;
+        // Soft-clip / compressor prevents clipping when tanpura + flute + Om chorus stack.
+        var comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = -18;
+        comp.knee.value = 12;
+        comp.ratio.value = 4;
+        comp.attack.value = 0.02;
+        comp.release.value = 0.25;
+        master.connect(comp);
+        comp.connect(ctx.destination);
+
+        drone = ctx.createGain();
+        drone.gain.value = 0.055;
+        drone.connect(master);
+
+        var voices = [
+          { hz: 130.81,         type: 'sine',     gain: 0.40 },
+          { hz: 130.81 * 1.006, type: 'sine',     gain: 0.28 },
+          { hz: 196.00,         type: 'triangle', gain: 0.16 },
+          { hz: 261.63,         type: 'sine',     gain: 0.10 },
+        ];
+        voices.forEach(function(v) {
+          var o = ctx.createOscillator();
+          o.type = v.type; o.frequency.value = v.hz;
+          var g = ctx.createGain(); g.gain.value = v.gain;
+          o.connect(g); g.connect(drone); o.start();
+        });
+
+        var lfo = ctx.createOscillator();
+        lfo.frequency.value = 0.083;
+        var lfoGain = ctx.createGain(); lfoGain.gain.value = 0.020;
+        lfo.connect(lfoGain); lfoGain.connect(drone.gain); lfo.start();
+      }
+
+      // Raga Bhairav — dawn / meditation raga
+      var RAGA = [261.63, 277.18, 329.63, 349.23, 392.00, 415.30, 493.88, 523.25];
+
+      function playFluteNote() {
+        if (!playing || !ctx) return;
+        var now = ctx.currentTime;
+        var freq = RAGA[Math.floor(Math.random() * RAGA.length)];
+        if (Math.random() < 0.20) freq = freq / 2;
+
+        var noteGain = ctx.createGain();
+        noteGain.gain.value = 0;
+        noteGain.connect(master);
+
+        var o1 = ctx.createOscillator();
+        o1.type = 'sine'; o1.frequency.value = freq;
+        var g1 = ctx.createGain(); g1.gain.value = 1.0;
+        o1.connect(g1); g1.connect(noteGain);
+
+        var o2 = ctx.createOscillator();
+        o2.type = 'sine'; o2.frequency.value = freq * 2;
+        var g2 = ctx.createGain(); g2.gain.value = 0.18;
+        o2.connect(g2); g2.connect(noteGain);
+
+        var vib = ctx.createOscillator();
+        vib.type = 'sine'; vib.frequency.value = 4.8;
+        var vibDepth = ctx.createGain(); vibDepth.gain.value = freq * 0.005;
+        vib.connect(vibDepth);
+        vibDepth.connect(o1.frequency); vibDepth.connect(o2.frequency);
+
+        var attack = 1.2 + Math.random() * 0.6;
+        var hold   = 1.5 + Math.random() * 1.5;
+        var release = 3.5 + Math.random() * 2.0;
+        var peak = 0.12 + Math.random() * 0.05;
+
+        noteGain.gain.setValueAtTime(0.0001, now);
+        noteGain.gain.exponentialRampToValueAtTime(peak, now + attack);
+        noteGain.gain.setValueAtTime(peak, now + attack + hold);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, now + attack + hold + release);
+
+        o1.start(now); o2.start(now); vib.start(now);
+        var stopAt = now + attack + hold + release + 0.05;
+        o1.stop(stopAt); o2.stop(stopAt); vib.stop(stopAt);
+
+        var gap = 4000 + Math.floor(Math.random() * 7000);
+        fluteTimer = setTimeout(playFluteNote, gap);
+      }
+
+      // OM CHANT — vowel formant synthesis, 3 chorus voices, A → U → M transition.
+      // Vowel formants (Hz):  A: F1=730 F2=1090 F3=2440
+      //                       U: F1=300 F2=870  F3=2240
+      //                       M: F1=270 F2=1300 (nasal murmur)
+      function playOm() {
+        if (!playing || !ctx) return;
+        var now = ctx.currentTime;
+        var base = 130.81; // C3, same Sa as tanpura — blends cleanly
+
+        var omBus = ctx.createGain();
+        omBus.gain.value = 0.45;
+        omBus.connect(master);
+
+        // Duration segments (seconds from now)
+        var attackDur = 2.0;   // slow "aaa" fade-in
+        var aHold     = 2.0;   // "AAA"
+        var toU       = 1.5;   // A → U slide
+        var uHold     = 1.5;   // "UUU"
+        var toM       = 1.5;   // U → M slide (mouth closing)
+        var mHold     = 2.5;   // "MMM" (nasal)
+        var release   = 3.0;   // fade
+        var end = attackDur + aHold + toU + uHold + toM + mHold + release;
+
+        // Three detuned chorus voices
+        for (var v = 0; v < 3; v++) {
+          var detuneCents = (v - 1) * 8; // -8, 0, +8 cents
+          var pitchMul = Math.pow(2, detuneCents / 1200);
+          var voiceHz = base * pitchMul;
+
+          // Rich source: sawtooth for harmonic content
+          var src = ctx.createOscillator();
+          src.type = 'sawtooth';
+          src.frequency.value = voiceHz;
+
+          // Slow vibrato ~4.5 Hz, ±0.6% depth
+          var vib = ctx.createOscillator();
+          vib.type = 'sine'; vib.frequency.value = 4.5 + v * 0.3;
+          var vibDepth = ctx.createGain(); vibDepth.gain.value = voiceHz * 0.006;
+          vib.connect(vibDepth); vibDepth.connect(src.frequency);
+
+          // Formant filters — 3 stacked bandpass filters
+          var f1 = ctx.createBiquadFilter(); f1.type = 'bandpass'; f1.Q.value = 7;
+          var f2 = ctx.createBiquadFilter(); f2.type = 'bandpass'; f2.Q.value = 9;
+          var f3 = ctx.createBiquadFilter(); f3.type = 'bandpass'; f3.Q.value = 12;
+
+          // Formant automation — schedule the A → U → M vowel slide
+          var t0 = now;
+          var tAstart = t0;
+          var tAend   = tAstart + attackDur + aHold;
+          var tUstart = tAend + toU;
+          var tUend   = tUstart + uHold;
+          var tMstart = tUend + toM;
+          var tMend   = tMstart + mHold + release;
+
+          // A vowel formants
+          f1.frequency.setValueAtTime(730, tAstart);
+          f2.frequency.setValueAtTime(1090, tAstart);
+          f3.frequency.setValueAtTime(2440, tAstart);
+
+          // Slide to U
+          f1.frequency.exponentialRampToValueAtTime(300, tUstart);
+          f2.frequency.exponentialRampToValueAtTime(870, tUstart);
+          f3.frequency.exponentialRampToValueAtTime(2240, tUstart);
+
+          // Hold U, then slide to M (nasal)
+          f1.frequency.exponentialRampToValueAtTime(270, tMstart);
+          f2.frequency.exponentialRampToValueAtTime(1300, tMstart);
+          f3.frequency.exponentialRampToValueAtTime(2000, tMstart);
+
+          // Amplitude envelope for the voice
+          var env = ctx.createGain();
+          env.gain.setValueAtTime(0.0001, tAstart);
+          env.gain.exponentialRampToValueAtTime(0.32, tAstart + attackDur);
+          env.gain.setValueAtTime(0.32, tUend);
+          // Quieter during M (mouth closed, less energy)
+          env.gain.exponentialRampToValueAtTime(0.20, tMstart);
+          env.gain.exponentialRampToValueAtTime(0.0001, tMend);
+
+          // Chain: src -> f1 -> f2 -> f3 -> env -> omBus
+          src.connect(f1); f1.connect(f2); f2.connect(f3); f3.connect(env); env.connect(omBus);
+
+          src.start(t0); vib.start(t0);
+          src.stop(t0 + end + 0.1); vib.stop(t0 + end + 0.1);
+        }
+
+        // Schedule next Om between 18 and 32 seconds later (leaves silence to breathe)
+        omTimer = setTimeout(playOm, 18000 + Math.floor(Math.random() * 14000));
+      }
+
+      function start() {
+        if (started || userMuted) return;
+        if (!ctx) {
+          ctx = new (window.AudioContext || window.webkitAudioContext)();
+          buildDrone();
+        }
+        if (ctx.state === 'suspended') ctx.resume();
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        master.gain.setValueAtTime(0, ctx.currentTime);
+        master.gain.linearRampToValueAtTime(0.60, ctx.currentTime + 3.5);
+        playing = true; started = true;
+        if (toggle) { toggle.classList.remove('is-muted'); toggle.setAttribute('aria-pressed', 'true'); }
+        fluteTimer = setTimeout(playFluteNote, 3000);
+        omTimer    = setTimeout(playOm, 6000);
+      }
+
+      function stop() {
+        if (!ctx) return;
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+        master.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
+        playing = false;
+        if (fluteTimer) { clearTimeout(fluteTimer); fluteTimer = null; }
+        if (omTimer)    { clearTimeout(omTimer);    omTimer = null; }
+        if (toggle) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
+      }
+
+      // Persisted user preference (survives across visits)
+      var userMuted = false;
+      try { userMuted = localStorage.getItem('yj_muted') === '1'; } catch (e) {}
+
+      var toggle = document.querySelector('[data-audio-toggle]');
+      if (toggle) {
+        if (userMuted) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (playing) {
+            stop();
+            userMuted = true;
+            try { localStorage.setItem('yj_muted', '1'); } catch (e) {}
+          } else {
+            userMuted = false;
+            try { localStorage.setItem('yj_muted', '0'); } catch (e) {}
+            started = false;
+            start();
+          }
+        });
+      }
+
+      // First-gesture auto-start.
+      // - iOS Safari requires a real user activation (click/touch/keydown), so we
+      //   drop mousemove/wheel/scroll from the trigger set — those don't count on iOS.
+      // - If the user's first click is on the mute toggle, DON'T fire — the toggle's
+      //   own handler runs, otherwise we'd get a half-second noise burst then mute.
+      var events = ['pointerdown', 'touchstart', 'keydown', 'click'];
+      function firstGesture(e) {
+        if (e && e.target && e.target.closest && e.target.closest('[data-audio-toggle]')) return;
+        events.forEach(function(ev) { window.removeEventListener(ev, firstGesture); });
+        if (!userMuted) start();
+      }
+      events.forEach(function(ev) { window.addEventListener(ev, firstGesture, { passive: true }); });
+    })();
+  </script>
+</body>
+</html>

@@ -72,3 +72,6 @@ execution/video/remotion-projects/*/public/beats.json
 execution/video/remotion-projects/*/public/words.json
 execution/video/remotion-projects/*/public/living_prd_plan.json
 execution/video/remotion-projects/*/public/visuals/
+
+# yoga_jitendra_site: raw uploads (source photos + review screenshots, unfiltered)
+execution/personal_workflows/yoga_jitendra_site/_raw_assets/

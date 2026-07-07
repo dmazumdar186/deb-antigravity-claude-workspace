@@ -1,0 +1,20 @@
+{
+  "lang_toggle_aria": "Change language",
+  "nav_about": "The teacher",
+  "nav_offerings": "Sessions",
+  "nav_schedule": "Studio",
+  "nav_testimonials": "Reviews",
+  "nav_press": "Press",
+  "nav_contact": "Contact",
+  "book_cta": "Book",
+  "audio_on": "Turn on ambient sound",
+  "audio_off": "Mute",
+  "footer_tagline": "Hatha Yoga · Paris",
+  "footer_credit": "Site crafted with care · 2026",
+  "socials_label": "On the socials",
+  "socials": [
+    { "label": "Instagram",   "href": "https://www.instagram.com/jitendrakuma/" },
+    { "label": "MeetUp",      "href": "https://www.meetup.com/paris-hatha-yoga/" },
+    { "label": "Superprof",   "href": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html" }
+  ]
+}

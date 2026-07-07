@@ -1,0 +1,35 @@
+---
+import fr from '../content/i18n_ui.fr.json';
+import en from '../content/i18n_ui.en.json';
+---
+<!-- Small mute/unmute toggle, bottom-right (desktop-only via CSS).
+     Audio still auto-starts on first user gesture — this button only exists so
+     visitors can silence it if they want. -->
+<button
+  type="button"
+  class="audio-toggle is-muted"
+  data-audio-toggle
+  aria-pressed="false"
+  aria-label={fr.audio_on}
+  title={fr.audio_on}
+>
+  <!-- Speaker + waves (on state); JS swaps to muted icon by toggling `.is-muted` -->
+  <svg class="ico-on"  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M11 5 6 9H3v6h3l5 4V5Z"/>
+    <path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+    <path d="M18.5 5.5a9 9 0 0 1 0 13"/>
+  </svg>
+  <svg class="ico-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M11 5 6 9H3v6h3l5 4V5Z"/>
+    <line x1="22" y1="9" x2="16" y2="15"/>
+    <line x1="16" y1="9" x2="22" y2="15"/>
+  </svg>
+  <span class="sr-only" data-lang-content="fr">{fr.audio_off}</span>
+  <span class="sr-only" data-lang-content="en">{en.audio_off}</span>
+</button>
+
+<style>
+  .audio-toggle .ico-off { display: none; }
+  .audio-toggle.is-muted .ico-on  { display: none; }
+  .audio-toggle.is-muted .ico-off { display: inline-block; }
+</style>

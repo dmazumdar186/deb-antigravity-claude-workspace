@@ -1,0 +1,18 @@
+{
+  "eyebrow": "Le professeur",
+  "title": "Jitendra Kumar",
+  "subtitle": "Originaire du nord de l'Inde, installé à Paris.",
+  "paragraphs": [
+    "Jitendra a grandi immergé dans la tradition du yoga. En France depuis dix ans, il transmet un enseignement structuré, respectueux du rythme de chacun, où le geste se lie à la tradition.",
+    "Certifié en Hatha Yoga après 500 heures de formation au Centre Tapovan Paris, il enrichit sa pratique par l'étude du sanskrit et des textes fondateurs. Sa méthode repose sur l'ancrage : la stabilité du corps pour apaiser le système nerveux, l'alignement, et le développement de la force — pour que l'énergie circule librement.",
+    "Il enseigne également à L'école châlonnaise « Au pied du cerisier » et lors de formations d'enseignants au Tapovan Open University en Normandie."
+  ],
+  "markers": [
+    { "label": "En France depuis", "value": "10 ans" },
+    { "label": "Formation Hatha Yoga", "value": "500 h · Tapovan Paris" },
+    { "label": "Étudie", "value": "Sanskrit · textes traditionnels" },
+    { "label": "Enseigne à", "value": "Paris · Châlons · Normandie" }
+  ],
+  "portrait_image": "/assets/images/portrait-namaste.jpg",
+  "portrait_alt": "Jitendra Kumar, professeur de Hatha Yoga, salutation namaste"
+}

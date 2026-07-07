@@ -1,0 +1,26 @@
+{
+  "eyebrow": "Hatha Yoga · Paris",
+  "headline": "Respirer. Bouger. Se déposer.",
+  "subhead": "Hatha Yoga traditionnel enseigné dans la lignée indienne, en français et en anglais. Studio à Paris 16, à domicile, en entreprise, en plein air.",
+  "primary_cta": {
+    "label": "Réserver une séance",
+    "action": "whatsapp"
+  },
+  "secondary_cta": {
+    "label": "Découvrir la méthode",
+    "href": "#about"
+  },
+  "featured_in_label": "Vu dans",
+  "featured_in": [
+    "L'Hebdo du Vendredi",
+    "Superprof · 5 ★",
+    "MeetUp · 5.0",
+    "TrainMe",
+    "GIO France",
+    "Centre Tapovan"
+  ],
+  "hero_image": "/assets/images/champ-de-mars-eiffel.jpg",
+  "hero_image_alt": "Séance de Hatha Yoga au Champ-de-Mars, Tour Eiffel en arrière-plan, bannière GIO France",
+  "portrait_image": "/assets/images/portrait-namaste.jpg",
+  "portrait_alt": "Jitendra Kumar, professeur de Hatha Yoga, en salutation namaste"
+}

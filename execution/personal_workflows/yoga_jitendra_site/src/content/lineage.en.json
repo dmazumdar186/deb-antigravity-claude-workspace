@@ -1,0 +1,28 @@
+{
+  "eyebrow": "The lineage",
+  "title": "A line that reaches back through millennia.",
+  "paragraphs_before": [
+    "Yoga was born in India, passed mouth to ear by the rishis and munis — seers who withdrew into forests and mountains and listened to the silence to understand the living. The practice is older than writing itself."
+  ],
+  "shloka": {
+    "devanagari": "योगश्चित्तवृत्तिनिरोधः",
+    "translit": "Yogaḥ citta-vṛtti-nirodhaḥ",
+    "translation": "Yoga is the stilling of the fluctuations of the mind.",
+    "source": "— Patañjali, Yoga Sūtra I.2"
+  },
+  "paragraphs_after": [
+    "What Jitendra transmits today in Paris — the breath, the posture, the silence — belongs to this unbroken line. Nothing is invented. Everything is remembered.",
+    "Ashtanga — Patañjali's eight limbs: yama, niyama, āsana, prāṇāyāma, pratyāhāra, dhāraṇā, dhyāna, samādhi — remains the map."
+  ],
+  "ashtanga_label": "The eight limbs · Aṣṭāṅga",
+  "ashtanga": [
+    { "sanskrit": "Yama",       "gloss": "ethics toward others" },
+    { "sanskrit": "Niyama",     "gloss": "discipline toward self" },
+    { "sanskrit": "Āsana",      "gloss": "the right posture" },
+    { "sanskrit": "Prāṇāyāma",  "gloss": "mastery of the breath" },
+    { "sanskrit": "Pratyāhāra", "gloss": "withdrawal of the senses" },
+    { "sanskrit": "Dhāraṇā",    "gloss": "concentration" },
+    { "sanskrit": "Dhyāna",     "gloss": "meditation" },
+    { "sanskrit": "Samādhi",    "gloss": "union" }
+  ]
+}

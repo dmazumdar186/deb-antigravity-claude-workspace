@@ -1,0 +1,39 @@
+{
+  "eyebrow": "What I offer",
+  "title": "One practice, four settings.",
+  "subtitle": "Every session weaves asana (postures), pranayama (breath), meditation, and relaxation.",
+  "tiles": [
+    {
+      "kicker": "Studio",
+      "title": "Private session at the studio",
+      "blurb": "Private studio in Paris 16 (Passy). Tailored to you, precise alignment, individual progression.",
+      "meta": "€60 · 60 min",
+      "image": "/assets/images/studio-passy.jpg",
+      "image_alt": "Yoga studio in Passy, Paris 16"
+    },
+    {
+      "kicker": "At your home",
+      "title": "Session at your place",
+      "blurb": "Paris and inner suburbs. You choose the place, time, and pace.",
+      "meta": "On request",
+      "image": "/assets/images/gallery-private-adjustments.jpg",
+      "image_alt": "Hands-on adjustment during a home session"
+    },
+    {
+      "kicker": "Corporate",
+      "title": "Yoga at the office",
+      "blurb": "Weekly classes or workshops. Already partnered with Semmaris via TrainMe.",
+      "meta": "On request",
+      "image": "/assets/images/champ-de-mars-teaching.jpg",
+      "image_alt": "Group session at Champ-de-Mars"
+    },
+    {
+      "kicker": "Outdoors",
+      "title": "Free open-air sessions",
+      "blurb": "Champ-de-Mars, Parc Montsouris. Open sessions announced on MeetUp « Paris Hatha yoga ».",
+      "meta": "Free · MeetUp",
+      "image": "/assets/images/meditation-lotus-park.jpg",
+      "image_alt": "Lotus meditation in a Paris park"
+    }
+  ]
+}

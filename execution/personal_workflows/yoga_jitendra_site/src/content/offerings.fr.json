@@ -1,0 +1,39 @@
+{
+  "eyebrow": "Ce que je propose",
+  "title": "Une pratique, quatre cadres.",
+  "subtitle": "Chaque séance s'articule autour d'asanas (postures), pranayama (respiration), méditation et relaxation.",
+  "tiles": [
+    {
+      "kicker": "Studio",
+      "title": "Cours particulier au studio",
+      "blurb": "Studio privé Paris 16 (Passy). Séance sur mesure, alignement précis, progression individuelle.",
+      "meta": "60 € · 60 min",
+      "image": "/assets/images/studio-passy.jpg",
+      "image_alt": "Studio de yoga à Passy, Paris 16"
+    },
+    {
+      "kicker": "À domicile",
+      "title": "Séance chez vous",
+      "blurb": "Paris intra-muros et proche banlieue. Vous choisissez le lieu, l'heure et le rythme.",
+      "meta": "Sur devis",
+      "image": "/assets/images/gallery-private-adjustments.jpg",
+      "image_alt": "Ajustement pédagogique en séance à domicile"
+    },
+    {
+      "kicker": "Entreprise",
+      "title": "Yoga en entreprise",
+      "blurb": "Cours hebdomadaires ou ateliers. Déjà partenaire de la Semmaris via TrainMe.",
+      "meta": "Sur devis",
+      "image": "/assets/images/champ-de-mars-teaching.jpg",
+      "image_alt": "Séance de groupe encadrée"
+    },
+    {
+      "kicker": "Plein air",
+      "title": "Séances gratuites en plein air",
+      "blurb": "Champ-de-Mars, Parc Montsouris. Sessions ouvertes annoncées sur MeetUp « Paris Hatha yoga ».",
+      "meta": "Gratuit · MeetUp",
+      "image": "/assets/images/meditation-lotus-park.jpg",
+      "image_alt": "Méditation en lotus dans un parc parisien"
+    }
+  ]
+}

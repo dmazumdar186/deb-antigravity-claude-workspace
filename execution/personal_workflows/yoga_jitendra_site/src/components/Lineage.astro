@@ -1,0 +1,234 @@
+---
+import fr from '../content/lineage.fr.json';
+import en from '../content/lineage.en.json';
+---
+<section id="lineage" class="section lineage-section">
+  <!-- Decorative Om + petal ring on the left -->
+  <div class="lineage-ornament" aria-hidden="true">
+    <svg viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg">
+      <g class="ring-outer">
+        <circle cx="0" cy="0" r="86" fill="none" stroke="var(--sage, #6B7A5A)" stroke-width="0.6" opacity="0.35" />
+        <circle cx="0" cy="0" r="74" fill="none" stroke="var(--sage, #6B7A5A)" stroke-width="0.4" opacity="0.28" stroke-dasharray="1 3" />
+      </g>
+      <g class="ring-petals">
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+          <path
+            d="M 0 -74 C 12 -50, 12 -50, 0 -24 C -12 -50, -12 -50, 0 -74 Z"
+            fill="none"
+            stroke="var(--terracotta, #C9744A)"
+            stroke-width="0.9"
+            opacity="0.5"
+            transform={`rotate(${deg})`}
+          />
+        ))}
+      </g>
+      <text
+        x="0" y="9"
+        text-anchor="middle"
+        font-family="Noto Sans Devanagari, serif"
+        font-size="42"
+        fill="var(--terracotta, #C9744A)"
+        opacity="0.85"
+      >ॐ</text>
+    </svg>
+  </div>
+
+  <div class="section-inner">
+    <div class="lineage-grid">
+      <div>
+        <p class="eyebrow mb-4" data-reveal>
+          <span class="breathing-dot"></span>
+          <span data-lang-content="fr">{fr.eyebrow}</span>
+          <span data-lang-content="en">{en.eyebrow}</span>
+        </p>
+        <h2 class="text-4xl md:text-5xl leading-[1.05] mb-8" data-reveal>
+          <span data-lang-content="fr">{fr.title}</span>
+          <span data-lang-content="en">{en.title}</span>
+        </h2>
+
+        {fr.paragraphs_before.map((p, i) => (
+          <p class="text-[17px] leading-relaxed text-[color:var(--ink)] max-w-prose2 mb-6" data-reveal>
+            <span data-lang-content="fr">{p}</span>
+            <span data-lang-content="en">{en.paragraphs_before[i]}</span>
+          </p>
+        ))}
+
+        <!-- SHLOKA — Sanskrit sūtra display -->
+        <figure class="shloka" data-reveal>
+          <div class="shloka-devanagari">{fr.shloka.devanagari}</div>
+          <div class="shloka-translit">{fr.shloka.translit}</div>
+          <blockquote class="shloka-translation">
+            <span data-lang-content="fr">« {fr.shloka.translation} »</span>
+            <span data-lang-content="en">« {en.shloka.translation} »</span>
+          </blockquote>
+          <figcaption class="shloka-source">{fr.shloka.source}</figcaption>
+        </figure>
+
+        {fr.paragraphs_after.map((p, i) => (
+          <p class="text-[17px] leading-relaxed text-[color:var(--ink)] max-w-prose2 mb-6" data-reveal>
+            <span data-lang-content="fr">{p}</span>
+            <span data-lang-content="en">{en.paragraphs_after[i]}</span>
+          </p>
+        ))}
+
+        <!-- ASHTANGA — 8 limbs as pill-list -->
+        <div class="mt-10" data-reveal>
+          <p class="eyebrow mb-4">
+            <span data-lang-content="fr">{fr.ashtanga_label}</span>
+            <span data-lang-content="en">{en.ashtanga_label}</span>
+          </p>
+          <ol class="ashtanga-list">
+            {fr.ashtanga.map((limb, i) => (
+              <li>
+                <span class="ashtanga-num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="ashtanga-sanskrit">{limb.sanskrit}</span>
+                <span class="ashtanga-gloss">
+                  <span data-lang-content="fr">{limb.gloss}</span>
+                  <span data-lang-content="en">{en.ashtanga[i].gloss}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lineage-section {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(700px 400px at 10% 40%, rgba(107, 122, 90, 0.10), transparent 60%),
+      radial-gradient(500px 300px at 100% 90%, rgba(201, 116, 74, 0.08), transparent 60%);
+  }
+  .lineage-ornament {
+    position: absolute;
+    top: 12%;
+    left: -6vmin;
+    width: min(50vmin, 380px);
+    height: auto;
+    pointer-events: none;
+    opacity: 0.9;
+    animation: lineage-rotate 110s linear infinite;
+    transform-origin: center;
+  }
+  .lineage-ornament svg {
+    width: 100%; height: auto; display: block;
+  }
+  @keyframes lineage-rotate {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lineage-ornament { animation: none; }
+  }
+  @media (max-width: 768px) {
+    .lineage-ornament {
+      top: 4%;
+      left: auto;
+      right: -18vmin;
+      width: 55vmin;
+      opacity: 0.6;
+    }
+  }
+
+  .lineage-grid {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin-inline: auto;
+  }
+
+  /* Sanskrit sutra display */
+  .shloka {
+    position: relative;
+    margin: 2.5rem 0;
+    padding: 2.5rem 2rem;
+    border-radius: 1.5rem;
+    background: linear-gradient(180deg, rgba(251, 247, 238, 0.85), rgba(251, 247, 238, 0.55));
+    border: 1px solid rgba(201, 116, 74, 0.16);
+    box-shadow: 0 20px 60px -32px rgba(46, 42, 38, 0.25);
+    text-align: center;
+  }
+  .shloka::before, .shloka::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 116, 74, 0.5), transparent);
+  }
+  .shloka::before { top: 1.1rem; }
+  .shloka::after  { bottom: 1.1rem; }
+  .shloka-devanagari {
+    font-family: 'Noto Serif Devanagari', 'Noto Sans Devanagari', 'Fraunces', serif;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    color: var(--ink);
+    letter-spacing: 0;
+    margin-bottom: 1rem;
+    line-height: 1.35;
+  }
+  .shloka-translit {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--terracotta);
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.02em;
+  }
+  .shloka-translation {
+    font-family: 'Fraunces', serif;
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 44ch;
+    margin: 0 auto 0.75rem;
+  }
+  .shloka-source {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Ashtanga eight-limb list */
+  .ashtanga-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem 1.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: none;
+  }
+  .ashtanga-list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 1rem;
+    align-items: baseline;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+  }
+  .ashtanga-num {
+    grid-row: span 2;
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    color: var(--terracotta);
+    line-height: 1;
+  }
+  .ashtanga-sanskrit {
+    font-family: 'Fraunces', serif;
+    font-size: 1.25rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .ashtanga-gloss {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.35;
+    grid-column: 2;
+  }
+</style>

@@ -1,0 +1,38 @@
+---
+import fr from '../content/recommendations.fr.json';
+import en from '../content/recommendations.en.json';
+---
+<section id="testimonials" class="section">
+  <div class="section-inner">
+    <header class="max-w-3xl mb-12">
+      <p class="eyebrow mb-4" data-reveal>
+        <span class="breathing-dot"></span>
+        <span data-lang-content="fr">{fr.eyebrow}</span>
+        <span data-lang-content="en">{en.eyebrow}</span>
+      </p>
+      <h2 class="text-4xl md:text-5xl leading-[1.05]" data-reveal>
+        <span data-lang-content="fr">{fr.title}</span>
+        <span data-lang-content="en">{en.title}</span>
+      </h2>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      {fr.quotes.map((q, i) => (
+        <figure class="card flex flex-col" data-reveal>
+          <span aria-hidden="true" class="text-4xl font-serif text-[color:var(--terracotta)] leading-none mb-3">"</span>
+          <blockquote class="font-serif text-[19px] md:text-[21px] leading-snug text-ink-900 mb-6">
+            <span data-lang-content="fr">{q.quote}</span>
+            <span data-lang-content="en">{en.quotes[i].quote}</span>
+          </blockquote>
+          <figcaption class="mt-auto pt-4 border-t border-[rgba(46,42,38,0.08)]">
+            <div class="font-medium text-ink-900">{q.author}</div>
+            <div class="text-sm text-[color:var(--ink-soft)] mt-0.5">
+              <span data-lang-content="fr">{q.context}</span>
+              <span data-lang-content="en">{en.quotes[i].context}</span>
+            </div>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>

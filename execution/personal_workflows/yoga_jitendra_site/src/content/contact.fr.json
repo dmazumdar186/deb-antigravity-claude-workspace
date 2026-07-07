@@ -1,0 +1,20 @@
+{
+  "eyebrow": "Prendre contact",
+  "title": "Réserver une séance.",
+  "subtitle": "Le plus simple : un message WhatsApp. Je réponds dans l'heure.",
+  "primary_cta": {
+    "label": "WhatsApp",
+    "action": "whatsapp"
+  },
+  "phone_label": "Téléphone",
+  "phone_display": "+33 7 58 25 55 83",
+  "phone_href": "tel:+33758255583",
+  "email_label": "E-mail",
+  "email_display": "jitendranitrr13@gmail.com",
+  "email_href": "mailto:jitendranitrr13@gmail.com",
+  "address_label": "Studio",
+  "address_line1": "22 rue Eugène Manuel",
+  "address_line2": "75016 Paris",
+  "whatsapp_prefill": "Bonjour Jitendra, j'aimerais réserver une séance de Hatha Yoga.",
+  "desktop_note": "Sur ordinateur ? Le plus rapide reste le téléphone ou l'e-mail."
+}
