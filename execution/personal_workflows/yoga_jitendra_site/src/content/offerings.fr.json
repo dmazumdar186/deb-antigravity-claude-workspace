@@ -25,7 +25,9 @@
       "blurb": "Cours hebdomadaires ou ateliers. Déjà partenaire de la Semmaris via TrainMe.",
       "meta": "Sur devis",
       "image": "/assets/images/champ-de-mars-teaching.jpg",
-      "image_alt": "Séance de groupe encadrée"
+      "image_alt": "Séance de groupe encadrée",
+      "video": "/assets/videos/enterprise-yoga.mp4",
+      "video_poster": "/assets/images/champ-de-mars-teaching.jpg"
     },
     {
       "kicker": "Plein air",

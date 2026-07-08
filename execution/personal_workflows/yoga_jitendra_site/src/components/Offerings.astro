@@ -24,9 +24,23 @@ import en from '../content/offerings.en.json';
       {fr.tiles.map((t, i) => (
         <article class="card flex flex-col overflow-hidden" data-reveal>
           <div class="relative aspect-[4/3] -m-6 mb-4 overflow-hidden rounded-t-[1.25rem]">
-            <img src={t.image} alt={t.image_alt}
-                 width="800" height="600" loading="lazy" decoding="async"
-                 class="w-full h-full object-cover" />
+            {t.video ? (
+              <video
+                src={t.video}
+                poster={t.video_poster ?? t.image}
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-label={t.image_alt}
+                class="w-full h-full object-cover"
+              />
+            ) : (
+              <img src={t.image} alt={t.image_alt}
+                   width="800" height="600" loading="lazy" decoding="async"
+                   class="w-full h-full object-cover" />
+            )}
           </div>
           <p class="eyebrow mb-2">
             <span data-lang-content="fr">{t.kicker}</span>

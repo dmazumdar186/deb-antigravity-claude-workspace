@@ -25,7 +25,9 @@
       "blurb": "Weekly classes or workshops. Already partnered with Semmaris via TrainMe.",
       "meta": "On request",
       "image": "/assets/images/champ-de-mars-teaching.jpg",
-      "image_alt": "Group session at Champ-de-Mars"
+      "image_alt": "Group session at Champ-de-Mars",
+      "video": "/assets/videos/enterprise-yoga.mp4",
+      "video_poster": "/assets/images/champ-de-mars-teaching.jpg"
     },
     {
       "kicker": "Outdoors",
