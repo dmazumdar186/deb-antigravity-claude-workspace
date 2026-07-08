@@ -117,14 +117,16 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   </script>
 
   <!--
-    Ambient audio: three-layer procedural traditional yoga soundscape, fully invisible
-    (no UI button). Auto-starts on the first user gesture — any mousemove, pointer,
-    touch, scroll, or keydown fires it once. Layers:
-      (1) TANPURA drone — Sa (C3) + slight detune + Pa (G3) + upper Sa (C4)
-      (2) BANSURI-like flute notes on Raga Bhairav, played stochastically every 4-11s
-      (3) OM chant — formant-synthesised A-U-M voice, 3 detuned voices in chorus,
-          slow attack, mouth-closes-to-M transition, repeated every ~18-32s
-    Browsers forbid true autoplay-with-sound; this is as close as legal.
+    Ambient audio: Om chant as the featured music (Jitendra's request 2026-07-08).
+    Two layers only now:
+      (1) TANPURA drone — Sa (C3) + slight detune + Pa (G3) + upper Sa (C4).
+          Softer than before so it sits *under* the Om, not alongside it.
+          Same role a real tanpura plays behind a chanter: sustained tonal support.
+      (2) OM chant — formant-synthesised A-U-M voice, 3 detuned voices in chorus,
+          slow attack, mouth-closes-to-M transition. Retriggers every ~15-18s so
+          it feels like a continuous chanter taking one breath between cycles.
+    The bansuri/flute layer has been removed — melodic notes pulled focus away
+    from the Om. Browsers forbid true autoplay-with-sound; this is as close as legal.
   -->
   <script is:inline>
     (function() {
@@ -146,7 +148,9 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
         comp.connect(ctx.destination);
 
         drone = ctx.createGain();
-        drone.gain.value = 0.055;
+        // Softened from 0.055 → 0.032 so tanpura sits UNDER the Om chant instead
+        // of alongside it. Traditional accompaniment role: sustained tonal bed.
+        drone.gain.value = 0.032;
         drone.connect(master);
 
         var voices = [
@@ -300,8 +304,10 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
           src.stop(t0 + end + 0.1); vib.stop(t0 + end + 0.1);
         }
 
-        // Schedule next Om between 18 and 32 seconds later (leaves silence to breathe)
-        omTimer = setTimeout(playOm, 18000 + Math.floor(Math.random() * 14000));
+        // Continuous chanting: next Om starts ~1-4s after this one finishes.
+        // Om length ≈ 14s (attack 2 + A 2 + slide 1.5 + U 1.5 + slide 1.5 + M 2.5 + release 3).
+        // 15-18s reschedule = one breath's pause between cycles — how real chanters do it.
+        omTimer = setTimeout(playOm, 15000 + Math.floor(Math.random() * 3000));
       }
 
       function start() {
@@ -316,8 +322,9 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
         master.gain.linearRampToValueAtTime(0.60, ctx.currentTime + 3.5);
         playing = true; started = true;
         if (toggle) { toggle.classList.remove('is-muted'); toggle.setAttribute('aria-pressed', 'true'); }
-        fluteTimer = setTimeout(playFluteNote, 3000);
-        omTimer    = setTimeout(playOm, 6000);
+        // Flute layer disabled (Jitendra 2026-07-08): Om chant is the featured music.
+        // playFluteNote() and fluteTimer are kept in source as dead code for quick revival.
+        omTimer = setTimeout(playOm, 3500);
       }
 
       function stop() {
