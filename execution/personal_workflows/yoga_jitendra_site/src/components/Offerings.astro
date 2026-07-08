@@ -36,6 +36,22 @@ import en from '../content/offerings.en.json';
                 aria-label={t.image_alt}
                 class="w-full h-full object-cover"
               />
+            ) : t.images && t.images.length > 1 ? (
+              <div class="crossfade" aria-label={t.image_alt} role="img">
+                {t.images.map((im, k) => (
+                  <img
+                    src={im.src}
+                    alt={im.alt}
+                    width="800"
+                    height="600"
+                    loading="lazy"
+                    decoding="async"
+                    class="crossfade-img"
+                    style={`animation-delay: ${k * (t.images.length === 2 ? 7 : 5)}s;`}
+                    data-k={k}
+                  />
+                ))}
+              </div>
             ) : (
               <img src={t.image} alt={t.image_alt}
                    width="800" height="600" loading="lazy" decoding="async"
@@ -63,3 +79,36 @@ import en from '../content/offerings.en.json';
     </div>
   </div>
 </section>
+
+<style>
+  /* Crossfade for tiles that provide `images: [...]` instead of a single image.
+     Rhythm (2-photo cycle, 14s total): 5s dwell → 2s fade → 5s dwell → 2s fade.
+     Slow and calm — closer to a breath cycle than a slideshow. Uses opacity
+     only (no transform) so nothing "moves" — it feels like a gentle inhale/exhale. */
+  .crossfade {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .crossfade-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    animation: crossfade-two 14s ease-in-out infinite;
+  }
+  @keyframes crossfade-two {
+    0%   { opacity: 0; }
+    14%  { opacity: 1; }   /* fade-in over ~2s */
+    50%  { opacity: 1; }   /* hold ~5s */
+    64%  { opacity: 0; }   /* fade-out over ~2s */
+    100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* Users who ask for less motion get a static first frame — no fading. */
+    .crossfade-img { animation: none; opacity: 0; }
+    .crossfade-img[data-k="0"] { opacity: 1; }
+  }
+</style>

@@ -8,8 +8,8 @@
       "title": "Private session at the studio",
       "blurb": "Private studio in Paris 16 (Passy). Tailored to you, precise alignment, individual progression.",
       "meta": "On request · 60 min",
-      "image": "/assets/images/studio-passy.jpg",
-      "image_alt": "Yoga studio in Passy, Paris 16"
+      "image": "/assets/images/studio-jitendra-class.jpg",
+      "image_alt": "Hatha Yoga class at the Passy studio — Dhanurasana (bow pose)"
     },
     {
       "kicker": "At your home",
@@ -35,7 +35,11 @@
       "blurb": "Champ-de-Mars, Parc Montsouris. Open sessions announced on MeetUp « Paris Hatha yoga ».",
       "meta": "On request · MeetUp",
       "image": "/assets/images/meditation-lotus-park.jpg",
-      "image_alt": "Lotus meditation in a Paris park"
+      "image_alt": "Lotus meditation in a Paris park",
+      "images": [
+        { "src": "/assets/images/studio-passy.jpg",         "alt": "Yoga studio in Passy, Paris 16" },
+        { "src": "/assets/images/meditation-lotus-park.jpg", "alt": "Lotus meditation in a Paris park" }
+      ]
     }
   ]
 }

@@ -8,8 +8,8 @@
       "title": "Cours particulier au studio",
       "blurb": "Studio privé Paris 16 (Passy). Séance sur mesure, alignement précis, progression individuelle.",
       "meta": "Sur devis · 60 min",
-      "image": "/assets/images/studio-passy.jpg",
-      "image_alt": "Studio de yoga à Passy, Paris 16"
+      "image": "/assets/images/studio-jitendra-class.jpg",
+      "image_alt": "Cours de Hatha Yoga au studio Passy — Dhanurasana (posture de l'arc)"
     },
     {
       "kicker": "À domicile",
@@ -35,7 +35,11 @@
       "blurb": "Champ-de-Mars, Parc Montsouris. Sessions ouvertes annoncées sur MeetUp « Paris Hatha yoga ».",
       "meta": "Sur devis · MeetUp",
       "image": "/assets/images/meditation-lotus-park.jpg",
-      "image_alt": "Méditation en lotus dans un parc parisien"
+      "image_alt": "Méditation en lotus dans un parc parisien",
+      "images": [
+        { "src": "/assets/images/studio-passy.jpg",         "alt": "Studio de yoga à Passy, Paris 16" },
+        { "src": "/assets/images/meditation-lotus-park.jpg", "alt": "Méditation en lotus dans un parc parisien" }
+      ]
     }
   ]
 }
