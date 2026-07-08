@@ -57,34 +57,54 @@ REQUIRED_SANSKRIT = [
 ]
 
 REQUIRED_CONTRACT = [
-    ("WhatsApp CTA",       "wa.me/33758255583"),
-    ("phone tel link",     "tel:+33758255583"),
-    ("email mailto link",  "jitendranitrr13@gmail.com"),
-    ("studio address",     "22 rue Eugène Manuel"),
-    ("hero backdrop",      "hero-backdrop"),
-    ("mandala rotation",   "mandala-spin"),
-    ("om chant JS",        "playOm"),
-    ("flute JS",           "playFluteNote"),
-    ("tanpura JS",         "buildDrone"),
-    ("first-gesture auto", "firstGesture"),
+    ("WhatsApp CTA",         "wa.me/33758255583"),
+    ("phone tel link",       "tel:+33758255583"),
+    ("email mailto link",    "jitendranitrr13@gmail.com"),
+    ("studio address",       "22 rue Eugène Manuel"),
+    ("hero backdrop",        "hero-backdrop"),
+    ("mandala rotation",     "mandala-spin"),
+    # Audio: real vocal Om chant recording (replaces formant-synth playOm/playFluteNote as of 2026-07-08).
+    ("om audio element",     'id="om-audio"'),
+    ("om chant asset",       "om-aum-chant.mp3"),
+    ("tanpura JS",           "buildDrone"),
+    ("first-gesture auto",   "firstGesture"),
+    ("audio mute button",    "data-audio-toggle"),
+    # No pricing anywhere on site (Jitendra's rule, 2026-07-08).
+    ("all offerings on quote",  "Sur devis"),
+    # Lineage yantra backdrop (2026-07-08).
+    ("lineage yantra backdrop", "lineage-yantra-bg"),
+    # Footer credit link (Debanjan + ProdCraft, 2026-07-08).
+    ("footer designer credit FR", "Conçu par Debanjan"),
+    ("footer designer credit EN", "Designed by Debanjan"),
+    ("footer prodcraft link",     "prodcraft.fyi"),
+    # Enterprise-tile video (Jitendra's group session, 2026-07-08).
+    ("enterprise video",     "enterprise-yoga.mp4"),
+    # Open-air-tile crossfade (2026-07-08).
+    ("crossfade markup",     "data-crossfade"),
+    ("crossfade active flag","is-active"),
 ]
 
 REQUIRED_ASSETS = [
-    ("hero image",         "champ-de-mars-eiffel"),
-    ("portrait image",     "portrait-namaste"),
-    ("teaching image",     "teaching-backbend"),
-    ("meditation image",   "meditation-portrait"),
+    ("hero image",             "champ-de-mars-eiffel"),
+    ("portrait image",         "portrait-namaste"),
+    ("teaching image",         "teaching-backbend"),
+    ("meditation image",       "meditation-portrait"),
+    # New studio image (Jitendra's class in Dhanurasana, added 2026-07-08).
+    ("studio class image",     "studio-jitendra-class.jpg"),
 ]
 
 BANNED_STRINGS = [
-    ("no placeholder tokens",           "{{"),
-    ("no removed gallery montsouris",   "gallery-montsouris"),
-    ("no removed gallery interiors",    "gallery-studio-interiors"),
-    ("no leaked ProdCraft brand",       "ProdCraft"),
-    ("no leaked Debanjan brand",        "Debanjan"),
+    ("no placeholder tokens",             "{{"),
+    ("no removed gallery montsouris",     "gallery-montsouris"),
+    ("no removed gallery interiors",      "gallery-studio-interiors"),
+    # No pricing anywhere on site (client rule, 2026-07-08).
+    ("no priceRange in schema",           '"priceRange"'),
+    ("no euro-price literal",             "60 €"),
+    ("no dollar-price literal",           "€60"),
+    ("no dead formant-Om code",           "playOm"),
+    ("no dead flute code",                "playFluteNote"),
+    # ProdCraft + Debanjan are now INTENTIONAL in the footer credit — removed from banned.
 ]
-
-REQUIRED_CONTRACT.append(("audio mute button", "data-audio-toggle"))
 
 
 @dataclass
