@@ -37,7 +37,7 @@ import en from '../content/offerings.en.json';
                 class="w-full h-full object-cover"
               />
             ) : t.images && t.images.length > 1 ? (
-              <div class="crossfade" aria-label={t.image_alt} role="img">
+              <div class="crossfade" data-crossfade aria-label={t.image_alt} role="img">
                 {t.images.map((im, k) => (
                   <img
                     src={im.src}
@@ -46,8 +46,7 @@ import en from '../content/offerings.en.json';
                     height="600"
                     loading="lazy"
                     decoding="async"
-                    class="crossfade-img"
-                    style={`animation-delay: ${k * (t.images.length === 2 ? 7 : 5)}s;`}
+                    class={`crossfade-img${k === 0 ? ' is-active' : ''}`}
                     data-k={k}
                   />
                 ))}
@@ -81,10 +80,10 @@ import en from '../content/offerings.en.json';
 </section>
 
 <style>
-  /* Crossfade for tiles that provide `images: [...]` instead of a single image.
-     Rhythm (2-photo cycle, 14s total): 5s dwell → 2s fade → 5s dwell → 2s fade.
-     Slow and calm — closer to a breath cycle than a slideshow. Uses opacity
-     only (no transform) so nothing "moves" — it feels like a gentle inhale/exhale. */
+  /* Crossfade for tiles with `images: [...]`.
+     JS-driven (see script below) — toggles `.is-active` on one image at a time.
+     CSS handles the fade with a slow opacity transition. Rock-solid; no
+     animation-delay + infinite-iteration quirks. */
   .crossfade {
     position: absolute;
     inset: 0;
@@ -97,18 +96,57 @@ import en from '../content/offerings.en.json';
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    animation: crossfade-two 14s ease-in-out infinite;
+    transition: opacity 2s ease-in-out;
   }
-  @keyframes crossfade-two {
-    0%   { opacity: 0; }
-    14%  { opacity: 1; }   /* fade-in over ~2s */
-    50%  { opacity: 1; }   /* hold ~5s */
-    64%  { opacity: 0; }   /* fade-out over ~2s */
-    100% { opacity: 0; }
-  }
+  .crossfade-img.is-active { opacity: 1; }
   @media (prefers-reduced-motion: reduce) {
-    /* Users who ask for less motion get a static first frame — no fading. */
-    .crossfade-img { animation: none; opacity: 0; }
-    .crossfade-img[data-k="0"] { opacity: 1; }
+    /* Users who ask for less motion get the first frame only, no fade. */
+    .crossfade-img { transition: none; }
   }
 </style>
+
+<script is:inline>
+  /* Drive the .crossfade tiles. Every 5s of dwell, we swap `.is-active` between
+     images; CSS handles the 2s ease-in-out opacity crossfade. Pauses when the
+     tile scrolls out of view (IntersectionObserver) so it's not chewing CPU
+     for content nobody's looking at. */
+  (function () {
+    var DWELL_MS = 5000;
+    var groups = document.querySelectorAll('[data-crossfade]');
+    if (!groups.length) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    groups.forEach(function (el) {
+      var imgs = el.querySelectorAll('.crossfade-img');
+      if (imgs.length < 2) return;
+      var idx = 0, timer = null, visible = false;
+
+      function tick() {
+        imgs[idx].classList.remove('is-active');
+        idx = (idx + 1) % imgs.length;
+        imgs[idx].classList.add('is-active');
+      }
+      function play() {
+        if (timer) return;
+        timer = setInterval(tick, DWELL_MS);
+      }
+      function pause() {
+        if (!timer) return;
+        clearInterval(timer);
+        timer = null;
+      }
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            visible = e.isIntersecting;
+            if (visible) play(); else pause();
+          });
+        }, { threshold: 0.1 }).observe(el);
+      } else {
+        play();
+      }
+    });
+  })();
+</script>

@@ -82,6 +82,14 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   </script>
 </head>
 <body class="min-h-screen antialiased">
+  <!-- Om chant recording. `preload="auto"` so first-gesture playback is instant. -->
+  <audio
+    id="om-audio"
+    src="/assets/audio/om-aum-chant.mp3"
+    preload="auto"
+    loop
+    aria-hidden="true"
+  ></audio>
   <slot />
 
   <!-- Motion One: fade-up reveals; skipped under prefers-reduced-motion -->
@@ -117,27 +125,35 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   </script>
 
   <!--
-    Ambient audio: Om chant as the featured music (Jitendra's request 2026-07-08).
-    Two layers only now:
-      (1) TANPURA drone — Sa (C3) + slight detune + Pa (G3) + upper Sa (C4).
-          Softer than before so it sits *under* the Om, not alongside it.
-          Same role a real tanpura plays behind a chanter: sustained tonal support.
-      (2) OM chant — formant-synthesised A-U-M voice, 3 detuned voices in chorus,
-          slow attack, mouth-closes-to-M transition. Retriggers every ~15-18s so
-          it feels like a continuous chanter taking one breath between cycles.
-    The bansuri/flute layer has been removed — melodic notes pulled focus away
-    from the Om. Browsers forbid true autoplay-with-sound; this is as close as legal.
+    Ambient audio: real human-voice Om (Aum) chant recording.
+    Jitendra 2026-07-08: "it's just a vibration, the OM is very very faint,
+    it should be an OM chant." Correct — the previous formant-synth Om read
+    as a hum, not a chant. Replaced with an actual vocal recording.
+
+    SOURCE: freesound.org/people/itinerantmonk108/sounds/696440/
+      "Aum in concrete pipe" — CC0 (Creative Commons Zero, public domain).
+      A vocal Aum recorded with natural echo in a concrete space.
+      No attribution required (kept here for provenance).
+      File: public/assets/audio/om-aum-chant.mp3 (211 KB, 128 kbps mono).
+
+    Two layers:
+      (1) The Om recording — <audio loop>, primary voice.
+      (2) TANPURA drone — procedural sine bed via Web Audio, sits under the
+          Om as traditional accompaniment (the role a real tanpura plays behind
+          a chanter). Very soft so it never competes with the voice.
+
+    Browsers forbid autoplay-with-sound — starts on first user gesture.
   -->
   <script is:inline>
     (function() {
       var ctx = null, master = null, drone = null;
-      var fluteTimer = null, omTimer = null;
       var playing = false, started = false;
+      var omEl = document.getElementById('om-audio');
 
       function buildDrone() {
         master = ctx.createGain();
         master.gain.value = 0;
-        // Soft-clip / compressor prevents clipping when tanpura + flute + Om chorus stack.
+        // Soft-clip / compressor keeps the tanpura from clipping when it stacks.
         var comp = ctx.createDynamicsCompressor();
         comp.threshold.value = -18;
         comp.knee.value = 12;
@@ -148,9 +164,8 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
         comp.connect(ctx.destination);
 
         drone = ctx.createGain();
-        // Softened from 0.055 → 0.032 so tanpura sits UNDER the Om chant instead
-        // of alongside it. Traditional accompaniment role: sustained tonal bed.
-        drone.gain.value = 0.032;
+        // Very soft — the Om recording IS the music now; tanpura is bed only.
+        drone.gain.value = 0.028;
         drone.connect(master);
 
         var voices = [
@@ -172,144 +187,6 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
         lfo.connect(lfoGain); lfoGain.connect(drone.gain); lfo.start();
       }
 
-      // Raga Bhairav — dawn / meditation raga
-      var RAGA = [261.63, 277.18, 329.63, 349.23, 392.00, 415.30, 493.88, 523.25];
-
-      function playFluteNote() {
-        if (!playing || !ctx) return;
-        var now = ctx.currentTime;
-        var freq = RAGA[Math.floor(Math.random() * RAGA.length)];
-        if (Math.random() < 0.20) freq = freq / 2;
-
-        var noteGain = ctx.createGain();
-        noteGain.gain.value = 0;
-        noteGain.connect(master);
-
-        var o1 = ctx.createOscillator();
-        o1.type = 'sine'; o1.frequency.value = freq;
-        var g1 = ctx.createGain(); g1.gain.value = 1.0;
-        o1.connect(g1); g1.connect(noteGain);
-
-        var o2 = ctx.createOscillator();
-        o2.type = 'sine'; o2.frequency.value = freq * 2;
-        var g2 = ctx.createGain(); g2.gain.value = 0.18;
-        o2.connect(g2); g2.connect(noteGain);
-
-        var vib = ctx.createOscillator();
-        vib.type = 'sine'; vib.frequency.value = 4.8;
-        var vibDepth = ctx.createGain(); vibDepth.gain.value = freq * 0.005;
-        vib.connect(vibDepth);
-        vibDepth.connect(o1.frequency); vibDepth.connect(o2.frequency);
-
-        var attack = 1.2 + Math.random() * 0.6;
-        var hold   = 1.5 + Math.random() * 1.5;
-        var release = 3.5 + Math.random() * 2.0;
-        var peak = 0.12 + Math.random() * 0.05;
-
-        noteGain.gain.setValueAtTime(0.0001, now);
-        noteGain.gain.exponentialRampToValueAtTime(peak, now + attack);
-        noteGain.gain.setValueAtTime(peak, now + attack + hold);
-        noteGain.gain.exponentialRampToValueAtTime(0.0001, now + attack + hold + release);
-
-        o1.start(now); o2.start(now); vib.start(now);
-        var stopAt = now + attack + hold + release + 0.05;
-        o1.stop(stopAt); o2.stop(stopAt); vib.stop(stopAt);
-
-        var gap = 4000 + Math.floor(Math.random() * 7000);
-        fluteTimer = setTimeout(playFluteNote, gap);
-      }
-
-      // OM CHANT — vowel formant synthesis, 3 chorus voices, A → U → M transition.
-      // Vowel formants (Hz):  A: F1=730 F2=1090 F3=2440
-      //                       U: F1=300 F2=870  F3=2240
-      //                       M: F1=270 F2=1300 (nasal murmur)
-      function playOm() {
-        if (!playing || !ctx) return;
-        var now = ctx.currentTime;
-        var base = 130.81; // C3, same Sa as tanpura — blends cleanly
-
-        var omBus = ctx.createGain();
-        omBus.gain.value = 0.45;
-        omBus.connect(master);
-
-        // Duration segments (seconds from now)
-        var attackDur = 2.0;   // slow "aaa" fade-in
-        var aHold     = 2.0;   // "AAA"
-        var toU       = 1.5;   // A → U slide
-        var uHold     = 1.5;   // "UUU"
-        var toM       = 1.5;   // U → M slide (mouth closing)
-        var mHold     = 2.5;   // "MMM" (nasal)
-        var release   = 3.0;   // fade
-        var end = attackDur + aHold + toU + uHold + toM + mHold + release;
-
-        // Three detuned chorus voices
-        for (var v = 0; v < 3; v++) {
-          var detuneCents = (v - 1) * 8; // -8, 0, +8 cents
-          var pitchMul = Math.pow(2, detuneCents / 1200);
-          var voiceHz = base * pitchMul;
-
-          // Rich source: sawtooth for harmonic content
-          var src = ctx.createOscillator();
-          src.type = 'sawtooth';
-          src.frequency.value = voiceHz;
-
-          // Slow vibrato ~4.5 Hz, ±0.6% depth
-          var vib = ctx.createOscillator();
-          vib.type = 'sine'; vib.frequency.value = 4.5 + v * 0.3;
-          var vibDepth = ctx.createGain(); vibDepth.gain.value = voiceHz * 0.006;
-          vib.connect(vibDepth); vibDepth.connect(src.frequency);
-
-          // Formant filters — 3 stacked bandpass filters
-          var f1 = ctx.createBiquadFilter(); f1.type = 'bandpass'; f1.Q.value = 7;
-          var f2 = ctx.createBiquadFilter(); f2.type = 'bandpass'; f2.Q.value = 9;
-          var f3 = ctx.createBiquadFilter(); f3.type = 'bandpass'; f3.Q.value = 12;
-
-          // Formant automation — schedule the A → U → M vowel slide
-          var t0 = now;
-          var tAstart = t0;
-          var tAend   = tAstart + attackDur + aHold;
-          var tUstart = tAend + toU;
-          var tUend   = tUstart + uHold;
-          var tMstart = tUend + toM;
-          var tMend   = tMstart + mHold + release;
-
-          // A vowel formants
-          f1.frequency.setValueAtTime(730, tAstart);
-          f2.frequency.setValueAtTime(1090, tAstart);
-          f3.frequency.setValueAtTime(2440, tAstart);
-
-          // Slide to U
-          f1.frequency.exponentialRampToValueAtTime(300, tUstart);
-          f2.frequency.exponentialRampToValueAtTime(870, tUstart);
-          f3.frequency.exponentialRampToValueAtTime(2240, tUstart);
-
-          // Hold U, then slide to M (nasal)
-          f1.frequency.exponentialRampToValueAtTime(270, tMstart);
-          f2.frequency.exponentialRampToValueAtTime(1300, tMstart);
-          f3.frequency.exponentialRampToValueAtTime(2000, tMstart);
-
-          // Amplitude envelope for the voice
-          var env = ctx.createGain();
-          env.gain.setValueAtTime(0.0001, tAstart);
-          env.gain.exponentialRampToValueAtTime(0.32, tAstart + attackDur);
-          env.gain.setValueAtTime(0.32, tUend);
-          // Quieter during M (mouth closed, less energy)
-          env.gain.exponentialRampToValueAtTime(0.20, tMstart);
-          env.gain.exponentialRampToValueAtTime(0.0001, tMend);
-
-          // Chain: src -> f1 -> f2 -> f3 -> env -> omBus
-          src.connect(f1); f1.connect(f2); f2.connect(f3); f3.connect(env); env.connect(omBus);
-
-          src.start(t0); vib.start(t0);
-          src.stop(t0 + end + 0.1); vib.stop(t0 + end + 0.1);
-        }
-
-        // Continuous chanting: next Om starts ~1-4s after this one finishes.
-        // Om length ≈ 14s (attack 2 + A 2 + slide 1.5 + U 1.5 + slide 1.5 + M 2.5 + release 3).
-        // 15-18s reschedule = one breath's pause between cycles — how real chanters do it.
-        omTimer = setTimeout(playOm, 15000 + Math.floor(Math.random() * 3000));
-      }
-
       function start() {
         if (started || userMuted) return;
         if (!ctx) {
@@ -320,21 +197,28 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
         master.gain.cancelScheduledValues(ctx.currentTime);
         master.gain.setValueAtTime(0, ctx.currentTime);
         master.gain.linearRampToValueAtTime(0.60, ctx.currentTime + 3.5);
+
+        // Play the Om recording. `loop` on the <audio> handles infinite repeat;
+        // browsers add a small (~50-200ms) gap at each loop point which reads
+        // as a natural inhale between chants — desirable, not a bug.
+        if (omEl) {
+          omEl.volume = 0.9;      // recording is quiet by nature, push hot.
+          omEl.currentTime = 0;
+          var p = omEl.play();
+          if (p && typeof p.catch === 'function') p.catch(function() {});
+        }
+
         playing = true; started = true;
         if (toggle) { toggle.classList.remove('is-muted'); toggle.setAttribute('aria-pressed', 'true'); }
-        // Flute layer disabled (Jitendra 2026-07-08): Om chant is the featured music.
-        // playFluteNote() and fluteTimer are kept in source as dead code for quick revival.
-        omTimer = setTimeout(playOm, 3500);
       }
 
       function stop() {
+        if (omEl) { try { omEl.pause(); } catch (e) {} }
         if (!ctx) return;
         master.gain.cancelScheduledValues(ctx.currentTime);
         master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
         master.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
         playing = false;
-        if (fluteTimer) { clearTimeout(fluteTimer); fluteTimer = null; }
-        if (omTimer)    { clearTimeout(omTimer);    omTimer = null; }
         if (toggle) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
       }
 
