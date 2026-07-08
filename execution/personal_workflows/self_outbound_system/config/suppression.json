@@ -1,0 +1,13 @@
+{
+  "_description": "GDPR/CNIL opt-out suppression. Every entry here is PERMANENTLY excluded from outbound. Minimum 30-day retention per CNIL guidance; longer is fine. Seeded with AM-locked domains so a bad diff to icp.json can never re-enable outreach to AM-scoped accounts.",
+  "_source_rule": "~/.claude/rules/output-acceptance-gate.md + directives/personal_workflows/self_outbound_system.md §Edge Cases (GDPR)",
+  "_last_updated": "2026-07-08",
+  "_writer_owed": "webhook_receiver (Phase 3 leftover) must append to `emails` when reply_classifier returns `negative`, with timestamped entry in `history`.",
+  "emails": [],
+  "domains": [
+    "accessorymasters.co",
+    "elitebrokergroup.com",
+    "hedgestone.com"
+  ],
+  "history": []
+}

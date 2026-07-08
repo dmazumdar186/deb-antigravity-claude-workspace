@@ -1,0 +1,8 @@
+{
+  "_description": "Dry-run smoke test fixture. Do NOT use in production sends. All emails are fabricated. Populated so sourcer.py --dry-run returns non-empty.",
+  "leads": [
+    {"email": "founder@techseedco.com",  "name": "Sarah Chen",     "title": "Founder & CEO",     "company": "TechSeedCo",    "domain": "techseedco.com",    "linkedin_url": "https://linkedin.com/in/example-1", "notes": "Just raised seed. AI feature stuck in backlog. Wants to ship this quarter, urgent, has budget.",     "segment_hint": "founders_seed_to_a"},
+    {"email": "owner@growthagency.com",  "name": "Marc Dubois",    "title": "Agency Owner",      "company": "Growth Agency", "domain": "growthagency.com",  "linkedin_url": "https://linkedin.com/in/example-2", "notes": "5-person agency. Pipeline thin. Considering SDR ($60k) or automation, urgent this quarter.",         "segment_hint": "sme_agency_owners"},
+    {"email": "vp.product@scaleup.io",   "name": "Priya Sharma",   "title": "VP Product",        "company": "ScaleUp Inc",   "domain": "scaleup.io",        "linkedin_url": "https://linkedin.com/in/example-3", "notes": "Series B. Roadmap gap for AI feature. Can't get eng cycles. Exploring fractional, urgent.",         "segment_hint": "heads_of_product_ops"}
+  ]
+}

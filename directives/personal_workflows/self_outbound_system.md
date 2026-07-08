@@ -1,113 +1,271 @@
-# Self-Outbound System — Cold Outreach + Reply Routing
+# Self-Outbound System — Cold Outreach + Reply Routing (v2 / Blueprint A2)
+
+> **Status (2026-07-08):** v2 active. v1 (Cloudflare Worker + raw SMTP × 6–9 inboxes on 3 domains, referenced repo `github.com/dmazumdar186/outbound-engine`) is **deprecated** — repo was scaffolded but never deployed, no live domain reputation is at stake, safe to abandon. v2 uses Instantly.ai Growth for sending + reply-webhook, Sonnet 4.6 for personalization, Apify $5 credit + Million Verifier for sourcing, 1 warmed inbox on 1 secondary domain. See Changelog for the pivot rationale.
 
 ## Goal
 
-Run a self-sustaining cold-outreach engine that finds founder-led SaaS / DTC / agency prospects in US/CA/UK/AU/EU, sends 180–270 personalized emails/day across 6–9 warmed inboxes on 3 owned domains, classifies replies via LLM, auto-responds to positives with a Cal.com link, pages Debanjan on Telegram + Gmail label for hot leads, and books discovery calls. Sole purpose: surface paid project opportunities ($1–2.5K fixed-price builds across the full Claude-Code-buildable category).
+Run a self-sustaining cold-outreach engine that finds founder-led SaaS / DTC / agency prospects and Heads of Product / Ops at scaleups, sends ~20 personalized emails/day from 1 warmed inbox on 1 secondary domain, classifies replies via LLM, auto-responds to positives with a Cal.com link, pages Debanjan on Telegram + Gmail label for hot leads, and books discovery calls. **Sole purpose: surface paid project opportunities (€1–2.5k fixed-price builds across the full Claude-Code-buildable category).**
 
-The implementation (Cloudflare Worker + config + tests) lives in a **separate public repo**: `github.com/dmazumdar186/outbound-engine`. This directive is the operating SOP — it describes *what* the system does, *how to run it day-to-day*, *what to do when it breaks*, not the code itself.
-
-## When to Use
-
-- **Daily background:** the Worker runs its own crons; you do nothing unless a hot-lead Telegram ping arrives.
-- **Hot-lead ping:** book the meeting, do prep, close the deal.
-- **Weekly Monday morning:** read the Telegram weekly report; decide if A/B test winners need promoting, if a new ICP segment needs onboarding, if any inbox's mail-tester score has slipped.
-- **When you want to add a new tenant / niche / vertical:** edit `config/outbound.json` in the outbound-engine repo, redeploy.
-- **When a domain gets blacklisted:** retire the domain, register a new one, run the 4-week warmup, swap in via config.
+The system MUST NOT fail like `job_search_v2` did in June 2026 (fixture-only synthetics green while live pipeline produced 0 jobs/day for 3 days). Every phase gate is a LIVE assertion against real infrastructure, not a mock. Front-door synthetic + output-acceptance gate + 6-auditor mandatory stack apply.
 
 ## Inputs
 
-### Environment Variables (Cloudflare Worker secrets)
+### Environment Variables (in `.env`)
 
-| Variable | Purpose |
-|---|---|
-| `WORKER_SECRET` | `X-Worker-Secret` header on admin/cron endpoints |
-| `INSTANTLY_WEBHOOK_SECRET` *(if using Instantly fallback)* | Per-webhook auth for inbound reply notifications |
-| `GEMINI_API_KEY` | Google AI Studio — personalization + reply classification (free tier 1,500 RPD) |
-| `ANTHROPIC_API_KEY` | Claude Haiku for hot-lead auto-replies only (low volume, pennies/mo) |
-| `APOLLO_API_KEY` | Lead sourcing (free tier ~10K emails/mo) |
-| `TELEGRAM_BOT_TOKEN` | New bot, distinct from any AM-tied bot |
-| `TELEGRAM_CHAT_ID` | Debanjan's personal chat ID |
-| `GMAIL_OAUTH_REFRESH_TOKEN` | OAuth for Gmail Push API on the destination Gmail |
-| `SMTP_HOST_*`, `SMTP_USER_*`, `SMTP_PASS_*` per inbox | One set per of 6–9 inboxes; provider-agnostic (Hostinger / Migadu / Zoho) |
+| Variable | Purpose | Phase gated |
+|---|---|---|
+| `INSTANTLY_API_KEY` | Instantly Growth tier API access | Phase 1 |
+| `INSTANTLY_WEBHOOK_SECRET` | HMAC secret on inbound reply webhook | Phase 1 |
+| `INSTANTLY_CAMPAIGN_ID` | ID of the primary cold campaign (set after Phase 1) | Phase 1 |
+| `INSTANTLY_INBOX_EMAIL` | The single warmed inbox address (e.g. `debanjan@<secondary-domain>.com`) | Phase 1 |
+| `ANTHROPIC_API_KEY` | Claude Sonnet 4.6 for personalization + reply classification | already present |
+| `APIFY_API_TOKEN` | Free-tier $5/mo credit — Google Maps + LinkedIn Actors | Phase 1 |
+| `MILLION_VERIFIER_API_KEY` | Email verification (~€0.005/hit) | already present |
+| `TELEGRAM_BOT_TOKEN` | NEW bot, distinct from any AM-tied bot | Phase 1 |
+| `TELEGRAM_CHAT_ID` | Debanjan's personal chat ID | Phase 1 |
+| `GMAIL_OAUTH_REFRESH_TOKEN` | OAuth for Gmail Push API on `debolshop@gmail.com` (destination) | Phase 1 |
+| `CAL_COM_BOOKING_URL` | Public booking page URL | Phase 1 |
+| `MAILTESTER_EMAIL` | The mail-tester.com email address (rotates per test) | Phase 1 |
+| `SECONDARY_DOMAIN` | e.g. `prodcraft-outreach.com` | Phase 1 |
+| `KILL_SWITCH` | `1` to pause all sends without touching Instantly UI (safety valve) | ongoing |
 
-### Config Files (in outbound-engine repo)
+### Config Files (in `execution/personal_workflows/self_outbound_system/config/`)
 
-- `config/outbound.json` — ICP definition, geos, thresholds, API URLs, suppression list, inbox roster, daily send caps
-- `config/tone.json` — Email voice, never-say list, opener templates (Variants A/B/C from plan)
+- `icp.json` — ICP definition, mirrors `execution/personal_workflows/personal_brand/icp_and_positioning.md` (Founders / SMEs / VCs-as-referrers / Heads of Product). Segment → daily-send-cap → variant map.
+- `tone.json` — Email voice (from `personal_brand/icp_and_positioning.md` Outcomes-not-tech table + Proof spine), never-say list, opener templates (Variants A/B/C).
+- `suppression.json` — Permanent opt-outs (GDPR-compliant, 30d minimum retention proof).
+- `.env.template` — All variables above, sanitized.
 
 ## Tools / Scripts
 
-### Implementation repo
+Implementation lives IN THIS WORKSPACE under `execution/personal_workflows/self_outbound_system/`:
 
-- `github.com/dmazumdar186/outbound-engine` — Cloudflare Worker, single-file monolith at `src/index.js`. See repo README for build + deploy.
+| Script | Purpose | Phase |
+|---|---|---|
+| `run.py` | Daily entrypoint. Orchestrates source → enrich → filter → personalize → upload → digest. Reads `KILL_SWITCH`; halts if `1`. | Phase 3 |
+| `sourcer.py` | Apify Google Maps Actor + LinkedIn public-profile Actor. Stays under $5 CU/mo. Fallback: Hunter free 25/mo, or manual list from Crunchbase/PH/IH. | Phase 3 |
+| `enricher.py` | Reuses `execution/enrichment/anymailfinder_lookup.py` + `execution/enrichment/million_verifier.py` for email find + verify. | Phase 3 |
+| `icp_filter.py` | Reads `icp.json`. Filters raw leads by the 3-signal rule (outcome + budget + urgency). Rejects anti-ICP (equity-only, junior-dev-by-hour, enterprise procurement). | Phase 3 |
+| `personalizer.py` | Sonnet 4.6 with prompt caching. Generates: 1 subject line + 1 opener line (≤15 words, outcome-oriented per `tone.json`). ~€1.60/mo for 600 leads. | Phase 3 |
+| `instantly_client.py` | Wraps Instantly Growth API. Uploads leads to campaign, reads campaign stats, pauses/resumes. Reuses `execution/modules/outputs/instantly.py` as base. | Phase 3 |
+| `webhook_receiver.py` | Cloudflare Worker (deployed separately) receives Instantly reply webhook, HMAC-verifies, classifies via Sonnet, routes hot leads to Telegram + Gmail label. | Phase 3 |
+| `reply_classifier.py` | Sonnet 4.6 classifies replies into 5 buckets: `hot` / `positive` / `neutral` / `negative` / `auto_reply_or_OOO`. | Phase 3 |
+| `digest.py` | Nightly digest to Telegram + `debolshop@gmail.com`: `sent N / opened O / replied R / positive P / hot H / bounced B / canary=OK\|FAIL / warmup day X of 14`. | Phase 3 |
+| `canary.py` | Front-door synthetic. Sends 1 real email/day to a monitored inbox, asserts inbox placement (not spam) via mail-tester.com scoring + IMAP check of the destination. Hard-fails the daily run if placement fails. | Phase 3 |
+| `acceptance.py` | Output-acceptance gate. Reads Instantly campaign stats at end of day; asserts sends>0, bounce_rate<5%, unsubscribe_rate<0.3%, complaints=0. Hard-fails if any breach. | Phase 3 |
+| `killswitch.py` | One-shot: sets `KILL_SWITCH=1` in `.env` and pauses Instantly campaign via API. | Phase 3 |
 
-### Related directives in this workspace
+### Related directives
 
-- [`directives/gtm_client_workflows/_baseline_worker_checklist.md`](../gtm_client_workflows/_baseline_worker_checklist.md) — every Day-1, Architecture, LLM-guardrail, and Pre-handoff step that this system follows.
-- [`directives/infrastructure/canary_monitoring.md`](../infrastructure/canary_monitoring.md) — the `/api/health` + dry-run + scheduled probe pattern, applied verbatim.
-- [`directives/personalization/cold_email_sequences.md`](../personalization/cold_email_sequences.md) — *AM-coupled, DO NOT EDIT per AM lockdown.* Reference only for cold-email copy patterns when designing new variants here.
+- [`directives/personal_workflows/personal_brand/icp_and_positioning.md`](../personal_brand/icp_and_positioning.md) — ICP + wedge + proof spine. **Source of truth** for `icp.json` + `tone.json`.
+- [`directives/infrastructure/setup_instantly_webhook.md`](../../infrastructure/setup_instantly_webhook.md) — Cloudflare Worker webhook receiver pattern.
+- [`directives/infrastructure/domain_inbox_management.md`](../../infrastructure/domain_inbox_management.md) — Secondary-domain DNS + inbox provisioning patterns.
+- [`directives/infrastructure/canary_monitoring.md`](../../infrastructure/canary_monitoring.md) — `/api/health` + dry-run + scheduled probe pattern.
+- [`directives/gtm_client_workflows/_baseline_worker_checklist.md`](../../gtm_client_workflows/_baseline_worker_checklist.md) — Day-1, Architecture, LLM-guardrail, Pre-handoff checks.
+- **AM-locked, do NOT edit or copy from:** `directives/personalization/cold_email_sequences.md`, `directives/gtm_client_workflows/accessory_masters_*`, `execution/infrastructure/api-proxy/`.
 
 ## Outputs
 
-- Live emails sent from 6–9 inboxes at 30/inbox/day (after warmup).
-- Replies classified into 5 categories: `hot` / `positive` / `neutral` / `negative` / `auto_reply_or_OOO`.
-- Auto-replies to positives with 2–7 min human-timing delay + Cal.com link.
-- Telegram pings on hot leads, fired immediately.
-- "Interested" label applied to hot replies in `debolshop@gmail.com`.
-- Day-2 follow-ups via KV record + cron.
-- Weekly Monday 8am Telegram report: `sent / opened / replied / positive / hot / booked`.
+- ~20 personalized cold emails/day sent from 1 warmed inbox after 14-day warmup.
+- Replies classified into 5 buckets; hot leads route to Telegram within 3 minutes + Gmail "Interested" label.
+- Auto-replies to `positive` leads with 2–7 min human-timing delay + Cal.com link.
+- Day-2 auto-follow-up on non-openers via Instantly sequence step.
+- Nightly digest to Telegram + email: `sent / opened / replied / positive / hot / bounced / canary`.
+- Weekly Monday 08:00 Paris digest with 7-day rollup.
+- Suppression list synced daily (GDPR opt-outs, hard bounces).
 
 ## Steps
 
-### Day-to-day (passive)
-1. Worker runs unattended via Cloudflare Cron Triggers. No daily intervention.
-2. On hot-lead Telegram ping: read the reply, look up the prospect on LinkedIn (~2 min), tailor the discovery-call prep, take the meeting at the booked time.
-3. On booked-call Cal.com email: add to calendar, prep 15 min before.
-4. Every Monday morning: read weekly Telegram report. If anomalous (sent dropped, replies dropped, opens dropped) → check `/api/health`, check mail-tester scores per domain.
+### Phase 1 — Provisioning (operator-driven, ~1 day of clock time, ~€10 immediate spend)
+
+**Order matters.** Each step blocks the next. Expected total: 2–3 hours of hands-on time + up to 24h DNS propagation.
+
+#### 1.1 Register secondary domain (Porkbun, ~€10/yr = €0.85/mo)
+
+- Go to [porkbun.com](https://porkbun.com), search a domain that is:
+  - Related to the brand (`prodcraft-outreach.com`, `prodcraft-mail.com`, `prodcraft-connect.com`) but **NOT** the primary `prodcraft.fyi` — cold outreach must never touch the primary domain's reputation.
+  - `.com` preferred (best deliverability). `.io` acceptable. Avoid new gTLDs (`.xyz`, `.click`, `.online`) — Gmail treats them harshly.
+- Enable free WHOIS privacy at checkout (Porkbun default).
+- Cost: ~$11.06/yr for `.com`. Pay from personal card.
+
+#### 1.2 Google Workspace Business Starter seat (~€8.28/mo TTC)
+
+- Go to [workspace.google.com/pricing](https://workspace.google.com/pricing), pick **Business Starter**.
+- During signup, use the secondary domain from 1.1 as the primary Workspace domain.
+- Verify domain ownership via TXT record (Google walks you through it).
+- Create ONE user: `debanjan@<secondary-domain>.com` (or similar first-name-only, professional).
+- **Do not** connect to primary `prodcraft.fyi` Google account — this is a standalone tenant.
+
+#### 1.3 DNS records: SPF + DKIM + DMARC (all set at Porkbun)
+
+At Porkbun DNS panel, add:
+
+- **SPF (TXT on root `@`):** `v=spf1 include:_spf.google.com ~all`
+- **DKIM:** Google generates in Workspace Admin → Apps → Google Workspace → Gmail → Authenticate email. Copy the TXT record + host into Porkbun. Wait for propagation, then click "Start authentication" in Google.
+- **DMARC (TXT on `_dmarc.<domain>`):** `v=DMARC1; p=quarantine; rua=mailto:debanjan@<secondary-domain>.com; adkim=s; aspf=s`
+- Wait 24h for propagation. Verify at [mxtoolbox.com/emailhealth](https://mxtoolbox.com/emailhealth) — all three should be green.
+
+#### 1.4 Baseline deliverability test (mail-tester)
+
+- Send a plain test email from the new inbox to a fresh mail-tester.com address.
+- Score MUST be ≥9/10 before proceeding. If <9, fix flagged issues (usually DKIM alignment).
+
+#### 1.5 Instantly.ai Growth signup (~$37/mo ≈ €34)
+
+- Go to [instantly.ai/pricing](https://instantly.ai/pricing), pick **Growth** (or the current entry tier that includes API + webhooks — verify at signup).
+- **Choose EU data-center** during signup (GDPR-friendlier for a France-based operator).
+- Connect the GWS inbox via Google OAuth.
+- Enable Instantly's native warmup pool on the inbox. Do NOT start any campaign yet.
+- Generate API key + webhook secret. Store in `.env` as `INSTANTLY_API_KEY` and `INSTANTLY_WEBHOOK_SECRET`.
+
+#### 1.6 Cal.com booking link + Telegram bot
+
+- Cal.com: create a 30-minute "Free Build Session" event, no payment, min-notice 12h. URL → `.env` as `CAL_COM_BOOKING_URL`.
+- Telegram: create a new bot via @BotFather (name: e.g. `ProdCraftOutboundBot`). Get chat ID by messaging the bot then hitting `https://api.telegram.org/bot<TOKEN>/getUpdates`. Store token + chat ID in `.env`.
+
+#### 1.7 Apify free-tier account + API token
+
+- Sign up at [apify.com](https://apify.com), free tier gives $5/mo credit.
+- Generate API token → `.env` as `APIFY_API_TOKEN`.
+
+**Phase 1 exit criteria:**
+- MXToolbox emailhealth = green on all 3 records
+- mail-tester = ≥9/10
+- Instantly inbox connected + warmup enabled
+- All env vars in `.env`
+- Total monthly commitment starts: ~€48/mo TTC (€34 Instantly + €8 GWS + €1 domain amortized + Sonnet variable + Million Verifier variable). **This is the point of no return on the €48/mo budget — confirm before proceeding to Phase 2.**
+
+### Phase 2 — Warmup (14 days, passive, no operator action)
+
+- Instantly's warmup pool auto-exchanges positive signals with other Instantly warmup inboxes.
+- Daily warmup volume ramps from ~10/day to ~40/day over 14 days.
+- **NO COLD EMAIL SEND during warmup.** Zero exceptions.
+- Monitor daily: check Instantly warmup score at the end of each day.
+
+**Phase 2 exit criteria:**
+- Day 14 elapsed
+- Instantly warmup score ≥85
+- Second mail-tester test still ≥9/10
+- No spam-folder placement on any warmup exchange (Instantly reports this)
+
+### Phase 3 — Build pipeline (behind kill switch, dry-run only)
+
+Scaffold `execution/personal_workflows/self_outbound_system/` per the Tools/Scripts table above. Every script MUST:
+
+- Have module-level docstring with `description:`, `inputs:`, `outputs:` per workspace `python-execution.md` rule.
+- Load `.env` via `dotenv` at top.
+- Follow the 6 Python hardening rules (`~/.claude/rules/python-hardening.md`): utf-8 subprocess encoding, threading locks on shared state, LLM-supplied path validation, cache-aware Sonnet pricing, no bare-except, `dict(os.environ)` not `copy.copy(os.environ)`.
+- Support `--dry-run` mode: makes zero paid API calls, returns `would_*` counters.
+
+Build order (each committed independently):
+1. `sourcer.py` — Apify Google Maps Actor wrapper. Dry-run returns fixture leads.
+2. `icp_filter.py` — reads `icp.json`, rejects anti-ICP. Test corpus: 10 known-bad leads (equity-only, junior gigs, enterprise) MUST all reject; 10 known-good MUST all pass.
+3. `enricher.py` — wraps existing `anymailfinder_lookup.py` + `million_verifier.py`.
+4. `personalizer.py` — Sonnet with prompt caching. System prompt (400 tokens from `tone.json`) cached across the day.
+5. `instantly_client.py` — Instantly API wrapper. Dry-run uses `would_upload` counter.
+6. `webhook_receiver.py` — Cloudflare Worker. Deploy separately via `wrangler`. HMAC-verifies Instantly signature.
+7. `reply_classifier.py` — Sonnet classifier. Fixture: 20 known replies (5 per class × 4 non-`auto_reply` classes + 5 auto-replies) MUST route correctly.
+8. `digest.py` — Nightly digest.
+9. `canary.py` — front-door synthetic (see below).
+10. `acceptance.py` — output-acceptance gate (see below).
+11. `killswitch.py` — one-shot pause.
+12. `run.py` — orchestrator that calls 1→9 in order; reads `KILL_SWITCH` first and halts if `1`.
+
+**Front-door synthetic (`canary.py`, mandatory):**
+- Sends 1 real email/day from the warmed inbox to a monitored address I control (Gmail).
+- Reads inbox 5 min later, asserts email arrived in PRIMARY (not Spam / Promotions).
+- Uses mail-tester.com's programmatic email address (rotates per test) as a cross-check.
+- Runs BEFORE `run.py` fires the daily send. If canary FAILS, `run.py` halts the day, digests `canary=FAIL`, no cold sends.
+- Independent — does NOT reuse the pipeline's own filters/classifiers to check itself.
+
+**Output-acceptance gate (`acceptance.py`, mandatory):**
+- Runs at end of day AFTER Instantly has sent.
+- Reads Instantly campaign stats via API: `sends`, `bounces`, `unsubscribes`, `complaints`, `hard_bounces`.
+- Hard-fails the day if: `sends == 0` OR `bounce_rate > 5%` OR `unsubscribe_rate > 0.3%` OR `complaints > 0`.
+- **Frozen regression corpus** at `tests/acceptance_corpus.json`: 20 known-bad leads (wrong-language, wrong-ICP, junk domain, catchall) that MUST be rejected upstream, 12 known-good that MUST be kept. Runs after every code change; corpus catches the shared-oracle blind spot (per `~/.claude/rules/output-acceptance-gate.md` Exhibit B).
+
+**Phase 3 exit criteria (front-door + acceptance MUST hold 5 consecutive days IN DRY-RUN MODE):**
+- All 12 scripts committed, docstring'd, hardening rules pass
+- Front-door canary PASS × 5 consecutive days (still against monitored inbox; no cold sends)
+- Output-acceptance gate PASS × 5 consecutive days
+- Frozen corpus 32/32 PASS
+- 6-auditor mandatory audit stack fires and all report PASS (per `~/.claude/rules/mandatory-audit-stack.md`)
+
+### Phase 4 — Go-live canary week (15 emails/day for 7 days)
+
+- Enable `KILL_SWITCH=0`.
+- Cap daily send in Instantly campaign at 15/day (below the eventual 20).
+- Monitor: canary daily, acceptance daily, digest daily.
+- Any single day of FAIL → auto-halt via `killswitch.py`, digest to Telegram, root-cause required before resume.
+
+**Phase 4 exit criteria:**
+- 7 consecutive days green
+- Inbox placement ≥90% (measured via GlockApps 2 tests over the week — free tier)
+- Bounce rate <3%
+- Zero spam complaints
+- Kill-switch tested (fire it once mid-week, verify sends stop within 1 hour)
+
+### Phase 5 — Steady state (20 emails/day, weekly review)
+
+- Ramp Instantly cap to 20/day.
+- Monday 08:00 Paris weekly digest reviewed by operator.
+- Anomaly (sends dropped, replies dropped, opens dropped) → check `/api/health` on webhook Worker, check mail-tester score, page operator via Telegram.
+
+### Day-to-day (Phases 4–5, passive)
+
+1. Worker runs unattended. Operator does nothing unless a hot-lead Telegram ping arrives.
+2. **Hot-lead ping**: read reply → check prospect's LinkedIn (~2 min) → the auto-reply already sent the Cal.com link → prep 15 min before the call.
+3. **Booked call**: add to calendar; prep 15 min; close at €1–2.5k fixed-price, 1–3 weeks delivery; send brief written scope.
+4. **Monday morning**: read weekly Telegram digest. If anomalous → check `/api/health` + mail-tester + `canary.py` last 7 runs.
 
 ### Adding a new ICP segment / vertical
-1. In outbound-engine repo, edit `config/outbound.json` → add new `icp_segment` entry.
-2. Update sourcing query (Apollo filters or manual list).
-3. Update `config/tone.json` with variant-specific opener if needed.
-4. Run `npm run dry-run -- --segment=new_segment` locally. Verify `would_send` is non-zero and rejection reasons are sane.
-5. `wrangler deploy` to your personal Cloudflare account.
-6. Monitor for 48h before scaling.
 
-### Onboarding a new domain (when one gets blacklisted or volume grows)
-1. Register at Cloudflare (.com) or Porkbun (alt-TLD).
-2. DNS: SPF, DKIM, DMARC `p=quarantine`.
-3. Provision 3 inboxes at chosen mailbox provider.
-4. Forward to `debolshop@gmail.com`.
-5. Add inbox credentials to Worker secrets: `SMTP_HOST_N`, `SMTP_USER_N`, `SMTP_PASS_N`.
-6. Mark inboxes as `warmup` in `config/outbound.json` for 28 days. Worker auto-runs warmup cron.
-7. After 28 days + mail-tester score ≥9, flip to `active`. Redeploy.
+1. Edit `execution/personal_workflows/self_outbound_system/config/icp.json` — add new segment.
+2. Add matching entry to `tone.json` if voice differs by segment.
+3. Update Apify Actor query if source list differs.
+4. Run `py execution/personal_workflows/self_outbound_system/run.py --dry-run --segment=<new>`. Verify `would_send > 0` + rejection reasons are sane.
+5. Add 5+ known-good and 5+ known-bad leads for the new segment to `tests/acceptance_corpus.json`.
+6. Live for 48h before scaling.
 
-### Handling a hot-lead Telegram ping
-1. Open the reply in your Gmail (filtered "Interested" label).
-2. Read the prospect's LinkedIn / company site (~3 min).
-3. Reply manually from the booking confirmation email if needed, or let the auto-reply Cal.com link do the work.
-4. Prep 15 min before the call — review their company, their probable backlog, your most relevant proof points.
-5. After the call: close at $1–2.5K fixed-price, 1–3 weeks delivery. Send a brief written scope.
+### Onboarding a new domain (Phase 6+ future scaling — NOT in v2 initial scope)
+
+Same as v1 process: register + DNS + Workspace seat + 4-week warmup + flip to active. v2 stays on 1 domain until first paid project banks; v3 can scale to 3 domains × 3 inboxes if volume needs demand it.
 
 ## Edge Cases
 
-- **Domain blacklisting** — biggest single risk. Check Spamhaus + MXToolbox weekly via `/api/health`. If reputation drops, pull the domain from `active` to `paused` in config, register a replacement, run warmup.
-- **Apollo free-tier exhausted** — supplement with Snov.io ($29/mo), LinkedIn Sales Nav free trial, or manual list-building from Crunchbase / ProductHunt / IndieHackers.
-- **Gemini free tier hit** — switch to Gemini Pro paid (~$0.15/1M tokens) temporarily or rotate to Claude Haiku ($0.25/1M).
-- **Reply classifier confuses auto-reply/OOO for positive** — refine classifier prompt; add explicit OOO-text patterns to a hard-rule pre-filter.
-- **Gmail Push API silence** — polling fallback runs every 30 min. If both go silent, the canary will alert. Re-auth OAuth refresh token.
-- **Cal.com double-booking** — Cal.com handles this natively; if it ever happens, the Cal.com booking flow will block the conflicting slot.
-- **AM lockdown** — this system uses entirely separate accounts, domains, inboxes, credentials, and a separate Cloudflare account. Do not import code or copy paths from `execution/infrastructure/api-proxy/`. See `CLAUDE.local.md` "ACCESSORY MASTERS — LOCKDOWN" for the no-touch list.
-- **GDPR opt-out received** — Worker honors automatically (suppression KV). If a recipient explicitly emails "unsubscribe" without using the link, the classifier routes to `negative` and the contact lands in suppression permanently.
+- **Domain cold-start quarantine**: some ESPs quarantine newly-registered domains for 30–90 days regardless of warmup. Phase 2 (warmup) MUST run in parallel with the cold-start clock; don't shortcut. If placement stays <90% at end of Phase 2, extend warmup another 7 days.
+- **GDPR / CNIL B2B cold email in France**: legitimate-interest basis is legal in 2026 with three hard requirements enforced in the pipeline:
+  1. **LIA (Legitimate Interest Assessment)** document on file. Template in `execution/personal_workflows/self_outbound_system/legal/lia_template.md`. Reviewed once, filed.
+  2. **Unsubscribe link + physical postal address** in EVERY mail footer. Instantly template MUST include both. Acceptance gate asserts footer regex on every outbound draft.
+  3. **30-day suppression retention** minimum. Opt-outs stored in `suppression.json` with timestamp; hard-delete only after 30 days. `run.py` reads suppression at top; refuses to send to any suppressed email or domain.
+  Non-compliant B2B still gets fined — SOLOCAL €900k+ in 2025 for missing these.
+- **Instantly free-tier warmup exhausted or account restricted**: no fallback path built-in. Manual intervention required. Suspend campaign, contact Instantly support, re-warm if needed.
+- **Apify $5 credit exhausted mid-month**: fallback = manual list from Crunchbase Advanced Search (limited free) or LinkedIn Sales Nav free trial. Digest MUST flag "Apify credit exhausted, running on manual seed" so operator knows.
+- **Sonnet 4.6 rate-limited**: fallback to Gemini 2.5 Flash free (already `GEMINI_API_KEY` in `.env` per project memory). Personalizer accepts a `--llm` flag.
+- **Reply classifier confuses auto-reply/OOO for positive**: refine classifier prompt; add explicit OOO-text patterns to a hard-rule pre-filter BEFORE hitting the LLM (deterministic layer catches 95% of OOO).
+- **Gmail Push API silence**: Instantly webhook is primary; Gmail Push is a redundant path for the "Interested" label. If both silent, canary + acceptance still work.
+- **Cal.com double-booking**: Cal.com blocks natively.
+- **AM lockdown**: this system uses entirely separate accounts, domain, inbox, credentials, Cloudflare account (if used), and Telegram bot. Do NOT import code or copy paths from `execution/infrastructure/api-proxy/`. See `CLAUDE.local.md` "ACCESSORY MASTERS — LOCKDOWN" for the no-touch list.
+- **GDPR opt-out received via reply (not link)**: classifier routes to `negative`; contact + domain lands in `suppression.json` permanently.
+- **Front-door synthetic FAIL**: `run.py` halts the day. Digest to Telegram. No cold sends. Root-cause: DNS drift? DKIM broken? Warmup score collapsed? Instantly account flag? Fix before next-day resume.
+- **Output-acceptance gate FAIL**: `killswitch.py` fires. Campaign paused. Root-cause before resume.
+- **Kill-switch state**: `KILL_SWITCH=1` in `.env` halts `run.py` at line 1. Also pauses Instantly campaign via API. To resume: set to `0`, resume in Instantly UI, verify canary green.
+- **Prompt cache miss due to system-prompt edit**: expect a one-day Sonnet cost spike (~2× normal). Not a bug.
+- **First month reality check**: expect ~1–3% reply rate, 0.2–0.5% positive rate. At 20/day × 30 days = 600 sends → 6–18 replies, 1–3 positives, 0–1 hot. **This is NOT enough to book a project every month** — Phase 5 is a signal-gathering month; if positive rate < 0.2% after 30 days, ICP or copy needs tuning BEFORE scaling volume.
 
-## Exit Criteria
+## Exit criteria (system-wide "live and healthy")
 
-- `GET <worker-url>/api/health` returns HTTP 200 with `status` field — confirms the Worker is deployed and reachable.
-- `npm run dry-run -- --segment=<segment>` (run locally from the outbound-engine repo) exits `0` and prints `would_send > 0` with non-zero `rejection_reasons` breakdown — confirms the pipeline would process real inputs without paying credits.
-- At least one inbox in `config/outbound.json` has `"state": "active"` (warmup complete) and `mail-tester.com` score ≥ 9 for that domain.
-- A hot-lead Telegram ping arrives within 5 minutes of manually triggering the reply-classification path with a "ready to sell" sample reply (confirms Telegram bot credentials are valid and chat ID is correct).
-- `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` is set as a Cloudflare Worker secret (`wrangler secret list` shows it present) — no `missing key` errors in Worker logs.
+- Phase 4 completed with 7 consecutive green days.
+- Front-door canary green × 5 consecutive live days.
+- Output-acceptance gate green × 5 consecutive live days.
+- 6-auditor mandatory audit stack: all PASS in one parallel batch, verdict table in wrap-up.
+- At least 1 real reply received, correctly classified, correctly routed (test with a friendly outreach to a friend if needed to force the loop).
+- Kill-switch fire-drilled once.
+- Weekly digest fired for at least 1 full week.
+- LIA document filed. Suppression retention verified working.
 
 ## Changelog
 
-- **2026-05-16** — Initial version. Codifies the self-outbound build for Debanjan's personal outreach. Implementation in `github.com/dmazumdar186/outbound-engine`. Plan trace: `~/.claude/plans/what-were-your-biggest-parsed-babbage.md` (v2/v3 sections under "Self-Outbound System").
+- **2026-07-08 — v2 (Blueprint A2, ACTIVE).** Pivoted from Cloudflare Worker + raw SMTP × 6–9 inboxes to Instantly.ai Growth API + 1 warmed inbox × 1 secondary domain. Root cause of pivot: (a) Smartlead Basic (paste's original recommendation) has NO API/webhook in 2026 — moved to Unlimited Smart at $174/mo, killing the €36/mo assumption; Instantly Growth exposes API + webhook at ~$37/mo entry tier. (b) Apollo free tier cut from 10k → 100 credits/mo in late 2025, killing the free-sourcing assumption; replaced with Apify $5 credit for Google Maps + LinkedIn Actors. (c) Reliability bar raised: operator explicitly flagged that this must NOT fail like `job_search_v2` did — mandatory front-door synthetic + output-acceptance gate + 6-auditor stack now hard-gated. Cost: ~€48/mo TTC (€34 Instantly + €8.28 GWS + €0.85 Porkbun + €1.60 Sonnet + €4 Million Verifier variable). €3 over the €45 target, well within the €100 hard ceiling. Implementation now IN this workspace at `execution/personal_workflows/self_outbound_system/`, not in a separate repo. Phase 0 (research) complete 2026-07-08.
+
+- **2026-05-16 — v1 (DEPRECATED, never deployed).** Cloudflare Worker + raw SMTP × 6–9 inboxes on 3 owned domains, 180–270 emails/day. Implementation was scaffolded at `github.com/dmazumdar186/outbound-engine` but the Worker was never deployed to Cloudflare and no domain reputation was consumed. Design was correct-in-principle but overshot the reliability budget for a solo operator: too many moving parts (3 domains × 6–9 inboxes × 28-day warmup × own DNS/deliverability discipline) for the operator's stated "must not fail like job_cron" bar. Preserved here as design reference for a future v3 scale-out once v2 books its first paid project.

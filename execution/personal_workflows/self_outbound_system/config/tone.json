@@ -1,0 +1,86 @@
+{
+  "_source_of_truth": "execution/personal_workflows/personal_brand/icp_and_positioning.md",
+  "voice": {
+    "tone": "confident, concrete, second-person, outcome-first. No buzzwords.",
+    "person": "second-person (you/your)",
+    "buzzwords_never_use": [
+      "leverage", "synergy", "solutions", "empower", "innovative",
+      "cutting-edge", "revolutionary", "game-changer", "unlock",
+      "streamline", "seamless", "robust", "scalable", "enterprise-grade",
+      "disrupt", "disruptive", "next-generation", "world-class"
+    ],
+    "tech_to_outcome": {
+      "RAG / vector search": "instant, accurate answers pulled from your own docs — no one digging through PDFs",
+      "agents / multi-agent": "work that runs itself, 24/7, without another hire",
+      "cold-email engine": "a machine that books qualified meetings while you sleep",
+      "voice AI (Vapi/Retell)": "every inbound call answered and qualified — at 3am, on a Sunday",
+      "n8n / Modal automation": "100 manual hours a week your team does by hand — gone",
+      "<30-day ship cycle": "live this month, not next quarter",
+      "full-stack / mobile": "a real product in your users' hands in weeks",
+      "Built with Claude Code": "one senior operator moving at the speed of a whole team"
+    }
+  },
+  "opener_constraints": {
+    "max_words": 15,
+    "must_reference": "one specific outcome the prospect likely cares about, derived from lead.notes",
+    "must_not_reference": ["Debanjan's tech stack", "AI models by name", "specific tools by brand name"],
+    "must_be": "an observation, not a pitch",
+    "language_matches_prospect": true
+  },
+  "subject_constraints": {
+    "max_words": 6,
+    "format": "lowercase-first-letter, no emoji, no punctuation-at-end",
+    "must_be": "a question or a specific outcome, not a company pitch",
+    "banned_starts": ["Re:", "Fwd:", "FW:", "RE:"],
+    "banned_words_case_insensitive": ["free", "urgent", "act now", "limited time", "amazing", "$", "€", "!"]
+  },
+  "variants": {
+    "A": {
+      "audience_segment": "founders_seed_to_a",
+      "subject_examples": [
+        "quick idea for {company}",
+        "your ai backlog",
+        "one hour to save 100"
+      ],
+      "opener_examples": [
+        "Noticed {company} raised recently — are you shipping AI features in-house or contracting them?",
+        "Looks like you're in beta for {product} — is the AI feature already in prod?"
+      ]
+    },
+    "B": {
+      "audience_segment": "sme_agency_owners",
+      "subject_examples": [
+        "your outbound pipeline",
+        "sdr cost vs machine",
+        "meetings while you sleep"
+      ],
+      "opener_examples": [
+        "Saw {agency} grew recently — pipeline still SDR-heavy or automated yet?",
+        "How much of your team's week goes to manual ops right now?"
+      ]
+    },
+    "C": {
+      "audience_segment": "heads_of_product_ops",
+      "subject_examples": [
+        "roadmap gap you can't staff",
+        "fractional ai builder",
+        "de-risk the ai feature"
+      ],
+      "opener_examples": [
+        "Which AI initiative on your {company} roadmap keeps getting deprioritized?",
+        "What's the AI feature that's been on your roadmap two quarters?"
+      ]
+    }
+  },
+  "cta": {
+    "primary": "Building something AI-shaped? Book a free 30-minute build session — we scope a first build on the call. No deck, no pitch.",
+    "url_env_var": "CAL_COM_BOOKING_URL",
+    "must_be_present_in": "first_email_only"
+  },
+  "footer_required": [
+    "unsubscribe_link",
+    "postal_address_from_env_or_icp_json",
+    "sender_name",
+    "sender_role"
+  ]
+}

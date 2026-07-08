@@ -1,0 +1,64 @@
+{
+  "_source_of_truth": "execution/personal_workflows/personal_brand/icp_and_positioning.md",
+  "_note": "Update icp_and_positioning.md FIRST, then mirror here. Do not diverge.",
+  "segments": {
+    "founders_seed_to_a": {
+      "label": "Founders (seed to Series A)",
+      "value_prop": "Ship the AI feature your eng team keeps deprioritizing — live this month.",
+      "outcome_signal_keywords": ["ai feature stuck", "backlog", "eng team", "roadmap gap", "deprioritized", "ship faster", "in-house build"],
+      "budget_signal_keywords": ["raising", "runway", "budget", "fixed-price", "not hiring FTE", "series a", "seed"],
+      "urgency_signal_keywords": ["this quarter", "urgent", "asap", "this month", "before eoy", "weeks not months"],
+      "daily_send_cap": 8,
+      "variant": "A"
+    },
+    "sme_agency_owners": {
+      "label": "SMEs / agency owners",
+      "value_prop": "A machine that books meetings while you sleep, and hands your team back 100+ hours a week.",
+      "outcome_signal_keywords": ["book more meetings", "sdr cost", "pipeline thin", "manual ops", "automation", "outbound"],
+      "budget_signal_keywords": ["agency owner", "founder", "solo", "small team", "boutique"],
+      "urgency_signal_keywords": ["quarter", "immediately", "urgent", "now"],
+      "daily_send_cap": 8,
+      "variant": "B"
+    },
+    "heads_of_product_ops": {
+      "label": "Heads of Product / Ops (scaleups)",
+      "value_prop": "A senior operator who de-risks delivery because he can both scope it and build it.",
+      "outcome_signal_keywords": ["roadmap gap", "can't staff", "fractional", "senior operator", "scope and build", "de-risk"],
+      "budget_signal_keywords": ["scaleup", "series b", "series c", "director", "vp", "head of"],
+      "urgency_signal_keywords": ["this quarter", "urgent", "asap", "slipping"],
+      "daily_send_cap": 4,
+      "variant": "C"
+    }
+  },
+  "anti_icp": {
+    "reject_if_any_keyword": [
+      "equity only", "equity-only", "technical co-founder", "co-founder",
+      "junior dev", "$50 gig", "hourly rate", "by the hour",
+      "enterprise procurement", "soc2", "vendor onboarding", "3-month legal",
+      "just exploring", "no budget", "no deadline"
+    ],
+    "reject_if_role_matches": [
+      "recruiter", "talent sourcer", "student", "intern", "graduate"
+    ],
+    "reject_if_domain_matches": [
+      "accessorymasters.co", "elitebrokergroup.com", "hedgestone.com"
+    ]
+  },
+  "signal_rule": {
+    "min_signals": 2,
+    "description": "2 of 3 (outcome + budget + urgency) required to send. 0-1 = polite qualify-out, no email."
+  },
+  "language_gate": {
+    "allowed": ["en", "fr"],
+    "reject_if_body_language_not_in_allowed": true
+  },
+  "gdpr": {
+    "basis": "legitimate_interest",
+    "lia_doc_path": "legal/lia.md",
+    "postal_address": "TO_FILL_IN_PHASE_1",
+    "unsubscribe_link_required": true,
+    "suppression_retention_days": 30
+  },
+  "total_daily_send_cap": 20,
+  "canary_daily_send": 1
+}
