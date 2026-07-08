@@ -25,10 +25,21 @@ html {
 
 body {
   min-height: 100vh;
+  /* Layered background (top → bottom):
+       1) Sparse Vedic/Devanagari pattern tile (ॐ · श्री · bindu · sri-yantra ticks · lotus).
+          Sits above the radial washes so it reads on the plain-cream stretches.
+          Very low opacity (~5%) so it never fights body copy.
+       2) Two soft radial washes (existing).
+       3) Cream base.
+     Section components with their own bg (e.g. .lineage-section) will paint over
+     this pattern intentionally — Lineage has its own dedicated yantra backdrop. */
   background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'><g fill='none' stroke='%23C9744A' stroke-width='0.6' opacity='0.09'><circle cx='80' cy='80' r='22'/><circle cx='80' cy='80' r='14' stroke-dasharray='2 3'/><polygon points='80,66 92,90 68,90'/><polygon points='80,94 92,70 68,70'/></g><g fill='%23C9744A' opacity='0.06'><circle cx='80' cy='80' r='1.6'/><circle cx='260' cy='260' r='1.6'/></g><g fill='%236B7A5A' opacity='0.055' font-family='Noto Serif Devanagari, Nirmala UI, serif' font-size='34' text-anchor='middle'><text x='260' y='110'>ॐ</text></g><g fill='%23C9744A' opacity='0.055' font-family='Noto Serif Devanagari, Nirmala UI, serif' font-size='22' text-anchor='middle'><text x='60' y='280'>श्री</text><text x='300' y='300'>ह्रीं</text></g><g fill='none' stroke='%236B7A5A' stroke-width='0.5' opacity='0.08'><path d='M 260 260 m -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0'/><path d='M 260 245 C 268 253, 268 253, 260 268 C 252 253, 252 253, 260 245 Z'/><path d='M 260 275 C 268 267, 268 267, 260 252 C 252 267, 252 267, 260 275 Z'/><path d='M 245 260 C 253 268, 253 268, 268 260 C 253 252, 253 252, 245 260 Z'/><path d='M 275 260 C 267 268, 267 268, 252 260 C 267 252, 267 252, 275 260 Z'/></g></svg>") repeat,
     radial-gradient(1200px 600px at 15% -5%, rgba(201, 116, 74, 0.10), transparent 60%),
     radial-gradient(900px 500px at 105% 5%, rgba(107, 122, 90, 0.10), transparent 60%),
     var(--cream);
+  background-size: 360px 360px, auto, auto, auto;
+  background-attachment: fixed, scroll, scroll, scroll;
 }
 
 /* Language toggle: hide the non-active language everywhere */
