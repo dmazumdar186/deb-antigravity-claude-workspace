@@ -82,12 +82,13 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   </script>
 </head>
 <body class="min-h-screen antialiased">
-  <!-- Ambient audio: light rain loop. `preload="auto"` for instant first-gesture playback.
-       Kept the DOM id `om-audio` to avoid touching the toggle script. -->
+  <!-- Ambient audio: gentle dawn birds loop. `preload="metadata"` — file is ~940 KB,
+       don't force it on every visitor; load on first gesture. Id kept as `om-audio`
+       to avoid churning the toggle script (shorter than proper renaming). -->
   <audio
     id="om-audio"
-    src="/assets/audio/rain-ambient.mp3"
-    preload="auto"
+    src="/assets/audio/birds-dawn.mp3"
+    preload="metadata"
     loop
     aria-hidden="true"
   ></audio>
@@ -126,20 +127,20 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   </script>
 
   <!--
-    Ambient audio: light rain loop.
-    Jitendra 2026-07-09: the Om chant recording didn't feel soothing enough
-    ("try something like rain falling or morning birds"). Rain wins on
-    consistency — birds get excitable, rain stays calm and masks city noise.
+    Ambient audio: gentle dawn birds loop.
+    Jitendra 2026-07-09 (2): the rain felt "like frying something" — swapped
+    to a soft dawn-chorus recording instead.
 
-    SOURCE: freesound.org/people/Arctura/sounds/34065/
-      "AMBIENT - Rain - Light (LOOP)" — CC-BY 3.0 (Attribution required —
-      credit lives here in the code, plus the LICENSES section of the repo).
-      15.7s clean loop of soft rain on pavement + foliage, no thunder / traffic.
-      File: public/assets/audio/rain-ambient.mp3 (~350 KB, 128 kbps).
+    SOURCE: freesound.org/people/SamsterBirdies/sounds/578523/
+      "Birds Singing, Dawn Chorus" — CC0 (Public Domain, no attribution
+      needed; kept here for provenance). Recorded near Mora, WA with a
+      Tascam DR100 MKIII. Small birds only, no crows/gulls/traffic.
+      Original is 4 min / 5.5 MB; trimmed to ~58s / ~940 KB at a frame
+      boundary so the browser can loop without a large upfront download.
+      File: public/assets/audio/birds-dawn.mp3
 
-    Just this file loops via <audio loop> — no more tanpura layer (a tonal
-    drone under rain reads as weird). Starts on first user gesture; mute
-    toggle preserved.
+    Loops via <audio loop preload="metadata"> — no tanpura layer.
+    Starts on first user gesture; mute toggle preserved.
   -->
   <script is:inline>
     (function() {

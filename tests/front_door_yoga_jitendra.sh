@@ -74,9 +74,9 @@ echo ">> GLM 5.2 mandala backdrop"
 check "hero-backdrop wrapper"           "hero-backdrop"
 check "mandala rotation class"          "mandala-spin"
 
-echo ">> Ambient audio (light rain loop)"
+echo ">> Ambient audio (gentle dawn birds loop)"
 check "audio element"                   "id=\"om-audio\""
-check "rain ambient asset wired"        "rain-ambient\\.mp3"
+check "birds ambient asset wired"       "birds-dawn\\.mp3"
 check "first-gesture auto-start"        "firstGesture"
 
 echo ">> Today's features (2026-07-08)"

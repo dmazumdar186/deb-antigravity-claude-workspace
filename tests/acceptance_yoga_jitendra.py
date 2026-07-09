@@ -63,10 +63,10 @@ REQUIRED_CONTRACT = [
     ("studio address",       "22 rue Eugène Manuel"),
     ("hero backdrop",        "hero-backdrop"),
     ("mandala rotation",     "mandala-spin"),
-    # Ambient audio: light rain loop (replaced Om chant 2026-07-09; DOM id
+    # Ambient audio: gentle dawn birds loop (replaced rain 2026-07-09; DOM id
     # kept as `om-audio` to avoid churn in the toggle script).
     ("ambient audio element", 'id="om-audio"'),
-    ("rain ambient asset",    "rain-ambient.mp3"),
+    ("birds ambient asset",   "birds-dawn.mp3"),
     ("first-gesture auto",    "firstGesture"),
     ("audio mute button",    "data-audio-toggle"),
     # No pricing anywhere on site (Jitendra's rule, 2026-07-08).
