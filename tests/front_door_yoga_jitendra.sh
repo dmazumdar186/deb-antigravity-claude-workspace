@@ -74,10 +74,9 @@ echo ">> GLM 5.2 mandala backdrop"
 check "hero-backdrop wrapper"           "hero-backdrop"
 check "mandala rotation class"          "mandala-spin"
 
-echo ">> Audio (real vocal Om chant + tanpura)"
-check "om audio element"                "id=\"om-audio\""
-check "om chant asset wired"            "om-aum-chant\\.mp3"
-check "tanpura drone builder"           "buildDrone"
+echo ">> Ambient audio (light rain loop)"
+check "audio element"                   "id=\"om-audio\""
+check "rain ambient asset wired"        "rain-ambient\\.mp3"
 check "first-gesture auto-start"        "firstGesture"
 
 echo ">> Today's features (2026-07-08)"

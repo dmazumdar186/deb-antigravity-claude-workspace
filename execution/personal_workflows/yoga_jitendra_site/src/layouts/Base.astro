@@ -19,7 +19,7 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:image" content="/assets/images/champ-de-mars-eiffel.jpg" />
+  <meta property="og:image" content="/assets/images/meditation-portrait.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -82,10 +82,11 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   </script>
 </head>
 <body class="min-h-screen antialiased">
-  <!-- Om chant recording. `preload="auto"` so first-gesture playback is instant. -->
+  <!-- Ambient audio: light rain loop. `preload="auto"` for instant first-gesture playback.
+       Kept the DOM id `om-audio` to avoid touching the toggle script. -->
   <audio
     id="om-audio"
-    src="/assets/audio/om-aum-chant.mp3"
+    src="/assets/audio/rain-ambient.mp3"
     preload="auto"
     loop
     aria-hidden="true"
@@ -125,24 +126,20 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
   </script>
 
   <!--
-    Ambient audio: real human-voice Om (Aum) chant recording.
-    Jitendra 2026-07-08: "it's just a vibration, the OM is very very faint,
-    it should be an OM chant." Correct — the previous formant-synth Om read
-    as a hum, not a chant. Replaced with an actual vocal recording.
+    Ambient audio: light rain loop.
+    Jitendra 2026-07-09: the Om chant recording didn't feel soothing enough
+    ("try something like rain falling or morning birds"). Rain wins on
+    consistency — birds get excitable, rain stays calm and masks city noise.
 
-    SOURCE: freesound.org/people/itinerantmonk108/sounds/696440/
-      "Aum in concrete pipe" — CC0 (Creative Commons Zero, public domain).
-      A vocal Aum recorded with natural echo in a concrete space.
-      No attribution required (kept here for provenance).
-      File: public/assets/audio/om-aum-chant.mp3 (211 KB, 128 kbps mono).
+    SOURCE: freesound.org/people/Arctura/sounds/34065/
+      "AMBIENT - Rain - Light (LOOP)" — CC-BY 3.0 (Attribution required —
+      credit lives here in the code, plus the LICENSES section of the repo).
+      15.7s clean loop of soft rain on pavement + foliage, no thunder / traffic.
+      File: public/assets/audio/rain-ambient.mp3 (~350 KB, 128 kbps).
 
-    Two layers:
-      (1) The Om recording — <audio loop>, primary voice.
-      (2) TANPURA drone — procedural sine bed via Web Audio, sits under the
-          Om as traditional accompaniment (the role a real tanpura plays behind
-          a chanter). Very soft so it never competes with the voice.
-
-    Browsers forbid autoplay-with-sound — starts on first user gesture.
+    Just this file loops via <audio loop> — no more tanpura layer (a tonal
+    drone under rain reads as weird). Starts on first user gesture; mute
+    toggle preserved.
   -->
   <script is:inline>
     (function() {
@@ -189,20 +186,12 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
 
       function start() {
         if (started || userMuted) return;
-        if (!ctx) {
-          ctx = new (window.AudioContext || window.webkitAudioContext)();
-          buildDrone();
-        }
-        if (ctx.state === 'suspended') ctx.resume();
-        master.gain.cancelScheduledValues(ctx.currentTime);
-        master.gain.setValueAtTime(0, ctx.currentTime);
-        master.gain.linearRampToValueAtTime(0.60, ctx.currentTime + 3.5);
 
-        // Play the Om recording. `loop` on the <audio> handles infinite repeat;
-        // browsers add a small (~50-200ms) gap at each loop point which reads
-        // as a natural inhale between chants — desirable, not a bug.
+        // Rain-only mode (2026-07-09). Tanpura synth removed — a tonal drone
+        // under rain feels off. `buildDrone()` kept as dead code in case we
+        // ever want to layer something back under a different ambient.
         if (omEl) {
-          omEl.volume = 0.9;      // recording is quiet by nature, push hot.
+          omEl.volume = 0.7;
           omEl.currentTime = 0;
           var p = omEl.play();
           if (p && typeof p.catch === 'function') p.catch(function() {});
@@ -214,10 +203,6 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
 
       function stop() {
         if (omEl) { try { omEl.pause(); } catch (e) {} }
-        if (!ctx) return;
-        master.gain.cancelScheduledValues(ctx.currentTime);
-        master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-        master.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
         playing = false;
         if (toggle) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
       }

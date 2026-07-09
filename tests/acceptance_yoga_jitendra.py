@@ -63,11 +63,11 @@ REQUIRED_CONTRACT = [
     ("studio address",       "22 rue Eugène Manuel"),
     ("hero backdrop",        "hero-backdrop"),
     ("mandala rotation",     "mandala-spin"),
-    # Audio: real vocal Om chant recording (replaces formant-synth playOm/playFluteNote as of 2026-07-08).
-    ("om audio element",     'id="om-audio"'),
-    ("om chant asset",       "om-aum-chant.mp3"),
-    ("tanpura JS",           "buildDrone"),
-    ("first-gesture auto",   "firstGesture"),
+    # Ambient audio: light rain loop (replaced Om chant 2026-07-09; DOM id
+    # kept as `om-audio` to avoid churn in the toggle script).
+    ("ambient audio element", 'id="om-audio"'),
+    ("rain ambient asset",    "rain-ambient.mp3"),
+    ("first-gesture auto",    "firstGesture"),
     ("audio mute button",    "data-audio-toggle"),
     # No pricing anywhere on site (Jitendra's rule, 2026-07-08).
     ("all offerings on quote",  "Sur devis"),
