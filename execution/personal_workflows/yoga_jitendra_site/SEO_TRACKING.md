@@ -77,8 +77,40 @@ Post 2 — "Offer" — bilingual corporate + at-home (FR body ready, photo = `te
 
 - Property TYPE: **Domain** (`sc-domain:yogaavecjitendra.fr`) — covers apex + www + all subdomains + both protocols
 - Verified: **YES** (pre-existing; Debanjan didn't need to run verification manually)
-- Sitemap submission: **owed** — Debanjan pastes `sitemap-index.xml` into GSC → Sitemaps
-- Data population: expect 1-2 days for index coverage; 2-4 weeks for meaningful query/impression data
+- Sitemap submission: **DONE 2026-07-11** — `https://yogaavecjitendra.fr/sitemap-index.xml` accepted after production deploy
+- Data population: expect 1-3 days for index coverage report; 2-4 weeks for meaningful query/impression data
+
+## Production deploy (2026-07-11)
+
+- Merged `seo-v2-i18n-restructure` → `main` (commit `5470adc`)
+- Deployed via `wrangler pages deploy dist --project-name=yoga-jitendra --branch=main`
+- Direct URL of the prod deployment: `https://589b76f2.yoga-jitendra.pages.dev`
+- Live at `yogaavecjitendra.fr` — verified: new i18n build, `<title>` = "Hatha Yoga traditionnel indien à Paris — Yoga avec Jitendra", `/en/` route serves EN content with `lang="en"`, zero `data-lang-content` leftover, zero cross-language leak, corporate logo strip rendered, sitemap serves valid XML
+- Rollback path: `git revert 5470adc && git push` + one CF Pages redeploy (~2 min) returns to old single-URL state
+
+## Ahrefs Site Audit (2026-07-11) — first crawl
+
+**Health Score 86 / Good** — 42 URLs crawled, 8 errors, 8 warnings, 8 notices.
+
+Site Audit set up via Free (Webmaster Tools) tier. Weekly re-crawl scheduled. GSC Insights integration deferred until GSC has populated data (~3-5 days).
+
+### Fixes applied same-day (commit follows)
+
+| Issue | Count | Fix | File(s) |
+|---|---|---|---|
+| 404 page / 4XX page | 2 each | Removed `mailto:` from Contact — CF Scrape Shield was rewriting to `/cdn-cgi/l/email-protection` which 404'd to crawlers. Email now rendered as plain copyable text via `<span>`. | `Contact.astro`, `contact.{fr,en}.json` |
+| Page has links to broken page | 2 | Auto-clears once mailto: removed | (same) |
+| Meta description too short | 2 | Extended `/merci` (52→156 chars) + `/en/thanks` (52→143 chars) | `merci.astro`, `en/thanks.astro` |
+| Low word count | 2 | Added `noindex` prop to Base.astro + applied to `/merci` + `/en/thanks` — these are post-conversion pages, no SEO value, shouldn't appear in SERP anyway | `Base.astro`, `merci.astro`, `en/thanks.astro` |
+| Image file size too large | 2 | `studio-passy.jpg` 2.27 MB → 132 KB (single-pass PIL: 3840×5120 → 600×800, JPEG q80). Same file counted twice (www + non-www variants). | `public/assets/images/studio-passy.jpg` |
+
+**Expected next-crawl improvement:** Errors 8 → 4, Warnings 8 → 4, Health Score 86 → ~92-95.
+
+### Deferred / not touching
+
+- **www vs apex duplication** (Ahrefs sees both `https://www.yogaavecjitendra.fr/*` and `https://yogaavecjitendra.fr/*` as separate pages, hence every issue count is doubled). Fix requires a Cloudflare Redirect Rule (`www` → apex, 301). Owed but non-urgent — canonical tags already point at apex, so Google won't index the www duplicates even if Ahrefs counts them.
+- **Pages to submit to IndexNow (4)** — Free-tier feature nag. Skip.
+- **Page has only one dofollow incoming internal link (2)** — Applies to `/merci` + `/en/thanks`. By design; now noindexed so moot.
 
 ## Phase 1 step 0 — Demand-verification pass (2026-07-11)
 
