@@ -42,10 +42,6 @@ body {
   background-attachment: fixed, scroll, scroll, scroll;
 }
 
-/* Language toggle: hide the non-active language everywhere */
-html[data-lang="fr"] [data-lang-content="en"] { display: none !important; }
-html[data-lang="en"] [data-lang-content="fr"] { display: none !important; }
-
 .section       { padding: clamp(3.5rem, 8vw, 7rem) 1.25rem; }
 .section-inner { max-width: 1140px; margin-inline: auto; }
 

@@ -1,6 +1,9 @@
 ---
 import fr from '../content/lineage.fr.json';
 import en from '../content/lineage.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
 ---
 <section id="lineage" class="section lineage-section">
   <!-- Full-section yantra backdrop: giant Devanagari ॐ centered, ringed by
@@ -69,54 +72,45 @@ import en from '../content/lineage.en.json';
       <div>
         <p class="eyebrow mb-4" data-reveal>
           <span class="breathing-dot"></span>
-          <span data-lang-content="fr">{fr.eyebrow}</span>
-          <span data-lang-content="en">{en.eyebrow}</span>
+          <span>{t.eyebrow}</span>
         </p>
         <h2 class="text-4xl md:text-5xl leading-[1.05] mb-8" data-reveal>
-          <span data-lang-content="fr">{fr.title}</span>
-          <span data-lang-content="en">{en.title}</span>
+          {t.title}
         </h2>
 
-        {fr.paragraphs_before.map((p, i) => (
+        {t.paragraphs_before.map((p) => (
           <p class="text-[17px] leading-relaxed text-[color:var(--ink)] max-w-prose2 mb-6" data-reveal>
-            <span data-lang-content="fr">{p}</span>
-            <span data-lang-content="en">{en.paragraphs_before[i]}</span>
+            {p}
           </p>
         ))}
 
         <!-- SHLOKA — Sanskrit sūtra display -->
         <figure class="shloka" data-reveal>
-          <div class="shloka-devanagari">{fr.shloka.devanagari}</div>
-          <div class="shloka-translit">{fr.shloka.translit}</div>
+          <div class="shloka-devanagari">{t.shloka.devanagari}</div>
+          <div class="shloka-translit">{t.shloka.translit}</div>
           <blockquote class="shloka-translation">
-            <span data-lang-content="fr">« {fr.shloka.translation} »</span>
-            <span data-lang-content="en">« {en.shloka.translation} »</span>
+            « {t.shloka.translation} »
           </blockquote>
-          <figcaption class="shloka-source">{fr.shloka.source}</figcaption>
+          <figcaption class="shloka-source">{t.shloka.source}</figcaption>
         </figure>
 
-        {fr.paragraphs_after.map((p, i) => (
+        {t.paragraphs_after.map((p) => (
           <p class="text-[17px] leading-relaxed text-[color:var(--ink)] max-w-prose2 mb-6" data-reveal>
-            <span data-lang-content="fr">{p}</span>
-            <span data-lang-content="en">{en.paragraphs_after[i]}</span>
+            {p}
           </p>
         ))}
 
         <!-- ASHTANGA — 8 limbs as pill-list -->
         <div class="mt-10" data-reveal>
           <p class="eyebrow mb-4">
-            <span data-lang-content="fr">{fr.ashtanga_label}</span>
-            <span data-lang-content="en">{en.ashtanga_label}</span>
+            {t.ashtanga_label}
           </p>
           <ol class="ashtanga-list">
-            {fr.ashtanga.map((limb, i) => (
+            {t.ashtanga.map((limb, i) => (
               <li>
                 <span class="ashtanga-num">{String(i + 1).padStart(2, '0')}</span>
                 <span class="ashtanga-sanskrit">{limb.sanskrit}</span>
-                <span class="ashtanga-gloss">
-                  <span data-lang-content="fr">{limb.gloss}</span>
-                  <span data-lang-content="en">{en.ashtanga[i].gloss}</span>
-                </span>
+                <span class="ashtanga-gloss">{limb.gloss}</span>
               </li>
             ))}
           </ol>

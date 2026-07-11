@@ -4,9 +4,18 @@ import en from '../content/i18n_ui.en.json';
 import contactFr from '../content/contact.fr.json';
 import contactEn from '../content/contact.en.json';
 
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+const c = lang === 'en' ? contactEn : contactFr;
+
 const waNumber = '33758255583';
-const waFr = `https://wa.me/${waNumber}?text=${encodeURIComponent(contactFr.whatsapp_prefill)}`;
-const waEn = `https://wa.me/${waNumber}?text=${encodeURIComponent(contactEn.whatsapp_prefill)}`;
+const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=topnav_${lang}`;
+
+// FR is served at "/", EN is served at "/en/". The FR/EN buttons in the header
+// are real navigation links — one URL per language, per Google Search Central's
+// guidance on multilingual sites (no more JS class-swap on one URL).
+const frHref = '/';
+const enHref = '/en/';
 ---
 <header class="sticky top-0 z-40 w-full backdrop-blur bg-[rgba(244,237,225,0.75)] border-b border-[rgba(46,42,38,0.08)]">
   <nav class="max-w-[1140px] mx-auto flex items-center justify-between py-3 px-5">
@@ -16,27 +25,21 @@ const waEn = `https://wa.me/${waNumber}?text=${encodeURIComponent(contactEn.what
     </a>
 
     <div class="flex items-center gap-2 md:gap-5 text-sm">
-      <a href="#about"      class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="fr">{fr.nav_about}</a>
-      <a href="#about"      class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="en">{en.nav_about}</a>
-      <a href="#offerings"  class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="fr">{fr.nav_offerings}</a>
-      <a href="#offerings"  class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="en">{en.nav_offerings}</a>
-      <a href="#schedule"   class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="fr">{fr.nav_schedule}</a>
-      <a href="#schedule"   class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="en">{en.nav_schedule}</a>
-      <a href="#contact"    class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="fr">{fr.nav_contact}</a>
-      <a href="#contact"    class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900" data-lang-content="en">{en.nav_contact}</a>
+      <a href="#about"      class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_about}</a>
+      <a href="#offerings"  class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_offerings}</a>
+      <a href="#schedule"   class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_schedule}</a>
+      <a href="#contact"    class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_contact}</a>
 
-      <div class="flex items-center gap-1 text-xs font-medium border border-[rgba(46,42,38,0.16)] rounded-full px-1 py-0.5">
-        <button data-lang-switch="fr" class="px-2 py-0.5 rounded-full" aria-label="Passer en français">FR</button>
-        <button data-lang-switch="en" class="px-2 py-0.5 rounded-full" aria-label="Switch to English">EN</button>
+      <div class="flex items-center gap-1 text-xs font-medium border border-[rgba(46,42,38,0.16)] rounded-full px-1 py-0.5" aria-label={t.lang_toggle_aria}>
+        <a href={frHref} class={`px-2 py-0.5 rounded-full ${lang === 'fr' ? 'lang-active' : ''}`} aria-current={lang === 'fr' ? 'page' : undefined} hreflang="fr">FR</a>
+        <a href={enHref} class={`px-2 py-0.5 rounded-full ${lang === 'en' ? 'lang-active' : ''}`} aria-current={lang === 'en' ? 'page' : undefined} hreflang="en">EN</a>
       </div>
 
-      <a href={waFr} data-lang-content="fr" class="btn btn-primary text-sm py-2 px-4">{fr.book_cta}</a>
-      <a href={waEn} data-lang-content="en" class="btn btn-primary text-sm py-2 px-4">{en.book_cta}</a>
+      <a href={waHref} class="btn btn-primary text-sm py-2 px-4" data-cta="topnav_book">{t.book_cta}</a>
     </div>
   </nav>
 </header>
 
 <style>
-  html[data-lang="fr"] [data-lang-switch="fr"] { background: var(--terracotta); color: #FBF7EE; }
-  html[data-lang="en"] [data-lang-switch="en"] { background: var(--terracotta); color: #FBF7EE; }
+  .lang-active { background: var(--terracotta); color: #FBF7EE; }
 </style>

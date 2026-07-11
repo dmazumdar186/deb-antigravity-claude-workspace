@@ -1,6 +1,10 @@
 ---
 import fr from '../content/i18n_ui.fr.json';
 import en from '../content/i18n_ui.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+
 const year = new Date().getFullYear();
 ---
 <footer class="section" style="padding-top: 3rem; padding-bottom: 3rem;">
@@ -10,8 +14,7 @@ const year = new Date().getFullYear();
       <div>
         <div class="font-serif text-base text-ink-900">Yoga avec Jitendra</div>
         <div class="text-xs">
-          <span data-lang-content="fr">{fr.footer_tagline}</span>
-          <span data-lang-content="en">{en.footer_tagline}</span>
+          {t.footer_tagline}
           · © {year}
         </div>
       </div>
@@ -19,8 +22,7 @@ const year = new Date().getFullYear();
 
     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
       <span class="text-[color:var(--ink-soft)]/70 uppercase tracking-wider">
-        <span data-lang-content="fr">{fr.socials_label}</span>
-        <span data-lang-content="en">{en.socials_label}</span>
+        {t.socials_label}
       </span>
       {fr.socials.map((s) => (
         <a href={s.href} target="_blank" rel="noopener" class="hover:text-[color:var(--terracotta)]">{s.label}</a>
@@ -29,8 +31,7 @@ const year = new Date().getFullYear();
   </div>
 
   <div class="section-inner mt-6 pt-4 border-t border-[rgba(46,42,38,0.06)] text-center text-xs text-[color:var(--ink-soft)]/70">
-    <span data-lang-content="fr">Conçu par Debanjan · </span>
-    <span data-lang-content="en">Designed by Debanjan · </span>
+    <span>{lang === 'en' ? 'Designed by Debanjan · ' : 'Conçu par Debanjan · '}</span>
     <a
       href="https://prodcraft.fyi"
       target="_blank"

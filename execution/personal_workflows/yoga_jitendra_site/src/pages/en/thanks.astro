@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+const lang = 'en';
+---
+<Base
+  title="Thank you · Yoga avec Jitendra"
+  description="Message received. Jitendra replies within the hour."
+  lang={lang}
+  pathFr="/merci/"
+  pathEn="/en/thanks/"
+>
+  <main class="section">
+    <div class="section-inner max-w-2xl text-center">
+      <p class="eyebrow mb-6">
+        <span class="breathing-dot"></span>Namaste
+      </p>
+      <h1 class="text-4xl md:text-5xl font-serif mb-6">Thank you</h1>
+      <p class="text-lg text-[color:var(--ink-soft)] leading-relaxed mb-8">
+        Message received. Jitendra replies within the hour, usually sooner.
+        A moment to breathe in the meantime.
+      </p>
+      <a href="/en/" class="btn btn-ghost">Back to home</a>
+    </div>
+  </main>
+  <script is:inline>
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var source = params.get('utm_source') || 'direct';
+      var content = params.get('utm_content') || 'unknown';
+      console.log('[conversion] thanks page loaded', { source: source, content: content });
+    } catch (e) {}
+  </script>
+</Base>
