@@ -43,12 +43,20 @@ const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(c.whatsapp_p
           </div>
         </div>
 
-        <!-- Corporate clients / trust signals — real bookings from TrainMe -->
+        <!-- Corporate clients / trust signals — real bookings from TrainMe. Logos monochrome to fit the palette; text fallback if the SVG is missing. -->
         {t.clients && t.clients.length > 0 && (
           <div class="mt-6" data-reveal>
             <p class="eyebrow mb-3">{t.clients_label}</p>
-            <div class="flex flex-wrap gap-2">
-              {t.clients.map((label) => (<span class="pill pill-strong">{label}</span>))}
+            <div class="client-strip">
+              {t.clients.map((c) => (
+                typeof c === 'string' ? (
+                  <span class="pill">{c}</span>
+                ) : (
+                  <span class="client-logo" title={c.name} aria-label={c.name}>
+                    <img src={c.logo} alt={c.name} loading="lazy" />
+                  </span>
+                )
+              ))}
             </div>
           </div>
         )}

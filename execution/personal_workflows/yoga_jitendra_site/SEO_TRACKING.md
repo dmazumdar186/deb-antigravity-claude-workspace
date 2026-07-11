@@ -55,6 +55,15 @@ Baseline log for the v2.0 SEO project. Weekly snapshots + dropped-term log + Ric
 
 ### Seeded GBP Posts (Debanjan drafted 2026-07-11)
 
+### Corporate client logos (2026-07-11, Jitendra authorized)
+
+3 SVG logos sourced + wired into Hero.astro:
+- `totalenergies.svg` (3.7 KB) — from Wikimedia Commons (`TotalEnergies_wordmark_(2021-present).svg`)
+- `semmaris-rungis.svg` (5.9 KB) — from Wikimedia Commons (`Logo_Marché_International_de_Rungis.svg`)
+- `emmaus-solidarite.svg` (68 KB) — from Emmaüs Solidarité's own live site (`emmaus-solidarite.org/themes/custom/emmaus/logo.svg`); no Commons SVG existed for this specific chapter, so used their real production logo
+
+Styling: monochrome + desaturated (grayscale + 0.6 opacity), 32 px height, subtle hover restore. Fits cream/terracotta/sage palette; doesn't hijack visual hierarchy. Redeployed to preview: https://0f24b90b.yoga-jitendra.pages.dev/
+
 Post 1 — "What's new" — outdoor Hatha Yoga sessions at Champ-de-Mars / Bois de Boulogne, **ad-hoc dates announced on MeetUp** (corrected 2026-07-11 after Debanjan flagged "not daily/weekly"). FR body ready, photo = `champ-de-mars-eiffel.jpg`, CTA = "Learn more" → MeetUp group URL.
 
 **Downstream plan impact:** the `/plein-air` page in Phase 2 was slated to include `Event` schema for a "recurring weekly slot." Since the sessions are actually ad-hoc, drop the `recurring` framing. Options for the schema:
@@ -63,6 +72,13 @@ Post 1 — "What's new" — outdoor Hatha Yoga sessions at Champ-de-Mars / Bois 
 Recommend (b) — €0 maintenance, no risk of stale event data showing in SERP.
 
 Post 2 — "Offer" — bilingual corporate + at-home (FR body ready, photo = `teaching-backbend.jpg`, CTA = "Book" → calendly.com/yogaavecjitendra/15min).
+
+## GSC state (2026-07-11)
+
+- Property TYPE: **Domain** (`sc-domain:yogaavecjitendra.fr`) — covers apex + www + all subdomains + both protocols
+- Verified: **YES** (pre-existing; Debanjan didn't need to run verification manually)
+- Sitemap submission: **owed** — Debanjan pastes `sitemap-index.xml` into GSC → Sitemaps
+- Data population: expect 1-2 days for index coverage; 2-4 weeks for meaningful query/impression data
 
 ## Phase 1 step 0 — Demand-verification pass (2026-07-11)
 

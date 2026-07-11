@@ -51,6 +51,10 @@ REQUIRED_FR = [
     ("client TotalEnergies",      "TotalEnergies"),
     ("client SEMMARIS",           "SEMMARIS"),
     ("client Emmaüs",             "Emmaüs Solidarité"),
+    ("logo TotalEnergies SVG",    "/assets/logos/totalenergies.svg"),
+    ("logo SEMMARIS SVG",         "/assets/logos/semmaris-rungis.svg"),
+    ("logo Emmaüs SVG",           "/assets/logos/emmaus-solidarite.svg"),
+    ("client strip class",        "client-strip"),
 ]
 
 # Content patterns that MUST appear on the EN home page.
@@ -63,6 +67,9 @@ REQUIRED_EN = [
     ("book cta EN",              ">Book<"),
     ("footer designer credit EN", "Designed by Debanjan"),
     ("client label EN",           "Trusted by"),
+    ("logo TotalEnergies EN",     "/assets/logos/totalenergies.svg"),
+    ("logo SEMMARIS EN",          "/assets/logos/semmaris-rungis.svg"),
+    ("logo Emmaüs EN",            "/assets/logos/emmaus-solidarite.svg"),
 ]
 
 # Shared markup that MUST appear on BOTH FR and EN home pages.
