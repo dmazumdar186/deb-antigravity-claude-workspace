@@ -1,12 +1,15 @@
 ---
 import fr from '../content/about.fr.json';
 import en from '../content/about.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
 ---
 <section id="about" class="section">
   <div class="section-inner grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-14 items-start">
     <div class="md:col-span-4 order-2 md:order-1" data-reveal>
       <div class="frame aspect-[3/4] max-w-sm mx-auto md:mx-0">
-        <img src={fr.portrait_image} alt={fr.portrait_alt}
+        <img src={t.portrait_image} alt={t.portrait_alt}
              width="670" height="890" loading="lazy" decoding="async"
              class="w-full h-full object-cover" />
       </div>
@@ -15,33 +18,27 @@ import en from '../content/about.en.json';
     <div class="md:col-span-8 order-1 md:order-2">
       <p class="eyebrow mb-4" data-reveal>
         <span class="breathing-dot"></span>
-        <span data-lang-content="fr">{fr.eyebrow}</span>
-        <span data-lang-content="en">{en.eyebrow}</span>
+        <span>{t.eyebrow}</span>
       </p>
       <h2 class="text-4xl md:text-5xl mb-2" data-reveal>
-        <span data-lang-content="fr">{fr.title}</span>
-        <span data-lang-content="en">{en.title}</span>
+        {t.title}
       </h2>
       <p class="text-lg text-[color:var(--ink-soft)] mb-8" data-reveal>
-        <span data-lang-content="fr">{fr.subtitle}</span>
-        <span data-lang-content="en">{en.subtitle}</span>
+        {t.subtitle}
       </p>
 
       <div class="space-y-5 text-[17px] leading-relaxed text-[color:var(--ink)] max-w-prose2 mb-10" data-reveal>
-        {fr.paragraphs.map((p) => (<p data-lang-content="fr">{p}</p>))}
-        {en.paragraphs.map((p) => (<p data-lang-content="en">{p}</p>))}
+        {t.paragraphs.map((p) => (<p>{p}</p>))}
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" data-reveal>
-        {fr.markers.map((m, i) => (
+        {t.markers.map((m) => (
           <div class="card">
             <div class="eyebrow mb-1">
-              <span data-lang-content="fr">{m.label}</span>
-              <span data-lang-content="en">{en.markers[i].label}</span>
+              <span>{m.label}</span>
             </div>
             <div class="font-serif text-xl leading-snug text-ink-900">
-              <span data-lang-content="fr">{m.value}</span>
-              <span data-lang-content="en">{en.markers[i].value}</span>
+              <span>{m.value}</span>
             </div>
           </div>
         ))}

@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+const lang = 'fr';
+---
+<Base
+  title="Merci · Yoga avec Jitendra"
+  description="Message reçu. Jitendra vous répond dans l'heure."
+  lang={lang}
+  pathFr="/merci/"
+  pathEn="/en/thanks/"
+>
+  <main class="section">
+    <div class="section-inner max-w-2xl text-center">
+      <p class="eyebrow mb-6">
+        <span class="breathing-dot"></span>Namaste
+      </p>
+      <h1 class="text-4xl md:text-5xl font-serif mb-6">Merci</h1>
+      <p class="text-lg text-[color:var(--ink-soft)] leading-relaxed mb-8">
+        Message reçu. Jitendra vous répond dans l'heure, généralement plus vite.
+        En attendant, un moment pour respirer profondément.
+      </p>
+      <a href="/" class="btn btn-ghost">Retour à l'accueil</a>
+    </div>
+  </main>
+  <!-- Conversion signal: this page load = a completed WhatsApp/contact CTA click.
+       GSC and Plausible both surface it as an event. -->
+  <script is:inline>
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var source = params.get('utm_source') || 'direct';
+      var content = params.get('utm_content') || 'unknown';
+      console.log('[conversion] merci page loaded', { source: source, content: content });
+    } catch (e) {}
+  </script>
+</Base>

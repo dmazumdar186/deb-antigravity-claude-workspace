@@ -1,6 +1,9 @@
 ---
 import fr from '../content/i18n_ui.fr.json';
 import en from '../content/i18n_ui.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
 ---
 <!-- Small mute/unmute toggle, bottom-right (desktop-only via CSS).
      Audio still auto-starts on first user gesture — this button only exists so
@@ -10,8 +13,8 @@ import en from '../content/i18n_ui.en.json';
   class="audio-toggle is-muted"
   data-audio-toggle
   aria-pressed="false"
-  aria-label={fr.audio_on}
-  title={fr.audio_on}
+  aria-label={t.audio_on}
+  title={t.audio_on}
 >
   <!-- Speaker + waves (on state); JS swaps to muted icon by toggling `.is-muted` -->
   <svg class="ico-on"  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -24,8 +27,7 @@ import en from '../content/i18n_ui.en.json';
     <line x1="22" y1="9" x2="16" y2="15"/>
     <line x1="16" y1="9" x2="22" y2="15"/>
   </svg>
-  <span class="sr-only" data-lang-content="fr">{fr.audio_off}</span>
-  <span class="sr-only" data-lang-content="en">{en.audio_off}</span>
+  <span class="sr-only">{t.audio_off}</span>
 </button>
 
 <style>

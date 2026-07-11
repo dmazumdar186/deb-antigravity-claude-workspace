@@ -42,10 +42,6 @@ body {
   background-attachment: fixed, scroll, scroll, scroll;
 }
 
-/* Language toggle: hide the non-active language everywhere */
-html[data-lang="fr"] [data-lang-content="en"] { display: none !important; }
-html[data-lang="en"] [data-lang-content="fr"] { display: none !important; }
-
 .section       { padding: clamp(3.5rem, 8vw, 7rem) 1.25rem; }
 .section-inner { max-width: 1140px; margin-inline: auto; }
 
@@ -179,6 +175,39 @@ h1, h2, h3 {
   font-size: 0.78rem;
   color: var(--ink-soft);
   font-weight: 500;
+}
+
+/* Corporate client trust strip — monochrome logos, subtly desaturated,
+   fits the cream palette without hijacking visual hierarchy. Text fallback
+   still uses .pill when a client entry is a bare string. */
+.client-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem 2rem;
+  padding-top: 0.25rem;
+}
+.client-logo {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  opacity: 0.92;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.client-logo img {
+  height: 100%;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+}
+.client-logo:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .client-logo { transition: none; }
+  .client-logo:hover { transform: none; }
 }
 
 /* Ambient audio toggle button */

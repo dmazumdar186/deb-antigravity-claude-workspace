@@ -5,9 +5,12 @@ import contactFr from '../content/contact.fr.json';
 import contactEn from '../content/contact.en.json';
 import HeroBackdrop from './HeroBackdrop.astro';
 
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+const c = lang === 'en' ? contactEn : contactFr;
+
 const waNumber = '33758255583';
-const waFr = `https://wa.me/${waNumber}?text=${encodeURIComponent(contactFr.whatsapp_prefill)}`;
-const waEn = `https://wa.me/${waNumber}?text=${encodeURIComponent(contactEn.whatsapp_prefill)}`;
+const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=hero_${lang}`;
 ---
 <section id="top" class="section" style="position: relative; overflow: hidden;">
   <HeroBackdrop />
@@ -17,69 +20,63 @@ const waEn = `https://wa.me/${waNumber}?text=${encodeURIComponent(contactEn.what
       <div class="md:col-span-7">
         <p class="eyebrow mb-6" data-reveal>
           <span class="breathing-dot"></span>
-          <span data-lang-content="fr">{fr.eyebrow}</span>
-          <span data-lang-content="en">{en.eyebrow}</span>
+          <span>{t.eyebrow}</span>
         </p>
         <h1 class="text-5xl md:text-6xl lg:text-7xl leading-[1.02] mb-6 headline-reveal">
-          <span data-lang-content="fr">
-            {fr.headline.split(' ').map((w, i) => (
-              <span class="word" style={`animation-delay: ${i * 0.18}s;`}>{w}&nbsp;</span>
-            ))}
-          </span>
-          <span data-lang-content="en">
-            {en.headline.split(' ').map((w, i) => (
-              <span class="word" style={`animation-delay: ${i * 0.18}s;`}>{w}&nbsp;</span>
-            ))}
-          </span>
+          {t.headline.split(' ').map((w, i) => (
+            <span class="word" style={`animation-delay: ${i * 0.18}s;`}>{w}&nbsp;</span>
+          ))}
         </h1>
         <p class="text-lg md:text-xl text-[color:var(--ink-soft)] max-w-2xl leading-relaxed mb-8" data-reveal>
-          <span data-lang-content="fr">{fr.subhead}</span>
-          <span data-lang-content="en">{en.subhead}</span>
+          {t.subhead}
         </p>
         <div class="flex flex-col sm:flex-row gap-3 mb-10" data-reveal>
-          <a href={waFr} data-lang-content="fr" class="btn btn-primary">{fr.primary_cta.label} →</a>
-          <a href={waEn} data-lang-content="en" class="btn btn-primary">{en.primary_cta.label} →</a>
-          <a href={fr.secondary_cta.href} data-lang-content="fr" class="btn btn-ghost">{fr.secondary_cta.label}</a>
-          <a href={en.secondary_cta.href} data-lang-content="en" class="btn btn-ghost">{en.secondary_cta.label}</a>
+          <a href={waHref} class="btn btn-primary" data-cta="hero_primary">{t.primary_cta.label} →</a>
+          <a href={t.secondary_cta.href} class="btn btn-ghost" data-cta="hero_secondary">{t.secondary_cta.label}</a>
         </div>
 
         <!-- Featured-in strip -->
         <div class="pt-8 border-t border-[rgba(46,42,38,0.08)]" data-reveal>
-          <p class="eyebrow mb-3">
-            <span data-lang-content="fr">{fr.featured_in_label}</span>
-            <span data-lang-content="en">{en.featured_in_label}</span>
-          </p>
+          <p class="eyebrow mb-3">{t.featured_in_label}</p>
           <div class="flex flex-wrap gap-2">
-            {fr.featured_in.map((label) => (<span class="pill">{label}</span>))}
+            {t.featured_in.map((label) => (<span class="pill">{label}</span>))}
           </div>
         </div>
+
+        <!-- Corporate clients / trust signals — real bookings from TrainMe. Logos monochrome to fit the palette; text fallback if the SVG is missing. -->
+        {t.clients && t.clients.length > 0 && (
+          <div class="mt-6" data-reveal>
+            <p class="eyebrow mb-3">{t.clients_label}</p>
+            <div class="client-strip">
+              {t.clients.map((c) => (
+                typeof c === 'string' ? (
+                  <span class="pill">{c}</span>
+                ) : (
+                  <span class="client-logo" title={c.name} aria-label={c.name}>
+                    <img src={c.logo} alt={c.name} loading="lazy" />
+                  </span>
+                )
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <!-- Hero image (meditation portrait — Jitendra's lotus in a Paris park) -->
       <div class="md:col-span-5" data-reveal>
         <div class="frame aspect-[4/5] relative bg-cream-100">
           <img
-            src={fr.hero_image}
-            alt={fr.hero_image_alt}
+            src={t.hero_image}
+            alt={t.hero_image_alt}
             width="1600" height="2000"
             loading="eager" decoding="async"
             class="absolute inset-0 w-full h-full object-cover"
-            data-lang-content="fr"
-          />
-          <img
-            src={en.hero_image}
-            alt={en.hero_image_alt}
-            width="1600" height="2000"
-            loading="eager" decoding="async"
-            class="absolute inset-0 w-full h-full object-cover"
-            data-lang-content="en"
           />
           <div class="absolute bottom-4 left-4 right-4">
             <div class="rounded-xl bg-[rgba(28,26,23,0.72)] backdrop-blur-md px-4 py-3 border border-white/10 text-cream-100">
               <div class="font-serif text-base leading-tight">Jitendra Kumar</div>
               <div class="text-[11px] uppercase tracking-[0.15em] text-cream-100/70 mt-1">
-                <span data-lang-content="fr">Méditation · Parc parisien</span>
-                <span data-lang-content="en">Meditation · Paris park</span>
+                {lang === 'en' ? 'Meditation · Paris park' : 'Méditation · Parc parisien'}
               </div>
             </div>
           </div>

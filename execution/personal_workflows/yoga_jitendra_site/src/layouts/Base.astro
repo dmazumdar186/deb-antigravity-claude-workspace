@@ -4,87 +4,148 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  lang?: 'fr' | 'en';
+  pathFr?: string;
+  pathEn?: string;
 }
-const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kumar — Studio Paris 16, à domicile, en entreprise, en plein air. Certifié Tapovan 500h.' } = Astro.props;
+
+const {
+  title,
+  description,
+  lang = 'fr',
+  pathFr = '/',
+  pathEn = '/en/',
+} = Astro.props;
+
+const SITE = 'https://yogaavecjitendra.fr';
+const canonicalUrl = `${SITE}${lang === 'en' ? pathEn : pathFr}`;
+const frUrl = `${SITE}${pathFr}`;
+const enUrl = `${SITE}${pathEn}`;
+
+const defaultDescFr = 'Hatha Yoga traditionnel indien à Paris avec Jitendra Kumar — studio à Passy (Paris 16), à domicile, en entreprise, en plein air. Certifié Tapovan 500h.';
+const defaultDescEn = 'Traditional Indian Hatha Yoga in Paris with Jitendra Kumar — Passy studio (Paris 16), at-home, corporate, outdoor. 500-hour Tapovan certification.';
+const desc = description ?? (lang === 'en' ? defaultDescEn : defaultDescFr);
+
+// Schema.org — LocalBusiness + Person (Jitendra) + 4 Services (studio/domicile/entreprise/plein-air)
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'HealthAndBeautyBusiness',
+      '@id': `${SITE}/#business`,
+      name: 'Yoga avec Jitendra',
+      image: `${SITE}/assets/images/portrait-namaste.jpg`,
+      url: SITE,
+      telephone: '+33758255583',
+      email: 'jitendranitrr13@gmail.com',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '22 rue Eugène Manuel',
+        addressLocality: 'Paris',
+        postalCode: '75016',
+        addressCountry: 'FR',
+      },
+      areaServed: [
+        { '@type': 'City', name: 'Paris' },
+        { '@type': 'City', name: 'Boulogne-Billancourt' },
+        { '@type': 'City', name: 'Neuilly-sur-Seine' },
+        { '@type': 'City', name: 'Levallois-Perret' },
+        { '@type': 'City', name: 'Issy-les-Moulineaux' },
+        { '@type': 'City', name: 'Saint-Cloud' },
+      ],
+      founder: { '@id': `${SITE}/#jitendra` },
+      sameAs: [
+        'https://www.instagram.com/jitendrakuma/',
+        'https://www.meetup.com/paris-hatha-yoga/',
+        'https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html',
+        'https://sites.google.com/view/yogaavecjitendra/home',
+        'https://maps.app.goo.gl/LFy4eJncWWdt69Lo9',
+      ],
+    },
+    {
+      '@type': 'Person',
+      '@id': `${SITE}/#jitendra`,
+      name: 'Jitendra Kumar',
+      image: `${SITE}/assets/images/portrait-namaste.jpg`,
+      jobTitle: lang === 'en' ? 'Hatha Yoga teacher (Indian lineage)' : 'Professeur de Hatha Yoga (lignée indienne)',
+      worksFor: { '@id': `${SITE}/#business` },
+      hasCredential: {
+        '@type': 'EducationalOccupationalCredential',
+        credentialCategory: 'certification',
+        name: 'Hatha Yoga 500h · Centre Tapovan Paris',
+      },
+      knowsLanguage: ['fr', 'en', 'hi'],
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#studio`,
+      serviceType: lang === 'en' ? 'Studio Hatha Yoga · Passy (Paris 16)' : 'Cours de Hatha Yoga au studio · Passy (Paris 16)',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'City', name: 'Paris' },
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#domicile`,
+      serviceType: lang === 'en' ? 'At-home Hatha Yoga · Paris + inner suburbs' : 'Cours de Hatha Yoga à domicile · Paris et proche banlieue',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'AdministrativeArea', name: 'Île-de-France' },
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#entreprise`,
+      serviceType: lang === 'en' ? 'Corporate / office Hatha Yoga · bilingual FR/EN' : 'Cours de Hatha Yoga en entreprise · bilingue FR/EN',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'AdministrativeArea', name: 'Île-de-France' },
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#plein-air`,
+      serviceType: lang === 'en' ? 'Outdoor Hatha Yoga · Champ-de-Mars, Bois de Boulogne' : 'Hatha Yoga en plein air · Champ-de-Mars, Bois de Boulogne',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'City', name: 'Paris' },
+    },
+  ],
+};
 ---
 <!doctype html>
-<html lang="fr" data-lang="fr">
+<html lang={lang}>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light" />
   <title>{title}</title>
-  <meta name="description" content={description} />
+  <meta name="description" content={desc} />
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title} />
-  <meta property="og:description" content={description} />
-  <meta property="og:image" content="/assets/images/meditation-portrait.jpg" />
+  <meta property="og:description" content={desc} />
+  <meta property="og:image" content={`${SITE}/assets/images/meditation-portrait.jpg`} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'fr_FR'} />
   <meta name="twitter:card" content="summary_large_image" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- Explicit stylesheet link (belt-and-braces alongside the @import in global.css). -->
   <link
     rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap"
   />
 
-  <!-- Favicon: inline SVG Om in terracotta -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-  <!-- Preload the hero image so LCP lands quickly -->
-  <link rel="preload" as="image" href="/assets/images/champ-de-mars-eiffel.jpg" fetchpriority="high" />
+  <!-- Preload the real hero image so LCP lands quickly (fixed from champ-de-mars-eiffel.jpg — meditation-portrait.jpg is the current hero). -->
+  <link rel="preload" as="image" href="/assets/images/meditation-portrait.jpg" fetchpriority="high" />
 
-  <!-- Bilingual SEO — canonical is the real domain now (yoga-jitendra.pages.dev still works). -->
-  <link rel="canonical" href="https://yogaavecjitendra.fr/" />
-  <link rel="alternate" hreflang="fr" href="https://yogaavecjitendra.fr/" />
-  <link rel="alternate" hreflang="en" href="https://yogaavecjitendra.fr/" />
-  <link rel="alternate" hreflang="x-default" href="https://yogaavecjitendra.fr/" />
+  <!-- Bilingual SEO — canonical per route + reciprocal hreflang. -->
+  <link rel="canonical" href={canonicalUrl} />
+  <link rel="alternate" hreflang="fr" href={frUrl} />
+  <link rel="alternate" hreflang="en" href={enUrl} />
+  <link rel="alternate" hreflang="x-default" href={frUrl} />
 
-  <!-- LocalBusiness structured data — Paris studio -->
-  <script type="application/ld+json" is:inline>
-    {
-      "@context": "https://schema.org",
-      "@type": "HealthAndBeautyBusiness",
-      "name": "Yoga avec Jitendra",
-      "image": "https://yogaavecjitendra.fr/assets/images/portrait-namaste.jpg",
-      "url": "https://yogaavecjitendra.fr/",
-      "telephone": "+33758255583",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "22 rue Eugène Manuel",
-        "addressLocality": "Paris",
-        "postalCode": "75016",
-        "addressCountry": "FR"
-      },
-      "areaServed": { "@type": "City", "name": "Paris" },
-      "founder": { "@type": "Person", "name": "Jitendra Kumar" },
-      "sameAs": [
-        "https://www.instagram.com/jitendrakuma/",
-        "https://www.meetup.com/paris-hatha-yoga/",
-        "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html"
-      ]
-    }
-  </script>
-
-  <!-- Boot the saved language BEFORE any painting to avoid FOUC -->
-  <script is:inline>
-    (function() {
-      try {
-        var saved = localStorage.getItem('yj_lang');
-        var nav   = (navigator.language || 'fr').slice(0, 2).toLowerCase();
-        var lang  = saved || (nav === 'en' ? 'en' : 'fr');
-        document.documentElement.setAttribute('data-lang', lang);
-        document.documentElement.setAttribute('lang', lang);
-      } catch (e) { /* localStorage may be blocked — safe fallback: fr already set */ }
-    })();
-  </script>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
 </head>
 <body class="min-h-screen antialiased">
-  <!-- Ambient audio: gentle dawn birds loop. `preload="metadata"` — file is ~940 KB,
-       don't force it on every visitor; load on first gesture. Id kept as `om-audio`
-       to avoid churning the toggle script (shorter than proper renaming). -->
+  <!-- Ambient audio: gentle dawn birds loop -->
   <audio
     id="om-audio"
     src="/assets/audio/birds-dawn.mp3"
@@ -105,7 +166,6 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
           }, { amount: 0.25 });
         });
       }).catch(() => {
-        // graceful degradation — reveal all
         document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
       });
     } else {
@@ -113,91 +173,24 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
     }
   </script>
 
-  <!-- Language toggle -->
-  <script is:inline>
-    document.addEventListener('click', function(e) {
-      var t = e.target && e.target.closest && e.target.closest('[data-lang-switch]');
-      if (!t) return;
-      e.preventDefault();
-      var next = t.getAttribute('data-lang-switch');
-      document.documentElement.setAttribute('data-lang', next);
-      document.documentElement.setAttribute('lang', next);
-      try { localStorage.setItem('yj_lang', next); } catch (e) {}
-    });
-  </script>
-
-  <!--
-    Ambient audio: gentle dawn birds loop.
-    Jitendra 2026-07-09 (2): the rain felt "like frying something" — swapped
-    to a soft dawn-chorus recording instead.
-
-    SOURCE: freesound.org/people/SamsterBirdies/sounds/578523/
-      "Birds Singing, Dawn Chorus" — CC0 (Public Domain, no attribution
-      needed; kept here for provenance). Recorded near Mora, WA with a
-      Tascam DR100 MKIII. Small birds only, no crows/gulls/traffic.
-      Original is 4 min / 5.5 MB; trimmed to ~58s / ~940 KB at a frame
-      boundary so the browser can loop without a large upfront download.
-      File: public/assets/audio/birds-dawn.mp3
-
-    Loops via <audio loop preload="metadata"> — no tanpura layer.
-    Starts on first user gesture; mute toggle preserved.
-  -->
+  <!-- Ambient audio boot (dawn-birds loop, first user gesture starts it) -->
   <script is:inline>
     (function() {
-      var ctx = null, master = null, drone = null;
-      var playing = false, started = false;
       var omEl = document.getElementById('om-audio');
+      var toggle = document.querySelector('[data-audio-toggle]');
+      var playing = false, started = false;
 
-      function buildDrone() {
-        master = ctx.createGain();
-        master.gain.value = 0;
-        // Soft-clip / compressor keeps the tanpura from clipping when it stacks.
-        var comp = ctx.createDynamicsCompressor();
-        comp.threshold.value = -18;
-        comp.knee.value = 12;
-        comp.ratio.value = 4;
-        comp.attack.value = 0.02;
-        comp.release.value = 0.25;
-        master.connect(comp);
-        comp.connect(ctx.destination);
-
-        drone = ctx.createGain();
-        // Very soft — the Om recording IS the music now; tanpura is bed only.
-        drone.gain.value = 0.028;
-        drone.connect(master);
-
-        var voices = [
-          { hz: 130.81,         type: 'sine',     gain: 0.40 },
-          { hz: 130.81 * 1.006, type: 'sine',     gain: 0.28 },
-          { hz: 196.00,         type: 'triangle', gain: 0.16 },
-          { hz: 261.63,         type: 'sine',     gain: 0.10 },
-        ];
-        voices.forEach(function(v) {
-          var o = ctx.createOscillator();
-          o.type = v.type; o.frequency.value = v.hz;
-          var g = ctx.createGain(); g.gain.value = v.gain;
-          o.connect(g); g.connect(drone); o.start();
-        });
-
-        var lfo = ctx.createOscillator();
-        lfo.frequency.value = 0.083;
-        var lfoGain = ctx.createGain(); lfoGain.gain.value = 0.020;
-        lfo.connect(lfoGain); lfoGain.connect(drone.gain); lfo.start();
-      }
+      var userMuted = false;
+      try { userMuted = localStorage.getItem('yj_muted') === '1'; } catch (e) {}
 
       function start() {
         if (started || userMuted) return;
-
-        // Rain-only mode (2026-07-09). Tanpura synth removed — a tonal drone
-        // under rain feels off. `buildDrone()` kept as dead code in case we
-        // ever want to layer something back under a different ambient.
         if (omEl) {
           omEl.volume = 0.7;
           omEl.currentTime = 0;
           var p = omEl.play();
           if (p && typeof p.catch === 'function') p.catch(function() {});
         }
-
         playing = true; started = true;
         if (toggle) { toggle.classList.remove('is-muted'); toggle.setAttribute('aria-pressed', 'true'); }
       }
@@ -208,11 +201,6 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
         if (toggle) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
       }
 
-      // Persisted user preference (survives across visits)
-      var userMuted = false;
-      try { userMuted = localStorage.getItem('yj_muted') === '1'; } catch (e) {}
-
-      var toggle = document.querySelector('[data-audio-toggle]');
       if (toggle) {
         if (userMuted) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
         toggle.addEventListener('click', function(e) {
@@ -230,11 +218,6 @@ const { title, description = 'Hatha Yoga traditionnel à Paris avec Jitendra Kum
         });
       }
 
-      // First-gesture auto-start.
-      // - iOS Safari requires a real user activation (click/touch/keydown), so we
-      //   drop mousemove/wheel/scroll from the trigger set — those don't count on iOS.
-      // - If the user's first click is on the mute toggle, DON'T fire — the toggle's
-      //   own handler runs, otherwise we'd get a half-second noise burst then mute.
       var events = ['pointerdown', 'touchstart', 'keydown', 'click'];
       function firstGesture(e) {
         if (e && e.target && e.target.closest && e.target.closest('[data-audio-toggle]')) return;

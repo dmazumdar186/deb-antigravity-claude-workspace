@@ -11,19 +11,24 @@ import Press      from '../components/Press.astro';
 import Contact    from '../components/Contact.astro';
 import Footer     from '../components/Footer.astro';
 import AmbientAudio from '../components/AmbientAudio.astro';
+
+const lang = 'fr';
 ---
-<Base title="Yoga avec Jitendra · Hatha Yoga · Paris">
-  <TopNav />
+<Base
+  title="Hatha Yoga traditionnel indien à Paris — Yoga avec Jitendra"
+  lang={lang}
+>
+  <TopNav lang={lang} />
   <main>
-    <Hero />
-    <About />
-    <Lineage />
-    <Offerings />
-    <Schedule />
-    <Testimonials />
-    <Press />
-    <Contact />
+    <Hero lang={lang} />
+    <About lang={lang} />
+    <Lineage lang={lang} />
+    <Offerings lang={lang} />
+    <Schedule lang={lang} />
+    <Testimonials lang={lang} />
+    <Press lang={lang} />
+    <Contact lang={lang} />
   </main>
-  <Footer />
-  <AmbientAudio />
+  <Footer lang={lang} />
+  <AmbientAudio lang={lang} />
 </Base>

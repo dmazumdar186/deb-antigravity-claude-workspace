@@ -19,6 +19,12 @@
     "GIO France",
     "Centre Tapovan"
   ],
+  "clients_label": "Trusted by",
+  "clients": [
+    { "name": "TotalEnergies",       "logo": "/assets/logos/totalenergies.svg" },
+    { "name": "SEMMARIS · Rungis",   "logo": "/assets/logos/semmaris-rungis.svg" },
+    { "name": "Emmaüs Solidarité",   "logo": "/assets/logos/emmaus-solidarite.svg" }
+  ],
   "hero_image": "/assets/images/meditation-portrait.jpg",
   "hero_image_alt": "Jitendra in lotus meditation in a Paris park",
   "portrait_image": "/assets/images/portrait-namaste.jpg",
