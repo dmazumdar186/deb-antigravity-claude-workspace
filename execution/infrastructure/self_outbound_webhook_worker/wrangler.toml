@@ -1,0 +1,38 @@
+name = "self-outbound-webhook"
+main = "src/index.js"
+compatibility_date = "2026-07-14"
+
+# Receives Instantly webhook events (reply_received, bounced, unsubscribed,
+# complaint) for the self_outbound_system_v2 campaign. HMAC-verifies the
+# signature, persists the event to KV (namespace: SUPP_EVENTS), fires a
+# Telegram alert to the operator, and returns 200.
+#
+# The KV events are pulled locally by:
+#   py execution/personal_workflows/self_outbound_system/sync_suppression_from_kv.py
+# which calls suppression_writer.add_bulk() to sync into config/suppression.json
+# and marks the KV entries as consumed.
+#
+# Deploy:
+#   cd execution/infrastructure/self_outbound_webhook_worker
+#   wrangler kv namespace create SUPP_EVENTS
+#   # copy the returned id into the [[kv_namespaces]] block below
+#   wrangler secret put INSTANTLY_WEBHOOK_SECRET   # paste the shared HMAC secret
+#   wrangler secret put TELEGRAM_BOT_TOKEN         # optional, for alerts
+#   wrangler secret put TELEGRAM_CHAT_ID           # optional, for alerts
+#   wrangler deploy
+#
+# Then register the worker URL in Instantly:
+#   https://<worker>.<subdomain>.workers.dev/instantly
+# Instantly's dashboard: Settings -> Webhooks -> Add Webhook.
+#
+# Revert:
+#   wrangler delete self-outbound-webhook
+
+[vars]
+CAMPAIGN_TAG = "debanjanm-outbound-v2"
+
+# KV namespace for buffered events. Local sync reads and consumes these.
+# Uncomment + fill after `wrangler kv namespace create SUPP_EVENTS`.
+# [[kv_namespaces]]
+# binding = "SUPP_EVENTS"
+# id = "<paste-id-from-wrangler-kv-namespace-create-command>"

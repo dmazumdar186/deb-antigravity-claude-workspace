@@ -31,6 +31,7 @@
     }
   },
   "anti_icp": {
+    "_note": "Extended 2026-07-14 (Phase 2 Workstream B) with VC/investor + cold-email-competitor terms after tiny live Apify run surfaced Kameha Ventures (VC — referrer not buyer) and lemlist (direct competitor).",
     "reject_if_any_keyword": [
       "equity only", "equity-only", "technical co-founder", "co-founder",
       "junior dev", "$50 gig", "hourly rate", "by the hour",
@@ -38,10 +39,19 @@
       "just exploring", "no budget", "no deadline"
     ],
     "reject_if_role_matches": [
-      "recruiter", "talent sourcer", "student", "intern", "graduate"
+      "recruiter", "talent sourcer", "student", "intern", "graduate",
+      "venture", "investor", "vc partner", "general partner",
+      "managing partner", "angel investor"
+    ],
+    "reject_if_company_matches": [
+      "lemlist", "instantly", "smartlead", "outreach.io", "apollo.io",
+      "heyreach", "reply.io", "hunter.io", "clay.com", "cognism",
+      "kameha ventures", "bpifrance", "y combinator", "techstars"
     ],
     "reject_if_domain_matches": [
-      "accessorymasters.co", "elitebrokergroup.com", "hedgestone.com"
+      "accessorymasters.co", "elitebrokergroup.com", "hedgestone.com",
+      "lemlist.com", "instantly.ai", "smartlead.ai", "outreach.io",
+      "apollo.io", "heyreach.io", "reply.io", "hunter.io", "clay.com"
     ]
   },
   "signal_rule": {

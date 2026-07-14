@@ -203,7 +203,19 @@ def _anti_icp_reason(lead: dict, anti_icp: dict, suppression: set[str]) -> str |
                 return "role-mismatch-intern"
             if "recruit" in role_lc or "sourcer" in role_lc:
                 return "recruiter"
+            if "invest" in role_lc or "venture" in role_lc or "partner" in role_lc:
+                return "anti-icp-investor"
             return "anti-icp-role"
+
+    # Company blocklist (competitors, known-non-buyers). Added 2026-07-14
+    # after tiny Apify live run surfaced lemlist + Kameha Ventures. Substring
+    # match on company field (not word-boundary) — "lemlist inc" should match.
+    company = _lower(lead.get("company", ""))
+    for co in anti_icp.get("reject_if_company_matches", []):
+        if co.lower() in company:
+            if "vent" in co.lower() or "capital" in co.lower() or "combinator" in co.lower() or "bpifrance" in co.lower():
+                return "anti-icp-investor-company"
+            return "anti-icp-competitor"
 
     # Keyword blocklist — driven from icp.json.anti_icp.reject_if_any_keyword.
     # Normalizes hyphens/spaces so 'hourly-rate' matches 'hourly rate' and

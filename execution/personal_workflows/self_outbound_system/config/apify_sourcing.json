@@ -1,0 +1,60 @@
+{
+  "_description": "Per-segment Apify actor configs. Sourcer reads this to know which actor to run + what search params to pass. Actor pricing is on their store page; keep an eye on the operator's $5/mo Apify credit budget.",
+  "_source_of_truth": "config/icp.json — segment definitions",
+  "_last_reviewed": "2026-07-14",
+  "shared_defaults": {
+    "actor_id": "harvestapi/linkedin-profile-search",
+    "profileScraperMode": "Full",
+    "_pricing_note": "Full = $0.10 per search page (up to 25 profiles) + $0.004 per full profile. 100 leads ≈ $0.40. Well under $5/mo.",
+    "locations": [
+      "Paris, France",
+      "Île-de-France, France"
+    ],
+    "max_items_per_segment": 34,
+    "_max_items_reasoning": "3 segments × 34 = 102 leads. Slight over-run vs 100 target to allow for verification drop-off."
+  },
+  "segments": {
+    "founders_seed_to_a": {
+      "actor_id": "harvestapi/linkedin-profile-search",
+      "search_query": "Founder",
+      "currentJobTitles": [
+        "Founder",
+        "Co-Founder",
+        "CEO & Founder",
+        "CTO & Founder"
+      ],
+      "seniorityLevelIds": ["320"],
+      "_seniority_reasoning": "320 = Owner / Partner. Founders self-classify here."
+    },
+    "sme_agency_owners": {
+      "actor_id": "harvestapi/linkedin-profile-search",
+      "search_query": "Agency Owner OR Founder Agency OR Digital Agency Owner",
+      "currentJobTitles": [
+        "Agency Owner",
+        "Founder",
+        "CEO",
+        "Managing Director"
+      ],
+      "seniorityLevelIds": ["320", "220"],
+      "_seniority_reasoning": "320 (Owner/Partner) + 220 (Director) — agency leaders sit in both buckets."
+    },
+    "heads_of_product_ops": {
+      "actor_id": "harvestapi/linkedin-profile-search",
+      "search_query": "Head of Product OR VP Product OR Head of Operations OR Chief Product Officer",
+      "currentJobTitles": [
+        "Head of Product",
+        "VP Product",
+        "VP of Product",
+        "Chief Product Officer",
+        "Head of Operations",
+        "VP Operations",
+        "Director of Product"
+      ],
+      "seniorityLevelIds": ["220", "300"],
+      "_seniority_reasoning": "220 (Director) + 300 (VP). Filters out entry / manager level."
+    }
+  },
+  "cost_estimate_eur_per_100_leads": 0.37,
+  "_cost_estimate_reasoning": "100 leads × $0.004/profile + 4 search pages × $0.10 = $0.80 USD ≈ €0.74. Budget headroom to €5.00 per month.",
+  "_prior_art_pass": "2026-07-14: confirmed harvestapi/linkedin-profile-search exists in the Apify store (6.3M+ runs, 4.8★, PAY_PER_EVENT). Also confirmed compass/crawler-google-places (30M+ runs) as a Google-Maps fallback for agency-owner segment. No LinkedIn cookie / auth required for this actor — bypasses Nick's grey-hat account-rental pattern entirely."
+}

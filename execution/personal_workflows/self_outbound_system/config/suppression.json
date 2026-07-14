@@ -1,8 +1,9 @@
 {
   "_description": "GDPR/CNIL opt-out suppression. Every entry here is PERMANENTLY excluded from outbound. Minimum 30-day retention per CNIL guidance; longer is fine. Seeded with AM-locked domains so a bad diff to icp.json can never re-enable outreach to AM-scoped accounts.",
   "_source_rule": "~/.claude/rules/output-acceptance-gate.md + directives/personal_workflows/self_outbound_system.md §Edge Cases (GDPR)",
-  "_last_updated": "2026-07-08",
-  "_writer_owed": "webhook_receiver (Phase 3 leftover) must append to `emails` when reply_classifier returns `negative`, with timestamped entry in `history`.",
+  "_last_updated": "2026-07-14",
+  "_writer": "execution/personal_workflows/self_outbound_system/suppression_writer.py (Phase 2, 2026-07-14). Callable as CLI (`py suppression_writer.py --email X --reason negative_reply --source reply_classifier`) or as a library (`add_suppression(email, reason, source)` / `add_bulk(entries)`). Concurrency-safe via config/.suppression.lock file. Idempotent — dup adds are logged in history but not duplicated in emails.",
+  "_webhook_worker": "execution/infrastructure/self_outbound_webhook_worker/ (Phase 2, 2026-07-14). Receives Instantly webhooks, HMAC-verifies, POSTs to suppression writer + Telegram alert. Deploy via `wrangler deploy` in that dir once operator adds INSTANTLY_WEBHOOK_SECRET + TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID as Worker secrets.",
   "emails": [],
   "domains": [
     "accessorymasters.co",
