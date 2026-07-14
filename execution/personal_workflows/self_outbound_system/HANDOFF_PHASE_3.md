@@ -1,8 +1,10 @@
 # Phase 3 Handoff — self_outbound_system_v2
 
 **Written**: 2026-07-14, mid-session (operator was at gym; ran on auto-mode)
+**Updated**: 2026-07-14 later (see "Session-late progress" section at the bottom — Workstream B + C4 now DONE, not just documented)
 **Target start**: any time from now through 2026-07-27 (warmup ends day 14)
 **Session model**: Opus 4.7 orchestration + Sonnet 4.6 sub-agents (4 parallel for the video analysis)
+**Committed as**: `d05da45` (local commit; NOT pushed per your rule)
 
 ---
 
@@ -212,3 +214,96 @@ Total commits pending: 0 (nothing committed yet — operator approval required b
 - Nick's own doctrine (from the video, Hour 4 iteration section): first two variants MUST be fundamentally different (3x difference). The current A/B/C are already fundamentally different — A targets founders, B agencies, C HoP/Ops. So this is satisfied naturally by our ICP segmentation.
 
 Send well.
+
+---
+
+## Session-late progress (2026-07-14 continuation after operator authorized "continue and don't stop")
+
+Between the initial handoff write-up and end of session, the following owed-work items got DONE. This changes the state significantly — read this section AFTER the rest of the doc.
+
+### Workstream B — DONE (Apify sourcing)
+- **sourcer.py live path**: fully wired against `harvestapi/linkedin-profile-search` (Apify actor with 6.3M+ runs, PAY_PER_EVENT $0.004/profile, no cookie required — bypasses Nick's grey-hat account-rental pattern entirely).
+- **Prior-art pass logged in [config/apify_sourcing.json](config/apify_sourcing.json)** with per-segment search query + location filter + seniority level config.
+- **66 real Paris/Île-de-France leads sourced** across 3 ICP segments (20 founders + 24 agency owners + 22 heads-of-product/ops) for **€0.52**. Saved to `.tmp/sourced_leads_batch_001.json`.
+- **Notable results**: Jules Veyrat (Stoïk founder), Guillaume Moubeche (lemlist — icp_filter now correctly rejects as competitor), Camille Fantini (Arboriia HR agency), Viktoria Otero del Val (Pluxee VP), etc.
+- **`--tiny` safety flag added** — caps at 5 leads/segment for future smoke tests (used it to verify plumbing before the full run).
+
+### Workstream C4 — DONE (live personalize_live() implementation + Gemini fallback)
+- **Sonnet 4.6 path** wired with cache-aware token accounting (cache_read/cache_write tracked separately per python-hardening rule 4).
+- **Gemini 2.5 Flash path** added as free-tier fallback per model-tier.md cost-constraint clause. **Blocker discovered**: your Anthropic API credit balance is currently too low — the live sonnet call returned 400 "Please go to Plans & Billing to upgrade". Gemini path avoided this entirely.
+- **Dogfooded on 5 real Paris leads**: 4/5 produced clean 103-109-word Nick-framework emails via Gemini free tier at **€0 spend**. 1 was refused for opener-too-long (Gemini went 24 words vs the 22 max). Sample output at `.tmp/dogfood_5_personalized_live_gemini.json`.
+- **AI-prompt hygiene per Nick's Hour 4 AI doctrine**: LLM fills 4 small variables (personalization_line / give_first_line / casualized_company / first_name_override) inside pre-written templates — never writes the whole email.
+- Example dogfood output (Camille Fantini @ Arboriia, variant B):
+  > "Hi Camille, Arboriia looks like a lean collective; how much of your team's week goes to manual client acquisition or ops? Looked at your DRH part-time role — your experts are worth way more on client strategy than manual ops; that's fixable in 30 days. [...static offer + CTA...]"
+
+### Enricher live path — WIRED (with known gap)
+- **enricher.py live** now imports the workspace's existing enrichment libs (`execution/enrichment/anymailfinder_lookup.py` + `million_verifier.py`) and orchestrates AnymailFinder → verify → drop-invalid flow.
+- **Known gap**: `harvestapi/linkedin-profile-search` doesn't return company websites, and AnymailFinder's API returns HTTP 400 without a `domain` param. Tiny 3-lead live test failed for this reason on all 3.
+- **Owed work**: a domain-enrichment stage between sourcer and enricher. Options:
+  - (a) use Apify `"Full + email search"` mode ($0.01/profile — the actor does its own domain lookup),
+  - (b) add a Firecrawl / SerpAPI "company name → official website" step,
+  - (c) manually enrich domains for the batch you actually want to send.
+  - Cost of option (a) for 100 leads: ~$1 (already within budget).
+
+### icp_filter.py — TIGHTENED
+- Added `reject_if_company_matches` check + new rejection reasons: `anti-icp-investor`, `anti-icp-investor-company`, `anti-icp-competitor`.
+- Extended anti-ICP list with 12 competitors (lemlist, instantly, smartlead, outreach.io, apollo.io, heyreach, reply.io, hunter.io, clay.com, cognism, etc.) + 10 VC-adjacent domains (Kameha Ventures, Y Combinator, Techstars, bpifrance, etc.).
+- **All 68 tests + acceptance corpus green after these changes** — no regressions.
+
+### Workstream C1 (suppression_writer) shipped WITH sync loop
+- `sync_suppression_from_kv.py` now exists: pulls `event:*` keys from the Worker's KV via `wrangler kv key list/get/delete`, calls `suppression_writer.add_bulk()`, deletes consumed keys. Cron this on the daily pipeline once the Worker is deployed.
+
+### Local commit landed
+- **`d05da45`** — 18 files, 5445 insertions. Contains:
+  - The Nick Saraev master analysis (deliverables/)
+  - Both handoffs (Phase 2 archive + Phase 3 current)
+  - All 4 modified pipeline scripts (sourcer, enricher, icp_filter, personalizer)
+  - suppression_writer.py + sync_suppression_from_kv.py + test_suppression_writer.py
+  - Cloudflare Worker code (self_outbound_webhook_worker/)
+  - tone.json v2 + icp.json v2 + apify_sourcing.json
+  - icp_and_positioning.md (source of truth for the voice / positioning)
+- **NOT pushed** per your CLAUDE.local.md rule. To push: `git push origin main`.
+
+---
+
+## Updated cost accounting (session totals)
+
+| Item | Cost | Notes |
+|---|---|---|
+| Nick Saraev video analysis (4 parallel Sonnet 4.6 sub-agents) | €2.00 | 4×~150k tokens each; ate most of the Anthropic credit budget |
+| Apify sourcing (100 leads target, 66 delivered) | €0.52 | harvestapi/linkedin-profile-search Full mode |
+| Apify tiny smoke test (5 leads) | €0.11 | pre-full-run validation |
+| Gemini personalizer dogfood (5 leads, 4 success) | €0.00 | free tier — worked when Anthropic was blocked |
+| AnymailFinder tiny test (3 attempts, all 400 errors) | €0.00 | zero credits used — API rejected without domain param |
+| Anthropic personalizer dogfood attempts | €0.00 | blocked by low credit balance |
+| **Session total** | **€2.63** | well under the operator's €5/mo Apify budget alone |
+
+---
+
+## Updated Priority-1 owed work (what actually needs to happen before day 14)
+
+1. **Top up Anthropic API credits** OR **stay on Gemini free tier for personalization**. Per model-tier.md, Gemini is the sanctioned fallback and produced acceptable quality on today's dogfood. Decision: if operator wants Sonnet-grade personalization for the actual sends, top up ~€10-20 in Anthropic Console (well over the actual cost of 100-lead runs at ~€0.30-0.50/batch).
+
+2. **Solve the domain enrichment gap** (blocking real email delivery). Fastest option: bump Apify actor to `"Full + email search"` mode ($0.01/profile, ~$1 for 100 leads). Slower but cheaper option: write a domain-guesser (companyname → try .com/.fr/.io) with Firecrawl fallback.
+
+3. **Review the 66 sourced leads** (`.tmp/sourced_leads_batch_001.json`). Some are competitors (lemlist — icp_filter catches this) or VCs. Sanity-check ~10 by hand.
+
+4. **Deploy the Cloudflare Worker** — 15 min operator terminal work. Instructions at [execution/infrastructure/self_outbound_webhook_worker/README.md](../../infrastructure/self_outbound_webhook_worker/README.md).
+
+5. **Wire canary.py live** — needs INSTANTLY_INBOX_EMAIL, CANARY_DESTINATION_EMAIL, CANARY_IMAP_HOST, CANARY_IMAP_USER, CANARY_IMAP_APP_PASSWORD in .env (all currently MISSING). This is deferred — the existing IMAP-poll approach in canary.py is the right shape, just needs env vars.
+
+6. **Create Instantly campaign in DRAFT** — 30 min operator UI. Load the 4 dogfood-verified variant emails as templates, upload the ICP-filtered leads (after domain-enrichment gap solved), set 20/day cap Europe/Paris Mon-Fri 09:00-18:00, opens+clicks OFF.
+
+7. **`git push` when ready** — commit `d05da45` is waiting.
+
+---
+
+## Path to send on 2026-07-27
+
+- Day 0-3: Fix the domain enrichment gap (option a: Apify "Full+email", €1). Re-run sourcer with `--tiny` mode to verify.
+- Day 3-5: Deploy Worker. Register Instantly webhook. Register `sync_suppression_from_kv.py` as a daily cron.
+- Day 5-7: Provision canary env vars. Wire canary live. Run for 3 consecutive days.
+- Day 7-10: Full 100-lead sourcing rerun with domain enrichment. ICP-filter. Personalize via Gemini (or Sonnet if credits topped up). Manual review of every generated email.
+- Day 10-13: Create Instantly campaign DRAFT. Load leads. Load templates. Set caps + hours.
+- Day 14 (2026-07-27): Warmup ends. Flip Instantly campaign to ACTIVE. Watch Telegram alerts for reply/bounce/unsub events.
+- Day 15-21: Canary week — 5/day sends, ramp to 20/day.
