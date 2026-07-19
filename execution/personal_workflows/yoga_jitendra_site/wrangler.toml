@@ -1,0 +1,24 @@
+# Cloudflare Pages project config for yoga-jitendra.
+#
+# Bindings for the Pages Functions in ./functions/. Deploy with:
+#   npx wrangler pages deploy dist
+# (project name is inferred from `name` below, no --project-name needed).
+#
+# Secrets are NOT declared here (they would be committed). Set them once via:
+#   npx wrangler pages secret put DASHBOARD_PASS --project-name=yoga-jitendra
+# and they persist on the Cloudflare Pages project across deploys.
+
+name = "yoga-jitendra"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "./dist"
+
+# Non-secret env vars (empty for now — DASHBOARD_USER defaults to
+# "debanjan" inside functions/_middleware.ts; PUBLIC_CF_WA_TOKEN is
+# added later when the Web Analytics site token is available).
+[vars]
+
+# KV namespace for the monthly self-report form persistence.
+# Namespace created 2026-07-19 via `wrangler kv namespace create`.
+[[kv_namespaces]]
+binding = "DASHBOARD_KV"
+id = "4cdf5cdb6fc14db3b29edcab6c464714"

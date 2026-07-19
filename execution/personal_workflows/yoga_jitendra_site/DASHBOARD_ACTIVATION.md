@@ -1,8 +1,16 @@
 # Dashboard V0.01 activation guide
 
-**Status when this file was written:** committed as `2572e60`, NOT pushed, NOT deployed. Cloudflare Access NOT configured. `DASHBOARD_KV` binding NOT created. `PUBLIC_CF_WA_TOKEN` env var NOT set. Front-door synthetic against LIVE URL has NEVER run.
+**Status (2026-07-19 15:52 Paris, updated after activation):**
 
-Per the workspace `front-door-synthetic.md` rule: **do not describe this as "live", "shipped", or "ready" until 5 consecutive LIVE-day synthetic runs pass**. Until then, the correct wording is `LIVE-PROBATIONARY: day 0 of 5`.
+- ✅ Committed: `447617f` (beacon+UTM), `2572e60` (dashboard scaffold), `dbeb1dc` (audit fixes), plus `wrangler.toml` + `_middleware.ts` still uncommitted (added during activation).
+- ✅ NOT pushed to origin yet.
+- ✅ DEPLOYED to Cloudflare Pages (`wrangler pages deploy dist --branch=main`). Live at https://yogaavecjitendra.fr/dashboard/.
+- ✅ `DASHBOARD_KV` namespace created (id `4cdf5cdb6fc14db3b29edcab6c464714`) and bound via `wrangler.toml`.
+- ✅ `DASHBOARD_PASS` secret set on the Pages project.
+- ⚠️  Auth is **HTTP Basic** (interim), not Cloudflare Access. Same privacy effect, uglier UX. Replace with CF Access once a token with Zero Trust scope exists.
+- ❌ `PUBLIC_CF_WA_TOKEN` NOT set. The "Conversation" hero tile + funnel WhatsApp-taps row will show `⏳` skeletons until a Web Analytics site token is added to the Pages project env vars.
+
+Per the workspace `front-door-synthetic.md` rule: **LIVE-PROBATIONARY day 1 of 5** as of 2026-07-19 15:52. Do not describe as "live" / "shipped" until day 5/5.
 
 ---
 

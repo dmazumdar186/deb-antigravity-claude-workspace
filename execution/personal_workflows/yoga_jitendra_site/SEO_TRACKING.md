@@ -142,9 +142,35 @@ _Populated at Phase 3 kickoff._
 
 ## Dashboard delivery log
 
-### 2026-07-19 (day 8 since launch): V0.01+ delivered
+### 2026-07-19 (day 8 since launch): V0.01+ delivered AND DEPLOYED
 
 Naming note: called V0.01 in the DASHBOARD_HANDOFF sequence, but the monthly self-report form (originally scoped for V0.5) was pulled forward into this drop per the 2026-07-19 war-room plan. Effective scope is V0.01 + self-report.
+
+**Live URL:** https://yogaavecjitendra.fr/dashboard/ (also `https://yoga-jitendra.pages.dev/dashboard/`)
+**Preview URL of first deploy:** https://464bf385.yoga-jitendra.pages.dev/
+**Auth:** HTTP Basic (interim stopgap for Cloudflare Access). User: `debanjan`. Password lives in the operator's local scratchpad file and as a `DASHBOARD_PASS` secret on the Pages project.
+
+**Front-door synthetic — LIVE-PROBATIONARY day 1 of 5**
+
+| Probe | Result | Timestamp (Paris) |
+|---|---|---|
+| `GET /` (homepage, public) | HTTP 200 | 2026-07-19 15:52 |
+| `GET /dashboard/` unauth | HTTP 401 + `WWW-Authenticate: Basic realm="Yoga avec Jitendra Dashboard"` | 2026-07-19 15:52 |
+| `GET /dashboard/` with correct auth | HTTP 200, 18 278 bytes, all 7 body markers present | 2026-07-19 15:52 |
+| `GET /api/self-report` unauth | HTTP 401 | 2026-07-19 15:52 |
+| `GET /api/self-report` with auth | HTTP 200 `{"history":[]}` (KV binding LIVE, empty namespace) | 2026-07-19 15:52 |
+
+Day 2/5 through day 5/5: re-run this probe stack daily; log below.
+
+- Day 2 / 5: —
+- Day 3 / 5: —
+- Day 4 / 5: —
+- Day 5 / 5: — dashboard is then LIVE per workspace front-door rule.
+
+**Owed for V0.02:**
+- Cloudflare Web Analytics site token → `PUBLIC_CF_WA_TOKEN` env var on Pages project (unblocks "Conversation" hero tile + funnel WhatsApp-taps row).
+- Replace HTTP Basic Auth with Cloudflare Access when a token with Zero Trust scope is available.
+- POST-then-refresh dogfood test (submit one self-report, verify tile rehydrates) — Cherny lens verdict from the audit stack.
 
 Internal dashboard live at `/dashboard/` (English-only, behind Cloudflare Access).
 
