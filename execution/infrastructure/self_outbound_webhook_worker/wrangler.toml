@@ -32,7 +32,7 @@ compatibility_date = "2026-07-14"
 CAMPAIGN_TAG = "debanjanm-outbound-v2"
 
 # KV namespace for buffered events. Local sync reads and consumes these.
-# Uncomment + fill after `wrangler kv namespace create SUPP_EVENTS`.
-# [[kv_namespaces]]
-# binding = "SUPP_EVENTS"
-# id = "<paste-id-from-wrangler-kv-namespace-create-command>"
+# Created 2026-07-19 via `wrangler kv namespace create SUPP_EVENTS`.
+[[kv_namespaces]]
+binding = "SUPP_EVENTS"
+id = "7f6d62d622584330b7e5d69ccb49d93b"
