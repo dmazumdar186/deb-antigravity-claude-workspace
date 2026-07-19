@@ -27,9 +27,9 @@
   "funnel": {
     "range": "7d",
     "stages": [
-      { "label": "Impressions", "value": 0, "source": "Google Search Console" },
-      { "label": "Clicks", "value": 0, "source": "GSC + Cloudflare Web Analytics" },
-      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon" }
+      { "label": "Impressions",   "value": 0, "source": "Google Search Console",           "status": "waiting", "hint": "First data ~22 Jul" },
+      { "label": "Clicks",        "value": 0, "source": "GSC + Cloudflare Web Analytics", "status": "waiting", "hint": "Data flows once beacon token is set" },
+      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon",                 "status": "waiting", "hint": "Data flows once beacon token is set" }
     ]
   },
   "milestones": [
@@ -46,9 +46,9 @@
       "state": "done"
     },
     {
-      "date": "2026-07-15",
+      "date": "2026-07-22",
       "title": "First Google impressions expected",
-      "detail": "Typical GSC lag after indexation is 2 to 4 days",
+      "detail": "Original 15 Jul target slipped; GSC coverage still crawling. Re-dated with a one-week buffer.",
       "state": "expected"
     },
     {

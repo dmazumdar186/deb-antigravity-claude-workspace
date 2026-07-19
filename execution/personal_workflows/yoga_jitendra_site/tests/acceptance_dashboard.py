@@ -189,9 +189,15 @@ def check_dashboard_html() -> list[str]:
             f"Expected at least 3 hourglass skeleton badges (literal or entity), found {hourglass_count}"
         )
 
-    # 4. Each hero tile has a Source: label (CDO provenance rule)
-    if html.count("Source:") < 3:
-        errors.append("Every hero tile must render a 'Source:' line — CDO provenance rule")
+    # 4. Each hero tile AND each funnel stage has a Source: label
+    #    (CDO provenance rule; pipeline-auditor 2026-07-19 caught this
+    #    as a shared-oracle blind spot when only heroes were checked).
+    # Expect: 3 heroes + 3 funnel stages + at least the provenance
+    # footer's own label lines = >= 6 Source: occurrences.
+    if html.count("Source:") < 6:
+        errors.append(
+            f"Need Source: on every hero tile and every funnel stage — CDO provenance rule. Found {html.count('Source:')}, need >= 6"
+        )
 
     # 5. Palette
     errors.extend(check_palette(html))

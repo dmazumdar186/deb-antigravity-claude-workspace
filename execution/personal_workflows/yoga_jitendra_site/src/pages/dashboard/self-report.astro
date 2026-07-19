@@ -3,6 +3,16 @@ import Base from '../../layouts/Base.astro';
 
 const now = new Date();
 const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+const errorParam = Astro.url.searchParams.get('error');
+const errorCopy: Record<string, string> = {
+  kv_unbound:
+    'The dashboard is not yet fully configured — the KV storage binding is missing. Ping Debanjan and he will finish the setup.',
+  bad_form: 'The form data was malformed. Please try submitting again.',
+  bad_month: 'The month value looked wrong. Use the picker to select a month.',
+  bad_number: 'One of the numbers was outside the allowed range (0 to 10 000). Please check and try again.',
+};
+const errorMessage = errorParam ? errorCopy[errorParam] ?? 'Something went wrong. Please try again or ping Debanjan.' : null;
 ---
 <Base
   title="Log this month | Dashboard"
@@ -25,6 +35,13 @@ const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart
         Takes thirty seconds. Three numbers help the dashboard show your actual value over time, not just what Google can measure.
       </p>
     </section>
+
+    {errorMessage && (
+      <div class="report-error" role="alert" data-reveal>
+        <p class="report-error-eyebrow">Could not save this month</p>
+        <p>{errorMessage}</p>
+      </div>
+    )}
 
     <form method="POST" action="/api/self-report" class="report-form" data-reveal>
       <label class="report-field">
@@ -145,4 +162,21 @@ const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart
     margin: 0.5rem 0 0;
     font-style: italic;
   }
+  .report-error {
+    background: rgba(201, 116, 74, 0.10);
+    border: 1px solid rgba(201, 116, 74, 0.30);
+    border-radius: 1rem;
+    padding: 1.1rem 1.35rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .report-error-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 500;
+    margin: 0 0 0.35rem;
+  }
+  .report-error p:last-child { margin: 0; }
 </style>

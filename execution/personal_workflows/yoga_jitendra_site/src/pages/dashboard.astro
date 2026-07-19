@@ -1,4 +1,12 @@
 ---
+// Intentional monolingual scope: dashboard is English-only per the war-room plan
+// (see C:/Users/deban/.claude/plans/i-asked-this-question-effervescent-allen.md
+// Part 3). The parent site is bilingual FR/EN but this internal dashboard has
+// exactly two users (Debanjan + Jitendra), both bilingual, both comfortable
+// reading English. Do NOT add /en/dashboard/ or /fr/dashboard/ without
+// re-evaluating the shape of the copy — the current strings assume English
+// idioms ("Your monthly snapshot", "This week's next move") that do not
+// translate word-for-word.
 import Base              from '../layouts/Base.astro';
 import HeroTile          from '../components/dashboard/HeroTile.astro';
 import FunnelStrip       from '../components/dashboard/FunnelStrip.astro';
@@ -122,7 +130,13 @@ const rangeOptions = [
             vals[2].textContent = '€' + String(latest.avg_revenue_eur);
           }
         })
-        .catch(function () { /* stay with static fallback */ });
+        .catch(function (err) {
+          // Intentional silent fallback (static JSON already rendered), but log
+          // so a real failure does not disappear on a user's console.
+          if (typeof console !== 'undefined' && console.warn) {
+            console.warn('self-report hydration failed, keeping static values', err);
+          }
+        });
     })();
   </script>
 </Base>

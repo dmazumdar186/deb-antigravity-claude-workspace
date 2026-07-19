@@ -49,32 +49,32 @@ function parseIntSafe(v: FormDataEntryValue | null): number | null {
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+  const back = (params: string) =>
+    Response.redirect(new URL('/dashboard/self-report/?' + params, request.url).toString(), 303);
+
   if (!env.DASHBOARD_KV) {
-    return new Response(
-      'DASHBOARD_KV binding missing. In the Cloudflare Pages project, bind a KV namespace named DASHBOARD_KV then redeploy.',
-      { status: 503 },
-    );
+    return back('error=kv_unbound');
   }
 
   let form: FormData;
   try {
     form = await request.formData();
   } catch {
-    return new Response('Invalid form data', { status: 400 });
+    return back('error=bad_form');
   }
 
   const month = String(form.get('month') ?? '').slice(0, 7);
   if (!MONTH_RE.test(month)) {
-    return new Response('Invalid month (expected YYYY-MM)', { status: 400 });
+    return back('error=bad_month');
   }
 
   const newStudents = parseIntSafe(form.get('new_students'));
   const recurring = parseIntSafe(form.get('recurring_students'));
   const avgRevenue = parseIntSafe(form.get('avg_revenue_eur'));
 
-  for (const [k, v] of Object.entries({ new_students: newStudents, recurring_students: recurring, avg_revenue_eur: avgRevenue })) {
+  for (const v of [newStudents, recurring, avgRevenue]) {
     if (v === null || v < 0 || v > 10000) {
-      return new Response(`Invalid ${k} (must be 0-10000)`, { status: 400 });
+      return back('error=bad_number');
     }
   }
 
@@ -103,8 +103,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     if (!raw) continue;
     try {
       entries.push(JSON.parse(raw) as Entry);
-    } catch {
-      // Skip corrupt entry; keep iterating.
+    } catch (e) {
+      // Skip corrupt entry; keep iterating. Log so it does not go silent.
+      console.error('self-report: corrupt KV entry, skipping', k.name, e);
     }
   }
 

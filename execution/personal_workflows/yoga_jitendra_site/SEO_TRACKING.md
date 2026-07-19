@@ -142,7 +142,9 @@ _Populated at Phase 3 kickoff._
 
 ## Dashboard delivery log
 
-### 2026-07-19 (day 8 since launch): V0.01 delivered
+### 2026-07-19 (day 8 since launch): V0.01+ delivered
+
+Naming note: called V0.01 in the DASHBOARD_HANDOFF sequence, but the monthly self-report form (originally scoped for V0.5) was pulled forward into this drop per the 2026-07-19 war-room plan. Effective scope is V0.01 + self-report.
 
 Internal dashboard live at `/dashboard/` (English-only, behind Cloudflare Access).
 

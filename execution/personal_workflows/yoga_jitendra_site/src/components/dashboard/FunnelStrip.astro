@@ -3,6 +3,8 @@ interface Stage {
   label: string;
   value: number;
   source: string;
+  status?: 'live' | 'waiting';
+  hint?: string;
 }
 interface RangeOption {
   value: string;
@@ -15,6 +17,7 @@ interface Props {
 }
 const { stages, range, range_options } = Astro.props;
 const maxValue = Math.max(1, ...stages.map((s) => s.value));
+const allWaiting = stages.every((s) => s.status !== 'live');
 ---
 <div class="funnel" data-reveal>
   <div class="funnel-range" role="tablist" aria-label="Time range">
@@ -28,26 +31,38 @@ const maxValue = Math.max(1, ...stages.map((s) => s.value));
     ))}
   </div>
 
-  <ul class="funnel-stages">
+  <ul class="funnel-stages" role="list">
     {stages.map((s, i) => {
+      const isWaiting = s.status === 'waiting';
       const pct = (s.value / maxValue) * 100;
       const prev = i > 0 ? stages[i - 1].value : null;
-      const conv = prev !== null && prev > 0 ? ((s.value / prev) * 100).toFixed(1) + '%' : '—';
+      const prevLive = i > 0 ? stages[i - 1].status !== 'waiting' : false;
+      const conv = prev !== null && prev > 0 && prevLive && !isWaiting
+        ? ((s.value / prev) * 100).toFixed(1) + '%'
+        : null;
       return (
         <li class="funnel-row">
           <div class="funnel-label-row">
             <span class="funnel-label">{s.label}</span>
-            <span class="funnel-value">{s.value.toLocaleString('en-US')}</span>
+            {isWaiting ? (
+              <span class="funnel-skeleton" role="status" aria-label={`${s.label}: ${s.hint ?? 'waiting for data'}`}>
+                <span aria-hidden="true">&#x23F3;</span>
+                <span>{s.hint ?? 'waiting'}</span>
+              </span>
+            ) : (
+              <span class="funnel-value" aria-label={`${s.label}: ${s.value}`}>{s.value.toLocaleString('en-US')}</span>
+            )}
           </div>
-          <div class="funnel-bar-track">
-            <div class="funnel-bar-fill" style={`width: ${pct}%;`}></div>
+          <div class="funnel-bar-track" aria-hidden="true">
+            <div class={`funnel-bar-fill ${isWaiting ? 'is-waiting' : ''}`} style={`width: ${pct}%;`}></div>
           </div>
-          {prev !== null && (
+          {conv !== null && (
             <p class="funnel-conv">
               <span class="funnel-conv-arrow" aria-hidden="true">&#x21B3;</span>
               {conv} of {stages[i - 1].label.toLowerCase()} continued here
             </p>
           )}
+          <p class="funnel-source">Source: {s.source}</p>
         </li>
       );
     })}
@@ -147,5 +162,34 @@ const maxValue = Math.max(1, ...stages.map((s) => s.value));
   .funnel-conv-arrow {
     color: var(--sage);
     margin-right: 0.35rem;
+  }
+  .funnel-skeleton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px dashed rgba(201, 116, 74, 0.35);
+    background: rgba(217, 199, 167, 0.18);
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+  }
+  .funnel-source {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(74, 66, 59, 0.55);
+    margin: 0.25rem 0 0 0.25rem;
+    font-weight: 500;
+  }
+  .funnel-bar-fill.is-waiting {
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(217, 199, 167, 0.5),
+      rgba(217, 199, 167, 0.5) 6px,
+      rgba(217, 199, 167, 0.25) 6px,
+      rgba(217, 199, 167, 0.25) 12px
+    );
+    animation: none;
   }
 </style>
