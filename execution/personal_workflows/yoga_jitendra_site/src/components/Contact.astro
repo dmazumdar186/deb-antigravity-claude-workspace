@@ -6,7 +6,7 @@ const { lang = 'fr' } = Astro.props;
 const t = lang === 'en' ? en : fr;
 
 const waNumber = '33758255583';
-const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(t.whatsapp_prefill)}`;
+const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(t.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=contact_${lang}`;
 ---
 <section id="contact" class="section">
   <div class="section-inner">
@@ -23,8 +23,8 @@ const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(t.whatsapp_p
           {t.subtitle}
         </p>
         <div class="flex flex-col sm:flex-row gap-3" data-reveal>
-          <a href={waHref} class="btn btn-primary">{t.primary_cta.label} →</a>
-          <a href={t.phone_href} class="btn btn-ghost">{t.phone_display}</a>
+          <a href={waHref} class="btn btn-primary" data-cta="contact_whatsapp">{t.primary_cta.label} →</a>
+          <a href={t.phone_href} class="btn btn-ghost" data-cta="contact_phone">{t.phone_display}</a>
         </div>
         <p class="mt-5 text-sm text-[color:var(--ink-soft)] italic max-w-md" data-reveal>
           {t.desktop_note}
