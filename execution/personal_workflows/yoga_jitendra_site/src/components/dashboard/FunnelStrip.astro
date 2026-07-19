@@ -1,0 +1,151 @@
+---
+interface Stage {
+  label: string;
+  value: number;
+  source: string;
+}
+interface RangeOption {
+  value: string;
+  label: string;
+}
+interface Props {
+  stages: Stage[];
+  range: string;
+  range_options: RangeOption[];
+}
+const { stages, range, range_options } = Astro.props;
+const maxValue = Math.max(1, ...stages.map((s) => s.value));
+---
+<div class="funnel" data-reveal>
+  <div class="funnel-range" role="tablist" aria-label="Time range">
+    {range_options.map((opt) => (
+      <span
+        class:list={['funnel-range-pill', { 'is-active': opt.value === range }]}
+        aria-pressed={opt.value === range}
+      >
+        {opt.label}
+      </span>
+    ))}
+  </div>
+
+  <ul class="funnel-stages">
+    {stages.map((s, i) => {
+      const pct = (s.value / maxValue) * 100;
+      const prev = i > 0 ? stages[i - 1].value : null;
+      const conv = prev !== null && prev > 0 ? ((s.value / prev) * 100).toFixed(1) + '%' : '—';
+      return (
+        <li class="funnel-row">
+          <div class="funnel-label-row">
+            <span class="funnel-label">{s.label}</span>
+            <span class="funnel-value">{s.value.toLocaleString('en-US')}</span>
+          </div>
+          <div class="funnel-bar-track">
+            <div class="funnel-bar-fill" style={`width: ${pct}%;`}></div>
+          </div>
+          {prev !== null && (
+            <p class="funnel-conv">
+              <span class="funnel-conv-arrow" aria-hidden="true">&#x21B3;</span>
+              {conv} of {stages[i - 1].label.toLowerCase()} continued here
+            </p>
+          )}
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
+<style>
+  .funnel {
+    background: var(--cream-100);
+    border: 1px solid rgba(46, 42, 38, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+  }
+  .funnel-range {
+    display: inline-flex;
+    gap: 0.35rem;
+    padding: 0.25rem;
+    border: 1px solid rgba(46, 42, 38, 0.14);
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+    background: rgba(251, 247, 238, 0.8);
+  }
+  .funnel-range-pill {
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    cursor: default;
+  }
+  .funnel-range-pill.is-active {
+    background: var(--terracotta);
+    color: var(--cream-100);
+  }
+  .funnel-stages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .funnel-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .funnel-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .funnel-label {
+    /* Intentional Fraunces on a label span, matches parent site's serif hierarchy. */
+    font-family: var(--font-display, 'Fraunces'), 'Cormorant Garamond', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .funnel-value {
+    /* Intentional Fraunces on the numeric value. */
+    font-family: var(--font-display, 'Fraunces'), 'Cormorant Garamond', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.35rem;
+    color: var(--terracotta);
+    font-variant-numeric: tabular-nums;
+  }
+  .funnel-bar-track {
+    height: 10px;
+    background: rgba(217, 199, 167, 0.35);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .funnel-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--terracotta), rgba(201, 116, 74, 0.6));
+    border-radius: 999px;
+    transform-origin: left center;
+    animation: bar-grow 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    min-width: 2px;
+  }
+  @keyframes bar-grow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .funnel-bar-fill { animation: none; }
+  }
+  .funnel-conv {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin: 0.15rem 0 0 0.25rem;
+    font-style: italic;
+  }
+  .funnel-conv-arrow {
+    color: var(--sage);
+    margin-right: 0.35rem;
+  }
+</style>

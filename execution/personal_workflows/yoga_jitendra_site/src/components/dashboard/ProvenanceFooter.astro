@@ -1,0 +1,109 @@
+---
+interface Source {
+  name: string;
+  cadence: string;
+  verified: boolean;
+  note?: string;
+}
+interface Props {
+  sources: Source[];
+  as_of: string;
+}
+const { sources, as_of } = Astro.props;
+
+const asOfLabel = new Date(as_of).toLocaleString('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Paris',
+});
+---
+<footer class="provenance" data-reveal>
+  <p class="provenance-eyebrow">
+    <span class="breathing-dot"></span>
+    <span>What we measure and where it comes from</span>
+  </p>
+  <ul class="provenance-list">
+    {sources.map((s) => (
+      <li class="provenance-item">
+        <span class={`prov-dot ${s.verified ? 'is-live' : 'is-pending'}`} aria-hidden="true"></span>
+        <span class="prov-name">{s.name}</span>
+        <span class="prov-sep" aria-hidden="true">&middot;</span>
+        <span class="prov-cadence">{s.cadence}</span>
+        {s.note && <span class="prov-note">({s.note})</span>}
+      </li>
+    ))}
+  </ul>
+  <p class="prov-synced">Last synced {asOfLabel} Paris. Honest about what we do not yet know.</p>
+</footer>
+
+<style>
+  .provenance {
+    margin-top: 3rem;
+    padding: 1.75rem 0 0;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+  }
+  .provenance-eyebrow {
+    /* Inherits Inter from body. */
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 500;
+    margin: 0 0 1rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  .provenance-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .provenance-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .prov-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    margin-right: 0.25rem;
+  }
+  .prov-dot.is-live {
+    background: var(--sage);
+  }
+  .prov-dot.is-pending {
+    background: rgba(201, 116, 74, 0.45);
+    border: 1px dashed rgba(201, 116, 74, 0.6);
+  }
+  .prov-name {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .prov-sep {
+    color: rgba(74, 66, 59, 0.4);
+  }
+  .prov-cadence {
+    color: var(--ink-soft);
+  }
+  .prov-note {
+    font-style: italic;
+    color: rgba(74, 66, 59, 0.7);
+    font-size: 0.85rem;
+  }
+  .prov-synced {
+    font-size: 0.78rem;
+    color: rgba(74, 66, 59, 0.6);
+    margin: 1rem 0 0;
+    letter-spacing: 0.01em;
+  }
+</style>

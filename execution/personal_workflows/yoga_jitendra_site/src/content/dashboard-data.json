@@ -1,0 +1,85 @@
+{
+  "launch_date": "2026-07-11",
+  "as_of": "2026-07-19T07:58:00+02:00",
+  "hero_tiles": {
+    "reach": {
+      "label": "People who found you on Google",
+      "value": null,
+      "status": "waiting",
+      "hint": "First data ~15 Jul",
+      "source": "Google Search Console"
+    },
+    "interest": {
+      "label": "Clicks on your site and Maps profile",
+      "value": null,
+      "status": "waiting",
+      "hint": "First data ~18 Jul",
+      "source": "Google Business Profile + GSC"
+    },
+    "conversation": {
+      "label": "WhatsApp taps from your site",
+      "value": null,
+      "status": "waiting",
+      "hint": "Enable the beacon token",
+      "source": "Cloudflare Web Analytics"
+    }
+  },
+  "funnel": {
+    "range": "7d",
+    "stages": [
+      { "label": "Impressions", "value": 0, "source": "Google Search Console" },
+      { "label": "Clicks", "value": 0, "source": "GSC + Cloudflare Web Analytics" },
+      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon" }
+    ]
+  },
+  "milestones": [
+    {
+      "date": "2026-07-11",
+      "title": "Site v2 went live",
+      "detail": "Ahrefs Site Audit health score: 86 / 100",
+      "state": "done"
+    },
+    {
+      "date": "2026-07-12",
+      "title": "Google finished indexation",
+      "detail": "Sitemap accepted; coverage crawl in progress",
+      "state": "done"
+    },
+    {
+      "date": "2026-07-15",
+      "title": "First Google impressions expected",
+      "detail": "Typical GSC lag after indexation is 2 to 4 days",
+      "state": "expected"
+    },
+    {
+      "date": "2026-07-20",
+      "title": "First MeetUp session (planned)",
+      "detail": "Outdoor group, Champ-de-Mars",
+      "state": "expected"
+    },
+    {
+      "date": "2026-07-30",
+      "title": "First Google review target",
+      "detail": "Goal: three reviews in month one",
+      "state": "goal"
+    }
+  ],
+  "next_move": {
+    "week_of": "2026-07-19",
+    "title": "Ask three happy students for a Google review",
+    "body": "Superprof shows two reviews. Local yoga teachers in Paris 16 average around fifteen. Three fresh Google reviews would visibly lift your Map Pack ranking and help new students trust you before they message.",
+    "cta_label": "Draft a review-request WhatsApp",
+    "cta_href": "https://wa.me/?text=Namaste%2C%20I%20hope%20your%20practice%20is%20going%20well.%20If%20you%20have%20a%20minute%2C%20a%20short%20Google%20review%20would%20really%20help%20me.%20Thank%20you.%20Jitendra%0A%0AReview%20link%3A%20https%3A%2F%2Fmaps.app.goo.gl%2FLFy4eJncWWdt69Lo9"
+  },
+  "self_report_history": [],
+  "provenance": {
+    "sources": [
+      { "name": "Google Search Console", "cadence": "Snapshot daily", "verified": true },
+      { "name": "Google Business Profile", "cadence": "Snapshot daily", "verified": true },
+      { "name": "Ahrefs Site Audit", "cadence": "Weekly re-crawl", "verified": true },
+      { "name": "Bing Webmaster Tools", "cadence": "Snapshot daily", "verified": true },
+      { "name": "Cloudflare Web Analytics", "cadence": "Live", "verified": false, "note": "awaiting token" },
+      { "name": "Self-report form", "cadence": "Monthly", "verified": true }
+    ]
+  }
+}

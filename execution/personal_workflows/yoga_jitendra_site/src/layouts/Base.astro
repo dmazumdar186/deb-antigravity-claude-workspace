@@ -8,6 +8,7 @@ interface Props {
   pathFr?: string;
   pathEn?: string;
   noindex?: boolean;
+  dashboard?: boolean;
 }
 
 const {
@@ -17,7 +18,10 @@ const {
   pathFr = '/',
   pathEn = '/en/',
   noindex = false,
+  dashboard = false,
 } = Astro.props;
+
+const isNoindex = noindex || dashboard;
 
 const SITE = 'https://yogaavecjitendra.fr';
 const canonicalUrl = `${SITE}${lang === 'en' ? pathEn : pathFr}`;
@@ -117,7 +121,7 @@ const structuredData = {
   <meta name="color-scheme" content="light" />
   <title>{title}</title>
   <meta name="description" content={desc} />
-  {noindex && <meta name="robots" content="noindex, follow" />}
+  {isNoindex && <meta name="robots" content="noindex, follow" />}
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title} />
@@ -145,7 +149,7 @@ const structuredData = {
   <link rel="alternate" hreflang="en" href={enUrl} />
   <link rel="alternate" hreflang="x-default" href={frUrl} />
 
-  <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
+  {!dashboard && <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />}
 
   {/* Cloudflare Web Analytics (cookieless, GDPR-safe, free). Gated behind
       PUBLIC_CF_WA_TOKEN so preview builds do not ping. Set the token in the
@@ -159,14 +163,15 @@ const structuredData = {
   )}
 </head>
 <body class="min-h-screen antialiased">
-  <!-- Ambient audio: gentle dawn birds loop -->
-  <audio
-    id="om-audio"
-    src="/assets/audio/birds-dawn.mp3"
-    preload="metadata"
-    loop
-    aria-hidden="true"
-  ></audio>
+  {!dashboard && (
+    <audio
+      id="om-audio"
+      src="/assets/audio/birds-dawn.mp3"
+      preload="metadata"
+      loop
+      aria-hidden="true"
+    />
+  )}
   <slot />
 
   <!-- Motion One: fade-up reveals; skipped under prefers-reduced-motion -->
@@ -187,7 +192,7 @@ const structuredData = {
     }
   </script>
 
-  <!-- Ambient audio boot (dawn-birds loop, first user gesture starts it) -->
+  {!dashboard && (
   <script is:inline>
     (function() {
       var omEl = document.getElementById('om-audio');
@@ -241,5 +246,6 @@ const structuredData = {
       events.forEach(function(ev) { window.addEventListener(ev, firstGesture, { passive: true }); });
     })();
   </script>
+  )}
 </body>
 </html>

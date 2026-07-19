@@ -1,0 +1,148 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const now = new Date();
+const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+---
+<Base
+  title="Log this month | Dashboard"
+  lang="en"
+  dashboard={true}
+  pathEn="/dashboard/self-report/"
+>
+  <header class="dash-topbar">
+    <a href="/dashboard/" class="dash-brand">
+      <span aria-hidden="true">&larr;</span>
+      <span>Back to dashboard</span>
+    </a>
+  </header>
+
+  <main class="dash-main dash-narrow">
+    <section class="dash-intro" data-reveal>
+      <p class="eyebrow">Monthly snapshot</p>
+      <h1 class="dash-h1">Log this month</h1>
+      <p class="dash-lede">
+        Takes thirty seconds. Three numbers help the dashboard show your actual value over time, not just what Google can measure.
+      </p>
+    </section>
+
+    <form method="POST" action="/api/self-report" class="report-form" data-reveal>
+      <label class="report-field">
+        <span class="report-field-label">Month</span>
+        <input type="month" name="month" value={defaultMonth} required />
+      </label>
+      <label class="report-field">
+        <span class="report-field-label">New students this month</span>
+        <input type="number" name="new_students" min="0" max="10000" step="1" inputmode="numeric" required />
+      </label>
+      <label class="report-field">
+        <span class="report-field-label">Recurring students</span>
+        <input type="number" name="recurring_students" min="0" max="10000" step="1" inputmode="numeric" required />
+      </label>
+      <label class="report-field">
+        <span class="report-field-label">Average revenue per session (&euro;)</span>
+        <input type="number" name="avg_revenue_eur" min="0" max="10000" step="1" inputmode="numeric" required />
+      </label>
+
+      <div class="report-actions">
+        <button type="submit" class="btn btn-primary">Save this month &rarr;</button>
+        <a href="/dashboard/" class="btn btn-ghost">Cancel</a>
+      </div>
+
+      <p class="report-note">
+        Your entries stay behind Cloudflare Access. Only you and Debanjan see them.
+      </p>
+    </form>
+  </main>
+</Base>
+
+<style>
+  .dash-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(46, 42, 38, 0.08);
+    background: rgba(244, 237, 225, 0.75);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  .dash-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .dash-main {
+    max-width: 960px;
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 3.5rem) 1.25rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 4vw, 3rem);
+  }
+  .dash-narrow { max-width: 560px; }
+  .dash-h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    margin: 0.35rem 0 0;
+  }
+  .dash-lede {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    line-height: 1.55;
+    margin: 0.75rem 0 0;
+  }
+  .report-form {
+    background: var(--cream-100);
+    border: 1px solid rgba(46, 42, 38, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .report-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .report-field-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .report-field input {
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(46, 42, 38, 0.16);
+    background: #fff;
+    color: var(--ink);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .report-field input:focus {
+    outline: none;
+    border-color: var(--terracotta);
+    box-shadow: 0 0 0 3px rgba(201, 116, 74, 0.15);
+  }
+  .report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .report-note {
+    font-size: 0.8rem;
+    color: rgba(74, 66, 59, 0.7);
+    margin: 0.5rem 0 0;
+    font-style: italic;
+  }
+</style>

@@ -1,0 +1,81 @@
+---
+interface Props {
+  title: string;
+  body: string;
+  cta_label?: string;
+  cta_href?: string;
+}
+const { title, body, cta_label, cta_href } = Astro.props;
+---
+<aside class="next-move" data-reveal>
+  <p class="next-move-eyebrow">
+    <span class="breathing-dot"></span>
+    <span>This week&#39;s next move</span>
+  </p>
+  <h3 class="next-move-title">{title}</h3>
+  <p class="next-move-body">{body}</p>
+  {cta_href && cta_label && (
+    <a href={cta_href} class="btn btn-primary next-move-cta" target="_blank" rel="noopener">
+      {cta_label} &rarr;
+    </a>
+  )}
+</aside>
+
+<style>
+  .next-move {
+    background: linear-gradient(
+      135deg,
+      rgba(201, 116, 74, 0.14),
+      rgba(217, 199, 167, 0.22)
+    );
+    border: 1px solid rgba(201, 116, 74, 0.28);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .next-move::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(
+      circle,
+      rgba(201, 116, 74, 0.12),
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+  .next-move-eyebrow {
+    /* Inherits Inter from body. */
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 500;
+    margin: 0 0 0.75rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  .next-move-title {
+    /* h3 inherits Fraunces from global.css. */
+    font-weight: 500;
+    font-size: clamp(1.4rem, 3vw, 1.7rem);
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    margin: 0 0 0.75rem;
+    line-height: 1.25;
+  }
+  .next-move-body {
+    color: var(--ink-soft);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 1.5rem;
+    max-width: 60ch;
+  }
+  .next-move-cta {
+    text-decoration: none;
+  }
+</style>

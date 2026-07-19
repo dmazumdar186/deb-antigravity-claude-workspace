@@ -137,3 +137,18 @@ _Populated at Phase 1 step 12._
 ## Citation-platform address-field check log (Phase 3 Track 3a)
 
 _Populated at Phase 3 kickoff._
+
+---
+
+## Dashboard delivery log
+
+### 2026-07-19 (day 8 since launch): V0.01 delivered
+
+Internal dashboard live at `/dashboard/` (English-only, behind Cloudflare Access).
+
+- Preconditions shipped: Cloudflare Web Analytics installed in `Base.astro` (gated behind `PUBLIC_CF_WA_TOKEN` env var); missing UTM tag on `Contact.astro:9` fixed to `utm_content=contact_${lang}`.
+- Six components: HeroTile, FunnelStrip, MilestoneStrip, NextMoveCard, SelfReportTile, ProvenanceFooter.
+- Single source of truth: `src/content/dashboard-data.json` (hand-edited weekly until V0.1 automation).
+- Monthly self-report form at `/dashboard/self-report/` with a Cloudflare Pages Function (`functions/api/self-report.ts`) persisting to a KV namespace named `DASHBOARD_KV`.
+- Manual owner steps to activate: enable CF Access on the Pages project scoped to `/dashboard/*` and `/api/*`, allowlist debolshop@gmail.com + jitendranitrr13@gmail.com; bind the `DASHBOARD_KV` namespace; set `PUBLIC_CF_WA_TOKEN` env var.
+- Rollback: `git revert <sha> && wrangler pages deploy dist` then disable the Access application in the CF dashboard.

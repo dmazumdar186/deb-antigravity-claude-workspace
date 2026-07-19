@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /dashboard/self-report/
+Disallow: /api/
 
 Sitemap: https://yogaavecjitendra.fr/sitemap-index.xml

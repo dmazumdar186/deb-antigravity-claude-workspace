@@ -1,0 +1,202 @@
+---
+import Base              from '../layouts/Base.astro';
+import HeroTile          from '../components/dashboard/HeroTile.astro';
+import FunnelStrip       from '../components/dashboard/FunnelStrip.astro';
+import MilestoneStrip    from '../components/dashboard/MilestoneStrip.astro';
+import NextMoveCard      from '../components/dashboard/NextMoveCard.astro';
+import SelfReportTile    from '../components/dashboard/SelfReportTile.astro';
+import ProvenanceFooter  from '../components/dashboard/ProvenanceFooter.astro';
+import data              from '../content/dashboard-data.json';
+
+const launch = new Date(data.launch_date + 'T00:00:00');
+const now = new Date();
+const daysSinceLaunch = Math.max(0, Math.floor((now.getTime() - launch.getTime()) / (1000 * 60 * 60 * 24)));
+
+const rangeOptions = [
+  { value: '7d',  label: 'Last 7 days' },
+  { value: '30d', label: 'Last 30 days' },
+  { value: 'all', label: 'Since launch' },
+];
+---
+<Base
+  title="Dashboard | Yoga avec Jitendra"
+  lang="en"
+  dashboard={true}
+>
+  <header class="dash-topbar">
+    <a href="/en/" class="dash-brand">
+      <span class="breathing-dot" style="margin:0;"></span>
+      <span>Yoga avec Jitendra &middot; Dashboard</span>
+    </a>
+    <a href="/cdn-cgi/access/logout" class="dash-logout">Sign out</a>
+  </header>
+
+  <main class="dash-main">
+    <section class="dash-intro" data-reveal>
+      <p class="eyebrow">Since launch &middot; day {daysSinceLaunch}</p>
+      <h1 class="dash-h1">The story so far</h1>
+      <p class="dash-lede">
+        Where you are being found, who is clicking, and how many of them tap WhatsApp. Honest about what we do not yet know.
+      </p>
+    </section>
+
+    <section class="dash-hero-grid">
+      <HeroTile
+        eyebrow="Reach"
+        headline={data.hero_tiles.reach.label}
+        value={data.hero_tiles.reach.value}
+        status={data.hero_tiles.reach.status}
+        hint={data.hero_tiles.reach.hint}
+        source={data.hero_tiles.reach.source}
+      />
+      <HeroTile
+        eyebrow="Interest"
+        headline={data.hero_tiles.interest.label}
+        value={data.hero_tiles.interest.value}
+        status={data.hero_tiles.interest.status}
+        hint={data.hero_tiles.interest.hint}
+        source={data.hero_tiles.interest.source}
+      />
+      <HeroTile
+        eyebrow="Conversation"
+        headline={data.hero_tiles.conversation.label}
+        value={data.hero_tiles.conversation.value}
+        status={data.hero_tiles.conversation.status}
+        hint={data.hero_tiles.conversation.hint}
+        source={data.hero_tiles.conversation.source}
+      />
+    </section>
+
+    <section class="dash-block">
+      <p class="eyebrow"><span class="breathing-dot"></span><span>The funnel</span></p>
+      <h2 class="dash-h2">From search to WhatsApp</h2>
+      <FunnelStrip
+        stages={data.funnel.stages}
+        range={data.funnel.range}
+        range_options={rangeOptions}
+      />
+    </section>
+
+    <section class="dash-block">
+      <p class="eyebrow"><span class="breathing-dot"></span><span>How the story has moved</span></p>
+      <h2 class="dash-h2">Milestones</h2>
+      <MilestoneStrip milestones={data.milestones} />
+    </section>
+
+    <section class="dash-block">
+      <NextMoveCard
+        title={data.next_move.title}
+        body={data.next_move.body}
+        cta_label={data.next_move.cta_label}
+        cta_href={data.next_move.cta_href}
+      />
+    </section>
+
+    <section class="dash-block">
+      <SelfReportTile
+        history={data.self_report_history}
+        form_href="/dashboard/self-report/"
+      />
+    </section>
+
+    <ProvenanceFooter sources={data.provenance.sources} as_of={data.as_of} />
+  </main>
+
+  {/* Client-side hydration: if the /api/self-report GET endpoint is bound
+      to a KV namespace, refresh the SelfReportTile with the latest server
+      state. Falls back silently if the endpoint is missing (V0.01 static
+      build path). Kept inline and tiny; no framework needed. */}
+  <script is:inline>
+    (function () {
+      fetch('/api/self-report', { headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (payload) {
+          if (!payload || !Array.isArray(payload.history) || payload.history.length === 0) return;
+          var latest = payload.history[payload.history.length - 1];
+          var tile = document.querySelector('.self-report');
+          if (!tile || !latest) return;
+          var vals = tile.querySelectorAll('.report-value');
+          if (vals.length === 3) {
+            vals[0].textContent = String(latest.new_students);
+            vals[1].textContent = String(latest.recurring_students);
+            vals[2].textContent = '€' + String(latest.avg_revenue_eur);
+          }
+        })
+        .catch(function () { /* stay with static fallback */ });
+    })();
+  </script>
+</Base>
+
+<style>
+  .dash-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(46, 42, 38, 0.08);
+    background: rgba(244, 237, 225, 0.75);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  .dash-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .dash-logout {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(46, 42, 38, 0.14);
+    transition: background 0.2s ease;
+  }
+  .dash-logout:hover {
+    background: rgba(46, 42, 38, 0.04);
+  }
+  .dash-main {
+    max-width: 960px;
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 3.5rem) 1.25rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 4vw, 3rem);
+  }
+  .dash-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .dash-h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    margin: 0.35rem 0 0;
+  }
+  .dash-h2 {
+    font-size: clamp(1.4rem, 3vw, 1.7rem);
+    letter-spacing: -0.015em;
+    margin: 0.35rem 0 1.25rem;
+    color: var(--ink);
+  }
+  .dash-lede {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    line-height: 1.55;
+    margin: 0.75rem 0 0;
+  }
+  .dash-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+  .dash-block {
+    display: flex;
+    flex-direction: column;
+  }
+</style>

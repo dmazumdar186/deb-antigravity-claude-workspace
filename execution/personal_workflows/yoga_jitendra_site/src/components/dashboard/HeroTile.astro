@@ -1,0 +1,112 @@
+---
+interface Props {
+  eyebrow: string;
+  headline: string;
+  value: string | number | null;
+  status: 'live' | 'waiting';
+  hint?: string;
+  source: string;
+  suffix?: string;
+}
+const { eyebrow, headline, value, status, hint, source, suffix } = Astro.props;
+const isLive = status === 'live' && value !== null && value !== undefined;
+---
+<article class="hero-tile" data-status={status} data-reveal>
+  <p class="hero-tile-eyebrow">
+    <span class="breathing-dot"></span>
+    <span>{eyebrow}</span>
+  </p>
+  <h3 class="hero-tile-headline">{headline}</h3>
+  <div class="hero-tile-number-row">
+    {isLive ? (
+      <span class="hero-tile-bignumber">
+        {value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
+      </span>
+    ) : (
+      <span class="hero-tile-skeleton" role="status">
+        <span class="hero-tile-hourglass" aria-hidden="true">&#x23F3;</span>
+        <span>{hint}</span>
+      </span>
+    )}
+  </div>
+  <p class="hero-tile-source">Source: {source}</p>
+</article>
+
+<style>
+  .hero-tile {
+    background: var(--cream-100);
+    border: 1px solid rgba(46, 42, 38, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    min-height: 210px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .hero-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px -24px rgba(46, 42, 38, 0.25);
+  }
+  .hero-tile-eyebrow {
+    /* Inherits Inter from body + eyebrow tokens from global.css .eyebrow. */
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 500;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+  .hero-tile-headline {
+    /* h3 inherits Fraunces from global.css. */
+    font-weight: 500;
+    font-size: 1.1rem;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .hero-tile-number-row {
+    margin-top: auto;
+  }
+  .hero-tile-bignumber {
+    /* Intentional Fraunces use on a display number, matches parent site's h1 treatment. */
+    font-family: var(--font-display, 'Fraunces'), 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(2.4rem, 6vw, 3.4rem);
+    font-weight: 500;
+    color: var(--terracotta);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .hero-tile-suffix {
+    font-size: 0.55em;
+    margin-left: 0.35rem;
+    color: var(--ink-soft);
+  }
+  .hero-tile-skeleton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px dashed rgba(201, 116, 74, 0.4);
+    background: rgba(217, 199, 167, 0.18);
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+  .hero-tile-hourglass {
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  .hero-tile-source {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(74, 66, 59, 0.6);
+    margin: 0;
+    font-weight: 500;
+  }
+</style>
