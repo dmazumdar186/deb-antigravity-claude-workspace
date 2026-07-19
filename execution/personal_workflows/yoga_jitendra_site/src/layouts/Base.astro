@@ -151,14 +151,17 @@ const structuredData = {
 
   {!dashboard && <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />}
 
-  {/* Cloudflare Web Analytics (cookieless, GDPR-safe, free). Gated behind
-      PUBLIC_CF_WA_TOKEN so preview builds do not ping. Set the token in the
-      Cloudflare Pages dashboard: Settings, Environment variables, Production. */}
-  {import.meta.env.PUBLIC_CF_WA_TOKEN && (
+  {/* Cloudflare Web Analytics (cookieless, GDPR-safe, free). The site_token
+      below is public by design (it ships in every page's HTML for every
+      visitor to see). To rotate, set PUBLIC_CF_WA_TOKEN in the build env
+      (overrides this default) or update the value here. Not included on the
+      dashboard route to avoid vanity metrics polluting the public site's
+      numbers. */}
+  {!dashboard && (
     <script
       defer
       src="https://static.cloudflareinsights.com/beacon.min.js"
-      data-cf-beacon={`{"token": "${import.meta.env.PUBLIC_CF_WA_TOKEN}"}`}
+      data-cf-beacon={`{"token": "${import.meta.env.PUBLIC_CF_WA_TOKEN || '9a1473aafbd24daba793995956244a87'}"}`}
     />
   )}
 </head>

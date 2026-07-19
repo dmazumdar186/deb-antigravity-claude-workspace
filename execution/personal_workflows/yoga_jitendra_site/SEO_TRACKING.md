@@ -168,9 +168,10 @@ Day 2/5 through day 5/5: re-run this probe stack daily; log below.
 - Day 5 / 5: — dashboard is then LIVE per workspace front-door rule.
 
 **Owed for V0.02:**
-- Cloudflare Web Analytics site token → `PUBLIC_CF_WA_TOKEN` env var on Pages project (unblocks "Conversation" hero tile + funnel WhatsApp-taps row).
+- ~~Cloudflare Web Analytics site token~~ — DONE 2026-07-19 16:00. Site was already registered (created 2026-07-09, site_token `9a1473...`, auto_install true but auto-install skips Pages projects so a manual bake-in was required). Baked into `Base.astro` as a default value (the token is public by design, embedded in every page's HTML). Beacon confirmed live on `/` and `/en/`, correctly absent from `/dashboard/*`. Redeploy preview: https://492eda1a.yoga-jitendra.pages.dev/.
 - Replace HTTP Basic Auth with Cloudflare Access when a token with Zero Trust scope is available.
 - POST-then-refresh dogfood test (submit one self-report, verify tile rehydrates) — Cherny lens verdict from the audit stack.
+- Update `dashboard-data.json` `hero_tiles.conversation.status` from `waiting` → `live` and start plugging real numbers once CF Web Analytics has ~24h of data.
 
 Internal dashboard live at `/dashboard/` (English-only, behind Cloudflare Access).
 
