@@ -16,6 +16,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -238,6 +239,11 @@ def personalize_dry_run(
 
 _SONNET_MODEL = "claude-sonnet-4-5"  # workspace default per model-tier.md; auto-updates to latest Sonnet
 
+# Gemini 2.5 Flash free-tier RPM cap. Verified 2026-07-19: 5 RPM hard limit,
+# request #6 returns 429 RESOURCE_EXHAUSTED. 13s sleep ~= 4.6 RPM safely under.
+# Paid tier is 10 RPM (250 RPD) — override to 6s if the API key is on billing.
+_GEMINI_SLEEP_SECONDS = int(os.environ.get("GEMINI_SLEEP_SECONDS", "13"))
+
 # System prompt applies Nick Saraev's 4-step + 7-principle framework per
 # ~/deliverables/self_outbound_system/nick_saraev_cold_email_full_analysis.md.
 # Cached (>1024 tokens after tone_cfg dump) so subsequent leads pay 0.1x for
@@ -418,7 +424,12 @@ def personalize_live(
                 text = resp.content[0].text
             else:  # gemini
                 # Gemini API: combine system + user in one contents call.
-                # Free tier: 250 req/day, 10 req/min — well under the 100-lead budget.
+                # Gemini 2.5 Flash free tier hard cap = 5 RPM (verified 2026-07-19:
+                # observed 429 RESOURCE_EXHAUSTED at request #6). Preventive sleep
+                # between calls holds us at ~4.6 RPM to avoid the 429 storm.
+                # For paid tier (250 RPD, 10 RPM), reduce _GEMINI_SLEEP_SECONDS to 6.
+                if i > 0:
+                    time.sleep(_GEMINI_SLEEP_SECONDS)
                 system_text = system_blocks[0]["text"] if system_blocks else ""
                 combined = system_text + "\n\n---\n\n" + user_prompt
                 g_resp = gemini_client.models.generate_content(
