@@ -1,10 +1,11 @@
 {
   "_source_of_truth": "execution/personal_workflows/personal_brand/icp_and_positioning.md",
   "_framework_source": "deliverables/self_outbound_system/nick_saraev_cold_email_full_analysis.md",
-  "_version": "2 (Nick-framework, 2026-07-14)",
+  "_version": "3 (2026-07-19: killed unverifiable claims; added subject_line_spintax; per Phase 3 research + panel-pass)",
   "_changelog": [
     "v1 (Phase 1): opener + cta + signature only",
-    "v2 (Phase 2, 2026-07-14): added give_first / who_am_i / offer / cta_time_proposals per variant; applies Nick Saraev's 4-step + 7-principle framework end to end"
+    "v2 (Phase 2, 2026-07-14): added give_first / who_am_i / offer / cta_time_proposals per variant; applies Nick Saraev's 4-step + 7-principle framework end to end",
+    "v3 (2026-07-19): killed variant-B 48k/32-inbox/$1m/$200k claims (unverifiable, would break trust on discovery call); reworded positioning; added subject_line_spintax (Instantly {{RANDOM|...}} syntax) per Phase 3 research recommending spintax subjects-only + full-variant body rotation"
   ],
   "voice": {
     "tone": "confident, concrete, second-person, one-to-one text-message frame — never corporate. Sound like a friend who knows their business.",
@@ -66,6 +67,11 @@
     "banned_starts": ["Re:", "Fwd:", "FW:", "RE:"],
     "banned_words_case_insensitive": ["free", "urgent", "act now", "limited time", "amazing", "$", "€", "!", "quick "]
   },
+  "subject_line_spintax": {
+    "_note": "Instantly-native {{RANDOM | ... | ... }} syntax. Rotates per-send at the campaign level. Skips a Gemini call per subject. Fallback chain uses {{firstName | there}} for missing personalization variables.",
+    "en": "{{RANDOM | {{firstName | there}} — one question | one thought for {{companyName | you}} | worth a look, {{firstName | there}}? | 90 seconds of your time? | one idea for {{companyName | you}} | small win at {{companyName | your team}} | curious about {{firstName | one thing}} | one quick note | 2 minutes? | idea for {{companyName | your roadmap}} }}",
+    "fr": "{{RANDOM | {{firstName | vous}} — une question | une idée pour {{companyName | vous}} | 90 secondes de votre temps ? | une piste pour {{companyName | vous}} | curieux — {{firstName | une chose}} | un petit mot | 2 minutes ? | une question pour {{firstName | vous}} | une réflexion pour {{companyName | vous}} | une idée rapide pour {{companyName | votre équipe}} }}"
+  },
   "give_first_constraints": {
     "max_words": 25,
     "must_be_concrete": "a specific observation, spotted gap, insight, credit, or sample — never 'value' or 'thoughts'",
@@ -106,37 +112,67 @@
         "Saw {company} just raised — is the ai feature on your roadmap still sitting in the backlog?",
         "Noticed you posted about shipping {topic} — is the ai piece live yet or still on the backlog?",
         "{company} looks like it's in prod already — is there an ai feature you keep pushing to next sprint?",
-        "Looks like {company} is hiring — is the ai piece something you'd hire senior or outsource fixed-price?"
+        "Looks like {company} is hiring — is the ai piece something you'd hire senior or outsource fixed-price?",
+        "Watched your product hunt launch — is the ai feature you mentioned in the roadmap live yet or scoped for next quarter?",
+        "Read your seed announcement — which ai piece do you want live before the next fundraise?",
+        "Saw {company}'s changelog — the {topic} update is close to an ai layer that would be 2 weeks to ship.",
+        "Noticed you're building solo/small team at {company} — is the ai piece one you want to ship without another hire?",
+        "Your LinkedIn post about {topic} — is the ai feature you sketched actually on the roadmap or just idea?",
+        "Looked at {company}'s pricing page — the ai upsell you're planning is a 3-week build, not a quarter."
       ],
       "give_first_examples": [
         "Spotted your careers page still lists a senior ai eng role open — that's the exact gap I fill without the FTE overhead.",
         "Looked at {company}'s public roadmap — the {feature} piece is exactly what I've shipped 3 times this year at similar seed-stage cos.",
         "Watched your last demo — the ai suggestion feature would be a 2-week build, not a quarter.",
-        "Read your latest LinkedIn post on {topic} — the ai feature you sketched is 10 days of work, not two months."
+        "Read your latest LinkedIn post on {topic} — the ai feature you sketched is 10 days of work, not two months.",
+        "Saw {company}'s Product Hunt launch — the ai layer you demoed is a 14-day fixed-price build, not an FTE hire.",
+        "Ran through your app — the {feature} piece would benefit from an ai layer, and it's a 21-day scope.",
+        "Read your latest release notes — the ai enrichment you flagged as 'coming soon' is exactly what I ship in 3 weeks.",
+        "Watched your founder video — the ai automation you described is a 30-day fixed-price, not a Q2 project.",
+        "Checked your changelog — the {topic} update is one prompt-engineering step away from being an ai feature.",
+        "Skimmed your docs — the search UX would 3x with an ai layer, and it's a 2-week build."
       ],
       "who_am_i_examples": [
         "I've shipped 12 ai systems end-to-end this year — cv-optimizer (live saas), a job-search v2, three internal tools — all 30 days or less, fixed-price.",
-        "15 years in data + ai product. Shipped 12 live ai systems this year, median 30 days zero-to-live. Currently running an outbound engine doing $1m modeled pipeline.",
+        "15 years in data + ai product. Shipped 12 live ai systems this year, median 30 days zero-to-live. Currently shipping my own outbound engine end-to-end.",
         "Last 12 months: 12 ai systems shipped, 100+ hours/week of client ops automated, one two-sided marketplace ($85k processed in 3 months).",
-        "Senior ai builder — 15 years product, 12 systems live, median 30 days. Ex-Wiser Solutions (+45% adoption, -55% latency on their genai rollout)."
+        "Senior ai builder — 15 years product, 12 systems live, median 30 days. Ex-Wiser Solutions (+45% adoption, -55% latency on their genai rollout).",
+        "15 years product + AI. Ex-Wiser Solutions (+45% feature adoption on their genai rollout). Shipping fixed-price AI features this year at seed-stage cos.",
+        "Fractional AI builder — one senior operator, no team overhead. 12 live systems this year. Solo-shipped a CV optimizer + job pipeline + humanizer.",
+        "Product + code from one operator. 15 years experience. Median 30 days zero-to-live. Currently my own outbound engine is my public case study.",
+        "Not an agency — one senior AI builder. 12 systems live this year. Ex-Wiser Solutions on their genai rollout. ProdCraft AI Studio.",
+        "I ship, then bill. 12 AI systems live this year, all fixed-price. Founder of ProdCraft AI Studio, ex-Wiser Solutions.",
+        "Solo AI builder — I scope + build + ship. 15 years product. 12 systems live in the last 12 months. Median 30 days."
       ],
       "offer_examples": [
         "Let me ship your ai feature — first prototype in 14 days, or you don't pay.",
         "I'll build and ship your ai feature in 30 days for a fixed price, or you get every euro back.",
         "First working version of your ai feature in 14 days for €5-15k fixed. If it doesn't ship, you don't owe me.",
-        "One ai build in 30 days, fixed-price. If it isn't in your users' hands live, no invoice."
+        "One ai build in 30 days, fixed-price. If it isn't in your users' hands live, no invoice.",
+        "Prototype in 10 days for €3k — production version in 30 more for €10-15k. If the prototype doesn't earn the go-ahead, we stop.",
+        "One AI feature scoped + shipped in 21 days, fixed price, no FTE commitment. Refund if it doesn't ship.",
+        "I'll build the AI feature you keep deprioritizing — 14-day prototype, 21-day live. Fixed price. Zero risk if it doesn't ship.",
+        "Fixed-price 30-day sprint: one AI feature live. If it's not in users' hands by day 30, no invoice.",
+        "€5-15k fixed for one shipped AI feature, 30 days, refund if not live. Cheaper than one month of an FTE hire.",
+        "One feature. 30 days. Fixed price. Refund clause. That's the whole offer."
       ],
       "cta_time_proposals": [
         "Free 30-min scoping call, no deck no pitch. 15:30 Paris time today or Tuesday 10:00 — reply which works, or grab a slot: {cal_com_url}",
         "Can I ring you today around 15:30 Paris time or Wednesday 10:00? Or if easier, grab a slot: {cal_com_url}",
         "Free scoping call whenever — 15:30 CET today, or 10:00 tomorrow? Or {cal_com_url} if you'd rather pick your own time.",
-        "Reply with a 30-min window today or tomorrow — or {cal_com_url} if calendar's easier."
+        "Reply with a 30-min window today or tomorrow — or {cal_com_url} if calendar's easier.",
+        "30-min call. 15:30 Paris today or Thursday 11:00 — reply with which. Or {cal_com_url}.",
+        "Two options: 15:30 CET today or 10:00 Friday — reply which works. Or self-serve at {cal_com_url}.",
+        "15 minutes, one call, no slides. 15:30 today or 10:00 Tuesday? Or {cal_com_url}.",
+        "Reply with 'yes today' or 'yes Thursday' — I'll send Cal.com invite. Or grab whatever works at {cal_com_url}.",
+        "30-min scoping call this week. Reply with a Paris-time window that works. Or {cal_com_url}.",
+        "Best time to talk this week? Reply with 2 windows. Or self-book at {cal_com_url}."
       ]
     },
     "B": {
       "audience_segment": "sme_agency_owners",
       "language": "en",
-      "positioning": "the machine that books meetings while you sleep + hands your team back 100+ hours a week — I built one that does $1m modeled pipeline for a similar shop",
+      "positioning": "the machine that books meetings while you sleep + hands your team back 100+ hours a week — I'm currently building one for my own studio and can build the same for you, fixed-price, 30 days",
       "subject_examples": [
         "{first_name}",
         "your sdr cost",
@@ -148,31 +184,61 @@
         "Saw {company} on {source} — is your pipeline still sdr-driven or automated yet?",
         "{company} looks lean — how much of your team's week goes to manual outbound right now?",
         "Noticed you're hiring an sdr — is that a $60k hire or a fixed-price build decision?",
-        "Looked at {company} — is the client-ops piece still done by hand or automated yet?"
+        "Looked at {company} — is the client-ops piece still done by hand or automated yet?",
+        "Saw your growth on LinkedIn — is your outbound still one person clicking send or automated?",
+        "Noticed your team page — everyone's client-facing. Who runs the outbound machine?",
+        "Read your latest case study — the client volume you handle is 3x what most solo agencies do. What's carrying the outbound?",
+        "Saw {company} is growing — is the next hire an sdr or an ops-engineer?",
+        "Looked at your open roles — hiring an sdr means you're 3 months from wondering why you didn't automate.",
+        "Noticed you post daily on LinkedIn — where does outbound-personalization time come from?"
       ],
       "give_first_examples": [
         "Ran a quick check on your site — spotted 3 gaps in the outbound funnel worth about $10-20k/mo, happy to send the writeup no strings.",
         "Looked at your team page — the 5 people you have are worth way more on client work than sdr work. That's fixable in 30 days.",
         "Saw your job ad for a senior sdr — the $60k+benefits+ramp cost is 3x what a machine that does the same work costs to build once.",
-        "Watched your case study video — the pipeline stage you flagged as 'weakest' is the exact one I fixed for a similar Paris agency last quarter."
+        "Watched your case study video — the pipeline stage you flagged as 'weakest' is the exact one I fixed for a similar Paris agency last quarter.",
+        "Ran a lead-source audit on your funnel — 40% of your inbound could 3x with an automated outbound arm feeding it.",
+        "Checked your careers page — the sdr you're hiring is a 12-month ramp. A machine that does the same is a 30-day build.",
+        "Looked at your growth curve — the plateau is exactly where an outbound engine unsticks it. Same stack I'm running for my own studio.",
+        "Read your founder LinkedIn — you complained about doing outbound yourself. That's the exact thing I automate for solo agency owners.",
+        "Saw your client list — the 3-account-per-quarter volume is machine-scalable. Not a team-size problem.",
+        "Watched your webinar — the 'we grew via referrals only' line means you're leaving 60% of pipeline on the table."
       ],
       "who_am_i_examples": [
-        "I built and ran an outbound engine doing 48,000 emails/mo at 4%+ reply for a Paris agency — $1m modeled pipeline, replaced ~$200k/yr of sdr cost.",
-        "Runs the outbound machine you'd need — 48k emails/mo, 4%+ reply, 32 warmed inboxes, 3-hour hot-lead sla. Replaced a $200k sdr team for one agency.",
-        "Built the same thing you're thinking about: 48k/mo cold-email engine, 32 inboxes, 4%+ reply, $1m pipeline modeled. Runs on autopilot.",
-        "15 years in product + ai. Ran a $200k-replacing outbound machine for a Paris agency last year. 100+ hours/week of client ops automated across live systems."
+        "I build the outbound machine — currently shipping one end-to-end for my own studio: real Google Workspace mailboxes, hyper-personalized copy per lead, reply routing wired. 15 years product, ex-Wiser Solutions.",
+        "15 years product + ai. Ex-Wiser Solutions (+45% feature adoption on genai rollout). Shipped 12 ai systems this year, median 30 days zero-to-live.",
+        "I ship the machine you're weighing hiring a team for — currently running an outbound engine for my own studio + 12 other ai systems shipped this year, median 30 days.",
+        "Senior ai builder — 15 years product, ex-Wiser Solutions, 12 systems live this year. Currently shipping my own outbound engine — same stack I'd build for you.",
+        "Solo AI builder. 15 years product. Currently running an outbound stack for ProdCraft — 30 mailboxes, personalized-per-lead copy, real-time reply routing.",
+        "Ex-Wiser Solutions (+45% adoption, -55% latency on genai rollout). 12 systems shipped this year. ProdCraft AI Studio — solo, fractional-rate.",
+        "I built the same machine you're pricing an SDR hire for. Currently running mine for my own studio. Real vendor stack, real copy, real replies.",
+        "One senior operator, 15 years product + AI. My case study for outbound IS this email you're reading.",
+        "Solo builder — 12 AI systems live in 12 months, median 30 days. Founder of ProdCraft, ex-Wiser Solutions.",
+        "The machine sending you this email IS the case study — 30 mailboxes, personalized-per-lead, my own stack. I build the same for you."
       ],
       "offer_examples": [
         "Let me build you the same outbound machine — live in 30 days, replaces your next sdr hire, fixed-price or you get every euro back.",
         "First working outbound engine in 21 days for a fixed price — replaces one sdr hire minimum. If it doesn't book meetings, no invoice.",
         "30-day build: outbound engine live, 800 emails/day, targeting your icp. Fixed price. If reply rate is under 2%, full refund.",
-        "One outbound build + one ops-automation build in 30 days, fixed-price. If they don't save you $10k/mo minimum, you owe nothing."
+        "One outbound build + one ops-automation build in 30 days, fixed-price. If they don't save you $10k/mo minimum, you owe nothing.",
+        "Outbound machine live in 30 days, fixed €15k. Replaces one SDR at €5k/mo. Refund if it doesn't book meetings by day 30.",
+        "30 mailboxes + personalization + reply routing = 30 days, €10-15k fixed. If reply-rate is under 1% by day 30, full refund.",
+        "Fixed-price 30-day outbound build. Live cold-email machine on YOUR ICP. Refund clause if it doesn't book qualified meetings.",
+        "One outbound engine live in 4 weeks. €15k fixed. Refund if it doesn't outperform your current SDR ramp.",
+        "30-day sprint: outbound live for €12k. If it books zero qualified meetings by day 30, no invoice.",
+        "One machine. 30 days. Fixed price. Refund clause. That's the whole offer — no retainers, no minimums."
       ],
       "cta_time_proposals": [
         "Free 30-min call — no deck, no pitch, we scope on the call. 15:30 CET today or Tuesday 10:00? Or {cal_com_url}",
         "Can I ring you today around 15:30 Paris time or Wednesday 10:00? Or {cal_com_url} if easier.",
         "Free scoping call — 15:30 CET today, 10:00 tomorrow, or {cal_com_url} whenever suits.",
-        "Reply with a 30-min window this week — or {cal_com_url} if calendar's easier."
+        "Reply with a 30-min window this week — or {cal_com_url} if calendar's easier.",
+        "30-min call — scope on the call, no slides. 15:30 today or 11:00 Thursday? Or {cal_com_url}.",
+        "Two windows: 15:30 CET today, 10:00 Friday. Reply with which. Or self-book {cal_com_url}.",
+        "15 minutes to scope the machine — 15:30 today or 10:00 Tuesday? Or {cal_com_url}.",
+        "Reply 'yes today' or 'yes Thursday' and I'll send Cal.com. Or grab whatever at {cal_com_url}.",
+        "One 30-min call this week — best 2 Paris windows for you? Or self-book at {cal_com_url}.",
+        "Best time to talk this week? Reply with 2 windows. Or {cal_com_url}."
       ]
     },
     "C": {
@@ -190,31 +256,61 @@
         "Which ai initiative on the {company} roadmap keeps getting deprioritized right now?",
         "Saw {company}'s recent launch — is the next ai feature already scoped or still exploring?",
         "Looked at {company} — is the ai piece a fractional build or FTE debate right now?",
-        "Noticed {topic} in your product update — is the ai layer live yet or on the backlog?"
+        "Noticed {topic} in your product update — is the ai layer live yet or on the backlog?",
+        "Saw the {company} careers page hiring a senior product manager — is the ai roadmap one of the drivers?",
+        "Read your Q3 product update — the ai piece was mentioned but not scoped. Live yet?",
+        "Watched your product-launch webinar — the ai feature you demoed was 'coming soon' 3 months ago. Still?",
+        "Saw your all-hands notes on LinkedIn — the ai layer keeps sliding right. Fractional would unblock that.",
+        "Noticed {company}'s changelog — the {topic} update is one step from being an ai feature. Who's building?",
+        "Read your last product-strategy post — the ai roadmap gap is exactly what a fractional AI builder closes."
       ],
       "give_first_examples": [
         "Read your last product update — the ai piece you mentioned is a scope + build I've done 3x this year at Series B cos, happy to share the playbook no strings.",
         "Spotted the ai feature on your public roadmap — same shape as one I shipped in 21 days at a similar-size scaleup, can send the postmortem.",
         "Looked at your changelog — the ai piece is exactly the sort of scope-and-build where a fractional beats FTE on time-to-live.",
-        "Saw your recent all-hands mention of the roadmap — I've helped 3 Heads of Product de-risk this exact shape this year."
+        "Saw your recent all-hands mention of the roadmap — I've helped 3 Heads of Product de-risk this exact shape this year.",
+        "Read your latest strategy post — the ai layer you flagged as 'exploring' is exactly the scope I've done 3 times this year for Series B teams. Playbook free.",
+        "Watched your product roadmap video — the ai piece would be a 4-week scope + 3-week build. Can share the exact recipe.",
+        "Saw your feature request voting page — 3 of the top-5 asks are ai-adjacent. Fractional would ship those in 60 days.",
+        "Read your engineering team's Medium posts — the ai feature you've discussed publicly is 30 days of fractional work.",
+        "Skimmed your product changelog — the {topic} shipped. The obvious next ai layer is a 3-week scope + build I can send for free.",
+        "Watched your all-hands recording — the ai roadmap gap you flagged is exactly what a fractional shipper closes without the FTE cost."
       ],
       "who_am_i_examples": [
         "15 years in data-heavy product. Shipped 12 ai systems this year end-to-end. Ex-Wiser Solutions: +45% adoption, -55% latency, +20% csat on their genai rollout.",
         "Senior product + build. 12 live ai systems shipped this year, median 30 days. Ran the enterprise genai/rag rollout at Wiser (+45% adoption, -55% latency).",
         "I both scope and build — 15 years in product, 12 ai systems shipped in the last year. Last enterprise rollout: +45% feature adoption at Wiser.",
-        "Fractional ai builder — I do both the scoping and the code. 12 systems shipped this year, ex-Wiser (+45% adoption on their genai rollout)."
+        "Fractional ai builder — I do both the scoping and the code. 12 systems shipped this year, ex-Wiser (+45% adoption on their genai rollout).",
+        "15 years product experience. Ex-Wiser Solutions (+45% genai adoption). Solo fractional builder — I scope AND ship, no handoff friction.",
+        "Fractional AI PM + builder — 12 systems live this year. Ex-Wiser enterprise genai rollout. Solo, fixed-price, 30-day cycles.",
+        "One senior product operator. 15 years experience. Scopes + writes code. 12 shipped this year. ProdCraft AI Studio.",
+        "Head-of-Product-adjacent: I scope like a PM, ship like a senior eng. Ex-Wiser +45% adoption. Fractional rates, no FTE commitment.",
+        "12 AI systems shipped in 12 months. Ex-Wiser Solutions +45% genai adoption. Fractional AI builder — I close the scope-to-ship gap.",
+        "Senior product + AI. Ex-Wiser (+45% genai adoption, -55% latency). Currently fractional at 3 Series B / seed teams."
       ],
       "offer_examples": [
         "Let me de-risk one ai feature on your roadmap — first working version in 30 days, fixed-price. If it doesn't ship live, no invoice.",
         "One ai feature scoped and shipped in 45 days for a fixed price. Live in production or full refund.",
         "First working version of your top-priority ai feature in 30 days, fixed-price. If it doesn't ship, you owe nothing.",
-        "30-day fractional engagement — I scope and build one ai feature end to end. Fixed price. If it doesn't ship live, refund."
+        "30-day fractional engagement — I scope and build one ai feature end to end. Fixed price. If it doesn't ship live, refund.",
+        "One feature on your ai roadmap, shipped live in 30 days, €12-15k fixed. Refund if it doesn't reach production.",
+        "First working prototype of your top-priority ai feature in 14 days for €4k. Continue only if we both agree.",
+        "Fractional AI PM + build for 30 days — one roadmap feature shipped, fixed price €10-15k. Refund clause if it doesn't reach users.",
+        "One AI feature scoped, built, shipped live in 30 days. €12k fixed. Refund if it doesn't ship. Zero FTE commitment.",
+        "30-day sprint: I close one roadmap gap fully — scope + build + ship. Fixed price. Refund clause. No retainers.",
+        "One feature. 30 days. Fixed price. Refund clause. That's the whole engagement."
       ],
       "cta_time_proposals": [
         "Free 30-min scoping call — no deck, no pitch. 15:30 CET today or Tuesday 10:00? Or {cal_com_url}",
         "Can I ring you today at 15:30 Paris time or tomorrow at 10:00? Or grab a slot: {cal_com_url}",
         "Free scoping call — 15:30 CET today, 10:00 tomorrow, or {cal_com_url} whenever works.",
-        "Reply with a 30-min window this week — or {cal_com_url} if calendar's easier."
+        "Reply with a 30-min window this week — or {cal_com_url} if calendar's easier.",
+        "30-min call this week — scope on the call, no slides. Reply with 2 Paris-time windows. Or {cal_com_url}.",
+        "Best two 30-min windows this week? Or grab whatever at {cal_com_url}.",
+        "15-min scoping — 15:30 today or 11:00 Thursday? Or self-book: {cal_com_url}.",
+        "Reply 'yes today' or 'yes tomorrow' and I'll send Cal.com invite. Or {cal_com_url}.",
+        "30-min free scoping call — pick a Paris-time window this week. Or {cal_com_url}.",
+        "Best time this week to talk fractional-vs-FTE for your roadmap AI feature? Or {cal_com_url}."
       ]
     }
   },
