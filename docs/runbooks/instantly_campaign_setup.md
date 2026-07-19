@@ -6,6 +6,35 @@
 
 ---
 
+## Webhook registration (do this once, at D-1)
+
+The Cloudflare Worker is **already deployed** at:
+
+**Webhook URL**: `https://self-outbound-webhook.debanjan186.workers.dev/instantly`
+**Health endpoint (verify anytime)**: https://self-outbound-webhook.debanjan186.workers.dev/health
+
+Register in Instantly:
+
+1. Login: https://app.instantly.ai
+2. Left nav → Settings → Webhooks
+3. Click **Add Webhook** (or **New Webhook**)
+4. **URL**: paste `https://self-outbound-webhook.debanjan186.workers.dev/instantly`
+5. **Signing secret**: paste the value of `INSTANTLY_WEBHOOK_SECRET` from `.env` (64-char hex, generated 2026-07-19)
+6. **Events to subscribe**: enable at minimum
+   - `reply_received` (or "email replied")
+   - `email_bounced` (or "email bounced")
+   - `unsubscribed` (or "unsubscribe clicked")
+   - `marked_as_spam` (or "spam complaint")
+7. **Method**: POST
+8. **Header key**: leave default (Instantly sends `X-Instantly-Signature` — Worker expects that name; if UI shows a different key, contact Lenore)
+9. Save.
+
+Test from Instantly UI (usually a "Send test event" button on the webhook row). Expected: 200 response with `{"ok": true, "note": "no email in payload, event logged but not enqueued"}`. That's fine — test events lack a real email.
+
+**Verification the Worker is receiving real events**: after campaign launch, any unsubscribe/bounce/reply on a real lead → the local `sync_suppression_from_kv.py` script (D-2 or cron) pulls the event from KV into `config/suppression.json`.
+
+---
+
 ## Prerequisite checks (Claude runs, operator verifies)
 
 Before starting, all of these must be TRUE:

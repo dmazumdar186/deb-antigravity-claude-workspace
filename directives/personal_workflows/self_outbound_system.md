@@ -1,10 +1,14 @@
 # Self-Outbound System — Cold Outreach + Reply Routing (v2 / Blueprint A2)
 
-> **Status (2026-07-08):** v2 active. v1 (Cloudflare Worker + raw SMTP × 6–9 inboxes on 3 domains, referenced repo `github.com/dmazumdar186/outbound-engine`) is **deprecated** — repo was scaffolded but never deployed, no live domain reputation is at stake, safe to abandon. v2 uses Instantly.ai Growth for sending + reply-webhook, Sonnet 4.6 for personalization, Apify $5 credit + Million Verifier for sourcing, 1 warmed inbox on 1 secondary domain. See Changelog for the pivot rationale.
+> **Status (2026-07-19):** v2 rearchitected from 1-mailbox / 1-domain / 14-day-warmup to **30 mailboxes on 10 domains** (Primeforge 25 + Litemail Pro 5, Nick Abraham rotation model). Pre-warmed 4-12wk history via vendor pools — no 21-day organic wait. **See canonical execution plan at `~/.claude/plans/eventual-meandering-tarjan.md`** for full architecture, cost breakdown, timeline, vendor tier list, KPI thresholds, panel-pass audit, and Phase 3 research (scale math + realistic reply-rate benchmarks + exhaustive vendor deep-dive).
+>
+> Sending platform: **Instantly Hyper Growth Outreach** (€89/mo, 125k emails/mo, unlimited connected mailboxes + unlimited warmup slots). Confirmed via 2026-07-19 billing screenshot — NOT SuperSonic Credits as Lenore initially indicated.
+>
+> **Historical status (2026-07-08):** v2 active. v1 (Cloudflare Worker + raw SMTP × 6–9 inboxes on 3 domains, referenced repo `github.com/dmazumdar186/outbound-engine`) was **deprecated** — repo scaffolded but never deployed, no live domain reputation at stake. v2 originally scoped to 1 warmed inbox on 1 secondary domain for validation; scaled to 30 on 2026-07-19 per operator decision + Phase 3 research (Nick Saraev's 500-1000 sends/variant/week statistical floor + realistic 0.3% reply rate for FR fractional PM ICP × solo-serving ceiling of 3-4 concurrent engagements).
 
 ## Goal
 
-Run a self-sustaining cold-outreach engine that finds founder-led SaaS / DTC / agency prospects and Heads of Product / Ops at scaleups, sends ~20 personalized emails/day from 1 warmed inbox on 1 secondary domain, classifies replies via LLM, auto-responds to positives with a Cal.com link, pages Debanjan on Telegram + Gmail label for hot leads, and books discovery calls. **Sole purpose: surface paid project opportunities (€1–2.5k fixed-price builds across the full Claude-Code-buildable category).**
+Run a self-sustaining cold-outreach engine that finds founder-led SaaS / DTC / agency prospects and Heads of Product / Ops at scaleups, sends ~450 personalized emails/day (30 mailboxes × 15/day week 1, ramping to 30/day steady state) from **30 pre-warmed Google Workspace mailboxes on 10 secondary domains**, classifies replies via LLM, auto-responds to positives with a Cal.com link, pages Debanjan on Telegram + Gmail label for hot leads, and books discovery calls. **Sole purpose: surface fractional PM engagements (€5-15k/mo × 3-month typical), target €15-30k MRR band at 3-4 concurrent clients per solo-serving ceiling.**
 
 The system MUST NOT fail like `job_search_v2` did in June 2026 (fixture-only synthetics green while live pipeline produced 0 jobs/day for 3 days). Every phase gate is a LIVE assertion against real infrastructure, not a mock. Front-door synthetic + output-acceptance gate + 6-auditor mandatory stack apply.
 
@@ -17,7 +21,7 @@ The system MUST NOT fail like `job_search_v2` did in June 2026 (fixture-only syn
 | `INSTANTLY_API_KEY` | Instantly Growth tier API access | Phase 1 |
 | `INSTANTLY_WEBHOOK_SECRET` | HMAC secret on inbound reply webhook | Phase 1 |
 | `INSTANTLY_CAMPAIGN_ID` | ID of the primary cold campaign (set after Phase 1) | Phase 1 |
-| `INSTANTLY_INBOX_EMAIL` | The single warmed inbox address (e.g. `debanjan@<secondary-domain>.com`) | Phase 1 |
+| `INSTANTLY_INBOX_EMAILS` | Comma-separated list of ALL 30 warmed inbox addresses across 10 domains (`debanjan@d1.com,debanjan@d2.co,...`). Legacy `INSTANTLY_INBOX_EMAIL` (singular) preserved as first-of-list fallback for canary probes only. | Phase 1 |
 | `ANTHROPIC_API_KEY` | Claude Sonnet 4.6 for personalization + reply classification | already present |
 | `APIFY_API_TOKEN` | Free-tier $5/mo credit — Google Maps + LinkedIn Actors | Phase 1 |
 | `MILLION_VERIFIER_API_KEY` | Email verification (~€0.005/hit) | already present |
@@ -26,7 +30,7 @@ The system MUST NOT fail like `job_search_v2` did in June 2026 (fixture-only syn
 | `GMAIL_OAUTH_REFRESH_TOKEN` | OAuth for Gmail Push API on `debolshop@gmail.com` (destination) | Phase 1 |
 | `CAL_COM_BOOKING_URL` | Public booking page URL | Phase 1 |
 | `MAILTESTER_EMAIL` | The mail-tester.com email address (rotates per test) | Phase 1 |
-| `SECONDARY_DOMAIN` | e.g. `prodcraft-outreach.com` | Phase 1 |
+| `SECONDARY_DOMAINS` | Comma-separated list of all 10 secondary domains (`prodcraft-outreach.com,prodcraft.co,prodcraft.io,...`). Legacy `SECONDARY_DOMAIN` (singular) preserved as first-of-list fallback for canary probes only. | Phase 1 |
 | `KILL_SWITCH` | `1` to pause all sends without touching Instantly UI (safety valve) | ongoing |
 
 ### Config Files (in `execution/personal_workflows/self_outbound_system/config/`)
@@ -66,7 +70,7 @@ Implementation lives IN THIS WORKSPACE under `execution/personal_workflows/self_
 
 ## Outputs
 
-- ~20 personalized cold emails/day sent from 1 warmed inbox after 14-day warmup.
+- ~450 personalized cold emails/day (week 1: 30 mailboxes × 15/day; steady state from week 2: 30 mailboxes × 30/day = ~900/day), all sent from 30 pre-warmed GWS mailboxes on 10 secondary domains (Primeforge 25 + Litemail Pro 5).
 - Replies classified into 5 buckets; hot leads route to Telegram within 3 minutes + Gmail "Interested" label.
 - Auto-replies to `positive` leads with 2–7 min human-timing delay + Cal.com link.
 - Day-2 auto-follow-up on non-openers via Instantly sequence step.
