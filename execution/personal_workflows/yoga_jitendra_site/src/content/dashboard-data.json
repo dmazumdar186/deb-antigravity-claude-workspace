@@ -1,6 +1,6 @@
 {
   "launch_date": "2026-07-11",
-  "as_of": "2026-07-19T07:58:00+02:00",
+  "as_of": "2026-07-19T16:15:00+02:00",
   "hero_tiles": {
     "reach": {
       "label": "People who found you on Google",
@@ -20,7 +20,7 @@
       "label": "WhatsApp taps from your site",
       "value": null,
       "status": "waiting",
-      "hint": "Enable the beacon token",
+      "hint": "Beacon live, first data ~20 Jul",
       "source": "Cloudflare Web Analytics"
     }
   },
@@ -28,8 +28,8 @@
     "range": "7d",
     "stages": [
       { "label": "Impressions",   "value": 0, "source": "Google Search Console",           "status": "waiting", "hint": "First data ~22 Jul" },
-      { "label": "Clicks",        "value": 0, "source": "GSC + Cloudflare Web Analytics", "status": "waiting", "hint": "Data flows once beacon token is set" },
-      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon",                 "status": "waiting", "hint": "Data flows once beacon token is set" }
+      { "label": "Clicks",        "value": 0, "source": "GSC + Cloudflare Web Analytics", "status": "waiting", "hint": "Beacon live, first data ~20 Jul" },
+      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon",                 "status": "waiting", "hint": "Beacon live, first data ~20 Jul" }
     ]
   },
   "milestones": [
@@ -78,7 +78,7 @@
       { "name": "Google Business Profile", "cadence": "Snapshot daily", "verified": true },
       { "name": "Ahrefs Site Audit", "cadence": "Weekly re-crawl", "verified": true },
       { "name": "Bing Webmaster Tools", "cadence": "Snapshot daily", "verified": true },
-      { "name": "Cloudflare Web Analytics", "cadence": "Live", "verified": false, "note": "awaiting token" },
+      { "name": "Cloudflare Web Analytics", "cadence": "Live", "verified": true },
       { "name": "Self-report form", "cadence": "Monthly", "verified": true }
     ]
   }
