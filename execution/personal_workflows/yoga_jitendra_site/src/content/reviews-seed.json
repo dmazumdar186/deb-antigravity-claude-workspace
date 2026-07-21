@@ -1,0 +1,57 @@
+{
+  "_comment": "Bootstrap fallback used by sync_reviews.mjs when /api/reviews-public is unreachable (first-ever build, KV outage, offline dev). Also loaded once by scripts/seed_reviews.mjs to import into KV. Source of truth after seed run: DASHBOARD_KV under review:approved:*.",
+  "reviews": [
+    {
+      "id": "seed-xavier-2026-01",
+      "name": "Xavier",
+      "rating": 5,
+      "body_fr": "Jitendra est un excellent professeur, attentif et sympathique. Un grand plaisir de reprendre le yoga avec lui.",
+      "body_en": "Jitendra is an excellent teacher — attentive and warm. A real pleasure to return to yoga with him.",
+      "source": "superprof",
+      "source_url": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html",
+      "lang": "fr",
+      "submitted_at": "2026-01-15T00:00:00.000Z",
+      "featured": true,
+      "verified": true
+    },
+    {
+      "id": "seed-franck-2025-12",
+      "name": "Franck",
+      "rating": 5,
+      "body_fr": "Sa séance était à la fois agréable, apaisante et motivante. Il sait parfaitement s'adapter au niveau et aux besoins de ses élèves, en expliquant chaque posture avec clarté.",
+      "body_en": "His session was pleasant, calming, and motivating all at once. He adapts perfectly to each student's level and needs, explaining every posture with clarity.",
+      "source": "superprof",
+      "source_url": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html",
+      "lang": "fr",
+      "submitted_at": "2025-12-10T00:00:00.000Z",
+      "featured": true,
+      "verified": true
+    },
+    {
+      "id": "seed-olga-2025-09",
+      "name": "Olga",
+      "rating": 5,
+      "body_fr": "Si vous souhaitez plonger dans le monde du yoga dans une atmosphère d'acceptation et de confort total, je vous recommande les cours de Jitendra — pour qui le yoga n'est pas un cours dispensé dans un studio, mais un mode de vie.",
+      "body_en": "If you want to step into yoga in an atmosphere of full acceptance and comfort, I recommend Jitendra's classes — for him yoga isn't a class given in a studio, it's a way of living.",
+      "source": "email",
+      "source_url": null,
+      "lang": "fr",
+      "submitted_at": "2025-09-01T00:00:00.000Z",
+      "featured": false,
+      "verified": true
+    },
+    {
+      "id": "seed-tapovan-2025-08",
+      "name": "Tapovan Open University · Normandie",
+      "rating": 5,
+      "body_fr": "Ce fut un plaisir d'accueillir Jitendra dans notre programme de formation d'enseignants à la Tapovan Open University en Normandie. Il apporte une connaissance profonde des textes yogiques traditionnels et une maîtrise remarquable du sanskrit, qui enrichissent profondément son enseignement.",
+      "body_en": "It was a pleasure to have Jitendra in our teacher-training programme at the Tapovan Open University in Normandy. He brings a profound knowledge of the traditional yoga texts and an impressive command of Sanskrit, which deeply enrich his teaching.",
+      "source": "other",
+      "source_url": null,
+      "lang": "en",
+      "submitted_at": "2025-08-01T00:00:00.000Z",
+      "featured": true,
+      "verified": true
+    }
+  ]
+}

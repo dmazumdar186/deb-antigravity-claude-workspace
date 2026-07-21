@@ -1,0 +1,64 @@
+---
+// /en/reviews/ — full reviews listing page (English).
+//
+// Mirrors /reviews/ (FR) with the same components + English copy.
+
+import Base from '../../layouts/Base.astro';
+import TopNav from '../../components/TopNav.astro';
+import Footer from '../../components/Footer.astro';
+import ReviewsGrid from '../../components/ReviewsGrid.astro';
+import ReviewForm from '../../components/ReviewForm.astro';
+import { loadReviews } from '../../lib/reviews.mjs';
+
+const lang = 'en';
+const { reviews, count, average_rating } = loadReviews();
+---
+<Base
+  title="All reviews · Yoga with Jitendra"
+  description="Every student review of Jitendra Kumar, Hatha Yoga teacher in Paris (Passy · Paris 16). Superprof, Meetup, TrainMe, Instagram, and direct submissions — all in one place."
+  lang={lang}
+  pathFr="/reviews/"
+  pathEn="/en/reviews/"
+>
+  <TopNav lang={lang} />
+  <main>
+    <section class="section">
+      <div class="section-inner">
+        <header class="max-w-3xl mb-8">
+          <p class="eyebrow mb-4" data-reveal>
+            <span class="breathing-dot"></span>
+            <span>All reviews · {count} review{count === 1 ? '' : 's'}{average_rating ? ` · ${average_rating}/5` : ''}</span>
+          </p>
+          <h1 class="text-4xl md:text-5xl leading-[1.05]" data-reveal>
+            <span>What students say — from everywhere.</span>
+          </h1>
+          <p class="reviews-lede" data-reveal>
+            Superprof, Meetup, TrainMe, Instagram, private emails, and reviews left directly on this site — every review, one place.
+          </p>
+        </header>
+
+        <ReviewsGrid lang={lang} reviews={reviews} initial={12} />
+
+        <div id="add" class="reviews-form-block">
+          <ReviewForm lang={lang} compact={false} />
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer lang={lang} />
+</Base>
+
+<style>
+  .reviews-lede {
+    color: var(--ink-soft, #6b6560);
+    max-width: 60ch;
+    line-height: 1.55;
+    margin: 1rem 0 0;
+    font-size: 1.05rem;
+  }
+  .reviews-form-block {
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+  }
+</style>

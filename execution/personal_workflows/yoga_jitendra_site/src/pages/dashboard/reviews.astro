@@ -1,0 +1,474 @@
+---
+// /dashboard/reviews — moderation UI for review submissions + curated
+// imports from Meetup / Superprof / TrainMe / Instagram / email.
+//
+// Behind existing Basic-Auth via functions/_middleware.ts (regex covers
+// /dashboard/*). Server-renders an empty shell; a client script hydrates
+// from /api/reviews-admin?type=pending and ?type=approved, then binds
+// the approve / reject / edit / delete / import actions.
+//
+// Actions POST to /api/reviews-admin with FormData (see the API file for
+// the full contract). After any mutation, the script optionally fires the
+// Deploy Hook URL (fetched separately from the Function which knows the
+// secret) so a fresh site rebuild picks up the change.
+
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Reviews · Moderation | Yoga avec Jitendra"
+  lang="en"
+  dashboard={true}
+>
+  <header class="dash-topbar">
+    <a href="/en/" class="dash-brand">
+      <span class="breathing-dot" style="margin:0;"></span>
+      <span>Yoga avec Jitendra &middot; Reviews</span>
+    </a>
+    <a href="/dashboard/" class="dash-logout">← Dashboard</a>
+  </header>
+
+  <main class="mod-main">
+    <section class="dash-intro" data-reveal>
+      <p class="eyebrow">Every review · one moderator queue</p>
+      <h1 class="dash-h1">Reviews</h1>
+      <p class="dash-lede">
+        Approve or reject what students submit through the site. Paste in reviews from Superprof / Meetup / TrainMe / Instagram / email so everything lives in one place. Approving anything triggers a fresh site build within a minute.
+      </p>
+    </section>
+
+    <section class="mod-block">
+      <div class="mod-block-head">
+        <h2>Pending <span class="mod-badge" data-mod-pending-count>0</span></h2>
+      </div>
+      <div class="mod-list" data-mod-pending></div>
+      <p class="mod-empty" data-mod-pending-empty hidden>No pending reviews. Nothing waiting.</p>
+    </section>
+
+    <section class="mod-block">
+      <div class="mod-block-head">
+        <h2>Manual import <span class="mod-hint">Meetup / Superprof / TrainMe / Instagram / email / anywhere</span></h2>
+      </div>
+      <form class="mod-import" data-mod-import>
+        <input type="hidden" name="action" value="import" />
+        <div class="mod-row">
+          <label>
+            Name<br />
+            <input type="text" name="name" required maxlength="60" placeholder="First name (or First L.)" />
+          </label>
+          <label>
+            Rating<br />
+            <select name="rating" required>
+              <option value="5" selected>5 ★</option>
+              <option value="4">4 ★</option>
+              <option value="3">3 ★</option>
+              <option value="2">2 ★</option>
+              <option value="1">1 ★</option>
+            </select>
+          </label>
+          <label>
+            Lang<br />
+            <select name="lang">
+              <option value="fr" selected>FR</option>
+              <option value="en">EN</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          Source
+          <select name="source">
+            <option value="superprof">Superprof</option>
+            <option value="meetup">Meetup</option>
+            <option value="trainme">TrainMe</option>
+            <option value="instagram">Instagram</option>
+            <option value="email">Email / recommendation</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>
+          Source URL <span class="mod-hint">(optional — backlink for provenance)</span>
+          <input type="url" name="source_url" placeholder="https://…" />
+        </label>
+        <label>
+          Submitted at <span class="mod-hint">(YYYY-MM-DD — when the reviewer wrote it)</span>
+          <input type="date" name="submitted_at_date" />
+        </label>
+        <label>
+          Body
+          <textarea name="body" required minlength="10" maxlength="2000" rows="4" placeholder="Paste the review text as the student wrote it…"></textarea>
+        </label>
+        <label class="mod-inline">
+          <input type="checkbox" name="featured" value="1" />
+          <span>Pin as featured (top of grid)</span>
+        </label>
+        <div class="mod-actions-row">
+          <button type="submit" class="btn btn-primary">Import review</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="mod-block">
+      <div class="mod-block-head">
+        <h2>Approved <span class="mod-badge" data-mod-approved-count>0</span></h2>
+      </div>
+      <div class="mod-list" data-mod-approved></div>
+      <p class="mod-empty" data-mod-approved-empty hidden>No approved reviews yet.</p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const pendingHost = document.querySelector('[data-mod-pending]');
+      const pendingEmpty = document.querySelector('[data-mod-pending-empty]');
+      const pendingCount = document.querySelector('[data-mod-pending-count]');
+      const approvedHost = document.querySelector('[data-mod-approved]');
+      const approvedEmpty = document.querySelector('[data-mod-approved-empty]');
+      const approvedCount = document.querySelector('[data-mod-approved-count]');
+      const importForm = document.querySelector('[data-mod-import]');
+
+      function esc(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+      function stars(n) {
+        n = Number(n) || 0;
+        const full = '★'.repeat(Math.max(0, Math.min(5, Math.round(n))));
+        const empty = '☆'.repeat(5 - full.length);
+        return full + empty;
+      }
+      function fmtDate(iso) {
+        if (!iso) return '';
+        try {
+          return new Date(iso).toLocaleString('en-GB', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        } catch (e) {
+          return iso;
+        }
+      }
+
+      async function fetchList(type) {
+        const resp = await fetch('/api/reviews-admin?type=' + type, {
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        if (!resp.ok) throw new Error('list ' + type + ': ' + resp.status);
+        return resp.json();
+      }
+
+      function pendingCard(item) {
+        return `
+          <article class="mod-card" data-key="${esc(item.key)}" data-id="${esc(item.id)}">
+            <div class="mod-card-head">
+              <span class="mod-stars">${stars(item.rating)}</span>
+              <span class="mod-author"><strong>${esc(item.name)}</strong></span>
+              <span class="mod-meta">${esc(item.source)} · ${esc(item.lang)} · ${esc(fmtDate(item.submitted_at))}</span>
+            </div>
+            <blockquote class="mod-body">${esc(item.body)}</blockquote>
+            <details class="mod-edit">
+              <summary>Edit before approve</summary>
+              <div class="mod-edit-grid">
+                <label>Name<input type="text" data-field="name" value="${esc(item.name)}" maxlength="60" /></label>
+                <label>Rating<select data-field="rating">${[5,4,3,2,1].map(n => `<option value="${n}" ${n === item.rating ? 'selected' : ''}>${n} ★</option>`).join('')}</select></label>
+                <label>Lang<select data-field="lang"><option value="fr" ${item.lang==='fr'?'selected':''}>FR</option><option value="en" ${item.lang==='en'?'selected':''}>EN</option></select></label>
+                <label>Body<textarea data-field="body" rows="3" maxlength="2000">${esc(item.body)}</textarea></label>
+                <label class="mod-inline"><input type="checkbox" data-field="featured" /> Featured</label>
+              </div>
+            </details>
+            <div class="mod-actions">
+              <button type="button" class="btn btn-primary" data-action="approve">Approve</button>
+              <button type="button" class="btn btn-ghost" data-action="reject">Reject</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function approvedCard(item) {
+        return `
+          <article class="mod-card mod-card-approved" data-key="${esc(item.key)}" data-id="${esc(item.id)}">
+            <div class="mod-card-head">
+              <span class="mod-stars">${stars(item.rating)}</span>
+              <span class="mod-author"><strong>${esc(item.name)}</strong></span>
+              <span class="mod-meta">${esc(item.source)} · ${esc(item.lang)} · ${esc(fmtDate(item.approved_at || item.submitted_at))}${item.featured ? ' · ★ featured' : ''}${item.verified ? ' · ✓ verified' : ''}</span>
+            </div>
+            <blockquote class="mod-body">${esc(item.body)}</blockquote>
+            <details class="mod-edit">
+              <summary>Edit</summary>
+              <div class="mod-edit-grid">
+                <label>Name<input type="text" data-field="name" value="${esc(item.name)}" maxlength="60" /></label>
+                <label>Rating<select data-field="rating">${[5,4,3,2,1].map(n => `<option value="${n}" ${n === item.rating ? 'selected' : ''}>${n} ★</option>`).join('')}</select></label>
+                <label>Lang<select data-field="lang"><option value="fr" ${item.lang==='fr'?'selected':''}>FR</option><option value="en" ${item.lang==='en'?'selected':''}>EN</option></select></label>
+                <label>Body<textarea data-field="body" rows="3" maxlength="2000">${esc(item.body)}</textarea></label>
+                <label class="mod-inline"><input type="checkbox" data-field="featured" ${item.featured ? 'checked' : ''} /> Featured</label>
+              </div>
+              <div class="mod-actions">
+                <button type="button" class="btn btn-primary" data-action="edit">Save edit</button>
+              </div>
+            </details>
+            <div class="mod-actions">
+              <button type="button" class="btn btn-ghost" data-action="delete" data-confirm="Delete this review permanently?">Delete</button>
+            </div>
+          </article>
+        `;
+      }
+
+      async function reload() {
+        try {
+          const [pending, approved] = await Promise.all([fetchList('pending'), fetchList('approved')]);
+          pendingHost.innerHTML = pending.items.map(pendingCard).join('');
+          approvedHost.innerHTML = approved.items.map(approvedCard).join('');
+          pendingCount.textContent = String(pending.count);
+          approvedCount.textContent = String(approved.count);
+          pendingEmpty.hidden = pending.count > 0;
+          approvedEmpty.hidden = approved.count > 0;
+        } catch (err) {
+          console.warn('reload failed', err);
+        }
+      }
+
+      async function submitAction(card, action) {
+        const form = new URLSearchParams();
+        form.set('action', action);
+        // For approve/reject on pending: use the record id.
+        // For edit/delete on approved: use the full approved key.
+        const isApproved = card.classList.contains('mod-card-approved');
+        form.set('id', isApproved ? card.dataset.key : card.dataset.id);
+
+        // Collect any field overrides from the details block.
+        const fields = card.querySelectorAll('[data-field]');
+        fields.forEach((el) => {
+          const key = el.dataset.field;
+          if (!key) return;
+          if (el.type === 'checkbox') {
+            form.set(key, el.checked ? '1' : '0');
+          } else {
+            form.set(key, el.value);
+          }
+        });
+
+        const resp = await fetch('/api/reviews-admin', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: form.toString(),
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          alert('Action failed: ' + resp.status + '\n' + text);
+          return;
+        }
+        await reload();
+        // Fire-and-forget deploy hook (best-effort; the Function has the URL).
+        fetch('/api/reviews-admin?deploy_hook_ping=1', { credentials: 'same-origin' }).catch(() => {});
+      }
+
+      // Delegate button clicks inside pending/approved lists.
+      function bindDelegation(host) {
+        host.addEventListener('click', (ev) => {
+          const btn = ev.target.closest('[data-action]');
+          if (!btn) return;
+          const card = btn.closest('.mod-card');
+          if (!card) return;
+          const action = btn.dataset.action;
+          if (btn.dataset.confirm && !window.confirm(btn.dataset.confirm)) return;
+          submitAction(card, action).catch((err) => alert('Failed: ' + err.message));
+        });
+      }
+      bindDelegation(pendingHost);
+      bindDelegation(approvedHost);
+
+      importForm.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const form = new URLSearchParams(new FormData(importForm));
+        // Convert submitted_at_date (YYYY-MM-DD) → ISO if present.
+        const d = form.get('submitted_at_date');
+        if (d) {
+          form.set('submitted_at', new Date(d + 'T00:00:00Z').toISOString());
+        }
+        form.delete('submitted_at_date');
+        const resp = await fetch('/api/reviews-admin', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: form.toString(),
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          alert('Import failed: ' + resp.status + '\n' + text);
+          return;
+        }
+        importForm.reset();
+        await reload();
+      });
+
+      window.addEventListener('DOMContentLoaded', reload);
+    })();
+  </script>
+
+  <style>
+    .mod-main {
+      max-width: 960px;
+      margin-inline: auto;
+      padding: clamp(1.5rem, 4vw, 3rem) 1.25rem 4rem;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+    }
+    .mod-block-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .mod-block-head h2 {
+      font-size: clamp(1.3rem, 3vw, 1.6rem);
+      margin: 0;
+    }
+    .mod-badge {
+      display: inline-block;
+      background: rgba(46, 42, 38, 0.08);
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-left: 0.4rem;
+    }
+    .mod-hint {
+      color: var(--ink-soft, #6b6560);
+      font-size: 0.85rem;
+      font-weight: normal;
+    }
+    .mod-list { display: flex; flex-direction: column; gap: 1rem; }
+    .mod-card {
+      background: white;
+      border: 1px solid rgba(46, 42, 38, 0.08);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+    }
+    .mod-card-approved { background: rgba(244, 237, 225, 0.5); }
+    .mod-card-head {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .mod-stars { color: var(--terracotta, #c05b3e); letter-spacing: 2px; }
+    .mod-meta { color: var(--ink-soft, #6b6560); font-size: 0.85rem; }
+    .mod-body {
+      margin: 0.5rem 0 0.75rem;
+      color: var(--ink-900, #2e2a26);
+      white-space: pre-wrap;
+      font-family: 'Fraunces', 'Georgia', serif;
+      line-height: 1.5;
+    }
+    .mod-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+    .mod-actions-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+    }
+    .mod-edit summary { cursor: pointer; color: var(--ink-soft, #6b6560); font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .mod-edit-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      padding: 0.5rem 0 0.75rem;
+    }
+    .mod-edit-grid label { font-size: 0.8rem; color: var(--ink-soft, #6b6560); }
+    .mod-edit-grid input,
+    .mod-edit-grid select,
+    .mod-edit-grid textarea {
+      font: inherit;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid rgba(46, 42, 38, 0.16);
+      border-radius: 6px;
+      width: 100%;
+      background: white;
+      color: var(--ink-900, #2e2a26);
+    }
+    .mod-inline { display: inline-flex; align-items: center; gap: 0.4rem; }
+    .mod-import {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: white;
+      padding: 1rem 1.15rem;
+      border: 1px solid rgba(46, 42, 38, 0.08);
+      border-radius: 10px;
+    }
+    .mod-import label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.85rem;
+      color: var(--ink-soft, #6b6560);
+    }
+    .mod-import input,
+    .mod-import select,
+    .mod-import textarea {
+      font: inherit;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid rgba(46, 42, 38, 0.16);
+      border-radius: 6px;
+      background: white;
+      color: var(--ink-900, #2e2a26);
+    }
+    .mod-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 640px) {
+      .mod-row { grid-template-columns: 1fr; }
+    }
+    .mod-empty {
+      color: var(--ink-soft, #6b6560);
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+    .dash-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid rgba(46, 42, 38, 0.08);
+      background: rgba(244, 237, 225, 0.75);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .dash-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .dash-logout {
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid rgba(46, 42, 38, 0.14);
+    }
+    .dash-intro { display: flex; flex-direction: column; gap: 0.5rem; }
+    .dash-h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; margin: 0.35rem 0 0; }
+    .dash-lede { color: var(--ink-soft); max-width: 60ch; line-height: 1.55; margin: 0.75rem 0 0; }
+  </style>
+</Base>

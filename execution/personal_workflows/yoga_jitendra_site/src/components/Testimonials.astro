@@ -1,10 +1,41 @@
 ---
-import fr from '../content/recommendations.fr.json';
-import en from '../content/recommendations.en.json';
+// Testimonials.astro — homepage social-proof section.
+//
+// Refactored to render from KV-backed reviews.json (via loadReviews())
+// instead of the hardcoded recommendations.{fr,en}.json. Embeds the
+// on-site review submission form directly below the grid — no navigation
+// hop needed for a student to add their review.
+//
+// The full /reviews page is the "browse everything" surface; this section
+// is the highlights + drop-off point for new submissions.
+
+import { loadReviews } from '../lib/reviews.mjs';
+import ReviewsGrid from './ReviewsGrid.astro';
+import ReviewForm from './ReviewForm.astro';
 
 const { lang = 'fr' } = Astro.props;
-const t = lang === 'en' ? en : fr;
+
+const { reviews, count, average_rating } = loadReviews();
+
+// Homepage shows up to 6 by default; the "show more" toggle inside
+// ReviewsGrid reveals the rest without a page change.
+const t = lang === 'en'
+  ? {
+      eyebrow: `What students say · ${count} review${count === 1 ? '' : 's'}${average_rating ? ` · ${average_rating}/5` : ''}`,
+      title: 'An attentive practice, held by tradition.',
+      cta_full: 'See all reviews',
+      cta_add: 'Add yours',
+      review_page: '/en/reviews/',
+    }
+  : {
+      eyebrow: `Ce qu'en disent les élèves · ${count} avis${average_rating ? ` · ${average_rating}/5` : ''}`,
+      title: 'Une pratique attentive, tenue par la tradition.',
+      cta_full: 'Voir tous les avis',
+      cta_add: 'Ajouter le vôtre',
+      review_page: '/reviews/',
+    };
 ---
+
 <section id="testimonials" class="section">
   <div class="section-inner">
     <header class="max-w-3xl mb-12">
@@ -17,21 +48,29 @@ const t = lang === 'en' ? en : fr;
       </h2>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-      {t.quotes.map((q) => (
-        <figure class="card flex flex-col" data-reveal>
-          <span aria-hidden="true" class="text-4xl font-serif text-[color:var(--terracotta)] leading-none mb-3">"</span>
-          <blockquote class="font-serif text-[19px] md:text-[21px] leading-snug text-ink-900 mb-6">
-            <span>{q.quote}</span>
-          </blockquote>
-          <figcaption class="mt-auto pt-4 border-t border-[rgba(46,42,38,0.08)]">
-            <div class="font-medium text-ink-900">{q.author}</div>
-            <div class="text-sm text-[color:var(--ink-soft)] mt-0.5">
-              <span>{q.context}</span>
-            </div>
-          </figcaption>
-        </figure>
-      ))}
+    <ReviewsGrid lang={lang} reviews={reviews} initial={6} />
+
+    <div class="testimonials-cta">
+      <a href={t.review_page} class="btn btn-ghost">{t.cta_full}</a>
+      <a href={`${t.review_page}#add`} class="btn btn-primary">{t.cta_add}</a>
+    </div>
+
+    <div class="testimonials-form" id="add">
+      <ReviewForm lang={lang} compact={true} />
     </div>
   </div>
 </section>
+
+<style>
+  .testimonials-cta {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+  .testimonials-form {
+    max-width: 720px;
+    margin: 3rem auto 0;
+  }
+</style>

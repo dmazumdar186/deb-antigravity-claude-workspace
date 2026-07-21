@@ -16,6 +16,13 @@ interface Env {
 
 const PROTECTED = /^\/(dashboard|api)(\/|$)/;
 
+// Public read-only endpoints under /api/. Whitelisted OUT of the Basic-Auth
+// gate so build-time hydration + anonymous site visitors can read them.
+// Keep this list tight; every entry is an unauthenticated read surface.
+const PUBLIC_API_ALLOWLIST = new Set<string>([
+  '/api/reviews-public',
+]);
+
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
@@ -29,6 +36,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(context.request.url);
 
   if (!PROTECTED.test(url.pathname)) {
+    return context.next();
+  }
+
+  // Public whitelist bypass — must be a read-only endpoint by contract.
+  if (PUBLIC_API_ALLOWLIST.has(url.pathname)) {
     return context.next();
   }
 

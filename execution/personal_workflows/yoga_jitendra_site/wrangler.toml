@@ -15,9 +15,20 @@ pages_build_output_dir = "./dist"
 # Non-secret env vars (empty for now — DASHBOARD_USER defaults to
 # "debanjan" inside functions/_middleware.ts; PUBLIC_CF_WA_TOKEN is
 # added later when the Web Analytics site token is available).
+#
+# Turnstile site key is a var (not a secret — it ships in the HTML). Set
+# with: npx wrangler pages secret put PUBLIC_TURNSTILE_SITE_KEY --project-name yoga-jitendra
+# (or add under [vars] once provisioned).
+#
+# Secrets NOT declared here (would be committed). Set once via:
+#   npx wrangler pages secret put DASHBOARD_PASS       --project-name yoga-jitendra
+#   npx wrangler pages secret put TURNSTILE_SECRET     --project-name yoga-jitendra
+#   npx wrangler pages secret put DEPLOY_HOOK_URL      --project-name yoga-jitendra
+#   npx wrangler pages secret put SYNC_REVIEWS_URL     --project-name yoga-jitendra  (optional; default = https://yoga-jitendra.pages.dev/api/reviews-public)
 [vars]
 
-# KV namespace for the monthly self-report form persistence.
+# KV namespace for the monthly self-report form persistence + review
+# system (review:pending:*, review:approved:*, review:rl:*).
 # Namespace created 2026-07-19 via `wrangler kv namespace create`.
 [[kv_namespaces]]
 binding = "DASHBOARD_KV"

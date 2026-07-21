@@ -1,0 +1,187 @@
+---
+// ReviewsGrid.astro — card grid renderer for approved reviews.
+//
+// Props:
+//   lang       'fr' | 'en'    site language (picks body_fr/body_en)
+//   reviews    Array           pre-loaded review objects (from loadReviews())
+//   initial    number = 6      how many cards to show before "show more"
+//
+// Each card has data-review-card for the acceptance test to count.
+import { pickBody, sourceLabel } from '../lib/reviews.mjs';
+
+const { lang = 'fr', reviews = [], initial = 6 } = Astro.props;
+const total = reviews.length;
+const showToggle = total > initial;
+
+const t = {
+  fr: {
+    more: 'Voir plus',
+    less: 'Voir moins',
+    star_label: (n: number) => `${n} sur 5`,
+    verified: '✓ Vérifié',
+    empty: 'Aucun avis pour le moment. Soyez le premier à en laisser un.',
+  },
+  en: {
+    more: 'Show more',
+    less: 'Show less',
+    star_label: (n: number) => `${n} out of 5`,
+    verified: '✓ Verified',
+    empty: 'No reviews yet. Be the first to leave one.',
+  },
+}[lang === 'en' ? 'en' : 'fr'];
+
+function stars(n: number): string {
+  const full = '★'.repeat(Math.max(0, Math.min(5, Math.round(n))));
+  const empty = '☆'.repeat(5 - full.length);
+  return full + empty;
+}
+
+function formatDate(iso: string, lng: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(lng === 'en' ? 'en-GB' : 'fr-FR', {
+      year: 'numeric',
+      month: 'long',
+    });
+  } catch {
+    return '';
+  }
+}
+---
+{total === 0 ? (
+  <p class="text-[color:var(--ink-soft)] italic" data-reveal>{t.empty}</p>
+) : (
+  <div>
+    <div class="reviews-grid" data-reviews-grid data-initial={initial}>
+      {reviews.map((r, i) => (
+        <figure
+          class="card review-card"
+          data-review-card
+          data-featured={r.featured ? '1' : '0'}
+          data-index={i}
+          data-hidden={i >= initial ? '1' : '0'}
+          data-reveal
+          style={i >= initial ? 'display:none' : ''}
+        >
+          <div class="review-head">
+            <span class="stars" aria-label={t.star_label(r.rating)}>{stars(r.rating)}</span>
+            {r.verified && <span class="review-verified" title={sourceLabel(r.source, lang)}>{t.verified}</span>}
+          </div>
+          <blockquote class="review-body">
+            <span>{pickBody(r, lang)}</span>
+          </blockquote>
+          <figcaption class="review-foot">
+            <div class="review-author">{r.name}</div>
+            <div class="review-meta">
+              <span>{sourceLabel(r.source, lang)}</span>
+              <span aria-hidden="true"> · </span>
+              <span>{formatDate(r.submitted_at, lang)}</span>
+              {r.source_url && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  <a href={r.source_url} rel="nofollow noopener" target="_blank">↗</a>
+                </>
+              )}
+            </div>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+
+    {showToggle && (
+      <div class="reviews-more-wrap">
+        <button type="button" class="btn btn-ghost reviews-more" data-reviews-more data-more-label={t.more} data-less-label={t.less}>
+          {t.more}
+          <span class="reviews-more-count">({total - initial})</span>
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+<style>
+  .reviews-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    .reviews-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+  }
+  .review-card { display: flex; flex-direction: column; }
+  .review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  .stars {
+    color: var(--terracotta, #c05b3e);
+    font-size: 1.05rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .review-verified {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft, #6b6560);
+    padding: 0.15rem 0.5rem;
+    background: rgba(46, 42, 38, 0.06);
+    border-radius: 999px;
+  }
+  .review-body {
+    font-family: 'Fraunces', 'Georgia', serif;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin: 0 0 1.25rem;
+    color: var(--ink-900, #2e2a26);
+  }
+  .review-foot {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+  }
+  .review-author {
+    font-weight: 500;
+    color: var(--ink-900, #2e2a26);
+    margin-bottom: 0.15rem;
+  }
+  .review-meta {
+    font-size: 0.85rem;
+    color: var(--ink-soft, #6b6560);
+  }
+  .review-meta a { color: inherit; text-decoration: none; }
+  .review-meta a:hover { text-decoration: underline; }
+  .reviews-more-wrap { display: flex; justify-content: center; margin-top: 1.5rem; }
+  .reviews-more { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .reviews-more-count { color: var(--ink-soft, #6b6560); font-size: 0.9em; }
+</style>
+
+<script>
+  // "Show more / show less" toggle: reveals the initially-hidden cards.
+  (function () {
+    function init(grid: HTMLElement) {
+      const btn = grid.parentElement?.querySelector<HTMLButtonElement>('[data-reviews-more]');
+      if (!btn) return;
+      let expanded = false;
+      const moreLabel = btn.dataset.moreLabel || 'Show more';
+      const lessLabel = btn.dataset.lessLabel || 'Show less';
+      const countEl = btn.querySelector<HTMLSpanElement>('.reviews-more-count');
+      const hidden = grid.querySelectorAll<HTMLElement>('[data-hidden="1"]');
+      btn.addEventListener('click', () => {
+        expanded = !expanded;
+        hidden.forEach((el) => {
+          el.style.display = expanded ? '' : 'none';
+        });
+        // Replace the text node before the count span, preserving the span.
+        // firstChild might be a text node; walk to it.
+        const nodes = Array.from(btn.childNodes);
+        const textNode = nodes.find((n) => n.nodeType === Node.TEXT_NODE) as Text | undefined;
+        if (textNode) textNode.data = (expanded ? lessLabel : moreLabel) + ' ';
+        if (countEl) countEl.style.display = expanded ? 'none' : '';
+      });
+    }
+    document.querySelectorAll<HTMLElement>('[data-reviews-grid]').forEach(init);
+  })();
+</script>

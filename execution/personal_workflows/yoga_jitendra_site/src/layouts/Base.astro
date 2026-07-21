@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { loadReviews, pickBody } from '../lib/reviews.mjs';
 
 interface Props {
   title: string;
@@ -20,6 +21,24 @@ const {
   noindex = false,
   dashboard = false,
 } = Astro.props;
+
+// Reviews are injected into the LocalBusiness JSON-LD as aggregateRating +
+// a slice of Review objects. Cap at 6 in-schema; the full list lives on
+// /reviews/. This gives Google search rich-snippet stars on the SERP.
+const { reviews: allReviews, count: reviewCount, average_rating: reviewAvg } = loadReviews();
+const reviewSchemaItems = allReviews.slice(0, 6).map((r) => ({
+  '@type': 'Review',
+  reviewRating: {
+    '@type': 'Rating',
+    ratingValue: r.rating,
+    bestRating: 5,
+    worstRating: 1,
+  },
+  author: { '@type': 'Person', name: r.name },
+  reviewBody: pickBody(r, lang),
+  datePublished: (r.submitted_at || '').slice(0, 10) || undefined,
+  inLanguage: r.lang || undefined,
+}));
 
 const isNoindex = noindex || dashboard;
 
@@ -67,6 +86,18 @@ const structuredData = {
         'https://sites.google.com/view/yogaavecjitendra/home',
         'https://maps.app.goo.gl/LFy4eJncWWdt69Lo9',
       ],
+      ...(reviewCount > 0 && reviewAvg !== null
+        ? {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: reviewAvg,
+              reviewCount,
+              bestRating: 5,
+              worstRating: 1,
+            },
+            review: reviewSchemaItems,
+          }
+        : {}),
     },
     {
       '@type': 'Person',
