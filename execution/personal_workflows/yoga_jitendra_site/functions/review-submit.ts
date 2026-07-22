@@ -171,16 +171,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     expirationTtl: 7 * 24 * 60 * 60,
   });
 
-  // Best-effort pending counter for the dashboard badge. Corruption-safe:
-  // if it goes wrong we just skip; the moderation page still lists pending
-  // reviews correctly via a KV.list() call.
-  try {
-    const raw = await env.DASHBOARD_KV.get('review:pending_count');
-    const n = raw ? parseInt(raw, 10) || 0 : 0;
-    await env.DASHBOARD_KV.put('review:pending_count', String(n + 1));
-  } catch (err) {
-    console.warn('review-submit: pending_count increment failed (swallowed):', (err as Error)?.message);
-  }
+  // Note: the moderation dashboard's pending badge counts pending items via
+  // /api/reviews-admin?count=1 (KV list) — no dedicated `pending_count`
+  // key is maintained here to avoid a lost-update race under concurrent
+  // submissions.
 
   return back(request, 'review=thanks');
 };

@@ -180,7 +180,12 @@ const structuredData = {
   <link rel="alternate" hreflang="en" href={enUrl} />
   <link rel="alternate" hreflang="x-default" href={frUrl} />
 
-  {!dashboard && <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />}
+  {/* JSON-LD injection: escape `<` in the stringified payload so a review
+      body containing `</script>` cannot break out of this block. Reviews
+      are moderated but the moderator surface is plain-text — a `</script>
+      <script>evil</script>` payload looks like a harmless typo to a
+      human. Cheap, load-bearing escape. */}
+  {!dashboard && <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />}
 
   {/* Cloudflare Web Analytics (cookieless, GDPR-safe, free). The site_token
       below is public by design (it ships in every page's HTML for every

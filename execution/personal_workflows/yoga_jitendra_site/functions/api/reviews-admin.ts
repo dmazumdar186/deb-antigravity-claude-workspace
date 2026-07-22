@@ -21,9 +21,8 @@ export interface Env {
   DEPLOY_HOOK_URL?: string;
 }
 
-const PENDING_PREFIX = 'review:approved:'.replace('approved', 'pending'); // 'review:pending:'
+const PENDING_PREFIX = 'review:pending:';
 const APPROVED_PREFIX = 'review:approved:';
-const COUNTER_KEY = 'review:pending_count';
 
 const ALLOWED_SOURCES = new Set([
   'onsite',
@@ -67,19 +66,23 @@ async function listAll(env: Env, prefix: string): Promise<Array<{ key: string; v
     }
     cursor = listRes.list_complete ? undefined : (listRes as { cursor?: string }).cursor;
     iterations += 1;
-    if (iterations > 10) break;
+    if (iterations > 10) {
+      // Hard cap at 10 * 1000 = 10k keys per prefix. Log so silent
+      // truncation surfaces in observability instead of vanishing.
+      console.warn(`reviews-admin: listAll truncated at 10 pages for prefix "${prefix}"; ${out.length} items returned, more may exist`);
+      break;
+    }
   } while (cursor);
   return out;
 }
 
-async function decrementPendingCounter(env: Env): Promise<void> {
+async function fireDeployHook(env: Env): Promise<{ triggered: boolean; status?: number; error?: string }> {
+  if (!env.DEPLOY_HOOK_URL) return { triggered: false, error: 'DEPLOY_HOOK_URL not set' };
   try {
-    const raw = await env.DASHBOARD_KV!.get(COUNTER_KEY);
-    const n = raw ? parseInt(raw, 10) || 0 : 0;
-    const next = Math.max(0, n - 1);
-    await env.DASHBOARD_KV!.put(COUNTER_KEY, String(next));
+    const resp = await fetch(env.DEPLOY_HOOK_URL, { method: 'POST' });
+    return { triggered: true, status: resp.status };
   } catch (err) {
-    console.warn('reviews-admin: counter decrement failed (swallowed):', (err as Error)?.message);
+    return { triggered: false, error: (err as Error)?.message || 'fetch failed' };
   }
 }
 
@@ -87,6 +90,15 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (!env.DASHBOARD_KV) return jsonResponse({ error: 'kv_unbound' }, 503);
 
   const url = new URL(request.url);
+
+  // Client-side fire-and-forget rebuild trigger. The moderation UI GETs this
+  // after any approve/reject/edit/delete/import so the SSG site rebuilds
+  // within ~60s and the new review lands on the public pages + JSON-LD.
+  // Auth is inherited from the Basic-Auth middleware (this is under /api/).
+  if (url.searchParams.get('deploy_hook_ping') === '1') {
+    const result = await fireDeployHook(env);
+    return jsonResponse({ ok: result.triggered, ...result });
+  }
 
   if (url.searchParams.get('count') === '1') {
     const pending = await listAll(env, 'review:pending:');
@@ -153,7 +165,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const approvedKey = APPROVED_PREFIX + record.approved_at + ':' + id.slice(0, 8);
     await env.DASHBOARD_KV.put(approvedKey, JSON.stringify(record));
     await env.DASHBOARD_KV.delete(pendingKey);
-    await decrementPendingCounter(env);
 
     return jsonResponse({ ok: true, approved_key: approvedKey });
   }
@@ -162,8 +173,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (!id) return jsonResponse({ error: 'missing_id' }, 400);
     const pendingKey = 'review:pending:' + id;
     await env.DASHBOARD_KV.delete(pendingKey);
-    await decrementPendingCounter(env);
-    return jsonResponse({ ok: true });
+return jsonResponse({ ok: true });
   }
 
   if (action === 'delete') {

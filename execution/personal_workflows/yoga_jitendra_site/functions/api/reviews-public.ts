@@ -86,7 +86,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
     cursor = listRes.list_complete ? undefined : (listRes as { cursor?: string }).cursor;
     iterations += 1;
-    if (iterations > 10) break; // safety
+    if (iterations > 10) {
+      // Same 10-page hard cap as reviews-admin. Log so a real overflow
+      // is visible instead of silently dropping items from the public feed.
+      console.warn(`reviews-public: list truncated at 10 pages; ${reviews.length} approved items returned, more may exist`);
+      break;
+    }
   } while (cursor);
 
   // Sort: featured first, then newest-first by approved_at.

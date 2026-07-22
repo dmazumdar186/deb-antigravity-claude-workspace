@@ -40,7 +40,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   // Public whitelist bypass — must be a read-only endpoint by contract.
-  if (PUBLIC_API_ALLOWLIST.has(url.pathname)) {
+  // Normalize the trailing slash so `/api/reviews-public` and
+  // `/api/reviews-public/` both bypass auth (CDN prefetch, browser
+  // normalization, or a different fetch client may append the slash).
+  const normalized = url.pathname.endsWith('/') && url.pathname.length > 1
+    ? url.pathname.slice(0, -1)
+    : url.pathname;
+  if (PUBLIC_API_ALLOWLIST.has(normalized)) {
     return context.next();
   }
 
