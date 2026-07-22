@@ -27,14 +27,14 @@ const t = {
     rating: 'Note',
     body: 'Votre avis',
     body_placeholder: 'Quelques phrases sur votre expérience avec Jitendra…',
-    source: 'Où avez-vous pratiqué ?',
+    source: 'Comment nous avez-vous connu ?',
     source_options: {
-      onsite: 'Sur le site (nouveau)',
+      onsite: 'Directement sur ce site',
       superprof: 'Superprof',
       meetup: 'Meetup',
       trainme: 'TrainMe',
       instagram: 'Instagram',
-      email: 'Recommandation privée',
+      email: 'Bouche à oreille',
       other: 'Autre',
     },
     consent: 'J\'accepte que mon prénom et mon avis soient publiés sur ce site.',
@@ -68,14 +68,14 @@ const t = {
     rating: 'Rating',
     body: 'Your review',
     body_placeholder: 'A few lines about your experience with Jitendra…',
-    source: 'Where did you practice?',
+    source: 'How did you hear about us?',
     source_options: {
-      onsite: 'On this site (new)',
+      onsite: 'Directly on this site',
       superprof: 'Superprof',
       meetup: 'Meetup',
       trainme: 'TrainMe',
       instagram: 'Instagram',
-      email: 'Private recommendation',
+      email: 'Word of mouth',
       other: 'Other',
     },
     consent: 'I agree that my first name and my review may be published on this site.',
@@ -250,16 +250,14 @@ const waHref = `/wa-out?source=contact&text=${encodeURIComponent(lang === 'en' ?
     display: inline-block;
     padding: 0 2px;
   }
-  .rating-star:hover span[aria-hidden="true"],
-  .rating-star:hover ~ .rating-star span[aria-hidden="true"],
-  .rating-star input:checked ~ span[aria-hidden="true"],
-  .rating-star input:checked + span[aria-hidden="true"] {
+  /* Rating star colors — the "N-filled" cascade is driven by JS (see the
+     script block at end of file) because Astro's CSS scoper strips the
+     `:has()` and `~` sibling combinators that a pure-CSS rating picker
+     would need. Class-based coloring: .is-filled = terracotta, otherwise
+     it stays at the default grey defined above. */
+  .rating-star span[aria-hidden="true"].is-filled {
     color: var(--terracotta, #c05b3e);
   }
-  /* Selected + all following (which are earlier stars because flex-direction: row-reverse) */
-  .rating-picker:hover .rating-star span[aria-hidden="true"] { color: rgba(46, 42, 38, 0.2); }
-  .rating-picker .rating-star:hover span[aria-hidden="true"],
-  .rating-picker .rating-star:hover ~ .rating-star span[aria-hidden="true"] { color: var(--terracotta, #c05b3e); }
 
   .review-field-consent label {
     display: flex;
@@ -311,6 +309,54 @@ const waHref = `/wa-out?source=contact&text=${encodeURIComponent(lang === 'en' ?
     white-space: nowrap; border: 0;
   }
 </style>
+
+<script>
+  // Rating picker: fill the clicked star + every lower-value star.
+  // DOM order is 5,4,3,2,1 (reversed visually with flex-direction:row-reverse).
+  // On click of value N: mark every star with value <= N as filled.
+  // On hover: preview the same cascade; on leave: revert to the current
+  // selection. This lives outside the localized define:vars script below
+  // because it does not depend on any per-language string.
+  (function () {
+    document.querySelectorAll('.rating-picker').forEach(function (picker) {
+      var stars = Array.prototype.slice.call(picker.querySelectorAll('.rating-star'));
+      function paint(threshold) {
+        stars.forEach(function (star) {
+          var input = star.querySelector('input');
+          var span = star.querySelector('span[aria-hidden="true"]');
+          if (!input || !span) return;
+          var v = parseInt(input.value, 10);
+          if (Number.isFinite(v) && v <= threshold) {
+            span.classList.add('is-filled');
+          } else {
+            span.classList.remove('is-filled');
+          }
+        });
+      }
+      function currentValue() {
+        var checked = picker.querySelector('input:checked');
+        return checked ? parseInt(checked.value, 10) : 0;
+      }
+      stars.forEach(function (star) {
+        var input = star.querySelector('input');
+        if (input) {
+          input.addEventListener('change', function () {
+            paint(parseInt(input.value, 10));
+          });
+        }
+        star.addEventListener('mouseenter', function () {
+          var input2 = star.querySelector('input');
+          if (input2) paint(parseInt(input2.value, 10));
+        });
+      });
+      picker.addEventListener('mouseleave', function () {
+        paint(currentValue());
+      });
+      // Initial paint in case a value was pre-selected (e.g. browser autofill).
+      paint(currentValue());
+    });
+  })();
+</script>
 
 <script define:vars={{ errorsMap: t.errors, prefix: t.error_prefix, thanksTitle: t.thanks_title, thanksBody: t.thanks_body }}>
   // On page load, check ?review=thanks or ?review=error&reason=… and show
