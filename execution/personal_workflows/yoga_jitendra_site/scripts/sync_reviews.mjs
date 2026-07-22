@@ -146,13 +146,15 @@ async function main() {
 
   if (!SKIP) {
     const live = await fetchLive();
-    if (live && live.length >= seed.length) {
-      // Prefer live once it has at least as many reviews as the seed —
-      // guards against KV wipes silently blanking the site.
+    if (live && live.length > 0) {
+      // KV is the source of truth: any non-empty live response wins.
+      // Guards against KV wipes (which return 0 items or a fetch error →
+      // fall through to the seed) while letting the first moderated
+      // review appear even before KV catches up to the seed count.
       reviews = live;
       source = 'live';
     } else if (live) {
-      warn(`live returned ${live.length} < seed ${seed.length}; keeping seed to avoid data loss`);
+      log(`live returned 0 reviews; using seed fallback (${seed.length} items)`);
     }
   } else {
     log('SYNC_REVIEWS_SKIP=1 → seed only');
