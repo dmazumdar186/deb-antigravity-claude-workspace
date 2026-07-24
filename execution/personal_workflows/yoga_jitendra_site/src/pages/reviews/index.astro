@@ -29,7 +29,9 @@ const { reviews, count, average_rating } = loadReviews();
         <header class="max-w-3xl mb-8">
           <p class="eyebrow mb-4" data-reveal>
             <span class="breathing-dot"></span>
-            <span>Tous les avis · {count} avis{average_rating ? ` · ${average_rating}/5` : ''}</span>
+            {/* Structured so client-side augmentation can live-update the
+                count and avg when it injects fresh KV reviews. */}
+            <span>Tous les avis · <span data-live-review-count={String(count)}>{count}</span> <span data-live-reviews-word="avis">avis</span>{average_rating ? (<> · <span data-live-review-avg={String(average_rating)}>{average_rating}</span>/5</>) : null}</span>
           </p>
           <h1 class="text-4xl md:text-5xl leading-[1.05]" data-reveal>
             <span>Ce que les élèves disent — de partout.</span>

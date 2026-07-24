@@ -256,12 +256,19 @@ function formatDate(iso: string, lng: string): string {
           existingIds.add(r.id);
           appended += 1;
         }
-        // Update any element the page marks for live eyebrow / count refresh.
+        // Update every eyebrow marker the page provides. Includes plural
+        // handling for languages that inflect on count (`review` vs
+        // `reviews`; French `avis` is invariable so lang detection is
+        // enough).
         document.querySelectorAll('[data-live-review-count]').forEach(function (el) {
           el.textContent = String(data.count);
         });
         document.querySelectorAll('[data-live-review-avg]').forEach(function (el) {
           if (data.average_rating != null) el.textContent = String(data.average_rating);
+        });
+        document.querySelectorAll('[data-live-reviews-word]').forEach(function (el) {
+          if (lang === 'en') el.textContent = data.count === 1 ? 'review' : 'reviews';
+          else el.textContent = 'avis';
         });
         if (appended > 0) {
           window.dispatchEvent(new CustomEvent('reviewsAugmented', { detail: { appended: appended, total: data.count } }));

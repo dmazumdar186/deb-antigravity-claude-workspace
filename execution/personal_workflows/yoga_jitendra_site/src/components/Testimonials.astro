@@ -21,14 +21,16 @@ const { reviews, count, average_rating } = loadReviews();
 // ReviewsGrid reveals the rest without a page change.
 const t = lang === 'en'
   ? {
-      eyebrow: `What students say · ${count} review${count === 1 ? '' : 's'}${average_rating ? ` · ${average_rating}/5` : ''}`,
+      prefix: 'What students say',
+      reviews_word: (n: number) => `review${n === 1 ? '' : 's'}`,
       title: 'An attentive practice, held by tradition.',
       cta_full: 'See all reviews',
       cta_add: 'Add yours',
       review_page: '/en/reviews/',
     }
   : {
-      eyebrow: `Ce qu'en disent les élèves · ${count} avis${average_rating ? ` · ${average_rating}/5` : ''}`,
+      prefix: "Ce qu'en disent les élèves",
+      reviews_word: (_n: number) => 'avis',
       title: 'Une pratique attentive, tenue par la tradition.',
       cta_full: 'Voir tous les avis',
       cta_add: 'Ajouter le vôtre',
@@ -41,7 +43,11 @@ const t = lang === 'en'
     <header class="max-w-3xl mb-12">
       <p class="eyebrow mb-4" data-reveal>
         <span class="breathing-dot"></span>
-        <span>{t.eyebrow}</span>
+        {/* Eyebrow is structured so the client-side augmentation script can
+            update the count / avg spans in place when it injects fresh
+            reviews from KV. Static template literals baked the numbers into
+            unreachable text and blocked live updates. */}
+        <span>{t.prefix} · <span data-live-review-count={String(count)}>{count}</span> <span data-live-reviews-word={t.reviews_word(count)}>{t.reviews_word(count)}</span>{average_rating ? (<> · <span data-live-review-avg={String(average_rating)}>{average_rating}</span>/5</>) : null}</span>
       </p>
       <h2 class="text-4xl md:text-5xl leading-[1.05]" data-reveal>
         <span>{t.title}</span>
