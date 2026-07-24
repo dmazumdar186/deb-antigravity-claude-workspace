@@ -57,6 +57,7 @@ function formatDate(iso: string, lng: string): string {
         <figure
           class="card review-card"
           data-review-card
+          data-review-id={r.id}
           data-featured={r.featured ? '1' : '0'}
           data-index={i}
           data-hidden={i >= initial ? '1' : '0'}
@@ -159,29 +160,135 @@ function formatDate(iso: string, lng: string): string {
 </style>
 
 <script>
+  // Live augmentation: the site is SSG but Cloudflare Pages is not git-connected,
+  // so my moderation-approval deploy-hook has nothing to build from. On each
+  // page load we fetch /api/reviews-public (cached 60s at the edge) and append
+  // any approved reviews the server doesn't yet know about. SEO / JSON-LD
+  // stay based on the last SSG snapshot; visitors see live moderator state
+  // within ~500 ms of page load.
+  (function () {
+    var grid = document.querySelector('[data-reviews-grid]');
+    if (!grid) return;
+    var htmlLang = (document.documentElement.getAttribute('lang') || 'fr').toLowerCase();
+    var lang = htmlLang === 'en' ? 'en' : 'fr';
+
+    var SOURCE_LABELS = {
+      fr: { onsite: 'Site', superprof: 'Superprof', meetup: 'Meetup', trainme: 'TrainMe', instagram: 'Instagram', email: 'Recommandation', other: 'Autre' },
+      en: { onsite: 'On-site', superprof: 'Superprof', meetup: 'Meetup', trainme: 'TrainMe', instagram: 'Instagram', email: 'Recommendation', other: 'Other' },
+    };
+    var VERIFIED_LABEL = lang === 'en' ? '✓ Verified' : '✓ Vérifié';
+    var STAR_LABEL = lang === 'en' ? ' out of 5' : ' sur 5';
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function stars(n) {
+      var v = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+      return '★'.repeat(v) + '☆'.repeat(5 - v);
+    }
+    function fmtDate(iso) {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { year: 'numeric', month: 'long' });
+      } catch (e) { return ''; }
+    }
+    function pickBody(r) {
+      if (lang === 'en') return r.body_en || r.body || r.body_fr || '';
+      return r.body_fr || r.body || r.body_en || '';
+    }
+    function sourceLabel(source) {
+      var map = SOURCE_LABELS[lang] || SOURCE_LABELS.fr;
+      return map[source] || map.other;
+    }
+    function buildCard(r) {
+      var fig = document.createElement('figure');
+      fig.className = 'card review-card';
+      fig.setAttribute('data-review-card', '');
+      fig.setAttribute('data-review-id', r.id || '');
+      fig.setAttribute('data-featured', r.featured ? '1' : '0');
+      fig.setAttribute('data-hidden', '0');
+      var srcLbl = sourceLabel(r.source);
+      var srcUrl = r.source_url ? '<span aria-hidden="true"> · </span><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">↗</a>' : '';
+      fig.innerHTML =
+        '<div class="review-head">' +
+          '<span class="stars" aria-label="' + esc(r.rating + STAR_LABEL) + '">' + stars(r.rating) + '</span>' +
+          (r.verified ? '<span class="review-verified" title="' + esc(srcLbl) + '">' + VERIFIED_LABEL + '</span>' : '') +
+        '</div>' +
+        '<blockquote class="review-body"><span>' + esc(pickBody(r)) + '</span></blockquote>' +
+        '<figcaption class="review-foot">' +
+          '<div class="review-author">' + esc(r.name) + '</div>' +
+          '<div class="review-meta">' +
+            '<span>' + esc(srcLbl) + '</span>' +
+            '<span aria-hidden="true"> · </span>' +
+            '<span>' + esc(fmtDate(r.submitted_at)) + '</span>' +
+            srcUrl +
+          '</div>' +
+        '</figcaption>';
+      return fig;
+    }
+
+    var existingIds = new Set();
+    grid.querySelectorAll('[data-review-id]').forEach(function (el) {
+      var id = el.getAttribute('data-review-id');
+      if (id) existingIds.add(id);
+    });
+
+    fetch('/api/reviews-public', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !Array.isArray(data.reviews)) return;
+        var incoming = data.reviews.slice().sort(function (a, b) {
+          if (a.featured !== b.featured) return a.featured ? -1 : 1;
+          var ak = a.approved_at || a.submitted_at || '';
+          var bk = b.approved_at || b.submitted_at || '';
+          return bk.localeCompare(ak);
+        });
+        var appended = 0;
+        for (var i = 0; i < incoming.length; i++) {
+          var r = incoming[i];
+          if (!r || !r.id || existingIds.has(r.id)) continue;
+          var card = buildCard(r);
+          // Featured items go to the top; others append at the end.
+          if (r.featured && grid.firstChild) grid.insertBefore(card, grid.firstChild);
+          else grid.appendChild(card);
+          existingIds.add(r.id);
+          appended += 1;
+        }
+        // Update any element the page marks for live eyebrow / count refresh.
+        document.querySelectorAll('[data-live-review-count]').forEach(function (el) {
+          el.textContent = String(data.count);
+        });
+        document.querySelectorAll('[data-live-review-avg]').forEach(function (el) {
+          if (data.average_rating != null) el.textContent = String(data.average_rating);
+        });
+        if (appended > 0) {
+          window.dispatchEvent(new CustomEvent('reviewsAugmented', { detail: { appended: appended, total: data.count } }));
+        }
+      })
+      .catch(function () { /* offline / edge blip: silent — SSG cards are enough */ });
+  })();
+
   // "Show more / show less" toggle: reveals the initially-hidden cards.
   (function () {
-    function init(grid: HTMLElement) {
-      const btn = grid.parentElement?.querySelector<HTMLButtonElement>('[data-reviews-more]');
+    function init(grid) {
+      var btn = grid.parentElement && grid.parentElement.querySelector('[data-reviews-more]');
       if (!btn) return;
-      let expanded = false;
-      const moreLabel = btn.dataset.moreLabel || 'Show more';
-      const lessLabel = btn.dataset.lessLabel || 'Show less';
-      const countEl = btn.querySelector<HTMLSpanElement>('.reviews-more-count');
-      const hidden = grid.querySelectorAll<HTMLElement>('[data-hidden="1"]');
-      btn.addEventListener('click', () => {
+      var expanded = false;
+      var moreLabel = btn.dataset.moreLabel || 'Show more';
+      var lessLabel = btn.dataset.lessLabel || 'Show less';
+      var countEl = btn.querySelector('.reviews-more-count');
+      var hidden = grid.querySelectorAll('[data-hidden="1"]');
+      btn.addEventListener('click', function () {
         expanded = !expanded;
-        hidden.forEach((el) => {
-          el.style.display = expanded ? '' : 'none';
-        });
-        // Replace the text node before the count span, preserving the span.
-        // firstChild might be a text node; walk to it.
-        const nodes = Array.from(btn.childNodes);
-        const textNode = nodes.find((n) => n.nodeType === Node.TEXT_NODE) as Text | undefined;
+        hidden.forEach(function (el) { el.style.display = expanded ? '' : 'none'; });
+        var nodes = Array.prototype.slice.call(btn.childNodes);
+        var textNode = nodes.find(function (n) { return n.nodeType === Node.TEXT_NODE; });
         if (textNode) textNode.data = (expanded ? lessLabel : moreLabel) + ' ';
         if (countEl) countEl.style.display = expanded ? 'none' : '';
       });
     }
-    document.querySelectorAll<HTMLElement>('[data-reviews-grid]').forEach(init);
+    document.querySelectorAll('[data-reviews-grid]').forEach(init);
   })();
 </script>
