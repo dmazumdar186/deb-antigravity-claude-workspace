@@ -1,0 +1,160 @@
+---
+// TimeSeriesChart — the main dashboard line chart.
+//
+// Renders impressions / clicks / WA-taps over the selected time range,
+// styled to the parent site's cream + terracotta + sage palette. Uses
+// ApexCharts (self-bundled, no CDN — CSP-safe on CF Pages).
+//
+// The chart is initialized client-side on mount from the initial data
+// prop (server-rendered from the fallback JSON), then updated by the
+// dashboard hydration script when /api/dashboard-data responds and on
+// every range-pill click via the CustomEvent('dashboardrange') bus.
+//
+// Contract with dashboard.astro:
+//   - The div's id is stable so the hydration script can find it.
+//   - It listens for CustomEvent('dashboarddata', { detail: { rollup } })
+//     on window and calls chart.updateSeries()/updateOptions() with the
+//     new time_series field.
+
+interface Series {
+  name: string;
+  data: number[];
+}
+interface Props {
+  labels: string[];
+  series: Series[];
+}
+const { labels, series } = Astro.props;
+---
+<div class="time-series-block" data-reveal>
+  <p class="eyebrow"><span class="breathing-dot"></span><span>Trend</span></p>
+  <h2 class="dash-h2">How the numbers moved</h2>
+  <div id="time-series-chart" class="chart-host" aria-label="Trend chart: impressions, clicks and WhatsApp taps"></div>
+  <p class="chart-source">Source: Google Search Console + Bing + Google Business Profile + On-site beacon</p>
+</div>
+
+<script type="module" define:vars={{ initialLabels: labels, initialSeries: series }}>
+  import ApexCharts from 'apexcharts';
+
+  const CREAM = '#f4ede1';
+  const INK = '#2e2a26';
+  const INK_SOFT = 'rgba(74, 66, 59, 0.7)';
+  const TERRACOTTA = '#c9744a';
+  const SAGE = '#6b7a5a';
+  const SAND = 'rgba(217, 199, 167, 0.6)';
+
+  function buildOptions(labels, series) {
+    return {
+      chart: {
+        type: 'area',
+        height: 320,
+        background: 'transparent',
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        animations: { enabled: true, speed: 500 },
+        fontFamily: 'Inter, system-ui, sans-serif',
+      },
+      series: series || [],
+      colors: [TERRACOTTA, SAGE, INK],
+      stroke: { curve: 'smooth', width: 2 },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          opacityFrom: 0.35,
+          opacityTo: 0.03,
+          stops: [0, 90, 100],
+        },
+      },
+      dataLabels: { enabled: false },
+      grid: {
+        borderColor: SAND,
+        strokeDashArray: 3,
+        xaxis: { lines: { show: false } },
+        padding: { left: 12, right: 12 },
+      },
+      xaxis: {
+        categories: labels || [],
+        labels: {
+          style: { colors: INK_SOFT, fontSize: '11px' },
+          rotate: 0,
+          formatter: (v) => v ? v.slice(5) : '',   // MM-DD only, tighter axis
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        labels: {
+          style: { colors: INK_SOFT, fontSize: '11px' },
+          formatter: (v) => (Number.isInteger(v) ? v : v.toFixed(0)),
+        },
+      },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        fontSize: '12px',
+        labels: { colors: INK_SOFT },
+        markers: { radius: 3 },
+        itemMargin: { horizontal: 12 },
+      },
+      tooltip: {
+        theme: 'light',
+        style: { fontSize: '12px' },
+        y: { formatter: (v) => v == null ? '—' : v.toLocaleString('en-US') },
+      },
+      noData: {
+        text: 'No trend data yet — see the status banner above for the reason.',
+        align: 'center',
+        verticalAlign: 'middle',
+        style: { color: INK, fontSize: '15px' },
+      },
+    };
+  }
+
+  const el = document.getElementById('time-series-chart');
+  if (el) {
+    const chart = new ApexCharts(el, buildOptions(initialLabels, initialSeries));
+    chart.render();
+
+    // Listen for hydration events from the dashboard controller.
+    window.addEventListener('dashboarddata', (ev) => {
+      const rollup = ev?.detail?.rollup;
+      if (!rollup?.time_series) return;
+      chart.updateOptions({
+        xaxis: { categories: rollup.time_series.labels || [] },
+      });
+      chart.updateSeries(rollup.time_series.series || []);
+    });
+  }
+</script>
+
+<style>
+  .time-series-block {
+    background: var(--cream-100);
+    border: 1px solid rgba(46, 42, 38, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .chart-host {
+    /* ApexCharts sets its own inline height via the height option; give the
+       container a min-height so the layout doesn't jump before render. */
+    min-height: 320px;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  .chart-source {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(74, 66, 59, 0.55);
+    margin: 0.75rem 0 0 0.25rem;
+    font-weight: 500;
+  }
+  /* Overrides for ApexCharts elements that inherit our body font at the
+     wrong weight. */
+  :global(.chart-host .apexcharts-legend-text) {
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+</style>

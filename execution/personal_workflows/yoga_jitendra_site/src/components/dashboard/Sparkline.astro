@@ -1,0 +1,91 @@
+---
+// Sparkline — tiny inline area chart embedded inside HeroTile below the
+// big number. Renders only when data is present; hides gracefully when
+// the tile is in "waiting" state.
+//
+// Uses ApexCharts sparkline mode (no axes, no legend, minimal chrome).
+// Each sparkline needs a unique DOM id so multiple HeroTiles can host
+// their own without colliding.
+
+interface Props {
+  id: string;
+  data: number[];
+  color?: string;
+  metric_key?: 'reach' | 'interest' | 'conversation';
+}
+const { id, data, color = 'var(--terracotta)', metric_key } = Astro.props;
+const hasData = Array.isArray(data) && data.length > 0 && data.some((v) => v && v > 0);
+---
+{hasData && (
+  <div
+    id={id}
+    class="sparkline-host"
+    data-color={color}
+    data-metric={metric_key}
+    aria-hidden="true"
+  ></div>
+)}
+
+<script type="module" define:vars={{ id, data, color }}>
+  import ApexCharts from 'apexcharts';
+
+  const el = document.getElementById(id);
+  if (el && Array.isArray(data) && data.length > 0) {
+    // Resolve CSS variable to real color for ApexCharts (it does not
+    // understand CSS var() strings in the colors option).
+    let resolvedColor = color;
+    if (typeof color === 'string' && color.startsWith('var(')) {
+      const varName = color.slice(4, -1).trim();
+      const cssValue = getComputedStyle(document.documentElement)
+        .getPropertyValue(varName)
+        .trim();
+      resolvedColor = cssValue || '#c9744a';
+    }
+    const chart = new ApexCharts(el, {
+      chart: {
+        type: 'area',
+        height: 40,
+        sparkline: { enabled: true },
+        animations: { enabled: true, speed: 400 },
+      },
+      series: [{ name: 'value', data }],
+      colors: [resolvedColor],
+      stroke: { curve: 'smooth', width: 1.5 },
+      fill: {
+        type: 'gradient',
+        gradient: { opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] },
+      },
+      tooltip: {
+        fixed: { enabled: false },
+        x: { show: false },
+        y: { title: { formatter: () => '' } },
+        marker: { show: false },
+      },
+    });
+    chart.render();
+
+    // Sparklines re-render on range change too; the parent HeroTile carries
+    // a data-metric attribute so we can route the right array from the
+    // updated rollup. We listen on the same event bus but only self-update
+    // if a matching series arrives.
+    window.addEventListener('dashboarddata', (ev) => {
+      const rollup = ev?.detail?.rollup;
+      if (!rollup?.hero_tiles) return;
+      const metricKey = el.getAttribute('data-metric');
+      const tile = metricKey && rollup.hero_tiles[metricKey];
+      if (tile?.sparkline?.length) {
+        chart.updateSeries([{ name: 'value', data: tile.sparkline }]);
+      }
+    });
+  }
+</script>
+
+<style>
+  .sparkline-host {
+    width: 100%;
+    max-width: 180px;
+    height: 40px;
+    margin-top: 0.4rem;
+    pointer-events: none;
+  }
+</style>

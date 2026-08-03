@@ -1,21 +1,30 @@
 ---
-// Intentional monolingual scope: dashboard is English-only per the war-room plan
-// (see C:/Users/deban/.claude/plans/i-asked-this-question-effervescent-allen.md
-// Part 3). The parent site is bilingual FR/EN but this internal dashboard has
-// exactly two users (Debanjan + Jitendra), both bilingual, both comfortable
+// Intentional monolingual scope: dashboard is English-only per the war-room
+// plan (see C:/Users/deban/.claude/plans/i-asked-this-question-effervescent-allen.md
+// Part 3). Two users (Debanjan + Jitendra), both bilingual, both comfortable
 // reading English. Do NOT add /en/dashboard/ or /fr/dashboard/ without
-// re-evaluating the shape of the copy — the current strings assume English
-// idioms ("Your monthly snapshot", "This week's next move") that do not
-// translate word-for-word.
-import Base              from '../layouts/Base.astro';
-import HeroTile          from '../components/dashboard/HeroTile.astro';
-import FunnelStrip       from '../components/dashboard/FunnelStrip.astro';
-import MilestoneStrip    from '../components/dashboard/MilestoneStrip.astro';
-import NextMoveCard      from '../components/dashboard/NextMoveCard.astro';
-import SelfReportTile    from '../components/dashboard/SelfReportTile.astro';
-import ProvenanceFooter  from '../components/dashboard/ProvenanceFooter.astro';
-import data              from '../content/dashboard-data.json';
+// re-evaluating copy shape.
+//
+// V0.1: server-renders from the build-time fallback JSON so first paint is
+// instant, then a client script fetches /api/dashboard-data?range=7d and
+// broadcasts CustomEvent('dashboarddata') so every tile + chart hydrates
+// with the pre-computed rollup from KV. Range pills fire
+// CustomEvent('dashboardrange') → controller re-fetches → broadcasts new
+// rollup. See plan §3.1-3.5 for architecture.
+import Base                from '../layouts/Base.astro';
+import HeroTile            from '../components/dashboard/HeroTile.astro';
+import FunnelStrip         from '../components/dashboard/FunnelStrip.astro';
+import TimeSeriesChart     from '../components/dashboard/TimeSeriesChart.astro';
+import SourceDonut         from '../components/dashboard/SourceDonut.astro';
+import MilestoneStrip      from '../components/dashboard/MilestoneStrip.astro';
+import NextMoveCard        from '../components/dashboard/NextMoveCard.astro';
+import SelfReportTile      from '../components/dashboard/SelfReportTile.astro';
+import ProvenanceFooter    from '../components/dashboard/ProvenanceFooter.astro';
+import data                from '../content/dashboard-data.json';
 
+// Milestone/next-move/self-report/provenance sections come from the static
+// content file; those are hand-curated narrative, not machine data. The
+// hero + funnel + charts hydrate from /api/dashboard-data on the client.
 const launch = new Date(data.launch_date + 'T00:00:00');
 const now = new Date();
 const daysSinceLaunch = Math.max(0, Math.floor((now.getTime() - launch.getTime()) / (1000 * 60 * 60 * 24)));
@@ -25,6 +34,72 @@ const rangeOptions = [
   { value: '30d', label: 'Last 30 days' },
   { value: 'all', label: 'Since launch' },
 ];
+
+// Initial rollup shape read from the fallback JSON. Same shape as
+// /api/dashboard-data returns, so the frontend has one code path.
+const initial = data.initial_rollup;
+const heroTiles = initial.hero_tiles;
+const funnelStages = initial.funnel.map((s: any) => ({
+  ...s,
+  status: (initial.sources_healthy?.length ?? 0) > 0 ? 'live' : 'waiting',
+  hint: initial.sources_healthy?.length ? undefined : 'waiting for first cron snapshot',
+}));
+
+// Hero-tile status: "live" when the aggregator has a real value; "waiting"
+// when value is null (bootstrap window before first cron fire).
+function heroStatus(v: unknown): 'live' | 'waiting' {
+  return typeof v === 'number' ? 'live' : 'waiting';
+}
+
+// Truthful per-tile hint. Old behavior hardcoded "First data ~24-48h after
+// first cron fire" on every waiting tile — the copy never expired because
+// it was time-agnostic, so a client whose pipeline was never activated saw
+// "24-48h" forever. Now the hint names the actual reason: which source is
+// missing, or "pipeline not yet activated", or last-refresh-N-hours-ago.
+const TILE_SOURCES: Record<string, string[]> = {
+  reach:        ['gsc'],
+  interest:     ['gsc', 'gbp', 'bing'],
+  conversation: ['cfwa'],
+};
+const SOURCE_LABELS: Record<string, string> = {
+  gsc:  'Google Search Console',
+  gbp:  'Google Business Profile',
+  bing: 'Bing Webmaster',
+  cfwa: 'Cloudflare Web Analytics',
+};
+function tileHint(key: string): string {
+  const degraded: string[] = initial.sources_degraded || [];
+  const healthy:  string[] = initial.sources_healthy  || [];
+  const needed = TILE_SOURCES[key] || [];
+  const missing = needed.filter((s) => degraded.includes(s) || !healthy.includes(s));
+  const status: string = (initial as any)._pipeline_status || '';
+  if (status === 'not_activated' || (missing.length === needed.length && needed.length > 0)) {
+    const names = missing.map((s) => SOURCE_LABELS[s] || s.toUpperCase()).join(', ');
+    return `Data source pending activation: ${names}`;
+  }
+  if (missing.length > 0) {
+    const names = missing.map((s) => SOURCE_LABELS[s] || s.toUpperCase()).join(', ');
+    return `Partial: ${names} still pending; rest is live`;
+  }
+  return 'Live';
+}
+
+// Whole-dashboard status banner. Fires when the pipeline has never written
+// a rollup OR when every source is degraded. Rendered inline so it can be
+// updated via hydration when /api/dashboard-data reveals the real state.
+function bannerText(): string | null {
+  const status: string = (initial as any)._pipeline_status || '';
+  const degraded: string[] = initial.sources_degraded || [];
+  const healthy:  string[] = initial.sources_healthy  || [];
+  if (status === 'not_activated') {
+    return 'Data pipeline not yet activated. See DASHBOARD_ACTIVATION.md for OAuth + secret setup, then POST /run to bootstrap KV.';
+  }
+  if (healthy.length === 0 && degraded.length > 0) {
+    return `All ${degraded.length} data sources are degraded. Check /health on the cron Worker.`;
+  }
+  return null;
+}
+const initialBanner = bannerText();
 ---
 <Base
   title="Dashboard | Yoga avec Jitendra"
@@ -48,30 +123,52 @@ const rangeOptions = [
       </p>
     </section>
 
+    {initialBanner && (
+      <aside class="dash-banner" id="dash-status-banner" role="status" aria-live="polite">
+        <span class="dash-banner-icon">⚠</span>
+        <span class="dash-banner-text">{initialBanner}</span>
+      </aside>
+    )}
+    {!initialBanner && (
+      <aside class="dash-banner" id="dash-status-banner" role="status" aria-live="polite" hidden>
+        <span class="dash-banner-icon">⚠</span>
+        <span class="dash-banner-text"></span>
+      </aside>
+    )}
+
     <section class="dash-hero-grid">
       <HeroTile
         eyebrow="Reach"
-        headline={data.hero_tiles.reach.label}
-        value={data.hero_tiles.reach.value}
-        status={data.hero_tiles.reach.status}
-        hint={data.hero_tiles.reach.hint}
-        source={data.hero_tiles.reach.source}
+        headline={heroTiles.reach.label}
+        value={heroTiles.reach.value}
+        status={heroStatus(heroTiles.reach.value)}
+        hint={tileHint('reach')}
+        source={heroTiles.reach.source}
+        metric_key="reach"
+        sparkline={heroTiles.reach.sparkline || []}
+        delta_pct={heroTiles.reach.delta_pct}
       />
       <HeroTile
         eyebrow="Interest"
-        headline={data.hero_tiles.interest.label}
-        value={data.hero_tiles.interest.value}
-        status={data.hero_tiles.interest.status}
-        hint={data.hero_tiles.interest.hint}
-        source={data.hero_tiles.interest.source}
+        headline={heroTiles.interest.label}
+        value={heroTiles.interest.value}
+        status={heroStatus(heroTiles.interest.value)}
+        hint={tileHint('interest')}
+        source={heroTiles.interest.source}
+        metric_key="interest"
+        sparkline={heroTiles.interest.sparkline || []}
+        delta_pct={heroTiles.interest.delta_pct}
       />
       <HeroTile
         eyebrow="Conversation"
-        headline={data.hero_tiles.conversation.label}
-        value={data.hero_tiles.conversation.value}
-        status={data.hero_tiles.conversation.status}
-        hint={data.hero_tiles.conversation.hint}
-        source={data.hero_tiles.conversation.source}
+        headline={heroTiles.conversation.label}
+        value={heroTiles.conversation.value}
+        status={heroStatus(heroTiles.conversation.value)}
+        hint={tileHint('conversation')}
+        source={heroTiles.conversation.source}
+        metric_key="conversation"
+        sparkline={heroTiles.conversation.sparkline || []}
+        delta_pct={heroTiles.conversation.delta_pct}
       />
     </section>
 
@@ -79,9 +176,24 @@ const rangeOptions = [
       <p class="eyebrow"><span class="breathing-dot"></span><span>The funnel</span></p>
       <h2 class="dash-h2">From search to WhatsApp</h2>
       <FunnelStrip
-        stages={data.funnel.stages}
-        range={data.funnel.range}
+        stages={funnelStages}
+        range="7d"
         range_options={rangeOptions}
+      />
+    </section>
+
+    <section class="dash-block">
+      <TimeSeriesChart
+        labels={initial.time_series?.labels || []}
+        series={initial.time_series?.series || []}
+      />
+    </section>
+
+    <section class="dash-block">
+      <SourceDonut
+        labels={initial.source_split?.labels || []}
+        values={initial.source_split?.values || []}
+        degraded_source_indices={initial.source_split?.degraded_source_indices || []}
       />
     </section>
 
@@ -107,13 +219,140 @@ const rangeOptions = [
       />
     </section>
 
-    <ProvenanceFooter sources={data.provenance.sources} as_of={data.as_of} />
+    <ProvenanceFooter sources={data.provenance.sources} as_of={initial.as_of || data.as_of} />
   </main>
 
-  {/* Client-side hydration: if the /api/self-report GET endpoint is bound
-      to a KV namespace, refresh the SelfReportTile with the latest server
-      state. Falls back silently if the endpoint is missing (V0.01 static
-      build path). Kept inline and tiny; no framework needed. */}
+  <script>
+    // Dashboard hydration controller.
+    // ============================
+    // On page load: fetch /api/dashboard-data?range=7d, broadcast the rollup
+    // via CustomEvent('dashboarddata') so every subscribed component (hero
+    // tiles, funnel, time-series chart, donut, sparklines) updates in place.
+    //
+    // On range-pill click: FunnelStrip emits CustomEvent('dashboardrange');
+    // this controller re-fetches with the new range and re-broadcasts.
+    //
+    // Self-report tile has its own separate hydration script that persists
+    // from V0.01 — do not touch here.
+    //
+    // Auth: /api/dashboard-data is behind the same _middleware.ts Basic-Auth
+    // gate as /dashboard/*. The browser has already sent Basic-Auth for the
+    // page load, so fetch() inherits the credentials via same-origin cookies /
+    // browser credential cache — no explicit Authorization header needed.
+    (function () {
+      let currentRange = '7d';
+      let isFetching = false;
+
+      function fmtNumber(n) {
+        if (n === null || n === undefined) return '—';
+        return Number(n).toLocaleString('en-US');
+      }
+      function fmtDelta(pct) {
+        if (pct === null || pct === undefined) return '—';
+        const sign = pct > 0 ? '+' : '';
+        return `${sign}${Number(pct).toFixed(1)}%`;
+      }
+      function deltaClass(pct) {
+        if (pct === null || pct === undefined) return 'delta-neutral';
+        if (pct > 0) return 'delta-up';
+        if (pct < 0) return 'delta-down';
+        return 'delta-neutral';
+      }
+
+      function updateHeroTiles(heroTiles) {
+        if (!heroTiles) return;
+        ['reach', 'interest', 'conversation'].forEach((key) => {
+          const tile = heroTiles[key];
+          if (!tile) return;
+          const numberEl = document.querySelector(`[data-metric="${key}"]`);
+          const deltaEl = document.querySelector(`[data-metric-delta="${key}"]`);
+          if (numberEl) {
+            numberEl.textContent = fmtNumber(tile.value);
+          }
+          if (deltaEl) {
+            deltaEl.textContent = fmtDelta(tile.delta_pct);
+            deltaEl.className = `hero-tile-delta ${deltaClass(tile.delta_pct)}`;
+          }
+        });
+      }
+
+      function setBanner(text) {
+        const el = document.getElementById('dash-status-banner');
+        if (!el) return;
+        const textEl = el.querySelector('.dash-banner-text');
+        if (!text) {
+          if (textEl) textEl.textContent = '';
+          el.hidden = true;
+          return;
+        }
+        if (textEl) textEl.textContent = text;
+        el.hidden = false;
+      }
+
+      function bannerFromRollup(rollup) {
+        // Mirror the server-side bannerText() logic in dashboard.astro so
+        // hydration reflects real pipeline state rather than staying stuck
+        // on the SSR-time snapshot.
+        if (!rollup) return null;
+        const status = rollup._pipeline_status;
+        const degraded = rollup.sources_degraded || [];
+        const healthy = rollup.sources_healthy || [];
+        if (status === 'not_activated') {
+          return 'Data pipeline not yet activated. See DASHBOARD_ACTIVATION.md for OAuth + secret setup, then POST /run to bootstrap KV.';
+        }
+        if (healthy.length === 0 && degraded.length > 0) {
+          return 'All ' + degraded.length + ' data sources are degraded. Check /health on the cron Worker.';
+        }
+        return null;
+      }
+
+      async function fetchAndBroadcast(range) {
+        if (isFetching) return;
+        isFetching = true;
+        try {
+          const resp = await fetch(`/api/dashboard-data?range=${encodeURIComponent(range)}`, {
+            headers: { Accept: 'application/json' },
+            credentials: 'same-origin',
+          });
+          if (!resp.ok) {
+            const msg = `Live data unavailable (HTTP ${resp.status}) — showing last snapshot.`;
+            console.warn(`dashboard fetch failed: ${resp.status}`);
+            setBanner(msg);
+            return;
+          }
+          const rollup = await resp.json();
+          // Update hero tile numbers/deltas directly (charts self-update via
+          // the event bus below).
+          updateHeroTiles(rollup.hero_tiles);
+          // Broadcast for chart components + FunnelStrip.
+          window.dispatchEvent(new CustomEvent('dashboarddata', { detail: { rollup } }));
+          // Refresh the status banner from live data (may hide it if the
+          // pipeline just came online since SSR).
+          setBanner(bannerFromRollup(rollup));
+        } catch (err) {
+          console.warn('dashboard hydration failed (keeping static values)', err);
+          setBanner('Live data fetch failed (' + (err && err.message ? err.message : 'network') + ') — showing last snapshot.');
+        } finally {
+          isFetching = false;
+        }
+      }
+
+      // Initial hydration on page load.
+      window.addEventListener('DOMContentLoaded', () => {
+        fetchAndBroadcast(currentRange);
+      });
+
+      // Range-pill clicks re-fetch.
+      window.addEventListener('dashboardrange', (ev) => {
+        const range = ev?.detail?.range;
+        if (!range || range === currentRange) return;
+        currentRange = range;
+        fetchAndBroadcast(range);
+      });
+    })();
+  </script>
+
+  {/* Self-report hydration — carried over from V0.01, kept isolated. */}
   <script is:inline>
     (function () {
       fetch('/api/self-report', { headers: { Accept: 'application/json' } })
@@ -131,8 +370,6 @@ const rangeOptions = [
           }
         })
         .catch(function (err) {
-          // Intentional silent fallback (static JSON already rendered), but log
-          // so a real failure does not disappear on a user's console.
           if (typeof console !== 'undefined' && console.warn) {
             console.warn('self-report hydration failed, keeping static values', err);
           }
@@ -212,5 +449,25 @@ const rangeOptions = [
   .dash-block {
     display: flex;
     flex-direction: column;
+  }
+  .dash-banner {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.85rem 1.15rem;
+    border-radius: 0.75rem;
+    background: rgba(201, 116, 74, 0.12);
+    border: 1px solid rgba(201, 116, 74, 0.35);
+    color: var(--ink);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+  .dash-banner-icon {
+    color: var(--terracotta, #c9744a);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .dash-banner-text {
+    flex: 1;
   }
 </style>

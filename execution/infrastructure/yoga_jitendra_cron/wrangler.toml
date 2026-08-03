@@ -1,0 +1,68 @@
+name = "yoga-jitendra-cron"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+# Scheduled Worker for the yoga-jitendra dashboard V0.1 data pipeline.
+# Pulls daily snapshots from GSC + GBP + Bing + Cloudflare Web Analytics,
+# writes each source to a snap:<source>:<YYYY-MM-DD> KV key, then aggregates
+# into dashboard:{7d,30d,all} rollups that the Pages Function serves.
+#
+# Companion Pages project: execution/personal_workflows/yoga_jitendra_site/
+# Both bind the SAME DASHBOARD_KV namespace (id below matches the one in
+# the Pages project's wrangler.toml). Worker writes; Pages reads.
+#
+# Deploy:
+#   cd execution/infrastructure/yoga_jitendra_cron
+#   npx wrangler secret put <NAME>   # for each secret listed in src/index.js handleHealth()
+#   npx wrangler deploy
+#
+# Revert (rollback):
+#   npx wrangler delete yoga-jitendra-cron
+#   (KV namespace is shared with Pages — do NOT delete the namespace on
+#    Worker teardown, it holds self_report:* keys the Pages Function relies on)
+
+# Two crons declared, one for CET (UTC+1, winter) and one for CEST (UTC+2, summer).
+# CF Cron Triggers ignore DST, so the Worker code detects the actual Paris local
+# hour on each fire via Intl.DateTimeFormat and skips the cron that does NOT
+# correspond to 06:00 Paris. Same DST-safe pattern as job_search_cron.
+#
+#   05:00 UTC = 06:00 Paris in winter (CET)
+#   04:00 UTC = 06:00 Paris in summer (CEST)
+[triggers]
+crons = ["0 4 * * *", "0 5 * * *"]
+
+[vars]
+# Which yoga-jitendra property to query in each source. Static; no secret exposure.
+GSC_SITE_URL = "sc-domain:yogaavecjitendra.fr"
+
+# Cloudflare zone for the Web Analytics GraphQL query. Public-facing hostname
+# is enough; the zone ID is looked up server-side via the account token.
+CF_ZONE_HOSTNAME = "yogaavecjitendra.fr"
+
+# CF Web Analytics site tag (aka beacon token). Same value that Base.astro
+# ships in the <script data-cf-beacon={{"token": "..."}}> tag. Pinning it
+# here avoids a `/rum/site_info/list` roundtrip AND handles the case where
+# the site was registered with a hostname CF doesn't match by string
+# (e.g. `www.yogaavecjitendra.fr` vs `yogaavecjitendra.fr`). Rotate here
+# if the beacon token is ever regenerated in the CF dashboard.
+CF_WA_SITE_TAG = "9a1473aafbd24daba793995956244a87"
+
+# Bing WMT site URL — Bing wants the exact form submitted at verification time.
+BING_SITE_URL = "https://yogaavecjitendra.fr/"
+
+# GBP location resource name. Set to empty string until GBP access approval
+# clears; the source module skips the API call and writes a sources_degraded
+# entry when this is empty. Prevents the whole cron from failing while GBP
+# approval is pending. See §7.2b of the plan file.
+GBP_LOCATION_ID = ""
+
+# KV binding shared with the Pages project. Namespace id was created 2026-07-19
+# via `wrangler kv namespace create DASHBOARD_KV`; do NOT create a new one.
+[[kv_namespaces]]
+binding = "DASHBOARD_KV"
+id = "4cdf5cdb6fc14db3b29edcab6c464714"
+
+# Observability: send logs to CF's tail buffer at all times. Zero cost, cheap
+# to grep with `wrangler tail`.
+[observability]
+enabled = true

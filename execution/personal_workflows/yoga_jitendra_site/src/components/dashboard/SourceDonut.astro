@@ -1,0 +1,145 @@
+---
+// SourceDonut — pie/donut showing which discovery channel drove the clicks.
+//
+// Per plan §3.3, the donut shows CLICKS (not WA-taps) because clicks is the
+// only metric all four sources contribute to. Degraded sources appear with
+// a hatched fill + "no data" annotation so the chart never silently drops
+// a category.
+//
+// Hydrates from CustomEvent('dashboarddata') like TimeSeriesChart.
+
+interface Props {
+  labels: string[];
+  values: number[];
+  degraded_source_indices?: number[];
+}
+const { labels, values, degraded_source_indices = [] } = Astro.props;
+---
+<div class="donut-block" data-reveal>
+  <p class="eyebrow"><span class="breathing-dot"></span><span>Discovery mix</span></p>
+  <h2 class="dash-h2">Where clicks come from</h2>
+  <div id="source-donut-chart" class="chart-host" aria-label="Donut chart: click share by discovery channel"></div>
+  <p class="chart-source">Source: Google Search Console + Business Profile + Bing + On-site beacon</p>
+</div>
+
+<script
+  type="module"
+  define:vars={{ initialLabels: labels, initialValues: values, initialDegraded: degraded_source_indices }}
+>
+  import ApexCharts from 'apexcharts';
+
+  const INK_SOFT = 'rgba(74, 66, 59, 0.7)';
+  const TERRACOTTA = '#c9744a';
+  const SAGE = '#6b7a5a';
+  const INK = '#2e2a26';
+  const SAND = 'rgba(217, 199, 167, 0.9)';
+  const PALETTE = [TERRACOTTA, SAGE, INK, SAND];
+
+  function buildOptions(labels, values, degradedIndices) {
+    // Fill non-degraded slices from the palette; degraded slices get a
+    // pale sand fill and appear in the legend with a "no data" note.
+    const colors = (labels || []).map((_, i) =>
+      degradedIndices.includes(i) ? 'rgba(217, 199, 167, 0.35)' : PALETTE[i % PALETTE.length]
+    );
+    const totalClicks = (values || []).reduce((a, b) => a + (b || 0), 0);
+    return {
+      chart: {
+        type: 'donut',
+        height: 300,
+        background: 'transparent',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        animations: { enabled: true, speed: 500 },
+      },
+      series: values || [],
+      labels: (labels || []).map((l, i) => degradedIndices.includes(i) ? `${l} (no data yet)` : l),
+      colors,
+      stroke: { width: 0 },
+      dataLabels: {
+        enabled: totalClicks > 0,
+        style: { fontSize: '11px', fontFamily: 'Inter', fontWeight: 500, colors: ['#fff'] },
+        formatter: (val) => val >= 5 ? `${val.toFixed(0)}%` : '',
+        dropShadow: { enabled: false },
+      },
+      legend: {
+        position: 'bottom',
+        fontSize: '12px',
+        labels: { colors: INK_SOFT },
+        markers: { radius: 3 },
+        itemMargin: { horizontal: 10, vertical: 4 },
+      },
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '58%',
+            labels: {
+              show: true,
+              total: {
+                show: true,
+                label: 'Total clicks',
+                fontSize: '11px',
+                fontFamily: 'Inter',
+                color: INK_SOFT,
+                formatter: () => totalClicks.toLocaleString('en-US'),
+              },
+              value: {
+                fontSize: '20px',
+                fontFamily: 'Fraunces, serif',
+                color: INK,
+              },
+            },
+          },
+        },
+      },
+      tooltip: {
+        y: { formatter: (v) => (v == null ? '—' : `${v.toLocaleString('en-US')} clicks`) },
+      },
+      noData: {
+        text: 'No clicks recorded yet — see the status banner above for the reason.',
+        align: 'center',
+        verticalAlign: 'middle',
+        style: { color: INK, fontSize: '15px' },
+      },
+    };
+  }
+
+  const el = document.getElementById('source-donut-chart');
+  if (el) {
+    const chart = new ApexCharts(el, buildOptions(initialLabels, initialValues, initialDegraded));
+    chart.render();
+
+    window.addEventListener('dashboarddata', (ev) => {
+      const rollup = ev?.detail?.rollup;
+      if (!rollup?.source_split) return;
+      const { labels: newLabels, values: newValues, degraded_source_indices: newDeg } = rollup.source_split;
+      chart.updateOptions(buildOptions(newLabels || [], newValues || [], newDeg || []));
+    });
+  }
+</script>
+
+<style>
+  .donut-block {
+    background: var(--cream-100);
+    border: 1px solid rgba(46, 42, 38, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .chart-host {
+    min-height: 300px;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  .chart-source {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(74, 66, 59, 0.55);
+    margin: 0.75rem 0 0 0.25rem;
+    font-weight: 500;
+  }
+  :global(.chart-host .apexcharts-legend-text) {
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+</style>
