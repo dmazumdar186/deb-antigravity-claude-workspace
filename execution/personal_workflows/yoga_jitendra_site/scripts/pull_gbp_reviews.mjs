@@ -67,25 +67,69 @@ function die(msg) {
 // ── .env loader (no dotenv dep) ─────────────────────────────────────────────
 
 async function loadEnv() {
+  if (existsSync(ENV_PATH)) {
+    const raw = await readFile(ENV_PATH, 'utf8');
+    for (const line of raw.split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eq = trimmed.indexOf('=');
+      if (eq === -1) continue;
+      const key = trimmed.slice(0, eq).trim();
+      let val = trimmed.slice(eq + 1).trim();
+      // Strip surrounding quotes (single or double) if present.
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      // Never overwrite an already-set process.env — preserves shell overrides.
+      if (process.env[key] === undefined) process.env[key] = val;
+    }
+  } else {
+    warn(`no .env at ${ENV_PATH}; relying on process.env + credentials.json fallback`);
+  }
+
+  // Fallback: fill GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET from the sibling
+  // scripts/credentials.json (the same file get_google_refresh_token.py uses).
+  // Removes the operator's manual "copy these two fields into .env" step.
+  const credsPath = resolve(__dirname, 'credentials.json');
+  if (existsSync(credsPath)) {
+    try {
+      const raw = await readFile(credsPath, 'utf8');
+      const parsed = JSON.parse(raw);
+      const inner = parsed.installed || parsed.web || {};
+      if (!process.env.GOOGLE_CLIENT_ID && inner.client_id) {
+        process.env.GOOGLE_CLIENT_ID = inner.client_id;
+      }
+      if (!process.env.GOOGLE_CLIENT_SECRET && inner.client_secret) {
+        process.env.GOOGLE_CLIENT_SECRET = inner.client_secret;
+      }
+    } catch (err) {
+      warn(`could not read credentials.json: ${err.message}`);
+    }
+  }
+}
+
+// ── Auto-append IDs to .env after --discover-ids ────────────────────────────
+
+async function appendToEnv(kvs) {
   if (!existsSync(ENV_PATH)) {
-    warn(`no .env at ${ENV_PATH}; relying on process.env`);
+    warn(`no .env at ${ENV_PATH}; skipping auto-append. Add these lines yourself:`);
+    for (const [k, v] of Object.entries(kvs)) console.log(`  ${k}=${v}`);
     return;
   }
-  const raw = await readFile(ENV_PATH, 'utf8');
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq).trim();
-    let val = trimmed.slice(eq + 1).trim();
-    // Strip surrounding quotes (single or double) if present.
-    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-      val = val.slice(1, -1);
-    }
-    // Never overwrite an already-set process.env — preserves shell overrides.
-    if (process.env[key] === undefined) process.env[key] = val;
+  const existing = await readFile(ENV_PATH, 'utf8');
+  const existingKeys = new Set(
+    existing.split('\n').map((l) => l.trim()).filter(Boolean).filter((l) => !l.startsWith('#'))
+      .map((l) => l.split('=')[0].trim()),
+  );
+  const toAppend = Object.entries(kvs).filter(([k]) => !existingKeys.has(k));
+  if (toAppend.length === 0) {
+    log('all discovered IDs already present in .env — nothing to append');
+    return;
   }
+  const block = '\n# Auto-added by pull_gbp_reviews.mjs --discover-ids on ' + new Date().toISOString() + '\n'
+    + toAppend.map(([k, v]) => `${k}=${v}`).join('\n') + '\n';
+  await writeFile(ENV_PATH, existing.replace(/\s+$/, '') + block, 'utf8');
+  log(`appended ${toAppend.length} key(s) to .env: ${toAppend.map(([k]) => k).join(', ')}`);
 }
 
 // ── Google OAuth ─────────────────────────────────────────────────────────────
@@ -373,6 +417,7 @@ async function discoverIds(accessToken) {
   }
   log(`discover: found ${accounts.length} account(s)`);
   console.log();
+  const allLocations = []; // [{acctName, locName, title, addr}]
   for (const acc of accounts) {
     console.log(`ACCOUNT: ${acc.name}  (${acc.accountName || acc.type || 'unnamed'})`);
     // List locations under each account. New endpoint requires readMask.
@@ -398,14 +443,35 @@ async function discoverIds(accessToken) {
         ? [loc.storefrontAddress.addressLines?.join(', '), loc.storefrontAddress.locality, loc.storefrontAddress.regionCode].filter(Boolean).join(', ')
         : '(no address)';
       console.log(`  LOCATION: ${loc.name}  "${loc.title || loc.storeCode || 'unnamed'}"  — ${addr}`);
+      allLocations.push({ acctName: acc.name, locName: loc.name, title: loc.title || '', addr });
     }
   }
   console.log();
-  console.log('Add the account.name and location.name of the yoga-jitendra profile to .env:');
-  console.log('    GBP_ACCOUNT_ID=accounts/<from-above>');
-  console.log('    GBP_LOCATION_ID=locations/<from-above>');
-  console.log('Then also set GBP_LOCATION_ID in execution/infrastructure/yoga_jitendra_cron/wrangler.toml');
-  console.log('and re-deploy the cron with `npx wrangler deploy` so the Maps tile stops being degraded.');
+
+  // Zero-friction path: if there's exactly ONE account and ONE location under
+  // this OAuth token (typical for a single-business owner), auto-append the
+  // IDs to .env so the operator's next step is just running the sync.
+  if (accounts.length === 1 && allLocations.length === 1) {
+    const only = allLocations[0];
+    log(`exactly one account + one location — auto-appending to .env`);
+    await appendToEnv({
+      GBP_ACCOUNT_ID: only.acctName,
+      GBP_LOCATION_ID: only.locName,
+    });
+    console.log();
+    console.log('Next step: also set GBP_LOCATION_ID in');
+    console.log('  execution/infrastructure/yoga_jitendra_cron/wrangler.toml');
+    console.log(`  GBP_LOCATION_ID = "${only.locName}"`);
+    console.log('then `npx wrangler deploy` in that directory so the Maps tile');
+    console.log('stops being degraded on the next cron run.');
+  } else {
+    console.log('Multiple accounts or locations detected. Pick the yoga-jitendra one');
+    console.log('from the list above and add these two lines to .env yourself:');
+    console.log('    GBP_ACCOUNT_ID=accounts/<from-above>');
+    console.log('    GBP_LOCATION_ID=locations/<from-above>');
+    console.log('Then also set GBP_LOCATION_ID in execution/infrastructure/yoga_jitendra_cron/wrangler.toml');
+    console.log('and re-deploy the cron with `npx wrangler deploy` so the Maps tile stops being degraded.');
+  }
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
