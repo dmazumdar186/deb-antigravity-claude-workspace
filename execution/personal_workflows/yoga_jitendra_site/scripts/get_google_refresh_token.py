@@ -47,6 +47,7 @@ Security
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -97,6 +98,28 @@ def _run_flow(client_secrets_path: Path, scopes: list[str], scope_label: str) ->
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Obtain Google OAuth refresh tokens for the yoga-jitendra "
+            "dashboard cron. Default runs both scopes (GSC + GBP) "
+            "sequentially. Use --only when the two flows share a "
+            "browser session and Chrome caches the first flow's state "
+            "into the second (produces `mismatching_state CSRF Warning`)."
+        )
+    )
+    parser.add_argument(
+        "--only",
+        choices=("gsc", "gbp"),
+        default=None,
+        help=(
+            "Run one scope only. Use this if the paired run fails with "
+            "`mismatching_state CSRF Warning`: run `--only gsc` first, "
+            "close all browser tabs pointing at localhost:8765, then run "
+            "`--only gbp` in a fresh terminal."
+        ),
+    )
+    args = parser.parse_args()
+
     here = Path(__file__).resolve().parent
     creds_path = here / "credentials.json"
     if not creds_path.is_file():
@@ -122,35 +145,53 @@ def main() -> int:
         )
         return 1
 
-    tokens = {}
+    tokens: dict[str, str | None] = {"gsc": None, "gbp": None}
+    run_gsc = args.only in (None, "gsc")
+    run_gbp = args.only in (None, "gbp")
 
-    try:
-        tokens["gsc"] = _run_flow(creds_path, SCOPES_GSC, "Search Console (webmasters.readonly)")
-    except Exception as e:
-        print(f"\nGSC flow failed: {e}", file=sys.stderr)
-        return 3
+    if run_gsc:
+        try:
+            tokens["gsc"] = _run_flow(creds_path, SCOPES_GSC, "Search Console (webmasters.readonly)")
+        except Exception as e:
+            print(f"\nGSC flow failed: {e}", file=sys.stderr)
+            return 3
 
-    try:
-        tokens["gbp"] = _run_flow(creds_path, SCOPES_GBP, "Business Profile (business.manage)")
-    except Exception as e:
-        # GBP failure is non-fatal — V0.1 can ship without GBP per plan §7.2b.
-        print(
-            f"\nGBP flow failed (V0.1 can ship without GBP; see plan §7.2b): {e}",
-            file=sys.stderr,
-        )
-        tokens["gbp"] = None
+    if run_gbp:
+        try:
+            tokens["gbp"] = _run_flow(creds_path, SCOPES_GBP, "Business Profile (business.manage)")
+        except Exception as e:
+            # GBP failure is non-fatal in a paired run — V0.1 shipped without
+            # GBP per plan §7.2b. But if the user explicitly asked for --only gbp,
+            # a failure IS fatal; there's no other output they wanted.
+            hint = (
+                ""
+                if args.only != "gbp"
+                else (
+                    "\nHINT: if this is `mismatching_state CSRF Warning`, close "
+                    "every browser tab pointing at localhost:8765, wait a few "
+                    "seconds, and re-run this exact command."
+                )
+            )
+            print(
+                f"\nGBP flow failed: {e}{hint}",
+                file=sys.stderr,
+            )
+            if args.only == "gbp":
+                return 3
 
     print("\n" + "=" * 72)
     print("SUCCESS. Copy-paste the following into your terminal to update the")
     print("Cloudflare Worker secrets. Run each command separately; wrangler will")
     print("prompt for the value (paste the token, press Enter).")
     print("=" * 72)
-    print("\n# Set GSC refresh token:")
-    print(
-        "cd execution/infrastructure/yoga_jitendra_cron && "
-        "npx wrangler secret put GOOGLE_REFRESH_TOKEN_GSC"
-    )
-    print(f"# When prompted, paste:  {tokens['gsc']}")
+
+    if tokens["gsc"]:
+        print("\n# Set GSC refresh token:")
+        print(
+            "cd execution/infrastructure/yoga_jitendra_cron && "
+            "npx wrangler secret put GOOGLE_REFRESH_TOKEN_GSC"
+        )
+        print(f"# When prompted, paste:  {tokens['gsc']}")
 
     if tokens["gbp"]:
         print("\n# Set GBP refresh token:")
@@ -159,9 +200,9 @@ def main() -> int:
             "npx wrangler secret put GOOGLE_REFRESH_TOKEN_GBP"
         )
         print(f"# When prompted, paste:  {tokens['gbp']}")
-    else:
+    elif run_gbp:
         print("\n# GBP token not obtained — V0.1 ships without GBP. Re-run this")
-        print("# script for the GBP scope once access approval clears.")
+        print("# script with `--only gbp` once the browser session is clean.")
 
     print("\nAlso set the OAuth client credentials (one-time; same value used")
     print("for both scopes):")
