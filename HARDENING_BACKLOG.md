@@ -481,3 +481,50 @@ The full SAST run also surfaced pre-existing findings on other rules, NOT introd
 - ASCII PS1 rule: enforced by SAST
 - Trust boundary: documented, pinned SHA d281d52, revert procedure one-line per component
 - Nothing committed: operator has clean working tree to review
+
+---
+
+## Update 2026-08-03 — Live-artifact-acceptance rule + `pages-functions-untracked` SAST rule
+
+New always-active rule landed: `~/.claude/rules/live-artifact-acceptance.md`. Extends `front-door-synthetic.md` and `output-acceptance-gate.md` to close the specific "acceptance-gate-passes-while-production-serves-stale-fallback" hole. Born from the 2026-08-03 yoga_jitendra dashboard incident.
+
+**Incident summary.** Client reported dashboard had shown "data will populate in 24-48 hours" for 13+ days. Root cause: two Pages Functions (`functions/api/dashboard-data.ts`, `functions/wa-out.ts`), an entire Worker tree (`execution/infrastructure/yoga_jitendra_cron/`), and 3 ApexCharts components were written by a prior session but never `git add`ed. Local `astro build` compiled the chart components into `dist/*.js`; `wrangler pages deploy dist` shipped `dist/` but NOT the untracked Pages Functions. Production served the V0.01 static fallback for 13 days. Acceptance gate `tests/acceptance_dashboard.py` PASSed throughout because it used `p.exists()` instead of `git ls-files`.
+
+Reviews-side bug found in the same session: `functions/api/reviews-admin.ts:223` silently defaulted `submitted_at` to `new Date().toISOString()` when the moderator left the field blank, mis-stamping every historical Google review as a July 2026 review on the customer page. 4 of 9 live reviews had the fingerprint (`submitted_at === approved_at` to the millisecond).
+
+**Fixes landed in this session** (branch: main, unpushed until operator approval):
+- `5da525b fix(yoga_jitendra_site): reviews date bug`
+- `cd03284 test(yoga_jitendra_site): add regression guards for the 2026-07 shipped-broken bug shape` — 6 new acceptance-gate checks including a `git ls-files functions/` presence check
+- `54849b5 feat(yoga_jitendra_site): land V0.1 dashboard pipeline + truthful empty states` — landed the 13 previously-untracked files + added a truthful pipeline-status banner + cron dead-man KV keys (`pipeline:last_run`, `pipeline:last_full_failure`) + darkened ApexCharts empty-state copy
+
+**Mechanical guardrail added:** `workspace_sast.py` rule `pages-functions-untracked` (high-severity). Iterates every `execution/*/functions/` subtree and asserts every `.ts / .js / .mjs / .tsx / .jsx` file is in `git ls-files`. Untracked findings block CI.
+
+### Backport-triage owed within 24h (per `rule-backport-cadence.md`)
+
+Read-only scan of every project with a `functions/`, `worker/`, `api/`, or `pages/api/` directory. For each: (a) does every source file have a `git ls-files` entry? (b) does the project's acceptance gate include a git-tracked-presence check? (c) does the acceptance gate exercise the LIVE URL, or only fixtures?
+
+Sample list to audit first (project trees known to have deployed surfaces):
+
+| Project | Has functions/? | Has worker/? | Acceptance gate exercises live? | Priority |
+|---|---|---|---|---|
+| yoga_jitendra_site | YES | — (paired with yoga_jitendra_cron) | Partially (now includes git-tracked check per `cd03284`; live-URL check owed) | DONE for structure; live-URL check owed |
+| yoga_jitendra_cron | — | YES | NO (Worker is Python-driven only via CF cron; add a `curl /health` synthetic) | HIGH |
+| accessory_masters | LOCKED — do not touch per CLAUDE.local.md | | | SKIP (frozen) |
+| cv_optimizer | ? | ? | ? | audit needed |
+| job_search_v2 | ? | ? | Has `acceptance_job_search_v2.py` (live corpus) | audit needed |
+| others | ? | ? | ? | audit needed |
+
+**Fix ordering (no fixes without operator approval):**
+1. Run the new SAST rule against the whole workspace; list every untracked Pages Function.
+2. For each finding, either commit the file OR delete it if it's dead.
+3. For each project with a deployed surface, extend its acceptance gate to include the git-tracked-presence check (copy the pattern from `execution/personal_workflows/yoga_jitendra_site/tests/acceptance_dashboard.py::check_pages_functions_tracked_in_git`).
+4. For each project with a live URL, add a synthetic that curls the URL post-deploy and asserts the response body is NOT the empty-fallback shape.
+
+**Initial SAST run (2026-08-03, at rule-landing time):**
+
+| File | Severity | Owner action |
+|---|---|---|
+| `execution/personal_workflows/interview_iag/functions/api/claude.ts` | high | Commit if the project is active OR delete if the whole tree is scratch. Same pattern as yoga_jitendra — this file will NOT reach production on the next `wrangler pages deploy` in that project. |
+
+Rule confirmed correct: the yoga_jitendra baseline commit `54849b5` landed all its own untracked Pages Functions, so the rule now flags exactly one non-yoga project (interview_iag). Zero false positives on the first run.
+

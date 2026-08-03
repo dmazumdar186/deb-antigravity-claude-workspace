@@ -900,6 +900,92 @@ def _rule_audit_stack_framing_without_evidence() -> list[dict]:
     return findings
 
 
+def _rule_pages_functions_untracked() -> list[dict]:
+    """Rule: every .ts / .js / .mjs / .tsx / .jsx file inside any project's
+    `functions/` directory (Cloudflare Pages convention) MUST be tracked in
+    git. Untracked Pages Functions do NOT ship on `wrangler pages deploy` —
+    they only work in local dev.
+
+    Born from the 2026-08-03 yoga_jitendra dashboard incident: two Pages
+    Functions (functions/api/dashboard-data.ts + functions/wa-out.ts) were
+    written by a prior session but never `git add`ed. Local build looked
+    fine; production served the V0.01 static fallback for 13 days while
+    the client complained. Full exhibit in
+    ~/.claude/rules/live-artifact-acceptance.md.
+
+    high-severity — this is a shipped-broken pattern, not a style issue.
+    """
+    findings: list[dict] = []
+
+    # Find every functions/ directory under execution/, one per project tree.
+    exec_root = WORKSPACE_ROOT / "execution"
+    if not exec_root.exists():
+        return findings
+
+    # Ask git ONCE for all tracked files, then check membership per candidate.
+    # Avoids O(n) subprocess spawns when a project has many functions/ files.
+    try:
+        proc = subprocess.run(
+            ["git", "ls-files"],
+            capture_output=True,
+            text=True,
+            cwd=str(WORKSPACE_ROOT),
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+    except FileNotFoundError:
+        # No git binary available (CI containers without git). Skip rather
+        # than fail — a different environment check should catch missing git.
+        return findings
+    if proc.returncode != 0:
+        return findings
+    tracked = {
+        line.strip().replace("\\", "/") for line in proc.stdout.splitlines() if line.strip()
+    }
+
+    # Discover functions/ dirs across projects. Skip .venv / node_modules /
+    # dist / .anneal (already in _SKIP_DIRS).
+    functions_dirs: list[Path] = []
+    for path in exec_root.rglob("functions"):
+        if not path.is_dir():
+            continue
+        parts_lower = {p.lower() for p in path.parts}
+        if parts_lower & _SKIP_DIRS:
+            continue
+        # AM-lockdown: never surface findings inside the frozen AM tree.
+        if _is_am_locked(str(path)):
+            continue
+        functions_dirs.append(path)
+
+    exts = {".ts", ".js", ".mjs", ".tsx", ".jsx"}
+    for fdir in functions_dirs:
+        for src in fdir.rglob("*"):
+            if not src.is_file() or src.suffix not in exts:
+                continue
+            # Path relative to workspace root, forward-slash, matching git output.
+            rel = str(src.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+            if rel in tracked:
+                continue
+            findings.append(
+                {
+                    "severity": "high",
+                    "file": rel,
+                    "line": 0,
+                    "rule_id": "pages-functions-untracked",
+                    "message": (
+                        f"Pages Function file untracked in git. `wrangler pages deploy` "
+                        f"only ships tracked files — this file exists locally but will "
+                        f"NOT reach production. Fix: `git add {rel}` and commit before "
+                        f"the next deploy. See ~/.claude/rules/live-artifact-acceptance.md "
+                        f"(Exhibit A: 2026-08-03 yoga_jitendra dashboard)."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+    return findings
+
+
 _NATIVE_RULES: dict[str, callable] = {
     "exit-criteria-missing": _rule_exit_criteria_missing,
     "subprocess-encoding": _rule_subprocess_encoding,
@@ -910,6 +996,7 @@ _NATIVE_RULES: dict[str, callable] = {
     "ps1-non-ascii": _rule_ps1_non_ascii,
     "acceptance-gate-missing": _rule_acceptance_gate_missing,
     "audit-stack-framing-without-evidence": _rule_audit_stack_framing_without_evidence,
+    "pages-functions-untracked": _rule_pages_functions_untracked,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())
