@@ -1,4 +1,19 @@
 ---
+// HeroTile — one of the three big-number tiles at the top of the dashboard.
+//
+// V0.1: accepts an optional `sparkline` array + `metric_key` + `delta_pct`
+// so the tile renders a mini-chart under the number and shows the
+// week-over-week delta when available. Values also carry a stable
+// data-metric attribute so the dashboard hydration script can update
+// them on range-pill click without a full re-render.
+//
+// Contract with dashboard.astro:
+//   - .hero-tile-bignumber [data-metric] holds the primary number.
+//   - .hero-tile-delta [data-metric] holds the delta_pct pill.
+//   - Sparkline component listens for the same CustomEvent bus.
+
+import Sparkline from './Sparkline.astro';
+
 interface Props {
   eyebrow: string;
   headline: string;
@@ -7,9 +22,35 @@ interface Props {
   hint?: string;
   source: string;
   suffix?: string;
+  metric_key?: 'reach' | 'interest' | 'conversation';
+  sparkline?: number[];
+  delta_pct?: number | null;
+  sparkline_color?: string;
 }
-const { eyebrow, headline, value, status, hint, source, suffix } = Astro.props;
+const {
+  eyebrow,
+  headline,
+  value,
+  status,
+  hint,
+  source,
+  suffix,
+  metric_key,
+  sparkline = [],
+  delta_pct = null,
+  sparkline_color = 'var(--terracotta)',
+} = Astro.props;
+
 const isLive = status === 'live' && value !== null && value !== undefined;
+
+function formatDelta(pct: number | null): string {
+  if (pct === null || pct === undefined) return '—';
+  const sign = pct > 0 ? '+' : '';
+  return `${sign}${pct.toFixed(1)}%`;
+}
+const deltaCls = delta_pct === null || delta_pct === undefined
+  ? 'delta-neutral'
+  : delta_pct > 0 ? 'delta-up' : delta_pct < 0 ? 'delta-down' : 'delta-neutral';
 ---
 <article class="hero-tile" data-status={status} data-reveal>
   <p class="hero-tile-eyebrow">
@@ -19,9 +60,26 @@ const isLive = status === 'live' && value !== null && value !== undefined;
   <h3 class="hero-tile-headline">{headline}</h3>
   <div class="hero-tile-number-row">
     {isLive ? (
-      <span class="hero-tile-bignumber">
-        {value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
-      </span>
+      <>
+        <div class="hero-tile-number-line">
+          <span class="hero-tile-bignumber" data-metric={metric_key}>
+            {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
+          </span>
+          {metric_key && (
+            <span class={`hero-tile-delta ${deltaCls}`} data-metric-delta={metric_key} aria-label="Change vs previous window">
+              {formatDelta(delta_pct)}
+            </span>
+          )}
+        </div>
+        {metric_key && sparkline.length > 0 && (
+          <Sparkline
+            id={`sparkline-${metric_key}`}
+            data={sparkline}
+            color={sparkline_color}
+            metric_key={metric_key}
+          />
+        )}
+      </>
     ) : (
       <span class="hero-tile-skeleton" role="status">
         <span class="hero-tile-hourglass" aria-hidden="true">&#x23F3;</span>
@@ -49,7 +107,6 @@ const isLive = status === 'live' && value !== null && value !== undefined;
     box-shadow: 0 18px 40px -24px rgba(46, 42, 38, 0.25);
   }
   .hero-tile-eyebrow {
-    /* Inherits Inter from body + eyebrow tokens from global.css .eyebrow. */
     font-size: 0.72rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -60,7 +117,6 @@ const isLive = status === 'live' && value !== null && value !== undefined;
     align-items: center;
   }
   .hero-tile-headline {
-    /* h3 inherits Fraunces from global.css. */
     font-weight: 500;
     font-size: 1.1rem;
     line-height: 1.35;
@@ -70,9 +126,17 @@ const isLive = status === 'live' && value !== null && value !== undefined;
   }
   .hero-tile-number-row {
     margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .hero-tile-number-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
   }
   .hero-tile-bignumber {
-    /* Intentional Fraunces use on a display number, matches parent site's h1 treatment. */
     font-family: var(--font-display, 'Fraunces'), 'Cormorant Garamond', Georgia, serif;
     font-size: clamp(2.4rem, 6vw, 3.4rem);
     font-weight: 500;
@@ -85,6 +149,30 @@ const isLive = status === 'live' && value !== null && value !== undefined;
     font-size: 0.55em;
     margin-left: 0.35rem;
     color: var(--ink-soft);
+  }
+  .hero-tile-delta {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Palette stays honest: sage for up, terracotta-soft for down, sand for
+     null/threshold-suppressed. No red — even a drop is not shamed with red
+     per parent-project non-negotiable. */
+  .delta-up {
+    background: rgba(107, 122, 90, 0.18);
+    color: var(--sage);
+  }
+  .delta-down {
+    background: rgba(201, 116, 74, 0.14);
+    color: var(--terracotta);
+  }
+  .delta-neutral {
+    background: rgba(217, 199, 167, 0.35);
+    color: rgba(74, 66, 59, 0.7);
   }
   .hero-tile-skeleton {
     display: inline-flex;

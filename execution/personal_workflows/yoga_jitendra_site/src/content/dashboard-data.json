@@ -1,36 +1,51 @@
 {
   "launch_date": "2026-07-11",
-  "as_of": "2026-07-19T16:15:00+02:00",
-  "hero_tiles": {
-    "reach": {
-      "label": "People who found you on Google",
-      "value": null,
-      "status": "waiting",
-      "hint": "First data ~15 Jul",
-      "source": "Google Search Console"
-    },
-    "interest": {
-      "label": "Clicks on your site and Maps profile",
-      "value": null,
-      "status": "waiting",
-      "hint": "First data ~18 Jul",
-      "source": "Google Business Profile + GSC"
-    },
-    "conversation": {
-      "label": "WhatsApp taps from your site",
-      "value": null,
-      "status": "waiting",
-      "hint": "Beacon live, first data ~20 Jul",
-      "source": "Cloudflare Web Analytics"
-    }
-  },
-  "funnel": {
+  "as_of": "2026-07-21T00:00:00+02:00",
+  "_comment": "Build-time fallback for the dashboard. Frontend hydrates from /api/dashboard-data on load — this file only shows before the first fetch completes OR when the API is unreachable. Everything under 'initial_rollup' mirrors the aggregator's rollup shape (plan §3.3) so the frontend has one code path.",
+  "initial_rollup": {
     "range": "7d",
-    "stages": [
-      { "label": "Impressions",   "value": 0, "source": "Google Search Console",           "status": "waiting", "hint": "First data ~22 Jul" },
-      { "label": "Clicks",        "value": 0, "source": "GSC + Cloudflare Web Analytics", "status": "waiting", "hint": "Beacon live, first data ~20 Jul" },
-      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon",                 "status": "waiting", "hint": "Beacon live, first data ~20 Jul" }
-    ]
+    "as_of": "2026-07-21T00:00:00+02:00",
+    "computed_ms": 0,
+    "sources_healthy": [],
+    "sources_degraded": ["gsc", "gbp", "bing", "cfwa"],
+    "hero_tiles": {
+      "reach": {
+        "label": "People who found you on Google",
+        "value": null,
+        "delta_pct": null,
+        "sparkline": [],
+        "top_queries": [],
+        "source": "Google Search Console + Bing + GBP"
+      },
+      "interest": {
+        "label": "Clicks on your site and Maps profile",
+        "value": null,
+        "delta_pct": null,
+        "sparkline": [],
+        "top_pages": [],
+        "source": "Google Search Console + Business Profile + Bing"
+      },
+      "conversation": {
+        "label": "WhatsApp taps from your site",
+        "value": 0,
+        "delta_pct": null,
+        "sparkline": [],
+        "source": "On-site beacon (/wa-out proxy)"
+      }
+    },
+    "funnel": [
+      { "label": "Impressions",   "value": 0, "source": "GSC + Bing + GBP" },
+      { "label": "Clicks",        "value": 0, "source": "GSC + GBP + Bing" },
+      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon" }
+    ],
+    "time_series": { "labels": [], "series": [] },
+    "source_split": {
+      "labels": ["Google Search", "Google Maps", "Bing", "Direct/referrer"],
+      "values": [0, 0, 0, 0],
+      "unit": "clicks",
+      "degraded_source_indices": [0, 1, 2, 3]
+    },
+    "_delta_threshold": 10
   },
   "milestones": [
     {
@@ -46,15 +61,15 @@
       "state": "done"
     },
     {
+      "date": "2026-07-21",
+      "title": "Dashboard V0.1 pipeline deployed",
+      "detail": "Cloudflare Worker cron + KV rollups + ApexCharts + range toggle live. LIVE-PROBATIONARY day 0/5.",
+      "state": "done"
+    },
+    {
       "date": "2026-07-22",
       "title": "First Google impressions expected",
       "detail": "Original 15 Jul target slipped; GSC coverage still crawling. Re-dated with a one-week buffer.",
-      "state": "expected"
-    },
-    {
-      "date": "2026-07-20",
-      "title": "First MeetUp session (planned)",
-      "detail": "Outdoor group, Champ-de-Mars",
       "state": "expected"
     },
     {
@@ -65,20 +80,21 @@
     }
   ],
   "next_move": {
-    "week_of": "2026-07-19",
+    "week_of": "2026-07-21",
     "title": "Ask three happy students for a Google review",
     "body": "Superprof shows two reviews. Local yoga teachers in Paris 16 average around fifteen. Three fresh Google reviews would visibly lift your Map Pack ranking and help new students trust you before they message.",
     "cta_label": "Draft a review-request WhatsApp",
-    "cta_href": "https://wa.me/?text=Namaste%2C%20I%20hope%20your%20practice%20is%20going%20well.%20If%20you%20have%20a%20minute%2C%20a%20short%20Google%20review%20would%20really%20help%20me.%20Thank%20you.%20Jitendra%0A%0AReview%20link%3A%20https%3A%2F%2Fmaps.app.goo.gl%2FLFy4eJncWWdt69Lo9"
+    "cta_href": "/wa-out?source=next_move_review_request"
   },
   "self_report_history": [],
   "provenance": {
     "sources": [
       { "name": "Google Search Console", "cadence": "Snapshot daily", "verified": true },
-      { "name": "Google Business Profile", "cadence": "Snapshot daily", "verified": true },
+      { "name": "Google Business Profile", "cadence": "Snapshot daily (pending API approval)", "verified": true },
       { "name": "Ahrefs Site Audit", "cadence": "Weekly re-crawl", "verified": true },
       { "name": "Bing Webmaster Tools", "cadence": "Snapshot daily", "verified": true },
       { "name": "Cloudflare Web Analytics", "cadence": "Live", "verified": true },
+      { "name": "On-site /wa-out beacon", "cadence": "Live", "verified": true },
       { "name": "Self-report form", "cadence": "Monthly", "verified": true }
     ]
   }

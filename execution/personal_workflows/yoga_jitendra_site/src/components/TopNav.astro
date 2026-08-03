@@ -8,8 +8,8 @@ const { lang = 'fr' } = Astro.props;
 const t = lang === 'en' ? en : fr;
 const c = lang === 'en' ? contactEn : contactFr;
 
-const waNumber = '33758255583';
-const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=topnav_${lang}`;
+// wa.me proxied via /wa-out (tap counting). Phone number is server-resolved.
+const waHref = `/wa-out?source=topnav&text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=topnav_${lang}`;
 
 // FR is served at "/", EN is served at "/en/". The FR/EN buttons in the header
 // are real navigation links — one URL per language, per Google Search Central's

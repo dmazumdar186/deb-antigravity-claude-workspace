@@ -9,8 +9,8 @@ const { lang = 'fr' } = Astro.props;
 const t = lang === 'en' ? en : fr;
 const c = lang === 'en' ? contactEn : contactFr;
 
-const waNumber = '33758255583';
-const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=hero_${lang}`;
+// wa.me proxied via /wa-out (tap counting). Phone number is server-resolved.
+const waHref = `/wa-out?source=hero&text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=hero_${lang}`;
 ---
 <section id="top" class="section" style="position: relative; overflow: hidden;">
   <HeroBackdrop />

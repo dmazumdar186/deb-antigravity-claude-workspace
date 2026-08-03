@@ -1,5 +1,17 @@
 # Dashboard V0.01 → V1.0 — Handoff for the Next Context Window
 
+> **V0.1 STATUS (2026-07-21):** V0.1 code shipped this session. Data pipeline
+> (Worker + cron + KV + GSC/GBP/Bing/CF-WA sources), aggregator, `/api/dashboard-data`
+> reader, `/wa-out` proxy, and ApexCharts + range-swap interactivity are all
+> written. Owner-side setup checklist in `DASHBOARD_ACTIVATION.md`.
+> Approved plan file: `C:\Users\deban\.claude\plans\staged-mixing-puppy.md`
+> (plan-skeptic round 2 = CONVINCED_WITH_NOTED_CONCERNS).
+> Acceptance gate PASSING. **NOT deployed to production yet** — awaiting
+> owner-side OAuth/secrets/deploy per the activation guide.
+> LIVE-PROBATIONARY: day 0 of 5.
+
+
+
 **Created:** 2026-07-11 evening (Paris)
 **Author:** Debanjan (via prior Claude Code context, ~90% context spent on SEO Phase 1 shipping + Ahrefs cleanup)
 **Next context to pick this up:** fresh session, target same-day delivery of V0.01 to Jitendra

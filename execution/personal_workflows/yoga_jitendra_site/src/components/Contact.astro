@@ -5,8 +5,12 @@ import en from '../content/contact.en.json';
 const { lang = 'fr' } = Astro.props;
 const t = lang === 'en' ? en : fr;
 
-const waNumber = '33758255583';
-const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(t.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=contact_${lang}`;
+// wa.me links are now proxied through /wa-out so taps can be counted in
+// KV by the dashboard aggregator. The phone number is NOT accepted from
+// the querystring — it's server-resolved by an in-file allowlist keyed
+// on `source`. See functions/wa-out.ts. UTM params retained for GSC
+// referrer tracking parity with the pre-V0.1 links.
+const waHref = `/wa-out?source=contact&text=${encodeURIComponent(t.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=contact_${lang}`;
 ---
 <section id="contact" class="section">
   <div class="section-inner">
