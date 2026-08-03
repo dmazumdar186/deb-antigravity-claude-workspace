@@ -133,8 +133,11 @@ function computeAggregate(reviews) {
 function sortReviews(reviews) {
   reviews.sort((a, b) => {
     if (a.featured !== b.featured) return a.featured ? -1 : 1;
-    const ak = a.approved_at || a.submitted_at || '';
-    const bk = b.approved_at || b.submitted_at || '';
+    // Sort by actual review date (submitted_at), not moderation date. An old
+    // Google review re-imported today must not appear as "newest". Match the
+    // reviews-public.ts server-side sort so build-time and runtime agree.
+    const ak = a.submitted_at || a.approved_at || '';
+    const bk = b.submitted_at || b.approved_at || '';
     return bk.localeCompare(ak);
   });
 }

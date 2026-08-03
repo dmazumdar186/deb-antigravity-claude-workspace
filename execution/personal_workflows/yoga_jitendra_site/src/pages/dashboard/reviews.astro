@@ -90,8 +90,8 @@ import Base from '../../layouts/Base.astro';
           <input type="url" name="source_url" placeholder="https://…" />
         </label>
         <label>
-          Submitted at <span class="mod-hint">(YYYY-MM-DD — when the reviewer wrote it)</span>
-          <input type="date" name="submitted_at_date" />
+          Review date <span class="mod-hint mod-hint-req">(REQUIRED — the date the reviewer actually wrote this on Google / Superprof / Meetup / Instagram. NOT today's date.)</span>
+          <input type="date" name="submitted_at_date" required />
         </label>
         <label>
           Body
@@ -191,12 +191,20 @@ import Base from '../../layouts/Base.astro';
       }
 
       function approvedCard(item) {
+        // Show BOTH dates so the moderator can spot the silent-now bug
+        // signature (submitted === approved to the second → almost certainly
+        // a mis-entry, since a real user-supplied date is a rounded day).
+        const reviewDate = fmtDate(item.submitted_at);
+        const approvedDate = fmtDate(item.approved_at);
+        const suspicious = item.submitted_at && item.approved_at
+          && Math.abs(new Date(item.submitted_at).getTime() - new Date(item.approved_at).getTime()) < 60 * 1000;
+        const suspiciousBadge = suspicious ? ' · <span class="mod-suspicious">⚠ dates identical — likely wrong review date</span>' : '';
         return `
           <article class="mod-card mod-card-approved" data-key="${esc(item.key)}" data-id="${esc(item.id)}">
             <div class="mod-card-head">
               <span class="mod-stars">${stars(item.rating)}</span>
               <span class="mod-author"><strong>${esc(item.name)}</strong></span>
-              <span class="mod-meta">${esc(item.source)} · ${esc(item.lang)} · ${esc(fmtDate(item.approved_at || item.submitted_at))}${item.featured ? ' · ★ featured' : ''}${item.verified ? ' · ✓ verified' : ''}</span>
+              <span class="mod-meta">${esc(item.source)} · ${esc(item.lang)} · Review: <strong>${esc(reviewDate)}</strong> · Approved: ${esc(approvedDate)}${item.featured ? ' · ★ featured' : ''}${item.verified ? ' · ✓ verified' : ''}${suspiciousBadge}</span>
             </div>
             <blockquote class="mod-body">${esc(item.body)}</blockquote>
             <details class="mod-edit">
@@ -345,6 +353,14 @@ import Base from '../../layouts/Base.astro';
       color: var(--ink-soft, #6b6560);
       font-size: 0.85rem;
       font-weight: normal;
+    }
+    .mod-hint-req {
+      color: var(--terracotta, #c9744a);
+      font-weight: 500;
+    }
+    .mod-suspicious {
+      color: var(--terracotta, #c9744a);
+      font-weight: 500;
     }
     .mod-list { display: flex; flex-direction: column; gap: 1rem; }
     .mod-card {

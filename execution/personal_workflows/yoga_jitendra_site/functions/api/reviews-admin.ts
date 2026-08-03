@@ -220,7 +220,10 @@ return jsonResponse({ ok: true });
     const source = String(form.get('source') ?? 'other').trim();
     const sourceUrl = String(form.get('source_url') ?? '').trim();
     const lang = String(form.get('lang') ?? 'fr').trim();
-    const submittedAt = String(form.get('submitted_at') ?? '').trim() || new Date().toISOString();
+    // Do NOT silently default submitted_at to "now" — that is exactly the
+    // 2026-07 bug that made every historical Google review look like a
+    // brand-new July review on the customer-facing page. Fail loud instead.
+    const submittedAt = String(form.get('submitted_at') ?? '').trim();
     const featured = String(form.get('featured') ?? '').trim() === '1';
 
     if (!name || name.length < 2) return jsonResponse({ error: 'name' }, 400);
@@ -228,6 +231,21 @@ return jsonResponse({ ok: true });
     if (!body || body.length < 10) return jsonResponse({ error: 'body' }, 400);
     if (!ALLOWED_SOURCES.has(source)) return jsonResponse({ error: 'source' }, 400);
     if (!ALLOWED_LANGS.has(lang)) return jsonResponse({ error: 'lang' }, 400);
+    if (!submittedAt) {
+      return jsonResponse(
+        { error: 'submitted_at_required', message: 'The original review date is required. Set the date this review was written on Google / Superprof / Meetup / etc.' },
+        400,
+      );
+    }
+    // Reject malformed ISO dates and future dates so the bug can't recur via
+    // a bad payload from a scripted client.
+    const submittedMs = Date.parse(submittedAt);
+    if (!Number.isFinite(submittedMs)) {
+      return jsonResponse({ error: 'submitted_at_invalid', message: 'submitted_at must be an ISO-8601 date.' }, 400);
+    }
+    if (submittedMs > Date.now() + 24 * 60 * 60 * 1000) {
+      return jsonResponse({ error: 'submitted_at_future', message: 'submitted_at cannot be in the future.' }, 400);
+    }
 
     const now = new Date().toISOString();
     const importId = crypto.randomUUID();

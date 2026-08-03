@@ -94,10 +94,15 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
   } while (cursor);
 
-  // Sort: featured first, then newest-first by approved_at.
+  // Sort: featured first, then newest-first by SUBMITTED date (the date the
+  // reviewer actually wrote the review), not by approved_at (the date the
+  // moderator clicked "approve"). An old Google review re-imported today
+  // must NOT masquerade as "newest" on the customer-facing page.
   reviews.sort((a, b) => {
     if (a.featured !== b.featured) return a.featured ? -1 : 1;
-    return b.approved_at.localeCompare(a.approved_at);
+    const aDate = a.submitted_at || a.approved_at || '';
+    const bDate = b.submitted_at || b.approved_at || '';
+    return bDate.localeCompare(aDate);
   });
 
   const total = reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0);
