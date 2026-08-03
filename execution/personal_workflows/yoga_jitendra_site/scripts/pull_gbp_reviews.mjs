@@ -51,6 +51,7 @@ const BUG_FINGERPRINT_MS = 1000; // submitted_at within 1s of approved_at = sile
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const BACKFILL = process.argv.includes('--backfill');
+const DISCOVER_IDS = process.argv.includes('--discover-ids');
 
 function log(msg) {
   process.stdout.write(`[gbp-sync] ${msg}\n`);
@@ -354,14 +355,76 @@ async function upsertReviews(reviews) {
   return decisions;
 }
 
+// ── Discover-ids mode (helper for first-time setup) ─────────────────────────
+
+async function discoverIds(accessToken) {
+  log('discover: listing GBP accounts...');
+  const accResp = await fetch('https://mybusinessaccountmanagement.googleapis.com/v1/accounts', {
+    headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+  });
+  if (!accResp.ok) {
+    const text = await accResp.text();
+    die(`accounts list failed: HTTP ${accResp.status} — ${text.slice(0, 400)}`);
+  }
+  const accData = await accResp.json();
+  const accounts = accData.accounts || [];
+  if (accounts.length === 0) {
+    die('no GBP accounts found under this OAuth token. Confirm the token was issued for an account that has Google Business Profile access.');
+  }
+  log(`discover: found ${accounts.length} account(s)`);
+  console.log();
+  for (const acc of accounts) {
+    console.log(`ACCOUNT: ${acc.name}  (${acc.accountName || acc.type || 'unnamed'})`);
+    // List locations under each account. New endpoint requires readMask.
+    const locUrl = new URL(`https://mybusinessbusinessinformation.googleapis.com/v1/${acc.name}/locations`);
+    locUrl.searchParams.set('readMask', 'name,title,storeCode,storefrontAddress');
+    locUrl.searchParams.set('pageSize', '100');
+    const locResp = await fetch(locUrl, {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+    });
+    if (!locResp.ok) {
+      const text = await locResp.text();
+      console.log(`  (locations list failed: HTTP ${locResp.status} — ${text.slice(0, 200)})`);
+      continue;
+    }
+    const locData = await locResp.json();
+    const locations = locData.locations || [];
+    if (locations.length === 0) {
+      console.log('  (no locations under this account)');
+      continue;
+    }
+    for (const loc of locations) {
+      const addr = loc.storefrontAddress
+        ? [loc.storefrontAddress.addressLines?.join(', '), loc.storefrontAddress.locality, loc.storefrontAddress.regionCode].filter(Boolean).join(', ')
+        : '(no address)';
+      console.log(`  LOCATION: ${loc.name}  "${loc.title || loc.storeCode || 'unnamed'}"  — ${addr}`);
+    }
+  }
+  console.log();
+  console.log('Add the account.name and location.name of the yoga-jitendra profile to .env:');
+  console.log('    GBP_ACCOUNT_ID=accounts/<from-above>');
+  console.log('    GBP_LOCATION_ID=locations/<from-above>');
+  console.log('Then also set GBP_LOCATION_ID in execution/infrastructure/yoga_jitendra_cron/wrangler.toml');
+  console.log('and re-deploy the cron with `npx wrangler deploy` so the Maps tile stops being degraded.');
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
   await loadEnv();
 
+  // Discover-ids does not need account/location env vars — it's the tool
+  // that finds them for you.
+  if (DISCOVER_IDS) {
+    const accessToken = await getAccessToken();
+    log('OAuth: got access token');
+    await discoverIds(accessToken);
+    return;
+  }
+
   const { GBP_ACCOUNT_ID, GBP_LOCATION_ID } = process.env;
-  if (!GBP_ACCOUNT_ID) die('GBP_ACCOUNT_ID missing from .env (e.g. accounts/123456789)');
-  if (!GBP_LOCATION_ID) die('GBP_LOCATION_ID missing from .env (e.g. locations/987654321)');
+  if (!GBP_ACCOUNT_ID) die('GBP_ACCOUNT_ID missing from .env (e.g. accounts/123456789). Run with --discover-ids to find it.');
+  if (!GBP_LOCATION_ID) die('GBP_LOCATION_ID missing from .env (e.g. locations/987654321). Run with --discover-ids to find it.');
 
   log(`mode: ${DRY_RUN ? 'DRY-RUN' : 'LIVE'}${BACKFILL ? ' + backfill' : ''}`);
   log(`account=${GBP_ACCOUNT_ID} location=${GBP_LOCATION_ID}`);
