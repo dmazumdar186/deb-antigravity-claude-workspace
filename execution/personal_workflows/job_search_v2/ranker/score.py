@@ -240,7 +240,14 @@ def rank_jobs(
 
     rubric = _load_rubric()
     profile_json = _load_profile_for_prompt()
-    client = genai.Client(api_key=api_key)
+    # http_options.timeout is in MILLISECONDS per google-genai SDK contract.
+    # 90s per call bounds a hung socket to a single chunk's worth of latency,
+    # not the whole 30-min workflow window. Without this, one dead TCP session
+    # to generativelanguage.googleapis.com can eat the entire CI budget.
+    client = genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(timeout=90_000),
+    )
 
     # v3 schema (2026-06-27): per-dimension scoring grounded in profile.json.
     # The LLM scores 5 dims + returns matched_skills (audit trail). Python
@@ -473,6 +480,7 @@ def rank_jobs(
                 scored_ids.add(jid)
             except (ValueError, KeyError, TypeError) as exc:
                 logger.warning("ranker: result for %s malformed (%s) — heuristic", jid, exc)
+                stats["malformed"] = stats.get("malformed", 0) + 1
 
     if chunk_failures:
         stats["chunk_failures"] = chunk_failures

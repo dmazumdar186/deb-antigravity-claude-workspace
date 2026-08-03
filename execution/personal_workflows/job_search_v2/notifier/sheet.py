@@ -265,9 +265,31 @@ def _open_sheet(spreadsheet_id: str | None, service_account_path: Path | None):
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
         )
         client = gspread.authorize(creds)
+        # 60s per HTTP request. gspread's default (`None`) inherits from
+        # google-auth's transport which is effectively unbounded — a slow
+        # Sheets 5xx can then eat the whole 30-min workflow timeout while
+        # every other stage is done. The number is per-request, not per-run.
+        try:
+            client.set_timeout(60)  # gspread >= 6.x
+        except AttributeError:
+            # Older gspread — patch session directly.
+            try:
+                client.session.request = _timeout_wrap(client.session.request, 60)
+            except Exception:  # noqa: BLE001 — best effort
+                pass
         return client.open_by_key(spreadsheet_id), None
     except Exception as exc:  # noqa: BLE001 — auth or open failure
         return None, f"setup failed: {exc}"
+
+
+def _timeout_wrap(request_fn, timeout_seconds: int):
+    """Wrap a requests.Session.request so `timeout=` is injected when
+    the caller didn't set one. gspread's transport historically passes no
+    timeout, which leaves calls hanging indefinitely on Sheets 5xx."""
+    def wrapped(*args, **kwargs):
+        kwargs.setdefault("timeout", timeout_seconds)
+        return request_fn(*args, **kwargs)
+    return wrapped
 
 
 def append_jobs(

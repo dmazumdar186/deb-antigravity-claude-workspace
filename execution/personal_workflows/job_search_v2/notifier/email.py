@@ -141,6 +141,7 @@ def send_digest(
         logger.warning(
             "notifier.email: SMTP creds missing (GMAIL_SMTP_USER / GMAIL_SMTP_APP_PASSWORD / GMAIL_NOTIFY_TO) — skipping send"
         )
+        stats["email_error"] = "creds missing"
         return False, subject, body
 
     msg = MIMEText(body, "plain", "utf-8")
@@ -154,7 +155,13 @@ def send_digest(
             smtp.login(user, pw)
             smtp.send_message(msg)
         logger.info("notifier.email: sent to %s — subject=%r", to, subject)
+        stats["email_error"] = ""
         return True, subject, body
     except (smtplib.SMTPException, OSError) as exc:
+        # Persist the error verbatim into stats so run.py can classify the
+        # failure — SMTPAuthenticationError ("5.7.8 BadCredentials") means
+        # the App Password is dead; a plain SMTPException / OSError means a
+        # transient network / DNS / TLS issue. The two need different alarms.
+        stats["email_error"] = f"{type(exc).__name__}: {exc}"
         logger.error("notifier.email: SMTP send failed: %s", exc)
         return False, subject, body

@@ -54,6 +54,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write   # required for the on-failure alarm step to open a GitHub issue
 
 jobs:
   run:
@@ -219,3 +220,75 @@ jobs:
             .tmp/job_search_v2/runs/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Open GitHub issue on failure (out-of-band alarm)
+        # This step exists to break the CIRCULAR SILENCE bug found on
+        # 2026-08-03: when the SMTP App Password dies, the pipeline can't
+        # send its digest email AND can't send anything via SMTP — so
+        # GitHub's default failure-notification email (routed through the
+        # same debolshop@gmail.com account) becomes the operator's only
+        # signal, and if THAT inbox is where the failure notice lands
+        # nobody reads it in time. Opening an issue via the GitHub API
+        # routes through notifications@github.com — a completely separate
+        # delivery pipeline — so the alarm survives even when SMTP is
+        # dead workspace-wide.
+        #
+        # De-duplication: reuses a single open "primary alarm" issue
+        # keyed by title; comments instead of spawning duplicates.
+        if: failure()
+        uses: actions/github-script@v7
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runUrl = process.env.RUN_URL;
+
+            // Try to extract exit code + last stats from run_log.jsonl.
+            const fs = require("fs");
+            let lastRec = null;
+            let exitHint = "unknown";
+            try {
+              const raw = fs.readFileSync(".tmp/job_search_v2/run_log.jsonl", "utf-8").trim();
+              const lines = raw.split("\n");
+              lastRec = JSON.parse(lines[lines.length - 1]);
+              if (lastRec.acceptance && String(lastRec.acceptance).startsWith("FAIL")) exitHint = "exit 3 (acceptance FAIL)";
+              else if (lastRec.email_error && /5\.7\.8|BadCredentials|Authentication/i.test(String(lastRec.email_error))) exitHint = "exit 5 (SMTP AUTH FAIL — rotate GMAIL_SMTP_APP_PASSWORD)";
+              else if (lastRec.sheet_ok === false) exitHint = "exit 6 (sheet write failed)";
+              else if (!lastRec.email_sent) exitHint = "exit 4 (email skipped without deliberate reason)";
+            } catch (_) { /* run_log may be absent if pipeline died before Stage 5 */ }
+
+            const title = "[job-search-daily] primary run failed";
+            const body = [
+              `**Primary run failed at ${new Date().toISOString()}**`,
+              ``,
+              `**Failed run:** ${runUrl}`,
+              `**Exit-code hint:** ${exitHint}`,
+              ``,
+              lastRec ? "**Last run_log record:**\n```json\n" + JSON.stringify(lastRec, null, 2).slice(0, 4000) + "\n```" : "_No run_log.jsonl produced — pipeline died before Stage 5._",
+              ``,
+              `**Recovery playbook:**`,
+              `- exit 3 → open the sheet, look for junk rows; run \`purge_irrelevant_rows.py\` to scrub, then re-dispatch.`,
+              `- exit 4 → transient SMTP or sheet flake; re-dispatch the workflow.`,
+              `- exit 5 → rotate the Gmail App Password at https://myaccount.google.com/apppasswords → update the \`GMAIL_SMTP_APP_PASSWORD\` repo secret → re-dispatch.`,
+              `- exit 6 → check the Google Sheet service-account still has editor access on the target spreadsheet.`,
+              ``,
+              `**Auto-closes** once 3 consecutive primary runs succeed (via job-search-watchdog).`,
+            ].join("\n");
+
+            const q = `repo:${owner}/${repo} is:issue is:open in:title "${title}"`;
+            const search = await github.rest.search.issuesAndPullRequests({ q });
+            const existing = (search.data.items || []).find(i => i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: existing.number, body,
+              });
+              core.notice(`Bumped existing failure issue #${existing.number}.`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner, repo, title, body,
+                labels: ["alarm", "job-search-v2", "automated"],
+              });
+              core.notice(`Opened failure issue #${created.data.number}.`);
+            }

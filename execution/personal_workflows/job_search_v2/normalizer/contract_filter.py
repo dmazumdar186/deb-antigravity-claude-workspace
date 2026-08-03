@@ -49,9 +49,16 @@ def _profile_accepted_contract_labels() -> set[str]:
 # the data was missing in the payload — drop it. The same sources fetching
 # DE/BE/CH may legitimately return contract=Unknown (the upstream API for those
 # countries doesn't carry the field) — keep those.
+#
+# 2026-08-03 audit fix: LINKEDIN_GUEST_API was missing here. LINKEDIN_GMAIL
+# (the deprecated Gmail-alert-based source) is listed, but the LIVE LinkedIn
+# source is LINKEDIN_GUEST_API — it also exposes contract type on FR listings
+# via the JobPosting JSON-LD. Without it, FR-located LinkedIn guest-API jobs
+# with UNKNOWN contract bypass the unknown-reject gate and pollute the sheet.
 FR_AWARE_SOURCES = {
     JobSource.FRANCE_TRAVAIL,
     JobSource.LINKEDIN_GMAIL,
+    JobSource.LINKEDIN_GUEST_API,
     JobSource.WTTJ_ALGOLIA,
 }
 
@@ -115,8 +122,14 @@ def classify_contract(job: NormalizedJob) -> tuple[bool, str]:
         if raw:
             if raw in profile_ok:
                 return True, f"accept:profile_raw:{raw[:30]}"
+            # 2026-08-03 audit fix: bidirectional partial (`label in raw or
+            # raw in label`) matched raw="c" against label="cdi" and would
+            # falsely accept single-character raw values. Require the label
+            # to be at least 4 chars AND to appear inside the raw string
+            # (not vice versa) — matches "advisory" inside "senior advisory
+            # freelance" without matching "c" inside "cdi".
             for label in profile_ok:
-                if label and (label in raw or raw in label):
+                if label and len(label) >= 4 and label in raw:
                     return True, f"accept:profile_raw_partial:{label[:30]}"
 
         # Fallback: title-only word-boundary match. Description-level match

@@ -503,7 +503,9 @@ def main() -> int:
 
     # Stage 1: fetch sources in parallel
     fetched: dict[str, list[SourceJob]] = {}
-    with ThreadPoolExecutor(max_workers=len(sources)) as pool:
+    # max(1, ...) — `ThreadPoolExecutor(max_workers=0)` raises ValueError; guards
+    # the empty --sources case rather than crashing before Stage 2.
+    with ThreadPoolExecutor(max_workers=max(1, len(sources))) as pool:
         future_to_name = {
             pool.submit(_call_source, name, args.mode, args.max_pages, args.posted_within_days): name
             for name in sources
@@ -580,6 +582,18 @@ def main() -> int:
         enabled=not args.no_sonnet_rerank,
     )
     logger.info("run: sonnet_rerank %s", rerank_stats)
+
+    # Recompute by_tier from FINAL ranked_by_hash so email + summary reflect
+    # the post-rerank tiers, not the pre-rerank Gemini output. Sonnet rerank
+    # mutates ranked_by_hash in place, but ranker_stats["by_tier"] captured
+    # the pre-rerank distribution. Without this recomputation, the digest
+    # says "A:8 B:33" while the 25 jobs actually shipped may be tiered
+    # completely differently.
+    post_by_tier: dict[str, int] = {"A": 0, "B": 0, "C": 0, "SKIP": 0}
+    for rj in ranked_by_hash.values():
+        t = rj.tier.value
+        post_by_tier[t] = post_by_tier.get(t, 0) + 1
+    ranker_stats["by_tier"] = post_by_tier
 
     # Drop jobs the ranker tagged SKIP (still record them in the dedup DB so they don't
     # reappear, but don't push them to the sheet or digest).
@@ -825,20 +839,44 @@ def main() -> int:
     # write already happened in failure cases, but the alarm is loud and the
     # run-log records the verdict for forensics.
     #   exit 3 = acceptance gate FAILED (junk in output — email was blocked)
-    #   exit 4 = email send was expected but did NOT happen for any unexpected
-    #            reason (SMTP error, missing creds, etc.) — i.e. acceptance passed
-    #            and the lock did not block, but email_sent is still false.
+    #   exit 4 = email send was expected but did NOT happen for a generic reason
+    #            (transient SMTP flake, sheet write failure, missing creds).
+    #   exit 5 = SMTP AUTH FAILURE specifically — the App Password is revoked /
+    #            expired / rejected. Distinguished from exit 4 so the workflow
+    #            alarm step can say "rotate the App Password" rather than
+    #            "check the code". No amount of retry fixes this class of
+    #            failure; it needs operator action in Google's UI.
+    #   exit 6 = sheet write failed (sheet_ok=False). Emailing users a link
+    #            to a sheet that got 0 rows is worse than not emailing at all.
     #   exit 0 = all-good OR the skip was deliberate (dry-run, lock-blocked, or
     #            acceptance FAIL which already returned 3)
     if not acceptance_ok:
         return 3
     if not args.dry_run:
+        if not sheet_ok:
+            logger.error(
+                "run: sheet write failed (sheet_ok=False). Email would link to "
+                "a sheet that did not receive today's rows. Surfacing as exit 6."
+            )
+            return 6
         lock_reason = str(pipeline_stats.get("email_lock", ""))
         deliberate_skip = (
             lock_reason.startswith("email lock [")  # lock fired — within floor
             or "skipped (acceptance" in lock_reason  # acceptance gate killed it (covered by exit 3 above)
         )
         if not email_sent and not deliberate_skip:
+            # Distinguish SMTP-auth-fail from generic email failures so the
+            # workflow alarm step can render the right recovery instruction.
+            smtp_reason = str(pipeline_stats.get("email_error", "") or "").lower()
+            if "5.7.8" in smtp_reason or "badcredentials" in smtp_reason or "authentication" in smtp_reason:
+                logger.error(
+                    "run: SMTP authentication FAILED (%s). Gmail App Password is "
+                    "revoked/expired. Operator must rotate it at "
+                    "myaccount.google.com/apppasswords and update the "
+                    "GMAIL_SMTP_APP_PASSWORD secret. Surfacing as exit 5.",
+                    smtp_reason[:200],
+                )
+                return 5
             logger.error(
                 "run: email_sent=false on a real run with no deliberate skip "
                 "(acceptance=%s, lock=%s). Surfacing as exit 4 so the cron is red.",

@@ -340,6 +340,15 @@ def _enrich_with_jd(
                 desc = fut.result()
             except LinkedInBlockedError:
                 blocked = True
+                # 2026-08-03 audit fix: previously we `break`-ed on block but
+                # left ~40 already-submitted futures running against a
+                # LinkedIn endpoint that had explicitly told us to stop.
+                # Cancel every future that hasn't started yet so we stop
+                # hammering a hostile endpoint. In-flight requests still
+                # complete (Python has no way to kill them mid-socket) but
+                # no new detail fetches fire.
+                for other in futures:
+                    other.cancel()
                 break
             except Exception as exc:  # noqa: BLE001 — per-job soft-fail
                 logger.debug("linkedin detail %s: %s — soft-fail",
@@ -351,7 +360,8 @@ def _enrich_with_jd(
             time.sleep(random.uniform(*DETAIL_PER_REQ_SLEEP))
     if blocked:
         logger.warning("linkedin_guest_api: detail enrichment hit a block marker; "
-                       "partial enrichment retained (%d/%d).", enriched, len(cards))
+                       "cancelled in-flight futures; partial enrichment retained (%d/%d).",
+                       enriched, len(cards))
     return enriched, attempted
 
 

@@ -213,7 +213,22 @@ def fetch(
                 logger.warning("france_travail: unexpected %d on page %d: %s", r.status_code, page_num, r.text[:200])
                 break
 
-            body = r.json()
+            # 2026-08-03 audit fix: guard .json() from HTML maintenance pages.
+            # FT occasionally returns 200 OK with a text/html body during
+            # deploys/incidents; raw r.json() then raises ValueError which was
+            # caught by _call_source's bare `except Exception` in run.py,
+            # silently returning 0 jobs from FT for hours. Now: log the body
+            # snippet + break the pagination loop, so partial results still
+            # ship and the log makes the root cause visible.
+            try:
+                body = r.json()
+            except (ValueError, json.JSONDecodeError) as exc:
+                logger.warning(
+                    "france_travail: 200 OK but body is not valid JSON on page %d "
+                    "(likely maintenance page). First 200 chars: %r. Error: %s",
+                    page_num, r.text[:200], exc,
+                )
+                break
             offers = body.get("resultats") or []
             if not offers:
                 logger.info("france_travail: empty resultats on page %d — end of results", page_num)

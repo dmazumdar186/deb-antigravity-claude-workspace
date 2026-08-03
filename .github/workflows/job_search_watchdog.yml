@@ -30,13 +30,14 @@ concurrency:
 permissions:
   contents: read
   actions: write   # required to dispatch job_search_daily via the API
+  issues: write    # required to open an alarm issue when the primary is chronically red
 
 jobs:
   check-and-dispatch:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check last successful job_search_daily and dispatch if missing
+      - name: Check last successful job_search_daily, dispatch, and alarm on chronic failure
         uses: actions/github-script@v7
         env:
           # Hours since the last successful primary run before we dispatch.
@@ -49,28 +50,110 @@ jobs:
           # 26h means the watchdog only fires if the primary has genuinely
           # missed a full day+2h — well past all its own retries.
           MAX_HOURS_SINCE_SUCCESS: "26"
+          # Once the primary has been failing without a single success for
+          # this many hours, open a GitHub issue so the operator is notified
+          # out-of-band. GitHub's issue-notification email is sent from
+          # notifications@github.com — completely independent of the
+          # workspace's own SMTP creds, so it survives even when the
+          # digest-sending Gmail App Password is dead (the exact circular
+          # silence bug found on 2026-08-03).
+          ALARM_HOURS: "30"
         with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const workflow_id = "job_search_daily.yml";
             const maxHours = parseInt(process.env.MAX_HOURS_SINCE_SUCCESS, 10);
+            const alarmHours = parseInt(process.env.ALARM_HOURS, 10);
 
             // Get last 20 runs of the primary workflow.
             const { data } = await github.rest.actions.listWorkflowRuns({
               owner, repo, workflow_id, per_page: 20,
             });
-
-            const successful = (data.workflow_runs || []).filter(r =>
+            const runs = data.workflow_runs || [];
+            const successful = runs.filter(r =>
               r.status === "completed" && r.conclusion === "success"
             );
+            const failedRecent = runs
+              .filter(r => r.status === "completed" && r.conclusion === "failure")
+              .slice(0, 5);
+
+            // ------------------------------------------------------------
+            // Helper: open (or bump) a single "watchdog alarm" issue with
+            // a stable title so we don't spam the operator. Reuses the
+            // existing open issue if any; posts a comment on it instead
+            // of creating a second one.
+            // ------------------------------------------------------------
+            async function raiseAlarm(reason, hoursAgo, dispatchedNow) {
+              const title = "[job-search-watchdog] job_search_daily is chronically failing";
+              const failLines = failedRecent.map(r =>
+                `- ${r.created_at} — ${r.conclusion} — ${r.html_url}`
+              ).join("\n") || "(none)";
+              const body = [
+                `**Watchdog alarm at ${new Date().toISOString()}**`,
+                ``,
+                `**Reason:** ${reason}`,
+                `**Hours since last SUCCESS:** ${hoursAgo}`,
+                `**Threshold to alarm:** ${alarmHours}h`,
+                `**Dispatched a fresh run now:** ${dispatchedNow ? "yes" : "no"}`,
+                ``,
+                `**Last 5 failed runs:**`,
+                failLines,
+                ``,
+                `**Common causes:**`,
+                `1. \`GMAIL_SMTP_APP_PASSWORD\` was revoked/expired → rotate at https://myaccount.google.com/apppasswords and update the repo secret. Symptom: exit 5, "5.7.8 BadCredentials" in run log.`,
+                `2. \`GEMINI_API_KEY\` free-tier quota exhausted → wait for daily reset. Symptom: ranker chunk_failures.`,
+                `3. \`FRANCE_TRAVAIL_CLIENT_ID/SECRET\` rotated → regenerate at francetravail.io. Symptom: france_travail auth failure in log.`,
+                `4. Google Sheet service-account lost editor access → re-share the sheet with the SA email. Symptom: exit 6.`,
+                ``,
+                `**This issue closes automatically once the daily runs successfully for 3 consecutive fires.** Until then, this comment thread will keep growing on every watchdog fire past the alarm threshold.`,
+              ].join("\n");
+
+              const q = `repo:${owner}/${repo} is:issue is:open in:title "${title}"`;
+              const search = await github.rest.search.issuesAndPullRequests({ q });
+              const existing = (search.data.items || []).find(i => i.title === title);
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: existing.number, body,
+                });
+                core.warning(`Bumped existing alarm issue #${existing.number}.`);
+              } else {
+                const created = await github.rest.issues.create({
+                  owner, repo, title, body,
+                  labels: ["alarm", "job-search-v2", "automated"],
+                });
+                core.warning(`Opened alarm issue #${created.data.number}.`);
+              }
+            }
+
+            // ------------------------------------------------------------
+            // Auto-close the alarm once the primary is healthy again.
+            // "Healthy" = last 3 primary runs all succeeded.
+            // ------------------------------------------------------------
+            async function closeAlarmIfHealthy() {
+              const lastThree = runs.filter(r => r.status === "completed").slice(0, 3);
+              if (lastThree.length < 3) return;
+              if (!lastThree.every(r => r.conclusion === "success")) return;
+              const q = `repo:${owner}/${repo} is:issue is:open in:title "[job-search-watchdog]"`;
+              const search = await github.rest.search.issuesAndPullRequests({ q });
+              for (const issue of search.data.items || []) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: issue.number,
+                  body: `Auto-closed: last 3 primary runs succeeded. Watchdog is quiet.`,
+                });
+                await github.rest.issues.update({
+                  owner, repo, issue_number: issue.number, state: "closed",
+                });
+                core.notice(`Closed recovered alarm issue #${issue.number}.`);
+              }
+            }
 
             if (successful.length === 0) {
-              core.warning("No successful runs in last 20 — dispatching.");
+              core.warning("No successful runs in last 20 — dispatching + alarming.");
               await github.rest.actions.createWorkflowDispatch({
                 owner, repo, workflow_id, ref: "main",
               });
-              core.notice("Dispatched job_search_daily (no successful runs found).");
+              await raiseAlarm("No successful runs found in the last 20 fires", "unknown (>20 runs)", true);
               return;
             }
 
@@ -81,12 +164,26 @@ jobs:
 
             core.notice(`Last successful run: ${last.updated_at} (${hoursAgo.toFixed(1)}h ago)`);
 
+            let dispatched = false;
             if (hoursAgo >= maxHours) {
-              core.warning(`Threshold exceeded (${hoursAgo.toFixed(1)}h >= ${maxHours}h). Dispatching.`);
+              core.warning(`Dispatch threshold exceeded (${hoursAgo.toFixed(1)}h >= ${maxHours}h). Dispatching.`);
               await github.rest.actions.createWorkflowDispatch({
                 owner, repo, workflow_id, ref: "main",
               });
+              dispatched = true;
               core.notice("Watchdog dispatch fired.");
             } else {
-              core.notice(`Within threshold (${hoursAgo.toFixed(1)}h < ${maxHours}h). No dispatch.`);
+              core.notice(`Within dispatch threshold (${hoursAgo.toFixed(1)}h < ${maxHours}h). No dispatch.`);
+            }
+
+            if (hoursAgo >= alarmHours) {
+              core.warning(`Alarm threshold exceeded (${hoursAgo.toFixed(1)}h >= ${alarmHours}h). Raising alarm.`);
+              await raiseAlarm(
+                `job_search_daily has not had a successful run in ${hoursAgo.toFixed(1)} hours (threshold: ${alarmHours}h). Latest success: ${last.html_url}`,
+                hoursAgo.toFixed(1),
+                dispatched,
+              );
+            } else {
+              // Healthy path — try to close any open alarm.
+              await closeAlarmIfHealthy();
             }

@@ -25,6 +25,7 @@ import json
 import logging
 import os
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv, find_dotenv
@@ -212,18 +213,44 @@ def rerank_shortlist(
         },
     }
 
-    client = Anthropic(api_key=api_key)
-    try:
-        resp = client.messages.create(
-            model=model,
-            max_tokens=8000,
-            system=RUBRIC,
-            tools=[submit_tool],
-            tool_choice={"type": "tool", "name": "submit_rankings"},
-            messages=[{"role": "user", "content": payload}],
-        )
-    except Exception as exc:  # noqa: BLE001 — Anthropic surface; treat as soft failure.
-        stats["skipped_reason"] = f"anthropic API call failed: {type(exc).__name__}: {exc}"
+    # 90s per-request timeout bounds a hung Anthropic socket to a single call,
+    # not the whole 30-min workflow window. `Anthropic()` defaults to 10 min
+    # which is unsafe under CI budgets.
+    client = Anthropic(api_key=api_key, timeout=90.0)
+    resp = None
+    exc_name = ""
+    exc_msg = ""
+    for attempt in (1, 2):
+        try:
+            resp = client.messages.create(
+                model=model,
+                max_tokens=8000,
+                system=RUBRIC,
+                tools=[submit_tool],
+                tool_choice={"type": "tool", "name": "submit_rankings"},
+                messages=[{"role": "user", "content": payload}],
+            )
+            break
+        except Exception as exc:  # noqa: BLE001 — Anthropic surface; classify below.
+            exc_name = type(exc).__name__
+            exc_msg = str(exc)
+            # Distinguish retryable-now (5xx / timeout) from retry-tomorrow
+            # (rate limit / credit exhaustion / auth). Credit-exhaustion looks
+            # like "credit balance too low" (429/402); retrying inside the same
+            # run just re-fails. 5xx and connection errors are worth ONE retry.
+            transient = (
+                exc_name in ("APIConnectionError", "APITimeoutError")
+                or " 500 " in f" {exc_msg} "
+                or " 502 " in f" {exc_msg} "
+                or " 503 " in f" {exc_msg} "
+                or " 504 " in f" {exc_msg} "
+            )
+            if transient and attempt == 1:
+                time.sleep(3.0)
+                continue
+            break
+    if resp is None:
+        stats["skipped_reason"] = f"anthropic API call failed: {exc_name}: {exc_msg}"
         stats["failed"] = stats["requested"]
         logger.warning("sonnet_rerank: %s", stats["skipped_reason"])
         return ranked_by_hash, stats
