@@ -1,0 +1,30 @@
+{
+  "slug": "__SLUG__",
+  "aspect_ratio": "9:16",
+  "duration_seconds": 30,
+  "fps": 30,
+  "target_platforms": ["tiktok", "youtube_shorts", "instagram_reels"],
+  "brand_voice_profile_ref": "voice_profiles/default.json",
+  "analysis": {
+    "provider": "gemini-direct",
+    "tier": "default",
+    "max_frames": 24
+  },
+  "generation": {
+    "provider": "higgsfield_mcp",
+    "fallback": "hf_space",
+    "default_model": "veo3_1_lite",
+    "n_candidates": 3
+  },
+  "sensitivity": "public",
+  "consent_verified_path": null,
+  "cost": {
+    "daily_cost_ceiling_eur": 5.00,
+    "per_invocation_confirm_over_eur": 2.00,
+    "usd_to_eur": 0.92
+  },
+  "publish": {
+    "dry_run_default": true,
+    "manual_publish_dir": ".tmp/__SLUG__/publish/"
+  }
+}
