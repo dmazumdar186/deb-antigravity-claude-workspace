@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook — blocks the commit if any file under functions/ is on
+# disk but not tracked in git. This is the yoga_jitendra 2026-08-03 gate:
+# `wrangler pages deploy` ships only what git tracks. An untracked
+# functions/*.ts file silently 404s in prod while local dev works.
+#
+# Install (per repo): the scaffold_web_app.py CLI wires this by running
+#   git config core.hooksPath .githooks
+# on init. On existing clones: run that command once by hand.
+#
+# Bypass (emergency only): git commit --no-verify
+
+set -u
+
+untracked_fns=$(git ls-files --others --exclude-standard functions/ 2>/dev/null | grep -E '\.(ts|js|mjs)$' || true)
+
+if [ -n "$untracked_fns" ]; then
+  echo ""
+  echo "BLOCKED: untracked Pages Functions detected:" >&2
+  echo "$untracked_fns" | sed 's/^/  - /' >&2
+  echo "" >&2
+  echo "  wrangler pages deploy dist/ ships only git-tracked functions." >&2
+  echo "  These files exist on disk but will NOT be shipped." >&2
+  echo "" >&2
+  echo "Fix:  git add <files>  and re-commit." >&2
+  echo "Bypass (NOT recommended): git commit --no-verify" >&2
+  exit 1
+fi
+
+exit 0
