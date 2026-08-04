@@ -1,0 +1,51 @@
+name: preflight
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit -- --ci --coverage=false
+
+      - name: Expo doctor
+        run: npx expo-doctor@latest
+
+      - name: Expo lint
+        run: npx expo lint
+        continue-on-error: true  # lint findings inform, don't block PRs
+
+  acceptance:
+    # Optional gate: runs the Python acceptance test against the deployed backend
+    # if API_BASE_URL is set as a repo secret. Skips silently otherwise.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run acceptance gate
+        if: ${{ vars.API_BASE_URL != '' }}
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+        run: python tests/acceptance_{{APP_SLUG}}.py --verbose

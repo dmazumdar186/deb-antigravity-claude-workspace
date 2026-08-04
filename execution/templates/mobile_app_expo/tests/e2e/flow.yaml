@@ -1,0 +1,15 @@
+# Maestro smoke flow for {{APP_SLUG}}.
+# Assumes the app is installed on the target device / simulator.
+appId: com.example.{{APP_SLUG}}
+---
+- launchApp
+- assertVisible:
+    id: "home-screen"
+- assertVisible:
+    text: "{{APP_SLUG}}"
+# Wait for the api/health call to resolve. In a real test suite, either stub
+# the backend or run against a known-good staging environment.
+- extendedWaitUntil:
+    visible:
+      id: "health-payload"
+    timeout: 15000

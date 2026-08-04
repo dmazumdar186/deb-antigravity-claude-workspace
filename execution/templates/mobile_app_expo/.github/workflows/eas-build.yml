@@ -1,0 +1,58 @@
+name: eas-build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'ios | android | all'
+        required: true
+        default: 'all'
+      profile:
+        description: 'preview | production'
+        required: true
+        default: 'preview'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup EAS CLI
+        run: npm i -g eas-cli
+
+      - name: EAS whoami
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas whoami
+
+      - name: Install
+        run: npm ci
+
+      # Tag pushes: production build for both platforms, non-interactive.
+      - name: EAS build (tag = production)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform all --profile production --non-interactive --no-wait
+
+      # Manual dispatch: honor inputs.
+      - name: EAS build (dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas build \
+            --platform "${{ github.event.inputs.platform }}" \
+            --profile "${{ github.event.inputs.profile }}" \
+            --non-interactive --no-wait
