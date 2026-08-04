@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro';
+import DashboardIsland from '../components/DashboardIsland.tsx';
+---
+<Layout title="My Dashboard">
+  <section class="animate-fade-in">
+    <h1 class="font-display text-3xl font-semibold tracking-tight sm:text-4xl">My Dashboard</h1>
+    <p class="mt-2 max-w-2xl text-ink-600 dark:text-ink-300">
+      Track your streak, spot patterns across topics and channels, and revisit
+      recent sessions.
+    </p>
+    <div class="mt-8">
+      <DashboardIsland client:load />
+    </div>
+  </section>
+</Layout>

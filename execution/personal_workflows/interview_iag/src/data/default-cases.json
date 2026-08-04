@@ -1,0 +1,52 @@
+[
+  {
+    "id": "def-billing-01",
+    "title": "Duplicate charge on last month's bill",
+    "scenario": "The customer is a long-time subscriber to a home broadband plan. They noticed a duplicate €49.99 charge on their most recent invoice and are calling to have it reversed. They have already checked their bank statement and are certain it is not a pending authorization.",
+    "opening": "Hi, I'm looking at my bill and I've been charged twice this month. Can you fix this?",
+    "channel": "Chat",
+    "topic": "Billing",
+    "difficulty": "Beginner",
+    "isDefault": true
+  },
+  {
+    "id": "def-angry-01",
+    "title": "Third call about an unresolved outage",
+    "scenario": "The customer has been without internet service for four days. They have called twice before and each time were told the issue would be resolved within 24 hours. They are furious, considering cancelling, and want to speak to a manager immediately.",
+    "opening": "This is the THIRD time I'm calling. Nobody has fixed this. I want to cancel and I want a full refund. Now.",
+    "channel": "Call",
+    "topic": "De-escalation",
+    "difficulty": "Advanced",
+    "isDefault": true
+  },
+  {
+    "id": "def-cancel-01",
+    "title": "Cancellation request due to price increase",
+    "scenario": "The customer received a notification that their monthly plan will increase by €15 starting next month. They are considering cancelling to switch to a competitor. They mention being a five-year loyal customer.",
+    "opening": "I got the email about the price increase. I've been with you five years but I think it's time to move on. Please cancel my account.",
+    "channel": "Both",
+    "topic": "Retention",
+    "difficulty": "Intermediate",
+    "isDefault": true
+  },
+  {
+    "id": "def-tech-01",
+    "title": "Router keeps disconnecting every hour",
+    "scenario": "The customer's router disconnects roughly every 60 minutes and requires a manual restart. They work from home and this is severely impacting their productivity. They have already tried unplugging the router and updating the firmware.",
+    "opening": "My router keeps dropping the connection every hour. I've tried everything. I need this fixed today because I have client meetings.",
+    "channel": "Chat",
+    "topic": "Technical",
+    "difficulty": "Intermediate",
+    "isDefault": true
+  },
+  {
+    "id": "def-return-01",
+    "title": "Return request past the 30-day window",
+    "scenario": "The customer bought a smart speaker 35 days ago as a gift. The recipient did not like it and the customer wants to return it. The store's return policy is strictly 30 days. The customer is polite but insistent, citing that it was unopened.",
+    "opening": "Hello, I need to return a smart speaker I bought for my daughter. It's still sealed in the box.",
+    "channel": "Both",
+    "topic": "Policy Exception",
+    "difficulty": "Beginner",
+    "isDefault": true
+  }
+]

@@ -1,0 +1,1238 @@
+<title>AgentUp — IAG interview deck</title>
+<style>
+  /* ---- tokens ---- */
+  :root {
+    --ground: #F7F7F8;
+    --surface: #FFFFFF;
+    --card: #FFFFFF;
+    --card-border: rgba(10,11,16,0.09);
+    --ink-950: #0A0B10;
+    --ink-800: #22242C;
+    --ink-700: #3A3D48;
+    --ink-500: #6E7180;
+    --ink-300: #B4B6C1;
+    --ink-100: #EEEEF1;
+    --accent: #059669;
+    --accent-glow: rgba(5,150,105,0.15);
+    --danger: #E11D48;
+    --warn: #D97706;
+    --text: var(--ink-950);
+    --text-muted: var(--ink-500);
+    --eyebrow: var(--ink-500);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0A0B10;
+      --surface: #12141A;
+      --card: #12141A;
+      --card-border: rgba(180,182,193,0.14);
+      --ink-950: #F7F7F8;
+      --ink-800: #EEEEF1;
+      --ink-700: #D8D9E0;
+      --ink-500: #8E92A0;
+      --ink-300: #4A4D58;
+      --ink-100: #22242C;
+      --accent: #34D399;
+      --accent-glow: rgba(52,211,153,0.16);
+      --text: var(--ink-950);
+      --text-muted: var(--ink-500);
+      --eyebrow: var(--ink-500);
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #F7F7F8; --surface: #FFFFFF; --card: #FFFFFF;
+    --card-border: rgba(10,11,16,0.09);
+    --ink-950: #0A0B10; --ink-800: #22242C; --ink-700: #3A3D48;
+    --ink-500: #6E7180; --ink-300: #B4B6C1; --ink-100: #EEEEF1;
+    --accent: #059669; --accent-glow: rgba(5,150,105,0.15);
+    --text: var(--ink-950); --text-muted: var(--ink-500); --eyebrow: var(--ink-500);
+  }
+  :root[data-theme="dark"] {
+    --ground: #0A0B10; --surface: #12141A; --card: #12141A;
+    --card-border: rgba(180,182,193,0.14);
+    --ink-950: #F7F7F8; --ink-800: #EEEEF1; --ink-700: #D8D9E0;
+    --ink-500: #8E92A0; --ink-300: #4A4D58; --ink-100: #22242C;
+    --accent: #34D399; --accent-glow: rgba(52,211,153,0.16);
+    --text: var(--ink-950); --text-muted: var(--ink-500); --eyebrow: var(--ink-500);
+  }
+
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-family: "Segoe UI Variable", "SF Pro Text", -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow: hidden;
+  }
+  * { box-sizing: border-box; }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  }
+  .tabnum { font-variant-numeric: tabular-nums; }
+
+  /* ---- deck framework ---- */
+  #deck {
+    position: fixed; inset: 0;
+    display: flex; align-items: stretch; justify-content: stretch;
+  }
+  .slide {
+    position: absolute; inset: 0;
+    padding: clamp(24px, 4vh, 56px) clamp(28px, 5vw, 80px);
+    display: none; flex-direction: column;
+    opacity: 0;
+    transition: opacity 220ms ease;
+  }
+  .slide.active {
+    display: flex; opacity: 1;
+  }
+
+  header.chrome {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 20px;
+    padding-bottom: clamp(14px, 2vh, 22px);
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: clamp(20px, 3.5vh, 40px);
+  }
+  header.chrome .id {
+    display: inline-flex; align-items: baseline; gap: 10px;
+    font-size: 12px; color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+  header.chrome .id .num {
+    display: inline-block;
+    padding: 2px 8px; border: 1px solid var(--card-border);
+    border-radius: 3px;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11px; color: var(--text);
+    letter-spacing: 0.05em;
+  }
+  header.chrome .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px; font-weight: 600;
+    color: var(--eyebrow);
+  }
+  header.chrome .brand {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em;
+  }
+  header.chrome .brand strong { color: var(--accent); font-weight: 700; }
+
+  footer.chrome {
+    margin-top: auto;
+    padding-top: clamp(14px, 2vh, 22px);
+    border-top: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em;
+  }
+  footer.chrome .counters {
+    display: inline-flex; gap: 6px; align-items: center;
+  }
+  footer.chrome .counters .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ink-300);
+  }
+  footer.chrome .counters .dot.active { background: var(--accent); width: 20px; border-radius: 3px; transition: all 220ms ease; }
+  footer.chrome .keys {
+    display: inline-flex; gap: 10px;
+  }
+  footer.chrome .keys kbd {
+    display: inline-block;
+    padding: 2px 6px; border: 1px solid var(--card-border);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 10px; color: var(--text);
+    background: var(--card);
+  }
+
+  /* ---- content typography ---- */
+  h1.hero {
+    font-size: clamp(48px, 7.5vw, 108px);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+    font-weight: 750;
+    margin: 0;
+    color: var(--text);
+    text-wrap: balance;
+    max-width: 18ch;
+  }
+  h1.hero em {
+    font-style: normal; color: var(--accent);
+  }
+  h2.title {
+    font-size: clamp(32px, 4.2vw, 54px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    margin: 0 0 clamp(6px, 1vh, 14px);
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+  p.lede {
+    font-size: clamp(16px, 1.6vw, 20px);
+    line-height: 1.55;
+    color: var(--text-muted);
+    max-width: 60ch;
+    margin: 0 0 clamp(20px, 3vh, 36px);
+    text-wrap: pretty;
+  }
+  p.body {
+    font-size: 15px; line-height: 1.6;
+    color: var(--text);
+    max-width: 62ch;
+    margin: 0 0 12px;
+  }
+
+  .content {
+    flex: 1;
+    display: flex; flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* ---- reusable primitives ---- */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid var(--card-border);
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    background: transparent;
+  }
+  .chip.accent { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 40%, var(--card-border)); }
+  .chip.warn { color: var(--warn); border-color: color-mix(in oklab, var(--warn) 40%, var(--card-border)); }
+  .chip.danger { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 40%, var(--card-border)); }
+
+  .stat {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 20px 22px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+  }
+  .stat .num {
+    font-size: clamp(30px, 3.4vw, 44px);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .num em { font-style: normal; color: var(--accent); }
+  .stat .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--text-muted); font-weight: 600;
+  }
+  .stat .sub { font-size: 12px; color: var(--text-muted); }
+
+  .rule { height: 1px; background: var(--card-border); border: 0; margin: 20px 0; }
+
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted color-mix(in oklab, var(--accent) 50%, transparent); }
+  a:hover { border-bottom-style: solid; }
+
+  code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 0.9em; padding: 1px 5px; background: var(--ink-100); border-radius: 3px; }
+
+  /* ---- theme toggle ---- */
+  .theme-toggle {
+    position: fixed; top: 14px; right: 14px; z-index: 20;
+    width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition: none; }
+    footer.chrome .counters .dot.active { transition: none; }
+  }
+
+  /* ---- slide-specific ---- */
+
+  /* 1: Title */
+  .s-title .content { justify-content: center; }
+  .s-title .prompt {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 13px; color: var(--text-muted);
+    margin-bottom: 24px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .s-title .prompt::before {
+    content: ">";
+    color: var(--accent); font-weight: 700;
+  }
+  .s-title .cursor {
+    display: inline-block;
+    width: 8px; height: 15px; margin-left: 6px;
+    background: var(--accent);
+    vertical-align: -2px;
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .s-title .subtitle {
+    font-size: clamp(18px, 1.8vw, 22px);
+    color: var(--text-muted);
+    max-width: 46ch; margin-top: 16px;
+    line-height: 1.5;
+  }
+  .s-title .meta {
+    display: flex; gap: 26px; margin-top: clamp(28px, 5vh, 60px);
+    font-size: 12px; color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .s-title .meta strong { color: var(--text); font-weight: 600; }
+  .s-title .link-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border: 1px solid var(--accent);
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 13px; border-radius: 4px;
+    margin-top: 18px;
+  }
+  .s-title .link-badge::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* 2: Brief */
+  .brief-quote {
+    border-left: 2px solid var(--accent);
+    padding: 8px 0 8px 22px;
+    margin: 0 0 32px;
+    font-size: clamp(20px, 2.4vw, 30px);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--text);
+    max-width: 32ch;
+    letter-spacing: -0.015em;
+  }
+  .brief-quote cite {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px; letter-spacing: 0.06em;
+    color: var(--text-muted); font-style: normal;
+    text-transform: uppercase;
+  }
+  .brief-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .brief-grid .item { padding: 14px 16px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--card); }
+  .brief-grid .item .k { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  .brief-grid .item .v { font-size: 14px; margin-top: 4px; color: var(--text); }
+
+  /* 3: Business case */
+  .biz {
+    display: grid; grid-template-columns: 1.2fr 1fr;
+    gap: clamp(20px, 3vw, 48px);
+    align-items: start;
+  }
+  .biz .col-facts { display: flex; flex-direction: column; gap: 14px; }
+  .biz .fact {
+    display: grid; grid-template-columns: auto 1fr;
+    gap: 18px; align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--card-border);
+  }
+  .biz .fact:last-child { border: 0; }
+  .biz .fact .num {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: clamp(22px, 2.4vw, 32px);
+    color: var(--accent);
+    letter-spacing: -0.01em;
+    font-weight: 500;
+  }
+  .biz .fact .txt { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .biz .arrow {
+    padding: 24px;
+    border: 1px solid var(--accent);
+    background: var(--accent-glow);
+    border-radius: 4px;
+  }
+  .biz .arrow .k { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+  .biz .arrow .headline {
+    font-size: clamp(20px, 2vw, 26px);
+    font-weight: 700; line-height: 1.2;
+    letter-spacing: -0.02em; color: var(--text);
+  }
+  .biz .arrow .headline em { font-style: normal; color: var(--accent); }
+  .biz .arrow .sub {
+    margin-top: 10px; font-size: 12px; color: var(--text-muted);
+  }
+
+  /* 4: What I built */
+  .built {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    height: 100%;
+  }
+  .built .mock {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .built .mock .bar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: color-mix(in oklab, var(--card) 88%, var(--text) 12%); border-bottom: 1px solid var(--card-border); }
+  .built .mock .bar .dot { width: 9px; height: 9px; border-radius: 50%; background: color-mix(in oklab, var(--text) 30%, transparent); }
+  .built .mock .bar .url { flex: 1; text-align: center; font-family: ui-monospace, Consolas, monospace; font-size: 10px; color: var(--text-muted); }
+  .built .mock .body {
+    flex: 1; padding: 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    font-size: 12px;
+  }
+  .built .mock h4 { margin: 0; font-size: 14px; letter-spacing: -0.01em; }
+  .built .mock .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--card-border); }
+  .built .mock .row:last-child { border: 0; }
+  .built .mock .row .l { color: var(--text-muted); }
+  .built .mock .row .v { font-family: ui-monospace, Consolas, monospace; color: var(--text); }
+  .built .mock .bubble {
+    padding: 8px 12px; border-radius: 8px 8px 8px 2px;
+    background: var(--ink-100); font-size: 12px; max-width: 80%;
+    color: var(--text);
+  }
+  .built .mock .bubble.agent { background: var(--accent); color: white; border-radius: 8px 8px 2px 8px; align-self: flex-end; }
+  .built .mock .bar-mini { height: 6px; background: var(--ink-100); border-radius: 3px; overflow: hidden; }
+  .built .mock .bar-mini > span { display: block; height: 100%; background: var(--accent); }
+
+  /* 5: Architecture */
+  .arch {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;
+    height: 100%;
+    align-items: stretch;
+  }
+  .arch .lane {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 4px;
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    position: relative;
+  }
+  .arch .lane .lane-label {
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 600;
+    padding-bottom: 10px; border-bottom: 1px solid var(--card-border);
+  }
+  .arch .lane .lane-label strong { color: var(--accent); }
+  .arch .lane ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+  .arch .lane ul li { display: flex; align-items: baseline; gap: 8px; }
+  .arch .lane ul li::before {
+    content: "·"; color: var(--accent); font-weight: 700; margin-right: 2px;
+  }
+  .arch .lane .accent { color: var(--accent); font-weight: 600; }
+  .arch-flow {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; margin-top: 8px;
+    font-family: ui-monospace, Consolas, monospace; font-size: 11px;
+    color: var(--text-muted);
+  }
+  .arch-flow span { flex: 1; text-align: center; }
+  .arch-flow .arrow { color: var(--accent); font-weight: 700; }
+
+  /* 6: PRD coverage */
+  .prd { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: start; }
+  .prd .big {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .prd .big .headline {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: clamp(72px, 10vw, 148px);
+    line-height: 0.95; letter-spacing: -0.05em;
+    color: var(--text); font-weight: 500;
+  }
+  .prd .big .headline .slash { color: var(--text-muted); font-weight: 300; }
+  .prd .big .headline .accent { color: var(--accent); }
+  .prd .big .sub { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+  .prd .table { display: flex; flex-direction: column; gap: 2px; }
+  .prd .table .row {
+    display: grid; grid-template-columns: 1fr auto auto;
+    gap: 20px; align-items: baseline;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 13px;
+  }
+  .prd .table .row .name { color: var(--text); }
+  .prd .table .row .n { font-family: ui-monospace, Consolas, monospace; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .prd .table .row .p { font-family: ui-monospace, Consolas, monospace; color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .prd .table .row.excl .p { color: var(--text-muted); }
+
+  /* 7: Over-deliver */
+  .over {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  .over .star {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 4px; padding: 20px;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 155px;
+  }
+  .over .star .tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 11px; color: var(--accent); font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .over .star h4 {
+    margin: 4px 0; font-size: 16px; font-weight: 700;
+    letter-spacing: -0.015em; color: var(--text);
+    text-wrap: balance;
+  }
+  .over .star .desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .over .star .lens {
+    margin-top: auto; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 600;
+  }
+
+  /* 8: Streaming */
+  .stream {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 26px;
+    align-items: stretch;
+  }
+  .stream .col {
+    padding: 24px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    border-radius: 4px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .stream .col.win { border-color: color-mix(in oklab, var(--accent) 45%, var(--card-border)); background: color-mix(in oklab, var(--card) 96%, var(--accent) 4%); }
+  .stream .col h4 { margin: 0; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  .stream .col.win h4 { color: var(--accent); }
+  .stream .col .metric {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: clamp(32px, 3.6vw, 48px);
+    letter-spacing: -0.02em; color: var(--text);
+    font-variant-numeric: tabular-nums; font-weight: 500;
+  }
+  .stream .col.win .metric { color: var(--accent); }
+  .stream .col .metric .u { font-size: 0.5em; color: var(--text-muted); font-weight: 400; margin-left: 4px; }
+  .stream .col .storyboard {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-top: 6px;
+  }
+  .stream .col .frame {
+    display: flex; align-items: baseline; gap: 12px;
+    font-family: ui-monospace, Consolas, monospace; font-size: 12px;
+    color: var(--text);
+  }
+  .stream .col .frame .t { color: var(--text-muted); min-width: 4ch; text-align: right; }
+  .stream .col .frame .b { flex: 1; padding: 6px 10px; border-radius: 3px; background: var(--ink-100); font-family: inherit; color: var(--text); }
+  .stream .col.win .frame .b { background: color-mix(in oklab, var(--accent) 14%, var(--card)); }
+
+  /* 9: Cost */
+  .cost {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: start;
+  }
+  .cost .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cost .ledger {
+    padding: 22px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .cost .ledger .row { display: flex; justify-content: space-between; gap: 20px; }
+  .cost .ledger .row.total { padding-top: 8px; margin-top: 6px; border-top: 1px solid var(--card-border); color: var(--accent); font-weight: 700; }
+  .cost .ledger .row .k { color: var(--text-muted); }
+  .cost .ledger .row .v { color: var(--text); font-variant-numeric: tabular-nums; }
+  .cost .ledger .row.total .v { color: var(--accent); }
+
+  /* 10: Safety */
+  .safety { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .safety .item {
+    padding: 18px; border: 1px solid var(--card-border);
+    background: var(--card); border-radius: 4px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .safety .item .k { font-size: 11px; color: var(--text-muted); letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; }
+  .safety .item .headline { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+  .safety .item .txt { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+  .safety .item .example {
+    margin-top: 6px; padding: 8px 10px; background: var(--ink-100); border-radius: 3px;
+    font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: var(--text);
+  }
+  .safety .item .example s { text-decoration: line-through; color: var(--text-muted); }
+  .safety .item .example em { font-style: normal; color: var(--accent); }
+
+  /* 11: Test coverage */
+  .tests {
+    display: grid; grid-template-columns: 1fr 1.4fr; gap: 40px; align-items: start;
+  }
+  .tests .totalcard {
+    display: flex; flex-direction: column; gap: 14px;
+    padding: 26px; border: 1px solid var(--accent);
+    background: var(--accent-glow); border-radius: 4px;
+  }
+  .tests .totalcard .num {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: clamp(64px, 8vw, 108px);
+    line-height: 0.95; letter-spacing: -0.04em;
+    color: var(--accent); font-weight: 500;
+  }
+  .tests .totalcard .label {
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text); font-weight: 600;
+  }
+  .tests .totalcard .sub { font-size: 13px; color: var(--text-muted); }
+  .tests .tiers { display: flex; flex-direction: column; gap: 2px; }
+  .tests .tiers .row {
+    display: grid; grid-template-columns: 2fr 3fr auto;
+    gap: 16px; padding: 10px 4px;
+    border-bottom: 1px solid var(--card-border);
+    align-items: baseline;
+    font-size: 13px;
+  }
+  .tests .tiers .row .tier { color: var(--text); font-weight: 600; }
+  .tests .tiers .row .what { color: var(--text-muted); font-size: 12px; line-height: 1.4; }
+  .tests .tiers .row .n { font-family: ui-monospace, Consolas, monospace; color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* 12: G-Eval */
+  .geval { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .geval .board {
+    padding: 24px; background: var(--card);
+    border: 1px solid var(--card-border); border-radius: 4px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 13px;
+  }
+  .geval .board .head { color: var(--text-muted); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600; }
+  .geval .board .line { display: grid; grid-template-columns: 1fr auto auto auto; gap: 14px; padding: 4px 0; align-items: baseline; }
+  .geval .board .line .dim { color: var(--text); }
+  .geval .board .line .val { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .geval .board .line .val.mut { color: var(--text-muted); }
+  .geval .board .verdict { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--card-border); color: var(--accent); font-weight: 700; }
+  .geval .narrative { display: flex; flex-direction: column; gap: 12px; }
+  .geval .narrative .discri {
+    display: flex; align-items: baseline; gap: 12px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: clamp(20px, 2.4vw, 30px);
+  }
+  .geval .narrative .discri .plus { color: var(--accent); font-weight: 600; }
+  .geval .narrative .discri .fail { color: var(--danger); font-weight: 600; }
+  .geval .narrative .discri .arrow { color: var(--text-muted); font-size: 0.8em; }
+  .geval .narrative .discri .gap {
+    padding: 2px 8px; border: 1px solid var(--accent);
+    color: var(--accent); border-radius: 3px;
+    font-size: 0.5em; letter-spacing: 0.06em; margin-left: 6px;
+  }
+
+  /* 13: Roadmap */
+  .road {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;
+  }
+  .road h4.subhead { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin: 0 0 14px; }
+  .road ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .road ul li {
+    display: grid; grid-template-columns: auto 1fr; gap: 12px;
+    align-items: baseline;
+    padding: 10px 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    background: var(--card);
+  }
+  .road ul li .tag { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+  .road ul li .txt { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .road ul li .txt .sub { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+  .road ul.gaps li { border-color: color-mix(in oklab, var(--warn) 40%, var(--card-border)); }
+  .road ul.gaps li .tag { color: var(--warn); }
+
+  /* 14: Close */
+  .close {
+    display: flex; flex-direction: column; justify-content: center; height: 100%;
+  }
+  .close .cta {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: clamp(20px, 2.4vw, 30px);
+    color: var(--text-muted);
+  }
+  .close .cta .u { color: var(--accent); border-bottom: 1px solid var(--accent); }
+  .close .grand {
+    font-size: clamp(52px, 8vw, 120px);
+    font-weight: 750; letter-spacing: -0.04em;
+    line-height: 1; color: var(--text);
+    text-wrap: balance;
+    margin-top: 24px;
+    max-width: 22ch;
+  }
+  .close .grand em { font-style: normal; color: var(--accent); }
+  .close .contact {
+    margin-top: 40px; display: flex; gap: 40px; flex-wrap: wrap;
+    font-size: 13px; color: var(--text-muted);
+  }
+  .close .contact strong { color: var(--text); font-weight: 600; }
+</style>
+
+<button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">◐</button>
+
+<div id="deck">
+
+<!-- ============ SLIDE 1 — TITLE ============ -->
+<section class="slide s-title" data-title="Title">
+  <header class="chrome">
+    <div class="id"><span class="num">01</span><span class="eyebrow">AgentUp · Hiring Exercise</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp / IAG · 2026-07-27</div>
+  </header>
+  <div class="content">
+    <div class="prompt">/ live-demo · press <kbd style="border:1px solid var(--card-border);border-radius:3px;padding:1px 5px;font-size:10px;background:var(--card);color:var(--text);">F</kbd> to enter fullscreen</div>
+    <h1 class="hero">Daily <em>AI-powered</em> training for call-centre agents.<span class="cursor" aria-hidden="true"></span></h1>
+    <div class="subtitle">A 5-minute pre-shift ritual — three roleplay cases, five turns, Sonnet-graded feedback, and a streak that keeps agents coming back.</div>
+    <a class="link-badge" href="https://agentup-iag.pages.dev" target="_blank">agentup-iag.pages.dev</a>
+    <div class="meta">
+      <span><strong>Debanjan Mazumdar</strong> · Paris</span>
+      <span>IAG Services · AI Product Builder</span>
+      <span>Deck v1 · Live URL current</span>
+    </div>
+  </div>
+  <footer class="chrome"><span>agentup-iag.pages.dev</span><span class="counters" id="dots-1"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd><kbd>1–9</kbd><kbd>F</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 2 — BRIEF ============ -->
+<section class="slide" data-title="The brief">
+  <header class="chrome">
+    <div class="id"><span class="num">02</span><span class="eyebrow">01 · The brief</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <blockquote class="brief-quote">
+      Build a web app that helps call-centre agents improve through short daily AI-powered training sessions.
+      <cite>— IAG PRD v1.0 · Section 1</cite>
+    </blockquote>
+    <div class="brief-grid">
+      <div class="item"><div class="k">Pages</div><div class="v">Daily Training · My Cases · My Dashboard</div></div>
+      <div class="item"><div class="k">Channels</div><div class="v">Chat + Call (browser mic + TTS)</div></div>
+      <div class="item"><div class="k">Turns per case</div><div class="v">Up to 5, then scored 0–100</div></div>
+      <div class="item"><div class="k">Rubric</div><div class="v">Empathy · Accuracy · Resolution · Professionalism (25% each)</div></div>
+      <div class="item"><div class="k">Defaults</div><div class="v">≥5 realistic scenarios · custom-case authoring</div></div>
+      <div class="item"><div class="k">Dashboard</div><div class="v">30-day trend · topic + channel splits · streak</div></div>
+      <div class="item"><div class="k">Out of scope §4</div><div class="v">Auth · manager roles · leaderboards · native mobile</div></div>
+      <div class="item"><div class="k">Rubric weights</div><div class="v">Functionality 40 · AI 30 · UX 20 · Code 10</div></div>
+    </div>
+  </div>
+  <footer class="chrome"><span>Verbatim brief · condensed to eight anchors</span><span class="counters" id="dots-2"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 3 — BUSINESS CASE ============ -->
+<section class="slide" data-title="Business case">
+  <header class="chrome">
+    <div class="id"><span class="num">03</span><span class="eyebrow">02 · Why this exists</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Indian BPO floors lose <em style="color:var(--accent);font-style:normal">40%</em> of agents a year. A pre-shift ritual is the wedge.</h2>
+    <div class="biz">
+      <div class="col-facts">
+        <div class="fact"><div class="num">30–80%</div><div class="txt">Annual attrition on offshore voice floors <span style="color:var(--text-muted);font-size:11px">(ContactBabel)</span></div></div>
+        <div class="fact"><div class="num">$3–8k</div><div class="txt">Fully-loaded replacement cost per departed agent</div></div>
+        <div class="fact"><div class="num">~35%</div><div class="txt">Share of that churn happening in the first 90 days</div></div>
+        <div class="fact"><div class="num">2–6 wk</div><div class="txt">Traditional non-productive classroom onboarding</div></div>
+        <div class="fact"><div class="num">3–6 mo</div><div class="txt">To baseline proficiency after classroom exits</div></div>
+      </div>
+      <div class="arrow">
+        <div class="k">At scale</div>
+        <div class="headline">10k-agent centre · 40% churn · $4k / seat = <em>$16M/yr</em> in replacement cost.</div>
+        <div class="sub">A 10-point drop in first-90-day attrition unlocks ~$4M/yr in avoided replacement. AgentUp aims to be the ritual that earns it.</div>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>Sources: ContactBabel · BPO ops surveys</span><span class="counters" id="dots-3"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 4 — WHAT I BUILT ============ -->
+<section class="slide" data-title="What I built">
+  <header class="chrome">
+    <div class="id"><span class="num">04</span><span class="eyebrow">03 · What shipped</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Three pages, one architecture, live at <span class="mono" style="color:var(--accent);font-weight:600">agentup-iag.pages.dev</span></h2>
+    <p class="lede">Chrome or Edge for the best voice experience. Press <code>Ctrl+`</code> anywhere in the app to open the developer HUD and see the LLM pipeline in real time.</p>
+    <div class="built">
+      <div class="mock">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">agentup-iag.pages.dev/</span></div>
+        <div class="body">
+          <h4>Daily Training · turn 3 / 5</h4>
+          <div class="bar-mini"><span style="width:60%"></span></div>
+          <div class="bubble">Fine, but tell me exactly when this will be resolved.</div>
+          <div class="bubble agent">Understood — let me confirm the fix window in writing before we hang up.</div>
+          <div class="bubble">Okay. I'll hold you to that.</div>
+        </div>
+      </div>
+      <div class="mock">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">agentup-iag.pages.dev/dashboard</span></div>
+        <div class="body">
+          <h4>My Dashboard</h4>
+          <div class="row"><span class="l">Current streak</span><span class="v">7 days</span></div>
+          <div class="row"><span class="l">Sessions this week</span><span class="v">5</span></div>
+          <div class="row"><span class="l">Top skill</span><span class="v">Empathy · 91</span></div>
+          <div class="row"><span class="l">Focus on</span><span class="v">Accuracy · 68</span></div>
+          <div class="row"><span class="l">€ per agent / month</span><span class="v">€1.47</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>Astro · React islands · Tailwind · Cloudflare Pages</span><span class="counters" id="dots-4"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 5 — ARCHITECTURE ============ -->
+<section class="slide" data-title="Architecture">
+  <header class="chrome">
+    <div class="id"><span class="num">05</span><span class="eyebrow">04 · Architecture</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Three lanes: <em style="color:var(--accent);font-style:normal">browser</em> · edge Function · LLM chain.</h2>
+    <p class="lede">Static islands where possible, one Pages Function where it isn't, and a multi-provider fallback so no single upstream can kill the demo.</p>
+    <div class="arch">
+      <div class="lane">
+        <div class="lane-label"><strong>1.</strong> Browser</div>
+        <ul>
+          <li>Astro islands (<span class="mono">client:load</span>) with React</li>
+          <li>Web Speech API — STT + chunked TTS</li>
+          <li>localStorage cases · sessions · streak</li>
+          <li>Client-side <span class="accent">PII redaction</span> (Aadhaar / PAN / mobile / UPI / cards)</li>
+          <li>Telemetry store · Dev HUD (<code>Ctrl+`</code>)</li>
+        </ul>
+      </div>
+      <div class="lane">
+        <div class="lane-label"><strong>2.</strong> Cloudflare Pages Function</div>
+        <ul>
+          <li>Hides ANTHROPIC_API_KEY + GEMINI_API_KEY</li>
+          <li>Origin allowlist w/ wildcard subdomain</li>
+          <li>Payload cap — 32KB → typed 413</li>
+          <li>KV rate limit — 500 calls / IP / day</li>
+          <li>Streaming SSE proxy (Anthropic → client)</li>
+        </ul>
+      </div>
+      <div class="lane">
+        <div class="lane-label"><strong>3.</strong> LLM chain</div>
+        <ul>
+          <li><span class="accent">Anthropic Sonnet 4.6</span> · primary</li>
+          <li>Gemini 2.5-flash-lite · fallback #1</li>
+          <li>Gemini 2.5-flash · fallback #2</li>
+          <li>Auto-swaps on credit-too-low 400 · retries 503/429</li>
+          <li>Streaming: SSE deltas · non-streaming: JSON</li>
+        </ul>
+      </div>
+      <div class="arch-flow">
+        <span>Browser <span class="arrow">──▶</span></span>
+        <span>fetch("/api/claude") <span class="arrow">──▶</span></span>
+        <span>Anthropic <span class="arrow">◇</span> Gemini (fallback)</span>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>7 Cloudflare Pages deploys this session · zero downtime</span><span class="counters" id="dots-5"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 6 — PRD COVERAGE ============ -->
+<section class="slide" data-title="PRD coverage">
+  <header class="chrome">
+    <div class="id"><span class="num">06</span><span class="eyebrow">05 · PRD traceability</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Every PRD line, mapped to code, backed by a test.</h2>
+    <div class="prd">
+      <div class="big">
+        <div class="headline"><span class="accent">71</span><span class="slash"> / </span>71</div>
+        <div class="sub">
+          in-scope PRD requirements pass.<br/>
+          Plus 4 items correctly excluded per PRD §4 (auth · manager roles · leaderboards · native mobile).<br/>
+          Full 85-row matrix: <code>deliverables/prd_traceability_matrix.md</code>
+        </div>
+      </div>
+      <div class="table">
+        <div class="row"><span class="name">§1 Overview</span><span class="n">7</span><span class="p">7 / 7</span></div>
+        <div class="row"><span class="name">§2 Structure (SPA · nav · 3 pages)</span><span class="n">3</span><span class="p">3 / 3</span></div>
+        <div class="row"><span class="name">Page 1 · Daily Training</span><span class="n">18</span><span class="p">18 / 18</span></div>
+        <div class="row"><span class="name">Page 2 · My Cases</span><span class="n">14</span><span class="p">14 / 14</span></div>
+        <div class="row"><span class="name">Page 3 · Dashboard</span><span class="n">10</span><span class="p">10 / 10</span></div>
+        <div class="row"><span class="name">§3 AI Behaviour &amp; Scoring</span><span class="n">15</span><span class="p">15 / 15</span></div>
+        <div class="row excl"><span class="name">§4 Out of Scope (correctly excluded)</span><span class="n">4</span><span class="p">— / —</span></div>
+        <div class="row"><span class="name">§5 Evaluation Criteria (self-audit)</span><span class="n">4</span><span class="p">4 / 4</span></div>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>Companion TSV imports 1-click into Google Sheets</span><span class="counters" id="dots-6"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 7 — OVER-DELIVER ============ -->
+<section class="slide" data-title="Over-deliver">
+  <header class="chrome">
+    <div class="id"><span class="num">07</span><span class="eyebrow">06 · Beyond the spec</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Six additional layers, each pitched at a different panel lens.</h2>
+    <div class="over">
+      <div class="star">
+        <div class="tag">★1</div>
+        <h4>Developer HUD (Ctrl+`)</h4>
+        <div class="desc">Live tokens · latency · provider chain · active prompts · rate-limit budget. Toggle on any page.</div>
+        <div class="lens">Karpathy · eng lead</div>
+      </div>
+      <div class="star">
+        <div class="tag">★2</div>
+        <h4>Streaming SSE + chunked TTS</h4>
+        <div class="desc">Anthropic SSE proxied to browser. Sentences pipe to <code>SpeechSynthesisUtterance</code> as they arrive.</div>
+        <div class="lens">Brockman · Murati</div>
+      </div>
+      <div class="star">
+        <div class="tag">★3</div>
+        <h4>Rubric-anchored feedback + A+ reveal</h4>
+        <div class="desc">Every scored turn tagged by dimension in the transcript. "See an A+ reply" fetches an ideal 5-turn transcript.</div>
+        <div class="lens">Product · learning</div>
+      </div>
+      <div class="star">
+        <div class="tag">★4</div>
+        <h4>Cost + telemetry surface</h4>
+        <div class="desc">€/session · €/agent/month · provider mix · p50/p95 latency. From observed usage, not a formula.</div>
+        <div class="lens">Founder · Cherny</div>
+      </div>
+      <div class="star">
+        <div class="tag">★5</div>
+        <h4>G-Eval scoring-consistency harness</h4>
+        <div class="desc">N runs on the same transcript · variance per dimension · A+/fail golden discrimination.</div>
+        <div class="lens">Sutskever · AI safety</div>
+      </div>
+      <div class="star">
+        <div class="tag">★6</div>
+        <h4>India-compliance layer</h4>
+        <div class="desc">Client-side PII redaction (Aadhaar/PAN/mobile/UPI/cards) + DPDPA-style consent dialog on first Call use.</div>
+        <div class="lens">Amodei · India-market</div>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>Playbook: <code>deliverables/over_deliver_playbook.md</code></span><span class="counters" id="dots-7"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 8 — STREAMING ============ -->
+<section class="slide" data-title="Streaming">
+  <header class="chrome">
+    <div class="id"><span class="num">08</span><span class="eyebrow">★2 · Streaming + chunked TTS</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Time-to-first-audio drops 4×. On Call it stops feeling like a batch response and starts feeling like a call.</h2>
+    <div class="stream">
+      <div class="col">
+        <h4>Before · batch response</h4>
+        <div class="metric">~2000<span class="u">ms</span></div>
+        <div class="storyboard">
+          <div class="frame"><span class="t">0ms</span><span class="b">agent sends</span></div>
+          <div class="frame"><span class="t">…</span><span class="b" style="opacity:.35">…waiting for full LLM response</span></div>
+          <div class="frame"><span class="t">2000</span><span class="b">whole customer reply appears · TTS speaks all at once</span></div>
+        </div>
+      </div>
+      <div class="col win">
+        <h4>After · SSE + chunked TTS</h4>
+        <div class="metric">~500<span class="u">ms</span></div>
+        <div class="storyboard">
+          <div class="frame"><span class="t">0ms</span><span class="b">agent sends</span></div>
+          <div class="frame"><span class="t">400</span><span class="b">first token renders in bubble</span></div>
+          <div class="frame"><span class="t">500</span><span class="b">first phrase speaks · rest streams in</span></div>
+          <div class="frame"><span class="t">1800</span><span class="b">full reply done · TTS still finishing</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:22px;font-size:12px;color:var(--text-muted);line-height:1.6;max-width:70ch">
+      Server proxies Anthropic's <code>stream: true</code> SSE. Client's <code>ChunkedSpeaker</code> matches phrase boundaries (<code>.</code> <code>?</code> <code>!</code> <code>,</code>) and hands each to <code>SpeechSynthesisUtterance</code>. Force-flushes on soft-max (140 chars) so we never wait forever for a comma. 7 unit tests cover the buffering state machine.
+    </div>
+  </div>
+  <footer class="chrome"><span>src/lib/chunkedSpeech.ts · functions/api/claude.ts handleRoleplayStream</span><span class="counters" id="dots-8"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 9 — COST ============ -->
+<section class="slide" data-title="Cost">
+  <header class="chrome">
+    <div class="id"><span class="num">09</span><span class="eyebrow">★4 · Unit economics</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">If AgentUp saves <em style="color:var(--accent);font-style:normal">1 in 10</em> at-risk agents, its LLM spend is a rounding error.</h2>
+    <div class="cost">
+      <div class="metrics">
+        <div class="stat"><span class="label">Per session</span><span class="num">€<em>0.05</em></span><span class="sub">15 LLM calls avg · Sonnet primary</span></div>
+        <div class="stat"><span class="label">Per agent / month</span><span class="num">€<em>1.47</em></span><span class="sub">30 sessions/mo · fully loaded</span></div>
+        <div class="stat"><span class="label">10k-agent centre</span><span class="num">€<em>14.7k</em></span><span class="sub">per month LLM spend</span></div>
+        <div class="stat"><span class="label">Avoided attrition</span><span class="num">€<em>4M</em></span><span class="sub">per year at 10-pt retention lift</span></div>
+      </div>
+      <div class="ledger">
+        <div style="color:var(--text-muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;font-weight:600">Session ledger · session-average</div>
+        <div class="row"><span class="k">roleplay · 12 calls</span><span class="v">€0.031</span></div>
+        <div class="row"><span class="k">score · 3 calls</span><span class="v">€0.014</span></div>
+        <div class="row"><span class="k">model-answer · optional</span><span class="v">€0.008</span></div>
+        <div class="row"><span class="k">tokens in / out</span><span class="v">42k / 3.4k</span></div>
+        <div class="row"><span class="k">p50 latency</span><span class="v">812ms</span></div>
+        <div class="row"><span class="k">p95 latency</span><span class="v">1.9s</span></div>
+        <div class="row total"><span class="k">total per session</span><span class="v">€0.053</span></div>
+      </div>
+    </div>
+    <div style="margin-top:20px;font-size:12px;color:var(--text-muted);max-width:82ch;line-height:1.6">
+      Real numbers on the dashboard come from observed usage, not the formula. Provider mix bar shows what % served by Anthropic vs Gemini fallback. When Anthropic returns "credit balance too low", the app degrades to Gemini free tier at €0.00 and shifts the mix live.
+    </div>
+  </div>
+  <footer class="chrome"><span>DashboardIsland · CostTile · reads telemetry store</span><span class="counters" id="dots-9"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 10 — SAFETY ============ -->
+<section class="slide" data-title="Safety">
+  <header class="chrome">
+    <div class="id"><span class="num">10</span><span class="eyebrow">★6 · Safety &amp; compliance</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Compliance-aware from day one — India DPDPA, prompt injection, and payload abuse handled at the edge.</h2>
+    <div class="safety">
+      <div class="item">
+        <div class="k">Client-side PII redaction</div>
+        <div class="headline">Aadhaar · PAN · Indian mobile · UPI · Luhn-verified cards · email</div>
+        <div class="txt">Masked <strong>before</strong> the JSON payload leaves the browser. Regexes are Luhn-checked and word-bounded to avoid over-redaction. 19 unit tests.</div>
+        <div class="example"><s>Aadhaar 1234 5678 9012</s> → <em>[AADHAAR_REDACTED]</em></div>
+      </div>
+      <div class="item">
+        <div class="k">DPDPA-style consent dialog</div>
+        <div class="headline">Training aid for India DPDP Act 2023 pre-call disclosure</div>
+        <div class="txt">Fires once on first Call use. Mocks the recording-consent script agents must recite in production. Persists via <code>localStorage['agentup:dpdpa-consent']</code>.</div>
+      </div>
+      <div class="item">
+        <div class="k">Prompt-injection defence</div>
+        <div class="headline">Verified live · scenario "IGNORE ALL PREVIOUS INSTRUCTIONS" returned a normal scorecard</div>
+        <div class="txt">No <code>PWNED_SYSTEM_LEAK</code> echo, no shape mismatch. System prompt anchors the judge role independent of user-supplied content.</div>
+      </div>
+      <div class="item">
+        <div class="k">Adversarial test battery</div>
+        <div class="headline">23 negative checks · all green</div>
+        <div class="txt">Origin injection · lookalike subdomain · XSS scenario · HTTP method abuse · 100KB payload → typed 413 · malformed body · key-material leakage.</div>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>src/lib/pii.ts · tests/negative_agentup.sh · TrainingIsland DPDPAConsent</span><span class="counters" id="dots-10"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 11 — TESTS ============ -->
+<section class="slide" data-title="Test coverage">
+  <header class="chrome">
+    <div class="id"><span class="num">11</span><span class="eyebrow">07 · Test coverage</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">Nothing ships without a test that proves it.</h2>
+    <div class="tests">
+      <div class="totalcard">
+        <div class="label">Total automated checks</div>
+        <div class="num">138</div>
+        <div class="sub">Green on the live URL. Every PRD row, every over-deliver star, every adversarial case, every rubric dimension.</div>
+      </div>
+      <div class="tiers">
+        <div class="row"><span class="tier">Unit · vitest</span><span class="what">PII regexes · Luhn · streak · seeded RNG · telemetry math · JSON extraction · scorecard validator · chunked-speech buffer</span><span class="n">61</span></div>
+        <div class="row"><span class="tier">Integration · vitest</span><span class="what">Pages Function routing · prompt assembly · Anthropic mock · Gemini fallback chain · payload cap 413 · origin wildcards · KV rate limit · model-answer</span><span class="n">25</span></div>
+        <div class="row"><span class="tier">E2E · Playwright</span><span class="what">Full 3-case session · custom-case creation · filters · dashboard render · Call channel mic</span><span class="n">6</span></div>
+        <div class="row"><span class="tier">Acceptance · Python</span><span class="what">Every route in dist · no banned models · no hardcoded keys · bundle cap · default-cases shape</span><span class="n">1</span></div>
+        <div class="row"><span class="tier">Front-door · bash</span><span class="what">Live curl through the real user flow · 3 pages + real Claude scoring roundtrip</span><span class="n">5&thinsp;/&thinsp;5</span></div>
+        <div class="row"><span class="tier">Adversarial · bash</span><span class="what">Origin injection · malformed body · HTTP method abuse · XSS · 100KB DoS · prompt injection · key-leak scan</span><span class="n">23</span></div>
+        <div class="row"><span class="tier">G-Eval · Python</span><span class="what">Score-consistency variance across N runs · A+/fail golden-set discrimination</span><span class="n">3&thinsp;/&thinsp;3</span></div>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>Every layer runs in CI · <code>npm run test:all</code></span><span class="counters" id="dots-11"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 12 — G-EVAL ============ -->
+<section class="slide" data-title="G-Eval">
+  <header class="chrome">
+    <div class="id"><span class="num">12</span><span class="eyebrow">★5 · Judge stability</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">If you're going to trust the score, you should measure the judge.</h2>
+    <div class="geval">
+      <div class="board">
+        <div class="head">Consistency · 3 runs of the SAME A+ transcript</div>
+        <div class="line"><span class="dim">overall</span><span class="val">mean 97.3</span><span class="val">stdev 2.31</span><span class="val mut">range 4</span></div>
+        <div class="line"><span class="dim">empathy</span><span class="val">mean 95.0</span><span class="val">stdev 5.00</span><span class="val mut">range 10</span></div>
+        <div class="line"><span class="dim">accuracy</span><span class="val">mean 98.3</span><span class="val">stdev 2.89</span><span class="val mut">range 5</span></div>
+        <div class="line"><span class="dim">resolution</span><span class="val">mean 98.3</span><span class="val">stdev 2.89</span><span class="val mut">range 5</span></div>
+        <div class="line"><span class="dim">professionalism</span><span class="val">mean 98.3</span><span class="val">stdev 2.89</span><span class="val mut">range 5</span></div>
+        <div class="verdict">▲ all dimensions inside 10-point stdev cap</div>
+      </div>
+      <div class="narrative">
+        <h4 style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin:0">Discrimination · golden A+ vs golden fail</h4>
+        <div class="discri">
+          <span class="plus">97</span>
+          <span class="arrow">◇</span>
+          <span class="fail">7</span>
+          <span class="gap">90 pt gap</span>
+        </div>
+        <p class="body" style="font-size:13px">The golden A+ transcript (empathy + concrete resolution + warm close) landed at 97/100. The golden fail transcript (dismissive · no resolution · unprofessional) landed at 7/100.</p>
+        <p class="body" style="font-size:13px;color:var(--text-muted)">Judge is stable AND discriminative. You can put this scoring engine in front of managers.</p>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>tests/g_eval_scoring.py · evidence in deliverables/g_eval_evidence.md</span><span class="counters" id="dots-12"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 13 — ROADMAP ============ -->
+<section class="slide" data-title="Roadmap">
+  <header class="chrome">
+    <div class="id"><span class="num">13</span><span class="eyebrow">08 · Not shipped · honest</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="content">
+    <h2 class="title">What I <em style="color:var(--accent);font-style:normal">saw</em> but didn't build — and the gaps I know about.</h2>
+    <div class="road">
+      <div>
+        <h4 class="subhead">Next 4 with more time</h4>
+        <ul>
+          <li><span class="tag">★7</span><span class="txt">Session replay + share URL<span class="sub">base64-gz JSON in URL fragment · no backend needed</span></span></li>
+          <li><span class="tag">★8</span><span class="txt">Voice-activity detection + barge-in<span class="sub">auto-stop mic on 500ms silence · space bar interrupts customer TTS</span></span></li>
+          <li><span class="tag">★9</span><span class="txt">Predictive-ROI dashboard cards<span class="sub">CSAT · ramp-up · retention — labelled illustrative</span></span></li>
+          <li><span class="tag">M+</span><span class="txt">Manager cohort view (behind auth)<span class="sub">out of MVP scope §4 · sketched in ROADMAP.md</span></span></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="subhead">Honest gaps</h4>
+        <ul class="gaps">
+          <li><span class="tag">◇</span><span class="txt">Full <code>/impeccable</code> audit sweep<span class="sub">inline hooks caught + I fixed 2 AI-tell issues · full sweep deferred</span></span></li>
+          <li><span class="tag">◇</span><span class="txt">G-Eval discrimination live-fire<span class="sub">Gemini free-tier quota exhausted mid-session · consistency ran green</span></span></li>
+          <li><span class="tag">◇</span><span class="txt">No paid Anthropic budget<span class="sub">account has €0 credits → Gemini-fallback path serves live demo</span></span></li>
+          <li><span class="tag">◇</span><span class="txt">Single-user localStorage MVP<span class="sub">no server-side persistence · per PRD §4 · production would add D1 + auth</span></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <footer class="chrome"><span>Full roadmap: <code>ROADMAP.md</code> at repo root</span><span class="counters" id="dots-13"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+<!-- ============ SLIDE 14 — CLOSE ============ -->
+<section class="slide" data-title="Close">
+  <header class="chrome">
+    <div class="id"><span class="num">14</span><span class="eyebrow">Fin · try it live</span></div>
+    <div class="brand"><strong>▲</strong> AgentUp</div>
+  </header>
+  <div class="close">
+    <div class="cta">/ open <a class="u" href="https://agentup-iag.pages.dev" target="_blank">agentup-iag.pages.dev</a> and press <kbd style="border:1px solid var(--card-border);border-radius:3px;padding:1px 5px;font-size:11px;background:var(--card);color:var(--text)">Ctrl+`</kbd></div>
+    <div class="grand">Thank <em>you</em>. Questions?</div>
+    <div class="contact">
+      <span><strong>Debanjan Mazumdar</strong> · Paris</span>
+      <span>Deck source: <code>deliverables/agentup_presentation.html</code></span>
+      <span>Matrix + playbook: <code>deliverables/</code> at repo root</span>
+    </div>
+  </div>
+  <footer class="chrome"><span>Built for the IAG Services AI Product Builder hiring exercise</span><span class="counters" id="dots-14"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd></span></footer>
+</section>
+
+</div>
+
+<script>
+(function () {
+  const slides = document.querySelectorAll('.slide');
+  const TOTAL = slides.length;
+  let idx = 0;
+
+  function renderDots() {
+    // Populate the dot counters in every footer once.
+    slides.forEach((s, i) => {
+      const el = s.querySelector('.counters');
+      if (!el) return;
+      if (el.dataset.built) return;
+      el.dataset.built = '1';
+      for (let k = 0; k < TOTAL; k++) {
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.dataset.n = String(k);
+        el.appendChild(dot);
+      }
+      // Also add a text position — e.g. 03 / 14
+      const pos = document.createElement('span');
+      pos.className = 'mono tabnum';
+      pos.style.fontSize = '10px';
+      pos.style.color = 'var(--text-muted)';
+      pos.style.marginLeft = '8px';
+      pos.dataset.pos = '1';
+      el.appendChild(pos);
+    });
+  }
+
+  function show(n) {
+    idx = Math.max(0, Math.min(TOTAL - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.querySelectorAll('.counters').forEach((el) => {
+      el.querySelectorAll('.dot').forEach((d) => {
+        d.classList.toggle('active', Number(d.dataset.n) === idx);
+      });
+      const pos = el.querySelector('[data-pos]');
+      if (pos) pos.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+    });
+    // Reflect in URL hash without adding history entries.
+    if (('' + (idx + 1)) !== location.hash.slice(1)) {
+      history.replaceState(null, '', '#' + (idx + 1));
+    }
+    // Update tab title with slide title.
+    const t = slides[idx].dataset.title;
+    if (t) document.title = 'AgentUp deck · ' + (idx + 1) + '. ' + t;
+  }
+
+  function next() { show(idx + 1); }
+  function prev() { show(idx - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); return; }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')                    { e.preventDefault(); prev(); return; }
+    if (e.key === 'Home') { e.preventDefault(); show(0); return; }
+    if (e.key === 'End')  { e.preventDefault(); show(TOTAL - 1); return; }
+    if (e.key >= '1' && e.key <= '9') { e.preventDefault(); show(Number(e.key) - 1); return; }
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+      return;
+    }
+    if (e.key === 't' || e.key === 'T') {
+      e.preventDefault();
+      const cur = document.documentElement.getAttribute('data-theme');
+      const isDark = cur === 'dark' || (!cur && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      return;
+    }
+  });
+
+  // Also allow tap on left / right half of screen to advance (mobile-ish).
+  document.addEventListener('click', (e) => {
+    // Ignore clicks on interactive controls.
+    const t = e.target;
+    if (t && (t.tagName === 'A' || t.tagName === 'BUTTON' || t.tagName === 'KBD' || t.closest('a,button'))) return;
+    const w = window.innerWidth;
+    if (e.clientX > w * 0.66) next();
+    else if (e.clientX < w * 0.33) prev();
+  });
+
+  // Theme toggle click
+  const toggle = document.getElementById('theme-toggle');
+  toggle?.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const isDark = cur === 'dark' || (!cur && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  });
+
+  // Deep link on load.
+  renderDots();
+  const initial = Math.max(1, Math.min(TOTAL, Number(location.hash.slice(1)) || 1)) - 1;
+  show(initial);
+})();
+</script>

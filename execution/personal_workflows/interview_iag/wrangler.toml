@@ -1,0 +1,26 @@
+# Cloudflare Pages project config for AgentUp.
+#
+# Deploy: npx wrangler pages deploy dist  (project inferred from name below)
+#
+# Secrets NOT declared here. Set once via:
+#   npx wrangler pages secret put ANTHROPIC_API_KEY --project-name agentup-iag
+#
+# KV namespace for per-IP daily rate limiting (rl:<sha256(ip+day)> → "1", 24h TTL).
+# Create with: npx wrangler kv namespace create AGENTUP_KV
+# Then paste the returned ID into `id = "..."` below.
+
+name = "agentup-iag"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "./dist"
+
+[vars]
+# Non-secret vars — allowed origins for the /api/claude endpoint (CSV).
+# Includes the pages.dev hostname and any custom domain later.
+ALLOWED_ORIGINS = "https://agentup-iag.pages.dev,https://*.agentup-iag.pages.dev,http://localhost:4321,http://localhost:8788"
+
+# KV binding. Fill `id` after `wrangler kv namespace create AGENTUP_KV`.
+# Left as a placeholder so the wrangler.toml parses and the Function
+# no-op-degrades to "unlimited local dev" when KV is unbound.
+[[kv_namespaces]]
+binding = "AGENTUP_KV"
+id = "a4bd0bd95b6b46d885bcd69d1efe9af8"

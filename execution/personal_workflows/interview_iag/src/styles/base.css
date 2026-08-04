@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-ink-50 text-ink-800 font-sans;
+  }
+  html.dark body {
+    @apply bg-ink-950 text-ink-100;
+  }
+  /* Improve focus visibility for keyboard nav (accessibility). */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-indigo-500;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white/60 dark:bg-ink-900/40 px-4 py-2 text-sm font-medium text-ink-800 dark:text-ink-100 transition hover:bg-white hover:dark:bg-ink-900 disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .card {
+    @apply rounded-2xl border border-ink-200/60 dark:border-ink-700/60 bg-white/70 dark:bg-ink-900/50 backdrop-blur-sm shadow-sm;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 bg-white/50 dark:bg-ink-900/40 px-2.5 py-0.5 text-xs font-medium text-ink-700 dark:text-ink-200;
+  }
+}
