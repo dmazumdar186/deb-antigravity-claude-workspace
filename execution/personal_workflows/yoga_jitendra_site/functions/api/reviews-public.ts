@@ -36,6 +36,11 @@ interface ApprovedReview {
   approved_at: string;
   featured: boolean;
   verified: boolean;
+  // Optional KV fields — present after a moderator edit or a backfill run.
+  // Referenced by computeDateProvenance to auto-clear the 'unknown' flag
+  // once the record has been corrected.
+  edited_at?: string;
+  date_backfill_source?: string;
   // Added 2026-08-04. Not stored in KV — computed at read-time from the
   // silent-now fingerprint so historical bad rows are contained without a
   // KV migration. See `date_provenance` block below.
@@ -49,21 +54,48 @@ interface ApprovedReview {
 // 2024). Rather than mutate KV blind, tag those records at read-time so the
 // SSG + client renderer can show "Date pending verification" instead of a
 // falsely-precise month. When Jitendra backfills real dates via the
-// moderation UI (edit action, or GBP API when the quota approval lands),
-// the fingerprint clears itself.
+// moderation UI (edit action) or the /scripts/backfill_review_dates_from_maps.mjs
+// migration (Google Maps scrape), the fingerprint clears itself.
 //
-// Heuristic: verified imports (verified=true) whose submitted_at and
-// approved_at are within 60 seconds of each other. User submissions
-// (verified=false) are NOT flagged — for on-site form submissions, a
-// moderator who approves within seconds is a valid, correct pattern.
+// Two heuristics, ORed together:
+//
+//   (A) Millisecond-tight silent-now: verified imports (verified=true) whose
+//       submitted_at and approved_at are within 60 seconds of each other.
+//       This is the pre-2026-08-03 bug fingerprint. User submissions
+//       (verified=false) are NOT flagged — for on-site form submissions, a
+//       moderator who approves within seconds is a valid, correct pattern.
+//
+//   (B) Import-window silent-now-with-delayed-approve: verified imports whose
+//       submitted_at falls inside the 2026-07-22..2026-07-25 historical
+//       import window (when the operator bulk-entered rows via the moderation
+//       UI) AND that have NOT been edited since the window closed. Fingerprint
+//       for records where the operator entered a close-but-wrong date manually
+//       (silent-now default's delta > 60s, so (A) misses it). The Atlasia,
+//       Sejal, Sakshi records — off by 4-7 days vs Google-authoritative
+//       timestamps — all sit in this window and were flagged 'provided'
+//       incorrectly. Once the backfill lands and edited_at moves outside
+//       the window, the record auto-flips back to 'provided'.
 const SILENT_NOW_WINDOW_MS = 60 * 1000;
+// Import window: 2026-07-22T00:00Z .. 2026-07-25T23:59:59Z (inclusive).
+const IMPORT_WINDOW_START_MS = Date.parse('2026-07-22T00:00:00.000Z');
+const IMPORT_WINDOW_END_MS = Date.parse('2026-07-25T23:59:59.999Z');
 function computeDateProvenance(r: ApprovedReview): 'provided' | 'unknown' {
   if (!r.verified) return 'provided';
   if (!r.submitted_at || !r.approved_at) return 'provided';
   const s = Date.parse(r.submitted_at);
   const a = Date.parse(r.approved_at);
   if (!Number.isFinite(s) || !Number.isFinite(a)) return 'provided';
+  // (A) millisecond-tight silent-now
   if (Math.abs(a - s) < SILENT_NOW_WINDOW_MS) return 'unknown';
+  // (B) import-window silent-now-with-delayed-approve. Only kick in if the
+  // record has NOT been edited outside the import window — that's the
+  // moderator's signal that the date has been corrected.
+  const inImportWindow = s >= IMPORT_WINDOW_START_MS && s <= IMPORT_WINDOW_END_MS;
+  if (inImportWindow) {
+    const e = r.edited_at ? Date.parse(r.edited_at) : NaN;
+    const editedAfterWindow = Number.isFinite(e) && e > IMPORT_WINDOW_END_MS;
+    if (!editedAfterWindow) return 'unknown';
+  }
   return 'provided';
 }
 
