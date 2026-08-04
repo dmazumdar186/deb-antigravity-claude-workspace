@@ -7,6 +7,13 @@
 // a category.
 //
 // Hydrates from CustomEvent('dashboarddata') like TimeSeriesChart.
+//
+// 2026-08-04 fix: same bare-specifier fix as TimeSeriesChart.astro — inline
+// `<script type="module" define:vars>` blocks cannot resolve
+// `import ApexCharts from 'apexcharts'` in the browser, which is why "Where
+// clicks come from" has been blank since V0.1 shipped. Initial data now
+// flows via `data-init` JSON attribute; the hoisted `<script>` gets Astro-
+// bundled and the import resolves.
 
 interface Props {
   labels: string[];
@@ -14,18 +21,25 @@ interface Props {
   degraded_source_indices?: number[];
 }
 const { labels, values, degraded_source_indices = [] } = Astro.props;
+const initJson = JSON.stringify({
+  labels: Array.isArray(labels) ? labels : [],
+  values: Array.isArray(values) ? values : [],
+  degraded_source_indices: Array.isArray(degraded_source_indices) ? degraded_source_indices : [],
+});
 ---
 <div class="donut-block" data-reveal>
   <p class="eyebrow"><span class="breathing-dot"></span><span>Discovery mix</span></p>
   <h2 class="dash-h2">Where clicks come from</h2>
-  <div id="source-donut-chart" class="chart-host" aria-label="Donut chart: click share by discovery channel"></div>
+  <div
+    id="source-donut-chart"
+    class="chart-host"
+    data-init={initJson}
+    aria-label="Donut chart: click share by discovery channel"
+  ></div>
   <p class="chart-source">Source: Google Search Console + Business Profile + Bing + On-site beacon</p>
 </div>
 
-<script
-  type="module"
-  define:vars={{ initialLabels: labels, initialValues: values, initialDegraded: degraded_source_indices }}
->
+<script>
   import ApexCharts from 'apexcharts';
 
   const INK_SOFT = 'rgba(74, 66, 59, 0.7)';
@@ -35,13 +49,24 @@ const { labels, values, degraded_source_indices = [] } = Astro.props;
   const SAND = 'rgba(217, 199, 167, 0.9)';
   const PALETTE = [TERRACOTTA, SAGE, INK, SAND];
 
-  function buildOptions(labels, values, degradedIndices) {
+  function buildOptions(labels: string[], values: number[], degradedIndices: number[]) {
     // Fill non-degraded slices from the palette; degraded slices get a
-    // pale sand fill and appear in the legend with a "no data" note.
+    // pale sand fill and appear in the legend with a "pending" note.
+    // 2026-08-04: for the case where GBP is permanently degraded (Google
+    // denied API access), the "no data yet" wording is misleading — nothing
+    // is coming. We surface it as "(pending API approval)" so the client
+    // reads the state truthfully. Other transient-degraded sources still
+    // read as "(no data yet)".
+    const GBP_LABEL = 'Google Maps';
     const colors = (labels || []).map((_, i) =>
       degradedIndices.includes(i) ? 'rgba(217, 199, 167, 0.35)' : PALETTE[i % PALETTE.length]
     );
     const totalClicks = (values || []).reduce((a, b) => a + (b || 0), 0);
+    const decoratedLabels = (labels || []).map((l, i) => {
+      if (!degradedIndices.includes(i)) return l;
+      if (l === GBP_LABEL) return `${l} (pending API approval)`;
+      return `${l} (no data yet)`;
+    });
     return {
       chart: {
         type: 'donut',
@@ -51,13 +76,13 @@ const { labels, values, degraded_source_indices = [] } = Astro.props;
         animations: { enabled: true, speed: 500 },
       },
       series: values || [],
-      labels: (labels || []).map((l, i) => degradedIndices.includes(i) ? `${l} (no data yet)` : l),
+      labels: decoratedLabels,
       colors,
       stroke: { width: 0 },
       dataLabels: {
         enabled: totalClicks > 0,
         style: { fontSize: '11px', fontFamily: 'Inter', fontWeight: 500, colors: ['#fff'] },
-        formatter: (val) => val >= 5 ? `${val.toFixed(0)}%` : '',
+        formatter: (val: number) => val >= 5 ? `${val.toFixed(0)}%` : '',
         dropShadow: { enabled: false },
       },
       legend: {
@@ -91,7 +116,7 @@ const { labels, values, degraded_source_indices = [] } = Astro.props;
         },
       },
       tooltip: {
-        y: { formatter: (v) => (v == null ? '—' : `${v.toLocaleString('en-US')} clicks`) },
+        y: { formatter: (v: number | null) => (v == null ? '—' : `${v.toLocaleString('en-US')} clicks`) },
       },
       noData: {
         text: 'No clicks recorded yet — see the status banner above for the reason.',
@@ -102,17 +127,39 @@ const { labels, values, degraded_source_indices = [] } = Astro.props;
     };
   }
 
-  const el = document.getElementById('source-donut-chart');
-  if (el) {
+  function initDonut() {
+    const el = document.getElementById('source-donut-chart') as HTMLDivElement | null;
+    if (!el) return;
+    let initialLabels: string[] = [];
+    let initialValues: number[] = [];
+    let initialDegraded: number[] = [];
+    try {
+      const raw = el.dataset.init;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        initialLabels = Array.isArray(parsed.labels) ? parsed.labels : [];
+        initialValues = Array.isArray(parsed.values) ? parsed.values : [];
+        initialDegraded = Array.isArray(parsed.degraded_source_indices) ? parsed.degraded_source_indices : [];
+      }
+    } catch (err) {
+      console.warn('source-donut init JSON parse failed (rendering empty chart)', err);
+    }
+
     const chart = new ApexCharts(el, buildOptions(initialLabels, initialValues, initialDegraded));
     chart.render();
 
-    window.addEventListener('dashboarddata', (ev) => {
-      const rollup = ev?.detail?.rollup;
+    window.addEventListener('dashboarddata', (ev: Event) => {
+      const rollup = (ev as CustomEvent).detail?.rollup;
       if (!rollup?.source_split) return;
       const { labels: newLabels, values: newValues, degraded_source_indices: newDeg } = rollup.source_split;
       chart.updateOptions(buildOptions(newLabels || [], newValues || [], newDeg || []));
     });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDonut);
+  } else {
+    initDonut();
   }
 </script>
 

@@ -1,0 +1,42 @@
+name = "workspace-heartbeat"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+# workspace-heartbeat — daily health probe of every deployed project
+# listed in manifest.json. See src/index.js for the full picture and
+# HARDENING_BACKLOG_WORKSPACE_2026-08-04.md for the "why".
+#
+# Deploy (after operator commits and provides secrets):
+#   cd execution/infrastructure/workspace_heartbeat
+#   npx wrangler kv namespace create HEARTBEAT_KV
+#   # paste the returned id into [[kv_namespaces]] below
+#   npx wrangler secret put TELEGRAM_BOT_TOKEN   # optional
+#   npx wrangler secret put TELEGRAM_CHAT_ID     # optional
+#   npx wrangler secret put PROBE_SECRET         # required
+#   py execution/infrastructure/workspace_heartbeat/inline_manifest.py
+#   npx wrangler deploy
+#
+# Revert:
+#   npx wrangler delete workspace-heartbeat
+
+# Daily at 06:00 UTC. Independent of any project cron so a paused project
+# doesn't pause the heartbeat.
+[triggers]
+crons = ["0 6 * * *"]
+
+[vars]
+# MANIFEST_JSON is populated at deploy-time by inline_manifest.py which reads
+# manifest.json (the single source of truth), stringifies it, and injects it
+# here. The placeholder below is deliberately empty so a wrangler deploy
+# without running the inliner produces a Worker that returns {"projects": []}
+# rather than a stale hardcoded snapshot.
+MANIFEST_JSON = "{\"$schema_version\":1,\"$description\":\"Single source of truth for the workspace_heartbeat Worker AND the freshness_monitor.py script. Both read this file. Update thresholds and add projects here.\",\"$conventions\":{\"types\":{\"cron_worker\":\"Deployed CF Worker with a scheduled trigger. Probe /health, expect JSON with optional last_success_at/kv_last_write.\",\"cron_gh_actions\":\"Scheduled GitHub Actions workflow. Freshness from the latest workflow run timestamp (via gh CLI in freshness_monitor.py); the Worker probes the workflow's public status badge URL for HTTP up-check only.\",\"pages_site\":\"Cloudflare Pages / Vercel / static-hosted site. Probe a specific API route for HTTP 200. Freshness only from local git-log.\",\"interactive_only\":\"No cron. Freshness only from git-log on the project directory.\"},\"freshness_field_semantics\":{\"kv_last_write\":\"Probe JSON contains a timestamp of the last KV write by the pipeline. Compare to (now - freshness_threshold_hours) for DEGRADED.\",\"last_success_at\":\"Probe JSON contains a timestamp of the last successful full run. Same semantics.\",\"last_run_at\":\"Any timestamp indicating the last cron fire (success OR failure). Weaker signal than success but still useful for detecting stopped crons.\"},\"freshness_threshold_defaults\":{\"cron_daily\":25,\"cron_weekly\":192,\"cron_monthly\":768,\"interactive_60d\":1440}},\"projects\":[{\"slug\":\"yoga_jitendra_cron\",\"type\":\"cron_worker\",\"cadence\":\"daily\",\"declared_interval_hours\":24,\"freshness_threshold_hours\":25,\"freshness_field\":\"kv_last_write\",\"probe_url\":\"https://yoga-jitendra-cron.debanjan186.workers.dev/health\",\"probe_expected_status\":200,\"git_path\":\"execution/infrastructure/yoga_jitendra_cron\",\"notes\":\"Daily 06:00 Paris (DST-safe via twin cron 04/05 UTC). Reads 4 sources into snap:<source>:<YYYY-MM-DD> KV keys. Confirm the workers.dev subdomain \\u2014 placeholder above; operator to correct.\"},{\"slug\":\"yoga_jitendra_site_dashboard\",\"type\":\"pages_site\",\"cadence\":\"n/a\",\"declared_interval_hours\":null,\"freshness_threshold_hours\":null,\"freshness_field\":null,\"probe_url\":\"https://yogaavecjitendra.fr/api/dashboard-data\",\"probe_expected_status\":200,\"git_path\":\"execution/personal_workflows/yoga_jitendra_site\",\"notes\":\"Pages Function reading dashboard:{7d,30d,all} KV. Live-artifact-acceptance target: assert response is NOT the fallback shape (hero_tiles.reach.value !== null OR _warning field absent).\"},{\"slug\":\"interview_iag\",\"type\":\"pages_site\",\"cadence\":\"n/a\",\"declared_interval_hours\":null,\"freshness_threshold_hours\":null,\"freshness_field\":null,\"probe_url\":\"https://agentup-iag.pages.dev/api/claude\",\"probe_expected_status\":405,\"git_path\":\"execution/personal_workflows/interview_iag\",\"notes\":\"Probe /api/claude with GET expects 405 (Method Not Allowed for a POST endpoint). Confirms the function is wired. Full-project tree UNTRACKED as of 2026-08-04 \\u2014 freshness signal only meaningful once committed.\"},{\"slug\":\"cv_optimizer_v2_api\",\"type\":\"pages_site\",\"cadence\":\"n/a\",\"declared_interval_hours\":null,\"freshness_threshold_hours\":null,\"freshness_field\":null,\"probe_url\":\"https://cv-optimizer-api.debanjan186.workers.dev/api/health\",\"probe_expected_status\":200,\"git_path\":\"execution/personal_workflows/cv_optimizer_v2\",\"notes\":\"Worker for the CV Optimizer v2 project. /api/health should return per-upstream credit balance + secret-presence.\"},{\"slug\":\"anthropic_watch\",\"type\":\"interactive_only\",\"cadence\":\"n/a\",\"declared_interval_hours\":null,\"freshness_threshold_hours\":1440,\"freshness_field\":null,\"probe_url\":null,\"probe_expected_status\":null,\"git_path\":\"execution/personal_workflows/anthropic_watch\",\"notes\":\"Daily watcher. Memory shows 52d stale as of 2026-08-04. Threshold 60d = 1440h; adjust down once operator confirms whether this is intended to run daily. If daily, retype to cron_gh_actions.\"},{\"slug\":\"job_search_v2\",\"type\":\"cron_gh_actions\",\"cadence\":\"daily\",\"declared_interval_hours\":24,\"freshness_threshold_hours\":25,\"freshness_field\":null,\"probe_url\":\"https://github.com/dmazumdar186/job_search_v2/actions\",\"probe_expected_status\":200,\"gh_repo\":\"dmazumdar186/job_search_v2\",\"gh_workflow_file\":null,\"git_path\":\"execution/personal_workflows/job_search_v2\",\"run_log_path\":\".tmp/job_search_v2/run_log.jsonl\",\"notes\":\"Latest GH Actions run + local run_log freshness. As of 2026-08-04 memory shows 34d silent. Confirm gh_repo slug; operator's GH username may differ.\"},{\"slug\":\"prodcraft_autopilot\",\"type\":\"interactive_only\",\"cadence\":\"n/a\",\"declared_interval_hours\":null,\"freshness_threshold_hours\":1440,\"freshness_field\":null,\"probe_url\":null,\"probe_expected_status\":null,\"git_path\":\"execution/personal_workflows/prodcraft_autopilot\",\"run_log_path\":\".tmp/prodcraft_autopilot/queue.jsonl\",\"notes\":\"Queue frozen 2026-06-22 per memory (43d as of 2026-08-04). If a cron is later added, retype to cron_gh_actions or cron_worker.\"}]}"
+
+# KV binding for report persistence.
+# Namespace id must be filled in after `wrangler kv namespace create HEARTBEAT_KV`.
+[[kv_namespaces]]
+binding = "HEARTBEAT_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID_AFTER_CREATE"
+
+[observability]
+enabled = true

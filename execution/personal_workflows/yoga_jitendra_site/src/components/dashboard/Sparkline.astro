@@ -6,6 +6,13 @@
 // Uses ApexCharts sparkline mode (no axes, no legend, minimal chrome).
 // Each sparkline needs a unique DOM id so multiple HeroTiles can host
 // their own without colliding.
+//
+// 2026-08-04 fix: same bare-specifier fix as TimeSeriesChart / SourceDonut.
+// Initial data (id, data, color) now flows via `data-init` JSON on the
+// host div; a single hoisted `<script>` iterates every `.sparkline-host`
+// and initializes it. This lets Astro bundle ApexCharts once for the whole
+// page instead of failing on `import 'apexcharts'` inside an inline
+// `define:vars` module.
 
 interface Props {
   id: string;
@@ -15,6 +22,7 @@ interface Props {
 }
 const { id, data, color = 'var(--terracotta)', metric_key } = Astro.props;
 const hasData = Array.isArray(data) && data.length > 0 && data.some((v) => v && v > 0);
+const initJson = JSON.stringify({ data: Array.isArray(data) ? data : [], color });
 ---
 {hasData && (
   <div
@@ -22,25 +30,42 @@ const hasData = Array.isArray(data) && data.length > 0 && data.some((v) => v && 
     class="sparkline-host"
     data-color={color}
     data-metric={metric_key}
+    data-init={initJson}
     aria-hidden="true"
   ></div>
 )}
 
-<script type="module" define:vars={{ id, data, color }}>
+<script>
   import ApexCharts from 'apexcharts';
 
-  const el = document.getElementById(id);
-  if (el && Array.isArray(data) && data.length > 0) {
-    // Resolve CSS variable to real color for ApexCharts (it does not
-    // understand CSS var() strings in the colors option).
-    let resolvedColor = color;
+  interface SparkInit { data: number[]; color: string; }
+
+  function resolveColor(color: string): string {
     if (typeof color === 'string' && color.startsWith('var(')) {
       const varName = color.slice(4, -1).trim();
       const cssValue = getComputedStyle(document.documentElement)
         .getPropertyValue(varName)
         .trim();
-      resolvedColor = cssValue || '#c9744a';
+      return cssValue || '#c9744a';
     }
+    return color || '#c9744a';
+  }
+
+  function initOneSparkline(el: HTMLDivElement) {
+    // Guard against double-init when the hoisted script fires from multiple
+    // triggers (DOMContentLoaded + already-parsed fallback).
+    if (el.dataset.sparklineInit === '1') return;
+    el.dataset.sparklineInit = '1';
+
+    let init: SparkInit;
+    try {
+      init = JSON.parse(el.dataset.init || '{"data":[],"color":"#c9744a"}');
+    } catch (err) {
+      console.warn(`sparkline #${el.id} init JSON parse failed`, err);
+      return;
+    }
+    if (!Array.isArray(init.data) || init.data.length === 0) return;
+
     const chart = new ApexCharts(el, {
       chart: {
         type: 'area',
@@ -48,8 +73,8 @@ const hasData = Array.isArray(data) && data.length > 0 && data.some((v) => v && 
         sparkline: { enabled: true },
         animations: { enabled: true, speed: 400 },
       },
-      series: [{ name: 'value', data }],
-      colors: [resolvedColor],
+      series: [{ name: 'value', data: init.data }],
+      colors: [resolveColor(init.color)],
       stroke: { curve: 'smooth', width: 1.5 },
       fill: {
         type: 'gradient',
@@ -68,8 +93,8 @@ const hasData = Array.isArray(data) && data.length > 0 && data.some((v) => v && 
     // a data-metric attribute so we can route the right array from the
     // updated rollup. We listen on the same event bus but only self-update
     // if a matching series arrives.
-    window.addEventListener('dashboarddata', (ev) => {
-      const rollup = ev?.detail?.rollup;
+    window.addEventListener('dashboarddata', (ev: Event) => {
+      const rollup = (ev as CustomEvent).detail?.rollup;
       if (!rollup?.hero_tiles) return;
       const metricKey = el.getAttribute('data-metric');
       const tile = metricKey && rollup.hero_tiles[metricKey];
@@ -77,6 +102,16 @@ const hasData = Array.isArray(data) && data.length > 0 && data.some((v) => v && 
         chart.updateSeries([{ name: 'value', data: tile.sparkline }]);
       }
     });
+  }
+
+  function initAllSparklines() {
+    document.querySelectorAll<HTMLDivElement>('.sparkline-host').forEach(initOneSparkline);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAllSparklines);
+  } else {
+    initAllSparklines();
   }
 </script>
 

@@ -10,6 +10,20 @@
 // dashboard hydration script when /api/dashboard-data responds and on
 // every range-pill click via the CustomEvent('dashboardrange') bus.
 //
+// 2026-08-04 fix: the initial data used to be handed to the client via
+// `<script type="module" define:vars>`, which Astro emits as an INLINE
+// module script. Browsers cannot resolve `import ApexCharts from
+// 'apexcharts'` (bare specifier) in an inline module — the import
+// throws `Failed to resolve module specifier "apexcharts"` and the
+// chart never renders. That is the root cause of "How the numbers
+// moved" being blank since V0.1 shipped on 2026-07-21.
+//
+// The fix: hand initial data to the client via a `data-init` JSON
+// attribute on the host div, then use a HOISTED `<script>` (no
+// define:vars) that Astro properly bundles — ApexCharts becomes a real
+// `_astro/*.js` chunk and the import resolves. Same pattern applied
+// to SourceDonut.astro and Sparkline.astro in the same commit.
+//
 // Contract with dashboard.astro:
 //   - The div's id is stable so the hydration script can find it.
 //   - It listens for CustomEvent('dashboarddata', { detail: { rollup } })
@@ -25,15 +39,24 @@ interface Props {
   series: Series[];
 }
 const { labels, series } = Astro.props;
+const initJson = JSON.stringify({
+  labels: Array.isArray(labels) ? labels : [],
+  series: Array.isArray(series) ? series : [],
+});
 ---
 <div class="time-series-block" data-reveal>
   <p class="eyebrow"><span class="breathing-dot"></span><span>Trend</span></p>
   <h2 class="dash-h2">How the numbers moved</h2>
-  <div id="time-series-chart" class="chart-host" aria-label="Trend chart: impressions, clicks and WhatsApp taps"></div>
+  <div
+    id="time-series-chart"
+    class="chart-host"
+    data-init={initJson}
+    aria-label="Trend chart: impressions, clicks and WhatsApp taps"
+  ></div>
   <p class="chart-source">Source: Google Search Console + Bing + Google Business Profile + On-site beacon</p>
 </div>
 
-<script type="module" define:vars={{ initialLabels: labels, initialSeries: series }}>
+<script>
   import ApexCharts from 'apexcharts';
 
   const CREAM = '#f4ede1';
@@ -43,7 +66,9 @@ const { labels, series } = Astro.props;
   const SAGE = '#6b7a5a';
   const SAND = 'rgba(217, 199, 167, 0.6)';
 
-  function buildOptions(labels, series) {
+  interface Series { name: string; data: number[]; }
+
+  function buildOptions(labels: string[], series: Series[]) {
     return {
       chart: {
         type: 'area',
@@ -77,7 +102,11 @@ const { labels, series } = Astro.props;
         labels: {
           style: { colors: INK_SOFT, fontSize: '11px' },
           rotate: 0,
-          formatter: (v) => v ? v.slice(5) : '',   // MM-DD only, tighter axis
+          // Defensive: v may be undefined, non-string, or a short string.
+          // Return '' instead of throwing so the axis renders even for
+          // partially-populated windows.
+          formatter: (v: unknown) =>
+            typeof v === 'string' && v.length >= 5 ? v.slice(5) : String(v ?? ''),
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -85,7 +114,7 @@ const { labels, series } = Astro.props;
       yaxis: {
         labels: {
           style: { colors: INK_SOFT, fontSize: '11px' },
-          formatter: (v) => (Number.isInteger(v) ? v : v.toFixed(0)),
+          formatter: (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(0)),
         },
       },
       legend: {
@@ -99,7 +128,7 @@ const { labels, series } = Astro.props;
       tooltip: {
         theme: 'light',
         style: { fontSize: '12px' },
-        y: { formatter: (v) => v == null ? '—' : v.toLocaleString('en-US') },
+        y: { formatter: (v: number | null) => v == null ? '—' : v.toLocaleString('en-US') },
       },
       noData: {
         text: 'No trend data yet — see the status banner above for the reason.',
@@ -110,20 +139,40 @@ const { labels, series } = Astro.props;
     };
   }
 
-  const el = document.getElementById('time-series-chart');
-  if (el) {
+  function initTimeSeries() {
+    const el = document.getElementById('time-series-chart') as HTMLDivElement | null;
+    if (!el) return;
+    let initialLabels: string[] = [];
+    let initialSeries: Series[] = [];
+    try {
+      const raw = el.dataset.init;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        initialLabels = Array.isArray(parsed.labels) ? parsed.labels : [];
+        initialSeries = Array.isArray(parsed.series) ? parsed.series : [];
+      }
+    } catch (err) {
+      console.warn('time-series init JSON parse failed (rendering empty chart)', err);
+    }
+
     const chart = new ApexCharts(el, buildOptions(initialLabels, initialSeries));
     chart.render();
 
     // Listen for hydration events from the dashboard controller.
-    window.addEventListener('dashboarddata', (ev) => {
-      const rollup = ev?.detail?.rollup;
+    window.addEventListener('dashboarddata', (ev: Event) => {
+      const rollup = (ev as CustomEvent).detail?.rollup;
       if (!rollup?.time_series) return;
       chart.updateOptions({
         xaxis: { categories: rollup.time_series.labels || [] },
       });
       chart.updateSeries(rollup.time_series.series || []);
     });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTimeSeries);
+  } else {
+    initTimeSeries();
   }
 </script>
 
