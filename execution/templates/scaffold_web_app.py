@@ -123,7 +123,7 @@ def init_git(root: Path, do_commit: bool) -> None:
         )
 
     if (root / ".git").exists():
-        print("[git] .git already exists — skipping init")
+        print("[git] .git already exists -- skipping init")
     else:
         _run(["git", "init", "-q"])
         print("[git] initialized")
@@ -149,7 +149,7 @@ def init_git(root: Path, do_commit: bool) -> None:
             check=False,
         )
         if res.returncode == 0:
-            print("[git] initial commit created (no-verify — bootstrap only)")
+            print("[git] initial commit created (no-verify -- bootstrap only)")
         else:
             print(f"[git] initial commit skipped: {res.stderr.strip() or res.stdout.strip()}")
 

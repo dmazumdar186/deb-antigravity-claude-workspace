@@ -104,14 +104,14 @@ def check_git_tracked_functions() -> list[str]:
         if p.is_file() and p.suffix in {".ts", ".js", ".mjs"}:
             rel = p.relative_to(ROOT).as_posix()
             if rel not in tracked_set:
-                errors.append(f"Untracked Pages Function: {rel} — wrangler pages deploy will NOT ship it")
+                errors.append(f"Untracked Pages Function: {rel} -- wrangler pages deploy will NOT ship it")
     return errors
 
 
 def check_live_home() -> list[str]:
     errors: list[str] = []
     if not SITE_URL:
-        return ["SITE_URL not set — cannot run live acceptance. Set SITE_URL env var."]
+        return ["SITE_URL not set -- cannot run live acceptance. Set SITE_URL env var."]
     status, body = http_get("/")
     if status != 200:
         errors.append(f"GET / returned {status}: {body[:200]}")
