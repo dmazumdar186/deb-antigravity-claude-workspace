@@ -1,0 +1,45 @@
+---
+// Base layout — every page extends this.
+// A11y baselines: skip-link, role=main, lang attribute per page.
+// Security: headers ship via public/_headers (Pages reads at deploy).
+export interface Props {
+  title: string;
+  description?: string;
+  lang?: 'fr' | 'en';
+  canonical?: string;
+}
+const { title, description = '', lang = 'fr', canonical } = Astro.props;
+const site = Astro.site?.toString().replace(/\/$/, '') ?? '';
+const url = canonical ?? new URL(Astro.url.pathname, Astro.site).toString();
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={url} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" hreflang="fr" href={`${site}${Astro.url.pathname.replace(/^\/en/, '') || '/'}`} />
+    <link rel="alternate" hreflang="en" href={`${site}/en${Astro.url.pathname.replace(/^\/en/, '') || '/'}`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}${Astro.url.pathname.replace(/^\/en/, '') || '/'}`} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta property="og:type" content="website" />
+  </head>
+  <body class="min-h-screen antialiased bg-white text-neutral-900">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-black focus:text-white focus:px-3 focus:py-2 focus:rounded">
+      Skip to content
+    </a>
+    <main id="main" role="main" class="mx-auto max-w-4xl px-4 py-8">
+      <slot />
+    </main>
+    <style is:global>
+      html { -webkit-text-size-adjust: 100%; }
+      *:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+    </style>
+  </body>
+</html>
