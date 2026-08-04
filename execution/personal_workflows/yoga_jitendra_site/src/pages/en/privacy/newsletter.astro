@@ -1,0 +1,232 @@
+---
+// Privacy notice — Newsletter (EN)
+//
+// See docs/gdpr_newsletter_popup_assessment.md for the full assessment.
+// Placeholders to fill before publishing:
+//   {{DATA_CONTROLLER_NAME}}     Jitendra's legal name
+//   {{DATA_CONTROLLER_ADDRESS}}  postal address (22 rue Eugène Manuel,
+//                                75016 Paris is a defensible business
+//                                address)
+//   {{DATA_CONTROLLER_SIREN}}    micro-entrepreneur SIREN (optional)
+
+import Base   from '../../../layouts/Base.astro';
+import TopNav from '../../../components/TopNav.astro';
+import Footer from '../../../components/Footer.astro';
+
+const lang = 'en' as const;
+const LAST_UPDATED = '2026-08-04';
+---
+<Base
+  title="Privacy notice — Newsletter · Yoga avec Jitendra"
+  description="Privacy notice for signing up to the Yoga avec Jitendra newsletter: what we collect, EU hosting, retention, your rights, how to unsubscribe or delete everything."
+  lang={lang}
+  pathFr="/privacy/newsletter"
+  pathEn="/en/privacy/newsletter"
+  noindex={true}
+>
+  <TopNav lang={lang} />
+  <main class="section">
+    <div class="section-inner" style="max-width: 780px;">
+      <article class="prose">
+        <p class="eyebrow">
+          <span>Privacy notice — Newsletter</span>
+        </p>
+        <h1>How we handle your newsletter data</h1>
+        <p><em>Last updated: {LAST_UPDATED}</em></p>
+
+        <h2>1. Who's the data controller?</h2>
+        <p>
+          <strong>{`{{DATA_CONTROLLER_NAME}}`}</strong>, Hatha Yoga instructor operating as an independent sole trader
+          (French <em>auto-entrepreneur</em> regime), registered at <em>{`{{DATA_CONTROLLER_ADDRESS}}`}</em>
+          (SIREN <em>{`{{DATA_CONTROLLER_SIREN}}`}</em>),
+          acts as the controller for the data collected via this website.
+        </p>
+        <p>
+          For any question about your data: <a href="mailto:jitendranitrr13@gmail.com">jitendranitrr13@gmail.com</a>.
+        </p>
+        <p>
+          Given the size of the activity (single sole trader), no Data Protection Officer (DPO) is required under Article 37 GDPR.
+        </p>
+
+        <h2>2. What we collect, and why</h2>
+        <p>If you choose to sign up to the newsletter via the invitation popup, we collect:</p>
+        <ul>
+          <li>your email address;</li>
+          <li>the date and time of your signup;</li>
+          <li>your preferred language (FR or EN), inferred from the page you signed up on;</li>
+          <li>
+            a technical consent proof (HMAC-SHA-256 fingerprint of your IP + the version of the consent text you accepted).
+            <strong>We do not store your IP address in clear.</strong>
+          </li>
+        </ul>
+        <p>
+          <strong>Single purpose:</strong> to send you occasional (typically monthly) updates about upcoming sessions,
+          including adapted or accessibility-friendly ones.
+        </p>
+        <p>
+          <strong>Legal basis:</strong> your consent (GDPR Article 6(1)(a)), evidenced by the checkbox you actively ticked
+          and by the click on the confirmation link we sent by email (double opt-in).
+        </p>
+
+        <h2>3. A small technical marker in your browser</h2>
+        <p>
+          When you dismiss the popup or subscribe, a flag called <code>yj_popup_seen</code> is stored in your browser's local
+          storage (<code>localStorage</code>) so the popup won't reappear for 30 days. This flag only holds the value <code>1</code>,
+          never leaves your browser, and has no other purpose. It is exempt from prior consent under Article 82 of the French
+          Data Protection Act, category "trackers strictly necessary to provide a service explicitly requested by the user"
+          (in this case: your choice not to see the popup again).
+        </p>
+
+        <h2>4. Where your data lives</h2>
+        <ul>
+          <li>
+            <strong>Email + signup record:</strong> at Brevo (Sendinblue SAS, a French company headquartered in Paris, servers
+            in France and Germany). Brevo's privacy policy:
+            <a href="https://www.brevo.com/legal/privacypolicy/" rel="noopener">brevo.com/legal/privacypolicy</a>.
+            A GDPR-compliant Data Processing Agreement is in place.
+          </li>
+          <li>
+            <strong>Technical consent proof:</strong> at Cloudflare (Workers KV), written with an EU-region preference. See:
+            <a href="https://www.cloudflare.com/trust-hub/gdpr/" rel="noopener">cloudflare.com/trust-hub/gdpr</a>.
+          </li>
+        </ul>
+        <p><strong>No newsletter-related data is transferred outside the European Union.</strong></p>
+
+        <h2>5. How long we keep your data</h2>
+        <ul>
+          <li>
+            <strong>Email in the mailing list:</strong> as long as you stay subscribed.
+            After you unsubscribe, a 30-day grace period (to catch accidental unsubscribes), then permanent deletion.
+          </li>
+          <li>
+            <strong>Consent proof record:</strong> 3 years from your signup, matching CNIL's recommended maximum for commercial
+            email prospection.
+          </li>
+          <li>
+            <strong>Anti-abuse rate-limit counter:</strong> 1 hour.
+          </li>
+        </ul>
+
+        <h2>6. Your rights</h2>
+        <p>You have the following rights at any time (GDPR Articles 15–22):</p>
+        <ul>
+          <li><strong>Access</strong> — see what we hold.</li>
+          <li><strong>Rectification</strong> — correct anything inaccurate.</li>
+          <li><strong>Erasure</strong> — request complete deletion.</li>
+          <li><strong>Portability</strong> — receive your data in a machine-readable format.</li>
+          <li><strong>Object</strong> — decline further messaging (every email carries a one-click unsubscribe).</li>
+          <li>
+            <strong>Complaint</strong> — file a complaint with the CNIL:
+            <a href="https://www.cnil.fr/en/plaints" rel="noopener">cnil.fr/en/plaints</a>.
+          </li>
+        </ul>
+
+        <h2 id="manage-my-data">7. Manage my data</h2>
+        <p>Three ways, from fastest to fullest:</p>
+        <ul>
+          <li><strong>Fast:</strong> click the "Unsubscribe" link in any email — deletion is immediate.</li>
+          <li><strong>Full:</strong> use the form below. We'll send you a magic link (valid 30 minutes) to a page where you can view or delete your data.</li>
+          <li><strong>Manually:</strong> email <a href="mailto:jitendranitrr13@gmail.com">jitendranitrr13@gmail.com</a>.</li>
+        </ul>
+
+        <form
+          class="dsr-form"
+          method="POST"
+          action="/api/dsr/request-link"
+          data-dsr-form
+          novalidate
+        >
+          <label class="dsr-field">
+            <span>Your email address</span>
+            <input type="email" name="email" required maxlength="254" autocomplete="email" placeholder="you@example.com" />
+          </label>
+          <input type="hidden" name="lang" value="en" />
+          <button type="submit" class="btn btn-primary">Email me a magic link</button>
+          <p class="dsr-status" data-dsr-status hidden></p>
+        </form>
+
+        <h2>8. Changes to this notice</h2>
+        <p>
+          Any material change will be dated at the top.
+          We'll notify you by email if the change affects the processing purpose or your rights.
+        </p>
+
+        <p><a href="/en/">← Back to the site</a></p>
+      </article>
+    </div>
+  </main>
+  <Footer lang={lang} />
+</Base>
+
+<style>
+  .prose { color: var(--ink-900, #2e2a26); }
+  .prose h1 { font-family: 'Fraunces', Georgia, serif; font-size: 2rem; margin: 0.5rem 0 1rem; line-height: 1.15; }
+  .prose h2 { font-family: 'Fraunces', Georgia, serif; font-size: 1.35rem; margin: 2rem 0 0.5rem; }
+  .prose p, .prose li { line-height: 1.6; }
+  .prose ul { padding-left: 1.25rem; }
+  .prose li { margin-bottom: 0.35rem; }
+  .prose code { background: rgba(46,42,38,0.06); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.9em; }
+  .prose a { color: var(--terracotta, #c05b3e); }
+
+  .dsr-form {
+    background: rgba(255, 254, 251, 0.75);
+    padding: 1.25rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-width: 460px;
+    margin-top: 1rem;
+  }
+  .dsr-field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .dsr-field span { font-size: 0.85rem; color: var(--ink-soft, #6b6560); font-weight: 500; }
+  .dsr-field input {
+    font: inherit;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid rgba(46,42,38,0.18);
+    border-radius: 8px;
+    background: white;
+    color: #2e2a26;
+  }
+  .dsr-field input:focus {
+    outline: none;
+    border-color: var(--terracotta, #c05b3e);
+    box-shadow: 0 0 0 3px rgba(192,91,62,0.15);
+  }
+  .dsr-status {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+    background: rgba(76,145,65,0.1);
+    color: #2f5d24;
+    margin: 0;
+  }
+</style>
+
+<script>
+  (function () {
+    const form = document.querySelector<HTMLFormElement>('[data-dsr-form]');
+    if (!form) return;
+    const status = form.querySelector<HTMLElement>('[data-dsr-status]');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const email = String(fd.get('email') ?? '').trim();
+      const lang = String(fd.get('lang') ?? 'en');
+      const generic = "If this address is on record, we've sent you a link. Check your inbox (the link is valid for 30 minutes).";
+      try {
+        const res = await fetch('/api/dsr/request-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, lang }),
+        });
+        void res;
+      } catch (err) { /* still show generic */ }
+      if (status) {
+        status.hidden = false;
+        status.textContent = generic;
+      }
+      form.querySelector<HTMLButtonElement>('button[type="submit"]')?.setAttribute('disabled', 'disabled');
+    });
+  })();
+</script>

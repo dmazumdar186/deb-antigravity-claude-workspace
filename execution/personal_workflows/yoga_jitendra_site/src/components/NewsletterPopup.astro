@@ -1,0 +1,514 @@
+---
+// NewsletterPopup.astro
+//
+// Bog-standard newsletter opt-in popup, GDPR/CNIL-scoped for a French
+// micro-entrepreneur (Jitendra Kumar). See docs/gdpr_newsletter_popup_assessment.md
+// for the full legal analysis.
+//
+// UX contract:
+//   - Renders on first page-load only. A `localStorage.yj_popup_seen`
+//     flag with a 30-day soft TTL suppresses re-renders. Client-side only;
+//     no cookie, no server call to check state.
+//   - Skip is a first-class action: same visual weight as Subscribe.
+//   - Honeypot only (no Turnstile — first-load popup with skip button is
+//     a low-value bot target; friction from Turnstile would hurt legit
+//     conversions more than the fraud saved).
+//   - Consent checkbox is UNTICKED by default (CNIL requirement).
+//   - Submit → POST /api/newsletter-subscribe → shows "check your inbox"
+//     confirmation, sets the local flag so the popup stays dismissed even
+//     if the visitor closes the tab before clicking the DOI link.
+//   - Skip → sets local flag, hides. Zero server calls.
+//   - Backdrop click closes = same as Skip.
+//   - Esc closes = same as Skip.
+//
+// Props:
+//   lang   'fr' | 'en'   defaults to 'fr'
+//
+// Wire-up (do this in Base.astro after operator confirms):
+//   import NewsletterPopup from '../components/NewsletterPopup.astro';
+//   ...
+//   <NewsletterPopup lang={lang} />
+
+interface Props {
+  lang?: 'fr' | 'en';
+}
+
+const { lang = 'fr' } = Astro.props;
+
+const t = lang === 'en'
+  ? {
+      title: 'Stay in touch',
+      body: "Roughly once a month, Jitendra sends a short email: upcoming classes, workshops, and adapted sessions (including for deaf and hard-of-hearing practitioners). Nothing else — no sales, no spam.",
+      emailLabel: 'Your email address',
+      emailPlaceholder: 'you@example.com',
+      consent: 'I agree to receive the Yoga avec Jitendra newsletter at this address. I can unsubscribe any time via the link in every email.',
+      noticePrefix: 'Your data stays in Europe — see the ',
+      noticeLinkText: 'privacy notice',
+      noticeSuffix: '.',
+      noticeHref: '/en/privacy/newsletter',
+      subscribe: 'Subscribe',
+      skip: 'No thanks',
+      thanksTitle: 'Thanks!',
+      thanksBody: 'Check your inbox — click the confirmation link to finalise your subscription.',
+      errorGeneric: 'Something went wrong. Try again or email Jitendra directly.',
+      errorEmailInvalid: 'Please enter a valid email address.',
+      errorConsent: 'Please tick the consent box to subscribe.',
+      errorRateLimited: 'You have already tried recently. Please wait a moment.',
+      closeAria: 'Close',
+    }
+  : {
+      title: 'Restez en contact',
+      body: "Une fois par mois environ, Jitendra envoie un petit e-mail : cours à venir, ateliers, séances adaptées (notamment pour les personnes sourdes ou malentendantes). Rien d'autre — pas de vente, pas de spam.",
+      emailLabel: 'Votre adresse e-mail',
+      emailPlaceholder: 'vous@exemple.com',
+      consent: "J'accepte de recevoir la newsletter de Yoga avec Jitendra à cette adresse. Je peux me désinscrire à tout moment via le lien présent dans chaque e-mail.",
+      noticePrefix: 'Vos données restent en Europe — voir la ',
+      noticeLinkText: 'politique de confidentialité',
+      noticeSuffix: '.',
+      noticeHref: '/privacy/newsletter',
+      subscribe: "M'inscrire",
+      skip: 'Non merci',
+      thanksTitle: 'Merci !',
+      thanksBody: 'Vérifiez votre boîte mail — cliquez sur le lien de confirmation pour finaliser votre inscription.',
+      errorGeneric: "Une erreur est survenue. Réessayez ou écrivez directement à Jitendra.",
+      errorEmailInvalid: 'Veuillez saisir une adresse e-mail valide.',
+      errorConsent: 'Veuillez cocher la case de consentement pour vous inscrire.',
+      errorRateLimited: 'Vous avez déjà essayé récemment. Merci de patienter un instant.',
+      closeAria: 'Fermer',
+    };
+
+// Consent text version — bump this string whenever the consent copy above
+// changes materially. Stored in the KV consent-proof record so we can prove
+// which version of the text a given subscriber accepted.
+const CONSENT_TEXT_VERSION = '2026-08-04';
+---
+
+<div
+  id="yj-newsletter-popup"
+  class="yj-nl-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="yj-nl-title"
+  aria-describedby="yj-nl-body"
+  hidden
+  data-lang={lang}
+  data-consent-version={CONSENT_TEXT_VERSION}
+>
+  <div class="yj-nl-panel">
+    <button
+      type="button"
+      class="yj-nl-close"
+      data-yj-nl-close
+      aria-label={t.closeAria}
+    >&times;</button>
+
+    <h2 id="yj-nl-title" class="yj-nl-title">{t.title}</h2>
+    <p id="yj-nl-body" class="yj-nl-body">{t.body}</p>
+
+    <form class="yj-nl-form" data-yj-nl-form novalidate>
+      {/* Honeypot: hidden field named "website"; real users won't fill it. */}
+      <div class="yj-nl-honeypot" aria-hidden="true">
+        <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+      </div>
+
+      <input type="hidden" name="lang" value={lang} />
+      <input type="hidden" name="consent_text_version" value={CONSENT_TEXT_VERSION} />
+
+      <label class="yj-nl-field">
+        <span class="yj-nl-field-label">{t.emailLabel}</span>
+        <input
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+          inputmode="email"
+          maxlength="254"
+          placeholder={t.emailPlaceholder}
+          data-yj-nl-email
+        />
+      </label>
+
+      <label class="yj-nl-consent">
+        <input type="checkbox" name="consent" value="on" required data-yj-nl-consent />
+        <span>{t.consent}</span>
+      </label>
+
+      <p class="yj-nl-notice">
+        {t.noticePrefix}<a href={t.noticeHref}>{t.noticeLinkText}</a>{t.noticeSuffix}
+      </p>
+
+      <div class="yj-nl-actions">
+        <button
+          type="button"
+          class="yj-nl-btn yj-nl-btn-skip"
+          data-yj-nl-skip
+        >{t.skip}</button>
+        <button
+          type="submit"
+          class="yj-nl-btn yj-nl-btn-primary"
+        >{t.subscribe}</button>
+      </div>
+
+      <p
+        class="yj-nl-status"
+        role="status"
+        aria-live="polite"
+        data-yj-nl-status
+        hidden
+      ></p>
+    </form>
+
+    <div class="yj-nl-thanks" data-yj-nl-thanks hidden>
+      <h3>{t.thanksTitle}</h3>
+      <p>{t.thanksBody}</p>
+      <button
+        type="button"
+        class="yj-nl-btn yj-nl-btn-primary"
+        data-yj-nl-close-final
+      >OK</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .yj-nl-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 24, 20, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: yj-nl-fade-in 0.24s ease-out;
+  }
+  .yj-nl-panel {
+    background: #fffdf9;
+    color: #2e2a26;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.24);
+    max-width: 480px;
+    width: 100%;
+    padding: 1.75rem 1.5rem 1.25rem;
+    position: relative;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+  .yj-nl-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    background: none;
+    border: 0;
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+    color: rgba(46,42,38,0.55);
+    padding: 0.25rem 0.5rem;
+  }
+  .yj-nl-close:hover { color: #2e2a26; }
+  .yj-nl-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.65rem;
+    margin: 0 0 0.75rem;
+    line-height: 1.2;
+  }
+  .yj-nl-body {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #4a4540;
+    margin: 0 0 1.25rem;
+  }
+  .yj-nl-form { display: flex; flex-direction: column; gap: 0.85rem; }
+  .yj-nl-honeypot {
+    position: absolute; left: -9999px; top: -9999px;
+    width: 1px; height: 1px; overflow: hidden;
+  }
+  .yj-nl-field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .yj-nl-field-label {
+    font-size: 0.8rem;
+    color: #6b6560;
+    font-weight: 500;
+  }
+  .yj-nl-field input[type="email"] {
+    font: inherit;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid rgba(46,42,38,0.18);
+    border-radius: 8px;
+    background: white;
+    color: #2e2a26;
+  }
+  .yj-nl-field input[type="email"]:focus {
+    outline: none;
+    border-color: #c05b3e;
+    box-shadow: 0 0 0 3px rgba(192,91,62,0.15);
+  }
+  .yj-nl-consent {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #4a4540;
+    cursor: pointer;
+  }
+  .yj-nl-consent input[type="checkbox"] {
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+    width: 1rem; height: 1rem;
+    accent-color: #c05b3e;
+  }
+  .yj-nl-notice {
+    font-size: 0.78rem;
+    color: #6b6560;
+    margin: 0.25rem 0 0;
+  }
+  .yj-nl-notice a { color: #c05b3e; text-decoration: underline; }
+  .yj-nl-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .yj-nl-btn {
+    flex: 1 1 45%;
+    min-height: 44px;
+    font: inherit;
+    font-weight: 500;
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  .yj-nl-btn:active { transform: translateY(1px); }
+  .yj-nl-btn-primary {
+    background: #c05b3e;
+    color: white;
+  }
+  .yj-nl-btn-primary:hover { background: #a94b30; }
+  .yj-nl-btn-skip {
+    background: white;
+    color: #2e2a26;
+    border-color: rgba(46,42,38,0.22);
+  }
+  .yj-nl-btn-skip:hover { background: #f5f2ec; }
+  .yj-nl-status {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    margin: 0.25rem 0 0;
+  }
+  .yj-nl-status[data-tone="err"] {
+    background: rgba(192,91,62,0.12);
+    color: #8a3820;
+  }
+  .yj-nl-thanks h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.4rem;
+    margin: 0 0 0.75rem;
+  }
+  .yj-nl-thanks p {
+    color: #4a4540;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin: 0 0 1.25rem;
+  }
+  @media (max-width: 480px) {
+    .yj-nl-actions { flex-direction: column-reverse; }
+    .yj-nl-btn { flex-basis: 100%; }
+  }
+  @keyframes yj-nl-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .yj-nl-backdrop { animation: none; }
+  }
+</style>
+
+<script>
+  // Storage key + TTL configuration for the "seen popup" flag.
+  // 30-day soft TTL — we compute expiry client-side and clear on read.
+  const YJ_NL_KEY = 'yj_popup_seen';
+  const YJ_NL_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+  const YJ_NL_FIRST_LOAD_DELAY_MS = 1800;
+
+  function yjNlSetSeen() {
+    try {
+      window.localStorage.setItem(YJ_NL_KEY, JSON.stringify({
+        v: 1,
+        exp: Date.now() + YJ_NL_TTL_MS,
+      }));
+    } catch (e) { /* localStorage disabled — best-effort */ }
+  }
+
+  function yjNlIsSeen() {
+    try {
+      const raw = window.localStorage.getItem(YJ_NL_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed.exp !== 'number') return false;
+      if (Date.now() > parsed.exp) {
+        window.localStorage.removeItem(YJ_NL_KEY);
+        return false;
+      }
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function yjNlIsDntOrCrawler() {
+    // Respect Do-Not-Track and skip for obvious crawlers.
+    if (navigator.doNotTrack === '1' || (window as any).doNotTrack === '1') return true;
+    const ua = navigator.userAgent || '';
+    return /bot|crawler|spider|slurp|bingpreview|prerender|lighthouse|chrome-lighthouse/i.test(ua);
+  }
+
+  function yjNlInit() {
+    const el = document.getElementById('yj-newsletter-popup');
+    if (!el) return;
+    if (yjNlIsSeen()) return;
+    if (yjNlIsDntOrCrawler()) return;
+
+    // Wait a short beat after first paint so we don't fight LCP.
+    window.setTimeout(() => { yjNlShow(el); }, YJ_NL_FIRST_LOAD_DELAY_MS);
+  }
+
+  function yjNlShow(el: HTMLElement) {
+    el.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    const form = el.querySelector<HTMLFormElement>('[data-yj-nl-form]');
+    const skipBtn = el.querySelector<HTMLButtonElement>('[data-yj-nl-skip]');
+    const closeBtn = el.querySelector<HTMLButtonElement>('[data-yj-nl-close]');
+    const closeFinal = el.querySelector<HTMLButtonElement>('[data-yj-nl-close-final]');
+    const status = el.querySelector<HTMLElement>('[data-yj-nl-status]');
+    const thanksBlk = el.querySelector<HTMLElement>('[data-yj-nl-thanks]');
+    const emailInput = el.querySelector<HTMLInputElement>('[data-yj-nl-email]');
+
+    const lang = el.getAttribute('data-lang') === 'en' ? 'en' : 'fr';
+    const consentVersion = el.getAttribute('data-consent-version') || '';
+    const msgs = lang === 'en'
+      ? {
+          invalid: 'Please enter a valid email address.',
+          consent: 'Please tick the consent box to subscribe.',
+          rate: 'You have already tried recently. Please wait a moment.',
+          generic: 'Something went wrong. Try again or email Jitendra directly.',
+        }
+      : {
+          invalid: 'Veuillez saisir une adresse e-mail valide.',
+          consent: 'Veuillez cocher la case de consentement pour vous inscrire.',
+          rate: "Vous avez déjà essayé récemment. Merci de patienter un instant.",
+          generic: "Une erreur est survenue. Réessayez ou écrivez directement à Jitendra.",
+        };
+
+    function close(setSeen: boolean) {
+      if (setSeen) yjNlSetSeen();
+      el.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    function showStatus(tone: 'err', message: string) {
+      if (!status) return;
+      status.hidden = false;
+      status.dataset.tone = tone;
+      status.textContent = message;
+    }
+
+    function clearStatus() {
+      if (!status) return;
+      status.hidden = true;
+      status.textContent = '';
+    }
+
+    skipBtn?.addEventListener('click', () => close(true));
+    closeBtn?.addEventListener('click', () => close(true));
+    closeFinal?.addEventListener('click', () => close(true));
+
+    // Backdrop click = skip.
+    el.addEventListener('click', (e) => {
+      if (e.target === el) close(true);
+    });
+
+    // Esc = skip.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !el.hidden) {
+        close(true);
+        window.removeEventListener('keydown', onKey);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+
+    // Autofocus the email field after the panel is visible.
+    window.setTimeout(() => emailInput?.focus(), 60);
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearStatus();
+
+      const fd = new FormData(form);
+      // Honeypot: any non-empty value = bot. Silently succeed (don't tip off).
+      if (String(fd.get('website') ?? '').length > 0) {
+        showThanks();
+        return;
+      }
+
+      const email = String(fd.get('email') ?? '').trim().toLowerCase();
+      const consent = fd.get('consent') === 'on';
+
+      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) {
+        showStatus('err', msgs.invalid);
+        return;
+      }
+      if (!consent) {
+        showStatus('err', msgs.consent);
+        return;
+      }
+
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.setAttribute('aria-busy', 'true'); }
+
+      try {
+        const res = await fetch('/api/newsletter-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            consent: true,
+            lang,
+            consent_text_version: consentVersion,
+            source_url: window.location.href,
+          }),
+        });
+        if (res.status === 202 || res.status === 200) {
+          showThanks();
+          return;
+        }
+        if (res.status === 429) {
+          showStatus('err', msgs.rate);
+          return;
+        }
+        showStatus('err', msgs.generic);
+      } catch (err) {
+        showStatus('err', msgs.generic);
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.removeAttribute('aria-busy'); }
+      }
+    });
+
+    function showThanks() {
+      const formBlk = form as HTMLElement | null;
+      if (formBlk) formBlk.hidden = true;
+      if (thanksBlk) thanksBlk.hidden = false;
+      // Set seen NOW so if the user closes the tab, popup stays dismissed.
+      yjNlSetSeen();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', yjNlInit, { once: true });
+  } else {
+    yjNlInit();
+  }
+</script>

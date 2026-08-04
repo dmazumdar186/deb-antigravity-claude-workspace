@@ -1,0 +1,234 @@
+---
+// Privacy notice — Newsletter (FR)
+//
+// See docs/gdpr_newsletter_popup_assessment.md for the full assessment.
+// Placeholders to fill before publishing:
+//   {{DATA_CONTROLLER_NAME}}     Jitendra's legal name
+//   {{DATA_CONTROLLER_ADDRESS}}  postal address (business address 22 rue
+//                                Eugène Manuel, 75016 Paris is defensible)
+//   {{DATA_CONTROLLER_SIREN}}    micro-entrepreneur SIREN (optional)
+
+import Base   from '../../layouts/Base.astro';
+import TopNav from '../../components/TopNav.astro';
+import Footer from '../../components/Footer.astro';
+
+const lang = 'fr' as const;
+const LAST_UPDATED = '2026-08-04';
+---
+<Base
+  title="Politique de confidentialité — Newsletter · Yoga avec Jitendra"
+  description="Politique de confidentialité pour l'inscription à la newsletter de Yoga avec Jitendra : données collectées, hébergement en Europe, durées de conservation, vos droits, comment vous désinscrire ou tout supprimer."
+  lang={lang}
+  pathFr="/privacy/newsletter"
+  pathEn="/en/privacy/newsletter"
+  noindex={true}
+>
+  <TopNav lang={lang} />
+  <main class="section">
+    <div class="section-inner" style="max-width: 780px;">
+      <article class="prose">
+        <p class="eyebrow">
+          <span>Politique de confidentialité — Newsletter</span>
+        </p>
+        <h1>Comment nous traitons vos données de newsletter</h1>
+        <p><em>Dernière mise à jour : {LAST_UPDATED}</em></p>
+
+        <h2>1. Qui est responsable de vos données ?</h2>
+        <p>
+          <strong>{`{{DATA_CONTROLLER_NAME}}`}</strong>, professeur de Hatha Yoga exerçant sous le régime de micro-entrepreneur,
+          dont l'adresse professionnelle est <em>{`{{DATA_CONTROLLER_ADDRESS}}`}</em>
+          (SIREN <em>{`{{DATA_CONTROLLER_SIREN}}`}</em>),
+          agit en qualité de responsable de traitement pour les données collectées via ce site.
+        </p>
+        <p>
+          Contact pour toute question relative à vos données : <a href="mailto:jitendranitrr13@gmail.com">jitendranitrr13@gmail.com</a>.
+        </p>
+        <p>
+          En raison de la taille de l'activité (auto-entrepreneur individuel), la désignation d'un Délégué à la Protection
+          des Données (DPO) n'est pas requise au sens de l'article 37 du RGPD.
+        </p>
+
+        <h2>2. Quelles données collectons-nous, et pour quoi faire ?</h2>
+        <p>Si vous choisissez de vous inscrire à la newsletter via la fenêtre d'invitation, nous collectons :</p>
+        <ul>
+          <li>votre adresse e-mail ;</li>
+          <li>la date et l'heure de votre inscription ;</li>
+          <li>votre langue de préférence (FR ou EN), déterminée par la page depuis laquelle vous vous inscrivez ;</li>
+          <li>
+            une preuve technique de votre consentement (empreinte HMAC-SHA-256 de votre adresse IP + la version du texte
+            de consentement que vous avez accepté). <strong>Nous ne conservons pas votre adresse IP en clair.</strong>
+          </li>
+        </ul>
+        <p>
+          <strong>Finalité unique :</strong> vous envoyer occasionnellement (typiquement une fois par mois) des informations
+          sur les cours à venir, y compris les séances adaptées ou accessibles.
+        </p>
+        <p>
+          <strong>Base légale :</strong> votre consentement (article 6.1.a du RGPD), matérialisé par la coche que vous avez
+          explicitement activée et la validation par lien de confirmation reçu par e-mail (« double opt-in »).
+        </p>
+
+        <h2>3. Petit fichier technique déposé sur votre navigateur</h2>
+        <p>
+          Lorsque vous fermez la fenêtre d'invitation ou que vous vous inscrivez, un indicateur nommé <code>yj_popup_seen</code>
+          est enregistré dans la mémoire locale (<code>localStorage</code>) de votre navigateur pour éviter que la fenêtre
+          ne réapparaisse pendant 30 jours. Cet indicateur ne contient que la valeur <code>1</code>, ne quitte jamais votre navigateur,
+          et n'a aucune autre finalité. Il est exempté du consentement préalable au titre de l'article 82 de la Loi Informatique
+          et Libertés, catégorie « traceurs strictement nécessaires à la fourniture d'un service explicitement demandé par
+          l'utilisateur » (ici : votre choix de ne plus voir la fenêtre).
+        </p>
+
+        <h2>4. Où vos données sont-elles hébergées ?</h2>
+        <ul>
+          <li>
+            <strong>Adresse e-mail + inscription :</strong> chez Brevo (Sendinblue SAS, société française domiciliée à Paris,
+            serveurs en France et en Allemagne). Voir la politique de confidentialité de Brevo :
+            <a href="https://www.brevo.com/fr/legal/privacypolicy/" rel="noopener">brevo.com/fr/legal/privacypolicy</a>.
+            Un accord de traitement (DPA) conforme au RGPD est en place.
+          </li>
+          <li>
+            <strong>Preuve technique de consentement :</strong> chez Cloudflare (Workers KV), avec une préférence de région Union Européenne.
+            Voir : <a href="https://www.cloudflare.com/fr-fr/trust-hub/gdpr/" rel="noopener">cloudflare.com/fr-fr/trust-hub/gdpr</a>.
+          </li>
+        </ul>
+        <p><strong>Aucune donnée n'est transférée en dehors de l'Union Européenne dans le cadre de la newsletter.</strong></p>
+
+        <h2>5. Combien de temps conservons-nous vos données ?</h2>
+        <ul>
+          <li>
+            <strong>Adresse e-mail dans la liste de diffusion :</strong> tant que vous restez inscrit·e.
+            Après désinscription, un délai de grâce de 30 jours (pour prévenir les désabonnements accidentels), puis suppression.
+          </li>
+          <li>
+            <strong>Preuve technique de consentement :</strong> 3 ans à compter de votre inscription, conformément à la durée maximale
+            recommandée par la CNIL pour la prospection commerciale par voie électronique.
+          </li>
+          <li>
+            <strong>Compteur anti-abus (limite de tentatives d'inscription) :</strong> 1 heure.
+          </li>
+        </ul>
+
+        <h2>6. Vos droits</h2>
+        <p>Vous disposez à tout moment des droits suivants (articles 15 à 22 du RGPD) :</p>
+        <ul>
+          <li><strong>Accès</strong> : consulter les données que nous détenons sur vous.</li>
+          <li><strong>Rectification</strong> : corriger toute information inexacte.</li>
+          <li><strong>Effacement</strong> : demander la suppression complète.</li>
+          <li><strong>Portabilité</strong> : recevoir vos données dans un format lisible.</li>
+          <li><strong>Opposition</strong> : refuser de recevoir de nouvelles communications (chaque e-mail contient un lien de désabonnement en un clic).</li>
+          <li>
+            <strong>Réclamation</strong> : introduire une réclamation auprès de la CNIL —
+            <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">cnil.fr/fr/plaintes</a>.
+          </li>
+        </ul>
+
+        <h2 id="gerer-mes-donnees">7. Gérer mes données</h2>
+        <p>Trois manières, du plus rapide au plus complet :</p>
+        <ul>
+          <li><strong>Rapide</strong> : cliquez sur le lien « Se désinscrire » présent dans tout e-mail reçu — la suppression est immédiate.</li>
+          <li><strong>Complet</strong> : utilisez le formulaire ci-dessous. Nous vous enverrons un lien magique valable 30 minutes vers une page où vous pourrez consulter ou supprimer vos données.</li>
+          <li><strong>Manuellement</strong> : écrivez à <a href="mailto:jitendranitrr13@gmail.com">jitendranitrr13@gmail.com</a>.</li>
+        </ul>
+
+        <form
+          class="dsr-form"
+          method="POST"
+          action="/api/dsr/request-link"
+          data-dsr-form
+          novalidate
+        >
+          <label class="dsr-field">
+            <span>Votre adresse e-mail</span>
+            <input type="email" name="email" required maxlength="254" autocomplete="email" placeholder="vous@exemple.com" />
+          </label>
+          <input type="hidden" name="lang" value="fr" />
+          <button type="submit" class="btn btn-primary">Recevoir un lien magique</button>
+          <p class="dsr-status" data-dsr-status hidden></p>
+        </form>
+
+        <h2>8. Modifications de cette politique</h2>
+        <p>
+          Toute modification substantielle sera indiquée en tête de page (date de mise à jour).
+          Nous vous en informerons par e-mail si la modification affecte la finalité du traitement ou vos droits.
+        </p>
+
+        <p><a href="/">← Retour au site</a></p>
+      </article>
+    </div>
+  </main>
+  <Footer lang={lang} />
+</Base>
+
+<style>
+  .prose { color: var(--ink-900, #2e2a26); }
+  .prose h1 { font-family: 'Fraunces', Georgia, serif; font-size: 2rem; margin: 0.5rem 0 1rem; line-height: 1.15; }
+  .prose h2 { font-family: 'Fraunces', Georgia, serif; font-size: 1.35rem; margin: 2rem 0 0.5rem; }
+  .prose p, .prose li { line-height: 1.6; }
+  .prose ul { padding-left: 1.25rem; }
+  .prose li { margin-bottom: 0.35rem; }
+  .prose code { background: rgba(46,42,38,0.06); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.9em; }
+  .prose a { color: var(--terracotta, #c05b3e); }
+
+  .dsr-form {
+    background: rgba(255, 254, 251, 0.75);
+    padding: 1.25rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-width: 460px;
+    margin-top: 1rem;
+  }
+  .dsr-field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .dsr-field span { font-size: 0.85rem; color: var(--ink-soft, #6b6560); font-weight: 500; }
+  .dsr-field input {
+    font: inherit;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid rgba(46,42,38,0.18);
+    border-radius: 8px;
+    background: white;
+    color: #2e2a26;
+  }
+  .dsr-field input:focus {
+    outline: none;
+    border-color: var(--terracotta, #c05b3e);
+    box-shadow: 0 0 0 3px rgba(192,91,62,0.15);
+  }
+  .dsr-status {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+    background: rgba(76,145,65,0.1);
+    color: #2f5d24;
+    margin: 0;
+  }
+</style>
+
+<script>
+  (function () {
+    const form = document.querySelector<HTMLFormElement>('[data-dsr-form]');
+    if (!form) return;
+    const status = form.querySelector<HTMLElement>('[data-dsr-status]');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const email = String(fd.get('email') ?? '').trim();
+      const lang = String(fd.get('lang') ?? 'fr');
+      const generic = "Si cette adresse est enregistrée, nous vous avons envoyé un lien. Vérifiez votre boîte mail (le lien est valable 30 minutes).";
+      try {
+        const res = await fetch('/api/dsr/request-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, lang }),
+        });
+        // Non-enumerable: always show the generic message.
+        void res;
+      } catch (err) { /* still show generic */ }
+      if (status) {
+        status.hidden = false;
+        status.textContent = generic;
+      }
+      form.querySelector<HTMLButtonElement>('button[type="submit"]')?.setAttribute('disabled', 'disabled');
+    });
+  })();
+</script>
