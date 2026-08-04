@@ -1,0 +1,53 @@
+name: video-pipeline-ci
+
+on:
+  push:
+    paths:
+      - "execution/templates/video_pipeline/**"
+  pull_request:
+    paths:
+      - "execution/templates/video_pipeline/**"
+
+jobs:
+  unit-and-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest python-dotenv
+      - name: unit tests
+        working-directory: execution/templates/video_pipeline
+        run: python -m pytest tests/unit -v
+      - name: integration (dry-run only)
+        working-directory: execution/templates/video_pipeline
+        run: python -m pytest tests/integration -v
+
+  # Acceptance is gated because it can consume Higgsfield credits when
+  # VIDEO_LIVE=1 is set. Default: skipped in CI.
+  acceptance:
+    runs-on: ubuntu-latest
+    if: ${{ vars.VIDEO_LIVE == '1' }}
+    needs: unit-and-integration
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: install python deps
+        run: pip install pytest python-dotenv
+      - name: install remotion
+        working-directory: execution/templates/video_pipeline/compose
+        run: npm ci
+      - name: acceptance gate (dry-run generate, real render)
+        working-directory: execution/templates/video_pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python tests/acceptance_video.py
