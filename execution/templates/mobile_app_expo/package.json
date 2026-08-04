@@ -1,0 +1,56 @@
+{
+  "name": "{{APP_SLUG}}",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint",
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=tests/unit",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "doctor": "npx expo doctor",
+    "prebuild": "expo prebuild --clean"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~6.0.0",
+    "@react-native-async-storage/async-storage": "^3.1.0",
+    "@sentry/react-native": "~7.0.0",
+    "@tanstack/query-async-storage-persister": "^5.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-query-persist-client": "^5.0.0",
+    "axios": "^1.16.1",
+    "expo": "~56.0.5",
+    "expo-constants": "~19.0.0",
+    "expo-linking": "~9.0.0",
+    "expo-notifications": "~0.34.0",
+    "expo-sqlite": "^56.0.4",
+    "expo-status-bar": "~56.0.4",
+    "posthog-react-native": "^4.0.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-web": "~0.21.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.0.0",
+    "@types/jest": "^29.5.12",
+    "@types/react": "~19.2.2",
+    "jest": "^29.7.0",
+    "jest-expo": "~56.0.0",
+    "typescript": "~6.0.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "setupFilesAfterEach": ["<rootDir>/jest.setup.ts"],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))"
+    ]
+  },
+  "private": true
+}

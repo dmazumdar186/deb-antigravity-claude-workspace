@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+ios/
+android/
+*.orig.*
+
+# EAS
+.easignore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+google-play-service-account.json
+google-services.json
+GoogleService-Info.plist
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.jest-cache/
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json.example
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+metro.log
+
+# Sentry
+.sentryclirc
