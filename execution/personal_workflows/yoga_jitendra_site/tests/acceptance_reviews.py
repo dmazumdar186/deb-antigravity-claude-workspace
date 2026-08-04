@@ -429,18 +429,17 @@ def check_live_provenance() -> None:
         ok('no unknown-provenance records right now')
 
     # 8c — fetch the FR + EN /reviews/ pages and assert unknown-provenance
-    # cards render "pending verification", not a specific month.
+    # cards omit the date cell entirely (interim UX per operator 2026-08-04:
+    # silence reads as an editorial choice, "Date à confirmer" read as a
+    # soft error). Once the Google-Maps-scrape backfill lands and provenance
+    # flips to "provided", the date returns via reconcileExistingDates().
     if unknown_ids:
-        for path, unknown_label in [
-            ('/reviews/', 'Date à confirmer'),
-            ('/en/reviews/', 'Date pending verification'),
-        ]:
+        for path in ['/reviews/', '/en/reviews/']:
             status_h, html = http_get(f'{SITE_URL}{path}')
             if status_h != 200:
                 fail(f'{path} returned {status_h}')
                 continue
             for uid in unknown_ids:
-                # Locate the card block for this id.
                 pat = re.compile(
                     r'<figure[^>]+data-review-id="' + re.escape(uid) + r'"[^>]*>.*?</figure>',
                     re.DOTALL,
@@ -451,30 +450,32 @@ def check_live_provenance() -> None:
                     # this check's job — the dom_acceptance test covers it.
                     continue
                 card = m.group(0)
-                # (i) must carry data-provenance="unknown"
-                if 'data-provenance="unknown"' not in card:
-                    fail(f'{path} card {uid}: missing data-provenance="unknown" attr')
-                # (ii) must render the truthful label
-                if unknown_label not in card:
-                    fail(f'{path} card {uid}: does not render "{unknown_label}"')
-                # (iii) MUST NOT render any specific month/year in the meta
-                # block. Extract just the review-meta region to avoid
-                # false-positive on author names / body text with a year.
                 meta_m = re.search(
                     r'<div class="review-meta"[^>]*>(.*?)</div>', card, re.DOTALL,
                 )
-                if meta_m:
-                    meta = meta_m.group(1)
-                    for rx in SPECIFIC_DATE_RES:
-                        hit = rx.search(meta)
-                        if hit:
-                            fail(
-                                f'{path} card {uid}: unknown-provenance card leaks '
-                                f'a specific date "{hit.group(0)}" — the exact 2026-07 bug shape'
-                            )
-                            break
-                    else:
-                        ok(f'{path} card {uid}: unknown-provenance meta contains no specific date')
+                if not meta_m:
+                    fail(f'{path} card {uid}: no review-meta block found')
+                    continue
+                meta = meta_m.group(1)
+                # (i) meta block MUST NOT contain any [data-review-date]
+                # element — the element is stripped for unknown cards.
+                if 'data-review-date' in meta:
+                    fail(
+                        f'{path} card {uid}: unknown-provenance card still '
+                        f'renders a [data-review-date] element (should be omitted)'
+                    )
+                # (ii) meta block MUST NOT leak any specific month/year
+                # (the underlying bug shape — falsely-precise dates).
+                for rx in SPECIFIC_DATE_RES:
+                    hit = rx.search(meta)
+                    if hit:
+                        fail(
+                            f'{path} card {uid}: unknown-provenance card leaks '
+                            f'a specific date "{hit.group(0)}" — the exact 2026-07 bug shape'
+                        )
+                        break
+                else:
+                    ok(f'{path} card {uid}: unknown-provenance card omits date cell + no specific date leak')
 
     # 8d — JSON-LD leak: fetch homepage + confirm datePublished missing for
     # every unknown-provenance record.

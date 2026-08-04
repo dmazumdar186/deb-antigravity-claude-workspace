@@ -50,12 +50,14 @@ function formatDate(iso: string, lng: string): string {
   }
 }
 
-// 2026-08-04 — falsely-precise > pending-verification. If the record was
-// tagged unknown-provenance (silent-now fingerprint from a pre-fix import,
-// or a KV row with no submitted_at at all), render "Date à confirmer" /
-// "Date pending verification" instead of a month it can't prove.
+// 2026-08-04 — falsely-precise > pending-verification > silence.
+// Interim UI while the Google-Maps-scrape backfill lands: unknown-provenance
+// cards omit the date cell entirely (author + rating + body only). The
+// "Date à confirmer" copy read as a soft error to the client; silence reads
+// as a normal editorial choice. Once submitted_at is backfilled by the
+// scrape migration, provenance flips to "provided" and the date returns.
 function formatReviewDate(r: any, lng: string): string {
-  if (r && r.date_provenance === 'unknown') return t.date_unknown;
+  if (r && r.date_provenance === 'unknown') return '';
   return formatDate(r?.submitted_at || '', lng);
 }
 ---
@@ -86,8 +88,12 @@ function formatReviewDate(r: any, lng: string): string {
             <div class="review-author">{r.name}</div>
             <div class="review-meta">
               <span>{sourceLabel(r.source, lang)}</span>
-              <span aria-hidden="true"> · </span>
-              <span data-review-date data-provenance={r.date_provenance || 'provided'}>{formatReviewDate(r, lang)}</span>
+              {r.date_provenance !== 'unknown' && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  <span data-review-date data-provenance={r.date_provenance || 'provided'}>{formatReviewDate(r, lang)}</span>
+                </>
+              )}
               {r.source_url && (
                 <>
                   <span aria-hidden="true"> · </span>
@@ -205,7 +211,10 @@ function formatReviewDate(r: any, lng: string): string {
     }
     function reviewDateLabel(r) {
       var prov = r.date_provenance || computeProvenance(r);
-      if (prov === 'unknown') return DATE_UNKNOWN_LABEL;
+      // Interim: unknown cards omit the date cell entirely (see Astro
+      // template header). Empty string is the "hide me" signal for
+      // reconcileExistingDates(); buildCard() checks provenance directly.
+      if (prov === 'unknown') return '';
       return fmtDate(r.submitted_at);
     }
 
@@ -242,6 +251,12 @@ function formatReviewDate(r: any, lng: string): string {
       var srcLbl = sourceLabel(r.source);
       var srcUrl = r.source_url ? '<span aria-hidden="true"> · </span><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">↗</a>' : '';
       var provenance = r.date_provenance || computeProvenance(r);
+      // Unknown-provenance cards omit the date cell entirely (interim UX
+      // until the Google-Maps-scrape backfill lands). See Astro template
+      // header comment for rationale.
+      var dateCell = provenance === 'unknown'
+        ? ''
+        : '<span aria-hidden="true"> · </span><span data-review-date data-provenance="' + esc(provenance) + '">' + esc(reviewDateLabel(r)) + '</span>';
       fig.innerHTML =
         '<div class="review-head">' +
           '<span class="stars" aria-label="' + esc(r.rating + STAR_LABEL) + '">' + stars(r.rating) + '</span>' +
@@ -252,8 +267,7 @@ function formatReviewDate(r: any, lng: string): string {
           '<div class="review-author">' + esc(r.name) + '</div>' +
           '<div class="review-meta">' +
             '<span>' + esc(srcLbl) + '</span>' +
-            '<span aria-hidden="true"> · </span>' +
-            '<span data-review-date data-provenance="' + esc(provenance) + '">' + esc(reviewDateLabel(r)) + '</span>' +
+            dateCell +
             srcUrl +
           '</div>' +
         '</figcaption>';
@@ -272,10 +286,22 @@ function formatReviewDate(r: any, lng: string): string {
         if (!id) return;
         var r = apiById[id];
         if (!r) return;
+        var freshProv = r.date_provenance || computeProvenance(r);
+        if (freshProv === 'unknown') {
+          // Unknown-provenance cards omit the date cell entirely. Remove
+          // both this span and its immediately-preceding separator dot
+          // (the `<span aria-hidden="true"> · </span>` before it).
+          var prev = span.previousSibling;
+          if (prev && prev.nodeType === 1 && prev.getAttribute && prev.getAttribute('aria-hidden') === 'true') {
+            prev.parentNode && prev.parentNode.removeChild(prev);
+          }
+          span.parentNode && span.parentNode.removeChild(span);
+          return;
+        }
         var freshLabel = reviewDateLabel(r);
         if (freshLabel && span.textContent !== freshLabel) {
           span.textContent = freshLabel;
-          span.setAttribute('data-provenance', r.date_provenance || computeProvenance(r));
+          span.setAttribute('data-provenance', freshProv);
         }
       });
     }
