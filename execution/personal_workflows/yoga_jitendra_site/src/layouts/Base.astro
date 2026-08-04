@@ -36,7 +36,15 @@ const reviewSchemaItems = allReviews.slice(0, 6).map((r) => ({
   },
   author: { '@type': 'Person', name: r.name },
   reviewBody: pickBody(r, lang),
-  datePublished: (r.submitted_at || '').slice(0, 10) || undefined,
+  // 2026-08-04 — do NOT emit a datePublished we can't prove. A silent-now
+  // fingerprint (verified import with submitted_at===approved_at±60s) leaks
+  // "juillet 2026" into Google's rich-snippet cache; that's the exact
+  // client complaint. Omit the field for unknown-provenance rows so search
+  // engines don't cache a lie. Known rows keep it — those drive the
+  // rich-snippet recency signal.
+  datePublished: r.date_provenance === 'unknown'
+    ? undefined
+    : ((r.submitted_at || '').slice(0, 10) || undefined),
   inLanguage: r.lang || undefined,
 }));
 

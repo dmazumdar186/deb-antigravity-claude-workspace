@@ -36,6 +36,35 @@ interface ApprovedReview {
   approved_at: string;
   featured: boolean;
   verified: boolean;
+  // Added 2026-08-04. Not stored in KV — computed at read-time from the
+  // silent-now fingerprint so historical bad rows are contained without a
+  // KV migration. See `date_provenance` block below.
+  date_provenance?: 'provided' | 'unknown';
+}
+
+// 2026-08-04 — the 5da525b fix stopped the silent-now default at write time,
+// but did NOT retroactively repair historical KV records already stamped with
+// `submitted_at === approved_at` (to the millisecond). Those still deceive
+// public visitors ("juillet 2026" for a Google review that's actually from
+// 2024). Rather than mutate KV blind, tag those records at read-time so the
+// SSG + client renderer can show "Date pending verification" instead of a
+// falsely-precise month. When Jitendra backfills real dates via the
+// moderation UI (edit action, or GBP API when the quota approval lands),
+// the fingerprint clears itself.
+//
+// Heuristic: verified imports (verified=true) whose submitted_at and
+// approved_at are within 60 seconds of each other. User submissions
+// (verified=false) are NOT flagged — for on-site form submissions, a
+// moderator who approves within seconds is a valid, correct pattern.
+const SILENT_NOW_WINDOW_MS = 60 * 1000;
+function computeDateProvenance(r: ApprovedReview): 'provided' | 'unknown' {
+  if (!r.verified) return 'provided';
+  if (!r.submitted_at || !r.approved_at) return 'provided';
+  const s = Date.parse(r.submitted_at);
+  const a = Date.parse(r.approved_at);
+  if (!Number.isFinite(s) || !Number.isFinite(a)) return 'provided';
+  if (Math.abs(a - s) < SILENT_NOW_WINDOW_MS) return 'unknown';
+  return 'provided';
 }
 
 const KEY_PREFIX = 'review:approved:';
@@ -94,25 +123,45 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
   } while (cursor);
 
-  // Sort: featured first, then newest-first by SUBMITTED date (the date the
-  // reviewer actually wrote the review), not by approved_at (the date the
-  // moderator clicked "approve"). An old Google review re-imported today
-  // must NOT masquerade as "newest" on the customer-facing page.
+  // Tag each record with date_provenance BEFORE sorting so records with
+  // unknown provenance don't out-rank real ones by a bogus submitted_at.
+  for (const r of reviews) {
+    r.date_provenance = computeDateProvenance(r);
+  }
+
+  // Sort: featured first, then newest-first. Records with unknown provenance
+  // sort by approved_at (the only trustworthy timestamp on them). Records
+  // with known provenance sort by submitted_at (the actual review date).
   reviews.sort((a, b) => {
     if (a.featured !== b.featured) return a.featured ? -1 : 1;
-    const aDate = a.submitted_at || a.approved_at || '';
-    const bDate = b.submitted_at || b.approved_at || '';
+    const aDate =
+      (a.date_provenance === 'unknown' ? a.approved_at : a.submitted_at) ||
+      a.approved_at ||
+      '';
+    const bDate =
+      (b.date_provenance === 'unknown' ? b.approved_at : b.submitted_at) ||
+      b.approved_at ||
+      '';
     return bDate.localeCompare(aDate);
   });
 
   const total = reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0);
   const avg = reviews.length ? Math.round((total / reviews.length) * 10) / 10 : null;
 
+  const unknownCount = reviews.reduce(
+    (n, r) => n + (r.date_provenance === 'unknown' ? 1 : 0),
+    0,
+  );
+
   return jsonResponse(
     {
       count: reviews.length,
       average_rating: avg,
       as_of: new Date().toISOString(),
+      // Surface so /api/health and the acceptance gate can alarm when this
+      // number rises unexpectedly. A backfill run lowers it; a regression
+      // in write-side validation raises it.
+      unknown_date_count: unknownCount,
       reviews,
     },
     { cacheSeconds: fresh ? 0 : 60 },

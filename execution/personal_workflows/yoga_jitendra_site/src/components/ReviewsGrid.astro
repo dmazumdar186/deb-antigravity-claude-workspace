@@ -20,6 +20,7 @@ const t = {
     star_label: (n: number) => `${n} sur 5`,
     verified: '✓ Vérifié',
     empty: 'Aucun avis pour le moment. Soyez le premier à en laisser un.',
+    date_unknown: 'Date à confirmer',
   },
   en: {
     more: 'Show more',
@@ -27,6 +28,7 @@ const t = {
     star_label: (n: number) => `${n} out of 5`,
     verified: '✓ Verified',
     empty: 'No reviews yet. Be the first to leave one.',
+    date_unknown: 'Date pending verification',
   },
 }[lang === 'en' ? 'en' : 'fr'];
 
@@ -46,6 +48,15 @@ function formatDate(iso: string, lng: string): string {
   } catch {
     return '';
   }
+}
+
+// 2026-08-04 — falsely-precise > pending-verification. If the record was
+// tagged unknown-provenance (silent-now fingerprint from a pre-fix import,
+// or a KV row with no submitted_at at all), render "Date à confirmer" /
+// "Date pending verification" instead of a month it can't prove.
+function formatReviewDate(r: any, lng: string): string {
+  if (r && r.date_provenance === 'unknown') return t.date_unknown;
+  return formatDate(r?.submitted_at || '', lng);
 }
 ---
 {total === 0 ? (
@@ -76,7 +87,7 @@ function formatDate(iso: string, lng: string): string {
             <div class="review-meta">
               <span>{sourceLabel(r.source, lang)}</span>
               <span aria-hidden="true"> · </span>
-              <span>{formatDate(r.submitted_at, lang)}</span>
+              <span data-review-date data-provenance={r.date_provenance || 'provided'}>{formatReviewDate(r, lang)}</span>
               {r.source_url && (
                 <>
                   <span aria-hidden="true"> · </span>
@@ -178,6 +189,25 @@ function formatDate(iso: string, lng: string): string {
     };
     var VERIFIED_LABEL = lang === 'en' ? '✓ Verified' : '✓ Vérifié';
     var STAR_LABEL = lang === 'en' ? ' out of 5' : ' sur 5';
+    var DATE_UNKNOWN_LABEL = lang === 'en' ? 'Date pending verification' : 'Date à confirmer';
+    // Client-side mirror of the API's SILENT_NOW_WINDOW_MS heuristic. The
+    // API also emits date_provenance directly in the JSON, so this is only
+    // a fallback if a proxy or older worker strips the field.
+    var SILENT_NOW_WINDOW_MS = 60 * 1000;
+    function computeProvenance(r) {
+      if (!r || !r.verified) return 'provided';
+      if (!r.submitted_at || !r.approved_at) return 'provided';
+      var s = Date.parse(r.submitted_at);
+      var a = Date.parse(r.approved_at);
+      if (!isFinite(s) || !isFinite(a)) return 'provided';
+      if (Math.abs(a - s) < SILENT_NOW_WINDOW_MS) return 'unknown';
+      return 'provided';
+    }
+    function reviewDateLabel(r) {
+      var prov = r.date_provenance || computeProvenance(r);
+      if (prov === 'unknown') return DATE_UNKNOWN_LABEL;
+      return fmtDate(r.submitted_at);
+    }
 
     function esc(s) {
       return String(s == null ? '' : s)
@@ -211,6 +241,7 @@ function formatDate(iso: string, lng: string): string {
       fig.setAttribute('data-hidden', '0');
       var srcLbl = sourceLabel(r.source);
       var srcUrl = r.source_url ? '<span aria-hidden="true"> · </span><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">↗</a>' : '';
+      var provenance = r.date_provenance || computeProvenance(r);
       fig.innerHTML =
         '<div class="review-head">' +
           '<span class="stars" aria-label="' + esc(r.rating + STAR_LABEL) + '">' + stars(r.rating) + '</span>' +
@@ -222,11 +253,31 @@ function formatDate(iso: string, lng: string): string {
           '<div class="review-meta">' +
             '<span>' + esc(srcLbl) + '</span>' +
             '<span aria-hidden="true"> · </span>' +
-            '<span>' + esc(fmtDate(r.submitted_at)) + '</span>' +
+            '<span data-review-date data-provenance="' + esc(provenance) + '">' + esc(reviewDateLabel(r)) + '</span>' +
             srcUrl +
           '</div>' +
         '</figcaption>';
       return fig;
+    }
+
+    // Also correct any SSG-rendered date cells whose provenance changed
+    // since the last build (e.g. a moderator edited the review date via
+    // the dashboard between builds). Walk existing [data-review-date]
+    // spans and rewrite if the API disagrees with the baked HTML.
+    function reconcileExistingDates(apiById) {
+      var spans = grid.querySelectorAll('[data-review-card] [data-review-date]');
+      spans.forEach(function (span) {
+        var card = span.closest('[data-review-card]');
+        var id = card && card.getAttribute('data-review-id');
+        if (!id) return;
+        var r = apiById[id];
+        if (!r) return;
+        var freshLabel = reviewDateLabel(r);
+        if (freshLabel && span.textContent !== freshLabel) {
+          span.textContent = freshLabel;
+          span.setAttribute('data-provenance', r.date_provenance || computeProvenance(r));
+        }
+      });
     }
 
     var existingIds = new Set();
@@ -239,10 +290,20 @@ function formatDate(iso: string, lng: string): string {
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data || !Array.isArray(data.reviews)) return;
+        var apiById = {};
+        for (var j = 0; j < data.reviews.length; j++) {
+          if (data.reviews[j] && data.reviews[j].id) apiById[data.reviews[j].id] = data.reviews[j];
+        }
+        // Reconcile SSG-baked date cells against the API's fresh provenance
+        // FIRST, so an existing-in-DOM card doesn't keep an outdated
+        // "juillet 2026" label if provenance flipped since last build.
+        reconcileExistingDates(apiById);
         var incoming = data.reviews.slice().sort(function (a, b) {
           if (a.featured !== b.featured) return a.featured ? -1 : 1;
-          var ak = a.approved_at || a.submitted_at || '';
-          var bk = b.approved_at || b.submitted_at || '';
+          var aProv = a.date_provenance || computeProvenance(a);
+          var bProv = b.date_provenance || computeProvenance(b);
+          var ak = (aProv === 'unknown' ? a.approved_at : a.submitted_at) || a.approved_at || '';
+          var bk = (bProv === 'unknown' ? b.approved_at : b.submitted_at) || b.approved_at || '';
           return bk.localeCompare(ak);
         });
         var appended = 0;

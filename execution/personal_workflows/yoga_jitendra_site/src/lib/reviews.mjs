@@ -21,8 +21,30 @@ const CONTENT_DIR = path.resolve(process.cwd(), 'src/content');
 const REVIEWS_JSON = path.join(CONTENT_DIR, 'reviews.json');
 const SEED_JSON = path.join(CONTENT_DIR, 'reviews-seed.json');
 
+// 2026-08-04 — silent-now fingerprint. Same heuristic as reviews-public.ts.
+// verified imports whose submitted_at and approved_at are within 60s are
+// tagged 'unknown' so the renderer can say "date pending verification"
+// instead of a falsely-precise month. Kept in sync with the API side by
+// convention — if you change one, change the other.
+const SILENT_NOW_WINDOW_MS = 60 * 1000;
+export function computeDateProvenance(r) {
+  if (!r || !r.verified) return 'provided';
+  if (!r.submitted_at || !r.approved_at) return 'provided';
+  const s = Date.parse(r.submitted_at);
+  const a = Date.parse(r.approved_at);
+  if (!Number.isFinite(s) || !Number.isFinite(a)) return 'provided';
+  if (Math.abs(a - s) < SILENT_NOW_WINDOW_MS) return 'unknown';
+  return 'provided';
+}
+
 function normalizeSeed(r) {
-  return {
+  // NEVER silent-default missing dates to `new Date()` — that was the exact
+  // 2026-07 bug shape. If a date is missing we leave it null and let the
+  // provenance heuristic flag the record downstream. Seed rows in the repo
+  // are curated with real dates; KV rows are validated on write.
+  const submitted_at = r.submitted_at || null;
+  const approved_at = r.approved_at || r.submitted_at || null;
+  const record = {
     id: r.id,
     name: r.name,
     rating: Number(r.rating) || 5,
@@ -32,18 +54,32 @@ function normalizeSeed(r) {
     source: r.source || 'other',
     source_url: r.source_url || null,
     lang: r.lang || 'fr',
-    submitted_at: r.submitted_at || new Date().toISOString(),
-    approved_at: r.approved_at || r.submitted_at || new Date().toISOString(),
+    submitted_at,
+    approved_at,
     featured: !!r.featured,
     verified: !!r.verified,
   };
+  // Honor an API-supplied value if present (reviews-public.ts computes it
+  // per record); otherwise compute here so the SSG output matches.
+  record.date_provenance = r.date_provenance || computeDateProvenance(record);
+  return record;
 }
 
 function sortReviews(list) {
   list.sort((a, b) => {
     if (a.featured !== b.featured) return a.featured ? -1 : 1;
-    const ak = a.approved_at || a.submitted_at || '';
-    const bk = b.approved_at || b.submitted_at || '';
+    // Unknown-provenance rows sort by approved_at (the only trustworthy
+    // timestamp); known ones by submitted_at (the actual review date).
+    // Keeps a silent-now-stamped July 2026 row from out-ranking a real
+    // June 2026 review.
+    const ak =
+      (a.date_provenance === 'unknown' ? a.approved_at : a.submitted_at) ||
+      a.approved_at ||
+      '';
+    const bk =
+      (b.date_provenance === 'unknown' ? b.approved_at : b.submitted_at) ||
+      b.approved_at ||
+      '';
     return bk.localeCompare(ak);
   });
   return list;

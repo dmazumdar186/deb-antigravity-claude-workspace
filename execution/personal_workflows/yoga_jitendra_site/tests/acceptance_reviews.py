@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 """
-acceptance_reviews.py — hard-fail output-acceptance gate for the reviews system.
+description: Hard-fail output-acceptance gate for the yoga_jitendra reviews system.
+inputs: SITE_URL (default https://yoga-jitendra.pages.dev), DASHBOARD_USER, DASHBOARD_PASS
+outputs: stdout PASS/FAIL log; exit non-zero on any assertion failure.
 
 Asserts on what a visitor / a moderator actually sees, not on layers. Per
-`~/.claude/rules/output-acceptance-gate.md` and
-`~/.claude/rules/front-door-synthetic.md`.
+`~/.claude/rules/output-acceptance-gate.md`,
+`~/.claude/rules/front-door-synthetic.md`, and
+`~/.claude/rules/live-artifact-acceptance.md`.
 
 Checks (all HARD-FAIL, exit non-zero on any miss):
 
@@ -19,6 +22,19 @@ Checks (all HARD-FAIL, exit non-zero on any miss):
 9. GET /api/reviews-admin?count=1 → 401 without auth (private endpoint gated)
 10. GET /api/reviews-admin?count=1 → 200 with correct Basic-Auth
 11. Static seed sanity: src/content/reviews-seed.json parses + has ≥4 items
+12. LIVE date-provenance guard (2026-08-04 regression class):
+    a. /api/reviews-public MUST include `date_provenance` per record.
+    b. No `verified=true` record may return a specific month/year on the
+       live HTML while its submitted_at & approved_at are within 60s of
+       each other (the silent-now fingerprint). Instead, the DOM must
+       carry `data-provenance="unknown"` and the copy "Date à confirmer"
+       (FR) or "Date pending verification" (EN).
+    c. JSON-LD `datePublished` MUST NOT appear for unknown-provenance
+       records (SEO leak class).
+    d. In-memory corpus: 3 known-bad shapes MUST be tagged 'unknown';
+       3 known-good shapes MUST stay 'provided'. This is the regression
+       corpus that would have caught the 2026-07 shipped-broken bug the
+       first time.
 
 Env:
   SITE_URL         Base URL under test. Default: https://yoga-jitendra.pages.dev
@@ -32,8 +48,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from base64 import b64encode
+from datetime import datetime
 from pathlib import Path
 from urllib import error, parse, request
 
@@ -256,6 +274,267 @@ def check_admin_auth() -> None:
         ok(f'/api/reviews-admin with auth: pending={data.get("pending")}, approved={data.get("approved")}')
 
 
+# ---------------------------------------------------------------------------
+# 2026-08-04 date-provenance regression guard.
+#
+# Born from the 2026-07 shipped-broken bug: every historical Google review
+# was silently stamped submitted_at=now on import, and every visitor saw
+# "juillet 2026" as the review month for reviews actually from 2024-2025.
+# The previous acceptance gate only asserted that `submitted_at` was a
+# non-empty string — a bug that survives that check trivially.
+#
+# The stronger form asserts on the RENDERED OUTPUT: for any verified record
+# whose submitted_at & approved_at are within 60s of each other, the DOM
+# must NOT show a specific month/year, and the JSON-LD must NOT leak a
+# datePublished.
+# ---------------------------------------------------------------------------
+
+# Silent-now fingerprint window. Kept in sync with reviews-public.ts +
+# src/lib/reviews.mjs by convention — bump all three if changed.
+SILENT_NOW_WINDOW_MS = 60 * 1000
+
+# Regex forms of the "specific month, specific year" strings that MUST NOT
+# appear next to an unknown-provenance record. Locale-covered: FR long
+# month, EN long month, YYYY-MM ISO fragment. Deliberately regex-based (not
+# literal-string) so a copy-tweak from "juillet 2026" to "Juillet 2026" or
+# "07/2026" doesn't silently bypass the check.
+_FR_MONTHS = r'(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)'
+_EN_MONTHS = r'(January|February|March|April|May|June|July|August|September|October|November|December)'
+SPECIFIC_DATE_RES: list[re.Pattern[str]] = [
+    re.compile(rf'{_FR_MONTHS}\s+20\d{{2}}', re.IGNORECASE),
+    re.compile(rf'{_EN_MONTHS}\s+20\d{{2}}', re.IGNORECASE),
+    re.compile(r'20\d{2}-(0[1-9]|1[0-2])'),  # 2026-07 ISO fragment
+]
+
+# 3 bad-shape corpus rows the gate MUST tag 'unknown'.
+CORPUS_BAD: list[dict] = [
+    {
+        'id': 'corpus-bad-identical-ms',
+        'verified': True,
+        'submitted_at': '2026-07-24T14:40:07.097Z',
+        'approved_at':  '2026-07-24T14:40:07.097Z',  # identical to the ms
+    },
+    {
+        'id': 'corpus-bad-sub-second',
+        'verified': True,
+        'submitted_at': '2026-07-24T14:40:07.097Z',
+        'approved_at':  '2026-07-24T14:40:07.998Z',  # <1s apart
+    },
+    {
+        'id': 'corpus-bad-sub-minute',
+        'verified': True,
+        'submitted_at': '2026-07-24T14:40:07.097Z',
+        'approved_at':  '2026-07-24T14:40:52.097Z',  # 45s apart
+    },
+]
+
+# 3 good-shape corpus rows the gate MUST leave as 'provided'.
+CORPUS_GOOD: list[dict] = [
+    {
+        'id': 'corpus-good-normal-import',
+        'verified': True,
+        'submitted_at': '2025-08-01T00:00:00.000Z',  # historical GBP
+        'approved_at':  '2026-07-24T14:15:38.512Z',  # imported months later
+    },
+    {
+        'id': 'corpus-good-user-submission',
+        'verified': False,  # user submissions are exempt from the heuristic
+        'submitted_at': '2026-07-24T14:40:07.097Z',
+        'approved_at':  '2026-07-24T14:40:07.097Z',
+    },
+    {
+        'id': 'corpus-good-day-apart',
+        'verified': True,
+        'submitted_at': '2026-07-17T00:00:00.000Z',
+        'approved_at':  '2026-07-24T14:41:11.693Z',
+    },
+]
+
+
+def compute_provenance(r: dict) -> str:
+    """Python mirror of reviews-public.ts computeDateProvenance. If this
+    ever drifts from the TS side, the corpus test below will fail and
+    force a re-sync."""
+    if not r.get('verified'):
+        return 'provided'
+    sub = r.get('submitted_at')
+    app = r.get('approved_at')
+    if not sub or not app:
+        return 'provided'
+    try:
+        sub_ms = int(datetime.fromisoformat(sub.replace('Z', '+00:00')).timestamp() * 1000)
+        app_ms = int(datetime.fromisoformat(app.replace('Z', '+00:00')).timestamp() * 1000)
+    except Exception:
+        return 'provided'
+    if abs(app_ms - sub_ms) < SILENT_NOW_WINDOW_MS:
+        return 'unknown'
+    return 'provided'
+
+
+def check_provenance_corpus() -> None:
+    print('[7] Provenance heuristic — frozen corpus')
+    for row in CORPUS_BAD:
+        got = compute_provenance(row)
+        if got != 'unknown':
+            fail(f"corpus {row['id']}: expected 'unknown', got {got!r}")
+        else:
+            ok(f"corpus {row['id']} → unknown")
+    for row in CORPUS_GOOD:
+        got = compute_provenance(row)
+        if got != 'provided':
+            fail(f"corpus {row['id']}: expected 'provided', got {got!r}")
+        else:
+            ok(f"corpus {row['id']} → provided")
+
+
+def check_live_provenance() -> None:
+    print('[8] Live API date_provenance + DOM render + JSON-LD leak')
+    status, body = http_get(f'{SITE_URL}/api/reviews-public?fresh=1')
+    if status != 200:
+        fail(f'/api/reviews-public returned {status}')
+        return
+    try:
+        data = json.loads(body)
+    except Exception as e:
+        fail(f'/api/reviews-public non-JSON: {e}')
+        return
+    reviews = data.get('reviews', [])
+    if not reviews:
+        warn('/api/reviews-public: no reviews to provenance-check')
+        return
+
+    # 8a — every record must carry date_provenance.
+    missing = [r.get('id') for r in reviews if 'date_provenance' not in r]
+    if missing:
+        fail(f'{len(missing)} records missing date_provenance field: {missing[:3]}...')
+    else:
+        ok(f'all {len(reviews)} records carry date_provenance')
+
+    # 8b — reconcile server-side value against local heuristic.
+    disagreements: list[str] = []
+    for r in reviews:
+        server = r.get('date_provenance', 'provided')
+        local = compute_provenance(r)
+        if server != local:
+            disagreements.append(f"{r.get('id')}: server={server} local={local}")
+    if disagreements:
+        fail(f'server / local heuristic disagree on {len(disagreements)}: {disagreements[:3]}')
+    else:
+        ok('server and local heuristic agree on every record')
+
+    unknown_ids = {r['id'] for r in reviews if r.get('date_provenance') == 'unknown'}
+    if unknown_ids:
+        ok(f'{len(unknown_ids)} record(s) tagged unknown-provenance (interim UI applies)')
+    else:
+        ok('no unknown-provenance records right now')
+
+    # 8c — fetch the FR + EN /reviews/ pages and assert unknown-provenance
+    # cards render "pending verification", not a specific month.
+    if unknown_ids:
+        for path, unknown_label in [
+            ('/reviews/', 'Date à confirmer'),
+            ('/en/reviews/', 'Date pending verification'),
+        ]:
+            status_h, html = http_get(f'{SITE_URL}{path}')
+            if status_h != 200:
+                fail(f'{path} returned {status_h}')
+                continue
+            for uid in unknown_ids:
+                # Locate the card block for this id.
+                pat = re.compile(
+                    r'<figure[^>]+data-review-id="' + re.escape(uid) + r'"[^>]*>.*?</figure>',
+                    re.DOTALL,
+                )
+                m = pat.search(html)
+                if not m:
+                    # Card missing entirely is a separate defect but not
+                    # this check's job — the dom_acceptance test covers it.
+                    continue
+                card = m.group(0)
+                # (i) must carry data-provenance="unknown"
+                if 'data-provenance="unknown"' not in card:
+                    fail(f'{path} card {uid}: missing data-provenance="unknown" attr')
+                # (ii) must render the truthful label
+                if unknown_label not in card:
+                    fail(f'{path} card {uid}: does not render "{unknown_label}"')
+                # (iii) MUST NOT render any specific month/year in the meta
+                # block. Extract just the review-meta region to avoid
+                # false-positive on author names / body text with a year.
+                meta_m = re.search(
+                    r'<div class="review-meta"[^>]*>(.*?)</div>', card, re.DOTALL,
+                )
+                if meta_m:
+                    meta = meta_m.group(1)
+                    for rx in SPECIFIC_DATE_RES:
+                        hit = rx.search(meta)
+                        if hit:
+                            fail(
+                                f'{path} card {uid}: unknown-provenance card leaks '
+                                f'a specific date "{hit.group(0)}" — the exact 2026-07 bug shape'
+                            )
+                            break
+                    else:
+                        ok(f'{path} card {uid}: unknown-provenance meta contains no specific date')
+
+    # 8d — JSON-LD leak: fetch homepage + confirm datePublished missing for
+    # every unknown-provenance record.
+    if unknown_ids:
+        status_home, home_html = http_get(f'{SITE_URL}/')
+        if status_home != 200:
+            warn(f'GET / returned {status_home}, skipping JSON-LD leak check')
+            return
+        # Extract each Review block from the JSON-LD graph and check that
+        # unknown-provenance authors do NOT carry datePublished. Simplest
+        # form: scan the ld+json script text for author names + adjacent
+        # datePublished field.
+        m = re.search(
+            r'<script type="application/ld\+json">(.*?)</script>',
+            home_html,
+            re.DOTALL,
+        )
+        if not m:
+            warn('no ld+json script on homepage')
+            return
+        try:
+            ld = json.loads(m.group(1))
+        except Exception as e:
+            fail(f'ld+json is not valid JSON: {e}')
+            return
+        # The Review objects live at $..review[*] under the LocalBusiness.
+        # Walk the graph and inspect any Review node.
+        def walk(node):
+            if isinstance(node, dict):
+                if node.get('@type') == 'Review':
+                    yield node
+                for v in node.values():
+                    yield from walk(v)
+            elif isinstance(node, list):
+                for it in node:
+                    yield from walk(it)
+        reviews_in_ld = list(walk(ld))
+        # Build name → provenance map from the API response.
+        prov_by_name = {
+            r.get('name'): r.get('date_provenance', 'provided') for r in reviews
+        }
+        leaked = []
+        for rv in reviews_in_ld:
+            name = None
+            auth = rv.get('author')
+            if isinstance(auth, dict):
+                name = auth.get('name')
+            if not name:
+                continue
+            if prov_by_name.get(name) == 'unknown' and 'datePublished' in rv:
+                leaked.append((name, rv['datePublished']))
+        if leaked:
+            fail(
+                f'JSON-LD leaks datePublished for {len(leaked)} unknown-provenance '
+                f'reviews: {leaked[:3]} — SEO cache will index a wrong date'
+            )
+        else:
+            ok('JSON-LD emits no datePublished for unknown-provenance rows')
+
+
 def main() -> int:
     print(f'acceptance_reviews.py — target {SITE_URL}')
     print(f'  user={USER} pass={"set" if PASS else "unset"}')
@@ -267,6 +546,8 @@ def main() -> int:
     check_public_api()
     check_submit_endpoint()
     check_admin_auth()
+    check_provenance_corpus()
+    check_live_provenance()
 
     print()
     if WARNINGS:
