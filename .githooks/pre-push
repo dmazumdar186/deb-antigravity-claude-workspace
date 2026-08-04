@@ -1,0 +1,83 @@
+#!/usr/bin/env sh
+# .githooks/pre-push
+#
+# Phase-1 workspace hardening (2026-08-04). Blocks `git push` when
+# `workspace_sast.py --all --quiet` reports any HIGH or CRITICAL finding.
+#
+# Rationale (from HARDENING_BACKLOG_WORKSPACE_2026-08-04.md, top-leverage fix #1):
+#   The workspace has ~14 always-active rules and 10 native SAST checks.
+#   Only a handful are wired into anything — nothing runs them without a human
+#   trigger. This hook makes Pattern A (untracked-deployed-artifact / silent
+#   Haiku creep / environ-copy / etc.) impossible to push, forever.
+#
+# Bypass (genuine emergencies only): `git push --no-verify`. Log the bypass
+# in HANDOFF.md with a `**Enforcement bypass**: <reason>` line so the choice
+# is auditable.
+#
+# Windows-compatible: sh shebang, LF line endings, no bash-isms.
+
+set -eu
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+# Prefer `py` on Windows; fall back to python / python3.
+if command -v py >/dev/null 2>&1; then
+    PY=py
+elif command -v python >/dev/null 2>&1; then
+    PY=python
+elif command -v python3 >/dev/null 2>&1; then
+    PY=python3
+else
+    echo "[pre-push] python not on PATH — cannot run workspace_sast.py. Skipping check." >&2
+    exit 0
+fi
+
+SAST_SCRIPT="execution/infrastructure/workspace_sast.py"
+if [ ! -f "$SAST_SCRIPT" ]; then
+    echo "[pre-push] $SAST_SCRIPT missing — skipping SAST check." >&2
+    exit 0
+fi
+
+echo "[pre-push] Running workspace SAST (all rules, all files)..." >&2
+
+# Capture full output so we can surface the findings if the check fails.
+# --all: scan every .py under execution/ + all native rules
+# --quiet: suppress the "0 findings" no-op banner
+SAST_OUT=$("$PY" "$SAST_SCRIPT" --all --quiet 2>&1) || SAST_RC=$?
+SAST_RC=${SAST_RC:-0}
+
+if [ "$SAST_RC" -eq 0 ]; then
+    echo "[pre-push] SAST clean." >&2
+
+    # Phase 3 (2026-08-04) — freshness WARN. Non-blocking: stale projects are
+    # signal, not a gate. See execution/infrastructure/freshness_monitor.py
+    # and execution/infrastructure/workspace_heartbeat/manifest.json.
+    FRESHNESS_SCRIPT="execution/infrastructure/freshness_monitor.py"
+    if [ -f "$FRESHNESS_SCRIPT" ]; then
+        echo "[pre-push] Running freshness_monitor (WARN only)..." >&2
+        # --level=warn is exit-1-on-DEGRADED; we deliberately ignore the exit
+        # code so freshness never blocks an unrelated push.
+        "$PY" "$FRESHNESS_SCRIPT" --level=warn --format=human >&2 || \
+            echo "[pre-push] freshness reported DEGRADED — advisory only, push continues." >&2
+    fi
+
+    echo "[pre-push] Proceeding with push." >&2
+    exit 0
+fi
+
+# Non-zero: SAST found HIGH or CRITICAL. Print findings and block.
+echo "" >&2
+echo "===========================================================" >&2
+echo "  PUSH BLOCKED: workspace_sast.py reported HIGH/CRITICAL findings" >&2
+echo "===========================================================" >&2
+echo "" >&2
+printf "%s\n" "$SAST_OUT" >&2
+echo "" >&2
+echo "Fix the findings above, then re-push." >&2
+echo "" >&2
+echo "Emergency bypass (log it in HANDOFF.md if you use it):" >&2
+echo "  git push --no-verify" >&2
+echo "" >&2
+echo "See .githooks/pre-push (workspace root) + HARDENING_BACKLOG_WORKSPACE_2026-08-04.md" >&2
+exit 1

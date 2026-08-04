@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+# .githooks/pre-commit
+#
+# Phase-1 workspace hardening (2026-08-04). Rejects any commit that leaves
+# UNTRACKED source files inside a deploy-target directory:
+#
+#   - functions/         (Cloudflare Pages Functions)
+#   - worker/, workers/  (Cloudflare Workers)
+#   - pages/api/         (Next.js Pages API)
+#   - api/               (Vercel / generic serverless)
+#
+# Kills Pattern A (13-day stale-fallback class) at commit time — see the
+# 2026-08-03 yoga_jitendra exhibit in ~/.claude/rules/live-artifact-acceptance.md
+# and workspace HARDENING_BACKLOG_WORKSPACE_2026-08-04.md.
+#
+# The rule is presence-based (not "am I committing this now"). If your
+# working tree has an untracked deploy-target file, the commit is refused
+# whether the current commit touches it or not — because leaving it
+# untracked while committing OTHER things is exactly how the 13-day
+# stale-fallback bug shipped.
+#
+# Bypass (genuine emergencies only): `git commit --no-verify`. Log in
+# HANDOFF.md as `**Enforcement bypass**: <reason>` per the rule.
+
+set -eu
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+# git ls-files --others (untracked), --exclude-standard (respect .gitignore).
+# Windows-safe: paths come back with forward slashes.
+UNTRACKED=$(git ls-files --others --exclude-standard || true)
+[ -z "$UNTRACKED" ] && exit 0
+
+# Filter to deploy-target directories + source extensions.
+# Extensions: .ts .tsx .js .jsx .mjs .cjs .py .go .rs
+OFFENDERS=$(printf "%s\n" "$UNTRACKED" | awk '
+    /(^|\/)functions\// ||
+    /(^|\/)workers?\// ||
+    /(^|\/)pages\/api\// ||
+    /(^|\/)api\// {
+        if ($0 ~ /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs)$/) print $0
+    }
+' || true)
+
+if [ -z "$OFFENDERS" ]; then
+    exit 0
+fi
+
+echo "" >&2
+echo "===========================================================" >&2
+echo "  COMMIT BLOCKED: untracked source files in deploy-target dirs" >&2
+echo "===========================================================" >&2
+echo "" >&2
+echo "These files are NOT tracked in git. They exist on disk, but they will" >&2
+echo "NOT be shipped by \`wrangler pages deploy\` / \`vercel deploy\` / similar." >&2
+echo "Leaving them untracked while committing other things is the exact" >&2
+echo "2026-08-03 yoga_jitendra failure mode (13 days of stale-fallback in prod):" >&2
+echo "" >&2
+printf "%s\n" "$OFFENDERS" | sed 's/^/  /' >&2
+echo "" >&2
+echo "Fix: \`git add <file>\` for each (or add to .gitignore if intentionally" >&2
+echo "local-only), then re-commit." >&2
+echo "" >&2
+echo "See ~/.claude/rules/live-artifact-acceptance.md (Exhibit A: yoga_jitendra 2026-08-03)." >&2
+echo "" >&2
+echo "Emergency bypass (log in HANDOFF.md if you use it):" >&2
+echo "  git commit --no-verify" >&2
+exit 1

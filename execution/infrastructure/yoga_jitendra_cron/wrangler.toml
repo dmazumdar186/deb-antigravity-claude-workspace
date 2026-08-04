@@ -54,7 +54,7 @@ BING_SITE_URL = "https://yogaavecjitendra.fr/"
 # clears; the source module skips the API call and writes a sources_degraded
 # entry when this is empty. Prevents the whole cron from failing while GBP
 # approval is pending. See §7.2b of the plan file.
-GBP_LOCATION_ID = ""
+GBP_LOCATION_ID = "locations/15110626893429158061"
 
 # KV binding shared with the Pages project. Namespace id was created 2026-07-19
 # via `wrangler kv namespace create DASHBOARD_KV`; do NOT create a new one.
