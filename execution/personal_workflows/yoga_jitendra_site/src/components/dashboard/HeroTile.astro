@@ -52,7 +52,7 @@ const deltaCls = delta_pct === null || delta_pct === undefined
   ? 'delta-neutral'
   : delta_pct > 0 ? 'delta-up' : delta_pct < 0 ? 'delta-down' : 'delta-neutral';
 ---
-<article class="hero-tile" data-status={status} data-reveal>
+<article class="hero-tile" data-status={status} data-tile-key={metric_key} data-reveal>
   <p class="hero-tile-eyebrow">
     <span class="breathing-dot"></span>
     <span>{eyebrow}</span>

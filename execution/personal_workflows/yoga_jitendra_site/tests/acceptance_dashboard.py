@@ -482,6 +482,97 @@ def check_cron_dead_man_surface() -> list[str]:
     return errors
 
 
+def check_hero_tile_hydration_upgrades_skeleton() -> list[str]:
+    """
+    2026-08-04 regression: hero tiles reach + interest were stuck on
+    "Data source pending activation: X" forever on the live dashboard, even
+    when the client-hydration rollup returned real live numbers.
+
+    Root cause: the SSR-time static fallback JSON has
+    hero_tiles.{reach,interest}.value = null, so HeroTile.astro rendered
+    those tiles in the SKELETON branch (no .hero-tile-bignumber, no
+    [data-metric] hook). The hydration script's updateHeroTiles() only
+    ran `document.querySelector('[data-metric=X]').textContent = ...`
+    — a no-op when the element doesn't exist. Two of three tiles never
+    upgraded to live state.
+
+    Two required fingerprints to prevent recurrence:
+      1. HeroTile.astro's <article> MUST carry data-tile-key={metric_key}
+         so the hydration script can find the tile even when it's still
+         in skeleton state.
+      2. dashboard.astro's updateHeroTiles MUST perform a skeleton →
+         live DOM upgrade (not just a textContent write) when the live
+         rollup delivers a real value for a tile that SSR rendered as
+         skeleton.
+    """
+    errors: list[str] = []
+    hero = SRC / "components" / "dashboard" / "HeroTile.astro"
+    if hero.exists():
+        src = hero.read_text(encoding="utf-8")
+        if "data-tile-key" not in src:
+            errors.append(
+                "HeroTile.astro: <article> must expose data-tile-key={metric_key} so "
+                "the dashboard hydration script can address skeleton-state tiles by key."
+            )
+    dash = SRC / "pages" / "dashboard.astro"
+    if dash.exists():
+        src = dash.read_text(encoding="utf-8")
+        # The upgrade path must query .hero-tile[data-tile-key=...] AND rebuild
+        # the number row when the tile is in skeleton state.
+        if 'data-tile-key="' not in src and "data-tile-key=`" not in src and 'data-tile-key=$' not in src:
+            errors.append(
+                "dashboard.astro: hydration must look up hero tiles via "
+                "`.hero-tile[data-tile-key=...]`, not just [data-metric=...] "
+                "(which does not exist in the skeleton SSR branch)."
+            )
+        if ".hero-tile-number-row" not in src or "innerHTML" not in src:
+            errors.append(
+                "dashboard.astro: hydration must rebuild .hero-tile-number-row "
+                "innerHTML to upgrade skeleton → live. Without this the reach + "
+                "interest tiles stay stuck on 'Data source pending activation' "
+                "forever, even after real KV rollup lands."
+            )
+    return errors
+
+
+def check_dashboard_banner_defaults_hidden() -> list[str]:
+    """
+    2026-08-04 regression: on every page load, the SSR emitted a bright amber
+    banner reading "All 4 data sources are degraded. Check /health on the cron
+    Worker." for ~200ms before hydration hid it. The banner text is honest
+    for the static-fallback shape (which lists all 4 sources as degraded
+    because it is the bootstrap-empty placeholder), but it is NOT honest for
+    live production where 3 of 4 sources are actually healthy. It flashed a
+    scary alarm on every visit.
+
+    Fix: the SSR banner must default to `hidden` with empty text; hydration
+    reveals it only when the LIVE rollup reports a genuinely degraded state.
+
+    Regression guard: dashboard.astro must NOT render an initially-visible
+    banner directly from the static `initialBanner` value.
+    """
+    errors: list[str] = []
+    dash = SRC / "pages" / "dashboard.astro"
+    if not dash.exists():
+        return errors
+    src = dash.read_text(encoding="utf-8")
+    # Ban the exact pattern where the SSR banner is visible-by-default with
+    # initialBanner content interpolated in. We accept the hidden default
+    # (`hidden` attribute + empty <span class="dash-banner-text">`) which
+    # relies on hydration to reveal.
+    banned = re.compile(
+        r'\{initialBanner\s*&&\s*\(\s*<aside[^>]*class="dash-banner"(?![^>]*\bhidden\b)'
+    )
+    if banned.search(src):
+        errors.append(
+            "dashboard.astro: <aside class=\"dash-banner\"> must default to hidden. "
+            "Rendering it visible from static-fallback data flashes 'All 4 data "
+            "sources are degraded' on every load. Let hydration reveal it only "
+            "when the LIVE rollup reports a degraded state."
+        )
+    return errors
+
+
 def check_pages_functions_tracked_in_git() -> list[str]:
     """
     Every file under functions/ MUST be tracked in git. The 2026-07 dashboard
@@ -550,6 +641,9 @@ def main() -> int:
     all_errors.extend(check_dashboard_no_hardcoded_wait_hint())
     all_errors.extend(check_cron_dead_man_surface())
     all_errors.extend(check_pages_functions_tracked_in_git())
+    # Regression guards for the 2026-08-04 shipped-broken incident:
+    all_errors.extend(check_hero_tile_hydration_upgrades_skeleton())
+    all_errors.extend(check_dashboard_banner_defaults_hidden())
 
     if all_errors:
         print(f"FAIL — {len(all_errors)} issue(s):", file=sys.stderr)

@@ -123,18 +123,27 @@ const initialBanner = bannerText();
       </p>
     </section>
 
-    {initialBanner && (
-      <aside class="dash-banner" id="dash-status-banner" role="status" aria-live="polite">
-        <span class="dash-banner-icon">⚠</span>
-        <span class="dash-banner-text">{initialBanner}</span>
-      </aside>
-    )}
-    {!initialBanner && (
-      <aside class="dash-banner" id="dash-status-banner" role="status" aria-live="polite" hidden>
-        <span class="dash-banner-icon">⚠</span>
-        <span class="dash-banner-text"></span>
-      </aside>
-    )}
+    {/*
+      Banner defaults to hidden — the static fallback JSON always says
+      "all 4 sources degraded" (bootstrap-empty shape), which would flash
+      an alarming "All 4 data sources are degraded" for ~200ms on every
+      load before hydration hides it. Hydration reveals it only if the
+      LIVE rollup actually reports a degraded state. If hydration fails,
+      the fetch error handler sets a "Live data unavailable" message.
+      SSR-time initialBanner is retained as a `data-ssr-banner` attribute
+      so a hard fetch failure can fall back to it if needed.
+    */}
+    <aside
+      class="dash-banner"
+      id="dash-status-banner"
+      role="status"
+      aria-live="polite"
+      hidden
+      data-ssr-banner={initialBanner || ''}
+    >
+      <span class="dash-banner-icon">⚠</span>
+      <span class="dash-banner-text"></span>
+    </aside>
 
     <section class="dash-hero-grid">
       <HeroTile
@@ -264,15 +273,55 @@ const initialBanner = bannerText();
         ['reach', 'interest', 'conversation'].forEach((key) => {
           const tile = heroTiles[key];
           if (!tile) return;
-          const numberEl = document.querySelector(`[data-metric="${key}"]`);
-          const deltaEl = document.querySelector(`[data-metric-delta="${key}"]`);
-          if (numberEl) {
-            numberEl.textContent = fmtNumber(tile.value);
+
+          // Look up the tile ARTICLE via its stable data-tile-key attribute
+          // (added in HeroTile.astro). Previous code only queried the
+          // .hero-tile-bignumber [data-metric] hook — which does NOT exist
+          // when SSR rendered the tile in skeleton state (value === null).
+          // That mismatch left the reach + interest tiles stuck on
+          // "Data source pending activation: X" forever, even after the
+          // client rollup returned real live numbers. See git-blame on
+          // this block for the 2026-08-04 fix.
+          const article = document.querySelector(`.hero-tile[data-tile-key="${key}"]`);
+          if (!article) return;
+
+          const existingNumberEl = article.querySelector(`[data-metric="${key}"]`);
+          if (existingNumberEl) {
+            // Tile is already in live SSR state (value was a number at build
+            // time). Just refresh the number + delta in place.
+            existingNumberEl.textContent = fmtNumber(tile.value);
+            const existingDeltaEl = article.querySelector(`[data-metric-delta="${key}"]`);
+            if (existingDeltaEl) {
+              existingDeltaEl.textContent = fmtDelta(tile.delta_pct);
+              existingDeltaEl.className = `hero-tile-delta ${deltaClass(tile.delta_pct)}`;
+            }
+            article.setAttribute('data-status', 'live');
+            return;
           }
-          if (deltaEl) {
-            deltaEl.textContent = fmtDelta(tile.delta_pct);
-            deltaEl.className = `hero-tile-delta ${deltaClass(tile.delta_pct)}`;
-          }
+
+          // Tile is in skeleton state. If the live rollup still has no value
+          // for this metric, keep the skeleton (honest "no data yet").
+          if (tile.value === null || tile.value === undefined) return;
+
+          // Upgrade skeleton → live: replace the .hero-tile-number-row
+          // inner HTML with the live number line. Preserves surrounding
+          // eyebrow / headline / source rows so the tile visually snaps
+          // into place instead of re-flowing.
+          const numberRow = article.querySelector('.hero-tile-number-row');
+          if (!numberRow) return;
+          const dcls = deltaClass(tile.delta_pct);
+          const numberText = fmtNumber(tile.value);
+          const deltaText = fmtDelta(tile.delta_pct);
+          // Inline HTML build — values are numeric/enum, no user-controlled
+          // strings, so no XSS surface. Kept in one place so the shape stays
+          // identical to the SSR live branch in HeroTile.astro.
+          numberRow.innerHTML =
+            '<div class="hero-tile-number-line">' +
+              '<span class="hero-tile-bignumber" data-metric="' + key + '">' + numberText + '</span>' +
+              '<span class="hero-tile-delta ' + dcls + '" data-metric-delta="' + key + '" ' +
+                    'aria-label="Change vs previous window">' + deltaText + '</span>' +
+            '</div>';
+          article.setAttribute('data-status', 'live');
         });
       }
 
