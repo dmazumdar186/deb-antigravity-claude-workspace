@@ -15,15 +15,15 @@
         "delta_pct": null,
         "sparkline": [],
         "top_queries": [],
-        "source": "Google Search Console + Bing + GBP"
+        "source": "Google Search Console"
       },
       "interest": {
-        "label": "Clicks on your site and Maps profile",
+        "label": "Clicks on your site",
         "value": null,
         "delta_pct": null,
         "sparkline": [],
         "top_pages": [],
-        "source": "Google Search Console + Business Profile + Bing"
+        "source": "Google Search Console + Bing"
       },
       "conversation": {
         "label": "WhatsApp taps from your site",
@@ -34,8 +34,8 @@
       }
     },
     "funnel": [
-      { "label": "Impressions",   "value": 0, "source": "GSC + Bing + GBP" },
-      { "label": "Clicks",        "value": 0, "source": "GSC + GBP + Bing" },
+      { "label": "Impressions",   "value": 0, "source": "GSC + Bing" },
+      { "label": "Clicks",        "value": 0, "source": "GSC + Bing" },
       { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon" }
     ],
     "time_series": { "labels": [], "series": [] },

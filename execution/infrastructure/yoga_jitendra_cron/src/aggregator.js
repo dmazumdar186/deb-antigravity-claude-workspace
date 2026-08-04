@@ -270,16 +270,21 @@ function buildRollup(rangeKey, endDate, snapsByDay, waEventsByDay, healthy, degr
         delta_pct: computeDeltaPct(totalImpressions, priorImpressions),
         sparkline: dailyMetrics.map((m) => m.impressions),
         top_queries: topQueries,
-        source: "Google Search Console + Bing + GBP",
+        source: "Google Search Console",
         as_of: dates[dates.length - 1] || null,
       },
       interest: {
-        label: "Clicks on your site and Maps profile",
+        // 2026-08-04: GBP dropped from Interest signal. Google Business
+        // Profile API access denied (case 6-8997000041551). GSC + Bing
+        // carry the tile until/unless approval lands; re-add GBP here +
+        // in the site-side dashboard.astro TILE_SOURCES + JS mirror + in
+        // src/content/dashboard-data.json if that day comes.
+        label: "Clicks on your site",
         value: totalClicks,
         delta_pct: computeDeltaPct(totalClicks, priorClicks),
         sparkline: dailyMetrics.map((m) => m.clicks),
         top_pages: topPages,
-        source: "Google Search Console + Business Profile + Bing",
+        source: "Google Search Console + Bing",
         as_of: dates[dates.length - 1] || null,
       },
       conversation: {
@@ -292,8 +297,8 @@ function buildRollup(rangeKey, endDate, snapsByDay, waEventsByDay, healthy, degr
       },
     },
     funnel: [
-      { label: "Impressions",  value: totalImpressions, source: "GSC + Bing + GBP" },
-      { label: "Clicks",       value: totalClicks,      source: "GSC + GBP + Bing" },
+      { label: "Impressions",  value: totalImpressions, source: "GSC + Bing" },
+      { label: "Clicks",       value: totalClicks,      source: "GSC + Bing" },
       { label: "WhatsApp taps", value: totalWaTaps,     source: "On-site beacon" },
     ],
     time_series: {

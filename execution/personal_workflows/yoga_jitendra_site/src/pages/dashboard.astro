@@ -56,9 +56,15 @@ function heroStatus(v: unknown): 'live' | 'waiting' {
 // it was time-agnostic, so a client whose pipeline was never activated saw
 // "24-48h" forever. Now the hint names the actual reason: which source is
 // missing, or "pipeline not yet activated", or last-refresh-N-hours-ago.
+// 2026-08-04: GBP dropped from Interest tile's required sources. Google
+// denied Business Profile API access (case 6-8997000041551) — the tile
+// would perpetually show "GBP still pending" caveat otherwise. GSC + Bing
+// carry the Interest signal; if Google ever approves API access, re-add
+// 'gbp' here + in the JS mirror below + in aggregator.js + in
+// dashboard-data.json's interest.source string.
 const TILE_SOURCES: Record<string, string[]> = {
   reach:        ['gsc'],
-  interest:     ['gsc', 'gbp', 'bing'],
+  interest:     ['gsc', 'bing'],
   conversation: ['cfwa'],
 };
 const SOURCE_LABELS: Record<string, string> = {
@@ -294,9 +300,11 @@ const initialBanner = bannerText();
       // in sources_degraded (or not in sources_healthy), we render "0" in
       // a muted style and append a caveat line naming the pending sources.
       // A non-zero value or a fully-healthy zero returns null (no caveat).
+      // 2026-08-04: keep in sync with the SSR TILE_SOURCES above. GBP
+      // dropped from Interest until Google approves API access.
       const TILE_SOURCES = {
         reach:        ['gsc'],
-        interest:     ['gsc', 'gbp', 'bing'],
+        interest:     ['gsc', 'bing'],
         conversation: ['cfwa'],
       };
       const SOURCE_LABELS = {
