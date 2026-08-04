@@ -84,6 +84,22 @@ function tileHint(key: string): string {
   return 'Live';
 }
 
+// 2026-08-04 fix: when the aggregator returns value === 0 for a tile whose
+// needed sources are partially degraded, we want the tile to render "0" in
+// muted style with a truthful caveat naming the still-pending source(s).
+// Only fires when value === 0 AND at least one needed source is missing.
+// A non-zero live number or a fully-healthy zero returns null (no caveat).
+function tileCaveat(key: string, value: unknown): string | null {
+  if (value !== 0) return null;
+  const degraded: string[] = initial.sources_degraded || [];
+  const healthy:  string[] = initial.sources_healthy  || [];
+  const needed = TILE_SOURCES[key] || [];
+  const missing = needed.filter((s) => degraded.includes(s) || !healthy.includes(s));
+  if (missing.length === 0) return null;
+  const names = missing.map((s) => SOURCE_LABELS[s] || s.toUpperCase()).join(', ');
+  return `${names} still pending — real number may be higher`;
+}
+
 // Whole-dashboard status banner. Fires when the pipeline has never written
 // a rollup OR when every source is degraded. Rendered inline so it can be
 // updated via hydration when /api/dashboard-data reveals the real state.
@@ -156,6 +172,7 @@ const initialBanner = bannerText();
         metric_key="reach"
         sparkline={heroTiles.reach.sparkline || []}
         delta_pct={heroTiles.reach.delta_pct}
+        partial_caveat={tileCaveat('reach', heroTiles.reach.value)}
       />
       <HeroTile
         eyebrow="Interest"
@@ -167,6 +184,7 @@ const initialBanner = bannerText();
         metric_key="interest"
         sparkline={heroTiles.interest.sparkline || []}
         delta_pct={heroTiles.interest.delta_pct}
+        partial_caveat={tileCaveat('interest', heroTiles.interest.value)}
       />
       <HeroTile
         eyebrow="Conversation"
@@ -178,6 +196,7 @@ const initialBanner = bannerText();
         metric_key="conversation"
         sparkline={heroTiles.conversation.sparkline || []}
         delta_pct={heroTiles.conversation.delta_pct}
+        partial_caveat={tileCaveat('conversation', heroTiles.conversation.value)}
       />
     </section>
 
@@ -268,7 +287,48 @@ const initialBanner = bannerText();
         return 'delta-neutral';
       }
 
-      function updateHeroTiles(heroTiles) {
+      // Mirrors dashboard.astro's TILE_SOURCES + SOURCE_LABELS + tileCaveat()
+      // so hydration renders the same truthful "0 with degraded source(s)"
+      // caveat that SSR would render. When a tile arrives from the live
+      // rollup with value === 0 AND at least one of its needed sources is
+      // in sources_degraded (or not in sources_healthy), we render "0" in
+      // a muted style and append a caveat line naming the pending sources.
+      // A non-zero value or a fully-healthy zero returns null (no caveat).
+      const TILE_SOURCES = {
+        reach:        ['gsc'],
+        interest:     ['gsc', 'gbp', 'bing'],
+        conversation: ['cfwa'],
+      };
+      const SOURCE_LABELS = {
+        gsc:  'Google Search Console',
+        gbp:  'Google Business Profile',
+        bing: 'Bing Webmaster',
+        cfwa: 'Cloudflare Web Analytics',
+      };
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+      function tileCaveatText(key, value, rollup) {
+        if (value !== 0) return null;
+        const degraded = (rollup && rollup.sources_degraded) || [];
+        const healthy  = (rollup && rollup.sources_healthy)  || [];
+        const needed   = TILE_SOURCES[key] || [];
+        const missing  = needed.filter(function (s) {
+          return degraded.indexOf(s) !== -1 || healthy.indexOf(s) === -1;
+        });
+        if (missing.length === 0) return null;
+        const names = missing.map(function (s) {
+          return SOURCE_LABELS[s] || s.toUpperCase();
+        }).join(', ');
+        return names + ' still pending — real number may be higher';
+      }
+
+      function updateHeroTiles(heroTiles, rollup) {
         if (!heroTiles) return;
         ['reach', 'interest', 'conversation'].forEach((key) => {
           const tile = heroTiles[key];
@@ -285,15 +345,51 @@ const initialBanner = bannerText();
           const article = document.querySelector(`.hero-tile[data-tile-key="${key}"]`);
           if (!article) return;
 
+          // Compute caveat state (2026-08-04 fix #2): a zero-value tile with
+          // any pending source should carry the caveat + muted number. In
+          // BOTH branches (skeleton→live upgrade AND already-live refresh)
+          // we must add/remove the caveat + partial class so a transition
+          // (e.g. degraded → healthy or zero → non-zero) reflects truthfully.
+          const caveat  = tileCaveatText(key, tile.value, rollup);
+          const partial = caveat !== null;
+
           const existingNumberEl = article.querySelector(`[data-metric="${key}"]`);
           if (existingNumberEl) {
             // Tile is already in live SSR state (value was a number at build
-            // time). Just refresh the number + delta in place.
+            // time). Refresh number + delta + caveat + partial-class in place.
             existingNumberEl.textContent = fmtNumber(tile.value);
+            if (partial) {
+              existingNumberEl.classList.add('partial');
+            } else {
+              existingNumberEl.classList.remove('partial');
+            }
             const existingDeltaEl = article.querySelector(`[data-metric-delta="${key}"]`);
             if (existingDeltaEl) {
               existingDeltaEl.textContent = fmtDelta(tile.delta_pct);
               existingDeltaEl.className = `hero-tile-delta ${deltaClass(tile.delta_pct)}`;
+            }
+            // Reconcile the caveat line: create/update if partial, remove if not.
+            let caveatEl = article.querySelector(`[data-metric-caveat="${key}"]`);
+            if (partial) {
+              if (!caveatEl) {
+                caveatEl = document.createElement('p');
+                caveatEl.className = 'hero-tile-caveat';
+                caveatEl.setAttribute('data-metric-caveat', key);
+                // Insert directly after .hero-tile-number-line so the caveat
+                // hugs the number (before the sparkline, if any).
+                const numberLine = article.querySelector('.hero-tile-number-line');
+                if (numberLine && numberLine.parentNode) {
+                  numberLine.parentNode.insertBefore(caveatEl, numberLine.nextSibling);
+                }
+              }
+              caveatEl.textContent = caveat;
+            } else if (caveatEl && caveatEl.parentNode) {
+              caveatEl.parentNode.removeChild(caveatEl);
+            }
+            if (partial) {
+              article.setAttribute('data-partial', 'true');
+            } else {
+              article.removeAttribute('data-partial');
             }
             article.setAttribute('data-status', 'live');
             return;
@@ -312,15 +408,26 @@ const initialBanner = bannerText();
           const dcls = deltaClass(tile.delta_pct);
           const numberText = fmtNumber(tile.value);
           const deltaText = fmtDelta(tile.delta_pct);
-          // Inline HTML build — values are numeric/enum, no user-controlled
-          // strings, so no XSS surface. Kept in one place so the shape stays
-          // identical to the SSR live branch in HeroTile.astro.
+          const bnCls = 'hero-tile-bignumber' + (partial ? ' partial' : '');
+          // Inline HTML build — numeric/enum values are safe; caveat text
+          // is a joined list of hardcoded SOURCE_LABELS strings (no user
+          // input), but we escapeHtml() defensively to keep this branch
+          // XSS-safe if SOURCE_LABELS ever gains dynamic values.
+          const caveatFragment = partial
+            ? ('<p class="hero-tile-caveat" data-metric-caveat="' + key + '">' + escapeHtml(caveat) + '</p>')
+            : '';
           numberRow.innerHTML =
             '<div class="hero-tile-number-line">' +
-              '<span class="hero-tile-bignumber" data-metric="' + key + '">' + numberText + '</span>' +
+              '<span class="' + bnCls + '" data-metric="' + key + '">' + numberText + '</span>' +
               '<span class="hero-tile-delta ' + dcls + '" data-metric-delta="' + key + '" ' +
                     'aria-label="Change vs previous window">' + deltaText + '</span>' +
-            '</div>';
+            '</div>' +
+            caveatFragment;
+          if (partial) {
+            article.setAttribute('data-partial', 'true');
+          } else {
+            article.removeAttribute('data-partial');
+          }
           article.setAttribute('data-status', 'live');
         });
       }
@@ -371,8 +478,10 @@ const initialBanner = bannerText();
           }
           const rollup = await resp.json();
           // Update hero tile numbers/deltas directly (charts self-update via
-          // the event bus below).
-          updateHeroTiles(rollup.hero_tiles);
+          // the event bus below). Pass the rollup so tileCaveatText() can
+          // read sources_degraded / sources_healthy for the "0 with pending
+          // source" partial-live rendering.
+          updateHeroTiles(rollup.hero_tiles, rollup);
           // Broadcast for chart components + FunnelStrip.
           window.dispatchEvent(new CustomEvent('dashboarddata', { detail: { rollup } }));
           // Refresh the status banner from live data (may hide it if the
@@ -510,6 +619,16 @@ const initialBanner = bannerText();
     color: var(--ink);
     font-size: 0.9rem;
     line-height: 1.45;
+  }
+  /* 2026-08-04 fix: `.dash-banner { display: flex }` above has equal
+     specificity to the UA-level `[hidden] { display: none }`, and author
+     sheets win over UA sheets in the cascade. Result: the `hidden`
+     attribute was rendering an empty amber pill (⚠ icon, no text) on
+     every load when hydration returned bannerText === null. This rule
+     restores the hidden semantic and MUST stay whenever `.dash-banner`
+     declares `display`. */
+  .dash-banner[hidden] {
+    display: none !important;
   }
   .dash-banner-icon {
     color: var(--terracotta, #c9744a);

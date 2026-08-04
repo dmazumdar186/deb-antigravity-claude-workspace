@@ -26,6 +26,12 @@ interface Props {
   sparkline?: number[];
   delta_pct?: number | null;
   sparkline_color?: string;
+  // 2026-08-04 fix: when live rollup returns value === 0 but at least one of
+  // the tile's needed sources is degraded, we render the number in a muted
+  // style with a truthful caveat naming the still-pending source(s). Prior
+  // behavior rendered a bare `0—` with no context — visually identical to a
+  // healthy zero, which mis-signalled a broken pipeline as a real result.
+  partial_caveat?: string | null;
 }
 const {
   eyebrow,
@@ -39,9 +45,14 @@ const {
   sparkline = [],
   delta_pct = null,
   sparkline_color = 'var(--terracotta)',
+  partial_caveat = null,
 } = Astro.props;
 
 const isLive = status === 'live' && value !== null && value !== undefined;
+// Partial-live: a real zero from a not-yet-complete pipeline. Only kicks in
+// when the value is exactly 0 AND caller declared at least one source is
+// still pending. A non-zero live value is never "partial" — real data wins.
+const isPartial = isLive && value === 0 && !!partial_caveat;
 
 function formatDelta(pct: number | null): string {
   if (pct === null || pct === undefined) return '—';
@@ -52,7 +63,7 @@ const deltaCls = delta_pct === null || delta_pct === undefined
   ? 'delta-neutral'
   : delta_pct > 0 ? 'delta-up' : delta_pct < 0 ? 'delta-down' : 'delta-neutral';
 ---
-<article class="hero-tile" data-status={status} data-tile-key={metric_key} data-reveal>
+<article class="hero-tile" data-status={status} data-tile-key={metric_key} data-partial={isPartial ? 'true' : undefined} data-reveal>
   <p class="hero-tile-eyebrow">
     <span class="breathing-dot"></span>
     <span>{eyebrow}</span>
@@ -62,7 +73,7 @@ const deltaCls = delta_pct === null || delta_pct === undefined
     {isLive ? (
       <>
         <div class="hero-tile-number-line">
-          <span class="hero-tile-bignumber" data-metric={metric_key}>
+          <span class={`hero-tile-bignumber${isPartial ? ' partial' : ''}`} data-metric={metric_key}>
             {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
           </span>
           {metric_key && (
@@ -71,6 +82,9 @@ const deltaCls = delta_pct === null || delta_pct === undefined
             </span>
           )}
         </div>
+        {isPartial && (
+          <p class="hero-tile-caveat" data-metric-caveat={metric_key}>{partial_caveat}</p>
+        )}
         {metric_key && sparkline.length > 0 && (
           <Sparkline
             id={`sparkline-${metric_key}`}
@@ -144,6 +158,20 @@ const deltaCls = delta_pct === null || delta_pct === undefined
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
     line-height: 1;
+  }
+  /* 2026-08-04: muted colour for a "partial" zero — a real 0 read from
+     the pipeline where at least one source is still pending. Distinguishes
+     it from a genuine zero (where every source is contributing and the
+     terracotta number is the honest answer). */
+  .hero-tile-bignumber.partial {
+    color: rgba(74, 66, 59, 0.55);
+  }
+  .hero-tile-caveat {
+    margin: 0.4rem 0 0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    max-width: 32ch;
   }
   .hero-tile-suffix {
     font-size: 0.55em;

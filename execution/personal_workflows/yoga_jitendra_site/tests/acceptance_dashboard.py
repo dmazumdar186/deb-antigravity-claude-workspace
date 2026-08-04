@@ -573,6 +573,197 @@ def check_dashboard_banner_defaults_hidden() -> list[str]:
     return errors
 
 
+def check_hero_zero_with_degraded_shows_source_caveat() -> list[str]:
+    """
+    2026-08-04 regression #2: when a hero tile receives value === 0 from the
+    aggregator AND one of its needed sources is degraded, the tile MUST render
+    the number 0 in a muted style with a caveat line naming the still-pending
+    source. Prior behavior rendered a bare `0—` visually indistinguishable
+    from a genuine zero, so the operator saw "0 Reach" and "0 Interest"
+    without any indication that Google Business Profile access is denied.
+
+    Regression fingerprint (evaluated against the built dist/ HTML):
+      - The static fallback JSON has sources_degraded = [gsc, gbp, bing, cfwa]
+        and conversation.value = 0. Therefore the SSR'd `conversation` tile
+        MUST render a caveat containing a source-name string
+        (from SOURCE_LABELS: Google Search Console | Google Business Profile |
+        Bing Webmaster | Cloudflare Web Analytics).
+
+    Also requires the caveat CSS class + partial-number class to exist in
+    HeroTile.astro so the hydration script's runtime insertion has valid
+    selectors to target.
+    """
+    errors: list[str] = []
+    # Static-analysis: HeroTile has caveat + partial affordances.
+    hero = SRC / "components" / "dashboard" / "HeroTile.astro"
+    if hero.exists():
+        src = hero.read_text(encoding="utf-8")
+        if ".hero-tile-caveat" not in src:
+            errors.append(
+                "HeroTile.astro: missing `.hero-tile-caveat` CSS class. "
+                "Required so a zero-with-degraded-source tile can surface a "
+                "truthful caveat instead of a bare `0—`."
+            )
+        if ".hero-tile-bignumber.partial" not in src:
+            errors.append(
+                "HeroTile.astro: missing `.hero-tile-bignumber.partial` CSS "
+                "rule (muted number for a partial-live zero). Without this "
+                "the caveat prints under a fully-saturated terracotta 0, "
+                "which reads as a healthy value."
+            )
+        if "partial_caveat" not in src:
+            errors.append(
+                "HeroTile.astro: missing `partial_caveat` prop. Required so "
+                "dashboard.astro can pass the per-tile pending-source caveat."
+            )
+    # Static-analysis: dashboard.astro computes + passes tileCaveat + has a
+    # client-side counterpart for hydration.
+    dash = SRC / "pages" / "dashboard.astro"
+    if dash.exists():
+        src = dash.read_text(encoding="utf-8")
+        if "function tileCaveat" not in src:
+            errors.append(
+                "dashboard.astro: missing `tileCaveat()` SSR helper that "
+                "returns a per-tile caveat string when value===0 AND a "
+                "needed source is degraded."
+            )
+        if "tileCaveatText" not in src:
+            errors.append(
+                "dashboard.astro: hydration script is missing "
+                "`tileCaveatText()` — the client-side twin of `tileCaveat()`. "
+                "Without it the caveat only renders at SSR time and vanishes "
+                "the moment hydration replaces the number row."
+            )
+    # Live check: SSR HTML for the conversation tile must contain a source-
+    # label string somewhere inside its <article> when the static fallback
+    # has value=0 + at least one degraded source.
+    if not DIST.exists():
+        return errors  # dist not built yet — structural check already flagged
+    html_path = None
+    for c in [DIST / "dashboard" / "index.html", DIST / "dashboard.html"]:
+        if c.exists():
+            html_path = c
+            break
+    if html_path is None:
+        return errors  # already flagged by check_dashboard_html
+    html = html_path.read_text(encoding="utf-8")
+    # Locate the conversation tile <article>. It carries
+    # data-tile-key="conversation". Match up to the closing </article>.
+    m = re.search(
+        r'<article[^>]*data-tile-key="conversation"[^>]*>.*?</article>',
+        html,
+        re.DOTALL,
+    )
+    if not m:
+        errors.append(
+            "dashboard HTML: could not locate <article data-tile-key='conversation'>. "
+            "Either HeroTile.astro no longer exposes data-tile-key, or the tile "
+            "was removed."
+        )
+        return errors
+    tile_html = m.group(0)
+    source_label_names = [
+        "Google Search Console",
+        "Google Business Profile",
+        "Bing Webmaster",
+        "Cloudflare Web Analytics",
+    ]
+    # The static fallback puts cfwa (Cloudflare Web Analytics) in
+    # sources_degraded and sets conversation.value = 0 — so the tile MUST
+    # render a caveat mentioning one of the SOURCE_LABELS names.
+    label_hit = any(name in tile_html for name in source_label_names)
+    if not label_hit:
+        errors.append(
+            "conversation hero tile (value=0, all sources degraded per static "
+            "fallback) renders NO source-name caveat. Expected one of "
+            f"{source_label_names} inside the tile HTML — this is the exact "
+            "'bare 0—' regression from 2026-08-04. Verify tileCaveat() in "
+            "dashboard.astro fires and HeroTile.astro's partial-caveat "
+            "affordance renders it."
+        )
+    # Also assert the tile flags itself with data-partial="true" so CSS + tests
+    # can target the state cheaply.
+    if 'data-partial="true"' not in tile_html:
+        errors.append(
+            "conversation hero tile: expected data-partial=\"true\" attribute "
+            "on the <article> when value=0 AND caveat is present."
+        )
+    return errors
+
+
+def check_dashboard_banner_never_empty_visible() -> list[str]:
+    """
+    2026-08-04 regression #1: `.dash-banner { display: flex }` has equal
+    specificity to the UA `[hidden] { display: none }` rule; author sheets
+    win over UA sheets in the cascade, so the `hidden` attribute did NOT
+    hide the banner. Result: an empty amber warning pill (⚠ icon, no text)
+    rendered at the top of the dashboard on every load.
+
+    Two guards:
+      (1) dashboard.astro CSS MUST include a `.dash-banner[hidden]` override
+          that restores display:none semantics.
+      (2) The SSR'd dashboard HTML MUST NOT contain a visible-and-empty
+          banner: the <aside id="dash-status-banner"> must EITHER carry the
+          `hidden` attribute OR have non-whitespace content inside
+          `.dash-banner-text`.
+    """
+    errors: list[str] = []
+    dash = SRC / "pages" / "dashboard.astro"
+    if dash.exists():
+        src = dash.read_text(encoding="utf-8")
+        # Guard 1: CSS override present.
+        if not re.search(r"\.dash-banner\[hidden\]\s*\{[^}]*display\s*:\s*none", src):
+            errors.append(
+                "dashboard.astro: missing `.dash-banner[hidden] { display: none !important; }` "
+                "CSS override. Without it, the sibling `.dash-banner { display: flex }` "
+                "wins over the UA `[hidden]` rule and renders an empty amber pill on load."
+            )
+    # Guard 2: built HTML has no visible-empty banner.
+    if not DIST.exists():
+        return errors
+    html_path = None
+    for c in [DIST / "dashboard" / "index.html", DIST / "dashboard.html"]:
+        if c.exists():
+            html_path = c
+            break
+    if html_path is None:
+        return errors
+    html = html_path.read_text(encoding="utf-8")
+    # Extract the banner <aside>. Two shapes possible: hidden (attribute
+    # present, standalone or `hidden=""`) OR text-populated.
+    m = re.search(
+        r'<aside[^>]*id="dash-status-banner"([^>]*)>(.*?)</aside>',
+        html,
+        re.DOTALL,
+    )
+    if not m:
+        errors.append(
+            "dashboard HTML: <aside id='dash-status-banner'> not found. Banner element "
+            "was expected in SSR output; hydration cannot un-hide a missing element."
+        )
+        return errors
+    attrs, inner = m.group(1), m.group(2)
+    is_hidden_attr = bool(
+        re.search(r'(?:^|\s)hidden(?:=|\s|/?>|$)', attrs)
+    )
+    # Pull the .dash-banner-text content.
+    tm = re.search(
+        r'<span[^>]*class="dash-banner-text"[^>]*>(.*?)</span>',
+        inner,
+        re.DOTALL,
+    )
+    text_body = (tm.group(1) if tm else "").strip()
+    if not is_hidden_attr and not text_body:
+        errors.append(
+            "dashboard HTML: <aside id='dash-status-banner'> is visible "
+            "(no `hidden` attribute) AND has empty `.dash-banner-text`. "
+            "That renders as an empty amber warning pill — the exact "
+            "2026-08-04 regression. Either default to `hidden` or populate "
+            "the text at SSR time."
+        )
+    return errors
+
+
 def check_pages_functions_tracked_in_git() -> list[str]:
     """
     Every file under functions/ MUST be tracked in git. The 2026-07 dashboard
@@ -644,6 +835,9 @@ def main() -> int:
     # Regression guards for the 2026-08-04 shipped-broken incident:
     all_errors.extend(check_hero_tile_hydration_upgrades_skeleton())
     all_errors.extend(check_dashboard_banner_defaults_hidden())
+    # Regression guards for the 2026-08-04 follow-on (bare-0-tile + empty-pill):
+    all_errors.extend(check_hero_zero_with_degraded_shows_source_caveat())
+    all_errors.extend(check_dashboard_banner_never_empty_visible())
 
     if all_errors:
         print(f"FAIL — {len(all_errors)} issue(s):", file=sys.stderr)
