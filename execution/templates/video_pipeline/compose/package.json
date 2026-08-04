@@ -1,0 +1,25 @@
+{
+  "name": "video-pipeline-compose",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion composition layer for the video pipeline template. Scaffolded by scaffold_video_pipeline.py — customize compositions under src/.",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render MainVideo out/final.mp4 --codec=h264 --crf=18",
+    "render:alpha": "remotion render MainVideo out/overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le",
+    "still": "remotion still MainVideo out/still.png --frame=0",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/three": "4.0.x",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.x",
+    "three": "0.166.x"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.3",
+    "@types/three": "0.166.x",
+    "typescript": "5.5.x"
+  }
+}
