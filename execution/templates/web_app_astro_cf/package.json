@@ -1,0 +1,29 @@
+{
+  "name": "<PROJECT_NAME>",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "test:acceptance": "py tests/acceptance_<PROJECT_NAME>.py",
+    "test:frontdoor": "bash tests/front_door_<PROJECT_NAME>.sh",
+    "lint:sast": "py ../../infrastructure/workspace_sast.py --level=high"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/tailwind": "^5.1.0",
+    "astro": "^5.0.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "playwright": "^1.61.1",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}

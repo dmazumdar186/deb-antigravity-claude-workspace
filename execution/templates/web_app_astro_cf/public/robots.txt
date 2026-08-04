@@ -1,0 +1,6 @@
+# Default: NO INDEX until the project is production-ready.
+# Delete these two lines (User-agent + Disallow) before public launch.
+User-agent: *
+Disallow: /
+
+Sitemap: https://<PROJECT_DOMAIN>/sitemap-index.xml

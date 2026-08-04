@@ -1,0 +1,33 @@
+# Cloudflare Pages project config for <PROJECT_NAME>.
+#
+# Deploy:  npx wrangler pages deploy dist
+# Preview: npx wrangler pages deploy dist --branch=preview
+#
+# Secrets are NEVER declared inline (they would be committed). Set once with:
+#   npx wrangler pages secret put <NAME> --project-name=<PROJECT_NAME>
+# They persist on the Pages project across deploys.
+
+name = "<PROJECT_NAME>"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "./dist"
+
+# Observability (required per audit stack) — enables tail/logs/metrics.
+[observability]
+enabled = true
+
+# Non-secret env vars. Put site keys (Turnstile, Analytics) here, not
+# secrets.
+[vars]
+# PUBLIC_TURNSTILE_SITE_KEY = ""
+# PUBLIC_CF_WA_TOKEN        = ""
+
+# KV binding — regenerate id via `wrangler kv namespace create DASHBOARD_KV`
+# and paste below. The template ships a placeholder id; scaffold_web_app.py
+# blanks it so first-run doesn't accidentally point at a live namespace.
+#
+# [[kv_namespaces]]
+# binding = "APP_KV"
+# id = "<REGENERATE_ME>"
+
+# Security headers ship in a `_headers` file at build root, not in
+# wrangler.toml. See public/_headers.
