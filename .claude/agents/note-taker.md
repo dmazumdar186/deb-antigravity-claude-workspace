@@ -1,7 +1,7 @@
 ---
 name: note-taker
 description: Capture learnings into .claude/notes/ after edits to directives/ or execution/. Uses the [tag] subject: detail format. Append-only; never overwrites.
-model: haiku
+model: sonnet
 tools:
   - Read
   - Glob

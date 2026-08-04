@@ -328,4 +328,4 @@ Be pragmatic. Be reliable. Self-anneal.
 ## Environment
 
 - Python: 3.14
-- Default model for all agents and sub-agents: `claude-opus-4-6`
+- Default model for all agents and sub-agents: `claude-opus-4-8`
