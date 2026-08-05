@@ -27,7 +27,7 @@ py execution/mobile_apps/app_store_research.py --query "Headspace" --store appst
 ## Orchestration outline
 
 1. Read CSV → list of competitor names.
-2. Fan-out via `ultracode:` keyword: spawn one Haiku-tier sub-agent per (competitor, store) cell. Cap concurrency at 8 (Firecrawl rate limit).
+2. Fan-out via `ultracode:` keyword: spawn one Sonnet-tier sub-agent per (competitor, store) cell. Cap concurrency at 8 (Firecrawl rate limit).
 3. Per cell: sub-agent invokes `execution/mobile_apps/app_store_research.py --query <competitor> --store <store> --single`.
 4. Collect JSON blobs from each cell into a flat results list.
 5. Merge into `{competitor_matrix: [...], scraped_count, skipped_count}` shape.
@@ -47,12 +47,12 @@ The `--max-workers` flag controls ThreadPoolExecutor concurrency inside the scri
 ## Prompt template
 
 ```
-ultracode: research ASO for every competitor in {competitors_file} across stores {stores}, write competitive matrix to .tmp/aso_matrix_{slug}.json. Concurrency 8. Skip cells where Firecrawl fails after 2 retries. Worker model: haiku.
+ultracode: research ASO for every competitor in {competitors_file} across stores {stores}, write competitive matrix to .tmp/aso_matrix_{slug}.json. Concurrency 8. Skip cells where Firecrawl fails after 2 retries. Worker model: sonnet.
 ```
 
 ## Notes
 
-- Default worker model: `claude-haiku-4-5` (scraping + markdown extraction, no deep reasoning needed).
+- Default worker model: `claude-sonnet-4-6` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; Sonnet is the minimum tier for any project work).
 - Firecrawl rate limit: keep `--max-workers` <= 8 to avoid 429 errors.
 - Per-cell failure isolation: `skipped_count` in output tells you how many cells failed and why; the batch never halts on a single failure.
 - The script returns exit code 0 (all cells scraped), 1 (fatal error), or 2 (some cells skipped — still useful output).

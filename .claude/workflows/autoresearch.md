@@ -70,7 +70,7 @@ ultracode: run autoresearch on {baseline_description} optimizing {metric_name} v
 ## Notes
 
 - Default mutator model: `claude-sonnet-4-6` (copy + creative + prompt mutation).
-- Default deployer/plumbing model: `claude-haiku-4-5` (API calls, logging, metric fetching — no deep reasoning needed).
+- Default deployer/plumbing model: `claude-sonnet-4-6` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; Sonnet is the minimum tier for any project work).
 - Failure mode: if `deploy_fn` raises, log `DEPLOY_FAILURE round={N} error={e}` to the learnings file, skip the round, continue. Do not crash the loop.
 - In dry-run mode: mock all 3 callables, return `would_deploy`, `would_measure`, `would_learn` counts. No real API calls.
 - **AM lockdown**: do NOT apply this workflow to Accessory Masters campaigns, Instantly accounts, or GHL workspaces. AM is frozen. See `CLAUDE.local.md`.

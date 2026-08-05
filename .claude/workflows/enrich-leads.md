@@ -20,7 +20,7 @@ outputs:
 
 ## Orchestration outline
 
-1. **Fan-out**: read CSV, spawn one Haiku-tier sub-agent per row. Cap concurrency at 12.
+1. **Fan-out**: read CSV, spawn one Sonnet-tier sub-agent per row. Cap concurrency at 12.
 2. **Map (per row)**: sub-agent calls Apollo enrichment, then Exa enrichment. Merges dicts. Returns one enriched-row JSON.
 3. **Reduce**: collect all rows. Drop duplicates by (email, domain). Sort by enrichment_score desc.
 4. **Write**: append to Google Sheet named in `sheet_name` using `execution/google/sheets.py`.
@@ -33,7 +33,7 @@ ultracode: enrich every lead in {csv_path} with Apollo + Exa, dedupe by (email, 
 
 ## Notes
 
-- Default worker model: `claude-haiku-4-5` (this job is mostly API-call orchestration, not reasoning).
+- Default worker model: `claude-sonnet-4-6` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; Sonnet is the minimum tier for any project work).
 - Apollo + Exa both have rate limits — Anneal-style backoff inside the worker.
 - Failure mode: per-row failures don't halt the batch. Final report includes skipped_count.
 - Do NOT use this for AM leads (the AM lockdown rule applies — Apollo+Exa credits for AM are user-controlled only).
