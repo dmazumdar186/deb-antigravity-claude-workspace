@@ -66,6 +66,13 @@ import sys
 from base64 import b64encode
 from urllib import error, request
 
+try:
+    from dotenv import load_dotenv  # type: ignore[import-untyped]
+    # Walk up looking for the workspace-root .env (5 levels above tests/).
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed; env vars must be set externally.
+
 SITE_URL = os.environ.get("SITE_URL", "https://yogaavecjitendra.fr").rstrip("/")
 USER = os.environ.get("DASHBOARD_USER", "debanjan")
 PASS = os.environ.get("DASHBOARD_PASS")
