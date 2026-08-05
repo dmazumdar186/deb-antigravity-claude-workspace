@@ -606,6 +606,37 @@ def check_popup_js_ships_in_ssr() -> list[str]:
     return errors
 
 
+def check_popup_url_override_present() -> list[str]:
+    """2026-08-06 regression guard — operator retest gotcha: `yj_popup_seen`
+    localStorage persists 30 days from the first Skip/Close/Submit, so a
+    tester who once dismissed the popup will see nothing on later visits
+    and (correctly) conclude "not deployed." The `?popup=1` URL param
+    force-shows the popup regardless of localStorage + DNT + crawler UA;
+    `?popup=reset` clears the flag. Without these overrides the operator
+    has no in-browser way to retest without opening devtools.
+    """
+    errors: list[str] = []
+    popup = SRC / "components" / "NewsletterPopup.astro"
+    if not popup.exists():
+        return errors
+    src = popup.read_text(encoding="utf-8")
+    # Force-show branch and reset branch both required. Match on the
+    # semantic tokens, not on any specific implementation, so a future
+    # rewrite that keeps the contract still passes.
+    if "yjNlUrlMode" not in src:
+        errors.append(
+            "NewsletterPopup.astro: missing `yjNlUrlMode` helper — the "
+            "?popup=1/reset URL overrides are not wired. Operator loses "
+            "the in-browser retest hatch."
+        )
+    if "'force'" not in src or "'reset'" not in src:
+        errors.append(
+            "NewsletterPopup.astro: URL-override branch missing 'force' "
+            "or 'reset' modes — both are required (see 2026-08-06 handoff)."
+        )
+    return errors
+
+
 def check_popup_backdrop_hidden_override() -> list[str]:
     """Slice 1 hotfix regression guard — the popup's `.yj-nl-backdrop`
     uses `display: flex`, which beats the UA `[hidden] { display: none }`
@@ -819,6 +850,7 @@ def main() -> int:
     all_errors.extend(check_instagram_url_fixed_in_src())
     all_errors.extend(check_popup_js_ships_in_ssr())
     all_errors.extend(check_popup_backdrop_hidden_override())
+    all_errors.extend(check_popup_url_override_present())
     all_errors.extend(check_newsletter_popup_wired_and_truthful())
     all_errors.extend(check_newsletter_subscribe_is_kv_only())
     all_errors.extend(check_clients_carousel_present())

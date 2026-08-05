@@ -387,9 +387,39 @@ const CONSENT_TEXT_VERSION = '2026-08-04';
       return /bot|crawler|spider|slurp|bingpreview|prerender|lighthouse|chrome-lighthouse/i.test(ua);
     }
 
+    // 2026-08-06 additions (operator retest gotcha): visitors who already
+    // interacted with the popup once carry a 30-day localStorage flag, so
+    // subsequent tests on the same browser silently show nothing — reads
+    // as "not deployed." Two escape hatches, both zero-devtools:
+    //   ?popup=1       force-show now (bypasses localStorage flag + DNT +
+    //                  crawler UA filter, no writes to storage)
+    //   ?popup=reset   clear the localStorage flag and continue normally
+    //                  (popup will show after the usual 1.8s delay unless
+    //                  DNT/crawler applies)
+    // Non-goal: SEO impact. Neither param is linked anywhere on the site;
+    // presence in a URL only affects that one page-load.
+    function yjNlUrlMode() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('popup');
+        if (p === '1' || p === 'force' || p === 'show') return 'force';
+        if (p === 'reset' || p === '0' || p === 'clear') return 'reset';
+      } catch (e) { /* older browsers without URLSearchParams — ignore */ }
+      return '';
+    }
+
     function yjNlInit() {
       var el = document.getElementById('yj-newsletter-popup');
       if (!el) return;
+      var mode = yjNlUrlMode();
+      if (mode === 'reset') {
+        try { window.localStorage.removeItem(YJ_NL_KEY); } catch (e) {}
+      }
+      if (mode === 'force') {
+        // Skip both suppressors and shorten the delay so the operator can
+        // eyeball the popup immediately when the URL param is set.
+        window.setTimeout(function () { yjNlShow(el); }, 200);
+        return;
+      }
       if (yjNlIsSeen()) return;
       if (yjNlIsDntOrCrawler()) return;
       window.setTimeout(function () { yjNlShow(el); }, YJ_NL_FIRST_LOAD_DELAY_MS);
