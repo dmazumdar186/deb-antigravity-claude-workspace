@@ -339,187 +339,184 @@ const CONSENT_TEXT_VERSION = '2026-08-04';
   }
 </style>
 
-<script>
-  // Storage key + TTL configuration for the "seen popup" flag.
-  // 30-day soft TTL — we compute expiry client-side and clear on read.
-  const YJ_NL_KEY = 'yj_popup_seen';
-  const YJ_NL_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-  const YJ_NL_FIRST_LOAD_DELAY_MS = 1800;
+<script is:inline>
+  // 2026-08-05 fix (operator caught: popup didn't show at all): previous
+  // <script> block used TypeScript syntax (`(window as any)`, `<HTMLFormElement>`
+  // generics, `(e: KeyboardEvent) =>` param types). Astro's hoisted-script
+  // path silently DID NOT bundle this file — every built page's HTML
+  // reference list was missing NewsletterPopup*.js. Root cause suspected:
+  // the script's TS annotations tripped Astro's script-analysis phase into
+  // treating it as a no-op and eliding it, without a build warning.
+  // Rewriting as `is:inline` (renders verbatim, always ships) + plain JS
+  // (no type annotations) removes both the tree-shake risk and the TS
+  // parse risk. Same fault class as the 2026-08-04 apexcharts bare-specifier
+  // bug — a silent failure at the bundler layer that renders on prod as
+  // "nothing happens." The regression guard for this class lives in
+  // tests/unit_dashboard.py::check_popup_js_ships_in_ssr.
+  (function () {
+    var YJ_NL_KEY = 'yj_popup_seen';
+    var YJ_NL_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+    var YJ_NL_FIRST_LOAD_DELAY_MS = 1800;
 
-  function yjNlSetSeen() {
-    try {
-      window.localStorage.setItem(YJ_NL_KEY, JSON.stringify({
-        v: 1,
-        exp: Date.now() + YJ_NL_TTL_MS,
-      }));
-    } catch (e) { /* localStorage disabled — best-effort */ }
-  }
-
-  function yjNlIsSeen() {
-    try {
-      const raw = window.localStorage.getItem(YJ_NL_KEY);
-      if (!raw) return false;
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed.exp !== 'number') return false;
-      if (Date.now() > parsed.exp) {
-        window.localStorage.removeItem(YJ_NL_KEY);
-        return false;
-      }
-      return true;
-    } catch (e) { return false; }
-  }
-
-  function yjNlIsDntOrCrawler() {
-    // Respect Do-Not-Track and skip for obvious crawlers.
-    if (navigator.doNotTrack === '1' || (window as any).doNotTrack === '1') return true;
-    const ua = navigator.userAgent || '';
-    return /bot|crawler|spider|slurp|bingpreview|prerender|lighthouse|chrome-lighthouse/i.test(ua);
-  }
-
-  function yjNlInit() {
-    const el = document.getElementById('yj-newsletter-popup');
-    if (!el) return;
-    if (yjNlIsSeen()) return;
-    if (yjNlIsDntOrCrawler()) return;
-
-    // Wait a short beat after first paint so we don't fight LCP.
-    window.setTimeout(() => { yjNlShow(el); }, YJ_NL_FIRST_LOAD_DELAY_MS);
-  }
-
-  function yjNlShow(el: HTMLElement) {
-    el.hidden = false;
-    document.body.style.overflow = 'hidden';
-
-    const form = el.querySelector<HTMLFormElement>('[data-yj-nl-form]');
-    const skipBtn = el.querySelector<HTMLButtonElement>('[data-yj-nl-skip]');
-    const closeBtn = el.querySelector<HTMLButtonElement>('[data-yj-nl-close]');
-    const closeFinal = el.querySelector<HTMLButtonElement>('[data-yj-nl-close-final]');
-    const status = el.querySelector<HTMLElement>('[data-yj-nl-status]');
-    const thanksBlk = el.querySelector<HTMLElement>('[data-yj-nl-thanks]');
-    const emailInput = el.querySelector<HTMLInputElement>('[data-yj-nl-email]');
-
-    const lang = el.getAttribute('data-lang') === 'en' ? 'en' : 'fr';
-    const consentVersion = el.getAttribute('data-consent-version') || '';
-    const msgs = lang === 'en'
-      ? {
-          invalid: 'Please enter a valid email address.',
-          consent: 'Please tick the consent box to subscribe.',
-          rate: 'You have already tried recently. Please wait a moment.',
-          generic: 'Something went wrong. Try again or email Jitendra directly.',
-        }
-      : {
-          invalid: 'Veuillez saisir une adresse e-mail valide.',
-          consent: 'Veuillez cocher la case de consentement pour vous inscrire.',
-          rate: "Vous avez déjà essayé récemment. Merci de patienter un instant.",
-          generic: "Une erreur est survenue. Réessayez ou écrivez directement à Jitendra.",
-        };
-
-    function close(setSeen: boolean) {
-      if (setSeen) yjNlSetSeen();
-      el.hidden = true;
-      document.body.style.overflow = '';
-    }
-
-    function showStatus(tone: 'err', message: string) {
-      if (!status) return;
-      status.hidden = false;
-      status.dataset.tone = tone;
-      status.textContent = message;
-    }
-
-    function clearStatus() {
-      if (!status) return;
-      status.hidden = true;
-      status.textContent = '';
-    }
-
-    skipBtn?.addEventListener('click', () => close(true));
-    closeBtn?.addEventListener('click', () => close(true));
-    closeFinal?.addEventListener('click', () => close(true));
-
-    // Backdrop click = skip.
-    el.addEventListener('click', (e) => {
-      if (e.target === el) close(true);
-    });
-
-    // Esc = skip.
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !el.hidden) {
-        close(true);
-        window.removeEventListener('keydown', onKey);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-
-    // Autofocus the email field after the panel is visible.
-    window.setTimeout(() => emailInput?.focus(), 60);
-
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearStatus();
-
-      const fd = new FormData(form);
-      // Honeypot: any non-empty value = bot. Silently succeed (don't tip off).
-      if (String(fd.get('website') ?? '').length > 0) {
-        showThanks();
-        return;
-      }
-
-      const email = String(fd.get('email') ?? '').trim().toLowerCase();
-      const consent = fd.get('consent') === 'on';
-
-      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) {
-        showStatus('err', msgs.invalid);
-        return;
-      }
-      if (!consent) {
-        showStatus('err', msgs.consent);
-        return;
-      }
-
-      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-      if (submitBtn) { submitBtn.disabled = true; submitBtn.setAttribute('aria-busy', 'true'); }
-
+    function yjNlSetSeen() {
       try {
-        const res = await fetch('/api/newsletter-subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            consent: true,
-            lang,
-            consent_text_version: consentVersion,
-            source_url: window.location.href,
-          }),
-        });
-        if (res.status === 202 || res.status === 200) {
+        window.localStorage.setItem(YJ_NL_KEY, JSON.stringify({
+          v: 1,
+          exp: Date.now() + YJ_NL_TTL_MS,
+        }));
+      } catch (e) { /* localStorage disabled — best-effort */ }
+    }
+
+    function yjNlIsSeen() {
+      try {
+        var raw = window.localStorage.getItem(YJ_NL_KEY);
+        if (!raw) return false;
+        var parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed.exp !== 'number') return false;
+        if (Date.now() > parsed.exp) {
+          window.localStorage.removeItem(YJ_NL_KEY);
+          return false;
+        }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function yjNlIsDntOrCrawler() {
+      if (navigator.doNotTrack === '1' || window.doNotTrack === '1') return true;
+      var ua = navigator.userAgent || '';
+      return /bot|crawler|spider|slurp|bingpreview|prerender|lighthouse|chrome-lighthouse/i.test(ua);
+    }
+
+    function yjNlInit() {
+      var el = document.getElementById('yj-newsletter-popup');
+      if (!el) return;
+      if (yjNlIsSeen()) return;
+      if (yjNlIsDntOrCrawler()) return;
+      window.setTimeout(function () { yjNlShow(el); }, YJ_NL_FIRST_LOAD_DELAY_MS);
+    }
+
+    function yjNlShow(el) {
+      el.hidden = false;
+      document.body.style.overflow = 'hidden';
+
+      var form       = el.querySelector('[data-yj-nl-form]');
+      var skipBtn    = el.querySelector('[data-yj-nl-skip]');
+      var closeBtn   = el.querySelector('[data-yj-nl-close]');
+      var closeFinal = el.querySelector('[data-yj-nl-close-final]');
+      var status     = el.querySelector('[data-yj-nl-status]');
+      var thanksBlk  = el.querySelector('[data-yj-nl-thanks]');
+      var emailInput = el.querySelector('[data-yj-nl-email]');
+
+      var lang = el.getAttribute('data-lang') === 'en' ? 'en' : 'fr';
+      var consentVersion = el.getAttribute('data-consent-version') || '';
+      var msgs = lang === 'en'
+        ? {
+            invalid: 'Please enter a valid email address.',
+            consent: 'Please tick the consent box to subscribe.',
+            rate:    'You have already tried recently. Please wait a moment.',
+            generic: 'Something went wrong. Try again or email Jitendra directly.',
+          }
+        : {
+            invalid: 'Veuillez saisir une adresse e-mail valide.',
+            consent: 'Veuillez cocher la case de consentement pour vous inscrire.',
+            rate:    "Vous avez déjà essayé récemment. Merci de patienter un instant.",
+            generic: "Une erreur est survenue. Réessayez ou écrivez directement à Jitendra.",
+          };
+
+      function close(setSeen) {
+        if (setSeen) yjNlSetSeen();
+        el.hidden = true;
+        document.body.style.overflow = '';
+      }
+
+      function showStatus(tone, message) {
+        if (!status) return;
+        status.hidden = false;
+        status.dataset.tone = tone;
+        status.textContent = message;
+      }
+
+      function clearStatus() {
+        if (!status) return;
+        status.hidden = true;
+        status.textContent = '';
+      }
+
+      if (skipBtn)    skipBtn.addEventListener('click',    function () { close(true); });
+      if (closeBtn)   closeBtn.addEventListener('click',   function () { close(true); });
+      if (closeFinal) closeFinal.addEventListener('click', function () { close(true); });
+
+      el.addEventListener('click', function (e) {
+        if (e.target === el) close(true);
+      });
+
+      function onKey(e) {
+        if (e.key === 'Escape' && !el.hidden) {
+          close(true);
+          window.removeEventListener('keydown', onKey);
+        }
+      }
+      window.addEventListener('keydown', onKey);
+
+      window.setTimeout(function () { if (emailInput) emailInput.focus(); }, 60);
+
+      if (form) form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearStatus();
+
+        var fd = new FormData(form);
+        if (String(fd.get('website') || '').length > 0) {
           showThanks();
           return;
         }
-        if (res.status === 429) {
-          showStatus('err', msgs.rate);
+
+        var email = String(fd.get('email') || '').trim().toLowerCase();
+        var consent = fd.get('consent') === 'on';
+
+        if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) {
+          showStatus('err', msgs.invalid);
           return;
         }
-        showStatus('err', msgs.generic);
-      } catch (err) {
-        showStatus('err', msgs.generic);
-      } finally {
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.removeAttribute('aria-busy'); }
+        if (!consent) {
+          showStatus('err', msgs.consent);
+          return;
+        }
+
+        var submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.setAttribute('aria-busy', 'true'); }
+
+        fetch('/api/newsletter-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            consent: true,
+            lang: lang,
+            consent_text_version: consentVersion,
+            source_url: window.location.href,
+          }),
+        }).then(function (res) {
+          if (res.status === 202 || res.status === 200) { showThanks(); return; }
+          if (res.status === 429) { showStatus('err', msgs.rate); return; }
+          showStatus('err', msgs.generic);
+        }).catch(function () {
+          showStatus('err', msgs.generic);
+        }).then(function () {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.removeAttribute('aria-busy'); }
+        });
+      });
+
+      function showThanks() {
+        if (form) form.hidden = true;
+        if (thanksBlk) thanksBlk.hidden = false;
+        yjNlSetSeen();
       }
-    });
-
-    function showThanks() {
-      const formBlk = form as HTMLElement | null;
-      if (formBlk) formBlk.hidden = true;
-      if (thanksBlk) thanksBlk.hidden = false;
-      // Set seen NOW so if the user closes the tab, popup stays dismissed.
-      yjNlSetSeen();
     }
-  }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', yjNlInit, { once: true });
-  } else {
-    yjNlInit();
-  }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', yjNlInit, { once: true });
+    } else {
+      yjNlInit();
+    }
+  })();
 </script>

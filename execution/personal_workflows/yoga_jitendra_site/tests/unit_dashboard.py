@@ -568,6 +568,44 @@ def check_instagram_url_fixed_in_src() -> list[str]:
     return errors
 
 
+def check_popup_js_ships_in_ssr() -> list[str]:
+    """2026-08-05 regression guard — the popup <script> was previously in
+    Astro's hoisted-script path with TypeScript annotations, and Astro
+    SILENTLY declined to bundle it (no build warning). Every built page
+    lacked the JS reference; SSR shipped a permanently-hidden popup no
+    real visitor could ever see. Fix moved it to `is:inline` + plain JS.
+    Guard: the source uses `is:inline` AND every built public HTML file
+    contains an inline `yjNlInit` function reference. If either check
+    fails, the popup is broken on prod again."""
+    errors: list[str] = []
+    popup = SRC / "components" / "NewsletterPopup.astro"
+    if not popup.exists():
+        return errors
+    src = popup.read_text(encoding="utf-8")
+    if "is:inline" not in src:
+        errors.append(
+            "NewsletterPopup.astro: <script> must carry `is:inline` — "
+            "Astro's hoisted-script path silently drops this component's "
+            "script and the popup never shows on prod."
+        )
+    if not DIST.exists():
+        return errors
+    # Every public HTML page must inline yjNlInit (the popup's entry
+    # function) since Base.astro mounts the component on !dashboard pages.
+    for rel in ("index.html", "en/index.html", "reviews/index.html", "en/reviews/index.html"):
+        p = DIST / rel
+        if not p.exists():
+            continue
+        html = p.read_text(encoding="utf-8")
+        if "yjNlInit" not in html:
+            errors.append(
+                f"dist/{rel}: missing inline `yjNlInit` popup init function — "
+                "the popup <script> did not ship to this page. Real visitors "
+                "will see nothing."
+            )
+    return errors
+
+
 def check_popup_backdrop_hidden_override() -> list[str]:
     """Slice 1 hotfix regression guard — the popup's `.yj-nl-backdrop`
     uses `display: flex`, which beats the UA `[hidden] { display: none }`
@@ -766,6 +804,7 @@ def main() -> int:
     all_errors.extend(check_dashboard_banner_never_empty_visible())
     # Session 3 (2026-08-05) additions:
     all_errors.extend(check_instagram_url_fixed_in_src())
+    all_errors.extend(check_popup_js_ships_in_ssr())
     all_errors.extend(check_popup_backdrop_hidden_override())
     all_errors.extend(check_newsletter_popup_wired_and_truthful())
     all_errors.extend(check_newsletter_subscribe_is_kv_only())
