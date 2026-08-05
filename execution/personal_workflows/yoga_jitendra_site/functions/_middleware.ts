@@ -69,19 +69,27 @@ function readSessionCookie(request: Request): string | null {
   return null;
 }
 
-function stampSessionCookie(response: Response, sig: string): Response {
-  // Response headers are mutable in the Workers runtime, but clone via
-  // constructor for maximal compatibility (some downstream responses
-  // arrive with immutable headers if they came from cache).
-  const headers = new Headers(response.headers);
-  headers.append(
-    'Set-Cookie',
-    `${SESSION_COOKIE_NAME}=${sig}; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}; HttpOnly; Secure; SameSite=Strict`,
-  );
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
+function sessionCookieHeader(sig: string): string {
+  return `${SESSION_COOKIE_NAME}=${sig}; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}; HttpOnly; Secure; SameSite=Strict`;
+}
+
+// 2026-08-06 — replaces stampSessionCookie (which appended Set-Cookie to
+// context.next()'s response). Cloudflare Pages' static-asset handler
+// strips Set-Cookie from static-asset responses on the way out, so the
+// stamp silently disappeared and every XHR re-prompted. Redirecting from
+// a Function-generated response guarantees the cookie is issued — CF
+// cannot strip headers on responses we build ourselves. GET/HEAD → 302,
+// other methods → 307 (POST/PUT/DELETE preserve method + body on
+// follow-up). One extra RTT on first-auth, zero prompts afterward.
+function cookieSetRedirect(url: URL, sig: string, method: string): Response {
+  const safe = method === 'GET' || method === 'HEAD';
+  return new Response(null, {
+    status: safe ? 302 : 307,
+    headers: {
+      'Location': url.pathname + url.search,
+      'Set-Cookie': sessionCookieHeader(sig),
+      'Cache-Control': 'no-store',
+    },
   });
 }
 
@@ -123,9 +131,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return context.next();
   }
 
-  // Fall-through: Basic Auth. On success, stamp the session cookie so
-  // subsequent requests (including fetch/XHR from client scripts) don't
-  // trigger a second browser prompt.
+  // Fall-through: Basic Auth. On success, redirect to the same URL with
+  // Set-Cookie header. Browser follows, sends the cookie, cookie
+  // fast-path (above) validates, request proceeds. Safe against loops:
+  // the cookie fast-path returns BEFORE this branch runs, so a valid
+  // cookie always wins and we never re-issue the redirect.
   const auth = context.request.headers.get('Authorization');
   if (auth && auth.startsWith('Basic ')) {
     let decoded: string;
@@ -139,8 +149,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const user = decoded.slice(0, idx);
       const pass = decoded.slice(idx + 1);
       if (timingSafeEqual(user, expectedUser) && timingSafeEqual(pass, expectedPass)) {
-        const response = await context.next();
-        return stampSessionCookie(response, expectedSig);
+        return cookieSetRedirect(url, expectedSig, context.request.method);
       }
     }
   }
