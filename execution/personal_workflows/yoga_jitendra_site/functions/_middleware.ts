@@ -5,6 +5,15 @@
 // without breaking the URL — the CF Access product intercepts before this
 // middleware runs.
 //
+// 2026-08-06 addition — session cookie: browsers do not reliably auto-attach
+// cached Basic Auth to fetch()/XHR requests. That caused a double prompt
+// (once on /dashboard/, again when clicking the subscribers count and the
+// page's XHR hit /api/subscribers). Fix: on successful Basic Auth we
+// Set-Cookie yj_dash_sess=<sha256(user:pass:v1)>; subsequent requests are
+// authorized via the cookie without any prompt. If DASHBOARD_PASS ever
+// rotates, all outstanding cookies invalidate automatically because the
+// expected signature changes. 8-hour max-age matches a working day.
+//
 // Required env vars set on the Pages project:
 //   DASHBOARD_USER — plain text, default 'debanjan' if not set
 //   DASHBOARD_PASS — secret, no default (401 with a friendly message if missing)
@@ -29,6 +38,9 @@ const PUBLIC_API_ALLOWLIST = new Set<string>([
   '/api/newsletter-subscribe',
 ]);
 
+const SESSION_COOKIE_NAME = 'yj_dash_sess';
+const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60; // 8 hours
+
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
@@ -36,6 +48,41 @@ function timingSafeEqual(a: string, b: string): boolean {
     diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
   return diff === 0;
+}
+
+async function sessionSig(user: string, pass: string): Promise<string> {
+  const buf = new TextEncoder().encode(`${user}:${pass}:yj-dash-v1`);
+  const digest = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function readSessionCookie(request: Request): string | null {
+  const header = request.headers.get('Cookie') || '';
+  const parts = header.split(/;\s*/);
+  for (const part of parts) {
+    if (part.startsWith(`${SESSION_COOKIE_NAME}=`)) {
+      return part.slice(SESSION_COOKIE_NAME.length + 1);
+    }
+  }
+  return null;
+}
+
+function stampSessionCookie(response: Response, sig: string): Response {
+  // Response headers are mutable in the Workers runtime, but clone via
+  // constructor for maximal compatibility (some downstream responses
+  // arrive with immutable headers if they came from cache).
+  const headers = new Headers(response.headers);
+  headers.append(
+    'Set-Cookie',
+    `${SESSION_COOKIE_NAME}=${sig}; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}; HttpOnly; Secure; SameSite=Strict`,
+  );
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -66,6 +113,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     );
   }
 
+  const expectedSig = await sessionSig(expectedUser, expectedPass);
+
+  // Fast path: valid session cookie → allow, no re-prompt, no Set-Cookie
+  // (already stamped). Cookie is invalidated automatically when the
+  // password rotates because the expected sig changes.
+  const existingCookie = readSessionCookie(context.request);
+  if (existingCookie && timingSafeEqual(existingCookie, expectedSig)) {
+    return context.next();
+  }
+
+  // Fall-through: Basic Auth. On success, stamp the session cookie so
+  // subsequent requests (including fetch/XHR from client scripts) don't
+  // trigger a second browser prompt.
   const auth = context.request.headers.get('Authorization');
   if (auth && auth.startsWith('Basic ')) {
     let decoded: string;
@@ -79,7 +139,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const user = decoded.slice(0, idx);
       const pass = decoded.slice(idx + 1);
       if (timingSafeEqual(user, expectedUser) && timingSafeEqual(pass, expectedPass)) {
-        return context.next();
+        const response = await context.next();
+        return stampSessionCookie(response, expectedSig);
       }
     }
   }
