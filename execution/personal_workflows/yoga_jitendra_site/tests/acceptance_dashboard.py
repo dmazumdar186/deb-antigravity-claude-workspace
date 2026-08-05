@@ -1,7 +1,8 @@
 """
 description: LIVE-artifact acceptance gate for the yoga-jitendra dashboard V0.1.
-inputs: SITE_URL (default https://yogaavecjitendra.fr), DASHBOARD_USER, DASHBOARD_PASS
-outputs: exit 0 on pass, non-zero + failure reasons on stderr.
+inputs: SITE_URL (default https://yogaavecjitendra.fr), DASHBOARD_USER, DASHBOARD_PASS,
+        --strict flag (upgrade WARN-skip on missing DASHBOARD_PASS to a hard FAIL)
+outputs: exit 0 on full pass, 2 on pass-with-skips (non-strict), 1 on any FAIL.
 
 Runs against the DEPLOYED artifact — per ~/.claude/rules/live-artifact-acceptance.md.
 A gate that only exercises `dist/` proves the local build works; it does NOT
@@ -30,19 +31,34 @@ Checks (all HARD-FAIL, exit non-zero on any miss):
  8. /wa-out proxy: 302→wa.me on known source; 400 on unknown (live
     open-redirect defense)
  9. GET all three ranges {7d, 30d, all} — same schema, valid JSON
+10. /api/reviews-public is public + returns valid rollup with per-record
+    date_provenance (regression guard for the 2026-08-04 provenance work)
 
 Env:
   SITE_URL         Base URL under test. Default: https://yogaavecjitendra.fr
   DASHBOARD_USER   Basic-Auth user. Default: debanjan
-  DASHBOARD_PASS   Basic-Auth pass. If missing, gate skips with a WARN
-                   (not FAIL) so this can run in CI without leaking secrets.
+  DASHBOARD_PASS   Basic-Auth pass. If missing, gate skips auth-gated checks
+                   with a WARN (non-strict) or FAIL (strict).
+
+Verdict semantics (2026-08-05 tightening — closes the false-PASS gap
+where the gate printed "PASS" while warn-skipping the auth-gated core
+check, i.e. exactly the pattern ~/.claude/rules/output-acceptance-gate.md
+warns against):
+  exit 0  — PASS: no failures AND no warnings
+  exit 2  — PASS-WITH-SKIPS: no failures BUT >=1 warning (partial coverage)
+  exit 1  — FAIL: >=1 failure (or, with --strict, >=1 warning)
+
+CI should ALWAYS pass --strict. Interactive runs default to non-strict so
+the operator can see coverage without hard-failing on a missing local secret.
 
 Run:
     py execution/personal_workflows/yoga_jitendra_site/tests/acceptance_dashboard.py
+    py execution/personal_workflows/yoga_jitendra_site/tests/acceptance_dashboard.py --strict
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -262,9 +278,52 @@ def check_wa_out() -> None:
         fail(f"/wa-out?source=phishattacker expected 400, got {status} — open-redirect risk")
 
 
+# ---------------------------------------------------------------------------
+# Check 10: /api/reviews-public — no auth needed; verifies deployment freshness
+# ---------------------------------------------------------------------------
+
+def check_reviews_public() -> None:
+    print("[/api/reviews-public]")
+    status, body, _ = http_get(f"{SITE_URL}/api/reviews-public?fresh=1", auth=False)
+    if status != 200:
+        fail(f"/api/reviews-public returned {status}")
+        return
+    try:
+        d = json.loads(body)
+    except Exception as e:
+        fail(f"/api/reviews-public not valid JSON: {e}")
+        return
+    reviews = d.get("reviews") or []
+    if not isinstance(reviews, list):
+        fail("/api/reviews-public reviews is not a list")
+        return
+    if reviews:
+        without = [r.get("id", "?") for r in reviews if "date_provenance" not in r]
+        if without:
+            fail(
+                f"/api/reviews-public: {len(without)} record(s) missing date_provenance "
+                f"— 2026-08-04 provenance regression class. First 3 IDs: {without[:3]}"
+            )
+        else:
+            ok(
+                f"/api/reviews-public: {len(reviews)} reviews, avg {d.get('average_rating')}, "
+                f"unknown_date_count={d.get('unknown_date_count')}"
+            )
+    else:
+        ok("/api/reviews-public: 0 reviews (KV bootstrap)")
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Upgrade WARN-skip on missing DASHBOARD_PASS to a hard FAIL (CI mode).",
+    )
+    args = parser.parse_args()
+
     print(f"acceptance_dashboard.py — LIVE target {SITE_URL}")
-    print(f"  user={USER} pass={'set' if PASS else 'UNSET (warn-mode)'}")
+    print(f"  user={USER} pass={'set' if PASS else 'UNSET (warn-mode)'} strict={args.strict}")
     print()
 
     # Range 7d — do the full deep check on this one.
@@ -283,16 +342,38 @@ def main() -> int:
     check_wa_out()
     print()
 
+    check_reviews_public()
+    print()
+
     if WARNINGS:
         print("WARNINGS:")
         for w in WARNINGS:
             print(f"  ! {w}")
         print()
 
+    # 2026-08-05 verdict tightening — do NOT print "PASS" when warn-skips
+    # covered up the auth-gated core check. That's the exact pattern
+    # ~/.claude/rules/output-acceptance-gate.md was born to kill.
     if FAILURES:
         print(f"FAIL — {len(FAILURES)} live-acceptance check(s) failed", file=sys.stderr)
         return 1
-    print("PASS — dashboard V0.1 LIVE acceptance gate.")
+    if WARNINGS:
+        if args.strict:
+            print(
+                f"FAIL (strict) — {len(WARNINGS)} check(s) skipped for lack of "
+                f"DASHBOARD_PASS. Provision the secret and re-run.",
+                file=sys.stderr,
+            )
+            return 1
+        print(
+            f"PASS-WITH-SKIPS — 0 failures BUT {len(WARNINGS)} auth-gated check(s) "
+            f"skipped. This run does NOT verify /dashboard/ HTML or "
+            f"/api/dashboard-data on prod. Run with --strict once DASHBOARD_PASS "
+            f"is provisioned to close the gap.",
+            file=sys.stderr,
+        )
+        return 2
+    print("PASS — dashboard V0.1 LIVE acceptance gate (all checks executed).")
     return 0
 
 

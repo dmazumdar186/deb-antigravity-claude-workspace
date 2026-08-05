@@ -5,7 +5,7 @@ Per-project hardening card. Companion to workspace-level
 known-degraded axes, acceptance-gate coverage, health probes, front-door
 synthetic count, and owed follow-ups. Update when state changes.
 
-Last updated: **2026-08-04** (Phase 2 workspace hardening pass).
+Last updated: **2026-08-05** (Phase 2 finish-pass — gate discipline + fresh build).
 
 ---
 
@@ -16,18 +16,22 @@ Last updated: **2026-08-04** (Phase 2 workspace hardening pass).
 1. Five consecutive **live** front-door-synthetic green days
    (`front_door_dashboard.sh` PASS × 5, run manually or via cron).
 2. Pages project redeployed with the 2026-08-04 apexcharts bare-specifier
-   fix (charts render live, not blank).
+   fix. Fresh `dist/` was built in the 2026-08-05 session (chart chunks
+   `TimeSeriesChart.astro_*.js` + `SourceDonut.astro_*.js` + `Sparkline.astro_*.js`
+   + `apexcharts.esm.*.js` all present; no bare `import ApexCharts` in HTML).
+   `wrangler pages deploy dist --project-name=yoga-jitendra` attempted by the
+   assistant was **auto-mode-blocked** — operator must run the deploy or
+   allow the classifier permission.
 3. `DASHBOARD_USER` + `DASHBOARD_PASS` added to workspace `.env` so
    automated acceptance-gate runs can hit the auth-gated APIs (currently
-   the gate warn-skips those checks).
+   the gate returns exit 2 = PASS-WITH-SKIPS, or exit 1 under `--strict`).
 
 Per `~/.claude/rules/front-door-synthetic.md`, the language while the
 five-consecutive-day count is < 5 is exactly:
 `LIVE-PROBATIONARY: day N of 5`.
 
-Current framing: **LIVE-PROBATIONARY day 0 of 5** (reset on 2026-08-04
-because the chart-blank defect is a distinct fault class from the ones
-previously counted).
+Current framing: **LIVE-PROBATIONARY day 0 of 5** (unchanged from 2026-08-04:
+counter cannot advance until Pages redeploy + DASHBOARD_PASS provisioning).
 
 ---
 
@@ -65,7 +69,7 @@ Ranked by leverage (severity × ease):
 | Gate | Layer | Path | Live vs Fixture | Exit code semantics |
 |---|---|---|---|---|
 | `tests/front_door_dashboard.sh` | bash + python | LIVE (curl `${BASE_URL}`) | LIVE — hits real production URL + real /api/dashboard-data (auth) + real /wa-out | Exit 0 = all pass; non-zero = one FAIL line per failure on stderr |
-| `tests/acceptance_dashboard.py` | Python | LIVE (`SITE_URL`) | LIVE — auth-gated dashboard API + HTML + /wa-out. Warn-skips authed checks when `DASHBOARD_PASS` unset. | Exit 0 = pass; 1 = any FAIL; 2 = env-config error |
+| `tests/acceptance_dashboard.py` | Python | LIVE (`SITE_URL`) | LIVE — auth-gated dashboard API + HTML + /wa-out + public reviews. Warn-skips authed checks when `DASHBOARD_PASS` unset. | Exit 0 = full PASS; 2 = PASS-WITH-SKIPS (warn but no fail); 1 = FAIL (or, with `--strict`, ≥1 warning). CI should always pass `--strict`. |
 | `tests/acceptance_reviews.py` | Python | LIVE (`SITE_URL`) | LIVE — public reviews API + HTML + date-provenance corpus + JSON-LD leak check | Exit 0 = pass; 1 = any FAIL |
 | `tests/dom_acceptance_reviews.mjs` | Node + playwright | LIVE (`SITE_URL`) | LIVE — real headless Chromium, DOM state after augmentation | Exit 0 = pass; 1 = any assertion failure; 2 = unexpected |
 | `tests/unit_dashboard.py` | Python | dist/ + src/ | Local (does NOT prove prod) | Exit 0 = pass; 1 = any regression guard fires. Fast pre-deploy check only. |
@@ -134,6 +138,7 @@ file's next revision + committed as `[phase-N] hardening: day M of 5`.
 
 ## History
 
+- **2026-08-05** — Phase 2 finish-pass. Verified chart-fix source is committed + pushed. Fresh `npm run build` confirms dist/ ships `apexcharts.esm.*.js` + all 3 per-chart chunks + zero inline bare `import ApexCharts`. `wrangler pages deploy` attempted but auto-mode-blocked — owed to operator. Acceptance-gate discipline hardened: `--strict` flag upgrades WARN → FAIL; PASS-WITH-SKIPS verdict (exit 2) replaces the prior false-PASS-with-WARN-suppressed output; added public `/api/reviews-public` regression guard (per-record `date_provenance` fingerprint from the 2026-08-04 provenance work) so a run without `DASHBOARD_PASS` still exercises SOMETHING beyond `/wa-out`. LIVE-PROBATIONARY counter unchanged (still 0/5, blocked on deploy + secret).
 - **2026-08-04** — Phase 2 workspace hardening. Root-caused blank trends chart + blank discovery donut: Astro `<script type="module" define:vars>` blocks emit inline scripts with `import ApexCharts from 'apexcharts'` unresolved (bare specifier fails in browsers). Converted all three chart components to hoisted `<script>` + `data-init` JSON attributes. Build now produces `_astro/apexcharts.esm.*.js` + per-chart chunks; charts render on the built HTML. Cron redeployed with GBP_LOCATION_ID picked up from local wrangler.toml modification. Front-door + acceptance test scripts rewritten to hit LIVE URLs, added regression guards for the bare-specifier fingerprint. `unit_dashboard.py` split from `acceptance_dashboard.py` (the old file mixed dist-only checks under a name that implied live coverage — exactly the 2026-08-03 pattern the workspace rule was born from).
 - **2026-08-03** — Live-artifact-acceptance rule (`~/.claude/rules/live-artifact-acceptance.md`) born from this project. 13-day stale fallback in prod because two Pages Functions (`dashboard-data.ts`, `wa-out.ts`) were never `git add`ed. Committed six regression guards; SAST rule `pages-functions-untracked` added.
 - **2026-07-21** — V0.1 dashboard code landed. Charts never rendered live — this is the fault the 2026-08-04 investigation surfaced.
