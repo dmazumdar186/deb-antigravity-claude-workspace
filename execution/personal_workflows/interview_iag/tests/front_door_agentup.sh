@@ -12,8 +12,11 @@
 
 set -eo pipefail
 
-BASE="${1:-https://agentup-iag.pages.dev}"
-BASE="${BASE%/}"
+# SITE_URL is the workspace-standard name recognized by
+# workspace_sast.py's front-door-fixture-only rule as a live-URL fingerprint.
+# BASE is kept as the local alias so the rest of the script is unchanged.
+SITE_URL="${SITE_URL:-${1:-https://agentup-iag.pages.dev}}"
+BASE="${SITE_URL%/}"
 FAIL_COUNT=0
 
 fail() { echo "FAIL: $*" >&2; FAIL_COUNT=$((FAIL_COUNT + 1)); }
