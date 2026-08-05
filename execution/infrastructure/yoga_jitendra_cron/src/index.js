@@ -320,6 +320,28 @@ export default {
       return json(result, result.ok ? 200 : 400);
     }
 
+    // GET /debug/kv/<key> — inspect a raw KV value. Requires X-Worker-Secret.
+    // Added 2026-08-05 to diagnose the CFWA all-zero-donut bug without
+    // requiring a redeploy for every hypothesis test. Read-only; the key
+    // pattern is unrestricted because the secret already gates access.
+    if (method === "GET" && url.pathname.startsWith("/debug/kv/")) {
+      const denied = requireWorkerSecret(request, env);
+      if (denied) return denied;
+      const key = decodeURIComponent(url.pathname.slice("/debug/kv/".length));
+      if (!key) return json({ ok: false, error: "missing key" }, 400);
+      try {
+        const raw = await env.DASHBOARD_KV.get(key);
+        if (raw === null) return json({ ok: true, key, value: null, note: "key not found" });
+        try {
+          return json({ ok: true, key, value: JSON.parse(raw) });
+        } catch {
+          return json({ ok: true, key, value: raw, note: "not JSON, returned raw" });
+        }
+      } catch (err) {
+        return json({ ok: false, key, error: err?.message || String(err) }, 500);
+      }
+    }
+
     return json({ ok: false, error: "not found", tried: `${method} ${url.pathname}` }, 404);
   },
 };

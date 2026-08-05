@@ -1,0 +1,567 @@
+---
+// ReviewsHub — Slice 4 of the 2026-08-05 UX pass.
+//
+// Compact reviews strip embedded on the main /dashboard/ page so the client
+// (Jitendra) sees rating + count + source mix + latest 3 reviews + pending
+// moderation queue count at a glance, without switching pages.
+//
+// Structure:
+//   .rh-head       — eyebrow + title + "see all" link
+//   .rh-summary    — big star rating + count + pending strip
+//   .rh-source-row — filter chips per source (only Google today; future
+//                    slots for GetYourGuide / Evendo / Expedia when wired)
+//   .rh-list       — top 3 recent reviews as compact cards
+//   .rh-foot       — provenance line
+//
+// Data flow: fetches /api/reviews-public on mount (authed inherited via
+// same-origin credentials). Pending count is fetched from the authed
+// /api/reviews-admin endpoint in a second call; degrades cleanly if
+// admin fetch fails (401/500).
+//
+// Design tokens: uses .yj-* primitives + tokens throughout.
+
+interface Props {
+  // Server-side fallback so the tile is not blank pre-hydration.
+  // Optional — if omitted, the tile renders in skeleton state.
+  ssr_count?: number;
+  ssr_avg?: number | null;
+}
+const { ssr_count = 0, ssr_avg = null } = Astro.props;
+
+const SOURCE_LABELS: Record<string, string> = {
+  google:     'Google',
+  superprof:  'Superprof',
+  meetup:     'Meetup',
+  trainme:    'TrainMe',
+  instagram:  'Instagram',
+  email:      'Email',
+  other:      'Other',
+};
+---
+<section class="rh-block yj-card" data-reveal>
+  <header class="rh-head">
+    <div class="rh-head-title">
+      <p class="yj-eyebrow"><span class="breathing-dot" aria-hidden="true"></span><span>Reputation</span></p>
+      <h2 class="yj-title-lg">What people are saying</h2>
+    </div>
+    <a class="rh-manage-link" href="/dashboard/reviews/">
+      <span>Moderate</span>
+      <span class="rh-manage-arrow" aria-hidden="true">→</span>
+    </a>
+  </header>
+
+  <div class="rh-summary">
+    <div class="rh-rating">
+      <span class="rh-rating-star" aria-hidden="true">★</span>
+      <span class="rh-rating-value" data-rh-avg>{ssr_avg !== null ? ssr_avg.toFixed(1) : '—'}</span>
+      <span class="rh-rating-outof">/ 5</span>
+    </div>
+    <div class="rh-count-block">
+      <span class="rh-count-num" data-rh-count>{ssr_count.toLocaleString('en-US')}</span>
+      <span class="yj-caption">approved reviews</span>
+    </div>
+    <div class="rh-pending" data-rh-pending-wrap hidden>
+      <span class="yj-chip" data-role="warn">
+        <span aria-hidden="true">⏳</span>
+        <span data-rh-pending-count>0</span>
+        <span> pending</span>
+      </span>
+      <a class="rh-pending-link" href="/dashboard/reviews/">Review now →</a>
+    </div>
+  </div>
+
+  <div class="rh-source-row" role="tablist" aria-label="Filter by source" data-rh-sources>
+    {/* Populated on hydrate. Skeleton chips shown while loading. */}
+    <span class="yj-skeleton yj-skeleton--chip" aria-hidden="true"></span>
+    <span class="yj-skeleton yj-skeleton--chip" aria-hidden="true"></span>
+    <span class="yj-skeleton yj-skeleton--chip" aria-hidden="true"></span>
+  </div>
+
+  <div class="rh-list" data-rh-list>
+    {/* Populated on hydrate. Skeleton cards while loading. */}
+    <article class="rh-review rh-review--skel">
+      <span class="yj-skeleton yj-skeleton--text" style="width: 40%; height: 1em;"></span>
+      <span class="yj-skeleton yj-skeleton--text" style="width: 90%; height: 3.2em; margin-top: 0.5em;"></span>
+      <span class="yj-skeleton yj-skeleton--text" style="width: 30%; height: 0.85em; margin-top: 0.5em;"></span>
+    </article>
+    <article class="rh-review rh-review--skel">
+      <span class="yj-skeleton yj-skeleton--text" style="width: 40%; height: 1em;"></span>
+      <span class="yj-skeleton yj-skeleton--text" style="width: 90%; height: 3.2em; margin-top: 0.5em;"></span>
+      <span class="yj-skeleton yj-skeleton--text" style="width: 30%; height: 0.85em; margin-top: 0.5em;"></span>
+    </article>
+    <article class="rh-review rh-review--skel">
+      <span class="yj-skeleton yj-skeleton--text" style="width: 40%; height: 1em;"></span>
+      <span class="yj-skeleton yj-skeleton--text" style="width: 90%; height: 3.2em; margin-top: 0.5em;"></span>
+      <span class="yj-skeleton yj-skeleton--text" style="width: 30%; height: 0.85em; margin-top: 0.5em;"></span>
+    </article>
+  </div>
+
+  <footer class="rh-foot">
+    <span class="rh-foot-dot" aria-hidden="true"></span>
+    <span class="yj-caption" data-rh-foot>Loading review sources…</span>
+  </footer>
+</section>
+
+<script>
+  // Reviews hub hydration. Runs on DOMContentLoaded and refetches on every
+  // dashboardrange event (so the pending count refreshes when the user
+  // changes range pills — same UX beat as the funnel).
+  (function () {
+    const SOURCE_LABELS = {
+      google:     'Google',
+      superprof:  'Superprof',
+      meetup:     'Meetup',
+      trainme:    'TrainMe',
+      instagram:  'Instagram',
+      email:      'Email',
+      other:      'Other',
+    };
+    const el = {
+      avg:      document.querySelector('[data-rh-avg]'),
+      count:    document.querySelector('[data-rh-count]'),
+      pending:  document.querySelector('[data-rh-pending-wrap]'),
+      pendingN: document.querySelector('[data-rh-pending-count]'),
+      sources:  document.querySelector('[data-rh-sources]'),
+      list:     document.querySelector('[data-rh-list]'),
+      foot:     document.querySelector('[data-rh-foot]'),
+    };
+    if (!el.list) return;
+
+    let activeFilter = 'all';
+    let allReviews = [];
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function stars(n) {
+      const rounded = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+      return '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+    }
+    function fmtDate(iso, provenance) {
+      if (!iso) return '';
+      if (provenance === 'unknown') return 'date pending verification';
+      try {
+        return new Date(iso).toLocaleDateString('en-GB', {
+          year: 'numeric', month: 'short', day: '2-digit',
+        });
+      } catch (e) {
+        return '';
+      }
+    }
+    function truncate(s, max) {
+      const str = String(s || '');
+      if (str.length <= max) return str;
+      return str.slice(0, max - 1).trimEnd() + '…';
+    }
+    function sourceLabel(src) {
+      const key = String(src || 'other').toLowerCase();
+      return SOURCE_LABELS[key] || (key.charAt(0).toUpperCase() + key.slice(1));
+    }
+    function sourceCounts(reviews) {
+      const out = {};
+      for (const r of reviews) {
+        const key = String(r.source || 'other').toLowerCase();
+        out[key] = (out[key] || 0) + 1;
+      }
+      return out;
+    }
+
+    function renderSourceChips(counts, total) {
+      if (!el.sources) return;
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const chips = [
+        {
+          key: 'all',
+          html: '<button type="button" role="tab" class="rh-chip" data-source="all" aria-pressed="' + (activeFilter === 'all') + '"><span>All</span><span class="rh-chip-count">' + total + '</span></button>',
+        },
+      ].concat(entries.map(function (pair) {
+        var key = pair[0];
+        var n = pair[1];
+        return {
+          key: key,
+          html: '<button type="button" role="tab" class="rh-chip" data-source="' + escapeHtml(key) + '" aria-pressed="' + (activeFilter === key) + '"><span>' + escapeHtml(sourceLabel(key)) + '</span><span class="rh-chip-count">' + n + '</span></button>',
+        };
+      }));
+      el.sources.innerHTML = chips.map(function (c) { return c.html; }).join('');
+      // Bind chip clicks.
+      el.sources.querySelectorAll('.rh-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          activeFilter = chip.getAttribute('data-source') || 'all';
+          el.sources.querySelectorAll('.rh-chip').forEach(function (c) {
+            var isActive = c === chip;
+            c.setAttribute('aria-pressed', String(isActive));
+            c.classList.toggle('is-active', isActive);
+          });
+          renderList();
+        });
+      });
+      // Mark the initial active chip visually.
+      var activeEl = el.sources.querySelector('.rh-chip[data-source="' + activeFilter + '"]');
+      if (activeEl) activeEl.classList.add('is-active');
+    }
+
+    function renderList() {
+      if (!el.list) return;
+      var filtered = activeFilter === 'all'
+        ? allReviews
+        : allReviews.filter(function (r) {
+            return String(r.source || 'other').toLowerCase() === activeFilter;
+          });
+      var top3 = filtered.slice(0, 3);
+      if (top3.length === 0) {
+        el.list.innerHTML = '<p class="rh-empty">No reviews for this source yet.</p>';
+        return;
+      }
+      el.list.innerHTML = top3.map(function (r) {
+        var badgeSrc = sourceLabel(r.source);
+        var badgeCls = 'rh-badge rh-badge--' + String(r.source || 'other').toLowerCase();
+        var provenance = r.date_provenance || 'provided';
+        var dateStr = fmtDate(r.submitted_at, provenance);
+        var featuredMark = r.featured ? '<span class="rh-featured" title="Featured"><span aria-hidden="true">★</span> pinned</span>' : '';
+        return (
+          '<article class="rh-review">' +
+            '<header class="rh-review-head">' +
+              '<span class="rh-review-stars" aria-label="' + Math.round(r.rating || 0) + ' out of 5 stars">' + stars(r.rating) + '</span>' +
+              '<span class="rh-review-name">' + escapeHtml(r.name) + '</span>' +
+              '<span class="' + badgeCls + '">' + escapeHtml(badgeSrc) + '</span>' +
+              featuredMark +
+            '</header>' +
+            '<p class="rh-review-body">' + escapeHtml(truncate(r.body, 180)) + '</p>' +
+            '<p class="rh-review-meta yj-caption">' + escapeHtml(dateStr) + (r.lang ? ' · ' + escapeHtml(String(r.lang).toUpperCase()) : '') + '</p>' +
+          '</article>'
+        );
+      }).join('');
+    }
+
+    async function fetchReviews() {
+      try {
+        var resp = await fetch('/api/reviews-public?fresh=1', {
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        if (!resp.ok) throw new Error('reviews-public ' + resp.status);
+        var data = await resp.json();
+        allReviews = Array.isArray(data.reviews) ? data.reviews.slice() : [];
+        // Sort newest-first by submitted_at (falls back to approved_at).
+        allReviews.sort(function (a, b) {
+          var aT = Date.parse(a.submitted_at || a.approved_at || 0) || 0;
+          var bT = Date.parse(b.submitted_at || b.approved_at || 0) || 0;
+          return bT - aT;
+        });
+        if (el.avg)   el.avg.textContent   = (data.average_rating !== null && data.average_rating !== undefined) ? Number(data.average_rating).toFixed(1) : '—';
+        if (el.count) el.count.textContent = Number(data.count || 0).toLocaleString('en-US');
+        var counts = sourceCounts(allReviews);
+        renderSourceChips(counts, allReviews.length);
+        renderList();
+        if (el.foot) {
+          var sourceNames = Object.keys(counts).map(sourceLabel);
+          el.foot.textContent = sourceNames.length > 0
+            ? 'Sources: ' + sourceNames.join(', ')
+            : 'No approved reviews yet — moderate the pending queue to publish.';
+        }
+      } catch (err) {
+        console.warn('reviews-hub load failed', err);
+        if (el.foot) el.foot.textContent = 'Reviews temporarily unavailable — try refresh.';
+      }
+    }
+
+    async function fetchPendingCount() {
+      // Authed endpoint. If auth is missing (visitor session gone), skip
+      // silently — the "moderate" link still works.
+      try {
+        var resp = await fetch('/api/reviews-admin?type=pending', {
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        if (!resp.ok) return;
+        var data = await resp.json();
+        var n = Number(data.count || 0);
+        if (el.pendingN) el.pendingN.textContent = String(n);
+        if (el.pending)  el.pending.hidden = n === 0;
+      } catch (err) {
+        // Non-fatal; pending strip stays hidden.
+      }
+    }
+
+    function init() {
+      fetchReviews();
+      fetchPendingCount();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
+
+<style>
+  .rh-block {
+    padding: var(--yj-space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-4);
+  }
+  .rh-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--yj-space-4);
+    flex-wrap: wrap;
+  }
+  .rh-head-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .rh-head-title .yj-eyebrow { margin: 0; display: inline-flex; align-items: center; }
+  .rh-head-title .yj-title-lg { margin: 0; }
+  .rh-manage-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-brand);
+    text-decoration: none;
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--yj-radius-pill);
+    border: 1px solid var(--yj-border-strong);
+    background: var(--yj-surface-1);
+    transition: background var(--yj-dur-fast) var(--yj-ease);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .rh-manage-link:hover {
+    background: var(--yj-brand-tint);
+  }
+  .rh-manage-arrow {
+    transition: transform var(--yj-dur-fast) var(--yj-ease);
+  }
+  .rh-manage-link:hover .rh-manage-arrow {
+    transform: translateX(2px);
+  }
+
+  .rh-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--yj-space-5);
+    flex-wrap: wrap;
+    padding: var(--yj-space-3) 0;
+  }
+  .rh-rating {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .rh-rating-star {
+    color: var(--yj-brand);
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+  .rh-rating-value {
+    font-family: var(--yj-font-display);
+    font-size: 2.4rem;
+    font-weight: 500;
+    color: var(--yj-ink);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .rh-rating-outof {
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-ink-muted);
+    letter-spacing: 0.02em;
+  }
+  .rh-count-block {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding-left: var(--yj-space-4);
+    border-left: 1px solid var(--yj-border-subtle);
+  }
+  .rh-count-num {
+    font-family: var(--yj-font-display);
+    font-size: 1.5rem;
+    color: var(--yj-brand);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    font-weight: 500;
+  }
+  .rh-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+  .rh-pending-link {
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-brand);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  .rh-pending-link:hover { text-decoration: underline; }
+
+  .rh-source-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .rh-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--yj-radius-pill);
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    font-weight: 500;
+    color: var(--yj-ink-soft);
+    background: var(--yj-surface-2);
+    border: 1px solid var(--yj-border-subtle);
+    cursor: pointer;
+    transition:
+      background var(--yj-dur-fast) var(--yj-ease),
+      color var(--yj-dur-fast) var(--yj-ease),
+      border-color var(--yj-dur-fast) var(--yj-ease);
+    letter-spacing: 0.02em;
+    font-family: inherit;
+  }
+  .rh-chip:hover { background: var(--yj-brand-tint); border-color: var(--yj-border-strong); }
+  .rh-chip:focus-visible { outline: 2px solid var(--yj-brand); outline-offset: 2px; }
+  .rh-chip.is-active {
+    background: var(--yj-brand);
+    color: var(--yj-surface-1);
+    border-color: var(--yj-brand);
+  }
+  .rh-chip-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4rem;
+    padding: 0 0.35rem;
+    height: 1.2rem;
+    border-radius: var(--yj-radius-pill);
+    background: var(--yj-surface-1);
+    color: var(--yj-ink-muted);
+    font-size: 0.7rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .rh-chip.is-active .rh-chip-count {
+    background: rgba(251, 247, 238, 0.28);
+    color: var(--yj-surface-1);
+  }
+
+  .rh-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--yj-space-3);
+  }
+  @media (max-width: 900px) {
+    .rh-list { grid-template-columns: 1fr; }
+  }
+  .rh-review {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: var(--yj-space-4);
+    background: var(--yj-surface-2);
+    border: 1px solid var(--yj-border-subtle);
+    border-radius: var(--yj-radius-md);
+  }
+  .rh-review--skel {
+    background: var(--yj-surface-2);
+  }
+  .rh-review-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .rh-review-stars {
+    color: var(--yj-brand);
+    letter-spacing: 2px;
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+  .rh-review-name {
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-body);
+    font-weight: 500;
+    color: var(--yj-ink);
+  }
+  .rh-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--yj-radius-pill);
+    background: var(--yj-brand-soft);
+    color: var(--yj-brand);
+    font-family: var(--yj-font-body);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .rh-badge--google    { background: var(--yj-brand-soft);   color: var(--yj-brand); }
+  .rh-badge--superprof { background: var(--yj-success-soft); color: var(--yj-success); }
+  .rh-badge--meetup    { background: var(--yj-warn-soft);    color: var(--yj-warn); }
+  .rh-badge--instagram { background: rgba(201, 116, 74, 0.08); color: var(--yj-brand-hover); }
+  .rh-badge--trainme   { background: rgba(107, 122, 90, 0.10); color: var(--yj-success); }
+  .rh-badge--email     { background: var(--yj-neutral-soft); color: var(--yj-neutral); }
+  .rh-badge--other     { background: var(--yj-neutral-soft); color: var(--yj-neutral); }
+  .rh-featured {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--yj-brand);
+    font-family: var(--yj-font-body);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .rh-review-body {
+    margin: 0;
+    font-family: var(--yj-font-display);
+    font-size: var(--yj-size-body);
+    line-height: 1.5;
+    color: var(--yj-ink);
+    letter-spacing: -0.005em;
+  }
+  .rh-review-meta {
+    margin: 0;
+    color: var(--yj-ink-muted);
+  }
+  .rh-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--yj-space-4);
+    color: var(--yj-ink-muted);
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-body);
+    font-style: italic;
+  }
+
+  .rh-foot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: var(--yj-space-3);
+    border-top: 1px solid var(--yj-border-subtle);
+  }
+  .rh-foot-dot {
+    width: 5px; height: 5px;
+    border-radius: 999px;
+    background: var(--yj-brand);
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+</style>

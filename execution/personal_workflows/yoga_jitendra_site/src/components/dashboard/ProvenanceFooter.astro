@@ -40,70 +40,75 @@ const asOfLabel = new Date(as_of).toLocaleString('en-GB', {
 
 <style>
   .provenance {
-    margin-top: 3rem;
-    padding: 1.75rem 0 0;
-    border-top: 1px solid rgba(46, 42, 38, 0.08);
+    margin-top: var(--yj-space-8);
+    padding: var(--yj-space-5) 0 0;
+    border-top: 1px solid var(--yj-border-subtle);
   }
   .provenance-eyebrow {
-    /* Inherits Inter from body. */
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-eyebrow);
+    letter-spacing: var(--yj-tracking-eyebrow);
     text-transform: uppercase;
-    color: var(--terracotta);
+    color: var(--yj-brand);
     font-weight: 500;
-    margin: 0 0 1rem;
+    margin: 0 0 var(--yj-space-4);
     display: inline-flex;
     align-items: center;
   }
   .provenance-list {
     list-style: none;
     padding: 0;
-    margin: 0 0 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    margin: 0 0 var(--yj-space-4);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--yj-space-2) var(--yj-space-5);
   }
   .provenance-item {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.4rem;
-    font-size: 0.9rem;
-    color: var(--ink-soft);
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-body);
+    color: var(--yj-ink-soft);
+    padding: 0.3rem 0;
   }
   .prov-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 999px;
     flex-shrink: 0;
-    margin-right: 0.25rem;
+    margin-right: 0.35rem;
   }
   .prov-dot.is-live {
-    background: var(--sage);
+    background: var(--yj-success);
+    box-shadow: 0 0 0 3px var(--yj-success-soft);
   }
   .prov-dot.is-pending {
-    background: rgba(201, 116, 74, 0.45);
-    border: 1px dashed rgba(201, 116, 74, 0.6);
+    background: transparent;
+    border: 1.5px dashed var(--yj-brand);
+    box-shadow: 0 0 0 3px var(--yj-brand-soft);
   }
   .prov-name {
-    color: var(--ink);
+    color: var(--yj-ink);
     font-weight: 500;
   }
   .prov-sep {
-    color: rgba(74, 66, 59, 0.4);
+    color: var(--yj-ink-faint);
   }
   .prov-cadence {
-    color: var(--ink-soft);
+    color: var(--yj-ink-soft);
   }
   .prov-note {
     font-style: italic;
-    color: rgba(74, 66, 59, 0.7);
-    font-size: 0.85rem;
+    color: var(--yj-ink-muted);
+    font-size: var(--yj-size-caption);
   }
   .prov-synced {
-    font-size: 0.78rem;
-    color: rgba(74, 66, 59, 0.6);
-    margin: 1rem 0 0;
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-ink-muted);
+    margin: var(--yj-space-4) 0 0;
     letter-spacing: 0.01em;
   }
 </style>

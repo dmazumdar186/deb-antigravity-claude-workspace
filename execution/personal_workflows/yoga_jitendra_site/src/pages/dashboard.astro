@@ -19,8 +19,14 @@ import SourceDonut         from '../components/dashboard/SourceDonut.astro';
 import MilestoneStrip      from '../components/dashboard/MilestoneStrip.astro';
 import NextMoveCard        from '../components/dashboard/NextMoveCard.astro';
 import SelfReportTile      from '../components/dashboard/SelfReportTile.astro';
+import ReviewsHub          from '../components/dashboard/ReviewsHub.astro';
 import ProvenanceFooter    from '../components/dashboard/ProvenanceFooter.astro';
 import data                from '../content/dashboard-data.json';
+// Dashboard-scoped design tokens (Slice 1 of 2026-08-05 UX pass). All
+// yj-* CSS custom properties + primitives live here; components consume
+// them via var(--yj-*) instead of hard-coding hexes. Scoped under
+// .yj-dashboard so global.css (public site) is untouched.
+import '../styles/dashboard-tokens.css';
 
 // Milestone/next-move/self-report/provenance sections come from the static
 // content file; those are hand-curated narrative, not machine data. The
@@ -136,7 +142,7 @@ const initialBanner = bannerText();
     <a href="/cdn-cgi/access/logout" class="dash-logout">Sign out</a>
   </header>
 
-  <main class="dash-main">
+  <main class="dash-main yj-dashboard">
     <section class="dash-intro" data-reveal>
       <p class="eyebrow">Since launch &middot; day {daysSinceLaunch}</p>
       <h1 class="dash-h1">The story so far</h1>
@@ -251,6 +257,10 @@ const initialBanner = bannerText();
         history={data.self_report_history}
         form_href="/dashboard/self-report/"
       />
+    </section>
+
+    <section class="dash-block">
+      <ReviewsHub />
     </section>
 
     <ProvenanceFooter sources={data.provenance.sources} as_of={initial.as_of || data.as_of} />
@@ -373,7 +383,24 @@ const initialBanner = bannerText();
             }
             const existingDeltaEl = article.querySelector(`[data-metric-delta="${key}"]`);
             if (existingDeltaEl) {
-              existingDeltaEl.textContent = fmtDelta(tile.delta_pct);
+              // Slice 2 (2026-08-05): the delta chip has two spans (arrow
+              // + value). Refresh both, and keep the wrapper's class in
+              // sync so hydration-driven sign changes flip the palette
+              // token (up/down/neutral). If the arrow span is missing
+              // (older SSR snapshot), fall back to plain textContent so
+              // the number still updates.
+              const pct = tile.delta_pct;
+              const arrowGlyph = pct === null || pct === undefined
+                ? '–'
+                : (pct > 0 ? '↗' : (pct < 0 ? '↘' : '–'));
+              const arrowEl = existingDeltaEl.querySelector('.hero-tile-delta-arrow');
+              const valEl   = existingDeltaEl.querySelector('.hero-tile-delta-val');
+              if (arrowEl && valEl) {
+                arrowEl.textContent = arrowGlyph;
+                valEl.textContent = fmtDelta(pct);
+              } else {
+                existingDeltaEl.textContent = fmtDelta(pct);
+              }
               existingDeltaEl.className = `hero-tile-delta ${deltaClass(tile.delta_pct)}`;
             }
             // Reconcile the caveat line: create/update if partial, remove if not.
@@ -416,7 +443,16 @@ const initialBanner = bannerText();
           const dcls = deltaClass(tile.delta_pct);
           const numberText = fmtNumber(tile.value);
           const deltaText = fmtDelta(tile.delta_pct);
-          const bnCls = 'hero-tile-bignumber' + (partial ? ' partial' : '');
+          // 2026-08-05 Slice 2: hydration-inserted numbers must carry the
+          // token classes (yj-num, yj-num--muted) so they inherit the same
+          // display typography as the SSR-emitted numbers. Without this,
+          // any tile that was in a skeleton state at SSR (value === null)
+          // upgrades to live with a smaller font than sibling tiles.
+          const bnCls =
+            'hero-tile-bignumber yj-num' + (partial ? ' partial yj-num--muted' : '');
+          const deltaArrow = tile.delta_pct === null || tile.delta_pct === undefined
+            ? '–'
+            : (tile.delta_pct > 0 ? '↗' : (tile.delta_pct < 0 ? '↘' : '–'));
           // Inline HTML build — numeric/enum values are safe; caveat text
           // is a joined list of hardcoded SOURCE_LABELS strings (no user
           // input), but we escapeHtml() defensively to keep this branch
@@ -428,7 +464,10 @@ const initialBanner = bannerText();
             '<div class="hero-tile-number-line">' +
               '<span class="' + bnCls + '" data-metric="' + key + '">' + numberText + '</span>' +
               '<span class="hero-tile-delta ' + dcls + '" data-metric-delta="' + key + '" ' +
-                    'aria-label="Change vs previous window">' + deltaText + '</span>' +
+                    'aria-label="Change vs previous window">' +
+                '<span class="hero-tile-delta-arrow" aria-hidden="true">' + deltaArrow + '</span>' +
+                '<span class="hero-tile-delta-val">' + deltaText + '</span>' +
+              '</span>' +
             '</div>' +
             caveatFragment;
           if (partial) {

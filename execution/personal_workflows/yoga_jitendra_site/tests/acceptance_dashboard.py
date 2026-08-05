@@ -250,7 +250,7 @@ def check_dashboard_html() -> None:
         ok("dashboard HTML has NO inline bare `import ApexCharts` statement")
 
     # 7 — hero-tile status semantics
-    tiles = re.findall(r'<article[^>]*class="hero-tile"[^>]*>', html)
+    tiles = re.findall(r'<article[^>]*class="[^"]*hero-tile[^"]*"[^>]*>', html)
     if len(tiles) < 3:
         fail(f"expected 3 hero-tile <article>s, found {len(tiles)}")
     else:
@@ -261,6 +261,51 @@ def check_dashboard_html() -> None:
                 bad += 1
         if bad == 0:
             ok(f"{len(tiles)} hero-tiles carry data-status")
+
+    # 11 (Slice 1, 2026-08-05) — .yj-dashboard scope on <main>. Dashboard-
+    # tokens.css is scoped under this class; the token layer only applies
+    # when the class is present. If a refactor drops the class the whole
+    # dashboard silently regresses to the pre-Slice-1 palette. Guard: the
+    # HTML must contain a <main> with .yj-dashboard in its class list.
+    if not re.search(r'<main[^>]*class="[^"]*\byj-dashboard\b[^"]*"', html):
+        fail(
+            "dashboard <main> is missing the `yj-dashboard` scope class — "
+            "Slice 1 token layer (dashboard-tokens.css) will not apply, "
+            "components will fall back to the pre-2026-08-05 palette"
+        )
+    else:
+        ok("dashboard <main> carries the yj-dashboard scope class")
+
+    # 12 (Slice 4, 2026-08-05) — ReviewsHub is rendered in SSR. The client
+    # hydrates it via /api/reviews-public + /api/reviews-admin fetches, but
+    # the shell + skeletons must be in SSR HTML so first paint is not blank
+    # (and so a hydration failure still shows the "moderate" link).
+    if 'data-rh-list' not in html or 'data-rh-sources' not in html:
+        fail(
+            "dashboard HTML is missing ReviewsHub markers (data-rh-list / "
+            "data-rh-sources) — Slice 4 reviews-hub component not rendered "
+            "or refactored away"
+        )
+    else:
+        ok("ReviewsHub component present in SSR HTML")
+
+    # 13 (Slice 2, 2026-08-05) — hero-tile numbers carry the yj-num token
+    # class so they inherit display typography. If SSR emits a bare
+    # .hero-tile-bignumber without .yj-num, we've regressed to the
+    # pre-tokenization sizing — silent visual bug.
+    live_bignums = re.findall(
+        r'<span[^>]*class="[^"]*hero-tile-bignumber[^"]*"[^>]*data-metric=',
+        html,
+    )
+    live_bignums_with_token = [n for n in live_bignums if 'yj-num' in n]
+    if live_bignums and len(live_bignums_with_token) < len(live_bignums):
+        fail(
+            f"{len(live_bignums) - len(live_bignums_with_token)} live hero-tile "
+            "big-number span(s) missing the `yj-num` token class — Slice 2 "
+            "regression, KPI typography will fall back to the pre-token size"
+        )
+    elif live_bignums_with_token:
+        ok(f"{len(live_bignums_with_token)} live hero-tile bignumber(s) carry yj-num token")
 
 
 # ---------------------------------------------------------------------------

@@ -27,17 +27,27 @@ const initJson = JSON.stringify({
   degraded_source_indices: Array.isArray(degraded_source_indices) ? degraded_source_indices : [],
 });
 ---
-<div class="donut-block" data-reveal>
-  <p class="eyebrow"><span class="breathing-dot"></span><span>Discovery mix</span></p>
-  <h2 class="dash-h2">Where clicks come from</h2>
-  <div
-    id="source-donut-chart"
-    class="chart-host"
-    data-init={initJson}
-    aria-label="Donut chart: click share by discovery channel"
-  ></div>
-  <p class="chart-source">Source: Google Search Console + Business Profile + Bing + On-site beacon</p>
-</div>
+<section class="donut-block yj-card" data-reveal>
+  <header class="donut-head">
+    <p class="yj-eyebrow"><span class="breathing-dot" aria-hidden="true"></span><span>Discovery mix</span></p>
+    <h2 class="yj-title-lg">Where clicks come from</h2>
+  </header>
+  <div class="chart-host-wrap">
+    <div
+      id="source-donut-chart"
+      class="chart-host chart-host--donut"
+      data-init={initJson}
+      aria-label="Donut chart: click share by discovery channel"
+    ></div>
+    <div class="chart-skeleton" aria-hidden="true">
+      <div class="yj-skeleton donut-skeleton-ring" aria-hidden="true"></div>
+    </div>
+  </div>
+  <footer class="chart-foot">
+    <span class="chart-source-dot" aria-hidden="true"></span>
+    <span class="yj-caption">Google Search Console · Google Business Profile · Bing · On-site beacon</span>
+  </footer>
+</section>
 
 <script>
   import ApexCharts from 'apexcharts';
@@ -146,7 +156,12 @@ const initJson = JSON.stringify({
     }
 
     const chart = new ApexCharts(el, buildOptions(initialLabels, initialValues, initialDegraded));
-    chart.render();
+    chart.render().then(() => {
+      // Slice 3 (2026-08-05): fade the skeleton ring once the chart paints.
+      el.parentElement?.classList.add('chart-mounted');
+    }).catch(() => {
+      el.parentElement?.classList.add('chart-mounted');
+    });
 
     window.addEventListener('dashboarddata', (ev: Event) => {
       const rollup = (ev as CustomEvent).detail?.rollup;
@@ -165,27 +180,80 @@ const initJson = JSON.stringify({
 
 <style>
   .donut-block {
-    background: var(--cream-100);
-    border: 1px solid rgba(46, 42, 38, 0.08);
-    border-radius: 1.25rem;
-    padding: 1.75rem;
+    padding: var(--yj-space-5);
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: var(--yj-space-3);
+  }
+  .donut-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .donut-head .yj-eyebrow { margin: 0; display: inline-flex; align-items: center; }
+  .donut-head .yj-title-lg { margin: 0; }
+  .chart-host-wrap {
+    position: relative;
+    min-height: 300px;
+    width: 100%;
+    margin-top: var(--yj-space-2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .chart-host {
     min-height: 300px;
     width: 100%;
-    margin-top: 0.5rem;
   }
-  .chart-source {
-    font-size: 0.66rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: rgba(74, 66, 59, 0.55);
-    margin: 0.75rem 0 0 0.25rem;
-    font-weight: 500;
+  .chart-host--donut {
+    /* Donut naturally centres via ApexCharts's own layout; nothing to
+       add beyond the shared min-height. */
   }
+  .chart-skeleton {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity var(--yj-dur-slow) var(--yj-ease);
+  }
+  .chart-host-wrap.chart-mounted .chart-skeleton {
+    opacity: 0;
+  }
+  .donut-skeleton-ring {
+    /* A ring silhouette that hints "donut coming here." Sized to match
+       ApexCharts' donut default so it doesn't visibly resize on mount. */
+    width: 180px;
+    height: 180px;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at center,
+        var(--yj-surface-1) 0,
+        var(--yj-surface-1) 52px,
+        var(--yj-surface-3) 53px,
+        var(--yj-surface-2) 88px,
+        var(--yj-surface-3) 90px,
+        transparent 91px);
+    animation: none;
+  }
+  .chart-foot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: var(--yj-space-3);
+    border-top: 1px solid var(--yj-border-subtle);
+    margin-top: var(--yj-space-3);
+  }
+  .chart-source-dot {
+    width: 5px; height: 5px;
+    border-radius: 999px;
+    background: var(--yj-brand);
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+  /* Site-wide body face is Inter — see HARDENING.md row #6 for the
+     intentional operator acknowledgement pending brand refresh. */
   :global(.chart-host .apexcharts-legend-text) {
     font-family: 'Inter', system-ui, sans-serif !important;
   }

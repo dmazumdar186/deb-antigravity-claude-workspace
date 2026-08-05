@@ -44,17 +44,27 @@ const initJson = JSON.stringify({
   series: Array.isArray(series) ? series : [],
 });
 ---
-<div class="time-series-block" data-reveal>
-  <p class="eyebrow"><span class="breathing-dot"></span><span>Trend</span></p>
-  <h2 class="dash-h2">How the numbers moved</h2>
-  <div
-    id="time-series-chart"
-    class="chart-host"
-    data-init={initJson}
-    aria-label="Trend chart: impressions, clicks and WhatsApp taps"
-  ></div>
-  <p class="chart-source">Source: Google Search Console + Bing + Google Business Profile + On-site beacon</p>
-</div>
+<section class="time-series-block yj-card" data-reveal>
+  <header class="time-series-head">
+    <p class="yj-eyebrow"><span class="breathing-dot" aria-hidden="true"></span><span>Trend</span></p>
+    <h2 class="yj-title-lg">How the numbers moved</h2>
+  </header>
+  <div class="chart-host-wrap">
+    <div
+      id="time-series-chart"
+      class="chart-host"
+      data-init={initJson}
+      aria-label="Trend chart: impressions, clicks and WhatsApp taps"
+    ></div>
+    <div class="chart-skeleton" aria-hidden="true">
+      <div class="yj-skeleton chart-skeleton-bar" style="width: 96%; height: 60%; margin-top: 12%;"></div>
+    </div>
+  </div>
+  <footer class="chart-foot">
+    <span class="chart-source-dot" aria-hidden="true"></span>
+    <span class="yj-caption">Google Search Console · Bing · Google Business Profile · On-site beacon</span>
+  </footer>
+</section>
 
 <script>
   import ApexCharts from 'apexcharts';
@@ -156,7 +166,16 @@ const initJson = JSON.stringify({
     }
 
     const chart = new ApexCharts(el, buildOptions(initialLabels, initialSeries));
-    chart.render();
+    chart.render().then(() => {
+      // Slice 3 (2026-08-05): mark the wrapper as mounted so the skeleton
+      // shimmer overlay fades out. Wrap in a .then so we only hide the
+      // skeleton once ApexCharts has painted actual bars.
+      el.parentElement?.classList.add('chart-mounted');
+    }).catch(() => {
+      // Even if render() rejects, drop the skeleton — the chart's own
+      // noData message is more helpful than a permanent shimmer.
+      el.parentElement?.classList.add('chart-mounted');
+    });
 
     // Listen for hydration events from the dashboard controller.
     window.addEventListener('dashboarddata', (ev: Event) => {
@@ -178,31 +197,77 @@ const initJson = JSON.stringify({
 
 <style>
   .time-series-block {
-    background: var(--cream-100);
-    border: 1px solid rgba(46, 42, 38, 0.08);
-    border-radius: 1.25rem;
-    padding: 1.75rem;
+    padding: var(--yj-space-5);
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: var(--yj-space-3);
+  }
+  .time-series-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .time-series-head .yj-eyebrow {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+  .time-series-head .yj-title-lg {
+    margin: 0;
+  }
+  /* The wrap positions the chart + skeleton overlay in the same layout box
+     so the skeleton fills the exact space ApexCharts will paint into.
+     Prevents the "skeleton is smaller than the chart, chart pops in and
+     everything shifts" flash. */
+  .chart-host-wrap {
+    position: relative;
+    min-height: 320px;
+    width: 100%;
+    margin-top: var(--yj-space-2);
   }
   .chart-host {
     /* ApexCharts sets its own inline height via the height option; give the
        container a min-height so the layout doesn't jump before render. */
     min-height: 320px;
     width: 100%;
-    margin-top: 0.5rem;
   }
-  .chart-source {
-    font-size: 0.66rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: rgba(74, 66, 59, 0.55);
-    margin: 0.75rem 0 0 0.25rem;
-    font-weight: 500;
+  .chart-skeleton {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity var(--yj-dur-slow) var(--yj-ease);
+  }
+  .chart-host-wrap.chart-mounted .chart-skeleton {
+    opacity: 0;
+  }
+  .chart-skeleton-bar {
+    background: linear-gradient(180deg,
+      var(--yj-surface-3) 0%,
+      var(--yj-surface-2) 100%);
+    border-radius: var(--yj-radius-md);
+    animation: none;
+  }
+  .chart-foot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: var(--yj-space-3);
+    border-top: 1px solid var(--yj-border-subtle);
+    margin-top: var(--yj-space-3);
+  }
+  .chart-source-dot {
+    width: 5px; height: 5px;
+    border-radius: 999px;
+    background: var(--yj-brand);
+    opacity: 0.7;
+    flex-shrink: 0;
   }
   /* Overrides for ApexCharts elements that inherit our body font at the
-     wrong weight. */
+     wrong weight. Site-wide body face is Inter — see HARDENING.md row #6
+     for the intentional operator acknowledgement pending brand refresh. */
   :global(.chart-host .apexcharts-legend-text) {
     font-family: 'Inter', system-ui, sans-serif !important;
   }

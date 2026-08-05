@@ -189,10 +189,13 @@ function extractDailyMetrics(snapsByDay, waEventsByDay, dateStr) {
     gsc: gsc.clicks ?? 0,
     gbp: gbp.website_clicks ?? 0,
     bing: bing.clicks ?? 0,
-    // CFWA "clicks" here means direct/referrer-driven visits, approximated
-    // by pageviews for lack of a distinct "click" event. It's a rough proxy;
-    // the donut label makes clear the metric is "clicks/visits."
-    cfwa: cfwa.visits ?? 0,
+    // CFWA slice = pageviews (always populated by CF's adaptive-group
+    // `count`). Prior version used `visits` from `sum { visits }`, which
+    // came back 0 in prod despite the beacon firing (2026-08-05 bug: donut
+    // all-zero with 34 WA taps present in the same window). Falling back
+    // through `pageviews → visits → 0` keeps working across whichever field
+    // CF populates for a given account/plan.
+    cfwa: cfwa.pageviews ?? cfwa.visits ?? 0,
   };
 
   return { impressions, clicks, waTaps, clicksBySource };
