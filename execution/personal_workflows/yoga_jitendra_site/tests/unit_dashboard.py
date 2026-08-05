@@ -262,8 +262,16 @@ def check_dashboard_html() -> list[str]:
     hourglass_count = html.count("⏳") + html.count("&#x23F3;") + html.count("&#9203;")
     if hourglass_count < 3:
         errors.append(f"Expected >=3 hourglass skeleton badges, found {hourglass_count}")
-    if html.count("Source:") < 6:
-        errors.append(f"Need Source: on every hero tile + funnel stage. Found {html.count('Source:')}, need >=6")
+    # Threshold covers 3 funnel stages ALWAYS visible in SSR. Hero-tile
+    # source labels only render when a tile has value !== null; in the
+    # bootstrap fallback (dashboard-data.json) `reach` + `interest` carry
+    # value: null and render skeleton, so they don't emit "Source:" in SSR
+    # (it's injected during hydration). The old ">=6" threshold silently
+    # over-counted assuming all 3 hero tiles ship live values — that hasn't
+    # been true since the fallback JSON was tuned to render skeletons.
+    # Guard the truthful invariant: every funnel stage must be labeled.
+    if html.count("Source:") < 3:
+        errors.append(f"Need Source: on every funnel stage. Found {html.count('Source:')}, need >=3")
     errors.extend(check_palette(html))
     if "document.cookie" in html:
         errors.append("Inline script writes document.cookie (GDPR rule violation)")
@@ -527,6 +535,194 @@ def check_pages_functions_tracked_in_git() -> list[str]:
     return errors
 
 
+# ---------------------------------------------------------------------------
+# Session 3 (2026-08-05) — Slices 0-5 dist/src-only guards.
+# ---------------------------------------------------------------------------
+
+def check_instagram_url_fixed_in_src() -> list[str]:
+    """Slice 0 — no file under src/ should still reference the personal IG
+    handle. Word-anchored so `yogaavecjitendra` (business handle containing
+    'jitendra') never false-positives on the personal `jitendrakuma`.
+    """
+    errors: list[str] = []
+    files_to_check = [
+        SRC / "layouts" / "Base.astro",
+        SRC / "content" / "i18n_ui.fr.json",
+        SRC / "content" / "i18n_ui.en.json",
+    ]
+    for p in files_to_check:
+        if not p.exists():
+            errors.append(f"Slice 0: expected file missing {p.relative_to(ROOT)}")
+            continue
+        src = p.read_text(encoding="utf-8")
+        if "instagram.com/jitendrakuma/" in src:
+            errors.append(
+                f"Slice 0: {p.relative_to(ROOT)} still points at personal IG "
+                "(jitendrakuma). Must be yogaavecjitendra."
+            )
+        if "yogaavecjitendra" not in src:
+            errors.append(
+                f"Slice 0: {p.relative_to(ROOT)} does not carry `yogaavecjitendra` — "
+                "either the IG link was removed or the fix regressed."
+            )
+    return errors
+
+
+def check_newsletter_popup_wired_and_truthful() -> list[str]:
+    """Slice 1 + Slice 2 — the popup component ships truthful thanks-copy
+    (KV-only sends no confirmation email) and Base.astro mounts it gated on
+    `!dashboard`. Guards the four `boîte mail`/`inbox` regression phrases."""
+    errors: list[str] = []
+    popup = SRC / "components" / "NewsletterPopup.astro"
+    base = SRC / "layouts" / "Base.astro"
+    if not popup.exists():
+        errors.append("Slice 1: NewsletterPopup.astro missing")
+        return errors
+    popup_src = popup.read_text(encoding="utf-8")
+    forbidden = [
+        "Vérifiez votre boîte mail",
+        "cliquez sur le lien de confirmation",
+        "Check your inbox",
+        "click the confirmation link",
+    ]
+    for phrase in forbidden:
+        if phrase in popup_src:
+            errors.append(
+                f"Slice 1: NewsletterPopup.astro thanks-copy carries `{phrase}` — "
+                "KV-only fallback sends no email, so this copy is a lie."
+            )
+    if not base.exists():
+        errors.append("Slice 2: Base.astro missing")
+        return errors
+    base_src = base.read_text(encoding="utf-8")
+    if "import NewsletterPopup" not in base_src:
+        errors.append("Slice 2: Base.astro missing `import NewsletterPopup`")
+    if "!dashboard" not in base_src or "<NewsletterPopup" not in base_src:
+        errors.append(
+            "Slice 2: Base.astro must render `{!dashboard && <NewsletterPopup lang={lang} />}` — "
+            "gating prevents the popup nagging the operator on /dashboard/*."
+        )
+    return errors
+
+
+def check_newsletter_subscribe_is_kv_only() -> list[str]:
+    """Slice 1 — the endpoint must NOT call Brevo's DOI endpoint (a live
+    Brevo POST would fail with the fallback secrets missing). Must write to
+    `newsletter:sub:` KV prefix. Must expose the `TODO(brevo)` swap marker so
+    a future Brevo integration is discoverable via one grep."""
+    errors: list[str] = []
+    fn = FUNCTIONS / "api" / "newsletter-subscribe.ts"
+    if not fn.exists():
+        errors.append("Slice 1: functions/api/newsletter-subscribe.ts missing")
+        return errors
+    src = fn.read_text(encoding="utf-8")
+    if "doubleOptinConfirmation" in src:
+        errors.append(
+            "Slice 1: newsletter-subscribe.ts still calls Brevo's DOI endpoint — "
+            "operator chose KV-only fallback until a Brevo account is provisioned."
+        )
+    if "newsletter:sub:" not in src:
+        errors.append("Slice 1: newsletter-subscribe.ts missing `newsletter:sub:` KV prefix")
+    if "TODO(brevo)" not in src:
+        errors.append(
+            "Slice 1: newsletter-subscribe.ts missing `TODO(brevo)` marker — "
+            "the Brevo-swap catchup step must remain grep-discoverable."
+        )
+    return errors
+
+
+def check_clients_carousel_present() -> list[str]:
+    """Slice 3 — reusable component + shared JSON + Hero.astro wiring."""
+    errors: list[str] = []
+    for rel in (
+        "src/components/ClientsCarousel.astro",
+        "src/content/clients.json",
+    ):
+        p = ROOT / rel
+        if not p.exists():
+            errors.append(f"Slice 3: missing {rel}")
+    clients_json = SRC / "content" / "clients.json"
+    if clients_json.exists():
+        try:
+            data = json.loads(clients_json.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            errors.append(f"Slice 3: clients.json is not valid JSON: {e}")
+        else:
+            arr = data.get("clients") or []
+            if len(arr) < 8:
+                errors.append(f"Slice 3: clients.json has {len(arr)} entries; expected 8 (3 existing + 5 new)")
+            names = {c.get("name") for c in arr}
+            for expected in ("Chloé", "FTI Consulting", "FIPAM", "WeWork", "Sick France"):
+                if expected not in names:
+                    errors.append(f"Slice 3: clients.json missing `{expected}`")
+    hero = SRC / "components" / "Hero.astro"
+    if hero.exists():
+        src = hero.read_text(encoding="utf-8")
+        if "ClientsCarousel" not in src or "clients.json" not in src:
+            errors.append("Slice 3: Hero.astro must import + render ClientsCarousel with data from clients.json")
+    return errors
+
+
+def check_review_sources_present() -> list[str]:
+    """Slice 4 — ReviewSources component + shared source JSON + both /reviews
+    pages wire it in."""
+    errors: list[str] = []
+    for rel in (
+        "src/components/ReviewSources.astro",
+        "src/content/review_sources.json",
+    ):
+        p = ROOT / rel
+        if not p.exists():
+            errors.append(f"Slice 4: missing {rel}")
+    src_json = SRC / "content" / "review_sources.json"
+    if src_json.exists():
+        try:
+            data = json.loads(src_json.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            errors.append(f"Slice 4: review_sources.json is not valid JSON: {e}")
+        else:
+            arr = data.get("sources") or []
+            if len(arr) < 5:
+                errors.append(f"Slice 4: review_sources.json has {len(arr)} entries; expected >=5")
+    for rel in ("src/pages/reviews/index.astro", "src/pages/en/reviews.astro"):
+        p = ROOT / rel
+        if p.exists():
+            src = p.read_text(encoding="utf-8")
+            if "ReviewSources" not in src:
+                errors.append(f"Slice 4: {rel} must import + render <ReviewSources>")
+    return errors
+
+
+def check_subscribers_hero_tile_present() -> list[str]:
+    """Slice 5 — dashboard.astro carries a 4th HeroTile keyed to subscribers,
+    TILE_SOURCES includes subscribers/newsletter, hydration loop iterates
+    over subscribers too, and dashboard-data.ts injects subscribers into
+    every response."""
+    errors: list[str] = []
+    dash = SRC / "pages" / "dashboard.astro"
+    if dash.exists():
+        src = dash.read_text(encoding="utf-8")
+        if 'metric_key="subscribers"' not in src:
+            errors.append("Slice 5: dashboard.astro missing subscribers HeroTile block")
+        if "subscribers:" not in src or "newsletter" not in src:
+            errors.append("Slice 5: dashboard.astro TILE_SOURCES + SOURCE_LABELS must include subscribers/newsletter")
+        if "'subscribers'" not in src or "'conversation', 'subscribers'" not in src.replace('"', "'"):
+            errors.append(
+                "Slice 5: dashboard.astro hydration `.forEach(...)` array must include 'subscribers'"
+            )
+    fn = FUNCTIONS / "api" / "dashboard-data.ts"
+    if fn.exists():
+        src = fn.read_text(encoding="utf-8")
+        if "withSubscribers" not in src:
+            errors.append("Slice 5: dashboard-data.ts must define + call `withSubscribers` to inject the tile")
+        if 'newsletter:sub:' not in src:
+            errors.append("Slice 5: dashboard-data.ts must enumerate `newsletter:sub:` KV keys")
+    count_fn = FUNCTIONS / "api" / "newsletter-count.ts"
+    if not count_fn.exists():
+        errors.append("Slice 5: functions/api/newsletter-count.ts missing (dashboard-side count endpoint)")
+    return errors
+
+
 def main() -> int:
     all_errors: list[str] = []
     all_errors.extend(check_structural_files())
@@ -546,6 +742,13 @@ def main() -> int:
     all_errors.extend(check_dashboard_banner_defaults_hidden())
     all_errors.extend(check_hero_zero_with_degraded_shows_source_caveat())
     all_errors.extend(check_dashboard_banner_never_empty_visible())
+    # Session 3 (2026-08-05) additions:
+    all_errors.extend(check_instagram_url_fixed_in_src())
+    all_errors.extend(check_newsletter_popup_wired_and_truthful())
+    all_errors.extend(check_newsletter_subscribe_is_kv_only())
+    all_errors.extend(check_clients_carousel_present())
+    all_errors.extend(check_review_sources_present())
+    all_errors.extend(check_subscribers_hero_tile_present())
 
     if all_errors:
         print(f"FAIL — {len(all_errors)} issue(s):", file=sys.stderr)

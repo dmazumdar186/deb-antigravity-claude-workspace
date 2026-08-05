@@ -365,6 +365,153 @@ def check_reviews_public() -> None:
         ok("/api/reviews-public: 0 reviews (KV bootstrap)")
 
 
+# ---------------------------------------------------------------------------
+# Checks 14-18 (session 3, 2026-08-05): client asks from Jitendra + subscribers tile
+# ---------------------------------------------------------------------------
+
+def check_instagram_url_fixed() -> None:
+    """Check 14 — the `jitendrakuma` (personal) → `yogaavecjitendra` (yoga) fix
+    lives in the deployed HTML. Fails if the deployed page still carries the
+    personal handle anywhere. Uses a word-boundary anchor so `yogaavecjitendra`
+    itself does not false-positive."""
+    print("[Slice 0 · Instagram URL fix]")
+    bad_re = re.compile(r"instagram\.com/jitendrakuma/")
+    for path, label in (("/", "FR homepage"), ("/en/", "EN homepage")):
+        status, html, _ = http_get(f"{SITE_URL}{path}", auth=False)
+        if status != 200:
+            fail(f"{label} returned {status}; cannot verify IG fix")
+            continue
+        if bad_re.search(html):
+            fail(f"{label} still contains `instagram.com/jitendrakuma/` — Slice 0 regression")
+        elif "instagram.com/yogaavecjitendra" not in html:
+            fail(f"{label} missing `instagram.com/yogaavecjitendra` — footer/JSON-LD not rendered")
+        else:
+            ok(f"{label} → yogaavecjitendra present, jitendrakuma absent")
+
+
+def check_newsletter_popup_present() -> None:
+    """Check 15 + 15b — NewsletterPopup SSR-mounted on public pages (not
+    /dashboard/*), and thanks-copy carries NO 'check your inbox' / 'confirmation
+    link' strings while KV-only fallback is active (would be a lie)."""
+    print("[Slice 2 · NewsletterPopup]")
+    forbidden = [
+        # If any of these substrings ships in production HTML the popup is
+        # lying to subscribers (KV-only sends no confirmation email today).
+        "Vérifiez votre boîte mail",
+        "cliquez sur le lien de confirmation",
+        "Check your inbox",
+        "click the confirmation link",
+    ]
+    for path, label in (("/", "FR homepage"), ("/en/", "EN homepage")):
+        status, html, _ = http_get(f"{SITE_URL}{path}", auth=False)
+        if status != 200:
+            fail(f"{label} returned {status}; cannot verify NewsletterPopup")
+            continue
+        if 'id="yj-newsletter-popup"' not in html:
+            fail(f"{label} missing #yj-newsletter-popup — component not mounted")
+            continue
+        leaked = [s for s in forbidden if s in html]
+        if leaked:
+            fail(
+                f"{label} popup ships forbidden confirmation-email copy: {leaked} "
+                "— KV-only fallback sends no email, so this copy is a lie"
+            )
+        else:
+            ok(f"{label} #yj-newsletter-popup present, thanks-copy truthful")
+
+    # Dashboard route must NOT mount the popup.
+    status, html, _ = http_get(f"{SITE_URL}/dashboard/", auth=True)
+    if status == 0 and "SKIP" in html:
+        warn("SKIP dashboard-side popup absence check (no DASHBOARD_PASS)")
+    elif status != 200:
+        fail(f"/dashboard/ returned {status}; cannot verify popup gating")
+    elif 'id="yj-newsletter-popup"' in html:
+        fail("/dashboard/ SSR contains #yj-newsletter-popup — should be gated on !dashboard")
+    else:
+        ok("/dashboard/ correctly excludes NewsletterPopup")
+
+
+def check_review_sources_rendered() -> None:
+    """Check 16 — ReviewSources block SSR-rendered on both /reviews/ and
+    /en/reviews/ with the 7 configured chips."""
+    print("[Slice 4 · ReviewSources chip block]")
+    expected_domains = ("google.com", "superprof.fr", "meetup.com", "airbnb.ca", "instagram.com")
+    for path, label in (("/reviews/", "FR reviews"), ("/en/reviews/", "EN reviews")):
+        status, html, _ = http_get(f"{SITE_URL}{path}", auth=False)
+        if status != 200:
+            fail(f"{label} returned {status}; cannot verify ReviewSources")
+            continue
+        if "data-review-sources" not in html:
+            fail(f"{label} missing `data-review-sources` marker — component not rendered")
+            continue
+        missing_domains = [d for d in expected_domains if d not in html]
+        if missing_domains:
+            fail(f"{label} ReviewSources missing links to: {missing_domains}")
+            continue
+        # Instagram post markers (the 2 specific IDs Jitendra shared).
+        for post_id in ("DSpp7dlDqr5", "DR2OfDDjNle"):
+            if post_id not in html:
+                fail(f"{label} ReviewSources missing Instagram post {post_id}")
+                break
+        else:
+            ok(f"{label} ReviewSources renders with all 5 platform + 2 IG-post chips")
+
+
+def check_clients_carousel_rendered() -> None:
+    """Check 17 — ClientsCarousel SSR shell on homepage carries the 8-client
+    JSON (3 existing SVGs + 5 new monograms)."""
+    print("[Slice 3 · ClientsCarousel]")
+    expected_new = ("Chloé", "FTI Consulting", "FIPAM", "WeWork", "Sick France")
+    for path, label in (("/", "FR homepage"), ("/en/", "EN homepage")):
+        status, html, _ = http_get(f"{SITE_URL}{path}", auth=False)
+        if status != 200:
+            fail(f"{label} returned {status}; cannot verify carousel")
+            continue
+        if "data-clients-carousel" not in html:
+            fail(f"{label} missing `data-clients-carousel` marker — component not rendered")
+            continue
+        missing_new = [c for c in expected_new if c not in html]
+        if missing_new:
+            fail(f"{label} ClientsCarousel missing new clients: {missing_new}")
+        elif "TotalEnergies" not in html:
+            fail(f"{label} ClientsCarousel missing existing client (TotalEnergies) — migration regression")
+        else:
+            ok(f"{label} ClientsCarousel renders with 3 existing + 5 new clients")
+
+
+def check_subscribers_in_dashboard_api() -> None:
+    """Check 18 — /api/dashboard-data injects hero_tiles.subscribers on every
+    request (Slice 5). Value should be a number (>=0), and `newsletter` should
+    appear in sources_healthy (KV is always considered healthy)."""
+    print("[Slice 5 · Subscribers hero tile]")
+    status, body, _ = http_get(f"{SITE_URL}/api/dashboard-data?range=7d", auth=True)
+    if status == 0 and "SKIP" in body:
+        warn("SKIP subscribers-tile check (no DASHBOARD_PASS)")
+        return
+    if status != 200:
+        fail(f"/api/dashboard-data returned {status}; cannot verify subscribers injection")
+        return
+    try:
+        d = json.loads(body)
+    except Exception as e:
+        fail(f"/api/dashboard-data body not valid JSON: {e}")
+        return
+    subs = (d.get("hero_tiles") or {}).get("subscribers")
+    if not isinstance(subs, dict):
+        fail("/api/dashboard-data missing hero_tiles.subscribers — Slice 5 injection regression")
+        return
+    if not isinstance(subs.get("value"), (int, float)):
+        fail(f"hero_tiles.subscribers.value is not numeric: {subs.get('value')!r}")
+        return
+    if "newsletter" not in (d.get("sources_healthy") or []):
+        fail("sources_healthy missing 'newsletter' — Slice 5 injection regression")
+        return
+    ok(
+        f"hero_tiles.subscribers.value={subs.get('value')} "
+        f"delta_7d={subs.get('delta_7d')} newsletter in sources_healthy"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -395,6 +542,18 @@ def main() -> int:
     print()
 
     check_reviews_public()
+    print()
+
+    # Checks 14-18 (session 3, 2026-08-05): client asks + subscribers tile.
+    check_instagram_url_fixed()
+    print()
+    check_newsletter_popup_present()
+    print()
+    check_review_sources_rendered()
+    print()
+    check_clients_carousel_rendered()
+    print()
+    check_subscribers_in_dashboard_api()
     print()
 
     if WARNINGS:

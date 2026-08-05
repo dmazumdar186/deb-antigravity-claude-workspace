@@ -72,12 +72,18 @@ const TILE_SOURCES: Record<string, string[]> = {
   reach:        ['gsc'],
   interest:     ['gsc', 'bing'],
   conversation: ['cfwa'],
+  // 2026-08-05 Slice 5: subscribers is locally-sourced (Cloudflare KV via
+  // /api/newsletter-subscribe); the Pages Function serving /api/dashboard-data
+  // always tags 'newsletter' as healthy since KV is a hard binding. Never
+  // "waiting for cron".
+  subscribers:  ['newsletter'],
 };
 const SOURCE_LABELS: Record<string, string> = {
   gsc:  'Google Search Console',
   gbp:  'Google Business Profile',
   bing: 'Bing Webmaster',
   cfwa: 'Cloudflare Web Analytics',
+  newsletter: 'Newsletter opt-in (site popup)',
 };
 function tileHint(key: string): string {
   const degraded: string[] = initial.sources_degraded || [];
@@ -210,6 +216,23 @@ const initialBanner = bannerText();
         delta_pct={heroTiles.conversation.delta_pct}
         partial_caveat={tileCaveat('conversation', heroTiles.conversation.value)}
       />
+      {/* Subscribers tile (Slice 5 · 2026-08-05). Reads from KV via
+          /api/dashboard-data injection. Always "live" — the source is
+          Cloudflare KV itself, no external dep to wait on. */}
+      {heroTiles.subscribers && (
+        <HeroTile
+          eyebrow="Subscribers"
+          headline={heroTiles.subscribers.label}
+          value={heroTiles.subscribers.value ?? 0}
+          status="live"
+          hint={tileHint('subscribers')}
+          source={heroTiles.subscribers.source}
+          metric_key="subscribers"
+          sparkline={heroTiles.subscribers.sparkline || []}
+          delta_pct={heroTiles.subscribers.delta_pct}
+          partial_caveat={null}
+        />
+      )}
     </section>
 
     <section class="dash-block">
@@ -316,12 +339,14 @@ const initialBanner = bannerText();
         reach:        ['gsc'],
         interest:     ['gsc', 'bing'],
         conversation: ['cfwa'],
+        subscribers:  ['newsletter'],
       };
       const SOURCE_LABELS = {
         gsc:  'Google Search Console',
         gbp:  'Google Business Profile',
         bing: 'Bing Webmaster',
         cfwa: 'Cloudflare Web Analytics',
+        newsletter: 'Newsletter opt-in (site popup)',
       };
       function escapeHtml(s) {
         return String(s)
@@ -348,7 +373,7 @@ const initialBanner = bannerText();
 
       function updateHeroTiles(heroTiles, rollup) {
         if (!heroTiles) return;
-        ['reach', 'interest', 'conversation'].forEach((key) => {
+        ['reach', 'interest', 'conversation', 'subscribers'].forEach((key) => {
           const tile = heroTiles[key];
           if (!tile) return;
 

@@ -73,6 +73,17 @@ function emptyFallbackRollup(range: string): unknown {
         source: "On-site beacon (/wa-out proxy)",
         as_of: null,
       },
+      // Subscribers tile — always locally-sourced (Cloudflare KV, no external
+      // dependency). Never "waiting" for a cron; the number is authoritative.
+      // Populated post-KV-read in onRequestGet below.
+      subscribers: {
+        label: "Newsletter subscribers",
+        value: 0,
+        delta_pct: null,
+        sparkline: [],
+        source: "Newsletter opt-in popup",
+        as_of: null,
+      },
     },
     funnel: [
       { label: "Impressions",   value: 0, source: "GSC + Bing + GBP" },
@@ -95,6 +106,74 @@ function emptyFallbackRollup(range: string): unknown {
   };
 }
 
+// Subscribers count — enumerated live from KV, cached for 5 min under
+// newsletter:count:cache. Same cache key as functions/api/newsletter-count.ts
+// so both endpoints share the compute. Cheap for low volumes (<1000 subs);
+// re-visit if the list ever crosses 10k.
+interface SubRecord { ts?: string; first_seen_ts?: string }
+async function computeSubscribers(kv: KVNamespace): Promise<{ total: number; last_7d: number }> {
+  const cacheKey = "newsletter:count:cache";
+  const cached = await kv.get(cacheKey);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached) as { total: number; last_7d: number };
+      return { total: parsed.total, last_7d: parsed.last_7d };
+    } catch { /* fall through to recompute */ }
+  }
+  let cursor: string | undefined;
+  let total = 0;
+  let last7d = 0;
+  const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  do {
+    const page = await kv.list({ prefix: "newsletter:sub:", cursor, limit: 1000 });
+    for (const entry of page.keys) {
+      total += 1;
+      const raw = await kv.get(entry.name);
+      if (!raw) continue;
+      try {
+        const sub = JSON.parse(raw) as SubRecord;
+        // Prefer first_seen_ts (anchored on first-ever submit) so a
+        // re-subscribe never inflates the 7-day delta. Fall back to ts.
+        const anchor = sub.first_seen_ts || sub.ts;
+        if (anchor) {
+          const t = Date.parse(anchor);
+          if (Number.isFinite(t) && t >= sevenDaysAgoMs) last7d += 1;
+        }
+      } catch { /* skip corrupt */ }
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  const payload = { total, last_7d: last7d };
+  await kv.put(cacheKey, JSON.stringify({ ...payload, computed_at: new Date().toISOString() }), {
+    expirationTtl: 300,
+  });
+  return payload;
+}
+
+// Inject the subscribers tile into a parsed rollup (or a fallback rollup).
+// Idempotent: always overwrites hero_tiles.subscribers with fresh KV counts.
+// Guarantees "newsletter" is listed in sources_healthy (it's a local source).
+async function withSubscribers(rollup: Record<string, unknown>, kv: KVNamespace): Promise<Record<string, unknown>> {
+  const { total, last_7d } = await computeSubscribers(kv);
+  const heroTiles = (rollup.hero_tiles ?? {}) as Record<string, unknown>;
+  const existing = (heroTiles.subscribers ?? {}) as Record<string, unknown>;
+  heroTiles.subscribers = {
+    label: existing.label ?? "Newsletter subscribers",
+    value: total,
+    delta_pct: null,        // absolute count semantics; "delta" surfaced via delta_7d
+    delta_7d: last_7d,
+    sparkline: [],
+    source: existing.source ?? "Newsletter opt-in popup",
+    as_of: new Date().toISOString(),
+  };
+  rollup.hero_tiles = heroTiles;
+  // Always mark newsletter as a healthy source — it's local KV, no external dep.
+  const healthy = Array.isArray(rollup.sources_healthy) ? (rollup.sources_healthy as string[]) : [];
+  if (!healthy.includes("newsletter")) healthy.push("newsletter");
+  rollup.sources_healthy = healthy;
+  return rollup;
+}
+
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (!env.DASHBOARD_KV) {
     return jsonResponse({ ok: false, error: "DASHBOARD_KV binding missing on Pages project" }, 503);
@@ -107,17 +186,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const raw = await env.DASHBOARD_KV.get(`dashboard:${range}`);
+  let rollup: Record<string, unknown>;
   if (!raw) {
-    return jsonResponse(emptyFallbackRollup(range), 200);
+    rollup = emptyFallbackRollup(range) as Record<string, unknown>;
+  } else {
+    try {
+      rollup = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      rollup = emptyFallbackRollup(range) as Record<string, unknown>;
+    }
   }
 
-  // Return the pre-computed rollup verbatim. The Cache-Control: no-store
-  // above ensures we don't serve stale via any intermediary cache.
-  return new Response(raw, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
-    },
-  });
+  // Inject live subscribers count on top of whichever rollup we're serving.
+  const withSubs = await withSubscribers(rollup, env.DASHBOARD_KV);
+
+  return jsonResponse(withSubs, 200);
 };

@@ -8,10 +8,13 @@ import TopNav from '../../components/TopNav.astro';
 import Footer from '../../components/Footer.astro';
 import ReviewsGrid from '../../components/ReviewsGrid.astro';
 import ReviewForm from '../../components/ReviewForm.astro';
+import ReviewSources from '../../components/ReviewSources.astro';
 import { loadReviews } from '../../lib/reviews.mjs';
+import reviewSourcesData from '../../content/review_sources.json';
 
 const lang = 'en';
 const { reviews, count, average_rating } = loadReviews();
+const reviewSources = reviewSourcesData.sources;
 ---
 <Base
   title="All reviews · Yoga with Jitendra"
@@ -40,6 +43,8 @@ const { reviews, count, average_rating } = loadReviews();
         </header>
 
         <ReviewsGrid lang={lang} reviews={reviews} initial={12} />
+
+        <ReviewSources lang={lang} sources={reviewSources} />
 
         <div id="add" class="reviews-form-block">
           <ReviewForm lang={lang} compact={false} />

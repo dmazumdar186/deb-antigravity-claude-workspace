@@ -55,6 +55,7 @@ function checkBasicAuth(request: Request, env: Env): boolean {
 interface SubRecord {
   email?: string;
   ts?: string;
+  first_seen_ts?: string;   // anchored on first-ever submit; used for the "last 7d" delta
   method?: string;
 }
 
@@ -72,8 +73,12 @@ async function computeCounts(kv: KVNamespace): Promise<{ total: number; last_7d:
       if (!raw) continue;
       try {
         const sub = JSON.parse(raw) as SubRecord;
-        if (sub.ts) {
-          const t = Date.parse(sub.ts);
+        // Prefer first_seen_ts (anchored on first submit) so a re-subscribe
+        // doesn't inflate the 7-day new-count. Fall back to ts for records
+        // written before that field existed.
+        const anchor = sub.first_seen_ts || sub.ts;
+        if (anchor) {
+          const t = Date.parse(anchor);
           if (Number.isFinite(t) && t >= sevenDaysAgoMs) last7d += 1;
         }
       } catch {

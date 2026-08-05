@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { loadReviews, pickBody } from '../lib/reviews.mjs';
+import NewsletterPopup from '../components/NewsletterPopup.astro';
 
 interface Props {
   title: string;
@@ -88,7 +89,7 @@ const structuredData = {
       ],
       founder: { '@id': `${SITE}/#jitendra` },
       sameAs: [
-        'https://www.instagram.com/jitendrakuma/',
+        'https://www.instagram.com/yogaavecjitendra/',
         'https://www.meetup.com/paris-hatha-yoga/',
         'https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html',
         'https://sites.google.com/view/yogaavecjitendra/home',
@@ -220,6 +221,13 @@ const structuredData = {
     />
   )}
   <slot />
+
+  {/* Newsletter opt-in popup. Public site only — never on /dashboard/*.
+      Component self-suppresses per-visitor for 30 days via localStorage,
+      respects DNT + crawler UAs. See src/components/NewsletterPopup.astro
+      + docs/gdpr_newsletter_popup_assessment.md. Backend today = KV-only
+      fallback (Brevo swap pending). */}
+  {!dashboard && <NewsletterPopup lang={lang} />}
 
   <!-- Motion One: fade-up reveals; skipped under prefers-reduced-motion -->
   <script type="module">

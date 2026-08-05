@@ -13,7 +13,7 @@ import TopNav from '../../components/TopNav.astro';
 import Footer from '../../components/Footer.astro';
 
 const lang = 'fr' as const;
-const LAST_UPDATED = '2026-08-04';
+const LAST_UPDATED = '2026-08-05';
 ---
 <Base
   title="Politique de confidentialité — Newsletter · Yoga avec Jitendra"
@@ -32,6 +32,24 @@ const LAST_UPDATED = '2026-08-04';
         </p>
         <h1>Comment nous traitons vos données de newsletter</h1>
         <p><em>Dernière mise à jour : {LAST_UPDATED}</em></p>
+
+        <aside class="backend-note">
+          <p><strong>Note technique — état du back-end (depuis {LAST_UPDATED})</strong></p>
+          <p>
+            L'inscription actuelle enregistre directement votre adresse dans un
+            entrepôt de données hébergé en Union Européenne (Cloudflare Workers KV,
+            région UE). <strong>Aucun e-mail de confirmation n'est envoyé aujourd'hui.</strong>
+            Votre adresse est ajoutée directement à la liste de Jitendra.
+          </p>
+          <p>
+            Ce fonctionnement passera prochainement à un flux à double confirmation
+            (« double opt-in ») via Brevo. À cette transition, chaque personne déjà
+            inscrite recevra un e-mail lui demandant de reconfirmer son abonnement
+            <strong>avant</strong> tout premier envoi de newsletter, afin qu'aucune
+            adresse non reconfirmée ne reçoive de message commercial. Vous pouvez
+            demander la suppression de vos données à tout moment (voir section 7).
+          </p>
+        </aside>
 
         <h2>1. Qui est responsable de vos données ?</h2>
         <p>

@@ -14,7 +14,7 @@ import TopNav from '../../../components/TopNav.astro';
 import Footer from '../../../components/Footer.astro';
 
 const lang = 'en' as const;
-const LAST_UPDATED = '2026-08-04';
+const LAST_UPDATED = '2026-08-05';
 ---
 <Base
   title="Privacy notice — Newsletter · Yoga avec Jitendra"
@@ -33,6 +33,23 @@ const LAST_UPDATED = '2026-08-04';
         </p>
         <h1>How we handle your newsletter data</h1>
         <p><em>Last updated: {LAST_UPDATED}</em></p>
+
+        <aside class="backend-note">
+          <p><strong>Backend note — current state (since {LAST_UPDATED})</strong></p>
+          <p>
+            Signup today writes your address directly to an EU-hosted data store
+            (Cloudflare Workers KV, EU region). <strong>No confirmation email is
+            sent right now.</strong> Your address is added directly to Jitendra's list.
+          </p>
+          <p>
+            This will change shortly to a double opt-in flow via Brevo. At that
+            transition, every existing subscriber will receive an email asking
+            them to re-confirm their subscription <strong>before</strong> any
+            first newsletter is sent, so no un-reconfirmed address receives
+            marketing email. You can request deletion of your data at any time
+            (see section 7).
+          </p>
+        </aside>
 
         <h2>1. Who's the data controller?</h2>
         <p>

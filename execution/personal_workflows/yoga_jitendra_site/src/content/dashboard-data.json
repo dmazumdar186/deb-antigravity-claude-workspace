@@ -31,6 +31,13 @@
         "delta_pct": null,
         "sparkline": [],
         "source": "On-site beacon (/wa-out proxy)"
+      },
+      "subscribers": {
+        "label": "Newsletter subscribers (KV-only fallback)",
+        "value": 0,
+        "delta_pct": null,
+        "sparkline": [],
+        "source": "Newsletter opt-in popup"
       }
     },
     "funnel": [

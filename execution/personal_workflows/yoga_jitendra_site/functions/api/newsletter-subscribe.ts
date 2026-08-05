@@ -1,49 +1,47 @@
 // Cloudflare Pages Function: POST /api/newsletter-subscribe
 //
-// Newsletter opt-in submission handler. See
-// docs/gdpr_newsletter_popup_assessment.md for the full architecture +
-// legal analysis.
+// KV-only fallback backend for the newsletter opt-in popup.
+//
+// 2026-08-05 backend swap: this file was originally a Brevo double-opt-in
+// wrapper (see docs/gdpr_newsletter_popup_assessment.md for the assessed
+// architecture). Operator elected a KV-only fallback for today because
+// a Brevo account has not yet been provisioned. Brevo integration is
+// deferred, not abandoned.
+//
+// TODO(brevo): re-introduce the Brevo DOI call when the operator has
+// provisioned an account + list + template. Batch-import every existing
+// newsletter:sub:* record into Brevo's DOI flow (force re-confirmation)
+// BEFORE any first marketing campaign send, so unconfirmed KV addresses
+// cannot receive marketing email without a fresh opt-in click. The
+// hardening entry in HARDENING.md (2026-08-05 session 3) captures this
+// commitment explicitly.
 //
 // Contract:
 //   POST application/json  { email, consent, lang, consent_text_version, source_url }
-//   → 202  { ok: true, message: "check your inbox" }   normal DOI success
-//   → 400  { ok: false, error: "..." }                validation failed
-//   → 429  { ok: false, error: "rate_limited" }       too many attempts
-//   → 500  { ok: false, error: "internal" }           Brevo unreachable / other
-//
-// The handler never leaks whether an email is already subscribed
-// (non-enumerable): it always calls Brevo's DOI endpoint, which
-// idempotently sends a fresh confirmation whether the contact exists or
-// not, and returns 202 to the browser in either case.
+//   → 202  { ok: true, message: "Merci !" }                normal KV write success
+//   → 400  { ok: false, error: "..." }                     validation failed
+//   → 429  { ok: false, error: "rate_limited" }            too many attempts
+//   → 500  { ok: false, error: "internal" }                KV unreachable
 //
 // Storage side-effects:
-//   - KV put(newsletter:consent:<sha256(email)>, {ts, ip_hash,
-//     consent_text_version, source_url, brevo_status}, TTL 3y)
+//   - KV put(newsletter:sub:<sha256(email)>, {email, ts, ip_hash,
+//     consent_text_version, source_url, lang, method: "kv-only-fallback"},
+//     TTL 3y)   -- plaintext email is stored today because this sub IS the
+//     list until Brevo lands. HARDENING.md notes the widened exposure.
 //   - KV incr(newsletter:rl:<ip-hash>, TTL 1h)
 //
-// Secrets required (set via `wrangler pages secret put ...`):
-//   BREVO_API_KEY               Brevo API key ("v2 API" style, xkeysib-...)
-//   BREVO_NEWSLETTER_LIST_ID    numeric list ID (Contacts → Lists in Brevo)
-//   BREVO_DOI_TEMPLATE_ID       numeric transactional template ID for DOI
-//
-// Non-secret vars (fine to hardcode below):
-//   BREVO_DOI_ENDPOINT          https://api.brevo.com/v3/contacts/doubleOptinConfirmation
-//   DOI_REDIRECT_URL            https://yogaavecjitendra.fr/merci
+// Non-enumerability preserved: a repeat submit for the same email returns
+// 202 either way; KV put is idempotent (last-write-wins on the same key).
 
 export interface Env {
   DASHBOARD_KV?: KVNamespace;
-  BREVO_API_KEY?: string;
-  BREVO_NEWSLETTER_LIST_ID?: string;
-  BREVO_DOI_TEMPLATE_ID?: string;
 }
 
-const BREVO_DOI_ENDPOINT = 'https://api.brevo.com/v3/contacts/doubleOptinConfirmation';
-const DOI_REDIRECT_URL = 'https://yogaavecjitendra.fr/merci';
 const CONSENT_PROOF_TTL_SECONDS = 3 * 365 * 24 * 60 * 60; // 3 years
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;                // 1 hour
 const RATE_LIMIT_MAX = 5;                                 // 5 attempts / IP / hour
 const EMAIL_MAX_LEN = 254;
-// RFC 5321-ish, permissive; the definitive check is Brevo's own validation.
+// RFC 5321-ish, permissive; the definitive check is a delivery test.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface SubscribeBody {
@@ -73,8 +71,6 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 async function ipHash(ip: string, salt: string): Promise<string> {
-  // Salt with the signing key so KV alone can't be rainbow-tabled back to
-  // raw IPs. Silently degrades to unsalted sha256 if no salt yet configured.
   return sha256Hex(`${salt || 'yj-nl'}::${ip}`);
 }
 
@@ -130,7 +126,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   // --- Rate limit ---
   const ip = request.headers.get('CF-Connecting-IP') || '0.0.0.0';
-  const salt = (env as any).SUBTLECRYPTO_SIGNING_KEY as string | undefined;
+  const salt = (env as Record<string, unknown>).SUBTLECRYPTO_SIGNING_KEY as string | undefined;
   const ipKey = await ipHash(ip, salt || '');
   const rl = await checkAndBumpRateLimit(env, ipKey);
   if (!rl.ok) {
@@ -147,121 +143,68 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     );
   }
 
-  // --- Config sanity ---
-  if (!env.BREVO_API_KEY || !env.BREVO_NEWSLETTER_LIST_ID || !env.BREVO_DOI_TEMPLATE_ID) {
-    console.error('newsletter-subscribe: missing Brevo secrets');
+  // --- Persist the sub record. This IS the mailing list today.
+  // On Brevo swap, this KV prefix is enumerated + force-DOI'd before any
+  // first campaign send (see TODO at file head + HARDENING entry).
+  if (!env.DASHBOARD_KV) {
+    console.error('newsletter-subscribe: DASHBOARD_KV binding missing');
     return json({ ok: false, error: 'not_configured' }, 500);
   }
 
-  const listId = parseInt(env.BREVO_NEWSLETTER_LIST_ID, 10);
-  const templateId = parseInt(env.BREVO_DOI_TEMPLATE_ID, 10);
-  if (!Number.isFinite(listId) || !Number.isFinite(templateId)) {
-    console.error('newsletter-subscribe: Brevo list/template id not numeric');
-    return json({ ok: false, error: 'not_configured' }, 500);
+  const emailHash = await sha256Hex(email);
+  const subKey = `newsletter:sub:${emailHash}`;
+  const nowIso = new Date().toISOString();
+
+  // Read-before-write: preserve the ORIGINAL first_seen_ts on repeat submits
+  // so the dashboard "new in last 7d" delta doesn't inflate when an existing
+  // subscriber re-opens the popup (e.g., after clearing localStorage). `ts`
+  // moves forward (last-seen); `first_seen_ts` is anchored on the first put.
+  let firstSeenTs = nowIso;
+  try {
+    const existingRaw = await env.DASHBOARD_KV.get(subKey);
+    if (existingRaw) {
+      try {
+        const existing = JSON.parse(existingRaw) as { first_seen_ts?: string; ts?: string };
+        // Prefer first_seen_ts; fall back to the older `ts` field for records
+        // written before this rule landed.
+        firstSeenTs = existing.first_seen_ts || existing.ts || nowIso;
+      } catch {
+        // Corrupt existing record — treat as new.
+      }
+    }
+  } catch (e) {
+    console.error('newsletter-subscribe: KV read-before-write failed, treating as new', e);
   }
 
-  // --- Write consent proof BEFORE calling Brevo. If Brevo fails, we still
-  //     have a defensible record that the user asked to subscribe (they can
-  //     retry, we can retry). Also protects against a race where Brevo
-  //     succeeds but our KV write fails and we lose the proof.
-  const emailHash = await sha256Email(email);
-  const consentKey = `newsletter:consent:${emailHash}`;
-  const consentRecord = {
-    email_sha256: emailHash,
-    ts: new Date().toISOString(),
+  const subRecord = {
+    email,                        // plaintext — required so operator can send emails from KV
+    email_sha256: emailHash,      // convenience for future dedup
+    first_seen_ts: firstSeenTs,   // anchored on first-ever submit for this email
+    ts: nowIso,                   // most recent submit (updated on every put)
     ip_hash: ipKey,
     consent_text_version: consentTextVersion,
     source_url: sourceUrl,
     lang,
-    // brevo_status populated after the Brevo call below
-    brevo_status: 0,
+    method: 'kv-only-fallback' as const,
   };
 
-  if (env.DASHBOARD_KV) {
-    try {
-      await env.DASHBOARD_KV.put(consentKey, JSON.stringify(consentRecord), {
-        expirationTtl: CONSENT_PROOF_TTL_SECONDS,
-        metadata: { location: 'eu' }, // soft region hint
-      });
-    } catch (e) {
-      console.error('newsletter-subscribe: KV write failed', e);
-      // Continue — Brevo is the source of truth for the mailing list
-      // itself; KV consent proof is defensive backup.
-    }
-  }
-
-  // --- Call Brevo DOI endpoint ---
-  let brevoStatus = 0;
   try {
-    const brevoRes = await fetch(BREVO_DOI_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'content-type': 'application/json',
-        'api-key': env.BREVO_API_KEY,
-      },
-      body: JSON.stringify({
-        email,
-        includeListIds: [listId],
-        templateId,
-        redirectionUrl: DOI_REDIRECT_URL,
-        attributes: {
-          LANG: lang,
-          SIGNUP_SOURCE: 'popup',
-          CONSENT_TS: consentRecord.ts,
-          CONSENT_TEXT_VERSION: consentTextVersion,
-        },
-      }),
+    await env.DASHBOARD_KV.put(subKey, JSON.stringify(subRecord), {
+      expirationTtl: CONSENT_PROOF_TTL_SECONDS,
+      metadata: { location: 'eu' }, // soft region hint
     });
-    brevoStatus = brevoRes.status;
-
-    // Brevo returns 201 on new-contact DOI-sent, 204 on already-confirmed
-    // (idempotent re-request). Both are OK from our perspective.
-    if (brevoStatus !== 201 && brevoStatus !== 204 && brevoStatus !== 200) {
-      const detail = await brevoRes.text().catch(() => '');
-      console.error('newsletter-subscribe: Brevo non-2xx', brevoStatus, detail.slice(0, 400));
-      // Update consent proof with the failure status so ops can trace
-      if (env.DASHBOARD_KV) {
-        try {
-          await env.DASHBOARD_KV.put(
-            consentKey,
-            JSON.stringify({ ...consentRecord, brevo_status: brevoStatus }),
-            { expirationTtl: CONSENT_PROOF_TTL_SECONDS },
-          );
-        } catch {}
-      }
-      return json({ ok: false, error: 'processor_error' }, 502);
-    }
   } catch (e) {
-    console.error('newsletter-subscribe: Brevo fetch threw', e);
-    return json({ ok: false, error: 'processor_unreachable' }, 502);
-  }
-
-  // --- Persist the successful Brevo status on the consent record ---
-  if (env.DASHBOARD_KV) {
-    try {
-      await env.DASHBOARD_KV.put(
-        consentKey,
-        JSON.stringify({ ...consentRecord, brevo_status: brevoStatus }),
-        {
-          expirationTtl: CONSENT_PROOF_TTL_SECONDS,
-          metadata: { location: 'eu' },
-        },
-      );
-    } catch {}
+    console.error('newsletter-subscribe: KV write failed', e);
+    return json({ ok: false, error: 'internal' }, 500);
   }
 
   return json(
     {
       ok: true,
       message: lang === 'en'
-        ? 'Check your inbox — click the confirmation link.'
-        : 'Vérifiez votre boîte mail — cliquez sur le lien de confirmation.',
+        ? 'Thanks! Your subscription is saved.'
+        : 'Merci ! Votre inscription est enregistrée.',
     },
     202,
   );
 };
-
-async function sha256Email(email: string): Promise<string> {
-  return sha256Hex(email);
-}
