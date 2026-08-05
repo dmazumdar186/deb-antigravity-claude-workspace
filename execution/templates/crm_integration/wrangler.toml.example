@@ -1,0 +1,28 @@
+# wrangler.toml — CRM webhook receiver
+#
+# Copy to `wrangler.toml` in your tenant directory and fill in the values.
+# Then: `wrangler kv:namespace create WEBHOOK_DEDUP`
+#       `wrangler secret put WEBHOOK_SECRET`
+#       `wrangler deploy`
+
+name = "REPLACE-TENANT-SLUG-crm-webhook"
+main = "./webhook_receiver.ts"
+compatibility_date = "2024-11-01"
+
+# For a Pages Functions deploy, use:
+#   pages_build_output_dir = "./dist"
+# and place webhook_receiver.ts under functions/webhook/[provider].ts
+
+[[kv_namespaces]]
+binding = "WEBHOOK_DEDUP"
+id = "REPLACE-WITH-KV-NAMESPACE-ID"
+
+[vars]
+# Comma-separated list of providers you accept on this receiver.
+ALLOWED_PROVIDERS = "hubspot,attio,clickup,airtable"
+
+# Optional: forward accepted events here (e.g. a Modal endpoint or a queue
+# consumer URL). Leave blank to only dedup and 200-ack.
+# DISPATCH_URL = "https://your-dispatcher.example.com/crm-event"
+
+# WEBHOOK_SECRET is a secret, not a var — set with `wrangler secret put`.
