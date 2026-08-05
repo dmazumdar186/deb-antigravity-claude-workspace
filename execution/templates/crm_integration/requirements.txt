@@ -1,0 +1,16 @@
+# Core (small footprint, install always)
+httpx>=0.27
+python-dotenv>=1.0
+pydantic>=2.5
+
+# Destination: Google Sheet (optional)
+# google-api-python-client>=2.100
+# google-auth>=2.20
+
+# Provider SDKs — install only the ones your tenant needs.
+# Each is ~10-30 s to install. Full set takes >2 min.
+# hubspot-api-client>=9.0
+# pyairtable>=2.3
+# clickup-python>=1.0
+# pipedrive-python>=1.2
+# (attio has no official SDK — httpx only)

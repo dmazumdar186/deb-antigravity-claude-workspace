@@ -1,0 +1,38 @@
+{
+  "tenant_slug": "example",
+  "provider": {
+    "type": "hubspot",
+    "credentials_env": ["HUBSPOT_ACCESS_TOKEN"],
+    "rate_limit": {
+      "requests_per_window": 100,
+      "window_seconds": 10
+    },
+    "watermark_field": "properties.lastmodifieddate",
+    "id_field": "id",
+    "record_type": "contact"
+  },
+  "destination": {
+    "type": "jsonl",
+    "credentials_env": [],
+    "target": "./.tmp/crm_sync_out/example.jsonl"
+  },
+  "sync": {
+    "mode": "pull_only",
+    "incremental": true,
+    "dedup_ttl_seconds": 5184000,
+    "max_pages": 100
+  },
+  "webhook": {
+    "enabled": false,
+    "secret_env": "WEBHOOK_SECRET",
+    "kv_dedup_binding": "WEBHOOK_DEDUP"
+  },
+  "field_mappings": {
+    "email":       "properties.email",
+    "first_name":  "properties.firstname",
+    "last_name":   "properties.lastname",
+    "company":     "properties.company",
+    "phone":       "properties.phone",
+    "lifecycle":   "properties.lifecyclestage"
+  }
+}
