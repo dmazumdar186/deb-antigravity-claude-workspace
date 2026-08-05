@@ -783,36 +783,109 @@ def _rule_ps1_non_ascii() -> list[dict]:
 
 # Projects that produce a user-facing artifact (sheet / digest / CV / lead
 # list / rendered doc) and therefore owe an output-acceptance gate per
-# ~/.claude/rules/output-acceptance-gate.md. Registry-driven (vs heuristic)
-# because "artifact-producing" is a judgement call the operator should curate.
-# Each entry: slug -> glob(s) under tests/ that would satisfy the gate.
-_ACCEPTANCE_GATE_PROJECTS: dict[str, tuple[str, ...]] = {
-    "job_search_v2": ("acceptance_job_search_v2.*",),
-    "cv_optimizer": ("acceptance_cv*.*", "*cv*acceptance*.*"),
-    "humanizer": ("acceptance_humanizer.*", "*humanizer*acceptance*.*"),
-    "youtube_video_analyzer": ("acceptance_youtube*.*", "*youtube*acceptance*.*"),
-    "job_tracker_pm_france": ("acceptance_job_tracker*.*",),
-}
+# ~/.claude/rules/output-acceptance-gate.md.
+#
+# 2026-08-04 rewrite: was hardcoded to 5 projects and only scanned workspace-
+# root tests/. Now enumerates dynamically from directives/ + execution/ trees
+# and scans BOTH workspace-root tests/ and execution/**/tests/ (project-local
+# test dirs). Explicit skip-list still supported for docs-only or library-only
+# directives that don't produce a user artifact.
+_ACCEPTANCE_GATE_SKIP: frozenset[str] = frozenset({
+    # Internal-only or infrastructure directives — no user-facing artifact.
+    "add_webhook", "canary_monitoring", "glm_5_2_integration",
+    "free_cc_proxy", "model_chooser", "portfolio_site",
+    "self_outbound_system",  # workflow, tracked via HANDOFF phases
+    # Bootstrapping / meta / template directives
+    "prodcraft_autopilot", "prodcraft_shorts_pipeline",
+    "prodcraft_video_edit_pipeline", "video_edit_client_pipeline",
+    "client_call_followup", "likeness_release_template",
+})
+
+# Directive categories that plausibly produce a user-facing artifact and
+# therefore owe an output-acceptance gate. Everything else (lead_sourcing/
+# enrichment/personalization/custom_scrapers/infrastructure/subagent/
+# n8n_workflows/crm_and_pm/google/rag/mobile_apps/) is either a library-
+# style integration, plumbing, or internal tooling and is intentionally
+# excluded — the acceptance-gate discipline is about the OUTPUT a human
+# reads, not every integration.
+_ACCEPTANCE_GATE_CATEGORIES: frozenset[str] = frozenset({
+    "personal_workflows",
+    "gtm_client_workflows",
+    "content",
+    "image_generation",
+    "video",
+})
+
+
+def _acceptance_gate_project_slugs() -> list[str]:
+    """Enumerate every project slug that should own an output-acceptance gate.
+
+    Restricted to _ACCEPTANCE_GATE_CATEGORIES to avoid firing on every
+    lead-source integration or scraper.
+    """
+    directives_root = WORKSPACE_ROOT / "directives"
+    slugs: set[str] = set()
+
+    if directives_root.exists():
+        for md in directives_root.rglob("*.md"):
+            if md.name.startswith("_"):
+                continue
+            rel_parts = md.relative_to(directives_root).parts
+            if not rel_parts or rel_parts[0] not in _ACCEPTANCE_GATE_CATEGORIES:
+                continue
+            if _is_am_locked(str(md)):
+                continue
+            stem = md.stem
+            if stem in _ACCEPTANCE_GATE_SKIP:
+                continue
+            slugs.add(stem)
+
+    return sorted(slugs)
 
 
 def _rule_acceptance_gate_missing() -> list[dict]:
-    """Rule: every artifact-producing project in _ACCEPTANCE_GATE_PROJECTS must
-    have a hard-failing, unskippable output-acceptance test under tests/
+    """Rule: every artifact-producing project must have a hard-failing,
+    unskippable output-acceptance test under tests/ or execution/**/tests/
     (per ~/.claude/rules/output-acceptance-gate.md).
 
-    Presence check only — it does not verify the gate is wired to fail the run
-    or that it has a frozen corpus (that's a human review item). But presence
-    forces the conversation. info-severity (advisory).
+    2026-08-04 rewrite: dynamic project enumeration, dual test-root scan.
+
+    Presence check only — it does not verify the gate is wired to fail the
+    run or has a frozen corpus (human review item). info-severity (advisory).
     """
-    tests_root = WORKSPACE_ROOT / "tests"
+    workspace_tests = WORKSPACE_ROOT / "tests"
     findings: list[dict] = []
-    for slug, patterns in _ACCEPTANCE_GATE_PROJECTS.items():
+
+    # Collect all candidate test dirs: workspace-root tests/ AND
+    # every execution/**/tests/ directory.
+    test_roots: list[Path] = []
+    if workspace_tests.exists():
+        test_roots.append(workspace_tests)
+    exec_root = WORKSPACE_ROOT / "execution"
+    if exec_root.exists():
+        for t in exec_root.rglob("tests"):
+            if t.is_dir():
+                parts_lower = {p.lower() for p in t.parts}
+                if parts_lower & _SKIP_DIRS:
+                    continue
+                if _is_am_locked(str(t)):
+                    continue
+                test_roots.append(t)
+
+    for slug in _acceptance_gate_project_slugs():
+        patterns = (
+            f"acceptance_{slug}.*",
+            f"acceptance*{slug}*.*",
+            f"*{slug}*acceptance*.*",
+        )
         found = False
-        if tests_root.exists():
+        for root in test_roots:
             for pat in patterns:
-                if any(tests_root.glob(pat)):
+                if any(root.glob(pat)):
                     found = True
                     break
+            if found:
+                break
         if not found:
             findings.append(
                 {
@@ -822,15 +895,339 @@ def _rule_acceptance_gate_missing() -> list[dict]:
                     "rule_id": "acceptance-gate-missing",
                     "message": (
                         f"Artifact-producing project '{slug}' has no output-acceptance "
-                        f"gate (expected tests/{patterns[0]}). Per "
+                        f"gate (expected tests/acceptance_{slug}.* or equivalent). Per "
                         f"~/.claude/rules/output-acceptance-gate.md, every user-facing "
                         f"artifact needs an unskippable, hard-failing, corpus-backed gate "
                         f"that asserts on the OUTPUT (not mechanics). See "
-                        f"tests/acceptance_job_search_v2.py for the reference shape."
+                        f"tests/acceptance_job_search_v2.py for the reference shape. "
+                        f"If '{slug}' does not produce a user-facing artifact, add its "
+                        f"slug to _ACCEPTANCE_GATE_SKIP in workspace_sast.py."
                     ),
                     "tool": "workspace-native",
                 }
             )
+    return findings
+
+
+def _rule_agent_md_frontmatter_haiku() -> list[dict]:
+    """Rule: .claude/agents/*.md frontmatter MUST NOT use `model: haiku*`.
+
+    Extends `haiku-banned` (which scans source/config) to catch Haiku creep
+    in agent definitions. Per ~/.claude/rules/model-tier.md (2026-06-14),
+    Haiku 4.5 is banned workspace-wide including sub-agents. Default is
+    Sonnet 4.6.
+
+    high-severity — an agent silently promoted to Haiku violates policy
+    every time it fires.
+    """
+    findings: list[dict] = []
+    agents_dir = WORKSPACE_ROOT / ".claude" / "agents"
+    if not agents_dir.is_dir():
+        return findings
+
+    # Frontmatter is a YAML block bounded by ---. We only look at the first
+    # such block. Line-oriented scan to keep the frontmatter parser tiny.
+    haiku_re = re.compile(r"^\s*model\s*:\s*[\"']?(haiku[\w.\-]*|claude[-.]haiku[-.\w]*|anthropic/claude[-.]haiku[-.\w]*)",
+                          re.IGNORECASE)
+
+    for path in agents_dir.rglob("*.md"):
+        if not path.is_file():
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        if not lines or lines[0].strip() != "---":
+            continue
+        # Frontmatter body = lines up to the next ---
+        fm_lines: list[str] = []
+        for i, ln in enumerate(lines[1:], start=2):
+            if ln.strip() == "---":
+                break
+            fm_lines.append((i, ln))  # type: ignore[arg-type]
+        for lineno, ln in fm_lines:  # type: ignore[assignment]
+            if haiku_re.match(ln):
+                rel = str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+                findings.append(
+                    {
+                        "severity": "high",
+                        "file": rel,
+                        "line": lineno,
+                        "rule_id": "agent-md-frontmatter-haiku",
+                        "message": (
+                            "Agent frontmatter declares `model: haiku*`. Haiku 4.5 "
+                            "is banned workspace-wide per ~/.claude/rules/model-tier.md. "
+                            "Change to `model: sonnet` (default) or remove the line."
+                        ),
+                        "tool": "workspace-native",
+                    }
+                )
+                break  # one finding per file is enough
+    return findings
+
+
+# Directories that indicate a deployed project (Cloudflare Workers/Pages,
+# Vercel, etc.). If a project has any of these, it needs a live front-door
+# synthetic per ~/.claude/rules/front-door-synthetic.md.
+_DEPLOYED_PROJECT_SIGNALS: tuple[str, ...] = (
+    "wrangler.toml", "wrangler.jsonc", "wrangler.json",
+    "vercel.json", "netlify.toml",
+)
+
+# Skip these project dirs — they are template-only, infrastructure-only,
+# or have documented no-front-door-by-design reasons.
+_FRONT_DOOR_SKIP_DIRS: frozenset[str] = frozenset({
+    "api-proxy",  # AM-locked
+    "workspace_heartbeat",  # infrastructure health check, no user surface
+    "web_app_astro_cf",  # template scaffold
+    "job_search_cron",  # cron trigger only, no user URL
+})
+
+
+def _rule_front_door_missing() -> list[dict]:
+    """Rule: every project with a deployed-artifact signal (wrangler.toml,
+    vercel.json, etc.) MUST have a `tests/front_door_*` script that hits a
+    live URL (SITE_URL / API_URL / equivalent), per
+    ~/.claude/rules/front-door-synthetic.md.
+
+    Fixture-only scripts do NOT count — the script body must reference a
+    URL variable, curl call, requests.get, or fetch to be treated as a
+    live check. (Enforces the 2026-06-18 Exhibit B tightening from
+    front-door-synthetic.md: "no fixture-only synthetic counts as green.")
+
+    Skips: AM-locked, template scaffolds, infrastructure-only projects
+    without a user surface (see _FRONT_DOOR_SKIP_DIRS).
+
+    high-severity — a deployed project without a live front-door check is
+    the exact class of bug that lets stale-fallback ship for weeks.
+    """
+    findings: list[dict] = []
+    exec_root = WORKSPACE_ROOT / "execution"
+    if not exec_root.exists():
+        return findings
+
+    # Find every project dir containing a deployed-artifact signal.
+    seen: set[Path] = set()
+    for signal in _DEPLOYED_PROJECT_SIGNALS:
+        for signal_path in exec_root.rglob(signal):
+            proj_dir = signal_path.parent
+            if proj_dir in seen:
+                continue
+            seen.add(proj_dir)
+
+    # URL-fetch fingerprints that satisfy the "hits live URL" requirement.
+    url_re = re.compile(
+        r"(SITE_URL|API_URL|BASE_URL|LIVE_URL|PROD_URL|"
+        r"\bcurl\s+[-a-zA-Z]*\s*\"?https?://|"
+        r"requests\.(get|post|put|head)|"
+        r"fetch\s*\(\s*[\"']https?://|"
+        r"httpx\.(get|post|Client|AsyncClient))",
+        re.IGNORECASE,
+    )
+
+    for proj_dir in sorted(seen):
+        if _is_am_locked(str(proj_dir)):
+            continue
+        parts_lower = {p.lower() for p in proj_dir.parts}
+        if parts_lower & _SKIP_DIRS:
+            continue
+        if proj_dir.name in _FRONT_DOOR_SKIP_DIRS:
+            continue
+
+        # Look for tests/front_door_*.* in the project dir, its parent dir
+        # (many CF-Worker projects nest under a parent that owns tests/),
+        # OR the workspace root's tests/ dir.
+        candidates: list[Path] = []
+        for search_dir in (proj_dir, proj_dir.parent):
+            search_tests = search_dir / "tests"
+            if search_tests.is_dir():
+                candidates.extend(search_tests.glob("front_door_*"))
+        workspace_tests = WORKSPACE_ROOT / "tests"
+        if workspace_tests.is_dir():
+            # Match on project dir name AND parent dir name (worker subdirs).
+            candidates.extend(workspace_tests.glob(f"front_door_{proj_dir.name}*"))
+            candidates.extend(workspace_tests.glob(f"front_door_{proj_dir.parent.name}*"))
+
+        if not candidates:
+            rel = str(proj_dir.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+            findings.append(
+                {
+                    "severity": "high",
+                    "file": rel,
+                    "line": 0,
+                    "rule_id": "front-door-missing",
+                    "message": (
+                        f"Deployed project '{proj_dir.name}' has no "
+                        f"tests/front_door_* script. Per "
+                        f"~/.claude/rules/front-door-synthetic.md, every project "
+                        f"with a user surface needs a synthetic that runs the "
+                        f"actual user flow end-to-end against LIVE infra. If this "
+                        f"project genuinely has no user surface, add its dir "
+                        f"name to _FRONT_DOOR_SKIP_DIRS in workspace_sast.py."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+            continue
+
+        # Verify at least one candidate reads a live URL.
+        live = False
+        for cand in candidates:
+            try:
+                text = cand.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            if url_re.search(text):
+                live = True
+                break
+
+        if not live:
+            rel = str(candidates[0].relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+            findings.append(
+                {
+                    "severity": "high",
+                    "file": rel,
+                    "line": 0,
+                    "rule_id": "front-door-fixture-only",
+                    "message": (
+                        f"Front-door script '{rel}' does not reference a live URL "
+                        f"(no SITE_URL / curl / requests / fetch pattern found). "
+                        f"Per the 2026-06-18 tightening of "
+                        f"~/.claude/rules/front-door-synthetic.md, fixture-only "
+                        f"scripts do NOT count as green. Either add a live-URL "
+                        f"probe or rename to tests/parser_*."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+
+    return findings
+
+
+# Regex families for the shipped-claim scanner.
+_SHIPPED_CLAIM_RE = re.compile(
+    r"\b(shipped|live|ready|deployed|probationary|100%\s+complete|"
+    r"good\s+to\s+go|wrapped|all\s+set)\b",
+    re.IGNORECASE,
+)
+
+
+def _rule_shipped_claim_stale() -> list[dict]:
+    """Rule: HANDOFF*.md files claiming shipped/live/ready/deployed status
+    for a specific project must show recent activity on that project's
+    tree (git log --since=7.days). If the last commit touching the project
+    tree is older than 7 days, the claim is likely stale — surface it.
+
+    Warn severity (heuristic, may false-positive on genuinely-stable
+    finished projects). Advisory, not blocking.
+
+    Rationale: the 2026-08-04 workspace audit found job_search_v2 memory
+    saying "LIVE-PROBATIONARY day 0/5" while the last cron run was 34
+    days ago; anthropic_watch ledger 52 days stale but claimed shipped;
+    prodcraft_autopilot queue frozen 43 days but "Phase 1 SHIPPED" in
+    memory. The pattern: shipped-claim survives silence.
+
+    Heuristic: walk each HANDOFF.md, extract each project slug it names
+    (the containing directory or explicit `## <slug>` heading), check
+    git log for changes to that dir in the last 7 days.
+    """
+    findings: list[dict] = []
+
+    # Collect HANDOFF*.md files (workspace root + per-project). Skip
+    # AM-locked and .anneal snapshots.
+    handoff_paths: list[Path] = []
+    for candidate in WORKSPACE_ROOT.rglob("HANDOFF*.md"):
+        parts_lower = {p.lower() for p in candidate.parts}
+        if parts_lower & (_SKIP_DIRS | {".anneal"}):
+            continue
+        if _is_am_locked(str(candidate)):
+            continue
+        handoff_paths.append(candidate)
+
+    for hf in handoff_paths:
+        try:
+            text = hf.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if not _SHIPPED_CLAIM_RE.search(text):
+            continue
+
+        # Determine the "project tree" to freshness-check. If HANDOFF is
+        # at workspace root, we cannot narrow it — skip (root HANDOFF is
+        # usually AM-related and lockdown-skipped anyway; but if not,
+        # the operator's own diligence covers it). Otherwise, use the
+        # HANDOFF's parent dir as the project tree.
+        try:
+            rel_parent = hf.parent.relative_to(WORKSPACE_ROOT)
+        except ValueError:
+            continue
+        if str(rel_parent) in ("", "."):
+            continue  # workspace-root HANDOFF — too broad to freshness-check
+
+        project_tree = str(rel_parent).replace("\\", "/")
+
+        # Freshness probe: `git log --since=7.days --oneline -- <tree>`
+        try:
+            proc = subprocess.run(
+                ["git", "log", "--since=7.days", "--oneline", "--", project_tree],
+                cwd=str(WORKSPACE_ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            # Git unavailable or slow — skip this file rather than false-fire.
+            continue
+        if proc.returncode != 0:
+            continue
+
+        if proc.stdout.strip():
+            # Fresh activity — claim is plausibly current.
+            continue
+
+        # No commits touching this tree in the last 7 days. Look up the
+        # last commit that DID touch it, to include the age in the msg.
+        try:
+            age_proc = subprocess.run(
+                ["git", "log", "-1", "--format=%cr|%h", "--", project_tree],
+                cwd=str(WORKSPACE_ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
+                check=False,
+            )
+            age_line = age_proc.stdout.strip() or "(no git history)"
+        except (OSError, subprocess.SubprocessError):
+            age_line = "(git unavailable)"
+
+        rel = str(hf.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+        findings.append(
+            {
+                "severity": "warn",
+                "file": rel,
+                "line": 0,
+                "rule_id": "shipped-claim-stale",
+                "message": (
+                    f"{rel} contains shipped/live/ready/deployed framing, but "
+                    f"the project tree '{project_tree}' has NO commits in the "
+                    f"last 7 days (last touched: {age_line}). Either the claim "
+                    f"is stale (update the HANDOFF), the project is genuinely "
+                    f"stable-and-untouched (add a `## Freshness` note), or "
+                    f"activity happens outside git (external cron writes to KV "
+                    f"— add the cron's last-run URL to a `## Health probe` "
+                    f"section that the auditor can hit). Per "
+                    f"~/.claude/rules/front-door-synthetic.md + Pattern B in "
+                    f"HARDENING_BACKLOG_WORKSPACE_2026-08-04.md."
+                ),
+                "tool": "workspace-native",
+            }
+        )
+
     return findings
 
 
@@ -997,6 +1394,9 @@ _NATIVE_RULES: dict[str, callable] = {
     "acceptance-gate-missing": _rule_acceptance_gate_missing,
     "audit-stack-framing-without-evidence": _rule_audit_stack_framing_without_evidence,
     "pages-functions-untracked": _rule_pages_functions_untracked,
+    "agent-md-frontmatter-haiku": _rule_agent_md_frontmatter_haiku,
+    "front-door-missing": _rule_front_door_missing,
+    "shipped-claim-stale": _rule_shipped_claim_stale,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())
