@@ -139,6 +139,11 @@
             "type": "command",
             "command": "bash \".claude/hooks/notify-done.sh\" tada.wav",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash \".claude/hooks/verdict-table-check.sh\"",
+            "timeout": 5
           }
         ]
       }

@@ -83,7 +83,7 @@ Delegate implementation work to sub-agents to keep main context lean. Full tier-
 | Pattern | Best for | Parallelism | Context | Cost |
 |---|---|---|---|---|
 | Sub-agent (`Agent(...)`) | 1–3 independent tasks, tight result loop | 1–3 | Fresh per agent | Low |
-| Dynamic Workflow (`ultracode:`) | 5–16+ independent fan-out tasks, long jobs, runs in background | up to 16 concurrent, 1000 total | Out-of-process | Low–medium (use Haiku 4.5 workers) |
+| Dynamic Workflow (`ultracode:`) | 5–16+ independent fan-out tasks, long jobs, runs in background | up to 16 concurrent, 1000 total | Out-of-process | Medium (Sonnet 4.6 workers per user-level model-tier rule; Haiku 4.5 is banned) |
 | Agent Team (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) | Long-running parallel sessions with shared task list + peer messaging | N teammates | Each has own context, shared mailbox | Medium–high |
 | Autoresearch loop (`.claude/workflows/autoresearch.md`) | propose-deploy-measure-mutate against a live metric | sequential rounds, hours-to-days each | persistent learnings.md log | $ per round × N rounds (cost-capped) |
 
@@ -211,6 +211,35 @@ The system supports event-driven execution via **Modal webhooks** and **Cloudfla
 - `execution/infrastructure/` - Cloudflare Workers scripts
 - `directives/add_webhook.md` - Complete setup guide
 
+## Enforcement (git hooks + session hooks)
+
+**Effective 2026-08-04.** Rules that used to be text-only are now mechanically enforced.
+
+**One-time install after a fresh clone:**
+```
+bash scripts/install_hooks.sh
+```
+Sets `git config core.hooksPath .githooks` — points git at the tracked hook dir.
+
+**What runs when:**
+
+| Trigger | Hook | Blocks? | What it checks |
+|---|---|---|---|
+| `git commit` | `.githooks/pre-commit` | YES on match | Untracked `.ts/.js/.py/.mjs/.tsx/.jsx/.cjs/.go/.rs` under `functions/`, `worker/`, `workers/`, `pages/api/`, `api/` (any deploy-target dir). Kills the 2026-08-03 yoga_jitendra 13-day-stale-fallback class at commit time. |
+| `git push` | `.githooks/pre-push` | YES on HIGH/CRITICAL | Runs `py execution/infrastructure/workspace_sast.py --all --quiet`. Blocks push if any HIGH or CRITICAL finding surfaces (haiku creep, environ-copy, untracked Pages Functions, agent-md frontmatter Haiku, deployed-project-without-front-door, front-door-fixture-only, etc.). |
+| Assistant turn ends | `.claude/hooks/verdict-table-check.sh` | Advisory (never blocks) | Grep the assistant's last message for shipped/live/ready/done/complete/wrapped framing. If matched AND < 2 mandatory-audit-stack tools (front-door / acceptance / anneal / panel-pass / pipeline-auditor / adversarial) fired in the recent tool-use window, surface a warning to the next turn per ~/.claude/rules/mandatory-audit-stack.md. |
+
+**Emergency bypass (log in HANDOFF.md if you use it):**
+- `git commit --no-verify` — bypasses pre-commit.
+- `git push --no-verify` — bypasses pre-push.
+- The verdict-table hook is already advisory-only; no bypass needed.
+
+When bypassing, add a `**Enforcement bypass**: <one-line reason>` line to `HANDOFF.md` so the choice is auditable. `--no-verify` without a logged reason is a rule violation per `~/.claude/rules/rule-backport-cadence.md`.
+
+**Extending the enforcement:**
+- New SAST rules go in `execution/infrastructure/workspace_sast.py` as `_rule_<name>()` functions and register in `_NATIVE_RULES`. Anything returning severity `high` or `critical` will start blocking pushes on the next commit.
+- Hook config lives in `.claude/settings.json` (Stop, PreToolUse, PostToolUse, SessionStart). The `Stop` array holds the verdict-table check alongside the tada notification.
+
 ## Python Hardening
 
 Python hardening rules (subprocess encoding, threading locks, LLM path validation, cache-aware pricing, bare-except) auto-load from `.claude/rules/python-hardening.md` when editing `.py` files. Reference implementation: `C:\Users\deban\dev\anneal\src\anneal\`.
@@ -244,6 +273,6 @@ Be pragmatic. Be reliable. Self-anneal.
 - Default session model: `claude-opus-4-8` (orchestration + Plan Mode).
 - Note: Fable 5 / Mythos 5 unavailable as of 2026-06-12 (US export-control directive). See `~/.claude/CLAUDE.md` MODEL POLICY section.
 - Implementation / exploration sub-agents: `claude-sonnet-4-6` (default for Agent calls without model override).
-- High-volume fan-out workers (Dynamic Workflows / agent teams of N parallel workers): `claude-haiku-4-5`.
+- High-volume fan-out workers (Dynamic Workflows / agent teams of N parallel workers): `claude-sonnet-4-6`. (Per `~/.claude/rules/model-tier.md` — Haiku 4.5 is BANNED for any project work, including fan-out. The user-level rule wins over any workspace default.)
 - Per-agent model override: `model:` frontmatter in `.claude/agents/*.md`.
 - Claude Code CLI: 2.1.173+ (Dynamic Workflows + Agent Teams enabled via `.claude/settings.json` `env` block).
