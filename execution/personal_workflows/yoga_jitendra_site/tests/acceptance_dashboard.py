@@ -500,25 +500,27 @@ def check_review_sources_rendered() -> None:
 
 
 def check_clients_carousel_rendered() -> None:
-    """Check 17 — ClientsCarousel SSR shell on homepage carries the 8-client
-    JSON (3 existing SVGs + 5 new monograms)."""
-    print("[Slice 3 · ClientsCarousel]")
+    """Check 17 — ClientsStrip SSR band on homepage carries all 8 clients
+    (3 existing SVGs + 5 new PNGs, backgrounds stripped). Migrated
+    2026-08-06 from a carousel to a static all-visible strip so every
+    client is on screen at the same time."""
+    print("[Slice 3 · ClientsStrip]")
     expected_new = ("Chloé", "FTI Consulting", "FIPAM", "WeWork", "Sick France")
     for path, label in (("/", "FR homepage"), ("/en/", "EN homepage")):
         status, html, _ = http_get(f"{SITE_URL}{path}", auth=False)
         if status != 200:
-            fail(f"{label} returned {status}; cannot verify carousel")
+            fail(f"{label} returned {status}; cannot verify clients strip")
             continue
-        if "data-clients-carousel" not in html:
-            fail(f"{label} missing `data-clients-carousel` marker — component not rendered")
+        if "data-clients-strip" not in html:
+            fail(f"{label} missing `data-clients-strip` marker — ClientsStrip not rendered")
             continue
         missing_new = [c for c in expected_new if c not in html]
         if missing_new:
-            fail(f"{label} ClientsCarousel missing new clients: {missing_new}")
+            fail(f"{label} ClientsStrip missing new clients: {missing_new}")
         elif "TotalEnergies" not in html:
-            fail(f"{label} ClientsCarousel missing existing client (TotalEnergies) — migration regression")
+            fail(f"{label} ClientsStrip missing existing client (TotalEnergies) — migration regression")
         else:
-            ok(f"{label} ClientsCarousel renders with 3 existing + 5 new clients")
+            ok(f"{label} ClientsStrip renders with 3 existing + 5 new clients (all visible)")
 
 
 def check_subscribers_in_dashboard_api() -> None:

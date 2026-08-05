@@ -692,10 +692,13 @@ def check_newsletter_subscribe_is_kv_only() -> list[str]:
 
 
 def check_clients_carousel_present() -> list[str]:
-    """Slice 3 — reusable component + shared JSON + Hero.astro wiring."""
+    """Slice 3 — client-logo band. Migrated 2026-08-06 from carousel to a
+    static all-visible strip (ClientsStrip.astro), rendered as its own
+    section between About and Lineage on both FR + EN homepages. Hero no
+    longer carries the logos."""
     errors: list[str] = []
     for rel in (
-        "src/components/ClientsCarousel.astro",
+        "src/components/ClientsStrip.astro",
         "src/content/clients.json",
     ):
         p = ROOT / rel
@@ -713,13 +716,23 @@ def check_clients_carousel_present() -> list[str]:
                 errors.append(f"Slice 3: clients.json has {len(arr)} entries; expected 8 (3 existing + 5 new)")
             names = {c.get("name") for c in arr}
             for expected in ("Chloé", "FTI Consulting", "FIPAM", "WeWork", "Sick France"):
-                if expected not in names:
+                if not any(expected in n for n in names):
                     errors.append(f"Slice 3: clients.json missing `{expected}`")
     hero = SRC / "components" / "Hero.astro"
     if hero.exists():
         src = hero.read_text(encoding="utf-8")
-        if "ClientsCarousel" not in src or "clients.json" not in src:
-            errors.append("Slice 3: Hero.astro must import + render ClientsCarousel with data from clients.json")
+        # Regression guard: Hero must NOT render client logos anymore —
+        # they moved to the ClientsStrip section wired directly in
+        # index.astro (both langs). Matches component tags/imports, not
+        # explanatory comments that reference the old identifier.
+        if "<ClientsCarousel" in src or "<ClientsStrip" in src or "import ClientsCarousel" in src or "import ClientsStrip" in src:
+            errors.append("Slice 3: Hero.astro must NOT render client logos — they belong in ClientsStrip between About and Lineage")
+    for page_rel in ("src/pages/index.astro", "src/pages/en/index.astro"):
+        p = ROOT / page_rel
+        if p.exists():
+            src = p.read_text(encoding="utf-8")
+            if "ClientsStrip" not in src or "clients.json" not in src:
+                errors.append(f"Slice 3: {page_rel} must import + render ClientsStrip with data from clients.json")
     return errors
 
 

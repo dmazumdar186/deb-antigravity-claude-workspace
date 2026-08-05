@@ -3,6 +3,7 @@ import Base       from '../layouts/Base.astro';
 import TopNav     from '../components/TopNav.astro';
 import Hero       from '../components/Hero.astro';
 import About      from '../components/About.astro';
+import ClientsStrip from '../components/ClientsStrip.astro';
 import Lineage    from '../components/Lineage.astro';
 import Offerings  from '../components/Offerings.astro';
 import Schedule   from '../components/Schedule.astro';
@@ -11,6 +12,8 @@ import Press      from '../components/Press.astro';
 import Contact    from '../components/Contact.astro';
 import Footer     from '../components/Footer.astro';
 import AmbientAudio from '../components/AmbientAudio.astro';
+import clientsData from '../content/clients.json';
+import heroFr from '../content/hero.fr.json';
 
 const lang = 'fr';
 ---
@@ -22,6 +25,7 @@ const lang = 'fr';
   <main>
     <Hero lang={lang} />
     <About lang={lang} />
+    <ClientsStrip lang={lang} clients={clientsData.clients} label={heroFr.clients_label} />
     <Lineage lang={lang} />
     <Offerings lang={lang} />
     <Schedule lang={lang} />

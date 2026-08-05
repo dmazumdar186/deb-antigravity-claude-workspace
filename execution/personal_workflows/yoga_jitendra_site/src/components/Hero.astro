@@ -3,15 +3,15 @@ import fr from '../content/hero.fr.json';
 import en from '../content/hero.en.json';
 import contactFr from '../content/contact.fr.json';
 import contactEn from '../content/contact.en.json';
-import clientsData from '../content/clients.json';
 import HeroBackdrop from './HeroBackdrop.astro';
-import ClientsCarousel from './ClientsCarousel.astro';
 
 const { lang = 'fr' } = Astro.props;
 const t = lang === 'en' ? en : fr;
 const c = lang === 'en' ? contactEn : contactFr;
-const clients = clientsData.clients;
 
+// Client logos moved to a dedicated ClientsStrip section between About
+// and Lineage (2026-08-06, operator ask) — all-visible, in color,
+// backgrounds stripped. Hero stays focused on headline + CTA + portrait.
 // wa.me proxied via /wa-out (tap counting). Phone number is server-resolved.
 const waHref = `/wa-out?source=hero&text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=hero_${lang}`;
 ---
@@ -46,20 +46,6 @@ const waHref = `/wa-out?source=hero&text=${encodeURIComponent(c.whatsapp_prefill
           </div>
         </div>
 
-        {/* Corporate clients — sourced from src/content/clients.json (shared FR/EN — names don't translate). Rendered via ClientsCarousel: 4 per page on desktop, 3 on tablet, 2 on mobile, auto-rotates every 6s with arrows + dots + keyboard nav. Adding a new client = one JSON entry, no code change. */}
-        {clients.length > 0 && (
-          <div class="mt-6" data-reveal data-clients-block>
-            <ClientsCarousel
-              lang={lang}
-              clients={clients}
-              pageSize={4}
-              autoRotate={true}
-              showDots={true}
-              showArrows={true}
-              label={t.clients_label}
-            />
-          </div>
-        )}
       </div>
 
       <!-- Hero image (meditation portrait — Jitendra's lotus in a Paris park) -->

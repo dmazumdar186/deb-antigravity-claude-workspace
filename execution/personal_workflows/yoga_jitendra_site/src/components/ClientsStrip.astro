@@ -1,0 +1,180 @@
+---
+// ClientsStrip.astro — static, all-visible trusted-by band.
+//
+// Replaces ClientsCarousel (2026-08-06). Operator feedback: the carousel
+// hid most of the logos most of the time; with only 8 clients today, a
+// static all-visible strip reads more honestly and gives each brand its
+// moment. Carousel can come back when the list outgrows one visual row.
+//
+// Contract (compatible superset of the carousel's — same JSON shape):
+//   <ClientsStrip
+//     lang="fr"
+//     clients={[{name, logo?, monogram?, url?}, ...]}
+//     label="Ils m'ont fait confiance"
+//   />
+//
+// Logos render in COLOR (no grayscale filter — operator explicitly
+// rejected the corporate-cliché monochrome pass on 2026-08-05). PNGs
+// have their white/near-white backgrounds already stripped so they sit
+// on the page's cream palette without white boxes.
+
+interface Client {
+  name: string;
+  logo?: string;
+  monogram?: string;
+  url?: string;
+}
+
+interface Props {
+  lang?: 'fr' | 'en';
+  clients: Client[];
+  label?: string;
+}
+
+const { lang = 'fr', clients, label } = Astro.props;
+
+function initials(name: string): string {
+  return name
+    .split(/[\s·\-—]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
+}
+---
+<section class="clients-strip-section" aria-label={label ?? (lang === 'en' ? 'Trusted by' : "Ils m'ont fait confiance")} data-clients-strip>
+  <div class="section-inner">
+    {label && <p class="cs-label eyebrow" data-reveal>{label}</p>}
+    <ul class="cs-grid" data-reveal>
+      {clients.map((c) => (
+        <li class="cs-cell">
+          {c.url ? (
+            <a href={c.url} target="_blank" rel="noopener noreferrer" class="cs-item" aria-label={c.name} title={c.name}>
+              {c.logo ? (
+                <img src={c.logo} alt={c.name} loading="lazy" decoding="async" class="cs-logo" />
+              ) : (
+                <span class="cs-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
+              )}
+              <span class="cs-sr">{c.name}</span>
+            </a>
+          ) : (
+            <span class="cs-item" aria-label={c.name} title={c.name}>
+              {c.logo ? (
+                <img src={c.logo} alt={c.name} loading="lazy" decoding="async" class="cs-logo" />
+              ) : (
+                <span class="cs-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
+              )}
+              <span class="cs-sr">{c.name}</span>
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .clients-strip-section {
+    padding-block: 3.25rem;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+    border-bottom: 1px solid rgba(46, 42, 38, 0.08);
+    background:
+      radial-gradient(1200px 200px at 50% 50%, rgba(201, 116, 74, 0.045), transparent 70%);
+  }
+  .cs-label {
+    text-align: center;
+    margin: 0 0 1.75rem;
+  }
+  .cs-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 1.5rem 2rem;
+    align-items: center;
+    justify-items: center;
+  }
+  .cs-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 72px;
+  }
+  .cs-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 72px;
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  a.cs-item:hover,
+  a.cs-item:focus-visible {
+    background: rgba(192, 91, 62, 0.06);
+    outline: none;
+  }
+  a.cs-item:focus-visible {
+    box-shadow: 0 0 0 2px rgba(192, 91, 62, 0.35);
+  }
+  .cs-logo {
+    /* Larger than the carousel gave the logos — with only 8 in one row
+       we can spend the vertical space on presence. */
+    max-height: 60px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    opacity: 0.94;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  a.cs-item:hover .cs-logo,
+  a.cs-item:focus-visible .cs-logo {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  .cs-monogram {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ink-soft, #6b6560);
+    padding: 0.55rem 0.95rem;
+    border: 1px solid rgba(46, 42, 38, 0.10);
+    border-radius: 999px;
+    background: rgba(255, 253, 249, 0.6);
+    white-space: nowrap;
+  }
+  a.cs-item:hover .cs-monogram,
+  a.cs-item:focus-visible .cs-monogram {
+    color: var(--ink-900, #2e2a26);
+    border-color: rgba(192, 91, 62, 0.35);
+  }
+  .cs-sr {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* Responsive: 8 desktop → 4 tablet → 2 mobile. All logos remain
+     simultaneously visible — no carousel, no hidden pages. */
+  @media (max-width: 1100px) {
+    .cs-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .cs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1.5rem; }
+    .cs-logo { max-height: 52px; }
+    .clients-strip-section { padding-block: 2.5rem; }
+  }
+</style>
