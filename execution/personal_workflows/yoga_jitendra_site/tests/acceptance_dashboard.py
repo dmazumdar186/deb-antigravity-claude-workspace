@@ -386,7 +386,49 @@ def check_instagram_url_fixed() -> None:
         elif "instagram.com/yogaavecjitendra" not in html:
             fail(f"{label} missing `instagram.com/yogaavecjitendra` — footer/JSON-LD not rendered")
         else:
-            ok(f"{label} → yogaavecjitendra present, jitendrakuma absent")
+            ok(f"{label} -> yogaavecjitendra present, jitendrakuma absent")
+
+
+def check_newsletter_subscribe_unauthenticated_reachable() -> None:
+    """Regression guard for the 2026-08-05 session-3 middleware-blocking bug:
+    POST /api/newsletter-subscribe as anonymous MUST NOT return 401. It should
+    return 400 (bad payload) since we're sending an intentionally invalid
+    request. If auth intercepts, the popup silently fails for every real
+    visitor and the KV list stays empty forever."""
+    print("[Slice 1 -> /api/newsletter-subscribe public]")
+    import json as _json
+    req = request.Request(
+        f"{SITE_URL}/api/newsletter-subscribe",
+        data=_json.dumps({"bogus": True}).encode("utf-8"),
+        headers={
+            "User-Agent": DEFAULT_UA,
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with request.urlopen(req, timeout=15) as resp:
+            status = resp.status
+            body = resp.read().decode("utf-8", errors="replace")
+    except error.HTTPError as e:
+        status = e.code
+        body = (e.read() or b"").decode("utf-8", errors="replace")
+    except Exception as e:
+        fail(f"POST /api/newsletter-subscribe raised: {e!s}")
+        return
+    if status == 401:
+        fail(
+            "POST /api/newsletter-subscribe returned 401 — middleware is "
+            "blocking public opt-in. Add the path to PUBLIC_API_ALLOWLIST "
+            "in functions/_middleware.ts."
+        )
+        return
+    if status == 400 and ('bad_email' in body or 'bad_body' in body or 'consent_required' in body):
+        ok(f"POST /api/newsletter-subscribe reachable (status {status}, validation-only)")
+    else:
+        # Any non-401 status means the middleware let it through, which is
+        # what this check exists to prove. Anything else is informational.
+        ok(f"POST /api/newsletter-subscribe reachable (status {status}) - no middleware block")
 
 
 def check_newsletter_popup_present() -> None:
@@ -548,6 +590,8 @@ def main() -> int:
     check_instagram_url_fixed()
     print()
     check_newsletter_popup_present()
+    print()
+    check_newsletter_subscribe_unauthenticated_reachable()
     print()
     check_review_sources_rendered()
     print()

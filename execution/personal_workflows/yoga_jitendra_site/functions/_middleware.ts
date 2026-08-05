@@ -21,6 +21,12 @@ const PROTECTED = /^\/(dashboard|api)(\/|$)/;
 // Keep this list tight; every entry is an unauthenticated read surface.
 const PUBLIC_API_ALLOWLIST = new Set<string>([
   '/api/reviews-public',
+  // 2026-08-05 session 3: newsletter-subscribe MUST be public so real
+  // visitors can opt in via the popup on public pages. The endpoint has
+  // its own defenses (consent-required, honeypot, rate-limit 5/hr/IP,
+  // email-format validation). Without this the popup submits 401 to
+  // every visitor and captures zero opt-ins.
+  '/api/newsletter-subscribe',
 ]);
 
 function timingSafeEqual(a: string, b: string): boolean {
