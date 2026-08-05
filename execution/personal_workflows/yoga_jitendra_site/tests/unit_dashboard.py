@@ -568,6 +568,28 @@ def check_instagram_url_fixed_in_src() -> list[str]:
     return errors
 
 
+def check_popup_backdrop_hidden_override() -> list[str]:
+    """Slice 1 hotfix regression guard — the popup's `.yj-nl-backdrop`
+    uses `display: flex`, which beats the UA `[hidden] { display: none }`
+    rule (equal specificity). Without `.yj-nl-backdrop[hidden] { display:
+    none !important }`, setting el.hidden = true in JS toggles the
+    attribute but the popup stays visually open — same fault class as
+    the 2026-08-04 `.dash-banner[hidden]` fix.
+    """
+    errors: list[str] = []
+    popup = SRC / "components" / "NewsletterPopup.astro"
+    if not popup.exists():
+        return errors
+    src = popup.read_text(encoding="utf-8")
+    if not re.search(r"\.yj-nl-backdrop\[hidden\]\s*\{[^}]*display\s*:\s*none", src):
+        errors.append(
+            "NewsletterPopup.astro: missing `.yj-nl-backdrop[hidden] "
+            "{ display: none !important }` — close button and Esc key "
+            "will appear broken. 2026-08-05 operator-caught regression."
+        )
+    return errors
+
+
 def check_newsletter_popup_wired_and_truthful() -> list[str]:
     """Slice 1 + Slice 2 — the popup component ships truthful thanks-copy
     (KV-only sends no confirmation email) and Base.astro mounts it gated on
@@ -744,6 +766,7 @@ def main() -> int:
     all_errors.extend(check_dashboard_banner_never_empty_visible())
     # Session 3 (2026-08-05) additions:
     all_errors.extend(check_instagram_url_fixed_in_src())
+    all_errors.extend(check_popup_backdrop_hidden_override())
     all_errors.extend(check_newsletter_popup_wired_and_truthful())
     all_errors.extend(check_newsletter_subscribe_is_kv_only())
     all_errors.extend(check_clients_carousel_present())

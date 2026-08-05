@@ -182,6 +182,17 @@ const CONSENT_TEXT_VERSION = '2026-08-04';
     padding: 1rem;
     animation: yj-nl-fade-in 0.24s ease-out;
   }
+  /* 2026-08-05 hotfix (operator caught via Loom): the `display: flex`
+     above beats the UA `[hidden] { display: none }` rule (equal
+     specificity, author sheet wins the cascade). Without this override,
+     the JS `el.hidden = true` toggles the attribute but the popup stays
+     visually rendered — close button + Esc + backdrop click all appear
+     broken. Same bug class the workspace hit once already with
+     `.dash-banner[hidden]` (fixed 2026-08-04). Guard: `!important` +
+     `display: none` restores semantic hiding. */
+  .yj-nl-backdrop[hidden] {
+    display: none !important;
+  }
   .yj-nl-panel {
     background: #fffdf9;
     color: #2e2a26;
