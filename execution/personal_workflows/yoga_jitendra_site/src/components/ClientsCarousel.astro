@@ -1,0 +1,476 @@
+---
+// ClientsCarousel.astro — reusable, JSON-driven, plug-and-play.
+//
+// Renders a client-logo strip that paginates in groups of N (default 4).
+// Fallback chain per client: logo (image) → monogram (text pill).
+// Accessible: keyboard nav (arrow keys when focused), ARIA-live announces
+// page changes, respects prefers-reduced-motion (disables auto-rotate).
+// Responsive: pageSize scales down at tablet (3) + mobile (2) via CSS
+// container queries + a data-attribute the client script reads.
+//
+// Contract:
+//   <ClientsCarousel
+//     lang="fr"                        {/* only used for a11y labels */}
+//     clients={[{name, logo?, monogram?, url?}, ...]}
+//     pageSize={4}                     {/* desktop default; CSS overrides on tablet/mobile */}
+//     autoRotate={true}                {/* 6s per page; pauses on hover/focus */}
+//     showDots={true}
+//     showArrows={true}
+//     label="Ils m'ont fait confiance" {/* section title */}
+//   />
+//
+// The component ships ALL clients in the DOM (SSR-friendly, no client-side
+// fetch); the client script only shifts visibility via CSS classes. So SEO
+// crawlers see every logo/name.
+
+interface Client {
+  name: string;
+  logo?: string;
+  monogram?: string;
+  url?: string;
+}
+
+interface Props {
+  lang?: 'fr' | 'en';
+  clients: Client[];
+  pageSize?: number;
+  autoRotate?: boolean;
+  showDots?: boolean;
+  showArrows?: boolean;
+  label?: string;
+}
+
+const {
+  lang = 'fr',
+  clients,
+  pageSize = 4,
+  autoRotate = true,
+  showDots = true,
+  showArrows = true,
+  label,
+} = Astro.props;
+
+const t = lang === 'en'
+  ? {
+      regionLabel: 'Client logos carousel',
+      prev: 'Previous logos',
+      next: 'Next logos',
+      goToPage: (n: number) => `Go to page ${n}`,
+      pageAria: (n: number, total: number) => `Page ${n} of ${total}`,
+    }
+  : {
+      regionLabel: 'Carrousel des logos clients',
+      prev: 'Logos précédents',
+      next: 'Logos suivants',
+      goToPage: (n: number) => `Aller à la page ${n}`,
+      pageAria: (n: number, total: number) => `Page ${n} sur ${total}`,
+    };
+
+// Compute pages for dots (based on desktop pageSize; mobile/tablet
+// recompute in JS on resize).
+const totalPages = Math.max(1, Math.ceil(clients.length / pageSize));
+
+function initials(name: string): string {
+  return name
+    .split(/[\s·\-—]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
+}
+---
+<div
+  class="clients-carousel"
+  data-clients-carousel
+  data-page-size={String(pageSize)}
+  data-auto-rotate={autoRotate ? '1' : '0'}
+  role="region"
+  aria-roledescription={lang === 'en' ? 'carousel' : 'carrousel'}
+  aria-label={t.regionLabel}
+  tabindex="0"
+>
+  {label && <p class="cc-label eyebrow">{label}</p>}
+
+  <div class="cc-viewport">
+    {showArrows && (
+      <button
+        type="button"
+        class="cc-arrow cc-arrow--prev"
+        data-cc-prev
+        aria-label={t.prev}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    )}
+
+    <ul class="cc-track" data-cc-track aria-live="polite">
+      {clients.map((c, idx) => (
+        <li class="cc-slot" data-cc-slot data-cc-index={String(idx)}>
+          {c.url ? (
+            <a href={c.url} target="_blank" rel="noopener noreferrer" class="cc-item" aria-label={c.name} title={c.name}>
+              {c.logo ? (
+                <img
+                  src={c.logo}
+                  alt={c.name}
+                  loading="lazy"
+                  decoding="async"
+                  class="cc-logo"
+                />
+              ) : (
+                <span class="cc-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
+              )}
+              <span class="cc-sr">{c.name}</span>
+            </a>
+          ) : (
+            <span class="cc-item" aria-label={c.name} title={c.name}>
+              {c.logo ? (
+                <img
+                  src={c.logo}
+                  alt={c.name}
+                  loading="lazy"
+                  decoding="async"
+                  class="cc-logo"
+                />
+              ) : (
+                <span class="cc-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
+              )}
+              <span class="cc-sr">{c.name}</span>
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+
+    {showArrows && (
+      <button
+        type="button"
+        class="cc-arrow cc-arrow--next"
+        data-cc-next
+        aria-label={t.next}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    )}
+  </div>
+
+  {showDots && totalPages > 1 && (
+    <div class="cc-dots" data-cc-dots role="tablist" aria-label={t.regionLabel}>
+      {Array.from({ length: totalPages }).map((_, i) => (
+        <button
+          type="button"
+          class={`cc-dot ${i === 0 ? 'is-active' : ''}`}
+          data-cc-dot
+          data-cc-page={String(i)}
+          role="tab"
+          aria-selected={i === 0 ? 'true' : 'false'}
+          aria-label={t.goToPage(i + 1)}
+        ></button>
+      ))}
+    </div>
+  )}
+</div>
+
+<style>
+  .clients-carousel {
+    --cc-slot-h: 56px;
+    --cc-gap: 1.25rem;
+    --cc-arrow-size: 32px;
+    --cc-rule: rgba(46, 42, 38, 0.10);
+    outline: none;
+  }
+  .clients-carousel:focus-visible {
+    outline: 2px solid var(--terracotta, #c05b3e);
+    outline-offset: 6px;
+    border-radius: 6px;
+  }
+  .cc-label {
+    margin: 0 0 0.85rem;
+  }
+  .cc-viewport {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    position: relative;
+  }
+  .cc-track {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - (var(--cc-cols, 4) - 1) * var(--cc-gap)) / var(--cc-cols, 4));
+    gap: var(--cc-gap);
+    overflow: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    flex: 1 1 auto;
+    padding: 0.25rem 0;
+  }
+  .cc-slot {
+    scroll-snap-align: start;
+    min-height: var(--cc-slot-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cc-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    height: 100%;
+    min-height: var(--cc-slot-h);
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  }
+  a.cc-item:hover,
+  a.cc-item:focus-visible {
+    background: rgba(192, 91, 62, 0.06);
+    outline: none;
+  }
+  a.cc-item:focus-visible {
+    box-shadow: 0 0 0 2px rgba(192, 91, 62, 0.35);
+  }
+  .cc-logo {
+    max-height: calc(var(--cc-slot-h) - 8px);
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: grayscale(1) opacity(0.72);
+    transition: filter 0.2s ease;
+  }
+  a.cc-item:hover .cc-logo,
+  a.cc-item:focus-visible .cc-logo {
+    filter: grayscale(0) opacity(1);
+  }
+  .cc-monogram {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft, #6b6560);
+    padding: 0.55rem 0.95rem;
+    border: 1px solid var(--cc-rule);
+    border-radius: 999px;
+    background: rgba(255, 253, 249, 0.6);
+    white-space: nowrap;
+  }
+  a.cc-item:hover .cc-monogram,
+  a.cc-item:focus-visible .cc-monogram {
+    color: var(--ink-900, #2e2a26);
+    border-color: rgba(192, 91, 62, 0.35);
+  }
+  .cc-sr {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .cc-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--cc-arrow-size);
+    height: var(--cc-arrow-size);
+    border-radius: 50%;
+    border: 1px solid var(--cc-rule);
+    background: white;
+    color: var(--ink-soft, #6b6560);
+    cursor: pointer;
+    flex: 0 0 auto;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .cc-arrow:hover,
+  .cc-arrow:focus-visible {
+    color: var(--ink-900, #2e2a26);
+    border-color: rgba(192, 91, 62, 0.35);
+    background: rgba(192, 91, 62, 0.06);
+    outline: none;
+  }
+  .cc-arrow:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .cc-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+  }
+  .cc-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(46, 42, 38, 0.18);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .cc-dot:hover,
+  .cc-dot:focus-visible {
+    background: rgba(46, 42, 38, 0.38);
+    outline: none;
+  }
+  .cc-dot.is-active {
+    background: var(--terracotta, #c05b3e);
+    transform: scale(1.25);
+  }
+
+  /* Responsive column count via CSS custom property that the JS reads too. */
+  .clients-carousel { --cc-cols: 4; }
+  @media (max-width: 1024px) {
+    .clients-carousel { --cc-cols: 3; }
+  }
+  @media (max-width: 640px) {
+    .clients-carousel { --cc-cols: 2; }
+    .cc-viewport { gap: 0.35rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc-track { scroll-behavior: auto; }
+    .cc-dot, .cc-logo, .cc-item { transition: none; }
+  }
+</style>
+
+<script>
+  (function () {
+    const carousels = document.querySelectorAll<HTMLElement>('[data-clients-carousel]');
+    if (!carousels.length) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    carousels.forEach((root) => {
+      const track = root.querySelector<HTMLElement>('[data-cc-track]');
+      const prevBtn = root.querySelector<HTMLButtonElement>('[data-cc-prev]');
+      const nextBtn = root.querySelector<HTMLButtonElement>('[data-cc-next]');
+      const dotsWrap = root.querySelector<HTMLElement>('[data-cc-dots]');
+      if (!track) return;
+
+      const slots = Array.from(track.querySelectorAll<HTMLElement>('[data-cc-slot]'));
+      const autoRotate = root.getAttribute('data-auto-rotate') === '1' && !reducedMotion;
+
+      function getColsFromCSS(): number {
+        const raw = getComputedStyle(root).getPropertyValue('--cc-cols').trim();
+        const n = parseInt(raw, 10);
+        return Number.isFinite(n) && n > 0 ? n : 4;
+      }
+
+      let cols = getColsFromCSS();
+      let totalPages = Math.max(1, Math.ceil(slots.length / cols));
+      let currentPage = 0;
+      let autoTimer: number | undefined;
+
+      function renderDots() {
+        if (!dotsWrap) return;
+        dotsWrap.innerHTML = '';
+        for (let i = 0; i < totalPages; i += 1) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `cc-dot ${i === currentPage ? 'is-active' : ''}`;
+          btn.setAttribute('data-cc-dot', '');
+          btn.setAttribute('data-cc-page', String(i));
+          btn.setAttribute('role', 'tab');
+          btn.setAttribute('aria-selected', i === currentPage ? 'true' : 'false');
+          btn.setAttribute('aria-label', `Page ${i + 1}`);
+          btn.addEventListener('click', () => { goTo(i, true); });
+          dotsWrap.appendChild(btn);
+        }
+      }
+
+      function updateDots() {
+        if (!dotsWrap) return;
+        dotsWrap.querySelectorAll<HTMLButtonElement>('[data-cc-dot]').forEach((d, i) => {
+          const active = i === currentPage;
+          d.classList.toggle('is-active', active);
+          d.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+      }
+
+      function updateArrows() {
+        // Arrows always enabled — carousel wraps.
+        if (prevBtn) prevBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = false;
+      }
+
+      function scrollToPage(page: number) {
+        const targetSlot = slots[page * cols];
+        if (!targetSlot || !track) return;
+        // Scroll the target slot to the left edge of the track viewport.
+        track.scrollTo({ left: targetSlot.offsetLeft - track.offsetLeft, behavior: reducedMotion ? 'auto' : 'smooth' });
+      }
+
+      function goTo(page: number, userInitiated: boolean) {
+        if (totalPages <= 0) return;
+        currentPage = ((page % totalPages) + totalPages) % totalPages;
+        scrollToPage(currentPage);
+        updateDots();
+        updateArrows();
+        if (userInitiated) restartAutoRotate();
+      }
+
+      function next() { goTo(currentPage + 1, true); }
+      function prev() { goTo(currentPage - 1, true); }
+
+      function startAutoRotate() {
+        if (!autoRotate || totalPages <= 1) return;
+        stopAutoRotate();
+        autoTimer = window.setInterval(() => {
+          currentPage = (currentPage + 1) % totalPages;
+          scrollToPage(currentPage);
+          updateDots();
+        }, 6000);
+      }
+      function stopAutoRotate() {
+        if (autoTimer !== undefined) {
+          window.clearInterval(autoTimer);
+          autoTimer = undefined;
+        }
+      }
+      function restartAutoRotate() {
+        stopAutoRotate();
+        startAutoRotate();
+      }
+
+      function recompute() {
+        const newCols = getColsFromCSS();
+        if (newCols !== cols) {
+          cols = newCols;
+          totalPages = Math.max(1, Math.ceil(slots.length / cols));
+          if (currentPage >= totalPages) currentPage = 0;
+          renderDots();
+          scrollToPage(currentPage);
+        }
+      }
+
+      prevBtn?.addEventListener('click', prev);
+      nextBtn?.addEventListener('click', next);
+
+      root.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      });
+
+      root.addEventListener('mouseenter', stopAutoRotate);
+      root.addEventListener('mouseleave', startAutoRotate);
+      root.addEventListener('focusin', stopAutoRotate);
+      root.addEventListener('focusout', startAutoRotate);
+
+      window.addEventListener('resize', () => {
+        window.requestAnimationFrame(recompute);
+      });
+
+      renderDots();
+      updateArrows();
+      startAutoRotate();
+    });
+  })();
+</script>
