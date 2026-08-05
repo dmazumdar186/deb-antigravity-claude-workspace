@@ -93,7 +93,7 @@ def do_action(
                 "would_upload": len(leads),
                 "dry_run": True,
             }
-        env = dict(os.environ)  # NEVER copy.copy(os.environ); see hardening rule 6
+        env = dict(os.environ)  # use dict() for a real snapshot — see hardening rule 6
         api_key = env.get("INSTANTLY_API_KEY", "")
         campaign_id = env.get("INSTANTLY_CAMPAIGN_ID", "")
         if not api_key or not campaign_id:
