@@ -231,6 +231,8 @@ const initialBanner = bannerText();
           sparkline={heroTiles.subscribers.sparkline || []}
           delta_pct={heroTiles.subscribers.delta_pct}
           partial_caveat={null}
+          href="/dashboard/subscribers/"
+          href_label="Open list"
         />
       )}
     </section>
@@ -485,9 +487,17 @@ const initialBanner = bannerText();
           const caveatFragment = partial
             ? ('<p class="hero-tile-caveat" data-metric-caveat="' + key + '">' + escapeHtml(caveat) + '</p>')
             : '';
+          // 2026-08-06: preserve the tile's optional deep-link on
+          // skeleton→live hydration. HeroTile.astro exposes data-href on
+          // the <article> when set; we emit an <a> instead of <span> so
+          // clicking the number after hydration still navigates.
+          var hrefAttr = article.getAttribute('data-href');
+          var numberEl = hrefAttr
+            ? '<a href="' + escapeHtml(hrefAttr) + '" class="' + bnCls + ' hero-tile-bignumber-link" data-metric="' + key + '">' + numberText + '</a>'
+            : '<span class="' + bnCls + '" data-metric="' + key + '">' + numberText + '</span>';
           numberRow.innerHTML =
             '<div class="hero-tile-number-line">' +
-              '<span class="' + bnCls + '" data-metric="' + key + '">' + numberText + '</span>' +
+              numberEl +
               '<span class="hero-tile-delta ' + dcls + '" data-metric-delta="' + key + '" ' +
                     'aria-label="Change vs previous window">' +
                 '<span class="hero-tile-delta-arrow" aria-hidden="true">' + deltaArrow + '</span>' +

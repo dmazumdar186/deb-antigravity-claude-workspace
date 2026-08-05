@@ -26,7 +26,7 @@ interface Props {
   hint?: string;
   source: string;
   suffix?: string;
-  metric_key?: 'reach' | 'interest' | 'conversation';
+  metric_key?: 'reach' | 'interest' | 'conversation' | 'subscribers';
   sparkline?: number[];
   delta_pct?: number | null;
   sparkline_color?: string;
@@ -34,6 +34,12 @@ interface Props {
   // the tile's needed sources is degraded, we render the number in a muted
   // style with a truthful caveat naming the still-pending source(s).
   partial_caveat?: string | null;
+  // 2026-08-06: optional deep-link. When present, the big number becomes
+  // an <a> and a "View →" chip is added to the tile foot. Hydration DOM
+  // contract preserved — the anchor wraps the same span the metrics
+  // hydration script targets by data-metric.
+  href?: string;
+  href_label?: string;
 }
 const {
   eyebrow,
@@ -48,6 +54,8 @@ const {
   delta_pct = null,
   sparkline_color = 'var(--yj-brand)',
   partial_caveat = null,
+  href,
+  href_label,
 } = Astro.props;
 
 const isLive = status === 'live' && value !== null && value !== undefined;
@@ -73,6 +81,7 @@ const deltaCls = delta_pct === null || delta_pct === undefined
   data-status={status}
   data-tile-key={metric_key}
   data-partial={isPartial ? 'true' : undefined}
+  data-href={href || undefined}
   data-reveal
 >
   <header class="hero-tile-head">
@@ -87,9 +96,15 @@ const deltaCls = delta_pct === null || delta_pct === undefined
     {isLive ? (
       <>
         <div class="hero-tile-number-line">
-          <span class={`hero-tile-bignumber yj-num${isPartial ? ' partial yj-num--muted' : ''}`} data-metric={metric_key}>
-            {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
-          </span>
+          {href ? (
+            <a href={href} class={`hero-tile-bignumber hero-tile-bignumber-link yj-num${isPartial ? ' partial yj-num--muted' : ''}`} data-metric={metric_key} aria-label={`${headline} — view details`}>
+              {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
+            </a>
+          ) : (
+            <span class={`hero-tile-bignumber yj-num${isPartial ? ' partial yj-num--muted' : ''}`} data-metric={metric_key}>
+              {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
+            </span>
+          )}
           {metric_key && (
             <span
               class={`hero-tile-delta ${deltaCls}`}
@@ -127,6 +142,11 @@ const deltaCls = delta_pct === null || delta_pct === undefined
   <footer class="hero-tile-foot">
     <span class="hero-tile-source-dot" aria-hidden="true"></span>
     <span class="hero-tile-source-label">{source}</span>
+    {href && (
+      <a href={href} class="hero-tile-view-link" aria-label={`${headline} — view details`}>
+        {href_label ?? 'View all'} <span aria-hidden="true">→</span>
+      </a>
+    )}
   </footer>
 </article>
 
@@ -172,6 +192,30 @@ const deltaCls = delta_pct === null || delta_pct === undefined
   }
   .hero-tile-bignumber.partial {
     color: var(--yj-ink-muted);
+  }
+  /* Clickable bignumber (subscribers → /dashboard/subscribers/). Uses a
+     transparent underline so the number's typography is unchanged; the
+     underline crisps on hover so hit-affordance is visible without the
+     "everything is a link" corporate look. */
+  a.hero-tile-bignumber-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+    transition: text-decoration-color 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+  }
+  a.hero-tile-bignumber-link:hover,
+  a.hero-tile-bignumber-link:focus-visible {
+    text-decoration-color: var(--yj-brand, #c05b3e);
+    outline: none;
+  }
+  a.hero-tile-bignumber-link:focus-visible {
+    text-decoration-color: var(--yj-brand, #c05b3e);
+    outline: 2px solid rgba(192,91,62,0.35);
+    outline-offset: 4px;
+    border-radius: 2px;
   }
   .hero-tile-suffix {
     font-size: 0.55em;
@@ -235,7 +279,7 @@ const deltaCls = delta_pct === null || delta_pct === undefined
   /* Source footer — small, quiet, with a subtle top rule that separates
      the "what the number is" from the "how we know" without shouting. */
   .hero-tile-foot {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 0.5rem;
     padding-top: var(--yj-space-3);
@@ -255,5 +299,20 @@ const deltaCls = delta_pct === null || delta_pct === undefined
   }
   .hero-tile-source-label {
     line-height: 1.3;
+    flex: 1 1 auto;
+  }
+  .hero-tile-view-link {
+    color: var(--yj-brand, #c05b3e);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.15rem 0.4rem;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+  }
+  .hero-tile-view-link:hover,
+  .hero-tile-view-link:focus-visible {
+    background: rgba(192,91,62,0.10);
+    outline: none;
   }
 </style>

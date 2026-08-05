@@ -606,6 +606,79 @@ def check_popup_js_ships_in_ssr() -> list[str]:
     return errors
 
 
+def check_subscribers_list_surface_present() -> list[str]:
+    """2026-08-06 — operator ask: the Subscribers hero-tile count must be
+    clickable and open a real subscriber table. Guards:
+      * functions/api/subscribers.ts exists AND is git-tracked (Pages
+        Functions must be tracked or `wrangler pages deploy` silently
+        drops them — 2026-08-03 exhibit).
+      * src/pages/dashboard/subscribers.astro exists.
+      * dashboard.astro Subscribers tile passes href="/dashboard/subscribers/".
+      * HeroTile.astro exposes an `href` prop AND emits data-href on the
+        <article> (hydration path reads it to preserve the anchor on
+        skeleton→live upgrade).
+    """
+    errors: list[str] = []
+
+    api = ROOT / "functions" / "api" / "subscribers.ts"
+    if not api.exists():
+        errors.append("subscribers: functions/api/subscribers.ts missing")
+
+    page = SRC / "pages" / "dashboard" / "subscribers.astro"
+    if not page.exists():
+        errors.append("subscribers: src/pages/dashboard/subscribers.astro missing")
+    else:
+        page_src = page.read_text(encoding="utf-8")
+        for marker in ("data-subs-body", "/api/subscribers", "?format=csv"):
+            if marker not in page_src:
+                errors.append(f"subscribers.astro missing marker `{marker}`")
+
+    dashboard = SRC / "pages" / "dashboard.astro"
+    if dashboard.exists():
+        src = dashboard.read_text(encoding="utf-8")
+        if 'href="/dashboard/subscribers/"' not in src:
+            errors.append(
+                "dashboard.astro: Subscribers HeroTile missing "
+                "href=\"/dashboard/subscribers/\" — count is not clickable"
+            )
+
+    hero_tile = SRC / "components" / "dashboard" / "HeroTile.astro"
+    if hero_tile.exists():
+        src = hero_tile.read_text(encoding="utf-8")
+        if "href?" not in src or "hero-tile-bignumber-link" not in src:
+            errors.append(
+                "HeroTile.astro: missing href prop or "
+                "hero-tile-bignumber-link class — clickable-number "
+                "affordance is not wired"
+            )
+        if "data-href" not in src:
+            errors.append(
+                "HeroTile.astro: missing data-href on <article> — "
+                "hydration path #2 will strip the anchor on skeleton→live"
+            )
+
+    # Git-tracked check for the new Pages Function (2026-08-03 pattern).
+    import subprocess
+    try:
+        tracked = subprocess.run(
+            ["git", "ls-files", "functions/api/subscribers.ts"],
+            cwd=str(ROOT), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", check=False,
+        )
+        if not tracked.stdout.strip():
+            errors.append(
+                "subscribers: functions/api/subscribers.ts is UNTRACKED "
+                "in git — will NOT ship on `wrangler pages deploy`"
+            )
+    except Exception as e:
+        # If git isn't available for some reason, don't fail the whole
+        # unit run — surface as a warning-shaped error only if the file
+        # itself is missing (handled above).
+        pass
+
+    return errors
+
+
 def check_popup_url_override_present() -> list[str]:
     """2026-08-06 regression guard — operator retest gotcha: `yj_popup_seen`
     localStorage persists 30 days from the first Skip/Close/Submit, so a
@@ -851,6 +924,7 @@ def main() -> int:
     all_errors.extend(check_popup_js_ships_in_ssr())
     all_errors.extend(check_popup_backdrop_hidden_override())
     all_errors.extend(check_popup_url_override_present())
+    all_errors.extend(check_subscribers_list_surface_present())
     all_errors.extend(check_newsletter_popup_wired_and_truthful())
     all_errors.extend(check_newsletter_subscribe_is_kv_only())
     all_errors.extend(check_clients_carousel_present())

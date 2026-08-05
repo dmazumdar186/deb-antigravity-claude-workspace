@@ -1,0 +1,341 @@
+---
+// /dashboard/subscribers — operator-facing table of newsletter opt-ins.
+//
+// Behind Basic-Auth via functions/_middleware.ts (regex covers /dashboard/*).
+// Server-renders an empty shell + skeleton; a client script hydrates from
+// GET /api/subscribers (JSON) and provides:
+//   - sortable table (email · first-seen · last-seen · lang · source)
+//   - copy-all-emails to clipboard
+//   - CSV download via /api/subscribers?format=csv
+//   - filter box (substring match on email + source URL)
+//
+// Every read/mutation reuses the same Basic-Auth credentials the browser
+// already prompted for on /dashboard/*, so no in-page auth UI is needed.
+
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Subscribers · Newsletter | Yoga avec Jitendra"
+  lang="fr"
+  dashboard={true}
+>
+  <header class="dash-topbar">
+    <a href="/" class="dash-brand">
+      <span class="breathing-dot" style="margin:0;"></span>
+      <span>Yoga avec Jitendra &middot; Subscribers</span>
+    </a>
+    <a href="/dashboard/" class="dash-logout">← Dashboard</a>
+  </header>
+
+  <main class="subs-main">
+    <section class="dash-intro" data-reveal>
+      <p class="eyebrow">Newsletter opt-ins · from Cloudflare KV</p>
+      <h1 class="dash-h1">Subscribers <span class="subs-count" data-subs-count>—</span></h1>
+      <p class="dash-lede">
+        Every visitor who submitted the newsletter popup. Backend today is KV-only fallback (Brevo swap pending). Emails are stored plaintext because this list <em>is</em> the mailing list until Brevo lands.
+      </p>
+    </section>
+
+    <section class="subs-controls">
+      <input
+        type="search"
+        class="subs-filter"
+        data-subs-filter
+        placeholder="Filter by email or source URL…"
+        aria-label="Filter subscribers"
+      />
+      <div class="subs-actions">
+        <button type="button" class="subs-btn" data-subs-copy>Copy all emails</button>
+        <a class="subs-btn subs-btn-primary" href="/api/subscribers?format=csv" download>Download CSV</a>
+      </div>
+    </section>
+
+    <section class="subs-table-wrap">
+      <table class="subs-table" data-subs-table>
+        <thead>
+          <tr>
+            <th data-sort="email"       class="is-sortable">Email <span class="subs-sort-arrow"></span></th>
+            <th data-sort="first_seen"  class="is-sortable is-active">First seen <span class="subs-sort-arrow">↓</span></th>
+            <th data-sort="last_seen"   class="is-sortable">Last seen <span class="subs-sort-arrow"></span></th>
+            <th data-sort="lang"        class="is-sortable">Lang <span class="subs-sort-arrow"></span></th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody data-subs-body>
+          <tr class="subs-loading-row"><td colspan="5">Loading…</td></tr>
+        </tbody>
+      </table>
+      <p class="subs-empty" data-subs-empty hidden>No subscribers yet. The popup writes here after each successful opt-in.</p>
+      <p class="subs-error" data-subs-error hidden></p>
+    </section>
+
+    <p class="subs-status" data-subs-status role="status" aria-live="polite"></p>
+  </main>
+
+  <style>
+    .subs-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+    .dash-intro { margin-bottom: 1.75rem; }
+    .subs-count {
+      display: inline-block;
+      margin-left: 0.5rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--ink-soft, #6b6560);
+      background: rgba(192, 91, 62, 0.10);
+      border-radius: 999px;
+      padding: 0.15rem 0.75rem;
+      vertical-align: middle;
+    }
+    .subs-controls {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .subs-filter {
+      flex: 1 1 260px;
+      min-width: 240px;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid rgba(46,42,38,0.18);
+      border-radius: 8px;
+      font: inherit;
+      background: white;
+    }
+    .subs-filter:focus {
+      outline: none;
+      border-color: #c05b3e;
+      box-shadow: 0 0 0 3px rgba(192,91,62,0.15);
+    }
+    .subs-actions { display: flex; gap: 0.5rem; }
+    .subs-btn {
+      font: inherit;
+      font-weight: 500;
+      padding: 0.55rem 0.9rem;
+      border-radius: 8px;
+      border: 1px solid rgba(46,42,38,0.22);
+      background: white;
+      color: #2e2a26;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .subs-btn:hover { background: #f5f2ec; }
+    .subs-btn-primary { background: #c05b3e; color: white; border-color: #c05b3e; }
+    .subs-btn-primary:hover { background: #a94b30; }
+
+    .subs-table-wrap { overflow-x: auto; }
+    .subs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: white;
+      border: 1px solid rgba(46,42,38,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .subs-table th, .subs-table td {
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(46,42,38,0.06);
+    }
+    .subs-table th {
+      background: rgba(251, 247, 238, 0.6);
+      font-weight: 500;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6b6560;
+      white-space: nowrap;
+    }
+    .subs-table tr:last-child td { border-bottom: 0; }
+    .subs-table td.email-cell { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88rem; }
+    .subs-table td.source-cell a { color: #c05b3e; text-decoration: none; }
+    .subs-table td.source-cell a:hover { text-decoration: underline; }
+    .is-sortable { cursor: pointer; user-select: none; }
+    .is-sortable:hover { background: rgba(192,91,62,0.06); }
+    .is-active { color: #2e2a26; }
+    .subs-sort-arrow { display: inline-block; width: 0.7em; color: #c05b3e; }
+
+    .subs-empty, .subs-error {
+      padding: 1.5rem;
+      text-align: center;
+      color: #6b6560;
+      background: rgba(251, 247, 238, 0.4);
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+    .subs-error { color: #8a3820; background: rgba(192,91,62,0.08); }
+    .subs-status {
+      margin-top: 0.75rem;
+      font-size: 0.82rem;
+      color: #6b6560;
+      min-height: 1.2em;
+    }
+
+    .subs-loading-row td { text-align: center; padding: 2rem; color: #6b6560; }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var tbody   = document.querySelector('[data-subs-body]');
+      var countEl = document.querySelector('[data-subs-count]');
+      var emptyEl = document.querySelector('[data-subs-empty]');
+      var errorEl = document.querySelector('[data-subs-error]');
+      var statusEl= document.querySelector('[data-subs-status]');
+      var filterEl= document.querySelector('[data-subs-filter]');
+      var copyBtn = document.querySelector('[data-subs-copy]');
+      var heads   = document.querySelectorAll('[data-sort]');
+      if (!tbody) return;
+
+      var subs = [];
+      var sortKey = 'first_seen';
+      var sortDir = 'desc';
+      var filterText = '';
+
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        try {
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return iso;
+          return d.toISOString().slice(0, 16).replace('T', ' ');
+        } catch (e) { return iso; }
+      }
+      function escapeHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+      function sourceCell(url) {
+        if (!url) return '—';
+        var short;
+        try {
+          var u = new URL(url);
+          short = (u.pathname === '/' ? u.host : u.host + u.pathname);
+          if (short.length > 42) short = short.slice(0, 40) + '…';
+        } catch (e) { short = url.length > 42 ? url.slice(0, 40) + '…' : url; }
+        return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(short) + '</a>';
+      }
+
+      function apply() {
+        var q = filterText.toLowerCase();
+        var view = subs.filter(function (s) {
+          if (!q) return true;
+          return (s.email || '').toLowerCase().indexOf(q) !== -1
+              || (s.source_url || '').toLowerCase().indexOf(q) !== -1;
+        });
+        view.sort(function (a, b) {
+          var av, bv;
+          if (sortKey === 'email') { av = a.email || ''; bv = b.email || ''; }
+          else if (sortKey === 'lang') { av = a.lang || ''; bv = b.lang || ''; }
+          else if (sortKey === 'last_seen') { av = a.last_seen_ts || ''; bv = b.last_seen_ts || ''; }
+          else { av = a.first_seen_ts || ''; bv = b.first_seen_ts || ''; }
+          if (av === bv) return 0;
+          var cmp = av < bv ? -1 : 1;
+          return sortDir === 'asc' ? cmp : -cmp;
+        });
+        if (!view.length) {
+          tbody.innerHTML = '';
+          emptyEl.hidden = false;
+        } else {
+          emptyEl.hidden = true;
+          tbody.innerHTML = view.map(function (s) {
+            return '<tr>'
+              + '<td class="email-cell">' + escapeHtml(s.email) + '</td>'
+              + '<td>' + fmtDate(s.first_seen_ts) + '</td>'
+              + '<td>' + fmtDate(s.last_seen_ts) + '</td>'
+              + '<td>' + escapeHtml(s.lang) + '</td>'
+              + '<td class="source-cell">' + sourceCell(s.source_url) + '</td>'
+              + '</tr>';
+          }).join('');
+        }
+        countEl.textContent = subs.length + (filterText ? ' (' + view.length + ' shown)' : '');
+        // Update sort arrows
+        heads.forEach(function (h) {
+          var arrow = h.querySelector('.subs-sort-arrow');
+          if (!arrow) return;
+          var key = h.getAttribute('data-sort');
+          var mapKey = key === 'first_seen' ? 'first_seen' : key === 'last_seen' ? 'last_seen' : key;
+          if (mapKey === sortKey) {
+            h.classList.add('is-active');
+            arrow.textContent = sortDir === 'asc' ? '↑' : '↓';
+          } else {
+            h.classList.remove('is-active');
+            arrow.textContent = '';
+          }
+        });
+      }
+
+      function load() {
+        errorEl.hidden = true;
+        statusEl.textContent = 'Loading…';
+        fetch('/api/subscribers', { credentials: 'include', cache: 'no-store' })
+          .then(function (r) {
+            if (r.status === 401) throw new Error('Not authorized. Refresh and re-enter the dashboard password.');
+            if (!r.ok) throw new Error('API returned ' + r.status);
+            return r.json();
+          })
+          .then(function (data) {
+            if (!data || !data.ok) throw new Error((data && data.error) || 'unknown');
+            subs = data.subscribers || [];
+            statusEl.textContent = subs.length + ' subscriber(s). Last computed ' + fmtDate(data.computed_at) + '.';
+            apply();
+          })
+          .catch(function (e) {
+            tbody.innerHTML = '';
+            errorEl.hidden = false;
+            errorEl.textContent = 'Failed to load subscribers: ' + (e && e.message ? e.message : e);
+            statusEl.textContent = '';
+          });
+      }
+
+      filterEl && filterEl.addEventListener('input', function (e) {
+        filterText = String(e.target.value || '').trim();
+        apply();
+      });
+
+      heads.forEach(function (h) {
+        h.addEventListener('click', function () {
+          var key = h.getAttribute('data-sort');
+          if (!key) return;
+          if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+          else { sortKey = key; sortDir = key === 'email' || key === 'lang' ? 'asc' : 'desc'; }
+          apply();
+        });
+      });
+
+      copyBtn && copyBtn.addEventListener('click', function () {
+        var q = filterText.toLowerCase();
+        var view = subs.filter(function (s) {
+          if (!q) return true;
+          return (s.email || '').toLowerCase().indexOf(q) !== -1
+              || (s.source_url || '').toLowerCase().indexOf(q) !== -1;
+        });
+        var text = view.map(function (s) { return s.email; }).join('\n');
+        if (!text) { statusEl.textContent = 'Nothing to copy.'; return; }
+        var done = function () { statusEl.textContent = 'Copied ' + view.length + ' email(s) to clipboard.'; };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () {
+            statusEl.textContent = 'Copy failed — select text manually in the table.';
+          });
+        } else {
+          // Legacy fallback
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); done(); } catch (e) { statusEl.textContent = 'Copy failed.'; }
+          document.body.removeChild(ta);
+        }
+      });
+
+      load();
+    })();
+  </script>
+</Base>
