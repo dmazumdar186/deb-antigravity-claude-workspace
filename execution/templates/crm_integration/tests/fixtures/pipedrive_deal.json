@@ -1,0 +1,8 @@
+[
+  {"id": 101, "title": "Acme renewal", "value": 12000, "currency": "EUR",
+   "person_id": {"name": "Alice Smith", "email": [{"value": "alice@example.com"}]},
+   "update_time": "2026-08-04 09:30:00"},
+  {"id": 102, "title": "Beta expansion", "value": 45000, "currency": "EUR",
+   "person_id": {"name": "Bob Jones", "email": [{"value": "bob@example.com"}]},
+   "update_time": "2026-08-04 10:15:00"}
+]

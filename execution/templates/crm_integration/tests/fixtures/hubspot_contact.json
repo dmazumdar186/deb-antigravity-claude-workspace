@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "id": "1",
+      "properties": {
+        "email": "alice@example.com",
+        "firstname": "Alice",
+        "lastname": "Smith",
+        "company": "Acme Corp",
+        "phone": "+33-1-23-45-67-89",
+        "lifecyclestage": "lead",
+        "lastmodifieddate": "2026-08-04T10:00:00.000Z"
+      }
+    },
+    {
+      "id": "2",
+      "properties": {
+        "email": "bob@example.com",
+        "firstname": "Bob",
+        "lastname": "Jones",
+        "company": "Beta Ltd",
+        "phone": null,
+        "lifecyclestage": "customer",
+        "lastmodifieddate": "2026-08-04T11:00:00.000Z"
+      }
+    },
+    {
+      "id": "3",
+      "properties": {
+        "email": "carol@example.com",
+        "firstname": "Carol",
+        "lastname": "Nguyen",
+        "company": "Gamma SAS",
+        "phone": "+33-6-12-34-56-78",
+        "lifecyclestage": "opportunity",
+        "lastmodifieddate": "2026-08-04T12:00:00.000Z"
+      }
+    }
+  ]
+}

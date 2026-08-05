@@ -1,0 +1,31 @@
+{
+  "tenant_slug": "fixture",
+  "provider": {
+    "type": "fixture",
+    "credentials_env": [],
+    "rate_limit": {"requests_per_window": 1000000, "window_seconds": 1},
+    "watermark_field": "properties.lastmodifieddate",
+    "id_field": "id",
+    "record_type": "contact"
+  },
+  "destination": {
+    "type": "jsonl",
+    "credentials_env": [],
+    "target": "./.tmp/crm_sync_out/fixture.jsonl"
+  },
+  "sync": {
+    "mode": "pull_only",
+    "incremental": false,
+    "dedup_ttl_seconds": 3600,
+    "max_pages": 10
+  },
+  "webhook": {"enabled": false, "secret_env": "WEBHOOK_SECRET", "kv_dedup_binding": "WEBHOOK_DEDUP"},
+  "field_mappings": {
+    "email":       "properties.email",
+    "first_name":  "properties.firstname",
+    "last_name":   "properties.lastname",
+    "company":     "properties.company",
+    "phone":       "properties.phone",
+    "lifecycle":   "properties.lifecyclestage"
+  }
+}

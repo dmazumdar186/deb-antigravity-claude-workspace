@@ -1,0 +1,24 @@
+{
+  "records": [
+    {
+      "id": "recABC",
+      "createdTime": "2026-08-04T10:00:00.000Z",
+      "fields": {
+        "Email": "alice@example.com",
+        "Name": "Alice Smith",
+        "Company": "Acme Corp",
+        "Last Modified": "2026-08-04T10:15:00.000Z"
+      }
+    },
+    {
+      "id": "recDEF",
+      "createdTime": "2026-08-04T11:00:00.000Z",
+      "fields": {
+        "Email": "bob@example.com",
+        "Name": "Bob Jones",
+        "Company": "Beta Ltd",
+        "Last Modified": "2026-08-04T11:20:00.000Z"
+      }
+    }
+  ]
+}
