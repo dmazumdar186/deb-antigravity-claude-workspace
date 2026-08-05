@@ -29,6 +29,11 @@ Thumbs.db
 
 # Website assets — these PNGs are intentionally tracked (override *.png above)
 !website/assets/*.png
+# yoga_jitendra site client logos (PNG source-of-truth for the ClientsCarousel).
+# These must ship with the repo so `wrangler pages deploy` picks them up on
+# any fresh clone. Same rationale as pages-functions-untracked SAST rule:
+# ungrouped binary assets that the build reads must be tracked.
+!execution/personal_workflows/yoga_jitendra_site/public/assets/logos/*.png
 
 # IDE
 .vscode/

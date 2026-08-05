@@ -240,12 +240,19 @@ function initials(name: string): string {
     width: auto;
     height: auto;
     object-fit: contain;
-    filter: grayscale(1) opacity(0.72);
-    transition: filter 0.2s ease;
+    /* 2026-08-05 fix (operator caught): no grayscale filter — that's a
+       corporate-landing-page cliché that ripped the color out of the
+       existing SVG logos (Total / SEMMARIS / Emmaüs) and would strip the
+       new client logos too. Real client logos on a public "trusted by"
+       strip belong in color. Slight opacity dial keeps them from
+       fighting the page's warm palette. */
+    opacity: 0.92;
+    transition: opacity 0.2s ease, transform 0.15s ease;
   }
   a.cc-item:hover .cc-logo,
   a.cc-item:focus-visible .cc-logo {
-    filter: grayscale(0) opacity(1);
+    opacity: 1;
+    transform: scale(1.03);
   }
   .cc-monogram {
     display: inline-flex;

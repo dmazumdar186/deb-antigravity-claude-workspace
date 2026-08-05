@@ -1,13 +1,13 @@
 {
-  "_comment": "Canonical client list rendered by ClientsCarousel.astro. Shared across FR/EN (company names don't translate). Fallback chain per client: `logo` file if present → `monogram` pill (short text). Add a `url` field to link out to the client site if desired. When the operator adds a new client, just append here — no code changes needed. See src/components/ClientsCarousel.astro.",
+  "_comment": "Canonical client list rendered by ClientsCarousel.astro. Shared across FR/EN (company names don't translate). Fallback chain per client: `logo` file if present → `monogram` pill (short text). Add a `url` field to link out to the client site if desired. When the operator adds a new client, drop the logo into /public/assets/logos/ and append here — no code changes needed. See src/components/ClientsCarousel.astro.",
   "clients": [
     { "name": "TotalEnergies",       "logo": "/assets/logos/totalenergies.svg" },
     { "name": "SEMMARIS · Rungis",   "logo": "/assets/logos/semmaris-rungis.svg" },
     { "name": "Emmaüs Solidarité",   "logo": "/assets/logos/emmaus-solidarite.svg" },
-    { "name": "Chloé",               "monogram": "Chloé",     "url": "https://www.chloe.com/" },
-    { "name": "FTI Consulting",      "monogram": "FTI",       "url": "https://www.fticonsulting.com/" },
-    { "name": "FIPAM",               "monogram": "FIPAM" },
-    { "name": "WeWork",              "monogram": "WeWork",    "url": "https://www.wework.com/fr-FR/" },
-    { "name": "Sick France",         "monogram": "SICK",      "url": "https://www.sick.com/fr/fr/" }
+    { "name": "Chloé",               "logo": "/assets/logos/chloe.png",           "url": "https://www.chloe.com/" },
+    { "name": "FTI Consulting",      "logo": "/assets/logos/fti-consulting.png",  "url": "https://www.fticonsulting.com/" },
+    { "name": "FIPAM Group",         "logo": "/assets/logos/fipam.png" },
+    { "name": "WeWork",              "logo": "/assets/logos/wework.png",          "url": "https://www.wework.com/fr-FR/" },
+    { "name": "Sick France",         "logo": "/assets/logos/sick.png",            "url": "https://www.sick.com/fr/fr/" }
   ]
 }
