@@ -900,6 +900,88 @@ def check_subscribers_hero_tile_present() -> list[str]:
     return errors
 
 
+def check_schedule_gallery_carousel() -> list[str]:
+    """2026-08-07 — Schedule.astro must render the studio gallery as a
+    single-frame carousel (12 new pose photos + the kept backbend teaching
+    shot). Guards:
+      * Both schedule.{fr,en}.json gallery arrays have >=13 entries.
+      * Every gallery `src` in FR points at a file that exists on disk under
+        public/ (deploy will 404 otherwise).
+      * `champ-de-mars-eiffel.jpg` was removed from both language files
+        (client asked for its removal — Aug 2026).
+      * `teaching-backbend.jpg` still present in both language files.
+      * Schedule.astro carries the carousel wiring: aria-roledescription
+        "carousel", scroll-snap track, prev/next controls, dot indicators.
+    """
+    errors: list[str] = []
+    fr_path = SRC / "content" / "schedule.fr.json"
+    en_path = SRC / "content" / "schedule.en.json"
+    public_root = ROOT / "public"
+
+    if not fr_path.exists():
+        errors.append("schedule.fr.json missing")
+        return errors
+    if not en_path.exists():
+        errors.append("schedule.en.json missing")
+        return errors
+
+    try:
+        fr_data = json.loads(fr_path.read_text(encoding="utf-8"))
+        en_data = json.loads(en_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        errors.append(f"schedule.*.json invalid JSON: {e}")
+        return errors
+
+    fr_gallery = fr_data.get("gallery") or []
+    en_gallery = en_data.get("gallery") or []
+    if len(fr_gallery) < 13:
+        errors.append(f"schedule.fr.json gallery has {len(fr_gallery)} entries; expected >=13 (1 kept + 12 new)")
+    if len(en_gallery) < 13:
+        errors.append(f"schedule.en.json gallery has {len(en_gallery)} entries; expected >=13 (1 kept + 12 new)")
+
+    for g in fr_gallery:
+        src = (g.get("src") or "").lstrip("/")
+        if not src:
+            errors.append("schedule.fr.json: gallery entry with empty src")
+            continue
+        p = public_root / src
+        if not p.exists():
+            errors.append(f"schedule.fr.json: gallery src `/{src}` does not exist under public/")
+
+    fr_srcs = {(g.get("src") or "") for g in fr_gallery}
+    en_srcs = {(g.get("src") or "") for g in en_gallery}
+    banned = "/assets/images/champ-de-mars-eiffel.jpg"
+    if banned in fr_srcs:
+        errors.append(f"schedule.fr.json: `{banned}` must be removed (client ask Aug 2026)")
+    if banned in en_srcs:
+        errors.append(f"schedule.en.json: `{banned}` must be removed (client ask Aug 2026)")
+    kept = "/assets/images/teaching-backbend.jpg"
+    if kept not in fr_srcs:
+        errors.append(f"schedule.fr.json: `{kept}` must remain in the gallery")
+    if kept not in en_srcs:
+        errors.append(f"schedule.en.json: `{kept}` must remain in the gallery")
+
+    schedule = SRC / "components" / "Schedule.astro"
+    if not schedule.exists():
+        errors.append("Schedule.astro missing")
+        return errors
+    src = schedule.read_text(encoding="utf-8")
+    for marker in (
+        'aria-roledescription="carousel"',
+        "gallery-track",
+        "scroll-snap-type",
+        "data-gallery-prev",
+        "data-gallery-next",
+        "data-gallery-dot",
+    ):
+        if marker not in src:
+            errors.append(f"Schedule.astro: carousel wiring marker `{marker}` missing")
+    # Regression guard against the removed side-by-side grid.
+    if "grid-cols-1 sm:grid-cols-2" in src and "gallery" in src.lower() and "gallery-carousel" not in src:
+        errors.append("Schedule.astro: legacy 2-column gallery grid still present alongside carousel")
+    return errors
+
+
 def main() -> int:
     all_errors: list[str] = []
     all_errors.extend(check_structural_files())
@@ -930,6 +1012,8 @@ def main() -> int:
     all_errors.extend(check_clients_carousel_present())
     all_errors.extend(check_review_sources_present())
     all_errors.extend(check_subscribers_hero_tile_present())
+    # 2026-08-07 Schedule gallery carousel:
+    all_errors.extend(check_schedule_gallery_carousel())
 
     if all_errors:
         print(f"FAIL — {len(all_errors)} issue(s):", file=sys.stderr)

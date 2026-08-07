@@ -43,16 +43,267 @@ const t = lang === 'en' ? en : fr;
       </div>
 
       <div class="md:col-span-7" data-reveal>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {t.gallery.map((g) => (
-            <div class="frame aspect-[3/4]">
-              <img src={g.src} alt={g.alt}
-                   width="900" height="1200" loading="lazy" decoding="async"
-                   class="w-full h-full object-cover" />
-            </div>
-          ))}
+        <div
+          class="gallery-carousel"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label={t.gallery_aria_label}
+          tabindex="0"
+        >
+          <button
+            type="button"
+            class="gallery-nav gallery-nav--prev"
+            aria-label={t.gallery_prev_label}
+            data-gallery-prev
+          >
+            <span aria-hidden="true">&larr;</span>
+          </button>
+
+          <div class="gallery-track" data-gallery-track>
+            {t.gallery.map((g, i) => (
+              <figure
+                class="gallery-slide"
+                data-gallery-slide
+                data-index={i}
+                aria-roledescription="slide"
+                aria-label={`${i + 1} / ${t.gallery.length}`}
+              >
+                <div class="frame gallery-frame">
+                  <img
+                    src={g.src}
+                    alt={g.alt}
+                    width="1200"
+                    height="900"
+                    loading="lazy"
+                    decoding="async"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+              </figure>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            class="gallery-nav gallery-nav--next"
+            aria-label={t.gallery_next_label}
+            data-gallery-next
+          >
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+
+          <div class="gallery-dots" role="tablist" aria-label={t.gallery_aria_label} data-gallery-dots>
+            {t.gallery.map((_, i) => (
+              <button
+                type="button"
+                class="gallery-dot"
+                role="tab"
+                aria-label={`${i + 1} / ${t.gallery.length}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                data-gallery-dot={i}
+              ></button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  .gallery-carousel {
+    position: relative;
+    isolation: isolate;
+  }
+  .gallery-carousel:focus { outline: none; }
+  .gallery-carousel:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 6px;
+    border-radius: 1.25rem;
+  }
+
+  .gallery-track {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+  .gallery-track::-webkit-scrollbar { display: none; }
+
+  .gallery-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    margin: 0;
+  }
+
+  .gallery-frame {
+    aspect-ratio: 4 / 3;
+    background: rgba(46, 42, 38, 0.04);
+  }
+  .gallery-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    background: rgba(251, 247, 238, 0.92);
+    color: var(--ink-900, #2e2a26);
+    border: 1px solid rgba(46, 42, 38, 0.12);
+    box-shadow: 0 12px 28px -16px rgba(46, 42, 38, 0.35);
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .gallery-nav:hover { background: rgba(251, 247, 238, 1); transform: translateY(-50%) scale(1.04); }
+  .gallery-nav:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 2px;
+  }
+  .gallery-nav[disabled] {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .gallery-nav[disabled]:hover { transform: translateY(-50%); background: rgba(251, 247, 238, 0.92); }
+  .gallery-nav--prev { left: 0.5rem; }
+  .gallery-nav--next { right: 0.5rem; }
+
+  @media (min-width: 768px) {
+    .gallery-nav { display: inline-flex; }
+    .gallery-nav--prev { left: -1.25rem; }
+    .gallery-nav--next { right: -1.25rem; }
+  }
+
+  .gallery-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  .gallery-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(46, 42, 38, 0.22);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .gallery-dot:hover { background: rgba(46, 42, 38, 0.4); }
+  .gallery-dot[aria-selected="true"] {
+    background: var(--terracotta);
+    transform: scale(1.25);
+  }
+  .gallery-dot:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery-track { scroll-behavior: auto; }
+    .gallery-nav:hover { transform: translateY(-50%); }
+    .gallery-dot[aria-selected="true"] { transform: none; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    function initGallery(root) {
+      var track = root.querySelector('[data-gallery-track]');
+      var slides = root.querySelectorAll('[data-gallery-slide]');
+      var dots = root.querySelectorAll('[data-gallery-dot]');
+      var prev = root.querySelector('[data-gallery-prev]');
+      var next = root.querySelector('[data-gallery-next]');
+      if (!track || slides.length === 0) return;
+
+      var current = 0;
+
+      function slideWidth() {
+        var first = slides[0];
+        var style = window.getComputedStyle(track);
+        var gap = parseFloat(style.columnGap || style.gap || '0') || 0;
+        return (first ? first.getBoundingClientRect().width : 0) + gap;
+      }
+
+      function scrollToIndex(i) {
+        var max = slides.length - 1;
+        if (i < 0) i = 0;
+        if (i > max) i = max;
+        var w = slideWidth();
+        track.scrollTo({ left: i * w, behavior: 'smooth' });
+      }
+
+      function setActive(i) {
+        if (i === current) return;
+        current = i;
+        dots.forEach(function (d, di) {
+          d.setAttribute('aria-selected', di === i ? 'true' : 'false');
+        });
+        if (prev) prev.disabled = i === 0;
+        if (next) next.disabled = i === slides.length - 1;
+      }
+
+      // IntersectionObserver keeps the active dot in sync with whatever slide
+      // the user swiped/scrolled to (touch, mouse-drag, keyboard-arrow, click).
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          var best = null;
+          entries.forEach(function (e) {
+            if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+          });
+          if (best && best.isIntersecting && best.intersectionRatio > 0.6) {
+            var idx = parseInt(best.target.getAttribute('data-index') || '0', 10);
+            setActive(idx);
+          }
+        }, { root: track, threshold: [0.6, 0.9] });
+        slides.forEach(function (s) { io.observe(s); });
+      }
+
+      if (prev) prev.addEventListener('click', function () { scrollToIndex(current - 1); });
+      if (next) next.addEventListener('click', function () { scrollToIndex(current + 1); });
+      dots.forEach(function (d, di) {
+        d.addEventListener('click', function () { scrollToIndex(di); });
+      });
+
+      root.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); scrollToIndex(current + 1); }
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollToIndex(current - 1); }
+        if (e.key === 'Home')       { e.preventDefault(); scrollToIndex(0); }
+        if (e.key === 'End')        { e.preventDefault(); scrollToIndex(slides.length - 1); }
+      });
+
+      // Initial state
+      setActive(0);
+      if (prev) prev.disabled = true;
+      if (next) next.disabled = slides.length <= 1;
+    }
+
+    function boot() {
+      document.querySelectorAll('.gallery-carousel').forEach(initGallery);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      boot();
+    }
+  })();
+</script>

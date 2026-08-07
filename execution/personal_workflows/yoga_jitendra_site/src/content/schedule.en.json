@@ -11,8 +11,22 @@
     "Open-air group sessions announced on MeetUp « Paris Hatha yoga » — on request, open to everyone.",
     "Home sessions available across Paris and the inner suburbs."
   ],
+  "gallery_aria_label": "Studio photos",
+  "gallery_prev_label": "Previous photo",
+  "gallery_next_label": "Next photo",
   "gallery": [
-    { "src": "/assets/images/champ-de-mars-eiffel.jpg", "alt": "Hatha Yoga session at Champ-de-Mars, Eiffel Tower in the background, GIO France banner" },
-    { "src": "/assets/images/teaching-backbend.jpg", "alt": "Jitendra guiding a student through a back-opening posture" }
+    { "src": "/assets/images/teaching-backbend.jpg", "alt": "Jitendra guiding a student through a back-opening posture · Passy studio" },
+    { "src": "/assets/images/studio-session-01-ajustement-hanches.jpg", "alt": "Hands-on hip adjustment in a child's-pose variation · Passy studio" },
+    { "src": "/assets/images/studio-session-02-vajrasana-epaules.jpg", "alt": "Seated in vajrasana, shoulder-opener with hands clasped behind the back · Passy studio" },
+    { "src": "/assets/images/studio-session-03-balasana.jpg", "alt": "Balasana · child's pose with arms extended forward · Passy studio" },
+    { "src": "/assets/images/studio-session-04-etirement-ischios.jpg", "alt": "Supine hamstring stretch · supta padangusthasana · Passy studio" },
+    { "src": "/assets/images/studio-session-05-bhujangasana.jpg", "alt": "Bhujangasana · cobra pose with a guided chest-opening adjustment · Passy studio" },
+    { "src": "/assets/images/studio-session-06-chien-tete-en-bas.jpg", "alt": "Adho mukha svanasana · downward-facing dog, aligning the spine and shoulders · Passy studio" },
+    { "src": "/assets/images/studio-session-07-pavanamuktasana.jpg", "alt": "Pavanamuktasana · knees drawn to chest to release the lower back · Passy studio" },
+    { "src": "/assets/images/studio-session-08-torsion-allongee.jpg", "alt": "Jathara parivartanasana · guided supine spinal twist with shoulders grounded · Passy studio" },
+    { "src": "/assets/images/studio-session-09-nadi-shodhana.jpg", "alt": "Nadi shodhana · alternate-nostril breathing in sukhasana under salt-lamp glow · Passy studio" },
+    { "src": "/assets/images/studio-session-10-palming.jpg", "alt": "Palming · post-practice eye relaxation with palms resting over the eyelids · Passy studio" },
+    { "src": "/assets/images/studio-session-11-savasana.jpg", "alt": "Savasana · final relaxation, body fully released on the mat · Passy studio" },
+    { "src": "/assets/images/studio-session-12-padmasana.jpg", "alt": "Padmasana · seated lotus meditation, silent breathing · Passy studio" }
   ]
 }

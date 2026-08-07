@@ -11,8 +11,22 @@
     "Sessions de groupe en plein air annoncées sur MeetUp « Paris Hatha yoga » — sur devis, ouvertes à tous.",
     "Cours à domicile disponibles sur Paris et proche banlieue."
   ],
+  "gallery_aria_label": "Photos du studio",
+  "gallery_prev_label": "Photo précédente",
+  "gallery_next_label": "Photo suivante",
   "gallery": [
-    { "src": "/assets/images/champ-de-mars-eiffel.jpg", "alt": "Séance de Hatha Yoga au Champ-de-Mars, Tour Eiffel en arrière-plan, bannière GIO France" },
-    { "src": "/assets/images/teaching-backbend.jpg", "alt": "Jitendra guide un élève dans une posture d'ouverture du dos" }
+    { "src": "/assets/images/teaching-backbend.jpg", "alt": "Jitendra guide une élève dans une posture d'ouverture du dos · studio Passy" },
+    { "src": "/assets/images/studio-session-01-ajustement-hanches.jpg", "alt": "Ajustement manuel des hanches en variation de la posture de l'enfant · studio Passy" },
+    { "src": "/assets/images/studio-session-02-vajrasana-epaules.jpg", "alt": "Assis en vajrasana, ouverture des épaules mains liées dans le dos · studio Passy" },
+    { "src": "/assets/images/studio-session-03-balasana.jpg", "alt": "Balasana · posture de l'enfant, bras étendus vers l'avant · studio Passy" },
+    { "src": "/assets/images/studio-session-04-etirement-ischios.jpg", "alt": "Étirement des ischio-jambiers allongé sur le dos · supta padangusthasana · studio Passy" },
+    { "src": "/assets/images/studio-session-05-bhujangasana.jpg", "alt": "Bhujangasana · posture du cobra, ajustement guidé de l'ouverture du buste · studio Passy" },
+    { "src": "/assets/images/studio-session-06-chien-tete-en-bas.jpg", "alt": "Adho mukha svanasana · chien tête en bas, alignement du dos et des épaules · studio Passy" },
+    { "src": "/assets/images/studio-session-07-pavanamuktasana.jpg", "alt": "Pavanamuktasana · genoux ramenés à la poitrine pour libérer le bas du dos · studio Passy" },
+    { "src": "/assets/images/studio-session-08-torsion-allongee.jpg", "alt": "Jathara parivartanasana · torsion allongée guidée, épaules ancrées au sol · studio Passy" },
+    { "src": "/assets/images/studio-session-09-nadi-shodhana.jpg", "alt": "Nadi shodhana · respiration alternée assise en sukhasana, éclairée à la lampe de sel · studio Passy" },
+    { "src": "/assets/images/studio-session-10-palming.jpg", "alt": "Palming · relaxation des yeux après pratique, paumes posées sur les paupières · studio Passy" },
+    { "src": "/assets/images/studio-session-11-savasana.jpg", "alt": "Savasana · posture de la relaxation finale, corps entièrement relâché · studio Passy" },
+    { "src": "/assets/images/studio-session-12-padmasana.jpg", "alt": "Padmasana · méditation assise en lotus, respiration silencieuse · studio Passy" }
   ]
 }
