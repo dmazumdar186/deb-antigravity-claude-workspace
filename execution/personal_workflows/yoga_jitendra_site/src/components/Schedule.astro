@@ -143,12 +143,15 @@ const t = lang === 'en' ? en : fr;
 
   .gallery-frame {
     aspect-ratio: 4 / 3;
-    background: rgba(46, 42, 38, 0.04);
+    background: rgba(217, 199, 167, 0.18);
+  }
+  @media (min-width: 768px) {
+    .gallery-frame { aspect-ratio: 3 / 2; }
   }
   .gallery-frame img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
   }
 
@@ -236,6 +239,15 @@ const t = lang === 'en' ? en : fr;
       if (!track || slides.length === 0) return;
 
       var current = 0;
+      var AUTOPLAY_MS = 5000;
+      var RESUME_AFTER_INTERACTION_MS = 8000;
+      var reducedMotion = window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var autoplayTimer = null;
+      var resumeTimer = null;
+      var isHovering = false;
+      var isFocused = false;
+      var isVisible = !document.hidden;
 
       function slideWidth() {
         var first = slides[0];
@@ -244,12 +256,15 @@ const t = lang === 'en' ? en : fr;
         return (first ? first.getBoundingClientRect().width : 0) + gap;
       }
 
-      function scrollToIndex(i) {
+      function scrollToIndex(i, opts) {
+        opts = opts || {};
         var max = slides.length - 1;
-        if (i < 0) i = 0;
-        if (i > max) i = max;
+        // Wrap-around: autoplay loops end -> start; manual nav loops both ways.
+        if (i < 0) i = max;
+        if (i > max) i = 0;
         var w = slideWidth();
-        track.scrollTo({ left: i * w, behavior: 'smooth' });
+        var behavior = opts.behavior || (reducedMotion ? 'auto' : 'smooth');
+        track.scrollTo({ left: i * w, behavior: behavior });
       }
 
       function setActive(i) {
@@ -258,8 +273,29 @@ const t = lang === 'en' ? en : fr;
         dots.forEach(function (d, di) {
           d.setAttribute('aria-selected', di === i ? 'true' : 'false');
         });
-        if (prev) prev.disabled = i === 0;
-        if (next) next.disabled = i === slides.length - 1;
+      }
+
+      function stopAutoplay() {
+        if (autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null; }
+      }
+      function startAutoplay() {
+        if (reducedMotion) return;
+        if (isHovering || isFocused || !isVisible) return;
+        if (slides.length <= 1) return;
+        stopAutoplay();
+        autoplayTimer = setInterval(function () {
+          // Snap back to the first slide without a long sweep when wrapping.
+          if (current >= slides.length - 1) {
+            scrollToIndex(0, { behavior: 'auto' });
+          } else {
+            scrollToIndex(current + 1);
+          }
+        }, AUTOPLAY_MS);
+      }
+      function pauseThenResume() {
+        stopAutoplay();
+        if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
+        resumeTimer = setTimeout(startAutoplay, RESUME_AFTER_INTERACTION_MS);
       }
 
       // IntersectionObserver keeps the active dot in sync with whatever slide
@@ -278,23 +314,49 @@ const t = lang === 'en' ? en : fr;
         slides.forEach(function (s) { io.observe(s); });
       }
 
-      if (prev) prev.addEventListener('click', function () { scrollToIndex(current - 1); });
-      if (next) next.addEventListener('click', function () { scrollToIndex(current + 1); });
+      if (prev) prev.addEventListener('click', function () {
+        scrollToIndex(current - 1); pauseThenResume();
+      });
+      if (next) next.addEventListener('click', function () {
+        scrollToIndex(current + 1); pauseThenResume();
+      });
       dots.forEach(function (d, di) {
-        d.addEventListener('click', function () { scrollToIndex(di); });
+        d.addEventListener('click', function () { scrollToIndex(di); pauseThenResume(); });
       });
 
       root.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowRight') { e.preventDefault(); scrollToIndex(current + 1); }
-        if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollToIndex(current - 1); }
-        if (e.key === 'Home')       { e.preventDefault(); scrollToIndex(0); }
-        if (e.key === 'End')        { e.preventDefault(); scrollToIndex(slides.length - 1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); scrollToIndex(current + 1); pauseThenResume(); }
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollToIndex(current - 1); pauseThenResume(); }
+        if (e.key === 'Home')       { e.preventDefault(); scrollToIndex(0); pauseThenResume(); }
+        if (e.key === 'End')        { e.preventDefault(); scrollToIndex(slides.length - 1); pauseThenResume(); }
+      });
+
+      // Touch/wheel drags on the track are also a form of user intent — pause.
+      track.addEventListener('touchstart', pauseThenResume, { passive: true });
+      track.addEventListener('wheel', pauseThenResume, { passive: true });
+
+      // Pause on hover / keyboard focus; resume when both clear.
+      root.addEventListener('mouseenter', function () { isHovering = true; stopAutoplay(); });
+      root.addEventListener('mouseleave', function () { isHovering = false; startAutoplay(); });
+      root.addEventListener('focusin',    function () { isFocused = true; stopAutoplay(); });
+      root.addEventListener('focusout',   function () {
+        // Only clear focus flag when focus leaves the whole carousel.
+        setTimeout(function () {
+          if (!root.contains(document.activeElement)) { isFocused = false; startAutoplay(); }
+        }, 0);
+      });
+
+      // Pause when the tab is hidden — no wasted work, no snap-to-first when
+      // the user comes back after a while.
+      document.addEventListener('visibilitychange', function () {
+        isVisible = !document.hidden;
+        if (isVisible) startAutoplay(); else stopAutoplay();
       });
 
       // Initial state
       setActive(0);
-      if (prev) prev.disabled = true;
-      if (next) next.disabled = slides.length <= 1;
+      // Kick off after the first paint so images have laid out.
+      setTimeout(startAutoplay, 1500);
     }
 
     function boot() {
