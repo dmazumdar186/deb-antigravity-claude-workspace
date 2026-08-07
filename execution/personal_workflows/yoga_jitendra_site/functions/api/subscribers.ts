@@ -51,20 +51,64 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-function checkBasicAuth(request: Request, env: Env): boolean {
-  if (!env.DASHBOARD_USER || !env.DASHBOARD_PASS) return false;
-  const header = request.headers.get('Authorization') || '';
-  if (!header.startsWith('Basic ')) return false;
-  try {
-    const decoded = atob(header.slice(6));
-    const idx = decoded.indexOf(':');
-    if (idx < 0) return false;
-    const user = decoded.slice(0, idx);
-    const pass = decoded.slice(idx + 1);
-    return user === env.DASHBOARD_USER && pass === env.DASHBOARD_PASS;
-  } catch {
-    return false;
+// Accept EITHER the session cookie the middleware stamps (yj_dash_sess) OR a
+// raw Authorization: Basic header. Browsers do not auto-attach Basic Auth to
+// fetch()/XHR — the middleware's cookie is what makes /dashboard/subscribers/
+// hydrate without a second password prompt. The Basic-Auth branch remains for
+// curl and internal-Worker callers. Signature format matches _middleware.ts.
+async function sessionSig(user: string, pass: string): Promise<string> {
+  const buf = new TextEncoder().encode(`${user}:${pass}:yj-dash-v1`);
+  const digest = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function readSessionCookie(request: Request): string | null {
+  const header = request.headers.get('Cookie') || '';
+  const parts = header.split(/;\s*/);
+  for (const part of parts) {
+    if (part.startsWith('yj_dash_sess=')) {
+      return part.slice('yj_dash_sess='.length);
+    }
   }
+  return null;
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+async function checkAuth(request: Request, env: Env): Promise<boolean> {
+  if (!env.DASHBOARD_PASS) return false;
+  const user = env.DASHBOARD_USER || 'debanjan';
+
+  const cookie = readSessionCookie(request);
+  if (cookie) {
+    const expected = await sessionSig(user, env.DASHBOARD_PASS);
+    if (timingSafeEqual(cookie, expected)) return true;
+  }
+
+  const header = request.headers.get('Authorization') || '';
+  if (header.startsWith('Basic ')) {
+    try {
+      const decoded = atob(header.slice(6));
+      const idx = decoded.indexOf(':');
+      if (idx > 0) {
+        const u = decoded.slice(0, idx);
+        const p = decoded.slice(idx + 1);
+        if (timingSafeEqual(u, user) && timingSafeEqual(p, env.DASHBOARD_PASS)) return true;
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  return false;
 }
 
 function csvEscape(v: string): string {
@@ -112,7 +156,7 @@ async function listSubs(kv: KVNamespace): Promise<SubOut[]> {
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-  if (!checkBasicAuth(request, env)) {
+  if (!(await checkAuth(request, env))) {
     return new Response(JSON.stringify({ ok: false, error: 'unauthorized' }), {
       status: 401,
       headers: {
