@@ -528,3 +528,49 @@ Sample list to audit first (project trees known to have deployed surfaces):
 
 Rule confirmed correct: the yoga_jitendra baseline commit `54849b5` landed all its own untracked Pages Functions, so the rule now flags exactly one non-yoga project (interview_iag). Zero false positives on the first run.
 
+
+---
+
+## Rule landed 2026-08-12: `no-large-file-attachments.md`
+
+**Rule:** bulk data files (CSV, JSONL, SQL dump, log) enter a Claude Code session
+by PATH, never as an attachment. Threshold ~500 KB. A 2.3 MB lead CSV inlines as
+~1,005,000 prompt tokens (lead exports tokenize at ~2.3 chars/token) and hard-fails
+the request on message one, where auto-compact has nothing to compact.
+
+**Mechanical guardrail:** `execution/infrastructure/scan_transcript_attachments.py`.
+Post-hoc diagnostic, not a preventive gate — nothing in the harness can block an
+attachment before it is sent, because the attachment *is* the request. Stated
+honestly rather than dressed up as prevention.
+
+### Backport triage — RUN 2026-08-12 (not owed; already executed)
+
+`py execution/infrastructure/scan_transcript_attachments.py --min-kb 500`
+over 37 transcripts:
+
+| Session | Attachment | Est. tokens | Note |
+|---|---|---|---|
+| `9b2e7810` line 3 | 2296 KB recruitment CSV | ~1,015k | dead on message 1 |
+| `9b2e7810` line 20 | 2294 KB recruitment CSV | ~1,015k | **same session, attached twice** |
+| `5f6c1587` line 3 | 2294 KB recruitment CSV | ~1,015k | dead on message 1 |
+| `c580975d` line 3 | 2293 KB recruitment CSV | ~1,015k | dead on message 1 |
+| `97d0a728` line 273 | 502 KB | ~224k | base64 PDF, survived |
+| `97d0a728` line 494 | 502 KB base64 PDF | ~128k | Dashboard Jitendra PDF, survived |
+
+Three sessions lost outright (~2h of operator time). The two PDF attachments did
+not kill their session but each cost more than the entire conversation around it.
+
+**Fix ordering (no fixes without operator approval):**
+1. DONE — rule written, guardrail scanner shipped and dogfooded.
+2. Owed: grep workspace directives for language instructing a user to "attach"
+   or "upload" a data file where a path would serve. Read-only.
+3. Owed: consider whether PDF-heavy workflows (CV optimizer, yoga dashboard
+   reviews) should read PDFs from disk rather than accept them as attachments.
+
+### Related work landed same day
+
+Promoted `.tmp/split_recruitment_leads.py` (throwaway, hardcoded paths, dead code,
+crash-on-BOM) to `execution/lead_sourcing/split_leads_by_geography.py` +
+`directives/lead_sourcing/split_leads_by_geography.md`. Output verified
+byte-identical to the original hand-run on the 994-row source; added a
+hard-failing reconciliation gate (`rows_in == rows_kept + rows_dropped`).
