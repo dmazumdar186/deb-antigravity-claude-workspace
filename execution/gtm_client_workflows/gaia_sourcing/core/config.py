@@ -77,8 +77,21 @@ PRICING: dict[str, dict[str, float]] = {
 @dataclass
 class RunConfig:
     campaign_id: str = "gaia-2026-08-20"
-    # Hard cost ceiling. The run aborts rather than silently overspending
-    # (SPEC.md section 14 "Cost ceiling").
+    # Hard ceiling on LLM SPEND ONLY. The run aborts rather than silently
+    # overspending (SPEC.md section 14 "Cost ceiling").
+    #
+    # Scope, stated so nobody reads more into this number than it carries:
+    # it covers every call through providers.call_role plus the OCR
+    # transcription path. It does NOT cover Firecrawl renders (core/cache.py),
+    # Prospeo enrichment (layers/contact.py) or Serper searches (sources/*) --
+    # those are paid too, and each is bounded only by its own provider-side
+    # quota. Prospeo at least reports its remaining credits via
+    # contact.account_credits(); the other two do not.
+    #
+    # This ceiling spent its first three sessions being enforced nowhere at
+    # all, so the failure mode it guards against is a real one: a declared
+    # limit that quietly does nothing is worse than no limit, because it stops
+    # anyone from looking.
     max_cost_eur: float = 30.0
     # L6 drop-rate alarm. Above this, the L5 prompt is wrong -- see section 7.
     max_drop_rate: float = 0.15
