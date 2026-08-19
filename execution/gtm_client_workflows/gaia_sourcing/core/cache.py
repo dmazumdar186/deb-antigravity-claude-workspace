@@ -140,6 +140,31 @@ def fetch(
         return None
 
     text = normalise_ws(text)
+
+    # A 200 that parses to nothing is a FAILED fetch, not an empty document.
+    # An image-only scanned PDF -- and An Coimisiun Pleanala publishes many --
+    # returns 1.1 MB of JPEG with no text layer. Cached as ok:true it becomes a
+    # zero-length document whose content hash is the SHA of the empty string,
+    # so EVERY such document collapses onto one doc_id and the corpus silently
+    # keys several distinct sources to a single empty entry. The validator
+    # fails closed against it, so nothing false ships -- but the drop then
+    # reads as a hallucination rather than as "this source was never readable".
+    if not text.strip():
+        meta_p.write_text(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": "empty_after_parse",
+                    "http_status": resp.status_code,
+                    "content_type": ctype,
+                    "bytes": len(resp.content),
+                    "url": url,
+                }
+            ),
+            encoding="utf-8",
+        )
+        return None
+
     doc_id = content_id(text)
     title = _extract_title(resp.content, ctype)
 

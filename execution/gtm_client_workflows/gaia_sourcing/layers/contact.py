@@ -70,27 +70,34 @@ _STATUS_MAP: dict[str, EmailStatus] = {
 # firms whose domain we have actually fetched from during this run appear
 # here; guessing a domain we have never resolved would compound one guess
 # with another.
-_EMPLOYER_DOMAINS = {
-    "roughan & o'donovan": "rod.ie",
-    "punch consulting engineers": "punchconsulting.com",
-    "dbfl consulting engineers": "dbfl.ie",
-    "waterman moylan": "watermanmoylan.ie",
-    "malachy walsh & partners": "mwp.ie",
-    "nicholas o'dwyer": "nodwyer.com",
-    "byrne looby": "byrnelooby.com",
-    "garland consultancy": "garland.ie",
-    "fehily timoney": "ftco.ie",
-    "barrett mahony": "bmce.ie",
-    "cora consulting engineers": "cora.ie",
-    "rps group ireland": "rpsgroup.com",
-    "arup ireland": "arup.com",
-    "jacobs ireland": "jacobs.com",
-    "jacobs": "jacobs.com",
-    "o'connor sutton cronin": "ocsc.ie",
-    "casey o'donnell": "caseyodonnell.ie",
-    "clifton scannell emerson": "cseassociates.ie",
-    "kavanagh mansfield": "kmce.ie",
-}
+# Employer -> mail domain. Derived from the firm list rather than typed out
+# again: the standalone copy of this table drifted the moment company_bios was
+# corrected, and a stale domain here silently turns a real lookup into a
+# pattern guess, which is the one failure this layer must not make quietly.
+def _derive_employer_domains() -> dict[str, str]:
+    from ..sources.company_bios import FIRMS
+
+    out = {f.name.lower(): f.domain for f in FIRMS}
+    # Bodies and firms that appear as parties on oral-hearing documents but
+    # are not in the Role 1 sourcing list.
+    out.update(
+        {
+            "jacobs": "jacobs.com",
+            "arup": "arup.com",
+            "rps": "rpsgroup.com",
+            "aecom": "aecom.com",
+            "mott macdonald": "mottmac.com",
+            "systra": "systra.com",
+            "egis": "egis-group.com",
+            "sweco": "sweco.ie",
+            "waterman moylan": "watermangroup.com",
+        }
+    )
+    return out
+
+
+_EMPLOYER_DOMAINS = _derive_employer_domains()
+
 
 _RUN_STATS = {"calls": 0, "hits": 0, "no_match": 0, "errors": 0, "credits_used": 0}
 

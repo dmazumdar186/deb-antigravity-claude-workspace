@@ -43,25 +43,38 @@ class Firm:
 # Irish structural / civil consultancies with an Ireland presence.
 # TOBIN and AtkinsRealis are deliberately ABSENT -- they are the client.
 FIRMS: list[Firm] = [
-    Firm("rod", "Roughan & O'Donovan", "rod.ie", ["/about/our-people", "/people"]),
+    # Domains and people-paths verified live 2026-08-19. The first version of
+    # this list was assembled from firm names and guessed .ie domains; eight of
+    # them did not resolve at all (cseassociates.ie, watermanmoylan.ie,
+    # garland.ie, ftco.ie, bmce.ie, caseyodonnell.ie, kmce.ie) and one
+    # (byrnelooby.com) now redirects to its acquirer Ayesa, whose site carries
+    # no per-engineer bios. Guessing a domain from a firm name is not sourcing.
+    Firm("rod", "Roughan & O'Donovan", "rod.ie", ["/people", "/about/our-people"]),
     Firm("punch", "PUNCH Consulting Engineers", "punchconsulting.com", ["/our-team", "/people"]),
-    Firm("dbfl", "DBFL Consulting Engineers", "dbfl.ie", ["/our-team", "/about-us"]),
-    Firm("waterman_moylan", "Waterman Moylan", "watermanmoylan.ie", ["/our-team", "/people"]),
+    Firm("dbfl", "DBFL Consulting Engineers", "dbfl.ie", ["/about-us/our-team/", "/our-team"]),
+    Firm("oconnor_sutton", "O'Connor Sutton Cronin", "ocsc.ie", ["/people/"]),
     Firm("mwp", "Malachy Walsh & Partners", "mwp.ie", ["/our-team", "/people"]),
     Firm("nodwyer", "Nicholas O'Dwyer", "nodwyer.com", ["/our-team", "/people"]),
-    Firm("byrne_looby", "Byrne Looby", "byrnelooby.com", ["/our-team", "/people"]),
-    Firm("garland", "Garland Consultancy", "garland.ie", ["/our-team", "/people"]),
-    Firm("fehily", "Fehily Timoney", "ftco.ie", ["/our-team", "/people"]),
-    Firm("barrett_mahony", "Barrett Mahony", "bmce.ie", ["/our-team", "/people"]),
-    Firm("cora", "CORA Consulting Engineers", "cora.ie", ["/our-team", "/people"]),
+    # Corrected: the firm trades as bmce.ie in print but publishes at
+    # barrettmahony.com, where the team index is split by office.
+    Firm("barrett_mahony", "Barrett Mahony Consulting Engineers", "barrettmahony.com",
+         ["/practice/team/all", "/practice/team/dublin"]),
+    # Cork-domiciled, which matters for Role 2's Cork location.
+    Firm("horganlynch", "Horganlynch", "horganlynch.ie", ["/our-people"]),
+    Firm("kilgallen", "Kilgallen & Partners", "kilgallen.ie", ["/team"]),
+    Firm("tjoc", "TJ O'Connor & Associates", "tjoc.ie", ["/team", "/our-team", "/people"]),
+    Firm("cora", "CORA Consulting Engineers", "cora.ie", ["/about"]),
+    Firm("downes", "Downes Associates", "downesassociates.ie", ["/team", "/about"]),
+    Firm("axis", "Axis Engineering", "axiseng.ie", ["/team", "/about"]),
+    # Global firms with an Ireland presence. Their people pages list worldwide
+    # staff, so run.py gives them no default location -- each person must
+    # evidence Ireland or fail the located_ie gate.
     Firm("rps", "RPS Group Ireland", "rpsgroup.com", ["/our-people"]),
     Firm("arup_ie", "Arup Ireland", "arup.com", ["/our-firm/people"]),
     Firm("jacobs_ie", "Jacobs Ireland", "jacobs.com", ["/about/people"]),
-    Firm("oconnor_sutton", "O'Connor Sutton Cronin", "ocsc.ie", ["/our-team", "/people"]),
-    Firm("casey_odonnell", "Casey O'Donnell", "caseyodonnell.ie", ["/team"]),
-    Firm("clifton_scannell", "Clifton Scannell Emerson", "cseassociates.ie", ["/our-team"]),
-    Firm("kmce", "Kavanagh Mansfield", "kmce.ie", ["/team"]),
+    Firm("mottmac_ie", "Mott MacDonald Ireland", "mottmac.com", ["/our-people"]),
 ]
+
 
 # Firms that must never be sourced from. Checked here AND in gates.not_client.
 OFF_LIMITS_FIRMS = ["tobin", "atkinsrealis", "atkins realis", "atkinsréalis"]
