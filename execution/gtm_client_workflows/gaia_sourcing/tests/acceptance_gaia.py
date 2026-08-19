@@ -91,9 +91,18 @@ def main() -> int:
           str(unenriched))
     # Each card must carry at least one clickable way to reach the person.
     cards = re.split(r'(?=<article class="card">)', html)[1:]
-    routeless = [c for c in cards if 'class="cta"' not in c]
+    # Matches the class PREFIX, because the buttons carry modifiers
+    # (cta cta-li / cta cta-em weak). An exact-string check here failed the
+    # moment a second button was added, which is the check being brittle
+    # rather than the page being wrong.
+    routeless = [c for c in cards if not re.search(r'class="cta[ "]', c)]
     check(not routeless, "every card offers a first contact route",
           str(len(routeless)) + " card(s) without one")
+    # And the button has to go somewhere.
+    hrefless = [c for c in cards
+                if not re.search(r'<a class="cta[^"]*" href="[^"]+"', c)]
+    check(not hrefless, "every first-contact button is a real link",
+          str(len(hrefless)) + " card(s) with a dead button")
 
     print("\n-- Counts against the brief -------------------------------------")
     r1 = [r for r in rows if r["role"] == ROLE1.role_id]

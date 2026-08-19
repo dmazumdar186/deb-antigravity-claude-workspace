@@ -67,7 +67,13 @@ from .layers import adversarial, contact, gates, linkcheck, messages, movability
 from .layers.extract import extract_directory, extract_from_document
 from .layers.validator import validate_all
 from .roles import ROLE1, ROLE2, ROLES, is_client_side
-from .sources import acp, company_bios, oral_hearing_web, technical_evidence
+from .sources import (
+    acp,
+    company_bios,
+    linkedin_lookup,
+    oral_hearing_web,
+    technical_evidence,
+)
 
 RUN_DIR = PKG_ROOT / "run" / CONFIG.campaign_id
 LOG_DIR = PKG_ROOT / "logs"
@@ -1130,7 +1136,20 @@ def stage_contact(force: bool = False) -> None:
         except Exception as exc:
             log("  " + pid + " enrich FAILED: " + repr(exc)[:120])
             continue
-        out[pid] = rec.model_dump()
+        rec_d = rec.model_dump()
+        # Prospeo returns a profile URL for some people and not others. For the
+        # ones it misses the card fell back to handing the reader a LinkedIn
+        # SEARCH, which is honest but is not a contact route -- and the
+        # profiles turn out to be findable in one query. Resolved here rather
+        # than at render time so the URL is checked by L12 like any other link.
+        if not rec_d.get("linkedin_url"):
+            found = linkedin_lookup.resolve(
+                persons[pid].full_name, persons[pid].current_employer
+            )
+            if found:
+                rec_d["linkedin_url"] = found
+                log("    resolved LinkedIn: " + found)
+        out[pid] = rec_d
         log("  " + pid + ": " + str(rec.email or "-") + " [" + rec.email_status + "]")
     save("contact", out)
     log("contact: prospeo stats " + json.dumps(contact.run_stats()))

@@ -657,3 +657,102 @@ def test_the_staff_directory_we_already_read_is_not_re_harvested():
     for url in ("https://www.ocsc.ie/people", "https://www.punch.ie/our-team/",
                 "https://www.dbfl.ie/team"):
         assert technical_evidence._BLOCKED_SOURCE.search(url)
+
+
+# ===========================================================================
+# linkedin_lookup.py -- a real profile URL, or none at all
+# ===========================================================================
+
+
+from gtm_client_workflows.gaia_sourcing.sources import linkedin_lookup as LL  # noqa: E402
+
+
+def _result(link, title):
+    return {"link": link, "title": title}
+
+
+def _search(monkeypatch, results):
+    monkeypatch.setattr(LL, "_serper", lambda q, num=5: results)
+
+
+def test_a_matching_profile_is_resolved(monkeypatch):
+    """Prospeo returns a URL for some people and not others, and the card was
+    falling back to handing the reader a LinkedIn search. The profiles are
+    findable in one query."""
+    _search(monkeypatch, [_result(
+        "https://uk.linkedin.com/in/philip-penco-625b8697",
+        "Philip Penco - Barrett Mahony Consulting Engineers")])
+
+    assert LL.resolve("Philip Penco", "Barrett Mahony Consulting Engineers") == \
+        "https://uk.linkedin.com/in/philip-penco-625b8697"
+
+
+def test_two_people_with_the_same_name_at_the_same_firm_resolve_to_nothing(
+    monkeypatch, capsys
+):
+    """The live case. Two Rouslan Taskovs, both at Barrett Mahony, one
+    Bulgarian and one UK. There is no honest way to pick, and linking the
+    wrong human is far worse than linking nothing: a consultant messages a
+    stranger, the approach is burned, and the dossier's promise that every
+    line traces to a source that supports it is broken in public."""
+    _search(monkeypatch, [
+        _result("https://bg.linkedin.com/in/rouslan-taskov-2825b0151",
+                "Rouslan Taskov - Barrett Mahony Consulting Engineers Ltd"),
+        _result("https://uk.linkedin.com/in/rouslan-taskov-7498b812",
+                "Rouslan Taskov - Barrett Mahony Consulting Engineers UK"),
+    ])
+
+    assert LL.resolve("Rouslan Taskov", "Barrett Mahony Consulting Engineers") is None
+    assert "ambiguous" in capsys.readouterr().out
+
+
+def test_a_profile_with_no_employer_evidence_is_refused(monkeypatch):
+    """A shared name and nothing else could be anyone."""
+    _search(monkeypatch, [_result(
+        "https://www.linkedin.com/in/philip-penco-99",
+        "Philip Penco - Photographer")])
+
+    assert LL.resolve("Philip Penco", "Barrett Mahony Consulting Engineers") is None
+
+
+def test_a_forename_only_match_is_refused(monkeypatch):
+    _search(monkeypatch, [_result(
+        "https://ie.linkedin.com/in/philip-murphy",
+        "Philip Murphy - Barrett Mahony Consulting Engineers")])
+
+    assert LL.resolve("Philip Penco", "Barrett Mahony Consulting Engineers") is None
+
+
+@pytest.mark.parametrize("link", [
+    "https://www.linkedin.com/company/barrett-mahony",
+    "https://www.linkedin.com/pulse/some-article",
+    "https://example.ie/team/philip-penco",
+])
+def test_only_a_personal_profile_url_counts(monkeypatch, link):
+    _search(monkeypatch, [_result(link, "Philip Penco - Barrett Mahony")])
+
+    assert LL.resolve("Philip Penco", "Barrett Mahony") is None
+
+
+def test_a_search_outage_degrades_to_no_url(monkeypatch):
+    _search(monkeypatch, [])
+
+    assert LL.resolve("Philip Penco", "Barrett Mahony") is None
+
+
+def test_generic_words_alone_do_not_evidence_the_employer(monkeypatch):
+    """"Consulting Engineers" matches half the firms in Ireland."""
+    _search(monkeypatch, [_result(
+        "https://ie.linkedin.com/in/philip-penco-1",
+        "Philip Penco - Consulting Engineers Ltd")])
+
+    assert LL.resolve("Philip Penco", "Barrett Mahony Consulting Engineers") is None
+
+
+def test_no_employer_means_no_lookup(monkeypatch):
+    def explode(*a, **kw):
+        raise AssertionError("must not search without an employer to check against")
+
+    monkeypatch.setattr(LL, "_serper", explode)
+
+    assert LL.resolve("Philip Penco", None) is None

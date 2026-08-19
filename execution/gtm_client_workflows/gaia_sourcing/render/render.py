@@ -160,6 +160,17 @@ h2 .count{color:var(--muted);font-weight:400;font-size:15px}
   transition:background 160ms cubic-bezier(.22,1,.36,1);
 }
 a.cta:hover,a.cta:focus-visible{background:#17583f}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+/* The email button is secondary: LinkedIn is the first channel per I8, and
+   an inferred address is weaker still. Weight says so without a paragraph. */
+.cta-em{background:var(--bg);color:var(--accent);border:1px solid var(--accent)}
+a.cta-em:hover,a.cta-em:focus-visible{background:var(--panel)}
+.cta-em.weak{color:var(--warn);border-color:#e0b46a}
+a.cta-em.weak:hover,a.cta-em.weak:focus-visible{background:var(--warnbg)}
+@media (max-width:560px){
+  .act{align-items:flex-start;width:100%}
+  .btns{justify-content:flex-start}
+}
 .reach{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .reach-note{margin:0 0 6px;color:var(--muted);font-size:13.5px;max-width:68ch}
 .reach-alt{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px 16px}
@@ -626,10 +637,33 @@ def card_html(
         + "</p>"
     )
     parts.append("</div>")
+    # Up to two buttons: the best route, and the email if there is one worth
+    # clicking. Short labels -- the button says what it does, the detail sits
+    # under it rather than inside it.
+    BTN = {
+        "linkedin": "LinkedIn profile",
+        "search": "Find on LinkedIn",
+        "email": "Email",
+        "guess": "Email (unverified)",
+        "switchboard": "Call the firm",
+        "profile": "Profile page",
+    }
+    buttons: list[str] = []
+    for kind, label, href in routes:
+        if kind in ("linkedin", "search") and not any("cta-li" in b for b in buttons):
+            buttons.append(
+                '<a class="cta cta-li" href="' + e(href) + '">'
+                + e(BTN[kind]) + "</a>")
+        elif kind in ("email", "guess") and not any("cta-em" in b for b in buttons):
+            buttons.append(
+                '<a class="cta cta-em' + (" weak" if kind == "guess" else "")
+                + '" href="' + e(href) + '">' + e(BTN[kind]) + "</a>")
+    if not buttons:
+        buttons.append('<span class="cta">' + e(best[1]) + "</span>")
+
     parts.append(
         '<div class="act">'
-        + ('<a class="cta" href="' + e(best[2]) + '">' + e(best[1]) + "</a>"
-           if best[2] else '<span class="cta">' + e(best[1]) + "</span>")
+        + '<div class="btns">' + "".join(buttons) + "</div>"
         + '<span class="tier ' + tier.lower() + '">'
         + e(TIER_LABEL.get(tier, tier).split("--")[0].strip()) + "</span>"
         + "</div>")

@@ -60,4 +60,4 @@ widening the brief, or by asking us to verify the one open point.
 - Tracy Kearney -- DBFL Consulting Engineers -- missing only: chartered
 - William Forsyth -- O'Connor Sutton Cronin -- missing only: discipline
 
-Generated 2026-08-19 -- campaign gaia-2026-08-20.
+Generated 2026-08-20 -- campaign gaia-2026-08-20.
