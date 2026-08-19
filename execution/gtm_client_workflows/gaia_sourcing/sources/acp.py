@@ -156,6 +156,16 @@ _NAME_STOP_WORDS = {
 }
 
 
+# One capitalised name word. The ranges skip U+00D7 and U+00F7, which sit
+# inside the accented-letter block but are the multiplication and division
+# signs.
+_NAME_WORD = r"[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ſ'`\-]+"
+
+# A name particle, either attached to the following word ("O'Brien") or
+# standing alone as its own token ("Ó Ríordáin", "Mac Cárthaigh", "de Barra").
+_NAME_PARTICLE = r"(?:(?:de|van|von|Mac|Mc|Nic|Mhic|Ua|Ní|Ni|Uí|Ui|Ó|O)\s+|O')"
+
+
 def _looks_like_name(text: str) -> bool:
     low = text.lower().strip()
     if low in _NOT_A_NAME:
@@ -166,10 +176,17 @@ def _looks_like_name(text: str) -> bool:
     if any(t in _NAME_STOP_WORDS for t in tokens if t):
         return False
     # Two to four capitalised words, allowing O'Brien / Mac-Eoin / Ni Chuinn.
+    #
+    # A particle may be ATTACHED to the surname ("O'Brien") or stand alone as
+    # its own token ("Sean O Riordain", "Seán Ó Ríordáin", "Aoife Ní Bhriain").
+    # Only the attached form used to match: a standalone particle is one
+    # character wide in the Ó / O case, and the word pattern required a
+    # capital followed by at least one more letter. So an engineer whose name
+    # carries the Irish patronymic in its written form was silently dropped
+    # from the pool -- on a corpus that is entirely Irish engineers.
     return bool(
         re.fullmatch(
-            r"[A-Z][A-Za-z'`À-ſ\-]+(?:\s+(?:de|van|Mac|Mc|O')?"
-            r"[A-Z][A-Za-z'`À-ſ\-]+){1,3}",
+            _NAME_WORD + r"(?:\s+" + _NAME_PARTICLE + r"?" + _NAME_WORD + r"){1,3}",
             text.strip(),
         )
     )
@@ -349,8 +366,24 @@ _FIRST_PERSON_QUAL_RE = re.compile(
     re.I,
 )
 
+# The prefix is case-folded, the captured name is NOT.
+#
+# This regex carried no flags at all, while its sibling _FIRST_PERSON_QUAL_RE
+# carries re.I -- so the gate admitted a document on "My name is ..." and this
+# function then failed to read the name out of the very sentence that admitted
+# it, because the literal only matched a lowercase mid-sentence "my name is".
+# Witness statements open with that sentence capitalised, so the authoritative
+# channel was dead on the normal case and every caller silently fell back to
+# the weaker source it exists to override: the filename that names the
+# SUBMITTING PARTY rather than the witness (acp.harvest), the URL slug
+# (oral_hearing_web.harvest), the page title (company_bios.harvest).
+#
+# re.I cannot go on the whole pattern: it would case-fold [A-Z] as well and
+# "my name is not relevant here" would yield a candidate called "not relevant".
+# The scoped (?i:...) group folds the literal only.
 _PERSON_NAME_IN_TEXT_RE = re.compile(
-    r"my name is\s+([A-Z][A-Za-z'`\-]+(?:\s+(?:Mac|Mc|O')?[A-Z][A-Za-z'`\-]+){1,3})"
+    r"(?i:my name is)\s+"
+    r"([A-Z][A-Za-z'`\-]+(?:\s+(?:Mac|Mc|O')?[A-Z][A-Za-z'`\-]+){1,3})"
 )
 
 
