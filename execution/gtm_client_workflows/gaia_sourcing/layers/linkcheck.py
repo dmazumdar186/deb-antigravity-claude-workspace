@@ -153,9 +153,22 @@ def page_mentions_name(text: str, full_name: str) -> bool:
     # Apostrophes are stripped from the page too, so "O'Brien" in the source
     # reduces to "obrien" and meets the name's own normalised form.
     low = re.sub(r"[''`]", "", text.lower())
-    if not _token_in(low, tokens[-1]):
+    surname = tokens[-1]
+    if not _token_in(low, surname):
         return False
-    return any(_token_in(low, t) for t in tokens[:-1])
+    if any(_token_in(low, t) for t in tokens[:-1]):
+        return True
+    # The initialised form the docstring promises to handle was not actually
+    # handled: _name_tokens drops anything shorter than three characters, so
+    # "B. Murphy" carried no forename token to match and the page was reported
+    # as no longer mentioning the person. That is the wrong direction to fail
+    # in -- it prints "they may have moved on" across good cards until the
+    # reader stops believing the notice.
+    for token in tokens[:-1]:
+        for variant in _token_variants(surname):
+            if re.search(r"\b" + token[0] + r"\.?\s+" + re.escape(variant) + r"\b", low):
+                return True
+    return False
 
 
 def check_url(url: str, full_name: Optional[str] = None) -> LinkCheck:

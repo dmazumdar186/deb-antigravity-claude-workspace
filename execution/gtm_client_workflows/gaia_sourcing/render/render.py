@@ -166,6 +166,11 @@ li{margin:0 0 8px}
   background:var(--panel);border:1px solid var(--line);border-radius:4px;
   padding:1px 6px;margin-right:6px;color:var(--muted);
 }
+.prov{
+  font-size:12px; color:var(--warn); background:var(--warnbg);
+  border-left:3px solid var(--warn); padding:6px 9px; margin-top:6px;
+  border-radius:0 3px 3px 0; line-height:1.45;
+}
 blockquote{
   margin:6px 0 4px;padding:8px 12px;border-left:3px solid var(--accent);
   background:var(--panel);color:var(--quote);font-size:14.5px;border-radius:0 5px 5px 0;
@@ -212,8 +217,47 @@ footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;
 # ---------------------------------------------------------------------------
 
 
+# Documents whose text was recovered from an image-only scan rather than read
+# from a text layer. Populated by build() from the document store.
+#
+# This has to reach the card. L6 verifies a quote character-by-character
+# against the cached source text, and for these documents that text is a
+# model's transcription of a scan -- so the check is one model's quote against
+# another model's reading of an image. It is still a real quote from a real
+# public document, and the link goes to the original, but a reader deciding
+# how much weight to put on a line of evidence deserves to know which kind
+# they are looking at. Folding the two together silently would be the quiet
+# kind of dishonesty this dossier exists to avoid.
+_OCR_DOC_IDS: set[str] = set()
+
+
+def load_ocr_doc_ids() -> set[str]:
+    path = RUN_DIR / "docs.jsonl"
+    if not path.exists():
+        return set()
+    out: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or '"ocr"' not in line:
+            continue
+        try:
+            rec = json.loads(line)
+        except Exception:
+            continue  # a torn line loses one document, never the store
+        if rec.get("text_source") == "ocr" and rec.get("doc_id"):
+            out.add(rec["doc_id"])
+    return out
+
+
 def _claim_html(c: dict) -> str:
     dim = DIM_LABEL.get(c["dimension"], c["dimension"])
+    provenance = ""
+    if c.get("source_doc_id") in _OCR_DOC_IDS:
+        provenance = (
+            '<div class="prov">Text recovered by OCR from a scanned document. '
+            "The quote was verified against that transcription, not against a "
+            "machine-readable original &mdash; check it against the linked PDF "
+            "before relying on the exact wording.</div>"
+        )
     return (
         '<div class="claim">'
         '<span class="dim">' + e(dim) + "</span>"
@@ -221,7 +265,8 @@ def _claim_html(c: dict) -> str:
         "<blockquote>&ldquo;" + e(c["evidence_quote"].strip()) + "&rdquo;</blockquote>"
         '<div class="src">Source: <a href="' + e(c["source_url"]) + '">'
         + e(_short_url(c["source_url"])) + "</a></div>"
-        "</div>"
+        + provenance
+        + "</div>"
     )
 
 
@@ -472,6 +517,8 @@ def pool_map_md(m: dict, spec) -> str:
 
 
 def build(allow_placeholder_notice: bool = False) -> None:
+    global _OCR_DOC_IDS
+    _OCR_DOC_IDS = load_ocr_doc_ids()
     persons_raw = _load("extract")["persons"]
     validated = _load("validate")["claims"]
     gate_out = _load("gate")

@@ -203,6 +203,68 @@ def test_html_is_never_routed_through_transcription(cached, monkeypatch):
     assert cache.fetch("https://example.ie/empty") is None
 
 
+# ---------------------------------------------------------------------------
+# The provenance has to reach the card, or marking it achieved nothing
+# ---------------------------------------------------------------------------
+
+
+def _claim(doc_id: str) -> dict:
+    return {
+        "dimension": "statutory_process",
+        "assertion": "Gave evidence at the oral hearing.",
+        "evidence_quote": "I gave evidence at the oral hearing",
+        "source_url": "https://www.pleanala.ie/x.pdf",
+        "source_doc_id": doc_id,
+    }
+
+
+def test_a_quote_from_a_scan_says_so_on_the_card(monkeypatch):
+    """L6 checked this quote against a transcription, not against the
+    document's own text. A reader weighing the evidence deserves to know
+    which kind they are looking at."""
+    from gtm_client_workflows.gaia_sourcing.render import render
+
+    monkeypatch.setattr(render, "_OCR_DOC_IDS", {"scanned"})
+
+    html = render._claim_html(_claim("scanned"))
+
+    assert "OCR" in html
+    assert "scanned document" in html
+
+
+def test_a_quote_from_a_text_layer_carries_no_such_note(monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.render import render
+
+    monkeypatch.setattr(render, "_OCR_DOC_IDS", {"scanned"})
+
+    html = render._claim_html(_claim("born_digital"))
+
+    assert "OCR" not in html
+
+
+def test_the_ocr_document_set_is_read_from_the_document_store(tmp_path, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.render import render
+
+    monkeypatch.setattr(render, "RUN_DIR", tmp_path)
+    (tmp_path / "docs.jsonl").write_text(
+        '{"doc_id": "a", "text_source": "ocr"}\n'
+        '{"doc_id": "b", "text_source": "text_layer"}\n'
+        '{"doc_id": "c"}\n'
+        '{"doc_id": "torn", "text_sou\n',
+        encoding="utf-8",
+    )
+
+    assert render.load_ocr_doc_ids() == {"a"}
+
+
+def test_a_missing_document_store_is_not_an_error(tmp_path, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.render import render
+
+    monkeypatch.setattr(render, "RUN_DIR", tmp_path)
+
+    assert render.load_ocr_doc_ids() == set()
+
+
 def test_documents_written_before_the_flag_existed_still_load():
     """Backward compatibility: docs.jsonl carries records with no text_source."""
     doc = RawDocument(
