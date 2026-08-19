@@ -25,7 +25,15 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from ..core.contracts import Evaluation, GateResult, JobSpec, Person, RawDocument, ValidatedClaim
+from ..core.contracts import (
+    Evaluation,
+    GateResult,
+    JobSpec,
+    Person,
+    RawDocument,
+    ValidatedClaim,
+    as_list,
+)
 from ..core.providers import ROLE_JUDGE, call_role
 
 SYSTEM = """You are a sceptical senior recruiter reviewing a shortlisted engineer.
@@ -195,8 +203,19 @@ def _lines(items) -> list[str]:
     the worst case is a slightly clumsy sentence on the card, and the best
     case is a real objection that would otherwise have been lost.
     """
+    # The CONTAINER's type is checked before the items'. This guard existed
+    # for items and not for the list itself, and the gap shipped: two cards in
+    # the delivered dossier rendered their "Not verified / open questions"
+    # section as ONE BULLET PER CHARACTER -- 1651 and 1885 of them -- because
+    # the model returned the whole field as a JSON-encoded string rather than
+    # an array, and iterating a str yields characters.
+    #
+    # Every space was dropped too, since a single space fails the `if text`
+    # test below, so the text was not merely mangled but unrecoverable from
+    # the stored output. A schema says "array of strings"; a string is also
+    # iterable, and that is the entire bug.
     out: list[str] = []
-    for item in items or []:
+    for item in as_list(items):
         if item is None:
             continue
         if isinstance(item, str):

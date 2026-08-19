@@ -470,3 +470,78 @@ def test_inferred_claims_render_as_possible_and_unconfirmed():
     lines = adversarial.inferred_claim_lines(claims)
 
     assert lines == ["Possible, unconfirmed: Uses Tekla."]
+
+
+# ---------------------------------------------------------------------------
+# A string is iterable, and that is the entire bug
+# ---------------------------------------------------------------------------
+
+
+from gtm_client_workflows.gaia_sourcing.core.contracts import as_list  # noqa: E402
+
+
+SHATTERED = '["His delivered project list and stated expertise.", "Second."]'
+
+
+def test_a_json_encoded_list_is_parsed_not_walked_character_by_character():
+    """Two delivered cards rendered their open-questions section as ONE BULLET
+    PER CHARACTER -- 1651 and 1885 of them -- because the model returned the
+    whole field as a JSON-encoded string and `for item in value` walks a str.
+
+    Every space vanished too: a lone space fails the `if text` check, so the
+    text was not merely mangled, it was unrecoverable from the stored output.
+    """
+    out = adversarial._lines(SHATTERED)
+
+    assert out == ["His delivered project list and stated expertise.", "Second."]
+    assert not any(len(x) == 1 for x in out)
+
+
+def test_a_plain_sentence_is_one_finding_not_many_letters():
+    assert adversarial._lines("A single finding, unencoded.") == [
+        "A single finding, unencoded."]
+
+
+@pytest.mark.parametrize("value,expected", [
+    (None, []),
+    ([], []),
+    (["a", "b"], ["a", "b"]),
+    ('["a", "b"]', ["a", "b"]),
+    ("plain string", ["plain string"]),
+    ('"just a json string"', ["just a json string"]),
+    ("[malformed json", ["[malformed json"]),
+    (42, [42]),
+])
+def test_as_list_coercion(value, expected):
+    assert as_list(value) == expected
+
+
+def test_movability_signals_survive_the_same_shape(monkeypatch, person):
+    """The identical hazard lived here too: a signals field returned as a
+    string would have produced one 'signal' per character."""
+    _judge(monkeypatch, {"assessment": "medium",
+                         "signals": '["Four years in the same grade."]',
+                         "rationale": "Static."})
+
+    sig = movability.assess(person, [], ROLE2)
+
+    assert sig.signals == ["Four years in the same grade."]
+    assert sig.assessment == "medium"
+
+
+def test_a_critique_returned_as_a_string_still_produces_readable_findings(
+    monkeypatch, person
+):
+    """End to end: the card must never show a wall of single letters."""
+    monkeypatch.setattr(adversarial, "call_role", lambda **kw: ({
+        "adversarial_findings": SHATTERED,
+        "unknowns": '["Where is he based day to day?"]',
+        "strengths": "Named design-code evidence.",
+        "severity": "minor",
+    }, {}))
+
+    ev = adversarial.critique(person, [], ROLE2, {}, _gates(), "B")
+
+    assert all(len(f) > 2 for f in ev.adversarial_findings)
+    assert all(len(u) > 2 for u in ev.unknowns)
+    assert ev.strengths == ["Named design-code evidence."]

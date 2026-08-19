@@ -487,13 +487,21 @@ def card_html(
         )
     if unknowns or findings or gate_gaps:
         parts.append('<div class="sec"><h4>Not verified / open questions</h4><ul>')
-        for line in gate_gaps + unknowns + findings:
+        # Last line of defence against a shattered list reaching a card.
+        # A "finding" one character wide is never real content, and two
+        # delivered cards once carried 1651 and 1885 of them. The layer
+        # guard is the real fix; this is here because the renderer is the
+        # last place that can notice before a client does.
+        for line in [
+            ln for ln in gate_gaps + unknowns + findings
+            if len(str(ln).strip()) > 1
+        ]:
             parts.append("<li>" + e(line) + "</li>")
         parts.append("</ul></div>")
 
     if ev.get("strengths"):
         parts.append('<div class="sec"><h4>Why this person, in one reader\'s words</h4><ul>')
-        for s in ev["strengths"]:
+        for s in [x for x in ev["strengths"] if len(str(x).strip()) > 1]:
             parts.append("<li>" + e(s) + "</li>")
         parts.append("</ul></div>")
 
@@ -506,7 +514,7 @@ def card_html(
         )
         if mov.get("signals"):
             parts.append("<ul style='margin-top:8px'>")
-            for s in mov["signals"]:
+            for s in [x for x in mov["signals"] if len(str(x).strip()) > 1]:
                 parts.append("<li>" + e(s) + "</li>")
             parts.append("</ul>")
         parts.append("</div>")

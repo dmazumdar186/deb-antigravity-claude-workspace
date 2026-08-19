@@ -98,6 +98,20 @@ def main() -> int:
     check(not external, "no external assets -- opens offline and on a train",
           str(external[:3]))
 
+    print("\n-- Nothing shattered into characters -----------------------------")
+    # Two delivered cards rendered their open-questions section as ONE BULLET
+    # PER CHARACTER -- 1651 and 1885 of them -- because a model returned the
+    # field as a JSON-encoded string and a string is iterable. A list item one
+    # character wide is never real content.
+    bullets = [re.sub(r"<[^>]+>", "", b).strip()
+               for b in re.findall(r"<li[^>]*>(.*?)</li>", html, re.S)]
+    singles = [b for b in bullets if len(b) == 1]
+    check(not singles, "no single-character bullet anywhere on the page",
+          str(len(singles)) + " found")
+    short = [b for b in bullets if 0 < len(b) < 3]
+    check(not short, "every bullet is long enough to be a sentence",
+          str(short[:5]))
+
     print("\n-- Sources a reader might click ----------------------------------")
     blocked = ("prospeo.io", "rocketreach", "zoominfo", "signalhire",
                "apollo.io", "lusha", "contactout", "leadiq")

@@ -10,6 +10,7 @@ candidate -- it is not a schema error.
 
 from __future__ import annotations
 
+import json
 from datetime import date
 from typing import Literal, Optional
 
@@ -18,6 +19,37 @@ from pydantic import BaseModel, EmailStr, Field, HttpUrl
 # --------------------------------------------------------------------------
 # L1 -- requisition
 # --------------------------------------------------------------------------
+
+def as_list(value) -> list:
+    """Coerce a model's "array" field into an actual list.
+
+    A schema that says "array of strings" does not stop a model returning the
+    whole field as one JSON-encoded string, and a string is iterable -- so
+    `for item in value` walks CHARACTERS. Two cards in the delivered dossier
+    rendered their open-questions section as one bullet per character, 1651
+    and 1885 of them, and every space was dropped along the way because a lone
+    space fails an `if text` check. The text was not merely mangled, it was
+    unrecoverable from the stored output.
+
+    Every place that iterates a model-supplied list goes through here, because
+    the guard is only worth anything if it is not the one place someone forgot.
+    """
+    if value is None:
+        return []
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return [value]          # ordinary prose: one item, not one per letter
+        if isinstance(parsed, list):
+            return parsed
+        if isinstance(parsed, str):
+            return [parsed]         # a JSON-encoded string decodes to its text
+        return [value]
+    if isinstance(value, (list, tuple)):
+        return list(value)
+    return [value]
+
 
 GateCheck = Literal[
     "chartered", "located_ie", "discipline", "seniority_years", "not_client"

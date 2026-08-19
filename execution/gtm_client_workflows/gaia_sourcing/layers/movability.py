@@ -21,7 +21,13 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from ..core.contracts import JobSpec, MovabilitySignal, Person, ValidatedClaim
+from ..core.contracts import (
+    JobSpec,
+    MovabilitySignal,
+    Person,
+    ValidatedClaim,
+    as_list,
+)
 from ..core.providers import ROLE_JUDGE, call_role
 
 SYSTEM = """You assess how movable an engineer is, from public evidence only.
@@ -162,7 +168,9 @@ def assess(
             ),
         )
 
-    signals = [s.strip() for s in (out.get("signals") or []) if s.strip()]
+    # as_list, not a bare iteration: a model that returns this field as a
+    # JSON string would otherwise produce one "signal" per character.
+    signals = [str(s).strip() for s in as_list(out.get("signals")) if str(s).strip()]
     if friction and friction not in signals:
         signals.append(friction)
 
