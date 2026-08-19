@@ -7,7 +7,7 @@ is a claim, not a finding.
 |---|---|
 | Profiles assessed | 158 |
 | Raw claims extracted | 594 |
-| Claims surviving quote validation | 495 |
+| Claims surviving quote validation | 446 |
 | Passed every hard gate | 18 |
 | Delivered | 10 of 10 |
 

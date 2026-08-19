@@ -166,6 +166,8 @@ li{margin:0 0 8px}
   background:var(--panel);border:1px solid var(--line);border-radius:4px;
   padding:1px 6px;margin-right:6px;color:var(--muted);
 }
+.a-line{margin:0 0 3px}
+.a-line:last-of-type{margin-bottom:5px}
 .prov{
   font-size:12px; color:var(--warn); background:var(--warnbg);
   border-left:3px solid var(--warn); padding:6px 9px; margin-top:6px;
@@ -246,6 +248,88 @@ def load_ocr_doc_ids() -> set[str]:
         if rec.get("text_source") == "ocr" and rec.get("doc_id"):
             out.add(rec["doc_id"])
     return out
+
+
+def _claims_html(claims: list[dict]) -> str:
+    """Render claims, grouping everything that rests on one source sentence.
+
+    A single sentence legitimately evidences several dimensions -- "over 25
+    years of experience in structural and civil engineering in Ireland" is at
+    once experience, sector and location. Emitting one bullet per dimension
+    printed that sentence three times under three labels, and a card that
+    repeats itself reads as padding however true each line is.
+
+    The claims are all kept: the gates count dimensions, and the "not
+    verified" section is built from which dimensions have evidence, so
+    dropping one to tidy the page would quietly change what the dossier
+    asserts. Only the presentation collapses -- the assertions stack above a
+    single quote, shown once, with its source.
+    """
+    # Grouping is by CONTAINMENT, not by equality. An exact-match key fails on
+    # the cases that actually occur: the same sentence quoted once with its
+    # full stop and once without, or once with a leading "including". Both
+    # printed the identical sentence twice under two labels.
+    #
+    # Deliberately looser than the validation-stage dedup, which only collapses
+    # within a dimension because it changes what the gates count. This is
+    # presentation only, so it can safely span dimensions -- and spanning them
+    # is the point, since "25 years in structural engineering in Ireland" is
+    # experience, sector and location in one sentence.
+    def norm(c: dict) -> str:
+        return " ".join(c["evidence_quote"].split()).lower().strip(" .;,:")
+
+    groups: list[list[dict]] = []
+    for c in sorted(claims, key=lambda x: -len(norm(x))):
+        q = norm(c)
+        for group in groups:
+            g = norm(group[0])
+            if q and (q in g or g in q):
+                group.append(c)
+                break
+        else:
+            groups.append([c])
+
+    # Longest quote first inside a group is an artefact of the sort above; the
+    # cards read better in the order the claims arrived.
+    index = {id(c): i for i, c in enumerate(claims)}
+    groups.sort(key=lambda g: min(index[id(c)] for c in g))
+    for group in groups:
+        group.sort(key=lambda c: index[id(c)])
+
+    out: list[str] = []
+    for group in groups:
+        # The displayed quote is the longest in the group -- the one carrying
+        # the most context for a reader who clicks through to check it.
+        longest = max(group, key=lambda c: len(c["evidence_quote"]))
+        head = "".join(
+            '<div class="a-line">'
+            '<span class="dim">' + e(DIM_LABEL.get(c["dimension"], c["dimension"]))
+            + "</span>"
+            '<span class="a">' + e(c["assertion"]) + "</span>"
+            "</div>"
+            for c in group
+        )
+        first = longest
+        provenance = ""
+        if first.get("source_doc_id") in _OCR_DOC_IDS:
+            provenance = (
+                '<div class="prov">Text recovered by OCR from a scanned '
+                "document. The quote was verified against that transcription, "
+                "not against a machine-readable original &mdash; check it "
+                "against the linked PDF before relying on the exact wording."
+                "</div>"
+            )
+        out.append(
+            '<div class="claim">'
+            + head
+            + "<blockquote>&ldquo;" + e(first["evidence_quote"].strip())
+            + "&rdquo;</blockquote>"
+            '<div class="src">Source: <a href="' + e(first["source_url"]) + '">'
+            + e(_short_url(first["source_url"])) + "</a></div>"
+            + provenance
+            + "</div>"
+        )
+    return "".join(out)
 
 
 def _claim_html(c: dict) -> str:
@@ -374,7 +458,7 @@ def card_html(
     if direct:
         parts.append('<div class="sec"><h4>Evidence &mdash; every quote verified '
                      "against its source document</h4>")
-        parts.append("".join(_claim_html(c) for c in direct))
+        parts.append(_claims_html(direct))
         parts.append("</div>")
 
     if inferred:

@@ -572,6 +572,39 @@ def stage_validate(force: bool = False) -> None:
             continue
         seen.add(key)
         deduped.append(c)
+
+    # Exact-match dedup above is not enough. The model frequently quotes the
+    # SAME sentence at two different lengths -- "Eddie has over 25 years of
+    # experience in structural and civil engineering in Ireland" and "Eddie
+    # has over 25 years of experience in structural and civil engineering in
+    # Ireland on private and public developments" -- and the shorter span is
+    # wholly contained in the longer one. Two bullets, one fact.
+    #
+    # It reads as padding on the card, and it is worse than cosmetic: the
+    # primary-signal count decides A/B/C, so one piece of evidence quoted at
+    # two lengths could promote someone to Tier A on its own. That is the same
+    # failure the exact-match dedup was added for, one step less obvious.
+    #
+    # The longest quote wins, because it is the one carrying the most context
+    # for a reader who clicks through to check it.
+    by_key: dict[tuple, list] = {}
+    for c in deduped:
+        by_key.setdefault((c.subject_person_id, c.dimension), []).append(c)
+    nested: set[str] = set()
+    for group in by_key.values():
+        ordered = sorted(group, key=lambda c: -len(_norm_quote(c.evidence_quote)))
+        kept_quotes: list[str] = []
+        for c in ordered:
+            q = _norm_quote(c.evidence_quote)
+            if any(q in longer for longer in kept_quotes):
+                nested.add(c.claim_id)
+            else:
+                kept_quotes.append(q)
+    if nested:
+        deduped = [c for c in deduped if c.claim_id not in nested]
+        log("  collapsed " + str(len(nested)) + " claims whose quote was "
+            "contained in a longer quote of the same fact")
+
     dropped_dupes = len(kept) - len(deduped)
     stats["duplicates_collapsed"] = dropped_dupes
     if dropped_dupes:

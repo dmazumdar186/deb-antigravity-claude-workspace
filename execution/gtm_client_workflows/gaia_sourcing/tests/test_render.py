@@ -247,3 +247,103 @@ def test_bot_blocked_link_is_not_reported_as_broken(rendered):
     assert "did not return 200" not in html
     assert "could not be checked automatically" in html
     assert "nothing suggests they are broken" in html
+
+
+# ---------------------------------------------------------------------------
+# One source sentence, one quote on the card
+# ---------------------------------------------------------------------------
+
+
+def _c(dimension, assertion, quote, doc="d1"):
+    return {"dimension": dimension, "assertion": assertion,
+            "evidence_quote": quote, "source_url": "https://ocsc.ie/people/",
+            "source_doc_id": doc}
+
+
+QUOTE = ("Eddie has over 25 years of experience in structural and civil "
+         "engineering in Ireland on private and public developments")
+
+
+def test_one_sentence_evidencing_two_dimensions_is_quoted_once():
+    """A single sentence is legitimately experience, sector and location at
+    once. Emitting one bullet per dimension printed it three times under three
+    labels, and a card that repeats itself reads as padding however true each
+    line is."""
+    html = R._claims_html([
+        _c("years_experience", "Over 25 years of experience.", QUOTE),
+        _c("sector", "Structural and civil engineering in Ireland.", QUOTE + "."),
+    ])
+
+    assert html.count("<blockquote>") == 1
+    assert "Over 25 years of experience." in html
+    assert "Structural and civil engineering in Ireland." in html
+
+
+def test_a_trailing_full_stop_does_not_defeat_the_grouping():
+    """The exact-match key failed on precisely this: the same sentence quoted
+    once with its full stop and once without."""
+    html = R._claims_html([
+        _c("sector", "A.", "the same sentence"),
+        _c("project", "B.", "the same sentence."),
+    ])
+
+    assert html.count("<blockquote>") == 1
+
+
+def test_a_leading_word_does_not_defeat_the_grouping():
+    html = R._claims_html([
+        _c("sector", "A.", "including commercial offices and schools"),
+        _c("project", "B.", "commercial offices and schools"),
+    ])
+
+    assert html.count("<blockquote>") == 1
+
+
+def test_the_longest_quote_is_the_one_shown():
+    """It carries the most context for a reader who clicks through to check."""
+    html = R._claims_html([
+        _c("project", "B.", "commercial offices and schools"),
+        _c("sector", "A.", "including commercial offices and schools"),
+    ])
+
+    assert "including commercial offices and schools" in html
+
+
+def test_genuinely_different_evidence_stays_separate():
+    html = R._claims_html([
+        _c("chartership", "Chartered.", "BE, CEng MIStructE, MIEI, RConsEI"),
+        _c("years_experience", "25 years.", QUOTE),
+    ])
+
+    assert html.count("<blockquote>") == 2
+
+
+def test_every_group_still_carries_a_source_link():
+    html = R._claims_html([
+        _c("years_experience", "A.", QUOTE),
+        _c("sector", "B.", QUOTE + "."),
+        _c("chartership", "C.", "BE, CEng MIStructE"),
+    ])
+
+    assert html.count('class="src"') == html.count("<blockquote>") == 2
+
+
+def test_claims_keep_the_order_they_arrived_in():
+    """Grouping sorts internally by quote length; the card must not."""
+    html = R._claims_html([
+        _c("chartership", "FIRST.", "BE, CEng MIStructE, MIEI, RConsEI"),
+        _c("years_experience", "SECOND.", QUOTE),
+    ])
+
+    assert html.index("FIRST.") < html.index("SECOND.")
+
+
+def test_an_ocr_group_still_declares_its_provenance(monkeypatch):
+    monkeypatch.setattr(R, "_OCR_DOC_IDS", {"scan"})
+
+    html = R._claims_html([
+        _c("years_experience", "A.", QUOTE, doc="scan"),
+        _c("sector", "B.", QUOTE + ".", doc="scan"),
+    ])
+
+    assert html.count("recovered by OCR") == 1
