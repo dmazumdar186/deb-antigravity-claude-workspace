@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Art Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           FIXED STYLES - DO NOT MODIFY
+           Anthropic branding, layout, fonts, colors
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #faf8f5 0%, #f0ebe4 50%, #e8e0d8 100%);
+            min-height: 100vh;
+            color: #2d2a26;
+        }
+
+        /* --- HEADER (FIXED) --- */
+        .header {
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-title {
+            font-family: 'Lora', serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1714;
+            letter-spacing: -0.3px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: #8a8078;
+            font-weight: 300;
+            margin-left: 12px;
+        }
+
+        /* --- MAIN LAYOUT (FIXED) --- */
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 57px);
+        }
+
+        /* --- SIDEBAR (FIXED STRUCTURE) --- */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0,0,0,0.06);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-section-title {
+            font-family: 'Lora', serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1714;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        /* --- SEED CONTROLS (FIXED) --- */
+        .seed-display {
+            font-family: 'Poppins', sans-serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1714;
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+
+        .seed-nav {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .seed-nav button {
+            flex: 1;
+            padding: 7px 4px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            color: #2d2a26;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .seed-nav button:hover {
+            background: #f5f0eb;
+            border-color: rgba(0,0,0,0.15);
+        }
+
+        .seed-jump {
+            display: flex;
+            gap: 6px;
+        }
+
+        .seed-jump input {
+            flex: 1;
+            padding: 7px 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            background: white;
+            color: #2d2a26;
+        }
+
+        .seed-jump input:focus {
+            outline: none;
+            border-color: #c4956a;
+            box-shadow: 0 0 0 2px rgba(196,149,106,0.15);
+        }
+
+        .seed-jump button {
+            padding: 7px 14px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: #2d2a26;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .seed-jump button:hover {
+            background: #f5f0eb;
+        }
+
+        /* --- PARAMETER CONTROLS (VARIABLE - customize per artwork) --- */
+        .control-group {
+            margin-bottom: 14px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #5a534c;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, #d4c4b0, #c4956a);
+            border-radius: 2px;
+            outline: none;
+            margin-bottom: 2px;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #c4956a;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
+        .control-group input[type="color"] {
+            width: 100%;
+            height: 32px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 2px;
+            background: white;
+        }
+
+        .value-display {
+            font-size: 11px;
+            color: #8a8078;
+            font-weight: 400;
+        }
+
+        /* --- ACTION BUTTONS (FIXED) --- */
+        .action-btn {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: #2d2a26;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-bottom: 8px;
+        }
+
+        .action-btn:hover {
+            background: #f5f0eb;
+            border-color: rgba(0,0,0,0.15);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #c4956a, #a87d5a);
+            color: white;
+            border: none;
+        }
+
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, #b8895e, #9c7150);
+        }
+
+        /* --- CANVAS AREA (FIXED) --- */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- ============================================
+         HEADER (FIXED - do not modify)
+         ============================================ -->
+    <div class="header">
+        <div style="display:flex;align-items:baseline;">
+            <!-- VARIABLE: Change the title and subtitle for each artwork -->
+            <span class="header-title">Movement Name</span>
+            <span class="header-subtitle">Algorithmic Art</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <!-- ============================================
+             SIDEBAR (FIXED structure, VARIABLE controls)
+             ============================================ -->
+        <div class="sidebar">
+
+            <!-- SEED SECTION (FIXED - do not modify) -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Seed</div>
+                <div class="seed-display" id="seed-display">12345</div>
+                <div class="seed-nav">
+                    <button onclick="prevSeed()">&#9664; Prev</button>
+                    <button onclick="nextSeed()">Next &#9654;</button>
+                    <button onclick="randomSeed2()">Random</button>
+                </div>
+                <div class="seed-jump">
+                    <input type="number" id="seed-input" placeholder="Seed #">
+                    <button onclick="jumpToSeed()">Go</button>
+                </div>
+            </div>
+
+            <!-- ============================================
+                 PARAMETERS SECTION (VARIABLE - customize)
+                 Add/remove control-group divs as needed.
+                 Each artwork has different parameters.
+                 ============================================ -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Parameters</div>
+
+                <!-- EXAMPLE: Replace these with your artwork's parameters -->
+                <div class="control-group">
+                    <label>Example Parameter</label>
+                    <input type="range" id="exampleParam" min="1" max="100" step="1" value="50"
+                           oninput="updateParam('exampleParam', this.value)">
+                    <span class="value-display" id="exampleParam-value">50</span>
+                </div>
+                <!-- Add more control-group divs for each parameter -->
+            </div>
+
+            <!-- ============================================
+                 COLORS SECTION (OPTIONAL/VARIABLE)
+                 Include if the art needs adjustable colors.
+                 Remove entirely if not needed.
+                 ============================================ -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Colors</div>
+                <!-- EXAMPLE: Replace with your color controls or remove section -->
+                <div class="control-group">
+                    <label>Primary Color</label>
+                    <input type="color" id="primaryColor" value="#c4956a"
+                           oninput="updateParam('primaryColor', this.value)">
+                </div>
+            </div>
+
+            <!-- ACTIONS SECTION (FIXED - do not modify) -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Actions</div>
+                <button class="action-btn primary" onclick="regenerate()">Regenerate</button>
+                <button class="action-btn" onclick="resetParams()">Reset to Defaults</button>
+                <button class="action-btn" onclick="downloadPNG()">Download PNG</button>
+            </div>
+        </div>
+
+        <!-- CANVAS AREA (FIXED - do not modify) -->
+        <div class="canvas-area">
+            <div id="canvas-container"></div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================
+           VARIABLE: Replace this entire script section
+           with your generative algorithm.
+
+           Required functions to implement:
+           - setup() / draw() - p5.js lifecycle
+           - updateParam(name, value) - handle slider changes
+           - regenerate() - re-run with current params
+           - resetParams() - restore default values
+           - prevSeed() / nextSeed() / randomSeed2() / jumpToSeed() - seed navigation
+           - downloadPNG() - save canvas as image
+           ============================================ */
+
+        // --- PARAMETERS (VARIABLE - define your own) ---
+        let params = {
+            seed: 12345,
+            exampleParam: 50,
+            primaryColor: '#c4956a'
+        };
+
+        let defaultParams = { ...params };
+
+        // --- SEED NAVIGATION (FIXED logic, keep as-is) ---
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent = params.seed;
+        }
+
+        function prevSeed() {
+            params.seed = Math.max(1, params.seed - 1);
+            updateSeedDisplay();
+            regenerate();
+        }
+
+        function nextSeed() {
+            params.seed++;
+            updateSeedDisplay();
+            regenerate();
+        }
+
+        function randomSeed2() {
+            params.seed = Math.floor(Math.random() * 99999) + 1;
+            updateSeedDisplay();
+            regenerate();
+        }
+
+        function jumpToSeed() {
+            let val = parseInt(document.getElementById('seed-input').value);
+            if (!isNaN(val) && val > 0) {
+                params.seed = val;
+                updateSeedDisplay();
+                regenerate();
+            }
+        }
+
+        // --- PARAMETER UPDATE (VARIABLE - customize) ---
+        function updateParam(name, value) {
+            if (name === 'primaryColor') {
+                params[name] = value;
+            } else {
+                params[name] = parseFloat(value);
+                let display = document.getElementById(name + '-value');
+                if (display) display.textContent = value;
+            }
+            regenerate();
+        }
+
+        // --- RESET (update to match your params) ---
+        function resetParams() {
+            params = { ...defaultParams };
+            // Update all UI controls to match defaults
+            for (let key in params) {
+                let el = document.getElementById(key);
+                if (el) el.value = params[key];
+                let display = document.getElementById(key + '-value');
+                if (display) display.textContent = params[key];
+            }
+            updateSeedDisplay();
+            regenerate();
+        }
+
+        // --- DOWNLOAD (FIXED) ---
+        function downloadPNG() {
+            saveCanvas('generative-art-' + params.seed, 'png');
+        }
+
+        // --- REGENERATE (VARIABLE - customize) ---
+        function regenerate() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+            // Call your drawing function here
+            redraw();
+        }
+
+        // ============================================
+        // VARIABLE: Your p5.js algorithm goes here
+        // Replace setup() and draw() entirely
+        // ============================================
+        function setup() {
+            let canvas = createCanvas(1200, 1200);
+            canvas.parent('canvas-container');
+            noLoop();
+            updateSeedDisplay();
+            regenerate();
+        }
+
+        function draw() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+            background(250, 247, 242);
+
+            // YOUR GENERATIVE ALGORITHM HERE
+            // This is a placeholder - replace with your art
+            fill(params.primaryColor);
+            noStroke();
+            for (let i = 0; i < params.exampleParam; i++) {
+                let x = random(width);
+                let y = random(height);
+                let s = random(10, 60);
+                ellipse(x, y, s);
+            }
+        }
+    </script>
+</body>
+</html>

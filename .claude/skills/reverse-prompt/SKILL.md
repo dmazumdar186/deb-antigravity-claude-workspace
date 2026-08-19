@@ -4,6 +4,7 @@ description: Before implementing any non-trivial build, ask the user 5+ dynamica
 allowed-tools: AskUserQuestion
 user_invocable: true
 ---
+> **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 
 # Reverse Prompt
 
@@ -29,13 +30,13 @@ Before generating questions, silently identify:
 
 Questions must be:
 
-**Non-intuitive** -- Don't ask things the user already told you or would obviously think to specify. Bad: "What language should I use?" (obvious from context). Good: "Should this fail silently or loudly when X edge case happens?"
+**Non-intuitive** — Don't ask things the user already told you or would obviously think to specify. Bad: "What language should I use?" (obvious from context). Good: "Should this fail silently or loudly when X edge case happens?"
 
-**High-impact** -- Each question should meaningfully change the implementation. Skip questions where the answer doesn't affect the code.
+**High-impact** — Each question should meaningfully change the implementation. Skip questions where the answer doesn't affect the code.
 
-**Concrete** -- Reference specific scenarios, not abstractions. Bad: "How should errors be handled?" Good: "If the API returns a 429 rate limit, should we retry with backoff, queue for later, or skip and log?"
+**Concrete** — Reference specific scenarios, not abstractions. Bad: "How should errors be handled?" Good: "If the API returns a 429 rate limit, should we retry with backoff, queue for later, or skip and log?"
 
-**Opinionated** -- Offer your recommended default with each question so the user can just say "yes" to most. Frame as "I'd default to X, want something different?"
+**Opinionated** — Offer your recommended default with each question so the user can just say "yes" to most. Frame as "I'd default to X — want something different?"
 
 **Categories to draw from** (pick what's relevant, not all):
 - Edge case behavior (what happens when things go wrong)
@@ -43,9 +44,11 @@ Questions must be:
 - Integration points (how this connects to existing systems)
 - Output format/style preferences
 - Performance vs. simplicity tradeoffs
+- Naming, structure, and convention choices
 - Dependencies and tooling preferences
 - Security/privacy considerations
 - Idempotency and state management
+- User-facing copy/tone (if applicable)
 
 ### 3. Ask Using AskUserQuestion
 
@@ -53,7 +56,26 @@ Use the `AskUserQuestion` tool to present questions. For each question:
 - Keep the question text short and specific
 - Put your recommended default as the first option with "(Recommended)" suffix
 - Include 1-2 meaningful alternatives as other options
+- The user can always pick "Other" for custom input
+
+Batch into 1-4 AskUserQuestion calls (the tool supports 1-4 questions per call). If you have more than 4 questions, make multiple calls.
 
 ### 4. Proceed with Build
 
 After receiving answers, incorporate them as hard constraints for the implementation. Do not re-ask or second-guess the answers. Just build.
+
+## Example
+
+User: "Build a skill that scrapes competitor YouTube channels"
+
+Good questions:
+- "I'd default to scraping via RSS feeds (fast, no auth needed, but limited to last 15 videos). Want full channel scraping via API instead?"
+- "Should this run on-demand only, or also support a scheduled cron-style mode?"
+- "When a channel returns no data (deleted/private), should I skip silently or flag it in the output?"
+- "Output to a local markdown file in active/, or directly to a Google Sheet?"
+- "Should I deduplicate against previous runs, or treat each run as independent?"
+
+Bad questions:
+- "What programming language?" (obvious from workspace)
+- "Should I add error handling?" (always yes)
+- "Do you want it to work well?" (meaningless)

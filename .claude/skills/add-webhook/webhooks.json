@@ -1,0 +1,40 @@
+{
+  "webhooks": {
+    "process-lead": {
+      "directive": "classify_leads_llm",
+      "description": "Classify and process incoming leads",
+      "tools": ["send_email", "read_sheet", "update_sheet"]
+    },
+    "youtube-outliers": {
+      "directive": "youtube_outliers",
+      "description": "Find viral YouTube content in a niche",
+      "tools": ["send_email"]
+    },
+    "create-proposal": {
+      "directive": "create_proposal",
+      "description": "Generate a proposal for a prospect",
+      "tools": ["send_email", "read_sheet"]
+    },
+    "daily-digest": {
+      "directive": "cross_niche_outliers",
+      "description": "Find cross-niche content opportunities",
+      "tools": ["send_email"]
+    },
+    "instantly-reply": {
+      "script": "instantly_autoreply",
+      "description": "Auto-reply to Instantly email threads (procedural - Claude only for reply generation)"
+    },
+    "onboard-client": {
+      "script": "onboarding_post_kickoff",
+      "description": "Full client onboarding after kickoff call: generate leads, create campaigns, setup auto-reply"
+    },
+    "welcome-client": {
+      "script": "welcome_client_emails",
+      "description": "Send 3-email welcome sequence to new client"
+    },
+    "upwork-scrape-apply": {
+      "script": "upwork_scrape_apply",
+      "description": "Scrape Upwork jobs and generate proposals with cover letters"
+    }
+  }
+}
