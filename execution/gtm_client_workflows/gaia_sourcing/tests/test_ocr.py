@@ -33,12 +33,22 @@ class _Resp:
         self.content = [_Block(text)]
 
 
-def _client(monkeypatch, text, pages=10):
+class _Usage:
+    def __init__(self, inp=0, out=0):
+        self.input_tokens = inp
+        self.output_tokens = out
+        self.cache_read_input_tokens = 0
+        self.cache_creation_input_tokens = 0
+
+
+def _client(monkeypatch, text, pages=10, usage=None):
     class FakeClient:
         messages = None
 
         def create(self, **kw):
-            return _Resp(text)
+            r = _Resp(text)
+            r.usage = usage or _Usage()
+            return r
 
     fake = FakeClient()
     fake.messages = fake
@@ -117,6 +127,36 @@ def test_an_oversized_file_is_not_sent(monkeypatch):
 
 def test_an_empty_body_is_not_sent():
     assert ocr.transcribe_pdf(b"") is None
+
+
+def test_transcription_spend_lands_on_the_run_total(monkeypatch):
+    """This path calls the Anthropic client directly rather than through
+    call_role, so on its first run it spent real money entirely outside the
+    tracker -- the exact defect the tracker had just been built to fix,
+    reintroduced by the next feature. A 51-document batch drained the
+    account's remaining balance and the ceiling never saw a cent of it."""
+    from gtm_client_workflows.gaia_sourcing.core import providers
+
+    providers.reset_spend()
+    _client(monkeypatch, PAGE, pages=10, usage=_Usage(inp=1_000_000, out=100_000))
+
+    ocr.transcribe_pdf(b"%PDF-fake", "https://pleanala.ie/x.pdf")
+
+    assert providers.spend_eur() > 0
+    providers.reset_spend()
+
+
+def test_a_refused_transcription_still_records_what_it_cost(monkeypatch):
+    """A summarising model is refused on output, but the call was still paid
+    for. Not recording it would let a run of refusals spend without limit."""
+    from gtm_client_workflows.gaia_sourcing.core import providers
+
+    providers.reset_spend()
+    _client(monkeypatch, "too short", pages=40, usage=_Usage(inp=500_000, out=50))
+
+    assert ocr.transcribe_pdf(b"%PDF-fake") is None
+    assert providers.spend_eur() > 0
+    providers.reset_spend()
 
 
 # ---------------------------------------------------------------------------

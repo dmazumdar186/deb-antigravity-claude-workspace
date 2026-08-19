@@ -131,6 +131,30 @@ def transcribe_pdf(raw: bytes, url: str = "") -> Optional[str]:
         print("[ocr] transcription failed for " + url[:70] + ": " + repr(exc)[:120])
         return None
 
+    # Recorded against the SAME run total as every other paid call.
+    #
+    # This path calls the Anthropic client directly rather than going through
+    # call_role, so on the first run it spent real money entirely outside the
+    # tracker -- which is exactly the defect the tracker had just been built to
+    # fix, reintroduced by the next feature. A 51-document transcription batch
+    # drained the account's remaining balance and the ceiling never saw a cent
+    # of it. Any new paid call site has to register here or the ceiling is
+    # decorative again.
+    try:
+        from .providers import _record_spend, cost_eur
+
+        usage = getattr(resp, "usage", None)
+        _record_spend(cost_eur("claude-sonnet-5", {
+            "input_tokens": getattr(usage, "input_tokens", 0) or 0,
+            "output_tokens": getattr(usage, "output_tokens", 0) or 0,
+            "cache_read_tokens": getattr(usage, "cache_read_input_tokens", 0) or 0,
+            "cache_write_tokens": getattr(usage, "cache_creation_input_tokens", 0) or 0,
+        }))
+    except Exception as exc:
+        # Never fail a completed transcription over its own bookkeeping, but
+        # say so -- an unrecorded call is a hole in the ceiling.
+        print("[ocr] WARNING: could not record spend: " + repr(exc)[:100])
+
     text = "".join(
         getattr(block, "text", "") for block in resp.content
         if getattr(block, "type", "") == "text"
