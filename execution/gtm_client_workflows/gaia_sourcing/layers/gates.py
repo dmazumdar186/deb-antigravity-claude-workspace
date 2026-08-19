@@ -32,6 +32,19 @@ _CHARTERED_PATTERNS = [
     r"\bchartered member of the institution of engineers of ireland\b",
     r"\bchartered member and fellow of the institution of engineers of ireland\b",
     r"\bchartered with engineers ireland\b",
+    # Fellow is Engineers Ireland's SENIOR grade, above Chartered Engineer,
+    # and the gate's own description already names FIEI as qualifying. The
+    # abbreviation matched and the spelled-out form did not, so a witness who
+    # wrote "I am a Fellow member of Engineers Ireland" failed a gate that his
+    # own evidence cleared twice over -- costing the transport role a Fellow
+    # of both Engineers Ireland and the IStructE, at an Irish consultancy.
+    #
+    # Bound to Engineers Ireland specifically. "Fellow of the Institution of
+    # Structural Engineers" is IStructE and must keep failing to the non-IE
+    # branch below, and "Fellow of the Association of Consulting Engineers of
+    # Ireland" is a trade body, not a chartership.
+    r"\bfellow\b[^.]{0,40}\bengineers ireland\b",
+    r"\bfellow\b[^.]{0,40}\binstitution of engineers of ireland\b",
 ]
 _CHARTERED_RE = re.compile("|".join(_CHARTERED_PATTERNS), re.I)
 

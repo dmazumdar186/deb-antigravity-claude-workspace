@@ -752,3 +752,55 @@ def test_an_unparseable_document_line_loses_one_document_not_the_store(R):
     R.save_docs([_doc("d3", "third")])
 
     assert set(R.load_docs()) == {"d1", "d3"}
+
+
+# ---------------------------------------------------------------------------
+# One run at a time
+# ---------------------------------------------------------------------------
+
+
+def test_a_second_run_refuses_to_start(R):
+    """Overlapping runs are not a race on a file -- the older process is
+    running OLDER CODE, because Python read its modules at import time.
+
+    A background extract started before a fix to the chartership gate,
+    finished after it, and wrote its own gate.json over the corrected one. No
+    error appeared anywhere; the candidate the fix had just recovered simply
+    vanished from the shortlist again.
+    """
+    R.acquire_run_lock()
+
+    with pytest.raises(SystemExit) as exc:
+        R.acquire_run_lock()
+
+    assert "holds the lock" in str(exc.value)
+    assert "older code" in str(exc.value)
+
+
+def test_the_lock_names_who_holds_it(R):
+    R.acquire_run_lock()
+
+    with pytest.raises(SystemExit) as exc:
+        R.acquire_run_lock()
+
+    assert "pid=" in str(exc.value)
+
+
+def test_a_finished_run_leaves_no_lock_behind(R):
+    lock = R.acquire_run_lock()
+    R.release_run_lock(lock)
+
+    assert R.acquire_run_lock() is not None
+
+
+def test_a_stale_lock_can_be_overridden_deliberately(R):
+    R.acquire_run_lock()
+
+    assert R.acquire_run_lock(force=True) is not None
+
+
+def test_releasing_a_lock_that_is_already_gone_is_not_an_error(R):
+    lock = R.acquire_run_lock()
+    lock.unlink()
+
+    R.release_run_lock(lock)  # must not raise

@@ -60,6 +60,19 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
         ROLE_JUDGE: ("openrouter", "anthropic/claude-opus-5"),
         ROLE_MESSAGE: ("openrouter", "anthropic/claude-opus-5"),
     },
+    # Every role on the execution tier, for when the remaining balance will
+    # not cover the judgement tier. Opus is the right model for L8 tiering and
+    # L11 client-facing copy and this plan is a downgrade -- but the
+    # cost-constraint clause in ~/.claude/rules/model-tier.md is explicit that
+    # a smaller model inside budget beats a better one that 402s halfway
+    # through a stage and leaves the deliverable half-built. Sonnet-5 is still
+    # well above the banned tier. Choose it deliberately, with --plan budget,
+    # and say so in the handoff.
+    "budget": {
+        ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-sonnet-5"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-sonnet-5"),
+    },
     "anthropic": {
         ROLE_EXTRACT: ("anthropic", "claude-sonnet-5"),
         ROLE_JUDGE: ("anthropic", "claude-opus-5"),

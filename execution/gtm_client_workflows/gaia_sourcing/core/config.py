@@ -124,7 +124,18 @@ CONFIG = RunConfig()
 # render.py hard-fails if it is still the placeholder at delivery time.
 # ---------------------------------------------------------------------------
 
-PRIVACY_NOTICE_URL = "https://privacy.prodcraft.fyi/gaia-candidate-notice"
+# Deployed and verified live 2026-08-19 (Cloudflare Pages project
+# "gaia-privacy"). Every outreach draft cites this URL and render.py refuses
+# to emit outreach if it does not return 200, so it must be the address that
+# actually resolves today rather than the one we would prefer.
+#
+# privacy.prodcraft.fyi IS bound to the same project and is the intended
+# address, but it sits at status "pending": the Pages custom-domain binding
+# needs a CNAME in the prodcraft.fyi zone, and the API token in use has Pages
+# permissions but not Zone:Edit. Once that record exists and the domain goes
+# active, change this one line back and re-run `--stage messages --force`
+# plus the renderer.
+PRIVACY_NOTICE_URL = "https://gaia-privacy.pages.dev/gaia-candidate-notice"
 
 GDPR_ART14_NOTICE = (
     "How we got your details: Gaia Talent Ltd sourced your professional "

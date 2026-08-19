@@ -183,3 +183,26 @@ def test_an_unrecoverable_corruption_stays_visible():
 def test_clean_text_is_untouched():
     assert repair("Iarnród Éireann") == "Iarnród Éireann"
     assert repair("") == ""
+
+
+# ---------------------------------------------------------------------------
+# Two more from the second delivered run
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("raw", [
+    "Ireland and the Netherlands",
+    "Dublin and Cork",
+    "Ireland & UK",
+])
+def test_several_places_joined_together_are_still_just_places(raw):
+    """From "worked on projects around the coast of Ireland and the
+    Netherlands". A single place was rejected; a list of them was not, and it
+    reached a delivered card as an employer."""
+    assert R._clean_employer_name(raw) is None
+
+
+def test_a_firm_whose_name_contains_a_place_still_survives():
+    """The rejection is for names that are ONLY places."""
+    assert R._clean_employer_name("Cork City Consulting Engineers") is not None
+    assert R._clean_employer_name("Roughan & O Donovan") == "Roughan & O Donovan"

@@ -263,3 +263,56 @@ def test_the_match_is_token_based_and_says_so():
 
 def test_a_one_word_name_can_never_match_a_page():
     assert linkcheck.page_mentions_name("Cher is here", "Cher") is False
+
+
+# ---------------------------------------------------------------------------
+# Chartership -- Fellow is a grade ABOVE Chartered Engineer
+# ---------------------------------------------------------------------------
+
+
+def _chartership(assertion, quote=None):
+    return [_vc("chartership", assertion, quote or assertion[:60])]
+
+
+@pytest.mark.parametrize("assertion", [
+    "Pearse Sutton is a Fellow member of Engineers Ireland.",
+    "Fellow of the Institution of Engineers of Ireland",
+    "I am a Chartered Member and Fellow of the Institution of Engineers of Ireland",
+    "Chartered Engineer (CEng MIEI)",
+])
+def test_engineers_ireland_fellowship_satisfies_the_chartership_gate(assertion):
+    """FIEI is named in the gate's own description and the abbreviation
+    matched, but the spelled-out form did not. A witness who wrote "I am a
+    Fellow member of Engineers Ireland" failed a gate his evidence cleared
+    twice over -- costing the transport role a Fellow of both Engineers
+    Ireland and the IStructE, at an Irish consultancy."""
+    result = gates.check_chartered(_person(), _chartership(assertion), {})
+
+    assert result.passed is True
+
+
+@pytest.mark.parametrize("assertion", [
+    # A different institution's fellowship is not Engineers Ireland's.
+    "Fellow of the Irish Branch of the Institution of Structural Engineers.",
+    # A trade association is not a chartership body.
+    "Fellow member of the Association of Consulting Engineers of Ireland",
+    # Chartered, but in another profession entirely.
+    "Chartered Environmentalist with the Institute of Environmental Sciences",
+    "Chartered member of the Royal Town Planning Institute",
+    "Chartered Biologist with the Royal Society of Biology",
+    "accredited Road Safety Auditor and a member of the Society of Road Safety Auditors",
+])
+def test_a_fellowship_elsewhere_is_not_engineers_ireland_chartership(assertion):
+    """An oral hearing draws expert witnesses from every discipline, so most
+    chartership claims in this corpus belong to another profession."""
+    result = gates.check_chartered(_person(), _chartership(assertion), {})
+
+    assert result.passed is False
+
+
+def test_uk_chartership_is_flagged_rather_than_silently_dropped():
+    result = gates.check_chartered(
+        _person(), _chartership("Member of the Institution of Civil Engineers (MICE)"), {})
+
+    assert result.passed is False
+    assert "non-Irish institution" in (result.note or "")

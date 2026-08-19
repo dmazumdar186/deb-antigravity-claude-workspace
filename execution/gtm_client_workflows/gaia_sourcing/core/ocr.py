@@ -86,6 +86,49 @@ def page_count(raw: bytes) -> Optional[int]:
         return None
 
 
+def _transcribe_via_gemini(raw: bytes, pages: int, url: str) -> Optional[str]:
+    """Free-tier fallback. Gemini reads PDFs natively too.
+
+    Added after the Anthropic balance ran out 25 documents into a 51-document
+    batch, which stranded half the scanned oral-hearing evidence -- and that
+    evidence is the only place the transport role's candidates live. A source
+    that is reachable for nothing should not be abandoned because one
+    provider's balance hit zero.
+    """
+    import json
+    import urllib.request
+
+    from .config import CONFIG, secret
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": SYSTEM}]},
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"inline_data": {"mime_type": "application/pdf",
+                                 "data": base64.b64encode(raw).decode("ascii")}},
+                {"text": "Transcribe this document in full, following the "
+                         "rules exactly. Output only the document's text."},
+            ],
+        }],
+        "generationConfig": {"maxOutputTokens": 16000, "temperature": 0.0},
+    }
+    req = urllib.request.Request(
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-2.5-flash:generateContent?key=" + secret("GEMINI_API_KEY"),
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=300) as resp:
+        data = json.loads(resp.read().decode("utf-8", errors="replace"))
+
+    cands = data.get("candidates") or []
+    if not cands:
+        return None
+    parts = cands[0].get("content", {}).get("parts") or []
+    return "".join(p.get("text", "") for p in parts).strip() or None
+
+
 def transcribe_pdf(raw: bytes, url: str = "") -> Optional[str]:
     """Recover text from a scanned PDF. Returns None rather than guessing.
 
@@ -98,6 +141,35 @@ def transcribe_pdf(raw: bytes, url: str = "") -> Optional[str]:
     if pages is None or pages == 0 or pages > _MAX_PAGES:
         return None
 
+    text = _transcribe_anthropic(raw, pages, url)
+    if text is None:
+        # Same floor, same refusal, different provider. Tried second rather
+        # than first only because it is the weaker reader of a poor scan.
+        try:
+            text = _transcribe_gemini_guarded(raw, pages, url)
+        except Exception as exc:
+            print("[ocr] gemini fallback failed for " + url[:60] + ": "
+                  + repr(exc)[:110])
+            return None
+    return text
+
+
+def _transcribe_gemini_guarded(raw: bytes, pages: int, url: str) -> Optional[str]:
+    text = _transcribe_via_gemini(raw, pages, url)
+    if not text:
+        return None
+    if len(text) < _MIN_CHARS_PER_PAGE * pages:
+        print(
+            "[ocr] rejected a suspiciously short gemini transcription for "
+            + url[:55] + " (" + str(len(text)) + " chars for " + str(pages)
+            + " pages)"
+        )
+        return None
+    print("[ocr] recovered via gemini free tier: " + url[:80], flush=True)
+    return text
+
+
+def _transcribe_anthropic(raw: bytes, pages: int, url: str) -> Optional[str]:
     try:
         from .providers import _anthropic_client
 

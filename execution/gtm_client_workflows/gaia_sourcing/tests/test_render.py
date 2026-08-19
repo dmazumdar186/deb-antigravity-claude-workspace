@@ -38,6 +38,12 @@ def rendered(tmp_path, monkeypatch):
     out_dir = tmp_path / "deliverables"
     monkeypatch.setattr(R, "RUN_DIR", run_dir)
     monkeypatch.setattr(R, "OUT_DIR", out_dir)
+    # The notice-liveness probe is mocked DEAD by default so these tests
+    # assert on the withheld-outreach branch deterministically. Left
+    # unmocked it hits the real URL, so the suite's verdict changed the
+    # moment the notice was actually deployed -- a test whose result depends
+    # on today's network is not a test.
+    monkeypatch.setattr(R, "head_ok", lambda url, timeout=20: (False, 404))
 
     def w(name, obj):
         (run_dir / (name + ".json")).write_text(json.dumps(obj), encoding="utf-8")
@@ -178,6 +184,31 @@ def test_outreach_withheld_when_the_privacy_notice_is_dead(rendered):
     """Outreach citing a 404 privacy notice is worse than no outreach."""
     html, _, _ = rendered
     assert "Outreach drafts withheld" in html
+
+
+def test_outreach_ships_once_the_notice_is_live(tmp_path, monkeypatch, rendered):
+    """The other half of the gate, which nothing exercised until the notice
+    was actually deployed and the suite's verdict quietly changed."""
+    _html, _csv, out_dir = rendered
+    monkeypatch.setattr(R, "head_ok", lambda url, timeout=20: (True, 200))
+
+    R.build(allow_placeholder_notice=False)
+    html = (out_dir / "dossier.html").read_text(encoding="utf-8")
+
+    assert "Outreach drafts withheld" not in html
+
+
+def test_a_dead_notice_hard_fails_unless_the_override_is_passed(tmp_path,
+                                                                monkeypatch,
+                                                                rendered):
+    """Rendering outreach against a notice that 404s is the one thing this
+    gate exists to stop, so the default is a refusal, not a warning."""
+    monkeypatch.setattr(R, "head_ok", lambda url, timeout=20: (False, 404))
+
+    with pytest.raises(SystemExit) as exc:
+        R.build(allow_placeholder_notice=False)
+
+    assert "REFUSING TO RENDER" in str(exc.value)
 
 
 def test_unknown_movability_is_stated_as_unknown(rendered):

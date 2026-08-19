@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import threading
@@ -45,7 +46,12 @@ from typing import Optional
 
 from .core.cache import fetch_rendered
 from .core.config import CONFIG, PKG_ROOT
-from .core.providers import CostCeilingExceeded, autoselect_plan, spend_eur
+from .core.providers import (
+    CostCeilingExceeded,
+    autoselect_plan,
+    set_plan,
+    spend_eur,
+)
 from .core.contracts import (
     Claim,
     ContactRecord,
@@ -117,6 +123,59 @@ def run_all(fn, items, workers: int = 4, label: str = "") -> int:
 def _path(stage: str) -> Path:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     return RUN_DIR / (stage + ".json")
+
+
+# ---------------------------------------------------------------------------
+# One run at a time
+# ---------------------------------------------------------------------------
+
+
+def _lock_path() -> Path:
+    RUN_DIR.mkdir(parents=True, exist_ok=True)
+    return RUN_DIR / ".run.lock"
+
+
+def acquire_run_lock(force: bool = False) -> Optional[Path]:
+    """Refuse to start while another run of this campaign is live.
+
+    Two overlapping runs do not merely race on a file -- the older process is
+    running OLDER CODE, because Python read its modules at import time. On
+    2026-08-19 a background extract started before a fix to the chartership
+    gate, finished after it, and wrote its own gate.json over the corrected
+    one. The pipeline reported a smaller shortlist with no error anywhere, and
+    the candidate that the fix had just recovered silently vanished again.
+    That is the same shape as the stale-pool bug this project already fixed
+    once: a cheap stage downstream of a changing one, quietly out of date.
+    """
+    lock = _lock_path()
+    if lock.exists() and not force:
+        try:
+            held = lock.read_text(encoding="utf-8").strip()
+        except Exception:
+            held = "unknown"
+        raise SystemExit(
+            "Another run of campaign '" + CONFIG.campaign_id + "' holds the "
+            "lock (" + held + ").\n"
+            "Two runs overlapping is not a race on a file: the older process "
+            "is running older code\nand will overwrite this one's stage "
+            "output with results computed from it.\n"
+            "Wait for it to finish, or pass --force-lock if you are certain "
+            "it is dead."
+        )
+    lock.write_text(
+        "pid=" + str(os.getpid()) + " started=" + time.strftime("%Y-%m-%d %H:%M:%S"),
+        encoding="utf-8",
+    )
+    return lock
+
+
+def release_run_lock(lock: Optional[Path]) -> None:
+    if lock is None:
+        return
+    try:
+        lock.unlink()
+    except FileNotFoundError:
+        pass  # already gone; nothing to release and nothing to warn about
 
 
 def save(stage: str, obj) -> None:
@@ -675,6 +734,11 @@ _PLACE_ONLY = {
     "united kingdom", "northern ireland", "republic of ireland", "europe",
 }
 
+# Several places joined by "and" is still just places. "Ireland and the
+# Netherlands" -- from "worked on projects around the coast of Ireland and the
+# Netherlands" -- reached a delivered card as an employer.
+_PLACE_CONJUNCTION_RE = re.compile(r"\s+(?:and|&|/|,)\s+")
+
 
 def _clean_employer_name(name: str) -> Optional[str]:
     """Reduce a captured span to an employer, or reject it."""
@@ -686,7 +750,11 @@ def _clean_employer_name(name: str) -> Optional[str]:
     name = name.strip().strip(" .,;:'’")
     if len(name) < 3 or len(name.split()) > 6:
         return None
-    if name.lower() in _PLACE_ONLY:
+    low = name.lower()
+    if low in _PLACE_ONLY:
+        return None
+    parts = [p.strip() for p in _PLACE_CONJUNCTION_RE.split(low) if p.strip()]
+    if len(parts) > 1 and all(p in _PLACE_ONLY for p in parts):
         return None
     if _NOT_AN_EMPLOYER_RE.search(name):
         return None
@@ -1221,6 +1289,15 @@ def main() -> int:
     ap.add_argument("--stage", default="all", help="stage name, comma list, or 'all'")
     ap.add_argument("--force", action="store_true", help="re-run even if cached")
     ap.add_argument("--from-stage", default=None, help="run this stage and everything after")
+    ap.add_argument(
+        "--force-lock", action="store_true",
+        help="start even if another run holds the lock (only if it is dead)",
+    )
+    ap.add_argument(
+        "--plan", default=None,
+        help="force a provider plan (free/hybrid/openrouter/anthropic/budget) "
+             "instead of auto-selecting by what the credentials can pay for",
+    )
     args = ap.parse_args()
 
     if args.from_stage:
@@ -1236,17 +1313,26 @@ def main() -> int:
     # default applies, which routes extraction to free-tier Gemini at ~6.5s of
     # enforced spacing per call -- correct when the Anthropic balance is zero,
     # and roughly twenty times slower than necessary when it is not.
-    plan = autoselect_plan(verbose=True)
+    if args.plan:
+        set_plan(args.plan)
+        plan = args.plan
+        log("provider plan: " + plan + " (forced)")
+    else:
+        plan = autoselect_plan(verbose=True)
     log("provider plan: " + plan)
 
     t0 = time.time()
-    for name in names:
-        fn = STAGES.get(name)
-        if fn is None:
-            raise SystemExit("Unknown stage: " + name)
-        log("")
-        log("=== " + name + " ===")
-        fn(force=args.force)
+    lock = acquire_run_lock(force=args.force_lock)
+    try:
+        for name in names:
+            fn = STAGES.get(name)
+            if fn is None:
+                raise SystemExit("Unknown stage: " + name)
+            log("")
+            log("=== " + name + " ===")
+            fn(force=args.force)
+    finally:
+        release_run_lock(lock)
     log("")
     log("done in " + format(time.time() - t0, ".1f") + "s")
     # The operator reads this number, so it is in EUR per ~/.claude/rules/
