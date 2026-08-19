@@ -235,18 +235,36 @@ def _contact_block(contact: dict, links: dict) -> str:
         + e(contact.get("channel_rationale", "")) + "</div></div></div>",
     ]
 
-    dead = [c for c in links.get("checks", []) if not c.get("alive")]
-    mism = [c for c in links.get("checks", []) if c.get("name_matched") is False]
+    checks = links.get("checks", [])
+    # Three states, reported as three different things. Collapsing
+    # "we could not check this" into "this is broken" is how a dossier tells a
+    # client that a working LinkedIn profile is a dead link.
+    dead = [c for c in checks if c.get("alive") is False]
+    blocked = [c for c in checks if c.get("alive") is None]
+    live = [c for c in checks if c.get("alive") is True]
+    mism = [c for c in checks if c.get("name_matched") is False]
     if links:
-        if dead or mism:
-            note = []
-            if dead:
-                note.append(str(len(dead)) + " source link(s) did not return 200")
-            if mism:
-                note.append(str(len(mism)) + " live link(s) no longer name this person")
-            v = "<span class='gap'>" + e("; ".join(note)) + "</span>"
+        problems = []
+        if dead:
+            problems.append(str(len(dead)) + " source link(s) did not return 200")
+        if mism:
+            problems.append(str(len(mism)) + " live link(s) no longer name this person")
+        if problems:
+            v = "<span class='gap'>" + e("; ".join(problems)) + "</span>"
+        elif live and not blocked:
+            v = "All " + str(len(live)) + " links live and checked"
+        elif live:
+            v = (
+                str(len(live)) + " link(s) live and checked; "
+                + str(len(blocked)) + " could not be checked automatically "
+                "(the host blocks robots, LinkedIn always does) "
+                "&mdash; nothing suggests they are broken"
+            )
         else:
-            v = "All " + str(len(links.get("checks", []))) + " links live and checked"
+            v = (
+                str(len(blocked)) + " link(s) could not be checked automatically "
+                "(the host blocks robots) &mdash; nothing suggests they are broken"
+            )
         cells.append(
             '<div class="kv"><div class="k">Link check</div><div class="v">' + v + "</div></div>"
         )

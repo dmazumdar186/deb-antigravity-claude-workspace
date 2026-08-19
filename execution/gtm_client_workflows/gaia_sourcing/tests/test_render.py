@@ -80,9 +80,14 @@ def rendered(tmp_path, monkeypatch):
     }})
     w("messages", {})
     w("linkcheck", {"p1": {
-        "person_id": "p1", "all_alive": True,
-        "checks": [{"url": "https://example.ie/p/one", "alive": True,
-                    "http_status": 200, "name_matched": True, "note": ""}],
+        "person_id": "p1", "all_alive": False,
+        "checks": [
+            {"url": "https://example.ie/p/one", "alive": True,
+             "http_status": 200, "name_matched": True, "note": ""},
+            # LinkedIn answers every non-browser client with 999.
+            {"url": "https://www.linkedin.com/in/seanobrien", "alive": None,
+             "http_status": 999, "name_matched": None, "note": ""},
+        ],
     }})
     w("poolmap", {
         "role1_senior_structural_engineer": {
@@ -199,3 +204,15 @@ def test_pool_maps_are_written_per_role(rendered):
         text = (out_dir / name).read_text(encoding="utf-8")
         assert "Profiles assessed" in text
         assert "Delivered" in text
+
+
+def test_bot_blocked_link_is_not_reported_as_broken(rendered):
+    """"Could not check" and "did not return 200" are different sentences.
+
+    Collapsing them told the client that eight of eleven candidates had a dead
+    source link, when in every case it was their live LinkedIn profile.
+    """
+    html, _, _ = rendered
+    assert "did not return 200" not in html
+    assert "could not be checked automatically" in html
+    assert "nothing suggests they are broken" in html

@@ -27,13 +27,36 @@ from typing import Optional
 from ..core.cache import fetch, head_ok
 
 
+# Statuses that mean "this server refuses robots", NOT "this page is gone".
+#
+# LinkedIn answers any non-browser client with 999 -- it is their standard
+# anti-automation response and says nothing whatever about the profile, which
+# opens perfectly in a browser. Several Irish consultancy sites answer a bare
+# HEAD with 403 for the same reason; horganlynch.ie does, and this pipeline
+# had already rendered that exact page successfully through Firecrawl.
+#
+# Reporting either as a dead link is worse than not checking at all. The
+# 2026-08-19 dossier told the client "1 source link(s) did not return 200" on
+# eight of eleven cards -- including the only Tier A candidate -- and in every
+# case the link was the candidate's live LinkedIn profile. A reader who clicks
+# one, finds it works, and sees the dossier claim otherwise has just been given
+# a reason to distrust every other check on the page.
+_BOT_BLOCKED_STATUSES = {999, 403, 429, 401}
+
+
 @dataclass
 class LinkCheck:
     url: str
-    alive: bool
+    # True = confirmed live. False = confirmed gone. None = could not be
+    # determined, which is a different fact and is reported as such.
+    alive: Optional[bool]
     http_status: int
     name_matched: Optional[bool] = None  # None when no name was supplied
     note: str = ""
+
+    @property
+    def unverifiable(self) -> bool:
+        return self.alive is None
 
 
 @dataclass
@@ -43,11 +66,22 @@ class LinkReport:
 
     @property
     def all_alive(self) -> bool:
-        return all(c.alive for c in self.checks)
+        """True only if every link was CONFIRMED live.
+
+        An unverifiable link makes this False, because "all links checked and
+        live" is a claim, and we cannot make it about a link we could not
+        reach. It does not make the link dead -- see `dead` below.
+        """
+        return all(c.alive is True for c in self.checks)
 
     @property
     def dead(self) -> list[LinkCheck]:
-        return [c for c in self.checks if not c.alive]
+        """Links confirmed gone. Bot-blocked links are NOT in here."""
+        return [c for c in self.checks if c.alive is False]
+
+    @property
+    def unverifiable(self) -> list[LinkCheck]:
+        return [c for c in self.checks if c.alive is None]
 
     @property
     def name_mismatches(self) -> list[LinkCheck]:
@@ -128,6 +162,15 @@ def check_url(url: str, full_name: Optional[str] = None) -> LinkCheck:
     """Liveness + optional name match for one URL."""
     alive, status = head_ok(url)
     if not alive:
+        if status in _BOT_BLOCKED_STATUSES:
+            return LinkCheck(
+                url=url, alive=None, http_status=status,
+                note=(
+                    "This site refuses automated requests (HTTP " + str(status)
+                    + "), so the link could not be checked from here. That is "
+                    "not evidence the page is missing -- open it in a browser."
+                ),
+            )
         return LinkCheck(
             url=url, alive=False, http_status=status,
             note="URL did not return 200 (" + str(status) + ")",
