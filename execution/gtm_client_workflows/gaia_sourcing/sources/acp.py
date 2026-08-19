@@ -354,21 +354,55 @@ _PERSON_NAME_IN_TEXT_RE = re.compile(
 )
 
 
-def looks_like_evidence_document(text: str) -> bool:
-    """True if the text reads like a personal statement of evidence.
+# Above this size a PDF is an EIS volume or a full hearing transcript, not one
+# person's statement. Measured on the scheme-site channel, the non-statements
+# sat at 364k, 377k, 438k, 635k, 805k and 902k characters. Admitting one would
+# attribute a whole hearing's evidence to whichever name appeared first.
+#
+# The ceiling was briefly set at 150k and that was WRONG: it dropped a
+# 159k-character witness statement that was a single person's evidence with
+# appendices bound in -- and that person was the only Tier A candidate the
+# transport role had. A size cap is a blunt proxy for "is this one person";
+# it needs to be loose enough that the proxy never overrules the real test.
+_BUNDLE_CHARS = 400_000
 
-    Requires at least two independent first-person qualification signals so a
+# Where the real test looks. A brief of evidence states its author's
+# qualifications up front, after at most a title page, a contents list and a
+# short scheme description; a bundle's opening pages are covers and indexes.
+# So the signals are counted near the START of the document, not across all of
+# it -- scanning a 400k bundle end to end would find first-person language
+# from a dozen different witnesses and pass everything.
+#
+# 12k was too tight (a long preamble pushed the qualifications section past
+# it); 40k comfortably covers the preamble without reaching a second witness.
+_GATE_WINDOW = 40_000
+
+
+def looks_like_evidence_document(text: str) -> bool:
+    """True if the text reads like ONE person's statement of evidence.
+
+    Requires at least two independent first-person qualification signals, so a
     single stray phrase in a technical appendix does not qualify.
     """
     if len(text) < 400:
         return False
-    hits = {m.group(1).lower()[:18] for m in _FIRST_PERSON_QUAL_RE.finditer(text[:12000])}
+    if len(text) > _BUNDLE_CHARS:
+        return False
+    hits = {
+        m.group(1).lower()[:18]
+        for m in _FIRST_PERSON_QUAL_RE.finditer(text[:_GATE_WINDOW])
+    }
     return len(hits) >= 2
 
 
 def name_from_text(text: str) -> Optional[str]:
-    """Authoritative name, taken from the document's own words."""
-    m = _PERSON_NAME_IN_TEXT_RE.search(text[:8000])
+    """Authoritative name, taken from the document's own words.
+
+    Searched over the same window as the gate. "My name is ..." appears in the
+    qualifications section, which is exactly the part that can sit past a
+    narrow window on a document with a long preamble.
+    """
+    m = _PERSON_NAME_IN_TEXT_RE.search(text[:_GATE_WINDOW])
     return " ".join(m.group(1).split()) if m else None
 
 

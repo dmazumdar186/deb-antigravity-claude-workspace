@@ -61,7 +61,7 @@ from .layers import adversarial, contact, gates, linkcheck, messages, movability
 from .layers.extract import extract_directory, extract_from_document
 from .layers.validator import validate_all
 from .roles import ROLE1, ROLE2, ROLES, is_client_side
-from .sources import acp, company_bios, technical_evidence
+from .sources import acp, company_bios, oral_hearing_web, technical_evidence
 
 RUN_DIR = PKG_ROOT / "run" / CONFIG.campaign_id
 LOG_DIR = PKG_ROOT / "logs"
@@ -301,6 +301,56 @@ def stage_harvest_r2(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Stage 1c -- Role 2 breadth: oral-hearing evidence on scheme and authority sites
+# ---------------------------------------------------------------------------
+
+
+def stage_harvest_r2_web(force: bool = False) -> None:
+    """Briefs of evidence published outside An Coimisiun Pleanala.
+
+    acp.py gives DEPTH on cases we already know about; this gives BREADTH.
+    Major Irish schemes run their own public consent sites and publish the
+    whole oral-hearing bundle -- n6galwaycityringroad.ie, ringaskiddyrrc.ie,
+    sligococo.ie's N4 hearing pages, corkcity.ie, kildarecoco.ie's M7 pages.
+
+    This matters because roughly half the witness statements on the older ACP
+    cases are image-only scans with no text layer, so ACP alone cannot fill
+    Role 2. The scheme sites host the same documents, often as born-digital
+    PDFs.
+    """
+    if done("harvest_r2_web") and not force:
+        log("harvest_r2_web: cached, skipping")
+        return
+    log("harvest_r2_web: discovering oral-hearing evidence across scheme sites")
+
+    try:
+        found = oral_hearing_web.harvest()
+    except Exception as exc:
+        log("  discovery FAILED: " + repr(exc)[:140])
+        found = []
+
+    records: list[dict] = []
+    docs: list[RawDocument] = []
+    for wdoc, rdoc in found:
+        docs.append(rdoc)
+        records.append(
+            {
+                "case_no": "web",
+                "url": wdoc.url,
+                "doc_id": rdoc.doc_id,
+                "person_hint": wdoc.person_hint,
+                "party": None,
+                "chars": len(rdoc.content_text),
+            }
+        )
+        log("  " + str(wdoc.person_hint) + " <- " + wdoc.url[:78])
+
+    save_docs(docs)
+    save("harvest_r2_web", records)
+    log("harvest_r2_web: " + str(len(records)) + " documents")
+
+
+# ---------------------------------------------------------------------------
 # Stage 2 -- L5 extraction
 # ---------------------------------------------------------------------------
 
@@ -360,6 +410,9 @@ def stage_extract(force: bool = False) -> None:
 
     # -- Role 2: one witness statement is one person ------------------------
     r2 = load("harvest_r2")
+    if done("harvest_r2_web"):
+        seen_urls = {r["url"] for r in r2}
+        r2 = r2 + [r for r in load("harvest_r2_web") if r["url"] not in seen_urls]
     log("extract: Role 2 across " + str(len(r2)) + " witness documents")
 
     def do_witness(rec: dict) -> None:
@@ -545,6 +598,23 @@ def stage_gate(force: bool = False) -> None:
             "n_claims": len(pclaims),
             "client_side": is_client_side(person.current_employer),
         }
+    # Write the corrected identity back to extract.json. _persons_and_claims
+    # derives employer/title from the person's own evidenced words, and the
+    # gates and contact lookup both use that corrected value -- but the
+    # renderer reads extract.json directly, so without this write-back the
+    # dossier printed a blank employer for every oral-hearing candidate while
+    # the pipeline behind it knew perfectly well who they worked for.
+    data = load("extract")
+    for pid, person in persons.items():
+        rec = data["persons"].get(pid)
+        if rec is None:
+            continue
+        for field in ("current_title", "current_employer", "location"):
+            value = getattr(person, field, None)
+            if value:
+                rec[field] = value
+    save("extract", data)
+
     save("gate", out)
     log("gate: A=" + str(counts["A"]) + " B=" + str(counts["B"])
         + " C=" + str(counts["C"]) + " EXCLUDED=" + str(counts["EXCLUDED"]))
@@ -970,6 +1040,7 @@ def stage_poolmap(force: bool = False) -> None:
 STAGES = {
     "harvest_r1": stage_harvest_r1,
     "harvest_r2": stage_harvest_r2,
+    "harvest_r2_web": stage_harvest_r2_web,
     "extract": stage_extract,
     "validate": stage_validate,
     "gate": stage_gate,

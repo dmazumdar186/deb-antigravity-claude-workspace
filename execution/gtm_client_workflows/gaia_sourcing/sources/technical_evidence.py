@@ -62,6 +62,28 @@ _WORTH_FETCHING = re.compile(
     re.I,
 )
 
+# Domains that must NEVER become a cited source, whatever they contain.
+#
+# Lead-database and contact-scraper sites rank well for "<name> <firm>" and
+# carry enough boilerplate engineering vocabulary to pass the technical gate.
+# The first run of this plugin duly cited
+# prospeo.io/c/barrett-mahony-consulting-engineers as evidence of a candidate's
+# design experience. A managing director who clicks that link finds a scraped
+# contact record, and the dossier's entire promise -- every claim traced to a
+# public source that supports it -- collapses on that one click. A page being
+# fetchable and containing the right words does not make it evidence.
+#
+# Also blocked: the staff-directory pages this pipeline already extracted.
+# Re-finding ocsc.ie/people via search and extracting it a second time adds no
+# information, costs a second extraction, and produces duplicate claims.
+_BLOCKED_SOURCE = re.compile(
+    r"(prospeo\.io|rocketreach|zoominfo|signalhire|apollo\.io|lusha|"
+    r"contactout|leadiq|hunter\.io|clearbit|crunchbase|glassdoor|indeed\.|"
+    r"linkedin\.com|facebook\.com|x\.com|twitter\.com|"
+    r"/people/?$|/our-people/?$|/our-team/?$|/team/?$)",
+    re.I,
+)
+
 # Terms that make a page worth extracting from. If none appear, the page
 # cannot supply the primary signal and fetching it further is wasted budget.
 _TECHNICAL_RE = re.compile(
@@ -121,10 +143,11 @@ def discover_for(
                 continue
             if not (_TECHNICAL_RE.search(blob) or _WORTH_FETCHING.search(link)):
                 continue
-            # LinkedIn snippets cannot evidence competence -- 160 characters of
-            # meta description is a job title, not a design code. Excluded here
-            # rather than fetched and discarded.
-            if "linkedin.com" in link.lower():
+            # Lead databases, social profiles and the staff-directory pages we
+            # already extracted. A LinkedIn snippet is 160 characters of meta
+            # description -- a job title, not a design code -- and a scraped
+            # contact record is not evidence of anything at all.
+            if _BLOCKED_SOURCE.search(link):
                 continue
             seen.add(link)
             out.append(
@@ -139,6 +162,11 @@ def harvest(docs: list[TechDoc], rendered: bool = False) -> list[tuple[TechDoc, 
     term survive -- a page about the firm is not evidence about the person."""
     out: list[tuple[TechDoc, RawDocument]] = []
     for d in docs:
+        # Checked again here, not only at discovery: a redirect can land a
+        # clean-looking search result on a blocked host, and this is the last
+        # point before the URL becomes a citation on a card.
+        if _BLOCKED_SOURCE.search(d.url):
+            continue
         rd = fetch_rendered(d.url) if rendered else fetch(d.url, source_type="other")
         if rd is None or len(rd.content_text) < 300:
             continue

@@ -484,3 +484,91 @@ def test_unknown_subject_still_requires_a_name(monkeypatch, doc):
 
     assert claims == []
     assert hints is None
+
+
+# ---------------------------------------------------------------------------
+# Source quality -- what may become a citation on a card
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        # Lead databases rank well for "<name> <firm>" and carry enough
+        # engineering boilerplate to pass a keyword gate. The first run of the
+        # technical-evidence plugin cited this exact page as evidence of a
+        # candidate's design experience.
+        "https://prospeo.io/c/barrett-mahony-consulting-engineers",
+        "https://rocketreach.co/john-murphy-email",
+        "https://www.zoominfo.com/p/Jane-Doe/123",
+        "https://www.linkedin.com/in/someone",
+        # Already extracted directly; re-finding it via search adds nothing
+        # and produces duplicate claims.
+        "https://ocsc.ie/people/",
+        "https://www.barrettmahony.com/practice/team",
+    ],
+)
+def test_blocked_sources_never_become_citations(url):
+    from gtm_client_workflows.gaia_sourcing.sources import technical_evidence as T
+
+    assert T._BLOCKED_SOURCE.search(url), url + " must never be cited"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.acei.ie/wp-content/uploads/2026/06/ACEI_2026-yearbook.pdf",
+        "https://www.engineersireland.ie/Engineers-Journal/second-generation-eurocodes",
+        "https://arrow.tudublin.ie/engschcivcon/42/",
+        "https://www.barrettmahony.com/projects/samuel-hayes-footbridge",
+    ],
+)
+def test_legitimate_technical_sources_are_allowed(url):
+    from gtm_client_workflows.gaia_sourcing.sources import technical_evidence as T
+
+    assert not T._BLOCKED_SOURCE.search(url), url + " is a legitimate source"
+
+
+def test_harvest_refuses_a_blocked_url_without_fetching(monkeypatch):
+    """The block is re-checked at fetch time, after any redirect."""
+    from gtm_client_workflows.gaia_sourcing.sources import technical_evidence as T
+
+    calls = []
+    monkeypatch.setattr(T, "fetch", lambda *a, **k: calls.append(a) or None)
+    doc = T.TechDoc(url="https://prospeo.io/c/some-firm", person_id="p",
+                    full_name="Sean O'Brien")
+    assert T.harvest([doc]) == []
+    assert calls == [], "a blocked URL must not even be fetched"
+
+
+# ---------------------------------------------------------------------------
+# Client-side detection must survive accents and mojibake
+# ---------------------------------------------------------------------------
+
+_FFFD = chr(0xFFFD)
+
+
+@pytest.mark.parametrize(
+    'employer',
+    [
+        'Iarnrod Eireann',
+        'Iarnród Éireann',
+        # What a cp1252-misread PDF actually yields. On the 2026-08-19 run this
+        # exact string put a Programme Manager at the national rail operator
+        # into the delivered shortlist instead of the SPEC 2.3 sidebar.
+        'Programme Manager in the Capital Investments division of Iarnr' + _FFFD + 'd ' + _FFFD + 'ireann',
+        'Uisce Éireann',
+        'An Coimisiún Pleanála',
+    ],
+)
+def test_client_side_survives_accents_and_mojibake(employer):
+    assert is_client_side(employer) is True
+
+
+@pytest.mark.parametrize(
+    'employer',
+    ['Jacobs', 'Agencies Ltd', "O'Connor Sutton Cronin",
+     'Barrett Mahony Consulting Engineers', 'Horganlynch'],
+)
+def test_consultancies_are_not_client_side(employer):
+    assert is_client_side(employer) is False

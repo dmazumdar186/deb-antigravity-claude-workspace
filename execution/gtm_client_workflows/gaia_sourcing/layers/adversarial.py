@@ -183,6 +183,34 @@ def _demote(tier: str) -> str:
     return {"A": "B", "B": "C", "C": "C"}.get(tier, tier)
 
 
+def _lines(items) -> list[str]:
+    """Coerce a findings/unknowns/strengths list to clean strings.
+
+    The schema asks for strings and the model occasionally returns objects
+    ({"finding": "...", "severity": "..."}) instead. Left unguarded, one such
+    item raised AttributeError and cost that candidate their entire second
+    opinion -- the card then had to say REVIEW INCOMPLETE over a formatting
+    detail. A dict is flattened to its text values rather than dropped,
+    because unlike a claim, a finding carries no evidence contract to break:
+    the worst case is a slightly clumsy sentence on the card, and the best
+    case is a real objection that would otherwise have been lost.
+    """
+    out: list[str] = []
+    for item in items or []:
+        if item is None:
+            continue
+        if isinstance(item, str):
+            text = item
+        elif isinstance(item, dict):
+            text = " ".join(str(v) for v in item.values() if isinstance(v, (str, int, float)))
+        else:
+            text = str(item)
+        text = text.strip()
+        if text:
+            out.append(text)
+    return out
+
+
 def critique(
     person: Person,
     claims: list[ValidatedClaim],
@@ -232,9 +260,9 @@ def critique(
             ],
         )
 
-    findings = [f.strip() for f in (out.get("adversarial_findings") or []) if f.strip()]
-    unknowns = [u.strip() for u in (out.get("unknowns") or []) if u.strip()]
-    strengths = [s.strip() for s in (out.get("strengths") or []) if s.strip()][:4]
+    findings = _lines(out.get("adversarial_findings"))
+    unknowns = _lines(out.get("unknowns"))
+    strengths = _lines(out.get("strengths"))[:4]
     severity = str(out.get("severity", "none")).lower()
 
     material = severity in ("material", "disqualifying") or any(

@@ -21,6 +21,7 @@ judgement, a weight, or a score.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 from .core.contracts import HardGate, JobSpec
 
@@ -249,13 +250,48 @@ CLIENT_SIDE_BODIES = [
 ]
 
 
+# Stems that survive any mangling of an Irish-language body name. The full
+# names above are matched after normalisation, but normalisation cannot repair
+# a character that was already lost: a PDF extracted through a cp1252
+# misread turns "Iarnrod Eireann" into "Iarnr<FFFD>d <FFFD>ireann", and
+# stripping the replacement characters leaves "iarnrd ireann", which matches
+# neither the accented nor the unaccented spelling.
+#
+# This is not cosmetic. On the 2026-08-19 run it put a Programme Manager at
+# Iarnrod Eireann -- the national rail operator, unambiguously client-side --
+# into the delivered shortlist instead of the sidebar, which is precisely the
+# error SPEC 2.3 exists to prevent.
+_CLIENT_SIDE_STEMS = [
+    "iarnr",      # Iarnrod / Iarnrod / Iarnr?d Eireann
+    "coimisi",    # An Coimisiun / Coimisiun Pleanala
+    "uisce",      # Uisce Eireann
+    "coras iompair",
+]
+
+
+def _normalise(text: str) -> str:
+    """Lowercase, drop accents, drop replacement characters.
+
+    "Iarnrod Eireann", "Iarnrod Eireann" and "Iarnr<FFFD>d <FFFD>ireann" must
+    all reduce to something the stem list can match.
+    """
+    decomposed = unicodedata.normalize("NFKD", text.lower())
+    return "".join(
+        ch for ch in decomposed
+        if not unicodedata.combining(ch) and ch != "�"
+    )
+
+
 # Short acronyms need word boundaries: a bare "cie" substring matches
 # "agencies" and "societies", and "tii" matches any typo'd double-i. Long
 # names are safe as plain substrings.
 _CLIENT_SIDE_RE = re.compile(
     "|".join(
-        (r"\b" + re.escape(b) + r"\b") if len(b) <= 4 else re.escape(b)
-        for b in CLIENT_SIDE_BODIES
+        [
+            (r"\b" + re.escape(b) + r"\b") if len(b) <= 4 else re.escape(b)
+            for b in CLIENT_SIDE_BODIES
+        ]
+        + [r"\b" + re.escape(s) for s in _CLIENT_SIDE_STEMS]
     ),
     re.I,
 )
@@ -264,4 +300,4 @@ _CLIENT_SIDE_RE = re.compile(
 def is_client_side(employer: str | None) -> bool:
     if not employer:
         return False
-    return bool(_CLIENT_SIDE_RE.search(employer))
+    return bool(_CLIENT_SIDE_RE.search(_normalise(employer)))
