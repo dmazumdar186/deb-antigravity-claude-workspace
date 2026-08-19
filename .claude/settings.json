@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "model": "claude-opus-4-8",
+  "model": "claude-opus-5",
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "teammateMode": "in-process"
@@ -53,7 +53,7 @@
       "Bash(git checkout -- *)",
       "Bash(git clean *)"
     ],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "auto"
   },
   "attribution": {
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/safety-guard.sh\""
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/safety-guard.sh\""
           }
         ]
       },
@@ -74,7 +74,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/notify-done.sh\" Alarm01.wav",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/notify-done.sh\" Alarm01.wav",
             "timeout": 5
           }
         ]
@@ -86,7 +86,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/notify-done.sh\" Alarm01.wav",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/notify-done.sh\" Alarm01.wav",
             "timeout": 5
           }
         ]
@@ -96,7 +96,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/note-taker.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/note-taker.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
             "async": true
           }
         ]
@@ -106,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/format-python.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\""
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/format-python.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\""
           }
         ]
       },
@@ -115,7 +115,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/documenter-prompt.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/documenter-prompt.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
             "async": true
           }
         ]
@@ -126,7 +126,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/session-start.sh\"",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"",
             "timeout": 35
           }
         ]
@@ -137,12 +137,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/notify-done.sh\" tada.wav",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/notify-done.sh\" tada.wav",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "bash \".claude/hooks/verdict-table-check.sh\"",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/verdict-table-check.sh\"",
             "timeout": 5
           }
         ]
@@ -153,7 +153,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \".claude/hooks/notify-done.sh\" Alarm01.wav",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/notify-done.sh\" Alarm01.wav",
             "timeout": 5
           }
         ]
