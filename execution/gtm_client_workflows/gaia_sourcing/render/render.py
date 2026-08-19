@@ -76,11 +76,35 @@ def _load(name: str, default=None):
 # The repair is deliberately narrow. A U+FFFD anywhere else is left visible,
 # because an unexplained corruption should look corrupted rather than be
 # silently papered over.
-_MOJIBAKE_APOSTROPHE = re.compile(r"(?<=[A-Za-z])�(?=[A-Za-z])")
+#
+# The rule is NOT "between two letters". A mis-decoded fada is also between
+# two letters, and blanket-substituting an apostrophe turned "Iarnród" into
+# "Iarnr’d" on the client-side sidebar of the delivered dossier -- inventing a
+# misspelling of the national rail operator's name where the source had a
+# perfectly ordinary accented o. An apostrophe is only plausible after the
+# one- or two-letter name particles that actually take one, so the repair is
+# anchored to those: O’Reilly, D’Arcy, Mc’, Ma’.
+_MOJIBAKE_APOSTROPHE = re.compile(r"(?<=\b[A-Z])�(?=[A-Z][a-z])")
+
+# Irish organisation names whose accented characters this pipeline's PDF text
+# layer routinely loses. Restored by name rather than guessed at, because
+# there is no general way to recover which letter a U+FFFD used to be -- and
+# a card that promises verbatim evidence must not display a corrupted
+# employer for the person it is describing.
+_CANONICAL_ORGS = [
+    (re.compile(r"\bIarnr.?d\s+.?ireann\b", re.I), "Iarnród Éireann"),
+    (re.compile(r"\bAn\s+Coimisi.?n\s+Plean.?la\b", re.I), "An Coimisiún Pleanála"),
+    (re.compile(r"\bAn\s+Bord\s+Plean.?la\b", re.I), "An Bord Pleanála"),
+    (re.compile(r"\bU?isce\s+.?ireann\b", re.I), "Uisce Éireann"),
+]
 
 
 def repair(s: str) -> str:
-    return _MOJIBAKE_APOSTROPHE.sub("’", s or "")
+    s = s or ""
+    if "�" in s:
+        for pattern, canonical in _CANONICAL_ORGS:
+            s = pattern.sub(canonical, s)
+    return _MOJIBAKE_APOSTROPHE.sub("’", s)
 
 
 def e(s) -> str:

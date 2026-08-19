@@ -99,6 +99,7 @@ def fetch(
             content_text=text,
             http_status=meta["http_status"],
             title=meta.get("title"),
+            text_source=meta.get("text_source", "text_layer"),
         )
 
     _throttle(url)
@@ -125,8 +126,9 @@ def fetch(
         )
         return None
 
+    is_pdf = "pdf" in ctype or url.lower().endswith(".pdf")
     try:
-        if "pdf" in ctype or url.lower().endswith(".pdf"):
+        if is_pdf:
             text = _pdf_to_text(resp.content)
         elif "html" in ctype or "xml" in ctype:
             text = _html_to_text(resp.content)
@@ -140,6 +142,21 @@ def fetch(
         return None
 
     text = normalise_ws(text)
+
+    # An image-only PDF has no text layer, and on the ACP corpus that is where
+    # a large share of the consultancy witness evidence lives. Recovered by
+    # transcription rather than abandoned -- and marked, because a quote
+    # verified against a transcription is a weaker claim than one verified
+    # against the document's own text. See core/ocr.py.
+    text_source: str = "text_layer"
+    if not text.strip() and is_pdf:
+        from .ocr import transcribe_pdf
+
+        recovered = transcribe_pdf(resp.content, url)
+        if recovered and recovered.strip():
+            text = normalise_ws(recovered)
+            text_source = "ocr"
+            log_ocr(url, len(text))
 
     # A 200 that parses to nothing is a FAILED fetch, not an empty document.
     # An image-only scanned PDF -- and An Coimisiun Pleanala publishes many --
@@ -180,6 +197,7 @@ def fetch(
                     "http_status": resp.status_code,
                     "fetched_at": date.today().isoformat(),
                     "title": title,
+                    "text_source": text_source,
                     "content_type": ctype,
                 }
             ),
@@ -194,7 +212,19 @@ def fetch(
         content_text=text,
         http_status=resp.status_code,
         title=title,
+        text_source=text_source,
     )
+
+
+def log_ocr(url: str, chars: int) -> None:
+    """Recovered scans are announced, never silent.
+
+    A run where half the corpus arrived by transcription is a materially
+    different run from one where none did, and the operator should be able to
+    see that in the log without going looking for it.
+    """
+    print("[cache] OCR recovered " + str(chars) + " chars from a scanned PDF: "
+          + url[:90], flush=True)
 
 
 def _extract_title(raw: bytes, ctype: str) -> Optional[str]:

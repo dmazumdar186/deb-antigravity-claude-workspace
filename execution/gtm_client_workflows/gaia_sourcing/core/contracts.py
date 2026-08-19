@@ -74,6 +74,13 @@ class RawDocument(BaseModel):
     content_text: str  # normalised plain text
     http_status: int
     title: Optional[str] = None
+    # Where content_text came from. "text_layer" is the document's own text
+    # and is what L6's character-by-character check was designed around.
+    # "ocr" means the source was an image-only scan and the text is a model's
+    # transcription of it -- a weaker guarantee, surfaced on the card rather
+    # than quietly folded in with the rest. Defaulted so every document
+    # written before this field existed still loads.
+    text_source: Literal["text_layer", "ocr"] = "text_layer"
 
 
 # --------------------------------------------------------------------------

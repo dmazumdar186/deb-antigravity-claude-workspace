@@ -319,13 +319,55 @@ PRICE_EUR: dict[str, dict[str, float]] = {
 
 
 def cost_eur(model: str, stats: dict) -> float:
+    """Cache-aware, per ~/.claude/rules/python-hardening.md rule 4.
+
+    Cache reads and writes were counted at zero while the Anthropic backend
+    was collecting both, so every cached call understated its own cost. Under
+    prompt caching that is most of the input on a long extraction run, and a
+    ceiling fed by an understated number is not a ceiling.
+    """
     p = PRICE_EUR.get(model)
     if p is None:
         p = {"input": 4.60, "output": 23.00}  # unknown: assume dearest
+    inp = p["input"]
     return (
-        stats.get("input_tokens", 0) * p["input"]
+        stats.get("input_tokens", 0) * inp
         + stats.get("output_tokens", 0) * p["output"]
+        + stats.get("cache_read_tokens", 0) * p.get("cache_read", inp * 0.1)
+        + stats.get("cache_write_tokens", 0) * p.get("cache_write", inp * 1.25)
     ) / 1_000_000
+
+
+class CostCeilingExceeded(RuntimeError):
+    """The run has spent its budget and must stop rather than continue.
+
+    Distinct from every other failure in the pipeline because it must NOT be
+    contained per-item: `run_all` degrades by one item on an ordinary error,
+    which for a budget breach would mean quietly burning the rest of the
+    stage one contained failure at a time.
+    """
+
+
+_SPEND_LOCK = threading.Lock()
+_SPEND_EUR = 0.0
+
+
+def spend_eur() -> float:
+    with _SPEND_LOCK:
+        return _SPEND_EUR
+
+
+def reset_spend() -> None:
+    global _SPEND_EUR
+    with _SPEND_LOCK:
+        _SPEND_EUR = 0.0
+
+
+def _record_spend(amount: float) -> float:
+    global _SPEND_EUR
+    with _SPEND_LOCK:
+        _SPEND_EUR += amount
+        return _SPEND_EUR
 
 
 def call_role(
@@ -347,12 +389,29 @@ def call_role(
             result, stats = backend(model, system, user, tool, max_tokens, temperature)
             if provider == "gemini":
                 _gemini_reward()
+            spent = cost_eur(model, stats)
+            total = _record_spend(spent)
             meta = {
                 "provider": provider,
                 "model": model,
-                "cost_eur": cost_eur(model, stats),
+                "cost_eur": spent,
+                "run_total_eur": total,
                 **stats,
             }
+            # SPEC.md section 14. The ceiling was declared in RunConfig and
+            # enforced nowhere: the only CostTracker lived in core/llm.py,
+            # which nothing imported. Every layer dutifully appended its cost
+            # metadata to a RUN_COST list that nothing ever read, so a runaway
+            # loop would have been invisible until the invoice arrived.
+            from .config import CONFIG
+
+            if total > CONFIG.max_cost_eur:
+                raise CostCeilingExceeded(
+                    "Run cost EUR " + format(total, ".2f") + " exceeds the "
+                    "ceiling of EUR " + format(CONFIG.max_cost_eur, ".2f")
+                    + ". Raise RunConfig.max_cost_eur deliberately, or find "
+                    "the loop that is spending it."
+                )
             return result, meta
         except urllib.error.HTTPError as exc:
             last = exc
@@ -379,6 +438,13 @@ def call_role(
                 "LLM " + provider + "/" + model + " HTTP " + str(code) + ": "
                 + body.decode("utf-8", errors="replace")
             ) from exc
+        except CostCeilingExceeded:
+            # Never retried and never wrapped. The generic handler below would
+            # otherwise sleep and retry a budget breach three times, then
+            # re-raise it as an ordinary RuntimeError that run_all contains
+            # per-item -- turning "stop, you are over budget" into "spend the
+            # rest of the stage one contained failure at a time".
+            raise
         except Exception as exc:
             last = exc
             # A 400 is a permanent contract error (bad schema, deprecated

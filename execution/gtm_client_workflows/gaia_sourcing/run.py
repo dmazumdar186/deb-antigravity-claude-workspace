@@ -45,7 +45,7 @@ from typing import Optional
 
 from .core.cache import fetch_rendered
 from .core.config import CONFIG, PKG_ROOT
-from .core.providers import autoselect_plan
+from .core.providers import CostCeilingExceeded, autoselect_plan, spend_eur
 from .core.contracts import (
     Claim,
     ContactRecord,
@@ -92,6 +92,14 @@ def run_all(fn, items, workers: int = 4, label: str = "") -> int:
         for fut in as_completed(futures):
             try:
                 fut.result()
+            except CostCeilingExceeded:
+                # The one failure that must NOT be contained. Degrading by one
+                # item is right for a bad document; for a budget breach it
+                # would spend the rest of the stage one contained failure at a
+                # time, which is the opposite of what a ceiling is for.
+                for pending in futures:
+                    pending.cancel()
+                raise
             except Exception as exc:
                 failures += 1
                 log("  [" + (label or "worker") + "] item failed: " + repr(exc)[:140])
@@ -567,10 +575,26 @@ def _persons_and_claims() -> tuple[dict[str, Person], dict[str, list[ValidatedCl
             c for c in by_person.get(pid, [])
             if c.dimension == "employer" and c.confidence == "direct"
         ]
-        if stated:
-            person.current_employer = (
-                _employer_from_claim(stated[0].assertion) or person.current_employer
-            )
+        # EVERY employer claim is tried, not just the first. The first is
+        # often the one that names a city or a past employer ("Currently
+        # leader of the Arup maritime engineering team in Dublin"), and
+        # stopping there fell back to the unvalidated model hint -- which is
+        # how "Dublin" reached the employer field on a delivered pool map.
+        resolved = None
+        for claim in stated:
+            resolved = _employer_from_claim(claim.assertion)
+            if resolved:
+                break
+        # The fallback is the model's freeform hint from L5. It is a guess
+        # with no evidence contract behind it, so it goes through the same
+        # rejection rules as a parsed claim rather than straight onto a card.
+        # Unfiltered, it supplied "Environment", "Tunnels and Underground
+        # Infrastructure" and "Dublin" as employers.
+        person.current_employer = (
+            resolved
+            or _clean_employer_name(person.current_employer or "")
+            or None
+        )
 
     return persons, by_person, roles
 
@@ -580,8 +604,13 @@ def _persons_and_claims() -> tuple[dict[str, Person], dict[str, list[ValidatedCl
 # "Senior Associate Director of Highways in Jacobs" must yield "Jacobs", not
 # "Highways in Jacobs" -- with a lazy prefix the engine takes the first "of"
 # and the character class happily swallows the rest of the sentence.
+# Parentheses are part of the character class because Irish firms are
+# routinely written with their initialism attached -- "Archaeological
+# Management Solutions (AMS)", "Transport Infrastructure Ireland (TII)".
+# Without them the capture stopped dead at the bracket and the whole claim
+# yielded nothing.
 _EMPLOYER_TAIL_RE = re.compile(
-    r"^.*\b(?:at|with|for|in|of)\s+([A-Z][\w'&.\- ]{2,60}?)\s*\.?$"
+    r"^.*\b(?:at|with|for|in|of)\s+([A-Z][\w'’&.\-() ]{2,60}?)\s*\.?$"
 )
 
 # Captures that are a place or an org-chart position rather than an employer.
@@ -595,18 +624,99 @@ _NOT_AN_EMPLOYER_RE = re.compile(
     re.I,
 )
 
+# An employer named by an explicit employment verb. This is the STRONGEST cue
+# and it is tried FIRST, because the "last preposition wins" rule below is
+# right only for the shape it was written for.
+#
+# "Employed by Jacobs as Senior Associate Director of Environment" ends in a
+# DIVISION, not an employer, and the last preposition yields "Environment".
+# Four of the eighteen Role 2 candidates carried a division or a city in the
+# employer field on the delivered pool map for exactly this reason: "Dublin"
+# (from "leader of the Arup maritime engineering team in Dublin"), "Land &
+# Property Services", "Tunnels and Underground Infrastructure", "MetroLink".
+# The employer is what follows the employment verb, and it STOPS at the
+# clause that starts describing the job.
+# The verb is case-folded with a scoped group; the capture is NOT, because a
+# capitalised word is what marks an organisation. A blanket re.I here would
+# case-fold [A-Z] too and "employed by the same team as" would capture "the
+# same team as". Claims routinely open the sentence -- "Employed by Jacobs
+# as ..." -- so a lowercase-only literal matches almost none of them.
+_EMPLOYED_BY_RE = re.compile(
+    r"\b(?i:employed\s+(?:by|at|with)|works?\s+for|working\s+(?:for|at)|"
+    r"joined|is\s+with|am\s+with)\s+"
+    r"([A-Z][\w'’&.\-]*(?:\s+[A-Z(][\w'’&.\-)]*){0,5})"
+)
 
-def _employer_from_claim(assertion: str) -> Optional[str]:
-    m = _EMPLOYER_TAIL_RE.search(assertion.strip())
-    if not m:
+# "Employed as TII's Project Director for MetroLink" -- the possessive names
+# the employer and the tail names the scheme, so the last preposition picks
+# the scheme. A scheme is not an employer.
+_EMPLOYER_POSSESSIVE_RE = re.compile(
+    r"\b([A-Z][\w&.\-]*(?:\s+[A-Z][\w&.\-]*){0,4})['’]s\s+[A-Za-z]"
+)
+
+# Where an employer name ends and the job description begins.
+_CLAUSE_BREAK_RE = re.compile(
+    r"\s+(?:as|in|on|since|and|where|which|to|for|from|responsible)\b", re.I
+)
+
+# A possessive division tail: "Jacobs' Transport Planning team" is Jacobs.
+_POSSESSIVE_DIVISION_RE = re.compile(
+    r"^(.*?)['’]s?\s+(?:[\w&.\-]+\s+){0,3}"
+    r"(?:team|division|department|group|practice|unit|office|branch|business)$",
+    re.I,
+)
+
+# A capture that is only a place. "Dublin" is where someone works, not who
+# they work for, and it overwrote a real employer on a delivered card.
+_PLACE_ONLY = {
+    "dublin", "cork", "limerick", "galway", "waterford", "sligo", "athlone",
+    "kilkenny", "ennis", "tralee", "wexford", "drogheda", "dundalk", "belfast",
+    "london", "ireland", "the netherlands", "netherlands", "uk",
+    "united kingdom", "northern ireland", "republic of ireland", "europe",
+}
+
+
+def _clean_employer_name(name: str) -> Optional[str]:
+    """Reduce a captured span to an employer, or reject it."""
+    name = name.strip().strip(" .,;:")
+    # "Jacobs' Transport Planning team" -> "Jacobs"
+    m = _POSSESSIVE_DIVISION_RE.match(name)
+    if m and m.group(1).strip():
+        name = m.group(1).strip()
+    name = name.strip().strip(" .,;:'’")
+    if len(name) < 3 or len(name.split()) > 6:
         return None
-    name = m.group(1).strip(" .")
-    # Guard against swallowing a sentence tail that is not a company.
-    if len(name.split()) > 6 or len(name) < 3:
+    if name.lower() in _PLACE_ONLY:
         return None
     if _NOT_AN_EMPLOYER_RE.search(name):
         return None
     return name
+
+
+def _employer_from_claim(assertion: str) -> Optional[str]:
+    """Read the employer out of an evidenced employer claim.
+
+    Tried in descending order of how strongly the phrasing commits to an
+    employer, because the weakest cue -- a trailing preposition -- is also
+    the one most often pointing at a division, a scheme or a city.
+    """
+    text = assertion.strip()
+
+    for pattern in (_EMPLOYED_BY_RE, _EMPLOYER_POSSESSIVE_RE):
+        m = pattern.search(text)
+        if not m:
+            continue
+        span = _CLAUSE_BREAK_RE.split(m.group(1))[0]
+        cleaned = _clean_employer_name(span)
+        if cleaned:
+            return cleaned
+
+    # Weakest cue, kept for "Senior Associate Director of Highways in Jacobs",
+    # where the employer genuinely is last.
+    m = _EMPLOYER_TAIL_RE.search(text)
+    if m:
+        return _clean_employer_name(m.group(1))
+    return None
 
 
 def stage_gate(force: bool = False) -> None:
@@ -1139,6 +1249,10 @@ def main() -> int:
         fn(force=args.force)
     log("")
     log("done in " + format(time.time() - t0, ".1f") + "s")
+    # The operator reads this number, so it is in EUR per ~/.claude/rules/
+    # currency-eur.md. It was previously computed per call and discarded.
+    log("LLM spend this run: EUR " + format(spend_eur(), ".2f")
+        + " of a EUR " + format(CONFIG.max_cost_eur, ".2f") + " ceiling")
     return 0
 
 
