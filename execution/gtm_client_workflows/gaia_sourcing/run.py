@@ -1099,6 +1099,15 @@ def _delivery_set() -> dict[str, list[str]]:
             t = _final_tier(pid, gate_out, adv)
             if t == "EXCLUDED":
                 continue
+            # pid is the final key on purpose. Without it two candidates tied
+            # on (tier, n_claims) are ordered by whatever the upstream
+            # iteration happened to produce, and the renderer -- which walked
+            # a different structure -- resolved the same tie the other way.
+            # The delivered dossier shipped two people the contact stage had
+            # never enriched, so their cards carried no email, no LinkedIn and
+            # no way to reach them at all, while two candidates that HAD been
+            # enriched were dropped. Nothing errored; the two lists simply
+            # disagreed.
             rows.append((order.get(t, 3), -g["n_claims"], pid))
         rows.sort()
         out[role_id] = [pid for _, _, pid in rows][: spec.target_count]
@@ -1287,6 +1296,16 @@ def stage_poolmap(force: bool = False) -> None:
             "near_misses": sorted(near_misses),
             "client_side_sidebar": sorted(set(client_side)),
         }
+    # The delivered shortlist, written down rather than recomputed.
+    #
+    # Every stage downstream of the gates derived this list for itself, and the
+    # renderer's copy applied a slightly different filter and resolved ties
+    # differently. The result was a dossier containing two people the contact
+    # stage had never seen -- cards with no email, no LinkedIn and no route --
+    # while two enriched candidates were silently dropped. One list, saved
+    # once, read by everyone.
+    save("delivery", delivery)
+
     save("poolmap", out)
     for role_id, m in out.items():
         log("poolmap " + role_id + ": assessed=" + str(m["profiles_assessed"])

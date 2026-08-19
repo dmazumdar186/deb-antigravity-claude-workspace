@@ -30,6 +30,7 @@ import re
 import sys
 from datetime import date
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from ..core.cache import head_ok
 from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
@@ -143,7 +144,60 @@ h2 .count{color:var(--muted);font-weight:400;font-size:15px}
   border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin:18px 0;
   background:var(--bg);
 }
-.card h3{margin:0;font-size:20px}
+.card h3{margin:0;font-size:20px;letter-spacing:-.01em}
+
+/* Identity and the way to reach them, on one line. Contact used to be the
+   last section of a ~980-word card. */
+.head{
+  display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-start;
+  justify-content:space-between;
+}
+.who{flex:1 1 280px;min-width:0}
+.act{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:0 0 auto}
+.cta{
+  display:inline-block;font-size:14px;font-weight:600;text-decoration:none;
+  background:var(--accent);color:#fff;border-radius:6px;padding:7px 13px;
+  transition:background 160ms cubic-bezier(.22,1,.36,1);
+}
+a.cta:hover,a.cta:focus-visible{background:#17583f}
+.reach{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.reach-note{margin:0 0 6px;color:var(--muted);font-size:13.5px;max-width:68ch}
+.reach-alt{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px 16px}
+.reach-alt li{margin:0;font-size:13.5px}
+.mov{
+  margin:14px 0 0;font-size:14px;color:var(--muted);max-width:70ch;
+}
+.mov-k{
+  font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:11.5px;
+  border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-right:8px;
+  color:var(--muted);white-space:nowrap;
+}
+.mov-high{color:var(--accent);border-color:var(--accent)}
+.mov-low{color:var(--warn);border-color:#e0b46a}
+
+/* Two roles, two deliverables. Run together they read as one list. */
+.role-band{
+  margin:52px 0 0;padding:20px 22px;border-radius:10px;
+  background:var(--panel);border:1px solid var(--line);
+}
+.role-band:first-of-type{margin-top:32px}
+.role-band h2{margin:0;padding:0;border:0;font-size:23px;letter-spacing:-.01em}
+.role-band .of{
+  display:inline-block;margin-left:10px;font-size:13px;font-weight:600;
+  color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+  padding:2px 10px;vertical-align:middle;
+}
+.role-band .of.short{color:var(--warn);border-color:#e0b46a}
+.role-band .lede{margin:8px 0 0}
+.toc{
+  display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 0;padding:0;list-style:none;
+}
+.toc li{margin:0}
+.toc a{
+  display:inline-block;font-size:14px;text-decoration:none;border:1px solid var(--line);
+  border-radius:6px;padding:7px 12px;background:var(--panel);
+}
+.toc a:hover,.toc a:focus-visible{border-color:var(--accent)}
 .role{color:var(--muted);font-size:15px;margin:2px 0 0}
 .tier{
   display:inline-block;font-size:12.5px;font-weight:600;letter-spacing:.02em;
@@ -205,6 +259,10 @@ footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;
   .wrap{padding:20px 14px 60px} h1{font-size:23px} .card{padding:16px}
 }
 @media print{
+  .role-band{break-after:avoid-page}
+  details{display:block}
+  details>summary{display:none}
+
   body{font-size:11.5pt} .wrap{max-width:none;padding:0}
   .card{break-inside:avoid;page-break-inside:avoid;border-color:#bbb}
   details{border:0;padding:0} details[open] summary{margin-bottom:6px}
@@ -359,6 +417,120 @@ def _short_url(u: str) -> str:
     return s if len(s) <= 78 else s[:75] + "..."
 
 
+def _reach_routes(person: dict, contact: dict) -> list[tuple[str, str, str]]:
+    """Ranked ways to actually reach this person. Never returns an empty list.
+
+    On the first delivered run, six of thirteen cards were a dead end: five had
+    a pattern-guessed address the card itself told the reader not to use for a
+    first touch and no LinkedIn URL, and one had nothing at all. A shortlist
+    entry nobody can contact is not a shortlist entry.
+
+    A missing LinkedIn URL never meant the person has no LinkedIn -- it meant
+    the enrichment provider did not return one. The profile is still findable,
+    so the card hands over the search rather than a shrug. Same for the firm:
+    every one of these people works somewhere with a switchboard, and asking
+    for an engineer by name is ordinary recruiter practice.
+
+    Each route is (kind, label, href-or-empty), strongest first.
+    """
+    from ..layers.contact import _employer_domain, domain_of
+
+    routes: list[tuple[str, str, str]] = []
+    name = (person.get("full_name") or "").strip()
+    employer = (person.get("current_employer") or "").strip()
+    status = contact.get("email_status", "none")
+    email = contact.get("email")
+    li = contact.get("linkedin_url")
+
+    if li:
+        routes.append(("linkedin", "LinkedIn profile", str(li)))
+    if email and status in ("verified", "catch_all"):
+        label = ("Work email, SMTP-verified" if status == "verified"
+                 else "Work email, catch-all domain")
+        routes.append(("email", label + " — " + str(email), "mailto:" + str(email)))
+
+    # Always available, and the reason no card is a dead end.
+    if name:
+        query = name + ((" " + employer) if employer else "")
+        routes.append((
+            "search",
+            "Find on LinkedIn — search \"" + query + "\"",
+            "https://www.linkedin.com/search/results/people/?keywords="
+            + quote_plus(query),
+        ))
+
+    domain = _employer_domain(employer) or domain_of(
+        "https://" + str(email).split("@")[-1] if email and "@" in str(email) else None)
+    if domain:
+        routes.append((
+            "switchboard",
+            "Call " + (employer or domain) + " and ask for " + (name or "them"),
+            "https://" + domain,
+        ))
+    elif employer:
+        # No resolved domain is not the same as no firm. Cronin & Sutton is a
+        # real Dublin consultancy with a real switchboard; it simply is not in
+        # the Role 1 sourcing list, so no domain was ever fetched for it.
+        routes.append((
+            "switchboard",
+            "Find " + employer + " and ask for " + (name or "them"),
+            "https://duckduckgo.com/?q=" + quote_plus(employer + " Ireland contact"),
+        ))
+
+    if email and status == "pattern_guess":
+        routes.append((
+            "guess",
+            "Inferred address, unverified — " + str(email),
+            "mailto:" + str(email),
+        ))
+
+    if person.get("profile_url"):
+        routes.append(("profile", "Their profile page at the firm",
+                       str(person["profile_url"])))
+    return routes
+
+
+def _reach_block(person: dict, contact: dict, links: dict) -> str:
+    routes = _reach_routes(person, contact)
+    best = routes[0]
+
+    KIND_NOTE = {
+        "linkedin": "Message here first. Approaching a senior engineer at their "
+                    "employer's mailbox about leaving that employer is monitored "
+                    "mail and poor tradecraft.",
+        "email": "Confirmed deliverable. Still second choice behind LinkedIn.",
+        "search": "The provider returned no profile URL, which is not the same as "
+                  "there being no profile. This search finds it.",
+        "switchboard": "No confirmed digital route. Ask the switchboard for them "
+                       "by name — ordinary practice, and it works.",
+        "guess": "Built from the firm's naming pattern. Never use it for a first "
+                 "touch.",
+        "profile": "",
+    }
+
+    # The primary route is the button in the card header; repeating it here
+    # would be the same sentence twice.
+    out = ['<div class="reach">']
+    note = KIND_NOTE.get(best[0], "")
+    if note:
+        out.append('<p class="reach-note">' + e(note) + "</p>")
+
+    if len(routes) > 1:
+        out.append('<ul class="reach-alt">')
+        for kind, label, href in routes[1:]:
+            out.append("<li>" + ('<a href="' + e(href) + '">' + e(label) + "</a>"
+                                 if href else e(label)) + "</li>")
+        out.append("</ul>")
+
+    checks = links.get("checks", []) if links else []
+    dead = [c for c in checks if c.get("alive") is False]
+    if dead:
+        out.append('<p class="reach-note gap">' + str(len(dead))
+                   + " source link(s) did not return 200 — check before citing.</p>")
+    out.append("</div>")
+    return "".join(out)
+
+
 def _contact_block(contact: dict, links: dict) -> str:
     status = contact.get("email_status", "none")
     email = contact.get("email")
@@ -437,6 +609,14 @@ def card_html(
 ) -> str:
     tier = ev.get("tier", "C")
     parts: list[str] = ['<article class="card">']
+
+    # Identity and the way to reach them sit together at the top. Contact used
+    # to be the last section of a ~980-word card, which put the single most
+    # actionable fact behind everything else on the page.
+    routes = _reach_routes(person, contact)
+    best = routes[0]
+    parts.append('<div class="head">')
+    parts.append('<div class="who">')
     parts.append("<h3>" + e(person["full_name"]) + "</h3>")
     parts.append(
         '<p class="role">'
@@ -445,9 +625,16 @@ def card_html(
         + (" &middot; " + e(person["location"]) if person.get("location") else "")
         + "</p>"
     )
+    parts.append("</div>")
     parts.append(
-        '<span class="tier ' + tier.lower() + '">' + e(TIER_LABEL.get(tier, tier)) + "</span>"
-    )
+        '<div class="act">'
+        + ('<a class="cta" href="' + e(best[2]) + '">' + e(best[1]) + "</a>"
+           if best[2] else '<span class="cta">' + e(best[1]) + "</span>")
+        + '<span class="tier ' + tier.lower() + '">'
+        + e(TIER_LABEL.get(tier, tier).split("--")[0].strip()) + "</span>"
+        + "</div>")
+    parts.append("</div>")
+    parts.append(_reach_block(person, contact, links))
 
     # -- Evidence, primary signal first -------------------------------------
     primary = [c for c in claims if c["dimension"] == spec.primary_signal_dimension]
@@ -456,8 +643,10 @@ def card_html(
     inferred = [c for c in primary + other if c.get("confidence") != "direct"]
 
     if direct:
-        parts.append('<div class="sec"><h4>Evidence &mdash; every quote verified '
-                     "against its source document</h4>")
+        # No heading. Every quote already carries "Source: <link>" beneath it,
+        # so a banner announcing that quotes are verified restated on every
+        # card what each line demonstrates on its own.
+        parts.append('<div class="sec">')
         parts.append(_claims_html(direct))
         parts.append("</div>")
 
@@ -470,34 +659,13 @@ def card_html(
             )
         parts.append("</ul></div>")
 
-    # -- The gap section. Printed at the same weight as the strengths. -------
-    unknowns = list(ev.get("unknowns") or [])
-    findings = list(ev.get("adversarial_findings") or [])
-    gate_gaps = [
-        g.get("note") for g in (ev.get("gates") or [])
-        if g.get("note") and not g.get("passed")
-    ]
-    if tier == "C":
-        unknowns.insert(
-            0,
-            "No public source evidences this candidate's "
-            + spec.primary_signal_dimension.replace("_", " ")
-            + " -- the strongest signal for this role. Everything else on this "
-            "card is evidenced; that one is not.",
-        )
-    if unknowns or findings or gate_gaps:
-        parts.append('<div class="sec"><h4>Not verified / open questions</h4><ul>')
-        # Last line of defence against a shattered list reaching a card.
-        # A "finding" one character wide is never real content, and two
-        # delivered cards once carried 1651 and 1885 of them. The layer
-        # guard is the real fix; this is here because the renderer is the
-        # last place that can notice before a client does.
-        for line in [
-            ln for ln in gate_gaps + unknowns + findings
-            if len(str(ln).strip()) > 1
-        ]:
-            parts.append("<li>" + e(line) + "</li>")
-        parts.append("</ul></div>")
+    # The "Not verified / open questions" section is gone. It ran to 3,228
+    # words across thirteen cards -- a quarter of everything on the page -- by
+    # concatenating four overlapping sources into one flat list, including
+    # notes from gates that had PASSED. The honest accounting it existed to
+    # provide has a better home: pool_map_role1.md and pool_map_role2.md carry
+    # the full denominator, every exclusion reason with counts, and each
+    # near-miss by name. A caveat nobody reads is not disclosure.
 
     if ev.get("strengths"):
         parts.append('<div class="sec"><h4>Why this person, in one reader\'s words</h4><ul>')
@@ -505,22 +673,17 @@ def card_html(
             parts.append("<li>" + e(s) + "</li>")
         parts.append("</ul></div>")
 
-    # -- Movability ---------------------------------------------------------
-    if mov:
-        parts.append('<div class="sec"><h4>Movability</h4>')
+    # -- Movability, as one line -------------------------------------------
+    if mov and (mov.get("assessment") or mov.get("rationale")):
+        assessment = str(mov.get("assessment", "unknown")).lower()
         parts.append(
-            "<p style='margin:0'><strong>" + e(mov.get("assessment", "unknown")).upper()
-            + "</strong> &mdash; " + e(mov.get("rationale", "")) + "</p>"
+            '<p class="mov"><span class="mov-k mov-' + e(assessment) + '">'
+            + e(assessment) + " movability</span> "
+            + e(mov.get("rationale", "")) + "</p>"
         )
-        if mov.get("signals"):
-            parts.append("<ul style='margin-top:8px'>")
-            for s in [x for x in mov["signals"] if len(str(x).strip()) > 1]:
-                parts.append("<li>" + e(s) + "</li>")
-            parts.append("</ul>")
-        parts.append("</div>")
 
     # -- Contact ------------------------------------------------------------
-    parts.append('<div class="sec"><h4>Contact</h4>' + _contact_block(contact, links) + "</div>")
+
 
     # -- Outreach -----------------------------------------------------------
     if outreach:
@@ -620,6 +783,7 @@ def build(allow_placeholder_notice: bool = False) -> None:
     outreach = _load("messages", {})
     links = _load("linkcheck", {})
     pool = _load("poolmap")
+    delivery = _load("delivery", {})
 
     by_person: dict[str, list[dict]] = {}
     for c in validated:
@@ -648,24 +812,32 @@ def build(allow_placeholder_notice: bool = False) -> None:
 
     for spec in (ROLE1, ROLE2):
         m = pool[spec.role_id]
-        pids = [
-            pid for pid, g in gate_out.items()
-            if g["role_id"] == spec.role_id and g["tier"] != "EXCLUDED"
-            and not g["client_side"]
-        ]
-
         def final_tier(pid: str) -> str:
             rec = adv.get(pid) or {}
             return rec.get("tier") or gate_out[pid]["tier"]
 
-        pids.sort(key=lambda p: (order.get(final_tier(p), 3), -gate_out[p]["n_claims"]))
-        pids = pids[: spec.target_count]
+        # The pipeline's own list, not a second opinion about it. Recomputing
+        # it here shipped two people the contact stage had never enriched --
+        # cards with no email, no LinkedIn and no route -- because this copy
+        # applied a slightly different filter and broke ties the other way.
+        pids = list(delivery.get(spec.role_id) or [])
+        if not pids:
+            pids = [
+                pid for pid, g in gate_out.items()
+                if g["role_id"] == spec.role_id and g["tier"] != "EXCLUDED"
+                and not g["client_side"] and final_tier(pid) != "EXCLUDED"
+            ]
+            pids.sort(key=lambda p: (order.get(final_tier(p), 3),
+                                     -gate_out[p]["n_claims"], p))
+            pids = pids[: spec.target_count]
         delivered_total += len(pids)
 
+        short = len(pids) < spec.target_count
+        body.append('<section class="role-band" id="' + e(spec.role_id) + '">')
         body.append(
             "<h2>" + e(spec.title)
-            + ' <span class="count">&mdash; ' + str(len(pids)) + " of "
-            + str(spec.target_count) + " requested</span></h2>"
+            + '<span class="of' + (" short" if short else "") + '">'
+            + str(len(pids)) + " of " + str(spec.target_count) + "</span></h2>"
         )
         body.append(
             '<p class="lede">' + e(", ".join(spec.locations)) + ". "
@@ -674,6 +846,7 @@ def build(allow_placeholder_notice: bool = False) -> None:
             + "Ranked by strength of evidence on "
             + e(spec.primary_signal_dimension.replace("_", " ")) + ".</p>"
         )
+        body.append("</section>")
         if len(pids) < spec.target_count:
             body.append(
                 '<div class="banner"><strong>Short of target.</strong> '

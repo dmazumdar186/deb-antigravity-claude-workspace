@@ -76,6 +76,25 @@ def main() -> int:
     check(not side, "no client-side employee counted in the shortlist (SPEC 2.3)",
           str(side))
 
+    print("\n-- Everyone is reachable -----------------------------------------")
+    # Six of thirteen cards on the first delivered run were a dead end, and two
+    # of those were people the contact stage had never even seen because the
+    # renderer recomputed the shortlist and broke ties differently.
+    contacts = json.loads((RUN / "contact.json").read_text(encoding="utf-8"))
+    delivery = json.loads((RUN / "delivery.json").read_text(encoding="utf-8"))
+    shipped = [p for v in delivery.values() for p in v]
+    check(len(shipped) == len(rows),
+          "the rendered list is the list the pipeline delivered",
+          str(len(shipped)) + " vs " + str(len(rows)))
+    unenriched = [p for p in shipped if p not in contacts]
+    check(not unenriched, "every delivered candidate went through enrichment",
+          str(unenriched))
+    # Each card must carry at least one clickable way to reach the person.
+    cards = re.split(r'(?=<article class="card">)', html)[1:]
+    routeless = [c for c in cards if 'class="cta"' not in c]
+    check(not routeless, "every card offers a first contact route",
+          str(len(routeless)) + " card(s) without one")
+
     print("\n-- Counts against the brief -------------------------------------")
     r1 = [r for r in rows if r["role"] == ROLE1.role_id]
     r2 = [r for r in rows if r["role"] == ROLE2.role_id]

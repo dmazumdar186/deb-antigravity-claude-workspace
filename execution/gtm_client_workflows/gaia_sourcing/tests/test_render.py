@@ -160,10 +160,15 @@ def test_every_claim_shows_its_verbatim_quote_and_source(rendered):
 
 
 def test_email_honesty_label_is_visible(rendered):
-    """A pattern guess must read as a guess on the page, not just in the CSV."""
+    """A pattern guess must read as a guess on the page, not just in the CSV.
+
+    The wording moved when Contact became the reach block at the top of the
+    card; the property did not. An inferred address is still labelled as one
+    at the point the reader sees the address.
+    """
     html, _, _ = rendered
-    assert "pattern guess" in html.lower()
-    assert "NOT verified" in html
+    assert "unverified" in html.lower()
+    assert "Inferred address" in html
 
 
 def test_shortfall_is_announced_not_hidden(rendered):
@@ -212,8 +217,11 @@ def test_a_dead_notice_hard_fails_unless_the_override_is_passed(tmp_path,
 
 
 def test_unknown_movability_is_stated_as_unknown(rendered):
+    """Movability is now one line rather than a section, but an unknown still
+    has to say unknown rather than quietly disappear."""
     html, _, _ = rendered
-    assert "UNKNOWN" in html
+    assert "mov-unknown" in html
+    assert "unknown movability" in html.lower()
 
 
 # ---------------------------------------------------------------------------
@@ -242,11 +250,30 @@ def test_bot_blocked_link_is_not_reported_as_broken(rendered):
 
     Collapsing them told the client that eight of eleven candidates had a dead
     source link, when in every case it was their live LinkedIn profile.
+
+    The explanatory sentence that used to accompany this -- "N links could not
+    be checked, nothing suggests they are broken" -- went with the distill
+    pass. On a card the reader scans to decide who to call, a paragraph
+    reassuring them about a non-problem is exactly the weight that was
+    crowding out the evidence, and saying nothing is the correct report for
+    "no problem found". The load-bearing half is that an unverifiable link is
+    never called dead.
     """
     html, _, _ = rendered
     assert "did not return 200" not in html
-    assert "could not be checked automatically" in html
-    assert "nothing suggests they are broken" in html
+    assert "broken" not in html.lower()
+
+
+def test_a_genuinely_dead_link_is_still_reported(tmp_path, monkeypatch):
+    """Silence means "nothing found", so a real 404 has to break it."""
+    block = R._reach_block(
+        {"full_name": "Sean O'Brien", "current_employer": "Example Engineers"},
+        {"email_status": "none"},
+        {"checks": [{"url": "https://example.ie/gone", "alive": False,
+                     "http_status": 404}]},
+    )
+
+    assert "did not return 200" in block
 
 
 # ---------------------------------------------------------------------------
@@ -347,3 +374,94 @@ def test_an_ocr_group_still_declares_its_provenance(monkeypatch):
     ])
 
     assert html.count("recovered by OCR") == 1
+
+
+# ---------------------------------------------------------------------------
+# Every candidate is reachable
+# ---------------------------------------------------------------------------
+
+
+def _p(name="Philip Penco", employer="Barrett Mahony Consulting Engineers", **kw):
+    return {"full_name": name, "current_employer": employer, **kw}
+
+
+def test_a_candidate_with_no_email_and_no_linkedin_is_still_reachable():
+    """Six of thirteen delivered cards were a dead end: five had a
+    pattern-guessed address the card itself said not to use for a first touch
+    and no LinkedIn URL, one had nothing at all. A shortlist entry nobody can
+    contact is not a shortlist entry."""
+    routes = R._reach_routes(_p(), {"email_status": "none", "email": None})
+
+    assert routes, "a candidate must never render with zero routes"
+    kinds = [k for k, _, _ in routes]
+    assert "search" in kinds
+    assert "switchboard" in kinds
+
+
+def test_a_missing_linkedin_url_becomes_a_search_not_a_shrug():
+    """The provider returning no profile URL is not the same as there being no
+    profile."""
+    routes = R._reach_routes(_p(), {"email_status": "none"})
+    label, href = next((l, h) for k, l, h in routes if k == "search")
+
+    assert "linkedin.com/search" in href
+    assert "Philip+Penco" in href
+    assert "Barrett+Mahony" in href
+
+
+def test_an_unknown_firm_still_yields_a_way_to_find_it():
+    """Cronin & Sutton is a real Dublin consultancy that simply was not in the
+    Role 1 sourcing list, so no domain was ever fetched for it."""
+    routes = R._reach_routes(
+        _p("Pearse Sutton", "Cronin & Sutton Consulting"), {"email_status": "none"})
+
+    assert len(routes) >= 2
+    assert any(k == "switchboard" for k, _, _ in routes)
+
+
+def test_a_verified_email_outranks_a_search_but_not_linkedin():
+    """I8: LinkedIn first. Approaching a senior engineer at their employer's
+    mailbox about leaving that employer is monitored mail."""
+    both = R._reach_routes(_p(), {
+        "email_status": "verified", "email": "a@b.com",
+        "linkedin_url": "https://linkedin.com/in/x"})
+    assert [k for k, _, _ in both][:2] == ["linkedin", "email"]
+
+    no_li = R._reach_routes(_p(), {"email_status": "verified", "email": "a@b.com"})
+    assert [k for k, _, _ in no_li][0] == "email"
+
+
+def test_a_pattern_guess_never_leads(monkeypatch):
+    """It is a guess. It ranks below finding the person properly."""
+    routes = R._reach_routes(_p(), {
+        "email_status": "pattern_guess", "email": "philip.penco@barrettmahony.com"})
+
+    assert routes[0][0] != "guess"
+    assert any(k == "guess" for k, _, _ in routes)
+    guess_label = next(l for k, l, _ in routes if k == "guess")
+    assert "unverified" in guess_label.lower()
+
+
+def test_the_two_roles_render_as_two_sections(rendered):
+    """Run together they read as one list, which understates the delivery."""
+    html, _, _ = rendered
+
+    assert html.count('class="role-band"') == 2
+    assert "Senior Structural Engineer" in html
+    assert "Transport Major Projects Manager" in html
+
+
+def test_the_removed_sections_are_gone(rendered):
+    html, _, _ = rendered
+
+    assert "Not verified / open questions" not in html
+    assert "every quote verified against its source" not in html
+
+
+def test_the_evidence_itself_survived_the_cut(rendered):
+    """Distilling the card must not touch the thing the card is for."""
+    html, _, _ = rendered
+
+    assert "<blockquote>" in html
+    assert "EN 1992-1-1" in html
+    assert 'class="src"' in html
