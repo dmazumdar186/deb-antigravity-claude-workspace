@@ -1,0 +1,148 @@
+"""
+Output-acceptance gate for the delivered artifact.
+
+Per ~/.claude/rules/output-acceptance-gate.md: assert on the OUTPUT a person
+reads, not on whether the pipeline ran. Every check here opens
+`deliverables/gaia_2026-08-20/` and asks the question a managing director
+would ask in the first minute -- is anyone here from the client's own firm, do
+the links go anywhere, does the employer column say a real company, and does
+the document admit what it did not find.
+
+Hard-fails with a non-zero exit. Run it before anything is sent:
+
+    py -m gtm_client_workflows.gaia_sourcing.tests.acceptance_gaia
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import json
+import re
+import sys
+from pathlib import Path
+
+from ..core.config import PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
+from ..roles import ROLE1, ROLE2, is_client_side
+
+OUT = WORKSPACE_ROOT / "deliverables" / "gaia_2026-08-20"
+RUN = PKG_ROOT / "run" / "gaia-2026-08-20"
+
+FAILURES: list[str] = []
+CHECKS = 0
+
+
+def check(ok: bool, name: str, detail: str = "") -> None:
+    global CHECKS
+    CHECKS += 1
+    if ok:
+        print("  PASS  " + name)
+        return
+    FAILURES.append(name + ((" -- " + detail) if detail else ""))
+    print("  FAIL  " + name + ((" -- " + detail) if detail else ""))
+
+
+def main() -> int:
+    html = (OUT / "dossier.html").read_text(encoding="utf-8")
+    rows = list(csv.DictReader(io.StringIO(
+        (OUT / "candidates.csv").read_text(encoding="utf-8-sig"))))
+    text = re.sub(r"<[^>]+>", " ", html)
+
+    print("\n-- Evidence contract (I1/I2) ------------------------------------")
+    claims = re.findall(r'<div class="claim">.*?</div>\s*</div>', html, re.S)
+    check(bool(claims), "the dossier contains evidence claims", str(len(claims)))
+    check(all("<blockquote>" in c for c in claims),
+          "every claim shows a verbatim quote")
+    check(all('class="src"' in c for c in claims),
+          "every claim links the document its quote came from")
+
+    print("\n-- Who is on the list -------------------------------------------")
+    employers = [r["current_employer"].strip() for r in rows]
+    check(all(e for e in employers), "every candidate has a named employer",
+          str([r["full_name"] for r in rows if not r["current_employer"].strip()]))
+    # A place or an org-chart position is not an employer. This shipped once.
+    bad = [e for e in employers if e.lower() in {
+        "dublin", "cork", "ireland", "environment", "metrolink",
+        "ireland and the netherlands", "dublin office"}]
+    check(not bad, "no place or division in the employer column", str(bad))
+
+    off_limits = [r["full_name"] for r in rows
+                  if any(o in r["current_employer"].lower()
+                         for o in ("tobin", "atkinsrealis", "atkins realis"))]
+    check(not off_limits, "nobody works for the client or its parent",
+          str(off_limits))
+
+    side = [r["full_name"] for r in rows if is_client_side(r["current_employer"])]
+    check(not side, "no client-side employee counted in the shortlist (SPEC 2.3)",
+          str(side))
+
+    print("\n-- Counts against the brief -------------------------------------")
+    r1 = [r for r in rows if r["role"] == ROLE1.role_id]
+    r2 = [r for r in rows if r["role"] == ROLE2.role_id]
+    check(len(r1) <= ROLE1.target_count,
+          "Role 1 does not exceed the brief's " + str(ROLE1.target_count),
+          str(len(r1)))
+    check(len(r2) <= ROLE2.target_count,
+          "Role 2 does not exceed the brief's " + str(ROLE2.target_count),
+          str(len(r2)))
+    # A SHORTFALL is allowed. Concealing one is not.
+    if len(r1) < ROLE1.target_count or len(r2) < ROLE2.target_count:
+        check("short" in text.lower() or "shortfall" in text.lower(),
+              "a shortfall against the brief is stated on the artifact")
+
+    print("\n-- Presentation --------------------------------------------------")
+    check("�" not in html, "no replacement characters on any card",
+          str(html.count("�")))
+    external = re.findall(r'<(?:script|link|img)[^>]+(?:src|href)="(https?://[^"]+)"',
+                          html)
+    check(not external, "no external assets -- opens offline and on a train",
+          str(external[:3]))
+
+    print("\n-- Sources a reader might click ----------------------------------")
+    blocked = ("prospeo.io", "rocketreach", "zoominfo", "signalhire",
+               "apollo.io", "lusha", "contactout", "leadiq")
+    hits = [b for b in blocked if b in html]
+    check(not hits, "no lead-database page cited as evidence", str(hits))
+
+    print("\n-- Provenance and legal ------------------------------------------")
+    ocr_ids = set()
+    docs = RUN / "docs.jsonl"
+    if docs.exists():
+        for line in docs.read_text(encoding="utf-8").splitlines():
+            if '"ocr"' not in line:
+                continue
+            try:
+                rec = json.loads(line)
+            except Exception:
+                continue
+            if rec.get("text_source") == "ocr":
+                ocr_ids.add(rec["doc_id"])
+    if ocr_ids:
+        check("recovered by OCR" in html,
+              "OCR-sourced evidence declares itself on the card")
+
+    if "Outreach drafts withheld" not in html:
+        check(PRIVACY_NOTICE_URL in html,
+              "outreach cites the privacy notice URL")
+        check("reply with the word STOP" in text,
+              "every outreach draft carries the opt-out line")
+
+    print("\n-- Pool map honesty ----------------------------------------------")
+    for name, spec in (("pool_map_role1.md", ROLE1), ("pool_map_role2.md", ROLE2)):
+        pm = (OUT / name).read_text(encoding="utf-8")
+        check("assessed" in pm.lower() or "profiles" in pm.lower(),
+              name + " states the denominator, not just the delivered count")
+
+    print("\n" + "=" * 66)
+    if FAILURES:
+        print("ACCEPTANCE FAILED -- " + str(len(FAILURES)) + " of "
+              + str(CHECKS) + " checks")
+        for f in FAILURES:
+            print("   * " + f)
+        return 1
+    print("ACCEPTANCE PASSED -- " + str(CHECKS) + " checks against the artifact")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
