@@ -26,6 +26,7 @@ import argparse
 import csv
 import html
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -67,8 +68,23 @@ def _load(name: str, default=None):
     return json.loads(p.read_text(encoding="utf-8"))
 
 
+# U+FFFD sitting between two letters is a mis-decoded apostrophe and nothing
+# else -- it is how "Michael O'Reilly" survives a cp1252 smart quote read as
+# UTF-8. Repairing it is faithful to the source: the character the document
+# actually contains is an apostrophe, and printing the replacement glyph on a
+# card that says "verbatim quote" undermines the one thing the card promises.
+# The repair is deliberately narrow. A U+FFFD anywhere else is left visible,
+# because an unexplained corruption should look corrupted rather than be
+# silently papered over.
+_MOJIBAKE_APOSTROPHE = re.compile(r"(?<=[A-Za-z])�(?=[A-Za-z])")
+
+
+def repair(s: str) -> str:
+    return _MOJIBAKE_APOSTROPHE.sub("’", s or "")
+
+
 def e(s) -> str:
-    return html.escape(str(s or ""))
+    return html.escape(repair(str(s or "")))
 
 
 # ---------------------------------------------------------------------------

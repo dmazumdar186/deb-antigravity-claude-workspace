@@ -181,11 +181,48 @@ def extract_from_document(
         return [], None
 
     confirmed = (out.get("subject_confirmed_name") or "").strip()
-    if not confirmed:
-        return [], None
+
+    if unknown:
+        # Identifying the author IS the task here, so no name means no subject
+        # and the claims have nobody to attach to.
+        if not confirmed:
+            return [], None
+    else:
+        # The subject was supplied, so the echo is a cross-check, not the
+        # answer -- and models routinely omit an optional field whose value
+        # they were just handed. Treating that omission as a failure discarded
+        # every claim from all 19 oral-hearing statements on the 2026-08-19
+        # run: 16 good claims returned, 16 thrown away, Role 2 delivered zero.
+        #
+        # The check that actually matters is deterministic and does not rely
+        # on the model echoing anything: the subject's surname must appear in
+        # the document. A contradictory echo is still fatal, because that
+        # means the model read the document as being about someone else.
+        if confirmed and not name_matches(confirmed, person.full_name):
+            print(
+                "[extract] " + person.person_id + ": document appears to be about "
+                + confirmed + ", not " + person.full_name + " -- dropped"
+            )
+            return [], None
+        surname = person.full_name.split()[-1] if person.full_name.split() else ""
+        if len(surname) >= 3 and surname.lower() not in doc.content_text.lower():
+            print(
+                "[extract] " + person.person_id + ": surname not present in the "
+                "document body -- dropped"
+            )
+            return [], None
+        confirmed = confirmed or person.full_name
 
     claims: list[Claim] = []
-    for raw in out.get("claims", []):
+    for raw in out.get("claims", []) or []:
+        # Occasionally a claim comes back as a bare string rather than the
+        # object the schema asks for. It is dropped, never parsed into shape:
+        # reconstructing the missing evidence_quote is precisely how an
+        # unevidenced assertion would enter the pipeline. extract_directory
+        # already guards this way; this path did not, and one malformed item
+        # took the whole document's claims with it.
+        if not isinstance(raw, dict):
+            continue
         quote = (raw.get("evidence_quote") or "").strip()
         assertion = (raw.get("assertion") or "").strip()
         if len(quote) < 12 or not assertion:

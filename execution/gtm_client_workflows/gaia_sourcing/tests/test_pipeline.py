@@ -404,3 +404,83 @@ def test_employer_comes_from_the_witness_own_words(assertion, expected):
     from gtm_client_workflows.gaia_sourcing.run import _employer_from_claim
 
     assert _employer_from_claim(assertion) == expected
+
+
+# ---------------------------------------------------------------------------
+# L5 subject confirmation -- the bug that zeroed an entire role
+# ---------------------------------------------------------------------------
+
+
+def _fake_call(payload):
+    def _call(**kwargs):
+        return payload, {"provider": "test", "model": "test", "cost_eur": 0.0,
+                         "input_tokens": 0, "output_tokens": 0,
+                         "cache_read_tokens": 0, "cache_write_tokens": 0}
+    return _call
+
+
+_GOOD_CLAIM = {
+    "dimension": "statutory_process",
+    "assertion": "Gave evidence at the oral hearing.",
+    "evidence_quote": "I gave evidence at the oral hearing on 12 March",
+    "confidence": "direct",
+}
+
+
+def test_known_subject_survives_a_missing_confirmation_echo(monkeypatch, doc, person):
+    """A model that omits an optional field it was handed must not cost claims.
+
+    On the 2026-08-19 run every one of the 19 oral-hearing statements returned
+    good claims and no `subject_confirmed_name`, because the subject had been
+    supplied in the prompt and the model saw no reason to repeat it. The guard
+    treated the omission as "could not identify the subject" and discarded all
+    of them, so Role 2 delivered zero candidates from a working source.
+    """
+    from gtm_client_workflows.gaia_sourcing.layers import extract as E
+
+    monkeypatch.setattr(E, "call_role", _fake_call({"claims": [_GOOD_CLAIM]}))
+    claims, hints = E.extract_from_document(person, doc)
+
+    assert len(claims) == 1
+    assert hints is not None
+    assert hints["confirmed_name"] == person.full_name
+
+
+def test_contradictory_confirmation_still_drops_everything(monkeypatch, doc, person):
+    """An echo naming somebody else means the model read a different person."""
+    from gtm_client_workflows.gaia_sourcing.layers import extract as E
+
+    monkeypatch.setattr(
+        E, "call_role",
+        _fake_call({"subject_confirmed_name": "Aoife Kavanagh", "claims": [_GOOD_CLAIM]}),
+    )
+    claims, hints = E.extract_from_document(person, doc)
+
+    assert claims == []
+    assert hints is None
+
+
+def test_subject_absent_from_the_document_drops_everything(monkeypatch, doc, person):
+    """The deterministic check: the surname must actually be in the source."""
+    from gtm_client_workflows.gaia_sourcing.core.contracts import Person
+    from gtm_client_workflows.gaia_sourcing.layers import extract as E
+
+    stranger = Person(person_id="x", full_name="Fionnuala Considine", doc_ids=["doc_1"])
+    monkeypatch.setattr(E, "call_role", _fake_call({"claims": [_GOOD_CLAIM]}))
+    claims, hints = E.extract_from_document(stranger, doc)
+
+    assert claims == []
+    assert hints is None
+
+
+def test_unknown_subject_still_requires_a_name(monkeypatch, doc):
+    """When identifying the author IS the task, no name means no subject."""
+    from gtm_client_workflows.gaia_sourcing.core.contracts import Person
+    from gtm_client_workflows.gaia_sourcing.layers import extract as E
+
+    anon = Person(person_id="anon", full_name="UNKNOWN", doc_ids=["doc_1"])
+    monkeypatch.setattr(E, "call_role", _fake_call({"claims": [_GOOD_CLAIM]}))
+    claims, hints = E.extract_from_document(anon, doc)
+
+    assert claims == []
+    assert hints is None

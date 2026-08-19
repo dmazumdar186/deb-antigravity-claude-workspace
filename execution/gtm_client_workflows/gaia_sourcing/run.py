@@ -419,18 +419,50 @@ def stage_extract(force: bool = False) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _norm_quote(q: str) -> str:
+    """Whitespace- and case-insensitive key for duplicate detection."""
+    return " ".join(q.split()).lower()
+
+
 def stage_validate(force: bool = False) -> None:
-    if done("validate") and not force:
-        log("validate: cached, skipping")
-        return
+    # Deliberately NOT cached. Validation and gating are pure functions of
+    # extract.json and cost nothing, while extract.json changes every time
+    # another firm or another case is harvested. Skipping them as "already
+    # done" silently gated a stale pool: a run that had just extracted 174
+    # people re-used a gate built from 158, so the sixteen newest -- the whole
+    # of Role 2 -- never reached the shortlist. A cheap deterministic stage
+    # downstream of a changing one should always recompute.
     data = load("extract")
     corpus = load_docs()
     raw = [Claim(**c) for c in data["claims"]]
     kept, stats = validate_all(raw, corpus, drops_log=LOG_DIR / "drops.jsonl")
+
+    # Deduplicate across sources. The same staff page fetched as ocsc.ie/people
+    # and www.ocsc.ie/people renders twice, and Firecrawl output varies enough
+    # between renders that the two get different doc_ids -- so claim_id, which
+    # hashes (person, doc, quote), does not collapse them. Left alone this
+    # prints every bullet on a card twice AND inflates the primary-signal count
+    # that decides the tier, which could promote someone to Tier A on one piece
+    # of evidence counted twice.
+    seen: set[tuple] = set()
+    deduped: list = []
+    for c in kept:
+        key = (c.subject_person_id, c.dimension, _norm_quote(c.evidence_quote))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(c)
+    dropped_dupes = len(kept) - len(deduped)
+    stats["duplicates_collapsed"] = dropped_dupes
+    if dropped_dupes:
+        log("  collapsed " + str(dropped_dupes) + " duplicate claims "
+            "(same quote for the same person from a re-rendered page)")
+
     save("validate", {
-        "claims": [c.model_dump() for c in kept],
+        "claims": [c.model_dump() for c in deduped],
         "stats": stats,
     })
+    kept = deduped
     log("validate: " + str(stats["claims_kept"]) + " kept / "
         + str(stats["claims_in"]) + " in, drop rate "
         + format(stats["drop_rate"] * 100, ".1f") + "%")
@@ -496,9 +528,7 @@ def _employer_from_claim(assertion: str) -> Optional[str]:
 
 
 def stage_gate(force: bool = False) -> None:
-    if done("gate") and not force:
-        log("gate: cached, skipping")
-        return
+    # Not cached, for the same reason as stage_validate above.
     persons, by_person, roles = _persons_and_claims()
     out: dict[str, dict] = {}
     counts = {"A": 0, "B": 0, "C": 0, "EXCLUDED": 0}

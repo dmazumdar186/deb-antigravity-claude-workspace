@@ -1,284 +1,214 @@
-# Gaia Talent Sourcing — Handoff to next context window
+# Gaia Talent Sourcing — Handoff
 
-**Written:** 2026-08-19, end of session 2
+**Written:** 2026-08-19, end of session 3
 **Deadline:** Thursday 20 August 2026
-**Status:** ~75% built. All layers now exist except the orchestrator and the
-renderer. **STILL NO DELIVERABLE ARTIFACT.** That is the whole of the
-remaining risk.
+**Status:** Pipeline runs end to end and produces an artifact. The remaining
+risk is no longer "does it work" but "is the pool deep enough" — see §4.
 
-The copy-paste prompt for the next session is in the fenced block at the
-bottom of this file. Everything above it is the durable record.
-
-**Git:** committed locally at `51b4d3c` on branch
-`fix/split-leads-by-geography`. Not pushed (operator asks first).
+**Git:** `76948e9` on branch `fix/split-leads-by-geography`, local only
+(operator asks before push).
 
 ---
 
-## 1. What is verified working (measured, not assumed)
+## 1. What changed this session
 
-| Thing | Evidence |
+The build went from "every layer exists, nothing connects them, no artifact"
+to "runs end to end, produces `deliverables/gaia_2026-08-20/`".
+
+| Added | What it is |
 |---|---|
-| L6 validator (the product) | 22/22 tests pass incl. all §14 adversarial fixtures |
-| L12 name matching | 8/8 Irish-surname cases: O'Brien / O Brien / OBrien / Mac Eoin / Ni Chuinn all resolve; "Murphy Construction Ltd" correctly does NOT match Michael Murphy |
-| L11 compliance gate | `compliance_ok()` returns clean on an assembled sequence; Art.14 + opt-out are concatenated constants, unreachable by model output |
-| Prospeo L9 contract | Probed live — see correction 7. Account: STARTER, **2000 credits, 0 used**, renews 2026-08-30 |
-| Role 2 source: ACP witness statements | 19 named professionals, 2 cases, 0 junk after text gate |
-| Role 2 extraction | 365 claims → 354 validated, **3.0% drop rate** (ceiling 15%) |
-| Role 1 source: Firecrawl-rendered staff directories | 42 people from 1 firm, **0.0% drop rate**, €0.24 |
-| Role 1 gating | 15 qualified from 1 firm (13 C, 2 B) |
-| Gate discrimination | Correctly excluded RTPI planners, Chartered Environmentalists, archaeologists, acousticians, M&E, finance, Belfast + Birmingham offices |
+| `run.py` | L0 orchestrator. 12 named, resumable stages; each persists to `run/<campaign>/<stage>.json` so a crash never re-buys a paid stage. Extraction is incremental by `doc_id`. |
+| `render/render.py` | L13. Self-contained `dossier.html` (no CDN, print stylesheet, responsive), `candidates.csv`, per-role pool maps. |
+| `sources/technical_evidence.py` | Per-candidate search for Role 1's primary signal. See §4. |
+| `tests/test_pipeline.py` | Adversarial blindness, I6 legal injection, I5 contact honesty, Irish surnames, client-side classification, L5 subject confirmation. |
+| `tests/test_render.py` | Asserts on what a reader sees, not on whether a function returned. |
+| `deliverables/.../privacy_notice/index.html` | The Art. 14 notice, written and ready. **Not deployed** — see §5. |
 
-## 2. What is NOT built
+**Test state: 84 passing**, run from `execution/`.
 
-**Ship-critical, in priority order:**
+---
 
-1. **`run.py` orchestrator** — nothing wires the layers together yet. Every
-   layer has been exercised in isolation; none has been exercised in
-   sequence. This is the single biggest unknown left.
-2. **L13 renderer** (`render/render.py`) — `dossier.html` + `candidates.csv`
-   + `pool_map_role{1,2}.md`. Requirements in SPEC.md §15 "Render
-   requirements". Self-contained, no CDN, print stylesheet, card order fixed.
-3. **Source scaling** — the only reason Tier S is not reachable today. See §4.
-4. **Test bed beyond the 22 unit tests** — see the TEST BED block in the
-   prompt.
-5. **Art. 14 privacy notice** on Cloudflare Pages, replacing
-   `PRIVACY_NOTICE_URL` in `core/config.py`. `render.py` must hard-fail while
-   it is still the placeholder.
+## 2. Five real bugs found by running it
 
-Layers L8/L9/L10/L11/L12 are **written but never run against real data**.
-Treat their first live run as a debugging session, not a formality.
+Each was invisible to the unit tests that existed before, and each was found
+by putting real data through the pipeline. That is the argument for running
+the thing rather than testing its parts.
 
-## 3. Eight corrections to SPEC.md (carry these forward — they cost hours to find)
+1. **`autoselect_plan()` was never called.** Every extraction had been routing
+   to free-tier Gemini with 6.5 s of enforced spacing despite a funded
+   Anthropic account. The first extract run took 30+ minutes and was killed;
+   the same work on `claude-sonnet-5` takes about six.
 
-1. **§6 source 3 is wrong for Ireland.** Irish consultancies mostly do not
-   serve per-engineer bios in static HTML. 7 of 18 domains did not resolve;
-   rod.ie "profiles" are graduate blog posts with zero chartership.
-   `ocsc.ie/people/` over plain HTTP: 0 occurrences of "CEng". Rendered
-   through Firecrawl: 42.7k chars, 30x "CEng", 32x "MIEI".
-   **Firecrawl is mandatory for Role 1, not optional.**
-2. **§15 block order inverts.** ACP (block D) is the highest-value source and
-   partly obviates Engineers Ireland (block C) — witness statements
-   self-evidence chartership better than a register lookup.
-3. **`temperature` is deprecated on Claude 5** — HTTP 400 "temperature is
-   deprecated for this model". §4's temperature=0 determinism is unachievable;
-   determinism now rests on forced tool use, so §14's determinism test matters
-   MORE, not less.
-4. **Hard 60-second ceiling on any single outbound request in this
-   environment.** 60k-char extraction died at exactly 60.2s; the same call at
-   8k returned in 12s. Chunk everything. (Chunking also improved recall.)
-5. **Serper cannot reach ACP's `/publicaccess/` tree.** `site:pleanala.ie
-   "Witness Statement of"` returns 0 organic results. Case pages must be
-   parsed directly (acp.py does this). Broad queries DO find scheme-specific
-   consent sites, which is a separate, useful channel.
-6. **An Bord Pleanála was renamed An Coimisiún Pleanála** (June 2025). Case
-   refs are now `ACP-`. Directory listing under /publicaccess/ is 403, but
-   the case page HTML lists every document.
-7. **§10's contact stack does not exist as written.** Dropcontact and Hunter
-   were never provisioned; PROSPEO was. And every Prospeo tutorial online is
-   stale — verified live 2026-08-19:
-   - `/email-finder` and `/domain-search` are **DEPRECATED**, HTTP 400
-     `{"error_code":"DEPRECATED"}`.
-   - The live endpoint is **POST `https://api.prospeo.io/enrich-person`**,
-     headers `X-KEY` + `Content-Type`, body
-     `{"only_verified_email":bool,"enrich_mobile":bool,"data":{...}}`.
-   - `data` accepts `{linkedin_url}` OR `{first_name,last_name,company_name,
-     company_website}`.
-   - **A miss returns HTTP 400 with `{"error_code":"NO_MATCH"}`, not an
-     empty 200.** A client that treats 4xx as fatal reads every miss as an
-     outage. `layers/contact.py::_post` handles this.
-   - Emails come back **unmasked** (`eoghan@fin.ai`) with
-     `verification_method: "SMTP"`. Masked addresses do exist; treat any
-     address containing `*` as no-address rather than shipping it.
-   - Cost: 1 credit per email found, 0 for a miss or a 90-day re-enrich.
-8. **pytest must be run from `execution/`, not from the workspace root.**
-   The test module imports `gtm_client_workflows.gaia_sourcing.*`, so
-   `cd execution && py -m pytest gtm_client_workflows/gaia_sourcing/tests/ -q`.
-   From the root it fails collection with `ModuleNotFoundError`, which reads
-   like a broken test suite and is not one.
+2. **A 200 that parsed to no text was cached as a VALID empty document.**
+   An Coimisiún Pleanála publishes image-only scanned PDFs — 1.1 MB of JPEG,
+   no text layer. `content_id("")` is the SHA of the empty string, so **51
+   distinct sources had collapsed onto one `doc_id`**. Nothing false shipped,
+   because the validator fails closed against an empty document, but the drop
+   then reads as a hallucination rather than as "this source was never
+   readable". Now recorded as `error: empty_after_parse`.
 
-## 4. The Tier S mandate and the ONLY legitimate way to satisfy it
+3. **L5 discarded every claim when the model omitted `subject_confirmed_name`.**
+   The guard exists so an UNKNOWN subject can be identified from the document.
+   But when the subject is *supplied* in the prompt, models routinely omit the
+   optional field they were just handed — and the guard treated that as "could
+   not identify the subject". Result: all 19 oral-hearing statements returned
+   good claims, all 19 were thrown away, **Role 2 delivered zero candidates
+   from a working source**. Now: an omitted echo is fine and the check is
+   deterministic (the surname must appear in the document body); a
+   *contradictory* echo is still fatal.
 
-The operator requires **10 + 5 top-tier candidates, no compromise**.
+4. **`ThreadPoolExecutor.map` re-raised the first worker exception and killed
+   the stage.** A single unpacking error in the Role 2 branch cost ~190
+   already-extracted Role 1 people, because stages only save at the end.
+   Replaced with `run_all()`, which degrades by one item instead of by one
+   batch. A stage is a batch of independent work; one bad item must never
+   cost the batch.
 
-SPEC.md has no Tier S. Define it as: **all hard gates passed + >=2 `direct`
-claims on the role's primary signal + adversarial pass clean + live
-name-matched profile URL + contact route identified.**
+5. **Role 2 employer was read from the filename's submitting party.** An
+   oral-hearing document is titled `No.02 - TII - Witness Statement of Aidan
+   Foley`, but the witness is usually that party's *consultant*. Susie Coyle's
+   statement opens "I am an Associate Director in Jacobs" under a TII
+   filename. Reading the party as the employer filed consultancy engineers as
+   client-side and dropped them from the shortlist for being the wrong kind of
+   right person. The witness's own words now win.
 
-Currently most candidates land Tier C because staff directories do not
-evidence `technical_skill` (Eurocode / Tekla / Robot) for Role 1, and only
-2 of 5 Role 2 candidates qualify from 2 seeded cases.
+Plus a sixth, smaller: a claim occasionally comes back as a bare string
+instead of the object the schema asks for, and `extract_from_document` had no
+`isinstance` guard (`extract_directory` did) — one malformed item took a whole
+document's claims with it. Dropped, never repaired: reconstructing a missing
+`evidence_quote` is exactly how an unevidenced assertion would enter.
 
-**FORBIDDEN routes to Tier S** (these manufacture quality that does not exist
-and are exactly what SPEC.md I1/I2/I3 and §7 exist to prevent):
-- Relaxing any hard gate.
-- Letting `inferred` claims count toward tiering.
-- Loosening the L6 substring validator or its `normalize()`.
-- Broadening `_CHARTERED_RE` to admit non-Engineers-Ireland bodies.
-- Lowering the Tier A threshold from 2 primary-signal claims.
-- Weakening `layers/adversarial.py::_MATERIAL_RE` so fewer candidates demote.
+Two artifact-quality fixes on top: **duplicate claims** (the same staff page
+fetched as `ocsc.ie/people` and `www.ocsc.ie/people` renders twice, and
+Firecrawl output varies enough that `claim_id` does not collapse them — this
+both double-printed every bullet and inflated the primary-signal count that
+decides the tier), and a **narrow mojibake repair** so `Michael O<FFFD>Reilly`
+does not appear on a card that promises verbatim quotes.
 
-**REQUIRED route to Tier S — expand sources until Tier A people genuinely
-exist in the pool:**
-- Role 1: firm PROJECT / case-study pages (these name engineers AND state
-  Eurocode/Tekla/BCAR), Engineers Journal, IStructE + ICE Ireland event and
-  paper listings, conference proceedings, award submissions.
-- Role 1: run the Firecrawl directory path across ALL firms in
-  `company_bios.FIRMS`, not just ocsc.ie. One firm already produced 15
-  qualified; ~18 firms should produce a deep pool.
-- Role 2: seed far more ACP cases. The mechanism works; it needs volume.
-  Every major road / rail / CPO scheme with an oral hearing is a case.
-- Role 2: the scheme-consent-site channel (`oral_hearing_web.py`) —
-  n6galwaycityringroad.ie, ringaskiddyrrc.ie, dublinportmp2foreshoreconsent.ie
-  and similar publish full oral-hearing bundles.
+---
 
-If after genuine source expansion Tier S cannot reach 10+5, **say so
-explicitly with the pool map numbers** rather than padding. SPEC.md §2.2
-exists for exactly this and tiering with stated gaps beats invented
-confidence.
+## 3. Source corrections (the previous list was largely guesswork)
 
-## 5. Hard rules (do not violate)
+**Firms.** Eight of the eighteen domains in `company_bios.FIRMS` did not
+resolve at all — `cseassociates.ie`, `watermanmoylan.ie`, `garland.ie`,
+`ftco.ie`, `bmce.ie`, `caseyodonnell.ie`, `kmce.ie` — and `byrnelooby.com`
+now redirects to its acquirer Ayesa, whose site has no per-engineer bios.
+They had been assembled by guessing a `.ie` domain from a firm name.
+Corrected against live DNS, plus `barrettmahony.com` (the firm trades as
+BMCE), `horganlynch.ie` (Cork-domiciled, which matters for Role 2),
+`kilgallen.ie`, `tjoc.ie`, `downesassociates.ie`.
 
-- **I1/I2:** no claim ships without a verbatim quote that L6 verifies against
-  a cached source document. Dropped claims are dropped silently, logged to
-  `logs/drops.jsonl`. Drop rate is the hallucination metric.
-- **I3:** gates are deterministic Python. Never LLM judgement, never weighted.
-  L8 may report a finding; only deterministic code may change a tier.
+Harvest went from 9 directory pages / 6 firms to **16 pages / 12 firms**.
+
+**ACP cases.** The previous `SEED_CASES` list was invented; nine of ten
+returned nothing, which is the correct behaviour for a case number that does
+not exist. Replaced with fourteen verified references — MetroLink `314724`
+(54 witness statements), DART+ West `314232`, DART+ Coastal North `320164`,
+N6 Galway City Ring Road `302885`, six BusConnects corridors, Dublin Port MP2
+`310286`.
+
+**Firecrawl `map` is the right discovery tool**, not homepage link-scraping.
+`find_people_indexes()` reads raw HTML, which is empty on the client-rendered
+sites that make up most of this sector. `firecrawl_map` with `search="team"`
+found the real path in one call per firm.
+
+---
+
+## 4. The Role 1 tier ceiling — measured, not assumed
+
+Role 1's primary signal is `technical_skill`. Tier A needs two **direct**
+claims on it. Across all sixteen Firecrawl-rendered staff-directory pages:
+
+| term | occurrences |
+|---|---|
+| eurocode | **0** |
+| tekla | **0** |
+| etabs | **0** |
+| robot structural | **0** |
+| BCAR | **0** |
+| assigned certifier | 1 |
+| CEng | 30 on `ocsc.ie` alone |
+| MIEI | 32 on `ocsc.ie` alone |
+
+Staff directories evidence **chartership and grade richly, and technical
+competence not at all**. A firm's "our people" page says "Brian is an
+Associate Director with 18 years across commercial and residential projects";
+it never says "Brian designed the transfer structure to EN 1992-1-1".
+
+So the directory alone caps every Role 1 candidate at Tier C, and re-reading
+it more carefully cannot change that. **This is a source gap, not a tiering
+problem**, and the only legitimate fix is another source.
+
+`sources/technical_evidence.py` is that source: per gate-passing candidate, it
+searches the places where an Irish structural engineer's technical work IS
+attributed by name — Engineers Ireland / Engineers Journal bylines (which
+carry the grade: "Author: Colin Short, Chartered Civil Engineer Dip Eng,
+CEng"), ACEI and IStructE award citations, conference proceedings, and the
+firm's own project pages, which name the engineer far more often than the
+people page does. It runs only on candidates that already passed every hard
+gate, so the budget goes to the twenty-odd people who might ship.
+
+**Still forbidden**, and none of it was done: relaxing a gate, letting
+`inferred` claims count, loosening the L6 validator, broadening
+`_CHARTERED_RE`, lowering the Tier A threshold, weakening `_MATERIAL_RE`.
+
+---
+
+## 5. Open items
+
+1. **The Art. 14 privacy notice is written but not deployed.** Every outreach
+   draft cites `PRIVACY_NOTICE_URL`, which currently returns nothing. The
+   renderer refuses to emit outreach in that state and prints a banner
+   explaining why — outreach citing a dead notice URL is worse than no
+   outreach. The page is at
+   `deliverables/gaia_2026-08-20/privacy_notice/index.html`; deploying it is
+   an outward-facing action and needs the operator's go-ahead. Once live,
+   update `core/config.py` and re-run `--stage messages` plus render.
+
+2. **Scanned ACP documents are unreachable.** Roughly half the witness
+   statements on the older cases are image-only PDFs. OCR would recover them;
+   nothing else will. Not attempted.
+
+3. **`302885`, `320164` and the BusConnects cases yielded nothing** through
+   `witness_statements()`. Worth checking whether their document naming
+   differs from MetroLink's `No.NN - PARTY - Witness Statement of NAME` shape.
+
+---
+
+## 6. Hard rules (unchanged)
+
+- **I1/I2:** no claim ships without a verbatim quote L6 verifies against a
+  cached source. Drops are silent, logged to `logs/drops.jsonl`. Drop rate is
+  the hallucination metric — **0.0% on the current run**.
+- **I3:** gates are deterministic Python. L8 may report a finding; only
+  deterministic code changes a tier.
 - **Off-limits:** no TOBIN or AtkinsRéalis employee anywhere in the output.
-- **I7:** Prodcraft never contacts candidates; all messages are drafts for
-  Gaia to send.
-- **I6:** Art.14 GDPR notice + opt-out injected as fixed strings, never
-  LLM-generated. Operator chose Cloudflare Pages hosting for the notice.
 - **I5:** never collapse `verified` / `catch_all` / `pattern_guess` / `none`.
-  Unknown upstream statuses degrade downward, never upward.
+  Unknown upstream statuses degrade downward.
+- **I6:** Art. 14 notice + opt-out injected as fixed strings, never generated.
+- **I7:** Prodcraft never contacts candidates; drafts are for Gaia to send.
 - **AM LOCKDOWN:** never touch `execution/infrastructure/api-proxy/`, root
   `HANDOFF.md`, `website-dashboard/`, or use ANYMAILFINDER / MILLION_VERIFIER
-  / INSTANTLY / GHL keys. This project is unrelated to Accessory Masters.
-- **Currency:** all operator-facing figures in EUR.
+  / INSTANTLY / GHL keys. Unrelated project.
 - **Ask before `git push`.** Local commits are fine.
-- Windows: use `py`, not `python3`.
-
-## 6. Environment facts
-
-- Anthropic API **is funded** (topped up mid-session 2026-08-19).
-  `providers.autoselect_plan()` probes and selects automatically.
-- PROSPEO: STARTER plan, **2000 credits remaining, 0 used**, quota renews
-  2026-08-30. At 1 credit per found email, enrichment for 15 candidates plus
-  a generous margin for misses is not a budget concern.
-- Authorised paid APIs: Anthropic, Serper, Firecrawl, Tavily, PROSPEO.
-- Models verified live: `claude-opus-5`, `claude-sonnet-5`.
-- Python 3.14. Deps present: pydantic 2.13.3, requests, bs4, PyMuPDF,
-  anthropic 0.97.0, email-validator.
-- **Bash heredocs in this harness corrupt backslash escapes** — `\b` became
-  literal 0x08 bytes in a regex and silently broke it. Use the Write/Edit
-  tools for any file containing regex escapes, never a heredoc.
-
-## 7. Code map
-
-```
-execution/gtm_client_workflows/gaia_sourcing/
-  roles.py             L1 -- ROLE1 + ROLE2 JobSpecs, hand-written (see
-                       module docstring for why the LLM parser was skipped).
-                       Also CLIENT_SIDE_BODIES + is_client_side() for the
-                       SPEC 2.3 sidebar.
-  core/contracts.py    Pydantic models (structure only; business rules in gates)
-  core/config.py       secrets, models, EUR pricing, GDPR strings
-  core/cache.py        fetch / fetch_raw / fetch_rendered (Firecrawl) / head_ok
-  core/providers.py    role-based multi-provider dispatch + autoselect_plan
-  core/llm.py          older Anthropic-only wrapper + CostTracker (superseded
-                       by providers.py for dispatch; CostTracker still useful)
-  layers/validator.py  L6 -- THE PRODUCT. normalize() + validate_claim()
-  layers/gates.py      L7 -- deterministic gates + assign_tier
-  layers/extract.py    L5 -- extract_from_document + extract_directory (chunked)
-  layers/adversarial.py  L8 -- BLIND critique. build_user_prompt() is pure and
-                       never receives tier/gates; deterministic _demote()
-                       applies the tier change. Also unverified_lines() and
-                       inferred_claim_lines() for the SPEC 13 Unknowns block.
-  layers/contact.py    L9 -- Prospeo enrich-person + pattern fallback, honest
-                       I5 labels, I8 channel recommendation.
-  layers/movability.py L10 -- unknown-by-default + deterministic
-                       geographic_friction()
-  layers/messages.py   L11 -- drafting + assemble() (injects legal strings) +
-                       compliance_ok() pre-render gate
-  layers/linkcheck.py  L12 -- head_ok liveness + page_mentions_name()
-  sources/acp.py       An Coimisiun Pleanala case pages + witness statements
-  sources/company_bios.py   firm list, people-index discovery, bio harvest
-  sources/oral_hearing_web.py  scheme-site evidence discovery via Serper
-  tests/test_gates_and_validator.py  22 tests, all passing
-  render/             EMPTY -- L13 goes here
-  run.py              DOES NOT EXIST YET -- the orchestrator
-```
+- EUR for operator-facing figures. `py`, not `python3`.
+- **Bash heredocs in this harness corrupt backslash escapes.** `\b` became a
+  literal 0x08 byte inside a regex this session and silently broke it — the
+  same failure the previous handoff warned about. Use Write/Edit for anything
+  containing regex escapes.
 
 ---
 
-## 8. COPY-PASTE PROMPT FOR THE NEXT SESSION
-
-See the fenced block rendered in chat, and reproduced here:
+## 7. Running it
 
 ```
-Continue the Gaia Talent sourcing build. Deadline: Thursday 20 August 2026.
-
-FIRST: read these two files completely before writing any code.
-  1. C:\Users\deban\Downloads\Recruitment and Staffing 12 Aug 26 - by location\SPEC.md
-  2. execution\gtm_client_workflows\gaia_sourcing\HANDOFF.md
-
-The SPEC is authoritative on WHAT to build. The HANDOFF carries EIGHT
-corrections to it that were found by hitting reality and that will cost you
-hours if you ignore them (Firecrawl mandatory for Role 1, temperature
-deprecated on Claude 5, hard 60s request ceiling, Serper can't reach ACP
-publicaccess, ACP renamed, PROSPEO's documented endpoints are deprecated and
-a miss is an HTTP 400, pytest must run from execution/, heredocs corrupt
-regex escapes).
-
-STATE: layers L5-L12 and roles.py all exist and are committed locally at
-51b4d3c. L8/L9/L10/L11/L12 have never been run against real data — treat
-their first live run as a debugging session, not a formality. There is still
-no run.py and no renderer, so there is still no artifact.
-
-MISSION
-Deliver SPEC.md §19 Definition of Done in full: exactly 10 Senior Structural
-Engineer + exactly 5 Transport Major Projects Manager candidates, every one
-TOP TIER (all hard gates + >=2 direct primary-signal claims + adversarial
-clean + live name-matched URL + contact route), in a self-contained
-dossier.html plus candidates.csv plus pool maps per role.
-
-Achieve top tier by EXPANDING SOURCES until genuinely top-tier people exist
-in the pool. Never by relaxing a gate, never by letting inferred claims
-count, never by loosening the L6 validator, never by weakening the
-adversarial demotion rule. If top tier cannot reach 10+5 after real source
-expansion, say so with pool-map numbers instead of padding.
-
-BUILD ORDER
- 1. run.py orchestrator + L13 renderer FIRST, end to end on the ~93 documents
-    already in the fetch cache, so an artifact exists within the first hour
-    and every later change is visible in the thing the client actually reads.
-    Resume from run/<campaign_id>/L*/ JSON so re-runs cost nothing.
- 2. Scale sources: Firecrawl directory path across all firms in
-    company_bios.FIRMS; firm PROJECT/case-study pages for Eurocode/Tekla
-    evidence (this is what unlocks Tier A for Role 1); many more ACP cases
-    plus the scheme-consent-site channel for Role 2.
- 3. First live run of L8 adversarial, L9 PROSPEO enrichment, L10 movability,
-    L11 messages, L12 link liveness. Expect bugs; they have unit shape but no
-    field miles.
- 4. Deploy the Art.14 privacy notice to Cloudflare Pages and replace
-    PRIVACY_NOTICE_URL; render.py must hard-fail on the placeholder.
-
-TEST BED — build it, do not skip tiers
-Unit, integration/SIT, end-to-end, adversarial fixtures, regression, smoke,
-sanity, monkey/fuzz, performance, security, network-failure, UX/UI
-(dossier.html renders offline, no CDN, responsive, prints, opens on mobile),
-data handling, error handling, API-contract, and determinism. Every
-deterministic layer tested with zero network against golden fixtures in
-tests/fixtures/. The hallucination test must run on every commit. Add a test
-asserting adversarial.build_user_prompt() leaks no tier letter or gate
-verdict — that blindness is what makes pass 2 worth running.
-
-Then run the full suite and the mandatory audit stack, and report a verdict
-table. Do not claim done until §19 is met item by item.
-
-CONSTRAINTS
-Anthropic is funded; providers.autoselect_plan() picks the plan. PROSPEO has
-2000 credits, 0 used. Authorised: Anthropic, Serper, Firecrawl, Tavily,
-PROSPEO. Never TOBIN/AtkinsRealis candidates. Never AM-locked paths or keys.
-EUR for operator-facing figures. Ask before git push. Use `py` on Windows.
-Use Write/Edit for files with regex escapes, never bash heredocs.
+cd execution
+py -m gtm_client_workflows.gaia_sourcing.run --stage all
+py -m gtm_client_workflows.gaia_sourcing.render.render --allow-placeholder-notice
+py -m pytest gtm_client_workflows/gaia_sourcing/tests/ -q
 ```
+
+Stages, in order: `harvest_r1`, `harvest_r2`, `extract`, `validate`, `gate`,
+`deepen_r1`, `adversarial`, `contact`, `movability`, `messages`, `linkcheck`,
+`poolmap`. `--from-stage <name>` runs that stage and everything after;
+`--force` re-runs a cached stage.
