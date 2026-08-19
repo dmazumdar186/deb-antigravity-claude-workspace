@@ -534,38 +534,65 @@ def _persons_and_claims() -> tuple[dict[str, Person], dict[str, list[ValidatedCl
     vd = load("validate")
     persons: dict[str, Person] = {}
     roles: dict[str, str] = {}
+    sources: dict[str, str] = {}
     for pid, rec in data["persons"].items():
         rec = dict(rec)
         roles[pid] = rec.pop("role_id")
-        rec.pop("source", None)
+        sources[pid] = rec.pop("source", "")
         persons[pid] = Person(**rec)
     by_person: dict[str, list[ValidatedClaim]] = {}
     for c in vd["claims"]:
         vc = ValidatedClaim(**c)
         by_person.setdefault(vc.subject_person_id, []).append(vc)
 
-    # The witness's own words outrank the filename. An oral-hearing document
-    # is named for the PARTY that submitted it ("No.02 - TII - Witness
-    # Statement of Aidan Foley"), but the witness is usually that party's
-    # consultant, not its employee -- Susie Coyle's statement opens "I am an
-    # Associate Director in Jacobs" while sitting under a TII filename.
-    # Taking the party as the employer would file half the transport pool as
-    # client-side and drop them from the shortlist for being the wrong kind of
-    # right person.
+    # Whose word counts for "employer" depends on where the person came from.
+    #
+    # An oral-hearing document is named for the PARTY that submitted it
+    # ("No.02 - TII - Witness Statement of Aidan Foley"), but the witness is
+    # usually that party's consultant, not its employee -- Susie Coyle's
+    # statement opens "I am an Associate Director in Jacobs" while sitting
+    # under a TII filename. There, the witness's own words must win, or half
+    # the transport pool gets filed as client-side and dropped for being the
+    # wrong kind of right person.
+    #
+    # A staff directory is the opposite case: the page belongs to the firm, so
+    # the firm IS the employer, and a stray sentence like "based in the Dublin
+    # office" must never overwrite it. Applying the oral-hearing rule here
+    # replaced "Barrett Mahony Consulting Engineers" with "Dublin office" on a
+    # delivered card.
     for pid, person in persons.items():
+        if sources.get(pid) == "company_directory" and person.current_employer:
+            continue
         stated = [
             c for c in by_person.get(pid, [])
             if c.dimension == "employer" and c.confidence == "direct"
         ]
         if stated:
-            person.current_employer = _employer_from_claim(stated[0].assertion)                 or person.current_employer
+            person.current_employer = (
+                _employer_from_claim(stated[0].assertion) or person.current_employer
+            )
 
     return persons, by_person, roles
 
 
 # "Susie Coyle is an Associate Director at Jacobs." -> "Jacobs"
+# The leading .* is greedy on purpose, so the LAST preposition wins.
+# "Senior Associate Director of Highways in Jacobs" must yield "Jacobs", not
+# "Highways in Jacobs" -- with a lazy prefix the engine takes the first "of"
+# and the character class happily swallows the rest of the sentence.
 _EMPLOYER_TAIL_RE = re.compile(
-    r"\b(?:at|with|for|in|of)\s+([A-Z][\w'&.\- ]{2,60}?)\s*\.?$"
+    r"^.*\b(?:at|with|for|in|of)\s+([A-Z][\w'&.\- ]{2,60}?)\s*\.?$"
+)
+
+# Captures that are a place or an org-chart position rather than an employer.
+# "...is based in the Dublin office" yields "Dublin office", which then
+# OVERWRITES a perfectly good employer taken from the staff directory --
+# Rouslan Taskov's card read "Dublin office" instead of "Barrett Mahony
+# Consulting Engineers" until this guard existed.
+_NOT_AN_EMPLOYER_RE = re.compile(
+    r"\b(office|team|division|department|group|practice|branch|region|"
+    r"sector|unit|project|scheme|programme|role|position|capacity)\b",
+    re.I,
 )
 
 
@@ -576,6 +603,8 @@ def _employer_from_claim(assertion: str) -> Optional[str]:
     name = m.group(1).strip(" .")
     # Guard against swallowing a sentence tail that is not a company.
     if len(name.split()) > 6 or len(name) < 3:
+        return None
+    if _NOT_AN_EMPLOYER_RE.search(name):
         return None
     return name
 
@@ -1012,6 +1041,26 @@ def stage_poolmap(force: bool = False) -> None:
             for gr in g["gates"]:
                 if not gr["passed"]:
                     reasons[gr["gate_id"]] = reasons.get(gr["gate_id"], 0) + 1
+        # Candidates that failed exactly ONE hard gate. When a role comes up
+        # short, "we found nobody" is much less useful to the client than
+        # "we found these four, and here is the single thing each was missing"
+        # -- that is a list they can act on, by widening the brief or by
+        # asking us to verify the one open point.
+        near_misses: list[str] = []
+        for pid in pids:
+            g = gate_out.get(pid)
+            if g is None or g["tier"] != "EXCLUDED" or g["client_side"]:
+                continue
+            failed = [gr for gr in g["gates"] if not gr["passed"]]
+            if len(failed) != 1:
+                continue
+            person = persons[pid]
+            near_misses.append(
+                person.full_name
+                + (" -- " + person.current_employer if person.current_employer else "")
+                + " -- missing only: " + failed[0]["gate_id"]
+            )
+
         n_raw = len([c for c in raw["claims"] if c["subject_person_id"] in set(pids)])
         out[role_id] = {
             "role_id": role_id,
@@ -1024,6 +1073,7 @@ def stage_poolmap(force: bool = False) -> None:
             "delivered": len(delivery[role_id]),
             "exclusions": [{"reason": k, "count": v} for k, v in
                            sorted(reasons.items(), key=lambda kv: -kv[1])],
+            "near_misses": sorted(near_misses),
             "client_side_sidebar": sorted(set(client_side)),
         }
     save("poolmap", out)

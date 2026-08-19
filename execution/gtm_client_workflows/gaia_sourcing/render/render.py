@@ -392,6 +392,19 @@ def pool_map_md(m: dict, spec) -> str:
     if not m["exclusions"]:
         lines.append("| (none) | 0 |")
 
+    if m.get("near_misses"):
+        lines += [
+            "",
+            "## Missed by one thing",
+            "",
+            "Each of these passed every hard gate but one. They are listed",
+            "because a single named gap is something you can act on -- by",
+            "widening the brief, or by asking us to verify the one open point.",
+            "",
+        ]
+        for s_ in m["near_misses"]:
+            lines.append("- " + s_)
+
     if m.get("client_side_sidebar"):
         lines += [
             "",
