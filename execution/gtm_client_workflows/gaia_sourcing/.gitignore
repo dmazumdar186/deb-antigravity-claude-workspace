@@ -1,0 +1,7 @@
+# Fetch cache and run artifacts. Regenerable, large, and full of third-party
+# page content -- the pipeline is resumable from them but they are not source.
+run/_httpcache/
+run/_probe_*.json
+run/gaia-*/
+__pycache__/
+*.pyc
