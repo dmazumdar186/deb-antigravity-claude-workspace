@@ -137,8 +137,7 @@ h1{font-size:26px;margin:0 0 6px;letter-spacing:-.01em}
 /* The standing note runs the full width of the table beneath it. Capped at
    80ch it wrapped after roughly half the page and left the right-hand side
    empty, so the header looked misaligned with the four columns it introduces. */
-.lede.wide{max-width:none;text-align:left}
-.role-lede{max-width:96ch}
+.lede.wide,.role-lede{max-width:none;text-align:left}
 h2{font-size:20px;margin:34px 0 2px}
 h2 .of{
   color:var(--muted);font-weight:400;font-size:13px;margin-left:10px;
