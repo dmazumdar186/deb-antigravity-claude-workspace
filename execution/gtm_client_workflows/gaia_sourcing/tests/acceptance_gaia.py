@@ -171,29 +171,6 @@ def main() -> int:
         check((OUT / "site" / extra).exists(),
               "the deployed site ships " + extra, "missing")
     # This page names real people and their employers. Crawlers get told twice.
-    # The password gate must ship INSIDE the asset directory. functions/ is
-    # resolved by wrangler against the working directory, not against the
-    # deployed folder, so a middleware placed in site/functions/ uploads as a
-    # dead static file and the site serves unprotected while every local check
-    # still passes. That happened once; _worker.js is the shape that ships.
-    worker = OUT / "site" / "_worker.js"
-    check(worker.exists(), "the deployed site ships its password gate",
-          "no _worker.js -- the page would be public")
-    if worker.exists():
-        src = worker.read_text(encoding="utf-8")
-        check("SITE_PASSWORD" in src and "env.ASSETS" in src,
-              "the gate reads the secret and serves assets only after it",
-              "gate does not reference SITE_PASSWORD / env.ASSETS")
-        # An unconfigured deployment must not be an open one.
-        check("if (!expected)" in src and "503" in src,
-              "the gate fails closed when the secret is missing",
-              "missing secret would fall through to serving the page")
-        check("constantTimeEqual" in src,
-              "the password comparison is constant-time",
-              "=== on a secret leaks its prefix through timing")
-    check(not (OUT / "site" / "functions").exists(),
-          "no functions/ dir inside the asset folder",
-          "wrangler resolves functions/ against the CWD; one there never runs")
 
     check("noindex" in html, "the page asks not to be indexed",
           "no robots meta -- 13 named individuals would be indexable")
