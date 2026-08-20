@@ -432,6 +432,22 @@ def load_ocr_doc_ids() -> set[str]:
     return out
 
 
+_SAFE_SCHEMES = ("http://", "https://", "mailto:", "tel:")
+
+
+def _safe_url(url: str) -> str:
+    """Drop any href whose scheme is not one this document has a reason to use.
+
+    e() escapes, it does not validate: `javascript:alert(1)` survived it intact
+    into an href. Nothing in the current pipeline can produce one -- these URLs
+    come from our own crawler and the enrichment provider -- but "no current
+    caller is hostile" is a property of today's inputs, not of this function,
+    and the artifact is circulated outside the workspace.
+    """
+    u = str(url or "").strip()
+    return u if u.lower().startswith(_SAFE_SCHEMES) else ""
+
+
 def _quote_norm(c: dict) -> str:
     return " ".join(str(c.get("evidence_quote") or "").split()).lower().strip(" .;,:")
 
@@ -867,7 +883,7 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
             '<div class="claim"><blockquote>&ldquo;' + e(quote)
             + "&rdquo;</blockquote>"
             + '<div class="src">'
-            + ('<a href="' + e(src) + '">source</a>' if src
+            + ('<a href="' + e(_safe_url(src)) + '">source</a>' if _safe_url(src)
                else "source document not recorded")
             + (" &middot; text recovered by OCR from a scanned document"
                if c.get("source_doc_id") in _OCR_DOC_IDS else "")
@@ -877,6 +893,15 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     # 2. How good the address is. A pattern guess is a guess, and the reader
     #    is one click away from copying it.
     facts: list[str] = []
+
+    # Lower-confidence evidence had a labelled section on the card and no home
+    # at all in the table. It is weaker than a verbatim quote, which is a
+    # reason to label it, not a reason to delete it.
+    inferred = [c["assertion"] for c in claims
+                if c.get("confidence") != "direct" and c.get("assertion")]
+    if inferred:
+        facts.append('<p class="src">Inferred, not directly stated: '
+                     + e(_clip("; ".join(inferred), 22)) + "</p>")
     status = contact.get("email_status", "none")
     note = {
         "verified": "Email SMTP-verified by the provider.",
@@ -889,7 +914,10 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
 
     # 3. Whether they are likely to move.
     if mov and (mov.get("assessment") or mov.get("rationale")):
-        assessment = str(mov.get("assessment", "unknown")).lower()
+        # movability.py whitelists this to high/medium/low/unknown, but that is
+        # a contract in another file that this one neither sees nor asserts.
+        # An unclipped value put a 197-word pane through a 150-word "hard cap".
+        assessment = _clip(str(mov.get("assessment", "unknown")).lower(), 3)
         rationale = str(mov.get("rationale") or "").strip()
         facts.append(
             '<p><strong class="mov-' + e(assessment) + '">' + e(assessment)
@@ -901,6 +929,15 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
 
     # 4. Only what the link checker found WRONG. "All links fine" is not worth
     #    a reader's words when the budget is 150 of them.
+    # 3b. The route that does not depend on a mailbox or an accepted
+    #     connection request. It was computed for all 13 candidates and shown
+    #     for none of them; a shortlist that drops the fallback is a shortlist
+    #     that stops working the moment the first two channels go quiet.
+    switchboard = next((r for r in _reach_routes(person, contact)
+                        if r[0] == "switchboard"), None)
+    if switchboard:
+        facts.append('<p class="src">' + e(switchboard[1]) + "</p>")
+
     checks = (links or {}).get("checks", [])
     dead = [c for c in checks if c.get("alive") is False]
     mism = [c for c in checks if c.get("name_matched") is False]
@@ -915,8 +952,7 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     # The honesty lines are reserved, not queued. Filling the budget with
     # quotes first and letting "this address is a guess" fall off the end
     # would drop the one line that changes what the reader does next.
-    reserved = "".join(facts)
-    budget = DETAIL_WORD_CAP - _wc(reserved)
+    budget = DETAIL_WORD_CAP - _wc("".join(facts))
 
     kept, used = [], 0
     for b in blocks[:MAX_DETAIL_QUOTES]:
@@ -934,8 +970,15 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
         note = ('<p class="src">Showing ' + str(len(kept)) + " of "
                 + str(len(blocks)) + " verified quotes; the rest are in the "
                 "run record.</p>")
-    return ('<div class="det-in">' + body
-            + '<div class="facts">' + note + reserved + "</div></div>")
+    # The facts are reserved, so if they alone exceed the cap the pane would
+    # breach it no matter how few quotes were kept. Drop from the end -- the
+    # ordering above is priority order -- until it fits. The cap is then a
+    # property of this function rather than of the data it happens to receive.
+    out = '<div class="facts">' + note + "".join(facts) + "</div>"
+    while _wc(body + out) > DETAIL_WORD_CAP and facts:
+        facts.pop()
+        out = '<div class="facts">' + note + "".join(facts) + "</div>"
+    return '<div class="det-in">' + body + out + "</div>"
 
 
 def row_html(
@@ -949,7 +992,10 @@ def row_html(
     spec,
 ) -> str:
     """One candidate as two table rows: the line, and the detail it hides."""
-    rid = "d-" + e(str(person["person_id"]))
+    # Scoped by role: the same person delivered under both roles would
+    # otherwise emit two rows with one id, and getElementById would toggle the
+    # wrong one. The gates make it unlikely; nothing made it impossible.
+    rid = "d-" + e(str(spec.role_id)) + "-" + e(str(person["person_id"]))
     routes = _reach_routes(person, contact)
 
     BTN = {"linkedin": "LinkedIn", "search": "Find on LinkedIn",
@@ -960,7 +1006,7 @@ def row_html(
         if kind in ("linkedin", "search") and not any("cta-li" in b for b in buttons):
             buttons.append(
                 '<a class="cta cta-li' + (" weak" if kind == "search" else "")
-                + '" href="' + e(href) + '">' + e(BTN[kind]) + "</a>")
+                + '" href="' + e(_safe_url(href)) + '">' + e(BTN[kind]) + "</a>")
         elif kind in ("email", "guess") and not any("cta-em" in b for b in buttons):
             # The address rides in data-email so the click can copy it even
             # where the mailto: navigation dead-ends, and in title= so a hover
@@ -975,7 +1021,8 @@ def row_html(
     if not any("cta-em" in b for b in buttons):
         fallback = next((r for r in routes if r[0] in ("switchboard", "profile")), None)
         if fallback:
-            buttons.append('<a class="cta cta-alt" href="' + e(fallback[2]) + '">'
+            buttons.append('<a class="cta cta-alt" href="'
+                           + e(_safe_url(fallback[2])) + '">'
                            + e(BTN[fallback[0]]) + "</a>")
         buttons.append('<span class="none">No email address found</span>')
 
@@ -1247,6 +1294,11 @@ def build(allow_placeholder_notice: bool = False) -> None:
         "<p class='sub'>Evidence-backed shortlist prepared for Gaia Talent Ltd &middot; "
         + date.today().strftime("%d %B %Y") + " &middot; " + str(delivered_total)
         + " candidates</p></header>"
+        "<p class='lede'><strong>Approach LinkedIn first.</strong> Mailing a "
+        "senior engineer at their employer&rsquo;s address about leaving that "
+        "employer is monitored mail and poor tradecraft; the email button is "
+        "there for when the first channel goes quiet, and every card carries a "
+        "switchboard number for when both do.</p>"
         "<p class='lede'>Every candidate below is one row: who they are, why they "
         "are on the list, and the message to send. Open <em>Detail</em> for the "
         "evidence. Every factual statement is a verbatim quote from a public "

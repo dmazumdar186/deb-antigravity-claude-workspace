@@ -239,12 +239,102 @@ def test_the_copy_is_announced_to_screen_readers(rendered):
 
 class _Spec:
     primary_signal_dimension = "technical_skill"
+    role_id = "role1"
 
 
 def _dc(dimension, assertion, quote):
     return {"dimension": dimension, "assertion": assertion,
             "evidence_quote": quote, "confidence": "direct",
             "source_url": "https://example.ie/p", "source_doc_id": "d"}
+
+
+def test_the_word_cap_holds_against_data_the_renderer_does_not_control():
+    """The cap has to be a property of this function, not of its inputs.
+
+    movability.py whitelists `assessment` to high/medium/low/unknown, but that
+    is a contract in another file that render.py neither sees nor asserts. Fed
+    an unclipped value, a "hard cap ... a check that fails the build" produced
+    a 197-word pane. The facts are reserved before quotes, so no number of
+    dropped quotes could bring it back under.
+    """
+    mov = {"assessment": " ".join(["word"] * 180), "rationale": " ".join(["r"] * 300)}
+    claims = [_dc("technical_skill", "A." * 50, "q " * 200) for _ in range(20)]
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, {"tier": "B"},
+                          {"email_status": "pattern_guess"}, mov,
+                          {"checks": [{"alive": False}] * 20}, _Spec())
+    assert R._wc(pane) <= R.DETAIL_WORD_CAP, R._wc(pane)
+
+
+def test_the_pane_never_hides_how_much_evidence_it_dropped():
+    """Truncation is fine; silent truncation is what the dossier promises not
+    to do."""
+    claims = [_dc("technical_skill", "A" + str(i) + ".", "distinct quote " + str(i))
+              for i in range(9)]
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, {"tier": "B"},
+                          {"email_status": "verified"}, {}, {}, _Spec())
+    assert "of 9 verified quotes" in pane, pane
+
+
+def test_an_unreachable_candidate_still_gets_a_route():
+    """No email and no resolved profile is the case the fallback exists for.
+
+    Pearse Sutton shipped with one LinkedIn button and the words "No email
+    found" -- the candidate hardest to reach had the fewest ways to reach him,
+    because the switchboard route was computed and never rendered.
+    """
+    row = R.row_html({"person_id": "p1", "full_name": "X",
+                      "current_title": "Engineer", "current_employer": "Firm"},
+                     [], {"tier": "C"}, {"email_status": "none", "email": None},
+                     {}, None, {}, _Spec())
+    assert row.count('class="cta') >= 1
+    assert 'href=""' not in row, "a button that goes nowhere is not a route"
+
+
+def test_no_href_carries_a_scheme_this_document_has_no_use_for():
+    """e() escapes; it does not validate. `javascript:` survived it intact."""
+    row = R.row_html({"person_id": "p1", "full_name": "X",
+                      "current_title": "T", "current_employer": "F"},
+                     [], {"tier": "B"},
+                     {"email_status": "verified", "email": "a@b.com",
+                      "linkedin_url": "javascript:alert(1)"},
+                     {}, None, {}, _Spec())
+    assert "javascript:" not in row, row
+    assert R._safe_url("https://x.ie") == "https://x.ie"
+    assert R._safe_url("  data:text/html,x  ") == ""
+
+
+def test_two_roles_cannot_collide_on_one_row_id():
+    """Same person under both roles emitted two rows sharing one DOM id, so
+    getElementById toggled whichever came first."""
+    class _R2:
+        primary_signal_dimension = "technical_skill"
+        role_id = "role2"
+
+    person = {"person_id": "p1", "full_name": "X", "current_title": "T",
+              "current_employer": "F"}
+    a = R.row_html(person, [], {"tier": "B"}, {"email_status": "none"},
+                   {}, None, {}, _Spec())
+    b = R.row_html(person, [], {"tier": "B"}, {"email_status": "none"},
+                   {}, None, {}, _R2())
+    ids_a = re.findall(r'id="([^"]+)"', a)
+    ids_b = re.findall(r'id="([^"]+)"', b)
+    assert ids_a and ids_b and not set(ids_a) & set(ids_b), (ids_a, ids_b)
+
+
+def test_every_message_is_copyable_verbatim():
+    """The copy button carries what gets sent, not what the box happens to
+    show."""
+    outreach = {"linkedin_note": "Hello there.", "email_subject": "Subject",
+                "email_body": "Line one.\n\nLine two.", "follow_up": "Ping."}
+    cell = R._msg_cell(outreach)
+    for text in (outreach["linkedin_note"], outreach["email_body"],
+                 outreach["follow_up"]):
+        assert 'data-copy="' + R.e(text) + '"' in cell, text
+    assert cell.count('class="cp"') == 3
 
 
 def test_the_detail_pane_does_not_quote_one_sentence_twice():
