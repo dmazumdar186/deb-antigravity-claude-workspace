@@ -337,9 +337,17 @@ COPY_JS = """
   document.addEventListener('click', function(ev){
     var t = ev.target;
     if (!t || !t.closest) { return; }
-    var a = t.closest('a.cta-em');
+    var a = t.closest('a.cta-em, a[href^="mailto:"]');
     if (!a) { return; }
+    /* The button carries the address explicitly; the reach-block links carry
+       it only in the href, so fall back to reading it off there rather than
+       leaving those clicks inert for the same reason as before. */
     var addr = a.getAttribute('data-email');
+    if (!addr) {
+      var h = a.getAttribute('href') || '';
+      addr = h.replace(/^mailto:/i, '').split('?')[0];
+      try { addr = decodeURIComponent(addr); } catch (err) { /* keep raw */ }
+    }
     if (!addr) { return; }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(addr).then(function(){
@@ -734,6 +742,7 @@ def card_html(
             buttons.append(
                 '<a class="cta cta-em' + (" weak" if kind == "guess" else "")
                 + '" href="' + e(href) + '" data-email="' + e(addr) + '"'
+                + ' aria-live="polite"'
                 + ' title="' + e(addr) + ' -- click to copy">'
                 + e(BTN[kind]) + "</a>")
     if not buttons:

@@ -211,6 +211,32 @@ def test_clipboard_fallback_ships_inside_the_page(rendered):
     assert not re.search(r'<script[^>]+src=', html), "script must be inline"
 
 
+def test_every_mailto_on_the_page_is_covered_not_just_the_button(rendered):
+    """The card prints the address twice, and both were dead.
+
+    Fixing only the button left the reach-block link -- the same address, one
+    line lower -- failing in exactly the way the commit was about. A reader who
+    clicks the address rather than the button gets the same silence. The
+    handler matches any mailto: anchor, so adding a third one later cannot
+    quietly reintroduce the bug.
+    """
+    html, _, _ = rendered
+    assert 'a[href^="mailto:"]' in html, (
+        "the handler must match every mailto: link, not only .cta-em")
+
+
+def test_the_copy_is_announced_to_screen_readers(rendered):
+    """A silent textContent swap is confirmation only for people who can see it.
+
+    The button's whole job after this fix is to tell the reader the copy
+    happened. Without a live region that confirmation reaches sighted users
+    only, which makes the fix itself inaccessible.
+    """
+    html, _, _ = rendered
+    for b in re.findall(r'<a class="cta cta-em[^>]*>', html):
+        assert 'aria-live="polite"' in b, "copy state not announced: " + b
+
+
 def test_mailto_navigation_is_not_suppressed(rendered):
     """Copying is the fallback, not a replacement.
 
