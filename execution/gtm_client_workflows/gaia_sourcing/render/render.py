@@ -126,166 +126,119 @@ CSS = """
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--bg); color:var(--ink);
-  font:16px/1.55 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font:16px/1.5 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   -webkit-text-size-adjust:100%;
 }
-.wrap{max-width:940px;margin:0 auto;padding:32px 20px 80px}
-header.doc{border-bottom:3px solid var(--accent);padding-bottom:18px;margin-bottom:8px}
-h1{font-size:28px;margin:0 0 6px;letter-spacing:-.01em}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
+header.doc{border-bottom:3px solid var(--accent);padding-bottom:16px;margin-bottom:10px}
+h1{font-size:26px;margin:0 0 6px;letter-spacing:-.01em}
 .sub{color:var(--muted);font-size:15px;margin:0}
-h2{font-size:21px;margin:38px 0 4px;padding-top:18px;border-top:1px solid var(--line)}
-h2 .count{color:var(--muted);font-weight:400;font-size:15px}
-.lede{color:var(--muted);margin:6px 0 18px;font-size:15px}
+.lede{color:var(--muted);margin:6px 0 16px;font-size:14.5px;max-width:80ch}
+h2{font-size:20px;margin:34px 0 2px}
+h2 .of{
+  color:var(--muted);font-weight:400;font-size:13px;margin-left:10px;
+  border:1px solid var(--line);border-radius:4px;padding:1px 7px;white-space:nowrap;
+}
+h2 .of.short{color:var(--warn);border-color:#e0b46a}
 .banner{
   background:var(--warnbg);border:1px solid #e6c98a;border-left:5px solid var(--warn);
-  color:var(--warn);padding:12px 14px;border-radius:6px;margin:18px 0;font-size:14.5px;
+  color:var(--warn);padding:11px 13px;border-radius:6px;margin:16px 0;font-size:14px;
 }
-.card{
-  border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin:18px 0;
-  background:var(--bg);
-}
-.card h3{margin:0;font-size:20px;letter-spacing:-.01em}
 
-/* Identity and the way to reach them, on one line. Contact used to be the
-   last section of a ~980-word card. */
-.head{
-  display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-start;
-  justify-content:space-between;
+/* One table, four columns. The card layout put ~980 words in front of a
+   reader whose whole question is "who do I contact, and what do I say". */
+table.sl{
+  width:100%;border-collapse:collapse;margin:14px 0 8px;
+  font-size:14px;table-layout:fixed;
 }
-.who{flex:1 1 280px;min-width:0}
-.act{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:0 0 auto}
+table.sl th{
+  text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);font-weight:600;padding:0 12px 7px;border-bottom:2px solid var(--accent);
+}
+table.sl td{
+  padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top;
+}
+col.c-who{width:20%} col.c-why{width:27%} col.c-msg{width:38%} col.c-det{width:15%}
+tr.r:hover td{background:var(--panel)}
+
+.nm{font-size:16px;font-weight:600;letter-spacing:-.01em;margin:0 0 2px}
+.ro{color:var(--muted);font-size:12.5px;margin:0 0 9px;line-height:1.35}
+.btns{display:flex;flex-direction:column;gap:5px;align-items:stretch}
 .cta{
-  display:inline-block;font-size:14px;font-weight:600;text-decoration:none;
-  background:var(--accent);color:#fff;border-radius:6px;padding:7px 13px;
+  display:block;text-align:center;font-size:13px;font-weight:600;text-decoration:none;
+  background:var(--accent);color:#fff;border-radius:5px;padding:6px 10px;
   transition:background 160ms cubic-bezier(.22,1,.36,1);
 }
 a.cta:hover,a.cta:focus-visible{background:#17583f}
-.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-/* The email button is secondary: LinkedIn is the first channel per I8, and
-   an inferred address is weaker still. Weight says so without a paragraph. */
 .cta-em{background:var(--bg);color:var(--accent);border:1px solid var(--accent)}
 a.cta-em:hover,a.cta-em:focus-visible{background:var(--panel)}
 .cta-em.weak{color:var(--warn);border-color:#e0b46a}
 a.cta-em.weak:hover,a.cta-em.weak:focus-visible{background:var(--warnbg)}
-/* Clipboard confirmation. mailto: has no success callback -- the browser
-   never tells the page whether a mail client actually opened -- so the copy
-   is the only part of the click we can prove happened, and the button says
-   so rather than sitting there looking inert. */
+/* Clipboard confirmation. mailto: has no success callback, so the copy is the
+   only part of the click we can prove happened. */
 a.cta-em.copied,a.cta-em.weak.copied{
   background:var(--accent);color:#fff;border-color:var(--accent)
 }
-@media (max-width:560px){
-  .act{align-items:flex-start;width:100%}
-  .btns{justify-content:flex-start}
-}
-.reach{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.reach-note{margin:0 0 6px;color:var(--muted);font-size:13.5px;max-width:68ch}
-.reach-alt{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px 16px}
-.reach-alt li{margin:0;font-size:13.5px}
-.mov{
-  margin:14px 0 0;font-size:14px;color:var(--muted);max-width:70ch;
-}
-.mov-k{
-  font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:11.5px;
-  border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-right:8px;
-  color:var(--muted);white-space:nowrap;
-}
-.mov-high{color:var(--accent);border-color:var(--accent)}
-.mov-low{color:var(--warn);border-color:#e0b46a}
+.none{color:var(--muted);font-size:12px;font-style:italic}
 
-/* Two roles, two deliverables. Run together they read as one list. */
-.role-band{
-  margin:52px 0 0;padding:20px 22px;border-radius:10px;
-  background:var(--panel);border:1px solid var(--line);
-}
-.role-band:first-of-type{margin-top:32px}
-.role-band h2{margin:0;padding:0;border:0;font-size:23px;letter-spacing:-.01em}
-.role-band .of{
-  display:inline-block;margin-left:10px;font-size:13px;font-weight:600;
-  color:var(--accent);border:1px solid var(--accent);border-radius:999px;
-  padding:2px 10px;vertical-align:middle;
-}
-.role-band .of.short{color:var(--warn);border-color:#e0b46a}
-.role-band .lede{margin:8px 0 0}
-.toc{
-  display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 0;padding:0;list-style:none;
-}
-.toc li{margin:0}
-.toc a{
-  display:inline-block;font-size:14px;text-decoration:none;border:1px solid var(--line);
-  border-radius:6px;padding:7px 12px;background:var(--panel);
-}
-.toc a:hover,.toc a:focus-visible{border-color:var(--accent)}
-.role{color:var(--muted);font-size:15px;margin:2px 0 0}
 .tier{
-  display:inline-block;font-size:12.5px;font-weight:600;letter-spacing:.02em;
-  border:1px solid var(--accent);color:var(--accent);border-radius:999px;
-  padding:2px 10px;margin-top:8px;
+  display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.05em;border:1px solid var(--line);border-radius:4px;
+  padding:1px 6px;margin-bottom:7px;color:var(--muted);
 }
-.tier.b{border-color:#7a6a1f;color:#7a6a1f}
-.tier.c{border-color:var(--muted);color:var(--muted)}
-.sec{margin-top:16px}
-.sec h4{
-  margin:0 0 8px;font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--muted);font-weight:700;
+.tier.a{color:var(--accent);border-color:var(--accent)}
+.tier.b{color:var(--ink)}
+.why{margin:0;padding-left:16px}
+.why li{margin:0 0 5px;line-height:1.45}
+
+.msg-k{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+  font-weight:600;margin:0 0 3px;
 }
-ul{margin:0;padding-left:20px}
-li{margin:0 0 8px}
-.claim{margin:0 0 12px}
-.claim .a{font-weight:600}
-.dim{
-  display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;
-  background:var(--panel);border:1px solid var(--line);border-radius:4px;
-  padding:1px 6px;margin-right:6px;color:var(--muted);
-}
-.a-line{margin:0 0 3px}
-.a-line:last-of-type{margin-bottom:5px}
-.prov{
-  font-size:12px; color:var(--warn); background:var(--warnbg);
-  border-left:3px solid var(--warn); padding:6px 9px; margin-top:6px;
-  border-radius:0 3px 3px 0; line-height:1.45;
-}
-blockquote{
-  margin:6px 0 4px;padding:8px 12px;border-left:3px solid var(--accent);
-  background:var(--panel);color:var(--quote);font-size:14.5px;border-radius:0 5px 5px 0;
-}
-.src{font-size:12.5px}
-a{color:var(--accent)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-.kv{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
-.kv .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.kv .v{font-size:15px;margin-top:3px;word-break:break-word}
-.pill{font-size:11.5px;border-radius:4px;padding:1px 6px;border:1px solid}
-.pill.verified{color:#1d6f4f;border-color:#1d6f4f;background:#eef7f2}
-.pill.catch_all{color:#7a6a1f;border-color:#c9b76a;background:#fbf7e8}
-.pill.pattern_guess{color:#8a5a00;border-color:#e0b46a;background:#fff4e3}
-.pill.none{color:var(--muted);border-color:var(--line);background:var(--panel)}
-details{margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:10px 14px}
-summary{cursor:pointer;font-weight:600;font-size:14.5px}
+.msg-k+.msg-k{margin-top:9px}
 pre.msg{
-  white-space:pre-wrap;font:13.5px/1.5 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background:var(--panel);border:1px solid var(--line);border-radius:6px;
-  padding:12px;margin:8px 0;
+  margin:0;white-space:pre-wrap;word-wrap:break-word;font:12.5px/1.5 inherit;
+  background:var(--panel);border:1px solid var(--line);border-radius:5px;
+  padding:8px 10px;max-height:150px;overflow:auto;color:var(--quote);
 }
-table{border-collapse:collapse;width:100%;font-size:14.5px;margin-top:10px}
-th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
-th{background:var(--panel);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em}
+
+.det-btn{
+  font:600 13px/1 inherit;color:var(--accent);background:none;
+  border:1px solid var(--line);border-radius:5px;padding:7px 10px;cursor:pointer;
+  width:100%;text-align:left;
+}
+.det-btn:hover,.det-btn:focus-visible{border-color:var(--accent);background:var(--panel)}
+.det-ar{
+  display:inline-block;font-size:10px;margin-right:6px;
+  transition:transform 140ms cubic-bezier(.22,1,.36,1);
+}
+.det-btn[aria-expanded="true"] .det-ar{transform:rotate(90deg)}
+tr.det>td{background:var(--panel);padding:14px 16px 16px}
+.det-in{max-width:88ch;font-size:13.5px;line-height:1.55}
+.det-in p{margin:0 0 7px}
+.det-in .claim{
+  margin:0 0 8px;padding-left:11px;border-left:3px solid var(--line);
+}
+.det-in blockquote{margin:0;padding:0;border:0;color:var(--quote);display:inline}
+.det-in .src{font-size:11.5px;color:var(--muted);display:inline;margin-left:6px}
+.det-in .facts{margin:9px 0 0;padding-top:8px;border-top:1px solid var(--line)}
+.det-in a{color:var(--accent)}
 .gap{color:var(--warn)}
-footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;
-  color:var(--muted);font-size:13.5px}
-@media (max-width:640px){
-  .wrap{padding:20px 14px 60px} h1{font-size:23px} .card{padding:16px}
+
+@media (max-width:900px){
+  table.sl,table.sl thead,table.sl tbody,table.sl tr,table.sl td{display:block;width:100%}
+  table.sl thead{display:none}
+  table.sl td{border:0;padding:6px 0}
+  tr.r{border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0;display:block}
+  .btns{flex-direction:row;flex-wrap:wrap}
+  .cta{display:inline-block}
 }
 @media print{
-  .role-band{break-after:avoid-page}
-  details{display:block}
-  details>summary{display:none}
-
-  body{font-size:11.5pt} .wrap{max-width:none;padding:0}
-  .card{break-inside:avoid;page-break-inside:avoid;border-color:#bbb}
-  details{border:0;padding:0} details[open] summary{margin-bottom:6px}
-  a{color:inherit;text-decoration:none} .src a::after{content:" (" attr(href) ")";font-size:9pt}
-  h2{page-break-after:avoid}
+  .det-btn{display:none}
+  tr.det{display:table-row !important}
+  tr.r,tr.det,pre.msg{page-break-inside:avoid;break-inside:avoid}
+  pre.msg{max-height:none;overflow:visible}
+  a{color:inherit;text-decoration:none}
 }
 """
 
@@ -358,6 +311,25 @@ COPY_JS = """
     } else {
       flash(a, legacyCopy(addr) ? 'Address copied' : addr);
     }
+  });
+
+  /* The detail pane. A <details> element inside a table cell would open
+     inside that column's width, which is the narrowest place on the page to
+     read a quotation; this toggles a full-width row underneath instead.
+     hidden is the only state -- no class, no inline style -- so print CSS can
+     override it and show every pane at once. */
+  document.addEventListener('click', function(ev){
+    var t = ev.target;
+    if (!t || !t.closest) { return; }
+    var btn = t.closest('.det-btn');
+    if (!btn) { return; }
+    var row = document.getElementById(btn.getAttribute('aria-controls'));
+    if (!row) { return; }
+    var open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    row.hidden = open;
+    var lb = btn.querySelector('.det-lb');
+    if (lb) { lb.textContent = open ? 'Click here for details' : 'Hide details'; }
   });
 })();
 """
@@ -688,7 +660,159 @@ def _contact_block(contact: dict, links: dict) -> str:
     return '<div class="grid">' + "".join(cells) + "</div>"
 
 
-def card_html(
+DETAIL_WORD_CAP = 150
+# Three quotes is what fits before a pane stops being glanceable, regardless of
+# how short the individual quotes happen to be.
+MAX_DETAIL_QUOTES = 3
+
+
+def _wc(fragment: str) -> int:
+    """Words a reader actually sees -- tags and entities are not words."""
+    text = re.sub(r"<[^>]+>", " ", fragment)
+    text = re.sub(r"&[a-zA-Z#0-9]+;", " ", text)
+    return len([w for w in text.split() if w.strip()])
+
+
+def _clip(text: str, max_words: int) -> str:
+    words = str(text).split()
+    if len(words) <= max_words:
+        return str(text)
+    return " ".join(words[:max_words]).rstrip(" ,;.") + "..."
+
+
+def _why_cell(ev: dict, claims: list[dict], spec) -> str:
+    """The short answer to "why is this person on the list".
+
+    Three lines at most. The reasons the second reviewer wrote in its own
+    words come first; where it wrote none, the primary-signal evidence is the
+    reason, so the assertion stands in rather than leaving the cell empty.
+    """
+    tier = ev.get("tier", "C")
+    out = ['<span class="tier ' + tier.lower() + '">'
+           + e(TIER_LABEL.get(tier, tier).split("--")[0].strip()) + "</span>"]
+
+    reasons = [str(x).strip() for x in (ev.get("strengths") or [])
+               if len(str(x).strip()) > 1]
+    if not reasons:
+        primary = [c for c in claims
+                   if c["dimension"] == spec.primary_signal_dimension]
+        reasons = [c["assertion"] for c in (primary or claims)]
+
+    if reasons:
+        out.append('<ul class="why">')
+        for r in reasons[:3]:
+            out.append("<li>" + e(_clip(r, 22)) + "</li>")
+        out.append("</ul>")
+    else:
+        out.append('<p class="none">No summary recorded.</p>')
+    return "".join(out)
+
+
+def _msg_cell(outreach: dict | None) -> str:
+    """What to send, and nothing else. Two messages: LinkedIn, then email."""
+    if not outreach:
+        return '<p class="none">Withheld until the privacy notice is live.</p>'
+    return "".join([
+        '<p class="msg-k">LinkedIn note</p>',
+        "<pre class='msg'>" + e(outreach["linkedin_note"]) + "</pre>",
+        '<p class="msg-k">Email &mdash; ' + e(outreach["email_subject"]) + "</p>",
+        "<pre class='msg'>" + e(outreach["email_body"]) + "</pre>",
+    ])
+
+
+def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
+    """Everything else, inside a hard word budget.
+
+    The card this replaces ran to roughly 980 words per person and put all of
+    it in front of a reader whose question is "who do I contact". This is the
+    same material for whoever asks "why" later, capped at DETAIL_WORD_CAP so
+    it stays answerable at a glance. Blocks are added in priority order and
+    the first that would breach the cap ends the pane, so what survives is the
+    most load-bearing evidence rather than a sentence cut in half.
+    """
+    blocks: list[str] = []
+
+    # 1. The verbatim evidence, primary signal first. This is the whole basis
+    #    of the shortlist; if only one thing fits, it should be this.
+    primary = [c for c in claims if c["dimension"] == spec.primary_signal_dimension]
+    other = [c for c in claims if c["dimension"] != spec.primary_signal_dimension]
+    for c in [x for x in primary + other if x.get("confidence") == "direct"]:
+        quote = _clip(c.get("evidence_quote") or c["assertion"], 30)
+        src = c.get("source_url")
+        # The .claim / blockquote / .src shape is the evidence contract: every
+        # claim shows a verbatim quote and links the document it came from.
+        # Shortening the pane is not a licence to drop the citation.
+        blocks.append(
+            '<div class="claim"><blockquote>&ldquo;' + e(quote)
+            + "&rdquo;</blockquote>"
+            + '<div class="src">'
+            + ('<a href="' + e(src) + '">source</a>' if src
+               else "source document not recorded")
+            + (" &middot; text recovered by OCR from a scanned document"
+               if c.get("source_doc_id") in _OCR_DOC_IDS else "")
+            + "</div></div>"
+        )
+
+    # 2. How good the address is. A pattern guess is a guess, and the reader
+    #    is one click away from copying it.
+    facts: list[str] = []
+    status = contact.get("email_status", "none")
+    note = {
+        "verified": "Email SMTP-verified by the provider.",
+        "catch_all": "Domain accepts all mail: deliverable, not proof the mailbox exists.",
+        "pattern_guess": "Inferred address: built from the firm's naming pattern, "
+                         "never verified. Treat it as a guess.",
+        "none": "No email address found.",
+    }[status]
+    facts.append('<p class="src">' + e(note) + "</p>")
+
+    # 3. Whether they are likely to move.
+    if mov and (mov.get("assessment") or mov.get("rationale")):
+        assessment = str(mov.get("assessment", "unknown")).lower()
+        rationale = str(mov.get("rationale") or "").strip()
+        facts.append(
+            '<p><strong class="mov-' + e(assessment) + '">' + e(assessment)
+            + " movability.</strong>"
+            + (" " + e(_clip(rationale, 26)) if rationale
+               else " No basis recorded either way.")
+            + "</p>"
+        )
+
+    # 4. Only what the link checker found WRONG. "All links fine" is not worth
+    #    a reader's words when the budget is 150 of them.
+    checks = (links or {}).get("checks", [])
+    dead = [c for c in checks if c.get("alive") is False]
+    mism = [c for c in checks if c.get("name_matched") is False]
+    if dead or mism:
+        bits = []
+        if dead:
+            bits.append(str(len(dead)) + " source link(s) did not return 200")
+        if mism:
+            bits.append(str(len(mism)) + " link(s) no longer name this person")
+        facts.append('<p class="gap">' + e("; ".join(bits) + ".") + "</p>")
+
+    # The honesty lines are reserved, not queued. Filling the budget with
+    # quotes first and letting "this address is a guess" fall off the end
+    # would drop the one line that changes what the reader does next.
+    reserved = "".join(facts)
+    budget = DETAIL_WORD_CAP - _wc(reserved)
+
+    kept, used = [], 0
+    for b in blocks[:MAX_DETAIL_QUOTES]:
+        n = _wc(b)
+        if used + n > budget:
+            break
+        kept.append(b)
+        used += n
+
+    body = "".join(kept)
+    if not body:
+        body = '<p class="none">No verbatim evidence fits here -- see the pool map.</p>'
+    return ('<div class="det-in">' + body
+            + '<div class="facts">' + reserved + "</div></div>")
+
+
+def row_html(
     person: dict,
     claims: list[dict],
     ev: dict,
@@ -698,46 +822,21 @@ def card_html(
     links: dict,
     spec,
 ) -> str:
-    tier = ev.get("tier", "C")
-    parts: list[str] = ['<article class="card">']
-
-    # Identity and the way to reach them sit together at the top. Contact used
-    # to be the last section of a ~980-word card, which put the single most
-    # actionable fact behind everything else on the page.
+    """One candidate as two table rows: the line, and the detail it hides."""
+    rid = "d-" + e(str(person["person_id"]))
     routes = _reach_routes(person, contact)
-    best = routes[0]
-    parts.append('<div class="head">')
-    parts.append('<div class="who">')
-    parts.append("<h3>" + e(person["full_name"]) + "</h3>")
-    parts.append(
-        '<p class="role">'
-        + e(person.get("current_title") or "Title not stated in public sources")
-        + (" &middot; " + e(person["current_employer"]) if person.get("current_employer") else "")
-        + (" &middot; " + e(person["location"]) if person.get("location") else "")
-        + "</p>"
-    )
-    parts.append("</div>")
-    # Up to two buttons: the best route, and the email if there is one worth
-    # clicking. Short labels -- the button says what it does, the detail sits
-    # under it rather than inside it.
-    BTN = {
-        "linkedin": "LinkedIn profile",
-        "search": "Find on LinkedIn",
-        "email": "Email",
-        "guess": "Email (unverified)",
-        "switchboard": "Call the firm",
-        "profile": "Profile page",
-    }
+
+    BTN = {"linkedin": "LinkedIn", "search": "Find on LinkedIn",
+           "email": "Email", "guess": "Email (unverified)"}
     buttons: list[str] = []
     for kind, label, href in routes:
         if kind in ("linkedin", "search") and not any("cta-li" in b for b in buttons):
-            buttons.append(
-                '<a class="cta cta-li" href="' + e(href) + '">'
-                + e(BTN[kind]) + "</a>")
+            buttons.append('<a class="cta cta-li" href="' + e(href) + '">'
+                           + e(BTN[kind]) + "</a>")
         elif kind in ("email", "guess") and not any("cta-em" in b for b in buttons):
-            # The address rides along in data-email so the click can copy it
-            # even when the mailto: navigation dead-ends (see COPY_JS), and in
-            # title= so a hover still reveals it with scripting switched off.
+            # The address rides in data-email so the click can copy it even
+            # where the mailto: navigation dead-ends, and in title= so a hover
+            # reveals it with scripting off.
             addr = href[7:] if href.lower().startswith("mailto:") else href
             buttons.append(
                 '<a class="cta cta-em' + (" weak" if kind == "guess" else "")
@@ -745,84 +844,33 @@ def card_html(
                 + ' aria-live="polite"'
                 + ' title="' + e(addr) + ' -- click to copy">'
                 + e(BTN[kind]) + "</a>")
-    if not buttons:
-        buttons.append('<span class="cta">' + e(best[1]) + "</span>")
+    if not any("cta-em" in b for b in buttons):
+        buttons.append('<span class="none">No email found</span>')
 
-    parts.append(
-        '<div class="act">'
+    who = (
+        '<p class="nm">' + e(person["full_name"]) + "</p>"
+        + '<p class="ro">'
+        + e(person.get("current_title") or "Title not stated")
+        + (" &middot; " + e(person["current_employer"])
+           if person.get("current_employer") else "")
+        + "</p>"
         + '<div class="btns">' + "".join(buttons) + "</div>"
-        + '<span class="tier ' + tier.lower() + '">'
-        + e(TIER_LABEL.get(tier, tier).split("--")[0].strip()) + "</span>"
-        + "</div>")
-    parts.append("</div>")
-    parts.append(_reach_block(person, contact, links))
+    )
 
-    # -- Evidence, primary signal first -------------------------------------
-    primary = [c for c in claims if c["dimension"] == spec.primary_signal_dimension]
-    other = [c for c in claims if c["dimension"] != spec.primary_signal_dimension]
-    direct = [c for c in primary + other if c.get("confidence") == "direct"]
-    inferred = [c for c in primary + other if c.get("confidence") != "direct"]
-
-    if direct:
-        # No heading. Every quote already carries "Source: <link>" beneath it,
-        # so a banner announcing that quotes are verified restated on every
-        # card what each line demonstrates on its own.
-        parts.append('<div class="sec">')
-        parts.append(_claims_html(direct))
-        parts.append("</div>")
-
-    if inferred:
-        parts.append('<div class="sec"><h4>Possible, unconfirmed</h4><ul>')
-        for c in inferred:
-            parts.append(
-                "<li>" + e(c["assertion"])
-                + ' <span class="src">(inferred, not directly stated)</span></li>'
-            )
-        parts.append("</ul></div>")
-
-    # The "Not verified / open questions" section is gone. It ran to 3,228
-    # words across thirteen cards -- a quarter of everything on the page -- by
-    # concatenating four overlapping sources into one flat list, including
-    # notes from gates that had PASSED. The honest accounting it existed to
-    # provide has a better home: pool_map_role1.md and pool_map_role2.md carry
-    # the full denominator, every exclusion reason with counts, and each
-    # near-miss by name. A caveat nobody reads is not disclosure.
-
-    if ev.get("strengths"):
-        parts.append('<div class="sec"><h4>Why this person, in one reader\'s words</h4><ul>')
-        for s in [x for x in ev["strengths"] if len(str(x).strip()) > 1]:
-            parts.append("<li>" + e(s) + "</li>")
-        parts.append("</ul></div>")
-
-    # -- Movability, as one line -------------------------------------------
-    if mov and (mov.get("assessment") or mov.get("rationale")):
-        assessment = str(mov.get("assessment", "unknown")).lower()
-        parts.append(
-            '<p class="mov"><span class="mov-k mov-' + e(assessment) + '">'
-            + e(assessment) + " movability</span> "
-            + e(mov.get("rationale", "")) + "</p>"
-        )
-
-    # -- Contact ------------------------------------------------------------
-
-
-    # -- Outreach -----------------------------------------------------------
-    if outreach:
-        parts.append("<details><summary>Outreach drafts (edit before sending)</summary>")
-        parts.append("<p class='src' style='margin:8px 0 0'>"
-                     "LinkedIn connection note</p>")
-        parts.append("<pre class='msg'>" + e(outreach["linkedin_note"]) + "</pre>")
-        parts.append("<p class='src' style='margin:8px 0 0'>Email &mdash; subject: "
-                     + e(outreach["email_subject"]) + "</p>")
-        parts.append("<pre class='msg'>" + e(outreach["email_body"]) + "</pre>")
-        if outreach.get("follow_up"):
-            parts.append("<p class='src' style='margin:8px 0 0'>Follow-up, about a "
-                         "week later</p>")
-            parts.append("<pre class='msg'>" + e(outreach["follow_up"]) + "</pre>")
-        parts.append("</details>")
-
-    parts.append("</article>")
-    return "".join(parts)
+    return (
+        '<tr class="r">'
+        + "<td>" + who + "</td>"
+        + "<td>" + _why_cell(ev, claims, spec) + "</td>"
+        + "<td>" + _msg_cell(outreach) + "</td>"
+        + '<td><button class="det-btn" type="button" aria-expanded="false"'
+          ' aria-controls="' + rid + '">'
+          '<span class="det-ar" aria-hidden="true">&#9656;</span>'
+          '<span class="det-lb">Click here for details</span></button></td>'
+        + "</tr>"
+        + '<tr class="det" id="' + rid + '" hidden><td colspan="4">'
+        + _detail_cell(person, claims, ev, contact, mov, links, spec)
+        + "</td></tr>"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -977,6 +1025,13 @@ def build(allow_placeholder_notice: bool = False) -> None:
                 "fail a hard gate would be the alternative, and it is not one.</div>"
             )
 
+        body.append(
+            '<table class="sl">'
+            '<colgroup><col class="c-who"><col class="c-why">'
+            '<col class="c-msg"><col class="c-det"></colgroup>'
+            "<thead><tr><th>Candidate</th><th>Why them</th>"
+            "<th>Message to send</th><th>Detail</th></tr></thead><tbody>"
+        )
         for pid in pids:
             person = dict(persons_raw[pid])
             g = gate_out[pid]
@@ -995,7 +1050,7 @@ def build(allow_placeholder_notice: bool = False) -> None:
             pclaims = by_person.get(pid, [])
             contact = contacts.get(pid, {"email_status": "none"})
             body.append(
-                card_html(
+                row_html(
                     person, pclaims, ev, contact, movs.get(pid, {}),
                     outreach.get(pid) if include_outreach else None,
                     links.get(pid, {}), spec,
@@ -1025,6 +1080,8 @@ def build(allow_placeholder_notice: bool = False) -> None:
                     "top_evidence_source": (pclaims[0]["source_url"] if pclaims else ""),
                 }
             )
+
+        body.append("</tbody></table>")
 
         (OUT_DIR / ("pool_map_" + ("role1" if spec is ROLE1 else "role2") + ".md")).write_text(
             pool_map_md(m, spec), encoding="utf-8"
@@ -1058,11 +1115,12 @@ def build(allow_placeholder_notice: bool = False) -> None:
         "<p class='sub'>Evidence-backed shortlist prepared for Gaia Talent Ltd &middot; "
         + date.today().strftime("%d %B %Y") + " &middot; " + str(delivered_total)
         + " candidates</p></header>"
-        "<p class='lede'>Every factual statement on every card below is a verbatim "
-        "quote from a public document, checked character-by-character against the "
-        "cached source before it was allowed onto the page. Claims that could not be "
-        "matched to their source were dropped rather than softened. Where a signal is "
-        "missing, the card says so.</p>"
+        "<p class='lede'>Every candidate below is one row: who they are, why they "
+        "are on the list, and the message to send. Open <em>Detail</em> for the "
+        "evidence. Every factual statement is a verbatim quote from a public "
+        "document, checked character-by-character against the cached source before "
+        "it was allowed onto the page; claims that could not be matched to their "
+        "source were dropped rather than softened.</p>"
         + banner
     )
 

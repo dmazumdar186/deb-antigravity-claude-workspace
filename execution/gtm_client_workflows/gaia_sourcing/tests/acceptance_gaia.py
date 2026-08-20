@@ -89,8 +89,10 @@ def main() -> int:
     unenriched = [p for p in shipped if p not in contacts]
     check(not unenriched, "every delivered candidate went through enrichment",
           str(unenriched))
-    # Each card must carry at least one clickable way to reach the person.
-    cards = re.split(r'(?=<article class="card">)', html)[1:]
+    # Each row must carry at least one clickable way to reach the person.
+    # The unit was <article class="card"> until the layout became a four-column
+    # table; the property being asserted did not change with it.
+    cards = re.split(r'(?=<tr class="r">)', html)[1:]
     # Matches the class PREFIX, because the buttons carry modifiers
     # (cta cta-li / cta cta-em weak). An exact-string check here failed the
     # moment a second button was added, which is the check being brittle
@@ -113,6 +115,25 @@ def main() -> int:
     silent = [b for b in em if 'data-email="' not in b]
     check(not silent, "every email button carries a copyable address",
           str(len(silent)) + " of " + str(len(em)) + " without one")
+    # Kevin wants the list; whoever asks "why" later gets the detail. That
+    # only holds while the detail stays glanceable -- the card this replaced
+    # ran to ~980 words per person, which is what made the artifact unusable.
+    panes = re.findall(r'<div class="det-in">.*?</div>\s*</td></tr>', html, re.S)
+    check(len(panes) == len(cards),
+          "every candidate row has a detail pane",
+          str(len(panes)) + " panes for " + str(len(cards)) + " rows")
+    def _visible_words(fragment):
+        t = re.sub(r"<[^>]+>", " ", fragment)
+        t = re.sub(r"&[a-zA-Z#0-9]+;", " ", t)
+        return len([w for w in t.split() if w.strip()])
+    over = [n for n in (_visible_words(p) for p in panes) if n > 150]
+    check(not over, "no detail pane exceeds 150 words",
+          str(len(over)) + " over cap, longest " + str(max(over) if over else 0))
+    # The row is the product. If it stops being scannable the redesign failed.
+    check(html.count('class="det-btn"') == len(cards),
+          "every row offers the details toggle",
+          str(html.count('class="det-btn"')) + " for " + str(len(cards)) + " rows")
+
     check("a.cta-em" in html and "clipboard" in html,
           "the email clipboard fallback shipped with the page",
           "no handler found -- a mailto-only button is a silent no-op "
