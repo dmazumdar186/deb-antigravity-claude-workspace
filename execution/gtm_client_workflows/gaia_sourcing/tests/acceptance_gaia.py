@@ -103,6 +103,20 @@ def main() -> int:
                 if not re.search(r'<a class="cta[^"]*" href="[^"]+"', c)]
     check(not hrefless, "every first-contact button is a real link",
           str(len(hrefless)) + " card(s) with a dead button")
+    # "Is a real link" was never enough for the email button. Its href was a
+    # well-formed mailto: the whole time and the click still did nothing,
+    # because the protocol dies wherever no mail client is registered to it.
+    # So the clipboard fallback is load-bearing, and these assert it shipped:
+    # every email button carries the address it would copy, and the handler
+    # that copies it is present in the document.
+    em = re.findall(r'<a class="cta cta-em[^>]*>', html)
+    silent = [b for b in em if 'data-email="' not in b]
+    check(not silent, "every email button carries a copyable address",
+          str(len(silent)) + " of " + str(len(em)) + " without one")
+    check("a.cta-em" in html and "clipboard" in html,
+          "the email clipboard fallback shipped with the page",
+          "no handler found -- a mailto-only button is a silent no-op "
+          "wherever the protocol is unhandled")
 
     print("\n-- Counts against the brief -------------------------------------")
     r1 = [r for r in rows if r["role"] == ROLE1.role_id]

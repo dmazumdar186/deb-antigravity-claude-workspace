@@ -167,6 +167,13 @@ a.cta:hover,a.cta:focus-visible{background:#17583f}
 a.cta-em:hover,a.cta-em:focus-visible{background:var(--panel)}
 .cta-em.weak{color:var(--warn);border-color:#e0b46a}
 a.cta-em.weak:hover,a.cta-em.weak:focus-visible{background:var(--warnbg)}
+/* Clipboard confirmation. mailto: has no success callback -- the browser
+   never tells the page whether a mail client actually opened -- so the copy
+   is the only part of the click we can prove happened, and the button says
+   so rather than sitting there looking inert. */
+a.cta-em.copied,a.cta-em.weak.copied{
+  background:var(--accent);color:#fff;border-color:var(--accent)
+}
 @media (max-width:560px){
   .act{align-items:flex-start;width:100%}
   .btns{justify-content:flex-start}
@@ -280,6 +287,71 @@ footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;
   a{color:inherit;text-decoration:none} .src a::after{content:" (" attr(href) ")";font-size:9pt}
   h2{page-break-after:avoid}
 }
+"""
+
+
+# A mailto: link is not, on its own, a working contact route.
+#
+# The button was correct HTML and still did nothing when clicked. Windows hands
+# the mailto: protocol to whatever holds the UserChoice association, which is
+# routinely a browser rather than a mail client; if that browser has no web
+# mail handler registered, the navigation is dropped without an error, a
+# console line or any visible change. The same click is inert again inside a
+# sandboxed iframe, which is how this file gets previewed. In every one of
+# those cases the reader clicks, nothing happens, and the reasonable conclusion
+# is that the dossier is broken.
+#
+# The address is the thing the reader actually needs, so the click puts it on
+# the clipboard and the label confirms it. The default is deliberately NOT
+# prevented: where a mail client does exist it still opens, and the copy is
+# harmless. Degrades in order -- async clipboard, execCommand, and finally
+# showing the address in the button itself for manual selection.
+COPY_JS = """
+(function(){
+  var RESTORE = 1800;
+  function flash(a, msg){
+    if (a.dataset.busy) { return; }
+    var original = a.textContent;
+    a.dataset.busy = '1';
+    a.classList.add('copied');
+    a.textContent = msg;
+    setTimeout(function(){
+      a.textContent = original;
+      a.classList.remove('copied');
+      delete a.dataset.busy;
+    }, RESTORE);
+  }
+  function legacyCopy(text){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  document.addEventListener('click', function(ev){
+    var t = ev.target;
+    if (!t || !t.closest) { return; }
+    var a = t.closest('a.cta-em');
+    if (!a) { return; }
+    var addr = a.getAttribute('data-email');
+    if (!addr) { return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(addr).then(function(){
+        flash(a, 'Address copied');
+      }, function(){
+        flash(a, legacyCopy(addr) ? 'Address copied' : addr);
+      });
+    } else {
+      flash(a, legacyCopy(addr) ? 'Address copied' : addr);
+    }
+  });
+})();
 """
 
 
@@ -655,9 +727,15 @@ def card_html(
                 '<a class="cta cta-li" href="' + e(href) + '">'
                 + e(BTN[kind]) + "</a>")
         elif kind in ("email", "guess") and not any("cta-em" in b for b in buttons):
+            # The address rides along in data-email so the click can copy it
+            # even when the mailto: navigation dead-ends (see COPY_JS), and in
+            # title= so a hover still reveals it with scripting switched off.
+            addr = href[7:] if href.lower().startswith("mailto:") else href
             buttons.append(
                 '<a class="cta cta-em' + (" weak" if kind == "guess" else "")
-                + '" href="' + e(href) + '">' + e(BTN[kind]) + "</a>")
+                + '" href="' + e(href) + '" data-email="' + e(addr) + '"'
+                + ' title="' + e(addr) + ' -- click to copy">'
+                + e(BTN[kind]) + "</a>")
     if not buttons:
         buttons.append('<span class="cta">' + e(best[1]) + "</span>")
 
@@ -1000,7 +1078,7 @@ def build(allow_placeholder_notice: bool = False) -> None:
         "labels are never collapsed. A pattern guess is a guess.</p>"
         "<p>Generated " + date.today().isoformat() + " &middot; campaign "
         + e(CONFIG.campaign_id) + ".</p></footer>"
-        "</div></body></html>"
+        "</div><script>" + COPY_JS + "</script></body></html>"
     )
 
     (OUT_DIR / "dossier.html").write_text(head + "".join(body) + tail, encoding="utf-8")

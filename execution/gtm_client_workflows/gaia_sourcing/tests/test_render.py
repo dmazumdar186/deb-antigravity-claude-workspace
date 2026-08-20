@@ -171,6 +171,57 @@ def test_email_honesty_label_is_visible(rendered):
     assert "Inferred address" in html
 
 
+def test_email_button_does_not_depend_on_a_mail_client(rendered):
+    """The button was valid HTML and still did nothing when clicked.
+
+    mailto: is only a route if something is registered to answer it. Windows
+    hands the protocol to whatever holds the UserChoice association -- often a
+    browser with no web mail handler -- and the navigation is then dropped with
+    no error, no console line and no visible change. An iframed preview of this
+    file cannot navigate to mailto: at all. In both cases the reader clicks,
+    nothing happens, and concludes the dossier is broken.
+
+    So the address the click would have used has to be reachable without the
+    protocol: on the element for the handler to copy, and in title= for a
+    hover to reveal when scripting is off.
+    """
+    html, _, _ = rendered
+    buttons = re.findall(r'<a class="cta cta-em[^>]*>', html)
+    assert buttons, "no email button rendered"
+    for b in buttons:
+        addr = re.search(r'data-email="([^"]+)"', b)
+        assert addr, "email button with no copyable address: " + b
+        assert 'href="mailto:' + addr.group(1) + '"' in b, (
+            "the copied address must be the one the link would mail: " + b)
+        assert 'title="' + addr.group(1) in b, (
+            "hover must reveal the address without scripting: " + b)
+
+
+def test_clipboard_fallback_ships_inside_the_page(rendered):
+    """The handler travels with the document or it is not there at all.
+
+    The dossier is mailed around as a single file and read offline, so an
+    external script would be a dead reference exactly when it matters. It is
+    also why the acceptance gate's "no external assets" check must keep
+    passing with this present -- inline, no src.
+    """
+    html, _, _ = rendered
+    assert "<script>" in html
+    assert "a.cta-em" in html and "clipboard" in html
+    assert not re.search(r'<script[^>]+src=', html), "script must be inline"
+
+
+def test_mailto_navigation_is_not_suppressed(rendered):
+    """Copying is the fallback, not a replacement.
+
+    Where a mail client does exist, clicking should still open it. The handler
+    must not call preventDefault, or the fix would break the readers for whom
+    the button already worked.
+    """
+    html, _, _ = rendered
+    assert "preventDefault" not in html
+
+
 def test_shortfall_is_announced_not_hidden(rendered):
     """Delivering 1 of 10 must say so at the top of the section."""
     html, _, _ = rendered
