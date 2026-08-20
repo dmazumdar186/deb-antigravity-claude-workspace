@@ -170,6 +170,10 @@ tr.r:hover td{background:var(--panel)}
   transition:background 160ms cubic-bezier(.22,1,.36,1);
 }
 a.cta:hover,a.cta:focus-visible{background:#17583f}
+/* A search box is not a profile. Same amber the email column uses for a
+   guess, so one convention covers both kinds of uncertainty. */
+.cta-li.weak{background:var(--bg);color:var(--warn);border:1px solid #e0b46a}
+a.cta-li.weak:hover,a.cta-li.weak:focus-visible{background:var(--warnbg)}
 .cta-em,.cta-alt{background:var(--bg);color:var(--accent);border:1px solid var(--accent)}
 a.cta-alt:hover,a.cta-alt:focus-visible{background:var(--panel)}
 a.cta-em:hover,a.cta-em:focus-visible{background:var(--panel)}
@@ -194,13 +198,35 @@ a.cta-em.copied,a.cta-em.weak.copied{
 
 .msg-k{
   font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
-  font-weight:600;margin:0 0 3px;
+  font-weight:600;margin:0 0 3px;display:flex;gap:8px;align-items:baseline;
 }
-.msg-k+.msg-k{margin-top:9px}
+.msg-k .lbl{flex:1 1 auto;min-width:0}
+.msg-wrap+.msg-k{margin-top:10px}
+/* Reading the message in a 132px box is not the job -- sending it is. The
+   button copies the exact text that would be sent, so the box only has to
+   show enough to recognise which message it is. */
+button.cp{
+  flex:0 0 auto;font:600 10.5px/1 inherit;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--accent);background:none;border:1px solid var(--line);border-radius:4px;
+  padding:3px 7px;cursor:pointer;
+}
+button.cp:hover,button.cp:focus-visible{border-color:var(--accent);background:var(--panel)}
+button.cp.copied{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* A capped box with no visible edge reads as a cut-off document. The fade is
+   the "there is more" signal that a screenshot can actually show. */
+.msg-wrap{position:relative}
+/* Only where there is genuinely more to see. A fade over a message that
+   already fits promises content that does not exist. */
+.msg-wrap.more::after{
+  content:"";position:absolute;left:1px;right:1px;bottom:1px;height:22px;
+  background:linear-gradient(rgba(246,248,246,0),var(--panel));
+  border-radius:0 0 5px 5px;pointer-events:none;
+}
 pre.msg{
   margin:0;white-space:pre-wrap;word-wrap:break-word;font:12.5px/1.5 inherit;
   background:var(--panel);border:1px solid var(--line);border-radius:5px;
-  padding:8px 10px;max-height:150px;overflow:auto;color:var(--quote);
+  padding:8px 10px;color:var(--quote);
+  max-height:132px;overflow-y:scroll;scrollbar-width:thin;
 }
 
 .det-btn{
@@ -228,6 +254,8 @@ tr.det>td{background:var(--panel);padding:14px 16px 16px}
 
 @media (max-width:900px){
   table.sl,table.sl thead,table.sl tbody,table.sl tr,table.sl td{display:block;width:100%}
+  /* Must out-specify the rule above, or `hidden` stops meaning hidden. */
+  table.sl tr[hidden]{display:none}
   table.sl thead{display:none}
   table.sl td{border:0;padding:6px 0}
   tr.r{border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0;display:block}
@@ -235,7 +263,8 @@ tr.det>td{background:var(--panel);padding:14px 16px 16px}
   .cta{display:inline-block}
 }
 @media print{
-  .det-btn{display:none}
+  .det-btn,button.cp{display:none}
+  .msg-wrap.more::after{display:none}
   tr.det{display:table-row !important}
   tr.r,tr.det,pre.msg{page-break-inside:avoid;break-inside:avoid}
   pre.msg{max-height:none;overflow:visible}
@@ -291,8 +320,21 @@ COPY_JS = """
   document.addEventListener('click', function(ev){
     var t = ev.target;
     if (!t || !t.closest) { return; }
-    var a = t.closest('a.cta-em, a[href^="mailto:"]');
+    var a = t.closest('a.cta-em, a[href^="mailto:"], button.cp');
     if (!a) { return; }
+    var literal = a.getAttribute('data-copy');
+    if (literal !== null) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(literal).then(function(){
+          flash(a, 'Copied');
+        }, function(){
+          flash(a, legacyCopy(literal) ? 'Copied' : 'Select the text below');
+        });
+      } else {
+        flash(a, legacyCopy(literal) ? 'Copied' : 'Select the text below');
+      }
+      return;
+    }
     /* The button carries the address explicitly; the reach-block links carry
        it only in the href, so fall back to reading it off there rather than
        leaving those clicks inert for the same reason as before. */
@@ -313,6 +355,24 @@ COPY_JS = """
       flash(a, legacyCopy(addr) ? 'Address copied' : addr);
     }
   });
+
+  /* Mark only the message boxes that actually overflow, so the fade is a
+     fact about the content rather than a decoration on every box. */
+  function markOverflow(){
+    var wraps = document.querySelectorAll('.msg-wrap');
+    for (var i = 0; i < wraps.length; i++) {
+      var pre = wraps[i].querySelector('pre.msg');
+      if (!pre) { continue; }
+      var more = pre.scrollHeight > pre.clientHeight + 2;
+      wraps[i].classList.toggle('more', more);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', markOverflow);
+  } else {
+    markOverflow();
+  }
+  window.addEventListener('resize', markOverflow);
 
   /* The detail pane. A <details> element inside a table cell would open
      inside that column's width, which is the narrowest place on the page to
@@ -675,9 +735,32 @@ def _wc(fragment: str) -> int:
 
 
 def _clip(text: str, max_words: int) -> str:
-    words = str(text).split()
+    """Shorten to a boundary a reader recognises, not to a word count.
+
+    Cutting at exactly N words lands mid-clause -- "satisfying the...",
+    "tenure stagnation..." -- which stops before the point the sentence was
+    making and reads as a rendering fault rather than an edit. So: keep whole
+    sentences where any fit, allow a 25% overrun to reach the end of the one
+    we are inside, and only fall back to a hard cut when a single sentence is
+    longer than that.
+    """
+    text = str(text).strip()
+    words = text.split()
     if len(words) <= max_words:
-        return str(text)
+        return text
+
+    sentences = re.findall(r"[^.!?]+(?:[.!?]+|$)", text)
+    kept, used = [], 0
+    for sent in sentences:
+        n = len(sent.split())
+        if kept and used + n > max_words:
+            break
+        kept.append(sent)
+        used += n
+        if used >= max_words:
+            break
+    if kept and used <= max_words * 1.25:
+        return "".join(kept).strip()
     return " ".join(words[:max_words]).rstrip(" ,;.") + "..."
 
 
@@ -702,7 +785,7 @@ def _why_cell(ev: dict, claims: list[dict], spec) -> str:
     if reasons:
         out.append('<ul class="why">')
         for r in reasons[:3]:
-            out.append("<li>" + e(_clip(r, 22)) + "</li>")
+            out.append("<li>" + e(_clip(r, 30)) + "</li>")
         out.append("</ul>")
     else:
         out.append('<p class="none">No summary recorded.</p>')
@@ -713,17 +796,19 @@ def _msg_cell(outreach: dict | None) -> str:
     """What to send, and nothing else. Two messages: LinkedIn, then email."""
     if not outreach:
         return '<p class="none">Withheld until the privacy notice is live.</p>'
-    return "".join([
-        '<p class="msg-k">LinkedIn note</p>',
-        "<pre class='msg'>" + e(outreach["linkedin_note"]) + "</pre>",
-        '<p class="msg-k">Email &mdash; ' + e(outreach["email_subject"]) + "</p>",
-        "<pre class='msg'>" + e(outreach["email_body"]) + "</pre>",
-    ] + ([
-        # Written by the pipeline and dropped when the card became a column.
-        # A sequence with no second touch is not the sequence that was built.
-        '<p class="msg-k">Follow-up, about a week later</p>',
-        "<pre class='msg'>" + e(outreach["follow_up"]) + "</pre>",
-    ] if outreach.get("follow_up") else []))
+    out: list[str] = []
+    blocks = [("LinkedIn note", outreach["linkedin_note"]),
+              ("Email &mdash; " + e(outreach["email_subject"]), outreach["email_body"])]
+    # Written by the pipeline and dropped when the card became a column. A
+    # sequence with no second touch is not the sequence that was built.
+    if outreach.get("follow_up"):
+        blocks.append(("Follow-up, about a week later", outreach["follow_up"]))
+    for label, text in blocks:
+        out.append('<p class="msg-k"><span class="lbl">' + label + "</span>"
+                   '<button class="cp" type="button" aria-live="polite"'
+                   ' data-copy="' + e(text) + '">Copy</button></p>')
+        out.append('<div class="msg-wrap"><pre class="msg">' + e(text) + "</pre></div>")
+    return "".join(out)
 
 
 def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
@@ -843,8 +928,9 @@ def row_html(
     buttons: list[str] = []
     for kind, label, href in routes:
         if kind in ("linkedin", "search") and not any("cta-li" in b for b in buttons):
-            buttons.append('<a class="cta cta-li" href="' + e(href) + '">'
-                           + e(BTN[kind]) + "</a>")
+            buttons.append(
+                '<a class="cta cta-li' + (" weak" if kind == "search" else "")
+                + '" href="' + e(href) + '">' + e(BTN[kind]) + "</a>")
         elif kind in ("email", "guess") and not any("cta-em" in b for b in buttons):
             # The address rides in data-email so the click can copy it even
             # where the mailto: navigation dead-ends, and in title= so a hover

@@ -2,6 +2,16 @@
 from playwright.sync_api import sync_playwright
 from pathlib import Path
 
+def _lf(text: str) -> str:
+    """Normalise line endings.
+
+    Windows hands back CRLF from the clipboard while the DOM attribute
+    holds LF. That is the platform being helpful for Outlook, not a copy
+    defect, so the comparison ignores it.
+    """
+    return text.replace(chr(13) + chr(10), chr(10))
+
+
 DOC = Path("deliverables/gaia_2026-08-20/dossier.html").resolve().as_uri()
 fails = []
 
@@ -52,6 +62,21 @@ with sync_playwright() as pw:
         if pg.evaluate("navigator.clipboard.readText()") != addr:
             fails.append("email copy failed: " + str(addr))
 
+    # Every message must copy exactly. This is the reader's actual job -- the
+    # box only shows enough to recognise which message it is.
+    cps = pg.locator("button.cp")
+    n_cp = cps.count()
+    for i in range(n_cp):
+        c = cps.nth(i)
+        want = c.get_attribute("data-copy")
+        c.click()
+        pg.wait_for_timeout(110)
+        got = pg.evaluate("navigator.clipboard.readText()")
+        # Windows puts CRLF on the clipboard; the DOM attribute holds LF. That
+        # is the platform being helpful for Outlook, not a copy defect.
+        if _lf(got) != _lf(want):
+            fails.append(f"copy button {i} did not copy its message")
+
     # LinkedIn buttons point at real profiles, not a search box, not the operator.
     li = pg.locator("a.cta-li")
     for i in range(li.count()):
@@ -78,9 +103,10 @@ with sync_playwright() as pw:
         "document.documentElement.scrollWidth > document.documentElement.clientWidth")
     mobile_btns = pg.locator("a.cta-em").first.is_visible()
     n_li, n_em = li.count(), em.count()   # read before the browser closes
+    _ = n_cp
     b.close()
 
-print(f"linkedin_buttons={n_li} email_buttons={n_em} "
+print(f"copy_buttons={n_cp} linkedin_buttons={n_li} email_buttons={n_em} "
       f"keyboard_ok={kb_ok} h_overflow_desktop={ov_desktop} "
       f"h_overflow_mobile={ov_mobile} mobile_buttons_visible={mobile_btns}")
 print("console errors:", errs or "none")
