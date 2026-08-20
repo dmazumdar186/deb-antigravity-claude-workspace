@@ -133,7 +133,12 @@ body{
 header.doc{border-bottom:3px solid var(--accent);padding-bottom:16px;margin-bottom:10px}
 h1{font-size:26px;margin:0 0 6px;letter-spacing:-.01em}
 .sub{color:var(--muted);font-size:15px;margin:0}
-.lede{color:var(--muted);margin:6px 0 16px;font-size:14.5px;max-width:80ch}
+.lede{color:var(--muted);margin:6px 0 16px;font-size:14.5px}
+/* The standing note runs the full width of the table beneath it. Capped at
+   80ch it wrapped after roughly half the page and left the right-hand side
+   empty, so the header looked misaligned with the four columns it introduces. */
+.lede.wide{max-width:none;text-align:left}
+.role-lede{max-width:96ch}
 h2{font-size:20px;margin:34px 0 2px}
 h2 .of{
   color:var(--muted);font-weight:400;font-size:13px;margin-left:10px;
@@ -1178,6 +1183,28 @@ def build(allow_placeholder_notice: bool = False) -> None:
             pids.sort(key=lambda p: (order.get(final_tier(p), 3),
                                      -gate_out[p]["n_claims"], p))
             pids = pids[: spec.target_count]
+        # Reachability first, evidence second.
+        #
+        # The client opens this to contact people. A row whose email is a
+        # pattern guess and whose profile did not resolve is still a real
+        # candidate, but it is one that needs work before it can be actioned,
+        # and interleaving those with the ready ones makes the reader check
+        # every row to find the ones they can use. Both signals must be
+        # present to sort into the top group: a verified address and a
+        # resolved profile, which is exactly what the two solid buttons mean.
+        #
+        # Within each group the pipeline's own evidence ranking is preserved
+        # untouched, so this reorders the list without re-judging anybody.
+        def _ready(pid: str) -> int:
+            c = contacts.get(pid, {})
+            has_email = c.get("email_status") == "verified" and c.get("email")
+            has_profile = bool(c.get("linkedin_url"))
+            return 0 if (has_email and has_profile) else 1
+
+        rank = {pid: i for i, pid in enumerate(pids)}
+        pids.sort(key=lambda p: (_ready(p), rank[p]))
+        n_ready = sum(1 for p in pids if _ready(p) == 0)
+
         delivered_total += len(pids)
 
         short = len(pids) < spec.target_count
@@ -1188,10 +1215,14 @@ def build(allow_placeholder_notice: bool = False) -> None:
             + str(len(pids)) + " of " + str(spec.target_count) + "</span></h2>"
         )
         body.append(
-            '<p class="lede">' + e(", ".join(spec.locations)) + ". "
+            '<p class="lede role-lede">' + e(", ".join(spec.locations)) + ". "
             + "Assessed " + str(m["profiles_assessed"]) + " profiles; "
             + str(m["passed_all_gates"]) + " passed every hard gate. "
-            + "Ranked by strength of evidence on "
+            + str(n_ready) + " of " + str(len(pids))
+            + " are ready to contact now &mdash; verified address and a resolved "
+            "profile &mdash; and those are listed first. The rest need a step "
+            "before they can be approached and follow below, ranked as they "
+            "were on strength of evidence on "
             + e(spec.primary_signal_dimension.replace("_", " ")) + ".</p>"
         )
         body.append("</section>")
@@ -1287,6 +1318,8 @@ def build(allow_placeholder_notice: bool = False) -> None:
     head = (
         "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<meta name='robots' content='noindex,nofollow,noarchive,nosnippet'>"
+        "<meta name='referrer' content='no-referrer'>"
         "<title>Gaia Talent -- TOBIN / AtkinsRealis shortlist</title>"
         "<style>" + CSS + "</style></head><body><div class='wrap'>"
         "<header class='doc'><h1>Senior Structural Engineer &amp; Transport Major "
@@ -1294,17 +1327,16 @@ def build(allow_placeholder_notice: bool = False) -> None:
         "<p class='sub'>Evidence-backed shortlist prepared for Gaia Talent Ltd &middot; "
         + date.today().strftime("%d %B %Y") + " &middot; " + str(delivered_total)
         + " candidates</p></header>"
-        "<p class='lede'><strong>Approach LinkedIn first.</strong> Mailing a "
-        "senior engineer at their employer&rsquo;s address about leaving that "
-        "employer is monitored mail and poor tradecraft; the email button is "
-        "there for when the first channel goes quiet, and every card carries a "
-        "switchboard number for when both do.</p>"
-        "<p class='lede'>Every candidate below is one row: who they are, why they "
-        "are on the list, and the message to send. Open <em>Detail</em> for the "
-        "evidence. Every factual statement is a verbatim quote from a public "
-        "document, checked character-by-character against the cached source before "
-        "it was allowed onto the page; claims that could not be matched to their "
-        "source were dropped rather than softened.</p>"
+        "<p class='lede wide'><strong>Approach on the professional network "
+        "first.</strong> Mailing a senior engineer at their employer&rsquo;s "
+        "address about leaving that employer is monitored mail and poor "
+        "tradecraft &mdash; the email button is there for when the first channel "
+        "goes quiet, and every row carries a switchboard number for when both do. "
+        "Each candidate is one row: who they are, why they are on the list, and "
+        "the message to send; open <em>Detail</em> for the evidence behind it. "
+        "Every factual statement is a verbatim quote from a public document, "
+        "checked character-by-character against its cached source, and claims "
+        "that could not be matched were dropped rather than softened.</p>"
         + banner
     )
 

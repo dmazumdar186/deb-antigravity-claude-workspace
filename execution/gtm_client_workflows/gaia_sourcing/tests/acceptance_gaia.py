@@ -130,6 +130,23 @@ def main() -> int:
     check(not over, "no detail pane exceeds 150 words",
           str(len(over)) + " over cap, longest " + str(max(over) if over else 0))
     # The row is the product. If it stops being scannable the redesign failed.
+    # Reachability ordering. The client opens this to contact people, so the
+    # rows they can act on today come first; interleaving them with rows that
+    # need a step makes the reader check every one to find the usable ones.
+    for band in re.split(r"<h2>", html)[1:]:
+        band_rows = re.split(r'(?=<tr class="r">)', band)[1:]
+        if not band_rows:
+            continue
+        needs = ["cta-em weak" in r or "No email address found" in r
+                 or "cta-li weak" in r for r in band_rows]
+        # Once the first not-ready row appears, every row after it must also
+        # be not-ready -- i.e. the flags are sorted, never interleaved.
+        first_gap = needs.index(True) if True in needs else len(needs)
+        check(all(needs[first_gap:]),
+              "contactable candidates are listed before the rest",
+              "row " + str(needs.index(False, first_gap) + 1 if False in needs[first_gap:] else 0)
+              + " is contactable but sits below one that is not")
+
     check(html.count('class="det-btn"') == len(cards),
           "every row offers the details toggle",
           str(html.count('class="det-btn"')) + " for " + str(len(cards)) + " rows")
