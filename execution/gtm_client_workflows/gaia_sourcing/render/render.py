@@ -170,7 +170,8 @@ tr.r:hover td{background:var(--panel)}
   transition:background 160ms cubic-bezier(.22,1,.36,1);
 }
 a.cta:hover,a.cta:focus-visible{background:#17583f}
-.cta-em{background:var(--bg);color:var(--accent);border:1px solid var(--accent)}
+.cta-em,.cta-alt{background:var(--bg);color:var(--accent);border:1px solid var(--accent)}
+a.cta-alt:hover,a.cta-alt:focus-visible{background:var(--panel)}
 a.cta-em:hover,a.cta-em:focus-visible{background:var(--panel)}
 .cta-em.weak{color:var(--warn);border-color:#e0b46a}
 a.cta-em.weak:hover,a.cta-em.weak:focus-visible{background:var(--warnbg)}
@@ -717,7 +718,12 @@ def _msg_cell(outreach: dict | None) -> str:
         "<pre class='msg'>" + e(outreach["linkedin_note"]) + "</pre>",
         '<p class="msg-k">Email &mdash; ' + e(outreach["email_subject"]) + "</p>",
         "<pre class='msg'>" + e(outreach["email_body"]) + "</pre>",
-    ])
+    ] + ([
+        # Written by the pipeline and dropped when the card became a column.
+        # A sequence with no second touch is not the sequence that was built.
+        '<p class="msg-k">Follow-up, about a week later</p>',
+        "<pre class='msg'>" + e(outreach["follow_up"]) + "</pre>",
+    ] if outreach.get("follow_up") else []))
 
 
 def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
@@ -808,8 +814,13 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     body = "".join(kept)
     if not body:
         body = '<p class="none">No verbatim evidence fits here -- see the pool map.</p>'
+    note = ""
+    if len(kept) < len(blocks):
+        note = ('<p class="src">Showing ' + str(len(kept)) + " of "
+                + str(len(blocks)) + " verified quotes; the rest are in the "
+                "run record.</p>")
     return ('<div class="det-in">' + body
-            + '<div class="facts">' + reserved + "</div></div>")
+            + '<div class="facts">' + note + reserved + "</div></div>")
 
 
 def row_html(
@@ -827,7 +838,8 @@ def row_html(
     routes = _reach_routes(person, contact)
 
     BTN = {"linkedin": "LinkedIn", "search": "Find on LinkedIn",
-           "email": "Email", "guess": "Email (unverified)"}
+           "email": "Email", "guess": "Email (unverified)",
+           "switchboard": "Call the firm", "profile": "Profile page"}
     buttons: list[str] = []
     for kind, label, href in routes:
         if kind in ("linkedin", "search") and not any("cta-li" in b for b in buttons):
@@ -845,7 +857,11 @@ def row_html(
                 + ' title="' + e(addr) + ' -- click to copy">'
                 + e(BTN[kind]) + "</a>")
     if not any("cta-em" in b for b in buttons):
-        buttons.append('<span class="none">No email found</span>')
+        fallback = next((r for r in routes if r[0] in ("switchboard", "profile")), None)
+        if fallback:
+            buttons.append('<a class="cta cta-alt" href="' + e(fallback[2]) + '">'
+                           + e(BTN[fallback[0]]) + "</a>")
+        buttons.append('<span class="none">No email address found</span>')
 
     who = (
         '<p class="nm">' + e(person["full_name"]) + "</p>"
