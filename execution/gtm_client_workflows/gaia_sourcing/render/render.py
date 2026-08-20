@@ -1364,7 +1364,25 @@ def build(allow_placeholder_notice: bool = False) -> None:
         "</div><script>" + COPY_JS + "</script></body></html>"
     )
 
-    (OUT_DIR / "dossier.html").write_text(head + "".join(body) + tail, encoding="utf-8")
+    doc = head + "".join(body) + tail
+    (OUT_DIR / "dossier.html").write_text(doc, encoding="utf-8")
+
+    site = OUT_DIR / "site"
+    site.mkdir(exist_ok=True)
+    (site / "index.html").write_text(doc, encoding="utf-8")
+    _nl = chr(10)
+    (site / "robots.txt").write_text("User-agent: *" + _nl + "Disallow: /" + _nl,
+                                     encoding="utf-8")
+    # Belt and braces with the <meta robots> in the head: a header applies to
+    # the response even when something strips or never parses the markup.
+    (site / "_headers").write_text(_nl.join([
+        "/*",
+        "  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet",
+        "  Referrer-Policy: no-referrer",
+        "  X-Content-Type-Options: nosniff",
+        "  X-Frame-Options: SAMEORIGIN",
+        "",
+    ]), encoding="utf-8")
 
     fields = list(csv_rows[0].keys()) if csv_rows else ["role", "full_name"]
     with (OUT_DIR / "candidates.csv").open("w", encoding="utf-8-sig", newline="") as fh:

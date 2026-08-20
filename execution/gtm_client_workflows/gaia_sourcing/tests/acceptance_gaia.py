@@ -156,6 +156,23 @@ def main() -> int:
           "no handler found -- a mailto-only button is a silent no-op "
           "wherever the protocol is unhandled")
 
+    # The deployed copy must be the generated one. A hand-copied site/ is one
+    # forgotten step away from serving last week's shortlist while the local
+    # file looks correct -- see ~/.claude/rules/live-artifact-acceptance.md,
+    # where exactly that went unnoticed for thirteen days.
+    site = OUT / "site" / "index.html"
+    check(site.exists(), "the deployed page exists", str(site))
+    if site.exists():
+        check(site.read_text(encoding="utf-8") == html,
+              "the deployed page is the generated page, not a stale copy",
+              "site/index.html differs from dossier.html")
+    for extra in ("robots.txt", "_headers"):
+        check((OUT / "site" / extra).exists(),
+              "the deployed site ships " + extra, "missing")
+    # This page names real people and their employers. Crawlers get told twice.
+    check("noindex" in html, "the page asks not to be indexed",
+          "no robots meta -- 13 named individuals would be indexable")
+
     print("\n-- Counts against the brief -------------------------------------")
     r1 = [r for r in rows if r["role"] == ROLE1.role_id]
     r2 = [r for r in rows if r["role"] == ROLE2.role_id]
