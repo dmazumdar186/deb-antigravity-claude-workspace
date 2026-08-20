@@ -1123,6 +1123,9 @@ def pool_map_md(m: dict, spec) -> str:
 # ---------------------------------------------------------------------------
 
 
+WORKER_JS = '/*\n * Every request to this site passes through here first.\n *\n * The page names thirteen identifiable people, their employers, their work\n * addresses and an assessment of how likely each is to leave. robots.txt and\n * the noindex headers keep it out of search results; they do nothing about a\n * forwarded link. Cloudflare Access is the better lock, but enabling Zero\n * Trust is a dashboard action that also fixes a permanent team domain, so this\n * is the lock that can exist without making that decision for anyone.\n *\n * This is _worker.js rather than functions/_middleware.js deliberately.\n * `wrangler pages deploy <dir>` resolves functions/ against the working\n * directory, not against <dir> -- so a middleware sitting inside the asset\n * folder is uploaded as a static file and never runs, and the site serves\n * unprotected while every local check passes. _worker.js lives in the asset\n * directory itself and ships with it.\n *\n * The password lives in the SITE_PASSWORD environment secret, never in the\n * repository. If it is unset the site fails CLOSED.\n */\n\nfunction constantTimeEqual(a, b) {\n  // Comparing with === leaks the length of the shared prefix through timing.\n  const encoder = new TextEncoder();\n  const x = encoder.encode(a);\n  const y = encoder.encode(b);\n  let diff = x.length ^ y.length;\n  const n = Math.max(x.length, y.length);\n  for (let i = 0; i < n; i++) {\n    diff |= (x[i] || 0) ^ (y[i] || 0);\n  }\n  return diff === 0;\n}\n\nfunction challenge(body) {\n  return new Response(body, {\n    status: 401,\n    headers: {\n      "WWW-Authenticate": \'Basic realm="Gaia Talent shortlist", charset="UTF-8"\',\n      "Content-Type": "text/plain; charset=utf-8",\n      "Cache-Control": "no-store",\n      "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet",\n    },\n  });\n}\n\nexport default {\n  async fetch(request, env) {\n    const expected = env.SITE_PASSWORD;\n    if (!expected) {\n      // Fail closed. A missing secret is a misconfiguration, not permission.\n      return new Response("This site is not configured for access.", {\n        status: 503,\n        headers: { "Cache-Control": "no-store" },\n      });\n    }\n\n    const header = request.headers.get("Authorization") || "";\n    if (header.startsWith("Basic ")) {\n      let decoded = "";\n      try {\n        decoded = atob(header.slice(6));\n      } catch (err) {\n        return challenge("Malformed credentials.");\n      }\n      const i = decoded.indexOf(":");\n      const supplied = i < 0 ? "" : decoded.slice(i + 1);\n      if (constantTimeEqual(supplied, expected)) {\n        const asset = await env.ASSETS.fetch(request);\n        const out = new Response(asset.body, asset);\n        // Never let a shared cache hold an authenticated response.\n        out.headers.set("Cache-Control", "private, no-store");\n        out.headers.set("X-Robots-Tag",\n                        "noindex, nofollow, noarchive, nosnippet");\n        return out;\n      }\n    }\n    return challenge("This shortlist is private. A password is required.");\n  },\n};\n'
+
+
 def build(allow_placeholder_notice: bool = False) -> None:
     global _OCR_DOC_IDS
     _OCR_DOC_IDS = load_ocr_doc_ids()
@@ -1374,6 +1377,11 @@ def build(allow_placeholder_notice: bool = False) -> None:
                                      encoding="utf-8")
     # Belt and braces with the <meta robots> in the head: a header applies to
     # the response even when something strips or never parses the markup.
+    # The password gate ships inside the asset directory, so a re-render
+    # cannot quietly produce an unprotected deployment and the deploy command
+    # cannot leave the gate behind.
+    (site / "_worker.js").write_text(WORKER_JS, encoding="utf-8")
+
     (site / "_headers").write_text(_nl.join([
         "/*",
         "  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet",

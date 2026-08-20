@@ -80,3 +80,6 @@ execution/video/remotion-projects/*/public/visuals/
 
 # yoga_jitendra_site: raw uploads (source photos + review screenshots, unfiltered)
 execution/personal_workflows/yoga_jitendra_site/_raw_assets/
+
+# Client-facing page password (never commit)
+deliverables/*/ACCESS_PASSWORD.txt
