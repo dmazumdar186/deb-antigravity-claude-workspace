@@ -222,8 +222,15 @@ button.cp.copied{background:var(--accent);color:#fff;border-color:var(--accent)}
 /* Only where there is genuinely more to see. A fade over a message that
    already fits promises content that does not exist. */
 .msg-wrap.more::after{
-  content:"";position:absolute;left:1px;right:1px;bottom:1px;height:22px;
-  background:linear-gradient(rgba(246,248,246,0),var(--panel));
+  /* A fade alone reads as a soft edge, not as "keep reading" -- a recruiter
+     skimming could take the email for a short one and never see the GDPR
+     footer under it. The fade carries a label. */
+  content:"scroll for the rest";position:absolute;left:1px;right:1px;bottom:1px;
+  height:30px;padding-right:9px;
+  display:flex;align-items:flex-end;justify-content:flex-end;
+  font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);
+  background:linear-gradient(rgba(246,248,246,0),var(--panel) 62%);
   border-radius:0 0 5px 5px;pointer-events:none;
 }
 pre.msg{
@@ -450,6 +457,33 @@ def _safe_url(url: str) -> str:
     """
     u = str(url or "").strip()
     return u if u.lower().startswith(_SAFE_SCHEMES) else ""
+
+
+_IDENT_RE = re.compile(r"\b[a-z]+(?:_[a-z]+)+\b")
+
+
+def _humanize(text: str) -> str:
+    """Turn any internal identifier that reached prose back into English.
+
+    The strengths and rationales are written by a model that can see the
+    pipeline's own dimension keys, and one of them came through verbatim:
+    a card read "aligning with the primary technical signal of
+    statutory_process". It is a single occurrence, which is exactly why no
+    test caught it -- and it sits in the column a recruiter reads first, where
+    a raw field name is the one thing that makes a document look unreviewed.
+
+    Known dimensions map to their labels; anything else snake_shaped is
+    de-underscored rather than left alone, because the next leak will not be
+    a dimension.
+    """
+    def swap(m: "re.Match[str]") -> str:
+        token = m.group(0)
+        label = DIM_LABEL.get(token)
+        if label:
+            return label.lower()
+        return token.replace("_", " ")
+
+    return _IDENT_RE.sub(swap, str(text))
 
 
 def _quote_norm(c: dict) -> str:
@@ -829,7 +863,7 @@ def _why_cell(ev: dict, claims: list[dict], spec) -> str:
     if reasons:
         out.append('<ul class="why">')
         for r in reasons[:3]:
-            out.append("<li>" + e(_clip(r, 30)) + "</li>")
+            out.append("<li>" + e(_humanize(_clip(r, 30))) + "</li>")
         out.append("</ul>")
     else:
         out.append('<p class="none">No summary recorded.</p>')
@@ -887,7 +921,8 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
             '<div class="claim"><blockquote>&ldquo;' + e(quote)
             + "&rdquo;</blockquote>"
             + '<div class="src">'
-            + ('<a href="' + e(_safe_url(src)) + '">source</a>' if _safe_url(src)
+            + ('<a href="' + e(_safe_url(src)) + '" target="_blank"'
+               ' rel="noopener noreferrer">source</a>' if _safe_url(src)
                else "source document not recorded")
             + (" &middot; text recovered by OCR from a scanned document"
                if c.get("source_doc_id") in _OCR_DOC_IDS else "")
@@ -905,7 +940,7 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
                 if c.get("confidence") != "direct" and c.get("assertion")]
     if inferred:
         facts.append('<p class="src">Inferred, not directly stated: '
-                     + e(_clip("; ".join(inferred), 22)) + "</p>")
+                     + e(_humanize(_clip("; ".join(inferred), 22))) + "</p>")
     status = contact.get("email_status", "none")
     note = {
         "verified": "Email SMTP-verified by the provider.",
@@ -926,7 +961,7 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
         facts.append(
             '<p><strong class="mov-' + e(assessment) + '">' + e(assessment)
             + " movability.</strong>"
-            + (" " + e(_clip(rationale, 26)) if rationale
+            + (" " + e(_humanize(_clip(rationale, 26))) if rationale
                else " No basis recorded either way.")
             + "</p>"
         )
@@ -1349,7 +1384,8 @@ def build(allow_placeholder_notice: bool = False) -> None:
          "schemes rather than the consultancies that deliver them. A different "
          "conversation, listed here because leaving them out entirely would hide "
          "something useful.</p><ul>"
-         + "".join("<li>" + e(s) + "</li>" for s in sidebar) + "</ul>")
+         + "".join("<li>" + e(s).replace(" -- ", " &mdash; ") + "</li>"
+                     for s in sidebar) + "</ul>")
         if sidebar else ""
     ) + (
         "<footer><p><strong>Method.</strong> Public sources only: company staff "

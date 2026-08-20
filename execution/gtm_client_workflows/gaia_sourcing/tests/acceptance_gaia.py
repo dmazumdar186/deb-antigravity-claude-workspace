@@ -19,6 +19,7 @@ import csv
 import io
 import json
 import re
+import html as html_mod
 import sys
 from pathlib import Path
 
@@ -214,6 +215,23 @@ def main() -> int:
     print("\n-- Presentation --------------------------------------------------")
     check("�" not in html, "no replacement characters on any card",
           str(html.count("�")))
+    # An internal field name in client-facing prose is the single thing most
+    # likely to make a reader think the document was assembled and never read.
+    # One reached a card: "aligning with the primary technical signal of
+    # statutory_process". A model that can see the pipeline's dimension keys
+    # will occasionally quote one, so this asserts none survive to the page.
+    visible = re.sub(r"<(script|style)[^>]*>.*?</>", " ", html, flags=re.S)
+    visible = html_mod.unescape(re.sub(r"<[^>]+>", " ", visible))
+    idents = sorted(set(re.findall(r"[a-z]+(?:_[a-z]+)+", visible)))
+    check(not idents, "no internal field names in client-facing prose",
+          "leaked: " + ", ".join(idents))
+    # A citation that navigates away costs the reader their place in the list.
+    srcs = re.findall(r"<a href=\"[^\"]+\"[^>]*>source</a>", html)
+    bad = [a for a in srcs if 'target="_blank"' not in a
+           or "noopener" not in a]
+    check(not bad, "source citations open in a new tab",
+          str(len(bad)) + " of " + str(len(srcs)) + " would hijack the tab")
+
     external = re.findall(r'<(?:script|link|img)[^>]+(?:src|href)="(https?://[^"]+)"',
                           html)
     check(not external, "no external assets -- opens offline and on a train",
