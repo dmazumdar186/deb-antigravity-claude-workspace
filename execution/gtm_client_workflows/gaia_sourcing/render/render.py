@@ -432,6 +432,49 @@ def load_ocr_doc_ids() -> set[str]:
     return out
 
 
+def _quote_norm(c: dict) -> str:
+    return " ".join(str(c.get("evidence_quote") or "").split()).lower().strip(" .;,:")
+
+
+def _group_by_quote(claims: list[dict]) -> list[list[dict]]:
+    """Group every claim that rests on the same source sentence.
+
+    Grouping is by CONTAINMENT, not equality. An exact-match key fails on the
+    cases that actually occur: the same sentence quoted once with its full stop
+    and once without, or once with a leading "including". Both printed the
+    identical sentence twice under two labels.
+
+    Deliberately looser than the validation-stage dedup, which only collapses
+    within a dimension because it changes what the gates count. This is
+    presentation only, so it can safely span dimensions -- and spanning them is
+    the point, since "25 years in structural engineering in Ireland" is
+    experience, sector and location in one sentence.
+
+    Shared by the long-form renderer and the detail pane. It lived only in
+    _claims_html until the table layout stopped calling that function, which
+    silently un-fixed the repetition for every candidate -- Patrick Raggett
+    spent two of his three quote slots on one sentence.
+    """
+    groups: list[list[dict]] = []
+    for c in sorted(claims, key=lambda x: -len(_quote_norm(x))):
+        q = _quote_norm(c)
+        for group in groups:
+            g = _quote_norm(group[0])
+            if q and (q in g or g in q):
+                group.append(c)
+                break
+        else:
+            groups.append([c])
+
+    # Longest-first inside a group is an artefact of the sort above; both
+    # renderers read better in the order the claims arrived.
+    index = {id(c): i for i, c in enumerate(claims)}
+    groups.sort(key=lambda g: min(index[id(c)] for c in g))
+    for group in groups:
+        group.sort(key=lambda c: index[id(c)])
+    return groups
+
+
 def _claims_html(claims: list[dict]) -> str:
     """Render claims, grouping everything that rests on one source sentence.
 
@@ -457,26 +500,7 @@ def _claims_html(claims: list[dict]) -> str:
     # presentation only, so it can safely span dimensions -- and spanning them
     # is the point, since "25 years in structural engineering in Ireland" is
     # experience, sector and location in one sentence.
-    def norm(c: dict) -> str:
-        return " ".join(c["evidence_quote"].split()).lower().strip(" .;,:")
-
-    groups: list[list[dict]] = []
-    for c in sorted(claims, key=lambda x: -len(norm(x))):
-        q = norm(c)
-        for group in groups:
-            g = norm(group[0])
-            if q and (q in g or g in q):
-                group.append(c)
-                break
-        else:
-            groups.append([c])
-
-    # Longest quote first inside a group is an artefact of the sort above; the
-    # cards read better in the order the claims arrived.
-    index = {id(c): i for i, c in enumerate(claims)}
-    groups.sort(key=lambda g: min(index[id(c)] for c in g))
-    for group in groups:
-        group.sort(key=lambda c: index[id(c)])
+    groups = _group_by_quote(claims)
 
     out: list[str] = []
     for group in groups:
@@ -827,7 +851,13 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     #    of the shortlist; if only one thing fits, it should be this.
     primary = [c for c in claims if c["dimension"] == spec.primary_signal_dimension]
     other = [c for c in claims if c["dimension"] != spec.primary_signal_dimension]
-    for c in [x for x in primary + other if x.get("confidence") == "direct"]:
+    direct = [x for x in primary + other if x.get("confidence") == "direct"]
+    # One sentence can evidence three dimensions. Without grouping the pane
+    # prints it three times and burns the quote budget repeating itself.
+    for group in _group_by_quote(direct):
+        # The longest quote in the group carries the most context for a reader
+        # who clicks through to check it.
+        c = max(group, key=lambda x: len(str(x.get("evidence_quote") or "")))
         quote = _clip(c.get("evidence_quote") or c["assertion"], 30)
         src = c.get("source_url")
         # The .claim / blockquote / .src shape is the evidence contract: every

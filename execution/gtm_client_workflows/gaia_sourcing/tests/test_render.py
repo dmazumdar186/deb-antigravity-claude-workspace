@@ -237,6 +237,49 @@ def test_the_copy_is_announced_to_screen_readers(rendered):
         assert 'aria-live="polite"' in b, "copy state not announced: " + b
 
 
+class _Spec:
+    primary_signal_dimension = "technical_skill"
+
+
+def _dc(dimension, assertion, quote):
+    return {"dimension": dimension, "assertion": assertion,
+            "evidence_quote": quote, "confidence": "direct",
+            "source_url": "https://example.ie/p", "source_doc_id": "d"}
+
+
+def test_the_detail_pane_does_not_quote_one_sentence_twice():
+    """The repetition bug, re-fixed on the path that actually ships.
+
+    _claims_html grouped claims that rest on one source sentence, and the
+    table layout stopped calling it -- so a sentence evidencing three
+    dimensions printed three times again, spending a three-quote budget on one
+    piece of evidence. Patrick Raggett shipped that way. The grouping now lives
+    in _group_by_quote and both renderers use it; this asserts on the pane
+    rather than on the helper, because the helper was never the thing that
+    broke.
+    """
+    quote = "Patrick is a Chartered Engineer with over 15 years of experience"
+    claims = [
+        _dc("years_experience", "Over 15 years.", quote),
+        _dc("chartership", "Chartered.", quote + "."),
+        _dc("technical_skill", "Bridges.", "designed the Royal Canal Greenway"),
+    ]
+    pane = R._detail_cell({"person_id": "p1"}, claims, {"tier": "B"},
+                          {"email_status": "verified"}, {}, {}, _Spec())
+    assert pane.count("<blockquote>") == 2, pane
+
+
+def test_the_detail_pane_shows_the_longest_quote_of_a_group():
+    """The longest carries the most context for a reader who clicks through."""
+    claims = [
+        _dc("sector", "B.", "commercial offices and schools"),
+        _dc("project", "A.", "including commercial offices and schools"),
+    ]
+    pane = R._detail_cell({"person_id": "p1"}, claims, {"tier": "B"},
+                          {"email_status": "verified"}, {}, {}, _Spec())
+    assert "including commercial offices and schools" in pane
+
+
 def test_mailto_navigation_is_not_suppressed(rendered):
     """Copying is the fallback, not a replacement.
 
