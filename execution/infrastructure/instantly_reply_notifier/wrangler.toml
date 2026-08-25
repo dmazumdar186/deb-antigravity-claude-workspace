@@ -1,0 +1,17 @@
+name = "instantly-reply-notifier"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Optional: banner text shown above Telegram messages that arrive on /webhook/client.
+# Not a secret, so it lives here rather than in wrangler secret.
+[vars]
+CLIENT_ACCOUNT_LABEL = "Client Account"
+
+# Create your own namespace first:
+#   npx wrangler kv namespace create DEDUP_KV
+#   npx wrangler kv namespace create DEDUP_KV --preview
+# then paste the two ids it prints below.
+[[kv_namespaces]]
+binding = "DEDUP_KV"
+id = "c48c6f25134749bcbcb7265b491a4e2b"
+preview_id = "b0c9c5041b8344ef94f01651e626f159"

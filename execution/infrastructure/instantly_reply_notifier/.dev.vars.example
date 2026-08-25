@@ -1,0 +1,15 @@
+# Local dev only (`npm run dev`). Copy to `.dev.vars` and fill in.
+# .dev.vars is gitignored. In production these are Cloudflare Worker secrets,
+# set with `npx wrangler secret put <NAME>` - never committed anywhere.
+
+TELEGRAM_BOT_TOKEN=123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+TELEGRAM_CHAT_ID=000000000
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Only needed if you enable the optional auto-reply. Leave blank otherwise.
+INSTANTLY_API_KEY=
+
+# Generate each one separately with: openssl rand -hex 32
+# Use DIFFERENT values for the two routes.
+WEBHOOK_SECRET=replace-me-with-a-random-64-char-hex-string
+WEBHOOK_SECRET_CLIENT=replace-me-with-a-DIFFERENT-random-64-char-hex-string
