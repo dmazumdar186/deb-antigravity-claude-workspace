@@ -519,3 +519,167 @@ def test_excluded_contacted_leads_are_reported_not_hidden(wired, tmp_path):
     summary = guard.run(_args(tmp_path, dry_run=True))
     assert summary["pending_excluded_as_contacted"] == 2
     assert summary["not_contacted"] == 5, "post-filter pending count"
+
+
+# ── owed tests named by the 2026-08-26 adversarial audit ─────────────────────
+
+def test_classify_system_downgrades_raw_oserror(monkeypatch):
+    """dnspython does not wrap every socket failure. An unwrapped OSError used to
+    propagate through ThreadPoolExecutor.map and kill the entire run."""
+    if not guard.HAVE_DNSPYTHON:
+        pytest.skip("dnspython not importable in this interpreter")
+
+    screen = guard.MxScreen.__new__(guard.MxScreen)
+    screen._cache = {}
+    import threading
+    screen._lock = threading.Lock()
+    screen.timeout = 1.0
+    screen.backend = "system"
+
+    class BoomResolver:
+        def resolve(self, *_a, **_kw):
+            raise OSError("[Errno 101] Network is unreachable")
+
+    screen._resolver = BoomResolver()
+    verdict, detail = screen.classify("whatever.test")
+    assert verdict == "ERROR_OTHER"
+    assert verdict not in guard.DEAD_VERDICTS
+    assert "OSError" in detail
+
+
+def test_classify_system_survives_one_bad_domain_in_a_batch(monkeypatch):
+    """One exploding domain must not take out the whole screen."""
+    if not guard.HAVE_DNSPYTHON:
+        pytest.skip("dnspython not importable in this interpreter")
+
+    screen = guard.MxScreen.__new__(guard.MxScreen)
+    screen._cache = {}
+    import threading
+    screen._lock = threading.Lock()
+    screen.timeout = 1.0
+    screen.backend = "system"
+
+    class MixedResolver:
+        def resolve(self, name, _rr):
+            if name == "boom.test":
+                raise OSError("socket died")
+            class R:
+                exchange = "mx.ok.test."
+            return [R()]
+
+    screen._resolver = MixedResolver()
+    out = screen.screen(["boom.test", "fine.test"], workers=2)
+    assert out["boom.test"][0] == "ERROR_OTHER"
+    assert out["fine.test"][0] == "OK"
+
+
+def test_already_blocklisted_ignores_wildcard_entries(monkeypatch):
+    """A wildcard-stored value must not be mistaken for an exact match.
+
+    Documents the trade-off: '*.domain.com' does NOT count as domain.com being
+    blocked, so the domain gets re-submitted. Redundant, never wrong -- the
+    failure mode we refuse is treating a near-match as 'already handled' and
+    silently skipping a real blocklist write.
+    """
+    class FakeResponse:
+        status = 200
+
+        def __init__(self, payload):
+            self._payload = payload
+
+        def read(self):
+            return json.dumps(self._payload).encode()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def fake_urlopen(req, timeout=None):
+        return FakeResponse({"items": [{"bl_value": "*.domain.com"},
+                                       {"bl_value": "other.com"}]})
+
+    monkeypatch.setattr(guard.urllib.request, "urlopen", fake_urlopen)
+    api = guard.Instantly("k")
+    assert api.already_blocklisted(["domain.com"]) == set()
+    assert api.already_blocklisted(["other.com"]) == {"other.com"}
+
+
+def test_second_run_does_not_redelete_already_removed_leads(wired, tmp_path):
+    """Fake fidelity: a real second list_leads() omits deleted leads. Mirror that,
+    so the test proves run-to-run dead-lead idempotency rather than assuming it."""
+    guard.run(_args(tmp_path, dry_run=False))
+    deleted = set([r for r in wired.recorded if r[0] == "DELETE"][0][2]["ids"])
+    wired.not_contacted = [l for l in wired.not_contacted if l["id"] not in deleted]
+    wired.recorded.clear()
+
+    second = guard.run(_args(tmp_path, dry_run=False))
+    assert second["dead_leads"] == 0
+    assert [r for r in wired.recorded if r[0] == "DELETE"] == []
+
+
+# ── concurrency + abort logging (added after the honest-gaps audit) ──────────
+
+def test_state_lock_refuses_a_concurrent_run(tmp_path):
+    state = tmp_path / "state.json"
+    with guard.StateLock(state):
+        with pytest.raises(SystemExit) as excinfo:
+            with guard.StateLock(state):
+                pass
+    assert "Refusing to run concurrently" in str(excinfo.value)
+
+
+def test_state_lock_releases_on_exit(tmp_path):
+    state = tmp_path / "state.json"
+    lock = state.with_suffix(state.suffix + ".lock")
+    with guard.StateLock(state):
+        assert lock.exists()
+    assert not lock.exists()
+
+
+def test_state_lock_steals_a_stale_lock(tmp_path):
+    """One crash must not wedge the cron forever."""
+    state = tmp_path / "state.json"
+    lock = state.with_suffix(state.suffix + ".lock")
+    lock.write_text("99999", encoding="utf-8")
+    import os as _os
+    _os.utime(lock, (0, 0))          # epoch mtime == very stale
+    with guard.StateLock(state, stale_after=60.0):
+        assert lock.exists()
+    assert not lock.exists()
+
+
+def test_abort_mid_mutation_still_writes_a_log_line(wired, tmp_path):
+    """The destructive action must never be invisible. If a delete batch dies,
+    the partial summary is still logged before the exception propagates."""
+    original = wired.expect
+
+    def explode(method, path, body=None):
+        if method == "DELETE":
+            raise SystemExit("FATAL: DELETE /leads -> HTTP 500")
+        return original(method, path, body)
+
+    wired.expect = explode
+
+    with pytest.raises(SystemExit):
+        guard.run(_args(tmp_path, dry_run=False))
+
+    logs = list((tmp_path / "logs").glob("instantly_guard_*.log"))
+    assert len(logs) == 1, "abort produced no log file"
+    entry = json.loads(logs[0].read_text(encoding="utf-8").strip().splitlines()[-1])
+    assert "aborted" in entry
+    assert "HTTP 500" in entry["aborted"]
+    # the blocklist write that DID land must be visible in the partial record
+    assert sorted(entry["blocklisted"]) == ["deadco.com", "othergone.net"]
+
+
+def test_abort_releases_the_lock(wired, tmp_path):
+    def explode(method, path, body=None):
+        raise SystemExit("boom")
+
+    wired.expect = explode
+    state = tmp_path / "state.json"
+    with pytest.raises(SystemExit):
+        guard.run(_args(tmp_path, dry_run=False))
+    assert not state.with_suffix(state.suffix + ".lock").exists()

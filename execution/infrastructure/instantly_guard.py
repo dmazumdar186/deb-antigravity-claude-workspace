@@ -395,8 +395,89 @@ def chunked(seq: list, size: int):
 # --------------------------------------------------------------------------- run
 
 
+class StateLock:
+    """Advisory cross-process lock so two overlapping cron ticks cannot clobber state.
+
+    Without it both runs read the same state and the second save_state() silently
+    drops the first's seen_bounce_ids / blocklisted_domains updates. The atomic
+    tmp+replace write guards against a torn file, not against this race.
+
+    A lock older than `stale_after` is assumed to belong to a killed run and is
+    stolen -- otherwise a single crash wedges the cron permanently.
+    """
+
+    def __init__(self, state_file: Path, stale_after: float = 3600.0):
+        self.path = state_file.with_suffix(state_file.suffix + ".lock")
+        self.stale_after = stale_after
+        self._fd = None
+
+    def __enter__(self):
+        if self.path.parent != Path(""):
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self._fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            age = time.time() - self.path.stat().st_mtime if self.path.exists() else 0.0
+            if age < self.stale_after:
+                raise SystemExit(
+                    f"FATAL: another instantly_guard run holds {self.path} "
+                    f"(age {age:.0f}s). Refusing to run concurrently -- the second "
+                    f"run would clobber the first's state.")
+            print(f"WARN: stealing stale lock {self.path} (age {age:.0f}s)",
+                  file=sys.stderr)
+            self.path.unlink(missing_ok=True)
+            self._fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(self._fd, str(os.getpid()).encode())
+        return self
+
+    def __exit__(self, *_exc):
+        if self._fd is not None:
+            os.close(self._fd)
+            self._fd = None
+        self.path.unlink(missing_ok=True)
+        return False
+
+
+def write_log(log_dir: Path, campaign_id: str, started: datetime, summary: dict) -> Path:
+    """Append one JSON line. Called on the success path AND on abort.
+
+    A run that mutated remote state and then died must still leave a trail. The
+    dated log is this tool's whole value proposition, and an audit found the
+    original code exited before writing it when a mid-run batch failed.
+    """
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / (
+        f"instantly_guard_{campaign_id[:8]}_{started.strftime('%Y-%m-%d')}.log"
+    )
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(summary) + "\n")
+    return log_path
+
+
 def run(args: argparse.Namespace) -> dict:
+    summary: dict = {}
     started = datetime.now(timezone.utc)
+    with StateLock(args.state_file):
+        try:
+            return _run_inner(args, summary, started)
+        except SystemExit as exc:
+            # A mutation may already have landed. Record what is known BEFORE
+            # dying, so a destructive action is never invisible to the operator.
+            summary["aborted"] = str(exc)
+            summary.setdefault("dry_run", args.dry_run)
+            summary["elapsed_seconds"] = round(
+                (datetime.now(timezone.utc) - started).total_seconds(), 1)
+            try:
+                path = write_log(args.log_dir, args.campaign_id, started, summary)
+                print(f"ABORTED mid-run -- partial summary logged to {path}",
+                      file=sys.stderr)
+            except OSError as log_exc:
+                print(f"ABORTED mid-run AND could not write the log: {log_exc}",
+                      file=sys.stderr)
+            raise
+
+
+def _run_inner(args: argparse.Namespace, summary: dict, started: datetime) -> dict:
     api = Instantly(resolve_api_key(args.api_key_env, args.env_file))
 
     campaign = api.expect("GET", f"/campaigns/{args.campaign_id}")
@@ -405,7 +486,9 @@ def run(args: argparse.Namespace) -> dict:
     seen_bounces = set(cstate.get("seen_bounce_ids", []))
     known_blocked = {d.lower() for d in cstate.get("blocklisted_domains", [])}
 
-    summary = {
+    # update(), not reassign: run() holds a reference to this dict so it can log
+    # a partial summary if anything below aborts mid-run.
+    summary.update({
         "run_at": started.isoformat(),
         "campaign_id": args.campaign_id,
         "campaign_name": campaign.get("name"),
@@ -413,7 +496,7 @@ def run(args: argparse.Namespace) -> dict:
         "campaign_status_label": CAMPAIGN_STATUS.get(campaign.get("status"), "Unknown"),
         "dry_run": args.dry_run,
         "previous_run": cstate.get("last_run"),
-    }
+    })
 
     # (a) bounces new since the last run -------------------------------------
     bounced = api.list_leads(args.campaign_id, "FILTER_VAL_BOUNCED")
@@ -502,13 +585,8 @@ def run(args: argparse.Namespace) -> dict:
     summary["elapsed_seconds"] = round((datetime.now(timezone.utc) - started).total_seconds(), 1)
 
     # (e) dated log + state ---------------------------------------------------
-    args.log_dir.mkdir(parents=True, exist_ok=True)
-    log_path = args.log_dir / (
-        f"instantly_guard_{args.campaign_id[:8]}_{started.strftime('%Y-%m-%d')}.log"
-    )
-    with log_path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(summary) + "\n")
-    summary["log_file"] = str(log_path)
+    summary["log_file"] = str(
+        write_log(args.log_dir, args.campaign_id, started, summary))
 
     if args.dry_run:
         summary["state_file"] = "(not written -- dry run)"

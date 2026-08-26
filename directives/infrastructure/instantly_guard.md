@@ -4,7 +4,39 @@
 
 Keep an Instantly cold-email campaign's bounce rate below the Bounce-Protect threshold without manual babysitting. Each run finds bounces new since the last run, blocklists their domains workspace-wide, MX-screens leads that have not been contacted yet, deletes the ones whose domain cannot receive mail, and writes a dated log.
 
-Script: `execution/infrastructure/instantly_guard.py`
+## Tools/Scripts
+
+| Script | Role |
+|---|---|
+| `execution/infrastructure/instantly_guard.py` | The guard itself — the cron entry point |
+| `execution/infrastructure/instantly_bounce_analysis.py` | Measures what fraction of a campaign's bounces an MX screen can actually catch |
+| `tests/test_instantly_guard_unit.py` | Unit + mutation-path coverage (no network) |
+| `tests/acceptance_instantly_guard.py` | Live output-acceptance gate against the real campaign |
+
+## Inputs
+
+| Input | Required | Notes |
+|---|---|---|
+| `campaign_id` (positional) | yes | Instantly campaign UUID |
+| `--no-dry-run` | no | Default is DRY RUN. Without this nothing is ever changed. |
+| `--api-key-env` | no | Env var holding the key. Default `INSTANTLY_NOTIFIER_API_KEY`. |
+| `--env-file` | no | Fallback `.env` to read the key from. Default `./.env`. |
+| `--state-file` | no | Default `.instantly_guard_state.json`. A `.lock` sits beside it. |
+| `--log-dir` | no | Default `./logs`. |
+| `--resolver` | no | `auto` (default) / `system` / `doh`. |
+| `--dns-timeout`, `--workers` | no | Default 10s, 10 threads. |
+| env: the key named by `--api-key-env` | yes | Read from environment first, then `--env-file`. |
+
+## Outputs
+
+| Output | Where |
+|---|---|
+| JSON run summary | stdout |
+| One-line human summary | stderr (so `\| jq` on stdout stays clean) |
+| Dated log, one JSON line per run | `<log-dir>/instantly_guard_<campaign8>_<YYYY-MM-DD>.log` |
+| Per-campaign state (`last_run`, `seen_bounce_ids`, `blocklisted_domains`) | `<state-file>` — **not written on a dry run** |
+| Remote side effects | blocklist entries created; leads deleted. Both only under `--no-dry-run`. |
+
 
 ## When to run
 
@@ -12,7 +44,7 @@ Script: `execution/infrastructure/instantly_guard.py`
 - **On a cron**, daily or twice-daily, against any live campaign. The script is idempotent: domains already on the blocklist are detected and skipped, and leads already deleted cannot be re-screened.
 - **Before activating a newly-uploaded campaign** — run once in dry-run to see how much of the list is structurally dead.
 
-## What it does
+## Steps
 
 1. `GET /campaigns/{id}` — confirms the campaign exists and reports its status label (Draft / Active / Paused / Completed / Running Subsequences / Accounts Unhealthy / **Bounce Protect** / Account Suspended).
 2. `POST /leads/list` with `filter: FILTER_VAL_BOUNCED` — pulls every bounced lead, paginating on `starting_after` / `next_starting_after`.
@@ -81,7 +113,7 @@ py -3.14 execution/infrastructure/instantly_guard.py <campaign-id> --no-dry-run 
 
 A one-line human summary goes to stderr so `... | jq` on stdout stays clean.
 
-## Edge cases and gotchas
+## Edge Cases
 
 ### Resolver failures are not verdicts
 
@@ -133,6 +165,14 @@ Projection model, stated so it can be argued with: `projected = (observed_bounce
 
 Leads uploaded straight to a campaign have `list_id: null` and no `verification_status`. `GET /lead-lists/{id}/verification-stats` then has nothing to target, and `allow_risky_contacts: false` is inert — it can only exclude leads already flagged Risky or Catch-All, and an unverified lead is flagged neither.
 
+### Concurrent runs are refused
+
+The run holds an advisory lock at `<state-file>.lock`. Two overlapping cron ticks would otherwise both read the same state and the second `save_state()` would silently drop the first's `seen_bounce_ids` / `blocklisted_domains` updates -- the atomic tmp+replace write guards against a torn file, not against that race. A second run exits with a clear FATAL rather than clobbering. A lock older than an hour is assumed to belong to a killed run and is stolen, so one crash cannot wedge the cron permanently.
+
+### An aborted run still writes its log
+
+If a blocklist or delete batch fails partway, real mutations may already have landed. The partial summary is written to the dated log with an `aborted` field before the exception propagates. A destructive action is never invisible -- the log is this tool's whole value proposition, and an early version exited before writing it.
+
 ### Dry run does not persist state
 
 By design. `bounced_new` will keep reporting the full bounce count until the first `--no-dry-run` run writes the state file.
@@ -149,6 +189,21 @@ py -3.14 -c "..."  # GET /block-lists-entries?domains_only=true&search=<domain>
 # Re-run in dry-run: a clean campaign reports dead_leads 0 and domains_to_blocklist []
 py -3.14 execution/infrastructure/instantly_guard.py <campaign-id>
 ```
+
+## Exit Criteria
+
+A run is successful when all of the following hold:
+
+- Exit code 0, and the JSON summary carries no `aborted` key.
+- `resolver_backend` is `system` or `doh` — never a run where every domain came back `ERROR_*`. A verdict distribution that is ~100% one error class is a failed probe, not a finding; discard it and fix the transport.
+- `dns_verdicts` contains at least one `OK`. A screen with zero healthy domains across a real campaign is a transport failure.
+- A new JSON line exists in `<log-dir>/instantly_guard_<campaign8>_<date>.log`.
+- On `--no-dry-run`: `<state-file>` exists and its `last_run` matches this run, and the `.lock` beside it has been released.
+- `deleted` equals `dead_leads`, and every deleted lead's domain verdict is in `NXDOMAIN` / `NO_MX` / `NULL_MX` — never `OK`, never `ERROR_*`.
+
+The campaign is only considered **clean** when a subsequent dry run reports `dead_leads: 0` and `domains_to_blocklist: []`.
+
+Clean is not the same as **resumable**. Resumable additionally requires the projected bounce rate from `instantly_bounce_analysis.py` to sit below the Bounce-Protect threshold (~5%), which MX screening alone will usually not achieve — see "MX screening is not email verification".
 
 ## What it deliberately does not do
 

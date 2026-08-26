@@ -46,8 +46,11 @@ The original wording in this file and in the directive presented "we built a gua
 
 4. **First live `--no-dry-run` run of `instantly_guard.py`** (~10m, do it attended). The apply path has mock-fidelity coverage only. Run it once against a low-stakes campaign, watch the log line say `"dry_run": false`, confirm the state file appears, then cron it.
 5. **Mailbox-level verification** (~unknown, needs budget). MX screening addresses 3 of 13 bounces on this campaign; the dominant failure mode is invalid mailboxes on valid-MX domains and has no remediation path in this deliverable. Until it exists, the campaign is not safely resumable — projected 11.2% vs a ~5% threshold.
-6. **Concurrency guard on the state file** (~20m, low). Two overlapping cron ticks can both read stale state; the second `save_state()` clobbers the first's `seen_bounce_ids`. The atomic tmp+replace write prevents corruption, not this race.
-7. **Log-before-mutate** (~15m, low). If batch 2 of N fails mid-run, `SystemExit` fires before the log write, so a real API mutation lands with no audit trail — in a tool whose value proposition is the dated log.
+6. ~~**Concurrency guard on the state file**~~ — **CLOSED** same session. `StateLock` (advisory lockfile at `<state-file>.lock`, stale-steal after 1h) refuses a concurrent run instead of clobbering. Tests: `test_state_lock_refuses_a_concurrent_run`, `test_state_lock_releases_on_exit`, `test_state_lock_steals_a_stale_lock`, `test_abort_releases_the_lock`.
+7. ~~**Log-before-mutate**~~ — **CLOSED** same session. `run()` now catches `SystemExit`, writes the partial summary with an `aborted` field via the shared `write_log()`, and re-raises. Test: `test_abort_mid_mutation_still_writes_a_log_line` asserts the blocklist write that DID land is visible in the partial record.
+8. ~~**Three owed tests from the adversarial audit**~~ — **CLOSED** same session: `_classify_system`'s new bare-`OSError` branch (plus a batch-survival case), `already_blocklisted`'s wildcard-entry edge case, and second-run dead-lead idempotency (fake fidelity corrected so a deleted lead no longer reappears in the second `list_leads`).
+
+**Still genuinely open after this round:** owed item 4 (first live `--no-dry-run` execution, do it attended) and owed item 5 (mailbox-level verification — the dominant bounce cause, needs a budget decision). Neither is closable by writing more code.
 
 ### Related lesson captured same session (no rule of its own)
 
