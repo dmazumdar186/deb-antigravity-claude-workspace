@@ -178,3 +178,34 @@ def test_shipped_guard_is_clean_under_the_probe_rule():
     findings = [f for f in sast._rule_probe_failure_as_verdict()
                 if "instantly_guard" in f["file"]]
     assert findings == []
+
+
+# ── the pre-filter must never hide a real finding ────────────────────────────
+
+def test_negative_hint_is_a_superset_of_the_rule_vocabulary():
+    """_NEGATIVE_HINT gates the expensive AST parse. If it ever stops matching
+    something `negative_vocab` would flag, the rule silently goes blind on that
+    word -- a guardrail that fails open. This pins the two together.
+    """
+    vocab_tokens = [
+        "dead", "invalid", "nxdomain", "no_mx", "nomx", "null_mx", "nullmx",
+        "not_found", "notfound", "bounced", "unreachable", "nonexistent",
+        "does_not_exist", "doesnotexist", "undeliverable", "disposable",
+    ]
+    missed = [t for t in vocab_tokens if not sast._NEGATIVE_HINT.search(t)]
+    assert not missed, (
+        f"_NEGATIVE_HINT does not match {missed} -- the pre-filter would skip "
+        f"files containing them and the rule would never fire")
+
+
+def test_prefilter_does_not_suppress_a_true_positive(fake_workspace):
+    """End-to-end proof the gate lets a real finding through."""
+    (fake_workspace / "gated.py").write_text(BAD_TIMEOUT_TO_NO_MX, encoding="utf-8")
+    findings = sast._rule_probe_failure_as_verdict()
+    assert len(findings) == 1, "pre-filter swallowed a true positive"
+
+
+def test_prefilter_skips_files_with_no_except(fake_workspace):
+    (fake_workspace / "no_except.py").write_text(
+        'STATUS = "dead"\nprint(STATUS)\n', encoding="utf-8")
+    assert sast._rule_probe_failure_as_verdict() == []

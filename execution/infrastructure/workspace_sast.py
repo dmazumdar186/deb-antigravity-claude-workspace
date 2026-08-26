@@ -1384,6 +1384,15 @@ def _rule_pages_functions_untracked() -> list[dict]:
     return findings
 
 
+# Substring pre-filter for _rule_probe_failure_as_verdict. Must stay a superset
+# of `negative_vocab` inside that rule, or the gate would skip a real finding.
+_NEGATIVE_HINT = re.compile(
+    r"dead|invalid|nxdomain|no_?mx|null_?mx|not_?found|bounced|"
+    r"unreachable|nonexistent|does_?not_?exist|undeliverable|disposable",
+    re.IGNORECASE,
+)
+
+
 def _rule_probe_failure_as_verdict() -> list[dict]:
     """Rule: a transport failure must never be coded as a negative finding.
 
@@ -1452,7 +1461,13 @@ def _rule_probe_failure_as_verdict() -> list[dict]:
         if py_path.resolve() == Path(__file__).resolve():
             continue
         try:
-            tree = ast.parse(py_path.read_text(encoding="utf-8", errors="replace"))
+            source = py_path.read_text(encoding="utf-8", errors="replace")
+            # Cheap gate before the expensive parse: this rule can only fire on a
+            # file that has an except handler AND a negative-verdict word in it.
+            # Skips the AST cost on the large majority of files.
+            if "except" not in source or not _NEGATIVE_HINT.search(source):
+                continue
+            tree = ast.parse(source)
         except (OSError, SyntaxError):
             # Unreadable or not valid Python for this interpreter -- nothing to
             # assert about it. Skipped deliberately, not silently swallowed.

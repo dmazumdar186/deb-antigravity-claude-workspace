@@ -50,6 +50,8 @@ The original wording in this file and in the directive presented "we built a gua
 7. ~~**Log-before-mutate**~~ — **CLOSED** same session. `run()` now catches `SystemExit`, writes the partial summary with an `aborted` field via the shared `write_log()`, and re-raises. Test: `test_abort_mid_mutation_still_writes_a_log_line` asserts the blocklist write that DID land is visible in the partial record.
 8. ~~**Three owed tests from the adversarial audit**~~ — **CLOSED** same session: `_classify_system`'s new bare-`OSError` branch (plus a batch-survival case), `already_blocklisted`'s wildcard-entry edge case, and second-run dead-lead idempotency (fake fidelity corrected so a deleted lead no longer reappears in the second `list_leads`).
 
+9. **SAST walks the whole tree once per rule** (~1h, medium, PRE-EXISTING). Each of the 15 native rules independently `rglob`s all 479 workspace `.py` files, so the per-rule floor is ~5.5s of walk+open regardless of what the rule does — total `--all` runtime is ~90s+. Adding two rules on 2026-08-26 pushed `git push` past a 2-minute timeout in one client. A shared, cached file-read pass handed to every rule would cut this to roughly one walk. Not attempted here: it touches all 15 rules and the pre-push gate, which is too much blast radius for a session already deep in another change.
+
 **Still genuinely open after this round:** owed item 4 (first live `--no-dry-run` execution, do it attended) and owed item 5 (mailbox-level verification — the dominant bounce cause, needs a budget decision). Neither is closable by writing more code.
 
 ### Related lesson captured same session (no rule of its own)
