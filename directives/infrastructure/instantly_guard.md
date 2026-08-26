@@ -150,16 +150,36 @@ Measured on this campaign (artifact: `.tmp/instantly_cleanup/bounce_analysis.jso
 
 | | |
 |---|---|
-| observed bounce rate | 12.9% (13 / 101 contacted) |
 | bounces an MX screen would have caught | **3 of 13** (`emailaeonstaffing.com` NXDOMAIN, `unisub.app` NXDOMAIN, `globaloutsourcing.mn` NO_MX) |
 | bounces it would have missed | 10 — valid Google / Outlook / Umbler MX, dead mailbox |
-| catchable component of the rate | 3.0% |
-| residual mailbox-level rate | 9.9% |
-| **projected rate if resumed as-is** | **11.2%** |
 
-Projection model, stated so it can be argued with: `projected = (observed_bounces + uncontacted × residual_rate) / (contacted + uncontacted)`, where `residual_rate` is the share of observed bounces an MX screen cannot catch. It assumes the uncontacted population behaves like the contacted one — the weakest assumption in the chain, and the reason this is a projection and not a promise.
+**A clean `dns_verdicts` is not permission to resume.** Verify the addresses.
 
-11.2% is still roughly double the ~5% Bounce-Protect threshold. **A clean `dns_verdicts` is not permission to resume.** Verify the addresses.
+### Get the denominator right, or the campaign looks unsalvageable when it isn't
+
+Instantly auto-pauses a campaign above **5% of EMAILS SENT**, checked once it has sent at least **200 emails** (default, customisable per workspace — [High Bounce Auto-Pause](https://help.instantly.ai/en/articles/9823139-high-bounce-auto-pause-feature)).
+
+The denominator is emails sent, **not leads contacted**. On a multi-step sequence those differ by the number of steps — this campaign averages 2.08 emails per contacted lead, so a contacted-lead denominator roughly *doubles* the apparent rate. An early version of this analysis used it and concluded the campaign was unrecoverable. It is not.
+
+Pull the real counters from `GET /campaigns/analytics?id=<campaign>` (`emails_sent_count`, `bounced_count`, `contacted_count`) — the script does this for you with `--campaign-id`:
+
+```bash
+py -3.14 execution/infrastructure/instantly_bounce_analysis.py \
+  --leads .tmp/instantly_cleanup/leads_after_cleanup.json \
+  --campaign-id <campaign-id>
+```
+
+Measured on this campaign:
+
+| scenario | rate on emails sent | verdict |
+|---|---|---|
+| now — why it paused | 13 / 210 = **6.19%** | tripped |
+| resume as-is | **5.42%** | **RE-TRIPS** |
+| resume after verifying the 117 remaining leads | **3.12%** | **CLEARS** |
+
+Projection model, stated so it can be argued with: `projected = (bounces + uncontacted × residual_rate) / (emails_sent + uncontacted × emails_per_lead)`, where `residual_rate` is the share of observed bounces an MX screen cannot catch, and the verified case assumes verification removes ~90% of dead mailboxes. It assumes the uncontacted population behaves like the contacted one — the weakest link in the chain, and why this is a projection, not a promise.
+
+The practical reading: **verification is the unlock, and it is sufficient.** MX screening alone leaves the campaign marginal (5.42% against a 5% ceiling); verifying the remaining addresses puts it comfortably clear.
 
 ### Leads may have no lead list
 
@@ -203,7 +223,9 @@ A run is successful when all of the following hold:
 
 The campaign is only considered **clean** when a subsequent dry run reports `dead_leads: 0` and `domains_to_blocklist: []`.
 
-Clean is not the same as **resumable**. Resumable additionally requires the projected bounce rate from `instantly_bounce_analysis.py` to sit below the Bounce-Protect threshold (~5%), which MX screening alone will usually not achieve — see "MX screening is not email verification".
+Clean is not the same as **resumable**. Resumable additionally requires `instantly_bounce_analysis.py --campaign-id <id>` to report `clears_threshold_after_verification: true` **and** the verification actually to have been done — the projection is not the act. Check the rate on the emails-sent denominator, never on contacted leads.
+
+A third precondition sits outside this tool: the campaign must have sending accounts attached (`email_list` non-empty on the campaign object). A campaign with `email_list: []` will not send no matter how clean its leads are.
 
 ## What it deliberately does not do
 
