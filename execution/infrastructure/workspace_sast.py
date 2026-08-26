@@ -20,6 +20,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import re
@@ -1383,6 +1384,157 @@ def _rule_pages_functions_untracked() -> list[dict]:
     return findings
 
 
+def _rule_probe_failure_as_verdict() -> list[dict]:
+    """Rule: a transport failure must never be coded as a negative finding.
+
+    When a probe (DNS, HTTP, verification API) fails for reasons unrelated to
+    the thing being probed, that failure needs its own ERROR_*/UNKNOWN verdict.
+    Folding it into the negative verdict means a network outage looks like
+    "every record is dead" -- and whatever consumes the verdict then deletes
+    the population. See ~/.claude/rules/probe-failure-is-not-a-verdict.md
+    (2026-08-26: blocked port 53 made all 186 domains in a lead list resolve
+    as ERROR_TIMEOUT; had timeouts been coded NO_MX, 211 leads would have been
+    deleted).
+
+    high-severity -- this is a data-loss class, not a style issue.
+    """
+    findings = []
+
+    # Exception names that mean "the probe did not complete", not "the answer is no".
+    transport_exc = {
+        "Timeout", "LifetimeTimeout", "ReadTimeout", "ConnectTimeout",
+        "NoNameservers", "ConnectionError", "ConnectionRefusedError",
+        "ConnectionResetError", "URLError", "TimeoutError", "socket.timeout",
+        "SSLError", "ProxyError", "ChunkedEncodingError", "OSError", "IOError",
+        "Exception", "BaseException", "DNSException",
+    }
+    # String values that read as an authoritative negative finding.
+    # Deliberately narrow. Generic status words ("fail", "bad", "error") are
+    # excluded -- a test harness printing "FAIL" from an except block is not this
+    # bug. Only vocabulary that reads as an authoritative finding ABOUT THE
+    # PROBED ENTITY, i.e. the kind a cleanup step would act on destructively.
+    negative_vocab = re.compile(
+        r"^(dead|invalid|nxdomain|no_?mx|null_?mx|not_?found|bounced|"
+        r"unreachable|nonexistent|does_?not_?exist|undeliverable|disposable)$",
+        re.IGNORECASE,
+    )
+    # Prefixes that correctly mark the value as "could not determine".
+    safe_prefix = re.compile(r"^(error|unknown|skip|pending|retry|indeterminate|unresolved)",
+                             re.IGNORECASE)
+
+    def _exc_names(handler) -> set[str]:
+        names = set()
+        node = handler.type
+        if node is None:
+            names.add("Exception")  # bare except
+            return names
+        targets = node.elts if isinstance(node, ast.Tuple) else [node]
+        for t in targets:
+            if isinstance(t, ast.Name):
+                names.add(t.id)
+            elif isinstance(t, ast.Attribute):
+                names.add(t.attr)
+        return names
+
+    def _string_constants(node) -> list[str]:
+        out = []
+        for sub in ast.walk(node):
+            if isinstance(sub, ast.Constant) and isinstance(sub.value, str):
+                out.append(sub.value)
+        return out
+
+    skip_dirs = _SKIP_DIRS_PY | {"tests"}
+    for py_path in WORKSPACE_ROOT.rglob("*.py"):
+        if any(skip in py_path.parts for skip in skip_dirs):
+            continue
+        if _is_am_locked(str(py_path)):
+            continue
+        if py_path.resolve() == Path(__file__).resolve():
+            continue
+        try:
+            tree = ast.parse(py_path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError):
+            # Unreadable or not valid Python for this interpreter -- nothing to
+            # assert about it. Skipped deliberately, not silently swallowed.
+            continue
+        rel = str(py_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+            if not (_exc_names(node) & transport_exc):
+                continue
+            for value in _string_constants(node):
+                v = value.strip()
+                if safe_prefix.match(v):
+                    continue
+                if negative_vocab.match(v):
+                    findings.append(
+                        {
+                            "severity": "high",
+                            "file": rel,
+                            "line": node.lineno,
+                            "rule_id": "probe-failure-as-verdict",
+                            "message": (
+                                f"except handler for a transport failure assigns the "
+                                f"negative verdict {v!r}. A probe that could not complete "
+                                f"is not an authoritative 'no' -- give it an ERROR_*/UNKNOWN "
+                                f"verdict and exclude it from any deletion set. "
+                                f"See ~/.claude/rules/probe-failure-is-not-a-verdict.md."
+                            ),
+                            "tool": "workspace-native",
+                        }
+                    )
+                    break
+    return findings
+
+
+def _rule_py_launcher_shebang() -> list[dict]:
+    """Rule: no bare `#!/usr/bin/env python` shebang on workspace scripts.
+
+    The Windows `py` launcher dispatches on the shebang, so `py script.py` and
+    `py -c` can select DIFFERENT interpreters with different site-packages.
+    A package installed by `py -m pip` is then missing from the interpreter
+    that actually runs the file, and the symptom reads as "pip lied".
+    (2026-08-26: instantly_guard.py died on --help with ImportError for
+    dnspython, which was installed and importable the whole time.)
+
+    medium-severity -- breaks execution, but loudly rather than silently.
+    """
+    findings = []
+    bare = re.compile(r"^#!.*[/ ]python(w)?(\.exe)?\s*$")
+    for py_path in WORKSPACE_ROOT.rglob("*.py"):
+        if any(skip in py_path.parts for skip in _SKIP_DIRS_PY):
+            continue
+        if _is_am_locked(str(py_path)):
+            continue
+        try:
+            with py_path.open(encoding="utf-8", errors="replace") as fh:
+                first = fh.readline()
+        except OSError:
+            continue
+        if not first.startswith("#!"):
+            continue
+        if not bare.match(first.rstrip()):
+            continue  # version-pinned shebang (python3.14 etc) is explicit -- fine
+        rel = str(py_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+        findings.append(
+            {
+                "severity": "medium",
+                "file": rel,
+                "line": 1,
+                "rule_id": "py-launcher-shebang",
+                "message": (
+                    "bare `#!/usr/bin/env python` shebang: the Windows py launcher "
+                    "dispatches on it, so `py this.py` may run a different interpreter "
+                    "than `py -m pip` installs into. Remove the shebang, or invoke as "
+                    "`py -3.14 <script>`. See .claude/rules/python-hardening.md #7."
+                ),
+                "tool": "workspace-native",
+            }
+        )
+    return findings
+
+
 _NATIVE_RULES: dict[str, callable] = {
     "exit-criteria-missing": _rule_exit_criteria_missing,
     "subprocess-encoding": _rule_subprocess_encoding,
@@ -1397,6 +1549,8 @@ _NATIVE_RULES: dict[str, callable] = {
     "agent-md-frontmatter-haiku": _rule_agent_md_frontmatter_haiku,
     "front-door-missing": _rule_front_door_missing,
     "shipped-claim-stale": _rule_shipped_claim_stale,
+    "probe-failure-as-verdict": _rule_probe_failure_as_verdict,
+    "py-launcher-shebang": _rule_py_launcher_shebang,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())

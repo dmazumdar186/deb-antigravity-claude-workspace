@@ -1,5 +1,60 @@
 # Hardening Backlog — 2026-06-15
 
+## Update 2026-08-26 — probe-failure-is-not-a-verdict rule backport triage
+
+New always-active rule landed: `~/.claude/rules/probe-failure-is-not-a-verdict.md` — when a probe (DNS, HTTP health check, verification API) fails for reasons unrelated to the thing being probed, the failure gets its own `ERROR_*`/`UNKNOWN` verdict and may NEVER trigger a destructive action. Also: sanity-probe a known-good entity before trusting a batch of negatives, and treat a ~100%-uniform verdict distribution as a failed run rather than a finding.
+
+**Born from:** 2026-08-26 Instantly campaign cleanup. A `dnspython` MX screen returned `ERROR_TIMEOUT` for **all 186 domains** in a lead list — including `ups.com` — because the environment blocked outbound port 53 on UDP and TCP to the router *and* to 8.8.8.8/1.1.1.1/9.9.9.9. `socket.getaddrinfo` still worked and HTTPS was fine, so the machine looked healthy. Timeouts already had their own verdict class and were excluded from `DEAD_VERDICTS`, so the deletion list came back empty instead of 211 leads. The rule makes that carve-out mandatory rather than lucky.
+
+**Mechanical guardrails added** to `execution/infrastructure/workspace_sast.py`:
+- `probe-failure-as-verdict` (high) — AST pass; flags an `except` handler for a transport failure that assigns a string in the authoritative-negative vocabulary (`dead`, `nxdomain`, `no_mx`, `not_found`, `bounced`, `undeliverable`, …) unless prefixed `ERROR`/`UNKNOWN`/`SKIP`. Verified against a true-positive fixture (fires on 2/2 bad handlers, ignores 2/2 correct ones). 0 findings workspace-wide.
+- `py-launcher-shebang` (medium) — bare `#!/usr/bin/env python` shebangs, per `.claude/rules/python-hardening.md` #7. 2 findings, listed below.
+
+**Triage scope:** all 15 modules that both probe an external service and contain a destructive action. 3 also fan out concurrently.
+
+| Module | Fan-out | Finding | Grade |
+|---|---|---|---|
+| `execution/infrastructure/instantly_guard.py` | yes | `ERROR_*` verdicts excluded from `DEAD_VERDICTS`; `auto` backend probes a known-good domain before trusting port 53; `NO_MX` only issued after an A-record existence check | **COMPLIANT** on the probe-verdict axis (rule origin). See provenance note below — this grade is about verdict mapping only, NOT a claim that this tool performed the 2026-08-26 cleanup. |
+| `execution/mobile_apps/mobile_app_canary.py:93` | yes | `except httpx.HTTPError` → `{"status": "red"}`. Conflates "the monitored service is down" with "the canary's own network broke". Not data-loss (it alerts, does not delete) but it is alert-fatigue shaped: a local blip pages the operator as a service outage. | **OWED (low)** |
+| `.claude/skills/cross-niche-outliers/scripts/scrape_cross_niche_tubelab.py:320` | yes | `except RequestException` → `return []`. Silent-zero: a fetch failure is indistinguishable from "no results". Same family as this rule. Line 388 is additionally `except Exception as e: pass` — a bare swallow violating `python-hardening.md` #5. | **OWED (medium)** |
+| `execution/personal_workflows/self_outbound_system/suppression_writer.py` | no | Handlers are narrow, logged, and comment their intent. No verdict conflation. | **COMPLIANT** |
+| remaining 11 (`google_sheets_writer`, `setup_instantly_webhook`, `icp_filter`, `wire_domain`, `clickup`, 4× `md_to_gdoc`, `create_proposal`, template `acceptance_*`) | no | Destructive keyword matches are writes/updates, not probe-gated deletions. No probe→verdict→delete chain. | **N/A** |
+
+### Owed-work (NO fixes applied without operator approval)
+
+1. **`scrape_cross_niche_tubelab.py`** (~20m, medium). Split the `return []` on `RequestException` from a genuine empty result — return a sentinel or raise — so a TubeLab outage stops reading as "this niche has no outliers". Replace the `except Exception: pass` at line 388 with a logged, narrowed handler.
+2. **`mobile_app_canary.py`** (~15m, low). Distinguish `status: "red"` (service returned an error) from `status: "unknown"` (canary could not reach it), and only page on the former. Optionally probe a known-good URL first, per requirement 2 of the rule.
+3. **Two bare shebangs** (~5m, low): `execution/personal_workflows/yoga_jitendra_site/scripts/get_google_refresh_token.py:1` and `execution/personal_workflows/yoga_jitendra_site/tests/acceptance_reviews.py:1`. Remove the shebang line, or document the intended interpreter.
+
+### Provenance correction — surfaced by the 2026-08-26 audit stack
+
+Two independent auditors (panel honest-gaps lens; adversarial pipeline auditor) converged on the same undisclosed gap, and it is recorded here rather than quietly fixed.
+
+**The 2026-08-26 live cleanup was performed by ad-hoc single-use session scripts, not by `instantly_guard.py`.** The guard's apply path has never run live — all four entries in `logs/instantly_guard_e2978303_2026-08-26.log` carry `"dry_run": true`, and no state file has ever been written. The guard's dry run at the time found **6** deletable leads; the live event deleted **10**. The extra 4 were already-contacted (status Completed) leads on dead domains, removed on an explicit operator decision after being shown labelled as such — a deliberate choice, but outside what the guard will ever do unattended.
+
+The original wording in this file and in the directive presented "we built a guard" and "the campaign got cleaned" as one story. They are two. Corrected in `directives/infrastructure/instantly_guard.md` under "Provenance of the 2026-08-26 cleanup".
+
+**Code changes driven by the same audit round:**
+- `instantly_guard.py` now re-excludes contacted leads independently of the upstream `FILTER_VAL_NOT_CONTACTED` filter (status Completed/Bounced or a populated `timestamp_last_contact`), and reports the count as `pending_excluded_as_contacted`. Trusting a remote filter's *name* for a safety property was the latent version of the bug. Regression tests: `test_contacted_lead_on_dead_domain_is_never_deleted`, `test_excluded_contacted_leads_are_reported_not_hidden`.
+- `MxScreen._classify_system` now catches raw `OSError`; unwrapped socket failures previously propagated through `ThreadPoolExecutor.map` and killed the whole run (fail-safe, since the crash preceded any deletion, but it produced no partial results).
+- A dry run that identifies work now prints a loud stderr warning. A cron wired without `--no-dry-run` would otherwise loop forever, log a plausible summary daily, and change nothing.
+- `execution/infrastructure/instantly_bounce_analysis.py` (new) makes the "3 of 13" and projected-rate figures reproducible; they were previously computed off-artifact. Artifact: `.tmp/instantly_cleanup/bounce_analysis.json`. The projection is **11.2%**, superseding a hand-computed 11.3% quoted in conversation.
+
+**Known scope limit of the `probe-failure-as-verdict` rule** (raised by the honest-gaps lens): it is a pure-AST check for a literal string constant assigned inside a matching `except` body. It will NOT catch a verdict built via f-string interpolation, one assigned through a lookup table keyed by exception type, or the pattern split across two functions. "0 findings workspace-wide" is true for that narrow shape only and should not be read as a general clean bill of health.
+
+### Owed-work added by this audit
+
+4. **First live `--no-dry-run` run of `instantly_guard.py`** (~10m, do it attended). The apply path has mock-fidelity coverage only. Run it once against a low-stakes campaign, watch the log line say `"dry_run": false`, confirm the state file appears, then cron it.
+5. **Mailbox-level verification** (~unknown, needs budget). MX screening addresses 3 of 13 bounces on this campaign; the dominant failure mode is invalid mailboxes on valid-MX domains and has no remediation path in this deliverable. Until it exists, the campaign is not safely resumable — projected 11.2% vs a ~5% threshold.
+6. **Concurrency guard on the state file** (~20m, low). Two overlapping cron ticks can both read stale state; the second `save_state()` clobbers the first's `seen_bounce_ids`. The atomic tmp+replace write prevents corruption, not this race.
+7. **Log-before-mutate** (~15m, low). If batch 2 of N fails mid-run, `SystemExit` fires before the log write, so a real API mutation lands with no audit trail — in a tool whose value proposition is the dated log.
+
+### Related lesson captured same session (no rule of its own)
+
+The Instantly cleanup also showed that **MX screening catches only 3 of 13 real bounces** — the rest were mailbox-level rejections on domains with valid Google/Outlook MX. Generalisation, recorded in `directives/infrastructure/instantly_guard.md`: know what fraction of the real failures your screen can catch, and measure it against failures you already have before reporting the screen as a fix.
+
+---
+
 ## Update 2026-06-24 — Output-acceptance-gate rule backport triage
 
 New always-active rule landed: `~/.claude/rules/output-acceptance-gate.md` (every user-facing artifact needs an unskippable, hard-failing, corpus-backed gate that asserts on the OUTPUT a user reads, not on mechanics). Born from job_search_v2 shipping cybersecurity/accounting/SEO rows into a PM sheet while "verified" checks (row counts, exit codes) passed. Per `rule-backport-cadence.md`, a read-only triage was run within the hour. Mechanical guardrail added: `workspace_sast.py` rule `acceptance-gate-missing` (registry-driven presence check).

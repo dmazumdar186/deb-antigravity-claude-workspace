@@ -42,6 +42,24 @@ Bug class: subprocess-spawning tests that blank API keys on a "copy" silently po
 
 Full rule and minimal repro: `~/.claude/rules/environ-not-copy-copy.md`.
 
+## 7. No bare `#!/usr/bin/env python` shebang — it selects a different interpreter
+
+The Windows `py` launcher **reads the shebang line and dispatches on it**. So on this machine:
+
+| Invocation | Interpreter |
+|---|---|
+| `py -c "..."` | `C:\Users\deban\AppData\Local\Python\pythoncore-3.14-64\python.exe` |
+| `py script.py` (with `#!/usr/bin/env python`) | `C:\Python314\python.exe` |
+
+Two different Python 3.14 installs with **different site-packages**. `py -m pip install X` lands in the first; `py script.py` runs under the second and raises `ImportError` for `X`. The symptom reads as "pip lied" or "the package didn't install" and sends you re-installing a package that is already present.
+
+Rules:
+- Do not put a bare `#!/usr/bin/env python` shebang on workspace scripts. Without a shebang, `py script.py` uses the default interpreter — the same one `py -m pip` targets.
+- When a script must be invoked with a specific interpreter, pin it at the call site: `py -3.14 execution/{category}/{script}.py`.
+- Prefer a stdlib fallback over a hard third-party dependency in any script that might be launched more than one way. (Exhibit: `instantly_guard.py` hard-depended on `dnspython`, died on `--help`, and the real fix was making the dependency optional with a DNS-over-HTTPS fallback.)
+
+Guarded by the workspace SAST rule `py-launcher-shebang`.
+
 ## Reference implementation
 
 `C:\Users\deban\dev\anneal\src\anneal\` has hardened versions of all 5 patterns. Crib from there before writing new code.
