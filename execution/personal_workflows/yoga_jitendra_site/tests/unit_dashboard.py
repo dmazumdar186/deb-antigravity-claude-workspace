@@ -658,7 +658,7 @@ def check_subscribers_list_surface_present() -> list[str]:
             )
 
     # Git-tracked check for the new Pages Function (2026-08-03 pattern).
-    import subprocess
+    import subprocess, sys
     try:
         tracked = subprocess.run(
             ["git", "ls-files", "functions/api/subscribers.ts"],
@@ -670,11 +670,16 @@ def check_subscribers_list_surface_present() -> list[str]:
                 "subscribers: functions/api/subscribers.ts is UNTRACKED "
                 "in git — will NOT ship on `wrangler pages deploy`"
             )
-    except Exception as e:
-        # If git isn't available for some reason, don't fail the whole
-        # unit run — surface as a warning-shaped error only if the file
-        # itself is missing (handled above).
-        pass
+    except (OSError, subprocess.SubprocessError) as e:
+        # Narrow catch: git binary missing (OSError: FileNotFoundError) or
+        # subprocess plumbing failure. Log to stderr so CI shows the reason
+        # rather than silently green-lighting the untracked-Pages-Function
+        # regression guard (python-hardening rule #5).
+        print(
+            f"WARN check_subscribers_list_surface_present: "
+            f"`git ls-files` skipped ({type(e).__name__}: {e})",
+            file=sys.stderr,
+        )
 
     return errors
 

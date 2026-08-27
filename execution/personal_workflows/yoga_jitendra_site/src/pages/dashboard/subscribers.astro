@@ -214,14 +214,21 @@ import Base from '../../layouts/Base.astro';
           .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       }
       function sourceCell(url) {
+        // source_url comes from the PUBLIC /api/newsletter-subscribe endpoint.
+        // Only render as a clickable link if the scheme is http(s); otherwise
+        // display as escaped text. Prevents javascript:/data:/vbscript: URIs
+        // from executing in the admin's authenticated dashboard session.
         if (!url) return '—';
         var short;
         try {
           var u = new URL(url);
+          if (u.protocol !== 'http:' && u.protocol !== 'https:') return escapeHtml(url);
           short = (u.pathname === '/' ? u.host : u.host + u.pathname);
           if (short.length > 42) short = short.slice(0, 40) + '…';
-        } catch (e) { short = url.length > 42 ? url.slice(0, 40) + '…' : url; }
-        return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(short) + '</a>';
+        } catch (e) {
+          return escapeHtml(url);
+        }
+        return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(short) + '</a>';
       }
 
       function apply() {
@@ -243,6 +250,14 @@ import Base from '../../layouts/Base.astro';
         });
         if (!view.length) {
           tbody.innerHTML = '';
+          // Distinguish "zero subscribers total" from "filter matched nothing"
+          // so an operator with stray filter text does not read the page as
+          // "0 subscribers" while subs.length is actually > 0.
+          if (subs.length === 0) {
+            emptyEl.textContent = 'No subscribers yet. The popup writes here after each successful opt-in.';
+          } else {
+            emptyEl.textContent = 'No subscribers match your filter. Clear the filter to see all ' + subs.length + '.';
+          }
           emptyEl.hidden = false;
         } else {
           emptyEl.hidden = true;

@@ -492,8 +492,15 @@ const initialBanner = bannerText();
           // the <article> when set; we emit an <a> instead of <span> so
           // clicking the number after hydration still navigates.
           var hrefAttr = article.getAttribute('data-href');
+          // Mirror the SSR anchor's aria-label so voice-control users get
+          // the same handle whether the tile was server-rendered live or
+          // rebuilt from a skeleton. `tile.label` matches HeroTile.astro's
+          // ${headline} interpolation.
+          var ariaLabelAttr = hrefAttr && tile.label
+            ? ' aria-label="' + escapeHtml(tile.label + ' — view count details') + '"'
+            : '';
           var numberEl = hrefAttr
-            ? '<a href="' + escapeHtml(hrefAttr) + '" class="' + bnCls + ' hero-tile-bignumber-link" data-metric="' + key + '">' + numberText + '</a>'
+            ? '<a href="' + escapeHtml(hrefAttr) + '" class="' + bnCls + ' hero-tile-bignumber-link" data-metric="' + key + '"' + ariaLabelAttr + '>' + numberText + '</a>'
             : '<span class="' + bnCls + '" data-metric="' + key + '">' + numberText + '</span>';
           numberRow.innerHTML =
             '<div class="hero-tile-number-line">' +

@@ -97,7 +97,7 @@ const deltaCls = delta_pct === null || delta_pct === undefined
       <>
         <div class="hero-tile-number-line">
           {href ? (
-            <a href={href} class={`hero-tile-bignumber hero-tile-bignumber-link yj-num${isPartial ? ' partial yj-num--muted' : ''}`} data-metric={metric_key} aria-label={`${headline} — view details`}>
+            <a href={href} class={`hero-tile-bignumber hero-tile-bignumber-link yj-num${isPartial ? ' partial yj-num--muted' : ''}`} data-metric={metric_key} aria-label={`${headline} — view count details`}>
               {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
             </a>
           ) : (
@@ -143,7 +143,7 @@ const deltaCls = delta_pct === null || delta_pct === undefined
     <span class="hero-tile-source-dot" aria-hidden="true"></span>
     <span class="hero-tile-source-label">{source}</span>
     {href && (
-      <a href={href} class="hero-tile-view-link" aria-label={`${headline} — view details`}>
+      <a href={href} class="hero-tile-view-link" aria-label={`${href_label ?? 'View all'} — ${headline.toLowerCase()}`}>
         {href_label ?? 'View all'} <span aria-hidden="true">→</span>
       </a>
     )}

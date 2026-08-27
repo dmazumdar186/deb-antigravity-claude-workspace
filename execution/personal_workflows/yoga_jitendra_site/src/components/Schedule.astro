@@ -25,7 +25,7 @@ const t = lang === 'en' ? en : fr;
           </p>
           <div class="font-serif text-2xl leading-snug text-ink-900 mb-1">{t.location_line1}</div>
           <div class="text-[color:var(--ink-soft)] mb-4">{t.location_line2}</div>
-          <a href={t.map_link} target="_blank" rel="noopener" class="text-sm text-[color:var(--terracotta)] hover:underline">
+          <a href={t.map_link} target="_blank" rel="noopener noreferrer" class="text-sm text-[color:var(--terracotta)] hover:underline">
             <span>{t.map_link_label} →</span>
           </a>
         </div>
@@ -76,7 +76,7 @@ const t = lang === 'en' ? en : fr;
                     height="900"
                     loading="lazy"
                     decoding="async"
-                    class="w-full h-full object-cover"
+                    class="w-full h-full"
                   />
                 </div>
               </figure>
@@ -92,18 +92,37 @@ const t = lang === 'en' ? en : fr;
             <span aria-hidden="true">&rarr;</span>
           </button>
 
-          <div class="gallery-dots" role="tablist" aria-label={t.gallery_aria_label} data-gallery-dots>
+          <div class="gallery-dots" role="group" aria-label={t.gallery_aria_label} data-gallery-dots>
             {t.gallery.map((_, i) => (
               <button
                 type="button"
                 class="gallery-dot"
-                role="tab"
                 aria-label={`${i + 1} / ${t.gallery.length}`}
-                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-current={i === 0 ? 'true' : undefined}
                 data-gallery-dot={i}
               ></button>
             ))}
           </div>
+
+          <button
+            type="button"
+            class="gallery-playpause"
+            aria-label={t.gallery_pause_label}
+            aria-pressed="false"
+            data-gallery-playpause
+            data-label-pause={t.gallery_pause_label}
+            data-label-play={t.gallery_play_label}
+          >
+            <span class="gallery-playpause-icon" aria-hidden="true" data-icon>❚❚</span>
+          </button>
+
+          <div
+            class="sr-only"
+            aria-live="polite"
+            aria-atomic="true"
+            data-gallery-announce
+            data-template={t.gallery_slide_announce}
+          ></div>
         </div>
       </div>
     </div>
@@ -212,7 +231,7 @@ const t = lang === 'en' ? en : fr;
     transition: background 0.2s ease, transform 0.2s ease;
   }
   .gallery-dot:hover { background: rgba(46, 42, 38, 0.4); }
-  .gallery-dot[aria-selected="true"] {
+  .gallery-dot[aria-current="true"] {
     background: var(--terracotta);
     transform: scale(1.25);
   }
@@ -221,10 +240,47 @@ const t = lang === 'en' ? en : fr;
     outline-offset: 2px;
   }
 
+  /* Persistent pause/play control (WCAG 2.2.2). Sits under the dots so it
+     is always reachable without extra tab stops past the carousel body. */
+  .gallery-playpause {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.75rem auto 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(46, 42, 38, 0.18);
+    background: rgba(251, 247, 238, 0.85);
+    color: var(--ink-900, #2e2a26);
+    cursor: pointer;
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .gallery-playpause:hover { background: rgba(251, 247, 238, 1); }
+  .gallery-playpause:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 2px;
+  }
+  .gallery-dots + .gallery-playpause { display: flex; }
+  .gallery-playpause-icon { display: inline-block; }
+
+  /* Screen-reader-only utility (visually hidden but announced). */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .gallery-track { scroll-behavior: auto; }
     .gallery-nav:hover { transform: translateY(-50%); }
-    .gallery-dot[aria-selected="true"] { transform: none; }
+    .gallery-dot[aria-current="true"] { transform: none; }
+    .gallery-playpause { display: none; }
   }
 </style>
 
@@ -236,6 +292,8 @@ const t = lang === 'en' ? en : fr;
       var dots = root.querySelectorAll('[data-gallery-dot]');
       var prev = root.querySelector('[data-gallery-prev]');
       var next = root.querySelector('[data-gallery-next]');
+      var playpause = root.querySelector('[data-gallery-playpause]');
+      var announce = root.querySelector('[data-gallery-announce]');
       if (!track || slides.length === 0) return;
 
       var current = 0;
@@ -248,6 +306,11 @@ const t = lang === 'en' ? en : fr;
       var isHovering = false;
       var isFocused = false;
       var isVisible = !document.hidden;
+      // WCAG 2.2.2: once the user explicitly clicks Pause, autoplay does
+      // NOT auto-resume from hover/focus-out. Only the play button (or a
+      // page reload) can restart it. This is stronger than the hover /
+      // focus / touch pause branches which are temporary courtesies.
+      var userPaused = false;
 
       function slideWidth() {
         var first = slides[0];
@@ -271,15 +334,25 @@ const t = lang === 'en' ? en : fr;
         if (i === current) return;
         current = i;
         dots.forEach(function (d, di) {
-          d.setAttribute('aria-selected', di === i ? 'true' : 'false');
+          if (di === i) d.setAttribute('aria-current', 'true');
+          else d.removeAttribute('aria-current');
         });
+        // Announce via aria-live so screen-reader users know the slide changed.
+        if (announce) {
+          var tmpl = announce.getAttribute('data-template') || '';
+          announce.textContent = tmpl
+            .replace('{n}', String(i + 1))
+            .replace('{total}', String(slides.length));
+        }
       }
 
       function stopAutoplay() {
         if (autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null; }
+        if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
       }
       function startAutoplay() {
         if (reducedMotion) return;
+        if (userPaused) return;
         if (isHovering || isFocused || !isVisible) return;
         if (slides.length <= 1) return;
         stopAutoplay();
@@ -293,9 +366,26 @@ const t = lang === 'en' ? en : fr;
         }, AUTOPLAY_MS);
       }
       function pauseThenResume() {
+        if (userPaused) return;  // explicit pause wins over hover/focus resume
         stopAutoplay();
-        if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
         resumeTimer = setTimeout(startAutoplay, RESUME_AFTER_INTERACTION_MS);
+      }
+
+      function setUserPaused(paused) {
+        userPaused = paused;
+        if (!playpause) return;
+        var icon = playpause.querySelector('[data-icon]');
+        if (paused) {
+          stopAutoplay();
+          playpause.setAttribute('aria-pressed', 'true');
+          playpause.setAttribute('aria-label', playpause.getAttribute('data-label-play') || 'Play');
+          if (icon) icon.textContent = '▶';
+        } else {
+          playpause.setAttribute('aria-pressed', 'false');
+          playpause.setAttribute('aria-label', playpause.getAttribute('data-label-pause') || 'Pause');
+          if (icon) icon.textContent = '❚❚';
+          startAutoplay();
+        }
       }
 
       // IntersectionObserver keeps the active dot in sync with whatever slide
@@ -353,8 +443,24 @@ const t = lang === 'en' ? en : fr;
         if (isVisible) startAutoplay(); else stopAutoplay();
       });
 
+      // Persistent play/pause toggle (WCAG 2.2.2). Hidden when there's
+      // nothing to autoplay (single slide) or when the user prefers reduced
+      // motion (autoplay is already fully disabled in that mode).
+      if (playpause) {
+        if (reducedMotion || slides.length <= 1) {
+          playpause.hidden = true;
+        } else {
+          playpause.addEventListener('click', function () {
+            setUserPaused(!userPaused);
+          });
+        }
+      }
+
       // Initial state
-      setActive(0);
+      dots.forEach(function (d, di) {
+        if (di === 0) d.setAttribute('aria-current', 'true');
+        else d.removeAttribute('aria-current');
+      });
       // Kick off after the first paint so images have laid out.
       setTimeout(startAutoplay, 1500);
     }

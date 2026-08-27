@@ -112,6 +112,13 @@ async function checkAuth(request: Request, env: Env): Promise<boolean> {
 }
 
 function csvEscape(v: string): string {
+  // Formula-injection guard: Excel / Google Sheets interpret a leading
+  // =, +, -, @, tab, or CR as the start of a formula. Values reach this
+  // function verbatim from the PUBLIC /api/newsletter-subscribe endpoint
+  // (source_url, lang, consent_text_version, method), so an attacker can
+  // seed a payload that the operator's spreadsheet later executes on open.
+  // Prefix a single quote to neutralize.
+  if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;
   // Only quote if the value contains a character that would break parsing.
   if (/[",\n\r]/.test(v)) {
     return `"${v.replace(/"/g, '""')}"`;

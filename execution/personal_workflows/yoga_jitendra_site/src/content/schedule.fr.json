@@ -14,6 +14,9 @@
   "gallery_aria_label": "Photos du studio",
   "gallery_prev_label": "Photo précédente",
   "gallery_next_label": "Photo suivante",
+  "gallery_pause_label": "Mettre le défilement en pause",
+  "gallery_play_label": "Reprendre le défilement",
+  "gallery_slide_announce": "Photo {n} sur {total}",
   "gallery": [
     { "src": "/assets/images/teaching-backbend.jpg", "alt": "Jitendra guide une élève dans une posture d'ouverture du dos · studio Passy" },
     { "src": "/assets/images/studio-session-01-ajustement-hanches.jpg", "alt": "Ajustement manuel des hanches en variation de la posture de l'enfant · studio Passy" },

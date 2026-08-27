@@ -14,6 +14,9 @@
   "gallery_aria_label": "Studio photos",
   "gallery_prev_label": "Previous photo",
   "gallery_next_label": "Next photo",
+  "gallery_pause_label": "Pause the slideshow",
+  "gallery_play_label": "Resume the slideshow",
+  "gallery_slide_announce": "Photo {n} of {total}",
   "gallery": [
     { "src": "/assets/images/teaching-backbend.jpg", "alt": "Jitendra guiding a student through a back-opening posture · Passy studio" },
     { "src": "/assets/images/studio-session-01-ajustement-hanches.jpg", "alt": "Hands-on hip adjustment in a child's-pose variation · Passy studio" },
