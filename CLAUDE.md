@@ -270,8 +270,10 @@ Be pragmatic. Be reliable. Self-anneal.
 ## Environment
 
 - Python: 3.14
-- Default session model: `claude-opus-4-8` (orchestration + Plan Mode).
-- Note: Fable 5 / Mythos 5 unavailable as of 2026-06-12 (US export-control directive). See `~/.claude/CLAUDE.md` MODEL POLICY section.
+- Default session model: `claude-fable-5` (set 2026-08-27; replaces `claude-opus-5`). Pinned in all three settings files — `~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json` — because the two project files override the user file. **Pin the full name — never the `fable` / `claude-fable-5[1m]` alias**, per `~/.claude/rules/model-tier.md`; aliases drift between Claude Code versions and across providers.
+- Note: Fable 5 access was suspended 2026-06-12 (US export-control directive). The operator re-enabled it as the session default on 2026-08-27. **Not yet verified by a live call from this machine** — if a session fails with a model-access error, revert with the one-liner in `.claude/SETTINGS_NOTES.md`.
+- Judgement tier (orchestration + Plan Mode; 1M context, $5/$25 per MTok): `claude-opus-5`. The session-default change does NOT alter task-role routing inside `execution/` — `model_router.py` and `model_registry.py` are deliberately untouched.
+- Execution tier: `claude-sonnet-5` ($2/$10 per MTok) — per-row work, classification, extraction, formatting.
 - Implementation / exploration sub-agents: `claude-sonnet-4-6` (default for Agent calls without model override).
 - High-volume fan-out workers (Dynamic Workflows / agent teams of N parallel workers): `claude-sonnet-4-6`. (Per `~/.claude/rules/model-tier.md` — Haiku 4.5 is BANNED for any project work, including fan-out. The user-level rule wins over any workspace default.)
 - Per-agent model override: `model:` frontmatter in `.claude/agents/*.md`.

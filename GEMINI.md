@@ -328,4 +328,5 @@ Be pragmatic. Be reliable. Self-anneal.
 ## Environment
 
 - Python: 3.14
-- Default model for all agents and sub-agents: `claude-opus-4-8`
+- Default session model: `claude-fable-5` (set 2026-08-27; replaces `claude-opus-5`). Pinned in `~/.claude/settings.json`, `.claude/settings.json`, and `.claude/settings.local.json`.
+- Model routing is by TASK ROLE, not caller: `claude-opus-5` for reasoning / planning / architecture / ambiguous judgement; `claude-sonnet-5` for executing a specified plan, per-row volume work, classification, extraction, formatting. Pin full model names — never the `opus` / `sonnet` aliases. See `~/.claude/rules/model-tier.md`.

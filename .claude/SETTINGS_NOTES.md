@@ -13,8 +13,39 @@ Hook events for Agent Teams (`TeammateIdle`, `TaskCreated`, `TaskCompleted`) int
 
 ### Did NOT change in Phase 2
 
-- `model` key in `.claude/settings.json` — at Phase 2 time (2026-06-11) stayed `claude-opus-4-7` because the global TIME-BOUND MODEL POLICY mandated `claude-fable-5[1m]` for Plan Mode. **Updated 2026-06-13:** `~/.claude/settings.json` `model` is now `claude-opus-4-8`. Reason: Plan-mode default per MODEL POLICY in `~/.claude/CLAUDE.md`. Fable 5 / Mythos 5 are no longer available (2026-06-12 US export-control directive).
+- `model` key in `.claude/settings.json` — at Phase 2 time (2026-06-11) stayed `claude-opus-4-7` because the global TIME-BOUND MODEL POLICY mandated `claude-fable-5[1m]` for Plan Mode. **Updated 2026-06-13:** `~/.claude/settings.json` `model` is now `claude-opus-4-8`. Reason: Plan-mode default per MODEL POLICY in `~/.claude/CLAUDE.md`. Fable 5 / Mythos 5 are no longer available (2026-06-12 US export-control directive). **[SUPERSEDED 2026-08-27 -- Fable 5 is available again and is now the session default; see the 2026-08-27 entry below.]**
 - `.claude/settings.local.json` `model` key — file does not exist.
+
+### 2026-08-12 — model sweep to the 5-series (branch `fix/model-sweep-opus5`)
+
+- `.claude/settings.json` and `.claude/settings.local.json` `model` → `claude-opus-5`.
+- Briefly set to the `opus[1m]` family alias earlier the same day, then reverted to the
+  pinned full name: `~/.claude/rules/model-tier.md` now bans bare aliases in config and
+  code, because they resolve differently per provider and drift between Claude Code
+  versions. `settings.local.json` does now exist and overrides `settings.json`.
+- **Unverified**: whether a bare `claude-opus-5` retains the 1M-context variant that the
+  `[1m]` suffix requested. Opus 5 is natively 1M per Anthropic's docs, but Claude Code's
+  settings-parser semantics are not documented. Watch for a context-window regression.
+
+### 2026-08-27 -- session default moved to Fable 5
+
+- `~/.claude/settings.json` `model`: `claude-fable-5[1m]` -> `claude-fable-5` (bracket
+  alias dropped per the no-alias rule in `~/.claude/rules/model-tier.md`).
+- `.claude/settings.json` and `.claude/settings.local.json` `model`: `claude-opus-5` ->
+  `claude-fable-5`. Both project files were the reason the user-level Fable pin had no
+  effect -- project settings override user settings, and `settings.local.json` overrides
+  `settings.json`. Changing only one of the three does nothing.
+- The 2026-06-12 export-control suspension of Fable 5 / Mythos 5 is recorded as lifted in
+  `~/.claude/CLAUDE.md` and `~/.claude/rules/model-tier.md`. **Lifted on operator
+  instruction, not on a verified live API call** -- no Fable request has been made from
+  this machine yet.
+- Task-role routing in `execution/` (`model_router.py`, `model_registry.py`) is unchanged:
+  `claude-opus-5` remains the judgement tier and `claude-sonnet-5` the execution tier for
+  code that calls the API directly. This change is about Claude Code *sessions* only.
+
+**Revert (one line):** set `"model": "claude-opus-5"` in `.claude/settings.local.json` --
+that file alone wins over the other two, so it is the fastest rollback.
+
 
 ## Reverting
 
@@ -32,4 +63,5 @@ claude --version  # should be 2.1.173 or later
 - `.claude/settings.json` — primary config.
 - `~/.claude/CLAUDE.md` — global model policy.
 - `CLAUDE.md` — workspace Environment section documents the model strategy.
-- `.claude/agents/*.md` — per-agent `model:` frontmatter (Sonnet 4.6, Haiku 4.5, Opus 4.7 as appropriate).
+- `.claude/agents/*.md` — per-agent `model:` frontmatter. Should be `claude-sonnet-5` or
+  `claude-opus-5` per the role-based routing in `~/.claude/rules/model-tier.md`; Haiku is banned.
