@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /meet
+Disallow: /book
+Disallow: /call
+
+Sitemap: https://debanjanm.com/sitemap-index.xml

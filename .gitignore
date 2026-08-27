@@ -87,3 +87,12 @@ deliverables/*/ACCESS_PASSWORD.txt
 # Coverage artifacts
 execution/.coverage
 .coverage
+
+# Root-level media and client data dumps dropped by WhatsApp/OneDrive. Never
+# repo material: binaries, client photos, probe PDFs, an AM-scoped doc.
+/*.jpg
+/*.jpeg
+/*.mp4
+/Yoga avec Jitendra/
+/gaia_probe/
+/Accessory Masters Project breakdown.md

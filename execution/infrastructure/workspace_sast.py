@@ -435,7 +435,10 @@ def _rule_haiku_banned() -> list[dict]:
     )
     # Only flag actively-executing source code; skip docs/notes/templates/tests.
     suffixes = (".py", ".ts", ".js", ".jsx", ".tsx", ".json", ".toml")
-    skip_dirs = _SKIP_DIRS_PY | {".anneal", ".claude", "out", "dist", "build", "tests", "docs"}
+    # .claude/ is skipped EXCEPT .claude/skills/: skill scripts execute real work
+    # (2026-08-27: gmaps-leads/extract_website_contacts.py pinned Haiku for months
+    # because this rule never looked there).
+    skip_dirs = _SKIP_DIRS_PY | {".anneal", "out", "dist", "build", "tests", "docs"}
     # Workspace-level docs that discuss the ban itself.
     skip_filenames = {"HANDOFF.md", "CLAUDE.md", "CLAUDE.local.md", "HARDENING_BACKLOG.md", "STATUS.md", "README.md"}
     # AM-coupled-by-purpose shared modules (not name-locked but functionally frozen
@@ -452,6 +455,8 @@ def _rule_haiku_banned() -> list[dict]:
         if path.suffix not in suffixes:
             continue
         if any(s in path.parts for s in skip_dirs):
+            continue
+        if ".claude" in path.parts and "skills" not in path.parts:
             continue
         # Explicit AM lockdown (api-proxy/) beyond the name-pattern check.
         rel_parts = path.relative_to(WORKSPACE_ROOT).parts if path.is_relative_to(WORKSPACE_ROOT) else path.parts
@@ -496,7 +501,7 @@ def _rule_haiku_banned() -> list[dict]:
                         "message": (
                             "Claude Haiku 4.5 reference found. Haiku 4.5 is banned "
                             "workspace-wide per ~/.claude/rules/model-tier.md "
-                            "(2026-06-14). Use Sonnet 4.6 minimum."
+                            "(2026-06-14). Use claude-sonnet-5 minimum."
                         ),
                         "tool": "workspace-native",
                     }
@@ -1550,6 +1555,82 @@ def _rule_py_launcher_shebang() -> list[dict]:
     return findings
 
 
+def _rule_legacy_model_pin() -> list[dict]:
+    """Rule: no 4.x Claude model pinned as a default in executing code.
+
+    `claude-sonnet-4-6` / `claude-opus-4-[1-8]` / `claude-sonnet-4-5` are superseded
+    by the 5-series, which is cheaper AND better ($2/$10 vs $3/$15 for Sonnet).
+    The 2026-08-12 sweep moved the registry but missed ~15 hand-pinned defaults
+    (`DEFAULT_MODEL = ...`, `MODEL = ...`, `"anthropic_model": ...`) that were
+    found by hand on 2026-08-27. This catches the shape mechanically.
+
+    Only DEFAULT-style assignments are flagged; pricing-table rows that keep a
+    legacy model so old run records still cost-resolve are legitimate and do
+    not match (they are dict keys, not `model = "..."` assignments).
+
+    medium-severity -- wrong cost/quality, but not silent data loss.
+    """
+    findings = []
+    pin_re = re.compile(
+        r"""model[\w"']*\s*[:=]\s*["']claude-(?:sonnet-4-[56]|opus-4-[1-8]|haiku-3)[\w.-]*["']""",
+        re.IGNORECASE,
+    )
+    suffixes = (".py", ".ts", ".js", ".jsx", ".tsx", ".json", ".toml", ".mjs")
+    skip_dirs = _SKIP_DIRS_PY | {".anneal", "out", "dist", "build", "tests", "docs", "_archived"}
+    # Tracked files only, via git: sub-second, and untracked code never ships.
+    # A second full-tree rglob over OneDrive pushed --all past the pre-push
+    # timeout (HARDENING_BACKLOG item 9 is the structural fix; this sidesteps it).
+    try:
+        ls = subprocess.run(
+            ["git", "ls-files", "-z"], cwd=WORKSPACE_ROOT, capture_output=True,
+            text=True, encoding="utf-8", errors="replace", check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return findings
+    for rel_path in ls.split("\0"):
+        if not rel_path:
+            continue
+        path = WORKSPACE_ROOT / rel_path
+        if path.suffix not in suffixes:
+            continue
+        if any(s in path.parts for s in skip_dirs):
+            continue
+        if ".claude" in path.parts and "skills" not in path.parts:
+            continue
+        if "api-proxy" in path.parts or _is_am_locked(str(path)):
+            continue
+        if path.name == Path(__file__).name:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if "claude-" not in text:
+            continue
+        rel = str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if not pin_re.search(line):
+                continue
+            if re.search(r"legacy|historical|kept so|back-?compat", line, re.IGNORECASE):
+                continue
+            findings.append(
+                {
+                    "severity": "medium",
+                    "file": rel,
+                    "line": lineno,
+                    "rule_id": "legacy-model-pin",
+                    "message": (
+                        "A 4.x Claude model is pinned as a default. The 5-series is the "
+                        "current tier map (claude-sonnet-5 execution / claude-fable-5 "
+                        "judgement) per ~/.claude/rules/model-tier.md; 4.x rows belong "
+                        "only in pricing tables for historical cost lookups."
+                    ),
+                    "tool": "workspace-native",
+                }
+            )
+    return findings
+
+
 _NATIVE_RULES: dict[str, callable] = {
     "exit-criteria-missing": _rule_exit_criteria_missing,
     "subprocess-encoding": _rule_subprocess_encoding,
@@ -1566,6 +1647,7 @@ _NATIVE_RULES: dict[str, callable] = {
     "shipped-claim-stale": _rule_shipped_claim_stale,
     "probe-failure-as-verdict": _rule_probe_failure_as_verdict,
     "py-launcher-shebang": _rule_py_launcher_shebang,
+    "legacy-model-pin": _rule_legacy_model_pin,
 }
 
 _ALL_NATIVE_RULE_NAMES = list(_NATIVE_RULES.keys())

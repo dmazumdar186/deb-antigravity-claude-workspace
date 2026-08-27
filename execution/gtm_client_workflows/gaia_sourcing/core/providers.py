@@ -39,8 +39,8 @@ ROLE_MESSAGE = "message"   # L11: goes out under Gaia's name
 # Default plan under a zero Anthropic balance.
 ROUTING: dict[str, tuple[str, str]] = {
     ROLE_EXTRACT: ("gemini", "gemini-2.5-flash"),
-    ROLE_JUDGE: ("openrouter", "anthropic/claude-opus-5"),
-    ROLE_MESSAGE: ("openrouter", "anthropic/claude-opus-5"),
+    ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
+    ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
 }
 
 # Applied by set_plan("anthropic") once the account is funded.
@@ -52,16 +52,16 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     },
     "hybrid": {
         ROLE_EXTRACT: ("gemini", "gemini-2.5-flash"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-opus-5"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-opus-5"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
     },
     "openrouter": {
         ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-opus-5"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-opus-5"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
     },
     # Every role on the execution tier, for when the remaining balance will
-    # not cover the judgement tier. Opus is the right model for L8 tiering and
+    # not cover the judgement tier. Fable 5 is the right model for L8 tiering and
     # L11 client-facing copy and this plan is a downgrade -- but the
     # cost-constraint clause in ~/.claude/rules/model-tier.md is explicit that
     # a smaller model inside budget beats a better one that 402s halfway
@@ -75,8 +75,8 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     },
     "anthropic": {
         ROLE_EXTRACT: ("anthropic", "claude-sonnet-5"),
-        ROLE_JUDGE: ("anthropic", "claude-opus-5"),
-        ROLE_MESSAGE: ("anthropic", "claude-opus-5"),
+        ROLE_JUDGE: ("anthropic", "claude-fable-5"),
+        ROLE_MESSAGE: ("anthropic", "claude-fable-5"),
     },
 }
 
@@ -325,8 +325,10 @@ _BACKENDS = {
 PRICE_EUR: dict[str, dict[str, float]] = {
     "gemini-2.5-flash": {"input": 0.0, "output": 0.0},
     "anthropic/claude-sonnet-5": {"input": 1.84, "output": 9.20},
+    "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00},
     "anthropic/claude-opus-5": {"input": 4.60, "output": 23.00},
     "claude-sonnet-5": {"input": 1.84, "output": 9.20},
+    "claude-fable-5": {"input": 9.20, "output": 46.00},
     "claude-opus-5": {"input": 4.60, "output": 23.00},
 }
 
@@ -341,7 +343,7 @@ def cost_eur(model: str, stats: dict) -> float:
     """
     p = PRICE_EUR.get(model)
     if p is None:
-        p = {"input": 4.60, "output": 23.00}  # unknown: assume dearest
+        p = {"input": 9.20, "output": 46.00}  # unknown: assume dearest (Fable 5)
     inp = p["input"]
     return (
         stats.get("input_tokens", 0) * inp

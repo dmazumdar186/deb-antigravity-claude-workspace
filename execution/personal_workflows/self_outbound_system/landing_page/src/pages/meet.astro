@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+
+const CAL_URL = 'https://cal.com/debanjan-mazumdar-ben5rd/30min?utm_source=outbound&utm_campaign=debanjanm-outbound&utm_medium=email';
+---
+<Base
+  title="Book a call - Debanjan Mazumdar"
+  description="Redirecting to my Cal.com booking page."
+  noindex={true}
+  path="/meet"
+>
+  <head slot="head">
+    <meta http-equiv="refresh" content={`0; url=${CAL_URL}`} />
+  </head>
+  <main class="section">
+    <div class="section-inner text-center max-w-xl mx-auto">
+      <p class="eyebrow mb-4">One moment</p>
+      <h1 class="text-3xl md:text-4xl mb-4">Redirecting to my booking page...</h1>
+      <p class="text-ink-500 mb-6">
+        If nothing happens in a moment, please click the button below.
+      </p>
+      <a href={CAL_URL} class="btn btn-primary">Open Cal.com</a>
+      <div class="text-xs text-ink-500 mt-8">
+        Prefer email? <a href="mailto:debanjan@debanjanm.com" class="underline underline-offset-4">debanjan@debanjanm.com</a>
+      </div>
+    </div>
+  </main>
+  <script is:inline define:vars={{ CAL_URL }}>
+    // JS fallback in case the meta-refresh is blocked (rare).
+    setTimeout(function () { window.location.replace(CAL_URL); }, 50);
+  </script>
+</Base>

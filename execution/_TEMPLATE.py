@@ -16,7 +16,7 @@ Env vars used:
 Modes:
     cheap     — claude-sonnet-5, minimal sampling (Haiku is banned).
     balanced  — claude-sonnet-5, execution tier (default).
-    premium   — claude-opus-5, judgement tier, slowest.
+    premium   — claude-fable-5, judgement tier, slowest.
 
 See also: directives/<category>/<name>.md
 """
@@ -34,7 +34,7 @@ from pathlib import Path
 MODE_TO_MODEL = {
     "cheap": "claude-sonnet-5",
     "balanced": "claude-sonnet-5",
-    "premium": "claude-opus-5",
+    "premium": "claude-fable-5",
 }
 
 

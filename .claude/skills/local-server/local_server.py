@@ -401,7 +401,7 @@ Execute the directive now."""
     logger.info(f"🎯 Executing directive: {slug}")
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251101",
+        model="claude-fable-5",
         max_tokens=16000,
         tools=tools,
         messages=messages,
@@ -458,7 +458,7 @@ Execute the directive now."""
         ]})
 
         response = client.messages.create(
-            model="claude-opus-4-5-20251101",
+            model="claude-fable-5",
             max_tokens=16000,
             tools=tools,
             messages=messages,

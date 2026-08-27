@@ -85,7 +85,7 @@ RULES:
 Return ONLY the cover letter text, nothing else. The [LINK] placeholder will be replaced."""
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251101",
+        model="claude-sonnet-5",
         max_tokens=8000,
         thinking={
             "type": "enabled",
@@ -126,7 +126,7 @@ RULES:
 Return ONLY the cover letter text."""
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251101",
+        model="claude-sonnet-5",
         max_tokens=500,
         messages=[{"role": "user", "content": prompt}]
     )
@@ -185,7 +185,7 @@ TONE RULES:
 Return ONLY the proposal text."""
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251101",
+        model="claude-sonnet-5",
         max_tokens=10000,
         thinking={
             "type": "enabled",

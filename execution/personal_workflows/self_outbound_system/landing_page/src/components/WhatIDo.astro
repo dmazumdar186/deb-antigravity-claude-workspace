@@ -1,0 +1,53 @@
+---
+const offerings = [
+  {
+    label: 'Fixed-price AI builds',
+    price: 'EUR 1,000 - 2,500',
+    turnaround: '1 - 2 weeks',
+    body: 'One AI feature shipped end-to-end: MVP LLM feature in your product, an internal automation, or an evaluation harness that stops your model from silently regressing. Scoped, fixed-price, no billable-hours creep.',
+    examples: ['MVP LLM feature', 'Internal automation', 'Eval harness'],
+  },
+  {
+    label: 'Fractional AI PM',
+    price: 'From EUR 3,500 / month',
+    turnaround: '1 day / week',
+    body: 'Embedded with your product team, one day a week. I run the AI roadmap, write specs your engineers can execute against, keep evals honest, and stop the model from becoming a shrine you cannot change.',
+    examples: ['Roadmap and specs', 'Model selection', 'Eval discipline'],
+  },
+  {
+    label: 'Advisory sprint',
+    price: 'EUR 3,500 flat',
+    turnaround: '5 days',
+    body: 'Five days: I audit your current AI stack, interview the team, and hand back a written roadmap plus one build spike. You keep the roadmap and the working prototype. No lock-in.',
+    examples: ['Stack audit', 'Written roadmap', 'One build spike'],
+  },
+];
+---
+<section id="what" class="section rule-bottom">
+  <div class="section-inner">
+    <p class="eyebrow mb-4">What I do</p>
+    <h2 class="text-3xl md:text-4xl mb-3 max-w-prose2">
+      Three ways to work together.
+    </h2>
+    <p class="text-ink-500 max-w-prose2 mb-12">
+      All three assume the same thing: you already know AI matters, and you need
+      someone who has shipped it before to skip the discovery phase.
+    </p>
+
+    <div class="grid gap-6 md:grid-cols-3">
+      {offerings.map((o) => (
+        <div class="card flex flex-col">
+          <div class="text-xs tracking-widest uppercase text-accent-600 font-semibold mb-2">
+            {o.turnaround}
+          </div>
+          <h3 class="text-2xl mb-2 leading-tight">{o.label}</h3>
+          <div class="text-sm text-ink-500 mb-4">{o.price}</div>
+          <p class="text-ink-500 leading-relaxed mb-5 flex-grow">{o.body}</p>
+          <div class="flex flex-wrap">
+            {o.examples.map((e) => <span class="pill">{e}</span>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

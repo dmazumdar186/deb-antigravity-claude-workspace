@@ -2,7 +2,7 @@
 description: Frame-by-frame breakdown of a YouTube video using PySceneDetect +
              perceptual-hash dedup + 3x3 grid tiling + Claude tool-use with
              prompt caching. Supports three tiers: default (latest Sonnet-
-             equivalent), premium (latest Opus-equivalent), and gemini (free,
+             equivalent), premium (Fable 5 judgement tier), and gemini (free,
              passes YouTube URL directly to Gemini -- no frame extraction).
              Model IDs are resolved at runtime via execution/modules/model_registry.py.
              v3: added OpenRouter routing (one key reaches Claude/Gemini/GPT-4o vision),
@@ -1424,6 +1424,7 @@ _TIER_COST_PER_M_TOKENS: dict[str, float] = {
     # does not exist, on top of stale base rates.
     "anthropic/claude-sonnet-5": 2.00,
     "anthropic/claude-opus-5": 5.00,
+    "anthropic/claude-fable-5": 10.00,
     "anthropic/claude-sonnet-4.6": 3.00,
     "anthropic/claude-sonnet-4-6": 3.00,
     "anthropic/claude-opus-4.7": 5.00,
@@ -1436,6 +1437,7 @@ _TIER_COST_PER_M_TOKENS: dict[str, float] = {
     # Direct Anthropic
     "claude-sonnet-5": 2.00,
     "claude-opus-5": 5.00,
+    "claude-fable-5": 10.00,
     "claude-sonnet-4-6": 3.00,
     "claude-opus-4-7": 5.00,
     # Gemini direct (free quota)
@@ -1453,6 +1455,7 @@ _CLAUDE_PRICES: dict[str, dict[str, float]] = {
     # Current tiers
     "claude-sonnet-5": {"input": 2.00, "cache_read": 0.20, "cache_write": 2.50, "output": 10.00},
     "claude-opus-5": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},
+    "claude-fable-5": {"input": 10.00, "cache_read": 1.00, "cache_write": 12.50, "output": 50.00},  # verified 2026-08-27
     # Legacy — kept so historical call records still cost-resolve.
     "claude-sonnet-4-6": {"input": 3.00, "cache_read": 0.30, "cache_write": 3.75, "output": 15.00},
     "claude-opus-4-7": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},
@@ -1949,7 +1952,7 @@ def main() -> int:
         default="default",
         help=(
             "Analysis tier: 'default' (latest Sonnet-equivalent via registry), "
-            "'premium' (latest Opus-equivalent), "
+            "'premium' (Fable 5 judgement tier via registry), "
             "'gemini' (free URL-native via Gemini direct, or paid frame-grid via OR if no GEMINI_API_KEY). "
             "Default: default"
         ),

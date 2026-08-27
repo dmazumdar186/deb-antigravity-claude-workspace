@@ -181,7 +181,7 @@ python-dotenv
 
 - Google Maps actor returns `website` field directly - no need to scrape for it
 - Contact pages commonly use /contact, /about, /team URL patterns
-- Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) is the current model — older Haiku IDs return 404
+- Extraction model is `claude-sonnet-5` (execution tier). Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; older Haiku IDs also return 404
 - ~10-15% of business websites return 403/503 errors - this is normal
 - Facebook URLs always fail with 400 errors (blocks scrapers)
 - Some sites have broken DNS - handled gracefully as errors

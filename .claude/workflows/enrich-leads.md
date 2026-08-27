@@ -33,7 +33,7 @@ ultracode: enrich every lead in {csv_path} with Apollo + Exa, dedupe by (email, 
 
 ## Notes
 
-- Default worker model: `claude-sonnet-4-6` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; Sonnet is the minimum tier for any project work).
+- Default worker model: `claude-sonnet-5` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; Sonnet is the minimum tier for any project work).
 - Apollo + Exa both have rate limits — Anneal-style backoff inside the worker.
 - Failure mode: per-row failures don't halt the batch. Final report includes skipped_count.
 - Do NOT use this for AM leads (the AM lockdown rule applies — Apollo+Exa credits for AM are user-controlled only).

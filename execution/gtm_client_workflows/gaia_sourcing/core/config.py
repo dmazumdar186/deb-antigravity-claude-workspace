@@ -52,19 +52,25 @@ def secret(name: str, required: bool = True) -> str:
 # ---------------------------------------------------------------------------
 # Models -- full names pinned per ~/.claude/rules/model-tier.md.
 # Never use bare aliases; they drift across providers and CLI versions.
-# Verified live against GET /v1/models on 2026-08-19.
+# Sonnet 5 verified live against GET /v1/models on 2026-08-19. Judgement roles
+# moved to Fable 5 on 2026-08-27 (operator rule: everything that is not mundane
+# execution is Fable 5). Fable 5 bills 2x Opus 5 per token -- the run ceiling
+# in RunConfig is reached roughly twice as fast on L8/L10/L11 as before.
 # ---------------------------------------------------------------------------
 
 MODEL_EXTRACT = "claude-sonnet-5"   # L5 evidence extraction (high volume)
 MODEL_PARSE = "claude-sonnet-5"     # L1 requisition parsing
-MODEL_JUDGE = "claude-opus-5"       # L8 adversarial + tiering (judgement)
-MODEL_MOVABILITY = "claude-opus-5"  # L10
-MODEL_MESSAGE = "claude-opus-5"     # L11 -- goes out under Gaia's name
+MODEL_JUDGE = "claude-fable-5"      # L8 adversarial + tiering (judgement)
+MODEL_MOVABILITY = "claude-fable-5" # L10 (judgement)
+MODEL_MESSAGE = "claude-fable-5"    # L11 -- goes out under Gaia's name (judgement)
 
 # Pricing per MTok (USD), from ~/.claude/rules/model-tier.md, verified
-# 2026-08-12. Converted to EUR for all operator-facing output.
+# 2026-08-27. Converted to EUR for all operator-facing output.
 USD_TO_EUR = 0.92
 PRICING: dict[str, dict[str, float]] = {
+    "claude-fable-5": {
+        "input": 10.00, "cache_write": 12.50, "cache_read": 1.00, "output": 50.00
+    },
     "claude-opus-5": {
         "input": 5.00, "cache_write": 6.25, "cache_read": 0.50, "output": 25.00
     },

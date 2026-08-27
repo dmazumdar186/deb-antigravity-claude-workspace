@@ -31,7 +31,7 @@ Env vars used:
 Modes:
     cheap     — claude-sonnet-5, fast (Haiku is banned).
     balanced  — claude-sonnet-5, execution tier (default).
-    premium   — claude-opus-5, judgement tier, slowest.
+    premium   — claude-fable-5, judgement tier, slowest.
 """
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ from pathlib import Path
 MODE_TO_MUTATOR_MODEL: dict[str, str] = {
     "cheap": "claude-sonnet-5",
     "balanced": "claude-sonnet-5",
-    "premium": "claude-opus-5",
+    "premium": "claude-fable-5",
 }
 
 # Thread lock for _append_to_log — shared across any threads that might call it.

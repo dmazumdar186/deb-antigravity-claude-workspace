@@ -616,7 +616,7 @@ Execute the directive now."""
     slack_directive_start(slug, slug, input_data)
 
     request_kwargs = {
-        "model": "claude-opus-4-5-20251101",
+        "model": "claude-fable-5",
         "max_tokens": 40000,
         "tools": tools,
         "messages": messages,
@@ -1874,7 +1874,7 @@ RULES for benefits:
 Return ONLY the JSON, no markdown code blocks or explanations."""
 
         msg = client.messages.create(
-            model="claude-opus-4-5-20251101",
+            model="claude-fable-5",
             max_tokens=4000,
             messages=[{"role": "user", "content": extraction_prompt}]
         )
@@ -2095,7 +2095,7 @@ Do not use any markdown formatting (no asterisks, no bullet points, no headers w
 
     try:
         message = anthropic_client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-5",
             max_tokens=1000,
             temperature=0.7,
             system="You are an expert YouTube strategist.",

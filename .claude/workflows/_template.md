@@ -27,6 +27,6 @@ ultracode: <verb> <object> <constraints> <output destination>
 
 ## Notes
 
-- Default model for workers: claude-sonnet-4-6 (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
+- Default model for workers: claude-sonnet-5 (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
 - Default concurrency: 8.
 - Failure mode: <e.g., "skip + log row on subagent failure; don't halt batch">.

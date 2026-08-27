@@ -15,7 +15,7 @@ usage:
 Modes:
     cheap     — claude-sonnet-5 (Haiku is banned).
     balanced  — claude-sonnet-5, execution tier (default).
-    premium   — claude-opus-5, judgement tier.
+    premium   — claude-fable-5, judgement tier.
 """
 
 import argparse
@@ -42,7 +42,7 @@ logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 MODE_TO_MODEL = {
     "cheap": "anthropic/claude-sonnet-5",
     "balanced": "anthropic/claude-sonnet-5",
-    "premium": "anthropic/claude-opus-5",
+    "premium": "anthropic/claude-fable-5",
 }
 DEFAULT_MODE = "balanced"
 DEFAULT_MODEL = MODE_TO_MODEL[DEFAULT_MODE]  # kept for fallback config reads
@@ -128,7 +128,7 @@ def generate_mock_variant(human_variants: list[dict]) -> dict:
         "subject": "Thought about selling?",
         "body": "{{opener}} Business owners in {{city}} are getting serious offers right now. Worth a conversation?",
         "created_at": now_iso(),
-        "created_by": "claude-sonnet-4-6",
+        "created_by": DEFAULT_MODEL,
         "active": False,
         "instantly_step_id": None,
     }
@@ -378,7 +378,7 @@ def main():
         "--mode",
         choices=list(MODE_TO_MODEL.keys()),
         default=DEFAULT_MODE,
-        help="Tier: cheap / balanced (claude-sonnet-5, default) / premium (claude-opus-5).",
+        help="Tier: cheap / balanced (claude-sonnet-5, default) / premium (claude-fable-5).",
     )
     parser.add_argument(
         "--model",

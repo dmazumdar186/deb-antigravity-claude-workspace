@@ -60,6 +60,23 @@ Rules:
 
 Guarded by the workspace SAST rule `py-launcher-shebang`.
 
+## 8. Env-stripped subprocesses on Windows must forward `APPDATA`
+
+A sandboxed child that receives only `SYSTEMROOT` + `PATH` cannot compute its user
+site-packages directory (`%APPDATA%\Python\PythonXY\site-packages`), so anything
+installed with `pip install --user` is invisible to it. The symptom is
+`No module named X` from an interpreter that imports X fine at the prompt.
+
+Exhibit 2026-08-27: `anneal/runner/python_test_runner.py` forwarded
+`SYSTEMROOT/PATH/PYTHONPATH` only. Four of anneal's own unit tests had been failing
+on this machine, and in production every Red attack would have been scored as
+"landed" because `pytest` itself could not import. Adding `APPDATA` to the
+passthrough list fixed all four.
+
+Forward `APPDATA` (Python), and for Node/Go children the equivalents they need
+(`USERPROFILE`, `HOME`, `LOCALAPPDATA` for npm/go caches). Path variables carry no
+secrets; the strip exists to keep API keys out, not directories.
+
 ## Reference implementation
 
 `C:\Users\deban\dev\anneal\src\anneal\` has hardened versions of all 5 patterns. Crib from there before writing new code.

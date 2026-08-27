@@ -433,7 +433,7 @@ Keep it concise and actionable."""
 
     try:
         message = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-5",
             max_tokens=500,
             temperature=0.7,
             messages=[{"role": "user", "content": prompt}]
@@ -470,7 +470,7 @@ Example format: ["Variant 1", "Variant 2", "Variant 3"]"""
 
     try:
         message = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-5",
             max_tokens=400,
             messages=[{"role": "user", "content": prompt}]
         )

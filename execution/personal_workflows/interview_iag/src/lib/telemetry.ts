@@ -10,6 +10,7 @@
 const USD_TO_EUR = 0.92;
 
 export const PRICING_EUR_PER_MTOK: Record<string, { in: number; out: number }> = {
+  'claude-sonnet-5':      { in: 2 * USD_TO_EUR, out: 10 * USD_TO_EUR },
   'claude-sonnet-4-6':    { in: 3 * USD_TO_EUR, out: 15 * USD_TO_EUR },
   'gemini-2.5-flash':     { in: 0, out: 0 },
   'gemini-2.5-flash-lite': { in: 0, out: 0 },

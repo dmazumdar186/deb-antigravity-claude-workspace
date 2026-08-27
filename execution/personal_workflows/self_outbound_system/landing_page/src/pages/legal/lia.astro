@@ -1,0 +1,106 @@
+---
+import Base   from '../../layouts/Base.astro';
+import TopNav from '../../components/TopNav.astro';
+import Footer from '../../components/Footer.astro';
+---
+<Base
+  title="Legitimate Interest Assessment (LIA) - Debanjan Mazumdar"
+  description="LIA on file for B2B cold outreach conducted from debanjanm.com under GDPR legitimate-interest basis."
+  path="/legal/lia"
+>
+  <TopNav />
+  <main class="section">
+    <article class="section-inner max-w-prose2">
+      <p class="eyebrow mb-4">Legal</p>
+      <h1 class="text-4xl md:text-5xl mb-4">Legitimate Interest Assessment (LIA)</h1>
+      <p class="text-ink-500 mb-10">
+        Effective: 2026-07-08. Reviewed by operator every 12 months minimum.
+        Kept on file per GDPR / CNIL requirement for B2B cold email using
+        legitimate-interest basis.
+      </p>
+
+      <section class="mb-8">
+        <h2 class="text-2xl mb-3">Controller</h2>
+        <ul class="text-ink-500 space-y-1">
+          <li><strong class="text-ink-800">Name:</strong> Debanjan Mazumdar (dba ProdCraft)</li>
+          <li><strong class="text-ink-800">Address:</strong> [TO_FILL - postal address per legal/lia.md]</li>
+          <li><strong class="text-ink-800">Contact:</strong> debolshop@gmail.com</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl mb-3">Purpose test - legitimate interest identified</h2>
+        <p class="text-ink-500 leading-relaxed">
+          The controller has a legitimate business interest in identifying and
+          initiating first contact with B2B decision-makers (Founders, Heads of
+          Product / Ops, Agency Owners) who have public-facing indicators of
+          needing AI product-engineering services. The interest is commercial
+          (client acquisition) and lawful.
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl mb-3">Necessity test - is direct outreach necessary?</h2>
+        <p class="text-ink-500 mb-2">Direct email outreach to publicly-listed business contacts is necessary because:</p>
+        <ol class="text-ink-500 list-decimal pl-6 space-y-1">
+          <li>The prospect's job function makes them the correct decision-maker for the service offered.</li>
+          <li>No other channel reliably reaches this ICP at the scale needed (LinkedIn DM open rates are lower; cold call is more intrusive; ad targeting does not reach the specific individual).</li>
+          <li>The volume (20 / day, 600 / month) is proportionate to a solo operator's capacity, not a mass-broadcast pattern.</li>
+        </ol>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl mb-3">Balancing test - the prospect's rights and interests</h2>
+        <ul class="text-ink-500 space-y-3 leading-relaxed">
+          <li><strong class="text-ink-800">Data used:</strong> only publicly-listed business email address, name, title, company. No personal data outside professional context. No special-category data.</li>
+          <li><strong class="text-ink-800">Reasonable expectation:</strong> decision-makers at businesses reasonably expect to receive relevant B2B service pitches to their business email.</li>
+          <li><strong class="text-ink-800">Impact:</strong> minimal - one email, unsubscribe available in every message, follow-up capped at 2 messages, immediate suppression on opt-out.</li>
+          <li>
+            <strong class="text-ink-800">Safeguards implemented:</strong>
+            <ol class="list-decimal pl-6 mt-2 space-y-1">
+              <li>Unsubscribe link in every email (Instantly-tracked).</li>
+              <li>Physical postal address in every email footer.</li>
+              <li>Opt-out honoured automatically (<code>suppression.json</code>, minimum 30-day retention).</li>
+              <li>Explicit "reply STOP" pattern also honoured via reply classifier's <code>negative</code> bucket.</li>
+              <li>Anti-ICP filter rejects roles unlikely to want the offer (recruiters, students, interns).</li>
+              <li>Language gate: emails only to prospects with public content in EN or FR (the operator's working languages).</li>
+              <li>Domain suppression: never contact prospects from operator's client / lockdown domains.</li>
+            </ol>
+          </li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl mb-3">Data retention</h2>
+        <ul class="text-ink-500 space-y-1">
+          <li>Contacted prospects: retained in campaign log for 12 months, then archived.</li>
+          <li>Suppressed prospects: retained indefinitely on suppression list (regulatory floor 30 days).</li>
+          <li>Reply content: retained 24 months for follow-up / audit trail, then deleted.</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl mb-3">Rights the prospect has</h2>
+        <ul class="text-ink-500 space-y-2 leading-relaxed">
+          <li><strong class="text-ink-800">Right to object</strong> (unsubscribe link + reply STOP): honoured immediately, permanent suppression.</li>
+          <li><strong class="text-ink-800">Right to access:</strong> prospect may email debolshop@gmail.com to request all data held.</li>
+          <li><strong class="text-ink-800">Right to erasure:</strong> honoured on request, though suppression record (email address only) must be retained per anti-spam obligations.</li>
+          <li><strong class="text-ink-800">Right to lodge complaint</strong> with CNIL (data.gouv.fr / cnil.fr).</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl mb-3">Outcome</h2>
+        <p class="text-ink-500 leading-relaxed">
+          Legitimate-interest basis is <strong class="text-ink-800">valid</strong> for this outreach subject to
+          the safeguards above. Reviewed by operator on 2026-07-08. Next review: 2027-07-08.
+        </p>
+      </section>
+
+      <div class="rule-top pt-6 mt-10 text-sm text-ink-500">
+        <a href="/" class="underline underline-offset-4 hover:text-ink-800">Back to home</a>
+      </div>
+    </article>
+  </main>
+  <Footer />
+</Base>

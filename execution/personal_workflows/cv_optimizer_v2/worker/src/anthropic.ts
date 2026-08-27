@@ -20,7 +20,7 @@ const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 // handles the multi-lingual "translate prose, keep tech nouns" instruction reliably.
 // Cost delta: ~$0.05/call vs ~$0.015/call → $2.50/yr vs $0.75/yr at 50 calls. Rounding
 // error against a career-relevant artifact.
-const DEFAULT_MODEL = "claude-sonnet-4-6";
+const DEFAULT_MODEL = "claude-sonnet-5";
 
 export async function optimizeCvAnthropic(
   cvText: string,

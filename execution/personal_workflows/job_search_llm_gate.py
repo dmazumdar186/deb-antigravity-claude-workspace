@@ -110,7 +110,7 @@ def classify_batch(
     primary_model: str = "gemini-2.5-flash",
     secondary_model: str = "gemini-2.5-flash-lite",
     anthropic_optin: bool = False,
-    anthropic_model: str = "claude-sonnet-4-6",
+    anthropic_model: str = "claude-sonnet-5",
     batch_size: int = 10,
     throttle_s: float = 7.0,
     target_profile_hint: str = "senior product manager / AI product specialist with 15 years experience",

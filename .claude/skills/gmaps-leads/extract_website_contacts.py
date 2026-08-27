@@ -57,8 +57,9 @@ CONTACT_PAGE_PATTERNS = [
     r'/offices',
 ]
 
-# Claude model for extraction (cheap and fast)
-CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+# Claude model for extraction. Sonnet 5 is the execution-tier floor; Haiku is
+# banned per ~/.claude/rules/model-tier.md (2026-06-14). Full name pinned.
+CLAUDE_MODEL = "claude-sonnet-5"
 
 # Maximum content length to send to Claude (in characters)
 MAX_CONTENT_LENGTH = 50000

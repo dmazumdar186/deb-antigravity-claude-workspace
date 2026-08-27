@@ -52,7 +52,7 @@ ultracode: research ASO for every competitor in {competitors_file} across stores
 
 ## Notes
 
-- Default worker model: `claude-sonnet-4-6` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; Sonnet is the minimum tier for any project work).
+- Default worker model: `claude-sonnet-5` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md; Sonnet is the minimum tier for any project work).
 - Firecrawl rate limit: keep `--max-workers` <= 8 to avoid 429 errors.
 - Per-cell failure isolation: `skipped_count` in output tells you how many cells failed and why; the batch never halts on a single failure.
 - The script returns exit code 0 (all cells scraped), 1 (fatal error), or 2 (some cells skipped — still useful output).

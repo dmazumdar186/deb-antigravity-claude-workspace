@@ -1,0 +1,55 @@
+---
+// Operator: replace TO_FILL fields with real case studies before flipping DNS live.
+const cases = [
+  {
+    company: '[TO_FILL - ProdCraft case study 1]',
+    problem: 'Support team drowning in the same 40 tickets per week - founder wanted a triage assistant, not a chatbot.',
+    outcome: 'Shipped a retrieval-backed triage draft-writer in 9 days. First-response time down from 6h to 22min. Cost per ticket EUR 0.02.',
+    stack: ['Anthropic', 'RAG', 'Cloudflare Workers', 'Zendesk API'],
+  },
+  {
+    company: '[TO_FILL - ProdCraft case study 2]',
+    problem: 'Series-A SaaS shipping an LLM feature that silently regressed on every model swap - no eval harness, no baseline.',
+    outcome: 'Built an eval harness with a golden corpus + adversarial suite. Regression caught on day 2 of the next model bump. Now runs on every deploy.',
+    stack: ['Eval design', 'LangSmith', 'GitHub Actions'],
+  },
+  {
+    company: '[TO_FILL - ProdCraft case study 3]',
+    problem: 'Agency owner spending 12 hours a week on ICP research and lead enrichment - wanted the time back without hiring.',
+    outcome: 'Delivered an internal automation: source > enrich > dedupe > CRM push. Two weeks. Saved 10 hours a week, ~EUR 2k / month opex.',
+    stack: ['Python', 'Apollo', 'Sonnet', 'Google Sheets'],
+  },
+];
+---
+<section id="proof" class="section rule-bottom">
+  <div class="section-inner">
+    <p class="eyebrow mb-4">Recent work</p>
+    <h2 class="text-3xl md:text-4xl mb-3 max-w-prose2">
+      A few things I have shipped.
+    </h2>
+    <p class="text-ink-500 max-w-prose2 mb-12">
+      Names anonymised on request. Happy to share references on a call.
+    </p>
+
+    <div class="grid gap-6 md:grid-cols-3">
+      {cases.map((c) => (
+        <article class="card">
+          <div class="text-xs tracking-widest uppercase text-ink-500 font-semibold mb-3">
+            {c.company}
+          </div>
+          <div class="mb-4">
+            <div class="text-xs text-ink-500 mb-1">Problem</div>
+            <p class="text-sm leading-relaxed">{c.problem}</p>
+          </div>
+          <div class="mb-5">
+            <div class="text-xs text-ink-500 mb-1">Outcome</div>
+            <p class="text-sm leading-relaxed">{c.outcome}</p>
+          </div>
+          <div class="flex flex-wrap">
+            {c.stack.map((t) => <span class="pill">{t}</span>)}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

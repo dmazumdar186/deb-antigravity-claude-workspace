@@ -1,5 +1,5 @@
 # claude-sonnet.ps1 -- Claude Code session pinned to Sonnet 4.6 (Anthropic native).
-# Default workspace driver is claude-opus-5; this launcher pins Sonnet for the session.
+# Default workspace driver is claude-fable-5; this launcher pins Sonnet for the session.
 
 . "$PSScriptRoot\_load_env.ps1"
 

@@ -1,0 +1,47 @@
+---
+const CAL_URL = 'https://cal.com/debanjan-mazumdar-ben5rd/30min?utm_source=outbound&utm_campaign=debanjanm-outbound&utm_medium=email';
+---
+<section class="section rule-bottom">
+  <div class="section-inner grid gap-12 lg:grid-cols-[1.35fr_1fr] items-center">
+    <div>
+      <p class="eyebrow mb-5">Fractional AI PM and Builder - Paris</p>
+      <h1 class="text-5xl md:text-6xl lg:text-7xl leading-[1.02] mb-6">
+        AI product work, shipped in weeks - not quarters.
+      </h1>
+      <p class="text-lg md:text-xl text-ink-500 max-w-prose2 mb-8">
+        I help founders, heads of product, and agency owners get a working AI
+        feature into their product - or a working internal automation into their
+        team - without the 6-month RFP dance. Fixed price. Two-week turnaround.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a href={CAL_URL} target="_blank" rel="noopener" class="btn btn-primary">
+          Book a 30-min call
+        </a>
+        <a href="#what" class="btn btn-ghost">
+          See how it works
+        </a>
+      </div>
+      <p class="text-xs text-ink-500 mt-6 tracking-wide">
+        15 years in product - bilingual FR / EN - based in Paris, works remote worldwide.
+      </p>
+    </div>
+
+    <div class="relative">
+      <!-- Photo placeholder frame. Operator: drop a portrait into
+           public/assets/portrait.jpg and this will render. -->
+      <div class="aspect-[4/5] rounded-2xl overflow-hidden border border-rule bg-paper-100 flex items-center justify-center">
+        <img
+          src="/assets/portrait.jpg"
+          alt="Debanjan Mazumdar"
+          class="w-full h-full object-cover"
+          onerror="this.style.display='none'; this.parentElement.querySelector('.placeholder').style.display='flex';"
+          fetchpriority="high"
+        />
+        <div class="placeholder hidden absolute inset-0 flex-col items-center justify-center text-ink-500 text-sm">
+          <div class="font-serif text-4xl mb-2 text-ink-800">DM</div>
+          <div>[TO_FILL - portrait]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

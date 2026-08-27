@@ -151,7 +151,7 @@ Otherwise, write the reply now:"""
 
     try:
         response = client.messages.create(
-            model="claude-opus-4-5-20251101",
+            model="claude-sonnet-5",
             max_tokens=16000,
             thinking={
                 "type": "enabled",

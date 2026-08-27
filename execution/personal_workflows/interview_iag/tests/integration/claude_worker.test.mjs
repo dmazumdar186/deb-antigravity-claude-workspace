@@ -82,7 +82,7 @@ describe('GET /api/claude (health)', () => {
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.ok).toBe(true);
-    expect(body.primary_model).toBe('claude-sonnet-4-6');
+    expect(body.primary_model).toBe('claude-sonnet-5');
     expect(body.fallback_model).toMatch(/^gemini/);
     expect(body.key_present).toBe(true);
   });
@@ -155,7 +155,7 @@ describe('POST /api/claude — score mode', () => {
     expect(body._provider).toBe('anthropic');
     expect(body._usage).toBeDefined();
     expect(body._usage.provider).toBe('anthropic');
-    expect(body._usage.model).toBe('claude-sonnet-4-6');
+    expect(body._usage.model).toBe('claude-sonnet-5');
     expect(typeof body._usage.latencyMs).toBe('number');
   });
 

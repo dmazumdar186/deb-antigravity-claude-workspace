@@ -25,7 +25,7 @@ export interface Env {
 const ANTHROPIC_API_URL   = 'https://api.anthropic.com/v1/messages';
 const GEMINI_API_URL      = 'https://generativelanguage.googleapis.com/v1beta/models';
 const OPENROUTER_API_URL  = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL               = 'claude-sonnet-4-6';
+const MODEL               = 'claude-sonnet-5';
 const GEMINI_MODEL        = 'gemini-2.5-flash';
 // OpenRouter free models — no credits needed (rate-limited but resilient).
 const OPENROUTER_FREE_MODELS = [
@@ -270,7 +270,7 @@ export interface LlmResult {
   latencyMs: number;
 }
 
-// Public entrypoint. Tries Anthropic Sonnet 4.6 first. If Anthropic returns
+// Public entrypoint. Tries Anthropic Sonnet 5 first. If Anthropic returns
 // the "credit balance too low" 400 or the key is missing, falls back to
 // Gemini 2.5 Flash (free tier). Returns text + provider + usage so callers
 // can surface cost telemetry.
@@ -284,6 +284,9 @@ export async function callLlm(env: Env, payload: LlmPayload): Promise<LlmResult>
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (!msg.includes(ANTHROPIC_NO_CREDIT_MARKER)) throw err;
+      // Nothing to fall back to: surface Anthropic's own 400 rather than a
+      // misleading 'no_llm_key_available' 500 (the keys exist; the balance is empty).
+      if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) throw err;
       // fall through to Gemini / OpenRouter
     }
   }
@@ -527,7 +530,7 @@ async function handleRoleplay(env: Env, req: RoleplayRequest): Promise<Response>
 //
 // Wire format (SSE):
 //   event: chunk    data: {"text":"<delta>","provider":"anthropic"}
-//   event: done     data: {"provider":"anthropic","model":"claude-sonnet-4-6","inputTokens":1234,"outputTokens":50,"latencyMs":812}
+//   event: done     data: {"provider":"anthropic","model":"claude-sonnet-5","inputTokens":1234,"outputTokens":50,"latencyMs":812}
 //   event: error    data: {"message":"..."}
 async function handleRoleplayStream(env: Env, req: RoleplayRequest): Promise<Response> {
   const scenarioBlock = `Customer scenario: ${req.scenario}\nDifficulty: ${req.difficulty}`;

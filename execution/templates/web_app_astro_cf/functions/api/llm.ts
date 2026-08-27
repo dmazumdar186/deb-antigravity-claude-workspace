@@ -57,7 +57,7 @@ async function callAnthropic(apiKey: string, prompt: string, maxTokens: number) 
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-sonnet-5',
       max_tokens: maxTokens,
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -69,7 +69,7 @@ async function callAnthropic(apiKey: string, prompt: string, maxTokens: number) 
   };
   return {
     text: data.content?.map(c => c.text ?? '').join('') ?? '',
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5',
     usage: {
       input_tokens: data.usage?.input_tokens ?? 0,
       cache_read_tokens: data.usage?.cache_read_input_tokens ?? 0,

@@ -154,10 +154,11 @@ def _to_anthropic_tool_format(schema: dict) -> dict:
 # cache_read  = Anthropic: 0.10× input;  Gemini/OpenRouter: 0 (not tracked here).
 # cache_write = Anthropic: 1.25× input;  Gemini/OpenRouter: 0 (not tracked here).
 # ---------------------------------------------------------------------------
-# Rates verified against platform.claude.com/docs/en/about-claude/pricing 2026-08-12.
+# Rates verified against platform.claude.com/docs/en/about-claude/pricing 2026-08-27.
+# premium resolves to claude-fable-5 via the registry (2x Opus 5, 5x Sonnet 5).
 _TIER_COST_PER_M = {
     "default":  {"input": 2.0,  "cache_read": 0.20,  "cache_write": 2.50,  "output": 10.0},   # claude-sonnet-5
-    "premium":  {"input": 5.0,  "cache_read": 0.50,  "cache_write": 6.25,  "output": 25.0},   # claude-opus-5
+    "premium":  {"input": 10.0, "cache_read": 1.00,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5
     "gemini":   {"input": 0.0,  "cache_read": 0.0,   "cache_write": 0.0,   "output": 0.0},    # Free tier
 }
 
@@ -742,7 +743,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--tier",
         choices=["default", "premium", "gemini"],
         default="default",
-        help="Model tier -> default (Sonnet), premium (Opus), gemini (free Gemini)",
+        help="Model tier -> default (Sonnet 5), premium (Fable 5), gemini (free Gemini)",
     )
     parser.add_argument("--dry-run", action="store_true",
                         help="Skip LLM call -> show pre-pass output and cost estimate")

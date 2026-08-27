@@ -41,7 +41,7 @@ LEDGER_PATH = WORKSPACE_ROOT / ".claude" / "watch" / "anthropic_ledger.jsonl"
 DIGEST_DIR = WORKSPACE_ROOT / ".claude" / "watch" / "digests"
 
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
-SUMMARIZER_MODEL = "claude-sonnet-4-6"
+SUMMARIZER_MODEL = "claude-sonnet-5"
 
 
 # ---------------------------------------------------------------------------

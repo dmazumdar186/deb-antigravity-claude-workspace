@@ -62,7 +62,7 @@
     "primary": "gemini-2.5-flash",
     "secondary": "gemini-2.5-flash-lite",
     "anthropic_optin": false,
-    "anthropic_model": "claude-sonnet-4-6",
+    "anthropic_model": "claude-sonnet-5",
     "batch_size": 10,
     "throttle_s": 7.0,
     "max_jobs_per_run": 200

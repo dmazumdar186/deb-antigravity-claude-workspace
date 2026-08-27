@@ -1,5 +1,27 @@
 # Hardening Backlog — 2026-06-15
 
+## Update 2026-08-27 — judgement tier moved to Fable 5; literal sweep + two new guardrails
+
+**What landed today (after the tier map itself moved in `6fa4357`):**
+
+- Every literal that *named the judgement tier* still said `claude-opus-5`, so `call_model(tier="premium")` and the hand-pinned `MODE_TO_MODEL["premium"]` / `MODEL_JUDGE` / `ROLE_JUDGE` maps disagreed with each other. Swept to `claude-fable-5` in: `_TEMPLATE.py`, `_TEMPLATE_autoresearch.py`, `humanizer.py` (premium cost row was also 2x under-stated), `gaia_sourcing/core/{config,providers}.py` (L8/L10/L11 + `PRICE_EUR` + unknown-model fallback), `ai_opener_generator.py`, `variant_generator.py`, `crm_integration/sync.py`, `youtube_video_analyzer.py` (3 pricing tables), `web_app_astro_cf/src/lib/telemetry.ts`.
+- **Cost consequence, stated plainly:** gaia_sourcing L8/L10/L11 now bill at Fable 5 — 2x the per-token cost of the Opus 5 they ran on yesterday. `RunConfig`'s ceiling is unchanged, so it trips roughly twice as early on those layers. Operator's rule ("everything that is not mundane execution is Fable 5") applied as stated; if a Gaia run needs the old economics, `--plan budget` is the documented downgrade.
+- Legacy 4.x defaults (`claude-sonnet-4-6`, `claude-opus-4-5-20251101`, `claude-sonnet-4-5-20250929`, `claude-opus-4-6`) and one **banned Haiku pin** (`.claude/skills/gmaps-leads/extract_website_contacts.py`, there since the skill was written) moved to the 5-series: 15 workspace files + 12 skill scripts + 4 workflow docs. Sonnet 5 is cheaper than Sonnet 4.6 ($2/$10 vs $3/$15), so none of these raise cost.
+- `anneal` (separate repo, `9709ebd`): tiers rebuilt on the 5-series, Haiku removed from every preset, cache-aware pricing rows for all three 5-series models. Also fixed the runner bug that made four of its unit tests fail on this machine (see rule 8 below).
+- `interview_iag` (`agentup-iag.pages.dev`, has `ANTHROPIC_API_KEY` in production): model literal → `claude-sonnet-5`, and a real bug fixed on the way — `callLlm` swallowed Anthropic's credit-too-low 400 and returned a false `no_llm_key_available` 500 when no fallback key existed. A vitest case had been asserting the correct behaviour and failing.
+
+**Mechanical guardrails added** to `execution/infrastructure/workspace_sast.py`:
+- `haiku-banned` now scans `.claude/skills/**` (it skipped all of `.claude/`, which is how the gmaps pin survived every SAST run since 2026-06-14).
+- `legacy-model-pin` (medium, new) — flags `model = "claude-<4.x>"`-shaped defaults in tracked `.py/.ts/.js/.json/.toml/.mjs`. Walks `git ls-files` (1.2 s) instead of a second OneDrive rglob, so it does not worsen item 9. Pricing-table rows for legacy models are dict keys, not assignments, and do not match. First run: 20 findings, all fixed today; now 0.
+
+**New hardening rule:** `.claude/rules/python-hardening.md` #8 / `~/.claude/CLAUDE.md` #6 — env-stripped subprocesses on Windows must forward `APPDATA`, or a user-site `pytest` is invisible to the child.
+
+**Owed / not done:**
+- `HARDENING_BACKLOG` item 9 (one tree walk per SAST rule) is still open; today's rule sidestepped it rather than fixing it.
+- `test_youtube_analyzer_e2e.py` premium assertion now accepts `fable`; the e2e/integration tiers were not run live today (they cost tokens) — unit tier + gaia suite (621 passed) were.
+- Deployed services other than `agentup-iag` that carry a Sonnet literal (`cv_optimizer_v2/worker/src/anthropic.ts`) are dormant fallback code (Gemini is the live path); code updated, no redeploy needed.
+
+
 ## Update 2026-08-26 — probe-failure-is-not-a-verdict rule backport triage
 
 New always-active rule landed: `~/.claude/rules/probe-failure-is-not-a-verdict.md` — when a probe (DNS, HTTP health check, verification API) fails for reasons unrelated to the thing being probed, the failure gets its own `ERROR_*`/`UNKNOWN` verdict and may NEVER trigger a destructive action. Also: sanity-probe a known-good entity before trusting a batch of negatives, and treat a ~100%-uniform verdict distribution as a failed run rather than a finding.

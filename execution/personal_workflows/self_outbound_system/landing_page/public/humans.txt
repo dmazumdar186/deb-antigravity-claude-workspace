@@ -1,0 +1,11 @@
+/* TEAM */
+    Operator: Debanjan Mazumdar
+    Site: debanjanm.com
+    Studio: ProdCraft (prodcraft.fyi)
+    Location: Paris, France
+
+/* SITE */
+    Framework: Astro
+    Hosting: Cloudflare Pages
+    Fonts: Bricolage Grotesque, Newsreader (Google Fonts)
+    License: All rights reserved.

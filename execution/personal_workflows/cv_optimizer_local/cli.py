@@ -32,7 +32,7 @@ SHARED_PROMPT_PATH = REPO_ROOT / "execution" / "personal_workflows" / "cv_optimi
 SHARED_SCHEMA_PATH = REPO_ROOT / "execution" / "personal_workflows" / "cv_optimizer_v2" / "prompts" / "cv_response_schema.json"
 SHARED_TEMPLATE_PATH = REPO_ROOT / "execution" / "personal_workflows" / "cv_optimizer_v2" / "web" / "cv-template.html"
 
-DEFAULT_MODEL = "claude-sonnet-4-6"
+DEFAULT_MODEL = "claude-sonnet-5"
 DEFAULT_OUT_BASE = REPO_ROOT / ".tmp" / "cv_optimizer_local"
 
 

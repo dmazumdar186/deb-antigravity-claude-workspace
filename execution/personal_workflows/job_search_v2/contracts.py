@@ -127,7 +127,7 @@ class RankedJob(BaseModel):
     tier: JobTier
     reasoning: str = Field(..., max_length=800)
     rubric_version: str = Field(..., description="Tag the rubric revision that produced the score.")
-    ranker_model: str = Field(..., description="e.g. 'claude-sonnet-4-6' or 'gemini-2.5-flash'.")
+    ranker_model: str = Field(..., description="e.g. 'claude-sonnet-5' or 'gemini-2.5-flash'.")
     ranked_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

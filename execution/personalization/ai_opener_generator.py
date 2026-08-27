@@ -13,7 +13,7 @@ usage:
 Modes:
     cheap     — claude-sonnet-5 (Haiku is banned; see model-tier.md).
     balanced  — claude-sonnet-5, execution tier (default).
-    premium   — claude-opus-5, judgement tier.
+    premium   — claude-fable-5, judgement tier.
 """
 
 import argparse
@@ -39,16 +39,16 @@ logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 # Workspace-standard model routing per --mode (matches _TEMPLATE.py pattern).
 # OpenRouter uses dot notation and anthropic/ prefix; Anthropic SDK uses dash notation.
 # Haiku 4.5 banned per ~/.claude/rules/model-tier.md (2026-06-14). "cheap" maps
-# to Sonnet 4.6 — the rule's floor for user-facing LLM output.
+# to Sonnet 5 — the rule's floor for user-facing LLM output.
 MODE_TO_MODEL_OPENROUTER = {
     "cheap": "anthropic/claude-sonnet-5",
     "balanced": "anthropic/claude-sonnet-5",
-    "premium": "anthropic/claude-opus-5",
+    "premium": "anthropic/claude-fable-5",
 }
 MODE_TO_MODEL_ANTHROPIC = {
     "cheap": "claude-sonnet-5",
     "balanced": "claude-sonnet-5",
-    "premium": "claude-opus-5",
+    "premium": "claude-fable-5",
 }
 DEFAULT_MODE = "balanced"
 
@@ -85,6 +85,13 @@ ANTHROPIC_PRICING: dict[str, dict[str, float]] = {
         "cache_read": 0.50,   # 0.1× input
         "cache_write": 6.25,  # 1.25× input
         "output": 25.00,
+    },
+    # Judgement tier since 2026-08-27. Verified 2026-08-27: 2x Opus 5, 5x Sonnet 5.
+    "claude-fable-5": {
+        "input": 10.00,
+        "cache_read": 1.00,   # 0.1× input
+        "cache_write": 12.50, # 1.25× input
+        "output": 50.00,
     },
 }
 
@@ -186,7 +193,7 @@ def _calc_cost(model_anthropic: str, usage) -> float:
     Parameters
     ----------
     model_anthropic : str
-        Bare Anthropic model ID (e.g. 'claude-sonnet-4-6'). Used to look up
+        Bare Anthropic model ID (e.g. 'claude-sonnet-5'). Used to look up
         the 4-entry pricing table in ANTHROPIC_PRICING.
     usage : anthropic.types.Usage
         Usage object from response.usage.
