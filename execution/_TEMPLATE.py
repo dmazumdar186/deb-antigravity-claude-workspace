@@ -14,9 +14,9 @@ Env vars used:
     - <ENV_VAR_1> — <purpose>
 
 Modes:
-    cheap     — Haiku 4.5, minimal sampling, fast.
-    balanced  — Sonnet 4.6, standard depth (default).
-    premium   — Opus 4.7, deep audit, slowest.
+    cheap     — claude-sonnet-5, minimal sampling (Haiku is banned).
+    balanced  — claude-sonnet-5, execution tier (default).
+    premium   — claude-opus-5, judgement tier, slowest.
 
 See also: directives/<category>/<name>.md
 """
@@ -29,10 +29,12 @@ from pathlib import Path
 
 # Workspace-standard model routing per --mode (Karpathy nanochat pattern: one
 # int controls complexity. Here it's an enum, but same principle).
+# Haiku 4.5 is BANNED per ~/.claude/rules/model-tier.md, so "cheap" maps to the
+# execution tier. Full names pinned; bare aliases drift across providers.
 MODE_TO_MODEL = {
-    "cheap": "claude-haiku-4-5",
-    "balanced": "claude-sonnet-4-6",
-    "premium": "claude-opus-4-7",
+    "cheap": "claude-sonnet-5",
+    "balanced": "claude-sonnet-5",
+    "premium": "claude-opus-5",
 }
 
 

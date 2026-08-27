@@ -29,9 +29,9 @@ Env vars used:
     - ANTHROPIC_API_KEY — needed if mutate_fn calls Claude (fill in your project's vars)
 
 Modes:
-    cheap     — Haiku 4.5, fast, lower quality mutations.
-    balanced  — Sonnet 4.6, standard depth (default).
-    premium   — Opus 4.7, deep reasoning, slowest.
+    cheap     — claude-sonnet-5, fast (Haiku is banned).
+    balanced  — claude-sonnet-5, execution tier (default).
+    premium   — claude-opus-5, judgement tier, slowest.
 """
 from __future__ import annotations
 
@@ -44,10 +44,12 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Model routing — same pattern as execution/_TEMPLATE.py
 # ---------------------------------------------------------------------------
+# Haiku 4.5 is BANNED per ~/.claude/rules/model-tier.md, so "cheap" maps to the
+# execution tier. Full names pinned; bare aliases drift across providers.
 MODE_TO_MUTATOR_MODEL: dict[str, str] = {
-    "cheap": "claude-haiku-4-5",
-    "balanced": "claude-sonnet-4-6",
-    "premium": "claude-opus-4-7",
+    "cheap": "claude-sonnet-5",
+    "balanced": "claude-sonnet-5",
+    "premium": "claude-opus-5",
 }
 
 # Thread lock for _append_to_log — shared across any threads that might call it.

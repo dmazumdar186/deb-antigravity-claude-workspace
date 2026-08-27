@@ -11,8 +11,9 @@ Click-of-a-button switching between GLM 5.2, Opus, Sonnet, GPT-4o, and Gemini fo
 
 | Alias | Model ID | Native provider | Sensitivity | Per-token cost |
 |---|---|---|---|---|
-| `opus` | `claude-opus-4-7` | Anthropic | sensitive_ok | $$$$ (premium) |
-| `sonnet` | `claude-sonnet-4-6` | Anthropic | sensitive_ok | $$ (default) |
+| `opus` | `claude-opus-5` | Anthropic | sensitive_ok | $5/$25 per MTok (judgement tier) |
+| _(session default)_ | `claude-fable-5` | Anthropic | sensitive_ok | Claude Code session default since 2026-08-27; not a `call_model()` alias |
+| `sonnet` | `claude-sonnet-5` | Anthropic | sensitive_ok | $2/$10 per MTok (execution tier) |
 | `gpt`, `gpt4o` | `gpt-4o` | OpenAI | sensitive_ok | $$$ |
 | `o1` | `o1` | OpenAI | sensitive_ok | $$$$$ |
 | `gemini` | `gemini-2.5-flash` | Google (FREE tier 250 RPD) | sensitive_ok | $0 |
@@ -81,7 +82,7 @@ These launchers spawn a NEW Claude Code session whose underlying LLM is the name
 .\execution\infrastructure\launchers\claude-gpt.ps1      # GPT-4o (via OR)
 .\execution\infrastructure\launchers\claude-gemini.ps1   # Gemini 2.5 Pro (via OR)
 .\execution\infrastructure\launchers\claude-sonnet.ps1   # Sonnet 4.6 (Anthropic native)
-.\execution\infrastructure\launchers\claude-opus.ps1     # Opus 4.7 (Anthropic native)
+.\execution\infrastructure\launchers\claude-opus.ps1     # claude-opus-5 (Anthropic native)
 ```
 
 ### Bash (Git Bash on Windows)

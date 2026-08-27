@@ -6,5 +6,5 @@
 Remove-Item env:ANTHROPIC_BASE_URL -ErrorAction SilentlyContinue
 Remove-Item env:ANTHROPIC_AUTH_TOKEN -ErrorAction SilentlyContinue
 
-Write-Host "Launching Claude Code -> Anthropic native -> claude-opus-4-7" -ForegroundColor Cyan
-claude --model "claude-opus-4-7" @args
+Write-Host "Launching Claude Code -> Anthropic native -> claude-opus-5" -ForegroundColor Cyan
+claude --model "claude-opus-5" @args

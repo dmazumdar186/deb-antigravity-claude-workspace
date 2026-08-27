@@ -11,9 +11,9 @@ usage:
     py execution/personalization/ai_opener_generator.py --input .tmp/verified_leads.json --mode premium
 
 Modes:
-    cheap     — Haiku 4.5, fast.
-    balanced  — Sonnet 4.6, standard depth (default).
-    premium   — Opus 4.7, deep quality.
+    cheap     — claude-sonnet-5 (Haiku is banned; see model-tier.md).
+    balanced  — claude-sonnet-5, execution tier (default).
+    premium   — claude-opus-5, judgement tier.
 """
 
 import argparse
@@ -41,14 +41,14 @@ logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 # Haiku 4.5 banned per ~/.claude/rules/model-tier.md (2026-06-14). "cheap" maps
 # to Sonnet 4.6 — the rule's floor for user-facing LLM output.
 MODE_TO_MODEL_OPENROUTER = {
-    "cheap": "anthropic/claude-sonnet-4.6",
-    "balanced": "anthropic/claude-sonnet-4.6",
-    "premium": "anthropic/claude-opus-4.7",
+    "cheap": "anthropic/claude-sonnet-5",
+    "balanced": "anthropic/claude-sonnet-5",
+    "premium": "anthropic/claude-opus-5",
 }
 MODE_TO_MODEL_ANTHROPIC = {
-    "cheap": "claude-sonnet-4-6",
-    "balanced": "claude-sonnet-4-6",
-    "premium": "claude-opus-4-7",
+    "cheap": "claude-sonnet-5",
+    "balanced": "claude-sonnet-5",
+    "premium": "claude-opus-5",
 }
 DEFAULT_MODE = "balanced"
 
@@ -63,17 +63,28 @@ ANTHROPIC_PRICING: dict[str, dict[str, float]] = {
         "cache_write": 1.00,  # 1.25× input
         "output": 4.00,
     },
+    # Legacy Sonnet — kept so historical call records still cost-resolve.
     "claude-sonnet-4-6": {
         "input": 3.00,
         "cache_read": 0.30,   # 0.1× input
         "cache_write": 3.75,  # 1.25× input
         "output": 15.00,
     },
-    "claude-opus-4-7": {
-        "input": 15.00,
-        "cache_read": 1.50,   # 0.1× input
-        "cache_write": 18.75, # 1.25× input
-        "output": 75.00,
+    # Current tiers. Verified against platform.claude.com/docs/en/about-claude/pricing
+    # on 2026-08-12. NOTE: the previous claude-opus-4-7 entry here carried
+    # $15/$75 — that was the pre-2026-08 Opus 4.1 rate and over-stated Opus
+    # cost by 3x. Opus 4.5 onward are all $5/$25.
+    "claude-sonnet-5": {
+        "input": 2.00,
+        "cache_read": 0.20,   # 0.1× input
+        "cache_write": 2.50,  # 1.25× input
+        "output": 10.00,
+    },
+    "claude-opus-5": {
+        "input": 5.00,
+        "cache_read": 0.50,   # 0.1× input
+        "cache_write": 6.25,  # 1.25× input
+        "output": 25.00,
     },
 }
 

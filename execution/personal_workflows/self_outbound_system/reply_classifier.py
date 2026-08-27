@@ -28,6 +28,16 @@ from _common import (  # noqa: E402
 load_dotenv()
 log = get_logger("reply_classifier")
 
+# Execution tier per ~/.claude/rules/model-tier.md: classification into a fixed
+# 5-label set is throughput work, not judgement -- the taxonomy is already
+# specified, so the model's job is fidelity to it.
+#
+# Full name pinned deliberately; bare `sonnet` aliases resolve differently per
+# provider. OpenRouter callers use DEFAULT_MODEL_OPENROUTER instead.
+# Both verified against their catalogs on 2026-08-12.
+DEFAULT_MODEL: str = "claude-sonnet-5"
+DEFAULT_MODEL_OPENROUTER: str = "anthropic/claude-sonnet-5"
+
 # OOO / auto-reply patterns. English + French per directive's language gate.
 _OOO_PATTERNS = [
     r"\bout of (?:the )?office\b",
@@ -135,7 +145,7 @@ def classify(body: str, dry_run: bool = True, llm: str = "sonnet") -> dict:
     _ = anthropic_cost_eur(0, 0)  # ensure symbol is used
     raise NotImplementedError(
         "Live LLM classification not implemented in this scaffold. "
-        "Would call Claude Sonnet 4.6 (or Gemini 2.5 Flash if --llm gemini) "
+        f"Would call {DEFAULT_MODEL} (or Gemini 2.5 Flash if --llm gemini) "
         "and return {class, confidence, explanation, detected_intent_signals} "
         "with cost tracked in EUR."
     )
@@ -151,9 +161,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--dry-run", dest="dry_run", action="store_true", default=True,
                    help="Dry-run (default). No LLM call; deterministic layer only.")
     p.add_argument("--live", dest="dry_run", action="store_false",
-                   help="Live mode. Calls Sonnet or Gemini for ambiguous cases.")
+                   help=f"Live mode. Calls {DEFAULT_MODEL} or Gemini for ambiguous cases.")
     p.add_argument("--llm", choices=["sonnet", "gemini"], default="sonnet",
-                   help="LLM to use for ambiguous cases in live mode.")
+                   help=f"LLM for ambiguous cases in live mode. "
+                        f"'sonnet' resolves to {DEFAULT_MODEL}. Default: sonnet.")
     return p.parse_args(argv)
 
 

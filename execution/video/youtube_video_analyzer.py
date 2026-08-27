@@ -1418,17 +1418,26 @@ def render_breakdown_markdown(
 # --------------------------------------------------------------------------- #
 
 _TIER_COST_PER_M_TOKENS: dict[str, float] = {
-    # OpenRouter models (approx $ per M input tokens, incl. 5.5% OR fee)
-    "anthropic/claude-sonnet-4.6": 3.17,
-    "anthropic/claude-sonnet-4-6": 3.17,
-    "anthropic/claude-opus-4.7": 15.86,
-    "anthropic/claude-opus-4-7": 15.86,
+    # OpenRouter Anthropic models ($ per M input tokens). Verified against OR's
+    # live catalog 2026-08-12: OR charges the SAME rate as Anthropic direct for
+    # these models. The previous values here applied a 5.5% "OR fee" markup that
+    # does not exist, on top of stale base rates.
+    "anthropic/claude-sonnet-5": 2.00,
+    "anthropic/claude-opus-5": 5.00,
+    "anthropic/claude-sonnet-4.6": 3.00,
+    "anthropic/claude-sonnet-4-6": 3.00,
+    "anthropic/claude-opus-4.7": 5.00,
+    "anthropic/claude-opus-4-7": 5.00,
+    # Non-Anthropic OR entries: NOT re-verified in the 2026-08-12 pass. Treat
+    # as approximate until someone checks them against OR's catalog.
     "google/gemini-2.5-pro": 1.27,
     "openai/gpt-4o": 2.65,
     "openai/gpt-4o-mini": 0.16,
-    # Direct Anthropic (no OR fee)
+    # Direct Anthropic
+    "claude-sonnet-5": 2.00,
+    "claude-opus-5": 5.00,
     "claude-sonnet-4-6": 3.00,
-    "claude-opus-4-7": 15.00,
+    "claude-opus-4-7": 5.00,
     # Gemini direct (free quota)
     "gemini-2.5-flash": 0.00,
     "gemini-3.1-flash-lite-preview": 0.00,
@@ -1436,11 +1445,19 @@ _TIER_COST_PER_M_TOKENS: dict[str, float] = {
 
 # Cache-aware Claude pricing (per million tokens) for direct Anthropic models.
 # Used by _estimate_cost when cache token breakdown is available.
+# All rates verified against platform.claude.com/docs/en/about-claude/pricing
+# on 2026-08-12. The previous table had values shifted onto the wrong models:
+# sonnet-4-6 carried Opus rates, haiku carried Sonnet-5 rates, and opus-4-7
+# carried the retired Opus 4.1 rate. Every cost estimate was wrong by 1.7-3x.
 _CLAUDE_PRICES: dict[str, dict[str, float]] = {
-    "claude-sonnet-4-6": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},
-    # Haiku 4.5 banned per model-tier.md (2026-06-14); kept for legacy cost lookups.
-    "claude-haiku-4-5-20251001": {"input": 2.00, "cache_read": 0.20, "cache_write": 2.50, "output": 10.00},
-    "claude-opus-4-7": {"input": 15.00, "cache_read": 1.50, "cache_write": 18.75, "output": 75.00},
+    # Current tiers
+    "claude-sonnet-5": {"input": 2.00, "cache_read": 0.20, "cache_write": 2.50, "output": 10.00},
+    "claude-opus-5": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},
+    # Legacy — kept so historical call records still cost-resolve.
+    "claude-sonnet-4-6": {"input": 3.00, "cache_read": 0.30, "cache_write": 3.75, "output": 15.00},
+    "claude-opus-4-7": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},
+    # Haiku 4.5 banned per model-tier.md; kept for legacy cost lookups.
+    "claude-haiku-4-5-20251001": {"input": 1.00, "cache_read": 0.10, "cache_write": 1.25, "output": 5.00},
 }
 
 

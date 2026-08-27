@@ -237,7 +237,10 @@ def personalize_dry_run(
     return personalized, refused, 0.0
 
 
-_SONNET_MODEL = "claude-sonnet-4-5"  # workspace default per model-tier.md; auto-updates to latest Sonnet
+# Execution tier per ~/.claude/rules/model-tier.md: per-row generation against a
+# fixed template is throughput work, not judgement. Pinned full name deliberately
+# -- this is a literal, it does NOT auto-update; bump it when the policy moves.
+_SONNET_MODEL = "claude-sonnet-5"
 
 # Gemini 2.5 Flash free-tier RPM cap. Verified 2026-07-19: 5 RPM hard limit,
 # request #6 returns 429 RESOURCE_EXHAUSTED. 13s sleep ~= 4.6 RPM safely under.

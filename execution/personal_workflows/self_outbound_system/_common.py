@@ -21,14 +21,15 @@ from typing import Any
 # Update when EUR/USD moves >5%. See ~/.claude/rules/currency-eur.md
 USD_TO_EUR: float = 0.92
 
-# Anthropic Sonnet 4.6 pricing (USD per million tokens) with cache-aware entries
-# per ~/.claude/rules/python-hardening.md rule 4. Values match Anthropic published
-# pricing for claude-sonnet-4-6 as of 2026-07-08.
-SONNET_46_PRICING_USD_PER_MTOK: dict[str, float] = {
-    "input": 3.0,
-    "cache_read": 0.30,   # 0.1x input
-    "cache_write": 3.75,  # 1.25x input
-    "output": 15.0,
+# claude-sonnet-5 pricing (USD per million tokens) with cache-aware entries
+# per ~/.claude/rules/python-hardening.md rule 4. Verified against
+# platform.claude.com/docs/en/about-claude/pricing on 2026-08-12.
+# Execution tier per ~/.claude/rules/model-tier.md.
+SONNET_5_PRICING_USD_PER_MTOK: dict[str, float] = {
+    "input": 2.0,
+    "cache_read": 0.20,   # 0.1x input
+    "cache_write": 2.50,  # 1.25x input
+    "output": 10.0,
 }
 
 # Gemini 2.5 Flash pricing (USD per million tokens). No cache tier in current
@@ -80,7 +81,7 @@ def anthropic_cost_usd(
 ) -> float:
     """Cache-aware Sonnet cost calc (USD). Accepts all 4 token classes per
     ~/.claude/rules/python-hardening.md rule 4."""
-    p = pricing or SONNET_46_PRICING_USD_PER_MTOK
+    p = pricing or SONNET_5_PRICING_USD_PER_MTOK
     return (
         input_tokens * p["input"]
         + output_tokens * p["output"]

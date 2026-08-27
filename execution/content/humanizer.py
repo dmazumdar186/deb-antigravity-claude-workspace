@@ -154,9 +154,10 @@ def _to_anthropic_tool_format(schema: dict) -> dict:
 # cache_read  = Anthropic: 0.10× input;  Gemini/OpenRouter: 0 (not tracked here).
 # cache_write = Anthropic: 1.25× input;  Gemini/OpenRouter: 0 (not tracked here).
 # ---------------------------------------------------------------------------
+# Rates verified against platform.claude.com/docs/en/about-claude/pricing 2026-08-12.
 _TIER_COST_PER_M = {
-    "default":  {"input": 3.0,  "cache_read": 0.30,  "cache_write": 3.75,  "output": 15.0},   # claude-sonnet-4-6
-    "premium":  {"input": 15.0, "cache_read": 1.50,  "cache_write": 18.75, "output": 75.0},   # claude-opus-4-7
+    "default":  {"input": 2.0,  "cache_read": 0.20,  "cache_write": 2.50,  "output": 10.0},   # claude-sonnet-5
+    "premium":  {"input": 5.0,  "cache_read": 0.50,  "cache_write": 6.25,  "output": 25.0},   # claude-opus-5
     "gemini":   {"input": 0.0,  "cache_read": 0.0,   "cache_write": 0.0,   "output": 0.0},    # Free tier
 }
 

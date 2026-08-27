@@ -49,9 +49,14 @@ export interface ModelPricingUSD {
 
 // Cache-aware pricing per ~/.claude/CLAUDE.md rule 4.
 // Extend as new models are added.
+// Anthropic rates verified against platform.claude.com/docs/en/about-claude/pricing
+// on 2026-08-12. The prior claude-opus-4-8 row carried the retired Opus 4.1 rate
+// ($15/$75); Opus 4.5 onward are all $5/$25.
 export const MODEL_PRICING_USD: Record<string, ModelPricingUSD> = {
+  'claude-sonnet-5':      { input: 2.00, cache_read: 0.20, cache_write: 2.50, output: 10.00 },
+  'claude-opus-5':        { input: 5.00, cache_read: 0.50, cache_write: 6.25, output: 25.00 },
   'claude-sonnet-4-6':    { input: 3.00, cache_read: 0.30, cache_write: 3.75, output: 15.00 },
-  'claude-opus-4-8':      { input: 15.00, cache_read: 1.50, cache_write: 18.75, output: 75.00 },
+  'claude-opus-4-8':      { input: 5.00, cache_read: 0.50, cache_write: 6.25, output: 25.00 },
   'gemini-2.5-flash':     { input: 0.075, cache_read: 0.01875, cache_write: 0.09375, output: 0.30 },
   'z-ai/glm-5.2':         { input: 1.00, cache_read: 0.10, cache_write: 1.25, output: 3.00 },
 };

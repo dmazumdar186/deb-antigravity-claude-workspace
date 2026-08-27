@@ -1,4 +1,4 @@
-# claude-client.ps1 -- CLIENT MODE: Claude Code with Opus 4.7 via Anthropic native.
+# claude-client.ps1 -- CLIENT MODE: Claude Code with Fable 5 via Anthropic native.
 # For billable client work, sensitive data (PII / CV / leads / client / AM), and anything
 # where quality matters more than cost.
 #
@@ -14,8 +14,8 @@ Remove-Item env:ANTHROPIC_BASE_URL -ErrorAction SilentlyContinue
 Remove-Item env:ANTHROPIC_AUTH_TOKEN -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "CLIENT MODE -- Claude Code -> Anthropic native -> claude-opus-4-7" -ForegroundColor Green
+Write-Host "CLIENT MODE -- Claude Code -> Anthropic native -> claude-fable-5" -ForegroundColor Green
 Write-Host "PII / CV / leads / client data: OK. Billable." -ForegroundColor DarkGray
 Write-Host ""
 
-claude --model "claude-opus-4-7" @args
+claude --model "claude-fable-5" @args

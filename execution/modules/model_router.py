@@ -42,8 +42,11 @@ class _Alias:
 
 ALIASES: dict[str, _Alias] = {
     # --- Anthropic ---
-    "opus":    _Alias("anthropic", "claude-opus-4-7",    "anthropic/claude-opus-4.7",    "sensitive_ok"),
-    "sonnet":  _Alias("anthropic", "claude-sonnet-4-6",  "anthropic/claude-sonnet-4.6",  "sensitive_ok"),
+    # Judgement tier / execution tier per ~/.claude/rules/model-tier.md.
+    # Full names pinned deliberately — bare `opus`/`sonnet` aliases resolve
+    # differently per provider and drift between Claude Code versions.
+    "opus":    _Alias("anthropic", "claude-opus-5",      "anthropic/claude-opus-5",      "sensitive_ok"),
+    "sonnet":  _Alias("anthropic", "claude-sonnet-5",    "anthropic/claude-sonnet-5",    "sensitive_ok"),
     # --- OpenAI ---
     "gpt4o":   _Alias("openai",    "gpt-4o",             "openai/gpt-4o",                "sensitive_ok"),
     "gpt":     _Alias("openai",    "gpt-4o",             "openai/gpt-4o",                "sensitive_ok"),  # convenience
@@ -61,6 +64,40 @@ ALIASES: dict[str, _Alias] = {
 def list_aliases() -> list[str]:
     """Return sorted alias names."""
     return sorted(ALIASES.keys())
+
+
+def validate_against_registry() -> list[str]:
+    """
+    Enforce the registry-coupling rule from ~/.claude/rules/model-tier.md:
+    no model may appear in ALIASES that model_registry does not know about.
+
+    Returns a list of human-readable violations; empty list means clean.
+    Does NOT raise — callers decide severity. Tests assert this returns [].
+
+    Rationale for returning instead of raising: an import-time raise would
+    take down every consumer of this module the moment the registry lagged
+    behind a model launch, which is exactly when you still want the pipeline
+    to run. The test suite is where this is a hard failure.
+    """
+    try:
+        from execution.modules.model_registry import is_known  # type: ignore[import-not-found]
+    except ImportError:
+        from model_registry import is_known  # type: ignore[import-not-found]
+
+    violations: list[str] = []
+    for alias, spec in sorted(ALIASES.items()):
+        # native_model is legitimately empty for OpenRouter-only aliases.
+        if spec.native_model and not is_known(spec.native_model):
+            violations.append(
+                f"alias {alias!r}: native_model {spec.native_model!r} not in "
+                f"model_registry.KNOWN_MODEL_IDS"
+            )
+        if spec.or_model and not is_known(spec.or_model):
+            violations.append(
+                f"alias {alias!r}: or_model {spec.or_model!r} not in "
+                f"model_registry.KNOWN_MODEL_IDS"
+            )
+    return violations
 
 
 # Personal-mode remap: which alias to use as the cheap muscle in place of expensive ones.

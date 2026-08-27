@@ -48,12 +48,18 @@ ALLOWED_FAMILIES = ("anthropic/", "openai/", "google/", "z-ai/")
 # Updated manually ~quarterly when logs show stale models being picked.
 # ---------------------------------------------------------------------------
 LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
-    "anthropic": {"default": "claude-sonnet-4-6", "premium": "claude-opus-4-7"},
+    # Tier names map to ROLE, per ~/.claude/rules/model-tier.md (2026-08-12):
+    #   default = execution tier  (per-row work, classification, extraction)
+    #   premium = judgement tier  (reasoning, planning, architecture)
+    "anthropic": {"default": "claude-sonnet-5", "premium": "claude-opus-5"},
     "gemini": {"default": "gemini-2.5-flash"},
     "openrouter": {
-        # Fix 14 — OR catalog uses dots (4.6, 4.7), not dashes (4-6, 4-7)
-        "default": "anthropic/claude-sonnet-4.6",
-        "premium": "anthropic/claude-opus-4.7",
+        # Fix 14 — OR catalog uses dots for the 4.x series (4.6, 4.7), not
+        # dashes (4-6, 4-7). The 5-series has no minor version, so the slug is
+        # plain `claude-opus-5` / `claude-sonnet-5`. Verified against OR's live
+        # catalog 2026-08-12.
+        "default": "anthropic/claude-sonnet-5",
+        "premium": "anthropic/claude-opus-5",
         "gemini":  "google/gemini-2.5-pro",  # for OR-only setup, Gemini tier via OR
         # GLM 5.2 — Z.AI's flagship open model, ~$1/M input tokens via OR.
         # Use ONLY for creative/non-sensitive artifacts. Never for PII / AM-scoped /
@@ -62,6 +68,49 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
         "glm":     "z-ai/glm-5.2",
     },
 }
+
+# ---------------------------------------------------------------------------
+# KNOWN_MODEL_IDS — the allowlist backing the registry-coupling rule in
+# ~/.claude/rules/model-tier.md: "No model may appear in model_router.py that
+# model_registry.py does not know about."
+#
+# It is the union of every LAST_KNOWN_GOOD value plus _ADDITIONAL_KNOWN, which
+# holds models the router offers as explicit user-selectable aliases but that
+# no tier resolves to (so they have no place in LAST_KNOWN_GOOD).
+#
+# Every ID below was verified against the provider's live catalog on
+# 2026-08-12. Add here BEFORE adding to model_router.ALIASES, never after.
+# ---------------------------------------------------------------------------
+_ADDITIONAL_KNOWN: frozenset[str] = frozenset({
+    # OpenAI — router exposes these as `gpt` / `gpt4o` / `o1`
+    "gpt-4o",
+    "o1",
+    "openai/gpt-4o",
+    "openai/o1",
+    # Gemini via OpenRouter — the native-direct IDs live in LAST_KNOWN_GOOD
+    "gemini-2.5-pro",
+    "google/gemini-2.5-flash",
+    # GLM — public-only per the sensitivity guardrail in model-tier.md
+    "z-ai/glm-4.7",
+})
+
+KNOWN_MODEL_IDS: frozenset[str] = frozenset(
+    model_id
+    for provider_tiers in LAST_KNOWN_GOOD.values()
+    for model_id in provider_tiers.values()
+) | _ADDITIONAL_KNOWN
+
+
+def is_known(model_id: str) -> bool:
+    """
+    True if `model_id` is an allowlisted model this workspace may dispatch to.
+
+    Empty strings return False — an alias with no native model (e.g. the
+    OpenRouter-only GLM aliases) must be validated on its `or_model`, not its
+    empty `native_model`.
+    """
+    return bool(model_id) and model_id in KNOWN_MODEL_IDS
+
 
 # Cache config
 _WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
@@ -111,7 +160,8 @@ def _save_cache(payload: dict) -> None:
 # Anthropic resolution
 # ---------------------------------------------------------------------------
 
-# Matches IDs like claude-sonnet-4-6, claude-opus-4-7, claude-haiku-3-5
+# Matches IDs like claude-sonnet-5, claude-opus-5, claude-sonnet-4-6.
+# The 5-series has no minor component, so `min` is absent and defaults to 0.
 _ANTHROPIC_RE = re.compile(
     r"^claude-(?P<family>[a-z]+)-(?P<maj>\d+)(?:-(?P<min>\d+))?",
     re.IGNORECASE,
@@ -162,7 +212,7 @@ def _resolve_anthropic(tier: str) -> tuple[str, str | None]:
         if candidates:
             # Sort by created_at desc (API's authoritative recency), then prefer
             # undated IDs (rev<10000) over date-stamped legacy IDs (e.g. prefer
-            # claude-opus-4-7 over claude-opus-4-20250514 — min=20250514 looks
+            # claude-opus-5 over claude-opus-4-20250514 — min=20250514 looks
             # numerically larger but is actually an older dated release).
             def _key(item):
                 _, maj, min_, created = item

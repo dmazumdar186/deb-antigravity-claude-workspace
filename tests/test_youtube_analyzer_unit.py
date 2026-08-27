@@ -45,92 +45,92 @@ def _er(saved):
         if v is None: os.environ.pop(k, None)
         else: os.environ[k] = v
 
-def t_watch(): assert extract_video_id('https://www.youtube.com/watch?v=BedAaB1RKgE') == 'BedAaB1RKgE'
-def t_youtu_be(): assert extract_video_id('https://youtu.be/BedAaB1RKgE') == 'BedAaB1RKgE'
-def t_shorts(): assert extract_video_id('https://www.youtube.com/shorts/BedAaB1RKgE') == 'BedAaB1RKgE'
-def t_embed(): assert extract_video_id('https://www.youtube.com/embed/BedAaB1RKgE') == 'BedAaB1RKgE'
-def t_m_youtube(): assert extract_video_id('https://m.youtube.com/watch?v=BedAaB1RKgE') == 'BedAaB1RKgE'
+def test_watch(): assert extract_video_id('https://www.youtube.com/watch?v=BedAaB1RKgE') == 'BedAaB1RKgE'
+def test_youtu_be(): assert extract_video_id('https://youtu.be/BedAaB1RKgE') == 'BedAaB1RKgE'
+def test_shorts(): assert extract_video_id('https://www.youtube.com/shorts/BedAaB1RKgE') == 'BedAaB1RKgE'
+def test_embed(): assert extract_video_id('https://www.youtube.com/embed/BedAaB1RKgE') == 'BedAaB1RKgE'
+def test_m_youtube(): assert extract_video_id('https://m.youtube.com/watch?v=BedAaB1RKgE') == 'BedAaB1RKgE'
 
-def t_invalid():
+def test_invalid():
     raised = False
     try: extract_video_id('https://vimeo.com/123456')
     except ValueError: raised = True
     assert raised, 'expected ValueError'
 
-def t_slug_empty(): assert slugify('') == 'video'
-def t_slug_unicode():
+def test_slug_empty(): assert slugify('') == 'video'
+def test_slug_unicode():
     r = slugify('Cafe au lait')
     assert isinstance(r, str) and len(r) > 0
-def t_slug_cap(): assert len(slugify('a' * 200, max_len=60)) <= 60
-def t_slug_normal(): assert slugify('Hello World Test') == 'hello-world-test'
+def test_slug_cap(): assert len(slugify('a' * 200, max_len=60)) <= 60
+def test_slug_normal(): assert slugify('Hello World Test') == 'hello-world-test'
 
-def t_auto_or_default():
+def test_auto_or_default():
     s = _ep(or_key='fake')
     try: assert _auto_detect_provider('default') == 'openrouter'
     finally: _er(s)
 
-def t_auto_anthropic():
+def test_auto_anthropic():
     s = _ep(ak='fake')
     try: assert _auto_detect_provider('default') == 'anthropic'
     finally: _er(s)
 
-def t_auto_gemini_direct():
+def test_auto_gemini_direct():
     s = _ep(gk='fake')
     try: assert _auto_detect_provider('gemini') == 'gemini-direct'
     finally: _er(s)
 
-def t_auto_gemini_or():
+def test_auto_gemini_or():
     s = _ep(or_key='fake')
     try: assert _auto_detect_provider('gemini') == 'openrouter'
     finally: _er(s)
 
-def t_auto_no_key():
+def test_auto_no_key():
     s = _ep(); raised = False
     try: _auto_detect_provider('default')
     except SystemExit: raised = True
     finally: _er(s)
     assert raised
 
-def t_auto_gemini_no_key():
+def test_auto_gemini_no_key():
     s = _ep(); raised = False
     try: _auto_detect_provider('gemini')
     except SystemExit: raised = True
     finally: _er(s)
     assert raised
 
-def t_auto_or_beats_anth():
+def test_auto_or_beats_anth():
     s = _ep(or_key='k1', ak='k2')
     try: assert _auto_detect_provider('default') == 'openrouter'
     finally: _er(s)
 
-def t_auto_or_beats_anth_premium():
+def test_auto_or_beats_anth_premium():
     s = _ep(or_key='k1', ak='k2')
     try: assert _auto_detect_provider('premium') == 'openrouter'
     finally: _er(s)
 
-def t_tool_type(): assert _to_openai_tool_format(TOOL_SCHEMA)['type'] == 'function'
-def t_tool_name(): assert _to_openai_tool_format(TOOL_SCHEMA)['function']['name'] == TOOL_SCHEMA['name']
-def t_tool_params(): assert _to_openai_tool_format(TOOL_SCHEMA)['function']['parameters'] == TOOL_SCHEMA['input_schema']
+def test_tool_type(): assert _to_openai_tool_format(TOOL_SCHEMA)['type'] == 'function'
+def test_tool_name(): assert _to_openai_tool_format(TOOL_SCHEMA)['function']['name'] == TOOL_SCHEMA['name']
+def test_tool_params(): assert _to_openai_tool_format(TOOL_SCHEMA)['function']['parameters'] == TOOL_SCHEMA['input_schema']
 
-def t_reg_anth_default():
+def test_reg_anth_default():
     s = _ep()
     try:
         r = resolve_model('anthropic', 'default', refresh=False)
         assert r == LAST_KNOWN_GOOD['anthropic']['default'], f'got {r!r}'
     finally: _er(s)
 
-def t_reg_anth_premium():
+def test_reg_anth_premium():
     s = _ep()
     try:
         r = resolve_model('anthropic', 'premium', refresh=False)
         assert r == LAST_KNOWN_GOOD['anthropic']['premium'], f'got {r!r}'
     finally: _er(s)
 
-def t_reg_or_live():
+def test_reg_or_live():
     r = resolve_model('openrouter', 'default', refresh=False)
     assert any(r.startswith(f) for f in ALLOWED_FAMILIES), f'{r!r} not in allowlist'
 
-def t_reg_refresh_cache():
+def test_reg_refresh_cache():
     from model_registry import _CACHE_PATH
     before = _CACHE_PATH.stat().st_mtime if _CACHE_PATH.exists() else 0.0
     time.sleep(0.1)
@@ -138,10 +138,14 @@ def t_reg_refresh_cache():
     assert _CACHE_PATH.exists()
     assert _CACHE_PATH.stat().st_mtime >= before
 
-def t_allowed_families():
-    assert ALLOWED_FAMILIES == ('anthropic/', 'openai/', 'google/'), f'got {ALLOWED_FAMILIES}'
+def test_allowed_families():
+    # z-ai/ was added 2026-06-22 with the GLM 5.2 integration (model-tier.md
+    # Exhibit C). This expectation was never updated, and the resulting failure
+    # went unseen for ~7 weeks because the t_-prefixed tests in this file were
+    # invisible to pytest. Renamed to test_ in the same pass.
+    assert ALLOWED_FAMILIES == ('anthropic/', 'openai/', 'google/', 'z-ai/'), f'got {ALLOWED_FAMILIES}'
 
-def t_allowlist_blocks_llama():
+def test_allowlist_blocks_llama():
     fake = {'data': [
         {'id': 'meta-llama/llama-4', 'architecture': {'input_modalities': ['image', 'text']}, 'supported_parameters': ['tools'], 'created': 1700000000},
         {'id': 'anthropic/claude-sonnet-4-6', 'architecture': {'input_modalities': ['image', 'text']}, 'supported_parameters': ['tools'], 'created': 1700000001},
@@ -154,7 +158,7 @@ def t_allowlist_blocks_llama():
     assert 'llama' not in mid.lower(), f'llama leaked: {mid!r}'
     assert mid == 'anthropic/claude-sonnet-4-6', f'got {mid!r}'
 
-def t_refresh_transcript_flag_propagates():
+def test_refresh_transcript_flag_propagates():
     """--refresh-transcript should be accepted by the CLI without error (shallow dry-run),
     and must appear in --help output."""
     import subprocess
@@ -178,7 +182,7 @@ def t_refresh_transcript_flag_propagates():
         f'stderr: {run_result.stderr[:500]}'
     )
 
-def t_get_or_fetch_transcript_force_refresh_bypasses_cache():
+def test_get_or_fetch_transcript_force_refresh_bypasses_cache():
     """force_refresh=True should bypass the transcript.txt cache and trigger live fetch."""
     import tempfile
     # youtube_video_analyzer is already on sys.path via the top-level sys.path.insert
@@ -214,24 +218,24 @@ def _render(structured):
         transcript_text=None, frame_count=0, tier='premium',
     )
 
-def t_render_key_takeaways_xml_string():
+def test_render_key_takeaways_xml_string():
     # Opus 4 returned key_takeaways as a single XML string; renderer must parse <item> blocks
     md = _render({'summary': 'S.', 'key_takeaways': '<item>First takeaway sentence.</item><item>Second one.</item>'})
     assert '- First takeaway sentence.' in md, 'XML <item> blocks must be parsed into list items'
     assert '- Second one.' in md
     assert '- <\n- i\n- t\n- e' not in md, 'must NOT iterate string char-by-char'
 
-def t_render_pacing_xml_string_with_inner_tags():
+def test_render_pacing_xml_string_with_inner_tags():
     raw = '<item><timestamp>00:05</timestamp><what_changes>Opens with face cam</what_changes></item>'
     md = _render({'summary': '', 'pacing_cuts': raw})
     assert '**00:05**' in md and 'Opens with face cam' in md, 'inner <timestamp>/<what_changes> tags must be parsed'
 
-def t_render_transcript_highlights_xml_string_with_quotes():
+def test_render_transcript_highlights_xml_string_with_quotes():
     raw = '<item><timestamp>01:00</timestamp><quote>Hello world</quote></item>'
     md = _render({'summary': '', 'transcript_highlights': raw})
     assert '**01:00**' in md and 'Hello world' in md, 'inner <timestamp>/<quote> tags must be parsed'
 
-def t_render_proper_lists_unchanged():
+def test_render_proper_lists_unchanged():
     # Gemini path returns proper lists — must pass through unchanged (no double-wrapping)
     md = _render({
         'summary': 'S.',
@@ -244,7 +248,7 @@ def t_render_proper_lists_unchanged():
 
 # --- v4.1.1 model registry: prefer undated rev IDs over date-stamped legacy IDs --- #
 
-def t_anthropic_sort_prefers_undated_rev_over_dated():
+def test_anthropic_sort_prefers_undated_rev_over_dated():
     # Regression: claude-opus-4-7 (rev 7, undated) must beat claude-opus-4-20250514
     # (rev=20250514 looks larger numerically but is an older dated release).
     # Calls the real _resolve_anthropic via a stubbed models.list() to exercise
@@ -288,40 +292,40 @@ def t_anthropic_sort_prefers_undated_rev_over_dated():
 if __name__ == '__main__':
     print('=== TIER 1: UNIT TESTS ===')
     print()
-    run('extract_video_id: watch URL', t_watch)
-    run('extract_video_id: youtu.be URL', t_youtu_be)
-    run('extract_video_id: shorts URL', t_shorts)
-    run('extract_video_id: embed URL', t_embed)
-    run('extract_video_id: m.youtube.com URL', t_m_youtube)
-    run('extract_video_id: invalid URL raises ValueError', t_invalid)
-    run('slugify: empty -> video', t_slug_empty)
-    run('slugify: unicode handled', t_slug_unicode)
-    run('slugify: length cap 60', t_slug_cap)
-    run('slugify: normal text', t_slug_normal)
-    run('_auto_detect_provider: OR key -> openrouter (default)', t_auto_or_default)
-    run('_auto_detect_provider: anthropic key -> anthropic', t_auto_anthropic)
-    run('_auto_detect_provider: gemini key -> gemini-direct', t_auto_gemini_direct)
-    run('_auto_detect_provider: gemini tier + OR key -> openrouter', t_auto_gemini_or)
-    run('_auto_detect_provider: no keys -> SystemExit', t_auto_no_key)
-    run('_auto_detect_provider: gemini tier + no keys -> SystemExit', t_auto_gemini_no_key)
-    run('_auto_detect_provider: OR beats anthropic (default)', t_auto_or_beats_anth)
-    run('_auto_detect_provider: OR beats anthropic (premium)', t_auto_or_beats_anth_premium)
-    run('_to_openai_tool_format: type=function', t_tool_type)
-    run('_to_openai_tool_format: function.name matches TOOL_SCHEMA', t_tool_name)
-    run('_to_openai_tool_format: function.parameters = input_schema', t_tool_params)
-    run('resolve_model: anthropic/default no key -> LAST_KNOWN_GOOD', t_reg_anth_default)
-    run('resolve_model: anthropic/premium no key -> LAST_KNOWN_GOOD', t_reg_anth_premium)
-    run('resolve_model: openrouter live -> ALLOWED_FAMILIES prefix', t_reg_or_live)
-    run('resolve_model: refresh=True writes cache', t_reg_refresh_cache)
-    run('ALLOWED_FAMILIES: exact (anthropic/, openai/, google/)', t_allowed_families)
-    run('_resolve_openrouter: meta-llama/llama-4 blocked by allowlist', t_allowlist_blocks_llama)
-    run('--refresh-transcript: flag in --help + accepted by --dry-run', t_refresh_transcript_flag_propagates)
-    run('get_or_fetch_transcript: force_refresh=False reads cache; force_refresh=True bypasses cache', t_get_or_fetch_transcript_force_refresh_bypasses_cache)
-    run('v4.1.1: render coerces XML-tagged key_takeaways string -> list (no char-iter)', t_render_key_takeaways_xml_string)
-    run('v4.1.1: render parses inner <timestamp>/<what_changes> in pacing_cuts XML', t_render_pacing_xml_string_with_inner_tags)
-    run('v4.1.1: render parses inner <timestamp>/<quote> in transcript_highlights XML', t_render_transcript_highlights_xml_string_with_quotes)
-    run('v4.1.1: render passes proper lists through unchanged (Gemini path guard)', t_render_proper_lists_unchanged)
-    run('v4.1.1: anthropic sort prefers undated rev (4-7) over dated legacy (4-20250514)', t_anthropic_sort_prefers_undated_rev_over_dated)
+    run('extract_video_id: watch URL', test_watch)
+    run('extract_video_id: youtu.be URL', test_youtu_be)
+    run('extract_video_id: shorts URL', test_shorts)
+    run('extract_video_id: embed URL', test_embed)
+    run('extract_video_id: m.youtube.com URL', test_m_youtube)
+    run('extract_video_id: invalid URL raises ValueError', test_invalid)
+    run('slugify: empty -> video', test_slug_empty)
+    run('slugify: unicode handled', test_slug_unicode)
+    run('slugify: length cap 60', test_slug_cap)
+    run('slugify: normal text', test_slug_normal)
+    run('_auto_detect_provider: OR key -> openrouter (default)', test_auto_or_default)
+    run('_auto_detect_provider: anthropic key -> anthropic', test_auto_anthropic)
+    run('_auto_detect_provider: gemini key -> gemini-direct', test_auto_gemini_direct)
+    run('_auto_detect_provider: gemini tier + OR key -> openrouter', test_auto_gemini_or)
+    run('_auto_detect_provider: no keys -> SystemExit', test_auto_no_key)
+    run('_auto_detect_provider: gemini tier + no keys -> SystemExit', test_auto_gemini_no_key)
+    run('_auto_detect_provider: OR beats anthropic (default)', test_auto_or_beats_anth)
+    run('_auto_detect_provider: OR beats anthropic (premium)', test_auto_or_beats_anth_premium)
+    run('_to_openai_tool_format: type=function', test_tool_type)
+    run('_to_openai_tool_format: function.name matches TOOL_SCHEMA', test_tool_name)
+    run('_to_openai_tool_format: function.parameters = input_schema', test_tool_params)
+    run('resolve_model: anthropic/default no key -> LAST_KNOWN_GOOD', test_reg_anth_default)
+    run('resolve_model: anthropic/premium no key -> LAST_KNOWN_GOOD', test_reg_anth_premium)
+    run('resolve_model: openrouter live -> ALLOWED_FAMILIES prefix', test_reg_or_live)
+    run('resolve_model: refresh=True writes cache', test_reg_refresh_cache)
+    run('ALLOWED_FAMILIES: exact (anthropic/, openai/, google/)', test_allowed_families)
+    run('_resolve_openrouter: meta-llama/llama-4 blocked by allowlist', test_allowlist_blocks_llama)
+    run('--refresh-transcript: flag in --help + accepted by --dry-run', test_refresh_transcript_flag_propagates)
+    run('get_or_fetch_transcript: force_refresh=False reads cache; force_refresh=True bypasses cache', test_get_or_fetch_transcript_force_refresh_bypasses_cache)
+    run('v4.1.1: render coerces XML-tagged key_takeaways string -> list (no char-iter)', test_render_key_takeaways_xml_string)
+    run('v4.1.1: render parses inner <timestamp>/<what_changes> in pacing_cuts XML', test_render_pacing_xml_string_with_inner_tags)
+    run('v4.1.1: render parses inner <timestamp>/<quote> in transcript_highlights XML', test_render_transcript_highlights_xml_string_with_quotes)
+    run('v4.1.1: render passes proper lists through unchanged (Gemini path guard)', test_render_proper_lists_unchanged)
+    run('v4.1.1: anthropic sort prefers undated rev (4-7) over dated legacy (4-20250514)', test_anthropic_sort_prefers_undated_rev_over_dated)
     print()
     print(f'Unit: {PASS_COUNT} passed, {FAIL_COUNT} failed')
     if FAILURES:

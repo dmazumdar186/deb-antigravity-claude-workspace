@@ -104,7 +104,7 @@ The launcher reads the port from `.fcc-port`, health-checks the proxy, auto-star
 .\execution\infrastructure\launchers\claude-client.ps1
 ```
 
-Or simply type `claude` directly — the workspace default is Opus 4.7 client mode.
+Or simply type `claude` directly — the workspace default is claude-fable-5 client mode (set 2026-08-27; was claude-opus-5).
 
 ### Interactive picker
 

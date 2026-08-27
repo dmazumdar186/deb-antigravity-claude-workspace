@@ -13,9 +13,9 @@ usage:
     py execution/personalization/variant_generator.py --action recommend --mock
 
 Modes:
-    cheap     — Haiku 4.5, fast.
-    balanced  — Sonnet 4.6, standard depth (default).
-    premium   — Opus 4.7, deep quality.
+    cheap     — claude-sonnet-5 (Haiku is banned).
+    balanced  — claude-sonnet-5, execution tier (default).
+    premium   — claude-opus-5, judgement tier.
 """
 
 import argparse
@@ -36,12 +36,13 @@ logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 
 # Workspace-standard model routing per --mode (matches _TEMPLATE.py pattern).
 # OpenRouter uses dot notation and anthropic/ prefix.
-# Haiku 4.5 banned per ~/.claude/rules/model-tier.md (2026-06-14). "cheap" maps
-# to Sonnet 4.6 — the rule's floor for any LLM call in this workspace.
+# Haiku 4.5 banned per ~/.claude/rules/model-tier.md. "cheap" maps to the
+# execution tier — the rule's floor for any LLM call in this workspace.
+# OR 5-series slugs have no minor version: `claude-opus-5`, not `claude-opus-5.0`.
 MODE_TO_MODEL = {
-    "cheap": "anthropic/claude-sonnet-4.6",
-    "balanced": "anthropic/claude-sonnet-4.6",
-    "premium": "anthropic/claude-opus-4.7",
+    "cheap": "anthropic/claude-sonnet-5",
+    "balanced": "anthropic/claude-sonnet-5",
+    "premium": "anthropic/claude-opus-5",
 }
 DEFAULT_MODE = "balanced"
 DEFAULT_MODEL = MODE_TO_MODEL[DEFAULT_MODE]  # kept for fallback config reads
@@ -377,7 +378,7 @@ def main():
         "--mode",
         choices=list(MODE_TO_MODEL.keys()),
         default=DEFAULT_MODE,
-        help="Tier: cheap (Haiku 4.5) / balanced (Sonnet 4.6, default) / premium (Opus 4.7).",
+        help="Tier: cheap / balanced (claude-sonnet-5, default) / premium (claude-opus-5).",
     )
     parser.add_argument(
         "--model",
