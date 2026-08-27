@@ -1,0 +1,419 @@
+[
+  {
+    "slug": "01_outbound_engine",
+    "category": "OUTBOUND SYSTEM",
+    "accent": "blue",
+    "title": "Enterprise cold-email engine: <em>48k+ emails/mo, ~$1M pipeline modeled</em> via Instantly + GHL + Slack",
+    "role": "<b>My role.</b> Built and operated a multi-inbox cold-outbound engine for an e-commerce client — replaced roughly $200k/yr of SDR spend.",
+    "desc": "Automated the full outbound loop across 32 warmed inboxes so every reply is scored, routed, and logged without a human in the loop. Instantly fires the sequence; a Cloudflare webhook captures replies; a Claude classifier scores intent; positive replies alert the AE in Slack within 3 hours while the CRM (GoHighLevel) auto-updates the pipeline stage. Cold and neutral replies drop into a nurture cadence.",
+    "stack": ["Cold Email", "Instantly", "GoHighLevel", "Cloudflare Workers", "Anthropic Claude", "Slack", "Python"],
+    "published": "Nov 2025 — May 2026",
+    "panel_title": "reply-to-CRM automation flow",
+    "panel_runtime": "runtime · webhook (live)",
+    "trigger": "Instantly reply webhook",
+    "cadence": "continuous, 24/7",
+    "flow": {
+      "nodes": [
+        {"id": "instantly",  "icon": "instantly",  "name": "Instantly",   "action": "Send campaign",   "col": 0, "row": 1, "badge": "32"},
+        {"id": "webhook",    "icon": "webhooks",   "name": "Webhook",     "action": "Reply captured",  "col": 1, "row": 1},
+        {"id": "claude",     "icon": "anthropic",  "name": "Claude",      "action": "Score intent",    "col": 2, "row": 1, "badge": "AI"},
+        {"id": "slack",      "icon": "slack",      "name": "Slack",       "action": "Alert AE",        "col": 3, "row": 0},
+        {"id": "ghl_hot",    "icon": "ghl",        "name": "GoHighLevel", "action": "Set 'hot' stage", "col": 4, "row": 0},
+        {"id": "ghl_nurture","icon": "ghl",        "name": "GoHighLevel", "action": "Nurture cadence", "col": 3, "row": 2},
+        {"id": "sheets",     "icon": "googleSheets","name": "Sheets",     "action": "Log activity",    "col": 4, "row": 2}
+      ],
+      "edges": [
+        {"from": "instantly",   "to": "webhook",     "label": "reply"},
+        {"from": "webhook",     "to": "claude"},
+        {"from": "claude",      "to": "slack",       "label": "1st: hot?"},
+        {"from": "claude",      "to": "ghl_nurture", "label": "2nd: not?"},
+        {"from": "slack",       "to": "ghl_hot"},
+        {"from": "ghl_nurture", "to": "sheets"}
+      ]
+    }
+  },
+  {
+    "slug": "02_self_outbound_v2",
+    "category": "OUTBOUND SYSTEM",
+    "accent": "blue",
+    "title": "Personal outbound machine: <em>warmed 32 inboxes, 4%+ reply rate</em> via Instantly + Cloudflare + Slack",
+    "role": "<b>My role.</b> Built the full outbound stack for my own agency — lead-list to reply-routing — running under ~€96/mo of infra.",
+    "desc": "Cold leads land in a Google Sheet from Apollo / Exa / Instantly's built-in lead DB, then sync into a warmed Instantly workspace with SPF/DKIM/DMARC hardened via Cloudflare DNS. Every reply is captured by a webhook, classified by Claude, and either alerts me in Telegram (positive) or is logged for a Day-14 follow-up (neutral). Sequences follow the Nick Saraev cold-email framework.",
+    "stack": ["Instantly", "Cloudflare DNS", "Apollo", "Anthropic Claude", "Telegram", "Google Sheets", "Python"],
+    "published": "Jul 2026",
+    "panel_title": "lead-to-reply routing",
+    "panel_runtime": "runtime · live",
+    "trigger": "new lead added to sheet",
+    "cadence": "continuous",
+    "flow": {
+      "nodes": [
+        {"id": "sheets_in",  "icon": "googleSheets", "name": "Sheets",    "action": "Lead list",       "col": 0, "row": 1},
+        {"id": "instantly",  "icon": "instantly",    "name": "Instantly", "action": "Add to sequence", "col": 1, "row": 1, "badge": "32"},
+        {"id": "webhook",    "icon": "webhooks",     "name": "Webhook",   "action": "Reply arrived",   "col": 2, "row": 1},
+        {"id": "claude",     "icon": "anthropic",    "name": "Claude",    "action": "Score reply",     "col": 3, "row": 1, "badge": "AI"},
+        {"id": "telegram",   "icon": "telegram",     "name": "Telegram",  "action": "Alert operator",  "col": 4, "row": 0},
+        {"id": "sheets_log", "icon": "googleSheets", "name": "Sheets",    "action": "Log follow-up",   "col": 4, "row": 2}
+      ],
+      "edges": [
+        {"from": "sheets_in", "to": "instantly"},
+        {"from": "instantly", "to": "webhook",    "label": "reply"},
+        {"from": "webhook",   "to": "claude"},
+        {"from": "claude",    "to": "telegram",   "label": "1st: hot?"},
+        {"from": "claude",    "to": "sheets_log", "label": "2nd: cold?"}
+      ]
+    }
+  },
+  {
+    "slug": "03_cv_optimizer",
+    "category": "AI PRODUCT",
+    "accent": "cyan",
+    "title": "AI CV optimizer: <em>1-click ATS-tailored CV in under 60 s</em> via Streamlit + Gemini + reportlab",
+    "role": "<b>My role.</b> Designed, built and shipped a live web app that rewrites a CV against a target job description in one flow — zero-cost inference on Gemini free tier.",
+    "desc": "User uploads a CV PDF and pastes a job posting; a Python parser extracts both texts; a Gemini prompt mines the JD's must-have keywords and rewrites each CV bullet in result-first XYZ form while preserving factual claims; an ATS heuristic scores the output; reportlab renders a clean PDF the user downloads. Deep-eval on multi-lingual (FR + EN) inputs verifies per-field language + keyword coverage.",
+    "stack": ["Streamlit", "Google Gemini", "Python", "reportlab", "ATS heuristics", "PDF parsing"],
+    "published": "Jun 2026",
+    "panel_title": "CV rewrite pipeline",
+    "panel_runtime": "runtime · on-demand",
+    "trigger": "user upload (CV + JD)",
+    "cadence": "sub-60s per rewrite",
+    "flow": {
+      "nodes": [
+        {"id": "upload",    "icon": "upload",     "name": "Upload",   "action": "CV + JD upload",   "col": 0, "row": 1},
+        {"id": "parser",    "icon": "python",     "name": "Python",   "action": "Parse PDF + JD",   "col": 1, "row": 1, "badge": "PDF"},
+        {"id": "gemini",    "icon": "gemini",     "name": "Gemini",   "action": "Rewrite bullets",  "col": 2, "row": 1, "badge": "AI"},
+        {"id": "gate",      "icon": "filter",     "name": "ATS gate", "action": "Score coverage",   "col": 3, "row": 1},
+        {"id": "reportlab", "icon": "reportlab",  "name": "reportlab","action": "Build PDF",        "col": 4, "row": 0},
+        {"id": "streamlit", "icon": "streamlit",  "name": "Streamlit","action": "Serve download",   "col": 4, "row": 2}
+      ],
+      "edges": [
+        {"from": "upload",    "to": "parser"},
+        {"from": "parser",    "to": "gemini",    "label": "text + JD"},
+        {"from": "gemini",    "to": "gate"},
+        {"from": "gate",      "to": "reportlab", "label": "1st: pass"},
+        {"from": "gate",      "to": "streamlit", "label": "2nd: retry"},
+        {"from": "reportlab", "to": "streamlit"}
+      ]
+    }
+  },
+  {
+    "slug": "04_pm_cv_series",
+    "category": "AI PRODUCT",
+    "accent": "cyan",
+    "title": "Bilingual senior-PM CV builder: <em>mined 424 real PM JDs</em> — keyword-first, FR + EN in one flow",
+    "role": "<b>My role.</b> Built a reusable CV-generation pipeline in French and English that pulls its keyword canon from real job postings, not a template.",
+    "desc": "424 Product Manager JDs (Paris + remote-EU) are stored in a Google Sheet corpus; a Python miner extracts and normalises skills, tools and outcomes; Claude canonicalises the vocabulary and orders it by frequency; reportlab renders two ATS-safe CVs (FR + EN) with result-first XYZ bullets. An ATS acceptance gate re-scans each output against the canonical dictionary before delivery to Google Drive.",
+    "stack": ["Python", "Google Sheets", "Anthropic Claude", "reportlab", "ATS heuristics", "JD-corpus mining"],
+    "published": "Jul 2026",
+    "panel_title": "CV corpus → bilingual PDF",
+    "panel_runtime": "runtime · on-demand",
+    "trigger": "operator triggers rebuild",
+    "cadence": "weekly refresh",
+    "flow": {
+      "nodes": [
+        {"id": "sheets",    "icon": "googleSheets","name": "Sheets",   "action": "JD corpus (424)",     "col": 0, "row": 1, "badge": "424"},
+        {"id": "miner",     "icon": "python",      "name": "Python",   "action": "Mine keywords",       "col": 1, "row": 1},
+        {"id": "claude",    "icon": "anthropic",   "name": "Claude",   "action": "Canonicalise",        "col": 2, "row": 1, "badge": "AI"},
+        {"id": "fr",        "icon": "reportlab",   "name": "reportlab","action": "Build CV (FR)",       "col": 3, "row": 0},
+        {"id": "en",        "icon": "reportlab",   "name": "reportlab","action": "Build CV (EN)",       "col": 3, "row": 2},
+        {"id": "drive",     "icon": "googleDrive", "name": "Drive",    "action": "Deliver bilingual",   "col": 4, "row": 1}
+      ],
+      "edges": [
+        {"from": "sheets", "to": "miner"},
+        {"from": "miner",  "to": "claude", "label": "raw skills"},
+        {"from": "claude", "to": "fr",     "label": "1st: FR"},
+        {"from": "claude", "to": "en",     "label": "2nd: EN"},
+        {"from": "fr",     "to": "drive"},
+        {"from": "en",     "to": "drive"}
+      ]
+    }
+  },
+  {
+    "slug": "05_youtube_analyzer",
+    "category": "AI PRODUCT",
+    "accent": "cyan",
+    "title": "YouTube video analyzer: <em>frame-by-frame hook + pacing breakdown</em> via PySceneDetect + Gemini Vision",
+    "role": "<b>My role.</b> Built an OSS CLI that goes past plain transcripts — real scene cuts, deduped frames, vision analysis and pacing metrics for any YouTube URL.",
+    "desc": "yt-dlp pulls the video; PySceneDetect finds real cut boundaries; a Python step deduplicates near-identical frames and tiles them into compact 3×3 grids; Claude's tool-use calls Gemini Vision on each grid to describe hooks, pacing shifts and on-screen elements; a creator-profile cache stores per-channel style priors so subsequent videos analyse faster. Result: a JSON breakdown + human-readable frame report.",
+    "stack": ["Python", "PySceneDetect", "yt-dlp", "Google Gemini Vision", "Anthropic Claude", "OSS repo"],
+    "published": "May 2026",
+    "panel_title": "video → frame breakdown",
+    "panel_runtime": "runtime · CLI + batch",
+    "trigger": "YouTube URL",
+    "cadence": "on-demand + batch mode",
+    "flow": {
+      "nodes": [
+        {"id": "yt",       "icon": "youtube",     "name": "YouTube",   "action": "Video URL",         "col": 0, "row": 1},
+        {"id": "download", "icon": "python",      "name": "yt-dlp",    "action": "Download video",    "col": 1, "row": 1},
+        {"id": "scene",    "icon": "python",      "name": "PySceneDet.","action": "Cut detection",    "col": 2, "row": 1, "badge": "41"},
+        {"id": "gemini",   "icon": "gemini",      "name": "Gemini",    "action": "Vision analyse",    "col": 3, "row": 1, "badge": "AI"},
+        {"id": "sheets",   "icon": "googleSheets","name": "Sheets",    "action": "Insights log",      "col": 4, "row": 0},
+        {"id": "report",   "icon": "reportlab",   "name": "reportlab", "action": "Frame breakdown",   "col": 4, "row": 2}
+      ],
+      "edges": [
+        {"from": "yt",       "to": "download"},
+        {"from": "download", "to": "scene"},
+        {"from": "scene",    "to": "gemini",  "label": "3×3 grid"},
+        {"from": "gemini",   "to": "sheets",  "label": "1st: log"},
+        {"from": "gemini",   "to": "report",  "label": "2nd: PDF"}
+      ]
+    }
+  },
+  {
+    "slug": "06_humanizer",
+    "category": "AI PRODUCT",
+    "accent": "cyan",
+    "title": "AI-text humanizer: <em>4-stage pipeline, per-user voice profiles</em> via Claude + Gemini",
+    "role": "<b>My role.</b> Built a paste-in tool that strips AI-tells from generated text and rewrites it in a specific person's real voice — not a generic humaniser.",
+    "desc": "A deterministic prepass first removes em-dashes, generic openers and other AI-tells with pure regex (zero cost); a router then checks whether the user has a voice profile (JSON with real writing samples). If yes, Claude rewrites in that voice using tool-use with the sample corpus; if no, Gemini does a generic rewrite. A post-processor formats output for the target platform (LinkedIn, Slack, email).",
+    "stack": ["Python", "Anthropic Claude", "Google Gemini", "Voice profiles JSON", "OSS repo", "Regex prepass"],
+    "published": "May 2026",
+    "panel_title": "paste → humanised text",
+    "panel_runtime": "runtime · on-demand",
+    "trigger": "user paste",
+    "cadence": "sub-10s per rewrite",
+    "flow": {
+      "nodes": [
+        {"id": "upload", "icon": "upload",      "name": "Input",   "action": "Text paste-in",     "col": 0, "row": 1},
+        {"id": "regex",  "icon": "python",      "name": "Python",  "action": "Regex prepass",     "col": 1, "row": 1, "badge": "0€"},
+        {"id": "router", "icon": "router",      "name": "Router",  "action": "Voice profile?",    "col": 2, "row": 1},
+        {"id": "claude", "icon": "anthropic",   "name": "Claude",  "action": "Rewrite in voice",  "col": 3, "row": 0, "badge": "AI"},
+        {"id": "gemini", "icon": "gemini",      "name": "Gemini",  "action": "Generic rewrite",   "col": 3, "row": 2},
+        {"id": "format", "icon": "python",      "name": "Python",  "action": "Platform format",   "col": 4, "row": 1}
+      ],
+      "edges": [
+        {"from": "upload", "to": "regex"},
+        {"from": "regex",  "to": "router"},
+        {"from": "router", "to": "claude", "label": "1st: yes"},
+        {"from": "router", "to": "gemini", "label": "2nd: no"},
+        {"from": "claude", "to": "format"},
+        {"from": "gemini", "to": "format"}
+      ]
+    }
+  },
+  {
+    "slug": "07_anneal",
+    "category": "DEV TOOLING",
+    "accent": "green",
+    "title": "Anneal: <em>iterative code-audit loop that hardens diffs until zero-bug convergence</em> — Claude auditor + fixer",
+    "role": "<b>My role.</b> Built a CLI + library that takes any git diff and iteratively audits, fixes and re-audits it until it converges to a clean pass — my own dogfooded tooling for every non-trivial change.",
+    "desc": "A GitHub diff is sent to a Claude auditor with a cached SAST checklist (env-var leaks, subprocess encoding, threading locks, LLM path validation). A router decides: if findings, a Claude fixer applies patches; if clean, commit and notify. The loop repeats against the fresh diff until two consecutive rounds return zero bugs. Adversarial mode adds a Red vs Blue duel with a Judge scoring each round.",
+    "stack": ["Python", "Anthropic Claude", "OpenRouter", "GitHub Actions", "SAST checklist", "CLI + library"],
+    "published": "May 2026",
+    "panel_title": "diff → hardened diff",
+    "panel_runtime": "runtime · CLI + CI",
+    "trigger": "git diff (pre-commit or PR)",
+    "cadence": "loop until clean, N rounds max",
+    "flow": {
+      "nodes": [
+        {"id": "diff",     "icon": "github",    "name": "GitHub",   "action": "Diff surface",       "col": 0, "row": 1},
+        {"id": "auditor",  "icon": "anthropic", "name": "Claude",   "action": "Auditor pass",       "col": 1, "row": 1, "badge": "AI"},
+        {"id": "router",   "icon": "router",    "name": "Router",   "action": "Findings?",          "col": 2, "row": 1},
+        {"id": "fixer",    "icon": "anthropic", "name": "Claude",   "action": "Fixer applies",      "col": 3, "row": 0, "badge": "AI"},
+        {"id": "commit",   "icon": "github",    "name": "GitHub",   "action": "Commit clean diff",  "col": 3, "row": 2},
+        {"id": "slack",    "icon": "slack",     "name": "Slack",    "action": "Notify converged",   "col": 4, "row": 1}
+      ],
+      "edges": [
+        {"from": "diff",    "to": "auditor"},
+        {"from": "auditor", "to": "router"},
+        {"from": "router",  "to": "fixer",  "label": "1st: bugs"},
+        {"from": "router",  "to": "commit", "label": "2nd: clean"},
+        {"from": "fixer",   "to": "slack"},
+        {"from": "commit",  "to": "slack"}
+      ]
+    }
+  },
+  {
+    "slug": "08_job_tracker_pm",
+    "category": "DATA PIPELINE",
+    "accent": "amber",
+    "title": "PM-job aggregator (France): <em>265+ jobs/day, 3 live sources</em> via GitHub Actions cron + Claude rank",
+    "role": "<b>My role.</b> Built a daily job pipeline that reads three public APIs (no scraping, no logins), deduplicates across runs, LLM-ranks by fit, and drops a curated digest into Google Sheets.",
+    "desc": "A GitHub Actions cron fires at 06:00 UTC and fans out to France Travail (OAuth REST), LinkedIn's guest jobs API and Welcome to the Jungle's Algolia index. Results are merged, deduped against a 60-day SQLite cache, then Claude re-ranks by profile fit using a cached scoring rubric. Top matches land in a live Google Sheet with a hard-failing acceptance gate that blocks the run if any row falls outside the profile.",
+    "stack": ["Python", "GitHub Actions cron", "France Travail API", "LinkedIn guest API", "WTTJ Algolia", "Anthropic Claude", "Google Sheets"],
+    "published": "May 2026",
+    "panel_title": "3-source daily job digest",
+    "panel_runtime": "runtime · cron 06:00 UTC",
+    "trigger": "GitHub Actions schedule",
+    "cadence": "daily",
+    "flow": {
+      "nodes": [
+        {"id": "cron",   "icon": "scheduler",     "name": "Cron",         "action": "GH Actions 06:00",    "col": 0, "row": 1},
+        {"id": "ft",     "icon": "france_travail","name": "FR Travail",   "action": "OAuth REST",          "col": 1, "row": 0},
+        {"id": "li",     "icon": "linkedin",      "name": "LinkedIn",     "action": "Guest jobs API",      "col": 1, "row": 1},
+        {"id": "wttj",   "icon": "wttj",          "name": "WTTJ",         "action": "Algolia query",       "col": 1, "row": 2},
+        {"id": "merge",  "icon": "merge",         "name": "Python",       "action": "Merge + dedup",       "col": 2, "row": 1, "badge": "60d"},
+        {"id": "claude", "icon": "anthropic",     "name": "Claude",       "action": "Rank by fit",         "col": 3, "row": 1, "badge": "265"},
+        {"id": "sheet",  "icon": "googleSheets",  "name": "Sheets",       "action": "Daily digest",        "col": 4, "row": 1}
+      ],
+      "edges": [
+        {"from": "cron",  "to": "ft"},
+        {"from": "cron",  "to": "li"},
+        {"from": "cron",  "to": "wttj"},
+        {"from": "ft",    "to": "merge"},
+        {"from": "li",    "to": "merge"},
+        {"from": "wttj",  "to": "merge"},
+        {"from": "merge", "to": "claude"},
+        {"from": "claude","to": "sheet"}
+      ]
+    }
+  },
+  {
+    "slug": "09_job_search_v2",
+    "category": "DATA PIPELINE",
+    "accent": "amber",
+    "title": "Multi-source job pipeline: <em>7 public APIs + frozen-corpus acceptance gate</em>",
+    "role": "<b>My role.</b> Redesigned my own job pipeline around a 10-min prior-art rule: every source is a public, no-auth API discovered from browser DevTools — no Playwright, no Gmail-alert workarounds.",
+    "desc": "A cron scans 7 public sources (LinkedIn jobs-guest, WTTJ Algolia, France Travail, Adzuna, RemoteOK, WeWorkRemotely, Jobgether), merges results, dedupes against a 60-day SQLite cache, then runs a hard-failing acceptance gate against a frozen corpus of operator-flagged jobs. Passing rows go to Google Sheets; failed gates page me in Slack with the offending row so I can update the corpus, not the pipeline.",
+    "stack": ["Python", "Multi-source APIs", "SQLite dedup", "Anthropic Claude re-rank", "Google Sheets", "Slack", "Acceptance corpus"],
+    "published": "Jun 2026",
+    "panel_title": "sources → acceptance-gated digest",
+    "panel_runtime": "runtime · cron + gate",
+    "trigger": "cron schedule",
+    "cadence": "daily",
+    "flow": {
+      "nodes": [
+        {"id": "cron",   "icon": "scheduler",   "name": "Cron",     "action": "Daily trigger",    "col": 0, "row": 1},
+        {"id": "fetch",  "icon": "python",      "name": "Python",   "action": "7-source fetch",   "col": 1, "row": 1, "badge": "7"},
+        {"id": "merge",  "icon": "merge",       "name": "Python",   "action": "Merge + dedup",    "col": 2, "row": 1},
+        {"id": "gate",   "icon": "filter",      "name": "Gate",     "action": "Corpus check",     "col": 3, "row": 1},
+        {"id": "sheet",  "icon": "googleSheets","name": "Sheets",   "action": "Curated digest",   "col": 4, "row": 0},
+        {"id": "slack",  "icon": "slack",       "name": "Slack",    "action": "Gate-fail alert",  "col": 4, "row": 2}
+      ],
+      "edges": [
+        {"from": "cron",  "to": "fetch"},
+        {"from": "fetch", "to": "merge"},
+        {"from": "merge", "to": "gate"},
+        {"from": "gate",  "to": "sheet", "label": "1st: pass"},
+        {"from": "gate",  "to": "slack", "label": "2nd: fail"}
+      ]
+    }
+  },
+  {
+    "slug": "10_yoga_jitendra",
+    "category": "WEB / CLIENT WORK",
+    "accent": "purple",
+    "title": "Yoga studio site + live metrics dashboard: <em>Astro + Cloudflare Pages + KV cron</em> — 43/43 acceptance",
+    "role": "<b>My role.</b> Shipped a bilingual yoga studio site with a KV-backed live dashboard, admin reviews panel and Sanskrit lineage section — all under Cloudflare's free tier.",
+    "desc": "A Cloudflare Cron worker polls Google Reviews, Instagram Basic Display API and internal booking stats four times a day; results write to Cloudflare KV; Astro rebuilds SSG pages with the fresh data via Pages Functions. A hard-failing acceptance gate (43/43) blocks the deploy if any live tile would render blank, killing the 'dashboard-shows-24-48h-fallback' class of silent-failure once and for all.",
+    "stack": ["Astro", "Cloudflare Pages", "Cloudflare KV", "Cloudflare Cron", "Pages Functions", "ApexCharts", "Google Reviews API"],
+    "published": "Jul 2026",
+    "panel_title": "cron → KV → live dashboard",
+    "panel_runtime": "runtime · 4x/day (live)",
+    "trigger": "Cloudflare Cron",
+    "cadence": "every 6 hours",
+    "flow": {
+      "nodes": [
+        {"id": "cron",     "icon": "scheduler",     "name": "CF Cron",   "action": "Every 6h",         "col": 0, "row": 1},
+        {"id": "reviews",  "icon": "googleSheets",  "name": "Google",    "action": "Reviews sync",     "col": 1, "row": 0},
+        {"id": "ig",       "icon": "instagram",     "name": "Instagram", "action": "Posts feed",       "col": 1, "row": 1},
+        {"id": "bookings", "icon": "http",          "name": "Bookings",  "action": "Metrics REST",     "col": 1, "row": 2},
+        {"id": "kv",       "icon": "cloudflare",    "name": "CF KV",     "action": "Cache write",      "col": 2, "row": 1, "badge": "43"},
+        {"id": "astro",    "icon": "astro",         "name": "Astro",     "action": "SSG rebuild",      "col": 3, "row": 1},
+        {"id": "pages",    "icon": "cloudflare",    "name": "CF Pages",  "action": "Deploy live",      "col": 4, "row": 1}
+      ],
+      "edges": [
+        {"from": "cron",     "to": "reviews"},
+        {"from": "cron",     "to": "ig"},
+        {"from": "cron",     "to": "bookings"},
+        {"from": "reviews",  "to": "kv"},
+        {"from": "ig",       "to": "kv"},
+        {"from": "bookings", "to": "kv"},
+        {"from": "kv",       "to": "astro"},
+        {"from": "astro",    "to": "pages"}
+      ]
+    }
+  },
+  {
+    "slug": "11_rosy_origami",
+    "category": "WEB / CLIENT WORK",
+    "accent": "purple",
+    "title": "Content curation web app: <em>IG + YT + upload ingest, human-curated tray, react-email delivery</em>",
+    "role": "<b>My role.</b> Designed and built a Next.js content workflow for a creator: multi-source ingestion, a human-in-the-loop curation tray, AI-assisted prose polish, and one-click newsletter delivery.",
+    "desc": "Instagram (Basic Display API) and YouTube (RSS) polls run on cron; direct-upload lets the creator drop assets manually. Everything lands in a Next.js curation tray where the human curator picks and reorders items. Claude polishes prose only (never restructures) on request; react-email composes the final newsletter which is sent via Resend to the subscriber list. Voice, taste and rhythm stay human.",
+    "stack": ["Next.js", "react-email", "Anthropic Claude", "Instagram API", "YouTube RSS", "Resend", "Vercel"],
+    "published": "May 2026",
+    "panel_title": "sources → human tray → send",
+    "panel_runtime": "runtime · poll + on-demand",
+    "trigger": "cron poll + manual upload",
+    "cadence": "daily curation window",
+    "flow": {
+      "nodes": [
+        {"id": "ig",     "icon": "instagram",  "name": "Instagram", "action": "Poll IG feed",     "col": 0, "row": 0},
+        {"id": "yt",     "icon": "youtube",    "name": "YouTube",   "action": "Channel RSS",      "col": 0, "row": 1},
+        {"id": "upload", "icon": "upload",     "name": "Upload",    "action": "Manual submit",    "col": 0, "row": 2},
+        {"id": "next",   "icon": "next_js",    "name": "Next.js",   "action": "Curation tray",    "col": 1, "row": 1, "badge": "UX"},
+        {"id": "claude", "icon": "anthropic",  "name": "Claude",    "action": "Polish prose",     "col": 2, "row": 1, "badge": "AI"},
+        {"id": "email",  "icon": "react_email","name": "react-email","action": "Compose email",   "col": 3, "row": 1},
+        {"id": "send",   "icon": "http",       "name": "Resend",    "action": "Send to list",     "col": 4, "row": 1}
+      ],
+      "edges": [
+        {"from": "ig",     "to": "next"},
+        {"from": "yt",     "to": "next"},
+        {"from": "upload", "to": "next"},
+        {"from": "next",   "to": "claude", "label": "curator OK"},
+        {"from": "claude", "to": "email"},
+        {"from": "email",  "to": "send"}
+      ]
+    }
+  },
+  {
+    "slug": "12_prodcraft_autopilot",
+    "category": "AI PRODUCT",
+    "accent": "cyan",
+    "title": "ProdCraft Autopilot: <em>living PRD with voice narration</em> — Claude + HuggingFace + Modal",
+    "role": "<b>My role.</b> Built a solo-founder tool that turns a rough product idea into a structured PRD with narrated audio walkthrough — running entirely on free-tier infra.",
+    "desc": "User captures a rough product idea in a form; Claude structures it into a PRD (problem, users, MVP scope, risks); the PRD narration script goes to a Chatterbox TTS instance hosted on a HuggingFace Space; Modal orchestrates the audio pipeline (chunking, normalization, ID3 tags); final MP3 + PRD land in Cloudflare R2 with a shareable web player. Zero-cost inference stack.",
+    "stack": ["Python", "Anthropic Claude", "HuggingFace Spaces", "Modal", "Cloudflare R2", "Chatterbox TTS"],
+    "published": "Jun 2026",
+    "panel_title": "idea → narrated PRD",
+    "panel_runtime": "runtime · on-demand",
+    "trigger": "user submits idea",
+    "cadence": "sub-3min per generation",
+    "flow": {
+      "nodes": [
+        {"id": "form",    "icon": "form",         "name": "Form",       "action": "Idea capture",     "col": 0, "row": 1},
+        {"id": "claude",  "icon": "anthropic",    "name": "Claude",     "action": "Structure PRD",    "col": 1, "row": 1, "badge": "AI"},
+        {"id": "hf",      "icon": "huggingface",  "name": "HF Space",   "action": "Chatterbox TTS",   "col": 2, "row": 1, "badge": "0€"},
+        {"id": "modal",   "icon": "modal",        "name": "Modal",      "action": "Audio pipeline",   "col": 3, "row": 1},
+        {"id": "r2",      "icon": "cloudflare",   "name": "CF R2",      "action": "Store MP3 + PRD",  "col": 4, "row": 0},
+        {"id": "player",  "icon": "http",         "name": "Web player", "action": "Shareable link",   "col": 4, "row": 2}
+      ],
+      "edges": [
+        {"from": "form",   "to": "claude"},
+        {"from": "claude", "to": "hf", "label": "narration"},
+        {"from": "hf",     "to": "modal"},
+        {"from": "modal",  "to": "r2"},
+        {"from": "r2",     "to": "player"}
+      ]
+    }
+  },
+  {
+    "slug": "13_video_pipeline",
+    "category": "CREATIVE AUTOMATION",
+    "accent": "pink",
+    "title": "AI video pipeline (v2v): <em>motion-controlled generation via MCP</em> — Higgsfield + veo3 + Modal",
+    "role": "<b>My role.</b> Built a video-to-video generation pipeline driven by Claude Code via Higgsfield's MCP server — motion control, reframing, and post-processing without a UI.",
+    "desc": "User drops a reference video via the MCP-native workflow; Higgsfield's motion-control model extracts the movement signature; veo3 generates a new video preserving the motion but with the target style; Modal handles chunked upscaling, reframing to target aspect ratios and audio track injection; final MP4 lands in Cloudflare R2 with a shareable preview URL. Free-tier escape hatches (veo3-lite) are mapped for zero-budget runs.",
+    "stack": ["Higgsfield MCP", "Claude Code", "veo3", "Modal", "Cloudflare R2", "Nick Saraev workflow"],
+    "published": "Jul 2026",
+    "panel_title": "reference video → v2v output",
+    "panel_runtime": "runtime · MCP-native",
+    "trigger": "reference upload",
+    "cadence": "on-demand",
+    "flow": {
+      "nodes": [
+        {"id": "upload", "icon": "upload",      "name": "Upload",    "action": "Reference video",   "col": 0, "row": 1},
+        {"id": "higgs",  "icon": "higgsfield",  "name": "Higgsfield","action": "Motion control",    "col": 1, "row": 1, "badge": "MCP"},
+        {"id": "veo",    "icon": "veo3",        "name": "veo3",      "action": "Generate variant",  "col": 2, "row": 1, "badge": "AI"},
+        {"id": "modal",  "icon": "modal",       "name": "Modal",     "action": "Reframe + audio",   "col": 3, "row": 1},
+        {"id": "r2",     "icon": "cloudflare",  "name": "CF R2",     "action": "Store + preview",   "col": 4, "row": 1}
+      ],
+      "edges": [
+        {"from": "upload", "to": "higgs"},
+        {"from": "higgs",  "to": "veo",   "label": "motion sig"},
+        {"from": "veo",    "to": "modal"},
+        {"from": "modal",  "to": "r2"}
+      ]
+    }
+  }
+]

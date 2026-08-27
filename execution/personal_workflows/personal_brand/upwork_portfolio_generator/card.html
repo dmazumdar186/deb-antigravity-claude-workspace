@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Upwork portfolio card</title>
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --bg-2: #101828;
+    --fg: #eef2ff;
+    --muted: #98a2b3;
+    --line: rgba(255,255,255,0.08);
+    --chip-bg: rgba(255,255,255,0.06);
+    --chip-fg: #cfd6ee;
+
+    --panel-bg: #f7f8fb;
+    --panel-line: #e5e7eb;
+    --panel-fg: #1f2937;
+    --panel-muted: #6b7280;
+
+    --accent-blue: #4d7cfe;
+    --accent-cyan: #22d3ee;
+    --accent-green: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-pink: #ec4899;
+    --accent: var(--accent-cyan);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #000; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+
+  .card {
+    width: 1200px;
+    height: 900px;
+    background:
+      radial-gradient(1100px 700px at 90% -10%, rgba(77,124,254,0.10), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(34,211,238,0.08), transparent 55%),
+      linear-gradient(180deg, #0b0f1a 0%, #070912 100%);
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    padding: 44px 52px 40px 52px;
+    gap: 28px;
+  }
+
+  .card[data-accent="blue"] { --accent: var(--accent-blue); }
+  .card[data-accent="cyan"] { --accent: var(--accent-cyan); }
+  .card[data-accent="green"] { --accent: var(--accent-green); }
+  .card[data-accent="amber"] { --accent: var(--accent-amber); }
+  .card[data-accent="purple"] { --accent: var(--accent-purple); }
+  .card[data-accent="pink"] { --accent: var(--accent-pink); }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(700px 400px at 10% 5%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 65%);
+    pointer-events: none;
+  }
+
+  /* ---------- header ---------- */
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .tag::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 14px currentColor;
+  }
+
+  .brand {
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .brand strong { color: var(--fg); font-weight: 600; }
+
+  h1 {
+    font-size: 34px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    max-width: 1100px;
+    color: var(--fg);
+  }
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  /* ---------- body: text left / workflow right ---------- */
+
+  .body {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 32px;
+    position: relative;
+    z-index: 2;
+    min-height: 0;
+  }
+
+  .left {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    color: var(--fg);
+    min-height: 0;
+  }
+
+  .field-label {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .role-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #d1d5db;
+  }
+  .role-text b { color: var(--fg); font-weight: 600; }
+
+  .desc-text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #b6bccb;
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .chip {
+    font-size: 12px;
+    padding: 6px 12px;
+    background: var(--chip-bg);
+    color: var(--chip-fg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .footer-meta {
+    margin-top: auto;
+    padding-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    gap: 12px;
+  }
+  .footer-meta b { color: var(--fg); font-weight: 600; }
+
+  /* ---------- workflow panel ---------- */
+
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-line);
+    border-radius: 20px;
+    padding: 28px 24px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--panel-muted);
+    margin-bottom: 4px;
+  }
+  .panel-header .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #10b981;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .workflow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    color: var(--panel-fg);
+  }
+  .workflow svg { width: 100%; height: 100%; overflow: visible; display: block; }
+
+  .panel-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--panel-muted);
+    letter-spacing: 0.08em;
+    padding-top: 10px;
+    border-top: 1px dashed var(--panel-line);
+    margin-top: 6px;
+  }
+  .panel-footer b { color: var(--panel-fg); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="card" id="card" data-accent="cyan">
+  <div class="header">
+    <div class="header-top">
+      <span class="tag" id="tag">CATEGORY</span>
+      <span class="brand"><strong>PRODCRAFT</strong> · AI SYSTEMS</span>
+    </div>
+    <h1 id="title">Project title with <em>metric outcome</em></h1>
+  </div>
+
+  <div class="body">
+    <div class="left">
+      <div>
+        <div class="field-label">My role</div>
+        <p class="role-text" id="role"></p>
+      </div>
+      <div>
+        <div class="field-label">Project description</div>
+        <p class="desc-text" id="desc"></p>
+      </div>
+      <div>
+        <div class="field-label">Skills &amp; deliverables</div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="footer-meta">
+        <span>Published <b id="pubdate">Aug 9, 2026</b></span>
+        <span>Built by <b>Debanjan Mazumdar</b> · prodcraft.fyi</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span><span class="dot"></span><span id="panel-title">Automation flow</span></span>
+        <span id="panel-runtime">runtime · live</span>
+      </div>
+      <div class="workflow" id="workflow"></div>
+      <div class="panel-footer">
+        <span id="panel-trigger">Trigger: event</span>
+        <span id="panel-cadence"><b>Cadence:</b> continuous</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="./icons.js"></script>
+<script>
+/* -------------------- workflow renderer -------------------- */
+
+const NODE_W = 84, NODE_H = 84;         // icon circle diameter box
+const LABEL_H = 34;                       // label text under node
+const LANE_H = NODE_H + LABEL_H + 34;    // vertical gap between rows
+const COL_W  = 148;                       // horizontal gap between cols
+
+function nodeCenter(n) {
+  return { cx: n.col * COL_W + NODE_W / 2, cy: n.row * LANE_H + NODE_H / 2 };
+}
+
+function renderNode(n) {
+  const icon = window.ICONS[n.icon] || window.ICONS.http;
+  const { cx, cy } = nodeCenter(n);
+  const r = 34;
+  const iconOffset = 24; // icon svg is 48x48, we want it centered in circle
+  return `
+    <g class="node">
+      <circle cx="${cx}" cy="${cy}" r="${r + 2}" fill="#fff" stroke="${icon.color}" stroke-width="0" opacity="0.6"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="${icon.bg}"/>
+      <g transform="translate(${cx - iconOffset}, ${cy - iconOffset})">
+        <svg width="48" height="48" viewBox="0 0 48 48" x="0" y="0">${icon.svg}</svg>
+      </g>
+      <text x="${cx}" y="${cy + r + 18}" text-anchor="middle" font-family="-apple-system, Segoe UI, sans-serif"
+            font-size="13" font-weight="700" fill="#1f2937">${n.name || n.icon}</text>
+      ${n.action ? `<text x="${cx}" y="${cy + r + 33}" text-anchor="middle" font-family="-apple-system, Segoe UI, sans-serif"
+            font-size="11" fill="#6b7280">${n.action}</text>` : ""}
+      ${n.badge ? `<g>
+        <rect x="${cx + r - 12}" y="${cy - r - 4}" width="22" height="16" rx="8" fill="#1f2937"/>
+        <text x="${cx + r - 1}" y="${cy - r + 8}" text-anchor="middle" font-family="ui-monospace, monospace"
+              font-size="10" font-weight="700" fill="#fff">${n.badge}</text>
+      </g>` : ""}
+    </g>`;
+}
+
+function renderEdge(edge, nodes) {
+  const from = nodes.find(n => n.id === edge.from);
+  const to   = nodes.find(n => n.id === edge.to);
+  if (!from || !to) return "";
+  const a = nodeCenter(from), b = nodeCenter(to);
+  const r = 34;
+  const dx = b.cx - a.cx, dy = b.cy - a.cy;
+  const dist = Math.hypot(dx, dy) || 1;
+  const nx = dx / dist, ny = dy / dist;
+  const startX = a.cx + nx * r, startY = a.cy + ny * r;
+  const endX = b.cx - nx * r,   endY = b.cy - ny * r;
+
+  const mx = (startX + endX) / 2;
+  const my = (startY + endY) / 2;
+
+  // straight line for same row, bezier curve for row change
+  let d;
+  if (from.row === to.row) {
+    d = `M ${startX} ${startY} L ${endX} ${endY}`;
+  } else {
+    const c1x = startX + (endX - startX) * 0.5, c1y = startY;
+    const c2x = startX + (endX - startX) * 0.5, c2y = endY;
+    d = `M ${startX} ${startY} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${endX} ${endY}`;
+  }
+
+  const color = edge.color || "#9ca3af";
+  const dashArray = edge.solid ? "" : `stroke-dasharray="4 5"`;
+
+  const label = edge.label
+    ? `<g>
+         <rect x="${mx - 34}" y="${my - 22}" width="68" height="18" rx="9" fill="#1f2937"/>
+         <text x="${mx}" y="${my - 9}" text-anchor="middle" font-family="-apple-system, Segoe UI, sans-serif"
+               font-size="10" font-weight="600" fill="#fff">${edge.label}</text>
+       </g>` : "";
+
+  return `<g class="edge">
+      <path d="${d}" fill="none" stroke="${color}" stroke-width="1.8" ${dashArray} stroke-linecap="round"/>
+      ${label}
+    </g>`;
+}
+
+function computeBounds(nodes) {
+  let maxCol = 0, maxRow = 0;
+  for (const n of nodes) { maxCol = Math.max(maxCol, n.col); maxRow = Math.max(maxRow, n.row); }
+  const w = (maxCol + 1) * COL_W + 40;
+  const h = (maxRow + 1) * LANE_H + 30;
+  return { w, h };
+}
+
+function renderWorkflow(flow) {
+  const { w, h } = computeBounds(flow.nodes);
+  const edges = flow.edges.map(e => renderEdge(e, flow.nodes)).join("\n");
+  const nodes = flow.nodes.map(renderNode).join("\n");
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
+    ${edges}
+    ${nodes}
+  </svg>`;
+}
+
+/* -------------------- main -------------------- */
+
+const PROJECTS = window.__PROJECTS__ || [];
+
+function render(idx) {
+  const p = PROJECTS[idx];
+  if (!p) { document.body.innerHTML = "<pre>project index out of range: " + idx + "</pre>"; return; }
+  const card = document.getElementById("card");
+  card.dataset.accent = p.accent || "cyan";
+
+  document.getElementById("tag").textContent = p.category;
+  document.getElementById("title").innerHTML = p.title;
+  document.getElementById("role").innerHTML = p.role;
+  document.getElementById("desc").innerHTML = p.desc;
+  document.getElementById("pubdate").textContent = p.published || "Aug 2026";
+
+  document.getElementById("panel-title").textContent = p.panel_title || "Automation flow";
+  document.getElementById("panel-runtime").textContent = p.panel_runtime || "runtime · live";
+  document.getElementById("panel-trigger").textContent = "Trigger: " + (p.trigger || "event");
+  document.getElementById("panel-cadence").innerHTML = "<b>Cadence:</b> " + (p.cadence || "continuous");
+
+  const chipsEl = document.getElementById("chips");
+  chipsEl.innerHTML = "";
+  for (const s of p.stack) {
+    const c = document.createElement("span");
+    c.className = "chip";
+    c.textContent = s;
+    chipsEl.appendChild(c);
+  }
+
+  document.getElementById("workflow").innerHTML = renderWorkflow(p.flow);
+}
+
+const params = new URLSearchParams(location.search);
+const i = parseInt(params.get("i") || "0", 10);
+render(i);
+</script>
+</body>
+</html>
