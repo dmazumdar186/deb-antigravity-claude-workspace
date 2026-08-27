@@ -48,10 +48,13 @@ ALLOWED_FAMILIES = ("anthropic/", "openai/", "google/", "z-ai/")
 # Updated manually ~quarterly when logs show stale models being picked.
 # ---------------------------------------------------------------------------
 LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
-    # Tier names map to ROLE, per ~/.claude/rules/model-tier.md (2026-08-12):
-    #   default = execution tier  (per-row work, classification, extraction)
-    #   premium = judgement tier  (reasoning, planning, architecture)
-    "anthropic": {"default": "claude-sonnet-5", "premium": "claude-opus-5"},
+    # Tier names map to ROLE, per ~/.claude/rules/model-tier.md (2026-08-27):
+    #   default = execution tier  (mundane per-row work, classification, extraction)
+    #   premium = judgement tier  (reasoning, planning, architecture, analysis, audit)
+    # 2026-08-27: premium moved claude-opus-5 -> claude-fable-5. Operator rule is
+    # "everything that isn't mundane execution is Fable 5"; Opus 5 is no longer a
+    # tier target and survives only as the explicit `opus` alias in model_router.
+    "anthropic": {"default": "claude-sonnet-5", "premium": "claude-fable-5"},
     "gemini": {"default": "gemini-2.5-flash"},
     "openrouter": {
         # Fix 14 — OR catalog uses dots for the 4.x series (4.6, 4.7), not
@@ -59,7 +62,7 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
         # plain `claude-opus-5` / `claude-sonnet-5`. Verified against OR's live
         # catalog 2026-08-12.
         "default": "anthropic/claude-sonnet-5",
-        "premium": "anthropic/claude-opus-5",
+        "premium": "anthropic/claude-fable-5",
         "gemini":  "google/gemini-2.5-pro",  # for OR-only setup, Gemini tier via OR
         # GLM 5.2 — Z.AI's flagship open model, ~$1/M input tokens via OR.
         # Use ONLY for creative/non-sensitive artifacts. Never for PII / AM-scoped /
@@ -82,6 +85,12 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
 # 2026-08-12. Add here BEFORE adding to model_router.ALIASES, never after.
 # ---------------------------------------------------------------------------
 _ADDITIONAL_KNOWN: frozenset[str] = frozenset({
+    # Anthropic — Opus 5 stopped being a tier target on 2026-08-27 (premium is now
+    # Fable 5), but model_router still exposes `opus` for explicit selection. The
+    # registry-coupling rule requires it to be known here, or
+    # validate_against_registry() fails on that alias.
+    "claude-opus-5",
+    "anthropic/claude-opus-5",
     # OpenAI — router exposes these as `gpt` / `gpt4o` / `o1`
     "gpt-4o",
     "o1",
@@ -167,7 +176,7 @@ _ANTHROPIC_RE = re.compile(
     re.IGNORECASE,
 )
 
-_FAMILY_RANK_PREMIUM = ["opus", "sonnet", "haiku"]
+_FAMILY_RANK_PREMIUM = ["fable", "opus", "sonnet", "haiku"]
 _FAMILY_RANK_DEFAULT = ["sonnet", "haiku"]
 
 
@@ -301,6 +310,7 @@ def _resolve_gemini(_tier: str) -> tuple[str, str | None]:
 # ---------------------------------------------------------------------------
 
 # Regex helpers for parsing OR model IDs
+_OR_CLAUDE_FABLE_RE = re.compile(r"^anthropic/claude-fable-(\d+)", re.IGNORECASE)
 _OR_CLAUDE_OPUS_RE = re.compile(r"^anthropic/claude-opus-(\d+)", re.IGNORECASE)
 _OR_CLAUDE_SONNET_RE = re.compile(r"^anthropic/claude-sonnet-(\d+)", re.IGNORECASE)
 _OR_CLAUDE_HAIKU_RE = re.compile(r"^anthropic/claude-haiku-(\d+)", re.IGNORECASE)
@@ -446,10 +456,11 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
         return best_m
 
     # ---------------------------------------------------------------------------
-    # Premium ladder: opus > gpt-5 > gpt-4o > gemini-3 > gemini-2.5-pro > sonnet
+    # Premium ladder: fable > opus > gpt-5 > gpt-4o > gemini-3 > gemini-2.5-pro > sonnet
     # ---------------------------------------------------------------------------
     if tier == "premium":
         for picker, label in [
+            (lambda p: _best_claude_family(_OR_CLAUDE_FABLE_RE, p), "claude-fable-*"),
             (lambda p: _best_claude_family(_OR_CLAUDE_OPUS_RE, p), "claude-opus-*"),
             (lambda p: _best_match(_OR_GPT5_RE, p),                "gpt-5*"),
             (lambda p: _best_match(_OR_GPT4O_RE, p),               "gpt-4o"),

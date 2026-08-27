@@ -1,7 +1,7 @@
 ---
 name: qa
 description: Tests scripts by classifying risk, running safe tests, validating contracts, and reporting pass/fail with evidence.
-model: sonnet
+model: claude-fable-5  # judgement tier -- risk classification + contract validation is analysis, not mundane execution
 tools:
   - Read
   - Glob

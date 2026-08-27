@@ -329,4 +329,4 @@ Be pragmatic. Be reliable. Self-anneal.
 
 - Python: 3.14
 - Default session model: `claude-fable-5` (set 2026-08-27; replaces `claude-opus-5`). Pinned in `~/.claude/settings.json`, `.claude/settings.json`, and `.claude/settings.local.json`.
-- Model routing is by TASK ROLE, not caller: `claude-opus-5` for reasoning / planning / architecture / ambiguous judgement; `claude-sonnet-5` for executing a specified plan, per-row volume work, classification, extraction, formatting. Pin full model names — never the `opus` / `sonnet` aliases. See `~/.claude/rules/model-tier.md`.
+- Model routing is by TASK ROLE, not caller: **`claude-fable-5` for anything that is not mundane execution** — reasoning, planning, architecture, analysis, audit, review, ambiguous judgement; **`claude-sonnet-5`** for executing a specified plan, per-row volume work, classification, extraction, formatting. `claude-opus-5` is no longer a tier target (explicit `opus` alias only). Pin full model names — never the `fable` / `opus` / `sonnet` bare aliases. See `~/.claude/rules/model-tier.md`.

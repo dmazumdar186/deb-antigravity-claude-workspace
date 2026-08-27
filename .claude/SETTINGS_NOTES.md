@@ -39,9 +39,9 @@ Hook events for Agent Teams (`TeammateIdle`, `TaskCreated`, `TaskCompleted`) int
   `~/.claude/CLAUDE.md` and `~/.claude/rules/model-tier.md`. **Lifted on operator
   instruction, not on a verified live API call** -- no Fable request has been made from
   this machine yet.
-- Task-role routing in `execution/` (`model_router.py`, `model_registry.py`) is unchanged:
-  `claude-opus-5` remains the judgement tier and `claude-sonnet-5` the execution tier for
-  code that calls the API directly. This change is about Claude Code *sessions* only.
+- Task-role routing in `execution/` was initially left unchanged, then swept later the same
+  day (see the entry below): the judgement tier moved to `claude-fable-5` and the execution
+  tier stayed `claude-sonnet-5`.
 
 **Revert (one line):** set `"model": "claude-opus-5"` in `.claude/settings.local.json` --
 that file alone wins over the other two, so it is the fastest rollback.

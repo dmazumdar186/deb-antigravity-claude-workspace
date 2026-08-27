@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Reviews code for bugs, security issues, and forbidden patterns. Returns PASS/FAIL verdict with severity-ranked issues and fix suggestions.
-model: sonnet
+model: claude-fable-5  # judgement tier -- review is analysis, not mundane execution
 tools:
   - Read
   - Glob

@@ -1,7 +1,7 @@
 ---
 name: pipeline-auditor
 description: Adversarial auditor that independently verifies completed work. Self-plans its audit, counts from source, catches silent drops and logic errors. Returns PASS/FAIL/WARNINGS with evidence.
-model: sonnet
+model: claude-fable-5  # judgement tier -- adversarial audit is analysis, not mundane execution
 tools:
   - Read
   - Glob

@@ -45,6 +45,9 @@ ALIASES: dict[str, _Alias] = {
     # Judgement tier / execution tier per ~/.claude/rules/model-tier.md.
     # Full names pinned deliberately — bare `opus`/`sonnet` aliases resolve
     # differently per provider and drift between Claude Code versions.
+    # 2026-08-27: `fable` is the judgement tier. `opus` stays selectable but is no
+    # longer what the premium tier resolves to.
+    "fable":   _Alias("anthropic", "claude-fable-5",     "anthropic/claude-fable-5",     "sensitive_ok"),
     "opus":    _Alias("anthropic", "claude-opus-5",      "anthropic/claude-opus-5",      "sensitive_ok"),
     "sonnet":  _Alias("anthropic", "claude-sonnet-5",    "anthropic/claude-sonnet-5",    "sensitive_ok"),
     # --- OpenAI ---
@@ -104,6 +107,7 @@ def validate_against_registry() -> list[str]:
 # When mode="personal", any alias in this map is rerouted to its replacement, EXCEPT when
 # the call carries sensitivity="sensitive" (which raises instead — see call_model).
 _PERSONAL_REMAP: dict[str, str] = {
+    "fable": "glm",
     "opus": "glm",
     "sonnet": "glm",
     "gpt": "glm",
