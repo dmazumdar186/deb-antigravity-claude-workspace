@@ -36,9 +36,14 @@ Hook events for Agent Teams (`TeammateIdle`, `TaskCreated`, `TaskCompleted`) int
   effect -- project settings override user settings, and `settings.local.json` overrides
   `settings.json`. Changing only one of the three does nothing.
 - The 2026-06-12 export-control suspension of Fable 5 / Mythos 5 is recorded as lifted in
-  `~/.claude/CLAUDE.md` and `~/.claude/rules/model-tier.md`. **Lifted on operator
-  instruction, not on a verified live API call** -- no Fable request has been made from
-  this machine yet.
+  `~/.claude/CLAUDE.md` and `~/.claude/rules/model-tier.md`. Lifted on operator
+  instruction; **verified live later the same day** -- session `9410a201` ran on
+  `claude-fable-5` with all three files pinned, no model-access error.
+- Fable 5 pricing read off platform.claude.com 2026-08-27: $10 in / $12.50 5m-write /
+  $20 1h-write / $1 read / $50 out per MTok. 2x Opus 5, 5x Sonnet 5.
+- Agent `.md` `model:` frontmatter accepts full model IDs (same values as `--model`), per
+  code.claude.com/docs/en/sub-agents -- the four analysis agents pinned to `claude-fable-5`
+  are on documented ground.
 - Task-role routing in `execution/` was initially left unchanged, then swept later the same
   day (see the entry below): the judgement tier moved to `claude-fable-5` and the execution
   tier stayed `claude-sonnet-5`.
@@ -63,5 +68,6 @@ claude --version  # should be 2.1.173 or later
 - `.claude/settings.json` — primary config.
 - `~/.claude/CLAUDE.md` — global model policy.
 - `CLAUDE.md` — workspace Environment section documents the model strategy.
-- `.claude/agents/*.md` — per-agent `model:` frontmatter. Should be `claude-sonnet-5` or
-  `claude-opus-5` per the role-based routing in `~/.claude/rules/model-tier.md`; Haiku is banned.
+- `.claude/agents/*.md` — per-agent `model:` frontmatter. Should be `claude-fable-5`
+  (analysis agents) or `claude-sonnet-5` (mechanical agents) per the role-based routing in
+  `~/.claude/rules/model-tier.md`; Haiku is banned. Full IDs, never bare aliases.
