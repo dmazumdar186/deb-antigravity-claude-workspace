@@ -44,7 +44,7 @@ def parse_args() -> argparse.Namespace:
         "--mode",
         choices=list(MODE_TO_MODEL.keys()),
         default="balanced",
-        help="Tier: cheap (Haiku) / balanced (Sonnet, default) / premium (Opus).",
+        help="Tier: cheap (Sonnet 5) / balanced (Sonnet 5, default) / premium (Fable 5). Haiku is banned.",
     )
     parser.add_argument(
         "--dry-run",

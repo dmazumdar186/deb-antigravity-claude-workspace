@@ -22,7 +22,7 @@ Three orchestration tiers are available. Pick by parallelism and context-sharing
 - Up to 16 concurrent sub-agents, 1000 total per run.
 - Resumable within the session. Saveable as `/command` in `.claude/workflows/`.
 - Best for: lead enrichment (100+ rows), competitive matrices, multi-source research, large codebase sweeps.
-- Default worker model: `claude-sonnet-4-6` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
+- Default worker model: `claude-sonnet-5` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
 - See `.claude/workflows/README.md` for full triggers + examples.
 
 ## Tier 3 — Agent Team (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)

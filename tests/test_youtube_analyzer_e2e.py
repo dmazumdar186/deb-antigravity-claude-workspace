@@ -68,7 +68,7 @@ def t_premium_dryrun():
     assert result.returncode == 0, f'exit {result.returncode}, stderr={result.stderr[:200]!r}'
     data = parse_json_output(result)
     mid = data.get('model_id', '')
-    assert 'fable' in mid.lower() or 'opus' in mid.lower() or 'gpt-5' in mid.lower() or mid.startswith('google/') or mid.startswith('anthropic/'), (
+    assert 'fable' in mid.lower(), (
         f'premium model_id unexpected: {mid!r}'
     )
     print(f'      [evidence] premium model_id={mid!r}')
@@ -199,7 +199,7 @@ if __name__ == '__main__':
     print('=== TIER 3: END-TO-END DRY-RUN TESTS ===')
     print()
     run('T3-1: default tier --dry-run: exit 0, provider=openrouter, would_call_provider + would_use_model present', t_default_dryrun)
-    run('T3-2: premium tier --dry-run: model_id contains fable/opus/gpt-5/anthropic/google', t_premium_dryrun)
+    run('T3-2: premium tier --dry-run: model_id names fable (judgement tier)', t_premium_dryrun)
     run('T3-3: gemini tier + no GEMINI_KEY: routes to openrouter, warning in stderr', t_gemini_tier_no_gemini_key)
     run('T3-4: --refresh-models: cache mtime updated after run', t_refresh_models_updates_cache)
     run('T3-5: --provider anthropic + no key: exits cleanly or with helpful error', t_provider_anthropic_no_key)

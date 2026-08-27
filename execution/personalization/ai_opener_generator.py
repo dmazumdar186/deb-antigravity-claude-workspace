@@ -389,13 +389,13 @@ def main():
         "--mode",
         choices=list(MODE_TO_MODEL_OPENROUTER.keys()),
         default=DEFAULT_MODE,
-        help="Tier: cheap (Haiku 4.5) / balanced (Sonnet 4.6, default) / premium (Opus 4.7).",
+        help="Tier: cheap (Sonnet 5) / balanced (Sonnet 5, default) / premium (Fable 5). Haiku is banned.",
     )
     parser.add_argument(
         "--model",
         default=None,
         help="Override model ID explicitly (bypasses --mode). "
-             "Use OpenRouter format for OpenRouter (e.g. anthropic/claude-sonnet-4.6) "
+             "Use OpenRouter format for OpenRouter (e.g. anthropic/claude-sonnet-5) "
              "or bare name for Anthropic SDK.",
     )
     parser.add_argument("--mock", action="store_true", help="Use mock openers")

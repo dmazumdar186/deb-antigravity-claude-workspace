@@ -104,7 +104,7 @@ python3 .claude/skills/gmaps-leads/gmaps_lead_pipeline.py \
 1. **Google Maps Scrape** - Apify `compass/crawler-google-places` actor returns business listings with basic info (runs per query, all into one sheet)
 2. **Website Scraping** - Fetches main page + up to 5 prioritized contact pages (/contact, /about, /team, etc.)
 3. **Web Search Enrichment** - DuckDuckGo search for `"{business}" owner email contact` + scrapes first relevant result
-4. **Claude Extraction** - Claude Haiku 4.5 extracts structured contacts from all gathered content
+4. **Claude Extraction** - Claude Sonnet 5 extracts structured contacts from all gathered content
 5. **Google Sheet Sync** - Appends new leads, automatically deduplicates by `lead_id` across all queries
 6. **Email Enrichment (optional)** - `--enrich` flag triggers Anymailfinder bulk API for leads with owner_name + website but no owner_email
 
@@ -119,7 +119,7 @@ Lower: `/company`, `/meet-us`, `/our-story`, `/the-team`, `/employees`, `/direct
 | Component | Cost per lead |
 |-----------|---------------|
 | Apify Google Maps | ~$0.01-0.02 |
-| Claude Haiku extraction | ~$0.002 |
+| Claude Sonnet 5 extraction | ~$0.004 |
 | DuckDuckGo search | Free |
 | HTTP requests (6-7 pages) | Free |
 | Google Sheets | Free |

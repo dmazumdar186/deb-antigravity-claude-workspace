@@ -28,7 +28,7 @@ Don't write a workflow for one-shot tasks — a regular sub-agent or `execution/
 
 ## Cost guards
 
-- Default worker model: `claude-sonnet-4-6` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
+- Default worker model: `claude-sonnet-5` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
 - Set a `cost_cap` field if the workflow can plausibly spend > $1 per run.
 - Always include a `--dry-run` mode in the underlying execution scripts (returns `would_*` counts).
 - For any paid-API workflow on Accessory Masters credentials: STOP. AM is locked (`CLAUDE.local.md`).

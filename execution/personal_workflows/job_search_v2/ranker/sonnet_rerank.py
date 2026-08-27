@@ -1,5 +1,5 @@
 """
-description: Second-pass shortlist re-ranker using Claude Sonnet 4.6 via the
+description: Second-pass shortlist re-ranker using Claude Sonnet 5 via the
     Anthropic API. Takes the top N jobs after the Gemini/heuristic pass and
     re-scores them in a single batched tool-use call for sharper reasoning on
     the entries that end up in the Top Matches dashboard / email digest.
@@ -13,8 +13,8 @@ outputs:
     - stats dict: {requested, refined, failed, by_tier_after, cost_eur_estimate}
 
 Cost: one tool-use call per pipeline run. At ~25 jobs x ~600 input tokens each
-= ~15K input + ~5K output. Sonnet 4.6 pricing $3/M input + $15/M output =
-~$0.12 per run. 2 runs/day x 30 days = ~$7/month. Skipped silently if the
+= ~15K input + ~5K output. Sonnet 5 pricing $2/M input + $10/M output =
+~$0.08 per run. 2 runs/day x 30 days = ~$5/month. Skipped silently if the
 ANTHROPIC_API_KEY env var is empty (so the pipeline is safe to ship before the
 $20 console top-up clears).
 """
@@ -46,7 +46,7 @@ logger = logging.getLogger("ranker.sonnet_rerank")
 DEFAULT_MODEL = "claude-sonnet-5"
 RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 
-# Sonnet 4.6 pricing — Anthropic publishes in USD per million tokens. We store
+# Sonnet 5 pricing (verified 2026-08-27) — Anthropic publishes in USD per million tokens. We store
 # the USD rate card as the source-of-truth and convert to EUR for operator
 # display per ~/.claude/rules/currency-eur.md (Paris-based operator).
 #
@@ -56,8 +56,8 @@ RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 # subsequent cache-hit turn). Cache pricing constants intentionally omitted;
 # if a future edit adds multi-turn behavior, re-add cache_read (0.1× input)
 # and cache_write (1.25× input) per workspace Python hardening rule 4.
-PRICE_INPUT_PER_M_USD = 3.0
-PRICE_OUTPUT_PER_M_USD = 15.0
+PRICE_INPUT_PER_M_USD = 2.0
+PRICE_OUTPUT_PER_M_USD = 10.0
 # 2026-06-27 reference rate. Refresh when EUR/USD moves >5%.
 USD_TO_EUR = 0.92
 

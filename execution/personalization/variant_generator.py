@@ -384,7 +384,7 @@ def main():
         "--model",
         default=None,
         help="Override model ID explicitly (bypasses --mode). "
-             "Use OpenRouter format (e.g. anthropic/claude-sonnet-4.6).",
+             "Use OpenRouter format (e.g. anthropic/claude-sonnet-5).",
     )
     parser.add_argument("--mock", action="store_true", help="Use mock data")
     args = parser.parse_args()

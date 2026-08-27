@@ -209,3 +209,73 @@ def test_prefilter_skips_files_with_no_except(fake_workspace):
     (fake_workspace / "no_except.py").write_text(
         'STATUS = "dead"\nprint(STATUS)\n', encoding="utf-8")
     assert sast._rule_probe_failure_as_verdict() == []
+
+
+# ── legacy-model-pin + haiku-banned on .claude/skills (added 2026-08-27) ─────
+
+import subprocess
+
+
+def _git_tracked_workspace(root: Path) -> None:
+    """legacy-model-pin walks `git ls-files`, so the fixture needs a repo + index."""
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True,
+                   capture_output=True, text=True, encoding="utf-8", errors="replace")
+    subprocess.run(["git", "add", "-N", "."], cwd=root, check=True,
+                   capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+
+LEGACY_PIN_SHAPES = {
+    "a.py": 'DEFAULT_MODEL = "claude-sonnet-4-6"\n',
+    "b.py": 'model: str = "anthropic/claude-sonnet-4.6",\n',
+    "c.py": 'r = client.messages.create(model="claude-sonnet-4-20250514")\n',
+    "d.py": 'model="claude-3-5-haiku-20241022",\n',
+    "e.json": '{"anthropic_model": "claude-sonnet-4-6"}\n',
+    "f.ts": "const MODEL = 'claude-opus-4-7';\n",
+    "g.py": 'LEGACY_MODEL = "claude-sonnet-4-6"  # legacy default still used at runtime\n',
+}
+
+
+def test_legacy_pin_fires_on_every_known_shape(fake_workspace):
+    for name, body in LEGACY_PIN_SHAPES.items():
+        (fake_workspace / name).write_text(body, encoding="utf-8")
+    _git_tracked_workspace(fake_workspace)
+    hits = {f["file"] for f in sast._rule_legacy_model_pin()}
+    assert hits == set(LEGACY_PIN_SHAPES), hits
+
+
+def test_legacy_pin_ignores_pricing_rows_and_the_5_series(fake_workspace):
+    (fake_workspace / "ok.py").write_text(
+        'PRICING = {"claude-sonnet-4-6": {"input": 3.0}}  # historical cost lookups\n'
+        'MODEL = "claude-sonnet-5"\nJUDGE_MODEL = "claude-fable-5"\n', encoding="utf-8")
+    _git_tracked_workspace(fake_workspace)
+    assert sast._rule_legacy_model_pin() == []
+
+
+def test_legacy_pin_only_sees_tracked_files(fake_workspace):
+    (fake_workspace / "u.py").write_text('MODEL = "claude-sonnet-4-6"\n', encoding="utf-8")
+    subprocess.run(["git", "init", "-q"], cwd=fake_workspace, check=True,
+                   capture_output=True, text=True, encoding="utf-8", errors="replace")
+    assert sast._rule_legacy_model_pin() == []  # untracked: by design (pre-push runs post-commit)
+
+
+def test_haiku_rule_scans_skills_but_not_the_rest_of_dot_claude(fake_workspace):
+    skill = fake_workspace / ".claude" / "skills" / "foo" / "run.py"
+    skill.parent.mkdir(parents=True)
+    skill.write_text('client.messages.create(model="claude-haiku-4-5-20251001")\n', encoding="utf-8")
+    other = fake_workspace / ".claude" / "watch" / "x.py"
+    other.parent.mkdir(parents=True)
+    other.write_text('MODEL = "claude-haiku-4-5-20251001"\n', encoding="utf-8")
+    hits = {f["file"] for f in sast._rule_haiku_banned()}
+    assert hits == {".claude/skills/foo/run.py"}, hits
+
+
+def test_haiku_rule_catches_the_3_5_family_too(fake_workspace):
+    (fake_workspace / "execution").mkdir()
+    (fake_workspace / "execution" / "old.py").write_text(
+        'model="claude-3-5-haiku-20241022"\n', encoding="utf-8")
+    assert [f["line"] for f in sast._rule_haiku_banned()] == [1]
+
+
+def test_model_guardrails_are_registered():
+    assert "legacy-model-pin" in sast._NATIVE_RULES
+    assert "haiku-banned" in sast._NATIVE_RULES

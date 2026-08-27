@@ -271,7 +271,7 @@ def parse_args() -> argparse.Namespace:
         "--mode",
         choices=list(MODE_TO_MUTATOR_MODEL.keys()),
         default="balanced",
-        help="Mutator tier: cheap (Haiku) / balanced (Sonnet, default) / premium (Opus).",
+        help="Mutator tier: cheap (Sonnet 5) / balanced (Sonnet 5, default) / premium (Fable 5). Haiku is banned.",
     )
     parser.add_argument(
         "--max-rounds",

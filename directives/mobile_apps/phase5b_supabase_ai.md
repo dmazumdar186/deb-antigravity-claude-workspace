@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add AI features (coaching nudges, reflection summaries, classification, generation) via Supabase Edge Functions calling Anthropic with `claude-sonnet-4-6`. The Anthropic key stays server-side as a Supabase secret, every request verifies the user's JWT, every response is logged to a Postgres table (with RLS), and the mobile client invokes the function via the typed Supabase SDK. This is the **secure** AI path. Phase 5a (OpenRouter direct from app) is the simpler-but-leaky alternative; pick 5a only when the app explicitly accepts the cost-drain risk.
+Add AI features (coaching nudges, reflection summaries, classification, generation) via Supabase Edge Functions calling Anthropic with `claude-sonnet-5`. The Anthropic key stays server-side as a Supabase secret, every request verifies the user's JWT, every response is logged to a Postgres table (with RLS), and the mobile client invokes the function via the typed Supabase SDK. This is the **secure** AI path. Phase 5a (OpenRouter direct from app) is the simpler-but-leaky alternative; pick 5a only when the app explicitly accepts the cost-drain risk.
 
 Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 19 + 22.
 
@@ -85,7 +85,7 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
      const aResp = await fetch('https://api.anthropic.com/v1/messages', {
        method: 'POST',
        headers: { 'x-api-key': ANTHROPIC, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-       body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 256, system: sys, messages: [{ role: 'user', content: userMsg }] })
+       body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 256, system: sys, messages: [{ role: 'user', content: userMsg }] })
      })
      const ai = await aResp.json()
      const body = ai.content?.[0]?.text ?? "Keep going."
@@ -96,7 +96,7 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
        user_id: user.id,
        title: 'Coaching nudge',
        body,
-       model: 'claude-sonnet-4-6',
+       model: 'claude-sonnet-5',
        tokens_in: ai.usage?.input_tokens ?? 0,
        tokens_out: ai.usage?.output_tokens ?? 0,
        cost_usd: estimateCost(ai.usage),
@@ -124,10 +124,10 @@ Encodes Nick Saraev's transcript: `Claude Code Mobile App Dev 1.pdf`, chapters 1
    // (Python). The TS port below is a 1:1 transcription kept in sync MANUALLY —
    // when Sonnet pricing changes, update both this snippet AND cost.py, or one will drift.
    const PRICING = {
-     'claude-sonnet-4-6': { input: 3.00, cache_read: 0.30, cache_write: 3.75, output: 15.00 },
+     'claude-sonnet-5': { input: 2.00, cache_read: 0.20, cache_write: 2.50, output: 10.00 },
    } // USD per 1M tokens
    function estimateCost(u) {
-     const m = PRICING['claude-sonnet-4-6']
+     const m = PRICING['claude-sonnet-5']
      return ((u.input_tokens ?? 0) * m.input
            + (u.cache_read_input_tokens ?? 0) * m.cache_read
            + (u.cache_creation_input_tokens ?? 0) * m.cache_write

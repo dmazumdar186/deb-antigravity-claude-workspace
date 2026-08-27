@@ -5,7 +5,7 @@ description: Provider-agnostic model registry — resolves tier labels to concre
              v3: added OpenRouter resolver with strict ALLOWED_FAMILIES allowlist.
 inputs: env ANTHROPIC_API_KEY (optional), GEMINI_API_KEY (optional), OPENROUTER_API_KEY (optional);
         CLI --refresh forces a cache bypass.
-outputs: Concrete model ID string (e.g. 'claude-sonnet-4-6', 'gemini-2.5-flash',
+outputs: Concrete model ID string (e.g. 'claude-sonnet-5', 'gemini-2.5-flash',
          'anthropic/claude-sonnet-4-6'); cache written to .tmp/model_registry.json;
          INFO log lines on resolution.
 """
@@ -176,8 +176,8 @@ _ANTHROPIC_RE = re.compile(
     re.IGNORECASE,
 )
 
-_FAMILY_RANK_PREMIUM = ["fable", "opus", "sonnet", "haiku"]
-_FAMILY_RANK_DEFAULT = ["sonnet", "haiku"]
+_FAMILY_RANK_PREMIUM = ["fable", "opus", "sonnet"]  # no haiku rung: banned (model-tier.md)
+_FAMILY_RANK_DEFAULT = ["sonnet"]  # no haiku rung: banned (model-tier.md)
 
 
 def _resolve_anthropic(tier: str) -> tuple[str, str | None]:
@@ -352,7 +352,7 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
     Returns
     -------
     tuple[str, str | None]
-        (model_id, created_at_iso) where model_id is e.g. 'anthropic/claude-sonnet-4-6'.
+        (model_id, created_at_iso) where model_id is e.g. 'anthropic/claude-sonnet-5'.
 
     Raises
     ------
@@ -476,12 +476,11 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
                 return model_id, created_iso
 
     # ---------------------------------------------------------------------------
-    # Default ladder: sonnet > haiku > gpt-4o-mini > gemini-2.5-flash
+    # Default ladder: sonnet > gpt-4o-mini > gemini-2.5-flash (no Haiku rung: banned)
     # ---------------------------------------------------------------------------
     elif tier in ("default", "gemini"):
         for picker, label in [
             (lambda p: _best_claude_family(_OR_CLAUDE_SONNET_RE, p), "claude-sonnet-*"),
-            (lambda p: _best_claude_family(_OR_CLAUDE_HAIKU_RE, p),  "claude-haiku-*"),
             (lambda p: _best_match(_OR_GPT4O_MINI_RE, p),            "gpt-4o-mini"),
             (lambda p: _best_match(_OR_GEMINI25FLASH_RE, p),         "gemini-2.5-flash"),
         ] if tier == "default" else [
@@ -555,7 +554,7 @@ def resolve_model(
     Returns
     -------
     str
-        Concrete model ID (e.g. 'claude-sonnet-4-6', 'anthropic/claude-sonnet-4-6').
+        Concrete model ID (e.g. 'claude-sonnet-5', 'anthropic/claude-sonnet-5').
         Never raises — falls back to LAST_KNOWN_GOOD on all failures.
     """
     provider = provider.lower()

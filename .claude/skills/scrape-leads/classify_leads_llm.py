@@ -35,7 +35,7 @@ def create_classification_request(company, custom_id, classification_prompt):
     return {
         "custom_id": custom_id,
         "params": {
-            "model": "claude-sonnet-4-20250514",
+            "model": "claude-sonnet-5",
             "max_tokens": 20,
             "messages": [{"role": "user", "content": full_prompt}]
         }

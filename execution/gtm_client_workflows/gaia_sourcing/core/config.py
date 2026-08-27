@@ -54,14 +54,17 @@ def secret(name: str, required: bool = True) -> str:
 # Never use bare aliases; they drift across providers and CLI versions.
 # Sonnet 5 verified live against GET /v1/models on 2026-08-19. Judgement roles
 # moved to Fable 5 on 2026-08-27 (operator rule: everything that is not mundane
-# execution is Fable 5). Fable 5 bills 2x Opus 5 per token -- the run ceiling
-# in RunConfig is reached roughly twice as fast on L8/L10/L11 as before.
+# execution is Fable 5). L10 stays on Sonnet 5: it is a per-candidate rubric
+# pass, which model-tier.md Exhibit D classes as bulk execution. Cost of the
+# move, for a 38-candidate shortlist (run.py: 24 + 14): L8 + L11 = ~76 Fable 5
+# calls at ~3k in / ~2k out each = ~$0.13 per call = ~$10 (~EUR 9) per full run,
+# vs ~EUR 4.5 on Opus 5. The RunConfig ceiling is unchanged and trips earlier.
 # ---------------------------------------------------------------------------
 
 MODEL_EXTRACT = "claude-sonnet-5"   # L5 evidence extraction (high volume)
 MODEL_PARSE = "claude-sonnet-5"     # L1 requisition parsing
 MODEL_JUDGE = "claude-fable-5"      # L8 adversarial + tiering (judgement)
-MODEL_MOVABILITY = "claude-fable-5" # L10 (judgement)
+MODEL_MOVABILITY = "claude-sonnet-5"  # L10 per-candidate rubric scoring = bulk execution (model-tier.md Exhibit D)
 MODEL_MESSAGE = "claude-fable-5"    # L11 -- goes out under Gaia's name (judgement)
 
 # Pricing per MTok (USD), from ~/.claude/rules/model-tier.md, verified

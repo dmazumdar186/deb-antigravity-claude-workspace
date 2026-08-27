@@ -32,7 +32,7 @@ else
 import json, sys
 d = json.load(sys.stdin)
 assert d.get('ok') is True, f'ok != true: {d}'
-assert d.get('primary_model') == 'claude-sonnet-4-6', f'wrong primary_model: {d.get(\"primary_model\")}'
+assert d.get('primary_model') == 'claude-sonnet-5', f'wrong primary_model: {d.get(\"primary_model\")}'
 assert d.get('key_present') is True, 'no LLM key present on edge'
 print('  health OK — primary={} fallback={} anthropic_key={} gemini_key={}'.format(
     d['primary_model'], d.get('fallback_model'), d.get('anthropic_key_present'), d.get('gemini_key_present')))

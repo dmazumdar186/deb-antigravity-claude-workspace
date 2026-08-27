@@ -1031,7 +1031,7 @@ Be concise. Complete tasks fully."""
     try:
         # Initial call
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-5",
             max_tokens=4096,
             system=system,
             tools=tools,
@@ -1069,7 +1069,7 @@ Be concise. Complete tasks fully."""
             messages.append({"role": "user", "content": tool_results})
 
             response = client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-5",
                 max_tokens=4096,
                 system=system,
                 tools=tools,
@@ -1470,7 +1470,7 @@ Output JSON only (no markdown, no explanations):"""
 
                 try:
                     msg = claude_client.messages.create(
-                        model="claude-3-5-haiku-20241022",
+                        model="claude-sonnet-5"  # Haiku is banned (model-tier.md); execution tier is the floor,
                         max_tokens=6000,
                         messages=[{"role": "user", "content": prompt}]
                     )

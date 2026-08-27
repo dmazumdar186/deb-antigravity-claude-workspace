@@ -123,5 +123,5 @@ All three are independent — partial revert (e.g. drop the global rule but keep
 |---|---|
 | Creative HTML/JS, public/non-sensitive | `chat_completion(system, user, model="z-ai/glm-5.2", max_tokens=4000)` |
 | Same, via registry tier | `chat_completion(..., model=resolve_model("openrouter", "glm"))` |
-| Sensitive content (PII, CV, leads, AM) | **DO NOT use GLM.** Use `model="anthropic/claude-sonnet-4.6"` or Gemini direct. |
+| Sensitive content (PII, CV, leads, AM) | **DO NOT use GLM.** Use `model="anthropic/claude-sonnet-5"` or Gemini direct. |
 | Z.AI direct (deferred) | `chat_completion(..., model="glm-5.2", base_url="https://api.z.ai/api/anthropic")` |

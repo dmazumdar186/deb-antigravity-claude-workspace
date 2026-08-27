@@ -10,7 +10,7 @@ Real run (no --dry-run):
     1. Loads ledger (.claude/watch/anthropic_ledger.jsonl) into a set of seen URLs.
     2. Fetches all sources via fetch.py.
     3. New items = fetched - seen.
-    4. Sends new items to Claude Sonnet 4.6 to assign {tag, priority, tldr}.
+    4. Sends new items to Claude Sonnet 5 to assign {tag, priority, tldr}.
     5. Writes digest to .claude/watch/digests/YYYY-MM-DD.md (HIGH > MED > LOW).
     6. Appends new items to ledger.
 """

@@ -11,7 +11,7 @@ Click-of-a-button switching between GLM 5.2, Opus, Sonnet, GPT-4o, and Gemini fo
 
 | Alias | Model ID | Native provider | Sensitivity | Per-token cost |
 |---|---|---|---|---|
-| `fable` | `claude-fable-5` | Anthropic | sensitive_ok | **judgement tier** since 2026-08-27 -- everything that is not mundane execution. Pricing unverified |
+| `fable` | `claude-fable-5` | Anthropic | sensitive_ok | **judgement tier** since 2026-08-27 -- everything that is not mundane execution. $10/$50 per MTok (verified 2026-08-27; 2x Opus 5, 5x Sonnet 5) |
 | `opus` | `claude-opus-5` | Anthropic | sensitive_ok | $5/$25 per MTok. No longer a tier target -- explicit selection only |
 | _(session default)_ | `claude-fable-5` | Anthropic | sensitive_ok | Claude Code session default since 2026-08-27; not a `call_model()` alias |
 | `sonnet` | `claude-sonnet-5` | Anthropic | sensitive_ok | $2/$10 per MTok (execution tier) |

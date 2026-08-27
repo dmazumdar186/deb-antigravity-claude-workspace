@@ -230,6 +230,9 @@ def test_an_unknown_model_is_priced_as_the_dearest_one():
     opus = providers.cost_eur("claude-opus-5", {"input_tokens": 1_000_000,
                                                 "output_tokens": 0})
     assert unknown >= opus
+    dearest = max(providers.cost_eur(m, {"input_tokens": 1_000_000, "output_tokens": 0})
+                  for m in providers.PRICE_EUR)
+    assert unknown >= dearest  # Fable 5 today; whatever is dearest tomorrow
 
 
 def test_every_model_the_router_can_select_has_a_price():

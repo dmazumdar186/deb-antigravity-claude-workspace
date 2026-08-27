@@ -39,7 +39,7 @@ This spec is what Phase 1's "App spec" input expects. A spec produced here also 
     --max-workers 8
   ```
 
-  `--max-workers N` (default 8) controls ThreadPoolExecutor concurrency. Keep ≤ 8 to stay within Firecrawl rate limits. For 5+ competitors across both stores, use the Dynamic Workflow at `.claude/workflows/aso-research.md` instead — it fans out to 16 parallel Haiku sub-agents and cuts wall-clock from ~10 min to ~75s.
+  `--max-workers N` (default 8) controls ThreadPoolExecutor concurrency. Keep ≤ 8 to stay within Firecrawl rate limits. For 5+ competitors across both stores, use the Dynamic Workflow at `.claude/workflows/aso-research.md` instead — it fans out to 16 parallel Sonnet 5 sub-agents (Haiku is banned per ~/.claude/rules/model-tier.md) and cuts wall-clock from ~10 min to ~75s.
 
 ## Outputs
 

@@ -54,7 +54,7 @@ Cloudflare Pages Function  (functions/api/claude.ts)
   ├── Origin allowlist
   ├── Per-IP daily KV rate-limit (200 req/IP/day)
   ├── Hides ANTHROPIC_API_KEY
-  └── ──▶  Anthropic API  (claude-sonnet-4-6)
+  └── ──▶  Anthropic API  (claude-sonnet-5)
               modes:
                 roleplay → returns 1 customer turn
                 score    → returns strict JSON scorecard

@@ -4,7 +4,7 @@
 //   - roleplay: plays the customer, returns { text } (≤ 75 words)
 //   - score:    grades a completed 5-turn transcript, returns strict JSON scorecard
 //
-// Model: claude-sonnet-4-6 (Haiku is BANNED per workspace policy 2026-06-14).
+// Model: claude-sonnet-5 (Haiku is BANNED per workspace policy 2026-06-14).
 //
 // Security:
 //   - ANTHROPIC_API_KEY is a Pages secret, never leaves the edge

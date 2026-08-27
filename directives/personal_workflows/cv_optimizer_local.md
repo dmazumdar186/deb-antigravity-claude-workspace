@@ -20,7 +20,7 @@ This directive replaces the SaaS-shaped approach with a local-shaped one. See `~
 - **CV**: either `--cv path/to/cv.pdf` (extracts text via pypdf) or `--cv-text "..."` (direct text) or `--cv-text-file path/to/cv.txt`.
 - **JD**: either `--jd-url <url>` (scrapes the page; uses Firecrawl if `FIRECRAWL_API_KEY` is set, otherwise plain fetch + readability) or `--jd-text "..."` or `--jd-text-file path/to/jd.txt`.
 - **Output dir** (optional): `--out-dir path/to/out/` (default `.tmp/cv_optimizer_local/<timestamp>/`).
-- **Model** (optional): `--model claude-sonnet-4-6` (default — per `~/.claude/rules/model-tier.md` Sonnet is the lowest acceptable tier for user-facing artifacts).
+- **Model** (optional): `--model claude-sonnet-5` (default — per `~/.claude/rules/model-tier.md` Sonnet is the lowest acceptable tier for user-facing artifacts).
 
 ## Outputs
 
@@ -77,7 +77,7 @@ The Worker is no longer the "official" CV-generation path. The local CLI is.
 - `py execution/personal_workflows/cv_optimizer_local/tests/front_door.py --runs 5` exits 0 with 5/5 PASS.
 - Each run emits `cvspec.json`, `cv.html`, `cv.pdf`, `cv.png`, `run.log` in `--out-dir`.
 - Run latency < 360s per run; ATS score >= 80 on the en-EN fixture.
-- `claude --print --model claude-sonnet-4-6` resolves without error before the run starts.
+- `claude --print --model claude-sonnet-5` resolves without error before the run starts.
 
 ## Related
 

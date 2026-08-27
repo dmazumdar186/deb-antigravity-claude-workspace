@@ -426,7 +426,7 @@ def _rule_haiku_banned() -> list[dict]:
     """
     findings = []
     haiku_re = re.compile(
-        r"(?:anthropic[/.])?claude[-.]haiku[-.]4[-.]\d",
+        r"(?:anthropic[/.])?claude[-.](?:haiku[-.][34][-.]\d|3[-.]5[-.]haiku|3[-.]haiku)",
         re.IGNORECASE,
     )
     ban_marker_re = re.compile(
@@ -1566,13 +1566,16 @@ def _rule_legacy_model_pin() -> list[dict]:
 
     Only DEFAULT-style assignments are flagged; pricing-table rows that keep a
     legacy model so old run records still cost-resolve are legitimate and do
-    not match (they are dict keys, not `model = "..."` assignments).
+    not match (they are dict keys, not `model = "..."` assignments). Shapes
+    covered (2026-08-27 audit): dash and dot separators, an `anthropic/` prefix,
+    date-suffixed `claude-sonnet-4-2025...`, and the 3.x Haiku family. No comment
+    on the line suppresses a finding -- a default is a default.
 
     medium-severity -- wrong cost/quality, but not silent data loss.
     """
     findings = []
     pin_re = re.compile(
-        r"""model[\w"']*\s*[:=]\s*["']claude-(?:sonnet-4-[56]|opus-4-[1-8]|haiku-3)[\w.-]*["']""",
+        r"""model[\w"']*\s*(?::\s*str\s*)?[:=]\s*["'](?:anthropic/)?claude-(?:sonnet-4(?:[-.][56])?|opus-4(?:[-.][1-8])?|3-5-haiku|3-haiku|haiku-3)[\w.-]*["']""",
         re.IGNORECASE,
     )
     suffixes = (".py", ".ts", ".js", ".jsx", ".tsx", ".json", ".toml", ".mjs")
@@ -1610,8 +1613,6 @@ def _rule_legacy_model_pin() -> list[dict]:
         rel = str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
         for lineno, line in enumerate(text.splitlines(), start=1):
             if not pin_re.search(line):
-                continue
-            if re.search(r"legacy|historical|kept so|back-?compat", line, re.IGNORECASE):
                 continue
             findings.append(
                 {

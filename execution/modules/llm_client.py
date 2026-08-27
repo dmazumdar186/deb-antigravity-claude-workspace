@@ -39,7 +39,7 @@ def chat_completion(
     # Default Sonnet 4.6 per ~/.claude/rules/model-tier.md (2026-06-14).
     # Haiku 4.5 is banned workspace-wide. AM-frozen callers that need Haiku
     # for compatibility pass `model=` explicitly.
-    model: str = "anthropic/claude-sonnet-4.6",
+    model: str = "anthropic/claude-sonnet-5",
     max_tokens: int = 150,
     base_url: str = _OR_BASE_URL,
 ) -> str:
