@@ -240,6 +240,8 @@ def main() -> int:
                 browser.close()
             rendered = True
 
+    # Use PNG thumbnails whenever renders exist on disk, even if this run skipped rendering.
+    rendered = rendered or any((brand / "renders").glob("variant_*.png"))
     (brand / "review.html").write_text(review_html({"variants": variants}, rendered), encoding="utf-8")
     print(f"DONE: {len(variants)} variants -> {vdir}; rendered={rendered}; review: {brand / 'review.html'}")
     return 0
