@@ -1,0 +1,7 @@
+# cv_builder_dior_itlead_en.py / tests/cv_ats_score_jd.py
+
+- [learned] JD paraphrases migrate between sections under review (cut from summary -> reappear in bullet 2 -> reappear in Skills). Grep every JD phrase before shipping; keep a literal only where a bullet has a fact behind it.
+- [learned] A JD-keyword gate rewards exactly the unsourced phrases (shared oracle) - its green is not evidence of truth. Report ATS-proxy and hygiene as two numbers; validate the gate on a known-bad CV first (generic PM CV scored 30/100 proxy).
+- [technical] Detect position titles from the char stream (all-bold line + next line containing "| <date>"), not by regex on em dashes - wrapped result-first bullets match otherwise. Exclude education lines (bold too) by requiring " — " in the title line.
+- [technical] Reflow whitespace before phrase matching ("Change\nManagement" must count). Bullets need bulletFontName=Arial or parsers see (cid:127). Builder writes <out>.part then os.replace; the gate sleeps 2 s if the PDF mtime is <2 s old (build/read race seen 2026-08-28).
+- [pattern] Targeted-CV loop that converged in 4 rounds: recruiter (3-second scan + full read), hiring manager (deliverables/traits tables), ATS engineer (parse + own keyword list), fact-checker (count from source vs metrics_canonical.md). Hand the operator the list of facts only they can supply instead of inventing scale/budget/committee claims.

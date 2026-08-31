@@ -1,4 +1,5 @@
-"""Per-variant render tests for cv_builder, cv_builder_en, cv_builder_skott.
+"""Per-variant render tests for cv_builder, cv_builder_en, cv_builder_skott,
+cv_builder_pm_en and cv_builder_dior_itlead_en.
 
 The cv_builder family is a reportlab PDF generator with hardcoded content
 (no LLM). The bar per ~/.claude/rules/front-door-synthetic.md still applies:
@@ -26,6 +27,7 @@ VARIANTS = [
     # (script_relpath, lang, lang_marker_substrings, cli_style)
     # cli_style: "company_role" -> --company X --role Y
     #            "output_only"  -> --output PATH
+    #            "out"          -> --out PATH   (pm_en / dior variants)
     # Marker match is case-insensitive substring (headers are commonly all-caps).
     (
         "execution/personal_workflows/cv_builder.py",
@@ -44,6 +46,18 @@ VARIANTS = [
         "fr",
         ("expérience", "compétence", "formation", "profil"),
         "output_only",
+    ),
+    (
+        "execution/personal_workflows/cv_builder_pm_en.py",
+        "en",
+        ("experience", "skills", "education", "selected projects"),
+        "out",
+    ),
+    (
+        "execution/personal_workflows/cv_builder_dior_itlead_en.py",
+        "en",
+        ("experience", "skills", "governance", "generative ai"),
+        "out",
     ),
 ]
 
@@ -85,6 +99,10 @@ def test_variant_renders_pdf(tmp_path, script, lang, markers, cli_style):
     elif cli_style == "output_only":
         pdf_path_explicit = out_dir / "cv_synthetic_skott_test.pdf"
         r = _run_cli(script, ["--output", str(pdf_path_explicit)])
+        pdf_glob = None
+    elif cli_style == "out":
+        pdf_path_explicit = out_dir / f"cv_synthetic_{Path(script).stem}_test.pdf"
+        r = _run_cli(script, ["--out", str(pdf_path_explicit)])
         pdf_glob = None
     else:
         raise AssertionError(f"unknown cli_style {cli_style!r}")
