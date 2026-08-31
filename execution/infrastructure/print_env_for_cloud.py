@@ -26,7 +26,8 @@ KEY_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$")
 
 def load_env(path: Path) -> dict[str, str]:
     entries: dict[str, str] = {}
-    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    # utf-8-sig: a BOM (e.g. from a Notepad edit) would otherwise silently drop the first key.
+    for raw in path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
