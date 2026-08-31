@@ -160,6 +160,8 @@ def variant_html(profile: dict, v: dict) -> str:
 
 
 def review_html(pool: dict, rendered: bool) -> str:
+    brand = pool.get("brand", "Ad batch")
+    slug = "".join(ch if ch.isalnum() else "_" for ch in brand.lower()).strip("_")
     cards = []
     for v in pool["variants"]:
         nn = f"{v['id']:02d}"
@@ -172,7 +174,7 @@ def review_html(pool: dict, rendered: bool) -> str:
             f'<label class="card"><input type="checkbox" data-nn="{nn}">{media}'
             f'<div class="meta">#{nn} · {esc(v["angle"])} · {esc(v["headline"][:60])}</div></label>'
         )
-    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>ProdCraft ad batch review</title>
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>{esc(brand)} — ad batch review</title>
 <style>
   body{{font-family:'Segoe UI',Arial,sans-serif;background:#14161d;color:#eee;margin:0;padding:24px}}
   h1{{font-size:20px}} .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}}
@@ -189,7 +191,7 @@ def review_html(pool: dict, rendered: bool) -> str:
 <script>
 function dl(){{document.querySelectorAll('input:checked').forEach(cb=>{{
   const a=document.createElement('a');a.href='renders/variant_'+cb.dataset.nn+'.png';
-  a.download='prodcraft_ad_'+cb.dataset.nn+'.png';document.body.appendChild(a);a.click();a.remove();}});}}
+  a.download='{slug}_ad_'+cb.dataset.nn+'.png';document.body.appendChild(a);a.click();a.remove();}});}}
 </script></body></html>"""
 
 
@@ -319,7 +321,7 @@ def main() -> int:
 
     # Use PNG thumbnails whenever renders exist on disk, even if this run skipped rendering.
     rendered = rendered or any((brand / "renders").glob("variant_*.png"))
-    (brand / "review.html").write_text(review_html({"variants": variants}, rendered), encoding="utf-8")
+    (brand / "review.html").write_text(review_html({"brand": pool.get("brand", "Ad batch"), "variants": variants}, rendered), encoding="utf-8")
     print(f"DONE: {len(variants)} variants -> {vdir}; rendered={rendered}; review: {brand / 'review.html'}")
     return 0
 
