@@ -1,0 +1,80 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ad tuner</title>
+<style>body{margin:0;display:flex;font-family:'Segoe UI',Arial,sans-serif;background:#14161d;color:#eee}
+#panel{width:340px;padding:16px;overflow-y:auto;height:100vh;box-sizing:border-box}
+#panel label{display:block;font-size:12px;margin:10px 0 2px;color:#aab}
+#panel input,#panel select{width:100%}#stage{flex:1;display:flex;align-items:center;justify-content:center;height:100vh}
+iframe{width:540px;height:540px;border:0;border-radius:8px;background:#000}
+button{margin-top:14px;width:100%;padding:10px;border-radius:8px;border:0;background:#7c9dff;font-weight:700;cursor:pointer}
+textarea{width:100%;height:120px;margin-top:8px;background:#0c0e13;color:#9fd;border:1px solid #333}</style>
+</head><body>
+<div id="panel">
+  <h3>Ad tuner</h3>
+  <label>Gradient angle (<span id="av"></span>deg)</label><input type="range" id="angle" min="0" max="360" step="1">
+  <label>Grain amount</label><input type="range" id="gamt" min="0" max="0.3" step="0.01">
+  <label>Grain size</label><input type="range" id="gsize" min="0.5" max="5" step="0.1">
+  <label>Grain seed</label><input type="range" id="gseed" min="1" max="40" step="1">
+  <label>Grain blend</label><select id="gblend"><option>overlay</option><option>multiply</option><option>soft-light</option><option>screen</option></select>
+  <label>Font</label><select id="font"><option>Manrope</option><option>Inter</option><option>Sora</option><option>Bricolage Grotesque</option><option>Red Hat Display</option></select>
+  <label>Headline size</label><input type="range" id="hsize" min="48" max="130" step="2">
+  <label>Letter spacing (em)</label><input type="range" id="hspace" min="-0.06" max="0.05" step="0.005">
+  <label>Line height</label><input type="range" id="hline" min="0.9" max="1.5" step="0.02">
+  <label>Content padding</label><input type="range" id="pad" min="40" max="160" step="4">
+  <label>Block gap</label><input type="range" id="gap" min="10" max="80" step="2">
+  <label>CTA style</label><select id="ctastyle"><option>pill</option><option>plain</option></select>
+  <label>CTA copy</label><input type="text" id="ctacopy">
+  <button onclick="exportSettings()">Export Settings (JSON)</button>
+  <textarea id="out" placeholder="Exported JSON appears here — save as profile.json and re-run the batch."></textarea>
+</div>
+<div id="stage"><iframe id="prev"></iframe></div>
+<script>
+const P = {"canvas": {"width": 1080, "height": 1080}, "background": {"base": "#141230", "blobs": [{"cx": 0.5, "cy": 0.18, "r": 0.7, "color": "#2a2455", "opacity": 0.8}, {"cx": 0.85, "cy": 0.9, "r": 0.6, "color": "#3b2c63", "opacity": 0.5}, {"cx": 0.12, "cy": 0.75, "r": 0.5, "color": "#1d2f52", "opacity": 0.45}], "gradient_angle_deg": 180}, "grain": {"amount": 0.06, "size": 1.4, "seed": 11, "blend": "overlay"}, "font": {"family": "Manrope", "fallback": "Georgia, 'Times New Roman', serif", "google_fonts_url": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Marcellus&family=Manrope:wght@400;600;700&family=Noto+Serif+Devanagari:wght@400;600&display=swap"}, "layout": "center", "ornament": {"cx": 0.5, "cy": 0.5, "r": 0.42, "color": "#d4af6a", "opacity": 0.16, "petals": 16}, "wordmark": {"text": "Yoga avec Jitendra", "size_px": 34, "weight": 600, "letter_spacing_em": 0.06, "color": "#e8ddc4"}, "sanskrit": {"size_px": 40, "color": "#d4af6a"}, "kicker": {"size_px": 24, "weight": 600, "letter_spacing_em": 0.22, "color": "#c9a45c", "uppercase": true}, "headline": {"family": "Cormorant Garamond", "size_px": 86, "weight": 600, "letter_spacing_em": 0.0, "line_height": 1.1, "color": "#f4eddb", "max_width_px": 880}, "sub": {"size_px": 30, "weight": 400, "line_height": 1.45, "color": "#cfc8bb", "max_width_px": 780}, "cta": {"style": "pill", "size_px": 27, "weight": 600, "bg": "transparent", "fg": "#e8ddc4", "border": "1.5px solid #c9a45c", "padding": "16px 42px", "radius_px": 999}, "footer": {"text": "yogaavecjitendra.fr", "size_px": 23, "color": "#9a916f"}, "content_padding_px": 90, "block_gap_px": 30, "themes": {"nuit": {}, "sable": {"layout": "left", "background": {"base": "#f2e9dc", "blobs": [{"cx": 0.9, "cy": 0.08, "r": 0.55, "color": "#e5cdb2", "opacity": 0.9}, {"cx": 0.05, "cy": 0.95, "r": 0.5, "color": "#e8d8bf", "opacity": 0.8}]}, "grain": {"amount": 0.05, "blend": "multiply"}, "ornament": {"cx": 0.86, "cy": 0.2, "r": 0.3, "color": "#b0603f", "opacity": 0.22, "petals": 12}, "wordmark": {"color": "#3a2e25"}, "sanskrit": {"color": "#b0603f"}, "kicker": {"color": "#b0603f"}, "headline": {"color": "#2e241c"}, "sub": {"color": "#5c4f42"}, "cta": {"bg": "#3a2e25", "fg": "#f2e9dc", "border": "none"}, "footer": {"color": "#8a7a67"}}, "foret": {"background": {"base": "#10241c", "blobs": [{"cx": 0.5, "cy": 0.12, "r": 0.65, "color": "#1c3a2c", "opacity": 0.85}, {"cx": 0.85, "cy": 0.85, "r": 0.55, "color": "#27503a", "opacity": 0.45}]}, "ornament": {"cx": 0.5, "cy": 0.5, "r": 0.42, "color": "#cfc39a", "opacity": 0.14, "petals": 20}, "wordmark": {"color": "#e4ddc3"}, "sanskrit": {"color": "#cfc39a"}, "kicker": {"color": "#a8b98a"}, "headline": {"family": "Marcellus", "weight": 400, "color": "#f0ead6"}, "sub": {"color": "#c2c7ae"}, "cta": {"border": "1.5px solid #a8b98a", "fg": "#e4ddc3"}, "footer": {"color": "#8f9a7c"}}, "aurore": {"layout": "left", "background": {"base": "#f6e3d7", "blobs": [{"cx": 0.8, "cy": 0.15, "r": 0.6, "color": "#f0c39a", "opacity": 0.85}, {"cx": 0.1, "cy": 0.9, "r": 0.55, "color": "#e8b3a6", "opacity": 0.6}, {"cx": 0.55, "cy": 0.6, "r": 0.5, "color": "#f3d3b8", "opacity": 0.5}]}, "grain": {"amount": 0.05, "blend": "multiply"}, "ornament": {"cx": 0.88, "cy": 0.82, "r": 0.26, "color": "#c56a1e", "opacity": 0.18, "petals": 12}, "wordmark": {"color": "#4a2c3a"}, "sanskrit": {"color": "#c56a1e"}, "kicker": {"color": "#c56a1e"}, "headline": {"color": "#3d2331"}, "sub": {"color": "#6b4d55"}, "cta": {"bg": "#4a2c3a", "fg": "#f6e3d7", "border": "none"}, "footer": {"color": "#9c7d83"}}}};
+const $ = id => document.getElementById(id);
+function init(){
+  $('angle').value=P.background.gradient_angle_deg; $('gamt').value=P.grain.amount;
+  $('gsize').value=P.grain.size; $('gseed').value=P.grain.seed; $('gblend').value=P.grain.blend;
+  $('font').value=P.font.family; $('hsize').value=P.headline.size_px;
+  $('hspace').value=P.headline.letter_spacing_em; $('hline').value=P.headline.line_height;
+  $('pad').value=P.content_padding_px; $('gap').value=P.block_gap_px;
+  $('ctastyle').value=P.cta.style; $('ctacopy').value='Book an intro call';
+}
+function sync(){
+  P.background.gradient_angle_deg=+$('angle').value; $('av').textContent=$('angle').value;
+  P.grain.amount=+$('gamt').value; P.grain.size=+$('gsize').value; P.grain.seed=+$('gseed').value;
+  P.grain.blend=$('gblend').value; P.font.family=$('font').value;
+  P.font.google_fonts_url='https://fonts.googleapis.com/css2?family='+P.font.family.replaceAll(' ','+')+':wght@400;600;800&display=swap';
+  P.headline.size_px=+$('hsize').value; P.headline.letter_spacing_em=+$('hspace').value;
+  P.headline.line_height=+$('hline').value; P.content_padding_px=+$('pad').value;
+  P.block_gap_px=+$('gap').value; P.cta.style=$('ctastyle').value;
+  if(P.cta.style==='plain'){P.cta.bg='transparent';P.cta.fg='#f4f4f6';}else{P.cta.bg='#f4f4f6';P.cta.fg='#0b0d14';}
+  render();
+}
+function blobCss(bg){
+  const L=bg.blobs.map(b=>`radial-gradient(circle at ${b.cx*100}% ${b.cy*100}%, ${b.color}${Math.round(b.opacity*255).toString(16).padStart(2,'0')} 0%, transparent ${b.r*100}%)`);
+  L.push(`linear-gradient(${bg.gradient_angle_deg}deg, ${bg.base}, ${bg.base})`);
+  return L.join(', ');
+}
+function render(){
+  const v={kicker:'FRACTIONAL AI ENGINEERING',headline:'The senior AI engineer your roadmap is missing.',
+    sub:'Production AI systems shipped in weeks - no full-time hire, no agency overhead.',cta:$('ctacopy').value};
+  const html=`<!DOCTYPE html><html><head><link rel="stylesheet" href="${P.font.google_fonts_url}"><style>
+  html,body{margin:0} .ad{position:relative;width:1080px;height:1080px;overflow:hidden;transform:scale(0.5);transform-origin:top left;
+  background:${blobCss(P.background)};background-color:${P.background.base};font-family:'${P.font.family}',sans-serif;
+  box-sizing:border-box;padding:${P.content_padding_px}px;display:flex;flex-direction:column;justify-content:space-between}
+  .grain{position:absolute;inset:0;opacity:${P.grain.amount};mix-blend-mode:${P.grain.blend}}
+  .wm{font-size:${P.wordmark.size_px}px;font-weight:800;color:${P.wordmark.color}}
+  .mid{display:flex;flex-direction:column;gap:${P.block_gap_px}px}
+  .k{font-size:${P.kicker.size_px}px;font-weight:600;letter-spacing:.14em;color:${P.kicker.color}}
+  .h{font-size:${P.headline.size_px}px;font-weight:800;letter-spacing:${P.headline.letter_spacing_em}em;line-height:${P.headline.line_height};color:#fff;max-width:880px;margin:0}
+  .s{font-size:${P.sub.size_px}px;color:${P.sub.color};max-width:760px;line-height:1.35}
+  .b{display:flex;justify-content:space-between;align-items:center}
+  .c{font-size:${P.cta.size_px}px;font-weight:700;background:${P.cta.bg};color:${P.cta.fg};padding:${P.cta.padding};border-radius:${P.cta.radius_px}px}
+  .f{font-size:${P.footer.size_px}px;color:${P.footer.color}}</style></head><body><div class="ad">
+  <svg class="grain" width="100%" height="100%"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="${(0.9/P.grain.size).toFixed(3)}" numOctaves="2" seed="${P.grain.seed}" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  <div class="wm">${P.wordmark.text}</div><div class="mid"><div class="k">${v.kicker}</div><h1 class="h">${v.headline}</h1><div class="s">${v.sub}</div></div>
+  <div class="b"><span class="c">${v.cta}</span><span class="f">${P.footer.text}</span></div></div></body></html>`;
+  $('prev').srcdoc=html;
+}
+function exportSettings(){ $('out').value=JSON.stringify(P,null,2); }
+document.querySelectorAll('#panel input,#panel select').forEach(el=>el.addEventListener('input',sync));
+init(); sync();
+</script></body></html>

@@ -24,6 +24,57 @@ def esc(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def merge_theme(profile: dict, theme_name: str | None) -> dict:
+    """Deep-merge a named theme's overrides onto a copy of the profile."""
+    import copy as _copy
+
+    p = _copy.deepcopy(profile)
+    if not theme_name:
+        return p
+    overrides = profile.get("themes", {}).get(theme_name)
+    if overrides is None:
+        raise SystemExit(f"variant references unknown theme '{theme_name}'")
+
+    def _merge(dst: dict, src: dict) -> None:
+        for k, v in src.items():
+            if isinstance(v, dict) and isinstance(dst.get(k), dict):
+                _merge(dst[k], v)
+            else:
+                dst[k] = v
+
+    _merge(p, overrides)
+    return p
+
+
+def ornament_svg(o: dict, canvas_w: int, canvas_h: int) -> str:
+    """Procedural mandala: concentric rings + rotated petal ellipses + dot ring."""
+    cx, cy = o["cx"] * canvas_w, o["cy"] * canvas_h
+    r = o["r"] * min(canvas_w, canvas_h)
+    stroke, op, petals = o["color"], o["opacity"], o.get("petals", 16)
+    parts = [
+        f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{r:.0f}" fill="none" stroke="{stroke}" stroke-width="1.4"/>',
+        f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{r*0.72:.0f}" fill="none" stroke="{stroke}" stroke-width="1"/>',
+        f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{r*0.38:.0f}" fill="none" stroke="{stroke}" stroke-width="1"/>',
+    ]
+    for i in range(petals):
+        ang = 360.0 * i / petals
+        parts.append(
+            f'<ellipse cx="{cx:.0f}" cy="{cy - r*0.55:.0f}" rx="{r*0.085:.0f}" ry="{r*0.30:.0f}" '
+            f'fill="none" stroke="{stroke}" stroke-width="1" '
+            f'transform="rotate({ang:.1f} {cx:.0f} {cy:.0f})"/>'
+        )
+    for i in range(petals * 2):
+        ang = 6.28318 * i / (petals * 2)
+        import math
+
+        dx, dy = cx + r * 0.88 * math.cos(ang), cy + r * 0.88 * math.sin(ang)
+        parts.append(f'<circle cx="{dx:.0f}" cy="{dy:.0f}" r="2.2" fill="{stroke}"/>')
+    return (
+        f'<svg style="position:absolute;inset:0;opacity:{op};pointer-events:none" '
+        f'width="{canvas_w}" height="{canvas_h}">{"".join(parts)}</svg>'
+    )
+
+
 def blob_css(bg: dict) -> str:
     layers = []
     for b in bg["blobs"]:
@@ -35,10 +86,30 @@ def blob_css(bg: dict) -> str:
     return ", ".join(layers)
 
 
-def variant_html(p: dict, v: dict) -> str:
+def variant_html(profile: dict, v: dict) -> str:
+    p = merge_theme(profile, v.get("theme"))
     c, f = p["canvas"], p["font"]
     g = p["grain"]
+    center = p.get("layout") == "center"
     kicker = esc(v["kicker"]).upper() if p["kicker"].get("uppercase") else esc(v["kicker"])
+    orn = ornament_svg(p["ornament"], c["width"], c["height"]) if p.get("ornament") else ""
+    sanskrit = (
+        f'<div class="sanskrit">{esc(v["sanskrit"])}</div>' if v.get("sanskrit") else ""
+    )
+    attribution = (
+        f'<div class="attr">{esc(v["attribution"])}</div>' if v.get("attribution") else ""
+    )
+    hfont = p["headline"].get("family", f["family"])
+    align_css = (
+        "align-items:center;text-align:center" if center else "align-items:flex-start;text-align:left"
+    )
+    # width:100% — under align-items:flex-start the row would otherwise shrink
+    # to content and the footer collides with the CTA pill.
+    bottom_css = (
+        "width:100%;flex-direction:column;gap:20px;align-items:center"
+        if center
+        else "width:100%;flex-direction:row;align-items:center;justify-content:space-between"
+    )
     return f"""<!DOCTYPE html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="{f['google_fonts_url']}">
 <style>
@@ -46,22 +117,25 @@ def variant_html(p: dict, v: dict) -> str:
   .ad{{position:relative;width:{c['width']}px;height:{c['height']}px;overflow:hidden;
     background:{blob_css(p['background'])};background-color:{p['background']['base']};
     font-family:'{f['family']}',{f['fallback']};box-sizing:border-box;
-    padding:{p['content_padding_px']}px;display:flex;flex-direction:column;justify-content:space-between}}
+    padding:{p['content_padding_px']}px;display:flex;flex-direction:column;justify-content:space-between;{align_css}}}
   .grain{{position:absolute;inset:0;opacity:{g['amount']};mix-blend-mode:{g['blend']};pointer-events:none}}
   .wordmark{{font-size:{p['wordmark']['size_px']}px;font-weight:{p['wordmark']['weight']};
-    letter-spacing:{p['wordmark']['letter_spacing_em']}em;color:{p['wordmark']['color']}}}
-  .mid{{display:flex;flex-direction:column;gap:{p['block_gap_px']}px}}
+    letter-spacing:{p['wordmark']['letter_spacing_em']}em;color:{p['wordmark']['color']};z-index:2}}
+  .mid{{display:flex;flex-direction:column;gap:{p['block_gap_px']}px;z-index:2;{align_css}}}
+  .sanskrit{{font-family:'Noto Serif Devanagari','{f['family']}',serif;
+    font-size:{p.get('sanskrit', {}).get('size_px', 34)}px;color:{p.get('sanskrit', {}).get('color', p['kicker']['color'])};opacity:0.9}}
   .kicker{{font-size:{p['kicker']['size_px']}px;font-weight:{p['kicker']['weight']};
     letter-spacing:{p['kicker']['letter_spacing_em']}em;color:{p['kicker']['color']}}}
-  .headline{{font-size:{p['headline']['size_px']}px;font-weight:{p['headline']['weight']};
+  .headline{{font-family:'{hfont}',{f['fallback']};font-size:{p['headline']['size_px']}px;font-weight:{p['headline']['weight']};
     letter-spacing:{p['headline']['letter_spacing_em']}em;line-height:{p['headline']['line_height']};
     color:{p['headline']['color']};max-width:{p['headline']['max_width_px']}px;margin:0}}
   .sub{{font-size:{p['sub']['size_px']}px;font-weight:{p['sub']['weight']};line-height:{p['sub']['line_height']};
     color:{p['sub']['color']};max-width:{p['sub']['max_width_px']}px}}
-  .bottom{{display:flex;align-items:center;justify-content:space-between}}
+  .attr{{font-size:22px;color:{p['footer']['color']};font-style:italic}}
+  .bottom{{display:flex;{bottom_css};z-index:2}}
   .cta{{display:inline-block;font-size:{p['cta']['size_px']}px;font-weight:{p['cta']['weight']};
     background:{p['cta']['bg']};color:{p['cta']['fg']};padding:{p['cta']['padding']};
-    border-radius:{p['cta']['radius_px']}px}}
+    border-radius:{p['cta']['radius_px']}px;border:{p['cta'].get('border', 'none')}}}
   .footer{{font-size:{p['footer']['size_px']}px;color:{p['footer']['color']}}}
 </style></head><body>
 <div class="ad">
@@ -69,11 +143,14 @@ def variant_html(p: dict, v: dict) -> str:
     <feTurbulence type="fractalNoise" baseFrequency="{0.9/g['size']:.3f}" numOctaves="2" seed="{g['seed']}" stitchTiles="stitch"/>
     <feColorMatrix type="saturate" values="0"/></filter>
     <rect width="100%" height="100%" filter="url(#n)"/></svg>
+  {orn}
   <div class="wordmark">{esc(p['wordmark']['text'])}</div>
   <div class="mid">
+    {sanskrit}
     <div class="kicker">{kicker}</div>
     <h1 class="headline">{esc(v['headline'])}</h1>
     <div class="sub">{esc(v['sub'])}</div>
+    {attribution}
   </div>
   <div class="bottom">
     <span class="cta">{esc(v['cta'])}</span>
