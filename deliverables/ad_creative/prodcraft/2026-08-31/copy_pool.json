@@ -1,0 +1,26 @@
+{
+  "brand": "ProdCraft",
+  "angles_note": "All numeric claims are ProdCraft's own published proof points (prodcraft.fyi, 2026-08-31): $1M+ qualified pipeline, <30 days median ship cycle, +45% feature adoption / -55% latency, 15+ yrs experience. Do not add numbers beyond these.",
+  "variants": [
+    { "id": 1,  "angle": "roadmap-gap",    "kicker": "Fractional AI engineering", "headline": "The senior AI engineer your roadmap is missing.", "sub": "Production AI systems shipped in weeks. No full-time hire, no agency overhead.", "cta": "Book an intro call" },
+    { "id": 2,  "angle": "speed",          "kicker": "From backlog to shipped",   "headline": "Ship in days, not months.", "sub": "Median ship cycle under 30 days across 5+ live AI products.", "cta": "See how it works" },
+    { "id": 3,  "angle": "ownership",      "kicker": "Zero lock-in",              "headline": "All code, all credentials — yours.", "sub": "Walk-away terms from day one. You keep everything we build.", "cta": "Read the terms" },
+    { "id": 4,  "angle": "pipeline-proof", "kicker": "Outbound that performs",    "headline": "$1M+ in qualified pipeline, generated on autopilot.", "sub": "Cold-email and outbound systems built, warmed, and tuned for you.", "cta": "Get the playbook" },
+    { "id": 5,  "angle": "sales-ai",       "kicker": "24/7 AI sales assistants",  "headline": "Your best SDR never sleeps.", "sub": "Voice + chat assistants that qualify, book, and follow up around the clock.", "cta": "Hear a live demo" },
+    { "id": 6,  "angle": "anti-agency",    "kicker": "No agency overhead",        "headline": "Skip the agency. Keep the senior engineer.", "sub": "Direct senior-level execution — no account managers, no markup layers.", "cta": "Compare the math" },
+    { "id": 7,  "angle": "rag-copilots",   "kicker": "Custom AI operations",      "headline": "Agents, RAG, copilots — wired into your stack.", "sub": "Document workflows and internal copilots that actually reach production.", "cta": "Scope your build" },
+    { "id": 8,  "angle": "enterprise",     "kicker": "Enterprise GenAI",          "headline": "+45% feature adoption. −55% latency.", "sub": "Real results from a production enterprise GenAI product.", "cta": "See the case study" },
+    { "id": 9,  "angle": "candor",        "kicker": "Ruthlessly results-focused", "headline": "Stop reading. Start shipping.", "sub": "A working AI system in your hands in weeks — or you walk, free.", "cta": "Start this week" },
+    { "id": 10, "angle": "hiring-alt",     "kicker": "Before you post that job",  "headline": "A senior AI hire takes 6 months. This takes a call.", "sub": "15+ years of product engineering, available fractionally.", "cta": "Book an intro call" },
+    { "id": 11, "angle": "roadmap-gap",    "kicker": "Fractional AI engineering", "headline": "Your AI roadmap deserves more than a prompt jockey.", "sub": "Senior engineering that ships production systems, not demos.", "cta": "Meet ProdCraft" },
+    { "id": 12, "angle": "speed",          "kicker": "Velocity, not meetings",    "headline": "While they scope, you ship.", "sub": "Under-30-day median from kickoff to a live AI product.", "cta": "See the process" },
+    { "id": 13, "angle": "ownership",      "kicker": "Built to hand over",        "headline": "Fire us anytime. Keep everything.", "sub": "Full code, credentials, and docs transferred from day one.", "cta": "Read the terms" },
+    { "id": 14, "angle": "sales-ai",       "kicker": "Speed to lead",             "headline": "Answer every lead in seconds, not hours.", "sub": "AI voice + chat that responds while your competitors are in a meeting.", "cta": "Hear a live demo" },
+    { "id": 15, "angle": "anti-agency",    "kicker": "The overhead audit",        "headline": "You're paying three people to talk to one engineer.", "sub": "ProdCraft is the engineer. Skip the rest.", "cta": "Compare the math" },
+    { "id": 16, "angle": "pipeline-proof", "kicker": "Outbound systems",          "headline": "Cold email that books meetings, not spam folders.", "sub": "Deliverability-first systems behind $1M+ of qualified pipeline.", "cta": "Get the playbook" },
+    { "id": 17, "angle": "rag-copilots",   "kicker": "Internal copilots",         "headline": "Your team's knowledge, on tap.", "sub": "RAG and document workflows your people actually use — +45% adoption proves it.", "cta": "Scope your build" },
+    { "id": 18, "angle": "candor",         "kicker": "No jargon, no decks",       "headline": "Fewer slides. More shipped software.", "sub": "Direct, transparent, results-obsessed AI engineering.", "cta": "Start this week" },
+    { "id": 19, "angle": "hiring-alt",     "kicker": "Founders' shortcut",        "headline": "The AI team you can't afford to hire, for the sprint you can.", "sub": "Fractional senior engineering scoped to one outcome at a time.", "cta": "Book an intro call" },
+    { "id": 20, "angle": "enterprise",     "kicker": "Production, not prototypes","headline": "Demos are easy. Production is the product.", "sub": "5+ AI products live in production — shipped, monitored, owned by you.", "cta": "See the case study" }
+  ]
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap">
+<style>
+  html,body{margin:0;padding:0}
+  .ad{position:relative;width:1080px;height:1080px;overflow:hidden;
+    background:radial-gradient(circle at 82% 12%, #4f46e58c 0%, transparent 55%), radial-gradient(circle at 15% 85%, #7c3aed59 0%, transparent 50%), radial-gradient(circle at 50% 45%, #0ea5e923 0%, transparent 65%), linear-gradient(24deg, #0b0d14, #0b0d14);background-color:#0b0d14;
+    font-family:'Manrope','Segoe UI', 'Helvetica Neue', Arial, sans-serif;box-sizing:border-box;
+    padding:84px;display:flex;flex-direction:column;justify-content:space-between}
+  .grain{position:absolute;inset:0;opacity:0.07;mix-blend-mode:overlay;pointer-events:none}
+  .wordmark{font-size:40px;font-weight:800;
+    letter-spacing:-0.01em;color:#f4f4f6}
+  .mid{display:flex;flex-direction:column;gap:34px}
+  .kicker{font-size:26px;font-weight:600;
+    letter-spacing:0.14em;color:#a5b4fc}
+  .headline{font-size:88px;font-weight:800;
+    letter-spacing:-0.03em;line-height:1.04;
+    color:#ffffff;max-width:880px;margin:0}
+  .sub{font-size:30px;font-weight:400;line-height:1.35;
+    color:#c7cbd6;max-width:760px}
+  .bottom{display:flex;align-items:center;justify-content:space-between}
+  .cta{display:inline-block;font-size:28px;font-weight:700;
+    background:#f4f4f6;color:#0b0d14;padding:18px 38px;
+    border-radius:999px}
+  .footer{font-size:24px;color:#8b90a0}
+</style></head><body>
+<div class="ad">
+  <svg class="grain" width="100%" height="100%"><filter id="n">
+    <feTurbulence type="fractalNoise" baseFrequency="0.562" numOctaves="2" seed="7" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/></filter>
+    <rect width="100%" height="100%" filter="url(#n)"/></svg>
+  <div class="wordmark">ProdCraft</div>
+  <div class="mid">
+    <div class="kicker">ENTERPRISE GENAI</div>
+    <h1 class="headline">+45% feature adoption. −55% latency.</h1>
+    <div class="sub">Real results from a production enterprise GenAI product.</div>
+  </div>
+  <div class="bottom">
+    <span class="cta">See the case study</span>
+    <span class="footer">prodcraft.fyi</span>
+  </div>
+</div></body></html>

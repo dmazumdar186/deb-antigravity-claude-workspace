@@ -10,6 +10,7 @@ Last updated: 2026-08-31
 |--------|-------------|--------|---------|
 | `_TEMPLATE.py` | — | — | — |
 | `_TEMPLATE_autoresearch.py` | — | — | — |
+| `content\ad_creative_batch.py` | Renders a batch of square ad variants from a brand profile.json | --brand-dir <dir containing profile.json + copy_pool.json> | <brand-dir>/variants/variant_NN.html, <brand-dir>/renders/ |
 | `content\humanizer.py` | Strip AI-tells from text and rewrite it in a personal voice profile. | — | — |
 | `content\rosy_origami\composer.py` | — | — | — |
 | `content\rosy_origami\fetchers\ig_instaloader.py` | — | — | — |

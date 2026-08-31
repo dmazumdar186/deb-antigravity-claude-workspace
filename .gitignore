@@ -96,3 +96,6 @@ execution/.coverage
 /Yoga avec Jitendra/
 /gaia_probe/
 /Accessory Masters Project breakdown.md
+
+# Regenerable ad-creative PNG renders (py execution/content/ad_creative_batch.py) — keep binaries out
+deliverables/ad_creative/**/renders/
