@@ -15,6 +15,10 @@
 
 set +e
 
+# Portable interpreter: `py` exists only on Windows; cloud/Linux sandboxes have python3.
+PY="$(command -v py || command -v python3 || command -v python)"
+[ -z "$PY" ] && PY=python3
+
 WORKSPACE_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$WORKSPACE_DIR" 2>/dev/null || exit 0
 
@@ -36,7 +40,7 @@ SYNTHETIC_EXIT=""
 TODAY="$(date -u +%Y-%m-%d)"
 WINDOW_END="2026-06-26"
 if [[ "$TODAY" < "$WINDOW_END" || "$TODAY" == "$WINDOW_END" ]]; then
-    SYNTHETIC_RAW="$(timeout 25 py tests/comprehensive_synthetic_job_search_v2.py 2>&1 | head -40)"
+    SYNTHETIC_RAW="$(timeout 25 "$PY" tests/comprehensive_synthetic_job_search_v2.py 2>&1 | head -40)"
     SYNTHETIC_EXIT=$?
 fi
 
@@ -45,7 +49,7 @@ export GIT_STATUS UNTRACKED_COUNT LAST_COMMIT CLAUDE_VERSION SYNTHETIC_RAW SYNTH
 
 # Build the additionalContext payload via python — handles JSON escaping correctly
 # even when the synthetic output contains newlines, quotes, backslashes, brackets.
-py -c '
+"$PY" -c '
 import json, os
 synthetic_raw = os.environ.get("SYNTHETIC_RAW", "")
 synthetic_exit = os.environ.get("SYNTHETIC_EXIT", "")

@@ -4,8 +4,12 @@
 # Receives tool input as JSON on stdin.
 # Exit 0 = allow, Exit 2 = block.
 
+# Portable interpreter: `py` exists only on Windows; cloud/Linux sandboxes have python3.
+PY="$(command -v py || command -v python3 || command -v python)"
+[ -z "$PY" ] && PY=python3
+
 INPUT=$(cat)
-CMD=$(echo "$INPUT" | py -c "
+CMD=$(echo "$INPUT" | "$PY" -c "
 import sys, json
 try:
     d = json.loads(sys.stdin.read())

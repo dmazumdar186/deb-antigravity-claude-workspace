@@ -1,0 +1,4 @@
+# Shell scripts must be LF: the claude.ai/code cloud sandbox (Linux) and git hooks
+# fail on CRLF shebangs (bad interpreter: /bin/bash^M).
+*.sh text eol=lf
+.githooks/* text eol=lf

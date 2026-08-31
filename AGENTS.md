@@ -325,6 +325,19 @@ You sit between human intent (directives) and deterministic execution (Python sc
 
 Be pragmatic. Be reliable. Self-anneal.
 
+## Cloud sessions (claude.ai/code)
+
+This repo is wired for Claude Code on the web. Setup, env-var handoff, and the
+local-vs-cloud carryover matrix live in `directives/infrastructure/claude_code_web.md`.
+Key facts for any session running in the cloud sandbox (Linux VM):
+- Use `python3` / `python`, never `py` (Windows-only launcher). Hooks already
+  resolve this automatically.
+- Secrets come from the cloud environment's variables (paste of local `.env`),
+  not from a `.env` file — `.env` is gitignored and never leaves the Windows machine.
+- The user-global layer (`~/.claude/CLAUDE.md`, `~/.claude/rules/`) does not exist
+  in cloud sessions; this repo's `CLAUDE.md` + `.claude/rules/` are the contract.
+- Uncommitted local work is invisible in the cloud — push branches first.
+
 ## Environment
 
 - Python: 3.14

@@ -28,6 +28,10 @@
 
 set +e
 
+# Portable interpreter: `py` exists only on Windows; cloud/Linux sandboxes have python3.
+PY="$(command -v py || command -v python3 || command -v python)"
+[ -z "$PY" ] && PY=python3
+
 TRANSCRIPT="${CLAUDE_TRANSCRIPT_PATH:-}"
 if [ -z "$TRANSCRIPT" ] || [ ! -f "$TRANSCRIPT" ]; then
     # No transcript path exposed (older CLI or first turn) — nothing to do.
@@ -36,7 +40,7 @@ fi
 
 # Delegate the JSONL parsing to python; keeping bash minimal avoids
 # quoting nightmares on Windows.
-py -c '
+"$PY" -c '
 import json, os, re, sys
 
 path = os.environ.get("CLAUDE_TRANSCRIPT_PATH", "")

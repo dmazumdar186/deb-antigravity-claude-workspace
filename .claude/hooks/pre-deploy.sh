@@ -16,6 +16,9 @@
 
 set -euo pipefail
 
+# Portable interpreter: `py` exists only on Windows; cloud/Linux sandboxes have python3.
+PY="$(command -v py || command -v python3 || command -v python || echo python3)"
+
 THRESHOLD="${EVAL_THRESHOLD:-90}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -62,7 +65,7 @@ EVAL_OUTPUT=""
 EVAL_EXIT=0
 
 if [[ "$EVAL_SCRIPT" == *.py ]]; then
-    EVAL_OUTPUT=$(py "$EVAL_SCRIPT" 2>&1) || EVAL_EXIT=$?
+    EVAL_OUTPUT=$("$PY" "$EVAL_SCRIPT" 2>&1) || EVAL_EXIT=$?
 elif [[ "$EVAL_SCRIPT" == *.sh ]]; then
     EVAL_OUTPUT=$(bash "$EVAL_SCRIPT" 2>&1) || EVAL_EXIT=$?
 fi
