@@ -33,8 +33,8 @@ Three tiers are available:
 
 | Tier | Flag | Cost | When to use |
 |---|---|---|---|
-| **default** | `--tier default` (or omit) | ~$0.03/video | Standard quality, cheapest Claude path |
-| **premium** | `--tier premium` | ~$0.05/video | Best quality — richer visual analysis, more nuanced pacing notes |
+| **default** | `--tier default` (or omit) | ~$0.03/video | `claude-sonnet-5` (execution tier) — standard quality, cheapest Claude path |
+| **premium** | `--tier premium` | ~$0.10/video (estimate) | Judgement tier (`claude-fable-5-1`) — richer visual analysis, more nuanced pacing notes |
 | **gemini** | `--tier gemini` | **$0.00** | Free. Gemini reads the YouTube URL natively — no frame extraction needed. Use when user wants zero spend or to compare outputs. |
 
 If the user hasn't specified, default to `--tier default` for most videos. Suggest `--tier gemini` when the user mentions cost or wants a quick free check. Suggest `--tier premium` when deep visual analysis or a long-form video warrants it.

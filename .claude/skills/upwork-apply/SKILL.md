@@ -32,7 +32,7 @@ python3 ./scripts/upwork_proposal_generator.py \
   --output .tmp/proposals.json
 ```
 
-Uses `claude-sonnet-5` (execution tier — the model the script actually pins) for personalized cover letters.
+Uses `claude-sonnet-5` (execution tier) for personalized cover letters.
 
 ### 3. Save to Sheet
 ```bash
