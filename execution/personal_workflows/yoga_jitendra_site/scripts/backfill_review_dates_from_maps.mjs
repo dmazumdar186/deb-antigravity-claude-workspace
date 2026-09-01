@@ -115,7 +115,15 @@ async function kvList(prefix) {
   }
 }
 
+// Keys come back from remote KV via kvList — they cross a trust boundary
+// before being handed to a Windows shell (shell:true). Enforce the known
+// key shape so a hostile key can never smuggle cmd.exe metacharacters.
+function assertSafeKey(key) {
+  if (!/^[\w:.@-]+$/.test(key)) die(`suspicious KV key refused: ${JSON.stringify(key)}`);
+}
+
 async function kvGet(key) {
+  assertSafeKey(key);
   try {
     const { stdout } = await runWrangler([
       'kv', 'key', 'get',
@@ -123,10 +131,17 @@ async function kvGet(key) {
       key,
     ]);
     return stdout;
-  } catch { return null; }
+  } catch (err) {
+    // A transport/auth failure must not silently read as "key missing"
+    // (probe-failure-is-not-a-verdict) — surface it, then return null so the
+    // caller's not_in_kv path stays conservative (it never deletes).
+    warn(`kvGet failed for ${key}: ${String(err).slice(0, 200)}`);
+    return null;
+  }
 }
 
 async function kvPut(key, value) {
+  assertSafeKey(key);
   const tmpValuePath = resolve(TMP_DIR, `_val_${Date.now()}_${Math.floor(Math.random() * 1e6)}.json`);
   await mkdir(TMP_DIR, { recursive: true });
   await writeFile(tmpValuePath, value, 'utf8');

@@ -99,9 +99,39 @@ check "mandala rotation class"          "mandala-spin"
 
 echo ">> Ambient audio (chant + singing bowls loop, 2026-09-01)"
 check "audio element"                   "id=\"om-audio\""
-check "chant ambient asset wired"       "himalayan-chant\\.mp3"
+check "chant ambient asset wired"       "serene-dawn\\.mp3"
 check_absent "old birds asset gone"     "birds-dawn\\.mp3"
+check_absent "old chant asset gone"     "himalayan-chant\\.mp3"
 check "first-gesture auto-start"        "firstGesture"
+
+# The referenced asset must actually SERVE (a present <audio src> with a 404
+# behind it is silent audio — the 2026-08-03 stale-fallback class).
+AUDIO_HEAD=$(curl -sSI --max-time 30 "$URL/assets/audio/serene-dawn.mp3" 2>/dev/null || true)
+if echo "$AUDIO_HEAD" | head -1 | grep -q " 200" && echo "$AUDIO_HEAD" | grep -qi "content-type: audio/mpeg"; then
+  AUDIO_LEN=$(echo "$AUDIO_HEAD" | grep -i "^content-length:" | tr -dc '0-9')
+  if [ "${AUDIO_LEN:-0}" -gt 100000 ]; then
+    echo "  OK  ambient mp3 serves live (200, audio/mpeg, ${AUDIO_LEN} bytes)"
+  else
+    echo "  FAIL ambient mp3 suspiciously small (${AUDIO_LEN:-0} bytes)" >&2
+    FAILS=$((FAILS + 1))
+  fi
+else
+  echo "  FAIL ambient mp3 not serving as audio/mpeg 200 at /assets/audio/serene-dawn.mp3" >&2
+  FAILS=$((FAILS + 1))
+fi
+
+echo ">> Reviews page (date backfill regression guard, 2026-09-01)"
+# Virginie's Google-authoritative date. If the build ever silently falls back
+# to the 4-review seed (which has no Google reviews at all), this fails too.
+REVIEWS_FILE="$(mktemp)"
+curl -sS -L -o "$REVIEWS_FILE" --max-time 30 "$URL/reviews/" 2>/dev/null || true
+if grep -q "Virginie E" "$REVIEWS_FILE" && grep -q '"datePublished":"2026-07-14"' "$REVIEWS_FILE"; then
+  echo "  OK  reviews page carries backfilled Google review + correct date"
+else
+  echo "  FAIL reviews page missing Virginie E / datePublished 2026-07-14 (backfill regressed or seed fallback shipped)" >&2
+  FAILS=$((FAILS + 1))
+fi
+rm -f "$REVIEWS_FILE"
 
 echo ">> Today's features (2026-07-08)"
 check "lineage yantra backdrop"         "lineage-yantra-bg"
