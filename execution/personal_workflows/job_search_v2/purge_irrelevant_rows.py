@@ -31,6 +31,7 @@ if str(_WORKSPACE) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.normalizer.title_filter import classify_title  # noqa: E402
 from execution.personal_workflows.job_search_v2.normalizer.language_filter import classify_language  # noqa: E402
+from execution.personal_workflows.job_search_v2.normalizer.location_filter import load_config  # noqa: E402
 from execution.personal_workflows.job_search_v2.notifier.sheet import (  # noqa: E402
     TOP_MATCHES_TAB,
     _col_index_to_letter,
@@ -47,6 +48,22 @@ ROLE_TABS = ["PM", "AI PM", "PO", "AI PO"]
 OBSOLETE_TABS = ["AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
 
 
+def _reject_location_patterns() -> list[str]:
+    """config target_locations.reject_patterns_priority, lowercased. The purge
+    must enforce the SAME location scope the acceptance gate checks — first
+    live run of the PM/PO rework (2026-09-01, run 33534144028) failed exactly
+    here: title/language purge left 175 historical Geneva/Switzerland rows in
+    the PM tab, which the acceptance gate then (correctly) flagged."""
+    try:
+        cfg = load_config()
+        return [p.lower() for p in cfg.get("target_locations", {}).get("reject_patterns_priority", [])]
+    except Exception as exc:  # noqa: BLE001 — a broken config must not stop the
+        # title/language purge; location enforcement just degrades to off and
+        # the acceptance gate still catches any out-of-scope row downstream.
+        logger.warning("purge: could not load location reject patterns: %s", exc)
+        return []
+
+
 def _purge_tab(ws, dry_run: bool) -> tuple[int, int, list[str]]:
     """Keep only rows whose Title passes the relevance gate. Returns
     (kept, removed, sample_removed_titles)."""
@@ -59,6 +76,8 @@ def _purge_tab(ws, dry_run: bool) -> tuple[int, int, list[str]]:
     if title_i is None:
         logger.warning("%s: no Title column — skipping", ws.title)
         return 0, 0, []
+    loc_cols = [idx[c] for c in ("Country", "Location") if c in idx]
+    reject_locs = _reject_location_patterns()
 
     data_rows = [r for r in all_rows[1:] if any(c.strip() for c in r)]
     kept_rows = []
@@ -67,10 +86,12 @@ def _purge_tab(ws, dry_run: bool) -> tuple[int, int, list[str]]:
         title = row[title_i] if len(row) > title_i else ""
         rel_ok, _ = classify_title(title)
         lang_ok, _ = classify_language(title, "")
-        if rel_ok and lang_ok:
+        loc_hay = " ".join(row[i] for i in loc_cols if len(row) > i and row[i]).lower()
+        loc_ok = not (loc_hay and any(p in loc_hay for p in reject_locs))
+        if rel_ok and lang_ok and loc_ok:
             kept_rows.append(row)
         else:
-            removed_titles.append(title)
+            removed_titles.append(title if loc_ok else f"{title} [{loc_hay[:40]}]")
 
     removed = len(removed_titles)
     if dry_run or removed == 0:
