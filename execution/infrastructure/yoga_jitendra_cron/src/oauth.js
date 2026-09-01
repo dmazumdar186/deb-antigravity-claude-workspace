@@ -6,13 +6,16 @@
 // a 5-minute safety margin. Subsequent calls in the same day reuse the
 // cached access token — one refresh call per day per scope, at most.
 //
-// Refresh tokens for OAuth apps in "Testing" publishing status expire
-// after 7 days per Google policy. When refresh fails with invalid_grant,
-// the caller sees a clear error naming the scope; the source's throw
-// then bubbles up as `sources_degraded` in the rollup with actionable
-// copy in the frontend telling the operator to re-run the local script.
+// Refresh-token lifetime: the OAuth app was published to "In production"
+// on 2026-09-01 (unverified is fine at this scale) and both refresh
+// tokens were re-minted AFTER publishing, so the Testing-status 7-day
+// expiry no longer applies — tokens now live until revoked. The
+// invalid_grant handling below stays as the safety net (revocation,
+// password change, or Google-side invalidation still surface as a clear
+// re-run-the-script error instead of a bare 401).
 //
-// See plan §7.2a for the operator-approved weekly-re-auth strategy.
+// Historical: before 2026-09-01 the app was in Testing status and tokens
+// died weekly per plan §7.2a's re-auth strategy.
 
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const CACHE_KEY_PREFIX = "oauth:access:";
