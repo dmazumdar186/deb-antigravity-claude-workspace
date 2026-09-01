@@ -266,6 +266,14 @@ const structuredData = {
       var toggle = document.querySelector('[data-audio-toggle]');
       var playing = false, started = false;
 
+      /* Client A/B: ?audio=alt swaps in the alternate Pixabay track
+         (bansuri-raga-alt.mp3) for this page view only. */
+      try {
+        if (omEl && new URLSearchParams(location.search).get('audio') === 'alt') {
+          omEl.src = '/assets/audio/bansuri-raga-alt.mp3';
+        }
+      } catch (e) {}
+
       var userMuted = false;
       try { userMuted = localStorage.getItem('yj_muted') === '1'; } catch (e) {}
 

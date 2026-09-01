@@ -111,10 +111,10 @@ check "first-gesture auto-start"        "firstGesture"
 AUDIO_HEAD=$(curl -sSI --max-time 30 "$URL/assets/audio/bansuri-studio.mp3" 2>/dev/null || true)
 if echo "$AUDIO_HEAD" | head -1 | grep -q " 200" && echo "$AUDIO_HEAD" | grep -qi "content-type: audio/mpeg"; then
   AUDIO_LEN=$(echo "$AUDIO_HEAD" | grep -i "^content-length:" | tr -dc '0-9')
-  if [ "${AUDIO_LEN:-0}" -gt 100000 ]; then
+  if [ "${AUDIO_LEN:-0}" -gt 100000 ] && [ "${AUDIO_LEN:-0}" -lt 8000000 ]; then
     echo "  OK  ambient mp3 serves live (200, audio/mpeg, ${AUDIO_LEN} bytes)"
   else
-    echo "  FAIL ambient mp3 suspiciously small (${AUDIO_LEN:-0} bytes)" >&2
+    echo "  FAIL ambient mp3 out of size bounds 100KB-8MB (${AUDIO_LEN:-0} bytes)" >&2
     FAILS=$((FAILS + 1))
   fi
 else

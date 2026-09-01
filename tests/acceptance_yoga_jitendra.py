@@ -123,6 +123,12 @@ BANNED_STRINGS = [
     ("no dollar-price literal",           "€60"),
     ("no dead formant-Om code",           "playOm"),
     ("no dead flute code",                "playFluteNote"),
+    # Retired ambient-audio iterations (all client-rejected; ambient v4+ is
+    # the licensed Pixabay recording bansuri-studio.mp3):
+    ("no retired birds audio",            "birds-dawn.mp3"),
+    ("no retired chant audio",            "himalayan-chant.mp3"),
+    ("no retired piano audio",            "serene-dawn.mp3"),
+    ("no retired synth-bansuri audio",    "bansuri-dawn.mp3"),
     # Post-i18n restructure: no leftover data-lang-content markup or JS toggle.
     ("no data-lang-content markup",       "data-lang-content"),
     ("no data-lang-switch button",        "data-lang-switch"),
