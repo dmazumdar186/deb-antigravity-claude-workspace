@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Reviews code for bugs, security issues, and forbidden patterns. Returns PASS/FAIL verdict with severity-ranked issues and fix suggestions.
-model: claude-fable-5  # judgement tier -- review is analysis, not mundane execution
+model: claude-sonnet-5  # driving tier -- code review (token-economy sweep 2026-09-01)
 tools:
   - Read
   - Glob

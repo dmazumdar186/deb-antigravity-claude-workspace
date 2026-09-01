@@ -1,19 +1,6 @@
 ---
 name: mobile-app
-description: |
-  Scaffold and ship cross-platform mobile apps (Expo + React Native) from
-  zero to TestFlight / Play Store on a Windows machine. Wraps Nick Saraev's
-  full course (transcript: Claude Code Mobile App Dev 1.pdf) — 5-principle
-  app design framework, 3-tier testing, two backend tracks (CF Worker +
-  Modal cron OR Supabase), 2-pass security audit, and EAS cloud builds
-  (no Xcode required).
-
-  Triggers on: "build a mobile app", "new expo app", "/mobile-app",
-  "ship to TestFlight", "ship to Play Store", "scaffold a mobile app".
-
-  Sub-commands: `preflight`, `design {slug}`, `new {slug}`, `phase {n}`
-  (1, 2, 3, 4a, 4b, 4c, 4d, 5a, 5b, 5b_supabase), `audit {slug}`,
-  `ship ios`, `ship android`.
+description: Scaffold and ship cross-platform mobile apps (Expo + React Native) from zero to TestFlight / Play Store from Windows via EAS cloud builds. Triggers on "build a mobile app", "new expo app", /mobile-app. Sub-commands: preflight, design, new, phase {n}, audit, ship ios, ship android.
 user_invocable: true
 ---
 

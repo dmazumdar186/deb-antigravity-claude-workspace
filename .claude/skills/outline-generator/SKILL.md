@@ -1,7 +1,6 @@
 ---
 name: outline-generator
-description: >
-  Generate structured YouTube course outlines from an idea + research context. Produces title options, scripted hooks, wow moments, and detailed section breakdowns with demos, prompts, sources, and links. Use when creating course outlines, planning longform YouTube content, or building 2-3 hour educational videos. Triggers on "outline", "course outline", "generate outline", "plan a course", or /outline-generator.
+description: Generate structured YouTube course outlines (title options, scripted hooks, wow moments, detailed section breakdowns) from an idea + research context. Triggers on "outline", "course outline", "plan a course", or /outline-generator.
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit, Task
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.

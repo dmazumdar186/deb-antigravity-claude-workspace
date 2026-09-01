@@ -1,6 +1,6 @@
 ---
 name: ad-creative
-description: Generate ad creative at volume via the three-tier pipeline (procedural HTML/CSS/SVG compositing, direct-gen image models, UGC video). Use when the user asks to create ad creative, ad variants, a creative batch, ad copy with visuals, or to run the creative pipeline. Triggers on "ad creative", "generate ads", "ad batch", "ad variants", or /ad-creative. Only worth running when creative production is the actual bottleneck.
+description: Generate ad creative at volume via the three-tier pipeline (procedural HTML/CSS/SVG compositing, direct-gen image models, UGC video). Triggers on "ad creative", "generate ads", "ad batch", "ad variants", or /ad-creative.
 ---
 
 # Ad Creative — three-tier generation pipeline

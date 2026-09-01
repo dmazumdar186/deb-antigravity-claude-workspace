@@ -1,17 +1,7 @@
 ---
 name: remotion
 user_invocable: true
-description: |
-  Author, preview, and render Remotion motion-graphics compositions with
-  @remotion/three (React Three Fiber) baked in. Directives live in
-  directives/video/remotion_*.md; execution scripts in execution/video/.
-
-  Triggers on: "remotion", "/remotion", "animated video", "motion graphics",
-  "alpha overlay for davinci", "3d video with three.js",
-  "render video from react", "make a video in remotion",
-  "new remotion project".
-
-  Sub-commands: preflight, new {slug}
+description: Author, preview, and render Remotion motion-graphics compositions with @remotion/three baked in. Triggers on "remotion", "animated video", "motion graphics", "alpha overlay for davinci", "render video from react", or /remotion. Sub-commands: preflight, new {slug}.
 ---
 
 # Remotion

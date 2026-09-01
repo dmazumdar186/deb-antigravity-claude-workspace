@@ -1,7 +1,6 @@
 ---
 name: stochastic-multi-agent-consensus
-description: >
-  Spawn N agents with the same prompt (slight framing variations) to independently analyze a problem, then aggregate results by consensus. Use for decision-making, ranking options, strategic analysis, or any problem where you want to filter hallucinations and surface high-variance ideas. Triggers on "consensus", "poll agents", "stochastic consensus", "spawn N agents to analyze", "multi-agent vote", or /stochastic-multi-agent-consensus. Also triggers on phrases like "what do 10 agents think", "get multiple opinions", or "poll on [topic]".
+description: Spawn N agents on the same prompt with slight framing variations, then aggregate by consensus — for decisions, rankings, strategic analysis, hallucination filtering. Triggers on "consensus", "poll agents", "multi-agent vote", "what do 10 agents think", or /stochastic-multi-agent-consensus.
 allowed-tools: Read, Grep, Glob, Bash, Task, Write, Edit
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.

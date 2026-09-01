@@ -1,16 +1,6 @@
 ---
 name: youtube-video-analyzer
-description: |
-  Extract a frame-by-frame breakdown of any YouTube video — the hook, the
-  cuts, the visual storytelling, the pacing, transcript highlights, and
-  content ideas. Goes beyond plain transcripts by using PySceneDetect to find
-  real scene cuts, deduplicating near-identical frames, tiling them into
-  compact 3×3 grids, and analyzing with Claude's vision via tool-use — or
-  passing the URL directly to Gemini for a completely free run.
-  Use whenever the user pastes a YouTube URL and asks to "analyze", "break
-  down", "study", or "extract ideas from" the video. Also triggers on "what's
-  the hook in this video", "how is this video structured", or any request to
-  learn from a specific YouTube creator with a link attached.
+description: Frame-by-frame breakdown of any YouTube video — hook, scene cuts, pacing, transcript highlights, content ideas — via PySceneDetect + vision analysis (or a free Gemini run). Use whenever the user pastes a YouTube URL and asks to analyze, break down, study, or extract ideas from it.
 user_invocable: true
 ---
 

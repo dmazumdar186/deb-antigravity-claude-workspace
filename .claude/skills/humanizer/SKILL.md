@@ -1,21 +1,6 @@
 ---
 name: humanizer
-description: |
-  Strip AI-tells from text and rewrite it in a personal voice profile so it
-  reads as natural human writing before sending. Four-stage pipeline:
-  deterministic pre-pass (free) + LLM rewrite via tool-use + platform
-  post-processing. Voice profiles are JSON files with real writing samples
-  that teach the LLM to match the person's actual cadence.
-
-  Triggers on: "humanize this", "make this sound less AI", "make this less
-  robotic", "rewrite in my voice", "paste-ready", "clean this up so it
-  sounds like me", "rewrite for LinkedIn", "make this sound human",
-  "remove the AI from this", "strip the AI", "make this sound like Debanjan",
-  "humanize before I send this".
-
-  Also triggers when the user pastes a block of AI-generated text and says
-  "fix this" or "send this to [person/platform]" — it almost certainly needs
-  humanizing first.
+description: Strip AI-tells from text and rewrite it in a personal voice profile so it reads as natural human writing before sending. Triggers on "humanize this", "make this sound less AI", "rewrite in my voice", "paste-ready", "make this sound like Debanjan", or when pasted AI-generated text needs to be sent somewhere.
 user_invocable: true
 ---
 

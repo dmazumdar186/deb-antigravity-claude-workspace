@@ -52,6 +52,36 @@ Hook events for Agent Teams (`TeammateIdle`, `TaskCreated`, `TaskCompleted`) int
 that file alone wins over the other two, so it is the fastest rollback.
 
 
+## 2026-09-01 — token-economy sweep (branch `claude/optimize-token-consumption-0svgma`)
+
+Operator was hitting the 5-hour usage cap constantly. Root causes: Fable 5 as the
+everywhere-default (usage limits are model-weighted; Fable ≈ 5x Sonnet) and ~15k tokens of
+fixed context re-sent on every model call. Changes:
+
+- `.claude/settings.json` `model`: `claude-fable-5` → `claude-sonnet-5`. Fable 5 is now an
+  **escalation tier** (`/model claude-fable-5` for architecture/judgement moments), not a default.
+- Agent pins: `anneal-reviewer`, `code-reviewer`, `qa` → `claude-sonnet-5`;
+  `pipeline-auditor` → `claude-opus-5` (one strong adversarial lens retained).
+  `documenter`/`note-taker` unchanged (`claude-sonnet-5`).
+- CLAUDE.md cut 21.9k → ~6.3k chars (~4k tokens/turn saved); tables and setup detail moved
+  to `directives/README.md` and `docs/reference/enforcement.md`. AGENTS.md/GEMINI.md re-mirrored.
+- New always-active rule: `.claude/rules/token-economy.md` (context-rent budget, model
+  ladder, in-session hygiene). `always-parallelize.md` condensed 5.7k → 1.6k chars.
+- 10 longest skill frontmatter descriptions trimmed to ≤ ~320 chars (skill bodies untouched
+  — they only load on invocation).
+- `.mcp.json`: removed the `github` server — its ~90 tool schemas load every turn locally,
+  and `gh` CLI covers the same operations; cloud sessions get their own GitHub MCP anyway.
+
+**REQUIRED LOCAL FOLLOW-UP (cloud session cannot do this):** on the Windows machine set
+`"model": "claude-sonnet-5"` in BOTH `~/.claude/settings.json` and
+`.claude/settings.local.json` (or delete the `model` key from `settings.local.json`).
+`settings.local.json` overrides the project file, so without this the Fable pin stays live.
+Also update `~/.claude/rules/model-tier.md`, which still says "everything non-mundane is
+Fable 5" — new phrasing: "Sonnet drives; Fable by deliberate escalation; Opus audits."
+
+**Revert (one line each):** `"model": "claude-fable-5"` back in `.claude/settings.local.json`;
+`git checkout` the agent `.md` files; restore the `github` block in `.mcp.json` from git history.
+
 ## Reverting
 
 To disable Agent Teams: remove the `env` block (or just the two new keys) from `.claude/settings.json`. Restart Claude Code. No other workspace files depend on this opt-in.
