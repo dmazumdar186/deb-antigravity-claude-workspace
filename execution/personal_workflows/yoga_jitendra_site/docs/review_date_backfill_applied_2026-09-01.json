@@ -1,0 +1,114 @@
+{
+  "ts": "2026-09-01T07:43:49.579Z",
+  "apply": true,
+  "rescrape": false,
+  "intermediate_path": "C:\\Users\\deban\\OneDrive\\Documents\\AntiGravity Project Space\\.tmp\\yoga_jitendra_reviews_backfill_2026-08-04.json",
+  "counts": {
+    "skip_no_match": 6,
+    "update": 4,
+    "not_in_kv": 1
+  },
+  "decisions": [
+    {
+      "key": "review:approved:2026-07-24T14:15:38.512Z:c882dcf4",
+      "id": "c882dcf4-8c57-4b32-bf37-147053d85dfc",
+      "name": "Franck",
+      "decision": "skip_no_match"
+    },
+    {
+      "key": "review:approved:2026-07-24T14:40:07.097Z:59cdf544",
+      "id": "59cdf544-4356-4c32-a350-fb9031b52a7a",
+      "name": "Virginie E",
+      "decision": "update",
+      "before": {
+        "submitted_at": "2026-07-24T14:40:07.097Z",
+        "edited_at": "2026-07-24T14:45:24.737Z"
+      },
+      "after": {
+        "submitted_at": "2026-07-14T15:10:37.612Z",
+        "edited_at": "2026-09-01T07:43:49.579Z"
+      },
+      "diff_days": -9.978813483796296
+    },
+    {
+      "key": "review:approved:2026-07-24T14:41:11.693Z:448997e6",
+      "id": "448997e6-a76d-410e-8621-68d901fde06a",
+      "name": "Atlasia Atlasia",
+      "decision": "update",
+      "before": {
+        "submitted_at": "2026-07-17T00:00:00.000Z",
+        "edited_at": null
+      },
+      "after": {
+        "submitted_at": "2026-07-11T17:08:34.172Z",
+        "edited_at": "2026-09-01T07:43:49.579Z"
+      },
+      "diff_days": -5.285715601851852
+    },
+    {
+      "key": "review:approved:2026-07-24T14:42:15.510Z:e355b72a",
+      "id": "e355b72a-3309-4648-9354-7481272a230d",
+      "name": "Sakshi Dobhal",
+      "decision": "update",
+      "before": {
+        "submitted_at": "2026-07-15T00:00:00.000Z",
+        "edited_at": null
+      },
+      "after": {
+        "submitted_at": "2026-07-11T12:19:06.845Z",
+        "edited_at": "2026-09-01T07:43:49.579Z"
+      },
+      "diff_days": -3.4867263310185184
+    },
+    {
+      "key": "review:approved:2026-07-24T14:42:52.988Z:9e8592e5",
+      "id": "9e8592e5-af9c-4b3e-884f-2ba2a591e01c",
+      "name": "Sejal odedra",
+      "decision": "update",
+      "before": {
+        "submitted_at": "2026-07-18T00:00:00.000Z",
+        "edited_at": null
+      },
+      "after": {
+        "submitted_at": "2026-07-11T11:44:26.329Z",
+        "edited_at": "2026-09-01T07:43:49.579Z"
+      },
+      "diff_days": -6.510806377314815
+    },
+    {
+      "key": "review:approved:2026-07-24T14:43:37.774Z:af28f8dc",
+      "id": "af28f8dc-8084-4943-81ff-0131d7fcc58b",
+      "name": "Debanjan Mazumdar",
+      "decision": "skip_no_match"
+    },
+    {
+      "key": "review:approved:2026-08-05T13:26:22.652Z:063c5510",
+      "id": "063c5510-b6a4-48ea-acd3-04f95dcafaa1",
+      "name": "christelle",
+      "decision": "skip_no_match"
+    },
+    {
+      "key": "review:approved:2026-08-05T13:28:21.647Z:7fd00c46",
+      "id": "7fd00c46-ab93-44d7-9cff-f00a9fea6f82",
+      "name": "Xavier",
+      "decision": "skip_no_match"
+    },
+    {
+      "key": "review:approved:2026-08-05T13:29:48.859Z:0e2e1104",
+      "id": "0e2e1104-c686-4159-8107-f8bd86b61564",
+      "name": "Anastazia Pikus",
+      "decision": "skip_no_match"
+    },
+    {
+      "key": "review:approved:2026-08-05T13:30:29.601Z:3a6d9275",
+      "id": "3a6d9275-905d-490b-9dc7-91f39cd59f92",
+      "name": "Samya",
+      "decision": "skip_no_match"
+    },
+    {
+      "id": "7f87d709-d444-4d21-9736-fb59498149ff",
+      "name": "Xavier",
+      "decision": "not_in_kv"
+    }
+  ]
+}
