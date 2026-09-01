@@ -126,6 +126,11 @@ outreach is dormant) click its "…"/configure control → Disconnect/Remove. Ap
 attaches ~70 tool definitions to every cloud session. Reconnecting later is one click on
 the same page.
 
+**DONE 2026-09-01** — operator disconnected Apollo (~70 tools), Spotify, and Upwork;
+verified live from the cloud session (their MCP servers dropped mid-session, ~75 tool
+definitions gone from every future cloud session). The token-economy sweep (revs A-D) is
+now fully closed: no open items.
+
 ## Reverting
 
 To disable Agent Teams: remove the `env` block (or just the two new keys) from `.claude/settings.json`. Restart Claude Code. No other workspace files depend on this opt-in.
