@@ -659,14 +659,18 @@ def _profile_aware_heuristic(
             weight_sum += _SKILL_LEVEL_WEIGHT.get(s.get("level", "familiar"), 1.0)
     skill_overlap = min(1.0, weight_sum / _SKILL_OVERLAP_NORM)
 
-    # Contract fit.
+    # Contract fit. Floor is 0.2, not 0.0 (2026-09-01 recall hardening):
+    # _compute_final_score hard-zeroes the whole job when contract_fit == 0,
+    # so a relevant PM/PO job whose contract was mislabeled (e.g. parsed as
+    # freelance) would vanish entirely. 0.2 keeps it visible as a low tier
+    # instead. Internships never reach here — contract_filter drops them.
     track_contracts = [c.lower() for c in track_cfg.get("contract_types", [])]
     if contract and contract in track_contracts:
         contract_fit = 1.0
     elif not contract or contract == "unknown":
         contract_fit = 0.6
     else:
-        contract_fit = 0.0  # wrong contract for chosen track
+        contract_fit = 0.2  # wrong contract for chosen track — low, not fatal
 
     # Seniority fit.
     if any(t in haystack for t in _JUNIOR_TOKENS):

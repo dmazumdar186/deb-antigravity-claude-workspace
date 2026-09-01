@@ -497,10 +497,12 @@ def main() -> int:
                              "ANTHROPIC_API_KEY is in env. Costs ~$0.12 per run when active.")
     parser.add_argument("--sonnet-rerank-top-n", type=int, default=25,
                         help="How many top-of-first-pass jobs to send to Sonnet (default 25).")
-    parser.add_argument("--max-digest-jobs", type=int, default=25,
-                        help="Cap on jobs in the email digest + sheet append (default 25). "
-                             "Sorted by ranker score descending if scored, else posted_at descending. "
-                             "Excess jobs are still recorded in the dedup DB so they don't re-surface tomorrow.")
+    parser.add_argument("--max-digest-jobs", type=int, default=60,
+                        help="Cap on jobs in the email digest + sheet append (default 60; raised "
+                             "from 25 on 2026-09-01 when the geo scope widened to 6 countries — "
+                             "capped-out jobs are recorded in the dedup DB and NEVER resurface, so "
+                             "a too-low cap silently loses relevant jobs). "
+                             "Sorted by ranker score descending if scored, else posted_at descending.")
     parser.add_argument("--min-hours-between-emails", type=float, default=6.0,
                         help="Skip the email send if a digest was already sent in the last N hours "
                              "(default 22h). Stops the dual-cron-at-07:00+08:00-UTC double-send. "

@@ -124,6 +124,8 @@ MUST_REJECT_BY_TITLE = [
     "Consultant IA (production images & vidéos) (H/F/X) - Freelance",
     "Head of AI",
     "Product Marketing Manager",
+    # A bare "PM" must NOT rescue a project-manager title (abbrev guard).
+    "Chef de Projet PM",
 ]
 
 # Titles the LANGUAGE gate must reject. These are genuinely-German (or other
@@ -166,6 +168,9 @@ MUST_KEEP = [
     # out of scope at the TITLE gate.)
     "Senior Product Manager - Engagement (all genders)",
     "Product Owner Secteur Immobilier (H/F)",
+    # FR ads abbreviating the role (2026-09-01 recall hardening — Gate 2b).
+    "PO Data (H/F)",
+    "PM Senior - Fintech H/F",
 ]
 
 

@@ -38,7 +38,9 @@ in [0, 1]:
    `contract_types`?
    - 1.0 = exact (CDI for Track A — AI/Senior PM; CDI/CDD for Track B — PO)
    - 0.6 = ambiguous ("contract type unknown" for a target country)
-   - 0.0 = wrong (internship/alternance; freelance-only body-shop staffing)
+   - 0.2 = wrong-but-not-internship (e.g. freelance-only PM posting) — keep
+     it visible as a low tier; 0.0 auto-SKIPs the job entirely, so reserve it
+   - 0.0 = internship / alternance ONLY
 
 4. **seniority_fit** — does the title/description imply ≥ `min_seniority`?
    - 1.0 = explicit Senior / Lead / Principal / Head / Director / Staff

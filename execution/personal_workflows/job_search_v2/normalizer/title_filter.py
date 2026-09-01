@@ -64,6 +64,12 @@ HARD_REJECT_REASONS = {"internship_or_alternance", "junior_or_graduate"}
 # missed "Intern" at end-of-title). This regex closes both gaps.
 _INTERN_RE = re.compile(r"\bintern(s|ship|ships)?\b", re.IGNORECASE)
 
+# 2026-09-01 recall hardening: FR ads frequently abbreviate the role to a bare
+# "PO" / "PM" ("PO Data H/F", "PM Senior - Fintech"). Word-boundary so "PMO",
+# "import/export", "tempo" can't trip it. Honored ONLY when the title does not
+# also say project manager — "Chef de Projet PM" is a project manager.
+_PM_PO_ABBREV_RE = re.compile(r"\b(pm|po)\b")
+
 # ---------------------------------------------------------------------------
 # RELEVANCE ALLOWLIST (2026-06-24 — the core fix)
 #
@@ -199,10 +205,17 @@ def classify_title(title: str) -> tuple[bool, str]:
 
     # Gate 3: project-manager exclusion. "AI Project Manager" / "Chef de
     # projet" are a different role. Reject UNLESS a genuine product/AI anchor
-    # also appears (e.g. "Product Manager / Project Manager").
+    # also appears (e.g. "Product Manager / Project Manager"). Checked BEFORE
+    # the abbrev fallback so "Chef de Projet PM" can't ride in on the "PM".
     pm_project_hit = any(s in t for s in REJECT_SUBSTRINGS["project_manager"])
     if pm_project_hit and not has_anchor:
         return False, "reject:project_manager"
+
+    # Gate 2b: bare "PO" / "PM" abbreviation (recall hardening — see
+    # _PM_PO_ABBREV_RE). Only reached when no full anchor matched and the
+    # title is not a project-manager hit.
+    if not has_anchor and _PM_PO_ABBREV_RE.search(t):
+        return True, "accept:abbrev"
 
     # Gate 2: relevance allowlist. No anchor → not his profile.
     if not has_anchor:
@@ -223,6 +236,12 @@ def filter_by_title(jobs: list[NormalizedJob]) -> tuple[list[NormalizedJob], dic
     """
     kept: list[NormalizedJob] = []
     by_reason: dict[str, int] = {}
+    # Recall audit trail (2026-09-01): every rejected title+reason is kept in
+    # the stats (capped) so it lands in pipeline_stats → run_log.jsonl → the
+    # CI run artifact. A suspected missed job is then a grep away instead of
+    # invisible. Cap keeps the log sane on a noisy fetch day.
+    rejected_sample: list[dict] = []
+    _REJECT_SAMPLE_CAP = 300
     for job in jobs:
         ok, reason = classify_title(job.title)
         # Track by short reason key (strip the "reject:" / "accept:" prefix).
@@ -230,11 +249,14 @@ def filter_by_title(jobs: list[NormalizedJob]) -> tuple[list[NormalizedJob], dic
         by_reason[key] = by_reason.get(key, 0) + 1
         if ok:
             kept.append(job)
+        elif len(rejected_sample) < _REJECT_SAMPLE_CAP:
+            rejected_sample.append({"title": (job.title or "")[:120], "reason": key})
     stats = {
         "requested": len(jobs),
         "kept": len(kept),
         "rejected": len(jobs) - len(kept),
         "by_reason": by_reason,
+        "rejected_sample": rejected_sample,
     }
     logger.info("title_filter: %s", stats)
     return kept, stats
