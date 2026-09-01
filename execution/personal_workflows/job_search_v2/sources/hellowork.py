@@ -60,25 +60,19 @@ TMP_DIR = PROJECT_ROOT / ".tmp" / "job_search_v2"
 SEARCH_URL = "https://www.hellowork.com/fr-fr/emploi/recherche.html"
 DETAIL_URL_FMT = "https://www.hellowork.com/fr-fr/emplois/{job_id}.html"
 
-# Keyword set matches the operator's tracks. EN + FR only — matches the
+# Keyword set — 2026-09-01 rework: PM/PO-ONLY (operator-stated; engineer /
+# consultant / automation keywords removed). EN + FR only — matches the
 # 2026-06-24 hard constraint set by WTTJ + LinkedIn sources.
 DEFAULT_KEYWORDS = [
-    # --- Track A: Permanent AI PM ---
-    "AI product manager",
+    "product manager",
     "senior product manager",
     "lead product manager",
+    "AI product manager",
     "head of product",
-    "GenAI product manager",
-    "product manager",
+    "product owner",
+    "senior product owner",
     "chef de produit",
     "responsable produit",
-    # --- Track B: Freelance AI Automation / Builder ---
-    "AI automation",
-    "AI consultant",
-    "AI engineer",
-    "consultant IA",
-    "automatisation IA",
-    "claude code",
 ]
 
 # Locations — Hellowork's location filter is a free-text field that takes

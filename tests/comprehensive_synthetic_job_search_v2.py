@@ -66,7 +66,7 @@ KNOWN_SOURCES = {
     "remoteok", "weworkremotely",
     "fixture", "",
 }
-ROLE_TABS = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
+ROLE_TABS = ["PM", "AI PM", "PO", "AI PO"]
 
 PLACEHOLDER_RX = re.compile(r"(parse error|no GEMINI_API_KEY|ranker unavailable)", re.IGNORECASE)
 

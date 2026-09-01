@@ -486,7 +486,7 @@ def rank_jobs(
         stats["chunk_failures"] = chunk_failures
 
     # Any job not in any response → profile-aware heuristic fallback. The
-    # legacy substring heuristic (kept below as `_heuristic_score_legacy`)
+    # (a legacy substring heuristic was removed 2026-09-01 in the PM/PO rework)
     # had no profile context and ranked anything matching keywords. The new
     # path runs the SAME 5-dim algorithm the LLM uses, just deterministically
     # in Python — so the fallback path now produces operator-coherent tiers
@@ -634,12 +634,8 @@ def _profile_aware_heuristic(
     title_b = _title_score(track_b.get("targeted_titles", []),
                            track_b.get("anti_titles", []))
 
-    # Description tells: "freelance" / "mission" / "tjm" boost Track B
-    track_b_desc_tells = ("freelance", "mission", "tjm", "/jour", "daily rate",
-                          "indépendant", "independant", "contract")
-    if any(t in haystack for t in track_b_desc_tells):
-        title_b = min(1.0, title_b + 0.2)
-
+    # 2026-09-01 rework: Track B is now Product Owner (CDI), not freelance —
+    # the old freelance-tell boost ("mission"/"tjm"/…) is gone with it.
     if title_b > title_a:
         chosen_track = "B"
         track_cfg = track_b
@@ -687,8 +683,10 @@ def _profile_aware_heuristic(
         location_fit = 1.0
     elif any(r in loc for r in ok_remote) or "remote" in loc:
         location_fit = 1.0 if "eu" in loc or "europe" in loc else 0.7
-    elif any(c in loc for c in ("france", "germany", "belgium", "switzerland",
-                                 "schengen", "deutschland")):
+    elif any(c in loc for c in ("france", "germany", "deutschland", "allemagne",
+                                 "belgium", "belgique", "poland", "polska",
+                                 "pologne", "austria", "österreich", "autriche",
+                                 "luxembourg", "schengen")):
         location_fit = 0.7
     elif any(c in loc for c in ("spain", "italy", "netherlands", "portugal")):
         location_fit = 0.3
@@ -703,156 +701,6 @@ def _profile_aware_heuristic(
         "location_fit": location_fit,
     }
     return dims, chosen_track, matched[:12], []
-
-
-# ----- legacy heuristic (kept for reference; no longer the fallback path) -----
-
-
-# Track A (Permanent AI PM) signals.
-_TRACK_A_HIGH = (
-    "ai product manager", "genai product manager", "ml product manager",
-    "llm product manager", "ai/ml product manager",
-    "head of product", "vp product", "vp of product", "chief product officer",
-    "senior ai product manager", "lead ai product manager",
-    "chef de produit ia", "responsable produit ia",
-    "directeur produit", "directrice produit",
-)
-_TRACK_A_MEDIUM = (
-    "senior product manager", "lead product manager", "principal product manager",
-    "staff product manager", "product lead",
-    "chef de produit senior", "responsable produit senior",
-    "product manager", "product owner",
-    "chef de produit", "responsable produit",
-)
-
-# Track B (Freelance AI Automation / Claude Code / React Native) signals.
-_TRACK_B_HIGH = (
-    "ai automation engineer", "ai automation specialist", "ai automation consultant",
-    "ai engineer", "claude code",
-    "ai consultant", "ai strategy consultant", "ai transformation consultant",
-    "ai solutions consultant", "ai advisor",
-    "react native developer", "react native engineer",
-    "consultant ia", "automatisation ia",
-)
-_TRACK_B_MEDIUM = (
-    "ai mobile", "mobile ai", "automation engineer",
-    "process automation", "ai process",
-    "freelance ai", "ai contractor",
-    "head of ai", "ai lead",
-)
-
-# Signals in the description that boost Track B (the listing IS a freelance/
-# mission framing). Track B is about role TYPE as much as title.
-_FREELANCE_DESC_TELLS = (
-    "freelance", "contract", "contractor", "consultant",
-    "mission", "tjm", "/jour", "/day", "daily rate",
-    "indépendant", "independant",
-)
-# Major-city / region targets across all 4 in-scope countries. Anything in this
-# tuple gets the full location weight; "france/germany/belgium/switzerland"
-# country-name match gets a slightly lower weight; everything else is the floor.
-_HIGH_SIGNAL_LOCATIONS = (
-    # France
-    "paris", "île-de-france", "ile-de-france",
-    "lyon", "toulouse", "marseille", "bordeaux", "nantes", "lille",
-    # Germany
-    "berlin", "munich", "münchen", "muenchen", "hamburg",
-    "frankfurt", "köln", "koeln", "cologne", "düsseldorf", "duesseldorf", "stuttgart",
-    # Belgium
-    "brussels", "bruxelles", "brussel", "antwerp", "anvers", "antwerpen",
-    "ghent", "gent", "gand", "leuven", "louvain", "liège", "liege",
-    # Switzerland
-    "geneva", "genève", "geneve", "genf",
-    "zurich", "zürich", "lausanne", "bern", "berne", "basel", "bâle", "lugano",
-    # Remote-EU friendlies
-    "remote (france)", "remote (germany)", "remote (belgium)", "remote (switzerland)",
-    "remote (europe)", "remote (eu)",
-)
-_TARGET_COUNTRY_NAMES = (
-    "france", "germany", "deutschland",
-    "belgium", "belgique", "belgië", "belgie",
-    "switzerland", "suisse", "schweiz", "svizzera",
-)
-
-
-def _heuristic_score(job: NormalizedJob) -> float:
-    """Deterministic 0..1 score for when the LLM is unavailable.
-
-    Tracks-aware (2026-06-24 reset against operator's CV + Malt + GitHub):
-      Track A — Permanent AI PM. Title-driven.
-      Track B — Freelance AI Automation / Claude Code / React Native.
-                Title + freelance-tells in description.
-    Final score = max(track_a_score, track_b_score) so a job that's a
-    great fit for EITHER track gets credit.
-
-    Per-track weights (sum to 1.0 inside each track):
-      title  0.6  — track-specific high (1.0), medium (0.6), else (0.2)
-      loc    0.25 — high-signal city = 1.0; target country = 0.7;
-                    remote/hybrid = 0.7; else 0.3
-      type   0.15 — Track A wants CDI; Track B wants Freelance/Contract.
-                    Unknown contract in target country = neutral 0.6.
-    """
-    title = (job.title or "").lower()
-    desc = (job.description_snippet or "").lower()
-    loc = (job.location or "").lower()
-    contract = (job.contract_type.value or "").lower()
-
-    # Track-specific title scores.
-    if any(t in title for t in _TRACK_A_HIGH):
-        track_a_title = 1.0
-    elif any(t in title for t in _TRACK_A_MEDIUM):
-        track_a_title = 0.6
-    else:
-        track_a_title = 0.2
-
-    if any(t in title for t in _TRACK_B_HIGH):
-        track_b_title = 1.0
-    elif any(t in title for t in _TRACK_B_MEDIUM):
-        track_b_title = 0.6
-    else:
-        track_b_title = 0.2
-
-    # Location score — shared across tracks. Paris+50km is operator's stated
-    # on-site zone; rest of France is fine; DE/BE/CH-English is fine (the
-    # language filter ensures the listing is in EN/FR).
-    if any(t in loc for t in _HIGH_SIGNAL_LOCATIONS):
-        loc_s = 1.0
-    elif any(c in loc for c in _TARGET_COUNTRY_NAMES) or "remote" in loc or "hybrid" in loc:
-        loc_s = 0.7
-    else:
-        loc_s = 0.3
-
-    in_target_country = loc_s >= 0.7
-
-    # Contract scores DIFFER per track.
-    if contract == "cdi":
-        track_a_type = 1.0
-        track_b_type = 0.2  # CDI not what Track B is looking for
-    elif contract == "freelance":
-        track_a_type = 0.3
-        track_b_type = 1.0
-    elif contract == "cdd":
-        track_a_type = 0.5
-        track_b_type = 0.4
-    elif contract in ("unknown", "") and in_target_country:
-        # Source didn't expose contract — neutral.
-        track_a_type = 0.6
-        track_b_type = 0.6
-    else:
-        track_a_type = 0.2
-        track_b_type = 0.2
-
-    # Freelance-tell boost for Track B — if the description explicitly mentions
-    # freelance/mission/TJM/daily-rate, this is more clearly a Track B fit.
-    if any(t in desc for t in _FREELANCE_DESC_TELLS):
-        track_b_type = max(track_b_type, 0.8)
-        # Also boost Track B title a notch (signals are reinforcing).
-        track_b_title = min(1.0, track_b_title + 0.2)
-
-    track_a_score = 0.6 * track_a_title + 0.25 * loc_s + 0.15 * track_a_type
-    track_b_score = 0.6 * track_b_title + 0.25 * loc_s + 0.15 * track_b_type
-
-    return round(max(track_a_score, track_b_score), 4)
 
 
 def main() -> int:

@@ -86,30 +86,21 @@ DEFAULT_GEO_ID = "104246759"
 # would miss in DE / CH-Deutschschweiz / BE-Flanders / CH-Ticino respectively. Each
 # entry is a separate search request; cross-keyword overlap dedups by jobId for free.
 DEFAULT_KEYWORDS = [
-    # 2026-06-30 anti-bot tightening: cut from 30 keywords to 10. The prior
-    # set caused LinkedIn search-side blocks on 2/30 queries in cron run
-    # 28441297021 ("AI automation specialist", "mobile developer freelance"
-    # both returned page-1 < 1024 bytes after retries — soft rate-limit
-    # signal). 10 high-signal keywords cover both tracks via cross-keyword
-    # overlap (the dedup layer collapses any duplicates) and keep us under
-    # LinkedIn's anon-tier crawl ceiling.
-    #
-    # EN + FR ONLY (operator hard constraint). Track A = Permanent AI PM,
-    # Track B = Freelance AI Automation / Claude Code / React Native.
-
-    # --- Track A: Permanent AI PM (5 keywords) ---
-    "AI product manager",
+    # 2026-09-01 rework: PM/PO-ONLY (operator-stated — engineer/consultant
+    # keywords were flooding the digest with Full-Stack-AI-Engineer noise).
+    # EN + FR ONLY (operator hard constraint). Kept to 7 keywords so the
+    # 6-country fan-out in run.py (7 kw x 6 geoIds = 42 queries) stays under
+    # LinkedIn's anon-tier crawl ceiling (2026-06-30 anti-bot lesson: >40ish
+    # queries triggered soft rate-limits). "product manager"/"product owner"
+    # fuzzy-match all the data/growth/technical/platform/AI variants; the
+    # dedup layer collapses cross-keyword overlap for free.
+    "product manager",
     "senior product manager",
-    "lead product manager",
+    "AI product manager",
+    "product owner",
+    "senior product owner",
     "head of product",
-    "chef de produit",        # FR core
-    # --- Track B: Freelance AI Automation / Builder (4 keywords) ---
-    "AI automation engineer",
-    "AI engineer",
-    "AI consultant",
-    "claude code",            # niche but operator-branded
-    # --- FR Track B catch ---
-    "automatisation IA",
+    "chef de produit",        # FR core (also surfaces FR "product owner" posts)
 ]
 
 # 48h window matches sivad259's pattern and gives the dedup layer enough new variety

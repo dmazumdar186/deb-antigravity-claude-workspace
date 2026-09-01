@@ -170,7 +170,7 @@ def check_summary(ws, failures: list[str]) -> None:
 def main() -> int:
     sp = _open_sheet()
     failures: list[str] = []
-    role_tabs = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
+    role_tabs = ["PM", "AI PM", "PO", "AI PO"]
 
     for tab in role_tabs:
         try:

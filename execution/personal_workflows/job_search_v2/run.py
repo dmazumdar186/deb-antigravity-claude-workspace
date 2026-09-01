@@ -228,15 +228,28 @@ def _stamp_email_sent(now_utc: datetime, db_path: Path = DEFAULT_DB_PATH) -> Non
 # ----- source dispatch -----
 
 
+# 2026-09-01 rework: PM/PO-only, France-wide. Three queries instead of the
+# single implicit "product manager", and location="france" (non-digit, non-
+# "paris") so neither commune nor departement is set — a national search.
+# Cross-query overlap dedups downstream via content_hash.
+FRANCE_TRAVAIL_QUERIES = ["product manager", "product owner", "chef de produit"]
+
+
 def _fetch_france_travail(mode: str, max_pages: int, posted_within_days: int = 1) -> list[SourceJob]:
     from execution.personal_workflows.job_search_v2.sources import france_travail as ft
     if mode == "fixture":
         return ft.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "france_travail_sample.json")
-    try:
-        return ft.fetch(max_pages=max_pages, posted_within_days=posted_within_days)
-    except ft.FranceTravailAuthError as exc:
-        logger.warning("run: france_travail auth failure — %s. Skipping source.", exc)
-        return []
+    all_jobs: list[SourceJob] = []
+    for query in FRANCE_TRAVAIL_QUERIES:
+        try:
+            jobs = ft.fetch(query=query, location="france",
+                            max_pages=max_pages, posted_within_days=posted_within_days)
+            logger.info("run: france_travail[%s] -> %d jobs", query, len(jobs))
+            all_jobs.extend(jobs)
+        except ft.FranceTravailAuthError as exc:
+            logger.warning("run: france_travail auth failure — %s. Skipping source.", exc)
+            return all_jobs
+    return all_jobs
 
 
 def _fetch_wttj(mode: str, max_pages: int) -> list[SourceJob]:
@@ -293,13 +306,16 @@ def _fetch_jobgether_gmail(mode: str, max_pages: int) -> list[SourceJob]:
         return []
 
 
-# LinkedIn geoIds for the 4 target countries (verified stable on linkedin.com/jobs).
-# Île-de-France is preferred over France-wide so Paris-area jobs aren't drowned out.
+# LinkedIn geoIds for the 6 target countries (operator scope 2026-09-01:
+# FR + BE + DE + PL + AT + LU; Switzerland dropped). France-wide replaces the
+# old Île-de-France-only geo since the operator accepts all of France.
 LINKEDIN_GEO_IDS = {
-    "FR_idf": "104246759",   # Île-de-France region (Paris)
-    "DE":     "101282230",   # Germany
-    "BE":     "100565514",   # Belgium
-    "CH":     "106693272",   # Switzerland
+    "FR": "105015875",   # France (country-wide)
+    "DE": "101282230",   # Germany
+    "BE": "100565514",   # Belgium
+    "PL": "105072130",   # Poland
+    "AT": "103883259",   # Austria
+    "LU": "104042105",   # Luxembourg
 }
 
 
@@ -308,8 +324,8 @@ def _fetch_linkedin_guest_api(mode: str, max_pages: int) -> list[SourceJob]:
     if mode == "fixture":
         return lga.fetch_from_fixture(PROJECT_ROOT / "tests" / "fixtures" / "linkedin_guest_api_sample.html")
 
-    # Fan out across all 4 country geoIds. Each call is rate-limited internally
-    # (~1-2s per page) so 4 countries x ~9 keywords stays well below LinkedIn's
+    # Fan out across all 6 country geoIds. Each call is rate-limited internally
+    # (~1-2s per page) so 6 countries x 7 keywords stays below LinkedIn's
     # block threshold. Cross-region dedup happens in the normalizer.
     all_jobs: list[SourceJob] = []
     for label, geo_id in LINKEDIN_GEO_IDS.items():
@@ -328,9 +344,10 @@ def _fetch_linkedin_guest_api(mode: str, max_pages: int) -> list[SourceJob]:
     return all_jobs
 
 
-# WTTJ country codes. WTTJ has FR + BE + CH presence; DE is sparse but the
-# Algolia index supports it (returns ~0 most days, costs ~0 to ask).
-WTTJ_COUNTRY_CODES = ["FR", "BE", "CH", "DE"]
+# WTTJ country codes — operator scope 2026-09-01 (CH dropped). WTTJ is
+# FR-centric; BE/DE/LU/AT/PL are sparse but the Algolia index supports them
+# (returns ~0 most days, costs ~0 to ask).
+WTTJ_COUNTRY_CODES = ["FR", "BE", "DE", "LU", "AT", "PL"]
 
 
 def _fetch_wttj_algolia(mode: str, max_pages: int) -> list[SourceJob]:
@@ -631,7 +648,30 @@ def main() -> int:
     }
     logger.info("run: digest_cap %s", cap_stats)
 
-    # Stage 4: notify (route to PM / AI PM / etc. tabs via title synonyms)
+    # Stage 3.9: sheet hygiene. Purge rows that fail the CURRENT relevance /
+    # language gates and delete retired tabs, BEFORE appending today's rows.
+    # This makes a filter-tightening (e.g. the 2026-09-01 PM/PO-only rework)
+    # self-heal the live sheet on the next cron run — without it, historical
+    # junk rows would trip the Stage-5b acceptance gate forever. Idempotent:
+    # a clean sheet is a no-op read. Best-effort: on failure the acceptance
+    # gate remains the enforcer and will flag any junk left behind.
+    purge_stats: dict = {}
+    if not args.dry_run:
+        try:
+            from execution.personal_workflows.job_search_v2.purge_irrelevant_rows import purge_sheet
+            sp, sheet_err = sheet_notifier._open_sheet(None, None)
+            if sp is None:
+                logger.warning("run: sheet hygiene skipped — cannot open sheet: %s", sheet_err)
+            else:
+                purge_stats = purge_sheet(sp, dry_run=False, delete_obsolete=True)
+                if purge_stats.get("removed_rows") or purge_stats.get("deleted_tabs"):
+                    logger.info("run: sheet hygiene removed %d stale rows, deleted tabs %s",
+                                purge_stats.get("removed_rows", 0), purge_stats.get("deleted_tabs"))
+        except Exception as exc:  # noqa: BLE001 — hygiene must not kill the run;
+            # the acceptance gate downstream still fails the run if junk remains.
+            logger.warning("run: sheet hygiene failed: %s", exc)
+
+    # Stage 4: notify (route to PM / AI PM / PO / AI PO tabs via title synonyms)
     routing_cfg = cfg.get("tab_routing", {"fallback_tab": "PM", "titles": {}})
     sheet_count, per_tab_counts, sheet_ok = sheet_notifier.append_jobs(
         ranked_filtered,
@@ -667,6 +707,7 @@ def main() -> int:
         "ranker": ranker_stats,
         "sonnet_rerank": rerank_stats,
         "after_ranker_skip": len(ranked_filtered),
+        "sheet_hygiene": purge_stats,
         "sheet_appended": sheet_count,
         "sheet_per_tab": per_tab_counts,
         "sheet_ok": sheet_ok,
@@ -776,7 +817,7 @@ def main() -> int:
 
     # Stage 4e: refresh Summary tab with full pipeline_stats + all-time totals.
     # Runs AFTER email so the Summary tab reflects the final email/acceptance status.
-    role_tabs = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
+    role_tabs = ["PM", "AI PM", "PO", "AI PO"]
     per_tab_totals: dict[str, int] = {}
     if not args.dry_run:
         try:

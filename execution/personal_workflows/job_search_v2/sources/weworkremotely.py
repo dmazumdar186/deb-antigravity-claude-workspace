@@ -43,10 +43,11 @@ logger = logging.getLogger("weworkremotely")
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 TMP_DIR = PROJECT_ROOT / ".tmp" / "job_search_v2"
 
+# 2026-09-01 rework: PM/PO-ONLY — the programming + devops feeds only ever
+# yielded engineer roles (out of scope per operator), so only the product
+# category feed remains.
 FEEDS = [
     "https://weworkremotely.com/categories/remote-product-jobs.rss",
-    "https://weworkremotely.com/categories/remote-programming-jobs.rss",
-    "https://weworkremotely.com/categories/remote-devops-sysadmin-jobs.rss",
 ]
 
 HEADERS = {
@@ -55,15 +56,11 @@ HEADERS = {
 }
 
 RELEVANT_TITLE_SUBSTRS = (
+    # 2026-09-01 rework: PM/PO-ONLY (engineer/automation/consultant substrings
+    # removed per operator — they produced the Full-Stack-AI-Engineer noise).
     "product manager", "product owner", "head of product",
+    "product lead", "product director",
     "senior pm", "principal pm",
-    "ai engineer", "ml engineer", "machine learning",
-    "ai automation", "automation engineer",
-    "ai consultant", "ai strategy",
-    "ai mobile", "mobile ai",
-    "ai process",
-    "ai product",
-    "rpa",
     # WeWorkRemotely often prefixes titles with the company name: e.g.
     # "Acme: Senior Product Manager". The "product manager" substring catches
     # those without us needing prefix logic.

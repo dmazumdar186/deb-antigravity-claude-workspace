@@ -2,7 +2,7 @@
 
 **Paired script:** [execution/personal_workflows/job_search_v2/](../../execution/personal_workflows/job_search_v2/)
 **Replaces:** `execution/personal_workflows/job_search_sheet.py` (v1) — see [JOB_SEARCH_SHEET_AUDIT.md](../../JOB_SEARCH_SHEET_AUDIT.md) for the v1 audit.
-**Last synced to implementation:** 2026-06-24 (relevance gate + EN/FR language filter + two-track ranker + acceptance gate + human Summary + health score).
+**Last synced to implementation:** 2026-09-01 (PM/PO-ONLY rework: engineer/consultant/freelance-builder roles removed end-to-end; scope = FR/BE/DE/PL/AT/LU + remote; tabs = PM / AI PM / PO / AI PO; automatic sheet-hygiene purge added to run.py).
 
 ---
 
@@ -12,15 +12,17 @@ Produce a daily Google Sheet + one email of **genuinely relevant** jobs for Deba
 
 ## Candidate profile — TWO tracks (single source of truth for the ranker)
 
-Extracted from CV (`CV MAZUMDAR Debanjan EN.pdf`), Malt (`malt.fr/profile/debanjanmazumdar`), GitHub (`github.com/dmazumdar186`):
+**2026-09-01 operator rework: the scanner is PM/PO-ONLY.** The prior "Track B — Freelance AI Automation / Claude Code / React Native" identity is retired from this pipeline (it was the source of the "full stack AI engineer" noise the operator flagged). Extracted from CVs (`deliverables/cv_generic_pm/`, `deliverables/cv_ai_pm/`), LinkedIn, GitHub:
 
-- **Track A — Permanent AI Product Manager (CDI).** AI PM / Head of Product (AI) / Senior PM at AI-native or AI-heavy companies. 15y, data-intensive, production GenAI (RAG, multi-agent, OpenAI Assistants, Claude, MCP). Paris CDI or remote-EN/FR CDI.
-- **Track B — Freelance AI Automation / Claude Code / React Native.** Malt 750€/day, 4-week sprint missions. Cold outbound, CRM↔Slack↔Calendar sync, AI scrapers, mobile MVPs (Expo + EAS), n8n / Make / Cloudflare Workers / Modal.
+- **Track A — AI / Senior Product Manager (CDI).** AI PM / Senior/Lead/Principal/Staff/Group PM / Head of Product / Product Director, plus PM flavours: data, growth, technical, platform, functional. 15y, data-intensive, production GenAI (RAG, multi-agent, LLM evaluation, Claude/OpenAI, MCP).
+- **Track B — Product Owner (CDI).** Product Owner / Senior Product Owner / AI Product Owner / Technical / Digital PO. Matches his Senior Data Product Owner (Pitney Bowes, Evolent) and Senior Technical Product Owner (Avaya) history.
 
 **Hard constraints (operator-stated, enforced in code):**
-- **Language: English OR French only.** No German/Dutch/Italian/Spanish postings. (English-language jobs *located* in DE/BE/CH are acceptable — the language gate, not the location gate, enforces this.)
-- **Seniority:** Senior / Lead / Principal / Head. No junior / intern / alternance / stagiaire / graduate.
-- **NOT his roles:** project manager / chef de projet, pure marketing PM, pure data-analytics, pure backend eng, cybersecurity, SEO, accounting (comptable), facilities, creative strategy.
+- **Roles: Product Manager + Product Owner families ONLY.** Engineer / developer / consultant / advisor / architect / data-scientist roles are rejected at the title gate — however AI-flavoured the title ("Full Stack AI Engineer", "AI Consultant", "React Native Developer" are all `reject:not_relevant`).
+- **Locations: France, Belgium, Germany, Poland, Austria, Luxembourg + remote.** Switzerland and the UK are now on the priority-reject list (a "Remote — Switzerland" row used to slip through the generic "remote" accept).
+- **Language: English OR French only.** No German/Dutch/Italian/Spanish/Polish postings. (An English-language job *located* in DE/PL/AT is acceptable — the language gate, not the location gate, enforces this. Polish tell-words added 2026-09-01.)
+- **Seniority:** no junior / intern / alternance / stagiaire / graduate. Plain "Product Manager"/"Product Owner" (no seniority marker) is acceptable — the ranker, not the filter, differentiates.
+- **NOT his roles:** project manager / chef de projet, product *marketing* manager, pure data-analytics, any engineering role, cybersecurity, SEO, accounting (comptable), facilities, creative strategy.
 
 ---
 
@@ -61,13 +63,14 @@ Extracted from CV (`CV MAZUMDAR Debanjan EN.pdf`), Malt (`malt.fr/profile/debanj
 1. Fetch sources in parallel (per-source fault isolation).
 2. `batch_normalize` (in-batch cross-source dedup via content_hash).
 3. `filter_new` (persistent cross-day dedup, SQLite seen.db).
-4. **3.4 title_filter** — RELEVANCE ALLOWLIST. A title must positively match a `RELEVANCE_ANCHORS` entry (product / AI-PM / AI-automation / Claude / React Native) or it's rejected `not_relevant`. Generic words alone ("consultant", "directeur", "engineer") do NOT pass — must pair with a product/AI/automation domain. Also hard-rejects project-manager / internship / junior. **This is the fix for the 2026-06-24 "PM tab full of cybersecurity/accounting/SEO" failure** — the prior filter was reject-only and dumped unmatched titles into the fallback PM tab.
-5. **3.5 location_filter** — accept FR + DE + BE + CH + EU-remote; reject US/Canada/APAC/India/etc.
-6. **3.6 contract_filter** — drop INTERNSHIP; drop UNKNOWN only when source is FR-aware AND location is FR (DE/BE/CH legitimately can't expose contract type).
-7. **3.7 language_filter** — EN/FR only. Strips gender markers (m/w/d, H/F, M/W, all genders) before detection; deterministic tell-word screen (German/Dutch/Italian/Spanish stopwords) is authoritative for short titles; langdetect only allowed to REJECT when ≥60 chars (a real description) — short tell-free titles ACCEPT.
+4. **3.4 title_filter** — RELEVANCE ALLOWLIST, **PM/PO-only since 2026-09-01**. A title must positively match a `RELEVANCE_ANCHORS` entry (Product Manager family, Product Owner family, or an AI-PM/AI-PO variant carrying the full "product manager"/"product owner" core) or it's rejected `not_relevant`. Engineer / consultant / advisor / automation / mobile anchors were REMOVED (they admitted "Full Stack AI Engineer" rows — the operator's 2026-09-01 complaint). Generic words alone ("consultant", "directeur", "engineer") do NOT pass. Also hard-rejects project-manager / internship / junior. Note: profile.json `targeted_titles` are UNIONED into this allowlist — keep profile.json PM/PO-only too, or the union re-opens the hole.
+5. **3.5 location_filter** — accept FR + BE + DE + PL + AT + LU + remote; reject US/Canada/APAC/India/**Switzerland/UK**/etc. (CH/UK moved to priority-reject 2026-09-01 so "Remote — Switzerland" can't ride in on the generic "remote" accept.)
+6. **3.6 contract_filter** — drop INTERNSHIP; drop UNKNOWN only when source is FR-aware AND location is FR (DE/BE/PL/AT/LU legitimately can't expose contract type).
+7. **3.7 language_filter** — EN/FR only. Strips gender markers (m/w/d, H/F, M/W, all genders) before detection; deterministic tell-word screen (German/Dutch/Italian/Spanish/**Polish** stopwords) is authoritative for short titles; langdetect only allowed to REJECT when ≥60 chars (a real description) — short tell-free titles ACCEPT.
 8. **3.7 ranker** → **3.75 sonnet_rerank** (gated) → **3.8 sort + cap to --max-digest-jobs**.
-9. Notify: append to per-role tabs (column-by-name), refresh Top Matches, refresh human Summary (with health score), send/lock email.
-10. **5b acceptance gate** — runs `tests/acceptance_job_search_v2.py` via subprocess; run exits code 3 if any sheet row is junk.
+9. **3.9 sheet hygiene (2026-09-01)** — before appending, `purge_irrelevant_rows.purge_sheet()` removes any existing sheet row failing the CURRENT title/language gates and deletes the retired `AI Automation` / `AI Mobile` / `AI Process` / `AI Consultant` tabs. Self-healing: a filter-tightening cleans the live sheet on the next cron run instead of tripping the acceptance gate forever. Best-effort (logged warning on failure; acceptance stays the enforcer).
+10. Notify: append to per-role tabs **PM / AI PM / PO / AI PO** (column-by-name), refresh Top Matches, refresh human Summary (with health score), send/lock email.
+11. **5b acceptance gate** — runs `tests/acceptance_job_search_v2.py` via subprocess; run exits code 3 if any sheet row is junk.
 
 ---
 
@@ -97,8 +100,8 @@ Extracted from CV (`CV MAZUMDAR Debanjan EN.pdf`), Malt (`malt.fr/profile/debanj
 
 (France Travail / LinkedIn jobs-guest / WTTJ Algolia / *_gmail source notes unchanged — see git history of this directive pre-2026-06-24 for the full per-source ingest details.)
 
-### Keyword sets (EN/FR only as of 2026-06-24)
-`linkedin_guest_api` + `wttj_algolia` `DEFAULT_KEYWORDS` carry Track-A (product manager / chef de produit / AI product manager / head of product) + Track-B (AI automation engineer / AI consultant / claude code / react native / consultant IA) terms. German/Dutch/Italian keyword variants were REMOVED — they flooded the dashboard with non-applicable rows.
+### Keyword sets (PM/PO-only as of 2026-09-01; EN/FR only since 2026-06-24)
+All source keyword sets (`linkedin_guest_api`, `wttj_algolia`, `hellowork`) now carry ONLY PM/PO terms: product manager / senior product manager / AI product manager / product owner / senior product owner / head of product / chef de produit / responsable produit. Engineer/consultant/builder keywords (AI engineer, AI automation, claude code, react native, consultant IA…) were REMOVED — they were the source of the full-stack-AI-engineer noise. `france_travail` now runs 3 queries (product manager / product owner / chef de produit) France-wide (was: 1 query, Paris dept 75). `linkedin_guest_api` fans out over 6 geoIds (FR country-wide, DE, BE, PL, AT, LU — CH dropped, IDF widened to FR). `wttj_algolia` queries country codes FR/BE/DE/LU/AT/PL. `remoteok` matches only product tags/titles; `weworkremotely` reads only the remote-product-jobs feed (programming + devops feeds dropped).
 
 ---
 
@@ -142,6 +145,8 @@ Maintenance scripts: `purge_irrelevant_rows.py` (removes existing sheet rows fai
 - **Don't run the live pipeline >2-3×/session** — LinkedIn jobs-guest starts 999-blocking on repeated identical fetches.
 - **Windows cp1252:** run.py spawns the acceptance test via subprocess with `encoding="utf-8", errors="replace"`. Any new subprocess must do the same.
 - **OneDrive + SQLite:** seen.db is under OneDrive; opened autocommit to avoid lock races.
+- **eval_gold_set.json drift (2026-09-01):** `tests/fixtures/eval_gold_set.json` still contains Track-B-freelance items from the pre-rework profile. It is only consumed by the manual `tests/eval_ranker_precision.py` (needs GEMINI key, not in cron/CI). Regenerate with `profile/generate_eval_set.py` (prompt already updated to PM/PO) before the next precision eval.
+- **Cron runs `main`:** `.github/workflows/job_search_daily.yml` checks out the default branch. The PM/PO rework takes effect on the live cron only after the `claude/job-scanner-cron-filter-jjihia` branch is merged to main. The first post-merge run auto-purges the sheet's stale engineer rows and deletes the 4 retired tabs (Stage 3.9).
 
 ---
 

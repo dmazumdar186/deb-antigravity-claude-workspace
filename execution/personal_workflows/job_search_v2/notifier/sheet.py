@@ -618,7 +618,7 @@ def refresh_summary(
         wrong_lang = lang_f.get("rejected", 0)
         wrong_loc = pipeline_stats.get("location_rejected", 0)
         no_contract = (contract_f.get("by_reason", {}) or {}).get("unknown_from_fr_source", 0)
-        add("Wrong role (not PM / AI / automation)", not_relevant)
+        add("Wrong role (not PM / PO)", not_relevant)
         add("Project manager (different job)", proj)
         add("Internship / junior / alternance", intern)
         add("Wrong language (not EN / FR)", wrong_lang)

@@ -74,7 +74,13 @@ IT_TELLS = (" della ", " degli ", " nella ", " sono ", " sulla ", " nel ", " che
 # with no EN/FR collision. Rule: if a tell could plausibly appear in an English
 # OR French sentence, it does NOT belong here — let langdetect decide.
 ES_TELLS = (" los ", " las ", " sus ", " sobre ", " donde ", " porque ", " tambien ", " también ")
-NON_EN_FR_TELLS = DE_TELLS + NL_TELLS + IT_TELLS + ES_TELLS
+# PL_TELLS added 2026-09-01 with the Poland location scope: Polish posts often
+# keep the English title ("Product Owner") with a Polish description, so the
+# deterministic screen needs Polish stopwords too. Same rule as above: only
+# high-specificity words with no EN/FR collision.
+PL_TELLS = ("poszukujemy", "szukamy", " oraz ", " będzie ", " zespołu ",
+            " które ", " którzy ", " stanowisko ", " wymagania ")
+NON_EN_FR_TELLS = DE_TELLS + NL_TELLS + IT_TELLS + ES_TELLS + PL_TELLS
 
 
 def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
@@ -98,6 +104,8 @@ def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
                 return False, "reject:it_tell"
             if tell in ES_TELLS:
                 return False, "reject:es_tell"
+            if tell in PL_TELLS:
+                return False, "reject:pl_tell"
 
     sample = f"{title}. {description_snippet[:400]}".strip()
 

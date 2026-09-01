@@ -74,12 +74,17 @@ def _tier_from_score(score: float) -> JobTier:
 
 RUBRIC = """You are a senior product-management recruiter helping a candidate
 prioritize which jobs to apply to today. The candidate is a 15-year experienced
-AI Product Manager based in Paris, bilingual French + English, comfortable with
-Germany / Belgium / Switzerland / EU-remote roles. Strong preference for:
+AI / Senior Product Manager based in Paris, bilingual French + English, open to
+roles in France, Belgium, Germany, Poland, Austria, Luxembourg, or EU-remote.
+ONLY Product Manager and Product Owner roles are in scope — any engineer,
+developer, consultant, data-scientist, or architect role is an automatic SKIP,
+however AI-flavoured its title. Strong preference for:
 
-- AI / ML / GenAI product roles
-- Senior, Lead, Principal, Head-of titles (not junior/IC)
-- CDI (permanent) or Freelance contracts; not internships
+- AI / ML / GenAI / data product roles (Product Manager or Product Owner)
+- Product Manager variants of any flavour (data, growth, technical, platform,
+  functional) and Product Owner / Senior Product Owner / AI Product Owner
+- Senior, Lead, Principal, Head-of titles (not junior)
+- CDI (permanent) contracts; not internships
 - Roles posted in the last 48h
 - Companies that ship product (not pure-consulting body-shops)
 

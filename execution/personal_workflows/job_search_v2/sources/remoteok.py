@@ -48,25 +48,19 @@ HEADERS = {
 }
 
 # Tag/keyword matchers — RemoteOK uses lowercase single-word tags. Match against
-# both `tags` (array) and `position` (title) so a job tagged just "engineer"
-# whose title says "AI Engineer" still gets through.
+# both `tags` (array) and `position` (title).
+# 2026-09-01 rework: PM/PO-ONLY (operator-stated). The broad "engineer" /
+# "ai" / "automation" / "consultant" tags admitted every AI-engineering job on
+# the board — exactly the Full-Stack-AI-Engineer noise the operator flagged.
+# The downstream title_filter is the authority; these pre-filters just keep
+# fetch volume sane.
 RELEVANT_TAGS = {
-    "product", "product manager", "pm", "product owner",
-    "ai", "artificial intelligence", "ml", "machine learning",
-    "llm", "genai", "generative ai",
-    "automation", "rpa", "process automation",
-    "consultant", "consulting",
-    "engineer", "engineering",  # broad — many AI engineer roles tagged just "engineer"
+    "product", "product manager", "product owner", "product management",
 }
 
 RELEVANT_TITLE_SUBSTRS = (
     "product manager", "product owner", "head of product",
-    "ai engineer", "ml engineer", "machine learning",
-    "ai automation", "automation engineer", "rpa",
-    "ai consultant", "ai strategy", "ai transformation",
-    "ai mobile", "mobile ai",
-    "ai process",
-    "ai product",
+    "product lead", "product director", "chef de produit",
 )
 
 

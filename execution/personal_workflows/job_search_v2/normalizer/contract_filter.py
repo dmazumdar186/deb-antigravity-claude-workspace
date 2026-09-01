@@ -72,10 +72,21 @@ NON_FR_LOCATION_MARKERS = [
     "belgium", "belgique", "belgië", "belgie",
     "brussels", "bruxelles", "brussel", "antwerp", "anvers", "antwerpen",
     "ghent", "gent", "gand", "liege", "liège", "charleroi", "leuven", "louvain", "namur",
+    # 2026-09-01 scope rework: PL / AT / LU added (LinkedIn guest-API now fans
+    # out to those geoIds and doesn't expose contract type there — their
+    # UNKNOWNs must be tolerated, like DE/BE). Swiss markers kept: any CH job
+    # is location-rejected upstream, but if one slips through with UNKNOWN the
+    # contract gate shouldn't be the accidental blocker/keeper decision-maker.
     "switzerland", "suisse", "schweiz", "svizzera",
     "geneva", "genève", "geneve", "genf",
     "zurich", "zürich", "lausanne", "bern", "berne", "basel", "bâle", "lugano",
     "winterthur", "zug",
+    "poland", "polska", "pologne",
+    "warsaw", "warszawa", "kraków", "krakow", "wrocław", "wroclaw",
+    "poznań", "poznan", "gdańsk", "gdansk", "łódź", "lodz", "katowice",
+    "austria", "österreich", "osterreich", "autriche",
+    "vienna", "wien", "graz", "linz", "salzburg", "innsbruck",
+    "luxembourg", "luxemburg", "esch-sur-alzette",
 ]
 
 

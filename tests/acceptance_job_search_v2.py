@@ -45,14 +45,16 @@ from execution.personal_workflows.job_search_v2.normalizer.language_filter impor
 
 load_dotenv(find_dotenv(usecwd=False))
 
-ROLE_TABS = ["PM", "AI PM", "AI Automation", "AI Mobile", "AI Process", "AI Consultant"]
+ROLE_TABS = ["PM", "AI PM", "PO", "AI PO"]
 TOP_MATCHES_TAB = "Top Matches"
 
 # Geographies the operator will NOT consider. Mirror of the config reject list.
+# 2026-09-01: Switzerland + UK added (scope is FR/BE/DE/PL/AT/LU + remote).
 OUT_OF_SCOPE_LOCATIONS = [
     "united states", "usa", "u.s.a.", " us)", "canada", "mexico", "brazil",
     "argentina", "australia", "new zealand", "japan", "india", "singapore",
     "hong kong", "south africa", "uae", "dubai", "apac", "americas",
+    "switzerland", "zurich", "zürich", "geneva", "genève", "united kingdom",
 ]
 
 
@@ -101,6 +103,27 @@ MUST_REJECT_BY_TITLE = [
     "Senior Manager Expertise Conseil H/F - International Business Services",
     "Collaborateur comptable H/F - Equipe Immobilier",
     "Collaborateur comptable H/F - International Business Services",
+    # 2026-09-01 PM/PO-only rework (operator: "it sends full stack AI engineer
+    # roles … this is noise, not music"). Every engineering / consulting /
+    # builder title that the old Track-B anchors accepted MUST now reject.
+    "Full Stack AI Engineer",
+    "Senior Full Stack AI Engineer (H/F)",
+    "AI Automation Engineer",
+    "AI Engineer",
+    "Machine Learning Engineer",
+    "MLOps Engineer",
+    "Prompt Engineer",
+    "AI Consultant",
+    "AI Advisor",
+    "Fractional AI Advisor",
+    "AI Advisory",
+    "React Native Developer",
+    "Staff AI Engineer - M/W",
+    "AI Product Engineer",
+    "AI Solutions Architect",
+    "Consultant IA (production images & vidéos) (H/F/X) - Freelance",
+    "Head of AI",
+    "Product Marketing Manager",
 ]
 
 # Titles the LANGUAGE gate must reject. These are genuinely-German (or other
@@ -114,25 +137,33 @@ MUST_REJECT_BY_LANGUAGE = [
 # Combined view for the pipeline-outcome check (backwards compat).
 MUST_REJECT = MUST_REJECT_BY_TITLE + MUST_REJECT_BY_LANGUAGE
 MUST_KEEP = [
+    # 2026-09-01 PM/PO-only rework: the operator's target set is Product
+    # Manager (plain / data / growth / technical / functional / platform / AI)
+    # and Product Owner (plain / senior / AI), EN + FR.
     "AI Product Manager",
     "Senior Product Manager",
+    "Product Manager",
+    "Data Product Manager",
+    "Growth Product Manager",
+    "Technical Product Manager",
+    "Platform Product Manager",
+    "Group Product Manager",
     "Head of Product",
+    "Product Lead",
     "Chef de produit IA",
-    "Consultant IA (production images & vidéos) (H/F/X) - Freelance",
-    "React Native Developer",
-    "AI Automation Engineer",
-    "AI Consultant",
+    "Chef de produit senior",
+    "Responsable Produit",
+    "Directeur Produit",
+    "Product Owner",
+    "Senior Product Owner",
+    "Lead Product Owner",
+    "AI Product Owner",
+    "Technical Product Owner",
     "Product Manager / Project Manager",
-    # 2026-07-01 data-flow auditor: these Track B titles were being silently
-    # dropped at title_filter (not in RELEVANCE_ANCHORS, not in profile
-    # targeted_titles). Added to profile.json + RELEVANCE_ANCHORS + this
-    # corpus so a future regression trips both the profile-sync and this
-    # frozen-corpus check.
-    "AI Advisor",
-    "Fractional AI Advisor",
-    "AI Advisory",
     # The langdetect false-positives caught 2026-06-24 — must stay kept.
-    "Staff AI Engineer - M/W",
+    # ("Staff AI Engineer - M/W" moved to MUST_REJECT_BY_TITLE: still a
+    # langdetect false-positive on language, but engineering titles are now
+    # out of scope at the TITLE gate.)
     "Senior Product Manager - Engagement (all genders)",
     "Product Owner Secteur Immobilier (H/F)",
 ]
@@ -150,12 +181,14 @@ MUST_KEEP = [
 LANG_DESC_CORPUS = [
     # English descriptions with words that previously collided with tells.
     ("AI Product Manager", "Salary: 90k per year. You will own the product roadmap and work with engineering.", True),
-    ("AI Automation Engineer", "Compensation is per market rate. Ship features per sprint cycle.", True),
-    ("React Native Developer", "We weigh the pros and cons of each approach. Build mobile apps.", True),
+    ("Senior Product Owner", "Compensation is per market rate. Ship features per sprint cycle.", True),
+    ("Technical Product Manager", "We weigh the pros and cons of each approach. Own the mobile roadmap.", True),
     ("Senior Product Manager", "Reviewed per quarter. Manage stakeholders across the org.", True),
     # Genuinely non-EN/FR descriptions must still be rejected.
     ("Produktmanager", "Wir suchen einen erfahrenen Produktmanager für unseren Standort mit Verantwortung für die Produktstrategie.", False),
     ("Product Manager", "Cerchiamo un product manager con esperienza nella gestione della roadmap e degli stakeholder aziendali.", False),
+    # Polish post with an English title (Poland is in scope, Polish is not).
+    ("Product Owner", "Poszukujemy doświadczonego Product Ownera do naszego zespołu produktowego w Warszawie. Wymagania: doświadczenie w agile.", False),
 ]
 
 

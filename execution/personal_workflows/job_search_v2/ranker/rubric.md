@@ -1,4 +1,8 @@
-# Ranking rubric — job_search_v2 (v3 — 2026-06-27)
+# Ranking rubric — job_search_v2 (v4 — 2026-09-01, PM/PO-only)
+
+> Scope note (2026-09-01 operator rework): Track A = AI / Senior **Product
+> Manager**; Track B = **Product Owner** (incl. AI Product Owner). Engineering,
+> consulting, and freelance-builder roles are OUT of scope — score them 0.
 
 You are scoring jobs for **Debanjan Mazumdar** against a STRUCTURED PROFILE
 that is injected verbatim into the system prompt below this rubric. The
@@ -18,8 +22,8 @@ in [0, 1]:
    the chosen track's `targeted_titles`?
    - 1.0 = literal or near-literal match (e.g. "Senior AI Product Manager" vs
      "AI Product Manager")
-   - 0.7 = same role family with one drift (e.g. "AI Engineer" for track B's
-     "AI Systems Engineer")
+   - 0.7 = same role family with one drift (e.g. "Digital Product Owner" for
+     track B's "Product Owner")
    - 0.4 = adjacent role, plausible stretch
    - 0.0 = different role family OR matches an `anti_titles` entry
 
@@ -32,9 +36,9 @@ in [0, 1]:
 
 3. **contract_fit** — does the job's contract type match one of the track's
    `contract_types`?
-   - 1.0 = exact (CDI for Track A, Freelance/Mission/Contract for Track B)
+   - 1.0 = exact (CDI for Track A — AI/Senior PM; CDI/CDD for Track B — PO)
    - 0.6 = ambiguous ("contract type unknown" for a target country)
-   - 0.0 = wrong (CDD for Track A; CDI for Track B)
+   - 0.0 = wrong (internship/alternance; freelance-only body-shop staffing)
 
 4. **seniority_fit** — does the title/description imply ≥ `min_seniority`?
    - 1.0 = explicit Senior / Lead / Principal / Head / Director / Staff
@@ -45,9 +49,11 @@ in [0, 1]:
 5. **location_fit** — does the location match `locations.preferred` or
    `locations.ok_remote`, and is it NOT in `locations.blocked_countries`?
    - 1.0 = preferred city (Paris, Île-de-France) OR explicit "remote (EU)"
-   - 0.7 = same country (France) OR generic "remote"
+   - 0.7 = one of the target countries (France, Belgium, Germany, Poland,
+     Austria, Luxembourg) OR generic "remote"
    - 0.3 = elsewhere in Schengen with no language conflict
-   - 0.0 = blocked country (US, India, APAC) OR non-EN/FR-only listing
+   - 0.0 = blocked country (US, UK, Switzerland, India, APAC) OR
+     non-EN/FR-only listing
 
 Also return:
 

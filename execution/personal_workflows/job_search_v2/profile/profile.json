@@ -1,15 +1,31 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-06-27T11:07:45.609885+00:00",
+  "generated_at": "2026-09-01T00:00:00+00:00",
   "tracks": [
     {
       "id": "A",
-      "title": "Permanent AI Product Manager",
+      "title": "AI / Senior Product Manager (CDI)",
       "targeted_titles": [
         "AI Product Manager",
-        "Head of Product (AI)",
-        "Senior PM at AI-native or AI-heavy companies",
-        "Senior AI Product Manager"
+        "Senior AI Product Manager",
+        "Senior Product Manager",
+        "Lead Product Manager",
+        "Principal Product Manager",
+        "Staff Product Manager",
+        "Group Product Manager",
+        "Product Manager",
+        "Technical Product Manager",
+        "Data Product Manager",
+        "Growth Product Manager",
+        "Platform Product Manager",
+        "Functional Product Manager",
+        "GenAI Product Manager",
+        "Head of Product",
+        "Product Director",
+        "Product Lead",
+        "Chef de Produit",
+        "Chef de Produit IA",
+        "Responsable Produit"
       ],
       "anti_titles": [
         "Chef de Projet",
@@ -17,40 +33,37 @@
         "Intern Product Manager",
         "Stagiaire",
         "Alternance",
-        "Graduate Program"
+        "Graduate Program",
+        "Product Marketing Manager"
       ],
       "contract_types": [
         "CDI"
       ],
-      "min_seniority": "senior"
+      "min_seniority": "mid"
     },
     {
       "id": "B",
-      "title": "Freelance AI Automation / Claude Code / React Native",
+      "title": "Product Owner / AI Product Owner (CDI)",
       "targeted_titles": [
-        "Fractional AI Builder",
-        "Fractional AI Advisor",
-        "Freelance AI Systems Engineer",
-        "AI Automation Specialist",
-        "AI Product Engineer",
-        "AI Consultant",
-        "AI Advisor",
-        "AI Advisory"
+        "Product Owner",
+        "Senior Product Owner",
+        "Lead Product Owner",
+        "AI Product Owner",
+        "Technical Product Owner",
+        "Digital Product Owner",
+        "Proxy Product Owner"
       ],
       "anti_titles": [
-        "Junior AI Engineer",
-        "Intern AI Engineer",
-        "Full-time AI Engineer"
+        "Junior Product Owner",
+        "Intern Product Owner",
+        "Stagiaire",
+        "Alternance"
       ],
       "contract_types": [
-        "Freelance",
-        "Fractional",
-        "Advisory",
-        "Contract",
-        "Mission",
-        "Indépendant"
+        "CDI",
+        "CDD"
       ],
-      "min_seniority": "senior"
+      "min_seniority": "mid"
     }
   ],
   "skills": [
@@ -956,15 +969,26 @@
   ],
   "locations": {
     "preferred": [
-      "Paris, France"
+      "Paris, France",
+      "France",
+      "Belgium",
+      "Germany",
+      "Poland",
+      "Austria",
+      "Luxembourg"
     ],
     "ok_remote": [
       "Remote",
-      "Schengen region"
+      "Remote (EU)",
+      "Remote (Europe)"
     ],
     "blocked_countries": [
       "United States",
-      "APAC"
+      "APAC",
+      "Switzerland",
+      "United Kingdom",
+      "Canada",
+      "India"
     ]
   },
   "hard_filters": {

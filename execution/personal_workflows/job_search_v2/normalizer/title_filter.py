@@ -47,35 +47,9 @@ REJECT_SUBSTRINGS: dict[str, list[str]] = {
     ],
     "junior_or_graduate": [
         "graduate program", "graduate trainee", "trainee program",
-        "junior product manager",
+        "junior product manager", "junior product owner",
     ],
 }
-
-# Tokens that ALWAYS keep the job even if a bad substring matched. Example: if
-# the title is "Product Manager / Project Manager", we want to keep it — the
-# real role IS Product, and the cross-listing of project is incidental. But:
-# "Alternance Product Manager" is rejected outright — alternance is a hard
-# contract-type override the operator doesn't want regardless.
-PRODUCT_RESCUE_TOKENS = [
-    "product manager", "senior product manager", "lead product manager",
-    "principal product manager", "staff product manager",
-    "head of product", "vp product", "vp of product",
-    "chief product officer",
-    "chef de produit", "directeur produit", "directrice produit",
-    "produktmanager", "productmanager",
-    "responsable produit", "product owner", "product lead",
-    "ai product manager", "ai/ml product manager",
-    "generative ai product manager", "genai product manager",
-    "ml product manager",
-    # AI-engineering titles operator explicitly tracks in dedicated tabs.
-    "ai automation engineer", "ai automation specialist",
-    "ai automation consultant", "automation product manager",
-    "ai mobile", "mobile ai engineer", "mobile ai developer",
-    "ai process automation", "process automation ai",
-    "ai consultant", "ai strategy consultant",
-    "ai transformation consultant", "ai solutions consultant",
-    "ai advisor",
-]
 
 # Reasons that CANNOT be rescued (override the PRODUCT_RESCUE rule). The
 # operator doesn't want apprenticeship/internship contracts even if the role
@@ -99,34 +73,44 @@ _INTERN_RE = re.compile(r"\bintern(s|ship|ships)?\b", re.IGNORECASE)
 # "Property & Facility Manager", "Directeur de projet SI" all landed in the
 # PM tab — none of them contain a banned word.
 #
-# A job must now POSITIVELY match one of Debanjan's two tracks (from CV +
-# Malt + GitHub) or it is rejected as `not_relevant`. These are lowercased
-# substring anchors; each is specific enough that a generic role word alone
-# ("consultant", "directeur", "manager", "engineer") does NOT pass — it must
-# be paired with a product/AI/automation domain.
+# A job must now POSITIVELY match one of the anchors below or it is rejected
+# as `not_relevant`. These are lowercased substring anchors; each is specific
+# enough that a generic role word alone ("consultant", "directeur", "manager",
+# "engineer") does NOT pass — it must be paired with a Product Manager /
+# Product Owner core.
+#
+# 2026-09-01 rework (operator-stated): the scanner is PM/PO-ONLY. The former
+# "Track B" anchors (ai engineer / ml engineer / ai automation / ai consultant /
+# react native / claude code / mobile ai / prompt engineer …) were the reason
+# the daily digest was full of "Full Stack AI Engineer" rows — they are gone.
+# Engineer/developer/consultant/scientist roles have NO anchor here and fall
+# through to reject:not_relevant. Deliberately NOT an anchor: bare "ai product"
+# (it matched "AI Product Engineer").
 # ---------------------------------------------------------------------------
 RELEVANCE_ANCHORS = [
-    # --- Track A: Product Management ---
-    "product manager", "product owner", "product lead", "lead product",
+    # --- Product Manager family (EN) — covers plain/data/growth/technical/
+    #     functional/platform PM because they all contain "product manager".
+    "product manager", "product management", "product lead", "lead product",
     "head of product", "product director", "director of product",
     "vp product", "vp of product", "chief product", "cpo",
-    "product management", "group product manager", "staff product manager",
+    "group product manager", "staff product manager",
     "principal product manager", "senior product manager",
-    "chef de produit", "responsable produit", "directeur produit",
-    "directrice produit", "gestionnaire de produit", "directeur de produit",
-    # --- Track A: AI-flavoured PM ---
-    "ai product", "ai pm", "genai product", "llm product", "ml product",
-    "machine learning product", "ai/ml product",
+    # --- Product Owner family (EN) — plain/senior/technical/digital/proxy PO
+    #     all contain "product owner".
+    "product owner",
+    # --- French PM/PO titles ---
+    "chef de produit", "cheffe de produit", "responsable produit",
+    "directeur produit", "directrice produit", "gestionnaire de produit",
+    "directeur de produit", "propriétaire produit", "proprietaire produit",
+    # --- AI-flavoured PM / PO. Every anchor carries the full "product
+    #     manager"/"product owner" core so "GenAI Product Engineer" or
+    #     "AI Policy Lead" can NOT ride in on a partial match.
+    "ai product manager", "ai product owner", "ai pm",
+    "genai product manager", "genai product owner",
+    "llm product manager", "ml product manager",
+    "machine learning product manager", "ai/ml product manager",
     "product manager ai", "product manager - ai", "product manager (ai",
-    # --- Track B: AI automation / builder / consultant / advisor ---
-    "ai automation", "automatisation ia", "ai engineer", "ai consultant",
-    "consultant ia", "consultant ai", "ai developer", "ai builder",
-    "ai advisor", "ai advisory", "fractional ai", "fractional cpo",
-    "ai architect", "ai solutions", "ai specialist", "ai lead", "head of ai",
-    "machine learning engineer", "ml engineer", "mlops", "llm engineer",
-    "generative ai", "prompt engineer", "ingénieur ia", "ingenieur ia",
-    # --- Track B: mobile / Claude Code ---
-    "react native", "claude code", "mobile ai",
+    "product owner ai", "product owner - ai", "product owner (ai",
 ]
 
 

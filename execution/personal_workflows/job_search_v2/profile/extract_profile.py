@@ -25,7 +25,7 @@ outputs:
           "tracks": [
             {
               "id": "A" | "B",
-              "title": "Permanent AI PM (CDI)" | "Freelance AI Automation ...",
+              "title": "AI / Senior Product Manager (CDI)" | "Product Owner / AI Product Owner (CDI)",
               "targeted_titles": [str, ...],   # exact + adjacent title forms
               "anti_titles": [str, ...],       # SKIP-on-match
               "contract_types": ["cdi"|"freelance"|"contract"|"mission"],
@@ -224,8 +224,11 @@ def _build_prompt(cv_text: str, linkedin_md: str, brand_strategy_md: str,
         "Anchoring rules:\n"
         "- ONLY include skills/proof-points that appear (literally or paraphrased) "
         "in at least one source below. No hallucinated capabilities.\n"
-        "- Two tracks already defined by the operator: Track A = Permanent AI PM "
-        "(CDI), Track B = Freelance AI Automation / Claude Code / React Native. "
+        "- Two tracks already defined by the operator (2026-09-01 PM/PO-only "
+        "rework): Track A = AI / Senior Product Manager (CDI), Track B = "
+        "Product Owner incl. AI Product Owner (CDI). Engineering, consulting "
+        "and freelance-builder roles are OUT of scope — do not emit "
+        "engineer/consultant/developer targeted_titles. "
         "Map every skill to the track(s) it serves.\n"
         "- 'Level' calibration: expert = repeatedly shipped with measurable "
         "outcome cited; strong = shipped at least once with description; "

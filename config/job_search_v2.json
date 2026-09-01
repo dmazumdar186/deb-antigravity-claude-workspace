@@ -1,23 +1,27 @@
 {
   "user_locale": "fr",
   "target_locations": {
-    "comment": "2026-06-24 v2: France + DE + BE + CH + EU-remote accepted geographically. Language filter (filter_by_language) handles the EN/FR-only constraint separately — a Berlin-based job written in English is acceptable; a Berlin-based job written in German is rejected at the language stage.",
+    "comment": "2026-09-01 rework: operator-stated scope = France, Belgium, Germany, Poland, Austria, Luxembourg + remote. Switzerland REMOVED from accept and added to reject (was drowning the digest with out-of-scope rows). Language filter (filter_by_language) handles the EN/FR-only constraint separately — a Berlin/Warsaw job written in English is acceptable; one written in German/Polish is rejected at the language stage.",
     "accept_patterns": [
       "france", "français", "francais",
       "paris", "île-de-france", "ile-de-france",
       "lyon", "toulouse", "marseille", "bordeaux", "nantes", "lille",
       "strasbourg", "rennes", "montpellier", "nice", "grenoble",
-      "germany", "deutschland",
+      "germany", "deutschland", "allemagne",
       "berlin", "munich", "münchen", "hamburg", "frankfurt", "köln", "cologne", "düsseldorf", "stuttgart",
       "belgium", "belgique", "belgië", "belgie",
       "brussels", "bruxelles", "brussel", "antwerp", "anvers", "antwerpen",
       "ghent", "gent", "gand", "liege", "liège", "charleroi", "leuven", "louvain", "namur",
-      "switzerland", "suisse", "schweiz", "svizzera",
-      "geneva", "genève", "geneve", "genf",
-      "zurich", "zürich", "lausanne", "bern", "berne", "basel", "bâle", "lugano", "winterthur", "zug",
+      "poland", "polska", "pologne",
+      "warsaw", "warszawa", "varsovie", "kraków", "krakow", "cracovie",
+      "wrocław", "wroclaw", "poznań", "poznan", "gdańsk", "gdansk",
+      "łódź", "lodz", "katowice",
+      "austria", "österreich", "osterreich", "oesterreich", "autriche",
+      "vienna", "wien", "vienne", "graz", "linz", "salzburg", "innsbruck",
+      "luxembourg", "luxemburg", "lëtzebuerg", "esch-sur-alzette",
       "remote", "télétravail", "teletravail", "full remote",
       "remote (europe)", "remote (eu)", "remote (france)", "remote (germany)",
-      "remote (belgium)", "remote (switzerland)",
+      "remote (belgium)", "remote (poland)", "remote (austria)", "remote (luxembourg)",
       "hybrid"
     ],
     "reject_patterns_priority": [
@@ -26,57 +30,50 @@
       "australia", "new zealand",
       "japan", "india", "singapore", "hong kong",
       "south africa", "uae", "dubai",
-      "south america", "latin america", "apac", "americas"
+      "south america", "latin america", "apac", "americas",
+      "switzerland", "suisse", "schweiz", "svizzera",
+      "zurich", "zürich", "geneva", "genève",
+      "united kingdom"
     ]
   },
   "tab_routing": {
-    "comment": "Title-synonym → destination tab. First matching synonym wins. Fallback tab is used when no synonym matches.",
+    "comment": "Title-synonym → destination tab. Longest matching synonym wins (sheet.route_to_tab sorts by length). Fallback tab is used when no synonym matches. 2026-09-01 rework: PM/PO-only — the AI Automation / AI Mobile / AI Process / AI Consultant tabs are retired (engineer/consultant roles are no longer in scope).",
     "fallback_tab": "PM",
     "titles": {
-      "PM": {
-        "tab": "PM",
-        "synonyms": [
-          "product manager", "senior product manager", "lead product manager", "principal product manager",
-          "head of product", "vp product", "vp of product", "chief product officer",
-          "chef de produit", "directeur produit", "directrice produit",
-          "group product manager", "product lead", "staff product manager"
-        ]
-      },
       "AI PM": {
         "tab": "AI PM",
         "synonyms": [
           "ai product manager", "product manager ai", "product manager - ai", "product manager (ai",
           "ml product manager", "product manager ml", "product manager - ml",
           "generative ai product manager", "genai product manager",
-          "ai/ml product manager"
+          "llm product manager", "ai/ml product manager",
+          "chef de produit ia", "chef de produit ai", "product manager ia"
         ]
       },
-      "AI Automation": {
-        "tab": "AI Automation",
+      "AI PO": {
+        "tab": "AI PO",
         "synonyms": [
-          "ai automation engineer", "automation engineer ai", "ai automation specialist",
-          "ai automation consultant", "automation product manager"
+          "ai product owner", "product owner ai", "product owner - ai", "product owner (ai",
+          "genai product owner", "ml product owner", "ai/ml product owner",
+          "product owner ia"
         ]
       },
-      "AI Mobile": {
-        "tab": "AI Mobile",
+      "PO": {
+        "tab": "PO",
         "synonyms": [
-          "ai mobile app developer", "ai mobile developer", "mobile ai engineer",
-          "mobile ai developer", "ai mobile product manager"
+          "product owner", "senior product owner", "lead product owner",
+          "proxy product owner", "technical product owner", "digital product owner"
         ]
       },
-      "AI Process": {
-        "tab": "AI Process",
+      "PM": {
+        "tab": "PM",
         "synonyms": [
-          "ai process automation", "process automation ai", "ai process consultant",
-          "ai process expert", "process intelligence"
-        ]
-      },
-      "AI Consultant": {
-        "tab": "AI Consultant",
-        "synonyms": [
-          "ai consultant", "ai strategy consultant", "ai transformation consultant",
-          "ai solutions consultant", "ai advisor"
+          "product manager", "senior product manager", "lead product manager", "principal product manager",
+          "head of product", "vp product", "vp of product", "chief product officer",
+          "chef de produit", "cheffe de produit", "directeur produit", "directrice produit",
+          "responsable produit", "group product manager", "product lead", "staff product manager",
+          "technical product manager", "data product manager", "growth product manager",
+          "platform product manager", "functional product manager", "product director"
         ]
       }
     }

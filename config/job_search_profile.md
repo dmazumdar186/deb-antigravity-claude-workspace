@@ -12,6 +12,17 @@
 - Location preference: Paris and on-site within ~50 km; hybrid; or remote anywhere in Europe. **Open to opportunities across Europe.**
 - Education: MSc International Strategic Business (Toulouse Business School); BE Information Technology (CMR Institute of Technology).
 
+## Scope (operator-stated, 2026-09-01)
+
+The job scanner targets **Product Manager and Product Owner roles ONLY**:
+AI PM; plain PM; data / growth / technical / functional / platform PM;
+Product Owner; Senior Product Owner; AI Product Owner. EN + FR postings.
+Locations: France, Belgium, Germany, Poland, Austria, Luxembourg — or remote.
+Engineering / consulting / freelance-builder roles (incl. "Full Stack AI
+Engineer", "AI Consultant", "React Native Developer") are OUT of scope for the
+scanner regardless of the freelance identity below, which remains for other
+workflows (Malt, outbound) but must NOT admit engineer jobs into the sheet.
+
 ## Two job-seeking identities — score against the BETTER-matching one and label it
 
 ### Identity A — "salaried" — AI / Senior Product Manager
@@ -31,7 +42,10 @@ owning AI product strategy + delivery for enterprise retail-intelligence SaaS us
 - Prior: Data Product Manager / AI Product Consultant (InfoTnT, 2021–2022); Senior Data Product Owner
   (Pitney Bowes; Evolent Health); Senior Technical Product Owner (Avaya); earlier QA/SWE (IDrive, TCS).
 - Good-fit titles: Senior / Lead / Principal / Staff / Group Product Manager; AI Product Manager;
-  GenAI Product Manager; Data Product Manager; Product Lead — in AI/GenAI, data products, or B2B SaaS.
+  GenAI Product Manager; Data / Growth / Technical / Platform / Functional Product Manager;
+  Product Lead; Product Owner; Senior Product Owner; AI Product Owner; Technical / Digital
+  Product Owner — in AI/GenAI, data products, or B2B SaaS. (PO titles match his Senior Data
+  Product Owner and Senior Technical Product Owner history at Pitney Bowes / Evolent / Avaya.)
 - Industries with proven depth: Retail Tech, Enterprise SaaS, Health Insurance/Health Tech,
   E-commerce/Logistics, Telecom, Banking/FinTech.
 
@@ -57,7 +71,7 @@ Weigh these 5 axes against the better-matching identity:
    pure people-management with no product/AI substance.
 2. Domain match — AI/GenAI/LLM/RAG/agents, data products, B2B SaaS (A); or AI-automation, GTM-automation,
    mobile build (B). Penalize unrelated domains (e.g. pure hardware/embedded, pure sales/BD, clinical, legal).
-3. Location — Paris / Île-de-France / France / remote-EU. (Pipeline currently sources FR only; rubric is geo-general.)
+3. Location — Paris / Île-de-France / France / Belgium / Germany / Poland / Austria / Luxembourg / remote-EU. (Switzerland, UK, US, APAC out of scope.)
 4. Language — French or English both acceptable (bilingual). Not a disqualifier either way.
 5. Contract-fit — CDI for Identity A; contract/freelance for Identity B. A salaried-only post still fits A;
    a freelance-only post fits B.
