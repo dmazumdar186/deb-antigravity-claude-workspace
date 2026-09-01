@@ -56,6 +56,11 @@ BING_SITE_URL = "https://yogaavecjitendra.fr/"
 # approval is pending. See §7.2b of the plan file.
 GBP_LOCATION_ID = "locations/15110626893429158061"
 
+# GBP account owning the location above (debolshop@gmail.com's profile).
+# Used by the gbp_reviews forward-sync source (the v4 reviews API path
+# needs both account and location resource names).
+GBP_ACCOUNT_ID = "accounts/108615156479975841686"
+
 # KV binding shared with the Pages project. Namespace id was created 2026-07-19
 # via `wrangler kv namespace create DASHBOARD_KV`; do NOT create a new one.
 [[kv_namespaces]]

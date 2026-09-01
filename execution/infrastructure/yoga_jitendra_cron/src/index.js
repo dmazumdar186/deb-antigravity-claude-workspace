@@ -27,6 +27,7 @@ import { fetchGsc } from "./sources/gsc.js";
 import { fetchGbp } from "./sources/gbp.js";
 import { fetchBing } from "./sources/bing.js";
 import { fetchCfWa } from "./sources/cf_wa.js";
+import { fetchGbpReviews } from "./sources/gbp_reviews.js";
 import { aggregate } from "./aggregator.js";
 
 const TARGET_PARIS_HOUR = 6; // 06:00 Paris local time — matches DASHBOARD_HANDOFF §4
@@ -36,6 +37,11 @@ const SOURCES = [
   { key: "gbp",  label: "Google Business Profile", fetcher: fetchGbp },
   { key: "bing", label: "Bing Webmaster Tools",    fetcher: fetchBing },
   { key: "cfwa", label: "Cloudflare Web Analytics", fetcher: fetchCfWa },
+  // Forward-sync of Google reviews into the public site's review:approved:*
+  // records. Writes to KV itself (dedup lives in the module); the snap:/
+  // latest: blobs it returns are a run summary. The aggregator's own SOURCES
+  // list does not include this key, so dashboard rollups are unaffected.
+  { key: "gbp_reviews", label: "GBP Reviews Sync", fetcher: fetchGbpReviews },
 ];
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
@@ -263,6 +269,7 @@ async function handleHealth(env) {
       CF_ZONE_HOSTNAME: env.CF_ZONE_HOSTNAME || null,
       BING_SITE_URL: env.BING_SITE_URL || null,
       GBP_LOCATION_ID: env.GBP_LOCATION_ID || null,
+      GBP_ACCOUNT_ID: env.GBP_ACCOUNT_ID || null,
     },
   });
 }
