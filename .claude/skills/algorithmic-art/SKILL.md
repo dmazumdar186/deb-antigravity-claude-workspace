@@ -48,7 +48,7 @@ To capture the ALGORITHMIC essence, express how this philosophy manifests throug
 
 **CRITICAL GUIDELINES:**
 - **Avoid redundancy**: Each algorithmic aspect should be mentioned once. Avoid repeating concepts about noise theory, particle dynamics, or mathematical principles unless adding new depth.
-- **Emphasize craftsmanship REPEATEDLY**: The philosophy MUST stress multiple times that the final algorithm should appear as though it took countless hours to develop, was refined with care, and comes from someone at the absolute top of their field. This framing is essential - repeat phrases like "meticulously crafted algorithm," "the product of deep computational expertise," "painstaking optimization," "master-level implementation."
+- **State the quality bar once**: the philosophy should read as the work of an expert generative artist — every parameter tuned deliberately, nothing left to unexamined chance. One plain statement is enough; repeated craftsmanship phrasing ("meticulously crafted," "painstaking optimization") pads the text without improving the algorithm.
 - **Leave creative space**: Be specific about the algorithmic direction, but concise enough that the next Claude has room to make interpretive implementation choices at an extremely high level of craftsmanship.
 
 The philosophy must guide the next version to express ideas ALGORITHMICALLY, not through static images. Beauty lives in the process, not the final frame.
@@ -57,11 +57,11 @@ The philosophy must guide the next version to express ideas ALGORITHMICALLY, not
 
 **"Organic Turbulence"**
 Philosophy: Chaos constrained by natural law, order emerging from disorder.
-Algorithmic expression: Flow fields driven by layered Perlin noise. Thousands of particles following vector forces, their trails accumulating into organic density maps. Multiple noise octaves create turbulent regions and calm zones. Color emerges from velocity and density - fast particles burn bright, slow ones fade to shadow. The algorithm runs until equilibrium - a meticulously tuned balance where every parameter was refined through countless iterations by a master of computational aesthetics.
+Algorithmic expression: Flow fields driven by layered Perlin noise. Thousands of particles following vector forces, their trails accumulating into organic density maps. Multiple noise octaves create turbulent regions and calm zones. Color emerges from velocity and density - fast particles burn bright, slow ones fade to shadow. The algorithm runs until equilibrium - a tuned balance between turbulent regions and calm ones.
 
 **"Quantum Harmonics"**
 Philosophy: Discrete entities exhibiting wave-like interference patterns.
-Algorithmic expression: Particles initialized on a grid, each carrying a phase value that evolves through sine waves. When particles are near, their phases interfere - constructive interference creates bright nodes, destructive creates voids. Simple harmonic motion generates complex emergent mandalas. The result of painstaking frequency calibration where every ratio was carefully chosen to produce resonant beauty.
+Algorithmic expression: Particles initialized on a grid, each carrying a phase value that evolves through sine waves. When particles are near, their phases interfere - constructive interference creates bright nodes, destructive creates voids. Simple harmonic motion generates complex emergent mandalas. Frequency ratios are chosen so the interference stays resonant rather than muddy.
 
 **"Recursive Whispers"**
 Philosophy: Self-similarity across scales, infinite depth in finite space.
@@ -202,7 +202,7 @@ function draw() {
 
 ### CRAFTSMANSHIP REQUIREMENTS
 
-**CRITICAL**: To achieve mastery, create algorithms that feel like they emerged through countless iterations by a master generative artist. Tune every parameter carefully. Ensure every pattern emerges with purpose. This is NOT random noise - this is CONTROLLED CHAOS refined through deep expertise.
+Tune every parameter deliberately and make every pattern emerge with purpose: controlled chaos, not random noise.
 
 - **Balance**: Complexity without visual noise, order without rigidity
 - **Color Harmony**: Thoughtful palettes, not random RGB values

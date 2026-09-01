@@ -128,7 +128,7 @@ python3 .claude/skills/gmail/gmail_multi_auth.py --account youraccount --email y
 
 ## Tone of Voice — Outgoing Emails
 
-All outgoing emails (send and reply) MUST follow these rules. This is non-negotiable.
+All outgoing emails (send and reply) MUST follow these rules — they are what keeps automated mail reading like Debanjan rather than an LLM.
 
 1. **Shorter is better.** Say it in 2-3 sentences if you can. Debanjan Mazumdar doesn't write essays in email.
 2. **Write like a human, not an LLM.** No "Honest take:" openers. No "Not X. Not Y. Z." parallelism. No motivational-poster energy. Avoid the stereotyped LLM pattern where every sentence feels crafted and punchy — real humans meander a bit, use filler words ("yeah", "honestly", "like"), and don't structure their thoughts into perfect rhetorical triplets.

@@ -18,7 +18,7 @@ Fetch inbox emails, classify them via parallel subagents into Action Required / 
 
 ## Subagent
 - `email-classifier` — defined in `.claude/agents/email-classifier.md`
-- Model: Sonnet 4.5 (fast, cost-efficient classification)
+- Model: `claude-sonnet-5` via the `sonnet` alias in the Task spawns below (execution tier — fast, cost-efficient classification)
 - Each subagent reads one chunk, writes one classified output file
 
 ## Flow (Parallel — default)
