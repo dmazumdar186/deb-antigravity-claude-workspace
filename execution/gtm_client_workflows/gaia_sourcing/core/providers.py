@@ -37,10 +37,11 @@ ROLE_JUDGE = "judge"       # L8: adversarial critique + tiering
 ROLE_MESSAGE = "message"   # L11: goes out under Gaia's name
 
 # Default plan under a zero Anthropic balance.
+# 2026-09-01: premium moved claude-fable-5 -> claude-fable-5.1 (OR slug; dot form).
 ROUTING: dict[str, tuple[str, str]] = {
     ROLE_EXTRACT: ("gemini", "gemini-2.5-flash"),
-    ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
-    ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
+    ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
+    ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
 }
 
 # Applied by set_plan("anthropic") once the account is funded.
@@ -52,13 +53,13 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     },
     "hybrid": {
         ROLE_EXTRACT: ("gemini", "gemini-2.5-flash"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
     "openrouter": {
         ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
     # Every role on the execution tier, for when the remaining balance will
     # not cover the judgement tier. Fable 5 is the right model for L8 tiering and
@@ -75,8 +76,8 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     },
     "anthropic": {
         ROLE_EXTRACT: ("anthropic", "claude-sonnet-5"),
-        ROLE_JUDGE: ("anthropic", "claude-fable-5"),
-        ROLE_MESSAGE: ("anthropic", "claude-fable-5"),
+        ROLE_JUDGE: ("anthropic", "claude-fable-5-1"),
+        ROLE_MESSAGE: ("anthropic", "claude-fable-5-1"),
     },
 }
 
@@ -206,12 +207,24 @@ def _call_gemini(
 def _call_openrouter(
     model: str, system: str, user: str, tool: dict, max_tokens: int, temperature: float
 ) -> tuple[Optional[dict], dict]:
+    # 2026-09-01: was a forced tool_choice — this backend serves ROLE_JUDGE /
+    # ROLE_MESSAGE, which route to claude-fable-5.1 on most plans, and a forced
+    # tool_choice returns HTTP 400 on that model. Migration: tool_choice "auto"
+    # + "strict": True (requires additionalProperties:False, which the layer
+    # schemas don't set, so it's added defensively here) + an explicit sentence
+    # naming the tool, appended to the system prompt so every caller gets it
+    # without editing each layer's prompt text.
+    strict_schema = dict(tool["input_schema"])
+    strict_schema.setdefault("additionalProperties", False)
     payload = {
         "model": model,
         "max_tokens": max_tokens,
         "temperature": temperature,
         "messages": [
-            {"role": "system", "content": system},
+            {
+                "role": "system",
+                "content": system + f"\n\nUse the {tool['name']} tool to return your result.",
+            },
             {"role": "user", "content": user},
         ],
         "tools": [
@@ -220,11 +233,12 @@ def _call_openrouter(
                 "function": {
                     "name": tool["name"],
                     "description": tool.get("description", ""),
-                    "parameters": tool["input_schema"],
+                    "parameters": strict_schema,
+                    "strict": True,
                 },
             }
         ],
-        "tool_choice": {"type": "function", "function": {"name": tool["name"]}},
+        "tool_choice": "auto",
     }
     data = _post_json(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -291,14 +305,25 @@ def _call_anthropic(
     # `temperature` is DEPRECATED on the Claude 5 family and returns HTTP 400
     # ("`temperature` is deprecated for this model"). SPEC.md section 4 asks
     # for temperature=0 to make tiering reproducible; that guarantee now rests
-    # on the model default plus forced tool use, so the determinism check in
-    # the test suite matters more, not less.
+    # on the model default plus strict tool use (tool_choice forcing was removed
+    # 2026-09-01 — see below), so the determinism check in the test suite
+    # matters more, not less.
+    # 2026-09-01: was a forced tool_choice — this backend serves ROLE_JUDGE /
+    # ROLE_MESSAGE, which route to claude-fable-5-1 on the "anthropic" plan, and
+    # a forced tool_choice returns HTTP 400 on that model. Migration: tool_choice
+    # "auto" + "strict": True (requires additionalProperties:False, which the
+    # layer schemas don't set, so it's added defensively here) + an explicit
+    # sentence naming the tool, appended to the system prompt so every caller
+    # gets it without editing each layer's prompt text.
+    strict_schema = dict(tool["input_schema"])
+    strict_schema.setdefault("additionalProperties", False)
+    strict_tool = {**tool, "input_schema": strict_schema, "strict": True}
     resp = client.messages.create(
         model=model,
         max_tokens=max_tokens,
-        system=system,
-        tools=[tool],
-        tool_choice={"type": "tool", "name": tool["name"]},
+        system=system + f"\n\nUse the {tool['name']} tool to return your result.",
+        tools=[strict_tool],
+        tool_choice={"type": "auto"},
         messages=[{"role": "user", "content": user}],
     )
     u = resp.usage
@@ -325,11 +350,15 @@ _BACKENDS = {
 PRICE_EUR: dict[str, dict[str, float]] = {
     "gemini-2.5-flash": {"input": 0.0, "output": 0.0},
     "anthropic/claude-sonnet-5": {"input": 1.84, "output": 9.20},
+    # claude-fable-5 rows kept: historical run records still cost-resolve.
     "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00},
     "anthropic/claude-opus-5": {"input": 4.60, "output": 23.00},
     "claude-sonnet-5": {"input": 1.84, "output": 9.20},
     "claude-fable-5": {"input": 9.20, "output": 46.00},
     "claude-opus-5": {"input": 4.60, "output": 23.00},
+    # verified 2026-09-01: same USD input/output as fable-5, so same EUR rate.
+    "anthropic/claude-fable-5.1": {"input": 9.20, "output": 46.00},
+    "claude-fable-5-1": {"input": 9.20, "output": 46.00},
 }
 
 

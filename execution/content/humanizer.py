@@ -117,8 +117,14 @@ TOOL_SCHEMA = {
     "function": {
         "name": "submit_humanized",
         "description": "Submit the humanized rewrite of the input text.",
+        # 2026-09-01: strict + additionalProperties:False, paired with tool_choice
+        # "auto" at the call sites below — claude-fable-5-1 returns HTTP 400 on a
+        # forced tool_choice, so schema-valid args now come from strict mode plus
+        # the "MUST call submit_humanized" sentence already in the prompt.
+        "strict": True,
         "parameters": {
             "type": "object",
+            "additionalProperties": False,
             "required": ["humanized_text"],
             "properties": {
                 "humanized_text": {
@@ -140,12 +146,18 @@ TOOL_SCHEMA = {
 # ---------------------------------------------------------------------------
 
 def _to_anthropic_tool_format(schema: dict) -> dict:
-    """Convert OpenAI-native TOOL_SCHEMA to Anthropic tool format."""
+    """Convert OpenAI-native TOOL_SCHEMA to Anthropic tool format.
+
+    2026-09-01: carries "strict": True through — required for schema-valid args
+    now that tool_choice is "auto" instead of forced (claude-fable-5-1 breaking
+    change; input_schema already has additionalProperties:False + required).
+    """
     fn = schema["function"]
     return {
         "name": fn["name"],
         "description": fn["description"],
         "input_schema": fn["parameters"],
+        "strict": True,
     }
 
 
@@ -156,9 +168,11 @@ def _to_anthropic_tool_format(schema: dict) -> dict:
 # ---------------------------------------------------------------------------
 # Rates verified against platform.claude.com/docs/en/about-claude/pricing 2026-08-27.
 # premium resolves to claude-fable-5 via the registry (2x Opus 5, 5x Sonnet 5).
+# 2026-09-01: premium moved claude-fable-5 -> claude-fable-5-1; cache_read
+# dropped to 0.25/MTok (0.025x input, not the usual 0.1x). verified 2026-09-01.
 _TIER_COST_PER_M = {
     "default":  {"input": 2.0,  "cache_read": 0.20,  "cache_write": 2.50,  "output": 10.0},   # claude-sonnet-5
-    "premium":  {"input": 10.0, "cache_read": 1.00,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5
+    "premium":  {"input": 10.0, "cache_read": 0.25,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5-1
     "gemini":   {"input": 0.0,  "cache_read": 0.0,   "cache_write": 0.0,   "output": 0.0},    # Free tier
 }
 
@@ -368,7 +382,9 @@ def _call_llm_humanize(
 ) -> str:
     """
     Call the LLM via OpenRouter (OpenAI SDK) or Anthropic direct with tool-use.
-    Forces submit_humanized. Returns the humanized text string.
+    Steers submit_humanized via prompt instruction + strict schema (forced
+    tool_choice removed 2026-09-01 — 400s on claude-fable-5-1). Returns the
+    humanized text string.
     On dry_run, returns a stub + estimated cost printed to stderr.
     """
     if dry_run:
@@ -416,7 +432,11 @@ def _call_llm_humanize(
                     {"role": "user", "content": user_msg},
                 ],
                 tools=[TOOL_SCHEMA],
-                tool_choice={"type": "function", "function": {"name": "submit_humanized"}},
+                # 2026-09-01: was a forced tool_choice — claude-fable-5-1 (tier=
+                # "premium") returns HTTP 400 on that. "auto" + strict:True on
+                # TOOL_SCHEMA + the "MUST call submit_humanized" prompt sentence
+                # (see _build_humanize_prompt) replaces it.
+                tool_choice="auto",
             )
         except Exception as exc:
             msg = str(exc)
@@ -483,7 +503,11 @@ def _call_llm_humanize(
                 system=system,
                 messages=[{"role": "user", "content": user_msg}],
                 tools=[anthropic_tool],
-                tool_choice={"type": "tool", "name": "submit_humanized"},
+                # 2026-09-01: was a forced tool_choice — claude-fable-5-1 (tier=
+                # "premium") returns HTTP 400 on that. "auto" + strict:True on
+                # the tool def + the "MUST call submit_humanized" prompt sentence
+                # (see _build_humanize_prompt) replaces it.
+                tool_choice={"type": "auto"},
             )
         except Exception as exc:
             msg = str(exc)

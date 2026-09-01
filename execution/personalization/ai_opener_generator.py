@@ -13,7 +13,7 @@ usage:
 Modes:
     cheap     — claude-sonnet-5 (Haiku is banned; see model-tier.md).
     balanced  — claude-sonnet-5, execution tier (default).
-    premium   — claude-fable-5, judgement tier.
+    premium   — claude-fable-5-1, judgement tier.
 """
 
 import argparse
@@ -43,12 +43,12 @@ logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 MODE_TO_MODEL_OPENROUTER = {
     "cheap": "anthropic/claude-sonnet-5",
     "balanced": "anthropic/claude-sonnet-5",
-    "premium": "anthropic/claude-fable-5",
+    "premium": "anthropic/claude-fable-5.1",
 }
 MODE_TO_MODEL_ANTHROPIC = {
     "cheap": "claude-sonnet-5",
     "balanced": "claude-sonnet-5",
-    "premium": "claude-fable-5",
+    "premium": "claude-fable-5-1",
 }
 DEFAULT_MODE = "balanced"
 
@@ -87,10 +87,20 @@ ANTHROPIC_PRICING: dict[str, dict[str, float]] = {
         "output": 25.00,
     },
     # Judgement tier since 2026-08-27. Verified 2026-08-27: 2x Opus 5, 5x Sonnet 5.
+    # Kept: superseded by claude-fable-5-1 on 2026-09-01, but historical call
+    # records still cost-resolve against this row.
     "claude-fable-5": {
         "input": 10.00,
         "cache_read": 1.00,   # 0.1× input
         "cache_write": 12.50, # 1.25× input
+        "output": 50.00,
+    },
+    # Judgement tier since 2026-09-01. verified 2026-09-01: same input/output
+    # as fable-5; cache_read dropped to 0.025x input (not the usual 0.1x).
+    "claude-fable-5-1": {
+        "input": 10.00,
+        "cache_read": 0.25,
+        "cache_write": 12.50,
         "output": 50.00,
     },
 }

@@ -616,7 +616,7 @@ Execute the directive now."""
     slack_directive_start(slug, slug, input_data)
 
     request_kwargs = {
-        "model": "claude-fable-5",
+        "model": "claude-fable-5-1",
         "max_tokens": 40000,
         "tools": tools,
         "messages": messages,
@@ -1874,7 +1874,7 @@ RULES for benefits:
 Return ONLY the JSON, no markdown code blocks or explanations."""
 
         msg = client.messages.create(
-            model="claude-fable-5",
+            model="claude-fable-5-1",
             max_tokens=4000,
             messages=[{"role": "user", "content": extraction_prompt}]
         )

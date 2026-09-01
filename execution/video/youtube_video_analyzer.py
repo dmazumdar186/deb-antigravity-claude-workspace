@@ -287,6 +287,25 @@ def _auto_detect_provider(tier: str) -> str:
 # Tool-schema adapters
 # ---------------------------------------------------------------------------
 
+def _strict_object_schema(node):
+    """Recursively add additionalProperties:False to every object-typed node.
+
+    2026-09-01: paired with tool_choice "auto" + "strict":True at both call
+    sites below. TOOL_SCHEMA's `required` already lists every property at
+    every level, so this is a safe, mechanical strict-mode conversion — no
+    schema semantics change, only the additionalProperties:False OpenAI/
+    Anthropic strict mode requires on each object.
+    """
+    if isinstance(node, dict):
+        node = {k: _strict_object_schema(v) for k, v in node.items()}
+        if node.get("type") == "object":
+            node.setdefault("additionalProperties", False)
+        return node
+    if isinstance(node, list):
+        return [_strict_object_schema(v) for v in node]
+    return node
+
+
 def _to_openai_tool_format(schema: dict) -> dict:
     """Convert Anthropic-style tool schema to OpenAI function format."""
     return {
@@ -294,7 +313,10 @@ def _to_openai_tool_format(schema: dict) -> dict:
         "function": {
             "name": schema["name"],
             "description": schema["description"],
-            "parameters": schema["input_schema"],
+            "parameters": _strict_object_schema(schema["input_schema"]),
+            # 2026-09-01: strict mode replaces the forced tool_choice this
+            # schema used to rely on — see analyze_with_openrouter.
+            "strict": True,
         },
     }
 
@@ -306,6 +328,11 @@ def _to_anthropic_tool_format(schema: dict, cache_control: dict | None = None) -
     Use this instead of inline tool-list construction in analyze_with_claude_v2.
     """
     tool: dict = dict(schema)
+    tool["input_schema"] = _strict_object_schema(tool["input_schema"])
+    # 2026-09-01: strict mode replaces the forced tool_choice this schema used
+    # to rely on (claude-fable-5-1 returns HTTP 400 on a forced tool_choice) —
+    # see analyze_with_claude_v2.
+    tool["strict"] = True
     if cache_control is not None:
         tool["cache_control"] = cache_control
     return tool
@@ -1043,7 +1070,11 @@ def analyze_with_claude_v2(
         max_tokens=CLAUDE_MAX_TOKENS,
         system=system_payload,
         tools=tools_payload,
-        tool_choice={"type": "tool", "name": "submit_breakdown"},
+        # 2026-09-01: was a forced tool_choice — --tier premium resolves to
+        # claude-fable-5-1, which returns HTTP 400 on that. "auto" + strict:True
+        # on the tool def (see _to_anthropic_tool_format) + the "Call
+        # submit_breakdown exactly once" sentence already in the prompt replace it.
+        tool_choice={"type": "auto"},
         messages=messages_payload,
     )
 
@@ -1135,7 +1166,11 @@ def analyze_with_openrouter(
         "model": model_id,
         "messages": or_messages,
         "tools": [tool_def],
-        "tool_choice": {"type": "function", "function": {"name": "submit_breakdown"}},
+        # 2026-09-01: was a forced tool_choice — --tier premium resolves to
+        # claude-fable-5-1, which returns HTTP 400 on that. "auto" + strict:True
+        # on the tool def (see _to_openai_tool_format) + the "Call
+        # submit_breakdown exactly once" sentence already in the prompt replace it.
+        "tool_choice": "auto",
         "max_tokens": CLAUDE_MAX_TOKENS,
     }
 
@@ -1425,6 +1460,7 @@ _TIER_COST_PER_M_TOKENS: dict[str, float] = {
     "anthropic/claude-sonnet-5": 2.00,
     "anthropic/claude-opus-5": 5.00,
     "anthropic/claude-fable-5": 10.00,
+    "anthropic/claude-fable-5.1": 10.00,  # verified 2026-09-01
     "anthropic/claude-sonnet-4.6": 3.00,
     "anthropic/claude-sonnet-4-6": 3.00,
     "anthropic/claude-opus-4.7": 5.00,
@@ -1438,6 +1474,7 @@ _TIER_COST_PER_M_TOKENS: dict[str, float] = {
     "claude-sonnet-5": 2.00,
     "claude-opus-5": 5.00,
     "claude-fable-5": 10.00,
+    "claude-fable-5-1": 10.00,  # verified 2026-09-01
     "claude-sonnet-4-6": 3.00,
     "claude-opus-4-7": 5.00,
     # Gemini direct (free quota)
@@ -1455,7 +1492,8 @@ _CLAUDE_PRICES: dict[str, dict[str, float]] = {
     # Current tiers
     "claude-sonnet-5": {"input": 2.00, "cache_read": 0.20, "cache_write": 2.50, "output": 10.00},
     "claude-opus-5": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},
-    "claude-fable-5": {"input": 10.00, "cache_read": 1.00, "cache_write": 12.50, "output": 50.00},  # verified 2026-08-27
+    "claude-fable-5": {"input": 10.00, "cache_read": 1.00, "cache_write": 12.50, "output": 50.00},  # verified 2026-08-27; superseded 2026-09-01, kept for historical cost-resolve
+    "claude-fable-5-1": {"input": 10.00, "cache_read": 0.25, "cache_write": 12.50, "output": 50.00},  # verified 2026-09-01
     # Legacy — kept so historical call records still cost-resolve.
     "claude-sonnet-4-6": {"input": 3.00, "cache_read": 0.30, "cache_write": 3.75, "output": 15.00},
     "claude-opus-4-7": {"input": 5.00, "cache_read": 0.50, "cache_write": 6.25, "output": 25.00},

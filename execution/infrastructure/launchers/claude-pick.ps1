@@ -5,7 +5,7 @@
 Write-Host ""
 Write-Host "Pick mode:" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  [1] client    Anthropic native (claude-fable-5). Billable. PII / CV / leads OK."
+Write-Host "  [1] client    Anthropic native (claude-fable-5-1). Billable. PII / CV / leads OK."
 Write-Host "  [2] personal  Proxy -> GLM 5.2 via OpenRouter. ~`$0 (after `$5 OR top-up). NO PII."
 Write-Host ""
 $modeChoice = Read-Host "Mode (1-2)"
@@ -22,7 +22,7 @@ switch ($modeChoice.Trim()) {
 # --- Fallback: per-model picker (legacy behavior) ---
 
 $models = @(
-    @{Key="1"; Name="opus";    Desc="claude-opus-5 (judgement tier; session default is claude-fable-5)"; Script="claude-opus.ps1"},
+    @{Key="1"; Name="opus";    Desc="claude-opus-5 (judgement tier; session default is claude-fable-5-1)"; Script="claude-opus.ps1"},
     @{Key="2"; Name="sonnet";  Desc="claude-sonnet-5 (execution tier)"; Script="claude-sonnet.ps1"},
     @{Key="3"; Name="glm";     Desc="GLM 5.2 via OR direct (no proxy; public-only)"; Script="claude-glm.ps1"},
     @{Key="4"; Name="gpt";     Desc="GPT-4o via OpenRouter"; Script="claude-gpt.ps1"},

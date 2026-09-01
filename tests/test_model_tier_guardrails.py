@@ -20,9 +20,9 @@ def test_no_family_ladder_contains_haiku():
 
 def test_offline_resolution_is_5_series_and_never_haiku():
     for prov, tier, expect in [
-        ("anthropic", "premium", "claude-fable-5"),
+        ("anthropic", "premium", "claude-fable-5-1"),
         ("anthropic", "default", "claude-sonnet-5"),
-        ("openrouter", "premium", "anthropic/claude-fable-5"),
+        ("openrouter", "premium", "anthropic/claude-fable-5.1"),
         ("openrouter", "default", "anthropic/claude-sonnet-5"),
     ]:
         got = R.resolve_model(prov, tier, allow_network=False)

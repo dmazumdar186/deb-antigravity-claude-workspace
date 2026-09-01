@@ -54,7 +54,10 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
     # 2026-08-27: premium moved claude-opus-5 -> claude-fable-5. Operator rule is
     # "everything that isn't mundane execution is Fable 5"; Opus 5 is no longer a
     # tier target and survives only as the explicit `opus` alias in model_router.
-    "anthropic": {"default": "claude-sonnet-5", "premium": "claude-fable-5"},
+    # 2026-09-01: premium moved claude-fable-5 -> claude-fable-5-1 (native) /
+    # anthropic/claude-fable-5.1 (OpenRouter). Cache-read pricing dropped to
+    # 0.25/MTok (was 1.00) — see PRICING tables in the modules that price it.
+    "anthropic": {"default": "claude-sonnet-5", "premium": "claude-fable-5-1"},
     "gemini": {"default": "gemini-2.5-flash"},
     "openrouter": {
         # Fix 14 — OR catalog uses dots for the 4.x series (4.6, 4.7), not
@@ -62,7 +65,7 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
         # plain `claude-opus-5` / `claude-sonnet-5`. Verified against OR's live
         # catalog 2026-08-12.
         "default": "anthropic/claude-sonnet-5",
-        "premium": "anthropic/claude-fable-5",
+        "premium": "anthropic/claude-fable-5.1",
         "gemini":  "google/gemini-2.5-pro",  # for OR-only setup, Gemini tier via OR
         # GLM 5.2 — Z.AI's flagship open model, ~$1/M input tokens via OR.
         # Use ONLY for creative/non-sensitive artifacts. Never for PII / AM-scoped /
@@ -420,9 +423,16 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
 
     # Helper: pick highest versioned claude-* model
     def _best_claude_family(family_re: re.Pattern, pool: list[dict]) -> dict | None:
-        """Return the model with the highest version number from a claude family."""
+        """Return the model with the highest version number from a claude family.
+
+        2026-09-01: the family regex captures only the major-version digit
+        (e.g. `claude-fable-5` and `claude-fable-5.1` both parse to ver=5), so
+        on an equal version we tie-break on `created` (larger/newer wins) —
+        otherwise the pick silently depends on list order from the API.
+        """
         best_m: dict | None = None
         best_ver = -1
+        best_created = -1.0
         for m in pool:
             match = family_re.match(m.get("id", ""))
             if match:
@@ -430,8 +440,10 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
                     ver = int(match.group(1))
                 except (IndexError, ValueError):
                     ver = 0
-                if ver > best_ver:
+                created = m.get("created", 0) or 0
+                if ver > best_ver or (ver == best_ver and created > best_created):
                     best_ver = ver
+                    best_created = created
                     best_m = m
         return best_m
 
