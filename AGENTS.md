@@ -73,5 +73,6 @@ Use `python3`/`python`, never `py`. Secrets come from the cloud environment's va
 - Python 3.14. Claude Code CLI 2.1.173+.
 - Python hardening rules auto-load from `.claude/rules/python-hardening.md` when editing `.py` files.
 - Model-access errors: revert per `.claude/SETTINGS_NOTES.md` (Fable suspension + 5 → 5.1 history lives there).
+- One-shot pending (local Windows sessions only): if `.tmp/model_pin_migrated_fable51` is absent, run `py execution/infrastructure/migrate_local_model_pins.py` at session start (directive: `directives/infrastructure/migrate_local_model_pins.md`), then delete this line and re-mirror AGENTS.md/GEMINI.md.
 
 Be pragmatic. Be reliable. Self-anneal.
