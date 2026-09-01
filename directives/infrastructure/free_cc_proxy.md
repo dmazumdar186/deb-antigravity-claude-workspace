@@ -104,7 +104,7 @@ The launcher reads the port from `.fcc-port`, health-checks the proxy, auto-star
 .\execution\infrastructure\launchers\claude-client.ps1
 ```
 
-Or simply type `claude` directly — the workspace default is claude-fable-5 client mode (orchestrator model per the 2026-09-01 token-economy doctrine: Fable thinks, Sonnet sub-agents do the grunt work).
+Or simply type `claude` directly — the workspace default is claude-fable-5-1 client mode (orchestrator model per the 2026-09-01 token-economy doctrine: Fable thinks, Sonnet sub-agents do the grunt work).
 
 ### Interactive picker
 

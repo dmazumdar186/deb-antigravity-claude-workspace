@@ -10,16 +10,17 @@ Everything that auto-loads (CLAUDE.md, always-active rules, skill descriptions, 
 - Skill frontmatter `description:` fields stay ≤ ~300 characters — enough to trigger, nothing more. The skill body loads only on invocation and can be as long as it needs.
 - New always-active rules require operator approval; prefer path-scoped auto-load (like `python-hardening.md`) or on-demand reads.
 - MCP servers: every registered server's tool schemas load into context. Register only servers in active use; prefer CLI equivalents (`gh`, `curl`) where they exist. Adding to `.mcp.json` needs operator approval.
-- Keep the auto-loaded prefix **stable**: prompt caching makes re-reads ~0.1x cost, but any edit to CLAUDE.md/rules invalidates the cache for every session. Batch such edits; don't churn them mid-week.
+- Keep the auto-loaded prefix **stable**: prompt caching makes re-reads ~0.1x cost — and on Fable 5.1 **0.025x** ($0.25/MTok, near Sonnet's cache-read rate) — but any edit to CLAUDE.md/rules invalidates the cache for every session, and a miss re-bills the whole prefix at full input rate (~40-50x a 5.1 hit). Batch such edits; don't churn them mid-week.
 
 ## Model doctrine — Fable thinks, Sonnet works
 
-The operator runs Max with `claude-fable-5` as the orchestrator (session default). Cost control comes from what the brain is *allowed to spend tokens on*, never from downgrading it:
+The operator runs Max with `claude-fable-5-1` as the orchestrator (session default; Fable 5 → 5.1 on 2026-09-01 — same $10/$50 per-token price, cache reads cut $1 → $0.25/MTok, so the doctrine got cheaper without changing shape). Cost control comes from what the brain is *allowed to spend tokens on*, never from downgrading it:
 
 - The main session keeps Fable for what only the top model does well: planning, architecture, root-cause reasoning, design review, high-stakes judgement.
 - **Fable never grinds.** Exploration beyond ~2-3 files → Explore sub-agent (Sonnet). Implementation from an approved plan → general-purpose sub-agent (Sonnet). Bulk per-row work → Dynamic Workflow workers (Sonnet). Fable reviews the returned diff/conclusion, not the journey. Rule of thumb: if a mid-level engineer could do the step from written instructions, it goes to a Sonnet agent.
 - This is why the fixed-context diet above matters 5x: every KB in the always-loaded prefix is re-billed at Fable weight on every orchestrator turn.
 - Audit lenses: `pipeline-auditor` on Fable (adversarial verification), `code-reviewer` on Opus, `anneal-reviewer`/`qa`/`documenter`/`note-taker` on Sonnet. Fan-out workers always Sonnet. Haiku stays banned.
+- **Low effort on Fable 5.1** is often competitive with Opus/Sonnet on cost per completed task — a legitimate middle rung for judgement-lite API calls (`execution/` scripts, not the interactive session). It does not change the worker doctrine: cap weighting is per token, so bulk volume still belongs on Sonnet.
 
 ## In-session hygiene
 

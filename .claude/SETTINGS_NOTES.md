@@ -131,6 +131,47 @@ verified live from the cloud session (their MCP servers dropped mid-session, ~75
 definitions gone from every future cloud session). The token-economy sweep (revs A-D) is
 now fully closed: no open items.
 
+## 2026-09-01 — Fable 5 → Fable 5.1 migration (branch `claude/migrate-fable-5-1-iemoio`)
+
+Operator-requested migration of the judgement tier to Claude Fable 5.1, framed to make
+the "Ferrari with Toyota fuel consumption" doctrine (rev B above) hold harder. Verified
+against platform.claude.com (migration guide, prompt-caching pricing, effort docs) and
+OpenRouter's live catalogue on 2026-09-01.
+
+- **Why it strengthens the doctrine:** same $10 in / $50 out per MTok as Fable 5, but
+  cache reads dropped $1.00 → **$0.25/MTok** (0.025x input — an exception to the usual
+  0.1x rule). The fixed always-loaded prefix, re-read at brain weight every orchestrator
+  turn, now costs near Sonnet cache-read rates ($0.20). Low effort on Fable 5.1 is also
+  often competitive with Opus/Sonnet on $/task. Delegation doctrine unchanged: Sonnet
+  still does all grunt work.
+- `.claude/settings.json` `model`: `claude-fable-5` → `claude-fable-5-1`.
+- Agent pin: `pipeline-auditor` → `claude-fable-5-1`. `code-reviewer` (`claude-opus-5`)
+  and the Sonnet agents unchanged.
+- `model_registry.LAST_KNOWN_GOOD`: anthropic premium → `claude-fable-5-1`; openrouter
+  premium → `anthropic/claude-fable-5.1` (**dot**, not dash — OpenRouter uses dots for
+  minor versions; verified live, cache read $0.25 there too). `model_router` `fable`
+  alias moved likewise. Old `claude-fable-5` rows KEPT in pricing tables (historical
+  transcripts) but no tier resolves to it anymore.
+- **Breaking change handled:** forced tool choice (`tool_choice={"type":"tool"|"any"}`)
+  returns 400 on `claude-fable-5-1`. Premium-capable call sites in `humanizer.py`,
+  `gaia_sourcing/core/providers.py`, and `youtube_video_analyzer.py` were migrated to
+  `tool_choice: auto` + an explicit prompt sentence naming the tool + `strict: true`
+  (`additionalProperties: false`). Sonnet-pinned call sites untouched.
+- CLAUDE.md/AGENTS.md/GEMINI.md Models section, `token-economy.md`,
+  `python-hardening.md` rule 4 (cache-read multiplier is model-dependent), directives
+  (`model_chooser`, `claude_code_web`, `free_cc_proxy`, `fuzzy_variables`,
+  `icp_self_check_loop`, `_TEMPLATE_autoresearch`, `video/youtube_video_analyzer`)
+  updated to the new IDs.
+
+**REQUIRED LOCAL FOLLOW-UP (cloud session cannot reach these):** on the Windows machine,
+`~/.claude/settings.json` and `.claude/settings.local.json` still pin `claude-fable-5`
+and OVERRIDE the repo file (local > project > user). Set both to `claude-fable-5-1`,
+and update `~/.claude/rules/model-tier.md` if it names the old ID.
+
+**Revert (one line):** `"model": "claude-fable-5"` in `.claude/settings.local.json`;
+`git revert` the migration commit for the code/tier changes. Fable 5 remains served, so
+reverting is safe.
+
 ## Reverting
 
 To disable Agent Teams: remove the `env` block (or just the two new keys) from `.claude/settings.json`. Restart Claude Code. No other workspace files depend on this opt-in.

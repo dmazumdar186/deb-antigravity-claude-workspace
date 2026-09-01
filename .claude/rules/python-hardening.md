@@ -28,7 +28,7 @@ if not (worktree / user_path).resolve().is_relative_to(worktree.resolve()):
 
 ## 4. Cache-aware Claude pricing
 
-Pricing tables MUST include 4 entries per Claude model: `input`, `cache_read` (0.1× input), `cache_write` (1.25× input), `output`. Flat-rate over-estimates 5–10× under prompt caching. Cost-calc must accept all 4 token counts from `response.usage.cache_read_input_tokens` / `cache_creation_input_tokens` / `input_tokens` / `output_tokens`.
+Pricing tables MUST include 4 entries per Claude model: `input`, `cache_read` (0.1× input on most models — but 0.025× on `claude-fable-5-1`: $0.25/MTok; read the model's published rate, don't assume the multiplier), `cache_write` (1.25× input), `output`. Flat-rate over-estimates 5–10× under prompt caching. Cost-calc must accept all 4 token counts from `response.usage.cache_read_input_tokens` / `cache_creation_input_tokens` / `input_tokens` / `output_tokens`.
 
 ## 5. Never `except Exception: pass`
 

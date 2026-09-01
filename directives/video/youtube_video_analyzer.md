@@ -301,7 +301,7 @@ Calculation: 3 grids × ~1400 tokens/grid (R3 calibrated: ~155 tokens/cell × 9 
 - If yt-dlp consistently fails on a class of URLs (e.g. shorts), check whether `--format` selector needs adjustment.
 - If Claude returns truncated breakdowns, raise `CLAUDE_MAX_TOKENS`.
 - If PySceneDetect is slow on very long videos, set `downscale_factor=2` in the `open_video()` call.
-- If Claude does not call `submit_breakdown`, check that `tool_choice={"type": "tool", "name": "submit_breakdown"}` is set.
+- Forced `tool_choice` (`{"type": "tool", ...}` / `{"type": "any"}`) returns 400 on `claude-fable-5-1`. The script now uses `tool_choice={"type": "auto"}` plus an explicit prompt sentence naming `submit_breakdown`, with `strict: True` (`additionalProperties: false`) on the tool definition. If Claude does not call `submit_breakdown`, check that prompt instruction and the strict tool schema are intact.
 - If LAST_KNOWN_GOOD in model_registry.py shows stale model IDs in logs, update them.
 
 ## Exit Criteria
@@ -314,6 +314,7 @@ Calculation: 3 grids × ~1400 tokens/grid (R3 calibrated: ~155 tokens/cell × 9 
 
 ## Changelog
 
+- **2026-09-01** — Fable 5.1 migration note: forced `tool_choice` (`{"type": "tool", ...}` / `{"type": "any"}`) now returns 400 on `claude-fable-5-1`. Script updated to `tool_choice={"type": "auto"}` + an explicit prompt sentence naming `submit_breakdown` + `strict: True` (`additionalProperties: false`) on the tool definition. See Self-anneal hooks.
 - **2026-05-25** — v4.1: added summary + key_takeaways as leading sections (end-user content focus)
 - **2026-05-18** — v4: Added batch mode (multiple positional URLs + `--urls-file`, composable; fail-fast URL validation; sequential default + `--parallel N`; partial-failure tolerance; exit codes 0/1/2; `.tmp/video/_batch_{run_id}/summary.md`). Added creator-profile cache (`execution/modules/creator_profiles.py`): per-channel JSON profile built from accumulated breakdowns, distilled via LLM every N videos (default threshold 3 then +5), injected as context into all 3 analysis paths. New CLI flags: `--urls-file`, `--parallel N`, `--refresh-creator-profile`, `--show-creator-profile`, `--no-creator-profile`, `--no-analyze`. Both metadata functions patched to extract `channel_id` with uploader-slug fallback. `format_creator_context` has case-insensitive placeholder guard.
 - **2026-05-18** — v3: Added OpenRouter routing with strict `ALLOWED_FAMILIES = ("anthropic/", "openai/", "google/")` allowlist enforced before any other filter (Llama/Grok/Mistral never picked). One OR key now reaches Claude, Gemini, and GPT-4o vision via `--provider openrouter`. Added `_auto_detect_provider()` — prefers OR key over Anthropic key; prefers Gemini direct key for free URL-native path. Added `--provider {openrouter,anthropic,gemini-direct,auto}` flag. Added `analyze_with_openrouter()` using OpenAI-compatible SDK (`base_url=https://openrouter.ai/api/v1`). `--tier gemini` with OR key uses frame-grid mode (paid ~$0.02), not free URL-native — warning surfaced in logs. OR adds 5.5% platform fee vs direct. `OPENROUTER_API_KEY` added as preferred env var.
