@@ -54,7 +54,9 @@ REQUIRED_FR = [
     ("logo TotalEnergies SVG",    "/assets/logos/totalenergies.svg"),
     ("logo SEMMARIS SVG",         "/assets/logos/semmaris-rungis.svg"),
     ("logo Emmaüs SVG",           "/assets/logos/emmaus-solidarite.svg"),
-    ("client strip class",        "client-strip"),
+    # ClientsStrip.astro renamed its wrapper when the carousel became a
+    # static all-visible strip (commit 8b7fad1).
+    ("client strip class",        "clients-strip-section"),
 ]
 
 # Content patterns that MUST appear on the EN home page.
@@ -74,7 +76,9 @@ REQUIRED_EN = [
 
 # Shared markup that MUST appear on BOTH FR and EN home pages.
 REQUIRED_BOTH = [
-    ("WhatsApp CTA",         "wa.me/33758255583"),
+    # WhatsApp booking goes through the /wa-out click-tracking redirect
+    # (functions/wa-out.ts) since SEO v2 — raw wa.me no longer in markup.
+    ("WhatsApp CTA",         "/wa-out?source="),
     ("phone tel link",       "tel:+33758255583"),
     ("email mailto link",    "jitendranitrr13@gmail.com"),
     ("studio address",       "22 rue Eugène Manuel"),
@@ -130,7 +134,10 @@ BANNED_STRINGS = [
 FR_ONLY_MUST_NOT_APPEAR_IN_EN = [
     "Respirer",
     "Bouger",
-    "Le professeur",
+    # "Le professeur" removed 2026-09-01: French customer reviews render
+    # verbatim on the EN page (christelle's testimonial contains it), so it
+    # is no longer an FR-template-only marker. Template leak coverage is
+    # kept by the other needles.
     "Conçu par Debanjan",
     "Ils m&#39;ont fait confiance",
 ]
