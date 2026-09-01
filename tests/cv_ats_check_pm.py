@@ -103,6 +103,58 @@ CHECKLISTS = {
         ],
         "DEFAULT_PDF": "deliverables/cv_generic_pm/CV MAZUMDAR Debanjan FR.pdf",
     },
+    # ── AI PM GENERIC variant (cv_builder_ai_pm_{en,fr}.py) — additive, does not touch
+    # the pm_en/pm_fr profiles above. AI-first framing for Senior AI PM / agentic-automation
+    # roles; keyword pool extended per directives/personalization spec with llm/rag/agentic/
+    # genai/automation/orchestration/prompt/eval/gdpr/python/api/ci-cd/adoption/low-code.
+    "ai_pm_en": {
+        "REQUIRED_SECTIONS": [
+            "PROFESSIONAL EXPERIENCE", "SKILLS", "EDUCATION",
+            "LANGUAGES", "SELECTED PROJECTS",
+        ],
+        "REQUIRED_ENTRIES": [
+            "ProdCraft", "Wiser", "InfoTnT", "Pitney Bowes", "Evolent", "Avaya",
+            "Toulouse Business School", "15 years", "Stripe Connect", "85K", "1M",
+            "Senior Product Manager",
+        ],
+        "ATS_KEYWORDS": [
+            "llm", "rag", "agentic", "agent", "genai", "automation", "orchestration",
+            "prompt", "eval", "gdpr", "python", "api", "ci/cd", "adoption", "low-code",
+            "product discovery", "roadmap", "okr", "prd", "user stories", "backlog",
+            "a/b test", "analytics", "go-to-market", "agile", "scrum", "b2b", "saas",
+            "cross-functional", "stakeholder", "mcp", "n8n",
+        ],
+        "TITLE": "senior product manager",
+        "LANG": "en",
+        "TOP_KEYWORDS": [
+            "ai", "product", "llm", "rag", "agentic", "genai", "roadmap", "b2b", "saas",
+        ],
+        "DEFAULT_PDF": "deliverables/cv_ai_pm/CV MAZUMDAR Debanjan EN.pdf",
+    },
+    "ai_pm_fr": {
+        "REQUIRED_SECTIONS": [
+            "EXPÉRIENCE PROFESSIONNELLE", "COMPÉTENCES", "FORMATION",
+            "LANGUES", "PROJETS SÉLECTIONNÉS",
+        ],
+        "REQUIRED_ENTRIES": [
+            "ProdCraft", "Wiser", "InfoTnT", "Pitney Bowes", "Evolent", "Avaya",
+            "Toulouse Business School", "15 ans", "Stripe Connect", "85K", "1M",
+            "Senior Product Manager",
+        ],
+        "ATS_KEYWORDS": [
+            "llm", "rag", "agentique", "agent", "genai", "automatisation", "orchestration",
+            "prompt", "évaluation", "rgpd", "python", "api", "ci/cd", "adoption", "low-code",
+            "product discovery", "roadmap", "okr", "prd", "user stories", "backlog",
+            "a/b test", "analytics", "go-to-market", "agile", "scrum", "b2b", "saas",
+            "cross-fonctionnelle", "parties prenantes", "mcp", "n8n",
+        ],
+        "TITLE": "senior product manager",
+        "LANG": "fr",
+        "TOP_KEYWORDS": [
+            "ia", "produit", "llm", "rag", "agentique", "genai", "roadmap", "b2b", "saas",
+        ],
+        "DEFAULT_PDF": "deliverables/cv_ai_pm/CV MAZUMDAR Debanjan FR.pdf",
+    },
 }
 
 ATS_COVERAGE_MIN = 0.90   # >=90% of the PM keyword pool
@@ -216,7 +268,7 @@ def audit(pdf_path: Path, lang_key: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--lang", choices=["pm_en", "pm_fr"], default="pm_en")
+    parser.add_argument("--lang", choices=["pm_en", "pm_fr", "ai_pm_en", "ai_pm_fr"], default="pm_en")
     parser.add_argument("--pdf", type=Path, default=None)
     args = parser.parse_args()
 
