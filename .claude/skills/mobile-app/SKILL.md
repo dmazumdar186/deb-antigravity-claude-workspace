@@ -1,6 +1,6 @@
 ---
 name: mobile-app
-description: Scaffold and ship cross-platform mobile apps (Expo + React Native) from zero to TestFlight / Play Store from Windows via EAS cloud builds. Triggers on "build a mobile app", "new expo app", /mobile-app. Sub-commands: preflight, design, new, phase {n}, audit, ship ios, ship android.
+description: 'Scaffold and ship cross-platform mobile apps (Expo + React Native) from zero to TestFlight / Play Store from Windows via EAS cloud builds. Triggers on "build a mobile app", "new expo app", /mobile-app. Sub-commands: preflight, design, new, phase {n}, audit, ship ios, ship android.'
 user_invocable: true
 ---
 

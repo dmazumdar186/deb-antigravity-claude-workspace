@@ -1,6 +1,6 @@
 ---
 name: note-taker
-description: Capture learnings into .claude/notes/ after edits to directives/ or execution/. Uses the [tag] subject: detail format. Append-only; never overwrites.
+description: 'Capture learnings into .claude/notes/ after edits to directives/ or execution/. Uses the [tag] subject: detail format. Append-only; never overwrites.'
 model: claude-sonnet-5  # execution tier -- append-only note capture
 tools:
   - Read

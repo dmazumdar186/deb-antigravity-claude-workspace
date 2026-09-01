@@ -1,7 +1,7 @@
 ---
 name: remotion
 user_invocable: true
-description: Author, preview, and render Remotion motion-graphics compositions with @remotion/three baked in. Triggers on "remotion", "animated video", "motion graphics", "alpha overlay for davinci", "render video from react", or /remotion. Sub-commands: preflight, new {slug}.
+description: 'Author, preview, and render Remotion motion-graphics compositions with @remotion/three baked in. Triggers on "remotion", "animated video", "motion graphics", "alpha overlay for davinci", "render video from react", or /remotion. Sub-commands: preflight, new {slug}.'
 ---
 
 # Remotion
