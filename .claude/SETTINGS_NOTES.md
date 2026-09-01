@@ -98,6 +98,28 @@ stay the brain. The Sonnet-default part of the sweep is reversed; everything els
 the other two files); `git checkout` the two agent `.md` files. Revert the context-diet
 parts of the sweep only via git history (`94c6d6e`).
 
+### 2026-09-01 rev C — measurement loop + evidence-based skill archive
+
+- New: `execution/infrastructure/token_usage_report.py` + directive — reports burn by
+  model/day, skill invocations, and sub-agent spawns from local transcripts
+  (cache-aware pricing, API-price proxy for cap burn). Verified live in the cloud
+  container: one session showed 16.6M cache-read tokens — the fixed-context rent this
+  sweep targets. Run weekly on the Windows machine per the token-economy rule.
+- Archived 4 skills with ZERO references in directives/execution/notes, each a demo or a
+  duplicate of a kept skill: `generate-report` (weather demo), `recreate-thumbnails`
+  (subset of `thumbnail-generator`), `gmail-inbox` (duplicate of `gmail`),
+  `pan-3d-transition` (covered by `video-edit`). Restore: `git mv` back from
+  `docs/reference/skills-archive/`. Deeper pruning waits for a month of invocation data
+  from the usage report.
+- `session-start.sh`: removed the expired job_search_v2 synthetic block (window ended
+  2026-06-26); hook re-tested, JSON payload intact.
+
+**Operator checklist (only you can do these):**
+1. claude.ai Settings → Connectors: detach connectors not in active use (Apollo alone
+   attaches ~70 tools to every cloud session; Spotify/Upwork likely unused for work).
+2. On the Windows machine: `wc -c CLAUDE.local.md` — if large, put it on the same diet.
+3. Weekly: `py execution/infrastructure/token_usage_report.py` and compare to last week.
+
 ## Reverting
 
 To disable Agent Teams: remove the `env` block (or just the two new keys) from `.claude/settings.json`. Restart Claude Code. No other workspace files depend on this opt-in.

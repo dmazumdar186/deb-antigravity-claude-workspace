@@ -30,6 +30,8 @@ The operator runs Max with `claude-fable-5` as the orchestrator (session default
 - Don't paste large tool outputs into replies; summarize and cite file paths.
 - Long-running jobs: `run_in_background: true`, never foreground sleep+poll loops (each poll turn re-sends the whole context).
 
-## Review cadence
+## Measure — manage from data, not guesses
 
-Quarterly (or when limits start pinching again): re-measure `wc -c CLAUDE.md .claude/rules/*` and the skill-description total, prune skills that haven't been invoked, and re-check `.mcp.json` against actual use.
+- Weekly (or when limits pinch): run `python3 execution/infrastructure/token_usage_report.py` on the machine where Claude Code runs (directive: `directives/infrastructure/token_usage_report.md`). It reports burn by model/day, skill invocation counts, and sub-agent spawn counts from local transcripts.
+- Red flags in the report: Fable dominating raw token volume (delegation is failing), zero sub-agent spawns on multi-file work, skills at zero invocations for a month (archive candidates → `docs/reference/skills-archive/`).
+- Quarterly: re-measure `wc -c CLAUDE.md .claude/rules/*` and the skill-description total; re-check `.mcp.json` and claude.ai connectors against actual use.
