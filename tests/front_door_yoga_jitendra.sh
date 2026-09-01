@@ -99,14 +99,15 @@ check "mandala rotation class"          "mandala-spin"
 
 echo ">> Ambient audio (chant + singing bowls loop, 2026-09-01)"
 check "audio element"                   "id=\"om-audio\""
-check "chant ambient asset wired"       "serene-dawn\\.mp3"
+check "bansuri ambient asset wired"     "bansuri-dawn\\.mp3"
 check_absent "old birds asset gone"     "birds-dawn\\.mp3"
 check_absent "old chant asset gone"     "himalayan-chant\\.mp3"
+check_absent "old piano asset gone"     "serene-dawn\\.mp3"
 check "first-gesture auto-start"        "firstGesture"
 
 # The referenced asset must actually SERVE (a present <audio src> with a 404
 # behind it is silent audio — the 2026-08-03 stale-fallback class).
-AUDIO_HEAD=$(curl -sSI --max-time 30 "$URL/assets/audio/serene-dawn.mp3" 2>/dev/null || true)
+AUDIO_HEAD=$(curl -sSI --max-time 30 "$URL/assets/audio/bansuri-dawn.mp3" 2>/dev/null || true)
 if echo "$AUDIO_HEAD" | head -1 | grep -q " 200" && echo "$AUDIO_HEAD" | grep -qi "content-type: audio/mpeg"; then
   AUDIO_LEN=$(echo "$AUDIO_HEAD" | grep -i "^content-length:" | tr -dc '0-9')
   if [ "${AUDIO_LEN:-0}" -gt 100000 ]; then
@@ -116,7 +117,7 @@ if echo "$AUDIO_HEAD" | head -1 | grep -q " 200" && echo "$AUDIO_HEAD" | grep -q
     FAILS=$((FAILS + 1))
   fi
 else
-  echo "  FAIL ambient mp3 not serving as audio/mpeg 200 at /assets/audio/serene-dawn.mp3" >&2
+  echo "  FAIL ambient mp3 not serving as audio/mpeg 200 at /assets/audio/bansuri-dawn.mp3" >&2
   FAILS=$((FAILS + 1))
 fi
 
