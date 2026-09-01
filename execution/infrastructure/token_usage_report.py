@@ -62,6 +62,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Claude Code token usage report")
     ap.add_argument("--days", type=int, default=7, help="lookback window (default 7)")
     ap.add_argument("--json", action="store_true", help="emit JSON instead of a table")
+    ap.add_argument("--summary", action="store_true",
+                    help="compact digest (a few lines) for hook injection")
     args = ap.parse_args()
 
     root = transcript_root()
@@ -125,6 +127,26 @@ def main() -> int:
         ) / 1_000_000
         grand += cost
         totals[model] = {**m, "est_cost_usd": round(cost, 2)}
+
+    if args.summary:
+        if not totals:
+            print(f"No usage recorded in the last {args.days} days.")
+            return 0
+        parts = []
+        for model, m in sorted(totals.items(), key=lambda kv: -kv[1]["est_cost_usd"]):
+            short = model.replace("claude-", "")
+            parts.append(f"{short} ${m['est_cost_usd']:.0f} ({m['calls']} calls)")
+        print(f"Last {args.days}d burn (API-price proxy): " + " | ".join(parts)
+              + f" | total ${grand:.0f}")
+        top_sk = sorted(skills.items(), key=lambda kv: -kv[1])[:5]
+        top_ag = sorted(agents.items(), key=lambda kv: -kv[1])[:5]
+        if top_sk:
+            print("Top skills: " + ", ".join(f"{k} x{v}" for k, v in top_sk))
+        if top_ag:
+            print("Sub-agent spawns: " + ", ".join(f"{k} x{v}" for k, v in top_ag))
+        else:
+            print("Sub-agent spawns: NONE — if multi-file work happened, delegation is failing.")
+        return 0
 
     if args.json:
         print(json.dumps({

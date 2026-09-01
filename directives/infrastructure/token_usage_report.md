@@ -6,6 +6,7 @@ Measure actual Claude Code token consumption by model, day, skill, and sub-agent
 ## Inputs
 - `--days N` — lookback window (default 7).
 - `--json` — machine-readable output.
+- `--summary` — compact 3-line digest (used by the SessionStart hook).
 - Reads transcripts from `~/.claude/projects/**/*.jsonl` (or `$CLAUDE_CONFIG_DIR/projects`). Must run on the machine where Claude Code runs — cloud sessions only see their own container's transcripts.
 
 ## Tools / Scripts
@@ -16,6 +17,7 @@ Measure actual Claude Code token consumption by model, day, skill, and sub-agent
 - The dollar figure is an API-price **proxy** for subscription cap burn — the cap's weighting is unpublished but tracks model cost, so relative comparisons (week over week, model vs model) are sound; absolute dollars are not a bill.
 
 ## Steps
+0. **Normally zero action needed:** `.claude/hooks/session-start.sh` auto-runs `--summary` at most once per 7 days (stamp file `.tmp/token_usage_last_run`) and injects the digest into the session, which surfaces it to the operator. The steps below are for on-demand deep dives.
 1. Run `python3 execution/infrastructure/token_usage_report.py` (on Windows: `py`).
 2. Read the model split: Fable's share should be mostly judgement turns; if Fable dominates raw volume, delegation is failing — re-read the token-economy rule.
 3. Read skill invocations: any skill at zero across a month is an archive candidate (`git mv` to `docs/reference/skills-archive/`).
@@ -30,3 +32,4 @@ Measure actual Claude Code token consumption by model, day, skill, and sub-agent
 
 ## Changelog
 - 2026-09-01: Created as part of the token-economy sweep (measurement loop — manage from data, not guesses).
+- 2026-09-01 (later): Added `--summary` and fully automated the weekly cadence via the SessionStart hook — no operator action required. Hook also auto-flags an oversized `CLAUDE.local.md` (>3KB) as a context-rent warning.

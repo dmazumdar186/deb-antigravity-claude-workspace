@@ -114,11 +114,17 @@ parts of the sweep only via git history (`94c6d6e`).
 - `session-start.sh`: removed the expired job_search_v2 synthetic block (window ended
   2026-06-26); hook re-tested, JSON payload intact.
 
-**Operator checklist (only you can do these):**
-1. claude.ai Settings → Connectors: detach connectors not in active use (Apollo alone
-   attaches ~70 tools to every cloud session; Spotify/Upwork likely unused for work).
-2. On the Windows machine: `wc -c CLAUDE.local.md` — if large, put it on the same diet.
-3. Weekly: `py execution/infrastructure/token_usage_report.py` and compare to last week.
+**Operator checklist — rev D update: items 2 and 3 are now AUTOMATED.**
+`session-start.sh` auto-runs the usage digest at most once per 7 days (stamp:
+`.tmp/token_usage_last_run`) and surfaces it in the session's opening context, and
+auto-flags a `CLAUDE.local.md` over 3KB. Zero action needed for either.
+
+The ONE remaining manual item (an account setting no repo file or tool can change):
+detach unused claude.ai connectors. Exact steps: open https://claude.ai/settings/connectors
+in a browser → for each connector not used for work (e.g. Spotify; Apollo/Upwork if
+outreach is dormant) click its "…"/configure control → Disconnect/Remove. Apollo alone
+attaches ~70 tool definitions to every cloud session. Reconnecting later is one click on
+the same page.
 
 ## Reverting
 
