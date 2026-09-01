@@ -76,9 +76,17 @@ function die(msg) { process.stderr.write(`[backfill] FATAL: ${msg}\n`); process.
 
 function runWrangler(args) {
   return new Promise((resolveOk, rejectFail) => {
-    const proc = spawn('npx', ['wrangler', ...args], {
+    // shell:true concatenates args without escaping — a path containing spaces
+    // (this workspace lives under "AntiGravity Project Space") splits into
+    // multiple argv entries and wrangler dies on "Unknown argument". Quote any
+    // arg with whitespace before handing it to the Windows shell.
+    const shell = process.platform === 'win32';
+    const shellArgs = shell
+      ? args.map((a) => (/\s/.test(a) ? `"${a}"` : a))
+      : args;
+    const proc = spawn('npx', ['wrangler', ...shellArgs], {
       cwd: CRON_WORKER_ROOT,
-      shell: process.platform === 'win32',
+      shell,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';

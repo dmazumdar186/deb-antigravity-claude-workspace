@@ -215,7 +215,7 @@ const structuredData = {
   {!dashboard && (
     <audio
       id="om-audio"
-      src="/assets/audio/birds-dawn.mp3"
+      src="/assets/audio/himalayan-chant.mp3"
       preload="metadata"
       loop
       aria-hidden="true"
@@ -261,7 +261,7 @@ const structuredData = {
       function start() {
         if (started || userMuted) return;
         if (omEl) {
-          omEl.volume = 0.7;
+          omEl.volume = 0.6;
           omEl.currentTime = 0;
           var p = omEl.play();
           if (p && typeof p.catch === 'function') p.catch(function() {});
