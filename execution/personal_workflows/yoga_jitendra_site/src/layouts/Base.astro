@@ -216,12 +216,17 @@ const structuredData = {
   {!dashboard && (
     <audio
       id="om-audio"
-      src="/assets/audio/bansuri-dawn.mp3"
+      src="/assets/audio/bansuri-studio.mp3"
       preload="metadata"
       loop
       aria-hidden="true"
     />
   )}
+  {/* bansuri-studio.mp3 = "bansuri flute" by PoshPony, Pixabay Content
+      License (commercial use OK, no attribution required):
+      https://pixabay.com/music/world-bansuri-flute-406082/
+      Alternate candidate lives at /assets/audio/bansuri-raga-alt.mp3
+      ("Indian Bansuri Flute Tarana Raga Music" by boopul, id 525950). */}
   {/* Mute toggle must ship on EVERY public page, not just the homepages —
       audio autostarts site-wide (first gesture), so a visitor landing on
       /reviews from Google needs a way to silence it (panel finding

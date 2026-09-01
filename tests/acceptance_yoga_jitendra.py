@@ -85,7 +85,7 @@ REQUIRED_BOTH = [
     ("hero backdrop",        "hero-backdrop"),
     ("mandala rotation",     "mandala-spin"),
     ("ambient audio element", 'id="om-audio"'),
-    ("bansuri ambient asset", "bansuri-dawn.mp3"),
+    ("bansuri ambient asset", "bansuri-studio.mp3"),
     ("first-gesture auto",    "firstGesture"),
     ("audio mute button",    "data-audio-toggle"),
     ("lineage yantra backdrop", "lineage-yantra-bg"),
