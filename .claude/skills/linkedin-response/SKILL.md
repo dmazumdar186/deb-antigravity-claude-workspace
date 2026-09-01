@@ -11,7 +11,7 @@ allowed-tools: Read, Grep, Glob, mcp__chrome-stealth__take_snapshot, mcp__chrome
 Triage and respond to LinkedIn DMs with short, lowercase, human-like messages matching Debanjan Mazumdar's casual texting voice.
 
 ## Model Recommendation
-Use **Sonnet** for this skill. The task is procedural (classify → execute DOM action) and doesn't need Opus-level reasoning. Sonnet at ~$0.27/DM vs Opus at ~$1.30/DM.
+Run this skill on the execution tier (`/model claude-sonnet-5` before invoking). The task is procedural (classify → execute DOM action) and doesn't need the judgement tier.
 
 ## CRITICAL SAFETY CONSTRAINTS
 

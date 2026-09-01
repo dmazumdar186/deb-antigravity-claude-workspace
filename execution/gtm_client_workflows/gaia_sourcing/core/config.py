@@ -63,16 +63,24 @@ def secret(name: str, required: bool = True) -> str:
 
 MODEL_EXTRACT = "claude-sonnet-5"   # L5 evidence extraction (high volume)
 MODEL_PARSE = "claude-sonnet-5"     # L1 requisition parsing
-MODEL_JUDGE = "claude-fable-5"      # L8 adversarial + tiering (judgement)
+MODEL_JUDGE = "claude-fable-5-1"    # L8 adversarial + tiering (judgement)
 MODEL_MOVABILITY = "claude-sonnet-5"  # L10 per-candidate rubric scoring = bulk execution (model-tier.md Exhibit D)
-MODEL_MESSAGE = "claude-fable-5"    # L11 -- goes out under Gaia's name (judgement)
+MODEL_MESSAGE = "claude-fable-5-1"  # L11 -- goes out under Gaia's name (judgement)
+# 2026-09-01: MODEL_JUDGE / MODEL_MESSAGE moved claude-fable-5 -> claude-fable-5-1.
 
 # Pricing per MTok (USD), from ~/.claude/rules/model-tier.md, verified
 # 2026-08-27. Converted to EUR for all operator-facing output.
 USD_TO_EUR = 0.92
 PRICING: dict[str, dict[str, float]] = {
+    # Kept: superseded by claude-fable-5-1 on 2026-09-01, but historical run
+    # records still cost-resolve against this row.
     "claude-fable-5": {
         "input": 10.00, "cache_write": 12.50, "cache_read": 1.00, "output": 50.00
+    },
+    # verified 2026-09-01: same input/output as fable-5; cache_read dropped to
+    # 0.25 (0.025x input, not the usual 0.1x).
+    "claude-fable-5-1": {
+        "input": 10.00, "cache_write": 12.50, "cache_read": 0.25, "output": 50.00
     },
     "claude-opus-5": {
         "input": 5.00, "cache_write": 6.25, "cache_read": 0.50, "output": 25.00

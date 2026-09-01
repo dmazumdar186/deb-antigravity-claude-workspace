@@ -3,7 +3,7 @@
 Upwork Proposal Generator
 
 Generates customized cover letters and project proposals for Upwork jobs.
-Uses Opus 4.5 with extended thinking for high-quality personalization.
+Uses claude-sonnet-5 (execution tier) for high-quality personalization.
 
 Usage:
     python execution/upwork_proposal_generator.py --input .tmp/upwork_jobs_batch.json
@@ -57,7 +57,7 @@ def create_apply_link(url: str) -> str:
 
 
 def generate_cover_letter(job: dict, proposal_doc_url: str, client: anthropic.Anthropic) -> str:
-    """Generate customized cover letter using Opus 4.5 with extended thinking."""
+    """Generate customized cover letter using claude-sonnet-5."""
 
     prompt = f"""Generate a short, personalized Upwork cover letter for this job.
 
@@ -138,7 +138,7 @@ Return ONLY the cover letter text."""
 
 
 def generate_proposal(job: dict, client: anthropic.Anthropic) -> str:
-    """Generate project proposal using Opus 4.5 with extended thinking."""
+    """Generate project proposal using claude-sonnet-5."""
 
     prompt = f"""Write a personalized project proposal for this Upwork job. Write as Nick - first person, conversational, direct.
 

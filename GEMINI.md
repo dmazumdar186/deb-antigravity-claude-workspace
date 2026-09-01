@@ -30,10 +30,10 @@ Category map (identical subfolders for `directives/` and `execution/`): **`direc
 
 ## Models — "Fable thinks, Sonnet works" (set 2026-09-01)
 
-- **Orchestrator / brain: `claude-fable-5`** — the session default. It plans, architects, decides, reviews diffs, and delegates. It does **not** grind: multi-file exploration, implementation from an approved plan, scraping, formatting, and fan-out all go to Sonnet sub-agents. Every token the main session burns should be a judgement token — that is how the top model stays affordable on the 5-hour cap.
+- **Orchestrator / brain: `claude-fable-5-1`** — the session default. It plans, architects, decides, reviews diffs, and delegates. It does **not** grind: exploration, implementation from an approved plan, scraping, formatting, and fan-out all go to Sonnet sub-agents. Every main-session token should be a judgement token. 5.1 cache reads are $0.25/MTok (was $1): the re-sent prefix now costs ~Sonnet rates — keep it byte-stable.
 - **Workers / execution: `claude-sonnet-5`** ($2/$10 MTok — 5x cheaper). All Explore/general-purpose sub-agents, Dynamic Workflow workers, execution scripts' default tier, mechanical agents (documenter, note-taker), and checklist audits (anneal-reviewer, qa).
-- **Audit lenses:** `pipeline-auditor` = `claude-fable-5` (adversarial verification deserves the brain); `code-reviewer` = `claude-opus-5`.
-- Cost control comes from the context diet + delegation + hygiene (`.claude/rules/token-economy.md`) — never from downgrading the brain. Haiku is banned for all project work. Pin full model IDs, never aliases. History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, tiers resolve via `model_registry.LAST_KNOWN_GOOD` (`'default'` = Sonnet; `'premium'` = Fable).
+- **Audit lenses:** `pipeline-auditor` = `claude-fable-5-1` (adversarial verification deserves the brain); `code-reviewer` = `claude-opus-5`.
+- Cost control = context diet + delegation + hygiene (`.claude/rules/token-economy.md`) — never downgrading the brain (low-effort Fable 5.1 details: `token-economy.md`). Haiku is banned. Pin full model IDs, never aliases. History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, tiers resolve via `model_registry.LAST_KNOWN_GOOD` (`'default'` = Sonnet; `'premium'` = Fable).
 
 ## Sub-agents & parallelism
 
@@ -72,6 +72,6 @@ Use `python3`/`python`, never `py`. Secrets come from the cloud environment's va
 
 - Python 3.14. Claude Code CLI 2.1.173+.
 - Python hardening rules auto-load from `.claude/rules/python-hardening.md` when editing `.py` files.
-- Fable 5 access was suspended 2026-06-12 (export control) and re-enabled 2026-08-27; if a model-access error appears, revert per `.claude/SETTINGS_NOTES.md`.
+- Model-access errors: revert per `.claude/SETTINGS_NOTES.md` (Fable suspension + 5 → 5.1 history lives there).
 
 Be pragmatic. Be reliable. Self-anneal.

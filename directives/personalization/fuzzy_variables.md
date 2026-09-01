@@ -24,7 +24,7 @@ the email reads as originally written for that person.
 
 This is a methodology directive — no paired `fuzzy_variables.py` by design;
 runs compose existing rails per the model-tier rule (bulk pass =
-`claude-sonnet-5`, rubric/template design = `claude-fable-5`).
+`claude-sonnet-5`, rubric/template design = `claude-fable-5-1`).
 
 - Per-row generation rails: `execution/personalization/ai_opener_generator.py`
   and `execution/personalization/variant_generator.py`.

@@ -26,6 +26,10 @@ from pathlib import Path
 # Cache-aware pricing: 4 entries per model — input, cache_read (0.1x),
 # cache_write (1.25x), output — per $/MTok. Matched by substring on model id.
 PRICING = {
+    # claude-fable-5-1 MUST precede claude-fable-5: price_for() does a
+    # substring match ("key in model"), and "claude-fable-5" is itself a
+    # prefix of "claude-fable-5-1" — dict order decides which one wins.
+    "claude-fable-5-1": {"input": 10.0, "cache_read": 0.25, "cache_write": 12.5,  "output": 50.0},  # verified 2026-09-01
     "claude-fable-5":  {"input": 10.0, "cache_read": 1.0,  "cache_write": 12.5,  "output": 50.0},
     "claude-opus-5":   {"input": 5.0,  "cache_read": 0.5,  "cache_write": 6.25,  "output": 25.0},
     "claude-sonnet-5": {"input": 2.0,  "cache_read": 0.2,  "cache_write": 2.5,   "output": 10.0},

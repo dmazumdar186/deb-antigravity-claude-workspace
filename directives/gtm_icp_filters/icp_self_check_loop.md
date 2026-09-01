@@ -25,7 +25,7 @@ whichever sourcing script is in play.
 - Existing sourcing rails: `execution/lead_sourcing/` (e.g.
   `prospeo_leads.py`, `serper_maps_scraper.py`).
   (`execution/modules/sources/` is currently empty — owed.)
-- ICP match judging: rubric design = `claude-fable-5`; per-row classification
+- ICP match judging: rubric design = `claude-fable-5-1`; per-row classification
   = `claude-sonnet-5` (model-tier rule).
 
 ## Outputs

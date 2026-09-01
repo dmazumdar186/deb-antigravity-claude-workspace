@@ -5,6 +5,12 @@ exist because ~60 literals did NOT follow it, and nothing in the suite noticed.
 Each assertion here fails on the pre-sweep tree and passes after it, so a
 regression back to Opus (or a new script cloned from a stale template) is caught
 by pytest rather than by the operator reading --help.
+
+2026-09-01: judgement tier moved again, claude-fable-5 -> claude-fable-5.1.
+Unlike the 5-series bump, the native (dash) and OpenRouter (dot) slugs now
+diverge in their suffix -- "claude-fable-5-1" vs "anthropic/claude-fable-5.1"
+-- so the old "anthropic/" + JUDGEMENT / .endswith(JUDGEMENT) shortcuts no
+longer hold. JUDGEMENT stays the native ID; JUDGEMENT_OR is the OR slug.
 """
 from __future__ import annotations
 
@@ -19,7 +25,8 @@ EXEC = ROOT / "execution"
 sys.path.insert(0, str(EXEC))
 sys.path.insert(0, str(EXEC / "gtm_client_workflows" / "gaia_sourcing"))
 
-JUDGEMENT = "claude-fable-5"
+JUDGEMENT = "claude-fable-5-1"
+JUDGEMENT_OR = "anthropic/claude-fable-5.1"
 EXECUTION = "claude-sonnet-5"
 
 
@@ -53,13 +60,14 @@ def test_premium_mode_is_the_judgement_tier(rel, key):
 ])
 def test_premium_mode_openrouter_slug(rel, key):
     d = _module_dict(EXEC / rel, key)
-    assert d["premium"] == "anthropic/" + JUDGEMENT, (rel, d)
+    assert d["premium"] == JUDGEMENT_OR, (rel, d)
     assert d["balanced"] == "anthropic/" + EXECUTION, (rel, d)
 
 
 def test_humanizer_premium_cost_row_is_fable_pricing():
     d = _module_dict(EXEC / "content" / "humanizer.py", "_TIER_COST_PER_M")
-    assert d["premium"] == {"input": 10.0, "cache_read": 1.0, "cache_write": 12.5, "output": 50.0}
+    # cache_read is 0.25 on fable-5.1 -- 0.025x input, not the usual 0.1x.
+    assert d["premium"] == {"input": 10.0, "cache_read": 0.25, "cache_write": 12.5, "output": 50.0}
     assert d["default"] == {"input": 2.0, "cache_read": 0.2, "cache_write": 2.5, "output": 10.0}
 
 
@@ -68,16 +76,22 @@ def test_gaia_roles_follow_the_tier_map():
     assert GC.MODEL_JUDGE == GC.MODEL_MESSAGE == JUDGEMENT
     # L10 is per-candidate rubric scoring: bulk execution (model-tier.md Exhibit D).
     assert GC.MODEL_MOVABILITY == GC.MODEL_EXTRACT == GC.MODEL_PARSE == EXECUTION
-    for plan in ("hybrid", "openrouter", "anthropic"):
+    # "hybrid"/"openrouter" plans route judge+message through OR (dot slug);
+    # "anthropic" routes them native (dash ID) -- the two no longer share a
+    # common suffix, so each plan is checked against its own form.
+    for plan in ("hybrid", "openrouter"):
         for role in (GP.ROLE_JUDGE, GP.ROLE_MESSAGE):
-            assert GP.PLANS[plan][role][1].endswith(JUDGEMENT), (plan, role)
-        assert not GP.PLANS[plan][GP.ROLE_EXTRACT][1].endswith(JUDGEMENT), plan
-    assert GP.ROUTING[GP.ROLE_JUDGE][1].endswith(JUDGEMENT)
+            assert GP.PLANS[plan][role][1] == JUDGEMENT_OR, (plan, role)
+        assert GP.PLANS[plan][GP.ROLE_EXTRACT][1] != JUDGEMENT_OR, plan
+    for role in (GP.ROLE_JUDGE, GP.ROLE_MESSAGE):
+        assert GP.PLANS["anthropic"][role][1] == JUDGEMENT, role
+    assert GP.PLANS["anthropic"][GP.ROLE_EXTRACT][1] != JUDGEMENT
+    assert GP.ROUTING[GP.ROLE_JUDGE][1] == JUDGEMENT_OR
 
 
 def test_gaia_fable_pricing_in_eur():
     from core import config as GC, providers as GP  # noqa: PLC0415
-    assert GC.PRICING[JUDGEMENT] == {"input": 10.00, "cache_write": 12.50, "cache_read": 1.00, "output": 50.00}
+    assert GC.PRICING[JUDGEMENT] == {"input": 10.00, "cache_write": 12.50, "cache_read": 0.25, "output": 50.00}
     one_m = 1_000_000
     assert GP.cost_eur(JUDGEMENT, {"input_tokens": one_m}) == pytest.approx(9.20)
     assert GP.cost_eur(JUDGEMENT, {"output_tokens": one_m}) == pytest.approx(46.00)
@@ -89,7 +103,7 @@ def test_registry_premium_is_fable_and_router_agrees():
     from modules import model_registry as R, model_router as T  # noqa: PLC0415
     assert R.LAST_KNOWN_GOOD["anthropic"]["premium"] == JUDGEMENT
     assert R.LAST_KNOWN_GOOD["anthropic"]["default"] == EXECUTION
-    assert R.LAST_KNOWN_GOOD["openrouter"]["premium"] == "anthropic/" + JUDGEMENT
+    assert R.LAST_KNOWN_GOOD["openrouter"]["premium"] == JUDGEMENT_OR
     assert T.validate_against_registry() == []
 
 
@@ -97,8 +111,8 @@ def test_youtube_analyzer_prices_fable_in_every_table():
     y = EXEC / "video" / "youtube_video_analyzer.py"
     flat = _module_dict(y, "_TIER_COST_PER_M_TOKENS")
     cache = _module_dict(y, "_CLAUDE_PRICES")
-    assert flat[JUDGEMENT] == flat["anthropic/" + JUDGEMENT] == 10.00
-    assert cache[JUDGEMENT] == {"input": 10.00, "cache_read": 1.00, "cache_write": 12.50, "output": 50.00}
+    assert flat[JUDGEMENT] == flat[JUDGEMENT_OR] == 10.00
+    assert cache[JUDGEMENT] == {"input": 10.00, "cache_read": 0.25, "cache_write": 12.50, "output": 50.00}
 
 
 def test_sonnet_rerank_prices_match_its_default_model():

@@ -616,7 +616,7 @@ Execute the directive now."""
     slack_directive_start(slug, slug, input_data)
 
     request_kwargs = {
-        "model": "claude-fable-5",
+        "model": "claude-fable-5-1",
         "max_tokens": 40000,
         "tools": tools,
         "messages": messages,
@@ -1470,7 +1470,7 @@ Output JSON only (no markdown, no explanations):"""
 
                 try:
                     msg = claude_client.messages.create(
-                        model="claude-sonnet-5"  # Haiku is banned (model-tier.md); execution tier is the floor,
+                        model="claude-sonnet-5",  # Haiku is banned (model-tier.md); execution tier is the floor
                         max_tokens=6000,
                         messages=[{"role": "user", "content": prompt}]
                     )
@@ -1874,7 +1874,7 @@ RULES for benefits:
 Return ONLY the JSON, no markdown code blocks or explanations."""
 
         msg = client.messages.create(
-            model="claude-fable-5",
+            model="claude-fable-5-1",
             max_tokens=4000,
             messages=[{"role": "user", "content": extraction_prompt}]
         )
@@ -2080,7 +2080,7 @@ def fetch_youtube_transcript(video_id, apify_client):
 
 
 def summarize_youtube_transcript(text, anthropic_client):
-    """Summarize transcript using Claude Sonnet 4.5."""
+    """Summarize transcript using claude-sonnet-5."""
     prompt = f"""Analyze this YouTube video transcript and provide a summary for a content creator.
 
 Transcript: {text[:100000]}

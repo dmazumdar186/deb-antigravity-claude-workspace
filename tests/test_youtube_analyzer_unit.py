@@ -110,7 +110,15 @@ def test_auto_or_beats_anth_premium():
 
 def test_tool_type(): assert _to_openai_tool_format(TOOL_SCHEMA)['type'] == 'function'
 def test_tool_name(): assert _to_openai_tool_format(TOOL_SCHEMA)['function']['name'] == TOOL_SCHEMA['name']
-def test_tool_params(): assert _to_openai_tool_format(TOOL_SCHEMA)['function']['parameters'] == TOOL_SCHEMA['input_schema']
+def test_tool_strict(): assert _to_openai_tool_format(TOOL_SCHEMA)['function']['strict'] is True
+def test_tool_params():
+    # 2026-09-01: parameters is now a strict-mode copy of input_schema (every
+    # object node gets additionalProperties:False) — not the schema verbatim,
+    # since tool_choice is "auto" now (claude-fable-5-1 400s on a forced choice).
+    params = _to_openai_tool_format(TOOL_SCHEMA)['function']['parameters']
+    assert params['additionalProperties'] is False
+    assert params['required'] == TOOL_SCHEMA['input_schema']['required']
+    assert params['properties'].keys() == TOOL_SCHEMA['input_schema']['properties'].keys()
 
 def test_reg_anth_default():
     s = _ep()
@@ -312,7 +320,8 @@ if __name__ == '__main__':
     run('_auto_detect_provider: OR beats anthropic (premium)', test_auto_or_beats_anth_premium)
     run('_to_openai_tool_format: type=function', test_tool_type)
     run('_to_openai_tool_format: function.name matches TOOL_SCHEMA', test_tool_name)
-    run('_to_openai_tool_format: function.parameters = input_schema', test_tool_params)
+    run('_to_openai_tool_format: function.strict=True', test_tool_strict)
+    run('_to_openai_tool_format: function.parameters = strict copy of input_schema', test_tool_params)
     run('resolve_model: anthropic/default no key -> LAST_KNOWN_GOOD', test_reg_anth_default)
     run('resolve_model: anthropic/premium no key -> LAST_KNOWN_GOOD', test_reg_anth_premium)
     run('resolve_model: openrouter live -> ALLOWED_FAMILIES prefix', test_reg_or_live)

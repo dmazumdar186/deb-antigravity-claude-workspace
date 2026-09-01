@@ -1622,7 +1622,7 @@ def _rule_legacy_model_pin() -> list[dict]:
                     "rule_id": "legacy-model-pin",
                     "message": (
                         "A 4.x Claude model is pinned as a default. The 5-series is the "
-                        "current tier map (claude-sonnet-5 execution / claude-fable-5 "
+                        "current tier map (claude-sonnet-5 execution / claude-fable-5-1 "
                         "judgement) per ~/.claude/rules/model-tier.md; 4.x rows belong "
                         "only in pricing tables for historical cost lookups."
                     ),

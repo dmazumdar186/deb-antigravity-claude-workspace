@@ -22,7 +22,7 @@ load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
-MODEL = "claude-fable-5"  # multi-agent debate is judgement work -> judgement tier (model-tier.md)
+MODEL = "claude-fable-5-1"  # multi-agent debate is judgement work -> judgement tier (model-tier.md)
 MAX_TOKENS = 2048
 
 AGENT_FRAMINGS = [

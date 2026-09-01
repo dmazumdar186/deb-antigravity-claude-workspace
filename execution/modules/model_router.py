@@ -47,7 +47,8 @@ ALIASES: dict[str, _Alias] = {
     # differently per provider and drift between Claude Code versions.
     # 2026-08-27: `fable` is the judgement tier. `opus` stays selectable but is no
     # longer what the premium tier resolves to.
-    "fable":   _Alias("anthropic", "claude-fable-5",     "anthropic/claude-fable-5",     "sensitive_ok"),
+    # 2026-09-01: fable-5 -> fable-5.1 (premium tier migration).
+    "fable":   _Alias("anthropic", "claude-fable-5-1",   "anthropic/claude-fable-5.1",   "sensitive_ok"),
     "opus":    _Alias("anthropic", "claude-opus-5",      "anthropic/claude-opus-5",      "sensitive_ok"),
     "sonnet":  _Alias("anthropic", "claude-sonnet-5",    "anthropic/claude-sonnet-5",    "sensitive_ok"),
     # --- OpenAI ---

@@ -53,7 +53,8 @@ export interface ModelPricingUSD {
 // on 2026-08-12. The prior claude-opus-4-8 row carried the retired Opus 4.1 rate
 // ($15/$75); Opus 4.5 onward are all $5/$25.
 export const MODEL_PRICING_USD: Record<string, ModelPricingUSD> = {
-  'claude-fable-5':       { input: 10.00, cache_read: 1.00, cache_write: 12.50, output: 50.00 }, // verified 2026-08-27
+  'claude-fable-5':       { input: 10.00, cache_read: 1.00, cache_write: 12.50, output: 50.00 }, // verified 2026-08-27; superseded 2026-09-01, kept for historical cost lookups
+  'claude-fable-5-1':     { input: 10.00, cache_read: 0.25, cache_write: 12.50, output: 50.00 }, // verified 2026-09-01
   'claude-sonnet-5':      { input: 2.00, cache_read: 0.20, cache_write: 2.50, output: 10.00 },
   'claude-opus-5':        { input: 5.00, cache_read: 0.50, cache_write: 6.25, output: 25.00 },
   'claude-sonnet-4-6':    { input: 3.00, cache_read: 0.30, cache_write: 3.75, output: 15.00 },

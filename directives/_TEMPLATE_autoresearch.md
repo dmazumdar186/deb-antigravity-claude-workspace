@@ -39,7 +39,7 @@ Goal: reach >10% reply rate within 20 rounds while keeping total API spend under
 
 ## Mutate function
 
-- **Model**: `claude-sonnet-5` (cheap + balanced; Haiku is banned) / `claude-fable-5` (premium, judgement tier)
+- **Model**: `claude-sonnet-5` (cheap + balanced; Haiku is banned) / `claude-fable-5-1` (premium, judgement tier)
 - **Prompt shape**:
   ```
   You are optimizing [WHAT] to maximise [METRIC].

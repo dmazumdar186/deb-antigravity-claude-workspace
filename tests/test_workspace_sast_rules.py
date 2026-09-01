@@ -246,7 +246,7 @@ def test_legacy_pin_fires_on_every_known_shape(fake_workspace):
 def test_legacy_pin_ignores_pricing_rows_and_the_5_series(fake_workspace):
     (fake_workspace / "ok.py").write_text(
         'PRICING = {"claude-sonnet-4-6": {"input": 3.0}}  # historical cost lookups\n'
-        'MODEL = "claude-sonnet-5"\nJUDGE_MODEL = "claude-fable-5"\n', encoding="utf-8")
+        'MODEL = "claude-sonnet-5"\nJUDGE_MODEL = "claude-fable-5-1"\n', encoding="utf-8")
     _git_tracked_workspace(fake_workspace)
     assert sast._rule_legacy_model_pin() == []
 
