@@ -35,7 +35,7 @@ directives, skills, hooks, agents, and MCP servers intact.
 ## What carries over automatically (cloned with the repo)
 
 - `CLAUDE.md`, `directives/`, `execution/`, `tests/`
-- `.claude/settings.json` (model pin `claude-sonnet-5`, permissions, hooks config)
+- `.claude/settings.json` (model pin `claude-fable-5`, permissions, hooks config)
 - `.claude/hooks/` — **all hooks are Linux-portable as of 2026-08-31** (they
   resolve `py` → `python3` automatically; `notify-done.sh` no-ops without
   PowerShell)

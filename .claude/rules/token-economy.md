@@ -12,11 +12,14 @@ Everything that auto-loads (CLAUDE.md, always-active rules, skill descriptions, 
 - MCP servers: every registered server's tool schemas load into context. Register only servers in active use; prefer CLI equivalents (`gh`, `curl`) where they exist. Adding to `.mcp.json` needs operator approval.
 - Keep the auto-loaded prefix **stable**: prompt caching makes re-reads ~0.1x cost, but any edit to CLAUDE.md/rules invalidates the cache for every session. Batch such edits; don't churn them mid-week.
 
-## Model ladder — Sonnet drives, Fable is an escalation
+## Model doctrine — Fable thinks, Sonnet works
 
-- Session default is `claude-sonnet-5`. Most driving, execution, and review work lives here.
-- Escalate to `claude-fable-5` **deliberately** (`/model claude-fable-5`) for: architecture decisions, debugging that has resisted one Sonnet attempt, high-stakes/ambiguous judgement. Switch back to Sonnet when the judgement moment is over — don't run mundane follow-through on the premium tier.
-- Sub-agents and fan-out workers: `claude-sonnet-5`. Adversarial verification (`pipeline-auditor`) is the one Opus-pinned agent. Haiku stays banned.
+The operator runs Max with `claude-fable-5` as the orchestrator (session default). Cost control comes from what the brain is *allowed to spend tokens on*, never from downgrading it:
+
+- The main session keeps Fable for what only the top model does well: planning, architecture, root-cause reasoning, design review, high-stakes judgement.
+- **Fable never grinds.** Exploration beyond ~2-3 files → Explore sub-agent (Sonnet). Implementation from an approved plan → general-purpose sub-agent (Sonnet). Bulk per-row work → Dynamic Workflow workers (Sonnet). Fable reviews the returned diff/conclusion, not the journey. Rule of thumb: if a mid-level engineer could do the step from written instructions, it goes to a Sonnet agent.
+- This is why the fixed-context diet above matters 5x: every KB in the always-loaded prefix is re-billed at Fable weight on every orchestrator turn.
+- Audit lenses: `pipeline-auditor` on Fable (adversarial verification), `code-reviewer` on Opus, `anneal-reviewer`/`qa`/`documenter`/`note-taker` on Sonnet. Fan-out workers always Sonnet. Haiku stays banned.
 
 ## In-session hygiene
 

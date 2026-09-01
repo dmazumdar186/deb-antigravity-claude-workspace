@@ -28,12 +28,12 @@ Category map (identical subfolders for `directives/` and `execution/`): **`direc
 5. **Don't modify CLAUDE.md, directives, or execution scripts without user approval** — propose, explain, wait.
 6. **Token economy** — main context stays lean; delegate exploration; escalate model tier only deliberately. Full rule: `.claude/rules/token-economy.md`.
 
-## Models (token-economy tiering — set 2026-09-01)
+## Models — "Fable thinks, Sonnet works" (set 2026-09-01)
 
-- **Default / driving tier: `claude-sonnet-5`** ($2/$10 MTok). Session default, execution scripts' default tier, fan-out workers, mechanical agents (documenter, note-taker), and most audit agents.
-- **Escalation / judgement tier: `claude-fable-5`** ($10/$50 — 5x Sonnet, 2x Opus). **Not a default anywhere.** Switch deliberately with `/model claude-fable-5` for architecture decisions, debugging that has resisted one Sonnet attempt, or high-stakes analysis — then switch back.
-- **Adversarial audit: `claude-opus-5`** — pinned only in `.claude/agents/pipeline-auditor.md` (the independent verification lens).
-- Haiku is banned for all project work. Pin full model IDs, never aliases. History + revert one-liners: `.claude/SETTINGS_NOTES.md`. In `execution/`, tiers resolve via `model_registry.LAST_KNOWN_GOOD` (`'default'` = Sonnet; `'premium'` = judgement tier).
+- **Orchestrator / brain: `claude-fable-5`** — the session default. It plans, architects, decides, reviews diffs, and delegates. It does **not** grind: multi-file exploration, implementation from an approved plan, scraping, formatting, and fan-out all go to Sonnet sub-agents. Every token the main session burns should be a judgement token — that is how the top model stays affordable on the 5-hour cap.
+- **Workers / execution: `claude-sonnet-5`** ($2/$10 MTok — 5x cheaper). All Explore/general-purpose sub-agents, Dynamic Workflow workers, execution scripts' default tier, mechanical agents (documenter, note-taker), and checklist audits (anneal-reviewer, qa).
+- **Audit lenses:** `pipeline-auditor` = `claude-fable-5` (adversarial verification deserves the brain); `code-reviewer` = `claude-opus-5`.
+- Cost control comes from the context diet + delegation + hygiene (`.claude/rules/token-economy.md`) — never from downgrading the brain. Haiku is banned for all project work. Pin full model IDs, never aliases. History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, tiers resolve via `model_registry.LAST_KNOWN_GOOD` (`'default'` = Sonnet; `'premium'` = Fable).
 
 ## Sub-agents & parallelism
 

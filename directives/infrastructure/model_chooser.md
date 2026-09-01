@@ -11,9 +11,9 @@ Click-of-a-button switching between GLM 5.2, Opus, Sonnet, GPT-4o, and Gemini fo
 
 | Alias | Model ID | Native provider | Sensitivity | Per-token cost |
 |---|---|---|---|---|
-| `fable` | `claude-fable-5` | Anthropic | sensitive_ok | **judgement tier for `call_model()` scripts** (API-billed) since 2026-08-27. In Claude Code sessions it is a deliberate escalation only, never a default (token-economy sweep 2026-09-01; see `.claude/rules/token-economy.md`). $10/$50 per MTok (2x Opus 5, 5x Sonnet 5) |
+| `fable` | `claude-fable-5` | Anthropic | sensitive_ok | **judgement tier** — `call_model()` scripts (API-billed) since 2026-08-27, and the Claude Code orchestrator default. Mundane work is delegated to Sonnet sub-agents per `.claude/rules/token-economy.md` ("Fable thinks, Sonnet works", 2026-09-01). $10/$50 per MTok (2x Opus 5, 5x Sonnet 5) |
 | `opus` | `claude-opus-5` | Anthropic | sensitive_ok | $5/$25 per MTok. No longer a tier target -- explicit selection only |
-| _(session default)_ | `claude-sonnet-5` | Anthropic | sensitive_ok | Claude Code session default since 2026-09-01 (token-economy sweep; was `claude-fable-5` from 2026-08-27); not a `call_model()` alias |
+| _(session default)_ | `claude-fable-5` | Anthropic | sensitive_ok | Claude Code session default — the orchestrator model; grunt work is delegated to Sonnet sub-agents (token-economy doctrine 2026-09-01); not a `call_model()` alias |
 | `sonnet` | `claude-sonnet-5` | Anthropic | sensitive_ok | $2/$10 per MTok (execution tier) |
 | `gpt`, `gpt4o` | `gpt-4o` | OpenAI | sensitive_ok | $$$ |
 | `o1` | `o1` | OpenAI | sensitive_ok | $$$$$ |

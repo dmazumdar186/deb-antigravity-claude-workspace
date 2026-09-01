@@ -72,15 +72,31 @@ fixed context re-sent on every model call. Changes:
 - `.mcp.json`: removed the `github` server — its ~90 tool schemas load every turn locally,
   and `gh` CLI covers the same operations; cloud sessions get their own GitHub MCP anyway.
 
-**REQUIRED LOCAL FOLLOW-UP (cloud session cannot do this):** on the Windows machine set
-`"model": "claude-sonnet-5"` in BOTH `~/.claude/settings.json` and
-`.claude/settings.local.json` (or delete the `model` key from `settings.local.json`).
-`settings.local.json` overrides the project file, so without this the Fable pin stays live.
-Also update `~/.claude/rules/model-tier.md`, which still says "everything non-mundane is
-Fable 5" — new phrasing: "Sonnet drives; Fable by deliberate escalation; Opus audits."
+~~REQUIRED LOCAL FOLLOW-UP~~ **[SUPERSEDED same day by rev B below — do NOT flip local pins
+to Sonnet.]**
 
-**Revert (one line each):** `"model": "claude-fable-5"` back in `.claude/settings.local.json`;
-`git checkout` the agent `.md` files; restore the `github` block in `.mcp.json` from git history.
+### 2026-09-01 rev B — default restored to Fable; savings via delegation, not downgrade
+
+Operator decision: "a Ferrari with the fuel consumption of a Toyota" — the top model must
+stay the brain. The Sonnet-default part of the sweep is reversed; everything else stands.
+
+- `.claude/settings.json` `model`: back to `claude-fable-5`. Doctrine is now
+  **"Fable thinks, Sonnet works"** (`.claude/rules/token-economy.md`): the orchestrator
+  session keeps Fable for planning/architecture/review/judgement and delegates all grunt
+  work (exploration, implementation, fan-out) to `claude-sonnet-5` sub-agents. Savings come
+  from the fixed-context diet (which is billed at Fable weight every turn, so the ~60% cut
+  compounds), delegation of bulk token volume to Sonnet, and session hygiene.
+- Agent pins: `pipeline-auditor` → `claude-fable-5` (adversarial verification);
+  `code-reviewer` → `claude-opus-5` (review tier); `anneal-reviewer`/`qa` stay
+  `claude-sonnet-5` (checklist/test execution); `documenter`/`note-taker` unchanged.
+- **No local follow-up needed for model pins** — `~/.claude/settings.json` and
+  `.claude/settings.local.json` already say `claude-fable-5`, which is now correct again.
+  Optional: add the delegation doctrine ("Fable thinks, Sonnet works") to
+  `~/.claude/rules/model-tier.md` so local sessions carry it too.
+
+**Revert rev B:** `"model": "claude-sonnet-5"` in `.claude/settings.local.json` (wins over
+the other two files); `git checkout` the two agent `.md` files. Revert the context-diet
+parts of the sweep only via git history (`94c6d6e`).
 
 ## Reverting
 

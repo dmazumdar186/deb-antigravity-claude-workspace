@@ -1,7 +1,7 @@
 ---
 name: pipeline-auditor
 description: Adversarial auditor that independently verifies completed work. Self-plans its audit, counts from source, catches silent drops and logic errors. Returns PASS/FAIL/WARNINGS with evidence.
-model: claude-opus-5  # audit tier -- adversarial verification keeps a stronger model (token-economy sweep 2026-09-01)
+model: claude-fable-5  # brain tier -- adversarial verification deserves the top model (token-economy doctrine 2026-09-01)
 tools:
   - Read
   - Glob
