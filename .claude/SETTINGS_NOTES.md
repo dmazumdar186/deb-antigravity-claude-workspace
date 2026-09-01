@@ -170,7 +170,9 @@ and update `~/.claude/rules/model-tier.md` if it names the old ID.
 
 **Revert (one line):** `"model": "claude-fable-5"` in `.claude/settings.local.json`;
 `git revert` the migration commit for the code/tier changes. Fable 5 remains served, so
-reverting is safe.
+reverting is safe. The one-shot stamp above means the migration script never flips a
+revert back; if `.tmp/` gets wiped after a deliberate revert, recreate the stamp file
+(or delete the script) so it stays a no-op.
 
 ## Reverting
 
