@@ -348,7 +348,7 @@ def build_story():
         'build eval-first.',
 
         '<b>AgentUp</b> (live) : coaching par roleplay GenAI — LLM en streaming avec fallback, '
-        'redaction PII côté client.',
+        'anonymisation des PII côté client.',
 
         '<b>Job Search Engine</b> : agrégation multi-sources + ranking LLM (API France '
         'Travail, ingestion Gmail) — infra à 0$.',
