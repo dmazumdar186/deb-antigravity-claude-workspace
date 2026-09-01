@@ -177,8 +177,8 @@ def build_story():
         "et automatisation agentique</b>. Je mène la product discovery avec les équipes "
         "métier, défends la priorisation au niveau <b>VP/C-level</b>, et reste hands-on — "
         "<b>LLM, RAG, orchestration d'agents</b>, low-code et Python — quand construire est "
-        "le chemin le plus court vers l'impact. <b>12+ produits IA livrés</b> de bout en bout, "
-        "médiane <b>&lt;30 jours</b>.",
+        "le chemin le plus court vers l'impact. <b>12+ produits IA livrés</b>, médiane "
+        "<b>&lt;30 jours</b>.",
         "<b>Impact :</b> <b>+45%</b> d'adoption • <b>−55%</b> latence p95 • <b>~200K$/an</b> "
         "de coûts automatisés • <b>1M$+</b> de pipeline qualifié",
     ))
@@ -192,16 +192,17 @@ def build_story():
         'Senior Product Manager, IA &amp; Data Intelligence — Wiser Solutions',
         'B2B SaaS · Retail &amp; Digital-Commerce Intelligence · Paris | Nov. 2022 – Aujourd\u2019hui',
         [
-            "Ownership de la <b>ligne produit IA/GenAI</b> de bout en bout (assistant RAG, "
-            "recommandation, alerting intelligent) : discovery → PRD → <b>gates d'évaluation "
-            "LLM</b> → rollout — <b>+45% d'adoption, −55% de latence p95</b>.",
+            "Responsable de bout en bout de la ligne produit <b>IA/GenAI</b> (assistant RAG "
+            "sur APIs OpenAI/Anthropic, recommandation, alerting intelligent) : discovery → "
+            "PRD → <b>gates d'évaluation LLM</b> (jeu de test golden, LLM-as-judge) → "
+            "rollout — <b>+45% d'adoption, −55% de latence p95</b>.",
 
             "Pilotage du <b>déploiement GenAI global</b> : roadmap, OKR, <b>budget de "
-            "150K$</b>, revues go/no-go avec le <b>CPO</b> et les directions métier — "
-            "<b>+40% d'adoption BU, +20% de CSAT</b>.",
+            "150K$</b>, revues go/no-go avec le <b>CPO</b> — <b>+40% d'adoption BU, +20% de "
+            "CSAT</b>.",
 
             "Alignement de <b>5 squads cross-fonctionnelles</b> (Paris, US, Inde) sur une "
-            "roadmap priorisée unique — par l'influence, sans autorité hiérarchique.",
+            "roadmap priorisée unique — sans autorité hiérarchique.",
 
             "<b>Expérimentation</b> (A/B tests, feature flags, monitoring de drift) avec "
             "garde-fous <b>RGPD / privacy-by-design</b> — <b>−25% d'ambiguïté en sprint, "
@@ -215,16 +216,17 @@ def build_story():
         '<a href="https://prodcraft.fyi" color="#1B9AAA">ProdCraft</a> (AI Product Studio)',
         'Paris (indépendant, en parallèle de Wiser) | Janv. 2026 – Aujourd\u2019hui',
         [
-            "<b>Moteur outbound autonome</b> (pipeline agentique : classification LLM des "
-            "réponses, 32 boîtes mail, SLA hot-lead de 3h) — <b>1M$+ de pipeline qualifié</b>, "
+            "<b>Moteur outbound autonome</b> (pipeline agentique : classification des "
+            "réponses par <b>Claude</b>, orchestration Cloudflare Workers, 32 boîtes mail, "
+            "leads chauds traités sous 3h) — <b>1M$+ de pipeline qualifié</b>, "
             "<b>~200K$/an de coût SDR remplacé</b>.",
 
             "Co-lancement d'une <b>marketplace Stripe Connect</b> (React + Node + Postgres) — "
             "<b>85K$ traités en 3 mois</b>.",
 
             "<b>12+ produits IA livrés</b>, médiane <b>&lt;30 jours</b> — SaaS d'optimisation "
-            "de CV multilingue, app de coaching GenAI, CLI d'audit de code — discovery, PRD, "
-            "user stories et release gates.",
+            "de CV multilingue, app de coaching GenAI, CLI d'audit de code — discovery, PRD "
+            "et release gates.",
         ]
     ):
         st.append(item)
@@ -240,6 +242,13 @@ def build_story():
     ):
         st.append(item)
 
+    st.append(Paragraph(
+        '<b>2019 – 2021 :</b> MSc International Strategic Business — Toulouse Business '
+        'School, Paris (temps plein).',
+        S['oneliner']
+    ))
+    st.append(Spacer(1, 4))
+
     for item in _exp_entry(
         'Senior Data Product Owner — Pitney Bowes',
         'Shipping &amp; Logistics SaaS · Pune | Avr. 2019 – Sept. 2019',
@@ -254,7 +263,8 @@ def build_story():
         'Senior Data Product Owner — Evolent International',
         'Healthcare SaaS · Pune | Juin 2018 – Févr. 2019',
         [
-            "<b>+30% de scalabilité plateforme</b> via frameworks SLA/SLO et gouvernance QA.",
+            "<b>+30% de scalabilité de la plateforme</b> via frameworks SLA/SLO et "
+            "gouvernance QA.",
         ]
     ):
         st.append(item)
@@ -271,7 +281,7 @@ def build_story():
 
     st.append(Paragraph(
         '<b>2010 – 2015 :</b> Ingénieur logiciel (Tata Consultancy Services) → QA / Release '
-        'Coordinator (IDrive) — <i>fondations en systèmes distribués et release management</i>',
+        'Coordinator (IDrive) — <i>fondations en systèmes distribués</i>',
         S['oneliner']
     ))
     st.append(Spacer(1, 7))
@@ -286,7 +296,7 @@ def build_story():
             'engineering • Évaluation LLM &amp; garde-fous • MCP • Gouvernance des coûts LLM',
         ),
         _skill_row(
-            'Automatisation &amp; Build',
+            'Automatisation',
             'n8n • Make • Python • SQL • Cloudflare Workers • Modal • Intégrations API • CI/CD '
             '• Claude Code (développement agentique)',
         ),
@@ -294,18 +304,18 @@ def build_story():
             'Product Management',
             'Product discovery (recherche utilisateur, entretiens, JTBD) • Stratégie produit • '
             'Roadmap &amp; OKR • PRD &amp; user stories • Priorisation backlog • A/B testing '
-            '&amp; expérimentation • Analytics (Mixpanel, Amplitude) • Expérience client (UX) • '
+            '&amp; expérimentation • Analytics (Mixpanel, Amplitude) • UX • '
             'Go-to-market • Agile (Scrum, Kanban) • Cycle de vie produit',
         ),
         _skill_row(
             'Leadership',
             'Management des parties prenantes VP/C-level • Collaboration cross-fonctionnelle • '
-            'Conduite du changement &amp; adoption IA • Décisions data-driven • Delivery dans '
+            'Conduite du changement &amp; adoption IA • Décisions data-driven • Exécution dans '
             'l\u2019ambiguïté',
         ),
         _skill_row(
             'Gouvernance',
-            'RGPD / Privacy-by-design • AI Act européen • IA responsable • Pistes d\u2019audit',
+            'RGPD / Privacy-by-design • AI Act • IA responsable • Pistes d\u2019audit',
         ),
         Spacer(1, 7),
     ]
@@ -337,8 +347,8 @@ def build_story():
         '(SaaS live — cv-optimizer.pages.dev) : scoring ATS multilingue + réécriture de CV ; '
         'build eval-first.',
 
-        '<b>AgentUp</b> (live) : coaching par roleplay GenAI — LLM en streaming avec fallback '
-        'fournisseur, redaction PII côté client.',
+        '<b>AgentUp</b> (live) : coaching par roleplay GenAI — LLM en streaming avec fallback, '
+        'redaction PII côté client.',
 
         '<b>Job Search Engine</b> : agrégation multi-sources + ranking LLM (API France '
         'Travail, ingestion Gmail) — infra à 0$.',

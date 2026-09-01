@@ -176,7 +176,7 @@ def build_story():
         "and agentic automation</b> products. I run product discovery with business teams, "
         "defend prioritization at <b>VP/C-level</b>, and stay hands-on — <b>LLM, RAG, agent "
         "orchestration</b>, low-code and Python — when building is the fastest path to impact. "
-        "<b>12+ AI products shipped</b> end-to-end at a <b>&lt;30-day median</b>.",
+        "<b>12+ AI products shipped</b> at a <b>&lt;30-day median</b>.",
         "<b>Impact:</b> <b>+45%</b> adoption • <b>−55%</b> p95 latency • <b>~$200K/yr</b> costs "
         "automated • <b>$1M+</b> qualified pipeline",
     ))
@@ -190,9 +190,10 @@ def build_story():
         'Senior Product Manager, AI &amp; Data Intelligence — Wiser Solutions',
         'B2B SaaS · Retail &amp; Digital-Commerce Intelligence · Paris | Nov 2022 – Present',
         [
-            "Own the <b>AI/GenAI product line</b> end-to-end (RAG assistant, recommendations, "
-            "smart alerting): discovery → PRDs → <b>LLM evaluation gates</b> → rollout — "
-            "<b>+45% feature adoption, −55% p95 latency</b>.",
+            "Own the <b>AI/GenAI product line</b> end-to-end (RAG assistant on OpenAI/Anthropic "
+            "APIs, recommendations, smart alerting): discovery → PRDs → <b>LLM evaluation "
+            "gates</b> (golden test set, LLM-as-judge) → rollout — <b>+45% feature adoption, "
+            "−55% p95 latency</b>.",
 
             "Led the <b>global GenAI rollout</b>: roadmap, OKRs, <b>$150K budget</b>, go/no-go "
             "reviews with the <b>CPO</b> and BU leads — <b>+40% BU adoption, +20% CSAT</b>.",
@@ -212,16 +213,17 @@ def build_story():
         '<a href="https://prodcraft.fyi" color="#1B9AAA">ProdCraft</a> (AI Product Studio)',
         'Paris (independent, alongside Wiser) | Jan 2026 – Present',
         [
-            "Shipped an <b>autonomous outbound engine</b> (agentic pipeline: LLM reply "
-            "classification, 32 inboxes, 3-hour hot-lead SLA) — <b>$1M+ qualified pipeline</b>, "
-            "<b>~$200K/yr SDR cost replaced</b>.",
+            "Shipped an <b>autonomous outbound engine</b> (agentic pipeline: <b>Claude-based "
+            "reply classification</b>, Cloudflare Workers orchestration, 32 inboxes, 3-hour "
+            "hot-lead SLA) — <b>$1M+ qualified pipeline</b>, <b>~$200K/yr SDR cost "
+            "replaced</b>.",
 
             "Co-launched a <b>Stripe Connect marketplace</b> (React + Node + Postgres) — "
             "<b>$85K processed in the first 3 months</b>.",
 
             "<b>12+ AI products shipped</b> at a <b>&lt;30-day median</b> — multilingual "
-            "CV-optimizer SaaS, GenAI coaching app, code-audit CLI — owning discovery, PRDs, "
-            "user stories and release gates.",
+            "CV-optimizer SaaS, GenAI coaching app, code-audit CLI — owning discovery, PRDs "
+            "and release gates.",
         ]
     ):
         st.append(item)
@@ -236,6 +238,13 @@ def build_story():
         ]
     ):
         st.append(item)
+
+    st.append(Paragraph(
+        '<b>2019 – 2021:</b> MSc International Strategic Business — Toulouse Business School, '
+        'Paris (full-time).',
+        S['oneliner']
+    ))
+    st.append(Spacer(1, 4))
 
     for item in _exp_entry(
         'Senior Data Product Owner — Pitney Bowes',
