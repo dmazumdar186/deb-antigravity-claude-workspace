@@ -117,13 +117,35 @@ async function appendToEnv(kvs) {
     return;
   }
   const existing = await readFile(ENV_PATH, 'utf8');
-  const existingKeys = new Set(
+  // Map of existing key -> value so we can detect a key that exists with a
+  // DIFFERENT value than discovered (e.g. a hand-typed ID missing a digit).
+  // "Key present" is NOT "value correct" — that exact bug shipped a
+  // locations/ ID with a dropped leading digit on 2026-09-01 and this
+  // function reported "already present" while every API call 404'd.
+  const existingVals = new Map(
     existing.split('\n').map((l) => l.trim()).filter(Boolean).filter((l) => !l.startsWith('#'))
-      .map((l) => l.split('=')[0].trim()),
+      .map((l) => {
+        const eq = l.indexOf('=');
+        return eq === -1 ? [l, ''] : [l.slice(0, eq).trim(), l.slice(eq + 1).trim()];
+      }),
   );
-  const toAppend = Object.entries(kvs).filter(([k]) => !existingKeys.has(k));
+  let mismatches = 0;
+  for (const [k, v] of Object.entries(kvs)) {
+    const cur = existingVals.get(k);
+    if (cur !== undefined && cur !== String(v)) {
+      mismatches += 1;
+      warn(`.env ${k} MISMATCHES discovery: .env has "${cur}" but Google reports "${v}". `
+        + `Fix .env by hand — auto-overwrite is deliberately not done.`);
+    }
+  }
+  const toAppend = Object.entries(kvs).filter(([k]) => !existingVals.has(k));
   if (toAppend.length === 0) {
-    log('all discovered IDs already present in .env — nothing to append');
+    if (mismatches > 0) {
+      log(`no keys to append, but ${mismatches} MISMATCHED value(s) above need a manual .env fix`);
+      process.exitCode = 1;
+    } else {
+      log('all discovered IDs already present in .env and matching — nothing to append');
+    }
     return;
   }
   const block = '\n# Auto-added by pull_gbp_reviews.mjs --discover-ids on ' + new Date().toISOString() + '\n'
@@ -352,29 +374,73 @@ async function deleteBugFingerprintRecords() {
 
 // ── Upsert loop with local-edit preservation ────────────────────────────────
 
+// A Google review and an existing KV record are "the same review" when the
+// submission timestamps agree to within 2 s, the rating matches, and the
+// first name-token matches (case-insensitive). Keys CANNOT be used for this:
+// records created via the moderation UI carry UUID ids under different keys
+// than reviewToKvKey() produces, and matching by key alone would re-insert
+// every moderated Google review as a duplicate (found 2026-09-01: all 4
+// Google reviews already existed under UUID keys with backfilled dates).
+const EQUIV_WINDOW_MS = 2000;
+
+function firstToken(name) {
+  return String(name || '').trim().split(/\s+/)[0].toLowerCase();
+}
+
+function isEquivalent(rec, record) {
+  const a = Date.parse(rec.submitted_at || '');
+  const b = Date.parse(record.submitted_at || '');
+  if (!Number.isFinite(a) || !Number.isFinite(b) || Math.abs(a - b) > EQUIV_WINDOW_MS) return false;
+  if ((rec.rating ?? null) !== (record.rating ?? null)) return false;
+  return firstToken(rec.name) === firstToken(record.name);
+}
+
+async function loadAllExistingRecords() {
+  const keys = await kvList(KV_KEY_PREFIX);
+  const out = [];
+  for (const key of keys) {
+    const raw = await kvGet(key);
+    if (!raw) continue;
+    try { out.push({ key, rec: JSON.parse(raw) }); } catch {}
+  }
+  return out;
+}
+
 async function upsertReviews(reviews) {
+  // Read the FULL existing population up front — in dry-run too, so the
+  // dry-run plan is truthful about collisions instead of blindly printing
+  // "upsert" for records that already exist under another key.
+  const existingAll = await loadAllExistingRecords();
+  log(`existing approved records in KV: ${existingAll.length}`);
   const decisions = [];
   for (const review of reviews) {
     const key = reviewToKvKey(review);
     const record = reviewToKvRecord(review);
-    // Check for local edits — if the local record has edited_at newer than
-    // Google's updateTime, preserve the local body/rating/etc.
-    let existing = null;
-    if (!DRY_RUN) {
-      const raw = await kvGet(key);
-      if (raw) {
-        try { existing = JSON.parse(raw); } catch {}
-      }
-    }
+    const exact = existingAll.find((e) => e.key === key) || null;
+    const existing = exact ? exact.rec : null;
+    const equivalent = exact ? null : existingAll.find((e) => isEquivalent(e.rec, record)) || null;
+
     let decision = 'upsert';
-    if (existing?.edited_at && review.updateTime) {
-      const localEdit = Date.parse(existing.edited_at);
-      const googleUpdate = Date.parse(review.updateTime);
-      if (Number.isFinite(localEdit) && Number.isFinite(googleUpdate) && localEdit > googleUpdate) {
-        decision = 'skip_local_edit_newer';
+    if (equivalent) {
+      decision = 'skip_existing_equivalent';
+    } else if (existing) {
+      // Same-key re-pull: preserve moderator-owned fields so a re-run is a
+      // no-op instead of churning approved_at/featured on every pull.
+      if (existing.approved_at) record.approved_at = existing.approved_at;
+      record.featured = existing.featured ?? record.featured;
+      if (existing.body_fr) record.body_fr = existing.body_fr;
+      if (existing.body_en) record.body_en = existing.body_en;
+      if (existing.source_url) record.source_url = existing.source_url;
+      if (existing.edited_at && review.updateTime) {
+        const localEdit = Date.parse(existing.edited_at);
+        const googleUpdate = Date.parse(review.updateTime);
+        if (Number.isFinite(localEdit) && Number.isFinite(googleUpdate) && localEdit > googleUpdate) {
+          decision = 'skip_local_edit_newer';
+        }
       }
-    } else if (existing && JSON.stringify(existing) === JSON.stringify(record)) {
-      decision = 'unchanged';
+      if (decision === 'upsert' && JSON.stringify(existing) === JSON.stringify(record)) {
+        decision = 'unchanged';
+      }
     }
 
     decisions.push({
@@ -383,14 +449,16 @@ async function upsertReviews(reviews) {
       name: record.name,
       rating: record.rating,
       submitted_at: record.submitted_at,
+      covered_by: equivalent ? equivalent.key : undefined,
     });
 
     if (DRY_RUN) {
-      log(`  DRY-RUN ${decision}: ${key} (${record.name}, ${record.rating}★, ${record.submitted_at})`);
+      const extra = equivalent ? ` — already in KV as ${equivalent.key}` : '';
+      log(`  DRY-RUN ${decision}: ${key} (${record.name}, ${record.rating}★, ${record.submitted_at})${extra}`);
       continue;
     }
-    if (decision === 'unchanged' || decision === 'skip_local_edit_newer') {
-      log(`  ${decision}: ${key}`);
+    if (decision !== 'upsert') {
+      log(`  ${decision}: ${key}${equivalent ? ` (covered by ${equivalent.key})` : ''}`);
       continue;
     }
     await kvPut(key, JSON.stringify(record));
