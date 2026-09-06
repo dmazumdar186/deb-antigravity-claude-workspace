@@ -32,3 +32,31 @@ Source: execution/personal_workflows/cv_builder_ai_pm_fr.py
 ## [2026-09-01 15:00] pattern New ATS profiles added additively for ai_pm variants
 ai_pm_en/ai_pm_fr profiles added to tests/cv_ats_check_pm.py without touching existing pm_en/pm_fr; both new PDFs passed 0 findings / 100% keyword coverage on first render.
 Source: tests/cv_ats_check_pm.py
+
+## [2026-09-06 16:00] technical job_digest LinkedIn geoIds verified live
+FR, DE, AT, BE, NL, GB, CH, IN, SG, CA geoIds confirmed working via LinkedIn guest API; US instead uses a state-abbreviation regex since guest results return "City, ST" strings.
+Source: directives/personal_workflows/job_digest.md, engine/job_digest/registry.py
+
+## [2026-09-06 16:00] learned job_digest live preview run FR+DE Sales Manager
+345 jobs fetched in ~5 min across LinkedIn FR/DE, WTTJ FR, Hellowork, RemoteOK (France Travail returned 0 without keys); 13 rows kept as relevant. Rate-limit preview to once/hour.
+Source: engine/job_digest
+
+## [2026-09-06 16:00] learned job_digest remote detector misclassified bare "Remote" location
+Ported remote detector marked a bare "Remote" location string as HYBRID by matching description text first, silently dropping all RemoteOK/WeWorkRemotely jobs; fixed by checking location string before description text.
+Source: engine/job_digest
+
+## [2026-09-06 16:00] learned job_digest state marking moved after confirmed SMTP send
+Marking jobs "seen" before a confirmed email send caused jobs to be burned on the second daily cron fire; state is now only marked for digest rows after a real send succeeds.
+Source: engine/job_digest
+
+## [2026-09-06 16:00] pattern job_digest acceptance gate needs an independent implementation
+Acceptance gate must use its own tokenizer/alias match rather than reusing the filter pipeline's logic, otherwise it's a tautology and exit code 3 is dead code.
+Source: engine/job_digest
+
+## [2026-09-06 16:00] constraint job_digest repo layout and packaging
+Friend's repo layout is engine/job_digest + engine/requirements.txt with PYTHONPATH=engine; shipped zip excludes tests/, so fixtures live in job_digest/fixtures/. scripts/package_job_digest.py refuses to build if any bundled file contains operator personal data (blocklist scan).
+Source: scripts/package_job_digest.py
+
+## [2026-09-06 16:00] constraint job_digest falls back to heuristic ranker without an API key
+A Claude subscription does not provide an ANTHROPIC_API_KEY, so unattended job_digest runs default to the heuristic ranker rather than an LLM ranker.
+Source: engine/job_digest

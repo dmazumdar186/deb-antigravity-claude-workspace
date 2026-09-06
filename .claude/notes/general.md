@@ -17,3 +17,4 @@ Tags: [preference] [technical] [learned] [pattern] [constraint]
 - [technical] .env loading: Use `python-dotenv` with `load_dotenv()` at top of every script. Never hardcode keys.
 - [learned] MCP servers: Keys must be in .env and referenced as env vars in .mcp.json using `${VAR_NAME}` syntax. Never commit API keys to .mcp.json directly.
 - [pattern] Sub-agent delegation: Heavy file reads and code exploration go to sub-agents to protect main context. Main context handles decisions and routing only.
+- [pattern] Shareable automations: build as an isolated fork driven by a validated profile file plus a per-user GitHub Actions workflow; the operator pays nothing at runtime and the personal cron is untouched (see job_digest).
