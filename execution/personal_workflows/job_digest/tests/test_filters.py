@@ -219,17 +219,50 @@ def test_n1_fr_only_nice_city_keeps_nice_drops_paris() -> None:
 
 def test_n1_unattributable_city_constrains_every_selected_country() -> None:
     """N1: a city that can't be attributed to ANY selected country falls back
-    to the old global behaviour — it constrains every selected country."""
+    to the old global behaviour — it constrains every selected country.
+    City matching reads the LOCATION string only (see the leak-fix tests
+    below), so a job's location must actually name the city."""
     profile = _profile(locations={"countries": ["FR", "DE"], "cities": ["Xyzville"], "remote_ok": True})
     berlin_job = make_normalized_job(title="Sales Manager", location="Berlin, Germany")
     paris_job = make_normalized_job(title="Sales Manager", location="Paris, France")
-    xyzville_job = make_normalized_job(
+    xyzville_job = make_normalized_job(title="Sales Manager", location="Xyzville, Germany")
+    xyzville_only_in_description_job = make_normalized_job(
         title="Sales Manager", location="Berlin, Germany",
         description_snippet="Based out of our Xyzville office.",
     )
     assert _location_keeps(berlin_job, profile) is False
     assert _location_keeps(paris_job, profile) is False
     assert _location_keeps(xyzville_job, profile) is True
+    # Xyzville only appears in the description, not the location -> dropped.
+    assert _location_keeps(xyzville_only_in_description_job, profile) is False
+
+
+def test_location_leak_description_snippet_never_feeds_country_match() -> None:
+    """HIGH fix: country/city matching must read the LOCATION string only.
+    A New York job whose description happens to mention India in passing
+    ("customers across India") must NOT be kept for an IN/SG profile just
+    because the snippet named India — the job is not located there."""
+    profile = _profile(locations={"countries": ["IN", "SG"], "cities": [], "remote_ok": True})
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="New York, NY",
+        description_snippet="Our team sells to customers across India and Southeast Asia.",
+    )
+    assert _location_keeps(job, profile) is False
+
+
+def test_location_leak_remote_still_keeps_regardless_of_snippet_country() -> None:
+    """The snippet may still feed remote detection (via job.remote_mode,
+    computed upstream in normalizer/normalize.py) — a REMOTE job with
+    remote_ok stays kept even if its snippet mentions an unrelated country."""
+    profile = _profile(locations={"countries": ["IN", "SG"], "cities": [], "remote_ok": True})
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="Remote",
+        remote_mode=RemoteMode.REMOTE,
+        description_snippet="Fully remote role, though our HQ is in France.",
+    )
+    assert _location_keeps(job, profile) is True
 
 
 def test_minor_phrase_regex_matches_non_word_boundary_keywords() -> None:

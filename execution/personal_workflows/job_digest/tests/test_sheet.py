@@ -48,6 +48,19 @@ def test_country_for_derives_from_registry_matches() -> None:
     assert sheet_module._country_for(job_unknown, profile) == ""
 
 
+def test_country_for_ignores_description_snippet() -> None:
+    """HIGH fix: _country_for must match on the LOCATION string only — a New
+    York job whose snippet mentions India in passing must not be mislabeled
+    'IN'."""
+    profile = load_test_profile()  # countries: FR, IN
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="New York, NY",
+        description_snippet="Our team sells to customers across India.",
+    )
+    assert sheet_module._country_for(job, profile) == ""
+
+
 def test_n3b_posted_at_utc_coerces_naive_datetime() -> None:
     """N3b: a naive posted_at (a source adapter's own tz gap) must be coerced
     to aware UTC, not left to raise a naive-vs-aware TypeError against the

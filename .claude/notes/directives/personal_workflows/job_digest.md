@@ -8,3 +8,4 @@
 - [constraint] The friend's repo layout is engine/job_digest + engine/requirements.txt + PYTHONPATH=engine; the shipped zip excludes tests/ so fixtures live in job_digest/fixtures/.
 - [constraint] A Claude subscription does not provide an ANTHROPIC_API_KEY; unattended runs default to the heuristic ranker.
 - [pattern] scripts/package_job_digest.py refuses to build if any bundled file contains operator personal data (blocklist scan) — keep it that way for anything shared outside the workspace.
+- [technical] geoId re-verification table, 2026-09-06 (keyword "manager", majority of sampled locations in-country): FR 105015875, DE 101282230, AT 103883259, BE 100565514, NL 102890719, GB 101165590, CH 106693272, IN 102713980, SG 102454443, CA 101174742 all verified live; US 103644278 verified by inspection (Buffalo NY, Springfield IL, Lafayette LA) and handled via the state-abbreviation regex, not a country alias/geoId spot-check.

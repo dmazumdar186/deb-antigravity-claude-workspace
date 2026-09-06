@@ -81,7 +81,11 @@ def _matches_country_or_remote(job: NormalizedJob, profile: Profile) -> bool:
     if job.remote_mode == RemoteMode.REMOTE and profile.locations.remote_ok:
         return True
 
-    haystack_tokens = _tokens(f"{loc} {job.description_snippet[:300]}")
+    # Country matching reads the LOCATION string only — see
+    # normalizer/filters.py._location_keeps for why the description snippet
+    # must not feed country/city matching (it can name any country in
+    # passing text without the job being located there).
+    haystack_tokens = _tokens(loc)
     padded = " " + " ".join(haystack_tokens) + " "
 
     for country in profile.countries:

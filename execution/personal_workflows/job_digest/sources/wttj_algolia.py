@@ -105,7 +105,7 @@ def _age_hours(published_at: str) -> float | None:
     return (datetime.now(timezone.utc) - d).total_seconds() / 3600.0
 
 
-def _hit_to_source_job(hit: dict) -> SourceJob | None:
+def _hit_to_source_job(hit: dict, country_name: str) -> SourceJob | None:
     try:
         org = hit.get("organization") or {}
         object_id = str(hit.get("objectID", "")).strip()
@@ -123,7 +123,13 @@ def _hit_to_source_job(hit: dict) -> SourceJob | None:
 
         offices = hit.get("offices") or []
         office = (hit.get("office") or {}) or (offices[0] if offices else {})
-        loc_parts = [office.get("city"), office.get("country") or "France"]
+        # office.get("country") is the office's own country string when
+        # present; when absent, this hit was returned for the country we
+        # explicitly searched (facetFilters scopes every request to one
+        # offices.country_code), so the requested country's registry name is
+        # the correct label here — never a hardcoded "France" for non-FR
+        # searches.
+        loc_parts = [office.get("city"), office.get("country") or country_name]
         location_raw = ", ".join(p for p in loc_parts if p)
 
         raw_profile = hit.get("profile") or ""
@@ -175,7 +181,7 @@ def _search_page(client: httpx.Client, keyword: str, page: int, country_code: st
     return None
 
 
-def _fetch_live(keywords: list[str], country_code: str) -> list[SourceJob]:
+def _fetch_live(keywords: list[str], country_code: str, country_name: str) -> list[SourceJob]:
     seen_ids: set[str] = set()
     out: list[SourceJob] = []
 
@@ -202,7 +208,7 @@ def _fetch_live(keywords: list[str], country_code: str) -> list[SourceJob]:
                     object_id = str(hit.get("objectID", ""))
                     if not object_id or object_id in seen_ids:
                         continue
-                    sj = _hit_to_source_job(hit)
+                    sj = _hit_to_source_job(hit, country_name)
                     if sj is None:
                         continue
                     seen_ids.add(object_id)
@@ -222,7 +228,7 @@ def fetch(profile: Profile, country: "registry.Country | None", *, dry: bool = F
         return _load_fixture()
     if country is None:
         raise ValueError("wttj_algolia.fetch requires a country (iso2-scoped source)")
-    return _fetch_live(profile.keywords, country.iso2)
+    return _fetch_live(profile.keywords, country.iso2, country.name)
 
 
 def _load_fixture() -> list[SourceJob]:

@@ -71,9 +71,14 @@ def _col_letter(idx: int) -> str:
 
 def _country_for(job: NormalizedJob, profile: Profile) -> str:
     """First profile-selected country whose registry.Country.matches() the
-    job's location, else "" (unknown / no selected country matched)."""
+    job's location, else "" (unknown / no selected country matched).
+
+    Matches on the LOCATION string only — the description snippet can name
+    any country in passing text (e.g. "customers across India") without the
+    job actually being located there; see normalizer/filters.py._location_keeps.
+    """
     for country in profile.countries:
-        if country.matches(job.location, job.description_snippet[:300]):
+        if country.matches(job.location):
             return country.iso2
     return ""
 

@@ -11,7 +11,11 @@ inputs:
 outputs:
   - list[SourceJob]
 
-Endpoint: https://weworkremotely.com/categories/remote-product-jobs.rss
+Endpoint: https://weworkremotely.com/remote-jobs.rss (the all-jobs feed — every
+category rolled into one; verified live 2026-09-06, returns
+application/rss+xml). Switched from the old remote-product-jobs-only category
+feed, which silently missed every non-product role (sales, marketing,
+customer-support, etc.) regardless of profile.keywords.
 """
 
 from __future__ import annotations
@@ -34,7 +38,7 @@ logger = logging.getLogger("job_digest.sources.weworkremotely")
 _FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
 
 FEEDS = [
-    "https://weworkremotely.com/categories/remote-product-jobs.rss",
+    "https://weworkremotely.com/remote-jobs.rss",
 ]
 
 HEADERS = {

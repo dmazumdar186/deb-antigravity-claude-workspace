@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import logging
 import re
+import unicodedata
 
 from ..contracts import (
     ContractType,
@@ -33,6 +34,18 @@ from ..contracts import (
 logger = logging.getLogger("job_digest.normalizer.normalize")
 
 _WHITESPACE_RE = re.compile(r"\s+")
+
+
+def _fold_key(s: str) -> str:
+    """Lowercase + strip diacritics + collapse whitespace, for the cross-
+    source near-duplicate key (title, company) — two sources posting the
+    same role under a URL-varying link (a UTM-tagged aggregator copy vs. the
+    original) hash differently by content_hash (which includes canonical_url)
+    but fold to the same (title, company) pair.
+    """
+    s = unicodedata.normalize("NFKD", s or "")
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    return _WHITESPACE_RE.sub(" ", s.strip().lower())
 
 
 def _normalize_location(raw: str) -> str:
@@ -155,21 +168,53 @@ def to_normalized(src: SourceJob) -> NormalizedJob:
     )
 
 
+def _merge_also_seen(existing: NormalizedJob, other: NormalizedJob) -> NormalizedJob:
+    """Fold `other`'s source (and its own also_seen_on) into `existing`'s
+    also_seen_on, without duplicates and without ever adding existing's own
+    source to its own list."""
+    also_seen = list(existing.also_seen_on)
+    changed = False
+    for source in (other.source, *other.also_seen_on):
+        if source != existing.source and source not in also_seen:
+            also_seen.append(source)
+            changed = True
+    if not changed:
+        return existing
+    return existing.model_copy(update={"also_seen_on": also_seen})
+
+
 def batch_normalize(jobs: list[SourceJob]) -> list[NormalizedJob]:
-    """Map a batch of SourceJobs to NormalizedJobs, merging in-batch cross-source
-    duplicates via content_hash. The surviving job accumulates each other source
-    it was also seen on in `also_seen_on`.
+    """Map a batch of SourceJobs to NormalizedJobs, then dedup in two passes:
+
+    1. Exact dedup by content_hash (title+company+canonical_url) — the same
+       posting fetched twice (e.g. re-run overlap, or a source paginating
+       over the same job).
+    2. Cross-source near-duplicate merge by folded (title, company) — the
+       SAME job posted on two different sources (e.g. LinkedIn + WTTJ) almost
+       always carries a different URL and so a different content_hash, but
+       names the same role at the same company. The first-seen row is kept;
+       every later row with the same folded (title, company) contributes its
+       source to `also_seen_on` instead of appearing as a separate digest row.
     """
     by_hash: dict[str, NormalizedJob] = {}
     for src in jobs:
         nj = to_normalized(src)
         if nj.content_hash in by_hash:
-            existing = by_hash[nj.content_hash]
-            if nj.source != existing.source and nj.source not in existing.also_seen_on:
-                merged = existing.model_copy(update={"also_seen_on": [*existing.also_seen_on, nj.source]})
-                by_hash[nj.content_hash] = merged
+            by_hash[nj.content_hash] = _merge_also_seen(by_hash[nj.content_hash], nj)
         else:
             by_hash[nj.content_hash] = nj
-    result = list(by_hash.values())
-    logger.info("normalize: %d src -> %d normalized (in-batch dedup applied)", len(jobs), len(result))
+
+    by_title_company: dict[tuple[str, str], NormalizedJob] = {}
+    for nj in by_hash.values():
+        key = (_fold_key(nj.title), _fold_key(nj.company))
+        if key in by_title_company:
+            by_title_company[key] = _merge_also_seen(by_title_company[key], nj)
+        else:
+            by_title_company[key] = nj
+
+    result = list(by_title_company.values())
+    logger.info(
+        "normalize: %d src -> %d normalized (hash dedup + cross-source title/company merge applied)",
+        len(jobs), len(result),
+    )
     return result

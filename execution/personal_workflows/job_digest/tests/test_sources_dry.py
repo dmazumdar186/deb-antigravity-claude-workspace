@@ -122,6 +122,72 @@ def test_n3a_france_travail_naive_posted_at_coerced_to_utc():
     assert job_z.posted_at.tzinfo is not None
 
 
+def _profile_with_cities(countries: list[str], cities: list[str]) -> Profile:
+    return Profile.model_validate({
+        "candidate": {"name": "Test Candidate", "email": "test.candidate@example.com"},
+        "roles": [{"title": "Product Manager", "synonyms": ["Product Owner"]}],
+        "locations": {"countries": countries, "cities": cities, "remote_ok": True},
+        "screening": {
+            "summary": "Product manager with 6 years of B2B SaaS experience across FR/DE/EU markets.",
+        },
+    })
+
+
+def test_hellowork_locations_derive_from_profile_city():
+    """HIGH fix: Hellowork search locations come from the profile's FR-
+    attributed cities instead of a hardcoded Paris/Île-de-France default."""
+    profile = _profile_with_cities(["FR"], ["Lyon"])
+    assert hellowork._locations_for_profile(profile) == ["lyon"]
+
+
+def test_hellowork_locations_national_when_no_cities():
+    profile = _profile_with_cities(["FR"], [])
+    assert hellowork._locations_for_profile(profile) == [hellowork.NATIONAL_LOCATION]
+
+
+def test_hellowork_locations_ignore_cities_not_attributed_to_france():
+    """A city belonging to another selected country must not narrow the
+    France-only Hellowork search to it — falls back to national."""
+    profile = _profile_with_cities(["FR", "DE"], ["Berlin"])
+    assert hellowork._locations_for_profile(profile) == [hellowork.NATIONAL_LOCATION]
+
+
+def test_hellowork_locations_bounded_and_folded():
+    profile = _profile_with_cities(
+        ["FR"], ["Paris", "Île-de-France", "Lyon", "Marseille", "Toulouse"]
+    )
+    locs = hellowork._locations_for_profile(profile)
+    assert len(locs) <= hellowork.MAX_LOCATIONS
+    assert "paris" in locs
+    assert all(loc == loc.lower() and " " not in loc for loc in locs)
+
+
+def test_wttj_algolia_office_country_falls_back_to_requested_country_not_france():
+    """MEDIUM fix: office.get('country') or 'France' mislabeled every hit
+    lacking an explicit office country as France, even for a DE/IN/etc.
+    search. It must fall back to the country actually being searched."""
+    hit = {
+        "objectID": "abc123",
+        "organization": {"name": "Acme", "slug": "acme"},
+        "name": "Sales Manager",
+        "slug": "sales-manager",
+        "office": {"city": "Berlin"},  # no "country" key
+        "profile": "Great role.",
+        "contract_type": "full_time",
+        "published_at": "2026-01-01T00:00:00Z",
+    }
+    job = wttj_algolia._hit_to_source_job(hit, "Germany")
+    assert job is not None
+    assert job.location_raw == "Berlin, Germany"
+
+
+def test_weworkremotely_uses_all_jobs_feed_not_product_only_category():
+    """MEDIUM fix: the old remote-product-jobs.rss category feed silently
+    missed every non-product role (sales, marketing, customer-support, ...)
+    regardless of profile.keywords. Verified live 2026-09-06."""
+    assert weworkremotely.FEEDS == ["https://weworkremotely.com/remote-jobs.rss"]
+
+
 def test_fetch_all_isolates_a_raising_adapter(monkeypatch):
     def _boom(profile, country, *, dry=False):
         raise RuntimeError("simulated adapter failure")

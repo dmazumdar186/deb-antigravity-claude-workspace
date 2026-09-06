@@ -23,6 +23,7 @@ import logging
 import random
 import re
 import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,7 +42,8 @@ _FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
 SEARCH_URL = "https://www.hellowork.com/fr-fr/emploi/recherche.html"
 DETAIL_URL_FMT = "https://www.hellowork.com/fr-fr/emplois/{job_id}.html"
 
-DEFAULT_LOCATIONS = ["paris", "ile-de-france"]
+NATIONAL_LOCATION = "france"
+MAX_LOCATIONS = 3  # bounds request count to <= MAX_LOCATIONS x len(keywords)
 DEFAULT_POSTED_WITHIN_HOURS = 48
 MAX_PAGES_PER_KEYWORD = 3
 DETAIL_MAX_WORKERS = 2
@@ -93,6 +95,38 @@ def _parse_iso(s: str) -> datetime | None:
         return d
     except ValueError:
         return None
+
+
+def _fold_for_url(s: str) -> str:
+    """Lowercase + strip diacritics + collapse whitespace to '-', the shape
+    Hellowork's own `l=` search param expects (e.g. 'Île-de-France' -> 'ile-de-france')."""
+    s = unicodedata.normalize("NFKD", s or "")
+    s = "".join(ch for ch in s if not unicodedata.combining(ch)).lower().strip()
+    return re.sub(r"\s+", "-", s)
+
+
+def _locations_for_profile(profile: Profile) -> list[str]:
+    """Derive Hellowork search locations from the profile instead of the old
+    hardcoded Paris/Île-de-France default.
+
+    Only cities attributable to France (via registry.country_for_city) are
+    used — a profile city belonging to another selected country (Berlin for
+    a FR+DE profile) must not narrow the France-only Hellowork search to it.
+    With no attributable city, fall back to a single national search rather
+    than guessing a location. Bounded to MAX_LOCATIONS so the request count
+    stays <= MAX_LOCATIONS x len(keywords).
+    """
+    locations: list[str] = []
+    for city in profile.locations.cities:
+        owner = registry.country_for_city(city)
+        if owner is None or owner.iso2 != "FR":
+            continue
+        folded = _fold_for_url(city)
+        if folded and folded not in locations:
+            locations.append(folded)
+        if len(locations) >= MAX_LOCATIONS:
+            break
+    return locations or [NATIONAL_LOCATION]
 
 
 def _search_page(client: httpx.Client, keyword: str, location: str, page: int) -> Optional[str]:
@@ -249,12 +283,12 @@ def _finalize_by_age(jobs: list[SourceJob], posted_within_hours: int) -> list[So
     return out
 
 
-def _fetch_live(keywords: list[str]) -> list[SourceJob]:
+def _fetch_live(keywords: list[str], locations: list[str]) -> list[SourceJob]:
     seen_ids: set[str] = set()
 
     with httpx.Client(headers=HEADERS) as client:
         for kw in keywords:
-            for loc in DEFAULT_LOCATIONS:
+            for loc in locations:
                 for page in range(1, MAX_PAGES_PER_KEYWORD + 1):
                     try:
                         html = _search_page(client, kw, loc, page)
@@ -288,10 +322,11 @@ def _fetch_live(keywords: list[str]) -> list[SourceJob]:
 
 
 def fetch(profile: Profile, country: "registry.Country | None", *, dry: bool = False) -> list[SourceJob]:
-    """Search Hellowork using the profile's keywords across Paris/IDF."""
+    """Search Hellowork using the profile's keywords across its France-attributed
+    cities (or a single national search when the profile has none)."""
     if dry:
         return _load_fixture()
-    return _fetch_live(profile.keywords)
+    return _fetch_live(profile.keywords, _locations_for_profile(profile))
 
 
 def _load_fixture() -> list[SourceJob]:

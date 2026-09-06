@@ -28,7 +28,16 @@ DEFAULT_OUT_DIR = Path(".tmp") / "job_digest"
 def _cmd_validate(args: argparse.Namespace) -> int:
     problems = validate_file(args.profile)
     if problems:
-        print(f"{args.profile}: {len(problems)} problem(s):")
+        # LOW fix: profile_schema._format_errors() prepends a
+        # "profile.yaml has N problem(s):" header line before the N bulleted
+        # ("  - ...") problem lines, and validate_file() splits that whole
+        # string into one list — so len(problems) over-counts by 1 (the
+        # header) for a ValidationError. Count only the bulleted item lines
+        # when present; fall back to len(problems) for a single-line,
+        # non-bulleted ProfileError (e.g. "profile not found: ...").
+        item_lines = [line for line in problems if line.lstrip().startswith("-")]
+        count = len(item_lines) if item_lines else len(problems)
+        print(f"{args.profile}: {count} problem(s):")
         for line in problems:
             print(line)
         return 1

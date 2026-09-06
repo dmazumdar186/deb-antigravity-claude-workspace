@@ -15,6 +15,7 @@ instead of a hand-authored operator config file.
 from __future__ import annotations
 
 import logging
+import re
 import unicodedata
 
 from .. import registry
@@ -44,8 +45,8 @@ _CONTRACT_LABELS: dict[ContractType, str] = {
 }
 
 _SENIOR_TOKENS = (
-    "senior", "lead", "principal", "head ", "head of", "director",
-    "staff", "vp ", "vp of", "chief", "fractional",
+    "senior", "lead", "principal", "head", "head of", "director",
+    "staff", "vp", "vp of", "chief", "fractional",
 )
 _JUNIOR_TOKENS = (
     "junior", "intern", "stagiaire", "alternance", "trainee",
@@ -57,6 +58,22 @@ def _fold(s: str) -> str:
     s = unicodedata.normalize("NFKD", s or "")
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
     return s.lower()
+
+
+def _word_regex(phrase: str) -> re.Pattern[str]:
+    """Word-boundary regex for a (possibly multi-word) folded phrase — unlike
+    a plain `in` substring check, this never fires inside a larger word (e.g.
+    "intern" must not match "international"/"internal"; "vp" must not match
+    "development"). Flexible whitespace between words mirrors
+    normalizer/filters.py._phrase_regex.
+    """
+    escaped = re.escape(phrase.strip())
+    escaped = escaped.replace(r"\ ", r"\s+")
+    return re.compile(rf"(?<![a-z0-9]){escaped}(?![a-z0-9])")
+
+
+_SENIOR_RES = [_word_regex(t) for t in _SENIOR_TOKENS]
+_JUNIOR_RES = [_word_regex(t) for t in _JUNIOR_TOKENS]
 
 
 def combine(dims: dict[str, float]) -> float:
@@ -151,9 +168,9 @@ def _seniority_fit(haystack: str, role: Role | None) -> float:
     target = role.seniority if role else "any"
     if target == "any":
         return 1.0
-    if any(t in haystack for t in _JUNIOR_TOKENS):
+    if any(rx.search(haystack) for rx in _JUNIOR_RES):
         return 1.0 if target == "junior" else 0.0
-    if any(t in haystack for t in _SENIOR_TOKENS):
+    if any(rx.search(haystack) for rx in _SENIOR_RES):
         return 1.0 if target in ("senior", "lead") else 0.6
     return 0.6
 
@@ -175,17 +192,22 @@ def _location_fit(job: NormalizedJob, profile: Profile) -> float:
     if not loc or loc.lower() == "unknown":
         return 0.6
 
-    haystack = f"{loc} {job.description_snippet[:300]}"
+    # Country/city matching reads the LOCATION string only (see
+    # normalizer/filters.py._location_keeps) — the description snippet may
+    # name any country in passing text without the job being located there.
+    # Remote detection is unaffected: it already ran on the full
+    # location+description text in normalizer/normalize.py and is captured
+    # in job.remote_mode.
     is_remote = job.remote_mode == RemoteMode.REMOTE
     remote_ok = profile.locations.remote_ok
     cities = profile.locations.cities
 
     if cities:
         for city in cities:
-            if registry.city_matches(city, haystack):
+            if registry.city_matches(city, loc):
                 return 1.0
 
-    matched_country = next((c for c in profile.countries if c.matches(loc, job.description_snippet[:300])), None)
+    matched_country = next((c for c in profile.countries if c.matches(loc)), None)
     if matched_country is not None:
         # N1: a city only counts against this country if it's actually
         # attributable to it — a city attributed to some OTHER selected

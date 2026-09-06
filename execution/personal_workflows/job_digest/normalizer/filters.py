@@ -109,12 +109,17 @@ def _location_keeps(job: NormalizedJob, profile: Profile) -> bool:
         # the ranker scores it 0.6 for location_fit instead — see heuristic.py).
         return True
 
-    desc = job.description_snippet[:300]
-    haystack = _fold(f"{loc} {desc}")
+    # Country/city matching reads the LOCATION string only — the description
+    # snippet is free text that can name any country in passing ("customers
+    # across India") without the job actually being located there. Remote
+    # detection already ran on the full location+description text inside
+    # normalizer/normalize.py._detect_remote and is captured in
+    # job.remote_mode, so the snippet still influences remote_ok jobs, just
+    # not through this function.
     is_remote = job.remote_mode == RemoteMode.REMOTE
     remote_ok = profile.locations.remote_ok
 
-    matched_country = next((c for c in profile.countries if c.matches(loc, desc)), None)
+    matched_country = next((c for c in profile.countries if c.matches(loc)), None)
 
     base_keep = matched_country is not None or (remote_ok and is_remote)
     if not base_keep:
@@ -152,7 +157,7 @@ def _location_keeps(job: NormalizedJob, profile: Profile) -> bool:
         constrained_cities = cities
 
     for city in constrained_cities:
-        if registry.city_matches(city, haystack):
+        if registry.city_matches(city, loc):
             return True
     return False
 

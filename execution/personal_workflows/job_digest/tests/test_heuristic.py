@@ -10,8 +10,8 @@ from __future__ import annotations
 import logging
 
 from ..contracts import ContractType, JobTier, RemoteMode
-from ..profile_schema import Profile
-from ..ranker.heuristic import combine, score_heuristic, tier_for
+from ..profile_schema import Profile, Role
+from ..ranker.heuristic import _fold, _seniority_fit, combine, score_heuristic, tier_for
 from ._helpers import load_test_profile, make_normalized_job
 
 
@@ -119,6 +119,18 @@ def test_must_have_batch_warning_logged_over_80_percent(caplog) -> None:
     assert any("must_have penalized" in rec.message for rec in caplog.records)
 
 
+def test_seniority_tokens_use_word_boundaries_not_substrings() -> None:
+    """MEDIUM fix: _JUNIOR_TOKENS substring match let 'international' and
+    'internal' falsely hit 'intern'. A non-'any' target role that matches
+    neither a junior nor senior token must score the neutral 0.6, and an
+    actual junior title ('Sales Intern') must still score 0.0."""
+    role = Role(title="Sales Manager", synonyms=[], seniority="mid")
+    export_haystack = _fold("Export Sales Manager for international accounts")
+    intern_haystack = _fold("Sales Intern")
+    assert _seniority_fit(export_haystack, role) == 0.6
+    assert _seniority_fit(intern_haystack, role) == 0.0
+
+
 def test_location_fit_city_match_scores_full() -> None:
     profile = load_test_profile()  # countries FR, IN; cities ["Paris"]
     job = make_normalized_job(title="Sales Manager", location="Paris")
@@ -138,6 +150,29 @@ def test_location_fit_country_match_with_city_mismatch_scores_0_7() -> None:
     job = make_normalized_job(title="Sales Manager", location="Lyon, France")
     [ranked] = score_heuristic([job], profile)
     assert "location=0.70" in ranked.reasoning
+
+
+def test_location_leak_description_snippet_never_feeds_country_match() -> None:
+    """HIGH fix: _location_fit must match on the LOCATION string only — a New
+    York job whose snippet mentions India in passing must not score as a
+    country match (which would also hard-zero the whole job, since
+    location_fit is 0.0 -> combine() hard-zeros the final score)."""
+    raw = {
+        "version": 1,
+        "candidate": {"name": "Test Candidate", "email": "test@example.com"},
+        "roles": [{"title": "Sales Manager", "synonyms": [], "seniority": "any"}],
+        "locations": {"countries": ["IN", "SG"], "cities": [], "remote_ok": True},
+        "screening": {"summary": "A" * 50, "skills": [], "must_have": [], "nice_to_have": []},
+    }
+    profile = Profile.model_validate(raw)
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="New York, NY",
+        description_snippet="Our team sells to customers across India.",
+    )
+    [ranked] = score_heuristic([job], profile)
+    assert "location=0.00" in ranked.reasoning
+    assert ranked.score == 0.0
 
 
 def test_n1_location_fit_mirrors_filters_for_unattributed_city() -> None:

@@ -103,6 +103,23 @@ def test_missing_company_fails() -> None:
     assert any("missing company or a URL host" in p for p in problems)
 
 
+def test_location_leak_description_snippet_never_feeds_country_match() -> None:
+    """HIGH fix: _matches_country_or_remote must read the LOCATION string
+    only — a New York job whose snippet mentions India in passing must not
+    count as a country match for an IN profile."""
+    profile = load_test_profile()  # countries FR, IN
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="New York, NY",
+        description_snippet="Our team sells to customers across India.",
+        url="https://example.com/ny",
+    )
+    digest = [(job, _ranked(job))]
+    passed, problems = acceptance.check(digest, profile)
+    assert passed is False
+    assert any("country or remote" in p for p in problems)
+
+
 def test_independent_from_filters_and_heuristic() -> None:
     """M3: acceptance.py must not import normalizer.filters or ranker.heuristic
     helpers — it is a deliberately independent re-check."""
