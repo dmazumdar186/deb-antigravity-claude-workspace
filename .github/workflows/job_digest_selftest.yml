@@ -9,6 +9,12 @@ name: job-digest-selftest
 # to this file are overwritten on the next render.
 
 "on":
+  push:
+    branches: ["claude/job-cron-sharing-strategy-qjlqzj"]
+    paths:
+      - ".github/workflows/job_digest_selftest.yml"
+      - "config/job_digest_selftest.yaml"
+      - "execution/personal_workflows/job_digest/**"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -69,7 +75,7 @@ jobs:
         env:
           GMAIL_SMTP_USER: ${{ secrets.GMAIL_SMTP_USER }}
           GMAIL_SMTP_APP_PASSWORD: ${{ secrets.GMAIL_SMTP_APP_PASSWORD }}
-          SHEETS_SPREADSHEET_ID: ${{ github.event.inputs.spreadsheet_id }}
+          SHEETS_SPREADSHEET_ID: ${{ github.event.inputs.spreadsheet_id || '16GzdVzm-iVFq8CaVrkHWGlwgSW1f-IWwkYHEkGFT6k4' }}
           GOOGLE_SERVICE_ACCOUNT_PATH: credentials/service_account.json
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -77,7 +83,7 @@ jobs:
           FRANCE_TRAVAIL_CLIENT_SECRET: ${{ secrets.FRANCE_TRAVAIL_CLIENT_SECRET }}
         run: |
           MODE="live"
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ] || [ "${{ github.event_name }}" = "push" ]; then
             MODE="dry"
           fi
           python -m execution.personal_workflows.job_digest.cli run config/job_digest_selftest.yaml --mode "$MODE"
@@ -85,7 +91,7 @@ jobs:
       - name: Commit state back to the repo
         # Skipped on dry runs — a dry run's state dir may be empty/absent and
         # should never be committed as if jobs were actually seen/sent.
-        if: always() && github.event.inputs.dry_run != 'true'
+        if: always() && github.event.inputs.dry_run != 'true' && github.event_name != 'push'
         run: |
           git config user.name job-digest-bot
           git config user.email job-digest-bot@users.noreply.github.com
