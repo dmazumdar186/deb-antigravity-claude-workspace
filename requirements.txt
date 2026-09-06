@@ -41,3 +41,6 @@ langdetect>=1.0.9
 
 # Testing
 pytest>=7.0
+
+# job_digest profile.yaml loader
+pyyaml>=6.0
