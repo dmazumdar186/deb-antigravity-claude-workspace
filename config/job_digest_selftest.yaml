@@ -1,0 +1,32 @@
+# Self-test profile for the job-digest engine, run by .github/workflows/job_digest_selftest.yml
+# on the operator's own repo. Delivers to the operator's inbox; writes to a throwaway Sheet.
+version: 1
+candidate:
+  name: "Job Digest Selftest"
+  email: "debolshop@gmail.com"
+roles:
+  - title: "Product Manager"
+    synonyms: ["Senior Product Manager", "AI Product Manager", "Chef de Produit"]
+    seniority: mid
+  - title: "Product Owner"
+    seniority: mid
+locations:
+  countries: [FR, DE]
+  cities: ["Paris"]
+  remote_ok: true
+languages: [en, fr]
+contracts: [permanent, fixed_term]
+digest:
+  max_jobs: 30
+  hour_local: 9
+  timezone: Europe/Paris
+  min_tier: B
+  min_hours_between_emails: 1.0
+screening:
+  summary: >-
+    Product manager with fifteen years in data-intensive B2B SaaS and retail tech,
+    now focused on AI and LLM products. Looking for senior product manager or
+    product owner roles in Paris or remote across France and Germany.
+  skills: [LLM, RAG, agents, Python, product discovery, roadmap, B2B SaaS, analytics]
+sheet:
+  enabled: true
