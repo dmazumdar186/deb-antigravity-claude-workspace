@@ -160,7 +160,7 @@ def _render_schedule_block(profile: Profile, minute: int, year: int | None = Non
     return "\n".join(lines)
 
 
-def render_workflow(profile: Profile, *, minute: int = _DEFAULT_MINUTE, layout: str = _DEFAULT_LAYOUT) -> str:
+def render_workflow(profile: Profile, *, minute: int = _DEFAULT_MINUTE, layout: str = _DEFAULT_LAYOUT, profile_path: str = "profile.yaml") -> str:
     """Return the complete job_digest.yml workflow text for this profile.
 
     layout="standalone" (default): the friend's deployed repo layout —
@@ -176,10 +176,10 @@ def render_workflow(profile: Profile, *, minute: int = _DEFAULT_MINUTE, layout: 
 
     if layout == "standalone":
         install_cmd = "pip install -r engine/requirements.txt"
-        run_cmd = 'PYTHONPATH=engine python -m job_digest.cli run profile.yaml --mode "$MODE"'
+        run_cmd = f'PYTHONPATH=engine python -m job_digest.cli run {profile_path} --mode "$MODE"'
     else:
         install_cmd = "pip install -r requirements.txt"
-        run_cmd = 'python -m execution.personal_workflows.job_digest.cli run profile.yaml --mode "$MODE"'
+        run_cmd = f'python -m execution.personal_workflows.job_digest.cli run {profile_path} --mode "$MODE"'
 
     return f'''name: job-digest
 

@@ -67,9 +67,14 @@ def rank(
             gemini_result = None
             rungs["gemini"] = f"failed:{type(exc).__name__}"
         else:
-            if gemini_result is not None and len(gemini_result) == len(jobs):
-                ranked_by_hash = {rj.content_hash: rj for rj in gemini_result}
-                rungs["gemini"] = "ran"
+            if gemini_result:
+                # Partial results are fine: override per content_hash, keep the
+                # heuristic score for anything Gemini did not return.
+                for rj in gemini_result:
+                    if rj.content_hash in ranked_by_hash:
+                        ranked_by_hash[rj.content_hash] = rj
+                covered = sum(1 for rj in gemini_result if rj.content_hash in ranked_by_hash)
+                rungs["gemini"] = "ran" if covered == len(jobs) else f"ran:partial {covered}/{len(jobs)}"
             else:
                 logger.info("rank: gemini rung skipped or failed — keeping heuristic scores")
                 rungs["gemini"] = "failed:no_result"

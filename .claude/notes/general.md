@@ -18,3 +18,4 @@ Tags: [preference] [technical] [learned] [pattern] [constraint]
 - [learned] MCP servers: Keys must be in .env and referenced as env vars in .mcp.json using `${VAR_NAME}` syntax. Never commit API keys to .mcp.json directly.
 - [pattern] Sub-agent delegation: Heavy file reads and code exploration go to sub-agents to protect main context. Main context handles decisions and routing only.
 - [pattern] Shareable automations: build as an isolated fork driven by a validated profile file plus a per-user GitHub Actions workflow; the operator pays nothing at runtime and the personal cron is untouched (see job_digest).
+- [preference] Autonomy (2026-09-06): the operator does not run commands or gates by hand — Claude runs them (tests, packagers, dispatches, live probes) and only asks when every available option is exhausted. "Commit to memory" = write it to .claude/notes.

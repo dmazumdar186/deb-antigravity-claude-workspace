@@ -65,3 +65,28 @@ def test_rank_anthropic_rung_failure_is_reported_not_raised(monkeypatch) -> None
     assert rungs["anthropic"] == "failed:RuntimeError"
     # Heuristic scores still stand — ranking is never lost to an LLM rung failure.
     assert len(ranked) == 1
+
+
+def test_gemini_partial_result_merges_per_hash(monkeypatch) -> None:
+    """A Gemini rung that returns only some jobs overrides those and keeps the
+    heuristic score for the rest, reporting the rung as partial."""
+    from ..contracts import JobTier, RankedJob
+    from ..ranker import rank as rank_module
+    from ._helpers import load_test_profile, make_normalized_job
+
+    profile = load_test_profile()
+    jobs = [
+        make_normalized_job(title="Sales Manager", location="Paris", url="https://example.com/a"),
+        make_normalized_job(title="Sales Manager", location="Paris", url="https://example.com/b"),
+    ]
+
+    def fake_gemini(js, prof, key):
+        return [RankedJob(content_hash=js[0].content_hash, score=0.99, tier=JobTier.A,
+                          reasoning="gemini", rubric_version="t", ranker_model="gemini")]
+
+    monkeypatch.setattr(rank_module, "score_gemini", fake_gemini)
+    ranked, rungs = rank_module.rank(jobs, profile, gemini_key="k", anthropic_key=None)
+    assert rungs["gemini"].startswith("ran:partial 1/2")
+    by_hash = {r.content_hash: r for r in ranked}
+    assert by_hash[jobs[0].content_hash].ranker_model == "gemini"
+    assert by_hash[jobs[1].content_hash].ranker_model != "gemini"

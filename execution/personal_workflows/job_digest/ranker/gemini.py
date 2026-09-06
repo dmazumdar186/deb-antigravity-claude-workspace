@@ -32,9 +32,9 @@ RUBRIC_PATH = Path(__file__).resolve().parent / "rubric.md"
 DEFAULT_MODEL = "gemini-2.5-flash"
 RUBRIC_VERSION = "gemini-v1"
 
-CHUNK_SIZE = 40
+CHUNK_SIZE = 20  # 40 truncated at 8k output tokens in the 2026-09-06 live self-test
 SLEEP_BETWEEN_CHUNKS_S = 7.0
-MAX_OUTPUT_TOKENS = 8192
+MAX_OUTPUT_TOKENS = 32768  # gemini-2.5-flash allows 65k; JSON for 20 jobs is ~6-10k
 DESCRIPTION_SNIPPET_CHARS = 220
 MAX_ATTEMPTS_PER_CHUNK = 3
 
@@ -153,6 +153,10 @@ def score_gemini(jobs: list[NormalizedJob], profile: Profile, api_key: str) -> l
         response_schema=_BATCH_SCHEMA,
         temperature=0.2,
         max_output_tokens=MAX_OUTPUT_TOKENS,
+        # Thinking tokens share the output budget on 2.5 models and were the
+        # cause of mid-JSON truncation in the operator's v2 pipeline; the rubric
+        # is deterministic enough that a zero budget is the safer default.
+        thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
 
     id_to_job: dict[str, NormalizedJob] = {j.content_hash[:16]: j for j in jobs}
@@ -161,23 +165,17 @@ def score_gemini(jobs: list[NormalizedJob], profile: Profile, api_key: str) -> l
 
     ranked_by_hash: dict[str, RankedJob] = {}
 
-    for chunk_idx, chunk in enumerate(chunks):
-        if chunk_idx > 0:
-            time.sleep(SLEEP_BETWEEN_CHUNKS_S)
-
+    def _score_chunk(chunk: list[dict]) -> dict | None:
+        """One chunk → parsed JSON dict, or None after retries."""
         payload = json.dumps({"jobs": chunk}, ensure_ascii=False)
-        data: dict | None = None
         last_exc: Exception | None = None
-
         for attempt in range(1, MAX_ATTEMPTS_PER_CHUNK + 1):
             try:
                 resp = client.models.generate_content(model=DEFAULT_MODEL, contents=payload, config=cfg)
                 text = (resp.text or "").strip()
                 if not text:
                     raise ValueError("Gemini returned an empty body")
-                data = json.loads(text)
-                last_exc = None
-                break
+                return json.loads(text)
             except Exception as exc:  # noqa: BLE001 — Gemini SDK surface; classified below
                 last_exc = exc
                 msg = str(exc)
@@ -186,15 +184,31 @@ def score_gemini(jobs: list[NormalizedJob], profile: Profile, api_key: str) -> l
                     time.sleep(2.0 * attempt)
                     continue
                 break
+        logger.warning("score_gemini: chunk of %d failed after retries (%s)", len(chunk), last_exc)
+        return None
 
-        if data is None or last_exc is not None:
-            logger.warning(
-                "score_gemini: chunk %d/%d failed after retries (%s) — aborting whole rung",
-                chunk_idx + 1, len(chunks), last_exc,
-            )
-            return None
+    skipped_jobs = 0
+    for chunk_idx, chunk in enumerate(chunks):
+        if chunk_idx > 0:
+            time.sleep(SLEEP_BETWEEN_CHUNKS_S)
 
-        results = data.get("results", []) if isinstance(data, dict) else []
+        data = _score_chunk(chunk)
+        results: list = []
+        if data is None and len(chunk) > 1:
+            # A truncated/invalid response is usually size-related: split once
+            # and keep whatever halves succeed. Jobs in a half that still fails
+            # keep their heuristic score (rank.py merges per content_hash).
+            for half in (chunk[: len(chunk) // 2], chunk[len(chunk) // 2:]):
+                time.sleep(SLEEP_BETWEEN_CHUNKS_S)
+                sub = _score_chunk(half)
+                if sub is None:
+                    skipped_jobs += len(half)
+                    continue
+                results.extend(sub.get("results", []) if isinstance(sub, dict) else [])
+        elif data is None:
+            skipped_jobs += len(chunk)
+        else:
+            results = data.get("results", []) if isinstance(data, dict) else []
         for r in results:
             jid = str(r.get("job_id", "")).strip()
             job = id_to_job.get(jid)
@@ -204,8 +218,9 @@ def score_gemini(jobs: list[NormalizedJob], profile: Profile, api_key: str) -> l
             try:
                 dims = {k: max(0.0, min(1.0, float(dims_raw.get(k, 0.0)))) for k in DIMENSION_WEIGHTS}
             except (TypeError, ValueError) as exc:
-                logger.warning("score_gemini: malformed dimensions for %s (%s) — aborting whole rung", jid, exc)
-                return None
+                logger.warning("score_gemini: malformed dimensions for %s (%s) — keeping heuristic for it", jid, exc)
+                skipped_jobs += 1
+                continue
             final_score = combine(dims)
             tier = tier_for(final_score)
             matched = [str(s) for s in (r.get("matched_skills") or [])][:12]
@@ -228,9 +243,10 @@ def score_gemini(jobs: list[NormalizedJob], profile: Profile, api_key: str) -> l
     missing_jobs = [j for j in jobs if j.content_hash not in ranked_by_hash]
     if missing_jobs:
         logger.warning(
-            "score_gemini: %d/%d jobs had no result in any chunk — aborting whole rung",
+            "score_gemini: %d/%d jobs had no Gemini result — they keep heuristic scores",
             len(missing_jobs), len(jobs),
         )
-        return None
 
-    return [ranked_by_hash[j.content_hash] for j in jobs]
+    if skipped_jobs:
+        logger.warning("score_gemini: %d/%d jobs kept heuristic scores (chunk failures)", skipped_jobs, len(jobs))
+    return [ranked_by_hash[j.content_hash] for j in jobs if j.content_hash in ranked_by_hash]
