@@ -86,11 +86,22 @@ def _location_keeps(job: NormalizedJob, profile: Profile) -> bool:
     """See directives/personal_workflows/job_digest.md — Filters — location.
 
     A city in profile.locations.cities constrains only the country it
-    actually belongs to (via registry.country_for_city/CITY_ALIASES) — with
-    countries [FR, DE] and cities ["Paris"], a German job is not required to
-    be in Paris; it only needs to match the DE country alias. A city that
-    can't be attributed to any registry country falls back to the old global
-    behaviour (it constrains every country), since we have no better signal.
+    actually belongs to (via registry.country_for_city/CITY_COUNTRY/
+    CITY_ALIASES) — with countries [FR, DE] and cities ["Paris"], a German
+    job is not required to be in Paris; it only needs to match the DE country
+    alias.
+
+    N1: a matched country with no city of its own in the profile's list must
+    NOT be constrained just because some OTHER selected country's city
+    couldn't be attributed to it — e.g. countries=[FR, DE], cities=
+    ["Strasbourg"] must not drop every German job just because "Strasbourg"
+    isn't a German city. So: if at least one profile city is attributable to
+    some SELECTED country, each selected country is constrained only by the
+    cities attributed to it (none attributed -> that country is left
+    unconstrained). The old "constrains every country" fallback applies only
+    when NO profile city could be attributed to any selected country (we then
+    have no better signal than to require a literal match against the whole
+    city list, whichever country the job is in).
     """
     loc = (job.location or "").strip()
     if not loc or loc.lower() == "unknown":
@@ -119,17 +130,26 @@ def _location_keeps(job: NormalizedJob, profile: Profile) -> bool:
 
     # matched_country is guaranteed non-None here: base_keep was true and the
     # remote branch above didn't return, so it must have been the country match.
-    constrained_cities: list[str] = []
+    selected_isos = {c.iso2 for c in profile.countries}
+    attributed: dict[str, list[str]] = {}
     for city in cities:
         owner = registry.country_for_city(city)
-        if owner is None or owner.iso2 == matched_country.iso2:
-            constrained_cities.append(city)
+        if owner is not None and owner.iso2 in selected_isos:
+            attributed.setdefault(owner.iso2, []).append(city)
 
-    if not constrained_cities:
-        # None of the profile's cities apply to this job's country -> the
-        # country match alone is enough (e.g. cities=["Paris"] never
-        # constrains a German job under countries=[FR, DE]).
-        return True
+    if attributed:
+        constrained_cities = attributed.get(matched_country.iso2)
+        if not constrained_cities:
+            # This country has no attributable city of its own, but at least
+            # one OTHER selected country does -> leave this country
+            # unconstrained rather than requiring a match against a city list
+            # that names a different country entirely.
+            return True
+    else:
+        # No profile city could be attributed to any selected country -> no
+        # better signal than the old global behaviour: every city constrains
+        # every country.
+        constrained_cities = cities
 
     for city in constrained_cities:
         if registry.city_matches(city, haystack):

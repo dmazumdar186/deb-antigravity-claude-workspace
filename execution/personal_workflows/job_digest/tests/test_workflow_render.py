@@ -160,11 +160,17 @@ def test_state_commit_step_skips_dry_run_and_handles_missing_state_dir():
     assert "mkdir -p state" in run_text
     # git add must run after mkdir so it never fails on a fresh clone / dry run / early exit.
     assert run_text.index("mkdir -p state") < run_text.index("git add state")
-    # commit failure ("nothing to commit") must not be silently identical to a
-    # push failure being hidden — push failure must surface as a warning, not `|| true`.
-    assert "git push || echo" in run_text
-    assert "::warning::" in run_text
-    assert "git pull --rebase --autostash" in run_text
+    # N5: push is retried once (pull --rebase --autostash + push, twice) before
+    # giving up — a second failure is a hard step failure (not a silent
+    # warning) so the failure-issue step fires.
+    assert run_text.count("git pull --rebase --autostash") == 2
+    assert run_text.count("git push") >= 2
+    assert "::error::state push failed twice" in run_text
+    assert "exit 1" in run_text
+    # The digest has already gone out by this step, whatever happens here —
+    # documented inline so a reader of the workflow (or the failure issue)
+    # understands the blast radius of this specific failure mode.
+    assert "already been sent" in run_text
 
 
 def test_permissions_documented_at_job_level():

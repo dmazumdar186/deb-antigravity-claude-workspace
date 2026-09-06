@@ -161,8 +161,12 @@ def _seniority_fit(haystack: str, role: Role | None) -> float:
 def _location_fit(job: NormalizedJob, profile: Profile) -> float:
     """Score location fit. City match beats country-only match beats remote:
     - 1.0: matches one of the profile's cities (registry.city_matches).
-    - 0.8: matches a selected country that has no city constrained to it.
-    - 0.7: matches a selected country, but the profile's own city(ies) for
+    - 0.8: matches a selected country that has no city constrained to it
+      (either the profile has no cities for that country, or — N1 — some
+      OTHER selected country's cities are the ones being attributed, so this
+      country stays unconstrained rather than penalized for a mismatch that
+      isn't actually about it).
+    - 0.7: matches a selected country, and the profile's own city(ies) for
       that country did not match (e.g. wants Paris specifically, got Lyon).
     - 1.0: remote and remote_ok, when no country/city matched.
     - 0.0: none of the above.
@@ -183,6 +187,10 @@ def _location_fit(job: NormalizedJob, profile: Profile) -> float:
 
     matched_country = next((c for c in profile.countries if c.matches(loc, job.description_snippet[:300])), None)
     if matched_country is not None:
+        # N1: a city only counts against this country if it's actually
+        # attributable to it — a city attributed to some OTHER selected
+        # country (or to none at all) leaves this country unconstrained
+        # (0.8), mirroring filters._location_keeps.
         country_cities = [
             city for city in cities
             if (owner := registry.country_for_city(city)) is not None and owner.iso2 == matched_country.iso2

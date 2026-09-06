@@ -60,7 +60,9 @@ def _cmd_preview(args: argparse.Namespace) -> int:
         print("  email: written to disk (preview — nothing sent)")
     if result.get("exit_code", 0) != 0:
         print(f"  exit_code: {result['exit_code']}")
-    return 0 if result.get("exit_code", 0) in (0, 3) else result["exit_code"]
+    if not acc.get("passed", True):
+        print(f"  preview FAILED: acceptance gate rejected this run — {'; '.join(acc.get('problems', []))}")
+    return result.get("exit_code", 0)
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
@@ -213,7 +215,8 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "One LIVE fetch (real network calls) with no side effects — no email, sheet, "
             "or state writes; shows what the digest would contain. Do not loop it — "
-            "LinkedIn blocks repeated fetches."
+            "LinkedIn blocks repeated fetches. Exit code 3 means the acceptance gate "
+            "failed (printed above the exit_code line); 0 otherwise."
         ),
     )
     p_preview.add_argument("profile")

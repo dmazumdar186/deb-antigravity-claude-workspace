@@ -268,8 +268,20 @@ jobs:
           mkdir -p state
           git add state
           git commit -m "state: $(date -u +%F) [skip ci]" || echo "nothing to commit"
-          git pull --rebase --autostash origin ${{{{ github.ref_name }}}} || true
-          git push || echo "::warning::state push failed — next run may re-email the same jobs"
+          # The digest has already been sent by this point — a failed push only
+          # risks re-emailing the same jobs next run, never losing one. Retry
+          # once (a concurrent run's push is a plausible transient cause)
+          # before giving up; a second failure is a hard step failure (not a
+          # silent warning) so the "Open or bump failure issue" step below
+          # fires and a human notices.
+          if git pull --rebase --autostash origin ${{{{ github.ref_name }}}} && git push; then
+            echo "state push succeeded"
+          elif git pull --rebase --autostash origin ${{{{ github.ref_name }}}} && git push; then
+            echo "state push succeeded on retry"
+          else
+            echo "::error::state push failed twice"
+            exit 1
+          fi
 
       - name: Upload run artifacts
         if: always()
@@ -300,6 +312,7 @@ jobs:
               `- exit 3 — acceptance gate failed (bad filters or a source misbehaving)`,
               `- exit 5 — SMTP auth failed — rotate the Gmail App Password at https://myaccount.google.com/apppasswords and update the GMAIL_SMTP_APP_PASSWORD secret`,
               `- exit 6 — Google Sheet write failed — check the service account still has editor access`,
+              `- no exit code (state push failed twice) — the digest email has already been sent; only the state commit-back to this repo failed, so the next run may re-email today's jobs`,
             ].join("\\n");
 
             const q = `repo:${{owner}}/${{repo}} is:issue is:open in:title "${{title}}"`;

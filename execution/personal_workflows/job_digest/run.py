@@ -63,7 +63,6 @@ logger = logging.getLogger("job_digest.run")
 
 Mode = Literal["dry", "live", "preview"]
 
-_TIER_ORDER = {"A": 0, "B": 1, "C": 2, "SKIP": 3}
 _MIN_TIER_FLOOR = {"A": {"A"}, "B": {"A", "B"}, "C": {"A", "B", "C"}}
 
 
@@ -161,15 +160,26 @@ def run(
         return result
 
     # ----- sheet (live + enabled only; only after acceptance passed) -----
+    # N2: a sheet failure must not skip the email — the friend still gets
+    # their digest even though the Sheet mirror failed. We remember the
+    # failure (pending_exit, result["error"]) and apply exit_code=6 only
+    # right before _finalize, after acceptance/sheet/email have all run.
     sheet_url: str | None = None  # kept local for the email body only — never written to stats/disk (H2)
     sheet_ok: bool | None = None
-    if mode == "live" and profile.sheet.enabled:
+    sheet_skip_reason: str | None = None
+    pending_exit: int | None = None
+    if mode != "live":
+        sheet_skip_reason = "not_live"
+    elif not profile.sheet.enabled:
+        sheet_skip_reason = "disabled"
+    else:
         try:
             from .notifier.sheet import SheetError, write_jobs  # noqa: PLC0415 — guarded, sibling agent's module
         except ImportError as exc:
             logger.warning("run: notifier.sheet.write_jobs not importable yet (%s) — skipping sheet write", exc)
             write_jobs = None  # type: ignore[assignment]
             SheetError = RuntimeError  # type: ignore[assignment,misc]
+            sheet_skip_reason = "module_missing"
 
         if write_jobs is not None:
             spreadsheet_id = os.environ.get("SHEETS_SPREADSHEET_ID", "").strip()
@@ -178,23 +188,44 @@ def run(
             )
             if not spreadsheet_id:
                 logger.warning("run: SHEETS_SPREADSHEET_ID not set — skipping sheet write")
+                sheet_skip_reason = "no_spreadsheet_id"
             else:
                 try:
-                    sheet_url = write_jobs(pairs, profile, spreadsheet_id, service_account_path, stats=result["stats"])
+                    try:
+                        sheet_url = write_jobs(
+                            pairs, profile, spreadsheet_id, service_account_path, stats=result["stats"]
+                        )
+                    except SheetError:
+                        raise
+                    except Exception as exc:  # noqa: BLE001 — any non-SheetError failure from the sheet
+                        # layer (network blip, malformed response, gspread internals) must still
+                        # land on the exit-6 path with a summary written, not crash the whole run.
+                        logger.warning(
+                            "run: write_jobs raised a non-SheetError exception (%s: %s) — "
+                            "treating as a sheet failure", type(exc).__name__, exc,
+                        )
+                        raise SheetError(f"{type(exc).__name__}: {exc}") from exc
                     sheet_ok = True
                 except SheetError as exc:
                     logger.error("run: sheet write failed (%s)", exc)
                     sheet_ok = False
-                    result["exit_code"] = 6
+                    sheet_skip_reason = "error"
+                    sheet_url = None
+                    pending_exit = 6
                     result["error"] = f"sheet write failed: {exc}"
-                    result["stats"]["sheet_ok"] = sheet_ok
-                    _finalize(result, out_dir, started_at)
-                    return result
     result["stats"]["sheet_ok"] = sheet_ok
+    result["stats"]["sheet_skip_reason"] = sheet_skip_reason
 
     # ----- email (gated by acceptance [already passed] + email lock) -----
-    lock_ok = state.email_lock_ok(profile.digest.min_hours_between_emails)
-    result["stats"]["email_lock_ok"] = lock_ok
+    # N4: the email lock only gates LIVE sends — dry/preview runs must still
+    # write their would-be digest to disk regardless of a live lock's state.
+    # stats["email_lock_ok"] always reports the real underlying lock state
+    # (even in dry/preview) so a friend can see the lock would have blocked a
+    # real send; `lock_ok` (the control-flow variable) is forced True outside
+    # live mode so dry/preview aren't gated by it.
+    real_lock_ok = state.email_lock_ok(profile.digest.min_hours_between_emails)
+    lock_ok = True if mode != "live" else real_lock_ok
+    result["stats"]["email_lock_ok"] = real_lock_ok
     email_sent = False  # True only on a REAL SMTP send in live mode
     email_written = False  # True when a dry/preview digest was written to disk
     if lock_ok:
@@ -239,6 +270,12 @@ def run(
             state.mark_seen(digest_jobs)
             state.set_email_lock()
         state.save()
+
+    # N2: a sheet failure earlier doesn't short-circuit the run — exit 6
+    # stays reachable, but only applied now that acceptance/sheet/email have
+    # all had their chance to run.
+    if pending_exit is not None:
+        result["exit_code"] = pending_exit
 
     _finalize(result, out_dir, started_at)
     return result

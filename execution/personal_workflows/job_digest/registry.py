@@ -136,6 +136,113 @@ CITY_ALIASES: dict[str, tuple[str, ...]] = {
 }
 
 
+# Direct folded-city-name -> ISO2 lookup (H4 follow-up). Covers cities that
+# have no distinct alias variant (so never made it into CITY_ALIASES) but are
+# still needed for country_for_city() to attribute a profile city correctly —
+# e.g. "Strasbourg" (FR) or "Nice" (FR) never needed a spelling alias, so they
+# were absent from Country.aliases too, which made country_for_city() return
+# None for them and, per N1, incorrectly treated them as "unattributable"
+# (constraining every selected country instead of just France). Keys here are
+# already fold-normalized (lowercase, diacritics stripped); values are ISO2
+# codes from COUNTRIES. country_for_city() consults this dict first, then
+# falls back to CITY_ALIASES/Country.aliases, then None.
+CITY_COUNTRY: dict[str, str] = {
+    # --- FR ---
+    "paris": "FR", "marseille": "FR", "lyon": "FR", "toulouse": "FR", "nice": "FR",
+    "nantes": "FR", "strasbourg": "FR", "montpellier": "FR", "bordeaux": "FR",
+    "lille": "FR", "rennes": "FR", "reims": "FR", "toulon": "FR", "saint-etienne": "FR",
+    "le havre": "FR", "grenoble": "FR", "dijon": "FR", "angers": "FR", "nimes": "FR",
+    "villeurbanne": "FR", "clermont-ferrand": "FR", "aix-en-provence": "FR", "brest": "FR",
+    "limoges": "FR", "tours": "FR", "amiens": "FR", "metz": "FR", "besancon": "FR",
+    "perpignan": "FR", "orleans": "FR", "mulhouse": "FR", "caen": "FR", "rouen": "FR",
+    "nancy": "FR", "avignon": "FR", "versailles": "FR", "ile-de-france": "FR",
+    # --- DE ---
+    "berlin": "DE", "hamburg": "DE", "munich": "DE", "munchen": "DE", "cologne": "DE",
+    "koln": "DE", "frankfurt": "DE", "frankfurt am main": "DE", "stuttgart": "DE",
+    "dusseldorf": "DE", "leipzig": "DE", "dortmund": "DE", "essen": "DE", "bremen": "DE",
+    "dresden": "DE", "hannover": "DE", "nurnberg": "DE", "nuremberg": "DE", "duisburg": "DE",
+    "bochum": "DE", "wuppertal": "DE", "bielefeld": "DE", "bonn": "DE", "munster": "DE",
+    "mannheim": "DE", "karlsruhe": "DE", "wiesbaden": "DE", "augsburg": "DE",
+    "gelsenkirchen": "DE", "monchengladbach": "DE", "braunschweig": "DE", "chemnitz": "DE",
+    "kiel": "DE", "aachen": "DE", "halle": "DE", "magdeburg": "DE", "freiburg": "DE",
+    "krefeld": "DE", "lubeck": "DE", "mainz": "DE", "rostock": "DE", "kassel": "DE",
+    "potsdam": "DE",
+    # --- AT ---
+    "vienna": "AT", "wien": "AT", "graz": "AT", "linz": "AT", "salzburg": "AT",
+    "innsbruck": "AT", "klagenfurt": "AT", "villach": "AT", "wels": "AT",
+    "sankt polten": "AT", "dornbirn": "AT", "wiener neustadt": "AT", "steyr": "AT",
+    "feldkirch": "AT", "bregenz": "AT", "leonding": "AT", "klosterneuburg": "AT",
+    "baden": "AT", "wolfsberg": "AT", "leoben": "AT", "krems": "AT", "traun": "AT",
+    "amstetten": "AT", "lustenau": "AT", "kapfenberg": "AT", "hallein": "AT",
+    "kufstein": "AT",
+    # --- BE ---
+    "brussels": "BE", "bruxelles": "BE", "brussel": "BE", "antwerp": "BE", "ghent": "BE",
+    "gent": "BE", "charleroi": "BE", "liege": "BE", "bruges": "BE", "brugge": "BE",
+    "namur": "BE", "leuven": "BE", "mons": "BE", "aalst": "BE", "mechelen": "BE",
+    "la louviere": "BE", "kortrijk": "BE", "hasselt": "BE", "sint-niklaas": "BE",
+    "ostend": "BE", "oostende": "BE", "tournai": "BE", "genk": "BE", "seraing": "BE",
+    "roeselare": "BE", "verviers": "BE", "mouscron": "BE", "beveren": "BE",
+    "dendermonde": "BE", "beringen": "BE",
+    # --- NL ---
+    "amsterdam": "NL", "rotterdam": "NL", "the hague": "NL", "den haag": "NL",
+    "utrecht": "NL", "eindhoven": "NL", "groningen": "NL", "tilburg": "NL",
+    "almere": "NL", "breda": "NL", "nijmegen": "NL", "enschede": "NL", "haarlem": "NL",
+    "arnhem": "NL", "zaanstad": "NL", "amersfoort": "NL", "apeldoorn": "NL",
+    "hoofddorp": "NL", "maastricht": "NL", "leiden": "NL", "dordrecht": "NL",
+    "zoetermeer": "NL", "zwolle": "NL", "deventer": "NL", "delft": "NL", "alkmaar": "NL",
+    # --- GB ---
+    "london": "GB", "manchester": "GB", "birmingham": "GB", "leeds": "GB",
+    "glasgow": "GB", "edinburgh": "GB", "liverpool": "GB", "bristol": "GB",
+    "sheffield": "GB", "newcastle": "GB", "belfast": "GB", "nottingham": "GB",
+    "cardiff": "GB", "leicester": "GB", "coventry": "GB", "bradford": "GB",
+    "southampton": "GB", "reading": "GB", "derby": "GB", "plymouth": "GB",
+    "wolverhampton": "GB", "aberdeen": "GB", "cambridge": "GB", "oxford": "GB",
+    "york": "GB", "brighton": "GB",
+    # --- CH ---
+    "zurich": "CH", "geneva": "CH", "geneve": "CH", "genf": "CH", "basel": "CH",
+    "lausanne": "CH", "bern": "CH", "winterthur": "CH", "lucerne": "CH", "luzern": "CH",
+    "st. gallen": "CH", "st gallen": "CH", "lugano": "CH", "biel": "CH", "thun": "CH",
+    "koniz": "CH", "la chaux-de-fonds": "CH", "fribourg": "CH", "schaffhausen": "CH",
+    "chur": "CH", "vernier": "CH", "neuchatel": "CH", "uster": "CH", "sion": "CH",
+    "emmen": "CH", "zug": "CH", "yverdon": "CH", "baar": "CH", "rapperswil": "CH",
+    # --- IN ---
+    "bengaluru": "IN", "bangalore": "IN", "mumbai": "IN", "bombay": "IN",
+    "delhi": "IN", "new delhi": "IN", "hyderabad": "IN", "chennai": "IN",
+    "kolkata": "IN", "pune": "IN", "ahmedabad": "IN", "jaipur": "IN", "surat": "IN",
+    "lucknow": "IN", "kanpur": "IN", "nagpur": "IN", "indore": "IN", "thane": "IN",
+    "bhopal": "IN", "visakhapatnam": "IN", "patna": "IN", "vadodara": "IN",
+    "gurugram": "IN", "gurgaon": "IN", "noida": "IN", "coimbatore": "IN",
+    "kochi": "IN", "chandigarh": "IN", "nashik": "IN",
+    # --- SG (city-state: major planning areas stand in for "regional capitals") ---
+    "singapore": "SG", "woodlands": "SG", "jurong east": "SG", "jurong west": "SG",
+    "tampines": "SG", "bishan": "SG", "ang mo kio": "SG", "bedok": "SG",
+    "clementi": "SG", "hougang": "SG", "punggol": "SG", "sengkang": "SG",
+    "yishun": "SG", "toa payoh": "SG", "bukit timah": "SG", "pasir ris": "SG",
+    "choa chu kang": "SG", "sembawang": "SG", "serangoon": "SG", "queenstown": "SG",
+    "novena": "SG", "marine parade": "SG", "kallang": "SG", "geylang": "SG",
+    "bukit batok": "SG", "bukit panjang": "SG", "bukit merah": "SG",
+    # --- CA ---
+    "toronto": "CA", "montreal": "CA", "vancouver": "CA", "calgary": "CA",
+    "edmonton": "CA", "ottawa": "CA", "winnipeg": "CA", "quebec": "CA",
+    "quebec city": "CA", "hamilton": "CA", "kitchener": "CA", "victoria": "CA",
+    "halifax": "CA", "oshawa": "CA", "windsor": "CA", "saskatoon": "CA",
+    "regina": "CA", "st. john's": "CA", "st johns": "CA", "barrie": "CA",
+    "kelowna": "CA", "abbotsford": "CA", "sherbrooke": "CA", "trois-rivieres": "CA",
+    "guelph": "CA", "kingston": "CA", "thunder bay": "CA",
+    # --- US ---
+    "new york": "US", "los angeles": "US", "chicago": "US", "houston": "US",
+    "phoenix": "US", "philadelphia": "US", "san antonio": "US", "san diego": "US",
+    "dallas": "US", "san jose": "US", "austin": "US", "jacksonville": "US",
+    "fort worth": "US", "columbus": "US", "charlotte": "US", "san francisco": "US",
+    "indianapolis": "US", "seattle": "US", "denver": "US", "washington": "US",
+    "boston": "US", "el paso": "US", "nashville": "US", "detroit": "US",
+    "portland": "US", "memphis": "US", "oklahoma city": "US", "las vegas": "US",
+    "louisville": "US", "baltimore": "US", "milwaukee": "US", "albuquerque": "US",
+    "tucson": "US", "fresno": "US", "sacramento": "US", "atlanta": "US",
+    "miami": "US",
+}
+
+
 def expand_city(city: str) -> tuple[str, ...]:
     """Return the folded alias set for `city`, always including the folded
     input itself even when it has no registered aliases.
@@ -161,11 +268,23 @@ def city_matches(city: str, text: str) -> bool:
 
 
 def country_for_city(city: str) -> "Country | None":
-    """Return the single registry Country whose `aliases` name this city
-    (matched via its CITY_ALIASES expansion), or None if no country's alias
-    list mentions it. Used by filters._location_keeps so a city constrains
-    only the country it actually belongs to.
+    """Return the registry Country this city belongs to, or None if it can't
+    be attributed to any. Consults CITY_COUNTRY first (the broad direct
+    lookup — N1), then falls back to matching against each Country's
+    `aliases` (matched via the city's CITY_ALIASES expansion, for city names
+    that were already registered as country aliases before CITY_COUNTRY
+    existed), then None. Used by filters._location_keeps and
+    ranker/heuristic._location_fit so a city constrains only the country it
+    actually belongs to.
     """
+    folded = _fold(city).strip()
+    if not folded:
+        return None
+
+    iso2 = CITY_COUNTRY.get(folded)
+    if iso2 is not None:
+        return COUNTRIES.get(iso2)
+
     city_aliases = set(expand_city(city))
     if not city_aliases:
         return None

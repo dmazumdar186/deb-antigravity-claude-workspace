@@ -65,6 +65,11 @@ def _patch_fetch_all(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sources_module, "fetch_all", _fake_fetch_all)
 
 
+def test_n8_dead_tier_order_removed() -> None:
+    """N8: _TIER_ORDER was dead code (never read anywhere) — confirm it's gone."""
+    assert not hasattr(run_module, "_TIER_ORDER")
+
+
 def test_run_dry_produces_summary_and_digest(tmp_path: Path) -> None:
     state_dir = tmp_path / "state"
     out_dir = tmp_path / "out"
@@ -204,6 +209,107 @@ def test_run_summary_json_never_contains_sheet_url_or_id(tmp_path: Path, monkeyp
     for blob in (summary_text, log_text):
         assert "TOTALLY-SECRET-SPREADSHEET-ID" not in blob
         assert "sheet_ok" in blob
+
+
+def test_n2_sheet_error_still_sends_email_and_exits_6(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """N2: a SheetError must not skip the email — the friend still gets their
+    digest, and exit_code=6 is applied only right before _finalize."""
+    profile_path = _sheet_enabled_profile_path(tmp_path)
+    monkeypatch.setenv("SHEETS_SPREADSHEET_ID", "fake-spreadsheet-id")
+    monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_PATH", "some/fake/service_account.json")
+
+    def boom_sheet(*a, **k):
+        raise sheet_module.SheetError("simulated sheet failure")
+
+    monkeypatch.setattr(sheet_module, "write_jobs", boom_sheet)
+    monkeypatch.setattr(email_module, "send_digest", lambda *a, **k: True)
+
+    result = run_module.run(
+        profile_path, mode="live", state_dir=tmp_path / "state", out_dir=tmp_path / "out"
+    )
+
+    assert result["exit_code"] == 6
+    assert "error" in result
+    assert result["stats"]["sheet_ok"] is False
+    assert result["stats"]["sheet_skip_reason"] == "error"
+    # The email must still have been sent — a sheet failure never blocks it.
+    assert result["stats"]["email_sent"] is True
+
+
+def test_n3c_non_sheet_exception_from_write_jobs_becomes_sheet_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """N3c: any non-SheetError exception raised by write_jobs must be wrapped
+    into a SheetError so it still lands on the exit-6 path with a summary
+    written, rather than crashing the whole run."""
+    profile_path = _sheet_enabled_profile_path(tmp_path)
+    monkeypatch.setenv("SHEETS_SPREADSHEET_ID", "fake-spreadsheet-id")
+    monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_PATH", "some/fake/service_account.json")
+
+    def boom_generic(*a, **k):
+        raise RuntimeError("unexpected gspread internals failure")
+
+    monkeypatch.setattr(sheet_module, "write_jobs", boom_generic)
+
+    out_dir = tmp_path / "out"
+    result = run_module.run(profile_path, mode="live", state_dir=tmp_path / "state", out_dir=out_dir)
+
+    assert result["exit_code"] == 6
+    assert result["stats"]["sheet_ok"] is False
+    assert (out_dir / "summary.json").exists()  # never crashed — summary still written
+
+
+def test_n4_dry_run_writes_digest_despite_a_fresh_email_lock(tmp_path: Path) -> None:
+    """N4: dry/preview must not be gated by the live email lock — set a fresh
+    lock directly on state, then confirm a dry run still writes the digest
+    files (lock_ok is forced True outside live mode), while
+    stats['email_lock_ok'] still reports the real (locked) state."""
+    from ..normalizer.state import State
+
+    state_dir = tmp_path / "state"
+    state = State(state_dir)
+    state.set_email_lock()
+    state.save()
+
+    dry_out = tmp_path / "out_dry"
+    result = run_module.run(TEST_PROFILE_PATH, mode="dry", state_dir=state_dir, out_dir=dry_out)
+
+    # The real lock is now active (freshly set) ...
+    assert result["stats"]["email_lock_ok"] is False
+    # ... but the dry run must still have written its digest to disk.
+    assert result["stats"]["email_written"] is True
+    assert (dry_out / "digest.txt").exists()
+    assert (dry_out / "digest.html").exists()
+
+
+def test_n6_sheet_skip_reason_values(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """N6: stats['sheet_skip_reason'] reports why the sheet write was skipped
+    (or None on a genuine attempt/success)."""
+    # not_live: dry mode never attempts a sheet write.
+    dry_result = run_module.run(TEST_PROFILE_PATH, mode="dry", state_dir=tmp_path / "s1", out_dir=tmp_path / "o1")
+    assert dry_result["stats"]["sheet_skip_reason"] == "not_live"
+
+    # disabled: sheet.enabled is false in the shared test profile.
+    disabled_result = run_module.run(
+        TEST_PROFILE_PATH, mode="live", state_dir=tmp_path / "s2", out_dir=tmp_path / "o2"
+    )
+    assert disabled_result["stats"]["sheet_skip_reason"] == "disabled"
+
+    # no_spreadsheet_id: sheet enabled, but SHEETS_SPREADSHEET_ID unset.
+    profile_path = _sheet_enabled_profile_path(tmp_path)
+    no_id_result = run_module.run(
+        profile_path, mode="live", state_dir=tmp_path / "s3", out_dir=tmp_path / "o3"
+    )
+    assert no_id_result["stats"]["sheet_skip_reason"] == "no_spreadsheet_id"
+
+    # None: a genuinely successful write.
+    monkeypatch.setenv("SHEETS_SPREADSHEET_ID", "fake-spreadsheet-id")
+    monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_PATH", "some/fake/service_account.json")
+    monkeypatch.setattr(sheet_module, "write_jobs", lambda *a, **k: "https://example.com/sheet")
+    ok_result = run_module.run(
+        profile_path, mode="live", state_dir=tmp_path / "s4", out_dir=tmp_path / "o4"
+    )
+    assert ok_result["stats"]["sheet_skip_reason"] is None
 
 
 def _fake_fetch_all_second_batch(profile, *, dry: bool = False):

@@ -98,6 +98,30 @@ def test_fetch_all_dry_two_country_profile_returns_expected_keys():
         assert len(jobs) > 0, f"{key} returned no dry-fixture jobs"
 
 
+def test_n3a_france_travail_naive_posted_at_coerced_to_utc():
+    """N3a: dateCreation/dateActualisation without a trailing 'Z' parse naive
+    — _parse_offer must fall back to UTC like every other source adapter,
+    rather than leaving posted_at naive (which later breaks a naive-vs-aware
+    comparison, e.g. notifier/sheet.py's Top Matches cutoff)."""
+    offer = {
+        "id": "123",
+        "intitule": "Ingenieur logiciel",
+        "entreprise": {"nom": "Acme"},
+        "lieuTravail": {"libelle": "Paris"},
+        "description": "Une description.",
+        "typeContratLibelle": "CDI",
+        "dateCreation": "2026-01-01T12:00:00.000",  # no trailing Z, no offset
+    }
+    job = france_travail._parse_offer(offer)
+    assert job is not None
+    assert job.posted_at is not None
+    assert job.posted_at.tzinfo is not None
+
+    offer_z = dict(offer, dateCreation="2026-01-01T12:00:00Z")
+    job_z = france_travail._parse_offer(offer_z)
+    assert job_z.posted_at.tzinfo is not None
+
+
 def test_fetch_all_isolates_a_raising_adapter(monkeypatch):
     def _boom(profile, country, *, dry=False):
         raise RuntimeError("simulated adapter failure")

@@ -93,8 +93,16 @@ def _normalize_contract(raw: str) -> ContractType:
 # heuristics below (C3: was misclassifying every such job as HYBRID, which
 # then got dropped by filters._location_keeps since HYBRID != REMOTE).
 _LOCATION_REMOTE_RE = re.compile(
-    r"^\s*(remote|anywhere|worldwide|global|100%\s*remote|fully\s*remote|t[eé]l[eé]travail)\b"
-    r"(?:\s*[\(\-–—:,]\s*[^)]*\)?)?\s*$",
+    r"^\s*(?:"
+    r"100%\s*(?:remote|t[eé]l[eé]travail)\b(?:\s*.*)?"
+    r"|work\s*from\s*anywhere\b(?:\s*.*)?"
+    r"|remote\b(?:\s*.*)?"
+    r"|anywhere\b(?:\s*.*)?"
+    r"|worldwide\b(?:\s*[\(\-–—:,]\s*[^)]*\)?)?"
+    r"|global\b(?:\s*[\(\-–—:,]\s*[^)]*\)?)?"
+    r"|fully\s*remote\b(?:\s*[\(\-–—:,]\s*[^)]*\)?)?"
+    r"|t[eé]l[eé]travail\b(?:\s*[\(\-–—:,]\s*[^)]*\)?)?"
+    r")\s*$",
     re.IGNORECASE,
 )
 _LOCATION_HYBRID_RE = re.compile(r"\bhybrid(e)?\b", re.IGNORECASE)

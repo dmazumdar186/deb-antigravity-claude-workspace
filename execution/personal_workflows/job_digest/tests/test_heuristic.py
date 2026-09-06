@@ -138,3 +138,21 @@ def test_location_fit_country_match_with_city_mismatch_scores_0_7() -> None:
     job = make_normalized_job(title="Sales Manager", location="Lyon, France")
     [ranked] = score_heuristic([job], profile)
     assert "location=0.70" in ranked.reasoning
+
+
+def test_n1_location_fit_mirrors_filters_for_unattributed_city() -> None:
+    """N1: countries=[FR, DE], cities=['Strasbourg'] — a German job must not
+    be scored as a city mismatch (0.7) just because 'Strasbourg' belongs to
+    the OTHER selected country; it should score 0.8 (unconstrained country
+    match), mirroring filters._location_keeps keeping it."""
+    raw = {
+        "version": 1,
+        "candidate": {"name": "Test Candidate", "email": "test@example.com"},
+        "roles": [{"title": "Sales Manager", "synonyms": [], "seniority": "any"}],
+        "locations": {"countries": ["FR", "DE"], "cities": ["Strasbourg"], "remote_ok": True},
+        "screening": {"summary": "A" * 50, "skills": [], "must_have": [], "nice_to_have": []},
+    }
+    profile = Profile.model_validate(raw)
+    berlin_job = make_normalized_job(title="Sales Manager", location="Berlin, Germany")
+    [ranked] = score_heuristic([berlin_job], profile)
+    assert "location=0.80" in ranked.reasoning

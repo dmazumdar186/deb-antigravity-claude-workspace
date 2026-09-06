@@ -193,6 +193,45 @@ def test_h4_fr_only_nantes_city_keeps_nantes_drops_paris() -> None:
     assert _location_keeps(paris_job, profile) is False
 
 
+def test_n1_strasbourg_city_leaves_germany_unconstrained() -> None:
+    """N1: countries=[FR, DE], cities=['Strasbourg'] must not drop every
+    German job just because 'Strasbourg' can't be attributed to Germany —
+    it's now attributable to FR via registry.CITY_COUNTRY, so DE is left
+    unconstrained (some OTHER selected country — FR — does have a city)."""
+    profile = _profile(locations={"countries": ["FR", "DE"], "cities": ["Strasbourg"], "remote_ok": True})
+    berlin_job = make_normalized_job(title="Sales Manager", location="Berlin, Germany")
+    strasbourg_job = make_normalized_job(title="Sales Manager", location="Strasbourg, France")
+    lyon_job = make_normalized_job(title="Sales Manager", location="Lyon, France")
+    assert _location_keeps(berlin_job, profile) is True
+    assert _location_keeps(strasbourg_job, profile) is True
+    assert _location_keeps(lyon_job, profile) is False
+
+
+def test_n1_fr_only_nice_city_keeps_nice_drops_paris() -> None:
+    """N1: 'Nice' now resolves via registry.CITY_COUNTRY -> FR even though it
+    has no distinct spelling alias."""
+    profile = _profile(locations={"countries": ["FR"], "cities": ["Nice"], "remote_ok": True})
+    nice_job = make_normalized_job(title="Sales Manager", location="Nice, France")
+    paris_job = make_normalized_job(title="Sales Manager", location="Paris, France")
+    assert _location_keeps(nice_job, profile) is True
+    assert _location_keeps(paris_job, profile) is False
+
+
+def test_n1_unattributable_city_constrains_every_selected_country() -> None:
+    """N1: a city that can't be attributed to ANY selected country falls back
+    to the old global behaviour — it constrains every selected country."""
+    profile = _profile(locations={"countries": ["FR", "DE"], "cities": ["Xyzville"], "remote_ok": True})
+    berlin_job = make_normalized_job(title="Sales Manager", location="Berlin, Germany")
+    paris_job = make_normalized_job(title="Sales Manager", location="Paris, France")
+    xyzville_job = make_normalized_job(
+        title="Sales Manager", location="Berlin, Germany",
+        description_snippet="Based out of our Xyzville office.",
+    )
+    assert _location_keeps(berlin_job, profile) is False
+    assert _location_keeps(paris_job, profile) is False
+    assert _location_keeps(xyzville_job, profile) is True
+
+
 def test_minor_phrase_regex_matches_non_word_boundary_keywords() -> None:
     assert _phrase_regex("C++").search("c++ developer wanted")
     assert _phrase_regex("C#").search("looking for a c# engineer")

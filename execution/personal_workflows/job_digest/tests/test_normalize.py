@@ -29,6 +29,18 @@ def test_bare_remote_location_strings_are_remote() -> None:
         assert _detect_remote(loc, "") == RemoteMode.REMOTE, loc
 
 
+def test_n7_additional_bare_remote_location_strings_are_remote() -> None:
+    """N7: additional real-world bare-remote location strings."""
+    for loc in [
+        "Remote US",
+        "Remote - Europe",
+        "Anywhere in the World",
+        "Work from anywhere",
+        "100% télétravail",
+    ]:
+        assert _detect_remote(loc, "") == RemoteMode.REMOTE, loc
+
+
 def test_hybrid_location_string() -> None:
     assert _detect_remote("Hybrid - Paris, France", "") == RemoteMode.HYBRID
     assert _detect_remote("Hybride - Lyon", "") == RemoteMode.HYBRID

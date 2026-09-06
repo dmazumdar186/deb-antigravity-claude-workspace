@@ -136,6 +136,7 @@ Last updated: 2026-09-06
 | `personal_workflows/job_digest/tests/_helpers.py` | Shared test helpers for job_digest's offline test suite. | none (pure helper functions) | factory functions used by tests/test_*.py to build NormalizedJob / |
 | `personal_workflows/job_digest/tests/test_acceptance.py` | Offline tests for acceptance.py's generic sanity gate. | none (synthetic NormalizedJob/RankedJob fixtures) | pytest assertions |
 | `personal_workflows/job_digest/tests/test_bundle_smoke.py` | End-to-end smoke test for the packaged, standalone job-digest | none (everything happens under tmp_path / a subprocess) | pytest assertions on subprocess exit codes and stdout content. |
+| `personal_workflows/job_digest/tests/test_cli.py` | Offline tests for cli.py's subcommand functions, run.run() replaced with | none (synthetic argparse.Namespace via build_parser().parse_args) | pytest assertions |
 | `personal_workflows/job_digest/tests/test_email_build.py` | Offline unit tests for notifier/email.py's build_digest(). | synthetic NormalizedJob/RankedJob pairs and a minimal Profile — no network. | pytest assertions on subject format, HTML-escaping of untrusted job |
 | `personal_workflows/job_digest/tests/test_filters.py` | Offline tests for normalizer/filters.py. | none (synthetic NormalizedJob fixtures via tests/_helpers.py) | pytest assertions |
 | `personal_workflows/job_digest/tests/test_heuristic.py` | Offline tests for ranker/heuristic.py — combine() weighting/hard-zero | none (synthetic NormalizedJob fixtures via tests/_helpers.py) | pytest assertions |

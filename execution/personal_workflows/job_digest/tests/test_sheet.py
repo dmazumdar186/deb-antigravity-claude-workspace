@@ -48,6 +48,29 @@ def test_country_for_derives_from_registry_matches() -> None:
     assert sheet_module._country_for(job_unknown, profile) == ""
 
 
+def test_n3b_posted_at_utc_coerces_naive_datetime() -> None:
+    """N3b: a naive posted_at (a source adapter's own tz gap) must be coerced
+    to aware UTC, not left to raise a naive-vs-aware TypeError against the
+    Top Matches cutoff. NormalizedJob is frozen, so use model_copy(update=)
+    to set posted_at to each test value."""
+    import datetime as dt
+
+    base = make_normalized_job(title="Sales Manager", location="Paris")
+
+    naive_job = base.model_copy(update={"posted_at": dt.datetime(2026, 1, 1, 12, 0, 0)})  # no tzinfo
+    coerced = sheet_module._posted_at_utc(naive_job)
+    assert coerced is not None
+    assert coerced.tzinfo is not None
+    assert coerced == dt.datetime(2026, 1, 1, 12, 0, 0, tzinfo=dt.timezone.utc)
+
+    aware_dt = dt.datetime(2026, 1, 1, 12, 0, 0, tzinfo=dt.timezone.utc)
+    aware_job = base.model_copy(update={"posted_at": aware_dt})
+    assert sheet_module._posted_at_utc(aware_job) == aware_dt
+
+    none_job = base.model_copy(update={"posted_at": None})
+    assert sheet_module._posted_at_utc(none_job) is None
+
+
 def test_row_for_populates_country_column() -> None:
     profile = load_test_profile()
     job = make_normalized_job(title="Sales Manager", location="Paris")

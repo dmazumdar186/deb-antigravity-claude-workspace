@@ -198,6 +198,18 @@ def _append_rows(spreadsheet, tab: str, rows: list[list[str]], dedup_ids: list[s
     return len(fresh_rows)
 
 
+def _posted_at_utc(job: NormalizedJob) -> datetime | None:
+    """job.posted_at, coerced to an aware UTC datetime if a source adapter's
+    own tz handling slipped and left it naive (N3b) — otherwise a naive-vs-
+    aware comparison against `cutoff` in _rebuild_top_matches would raise and
+    either drop the row silently or crash the whole rebuild.
+    """
+    posted_at = job.posted_at
+    if posted_at is not None and posted_at.tzinfo is None:
+        posted_at = posted_at.replace(tzinfo=timezone.utc)
+    return posted_at
+
+
 def _rebuild_top_matches(
     spreadsheet, pairs: list[tuple[NormalizedJob, RankedJob]], run_date: str, profile: Profile
 ) -> None:
@@ -216,7 +228,7 @@ def _rebuild_top_matches(
     top_pairs = [
         (job, ranked)
         for job, ranked in pairs
-        if ranked.tier == JobTier.A and (job.posted_at is None or job.posted_at >= cutoff)
+        if ranked.tier == JobTier.A and ((pa := _posted_at_utc(job)) is None or pa >= cutoff)
     ]
     # Sort by the NUMERIC score before formatting — sorting the already-
     # formatted "%.3f" string happens to agree for this value range, but

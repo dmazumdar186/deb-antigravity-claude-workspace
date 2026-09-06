@@ -100,6 +100,14 @@ def _parse_offer(offer: dict) -> SourceJob | None:
         if posted_str:
             try:
                 posted_at = datetime.fromisoformat(posted_str.replace("Z", "+00:00"))
+                if posted_at.tzinfo is None:
+                    # France Travail's dateCreation/dateActualisation are
+                    # local French-time strings with no offset when they
+                    # don't carry a trailing "Z" — treat as UTC rather than
+                    # leaving them naive (matches every other source adapter;
+                    # a naive datetime can't be compared against the
+                    # timezone-aware cutoffs in notifier/sheet.py).
+                    posted_at = posted_at.replace(tzinfo=timezone.utc)
             except ValueError:
                 posted_at = None
 
