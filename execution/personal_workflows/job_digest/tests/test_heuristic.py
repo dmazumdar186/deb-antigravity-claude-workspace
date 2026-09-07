@@ -1,0 +1,193 @@
+"""
+description: Offline tests for ranker/heuristic.py — combine() weighting/hard-zero
+    rule and score_heuristic()'s Profile-driven dimension scoring.
+inputs: none (synthetic NormalizedJob fixtures via tests/_helpers.py)
+outputs: pytest assertions
+"""
+
+from __future__ import annotations
+
+import logging
+
+from ..contracts import ContractType, JobTier, RemoteMode
+from ..profile_schema import Profile, Role
+from ..ranker.heuristic import _fold, _seniority_fit, combine, score_heuristic, tier_for
+from ._helpers import load_test_profile, make_normalized_job
+
+
+def _profile_with_must_have(must_have: list[str]) -> Profile:
+    raw = {
+        "version": 1,
+        "candidate": {"name": "Test Candidate", "email": "test@example.com"},
+        "roles": [{"title": "Sales Manager", "synonyms": [], "seniority": "any"}],
+        "locations": {"countries": ["FR"], "cities": [], "remote_ok": True},
+        "screening": {"summary": "A" * 50, "skills": [], "must_have": must_have, "nice_to_have": []},
+    }
+    return Profile.model_validate(raw)
+
+
+def test_combine_hard_zero_on_title_fit() -> None:
+    dims = {"title_fit": 0.0, "skill_overlap": 1.0, "contract_fit": 1.0, "seniority_fit": 1.0, "location_fit": 1.0}
+    assert combine(dims) == 0.0
+
+
+def test_combine_weighted_average() -> None:
+    dims = {"title_fit": 1.0, "skill_overlap": 1.0, "contract_fit": 1.0, "seniority_fit": 1.0, "location_fit": 1.0}
+    assert combine(dims) == 1.0
+
+
+def test_tier_thresholds() -> None:
+    assert tier_for(0.80) == JobTier.A
+    assert tier_for(0.60) == JobTier.B
+    assert tier_for(0.30) == JobTier.C
+    assert tier_for(0.10) == JobTier.SKIP
+
+
+def test_strong_match_scores_tier_a() -> None:
+    profile = load_test_profile()
+    job = make_normalized_job(
+        title="Senior Sales Manager",
+        location="Paris",
+        description_snippet="Lead B2B sales team leadership using our CRM and SaaS platform.",
+        contract_type=ContractType.CDI,
+        contract_type_raw="CDI",
+    )
+    [ranked] = score_heuristic([job], profile)
+    assert ranked.tier in (JobTier.A, JobTier.B)
+    assert ranked.ranker_model == "heuristic-v1"
+
+
+def test_wrong_role_scores_zero() -> None:
+    profile = load_test_profile()
+    job = make_normalized_job(title="Backend Software Engineer", location="Paris")
+    [ranked] = score_heuristic([job], profile)
+    assert ranked.score == 0.0
+    assert ranked.tier == JobTier.SKIP
+
+
+def test_remote_job_gets_full_location_fit_when_remote_ok() -> None:
+    profile = load_test_profile()
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="Remote",
+        remote_mode=RemoteMode.REMOTE,
+    )
+    [ranked] = score_heuristic([job], profile)
+    # location_fit alone isn't directly exposed, but a remote+title match must
+    # not hard-zero on location (it would if location_fit resolved to 0.0).
+    assert ranked.score > 0.0
+
+
+def test_must_have_missing_penalizes_skill_overlap_not_hard_zero() -> None:
+    """M2: a missing must-have keyword must NOT hard-zero title_fit — it
+    should halve skill_overlap and flag must_have_missing in reasoning."""
+    profile = _profile_with_must_have(["Salesforce"])
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="Paris",
+        description_snippet="Lead our team using HubSpot CRM.",  # no "Salesforce" mention
+    )
+    [ranked] = score_heuristic([job], profile)
+    assert ranked.score > 0.0  # never hard-zeroed
+    assert "must_have_missing" in ranked.reasoning
+
+
+def test_must_have_present_no_penalty_flag() -> None:
+    profile = _profile_with_must_have(["Salesforce"])
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="Paris",
+        description_snippet="Lead our team using Salesforce CRM.",
+    )
+    [ranked] = score_heuristic([job], profile)
+    assert "must_have_missing" not in ranked.reasoning
+
+
+def test_must_have_batch_warning_logged_over_80_percent(caplog) -> None:
+    profile = _profile_with_must_have(["Salesforce"])
+    jobs = [
+        make_normalized_job(
+            title=f"Sales Manager {i}",
+            location="Paris",
+            description_snippet="Lead a team using HubSpot.",
+            url=f"https://example.com/jobs/{i}",
+        )
+        for i in range(5)
+    ]
+    with caplog.at_level(logging.WARNING, logger="job_digest.ranker.heuristic"):
+        score_heuristic(jobs, profile)
+    assert any("must_have penalized" in rec.message for rec in caplog.records)
+
+
+def test_seniority_tokens_use_word_boundaries_not_substrings() -> None:
+    """MEDIUM fix: _JUNIOR_TOKENS substring match let 'international' and
+    'internal' falsely hit 'intern'. A non-'any' target role that matches
+    neither a junior nor senior token must score the neutral 0.6, and an
+    actual junior title ('Sales Intern') must still score 0.0."""
+    role = Role(title="Sales Manager", synonyms=[], seniority="mid")
+    export_haystack = _fold("Export Sales Manager for international accounts")
+    intern_haystack = _fold("Sales Intern")
+    assert _seniority_fit(export_haystack, role) == 0.6
+    assert _seniority_fit(intern_haystack, role) == 0.0
+
+
+def test_location_fit_city_match_scores_full() -> None:
+    profile = load_test_profile()  # countries FR, IN; cities ["Paris"]
+    job = make_normalized_job(title="Sales Manager", location="Paris")
+    [ranked] = score_heuristic([job], profile)
+    assert "location=1.00" in ranked.reasoning
+
+
+def test_location_fit_country_match_without_city_constraint_scores_0_8() -> None:
+    profile = load_test_profile()  # cities=["Paris"] only belongs to FR
+    job = make_normalized_job(title="Sales Manager", location="Bengaluru, India")
+    [ranked] = score_heuristic([job], profile)
+    assert "location=0.80" in ranked.reasoning
+
+
+def test_location_fit_country_match_with_city_mismatch_scores_0_7() -> None:
+    profile = load_test_profile()  # wants Paris specifically (FR)
+    job = make_normalized_job(title="Sales Manager", location="Lyon, France")
+    [ranked] = score_heuristic([job], profile)
+    assert "location=0.70" in ranked.reasoning
+
+
+def test_location_leak_description_snippet_never_feeds_country_match() -> None:
+    """HIGH fix: _location_fit must match on the LOCATION string only — a New
+    York job whose snippet mentions India in passing must not score as a
+    country match (which would also hard-zero the whole job, since
+    location_fit is 0.0 -> combine() hard-zeros the final score)."""
+    raw = {
+        "version": 1,
+        "candidate": {"name": "Test Candidate", "email": "test@example.com"},
+        "roles": [{"title": "Sales Manager", "synonyms": [], "seniority": "any"}],
+        "locations": {"countries": ["IN", "SG"], "cities": [], "remote_ok": True},
+        "screening": {"summary": "A" * 50, "skills": [], "must_have": [], "nice_to_have": []},
+    }
+    profile = Profile.model_validate(raw)
+    job = make_normalized_job(
+        title="Sales Manager",
+        location="New York, NY",
+        description_snippet="Our team sells to customers across India.",
+    )
+    [ranked] = score_heuristic([job], profile)
+    assert "location=0.00" in ranked.reasoning
+    assert ranked.score == 0.0
+
+
+def test_n1_location_fit_mirrors_filters_for_unattributed_city() -> None:
+    """N1: countries=[FR, DE], cities=['Strasbourg'] — a German job must not
+    be scored as a city mismatch (0.7) just because 'Strasbourg' belongs to
+    the OTHER selected country; it should score 0.8 (unconstrained country
+    match), mirroring filters._location_keeps keeping it."""
+    raw = {
+        "version": 1,
+        "candidate": {"name": "Test Candidate", "email": "test@example.com"},
+        "roles": [{"title": "Sales Manager", "synonyms": [], "seniority": "any"}],
+        "locations": {"countries": ["FR", "DE"], "cities": ["Strasbourg"], "remote_ok": True},
+        "screening": {"summary": "A" * 50, "skills": [], "must_have": [], "nice_to_have": []},
+    }
+    profile = Profile.model_validate(raw)
+    berlin_job = make_normalized_job(title="Sales Manager", location="Berlin, Germany")
+    [ranked] = score_heuristic([berlin_job], profile)
+    assert "location=0.80" in ranked.reasoning

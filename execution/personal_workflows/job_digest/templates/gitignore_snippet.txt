@@ -1,0 +1,15 @@
+# job_digest — add this to your repo's .gitignore
+
+# Secrets & credentials — NEVER commit
+.env
+credentials/
+*.json.key
+
+# Local run output
+.tmp/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
