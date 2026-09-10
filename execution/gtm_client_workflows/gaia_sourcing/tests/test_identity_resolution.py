@@ -214,3 +214,32 @@ def test_cluster_to_person_id_is_a_deterministic_slug():
     assert person.person_id == clusters[0].person_id
     assert person.person_id.startswith("colin-")
     assert "jacobs" in person.person_id
+
+
+# ---------------------------------------------------------------------------
+# Transitive conflict: A merges with B, B merges with C, but A and C
+# themselves carry two different register_numbers -- the A-C PAIR is barred
+# from ever merging directly by `_exact_key_conflict`, but never checked as
+# a union candidate on its own (only A-B and B-C ever call dsu.union), so
+# without a post-pass the union-find still lands all three in one cluster
+# transitively through B.
+# ---------------------------------------------------------------------------
+
+
+def test_transitive_merge_is_split_on_a_register_number_conflict():
+    clusters = resolve_identity(_load("transitive_register_conflict.json"))
+
+    # Never one cluster carrying both EI-10234 and EI-99001.
+    for cluster in clusters:
+        regs = {m.register_number for m in cluster.members if m.register_number}
+        assert len(regs) <= 1, (
+            "a cluster must never carry two distinct register_numbers, even "
+            "when they only collide transitively through a third record"
+        )
+
+    # B (no register_number of its own) still merges with SOMEONE by
+    # name+employer -- it is not stranded as its own singleton just because
+    # it sits between two conflicting records.
+    total_members = sum(len(c.members) for c in clusters)
+    assert total_members == 3
+    assert any(len(c.members) == 2 for c in clusters)

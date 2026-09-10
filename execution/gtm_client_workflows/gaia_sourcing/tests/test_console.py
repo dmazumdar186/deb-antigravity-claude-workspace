@@ -221,3 +221,17 @@ def test_poolmap_page_renders_fixture_counts(tmp_path):
     out_dir = _render(tmp_path)
     html = (out_dir / "poolmap.html").read_text(encoding="utf-8")
     assert re.search(r"<div class=\"tnum\">2</div>", html)  # role1 profiles_assessed
+
+
+def test_health_banner_coerces_a_stringified_stale_days():
+    """health.json is read straight off disk -- a stale_days value stored as
+    a numeric string ("7") used to raise TypeError on `days > 7` and take
+    the whole console render down over one banner."""
+    html = console._health_banner({"stale_days": "9"})
+    assert "9 days ago" in html
+    assert "stale" in html
+
+
+def test_health_banner_treats_an_unparsable_stale_days_as_absent():
+    html = console._health_banner({"stale_days": "not-a-number"})
+    assert html == ""

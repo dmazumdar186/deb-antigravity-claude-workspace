@@ -70,6 +70,7 @@ module writes CRM RECORDS, it never emails or messages a candidate.
 from __future__ import annotations
 
 import json
+import re
 import threading
 import time
 from dataclasses import dataclass, field as dataclass_field
@@ -114,9 +115,38 @@ class NoDedupeKey(RuntimeError):
 class SyncReport:
     created: int = 0
     updated: int = 0
+    # Dry-run's equivalent of created/updated -- action "would_create" /
+    # "would_update" (see upsert_candidate). Bucketed separately so a
+    # dry-run report can never be misread as having made real writes: a
+    # report with created=0 updated=0 would_create=12 is unambiguous, while
+    # folding dry-run counts into created/updated is exactly the kind of
+    # thing that gets pasted into a client update as "12 candidates created".
+    would_create: int = 0
+    would_update: int = 0
     skipped: int = 0
     errors: int = 0
     lines: list[str] = dataclass_field(default_factory=list)
+
+
+# A RecruitCRMError message embeds `resp.text` verbatim (see `_http` below)
+# so an operator debugging a live-write failure can see WHY it failed. But
+# an error body can echo the request back (some APIs 400 with "invalid
+# Authorization: Bearer <token>", or an idempotency/webhook signature that IS
+# the credential) -- and this message can end up in a log line, a Slack
+# alert, or a pasted bug report. Redacted before it ever reaches an
+# exception message.
+_BEARER_RE = re.compile(r"Bearer\s+\S+", re.IGNORECASE)
+# A run of 20+ letters/digits/-/_ is the general shape of an API key, JWT, or
+# bearer token; RecruitCRMClient's own API key is exactly this shape. Broad
+# on purpose -- a false-positive redaction of a long non-secret id costs
+# nothing here, an unredacted real secret costs everything.
+_TOKEN_LOOKING_RE = re.compile(r"[A-Za-z0-9_\-]{20,}")
+
+
+def _redact_secrets(text: str) -> str:
+    text = _BEARER_RE.sub("Bearer [REDACTED]", text)
+    text = _TOKEN_LOOKING_RE.sub("[REDACTED]", text)
+    return text
 
 
 def _now_iso() -> str:
@@ -349,7 +379,7 @@ class RecruitCRMClient:
             if isinstance(status, int) and status >= 400:
                 raise RecruitCRMError(
                     method + " " + path + " -> HTTP " + str(status) + ": "
-                    + str(getattr(resp, "text", ""))[:300]
+                    + _redact_secrets(str(getattr(resp, "text", ""))[:300])
                 )
 
             try:
@@ -454,10 +484,20 @@ class RecruitCRMClient:
         if existing:
             slug = existing.get("slug") or existing.get("id")
             full_payload = card_to_payload(card, contact)
-            patch = {k: v for k, v in full_payload.items() if not existing.get(k)}
+            # Fill only EMPTY fields on the existing record. The previous
+            # form (`if not existing.get(k)`) treated any falsy value the
+            # SAME as absent -- a candidate whose CRM `city` field had been
+            # deliberately cleared, or a boolean/0 field, would be silently
+            # overwritten on every sync. `k not in existing or existing.get(k)
+            # in (None, "")` only patches a field that is genuinely missing
+            # or blank.
+            patch = {
+                k: v for k, v in full_payload.items()
+                if k not in existing or existing.get(k) in (None, "")
+            }
             if patch:
                 self._write("update", "PUT", "/candidates/" + str(slug), patch, idem)
-                action = "updated"
+                action = "updated" if self.live else "would_update"
             else:
                 action = "skipped"  # already has every field we would send
             return {"action": action, "candidate_id": slug, "patched_fields": list(patch)}
@@ -467,7 +507,8 @@ class RecruitCRMClient:
         candidate_id = None
         if isinstance(result, dict):
             candidate_id = result.get("slug") or result.get("id")
-        return {"action": "created", "candidate_id": candidate_id, "payload": payload}
+        action = "created" if self.live else "would_create"
+        return {"action": action, "candidate_id": candidate_id, "payload": payload}
 
     def add_note(self, candidate_id: str, text: str) -> Optional[dict]:
         """NOT_VERIFIED endpoint shape -- see module docstring."""
@@ -519,6 +560,10 @@ def sync_delivery(
         flag (see this package's HANDOFF.md).
     """
     report = SyncReport()
+    # Loaded ONCE for the whole batch rather than once per candidate --
+    # is_opted_out otherwise re-reads and re-parses the same JSONL registry
+    # file for every single candidate in the delivered set.
+    optout_rows = optout.load_registry()
     for card in cards:
         contact = contacts.get(card.person_id)
         if contact is None:
@@ -526,7 +571,9 @@ def sync_delivery(
             report.lines.append(card.full_name + ": skipped (no contact record)")
             continue
 
-        optout_hit = optout.is_opted_out(contact=contact, person_id=card.person_id)
+        optout_hit = optout.is_opted_out(
+            contact=contact, person_id=card.person_id, rows=optout_rows
+        )
         if optout_hit is not None:
             report.skipped += 1
             report.lines.append(
@@ -562,6 +609,10 @@ def sync_delivery(
             report.created += 1
         elif action == "updated":
             report.updated += 1
+        elif action == "would_create":
+            report.would_create += 1
+        elif action == "would_update":
+            report.would_update += 1
         else:
             report.skipped += 1
         candidate_id = result.get("candidate_id")

@@ -62,14 +62,12 @@ is pointed at a path Engineers Ireland later disallows.
 
 from __future__ import annotations
 
-import re
-import time
 from datetime import date
 from typing import Optional
 
 from ..core.cache import fetch
 from ..core.contracts import RawDocument, SourceQuery, SourceResult
-from .base import TextSource
+from .base import TextSource, throttle
 from .registers import fragment_with_both_names, path_allowed_by_robots
 
 NAME = "engineers_ireland"
@@ -87,17 +85,6 @@ DISALLOWED_PREFIXES = [
     "/HttpModules/", "/images/", "/Install/", "/js/", "/Portals/",
     "/Providers/", "/Resources/", "/Activity-Feed/userId/",
 ]
-
-_last_hit = 0.0
-
-
-def _throttle(rate_limit_s: float) -> None:
-    global _last_hit
-    wait = rate_limit_s - (time.monotonic() - _last_hit)
-    if wait > 0:
-        time.sleep(wait)
-    _last_hit = time.monotonic()
-
 
 class EngineersIrelandProvider:
     name = NAME
@@ -128,7 +115,7 @@ class EngineersIrelandProvider:
 
 
 def _fetch_landing() -> Optional[RawDocument]:
-    _throttle(3.0)
+    throttle(NAME, 3.0)
     return fetch(LANDING_URL, source_type="engineers_ireland_register")
 
 

@@ -188,7 +188,7 @@ def test_opted_out_candidate_blocks_sync(monkeypatch):
     # Monkeypatch the symbol sync_delivery actually calls: rc.optout.is_opted_out.
     monkeypatch.setattr(
         rc.optout, "is_opted_out",
-        lambda person=None, contact=None, person_id=None, path=None: optout.OptOut(
+        lambda person=None, contact=None, person_id=None, path=None, rows=None: optout.OptOut(
             person_id="p1", email=None, linkedin_url=None,
             reason="asked to stop", at="now", source="test",
         ),

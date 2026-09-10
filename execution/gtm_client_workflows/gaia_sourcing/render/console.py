@@ -240,6 +240,17 @@ def _health_banner(health: Optional[dict]) -> str:
     days = health.get("stale_days")
     if days is None:
         days = health.get("days_since_refresh")
+    if days is not None:
+        # health.json is read straight off disk -- a hand-edited fixture or
+        # a future writer could plausibly store this as a numeric string
+        # ("7") rather than an int, and `days > 7` below would then raise
+        # TypeError (str vs int) and take the whole console render down over
+        # one cosmetic banner. Coerce defensively; an unparsable value is
+        # treated as absent, same as the other paths in this function.
+        try:
+            days = int(days)
+        except (TypeError, ValueError):
+            days = None
     for date_field in ("pool_last_refreshed", "pool_refreshed_at"):
         if days is not None:
             break

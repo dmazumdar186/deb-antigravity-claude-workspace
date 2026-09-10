@@ -109,7 +109,16 @@ class RunConfig:
     # all, so the failure mode it guards against is a real one: a declared
     # limit that quietly does nothing is worse than no limit, because it stops
     # anyone from looking.
-    max_cost_eur: float = 30.0
+    max_cost_eur: float = 12.0
+    # Cumulative, cross-run ceiling (execution/core/providers.py's persistent
+    # logs/spend_ledger.jsonl). The operator has exactly $30 of Anthropic
+    # credit, period -- a per-run ceiling resets every run and cannot protect
+    # a fixed lifetime balance. 22.0 EUR ~= $24 at the USD_TO_EUR rate below,
+    # leaving headroom for FX drift and any spend this ledger does not see
+    # (Firecrawl, Prospeo, Serper -- see the max_cost_eur docstring above).
+    # Enforced in the same place as max_cost_eur: core.providers.call_role
+    # and core.ocr's Anthropic transcription path.
+    max_cost_eur_total: float = 22.0
     # L6 drop-rate alarm. Above this, the L5 prompt is wrong -- see section 7.
     max_drop_rate: float = 0.15
     request_timeout_s: int = 60

@@ -99,22 +99,88 @@ def test_filter_delta_names_the_most_common_failed_gate():
 
 
 def test_a_person_missing_from_evaluations_counts_as_not_evaluated_not_a_crash():
-    persons = ["p1", "p2"]
-    evaluations = {"p1": _passing("p1")}
+    persons = ["p1", "p2", "p3", "p4", "p5"]
+    evaluations = {"p1": _passing("p1"), "p2": _passing("p2"), "p3": _passing("p3"),
+                   "p4": _passing("p4")}
 
-    verdict = icp_check(persons, evaluations, sample_n=2, min_match=2, seed=0)
+    verdict = icp_check(persons, evaluations, sample_n=5, min_match=4, seed=0)
 
-    assert verdict.matched == 1
+    assert verdict.matched == 4
     assert any(s.failed_gates == ["not_evaluated"] for s in verdict.samples)
 
 
 def test_sample_n_larger_than_population_uses_the_whole_population():
-    persons = ["p1", "p2", "p3"]
+    persons = ["p" + str(i) for i in range(6)]
     evaluations = {pid: _passing(pid) for pid in persons}
 
     verdict = icp_check(persons, evaluations, sample_n=20, min_match=2, seed=0)
 
-    assert verdict.sampled == 3
+    assert verdict.sampled == 6
+
+
+# ---------------------------------------------------------------------------
+# INSUFFICIENT_SAMPLE -- population under 5
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("n", [0, 1, 3, 4])
+def test_population_under_five_is_insufficient_sample(n):
+    persons = ["p" + str(i) for i in range(n)]
+    evaluations = {pid: _passing(pid) for pid in persons}
+
+    verdict = icp_check(persons, evaluations, sample_n=20, min_match=15, seed=0)
+
+    assert verdict.verdict == "INSUFFICIENT_SAMPLE"
+    assert verdict.sampled == n
+    assert verdict.matched == 0
+    assert verdict.samples == []
+
+
+def test_population_of_exactly_five_is_sampled_normally():
+    persons = ["p" + str(i) for i in range(5)]
+    evaluations = {pid: _passing(pid) for pid in persons}
+
+    verdict = icp_check(persons, evaluations, sample_n=20, min_match=15, seed=0)
+
+    assert verdict.verdict != "INSUFFICIENT_SAMPLE"
+    assert verdict.sampled == 5
+
+
+# ---------------------------------------------------------------------------
+# min_match scales to the actual sample drawn
+# ---------------------------------------------------------------------------
+
+
+def test_min_match_scales_down_for_a_small_sample():
+    """min_match=15 is calibrated for a 20-person sample (75%). A population
+    of 8 draws only 8 people -- holding it to the raw 15 would make PASS
+    impossible no matter how healthy the batch is. Scaled: ceil(15/20*8)=6.
+    """
+    persons = ["p" + str(i) for i in range(8)]
+    evaluations = {pid: _passing(pid) for pid in persons}
+
+    # 6 of 8 pass (75%, matching the calibrated ratio) -- must PASS.
+    for pid in persons[6:]:
+        evaluations[pid] = _failing(pid, "discipline")
+
+    verdict = icp_check(persons, evaluations, sample_n=20, min_match=15, seed=0)
+
+    assert verdict.sampled == 8
+    assert verdict.matched == 6
+    assert verdict.verdict == "PASS"
+
+
+def test_min_match_never_scales_above_the_declared_threshold():
+    persons = ["p" + str(i) for i in range(40)]
+    evaluations = {pid: _passing(pid) for pid in persons}
+
+    verdict = icp_check(persons, evaluations, sample_n=20, min_match=15, seed=0)
+
+    # A full-size (or larger) population must never demand MORE than the
+    # declared min_match.
+    assert verdict.sampled == 20
+    assert verdict.matched == 20
+    assert verdict.verdict == "PASS"
 
 
 # ---------------------------------------------------------------------------

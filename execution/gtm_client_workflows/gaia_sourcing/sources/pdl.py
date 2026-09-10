@@ -78,7 +78,7 @@ from typing import Any, Optional
 
 from ..core.contracts import JobStint, ProviderRecord, RawDocument, SourceQuery, SourceResult
 from .licensed_common import _post_json, parse_date, raw_hash, render_content_text, require_key
-from .base import SourceProvider  # noqa: F401  (Protocol; import documents the contract)
+from .base import SourceProvider, throttle  # noqa: F401  (Protocol; import documents the contract)
 
 BASE_URL = "https://api.peopledatalabs.com"
 SEARCH_URL = BASE_URL + "/v5/person/search"
@@ -207,6 +207,7 @@ class PDLProvider:
         if query.cursor:
             body["scroll_token"] = query.cursor
 
+        throttle(self.name, self.rate_limit_s)
         status, payload = _post_json(
             SEARCH_URL,
             headers={"X-Api-Key": api_key, "Content-Type": "application/json"},
@@ -214,7 +215,8 @@ class PDLProvider:
         )
         if status != 200:
             return SourceResult(provider=self.name, documents=[], provider_records=[],
-                                 next_cursor=None, cost_eur=0.0, fetched=0)
+                                 next_cursor=None, cost_eur=0.0, fetched=0,
+                                 error="HTTP " + str(status))
 
         items = payload.get("data") or []
         records = [_to_record(it) for it in items]

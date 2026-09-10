@@ -109,7 +109,11 @@ def repair(s: str) -> str:
 
 
 def e(s) -> str:
-    return html.escape(repair(str(s or "")))
+    # `str(s or "")` blanked any falsy value, not just None/"" -- a genuine
+    # 0 (e.g. a years-of-experience or a count field ever routed through
+    # here) rendered as an empty string instead of "0". Only None collapses
+    # to blank; every other value, including 0/False, prints as itself.
+    return html.escape(repair("" if s is None else str(s)))
 
 
 # ---------------------------------------------------------------------------

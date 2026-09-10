@@ -206,10 +206,11 @@ py -m gtm_client_workflows.gaia_sourcing.tests.acceptance_gaia
 
 Stages: `harvest_r1`, `harvest_r2`, `harvest_r2_web`, `extract`, `validate`,
 `gate`, `deepen_r1`, `adversarial`, `contact`, `movability`, `messages`,
-`linkcheck`, `poolmap`, `sync_crm`. `--from-stage <name>` runs that stage and
-everything after; `--force` re-runs a cached stage; `--plan` pins a provider
-plan (`free` / `hybrid` / `openrouter` / `anthropic` / `budget`);
-`--force-lock` overrides the run lock for a genuinely dead process.
+`linkcheck`, `poolmap`, `scorecard`, `render`, `console`, `sync_crm`.
+`--from-stage <name>` runs that stage and everything after; `--force`
+re-runs a cached stage; `--plan` pins a provider plan (`free` / `hybrid` /
+`openrouter` / `anthropic` / `budget`); `--force-lock` overrides the run
+lock for a genuinely dead process.
 
 ---
 
@@ -281,7 +282,19 @@ re-cut (section G).
 `run/<campaign>/gate.json`, prints the `round N: ...` lines, exits);
 `--alert-test` (posts one sample via `core.alerts.alert`, prints whether it
 was accepted); `--allow-stale` (threaded into `stage_sync_crm` ->
-`sync_delivery(allow_stale=...)`, overriding the stale-evidence skip).
+`sync_delivery(allow_stale=...)`, overriding the stale-evidence skip);
+`--coverage-test PROVIDER` + `--niche` (fetches one page from a licensed
+source provider -- pdl/crustdata/apollo -- and prints the GO/NO-GO coverage
+verdict, or `provider returned HTTP <status>` + a non-zero exit on a
+non-200); `--label-export` (writes `run/<campaign>/label_export.jsonl`, a
+blind labelling worksheet, then exits); `--kappa LABELS_A LABELS_B` (prints
+Cohen's kappa between two labeller JSONL files, then exits);
+`--allow-placeholder-notice` (threaded into the `render` stage ->
+`render.render.build(allow_placeholder_notice=...)`, rendering without
+outreach drafts instead of refusing outright when the Art. 14 notice URL is
+not live); `--spend` (prints this run's in-memory spend total and the
+persistent cumulative total from `logs/spend_ledger.jsonl`, then exits --
+see the spend-guardrail note below).
 
 **New stage `console`** (right after `scorecard`): renders
 `render/console.py`'s operator pages to `deliverables/<campaign>/console/`.
@@ -318,3 +331,110 @@ did not introduce and did not fix (out of this task's owned surface):
 search POSTs). Flagging for whichever agent owns `sources/`.
 
 Suite: 853 passed (was 851).
+
+---
+
+## 2026-09-10 (cont'd) -- Audit fixes: recut auth/validation, spend guardrail,
+## identity/queue/icp hardening, opt-out at draft time, secret redaction
+
+Full audit pass across Modal endpoints, sources, identity resolution,
+outreach queue, ICP sampling, render/console, spend, and messages/CRM. Every
+item behavioural, with a test.
+
+**`layers/recut.py` / `execution/modal_radar.py`**: both endpoints now
+require a shared-secret `X-Radar-Token` header matching env
+`RADAR_ENDPOINT_TOKEN` (`modal secret create radar-endpoint-token
+RADAR_ENDPOINT_TOKEN=<value>`) -- unset means both refuse every request.
+`campaign_id`/`role_id` validated (`[A-Za-z0-9._-]{1,64}` + containment
+under `run/`) before ever touching the filesystem; errors never echo a
+resolved path. `brief_overrides` validated by a pydantic model. Both
+handlers take an explicit `run_dir` param so tests never write into the real
+`run/` tree. `recut_handler` is now actually re-exported from
+`execution/modal_radar.py` (it previously was not). `_apply_overrides`
+(recut.py) and run.py's `_apply_brief_overrides` now ALSO update
+`spec.seniority_band`/`spec.location_rule`, so `composition_violations`
+judges the same overridden brief the gates just ran against.
+
+**Spend guardrail**: `core/providers.py` now keeps a persistent
+`logs/spend_ledger.jsonl` (one line per call: at, campaign_id, role, model,
+cost_eur) and enforces a NEW cumulative, cross-run ceiling
+(`RunConfig.max_cost_eur_total`, default EUR 22 ~= $24) in the same place as
+the per-run ceiling -- `call_role` and `core/ocr.py`'s Anthropic
+transcription path. `RunConfig.max_cost_eur` (per run) lowered 30 -> 12.
+`run.py --spend` prints both totals.
+
+**`layers/identity.py`**: a post-pass (`_split_on_conflicts`) now splits any
+cluster that ended up carrying two distinct register_numbers/linkedin_urls
+via a TRANSITIVE merge (A~B~C where A and C conflict directly but were never
+checked against each other, only against B) -- the pairwise conflict guard
+alone did not catch this.
+
+**`layers/outreach_queue.py`**: `_transition`'s read-modify-write now holds
+`_LOCK` across the whole operation (`_load_locked`/`_save_locked` helpers,
+no lock of their own) instead of two separate locked calls, closing a race
+where two threads could both read the same `current` state and one write
+clobber the other's. Writes go via temp file + `os.replace`.
+
+**`layers/icp_check.py`**: `min_match` now scales to the sample actually
+drawn (`ceil(min_match / sample_n * len(samples))`, capped at the declared
+`min_match`), and a population under 5 returns `verdict="INSUFFICIENT_SAMPLE"`
+rather than a misleading PASS/RETRY. `IcpVerdict.verdict` gained that literal.
+
+**`render/render.py`**: `e()` no longer blanks a genuine `0` (only `None`
+collapses to empty). **`render/console.py`**: `_health_banner` coerces
+`stale_days` via `int()` in a try, so a stringified value no longer raises
+mid-render. **`run.py`**: `render` (the L13 dossier renderer) is now
+registered as its own STAGES entry, before `console` -- previously it was
+never wired into the pipeline at all. New `--allow-placeholder-notice` flag
+threads through to it.
+
+**`integrations/recruit_crm.py`**: dry-run results now report action
+`would_create`/`would_update` (never `created`/`updated`) and `SyncReport`
+buckets them separately (`would_create`/`would_update` fields); fixed a
+falsy-overwrite bug in the dedupe patch (`existing.get(k) in (None, "")`,
+not `not existing.get(k)`, so a genuinely-falsy-but-present CRM field is
+never clobbered); the opt-out registry is now loaded ONCE per
+`sync_delivery` batch (`optout.load_registry()` + `is_opted_out(rows=...)`)
+instead of re-read per candidate. `RecruitCRMError` messages now redact
+`Bearer <token>` and any 20+ char token-looking string from `resp.text`
+before embedding it.
+
+**`sources/*`**: `licensed_common._post_json` now logs (never headers) on a
+non-200/exception and every licensed `fetch()` (pdl/crustdata/apollo)
+surfaces a non-200 as `SourceResult.error = "HTTP <status>"`; `run.py
+--coverage-test` prints `provider returned HTTP <status>` and exits non-zero
+on that instead of a misleading `NO-GO 0/50`, and labels its cost line
+`(estimated, placeholder rate)`. A new shared `sources/base.throttle(key,
+rate_limit_s)` (lock-guarded, same shape as `core/cache.py`'s own
+`_throttle`) replaces three separate unlocked per-module `_last_hit`
+globals (engineers_ireland.py, ice.py, istructe.py) and is now also called
+from pdl/crustdata/apollo's `fetch()`. Removed an unused `import re` in
+engineers_ireland.py.
+
+**`run.py stage_messages`**: now calls `layers.optout.is_opted_out(person=,
+contact=)` per delivered candidate BEFORE `messages.draft` -- a hit logs
+`"<pid> draft_blocked_optout"` and skips drafting entirely (RADAR_CONTRACTS.md
+section E: opt-out checked at draft creation, not just at CRM sync).
+**`layers/messages.py`**: both `draft()` return-None sites (empty LLM
+output; missing subject/body) now print `"<pid> draft dropped: <reason>"`.
+**`run.py _delivery_set`**: the person_ids CUT by the `target_count`
+truncation are now logged and written into `delivery.json` as
+`overflow[role_id]`, instead of vanishing with no record.
+
+**Three previously-silent `except Exception` sites** (`run.py load_docs`,
+`eval/outcomes.py load_outcomes`, `core/cache.py`'s `_extract_title`) now
+each print a one-line "skipped X because Y" before continuing/returning
+None.
+
+**`.gitignore`**: `logs/` added to this package's own .gitignore;
+`deliverables/*/console/` added to the workspace .gitignore. `git log
+--stat -- '*/gaia_sourcing/logs/*'` shows `logs/drops.jsonl` WAS committed
+(commit `cad40c1`, 2026-08-25, unrelated to this pipeline -- an
+instantly_reply_notifier commit that happened to touch a same-named path)
+and remains tracked in the working tree today, containing real candidate
+PII/quotes from public oral-hearing documents. Not rewritten or untracked
+here per instructions (no history rewrite) -- flagged for the operator to
+decide (`git rm --cached` at minimum, ideally a history scrub given it is
+PII).
+
+Suite: 927 passed (was 853).

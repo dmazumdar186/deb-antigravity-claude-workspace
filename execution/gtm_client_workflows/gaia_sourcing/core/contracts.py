@@ -413,6 +413,13 @@ class SourceResult(BaseModel):
     next_cursor: Optional[str] = None
     cost_eur: float = 0.0
     fetched: int = 0
+    # Set by a licensed provider's fetch() when the API returned a non-200
+    # status, e.g. "HTTP 401 unauthorized" -- distinguishes "the query
+    # genuinely matched nobody" (fetched=0, error=None) from "the call
+    # failed" (fetched=0, error=<status>), which used to be indistinguishable
+    # and made run.py --coverage-test print a false NO-GO 0/50 for an
+    # unauthorized/misconfigured key instead of surfacing the real failure.
+    error: Optional[str] = None
 
 
 # --------------------------------------------------------------------------
@@ -472,6 +479,6 @@ class IcpVerdict(BaseModel):
     sampled: int
     matched: int
     threshold: int
-    verdict: Literal["PASS", "RETRY"]
+    verdict: Literal["PASS", "RETRY", "INSUFFICIENT_SAMPLE"]
     filter_delta: str
     samples: list[IcpSample] = Field(default_factory=list)

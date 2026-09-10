@@ -26,11 +26,11 @@ Stage order:
   linkcheck    L12 liveness + name match                            (free)
   poolmap      the honest denominator, per role                     (free)
   scorecard    eval/scorecard.py's six ship numbers                 (free)
+  render       L13 dossier.html + candidates.csv + pool maps        (free)
   console      L14 operator console (deliverables/<c>/console/)     (free)
   sync_crm     push the delivered shortlist to Recruit CRM           (paid,
                dry-run/audit-only by default -- see --live-crm and
                --allow-stale)
-  render       L13 dossier.html + candidates.csv + pool maps        (free)
 
 Usage:
     py -m gtm_client_workflows.gaia_sourcing.run --stage all
@@ -57,6 +57,7 @@ from .core.config import CONFIG, PKG_ROOT, WORKSPACE_ROOT, secret
 from .core.providers import (
     CostCeilingExceeded,
     autoselect_plan,
+    cumulative_spend_eur,
     set_plan,
     spend_eur,
 )
@@ -75,11 +76,12 @@ from .core.contracts import (
 from .eval import scorecard as eval_scorecard
 from .eval.labels import build_worksheet_row, cohen_kappa, load_labels
 from .integrations.recruit_crm import RecruitCRMClient, sync_delivery
-from .layers import adversarial, contact, gates, linkcheck, messages, movability
+from .layers import adversarial, contact, gates, linkcheck, messages, movability, optout
 from .layers.extract import extract_directory, extract_from_document
 from .layers.icp_check import icp_check_from_gate_json
 from .layers.replies import classify_reply
 from .layers.validator import validate_all
+from .render import render as render_module
 from .render.console import render_console
 from .roles import ROLE1, ROLE2, ROLES, is_client_side
 from .sources import (
@@ -245,7 +247,9 @@ def load_docs() -> dict[str, RawDocument]:
             continue
         try:
             d = RawDocument(**json.loads(line))
-        except Exception:
+        except Exception as exc:
+            print("[load_docs] skipping malformed line in " + str(DOCS)
+                  + ": " + repr(exc)[:160])
             continue
         out[d.doc_id] = d
     return out
@@ -1124,12 +1128,21 @@ def _final_tier(pid: str, gate_out: dict, adv: dict) -> str:
 
 
 def _delivery_set() -> dict[str, list[str]]:
-    """The candidates that actually ship, post-adversarial, best tier first."""
+    """The candidates that actually ship, post-adversarial, best tier first.
+
+    Also computes, logs, and returns `out["overflow"][role_id]` -- the
+    qualifying person_ids CUT by the target_count truncation. Before this,
+    a role that qualified 14 people against a target_count of 10 silently
+    dropped 4 with no record anywhere of who they were or that they existed
+    -- indistinguishable, from delivery.json alone, from a role that only
+    ever qualified 10.
+    """
     gate_out = load("gate")
     adv = load("adversarial") if done("adversarial") else {}
     persons, by_person, _ = _persons_and_claims()
     order = {"A": 0, "B": 1, "C": 2}
     out: dict[str, list[str]] = {}
+    overflow: dict[str, list[str]] = {}
     for role_id, spec in ((ROLE1.role_id, ROLE1), (ROLE2.role_id, ROLE2)):
         rows = []
         for pid, g in gate_out.items():
@@ -1149,7 +1162,15 @@ def _delivery_set() -> dict[str, list[str]]:
             # disagreed.
             rows.append((order.get(t, 3), -g["n_claims"], pid))
         rows.sort()
-        out[role_id] = [pid for _, _, pid in rows][: spec.target_count]
+        ranked = [pid for _, _, pid in rows]
+        out[role_id] = ranked[: spec.target_count]
+        cut = ranked[spec.target_count:]
+        overflow[role_id] = cut
+        if cut:
+            log("delivery: " + role_id + " qualified " + str(len(ranked))
+                + " but target_count is " + str(spec.target_count) + " -- "
+                + str(len(cut)) + " cut: " + ", ".join(cut))
+    out["overflow"] = overflow
     return out
 
 
@@ -1230,11 +1251,25 @@ def stage_messages(force: bool = False) -> None:
         return
     persons, by_person, roles = _persons_and_claims()
     delivery = _delivery_set()
+    contacts_raw = load("contact") if done("contact") else {}
     out: dict[str, dict] = {}
     lock = threading.Lock()
 
     def one(pid: str) -> None:
         spec = ROLES[roles[pid]]
+        contact_record: Optional[ContactRecord] = None
+        contact_raw = contacts_raw.get(pid)
+        if contact_raw:
+            try:
+                contact_record = ContactRecord(**contact_raw)
+            except Exception as exc:
+                log("  " + pid + " could not parse cached contact record for "
+                    "opt-out check: " + repr(exc)[:120])
+        optout_hit = optout.is_opted_out(person=persons[pid], contact=contact_record,
+                                          person_id=pid)
+        if optout_hit is not None:
+            log("  " + pid + " draft_blocked_optout")
+            return
         try:
             seq = messages.draft(persons[pid], by_person.get(pid, []), spec)
         except Exception as exc:
@@ -1297,8 +1332,12 @@ def stage_linkcheck(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Stage 8 -- Recruit CRM sync (client promise 2026-09-10: "sourced candidates
-# land in the CRM so consultants and Maddie take over")
+# Stage 11 -- Recruit CRM sync (client promise 2026-09-10: "sourced candidates
+# land in the CRM so consultants and Maddie take over"). Runs LAST in STAGES
+# -- after console -- so a CRM sync always reflects whatever the render/
+# console stages just produced for this run, per the actual STAGES dict
+# ordering below (this comment previously said "Stage 8", duplicating
+# scorecard's own "Stage 8" label and disagreeing with the real order).
 # ---------------------------------------------------------------------------
 
 # Set from --live-crm / --allow-stale in main() before the stage loop runs.
@@ -1421,11 +1460,15 @@ def stage_sync_crm(force: bool = False) -> None:
         "allow_stale": _ALLOW_STALE,
         "created": report.created,
         "updated": report.updated,
+        "would_create": report.would_create,
+        "would_update": report.would_update,
         "skipped": report.skipped,
         "errors": report.errors,
         "lines": report.lines,
     })
     log("sync_crm: created=" + str(report.created) + " updated=" + str(report.updated)
+        + " would_create=" + str(report.would_create)
+        + " would_update=" + str(report.would_update)
         + " skipped=" + str(report.skipped) + " errors=" + str(report.errors))
     for line in report.lines:
         log("  " + line)
@@ -1609,7 +1652,7 @@ def stage_scorecard(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Stage 9 -- L14 operator console (render/console.py). Always re-rendered:
+# Stage 10 -- L14 operator console (render/console.py). Always re-rendered:
 # it is a cheap, pure read of whatever stage JSON already exists under
 # RUN_DIR, so there is nothing to "cache" against -- unlike the paid/slow
 # stages above, staleness here is a correctness bug, not a cost saving.
@@ -1620,6 +1663,31 @@ def stage_console(force: bool = False) -> None:
     out_dir = WORKSPACE_ROOT / "deliverables" / CONFIG.campaign_id / "console"
     render_console(CONFIG.campaign_id, out_dir, run_dir=RUN_DIR)
     log("console: rendered -> " + str(out_dir))
+
+
+# ---------------------------------------------------------------------------
+# Stage 9 -- L13 the client-facing renderer (render/render.py): dossier.html,
+# candidates.csv, pool_map_role1.md/role2.md. Registered here, BEFORE
+# console, so the console's own links to those artifacts point at files that
+# already exist by the time it renders; same "always re-rendered, nothing to
+# cache" rationale as stage_console -- it is a pure read of RUN_DIR's already
+# -computed stage JSON.
+# ---------------------------------------------------------------------------
+
+# Set from --allow-placeholder-notice in main() before the stage loop runs.
+# Module global for the same reason as _LIVE_CRM/_ALLOW_STALE above: every
+# stage in STAGES is called uniformly as fn(force=args.force).
+_ALLOW_PLACEHOLDER_NOTICE = False
+
+
+def stage_render(force: bool = False) -> None:
+    """render.render.build() raises SystemExit if the Art. 14 privacy
+    notice URL is not live and --allow-placeholder-notice was not passed --
+    a deliberate hard stop (every outreach draft cites that URL), not
+    something this stage should swallow into a silent skip.
+    """
+    render_module.build(allow_placeholder_notice=_ALLOW_PLACEHOLDER_NOTICE)
+    log("render: rendered -> " + str(render_module.OUT_DIR))
 
 
 # ---------------------------------------------------------------------------
@@ -1699,6 +1767,16 @@ def run_coverage_test(provider_name: str, niche: str) -> int:
         log("--coverage-test " + provider_name + ": " + str(exc))
         return 1
 
+    if result.error:
+        # A non-200 (e.g. an expired/unauthorized key) used to fall straight
+        # through to "matched: 0" and print "NO-GO: 0/50" -- indistinguishable
+        # from a query that genuinely matched nobody. Surfaced here instead,
+        # with a non-zero exit so a CI/cron invocation of --coverage-test
+        # actually fails on a broken credential rather than reporting a
+        # misleading go/no-go verdict.
+        log("--coverage-test " + provider_name + ": provider returned " + result.error)
+        return 1
+
     records = result.provider_records
     matched = result.fetched
     with_title = sum(1 for r in records if r.current_title)
@@ -1717,7 +1795,12 @@ def run_coverage_test(provider_name: str, niche: str) -> int:
     log("  with employer: " + str(with_employer))
     log("  with dates:    " + str(with_dates))
     log("  with city:     " + str(with_city))
-    log("  cost:          EUR " + format(result.cost_eur, ".4f"))
+    # Every licensed provider's cost_eur rests on an UNVERIFIED placeholder
+    # per-record/credit rate (see each module's docstring "UNVERIFIED"
+    # section) -- labelled here so this number is never mistaken for a real
+    # invoiced figure.
+    log("  cost:          EUR " + format(result.cost_eur, ".4f")
+        + " (estimated, placeholder rate)")
     verdict = "GO" if qualifying >= _COVERAGE_GO_THRESHOLD else "NO-GO"
     log("  " + verdict + ": " + str(qualifying) + "/50 with title+employer+dates "
         + "(threshold " + str(_COVERAGE_GO_THRESHOLD) + ")")
@@ -1739,6 +1822,7 @@ STAGES = {
     "linkcheck": stage_linkcheck,
     "poolmap": stage_poolmap,
     "scorecard": stage_scorecard,
+    "render": stage_render,
     "console": stage_console,
     "sync_crm": stage_sync_crm,
 }
@@ -1782,6 +1866,36 @@ def _apply_brief_overrides(args: argparse.Namespace) -> None:
                     gate.params["treat_unknown_as"] = "fail"
                 if args.lenient_location:
                     gate.params["require_direct_evidence"] = False
+
+        # Keep spec.seniority_band / spec.location_rule in lockstep with the
+        # hard_gates params just mutated above -- layers.gates.
+        # composition_violations and eval/scorecard's post-hoc judge of the
+        # delivered set read those two fields directly, not the gate params,
+        # so leaving them on the old brief would judge the delivered set
+        # against a brief the gates never actually enforced this run. Same
+        # fix as layers/recut.py's `_apply_overrides` (RADAR_CONTRACTS.md).
+        if spec.seniority_band is not None:
+            band_updates: dict = {}
+            if args.max_grade:
+                band_updates["max_grade"] = args.max_grade
+            if args.max_years is not None:
+                band_updates["max_years"] = args.max_years
+            if args.min_years is not None:
+                band_updates["min_years"] = args.min_years
+            if band_updates:
+                spec.seniority_band = spec.seniority_band.model_copy(update=band_updates)
+        if spec.location_rule is not None:
+            loc_updates: dict = {}
+            if counties is not None:
+                loc_updates["counties"] = counties
+            if args.strict_location:
+                loc_updates["require_direct_evidence"] = True
+                loc_updates["treat_unknown_as"] = "fail"
+            if args.lenient_location:
+                loc_updates["require_direct_evidence"] = False
+            if loc_updates:
+                spec.location_rule = spec.location_rule.model_copy(update=loc_updates)
+
         log("brief override applied to " + spec.role_id + ": "
             + json.dumps({g.gate_id: g.params for g in spec.hard_gates
                           if g.check in ("seniority_ceiling", "seniority_years",
@@ -1852,6 +1966,13 @@ def main() -> int:
              "integrations.recruit_crm.sync_delivery(allow_stale=...).",
     )
     ap.add_argument(
+        "--allow-placeholder-notice", action="store_true",
+        help="the 'render' stage proceeds even if the Art. 14 privacy "
+             "notice URL is not live, omitting outreach drafts and showing "
+             "a warning banner instead of refusing to render entirely. "
+             "Threaded into render.render.build(allow_placeholder_notice=...).",
+    )
+    ap.add_argument(
         "--icp-check", action="store_true",
         help="run layers.icp_check.icp_check_from_gate_json against "
              "run/<campaign_id>/gate.json, print one 'round N: ...' line "
@@ -1863,6 +1984,15 @@ def main() -> int:
              "'test alert', 1) and print whether the configured "
              "ALERT_WEBHOOK_URL accepted it, then exit -- does not touch a "
              "run directory.",
+    )
+    ap.add_argument(
+        "--spend", action="store_true",
+        help="print this run's in-memory spend total (core.providers."
+             "spend_eur(), zero if nothing has been spent yet this process) "
+             "and the persistent cumulative total across every run "
+             "(core.providers.cumulative_spend_eur(), from logs/"
+             "spend_ledger.jsonl), then exit -- does not touch a run "
+             "directory or make any paid call.",
     )
     ap.add_argument(
         "--classify-reply", default=None, metavar="TEXT",
@@ -1961,9 +2091,19 @@ def main() -> int:
             "configured or the webhook rejected it)"))
         return 0
 
-    global _LIVE_CRM, _ALLOW_STALE
+    if args.spend:
+        run_total = spend_eur()
+        cumulative = cumulative_spend_eur()
+        log("spend: this run EUR " + format(run_total, ".2f")
+            + " (ceiling EUR " + format(CONFIG.max_cost_eur, ".2f") + ")")
+        log("spend: cumulative EUR " + format(cumulative, ".2f")
+            + " (ceiling EUR " + format(CONFIG.max_cost_eur_total, ".2f") + ")")
+        return 0
+
+    global _LIVE_CRM, _ALLOW_STALE, _ALLOW_PLACEHOLDER_NOTICE
     _LIVE_CRM = args.live_crm
     _ALLOW_STALE = args.allow_stale
+    _ALLOW_PLACEHOLDER_NOTICE = args.allow_placeholder_notice
 
     _apply_brief_overrides(args)
 

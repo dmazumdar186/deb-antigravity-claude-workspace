@@ -153,6 +153,21 @@ def _stub_missing_contracts() -> None:
 _stub_missing_contracts()
 
 from gtm_client_workflows.gaia_sourcing.sources import apollo, crustdata, licensed_common, pdl  # noqa: E402
+from gtm_client_workflows.gaia_sourcing.sources import base as _sources_base  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _no_real_throttle_sleep(monkeypatch):
+    """Every fetch() now calls the shared sources.base.throttle before its
+    POST, honouring each provider's real rate_limit_s (6.0s for PDL). Fine
+    in production; without this fixture it would make this test file take
+    minutes, since sources.base._THROTTLE_LAST persists across tests within
+    one process. Neuters the actual sleep only -- the call itself (which
+    test_fetch_calls_the_shared_throttle checks for) is unaffected.
+    """
+    monkeypatch.setattr(_sources_base.time, "sleep", lambda *_: None)
+    monkeypatch.setattr(_sources_base, "_THROTTLE_LAST", {})
+
 
 try:
     from gtm_client_workflows.gaia_sourcing.core.contracts import SourceQuery  # noqa: E402
@@ -288,6 +303,7 @@ def test_pdl_non_200_returns_empty_result(monkeypatch, _pdl_key):
     assert result.documents == []
     assert result.provider_records == []
     assert result.cost_eur == 0.0
+    assert result.error == "HTTP 429"
 
 
 # ===========================================================================
@@ -374,6 +390,7 @@ def test_crustdata_non_200_returns_empty_result(monkeypatch, _crustdata_key):
     result = crustdata.CrustdataProvider().fetch(_query())
     assert result.fetched == 0
     assert result.cost_eur == 0.0
+    assert result.error == "HTTP 500"
 
 
 # ===========================================================================
@@ -447,6 +464,7 @@ def test_apollo_non_200_returns_empty_result(monkeypatch, _apollo_key):
     result = apollo.ApolloProvider().fetch(_query())
     assert result.fetched == 0
     assert result.cost_eur == 0.0
+    assert result.error == "HTTP 403"
 
 
 # ===========================================================================
@@ -483,3 +501,83 @@ def test_no_network_module_only_uses_requests_inside_post_json():
             f"{mod.__name__} calls requests directly; route through "
             "licensed_common._post_json instead"
         )
+
+
+# ===========================================================================
+# _post_json logging (never headers) on non-200/exception, and its returned
+# status
+# ===========================================================================
+
+
+class _FakeResp:
+    def __init__(self, status_code, body=None):
+        self.status_code = status_code
+        self.content = b"{}" if body is not None else b""
+        self._body = body or {}
+
+    def json(self):
+        return self._body
+
+
+def test_post_json_logs_non_200_status_but_never_the_headers(monkeypatch, capsys):
+    monkeypatch.setattr(
+        licensed_common.requests, "post",
+        lambda *a, **k: _FakeResp(401, {"error": "unauthorized"}),
+    )
+    secret_headers = {"Authorization": "Bearer super-secret-token-xyz"}
+    status, payload = licensed_common._post_json(
+        "https://api.example.com/search", secret_headers, {"q": "x"}
+    )
+    assert status == 401
+    out = capsys.readouterr().out
+    assert "401" in out
+    assert "super-secret-token-xyz" not in out
+    assert "Bearer" not in out
+
+
+def test_post_json_logs_and_returns_zero_on_network_exception(monkeypatch, capsys):
+    def _raise(*a, **k):
+        raise ConnectionError("boom")
+
+    monkeypatch.setattr(licensed_common.requests, "post", _raise)
+    status, payload = licensed_common._post_json(
+        "https://api.example.com/search", {"Authorization": "Bearer xyz"}, {}
+    )
+    assert status == 0
+    assert payload == {}
+    out = capsys.readouterr().out
+    assert "boom" in out
+    assert "xyz" not in out
+
+
+def test_post_json_does_not_log_on_a_200(monkeypatch, capsys):
+    monkeypatch.setattr(
+        licensed_common.requests, "post", lambda *a, **k: _FakeResp(200, {"ok": True})
+    )
+    licensed_common._post_json("https://api.example.com/search", {}, {})
+    out = capsys.readouterr().out
+    assert out == ""
+
+
+# ===========================================================================
+# Shared throttle is actually called from each licensed provider's fetch()
+# ===========================================================================
+
+
+@pytest.mark.parametrize("mod,provider_cls,key,env_name", [
+    (pdl, "PDLProvider", "pdl", "PDL_API_KEY"),
+    (crustdata, "CrustdataProvider", "crustdata", "CRUSTDATA_API_KEY"),
+    (apollo, "ApolloProvider", "apollo", "APOLLO_API_KEY"),
+])
+def test_fetch_calls_the_shared_throttle(monkeypatch, mod, provider_cls, key, env_name):
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.config.secret",
+        lambda name, required=True: "test-key" if name == env_name else "",
+    )
+    calls = []
+    monkeypatch.setattr(mod, "throttle", lambda k, r: calls.append((k, r)))
+    monkeypatch.setattr(mod, "_post_json", lambda *a, **k: (200, {}))
+
+    getattr(mod, provider_cls)().fetch(_query())
+
+    assert calls and calls[0][0] == key

@@ -285,3 +285,72 @@ def test_mark_sent_never_makes_a_network_call(queue_path, audit_path, monkeypatc
 
     assert not hasattr(mod, "requests")
     assert "post_json" not in dir(mod)
+
+
+# ---------------------------------------------------------------------------
+# Atomicity: the whole read-modify-write of a transition must be one
+# lock-held operation, and the file write itself must be all-or-nothing
+# (temp file + os.replace).
+# ---------------------------------------------------------------------------
+
+
+def test_concurrent_transitions_on_different_drafts_never_lose_a_write(
+    queue_path, audit_path,
+):
+    """Two threads racing _transition on DIFFERENT drafts must both survive:
+    a `_load` snapshot taken before the other thread's `_save` would silently
+    drop that other thread's write once the old two-step _load/_save (no
+    lock held across both) let them interleave.
+    """
+    import threading
+
+    oq.create_draft(_person("p1"), _contact("p1"), "role1",
+                     queue_path=queue_path, audit_path=audit_path)
+    oq.create_draft(_person("p2"), _contact("p2"), "role1",
+                     queue_path=queue_path, audit_path=audit_path)
+
+    errors = []
+
+    def submit(pid):
+        try:
+            oq.submit_for_approval(pid + ":role1", "tester",
+                                    queue_path=queue_path, audit_path=audit_path)
+        except Exception as exc:  # pragma: no cover -- surfaced via `errors`
+            errors.append(exc)
+
+    threads = [threading.Thread(target=submit, args=(pid,)) for pid in ("p1", "p2")]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert not errors
+    assert oq.get("p1:role1", queue_path=queue_path)["state"] == "pending_approval"
+    assert oq.get("p2:role1", queue_path=queue_path)["state"] == "pending_approval"
+
+
+def test_save_writes_via_temp_file_and_replace(queue_path, audit_path, monkeypatch):
+    """`_save_locked` must never truncate the real file in place -- write to
+    a temp file, then os.replace it in, so a crash mid-write cannot leave a
+    half-written queue file behind."""
+    import os as os_mod
+
+    replace_calls = []
+    real_replace = os_mod.replace
+
+    def spy_replace(src, dst):
+        # The source must be a DIFFERENT path than the destination, and must
+        # already contain the full intended content, at the moment of the
+        # replace call.
+        assert str(src) != str(dst)
+        replace_calls.append((str(src), str(dst)))
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(oq.os, "replace", spy_replace)
+
+    oq.create_draft(_person("p1"), _contact("p1"), "role1",
+                     queue_path=queue_path, audit_path=audit_path)
+
+    assert len(replace_calls) == 1
+    assert replace_calls[0][1] == str(queue_path)
+    assert queue_path.exists()

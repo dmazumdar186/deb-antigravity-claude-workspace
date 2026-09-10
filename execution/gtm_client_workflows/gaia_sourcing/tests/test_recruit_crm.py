@@ -167,7 +167,7 @@ def test_dry_run_never_calls_the_session_for_a_write(audit_path):
 
     result = client.upsert_candidate(card, contact)
 
-    assert result["action"] == "created"
+    assert result["action"] == "would_create"
     assert result["candidate_id"] is None  # nothing was really created
     # The only session.request call was the dedupe GET; POST never happened.
     assert len(session.calls) == 1
@@ -198,7 +198,7 @@ def test_dry_run_note_and_attach_are_never_attempted_with_no_real_id(audit_path)
     report = sync_delivery([card], {card.person_id: contact}, {card.person_id: mov},
                             client, job_ids={"role1": "job-slug-1"})
 
-    assert report.created == 1
+    assert report.would_create == 1
     assert any("dry-run" in line for line in report.lines)
     # Only the one dedupe GET happened; no note/attach network call.
     assert len(session.calls) == 1
@@ -329,7 +329,7 @@ def test_dry_run_does_not_refuse_a_candidate_with_no_dedupe_key(audit_path):
 
     result = client.upsert_candidate(card, contact)
 
-    assert result["action"] == "created"
+    assert result["action"] == "would_create"
 
 
 # ---------------------------------------------------------------------------
@@ -448,3 +448,122 @@ def test_no_configured_job_id_skips_attach_but_still_counts_as_created(audit_pat
 
     assert report.created == 1
     assert any("attach_to_job skipped" in line for line in report.lines)
+
+
+# ---------------------------------------------------------------------------
+# Falsy-overwrite fix: `k not in existing or existing.get(k) in (None, "")`
+# ---------------------------------------------------------------------------
+
+
+def test_a_genuinely_falsy_but_present_existing_value_is_not_overwritten(audit_path):
+    """The old check (`if not existing.get(k)`) treated ANY falsy existing
+    value -- 0, False, "" -- as absent, so a field a consultant deliberately
+    set to a falsy-but-real value would be silently overwritten on every
+    sync. The fix only patches a field that is truly missing or blank.
+    """
+    card, contact, _ = _card(email_status="verified", email="jane@punch.ie")
+    existing = {
+        "slug": "existing-1",
+        "email": "jane@punch.ie",
+        "city": 0,  # a genuinely falsy but PRESENT value -- must survive
+    }
+    session = FakeSession([
+        FakeResponse(200, {"data": [existing]}),
+        FakeResponse(200, {"slug": "existing-1"}),
+    ])
+    client = rc.RecruitCRMClient(live=True, api_key="k", session=session, audit_path=audit_path)
+
+    result = client.upsert_candidate(card, contact)
+
+    put_call = session.calls[1]
+    assert "city" not in put_call["json"], "a present, non-blank value must never be overwritten"
+    assert result["action"] == "updated"
+
+
+def test_a_truly_blank_existing_value_is_still_patched(audit_path):
+    """The other half of the fix: an empty string IS still treated as blank
+    and gets patched, same as a missing key always did."""
+    card, contact, _ = _card(email_status="verified", email="jane@punch.ie")
+    existing = {"slug": "existing-1", "email": "jane@punch.ie", "city": ""}
+    session = FakeSession([
+        FakeResponse(200, {"data": [existing]}),
+        FakeResponse(200, {"slug": "existing-1"}),
+    ])
+    client = rc.RecruitCRMClient(live=True, api_key="k", session=session, audit_path=audit_path)
+
+    result = client.upsert_candidate(card, contact)
+
+    put_call = session.calls[1]
+    assert put_call["json"]["city"] == "Galway"
+    assert result["action"] == "updated"
+
+
+# ---------------------------------------------------------------------------
+# Opt-out registry loaded once per sync_delivery, not once per candidate
+# ---------------------------------------------------------------------------
+
+
+def test_optout_registry_is_loaded_once_per_sync_delivery(audit_path, monkeypatch, tmp_path):
+    from gtm_client_workflows.gaia_sourcing.layers import optout
+
+    calls = {"n": 0}
+    real_load_all = optout._load_all
+
+    def counting_load_all(path=None):
+        calls["n"] += 1
+        return real_load_all(path)
+
+    monkeypatch.setattr(optout, "_load_all", counting_load_all)
+    monkeypatch.setattr(optout, "DEFAULT_OPTOUT_PATH", tmp_path / "optout.jsonl")
+
+    card1, contact1, mov1 = _card(pid="p1", email="p1@x.ie")
+    card2, contact2, mov2 = _card(pid="p2", email="p2@x.ie")
+    session = FakeSession([
+        FakeResponse(200, {"data": []}), FakeResponse(201, {"slug": "c1"}),
+        FakeResponse(200, {}),
+        FakeResponse(200, {"data": []}), FakeResponse(201, {"slug": "c2"}),
+        FakeResponse(200, {}),
+    ])
+    client = rc.RecruitCRMClient(live=True, api_key="k", session=session, audit_path=audit_path)
+
+    rc.sync_delivery(
+        [card1, card2], {"p1": contact1, "p2": contact2}, {"p1": mov1, "p2": mov2},
+        client, job_ids={},
+    )
+
+    assert calls["n"] == 1, "the opt-out registry must be read once for the whole batch"
+
+
+# ---------------------------------------------------------------------------
+# Secrets never leak into a RecruitCRMError message
+# ---------------------------------------------------------------------------
+
+
+def test_a_bearer_token_echoed_in_an_error_body_is_redacted(audit_path):
+    session = FakeSession([
+        FakeResponse(400, text='{"error": "invalid Authorization: Bearer sk-live-abcdef1234567890xyz"}'),
+    ])
+    client = rc.RecruitCRMClient(live=True, api_key="k", session=session, audit_path=audit_path)
+
+    with pytest.raises(rc.RecruitCRMError) as exc:
+        client._http("GET", "/jobs")
+
+    msg = str(exc.value)
+    assert "sk-live-abcdef1234567890xyz" not in msg
+    assert "Bearer [REDACTED]" in msg
+
+
+def test_a_long_token_looking_string_without_the_bearer_prefix_is_redacted(audit_path):
+    session = FakeSession([
+        FakeResponse(400, text='{"error": "unknown api_key aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789"}'),
+    ])
+    client = rc.RecruitCRMClient(live=True, api_key="k", session=session, audit_path=audit_path)
+
+    with pytest.raises(rc.RecruitCRMError) as exc:
+        client._http("GET", "/jobs")
+
+    assert "aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789" not in str(exc.value)
+
+
+def test_redact_secrets_leaves_ordinary_short_text_alone():
+    assert rc._redact_secrets("candidate not found") == "candidate not found"

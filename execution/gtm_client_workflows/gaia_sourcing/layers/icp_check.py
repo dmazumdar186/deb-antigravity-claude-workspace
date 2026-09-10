@@ -19,6 +19,7 @@ wiring will call.
 from __future__ import annotations
 
 import json
+import math
 import random
 from pathlib import Path
 from typing import Callable, Optional
@@ -65,6 +66,24 @@ def icp_check(
     to surface.
     """
     population = sorted(set(batch_persons))
+
+    # A population this small cannot support the sample size the caller
+    # asked for, and treating it like a normal sample buries that fact --
+    # "matched 2/3, verdict RETRY" reads as "this batch is bad" when the real
+    # problem is "there is nothing meaningful to check yet". Below 5 people,
+    # the check refuses to render a PASS/RETRY verdict at all.
+    if len(population) < 5:
+        return IcpVerdict(
+            batch_id="seed-" + str(seed),
+            sampled=len(population),
+            matched=0,
+            threshold=min_match,
+            verdict="INSUFFICIENT_SAMPLE",
+            filter_delta="population is only " + str(len(population))
+            + " -- too small to sample meaningfully (minimum 5)",
+            samples=[],
+        )
+
     n = min(sample_n, len(population))
     sample = random.Random(seed).sample(population, n) if n else []
 
@@ -82,7 +101,13 @@ def icp_check(
             matched += 1
         samples.append(IcpSample(person_id=pid, passed=passed, failed_gates=failed))
 
-    verdict = "PASS" if matched >= min_match else "RETRY"
+    # Scale the pass bar to the sample actually drawn: `min_match` is
+    # calibrated for a full `sample_n`-person sample, so a smaller batch
+    # (population < sample_n) drawing fewer than `sample_n` people must not
+    # be held to the full-size threshold -- that would make a small but
+    # otherwise-healthy batch fail RETRY purely on arithmetic.
+    effective_min = min(min_match, math.ceil(min_match / sample_n * len(samples)))
+    verdict = "PASS" if matched >= effective_min else "RETRY"
 
     # filter_delta: the most common failed gate across the sample, tie broken
     # by gate_id for determinism.

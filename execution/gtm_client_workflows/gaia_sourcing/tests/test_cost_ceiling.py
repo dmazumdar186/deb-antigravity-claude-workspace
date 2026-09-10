@@ -101,13 +101,13 @@ def test_the_run_stops_when_the_ceiling_is_crossed(monkeypatch):
     monkeypatch.setitem(providers._BACKENDS, "gemini", _backend(1_000_000))
     monkeypatch.setattr(providers, "PRICE_EUR",
                         {**providers.PRICE_EUR, "gemini-2.5-flash":
-                         {"input": 20.0, "output": 0.0}})
+                         {"input": 8.0, "output": 0.0}})
     providers.set_plan("free")
 
-    providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})  # EUR 20
+    providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})  # EUR 8, under the 12 ceiling
 
     with pytest.raises(providers.CostCeilingExceeded, match="exceeds the ceiling"):
-        providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})
+        providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})  # EUR 16 total, over
 
 
 def test_the_ceiling_breach_is_not_retried(monkeypatch):
@@ -200,3 +200,184 @@ def test_the_dead_cost_tracker_module_is_gone():
 
     with pytest.raises(ModuleNotFoundError):
         importlib.import_module("gtm_client_workflows.gaia_sourcing.core.llm")
+
+
+# ---------------------------------------------------------------------------
+# Persistent cross-run spend ledger + cumulative ceiling (the operator has
+# exactly $30 of Anthropic credit total, ever -- a per-run ceiling that
+# resets every run cannot protect a fixed lifetime balance).
+# ---------------------------------------------------------------------------
+
+
+def test_ledger_appends_one_line_per_call(tmp_path, monkeypatch):
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    monkeypatch.setitem(providers._BACKENDS, "gemini", _backend(1_000))
+    providers.set_plan("free")
+
+    providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})
+    providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})
+
+    lines = (tmp_path / "spend_ledger.jsonl").read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 2
+    import json as json_mod
+
+    rec = json_mod.loads(lines[0])
+    assert set(rec.keys()) == {"at", "campaign_id", "role", "model", "cost_eur"}
+    assert rec["role"] == providers.ROLE_EXTRACT
+
+
+def test_cumulative_spend_eur_sums_the_ledger(tmp_path, monkeypatch):
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    providers._append_ledger("c1", "extract", "m", 1.5)
+    providers._append_ledger("c1", "extract", "m", 2.5)
+
+    assert providers.cumulative_spend_eur() == pytest.approx(4.0)
+
+
+def test_cumulative_spend_eur_skips_a_malformed_line(tmp_path, monkeypatch):
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    providers.LEDGER_PATH.write_text(
+        '{"cost_eur": 1.0}\nnot json\n{"cost_eur": 2.0}\n', encoding="utf-8"
+    )
+    assert providers.cumulative_spend_eur() == pytest.approx(3.0)
+
+
+def test_cumulative_cap_trips_across_two_simulated_runs(tmp_path, monkeypatch):
+    """A 'run' here is one call to reset_spend() (as run.py's own process
+    would do at the start of each invocation) -- the per-run counter resets,
+    but the ledger on disk does not, so a second run's spend can trip the
+    cumulative cap even though neither run alone crossed the per-run one."""
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    monkeypatch.setattr(providers.CONFIG, "max_cost_eur_total", 15.0)
+    monkeypatch.setitem(providers._BACKENDS, "gemini", _backend(1_000_000))
+    monkeypatch.setattr(providers, "PRICE_EUR",
+                        {**providers.PRICE_EUR, "gemini-2.5-flash":
+                         {"input": 9.0, "output": 0.0}})
+    providers.set_plan("free")
+
+    # "Run 1": one call, EUR 9 -- under both the per-run (12) and cumulative
+    # (15) ceilings.
+    providers.reset_spend()
+    providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})
+    assert providers.cumulative_spend_eur() == pytest.approx(9.0)
+
+    # "Run 2": reset_spend() zeroes the PER-RUN counter (as a fresh process
+    # would start), but the ledger still has run 1's EUR 9 on it. One more
+    # EUR 9 call is still under the per-run ceiling (9 < 12) but pushes the
+    # cumulative total to 18, over the 15 cumulative ceiling.
+    providers.reset_spend()
+    with pytest.raises(providers.CostCeilingExceeded, match="[Cc]umulative"):
+        providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})
+
+    assert providers.cumulative_spend_eur() == pytest.approx(18.0), (
+        "the call still happened and must still be recorded, even though it "
+        "then raises"
+    )
+
+
+def test_cumulative_cap_message_names_the_total(tmp_path, monkeypatch):
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    monkeypatch.setattr(providers.CONFIG, "max_cost_eur_total", 5.0)
+    monkeypatch.setitem(providers._BACKENDS, "gemini", _backend(1_000_000))
+    monkeypatch.setattr(providers, "PRICE_EUR",
+                        {**providers.PRICE_EUR, "gemini-2.5-flash":
+                         {"input": 6.0, "output": 0.0}})
+    providers.set_plan("free")
+
+    with pytest.raises(providers.CostCeilingExceeded) as exc:
+        providers.call_role(providers.ROLE_EXTRACT, "s", "u", {"name": "t"})
+
+    assert "EUR" in str(exc.value)
+    assert "max_cost_eur_total" in str(exc.value)
+
+
+def test_max_cost_eur_default_is_twelve():
+    """Lowered from 30.0 per the 2026-09-10 spend guardrail."""
+    from gtm_client_workflows.gaia_sourcing.core.config import RunConfig
+
+    assert RunConfig().max_cost_eur == 12.0
+
+
+def test_max_cost_eur_total_default_is_twentytwo():
+    from gtm_client_workflows.gaia_sourcing.core.config import RunConfig
+
+    assert RunConfig().max_cost_eur_total == 22.0
+
+
+# ---------------------------------------------------------------------------
+# OCR path counts against both ceilings too
+# ---------------------------------------------------------------------------
+
+
+def test_ocr_path_appends_to_the_ledger(tmp_path, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.core import ocr
+
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    monkeypatch.setattr(ocr, "page_count", lambda raw: 1)
+
+    class _Usage:
+        input_tokens = 1_000_000
+        output_tokens = 100
+        cache_read_input_tokens = 0
+        cache_creation_input_tokens = 0
+
+    class _Block:
+        type = "text"
+        text = "x" * 200
+
+    class _Resp:
+        content = [_Block()]
+        usage = _Usage()
+
+    class _Client:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                return _Resp()
+
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.providers._anthropic_client",
+        lambda: _Client(),
+    )
+    providers.reset_spend()
+
+    ocr.transcribe_pdf(b"%PDF-fake", "https://pleanala.ie/x.pdf")
+
+    assert providers.cumulative_spend_eur() > 0
+
+
+def test_ocr_path_trips_the_cumulative_ceiling(tmp_path, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.core import ocr
+
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    monkeypatch.setattr(providers.CONFIG, "max_cost_eur_total", 0.000001)
+    monkeypatch.setattr(ocr, "page_count", lambda raw: 1)
+
+    class _Usage:
+        input_tokens = 1_000_000
+        output_tokens = 100
+        cache_read_input_tokens = 0
+        cache_creation_input_tokens = 0
+
+    class _Block:
+        type = "text"
+        text = "x" * 200
+
+    class _Resp:
+        content = [_Block()]
+        usage = _Usage()
+
+    class _Client:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                return _Resp()
+
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.providers._anthropic_client",
+        lambda: _Client(),
+    )
+    providers.reset_spend()
+
+    with pytest.raises(providers.CostCeilingExceeded, match="[Cc]umulative"):
+        ocr.transcribe_pdf(b"%PDF-fake", "https://pleanala.ie/x.pdf")

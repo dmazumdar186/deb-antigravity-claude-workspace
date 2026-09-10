@@ -111,11 +111,21 @@ def _load_all(path: Optional[Path] = None) -> list[dict]:
     return out
 
 
+def load_registry(path: Optional[Path] = None) -> list[dict]:
+    """Public alias of `_load_all`, for a caller that wants to load the
+    registry ONCE and pass it into several `is_opted_out(rows=...)` calls
+    (e.g. integrations.recruit_crm.sync_delivery) instead of re-reading the
+    file once per candidate.
+    """
+    return _load_all(path)
+
+
 def is_opted_out(
     person: Optional[Person] = None,
     contact: Optional[ContactRecord] = None,
     person_id: Optional[str] = None,
     path: Optional[Path] = None,
+    rows: Optional[list[dict]] = None,
 ) -> Optional[OptOut]:
     """RADAR_CONTRACTS.md section E signature: `is_opted_out(person,
     contact) -> Optional[OptOut]`, keyed on any of person_id/email/
@@ -123,6 +133,11 @@ def is_opted_out(
     callers that only have a bare id (e.g. integrations.recruit_crm.
     sync_delivery, which works off CandidateCard + ContactRecord, not a full
     Person) -- it is folded into the same lookup, never a separate code path.
+
+    `rows`, when given, is used INSTEAD of re-reading the registry file --
+    for a caller (integrations.recruit_crm.sync_delivery) that checks many
+    candidates in one batch and would otherwise re-read and re-parse the same
+    JSONL file once per candidate. Pass `load_registry(path)`'s result.
     """
     pid = person_id or getattr(person, "person_id", None)
     email = _norm(getattr(contact, "email", None))
@@ -130,7 +145,7 @@ def is_opted_out(
     linkedin = _norm(str(li_raw) if li_raw is not None else None)
     if not (pid or email or linkedin):
         return None
-    for row in _load_all(path):
+    for row in (rows if rows is not None else _load_all(path)):
         if pid and row.get("person_id") == pid:
             return OptOut(**row)
         if email and row.get("email") == email:

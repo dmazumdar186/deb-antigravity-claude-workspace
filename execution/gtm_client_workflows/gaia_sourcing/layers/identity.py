@@ -229,12 +229,26 @@ def resolve_identity(records: list[RawPersonRecord]) -> list[PersonCluster]:
     for i in range(n):
         groups.setdefault(dsu.find(i), []).append(i)
 
+    # Post-pass: transitive merges can still land two records that DIRECTLY
+    # conflict (differing register_number or linkedin_url) in the same
+    # cluster, even though `_exact_key_conflict` refused to merge THAT PAIR
+    # directly. A~B by name+employer, B~C by name+employer, but A and C carry
+    # two different register numbers -- A-C is never checked as a union
+    # candidate (only A-B and B-C ever call dsu.union), so the conflict never
+    # blocks the transitive join. Split any such group here: every record
+    # that would introduce a conflicting exact key against the group's
+    # majority value is peeled off into its own sub-cluster instead of being
+    # silently merged into a person it structurally cannot be.
+    final_groups: list[list[int]] = []
+    for idxs in groups.values():
+        final_groups.extend(_split_on_conflicts(records, idxs))
+
     _RANK = {"linkedin_url": 2, "register_number": 2, "email": 2,
              "name+employer": 1, "name+county": 0}
     _CONF = {2: "exact", 1: "strong", 0: "weak"}
 
     clusters: list[PersonCluster] = []
-    for root, idxs in sorted(groups.items()):
+    for idxs in sorted(final_groups, key=lambda g: min(g)):
         members = [records[i] for i in idxs]
         idx_set = set(idxs)
         bases: list[str] = []
@@ -251,6 +265,48 @@ def resolve_identity(records: list[RawPersonRecord]) -> list[PersonCluster]:
             confidence=_CONF[best_rank],
         ))
     return clusters
+
+
+def _split_on_conflicts(records: list[RawPersonRecord], idxs: list[int]) -> list[list[int]]:
+    """Split one union-find group so no sub-group carries two distinct
+    non-empty values for register_number or linkedin_url.
+
+    Greedy and deterministic (input order): walk the group in index order,
+    keeping a running "this sub-group's register_number/linkedin_url so far"
+    per bucket; a record that conflicts with a bucket's established value on
+    either field starts (or joins) a different bucket instead. A record with
+    neither field set never conflicts with anything and joins the first
+    bucket, preserving today's behaviour for the overwhelmingly common case
+    where nothing in _EXACT_FIELDS conflicts at all.
+    """
+    if len(idxs) <= 1:
+        return [idxs]
+
+    buckets: list[dict[str, Optional[str]]] = []  # per-bucket established keys
+    bucket_members: list[list[int]] = []
+
+    for i in idxs:
+        rec = records[i]
+        reg = rec.register_number.strip() if rec.register_number else None
+        li = _normalise_token(rec.linkedin_url)
+        placed = False
+        for b, established in enumerate(buckets):
+            reg_conflict = reg and established.get("register_number") and established["register_number"] != reg
+            li_conflict = li and established.get("linkedin_url") and established["linkedin_url"] != li
+            if reg_conflict or li_conflict:
+                continue
+            if reg and not established.get("register_number"):
+                established["register_number"] = reg
+            if li and not established.get("linkedin_url"):
+                established["linkedin_url"] = li
+            bucket_members[b].append(i)
+            placed = True
+            break
+        if not placed:
+            buckets.append({"register_number": reg, "linkedin_url": li})
+            bucket_members.append([i])
+
+    return bucket_members
 
 
 # ---------------------------------------------------------------------------

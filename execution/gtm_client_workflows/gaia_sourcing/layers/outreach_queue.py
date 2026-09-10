@@ -49,6 +49,7 @@ queued. The CRM-sync half of that same check lives in
 from __future__ import annotations
 
 import json
+import os
 import threading
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -112,7 +113,14 @@ def _audit(record: dict, audit_path: Optional[Path] = None) -> None:
             fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
 
-def _load(path: Path) -> dict[str, dict]:
+def _load_locked(path: Path) -> dict[str, dict]:
+    """Lock-free read -- callers already hold `_LOCK` (see `_transition`).
+    A bare `_load`/`_save` pair around a read-modify-write is not atomic:
+    two threads calling `_transition` on the same draft can both read the
+    same `current` state, both pass the allowed-transition check, and one
+    write clobbers the other's, silently dropping a state change. `get()`
+    and `create_draft` use this too, each under their own `_LOCK` hold.
+    """
     if not path.exists():
         return {}
     try:
@@ -125,9 +133,24 @@ def _load(path: Path) -> dict[str, dict]:
         return {}
 
 
+def _save_locked(path: Path, data: dict[str, dict]) -> None:
+    """Lock-free write -- callers already hold `_LOCK`. Writes via a temp
+    file + os.replace so a crash or a concurrent reader never observes a
+    half-written queue file (os.replace is atomic on POSIX and Windows)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp-" + str(os.getpid()))
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def _load(path: Path) -> dict[str, dict]:
+    with _LOCK:
+        return _load_locked(path)
+
+
 def _save(path: Path, data: dict[str, dict]) -> None:
     with _LOCK:
-        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        _save_locked(path, data)
 
 
 def create_draft(
@@ -158,10 +181,11 @@ def create_draft(
 
     did = draft_id or (person.person_id + ":" + role_id)
     path = _queue_path(campaign_id, queue_path)
-    data = _load(path)
     entry = QueueEntry(draft_id=did, person_id=person.person_id, role_id=role_id)
-    data[did] = asdict(entry)
-    _save(path, data)
+    with _LOCK:
+        data = _load_locked(path)
+        data[did] = asdict(entry)
+        _save_locked(path, data)
     _audit(
         {
             "ts": _now_iso(), "event": "created", "draft_id": did,
@@ -182,27 +206,28 @@ def _transition(
     audit_path: Optional[Path] = None,
 ) -> dict:
     path = _queue_path(campaign_id, queue_path)
-    data = _load(path)
-    row = data.get(draft_id)
-    if row is None:
-        raise KeyError("no queued draft: " + draft_id)
+    with _LOCK:
+        data = _load_locked(path)
+        row = data.get(draft_id)
+        if row is None:
+            raise KeyError("no queued draft: " + draft_id)
 
-    current = row.get("state", "draft")
-    allowed = _TRANSITIONS.get(current, set())
-    if to_state not in allowed:
-        raise InvalidTransition(
-            draft_id + ": cannot go " + current + " -> " + to_state
-            + " (allowed from " + current + ": "
-            + (", ".join(sorted(allowed)) or "nothing, terminal state") + ")"
-        )
+        current = row.get("state", "draft")
+        allowed = _TRANSITIONS.get(current, set())
+        if to_state not in allowed:
+            raise InvalidTransition(
+                draft_id + ": cannot go " + current + " -> " + to_state
+                + " (allowed from " + current + ": "
+                + (", ".join(sorted(allowed)) or "nothing, terminal state") + ")"
+            )
 
-    event = {"ts": _now_iso(), "from": current, "to": to_state, "by": by}
-    if extra:
-        event.update(extra)
-    row.setdefault("history", []).append(event)
-    row["state"] = to_state
-    data[draft_id] = row
-    _save(path, data)
+        event = {"ts": _now_iso(), "from": current, "to": to_state, "by": by}
+        if extra:
+            event.update(extra)
+        row.setdefault("history", []).append(event)
+        row["state"] = to_state
+        data[draft_id] = row
+        _save_locked(path, data)
     _audit({"draft_id": draft_id, **event}, audit_path)
     return row
 

@@ -300,13 +300,27 @@ def test_a_draft_carries_the_legal_strings(monkeypatch):
 
 
 @pytest.mark.parametrize("missing", ["linkedin_note", "email_subject", "email_body"])
-def test_an_incomplete_draft_is_discarded(monkeypatch, missing):
+def test_an_incomplete_draft_is_discarded(monkeypatch, missing, capsys):
     payload = {"linkedin_note": "n", "email_subject": "s", "email_body": "b",
                "follow_up": "f"}
     payload[missing] = ""
     monkeypatch.setattr(messages, "call_role", lambda **kw: (payload, {"cost_eur": 0}))
 
-    assert messages.draft(Person(person_id="p", full_name="X"), [], ROLE1) is None
+    result = messages.draft(Person(person_id="pX", full_name="X"), [], ROLE1)
+
+    assert result is None
+    out = capsys.readouterr().out
+    assert "pX draft dropped:" in out
+    assert missing in out
+
+
+def test_empty_llm_output_is_logged_as_dropped(monkeypatch, capsys):
+    monkeypatch.setattr(messages, "call_role", lambda **kw: (None, {"cost_eur": 0}))
+
+    result = messages.draft(Person(person_id="pY", full_name="X"), [], ROLE1)
+
+    assert result is None
+    assert "pY draft dropped: empty LLM output" in capsys.readouterr().out
 
 
 def test_a_failed_draft_returns_nothing_rather_than_a_stub(monkeypatch, capsys):

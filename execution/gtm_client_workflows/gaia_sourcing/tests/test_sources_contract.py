@@ -32,6 +32,7 @@ from gtm_client_workflows.gaia_sourcing.sources import (
     registers,
     registry,
 )
+from gtm_client_workflows.gaia_sourcing.sources import base
 from gtm_client_workflows.gaia_sourcing.sources.base import FixtureProvider, SourceProvider
 
 FIXTURES = Path(__file__).parent / "fixtures" / "registers"
@@ -261,28 +262,46 @@ def test_the_declared_rate_limit_meets_the_floor(module, provider_cls):
 
 
 def test_the_throttle_sleeps_for_the_remaining_window(monkeypatch):
+    """engineers_ireland/istructe/ice all now share sources.base.throttle
+    (python-hardening rule 2: the old per-module `_last_hit` global had no
+    lock at all)."""
     clock = [100.0]
-    monkeypatch.setattr(engineers_ireland.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(base.time, "monotonic", lambda: clock[0])
     sleeps: list[float] = []
-    monkeypatch.setattr(engineers_ireland.time, "sleep", lambda s: sleeps.append(s))
-    engineers_ireland._last_hit = 0.0
+    monkeypatch.setattr(base.time, "sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(base, "_THROTTLE_LAST", {})
 
-    engineers_ireland._throttle(3.0)  # first call: no prior hit this run -> big wait clamped by clock
+    base.throttle("engineers_ireland", 3.0)  # first call: no prior hit -> no wait
     clock[0] = 101.0  # 1s later, still inside the 3s window
-    engineers_ireland._throttle(3.0)
+    base.throttle("engineers_ireland", 3.0)
 
     assert sleeps[-1] == pytest.approx(2.0, abs=0.01)
 
 
 def test_the_throttle_does_not_sleep_once_the_window_has_passed(monkeypatch):
     clock = [100.0]
-    monkeypatch.setattr(engineers_ireland.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(base.time, "monotonic", lambda: clock[0])
     sleeps: list[float] = []
-    monkeypatch.setattr(engineers_ireland.time, "sleep", lambda s: sleeps.append(s))
-    engineers_ireland._last_hit = 100.0
+    monkeypatch.setattr(base.time, "sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(base, "_THROTTLE_LAST", {"engineers_ireland": 100.0})
 
     clock[0] = 105.0  # well past the 3s window
-    engineers_ireland._throttle(3.0)
+    base.throttle("engineers_ireland", 3.0)
+
+    assert sleeps == []
+
+
+def test_the_throttle_keys_are_independent_across_providers(monkeypatch):
+    """A slow engineers_ireland fetch must never make ice/istructe wait --
+    the shared helper is keyed per-provider-name, not one global clock."""
+    clock = [100.0]
+    monkeypatch.setattr(base.time, "monotonic", lambda: clock[0])
+    sleeps: list[float] = []
+    monkeypatch.setattr(base.time, "sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(base, "_THROTTLE_LAST", {"engineers_ireland": 100.0})
+
+    clock[0] = 100.5  # well inside engineers_ireland's own 3s window
+    base.throttle("ice", 3.0)  # different key -> no prior hit -> no wait
 
     assert sleeps == []
 

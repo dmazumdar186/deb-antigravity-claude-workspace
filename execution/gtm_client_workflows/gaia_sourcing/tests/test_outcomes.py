@@ -41,6 +41,19 @@ def test_load_outcomes_missing_file_is_empty(tmp_path):
     assert load_outcomes(tmp_path / "nope.jsonl") == []
 
 
+def test_load_outcomes_logs_and_skips_a_malformed_line(tmp_path, capsys):
+    path = tmp_path / "outcomes.jsonl"
+    record_outcome("alice", "t1", "high", "sent", by="consultant_a", path=path)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write("not json at all\n")
+    record_outcome("bob", "t1", "high", "sent", by="consultant_a", path=path)
+
+    rows = load_outcomes(path)
+
+    assert [r.person_id for r in rows] == ["alice", "bob"]
+    assert "skipping malformed line" in capsys.readouterr().out
+
+
 def _mk(person, template, bucket, event, when):
     return Outcome(
         person_id=person, template_id=template, movability_bucket=bucket,

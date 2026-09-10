@@ -203,7 +203,8 @@ def _transcribe_anthropic(raw: bytes, pages: int, url: str) -> Optional[str]:
         print("[ocr] transcription failed for " + url[:70] + ": " + repr(exc)[:120])
         return None
 
-    # Recorded against the SAME run total as every other paid call.
+    # Recorded against the SAME run total, and the SAME cumulative ledger, as
+    # every other paid call.
     #
     # This path calls the Anthropic client directly rather than going through
     # call_role, so on the first run it spent real money entirely outside the
@@ -212,20 +213,46 @@ def _transcribe_anthropic(raw: bytes, pages: int, url: str) -> Optional[str]:
     # drained the account's remaining balance and the ceiling never saw a cent
     # of it. Any new paid call site has to register here or the ceiling is
     # decorative again.
+    total = None
+    cumulative = None
     try:
-        from .providers import _record_spend, cost_eur
+        from .config import CONFIG
+        from .providers import _append_ledger, _record_spend, cost_eur, cumulative_spend_eur
 
         usage = getattr(resp, "usage", None)
-        _record_spend(cost_eur("claude-sonnet-5", {
+        spent = cost_eur("claude-sonnet-5", {
             "input_tokens": getattr(usage, "input_tokens", 0) or 0,
             "output_tokens": getattr(usage, "output_tokens", 0) or 0,
             "cache_read_tokens": getattr(usage, "cache_read_input_tokens", 0) or 0,
             "cache_write_tokens": getattr(usage, "cache_creation_input_tokens", 0) or 0,
-        }))
+        })
+        total = _record_spend(spent)
+        _append_ledger(CONFIG.campaign_id, "ocr", "claude-sonnet-5", spent)
+        cumulative = cumulative_spend_eur()
     except Exception as exc:
         # Never fail a completed transcription over its own bookkeeping, but
         # say so -- an unrecorded call is a hole in the ceiling.
         print("[ocr] WARNING: could not record spend: " + repr(exc)[:100])
+    else:
+        # Deliberately OUTSIDE the try/except above: a ceiling breach must
+        # propagate as CostCeilingExceeded, never be caught and logged as an
+        # ordinary bookkeeping failure -- same non-negotiable shape as
+        # core.providers.call_role's own two checks.
+        from .providers import CostCeilingExceeded
+
+        if total > CONFIG.max_cost_eur:
+            raise CostCeilingExceeded(
+                "Run cost EUR " + format(total, ".2f") + " exceeds the "
+                "ceiling of EUR " + format(CONFIG.max_cost_eur, ".2f")
+                + " (tripped by an OCR transcription call)."
+            )
+        if cumulative > CONFIG.max_cost_eur_total:
+            raise CostCeilingExceeded(
+                "Cumulative spend across runs EUR " + format(cumulative, ".2f")
+                + " exceeds the cumulative ceiling of EUR "
+                + format(CONFIG.max_cost_eur_total, ".2f")
+                + " (tripped by an OCR transcription call)."
+            )
 
     text = "".join(
         getattr(block, "text", "") for block in resp.content

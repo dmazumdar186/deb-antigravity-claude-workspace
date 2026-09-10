@@ -23,9 +23,21 @@ from gtm_client_workflows.gaia_sourcing.roles import ROLE1, ROLE2
 
 FIXTURE_RUN_DIR = Path(__file__).parent / "fixtures" / "console"
 
+_TOKEN = "test-radar-token"
+AUTH_HEADERS = {"X-Radar-Token": _TOKEN}
+
 
 def _load(name: str) -> dict:
     return json.loads((FIXTURE_RUN_DIR / (name + ".json")).read_text(encoding="utf-8"))
+
+
+@pytest.fixture(autouse=True)
+def _radar_token(monkeypatch):
+    """recut_handler/approve_handler both refuse every request unless
+    RADAR_ENDPOINT_TOKEN is configured -- set it for every test in this file
+    except the ones specifically testing the unconfigured/mismatched case.
+    """
+    monkeypatch.setenv("RADAR_ENDPOINT_TOKEN", _TOKEN)
 
 
 @pytest.fixture()
@@ -101,19 +113,21 @@ def test_overrides_never_mutate_roles_role2(extract, validate):
     assert before == after
 
 
-def test_recut_handler_reads_from_run_dir(tmp_path, monkeypatch, extract, validate):
+def test_recut_handler_reads_from_run_dir(tmp_path, extract, validate):
     run_dir = tmp_path / "gaia-test-campaign"
     run_dir.mkdir(parents=True)
     (run_dir / "extract.json").write_text(json.dumps(extract), encoding="utf-8")
     (run_dir / "validate.json").write_text(json.dumps(validate), encoding="utf-8")
 
-    monkeypatch.setattr(modal_radar, "_run_dir_for", lambda campaign_id: run_dir)
-
-    out = modal_radar.recut_handler({
-        "campaign_id": "gaia-test-campaign",
-        "role_id": ROLE1.role_id,
-        "brief_overrides": {},
-    })
+    out = modal_radar.recut_handler(
+        {
+            "campaign_id": "gaia-test-campaign",
+            "role_id": ROLE1.role_id,
+            "brief_overrides": {},
+        },
+        headers=AUTH_HEADERS,
+        run_dir=run_dir,
+    )
     assert "recut_id" in out
     assert {s["person_id"] for s in out["survivors"]} == {"alice_kearney", "brian_walsh"}
     # Audit copy written under run/<c>/recuts/<uuid>.json
@@ -123,37 +137,44 @@ def test_recut_handler_reads_from_run_dir(tmp_path, monkeypatch, extract, valida
     assert saved["recut_id"] == out["recut_id"]
 
 
-def test_recut_handler_missing_stage_files_returns_error_not_crash(tmp_path, monkeypatch):
+def test_recut_handler_missing_stage_files_returns_error_not_crash(tmp_path):
     run_dir = tmp_path / "no-such-campaign"
-    monkeypatch.setattr(modal_radar, "_run_dir_for", lambda campaign_id: run_dir)
-    out = modal_radar.recut_handler({
-        "campaign_id": "no-such-campaign", "role_id": ROLE1.role_id, "brief_overrides": {},
-    })
+    out = modal_radar.recut_handler(
+        {"campaign_id": "no-such-campaign", "role_id": ROLE1.role_id, "brief_overrides": {}},
+        headers=AUTH_HEADERS,
+        run_dir=run_dir,
+    )
     assert "error" in out
+    # Never echo the resolved run_dir path in the error body.
+    assert str(run_dir) not in out["error"]
 
 
-def test_recut_handler_unknown_role_id_returns_error(tmp_path, monkeypatch, extract, validate):
+def test_recut_handler_unknown_role_id_returns_error(tmp_path, extract, validate):
     run_dir = tmp_path / "gaia-test-campaign"
     run_dir.mkdir(parents=True)
     (run_dir / "extract.json").write_text(json.dumps(extract), encoding="utf-8")
     (run_dir / "validate.json").write_text(json.dumps(validate), encoding="utf-8")
-    monkeypatch.setattr(modal_radar, "_run_dir_for", lambda campaign_id: run_dir)
-    out = modal_radar.recut_handler({
-        "campaign_id": "gaia-test-campaign", "role_id": "not_a_real_role", "brief_overrides": {},
-    })
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": "not_a_real_role", "brief_overrides": {}},
+        headers=AUTH_HEADERS,
+        run_dir=run_dir,
+    )
     assert "error" in out
 
 
-def test_approve_appends_the_exact_record(tmp_path, monkeypatch):
+def test_approve_appends_the_exact_record(tmp_path):
     run_dir = tmp_path / "gaia-test-campaign"
-    monkeypatch.setattr(modal_radar, "_run_dir_for", lambda campaign_id: run_dir)
 
-    out = modal_radar.approve_handler({
-        "campaign_id": "gaia-test-campaign",
-        "draft_id": "alice_kearney",
-        "by": "keith",
-        "action": "approve",
-    })
+    out = modal_radar.approve_handler(
+        {
+            "campaign_id": "gaia-test-campaign",
+            "draft_id": "alice_kearney",
+            "by": "keith",
+            "action": "approve",
+        },
+        headers=AUTH_HEADERS,
+        run_dir=run_dir,
+    )
     assert out["status"] == "recorded"
 
     lines = (run_dir / "approvals.jsonl").read_text(encoding="utf-8").splitlines()
@@ -166,27 +187,180 @@ def test_approve_appends_the_exact_record(tmp_path, monkeypatch):
     assert "at" in rec
 
     # A second call appends rather than overwrites.
-    modal_radar.approve_handler({
-        "campaign_id": "gaia-test-campaign",
-        "draft_id": "brian_walsh",
-        "by": "keith",
-        "action": "reject",
-    })
+    modal_radar.approve_handler(
+        {
+            "campaign_id": "gaia-test-campaign",
+            "draft_id": "brian_walsh",
+            "by": "keith",
+            "action": "reject",
+        },
+        headers=AUTH_HEADERS,
+        run_dir=run_dir,
+    )
     lines = (run_dir / "approvals.jsonl").read_text(encoding="utf-8").splitlines()
     assert len(lines) == 2
 
 
-def test_approve_rejects_invalid_action(tmp_path, monkeypatch):
+def test_approve_rejects_invalid_action(tmp_path):
     run_dir = tmp_path / "gaia-test-campaign"
-    monkeypatch.setattr(modal_radar, "_run_dir_for", lambda campaign_id: run_dir)
-    out = modal_radar.approve_handler({
-        "campaign_id": "gaia-test-campaign", "draft_id": "alice_kearney",
-        "by": "keith", "action": "delete_everything",
-    })
+    out = modal_radar.approve_handler(
+        {"campaign_id": "gaia-test-campaign", "draft_id": "alice_kearney",
+         "by": "keith", "action": "delete_everything"},
+        headers=AUTH_HEADERS,
+        run_dir=run_dir,
+    )
     assert "error" in out
     assert not (run_dir / "approvals.jsonl").exists()
 
 
 def test_approve_requires_campaign_and_draft_id():
-    out = modal_radar.approve_handler({"by": "keith", "action": "approve"})
+    out = modal_radar.approve_handler({"by": "keith", "action": "approve"}, headers=AUTH_HEADERS)
     assert "error" in out
+
+
+# ---------------------------------------------------------------------------
+# Auth -- X-Radar-Token / RADAR_ENDPOINT_TOKEN (RADAR_CONTRACTS.md section G)
+# ---------------------------------------------------------------------------
+
+
+def test_recut_handler_refuses_when_token_not_configured(monkeypatch, tmp_path):
+    monkeypatch.delenv("RADAR_ENDPOINT_TOKEN", raising=False)
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": ROLE1.role_id},
+        headers=AUTH_HEADERS,
+        run_dir=tmp_path,
+    )
+    assert out == {"error": "endpoint token not configured"}
+
+
+def test_approve_handler_refuses_when_token_not_configured(monkeypatch, tmp_path):
+    monkeypatch.delenv("RADAR_ENDPOINT_TOKEN", raising=False)
+    out = modal_radar.approve_handler(
+        {"campaign_id": "gaia-test-campaign", "draft_id": "d1", "action": "approve"},
+        headers=AUTH_HEADERS,
+        run_dir=tmp_path,
+    )
+    assert out == {"error": "endpoint token not configured"}
+
+
+def test_recut_handler_refuses_a_wrong_token(tmp_path):
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": ROLE1.role_id},
+        headers={"X-Radar-Token": "wrong"},
+        run_dir=tmp_path,
+    )
+    assert "error" in out
+
+
+def test_recut_handler_refuses_a_missing_header():
+    out = modal_radar.recut_handler({"campaign_id": "gaia-test-campaign", "role_id": ROLE1.role_id})
+    assert "error" in out
+
+
+def test_auth_header_lookup_is_case_insensitive(tmp_path, extract, validate):
+    run_dir = tmp_path / "gaia-test-campaign"
+    run_dir.mkdir(parents=True)
+    (run_dir / "extract.json").write_text(json.dumps(extract), encoding="utf-8")
+    (run_dir / "validate.json").write_text(json.dumps(validate), encoding="utf-8")
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": ROLE1.role_id, "brief_overrides": {}},
+        headers={"x-radar-token": _TOKEN},
+        run_dir=run_dir,
+    )
+    assert "recut_id" in out
+
+
+# ---------------------------------------------------------------------------
+# campaign_id / role_id format + containment validation (RADAR_CONTRACTS.md
+# section G; python-hardening rule 3)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("bad_campaign_id", ["../x", "/tmp", "a/b", "..", "a" * 65])
+def test_recut_handler_rejects_path_traversal_campaign_id(bad_campaign_id):
+    out = modal_radar.recut_handler(
+        {"campaign_id": bad_campaign_id, "role_id": ROLE1.role_id, "brief_overrides": {}},
+        headers=AUTH_HEADERS,
+    )
+    assert out == {"error": "invalid campaign_id"}
+
+
+@pytest.mark.parametrize("bad_campaign_id", ["../x", "/tmp", "a/b"])
+def test_approve_handler_rejects_path_traversal_campaign_id(bad_campaign_id):
+    out = modal_radar.approve_handler(
+        {"campaign_id": bad_campaign_id, "draft_id": "d1", "action": "approve"},
+        headers=AUTH_HEADERS,
+    )
+    assert out == {"error": "invalid campaign_id"}
+
+
+def test_recut_handler_rejects_bad_role_id():
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": "../x", "brief_overrides": {}},
+        headers=AUTH_HEADERS,
+    )
+    assert out == {"error": "invalid role_id"}
+
+
+# ---------------------------------------------------------------------------
+# brief_overrides validation (pydantic model)
+# ---------------------------------------------------------------------------
+
+
+def test_recut_handler_rejects_bad_max_grade(tmp_path, extract, validate):
+    run_dir = tmp_path / "gaia-test-campaign"
+    run_dir.mkdir(parents=True)
+    (run_dir / "extract.json").write_text(json.dumps(extract), encoding="utf-8")
+    (run_dir / "validate.json").write_text(json.dumps(validate), encoding="utf-8")
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": ROLE1.role_id,
+         "brief_overrides": {"max_grade": "not_a_real_grade"}},
+        headers=AUTH_HEADERS,
+        run_dir=run_dir,
+    )
+    assert "error" in out
+
+
+def test_recut_handler_rejects_wrong_typed_overrides(tmp_path):
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": ROLE1.role_id,
+         "brief_overrides": {"max_years": "not-an-int"}},
+        headers=AUTH_HEADERS,
+        run_dir=tmp_path,
+    )
+    assert "error" in out
+
+
+def test_recut_handler_never_returns_a_traceback_for_bad_overrides(tmp_path):
+    out = modal_radar.recut_handler(
+        {"campaign_id": "gaia-test-campaign", "role_id": ROLE1.role_id,
+         "brief_overrides": {"counties": "not-a-list"}},
+        headers=AUTH_HEADERS,
+        run_dir=tmp_path,
+    )
+    assert set(out.keys()) == {"error"}
+
+
+# ---------------------------------------------------------------------------
+# Item A.5 -- overrides must also update spec.seniority_band/location_rule so
+# composition_violations judges against the same brief the gates just used.
+# ---------------------------------------------------------------------------
+
+
+def test_override_also_updates_seniority_band_for_composition_violations():
+    from gtm_client_workflows.gaia_sourcing.layers import gates
+    from gtm_client_workflows.gaia_sourcing.core.contracts import CandidateCard, Evaluation, GateResult
+
+    working = modal_radar._apply_overrides(ROLE2, {"max_grade": "senior_engineer"})
+    assert working.seniority_band.max_grade == "senior_engineer"
+
+    card = {"full_name": "A Principal", "current_title": "Principal Engineer",
+            "location": "Cork, Ireland", "person_id": "p1"}
+    violations = gates.composition_violations([card], working)
+    assert any("Principal" in v or "principal" in v for v in violations)
+
+
+def test_override_never_mutates_role_seniority_band():
+    before = ROLE1.seniority_band.model_dump()
+    modal_radar._apply_overrides(ROLE1, {"max_grade": "senior_engineer"})
+    assert ROLE1.seniority_band.model_dump() == before

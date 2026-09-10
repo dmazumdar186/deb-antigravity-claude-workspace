@@ -88,6 +88,10 @@ def _post_json(
     raises on a network/parse failure -- mirrors core/cache.fetch's
     "degrade the run, don't kill it" contract -- callers treat status 0 as
     a hard failure.
+
+    Every non-200 response, and every network/parse exception, is logged --
+    URL and status only, NEVER `headers` (an `Authorization`/`x-api-key`
+    entry lives in there for all three licensed providers).
     """
     try:
         resp = requests.post(
@@ -96,11 +100,16 @@ def _post_json(
             data=json.dumps(json_body),
             timeout=timeout or CONFIG.request_timeout_s,
         )
-    except Exception:
+    except Exception as exc:
+        print("[licensed_common] POST " + url + " failed: " + repr(exc)[:160])
         return 0, {}
+    if resp.status_code != 200:
+        print("[licensed_common] POST " + url + " -> HTTP " + str(resp.status_code))
     try:
         payload = resp.json() if resp.content else {}
-    except Exception:
+    except Exception as exc:
+        print("[licensed_common] POST " + url + ": could not parse JSON body: "
+              + repr(exc)[:160])
         payload = {}
     return resp.status_code, payload
 

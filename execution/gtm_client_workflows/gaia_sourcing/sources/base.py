@@ -14,11 +14,41 @@ Nothing in this module touches the network.
 
 from __future__ import annotations
 
+import threading
+import time
 from typing import Literal, Optional, Protocol, runtime_checkable
 
 from ..core.contracts import ProviderRecord, RawDocument, SourceQuery, SourceResult
 
 TextSource = Literal["text_layer", "ocr", "provider_field"]
+
+# ---------------------------------------------------------------------------
+# Shared per-provider throttle -- same shape as core/cache.py's `_throttle`
+# (a lock-guarded "last hit" clock per key, sleep off the remainder of
+# rate_limit_s), but keyed by an arbitrary string (a provider name) rather
+# than a URL host, so every source plugin can share ONE implementation
+# instead of each hand-rolling its own module-level `_last_hit` global.
+#
+# python-hardening rule 2: several plugins (engineers_ireland.py, ice.py,
+# istructe.py) each carried their own `_last_hit = 0.0` module global read
+# and written with no lock at all -- fine under a single-threaded run.py
+# stage today, but a read-then-write race the moment two threads fetch the
+# same provider concurrently (run_all's ThreadPoolExecutor is exactly that).
+# ---------------------------------------------------------------------------
+
+_THROTTLE_LOCK = threading.Lock()
+_THROTTLE_LAST: dict[str, float] = {}
+
+
+def throttle(key: str, rate_limit_s: float) -> None:
+    """Block until at least `rate_limit_s` has passed since the last call
+    with this same `key` (typically a provider name). Thread-safe."""
+    with _THROTTLE_LOCK:
+        last = _THROTTLE_LAST.get(key, 0.0)
+        wait = rate_limit_s - (time.monotonic() - last)
+        if wait > 0:
+            time.sleep(wait)
+        _THROTTLE_LAST[key] = time.monotonic()
 
 
 @runtime_checkable

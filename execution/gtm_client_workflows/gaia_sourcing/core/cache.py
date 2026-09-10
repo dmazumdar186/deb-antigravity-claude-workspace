@@ -235,8 +235,12 @@ def _extract_title(raw: bytes, ctype: str) -> Optional[str]:
 
         t = BeautifulSoup(raw, "html.parser").title
         return t.get_text(strip=True) if t else None
-    except Exception:
-        return None  # title is cosmetic; never fail a fetch over it
+    except Exception as exc:
+        # title is cosmetic; never fail a fetch over it -- but say what was
+        # skipped, since a silent failure here is otherwise indistinguishable
+        # from a page that genuinely has no <title>.
+        print("[cache] could not extract a title: " + repr(exc)[:120])
+        return None
 
 
 def normalise_ws(text: str) -> str:

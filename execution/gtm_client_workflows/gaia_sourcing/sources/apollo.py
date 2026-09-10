@@ -86,7 +86,7 @@ from typing import Any, Optional
 
 from ..core.contracts import JobStint, ProviderRecord, RawDocument, SourceQuery, SourceResult
 from .licensed_common import _post_json, parse_date, raw_hash, render_content_text, require_key
-from .base import SourceProvider  # noqa: F401  (Protocol; import documents the contract)
+from .base import SourceProvider, throttle  # noqa: F401  (Protocol; import documents the contract)
 
 BASE_URL = "https://api.apollo.io/api/v1"
 SEARCH_URL = BASE_URL + "/mixed_people/search"  # ASSUMED path, see module docstring
@@ -194,6 +194,7 @@ class ApolloProvider:
         api_key = require_key("APOLLO_API_KEY")
         body = _build_body(query)
 
+        throttle(self.name, self.rate_limit_s)
         status, payload = _post_json(
             SEARCH_URL,
             headers={"x-api-key": api_key, "Content-Type": "application/json"},
@@ -201,7 +202,8 @@ class ApolloProvider:
         )
         if status != 200:
             return SourceResult(provider=self.name, documents=[], provider_records=[],
-                                 next_cursor=None, cost_eur=0.0, fetched=0)
+                                 next_cursor=None, cost_eur=0.0, fetched=0,
+                                 error="HTTP " + str(status))
 
         items = payload.get("people") or payload.get("contacts") or []
         records = [_to_record(it) for it in items]

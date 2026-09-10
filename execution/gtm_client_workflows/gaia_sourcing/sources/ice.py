@@ -35,12 +35,11 @@ forename and surname both appear together in its own text.
 
 from __future__ import annotations
 
-import time
 from typing import Optional
 
 from ..core.cache import fetch_rendered
 from ..core.contracts import RawDocument, SourceQuery, SourceResult
-from .base import TextSource
+from .base import TextSource, throttle
 from .registers import fragment_with_both_names, path_allowed_by_robots
 
 NAME = "ice"
@@ -51,17 +50,6 @@ DIRECTORY_PATH = "/about-ice/about-our-members/members-directory"
 # `User-agent: *` group is a blanket `Allow: /`, so this plugin (which does
 # not identify as Googlebot) has no Disallow prefixes to honour at all.
 DISALLOWED_PREFIXES: list[str] = []
-
-_last_hit = 0.0
-
-
-def _throttle(rate_limit_s: float) -> None:
-    global _last_hit
-    wait = rate_limit_s - (time.monotonic() - _last_hit)
-    if wait > 0:
-        time.sleep(wait)
-    _last_hit = time.monotonic()
-
 
 class ICEProvider:
     name = NAME
@@ -90,7 +78,7 @@ class ICEProvider:
 
 
 def _fetch_directory() -> Optional[RawDocument]:
-    _throttle(2.5)
+    throttle(NAME, 2.5)
     return fetch_rendered(DIRECTORY_URL, source_type="professional_body")
 
 

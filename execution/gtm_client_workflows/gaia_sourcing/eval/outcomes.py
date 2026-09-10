@@ -83,9 +83,11 @@ def load_outcomes(path: Path = OUTCOMES_LOG) -> list[Outcome]:
             continue
         try:
             out.append(Outcome(**json.loads(line)))
-        except Exception:
+        except Exception as exc:
             # A malformed line must not take down reporting for every other
             # row already logged; it is simply not counted.
+            print("[outcomes] skipping malformed line in " + str(path)
+                  + ": " + repr(exc)[:160])
             continue
     return out
 
