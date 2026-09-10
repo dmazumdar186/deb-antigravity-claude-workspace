@@ -80,7 +80,8 @@ def serper_search(query: str, num: int = 20) -> list[dict]:
     try:
         req = urllib.request.Request(
             "https://google.serper.dev/search",
-            data=json.dumps({"q": query, "num": num}).encode("utf-8"),
+            # Serper free plan rejects num > 10 (verified 2026-09-10).
+            data=json.dumps({"q": query, "num": min(num, 10)}).encode("utf-8"),
             headers={
                 "X-API-KEY": secret("SERPER_API_KEY"),
                 "Content-Type": "application/json",

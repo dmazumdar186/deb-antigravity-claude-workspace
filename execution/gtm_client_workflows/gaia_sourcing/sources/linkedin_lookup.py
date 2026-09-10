@@ -56,7 +56,8 @@ def _serper(query: str, num: int = 5) -> list[dict]:
             "https://google.serper.dev/search",
             headers={"X-API-KEY": secret("SERPER_API_KEY"),
                      "Content-Type": "application/json"},
-            data=json.dumps({"q": query, "num": num}),
+            # Serper free plan rejects num > 10 (verified 2026-09-10).
+                data=json.dumps({"q": query, "num": min(num, 10)}),
             timeout=CONFIG.request_timeout_s,
         )
         if r.status_code != 200:
