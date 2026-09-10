@@ -44,3 +44,11 @@ pytest>=7.0
 
 # job_digest profile.yaml loader
 pyyaml>=6.0
+
+# ProdCraft med-spa pipeline (execution/personal_workflows/prodcraft_medspa/) — audit screenshots
+# (Playwright), Gmail draft creation + sync_sheets.py's Google Sheets auth, and pytest for
+# tests/prodcraft_medspa/. pytest is already pinned above (>=7.0); prodcraft's test suite runs
+# fine on it, so it is not re-pinned here.
+playwright>=1.45
+google-api-python-client>=2.0
+google-auth-oauthlib>=1.0

@@ -1,0 +1,125 @@
+name: prodcraft-medspa-ci
+
+# On push touching the pipeline or its tests: pytest for the Python packages, then npm test +
+# typecheck for the Worker and dashboard, then build + acceptance test for the Next.js template.
+
+on:
+  push:
+    paths:
+      - "execution/personal_workflows/prodcraft_medspa/**"
+      - "tests/prodcraft_medspa/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: pytest
+        run: python -m pytest tests/prodcraft_medspa -q
+
+  worker-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: execution/personal_workflows/prodcraft_medspa/preview/worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: npm ci
+        run: npm ci
+
+      - name: npm test
+        run: npm test
+
+      - name: npm run typecheck
+        run: npm run typecheck
+
+  dashboard-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: execution/personal_workflows/prodcraft_medspa/dashboard
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: npm ci
+        run: npm ci
+
+      - name: npm test
+        run: npm test
+
+      - name: npm run typecheck
+        run: npm run typecheck
+
+  template-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: execution/personal_workflows/prodcraft_medspa/template
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: npm ci
+        run: npm ci
+
+      - name: npm test
+        run: npm test
+
+      - name: npm run build
+        run: npm run build
+
+      - name: Install Playwright + pytest
+        working-directory: .
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install chromium --with-deps
+
+      - name: Run template acceptance test (Playwright, both viewports)
+        working-directory: .
+        run: python tests/prodcraft_medspa/acceptance_template.py
