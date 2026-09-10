@@ -332,6 +332,9 @@ def fetch_raw(url: str, force: bool = False) -> Optional[bytes]:
     return resp.content
 
 
+_RENDER_FALLBACK_WARNED = False
+
+
 def fetch_rendered(
     url: str, source_type: SourceType = "company_bio", force: bool = False
 ) -> Optional[RawDocument]:
@@ -364,6 +367,17 @@ def fetch_rendered(
         )
 
     from .config import secret
+
+    if not secret("FIRECRAWL_API_KEY", required=False):
+        # No renderer available: fall back to the raw page rather than caching
+        # a rendered failure that a later keyed run would then trust. Server-
+        # rendered directories still yield; client-rendered ones come back as
+        # a shell, and the run log says so once so the gap is visible.
+        global _RENDER_FALLBACK_WARNED
+        if not _RENDER_FALLBACK_WARNED:
+            print("[cache] FIRECRAWL_API_KEY absent: rendered fetches fall back to raw HTTP")
+            _RENDER_FALLBACK_WARNED = True
+        return fetch(url, source_type=source_type, force=force)
 
     try:
         resp = requests.post(
