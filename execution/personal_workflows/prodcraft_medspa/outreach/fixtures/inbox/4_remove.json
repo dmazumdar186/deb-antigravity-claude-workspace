@@ -1,0 +1,10 @@
+{
+  "thread_id": "thread-mock-004",
+  "message_id": "msg-mock-004",
+  "owner_email": "owner4@example-medspa-4.test",
+  "from": "Renee Castillo <owner4@example-medspa-4.test>",
+  "to": "sender@prodcraft.fyi",
+  "subject": "Re: quick question about North Shore Med Spa's booking",
+  "raw_body_text": "Please remove this preview and take it down immediately. Do not contact us again.\n\nRenee",
+  "received_at": "2026-09-08T09:30:00Z"
+}

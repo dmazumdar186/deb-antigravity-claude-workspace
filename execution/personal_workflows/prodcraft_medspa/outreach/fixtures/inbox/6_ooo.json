@@ -1,0 +1,10 @@
+{
+  "thread_id": "thread-mock-006",
+  "message_id": "msg-mock-006",
+  "owner_email": "owner6@example-medspa-6.test",
+  "from": "Taylor Kim <owner6@example-medspa-6.test>",
+  "to": "sender@prodcraft.fyi",
+  "subject": "Automatic reply: quick question about Winnetka Wellness's booking",
+  "raw_body_text": "I am currently out of office and will respond when I return on September 15th. This is an automatic reply; for anything urgent please call the front desk.\n\nTaylor",
+  "received_at": "2026-09-08T07:00:00Z"
+}

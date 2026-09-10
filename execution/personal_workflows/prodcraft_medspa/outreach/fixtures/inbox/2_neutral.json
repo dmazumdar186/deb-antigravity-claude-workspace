@@ -1,0 +1,10 @@
+{
+  "thread_id": "thread-mock-002",
+  "message_id": "msg-mock-002",
+  "owner_email": "owner2@example-medspa-2.test",
+  "from": "Priya Shah <owner2@example-medspa-2.test>",
+  "to": "sender@prodcraft.fyi",
+  "subject": "Re: Radiance Skin Bar after hours",
+  "raw_body_text": "Thanks for sending this over. Quick question first - what booking system does the concept actually use on the backend, and would it replace what we have now?\n\nPriya",
+  "received_at": "2026-09-08T16:40:00Z"
+}

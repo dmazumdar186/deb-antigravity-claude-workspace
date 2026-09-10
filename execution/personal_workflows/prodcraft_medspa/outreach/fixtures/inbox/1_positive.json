@@ -1,0 +1,10 @@
+{
+  "thread_id": "thread-mock-001",
+  "message_id": "msg-mock-001",
+  "owner_email": "owner1@example-medspa-1.test",
+  "from": "Dana Ortiz <owner1@example-medspa-1.test>",
+  "to": "sender@prodcraft.fyi",
+  "subject": "Re: quick question about Glow Aesthetics's booking",
+  "raw_body_text": "Hi, this actually looks really good! I'd love to see more - do you have time for a quick call this week to walk me through it?\n\nDana\n\nOn Mon, Sep 7, 2026 at 9:03 AM sender@prodcraft.fyi wrote:\n> I was looking at Glow Aesthetics and noticed clients can't book online...",
+  "received_at": "2026-09-08T14:02:00Z"
+}
