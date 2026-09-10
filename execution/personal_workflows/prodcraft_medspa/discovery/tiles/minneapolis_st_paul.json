@@ -1,0 +1,13 @@
+{
+  "metro": "minneapolis_st_paul",
+  "state": "MN",
+  "tiles": [
+    {"name": "Edina", "lat": 44.8897, "lng": -93.3499, "radius_m": 3000},
+    {"name": "Wayzata", "lat": 44.9736, "lng": -93.5066, "radius_m": 3000},
+    {"name": "Minnetonka", "lat": 44.9133, "lng": -93.4687, "radius_m": 3000},
+    {"name": "Eden Prairie", "lat": 44.8547, "lng": -93.4708, "radius_m": 3000},
+    {"name": "Plymouth", "lat": 45.0105, "lng": -93.4555, "radius_m": 3000},
+    {"name": "Woodbury", "lat": 44.9239, "lng": -92.9594, "radius_m": 3000},
+    {"name": "White Bear Lake", "lat": 45.0844, "lng": -93.0116, "radius_m": 3000}
+  ]
+}

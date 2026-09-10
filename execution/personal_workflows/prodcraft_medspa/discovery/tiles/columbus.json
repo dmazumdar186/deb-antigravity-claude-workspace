@@ -1,0 +1,12 @@
+{
+  "metro": "columbus",
+  "state": "OH",
+  "tiles": [
+    {"name": "Dublin", "lat": 40.0992, "lng": -83.1141, "radius_m": 3000},
+    {"name": "New Albany", "lat": 40.0817, "lng": -82.8071, "radius_m": 3000},
+    {"name": "Upper Arlington", "lat": 40.0173, "lng": -83.0752, "radius_m": 3000},
+    {"name": "Worthington", "lat": 40.0931, "lng": -83.0180, "radius_m": 3000},
+    {"name": "Bexley", "lat": 39.9695, "lng": -82.9377, "radius_m": 3000},
+    {"name": "Powell", "lat": 40.1572, "lng": -83.0752, "radius_m": 3000}
+  ]
+}

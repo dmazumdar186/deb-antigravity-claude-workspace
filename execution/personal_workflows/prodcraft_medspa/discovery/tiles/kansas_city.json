@@ -1,0 +1,11 @@
+{
+  "metro": "kansas_city",
+  "state": "KS",
+  "tiles": [
+    {"name": "Leawood", "lat": 38.8664, "lng": -94.6172, "radius_m": 3000},
+    {"name": "Overland Park", "lat": 38.9822, "lng": -94.6708, "radius_m": 3000},
+    {"name": "Mission Hills", "lat": 39.0192, "lng": -94.6152, "radius_m": 3000},
+    {"name": "Prairie Village", "lat": 38.9903, "lng": -94.6330, "radius_m": 3000},
+    {"name": "Lee's Summit", "lat": 38.9108, "lng": -94.3822, "radius_m": 3000}
+  ]
+}

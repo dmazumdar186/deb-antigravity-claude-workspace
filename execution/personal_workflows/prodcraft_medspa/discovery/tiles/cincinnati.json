@@ -1,0 +1,11 @@
+{
+  "metro": "cincinnati",
+  "state": "OH",
+  "tiles": [
+    {"name": "Indian Hill", "lat": 39.1795, "lng": -84.3271, "radius_m": 3000},
+    {"name": "Mason", "lat": 39.3606, "lng": -84.3080, "radius_m": 3000},
+    {"name": "Montgomery", "lat": 39.2287, "lng": -84.3499, "radius_m": 3000},
+    {"name": "Hyde Park", "lat": 39.1379, "lng": -84.4491, "radius_m": 3000},
+    {"name": "Blue Ash", "lat": 39.2378, "lng": -84.3785, "radius_m": 3000}
+  ]
+}
