@@ -1,0 +1,26 @@
+# Cloudflare Pages project config for prodcraft-medspa-dashboard.
+#
+# Bindings for the Pages Functions in ./functions/. Deploy with:
+#   npm run deploy   (== npx wrangler pages deploy public)
+# (project name is inferred from `name` below, no --project-name needed).
+#
+# Secrets are NOT declared here (they would be committed). Set them once via:
+#   npx wrangler pages secret put DASHBOARD_USER       --project-name prodcraft-medspa-dashboard
+#   npx wrangler pages secret put DASHBOARD_PASS       --project-name prodcraft-medspa-dashboard
+#   npx wrangler pages secret put SUPABASE_URL         --project-name prodcraft-medspa-dashboard
+#   npx wrangler pages secret put SUPABASE_SERVICE_KEY --project-name prodcraft-medspa-dashboard
+# and they persist on the Cloudflare Pages project across deploys.
+#
+# DASHBOARD_USER / DASHBOARD_PASS gate every path via functions/_middleware.ts
+# (HTTP Basic Auth). SUPABASE_URL / SUPABASE_SERVICE_KEY are read by
+# functions/_lib/supabase.ts to talk to PostgREST with the service-role key
+# (RLS is enabled per db/schema.sql; the service key bypasses it by design —
+# never expose it to the client, never log it).
+
+name = "prodcraft-medspa-dashboard"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "./public"
+
+# No non-secret vars needed yet. Secrets (never committed) are set via
+# `wrangler pages secret put` as documented above.
+[vars]

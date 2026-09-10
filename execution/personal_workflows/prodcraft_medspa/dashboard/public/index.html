@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>ProdCraft Med Spa — Dashboard</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>ProdCraft <span>Med Spa</span></h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="queue" role="tab" aria-selected="true">Queue</button>
+      <button class="tab-btn" data-tab="previews" role="tab" aria-selected="false">Previews</button>
+      <button class="tab-btn" data-tab="stats" role="tab" aria-selected="false">Stats</button>
+      <button class="tab-btn" data-tab="config" role="tab" aria-selected="false">Config</button>
+    </nav>
+  </header>
+
+  <div id="toast-region" aria-live="polite"></div>
+  <div id="halt-banner" class="halt-banner" hidden></div>
+
+  <main>
+    <section id="tab-queue" class="tab-panel" role="tabpanel">
+      <div class="panel-head">
+        <h2>Today's Queue</h2>
+        <label class="date-picker">Date <input type="date" id="queue-date" /></label>
+        <span id="queue-cap-note" class="muted"></span>
+      </div>
+      <div id="queue-list" class="card-list"></div>
+      <p id="queue-empty" class="empty-state" hidden>Nothing queued for this date.</p>
+    </section>
+
+    <section id="tab-previews" class="tab-panel" role="tabpanel" hidden>
+      <div class="panel-head">
+        <h2>Previews</h2>
+        <label>Status
+          <select id="preview-status-filter">
+            <option value="review" selected>review</option>
+            <option value="approved">approved</option>
+            <option value="live">live</option>
+            <option value="expired">expired</option>
+            <option value="takedown">takedown</option>
+            <option value="">all</option>
+          </select>
+        </label>
+      </div>
+      <div id="preview-list" class="preview-list"></div>
+      <p id="preview-empty" class="empty-state" hidden>No previews at this status.</p>
+    </section>
+
+    <section id="tab-stats" class="tab-panel" role="tabpanel" hidden>
+      <h2>Stats</h2>
+      <div id="phase0-banner" class="phase0-banner"></div>
+      <div class="stat-row">
+        <div class="stat-tile"><span id="stat-bounce">—</span><label>30d bounce rate</label></div>
+        <div class="stat-tile"><span id="stat-sends-per-reply">—</span><label>sends / reply</label></div>
+      </div>
+      <h3>Reply rate per touch</h3>
+      <table class="data-table" id="reply-rate-table">
+        <thead><tr><th>Touch</th><th>Reply rate</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h3>Funnel by metro</h3>
+      <div class="table-scroll">
+        <table class="data-table" id="funnel-table">
+          <thead>
+            <tr>
+              <th>Metro</th><th>Businesses</th><th>Audited</th><th>Qualified</th><th>Owner found</th>
+              <th>Verified</th><th>Previews approved</th><th>Sent touch1</th><th>Replied</th><th>Calls</th><th>Closed won</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h3>Metro stats (latest sample)</h3>
+      <div class="table-scroll">
+        <table class="data-table" id="metro-stats-table">
+          <thead><tr><th>Metro</th><th>Sampled</th><th>Qualified</th><th>% qualified</th><th>CI</th><th>Measured</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-config" class="tab-panel" role="tabpanel" hidden>
+      <h2>Config</h2>
+      <form id="config-form">
+        <fieldset>
+          <legend>Proof lines</legend>
+          <p class="muted">One per line. Used by touch-3/4 email templates once you have a real result to cite.</p>
+          <textarea id="cfg-proof-lines" rows="4"></textarea>
+        </fieldset>
+        <fieldset>
+          <legend>Sender</legend>
+          <label>Name <input type="text" id="cfg-sender-name" /></label>
+          <label>Physical address <input type="text" id="cfg-sender-address" /></label>
+          <label>Signature <textarea id="cfg-sender-signature" rows="3"></textarea></label>
+        </fieldset>
+        <fieldset>
+          <legend>Phase 0 override</legend>
+          <p class="muted">Changing any field below requires a reason — it's logged.</p>
+          <label class="checkbox-row"><input type="checkbox" id="cfg-phase0-passed" /> passed</label>
+          <label>Reason <input type="text" id="cfg-phase0-reason" placeholder="required to change phase0" /></label>
+          <button type="button" id="cfg-phase0-submit">Apply phase0 override</button>
+        </fieldset>
+        <button type="submit" id="cfg-submit">Save proof lines + sender</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
