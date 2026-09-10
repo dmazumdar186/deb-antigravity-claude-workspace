@@ -12,7 +12,7 @@ no cache.
 
 ## 0. Preconditions (15 min)
 
-- `git pull` on `claude/candidate-search-filters-xtxcks` (or merge it).
+- `git pull` main. Python deps the pipeline needs beyond the suite: `pip install pymupdf pydantic[email] requests playwright` (a missing PyMuPDF now fails loudly instead of yielding empty PDFs).
 - `py -m pytest gtm_client_workflows/gaia_sourcing/tests/ -q` from `execution/` — expect all green (584+).
 - Balances: Anthropic (was €0 on 20 Aug — top up ~€20), OpenRouter (~$2), Prospeo (1,992 credits). Gemini free tier resets daily (20 req/day/model).
 - Keith's thresholds are NOT yet known (the call did not cover them). Use the
