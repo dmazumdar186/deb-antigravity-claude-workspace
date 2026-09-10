@@ -1,0 +1,13 @@
+{
+  "maria@example-medspa-01.test": {"result": "ok", "quality_score": 96},
+  "amy@example-medspa-02.test": {"result": "ok", "quality_score": 94},
+  "jennifer@example-medspa-03.test": {"result": "ok", "quality_score": 95},
+  "robert@example-medspa-04.test": {"result": "ok", "quality_score": 93},
+  "emily@example-medspa-05.test": {"result": "ok", "quality_score": 97},
+  "marcus@example-medspa-06.test": {"result": "ok", "quality_score": 90},
+  "nicole@example-medspa-07.test": {"result": "ok", "quality_score": 98},
+  "victor@example-medspa-08.test": {"result": "ok", "quality_score": 91},
+  "info@example-medspa-09.test": {"result": "catch_all", "quality_score": 60},
+  "sam@example-medspa-11.test": {"result": "ok", "quality_score": 88},
+  "bounced@example-medspa-12.test": {"result": "invalid", "quality_score": 0}
+}
