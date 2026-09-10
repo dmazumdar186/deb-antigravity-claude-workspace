@@ -1,0 +1,385 @@
+<title>Gaia Sourcing v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#F4F6F3; --surface:#FFFFFF; --ink:#1A2321; --muted:#5B6763;
+    --line:#D6DDD8; --accent:#2E6B4F; --amber:#B4791C; --rust:#A9432F;
+    --accent-soft:#e4efe9; --amber-soft:#f7e9d4; --rust-soft:#f5e0da;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#121A17; --surface:#1A2420; --ink:#E8EEEA; --muted:#98A59F;
+      --line:#2C3934; --accent:#6FBF95; --amber:#E0A84B; --rust:#E27A66;
+      --accent-soft:#1d332a; --amber-soft:#332a1a; --rust-soft:#33221e;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#121A17; --surface:#1A2420; --ink:#E8EEEA; --muted:#98A59F;
+    --line:#2C3934; --accent:#6FBF95; --amber:#E0A84B; --rust:#E27A66;
+    --accent-soft:#1d332a; --amber-soft:#332a1a; --rust-soft:#33221e;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    line-height:1.6;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+    font-weight:600;
+    text-wrap:balance;
+    color:var(--ink);
+    line-height:1.25;
+  }
+  .mono, code, .step-num, table, .topbar, dt{
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  a{color:var(--accent);}
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline:3px solid var(--amber);
+    outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  .wrap{
+    max-width:72ch;
+    margin:0 auto;
+    padding-inline:16px;
+    padding-block:2rem 4rem;
+  }
+
+  .topbar{
+    max-width:72ch;
+    margin:0 auto;
+    padding:0.6rem 16px;
+    font-size:0.78rem;
+    letter-spacing:0.02em;
+    color:var(--muted);
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+  }
+
+  h1{font-size:1.7rem; margin:1.6rem 0 0.4rem;}
+  .byline{color:var(--muted); font-size:0.95rem; margin:0 0 2rem;}
+
+  h2{
+    font-size:1.15rem;
+    margin:2.4rem 0 0.9rem;
+    padding-top:1.4rem;
+    border-top:1px solid var(--line);
+  }
+  h2:first-of-type{border-top:none; padding-top:0;}
+
+  p{margin:0 0 1rem;}
+  ul, ol{margin:0 0 1rem; padding-left:1.35rem;}
+  li{margin-bottom:0.55rem;}
+  li:last-child{margin-bottom:0;}
+
+  strong{color:var(--ink);}
+
+  .callout{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--rust);
+    border-radius:4px;
+    padding:0.85rem 1rem;
+    margin:1rem 0;
+    font-size:0.95rem;
+  }
+  .callout.amber{border-left-color:var(--amber);}
+
+  /* diagram */
+  .diagram-frame{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:0.9rem;
+    margin:1.2rem 0 1.6rem;
+    overflow-x:auto;
+  }
+  .diagram-frame svg{display:block; min-width:640px;}
+  .diagram-caption{
+    font-size:0.8rem;
+    color:var(--muted);
+    margin-top:0.5rem;
+  }
+
+  /* ordered steps */
+  .steps{
+    list-style:none;
+    padding:0;
+    margin:0 0 1rem;
+    counter-reset:none;
+  }
+  .steps li{
+    display:grid;
+    grid-template-columns:2.1rem 1fr;
+    gap:0.75rem;
+    padding:0.7rem 0;
+    border-bottom:1px solid var(--line);
+    margin-bottom:0;
+  }
+  .steps li:last-child{border-bottom:none;}
+  .step-num{
+    color:var(--accent);
+    font-weight:600;
+    font-size:0.95rem;
+    line-height:1.6;
+  }
+  .steps .step-title{font-weight:600; color:var(--ink);}
+
+  /* guardrails definition list */
+  dl.guardrails{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0.9rem 1.4rem;
+    margin:0 0 1rem;
+    padding:0;
+  }
+  @media (max-width:640px){
+    dl.guardrails{grid-template-columns:1fr;}
+  }
+  dl.guardrails dt{
+    font-size:0.78rem;
+    letter-spacing:0.03em;
+    color:var(--amber);
+    text-transform:uppercase;
+    margin:0 0 0.25rem;
+  }
+  dl.guardrails dd{
+    margin:0;
+    padding-bottom:0.9rem;
+    border-bottom:1px solid var(--line);
+    font-size:0.95rem;
+  }
+
+  .table-wrap{overflow-x:auto; margin:1rem 0;}
+  table{border-collapse:collapse; width:100%; font-size:0.85rem;}
+  th, td{
+    text-align:left;
+    padding:0.5rem 0.75rem;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  th{color:var(--muted); font-weight:500;}
+
+  hr.rule{border:none; border-top:1px solid var(--line); margin:2rem 0;}
+
+  .foot{color:var(--muted); font-size:0.85rem; margin-top:2.5rem;}
+</style>
+
+<div class="topbar">Gaia Sourcing v2 · Prodcraft · for Gaia Talent · draft for Monday 14 Sep 2026</div>
+
+<div class="wrap">
+
+  <h1>Gaia Sourcing v2 — outbound sourcing that feeds Maddie and Recruit CRM</h1>
+  <p class="byline">For Keith Molony and Steph (Gaia Talent). From Debanjan Mazumdar, Prodcraft. Delivery promised: Monday 14 Sep 2026, 17:00, link plus Loom.</p>
+
+  <h2 id="today">What Gaia has today, and where this sits</h2>
+  <p>Maddie is inbound. A CV arrives in Gmail, Maddie scores it against live jobs, invites anyone over 60 to a screening call, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.</p>
+  <p>This system is outbound. It finds the chartered, grade-matched, Ireland-based engineers who never applied, proves each one with a quote from a public document, checks their contact details, and drops them into Recruit CRM as candidates on the job, so Isadora or Maddie takes over from there. Together they cover both halves of a search.</p>
+  <p>Recruit CRM's own AI sourcing (800 million external profiles, 0 to 100 match scores) is a search over a licensed profile database. This is a different layer: it reads what people wrote and said on the record (oral-hearing witness statements, firm bio pages, professional registers), so a card carries evidence, not a similarity score, and it applies your brief as hard rules, not a ranking.</p>
+
+  <div class="diagram-frame">
+    <svg viewBox="0 0 900 300" role="img" aria-labelledby="diagram-title diagram-desc" xmlns="http://www.w3.org/2000/svg">
+      <title id="diagram-title">Inbound and outbound lanes converging on Recruit CRM</title>
+      <desc id="diagram-desc">Inbound lane: Applicant to Gmail to Maddie scores to screening call to Recruit CRM. Outbound lane: Brief to public evidence and licensed data to gates to verified contact to consultant sends to reply classified to Recruit CRM. Both lanes converge on Recruit CRM, after which Maddie or consultants take over.</desc>
+
+      <!-- lane labels -->
+      <text x="12" y="26" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--amber)" style="fill:#B4791C">INBOUND</text>
+      <text x="12" y="158" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="#2E6B4F">OUTBOUND</text>
+
+      <!-- inbound lane boxes -->
+      <g font-family="IBM Plex Sans, sans-serif" font-size="12.5">
+        <rect x="10" y="36" width="108" height="46" rx="6" fill="#f7e9d4" stroke="#B4791C" stroke-width="1.5"></rect>
+        <text x="64" y="63" text-anchor="middle" fill="#1A2321">Applicant</text>
+
+        <rect x="150" y="36" width="108" height="46" rx="6" fill="#f7e9d4" stroke="#B4791C" stroke-width="1.5"></rect>
+        <text x="204" y="63" text-anchor="middle" fill="#1A2321">Gmail</text>
+
+        <rect x="290" y="36" width="130" height="46" rx="6" fill="#f7e9d4" stroke="#B4791C" stroke-width="1.5"></rect>
+        <text x="355" y="57" text-anchor="middle" fill="#1A2321">Maddie</text>
+        <text x="355" y="72" text-anchor="middle" fill="#1A2321">scores</text>
+
+        <rect x="452" y="36" width="150" height="46" rx="6" fill="#f7e9d4" stroke="#B4791C" stroke-width="1.5"></rect>
+        <text x="527" y="57" text-anchor="middle" fill="#1A2321">Screening</text>
+        <text x="527" y="72" text-anchor="middle" fill="#1A2321">call</text>
+      </g>
+
+      <!-- inbound arrows -->
+      <g stroke="#B4791C" stroke-width="1.5" fill="none" marker-end="url(#arrowAmber)">
+        <line x1="118" y1="59" x2="148" y2="59"></line>
+        <line x1="258" y1="59" x2="288" y2="59"></line>
+        <line x1="420" y1="59" x2="450" y2="59"></line>
+        <path d="M602 59 C 660 59, 660 148, 700 148"></path>
+      </g>
+
+      <!-- outbound lane boxes -->
+      <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+        <rect x="10" y="168" width="90" height="52" rx="6" fill="#e4efe9" stroke="#2E6B4F" stroke-width="1.5"></rect>
+        <text x="55" y="198" text-anchor="middle" fill="#1A2321">Brief</text>
+
+        <rect x="118" y="168" width="150" height="52" rx="6" fill="#e4efe9" stroke="#2E6B4F" stroke-width="1.5"></rect>
+        <text x="193" y="190" text-anchor="middle" fill="#1A2321" font-size="10.5">Public evidence +</text>
+        <text x="193" y="203" text-anchor="middle" fill="#1A2321" font-size="10.5">licensed data</text>
+
+        <rect x="286" y="168" width="80" height="52" rx="6" fill="#e4efe9" stroke="#2E6B4F" stroke-width="1.5"></rect>
+        <text x="326" y="198" text-anchor="middle" fill="#1A2321">Gates</text>
+
+        <rect x="384" y="168" width="128" height="52" rx="6" fill="#e4efe9" stroke="#2E6B4F" stroke-width="1.5"></rect>
+        <text x="448" y="190" text-anchor="middle" fill="#1A2321" font-size="10.5">Verified</text>
+        <text x="448" y="203" text-anchor="middle" fill="#1A2321" font-size="10.5">contact</text>
+
+        <rect x="530" y="168" width="130" height="52" rx="6" fill="#e4efe9" stroke="#2E6B4F" stroke-width="1.5"></rect>
+        <text x="595" y="190" text-anchor="middle" fill="#1A2321" font-size="10.5">Consultant</text>
+        <text x="595" y="203" text-anchor="middle" fill="#1A2321" font-size="10.5">sends</text>
+      </g>
+
+      <!-- outbound arrows -->
+      <g stroke="#2E6B4F" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)">
+        <line x1="100" y1="194" x2="116" y2="194"></line>
+        <line x1="268" y1="194" x2="284" y2="194"></line>
+        <line x1="366" y1="194" x2="382" y2="194"></line>
+        <line x1="512" y1="194" x2="528" y2="194"></line>
+      </g>
+
+      <!-- reply classified, wraps below then into CRM -->
+      <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" stroke="#2E6B4F" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)">
+        <path d="M660 194 C 680 194, 680 240, 620 240"></path>
+      </g>
+      <rect x="440" y="216" width="180" height="48" rx="6" fill="#e4efe9" stroke="#2E6B4F" stroke-width="1.5"></rect>
+      <text x="530" y="236" text-anchor="middle" fill="#1A2321" font-family="IBM Plex Sans, sans-serif" font-size="10.5">Reply</text>
+      <text x="530" y="249" text-anchor="middle" fill="#1A2321" font-family="IBM Plex Sans, sans-serif" font-size="10.5">classified</text>
+      <g stroke="#2E6B4F" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)">
+        <path d="M440 240 C 380 240, 380 174, 320 174"></path>
+      </g>
+
+      <!-- convergence into Recruit CRM -->
+      <rect x="700" y="118" width="150" height="60" rx="6" fill="#FFFFFF" stroke="#1A2321" stroke-width="1.8"></rect>
+      <text x="775" y="144" text-anchor="middle" fill="#1A2321" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="12">Recruit</text>
+      <text x="775" y="159" text-anchor="middle" fill="#1A2321" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="12">CRM</text>
+
+      <g stroke="#2E6B4F" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)">
+        <path d="M620 240 C 660 240, 690 190, 700 165"></path>
+      </g>
+
+      <!-- downstream -->
+      <line x1="850" y1="148" x2="890" y2="148" stroke="#1A2321" stroke-width="1.5" marker-end="url(#arrowInk)"></line>
+      <text x="893" y="128" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#5B6763">Maddie /</text>
+      <text x="893" y="142" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#5B6763">consultants</text>
+      <text x="893" y="156" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#5B6763">take over</text>
+
+      <defs>
+        <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#B4791C"></path>
+        </marker>
+        <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#2E6B4F"></path>
+        </marker>
+        <marker id="arrowInk" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#1A2321"></path>
+        </marker>
+      </defs>
+    </svg>
+    <p class="diagram-caption">Two lanes, one CRM. Inbound (amber) and outbound (moss) both land in Recruit CRM; Maddie or a consultant takes it from there.</p>
+  </div>
+
+  <h2 id="what-went-wrong">What went wrong on 20 August, and what changed</h2>
+  <p>You said the list was too senior and some were not in Ireland. Both were filter settings.</p>
+  <ul>
+    <li>The seniority filter had a floor (8 years) and no ceiling, and it treated a Director title as proof of experience. All 10 Senior Structural Engineer cards were Director or Associate Director.</li>
+    <li>The Ireland filter accepted "worked on an Irish scheme" as proof of living in Ireland. That let three London-based and one Belfast-based engineer through.</li>
+  </ul>
+  <p>Both are now brief settings you set per role: a seniority band (grade ceiling and years) and a residence rule (Republic only, county list, relocation yes or no). A final check refuses to deliver a list whose titles or locations break the brief. The re-cut of your own 13 under a Senior Engineer ceiling is at the Brief Controls link: <strong>none of the 13 survive</strong>, which is exactly your read of the list.</p>
+
+  <h2 id="how-it-runs">How it runs, per role</h2>
+  <ol class="steps">
+    <li><span class="step-num mono">01</span><span><span class="step-title">Brief.</span> Title, grade band, years band, counties, chartership, target and off-limits firms, salary band. Confirmed back in writing before any search.</span></li>
+    <li><span class="step-num mono">02</span><span><span class="step-title">Find.</span> Public evidence sources (An Coimisiún Pleanála oral hearings, consultancy bio pages, Engineers Ireland and IStructE registers) plus a licensed people-data source for the grade LinkedIn holds and bio pages do not.</span></li>
+    <li><span class="step-num mono">03</span><span><span class="step-title">Prove.</span> Every claim on a card is a verbatim quote, checked character by character against the cached source. A claim that fails the check is dropped, and the drop rate is published (0.9% last run).</span></li>
+    <li><span class="step-num mono">04</span><span><span class="step-title">Gate.</span> Deterministic rules only: chartered, resident, discipline, seniority floor and ceiling, not at the client. A model never decides a tier.</span></li>
+    <li><span class="step-num mono">05</span><span><span class="step-title">Contact.</span> Email verified through Prospeo; only verified or catch-all addresses are used. Inferred addresses are labelled, never sent to. LinkedIn URL resolved per card.</span></li>
+    <li><span class="step-num mono">06</span><span><span class="step-title">Draft.</span> A short LinkedIn note and a short email from a human-approved template pool, filled with the project they gave evidence on, the scheme, the firm. Under 400 characters. Sent by a named Gaia consultant from their own seat, never by us.</span></li>
+    <li><span class="step-num mono">07</span><span><span class="step-title">Reply.</span> A candidate's reply is classified at once (interested, not now, no, question, out of office, bounce), the next step is set (book a call, snooze 90 days, close, consultant answers), and a note lands on the candidate in Recruit CRM. An opt-out closes the record and is honoured.</span></li>
+    <li><span class="step-num mono">08</span><span><span class="step-title">Sync.</span> Each delivered candidate is created in Recruit CRM (deduplicated by email or LinkedIn URL, never overwriting a consultant's data) with source "Prodcraft sourcing", attached to the job, with an evidence note and the Article 14 notice date. From here Maddie can invite them to a screening call exactly as she does for applicants.</span></li>
+  </ol>
+
+  <h2 id="guardrails">Guardrails (fail-safe by default)</h2>
+  <dl class="guardrails">
+    <div>
+      <dt>Nothing sends on its own</dt>
+      <dd>Drafts go to a consultant; the CRM sync runs in dry-run unless a live flag is set, and every intended write is logged first.</dd>
+    </div>
+    <div>
+      <dt>Brief lock</dt>
+      <dd>A list that breaks the seniority or location brief cannot be delivered.</dd>
+    </div>
+    <div>
+      <dt>Evidence lock</dt>
+      <dd>No quote, no claim. Off-limits firms (AtkinsRéalis, TOBIN) are blocked everywhere.</dd>
+    </div>
+    <div>
+      <dt>Contact honesty</dt>
+      <dd>Verified, catch-all, inferred and none are never merged.</dd>
+    </div>
+    <div>
+      <dt>Cost ceiling</dt>
+      <dd>Per run, enforced in code. Last full run: €0.60 of model spend.</dd>
+    </div>
+    <div>
+      <dt>Privacy</dt>
+      <dd>Article 14 notice is a fixed text, injected on every draft, with the source of the data named. Licensed data providers only; no scraping through fake accounts.</dd>
+    </div>
+    <div>
+      <dt>Change log</dt>
+      <dd>Any threshold change is a command-line flag, logged with the run, so a list can always be traced to the brief it was cut against.</dd>
+    </div>
+  </dl>
+
+  <h2 id="monday">What lands on Monday 17:00</h2>
+  <ul>
+    <li>Link: the sourcing dossier (same format as before) with Brief Controls, corrected for Senior Engineer grade and Ireland residence, for the two original roles, plus a CSV.</li>
+    <li>Loom: how it runs, how the brief settings work, and how a candidate lands in Recruit CRM.</li>
+    <li>This page, for Steph: where the hand-off to Maddie sits, and the Recruit CRM fields and endpoints used.</li>
+    <li>An honest count: how many candidates survived per role and why. <strong>Role 2 (Cork) never had more than four</strong> who passed every gate; reaching five is a source question, not a filter question, and the page will say so.</li>
+  </ul>
+
+  <h2 id="timeline">Build timeline if you go ahead</h2>
+  <p>Working pipeline exists (580+ automated tests). Recruit CRM sync, reply classification and the brief settings are built. Wiring to your Recruit CRM account, your job slugs and a named-consultant sender takes 3 to 5 working days, as said on the call. Running cost per role is about €100 in data and model calls, against a placement fee of €14k to €20k.</p>
+
+  <h2 id="steph">What Steph needs to know about the Recruit CRM hand-off</h2>
+  <ul>
+    <li>API access is on Recruit CRM's Business plan and above, not Pro. If Gaia is on Pro, the sync runs through Zapier's Recruit CRM app (new candidate, assign to job) until an upgrade, or the CSV import stays the hand-off.</li>
+    <li>The API key is generated by the account owner in Admin Settings and sent as an Authorization header. Rate limit is 60 requests a minute for accounts with up to 6 licences; the sync stays well under it.</li>
+    <li>Fields written: first and last name, email (verified or catch-all only), current title, employer, city, LinkedIn URL, a "Source" value of "Prodcraft sourcing", a tag per campaign, one note with the evidence quotes and the Article 14 notice date, and assignment to the job. Existing candidates are matched on email or LinkedIn URL and never overwritten.</li>
+    <li>Native webhooks (candidate created, stage changed) are on Enterprise; not needed for v1.</li>
+    <li>Maddie's trigger stays hers: a sourced candidate who replies "interested" is set to a stage you choose, and Maddie or Isadora takes it from there.</li>
+  </ul>
+
+  <h2 id="tools">The tools Keith mentioned, and where this differs</h2>
+  <ul>
+    <li><strong>Recruit CRM AI sourcing:</strong> natural-language search over a licensed database of 800 million profiles with a match score, one-click import, on credits. A search over profiles; no evidence quotes, no chartership check, no outbound drafts or reply handling on its marketing pages (to be confirmed with Recruit CRM). This system reads what the person actually wrote or said on the record and applies the brief as hard rules.</li>
+    <li><strong>Wiggli:</strong> ATS plus AI sourcing over 850 million people, contact waterfall across 14 data sources, Hunter plan €140 a month for up to 5 users. Irish coverage unpublished. Worth a trial search if Gaia wants a second database source; it does not replace evidence or gating.</li>
+    <li><strong>Lusha and enrichment tools:</strong> Keith's own read ("they enrich but don't have the data") matches the published European coverage picture. Compliance note: Italy's regulator fined Lusha €2 million in July 2026, rejecting "legitimate interest" for enrichment data. Sourcing from public records with a named source and an Article 14 notice is the safer basis, and it is how this system already works.</li>
+    <li><strong>InMail:</strong> response rates have fallen from 10 to 15% toward 3 to 8%, and LinkedIn cut open InMail sends to under 100 a month in late 2025. That is why the drafts here are short, evidence-specific, sent from a named consultant, and email goes only to verified addresses.</li>
+  </ul>
+
+  <h2 id="not-in-scope">Not in scope, deliberately</h2>
+  <ul>
+    <li>No AI voice calls, no automated sends: Maddie and your consultants own every conversation.</li>
+    <li>No replacement of Recruit CRM or LinkedIn Recruiter; this feeds the first and reduces reliance on the second.</li>
+    <li>No claim of a reply rate. The pilot counts replies; it does not promise them.</li>
+  </ul>
+
+  <hr class="rule">
+  <p class="foot">Prodcraft · prepared for Gaia Talent · draft for Monday 14 Sep 2026, 17:00</p>
+
+</div>
