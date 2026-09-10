@@ -132,6 +132,17 @@ class RunConfig:
     # Fill in after `run.py --stage sync_crm` (dry-run) or
     # RecruitCRMClient.list_jobs() confirms the correct slugs.
     recruit_crm_job_ids: dict[str, str] = field(default_factory=dict)
+    # 2026-09-10 -- RADAR_CONTRACTS.md section E. A ContactRecord's evidence
+    # is "stale" once it is older than this many days (layers/contact.py sets
+    # ContactRecord.evidence_age_days / .stale from it); integrations.
+    # recruit_crm.sync_delivery blocks a stale record from CRM sync unless
+    # called with allow_stale=True (wired to a future --allow-stale CLI flag).
+    max_evidence_age_days: int = 30
+    # Env var name (looked up via core.config.secret, required=False) holding
+    # the Slack/WhatsApp-compatible webhook URL core/alerts.py posts to. A
+    # name rather than the URL itself so ops can repoint it without a code
+    # change; core/alerts.alert() no-ops with a log line when it is unset.
+    alert_webhook_env: str = "ALERT_WEBHOOK_URL"
 
     @property
     def run_dir(self) -> Path:

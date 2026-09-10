@@ -278,6 +278,30 @@ def head_ok(url: str, timeout: int = 20) -> tuple[bool, int]:
         return False, 0
 
 
+def post_json(
+    url: str, payload: dict, timeout: int = 10
+) -> tuple[bool, int]:
+    """The one sanctioned HTTP POST helper for small, best-effort,
+    out-of-band calls that are NOT part of the sourcing pipeline itself --
+    currently core/alerts.py's webhook post (RADAR_CONTRACTS.md section E).
+
+    Deliberately NOT cached (unlike fetch()/fetch_rendered()) and
+    deliberately has NO retries: an alert that silently retries hides how
+    flaky the destination actually is, and this call's own log line already
+    tells the operator whether it landed. Never raises -- a broken webhook
+    must degrade the caller (a skipped notification), not the run.
+    """
+    try:
+        resp = requests.post(url, json=payload, timeout=timeout)
+        return (200 <= resp.status_code < 300), resp.status_code
+    except Exception as exc:
+        print(
+            "[cache] post_json to " + urlparse(url).netloc
+            + " failed: " + repr(exc)[:160]
+        )
+        return False, 0
+
+
 def fetch_raw(url: str, force: bool = False) -> Optional[bytes]:
     """Cached fetch that preserves the ORIGINAL bytes.
 

@@ -79,6 +79,7 @@ from typing import Any, Optional
 
 from ..core.config import PKG_ROOT, PRIVACY_NOTICE_URL, secret
 from ..core.contracts import CandidateCard, ContactRecord, MovabilitySignal
+from ..layers import optout
 
 DEFAULT_BASE_URL = "https://api.recruitcrm.io/v1"
 DEFAULT_AUDIT_PATH = PKG_ROOT / "logs" / "recruit_crm_audit.jsonl"
@@ -499,12 +500,23 @@ def sync_delivery(
     movability: dict[str, MovabilitySignal],
     client: RecruitCRMClient,
     job_ids: dict[str, str],
+    allow_stale: bool = False,
 ) -> SyncReport:
     """Push the delivered shortlist to Recruit CRM. Contains failures per
     candidate (I-parallel to run.run_all) EXCEPT WriteCapExceeded, which must
     propagate -- the same shape as core.providers.CostCeilingExceeded, for
     the same reason: a cap that gets quietly retried around one candidate at
     a time is not a cap.
+
+    Two safety checks run before any write is attempted (RADAR_CONTRACTS.md
+    section E), both skip-and-log rather than raise -- neither is the kind of
+    failure that should take the whole sync down:
+      - opt-out: `layers.optout.is_opted_out` against the candidate's
+        person_id/email/linkedin_url. A hit is skipped, never written.
+      - stale evidence: `contact.stale` (set by layers/contact.py from
+        CONFIG.max_evidence_age_days) blocks the write unless the caller
+        passes `allow_stale=True` -- wired to a future `--allow-stale` CLI
+        flag (see this package's HANDOFF.md).
     """
     report = SyncReport()
     for card in cards:
@@ -512,6 +524,23 @@ def sync_delivery(
         if contact is None:
             report.skipped += 1
             report.lines.append(card.full_name + ": skipped (no contact record)")
+            continue
+
+        optout_hit = optout.is_opted_out(contact=contact, person_id=card.person_id)
+        if optout_hit is not None:
+            report.skipped += 1
+            report.lines.append(
+                card.full_name + ": skipped (opted out: " + optout_hit.reason + ")"
+            )
+            continue
+
+        if contact.stale and not allow_stale:
+            report.skipped += 1
+            report.lines.append(
+                card.full_name + ": skipped (stale evidence, "
+                + str(contact.evidence_age_days) + "d old; re-run with "
+                "allow_stale=True to override)"
+            )
             continue
 
         mov = movability.get(card.person_id)

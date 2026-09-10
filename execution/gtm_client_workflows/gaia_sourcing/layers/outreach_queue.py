@@ -1,0 +1,231 @@
+"""
+Outreach approval state machine (RADAR_CONTRACTS.md section E).
+
+    draft -> pending_approval -> approved -> marked_sent
+                                           -> rejected
+
+Any transition not in that diagram raises `InvalidTransition`. This is a
+record-keeping layer, not a sending layer: `mark_sent` records that a human
+sent something OUTSIDE this pipeline (I7: Prodcraft/this codebase never
+contacts a candidate) -- it has no side effect beyond writing the state and
+the audit line. Nothing in this module, or anywhere in this package, makes an
+outbound send call.
+
+Persistence: one JSON object per campaign at
+`run/<campaign_id>/outreach_queue.json`, keyed by draft_id. Every transition
+ALSO appends one line to `logs/outreach_audit.jsonl` with a timestamp and the
+acting user -- a second, append-only trail that survives even if the queue
+file itself were ever hand-edited or corrupted.
+
+Ambiguity resolved (documented per task instructions): RADAR_CONTRACTS.md
+names the transition functions as `approve`, `reject`, `mark_sent` but the
+diagram implies a fourth step (draft -> pending_approval) with no named
+function. Added `submit_for_approval(draft_id, by)` for that step rather than
+collapsing draft straight to pending_approval inside `create_draft`, so the
+"a draft was written" and "a human/process put it up for approval" audit
+events stay distinguishable. Also: the diagram writes `approved ->
+marked_sent | rejected`, i.e. literally only `approved` (not
+`pending_approval`) can transition to `rejected`. Implemented exactly as
+written rather than also allowing pending_approval -> rejected, since the
+contract is explicit and mechanically checked; if real usage needs an earlier
+reject path, that is a one-line addition to `_TRANSITIONS`, not a redesign.
+
+Opt-out (RADAR_CONTRACTS.md section E: "Checked at draft creation and at
+sync") is enforced in `create_draft` -- a hit raises `OptedOut` and nothing is
+queued. The CRM-sync half of that same check lives in
+`integrations.recruit_crm.sync_delivery` (a separate owned surface).
+"""
+
+from __future__ import annotations
+
+import json
+import threading
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
+
+from ..core.config import CONFIG, PKG_ROOT
+from ..core.contracts import ContactRecord, Person
+from . import optout
+
+DEFAULT_AUDIT_PATH = PKG_ROOT / "logs" / "outreach_audit.jsonl"
+
+# The whole state machine, mechanically checkable: `to_state in
+# _TRANSITIONS[from_state]` is the entire validity rule.
+_TRANSITIONS: dict[str, set[str]] = {
+    "draft": {"pending_approval"},
+    "pending_approval": {"approved"},
+    "approved": {"marked_sent", "rejected"},
+    "marked_sent": set(),
+    "rejected": set(),
+}
+
+_LOCK = threading.Lock()
+
+
+class InvalidTransition(RuntimeError):
+    """Attempted a state change not in the diagram above."""
+
+
+class OptedOut(RuntimeError):
+    """create_draft refused: the person is on the opt-out registry."""
+
+
+@dataclass
+class QueueEntry:
+    draft_id: str
+    person_id: str
+    role_id: str
+    state: str = "draft"
+    history: list[dict] = field(default_factory=list)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _queue_path(campaign_id: Optional[str] = None, queue_path: Optional[Path] = None) -> Path:
+    if queue_path:
+        return Path(queue_path)
+    cid = campaign_id or CONFIG.campaign_id
+    d = PKG_ROOT / "run" / cid
+    d.mkdir(parents=True, exist_ok=True)
+    return d / "outreach_queue.json"
+
+
+def _audit(record: dict, audit_path: Optional[Path] = None) -> None:
+    p = Path(audit_path) if audit_path else DEFAULT_AUDIT_PATH
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with _LOCK:
+        with p.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+
+
+def _load(path: Path) -> dict[str, dict]:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        # A half-written queue file must fail closed (treat as empty, so the
+        # next write recreates it cleanly) rather than crash every stage that
+        # touches the queue.
+        print("[outreach_queue] " + str(path) + " is not valid JSON -- treating as empty")
+        return {}
+
+
+def _save(path: Path, data: dict[str, dict]) -> None:
+    with _LOCK:
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def create_draft(
+    person: Person,
+    contact: Optional[ContactRecord],
+    role_id: str,
+    draft_id: Optional[str] = None,
+    campaign_id: Optional[str] = None,
+    queue_path: Optional[Path] = None,
+    audit_path: Optional[Path] = None,
+) -> QueueEntry:
+    """Queue one draft in state 'draft'. Refuses (`OptedOut`) if the person
+    matches any entry in the opt-out registry -- checked here, not after.
+    """
+    hit = optout.is_opted_out(person=person, contact=contact)
+    if hit is not None:
+        _audit(
+            {
+                "ts": _now_iso(), "event": "draft_blocked_optout",
+                "person_id": person.person_id, "role_id": role_id,
+                "reason": hit.reason,
+            },
+            audit_path,
+        )
+        raise OptedOut(
+            person.person_id + " is on the opt-out registry (" + hit.reason + ")"
+        )
+
+    did = draft_id or (person.person_id + ":" + role_id)
+    path = _queue_path(campaign_id, queue_path)
+    data = _load(path)
+    entry = QueueEntry(draft_id=did, person_id=person.person_id, role_id=role_id)
+    data[did] = asdict(entry)
+    _save(path, data)
+    _audit(
+        {
+            "ts": _now_iso(), "event": "created", "draft_id": did,
+            "person_id": person.person_id, "role_id": role_id, "by": "system",
+        },
+        audit_path,
+    )
+    return entry
+
+
+def _transition(
+    draft_id: str,
+    to_state: str,
+    by: str,
+    extra: Optional[dict] = None,
+    campaign_id: Optional[str] = None,
+    queue_path: Optional[Path] = None,
+    audit_path: Optional[Path] = None,
+) -> dict:
+    path = _queue_path(campaign_id, queue_path)
+    data = _load(path)
+    row = data.get(draft_id)
+    if row is None:
+        raise KeyError("no queued draft: " + draft_id)
+
+    current = row.get("state", "draft")
+    allowed = _TRANSITIONS.get(current, set())
+    if to_state not in allowed:
+        raise InvalidTransition(
+            draft_id + ": cannot go " + current + " -> " + to_state
+            + " (allowed from " + current + ": "
+            + (", ".join(sorted(allowed)) or "nothing, terminal state") + ")"
+        )
+
+    event = {"ts": _now_iso(), "from": current, "to": to_state, "by": by}
+    if extra:
+        event.update(extra)
+    row.setdefault("history", []).append(event)
+    row["state"] = to_state
+    data[draft_id] = row
+    _save(path, data)
+    _audit({"draft_id": draft_id, **event}, audit_path)
+    return row
+
+
+def submit_for_approval(draft_id: str, by: str, **kw) -> dict:
+    """draft -> pending_approval. Not named in RADAR_CONTRACTS.md's function
+    list; added for the transition its own diagram implies. See module
+    docstring's "Ambiguity resolved" note.
+    """
+    return _transition(draft_id, "pending_approval", by, **kw)
+
+
+def approve(draft_id: str, by: str, **kw) -> dict:
+    """pending_approval -> approved."""
+    return _transition(draft_id, "approved", by, **kw)
+
+
+def reject(draft_id: str, by: str, reason: str, **kw) -> dict:
+    """approved -> rejected (per the diagram; see module docstring)."""
+    return _transition(draft_id, "rejected", by, extra={"reason": reason}, **kw)
+
+
+def mark_sent(draft_id: str, by: str, channel: str, **kw) -> dict:
+    """approved -> marked_sent. Records that a human sent this OUTSIDE the
+    pipeline. This call makes no outbound contact of any kind.
+    """
+    return _transition(draft_id, "marked_sent", by, extra={"channel": channel}, **kw)
+
+
+def get(
+    draft_id: str,
+    campaign_id: Optional[str] = None,
+    queue_path: Optional[Path] = None,
+) -> Optional[dict]:
+    """Read-only lookup, for tests and for a future console view."""
+    return _load(_queue_path(campaign_id, queue_path)).get(draft_id)
