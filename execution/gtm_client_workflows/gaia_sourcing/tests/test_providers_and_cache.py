@@ -538,3 +538,20 @@ def test_stored_text_still_contains_its_own_quotes_after_normalisation(raw):
 def test_normalise_ws_keeps_paragraph_breaks_but_collapses_runs():
     out = cache.normalise_ws("para one\n\n\n\n\npara two")
     assert out == "para one\n\npara two"
+
+
+def test_extract_title_logs_and_returns_none_on_a_parse_failure(monkeypatch, capsys):
+    """Title extraction is cosmetic and must never fail a fetch -- but a
+    silent failure here is indistinguishable from a page that genuinely has
+    no <title>, so it must be logged."""
+
+    class _Boom:
+        def __init__(self, *a, **k):
+            raise ValueError("bad markup")
+
+    monkeypatch.setattr("bs4.BeautifulSoup", _Boom)
+
+    result = cache._extract_title(b"<html></html>", "text/html")
+
+    assert result is None
+    assert "could not extract a title" in capsys.readouterr().out

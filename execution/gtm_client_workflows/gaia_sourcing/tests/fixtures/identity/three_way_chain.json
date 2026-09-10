@@ -1,0 +1,9 @@
+[
+  {"source": "engineers_ireland", "source_ref": "r1", "full_name": "Aoife Byrne",
+   "employer": "XYZ Engineering", "doc_ids": ["d1"]},
+  {"source": "company_bio", "source_ref": "r2", "full_name": "Aoife Byrne",
+   "employer": "XYZ Engineering", "linkedin_url": "https://linkedin.com/in/aoifebyrne",
+   "doc_ids": ["d2"]},
+  {"source": "pdl", "source_ref": "r3", "full_name": "A. Byrne",
+   "linkedin_url": "https://linkedin.com/in/aoifebyrne", "doc_ids": ["d3"]}
+]

@@ -235,8 +235,12 @@ def _extract_title(raw: bytes, ctype: str) -> Optional[str]:
 
         t = BeautifulSoup(raw, "html.parser").title
         return t.get_text(strip=True) if t else None
-    except Exception:
-        return None  # title is cosmetic; never fail a fetch over it
+    except Exception as exc:
+        # title is cosmetic; never fail a fetch over it -- but say what was
+        # skipped, since a silent failure here is otherwise indistinguishable
+        # from a page that genuinely has no <title>.
+        print("[cache] could not extract a title: " + repr(exc)[:120])
+        return None
 
 
 def normalise_ws(text: str) -> str:
@@ -275,6 +279,30 @@ def head_ok(url: str, timeout: int = 20) -> tuple[bool, int]:
             )
         return r.status_code == 200, r.status_code
     except Exception:
+        return False, 0
+
+
+def post_json(
+    url: str, payload: dict, timeout: int = 10
+) -> tuple[bool, int]:
+    """The one sanctioned HTTP POST helper for small, best-effort,
+    out-of-band calls that are NOT part of the sourcing pipeline itself --
+    currently core/alerts.py's webhook post (RADAR_CONTRACTS.md section E).
+
+    Deliberately NOT cached (unlike fetch()/fetch_rendered()) and
+    deliberately has NO retries: an alert that silently retries hides how
+    flaky the destination actually is, and this call's own log line already
+    tells the operator whether it landed. Never raises -- a broken webhook
+    must degrade the caller (a skipped notification), not the run.
+    """
+    try:
+        resp = requests.post(url, json=payload, timeout=timeout)
+        return (200 <= resp.status_code < 300), resp.status_code
+    except Exception as exc:
+        print(
+            "[cache] post_json to " + urlparse(url).netloc
+            + " failed: " + repr(exc)[:160]
+        )
         return False, 0
 
 

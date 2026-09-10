@@ -1,0 +1,6 @@
+[
+  {"source": "engineers_ireland", "source_ref": "r1", "full_name": "John Murphy",
+   "employer": "Arup", "doc_ids": ["d1"]},
+  {"source": "company_bio", "source_ref": "r2", "full_name": "Sean Murphy",
+   "employer": "Arup", "doc_ids": ["d2"]}
+]

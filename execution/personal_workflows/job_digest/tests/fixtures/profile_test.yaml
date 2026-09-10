@@ -1,0 +1,58 @@
+version: 1
+
+candidate:
+  name: "Test Candidate"
+  email: "test.candidate@example.com"
+
+roles:
+  - title: "Sales Manager"
+    synonyms:
+      - "Regional Sales Manager"
+    seniority: "mid"
+
+locations:
+  countries:
+    - "FR"
+    - "IN"
+  cities:
+    - "Paris"
+  remote_ok: true
+
+contracts:
+  - "permanent"
+  - "fixed_term"
+
+languages: null
+
+exclude:
+  title_substrings:
+    - "intern"
+    - "internship"
+    - "stagiaire"
+    - "alternance"
+    - "trainee"
+    - "graduate program"
+  companies: []
+
+digest:
+  max_jobs: 40
+  hour_local: 9
+  timezone: "Europe/Paris"
+  min_tier: "C"
+  min_hours_between_emails: 20.0
+
+screening:
+  summary: >
+    A sales manager with several years of experience leading B2B teams
+    selling software into mid-market accounts, looking for a senior sales
+    manager role in France or India, open to remote.
+  skills:
+    - "B2B sales"
+    - "team leadership"
+    - "CRM"
+  must_have: []
+  nice_to_have:
+    - "SaaS"
+
+sheet:
+  enabled: false

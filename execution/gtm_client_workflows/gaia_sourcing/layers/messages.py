@@ -156,6 +156,7 @@ def draft(
         print("[messages] " + person.person_id + " failed: " + repr(exc)[:120])
         return None
     if not out:
+        print("[messages] " + person.person_id + " draft dropped: empty LLM output")
         return None
 
     note = _clean(out.get("linkedin_note", ""))
@@ -163,6 +164,13 @@ def draft(
     body = _clean(out.get("email_body", ""))
     follow = _clean(out.get("follow_up", ""))
     if not (note and subject and body):
+        missing = [
+            name for name, val in
+            (("linkedin_note", note), ("email_subject", subject), ("email_body", body))
+            if not val
+        ]
+        print("[messages] " + person.person_id + " draft dropped: missing "
+              + ", ".join(missing))
         return None
 
     return assemble(note, subject, body, follow)

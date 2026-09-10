@@ -1,0 +1,14 @@
+SYNTHETIC FIXTURE -- not a real fetch, not a real person.
+
+Engineers Ireland, IStructE and ICE's real, reachable pages carry no
+per-member listing (see the module docstrings of sources/engineers_ireland.py,
+sources/istructe.py, sources/ice.py for what was actually verified live on
+2026-09-10). This fixture exists only to exercise the POSITIVE match path of
+sources/registers.py:fragment_with_both_names / claims_from_register_doc --
+the shape a real directory ROW would take if one were reachable -- using a
+placeholder name that does not belong to any real person.
+
+Directory search results
+-------------------------
+Jane Testperson, Chartered Engineer, CEng MIEI. Registered 2014.
+John Otherperson, Chartered Engineer, CEng FIStructE. Registered 2009.

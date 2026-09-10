@@ -1,0 +1,8 @@
+[
+  {"source": "engineers_ireland", "source_ref": "r1", "full_name": "Seán Ó Ríordáin",
+   "employer": "Punch Consulting Engineers", "doc_ids": ["d1"]},
+  {"source": "company_bio", "source_ref": "r2", "full_name": "Sean O Riordain",
+   "employer": "Punch Consulting Engineers", "doc_ids": ["d2"]},
+  {"source": "acp_witness_statement", "source_ref": "r3", "full_name": "S. O'Riordain",
+   "employer": "Punch Consulting Engineers", "doc_ids": ["d3"]}
+]

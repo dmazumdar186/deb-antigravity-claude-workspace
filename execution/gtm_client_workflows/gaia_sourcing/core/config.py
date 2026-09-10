@@ -109,7 +109,16 @@ class RunConfig:
     # all, so the failure mode it guards against is a real one: a declared
     # limit that quietly does nothing is worse than no limit, because it stops
     # anyone from looking.
-    max_cost_eur: float = 30.0
+    max_cost_eur: float = 12.0
+    # Cumulative, cross-run ceiling (execution/core/providers.py's persistent
+    # logs/spend_ledger.jsonl). The operator has exactly $30 of Anthropic
+    # credit, period -- a per-run ceiling resets every run and cannot protect
+    # a fixed lifetime balance. 22.0 EUR ~= $24 at the USD_TO_EUR rate below,
+    # leaving headroom for FX drift and any spend this ledger does not see
+    # (Firecrawl, Prospeo, Serper -- see the max_cost_eur docstring above).
+    # Enforced in the same place as max_cost_eur: core.providers.call_role
+    # and core.ocr's Anthropic transcription path.
+    max_cost_eur_total: float = 22.0
     # L6 drop-rate alarm. Above this, the L5 prompt is wrong -- see section 7.
     max_drop_rate: float = 0.15
     request_timeout_s: int = 60
@@ -122,6 +131,27 @@ class RunConfig:
     off_limits: list[str] = field(
         default_factory=lambda: ["tobin", "atkinsrealis", "atkinsréalis", "atkins realis"]
     )
+    # 2026-09-10 -- client promise on the call: sourced candidates land in
+    # Recruit CRM so consultants and Maddie (their inbound screening agent)
+    # take over. role_id -> Recruit CRM job slug/id. Empty by default: an
+    # empty mapping means run.py's sync_crm stage still creates/updates
+    # candidate records but SKIPS attach_to_job for every candidate (logged,
+    # not silently dropped), because a wrong job id would be a live write to
+    # the wrong requisition and there is no way to detect that from here.
+    # Fill in after `run.py --stage sync_crm` (dry-run) or
+    # RecruitCRMClient.list_jobs() confirms the correct slugs.
+    recruit_crm_job_ids: dict[str, str] = field(default_factory=dict)
+    # 2026-09-10 -- RADAR_CONTRACTS.md section E. A ContactRecord's evidence
+    # is "stale" once it is older than this many days (layers/contact.py sets
+    # ContactRecord.evidence_age_days / .stale from it); integrations.
+    # recruit_crm.sync_delivery blocks a stale record from CRM sync unless
+    # called with allow_stale=True (wired to a future --allow-stale CLI flag).
+    max_evidence_age_days: int = 30
+    # Env var name (looked up via core.config.secret, required=False) holding
+    # the Slack/WhatsApp-compatible webhook URL core/alerts.py posts to. A
+    # name rather than the URL itself so ops can repoint it without a code
+    # change; core/alerts.alert() no-ops with a log line when it is unset.
+    alert_webhook_env: str = "ALERT_WEBHOOK_URL"
 
     @property
     def run_dir(self) -> Path:

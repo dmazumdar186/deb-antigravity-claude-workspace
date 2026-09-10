@@ -24,9 +24,64 @@ import threading
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Optional
 
-from .config import secret
+from .config import CONFIG, PKG_ROOT, secret
+
+# ---------------------------------------------------------------------------
+# Persistent cross-run spend ledger (the operator has exactly $30 of
+# Anthropic credit total; the per-run ceiling below resets every run, which
+# is exactly the gap a cumulative ceiling closes). One JSON line per
+# successful call_role/OCR call: at, campaign_id, role, model, cost_eur.
+# Never deleted, never rotated here -- this is an audit trail, not a cache.
+# ---------------------------------------------------------------------------
+
+LEDGER_PATH = PKG_ROOT / "logs" / "spend_ledger.jsonl"
+_LEDGER_LOCK = threading.Lock()
+
+
+def _append_ledger(campaign_id: str, role: str, model: str, cost_eur: float) -> None:
+    record = {
+        "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "campaign_id": campaign_id,
+        "role": role,
+        "model": model,
+        "cost_eur": cost_eur,
+    }
+    try:
+        LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with _LEDGER_LOCK:
+            with LEDGER_PATH.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        # A read-only/full filesystem must not fail the call that already
+        # happened and already spent real money -- but a silent ledger gap
+        # is exactly the hole a cumulative cap exists to close, so it is
+        # logged loudly, never swallowed.
+        print("[providers] WARNING: could not append to spend ledger "
+              + str(LEDGER_PATH) + ": " + repr(exc))
+
+
+def cumulative_spend_eur(path: Optional[Path] = None) -> float:
+    """Sum of every recorded cost_eur in the ledger, ever -- across every
+    run, every campaign. Malformed lines are skipped (never fail the read
+    that a cost ceiling depends on over one corrupt line)."""
+    p = path or LEDGER_PATH
+    if not p.exists():
+        return 0.0
+    total = 0.0
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            total += float(json.loads(line).get("cost_eur", 0.0))
+        except (json.JSONDecodeError, TypeError, ValueError) as exc:
+            print("[providers] skipping unparseable spend ledger line: " + repr(exc))
+            continue
+    return total
 
 # ---------------------------------------------------------------------------
 # Role -> (provider, model) routing
@@ -348,17 +403,22 @@ _BACKENDS = {
 # Per-provider EUR pricing per MTok. Gemini free tier is genuinely 0 within
 # quota; recorded as 0 so the cost ceiling reflects real spend.
 PRICE_EUR: dict[str, dict[str, float]] = {
-    "gemini-2.5-flash": {"input": 0.0, "output": 0.0},
-    "anthropic/claude-sonnet-5": {"input": 1.84, "output": 9.20},
+    # Four rates per model (python-hardening rule 4): input, output, cache_read,
+    # cache_write, EUR per MTok at 0.92 EUR/USD. Verified 2026-09-10 against
+    # platform.claude.com/docs/en/build-with-claude/prompt-caching: Sonnet 5
+    # $2 / $10 / $0.20 / $2.50; Fable 5.1 $10 / $50 / $0.25 / $12.50 (cache
+    # reads are 0.025x on Fable 5.1, NOT the generic 0.1x); Opus 5 $5 / $25 /
+    # $0.50 / $6.25.
+    "gemini-2.5-flash": {"input": 0.0, "output": 0.0, "cache_read": 0.0, "cache_write": 0.0},
+    "anthropic/claude-sonnet-5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
     # claude-fable-5 rows kept: historical run records still cost-resolve.
-    "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00},
-    "anthropic/claude-opus-5": {"input": 4.60, "output": 23.00},
-    "claude-sonnet-5": {"input": 1.84, "output": 9.20},
-    "claude-fable-5": {"input": 9.20, "output": 46.00},
-    "claude-opus-5": {"input": 4.60, "output": 23.00},
-    # verified 2026-09-01: same USD input/output as fable-5, so same EUR rate.
-    "anthropic/claude-fable-5.1": {"input": 9.20, "output": 46.00},
-    "claude-fable-5-1": {"input": 9.20, "output": 46.00},
+    "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},
+    "anthropic/claude-opus-5": {"input": 4.60, "output": 23.00, "cache_read": 0.46, "cache_write": 5.75},
+    "claude-sonnet-5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
+    "claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},
+    "claude-opus-5": {"input": 4.60, "output": 23.00, "cache_read": 0.46, "cache_write": 5.75},
+    "anthropic/claude-fable-5.1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
+    "claude-fable-5-1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
 }
 
 
@@ -414,6 +474,24 @@ def _record_spend(amount: float) -> float:
         return _SPEND_EUR
 
 
+
+def _preflight_ceiling(where: str) -> None:
+    """Raise CostCeilingExceeded before a paid call when a ceiling is already breached."""
+    total = spend_eur()
+    if total > CONFIG.max_cost_eur:
+        raise CostCeilingExceeded(
+            "Refusing " + where + ": run cost EUR " + format(total, ".2f")
+            + " already exceeds the ceiling of EUR " + format(CONFIG.max_cost_eur, ".2f")
+        )
+    cumulative = cumulative_spend_eur()
+    if cumulative > CONFIG.max_cost_eur_total:
+        raise CostCeilingExceeded(
+            "Refusing " + where + ": cumulative spend EUR " + format(cumulative, ".2f")
+            + " already exceeds the cumulative ceiling of EUR "
+            + format(CONFIG.max_cost_eur_total, ".2f")
+        )
+
+
 def call_role(
     role: str,
     system: str,
@@ -429,17 +507,25 @@ def call_role(
     last: Optional[Exception] = None
 
     for attempt in range(max_retries):
+        # Pre-flight: a run or account already over its ceiling refuses to
+        # dispatch at all. The post-call checks below catch the call that
+        # crosses the line; this one stops every call after it, so parallel
+        # workers cannot each add a call's worth of overshoot.
+        _preflight_ceiling(role)
         try:
             result, stats = backend(model, system, user, tool, max_tokens, temperature)
             if provider == "gemini":
                 _gemini_reward()
             spent = cost_eur(model, stats)
             total = _record_spend(spent)
+            _append_ledger(CONFIG.campaign_id, role, model, spent)
+            cumulative = cumulative_spend_eur()
             meta = {
                 "provider": provider,
                 "model": model,
                 "cost_eur": spent,
                 "run_total_eur": total,
+                "cumulative_total_eur": cumulative,
                 **stats,
             }
             # SPEC.md section 14. The ceiling was declared in RunConfig and
@@ -447,14 +533,25 @@ def call_role(
             # which nothing imported. Every layer dutifully appended its cost
             # metadata to a RUN_COST list that nothing ever read, so a runaway
             # loop would have been invisible until the invoice arrived.
-            from .config import CONFIG
-
             if total > CONFIG.max_cost_eur:
                 raise CostCeilingExceeded(
                     "Run cost EUR " + format(total, ".2f") + " exceeds the "
                     "ceiling of EUR " + format(CONFIG.max_cost_eur, ".2f")
                     + ". Raise RunConfig.max_cost_eur deliberately, or find "
                     "the loop that is spending it."
+                )
+            # The operator has exactly $30 of Anthropic credit total, ever --
+            # a per-run ceiling that resets every run cannot protect that.
+            # This checks the SAME ledger every run appends to, so spend from
+            # a previous run (or a previous campaign) counts against it.
+            if cumulative > CONFIG.max_cost_eur_total:
+                raise CostCeilingExceeded(
+                    "Cumulative spend across runs EUR " + format(cumulative, ".2f")
+                    + " exceeds the cumulative ceiling of EUR "
+                    + format(CONFIG.max_cost_eur_total, ".2f")
+                    + ". Raise RunConfig.max_cost_eur_total deliberately (after "
+                    "checking the real Anthropic balance), or find the loop "
+                    "that is spending it."
                 )
             return result, meta
         except urllib.error.HTTPError as exc:

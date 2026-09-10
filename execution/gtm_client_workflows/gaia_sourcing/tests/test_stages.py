@@ -397,6 +397,46 @@ def test_delivery_set_is_capped_at_the_briefs_target_count(graded_pool):
     assert len(graded_pool._delivery_set()[R1]) == ROLE1.target_count
 
 
+def test_delivery_set_logs_and_records_the_overflow(graded_pool, capsys):
+    """The candidates the target_count cap drops must not vanish without a
+    trace -- logged, and written into delivery.json under overflow[role_id]."""
+    graded_pool.save("gate", {
+        **graded_pool.load("gate"),
+        **{
+            "f" + str(i): {"role_id": R1, "tier": "C", "gates": [], "n_claims": 1,
+                           "client_side": False}
+            for i in range(20)
+        },
+    })
+    data = graded_pool.load("extract")
+    for i in range(20):
+        data["persons"]["f" + str(i)] = _person(
+            "f" + str(i), "Filler " + str(i), R1, "company_directory")
+    graded_pool.save("extract", data)
+
+    delivery = graded_pool._delivery_set()
+
+    delivered = set(delivery[R1])
+    overflow = set(delivery["overflow"][R1])
+    assert len(overflow) > 0
+    assert delivered.isdisjoint(overflow)
+    # Nobody who qualified is unaccounted for: delivered + overflow covers
+    # every qualifying candidate.
+    all_fillers = {"f" + str(i) for i in range(20)}
+    assert all_fillers <= (delivered | overflow | {"a1", "a2", "b1", "c1"})
+
+    out = capsys.readouterr().out
+    assert "cut:" in out
+    assert next(iter(overflow)) in out
+
+
+def test_delivery_set_overflow_is_empty_when_nothing_is_cut(graded_pool, capsys):
+    delivery = graded_pool._delivery_set()
+
+    assert delivery["overflow"][R1] == []
+    assert "cut:" not in capsys.readouterr().out
+
+
 def test_an_adversarial_demotion_reorders_delivery(graded_pool):
     """L8's verdict is what ships, not the pre-critique tier."""
     graded_pool.save("adversarial", {
@@ -589,6 +629,32 @@ def test_a_compliant_draft_survives(graded_pool, monkeypatch):
     assert set(graded_pool.load("messages")) == {"a1", "a2", "b1", "c1"}
 
 
+def test_an_opted_out_candidate_never_gets_a_draft(graded_pool, monkeypatch, tmp_path, capsys):
+    """RADAR_CONTRACTS.md section E: opt-out is checked at draft creation.
+    A hit must skip messages.draft entirely (never call it, never log it as
+    a normal drop) and be visible in the log as draft_blocked_optout."""
+    from gtm_client_workflows.gaia_sourcing.layers import messages as messages_layer, optout
+
+    fixture_registry = tmp_path / "optout.jsonl"
+    optout.add_optout(person_id="a1", reason="asked to stop", path=fixture_registry)
+    monkeypatch.setattr(optout, "DEFAULT_OPTOUT_PATH", fixture_registry)
+
+    called_for = []
+
+    def spy_draft(person, claims, spec, *a, **kw):
+        called_for.append(person.person_id)
+        return messages_layer.assemble("note", "subject", "body", "follow up")
+
+    monkeypatch.setattr(messages_layer, "draft", spy_draft)
+
+    graded_pool.stage_messages()
+
+    assert "a1" not in called_for, "opt-out must be checked BEFORE draft() is ever called"
+    assert "a1" not in graded_pool.load("messages")
+    assert set(graded_pool.load("messages")) == {"a2", "b1", "c1"}
+    assert "a1 draft_blocked_optout" in capsys.readouterr().out
+
+
 def test_movability_failure_drops_one_candidate_not_the_stage(graded_pool, monkeypatch):
     from gtm_client_workflows.gaia_sourcing.core.contracts import MovabilitySignal
     from gtm_client_workflows.gaia_sourcing.layers import movability as mov
@@ -745,13 +811,15 @@ def test_docs_survive_a_non_ascii_body(R):
     assert "O’Reilly" in R.load_docs()["d1"].content_text
 
 
-def test_an_unparseable_document_line_loses_one_document_not_the_store(R):
+def test_an_unparseable_document_line_loses_one_document_not_the_store(R, capsys):
     R.save_docs([_doc("d1", "first")])
     with R.DOCS.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps({"doc_id": "d2", "url": "not-a-url"}) + "\n")
     R.save_docs([_doc("d3", "third")])
 
     assert set(R.load_docs()) == {"d1", "d3"}
+    # The skip must be visible, not a silent drop.
+    assert "skipping malformed line" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------
@@ -804,3 +872,62 @@ def test_releasing_a_lock_that_is_already_gone_is_not_an_error(R):
     lock.unlink()
 
     R.release_run_lock(lock)  # must not raise
+
+
+# ---------------------------------------------------------------------------
+# STAGES registry -- render must be registered, and before console
+# ---------------------------------------------------------------------------
+
+
+def test_render_stage_is_registered_before_console():
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    assert "render" in mod.STAGES
+    order = list(mod.STAGES.keys())
+    assert order.index("render") < order.index("console")
+
+
+def test_sync_crm_is_the_last_registered_stage():
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    assert list(mod.STAGES.keys())[-1] == "sync_crm"
+
+
+def test_stage_render_calls_the_dossier_builder(monkeypatch):
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    calls = []
+    monkeypatch.setattr(
+        mod.render_module, "build",
+        lambda allow_placeholder_notice=False: calls.append(allow_placeholder_notice),
+    )
+    monkeypatch.setattr(mod.render_module, "OUT_DIR", "irrelevant")
+    monkeypatch.setattr(mod, "_ALLOW_PLACEHOLDER_NOTICE", True)
+
+    mod.stage_render()
+
+    assert calls == [True]
+
+
+# ---------------------------------------------------------------------------
+# --spend prints per-run and cumulative totals and exits without touching a
+# run directory
+# ---------------------------------------------------------------------------
+
+
+def test_spend_flag_prints_both_totals_and_exits(monkeypatch, capsys, tmp_path):
+    from gtm_client_workflows.gaia_sourcing import run as R
+    from gtm_client_workflows.gaia_sourcing.core import providers
+
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    providers._append_ledger("c1", "extract", "m", 3.5)
+    providers.reset_spend()
+
+    monkeypatch.setattr("sys.argv", ["run", "--spend"])
+    rc = R.main()
+
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "this run EUR 0.00" in out
+    assert "cumulative EUR 3.50" in out
+    providers.reset_spend()

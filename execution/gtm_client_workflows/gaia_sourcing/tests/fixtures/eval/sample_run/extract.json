@@ -1,0 +1,60 @@
+{
+ "persons": {
+  "alice": {
+   "person_id": "alice",
+   "full_name": "Alice Byrne",
+   "current_title": "Principal Engineer",
+   "current_employer": "Acme Engineering",
+   "location": "Galway, Ireland",
+   "doc_ids": ["d_alice"],
+   "linkedin_url": null,
+   "role_id": "role1_senior_structural_engineer",
+   "source": "company_directory"
+  },
+  "bob": {
+   "person_id": "bob",
+   "full_name": "Bob Nolan",
+   "current_title": "Associate Director",
+   "current_employer": "Acme Engineering",
+   "location": "Dublin, Ireland",
+   "doc_ids": ["d_bob"],
+   "linkedin_url": null,
+   "role_id": "role1_senior_structural_engineer",
+   "source": "company_directory"
+  },
+  "carol": {
+   "person_id": "carol",
+   "full_name": "Carol White",
+   "current_title": "Graduate Engineer",
+   "current_employer": "Acme Engineering",
+   "location": "Ireland",
+   "doc_ids": ["d_carol"],
+   "linkedin_url": null,
+   "role_id": "role1_senior_structural_engineer",
+   "source": "company_directory"
+  },
+  "dave": {
+   "person_id": "dave",
+   "full_name": "Dave Fitzgerald",
+   "current_title": "Senior Engineer",
+   "current_employer": "Jacobs",
+   "location": "Cork, Ireland",
+   "doc_ids": ["d_dave"],
+   "linkedin_url": null,
+   "role_id": "role2_transport_major_projects_manager",
+   "source": "acp_witness_statement"
+  },
+  "erin": {
+   "person_id": "erin",
+   "full_name": "Erin Walsh",
+   "current_title": "Director",
+   "current_employer": "Jacobs",
+   "location": "London, UK",
+   "doc_ids": ["d_erin"],
+   "linkedin_url": null,
+   "role_id": "role2_transport_major_projects_manager",
+   "source": "acp_witness_statement"
+  }
+ },
+ "claims": []
+}
