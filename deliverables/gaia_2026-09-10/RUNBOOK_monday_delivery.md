@@ -45,8 +45,16 @@ mostly list leadership. Options in order of cost:
 1. `deepen_r1` on the near-misses in `pool_map_role1.md` ("missed by one").
 2. Re-harvest with more firm directories (add to `sources/company_bios.py` FIRMS)
    and re-run `harvest_r1 → extract → validate → gate`.
-3. Engineers Ireland "Find a member" lookups for the four Jacobs near-misses
-   on Role 2 (manual is fine for four names; record the quote as a claim).
+3. Chartership register lookups for the four Jacobs near-misses on Role 2
+   are MANUAL (verified 2026-09-10): Engineers Ireland's Find-a-member is a
+   stateful portal behind a WAF, and IStructE / ICE directories sit behind
+   Cloudflare challenges. The plugins in `sources/` honour robots and return
+   nothing rather than operate the portals. Do the four lookups by hand in a
+   browser, save each result page (Ctrl+S, HTML) into the campaign cache
+   directory, and run `sources.registers.claims_from_register_doc` on it so
+   the chartership claim carries a verbatim quote and a source. Firecrawl
+   rendering of the IStructE/ICE pages is implemented but unverified; try it
+   once with the key present and stop if it is challenged.
 4. A licensed people-data trial (PDL / Crustdata / Apollo) — only if 1–3
    fall short, and only after a €10 test query proves Irish coverage.
 
