@@ -1,0 +1,41 @@
+{
+  "_comment": "Expected business.json for the seeded 'Glow Aesthetics' business+audit (see test_preview.py's GLOW_BUSINESS/GLOW_AUDIT fixtures). slug_suffix, preview.expires_at, and preview.remove_url are random/date-derived and are popped by the test before comparison — see their format notes below.",
+  "schema_version": "1.0",
+  "name": "Glow Aesthetics",
+  "slug": "glow-aesthetics",
+  "_slug_suffix_note": "random 6-char [a-z0-9] from common.slug.random_suffix() on first build; stable on rebuild",
+  "city": "Winnetka",
+  "state": "IL",
+  "address": "123 Green Bay Rd, Winnetka, IL 60093",
+  "phone": "(847) 555-0100",
+  "phone_href": "tel:+18475550100",
+  "hours": [
+    { "day": "Mon", "open": "9:00 AM", "close": "6:00 PM" },
+    { "day": "Tue", "open": "9:00 AM", "close": "6:00 PM" },
+    { "day": "Wed", "open": "9:00 AM", "close": "6:00 PM" },
+    { "day": "Thu", "open": "9:00 AM", "close": "7:00 PM" },
+    { "day": "Fri", "open": "9:00 AM", "close": "5:00 PM" },
+    { "day": "Sat", "open": "10:00 AM", "close": "3:00 PM" },
+    { "day": "Sun", "open": null, "close": null }
+  ],
+  "services": [
+    { "name": "Botox / Neuromodulators", "blurb": "Schedule a consultation to see if it's right for you.", "icon": "syringe" },
+    { "name": "Dermal Fillers", "blurb": "Book a visit to talk through your options.", "icon": "droplet" },
+    { "name": "HydraFacial", "blurb": "Reserve a slot for a refreshing treatment.", "icon": "sparkle" },
+    { "name": "Laser Hair Removal", "blurb": "Ask us if this treatment fits your goals.", "icon": "laser" },
+    { "name": "Chemical Peels", "blurb": "Come in for a personalized skin assessment.", "icon": "leaf" }
+  ],
+  "rating": 4.8,
+  "review_count": 132,
+  "google_maps_url": "https://www.google.com/maps/place/?q=place_id:place-glow-1",
+  "tagline": "Book your next Glow visit in under a minute.",
+  "primary_color": "#3D5A80",
+  "accent_color": "#F4F1EA",
+  "hero_image": "hero-01.png",
+  "preview": {
+    "_expires_at_note": "today + config.preview_expiry_days, popped before comparison",
+    "_remove_url_note": "https://{slug}-{slug_suffix}.{base_domain}/remove, popped before comparison",
+    "watermark": "Concept preview by ProdCraft — not affiliated with or endorsed by Glow Aesthetics. Remove: reply 'remove'."
+  },
+  "booking_demo": true
+}

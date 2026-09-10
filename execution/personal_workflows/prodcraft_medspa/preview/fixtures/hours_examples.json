@@ -1,0 +1,66 @@
+{
+  "full_week": {
+    "weekday_descriptions": [
+      "Monday: 9:00 AM – 6:00 PM",
+      "Tuesday: 9:00 AM – 6:00 PM",
+      "Wednesday: 9:00 AM – 6:00 PM",
+      "Thursday: 9:00 AM – 7:00 PM",
+      "Friday: 9:00 AM – 5:00 PM",
+      "Saturday: 10:00 AM – 3:00 PM",
+      "Sunday: Closed"
+    ],
+    "expected": [
+      { "day": "Mon", "open": "9:00 AM", "close": "6:00 PM" },
+      { "day": "Tue", "open": "9:00 AM", "close": "6:00 PM" },
+      { "day": "Wed", "open": "9:00 AM", "close": "6:00 PM" },
+      { "day": "Thu", "open": "9:00 AM", "close": "7:00 PM" },
+      { "day": "Fri", "open": "9:00 AM", "close": "5:00 PM" },
+      { "day": "Sat", "open": "10:00 AM", "close": "3:00 PM" },
+      { "day": "Sun", "open": null, "close": null }
+    ]
+  },
+  "closed_two_days": {
+    "weekday_descriptions": [
+      "Monday: Closed",
+      "Tuesday: 10:00 AM – 4:00 PM",
+      "Wednesday: 10:00 AM – 4:00 PM",
+      "Thursday: 10:00 AM – 4:00 PM",
+      "Friday: 10:00 AM – 4:00 PM",
+      "Saturday: 10:00 AM – 2:00 PM",
+      "Sunday: Closed"
+    ],
+    "expected": [
+      { "day": "Mon", "open": null, "close": null },
+      { "day": "Tue", "open": "10:00 AM", "close": "4:00 PM" },
+      { "day": "Wed", "open": "10:00 AM", "close": "4:00 PM" },
+      { "day": "Thu", "open": "10:00 AM", "close": "4:00 PM" },
+      { "day": "Fri", "open": "10:00 AM", "close": "4:00 PM" },
+      { "day": "Sat", "open": "10:00 AM", "close": "2:00 PM" },
+      { "day": "Sun", "open": null, "close": null }
+    ]
+  },
+  "empty": {
+    "weekday_descriptions": [],
+    "expected": [
+      { "day": "Mon", "open": null, "close": null },
+      { "day": "Tue", "open": null, "close": null },
+      { "day": "Wed", "open": null, "close": null },
+      { "day": "Thu", "open": null, "close": null },
+      { "day": "Fri", "open": null, "close": null },
+      { "day": "Sat", "open": null, "close": null },
+      { "day": "Sun", "open": null, "close": null }
+    ]
+  },
+  "missing": {
+    "weekday_descriptions": null,
+    "expected": [
+      { "day": "Mon", "open": null, "close": null },
+      { "day": "Tue", "open": null, "close": null },
+      { "day": "Wed", "open": null, "close": null },
+      { "day": "Thu", "open": null, "close": null },
+      { "day": "Fri", "open": null, "close": null },
+      { "day": "Sat", "open": null, "close": null },
+      { "day": "Sun", "open": null, "close": null }
+    ]
+  }
+}
