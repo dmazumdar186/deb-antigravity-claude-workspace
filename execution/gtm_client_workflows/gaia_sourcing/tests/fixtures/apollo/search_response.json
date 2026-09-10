@@ -1,0 +1,47 @@
+{
+  "people": [
+    {
+      "id": "672c91d4a7be42000184f2c9",
+      "first_name": "Jordan",
+      "last_name": "Blake",
+      "name": "Jordan Blake",
+      "linkedin_url": "http://www.linkedin.com/in/jordan-blake-4a7c21",
+      "title": "Founder & CEO",
+      "headline": "Founder & CEO at Northstar Analytics",
+      "city": "San Francisco",
+      "state": "California",
+      "country": "United States",
+      "organization_id": "61f2d5a8c40b7200019e4f31",
+      "organization": {
+        "id": "61f2d5a8c40b7200019e4f31",
+        "name": "Northstar Analytics"
+      },
+      "employment_history": [
+        {
+          "_id": "672c93a1b8df4e0001f732a1",
+          "current": true,
+          "organization_id": "61f2d5a8c40b7200019e4f31",
+          "organization_name": "Northstar Analytics",
+          "start_date": "2016-01-01",
+          "end_date": null,
+          "title": "Founder & CEO"
+        },
+        {
+          "_id": "672c93a1b8df4e0001f732a2",
+          "current": false,
+          "organization_id": null,
+          "organization_name": "BrightForge Labs",
+          "start_date": "2011-01-01",
+          "end_date": "2015-01-01",
+          "title": "Founder & CEO"
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 50,
+    "total_entries": 1,
+    "total_pages": 1
+  }
+}

@@ -67,6 +67,8 @@ from .core.contracts import (
     RawDocument,
     ValidatedClaim,
 )
+from .eval import scorecard as eval_scorecard
+from .eval.labels import build_worksheet_row, cohen_kappa, load_labels
 from .integrations.recruit_crm import RecruitCRMClient, sync_delivery
 from .layers import adversarial, contact, gates, linkcheck, messages, movability
 from .layers.extract import extract_directory, extract_from_document
@@ -1510,8 +1512,134 @@ def stage_poolmap(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Stage 8 -- eval/scorecard.py's six numbers (RADAR_CONTRACTS.md section F)
+# ---------------------------------------------------------------------------
+
+
+def stage_scorecard(force: bool = False) -> None:
+    """Compute and save the ship scorecard for this run.
+
+    Depends on `poolmap` (for delivery.json / poolmap.json) and `validate`/
+    `gate`/`extract` (already required by poolmap itself), so it is
+    registered directly after `poolmap` in STAGES. Never fabricates the two
+    label-derived precision numbers: with no `eval/labels.jsonl` yet they
+    print "n/a (no labels)" via eval.scorecard.render_table, not a false
+    100%.
+    """
+    if not done("poolmap"):
+        log("scorecard: skipped -- the 'poolmap' stage has not run yet")
+        return
+    if done("scorecard") and not force:
+        log("scorecard: cached, skipping")
+        return
+
+    sc = eval_scorecard.compute_scorecard(RUN_DIR)
+    save("scorecard", sc)
+    for line in eval_scorecard.render_table(sc):
+        log(line)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# --coverage-test -- RADAR_CONTRACTS.md section A. Licensed source providers
+# (pdl/crustdata/apollo) are owned by a separate build from the rest of
+# run.py and are imported ONLY inside run_coverage_test, never at module
+# level -- a missing or broken licensed-provider module must never break any
+# other run.py flag (--stage, --classify-reply, brief overrides, ...).
+# ---------------------------------------------------------------------------
+
+_NICHE_TERMS: dict[str, list[str]] = {
+    "structural": ["structural engineer", "structural design", "structural"],
+    "transport": ["transport engineer", "transportation planning", "highways", "transport"],
+}
+
+# ROI counties for a coverage-test location filter. Not exhaustive (roles.py
+# has no single master list to reuse -- Role 2's brief scopes to ["Cork"]
+# specifically) -- broad enough to exercise a provider's Ireland filter
+# across the counties Role 1/Role 2 candidates have actually come from.
+_IE_COUNTIES = [
+    "Dublin", "Cork", "Galway", "Limerick", "Waterford", "Kildare",
+    "Meath", "Wicklow", "Kilkenny", "Louth",
+]
+
+_LICENSED_PROVIDER_MODULES = {
+    "pdl": "gtm_client_workflows.gaia_sourcing.sources.pdl",
+    "crustdata": "gtm_client_workflows.gaia_sourcing.sources.crustdata",
+    "apollo": "gtm_client_workflows.gaia_sourcing.sources.apollo",
+}
+
+# go/no-go threshold per RADAR_CONTRACTS.md section A: "40 matched with
+# title+employer+dates per niche" out of a 50-record page.
+_COVERAGE_GO_THRESHOLD = 40
+
+
+def run_coverage_test(provider_name: str, niche: str) -> int:
+    """`run.py --coverage-test <provider> --niche structural|transport`.
+
+    Builds a SourceQuery ("chartered engineer" + niche terms, ROI counties),
+    fetches ONE page (limit 50) from the named provider, and prints matched /
+    with title / with employer / with dates / with city / cost, plus the
+    go/no-go line. Fails loudly with the provider's own
+    ProviderNotConfigured message (never a silent empty result) when its API
+    key is absent -- see sources/licensed_common.py.
+    """
+    import importlib
+
+    module_path = _LICENSED_PROVIDER_MODULES.get(provider_name)
+    if module_path is None:
+        log("--coverage-test: unknown provider " + repr(provider_name)
+            + "; known: " + ", ".join(sorted(_LICENSED_PROVIDER_MODULES)))
+        return 1
+    try:
+        importlib.import_module(module_path)  # self-registers into sources.registry
+    except ImportError as exc:
+        log("--coverage-test: could not import " + module_path + ": " + repr(exc)[:200])
+        return 1
+
+    from .core.contracts import SourceQuery
+    from .sources.licensed_common import ProviderNotConfigured
+    from .sources.registry import get_provider
+
+    provider = get_provider(provider_name)
+    terms = ["chartered engineer"] + _NICHE_TERMS.get(niche, [niche])
+    query = SourceQuery(
+        role_id="coverage_test", niche=niche, terms=terms,
+        locations=list(_IE_COUNTIES), limit=50,
+    )
+
+    try:
+        result = provider.fetch(query)
+    except ProviderNotConfigured as exc:
+        log("--coverage-test " + provider_name + ": " + str(exc))
+        return 1
+
+    records = result.provider_records
+    matched = result.fetched
+    with_title = sum(1 for r in records if r.current_title)
+    with_employer = sum(1 for r in records if r.current_employer)
+    with_dates = sum(1 for r in records if any(js.start or js.end for js in r.job_history))
+    with_city = sum(1 for r in records if r.city)
+    qualifying = sum(
+        1 for r in records
+        if r.current_title and r.current_employer
+        and any(js.start or js.end for js in r.job_history)
+    )
+
+    log("coverage-test " + provider_name + " / niche=" + niche + ":")
+    log("  matched:       " + str(matched))
+    log("  with title:    " + str(with_title))
+    log("  with employer: " + str(with_employer))
+    log("  with dates:    " + str(with_dates))
+    log("  with city:     " + str(with_city))
+    log("  cost:          EUR " + format(result.cost_eur, ".4f"))
+    verdict = "GO" if qualifying >= _COVERAGE_GO_THRESHOLD else "NO-GO"
+    log("  " + verdict + ": " + str(qualifying) + "/50 with title+employer+dates "
+        + "(threshold " + str(_COVERAGE_GO_THRESHOLD) + ")")
+    return 0
+
 
 STAGES = {
     "harvest_r1": stage_harvest_r1,
@@ -1527,6 +1655,7 @@ STAGES = {
     "messages": stage_messages,
     "linkcheck": stage_linkcheck,
     "poolmap": stage_poolmap,
+    "scorecard": stage_scorecard,
     "sync_crm": stage_sync_crm,
 }
 
@@ -1636,11 +1765,79 @@ def main() -> int:
         help="classify one candidate reply, print the ReplyVerdict as JSON, "
              "and exit -- a quick demo, does not touch a run directory",
     )
+    ap.add_argument(
+        "--label-export", action="store_true",
+        help="write run/<campaign_id>/label_export.jsonl -- a BLIND "
+             "labelling worksheet (source excerpts only, no extractor "
+             "verdict) for every person in gate.json, then exit. See "
+             "eval/blind_label_prompt.md. Requires 'gate' to have run.",
+    )
+    ap.add_argument(
+        "--kappa", nargs=2, default=None, metavar=("LABELS_A", "LABELS_B"),
+        help="print Cohen's kappa (grade / location_country / chartered) "
+             "between two labeller JSONL files, then exit -- does not touch "
+             "a run directory",
+    )
+    ap.add_argument(
+        "--coverage-test", default=None, metavar="PROVIDER",
+        help="fetch one page (limit 50) from a licensed source provider "
+             "(pdl/crustdata/apollo) and print matched/title/employer/"
+             "dates/city/cost plus a go/no-go line, then exit -- does not "
+             "touch a run directory. Requires the provider's own API key "
+             "(PDL_API_KEY/CRUSTDATA_API_KEY/APOLLO_API_KEY); see "
+             "deliverables/gaia_2026-09-10/KEY_INSTRUCTIONS.md. Combine "
+             "with --niche.",
+    )
+    ap.add_argument(
+        "--niche", default="structural", choices=sorted(_NICHE_TERMS),
+        help="niche terms for --coverage-test (default: structural)",
+    )
     args = ap.parse_args()
+
+    if args.coverage_test is not None:
+        return run_coverage_test(args.coverage_test, args.niche)
 
     if args.classify_reply is not None:
         verdict = classify_reply(args.classify_reply)
         print(json.dumps(verdict.model_dump(), indent=2, default=str))
+        return 0
+
+    if args.kappa is not None:
+        path_a, path_b = Path(args.kappa[0]), Path(args.kappa[1])
+        labels_a = {lbl.person_id: lbl for lbl in load_labels(path_a)}
+        labels_b = {lbl.person_id: lbl for lbl in load_labels(path_b)}
+        common = sorted(set(labels_a) & set(labels_b))
+        if not common:
+            print("no person_id is labelled in both files -- nothing to score")
+            return 0
+        print("Cohen's kappa over " + str(len(common)) + " person(s) labelled in both files:")
+        for field in ("grade", "location_country", "chartered"):
+            a_vals = [getattr(labels_a[pid], field) for pid in common]
+            b_vals = [getattr(labels_b[pid], field) for pid in common]
+            k = cohen_kappa(a_vals, b_vals)
+            print("  " + field + ": " + format(k, ".3f"))
+        return 0
+
+    if args.label_export:
+        if not done("gate"):
+            raise SystemExit("--label-export needs the 'gate' stage to have run first")
+        gate_out = load("gate")
+        persons = load("extract")["persons"]
+        docs = load_docs()
+        rows = []
+        for pid in gate_out:
+            rec = persons.get(pid)
+            if rec is None:
+                continue
+            doc_ids = rec.get("doc_ids") or []
+            person_docs = [docs[d].model_dump() for d in doc_ids if d in docs]
+            rows.append(build_worksheet_row(pid, rec.get("full_name", pid), person_docs))
+        out_path = RUN_DIR / "label_export.jsonl"
+        RUN_DIR.mkdir(parents=True, exist_ok=True)
+        with out_path.open("w", encoding="utf-8") as fh:
+            for row in rows:
+                fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+        log("label_export: wrote " + str(len(rows)) + " rows to " + str(out_path))
         return 0
 
     global _LIVE_CRM
