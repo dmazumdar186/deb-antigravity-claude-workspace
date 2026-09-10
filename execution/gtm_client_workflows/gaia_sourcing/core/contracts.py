@@ -249,6 +249,15 @@ class ContactRecord(BaseModel):
         "linkedin", "personal_email", "work_email", "phone"
     ] = "linkedin"
     channel_rationale: str = ""
+    # 2026-09-10 -- RADAR_CONTRACTS.md section E "Stale evidence". Set by
+    # layers/contact.py from the newest employer-dimension document's
+    # fetched_at; None means there was no dated document to judge against.
+    # `stale` is the deterministic threshold check (age > CONFIG.max_
+    # evidence_age_days) -- computed once at contact time so every downstream
+    # consumer (CRM sync, render) reads the same verdict instead of
+    # re-deriving it from the raw age and risking two different thresholds.
+    evidence_age_days: Optional[int] = None
+    stale: bool = False
 
 
 # --------------------------------------------------------------------------
@@ -340,3 +349,129 @@ class PoolMap(BaseModel):
     # Client-side engineers (TII / NTA / local authority) surfaced separately
     # per SPEC.md section 2.3 -- deliberately NOT part of the 15.
     client_side_sidebar: list[str] = Field(default_factory=list)
+
+
+# --------------------------------------------------------------------------
+# Source providers -- RADAR_CONTRACTS.md section A (2026-09-10).
+#
+# Appended, never edited in place: two parallel builds share this file
+# (this one owns sources/base.py + the three chartership-register plugins;
+# another owns the licensed providers pdl/crustdata/apollo) and both import
+# these exact shapes. Structure only, per the module docstring above --
+# whether a ProviderRecord or SourceResult describes a real match is a
+# gates.py/registers.py question, not a schema one.
+# --------------------------------------------------------------------------
+
+
+class SourceQuery(BaseModel):
+    role_id: str
+    niche: str  # "structural" | "transport" | ...
+    terms: list[str] = Field(default_factory=list)
+    locations: list[str] = Field(default_factory=list)
+    limit: int = 100
+    cursor: Optional[str] = None
+
+
+class JobStint(BaseModel):
+    """One entry in a ProviderRecord's job_history. Licensed-data only --
+    dates are Optional because a provider's employment record frequently
+    gives a title/employer with no start or end date at all."""
+
+    title: Optional[str] = None
+    employer: Optional[str] = None
+    start: Optional[date] = None
+    end: Optional[date] = None
+
+
+class ProviderRecord(BaseModel):
+    """A structured record from a licensed data provider (PDL, Crustdata,
+    Apollo, ...). Never produced by the free register plugins in
+    sources/engineers_ireland.py etc. -- those emit RawDocuments only, because
+    their evidence is a quotable page of text, not a licensed structured
+    field. See RADAR_CONTRACTS.md section A for how a ProviderRecord becomes
+    a claim (confidence="direct", text_source="provider_field")."""
+
+    provider: str
+    external_id: str
+    full_name: str
+    current_title: Optional[str] = None
+    current_employer: Optional[str] = None
+    city: Optional[str] = None
+    region: Optional[str] = None
+    country: Optional[str] = None
+    job_history: list[JobStint] = Field(default_factory=list)
+    skills: list[str] = Field(default_factory=list)
+    linkedin_url: Optional[str] = None
+    fetched_at: date
+    raw_hash: str  # sha256 of the provider JSON, for audit
+
+
+class SourceResult(BaseModel):
+    provider: str
+    documents: list[RawDocument] = Field(default_factory=list)
+    provider_records: list[ProviderRecord] = Field(default_factory=list)
+    next_cursor: Optional[str] = None
+    cost_eur: float = 0.0
+    fetched: int = 0
+
+
+# --------------------------------------------------------------------------
+# Identity resolution -- RADAR_CONTRACTS.md section B (2026-09-10).
+# Appended, never edited in place -- see the note on the block above this
+# one; other agents append their own models elsewhere in this same window.
+# --------------------------------------------------------------------------
+
+
+class RawPersonRecord(BaseModel):
+    """One sighting of a person from one source, before clustering.
+
+    Structure only (module docstring above): a record with no employer or no
+    register_number is a person the source simply didn't state that field
+    for, not a schema error. `doc_ids` lets a cluster's members trace back to
+    the evidence documents that named them.
+    """
+
+    source: str
+    source_ref: str
+    full_name: str
+    employer: Optional[str] = None
+    title: Optional[str] = None
+    location: Optional[str] = None
+    register_number: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    email: Optional[str] = None
+    doc_ids: list[str] = Field(default_factory=list)
+
+
+class PersonCluster(BaseModel):
+    """The output of layers/identity.py::resolve_identity -- one real person,
+    possibly sighted under several RawPersonRecords. `basis` lists every
+    merge rule that contributed a link inside this cluster (e.g.
+    ["name+employer", "linkedin_url"] for a three-way chain); `confidence` is
+    the strongest basis present ("exact" > "strong" > "weak")."""
+
+    person_id: str  # deterministic slug of canonical name + employer token
+    members: list[RawPersonRecord]
+    basis: list[str] = Field(default_factory=list)
+    confidence: Literal["exact", "strong", "weak"]
+
+
+# --------------------------------------------------------------------------
+# ICP sample check -- RADAR_CONTRACTS.md section D (2026-09-10).
+# --------------------------------------------------------------------------
+
+
+class IcpSample(BaseModel):
+    person_id: str
+    passed: bool
+    failed_gates: list[str] = Field(default_factory=list)
+
+
+class IcpVerdict(BaseModel):
+    batch_id: str
+    sampled: int
+    matched: int
+    threshold: int
+    verdict: Literal["PASS", "RETRY"]
+    filter_delta: str
+    samples: list[IcpSample] = Field(default_factory=list)
