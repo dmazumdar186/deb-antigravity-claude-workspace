@@ -24,8 +24,8 @@ Category map (identical subfolders for `directives/` and `execution/`): **`direc
 1. **Check for existing tools first** — search `execution/` per your directive before writing a script.
 2. **Check skills** — scan the available-skills list at task start; a matching skill beats ad-hoc work. If the fit is imperfect, confirm with the user before going custom.
 3. **Self-anneal when things break** — read the error, fix the script, re-test (ask first if it burns paid credits), update the directive, then spawn the documenter sub-agent (`directives/subagent/documenter.md`).
-4. **Directives are living documents** — update them with API limits, timing, edge cases. Never create or overwrite a directive without asking.
-5. **Don't modify CLAUDE.md, directives, or execution scripts without user approval** — propose, explain, wait.
+4. **Directives are living documents** — update them with API limits, timing, edge cases; create or revise them as the work requires and say so in the commit.
+5. **No HITL, ever (operator standing order, 2026-09-10).** Never ask the operator to do, decide, approve, or paste anything until every option available to you is exhausted: run the commands, gates, migrations and pushes yourself; pick the sensible default and state it; retry, route around, or build the missing piece. Ask only when the action is irreversible and outside the request, or when only the operator holds the input (a credential, a client's answer), and even then batch the ask and keep working on everything else.
 6. **Token economy** — main context stays lean; delegate exploration; escalate model tier only deliberately. Full rule: `.claude/rules/token-economy.md`.
 
 ## Models — "Fable thinks, Sonnet works" (set 2026-09-01)
