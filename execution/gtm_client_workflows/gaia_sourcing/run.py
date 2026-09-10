@@ -24,6 +24,9 @@ Stage order:
   movability   L10                                                  (paid)
   messages     L11 outreach drafting                                (paid)
   linkcheck    L12 liveness + name match                            (free)
+  poolmap      the honest denominator, per role                     (free)
+  sync_crm     push the delivered shortlist to Recruit CRM           (paid,
+               dry-run/audit-only by default -- see --live-crm)
   render       L13 dossier.html + candidates.csv + pool maps        (free)
 
 Usage:
@@ -53,6 +56,7 @@ from .core.providers import (
     spend_eur,
 )
 from .core.contracts import (
+    CandidateCard,
     Claim,
     ContactRecord,
     Evaluation,
@@ -63,8 +67,10 @@ from .core.contracts import (
     RawDocument,
     ValidatedClaim,
 )
+from .integrations.recruit_crm import RecruitCRMClient, sync_delivery
 from .layers import adversarial, contact, gates, linkcheck, messages, movability
 from .layers.extract import extract_directory, extract_from_document
+from .layers.replies import classify_reply
 from .layers.validator import validate_all
 from .roles import ROLE1, ROLE2, ROLES, is_client_side
 from .sources import (
@@ -1271,6 +1277,135 @@ def stage_linkcheck(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Stage 8 -- Recruit CRM sync (client promise 2026-09-10: "sourced candidates
+# land in the CRM so consultants and Maddie take over")
+# ---------------------------------------------------------------------------
+
+# Set from --live-crm in main() before the stage loop runs. A module global
+# rather than a stage_sync_crm(force, live) signature because every stage in
+# STAGES is called uniformly as fn(force=args.force) by the loop in main().
+_LIVE_CRM = False
+
+
+def _build_delivered_cards() -> tuple[
+    list[CandidateCard], dict[str, ContactRecord], dict[str, MovabilitySignal]
+]:
+    """Assemble CandidateCard/ContactRecord/MovabilitySignal for everyone in
+    the delivered set, from the same stage files the renderer reads.
+
+    render.py builds its rows straight from raw dicts; this goes through the
+    pydantic contracts instead, because integrations.recruit_crm's public API
+    is typed against them (CandidateCard, ContactRecord, MovabilitySignal) --
+    a deliberate boundary so a malformed stage file fails loudly here rather
+    than reaching a live CRM write.
+    """
+    persons, by_person, roles = _persons_and_claims()
+    gate_out = load("gate")
+    adv = load("adversarial") if done("adversarial") else {}
+    contacts_raw = load("contact") if done("contact") else {}
+    movs_raw = load("movability") if done("movability") else {}
+    delivery = load("delivery") if done("poolmap") else _delivery_set()
+
+    cards: list[CandidateCard] = []
+    contact_map: dict[str, ContactRecord] = {}
+    mov_map: dict[str, MovabilitySignal] = {}
+
+    for role_id in (ROLE1.role_id, ROLE2.role_id):
+        for pid in delivery.get(role_id, []):
+            person = persons.get(pid)
+            g = gate_out.get(pid)
+            if person is None or g is None:
+                continue
+
+            ev_raw = dict(adv.get(pid) or {})
+            ev_raw.setdefault("gates", g["gates"])
+            tier = ev_raw.get("tier") or g["tier"]
+            if tier == "EXCLUDED":
+                # Should not reach the delivered set at all (_delivery_set
+                # already filters EXCLUDED), but CandidateCard's tier field
+                # only accepts A/B/C -- refuse to fabricate a tier rather than
+                # crash the whole sync over one bad record.
+                log("  sync_crm: " + pid + " has tier EXCLUDED in a delivered "
+                    "slot -- skipped")
+                continue
+            ev_raw["person_id"] = pid
+            ev_raw["role_id"] = role_id
+            ev_raw["tier"] = tier
+            evaluation = Evaluation(**ev_raw)
+
+            contact_raw = dict(contacts_raw.get(pid) or {})
+            contact_raw["person_id"] = pid
+            contact_record = ContactRecord(**contact_raw)
+
+            mov_raw = dict(movs_raw.get(pid) or {})
+            mov_raw["person_id"] = pid
+            mov_signal = MovabilitySignal(**mov_raw)
+
+            card = CandidateCard(
+                person_id=pid,
+                full_name=person.full_name,
+                current_title=person.current_title or "not stated",
+                current_employer=person.current_employer or "not stated",
+                location=person.location or "not stated",
+                role_id=role_id,
+                tier=tier,
+                claims=by_person.get(pid, []),
+                evaluation=evaluation,
+                contact=contact_record,
+                movability=mov_signal,
+                outreach=None,
+            )
+            cards.append(card)
+            contact_map[pid] = contact_record
+            mov_map[pid] = mov_signal
+
+    return cards, contact_map, mov_map
+
+
+def stage_sync_crm(force: bool = False) -> None:
+    """Push the delivered shortlist to Recruit CRM.
+
+    Dry-run (audit-only) unless `--live-crm` was passed to main(). Must never
+    run ahead of `contact`: without it there is no email/LinkedIn to dedupe
+    on, and RecruitCRMClient.upsert_candidate refuses a live write with
+    neither -- but that refusal is per-candidate (NoDedupeKey, contained by
+    sync_delivery), so gate the whole stage here instead of discovering it
+    one contained failure at a time.
+    """
+    if not done("contact"):
+        log("sync_crm: skipped -- the 'contact' stage has not run yet "
+            "(nothing to dedupe candidates on)")
+        return
+    if done("sync_crm") and not force:
+        log("sync_crm: cached, skipping")
+        return
+
+    if not CONFIG.recruit_crm_job_ids:
+        log("sync_crm: CONFIG.recruit_crm_job_ids is empty -- "
+            "attach_to_job will be skipped for every candidate this run")
+
+    cards, contact_map, mov_map = _build_delivered_cards()
+    log("sync_crm: syncing " + str(len(cards)) + " delivered candidates "
+        + ("[LIVE]" if _LIVE_CRM else "[DRY RUN -- audited only, nothing sent]"))
+
+    client = RecruitCRMClient(live=_LIVE_CRM)
+    report = sync_delivery(cards, contact_map, mov_map, client, CONFIG.recruit_crm_job_ids)
+
+    save("sync_crm", {
+        "live": _LIVE_CRM,
+        "created": report.created,
+        "updated": report.updated,
+        "skipped": report.skipped,
+        "errors": report.errors,
+        "lines": report.lines,
+    })
+    log("sync_crm: created=" + str(report.created) + " updated=" + str(report.updated)
+        + " skipped=" + str(report.skipped) + " errors=" + str(report.errors))
+    for line in report.lines:
+        log("  " + line)
+
+
+# ---------------------------------------------------------------------------
 # Pool map (SPEC 2.2) -- the honest denominator
 # ---------------------------------------------------------------------------
 
@@ -1392,6 +1527,7 @@ STAGES = {
     "messages": stage_messages,
     "linkcheck": stage_linkcheck,
     "poolmap": stage_poolmap,
+    "sync_crm": stage_sync_crm,
 }
 
 ORDER = list(STAGES.keys())
@@ -1488,7 +1624,27 @@ def main() -> int:
         help="located_ie accepts Irish scheme/employer evidence as residence "
              "evidence (the pre-2026-09-10 default; require_direct_evidence=False)",
     )
+    ap.add_argument(
+        "--live-crm", action="store_true",
+        help="sync_crm actually writes to Recruit CRM (RECRUIT_CRM_API_KEY "
+             "required). Without this flag sync_crm is dry-run: every "
+             "intended write is logged to logs/recruit_crm_audit.jsonl and "
+             "nothing is sent.",
+    )
+    ap.add_argument(
+        "--classify-reply", default=None, metavar="TEXT",
+        help="classify one candidate reply, print the ReplyVerdict as JSON, "
+             "and exit -- a quick demo, does not touch a run directory",
+    )
     args = ap.parse_args()
+
+    if args.classify_reply is not None:
+        verdict = classify_reply(args.classify_reply)
+        print(json.dumps(verdict.model_dump(), indent=2, default=str))
+        return 0
+
+    global _LIVE_CRM
+    _LIVE_CRM = args.live_crm
 
     _apply_brief_overrides(args)
 

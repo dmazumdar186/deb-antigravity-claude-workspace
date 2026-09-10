@@ -122,6 +122,16 @@ class RunConfig:
     off_limits: list[str] = field(
         default_factory=lambda: ["tobin", "atkinsrealis", "atkinsréalis", "atkins realis"]
     )
+    # 2026-09-10 -- client promise on the call: sourced candidates land in
+    # Recruit CRM so consultants and Maddie (their inbound screening agent)
+    # take over. role_id -> Recruit CRM job slug/id. Empty by default: an
+    # empty mapping means run.py's sync_crm stage still creates/updates
+    # candidate records but SKIPS attach_to_job for every candidate (logged,
+    # not silently dropped), because a wrong job id would be a live write to
+    # the wrong requisition and there is no way to detect that from here.
+    # Fill in after `run.py --stage sync_crm` (dry-run) or
+    # RecruitCRMClient.list_jobs() confirms the correct slugs.
+    recruit_crm_job_ids: dict[str, str] = field(default_factory=dict)
 
     @property
     def run_dir(self) -> Path:

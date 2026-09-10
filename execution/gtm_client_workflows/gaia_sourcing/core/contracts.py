@@ -298,6 +298,32 @@ class CandidateCard(BaseModel):
     outreach: Optional[OutreachSequence] = None
 
 
+class ReplyVerdict(BaseModel):
+    """Output of layers/replies.py -- classification only, never a reply draft.
+
+    `next_action` is derived from `label` by a fixed dict in replies.py (I3:
+    deterministic code decides, the LLM only supplies a label + evidence when
+    the rules genuinely cannot). `opt_out` is set ONLY by the deterministic
+    opt-out rule (unsubscribe / remove-me phrasing) -- the LLM path never sets
+    it, so a model's "not_interested" verdict can never be silently upgraded
+    into an opt-out, and a rule-detected opt-out can never be downgraded by a
+    model second-guessing it.
+    """
+
+    label: Literal[
+        "interested", "not_now", "not_interested", "question",
+        "out_of_office", "bounce", "unclear",
+    ]
+    next_action: Literal[
+        "book_call", "snooze_90d", "close", "consultant_answers",
+        "retry_later", "human_review",
+    ]
+    basis: Literal["rule", "llm"]
+    evidence: str  # the phrase that decided it
+    confidence: Literal["high", "low"]
+    opt_out: bool = False
+
+
 class PoolMapRow(BaseModel):
     reason: str
     count: int

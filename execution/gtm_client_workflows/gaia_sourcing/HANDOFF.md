@@ -206,7 +206,60 @@ py -m gtm_client_workflows.gaia_sourcing.tests.acceptance_gaia
 
 Stages: `harvest_r1`, `harvest_r2`, `harvest_r2_web`, `extract`, `validate`,
 `gate`, `deepen_r1`, `adversarial`, `contact`, `movability`, `messages`,
-`linkcheck`, `poolmap`. `--from-stage <name>` runs that stage and everything
-after; `--force` re-runs a cached stage; `--plan` pins a provider plan
-(`free` / `hybrid` / `openrouter` / `anthropic` / `budget`); `--force-lock`
-overrides the run lock for a genuinely dead process.
+`linkcheck`, `poolmap`, `sync_crm`. `--from-stage <name>` runs that stage and
+everything after; `--force` re-runs a cached stage; `--plan` pins a provider
+plan (`free` / `hybrid` / `openrouter` / `anthropic` / `budget`);
+`--force-lock` overrides the run lock for a genuinely dead process.
+
+---
+
+## 2026-09-10 -- Brief filters, CRM sync, reply classification
+
+Two promises made on the client call: sourced candidates land in Recruit CRM
+(their ATS, screened onward by consultants and their inbound agent Maddie),
+and candidate replies get classified immediately. Both built fail-safe by
+default; neither has run against a live Recruit CRM account yet.
+
+**New package**: `integrations/recruit_crm.py` -- a REST adapter.
+`RecruitCRMClient(live=False)` is the default: every intended write is logged
+to `logs/recruit_crm_audit.jsonl` (`dry_run: true`) and nothing is sent;
+`live=True` requires `RECRUIT_CRM_API_KEY` (env/.env), never logged. Verified
+against the real docs (WebFetch/WebSearch, cited with URLs in the module
+docstring): base URL `https://api.recruitcrm.io/v1`, `Authorization: Bearer
+<token>`, and that `POST .../candidates`, `GET .../jobs`, `.../candidates/
+search`, `.../candidates/{slug}` and an "Assign Candidate" endpoint all
+exist. Their exact request/response shape did NOT resolve -- docs.recruitcrm.io
+is a Stoplight SPA and a plain fetch only returns page titles -- so
+`upsert_candidate`, `add_note` and `attach_to_job`'s payloads are ASSUMED and
+flagged as such; treat the first live run as a contract test. Guardrails:
+`MAX_WRITES_PER_RUN=50` (`WriteCapExceeded`, never contained per-item, same
+shape as `CostCeilingExceeded`), 429/5xx retried up to 3x honouring
+Retry-After, every response status audited, dedupe only overwrites EMPTY CRM
+fields (never a consultant's edit), and a live write refuses
+(`NoDedupeKey`) with neither a verified/catch-all email nor a LinkedIn URL.
+
+**New**: `layers/replies.py` + `ReplyVerdict` (core/contracts.py). Rules first
+(bounce, out-of-office, opt-out, negative, positive, question); only genuine
+unclear replies reach the LLM (`ROLE_JUDGE`, `use_llm=True` by default), and
+any LLM failure or `use_llm=False` yields `unclear`/`human_review`. `opt_out`
+is set ONLY by the deterministic unsubscribe/remove-me rule, never by the LLM
+path, and MUST be honoured downstream (close, do-not-contact note). Never
+drafts or sends anything (I7-adjacent).
+
+**run.py**: new `sync_crm` stage (dry-run unless `--live-crm`; refuses to run
+before `contact`; job attachment keyed by `CONFIG.recruit_crm_job_ids`,
+empty by default -- attach is skipped with a log line per candidate until
+filled in). New flag `--classify-reply "<text>"` prints one `ReplyVerdict` as
+JSON and exits. Brief-filter flags from the earlier session are unchanged:
+`--max-grade --max-years --min-years --counties --strict-location
+--lenient-location`.
+
+**Guardrails re-stated**: Prodcraft never contacts candidates or writes CRM
+notes claiming otherwise (I7); the Art. 14 line in every CRM note is injected
+verbatim from `core/config.PRIVACY_NOTICE_URL`, never generated (I6); email
+statuses are never collapsed (I5); gates/next-actions are deterministic
+dicts, the LLM only ever supplies a label (I3); all LLM calls route through
+`core/providers.call_role`.
+
+Tests: `tests/test_recruit_crm.py` (25), `tests/test_replies.py` (27), zero
+network. Suite: 636 passed (was ~575).
