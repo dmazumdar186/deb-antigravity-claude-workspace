@@ -57,7 +57,14 @@ def _throttle(url: str) -> None:
 
 
 def _pdf_to_text(raw: bytes) -> str:
-    import fitz  # PyMuPDF
+    try:
+        import fitz  # PyMuPDF
+    except ImportError as exc:
+        # 2026-09-10: a sandbox without PyMuPDF harvested 2,030 case documents
+        # and produced zero witness statements with no error anywhere -- every
+        # PDF quietly became empty text and failed the evidence gate. A missing
+        # parser is a hard failure, not an empty document.
+        raise RuntimeError("PyMuPDF is not installed (pip install pymupdf); PDF text extraction is impossible") from exc
 
     with fitz.open(stream=raw, filetype="pdf") as doc:
         return "\n".join(page.get_text() for page in doc)

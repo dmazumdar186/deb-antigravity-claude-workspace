@@ -305,7 +305,8 @@ def discover_cases_serper(queries: Iterable[str], per_query: int = 20) -> list[s
             r = requests.post(
                 "https://google.serper.dev/search",
                 headers={"X-API-KEY": key, "Content-Type": "application/json"},
-                data=json.dumps({"q": q, "num": per_query}),
+                # Serper free plan rejects num > 10 (verified 2026-09-10).
+                data=json.dumps({"q": q, "num": min(per_query, 10)}),
                 timeout=CONFIG.request_timeout_s,
             )
             if r.status_code != 200:
