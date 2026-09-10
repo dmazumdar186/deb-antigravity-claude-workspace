@@ -1,0 +1,17 @@
+{
+  "phase0": {
+    "passed": false,
+    "sends": 0,
+    "calls_booked": 0,
+    "queue_cap_locked": 5,
+    "queue_cap_open": 20
+  },
+  "proof_lines": [],
+  "sender": {
+    "name": "",
+    "physical_address": "",
+    "signature": ""
+  },
+  "touch_days": [0, 3, 7, 12],
+  "preview_expiry_days": 30
+}

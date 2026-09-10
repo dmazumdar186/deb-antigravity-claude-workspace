@@ -1,0 +1,22 @@
+[
+  {"pattern": "ideal image", "note": "national med-spa chain"},
+  {"pattern": "laseraway", "note": "national laser hair removal chain"},
+  {"pattern": "milan laser", "note": "national laser hair removal chain"},
+  {"pattern": "european wax", "note": "national waxing franchise"},
+  {"pattern": "skin laundry", "note": "national facial/skincare chain"},
+  {"pattern": "sono bello", "note": "national body contouring chain"},
+  {"pattern": "athenix", "note": "national body contouring franchise"},
+  {"pattern": "elase", "note": "regional med-spa chain"},
+  {"pattern": "massage envy", "note": "national massage franchise"},
+  {"pattern": "hand & stone", "note": "national massage/facial franchise"},
+  {"pattern": "hand and stone", "note": "national massage/facial franchise"},
+  {"pattern": "the joint", "note": "national chiropractic franchise (not medspa target)"},
+  {"pattern": "orangetheory", "note": "national fitness franchise (not medspa target)"},
+  {"pattern": "ulta", "note": "national beauty retail chain"},
+  {"pattern": "sephora", "note": "national beauty retail chain"},
+  {"pattern": "drybar", "note": "national blowout salon franchise"},
+  {"pattern": "skinspirit", "note": "national med-spa chain"},
+  {"pattern": "skin spirit", "note": "national med-spa chain"},
+  {"pattern": "alchemy 43", "note": "regional lash/brow franchise"},
+  {"pattern": "amazing lash", "note": "national lash extension franchise"}
+]
