@@ -1,4 +1,4 @@
-# Gaia Sourcing / Radar — directive (DRAFT, needs operator approval before moving to `directives/gtm_client_workflows/gaia_sourcing.md`)
+# Gaia Sourcing / Radar — directive
 
 ## Goal
 Deliver evidence-verified, brief-matched shortlists of passive candidates for
