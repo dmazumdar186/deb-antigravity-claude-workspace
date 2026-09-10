@@ -1,0 +1,102 @@
+{
+  "example-medspa-01.test": {
+    "fixture": "site_modern_booking",
+    "status": 200,
+    "final_url": "https://example-medspa-01.test/"
+  },
+  "example-medspa-02.test": {
+    "fixture": "site_wix_nobooking",
+    "status": 200,
+    "final_url": "https://example-medspa-02.test/"
+  },
+  "example-medspa-03.test": {
+    "fixture": "site_wordpress_old_theme",
+    "status": 200,
+    "final_url": "https://example-medspa-03.test/"
+  },
+  "example-medspa-04.test": {
+    "fixture": "site_http_only",
+    "status": 200,
+    "final_url": "http://example-medspa-04.test/"
+  },
+  "example-medspa-05.test": {
+    "fixture": "site_no_viewport",
+    "status": 200,
+    "final_url": "https://example-medspa-05.test/"
+  },
+  "example-medspa-06.test": {
+    "fixture": "site_squarespace_calendly",
+    "status": 200,
+    "final_url": "https://example-medspa-06.test/"
+  },
+  "example-medspa-07.test": {
+    "fixture": "site_godaddy_no_analytics",
+    "status": 200,
+    "final_url": "https://example-medspa-07.test/"
+  },
+  "example-medspa-08.test": {
+    "fixture": "site_broken_404",
+    "status": 404,
+    "final_url": "https://example-medspa-08.test/"
+  },
+  "example-medspa-09.test": {
+    "fixture": "site_modern_booking",
+    "status": 200,
+    "final_url": "https://example-medspa-09.test/"
+  },
+  "example-medspa-10.test": {
+    "fixture": "site_wix_nobooking",
+    "status": 200,
+    "final_url": "https://example-medspa-10.test/"
+  },
+  "example-medspa-11.test": {
+    "fixture": "site_wordpress_old_theme",
+    "status": 200,
+    "final_url": "https://example-medspa-11.test/"
+  },
+  "example-medspa-12.test": {
+    "fixture": "site_http_only",
+    "status": 200,
+    "final_url": "http://example-medspa-12.test/"
+  },
+  "example-medspa-13.test": {
+    "fixture": "site_no_viewport",
+    "status": 200,
+    "final_url": "https://example-medspa-13.test/"
+  },
+  "example-medspa-14.test": {
+    "fixture": "site_squarespace_calendly",
+    "status": 200,
+    "final_url": "https://example-medspa-14.test/"
+  },
+  "example-medspa-15.test": {
+    "fixture": "site_godaddy_no_analytics",
+    "status": 200,
+    "final_url": "https://example-medspa-15.test/"
+  },
+  "example-medspa-16.test": {
+    "fixture": "site_broken_404",
+    "status": 404,
+    "final_url": "https://example-medspa-16.test/"
+  },
+  "example-medspa-17.test": {
+    "fixture": "site_modern_booking",
+    "status": 200,
+    "final_url": "https://example-medspa-17.test/"
+  },
+  "example-medspa-18.test": {
+    "fixture": "site_wix_nobooking",
+    "status": 200,
+    "final_url": "https://example-medspa-18.test/"
+  },
+  "example-medspa-19.test": {
+    "fixture": "site_wordpress_old_theme",
+    "status": 200,
+    "final_url": "https://example-medspa-19.test/"
+  },
+  "example-medspa-20.test": {
+    "fixture": "site_http_only",
+    "status": 200,
+    "final_url": "http://example-medspa-20.test/"
+  }
+}

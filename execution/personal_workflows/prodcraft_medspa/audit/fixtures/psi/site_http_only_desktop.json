@@ -1,0 +1,18 @@
+{
+  "lighthouseResult": {
+    "requestedUrl": "http://example-medspa-04.test/",
+    "categories": {
+      "performance": {
+        "score": 0.92,
+        "title": "Performance"
+      }
+    },
+    "audits": {
+      "viewport": {
+        "id": "viewport",
+        "score": 1,
+        "title": "Has a <meta name=\"viewport\"> tag with width or initial-scale"
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "modern_1": {
+    "band": "modern",
+    "min_score": 0,
+    "max_score": 4
+  },
+  "modern_2": {
+    "band": "modern",
+    "min_score": 0,
+    "max_score": 4
+  },
+  "modern_3": {
+    "band": "modern",
+    "min_score": 0,
+    "max_score": 4
+  },
+  "dated_1": {
+    "band": "dated",
+    "min_score": 7,
+    "max_score": 10
+  },
+  "dated_2": {
+    "band": "dated",
+    "min_score": 7,
+    "max_score": 10
+  },
+  "dated_3": {
+    "band": "dated",
+    "min_score": 7,
+    "max_score": 10
+  }
+}
