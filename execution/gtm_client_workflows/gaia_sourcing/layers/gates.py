@@ -425,6 +425,30 @@ def extract_years(text: str) -> Optional[int]:
     return best
 
 
+# RADAR_CONTRACTS.md section C: a years figure only counts toward a person's
+# seniority when the sentence it comes from is actually ABOUT them. "ABC
+# Consulting has provided structural engineering since 1985" states the
+# FIRM's history, not the witness's -- and "since 1985" reads as decades to
+# extract_years' word-number sibling in some phrasings, so an unguarded gate
+# will credit a person with a firm's whole trading history.
+_PERSON_SUBJECT_RE = re.compile(r"\b(i|my|me|he|she|his|her|him)\b", re.I)
+
+
+def _years_subject_is_person(quote: str, person: Person) -> bool:
+    """True when `quote` names the person as its subject: a first- or
+    third-person pronoun (I/my/me/he/she/his/her/him), or the person's own
+    name (in whole or by any name token longer than one letter). A sentence
+    naming only a firm or practice matches neither and returns False.
+    """
+    text = " " + re.sub(r"[^a-z' ]+", " ", quote.lower()) + " "
+    if _PERSON_SUBJECT_RE.search(text):
+        return True
+    for tok in re.split(r"[^A-Za-z']+", person.full_name):
+        if len(tok) > 1 and re.search(r"\b" + re.escape(tok.lower()) + r"\b", text):
+            return True
+    return False
+
+
 # Grades that cannot be reached inside 8 years at an engineering consultancy.
 # Deliberately excludes "Senior Engineer", which is reachable at ~5 years.
 _SENIOR_GRADE_RE = re.compile(
@@ -451,12 +475,44 @@ def _senior_grade(
     return None
 
 
+def _grade_corroborated(person: Person, claims: list[ValidatedClaim]) -> bool:
+    """RADAR_CONTRACTS.md section C: with `require_corroboration=True`, a
+    title-only grade inference needs either (a) a years claim -- any direct
+    years_experience claim, whether or not it parsed to a number, since the
+    point is a second kind of evidence exists at all -- or (b) a second,
+    independent source (a different doc_id, or the title itself) that also
+    evidences a senior grade.
+
+    RawPersonRecord/ValidatedClaim carry no per-source "this is the same
+    document as the title" marker, so independence is counted as: does the
+    person's title match AND does at least one employer-dimension claim also
+    match -- two distinct places the grade was stated, neither one alone.
+    """
+    if _direct(_claims_by_dim(claims, "years_experience")):
+        return True
+    sources = 0
+    if person.current_title and _SENIOR_GRADE_RE.search(person.current_title):
+        sources += 1
+    if any(
+        _SENIOR_GRADE_RE.search(c.assertion + " " + c.evidence_quote)
+        for c in _direct(_claims_by_dim(claims, "employer"))
+    ):
+        sources += 1
+    return sources >= 2
+
+
 def check_seniority(
     person: Person, claims: list[ValidatedClaim], params: dict
 ) -> GateResult:
     minimum = int(params.get("min_years", 8))
+    require_subject = bool(params.get("require_subject_is_person", False))
     evidenced: list[tuple[int, str]] = []
     for c in _direct(_claims_by_dim(claims, "years_experience")):
+        if require_subject and not (
+            _years_subject_is_person(c.evidence_quote, person)
+            or _years_subject_is_person(c.assertion, person)
+        ):
+            continue
         years = extract_years(c.evidence_quote)
         if years is None:
             years = extract_years(c.assertion)
@@ -471,6 +527,13 @@ def check_seniority(
         if params.get("allow_grade_inference"):
             grade = _senior_grade(person, claims)
             if grade:
+                if params.get("require_corroboration") and not _grade_corroborated(person, claims):
+                    return GateResult(
+                        gate_id="seniority",
+                        passed=True,
+                        basis=grade[1],
+                        note="grade from one title only; confirm",
+                    )
                 return GateResult(
                     gate_id="seniority",
                     passed=True,
@@ -635,8 +698,14 @@ def check_seniority_ceiling(
                 ),
             )
 
+    require_subject = bool(params.get("require_subject_is_person", False))
     evidenced: list[tuple[int, str]] = []
     for c in _direct(_claims_by_dim(claims, "years_experience")):
+        if require_subject and not (
+            _years_subject_is_person(c.evidence_quote, person)
+            or _years_subject_is_person(c.assertion, person)
+        ):
+            continue
         years = extract_years(c.evidence_quote)
         if years is None:
             years = extract_years(c.assertion)
