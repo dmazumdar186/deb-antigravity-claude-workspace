@@ -1986,6 +1986,12 @@ def main() -> int:
              "run directory.",
     )
     ap.add_argument(
+        "--purge-failed-cache", default=None, metavar="ERROR_SUBSTRING",
+        help="delete _httpcache entries whose failure error contains this "
+             "substring (e.g. empty_after_parse, fitz) so a later run with the "
+             "missing key/library re-fetches them; prints the count and exits",
+    )
+    ap.add_argument(
         "--spend", action="store_true",
         help="print this run's in-memory spend total (core.providers."
              "spend_eur(), zero if nothing has been spent yet this process) "
@@ -2089,6 +2095,28 @@ def main() -> int:
         log("alert-test: " + ("posted" if posted else "NOT posted (see the "
             "[alerts] log line above -- either no ALERT_WEBHOOK_URL is "
             "configured or the webhook rejected it)"))
+        return 0
+
+    if args.purge_failed_cache is not None:
+        from .core.cache import CACHE_DIR
+        needle = args.purge_failed_cache
+        purged = 0
+        for meta_p in CACHE_DIR.glob("*.meta.json"):
+            try:
+                meta = json.loads(meta_p.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                log("  skipping unreadable cache meta " + meta_p.name + ": " + repr(exc)[:80])
+                continue
+            if meta.get("ok"):
+                continue
+            if needle and needle not in str(meta.get("error", "")):
+                continue
+            body_p = meta_p.with_name(meta_p.name.replace(".meta.json", ".body"))
+            meta_p.unlink()
+            if body_p.exists():
+                body_p.unlink()
+            purged += 1
+        log("purged " + str(purged) + " failed cache entries matching '" + needle + "'")
         return 0
 
     if args.spend:

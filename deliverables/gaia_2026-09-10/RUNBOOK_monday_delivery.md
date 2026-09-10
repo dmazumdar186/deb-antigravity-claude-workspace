@@ -38,6 +38,22 @@ To try Keith's likely stricter brief on the same cache:
 py -m gtm_client_workflows.gaia_sourcing.run --from-stage gate --stage gate --max-grade senior_engineer --max-years 15 --counties "" --strict-location
 ```
 
+
+## 1b. Cloud-session state (2026-09-10 evening)
+
+The harvests were re-run in the cloud session (campaign `gaia-2026-08-20`,
+fresh cache, Serper key present). Learned and fixed today:
+- Serper free plan rejects `num > 10`; all three call sites now cap at 10.
+- A missing PyMuPDF made every PDF an empty document with no error; it now
+  fails loudly. Failed cache entries can be cleared with
+  `run.py --purge-failed-cache <error substring>` (e.g. `empty_after_parse`
+  after the Anthropic key arrives, so scanned PDFs get OCR'd).
+- Without Firecrawl, `fetch_rendered` falls back to raw HTTP; 7 of 16 firm
+  directories yield that way. Re-run `harvest_r1 --force` once the key exists.
+- Scanned witness statements fail OCR until `ANTHROPIC_API_KEY` is set (and
+  the `anthropic` package is installed); they are cached as
+  `empty_after_parse` and must be purged before the keyed re-run.
+
 ## 2. Widen the pool for the right grade (needs keys, ~€15–40, 2–4 h)
 
 Role 1 needs 8–15-year Senior/Principal engineers; the "our people" pages
