@@ -25,8 +25,11 @@ Stage order:
   messages     L11 outreach drafting                                (paid)
   linkcheck    L12 liveness + name match                            (free)
   poolmap      the honest denominator, per role                     (free)
+  scorecard    eval/scorecard.py's six ship numbers                 (free)
+  console      L14 operator console (deliverables/<c>/console/)     (free)
   sync_crm     push the delivered shortlist to Recruit CRM           (paid,
-               dry-run/audit-only by default -- see --live-crm)
+               dry-run/audit-only by default -- see --live-crm and
+               --allow-stale)
   render       L13 dossier.html + candidates.csv + pool maps        (free)
 
 Usage:
@@ -44,11 +47,13 @@ import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from .core import alerts
 from .core.cache import fetch_rendered
-from .core.config import CONFIG, PKG_ROOT
+from .core.config import CONFIG, PKG_ROOT, WORKSPACE_ROOT, secret
 from .core.providers import (
     CostCeilingExceeded,
     autoselect_plan,
@@ -72,8 +77,10 @@ from .eval.labels import build_worksheet_row, cohen_kappa, load_labels
 from .integrations.recruit_crm import RecruitCRMClient, sync_delivery
 from .layers import adversarial, contact, gates, linkcheck, messages, movability
 from .layers.extract import extract_directory, extract_from_document
+from .layers.icp_check import icp_check_from_gate_json
 from .layers.replies import classify_reply
 from .layers.validator import validate_all
+from .render.console import render_console
 from .roles import ROLE1, ROLE2, ROLES, is_client_side
 from .sources import (
     acp,
@@ -1150,15 +1157,26 @@ def stage_contact(force: bool = False) -> None:
     if done("contact") and not force:
         log("contact: cached, skipping")
         return
-    persons, _, _ = _persons_and_claims()
+    persons, by_person, _ = _persons_and_claims()
+    corpus = load_docs()
     delivery = _delivery_set()
     targets = delivery[ROLE1.role_id] + delivery[ROLE2.role_id]
     log("contact: enriching " + str(len(targets)) + " candidates via Prospeo")
 
     out: dict[str, dict] = {}
     for pid in targets:
+        # RADAR_CONTRACTS.md section E "Stale evidence": evidence_age_days is
+        # computed from this person's employer-dimension source documents.
+        # The claims carry only source_doc_id, so the actual RawDocument
+        # metadata is loaded from the cached doc store the same way
+        # stage_validate/stage_linkcheck do -- claims never carry the full
+        # document themselves.
+        employer_doc_ids = {
+            c.source_doc_id for c in by_person.get(pid, []) if c.dimension == "employer"
+        }
+        employer_docs = [corpus[d] for d in employer_doc_ids if d in corpus]
         try:
-            rec = contact.enrich(persons[pid])
+            rec = contact.enrich(persons[pid], employer_docs=employer_docs)
         except Exception as exc:
             log("  " + pid + " enrich FAILED: " + repr(exc)[:120])
             continue
@@ -1283,10 +1301,12 @@ def stage_linkcheck(force: bool = False) -> None:
 # land in the CRM so consultants and Maddie take over")
 # ---------------------------------------------------------------------------
 
-# Set from --live-crm in main() before the stage loop runs. A module global
-# rather than a stage_sync_crm(force, live) signature because every stage in
-# STAGES is called uniformly as fn(force=args.force) by the loop in main().
+# Set from --live-crm / --allow-stale in main() before the stage loop runs.
+# Module globals rather than stage_sync_crm(force, live, allow_stale)
+# parameters because every stage in STAGES is called uniformly as
+# fn(force=args.force) by the loop in main().
 _LIVE_CRM = False
+_ALLOW_STALE = False
 
 
 def _build_delivered_cards() -> tuple[
@@ -1391,10 +1411,14 @@ def stage_sync_crm(force: bool = False) -> None:
         + ("[LIVE]" if _LIVE_CRM else "[DRY RUN -- audited only, nothing sent]"))
 
     client = RecruitCRMClient(live=_LIVE_CRM)
-    report = sync_delivery(cards, contact_map, mov_map, client, CONFIG.recruit_crm_job_ids)
+    report = sync_delivery(
+        cards, contact_map, mov_map, client, CONFIG.recruit_crm_job_ids,
+        allow_stale=_ALLOW_STALE,
+    )
 
     save("sync_crm", {
         "live": _LIVE_CRM,
+        "allow_stale": _ALLOW_STALE,
         "created": report.created,
         "updated": report.updated,
         "skipped": report.skipped,
@@ -1405,6 +1429,49 @@ def stage_sync_crm(force: bool = False) -> None:
         + " skipped=" + str(report.skipped) + " errors=" + str(report.errors))
     for line in report.lines:
         log("  " + line)
+
+
+# ---------------------------------------------------------------------------
+# Operator-console health snapshot (RADAR_CONTRACTS.md section G / this
+# package's HANDOFF.md 2026-09-10). Written at the end of stage_poolmap
+# rather than as its own registered stage: it is cheap, pure, and derived
+# entirely from state stage_poolmap already has in hand (the doc store) or
+# can check in a line (which secrets are configured) -- a whole extra STAGES
+# entry (and the cache-skip bookkeeping that comes with one) would be
+# ceremony for something this small.
+# ---------------------------------------------------------------------------
+
+
+def stage_health() -> None:
+    """Write run/<campaign_id>/health.json -- console.py's health banner and
+    its integrations-configured note read this shape (adapted minimally to
+    match: see render/console.py's `_health_banner` docstring).
+    """
+    corpus = load_docs()
+    fetched_dates = [d.fetched_at for d in corpus.values() if getattr(d, "fetched_at", None)]
+    newest = max(fetched_dates) if fetched_dates else None
+    stale_days = (date.today() - newest).days if newest else None
+
+    health = {
+        "campaign_id": CONFIG.campaign_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "pool_last_refreshed": newest.isoformat() if newest else None,
+        "stale_days": stale_days,
+        "integrations": {
+            "recruit_crm": (
+                "configured" if secret("RECRUIT_CRM_API_KEY", required=False) else "missing"
+            ),
+            "alert_webhook": (
+                "configured" if secret(CONFIG.alert_webhook_env, required=False) else "missing"
+            ),
+            "modal_radar": (
+                "configured" if secret("MODAL_RADAR_URL", required=False) else "missing"
+            ),
+        },
+    }
+    save("health", health)
+    log("health: pool last refreshed " + (health["pool_last_refreshed"] or "never")
+        + (" (" + str(stale_days) + "d ago)" if stale_days is not None else ""))
 
 
 # ---------------------------------------------------------------------------
@@ -1510,6 +1577,8 @@ def stage_poolmap(force: bool = False) -> None:
             for v in violations:
                 log("    - " + v)
 
+    stage_health()
+
 
 # ---------------------------------------------------------------------------
 # Stage 8 -- eval/scorecard.py's six numbers (RADAR_CONTRACTS.md section F)
@@ -1537,6 +1606,20 @@ def stage_scorecard(force: bool = False) -> None:
     save("scorecard", sc)
     for line in eval_scorecard.render_table(sc):
         log(line)
+
+
+# ---------------------------------------------------------------------------
+# Stage 9 -- L14 operator console (render/console.py). Always re-rendered:
+# it is a cheap, pure read of whatever stage JSON already exists under
+# RUN_DIR, so there is nothing to "cache" against -- unlike the paid/slow
+# stages above, staleness here is a correctness bug, not a cost saving.
+# ---------------------------------------------------------------------------
+
+
+def stage_console(force: bool = False) -> None:
+    out_dir = WORKSPACE_ROOT / "deliverables" / CONFIG.campaign_id / "console"
+    render_console(CONFIG.campaign_id, out_dir, run_dir=RUN_DIR)
+    log("console: rendered -> " + str(out_dir))
 
 
 # ---------------------------------------------------------------------------
@@ -1656,6 +1739,7 @@ STAGES = {
     "linkcheck": stage_linkcheck,
     "poolmap": stage_poolmap,
     "scorecard": stage_scorecard,
+    "console": stage_console,
     "sync_crm": stage_sync_crm,
 }
 
@@ -1761,6 +1845,26 @@ def main() -> int:
              "nothing is sent.",
     )
     ap.add_argument(
+        "--allow-stale", action="store_true",
+        help="sync_crm proceeds for a candidate whose evidence is stale "
+             "(evidence_age_days > CONFIG.max_evidence_age_days) instead of "
+             "skipping them (RADAR_CONTRACTS.md section E). Threaded into "
+             "integrations.recruit_crm.sync_delivery(allow_stale=...).",
+    )
+    ap.add_argument(
+        "--icp-check", action="store_true",
+        help="run layers.icp_check.icp_check_from_gate_json against "
+             "run/<campaign_id>/gate.json, print one 'round N: ...' line "
+             "per round, then exit. Requires the 'gate' stage to have run.",
+    )
+    ap.add_argument(
+        "--alert-test", action="store_true",
+        help="call core.alerts.alert('gaia_sourcing', CONFIG.campaign_id, "
+             "'test alert', 1) and print whether the configured "
+             "ALERT_WEBHOOK_URL accepted it, then exit -- does not touch a "
+             "run directory.",
+    )
+    ap.add_argument(
         "--classify-reply", default=None, metavar="TEXT",
         help="classify one candidate reply, print the ReplyVerdict as JSON, "
              "and exit -- a quick demo, does not touch a run directory",
@@ -1840,8 +1944,26 @@ def main() -> int:
         log("label_export: wrote " + str(len(rows)) + " rows to " + str(out_path))
         return 0
 
-    global _LIVE_CRM
+    if args.icp_check:
+        gate_path = RUN_DIR / "gate.json"
+        if not gate_path.exists():
+            raise SystemExit(
+                "--icp-check needs the 'gate' stage to have run first ("
+                + str(gate_path) + " missing)."
+            )
+        icp_check_from_gate_json(gate_path, log=log)
+        return 0
+
+    if args.alert_test:
+        posted = alerts.alert("gaia_sourcing", CONFIG.campaign_id, "test alert", 1)
+        log("alert-test: " + ("posted" if posted else "NOT posted (see the "
+            "[alerts] log line above -- either no ALERT_WEBHOOK_URL is "
+            "configured or the webhook rejected it)"))
+        return 0
+
+    global _LIVE_CRM, _ALLOW_STALE
     _LIVE_CRM = args.live_crm
+    _ALLOW_STALE = args.allow_stale
 
     _apply_brief_overrides(args)
 

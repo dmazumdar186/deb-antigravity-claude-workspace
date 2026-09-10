@@ -1,6 +1,14 @@
-"""Tests for execution/modal_radar.py. No network, no Modal required --
-`modal` is imported lazily in the module under test, so these run whether or
-not the `modal` package is installed in this environment.
+"""Tests for execution/modal_radar.py (workspace execution root) and its
+underlying pure logic in layers/recut.py. No network, no Modal required --
+`modal` is imported lazily in the thin wrapper module, so these run whether
+or not the `modal` package is installed in this environment.
+
+`modal_radar` here refers to `gtm_client_workflows.gaia_sourcing.layers.recut`
+-- the pure, modal-free module that `execution/modal_radar.py` (the deployed
+Modal app, a thin wrapper) actually delegates to. Testing against
+`layers.recut` directly means this suite needs no sys.path games to reach a
+top-level `execution/modal_radar.py` module, and it is exactly the surface
+the thin wrapper re-exports unchanged.
 """
 
 from __future__ import annotations
@@ -10,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from gtm_client_workflows.gaia_sourcing.execution import modal_radar
+from gtm_client_workflows.gaia_sourcing.layers import recut as modal_radar
 from gtm_client_workflows.gaia_sourcing.roles import ROLE1, ROLE2
 
 FIXTURE_RUN_DIR = Path(__file__).parent / "fixtures" / "console"

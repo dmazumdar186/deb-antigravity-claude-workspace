@@ -196,6 +196,23 @@ def test_reject_from_approved(queue_path, audit_path):
     assert row["history"][-1]["reason"] == "candidate withdrew"
 
 
+def test_reject_from_pending_approval(queue_path, audit_path):
+    """2026-09-10: a consultant rejecting BEFORE ever approving is the
+    common path -- pending_approval -> rejected must succeed without a
+    detour through 'approved'.
+    """
+    entry = oq.create_draft(
+        _person(), _contact(), "role-1", queue_path=queue_path, audit_path=audit_path,
+    )
+    did = entry.draft_id
+    oq.submit_for_approval(did, "a", queue_path=queue_path, audit_path=audit_path)
+    oq.reject(did, "a", "not a fit", queue_path=queue_path, audit_path=audit_path)
+    row = oq.get(did, queue_path=queue_path)
+    assert row["state"] == "rejected"
+    assert row["history"][-1]["reason"] == "not a fit"
+    assert row["history"][-1]["from"] == "pending_approval"
+
+
 @pytest.mark.parametrize(
     "from_state,fn,args",
     [
@@ -203,7 +220,6 @@ def test_reject_from_approved(queue_path, audit_path):
         ("draft", "mark_sent", ("a", "email")),
         ("draft", "reject", ("a", "no")),
         ("pending_approval", "mark_sent", ("a", "email")),
-        ("pending_approval", "reject", ("a", "no")),
     ],
 )
 def test_invalid_transitions_raise(queue_path, audit_path, from_state, fn, args):

@@ -227,12 +227,27 @@ def _nav(active: str, campaign_id: str, role_links: list[tuple[str, str]]) -> st
 
 
 def _health_banner(health: Optional[dict]) -> str:
+    """Reads the shape run.py's `stage_poolmap` actually writes to
+    health.json (RADAR_CONTRACTS.md/HANDOFF.md 2026-09-10): `stale_days`
+    (already computed) and `pool_last_refreshed` (an ISO date/datetime
+    string). Older field names are read too, purely for backward
+    compatibility with a health.json written by an earlier build or a test
+    fixture that predates the run.py wiring -- `days_since_refresh` and
+    `pool_refreshed_at`.
+    """
     if not health:
         return ""
-    days = health.get("days_since_refresh")
-    if days is None and health.get("pool_refreshed_at"):
+    days = health.get("stale_days")
+    if days is None:
+        days = health.get("days_since_refresh")
+    for date_field in ("pool_last_refreshed", "pool_refreshed_at"):
+        if days is not None:
+            break
+        raw = health.get(date_field)
+        if not raw:
+            continue
         try:
-            refreshed = date.fromisoformat(str(health["pool_refreshed_at"])[:10])
+            refreshed = date.fromisoformat(str(raw)[:10])
             days = (date.today() - refreshed).days
         except ValueError:
             days = None
@@ -327,9 +342,12 @@ def _claims_block(claims: list[dict], limit: int = 6) -> str:
 def render_index(snap: RunSnapshot, campaign_id: str, page_status: dict) -> str:
     body = []
 
-    # Pending approvals. Shape assumed pending layers/outreach_queue.py
-    # (RADAR_CONTRACTS.md section E): a dict or list of draft records each
-    # carrying person_id/status; only "pending_approval" surfaces here.
+    # Pending approvals. layers/outreach_queue.py's ACTUAL file format
+    # (RADAR_CONTRACTS.md section E, confirmed against the module): a dict
+    # keyed by draft_id, each value a QueueEntry
+    # {draft_id, person_id, role_id, state, history} -- "state", not
+    # "status", and "pending_approval" (not "pending"/"waiting") is the
+    # exact string the state machine writes. Only that state surfaces here.
     body.append('<section class="block"><h2>Pending approvals</h2>')
     body.append('<p class="sub">Drafts waiting on a consultant\'s go/no-go.</p>')
     queue = snap.outreach_queue
@@ -342,7 +360,7 @@ def render_index(snap: RunSnapshot, campaign_id: str, page_status: dict) -> str:
     else:
         rows = list(queue.values()) if isinstance(queue, dict) else list(queue)
         pending = [r for r in rows if isinstance(r, dict)
-                   and r.get("status") == "pending_approval"]
+                   and r.get("state") == "pending_approval"]
         if not pending:
             body.append('<p class="empty">Queue is present and empty -- nothing '
                         "is waiting on approval right now.</p>")

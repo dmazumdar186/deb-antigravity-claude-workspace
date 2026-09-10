@@ -263,3 +263,58 @@ dicts, the LLM only ever supplies a label (I3); all LLM calls route through
 
 Tests: `tests/test_recruit_crm.py` (25), `tests/test_replies.py` (27), zero
 network. Suite: 636 passed (was ~575).
+
+---
+
+## 2026-09-10 (cont'd) -- Radar landed and wired: gates, safety, console, re-cut
+
+The parallel Radar build (RADAR_CONTRACTS.md) landed and is wired into
+`run.py`: sources contract + registry (`sources/base.py`, `sources/registry.py`,
+`ProviderRecord`/licensed data via `licensed_common._post_json`, the one
+sanctioned raw-HTTP exception), identity resolution (`layers/identity.py`),
+gate additions (years-subject-is-person, corroborated seniority inference),
+`layers/icp_check.py`, opt-out + approval queue + stale evidence + alerts
+(section E), eval/scorecard (section F), and the operator console + Modal
+re-cut (section G).
+
+**New CLI flags**: `--icp-check` (runs `icp_check_from_gate_json` against
+`run/<campaign>/gate.json`, prints the `round N: ...` lines, exits);
+`--alert-test` (posts one sample via `core.alerts.alert`, prints whether it
+was accepted); `--allow-stale` (threaded into `stage_sync_crm` ->
+`sync_delivery(allow_stale=...)`, overriding the stale-evidence skip).
+
+**New stage `console`** (right after `scorecard`): renders
+`render/console.py`'s operator pages to `deliverables/<campaign>/console/`.
+**`stage_poolmap` now also writes `health.json`**
+(`{campaign_id, generated_at, pool_last_refreshed, stale_days,
+integrations: {recruit_crm, alert_webhook, modal_radar}}`, each
+"configured"/"missing" per secret/env). `console.py`'s `_health_banner` reads
+`stale_days`/`pool_last_refreshed` (old `days_since_refresh`/
+`pool_refreshed_at` kept for a legacy fixture); its Pending-approvals table
+now reads `outreach_queue.json`'s REAL shape (`state`, not `status`).
+
+**`stage_contact`** now passes each candidate's employer-dimension
+RawDocuments into `contact.enrich(employer_docs=...)` (loaded from the same
+doc store `validate`/`linkcheck` already use), so `evidence_age_days`/`stale`
+are real in a live run, not always `None`.
+
+**`execution/modal_radar.py` moved** from the nested
+`gtm_client_workflows/gaia_sourcing/execution/` to the workspace's execution
+root (matching RADAR_CONTRACTS.md section G's own path and `directives/
+add_webhook.md`'s convention). The pure re-cut/approve logic now lives in
+`layers/recut.py` (never imports `modal`); the workspace-root file is a thin
+`@app.function` wrapper. `tests/test_modal_radar.py` now tests `layers.recut`
+directly.
+
+**`layers/outreach_queue.py`**: `pending_approval -> rejected` is now a
+valid transition (a consultant rejecting before ever approving is the common
+path) alongside the existing `approved -> rejected`.
+
+**Mechanical check**: `grep -rn "requests\.\(get\|post\)" layers/ sources/
+integrations/ eval/ render/` still shows `licensed_common._post_json` (the
+sanctioned exception) plus two PRE-EXISTING unsanctioned calls this session
+did not introduce and did not fix (out of this task's owned surface):
+`sources/linkedin_lookup.py:55` and `sources/acp.py:305` (both Serper
+search POSTs). Flagging for whichever agent owns `sources/`.
+
+Suite: 853 passed (was 851).

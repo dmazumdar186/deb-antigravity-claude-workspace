@@ -1,8 +1,13 @@
 """
 Outreach approval state machine (RADAR_CONTRACTS.md section E).
 
-    draft -> pending_approval -> approved -> marked_sent
-                                           -> rejected
+    draft -> pending_approval -> approved       -> marked_sent
+                               -> rejected
+                 pending_approval -> rejected
+
+(2026-09-10: `pending_approval -> rejected` added -- a consultant rejecting
+BEFORE ever approving is the common path in practice, not the exception the
+original diagram's literal reading implied. See "Ambiguity resolved" below.)
 
 Any transition not in that diagram raises `InvalidTransition`. This is a
 record-keeping layer, not a sending layer: `mark_sent` records that a human
@@ -23,12 +28,17 @@ diagram implies a fourth step (draft -> pending_approval) with no named
 function. Added `submit_for_approval(draft_id, by)` for that step rather than
 collapsing draft straight to pending_approval inside `create_draft`, so the
 "a draft was written" and "a human/process put it up for approval" audit
-events stay distinguishable. Also: the diagram writes `approved ->
-marked_sent | rejected`, i.e. literally only `approved` (not
-`pending_approval`) can transition to `rejected`. Implemented exactly as
-written rather than also allowing pending_approval -> rejected, since the
-contract is explicit and mechanically checked; if real usage needs an earlier
-reject path, that is a one-line addition to `_TRANSITIONS`, not a redesign.
+events stay distinguishable.
+
+2026-09-10 update: the diagram's literal `approved -> marked_sent | rejected`
+reading (only `approved` can transition to `rejected`) was implemented first,
+but real usage surfaced the far more common path -- a consultant rejects a
+draft BEFORE ever approving it, while it still sits in `pending_approval`.
+Forcing a reject through `approved` first would misrecord every one of those
+as a momentary approval that never happened. `pending_approval -> rejected`
+is now also allowed via `reject()`; `approved -> rejected` still works
+unchanged. This is exactly the one-line `_TRANSITIONS` addition the original
+note anticipated, not a redesign.
 
 Opt-out (RADAR_CONTRACTS.md section E: "Checked at draft creation and at
 sync") is enforced in `create_draft` -- a hit raises `OptedOut` and nothing is
@@ -55,7 +65,7 @@ DEFAULT_AUDIT_PATH = PKG_ROOT / "logs" / "outreach_audit.jsonl"
 # _TRANSITIONS[from_state]` is the entire validity rule.
 _TRANSITIONS: dict[str, set[str]] = {
     "draft": {"pending_approval"},
-    "pending_approval": {"approved"},
+    "pending_approval": {"approved", "rejected"},
     "approved": {"marked_sent", "rejected"},
     "marked_sent": set(),
     "rejected": set(),
@@ -211,7 +221,9 @@ def approve(draft_id: str, by: str, **kw) -> dict:
 
 
 def reject(draft_id: str, by: str, reason: str, **kw) -> dict:
-    """approved -> rejected (per the diagram; see module docstring)."""
+    """approved -> rejected, or pending_approval -> rejected (a consultant
+    rejecting before ever approving -- see module docstring's 2026-09-10
+    update)."""
     return _transition(draft_id, "rejected", by, extra={"reason": reason}, **kw)
 
 

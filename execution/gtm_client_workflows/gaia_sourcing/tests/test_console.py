@@ -98,6 +98,63 @@ def test_health_banner_renders_days_since_refresh(tmp_path):
     assert "3 days ago" in html
 
 
+def test_health_banner_renders_the_real_stage_health_shape(tmp_path):
+    """run.py's stage_health writes {stale_days, pool_last_refreshed, ...}
+    (RADAR_CONTRACTS.md section G / HANDOFF.md 2026-09-10), not the older
+    days_since_refresh/pool_refreshed_at names -- the banner must read both.
+    """
+    run_dir = tmp_path / "run_with_real_health"
+    run_dir.mkdir()
+    for f in FIXTURE_RUN_DIR.glob("*.json"):
+        (run_dir / f.name).write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
+    (run_dir / "health.json").write_text(json.dumps({
+        "campaign_id": "gaia-test-campaign",
+        "generated_at": "2026-09-10T12:00:00+00:00",
+        "pool_last_refreshed": "2026-09-03",
+        "stale_days": 7,
+        "integrations": {"recruit_crm": "missing", "alert_webhook": "missing",
+                          "modal_radar": "missing"},
+    }), encoding="utf-8")
+    out_dir = _render(tmp_path, run_dir=run_dir)
+    html = (out_dir / "index.html").read_text(encoding="utf-8")
+    assert "7 days ago" in html
+
+
+def test_index_shows_pending_approval_from_the_real_outreach_queue_shape(tmp_path):
+    """layers/outreach_queue.py writes a dict keyed by draft_id, each value
+    a QueueEntry with a "state" field (not "status") -- the console's
+    Pending-approvals table must read that exact shape.
+    """
+    run_dir = tmp_path / "run_with_queue"
+    run_dir.mkdir()
+    for f in FIXTURE_RUN_DIR.glob("*.json"):
+        (run_dir / f.name).write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
+    draft_id = "alice_kearney:" + ROLE1.role_id
+    (run_dir / "outreach_queue.json").write_text(json.dumps({
+        draft_id: {
+            "draft_id": draft_id,
+            "person_id": "alice_kearney",
+            "role_id": ROLE1.role_id,
+            "state": "pending_approval",
+            "history": [{"ts": "2026-09-10T00:00:00+00:00", "from": "draft",
+                         "to": "pending_approval", "by": "system"}],
+        },
+        "brian_walsh:" + ROLE1.role_id: {
+            "draft_id": "brian_walsh:" + ROLE1.role_id,
+            "person_id": "brian_walsh",
+            "role_id": ROLE1.role_id,
+            "state": "approved",
+            "history": [],
+        },
+    }), encoding="utf-8")
+    out_dir = _render(tmp_path, run_dir=run_dir)
+    html = (out_dir / "index.html").read_text(encoding="utf-8")
+    assert "Alice Kearney" in html
+    assert draft_id in html
+    # brian_walsh is "approved", not "pending_approval" -- must not surface here.
+    assert "Brian Walsh" not in html.split("Pending approvals")[1].split("</section>")[0]
+
+
 def test_health_banner_absent_when_no_health_file(tmp_path):
     out_dir = _render(tmp_path)
     html = (out_dir / "index.html").read_text(encoding="utf-8")

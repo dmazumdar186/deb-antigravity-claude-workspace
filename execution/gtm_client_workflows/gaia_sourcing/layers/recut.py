@@ -1,68 +1,50 @@
 """
-description: Live re-cut + local approval recording for the Gaia radar console.
-  Two POST endpoints deployed to Modal: /recut re-runs the deterministic gate
-  layer in memory against a brief override (RADAR_CONTRACTS.md section G),
-  /approve appends an operator's approve/reject click to an audit JSONL.
-inputs: HTTP POST JSON bodies (see RECUT_SCHEMA / APPROVE_SCHEMA below);
-  cached run/<campaign_id>/extract.json and validate.json, read from a Modal
-  Volume when deployed or from the package's local run/ directory otherwise.
-outputs: run/<campaign_id>/recuts/<uuid>.json (audit copy of a /recut result);
-  appended lines in run/<campaign_id>/approvals.jsonl (one per /approve call).
+L-recut -- pure, deterministic re-cut logic for the Gaia radar console
+(RADAR_CONTRACTS.md section G). Lives in the package (not under `execution/`)
+specifically so this module never imports `modal`: `execution/modal_radar.py`
+at the workspace's execution root is a thin wrapper around the two handlers
+below, deployed with `modal deploy execution/modal_radar.py`.
 
-Read-only against extract.json/validate.json: never writes them, never calls
-run.py's acquire_run_lock (RADAR_CONTRACTS.md section G: "never touches stage
-files, never takes the run lock"). No LLM call anywhere in this module --
-`recut()` is pure deterministic Python over the same gates.py the main
-pipeline uses, so a re-cut costs EUR 0 and returns in milliseconds.
+No LLM call anywhere in this module -- `recut()` is pure deterministic Python
+over the same `layers/gates.py` the main pipeline uses, so a re-cut costs
+EUR 0 and returns in milliseconds. Read-only against extract.json/
+validate.json: never writes them, never calls run.py's acquire_run_lock
+("never touches stage files, never takes the run lock").
 
 -- Storage: Modal Volume vs. a mounted/local run dir -----------------------
-Deployed (`modal deploy execution/gtm_client_workflows/gaia_sourcing/
-execution/modal_radar.py`), stage files are read from a Modal Volume named
-"gaia-radar-run", mounted at /data/run inside the container -- one volume
-shared by every campaign, one subdirectory per campaign_id. Populate it once
-per run with `modal volume put gaia-radar-run run/<campaign_id>
-<campaign_id>` from a machine that has the real `run/` tree (or wire a
-small sync step into run.py's own stages once RADAR_CONTRACTS section E/F
-land -- not done here, see the note in _run_dir_for).
+Deployed, stage files are read from a Modal Volume named "gaia-radar-run",
+mounted at /data/run inside the container -- one volume shared by every
+campaign, one subdirectory per campaign_id. Populate it once per run with
+`modal volume put gaia-radar-run run/<campaign_id> <campaign_id>` from a
+machine that has the real `run/` tree (or wire a small sync step into
+run.py's own stages once that lands -- not done here, see the note in
+`_run_dir_for`).
 
-Running locally (no Modal container, e.g. `python -c "from ... import
-modal_radar; ..."` or these tests), /data/run does not exist, so
+Running locally (no Modal container), /data/run does not exist, so
 `_run_dir_for` falls back to this package's own `run/<campaign_id>/`
 directory -- the same RUN_DIR every other stage in run.py reads and writes.
-Both paths converge on the same two functions (`recut_handler`,
-`approve_handler`); only the storage root differs.
 
--- Testing without Modal installed -----------------------------------------
-`modal` is imported lazily inside a try/except at module load. Everything
-importable and testable (recut(), recut_handler, approve_handler) has zero
-dependency on the `modal` package; only the two `@app.function` / endpoint
-definitions at the bottom need it, and they are skipped entirely (with
-`app = None`) when the import fails -- exactly what tests/test_modal_radar.py
-relies on.
+`approve_handler` does a direct JSONL append rather than the real approval
+state machine in `layers/outreach_queue.py` (draft -> pending_approval ->
+approved -> marked_sent | rejected), because this endpoint predates that
+state machine landing and needs to keep working against whatever the console
+already wired up. Once the console calls into outreach_queue.py directly,
+this should read/write through that module instead of living in parallel
+indefinitely.
 """
 
 from __future__ import annotations
 
 import json
 import os
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from ..core.config import PKG_ROOT
 from ..core.contracts import JobSpec, Person, ValidatedClaim
-from ..layers import gates as gates_layer
 from ..roles import ROLES
-
-try:
-    import modal
-
-    _HAVE_MODAL = True
-except ImportError:
-    modal = None  # type: ignore[assignment]
-    _HAVE_MODAL = False
-
+from . import gates as gates_layer
 
 # ---------------------------------------------------------------------------
 # Pure function: no I/O, no LLM, cost 0. Both the endpoint and the tests call
@@ -174,9 +156,8 @@ def recut(extract: dict, validate: dict, spec: JobSpec, overrides: dict) -> dict
 def _run_dir_for(campaign_id: str) -> Path:
     """Modal Volume mount when present (deployed), else this package's run/.
 
-    A future integration point once layers/outreach_queue.py and the run.py
-    `--stage console` wiring land: the pipeline could push a fresh extract/
-    validate snapshot into the volume at the end of `gate` so a live re-cut
+    A future integration point once the pipeline pushes a fresh extract/
+    validate snapshot into the volume at the end of `gate`, so a live re-cut
     never serves data staler than the last local run. Not built here --
     this endpoint only reads whatever is already in the volume or the local
     run/ directory.
@@ -194,12 +175,14 @@ def _load_json(path: Path) -> Optional[dict]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError, UnicodeDecodeError) as exc:
-        print("modal_radar: could not read " + str(path) + ": " + repr(exc))
+        print("recut: could not read " + str(path) + ": " + repr(exc))
         return None
 
 
 # ---------------------------------------------------------------------------
-# Handlers -- plain functions, importable and testable without Modal.
+# Handlers -- plain functions, importable and testable without Modal. The
+# thin Modal wrapper (execution/modal_radar.py) does nothing more than route
+# an HTTP POST body into these.
 # ---------------------------------------------------------------------------
 
 
@@ -223,6 +206,8 @@ def recut_handler(payload: dict) -> dict:
         }
 
     result = recut(extract, validate, spec, overrides)
+    import uuid
+
     recut_id = str(uuid.uuid4())
     out = {"recut_id": recut_id, **result}
 
@@ -232,16 +217,11 @@ def recut_handler(payload: dict) -> dict:
         (recuts_dir / (recut_id + ".json")).write_text(
             json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8"
         )
-        if _HAVE_MODAL and modal is not None:
-            try:
-                _get_volume().commit()
-            except Exception as exc:
-                print("modal_radar: volume commit failed (non-fatal): " + repr(exc))
     except OSError as exc:
         # A read-only or full filesystem must not fail the HTTP response --
         # the caller still gets a correct re-cut result even if the audit
         # copy fails to persist. Logged, never swallowed silently.
-        print("modal_radar: could not persist recut record: " + repr(exc))
+        print("recut: could not persist recut record: " + repr(exc))
 
     return out
 
@@ -252,14 +232,9 @@ _VALID_APPROVE_ACTIONS = {"approve", "reject", "approved", "rejected"}
 def approve_handler(payload: dict) -> dict:
     """Append one operator decision to run/<c>/approvals.jsonl.
 
-    Direct JSONL append rather than the real approval state machine
-    (draft -> pending_approval -> approved -> marked_sent | rejected)
-    described in RADAR_CONTRACTS.md section E, because layers/
-    outreach_queue.py -- the eventual owner of that state machine -- had not
-    landed at the time this file was written (it is being built concurrently
-    by another workstream, per this session's ownership split). Once it
-    exists, it should read this file (or this endpoint should call into it
-    directly) rather than the two living in parallel indefinitely.
+    See module docstring -- a direct JSONL append rather than routing
+    through `layers/outreach_queue.py`'s state machine, kept only until the
+    console calls into that module directly.
     """
     campaign_id = payload.get("campaign_id")
     draft_id = payload.get("draft_id")
@@ -282,48 +257,7 @@ def approve_handler(payload: dict) -> dict:
         run_dir.mkdir(parents=True, exist_ok=True)
         with (run_dir / "approvals.jsonl").open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-        if _HAVE_MODAL and modal is not None:
-            try:
-                _get_volume().commit()
-            except Exception as exc:
-                print("modal_radar: volume commit failed (non-fatal): " + repr(exc))
     except OSError as exc:
         return {"error": "could not write approvals.jsonl: " + repr(exc)}
 
     return {"status": "recorded", **record}
-
-
-# ---------------------------------------------------------------------------
-# Modal app -- only defined when `modal` actually imported. Deploy with:
-#   modal deploy execution/gtm_client_workflows/gaia_sourcing/execution/modal_radar.py
-# Secrets/volumes needed: none for secrets (this module reads no API keys --
-# it is pure deterministic Python over cached stage files); one Volume,
-# "gaia-radar-run" (created automatically on first deploy via
-# create_if_missing=True), populated per campaign as described above.
-# ---------------------------------------------------------------------------
-
-app = None
-
-if _HAVE_MODAL:
-    app = modal.App("gaia-radar")
-    _image = modal.Image.debian_slim(python_version="3.12").pip_install(
-        "pydantic>=2", "fastapi"
-    )
-    _volume = modal.Volume.from_name("gaia-radar-run", create_if_missing=True)
-
-    def _get_volume():
-        return _volume
-
-    @app.function(image=_image, volumes={"/data/run": _volume}, timeout=30)
-    @modal.fastapi_endpoint(method="POST")
-    def recut_endpoint(payload: dict) -> dict:
-        return recut_handler(payload)
-
-    @app.function(image=_image, volumes={"/data/run": _volume}, timeout=30)
-    @modal.fastapi_endpoint(method="POST")
-    def approve_endpoint(payload: dict) -> dict:
-        return approve_handler(payload)
-else:
-
-    def _get_volume():  # pragma: no cover -- only reachable if _HAVE_MODAL flips at runtime
-        raise RuntimeError("modal is not installed")
