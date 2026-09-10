@@ -1,0 +1,47 @@
+# ProdCraft med-spa concept preview host.
+#
+# Serves static preview sites (built by preview/build_preview.py and
+# uploaded straight to R2 via the S3-compatible API) from wildcard hosts
+# {slug}-{suffix}.preview.prodcraft.fyi. Also owns /remove (takedown),
+# the /api/publish|extend|meta control endpoints the Python builder calls,
+# and the daily expiry cron.
+#
+# Deploy: npx wrangler deploy   (see README.md for one-time bucket/KV/DNS setup)
+
+name = "prodcraft-preview-host"
+main = "src/index.ts"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Wildcard route: every {slug}-{suffix}.preview.prodcraft.fyi request hits
+# this Worker. Requires a wildcard CNAME `*.preview` -> this zone, proxied
+# (orange cloud) — see README.md. custom_domains stays false; this is a
+# route pattern on the apex zone, not a per-hostname custom domain.
+routes = [
+  { pattern = "*.preview.prodcraft.fyi/*", zone_name = "prodcraft.fyi" }
+]
+
+[triggers]
+crons = ["0 3 * * *"]
+
+[vars]
+PREVIEW_BASE_DOMAIN = "preview.prodcraft.fyi"
+
+# R2 bucket holding preview static assets, keyed `previews/{slug}-{suffix}/...`.
+# Create once: npx wrangler r2 bucket create prodcraft-previews
+[[r2_buckets]]
+binding = "PREVIEWS"
+bucket_name = "prodcraft-previews"
+
+# KV namespace holding per-host metadata: meta:{slug}-{suffix} ->
+# {expires_at, takedown, business_id, preview_id, status?}.
+# Create once: npx wrangler kv namespace create META
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "META"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Secrets (set via `npx wrangler secret put <NAME>`, never committed here):
+#   SUPABASE_URL           - e.g. https://xxxx.supabase.co
+#   SUPABASE_SERVICE_KEY   - Supabase service_role key (PATCHes previews/businesses on takedown + expiry)
+#   REMOVE_WEBHOOK_SECRET  - bearer token required on /api/publish, /api/extend, /api/meta

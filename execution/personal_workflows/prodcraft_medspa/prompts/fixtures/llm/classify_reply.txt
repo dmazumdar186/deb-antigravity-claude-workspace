@@ -1,0 +1,1 @@
+{"sentiment": "positive", "wants_call": true, "remove_request": false, "summary": "Owner of Glow Aesthetics likes the concept and wants a call this week.", "suggested_next_step": "book_call"}
