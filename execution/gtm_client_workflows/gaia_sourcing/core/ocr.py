@@ -170,6 +170,8 @@ def _transcribe_gemini_guarded(raw: bytes, pages: int, url: str) -> Optional[str
 
 
 def _transcribe_anthropic(raw: bytes, pages: int, url: str) -> Optional[str]:
+    from .providers import _preflight_ceiling
+    _preflight_ceiling("ocr transcription")
     try:
         from .providers import _anthropic_client
 

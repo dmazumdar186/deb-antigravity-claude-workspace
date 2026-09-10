@@ -403,17 +403,22 @@ _BACKENDS = {
 # Per-provider EUR pricing per MTok. Gemini free tier is genuinely 0 within
 # quota; recorded as 0 so the cost ceiling reflects real spend.
 PRICE_EUR: dict[str, dict[str, float]] = {
-    "gemini-2.5-flash": {"input": 0.0, "output": 0.0},
-    "anthropic/claude-sonnet-5": {"input": 1.84, "output": 9.20},
+    # Four rates per model (python-hardening rule 4): input, output, cache_read,
+    # cache_write, EUR per MTok at 0.92 EUR/USD. Verified 2026-09-10 against
+    # platform.claude.com/docs/en/build-with-claude/prompt-caching: Sonnet 5
+    # $2 / $10 / $0.20 / $2.50; Fable 5.1 $10 / $50 / $0.25 / $12.50 (cache
+    # reads are 0.025x on Fable 5.1, NOT the generic 0.1x); Opus 5 $5 / $25 /
+    # $0.50 / $6.25.
+    "gemini-2.5-flash": {"input": 0.0, "output": 0.0, "cache_read": 0.0, "cache_write": 0.0},
+    "anthropic/claude-sonnet-5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
     # claude-fable-5 rows kept: historical run records still cost-resolve.
-    "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00},
-    "anthropic/claude-opus-5": {"input": 4.60, "output": 23.00},
-    "claude-sonnet-5": {"input": 1.84, "output": 9.20},
-    "claude-fable-5": {"input": 9.20, "output": 46.00},
-    "claude-opus-5": {"input": 4.60, "output": 23.00},
-    # verified 2026-09-01: same USD input/output as fable-5, so same EUR rate.
-    "anthropic/claude-fable-5.1": {"input": 9.20, "output": 46.00},
-    "claude-fable-5-1": {"input": 9.20, "output": 46.00},
+    "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},
+    "anthropic/claude-opus-5": {"input": 4.60, "output": 23.00, "cache_read": 0.46, "cache_write": 5.75},
+    "claude-sonnet-5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
+    "claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},
+    "claude-opus-5": {"input": 4.60, "output": 23.00, "cache_read": 0.46, "cache_write": 5.75},
+    "anthropic/claude-fable-5.1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
+    "claude-fable-5-1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
 }
 
 
@@ -469,6 +474,24 @@ def _record_spend(amount: float) -> float:
         return _SPEND_EUR
 
 
+
+def _preflight_ceiling(where: str) -> None:
+    """Raise CostCeilingExceeded before a paid call when a ceiling is already breached."""
+    total = spend_eur()
+    if total > CONFIG.max_cost_eur:
+        raise CostCeilingExceeded(
+            "Refusing " + where + ": run cost EUR " + format(total, ".2f")
+            + " already exceeds the ceiling of EUR " + format(CONFIG.max_cost_eur, ".2f")
+        )
+    cumulative = cumulative_spend_eur()
+    if cumulative > CONFIG.max_cost_eur_total:
+        raise CostCeilingExceeded(
+            "Refusing " + where + ": cumulative spend EUR " + format(cumulative, ".2f")
+            + " already exceeds the cumulative ceiling of EUR "
+            + format(CONFIG.max_cost_eur_total, ".2f")
+        )
+
+
 def call_role(
     role: str,
     system: str,
@@ -484,6 +507,11 @@ def call_role(
     last: Optional[Exception] = None
 
     for attempt in range(max_retries):
+        # Pre-flight: a run or account already over its ceiling refuses to
+        # dispatch at all. The post-call checks below catch the call that
+        # crosses the line; this one stops every call after it, so parallel
+        # workers cannot each add a call's worth of overshoot.
+        _preflight_ceiling(role)
         try:
             result, stats = backend(model, system, user, tool, max_tokens, temperature)
             if provider == "gemini":

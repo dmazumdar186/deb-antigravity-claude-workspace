@@ -381,3 +381,34 @@ def test_ocr_path_trips_the_cumulative_ceiling(tmp_path, monkeypatch):
 
     with pytest.raises(providers.CostCeilingExceeded, match="[Cc]umulative"):
         ocr.transcribe_pdf(b"%PDF-fake", "https://pleanala.ie/x.pdf")
+
+
+# ---------------------------------------------------------------------------
+# 2026-09-10 final audit: pre-flight ceiling and Fable 5.1 cache-read rate
+# ---------------------------------------------------------------------------
+
+
+def test_fable_51_cache_read_is_quarter_of_generic_rate():
+    from gtm_client_workflows.gaia_sourcing.core import providers as P
+    fable = P.cost_eur("claude-fable-5-1", {"cache_read_tokens": 1_000_000})
+    assert abs(fable - 0.23) < 1e-9  # $0.25/MTok at 0.92 EUR/USD
+    sonnet = P.cost_eur("claude-sonnet-5", {"cache_read_tokens": 1_000_000})
+    assert abs(sonnet - 0.184) < 1e-9
+
+
+def test_preflight_refuses_before_dispatch_when_run_ceiling_breached(monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.core import providers as P
+    P.reset_spend() if hasattr(P, "reset_spend") else None
+    monkeypatch.setattr(P.CONFIG, "max_cost_eur", 1.0)
+    P._record_spend(1.5)
+    called = {"n": 0}
+
+    def exploding_backend(*a, **k):
+        called["n"] += 1
+        raise AssertionError("backend must not be called once over the ceiling")
+
+    monkeypatch.setitem(P._BACKENDS, "anthropic", exploding_backend)
+    monkeypatch.setitem(P.ROUTING, "judge_test", ("anthropic", "claude-sonnet-5"))
+    with pytest.raises(P.CostCeilingExceeded):
+        P.call_role("judge_test", "s", "u", {"name": "t", "input_schema": {"type": "object"}}, 10, 0.0)
+    assert called["n"] == 0

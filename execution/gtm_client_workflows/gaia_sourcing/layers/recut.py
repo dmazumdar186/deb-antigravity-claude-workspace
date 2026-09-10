@@ -97,12 +97,15 @@ _ID_RE = re.compile(r"[A-Za-z0-9._-]{1,64}")
 def _valid_id(value: object) -> bool:
     if not isinstance(value, str) or not _ID_RE.fullmatch(value):
         return False
-    root = PKG_ROOT / "run"
-    try:
-        candidate = (root / value).resolve()
-    except (OSError, ValueError):
-        return False
-    return candidate.is_relative_to(root.resolve())
+    roots = [PKG_ROOT / "run", Path(os.environ.get("GAIA_RADAR_VOLUME_PATH", "/data/run"))]
+    for root in roots:
+        try:
+            candidate = (root / value).resolve()
+            if not candidate.is_relative_to(root.resolve()):
+                return False
+        except (OSError, ValueError):
+            return False
+    return True
 
 
 # ---------------------------------------------------------------------------
