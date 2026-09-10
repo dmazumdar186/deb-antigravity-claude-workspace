@@ -865,6 +865,24 @@ def stage_gate(force: bool = False) -> None:
     log("gate: A=" + str(counts["A"]) + " B=" + str(counts["B"])
         + " C=" + str(counts["C"]) + " EXCLUDED=" + str(counts["EXCLUDED"]))
 
+    # Per-role one-liner naming the two client-feedback gates specifically
+    # (seniority_ceiling / located_ie), so a re-run on a call shows the effect
+    # of --max-grade/--counties etc. without reading gate.json by hand.
+    per_role: dict[str, dict[str, int]] = {}
+    for rec in out.values():
+        bucket = per_role.setdefault(
+            rec["role_id"], {"passed": 0, "seniority_ceiling": 0, "located_ie": 0}
+        )
+        if rec["tier"] != "EXCLUDED":
+            bucket["passed"] += 1
+        for g in rec["gates"]:
+            if not g["passed"] and g["gate_id"] in ("seniority_ceiling", "located_ie"):
+                bucket[g["gate_id"]] += 1
+    for role_id, bucket in per_role.items():
+        log("  " + role_id + ": " + str(bucket["passed"]) + " passed / "
+            + str(bucket["seniority_ceiling"]) + " excluded by seniority_ceiling / "
+            + str(bucket["located_ie"]) + " by located_ie")
+
 
 # ---------------------------------------------------------------------------
 # Stage 5 -- deepen Role 1 on gate-passers only
@@ -1331,6 +1349,30 @@ def stage_poolmap(force: bool = False) -> None:
             + " gates_passed=" + str(m["passed_all_gates"])
             + " delivered=" + str(m["delivered"]))
 
+    # Delivery composition guard. The per-candidate gates decide who passes;
+    # this is the last look at what actually shipped, on the exact fields the
+    # client reads off the card -- title and location -- independent of
+    # whatever evidence got a candidate through the gate. It exists because
+    # the 2026-08-20 delivered CSV had every single Role 1 row titled Director
+    # or Associate Director, and nothing before render time said so out loud.
+    contacts = load("contact") if done("contact") else {}
+    for role_id, spec in ((ROLE1.role_id, ROLE1), (ROLE2.role_id, ROLE2)):
+        cards = [
+            {
+                "full_name": persons[pid].full_name,
+                "current_title": persons[pid].current_title,
+                "location": persons[pid].location,
+                "email_status": contacts.get(pid, {}).get("email_status"),
+            }
+            for pid in delivery.get(role_id, [])
+        ]
+        violations = gates.composition_violations(cards, spec)
+        if violations:
+            log("  *** DELIVERY COMPOSITION VIOLATIONS for " + role_id
+                + " (" + str(len(violations)) + " of " + str(len(cards)) + " delivered) ***")
+            for v in violations:
+                log("    - " + v)
+
 
 # ---------------------------------------------------------------------------
 # CLI
@@ -1355,6 +1397,48 @@ STAGES = {
 ORDER = list(STAGES.keys())
 
 
+def _apply_brief_overrides(args: argparse.Namespace) -> None:
+    """Apply --max-grade/--max-years/--min-years/--counties/--*-location.
+
+    Mutates ROLE1/ROLE2's HardGate.params in place -- the same objects
+    stage_gate reads via ROLES -- so a client-call correction needs no code
+    edit and no re-harvest: `--from-stage gate` re-derives tiers from the
+    already-cached extract.json/validate.json, offline.
+    """
+    touched = any([
+        args.max_grade, args.max_years is not None, args.min_years is not None,
+        args.counties is not None, args.strict_location, args.lenient_location,
+    ])
+    if not touched:
+        return
+    counties = (
+        [c.strip() for c in args.counties.split(",") if c.strip()]
+        if args.counties is not None else None
+    )
+    for spec in (ROLE1, ROLE2):
+        for gate in spec.hard_gates:
+            if gate.check == "seniority_ceiling":
+                if args.max_grade:
+                    gate.params["max_grade"] = args.max_grade
+                if args.max_years is not None:
+                    gate.params["max_years"] = args.max_years
+            elif gate.check == "seniority_years":
+                if args.min_years is not None:
+                    gate.params["min_years"] = args.min_years
+            elif gate.check == "located_ie":
+                if counties is not None:
+                    gate.params["counties"] = counties
+                if args.strict_location:
+                    gate.params["require_direct_evidence"] = True
+                    gate.params["treat_unknown_as"] = "fail"
+                if args.lenient_location:
+                    gate.params["require_direct_evidence"] = False
+        log("brief override applied to " + spec.role_id + ": "
+            + json.dumps({g.gate_id: g.params for g in spec.hard_gates
+                          if g.check in ("seniority_ceiling", "seniority_years",
+                                         "located_ie")}))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Gaia sourcing pipeline")
     ap.add_argument("--stage", default="all", help="stage name, comma list, or 'all'")
@@ -1369,7 +1453,44 @@ def main() -> int:
         help="force a provider plan (free/hybrid/openrouter/anthropic/budget) "
              "instead of auto-selecting by what the credentials can pay for",
     )
+    # Brief-level knobs (client feedback 2026-09-10) settable on a call
+    # without editing roles.py. Applied to BOTH ROLE1 and ROLE2's matching
+    # hard_gates before any stage runs -- offline, re-runs the gate stage
+    # from cached extract.json/validate.json only.
+    ap.add_argument(
+        "--max-grade", default=None,
+        choices=["senior_engineer", "principal_or_associate",
+                 "associate_director", "director"],
+        help="override seniority_ceiling's max_grade for both roles",
+    )
+    ap.add_argument(
+        "--max-years", type=int, default=None,
+        help="override seniority_ceiling's max_years for both roles",
+    )
+    ap.add_argument(
+        "--min-years", type=int, default=None,
+        help="override the seniority FLOOR gate's min_years for both roles",
+    )
+    ap.add_argument(
+        "--counties", default=None,
+        help="comma list overriding located_ie's counties for both roles "
+             "(empty string means any Republic of Ireland location)",
+    )
+    loc_group = ap.add_mutually_exclusive_group()
+    loc_group.add_argument(
+        "--strict-location", action="store_true",
+        help="located_ie requires direct residence evidence; Irish scheme/"
+             "employer work alone fails (require_direct_evidence=True, "
+             "treat_unknown_as=fail)",
+    )
+    loc_group.add_argument(
+        "--lenient-location", action="store_true",
+        help="located_ie accepts Irish scheme/employer evidence as residence "
+             "evidence (the pre-2026-09-10 default; require_direct_evidence=False)",
+    )
     args = ap.parse_args()
+
+    _apply_brief_overrides(args)
 
     if args.from_stage:
         if args.from_stage not in ORDER:

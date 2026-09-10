@@ -96,6 +96,42 @@ _NON_IE_RE = re.compile(
     re.I,
 )
 
+# County/city -> commuter-town map for the `counties` LocationRule param
+# (client feedback 2026-09-10: "some were not based in Ireland" -- a brief
+# that names a specific county needs its evidence to actually name that
+# county, not just the Republic in general). Hand-maintained, not exhaustive
+# -- extend as new counties are targeted by a brief. Keys are lowercase
+# county/city names as they would appear in `counties`; values are the towns
+# that count as evidence of that county without naming it outright.
+_COUNTY_TOWNS = {
+    "cork": ["cork", "cobh", "midleton", "mallow", "carrigaline", "ballincollig"],
+    "limerick": ["limerick", "shannon", "ennis"],
+    "galway": ["galway", "oranmore", "tuam"],
+    # Dublin's commuter belt -- Kildare/Meath/Wicklow towns routinely appear
+    # in bios of people who work in Dublin.
+    "dublin": ["dublin", "kildare", "meath", "wicklow"],
+}
+
+# Signals a candidate is not currently in Ireland but is moving there --
+# the Cork-relocatable clause on Role 2 needs this distinguished from an
+# ordinary out-of-Ireland exclusion.
+_RELOCATION_RE = re.compile(r"relocat|willing to move|returning to ireland", re.I)
+
+
+def _county_matches(blob: str, counties: list[str]) -> bool:
+    """True when blob names one of `counties` (or a known commuter town).
+
+    Empty `counties` means "any Republic of Ireland location" -- always True.
+    """
+    if not counties:
+        return True
+    low = blob.lower()
+    for county in counties:
+        terms = _COUNTY_TOWNS.get(county.lower(), [county.lower()])
+        if any(re.search(r"\b" + re.escape(t) + r"\b", low) for t in terms):
+            return True
+    return False
+
 
 def _strip_ni(text: str) -> str:
     """Blank out Northern Ireland phrases before testing for Republic tokens."""
@@ -144,6 +180,28 @@ def check_chartered(
 def check_located_ie(
     person: Person, claims: list[ValidatedClaim], params: dict
 ) -> GateResult:
+    """Republic-of-Ireland residence gate.
+
+    `params` are the brief-level LocationRule knobs (client feedback
+    2026-09-10: "some were not based in Ireland"). All default to the
+    ORIGINAL behaviour -- an empty/absent `params` dict (every existing
+    JobSpec) is unaffected:
+      require_direct_evidence (default False) -- when True, the Irish
+        scheme/employer fallback below can never pass the gate outright; it
+        fails with a fixed note unless treat_unknown_as=="pass_with_note".
+      counties (default [], any ROI) -- when non-empty, direct evidence must
+        name one of these counties/cities (see _COUNTY_TOWNS) to pass.
+      allow_relocation_signal (default False) -- a "relocating"/"returning to
+        Ireland" claim can pass the gate on its own when set.
+      treat_unknown_as (default "fail") -- only consulted when
+        require_direct_evidence is True and the only evidence is the
+        scheme/employer fallback.
+    """
+    require_direct = bool(params.get("require_direct_evidence", False))
+    counties = [c.lower() for c in params.get("counties", [])]
+    allow_relocation = bool(params.get("allow_relocation_signal", False))
+    treat_unknown_as = params.get("treat_unknown_as", "fail")
+
     loc_claims = _direct(_claims_by_dim(claims, "location"))
     haystacks = [(c.claim_id, c.assertion + " " + c.evidence_quote) for c in loc_claims]
     if person.location:
@@ -170,8 +228,18 @@ def check_located_ie(
                         "contract regime to the Republic. Confirm before proceeding."
                     ),
                 )
+
+    # Direct residence evidence. When `counties` is set, a Republic-wide hit
+    # ("based in Ireland") is not enough -- it must name one of the target
+    # counties/towns. A match on the wrong county is remembered rather than
+    # discarded so the eventual failure note is specific, not generic.
+    county_reject_cid: Optional[str] = None
     for cid, blob in haystacks:
         if _IE_RE.search(_strip_ni(blob)):
+            if not _county_matches(blob, counties):
+                if county_reject_cid is None:
+                    county_reject_cid = cid
+                continue
             note = None
             if _NI_RE.search(blob) or _NON_IE_RE.search(blob):
                 note = (
@@ -182,21 +250,72 @@ def check_located_ie(
                 gate_id="located_ie", passed=True, basis=cid, note=note
             )
 
+    # Relocation / return-to-Ireland signal, opt-in per role (the Cork-
+    # relocatable clause). Checked across every claim, not just location
+    # ones -- a movability-style statement can land in any dimension.
+    if allow_relocation:
+        for c in claims:
+            blob = c.assertion + " " + c.evidence_quote
+            if _RELOCATION_RE.search(blob):
+                return GateResult(
+                    gate_id="located_ie",
+                    passed=True,
+                    basis=c.claim_id,
+                    note=(
+                        "Relocation / return-to-Ireland signal evidenced -- "
+                        "confirm current base and timeline in the first call."
+                    ),
+                )
+
     # Fall back to Irish-scheme / Irish-client evidence. Witness statements
     # rarely say "I live in Dublin"; they evidence location by the schemes
     # and bodies they work for. Recorded with a note so the card stays honest.
+    scheme_hit: Optional[ValidatedClaim] = None
     for c in _direct(_claims_by_dim(claims, "project", "employer", "statutory_process")):
         blob = c.assertion + " " + c.evidence_quote
         if _IE_RE.search(blob) or _IRISH_BODY_RE.search(blob):
+            if not _county_matches(blob, counties):
+                continue
+            scheme_hit = c
+            break
+
+    if scheme_hit is not None:
+        note = (
+            "Ireland-based inferred from Irish scheme/client evidence, "
+            "not from a stated location. Confirm in the first call."
+        )
+        if require_direct:
+            # Client feedback 2026-09-10: this exact fallback -- a Jacobs
+            # UK-office engineer whose only Irish evidence was the road
+            # scheme they worked on -- is what put people outside Ireland
+            # into the shortlist. Never a silent pass when the role opts in.
+            if treat_unknown_as == "pass_with_note":
+                return GateResult(
+                    gate_id="located_ie", passed=True, basis=scheme_hit.claim_id,
+                    note=note,
+                )
             return GateResult(
                 gate_id="located_ie",
-                passed=True,
-                basis=c.claim_id,
-                note=(
-                    "Ireland-based inferred from Irish scheme/client evidence, "
-                    "not from a stated location. Confirm in the first call."
-                ),
+                passed=False,
+                basis=scheme_hit.claim_id,
+                note="no direct residence evidence; Irish scheme work only",
             )
+        return GateResult(
+            gate_id="located_ie", passed=True, basis=scheme_hit.claim_id, note=note
+        )
+
+    if county_reject_cid is not None:
+        return GateResult(
+            gate_id="located_ie",
+            passed=False,
+            basis=county_reject_cid,
+            note=(
+                "Located in the Republic of Ireland but not in the target "
+                "county/counties (" + ", ".join(params.get("counties", [])) + "); "
+                "confirm relocation."
+            ),
+        )
+
     for cid, blob in haystacks:
         if _NON_IE_RE.search(blob):
             return GateResult(
@@ -382,6 +501,297 @@ def check_seniority(
     )
 
 
+# ---------------------------------------------------------------------------
+# Seniority CEILING (client feedback 2026-09-10: "a lot of the candidates
+# were too senior"). check_seniority above is a FLOOR only -- with grade
+# inference on, a title alone can pass it, and nothing stopped a Director
+# from clearing the gate. This is the ceiling half.
+# ---------------------------------------------------------------------------
+
+# Deterministic grade ladder, lowest to highest. "senior_engineer" is
+# reachable at ~5 years and is deliberately its own rung below
+# "principal_or_associate" -- see check_seniority's _SENIOR_GRADE_RE comment
+# for the equivalent floor-side reasoning.
+_GRADE_ORDER = [
+    "graduate", "engineer", "senior_engineer", "principal_or_associate",
+    "associate_director", "director",
+]
+
+# Checked top-down (director first) so the most senior matching rung wins
+# and "Associate Director" -- which contains the substring "director" -- is
+# claimed by its own rung before the generic director pattern gets to it.
+# "graduate" is checked before the bare "engineer" catch-all so "Graduate
+# Structural Engineer" lands on "graduate", not "engineer".
+#
+# A bare, unqualified "Director" ALWAYS maps to the top rung "director" here
+# (via the negative-lookbehind alternative in the director pattern), and a
+# bare, unqualified "Associate" ALWAYS maps to "principal_or_associate", NEVER
+# to "associate_director" -- "Associate Director" only matches when both
+# words are present, checked one rung higher. Firms are not consistent about
+# what "Associate" means, so this ladder deliberately does not try to be
+# firm-aware; FIRM_LADDER_NOTES below records the cases known to differ from
+# the ladder's plain reading, for a human to weigh when a card is reviewed --
+# it is NOT consulted by _grade_of, because folding firm-specific exceptions
+# into the deterministic gate is exactly the kind of judgement call I3
+# reserves for a person, not a regex.
+FIRM_LADDER_NOTES = {
+    # O'Connor Sutton Cronin and DBFL both use "Associate" as a grade BELOW
+    # Associate Director (an OCSC/DBFL "Associate" is closer to Principal
+    # Engineer than to Associate Director). The ladder's plain reading --
+    # bare "Associate" -> principal_or_associate -- already gets this right;
+    # the risk this note guards against is the OPPOSITE mistake, a future
+    # change that special-cases "Associate" upward toward "director" on the
+    # assumption that an "Associate" is always one step below a Director.
+    "ocsc": "Associate is below Associate Director here; maps to principal_or_associate.",
+    "o'connor sutton cronin": (
+        "Associate is below Associate Director here; maps to principal_or_associate."
+    ),
+    "dbfl": "Associate is below Associate Director here; maps to principal_or_associate.",
+}
+_GRADE_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("director", re.compile(
+        # "director of X" is covered by the bare-director alternative, so an
+        # "Associate Director of Highways" stays on the associate_director rung.
+        r"\b(technical director|regional director|managing director|"
+        r"executive director|head of|partner|practice leader|chief)\b"
+        r"|(?<!associate\s)\bdirector\b",
+        re.I,
+    )),
+    ("associate_director", re.compile(r"\bassociate director\b", re.I)),
+    ("principal_or_associate", re.compile(
+        r"\b(principal engineer|principal|associate)\b", re.I
+    )),
+    # "Senior Structural Engineer", "Senior Civil / Structural Engineer" --
+    # the discipline words sit between "senior" and "engineer".
+    ("senior_engineer", re.compile(r"\bsenior\b[^,;|]{0,40}?\bengineer\b", re.I)),
+    ("graduate", re.compile(r"\bgraduate\b", re.I)),
+    ("engineer", re.compile(r"\bengineer\b", re.I)),
+]
+
+
+def _grade_of(
+    person: Person, claims: list[ValidatedClaim]
+) -> Optional[tuple[str, str]]:
+    """Return (grade, basis) for the most senior grade evidenced, or None.
+
+    Reads person.current_title first (the normal case for a staff-directory
+    candidate), then falls back to direct employer-dimension claims, which is
+    where a title phrase most often turns up in prose ("Senior Associate
+    Director of Highways in Jacobs").
+    """
+    texts: list[tuple[str, str]] = []
+    if person.current_title:
+        texts.append((person.current_title, "person.title"))
+    for c in _direct(_claims_by_dim(claims, "employer")):
+        texts.append((c.assertion + " " + c.evidence_quote, c.claim_id))
+    for text, basis in texts:
+        for grade, pattern in _GRADE_PATTERNS:
+            if pattern.search(text):
+                return grade, basis
+    return None
+
+
+def check_seniority_ceiling(
+    person: Person, claims: list[ValidatedClaim], params: dict
+) -> GateResult:
+    """Fail candidates above the brief's ceiling. Never invents a grade.
+
+    params:
+      max_grade -- one of _GRADE_ORDER; None means no ceiling.
+      max_years -- int; None means no ceiling.
+      exclude_title_patterns -- list of regexes checked against the title.
+    An absent/empty params dict means no ceiling at all -- every candidate
+    passes -- so this gate is a no-op unless a role explicitly opts in.
+    """
+    max_grade = params.get("max_grade")
+    max_years = params.get("max_years")
+    exclude_patterns = params.get("exclude_title_patterns") or []
+
+    title = person.current_title or ""
+    for pattern in exclude_patterns:
+        try:
+            hit = re.search(pattern, title, re.I)
+        except re.error:
+            continue  # a malformed pattern in a brief must not crash the gate
+        if hit:
+            return GateResult(
+                gate_id="seniority_ceiling",
+                passed=False,
+                basis="person.title",
+                note="Title '" + title + "' matches excluded pattern '" + pattern + "'",
+            )
+
+    grade_info = _grade_of(person, claims)
+    if max_grade is not None and grade_info is not None:
+        grade, basis = grade_info
+        if _GRADE_ORDER.index(grade) > _GRADE_ORDER.index(max_grade):
+            return GateResult(
+                gate_id="seniority_ceiling",
+                passed=False,
+                basis=basis,
+                note=(
+                    "Title '" + title + "' is above the brief ceiling ("
+                    + max_grade + ")"
+                ),
+            )
+
+    evidenced: list[tuple[int, str]] = []
+    for c in _direct(_claims_by_dim(claims, "years_experience")):
+        years = extract_years(c.evidence_quote)
+        if years is None:
+            years = extract_years(c.assertion)
+        if years is not None:
+            evidenced.append((years, c.claim_id))
+    best_years = max(evidenced, key=lambda t: t[0]) if evidenced else None
+    if max_years is not None and best_years is not None and best_years[0] > max_years:
+        return GateResult(
+            gate_id="seniority_ceiling",
+            passed=False,
+            basis=best_years[1],
+            note=(
+                "Evidenced at " + str(best_years[0]) + " years' experience, "
+                "above the " + str(max_years) + "-year ceiling."
+            ),
+        )
+
+    if (
+        grade_info is None and best_years is None
+        and (max_grade is not None or max_years is not None)
+    ):
+        # Neither a grade nor a year figure is evidenced. Passing silently
+        # would be an invented clean bill; passing loud is honest and cheap.
+        return GateResult(
+            gate_id="seniority_ceiling",
+            passed=True,
+            note="grade not evidenced; confirm on first call",
+        )
+
+    basis = grade_info[1] if grade_info else (best_years[1] if best_years else None)
+    return GateResult(gate_id="seniority_ceiling", passed=True, basis=basis)
+
+
+# ---------------------------------------------------------------------------
+# Delivery composition guard.
+#
+# The gates above decide who passes; this decides whether what actually
+# SHIPPED matches the brief -- a check that runs on the flattened
+# CandidateCard-shaped output (or a plain dict/CSV row with the same field
+# names), not on claims, because that is what the client actually reads.
+# A person could theoretically clear the per-candidate gates on evidence that
+# never made it onto the card and still show up as a violation here, or vice
+# versa -- that asymmetry is intentional: this is the last honest look at the
+# deliverable itself, independent of how gating got there. It exists because
+# the 2026-08-20 run's own delivered CSV -- every one of the 10 Role 1 rows
+# titled Director or Associate Director -- is exactly the client's complaint,
+# and nothing before render time would have said so out loud.
+# ---------------------------------------------------------------------------
+
+
+def _field(rec, name: str):
+    """Read `name` off a dict OR an attribute-bearing object (CandidateCard)."""
+    if isinstance(rec, dict):
+        return rec.get(name)
+    return getattr(rec, name, None)
+
+
+def _grade_from_title(title: str) -> Optional[str]:
+    for grade, pattern in _GRADE_PATTERNS:
+        if pattern.search(title or ""):
+            return grade
+    return None
+
+
+def _location_country(location: str) -> str:
+    """Coarse bucket for a free-text location string -- reporting only.
+
+    Not a gate: check_located_ie is the authority on pass/fail and reads the
+    full claim set, not just this one string.
+    """
+    if not location:
+        return "unknown"
+    if _NI_RE.search(location) and not _IE_RE.search(_strip_ni(location)):
+        return "northern_ireland"
+    if _IE_RE.search(_strip_ni(location)):
+        return "ireland"
+    if _NON_IE_RE.search(location):
+        return "outside_ireland"
+    return "unknown"
+
+
+def composition_report(cards, spec: JobSpec) -> dict:
+    """Counts per grade / location-country / email_status for `cards`.
+
+    `cards` is any iterable of CandidateCard-shaped records (dict or object)
+    exposing current_title, location and email_status -- e.g. the rendered
+    CandidateCard list, or rows straight off candidates.csv.
+    """
+    by_grade: dict[str, int] = {}
+    by_location: dict[str, int] = {}
+    by_email_status: dict[str, int] = {}
+    cards = list(cards)
+    for rec in cards:
+        grade = _grade_from_title(_field(rec, "current_title") or "") or "unknown"
+        by_grade[grade] = by_grade.get(grade, 0) + 1
+
+        country = _location_country(_field(rec, "location") or "")
+        by_location[country] = by_location.get(country, 0) + 1
+
+        status = _field(rec, "email_status") or "none"
+        by_email_status[status] = by_email_status.get(status, 0) + 1
+
+    return {
+        "role_id": spec.role_id,
+        "total": len(cards),
+        "by_grade": by_grade,
+        "by_location_country": by_location,
+        "by_email_status": by_email_status,
+    }
+
+
+def composition_violations(cards, spec: JobSpec) -> list[str]:
+    """Delivered cards whose grade/location contradict the brief's bands.
+
+    Empty when spec has no seniority_band/location_rule -- a role that never
+    opted into ceiling/strictness has nothing for this to check.
+    """
+    violations: list[str] = []
+    band = spec.seniority_band
+    loc_rule = spec.location_rule
+
+    for rec in cards:
+        name = _field(rec, "full_name") or _field(rec, "person_id") or "<unknown>"
+        title = _field(rec, "current_title") or ""
+
+        if band is not None and band.max_grade is not None:
+            grade = _grade_from_title(title)
+            if grade is not None and (
+                _GRADE_ORDER.index(grade) > _GRADE_ORDER.index(band.max_grade)
+            ):
+                violations.append(
+                    str(name) + " (" + title + ") is grade '" + grade
+                    + "', above the brief ceiling '" + band.max_grade + "'"
+                )
+
+        if loc_rule is not None:
+            location = _field(rec, "location") or ""
+            country = _location_country(location)
+            if country in ("northern_ireland", "outside_ireland", "unknown"):
+                violations.append(
+                    str(name) + " location '" + location + "' does not evidence "
+                    "Republic of Ireland residence"
+                )
+            elif loc_rule.counties:
+                counties = [c.lower() for c in loc_rule.counties]
+                if not _county_matches(location, counties):
+                    violations.append(
+                        str(name) + " location '" + location + "' is outside "
+                        "the target county/counties (" + ", ".join(loc_rule.counties)
+                        + ")"
+                    )
+
+    return violations
+
+
 def check_not_client(
     person: Person, claims: list[ValidatedClaim], params: dict
 ) -> GateResult:
@@ -412,6 +822,7 @@ _CHECKS = {
     "discipline": check_discipline,
     "seniority_years": check_seniority,
     "not_client": check_not_client,
+    "seniority_ceiling": check_seniority_ceiling,
 }
 
 

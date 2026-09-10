@@ -24,6 +24,7 @@ import sys
 from pathlib import Path
 
 from ..core.config import PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
+from ..layers import gates
 from ..roles import ROLE1, ROLE2, is_client_side
 
 OUT = WORKSPACE_ROOT / "deliverables" / "gaia_2026-08-20"
@@ -188,6 +189,21 @@ def main() -> int:
     if len(r1) < ROLE1.target_count or len(r2) < ROLE2.target_count:
         check("short" in text.lower() or "shortfall" in text.lower(),
               "a shortfall against the brief is stated on the artifact")
+
+    # Delivery composition guard (client feedback 2026-09-10). Rows straight
+    # off the delivered CSV are exactly CandidateCard-shaped for this check --
+    # current_title / location, the fields a reader actually sees.
+    for role_rows, spec in ((r1, ROLE1), (r2, ROLE2)):
+        cards = [
+            {"full_name": r["full_name"], "current_title": r["current_title"],
+             "location": r["location"]}
+            for r in role_rows
+        ]
+        violations = gates.composition_violations(cards, spec)
+        check(not violations,
+              spec.role_id + " -- delivered cards match the brief's "
+              "seniority ceiling and location rule",
+              "; ".join(violations[:8]) + (" ..." if len(violations) > 8 else ""))
 
     print("\n-- Presentation --------------------------------------------------")
     check("�" not in html, "no replacement characters on any card",

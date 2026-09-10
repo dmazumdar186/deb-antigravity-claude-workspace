@@ -52,7 +52,8 @@ def as_list(value) -> list:
 
 
 GateCheck = Literal[
-    "chartered", "located_ie", "discipline", "seniority_years", "not_client"
+    "chartered", "located_ie", "discipline", "seniority_years", "not_client",
+    "seniority_ceiling",
 ]
 
 
@@ -63,6 +64,37 @@ class HardGate(BaseModel):
     description: str
     check: GateCheck
     params: dict = Field(default_factory=dict)
+
+
+# --------------------------------------------------------------------------
+# Brief-level knobs (client feedback 2026-09-10: candidates too senior / not
+# based in Ireland). These are structural containers only -- validated
+# STRUCTURE ONLY per the module docstring. The actual ceiling/strictness
+# logic lives in layers/gates.py:check_seniority_ceiling / check_located_ie.
+# --------------------------------------------------------------------------
+
+
+class SeniorityBand(BaseModel):
+    """Floor AND ceiling for a role, set by the client on a call."""
+
+    min_years: Optional[int] = None
+    max_years: Optional[int] = None
+    max_grade: Optional[
+        Literal[
+            "senior_engineer", "principal_or_associate", "associate_director",
+            "director",
+        ]
+    ] = None
+    exclude_title_patterns: list[str] = Field(default_factory=list)
+
+
+class LocationRule(BaseModel):
+    """Location strictness for a role, set by the client on a call."""
+
+    require_direct_evidence: bool = True
+    counties: list[str] = Field(default_factory=list)  # empty = any ROI
+    allow_relocation_signal: bool = False
+    treat_unknown_as: Literal["fail", "pass_with_note"] = "fail"
 
 
 class JobSpec(BaseModel):
@@ -79,6 +111,12 @@ class JobSpec(BaseModel):
     primary_signal_dimension: Literal["technical_skill", "statutory_process"]
     # Employers that are off-limits (client conflict). Lowercased substrings.
     off_limits_employers: list[str] = Field(default_factory=list)
+    # Brief-level ceiling/location knobs (optional -- existing JobSpecs
+    # without them keep their old behaviour; the enforcement lives in the
+    # hard_gates list, these fields are the documented, settable source of
+    # truth for what those gates' params were derived from).
+    seniority_band: Optional[SeniorityBand] = None
+    location_rule: Optional[LocationRule] = None
 
 
 # --------------------------------------------------------------------------
