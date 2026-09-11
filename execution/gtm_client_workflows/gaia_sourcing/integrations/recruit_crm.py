@@ -81,6 +81,7 @@ from typing import Any, Optional
 from ..core.config import PKG_ROOT, PRIVACY_NOTICE_URL, secret
 from ..core.contracts import CandidateCard, ContactRecord, MovabilitySignal
 from ..layers import optout
+from ..layers.extract import strip_postnominals
 
 DEFAULT_BASE_URL = "https://api.recruitcrm.io/v1"
 DEFAULT_AUDIT_PATH = PKG_ROOT / "logs" / "recruit_crm_audit.jsonl"
@@ -191,7 +192,9 @@ def card_to_payload(
     entirely and the status is put in the note instead (evidence_note),
     where a human reads it before ever sending to it.
     """
-    first, last = _split_name(card.full_name)
+    # Post-nominals are evidence, not a name; the CRM record must not read
+    # "JOHN ALCARAS BSc CEng MIEI" (fourth audit, 2026-09-11).
+    first, last = _split_name(strip_postnominals(card.full_name))
     payload: dict[str, Any] = {
         "first_name": first,
         "last_name": last,

@@ -643,7 +643,7 @@ def _reach_routes(person: dict, contact: dict) -> list[tuple[str, str, str]]:
     from ..layers.contact import _employer_domain, domain_of
 
     routes: list[tuple[str, str, str]] = []
-    name = strip_postnominals((person.get("full_name") or "").strip())
+    name = _display_name(person.get("full_name") or "")
     employer = (person.get("current_employer") or "").strip()
     status = contact.get("email_status", "none")
     email = contact.get("email")
@@ -808,6 +808,11 @@ DETAIL_WORD_CAP = 150
 # Three quotes is what fits before a pane stops being glanceable, regardless of
 # how short the individual quotes happen to be.
 MAX_DETAIL_QUOTES = 3
+# Second-opinion (adversarial) findings shown per card, and the word clip on
+# each. Two clipped findings stay well inside DETAIL_WORD_CAP next to the
+# first quote and the honesty lines.
+MAX_SECOND_OPINIONS = 2
+SECOND_OPINION_WORDS = 30
 
 
 def _wc(fragment: str) -> int:
@@ -914,6 +919,33 @@ def _msg_cell(outreach: dict | None, notice_live: bool = True) -> str:
     return "".join(out)
 
 
+def _display_name(name: str) -> str:
+    """A shouted directory entry ("JOHN ALCARAS") is cased like a name on
+    the card; mixed-case input is left exactly as written."""
+    name = strip_postnominals((name or "").strip())
+    if name and name == name.upper() and any(ch.isalpha() for ch in name):
+        def _cap(x: str) -> str:
+            x = x[:1].upper() + x[1:]
+            if x.startswith("Mc") and len(x) > 2:
+                x = "Mc" + x[2:3].upper() + x[3:]
+            return x
+
+        parts = []
+        for w in name.split():
+            w = w.lower()
+            w = "'".join(_cap(x) for x in w.split("'"))
+            w = "-".join(_cap(x) for x in w.split("-"))
+            parts.append(w)
+        name = " ".join(parts)
+    return name
+
+
+def _display_title(title: str) -> str:
+    """Search snippets truncate with an ellipsis; a card must not."""
+    t = strip_postnominals((title or "").strip())
+    return t.rstrip(" .\u2026").strip()
+
+
 def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     """Everything else, inside a hard word budget.
 
@@ -928,9 +960,19 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
 
     # 1. The verbatim evidence, primary signal first. This is the whole basis
     #    of the shortlist; if only one thing fits, it should be this.
-    primary = [c for c in claims if c["dimension"] == spec.primary_signal_dimension]
-    other = [c for c in claims if c["dimension"] != spec.primary_signal_dimension]
-    direct = [x for x in primary + other if x.get("confidence") == "direct"]
+    # The quotes the residence and chartership gates actually rested on
+    # come first (third audit 2026-09-11: Alicia Joyce's card showed a
+    # project quote while "Dublin, County Dublin, Ireland" -- the located_ie
+    # basis -- was cut for budget). Then the primary signal, then the rest.
+    basis_ids = {
+        g.get("basis") for g in (ev.get("gates") or [])
+        if g.get("gate_id") in ("located_ie", "chartered") and g.get("basis")
+    }
+    basis = [c for c in claims if c.get("claim_id") in basis_ids]
+    rest = [c for c in claims if c.get("claim_id") not in basis_ids]
+    primary = [c for c in rest if c["dimension"] == spec.primary_signal_dimension]
+    other = [c for c in rest if c["dimension"] != spec.primary_signal_dimension]
+    direct = [x for x in basis + primary + other if x.get("confidence") == "direct"]
     # One sentence can evidence three dimensions. Without grouping the pane
     # prints it three times and burns the quote budget repeating itself.
     for group in _group_by_quote(direct):
@@ -974,11 +1016,14 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     # was silently dropped -- only REVIEW INCOMPLETE ever reached the card.
     # A second-opinion pass that found something (without erroring outright)
     # is exactly the information a reader needs before a first call.
-    for finding in (ev.get("adversarial_findings") or []):
-        f = str(finding)
-        if "REVIEW INCOMPLETE" in f:
-            continue  # already surfaced by the line above
-        facts.append('<p class="gap">Second opinion: ' + e(f) + "</p>")
+    # Rendered LAST (after the email-status, movability, switchboard and
+    # link lines) and under a shared cap -- see the block after the link
+    # check below. Third-cut code review: appended here, three 70-word
+    # findings pushed the "this address is a guess" line off the end.
+    second_opinions = [
+        str(f) for f in (ev.get("adversarial_findings") or [])
+        if "REVIEW INCOMPLETE" not in str(f)  # surfaced by the line above
+    ]
 
     # 2026-09-11 second-audit fix (item 6b): the seniority-floor and
     # located_ie gates sometimes pass with a note asking the reader to
@@ -1049,6 +1094,17 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
             bits.append(str(len(mism)) + " link(s) no longer name this person")
         facts.append('<p class="gap">' + e("; ".join(bits) + ".") + "</p>")
 
+    # 5. Second opinions, last in priority order so the pop-from-end trim
+    #    below drops them before any honesty line. At most two are shown,
+    #    each clipped, with a pointer to the rest; the full text stays in
+    #    adversarial.json and on the console page.
+    for f in second_opinions[:MAX_SECOND_OPINIONS]:
+        facts.append('<p class="gap">Second opinion: '
+                     + e(_clip(f, SECOND_OPINION_WORDS)) + "</p>")
+    if len(second_opinions) > MAX_SECOND_OPINIONS:
+        facts.append('<p class="src">+' + str(len(second_opinions) - MAX_SECOND_OPINIONS)
+                     + " more second-opinion finding(s) in the run record.</p>")
+
     # The honesty lines are reserved, not queued. Filling the budget with
     # quotes first and letting "this address is a guess" fall off the end
     # would drop the one line that changes what the reader does next.
@@ -1057,7 +1113,10 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     kept, used = [], 0
     for b in blocks[:MAX_DETAIL_QUOTES]:
         n = _wc(b)
-        if used + n > budget:
+        # The first verbatim quote is the evidence contract (I1/I2) and is
+        # never dropped for budget: a card with no quote is a card with no
+        # basis. Only the second and third quotes compete with the facts.
+        if kept and used + n > budget:
             break
         kept.append(b)
         used += n
@@ -1128,9 +1187,9 @@ def row_html(
         buttons.append('<span class="none">No email address found</span>')
 
     who = (
-        '<p class="nm">' + e(strip_postnominals(person["full_name"])) + "</p>"
+        '<p class="nm">' + e(_display_name(person["full_name"])) + "</p>"
         + '<p class="ro">'
-        + e(strip_postnominals(person.get("current_title") or "") or "Title not stated")
+        + e(_display_title(person.get("current_title") or "") or "Title not stated")
         + (" &middot; " + e(person["current_employer"])
            if person.get("current_employer") else "")
         + "</p>"
@@ -1194,6 +1253,18 @@ def pool_map_md(m: dict, spec) -> str:
             "",
         ]
         for s_ in m["near_misses"]:
+            lines.append("- " + s_)
+
+    if m.get("held_back"):
+        lines += [
+            "",
+            "## Passed every gate, held back",
+            "",
+            "Listed by name because a shortlist that hides them is padding in",
+            "reverse. Each carries the one reason it is not on the list.",
+            "",
+        ]
+        for s_ in m["held_back"]:
             lines.append("- " + s_)
 
     if m.get("client_side_sidebar"):
@@ -1344,11 +1415,24 @@ def build(allow_placeholder_notice: bool = False) -> None:
         )
         body.append("</section>")
         if len(pids) < spec.target_count:
+            held = list((delivery.get("held_back") or {}).get(spec.role_id) or [])
+            held_html = ""
+            if held:
+                # Third audit 2026-09-11: two gate-passers were withheld and
+                # nothing client-facing said so. Named here, with the reason.
+                held_html = (" " + str(len(held)) + " more passed every gate but "
+                             "are held back: "
+                             + "; ".join(
+                                 e(persons_raw.get(h["person_id"], {}).get(
+                                     "full_name", h["person_id"]))
+                                 + " (" + e(h["reason"]) + ")" for h in held)
+                             + ".")
             body.append(
                 '<div class="banner"><strong>Short of target.</strong> '
                 + str(len(pids)) + " of " + str(spec.target_count)
                 + " delivered. The pool map for this role lists exactly which gate "
-                "removed each of the others. Padding the list with candidates who "
+                "removed each of the others." + held_html
+                + " Padding the list with candidates who "
                 "fail a hard gate would be the alternative, and it is not one.</div>"
             )
 
@@ -1393,8 +1477,8 @@ def build(allow_placeholder_notice: bool = False) -> None:
                 {
                     "role": spec.title,
                     "tier": ev.get("tier", g["tier"]),
-                    "full_name": strip_postnominals(person["full_name"]),
-                    "current_title": strip_postnominals(person.get("current_title") or ""),
+                    "full_name": _display_name(person["full_name"]),
+                    "current_title": _display_title(person.get("current_title") or ""),
                     "current_employer": person.get("current_employer") or "",
                     "location": person.get("location") or "",
                     "email": contact.get("email") or "",

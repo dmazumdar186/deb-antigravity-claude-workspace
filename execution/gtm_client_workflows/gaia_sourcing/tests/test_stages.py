@@ -558,7 +558,7 @@ def test_delivery_set_holds_back_candidates_with_no_named_employer(graded_pool):
     assert R1 + ":no_employer" not in delivery["overflow"]
     assert R1 + ":no_employer" not in delivery
     held = delivery["held_back"][R1]
-    assert {"person_id": "a1", "reason": "no employer stated"} in held
+    assert {"person_id": "a1", "reason": "employer not captured from any source text"} in held
     # a2 has an employer and still qualifies, so it ships in a1's place.
     assert "a2" in delivery[R1]
 
@@ -1560,3 +1560,27 @@ def test_identity_hygiene_drops_only_uncorroborated_deepen_claims(R, monkeypatch
     assert out["persons"]["shane"]["doc_ids"] == ["d_dir", "d_lally"]
     hyg = json.loads((R.RUN_DIR / "identity_hygiene.json").read_text(encoding="utf-8"))
     assert hyg["dropped"] == 1 and hyg["per_person"] == {"shane": 1}
+
+
+def test_deepen_located_ie_targets_only_search_snippet_persons(R, monkeypatch):
+    persons = {
+        "snip": {"person_id": "snip", "full_name": "Snip Person", "role_id": R.ROLE1.role_id,
+                 "source": "search_snippet", "current_employer": "Firm", "doc_ids": []},
+        "dirp": {"person_id": "dirp", "full_name": "Dir Person", "role_id": R.ROLE1.role_id,
+                 "source": "company_directory", "current_employer": "Firm", "doc_ids": []},
+    }
+    R.save("extract", {"persons": persons, "claims": []})
+    R.save("validate", {"claims": [], "stats": {}})
+    fail = [{"gate_id": "located_ie", "passed": False}]
+    R.save("gate", {
+        "snip": {"role_id": R.ROLE1.role_id, "tier": "EXCLUDED", "client_side": False,
+                 "gates": fail, "n_claims": 1},
+        "dirp": {"role_id": R.ROLE1.role_id, "tier": "EXCLUDED", "client_side": False,
+                 "gates": fail, "n_claims": 1},
+    })
+    monkeypatch.setattr(R.CONFIG, "deepen_gates", ["located_ie"])
+    seen = []
+    monkeypatch.setattr(R, "run_all", lambda fn, targets, **kw: seen.extend(targets))
+    R.stage_deepen_near_misses(force=True)
+    assert seen == ["snip"]
+
