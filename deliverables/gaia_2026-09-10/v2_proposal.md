@@ -4,7 +4,7 @@ For Keith Molony and Maddie (Gaia Talent). From Debanjan Mazumdar, Prodcraft. De
 
 ## What Gaia has today, and where this sits
 
-Maddie's screener is inbound. A CV arrives in Gmail, the screener scores it against live jobs, invites anyone over 60 to a screening call, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.
+Maddie's screener is inbound. A CV arrives in Gmail, the screener scores it against live jobs, flags any CV that scores over 60 out of 100 against a job it is applying for, offers a screening call on one click, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.
 
 This system is outbound. It finds the chartered, grade-matched, Ireland-based engineers who never applied, proves each one with a quote from a public document, checks their contact details, and drops them into Recruit CRM as candidates on the job, so Isadora or Maddie's screener takes over from there. Together they cover both halves of a search.
 

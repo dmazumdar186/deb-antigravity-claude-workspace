@@ -34,7 +34,7 @@ Transport Major Projects Manager, Cork: 65 checked, 0 delivered against the 5 as
 
 I would rather send you two right names than ten wrong ones again, so that is what this is. The rules now doing the cutting:
 
-- Residence: only a statement of where the person lives counts ("based in Dublin", "Location: County Meath"). Working on an Irish scheme, or a firm's Irish office, no longer counts. Three of the 20 August names (Taskov, Petho, Penco, all London) fall out on this rule, and Pat Brady drops until someone confirms where he lives: the August evidence only says "Ireland" and lists a Belfast project.
+- Residence: only a statement of where the person lives counts ("based in Dublin", "Location: County Meath"). Working on an Irish scheme, or a firm's Irish office, no longer counts. On the 20 August names the record shows Taskov and Penco working from Barrett Mahony's London office, and no statement of residence for any of the other eleven; that is what the check now says, no more.
 - Seniority: a ceiling as well as a floor, read from the title and from what their employer says about them. Head of Design, Associate, Director and above are out.
 - Chartership: CEng plus Engineers Ireland (MIEI/FIEI) needed. MIEI alone, or ICE/IStructE alone, does not pass.
 - Contact: verified or labelled. Alicia has no verified email, so her card says "none, call the firm" rather than a guessed address.
@@ -65,13 +65,13 @@ Screen setup before recording: three tabs in this order: Brief Controls, correct
 
 On screen: Brief Controls, untouched, showing the 20 August 13.
 
-Say: "Keith, you said two things and both were right. First, the list was too senior: ten out of ten on the structural role were Director or Associate Director. That was our filter, it had a floor and no ceiling, and it treated a Director title as proof of experience. Second, some were not in Ireland: Taskov, Petho and Penco are London-based, and a fourth, Pat Brady, had no residence evidence at all, only a project list. That filter accepted 'worked on an Irish scheme' as living in Ireland. Both were settings. Here is what changed."
+Say: "Keith, you said two things and both were right. First, the list was too senior: ten out of ten on the structural role were Director or Associate Director. That was our filter, it had a floor and no ceiling, and it treated a Director title as proof of experience. Second, some were not in Ireland: the record shows Taskov and Penco working from the firm's London office, and for the other eleven no statement of where they live at all. That filter accepted 'worked on an Irish scheme' as living in Ireland. Both were settings. Here is what changed."
 
 ### Step 2 (0:45–1:45) — Brief Controls, the re-cut
 
 On screen: Brief Controls. Set the seniority ceiling to Senior Engineer. Then set the Ireland rule to Republic only, direct evidence required.
 
-Say: "This is your 20 August list with the two rules as controls. Ceiling to Senior Engineer." (Watch the Director and Associate Director names drop.) "Ireland rule to Republic, direct evidence." (Watch the three London names and Brady drop.) "What's left is the 'missed by one' list: each name and the single thing it was missing. You can set these yourself; nothing here needs me."
+Say: "This is your 20 August list with the two rules as controls. Ceiling to Senior Engineer." (Watch the Director and Associate Director names drop.) "Ireland rule to Republic, direct evidence." (Watch the London-office names and everyone without a residence statement drop.) "What's left is the 'missed by one' list: each name and the single thing it was missing. You can set these yourself; nothing here needs me."
 
 Do not tour the interface. Two control changes, then move on.
 
