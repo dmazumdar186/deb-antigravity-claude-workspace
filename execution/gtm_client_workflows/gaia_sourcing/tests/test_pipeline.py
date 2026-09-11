@@ -330,7 +330,7 @@ def test_both_roles_have_every_hard_gate():
         ids = {g.gate_id for g in spec.hard_gates}
         assert ids == {
             "chartered", "located_ie", "discipline", "seniority",
-            "seniority_ceiling", "not_client",
+            "seniority_ceiling", "employer_sector", "not_client",
         }
 
 

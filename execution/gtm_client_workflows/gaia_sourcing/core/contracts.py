@@ -53,7 +53,7 @@ def as_list(value) -> list:
 
 GateCheck = Literal[
     "chartered", "located_ie", "discipline", "seniority_years", "not_client",
-    "seniority_ceiling",
+    "seniority_ceiling", "employer_sector",
 ]
 
 

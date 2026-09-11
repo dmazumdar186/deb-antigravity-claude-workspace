@@ -134,6 +134,16 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
         ROLE_JUDGE: ("anthropic", "claude-fable-5-1"),
         ROLE_MESSAGE: ("anthropic", "claude-fable-5-1"),
     },
+    # 2026-09-11: the direct-API twin of "budget" -- every role on Sonnet 5 --
+    # for the tail stages (adversarial, movability, messages) when the
+    # cumulative ceiling has little headroom left. Same trade-off as "budget":
+    # a deliverable finished on the execution tier beats one that stops at
+    # the ceiling with half the cards undrafted.
+    "anthropic_budget": {
+        ROLE_EXTRACT: ("anthropic", "claude-sonnet-5"),
+        ROLE_JUDGE: ("anthropic", "claude-sonnet-5"),
+        ROLE_MESSAGE: ("anthropic", "claude-sonnet-5"),
+    },
 }
 
 

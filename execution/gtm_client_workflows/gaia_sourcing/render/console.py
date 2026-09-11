@@ -913,7 +913,7 @@ def main() -> int:
     )
     args = ap.parse_args()
     out_dir = Path(args.out_dir) if args.out_dir else (
-        WORKSPACE_ROOT / "deliverables" / args.campaign_id / "console"
+        WORKSPACE_ROOT / "deliverables" / args.campaign_id.replace("gaia-", "gaia_", 1) / "console"
     )
     render_console(args.campaign_id, out_dir)
     return 0

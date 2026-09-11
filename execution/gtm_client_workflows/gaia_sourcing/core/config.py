@@ -233,6 +233,14 @@ class RunConfig:
     deepen_window_chars: int = 2500
 
     @property
+    def deliverables_dir(self):
+        """deliverables/<campaign> -- 'gaia-2026-09-14' maps to the folder
+        convention 'gaia_2026-09-14'. Derived from campaign_id so a new run can
+        never write over a delivered campaign (2026-09-11 clobber)."""
+        slug = self.campaign_id.replace("gaia-", "gaia_", 1)
+        return WORKSPACE_ROOT / "deliverables" / slug
+
+    @property
     def run_dir(self) -> Path:
         return PKG_ROOT / "run" / self.campaign_id
 

@@ -102,7 +102,9 @@ from .layers.replies import classify_reply
 from .layers.validator import validate_all
 from .render import render as render_module
 from .render.console import render_console
-from .roles import ROLE1, ROLE2, ROLES, is_client_side
+from .roles import (
+    ACCEPT_TITLES_FOR_FLOOR_DEFAULT, ROLE1, ROLE2, ROLES, is_client_side,
+)
 from .sources import (
     acp,
     company_bios,
@@ -2230,6 +2232,7 @@ def stage_poolmap(force: bool = False) -> None:
             {
                 "full_name": persons[pid].full_name,
                 "current_title": persons[pid].current_title,
+                "current_employer": persons[pid].current_employer,
                 "location": persons[pid].location,
                 "email_status": contacts.get(pid, {}).get("email_status"),
             }
@@ -2282,7 +2285,7 @@ def stage_scorecard(force: bool = False) -> None:
 
 
 def stage_console(force: bool = False) -> None:
-    out_dir = WORKSPACE_ROOT / "deliverables" / CONFIG.campaign_id / "console"
+    out_dir = CONFIG.deliverables_dir / "console"
     render_console(CONFIG.campaign_id, out_dir, run_dir=RUN_DIR)
     log("console: rendered -> " + str(out_dir))
 
@@ -2466,9 +2469,11 @@ def _apply_brief_overrides(args: argparse.Namespace) -> None:
     edit and no re-harvest: `--from-stage gate` re-derives tiers from the
     already-cached extract.json/validate.json, offline.
     """
+    accept_senior_titles = getattr(args, "accept_senior_titles", None)
     touched = any([
         args.max_grade, args.max_years is not None, args.min_years is not None,
         args.counties is not None, args.strict_location, args.lenient_location,
+        accept_senior_titles is not None,
     ])
     if not touched:
         return
@@ -2486,6 +2491,12 @@ def _apply_brief_overrides(args: argparse.Namespace) -> None:
             elif gate.check == "seniority_years":
                 if args.min_years is not None:
                     gate.params["min_years"] = args.min_years
+                if accept_senior_titles is True:
+                    gate.params["accept_titles_for_floor"] = list(
+                        ACCEPT_TITLES_FOR_FLOOR_DEFAULT
+                    )
+                elif accept_senior_titles is False:
+                    gate.params["accept_titles_for_floor"] = []
             elif gate.check == "located_ie":
                 if counties is not None:
                     gate.params["counties"] = counties
@@ -2541,7 +2552,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--plan", default=None,
-        help="force a provider plan (free/hybrid/openrouter/anthropic/budget) "
+        help="force a provider plan (free/hybrid/openrouter/anthropic/anthropic_budget/budget) "
              "instead of auto-selecting by what the credentials can pay for",
     )
     # Brief-level knobs (client feedback 2026-09-10) settable on a call
@@ -2566,6 +2577,17 @@ def main() -> int:
         "--counties", default=None,
         help="comma list overriding located_ie's counties for both roles "
              "(empty string means any Republic of Ireland location)",
+    )
+    ap.add_argument(
+        "--accept-senior-titles", action=argparse.BooleanOptionalAction, default=None,
+        help="override the seniority FLOOR gate's accept_titles_for_floor "
+             "for BOTH roles: --accept-senior-titles sets it to "
+             + repr(ACCEPT_TITLES_FOR_FLOOR_DEFAULT) + " (pass with a note "
+             "when no years figure is stated but the title itself names the "
+             "target grade, e.g. 'Senior Structural Engineer'); "
+             "--no-accept-senior-titles clears it back to [] (strict; the "
+             "default for a role that never opts in, e.g. Role 2). Omit to "
+             "leave each role's own roles.py default untouched.",
     )
     loc_group = ap.add_mutually_exclusive_group()
     loc_group.add_argument(

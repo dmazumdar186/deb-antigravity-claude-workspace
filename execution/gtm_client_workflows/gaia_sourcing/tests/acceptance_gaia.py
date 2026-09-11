@@ -23,11 +23,11 @@ import html as html_mod
 import sys
 from pathlib import Path
 
-from ..core.config import PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
+from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
 from ..layers import gates
 from ..roles import ROLE1, ROLE2, is_client_side
 
-OUT = WORKSPACE_ROOT / "deliverables" / "gaia_2026-08-20"
+OUT = CONFIG.deliverables_dir  # per campaign (GAIA_CAMPAIGN_ID)
 RUN = PKG_ROOT / "run" / "gaia-2026-08-20"
 
 FAILURES: list[str] = []
