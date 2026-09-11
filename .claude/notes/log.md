@@ -60,3 +60,35 @@ Source: scripts/package_job_digest.py
 ## [2026-09-06 16:00] constraint job_digest falls back to heuristic ranker without an API key
 A Claude subscription does not provide an ANTHROPIC_API_KEY, so unattended job_digest runs default to the heuristic ranker rather than an LLM ranker.
 Source: engine/job_digest
+
+## [2026-09-11 10:00] learned gaia_sourcing residence gate false positives
+Firm-office phrases ("joined the Cork office of") and project/market mentions ("experience in Ireland and the UK") are not residence evidence under require_direct_evidence and must not yield a place.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-11 10:00] learned gaia_sourcing discipline exclude terms scoped to title/sector only
+Exclude terms must fire only from the title or a sector claim, never from an employer/project sentence; a side "health and safety officer" duty wrongly excluded a structural Associate Director.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-11 10:00] learned gaia_sourcing client-facing reasons must trace to the gate basis claim
+Reasons shown to the client are rebuilt from the gate's basis claim with the quote on the same row; generic templates contradicted the evidence three times on one page.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-11 10:00] learned gaia_sourcing rule text must render from live params, not spec description fields
+Rendering rule text from spec description fields leaked an internal note ("PENDING KEITH MOLONY CALL") into client-facing output; must render from live params after overrides.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-11 10:00] pattern gaia_sourcing passes-with-note surfaced, not silently counted
+Near-miss passes are shown as "n with a note" rather than folded into plain pass counts.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-11 10:00] process gaia_sourcing client feedback authority is the commit message, not a re-read transcript
+Recorded feedback in commit messages (e.g. a626381 "too senior, some not in Ireland") takes precedence over re-deriving feedback from a call transcript; Fathom mis-transcribed a name (Steph for Maddie) and "over 60" was a match score, not an age.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-11 10:00] pattern gaia_sourcing offline --check on cached persons is the zero-spend demo path
+Spend asserted 0.00 before and after an offline --check run on cached persons confirms no live calls fired.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-11 10:00] constraint gaia_sourcing run cache rescue branch must never merge
+Branch gaia-run-cache-2026-09-14 holds the run cache tarball for rescue purposes only; never merge it into main.
+Source: execution/gtm_client_workflows/gaia_sourcing
