@@ -376,10 +376,46 @@ def fetch_rendered(
     from .config import secret
 
     if not secret("FIRECRAWL_API_KEY", required=False):
-        # No renderer available: fall back to the raw page rather than caching
-        # a rendered failure that a later keyed run would then trust. Server-
-        # rendered directories still yield; client-rendered ones come back as
-        # a shell, and the run log says so once so the gap is visible.
+        # No paid renderer available. Try local Playwright + Chromium next --
+        # a free way to get past the same JS-only shell Firecrawl exists to
+        # solve. Only if that too is unavailable/fails do we fall back to raw
+        # HTTP, which server-rendered directories still yield something for
+        # but client-rendered ones return as an empty shell.
+        from . import render_local
+
+        if render_local.available():
+            rendered = render_local.render_page_text(url)
+            if rendered is not None:
+                text, title = rendered
+                text = normalise_ws(text)
+                if text.strip():
+                    doc_id = content_id(text)
+                    with _LOCK:
+                        body_p.write_text(text, encoding="utf-8")
+                        meta_p.write_text(
+                            json.dumps(
+                                {
+                                    "ok": True, "doc_id": doc_id, "url": url,
+                                    "source_type": source_type, "rendered": True,
+                                    "renderer": "playwright",
+                                    "fetched_at": date.today().isoformat(),
+                                    "title": title,
+                                }
+                            ),
+                            encoding="utf-8",
+                        )
+                    return RawDocument(
+                        doc_id=doc_id, url=url, source_type=source_type,
+                        fetched_at=date.today(), content_text=text,
+                        http_status=200, title=title,
+                    )
+                # Rendered to nothing: fall through to raw HTTP below rather
+                # than caching a rendered failure (same rule as the
+                # no-renderer-at-all path -- a bad cache entry here would be
+                # trusted by every later keyed run).
+            # render_page_text returned None (launch/navigation failure): same
+            # fall-through, no cache write.
+
         global _RENDER_FALLBACK_WARNED
         if not _RENDER_FALLBACK_WARNED:
             print("[cache] FIRECRAWL_API_KEY absent: rendered fetches fall back to raw HTTP")
