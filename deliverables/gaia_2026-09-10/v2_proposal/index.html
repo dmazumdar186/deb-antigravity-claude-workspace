@@ -180,12 +180,12 @@
 
 <div class="wrap">
 
-  <h1>Gaia Sourcing v2 — outbound sourcing that feeds Maddie and Recruit CRM</h1>
-  <p class="byline">For Keith Molony and Steph (Gaia Talent). From Debanjan Mazumdar, Prodcraft. Delivery promised: Monday 14 Sep 2026, 17:00, link plus Loom.</p>
+  <h1>Gaia Sourcing v2 — outbound sourcing that feeds Maddie's screener and Recruit CRM</h1>
+  <p class="byline">For Keith Molony and Maddie (Gaia Talent). From Debanjan Mazumdar, Prodcraft. Delivery promised: Monday 14 Sep 2026, 17:00, link plus Loom.</p>
 
   <h2 id="today">What Gaia has today, and where this sits</h2>
-  <p>Maddie is inbound. A CV arrives in Gmail, Maddie scores it against live jobs, invites anyone over 60 to a screening call, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.</p>
-  <p>This system is outbound. It finds the chartered, grade-matched, Ireland-based engineers who never applied, proves each one with a quote from a public document, checks their contact details, and drops them into Recruit CRM as candidates on the job, so Isadora or Maddie takes over from there. Together they cover both halves of a search.</p>
+  <p>Maddie's screener is inbound. A CV arrives in Gmail, the screener scores it against live jobs, invites anyone over 60 to a screening call, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.</p>
+  <p>This system is outbound. It finds the chartered, grade-matched, Ireland-based engineers who never applied, proves each one with a quote from a public document, checks their contact details, and drops them into Recruit CRM as candidates on the job, so Isadora or Maddie's screener takes over from there. Together they cover both halves of a search.</p>
   <p>Recruit CRM's own AI sourcing (800 million external profiles, 0 to 100 match scores) is a search over a licensed profile database. This is a different layer: it reads what people wrote and said on the record (oral-hearing witness statements, firm bio pages, professional registers), so a card carries evidence, not a similarity score, and it applies your brief as hard rules, not a ranking.</p>
 
   <div class="diagram-frame">
@@ -289,14 +289,14 @@
         </marker>
       </defs>
     </svg>
-    <p class="diagram-caption">Two lanes, one CRM. Inbound (amber) and outbound (moss) both land in Recruit CRM; Maddie or a consultant takes it from there.</p>
+    <p class="diagram-caption">Two lanes, one CRM. Inbound (amber) and outbound (moss) both land in Recruit CRM; Maddie's screener or a consultant takes it from there.</p>
   </div>
 
   <h2 id="what-went-wrong">What went wrong on 20 August, and what changed</h2>
   <p>You said the list was too senior and some were not in Ireland. Both were filter settings.</p>
   <ul>
     <li>The seniority filter had a floor (8 years) and no ceiling, and it treated a Director title as proof of experience. All 10 Senior Structural Engineer cards were Director or Associate Director.</li>
-    <li>The Ireland filter accepted "worked on an Irish scheme" as proof of living in Ireland. That let three London-based and one Belfast-based engineer through.</li>
+    <li>The Ireland filter accepted "worked on an Irish scheme" as proof of living in Ireland. That let three London-based engineers through, and a fourth with no residence evidence at all.</li>
   </ul>
   <p>Both are now brief settings you set per role: a seniority band (grade ceiling and years) and a residence rule (Republic only, county list, relocation yes or no). A final check refuses to deliver a list whose titles or locations break the brief. The re-cut of your own 13 under a Senior Engineer ceiling is at the Brief Controls link: <strong>none of the 13 survive</strong>, which is exactly your read of the list.</p>
 
@@ -309,7 +309,7 @@
     <li><span class="step-num mono">05</span><span><span class="step-title">Contact.</span> Email verified through Prospeo; only verified or catch-all addresses are used. Inferred addresses are labelled, never sent to. LinkedIn URL resolved per card.</span></li>
     <li><span class="step-num mono">06</span><span><span class="step-title">Draft.</span> A short LinkedIn note and a short email from a human-approved template pool, filled with the project they gave evidence on, the scheme, the firm. Under 400 characters. Sent by a named Gaia consultant from their own seat, never by us.</span></li>
     <li><span class="step-num mono">07</span><span><span class="step-title">Reply.</span> A candidate's reply is classified at once (interested, not now, no, question, out of office, bounce), the next step is set (book a call, snooze 90 days, close, consultant answers), and a note lands on the candidate in Recruit CRM. An opt-out closes the record and is honoured.</span></li>
-    <li><span class="step-num mono">08</span><span><span class="step-title">Sync.</span> Each delivered candidate is created in Recruit CRM (deduplicated by email or LinkedIn URL, never overwriting a consultant's data) with source "Prodcraft sourcing", attached to the job, with an evidence note and the Article 14 notice date. From here Maddie can invite them to a screening call exactly as she does for applicants.</span></li>
+    <li><span class="step-num mono">08</span><span><span class="step-title">Sync.</span> Each delivered candidate is created in Recruit CRM (deduplicated by email or LinkedIn URL, never overwriting a consultant's data) with source "Prodcraft sourcing", attached to the job, with an evidence note and the Article 14 notice date. From here Maddie's screener can invite them to a screening call exactly as it does for applicants.</span></li>
   </ol>
 
   <h2 id="guardrails">Guardrails (fail-safe by default)</h2>
@@ -348,7 +348,7 @@
   <ul>
     <li>Link: the sourcing dossier (same format as before) with Brief Controls, corrected for Senior Engineer grade and Ireland residence, for the two original roles, plus a CSV.</li>
     <li>Loom: how it runs, how the brief settings work, and how a candidate lands in Recruit CRM.</li>
-    <li>This page, for Steph: where the hand-off to Maddie sits, and the Recruit CRM fields and endpoints used.</li>
+    <li>This page, for Maddie: where the hand-off to her screener sits, and the Recruit CRM fields and endpoints used.</li>
     <li>An honest count: how many candidates survived per role and why. <strong>Role 2 (Cork) never had more than four</strong> who passed every gate; reaching five is a source question, not a filter question, and the page will say so.</li>
   </ul>
 
@@ -363,13 +363,13 @@
   <h2 id="timeline">Build timeline if you go ahead</h2>
   <p>Working pipeline exists (1,086 automated tests plus a 41-check acceptance gate on every delivery). Recruit CRM sync, reply classification and the brief settings are built. Wiring to your Recruit CRM account, your job slugs and a named-consultant sender takes 3 to 5 working days, as said on the call. Running cost per role is about €100 in data and model calls, against a placement fee of €14k to €20k.</p>
 
-  <h2 id="steph">What Steph needs to know about the Recruit CRM hand-off</h2>
+  <h2 id="steph">What Maddie needs to know about the Recruit CRM hand-off</h2>
   <ul>
     <li>API access is on Recruit CRM's Business plan and above, not Pro. If Gaia is on Pro, the sync runs through Zapier's Recruit CRM app (new candidate, assign to job) until an upgrade, or the CSV import stays the hand-off.</li>
     <li>The API key is generated by the account owner in Admin Settings and sent as an Authorization header. Rate limit is 60 requests a minute for accounts with up to 6 licences; the sync stays well under it.</li>
     <li>Fields written: first and last name, email (verified or catch-all only), current title, employer, city, LinkedIn URL, a "Source" value of "Prodcraft sourcing", a tag per campaign, one note with the evidence quotes and the Article 14 notice date, and assignment to the job. Existing candidates are matched on email or LinkedIn URL and never overwritten.</li>
     <li>Native webhooks (candidate created, stage changed) are on Enterprise; not needed for v1.</li>
-    <li>Maddie's trigger stays hers: a sourced candidate who replies "interested" is set to a stage you choose, and Maddie or Isadora takes it from there.</li>
+    <li>The screener's trigger stays Maddie's: a sourced candidate who replies "interested" is set to a stage you choose, and the screener or Isadora takes it from there.</li>
   </ul>
 
   <h2 id="tools">The tools Keith mentioned, and where this differs</h2>
@@ -382,7 +382,7 @@
 
   <h2 id="not-in-scope">Not in scope, deliberately</h2>
   <ul>
-    <li>No AI voice calls, no automated sends: Maddie and your consultants own every conversation.</li>
+    <li>No AI voice calls, no automated sends: Maddie's screener and your consultants own every conversation.</li>
     <li>No replacement of Recruit CRM or LinkedIn Recruiter; this feeds the first and reduces reliance on the second.</li>
     <li>No claim of a reply rate. The pilot counts replies; it does not promise them.</li>
   </ul>

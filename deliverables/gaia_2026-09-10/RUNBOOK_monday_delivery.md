@@ -2,7 +2,7 @@
 
 What was promised on the call (10 Sep, 27 min): the sourcing system "the same
 way as before", a link plus a Loom, a note on how it works with Maddie and
-Recruit CRM that Keith can forward to Steph. Nothing else. No auto-sending,
+Recruit CRM that Keith can forward to Maddie (the developer who built Gaia's inbound screener). Nothing else. No auto-sending,
 no voice agent, no replacement of Recruit CRM.
 
 Everything below runs on the operator's Windows machine, where the cached
@@ -153,5 +153,5 @@ log in the Loom instead of a live write.
 ## 6. Send (Monday before 17:00)
 
 Email to Keith with: dossier link, Brief Controls link, the v2 page for
-Steph, Loom link, the honest count, and the two questions. Ask him to forward
-the v2 page to Steph. Do not attach a price; the follow-up call does that.
+Maddie, Loom link, the honest count, and the two questions. Ask him to forward
+the v2 page to Maddie. Do not attach a price; the follow-up call does that.

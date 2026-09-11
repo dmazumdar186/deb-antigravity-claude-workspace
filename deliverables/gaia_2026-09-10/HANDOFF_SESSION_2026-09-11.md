@@ -9,7 +9,7 @@ No HITL: never ask the operator; exhaust options; audit (anneal-reviewer, code-r
 Anthropic ledger: EUR 25.69 cumulative of a EUR 26.50 cap (`run.py --spend`; `core/config.py max_cost_eur_total`); the operator's USD 30 Console spend limit is the hard stop. Do NOT re-run extract or deepen (EUR 3-6 each). Affordable: offline stages (locate, identity_hygiene, validate, gate, poolmap, scorecard, render, console) and, at most once, `--stage adversarial --force --plan anthropic_budget` (~EUR 0.05 per card) or `--stage messages --force` (~EUR 0.01 per card).
 
 ## Goal by Monday 14 Sep 17:00
-Send Keith Molony (Gaia Talent) the corrected shortlist link + Loom + the v2 page (for Steph). Promise: Senior Engineer grade, Republic of Ireland residence with direct evidence, Engineers Ireland chartership, verified/labelled contact, honest counts.
+Send Keith Molony (Gaia Talent) the corrected shortlist link + Loom + the v2 page (for Maddie, the developer who built the inbound screener; no one named Steph exists). Promise: Senior Engineer grade, Republic of Ireland residence with direct evidence, Engineers Ireland chartership, verified/labelled contact, honest counts.
 
 ## Where it stands (DONE in this session)
 Campaign `gaia-2026-09-14` (`export GAIA_CAMPAIGN_ID=gaia-2026-09-14`; deliverables in `deliverables/gaia_2026-09-14/`; never write into `gaia_2026-08-20`).
