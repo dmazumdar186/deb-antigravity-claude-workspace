@@ -37,7 +37,7 @@ from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
 from ..roles import ROLE1, ROLE2
 
 RUN_DIR = PKG_ROOT / "run" / CONFIG.campaign_id
-OUT_DIR = WORKSPACE_ROOT / "deliverables" / "gaia_2026-08-20"
+OUT_DIR = CONFIG.deliverables_dir  # per campaign; see core/config.py
 
 TIER_LABEL = {
     "A": "Tier A -- primary signal evidenced twice or more",

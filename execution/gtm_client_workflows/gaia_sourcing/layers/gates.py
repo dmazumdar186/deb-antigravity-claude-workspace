@@ -16,6 +16,7 @@ import re
 from typing import Optional
 
 from ..core.contracts import GateResult, JobSpec, Person, ValidatedClaim
+from ..sources.company_bios import FIRMS
 
 # ---------------------------------------------------------------------------
 # Chartership
@@ -544,6 +545,45 @@ def check_seniority(
                         "the first call."
                     ),
                 )
+        # Title-based floor acceptance (client feedback 2026-09-11: 21 Role 1
+        # people failed ONLY the 8-year floor with titles like "Senior
+        # Structural Engineer" -- the brief's target grade, stated with no
+        # years on a directory page. _SENIOR_GRADE_RE / allow_grade_inference
+        # above does not catch these -- it is deliberately restricted to
+        # grades unreachable inside 8 years (Director and up), and "Senior
+        # Engineer" is reachable at ~5. This is a separate, opt-in mechanism:
+        # a brief-supplied list of regex fragments (e.g. "senior", "lead",
+        # "associate", "principal") that, matched against the title alone,
+        # are taken as evidence of the floor -- never invented silently, the
+        # card always carries the confirm-on-first-call note.
+        accept_titles = params.get("accept_titles_for_floor") or []
+        if accept_titles:
+            try:
+                accept_re = re.compile("|".join(accept_titles), re.I)
+            except re.error:
+                accept_re = None
+            if accept_re is not None:
+                title = person.current_title or ""
+                m = accept_re.search(title)
+                basis = "person.title"
+                if not m:
+                    for c in _direct(_claims_by_dim(claims, "employer")):
+                        blob = c.assertion + " " + c.evidence_quote
+                        m = accept_re.search(blob)
+                        if m:
+                            basis = c.claim_id
+                            break
+                if m:
+                    return GateResult(
+                        gate_id="seniority",
+                        passed=True,
+                        basis=basis,
+                        note=(
+                            "years not stated; " + m.group(0).lower()
+                            + " title accepted for the floor -- confirm years "
+                            "on first call"
+                        ),
+                    )
         return GateResult(
             gate_id="seniority",
             passed=False,
@@ -826,6 +866,9 @@ def composition_violations(cards, spec: JobSpec) -> list[str]:
     violations: list[str] = []
     band = spec.seniority_band
     loc_rule = spec.location_rule
+    employer_gate = next(
+        (g for g in spec.hard_gates if g.check == "employer_sector"), None
+    )
 
     for rec in cards:
         name = _field(rec, "full_name") or _field(rec, "person_id") or "<unknown>"
@@ -858,7 +901,143 @@ def composition_violations(cards, spec: JobSpec) -> list[str]:
                         + ")"
                     )
 
+        if employer_gate is not None:
+            employer = _field(rec, "current_employer")
+            passed, note = employer_reads_as_consultancy(
+                employer, [], employer_gate.params
+            )
+            if not passed:
+                violations.append(str(name) + " -- " + (note or (
+                    "employer '" + str(employer) + "' does not read as an "
+                    "engineering consultancy; confirm"
+                )))
+
     return violations
+
+
+# ---------------------------------------------------------------------------
+# Employer sector -- "does this read as an engineering consultancy at all?"
+#
+# 2026-09-11 client feedback exhibit: a delivered Role 1 card was "Senior
+# Structural Engineer at Nokia" -- it passed check_discipline on the word
+# "structural" (Nokia has structural/RF engineers too), but the brief is a
+# consultancy role and Nokia is a telecoms multinational, not an engineering
+# consultancy. Deterministic, never an LLM judgement: FIRMS membership, a
+# consultancy-shaped employer string, a brief-supplied allowlist regex, or a
+# direct claim stating a consultancy context are all that can pass it.
+#
+# The logic is factored into `employer_reads_as_consultancy` so the gate
+# (check_employer_sector) and the delivery composition guard
+# (composition_violations) can never drift apart on what counts.
+# ---------------------------------------------------------------------------
+
+_CONSULTANCY_SHAPE_RE = re.compile(
+    r"engineer|consult|design|structur|civil|partners|associates|\bllp\b|group",
+    re.I,
+)
+
+# Common firm names that read as engineering consultancies even though they
+# do not obviously match the shape pattern above (e.g. "AECOM" contains none
+# of those substrings). TII is a client-side statutory body, not a
+# consultancy -- it counts as a legitimate Role 2 employer (transport policy/
+# delivery work), never as a legitimate Role 1 (structural consultancy)
+# employer, so it is gated behind `allow_client_side_firms_role2` rather than
+# always-on.
+_COMMON_CONSULTANCY_FIRMS = ["arup", "jacobs", "aecom", "atkins", "wsp", "mott", "rps"]
+_ROLE2_ONLY_FIRMS = ["tii"]
+
+_CONSULTANCY_CONTEXT_RE = re.compile(
+    r"\bconsultanc(?:y|ies)\b|\bconsulting engineers\b", re.I
+)
+
+
+def _firm_token_matches(employer_low: str) -> bool:
+    """True when `employer_low` names a firm from sources.company_bios.FIRMS
+    (by full name or by the leading token of its domain, e.g. "ocsc" from
+    "ocsc.ie")."""
+    for firm in FIRMS:
+        if firm.name.lower() in employer_low:
+            return True
+        domain_token = firm.domain.split(".")[0].lower()
+        if domain_token and re.search(r"\b" + re.escape(domain_token) + r"\b", employer_low):
+            return True
+    return False
+
+
+def employer_reads_as_consultancy(
+    employer: Optional[str], claims: list[ValidatedClaim], params: dict
+) -> tuple[bool, Optional[str]]:
+    """Shared pass/fail logic behind check_employer_sector AND
+    composition_violations -- one place decides what "reads as an
+    engineering consultancy" means, so the gate and the after-the-fact
+    delivery check can never disagree.
+
+    Returns (passed, note). note is None on a clean, unremarkable pass.
+
+    params:
+      extra_pass_patterns -- list[str], brief-supplied regex fragments
+        checked against the employer string (role's own escape hatch,
+        e.g. a named boutique not in FIRMS).
+      off_limits -- list[str], substrings that fail regardless of shape
+        (Atkins/AtkinsRealis/TOBIN are consultancies in general but are
+        this client, off-limits everywhere -- see roles.OFF_LIMITS).
+      allow_client_side_firms_role2 -- bool, Role 2 only: TII and similar
+        client-side transport bodies count as a legitimate employer here.
+    """
+    off_limits = [t.lower() for t in (params.get("off_limits") or [])]
+    extra_patterns = params.get("extra_pass_patterns") or []
+    allow_role2_firms = bool(params.get("allow_client_side_firms_role2"))
+
+    employer_low = (employer or "").strip().lower()
+    if not employer_low:
+        return True, "employer not stated"
+
+    for term in off_limits:
+        if term and term in employer_low:
+            return False, (
+                "employer '" + (employer or "") + "' does not read as an "
+                "engineering consultancy; confirm"
+            )
+
+    if _firm_token_matches(employer_low):
+        return True, None
+
+    if _CONSULTANCY_SHAPE_RE.search(employer_low):
+        return True, None
+
+    common_firms = list(_COMMON_CONSULTANCY_FIRMS)
+    if allow_role2_firms:
+        common_firms += _ROLE2_ONLY_FIRMS
+    if any(re.search(r"\b" + re.escape(f) + r"\b", employer_low) for f in common_firms):
+        return True, None
+
+    for pat in extra_patterns:
+        try:
+            if re.search(pat, employer_low, re.I):
+                return True, None
+        except re.error:
+            continue  # a malformed brief-supplied pattern must not crash the gate
+
+    for c in _direct(_claims_by_dim(claims, "employer")):
+        blob = (c.assertion + " " + c.evidence_quote).lower()
+        if _CONSULTANCY_CONTEXT_RE.search(blob):
+            return True, None
+
+    return False, (
+        "employer '" + (employer or "") + "' does not read as an engineering "
+        "consultancy; confirm"
+    )
+
+
+def check_employer_sector(
+    person: Person, claims: list[ValidatedClaim], params: dict
+) -> GateResult:
+    employer = person.current_employer
+    passed, note = employer_reads_as_consultancy(employer, claims, params)
+    basis = "person.employer" if employer else None
+    return GateResult(
+        gate_id="employer_sector", passed=passed, basis=basis, note=note
+    )
 
 
 def check_not_client(
@@ -892,6 +1071,7 @@ _CHECKS = {
     "seniority_years": check_seniority,
     "not_client": check_not_client,
     "seniority_ceiling": check_seniority_ceiling,
+    "employer_sector": check_employer_sector,
 }
 
 

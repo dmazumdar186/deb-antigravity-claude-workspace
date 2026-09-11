@@ -211,6 +211,169 @@ def test_composition_guard_is_empty_for_a_spec_without_bands():
     assert gates.composition_violations(cards, spec) == []
 
 
+# ---------------------------------------------------------------------------
+# Title-based seniority-FLOOR acceptance (client feedback 2026-09-11: 21
+# Role 1 people failed ONLY the 8-year floor with a directory title that
+# already names the brief's target grade and states no years).
+# ---------------------------------------------------------------------------
+
+ROLE1_ACCEPT = {"min_years": 8, "accept_titles_for_floor": ["senior", "lead", "associate", "principal"]}
+
+
+@pytest.mark.parametrize("title", [
+    "Senior Structural Engineer",
+    "Senior Structural Engineer CEng MIEI",
+    "Lead / Senior Structural Engineer",
+    "Civil / Structural Associate",
+])
+def test_floor_accepts_title_with_no_years_evidence(title):
+    res = gates.check_seniority(_person(title), [], ROLE1_ACCEPT)
+    assert res.passed is True
+    assert "years not stated" in (res.note or "")
+    assert "title accepted for the floor" in (res.note or "")
+    assert "confirm years on first call" in (res.note or "")
+
+
+def test_floor_title_acceptance_matches_from_employer_claim_when_no_title():
+    claims = [_vc("employer", "Senior role", "I work as a Senior Structural Engineer at Example Consulting")]
+    res = gates.check_seniority(_person(None), claims, ROLE1_ACCEPT)
+    assert res.passed is True
+    assert res.basis != "person.title"
+
+
+def test_floor_not_accepted_when_param_absent():
+    """Without accept_titles_for_floor, the same title still fails the floor --
+    the existing allow_grade_inference mechanism does not catch 'Senior
+    Structural Engineer' (it is reachable at ~5 years, deliberately excluded
+    from _SENIOR_GRADE_RE)."""
+    res = gates.check_seniority(
+        _person("Senior Structural Engineer"), [], {"min_years": 8, "allow_grade_inference": True}
+    )
+    assert res.passed is False
+
+
+def test_floor_years_evidence_still_wins_over_title_acceptance():
+    """A years figure below the minimum must still fail, even with a
+    matching title -- accept_titles_for_floor is a NO-EVIDENCE fallback
+    only, never an override of stated years."""
+    claims = [_vc("years_experience", "5 years", "I have 5 years of experience")]
+    res = gates.check_seniority(_person("Senior Structural Engineer"), claims, ROLE1_ACCEPT)
+    assert res.passed is False
+    assert "5 years" in (res.note or "")
+
+
+def test_role2_unaffected_by_title_acceptance_default():
+    """Role 2's own spec leaves accept_titles_for_floor empty -- unaffected."""
+    params = _gate(ROLE2, "seniority").params
+    assert params.get("accept_titles_for_floor") == []
+    res = gates.check_seniority(_person("Senior Transport Engineer"), [], params)
+    assert res.passed is False
+
+
+# ---------------------------------------------------------------------------
+# Employer sector gate (client feedback 2026-09-11: "Senior Structural
+# Engineer at Nokia" passed discipline on the word "structural" alone).
+# ---------------------------------------------------------------------------
+
+
+def _employer_person(employer):
+    return Person(person_id="p", full_name="Test Person", current_title="Senior Structural Engineer",
+                  current_employer=employer, location="Dublin")
+
+
+def test_nokia_fails_employer_sector():
+    params = _gate(ROLE1, "employer_sector").params
+    res = gates.check_employer_sector(_employer_person("Nokia"), [], params)
+    assert res.passed is False
+    assert "Nokia" in (res.note or "")
+    assert "does not read as an engineering consultancy" in (res.note or "")
+
+
+def test_firms_entry_passes_employer_sector():
+    params = _gate(ROLE1, "employer_sector").params
+    res = gates.check_employer_sector(_employer_person("O'Connor Sutton Cronin"), [], params)
+    assert res.passed is True
+
+
+def test_pattern_match_passes_employer_sector():
+    params = _gate(ROLE1, "employer_sector").params
+    res = gates.check_employer_sector(_employer_person("Lally Chartered Engineers"), [], params)
+    assert res.passed is True
+
+
+def test_empty_employer_passes_with_note():
+    params = _gate(ROLE1, "employer_sector").params
+    res = gates.check_employer_sector(_employer_person(None), [], params)
+    assert res.passed is True
+    assert res.note == "employer not stated"
+
+
+def test_off_limits_employer_fails_even_though_it_reads_as_consultancy():
+    params = _gate(ROLE1, "employer_sector").params
+    res = gates.check_employer_sector(_employer_person("AtkinsRealis"), [], params)
+    assert res.passed is False
+
+
+def test_tii_passes_for_role2_only():
+    # Plain "TII" -- not "Transport Infrastructure Ireland", which contains
+    # "Infrastructure" and would pass the shape pattern on "structur" alone
+    # regardless of role, defeating the point of this test.
+    role2_params = _gate(ROLE2, "employer_sector").params
+    assert gates.check_employer_sector(_employer_person("TII"), [], role2_params).passed is True
+    role1_params = _gate(ROLE1, "employer_sector").params
+    assert gates.check_employer_sector(_employer_person("TII"), [], role1_params).passed is False
+
+
+def test_composition_guard_flags_nokia_card():
+    cards = [
+        {"full_name": "Nokia Person", "current_title": "Senior Structural Engineer",
+         "current_employer": "Nokia", "location": "Dublin"},
+        {"full_name": "Fine Person", "current_title": "Senior Structural Engineer",
+         "current_employer": "O'Connor Sutton Cronin", "location": "Galway"},
+    ]
+    v = gates.composition_violations(cards, ROLE1)
+    assert any("Nokia Person" in x for x in v)
+    assert not any("Fine Person" in x for x in v)
+
+
+# ---------------------------------------------------------------------------
+# CLI override -- --accept-senior-titles / --no-accept-senior-titles
+# ---------------------------------------------------------------------------
+
+
+def test_cli_accept_senior_titles_flips_the_floor_param_on_both_roles():
+    from gtm_client_workflows.gaia_sourcing import run as R
+    import argparse
+
+    def _override_args(**kw):
+        base = dict(
+            max_grade=None, max_years=None, min_years=None, counties=None,
+            strict_location=False, lenient_location=False, accept_senior_titles=None,
+        )
+        base.update(kw)
+        return argparse.Namespace(**base)
+
+    snapshot = {
+        spec.role_id: [dict(g.params) for g in spec.hard_gates]
+        for spec in (ROLE1, ROLE2)
+    }
+    try:
+        R._apply_brief_overrides(_override_args(accept_senior_titles=True))
+        r1 = next(g for g in ROLE1.hard_gates if g.gate_id == "seniority")
+        r2 = next(g for g in ROLE2.hard_gates if g.gate_id == "seniority")
+        assert r1.params["accept_titles_for_floor"]
+        assert r2.params["accept_titles_for_floor"]
+
+        R._apply_brief_overrides(_override_args(accept_senior_titles=False))
+        assert r1.params["accept_titles_for_floor"] == []
+        assert r2.params["accept_titles_for_floor"] == []
+    finally:
+        for spec in (ROLE1, ROLE2):
+            for gate, params in zip(spec.hard_gates, snapshot[spec.role_id]):
+                gate.params.clear()
+                gate.params.update(params)
+
+
 @pytest.mark.skipif(not DELIVERED_CSV.exists(), reason="deliverable not present")
 def test_every_delivered_role1_director_is_now_excluded():
     """The client's complaint, as a regression: every Role 1 row we shipped

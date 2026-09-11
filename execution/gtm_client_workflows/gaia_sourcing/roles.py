@@ -51,6 +51,19 @@ OFF_LIMITS = [
     "atkins",
 ]
 
+# Title-based seniority-FLOOR acceptance (client feedback 2026-09-11): 21
+# Role 1 people failed ONLY the 8-year floor with titles like "Senior
+# Structural Engineer" / "Lead / Senior Structural Engineer" / "Civil /
+# Structural Associate" -- the brief's own target grade, stated with no
+# years on a directory page. Role 1's staff-directory sourcing has no years
+# figure to read; Role 2's witness statements open with a mandatory
+# qualifications section that states years explicitly, so this stays off
+# there -- a title-only inference is not needed where the evidence is
+# richer. See layers/gates.py check_seniority's accept_titles_for_floor
+# handling. Overridable per-run with run.py --accept-senior-titles/
+# --no-accept-senior-titles (both roles).
+ACCEPT_TITLES_FOR_FLOOR_DEFAULT = ["senior", "lead", "associate", "principal"]
+
 # Disciplines that must never satisfy the Role 1 gate. Drawn from the first
 # real run, where the staff-directory sweep surfaced exactly these: RTPI town
 # planners, Chartered Environmentalists, archaeologists, acousticians, M&E
@@ -154,7 +167,10 @@ ROLE1 = JobSpec(
             # Director at an engineering consultancy is necessarily past 8
             # years, but that is an inference, so it passes only with the note
             # printed on the card.
-            params={"min_years": 8, "allow_grade_inference": True},
+            params={
+                "min_years": 8, "allow_grade_inference": True,
+                "accept_titles_for_floor": list(ACCEPT_TITLES_FOR_FLOOR_DEFAULT),
+            },
         ),
         HardGate(
             gate_id="seniority_ceiling",
@@ -164,6 +180,16 @@ ROLE1 = JobSpec(
             ),
             check="seniority_ceiling",
             params={"max_grade": "principal_or_associate", "max_years": 18},
+        ),
+        HardGate(
+            gate_id="employer_sector",
+            description=(
+                "Employer reads as an engineering consultancy -- structural "
+                "discipline words alone (e.g. 'Senior Structural Engineer at "
+                "Nokia') are not enough"
+            ),
+            check="employer_sector",
+            params={"extra_pass_patterns": [], "off_limits": OFF_LIMITS},
         ),
         HardGate(
             gate_id="not_client",
@@ -262,7 +288,12 @@ ROLE2 = JobSpec(
             # that states years explicitly, so grade inference is not needed
             # here and is deliberately left off -- a stricter gate on the role
             # where the evidence is richer.
-            params={"min_years": 10, "allow_grade_inference": False},
+            params={
+                "min_years": 10, "allow_grade_inference": False,
+                # Left off deliberately -- witness statements state years
+                # explicitly, so a title-only inference is not needed here.
+                "accept_titles_for_floor": [],
+            },
         ),
         HardGate(
             gate_id="seniority_ceiling",
@@ -272,6 +303,19 @@ ROLE2 = JobSpec(
             ),
             check="seniority_ceiling",
             params={"max_grade": "associate_director", "max_years": 25},
+        ),
+        HardGate(
+            gate_id="employer_sector",
+            description=(
+                "Employer reads as an engineering consultancy or a "
+                "client-side transport statutory body (TII etc.) -- "
+                "discipline words alone are not enough"
+            ),
+            check="employer_sector",
+            params={
+                "extra_pass_patterns": [], "off_limits": OFF_LIMITS,
+                "allow_client_side_firms_role2": True,
+            },
         ),
         HardGate(
             gate_id="not_client",
