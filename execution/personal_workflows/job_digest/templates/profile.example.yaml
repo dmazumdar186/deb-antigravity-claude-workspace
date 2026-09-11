@@ -1,0 +1,88 @@
+# job_digest profile — EXAMPLE
+#
+# Copy this file to profile.yaml (in the root of your own private repo) and
+# edit the values below for yourself. Everything here is fictional.
+#
+# Validate any time with:
+#   /job-digest validate   (or: PYTHONPATH=engine python -m job_digest.cli validate profile.yaml)
+#
+# Or skip editing by hand entirely and run the interactive wizard instead:
+#   PYTHONPATH=engine python -m job_digest.cli setup
+
+version: 1
+
+candidate:
+  name: "Jordan Example"
+  email: "jordan.example@example.com"
+
+# 1 to 3 job titles. "synonyms" are other titles that mean the same job —
+# the more you list, the more postings the digest will catch.
+roles:
+  - title: "Sales Manager"
+    synonyms:
+      - "Regional Sales Manager"
+      - "Business Development Manager"
+      - "Sales Team Lead"
+    seniority: "mid"
+
+# 1 to 5 ISO2 country codes from the registry (see registry.py for the full
+# list). Cities are optional — leave the list empty to match any city in
+# your selected countries.
+locations:
+  countries:
+    - "FR"
+    - "DE"
+  cities:
+    - "Paris"
+  remote_ok: true
+
+# Contract types you'll accept: permanent, fixed_term, freelance.
+# Internships are always excluded regardless of this list.
+contracts:
+  - "permanent"
+  - "fixed_term"
+
+# Left blank (null) so it's derived from your selected countries' languages.
+languages: null
+
+exclude:
+  title_substrings:
+    - "intern"
+    - "internship"
+    - "stagiaire"
+    - "alternance"
+    - "trainee"
+    - "graduate program"
+  companies: []
+
+digest:
+  max_jobs: 40
+  hour_local: 9
+  timezone: "Europe/Paris"
+  min_tier: "B"
+  min_hours_between_emails: 20.0
+
+# 3-10 sentences: what you do, years of experience, domains, and what you
+# want next. This is what the ranker reads to judge fit — be specific.
+screening:
+  summary: >
+    I'm a sales manager with 8 years of experience leading B2B teams selling
+    SaaS products into mid-market accounts across France and Germany. I've
+    run teams of up to 6 reps and consistently hit 110%+ of quota. I'm looking
+    for a senior sales manager or regional sales lead role at a growing
+    software company, ideally hybrid or remote with some travel to Paris.
+  skills:
+    - "B2B sales"
+    - "SaaS"
+    - "team leadership"
+    - "CRM (Salesforce, HubSpot)"
+    - "forecasting"
+    - "French"
+    - "English"
+  must_have: []
+  nice_to_have:
+    - "enterprise sales"
+    - "channel partnerships"
+
+sheet:
+  enabled: true

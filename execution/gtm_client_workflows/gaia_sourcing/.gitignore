@@ -5,3 +5,8 @@ run/_probe_*.json
 run/gaia-*/
 __pycache__/
 *.pyc
+
+# Audit trails and secrets-adjacent operator logs (recruit_crm_audit.jsonl,
+# outreach_audit.jsonl, optout.jsonl, spend_ledger.jsonl, ...). Contains real
+# candidate PII and CRM payloads -- never source, never committed.
+logs/

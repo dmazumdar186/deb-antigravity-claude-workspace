@@ -1,0 +1,864 @@
+<title>Gaia Brief Controls</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#F4F6F3; --surface:#FFFFFF; --ink:#1A2321; --muted:#5B6763; --line:#D6DDD8;
+  --accent:#2E6B4F; --accent-tint:#E4EFE9;
+  --warn:#B4791C; --warn-tint:#FBF0DF;
+  --fail:#A9432F; --fail-tint:#F8E6E1;
+  --focus:#2E6B4F;
+  --shadow:0 1px 2px rgba(26,35,33,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#121A17; --surface:#1A2420; --ink:#E8EEEA; --muted:#98A59F; --line:#2C3934;
+    --accent:#6FBF95; --accent-tint:#1D2C25;
+    --warn:#E0A84B; --warn-tint:#2B2517;
+    --fail:#E27A66; --fail-tint:#2E1E1A;
+    --focus:#6FBF95;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121A17; --surface:#1A2420; --ink:#E8EEEA; --muted:#98A59F; --line:#2C3934;
+  --accent:#6FBF95; --accent-tint:#1D2C25;
+  --warn:#E0A84B; --warn-tint:#2B2517;
+  --fail:#E27A66; --fail-tint:#2E1E1A;
+  --focus:#6FBF95;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font:15px/1.5 "IBM Plex Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+h1,h2,h3{font-family:"Bricolage Grotesque",Georgia,serif; text-wrap:balance; margin:0}
+.mono,.num,code,.quote,.chip,.pill{font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace}
+.num{font-variant-numeric:tabular-nums}
+.label{text-transform:uppercase; letter-spacing:.06em; font-size:11px; color:var(--muted); font-weight:600}
+a{color:var(--accent)}
+button{font:inherit}
+:focus-visible{outline:2.5px solid var(--focus); outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+
+.page{max-width:1400px; margin:0 auto; padding:20px 16px 64px}
+header.top{border-bottom:2px solid var(--accent); padding-bottom:14px; margin-bottom:18px}
+header.top h1{font-size:26px; font-weight:700}
+header.top .lede{color:var(--muted); margin-top:6px; font-size:14.5px}
+header.top .meta{margin-top:8px; font-size:12px; color:var(--muted)}
+header.top .meta .priv{color:var(--fail); font-weight:600}
+
+.layout{display:grid; grid-template-columns:296px 1fr; gap:24px; align-items:start}
+@media (max-width:880px){ .layout{grid-template-columns:1fr} }
+
+/* ---- rail ---- */
+.rail{position:sticky; top:16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px; max-height:calc(100vh - 32px); overflow-y:auto}
+@media (max-width:880px){ .rail{position:static; max-height:none} }
+.rail h2{font-size:16px; margin-bottom:4px}
+.rail .rail-sub{color:var(--muted); font-size:12px; margin-bottom:10px}
+fieldset{border:0; padding:14px 0; margin:0; border-top:1px solid var(--line)}
+fieldset:first-of-type{border-top:0; padding-top:4px}
+legend{padding:0; margin-bottom:8px}
+.field{margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+.field label.f-label{display:block; margin-bottom:5px}
+.seg{display:flex; flex-direction:column; gap:5px}
+.seg label{display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:6px; padding:6px 9px; cursor:pointer; font-size:13px}
+.seg input{accent-color:var(--accent)}
+.seg label:has(input:checked){border-color:var(--accent); background:var(--accent-tint); font-weight:600}
+.two-col{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.num-input{width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font-size:13px}
+.num-input:disabled{opacity:.5}
+.radio-row{display:flex; align-items:flex-start; gap:8px; font-size:13px; padding:5px 0}
+.radio-row input{margin-top:3px; accent-color:var(--accent)}
+.check-row{display:flex; align-items:flex-start; gap:8px; font-size:13px; padding:4px 0}
+.check-row input{margin-top:3px; accent-color:var(--accent)}
+.chips-input{border:1px solid var(--line); border-radius:6px; padding:5px; display:flex; flex-wrap:wrap; gap:5px; min-height:34px}
+.chips-input input{border:0; outline:0; flex:1; min-width:70px; font-size:12.5px; background:transparent; color:var(--ink)}
+.chip-tok{display:inline-flex; align-items:center; gap:4px; background:var(--accent-tint); color:var(--accent); border-radius:4px; padding:2px 6px; font-size:11.5px}
+.chip-tok button{border:0; background:none; color:inherit; cursor:pointer; font-size:12px; line-height:1; padding:0}
+.note{color:var(--muted); font-size:11.5px; margin-top:4px; line-height:1.4}
+.rail-btns{display:flex; flex-direction:column; gap:8px; margin-top:4px}
+.btn{border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:7px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer; text-align:center}
+.btn:hover{background:var(--ground)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{color:var(--muted); font-weight:500}
+
+/* ---- content ---- */
+.content{min-width:0}
+.summary{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin-bottom:8px}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px}
+.tile .tnum{font-size:26px; font-weight:600}
+.tile .tnum.pass{color:var(--accent)} .tile .tnum.warn{color:var(--warn)} .tile .tnum.fail{color:var(--fail)}
+.tile .tlabel{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+.sumline{background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:8px; padding:10px 14px; font-size:13.5px; margin:10px 0 22px; line-height:1.6}
+.sumline b{font-weight:600}
+.denom{color:var(--muted); font-size:12px; margin-top:4px}
+
+.role-h{display:flex; align-items:baseline; gap:10px; margin:26px 0 8px}
+.role-h h2{font-size:19px}
+.role-h .cnt{border:1px solid var(--line); border-radius:5px; padding:1px 7px; font-size:12px; color:var(--muted)}
+
+.tbl-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--surface)}
+table.cand{width:100%; border-collapse:collapse; min-width:860px; font-size:13px}
+table.cand th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; padding:9px 10px; border-bottom:2px solid var(--accent); background:var(--surface); position:sticky; top:0}
+table.cand td{padding:10px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+tr.row.excluded{opacity:.52}
+tr.row.excluded:hover{opacity:.8}
+tr.row td .nm{font-weight:600; font-size:14px}
+tr.row td .ro{color:var(--muted); font-size:12px; margin-top:2px}
+.flag{display:inline-flex; align-items:center; gap:4px; font-size:11.5px; border-radius:4px; padding:1px 6px; font-family:"IBM Plex Mono",monospace}
+.flag.ie{background:var(--accent-tint); color:var(--accent)}
+.flag.ni{background:var(--warn-tint); color:var(--warn)}
+.flag.uk{background:var(--fail-tint); color:var(--fail)}
+.flag.unk{background:var(--line); color:var(--muted)}
+.chip{display:inline-block; font-size:11px; border-radius:4px; padding:1.5px 6px; margin:1px 3px 1px 0; border:1px solid var(--line); color:var(--muted)}
+.chip.grade{background:var(--ground)}
+.chip.email-verified{background:var(--accent-tint); color:var(--accent); border-color:transparent}
+.chip.email-catch_all{background:var(--warn-tint); color:var(--warn); border-color:transparent}
+.chip.email-pattern_guess{background:var(--fail-tint); color:var(--fail); border-color:transparent}
+.chip.email-none{background:var(--line); color:var(--muted)}
+.pill{display:inline-block; font-size:11px; font-weight:600; border-radius:20px; padding:3px 9px; letter-spacing:.03em}
+.pill.stays{background:var(--accent-tint); color:var(--accent)}
+.pill.excluded{background:var(--fail-tint); color:var(--fail)}
+.pill.needs{background:var(--warn-tint); color:var(--warn)}
+.reasons{margin-top:5px}
+.reasons .chip{background:var(--fail-tint); color:var(--fail); border-color:transparent}
+.reasons .chip.soft{background:var(--warn-tint); color:var(--warn)}
+details.det{margin-top:0}
+details.det summary{cursor:pointer; color:var(--accent); font-size:12px; list-style:none; user-select:none}
+details.det summary::-webkit-details-marker{display:none}
+details.det summary::before{content:"▸ "}
+details.det[open] summary::before{content:"▾ "}
+.det-body{margin-top:8px; padding:10px; background:var(--ground); border-radius:7px; font-size:12.5px}
+.det-body blockquote{margin:0 0 6px; padding-left:9px; border-left:3px solid var(--line); font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink)}
+.det-body .src{color:var(--muted); font-size:11px; margin:0 0 10px}
+.det-body .loc-ev{margin-top:8px; padding-top:8px; border-top:1px dashed var(--line)}
+.det-body .uncertain{color:var(--warn); font-weight:600}
+
+.missed{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:30px}
+@media (max-width:700px){ .missed{grid-template-columns:1fr} }
+.missed .panel{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px}
+.missed h3{font-size:14.5px; margin-bottom:8px}
+.missed p.lede{color:var(--muted); font-size:12.5px; margin:0 0 10px}
+ul.mlist{list-style:none; margin:0; padding:0; columns:2; column-gap:14px; font-size:12.5px}
+@media (max-width:520px){ ul.mlist{columns:1} }
+ul.mlist li{padding:3px 0; border-bottom:1px dotted var(--line); break-inside:avoid}
+ul.mlist li .g{color:var(--muted)}
+.gatechip{font-size:10.5px; border-radius:3px; padding:0 4px; margin-left:4px; background:var(--fail-tint); color:var(--fail)}
+.footnote{margin-top:8px; font-size:11.5px; color:var(--muted)}
+
+.v2strip{margin-top:30px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px}
+.v2strip h3{font-size:14.5px; margin-bottom:10px}
+.v2flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px}
+.v2flow .step{background:var(--accent-tint); color:var(--accent); border-radius:7px; padding:7px 11px; flex:1 1 190px}
+.v2flow .step b{display:block; font-size:12px; margin-bottom:2px}
+.v2flow .step span{color:var(--ink); opacity:.85; font-size:12px}
+.v2flow .arrow{color:var(--muted); font-size:16px}
+
+footer.bottom{margin-top:40px; padding-top:16px; border-top:1px solid var(--line); font-size:11.5px; color:var(--muted); line-height:1.6}
+.toast{position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(8px); background:var(--ink); color:var(--ground); padding:8px 16px; border-radius:7px; font-size:13px; opacity:0; pointer-events:none; transition:opacity 160ms, transform 160ms; z-index:50}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+</style>
+
+<div class="page">
+
+<header class="top">
+  <h1>Gaia Brief Controls</h1>
+  <p class="lede">Shortlist of 20 August, re-cut live against your brief. 13 candidates, 2 roles.</p>
+  <p class="meta">10 Sep 2026 · Prodcraft · <span class="priv">private — not for external distribution</span></p>
+</header>
+
+<div class="layout">
+
+  <!-- ===================== CONTROL RAIL ===================== -->
+  <aside class="rail" aria-label="Your brief controls">
+    <h2>Your brief</h2>
+    <p class="rail-sub">Set thresholds live — the table on the right re-cuts instantly. Applies to both roles.</p>
+
+    <fieldset>
+      <legend class="label">Seniority ceiling</legend>
+      <div class="field seg" id="ceiling-group" role="radiogroup" aria-label="Seniority ceiling">
+        <label><input type="radio" name="ceiling" id="ceiling-senior_engineer" value="senior_engineer"> Senior Engineer</label>
+        <label><input type="radio" name="ceiling" id="ceiling-principal_or_associate" value="principal_or_associate"> Principal or Associate</label>
+        <label><input type="radio" name="ceiling" id="ceiling-associate_director" value="associate_director"> Associate Director</label>
+        <label><input type="radio" name="ceiling" id="ceiling-director_or_above" value="director_or_above" checked> Director (no ceiling)</label>
+      </div>
+      <p class="note">Default = what we shipped on 20 Aug.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend class="label">Years of experience</legend>
+      <div class="field">
+        <label class="f-label" for="minYears1">Role 1 — min / max years</label>
+        <div class="two-col">
+          <input class="num-input num" type="number" id="minYears1" value="8" min="0" aria-label="Role 1 minimum years">
+          <input class="num-input num" type="number" id="maxYears1" placeholder="none" min="0" aria-label="Role 1 maximum years">
+        </div>
+      </div>
+      <div class="field">
+        <label class="f-label" for="minYears2">Role 2 — min / max years</label>
+        <div class="two-col">
+          <input class="num-input num" type="number" id="minYears2" value="10" min="0" aria-label="Role 2 minimum years">
+          <input class="num-input num" type="number" id="maxYears2" placeholder="none" min="0" aria-label="Role 2 maximum years">
+        </div>
+      </div>
+      <p class="note">Max blank = no ceiling on years. Unknown years never excludes.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend class="label">Ireland rule</legend>
+      <div class="field" id="ie-rule-group" role="radiogroup" aria-label="Ireland residence rule">
+        <label class="radio-row"><input type="radio" name="ie-rule" id="ie-rule-any" value="any" checked> Any Ireland evidence <span style="color:var(--muted)">(what we shipped)</span></label>
+        <label class="radio-row"><input type="radio" name="ie-rule" id="ie-rule-direct" value="direct"> Resident in Republic of Ireland, direct evidence</label>
+        <label class="radio-row"><input type="radio" name="ie-rule" id="ie-rule-county" value="county"> County list</label>
+      </div>
+      <div class="field" id="county-chip-field" style="display:none">
+        <label class="f-label" for="countyChipInput">Counties</label>
+        <div class="chips-input" id="countyChips">
+          <input type="text" id="countyChipInput" placeholder="type a county, Enter">
+        </div>
+      </div>
+      <div class="field">
+        <label class="check-row"><input type="checkbox" id="allowRelocation"> Allow relocation signal</label>
+        <label class="check-row"><input type="checkbox" id="allowNI"> Allow Northern Ireland</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="label">Role 2 — Cork commute</legend>
+      <label class="check-row"><input type="checkbox" id="corkCommute"> Cork-commutable only</label>
+      <p class="note">Cork, Cobh, Midleton, Mallow, Carrigaline, Ballincollig, Fermoy, Bandon, Youghal.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend class="label">Contact readiness</legend>
+      <label class="check-row"><input type="checkbox" id="contactVerified"> Verified or catch-all email only</label>
+      <label class="check-row"><input type="checkbox" id="contactLinkedin"> LinkedIn profile resolved</label>
+    </fieldset>
+
+    <fieldset>
+      <legend class="label">Movability</legend>
+      <label class="check-row"><input type="checkbox" id="excludeLowMovability"> Exclude low movability</label>
+    </fieldset>
+
+    <fieldset>
+      <legend class="label">Chartership</legend>
+      <label class="check-row"><input type="checkbox" id="chartershipRequired" checked disabled> Required (fixed)</label>
+      <p class="note">Every delivered candidate already passed this gate — the dossier only ships chartered engineers.</p>
+    </fieldset>
+
+    <div class="rail-btns">
+      <button class="btn" id="btnReset" type="button">Reset to what we shipped</button>
+      <button class="btn primary" id="btnKeith" type="button">Apply Keith's brief</button>
+      <button class="btn ghost" id="btnCopy" type="button">Copy brief as text</button>
+    </div>
+  </aside>
+
+  <!-- ===================== CONTENT ===================== -->
+  <main class="content">
+
+    <section class="summary" id="summaryTiles" aria-label="Live summary"></section>
+    <div id="summaryLines"></div>
+
+    <div id="roleTables"></div>
+
+    <section class="missed" id="missedSection" aria-label="Missed by one"></section>
+
+    <section class="v2strip" aria-label="What changes in v2">
+      <h3>What changes in v2</h3>
+      <div class="v2flow">
+        <div class="step"><b>1. Brief contract</b><span>Seniority band, location rule, chartership, employers, channel — captured with Keith and confirmed in writing before any search.</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>2. New sources</b><span>Structured people data (PDL/Crustdata) reaches the 8–15-year grade; Engineers Ireland / IStructE / ICE registers fix chartership near-misses.</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>3. Strict gates</b><span>Seniority ceiling, not just a floor; direct residence evidence with county lists; relocation flagged, not assumed.</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>4. Verified contact, named sender</b><span>Verified or catch-all email only; LinkedIn resolved for every card; a named Gaia consultant sends, not an inferred address.</span></div>
+      </div>
+    </section>
+
+    <footer class="bottom">
+      <p>Gates are deterministic and applied to the same 13 records we delivered on 20 Aug; nothing here re-scores candidates. Evidence quotes are verified against cached source pages (0.9% drop rate on hallucination checks). Art. 14 notice: candidates were sourced from publicly available sources and processed under legitimate interest (GDPR Art. 6(1)(f)); full notice at gaia-privacy.pages.dev/gaia-candidate-notice.</p>
+      <p>Prodcraft · built for Gaia Talent · private</p>
+    </footer>
+
+  </main>
+</div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="candidates-data">
+[{"person_id":"eddie_lyons","full_name":"Eddie Lyons","current_title":"Civil / Structural Director","current_employer":"O'Connor Sutton Cronin","location":"Ireland","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"B","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"technical_skill","assertion":"\u201cHe has been at the forefront of implementing sustainability initiatives in the office with respect to Embodied Carbon assessment and how we can contribute to Net Zero goals\u201d","evidence_quote":"\u201cHe has been at the forefront of implementing sustainability initiatives in the office with respect to Embodied Carbon assessment and how we can contribute to Net Zero goals\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cEddie has presented course material to ACEI training programmes on basement design.\u201d","evidence_quote":"\u201cEddie has presented course material to ACEI training programmes on basement design.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cBE, CEng MIStructE, MIEI, RConsEI\u201d","evidence_quote":"\u201cBE, CEng MIStructE, MIEI, RConsEI\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"Civil/Structural Director at OCSC","evidence_quote":null,"source_url":null,"text_source":"text_layer","confidence":"inferred"},{"dimension":"chartership","assertion":"Eddie Lyons is listed as an ACEI Registered Professional Consulting Engineer (RConsEI)","evidence_quote":null,"source_url":null,"text_source":"text_layer","confidence":"inferred"}],"strengths":["Over 25 years of structural and civil engineering experience in Ireland, well above the 8-year gate.","Chartered status evidenced via CEng MIStructE, MIEI, RConsEI, satisfying the chartership requirement.","Broad project portfolio spanning commercial offices, universities, healthcare and other building types indicative of senior structural design exposure."],"unknowns":[],"adversarial_findings":[],"email_status":"verified","email":"eddie.lyons@ocsc.ie","linkedin_url":"https://www.linkedin.com/in/eddie-lyons-a2487078","movability_assessment":"low","movability_rationale":"Eddie is a senior Director with deep tenure and established credentials, actively shaping firm-wide initiatives, which points to low movability.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Eddie, your background across basement design and embodied carbon assessment at OCSC stood out. Structural leadership role I'm working on may interest you. Open to a short chat?","email_subject":"Senior Structural Director role - Limerick/Galway/Dublin","email_body":"Eddie,\n\nI'm working on a Senior Structural Engineer appointment for a major infrastructure consultancy, with base options in Limerick, Galway or Dublin.\n\nYour time at O'Connor Sutton Cronin caught my attention, particularly the embodied carbon assessment and Net Zero initiative work alongside basement design. That combination of technical depth and sustainability focus is exactly what this consultancy is trying to build into its structural team.\n\nGiven your CEng MIStructE background and the range you've covered - commercial offices, universities, convention centres, road schemes - across more than 25 years in Irish structural and civil engineering, I think this role would be worth a conversation, even if only to compare notes on where the market is headed.\n\nWould you have twenty minutes this week or next for a call?\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":25,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"},{"person_id":"colin_wilson","full_name":"Colin Wilson","current_title":"Civil / Structural Associate Director","current_employer":"O'Connor Sutton Cronin","location":"Unknown","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"B","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"unclassified","assertion":"\u201cColin is an expert in the administration of the Public Works Contract, Commercial Management and Dispute Resolution.\u201d","evidence_quote":"\u201cColin is an expert in the administration of the Public Works Contract, Commercial Management and Dispute Resolution.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cBE, CEng M.I.E.I.\u201d","evidence_quote":"\u201cBE, CEng M.I.E.I.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cColin Wilson is an Associate Director with O\u2019Connor Sutton Cronin & Associates with qualifications in Civil Engineering and Road Safety Auditing and Engineering.\u201d","evidence_quote":"\u201cColin Wilson is an Associate Director with O\u2019Connor Sutton Cronin & Associates with qualifications in Civil Engineering and Road Safety Auditing and Engineering.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"Colin Wilson is listed as an ACEI Registered Professional Consulting Engineer (RConsEI)","evidence_quote":null,"source_url":null,"text_source":"text_layer","confidence":"inferred"}],"strengths":["Chartered status (CEng M.I.E.I.) is evidenced directly in a public source, satisfying the chartership requirement.","Over 15 years' professional experience comfortably clears the 8-year gate and sits within or above the 12-18 year target band.","Associate Director title indicates senior standing within a recognised Irish consulting engineering firm."],"unknowns":[],"adversarial_findings":[],"email_status":"verified","email":"colin.wilson@ocsc.ie","linkedin_url":"https://www.linkedin.com/in/colin-wilson-b0b7a768","movability_assessment":"unknown","movability_rationale":"There is no tenure or trajectory information to indicate whether Colin is settled or open to moving.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Colin, your PWC and commercial management background alongside your Public Realm and road upgrade delivery at OSC caught my attention. Would welcome connecting.","email_subject":"Senior Structural Engineer role - Ireland (Limerick/Galway/Dublin)","email_body":"Hi Colin,\n\nI'm working with a major infrastructure consultancy on a Senior Structural Engineer hire, with flexibility across Limerick, Galway or Dublin.\n\nYour background stood out. Over 15 years across contracting and consulting, your CEng M.I.E.I., and the mix of Public Realm, Active Travel and road upgrade/realignment schemes you've delivered at O'Connor Sutton Cronin line up closely with what this client needs. Your expertise in Public Works Contract administration and commercial management and dispute resolution is particularly relevant, as the role carries genuine client-facing and contract management responsibility, not just design output.\n\nHappy to give you a fuller picture of the role and the team if you're open to a short call this week or next.\n\nBest,\nThe Gaia Talent team\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"associate_director","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":15,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"unknown","location_evidence":""},{"person_id":"michael_o_reilly","full_name":"Michael O'Reilly","current_title":"Structural/Civil Director","current_employer":"O'Connor Sutton Cronin","location":"Ireland","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"technical_skill","assertion":"\u201cMichael O\u2019Reilly is a Structural/Civil Director with O\u2019Connor Sutton Cronin, with a focus on Structural and Civil Engineering design excellence.\u201d","evidence_quote":"\u201cMichael O\u2019Reilly is a Structural/Civil Director with O\u2019Connor Sutton Cronin, with a focus on Structural and Civil Engineering design excellence.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cMichael has a BSc (Eng) Degree in Structural Engineering, Bolton Street.\u201d","evidence_quote":"\u201cMichael has a BSc (Eng) Degree in Structural Engineering, Bolton Street.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cHe is a Chartered Engineer( CEng MIEI) and Fellow of the Association of Consulting Engineers of Ireland.\u201d","evidence_quote":"\u201cHe is a Chartered Engineer( CEng MIEI) and Fellow of the Association of Consulting Engineers of Ireland.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"}],"strengths":["Holds CEng MIEI chartership with Engineers Ireland as explicitly required by the role.","20+ years of consulting experience comfortably exceeds the 8-year gate and aligns with the 12-18 year JD range.","Degree is specifically in Structural Engineering, directly matching the discipline requirement."],"unknowns":[],"adversarial_findings":[],"email_status":"verified","email":"michael@ocsc.ie","linkedin_url":"https://www.linkedin.com/in/michael-o-reilly-44a03926","movability_assessment":"low","movability_rationale":"Michael holds a senior director title with established chartership and fellowship, suggesting a settled, high-status role rather than one primed for a move.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Michael, your background across Ireland, UK, Middle East and North Africa on large-scale mixed-use developments is a rare combination. I'm working on a Senior Structural Engineer role across Limerick, Galway and Dublin and would value your view, even if it's not for you directly. Open to a short cal","email_subject":"Senior Structural Engineer role - Limerick/Galway/Dublin","email_body":"Michael,\n\nI'm recruiting for a Senior Structural Engineer role with a major infrastructure consultancy, based across Limerick, Galway or Dublin. Given your 20+ years in consulting and the breadth of your work across Irish, UK and MENA markets with O'Connor Sutton Cronin, I thought you'd be well placed to give an informed view on it, whether or not it's of personal interest.\n\nThe role sits within a team working on large-scale developer-led schemes, which lines up closely with the focus you've built at OSC on mixed-use developments.\n\nWould you be open to a short call this week or next to talk through the detail? Equally, if you know someone in your network for whom this would land better, I'd welcome the introduction.\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":20,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"},{"person_id":"patrick_raggett","full_name":"Patrick Raggett","current_title":"Civil / Structural Associate Director","current_employer":"O'Connor Sutton Cronin","location":"Unknown","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"chartership","assertion":"\u201cPatrick is a Chartered Engineer with over 15 years of experience in all areas of civil engineering, working with O\u2019Connor Sutton Cronin for the full duration of this time.\u201d","evidence_quote":"\u201cPatrick is a Chartered Engineer with over 15 years of experience in all areas of civil engineering, working with O\u2019Connor Sutton Cronin for the full duration of this time.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cas well as major infrastructural schemes such as the Royal Canal Greenway Phase 3\u201d","evidence_quote":"\u201cas well as major infrastructural schemes such as the Royal Canal Greenway Phase 3\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cstrengthened by his experience and formal qualifications including a Postgraduate Diploma in Project Management\u201d","evidence_quote":"\u201cstrengthened by his experience and formal qualifications including a Postgraduate Diploma in Project Management\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"}],"strengths":["Chartered Engineer, CEng MIEI, MIHT","Over 15 years of experience in all areas of civil engineering","Worked on the Royal Canal Greenway Phase 3"],"unknowns":[],"adversarial_findings":[],"email_status":"verified","email":"patrick.raggett@ocsc.ie","linkedin_url":"https://www.linkedin.com/in/patrickraggett","movability_assessment":"low","movability_rationale":"Patrick has spent his entire 15+ year career at the same firm, which is a strong signal of low mobility rather than an approaching move.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Patrick, your work on the Royal Canal Greenway Phase 3 caught my attention, particularly given your transport planning background. I'm working on a Senior Structural role across Limerick/Galway/Dublin and think it could interest you. Open to a quick chat?","email_subject":"Senior Structural Engineer role - Royal Canal Greenway background relevant","email_body":"Hi Patrick,\n\nYour role on the Royal Canal Greenway Phase 3 stood out to me, particularly combined with your transport planning and mobility management background. That mix of infrastructure delivery and transport expertise is not common.\n\nI'm working with a major infrastructure consultancy on a Senior Structural Engineer position, with locations in Limerick, Galway or Dublin. Given your CEng MIEI MIHT chartership and over 15 years across civil engineering, I think your profile would be worth a conversation, particularly given how the role touches on transport-related structures.\n\nYour postgraduate work in Project Management and in Health & Safety in Construction would also line up well with the seniority of this position, which carries delivery and site oversight responsibility.\n\nWould you have twenty minutes this week or next for a call? No pressure either way, I'd just like to give you the full picture and hear whether it's of interest.\n\nBest,\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"associate_director","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":15,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"unknown","location_evidence":""},{"person_id":"paul_healy","full_name":"Paul Healy","current_title":"Civil / Structural Director","current_employer":"O'Connor Sutton Cronin","location":"Unknown","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"years_experience","assertion":"\u201cPaul Healy has over 35 years experience in Civil/Structural Engineering within the Built Environment\u201d","evidence_quote":"\u201cPaul Healy has over 35 years experience in Civil/Structural Engineering within the Built Environment\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cBSc(Eng), Dip.Struct.Eng, CEng., F.I.E.I., F.I.Struct.E., F.Cons.EI\u201d","evidence_quote":"\u201cBSc(Eng), Dip.Struct.Eng, CEng., F.I.E.I., F.I.Struct.E., F.Cons.EI\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"unclassified","assertion":"\u201cThese include hospitals, university buildings, schools, swimming pools, industrial/distribution centers, residential, commercial, airport buildings and bridges.\u201d","evidence_quote":"\u201cThese include hospitals, university buildings, schools, swimming pools, industrial/distribution centers, residential, commercial, airport buildings and bridges.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"}],"strengths":["Chartered status is well evidenced with multiple credentials: CEng, FIEI, FIStructE, FConsEI, exceeding the required CEng MIEI/FIEI.","35 years of experience far exceeds the 8-year gate and the 12-18 year JD target.","Extensive project delivery record across major building types (hospitals, university buildings, schools, airport buildings) demonstrates structural engineering breadth."],"unknowns":[],"adversarial_findings":[],"email_status":"verified","email":"paul.healy@ocsc.ie","linkedin_url":"https://www.linkedin.com/in/paul-healy-20443936","movability_assessment":"low","movability_rationale":"Paul Healy holds a senior Director title with over 35 years experience and multiple established fellowships, suggesting a settled, late-career position rather than someone likely to move.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Paul, your span across hospitals, airport buildings and bridges over 35 years, plus FIStructE and FConsEI, is a rare combination. Would welcome a quick connect.","email_subject":"Senior Structural Engineer role - Ireland (Limerick/Galway/Dublin)","email_body":"Paul,\n\nYour background at O'Connor Sutton Cronin caught my attention - hospitals, university buildings, schools, pools, airport buildings, bridges. That range, delivered across Ireland and the UK over more than 35 years, plus the CEng, FIEI, FIStructE and FConsEI chartership, isn't common.\n\nI'm working with a major infrastructure consultancy on a Senior Structural Engineer position, with flexibility across Limerick, Galway or Dublin. The role sits on complex, multi-sector project work at director-adjacent level, and the client is specifically looking for someone whose experience spans building and bridge structures the way yours does.\n\nWould you be open to a short call to discuss the brief in more detail? No obligation either way - happy just to give you the full picture and let you decide if it's worth pursuing.\n\nBest,\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":35,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"unknown","location_evidence":""},{"person_id":"anthony_horan","full_name":"Anthony Horan","current_title":"Civil / Structural Director","current_employer":"O'Connor Sutton Cronin","location":"Ireland","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"chartership","assertion":"\u201cB. Eng (UCD), Chartered Engineer (MIEI), FConsEI\u201d","evidence_quote":"\u201cB. Eng (UCD), Chartered Engineer (MIEI), FConsEI\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cAnthony leads Civil Engineering Infrastructural project teams and contributes to multidisciplinary teams for large building projects.\u201d","evidence_quote":"\u201cAnthony leads Civil Engineering Infrastructural project teams and contributes to multidisciplinary teams for large building projects.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"},{"dimension":"location","assertion":"\u201cAnthony has significant knowledge and experience in attaining planning through the various planning processes in Ireland.\u201d","evidence_quote":"\u201cAnthony has significant knowledge and experience in attaining planning through the various planning processes in Ireland.\u201d","source_url":"https://ocsc.ie/people/","text_source":"text_layer","confidence":"direct"}],"strengths":["Publicly evidenced as Chartered Engineer (MIEI) and FConsEI, meeting the chartership requirement.","Held a national leadership role as ACEI President in 2017, indicating strong standing in the Irish consulting engineering profession.","Explicit experience navigating Irish statutory planning processes, relevant to Republic of Ireland delivery."],"unknowns":[],"adversarial_findings":[],"email_status":"verified","email":"anthony.horan@ocsc.ie","linkedin_url":"https://www.linkedin.com/in/anthony-horan-30460833","movability_assessment":"low","movability_rationale":"Anthony is a senior director-level engineer with long-established industry seniority (ACEI President in 2017) and completed chartership, with no evidence of recent change or friction.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Tony, your term as ACEI President and your work directing civil engineering teams at OCSC caught my attention. I'm working on a Senior Structural Engineer role across Limerick, Galway and Dublin, would be glad to connect.","email_subject":"Senior Structural Engineer role - Limerick/Galway/Dublin","email_body":"Tony,\n\nI'm working with a major infrastructure consultancy on a Senior Structural Engineer position, with locations available in Limerick, Galway or Dublin.\n\nYour background stood out to me: FConsEI status alongside MIEI chartership, your term as ACEI President in 2017, and your current work as Project Director leading civil engineering teams at O'Connor Sutton Cronin. That combination of chartered standing and hands-on delivery of infrastructural projects is exactly the profile this client is looking to bring in at a senior level.\n\nThe role involves leading structural design on infrastructure projects, with real weight given to navigating Irish statutory planning processes through to delivery. Given your own experience taking projects through planning, I'd imagine a good part of this would be familiar territory rather than new ground.\n\nWould you be open to a short call to discuss the detail? Happy to work around your schedule.\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":null,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"},{"person_id":"rouslan_taskov","full_name":"Rouslan Taskov","current_title":"Director","current_employer":"Barrett Mahony Consulting Engineers","location":"Ireland","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"chartership","assertion":"\u201cMSc(Eng), BSc, DipStructEng, CEng, MIEI, KIIP Chartered Engineer\u201d","evidence_quote":"\u201cMSc(Eng), BSc, DipStructEng, CEng, MIEI, KIIP Chartered Engineer\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cRouslan joined Barrett Mahony in 2004 as a Design engineer in the Dublin office\u201d","evidence_quote":"\u201cRouslan joined Barrett Mahony in 2004 as a Design engineer in the Dublin office\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"employer","assertion":"\u201cIn early 2013 he joined Barrett Mahony UK in our London office and in 2014 was appointed Associate Director\u201d","evidence_quote":"\u201cIn early 2013 he joined Barrett Mahony UK in our London office and in 2014 was appointed Associate Director\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"employer","assertion":"Director at Barrett Mahony Consulting Engineers","evidence_quote":null,"source_url":null,"text_source":"text_layer","confidence":"inferred"}],"strengths":["Holds CEng, MIEI chartership with Engineers Ireland, evidenced in a public source, meeting the required credential.","Over 20 years' experience since joining Barrett Mahony in 2004, comfortably exceeding the 8-year gate.","Direct project experience in structural/civil design across healthcare, residential and commercial sectors in Ireland (Whitfield Private Clinic, Frascati Centre)."],"unknowns":[],"adversarial_findings":[],"email_status":"pattern_guess","email":"rouslan.taskov@barrettmahony.com","linkedin_url":null,"movability_assessment":"low","movability_rationale":"Rouslan has spent his entire two-decade career at Barrett Mahony, rising internally to Director level across multiple offices, which signals strong organizational loyalty rather than a readiness to move.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Rouslan, your run from Dublin to London to Sofia at Barrett Mahony, plus the Indaver Waste-to-Energy and Frascati Centre projects, is a striking track record. Would welcome connecting.","email_subject":"Senior Structural Engineer role - Ireland, given your Barrett Mahony background","email_body":"Rouslan,\n\nYour career at Barrett Mahony stood out to me - starting as a Design Engineer in Dublin in 2004, moving to the London office in 2013, appointed Associate Director there in 2014, and now running the Sofia team as Regional Director. That's a broad spread of markets and responsibility to have built up.\n\nThe project list adds to that picture: Whitfield Private Clinic in Waterford, the Frascati Centre in Blackrock, Indaver's Waste-to-Energy plant in Meath, and the Marlin Apart Hotel in London. Different building types, different regulatory environments, similar level of technical demand.\n\nI'm working with a major infrastructure consultancy in Ireland on a Senior Structural Engineer position, open to candidates based in Limerick, Galway or Dublin. Given your chartership with Engineers Ireland and the range of sectors you've worked across, I think the conversation would be worthwhile even if you're not actively looking.\n\nWould you have twenty minutes this week or next to talk through what the role involves?\n\nBest,\nThe Gaia Talent team\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":20,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"},{"person_id":"pat_brady","full_name":"Pat Brady","current_title":"Director","current_employer":"Horganlynch","location":"Ireland","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"employer","assertion":"\u201cPat Brady \u2013 Director\u201d","evidence_quote":"\u201cPat Brady \u2013 Director\u201d","source_url":"https://www.horganlynch.ie/our-people","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cPat is a member of the Institution of Engineers of Ireland and has been a Chartered Engineer since 2000.\u201d","evidence_quote":"\u201cPat is a member of the Institution of Engineers of Ireland and has been a Chartered Engineer since 2000.\u201d","source_url":"https://www.horganlynch.ie/our-people","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cHe subsequently went on to qualify with an honours Degree in Civil Engineering 1993 and a Masters Degree in Civil Engineering Infrastructure Design & Operation in 1994 from Queens University Belfast.\u201d","evidence_quote":"\u201cHe subsequently went on to qualify with an honours Degree in Civil Engineering 1993 and a Masters Degree in Civil Engineering Infrastructure Design & Operation in 1994 from Queens University Belfast.\u201d","source_url":"https://www.horganlynch.ie/our-people","text_source":"text_layer","confidence":"direct"}],"strengths":["Chartered Engineer with Engineers Ireland (CEng MIEI) since 2000, satisfying the chartership requirement.","Over 30 years of civil/structural design experience, well above the 8-year gate and within the 12-18 year tiering range.","Direct, evidenced structural focus including lead roles on named landmark projects (LSE Student Centre, Glucksman Gallery, Lyric Theatre Belfast)."],"unknowns":[],"adversarial_findings":[],"email_status":"pattern_guess","email":"pat.brady@horganlynch.ie","linkedin_url":"https://ie.linkedin.com/in/pat-brady-34208931","movability_assessment":"low","movability_rationale":"Pat has been with the same firm for over 30 years, rising to Partner in 2007, which strongly suggests deep entrenchment and low movability.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Pat, your work on the LSE Student Centre and the Glucksman Gallery caught my attention, particularly given your background in structural conservation. Would welcome the chance to connect.","email_subject":"Senior Structural Engineer role - Limerick/Galway/Dublin","email_body":"Pat,\n\nYour career at Horganlynch, from joining the Cork office in 1990 through to Partner in 2007, speaks for itself, and your lead role on projects like the Glucksman Gallery and the Lyric Theatre Belfast shows a depth in structural conservation work that isn't common in this market.\n\nI'm working with a major infrastructure consultancy on a Senior Structural Engineer position, with base options in Limerick, Galway or Dublin. The role would suit someone with your range across cultural, educational and pharmaceutical sector work, and given your chartership since 2000, you'd bring exactly the kind of judgement they're looking to add at senior level.\n\nI don't know where you sit in terms of appetite for a move, but if you're open to a conversation about what the role involves, I'd be glad to share more detail.\n\nBest,\nThe Gaia Talent team\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":30,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"},{"person_id":"mark_petho","full_name":"Mark Petho","current_title":"Associate Director","current_employer":"Barrett Mahony Consulting Engineers","location":"Unknown","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"technical_skill","assertion":"\u201cHis areas of expertise include bridge design, earthquake engineering, large-scale concrete and steel frame buildings, basement excavations, modular construction, and high-rise residential developments.\u201d","evidence_quote":"\u201cHis areas of expertise include bridge design, earthquake engineering, large-scale concrete and steel frame buildings, basement excavations, modular construction, and high-rise residential developments.\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cachieved chartered status with the Institute of Structural Engineers in 2020\u201d","evidence_quote":"\u201cachieved chartered status with the Institute of Structural Engineers in 2020\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cMark is a Chartered Structural Engineer who joined Barrett Mahony Consulting Engineers (BMCE) in 2015.\u201d","evidence_quote":"\u201cMark is a Chartered Structural Engineer who joined Barrett Mahony Consulting Engineers (BMCE) in 2015.\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"employer","assertion":"Associate Director at Barrett Mahony Consulting Engineers","evidence_quote":null,"source_url":null,"text_source":"text_layer","confidence":"inferred"}],"strengths":["Chartered Engineer status achieved in 2020, giving at least 5 years as a chartered professional.","Long tenure at BMCE since 2015 (circa 9-10 years), suggesting stability rather than a recent job-hop.","Relevant master's degree in Structural and Geotechnical Engineering."],"unknowns":[],"adversarial_findings":[],"email_status":"pattern_guess","email":"mark.petho@barrettmahony.com","linkedin_url":"https://uk.linkedin.com/in/mark-petho-47568449","movability_assessment":"medium","movability_rationale":"Long tenure and senior title suggest some stability, but the multi-year gap since chartership and lack of recent promotion evidence leave room for movement.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Mark, your background spanning bridge design, earthquake engineering and high-rise residential work since chartering with IStructE in 2020 stood out. Would welcome a short conversation about a Senior Structural Engineer role in Ireland.","email_subject":"Senior Structural Engineer role - bridge and high-rise experience","email_body":"Hi Mark,\n\nI'm working with a major infrastructure consultancy in Ireland on a Senior Structural Engineer appointment, with locations available in Limerick, Galway or Dublin.\n\nYour span of work at Barrett Mahony since 2015 caught my attention, particularly the mix of bridge design, earthquake engineering and large-scale concrete and steel frame buildings. Basement excavation and modular construction experience is directly relevant to the projects this consultancy has coming through, and your chartered status with IStructE since 2020 fits the seniority they're looking to bring in.\n\nThe role would suit someone who wants to move between building structures and civils-adjacent work rather than sit in one lane. Given your Master's in Structural and Geotechnical Engineering from Budapest University of Technology and Economics, and the London project exposure on your record, I think the technical range would translate well.\n\nHappy to talk through the detail whenever suits, no pressure either way.\n\nBest,\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"associate_director","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":5,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"unknown","location_evidence":""},{"person_id":"philip_penco","full_name":"Philip Penco","current_title":"Associate Director","current_employer":"Barrett Mahony Consulting Engineers","location":"Dublin","role_id":"role1_senior_structural_engineer","role_title":"Senior Structural Engineer","tier":"C","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"chartership","assertion":"\u201cachieved chartered status with the Institute of Structural Engineers in 2022\u201d","evidence_quote":"\u201cachieved chartered status with the Institute of Structural Engineers in 2022\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"location","assertion":"\u201cPhilip joined Barrett Mahony London in 2015 after spending a year in the Dublin office.\u201d","evidence_quote":"\u201cPhilip joined Barrett Mahony London in 2015 after spending a year in the Dublin office.\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cPhilip holds a master's degree in Structural Engineering from University College Dublin\u201d","evidence_quote":"\u201cPhilip holds a master's degree in Structural Engineering from University College Dublin\u201d","source_url":"https://www.barrettmahony.com/practice/team/all","text_source":"text_layer","confidence":"direct"},{"dimension":"employer","assertion":"Associate Director at Barrett Mahony Consulting Engineers","evidence_quote":null,"source_url":null,"text_source":"text_layer","confidence":"inferred"}],"strengths":["Holds a master's degree in Structural Engineering from University College Dublin.","Chartered Engineer status achieved in 2022 with a recognised structural engineering institution.","Associate Director title indicates a senior level of responsibility within his firm."],"unknowns":[],"adversarial_findings":[],"email_status":"pattern_guess","email":"philip.penco@barrettmahony.com","linkedin_url":"https://uk.linkedin.com/in/philip-penco-625b8697","movability_assessment":"low","movability_rationale":"Philip has been with the same employer for around a decade and has progressed to Associate Director, suggesting he is embedded and advancing internally rather than seeking a move.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Philip, your work across residential, industrial and conservation projects at Barrett Mahony, plus your IStructE chartership in 2022, stood out. Would welcome a conversation about a Senior Structural Engineer role.","email_subject":"Senior Structural Engineer role - Limerick, Galway or Dublin","email_body":"Philip,\n\nI've been looking at engineers with a genuine spread across sectors, and your path at Barrett Mahony stands out - residential, industrial, commercial, refurbishment/conservation and temporary works, plus projects like The Castle, Acton and St Crispins House. That breadth is hard to find, and it's exactly what a client of ours, a major infrastructure consultancy, is looking to bring in for a Senior Structural Engineer position based in Limerick, Galway or Dublin.\n\nYour chartership with the Institute of Structural Engineers in 2022 would carry real weight on this one, and your move from the Dublin office to Barrett Mahony London in 2015 suggests you're someone who takes on new environments without much fuss.\n\nWould you be open to a short call to discuss the role in more detail? No pressure either way - happy to share more first if that's easier.\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"associate_director","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":null,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Dublin"},{"person_id":"gerry_healy","full_name":"Gerry Healy","current_title":"","current_employer":"Jacobs","location":"Ireland","role_id":"role2_transport_major_projects_manager","role_title":"Transport Major Projects Manager","tier":"A","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"technical_skill","assertion":"\u201cA number of these projects included the preparation of the roads order\ndocumentation (EIAR and CPO).\u201d","evidence_quote":"\u201cA number of these projects included the preparation of the roads order\ndocumentation (EIAR and CPO).\u201d","source_url":"https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf","text_source":"text_layer","confidence":"direct"},{"dimension":"statutory_process","assertion":"\u201cAn Bord Plean\u00e1la Oral Hearing\n\nC\u00f3ras Iompair \u00c9ireann/Iarnr\u00f3d \u00c9ireann\n\nDublin to Cork Railway Line Level Crossings\n\nBrief of Evidence\n\nOverview of Railway Order & Railway Works\n\nGerry Healy\u201d","evidence_quote":"\u201cAn Bord Plean\u00e1la Oral Hearing\n\nC\u00f3ras Iompair \u00c9ireann/Iarnr\u00f3d \u00c9ireann\n\nDublin to Cork Railway Line Level Crossings\n\nBrief of Evidence\n\nOverview of Railway Order & Railway Works\n\nGerry Healy\u201d","source_url":"https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cI am a Chartered Member and Fellow of the Institution of Engineers of Ireland (Engineers Ireland), and\nI am registered with them as an International Professional Engineer.\u201d","evidence_quote":"\u201cI am a Chartered Member and Fellow of the Institution of Engineers of Ireland (Engineers Ireland), and\nI am registered with them as an International Professional Engineer.\u201d","source_url":"https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"Works in the rail infrastructure sector as evidenced by role as Project Director on railway crossings scheme","evidence_quote":null,"source_url":null,"text_source":"text_layer","confidence":"inferred"}],"strengths":["Chartered and Fellow of Engineers Ireland (CEng FIEI, IntPE) with public evidence via the An Bord Plean\u00e1la Brief of Evidence, satisfying the chartership requirement.","Over 26 years of post-graduate experience, well exceeding the 10-year minimum.","Direct statutory process experience: prepared roads order documentation (EIAR and CPO) on multiple projects and gave oral hearing evidence for a Railway Order, directly matching the primary technical signal."],"unknowns":[],"adversarial_findings":[],"email_status":"verified","email":"gerry.healy@jacobs.com","linkedin_url":"https://www.linkedin.com/in/gerard-healy-27836413","movability_assessment":"low","movability_rationale":"Healy holds a senior, established title at Jacobs and is actively leading a major ongoing rail project, both of which suggest stability rather than imminent movement.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Gerry, your work as Project Director on the Dublin to Cork Railway Line Level Crossings project, including giving evidence at the ABP Oral Hearing on the Railway Order, is notable. I've a Transport Major Projects Manager role in Cork worth a conversation. Would you be open to it?","email_subject":"Transport Major Projects Manager role, Cork","email_body":"Gerry,\n\nI'm working with a major infrastructure consultancy on a Transport Major Projects Manager role based in Cork, and your background at Jacobs stood out.\n\nYour involvement in the Dublin to Cork Railway Line Level Crossings project since 2021, particularly stepping into Project Director and giving evidence at the An Bord Plean\u00e1la Oral Hearing on the Railway Order, is the kind of statutory process experience this role needs. Combined with your earlier work on roads order documentation, EIAR and CPO preparation across a number of major road and motorway schemes, it's a strong match against what my client is looking to bring in.\n\nThe role covers major projects at a similar scale to what you've directed in Ireland and Qatar, from option identification through to construction. Given your chartership with Engineers Ireland and your registration as an International Professional Engineer, I think it's worth a short call to see whether the detail lines up with what you're looking for next.\n\nWould you have twenty minutes this week or next?\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"unknown","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":26,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"},{"person_id":"andrew_archer","full_name":"Andrew Archer","current_title":"Transport Planner and Director","current_employer":"SYSTRA Ltd","location":"Ireland","role_id":"role2_transport_major_projects_manager","role_title":"Transport Major Projects Manager","tier":"A","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"statutory_process","assertion":"\u201cORAL HEARING STATEMENT of Evidence Responses to Traffic and Transport Objection/Submissions by Andrew Archer\u201d","evidence_quote":"\u201cORAL HEARING STATEMENT of Evidence Responses to Traffic and Transport Objection/Submissions by Andrew Archer\u201d","source_url":"https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf","text_source":"text_layer","confidence":"direct"},{"dimension":"technical_skill","assertion":"\u201cSYSTRA\u2019s role in the proposed road development involved the transport and traffic assessments for the Phase 1: Concept and Feasibility Studies, Phase 2: Route Selection and Phase 3: Design Traffic...\u201d","evidence_quote":"\u201cSYSTRA\u2019s role in the proposed road development involved the transport and traffic assessments for the Phase 1: Concept and Feasibility Studies, Phase 2: Route Selection and Phase 3: Design Traffic...\u201d","source_url":"https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf","text_source":"text_layer","confidence":"direct"},{"dimension":"chartership","assertion":"\u201cSTATEMENT of Evidence Responses to Traffic and Transport Objection/Submissions by Andrew Archer, BEng (Hons) CEng MIEI, SYSTRA Ltd\u201d","evidence_quote":"\u201cSTATEMENT of Evidence Responses to Traffic and Transport Objection/Submissions by Andrew Archer, BEng (Hons) CEng MIEI, SYSTRA Ltd\u201d","source_url":"https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf","text_source":"text_layer","confidence":"direct"}],"strengths":["Chartered Engineer and Engineers Ireland member (CEng MIEI), evidenced directly in the sworn statement of evidence.","Over 20 years of transport planning/engineering experience with direct statutory process exposure via the N6 Galway City Ring Road Oral Hearing and EIAR preparation.","Extensive Irish transport project portfolio including Cork Metropolitan Local Area Plans, Galway Transport Strategy, and NTA Regional Transport Models work."],"unknowns":[],"adversarial_findings":[],"email_status":"pattern_guess","email":"andrew.archer@systra.com","linkedin_url":"https://ie.linkedin.com/in/andrew-archer-79881245","movability_assessment":"low","movability_rationale":"Andrew Archer holds a senior Director title at SYSTRA with over 20 years of embedded, Ireland-based transport planning work and active professional/committee ties, none of which signal an imminent move.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Andrew, your work on the Cork Metropolitan LAP masterplans and the N6 Galway City Ring Road evidence caught my eye. I'm working on a Transport Major Projects Manager role in Cork and would value your view on it, even if just to point me elsewhere.","email_subject":"Transport Major Projects Manager, Cork - your Cork LAP work","email_body":"Hi Andrew,\n\nI'm working on a Transport Major Projects Manager role in Cork for a major infrastructure consultancy, and your background stood out given the breadth of your work across the Cork Metropolitan LAP masterplans and the Galway Transport Strategy.\n\nThe role sits at the intersection of transport planning and major project delivery, which is a step some planners find natural and others find a stretch. Given you've prepared traffic assessments to support an EIAR and given evidence at Oral Hearing, including on the N6 Galway City Ring Road, you clearly understand the statutory and technical demands that come with major projects of this scale.\n\nWould you be open to a short call to hear more about it? No pressure either way, and happy to share more detail first if that's easier.\n\nBest,\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":20,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"},{"person_id":"pearse_sutton","full_name":"Pearse Sutton","current_title":"Director","current_employer":"Cronin & Sutton Consulting","location":"Ireland","role_id":"role2_transport_major_projects_manager","role_title":"Transport Major Projects Manager","tier":"B","gates":[{"gate_id":"chartered","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"located_ie","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"discipline","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"seniority_years","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."},{"gate_id":"not_client","passed":true,"note":"Not individually rendered in the HTML; inferred True because only candidates who passed every hard gate for this role are ever shown."}],"claims":[{"dimension":"statutory_process","assertion":"\u201cThis evidence does not reiterate the detailed points addressed within the original submission on the Railway Order which are considered as read by all parties.\u201d","evidence_quote":"\u201cThis evidence does not reiterate the detailed points addressed within the original submission on the Railway Order which are considered as read by all parties.\u201d","source_url":"https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf","text_source":"ocr","confidence":"direct"},{"dimension":"employer","assertion":"\u201cMy name is Pearse Sutton. I am a Director of Cronin & Sutton Consulting.\u201d","evidence_quote":"\u201cMy name is Pearse Sutton. I am a Director of Cronin & Sutton Consulting.\u201d","source_url":"https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf","text_source":"ocr","confidence":"direct"},{"dimension":"years_experience","assertion":"\u201cI have over 40 years of civil and structural engineering consultancy experience in Ireland, the UK and Canada.\u201d","evidence_quote":"\u201cI have over 40 years of civil and structural engineering consultancy experience in Ireland, the UK and Canada.\u201d","source_url":"https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf","text_source":"ocr","confidence":"direct"}],"strengths":["He is a Fellow member of Engineers Ireland, satisfying at least the professional body affiliation aspect of the chartership requirement pending CEng confirmation.","He has over 40 years of civil and structural engineering consultancy experience, exceeding the 10-year minimum by a wide margin.","He has direct, recent (2023) experience engaging with the statutory An Bord Plean\u00e1la Oral Hearing process on a major rail infrastructure project (DART+ West Railway Order), aligning with the primary technical signal of statutory process."],"unknowns":[],"adversarial_findings":[],"email_status":"none","email":null,"linkedin_url":"https://ie.linkedin.com/in/pearse-sutton-86559011","movability_assessment":"low","movability_rationale":"As a named Director of his own consulting firm with 40+ years' experience and long-standing fellowships, Pearse Sutton has no evident driver or opportunity for a conventional move.","movability_signals":[],"tenure_months_current":null,"recommended_first_channel":"linkedin","outreach":{"linkedin_note":"Pearse, saw your evidence at the An Bord Plean\u00e1la Oral Hearing on DART+ West. Rare to have that depth on a major rail Railway Order. Would welcome the chance to connect.","email_subject":"DART+ West, oral hearing evidence, and a Cork transport role","email_body":"Pearse,\n\nYour evidence at the An Bord Plean\u00e1la Oral Hearing on the DART+ West Railway Order caught my attention. That kind of statutory process work, alongside your structural background at Cronin & Sutton, is not common in the Irish market.\n\nI am working with a major infrastructure consultancy on a Transport Major Projects Manager role based in Cork. It sits at the intersection of large-scale rail infrastructure delivery and the kind of statutory and stakeholder complexity you dealt with on DART+ West.\n\nGiven your Fellowship with Engineers Ireland, the Institution of Structural Engineers, and ACEI, along with your consulting background, I think this could be a conversation worth having, even if only to compare notes on where the transport infrastructure pipeline is heading.\n\nWould you be open to a short call?\n\n--\nHow we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer's published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice\n\nIf you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again."},"seniority_grade":"director_or_above","seniority_grade_rule":"classify_seniority(current_title) keyword rule; see docstring","years_experience":40,"years_experience_rule":"regex (?:over\\s+)?(\\d{1,3})\\+?\\s*years over claim quotes/assertions/why-bullets, first match","location_country":"IE","location_evidence":"Ireland"}]
+</script>
+<script type="application/json" id="poolmap-data">
+{"role1_senior_structural_engineer":{"role_id":"role1_senior_structural_engineer","profiles_assessed":158,"raw_claims_extracted":594,"claims_surviving_quote_validation":446,"passed_every_hard_gate":18,"delivered":"10 of 10","exclusions":[{"gate":"chartered","count":110},{"gate":"seniority","count":99},{"gate":"discipline","count":82},{"gate":"located_ie","count":3}],"missed_by_one":[{"name":"Aiden Burke","employer":"DBFL Consulting Engineers","missing_gate":"chartered"},{"name":"Andrew McDermott","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Brian Farrington","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Brian Mahony","employer":"Barrett Mahony Consulting Engineers","missing_gate":"seniority"},{"name":"Brian O\u2019Rourke","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Ciaran O'Rafferty","employer":"Barrett Mahony Consulting Engineers","missing_gate":"seniority"},{"name":"Ciar\u00e1n Kennedy","employer":"Barrett Mahony Consulting Engineers","missing_gate":"discipline"},{"name":"Colm Doyle","employer":"DBFL Consulting Engineers","missing_gate":"chartered"},{"name":"Conor McCarthy","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Declan Barry","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Fergal English","employer":"DBFL Consulting Engineers","missing_gate":"chartered"},{"name":"John Hayes","employer":"DBFL Consulting Engineers","missing_gate":"chartered"},{"name":"John Keane","employer":"DBFL Consulting Engineers","missing_gate":"chartered"},{"name":"John McBeath","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"John Millar","employer":"O'Connor Sutton Cronin","missing_gate":"located_ie"},{"name":"John Rogers","employer":"O'Connor Sutton Cronin","missing_gate":"located_ie"},{"name":"Kevin Callaghan","employer":"Horganlynch","missing_gate":"seniority"},{"name":"Liam McCarthy","employer":"Barrett Mahony Consulting Engineers","missing_gate":"discipline"},{"name":"Mark Hopkins","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Martin Bennett","employer":"DBFL Consulting Engineers","missing_gate":"chartered"},{"name":"Michael Hughes","employer":"Barrett Mahony Consulting Engineers","missing_gate":"discipline"},{"name":"Michael Shortall","employer":"Horganlynch","missing_gate":"discipline"},{"name":"Niall O'Callaghan","employer":"Kilgallen & Partners","missing_gate":"discipline"},{"name":"Patrice McVeigh","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Patrick Field","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Richard Brennan","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Robert Kelly","employer":"Transportation Engineering at DBFL Consulting Engineers","missing_gate":"discipline"},{"name":"Sam Budin","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"},{"name":"Shaun Doody","employer":"O'Connor Sutton Cronin","missing_gate":"seniority"},{"name":"Stephen O'Connor","employer":"Barrett Mahony Consulting Engineers","missing_gate":"seniority"},{"name":"Thomas Johnston","employer":"O'Connor Sutton Cronin","missing_gate":"chartered"},{"name":"Tracy Kearney","employer":"DBFL Consulting Engineers","missing_gate":"chartered"},{"name":"William Forsyth","employer":"O'Connor Sutton Cronin","missing_gate":"discipline"}],"client_side_sidebar":[]},"role2_transport_major_projects_manager":{"role_id":"role2_transport_major_projects_manager","profiles_assessed":21,"raw_claims_extracted":333,"claims_surviving_quote_validation":280,"passed_every_hard_gate":4,"delivered":"3 of 5","exclusions":[{"gate":"chartered","count":15},{"gate":"discipline","count":9},{"gate":"seniority","count":7},{"gate":"located_ie","count":1}],"missed_by_one":[{"name":"Colin Wyllie","employer":"Jacobs","missing_gate":"chartered"},{"name":"John Kehoe","employer":"Jacobs Engineering Ireland","missing_gate":"chartered"},{"name":"Ronan Hallissey","employer":"Jacobs","missing_gate":"chartered"},{"name":"Sandeep Upadhya","employer":"Jacobs","missing_gate":"chartered"}],"client_side_sidebar":[{"name":"Aidan Foley","note":"TII"},{"name":"David Dineen","note":"C\u00f3ras Iompair \u00c9ireann (C.I.\u00c9.) since 2003"},{"name":"David Vaughan","note":"Iarnr\u00f3d \u00c9ireann"},{"name":"Michael Horan","note":"Transport Infrastructure Ireland (TII)"}]}}
+</script>
+
+<script>
+(function(){
+"use strict";
+
+var CANDIDATES = JSON.parse(document.getElementById('candidates-data').textContent);
+var POOL = JSON.parse(document.getElementById('poolmap-data').textContent);
+
+var ROLE_META = {
+  role1_senior_structural_engineer: {label:"Senior Structural Engineer", short:"Role 1", n:1},
+  role2_transport_major_projects_manager: {label:"Transport / Major Projects Manager", short:"Role 2", n:2}
+};
+
+var GRADE_LADDER = ["graduate","engineer","senior_engineer","principal_or_associate","associate_director","director_or_above"];
+var GRADE_LABEL = {
+  graduate:"Graduate", engineer:"Engineer", senior_engineer:"Senior Engineer",
+  principal_or_associate:"Principal or Associate", associate_director:"Associate Director",
+  director_or_above:"Director", unknown:"Unknown grade"
+};
+var CEIL_LABEL = {
+  senior_engineer:"Senior Engineer", principal_or_associate:"Principal or Associate",
+  associate_director:"Associate Director", director_or_above:"Director (no ceiling)"
+};
+
+var CORK_TOWNS = ["Cork","Cobh","Midleton","Mallow","Carrigaline","Ballincollig","Fermoy","Bandon","Youghal"];
+
+/* ------------------------------------------------------------------
+   Data corrections, verified against live.html source text (quote
+   recorded per person). These overlay the extractor's raw
+   location_country / location_evidence / years_experience fields --
+   the raw fields stay in CANDIDATES untouched; only display + gate
+   logic use the corrected values below.
+   ------------------------------------------------------------------ */
+var CORRECTIONS = {
+  rouslan_taskov: {
+    location: "London", country: "UK",
+    evidence: "“In early 2013 he joined Barrett Mahony UK in our London office and in 2014 was appointed Associate Director”",
+    note: "Barrett Mahony London office. Source: barrettmahony.com team page."
+  },
+  mark_petho: {
+    location: "London", country: "UK",
+    evidence: "“...the London project exposure on your record...”",
+    note: "Barrett Mahony London office. This is our own outreach copy referencing his profile, not a bio-page quote -- the two hidden verified quotes on this profile are not present in the source HTML we have; treat as corroborating, not primary, evidence.",
+    years: 10,
+    yearsNote: "Extractor's years_experience (5) matched “at least 5 years as a chartered professional” -- chartership tenure, not career tenure. Corrected to 10 using “long tenure at BMCE since 2015 (circa 9-10 years)” from the same profile."
+  },
+  philip_penco: {
+    location: "London", country: "UK",
+    evidence: "“Philip joined Barrett Mahony London in 2015 after spending a year in the Dublin office.”",
+    note: "Barrett Mahony London office. Source: barrettmahony.com team page."
+  },
+  pat_brady: {
+    location: "Belfast", country: "NI",
+    evidence: "“...a Masters Degree in Civil Engineering Infrastructure Design & Operation in 1994 from Queens University Belfast.” / “...Lyric Theatre Belfast...”",
+    note: "Horganlynch, Belfast per brief.",
+    uncertain: true,
+    uncertainNote: "Conflicting evidence: our own outreach copy for this profile also says he was “joining the Cork office in 1990 through to Partner in 2007”. The Belfast references we can find in the source (university degree, one Belfast project) do not establish current residence. Flagged uncertain -- treat as fails-strict until confirmed."
+  },
+  michael_o_reilly: {
+    location: "Ireland", country: "IE",
+    evidence: "“...the breadth of your work across Irish, UK and MENA markets with O'Connor Sutton Cronin...”",
+    note: "UK experience mentioned, but employer (O'Connor Sutton Cronin) and residence evidence are Ireland-based. Country kept as IE."
+  },
+  paul_healy: {
+    location: "Ireland", country: "IE",
+    evidence: "“...delivered across Ireland and the UK over more than 35 years...”",
+    note: "UK experience mentioned, but employer (O'Connor Sutton Cronin) and residence evidence are Ireland-based. Country kept as IE."
+  },
+  colin_wilson: {
+    location: "Unknown", country: "unknown",
+    evidence: "",
+    note: "No residence evidence found in source text. Employer (O'Connor Sutton Cronin) is Dublin-based, but that is not evidence of the individual's residence. Fails the direct-evidence and county-list rules."
+  },
+  patrick_raggett: {
+    location: "Unknown", country: "unknown",
+    evidence: "",
+    note: "No residence evidence found in source text. Employer (O'Connor Sutton Cronin) is Dublin-based, but that is not evidence of the individual's residence. Fails the direct-evidence and county-list rules."
+  },
+  gerry_healy: {
+    note: "Title not stated in source; grade left unknown rather than guessed. 26 years at Jacobs."
+  },
+  pearse_sutton: {
+    note: "Director of his own firm (Cronin & Sutton Consulting), 40+ years. No correction needed -- matches source."
+  }
+};
+
+function getLocation(c){
+  var ov = CORRECTIONS[c.person_id];
+  if (ov && ov.location !== undefined) return ov.location;
+  return c.location;
+}
+function getCountry(c){
+  var ov = CORRECTIONS[c.person_id];
+  if (ov && ov.country !== undefined) return ov.country;
+  return (c.location_country || "unknown");
+}
+function getYears(c){
+  var ov = CORRECTIONS[c.person_id];
+  if (ov && ov.years !== undefined) return ov.years;
+  return c.years_experience;
+}
+
+/* ------------------------------------------------------------------ */
+
+function $(id){ return document.getElementById(id); }
+
+function currentSettings(){
+  var ceiling = document.querySelector('input[name="ceiling"]:checked').value;
+  var ieRule = document.querySelector('input[name="ie-rule"]:checked').value;
+  return {
+    ceiling: ceiling,
+    minYears1: numOrNull($('minYears1').value),
+    maxYears1: numOrNull($('maxYears1').value),
+    minYears2: numOrNull($('minYears2').value),
+    maxYears2: numOrNull($('maxYears2').value),
+    ieRule: ieRule,
+    counties: countyChips.slice(),
+    allowRelocation: $('allowRelocation').checked,
+    allowNI: $('allowNI').checked,
+    corkCommute: $('corkCommute').checked,
+    contactVerified: $('contactVerified').checked,
+    contactLinkedin: $('contactLinkedin').checked,
+    excludeLowMovability: $('excludeLowMovability').checked
+  };
+}
+function numOrNull(v){ if (v === "" || v === null || v === undefined) return null; var n = Number(v); return isNaN(n) ? null : n; }
+
+/* ---- core deterministic logic (kept pure / testable) ---- */
+
+function gradeIndex(grade){
+  var i = GRADE_LADDER.indexOf(grade);
+  return i; // -1 for unknown
+}
+
+function evaluateCandidate(c, settings){
+  var role = c.role_id;
+  var roleN = ROLE_META[role].n;
+  var minYears = roleN === 1 ? settings.minYears1 : settings.minYears2;
+  var maxYears = roleN === 1 ? settings.maxYears1 : settings.maxYears2;
+  var hard = [];
+  var soft = [];
+
+  /* -- seniority ceiling -- */
+  var grade = c.seniority_grade || "unknown";
+  var gIdx = gradeIndex(grade);
+  var ceilIdx = gradeIndex(settings.ceiling);
+  var ceilingActive = settings.ceiling !== "director_or_above";
+  if (gIdx === -1){
+    if (ceilingActive) soft.push({cat:"grade", text:"grade unknown", label:"Needs one fact: grade"});
+  } else if (ceilingActive && gIdx > ceilIdx){
+    hard.push({cat:"ceiling", text: GRADE_LABEL[grade] + " > ceiling " + CEIL_LABEL[settings.ceiling]});
+  }
+
+  /* -- years -- */
+  var years = getYears(c);
+  if (years !== null && years !== undefined){
+    if (maxYears !== null && years > maxYears) hard.push({cat:"years", text:"years " + years + " > max " + maxYears});
+    if (minYears !== null && years < minYears) hard.push({cat:"years", text:"years " + years + " < min " + minYears});
+  }
+
+  /* -- residence -- */
+  var country = getCountry(c);
+  var loc = getLocation(c);
+  if (settings.ieRule === "any"){
+    /* everyone passes -- what we shipped */
+  } else if (settings.ieRule === "direct" || settings.ieRule === "county"){
+    if (country === "unknown"){
+      soft.push({cat:"residence", text:"residence unknown", label:"Needs one fact: residence"});
+    } else if (country === "NI"){
+      if (!(settings.allowNI || settings.allowRelocation)) hard.push({cat:"residence", text: loc + " (Northern Ireland)"});
+    } else if (country === "UK"){
+      if (!settings.allowRelocation) hard.push({cat:"residence", text: loc + " office"});
+    } else if (country === "IE"){
+      if (settings.ieRule === "county"){
+        if (settings.counties.length === 0){
+          soft.push({cat:"residence", text:"no county selected", label:"Needs one fact: county"});
+        } else {
+          var matched = settings.counties.some(function(county){
+            return loc.toLowerCase().indexOf(county.toLowerCase()) !== -1;
+          });
+          if (!matched) soft.push({cat:"residence", text: loc + " not in county list", label:"Needs one fact: county"});
+        }
+      }
+      /* direct rule + IE: passes */
+    }
+  }
+
+  /* -- Cork commute (role 2 only) -- */
+  if (settings.corkCommute && roleN === 2){
+    var okTown = CORK_TOWNS.some(function(t){ return loc.toLowerCase().indexOf(t.toLowerCase()) !== -1; });
+    if (!okTown) hard.push({cat:"cork", text:"not Cork-commutable (" + loc + ")"});
+  }
+
+  /* -- contact readiness -- */
+  if (settings.contactVerified){
+    if (!(c.email_status === "verified" || c.email_status === "catch_all")){
+      hard.push({cat:"contact", text: c.email_status === "pattern_guess" ? "inferred email" : "no verified email"});
+    }
+  }
+  if (settings.contactLinkedin){
+    if (!c.linkedin_url) hard.push({cat:"contact", text:"LinkedIn not resolved"});
+  }
+
+  /* -- movability -- */
+  if (settings.excludeLowMovability && c.movability_assessment === "low"){
+    hard.push({cat:"movability", text:"low movability"});
+  }
+
+  var status = hard.length ? "excluded" : (soft.length ? "needs" : "stays");
+  return {status: status, hard: hard, soft: soft};
+}
+
+/* ------------------------------------------------------------------
+   Rendering
+   ------------------------------------------------------------------ */
+
+var countyChips = [];
+
+function renderCountyChip(){
+  var wrap = $('countyChips');
+  wrap.querySelectorAll('.chip-tok').forEach(function(n){ n.remove(); });
+  var input = $('countyChipInput');
+  countyChips.forEach(function(county, i){
+    var tok = document.createElement('span');
+    tok.className = 'chip-tok';
+    tok.textContent = county;
+    var rm = document.createElement('button');
+    rm.type = 'button';
+    rm.setAttribute('aria-label', 'Remove ' + county);
+    rm.textContent = '×';
+    rm.addEventListener('click', function(){ countyChips.splice(i,1); renderCountyChip(); renderAll(); });
+    tok.appendChild(rm);
+    wrap.insertBefore(tok, input);
+  });
+}
+
+function flagChip(country, loc){
+  var cls = country === "IE" ? "ie" : country === "NI" ? "ni" : country === "UK" ? "uk" : "unk";
+  var text = country === "unknown" ? "unknown" : country;
+  return '<span class="flag ' + cls + '" title="' + escapeHtml(loc) + '">' + text + '</span>';
+}
+
+function emailChip(status){
+  var labelMap = {verified:"verified", catch_all:"catch-all", pattern_guess:"inferred", none:"none"};
+  return '<span class="chip email-' + status + '">' + (labelMap[status] || status) + '</span>';
+}
+
+function escapeHtml(s){
+  return (s === null || s === undefined) ? "" : String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function renderReasonChips(ev){
+  var out = "";
+  ev.hard.forEach(function(r){ out += '<span class="chip">' + escapeHtml(r.text) + '</span>'; });
+  ev.soft.forEach(function(r){ out += '<span class="chip soft">' + escapeHtml(r.text) + '</span>'; });
+  return out;
+}
+
+function pillFor(status){
+  if (status === "stays") return '<span class="pill stays">Stays</span>';
+  if (status === "needs") return '<span class="pill needs">Needs one fact</span>';
+  return '<span class="pill excluded">Excluded</span>';
+}
+
+function claimsHtml(c){
+  var out = "";
+  (c.claims || []).forEach(function(cl){
+    if (cl.evidence_quote){
+      out += '<blockquote>' + escapeHtml(cl.evidence_quote) + '</blockquote>';
+      if (cl.source_url){
+        out += '<p class="src"><a href="' + escapeHtml(cl.source_url) + '" target="_blank" rel="noopener noreferrer">source</a> · ' + escapeHtml(cl.dimension) + '</p>';
+      } else {
+        out += '<p class="src">' + escapeHtml(cl.dimension) + '</p>';
+      }
+    }
+  });
+  return out;
+}
+
+function detailHtml(c, ov){
+  var body = claimsHtml(c);
+  var locEv = ov ? (ov.evidence || "") : (c.location_evidence || "");
+  var locNote = ov ? ov.note : "";
+  body += '<div class="loc-ev"><p class="src label">Location evidence</p>';
+  if (locEv) body += '<blockquote>' + escapeHtml(locEv) + '</blockquote>';
+  if (locNote) body += '<p class="src">' + escapeHtml(locNote) + '</p>';
+  if (ov && ov.uncertain) body += '<p class="src uncertain">' + escapeHtml(ov.uncertainNote) + '</p>';
+  if (ov && ov.yearsNote) body += '<p class="src">' + escapeHtml(ov.yearsNote) + '</p>';
+  body += '</div>';
+  if (c.movability_rationale){
+    body += '<div class="loc-ev"><p class="src label">Movability (' + escapeHtml(c.movability_assessment) + ')</p><p class="src">' + escapeHtml(c.movability_rationale) + '</p></div>';
+  }
+  return body;
+}
+
+function renderRoleTable(roleId, roleCands, settings){
+  var meta = ROLE_META[roleId];
+  var html = '<div class="role-h"><h2>' + meta.short + ' — ' + meta.label + '</h2><span class="cnt num">' + roleCands.length + ' delivered</span></div>';
+  html += '<div class="tbl-wrap"><table class="cand"><thead><tr>' +
+    '<th>Name</th><th>Location</th><th>Grade</th><th>Years</th><th>Tier</th><th>Email</th><th>Movability</th><th>Verdict</th>' +
+    '</tr></thead><tbody>';
+
+  roleCands.forEach(function(c){
+    var ov = CORRECTIONS[c.person_id];
+    var ev = evaluateCandidate(c, settings);
+    var country = getCountry(c);
+    var loc = getLocation(c);
+    var grade = c.seniority_grade || "unknown";
+    var years = getYears(c);
+
+    html += '<tr class="row ' + (ev.status === "excluded" ? "excluded" : "") + '">';
+    html += '<td><div class="nm">' + escapeHtml(c.full_name) + '</div><div class="ro">' + escapeHtml(c.current_title || "Title not stated") + ' · ' + escapeHtml(c.current_employer) + '</div></td>';
+    html += '<td>' + escapeHtml(loc) + ' ' + flagChip(country, loc) + '</td>';
+    html += '<td><span class="chip grade">' + GRADE_LABEL[grade] + '</span></td>';
+    html += '<td class="num">' + (years === null || years === undefined ? '—' : years) + '</td>';
+    html += '<td>' + escapeHtml(c.tier) + '</td>';
+    html += '<td>' + emailChip(c.email_status) + '</td>';
+    html += '<td>' + escapeHtml(c.movability_assessment) + '</td>';
+    html += '<td>' + pillFor(ev.status) + '<div class="reasons">' + renderReasonChips(ev) + '</div></td>';
+    html += '</tr>';
+    html += '<tr class="' + (ev.status === "excluded" ? "excluded" : "") + '"><td colspan="8" style="border-bottom:1px solid var(--line); padding-top:0">' +
+      '<details class="det"><summary>evidence &amp; sourcing</summary><div class="det-body">' + detailHtml(c, ov) + '</div></details>' +
+      '</td></tr>';
+  });
+
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function tallyReasons(roleCands, settings){
+  var tally = {};
+  var survive = 0;
+  roleCands.forEach(function(c){
+    var ev = evaluateCandidate(c, settings);
+    if (ev.status === "stays") survive++;
+    ev.hard.forEach(function(r){ tally[r.cat] = (tally[r.cat] || 0) + 1; });
+  });
+  return {survive: survive, tally: tally};
+}
+
+var CAT_LABEL = {ceiling:"seniority ceiling", residence:"residence", years:"years", movability:"movability", contact:"contact readiness", cork:"Cork commute"};
+
+function renderSummary(settings){
+  var byRole = {};
+  Object.keys(ROLE_META).forEach(function(rid){ byRole[rid] = CANDIDATES.filter(function(c){ return c.role_id === rid; }); });
+
+  var tiles = "";
+  var lines = "";
+
+  Object.keys(ROLE_META).forEach(function(rid){
+    var cands = byRole[rid];
+    var t = tallyReasons(cands, settings);
+    var delivered = cands.length;
+    var reneed = delivered - t.survive;
+
+    tiles += '<div class="tile"><div class="tnum num pass">' + delivered + '</div><div class="tlabel">' + ROLE_META[rid].short + ' delivered then</div></div>';
+    tiles += '<div class="tile"><div class="tnum num ' + (t.survive === delivered ? "pass" : t.survive === 0 ? "fail" : "warn") + '">' + t.survive + '</div><div class="tlabel">' + ROLE_META[rid].short + ' survive now</div></div>';
+    tiles += '<div class="tile"><div class="tnum num ' + (reneed === 0 ? "pass" : "fail") + '">' + reneed + '</div><div class="tlabel">' + ROLE_META[rid].short + ' need re-sourcing</div></div>';
+
+    var pm = POOL[rid];
+    var reasonBits = Object.keys(t.tally).sort().map(function(cat){ return CAT_LABEL[cat] + " (" + t.tally[cat] + ")"; }).join(", ");
+    var sentence = 'Under this brief, <b class="num">' + t.survive + ' of ' + delivered + '</b> ' + ROLE_META[rid].label + ' candidates survive.';
+    if (reneed > 0) sentence += ' The other <b class="num">' + reneed + '</b> fail on: ' + (reasonBits || "—") + '.';
+    sentence += '<div class="denom">Honest denominator: ' + pm.profiles_assessed + ' assessed → ' + pm.passed_every_hard_gate + ' passed every hard gate we ran → ' + delivered + ' delivered.</div>';
+    lines += '<div class="sumline">' + sentence + '</div>';
+  });
+
+  $('summaryTiles').innerHTML = tiles;
+  $('summaryLines').innerHTML = lines;
+}
+
+function renderRoleTables(settings){
+  var html = "";
+  Object.keys(ROLE_META).forEach(function(rid){
+    var cands = CANDIDATES.filter(function(c){ return c.role_id === rid; });
+    html += renderRoleTable(rid, cands, settings);
+  });
+  $('roleTables').innerHTML = html;
+}
+
+function renderMissed(){
+  var html = "";
+  Object.keys(ROLE_META).forEach(function(rid){
+    var pm = POOL[rid];
+    var meta = ROLE_META[rid];
+    html += '<div class="panel"><h3>' + meta.short + ' — missed by one</h3>';
+    html += '<p class="lede">Failed exactly one hard gate. These are the first people a corrected run re-examines.</p>';
+    html += '<ul class="mlist">';
+    (pm.missed_by_one || []).forEach(function(m){
+      html += '<li>' + escapeHtml(m.name) + ' <span class="g">· ' + escapeHtml(m.employer) + '</span><span class="gatechip">' + escapeHtml(m.missing_gate) + '</span></li>';
+    });
+    html += '</ul>';
+    if (pm.client_side_sidebar && pm.client_side_sidebar.length){
+      html += '<p class="footnote label">Client-side engineers (excluded on principle, not a gate)</p><ul class="mlist">';
+      pm.client_side_sidebar.forEach(function(m){
+        html += '<li>' + escapeHtml(m.name) + ' <span class="g">· ' + escapeHtml(m.note) + '</span></li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  });
+  $('missedSection').innerHTML = html;
+}
+
+function renderAll(){
+  var settings = currentSettings();
+  renderSummary(settings);
+  renderRoleTables(settings);
+}
+
+function renderStatic(){
+  renderMissed();
+}
+
+/* ------------------------------------------------------------------
+   Controls: wiring, presets, copy-as-text
+   ------------------------------------------------------------------ */
+
+var SHIPPED_DEFAULTS = {
+  ceiling: "director_or_above", minYears1: 8, maxYears1: "", minYears2: 10, maxYears2: "",
+  ieRule: "any", counties: [], allowRelocation: false, allowNI: false, corkCommute: false,
+  contactVerified: false, contactLinkedin: false, excludeLowMovability: false
+};
+
+var KEITH_PRESET = {
+  ceiling: "senior_engineer", minYears1: 8, maxYears1: 18, minYears2: 10, maxYears2: 25,
+  ieRule: "direct", counties: [], allowRelocation: false, allowNI: false, corkCommute: true,
+  contactVerified: true, contactLinkedin: false, excludeLowMovability: false,
+  ceiling2: "associate_director"
+};
+
+function applySettingsObj(s){
+  document.getElementById('ceiling-' + s.ceiling).checked = true;
+  $('minYears1').value = s.minYears1 === null ? "" : s.minYears1;
+  $('maxYears1').value = s.maxYears1 === "" || s.maxYears1 === null ? "" : s.maxYears1;
+  $('minYears2').value = s.minYears2 === null ? "" : s.minYears2;
+  $('maxYears2').value = s.maxYears2 === "" || s.maxYears2 === null ? "" : s.maxYears2;
+  document.getElementById('ie-rule-' + s.ieRule).checked = true;
+  countyChips = (s.counties || []).slice();
+  renderCountyChip();
+  $('allowRelocation').checked = !!s.allowRelocation;
+  $('allowNI').checked = !!s.allowNI;
+  $('corkCommute').checked = !!s.corkCommute;
+  $('contactVerified').checked = !!s.contactVerified;
+  $('contactLinkedin').checked = !!s.contactLinkedin;
+  $('excludeLowMovability').checked = !!s.excludeLowMovability;
+  toggleCountyField();
+  renderAll();
+}
+
+/* Keith's preset uses a stricter ceiling for Role 2 (Associate Director) than
+   Role 1 (Senior Engineer). The control rail's ceiling is shared, so applying
+   the preset sets the rail to Role 1's ceiling and the per-role table
+   evaluation additionally clamps Role 2 to Associate Director when this
+   preset is the active one. */
+var role2CeilingOverride = null;
+
+function evaluateCandidateWrapped(c, settings){
+  if (role2CeilingOverride && c.role_id === "role2_transport_major_projects_manager"){
+    var s2 = Object.create(settings);
+    s2.ceiling = role2CeilingOverride;
+    return evaluateCandidate(c, s2);
+  }
+  return evaluateCandidate(c, settings);
+}
+/* swap tally/table functions to use the wrapper */
+var _evaluateCandidate = evaluateCandidate;
+evaluateCandidate = function(c, settings){
+  if (role2CeilingOverride && c.role_id === "role2_transport_major_projects_manager"){
+    var s2 = {}; for (var k in settings) s2[k] = settings[k];
+    s2.ceiling = role2CeilingOverride;
+    return _evaluateCandidate(c, s2);
+  }
+  return _evaluateCandidate(c, settings);
+};
+
+function toggleCountyField(){
+  var isCounty = document.querySelector('input[name="ie-rule"]:checked').value === "county";
+  $('county-chip-field').style.display = isCounty ? "" : "none";
+}
+
+document.querySelectorAll('input[name="ceiling"]').forEach(function(el){ el.addEventListener('change', function(){ role2CeilingOverride = null; renderAll(); }); });
+document.querySelectorAll('input[name="ie-rule"]').forEach(function(el){ el.addEventListener('change', function(){ toggleCountyField(); renderAll(); }); });
+['minYears1','maxYears1','minYears2','maxYears2'].forEach(function(id){ $(id).addEventListener('input', renderAll); });
+['allowRelocation','allowNI','corkCommute','contactVerified','contactLinkedin','excludeLowMovability'].forEach(function(id){ $(id).addEventListener('change', renderAll); });
+
+$('countyChipInput').addEventListener('keydown', function(e){
+  if (e.key === 'Enter' && this.value.trim()){
+    e.preventDefault();
+    countyChips.push(this.value.trim());
+    this.value = '';
+    renderCountyChip();
+    renderAll();
+  }
+});
+
+$('btnReset').addEventListener('click', function(){
+  role2CeilingOverride = null;
+  applySettingsObj(SHIPPED_DEFAULTS);
+  showToast('Reset to what we shipped on 20 Aug.');
+});
+
+$('btnKeith').addEventListener('click', function(){
+  role2CeilingOverride = KEITH_PRESET.ceiling2;
+  applySettingsObj(KEITH_PRESET);
+  showToast("Applied Keith's brief.");
+});
+
+$('btnCopy').addEventListener('click', function(){
+  var s = currentSettings();
+  var text = briefAsText(s);
+  var done = function(){ showToast('Brief copied to clipboard.'); };
+  var fail = function(){ showToast('Could not copy — select the text manually.'); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, fail);
+  } else {
+    fail();
+  }
+});
+
+function briefAsText(s){
+  var lines = [];
+  lines.push('BRIEF CONTRACT — Gaia Talent, captured ' + new Date().toISOString().slice(0,10));
+  lines.push('Seniority ceiling: ' + CEIL_LABEL[s.ceiling] + (role2CeilingOverride ? ' (Role 1) / ' + CEIL_LABEL[role2CeilingOverride] + ' (Role 2)' : ''));
+  lines.push('Role 1 years: min ' + (s.minYears1 === null ? 'none' : s.minYears1) + ', max ' + (s.maxYears1 === "" || s.maxYears1 === null ? 'none' : s.maxYears1));
+  lines.push('Role 2 years: min ' + (s.minYears2 === null ? 'none' : s.minYears2) + ', max ' + (s.maxYears2 === "" || s.maxYears2 === null ? 'none' : s.maxYears2));
+  var ieRuleLabel = s.ieRule === 'any' ? 'Any Ireland evidence' : s.ieRule === 'direct' ? 'Resident in Republic of Ireland, direct evidence' : 'County list (' + (s.counties.join(', ') || 'none set') + ')';
+  lines.push('Ireland rule: ' + ieRuleLabel);
+  lines.push('Allow relocation signal: ' + (s.allowRelocation ? 'yes' : 'no'));
+  lines.push('Allow Northern Ireland: ' + (s.allowNI ? 'yes' : 'no'));
+  lines.push('Role 2 Cork-commutable only: ' + (s.corkCommute ? 'yes' : 'no'));
+  lines.push('Contact: ' + (s.contactVerified ? 'verified/catch-all email only' : 'any email status') + (s.contactLinkedin ? '; LinkedIn resolved required' : ''));
+  lines.push('Exclude low movability: ' + (s.excludeLowMovability ? 'yes' : 'no'));
+  lines.push('Chartership: required (fixed)');
+  lines.push('');
+  Object.keys(ROLE_META).forEach(function(rid){
+    var cands = CANDIDATES.filter(function(c){ return c.role_id === rid; });
+    var t = tallyReasons(cands, s);
+    lines.push(ROLE_META[rid].short + ' (' + ROLE_META[rid].label + '): ' + t.survive + ' of ' + cands.length + ' survive.');
+  });
+  return lines.join('\n');
+}
+
+var toastTimer = null;
+function showToast(msg){
+  var el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2600);
+}
+
+/* ---- init ---- */
+toggleCountyField();
+renderStatic();
+renderAll();
+
+/* expose pure functions for the node test harness that extracted this
+   script verbatim (see brief_controls_test.mjs) */
+if (typeof module !== 'undefined'){
+  module.exports = { evaluateCandidate: _evaluateCandidate, gradeIndex: gradeIndex, GRADE_LADDER: GRADE_LADDER };
+}
+
+})();
+</script>

@@ -465,6 +465,77 @@ def test_a_render_that_returned_nothing_is_recorded_as_a_failure(cached, monkeyp
     assert cache.fetch_rendered("https://ocsc.ie/people") is None
 
 
+def test_a_local_render_is_cached_with_the_playwright_renderer_tag(cached, monkeypatch):
+    """No FIRECRAWL_API_KEY -> Playwright rung fires before raw HTTP."""
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.config.secret", lambda *a, **kw: "")
+
+    from gtm_client_workflows.gaia_sourcing.core import render_local
+
+    monkeypatch.setattr(render_local, "available", lambda: True)
+    monkeypatch.setattr(
+        render_local, "render_page_text",
+        lambda url, **kw: ("42.7k chars of CEng MIEI", "Our People"))
+
+    def explode(*a, **kw):
+        raise AssertionError("a local render must not fall through to raw HTTP")
+
+    monkeypatch.setattr(cache.requests, "post", explode)
+    monkeypatch.setattr(cache.requests, "get", explode)
+
+    doc = cache.fetch_rendered("https://ocsc.ie/people")
+
+    assert doc is not None
+    assert "CEng MIEI" in doc.content_text
+    meta = json.loads((cached / (
+        cache.url_key("RENDERED::https://ocsc.ie/people") + ".meta.json"
+    )).read_text(encoding="utf-8"))
+    assert meta["renderer"] == "playwright"
+
+
+def test_a_cached_local_render_is_served_without_re_rendering(cached, monkeypatch):
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.config.secret", lambda *a, **kw: "")
+
+    from gtm_client_workflows.gaia_sourcing.core import render_local
+
+    monkeypatch.setattr(render_local, "available", lambda: True)
+    calls = {"n": 0}
+
+    def render(url, **kw):
+        calls["n"] += 1
+        return ("42.7k chars of CEng MIEI", "Our People")
+
+    monkeypatch.setattr(render_local, "render_page_text", render)
+
+    cache.fetch_rendered("https://ocsc.ie/people")
+    cache.fetch_rendered("https://ocsc.ie/people")
+
+    assert calls["n"] == 1
+
+
+def test_a_failed_local_render_falls_back_to_raw_http_uncached(cached, monkeypatch):
+    """render_page_text returning None must not write a rendered-failure
+    cache entry -- it falls through to the raw HTTP fetch instead, same
+    contract as the no-renderer-at-all path."""
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.config.secret", lambda *a, **kw: "")
+
+    from gtm_client_workflows.gaia_sourcing.core import render_local
+
+    monkeypatch.setattr(render_local, "available", lambda: True)
+    monkeypatch.setattr(render_local, "render_page_text", lambda url, **kw: None)
+    _serve(monkeypatch, FakeResponse(content=HTML))
+
+    doc = cache.fetch_rendered("https://ocsc.ie/people")
+
+    assert doc is not None
+    assert "Brian Murphy" in doc.content_text
+
+    meta_p = cached / (cache.url_key("RENDERED::https://ocsc.ie/people") + ".meta.json")
+    assert not meta_p.exists()
+
+
 def test_fetch_raw_preserves_the_markup_that_link_discovery_needs(cached, monkeypatch):
     """fetch() stores extracted text, which discards href attributes."""
     monkeypatch.setattr(cache.requests, "get",
@@ -538,3 +609,85 @@ def test_stored_text_still_contains_its_own_quotes_after_normalisation(raw):
 def test_normalise_ws_keeps_paragraph_breaks_but_collapses_runs():
     out = cache.normalise_ws("para one\n\n\n\n\npara two")
     assert out == "para one\n\npara two"
+
+
+def test_extract_title_logs_and_returns_none_on_a_parse_failure(monkeypatch, capsys):
+    """Title extraction is cosmetic and must never fail a fetch -- but a
+    silent failure here is indistinguishable from a page that genuinely has
+    no <title>, so it must be logged."""
+
+    class _Boom:
+        def __init__(self, *a, **k):
+            raise ValueError("bad markup")
+
+    monkeypatch.setattr("bs4.BeautifulSoup", _Boom)
+
+    result = cache._extract_title(b"<html></html>", "text/html")
+
+    assert result is None
+    assert "could not extract a title" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------------------
+# render_local -- live Chromium smoke test (no network, but a real browser)
+# ---------------------------------------------------------------------------
+
+
+def _chromium_missing() -> bool:
+    from gtm_client_workflows.gaia_sourcing.core import render_local
+
+    return render_local._find_chromium_executable() is None
+
+
+@pytest.mark.skipif(_chromium_missing(), reason="no Chromium binary under /opt/pw-browsers")
+def test_render_page_text_executes_javascript():
+    """data: URL with an inline <script> that mutates the DOM after load --
+    proves this is a real rendered page, not a raw-HTML read."""
+    from gtm_client_workflows.gaia_sourcing.core import render_local
+
+    result = render_local.render_page_text(
+        "data:text/html,<h1>Hello</h1><script>document.body.append('World')</script>"
+    )
+
+    assert result is not None
+    text, _title = result
+    assert "Hello" in text
+    assert "World" in text
+
+
+def test_firecrawl_rate_limit_is_retried_and_never_cached(monkeypatch, tmp_path):
+    """A 429 from Firecrawl retries with backoff; if it persists the raw fetch
+    is used and no rendered failure is cached (2026-09-11 regression)."""
+    from gtm_client_workflows.gaia_sourcing.core import cache as C
+
+    monkeypatch.setattr(C, "CACHE_DIR", tmp_path)
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
+    from gtm_client_workflows.gaia_sourcing.core import config as CFG
+    monkeypatch.setattr(CFG, "secret", lambda name, required=True: "fc-test")
+    monkeypatch.setattr(C.time, "sleep", lambda s: None)
+    calls = {"n": 0}
+
+    class R:
+        def __init__(self, code, body=None):
+            self.status_code = code; self._body = body or {}; self.headers = {"Retry-After": "1"}
+        def json(self): return self._body
+
+    def fake_post(*a, **k):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            return R(429)
+        return R(200, {"data": {"markdown": "Aoife Example CEng MIEI Senior Engineer", "metadata": {"title": "People"}}})
+
+    monkeypatch.setattr(C.requests, "post", fake_post)
+    doc = C.fetch_rendered("https://example.ie/people", source_type="company_bio", force=True)
+    assert calls["n"] == 3
+    assert doc is not None and "CEng" in doc.content_text
+    # persistent 429 -> raw fallback, nothing cached under the rendered key
+    calls["n"] = -100
+    monkeypatch.setattr(C, "fetch", lambda url, source_type="other", force=False: None)
+    monkeypatch.setattr(C.requests, "post", lambda *a, **k: R(429))
+    out = C.fetch_rendered("https://example.ie/other", source_type="company_bio", force=True)
+    assert out is None
+    assert not list(tmp_path.glob("*.meta.json")) or all(
+        json.loads(m.read_text()).get("url") != "https://example.ie/other" for m in tmp_path.glob("*.meta.json")
+    )

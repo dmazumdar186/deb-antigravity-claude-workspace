@@ -466,6 +466,227 @@ def test_no_firm_domain_carries_a_scheme_or_a_path():
         assert "//" not in f.domain and "/" not in f.domain
 
 
+def test_every_people_path_is_a_bare_root_relative_path():
+    """These are appended to a base URL -- a path missing its leading slash
+    concatenates onto the domain instead of the origin."""
+    for f in company_bios.FIRMS:
+        assert f.people_paths, f"{f.slug} has no people_paths"
+        for p in f.people_paths:
+            assert p.startswith("/"), f"{f.slug}: {p!r} does not start with /"
+
+
+def test_mma_slug_names_the_firm_that_actually_owns_mhl_domain():
+    """2026-09-11 adversarial-audit fix (item 7): the "mma" slug's domain is
+    mhl.ie, and the firm trading there is "MHL & Associates", not "MMA
+    Consulting Engineers" (a different firm's name had been paired with this
+    domain). Slug kept stable so nothing downstream keyed on it breaks."""
+    firm = next(f for f in company_bios.FIRMS if f.slug == "mma")
+    assert firm.domain == "mhl.ie"
+    assert firm.name == "MHL & Associates"
+
+
+def test_oconnor_sutton_cronin_carries_all_irish_office_cities_and_multi_country():
+    firm = next(f for f in company_bios.FIRMS if f.slug == "oconnor_sutton")
+    assert set(firm.office_cities) == {"Dublin", "Cork", "Galway"}
+    assert firm.multi_country is True
+
+
+def test_the_firm_list_is_wide_enough_for_coverage():
+    """Widened 2026-09-11 from the ACEI 2026 Directory of Members to reach
+    the Senior-Engineer-to-Associate grade this role sources for across more
+    than the original 16 firms."""
+    assert len(company_bios.FIRMS) >= 30
+
+
+# ===========================================================================
+# company_bios.discover_people_urls -- nav -> Serper -> Firecrawl map -> guessed
+# ===========================================================================
+#
+# Built 2026-09-11: a 58-firm harvest_r1 run yielded pages from only 7 firms
+# because homepage-nav discovery alone found nothing for most new firms and
+# 108 guessed team-page paths 404'd. These fixtures never touch the network:
+# every fallback layer is monkeypatched independently so ordering and
+# filtering are pinned without a live Serper/Firecrawl call.
+
+
+def test_discover_people_urls_stops_at_nav_when_nav_already_fills_the_limit(monkeypatch, firm):
+    """Nav discovery is free; Serper and the Firecrawl map both cost
+    something (a query, a credit) and must not run when nav already found
+    enough."""
+    nav_urls = [
+        "https://www.ocsc.ie/our-team/a",
+        "https://www.ocsc.ie/our-team/b",
+        "https://www.ocsc.ie/our-team/c",
+        "https://www.ocsc.ie/our-team/d",
+    ]
+    monkeypatch.setattr(company_bios, "find_people_indexes", lambda f, limit=4: nav_urls)
+
+    def _boom(*a, **kw):
+        raise AssertionError("Serper/map must not run when nav filled the limit")
+
+    monkeypatch.setattr(company_bios, "_serper_site_people_search", _boom)
+    monkeypatch.setattr(company_bios, "_firecrawl_map", _boom)
+
+    urls = company_bios.discover_people_urls(firm, limit=4)
+
+    assert urls == nav_urls
+
+
+def test_discover_people_urls_falls_through_nav_serper_map_guessed_in_order(monkeypatch, firm):
+    monkeypatch.setattr(company_bios, "find_people_indexes", lambda f, limit=4: [])
+    monkeypatch.setattr(
+        company_bios, "_serper_site_people_search",
+        lambda domain: [{"link": "https://www.ocsc.ie/our-team/"}],
+    )
+    monkeypatch.setattr(
+        company_bios, "_firecrawl_map",
+        lambda domain: ["https://www.ocsc.ie/leadership/"],
+    )
+
+    urls = company_bios.discover_people_urls(firm, limit=4)
+
+    # firm.people_paths == ["/people/"] (see the `firm` fixture above).
+    assert urls == [
+        "https://www.ocsc.ie/our-team/",
+        "https://www.ocsc.ie/leadership/",
+        "https://www.ocsc.ie/people/",
+    ]
+
+
+def test_discover_people_urls_filters_serper_results_by_domain_and_path(monkeypatch, firm):
+    monkeypatch.setattr(company_bios, "find_people_indexes", lambda f, limit=4: [])
+    monkeypatch.setattr(
+        company_bios, "_serper_site_people_search",
+        lambda domain: [
+            {"link": "https://evil.example.com/team/"},         # off-domain
+            {"link": "https://www.ocsc.ie/projects/bridge"},    # no people path
+            {"link": "https://www.ocsc.ie/our-people/"},         # good
+        ],
+    )
+    monkeypatch.setattr(company_bios, "_firecrawl_map", lambda domain: [])
+
+    urls = company_bios.discover_people_urls(firm, limit=4)
+
+    assert "https://evil.example.com/team/" not in urls
+    assert "https://www.ocsc.ie/projects/bridge" not in urls
+    assert urls[0] == "https://www.ocsc.ie/our-people/"
+
+
+def test_discover_people_urls_filters_map_results_by_domain_and_path(monkeypatch, firm):
+    monkeypatch.setattr(company_bios, "find_people_indexes", lambda f, limit=4: [])
+    monkeypatch.setattr(company_bios, "_serper_site_people_search", lambda domain: [])
+    monkeypatch.setattr(
+        company_bios, "_firecrawl_map",
+        lambda domain: [
+            "https://evil.example.com/staff/",       # off-domain
+            "https://www.ocsc.ie/news/awards",        # no people path
+            "https://www.ocsc.ie/our-people/",        # good
+        ],
+    )
+
+    urls = company_bios.discover_people_urls(firm, limit=4)
+
+    assert "https://evil.example.com/staff/" not in urls
+    assert "https://www.ocsc.ie/news/awards" not in urls
+    assert urls[0] == "https://www.ocsc.ie/our-people/"
+
+
+def test_discover_people_urls_dedupes_across_layers(monkeypatch, firm):
+    same = "https://www.ocsc.ie/our-team/"
+    monkeypatch.setattr(company_bios, "find_people_indexes", lambda f, limit=4: [same])
+    monkeypatch.setattr(company_bios, "_serper_site_people_search",
+                         lambda domain: [{"link": same}])
+    monkeypatch.setattr(company_bios, "_firecrawl_map", lambda domain: [same])
+
+    urls = company_bios.discover_people_urls(firm, limit=4)
+
+    assert urls.count(same) == 1
+
+
+def test_discover_people_urls_respects_the_limit(monkeypatch, firm):
+    monkeypatch.setattr(company_bios, "find_people_indexes", lambda f, limit=4: [])
+    monkeypatch.setattr(
+        company_bios, "_serper_site_people_search",
+        lambda domain: [
+            {"link": "https://www.ocsc.ie/our-team/a"},
+            {"link": "https://www.ocsc.ie/our-team/b"},
+            {"link": "https://www.ocsc.ie/our-team/c"},
+        ],
+    )
+    monkeypatch.setattr(company_bios, "_firecrawl_map", lambda domain: [])
+
+    urls = company_bios.discover_people_urls(firm, limit=2)
+
+    assert len(urls) == 2
+
+
+def test_serper_site_search_skips_silently_when_key_absent(monkeypatch, capsys):
+    monkeypatch.setattr(company_bios, "secret", lambda name, required=True: "")
+
+    results = company_bios._serper_site_people_search("ocsc.ie")
+
+    assert results == []
+    assert "SERPER_API_KEY absent" in capsys.readouterr().out
+
+
+def test_discover_people_urls_falls_through_to_guessed_when_key_absent(monkeypatch, firm):
+    """No Serper key and no Firecrawl key -- discovery degrades all the way
+    to the hardcoded guessed paths rather than raising."""
+    monkeypatch.setattr(company_bios, "find_people_indexes", lambda f, limit=4: [])
+    monkeypatch.setattr(company_bios, "secret", lambda name, required=True: "")
+
+    urls = company_bios.discover_people_urls(firm, limit=4)
+
+    assert urls == ["https://www.ocsc.ie/people/"]
+
+
+def test_firecrawl_map_parses_the_v2_response_shape_and_caches(monkeypatch, tmp_path):
+    """Response shape confirmed against
+    https://docs.firecrawl.dev/api-reference/endpoint/map 2026-09-11:
+    {"success": bool, "links": [{"url": ..., "title": ..., "description": ...}]}."""
+    monkeypatch.setattr(company_bios, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(company_bios, "secret", lambda name, required=True: "fc-key")
+
+    calls = []
+
+    class FakeResp:
+        status_code = 200
+
+        def json(self):
+            return {
+                "success": True,
+                "links": [
+                    {"url": "https://www.ocsc.ie/our-team/", "title": "Our Team"},
+                    {"url": "https://www.ocsc.ie/projects/"},
+                ],
+            }
+
+    def fake_post(url, json, headers, timeout):
+        calls.append(url)
+        return FakeResp()
+
+    monkeypatch.setattr(company_bios.requests, "post", fake_post)
+
+    links = company_bios._firecrawl_map("ocsc.ie")
+
+    assert links == ["https://www.ocsc.ie/our-team/", "https://www.ocsc.ie/projects/"]
+    assert len(calls) == 1
+
+    # Second call must read the cached result, not hit the network again.
+    links_again = company_bios._firecrawl_map("ocsc.ie")
+
+    assert links_again == links
+    assert len(calls) == 1
+
+
+def test_firecrawl_map_skips_silently_when_key_absent(monkeypatch, tmp_path):
+    monkeypatch.setattr(company_bios, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(company_bios, "secret", lambda name, required=True: "")
+
+    assert company_bios._firecrawl_map("ocsc.ie") == []
+    assert list(tmp_path.iterdir()) == []  # no cache entry written for a skip
+
+
 # ===========================================================================
 # oral_hearing_web.py -- breadth across scheme sites
 # ===========================================================================

@@ -1,0 +1,134 @@
+{
+ "alice_kearney": {
+  "role_id": "role1_senior_structural_engineer",
+  "tier": "A",
+  "gates": [
+   {
+    "gate_id": "chartered",
+    "passed": true,
+    "basis": "c_alice_chartership",
+    "note": null
+   },
+   {
+    "gate_id": "located_ie",
+    "passed": true,
+    "basis": "c_alice_location",
+    "note": null
+   },
+   {
+    "gate_id": "discipline",
+    "passed": true,
+    "basis": "person.title",
+    "note": null
+   },
+   {
+    "gate_id": "seniority",
+    "passed": true,
+    "basis": "c_alice_years",
+    "note": null
+   },
+   {
+    "gate_id": "seniority_ceiling",
+    "passed": true,
+    "basis": "person.title",
+    "note": null
+   },
+   {
+    "gate_id": "not_client",
+    "passed": true,
+    "basis": null,
+    "note": null
+   }
+  ],
+  "n_claims": 6,
+  "client_side": false
+ },
+ "brian_walsh": {
+  "role_id": "role1_senior_structural_engineer",
+  "tier": "B",
+  "gates": [
+   {
+    "gate_id": "chartered",
+    "passed": true,
+    "basis": "c_brian_chartership",
+    "note": null
+   },
+   {
+    "gate_id": "located_ie",
+    "passed": true,
+    "basis": "c_brian_location",
+    "note": null
+   },
+   {
+    "gate_id": "discipline",
+    "passed": true,
+    "basis": "person.title",
+    "note": null
+   },
+   {
+    "gate_id": "seniority",
+    "passed": true,
+    "basis": "c_brian_years",
+    "note": null
+   },
+   {
+    "gate_id": "seniority_ceiling",
+    "passed": true,
+    "basis": "person.title",
+    "note": null
+   },
+   {
+    "gate_id": "not_client",
+    "passed": true,
+    "basis": null,
+    "note": null
+   }
+  ],
+  "n_claims": 5,
+  "client_side": false
+ },
+ "ciara_hennessy": {
+  "role_id": "role2_transport_major_projects_manager",
+  "tier": "B",
+  "gates": [
+   {
+    "gate_id": "chartered",
+    "passed": true,
+    "basis": "c_ciara_chartership",
+    "note": null
+   },
+   {
+    "gate_id": "located_ie",
+    "passed": true,
+    "basis": "c_ciara_location",
+    "note": null
+   },
+   {
+    "gate_id": "discipline",
+    "passed": true,
+    "basis": "person.title",
+    "note": null
+   },
+   {
+    "gate_id": "seniority",
+    "passed": true,
+    "basis": "c_ciara_years",
+    "note": null
+   },
+   {
+    "gate_id": "seniority_ceiling",
+    "passed": true,
+    "basis": "person.title",
+    "note": "cached from a run where the ceiling override allowed Director grade"
+   },
+   {
+    "gate_id": "not_client",
+    "passed": true,
+    "basis": null,
+    "note": null
+   }
+  ],
+  "n_claims": 6,
+  "client_side": false
+ }
+}

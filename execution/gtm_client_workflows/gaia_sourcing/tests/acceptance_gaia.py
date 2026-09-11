@@ -23,11 +23,12 @@ import html as html_mod
 import sys
 from pathlib import Path
 
-from ..core.config import PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
+from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
+from ..layers import gates
 from ..roles import ROLE1, ROLE2, is_client_side
 
-OUT = WORKSPACE_ROOT / "deliverables" / "gaia_2026-08-20"
-RUN = PKG_ROOT / "run" / "gaia-2026-08-20"
+OUT = CONFIG.deliverables_dir  # per campaign (GAIA_CAMPAIGN_ID)
+RUN = CONFIG.run_dir  # per campaign (GAIA_CAMPAIGN_ID)
 
 FAILURES: list[str] = []
 CHECKS = 0
@@ -83,7 +84,14 @@ def main() -> int:
     # renderer recomputed the shortlist and broke ties differently.
     contacts = json.loads((RUN / "contact.json").read_text(encoding="utf-8"))
     delivery = json.loads((RUN / "delivery.json").read_text(encoding="utf-8"))
-    shipped = [p for v in delivery.values() for p in v]
+    # delivery.json also carries "overflow" and "held_back" -- bookkeeping
+    # keyed by role id, not role ids themselves. A held-back person (no named
+    # employer) never went through enrichment on purpose, so iterating every
+    # top-level value here (2026-09-11 bug) compared them against contact.json
+    # as if they were delivered candidates and flagged them as unenriched.
+    # Only the real role ids name people who actually shipped.
+    real_role_ids = {ROLE1.role_id, ROLE2.role_id}
+    shipped = [p for k, v in delivery.items() if k in real_role_ids for p in v]
     check(len(shipped) == len(rows),
           "the rendered list is the list the pipeline delivered",
           str(len(shipped)) + " vs " + str(len(rows)))
@@ -152,6 +160,31 @@ def main() -> int:
           "every row offers the details toggle",
           str(html.count('class="det-btn"')) + " for " + str(len(cards)) + " rows")
 
+    # 2026-09-11 adversarial-audit fix (item 6): a card whose second-opinion
+    # pass errored or returned nothing parseable must say so on the card
+    # itself, not just quietly be capped at tier C. A card's detail row
+    # carries id="d-<role_id>-<person_id>", so it can be matched to the
+    # adversarial record even though `cards` is in delivery order, not
+    # keyed by person_id.
+    adv_path = RUN / "adversarial.json"
+    if adv_path.exists():
+        adv = json.loads(adv_path.read_text(encoding="utf-8"))
+        incomplete_pids = [
+            pid for pid, rec in adv.items()
+            if any("REVIEW INCOMPLETE" in str(f)
+                   for f in (rec.get("adversarial_findings") or []))
+        ]
+        shipped_incomplete = [p for p in incomplete_pids if p in shipped]
+        missing = []
+        for pid in shipped_incomplete:
+            m = re.search(r'id="d-[^"]*-' + re.escape(pid) + r'"[^>]*>(.*?)</tr>',
+                           html, re.S)
+            if m is None or "Second-opinion review incomplete for this card" not in m.group(1):
+                missing.append(pid)
+        check(not missing,
+              "every shipped REVIEW-INCOMPLETE card shows the incomplete-review line",
+              str(missing))
+
     check("a.cta-em" in html and "clipboard" in html,
           "the email clipboard fallback shipped with the page",
           "no handler found -- a mailto-only button is a silent no-op "
@@ -188,6 +221,21 @@ def main() -> int:
     if len(r1) < ROLE1.target_count or len(r2) < ROLE2.target_count:
         check("short" in text.lower() or "shortfall" in text.lower(),
               "a shortfall against the brief is stated on the artifact")
+
+    # Delivery composition guard (client feedback 2026-09-10). Rows straight
+    # off the delivered CSV are exactly CandidateCard-shaped for this check --
+    # current_title / location, the fields a reader actually sees.
+    for role_rows, spec in ((r1, ROLE1), (r2, ROLE2)):
+        cards = [
+            {"full_name": r["full_name"], "current_title": r["current_title"],
+             "location": r["location"]}
+            for r in role_rows
+        ]
+        violations = gates.composition_violations(cards, spec)
+        check(not violations,
+              spec.role_id + " -- delivered cards match the brief's "
+              "seniority ceiling and location rule",
+              "; ".join(violations[:8]) + (" ..." if len(violations) > 8 else ""))
 
     print("\n-- Presentation --------------------------------------------------")
     check("�" not in html, "no replacement characters on any card",
@@ -235,6 +283,20 @@ def main() -> int:
     check(not hits, "no lead-database page cited as evidence", str(hits))
 
     print("\n-- Provenance and legal ------------------------------------------")
+    # 2026-09-11 fix: this used to check "does ANY doc in docs.jsonl have
+    # text_source ocr", which would fail the whole acceptance run over an OCR
+    # document that was fetched but never cited by anyone who shipped (e.g. a
+    # candidate held back or cut). The card only needs to say "recovered by
+    # OCR" when a claim actually rendered on a DELIVERED card cites an OCR
+    # document -- so scope to doc_ids cited by shipped persons' claims, and
+    # pass trivially when none of those are OCR-sourced.
+    cited_doc_ids: set[str] = set()
+    validate_path = RUN / "validate.json"
+    if validate_path.exists():
+        vdata = json.loads(validate_path.read_text(encoding="utf-8"))
+        for c in vdata.get("claims", []):
+            if c.get("subject_person_id") in shipped:
+                cited_doc_ids.add(c.get("source_doc_id"))
     ocr_ids = set()
     docs = RUN / "docs.jsonl"
     if docs.exists():
@@ -245,7 +307,7 @@ def main() -> int:
                 rec = json.loads(line)
             except Exception:
                 continue
-            if rec.get("text_source") == "ocr":
+            if rec.get("text_source") == "ocr" and rec["doc_id"] in cited_doc_ids:
                 ocr_ids.add(rec["doc_id"])
     if ocr_ids:
         check("recovered by OCR" in html,
@@ -256,6 +318,36 @@ def main() -> int:
               "outreach cites the privacy notice URL")
         check("reply with the word STOP" in text,
               "every outreach draft carries the opt-out line")
+
+        # 2026-09-11 second-audit fix (item 6a): the notice is live (we are
+        # inside this branch), so a shipped candidate whose draft was
+        # actually dropped (compliance failure, opt-out, model returned
+        # nothing) must show the REAL reason on the card, never the
+        # privacy-notice-is-down line -- that line would be a lie once the
+        # notice is live.
+        messages_path = RUN / "messages.json"
+        if messages_path.exists():
+            msgs = json.loads(messages_path.read_text(encoding="utf-8"))
+            dropped_shipped = [
+                pid for pid in shipped
+                if isinstance(msgs.get(pid), dict) and msgs[pid].get("dropped")
+            ]
+            check(
+                "Withheld until the privacy notice is live." not in html
+                or not dropped_shipped,
+                "a dropped draft never shows the privacy-notice-is-down line "
+                "while the notice is live",
+                str(dropped_shipped),
+            )
+            check(
+                all(
+                    ("Draft withheld: failed the compliance check" in html)
+                    or ("Draft not generated: model returned nothing" in html)
+                    for _ in dropped_shipped[:1]
+                ) if dropped_shipped else True,
+                "a dropped draft's real reason is shown on the card",
+                str(dropped_shipped),
+            )
 
     print("\n-- Pool map honesty ----------------------------------------------")
     for name, spec in (("pool_map_role1.md", ROLE1), ("pool_map_role2.md", ROLE2)):

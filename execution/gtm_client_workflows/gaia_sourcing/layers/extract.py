@@ -18,7 +18,50 @@ from typing import Optional
 
 from ..core.contracts import Claim, Person, RawDocument
 from ..core.providers import ROLE_EXTRACT, call_role
+# 2026-09-11 adversarial-audit fix (item 3): _find_location_quote must not
+# hand out a quote that is really an institution-name fragment ("...cts is
+# an Engineers Ireland Chartered..."). Reuse gates.py's own residence-shape
+# and org-name-strip patterns rather than re-deriving them, so the two
+# modules can never drift on what counts as residence evidence.
+from .gates import _IE_RE, _IE_ORG_STRIP_RE, _RESIDENCE_SHAPE_RE
 
+
+
+_POSTNOM_TOKENS = (
+    r"CEng|C\.Eng|MIEI|FIEI|M\.I\.E\.I\.?|FConsEI|MIStructE|FIStructE|MICE|FICE|"
+    r"BEng|B\.Eng|MEng|M\.Eng|BSc|B\.Sc|MSc|M\.Sc|PhD|Ph\.D|Dip\s?Eng|HDip|PMP|MBA|Eur\s?Ing|EurIng"
+)
+
+_POSTNOMINAL_RE = re.compile(
+    r"(?:[,\s]+(?:" + _POSTNOM_TOKENS + r")(?:\s*\([^)]*\))?\.?)+\s*$",
+    re.I,
+)
+
+# 2026-09-11: current_title strings sometimes carry the SAME post-nominal
+# letters LEADING the string instead of trailing it -- "CEng MIEI Senior
+# Structural Engineer" or "(CEng, MIEI) Senior Structural Engineer" -- because
+# some firm directories list the letters before the role. Rendered as-is the
+# card greets nobody by a job title, it greets them with letters. Handles an
+# optional wrapping parenthesis and comma-or-space separated runs of tokens.
+_LEADING_POSTNOMINAL_RE = re.compile(
+    r"^\(?(?:" + _POSTNOM_TOKENS + r")(?:[,\s]+(?:" + _POSTNOM_TOKENS + r"))*\)?[,\s]*",
+    re.I,
+)
+
+
+def strip_postnominals(name: str) -> str:
+    """'Kate FitzGerald CEng MIEI' -> 'Kate FitzGerald'. Post-nominals are
+    evidence (they feed the chartered gate from the quote), not part of the
+    name; a card that greets someone by their letters reads as machine
+    output. Also strips a LEADING post-nominal group (with or without a
+    wrapping parenthesis/commas) -- used at render time on current_title too,
+    e.g. 'CEng MIEI Senior Structural Engineer' -> 'Senior Structural
+    Engineer'."""
+    if not name:
+        return name
+    s = _POSTNOMINAL_RE.sub("", name.strip()).strip(" ,")
+    s = _LEADING_POSTNOMINAL_RE.sub("", s).strip(" ,")
+    return s
 SYSTEM = """You extract evidenced claims about ONE engineer from public documents.
 
 You are part of a recruitment sourcing pipeline for an Irish recruitment
@@ -63,6 +106,34 @@ DIMENSIONS
   education         degrees and institutions
   statutory_process EIAR, EIS, CPO, oral hearing, railway order, An Bord
                     Pleanala / An Coimisiun Pleanala evidence
+"""
+
+# Extraction instructions for a "search_snippet" document (core/contracts.py
+# SourceType, RADAR_CONTRACTS.md section A; run.py's stage_harvest_discovery)
+# -- a title + snippet + url is a far weaker, far shorter source than a
+# rendered page or a witness statement, and the risk it invites is
+# specifically a model treating a two-line search result with the same
+# inferential confidence as a full document. Appended to SYSTEM rather than
+# replacing it, so every rule above (copy-exactly, emit-nothing-when-
+# unsupported, dimension list) still applies.
+SNIPPET_SYSTEM = SYSTEM + """
+
+THIS DOCUMENT IS A SEARCH-ENGINE RESULT (title + snippet + url), not a
+rendered page or a witness statement. It is three short lines, and it is
+weaker evidence than anything else this pipeline extracts from -- follow
+these additional rules exactly:
+
+  - The subject's name, current_title and current_employer come from the
+    TITLE line only ("title: ..."). Never read a title/employer out of the
+    snippet line.
+  - location comes from the SNIPPET line only ("snippet: ..."), never
+    inferred from the title, the url, or general knowledge of the employer.
+  - chartership: emit a chartership claim ONLY if "CEng" or "MIEI" appears
+    LITERALLY in the text. A senior-sounding title is not chartership
+    evidence.
+  - years_experience: NEVER emit a years_experience claim from a snippet.
+    Three lines give no basis to infer a year count, and guessing one here
+    is exactly the confident-invention failure this task exists to prevent.
 """
 
 TOOL = {
@@ -120,11 +191,182 @@ RUN_COST: list[dict] = []
 # in the job title overrides any firm-level location default.
 _OFFICE_RE = re.compile(r"\(([^)]*office[^)]*)\)", re.I)
 
+# How far either side of a person's name occurrence to look for a location
+# token before falling back to a whole-page search. Directory pages routinely
+# state an office address in a masthead/footer near each person's card.
+_LOCATION_SEARCH_WINDOW = 500
+
+
+def window_around_names(
+    text: str, forename: str, surname: str, window_chars: int, whole_page_cap: int = 6000
+) -> str:
+    """A slice of `text` centred on the first co-occurrence of forename+surname.
+
+    Built for run.py's stage_deepen_near_misses: a whole fetched page sent to
+    the L5 extractor is the cost driver a EUR 5.98-for-60-people run traced
+    to (CONFIG.deepen_window_chars docstring, core/config.py) -- most of a
+    long page is not about the one person being deepened. `window_chars`
+    either side of the first place both names appear together keeps the
+    paragraph that actually concerns them while dropping the rest of the
+    page from the (paid) extraction call.
+
+    The full, unwindowed page is still what gets cached in docs.jsonl and
+    what layers.validator checks every claim's quote against -- only the
+    extraction INPUT is windowed here, so a quote just outside the window
+    still validates.
+
+    Falls back to the first `whole_page_cap` characters when the two names
+    never co-occur (e.g. a directory-index-style page where only the
+    surname or only the forename appears) -- still capped, not the whole
+    page, so a near-miss with no real match costs no more than a bounded
+    slice.
+    """
+    if not text:
+        return text
+    low = text.lower()
+    f_low, s_low = (forename or "").lower(), (surname or "").lower()
+    idx = -1
+    if f_low and s_low:
+        search_from = 0
+        while True:
+            fi = low.find(f_low, search_from)
+            if fi == -1:
+                break
+            span_start = max(0, fi - window_chars)
+            span_end = min(len(text), fi + len(forename) + window_chars)
+            if s_low in low[span_start:span_end]:
+                idx = fi
+                break
+            search_from = fi + 1
+    if idx == -1:
+        return text[:whole_page_cap]
+    start = max(0, idx - window_chars)
+    end = min(len(text), idx + len(forename) + window_chars)
+    return text[start:end]
+
+
+def _find_location_quote(
+    text: str, name: str, city: Optional[str]
+) -> Optional[str]:
+    """A verbatim quote in `text` evidencing an Ireland/city-based location.
+
+    Used only when a person's location was set from the firm's default
+    (never when the model or an office-title override already supplied a
+    location) -- this is what turns a bare default into real, quoted
+    evidence for the located_ie gate and RADAR_CONTRACTS' "no claim without
+    a verbatim quote" rule.
+
+    Searches for the office city (if the firm has exactly one known one)
+    ahead of the bare word "Ireland", first within _LOCATION_SEARCH_WINDOW
+    characters of the person's name, then anywhere on the page (an address
+    in the site footer counts -- a directory page's own contact details are
+    evidence of where the FIRM, and by extension an unqualified staff entry,
+    is based). Returns an exact substring of the source text so
+    layers/validator.py's normalize() comparison always matches it, or None
+    if neither token appears anywhere on the page.
+
+    2026-09-11 adversarial-audit fix (item 3): the naive +/-20 char slice
+    around a bare "Ireland" hit could land mid-word ("...cts is an Engineers
+    Ireland Chartered...") and, worse, could be entirely an institution-name
+    fragment ("Engineers Ireland", "Institution of Structural Engineers")
+    with nothing at all said about where the PERSON lives. A candidate quote
+    is now accepted only when, AFTER stripping those institution names
+    (gates._IE_ORG_STRIP_RE), it still contains either a residence-shaped
+    phrase (gates._RESIDENCE_SHAPE_RE: "based in", "our Cork office", ...)
+    or a county/city token (gates._IE_RE) outside the stripped org names, and
+    the quote itself does not start or end mid-word.
+    """
+    tokens = [t for t in ([city] if city else []) + ["Ireland"] if t]
+    if not tokens or not text:
+        return None
+
+    low = text.lower()
+    name_idx = low.find(name.lower()) if name else -1
+    spans = []
+    if name_idx != -1:
+        spans.append((
+            max(0, name_idx - _LOCATION_SEARCH_WINDOW),
+            min(len(text), name_idx + len(name) + _LOCATION_SEARCH_WINDOW),
+        ))
+    spans.append((0, len(text)))  # whole-page fallback
+
+    for start, end in spans:
+        window = text[start:end]
+        window_low = window.lower()
+        for token in tokens:
+            tidx = window_low.find(token.lower())
+            if tidx == -1:
+                continue
+            q_start = max(0, tidx - 20)
+            q_end = min(len(window), tidx + len(token) + 20)
+            quote = window[q_start:q_end]
+            # Never start or end mid-word: a slice that begins inside a word
+            # ("...cts is an...") is not a sentence, it is a fragment.
+            if q_start > 0:
+                sp = quote.find(" ")
+                quote = quote[sp + 1:] if sp != -1 else ""
+            if q_end < len(window):
+                sp = quote.rfind(" ")
+                quote = quote[:sp] if sp != -1 else ""
+            quote = quote.strip()
+            if len(quote) < 12:
+                continue
+            residence_evidenced = _IE_ORG_STRIP_RE.sub(" ", quote)
+            if not (
+                _RESIDENCE_SHAPE_RE.search(residence_evidenced)
+                or _IE_RE.search(residence_evidenced)
+            ):
+                continue
+            return quote[:400]
+    return None
+
 
 def _window(text: str) -> str:
     if len(text) <= _HEAD + _TAIL:
         return text
     return text[:_HEAD] + "\n\n[... middle of document omitted ...]\n\n" + text[-_TAIL:]
+
+
+# Case-insensitivity is scoped to the title keyword and month only; the firm
+# capture stays case-sensitive so "engineer at several irish firms" cannot
+# yield a firm (code review, 2026-09-11). The keyword carries a trailing \b
+# so "Engineers Ireland ... speaks at Croke Park" cannot either.
+_EMPLOYER_AT_RE = re.compile(
+    r"\b(?i:engineer|director|associate|manager|lead|consultant|head of \w+)\b"
+    r"[^.\n|\u00b7]{0,40}?\s+(?i:at)\s+"
+    r"([A-Z][A-Za-z0-9&'\-]*(?:\s+[A-Z][A-Za-z0-9&'\-]*){0,4})"
+)
+_EMPLOYER_LINKEDIN_EXP_RE = re.compile(
+    r"\b(?i:engineer|director|associate|manager|consultant)\.\s+"
+    r"([A-Z][^\n]{2,60}?)\.\s+"
+    r"(?i:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4}"
+)
+_EMPLOYER_STOP_RE = re.compile(
+    r"(?i)^(?:the|a|an|present|current|university|college|institute)\b"
+)
+
+
+def employer_from_own_text(text: str) -> Optional[tuple[str, str]]:
+    """Deterministic employer recovery from a person's OWN document text.
+
+    Third audit 2026-09-11: "JOHN ALCARAS BSc CEng MIEI. Lead / Senior
+    Structural Engineer at Arcadis." and "Senior Structural Engineer. J.A.
+    Gorman Consulting Engineers Ltd. Jan 2014" both name the employer, yet
+    the model emitted no employer claim and both people were held back as
+    "no employer stated on any source". Two shapes are recognised: "<title>
+    at <Firm>" and LinkedIn's "<title>. <Firm>. <Mon YYYY>". Returns
+    (firm, verbatim_quote) -- the quote is an exact substring of `text` so
+    the validator's containment check holds -- or None.
+    """
+    for rx in (_EMPLOYER_AT_RE, _EMPLOYER_LINKEDIN_EXP_RE):
+        for m in rx.finditer(text or ""):
+            firm = m.group(1).strip(" ,;:")
+            if len(firm) < 3 or _EMPLOYER_STOP_RE.match(firm):
+                continue
+            if firm.lower() in ("linkedin", "ireland", "dublin", "cork"):
+                continue
+            return firm, m.group(0)
+    return None
 
 
 def _claim_id(person_id: str, doc_id: str, quote: str) -> str:
@@ -170,9 +412,14 @@ def extract_from_document(
         + closing
     )
 
+    # search_snippet documents get the more conservative snippet-specific
+    # instructions (name/title/employer from the title, location from the
+    # snippet, chartership only on a literal CEng/MIEI, never years) -- see
+    # SNIPPET_SYSTEM's docstring above.
+    system = SNIPPET_SYSTEM if doc.source_type == "search_snippet" else SYSTEM
     out, meta = call_role(
         role=ROLE_EXTRACT,
-        system=SYSTEM,
+        system=system,
         user=user,
         tool=TOOL,
     )
@@ -422,10 +669,18 @@ def extract_directory(
         # located_ie gate, so the title is checked before the firm default.
         person = Person(
             person_id=pid,
-            full_name=name,
+            full_name=strip_postnominals(name),
             current_title=title,
             current_employer=employer,
             location=(title if title and _OFFICE_RE.search(title) else default_location),
+            # Provenance travels with the value: a firm default set here is
+            # the same datum stage_locate stamps, and the located_ie gate
+            # accepts Person.location only when it is stamped.
+            location_source=(
+                "firm_default"
+                if default_location and not (title and _OFFICE_RE.search(title))
+                else None
+            ),
             doc_ids=[doc.doc_id],
         )
         claims: list[Claim] = []
@@ -459,6 +714,38 @@ def extract_directory(
                 )
             except Exception:
                 continue  # malformed item dropped, never repaired
+
+        # Turn the firm-default location into real, quoted evidence when the
+        # page itself states the office city or "Ireland" -- a bare default
+        # is not evidence for located_ie's direct-evidence haystack
+        # (gates.check_located_ie reads person.location too, but a claim with
+        # a verbatim quote is what the client-facing card actually shows).
+        # Only fires when the location came from the default (an explicit
+        # office-title override, e.g. "(Belfast Office)", is itself already
+        # evidence and needs no manufactured quote).
+        used_default = default_location and person.location == default_location
+        if used_default:
+            city = None
+            if default_location != "Ireland" and default_location.endswith(", Ireland"):
+                city = default_location.rsplit(",", 1)[0].strip()
+            quote = _find_location_quote(doc.content_text, name, city)
+            if quote:
+                cid = _claim_id(pid, doc.doc_id, quote)
+                if cid not in seen_ids:
+                    seen_ids.add(cid)
+                    claims.append(
+                        Claim(
+                            claim_id=cid,
+                            subject_person_id=pid,
+                            dimension="location",
+                            assertion=name + " is based in " + default_location,
+                            evidence_quote=quote,
+                            source_doc_id=doc.doc_id,
+                            source_url=doc.url,
+                            confidence="direct",
+                        )
+                    )
+
         if claims:
             results.append((person, claims))
     return results

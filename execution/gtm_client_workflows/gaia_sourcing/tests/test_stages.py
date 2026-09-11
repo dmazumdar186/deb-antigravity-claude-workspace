@@ -15,6 +15,7 @@ stage function against it. Zero network, zero LLM, zero paid calls.
 from __future__ import annotations
 
 import json
+import sys
 from datetime import date
 
 import pytest
@@ -58,7 +59,8 @@ def _person(pid: str, name: str, role_id: str, source: str, **kw) -> dict:
         "person_id": pid,
         "full_name": name,
         "current_title": kw.get("title"),
-        "current_employer": kw.get("employer"),
+        # delivery requires a named employer (2026-09-11); fixtures default to one
+        "current_employer": kw.get("employer", "Fixture Consulting Engineers"),
         "location": kw.get("location"),
         "doc_ids": kw.get("doc_ids", ["d1"]),
         "linkedin_url": kw.get("linkedin_url"),
@@ -79,6 +81,107 @@ def _claim(pid: str, dimension: str, assertion: str, quote: str, **kw) -> dict:
         "confidence": kw.get("confidence", "direct"),
         "quote_verified": True,
     }
+
+
+# ---------------------------------------------------------------------------
+# stage_harvest_r1 -- the "no people page found" log line
+#
+# 2026-09-11: a 58-firm run yielded pages from only 7 firms and gave no
+# visibility into which firms came back empty or why. This pins that the
+# stage now names every firm that never produced a page >= 800 chars, and
+# counts them in its final summary line, without touching the 800-char rule
+# itself (a fixture doc under 800 chars must still be silently skipped as a
+# harvested page but must still count its firm as "no page found").
+# ---------------------------------------------------------------------------
+
+
+def test_harvest_r1_logs_and_counts_firms_with_no_people_page(R, monkeypatch, capsys):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm_ok = cb.Firm(slug="ok_firm", name="OK Firm", domain="ok.ie", people_paths=["/people"])
+    firm_empty = cb.Firm(slug="empty_firm", name="Empty Firm", domain="empty.ie",
+                          people_paths=["/team"])
+    monkeypatch.setattr(cb, "FIRMS", [firm_ok, firm_empty])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm_ok, firm_empty])
+
+    def fake_discover(firm, limit=4):
+        return ["https://www." + firm.domain + "/people"]
+
+    monkeypatch.setattr(R.company_bios, "discover_people_urls", fake_discover)
+
+    def fake_fetch_rendered(url, source_type="company_bio"):
+        if "ok.ie" in url:
+            return _doc("d_ok", "Chartered engineer. " * 60, url=url)  # >= 800 chars
+        return _doc("d_short", "too short", url=url)  # < 800 chars -- dropped silently
+
+    monkeypatch.setattr(R, "fetch_rendered", fake_fetch_rendered)
+
+    R.stage_harvest_r1()
+
+    out = capsys.readouterr().out
+    assert "empty_firm: no people page found (tried 1 urls)" in out
+    assert "1 firms with no people page found" in out
+
+    records = json.loads((R.RUN_DIR / "harvest_r1.json").read_text(encoding="utf-8"))
+    assert {r["firm_slug"] for r in records} == {"ok_firm"}
+
+
+# ---------------------------------------------------------------------------
+# --purge-failed-cache -- an empty needle purges only the errorless 404s
+#
+# 2026-09-11: the 108 guessed team-page URLs that 404'd during harvest_r1
+# needed purging before a re-run with real discovery, but the pre-existing
+# flag's empty-needle case (`needle and needle not in error`) purged EVERY
+# not-ok cache entry, including empty_after_parse ones the operator did not
+# name -- indistinguishable failure modes get the same "start over" cost.
+# ---------------------------------------------------------------------------
+
+
+def _write_cache_meta(cache_dir, name: str, meta: dict) -> None:
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    (cache_dir / (name + ".meta.json")).write_text(json.dumps(meta), encoding="utf-8")
+    (cache_dir / (name + ".body")).write_text("x", encoding="utf-8")
+
+
+def test_empty_needle_purges_only_entries_with_no_explicit_error(monkeypatch, tmp_path, capsys):
+    from gtm_client_workflows.gaia_sourcing import run as mod
+    from gtm_client_workflows.gaia_sourcing.core import cache as cache_mod
+
+    monkeypatch.setattr(cache_mod, "CACHE_DIR", tmp_path)
+    # A guessed team-page 404: fetch()/fetch_rendered() write no "error" key
+    # at all for a non-200 status -- see core/cache.py's fetch().
+    _write_cache_meta(tmp_path, "a", {"ok": False, "http_status": 404, "url": "https://x/a"})
+    # empty_after_parse carries an explicit error and must survive.
+    _write_cache_meta(tmp_path, "b", {"ok": False, "error": "empty_after_parse", "url": "https://x/b"})
+    # A successful entry must never be touched.
+    _write_cache_meta(tmp_path, "c", {"ok": True, "doc_id": "d", "url": "https://x/c",
+                                       "fetched_at": "2026-09-11", "http_status": 200})
+
+    monkeypatch.setattr(sys, "argv", ["run.py", "--purge-failed-cache", ""])
+
+    rc = mod.main()
+
+    assert rc == 0
+    assert not (tmp_path / "a.meta.json").exists()
+    assert (tmp_path / "b.meta.json").exists()
+    assert (tmp_path / "c.meta.json").exists()
+    assert "purged 1 failed cache entries" in capsys.readouterr().out
+
+
+def test_a_named_needle_still_purges_only_matching_entries(monkeypatch, tmp_path):
+    from gtm_client_workflows.gaia_sourcing import run as mod
+    from gtm_client_workflows.gaia_sourcing.core import cache as cache_mod
+
+    monkeypatch.setattr(cache_mod, "CACHE_DIR", tmp_path)
+    _write_cache_meta(tmp_path, "a", {"ok": False, "http_status": 404, "url": "https://x/a"})
+    _write_cache_meta(tmp_path, "b", {"ok": False, "error": "empty_after_parse", "url": "https://x/b"})
+
+    monkeypatch.setattr(sys, "argv", ["run.py", "--purge-failed-cache", "empty_after_parse"])
+
+    mod.main()
+
+    assert (tmp_path / "a.meta.json").exists()       # untouched -- named needle, no match
+    assert not (tmp_path / "b.meta.json").exists()    # explicitly named -- purged
 
 
 # ---------------------------------------------------------------------------
@@ -397,6 +500,69 @@ def test_delivery_set_is_capped_at_the_briefs_target_count(graded_pool):
     assert len(graded_pool._delivery_set()[R1]) == ROLE1.target_count
 
 
+def test_delivery_set_logs_and_records_the_overflow(graded_pool, capsys):
+    """The candidates the target_count cap drops must not vanish without a
+    trace -- logged, and written into delivery.json under overflow[role_id]."""
+    graded_pool.save("gate", {
+        **graded_pool.load("gate"),
+        **{
+            "f" + str(i): {"role_id": R1, "tier": "C", "gates": [], "n_claims": 1,
+                           "client_side": False}
+            for i in range(20)
+        },
+    })
+    data = graded_pool.load("extract")
+    for i in range(20):
+        data["persons"]["f" + str(i)] = _person(
+            "f" + str(i), "Filler " + str(i), R1, "company_directory")
+    graded_pool.save("extract", data)
+
+    delivery = graded_pool._delivery_set()
+
+    delivered = set(delivery[R1])
+    overflow = set(delivery["overflow"][R1])
+    assert len(overflow) > 0
+    assert delivered.isdisjoint(overflow)
+    # Nobody who qualified is unaccounted for: delivered + overflow covers
+    # every qualifying candidate.
+    all_fillers = {"f" + str(i) for i in range(20)}
+    assert all_fillers <= (delivered | overflow | {"a1", "a2", "b1", "c1"})
+
+    out = capsys.readouterr().out
+    assert "cut:" in out
+    assert next(iter(overflow)) in out
+
+
+def test_delivery_set_overflow_is_empty_when_nothing_is_cut(graded_pool, capsys):
+    delivery = graded_pool._delivery_set()
+
+    assert delivery["overflow"][R1] == []
+    assert "cut:" not in capsys.readouterr().out
+
+
+def test_delivery_set_holds_back_candidates_with_no_named_employer(graded_pool):
+    """2026-09-11: a candidate with no named employer must never ship (the
+    acceptance gate 'every candidate has a named employer' would fail), but
+    must be recorded under out["held_back"][role_id] as
+    {"person_id", "reason"} -- never smuggled into `overflow` under a
+    synthetic "role_id:no_employer" key, and never left off delivery.json
+    entirely."""
+    data = graded_pool.load("extract")
+    data["persons"]["a1"]["current_employer"] = ""
+    graded_pool.save("extract", data)
+
+    delivery = graded_pool._delivery_set()
+
+    assert "a1" not in delivery[R1]
+    assert "a1" not in delivery["overflow"][R1]
+    assert R1 + ":no_employer" not in delivery["overflow"]
+    assert R1 + ":no_employer" not in delivery
+    held = delivery["held_back"][R1]
+    assert {"person_id": "a1", "reason": "employer not captured from any source text"} in held
+    # a2 has an employer and still qualifies, so it ships in a1's place.
+    assert "a2" in delivery[R1]
+
+
 def test_an_adversarial_demotion_reorders_delivery(graded_pool):
     """L8's verdict is what ships, not the pre-critique tier."""
     graded_pool.save("adversarial", {
@@ -421,6 +587,30 @@ def test_final_tier_falls_back_to_the_gate_when_l8_never_ran(graded_pool):
     gate = graded_pool.load("gate")
     assert graded_pool._final_tier("b1", gate, {}) == "B"
     assert graded_pool._final_tier("b1", gate, {"b1": {"tier": None}}) == "B"
+
+
+def test_final_tier_caps_a_review_incomplete_person_at_c(graded_pool):
+    """2026-09-11 adversarial-audit fix (item 6): a card that only ever had
+    one reviewer must never ship at the first pass's tier, even "A"."""
+    gate = graded_pool.load("gate")
+    adv = {"b1": {
+        "tier": "A", "adversarial_findings": [
+            "REVIEW INCOMPLETE -- the second-opinion pass errored, so this "
+            "card has had one pass only. Treat its confidence accordingly."
+        ],
+    }}
+    assert graded_pool._final_tier("b1", gate, adv) == "C"
+
+
+def test_is_review_incomplete_helper(graded_pool):
+    assert graded_pool._is_review_incomplete(
+        {"adversarial_findings": ["REVIEW INCOMPLETE -- errored"]}
+    ) is True
+    assert graded_pool._is_review_incomplete(
+        {"adversarial_findings": ["Recently promoted, confirm tenure."]}
+    ) is False
+    assert graded_pool._is_review_incomplete(None) is False
+    assert graded_pool._is_review_incomplete({}) is False
 
 
 # ---------------------------------------------------------------------------
@@ -575,7 +765,31 @@ def test_a_non_compliant_draft_is_dropped_never_patched(graded_pool, monkeypatch
 
     graded_pool.stage_messages()
 
-    assert graded_pool.load("messages") == {}
+    # 2026-09-11 second-audit fix (item 7): the drop reason is now recorded
+    # per pid (so render.py can show it honestly), not silently omitted.
+    out = graded_pool.load("messages")
+    assert set(out) == {"a1", "a2", "b1", "c1"}
+    assert all(
+        rec.get("dropped") == "Art. 14 notice missing from the email body."
+        for rec in out.values()
+    )
+
+
+def test_a_draft_of_none_is_recorded_as_model_returned_nothing(graded_pool, monkeypatch):
+    """2026-09-11 second-audit fix (item 7): messages.draft() returning None
+    (the model produced nothing usable) must be recorded with its own
+    reason, distinct from a compliance drop, so render.py can show the
+    honest "Draft not generated" message rather than implying a compliance
+    failure or a dead privacy notice."""
+    from gtm_client_workflows.gaia_sourcing.layers import messages as messages_layer
+
+    monkeypatch.setattr(messages_layer, "draft", lambda *a, **kw: None)
+
+    graded_pool.stage_messages()
+
+    out = graded_pool.load("messages")
+    assert set(out) == {"a1", "a2", "b1", "c1"}
+    assert all(rec.get("dropped") == "model returned nothing" for rec in out.values())
 
 
 def test_a_compliant_draft_survives(graded_pool, monkeypatch):
@@ -587,6 +801,36 @@ def test_a_compliant_draft_survives(graded_pool, monkeypatch):
     graded_pool.stage_messages()
 
     assert set(graded_pool.load("messages")) == {"a1", "a2", "b1", "c1"}
+
+
+def test_an_opted_out_candidate_never_gets_a_draft(graded_pool, monkeypatch, tmp_path, capsys):
+    """RADAR_CONTRACTS.md section E: opt-out is checked at draft creation.
+    A hit must skip messages.draft entirely (never call it, never log it as
+    a normal drop) and be visible in the log as draft_blocked_optout."""
+    from gtm_client_workflows.gaia_sourcing.layers import messages as messages_layer, optout
+
+    fixture_registry = tmp_path / "optout.jsonl"
+    optout.add_optout(person_id="a1", reason="asked to stop", path=fixture_registry)
+    monkeypatch.setattr(optout, "DEFAULT_OPTOUT_PATH", fixture_registry)
+
+    called_for = []
+
+    def spy_draft(person, claims, spec, *a, **kw):
+        called_for.append(person.person_id)
+        return messages_layer.assemble("note", "subject", "body", "follow up")
+
+    monkeypatch.setattr(messages_layer, "draft", spy_draft)
+
+    graded_pool.stage_messages()
+
+    assert "a1" not in called_for, "opt-out must be checked BEFORE draft() is ever called"
+    out = graded_pool.load("messages")
+    # 2026-09-11 second-audit fix (item 7): a1's drop reason is now recorded
+    # too (render.py needs it to show the real reason), but it never got a
+    # real drafted message -- only {"dropped": ...}.
+    assert out["a1"] == {"dropped": "opted out"}
+    assert set(out) == {"a1", "a2", "b1", "c1"}
+    assert "a1 draft_blocked_optout" in capsys.readouterr().out
 
 
 def test_movability_failure_drops_one_candidate_not_the_stage(graded_pool, monkeypatch):
@@ -745,13 +989,15 @@ def test_docs_survive_a_non_ascii_body(R):
     assert "O’Reilly" in R.load_docs()["d1"].content_text
 
 
-def test_an_unparseable_document_line_loses_one_document_not_the_store(R):
+def test_an_unparseable_document_line_loses_one_document_not_the_store(R, capsys):
     R.save_docs([_doc("d1", "first")])
     with R.DOCS.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps({"doc_id": "d2", "url": "not-a-url"}) + "\n")
     R.save_docs([_doc("d3", "third")])
 
     assert set(R.load_docs()) == {"d1", "d3"}
+    # The skip must be visible, not a silent drop.
+    assert "skipping malformed line" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------
@@ -804,3 +1050,537 @@ def test_releasing_a_lock_that_is_already_gone_is_not_an_error(R):
     lock.unlink()
 
     R.release_run_lock(lock)  # must not raise
+
+
+# ---------------------------------------------------------------------------
+# STAGES registry -- render must be registered, and before console
+# ---------------------------------------------------------------------------
+
+
+def test_render_stage_is_registered_before_console():
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    assert "render" in mod.STAGES
+    order = list(mod.STAGES.keys())
+    assert order.index("render") < order.index("console")
+
+
+def test_sync_crm_is_the_last_registered_stage():
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    assert list(mod.STAGES.keys())[-1] == "sync_crm"
+
+
+def test_stage_render_calls_the_dossier_builder(monkeypatch):
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    calls = []
+    monkeypatch.setattr(
+        mod.render_module, "build",
+        lambda allow_placeholder_notice=False: calls.append(allow_placeholder_notice),
+    )
+    monkeypatch.setattr(mod.render_module, "OUT_DIR", "irrelevant")
+    monkeypatch.setattr(mod, "_ALLOW_PLACEHOLDER_NOTICE", True)
+
+    mod.stage_render()
+
+    assert calls == [True]
+
+
+# ---------------------------------------------------------------------------
+# --spend prints per-run and cumulative totals and exits without touching a
+# run directory
+# ---------------------------------------------------------------------------
+
+
+def test_spend_flag_prints_both_totals_and_exits(monkeypatch, capsys, tmp_path):
+    from gtm_client_workflows.gaia_sourcing import run as R
+    from gtm_client_workflows.gaia_sourcing.core import providers
+
+    monkeypatch.setattr(providers, "LEDGER_PATH", tmp_path / "spend_ledger.jsonl")
+    providers._append_ledger("c1", "extract", "m", 3.5)
+    providers.reset_spend()
+
+    monkeypatch.setattr("sys.argv", ["run", "--spend"])
+    rc = R.main()
+
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "this run EUR 0.00" in out
+    assert "cumulative EUR 3.50" in out
+    providers.reset_spend()
+
+
+# ---------------------------------------------------------------------------
+# stage_harvest_discovery -- free/cheap people-discovery via
+# sources.registry providers (RADAR_CONTRACTS.md section A)
+# ---------------------------------------------------------------------------
+
+
+def _discovery_doc(doc_id: str = "dd1") -> RawDocument:
+    return RawDocument(
+        doc_id=doc_id,
+        url="https://ie.linkedin.com/in/jane-doe",
+        source_type="search_snippet",
+        fetched_at=date(2026, 9, 11),
+        content_text="title: Jane Doe - Senior Structural Engineer - Acme "
+                      "Consulting | LinkedIn\nsnippet: Cork, Ireland\n"
+                      "url: https://ie.linkedin.com/in/jane-doe",
+        http_status=200,
+        title="Jane Doe - Senior Structural Engineer - Acme Consulting | LinkedIn",
+    )
+
+
+def test_harvest_discovery_writes_docs_and_records_from_a_registered_provider(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.core.config import CONFIG
+    from gtm_client_workflows.gaia_sourcing.core.contracts import ProviderRecord
+    from gtm_client_workflows.gaia_sourcing.sources.base import FixtureProvider
+    from gtm_client_workflows.gaia_sourcing.sources import registry
+
+    doc = _discovery_doc()
+    record = ProviderRecord(
+        provider="test_fixture_provider",
+        external_id=str(doc.url),
+        full_name="Jane Doe",
+        current_title="Senior Structural Engineer",
+        current_employer="Acme Consulting",
+        city="Cork",
+        fetched_at=date(2026, 9, 11),
+        raw_hash="deadbeef",
+    )
+    fixture = FixtureProvider(
+        name="test_fixture_provider", documents=[doc], provider_records=[record],
+    )
+    monkeypatch.setitem(registry.PROVIDERS, fixture.name, fixture)
+    monkeypatch.setattr(CONFIG, "discovery_providers", [fixture.name])
+    monkeypatch.setattr(CONFIG, "discovery_max_queries", 10_000)
+
+    R.stage_harvest_discovery(force=True)
+
+    assert R.done("harvest_discovery")
+    records = R.load("harvest_discovery")
+    # One provider x two roles (ROLE1, ROLE2) -- FixtureProvider.fetch()
+    # returns the same fixed document/record regardless of the query, so one
+    # call per role.
+    assert len(records) == 2
+    for rec in records:
+        assert rec["provider"] == fixture.name
+        assert rec["full_name"] == "Jane Doe"
+        assert rec["current_title"] == "Senior Structural Engineer"
+        assert rec["current_employer"] == "Acme Consulting"
+        assert rec["city"] == "Cork"
+        assert rec["doc_id"] == doc.doc_id
+    assert {rec["role_id"] for rec in records} == {ROLE1.role_id, ROLE2.role_id}
+
+    # docs.jsonl dedupes by doc_id even though the same document was appended
+    # once per role.
+    stored_docs = R.load_docs()
+    assert list(stored_docs.keys()) == [doc.doc_id]
+
+
+def test_harvest_discovery_skips_a_provider_that_is_not_configured(R, monkeypatch, capsys):
+    from gtm_client_workflows.gaia_sourcing.core.config import CONFIG
+    from gtm_client_workflows.gaia_sourcing.sources.licensed_common import ProviderNotConfigured
+    from gtm_client_workflows.gaia_sourcing.sources import registry
+
+    class _RaisingProvider:
+        name = "raising_test_provider"
+        text_source = "provider_field"
+        rate_limit_s = 0.0
+
+        def fetch(self, query):
+            raise ProviderNotConfigured("TEST_PROVIDER_API_KEY is not set")
+
+        def cost_eur(self, result):
+            return 0.0
+
+    provider = _RaisingProvider()
+    monkeypatch.setitem(registry.PROVIDERS, provider.name, provider)
+    monkeypatch.setattr(CONFIG, "discovery_providers", [provider.name])
+    monkeypatch.setattr(CONFIG, "discovery_max_queries", 10_000)
+
+    R.stage_harvest_discovery(force=True)
+
+    out = capsys.readouterr().out
+    assert "skipped, not configured" in out
+    assert "TEST_PROVIDER_API_KEY" in out
+    assert R.load("harvest_discovery") == []
+
+
+def test_harvest_discovery_respects_the_total_query_budget(R, monkeypatch):
+    """A role whose query-cost estimate alone exceeds the remaining budget is
+    skipped entirely; a smaller role after it that still fits still runs.
+
+    Role 1 has no counties (roles.py's LocationRule(counties=[]) --  "any
+    ROI") so it falls back to the 4-location default and, with title + 3
+    discipline terms, costs 4*4=16 query-budget units. Role 2's brief scopes
+    to ["Cork"] alone, costing 4*1=4. A budget of 10 is below Role 1's cost
+    and above Role 2's, so exactly one provider.fetch() call happens, for
+    Role 2.
+    """
+    from gtm_client_workflows.gaia_sourcing.core.config import CONFIG
+    from gtm_client_workflows.gaia_sourcing.core.contracts import SourceResult
+    from gtm_client_workflows.gaia_sourcing.sources import registry
+
+    calls = []
+
+    class _CountingProvider:
+        name = "budget_test_provider"
+        text_source = "provider_field"
+        rate_limit_s = 0.0
+
+        def fetch(self, query):
+            calls.append(query)
+            return SourceResult(provider=self.name, fetched=50, cost_eur=0.0)
+
+        def cost_eur(self, result):
+            return 0.0
+
+    provider = _CountingProvider()
+    monkeypatch.setitem(registry.PROVIDERS, provider.name, provider)
+    monkeypatch.setattr(CONFIG, "discovery_providers", [provider.name])
+    monkeypatch.setattr(CONFIG, "discovery_max_queries", 10)
+
+    R.stage_harvest_discovery(force=True)
+
+    assert len(calls) == 1
+    assert calls[0].role_id == ROLE2.role_id
+
+
+# ---------------------------------------------------------------------------
+# stage_locate -- cheap, no-LLM Role 1 location backfill
+# (2026-09-11 widening: Firm.domicile/office_cities need to reach ALREADY
+# extracted persons without re-running stage_harvest_r1 or paying for L5
+# extraction again.)
+# ---------------------------------------------------------------------------
+
+
+def test_default_location_for_firm_single_vs_several_vs_non_ie():
+    """2026-09-11 adversarial-audit fix (item 3c): a firm's default location
+    now counts only when its offices are ALL confirmed in the Republic --
+    domicile "IE" AND office_cities actually named AND none of them NI/GB.
+    A firm whose office count is not confidently known (office_cities == [])
+    no longer gets a bare "Ireland" default -- it must evidence Ireland per
+    person, same as any UK/INTL firm. A multi_country IE firm (O'Connor
+    Sutton Cronin's shape) and a firm with a known NI/GB office city are also
+    void."""
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    single = cb.Firm("f1", "F1", "f1.ie", domicile="IE", office_cities=["Cork"])
+    several = cb.Firm("f2", "F2", "f2.ie", domicile="IE", office_cities=["Dublin", "Cork"])
+    unknown = cb.Firm("f3", "F3", "f3.ie", domicile="IE", office_cities=[])
+    non_ie = cb.Firm("f4", "F4", "f4.com", domicile="UK", office_cities=[])
+    multi = cb.Firm("f5", "F5", "f5.ie", domicile="IE", office_cities=["Dublin"],
+                     multi_country=True)
+    ni_office = cb.Firm("f6", "F6", "f6.ie", domicile="IE",
+                         office_cities=["Dublin", "Belfast"])
+
+    assert mod._default_location_for_firm(single) == "Cork, Ireland"
+    assert mod._default_location_for_firm(several) == "Ireland"
+    assert mod._default_location_for_firm(unknown) is None
+    assert mod._default_location_for_firm(non_ie) is None
+    assert mod._default_location_for_firm(multi) is None
+    assert mod._default_location_for_firm(ni_office) is None
+
+
+def test_oconnor_sutton_cronin_is_multi_country_and_void():
+    """The exhibit item 3c names: OCSC is domiciled IE but also has Belfast/
+    Birmingham/London offices, so its staff-directory default must be void."""
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    firm = next(f for f in cb.FIRMS if f.slug == "oconnor_sutton")
+    assert firm.multi_country is True
+    assert mod._default_location_for_firm(firm) is None
+
+
+def test_page_lists_ni_or_uk_office_voids_the_default_at_locate_time():
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    assert mod._page_lists_ni_or_uk_office(
+        "Our offices: Dublin Office, Cork Office and Belfast Office."
+    ) is True
+    assert mod._page_lists_ni_or_uk_office(
+        "Our offices: Dublin Office and Cork Office."
+    ) is False
+    assert mod._page_lists_ni_or_uk_office("") is False
+
+
+def test_stage_locate_backfills_location_and_adds_a_quoted_claim(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                    office_cities=["Cork"])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy, Director. Our office is in Cork, Ireland.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "cork_firm", "firm_name": "Cork Firm",
+        "url": "https://corkfirm.ie/people", "doc_id": "d1", "chars": 100,
+        "default_location": "Cork, Ireland",
+    }])
+    persons = {"brian_murphy": _person(
+        "brian_murphy", "Brian Murphy", R1, "company_directory",
+        employer="Cork Firm", location=None, doc_ids=["d1"],
+    )}
+    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate()
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] == "Cork, Ireland"
+    # 2026-09-11: a location set from a firm default must be stamped so a
+    # later --force can tell it apart from an extracted/quoted location.
+    assert out["persons"]["brian_murphy"]["location_source"] == "firm_default"
+    location_claims = [c for c in out["claims"] if c["dimension"] == "location"]
+    assert len(location_claims) == 1
+    assert location_claims[0]["evidence_quote"] in "Brian Murphy, Director. Our office is in Cork, Ireland."
+
+    locate_out = json.loads((R.RUN_DIR / "locate.json").read_text(encoding="utf-8"))
+    assert locate_out["relocated"] == 1
+    assert locate_out["new_location_claims"] == 1
+
+    # validate + gate re-run because a claim was added.
+    assert (R.RUN_DIR / "validate.json").exists()
+    assert (R.RUN_DIR / "gate.json").exists()
+
+
+def test_stage_locate_never_overwrites_an_existing_location(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                    office_cities=["Cork"])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy is based in Galway.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "cork_firm", "firm_name": "Cork Firm",
+        "url": "https://corkfirm.ie/people", "doc_id": "d1", "chars": 100,
+        "default_location": "Cork, Ireland",
+    }])
+    persons = {"brian_murphy": _person(
+        "brian_murphy", "Brian Murphy", R1, "company_directory",
+        employer="Cork Firm", location="Galway, Ireland", doc_ids=["d1"],
+    )}
+    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate()
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] == "Galway, Ireland"
+    assert out["claims"] == []
+    # A location this stage never touched must carry no firm_default stamp.
+    assert out["persons"]["brian_murphy"].get("location_source") is None
+
+
+def test_stage_locate_force_recomputes_stale_firm_default_when_firm_turns_multi_country(R, monkeypatch):
+    """2026-09-11: a person whose location came from a firm default must lose
+    it on --force once the firm is (re)classified multi_country, so a stale
+    "Ireland" default is never served after the firm data that granted it
+    stops supporting it. A person whose location came from extraction/an
+    on-page quote (no location_source stamp) must be completely untouched by
+    the same --force pass."""
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                    office_cities=["Cork"])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy, Director. Our office is in Cork, Ireland.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "cork_firm", "firm_name": "Cork Firm",
+        "url": "https://corkfirm.ie/people", "doc_id": "d1", "chars": 100,
+        "default_location": "Cork, Ireland",
+    }])
+    persons = {
+        "brian_murphy": _person(
+            "brian_murphy", "Brian Murphy", R1, "company_directory",
+            employer="Cork Firm", location=None, doc_ids=["d1"],
+        ),
+        "cora_walsh": _person(
+            "cora_walsh", "Cora Walsh", R1, "company_directory",
+            employer="Cork Firm", location="Cork, Ireland", doc_ids=["d1"],
+        ),
+    }
+    # 2026-09-11 second-audit fix (item 1): --force also clears a legacy,
+    # pre-provenance firm-default location detected by SHAPE (exactly
+    # "Ireland" or "<city>, Ireland" with no surviving location-claim
+    # evidence). Cora must carry real quoted evidence -- not just an
+    # unstamped location string -- to prove her location came from
+    # extraction rather than a stale firm default, or this new pass would
+    # (correctly) clear her too.
+    claims = [_claim(
+        "cora_walsh", "location", "Cora Walsh is based in our Cork office",
+        "based in our Cork office",
+    )]
+    R.save("extract", {"persons": persons, "claims": claims, "extracted_doc_ids": ["d1"]})
+
+    # First pass: brian gets the firm default (stamped firm_default), cora
+    # already had an extracted location and is untouched.
+    R.stage_locate()
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] == "Cork, Ireland"
+    assert out["persons"]["brian_murphy"]["location_source"] == "firm_default"
+    assert out["persons"]["cora_walsh"]["location"] == "Cork, Ireland"
+    assert out["persons"]["cora_walsh"].get("location_source") is None
+
+    # The firm is now discovered to have a Belfast office too -- multi_country.
+    firm2 = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                     office_cities=["Cork"], multi_country=True)
+    monkeypatch.setattr(cb, "FIRMS", [firm2])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm2])
+
+    R.stage_locate(force=True)
+
+    out2 = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    # Brian's stale firm_default location is cleared, and the firm no longer
+    # grants a default at all -- so it stays None rather than being reset.
+    assert out2["persons"]["brian_murphy"]["location"] is None
+    assert out2["persons"]["brian_murphy"].get("location_source") is None
+    # Cora's location came from extraction, not a firm default -- untouched.
+    assert out2["persons"]["cora_walsh"]["location"] == "Cork, Ireland"
+    assert out2["persons"]["cora_walsh"].get("location_source") is None
+
+
+def test_stage_locate_force_clears_a_legacy_unstamped_default(R, monkeypatch):
+    """2026-09-11 second-audit fix (item 1): 55 O'Connor Sutton Cronin persons
+    were extracted BEFORE location_source existed at all -- their "Ireland"
+    is a PRE-fix firm default with no stamp, so the ordinary stamped-clearing
+    pass can never see them and --force never touches them. Detected instead
+    by shape: company_directory + unstamped + location exactly "Ireland" (or
+    "<city>, Ireland") + no location claim whose quote survives the residence
+    check. An OCSC-shaped person with no location claim clears to None; a
+    person with a real quote ("based in our Cork office") keeps it."""
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    # OCSC-shaped: IE domicile but ALSO a Belfast/GB office -- multi_country,
+    # so _default_location_for_firm grants nothing for it today.
+    ocsc = cb.Firm("ocsc", "O'Connor Sutton Cronin", "ocsc.example",
+                    domicile="IE", office_cities=["Dublin"], multi_country=True)
+    monkeypatch.setattr(cb, "FIRMS", [ocsc])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [ocsc])
+
+    R.save_docs([_doc("d1", "Some staff directory page for OCSC.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "ocsc", "firm_name": "O'Connor Sutton Cronin",
+        "url": "https://ocsc.example/people", "doc_id": "d1", "chars": 100,
+        "default_location": None,
+    }])
+    persons = {
+        # Legacy default: pre-fix extraction stamped this "Ireland" with no
+        # location_source and no supporting location claim at all.
+        "legacy_person": _person(
+            "legacy_person", "Legacy Person", R1, "company_directory",
+            employer="O'Connor Sutton Cronin", location="Ireland", doc_ids=["d1"],
+        ),
+        # Real evidence: a location claim whose quote survives the residence
+        # check must never be cleared by this pass.
+        "cork_person": _person(
+            "cork_person", "Cork Person", R1, "company_directory",
+            employer="O'Connor Sutton Cronin", location="Cork, Ireland",
+            doc_ids=["d1"],
+        ),
+    }
+    claims = [_claim(
+        "cork_person", "location", "Cork Person is based in our Cork office",
+        "based in our Cork office",
+    )]
+    R.save("extract", {"persons": persons, "claims": claims, "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate(force=True)
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["legacy_person"]["location"] is None
+    assert out["persons"]["legacy_person"].get("location_source") is None
+    assert out["persons"]["cork_person"]["location"] == "Cork, Ireland"
+
+
+def test_stage_locate_gives_no_location_for_an_intl_firm(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("global_firm", "Global Firm", "global.com", domicile="INTL",
+                    office_cities=[])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy, Director.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "global_firm", "firm_name": "Global Firm",
+        "url": "https://global.com/people", "doc_id": "d1", "chars": 100,
+        "default_location": None,
+    }])
+    persons = {"brian_murphy": _person(
+        "brian_murphy", "Brian Murphy", R1, "company_directory",
+        employer="Global Firm", location=None, doc_ids=["d1"],
+    )}
+    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate()
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] is None
+    assert out["claims"] == []
+
+    locate_out = json.loads((R.RUN_DIR / "locate.json").read_text(encoding="utf-8"))
+    assert locate_out["relocated"] == 0
+
+
+def test_identity_hygiene_drops_only_uncorroborated_deepen_claims(R, monkeypatch):
+    """A directory claim stays; a same-name car-sales page claim is dropped
+    (2026-09-11 audit: a Mayo engineer merged with a Missouri salesman)."""
+    directory = _doc("d_dir", "Shane Heffernan BE CEng MIEI, Structural Design Engineer at Lally Chartered Engineers, Mayo.")
+    directory.source_type = "company_bio"
+    porsche = _doc("d_sales", "Shane Heffernan, Porsche Sales Professional, 14 years of automotive experience in St Louis.")
+    porsche.source_type = "other"
+    lally = _doc("d_lally", "Shane Heffernan - Lead Structural Design Engineer, Lally Chartered Engineers.")
+    lally.source_type = "other"
+    R.save_docs([directory, porsche, lally])
+    persons = {"shane": _person("shane", "Shane Heffernan", "role1_senior_structural_engineer", "company_directory",
+                                employer="Lally Chartered Engineers", doc_ids=["d_dir", "d_sales", "d_lally"])}
+    def claim(cid, doc, quote, dim="years_experience"):
+        return {"claim_id": cid, "subject_person_id": "shane", "dimension": dim, "assertion": quote[:40],
+                "evidence_quote": quote, "source_doc_id": doc, "source_url": "https://example.ie/" + doc,
+                "confidence": "direct"}
+    claims = [
+        claim("c1", "d_dir", "Shane Heffernan BE CEng MIEI, Structural Design Engineer", "chartership"),
+        claim("c2", "d_sales", "14 years of automotive experience in St Louis"),
+        claim("c3", "d_lally", "Lead Structural Design Engineer, Lally Chartered Engineers", "employer"),
+    ]
+    R.save("extract", {"persons": persons, "claims": claims, "extracted_doc_ids": ["d_dir", "d_sales", "d_lally"]})
+    monkeypatch.setattr(R, "stage_validate", lambda force=False: None)
+    monkeypatch.setattr(R, "stage_gate", lambda force=False: None)
+    R.stage_identity_hygiene(force=True)
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    ids = {c["claim_id"] for c in out["claims"]}
+    assert ids == {"c1", "c3"}
+    assert out["persons"]["shane"]["doc_ids"] == ["d_dir", "d_lally"]
+    hyg = json.loads((R.RUN_DIR / "identity_hygiene.json").read_text(encoding="utf-8"))
+    assert hyg["dropped"] == 1 and hyg["per_person"] == {"shane": 1}
+
+
+def test_deepen_located_ie_targets_only_search_snippet_persons(R, monkeypatch):
+    persons = {
+        "snip": {"person_id": "snip", "full_name": "Snip Person", "role_id": R.ROLE1.role_id,
+                 "source": "search_snippet", "current_employer": "Firm", "doc_ids": []},
+        "dirp": {"person_id": "dirp", "full_name": "Dir Person", "role_id": R.ROLE1.role_id,
+                 "source": "company_directory", "current_employer": "Firm", "doc_ids": []},
+    }
+    R.save("extract", {"persons": persons, "claims": []})
+    R.save("validate", {"claims": [], "stats": {}})
+    fail = [{"gate_id": "located_ie", "passed": False}]
+    R.save("gate", {
+        "snip": {"role_id": R.ROLE1.role_id, "tier": "EXCLUDED", "client_side": False,
+                 "gates": fail, "n_claims": 1},
+        "dirp": {"role_id": R.ROLE1.role_id, "tier": "EXCLUDED", "client_side": False,
+                 "gates": fail, "n_claims": 1},
+    })
+    monkeypatch.setattr(R.CONFIG, "deepen_gates", ["located_ie"])
+    seen = []
+    monkeypatch.setattr(R, "run_all", lambda fn, targets, **kw: seen.extend(targets))
+    R.stage_deepen_near_misses(force=True)
+    assert seen == ["snip"]
+

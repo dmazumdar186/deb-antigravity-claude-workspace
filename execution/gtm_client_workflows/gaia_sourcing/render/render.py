@@ -33,11 +33,12 @@ from pathlib import Path
 from urllib.parse import quote_plus
 
 from ..core.cache import head_ok
+from ..layers.extract import strip_postnominals
 from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
 from ..roles import ROLE1, ROLE2
 
 RUN_DIR = PKG_ROOT / "run" / CONFIG.campaign_id
-OUT_DIR = WORKSPACE_ROOT / "deliverables" / "gaia_2026-08-20"
+OUT_DIR = CONFIG.deliverables_dir  # per campaign; see core/config.py
 
 TIER_LABEL = {
     "A": "Tier A -- primary signal evidenced twice or more",
@@ -109,7 +110,11 @@ def repair(s: str) -> str:
 
 
 def e(s) -> str:
-    return html.escape(repair(str(s or "")))
+    # `str(s or "")` blanked any falsy value, not just None/"" -- a genuine
+    # 0 (e.g. a years-of-experience or a count field ever routed through
+    # here) rendered as an empty string instead of "0". Only None collapses
+    # to blank; every other value, including 0/False, prints as itself.
+    return html.escape(repair("" if s is None else str(s)))
 
 
 # ---------------------------------------------------------------------------
@@ -638,7 +643,7 @@ def _reach_routes(person: dict, contact: dict) -> list[tuple[str, str, str]]:
     from ..layers.contact import _employer_domain, domain_of
 
     routes: list[tuple[str, str, str]] = []
-    name = (person.get("full_name") or "").strip()
+    name = _display_name(person.get("full_name") or "")
     employer = (person.get("current_employer") or "").strip()
     status = contact.get("email_status", "none")
     email = contact.get("email")
@@ -803,6 +808,11 @@ DETAIL_WORD_CAP = 150
 # Three quotes is what fits before a pane stops being glanceable, regardless of
 # how short the individual quotes happen to be.
 MAX_DETAIL_QUOTES = 3
+# Second-opinion (adversarial) findings shown per card, and the word clip on
+# each. Two clipped findings stay well inside DETAIL_WORD_CAP next to the
+# first quote and the honesty lines.
+MAX_SECOND_OPINIONS = 2
+SECOND_OPINION_WORDS = 30
 
 
 def _wc(fragment: str) -> int:
@@ -870,10 +880,30 @@ def _why_cell(ev: dict, claims: list[dict], spec) -> str:
     return "".join(out)
 
 
-def _msg_cell(outreach: dict | None) -> str:
-    """What to send, and nothing else. Two messages: LinkedIn, then email."""
-    if not outreach:
+def _msg_cell(outreach: dict | None, notice_live: bool = True) -> str:
+    """What to send, and nothing else. Two messages: LinkedIn, then email.
+
+    2026-09-11 second-audit fix (item 6a): a missing draft used to always
+    print "Withheld until the privacy notice is live" -- true only when the
+    notice really is down. When the notice IS live and a draft is simply
+    absent, that line was a lie; stage_messages (run.py) now records the
+    real reason under outreach["dropped"] (compliance failure, opt-out, a
+    model returning nothing, or an exception), and that reason is shown
+    instead. `notice_live` defaults True so existing callers that pass a
+    real outreach dict keep rendering it unchanged.
+    """
+    if not notice_live:
         return '<p class="none">Withheld until the privacy notice is live.</p>'
+    if not outreach:
+        return '<p class="none">Draft not generated: model returned nothing.</p>'
+    if outreach.get("dropped"):
+        reason = str(outreach["dropped"])
+        if reason == "model returned nothing":
+            return '<p class="none">Draft not generated: model returned nothing.</p>'
+        return (
+            '<p class="none">Draft withheld: failed the compliance check ('
+            + e(reason) + ").</p>"
+        )
     out: list[str] = []
     blocks = [("LinkedIn note", outreach["linkedin_note"]),
               ("Email &mdash; " + e(outreach["email_subject"]), outreach["email_body"])]
@@ -887,6 +917,33 @@ def _msg_cell(outreach: dict | None) -> str:
                    ' data-copy="' + e(text) + '">Copy</button></p>')
         out.append('<div class="msg-wrap"><pre class="msg">' + e(text) + "</pre></div>")
     return "".join(out)
+
+
+def _display_name(name: str) -> str:
+    """A shouted directory entry ("JOHN ALCARAS") is cased like a name on
+    the card; mixed-case input is left exactly as written."""
+    name = strip_postnominals((name or "").strip())
+    if name and name == name.upper() and any(ch.isalpha() for ch in name):
+        def _cap(x: str) -> str:
+            x = x[:1].upper() + x[1:]
+            if x.startswith("Mc") and len(x) > 2:
+                x = "Mc" + x[2:3].upper() + x[3:]
+            return x
+
+        parts = []
+        for w in name.split():
+            w = w.lower()
+            w = "'".join(_cap(x) for x in w.split("'"))
+            w = "-".join(_cap(x) for x in w.split("-"))
+            parts.append(w)
+        name = " ".join(parts)
+    return name
+
+
+def _display_title(title: str) -> str:
+    """Search snippets truncate with an ellipsis; a card must not."""
+    t = strip_postnominals((title or "").strip())
+    return t.rstrip(" .\u2026").strip()
 
 
 def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
@@ -903,9 +960,19 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
 
     # 1. The verbatim evidence, primary signal first. This is the whole basis
     #    of the shortlist; if only one thing fits, it should be this.
-    primary = [c for c in claims if c["dimension"] == spec.primary_signal_dimension]
-    other = [c for c in claims if c["dimension"] != spec.primary_signal_dimension]
-    direct = [x for x in primary + other if x.get("confidence") == "direct"]
+    # The quotes the residence and chartership gates actually rested on
+    # come first (third audit 2026-09-11: Alicia Joyce's card showed a
+    # project quote while "Dublin, County Dublin, Ireland" -- the located_ie
+    # basis -- was cut for budget). Then the primary signal, then the rest.
+    basis_ids = {
+        g.get("basis") for g in (ev.get("gates") or [])
+        if g.get("gate_id") in ("located_ie", "chartered") and g.get("basis")
+    }
+    basis = [c for c in claims if c.get("claim_id") in basis_ids]
+    rest = [c for c in claims if c.get("claim_id") not in basis_ids]
+    primary = [c for c in rest if c["dimension"] == spec.primary_signal_dimension]
+    other = [c for c in rest if c["dimension"] != spec.primary_signal_dimension]
+    direct = [x for x in basis + primary + other if x.get("confidence") == "direct"]
     # One sentence can evidence three dimensions. Without grouping the pane
     # prints it three times and burns the quote budget repeating itself.
     for group in _group_by_quote(direct):
@@ -932,6 +999,45 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     # 2. How good the address is. A pattern guess is a guess, and the reader
     #    is one click away from copying it.
     facts: list[str] = []
+
+    # 2026-09-11 adversarial-audit fix (item 6): a card whose second-opinion
+    # pass errored or returned nothing parseable must say so in plain sight,
+    # not just be quietly capped at tier C. Reserved first, same as the
+    # honesty lines below, so it cannot fall off the end of the word budget.
+    if any(
+        "REVIEW INCOMPLETE" in str(f)
+        for f in (ev.get("adversarial_findings") or [])
+    ):
+        facts.append(
+            '<p class="gap">Second-opinion review incomplete for this card.</p>'
+        )
+
+    # 2026-09-11 second-audit fix (item 6c): every OTHER adversarial finding
+    # was silently dropped -- only REVIEW INCOMPLETE ever reached the card.
+    # A second-opinion pass that found something (without erroring outright)
+    # is exactly the information a reader needs before a first call.
+    # Rendered LAST (after the email-status, movability, switchboard and
+    # link lines) and under a shared cap -- see the block after the link
+    # check below. Third-cut code review: appended here, three 70-word
+    # findings pushed the "this address is a guess" line off the end.
+    second_opinions = [
+        str(f) for f in (ev.get("adversarial_findings") or [])
+        if "REVIEW INCOMPLETE" not in str(f)  # surfaced by the line above
+    ]
+
+    # 2026-09-11 second-audit fix (item 6b): the seniority-floor and
+    # located_ie gates sometimes pass with a note asking the reader to
+    # confirm something on the first call ("grade not evidenced...", "Ireland
+    # evidenced alongside other jurisdictions...", the graduation-year
+    # estimate note). That note used to live only in gate.json -- never on
+    # the card a reader actually looks at.
+    for g in (ev.get("gates") or []):
+        if g.get("gate_id") not in ("seniority_ceiling", "located_ie"):
+            continue
+        note = g.get("note")
+        if not note:
+            continue
+        facts.append('<p class="src">Confirm on first call: ' + e(str(note)) + "</p>")
 
     # Lower-confidence evidence had a labelled section on the card and no home
     # at all in the table. It is weaker than a verbatim quote, which is a
@@ -988,6 +1094,17 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
             bits.append(str(len(mism)) + " link(s) no longer name this person")
         facts.append('<p class="gap">' + e("; ".join(bits) + ".") + "</p>")
 
+    # 5. Second opinions, last in priority order so the pop-from-end trim
+    #    below drops them before any honesty line. At most two are shown,
+    #    each clipped, with a pointer to the rest; the full text stays in
+    #    adversarial.json and on the console page.
+    for f in second_opinions[:MAX_SECOND_OPINIONS]:
+        facts.append('<p class="gap">Second opinion: '
+                     + e(_clip(f, SECOND_OPINION_WORDS)) + "</p>")
+    if len(second_opinions) > MAX_SECOND_OPINIONS:
+        facts.append('<p class="src">+' + str(len(second_opinions) - MAX_SECOND_OPINIONS)
+                     + " more second-opinion finding(s) in the run record.</p>")
+
     # The honesty lines are reserved, not queued. Filling the budget with
     # quotes first and letting "this address is a guess" fall off the end
     # would drop the one line that changes what the reader does next.
@@ -996,7 +1113,10 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     kept, used = [], 0
     for b in blocks[:MAX_DETAIL_QUOTES]:
         n = _wc(b)
-        if used + n > budget:
+        # The first verbatim quote is the evidence contract (I1/I2) and is
+        # never dropped for budget: a card with no quote is a card with no
+        # basis. Only the second and third quotes compete with the facts.
+        if kept and used + n > budget:
             break
         kept.append(b)
         used += n
@@ -1029,6 +1149,7 @@ def row_html(
     outreach: dict | None,
     links: dict,
     spec,
+    notice_live: bool = True,
 ) -> str:
     """One candidate as two table rows: the line, and the detail it hides."""
     # Scoped by role: the same person delivered under both roles would
@@ -1066,9 +1187,9 @@ def row_html(
         buttons.append('<span class="none">No email address found</span>')
 
     who = (
-        '<p class="nm">' + e(person["full_name"]) + "</p>"
+        '<p class="nm">' + e(_display_name(person["full_name"])) + "</p>"
         + '<p class="ro">'
-        + e(person.get("current_title") or "Title not stated")
+        + e(_display_title(person.get("current_title") or "") or "Title not stated")
         + (" &middot; " + e(person["current_employer"])
            if person.get("current_employer") else "")
         + "</p>"
@@ -1079,7 +1200,7 @@ def row_html(
         '<tr class="r">'
         + "<td>" + who + "</td>"
         + "<td>" + _why_cell(ev, claims, spec) + "</td>"
-        + "<td>" + _msg_cell(outreach) + "</td>"
+        + "<td>" + _msg_cell(outreach, notice_live) + "</td>"
         + '<td><button class="det-btn" type="button" aria-expanded="false"'
           ' aria-controls="' + rid + '">'
           '<span class="det-ar" aria-hidden="true">&#9656;</span>'
@@ -1132,6 +1253,18 @@ def pool_map_md(m: dict, spec) -> str:
             "",
         ]
         for s_ in m["near_misses"]:
+            lines.append("- " + s_)
+
+    if m.get("held_back"):
+        lines += [
+            "",
+            "## Passed every gate, held back",
+            "",
+            "Listed by name because a shortlist that hides them is padding in",
+            "reverse. Each carries the one reason it is not on the list.",
+            "",
+        ]
+        for s_ in m["held_back"]:
             lines.append("- " + s_)
 
     if m.get("client_side_sidebar"):
@@ -1201,14 +1334,35 @@ def build(allow_placeholder_notice: bool = False) -> None:
         m = pool[spec.role_id]
         def final_tier(pid: str) -> str:
             rec = adv.get(pid) or {}
+            # 2026-09-11 adversarial-audit fix (item 6): a card that only
+            # ever had one reviewer (the second pass errored or returned
+            # nothing parseable) must never ship at the first pass's tier --
+            # capped at C regardless.
+            if any(
+                "REVIEW INCOMPLETE" in str(f)
+                for f in (rec.get("adversarial_findings") or [])
+            ):
+                return "C"
             return rec.get("tier") or gate_out[pid]["tier"]
 
         # The pipeline's own list, not a second opinion about it. Recomputing
         # it here shipped two people the contact stage had never enriched --
         # cards with no email, no LinkedIn and no route -- because this copy
         # applied a slightly different filter and broke ties the other way.
-        pids = list(delivery.get(spec.role_id) or [])
-        if not pids:
+        #
+        # 2026-09-11: the fallback below must trigger on delivery.json being
+        # ABSENT, never on a role's own list being legitimately empty. It used
+        # to key off `not pids`, so a role that delivery.json correctly
+        # recorded as zero (every qualifier held back or cut) silently fell
+        # back to a locally recomputed shortlist and rendered candidates that
+        # were never in delivery.json at all -- 13 rendered against a
+        # delivery.json that listed 10. `delivery` (the whole loaded dict) is
+        # falsy only when delivery.json does not exist / stage_poolmap never
+        # ran; once it exists, its per-role list -- even an empty one -- is
+        # authoritative.
+        if delivery:
+            pids = list(delivery.get(spec.role_id) or [])
+        else:
             pids = [
                 pid for pid, g in gate_out.items()
                 if g["role_id"] == spec.role_id and g["tier"] != "EXCLUDED"
@@ -1261,11 +1415,24 @@ def build(allow_placeholder_notice: bool = False) -> None:
         )
         body.append("</section>")
         if len(pids) < spec.target_count:
+            held = list((delivery.get("held_back") or {}).get(spec.role_id) or [])
+            held_html = ""
+            if held:
+                # Third audit 2026-09-11: two gate-passers were withheld and
+                # nothing client-facing said so. Named here, with the reason.
+                held_html = (" " + str(len(held)) + " more passed every gate but "
+                             "are held back: "
+                             + "; ".join(
+                                 e(persons_raw.get(h["person_id"], {}).get(
+                                     "full_name", h["person_id"]))
+                                 + " (" + e(h["reason"]) + ")" for h in held)
+                             + ".")
             body.append(
                 '<div class="banner"><strong>Short of target.</strong> '
                 + str(len(pids)) + " of " + str(spec.target_count)
                 + " delivered. The pool map for this role lists exactly which gate "
-                "removed each of the others. Padding the list with candidates who "
+                "removed each of the others." + held_html
+                + " Padding the list with candidates who "
                 "fail a hard gate would be the alternative, and it is not one.</div>"
             )
 
@@ -1291,13 +1458,18 @@ def build(allow_placeholder_notice: bool = False) -> None:
             }
             ev = dict(ev)
             ev.setdefault("gates", g["gates"])
+            # 2026-09-11 adversarial-audit fix (item 6): the tier actually
+            # printed/exported must match the capped, review-incomplete-aware
+            # value, not whatever the raw adversarial record happened to say.
+            ev["tier"] = final_tier(pid)
             pclaims = by_person.get(pid, [])
             contact = contacts.get(pid, {"email_status": "none"})
             body.append(
                 row_html(
                     person, pclaims, ev, contact, movs.get(pid, {}),
-                    outreach.get(pid) if include_outreach else None,
+                    outreach.get(pid),
                     links.get(pid, {}), spec,
+                    notice_live=include_outreach,
                 )
             )
 
@@ -1305,8 +1477,8 @@ def build(allow_placeholder_notice: bool = False) -> None:
                 {
                     "role": spec.title,
                     "tier": ev.get("tier", g["tier"]),
-                    "full_name": person["full_name"],
-                    "current_title": person.get("current_title") or "",
+                    "full_name": _display_name(person["full_name"]),
+                    "current_title": _display_title(person.get("current_title") or ""),
                     "current_employer": person.get("current_employer") or "",
                     "location": person.get("location") or "",
                     "email": contact.get("email") or "",

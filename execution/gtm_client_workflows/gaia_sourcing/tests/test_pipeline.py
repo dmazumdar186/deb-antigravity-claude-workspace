@@ -328,7 +328,10 @@ def test_client_side_classification(employer, expected):
 def test_both_roles_have_every_hard_gate():
     for spec in (ROLE1, ROLE2):
         ids = {g.gate_id for g in spec.hard_gates}
-        assert ids == {"chartered", "located_ie", "discipline", "seniority", "not_client"}
+        assert ids == {
+            "chartered", "located_ie", "discipline", "seniority",
+            "seniority_ceiling", "employer_sector", "not_client",
+        }
 
 
 def test_role2_does_not_allow_grade_inference():

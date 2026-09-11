@@ -1,0 +1,9 @@
+{
+ "claims": [],
+ "stats": {
+  "claims_in": 15,
+  "claims_kept": 12,
+  "drop_rate": 0.2,
+  "duplicates_collapsed": 0
+ }
+}
