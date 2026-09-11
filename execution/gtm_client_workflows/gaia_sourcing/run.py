@@ -281,16 +281,18 @@ def stage_harvest_r1(force: bool = False) -> None:
 
     records: list[dict] = []
     docs: list[RawDocument] = []
+    no_page_firms: list[str] = []
     lock = threading.Lock()
 
     def one(firm) -> None:
         try:
-            indexes = company_bios.find_people_indexes(firm, limit=3)
-            guessed = ["https://www." + firm.domain + p for p in firm.people_paths]
-            for url in list(dict.fromkeys(indexes + guessed))[:4]:
+            urls = company_bios.discover_people_urls(firm, limit=4)
+            found_any = False
+            for url in urls:
                 doc = fetch_rendered(url, source_type="company_bio")
                 if doc is None or len(doc.content_text) < 800:
                     continue
+                found_any = True
                 with lock:
                     docs.append(doc)
                     records.append(
@@ -306,7 +308,14 @@ def stage_harvest_r1(force: bool = False) -> None:
                         }
                     )
                 log("  " + firm.slug + ": " + str(len(doc.content_text)) + " chars <- " + url)
+            if not found_any:
+                with lock:
+                    no_page_firms.append(firm.slug)
+                log("  " + firm.slug + ": no people page found (tried "
+                    + str(len(urls)) + " urls)")
         except Exception as exc:
+            with lock:
+                no_page_firms.append(firm.slug)
             log("  " + firm.slug + " FAILED: " + repr(exc)[:120])
 
     run_all(one, company_bios.FIRMS, workers=4, label="harvest_r1")
@@ -314,7 +323,8 @@ def stage_harvest_r1(force: bool = False) -> None:
     save_docs(docs)
     save("harvest_r1", records)
     log("harvest_r1: " + str(len(records)) + " directory pages from "
-        + str(len({r["firm_slug"] for r in records})) + " firms")
+        + str(len({r["firm_slug"] for r in records})) + " firms ("
+        + str(len(no_page_firms)) + " firms with no people page found)")
 
 
 # ---------------------------------------------------------------------------
@@ -2225,7 +2235,12 @@ def main() -> int:
         "--purge-failed-cache", default=None, metavar="ERROR_SUBSTRING",
         help="delete _httpcache entries whose failure error contains this "
              "substring (e.g. empty_after_parse, fitz) so a later run with the "
-             "missing key/library re-fetches them; prints the count and exits",
+             "missing key/library re-fetches them; an EMPTY string ('') purges "
+             "only entries with no explicit error at all -- i.e. a rendered/"
+             "fetched 404 or other non-200 status, the shape a guessed team-page "
+             "path leaves behind -- and never touches empty_after_parse or any "
+             "other named error unless you pass that substring explicitly; "
+             "prints the count and exits",
     )
     ap.add_argument(
         "--spend", action="store_true",
@@ -2345,7 +2360,15 @@ def main() -> int:
                 continue
             if meta.get("ok"):
                 continue
-            if needle and needle not in str(meta.get("error", "")):
+            error = str(meta.get("error") or "")
+            if needle:
+                if needle not in error:
+                    continue
+            elif error:
+                # Empty needle purges only entries with NO explicit error --
+                # a rendered/fetched non-200 (the 108 guessed team-page 404s
+                # this flag was added for). empty_after_parse and other named
+                # errors are left alone unless the operator names them.
                 continue
             body_p = meta_p.with_name(meta_p.name.replace(".meta.json", ".body"))
             meta_p.unlink()

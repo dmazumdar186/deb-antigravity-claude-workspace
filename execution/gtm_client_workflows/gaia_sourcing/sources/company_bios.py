@@ -20,14 +20,21 @@ AND re-checked deterministically in the not_client gate.
 
 from __future__ import annotations
 
+import json
 import re
+import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 from urllib.parse import urljoin, urlparse
 
-from ..core.cache import fetch, fetch_raw
+import requests
+
+from ..core.cache import CACHE_DIR, fetch, fetch_raw, url_key
+from ..core.config import CONFIG, secret
 from ..core.contracts import RawDocument
 from .acp import name_from_text
+from .base import throttle
 from .oral_hearing_web import serper_search
 
 
@@ -259,6 +266,172 @@ def find_people_indexes(firm: Firm, limit: int = 6) -> list[str]:
         if found:
             return found
     return found
+
+
+# Path shape a discovered link must carry to count as a people page, shared
+# by the Serper and Firecrawl-map fallbacks below. Deliberately looser than
+# _INDEX_HREF_RE (which anchors on a leading path segment out of homepage
+# nav markup): a search/map result's path can put the matching word anywhere
+# ("/about/who-we-are/", "/company/leadership-team").
+_PEOPLE_PATH_RE = re.compile(
+    r"(team|people|staff|leadership|who-we-are|about)", re.I
+)
+
+
+def _filter_people_links(links: Iterable[str], domain: str) -> list[str]:
+    out: list[str] = []
+    for link in links:
+        if not link:
+            continue
+        parsed = urlparse(link)
+        if domain not in parsed.netloc:
+            continue
+        if not _PEOPLE_PATH_RE.search(parsed.path):
+            continue
+        out.append(link)
+    return out
+
+
+_SERPER_SEARCH_URL = "https://google.serper.dev/search"
+
+
+def _serper_site_people_search(domain: str) -> list[dict]:
+    """A Serper site: search for a firm's people page.
+
+    Homepage-nav discovery (find_people_indexes) only sees links that are
+    plain <a href> markup on the homepage; several CMSes hide the team link
+    behind a JS-rendered mega-menu or bury it two levels deep, which is why
+    the 2026-09-11 58-firm harvest_r1 run found nothing for most new firms.
+    A site-restricted search catches those. Returns [] (never raises) when
+    SERPER_API_KEY is absent or the request fails -- discovery must degrade
+    a firm's harvest, never kill it, same contract as every other Serper
+    caller in this package.
+    """
+    api_key = secret("SERPER_API_KEY", required=False)
+    if not api_key:
+        print("[company_bios] SERPER_API_KEY absent: skipping Serper people-page "
+              "search for " + domain)
+        return []
+    query = ('site:' + domain
+             + ' (team OR people OR "our people" OR staff OR leadership)')
+    throttle("company_bios_serper", 1.0)
+    try:
+        req = urllib.request.Request(
+            _SERPER_SEARCH_URL,
+            data=json.dumps({"q": query, "num": 10, "gl": "ie"}).encode("utf-8"),
+            headers={"X-API-KEY": api_key, "Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=CONFIG.request_timeout_s) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+        return data.get("organic", []) or []
+    except Exception as exc:
+        print("[company_bios] Serper site search failed for " + domain + ": "
+              + repr(exc)[:120])
+        return []
+
+
+_FIRECRAWL_MAP_URL = "https://api.firecrawl.dev/v2/map"
+
+
+def _firecrawl_map(domain: str) -> list[str]:
+    """Last-resort discovery: Firecrawl v2 /map enumerates a site's URLs
+    ordered by relevance to a search term, without fetching any page content
+    (cheaper than a render -- one credit regardless of site size, verified
+    against https://docs.firecrawl.dev/api-reference/endpoint/map 2026-09-11:
+    request {"url": ..., "search": ...}, response
+    {"success": bool, "links": [{"url": ..., "title": ..., "description": ...}]}).
+
+    Cached under run/_httpcache under a synthetic key -- map is a POST with a
+    JSON body, not a GET on a stable URL, so it cannot share core.cache.fetch's
+    cache slot -- so a firm is never mapped more than once even across reruns.
+    A cached empty result (no key, or the call failed) is intentional: without
+    it, a firm with no reachable people page would re-spend a Firecrawl credit
+    on every run.
+    """
+    api_key = secret("FIRECRAWL_API_KEY", required=False)
+    if not api_key:
+        return []
+    base = "https://www." + domain
+    meta_p = CACHE_DIR / (url_key("MAP::" + base + "::people team staff") + ".map.json")
+    if meta_p.exists():
+        try:
+            meta = json.loads(meta_p.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            print("[company_bios] unreadable map cache for " + domain + ": "
+                  + repr(exc)[:80])
+            return []
+        return meta.get("links", [])
+
+    urls: list[str] = []
+    try:
+        resp = requests.post(
+            _FIRECRAWL_MAP_URL,
+            json={"url": base, "search": "people team staff"},
+            headers={"Authorization": "Bearer " + api_key},
+            timeout=60,
+        )
+        payload = resp.json() if resp.status_code == 200 else {}
+        for item in payload.get("links") or []:
+            if isinstance(item, dict) and item.get("url"):
+                urls.append(item["url"])
+            elif isinstance(item, str):
+                urls.append(item)
+    except Exception as exc:
+        # Logged, not swallowed (python-hardening rule 5) -- and still cached
+        # as an empty result below so a flaky Firecrawl call does not get
+        # retried (and re-billed) on every subsequent run.
+        print("[company_bios] Firecrawl map failed for " + domain + ": "
+              + repr(exc)[:120])
+
+    with open(meta_p, "w", encoding="utf-8") as fh:
+        json.dump({"ok": True, "links": urls}, fh)
+    return urls
+
+
+def discover_people_urls(firm: Firm, limit: int = 4) -> list[str]:
+    """Discover a firm's people-page URL(s), widest/cheapest funnel first.
+
+    Order, de-duped, first-found-wins: homepage-nav discovery
+    (find_people_indexes) -> a Serper site-restricted search -> a Firecrawl
+    v2 map (last resort -- it spends a Firecrawl credit even when it finds
+    nothing) -> the hardcoded guessed people_paths, kept as the final
+    fallback rather than dropped, since a handful of firms' guessed paths
+    are correct and nav discovery alone missed them.
+
+    Built 2026-09-11: a 58-firm harvest_r1 run yielded pages from only 7
+    firms because homepage-nav discovery found nothing for most of the new
+    firms and 108 guessed team URLs 404'd.
+    """
+    urls: list[str] = []
+    seen: set[str] = set()
+
+    def _add_all(candidates: Iterable[str]) -> None:
+        for u in candidates:
+            if u and u not in seen:
+                seen.add(u)
+                urls.append(u)
+
+    _add_all(find_people_indexes(firm, limit=limit))
+    if len(urls) >= limit:
+        return urls[:limit]
+
+    serper_links = _filter_people_links(
+        (item.get("link", "") for item in _serper_site_people_search(firm.domain)),
+        firm.domain,
+    )
+    _add_all(serper_links)
+    if len(urls) >= limit:
+        return urls[:limit]
+
+    map_links = _filter_people_links(_firecrawl_map(firm.domain), firm.domain)
+    _add_all(map_links)
+    if len(urls) >= limit:
+        return urls[:limit]
+
+    guessed = ["https://www." + firm.domain + p for p in firm.people_paths]
+    _add_all(guessed)
+
+    return urls[:limit]
 
 
 def crawl_people_index(firm: Firm, limit: int = 60) -> list[BioDoc]:
