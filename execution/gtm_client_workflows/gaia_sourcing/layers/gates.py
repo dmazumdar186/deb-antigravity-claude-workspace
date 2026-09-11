@@ -257,6 +257,34 @@ _RESIDENCE_SHAPE_RE = re.compile(
 )
 
 
+# 2026-09-11 adversarial-audit fix (item 4): "first joined the Cork office
+# of <firm>" was reading as direct Republic residence evidence -- the quote
+# names an Irish city, carries no foreign-jurisdiction token for
+# _NON_IE_RE/_RESIDENCE_SHAPE_RE to veto, and (unlike the stamped
+# person.location firm default a few lines below) nothing in the
+# require_direct_evidence branch treated it specially. Per the runbook
+# (deliverables/gaia_2026-09-10/RUNBOOK_monday_delivery.md SS1c), a firm's
+# office is never residence evidence under direct evidence.
+#
+# The chosen rule: a quote is a FIRM-OFFICE mention -- the office belongs to
+# the employer, not a statement about where the person lives -- when it says
+# someone JOINED/works at a "<place> office" or "office of <firm>", UNLESS a
+# residence verb (based/located/lives/living) governs the same "office"
+# phrase. "first joined the Cork office of Punch Consulting" and "the Dublin
+# office of Arup" are firm-office mentions; "based in our Cork office" and
+# "I live in the Dublin office" (unusual phrasing, but residence-shaped) are
+# not -- the residence-verb override wins. Under require_direct_evidence=True
+# a firm-office mention fails outright; under the lenient default it behaves
+# like the existing firm-default fallback and passes with a confirm-on-first-
+# call note (see the office_reject_cid / is_office_mention handling below).
+_FIRM_OFFICE_RE = re.compile(
+    r"\bjoined\b[^.]{0,60}?\boffice\b|\boffice\s+of\b", re.I
+)
+_RESIDENCE_VERB_OFFICE_RE = re.compile(
+    r"\b(?:based|located|lives?|living)\b[^.]{0,30}?\boffice\b", re.I
+)
+
+
 # 2026-09-11 adversarial-audit fix (item 3): claims authored by the pipeline
 # itself -- layers.extract._find_location_quote's default-location claim and
 # run.stage_locate's --force recompute -- both write an assertion shaped
@@ -411,6 +439,7 @@ def check_located_ie(
     # counties/towns. A match on the wrong county is remembered rather than
     # discarded so the eventual failure note is specific, not generic.
     county_reject_cid: Optional[str] = None
+    office_reject_cid: Optional[str] = None
     for cid, blob in haystacks:
         # A stamped firm default is the employer's office, not a statement
         # about the person. It can carry the gate only when the brief does
@@ -430,12 +459,30 @@ def check_located_ie(
         # passes it even where a foreign jurisdiction is also mentioned.
         if _NON_IE_RE.search(blob) and not _RESIDENCE_SHAPE_RE.search(blob):
             continue
+        # A firm-office mention (see _FIRM_OFFICE_RE docstring above) is the
+        # employer's office, not a statement about the person -- it can pass
+        # only when the brief does not demand direct residence evidence,
+        # exactly like the stamped person.location firm default above.
+        is_office_mention = bool(
+            _FIRM_OFFICE_RE.search(blob)
+            and not _RESIDENCE_VERB_OFFICE_RE.search(blob)
+        )
+        if is_office_mention and require_direct:
+            if office_reject_cid is None:
+                office_reject_cid = cid
+            continue
         if not _county_matches(cleaned, counties):
             if county_reject_cid is None:
                 county_reject_cid = cid
             continue
         note = None
-        if _NI_RE.search(blob) or _NON_IE_RE.search(blob):
+        if is_office_mention:
+            note = (
+                "Residence inferred from a firm office mention, not a "
+                "statement by the person; confirm current base in the "
+                "first call."
+            )
+        elif _NI_RE.search(blob) or _NON_IE_RE.search(blob):
             note = (
                 "Ireland evidenced alongside other jurisdictions -- confirm "
                 "current base in the first call."
@@ -504,6 +551,14 @@ def check_located_ie(
             )
         return GateResult(
             gate_id="located_ie", passed=True, basis=scheme_hit.claim_id, note=note
+        )
+
+    if office_reject_cid is not None:
+        return GateResult(
+            gate_id="located_ie",
+            passed=False,
+            basis=office_reject_cid,
+            note="firm office mention, not a residence statement",
         )
 
     if county_reject_cid is not None:

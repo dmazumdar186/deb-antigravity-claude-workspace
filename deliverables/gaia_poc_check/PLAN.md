@@ -32,12 +32,11 @@ Words never used on Keith's page: AI, LLM, model, platform, pipeline, automated,
 
 The 13 names Keith received on 20 August are all in the restored `gaia-2026-09-14` cache (536 persons assessed, extract + validate + gate done). So the POC runs the check on the exact list Keith already holds, offline, zero model spend:
 
-Result on the current brief (Senior Engineer ceiling, Republic residence with direct evidence, CEng + Engineers Ireland):
-- 10 of 13 above the seniority ceiling (Director / Associate Director grade).
-- Taskov, Petho, Penco: London, fail residence. Pat Brady: residence unproven in the August evidence ("Ireland", plus a Belfast project); the current cache reads Cork. NOT "Belfast". The call brief was wrong on this and `monday_send.md` is corrected.
-- Petho and Penco also fail chartership evidence.
-- 5 of 13 August emails were pattern guesses, 1 had none.
-- 0 of 13 pass. That is the number Keith already knows in his gut; the page shows him the proof per name.
+Result, final run (11 Sep, no override flags: Role 1 defaults to the promised Senior Engineer ceiling, 15 years, strict residence; Role 2 keeps its own Associate Director / 25-year brief until Keith answers):
+- 13 in, 0 pass, 2 near miss, 11 out. Every one of the 13 fails the seniority ceiling for its role (10 structural names are Director or Associate Director; Gerry Healy is evidenced at 26 years against a 25-year cap; Andrew Archer and Pearse Sutton are Director grade).
+- Residence: 0 evidenced as living outside the Republic; 11 have no statement of where they live at all (Taskov and Penco have office-history quotes, London 2013 and 2015; the rest have project or market mentions only). Pat Brady's "first joined the Cork office of" is a firm-office mention and no longer counts, which is the gate fix of 11 Sep.
+- Chartership evidence missing for Petho and Penco. Contact labels from the August CSV: 7 verified, 5 guesses, 1 none.
+- The near-miss lines carry their actual reason ("evidenced at 26 years' experience, above the 25-year ceiling; everything else passes").
 
 The page also carries the whole 536-person pool as a small JSON so the paste box works for any name already checked; a name not in the pool shows "not checked yet, one working day" rather than a fake verdict.
 
@@ -83,6 +82,8 @@ Code lives in `execution/gtm_client_workflows/gaia_sourcing/` and follows its co
 ```
 
 ## Open for day 2 (brainstorm)
+
+0. The dashboard Maddie built (Keith showed it on the call: per-consultant queue, score per job, flag over 60, sync for call, screened / synced / drafts counts, jobs list, left tabs). The strongest fit is a "checked" column in that dashboard fed by `check_results.json`, not a separate page for daily use; Keith's one-page check stays as the pitch document. Needs from the operator: the dashboard's tab names and what a candidate row shows, from the recording.
 
 1. Is the buyer Keith (hours) or the client relationship (no wrong CV to TOBIN)? The page leads with hours; the guarantee line leads with the relationship. Pick one for the headline.
 2. Intake source in the pilot: Recruit CRM CSV export (standard on paid plans), LinkedIn Recruiter project export, or a pasted list? All three are the same code path.

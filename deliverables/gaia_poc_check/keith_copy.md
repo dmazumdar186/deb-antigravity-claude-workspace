@@ -56,7 +56,7 @@ Small print: You said Isadora and you could take on 50 to 100 jobs with Maddie's
 Three boxes in a row (stack on phone), plain borders, no icons:
 1. Recruit CRM and LinkedIn Recruiter find names. They keep doing that.
 2. Shortlist Check proves the names before anyone calls: chartered, resident, right grade, real contact, with the quote. Names that fail come back with the reason, so nobody spends an hour on them.
-3. Maddie's screener takes over exactly where it does today. A checked name lands in Recruit CRM as a candidate on the job, with the proof as a note. Nothing sends on its own; a consultant always makes the call.
+3. Maddie's screener takes over exactly where it does today. A checked name lands in Recruit CRM as a candidate on the job, with the proof as a note, and can show in the dashboard Maddie built as one more column beside her score: checked, with the proof. Nothing sends on its own; a consultant always makes the call.
 
 ## What it is not
 

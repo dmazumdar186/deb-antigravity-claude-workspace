@@ -15,7 +15,7 @@ is a claim, not a finding.
 
 | Hard gate not met | Candidates |
 |---|---|
-| located_ie | 385 |
+| located_ie | 388 |
 | chartered | 382 |
 | discipline | 332 |
 | seniority_ceiling | 238 |
@@ -50,7 +50,6 @@ widening the brief, or by asking us to verify the one open point.
 - Mark Killian -- O'Connor Sutton Cronin -- missing only: residence evidence (Republic of Ireland) [located_ie]
 - Michael Walsh -- Walsh Design Group -- missing only: above the seniority ceiling [seniority_ceiling]
 - Nigel Fitzsimons -- Downes Associates -- missing only: above the seniority ceiling [seniority_ceiling]
-- Pat Brady -- Horganlynch -- missing only: above the seniority ceiling [seniority_ceiling]
 - Richard Kiernan -- Donnachadh O'Brien & Associates -- missing only: residence evidence (Republic of Ireland) [located_ie]
 - Ronan O' Mahony -- Form Structural Design Limited -- missing only: chartership evidence (Engineers Ireland) [chartered]
 - Rory O'Hare -- Furey Consulting Engineers -- missing only: above the seniority ceiling [seniority_ceiling]

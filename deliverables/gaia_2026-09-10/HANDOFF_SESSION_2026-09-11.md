@@ -13,7 +13,7 @@ Send Keith Molony (Gaia Talent) the corrected shortlist link + Loom + the v2 pag
 
 ## Where it stands (DONE in this session)
 Campaign `gaia-2026-09-14` (`export GAIA_CAMPAIGN_ID=gaia-2026-09-14`; deliverables in `deliverables/gaia_2026-09-14/`; never write into `gaia_2026-08-20`).
-- Role 1: 471 assessed, 2 gate-passers, **2 of 10 delivered** (Alicia Joyce / CSEA, John Alcaras / Arcadis). Near-misses named in `pool_map_role1.md` (14 on residence evidence, 9 on chartership).
+- Role 1: 471 assessed, 2 gate-passers, **2 of 10 delivered** (Alicia Joyce / CSEA, John Alcaras / Arcadis). Near-misses named in `pool_map_role1.md` (14 on residence evidence, 8 on chartership).
 - Role 2: 65 assessed, **0 of 5**.
 - Acceptance gate: 41 checks PASS. Suite: 1,086 tests PASS. Four pipeline-auditor audits; the fourth ran on the frozen tree (its verdict is in the commit message of the final commit).
 - Rules now binding (all tested, see the runbook §1c): residence needs a residence-shaped quote; firm-office defaults pass only when the brief does not require direct evidence, and then with a card note; unstamped `Person.location` never passes but still excludes (Belfast/London); grade ceiling scans the title and every employer quote naming the person; chartership accepts "C. Eng"/"F.I.E.I."; employer is recovered deterministically from the person's own text; held-backs are named in the banner and pool map; basis quotes are pinned first on every card; second opinions render last, max 2, clipped.

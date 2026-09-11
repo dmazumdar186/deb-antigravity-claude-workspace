@@ -80,6 +80,7 @@ from .core.contracts import (
     ContactRecord,
     Evaluation,
     GateResult,
+    JobSpec,
     MovabilitySignal,
     OutreachSequence,
     Person,
@@ -98,12 +99,16 @@ from .layers.extract import (
     strip_postnominals,
     extract_directory,
     extract_from_document,
+    slugify_person_name,
     window_around_names,
 )
+from .layers import intake as intake_module
+from .eval import time_value as time_value_module
 from .layers.icp_check import icp_check_from_gate_json
 from .layers.replies import classify_reply
 from .layers.validator import validate_all
 from .render import render as render_module
+from .render.check_page import write_check_page
 from .render.console import render_console
 from .roles import (
     ACCEPT_TITLES_FOR_FLOOR_DEFAULT, ROLE1, ROLE2, ROLES, is_client_side,
@@ -805,7 +810,7 @@ def stage_extract(force: bool = False) -> None:
         if doc is None or doc.doc_id in seen_docs or not rec.get("person_hint"):
             return
         name = rec["person_hint"]
-        pid = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+        pid = slugify_person_name(name)
         person = Person(
             person_id=pid,
             full_name=name,
@@ -863,7 +868,7 @@ def stage_extract(force: bool = False) -> None:
             name = (rec.get("full_name") or "").strip()
             if not name:
                 return
-            pid = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+            pid = slugify_person_name(name)
             person = Person(
                 person_id=pid,
                 full_name=name,
@@ -2899,6 +2904,1145 @@ STAGES = {
 ORDER = list(STAGES.keys())
 
 
+# ---------------------------------------------------------------------------
+# Shortlist Check (deliverables/gaia_poc_check/PLAN.md) -- run.py --check.
+#
+# Offline, read-only against the cache: loads extract/validate/gate/contact
+# from run/<campaign_id>/, applies the SAME brief overrides every other
+# stage honours (--max-grade/--counties/--strict-location/...), and runs
+# gates.run_gates/assign_tier -- the exact functions stage_gate uses -- for
+# each matched person. Never re-harvests, never calls a provider; the
+# assertion in main() that core.providers.spend_eur() reads 0.00 afterwards
+# is the actual guarantee, this module is what makes that guarantee true.
+# ---------------------------------------------------------------------------
+
+# One client-readable sentence per gate, generated deterministically from
+# the gate's LIVE params -- after whatever overrides this invocation
+# carried (CLI flags, or --check's own Role-1 default brief) -- NEVER from
+# JobSpec.hard_gates[].description. That field is an internal engineering
+# note: it carries "PENDING KEITH MOLONY CALL 2026-09-10", the JD-vs-gate
+# delta ("the JD asks 12-18; the gate sits at 8"), and code examples
+# ("e.g. 'Senior Structural Engineer at Nokia'") -- none of it meant for
+# the client page, and for Role 2 it had drifted outright: the label read
+# "Senior Engineer ceiling" (computed from live params) while the text
+# underneath still said "No higher than Associate Director" (the
+# description's own hard-coded, stale wording). Generating both from the
+# SAME live params makes that drift structurally impossible.
+def _check_rule_text(gate) -> str:
+    p = gate.params or {}
+    if gate.check == "chartered":
+        return (
+            "Chartered with Engineers Ireland (CEng with MIEI or FIEI), "
+            "stated in a public source."
+        )
+    if gate.check == "located_ie":
+        text = (
+            "Lives in the Republic of Ireland, stated directly (a project "
+            "in Ireland or the firm's office does not count)."
+        )
+        counties = p.get("counties") or []
+        if counties:
+            text = text[:-1] + ", within " + ", ".join(counties) + "."
+        return text
+    if gate.check == "discipline":
+        include = p.get("include") or []
+        if not include:
+            return "A named engineering discipline as the person's own."
+        return ", ".join(include) + " as the person's own discipline."
+    if gate.check == "seniority_years":
+        min_years = p.get("min_years")
+        if min_years is None:
+            return "A stated number of years' professional experience."
+        return "At least " + str(min_years) + " years' experience stated publicly."
+    if gate.check == "seniority_ceiling":
+        max_grade = p.get("max_grade")
+        max_years = p.get("max_years")
+        if not max_grade and max_years is None:
+            return "No seniority ceiling set for this brief."
+        parts = []
+        if max_grade:
+            parts.append(
+                "No higher than " + _CHECK_GRADE_LABELS.get(max_grade, max_grade) + " grade"
+            )
+        if max_years is not None:
+            parts.append("no more than " + str(max_years) + " years")
+        return ", and ".join(parts) + "."
+    if gate.check == "employer_sector":
+        return "Works at an engineering consultancy, not a client-side body."
+    if gate.check == "not_client":
+        off = p.get("off_limits") or []
+        if not off:
+            return "Not currently at the client organisation."
+        return "Not currently at " + ", ".join(off) + "."
+    # Every gate.check value in _CHECKS (layers/gates.py) is handled above;
+    # this is defensive only, for a future check type this function has
+    # not been taught yet -- gate.description, not silence, so a gap is
+    # visible on the page rather than a blank rule.
+    return gate.description
+
+
+# Priority order for picking the ONE reason a one_line names, when several
+# gates failed. Most decision-relevant first: a Director on a Senior brief
+# is "above grade" before anything else about them matters.
+_CHECK_GATE_PRIORITY = [
+    "seniority_ceiling", "located_ie", "chartered", "discipline",
+    "employer_sector", "not_client", "seniority",
+]
+
+_CHECK_GRADE_LABELS = {
+    "senior_engineer": "Senior Engineer",
+    "principal_or_associate": "Principal / Associate",
+    "associate_director": "Associate Director",
+    "director": "Director",
+}
+
+# Longest-first so "Associate Director" is checked before "Director" would
+# otherwise match its own prefix and strip the wrong amount.
+_CHECK_GRADE_WORDS = sorted(set(_CHECK_GRADE_LABELS.values()), key=len, reverse=True)
+
+
+def _lower_first_unless_grade_word(reason: str) -> str:
+    """Coordinator fix 2026-09-11 (third pass): a NEAR_MISS one_line folds
+    the failed gate's own reason into a lower-case clause ('... evidenced
+    at 26 years' experience ...'), EXCEPT when the reason opens with a
+    grade word (Director, Associate Director, Senior Engineer, Principal /
+    Associate) -- a proper-noun-shaped term that stays capitalised as it
+    reads in the reason itself, never folded to lower case."""
+    if not reason:
+        return reason
+    for word in _CHECK_GRADE_WORDS:
+        if reason.startswith(word):
+            return reason
+    return reason[0].lower() + reason[1:]
+
+# Fallback only -- used when a NEAR_MISS's single failed gate carries no
+# `reason` text at all (should not happen in practice; every _check_failed_
+# rec branch sets one). Coordinator fix 2026-09-11 (third pass): the
+# one_line itself now states the failed rule's ACTUAL reason rather than
+# this generic noun phrase -- see _check_one_line's NEAR_MISS branch.
+_CHECK_MISSING_LABELS = {
+    "seniority_ceiling": "confirmation of a grade under the ceiling",
+    "located_ie": "residence evidence",
+    "chartered": "chartership evidence",
+    "discipline": "discipline evidence",
+    "employer_sector": "employer-sector evidence",
+    "not_client": "confirmation they are not client-side",
+    "seniority": "years-of-experience evidence",
+}
+
+# contact.json's own email_status vocabulary (I5: never collapsed further
+# than this map).
+_CHECK_CONTACT_MAP = {
+    "verified": "verified", "catch_all": "catch_all",
+    "pattern_guess": "guess", "none": "none",
+}
+
+# Coordinator fix 2026-09-11 item 4: an intake CSV's own `contact_status`/
+# `email_status` column, consulted ONLY when contact.json has no entry for
+# the matched person -- a name never re-enriched in THIS cache still
+# carries whatever contact confidence the original delivery recorded,
+# rather than reading as a blanket "unknown". PLAN.md's own wording
+# ("inferred") is accepted alongside the pipeline's "pattern_guess".
+_CHECK_CSV_CONTACT_MAP = {
+    "verified": "verified", "catch_all": "catch_all",
+    "inferred": "guess", "pattern_guess": "guess", "guess": "guess",
+    "none": "none",
+}
+
+
+def _check_contact_status(rec: Optional[dict], csv_value: str = "") -> str:
+    """contact.json's entry wins WHEN it maps to something recognised;
+    otherwise (no entry at all, OR an entry whose email_status is missing
+    or not in _CHECK_CONTACT_MAP -- code-review fix 2026-09-11 item h)
+    falls through to the intake row's own `contact_status`/`email_status`
+    column; otherwise 'unknown'. Distinct from contact.json's own 'none'
+    (enriched, and nothing was found) or the CSV's own 'none' (both mean
+    the same thing: looked at, nothing found)."""
+    if rec is not None:
+        mapped = _CHECK_CONTACT_MAP.get(rec.get("email_status"))
+        if mapped:
+            return mapped
+    mapped = _CHECK_CSV_CONTACT_MAP.get((csv_value or "").strip().lower())
+    return mapped or "unknown"
+
+
+def _check_classify(gate_results: list, client_side: bool) -> tuple[str, list]:
+    """PASS / NEAR_MISS / OUT per PLAN.md's contract -- deliberately NOT the
+    pipeline's A/B/C tiering (gates.assign_tier), which also weighs
+    primary-signal evidence strength; the check only asks whether the
+    person clears every hard gate, and if not, how close they came."""
+    failed = gates.failed_gates(gate_results)
+    if client_side or len(failed) >= 2:
+        return "OUT", failed
+    if len(failed) == 1:
+        return "NEAR_MISS", failed
+    return "PASS", failed
+
+
+def _check_evidence(claims: list[dict], gate_recs: list[dict]) -> list[dict]:
+    """Residence + chartership + employer basis quotes -- the exact
+    selection render.render.gate_basis_claims already makes for a dossier
+    card's evidence pane, reused here (not re-implemented) so a check row
+    and a rendered card can never disagree about which quote a gate verdict
+    rested on. Employer has no gate-basis CLAIM (check_employer_sector's
+    basis is the literal string "person.employer", not a claim_id -- see
+    layers/gates.py) so its evidence is the first direct employer-dimension
+    claim instead, the same claim _persons_and_claims() reads to resolve
+    current_employer."""
+    basis = render_module.gate_basis_claims(claims, gate_recs, ("located_ie", "chartered"))
+    out = [
+        {
+            "dimension": c.get("dimension"),
+            "quote": c.get("evidence_quote"),
+            "source_url": str(c.get("source_url") or ""),
+        }
+        for c in basis
+    ]
+    seen_ids = {c.get("claim_id") for c in basis}
+    employer_claim = next(
+        (c for c in claims
+         if c.get("dimension") == "employer" and c.get("confidence") == "direct"
+         and c.get("claim_id") not in seen_ids),
+        None,
+    )
+    if employer_claim:
+        out.append({
+            "dimension": "employer",
+            "quote": employer_claim.get("evidence_quote"),
+            "source_url": str(employer_claim.get("source_url") or ""),
+        })
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Coordinator fix 2026-09-11 item 1: which role_id gates a matched row.
+# ---------------------------------------------------------------------------
+
+
+def _resolve_role_alias(raw: Optional[str], roles_dict: dict) -> Optional[str]:
+    """The intake CSV's own `role` column value -> a role_id in
+    `roles_dict`. Accepts the literal role_id, the role's own title
+    (case-insensitive, exact), or the positional aliases 'role1'/'role2'
+    (the first/second role registered in ROLES -- roles.py's own
+    ROLE1/ROLE2 insertion order). None when nothing matches, so the caller
+    falls back to the cached person's own delivered role_id rather than
+    silently mis-gating someone on an unresolvable value."""
+    if not raw:
+        return None
+    key = raw.strip().lower()
+    if not key:
+        return None
+    if key in roles_dict:
+        return key
+    ordered = list(roles_dict.keys())
+    if key == "role1" and len(ordered) >= 1:
+        return ordered[0]
+    if key == "role2" and len(ordered) >= 2:
+        return ordered[1]
+    for rid, spec in roles_dict.items():
+        if spec.title.strip().lower() == key:
+            return rid
+    return None
+
+
+def _row_role_id(
+    row_role_raw: str, pool_role_id: Optional[str],
+    check_role: Optional[str], roles_dict: dict,
+) -> Optional[str]:
+    """Precedence: --check-role (explicit, applies to every row) first,
+    then the CSV's own `role` column, then the cached person's own
+    delivered role_id -- never a single brief forced onto everyone (the
+    August 20 delivery mixed two roles; checking a Role 2 witness against
+    Role 1's brief is not a fair check of what was actually delivered)."""
+    if check_role:
+        return check_role
+    resolved = _resolve_role_alias(row_role_raw, roles_dict)
+    if resolved:
+        return resolved
+    return pool_role_id
+
+
+# ---------------------------------------------------------------------------
+# Coordinator fix 2026-09-11 item 2: grade-aware gate labels, so the page
+# reads "Senior Engineer ceiling" (or whatever max_grade is actually in
+# force) rather than a generic phrase once a brief sets a specific grade.
+# ---------------------------------------------------------------------------
+
+
+def _check_grade_label(spec: JobSpec) -> str:
+    for g in spec.hard_gates:
+        if g.gate_id == "seniority_ceiling":
+            grade = g.params.get("max_grade")
+            return _CHECK_GRADE_LABELS.get(grade, GATE_ID_LABELS["seniority_ceiling"])
+    return GATE_ID_LABELS["seniority_ceiling"]
+
+
+def _check_gate_label_for(gate_id: str, spec: JobSpec) -> str:
+    if gate_id == "seniority_ceiling":
+        return _check_grade_label(spec) + " ceiling"
+    return GATE_ID_LABELS.get(gate_id, gate_id)
+
+
+def _brief_overrides_in_force(spec: JobSpec, sources: Optional[dict] = None) -> dict:
+    """The override-relevant gate params actually in force on `spec` right
+    now, each tagged with WHERE it came from -- code-review fix 2026-09-11
+    item a: 'cli' (an explicit flag this invocation carried), 'check_
+    default' (Role 1's promised-brief default from _apply_check_overrides,
+    applied only where no explicit flag overrode it), or 'brief_default'
+    (roles.py's own untouched baseline). Read straight off spec.hard_gates
+    -- a LOCAL deep copy, never the module-level ROLE1/ROLE2 (item b) --
+    so this is honest regardless of where the value came from. Recorded
+    verbatim in check_results.json's brief[].overrides."""
+    sources = sources or {}
+
+    def _entry(name: str, value) -> dict:
+        return {"value": value, "source": sources.get(name, "brief_default")}
+
+    out: dict = {}
+    for gate in spec.hard_gates:
+        if gate.check == "seniority_ceiling":
+            out["max_grade"] = _entry("max_grade", gate.params.get("max_grade"))
+            out["max_years"] = _entry("max_years", gate.params.get("max_years"))
+        elif gate.check == "seniority_years":
+            out["min_years"] = _entry("min_years", gate.params.get("min_years"))
+        elif gate.check == "located_ie":
+            out["require_direct_evidence"] = _entry(
+                "require_direct_evidence", gate.params.get("require_direct_evidence", False)
+            )
+            out["counties"] = _entry("counties", gate.params.get("counties", []))
+            out["treat_unknown_as"] = _entry(
+                "treat_unknown_as", gate.params.get("treat_unknown_as", "fail")
+            )
+    return out
+
+
+def _apply_check_overrides(
+    local_roles: dict[str, JobSpec], *, max_grade: Optional[str],
+    max_years: Optional[int], min_years: Optional[int],
+    counties: Optional[str], strict_location: bool, lenient_location: bool,
+    role1_id: str,
+) -> dict[str, dict[str, str]]:
+    """Applies CLI overrides -- and, per dimension, Role 1's promised-brief
+    default -- to the LOCAL (deep-copied) role specs ONLY. Code-review fix
+    2026-09-11:
+
+    item b: --check must never mutate the module-level ROLE1/ROLE2 objects
+    the rest of the pipeline shares -- run_check deep-copies ROLES into
+    `local_roles` before calling this, and every mutation below lands on
+    those copies.
+
+    item a: each dimension defaults INDEPENDENTLY. The grade default
+    (Role 1's promised senior_engineer/15, runbook line 38) applies unless
+    --max-grade/--max-years was given; the location default (strict
+    residence) applies unless --strict-location/--lenient-location was
+    given -- passing only one explicit flag must not silently suppress
+    the OTHER dimension's default (the old all-or-nothing check used a
+    single `explicit` flag across every param, so --min-years alone would
+    have skipped the grade default too).
+
+    Role 2 gets a 'check_default' entry ONLY when an explicit CLI flag
+    applies to it (flags apply globally, per _apply_brief_overrides'
+    existing semantics) -- the senior_engineer/15/strict promise on
+    record is Role 1's alone; an untouched Role 2 param is tagged
+    'brief_default' by `_brief_overrides_in_force` reading roles.py's own
+    baseline, not recorded here at all.
+    """
+    sources: dict[str, dict[str, str]] = {rid: {} for rid in local_roles}
+    counties_list = (
+        [c.strip() for c in counties.split(",") if c.strip()]
+        if counties is not None else None
+    )
+    for role_id, spec in local_roles.items():
+        for gate in spec.hard_gates:
+            if gate.check == "seniority_ceiling":
+                if max_grade:
+                    gate.params["max_grade"] = max_grade
+                    sources[role_id]["max_grade"] = "cli"
+                elif role_id == role1_id:
+                    gate.params["max_grade"] = "senior_engineer"
+                    sources[role_id]["max_grade"] = "check_default"
+                if max_years is not None:
+                    gate.params["max_years"] = max_years
+                    sources[role_id]["max_years"] = "cli"
+                elif role_id == role1_id:
+                    gate.params["max_years"] = 15
+                    sources[role_id]["max_years"] = "check_default"
+            elif gate.check == "seniority_years":
+                if min_years is not None:
+                    gate.params["min_years"] = min_years
+                    sources[role_id]["min_years"] = "cli"
+            elif gate.check == "located_ie":
+                if counties_list is not None:
+                    gate.params["counties"] = counties_list
+                    sources[role_id]["counties"] = "cli"
+                if strict_location:
+                    gate.params["require_direct_evidence"] = True
+                    gate.params["treat_unknown_as"] = "fail"
+                    sources[role_id]["require_direct_evidence"] = "cli"
+                elif lenient_location:
+                    gate.params["require_direct_evidence"] = False
+                    sources[role_id]["require_direct_evidence"] = "cli"
+                elif role_id == role1_id:
+                    gate.params["require_direct_evidence"] = True
+                    gate.params["treat_unknown_as"] = "fail"
+                    sources[role_id]["require_direct_evidence"] = "check_default"
+    return sources
+
+
+# ---------------------------------------------------------------------------
+# Coordinator fix 2026-09-11 item 3: reasons say what the evidence says,
+# never more. "No evidence of X" and "evidence of NOT X" are different
+# facts; the located_ie mapping below keeps them distinct, and the
+# seniority_ceiling mapping never claims "above the ceiling" for a title
+# that was simply never stated anywhere public.
+# ---------------------------------------------------------------------------
+
+# Checked in this order (most specific first) so "Northern Ireland" is
+# never reported as the generic "UK", and so a claim naming BOTH Dublin and
+# London still surfaces the outside-Republic fact rather than the Irish one
+# masking it -- residence evidence naming an outside jurisdiction is exactly
+# what this check exists to catch, not average away.
+#
+# Code-review fix 2026-09-11 (item c): every pattern is word-boundary
+# anchored, not a bare substring check -- the old " uk"/"london"/"wales"
+# substring tests matched "Based in Ukraine" (the substring "uk" inside
+# "Ukraine") and "New South Wales" (the substring "wales" inside a place
+# that is not Wales). Wales/New Zealand additionally exclude a preceding
+# "South " so "New South Wales"/"New South Zealand"-shaped names never
+# match the country/nation on their own.
+_OUTSIDE_ROI_PLACES: list[tuple[str, re.Pattern]] = [
+    ("Northern Ireland", re.compile(r"\bnorthern ireland\b", re.I)),
+    ("Belfast", re.compile(r"\bbelfast\b", re.I)),
+    ("London", re.compile(r"\blondon\b", re.I)),
+    ("Sofia", re.compile(r"\bsofia\b", re.I)),
+    ("Bulgaria", re.compile(r"\bbulgaria\b", re.I)),
+    ("the UK", re.compile(
+        r"\buk\b|\bu\.k\.\b|\bunited kingdom\b|\bgreat britain\b", re.I
+    )),
+    ("Scotland", re.compile(r"\bscotland\b", re.I)),
+    ("Wales", re.compile(r"(?<!south )\bwales\b", re.I)),
+    ("England", re.compile(r"\bengland\b", re.I)),
+    ("Manchester", re.compile(r"\bmanchester\b", re.I)),
+    ("Birmingham", re.compile(r"\bbirmingham\b", re.I)),
+    ("Qatar", re.compile(r"\bqatar\b", re.I)),
+    ("Dubai", re.compile(r"\bdubai\b", re.I)),
+    ("the UAE", re.compile(r"\buae\b", re.I)),
+    ("Australia", re.compile(r"\baustralia\b", re.I)),
+    ("Canada", re.compile(r"\bcanada\b", re.I)),
+    ("the United States", re.compile(r"\bunited states\b", re.I)),
+    ("New Zealand", re.compile(r"(?<!south )\bnew zealand\b", re.I)),
+]
+
+# located_ie gate notes (layers/gates.py::check_located_ie) that describe an
+# ABSENCE of residence evidence, mapped to the plain line a note like that
+# actually supports. Checked only after the per-claim scan below finds no
+# genuinely residence-shaped outside-Republic evidence.
+#
+# "evidence places this candidate outside ireland." is the gate's OWN
+# fallback verdict when a location-dimension claim named a non-IE
+# jurisdiction with no Republic evidence anywhere else -- but that claim is
+# frequently a project/market mention ("experience in Ireland, UK, Middle
+# East and North African markets"), not a residence statement, so the
+# note's own "outside Ireland" wording overclaims exactly the way this
+# whole mapping exists to prevent. Coordinator fix 2026-09-11 (second
+# pass): Paul Healy and Mark Petho both carry this note from a quote that
+# fails the residence-shape test below, so it is mapped to the same
+# absence line rather than passed through verbatim.
+_LOCATED_IE_NOTE_MAP = {
+    "no direct residence evidence; irish scheme work only":
+        "No statement of where they live was found; only Irish project work.",
+    "no public evidence of an ireland-based location found.":
+        "No statement of where they live was found.",
+    "evidence places this candidate outside ireland.":
+        "No statement of where they live was found.",
+}
+
+# A residence-shaped quote that ALSO names an outside place, but describes
+# the FIRM's office rather than where the person lives ("joined Barrett
+# Mahony UK in our London office", "Sofia office in Bulgaria", "Based in
+# Barrett Mahony's London office"). "our X office" / "office in X" are
+# exactly the phrases layers.gates._RESIDENCE_SHAPE_RE treats as residence-
+# shaped (trusted evidence for the IE side of the gate too), but "the firm
+# has an office in London" is not the same fact as "this person lives in
+# London" -- distinguished here so the two never collapse into one "Based
+# in" line. Deliberately a bare word check rather than a specific phrase
+# list: a possessive form ("Barrett Mahony's London office") reads as
+# "based in" to _RESIDENCE_SHAPE_RE without matching either literal office
+# phrase, and every real case in this data is a firm's office, never a
+# home office -- so any mention of "office" alongside a residence-shaped
+# match is treated as the firm's, not the person's.
+_CHECK_OFFICE_PHRASE_RE = re.compile(r"\boffice\b", re.I)
+
+# Adversarial-audit fix 2026-09-11 item 2: a 4-digit year inside a
+# residence-shaped office quote, so "joined ... in 2013" phrases
+# historically ("Joined the firm's London office in 2013") instead of a
+# bare, undated "works from".
+_CHECK_YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
+
+
+def _find_outside_place(text: str) -> Optional[str]:
+    if not text:
+        return None
+    for label, pattern in _OUTSIDE_ROI_PLACES:
+        if pattern.search(text):
+            return label
+    return None
+
+
+def _extract_year(text: str) -> Optional[str]:
+    m = _CHECK_YEAR_RE.search(text or "")
+    return m.group(0) if m else None
+
+
+def _claim_evidence(c: dict) -> dict:
+    return {
+        "dimension": c.get("dimension"),
+        "quote": c.get("evidence_quote"),
+        "source_url": str(c.get("source_url") or ""),
+    }
+
+
+def _check_located_ie_reason(
+    note: Optional[str], person: dict, claims: list[dict]
+) -> tuple[str, str, list[dict]]:
+    """(plain-English reason, residence bucket for summary.residence --
+    ALWAYS one of 'outside_republic' | 'no_evidence' | 'unclassified' --
+    extra evidence claims to attach to the row so the quote sits under
+    the verdict).
+
+    "Based in <place>" may be produced ONLY by a genuinely residence-shaped
+    quote -- reusing layers.gates._RESIDENCE_SHAPE_RE, the SAME test
+    check_located_ie itself applies, never a second regex -- or by a
+    cached `location` field whose `location_source` is stamped
+    (provenance-backed, unlike an unstamped model inference). A
+    project/market mention ("experience in Ireland, UK, Middle East and
+    North African markets") names a jurisdiction worked in, not lived in,
+    and falls through to the no-evidence lines. An office-shaped mention
+    ("our London office") is residence-shaped by that regex but describes
+    the FIRM's office, not the person's home.
+
+    Code-review fix 2026-09-11 (item d): an office-shaped quote does NOT
+    return early. Every location claim is scanned FIRST, in full, for a
+    genuinely residence-shaped NON-office statement; only once none
+    exists does an office-shaped quote (or several, as a history) become
+    the fallback -- so a person with both an office mention and a later
+    genuine residence statement is read by the genuine one, never by
+    whichever claim happened to come first.
+
+    Adversarial-audit fix 2026-09-11 item 2: an office claim is phrased
+    historically with the year the quote itself states ("Joined the
+    firm's London office in 2013; no statement of where they live."), and
+    two or more office claims read as a history ("Office history: London
+    (2013), Sofia (2016); no statement of where they live."). The claim(s)
+    used are returned as evidence so the quote renders under the verdict,
+    not just referenced by the reason text.
+    """
+    office_hits: list[tuple[str, Optional[str], dict]] = []
+    for c in claims:
+        if c.get("dimension") != "location" or c.get("confidence") != "direct":
+            continue
+        text = str(c.get("evidence_quote") or "") + " " + str(c.get("assertion") or "")
+        place = _find_outside_place(text)
+        if not place:
+            continue
+        if not gates._RESIDENCE_SHAPE_RE.search(text):
+            # Names a place the person worked in, not one shaped like a
+            # residence statement -- not evidence either way. Keep
+            # scanning the rest of this person's location claims.
+            continue
+        if _CHECK_OFFICE_PHRASE_RE.search(text):
+            office_hits.append((place, _extract_year(text), c))
+            continue  # item d: defer, do not return yet
+        return (
+            "Based in " + place + ", outside the Republic of Ireland.",
+            "outside_republic", [_claim_evidence(c)],
+        )
+
+    if office_hits:
+        if len(office_hits) == 1:
+            place, year, c = office_hits[0]
+            if year:
+                reason = (
+                    "Joined the firm's " + place + " office in " + year
+                    + "; no statement of where they live."
+                )
+            else:
+                reason = (
+                    "Works from the firm's " + place + " office; no "
+                    "statement of where they live."
+                )
+            return reason, "no_evidence", [_claim_evidence(c)]
+        parts: list[str] = []
+        seen: set[str] = set()
+        for place, year, _c in office_hits:
+            label = place + (" (" + year + ")" if year else "")
+            if label in seen:
+                continue
+            seen.add(label)
+            parts.append(label)
+        reason = (
+            "Office history: " + ", ".join(parts)
+            + "; no statement of where they live."
+        )
+        return reason, "no_evidence", [_claim_evidence(c) for _, _, c in office_hits]
+
+    loc = person.get("location")
+    if loc and person.get("location_source"):
+        place = _find_outside_place(str(loc))
+        if place:
+            return (
+                "Based in " + place + ", outside the Republic of Ireland.",
+                "outside_republic", [],
+            )
+
+    mapped = _LOCATED_IE_NOTE_MAP.get((note or "").strip().lower())
+    if mapped:
+        return mapped, "no_evidence", []
+    if note:
+        # code-review fix item f: a note shape this mapping does not
+        # recognise is shown verbatim, but tallied as its OWN residence
+        # bucket rather than silently folded into "no_evidence" -- so
+        # outside_republic + no_evidence + unclassified always sums to
+        # exactly by_rule["located_ie"].
+        return note, "unclassified", []
+    return "No statement of where they live was found.", "no_evidence", []
+
+
+def _check_seniority_ceiling_reason(
+    note: Optional[str], person_obj, claim_objs, ceiling_label: str,
+) -> tuple[str, list[dict], Optional[str]]:
+    """(reason, extra evidence claims to attach, resolved grade word for
+    backfilling a blank title column -- or None when no backfill applies).
+
+    Adversarial-audit fix 2026-09-11 item 1: branches on the GATE'S OWN
+    basis -- via gates._grade_of(person, claims), the SAME function
+    check_seniority_ceiling itself calls to decide who fails, so this can
+    never disagree with the gate about which grade or which quote it
+    rested on -- never on person.current_title alone. Three Role 2
+    witnesses had current_title=None but the gate's basis was a claim
+    whose quote plainly states their grade ("I am a Senior Associate
+    Director of Highways in Jacobs."); reading person.current_title alone
+    printed "Grade not stated anywhere public" for a person whose grade
+    WAS stated, just not in the title field. "Grade not stated anywhere
+    public" is reserved for when _grade_of itself finds nothing, anywhere.
+    """
+    note = note or ""
+    if "is above the brief ceiling" not in note:
+        # A years-evidenced or graduation-estimate ceiling failure (or an
+        # excluded-title-pattern match) -- already a self-contained,
+        # honest sentence from the gate; shown as it wrote it.
+        if note:
+            return note[0].upper() + note[1:], [], None
+        return "Above the " + ceiling_label + " ceiling.", [], None
+
+    grade_info = gates._grade_of(person_obj, claim_objs)
+    if grade_info is None:
+        return (
+            "Grade not stated anywhere public; cannot be confirmed under "
+            "the " + ceiling_label + " ceiling."
+        ), [], None
+    grade, basis = grade_info
+    if basis == "person.title":
+        title = (person_obj.current_title or "").strip()
+        if title:
+            return title + " grade, above the " + ceiling_label + " ceiling.", [], None
+        return (
+            "Grade not stated anywhere public; cannot be confirmed under "
+            "the " + ceiling_label + " ceiling."
+        ), [], None
+
+    claim = next((c for c in claim_objs if c.claim_id == basis), None)
+    if claim is None:
+        return (
+            "Grade not stated anywhere public; cannot be confirmed under "
+            "the " + ceiling_label + " ceiling."
+        ), [], None
+    grade_label = _CHECK_GRADE_LABELS.get(grade, grade)
+    reason = (
+        grade_label + " grade, stated in public evidence, above the "
+        + ceiling_label + " ceiling."
+    )
+    evidence = [{
+        "dimension": claim.dimension, "quote": claim.evidence_quote,
+        "source_url": str(claim.source_url),
+    }]
+    return reason, evidence, grade_label
+
+
+# Adversarial-audit fix 2026-09-11 item 3: the floor gate's OWN "No public
+# evidence of N+ years' experience found." note reads as contradicted next
+# to a rendered join-date quote ("joined ... in 2004") -- the check never
+# tried to infer years from a join date, it looked for a STATED years
+# figure and found none, so the reason says exactly that.
+_SENIORITY_FLOOR_NO_EVIDENCE_RE = re.compile(
+    r"^No public evidence of \d+\+ years' experience found\.$", re.I
+)
+
+
+def _check_seniority_floor_reason(note: Optional[str]) -> str:
+    if note and _SENIORITY_FLOOR_NO_EVIDENCE_RE.match(note.strip()):
+        return (
+            "No stated years-of-experience figure was found (the check "
+            "does not infer years from join dates)."
+        )
+    return note or GATE_ID_LABELS.get("seniority", "seniority evidence")
+
+
+def _check_failed_rec(
+    g, spec: JobSpec, person: dict, claims: list[dict],
+    person_obj, claim_objs,
+) -> tuple[dict, Optional[str], list[dict], Optional[str]]:
+    """One failed[] entry (gate_id/label/reason), the residence bucket to
+    tally in summary.residence (only ever set for located_ie), any extra
+    evidence claims this reason rested on, and a resolved grade word to
+    backfill a blank title column with (only ever set for
+    seniority_ceiling, and only when the gate's basis was a claim rather
+    than the title field)."""
+    label = _check_gate_label_for(g.gate_id, spec)
+    bucket: Optional[str] = None
+    extra_evidence: list[dict] = []
+    resolved_title: Optional[str] = None
+    if g.gate_id == "seniority_ceiling":
+        reason, extra_evidence, resolved_title = _check_seniority_ceiling_reason(
+            g.note, person_obj, claim_objs, _check_grade_label(spec)
+        )
+    elif g.gate_id == "located_ie":
+        reason, bucket, extra_evidence = _check_located_ie_reason(g.note, person, claims)
+    elif g.gate_id == "seniority":
+        reason = _check_seniority_floor_reason(g.note)
+    else:
+        reason = g.note or label
+    return {"gate_id": g.gate_id, "label": label, "reason": reason}, bucket, extra_evidence, resolved_title
+
+
+def _check_one_line(
+    status: str, failed_recs: list[dict], client_side: bool,
+    person: dict, spec: JobSpec, how: str = "exact",
+) -> str:
+    """Plain English, <=20 words, one deterministic template per status --
+    never a model call. Banned words (AI/LLM/model/pipeline/automated/
+    platform/system/agent) never appear in any template below; that
+    invariant is checked by test_check_cli.py, not re-verified here."""
+    if status == "NOT_CHECKED":
+        # Code-review fix 2026-09-11 item i: exact wording match with
+        # render/check_page.py's own NOT_CHECKED_LINE JS constant -- the
+        # "try a name" box on the page must never say something different
+        # from the row that generated check_results.json in the first
+        # place.
+        line = (
+            "Not checked yet. A new name takes one working day and comes "
+            "back with the same proof lines."
+        )
+        if how == "ambiguous":
+            return line + " Two people share this name."
+        return line
+    if status == "PASS":
+        return "Pass: meets every rule on the " + spec.title + " brief."
+
+    primary = None
+    for gid in _CHECK_GATE_PRIORITY:
+        primary = next((g for g in failed_recs if g.get("gate_id") == gid), None)
+        if primary is not None:
+            break
+
+    if status == "NEAR_MISS":
+        gid = primary["gate_id"] if primary else ""
+        reason = primary["reason"] if primary else ""
+        # The empty-title seniority_ceiling reason IS the sentence the
+        # coordinator wants verbatim, near-miss or not -- "confirm before
+        # proceeding" applies whether one gate failed or several.
+        if gid == "seniority_ceiling" and reason.startswith("Grade not stated"):
+            return reason
+        # Coordinator fix 2026-09-11 (third pass): state the single failed
+        # rule's ACTUAL reason, not a generic "only X missing" template --
+        # folded to a lower-case clause (proper nouns/grade words kept
+        # capitalised, see _lower_first_unless_grade_word), trailing full
+        # stop dropped, tail appended.
+        if reason:
+            clause = _lower_first_unless_grade_word(reason)
+            if clause.endswith("."):
+                clause = clause[:-1]
+            return "Near miss: " + clause + "; everything else passes."
+        label = _CHECK_MISSING_LABELS.get(gid, GATE_ID_LABELS.get(gid, gid or "one rule"))
+        return "Near miss: only " + label + " missing."
+
+    # OUT
+    if primary is None:
+        if client_side:
+            return "Out: currently client-side, not eligible for this shortlist."
+        return "Out: fails the brief's rules."
+    gid = primary["gate_id"]
+    reason = primary["reason"]
+    if gid == "seniority_ceiling":
+        # Verbatim, no "Out:" prefix -- the coordinator's exact wording for
+        # a grade that was simply never stated anywhere public.
+        if reason.startswith("Grade not stated"):
+            return reason
+        return "Out: " + reason
+    if gid == "located_ie":
+        return "Out: " + reason
+    if gid == "chartered":
+        return "Out: no public evidence of Engineers Ireland chartership."
+    if gid == "not_client":
+        return "Out: currently employed by the client, off-limits."
+    if gid == "discipline":
+        return "Out: discipline does not match this brief."
+    if gid == "employer_sector":
+        return "Out: employer does not read as an engineering consultancy."
+    if gid == "seniority":
+        return "Out: not enough evidenced years of experience."
+    return "Out: fails " + GATE_ID_LABELS.get(gid, gid) + "."
+
+
+def _check_git_sha() -> str:
+    import subprocess
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=str(WORKSPACE_ROOT),
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        log("[check] could not read git sha: " + repr(exc)[:120])
+        return "unknown"
+    if out.returncode != 0:
+        return "unknown"
+    return out.stdout.strip() or "unknown"
+
+
+def _dedupe_evidence(items: list[dict]) -> list[dict]:
+    """Drop an exact (quote, source_url) repeat -- an extra-evidence claim
+    (the seniority_ceiling grade quote, an office-history quote) can be
+    the SAME claim `_check_evidence`'s own located_ie/chartered basis
+    selection already picked up; the reader should see it once."""
+    seen: set[tuple] = set()
+    out: list[dict] = []
+    for e in items:
+        key = (e.get("quote"), e.get("source_url"))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(e)
+    return out
+
+
+def run_check(
+    input_path: str, out_dir: Path, check_role: Optional[str] = None,
+    *, max_grade: Optional[str] = None, max_years: Optional[int] = None,
+    min_years: Optional[int] = None, counties: Optional[str] = None,
+    strict_location: bool = False, lenient_location: bool = False,
+) -> dict:
+    """run.py --check <csv>. Offline: loads the cache, matches the input
+    rows against the pool, gates each matched person under ITS OWN role
+    (the row's `role` column, or --check-role, or the cached person's own
+    delivered role_id -- see _row_role_id), and writes check_results.json
+    + check.csv into out_dir. Returns the contract dict (also what gets
+    written).
+
+    Code-review fix 2026-09-11 item b: builds and mutates a LOCAL deep
+    copy of ROLES here -- never the module-level ROLE1/ROLE2 the rest of
+    the pipeline shares. `max_grade`/`max_years`/`min_years`/`counties`/
+    `strict_location`/`lenient_location` are the CLI's own override
+    values (main() no longer calls _apply_brief_overrides for --check);
+    _apply_check_overrides applies them, and Role 1's promised-brief
+    default per dimension (item a), to that local copy only.
+    """
+    if not done("extract") or not done("validate"):
+        raise SystemExit(
+            "--check needs the 'extract' and 'validate' stages already "
+            "cached for campaign " + CONFIG.campaign_id + " -- this flag "
+            "never runs a stage, it only reads what is already there."
+        )
+
+    local_roles: dict[str, JobSpec] = {
+        rid: spec.model_copy(deep=True) for rid, spec in ROLES.items()
+    }
+    override_sources = _apply_check_overrides(
+        local_roles, max_grade=max_grade, max_years=max_years,
+        min_years=min_years, counties=counties,
+        strict_location=strict_location, lenient_location=lenient_location,
+        role1_id=ROLE1.role_id,
+    )
+    if not any([max_grade, max_years is not None, strict_location, lenient_location]):
+        log("check: no override flags given -- Role 1 defaults to the "
+            "brief promised in the 09-14 delivery (senior_engineer/15, "
+            "strict residence, runbook line 38); Role 2 keeps its own "
+            "brief until Keith answers.")
+
+    persons_obj, by_person, roles = _persons_and_claims()
+    persons_raw: dict[str, dict] = {pid: p.model_dump() for pid, p in persons_obj.items()}
+
+    if check_role is not None and check_role not in local_roles:
+        raise SystemExit(
+            "--check-role: unknown role '" + check_role + "' (known: "
+            + ", ".join(sorted(local_roles)) + ")"
+        )
+
+    rows, duplicates_dropped = intake_module.load_names_report(input_path)
+    matches = intake_module.match_pool(rows, persons_raw)
+    contacts = load("contact") if done("contact") else {}
+
+    row_out: list[dict] = []
+    by_rule: dict[str, int] = {}
+    contact_counts = {"verified": 0, "catch_all": 0, "guess": 0, "none": 0, "unknown": 0}
+    status_counts = {"PASS": 0, "NEAR_MISS": 0, "OUT": 0, "NOT_CHECKED": 0}
+    residence_counts = {"outside_republic": 0, "no_evidence": 0, "unclassified": 0}
+    used_role_ids: dict[str, JobSpec] = {}
+
+    for m in matches:
+        row = m.row
+        if m.person_id is None:
+            status = "NOT_CHECKED"
+            failed_recs: list[dict] = []
+            evidence: list[dict] = []
+            contact_status = _check_contact_status(None, row.contact_status)
+            employer = row.employer
+            title = row.title
+            linkedin_url = row.linkedin_url
+            role_title = ""
+            # Deterministic person_id for a name the pool has never seen --
+            # the same slug rule extract.py mints a real person_id from
+            # (layers/intake.py::slug_for_unmatched, itself
+            # layers/extract.py::slugify_person_name).
+            row_person_id = intake_module.slug_for_unmatched(row.name)
+        else:
+            pid = m.person_id
+            person = persons_raw[pid]
+            row_role_id = _row_role_id(row.role, roles.get(pid), check_role, local_roles)
+            if row_role_id not in local_roles:
+                raise SystemExit(
+                    "'" + row.name + "': role '" + str(row_role_id) + "' is not "
+                    "a known role_id (known: " + ", ".join(sorted(local_roles)) + ")"
+                )
+            spec = local_roles[row_role_id]
+            used_role_ids[row_role_id] = spec
+            row_person_id = pid
+            pclaim_objs = by_person.get(pid, [])
+            pclaims = [c.model_dump() for c in pclaim_objs]
+            results = gates.run_gates(persons_obj[pid], pclaim_objs, spec)
+            gate_dicts = [g.model_dump() for g in results]
+            client_side = is_client_side(person.get("current_employer"))
+            status, failed = _check_classify(results, client_side)
+            failed_recs = []
+            extra_evidence_all: list[dict] = []
+            resolved_title: Optional[str] = None
+            for g in failed:
+                rec, bucket, extra_ev, r_title = _check_failed_rec(
+                    g, spec, person, pclaims, persons_obj[pid], pclaim_objs,
+                )
+                failed_recs.append(rec)
+                by_rule[g.gate_id] = by_rule.get(g.gate_id, 0) + 1
+                if bucket:
+                    residence_counts[bucket] = residence_counts.get(bucket, 0) + 1
+                extra_evidence_all.extend(extra_ev)
+                if r_title and resolved_title is None:
+                    resolved_title = r_title
+            # Code-review fix 2026-09-11 item g: is_client_side() and the
+            # not_client GATE's own off-limits-employer list are two
+            # DIFFERENT checks -- a client-side person whose employer
+            # happens not to match the off-limits list still reads OUT
+            # (via _check_classify's client_side branch) but with no
+            # failed[] entry naming why. Every OUT row must name a rule.
+            if client_side and not any(f["gate_id"] == "not_client" for f in failed_recs):
+                failed_recs.append({
+                    "gate_id": "not_client",
+                    "label": _check_gate_label_for("not_client", spec),
+                    "reason": "Currently employed by the client.",
+                })
+                by_rule["not_client"] = by_rule.get("not_client", 0) + 1
+            evidence = _dedupe_evidence(
+                _check_evidence(pclaims, gate_dicts) + extra_evidence_all
+            )
+            contact_status = _check_contact_status(contacts.get(pid), row.contact_status)
+            employer = person.get("current_employer") or row.employer
+            # Fix (this pass): the check.csv title column must never sit
+            # blank beside a reason that names a grade -- backfilled from
+            # the SAME grade-word source _check_seniority_ceiling_reason
+            # used to build that reason, never a raw CSV fallback with no
+            # relation to it.
+            title = person.get("current_title") or row.title or resolved_title or ""
+            role_title = spec.title
+            contact_rec = contacts.get(pid) or {}
+            linkedin_url = str(
+                contact_rec.get("linkedin_url") or person.get("linkedin_url")
+                or row.linkedin_url or ""
+            )
+
+        contact_counts[contact_status] = contact_counts.get(contact_status, 0) + 1
+        status_counts[status] += 1
+        person_for_line = persons_raw.get(m.person_id, {}) if m.person_id else {}
+        # NOT_CHECKED never reaches a branch of _check_one_line that reads
+        # `spec` for anything but its .title (the PASS template, which a
+        # NOT_CHECKED row can never hit) -- the fallback spec here is only
+        # ever used to satisfy the parameter, never shown to the reader.
+        spec_for_line = (
+            spec if m.person_id is not None
+            else local_roles[check_role or ROLE1.role_id]
+        )
+        one_line = _check_one_line(
+            status, failed_recs,
+            is_client_side(person_for_line.get("current_employer")) if m.person_id else False,
+            person_for_line, spec_for_line, how=m.how,
+        )
+        row_out.append({
+            "name": row.name,
+            "person_id": row_person_id,
+            "employer": employer or "",
+            "title": title or "",
+            "role_title": role_title,
+            "status": status,
+            "failed": failed_recs,
+            "evidence": evidence,
+            "contact": contact_status,
+            "one_line": one_line,
+            "linkedin_url": linkedin_url or "",
+        })
+
+    # The whole assessed pool, classified against each person's OWN role_id
+    # (never forced to a single brief) -- this is "the honest denominator",
+    # the same idea poolmap.json exists for, recomputed with whatever brief
+    # overrides this invocation carried.
+    pool_out: list[dict] = []
+    for pid, person_obj in persons_obj.items():
+        p_role_id = roles.get(pid)
+        p_spec = local_roles.get(p_role_id)
+        if p_spec is None:
+            continue
+        p_results = gates.run_gates(person_obj, by_person.get(pid, []), p_spec)
+        p_client_side = is_client_side(person_obj.current_employer)
+        p_status, p_failed = _check_classify(p_results, p_client_side)
+        p_labels = [_check_gate_label_for(g.gate_id, p_spec) for g in p_failed]
+        not_client_label = _check_gate_label_for("not_client", p_spec)
+        if p_client_side and not_client_label not in p_labels:
+            p_labels.append(not_client_label)
+        pool_out.append({
+            "name": person_obj.full_name,
+            "employer": person_obj.current_employer or "",
+            "status": p_status,
+            "failed_labels": p_labels,
+        })
+    pool_out.sort(key=lambda r: r["name"].lower())
+
+    if not used_role_ids:
+        # Nobody matched -- the brief list still needs at least the default
+        # (--check-role, or Role 1) so check_results.json documents what
+        # WOULD have gated a match, and the page has rules to show.
+        fallback_role_id = check_role or ROLE1.role_id
+        used_role_ids[fallback_role_id] = local_roles[fallback_role_id]
+
+    sha = _check_git_sha()
+    brief_list = [
+        {
+            "role_id": spec.role_id,
+            "title": spec.title,
+            "rules": [
+                {
+                    "gate_id": g.gate_id,
+                    "label": _check_gate_label_for(g.gate_id, spec),
+                    "rule_text": _check_rule_text(g),
+                }
+                for g in spec.hard_gates
+            ],
+            "overrides": _brief_overrides_in_force(
+                spec, override_sources.get(spec.role_id, {})
+            ),
+        }
+        for spec in sorted(used_role_ids.values(), key=lambda s: s.role_id)
+    ]
+
+    assumptions = time_value_module.Assumptions()
+    contract = {
+        "campaign": CONFIG.campaign_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "brief_version": "+".join(sorted(used_role_ids)) + "@" + sha,
+        "brief": brief_list,
+        "input": {
+            "source": str(input_path),
+            "rows": [
+                {"name": r.name, "employer": r.employer, "title": r.title}
+                for r in rows
+            ],
+        },
+        "summary": {
+            "submitted": len(rows),
+            "duplicates_dropped": duplicates_dropped,
+            "matched": sum(1 for m in matches if m.person_id is not None),
+            "not_checked": status_counts["NOT_CHECKED"],
+            "pass": status_counts["PASS"],
+            "near_miss": status_counts["NEAR_MISS"],
+            "out": status_counts["OUT"],
+            "by_rule": dict(sorted(by_rule.items(), key=lambda kv: -kv[1])),
+            "residence": residence_counts,
+            "contact": contact_counts,
+        },
+        "rows": row_out,
+        "pool": pool_out,
+        "time_value": {
+            "assumptions": {
+                "minutes_per_manual_check": assumptions.minutes_per_manual_check,
+                "names_per_week": assumptions.names_per_week,
+                "hourly_cost_eur": assumptions.hourly_cost_eur,
+                "emails_written": assumptions.emails_written,
+            },
+            "august_list": time_value_module.august_list(
+                names=len(rows), emails_written=assumptions.emails_written,
+                a=assumptions,
+            ),
+            "weekly": time_value_module.weekly(assumptions),
+        },
+    }
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "check_results.json").write_text(
+        json.dumps(contract, ensure_ascii=False, indent=2, default=str), encoding="utf-8",
+    )
+    _write_check_csv(out_dir / "check.csv", row_out)
+
+    log("check: " + str(contract["summary"]["submitted"]) + " submitted"
+        + (" (" + str(duplicates_dropped) + " duplicate name(s) dropped)"
+           if duplicates_dropped else "") + ", "
+        + str(contract["summary"]["matched"]) + " matched, "
+        + str(contract["summary"]["pass"]) + " pass, "
+        + str(contract["summary"]["near_miss"]) + " near miss, "
+        + str(contract["summary"]["out"]) + " out, "
+        + str(contract["summary"]["not_checked"]) + " not checked")
+    log("check: by rule " + json.dumps(contract["summary"]["by_rule"]))
+    log("check: residence " + json.dumps(contract["summary"]["residence"]))
+    log("check: contact " + json.dumps(contract["summary"]["contact"]))
+    print("")
+    print(
+        format("name", "28") + format("status", "12")
+        + format("employer", "34") + "one_line"
+    )
+    for r in row_out:
+        print(
+            format(r["name"][:27], "28") + format(r["status"], "12")
+            + format((r["employer"] or "")[:33], "34") + r["one_line"]
+        )
+    return contract
+
+
+def _write_check_csv(path: Path, rows: list[dict]) -> None:
+    import csv as csv_module
+    with path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv_module.writer(fh)
+        writer.writerow([
+            "name", "employer", "title", "role", "status", "reasons",
+            "evidence_note", "contact", "linkedin_url",
+        ])
+        for r in rows:
+            reasons = "; ".join(f["reason"] for f in r["failed"])
+            evidence_note = " | ".join(
+                (e.get("quote") or "") + " (" + (e.get("source_url") or "") + ")"
+                for e in r["evidence"]
+            )
+            writer.writerow([
+                r["name"], r["employer"], r["title"], r.get("role_title", ""),
+                r["status"], reasons, evidence_note, r["contact"],
+                r.get("linkedin_url", ""),
+            ])
+
+
 def _apply_brief_overrides(args: argparse.Namespace) -> None:
     """Apply --max-grade/--max-years/--min-years/--counties/--*-location.
 
@@ -3163,7 +4307,33 @@ def main() -> int:
              "person's residence miss is a real exclusion, not an evidence "
              "gap.",
     )
+    ap.add_argument(
+        "--check", default=None, metavar="PATH",
+        help="Shortlist Check (deliverables/gaia_poc_check/PLAN.md): offline "
+             "against the cached run only -- never re-runs a stage, never "
+             "calls a provider. PATH is a CSV (name/employer/title columns, "
+             "case-insensitive header) or a plain-text list (one name per "
+             "line). Matches each name against extract.json's person pool, "
+             "gates each match under the current brief (--max-grade/"
+             "--counties/--strict-location etc. apply exactly as they do "
+             "for 'gate'), and writes check_results.json + check.csv to "
+             "--check-out. Mutually exclusive with --stage.",
+    )
+    ap.add_argument(
+        "--check-role", default=None, choices=sorted(list(ROLES.keys())),
+        help="role_id to gate --check's matched persons against; default "
+             "role1_senior_structural_engineer (the August brief).",
+    )
+    ap.add_argument(
+        "--check-out", default=str(WORKSPACE_ROOT / "deliverables" / "gaia_poc_check"),
+        metavar="DIR",
+        help="output directory for --check's check_results.json/check.csv "
+             "(default deliverables/gaia_poc_check).",
+    )
     args = ap.parse_args()
+
+    if args.check is not None and args.stage != "all":
+        raise SystemExit("--check is mutually exclusive with --stage")
 
     if args.deepen_gates:
         CONFIG.deepen_gates = [
@@ -3276,6 +4446,52 @@ def main() -> int:
     _LIVE_CRM = args.live_crm
     _ALLOW_STALE = args.allow_stale
     _ALLOW_PLACEHOLDER_NOTICE = args.allow_placeholder_notice
+
+    if args.check is not None:
+        # Code-review fix 2026-09-11 item b: --check must NEVER call
+        # _apply_brief_overrides (it mutates the module-level ROLE1/ROLE2
+        # in place) -- every override, explicit or defaulted, is applied
+        # inside run_check to a LOCAL deep copy instead. The CLI's own
+        # override values are threaded straight through.
+        #
+        # Offline guarantee: no provider is touched by anything above this
+        # line for --check (no stage ran), so the spend meter must still
+        # read exactly zero here. Asserted, not just documented, because a
+        # silent regression that made --check reach a paid call would be
+        # exactly the kind of bug a POC about "this costs nothing" cannot
+        # afford to ship with.
+        pre_spend = spend_eur()
+        if pre_spend != 0.0:
+            raise SystemExit(
+                "--check aborted: EUR " + format(pre_spend, ".2f") + " already "
+                "spent this process before --check ran anything -- refusing "
+                "to proceed on an offline flag with non-zero spend."
+            )
+        check_out_dir = Path(args.check_out)
+        run_check(
+            args.check, check_out_dir, check_role=args.check_role,
+            max_grade=args.max_grade, max_years=args.max_years,
+            min_years=args.min_years, counties=args.counties,
+            strict_location=args.strict_location,
+            lenient_location=args.lenient_location,
+        )
+        # Anneal-review HIGH fix 2026-09-11: this dispatch used to write
+        # check_results.json/check.csv and stop -- keith/index.html only
+        # ever got produced by a separate, out-of-band call. Render it as
+        # part of the same --check invocation so the page and the JSON it
+        # is built from can never fall out of sync with each other.
+        keith_page = write_check_page(
+            check_out_dir / "check_results.json", check_out_dir / "keith" / "index.html"
+        )
+        log("check: wrote " + str(keith_page))
+        post_spend = spend_eur()
+        if post_spend != 0.0:
+            raise SystemExit(
+                "--check made a paid call (EUR " + format(post_spend, ".2f")
+                + " spent) -- this must never happen; see run_check."
+            )
+        log("check: spend EUR " + format(post_spend, ".2f") + " (offline, as required)")
+        return 0
 
     _apply_brief_overrides(args)
 

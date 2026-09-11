@@ -182,6 +182,43 @@ def test_dublin_fails_cork_county_list_unless_relocation_signal():
     assert res2.passed is True and "Relocation" in (res2.note or "")
 
 
+def test_firm_office_mention_fails_strict_but_passes_lenient():
+    """2026-09-11 adversarial-audit fix: 'first joined the Cork office of
+    <firm>' (Pat Brady, clm_f55d39623bcfaa70) is the employer's office, not
+    a residence statement -- runbook SS1c says a firm's office never counts
+    as residence under direct evidence."""
+    claims = [_vc(
+        "location", "Joined Cork office",
+        "first joined the Cork office of Punch Consulting Engineers",
+    )]
+    strict = gates.check_located_ie(_person(), claims, STRICT)
+    assert strict.passed is False
+    assert "firm office mention" in (strict.note or "")
+
+    lenient = gates.check_located_ie(_person(), claims, {})
+    assert lenient.passed is True
+    assert "confirm current base" in (lenient.note or "").lower()
+
+
+def test_uk_firm_office_mention_fails_strict_as_outside_ireland():
+    claims = [_vc(
+        "location", "Joined London office",
+        "In early 2013 he joined Barrett Mahony UK in our London office",
+    )]
+    res = gates.check_located_ie(_person(), claims, STRICT)
+    assert res.passed is False
+
+
+@pytest.mark.parametrize("quote", [
+    "Dublin, County Dublin, Ireland",
+    "Location: County Meath",
+    "based in Dublin",
+])
+def test_genuine_residence_statements_pass_strict(quote):
+    claims = [_vc("location", "Where based", quote)]
+    assert gates.check_located_ie(_person(), claims, STRICT).passed is True
+
+
 def test_no_params_keeps_old_behaviour_for_existing_specs():
     """Backwards compatibility: an absent params dict is the pre-2026-09-10 gate."""
     claims = [_vc("employer", "Works for TII", "employed by Transport Infrastructure Ireland")]

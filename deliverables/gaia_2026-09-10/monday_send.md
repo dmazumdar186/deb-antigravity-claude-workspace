@@ -39,7 +39,7 @@ I would rather send you two right names than ten wrong ones again, so that is wh
 - Chartership: CEng plus Engineers Ireland (MIEI/FIEI) needed. MIEI alone, or ICE/IStructE alone, does not pass.
 - Contact: verified or labelled. Alicia has no verified email, so her card says "none, call the firm" rather than a guessed address.
 
-The near-misses are listed under each role. For the structural role: 14 people missing only residence evidence, 9 missing only chartership evidence. Those are the first people re-examined once the two questions below are answered.
+The near-misses are listed under each role. For the structural role: 14 people missing only residence evidence, 8 missing only chartership evidence. Those are the first people re-examined once the two questions below are answered.
 
 The Cork role cannot reach five by filtering. The pool we searched (consultancy leadership pages, oral-hearing witnesses) is senior by construction. Reaching Cork-based transport leads at the right grade needs a licensed people-data source, which is a separate, paid step I have not taken without your say-so.
 
@@ -79,7 +79,7 @@ Do not tour the interface. Two control changes, then move on.
 
 On screen: corrected shortlist tab. Scroll to the banner counts, then open Alicia Joyce's card, then John Alcaras's card, then the near-miss list, then the CSV link.
 
-Say: "The corrected run. Structural role: 471 checked, two delivered. Alicia Joyce at CSEA, John Alcaras at Arcadis. On each card the first two lines are the evidence: the residence quote and the chartership quote, verbatim, with the source. Alicia has no verified email, so the card says so and says call the firm; no guessed addresses this time. Cork role: 65 checked, zero delivered. I am not going to pad that. Below the cards, the near-misses: 14 short only on residence evidence, 9 short only on chartership. The CSV is the same rows for your ATS."
+Say: "The corrected run. Structural role: 471 checked, two delivered. Alicia Joyce at CSEA, John Alcaras at Arcadis. On each card the first two lines are the evidence: the residence quote and the chartership quote, verbatim, with the source. Alicia has no verified email, so the card says so and says call the firm; no guessed addresses this time. Cork role: 65 checked, zero delivered. I am not going to pad that. Below the cards, the near-misses: 14 short only on residence evidence, 8 short only on chartership. The CSV is the same rows for your ATS."
 
 ### Step 4 (2:45–3:45) — The hand-off
 

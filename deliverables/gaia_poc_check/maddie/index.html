@@ -100,6 +100,15 @@ GateResult(gate_id, passed, basis: claim_id, note)</pre>
 </table></div>
 <p>A 50-name list therefore costs on the order of EUR 5 to 15 and returns inside an hour. Every provider call is metered against a per-run and a cumulative ceiling and the run stops, loudly, when a ceiling is hit.</p>
 
+<h2>Feeding the dashboard you built</h2>
+<p>Keith showed your console on the call: the incoming queue per consultant, the score against each live job, the flag over 60, "sync for call", the counts of screened, synced to CRM and drafts, the jobs list, the tabs down the left. Nothing here replaces any of it. The check produces one record per name that your dashboard can show as one more column beside your score, so a consultant sees "scored 74, checked: PASS, proof" in the place they already look.</p>
+<pre>{"name": "...", "status": "PASS | NEAR_MISS | OUT | NOT_CHECKED",
+ "failed": [{"gate_id": "located_ie", "label": "residence evidence (Republic of Ireland)", "reason": "..."}],
+ "evidence": [{"dimension": "chartership", "quote": "...", "source_url": "https://..."}],
+ "contact": "verified | catch_all | guess | none | unknown",
+ "one_line": "Out: Director grade, above the Senior Engineer ceiling."}</pre>
+<p>Delivery options, your call: a JSON file per run (<code>check_results.json</code>), a CSV with the same fields, a note on the Recruit CRM candidate, or an HTTP endpoint that takes a list of names and returns the records. The first three exist today; the endpoint is a thin wrapper over the same function. Sourced names would enter your queue at whatever stage you choose, already checked, so your scoring and your screening call run on them exactly as on applicants.</p>
+
 <h2>Recruit CRM adapter</h2>
 <ul>
 <li>Endpoints used: create or update candidate, add note, assign to job. Update writes only empty fields; a consultant's data is never overwritten. Dedupe on email or LinkedIn URL.</li>

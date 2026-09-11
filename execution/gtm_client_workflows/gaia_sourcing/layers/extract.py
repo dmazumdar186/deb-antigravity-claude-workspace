@@ -49,6 +49,18 @@ _LEADING_POSTNOMINAL_RE = re.compile(
 )
 
 
+def slugify_person_name(name: str) -> str:
+    """The deterministic person_id every layer mints from a raw name string:
+    lowercase, collapse every run of non-alphanumeric characters to a single
+    underscore, strip leading/trailing underscores. Used at every point a
+    person_id is derived straight from a name -- extract_directory below, the
+    witness-statement and discovery-snippet paths in run.py's stage_extract,
+    and layers/intake.py's match_pool for a name unmatched to the pool --
+    so an unmatched name always gets the SAME id a real extract run would
+    have given the same person, one definition, imported everywhere."""
+    return re.sub(r"[^a-z0-9]+", "_", (name or "").lower()).strip("_")
+
+
 def strip_postnominals(name: str) -> str:
     """'Kate FitzGerald CEng MIEI' -> 'Kate FitzGerald'. Post-nominals are
     evidence (they feed the chartered gate from the quote), not part of the
@@ -661,7 +673,7 @@ def extract_directory(
         name = (entry.get("full_name") or "").strip()
         if len(name.split()) < 2:
             continue
-        pid = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+        pid = slugify_person_name(name)
         title = (entry.get("job_title") or "").strip() or None
         # A firm's own staff directory places its people at that firm's
         # country unless the entry says otherwise. The per-person title still
