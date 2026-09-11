@@ -81,6 +81,12 @@ Code lives in `execution/gtm_client_workflows/gaia_sourcing/` and follows its co
 }
 ```
 
+## Live artifacts (11 Sep, private)
+
+- Keith's page: https://claude.ai/code/artifact/a8a673b4-0641-4278-a602-670b6daf1241
+- Maddie's engineering notes: https://claude.ai/code/artifact/0f7821a2-eb07-4c4e-9637-2d3c9574c51c
+- Regenerate both: `python3 -m gtm_client_workflows.gaia_sourcing.run --check ../deliverables/gaia_poc_check/input_2026-08-20.csv` (offline, EUR 0.00), then republish the same file paths.
+
 ## Open for day 2 (brainstorm)
 
 0. The dashboard Maddie built (Keith showed it on the call: per-consultant queue, score per job, flag over 60, sync for call, screened / synced / drafts counts, jobs list, left tabs). The strongest fit is a "checked" column in that dashboard fed by `check_results.json`, not a separate page for daily use; Keith's one-page check stays as the pitch document. Needs from the operator: the dashboard's tab names and what a candidate row shows, from the recording.
