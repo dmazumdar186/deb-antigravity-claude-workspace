@@ -31,3 +31,22 @@ Role 2 (Cork) yields zero under strict residence; the pool needs Cork-based tran
 
 ## Artifacts
 Call brief https://claude.ai/code/artifact/e5cd1898-abd0-4f02-81c2-3eeef8c7c7be · Brief Controls https://claude.ai/code/artifact/3d47597e-04bd-42ec-bb15-ce6126b93703 · v2 page https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed · corrected shortlist https://claude.ai/code/artifact/16f9282e-e30e-4a4b-b6e2-624d836a7e80
+
+## Addendum — successor session, 2026-09-11 late evening (UTC)
+
+Done: `deliverables/gaia_2026-09-10/monday_send.md` (email + Loom script), pushed to branch and main. The two LOW audit items are fixed in code with regression tests (pool-map near-miss lines now read "missing only: residence evidence (Republic of Ireland) [located_ie]"; every delivered card without a validated `years_experience` claim renders "Years of experience: not evidenced in the source material; confirm on first call." before the second opinions). Suite: 1,093 pass; the only failure is `test_render_page_text_executes_javascript`, which fails identically on the pre-change tree because Chromium cannot egress in the sandbox.
+
+**Blocker, stated plainly: the campaign run cache is NOT in this container.** `execution/gtm_client_workflows/gaia_sourcing/run/gaia-2026-09-14/` is empty here (it is gitignored and lived in the container of session `session_011epq9dELTU6xLKSHxkKK1t`, still idle and connected at 17:30 UTC). Consequences:
+- `run.py --spend` reads EUR 0.00 here; the true ledger (EUR 25.69) is in the old container.
+- `tests.acceptance_gaia` cannot run here (needs `contact.json`); the committed dossier and pool maps are unchanged, so the two LOW fixes are verified by unit tests only and will appear in the deliverable on the next `--stage poolmap,render` run on a machine that has the cache.
+- Next-step 3 (re-cut on Keith's thresholds) cannot run in this container until the cache is restored. An attempt to wake the old session with a Routine asking it to push the cache to a branch was denied by the permission classifier.
+
+Recovery (one paste into the OLD session, or any machine that has the cache):
+```
+git fetch origin main && git checkout -B gaia-run-cache-2026-09-14 origin/main
+tar czf execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-14.tar.gz \
+  -C execution/gtm_client_workflows/gaia_sourcing run/gaia-2026-09-14 logs   # logs = spend ledger; exclude run/_httpcache
+git add -f execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-14.tar.gz
+git commit -m "gaia: run cache rescue (cache branch only, never merge)" && git push -u origin gaia-run-cache-2026-09-14
+```
+Then in the new container: `git fetch origin gaia-run-cache-2026-09-14 && git show origin/gaia-run-cache-2026-09-14:execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-14.tar.gz | tar xzf - -C execution/gtm_client_workflows/gaia_sourcing`, then `--stage poolmap,render,console`, `tests.acceptance_gaia`, and the re-cut per step 3 when thresholds arrive. Never merge the cache branch.

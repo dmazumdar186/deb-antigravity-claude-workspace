@@ -397,6 +397,66 @@ def test_the_detail_pane_shows_the_longest_quote_of_a_group():
     assert "including commercial offices and schools" in pane
 
 
+def test_no_years_experience_claim_prints_a_deterministic_disclosure():
+    """2026-09-11 audit fix (item 2): both delivered role-1 cards had no
+    evidenced years of experience, but only one said so, and only because
+    an LLM second opinion happened to raise it. The gap must be printed
+    whether or not a model chooses to mention it."""
+    claims = [_dc("chartership", "CEng.", "some verbatim chartership quote")]
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, {"tier": "C"},
+                          {"email_status": "none"}, {}, {}, _Spec())
+    assert ("Years of experience: not evidenced in the source material; "
+            "confirm on first call.") in pane
+
+
+def test_an_inferred_years_claim_does_not_suppress_the_disclosure_line():
+    """Code review 2026-09-11: gates.py and adversarial.py only count
+    direct years claims, and the card never quotes an inferred one, so an
+    inferred claim must not silence the disclosure."""
+    inferred = dict(_dc("years_experience", "About 12 years.",
+                        "joined the firm in 2014"), confidence="inferred")
+    claims = [_dc("chartership", "CEng.", "some verbatim chartership quote"),
+              inferred]
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, {"tier": "C"},
+                          {"email_status": "none"}, {}, {}, _Spec())
+    assert "Years of experience: not evidenced" in pane
+
+
+def test_a_years_experience_claim_suppresses_the_disclosure_line():
+    claims = [
+        _dc("chartership", "CEng.", "some verbatim chartership quote"),
+        _dc("years_experience", "Over 15 years.",
+            "over 15 years of experience"),
+    ]
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, {"tier": "B"},
+                          {"email_status": "none"}, {}, {}, _Spec())
+    assert "Years of experience: not evidenced" not in pane
+
+
+def test_years_experience_disclosure_is_never_trimmed_ahead_of_the_email_honesty_line():
+    """The honesty lines are reserved so the pop-from-end trim never drops
+    them first. The years-of-experience disclosure must sit at the same
+    protected priority: under extreme budget pressure the email-honesty
+    line ("Inferred address...") and the years-of-experience line must
+    both survive, at the expense of quotes/movability/link-check lines."""
+    mov = {"assessment": " ".join(["word"] * 180), "rationale": " ".join(["r"] * 300)}
+    claims = [_dc("technical_skill", "A." * 50, "q " * 200) for _ in range(20)]
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, {"tier": "B"},
+                          {"email_status": "pattern_guess"}, mov,
+                          {"checks": [{"alive": False}] * 20}, _Spec())
+    assert R._wc(pane) <= R.DETAIL_WORD_CAP, R._wc(pane)
+    assert "Inferred address" in pane
+    assert "Years of experience: not evidenced" in pane
+
+
 def test_mailto_navigation_is_not_suppressed(rendered):
     """Copying is the fallback, not a replacement.
 

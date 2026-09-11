@@ -1094,6 +1094,29 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
             bits.append(str(len(mism)) + " link(s) no longer name this person")
         facts.append('<p class="gap">' + e("; ".join(bits) + ".") + "</p>")
 
+    # 4b. Deterministic years-of-experience disclosure (2026-09-11 audit
+    # item 2). Both delivered role-1 cards had no evidenced years of
+    # experience, but only one said so -- and only because that card's
+    # second-opinion pass happened to raise it. A gap this material cannot
+    # depend on whether the model chose to mention it; check the validated
+    # claims for a years_experience dimension directly. Placed after the
+    # honesty/link lines and before second opinions so the pop-from-end trim
+    # drops it no sooner than those second opinions, and never ahead of the
+    # email-honesty line above.
+    # Only a DIRECT claim counts, matching gates.py and adversarial.py: an
+    # inferred years claim never renders a quote (the quote block above
+    # filters to direct), so without this filter it would silence the
+    # disclosure while showing the reader nothing (code review, 2026-09-11).
+    years_direct = any(
+        c.get("dimension") == "years_experience" and c.get("confidence") == "direct"
+        for c in claims
+    )
+    if not years_direct:
+        facts.append(
+            '<p class="gap">Years of experience: not evidenced in the source '
+            "material; confirm on first call.</p>"
+        )
+
     # 5. Second opinions, last in priority order so the pop-from-end trim
     #    below drops them before any honesty line. At most two are shown,
     #    each clipped, with a pointer to the rest; the full text stays in
