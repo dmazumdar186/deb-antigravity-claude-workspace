@@ -929,6 +929,22 @@ def stage_locate(force: bool = False) -> None:
     on the page), a quoted `location` Claim is added too
     (layers.extract._find_location_quote) -- a bare default is not evidence
     on its own.
+
+    Provenance: whenever a location is set from a firm default here,
+    `Person.location_source` is stamped "firm_default" (2026-09-11). A
+    location that came from extraction itself or from an on-page quote
+    carries no such stamp and this stage never touches it.
+
+    On `force`, every person currently stamped "firm_default" has that
+    location CLEARED first (location and location_source both reset to
+    None), then the normal fill-if-empty pass below re-derives it under the
+    CURRENT firm data. Without this, `--force` after a firm is newly marked
+    `multi_country` (i.e. _default_location_for_firm now correctly returns
+    None for it) would leave that firm's people holding a stale "Ireland" --
+    the "only fills when empty" rule above would see the old value still
+    sitting there and skip them forever. A person whose location came from
+    extraction or an on-page quote has no location_source stamp and is never
+    cleared by this.
     """
     if not done("extract"):
         log("locate: extract.json missing -- run stage_extract first, skipping")
@@ -941,6 +957,17 @@ def stage_locate(force: bool = False) -> None:
     persons: dict = data.get("persons", {})
     claims: list[dict] = data.get("claims", [])
     have_claim_ids = {c["claim_id"] for c in claims}
+
+    if force:
+        cleared = 0
+        for prec in persons.values():
+            if prec.get("location_source") == "firm_default":
+                prec["location"] = None
+                prec["location_source"] = None
+                cleared += 1
+        if cleared:
+            log("locate: --force cleared " + str(cleared)
+                + " stale firm_default location(s) for recompute")
 
     r1 = load("harvest_r1") if done("harvest_r1") else []
     rec_by_doc_id = {r["doc_id"]: r for r in r1}
@@ -979,6 +1006,7 @@ def stage_locate(force: bool = False) -> None:
             continue
 
         prec["location"] = default_location
+        prec["location_source"] = "firm_default"
         relocated += 1
 
         if doc is None:
@@ -1945,6 +1973,20 @@ def _delivery_set() -> dict[str, list[str]]:
     dropped 4 with no record anywhere of who they were or that they existed
     -- indistinguishable, from delivery.json alone, from a role that only
     ever qualified 10.
+
+    Also computes and returns `out["held_back"][role_id]` -- a list of
+    {"person_id", "reason"} records for people who passed every hard gate but
+    are withheld for a reason short of exclusion (currently: no named
+    employer). 2026-09-11: this used to be smuggled into `overflow` under a
+    synthetic key `role_id + ":no_employer"` -- a key that is not a real role
+    id. Two things read delivery.json's keys as if every key were a role id:
+    the renderer's per-role lookup (harmless, since it only reads real role
+    ids) and the acceptance suite's enrichment check, which iterated ALL of
+    delivery.json's top-level values including that synthetic key, so a
+    held-back person's id ended up compared against contact.json as if they
+    were a delivered candidate. `out["overflow"]` and `out["held_back"]` are
+    now the only non-role keys, and both are dicts keyed by the real role id,
+    never by a role id with a suffix appended.
     """
     gate_out = load("gate")
     adv = load("adversarial") if done("adversarial") else {}
@@ -1952,6 +1994,7 @@ def _delivery_set() -> dict[str, list[str]]:
     order = {"A": 0, "B": 1, "C": 2}
     out: dict[str, list[str]] = {}
     overflow: dict[str, list[str]] = {}
+    held_back: dict[str, list[dict[str, str]]] = {}
     for role_id, spec in ((ROLE1.role_id, ROLE1), (ROLE2.role_id, ROLE2)):
         rows = []
         for pid, g in gate_out.items():
@@ -1962,10 +2005,14 @@ def _delivery_set() -> dict[str, list[str]]:
                 continue
             # 2026-09-11: a card with no named employer failed the acceptance
             # gate ("every candidate has a named employer") after passing every
-            # hard gate. Held back by name, never silently.
+            # hard gate. Held back by name, never silently -- recorded under
+            # out["held_back"][role_id], never as an extra key inside
+            # `overflow` or at the top level of `out` (see docstring above).
             if not (persons.get(pid) and (persons[pid].current_employer or "").strip()):
                 log("delivery: " + pid + " held back: no employer stated on any source")
-                overflow.setdefault(role_id + ":no_employer", []).append(pid)
+                held_back.setdefault(role_id, []).append(
+                    {"person_id": pid, "reason": "no employer stated"}
+                )
                 continue
             # pid is the final key on purpose. Without it two candidates tied
             # on (tier, n_claims) are ordered by whatever the upstream
@@ -1982,11 +2029,13 @@ def _delivery_set() -> dict[str, list[str]]:
         out[role_id] = ranked[: spec.target_count]
         cut = ranked[spec.target_count:]
         overflow[role_id] = cut
+        held_back.setdefault(role_id, [])
         if cut:
             log("delivery: " + role_id + " qualified " + str(len(ranked))
                 + " but target_count is " + str(spec.target_count) + " -- "
                 + str(len(cut)) + " cut: " + ", ".join(cut))
     out["overflow"] = overflow
+    out["held_back"] = held_back
     return out
 
 

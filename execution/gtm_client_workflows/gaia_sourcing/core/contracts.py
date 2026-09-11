@@ -172,6 +172,14 @@ class Person(BaseModel):
     current_title: Optional[str] = None
     current_employer: Optional[str] = None
     location: Optional[str] = None
+    # 2026-09-11: set to "firm_default" by run.stage_locate when `location`
+    # was derived from Firm.domicile/office_cities rather than extracted or
+    # quoted from a page. None for every other location, including a
+    # firm-default that a later on-page quote corroborated. Lets --force
+    # recompute stale firm defaults (e.g. after a firm is newly marked
+    # multi_country) without touching a person whose location is real
+    # evidence.
+    location_source: Optional[str] = None
     doc_ids: list[str] = Field(default_factory=list)
     linkedin_url: Optional[HttpUrl] = None
 

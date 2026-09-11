@@ -1085,7 +1085,7 @@ def row_html(
     who = (
         '<p class="nm">' + e(strip_postnominals(person["full_name"])) + "</p>"
         + '<p class="ro">'
-        + e(person.get("current_title") or "Title not stated")
+        + e(strip_postnominals(person.get("current_title") or "") or "Title not stated")
         + (" &middot; " + e(person["current_employer"])
            if person.get("current_employer") else "")
         + "</p>"
@@ -1233,8 +1233,20 @@ def build(allow_placeholder_notice: bool = False) -> None:
         # it here shipped two people the contact stage had never enriched --
         # cards with no email, no LinkedIn and no route -- because this copy
         # applied a slightly different filter and broke ties the other way.
-        pids = list(delivery.get(spec.role_id) or [])
-        if not pids:
+        #
+        # 2026-09-11: the fallback below must trigger on delivery.json being
+        # ABSENT, never on a role's own list being legitimately empty. It used
+        # to key off `not pids`, so a role that delivery.json correctly
+        # recorded as zero (every qualifier held back or cut) silently fell
+        # back to a locally recomputed shortlist and rendered candidates that
+        # were never in delivery.json at all -- 13 rendered against a
+        # delivery.json that listed 10. `delivery` (the whole loaded dict) is
+        # falsy only when delivery.json does not exist / stage_poolmap never
+        # ran; once it exists, its per-role list -- even an empty one -- is
+        # authoritative.
+        if delivery:
+            pids = list(delivery.get(spec.role_id) or [])
+        else:
             pids = [
                 pid for pid, g in gate_out.items()
                 if g["role_id"] == spec.role_id and g["tier"] != "EXCLUDED"
@@ -1336,7 +1348,7 @@ def build(allow_placeholder_notice: bool = False) -> None:
                     "role": spec.title,
                     "tier": ev.get("tier", g["tier"]),
                     "full_name": strip_postnominals(person["full_name"]),
-                    "current_title": person.get("current_title") or "",
+                    "current_title": strip_postnominals(person.get("current_title") or ""),
                     "current_employer": person.get("current_employer") or "",
                     "location": person.get("location") or "",
                     "email": contact.get("email") or "",
