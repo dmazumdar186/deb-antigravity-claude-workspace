@@ -93,7 +93,10 @@ PRICING: dict[str, dict[str, float]] = {
 
 @dataclass
 class RunConfig:
-    campaign_id: str = "gaia-2026-08-20"
+    # 2026-09-11: env override so a new run never writes over a delivered
+    # campaign's deliverables/ folder (the render stage clobbered the 20 Aug
+    # dossier once). Set GAIA_CAMPAIGN_ID=gaia-2026-09-14 for the Monday run.
+    campaign_id: str = field(default_factory=lambda: (os.environ.get("GAIA_CAMPAIGN_ID") or "gaia-2026-08-20").strip())
     # Hard ceiling on LLM SPEND ONLY. The run aborts rather than silently
     # overspending (SPEC.md section 14 "Cost ceiling").
     #
