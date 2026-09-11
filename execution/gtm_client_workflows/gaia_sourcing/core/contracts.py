@@ -133,6 +133,14 @@ SourceType = Literal[
     "news",
     "professional_body",
     "other",
+    # Appended 2026-09-11, RADAR_CONTRACTS.md section A -- a search-engine
+    # result (title + snippet + url), general to any discovery provider
+    # (run.py's stage_harvest_discovery), not LinkedIn-specific like
+    # "linkedin_snippet" above. layers/extract.py gives this source_type its
+    # own, more conservative extraction instructions (see SNIPPET_SYSTEM):
+    # name/title/employer from the title only, location from the snippet
+    # only, chartership only on a literal "CEng"/"MIEI", never years.
+    "search_snippet",
 ]
 
 

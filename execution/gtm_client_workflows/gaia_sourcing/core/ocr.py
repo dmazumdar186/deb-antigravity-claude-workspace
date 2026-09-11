@@ -10,8 +10,13 @@ are (CS Consulting, Transport Insights, and the Module G evidence), while the
 born-digital set is mostly the applicant's own technical appendices.
 
 Tesseract is not installed on this machine and installing a system OCR engine
-is not something this pipeline should require, so recovery goes through the
-Anthropic API's native PDF support, which rasterises each page and reads it.
+is not something this pipeline should require. Recovery now tries a free,
+local, deterministic path first -- rapidocr-onnxruntime (pure ONNX +
+onnxruntime, CPU-only, no system binaries) rasterises each page with PyMuPDF
+and reads it directly on this machine, at zero cost and with no API key.
+Only if that path is unavailable or fails does recovery fall through to the
+Anthropic API's native PDF support, which rasterises each page and reads it
+server-side, then to Gemini's free tier.
 
 THE INTEGRITY COST, STATED PLAINLY
 ----------------------------------
@@ -86,6 +91,131 @@ def page_count(raw: bytes) -> Optional[int]:
         return None
 
 
+# ---------------------------------------------------------------------------
+# Free, local, deterministic OCR -- tried before either paid model.
+#
+# The operator has $30 of Anthropic credit total and wants it spent on
+# extraction, not on reading scans a CPU-only open-source engine can already
+# read for free. rapidocr-onnxruntime is pure ONNX + onnxruntime: no system
+# binaries (no tesseract, no poppler), CPU-only, MIT-licensed. It is tried
+# first; the paid paths only run if it is unavailable, returns nothing, or
+# fails the same summarisation/length floor the model paths are held to.
+# ---------------------------------------------------------------------------
+
+_LOCAL_ENGINE = None
+_LOCAL_ENGINE_TRIED = False
+
+
+def _local_engine():
+    """Lazily construct and cache the local OCR engine.
+
+    Returns None (never raises) if the package is not installed or fails to
+    initialise -- a missing optional dependency must degrade to the paid
+    path, not crash the run.
+    """
+    global _LOCAL_ENGINE, _LOCAL_ENGINE_TRIED
+    if _LOCAL_ENGINE_TRIED:
+        return _LOCAL_ENGINE
+    _LOCAL_ENGINE_TRIED = True
+    try:
+        from rapidocr_onnxruntime import RapidOCR
+
+        _LOCAL_ENGINE = RapidOCR()
+    except Exception as exc:
+        print("[ocr-local] engine unavailable: " + repr(exc)[:120])
+        _LOCAL_ENGINE = None
+    return _LOCAL_ENGINE
+
+
+def _ocr_page_image(engine, raw_rgb, height: int, width: int, channels: int) -> list:
+    """Run the engine on one rasterised page, returning [(y, x, text), ...]
+    sorted into reading order (top-to-bottom, then left-to-right)."""
+    import numpy as np
+
+    img = np.frombuffer(raw_rgb, dtype=np.uint8).reshape(height, width, channels)
+    if channels == 4:
+        img = img[:, :, :3]
+
+    result, _ = engine(img)
+    if not result:
+        return []
+
+    lines = []
+    for box, text, _score in result:
+        if not text or not text.strip():
+            continue
+        ys = [pt[1] for pt in box]
+        xs = [pt[0] for pt in box]
+        lines.append((min(ys), min(xs), text.strip()))
+    lines.sort(key=lambda t: (t[0], t[1]))
+    return lines
+
+
+def _rasterize_and_ocr(raw: bytes, engine, max_pages: int) -> list[str]:
+    """Rasterise up to `max_pages` pages of `raw` at 200dpi and OCR each with
+    `engine`. Split out from transcribe_pdf_local so tests can substitute a
+    fake engine while exercising the real PyMuPDF rasterisation, or a fake
+    rasteriser to isolate the floor/ordering logic from a real PDF."""
+    import fitz
+
+    page_texts = []
+    with fitz.open(stream=raw, filetype="pdf") as doc:
+        for i in range(max_pages):
+            page = doc[i]
+            pix = page.get_pixmap(dpi=200)
+            lines = _ocr_page_image(
+                engine, pix.samples, pix.height, pix.width, pix.n
+            )
+            page_texts.append("\n".join(text for _y, _x, text in lines))
+    return page_texts
+
+
+def transcribe_pdf_local(raw: bytes, url: str = "") -> Optional[str]:
+    """Recover text from a scanned PDF using a free, local, deterministic
+    OCR engine. Returns None (never raises) if the engine is unavailable,
+    the document is unreadable, or the result fails the same minimum-length
+    floor the paid paths enforce.
+    """
+    if not raw or len(raw) > _MAX_BYTES:
+        return None
+
+    pages = page_count(raw)
+    if pages is None or pages == 0 or pages > _MAX_PAGES:
+        return None
+
+    engine = _local_engine()
+    if engine is None:
+        return None
+
+    from .config import CONFIG
+
+    max_pages = min(pages, getattr(CONFIG, "ocr_max_pages", 40))
+
+    try:
+        page_texts = _rasterize_and_ocr(raw, engine, max_pages)
+    except Exception as exc:
+        print("[ocr-local] failed for " + url[:60] + ": " + repr(exc)[:120])
+        return None
+
+    text = "\n\n".join(t for t in page_texts if t).strip()
+    if not text:
+        return None
+
+    if len(text) < _MIN_CHARS_PER_PAGE * max_pages:
+        print(
+            "[ocr-local] rejected a suspiciously short transcription for "
+            + url[:55] + " (" + str(len(text)) + " chars for "
+            + str(max_pages) + " pages)"
+        )
+        return None
+
+    print(
+        "[ocr-local] " + url[-60:] + ": " + str(max_pages) + " pages, "
+        + str(len(text)) + " chars"
+    )
+    return text
+
+
 def _transcribe_via_gemini(raw: bytes, pages: int, url: str) -> Optional[str]:
     """Free-tier fallback. Gemini reads PDFs natively too.
 
@@ -139,6 +269,17 @@ def transcribe_pdf(raw: bytes, url: str = "") -> Optional[str]:
 
     pages = page_count(raw)
     if pages is None or pages == 0 or pages > _MAX_PAGES:
+        return None
+
+    # Free and local first: zero cost, no key required, and it keeps the
+    # operator's fixed $30 Anthropic balance for extraction rather than OCR.
+    text = transcribe_pdf_local(raw, url)
+    if text is not None:
+        return text
+
+    from .config import CONFIG
+
+    if getattr(CONFIG, "ocr_local_only", False):
         return None
 
     text = _transcribe_anthropic(raw, pages, url)

@@ -44,3 +44,7 @@ pytest>=7.0
 
 # job_digest profile.yaml loader
 pyyaml>=6.0
+
+# Free local OCR for scanned PDFs (execution/gtm_client_workflows/gaia_sourcing/core/ocr.py)
+# ONNX + onnxruntime, CPU-only, no system OCR binaries required.
+rapidocr-onnxruntime>=1.4.0

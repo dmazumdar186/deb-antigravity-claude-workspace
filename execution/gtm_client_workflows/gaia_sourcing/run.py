@@ -9,9 +9,11 @@ lookups), so a crash in stage 7 must not re-buy stages 1-6.
 
 Stage order:
 
-  harvest_r1   Firecrawl-render every firm's staff directory        (paid)
-  harvest_r2   An Coimisiun Pleanala oral-hearing witness statements (free)
-  extract      L5  evidence extraction, both roles                  (paid)
+  harvest_r1       Firecrawl-render every firm's staff directory        (paid)
+  harvest_r2       An Coimisiun Pleanala oral-hearing witness statements (free)
+  harvest_r2_web   oral-hearing evidence on scheme/authority sites       (free)
+  harvest_discovery  sources.registry providers (serper_people etc.)     (free)
+  extract          L5  evidence extraction, both roles                  (paid)
   validate     L6  quote validation -- THE PRODUCT                  (free)
   gate         L7  deterministic gates + tiering                    (free)
   deepen_r1    Re-render the individual profile pages of candidates
@@ -443,6 +445,185 @@ def stage_harvest_r2_web(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Stage 1d -- free/cheap people-discovery via sources.registry providers
+# (RADAR_CONTRACTS.md section A). Runs before the paid r1/r2 harvests widen
+# the pool with cost-free candidates first.
+# ---------------------------------------------------------------------------
+
+# Default counties for a role whose location_rule sets no specific counties
+# (Role 1's brief is "any ROI" -- roles.py's LocationRule(counties=[])).
+# Not exhaustive of every Irish county; the four the pipeline's candidates
+# have actually come from (see sources/serper_people.py's own _IE_COUNTIES
+# for the exhaustive list used at query-build time).
+_DISCOVERY_DEFAULT_LOCATIONS = ["Cork", "Dublin", "Limerick", "Galway"]
+
+
+def _title_like_discipline_terms(spec, limit: int = 3) -> list[str]:
+    """The discipline hard gate's `include` terms that read as a searchable
+    job title/role phrase rather than a bare discipline noun.
+
+    "structural engineer" is a LinkedIn-searchable job title; "structural"
+    alone matches a structural biology PhD as readily as a structural
+    engineer. Heuristic: a multi-word phrase is treated as title-like, a
+    single bare word is not. Falls back to the first `limit` include terms
+    verbatim if the gate's include list happens to be all single words, so
+    this never returns nothing for a role whose gate is written differently.
+    """
+    discipline_gate = next(
+        (g for g in spec.hard_gates if g.check == "discipline"), None
+    )
+    include = list((discipline_gate.params.get("include") if discipline_gate else []) or [])
+    title_like = [t for t in include if " " in t]
+    return (title_like or include)[:limit]
+
+
+def stage_harvest_discovery(force: bool = False) -> None:
+    """Free/cheap people-discovery ahead of the paid r1/r2 harvests.
+
+    For each role in ROLES, builds one SourceQuery (title + top job-title-
+    like discipline terms, the role's counties or a default Irish spread)
+    and runs it through every provider named in CONFIG.discovery_providers,
+    resolved via sources.registry.get_provider. A provider missing its API
+    key raises ProviderNotConfigured (sources/licensed_common.py) and is
+    skipped with a log line rather than failing the stage -- same contract
+    as run_coverage_test below.
+
+    CONFIG.discovery_max_queries caps the TOTAL query budget across every
+    role x provider combination in this one stage run, tracked here rather
+    than inside any one provider, because a provider's fetch() has no way to
+    know how many sibling calls this stage is about to make -- serper_people
+    alone issues 3 queries per (term, location) pair (sources/
+    serper_people.py's _build_queries), so an unwatched multi-role,
+    multi-provider stage could burn a free-tier quota or rate limit in one
+    run. The per-call estimate (len(terms) * len(locations)) is a query
+    COUNT ESTIMATE for budgeting, not necessarily each provider's own exact
+    internal query count -- see this function's inline comment.
+    """
+    if done("harvest_discovery") and not force:
+        log("harvest_discovery: cached, skipping")
+        return
+    log("harvest_discovery: discovering people via "
+        + ", ".join(CONFIG.discovery_providers))
+
+    import importlib
+
+    from .core.contracts import SourceQuery
+    from .sources.licensed_common import ProviderNotConfigured
+    from .sources.registry import get_provider
+
+    records: list[dict] = []
+    docs: list[RawDocument] = []
+    queries_used = 0
+    budget = CONFIG.discovery_max_queries
+
+    for role_id, spec in ROLES.items():
+        niche = "structural" if role_id == ROLE1.role_id else "transport"
+        terms = [spec.title.lower()] + _title_like_discipline_terms(spec)
+        locations = (
+            (spec.location_rule.counties if spec.location_rule else None)
+            or _DISCOVERY_DEFAULT_LOCATIONS
+        )
+        query = SourceQuery(
+            role_id=role_id, niche=niche, terms=terms, locations=locations,
+            limit=CONFIG.discovery_limit,
+        )
+        # Budgeting estimate only -- see docstring above. Each provider's own
+        # fetch() decides its real query shape; this is what this STAGE
+        # charges against the shared budget for one role x provider call.
+        query_cost_estimate = len(terms) * len(locations)
+
+        for provider_name in CONFIG.discovery_providers:
+            if queries_used + query_cost_estimate > budget:
+                log("  " + role_id + "/" + provider_name + ": skipped -- "
+                    "discovery_max_queries budget (" + str(budget) + ") would "
+                    "be exceeded (" + str(queries_used) + " used, "
+                    + str(query_cost_estimate) + " needed)")
+                continue
+
+            # serper_people (and any other free/registry provider that is
+            # not one of the three chartership-register plugins registry.py
+            # imports at module level) must be imported at least once for
+            # its module-level `register_provider(...)` call to have run --
+            # same registration hook run_coverage_test below uses.
+            module_path = _LICENSED_PROVIDER_MODULES.get(provider_name)
+            if module_path is not None:
+                try:
+                    importlib.import_module(module_path)
+                except ImportError as exc:
+                    log("  " + role_id + "/" + provider_name + ": could not "
+                        "import " + module_path + ": " + repr(exc)[:160])
+                    continue
+            try:
+                provider = get_provider(provider_name)
+            except KeyError as exc:
+                log("  " + role_id + "/" + provider_name + ": not registered "
+                    "-- " + repr(exc)[:160])
+                continue
+
+            try:
+                result = provider.fetch(query)
+            except ProviderNotConfigured as exc:
+                log("  " + role_id + "/" + provider_name + ": skipped, not "
+                    "configured -- " + str(exc))
+                continue
+            except Exception as exc:
+                log("  " + role_id + "/" + provider_name + " FAILED: "
+                    + repr(exc)[:160])
+                continue
+
+            queries_used += query_cost_estimate
+            if result.error:
+                log("  " + role_id + "/" + provider_name + ": provider "
+                    "returned " + result.error)
+                continue
+
+            # documents/provider_records are built in lockstep by every
+            # provider that emits both (see sources/serper_people.py's
+            # fetch()) -- one appended for every kept organic result, in the
+            # same order -- so zipping them by position is exact, not a
+            # best-effort join.
+            for doc, pr in zip(result.documents, result.provider_records):
+                docs.append(doc)
+                records.append({
+                    "role_id": role_id,
+                    "provider": provider_name,
+                    "url": str(doc.url),
+                    "doc_id": doc.doc_id,
+                    "full_name": pr.full_name,
+                    "current_title": pr.current_title,
+                    "current_employer": pr.current_employer,
+                    "city": pr.city,
+                })
+            # A provider that returns documents with no paired provider
+            # records (a fixture, or a future provider shaped differently)
+            # still gets its documents harvested -- just with no parsed
+            # identity fields, same as any doc extract.py cannot pre-fill.
+            for doc in result.documents[len(result.provider_records):]:
+                docs.append(doc)
+                records.append({
+                    "role_id": role_id,
+                    "provider": provider_name,
+                    "url": str(doc.url),
+                    "doc_id": doc.doc_id,
+                    "full_name": None,
+                    "current_title": None,
+                    "current_employer": None,
+                    "city": None,
+                })
+
+            log("  harvest_discovery: " + role_id + ": " + str(result.fetched)
+                + " people from " + provider_name + " ("
+                + str(query_cost_estimate) + " queries, EUR "
+                + format(result.cost_eur, ".4f") + ")")
+
+    save_docs(docs)
+    save("harvest_discovery", records)
+    log("harvest_discovery: " + str(len(records)) + " people across "
+        + str(len({r["provider"] for r in records})) + " provider(s), "
+        + str(queries_used) + "/" + str(budget) + " queries used")
+
+
+# ---------------------------------------------------------------------------
 # Stage 2 -- L5 extraction
 # ---------------------------------------------------------------------------
 
@@ -550,6 +731,57 @@ def stage_extract(force: bool = False) -> None:
             seen_docs.add(doc.doc_id)
 
     run_all(do_witness, r2, workers=3, label="extract_r2")
+
+    # -- Discovery: one search-snippet is one person -------------------------
+    # search_snippet documents already carry a parsed name/title/employer/
+    # city (sources/serper_people.py's title/snippet parsing, done at harvest
+    # time with no LLM call) -- extract_from_document is still run so every
+    # claim on the card is quote-verified by L6 like any other source, but
+    # the record's own parsed fields win over the model's hints below,
+    # because they came from the SAME text with no chance of the model
+    # reading a different person into the snippet.
+    if done("harvest_discovery"):
+        r3 = load("harvest_discovery")
+        log("extract: discovery snippets across " + str(len(r3)) + " documents")
+
+        def do_discovery(rec: dict) -> None:
+            doc = corpus.get(rec["doc_id"])
+            if doc is None or doc.doc_id in seen_docs:
+                return
+            name = (rec.get("full_name") or "").strip()
+            if not name:
+                return
+            pid = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+            person = Person(
+                person_id=pid,
+                full_name=name,
+                current_title=rec.get("current_title"),
+                current_employer=rec.get("current_employer"),
+                location=rec.get("city"),
+                doc_ids=[doc.doc_id],
+            )
+            try:
+                found, hints = extract_from_document(person, doc)
+            except Exception as exc:
+                log("  " + pid + " discovery extract FAILED: " + repr(exc)[:120])
+                return
+            with lock:
+                slot = persons.setdefault(
+                    pid,
+                    {**person.model_dump(), "role_id": rec["role_id"],
+                     "source": "search_snippet"},
+                )
+                for field in ("current_title", "current_employer", "location"):
+                    if not slot.get(field) and (hints or {}).get(field):
+                        slot[field] = hints[field]
+                slot.setdefault("doc_ids", [])
+                if doc.doc_id not in slot["doc_ids"]:
+                    slot["doc_ids"].append(doc.doc_id)
+                if found:
+                    claims.extend(c.model_dump() for c in found)
+                seen_docs.add(doc.doc_id)
+
+        run_all(do_discovery, r3, workers=3, label="extract_discovery")
 
     save("extract", {
         "persons": persons,
@@ -1720,6 +1952,9 @@ _LICENSED_PROVIDER_MODULES = {
     "pdl": "gtm_client_workflows.gaia_sourcing.sources.pdl",
     "crustdata": "gtm_client_workflows.gaia_sourcing.sources.crustdata",
     "apollo": "gtm_client_workflows.gaia_sourcing.sources.apollo",
+    # Free, not licensed, but --coverage-test drives it the same way -- see
+    # sources/serper_people.py.
+    "serper_people": "gtm_client_workflows.gaia_sourcing.sources.serper_people",
 }
 
 # go/no-go threshold per RADAR_CONTRACTS.md section A: "40 matched with
@@ -1811,6 +2046,7 @@ STAGES = {
     "harvest_r1": stage_harvest_r1,
     "harvest_r2": stage_harvest_r2,
     "harvest_r2_web": stage_harvest_r2_web,
+    "harvest_discovery": stage_harvest_discovery,
     "extract": stage_extract,
     "validate": stage_validate,
     "gate": stage_gate,
@@ -2020,13 +2256,13 @@ def main() -> int:
     )
     ap.add_argument(
         "--coverage-test", default=None, metavar="PROVIDER",
-        help="fetch one page (limit 50) from a licensed source provider "
-             "(pdl/crustdata/apollo) and print matched/title/employer/"
-             "dates/city/cost plus a go/no-go line, then exit -- does not "
-             "touch a run directory. Requires the provider's own API key "
-             "(PDL_API_KEY/CRUSTDATA_API_KEY/APOLLO_API_KEY); see "
-             "deliverables/gaia_2026-09-10/KEY_INSTRUCTIONS.md. Combine "
-             "with --niche.",
+        help="fetch one page (limit 50) from a source provider "
+             "(pdl/crustdata/apollo/serper_people) and print matched/title/"
+             "employer/dates/city/cost plus a go/no-go line, then exit -- "
+             "does not touch a run directory. Requires the provider's own "
+             "API key (PDL_API_KEY/CRUSTDATA_API_KEY/APOLLO_API_KEY/"
+             "SERPER_API_KEY); see deliverables/gaia_2026-09-10/"
+             "KEY_INSTRUCTIONS.md. Combine with --niche.",
     )
     ap.add_argument(
         "--niche", default="structural", choices=sorted(_NICHE_TERMS),

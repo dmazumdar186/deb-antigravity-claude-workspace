@@ -73,6 +73,92 @@ FIRMS: list[Firm] = [
     Firm("arup_ie", "Arup Ireland", "arup.com", ["/our-firm/people"]),
     Firm("jacobs_ie", "Jacobs Ireland", "jacobs.com", ["/about/people"]),
     Firm("mottmac_ie", "Mott MacDonald Ireland", "mottmac.com", ["/our-people"]),
+    # -------------------------------------------------------------------
+    # Widened 2026-09-11 from the ACEI (Association of Consulting Engineers
+    # of Ireland) 2026 Annual Review & Directory of Members
+    # (https://www.acei.ie/wp-content/uploads/2026/06/ACEI_2026-p1-176-complete-v2.pdf,
+    # linked from https://www.acei.ie -> "2026 ACEI Directory & Review"),
+    # cross-checked against ACEI's "Find a Consulting Engineer" page
+    # (https://www.acei.ie/what-is-a-consulting-engineer/find-a-consulting-engineer/,
+    # JS-rendered, no static member list -- could not be read directly) and
+    # Engineers Ireland's Corporate Partners page
+    # (https://www.engineersireland.ie/Businesses/Engage-with-our-community/Corporate-Partner/Our-Partners,
+    # 301-redirects and is also JS-rendered -- could not be read directly).
+    # Selected every ACEI member whose listed "Engineering Activities" names
+    # Civil, Structural, or Transport/Highway/Road work and whose directory
+    # entry states 8+ total employees (large enough to plausibly carry a
+    # Senior Engineer -> Associate grade ladder), domain resolution checked
+    # with plain `requests` (15s timeout). TOBIN and AtkinsRealis (also ACEI
+    # members) are excluded as the client. Six ACEI-listed domains that
+    # resolved but failed TLS/HTTP verification during this pass are
+    # deliberately OMITTED rather than guessed past, per the domain-guessing
+    # lesson above: maloneoregan.ie (TLS reset), dkp.ie (self-signed cert),
+    # ffaeng.com (cert does not cover the www host), jjc.ie (HTTP 500),
+    # cspringle.com (10-person firm, no people path found), tetratech.com
+    # (global domain for RPS's post-acquisition brand, 403-blocked, and RPS
+    # Ireland is already covered above via rpsgroup.com). people_paths below
+    # are the best candidate paths; several returned 200 directly (checked),
+    # the rest are unverified guesses for find_people_indexes() to confirm
+    # via homepage-nav discovery, since a handful of hosts (ameygroup.ie,
+    # bjsconsultants.com, hughmunro.ie, roadplan.ie) return 403/406 to a
+    # plain requests fetch and need find_people_indexes'/fetch's real
+    # browser-like headers to get past the block.
+    Firm("bdp", "BDP", "bdp.com", ["/our-people"]),
+    Firm("ors", "ORS", "ors.ie", ["/people", "/our-people"]),
+    Firm("egis", "Egis Ireland", "egis-group.com", ["/our-people"]),
+    Firm("ryanhanley", "Ryan Hanley", "ryanhanley.ie", ["/our-team", "/team"]),
+    Firm("csea", "Clifton Scannell Emerson Associates", "csea.ie", ["/our-people"]),
+    Firm("fehilytimoney", "Fehily Timoney & Company", "fehilytimoney.ie", ["/our-team"]),
+    Firm("jodireland", "Jennings O'Donovan & Partners", "jodireland.com",
+         ["/our-team", "/team", "/people"]),
+    Firm("garland", "Garland", "garlandconsultancy.com", ["/team", "/our-team"]),
+    Firm("amey", "Amey Infrastructure Ireland", "ameygroup.ie",
+         ["/our-people", "/people", "/about-us/our-people"]),
+    Firm("csconsulting", "CS Consulting Group", "csconsulting.ie", ["/our-team"]),
+    Firm("cundall", "Cundall", "cundall.com", ["/people"]),
+    Firm("hhp", "Hayes Higgins Partnership", "hhp.ie", ["/our-team", "/team", "/people"]),
+    Firm("eireng", "EirEng Consulting Engineers", "eireng.ie", ["/our-team"]),
+    Firm("gdaly", "GDCL Consulting Engineers", "gdalyconsulting.com",
+         ["/our-team", "/team", "/people"]),
+    Firm("c3", "Clandillon Civil Consulting", "c3.ie", ["/team", "/our-team", "/people"]),
+    Firm("hanleypepper", "Hanley Pepper", "hanleypepper.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("omc", "OMC Group", "omcgroup.ie", ["/team"]),
+    Firm("doba", "Donnachadh O'Brien & Associates", "doba.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("mea", "MEA Consulting Engineers", "mea.ie", ["/our-team", "/team", "/people"]),
+    Firm("muir", "Muir Associates", "muir.ie", ["/our-team", "/team", "/people"]),
+    Firm("sds_design", "SDS Design Engineers", "structuraldesign.ie",
+         ["/team", "/our-team", "/people"]),
+    Firm("engenuiti", "Engenuiti", "engenuiti.ie", ["/our-team", "/team", "/people"]),
+    Firm("joda", "JODA Engineering Consultants", "joda.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("dfk", "Doherty Finegan Kelly", "dfk.ie", ["/about-us/our-team"]),
+    Firm("mpa", "Martin Peters Associates", "mpa.ie", ["/team"]),
+    Firm("mma", "MMA Consulting Engineers", "mhl.ie", ["/people"]),
+    Firm("wdg", "Walsh Design Group", "wdg.ie", ["/our-team", "/team", "/people"]),
+    Firm("kmp", "Kavanagh Mansfield & Partners", "kmp.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("langan", "Langan Consulting Engineers", "langaneng.ie", ["/about-us/our-team"]),
+    Firm("molonymillar", "Molony & Millar", "molonymillar.ie", ["/team"]),
+    Firm("chh", "CHH Consulting Engineers", "chh.ie", ["/our-team", "/team", "/people"]),
+    Firm("sweco_ie", "Sweco Ireland", "sweco.ie", ["/our-people", "/people"]),
+    Firm("bjs", "BJS Consultants", "bjsconsultants.com",
+         ["/our-team", "/team", "/people"]),
+    Firm("civic", "CIVIC Consulting Engineers", "team-civic.com", ["/team"]),
+    Firm("hughmunro", "Hugh Munro & Co", "hughmunro.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("mce", "MCE Consulting Engineers", "mceeng.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("mtw", "MTW Consultants", "mtw.ie", ["/our-team", "/team", "/people"]),
+    Firm("poga", "POGA Consulting Engineers", "poga.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("furey", "Furey Consulting Engineers", "fureyconsulting.ie", ["/team"]),
+    Firm("mcullen", "Malachi Cullen Consulting Engineers", "mcullen.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("roadplan", "Roadplan Consulting", "roadplan.ie",
+         ["/our-team", "/team", "/people"]),
+    Firm("pmce", "PMCE Ltd", "pmceconsultants.com", ["/our-team", "/team", "/people"]),
 ]
 
 

@@ -152,6 +152,40 @@ class RunConfig:
     # name rather than the URL itself so ops can repoint it without a code
     # change; core/alerts.alert() no-ops with a log line when it is unset.
     alert_webhook_env: str = "ALERT_WEBHOOK_URL"
+    # 2026-09-11 -- core/ocr.py's free local OCR path (rapidocr-onnxruntime)
+    # caps how many pages of one scanned PDF it will rasterise and read; a
+    # runaway page count on a mis-sized bundle should not stall a run for
+    # minutes on CPU-only inference. Independent of _MAX_PAGES (the paid
+    # path's hard cap on what is even sent).
+    ocr_max_pages: int = 40
+    # 2026-09-11 -- when True, core.ocr.transcribe_pdf never falls through to
+    # a paid model (Anthropic or Gemini) if the free local OCR path fails or
+    # is unavailable; the document is simply left unrecovered. For a fixed,
+    # near-exhausted Anthropic balance where the operator wants OCR spend at
+    # zero, full stop, rather than falling back to the paid readers.
+    ocr_local_only: bool = False
+    # 2026-09-11 -- core.cache.fetch_rendered's middle rung: when no
+    # FIRECRAWL_API_KEY is present, render JS pages locally with Playwright +
+    # Chromium (core/render_local.py) before falling back to raw HTTP. Set
+    # False to skip straight to the raw-HTTP fallback (e.g. a sandbox with no
+    # Chromium binary at all).
+    render_local: bool = True
+    # 2026-09-11 -- stage_harvest_discovery (run.py), RADAR_CONTRACTS.md
+    # section A. Free/cheap people-discovery via sources.registry providers,
+    # ahead of the paid r1/r2 harvests. Per-query result cap passed straight
+    # through as SourceQuery.limit.
+    discovery_limit: int = 60
+    # Provider names run for stage_harvest_discovery, looked up via
+    # sources.registry.get_provider (imported first if not yet registered --
+    # see run.py's _LICENSED_PROVIDER_MODULES). A provider that raises
+    # ProviderNotConfigured (missing API key) is skipped with a log line, not
+    # a stage failure -- same contract as run_coverage_test.
+    discovery_providers: list[str] = field(default_factory=lambda: ["serper_people"])
+    # Total query budget across the whole stage_harvest_discovery run, summed
+    # across every role x provider combination. serper_people alone issues 3
+    # queries per (term, location) pair, so this is the knob that actually
+    # bounds spend/rate-limit exposure when ROLES x terms x locations grows.
+    discovery_max_queries: int = 120
 
     @property
     def run_dir(self) -> Path:
