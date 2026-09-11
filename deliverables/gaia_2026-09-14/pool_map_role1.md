@@ -17,7 +17,7 @@ is a claim, not a finding.
 |---|---|
 | located_ie | 388 |
 | chartered | 382 |
-| discipline | 332 |
+| discipline | 331 |
 | seniority_ceiling | 238 |
 | seniority | 179 |
 | employer_sector | 27 |

@@ -179,6 +179,21 @@ def _render_evidence(evidence: list[dict] | None) -> str:
     return "".join(parts)
 
 
+def _render_passed_with_note(passed_with_note: list[dict] | None) -> str:
+    """Adversarial-audit fix 2026-09-11 (second pass) item 2: a gate that
+    PASSED but carries a note (a confirm-on-first-call caveat) was
+    invisible on the card -- a PASS or NEAR_MISS row looked cleaner than
+    the evidence actually supported. Rendered muted, before the contact
+    line, never claimed as a failure or an unknown."""
+    items = [p for p in (passed_with_note or []) if p.get("note")]
+    if not items:
+        return ""
+    lines = "".join(
+        f'<li>{e(p.get("label"))}: {e(p.get("note"))}</li>' for p in items
+    )
+    return f'<p class="pwn-note">Passed with a note:</p><ul class="pwn-list">{lines}</ul>'
+
+
 def _render_ledger_row(row: dict, idx: int) -> str:
     status = row.get("status", "NOT_CHECKED")
     stamp_text = STAMP_TEXT.get(status, "NOT CHECKED")
@@ -191,8 +206,9 @@ def _render_ledger_row(row: dict, idx: int) -> str:
     evidence_html = _render_evidence(row.get("evidence"))
     if not evidence_html:
         evidence_html = '<p class="noproof">No proof lines on file.</p>'
+    passed_with_note_html = _render_passed_with_note(row.get("passed_with_note"))
     proof_body = (
-        f'<div class="proof-in">{evidence_html}'
+        f'<div class="proof-in">{evidence_html}{passed_with_note_html}'
         f'<p class="contact-line">Contact: {e(contact_label)}.</p></div>'
     )
     main = (
@@ -292,7 +308,18 @@ def _brief_role_summary(brief: dict) -> str:
     if residence_rule:
         counties = _override_value(overrides, "counties") or []
         where = ", ".join(str(c) for c in counties) if counties else "the Republic of Ireland"
-        evidence = " with direct evidence" if _override_value(overrides, "require_direct_evidence") else ""
+        # Adversarial-audit fix 2026-09-11 (second pass) item 2: "with
+        # direct evidence" is false for a role whose unknown-residence
+        # fallback is opt-in accepted (treat_unknown_as == "pass_with_
+        # note") -- Irish scheme/client work still passes there, just
+        # with a confirm-on-first-call note, so the summary must not
+        # claim a strictness the brief does not enforce.
+        pass_with_note = _override_value(overrides, "treat_unknown_as") == "pass_with_note"
+        evidence = (
+            " with direct evidence"
+            if _override_value(overrides, "require_direct_evidence") and not pass_with_note
+            else ""
+        )
         parts.append(f"{where} residence{evidence}")
     chartered_rule = next((r for r in rules if r.get("gate_id") == "chartered"), None)
     if chartered_rule and chartered_rule.get("label"):
@@ -434,6 +461,9 @@ tr.proof-row>td{background:var(--panel);padding:14px 16px 16px}
 .proof-in a{color:var(--accent)}
 .proof-in .contact-line{margin:8px 0 0;color:var(--muted)}
 .proof-in .noproof{color:var(--muted);font-style:italic}
+.proof-in .pwn-note{margin:8px 0 2px;color:var(--muted);font-weight:600}
+.proof-in .pwn-list{margin:0 0 4px;padding-left:18px;color:var(--muted)}
+.proof-in .pwn-list li{margin:0 0 3px}
 
 .rules-note{font-size:12.5px;font-weight:600;color:var(--muted);margin:16px 0 4px}
 .rules-list{margin:0 0 8px;padding-left:18px;font-size:13.5px;color:var(--muted)}

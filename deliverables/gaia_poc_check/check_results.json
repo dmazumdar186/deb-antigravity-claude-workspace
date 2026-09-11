@@ -1,7 +1,7 @@
 {
   "campaign": "gaia-2026-09-14",
-  "generated_at": "2026-09-11T19:37:13.723823+00:00",
-  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@c0745aa",
+  "generated_at": "2026-09-11T19:54:13.686915+00:00",
+  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@3288ec0",
   "brief": [
     {
       "role_id": "role1_senior_structural_engineer",
@@ -82,7 +82,7 @@
         {
           "gate_id": "located_ie",
           "label": "residence evidence (Republic of Ireland)",
-          "rule_text": "Lives in the Republic of Ireland, stated directly (a project in Ireland or the firm's office does not count), within Cork."
+          "rule_text": "Lives in the Republic of Ireland, within Cork; until the rule is set, Irish scheme or client work is accepted with a confirm-on-first-call note."
         },
         {
           "gate_id": "discipline",
@@ -221,9 +221,9 @@
     "by_rule": {
       "seniority_ceiling": 13,
       "located_ie": 11,
-      "discipline": 2,
       "seniority": 2,
-      "chartered": 2
+      "chartered": 2,
+      "discipline": 1
     },
     "residence": {
       "outside_republic": 0,
@@ -270,6 +270,7 @@
           "source_url": "https://ocsc.ie/people/"
         }
       ],
+      "passed_with_note": [],
       "contact": "verified",
       "one_line": "Out: Civil / Structural Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -305,6 +306,7 @@
           "source_url": "https://ocsc.ie/people/"
         }
       ],
+      "passed_with_note": [],
       "contact": "verified",
       "one_line": "Out: Civil / Structural Associate Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -345,6 +347,7 @@
           "source_url": "https://ocsc.ie/people/"
         }
       ],
+      "passed_with_note": [],
       "contact": "verified",
       "one_line": "Out: Structural/Civil Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -361,11 +364,6 @@
           "gate_id": "located_ie",
           "label": "residence evidence (Republic of Ireland)",
           "reason": "No statement of where they live was found."
-        },
-        {
-          "gate_id": "discipline",
-          "label": "discipline match",
-          "reason": "Evidence indicates an excluded discipline: health and safety officer"
         },
         {
           "gate_id": "seniority_ceiling",
@@ -385,6 +383,7 @@
           "source_url": "https://ocsc.ie/people/"
         }
       ],
+      "passed_with_note": [],
       "contact": "verified",
       "one_line": "Out: Civil / Structural Associate Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -420,6 +419,7 @@
           "source_url": "https://ocsc.ie/people/"
         }
       ],
+      "passed_with_note": [],
       "contact": "verified",
       "one_line": "Out: Civil / Structural Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -458,6 +458,13 @@
           "dimension": "employer",
           "quote": "Anthony leads a team of Civil Engineers and allied professionals.",
           "source_url": "https://ocsc.ie/people/"
+        }
+      ],
+      "passed_with_note": [
+        {
+          "gate_id": "seniority",
+          "label": "seniority evidence",
+          "note": "Seniority inferred from grade (Structural Director); years of experience not stated publicly. Confirm in the first call."
         }
       ],
       "contact": "verified",
@@ -515,6 +522,7 @@
           "source_url": "https://www.barrettmahony.com/practice/team/all"
         }
       ],
+      "passed_with_note": [],
       "contact": "guess",
       "one_line": "Out: Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -530,7 +538,7 @@
         {
           "gate_id": "located_ie",
           "label": "residence evidence (Republic of Ireland)",
-          "reason": "No statement of where they live was found; only Irish project work."
+          "reason": "No statement of where they live was found; only the firm's Irish office."
         },
         {
           "gate_id": "seniority_ceiling",
@@ -555,6 +563,7 @@
           "source_url": "https://www.horganlynch.ie/our-people/"
         }
       ],
+      "passed_with_note": [],
       "contact": "guess",
       "one_line": "Out: Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -598,6 +607,13 @@
           "dimension": "employer",
           "quote": "Mark is a Chartered Structural Engineer who joined Barrett Mahony Consulting Engineers (BMCE) in 2015.",
           "source_url": "https://www.barrettmahony.com/practice/team/london"
+        }
+      ],
+      "passed_with_note": [
+        {
+          "gate_id": "seniority",
+          "label": "seniority evidence",
+          "note": "Seniority inferred from grade (Associate Director); years of experience not stated publicly. Confirm in the first call."
         }
       ],
       "contact": "guess",
@@ -645,6 +661,13 @@
           "source_url": "https://www.barrettmahony.com/practice/team/london"
         }
       ],
+      "passed_with_note": [
+        {
+          "gate_id": "seniority",
+          "label": "seniority evidence",
+          "note": "Seniority inferred from grade (Associate Director); years of experience not stated publicly. Confirm in the first call."
+        }
+      ],
       "contact": "guess",
       "one_line": "Out: Associate Director grade, above the Senior Engineer ceiling.",
       "linkedin_url": ""
@@ -678,10 +701,22 @@
           "dimension": "employer",
           "quote": "I am a Senior Associate Director of Highways in Jacobs.",
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf"
+        },
+        {
+          "dimension": "years_experience",
+          "quote": "I confirm that I have\nover 26 years post graduate experience",
+          "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf"
+        }
+      ],
+      "passed_with_note": [
+        {
+          "gate_id": "located_ie",
+          "label": "residence evidence (Republic of Ireland)",
+          "note": "Ireland-based inferred from Irish scheme/client evidence, not from a stated location. Confirm in the first call."
         }
       ],
       "contact": "verified",
-      "one_line": "Near miss: evidenced at 26 years' experience, above the 25-year ceiling; everything else passes.",
+      "one_line": "Near miss: evidenced at 26 years' experience, above the 25-year ceiling; everything else passes, 1 with a note.",
       "linkedin_url": ""
     },
     {
@@ -715,8 +750,20 @@
           "source_url": "https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf"
         }
       ],
+      "passed_with_note": [
+        {
+          "gate_id": "located_ie",
+          "label": "residence evidence (Republic of Ireland)",
+          "note": "Ireland-based inferred from Irish scheme/client evidence, not from a stated location. Confirm in the first call."
+        },
+        {
+          "gate_id": "employer_sector",
+          "label": "employer sector match",
+          "note": "employer not stated"
+        }
+      ],
       "contact": "guess",
-      "one_line": "Near miss: Director grade, stated in public evidence, above the Associate Director ceiling; everything else passes.",
+      "one_line": "Near miss: Director grade, stated in public evidence, above the Associate Director ceiling; everything else passes, 2 with a note.",
       "linkedin_url": ""
     },
     {
@@ -740,7 +787,7 @@
         {
           "gate_id": "seniority",
           "label": "seniority evidence",
-          "reason": "No stated years-of-experience figure was found (the check does not infer years from join dates)."
+          "reason": "No stated years-of-experience figure was found (the check does not infer years from join dates). (a years figure exists in the source but could not be verified character by character)"
         },
         {
           "gate_id": "seniority_ceiling",
@@ -765,6 +812,7 @@
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf"
         }
       ],
+      "passed_with_note": [],
       "contact": "none",
       "one_line": "Out: Director grade, stated in public evidence, above the Associate Director ceiling.",
       "linkedin_url": ""
@@ -1793,10 +1841,9 @@
     {
       "name": "Chris Conroy",
       "employer": "Jacobs",
-      "status": "OUT",
+      "status": "NEAR_MISS",
       "failed_labels": [
-        "chartership evidence (Engineers Ireland)",
-        "discipline match"
+        "chartership evidence (Engineers Ireland)"
       ]
     },
     {
@@ -4908,7 +4955,6 @@
       "status": "OUT",
       "failed_labels": [
         "residence evidence (Republic of Ireland)",
-        "discipline match",
         "Senior Engineer ceiling"
       ]
     },
@@ -5475,7 +5521,6 @@
       "failed_labels": [
         "chartership evidence (Engineers Ireland)",
         "residence evidence (Republic of Ireland)",
-        "discipline match",
         "Associate Director ceiling"
       ]
     },

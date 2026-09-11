@@ -576,5 +576,62 @@ def test_composition_violations_skips_cards_with_no_claims_field():
     assert not any("Plain CSV Row" in x for x in v)
 
 
+# ---------------------------------------------------------------------------
+# Adversarial-audit fix 2026-09-11 item 4: check_discipline's exclude terms
+# must never fire from an employer/project SENTENCE mentioning the term in
+# passing -- Patrick Raggett's real shape ("acting as Health and Safety
+# Officer for O'Connor Sutton Cronin", one duty among a Civil/Structural
+# Associate Director's responsibilities) was wrongly excluded.
+# ---------------------------------------------------------------------------
+
+
+def test_discipline_exclude_never_fires_from_employer_sentence():
+    claims = [
+        vclaim("employer", "Acts as Health and Safety Officer for OCSC",
+               "acting as Health and safety Officer for O’Connor Sutton Cronin"),
+        vclaim("sector", "Expertise in transport engineering",
+               "particular expertise in all areas of transport engineering"),
+    ]
+    p = person(current_title="Civil / Structural Associate Director")
+    res = gates.check_discipline(p, claims, ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert res.passed, res.note
+
+
+def test_discipline_exclude_still_fires_from_title():
+    p = person(current_title="Health and Safety Officer")
+    res = gates.check_discipline(p, [], ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert not res.passed
+    assert res.basis == "person.title"
+
+
+def test_discipline_exclude_still_fires_from_sector_claim():
+    claims = [
+        vclaim("sector", "Works as a town planner",
+               "Qualified RTPI town planner with ten years' experience"),
+    ]
+    p = person(current_title="Engineer")
+    res = gates.check_discipline(p, claims, ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert not res.passed
+
+
+def test_discipline_exclude_never_fires_from_project_sentence():
+    claims = [
+        vclaim("project", "Worked on the town planning application review",
+               "assisted the town planning team on a review of the application"),
+        vclaim("sector", "Structural design", "structural design of steel frames"),
+    ]
+    p = person(current_title="Structural Engineer")
+    res = gates.check_discipline(p, claims, ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert res.passed, res.note
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
