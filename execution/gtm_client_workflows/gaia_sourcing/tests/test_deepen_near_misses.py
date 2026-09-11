@@ -331,3 +331,100 @@ def test_linkedin_result_never_fetched(R, monkeypatch):
     # The LinkedIn snippet itself still carries a chartership token, so it is
     # still kept and still counted as a document even though never fetched.
     assert saved["docs_by_pid"].get("p_ok") == 1
+
+
+# ---------------------------------------------------------------------------
+# Identity corroboration (2026-09-11 adversarial-audit fix, item 4): a
+# fetched page whose name-window carries no corroborating token (employer or
+# discipline) -- or a contradicting profession -- must never be attached.
+# ---------------------------------------------------------------------------
+
+
+def test_a_page_with_no_corroborating_token_is_skipped(R, monkeypatch, capsys):
+    """The audit's exhibit: a Porsche sales page for a same-named person."""
+    _seed_run(R, {"p_ok": ["chartered"]})
+
+    def fake_search(q, num=10):
+        return [{
+            "title": "Firstname0 Surname0 - Porsche Centre Dublin",
+            "snippet": "Sales team.",
+            "link": "https://porschecentredublin.example/team/firstname0",
+        }]
+
+    monkeypatch.setattr(R.oral_hearing_web, "serper_search", fake_search)
+
+    def fake_fetch(url, source_type="other"):
+        return RawDocument(
+            doc_id="d_porsche",
+            url=url,
+            source_type="other",
+            fetched_at=date(2026, 9, 11),
+            content_text=(
+                "Firstname0 Surname0 is a Sales Executive at Porsche Centre "
+                "Dublin, specialising in the Cayenne and Macan ranges. " * 5
+            ),
+            http_status=200,
+        )
+
+    monkeypatch.setattr(R, "cache_fetch", fake_fetch)
+    extract_calls = []
+    monkeypatch.setattr(
+        R, "extract_from_document",
+        lambda person, doc, tracker_label="L5": (extract_calls.append(doc.doc_id), ([], None))[1],
+    )
+
+    R.stage_deepen_near_misses()
+
+    saved = json.loads((R.RUN_DIR / "deepen_near_misses.json").read_text(encoding="utf-8"))
+    assert saved["docs_by_pid"].get("p_ok", 0) == 0
+    assert extract_calls == []
+    assert "identity: p_ok skipped" in capsys.readouterr().out
+
+
+def test_a_lally_chartered_engineers_page_is_accepted(R, monkeypatch):
+    """The audit's paired positive case: a genuine engineering-firm bio."""
+    _seed_run(R, {"p_ok": ["chartered"]})
+
+    def fake_search(q, num=10):
+        return [{
+            "title": "Firstname0 Surname0 - Lally Chartered Engineers",
+            "snippet": "Our people.",
+            "link": "https://lallyengineers.example/team/firstname0",
+        }]
+
+    monkeypatch.setattr(R.oral_hearing_web, "serper_search", fake_search)
+
+    def fake_fetch(url, source_type="other"):
+        return RawDocument(
+            doc_id="d_lally",
+            url=url,
+            source_type="other",
+            fetched_at=date(2026, 9, 11),
+            content_text=(
+                "Firstname0 Surname0 is a Chartered Engineer with Lally "
+                "Chartered Engineers, CEng MIEI. " * 5
+            ),
+            http_status=200,
+        )
+
+    monkeypatch.setattr(R, "cache_fetch", fake_fetch)
+
+    def fake_extract(person, doc, tracker_label="L5"):
+        c = Claim(
+            claim_id="c_" + person.person_id,
+            subject_person_id=person.person_id,
+            dimension="chartership",
+            assertion=person.full_name + " is CEng MIEI",
+            evidence_quote="Chartered Engineer with Lally Chartered Engineers, CEng MIEI",
+            source_doc_id=doc.doc_id,
+            source_url=doc.url,
+            confidence="direct",
+        )
+        return [c], None
+
+    monkeypatch.setattr(R, "extract_from_document", fake_extract)
+
+    R.stage_deepen_near_misses()
+
+    saved = json.loads((R.RUN_DIR / "deepen_near_misses.json").read_text(encoding="utf-8"))
+    assert saved["docs_by_pid"].get("p_ok") == 1

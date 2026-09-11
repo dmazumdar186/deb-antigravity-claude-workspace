@@ -279,6 +279,33 @@ def test_the_pane_never_hides_how_much_evidence_it_dropped():
     assert "of 9 verified quotes" in pane, pane
 
 
+def test_review_incomplete_shows_the_incomplete_review_line_on_the_card():
+    """2026-09-11 adversarial-audit fix (item 6): a card whose second-opinion
+    pass errored or returned nothing parseable must say so on the card
+    itself, not just be silently capped at tier C."""
+    claims = [_dc("technical_skill", "A.", "some verbatim evidence quote here")]
+    ev = {
+        "tier": "C",
+        "adversarial_findings": [
+            "REVIEW INCOMPLETE -- the second-opinion pass errored, so this "
+            "card has had one pass only. Treat its confidence accordingly."
+        ],
+    }
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, ev, {"email_status": "verified"}, {}, {}, _Spec())
+    assert "Second-opinion review incomplete for this card" in pane
+
+
+def test_a_clean_second_pass_does_not_print_the_incomplete_line():
+    claims = [_dc("technical_skill", "A.", "some verbatim evidence quote here")]
+    ev = {"tier": "B", "adversarial_findings": ["Recently promoted, confirm tenure."]}
+    pane = R._detail_cell({"person_id": "p1", "full_name": "X",
+                           "current_employer": "Firm"},
+                          claims, ev, {"email_status": "verified"}, {}, {}, _Spec())
+    assert "Second-opinion review incomplete for this card" not in pane
+
+
 def test_an_unreachable_candidate_still_gets_a_route():
     """No email and no resolved profile is the case the fallback exists for.
 

@@ -115,6 +115,36 @@ def test_a_grade_reachable_inside_eight_years_is_not_enough():
     assert result.passed is False
 
 
+def test_accept_titles_for_floor_must_match_the_title_not_the_employer_name():
+    """2026-09-11 adversarial-audit fix (item 5): "MHL & Associates" (an
+    EMPLOYER NAME) must not satisfy the "associate" title-floor acceptance --
+    the substring "associate" sits inside "Associates" with no word boundary
+    after it, and even a word-boundary match must never be read off the
+    employer's own name."""
+    person_ = Person(
+        person_id="p", full_name="Test Person",
+        current_title="Structural Design Engineer",
+        current_employer="MHL & Associates",
+    )
+    result = gates.check_seniority(
+        person_, [], {"min_years": 8, "accept_titles_for_floor": ["associate"]}
+    )
+    assert result.passed is False
+
+
+def test_accept_titles_for_floor_still_matches_a_title_shaped_employer_claim():
+    person_ = Person(person_id="p", full_name="Test Person",
+                      current_employer="MHL & Associates")
+    claims = [_vc(
+        "employer", "Test Person is a Senior Engineer",
+        "Test Person is a Senior Engineer at MHL & Associates",
+    )]
+    result = gates.check_seniority(
+        person_, claims, {"min_years": 8, "accept_titles_for_floor": ["senior"]}
+    )
+    assert result.passed is True
+
+
 def test_a_stated_number_below_the_bar_fails_even_with_a_senior_grade():
     """The evidenced number wins over the inference. A recently-promoted
     director who states six years is a six-year engineer."""
@@ -316,3 +346,48 @@ def test_uk_chartership_is_flagged_rather_than_silently_dropped():
 
     assert result.passed is False
     assert "non-Irish institution" in (result.note or "")
+
+
+# ---------------------------------------------------------------------------
+# Residence haystack hygiene (2026-09-11 adversarial-audit fix, item 3)
+# ---------------------------------------------------------------------------
+
+
+def _loc(quote, dimension="location"):
+    return [gates.ValidatedClaim(
+        claim_id="cloc", subject_person_id="p", dimension=dimension,
+        assertion=quote, evidence_quote=quote, source_doc_id="d1",
+        source_url="https://example.ie/p", confidence="direct",
+        quote_verified=True,
+    )]
+
+
+def test_engineers_ireland_org_name_is_not_residence_evidence():
+    """"Engineers Ireland" contains the substring "Ireland" and must not, on
+    its own, make check_located_ie think a person's residence is stated."""
+    result = gates.check_located_ie(
+        _person(), _loc("Chartered Member of Engineers Ireland"), {})
+    assert result.passed is False
+
+
+def test_a_jurisdiction_list_is_project_work_not_residence():
+    """"Ireland, the United Kingdom and New Zealand" is scheme jurisdiction,
+    not a residence statement, so it must not pass the gate alone."""
+    result = gates.check_located_ie(
+        _person(),
+        _loc("Worked on schemes across Ireland, the United Kingdom and New Zealand"),
+        {},
+    )
+    assert result.passed is False
+
+
+def test_a_residence_shaped_phrase_still_passes_even_with_other_jurisdictions():
+    result = gates.check_located_ie(
+        _person(), _loc("Based in Dublin, Ireland, having previously worked across the UK"), {})
+    assert result.passed is True
+
+
+def test_a_plain_residence_statement_still_passes():
+    result = gates.check_located_ie(
+        _person(), _loc("Based in Cork, Ireland"), {})
+    assert result.passed is True

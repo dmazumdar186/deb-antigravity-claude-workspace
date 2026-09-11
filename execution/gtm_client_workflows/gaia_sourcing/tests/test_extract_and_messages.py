@@ -482,3 +482,12 @@ def test_the_notice_is_concatenated_not_generated(monkeypatch):
 
     assert seq.gdpr_notice == messages.GDPR_ART14_NOTICE
     assert seq.opt_out_line == messages.OPT_OUT_LINE
+
+
+def test_postnominals_are_stripped_from_names():
+    from gtm_client_workflows.gaia_sourcing.layers.extract import strip_postnominals
+    assert strip_postnominals("Kate FitzGerald CEng MIEI") == "Kate FitzGerald"
+    assert strip_postnominals("John Alcaras BSc CEng MIEI") == "John Alcaras"
+    assert strip_postnominals("Seán Ó Ríordáin, PhD") == "Seán Ó Ríordáin"
+    assert strip_postnominals("Ken Manley") == "Ken Manley"
+    assert strip_postnominals("") == ""

@@ -475,6 +475,22 @@ def test_every_people_path_is_a_bare_root_relative_path():
             assert p.startswith("/"), f"{f.slug}: {p!r} does not start with /"
 
 
+def test_mma_slug_names_the_firm_that_actually_owns_mhl_domain():
+    """2026-09-11 adversarial-audit fix (item 7): the "mma" slug's domain is
+    mhl.ie, and the firm trading there is "MHL & Associates", not "MMA
+    Consulting Engineers" (a different firm's name had been paired with this
+    domain). Slug kept stable so nothing downstream keyed on it breaks."""
+    firm = next(f for f in company_bios.FIRMS if f.slug == "mma")
+    assert firm.domain == "mhl.ie"
+    assert firm.name == "MHL & Associates"
+
+
+def test_oconnor_sutton_cronin_carries_all_irish_office_cities_and_multi_country():
+    firm = next(f for f in company_bios.FIRMS if f.slug == "oconnor_sutton")
+    assert set(firm.office_cities) == {"Dublin", "Cork", "Galway"}
+    assert firm.multi_country is True
+
+
 def test_the_firm_list_is_wide_enough_for_coverage():
     """Widened 2026-09-11 from the ACEI 2026 Directory of Members to reach
     the Senior-Engineer-to-Associate grade this role sources for across more

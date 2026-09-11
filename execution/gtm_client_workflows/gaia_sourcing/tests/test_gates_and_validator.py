@@ -29,6 +29,7 @@ from gtm_client_workflows.gaia_sourcing.core.contracts import (  # noqa: E402
     ValidatedClaim,
 )
 from gtm_client_workflows.gaia_sourcing.layers import gates  # noqa: E402
+from gtm_client_workflows.gaia_sourcing.roles import ROLE1  # noqa: E402
 from gtm_client_workflows.gaia_sourcing.layers.validator import (  # noqa: E402
     normalize,
     validate_all,
@@ -438,6 +439,141 @@ def test_extract_years_ignores_implausible_numbers():
     assert gates.extract_years("the 2024 years of the scheme") is None
     assert gates.extract_years("over 26 years post graduate experience") == 26
     assert gates.extract_years("no numbers here") is None
+
+
+# ---------------------------------------------------------------------------
+# 2026-09-11 adversarial-audit fixes
+# ---------------------------------------------------------------------------
+
+
+# -- Item 1: the grade ladder must scan title AND employer claims, not
+#    short-circuit on the title alone. --------------------------------------
+
+
+def test_grade_of_reads_the_highest_rung_across_title_and_employer_claims():
+    p = person(current_title="Structural Design Engineer")
+    claims = [
+        vclaim(
+            "employer",
+            "Associate Director at a Dublin consultancy",
+            "Associate Director / Lead Structural Design Engineer",
+        )
+    ]
+    grade, basis = gates._grade_of(p, claims)
+    assert grade == "associate_director"
+
+
+def test_grade_of_finds_director_stated_only_in_an_employer_claim():
+    p = person(current_title="Chartered Engineer")
+    claims = [
+        vclaim(
+            "employer",
+            "Company director",
+            "Ken is a company director and founding member",
+        )
+    ]
+    grade, basis = gates._grade_of(p, claims)
+    assert grade == "director"
+
+
+def test_grade_of_head_of_title_maps_to_director():
+    p = person(current_title="Head of Design")
+    grade, basis = gates._grade_of(p, [])
+    assert grade == "director"
+
+
+def test_grade_of_none_when_nothing_evidenced():
+    assert gates._grade_of(person(), []) is None
+
+
+# -- Item 2: chartership must mean Engineers Ireland specifically. ----------
+
+
+def test_bare_miei_alone_fails_with_specific_note():
+    result = gates.check_chartered(
+        person(), _chartership_claims("I am an MIEI member of Engineers"), {}
+    )
+    assert result.passed is False
+    assert result.note == "MIEI membership only; no CEng"
+
+
+def test_bare_ceng_alone_fails_chartered_gate():
+    """CEng with no Irish co-occurring token is not enough on its own --
+    CEng is also a UK/other-institution post-nominal."""
+    result = gates.check_chartered(
+        person(), _chartership_claims("I hold CEng status only"), {}
+    )
+    assert result.passed is False
+
+
+def test_ceng_miei_together_still_passes():
+    result = gates.check_chartered(
+        person(), _chartership_claims("Chartered Engineer, CEng MIEI"), {}
+    )
+    assert result.passed is True
+
+
+def test_ceng_with_only_uk_institution_fails_non_ie_branch():
+    result = gates.check_chartered(
+        person(), _chartership_claims("I hold CEng MICE status"), {}
+    )
+    assert result.passed is False
+    assert "non-Irish institution" in (result.note or "")
+
+
+def test_fiei_alone_still_passes():
+    result = gates.check_chartered(
+        person(), _chartership_claims("I am an FIEI member"), {}
+    )
+    assert result.passed is True
+
+
+def _chartership_claims(quote):
+    return [vclaim("chartership", quote, quote)]
+
+
+# -- Item 8: composition_violations catches a non-Irish chartership basis. --
+
+
+def test_composition_violations_flags_non_ie_chartership_basis():
+    cards = [
+        {
+            "full_name": "Weak Charter Person",
+            "current_title": "Senior Structural Engineer",
+            "current_employer": "Some Consulting Engineers",
+            "location": "Dublin",
+            "person_id": "p1",
+            "claims": [
+                {
+                    "dimension": "chartership",
+                    "assertion": "MIEI member",
+                    "evidence_quote": "I am an MIEI member",
+                    "confidence": "direct",
+                    "subject_person_id": "p1",
+                    "claim_id": "c1",
+                    "source_doc_id": "d1",
+                    "source_url": "https://example.ie/p",
+                    "quote_verified": True,
+                }
+            ],
+        }
+    ]
+    v = gates.composition_violations(cards, ROLE1)
+    assert any("Weak Charter Person" in x and "chartership" in x for x in v)
+
+
+def test_composition_violations_skips_cards_with_no_claims_field():
+    """No `claims` on the card -- skip silently, never crash."""
+    cards = [
+        {
+            "full_name": "Plain CSV Row",
+            "current_title": "Senior Structural Engineer",
+            "current_employer": "Some Consulting Engineers",
+            "location": "Dublin",
+        }
+    ]
+    v = gates.composition_violations(cards, ROLE1)
+    assert not any("Plain CSV Row" in x for x in v)
 
 
 if __name__ == "__main__":

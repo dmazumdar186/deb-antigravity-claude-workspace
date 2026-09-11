@@ -24,6 +24,53 @@ from ..sources.company_bios import FIRMS
 
 # Post-nominals and phrasings that evidence Engineers Ireland chartership.
 # Word-boundary anchored: "ceng" must not match inside "licensing".
+#
+# 2026-09-11 adversarial-audit fix: chartership must mean ENGINEERS IRELAND
+# specifically, never a bare abbreviation read in isolation. Bare "CEng" is
+# also the post-nominal used by UK/other institutions (see _NON_IE_CHARTER_RE
+# below), and bare "MIEI" is Engineers Ireland's ORDINARY (non-chartered)
+# membership grade -- neither, on its own, is evidence of chartership with
+# Engineers Ireland. A quote now passes only when:
+#   (a) CEng/C.Eng co-occurs, in the SAME quote, with MIEI/FIEI/"Engineers
+#       Ireland"/"Institution of Engineers of Ireland", or
+#   (b) "Chartered Engineer" co-occurs with one of those same Irish tokens, or
+#   (c) FIEI appears alone (Fellow already implies chartered status), or
+#   (d) one of the Fellow-of-Engineers-Ireland phrasings below.
+# See _passes_chartered_ie below, which is what check_chartered actually
+# calls; _CHARTERED_RE is kept only for the pieces still used standalone.
+_IE_CHARTER_CO_TOKEN_RE = re.compile(
+    r"\bmiei\b|\bfiei\b|\bengineers ireland\b|"
+    r"\binstitution of engineers of ireland\b",
+    re.I,
+)
+_CENG_RE = re.compile(r"\bceng\b|\bc\.eng\b", re.I)
+_CHARTERED_ENGINEER_PHRASE_RE = re.compile(r"\bchartered engineer\b", re.I)
+_FIEI_ALONE_RE = re.compile(r"\bfiei\b", re.I)
+_BARE_MIEI_RE = re.compile(r"\bmiei\b", re.I)
+_FULL_CHARTERED_PHRASES_RE = re.compile(
+    r"\bchartered member of the institution of engineers of ireland\b|"
+    r"\bchartered member and fellow of the institution of engineers of ireland\b|"
+    r"\bchartered with engineers ireland\b",
+    re.I,
+)
+# Fellow is Engineers Ireland's SENIOR grade, above Chartered Engineer, and
+# the gate's own description already names FIEI as qualifying. The
+# abbreviation matched and the spelled-out form did not, so a witness who
+# wrote "I am a Fellow member of Engineers Ireland" failed a gate that his
+# own evidence cleared twice over -- costing the transport role a Fellow of
+# both Engineers Ireland and the IStructE, at an Irish consultancy.
+#
+# Bound to Engineers Ireland specifically. "Fellow of the Institution of
+# Structural Engineers" is IStructE and must keep failing to the non-IE
+# branch below, and "Fellow of the Association of Consulting Engineers of
+# Ireland" is a trade body, not a chartership.
+_FELLOW_IE_RE = re.compile(
+    r"\bfellow\b[^.]{0,40}\bengineers ireland\b|"
+    r"\bfellow\b[^.]{0,40}\binstitution of engineers of ireland\b",
+    re.I,
+)
+# Retained for callers/tests that still reference the combined pattern; no
+# longer used by check_chartered itself (see _passes_chartered_ie).
 _CHARTERED_PATTERNS = [
     r"\bceng\b",
     r"\bc\.eng\b",
@@ -33,21 +80,29 @@ _CHARTERED_PATTERNS = [
     r"\bchartered member of the institution of engineers of ireland\b",
     r"\bchartered member and fellow of the institution of engineers of ireland\b",
     r"\bchartered with engineers ireland\b",
-    # Fellow is Engineers Ireland's SENIOR grade, above Chartered Engineer,
-    # and the gate's own description already names FIEI as qualifying. The
-    # abbreviation matched and the spelled-out form did not, so a witness who
-    # wrote "I am a Fellow member of Engineers Ireland" failed a gate that his
-    # own evidence cleared twice over -- costing the transport role a Fellow
-    # of both Engineers Ireland and the IStructE, at an Irish consultancy.
-    #
-    # Bound to Engineers Ireland specifically. "Fellow of the Institution of
-    # Structural Engineers" is IStructE and must keep failing to the non-IE
-    # branch below, and "Fellow of the Association of Consulting Engineers of
-    # Ireland" is a trade body, not a chartership.
     r"\bfellow\b[^.]{0,40}\bengineers ireland\b",
     r"\bfellow\b[^.]{0,40}\binstitution of engineers of ireland\b",
 ]
 _CHARTERED_RE = re.compile("|".join(_CHARTERED_PATTERNS), re.I)
+
+
+def _passes_chartered_ie(blob: str) -> bool:
+    """True only when `blob` evidences chartership WITH ENGINEERS IRELAND.
+
+    See the module comment above _IE_CHARTER_CO_TOKEN_RE for the four ways a
+    quote can pass. Bare CEng and bare MIEI never pass on their own.
+    """
+    if _FULL_CHARTERED_PHRASES_RE.search(blob):
+        return True
+    if _FELLOW_IE_RE.search(blob):
+        return True
+    if _FIEI_ALONE_RE.search(blob):
+        return True
+    if _CENG_RE.search(blob) and _IE_CHARTER_CO_TOKEN_RE.search(blob):
+        return True
+    if _CHARTERED_ENGINEER_PHRASE_RE.search(blob) and _IE_CHARTER_CO_TOKEN_RE.search(blob):
+        return True
+    return False
 
 # UK/other-jurisdiction chartership is NOT Engineers Ireland chartership.
 # Flagged rather than silently accepted -- the adversarial pass reads this.
@@ -139,6 +194,47 @@ def _strip_ni(text: str) -> str:
     return _NI_RE.sub(" ", text)
 
 
+# 2026-09-11 adversarial-audit fix: an organisation name that merely CONTAINS
+# the word "Ireland" is not residence evidence. "Engineers Ireland",
+# "Institution of Engineers of Ireland" and "Engineers Journal" (its
+# publication) turn up constantly in chartership-dimension prose that leaks
+# into a location-dimension quote, and each one made _IE_RE fire on the
+# substring "Ireland" with nothing at all said about where the PERSON lives.
+_IE_ORG_STRIP_RE = re.compile(
+    r"\bengineers ireland\b|\binstitution of engineers of ireland\b|"
+    r"\bengineers journal\b",
+    re.I,
+)
+
+
+def _strip_ie_orgs(text: str) -> str:
+    """Blank out Engineers-Ireland-branded org names before testing for
+    Republic residence tokens. See _IE_ORG_STRIP_RE."""
+    return _IE_ORG_STRIP_RE.sub(" ", text)
+
+
+def _clean_residence_haystack(text: str) -> str:
+    """Both hygiene strips applied together, as check_located_ie's residence
+    checks now always want them: NI phrases first (existing rule), then the
+    Engineers-Ireland org names (2026-09-11 fix)."""
+    return _strip_ni(_strip_ie_orgs(text))
+
+
+# 2026-09-11 adversarial-audit fix: a quote that lists SEVERAL jurisdictions
+# ("Ireland, the United Kingdom and New Zealand", "across the UK and
+# Ireland") is evidence the person has worked in Ireland, not evidence of
+# where they RESIDE -- see the module's _NON_IE_RE for the same jurisdiction
+# tokens used the other way. When a location-dimension quote names Ireland
+# alongside one of those, it counts as residence only if it ALSO carries a
+# phrase actually shaped like a residence statement.
+_RESIDENCE_SHAPE_RE = re.compile(
+    r"\bbased in\b|\blocated in\b|\blives in\b|\bliving in\b|\bfrom co\.?\s|"
+    r"\bcounty \b|\boffice in\b|\bour \w+ office\b|,\s*ireland\s*\.?\s*$|"
+    r"\blocation:\s*",
+    re.I,
+)
+
+
 def _claims_by_dim(claims: list[ValidatedClaim], *dims: str) -> list[ValidatedClaim]:
     return [c for c in claims if c.dimension in dims]
 
@@ -157,8 +253,20 @@ def check_chartered(
 ) -> GateResult:
     for c in _direct(_claims_by_dim(claims, "chartership")):
         blob = c.assertion + " " + c.evidence_quote
-        if _CHARTERED_RE.search(blob):
+        if _passes_chartered_ie(blob):
             return GateResult(gate_id="chartered", passed=True, basis=c.claim_id)
+    # Bare MIEI (Engineers Ireland's ordinary, non-chartered membership grade)
+    # with no CEng anywhere in the quote is a specific, common near-miss --
+    # named explicitly rather than falling through to the generic note below.
+    for c in _claims_by_dim(claims, "chartership"):
+        blob = c.assertion + " " + c.evidence_quote
+        if _BARE_MIEI_RE.search(blob) and not _CENG_RE.search(blob) and not _passes_chartered_ie(blob):
+            return GateResult(
+                gate_id="chartered",
+                passed=False,
+                basis=c.claim_id,
+                note="MIEI membership only; no CEng",
+            )
     # Non-IE chartership found but no Engineers Ireland evidence.
     for c in _claims_by_dim(claims, "chartership"):
         if _NON_IE_CHARTER_RE.search(c.assertion + " " + c.evidence_quote):
@@ -216,7 +324,7 @@ def check_located_ie(
     # NI phrases are stripped before the Republic test because "Northern
     # Ireland" contains the substring "Ireland" -- without this, a Belfast
     # address reads as Republic evidence and the NI exclusion never fires.
-    any_republic = any(_IE_RE.search(_strip_ni(b)) for _, b in haystacks)
+    any_republic = any(_IE_RE.search(_clean_residence_haystack(b)) for _, b in haystacks)
     if not any_republic:
         for cid, blob in haystacks:
             if _NI_RE.search(blob):
@@ -236,20 +344,30 @@ def check_located_ie(
     # discarded so the eventual failure note is specific, not generic.
     county_reject_cid: Optional[str] = None
     for cid, blob in haystacks:
-        if _IE_RE.search(_strip_ni(blob)):
-            if not _county_matches(blob, counties):
-                if county_reject_cid is None:
-                    county_reject_cid = cid
-                continue
-            note = None
-            if _NI_RE.search(blob) or _NON_IE_RE.search(blob):
-                note = (
-                    "Ireland evidenced alongside other jurisdictions -- confirm "
-                    "current base in the first call."
-                )
-            return GateResult(
-                gate_id="located_ie", passed=True, basis=cid, note=note
+        cleaned = _clean_residence_haystack(blob)
+        if not _IE_RE.search(cleaned):
+            continue
+        # A quote naming Ireland alongside another jurisdiction is project
+        # jurisdiction, not necessarily residence, UNLESS it also carries a
+        # phrase actually shaped like a residence statement (see
+        # _RESIDENCE_SHAPE_RE's docstring). "Ireland, the United Kingdom and
+        # New Zealand" fails this; "based in Dublin" or "our Cork office"
+        # passes it even where a foreign jurisdiction is also mentioned.
+        if _NON_IE_RE.search(blob) and not _RESIDENCE_SHAPE_RE.search(blob):
+            continue
+        if not _county_matches(blob, counties):
+            if county_reject_cid is None:
+                county_reject_cid = cid
+            continue
+        note = None
+        if _NI_RE.search(blob) or _NON_IE_RE.search(blob):
+            note = (
+                "Ireland evidenced alongside other jurisdictions -- confirm "
+                "current base in the first call."
             )
+        return GateResult(
+            gate_id="located_ie", passed=True, basis=cid, note=note
+        )
 
     # Relocation / return-to-Ireland signal, opt-in per role (the Cork-
     # relocatable clause). Checked across every claim, not just location
@@ -559,7 +677,16 @@ def check_seniority(
         accept_titles = params.get("accept_titles_for_floor") or []
         if accept_titles:
             try:
-                accept_re = re.compile("|".join(accept_titles), re.I)
+                # 2026-09-11 adversarial-audit fix (item 5): word-boundary
+                # anchored on BOTH sides. Without the trailing \b, the "MHL &
+                # Associates" EMPLOYER NAME satisfied "associate" (a substring
+                # match inside "Associates") and the gate accepted the floor
+                # on nothing but the firm's own name -- the match must be on
+                # the person's TITLE, never on an employer name that merely
+                # happens to contain one of these words as a longer word.
+                accept_re = re.compile(
+                    r"\b(?:" + "|".join(accept_titles) + r")\b", re.I
+                )
             except re.error:
                 accept_re = None
             if accept_re is not None:
@@ -567,8 +694,18 @@ def check_seniority(
                 m = accept_re.search(title)
                 basis = "person.title"
                 if not m:
+                    employer_name = (person.current_employer or "").strip()
                     for c in _direct(_claims_by_dim(claims, "employer")):
                         blob = c.assertion + " " + c.evidence_quote
+                        # Blank out the employer's own name before matching --
+                        # a title-shaped claim like "<Name> is a Senior
+                        # Engineer" must still match; a claim whose only hit
+                        # is inside the employer's name (e.g. "Associate" as
+                        # part of "MHL & Associates") must not.
+                        if employer_name:
+                            blob = re.sub(
+                                re.escape(employer_name), " ", blob, flags=re.I
+                            )
                         m = accept_re.search(blob)
                         if m:
                             basis = c.claim_id
@@ -675,23 +812,38 @@ _GRADE_PATTERNS: list[tuple[str, re.Pattern]] = [
 def _grade_of(
     person: Person, claims: list[ValidatedClaim]
 ) -> Optional[tuple[str, str]]:
-    """Return (grade, basis) for the most senior grade evidenced, or None.
+    """Return (grade, basis) for the MOST SENIOR grade evidenced anywhere, or
+    None.
 
-    Reads person.current_title first (the normal case for a staff-directory
-    candidate), then falls back to direct employer-dimension claims, which is
-    where a title phrase most often turns up in prose ("Senior Associate
-    Director of Highways in Jacobs").
+    2026-09-11 adversarial-audit fix: this used to return the FIRST rung
+    matched in person.title alone, short-circuiting before it ever looked at
+    an employer-dimension claim -- a person titled "Structural Design
+    Engineer" whose bio also states "Associate Director / Lead Structural
+    Design Engineer" was graded "engineer", missing the higher rung sitting
+    in the very next sentence. Every text (person.title AND every direct
+    employer-dimension claim's assertion+quote) is now scanned, each yielding
+    at most its own highest rung (the patterns are already checked top-down,
+    most-senior first, so the first match within one text is that text's
+    ceiling), and the HIGHEST rung across all of them wins, carrying the
+    basis it was found on.
     """
     texts: list[tuple[str, str]] = []
     if person.current_title:
         texts.append((person.current_title, "person.title"))
     for c in _direct(_claims_by_dim(claims, "employer")):
         texts.append((c.assertion + " " + c.evidence_quote, c.claim_id))
+
+    best: Optional[tuple[int, str, str]] = None  # (rank, grade, basis)
     for text, basis in texts:
         for grade, pattern in _GRADE_PATTERNS:
             if pattern.search(text):
-                return grade, basis
-    return None
+                rank = _GRADE_ORDER.index(grade)
+                if best is None or rank > best[0]:
+                    best = (rank, grade, basis)
+                break  # patterns are checked top-down: first hit = this text's ceiling
+    if best is None:
+        return None
+    return best[1], best[2]
 
 
 def check_seniority_ceiling(
@@ -911,6 +1063,42 @@ def composition_violations(cards, spec: JobSpec) -> list[str]:
                     "employer '" + str(employer) + "' does not read as an "
                     "engineering consultancy; confirm"
                 )))
+
+        # 2026-09-11 adversarial-audit fix (item 8): a card's chartership
+        # basis re-checked against the corrected Engineers-Ireland-only rule
+        # (item 2 / _passes_chartered_ie) -- a delivered card whose only
+        # chartership evidence is a non-Irish/ambiguous quote (bare MIEI,
+        # CEng alongside MICE/MIStructE only, etc.) fails composition even
+        # though the person may have cleared every other gate. Only runs
+        # when the card actually carries its claims (a plain CSV/dict row
+        # off candidates.csv usually will not) -- skipped silently otherwise,
+        # since this is a best-effort extra check, not a required field.
+        raw_claims = _field(rec, "claims")
+        if raw_claims:
+            chartership_claims = [
+                c for c in raw_claims
+                if (c.get("dimension") if isinstance(c, dict) else getattr(c, "dimension", None))
+                == "chartership"
+            ]
+            if chartership_claims:
+                try:
+                    vclaims = [
+                        c if isinstance(c, ValidatedClaim)
+                        else ValidatedClaim(**{"quote_verified": True, **c})
+                        for c in chartership_claims
+                    ]
+                    stub_person = Person(
+                        person_id=str(_field(rec, "person_id") or "x"),
+                        full_name=str(name),
+                    )
+                    result = check_chartered(stub_person, vclaims, {})
+                except Exception:
+                    result = None  # a malformed claim on the card must not crash the guard
+                if result is not None and not result.passed:
+                    violations.append(
+                        str(name) + " -- chartership basis does not evidence "
+                        "Engineers Ireland chartership; confirm"
+                    )
 
     return violations
 

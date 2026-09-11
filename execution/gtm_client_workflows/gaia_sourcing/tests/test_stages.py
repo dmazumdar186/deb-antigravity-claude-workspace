@@ -59,7 +59,8 @@ def _person(pid: str, name: str, role_id: str, source: str, **kw) -> dict:
         "person_id": pid,
         "full_name": name,
         "current_title": kw.get("title"),
-        "current_employer": kw.get("employer"),
+        # delivery requires a named employer (2026-09-11); fixtures default to one
+        "current_employer": kw.get("employer", "Fixture Consulting Engineers"),
         "location": kw.get("location"),
         "doc_ids": kw.get("doc_ids", ["d1"]),
         "linkedin_url": kw.get("linkedin_url"),
@@ -563,6 +564,30 @@ def test_final_tier_falls_back_to_the_gate_when_l8_never_ran(graded_pool):
     gate = graded_pool.load("gate")
     assert graded_pool._final_tier("b1", gate, {}) == "B"
     assert graded_pool._final_tier("b1", gate, {"b1": {"tier": None}}) == "B"
+
+
+def test_final_tier_caps_a_review_incomplete_person_at_c(graded_pool):
+    """2026-09-11 adversarial-audit fix (item 6): a card that only ever had
+    one reviewer must never ship at the first pass's tier, even "A"."""
+    gate = graded_pool.load("gate")
+    adv = {"b1": {
+        "tier": "A", "adversarial_findings": [
+            "REVIEW INCOMPLETE -- the second-opinion pass errored, so this "
+            "card has had one pass only. Treat its confidence accordingly."
+        ],
+    }}
+    assert graded_pool._final_tier("b1", gate, adv) == "C"
+
+
+def test_is_review_incomplete_helper(graded_pool):
+    assert graded_pool._is_review_incomplete(
+        {"adversarial_findings": ["REVIEW INCOMPLETE -- errored"]}
+    ) is True
+    assert graded_pool._is_review_incomplete(
+        {"adversarial_findings": ["Recently promoted, confirm tenure."]}
+    ) is False
+    assert graded_pool._is_review_incomplete(None) is False
+    assert graded_pool._is_review_incomplete({}) is False
 
 
 # ---------------------------------------------------------------------------
@@ -1180,6 +1205,14 @@ def test_harvest_discovery_respects_the_total_query_budget(R, monkeypatch):
 
 
 def test_default_location_for_firm_single_vs_several_vs_non_ie():
+    """2026-09-11 adversarial-audit fix (item 3c): a firm's default location
+    now counts only when its offices are ALL confirmed in the Republic --
+    domicile "IE" AND office_cities actually named AND none of them NI/GB.
+    A firm whose office count is not confidently known (office_cities == [])
+    no longer gets a bare "Ireland" default -- it must evidence Ireland per
+    person, same as any UK/INTL firm. A multi_country IE firm (O'Connor
+    Sutton Cronin's shape) and a firm with a known NI/GB office city are also
+    void."""
     from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
     from gtm_client_workflows.gaia_sourcing import run as mod
 
@@ -1187,11 +1220,40 @@ def test_default_location_for_firm_single_vs_several_vs_non_ie():
     several = cb.Firm("f2", "F2", "f2.ie", domicile="IE", office_cities=["Dublin", "Cork"])
     unknown = cb.Firm("f3", "F3", "f3.ie", domicile="IE", office_cities=[])
     non_ie = cb.Firm("f4", "F4", "f4.com", domicile="UK", office_cities=[])
+    multi = cb.Firm("f5", "F5", "f5.ie", domicile="IE", office_cities=["Dublin"],
+                     multi_country=True)
+    ni_office = cb.Firm("f6", "F6", "f6.ie", domicile="IE",
+                         office_cities=["Dublin", "Belfast"])
 
     assert mod._default_location_for_firm(single) == "Cork, Ireland"
     assert mod._default_location_for_firm(several) == "Ireland"
-    assert mod._default_location_for_firm(unknown) == "Ireland"
+    assert mod._default_location_for_firm(unknown) is None
     assert mod._default_location_for_firm(non_ie) is None
+    assert mod._default_location_for_firm(multi) is None
+    assert mod._default_location_for_firm(ni_office) is None
+
+
+def test_oconnor_sutton_cronin_is_multi_country_and_void():
+    """The exhibit item 3c names: OCSC is domiciled IE but also has Belfast/
+    Birmingham/London offices, so its staff-directory default must be void."""
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    firm = next(f for f in cb.FIRMS if f.slug == "oconnor_sutton")
+    assert firm.multi_country is True
+    assert mod._default_location_for_firm(firm) is None
+
+
+def test_page_lists_ni_or_uk_office_voids_the_default_at_locate_time():
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    assert mod._page_lists_ni_or_uk_office(
+        "Our offices: Dublin Office, Cork Office and Belfast Office."
+    ) is True
+    assert mod._page_lists_ni_or_uk_office(
+        "Our offices: Dublin Office and Cork Office."
+    ) is False
+    assert mod._page_lists_ni_or_uk_office("") is False
 
 
 def test_stage_locate_backfills_location_and_adds_a_quoted_claim(R, monkeypatch):
@@ -1286,3 +1348,36 @@ def test_stage_locate_gives_no_location_for_an_intl_firm(R, monkeypatch):
 
     locate_out = json.loads((R.RUN_DIR / "locate.json").read_text(encoding="utf-8"))
     assert locate_out["relocated"] == 0
+
+
+def test_identity_hygiene_drops_only_uncorroborated_deepen_claims(R, monkeypatch):
+    """A directory claim stays; a same-name car-sales page claim is dropped
+    (2026-09-11 audit: a Mayo engineer merged with a Missouri salesman)."""
+    directory = _doc("d_dir", "Shane Heffernan BE CEng MIEI, Structural Design Engineer at Lally Chartered Engineers, Mayo.")
+    directory.source_type = "company_bio"
+    porsche = _doc("d_sales", "Shane Heffernan, Porsche Sales Professional, 14 years of automotive experience in St Louis.")
+    porsche.source_type = "other"
+    lally = _doc("d_lally", "Shane Heffernan - Lead Structural Design Engineer, Lally Chartered Engineers.")
+    lally.source_type = "other"
+    R.save_docs([directory, porsche, lally])
+    persons = {"shane": _person("shane", "Shane Heffernan", "role1_senior_structural_engineer", "company_directory",
+                                employer="Lally Chartered Engineers", doc_ids=["d_dir", "d_sales", "d_lally"])}
+    def claim(cid, doc, quote, dim="years_experience"):
+        return {"claim_id": cid, "subject_person_id": "shane", "dimension": dim, "assertion": quote[:40],
+                "evidence_quote": quote, "source_doc_id": doc, "source_url": "https://example.ie/" + doc,
+                "confidence": "direct"}
+    claims = [
+        claim("c1", "d_dir", "Shane Heffernan BE CEng MIEI, Structural Design Engineer", "chartership"),
+        claim("c2", "d_sales", "14 years of automotive experience in St Louis"),
+        claim("c3", "d_lally", "Lead Structural Design Engineer, Lally Chartered Engineers", "employer"),
+    ]
+    R.save("extract", {"persons": persons, "claims": claims, "extracted_doc_ids": ["d_dir", "d_sales", "d_lally"]})
+    monkeypatch.setattr(R, "stage_validate", lambda force=False: None)
+    monkeypatch.setattr(R, "stage_gate", lambda force=False: None)
+    R.stage_identity_hygiene(force=True)
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    ids = {c["claim_id"] for c in out["claims"]}
+    assert ids == {"c1", "c3"}
+    assert out["persons"]["shane"]["doc_ids"] == ["d_dir", "d_lally"]
+    hyg = json.loads((R.RUN_DIR / "identity_hygiene.json").read_text(encoding="utf-8"))
+    assert hyg["dropped"] == 1 and hyg["per_person"] == {"shane": 1}

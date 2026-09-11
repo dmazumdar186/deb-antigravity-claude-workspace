@@ -341,17 +341,24 @@ def test_composition_guard_flags_nokia_card():
 # ---------------------------------------------------------------------------
 
 
-def test_cli_accept_senior_titles_flips_the_floor_param_on_both_roles():
-    from gtm_client_workflows.gaia_sourcing import run as R
+def _override_args(**kw):
+    base = dict(
+        max_grade=None, max_years=None, min_years=None, counties=None,
+        strict_location=False, lenient_location=False, accept_senior_titles=None,
+        accept_senior_titles_role2=None,
+    )
+    base.update(kw)
     import argparse
+    return argparse.Namespace(**base)
 
-    def _override_args(**kw):
-        base = dict(
-            max_grade=None, max_years=None, min_years=None, counties=None,
-            strict_location=False, lenient_location=False, accept_senior_titles=None,
-        )
-        base.update(kw)
-        return argparse.Namespace(**base)
+
+def test_cli_accept_senior_titles_flips_role1_only_by_default():
+    """2026-09-11 adversarial-audit fix (item 5): --accept-senior-titles used
+    to apply to BOTH roles unconditionally, silently giving Role 2 (which
+    never opts in on its own -- witness statements state years explicitly)
+    the same title-floor override as Role 1. It now only ever touches a role
+    that already carries a non-empty accept_titles_for_floor of its own."""
+    from gtm_client_workflows.gaia_sourcing import run as R
 
     snapshot = {
         spec.role_id: [dict(g.params) for g in spec.hard_gates]
@@ -362,10 +369,36 @@ def test_cli_accept_senior_titles_flips_the_floor_param_on_both_roles():
         r1 = next(g for g in ROLE1.hard_gates if g.gate_id == "seniority")
         r2 = next(g for g in ROLE2.hard_gates if g.gate_id == "seniority")
         assert r1.params["accept_titles_for_floor"]
-        assert r2.params["accept_titles_for_floor"]
+        assert r2.params["accept_titles_for_floor"] == []
 
         R._apply_brief_overrides(_override_args(accept_senior_titles=False))
         assert r1.params["accept_titles_for_floor"] == []
+        assert r2.params["accept_titles_for_floor"] == []
+    finally:
+        for spec in (ROLE1, ROLE2):
+            for gate, params in zip(spec.hard_gates, snapshot[spec.role_id]):
+                gate.params.clear()
+                gate.params.update(params)
+
+
+def test_cli_accept_senior_titles_role2_is_a_separate_explicit_opt_in():
+    from gtm_client_workflows.gaia_sourcing import run as R
+
+    snapshot = {
+        spec.role_id: [dict(g.params) for g in spec.hard_gates]
+        for spec in (ROLE1, ROLE2)
+    }
+    try:
+        r1_before = dict(next(g for g in ROLE1.hard_gates
+                              if g.gate_id == "seniority").params)
+        R._apply_brief_overrides(_override_args(accept_senior_titles_role2=True))
+        r1 = next(g for g in ROLE1.hard_gates if g.gate_id == "seniority")
+        r2 = next(g for g in ROLE2.hard_gates if g.gate_id == "seniority")
+        # Role 1 untouched by the Role-2-only flag.
+        assert r1.params["accept_titles_for_floor"] == r1_before["accept_titles_for_floor"]
+        assert r2.params["accept_titles_for_floor"]
+
+        R._apply_brief_overrides(_override_args(accept_senior_titles_role2=False))
         assert r2.params["accept_titles_for_floor"] == []
     finally:
         for spec in (ROLE1, ROLE2):
