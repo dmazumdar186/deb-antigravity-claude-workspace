@@ -377,6 +377,75 @@ def _cluster_person_id(members: list[RawPersonRecord]) -> str:
     return name_part + "-" + employer_part + "-" + digest
 
 
+# ---------------------------------------------------------------------------
+# Identity corroboration for a fetched page / search snippet
+# (2026-09-11 adversarial-audit fix, item 4).
+#
+# A near-miss deepening search or a discovery snippet finds a URL by matching
+# on the person's NAME ALONE -- and a common name matches a page about a
+# wholly different person in a wholly different profession. The exhibit: a
+# Porsche sales listing for a "Shane Heffernan" got attached to a structural
+# engineer of the same name. A page/snippet may be attached to a person only
+# when the text NEAR the name corroborates their professional identity (their
+# employer, or a discipline word) AND carries no token naming a contradicting
+# profession.
+# ---------------------------------------------------------------------------
+
+_DISCIPLINE_TOKEN_RE = re.compile(
+    r"structural|civil|engineer|engineering|consult", re.I
+)
+
+_CONTRADICTING_PROFESSION_RE = re.compile(
+    r"\bsales\b|automotive|journalism|journalist|\bnurse\b|\bteacher\b|"
+    r"solicitor|barrister|\bchef\b|pharmac|physio|\bdentist\b|estate agent|"
+    r"\brecruit",
+    re.I,
+)
+
+_EMPLOYER_STOPWORDS = {
+    "the", "and", "of", "ltd", "limited", "group", "consulting",
+    "consultants", "engineers", "engineering", "co", "llp", "plc",
+    "associates", "partners",
+}
+
+
+def _significant_employer_words(employer: Optional[str]) -> list[str]:
+    """Employer words worth matching on -- generic firm-shape words like
+    "Consulting" or "Group" corroborate nothing on their own."""
+    if not employer:
+        return []
+    words = re.findall(r"[A-Za-z]{3,}", employer)
+    return [w for w in words if w.lower() not in _EMPLOYER_STOPWORDS]
+
+
+def has_identity_corroboration(
+    window_text: Optional[str], employer: Optional[str] = None
+) -> bool:
+    """True when `window_text` (the text around a name occurrence) supports
+    attaching this page/snippet to the named person, per the rule above.
+
+    Corroboration: a discipline token anywhere in the window, OR at least two
+    significant words of the person's current employer. Any contradicting
+    profession token in the window is disqualifying regardless of
+    corroboration -- a page can name both "structural" and "sales" (an
+    engineering firm's careers page, say), and the contradiction still wins,
+    because the failure mode this guards is exactly a plausible-looking but
+    wrong page.
+    """
+    text = window_text or ""
+    if not text.strip():
+        return False
+    if _CONTRADICTING_PROFESSION_RE.search(text):
+        return False
+    if _DISCIPLINE_TOKEN_RE.search(text):
+        return True
+    words = _significant_employer_words(employer)
+    hits = sum(
+        1 for w in words if re.search(r"\b" + re.escape(w) + r"\b", text, re.I)
+    )
+    return hits >= 2
+
+
 def cluster_to_person(cluster: PersonCluster) -> Person:
     """The Person the pipeline downstream of L4 actually consumes."""
     members = cluster.members

@@ -90,6 +90,7 @@ from .eval import scorecard as eval_scorecard
 from .eval.labels import build_worksheet_row, cohen_kappa, load_labels
 from .integrations.recruit_crm import RecruitCRMClient, sync_delivery
 from .layers import adversarial, contact, gates, linkcheck, messages, movability, optout
+from .layers.identity import has_identity_corroboration
 from .layers.extract import (
     _claim_id as _extract_claim_id,
     _find_location_quote,
@@ -293,24 +294,72 @@ _IRISH_DOMICILED = {
 }
 
 
+# 2026-09-11 adversarial-audit fix: office-city names that mean this firm is
+# NOT confined to the Republic. If Firm.office_cities names one of these, the
+# "several offices" default below must never fire for that firm.
+_NON_IE_OFFICE_CITY_RE = re.compile(
+    r"\b(belfast|derry|londonderry|antrim|armagh|newry|lisburn|"
+    r"london|birmingham|manchester|glasgow|edinburgh|leeds|bristol)\b",
+    re.I,
+)
+
+
 def _default_location_for_firm(firm) -> Optional[str]:
     """The location a firm's directory implies for a person with no stated office.
 
-    IE-domiciled firms with exactly one known office city -> "<City>, Ireland"
-    (the strongest default: it also lets the located_ie gate's `counties`
-    param match a specific county straight away). An IE firm with several
-    known cities, or an IE firm whose office count is not confidently known
-    (Firm.office_cities == []), gets the generic "Ireland" -- still enough to
-    pass located_ie's Republic-wide check. UK/INTL firms get no default at
-    all: their staff directories list worldwide staff, so a person there must
-    evidence Ireland individually or fail located_ie, exactly as before this
-    widening.
+    2026-09-11 adversarial-audit fix: a firm's default location now counts
+    only when its offices are ALL in the Republic -- domicile "IE", AND
+    office_cities actually named (not empty/unknown), AND none of them is a
+    Northern Ireland or Great Britain city. O'Connor Sutton Cronin is the
+    exhibit: domicile "IE" but ALSO Belfast/Birmingham/London, which is why
+    Firm.multi_country exists and is checked first. A firm with `office_cities
+    == []` (office count not confidently known) no longer gets a bare
+    "Ireland" default on the strength of domicile alone -- the widening this
+    used to provide traded away exactly the residence-evidence hygiene this
+    fix restores; such a firm's people must evidence Ireland individually or
+    fail located_ie, same as any UK/INTL firm always has.
+
+    IE-domiciled firms with exactly one known, Irish office city ->
+    "<City>, Ireland" (the strongest default: it also lets the located_ie
+    gate's `counties` param match a specific county straight away). An IE
+    firm with several known, all-Irish cities gets the generic "Ireland" --
+    still enough to pass located_ie's Republic-wide check. UK/INTL firms, and
+    any multi-country IE firm, get no default at all.
     """
     if firm.domicile != "IE":
+        return None
+    if firm.multi_country:
+        return None
+    if not firm.office_cities:
+        return None
+    if any(_NON_IE_OFFICE_CITY_RE.search(c) for c in firm.office_cities):
         return None
     if len(firm.office_cities) == 1:
         return firm.office_cities[0] + ", Ireland"
     return "Ireland"
+
+
+# 2026-09-11 adversarial-audit fix: a firm's people-directory page sometimes
+# lists NI/GB offices that Firm.office_cities does not (yet) know about --
+# scanned at stage_locate time, from the already-cached page text, so a
+# default location that _default_location_for_firm would otherwise grant
+# never gets handed out where the page itself contradicts it.
+_PAGE_NI_UK_OFFICE_RE = re.compile(
+    r"\b(belfast|derry|londonderry|antrim|armagh|newry|lisburn|"
+    r"london|birmingham|manchester|glasgow|edinburgh|leeds|bristol)\b"
+    r"[^.\n]{0,20}\boffice\b"
+    r"|\boffice\b[^.\n]{0,20}\b(belfast|derry|londonderry|antrim|armagh|newry|"
+    r"lisburn|london|birmingham|manchester|glasgow|edinburgh|leeds|bristol)\b",
+    re.I,
+)
+
+
+def _page_lists_ni_or_uk_office(text: str) -> bool:
+    """True when `text` (a firm's cached directory page) names an office in
+    Northern Ireland or Great Britain near the word "office" -- see
+    _PAGE_NI_UK_OFFICE_RE. Used by stage_locate to void a firm default that
+    Firm.office_cities alone did not catch."""
+    return bool(text) and bool(_PAGE_NI_UK_OFFICE_RE.search(text))
 
 
 def stage_harvest_r1(force: bool = False) -> None:
@@ -632,6 +681,18 @@ def stage_harvest_discovery(force: bool = False) -> None:
             # same order -- so zipping them by position is exact, not a
             # best-effort join.
             for doc, pr in zip(result.documents, result.provider_records):
+                # 2026-09-11 adversarial-audit fix (item 4): a search_snippet
+                # document is kept only when its title carries a discipline
+                # token -- the same identity-corroboration rule deepen_near_
+                # misses applies to a fetched page, applied here to the
+                # title text this stage actually has (see
+                # layers.identity.has_identity_corroboration).
+                if doc.source_type == "search_snippet" and not has_identity_corroboration(
+                    doc.title or pr.current_title or "", pr.current_employer
+                ):
+                    log("  identity: " + role_id + " skipped " + _url_tail(str(doc.url))
+                        + ": no corroboration")
+                    continue
                 docs.append(doc)
                 records.append({
                     "role_id": role_id,
@@ -910,10 +971,16 @@ def stage_locate(force: bool = False) -> None:
         if not default_location:
             continue
 
+        doc = corpus.get(rec["doc_id"])
+        # 2026-09-11 adversarial-audit fix: the firm's own cached page can
+        # name an NI/UK office that Firm.office_cities does not yet know
+        # about -- void the default rather than hand out a wrong "Ireland".
+        if doc is not None and _page_lists_ni_or_uk_office(doc.content_text):
+            continue
+
         prec["location"] = default_location
         relocated += 1
 
-        doc = corpus.get(rec["doc_id"])
         if doc is None:
             continue
         city = None
@@ -1463,6 +1530,11 @@ _CHARTER_TOKEN_RE = gates._CHARTERED_RE
 _LINKEDIN_HOST_RE = re.compile(r"linkedin\.com", re.I)
 
 
+def _url_tail(url: str) -> str:
+    """The last path segment of a URL, for a compact log line."""
+    return (url or "").rstrip("/").rsplit("/", 1)[-1][:80] or url
+
+
 def _near_miss_queries(full_name: str, employer: Optional[str]) -> list[str]:
     """Up to two employer-scoped queries plus one years-of-experience query.
 
@@ -1593,7 +1665,17 @@ def stage_deepen_near_misses(force: bool = False) -> None:
                 # snippet-as-evidence and its fetched page as a second,
                 # richer document.
                 if _CHARTER_TOKEN_RE.search(title + " " + snippet):
-                    person_docs.append(_snippet_doc(title, snippet, link))
+                    # 2026-09-11 adversarial-audit fix (item 4): a snippet
+                    # carrying a charter token still needs corroboration --
+                    # the name alone is not enough to attach it to this
+                    # person. See layers.identity.has_identity_corroboration.
+                    if has_identity_corroboration(
+                        title + " " + snippet, person.current_employer
+                    ):
+                        person_docs.append(_snippet_doc(title, snippet, link))
+                    else:
+                        log("  identity: " + pid + " skipped " + _url_tail(link)
+                            + ": no corroboration")
                 if _LINKEDIN_HOST_RE.search(link):
                     continue
                 try:
@@ -1603,7 +1685,19 @@ def stage_deepen_near_misses(force: bool = False) -> None:
                     continue
                 if page is None or len(page.content_text) < 300:
                     continue
-                if fragment_with_both_names(page.content_text, forename, surname) is None:
+                fragment = fragment_with_both_names(page.content_text, forename, surname)
+                if fragment is None:
+                    continue
+                # 2026-09-11 adversarial-audit fix (item 4): a fetched page
+                # may only be attached to this person when the text around
+                # their name corroborates their professional identity (their
+                # employer, or a discipline word) and carries no contradicting
+                # profession token -- a Porsche sales page for "Shane
+                # Heffernan" must never be attached to a structural engineer
+                # of the same name.
+                if not has_identity_corroboration(fragment, person.current_employer):
+                    log("  identity: " + pid + " skipped " + _url_tail(link)
+                        + ": no corroboration")
                     continue
                 person_docs.append(page)
 
@@ -1744,8 +1838,25 @@ def stage_adversarial(force: bool = False) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _is_review_incomplete(rec: Optional[dict]) -> bool:
+    """True when the adversarial second pass errored or returned nothing
+    parseable -- layers.adversarial.critique's "REVIEW INCOMPLETE" findings."""
+    if not rec:
+        return False
+    return any(
+        "REVIEW INCOMPLETE" in str(f)
+        for f in (rec.get("adversarial_findings") or [])
+    )
+
+
 def _final_tier(pid: str, gate_out: dict, adv: dict) -> str:
     rec = adv.get(pid)
+    # 2026-09-11 adversarial-audit fix (item 6): a card that only ever had
+    # ONE reviewer (the second pass errored or returned nothing parseable)
+    # must never ship at the confidence of a card that had two. Capped at
+    # tier C regardless of what the first pass's own tier was.
+    if _is_review_incomplete(rec):
+        return "C"
     if rec and rec.get("tier"):
         return str(rec["tier"])
     return gate_out[pid]["tier"]
@@ -2477,10 +2588,11 @@ def _apply_brief_overrides(args: argparse.Namespace) -> None:
     already-cached extract.json/validate.json, offline.
     """
     accept_senior_titles = getattr(args, "accept_senior_titles", None)
+    accept_senior_titles_role2 = getattr(args, "accept_senior_titles_role2", None)
     touched = any([
         args.max_grade, args.max_years is not None, args.min_years is not None,
         args.counties is not None, args.strict_location, args.lenient_location,
-        accept_senior_titles is not None,
+        accept_senior_titles is not None, accept_senior_titles_role2 is not None,
     ])
     if not touched:
         return
@@ -2498,11 +2610,26 @@ def _apply_brief_overrides(args: argparse.Namespace) -> None:
             elif gate.check == "seniority_years":
                 if args.min_years is not None:
                     gate.params["min_years"] = args.min_years
-                if accept_senior_titles is True:
+                # 2026-09-11 adversarial-audit fix (item 5): the blanket
+                # --accept-senior-titles flag used to apply to BOTH roles
+                # unconditionally, which silently gave Role 2 (deliberately
+                # strict -- accept_titles_for_floor=[] in roles.py, because
+                # witness statements state years explicitly) the same
+                # title-floor override as Role 1. It now applies only to a
+                # role that ALREADY carries a non-empty accept_titles_for_
+                # floor of its own -- Role 1 -- and Role 2 needs the
+                # explicit, separate --accept-senior-titles-role2 opt-in.
+                if accept_senior_titles is True and gate.params.get("accept_titles_for_floor"):
                     gate.params["accept_titles_for_floor"] = list(
                         ACCEPT_TITLES_FOR_FLOOR_DEFAULT
                     )
                 elif accept_senior_titles is False:
+                    gate.params["accept_titles_for_floor"] = []
+                if spec is ROLE2 and accept_senior_titles_role2 is True:
+                    gate.params["accept_titles_for_floor"] = list(
+                        ACCEPT_TITLES_FOR_FLOOR_DEFAULT
+                    )
+                elif spec is ROLE2 and accept_senior_titles_role2 is False:
                     gate.params["accept_titles_for_floor"] = []
             elif gate.check == "located_ie":
                 if counties is not None:
@@ -2588,13 +2715,27 @@ def main() -> int:
     ap.add_argument(
         "--accept-senior-titles", action=argparse.BooleanOptionalAction, default=None,
         help="override the seniority FLOOR gate's accept_titles_for_floor "
-             "for BOTH roles: --accept-senior-titles sets it to "
+             "for any role that ALREADY carries a non-empty list of its own "
+             "(Role 1) -- --accept-senior-titles sets it to "
              + repr(ACCEPT_TITLES_FOR_FLOOR_DEFAULT) + " (pass with a note "
              "when no years figure is stated but the title itself names the "
              "target grade, e.g. 'Senior Structural Engineer'); "
-             "--no-accept-senior-titles clears it back to [] (strict; the "
-             "default for a role that never opts in, e.g. Role 2). Omit to "
-             "leave each role's own roles.py default untouched.",
+             "--no-accept-senior-titles clears it back to [] for every role "
+             "(strict). 2026-09-11: no longer applies to Role 2, which never "
+             "opts in on its own -- use --accept-senior-titles-role2 for an "
+             "explicit, separate opt-in there. Omit to leave each role's own "
+             "roles.py default untouched.",
+    )
+    ap.add_argument(
+        "--accept-senior-titles-role2", action=argparse.BooleanOptionalAction, default=None,
+        help="explicit, Role-2-only opt-in/out for the seniority FLOOR "
+             "gate's title-based acceptance (2026-09-11: split out from "
+             "--accept-senior-titles, which never applies to Role 2 on its "
+             "own -- see that flag's help). --accept-senior-titles-role2 "
+             "sets Role 2's accept_titles_for_floor to "
+             + repr(ACCEPT_TITLES_FOR_FLOOR_DEFAULT) + "; "
+             "--no-accept-senior-titles-role2 clears it back to [] (the "
+             "default). Omit to leave Role 2 untouched by this flag.",
     )
     loc_group = ap.add_mutually_exclusive_group()
     loc_group.add_argument(

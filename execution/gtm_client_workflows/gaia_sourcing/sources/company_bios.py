@@ -72,6 +72,15 @@ class Firm:
     # office count is not confidently known (treated as "several" -- see
     # run.py's _default_location_for_firm).
     office_cities: list[str] = field(default_factory=list)
+    # 2026-09-11 adversarial-audit fix: True when this firm ALSO has offices
+    # outside the Republic (Northern Ireland or Great Britain) even though it
+    # is domiciled "IE" -- O'Connor Sutton Cronin (Dublin/Cork/Galway AND
+    # Belfast/Birmingham/London) is the exhibit. A multi-country firm's
+    # staff-directory default location is VOID (None): a person there with no
+    # stated office could just as easily be in Belfast as in Dublin, so
+    # run.py's _default_location_for_firm must never hand them a bare
+    # "Ireland" default -- each person must evidence Ireland individually.
+    multi_country: bool = False
 
 
 # Irish structural / civil consultancies with an Ireland presence.
@@ -86,7 +95,12 @@ FIRMS: list[Firm] = [
     Firm("rod", "Roughan & O'Donovan", "rod.ie", ["/people", "/about/our-people"], domicile='IE', office_cities=[]),
     Firm("punch", "PUNCH Consulting Engineers", "punchconsulting.com", ["/our-team", "/people"], domicile='IE', office_cities=[]),
     Firm("dbfl", "DBFL Consulting Engineers", "dbfl.ie", ["/about-us/our-team/", "/our-team"], domicile='IE', office_cities=['Dublin']),
-    Firm("oconnor_sutton", "O'Connor Sutton Cronin", "ocsc.ie", ["/people/"], domicile='IE', office_cities=[]),
+    # 2026-09-11 adversarial-audit fix: OCSC also has Belfast, Birmingham and
+    # London offices -- domicile stays "IE" (Dublin-headquartered, ACEI
+    # member) but multi_country=True voids its default location, since a
+    # staff-directory entry with no stated office is not necessarily Irish.
+    Firm("oconnor_sutton", "O'Connor Sutton Cronin", "ocsc.ie", ["/people/"], domicile='IE',
+         office_cities=['Dublin', 'Cork', 'Galway'], multi_country=True),
     Firm("mwp", "Malachy Walsh & Partners", "mwp.ie", ["/our-team", "/people"], domicile='IE', office_cities=[]),
     Firm("nodwyer", "Nicholas O'Dwyer", "nodwyer.com", ["/our-team", "/people"], domicile='IE', office_cities=[]),
     # Corrected: the firm trades as bmce.ie in print but publishes at
@@ -169,7 +183,11 @@ FIRMS: list[Firm] = [
          ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("dfk", "Doherty Finegan Kelly", "dfk.ie", ["/about-us/our-team"], domicile='IE', office_cities=[]),
     Firm("mpa", "Martin Peters Associates", "mpa.ie", ["/team"], domicile='IE', office_cities=[]),
-    Firm("mma", "MMA Consulting Engineers", "mhl.ie", ["/people"], domicile='IE', office_cities=[]),
+    # 2026-09-11 adversarial-audit fix (item 7): the firm at mhl.ie trades as
+    # "MHL & Associates", not "MMA Consulting Engineers" -- the name/domain
+    # pairing was wrong (a different firm's name attached to this domain).
+    # Slug kept stable ("mma") so nothing downstream keyed on the slug breaks.
+    Firm("mma", "MHL & Associates", "mhl.ie", ["/people"], domicile='IE', office_cities=[]),
     Firm("wdg", "Walsh Design Group", "wdg.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("kmp", "Kavanagh Mansfield & Partners", "kmp.ie",
          ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),

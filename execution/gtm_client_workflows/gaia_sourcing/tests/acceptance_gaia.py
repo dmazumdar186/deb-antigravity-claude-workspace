@@ -153,6 +153,31 @@ def main() -> int:
           "every row offers the details toggle",
           str(html.count('class="det-btn"')) + " for " + str(len(cards)) + " rows")
 
+    # 2026-09-11 adversarial-audit fix (item 6): a card whose second-opinion
+    # pass errored or returned nothing parseable must say so on the card
+    # itself, not just quietly be capped at tier C. A card's detail row
+    # carries id="d-<role_id>-<person_id>", so it can be matched to the
+    # adversarial record even though `cards` is in delivery order, not
+    # keyed by person_id.
+    adv_path = RUN / "adversarial.json"
+    if adv_path.exists():
+        adv = json.loads(adv_path.read_text(encoding="utf-8"))
+        incomplete_pids = [
+            pid for pid, rec in adv.items()
+            if any("REVIEW INCOMPLETE" in str(f)
+                   for f in (rec.get("adversarial_findings") or []))
+        ]
+        shipped_incomplete = [p for p in incomplete_pids if p in shipped]
+        missing = []
+        for pid in shipped_incomplete:
+            m = re.search(r'id="d-[^"]*-' + re.escape(pid) + r'"[^>]*>(.*?)</tr>',
+                           html, re.S)
+            if m is None or "Second-opinion review incomplete for this card" not in m.group(1):
+                missing.append(pid)
+        check(not missing,
+              "every shipped REVIEW-INCOMPLETE card shows the incomplete-review line",
+              str(missing))
+
     check("a.cta-em" in html and "clipboard" in html,
           "the email clipboard fallback shipped with the page",
           "no handler found -- a mailto-only button is a silent no-op "

@@ -243,3 +243,42 @@ def test_transitive_merge_is_split_on_a_register_number_conflict():
     total_members = sum(len(c.members) for c in clusters)
     assert total_members == 3
     assert any(len(c.members) == 2 for c in clusters)
+
+
+# ---------------------------------------------------------------------------
+# Identity corroboration for a fetched page / search snippet
+# (2026-09-11 adversarial-audit fix, item 4)
+# ---------------------------------------------------------------------------
+
+from gtm_client_workflows.gaia_sourcing.layers.identity import (  # noqa: E402
+    has_identity_corroboration,
+)
+
+
+def test_a_porsche_sales_page_is_rejected_for_a_structural_engineer():
+    """The audit's exhibit: a car-sales listing for a common name must not be
+    attached to a structural engineer of the same name."""
+    window = "Shane Heffernan, Sales Executive at Porsche Centre Dublin"
+    assert has_identity_corroboration(window, employer="Punch Consulting Engineers") is False
+
+
+def test_a_chartered_engineers_bio_page_is_accepted():
+    window = "Shane Heffernan is a Chartered Engineer with Lally Consulting Engineers"
+    assert has_identity_corroboration(window, employer="Lally Chartered Engineers") is True
+
+
+def test_two_significant_employer_words_corroborate_without_a_discipline_token():
+    window = "Shane Heffernan joined Punch Bridge Works in 2019 as project lead"
+    assert has_identity_corroboration(window, employer="Punch Bridge Works") is True
+
+
+def test_a_contradicting_profession_token_disqualifies_even_with_corroboration():
+    """The failure mode this rule guards against: a plausible-looking page
+    that also names a contradicting profession must still be rejected."""
+    window = "Shane Heffernan, structural engineer turned estate agent"
+    assert has_identity_corroboration(window, employer="Punch Consulting Engineers") is False
+
+
+def test_empty_window_never_corroborates():
+    assert has_identity_corroboration("", employer="Punch Consulting Engineers") is False
+    assert has_identity_corroboration(None) is False

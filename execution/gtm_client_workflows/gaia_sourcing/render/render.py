@@ -938,6 +938,18 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     #    is one click away from copying it.
     facts: list[str] = []
 
+    # 2026-09-11 adversarial-audit fix (item 6): a card whose second-opinion
+    # pass errored or returned nothing parseable must say so in plain sight,
+    # not just be quietly capped at tier C. Reserved first, same as the
+    # honesty lines below, so it cannot fall off the end of the word budget.
+    if any(
+        "REVIEW INCOMPLETE" in str(f)
+        for f in (ev.get("adversarial_findings") or [])
+    ):
+        facts.append(
+            '<p class="gap">Second-opinion review incomplete for this card.</p>'
+        )
+
     # Lower-confidence evidence had a labelled section on the card and no home
     # at all in the table. It is weaker than a verbatim quote, which is a
     # reason to label it, not a reason to delete it.
@@ -1206,6 +1218,15 @@ def build(allow_placeholder_notice: bool = False) -> None:
         m = pool[spec.role_id]
         def final_tier(pid: str) -> str:
             rec = adv.get(pid) or {}
+            # 2026-09-11 adversarial-audit fix (item 6): a card that only
+            # ever had one reviewer (the second pass errored or returned
+            # nothing parseable) must never ship at the first pass's tier --
+            # capped at C regardless.
+            if any(
+                "REVIEW INCOMPLETE" in str(f)
+                for f in (rec.get("adversarial_findings") or [])
+            ):
+                return "C"
             return rec.get("tier") or gate_out[pid]["tier"]
 
         # The pipeline's own list, not a second opinion about it. Recomputing
@@ -1296,6 +1317,10 @@ def build(allow_placeholder_notice: bool = False) -> None:
             }
             ev = dict(ev)
             ev.setdefault("gates", g["gates"])
+            # 2026-09-11 adversarial-audit fix (item 6): the tier actually
+            # printed/exported must match the capped, review-incomplete-aware
+            # value, not whatever the raw adversarial record happened to say.
+            ev["tier"] = final_tier(pid)
             pclaims = by_person.get(pid, [])
             contact = contacts.get(pid, {"email_status": "none"})
             body.append(
