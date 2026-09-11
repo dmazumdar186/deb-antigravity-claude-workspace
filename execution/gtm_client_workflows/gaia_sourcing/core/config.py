@@ -170,6 +170,22 @@ class RunConfig:
     # False to skip straight to the raw-HTTP fallback (e.g. a sandbox with no
     # Chromium binary at all).
     render_local: bool = True
+    # 2026-09-11 -- stage_harvest_discovery (run.py), RADAR_CONTRACTS.md
+    # section A. Free/cheap people-discovery via sources.registry providers,
+    # ahead of the paid r1/r2 harvests. Per-query result cap passed straight
+    # through as SourceQuery.limit.
+    discovery_limit: int = 60
+    # Provider names run for stage_harvest_discovery, looked up via
+    # sources.registry.get_provider (imported first if not yet registered --
+    # see run.py's _LICENSED_PROVIDER_MODULES). A provider that raises
+    # ProviderNotConfigured (missing API key) is skipped with a log line, not
+    # a stage failure -- same contract as run_coverage_test.
+    discovery_providers: list[str] = field(default_factory=lambda: ["serper_people"])
+    # Total query budget across the whole stage_harvest_discovery run, summed
+    # across every role x provider combination. serper_people alone issues 3
+    # queries per (term, location) pair, so this is the knob that actually
+    # bounds spend/rate-limit exposure when ROLES x terms x locations grows.
+    discovery_max_queries: int = 120
 
     @property
     def run_dir(self) -> Path:

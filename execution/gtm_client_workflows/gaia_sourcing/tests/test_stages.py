@@ -931,3 +931,139 @@ def test_spend_flag_prints_both_totals_and_exits(monkeypatch, capsys, tmp_path):
     assert "this run EUR 0.00" in out
     assert "cumulative EUR 3.50" in out
     providers.reset_spend()
+
+
+# ---------------------------------------------------------------------------
+# stage_harvest_discovery -- free/cheap people-discovery via
+# sources.registry providers (RADAR_CONTRACTS.md section A)
+# ---------------------------------------------------------------------------
+
+
+def _discovery_doc(doc_id: str = "dd1") -> RawDocument:
+    return RawDocument(
+        doc_id=doc_id,
+        url="https://ie.linkedin.com/in/jane-doe",
+        source_type="search_snippet",
+        fetched_at=date(2026, 9, 11),
+        content_text="title: Jane Doe - Senior Structural Engineer - Acme "
+                      "Consulting | LinkedIn\nsnippet: Cork, Ireland\n"
+                      "url: https://ie.linkedin.com/in/jane-doe",
+        http_status=200,
+        title="Jane Doe - Senior Structural Engineer - Acme Consulting | LinkedIn",
+    )
+
+
+def test_harvest_discovery_writes_docs_and_records_from_a_registered_provider(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.core.config import CONFIG
+    from gtm_client_workflows.gaia_sourcing.core.contracts import ProviderRecord
+    from gtm_client_workflows.gaia_sourcing.sources.base import FixtureProvider
+    from gtm_client_workflows.gaia_sourcing.sources import registry
+
+    doc = _discovery_doc()
+    record = ProviderRecord(
+        provider="test_fixture_provider",
+        external_id=str(doc.url),
+        full_name="Jane Doe",
+        current_title="Senior Structural Engineer",
+        current_employer="Acme Consulting",
+        city="Cork",
+        fetched_at=date(2026, 9, 11),
+        raw_hash="deadbeef",
+    )
+    fixture = FixtureProvider(
+        name="test_fixture_provider", documents=[doc], provider_records=[record],
+    )
+    monkeypatch.setitem(registry.PROVIDERS, fixture.name, fixture)
+    monkeypatch.setattr(CONFIG, "discovery_providers", [fixture.name])
+    monkeypatch.setattr(CONFIG, "discovery_max_queries", 10_000)
+
+    R.stage_harvest_discovery(force=True)
+
+    assert R.done("harvest_discovery")
+    records = R.load("harvest_discovery")
+    # One provider x two roles (ROLE1, ROLE2) -- FixtureProvider.fetch()
+    # returns the same fixed document/record regardless of the query, so one
+    # call per role.
+    assert len(records) == 2
+    for rec in records:
+        assert rec["provider"] == fixture.name
+        assert rec["full_name"] == "Jane Doe"
+        assert rec["current_title"] == "Senior Structural Engineer"
+        assert rec["current_employer"] == "Acme Consulting"
+        assert rec["city"] == "Cork"
+        assert rec["doc_id"] == doc.doc_id
+    assert {rec["role_id"] for rec in records} == {ROLE1.role_id, ROLE2.role_id}
+
+    # docs.jsonl dedupes by doc_id even though the same document was appended
+    # once per role.
+    stored_docs = R.load_docs()
+    assert list(stored_docs.keys()) == [doc.doc_id]
+
+
+def test_harvest_discovery_skips_a_provider_that_is_not_configured(R, monkeypatch, capsys):
+    from gtm_client_workflows.gaia_sourcing.core.config import CONFIG
+    from gtm_client_workflows.gaia_sourcing.sources.licensed_common import ProviderNotConfigured
+    from gtm_client_workflows.gaia_sourcing.sources import registry
+
+    class _RaisingProvider:
+        name = "raising_test_provider"
+        text_source = "provider_field"
+        rate_limit_s = 0.0
+
+        def fetch(self, query):
+            raise ProviderNotConfigured("TEST_PROVIDER_API_KEY is not set")
+
+        def cost_eur(self, result):
+            return 0.0
+
+    provider = _RaisingProvider()
+    monkeypatch.setitem(registry.PROVIDERS, provider.name, provider)
+    monkeypatch.setattr(CONFIG, "discovery_providers", [provider.name])
+    monkeypatch.setattr(CONFIG, "discovery_max_queries", 10_000)
+
+    R.stage_harvest_discovery(force=True)
+
+    out = capsys.readouterr().out
+    assert "skipped, not configured" in out
+    assert "TEST_PROVIDER_API_KEY" in out
+    assert R.load("harvest_discovery") == []
+
+
+def test_harvest_discovery_respects_the_total_query_budget(R, monkeypatch):
+    """A role whose query-cost estimate alone exceeds the remaining budget is
+    skipped entirely; a smaller role after it that still fits still runs.
+
+    Role 1 has no counties (roles.py's LocationRule(counties=[]) --  "any
+    ROI") so it falls back to the 4-location default and, with title + 3
+    discipline terms, costs 4*4=16 query-budget units. Role 2's brief scopes
+    to ["Cork"] alone, costing 4*1=4. A budget of 10 is below Role 1's cost
+    and above Role 2's, so exactly one provider.fetch() call happens, for
+    Role 2.
+    """
+    from gtm_client_workflows.gaia_sourcing.core.config import CONFIG
+    from gtm_client_workflows.gaia_sourcing.core.contracts import SourceResult
+    from gtm_client_workflows.gaia_sourcing.sources import registry
+
+    calls = []
+
+    class _CountingProvider:
+        name = "budget_test_provider"
+        text_source = "provider_field"
+        rate_limit_s = 0.0
+
+        def fetch(self, query):
+            calls.append(query)
+            return SourceResult(provider=self.name, fetched=50, cost_eur=0.0)
+
+        def cost_eur(self, result):
+            return 0.0
+
+    provider = _CountingProvider()
+    monkeypatch.setitem(registry.PROVIDERS, provider.name, provider)
+    monkeypatch.setattr(CONFIG, "discovery_providers", [provider.name])
+    monkeypatch.setattr(CONFIG, "discovery_max_queries", 10)
+
+    R.stage_harvest_discovery(force=True)
+
+    assert len(calls) == 1
+    assert calls[0].role_id == ROLE2.role_id

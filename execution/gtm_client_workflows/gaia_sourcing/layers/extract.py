@@ -65,6 +65,34 @@ DIMENSIONS
                     Pleanala / An Coimisiun Pleanala evidence
 """
 
+# Extraction instructions for a "search_snippet" document (core/contracts.py
+# SourceType, RADAR_CONTRACTS.md section A; run.py's stage_harvest_discovery)
+# -- a title + snippet + url is a far weaker, far shorter source than a
+# rendered page or a witness statement, and the risk it invites is
+# specifically a model treating a two-line search result with the same
+# inferential confidence as a full document. Appended to SYSTEM rather than
+# replacing it, so every rule above (copy-exactly, emit-nothing-when-
+# unsupported, dimension list) still applies.
+SNIPPET_SYSTEM = SYSTEM + """
+
+THIS DOCUMENT IS A SEARCH-ENGINE RESULT (title + snippet + url), not a
+rendered page or a witness statement. It is three short lines, and it is
+weaker evidence than anything else this pipeline extracts from -- follow
+these additional rules exactly:
+
+  - The subject's name, current_title and current_employer come from the
+    TITLE line only ("title: ..."). Never read a title/employer out of the
+    snippet line.
+  - location comes from the SNIPPET line only ("snippet: ..."), never
+    inferred from the title, the url, or general knowledge of the employer.
+  - chartership: emit a chartership claim ONLY if "CEng" or "MIEI" appears
+    LITERALLY in the text. A senior-sounding title is not chartership
+    evidence.
+  - years_experience: NEVER emit a years_experience claim from a snippet.
+    Three lines give no basis to infer a year count, and guessing one here
+    is exactly the confident-invention failure this task exists to prevent.
+"""
+
 TOOL = {
     "name": "emit_claims",
     "description": "Emit the evidenced claims found about the subject.",
@@ -170,9 +198,14 @@ def extract_from_document(
         + closing
     )
 
+    # search_snippet documents get the more conservative snippet-specific
+    # instructions (name/title/employer from the title, location from the
+    # snippet, chartership only on a literal CEng/MIEI, never years) -- see
+    # SNIPPET_SYSTEM's docstring above.
+    system = SNIPPET_SYSTEM if doc.source_type == "search_snippet" else SYSTEM
     out, meta = call_role(
         role=ROLE_EXTRACT,
-        system=SYSTEM,
+        system=system,
         user=user,
         tool=TOOL,
     )

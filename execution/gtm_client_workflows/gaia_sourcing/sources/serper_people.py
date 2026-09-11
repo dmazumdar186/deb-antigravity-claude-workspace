@@ -228,7 +228,13 @@ def _to_document(item: dict, link: str) -> RawDocument:
     return RawDocument(
         doc_id=raw_hash({"title": title, "snippet": snippet, "url": link}),
         url=link,
-        source_type="linkedin_snippet",
+        # "search_snippet" (core/contracts.py's SourceType, appended
+        # 2026-09-11) rather than "linkedin_snippet": this is a Serper
+        # result, not a LinkedIn fetch (see the DISCOVERY ONLY section above)
+        # -- generic to any search-engine-result source, which is what
+        # layers/extract.py's snippet-specific extraction instructions key
+        # off of.
+        source_type="search_snippet",
         fetched_at=date.today(),
         content_text=content_text,
         http_status=200,
