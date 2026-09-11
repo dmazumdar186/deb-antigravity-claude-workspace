@@ -466,6 +466,22 @@ def test_no_firm_domain_carries_a_scheme_or_a_path():
         assert "//" not in f.domain and "/" not in f.domain
 
 
+def test_every_people_path_is_a_bare_root_relative_path():
+    """These are appended to a base URL -- a path missing its leading slash
+    concatenates onto the domain instead of the origin."""
+    for f in company_bios.FIRMS:
+        assert f.people_paths, f"{f.slug} has no people_paths"
+        for p in f.people_paths:
+            assert p.startswith("/"), f"{f.slug}: {p!r} does not start with /"
+
+
+def test_the_firm_list_is_wide_enough_for_coverage():
+    """Widened 2026-09-11 from the ACEI 2026 Directory of Members to reach
+    the Senior-Engineer-to-Associate grade this role sources for across more
+    than the original 16 firms."""
+    assert len(company_bios.FIRMS) >= 30
+
+
 # ===========================================================================
 # oral_hearing_web.py -- breadth across scheme sites
 # ===========================================================================
