@@ -670,6 +670,30 @@ def test_poolmap_names_the_candidates_that_missed_by_exactly_one_gate(poolmap_in
     assert not any("Far Miss" in n for n in near), "two failures is not a near miss"
 
 
+def test_poolmap_near_miss_wording_is_human_readable_but_keeps_the_gate_id(
+    poolmap_input,
+):
+    """2026-09-11 audit fix (item 1): "missing only: located_ie" is not
+    something a client reads and understands. The line must carry a
+    human label first, with the raw gate id kept in brackets so anything
+    that greps for the id (tests, scripts) still matches."""
+    poolmap_input.stage_poolmap()
+    near = poolmap_input.load("poolmap")[R2]["near_misses"]
+
+    line = next(n for n in near if "Near Miss" in n)
+    assert "missing only: residence evidence (Republic of Ireland) [located_ie]" in line
+    assert "located_ie" in line  # raw id still greppable
+
+
+def test_humanize_gate_id_falls_back_to_the_raw_id_for_unknown_gates():
+    """A gate id with no label (e.g. a new gate added later) must still
+    render something -- the raw id, not a KeyError."""
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    assert mod._humanize_gate_id("seniority") == "seniority evidence [seniority]"
+    assert mod._humanize_gate_id("some_future_gate") == "some_future_gate"
+
+
 def test_poolmap_keeps_client_side_out_of_the_delivered_count(poolmap_input):
     poolmap_input.stage_poolmap()
     m = poolmap_input.load("poolmap")[R2]

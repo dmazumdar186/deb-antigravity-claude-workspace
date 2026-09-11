@@ -2555,6 +2555,29 @@ def stage_health() -> None:
 # ---------------------------------------------------------------------------
 
 
+# Human-readable labels for gate ids, used only in the near-miss line below.
+# The raw gate id is always kept alongside the label (e.g. "missing only:
+# residence evidence (Republic of Ireland) [located_ie]") so anything that
+# greps for the id -- tests, scripts -- still matches. Unknown gate ids fall
+# back to the raw id with no label.
+GATE_ID_LABELS = {
+    "located_ie": "residence evidence (Republic of Ireland)",
+    "chartered": "chartership evidence (Engineers Ireland)",
+    "seniority_ceiling": "above the seniority ceiling",
+    "seniority": "seniority evidence",
+    "discipline": "discipline match",
+    "employer_sector": "employer sector match",
+    "not_client": "not a client-side engineer",
+}
+
+
+def _humanize_gate_id(gate_id: str) -> str:
+    label = GATE_ID_LABELS.get(gate_id)
+    if label is None:
+        return gate_id
+    return label + " [" + gate_id + "]"
+
+
 def stage_poolmap(force: bool = False) -> None:
     persons, by_person, roles = _persons_and_claims()
     gate_out = load("gate")
@@ -2595,7 +2618,7 @@ def stage_poolmap(force: bool = False) -> None:
             near_misses.append(
                 person.full_name
                 + (" -- " + person.current_employer if person.current_employer else "")
-                + " -- missing only: " + failed[0]["gate_id"]
+                + " -- missing only: " + _humanize_gate_id(failed[0]["gate_id"])
             )
 
         n_raw = len([c for c in raw["claims"] if c["subject_person_id"] in set(pids)])
