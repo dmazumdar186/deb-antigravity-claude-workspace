@@ -958,6 +958,11 @@ def stage_locate(force: bool = False) -> None:
     claims: list[dict] = data.get("claims", [])
     have_claim_ids = {c["claim_id"] for c in claims}
 
+    r1 = load("harvest_r1") if done("harvest_r1") else []
+    rec_by_doc_id = {r["doc_id"]: r for r in r1}
+    firm_by_slug = {f.slug: f for f in company_bios.FIRMS}
+    corpus = load_docs()
+
     if force:
         cleared = 0
         for prec in persons.values():
@@ -969,10 +974,69 @@ def stage_locate(force: bool = False) -> None:
             log("locate: --force cleared " + str(cleared)
                 + " stale firm_default location(s) for recompute")
 
-    r1 = load("harvest_r1") if done("harvest_r1") else []
-    rec_by_doc_id = {r["doc_id"]: r for r in r1}
-    firm_by_slug = {f.slug: f for f in company_bios.FIRMS}
-    corpus = load_docs()
+        # 2026-09-11 second-audit fix (item 1): persons extracted BEFORE
+        # location_source existed (e.g. O'Connor Sutton Cronin, extracted
+        # pre-fix) carry a firm-default location with NO stamp at all -- the
+        # pass above can never see them, so --force never clears the stale
+        # value and it survives forever. Detected by shape instead: a
+        # company_directory person whose location is exactly "Ireland" or
+        # "<city>, Ireland", unstamped, AND with no location-dimension claim
+        # whose quote is real residence evidence (survives
+        # gates._clean_residence_haystack and matches a residence-shaped
+        # phrase or an Irish county/city token). Such a person's location is
+        # cleared; if the CURRENT _default_location_for_firm still grants a
+        # default for their firm, it is reapplied WITH the provenance stamp
+        # so it is tracked correctly from here on.
+        loc_claims_by_pid: dict[str, list[dict]] = {}
+        for c in claims:
+            if c.get("dimension") == "location":
+                loc_claims_by_pid.setdefault(
+                    c.get("subject_person_id"), []
+                ).append(c)
+
+        legacy_cleared = 0
+        legacy_restamped = 0
+        for pid, prec in persons.items():
+            if prec.get("role_id") != ROLE1.role_id:
+                continue
+            if prec.get("source") != "company_directory":
+                continue
+            if prec.get("location_source"):
+                continue  # already provenance-tracked, handled above
+            loc = prec.get("location")
+            if not loc or not (loc == "Ireland" or loc.endswith(", Ireland")):
+                continue
+
+            has_real_evidence = False
+            for c in loc_claims_by_pid.get(pid, []):
+                cleaned = gates._clean_residence_haystack(c.get("evidence_quote") or "")
+                if gates._RESIDENCE_SHAPE_RE.search(cleaned) or gates._IE_RE.search(cleaned):
+                    has_real_evidence = True
+                    break
+            if has_real_evidence:
+                continue
+
+            rec = None
+            for did in prec.get("doc_ids", []) or []:
+                rec = rec_by_doc_id.get(did)
+                if rec is not None:
+                    break
+            firm = firm_by_slug.get(rec.get("firm_slug")) if rec else None
+
+            prec["location"] = None
+            prec["location_source"] = None
+            legacy_cleared += 1
+            if firm is not None:
+                new_default = _default_location_for_firm(firm)
+                if new_default:
+                    prec["location"] = new_default
+                    prec["location_source"] = "firm_default"
+                    legacy_restamped += 1
+        if legacy_cleared:
+            log("locate: --force cleared " + str(legacy_cleared)
+                + " legacy (pre-provenance) firm-default location(s)"
+                + (", " + str(legacy_restamped)
+                   + " re-stamped under current firm data" if legacy_restamped else ""))
 
     relocated = 0
     new_location_claims = 0
@@ -2134,20 +2198,34 @@ def stage_messages(force: bool = False) -> None:
                                           person_id=pid)
         if optout_hit is not None:
             log("  " + pid + " draft_blocked_optout")
+            with lock:
+                out[pid] = {"dropped": "opted out"}
             return
         try:
             seq = messages.draft(persons[pid], by_person.get(pid, []), spec)
         except Exception as exc:
+            reason = "draft generation failed: " + repr(exc)[:120]
             log("  " + pid + " draft FAILED: " + repr(exc)[:120])
+            with lock:
+                out[pid] = {"dropped": reason}
             return
         if seq is None:
+            # 2026-09-11 second-audit fix (item 7): record why so render.py's
+            # message column can show the real reason instead of implying the
+            # privacy notice is not live when it is.
+            log("  " + pid + " draft: model returned nothing")
+            with lock:
+                out[pid] = {"dropped": "model returned nothing"}
             return
         ok, problems = messages.compliance_ok(seq)
         if not ok:
             # I6 is a hard gate: a non-compliant draft is dropped, never
             # patched, because a patched legal notice is the failure mode the
             # invariant exists to prevent.
-            log("  " + pid + " draft dropped, compliance: " + "; ".join(problems))
+            reason = "; ".join(problems)
+            log("  " + pid + " draft dropped, compliance: " + reason)
+            with lock:
+                out[pid] = {"dropped": reason}
             return
         with lock:
             out[pid] = seq.model_dump()

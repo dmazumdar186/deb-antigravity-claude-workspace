@@ -18,6 +18,12 @@ from typing import Optional
 
 from ..core.contracts import Claim, Person, RawDocument
 from ..core.providers import ROLE_EXTRACT, call_role
+# 2026-09-11 adversarial-audit fix (item 3): _find_location_quote must not
+# hand out a quote that is really an institution-name fragment ("...cts is
+# an Engineers Ireland Chartered..."). Reuse gates.py's own residence-shape
+# and org-name-strip patterns rather than re-deriving them, so the two
+# modules can never drift on what counts as residence evidence.
+from .gates import _IE_RE, _IE_ORG_STRIP_RE, _RESIDENCE_SHAPE_RE
 
 
 
@@ -258,6 +264,17 @@ def _find_location_quote(
     is based). Returns an exact substring of the source text so
     layers/validator.py's normalize() comparison always matches it, or None
     if neither token appears anywhere on the page.
+
+    2026-09-11 adversarial-audit fix (item 3): the naive +/-20 char slice
+    around a bare "Ireland" hit could land mid-word ("...cts is an Engineers
+    Ireland Chartered...") and, worse, could be entirely an institution-name
+    fragment ("Engineers Ireland", "Institution of Structural Engineers")
+    with nothing at all said about where the PERSON lives. A candidate quote
+    is now accepted only when, AFTER stripping those institution names
+    (gates._IE_ORG_STRIP_RE), it still contains either a residence-shaped
+    phrase (gates._RESIDENCE_SHAPE_RE: "based in", "our Cork office", ...)
+    or a county/city token (gates._IE_RE) outside the stripped org names, and
+    the quote itself does not start or end mid-word.
     """
     tokens = [t for t in ([city] if city else []) + ["Ireland"] if t]
     if not tokens or not text:
@@ -282,9 +299,25 @@ def _find_location_quote(
                 continue
             q_start = max(0, tidx - 20)
             q_end = min(len(window), tidx + len(token) + 20)
-            quote = window[q_start:q_end].strip()
-            if len(quote) >= 12:
-                return quote[:400]
+            quote = window[q_start:q_end]
+            # Never start or end mid-word: a slice that begins inside a word
+            # ("...cts is an...") is not a sentence, it is a fragment.
+            if q_start > 0:
+                sp = quote.find(" ")
+                quote = quote[sp + 1:] if sp != -1 else ""
+            if q_end < len(window):
+                sp = quote.rfind(" ")
+                quote = quote[:sp] if sp != -1 else ""
+            quote = quote.strip()
+            if len(quote) < 12:
+                continue
+            residence_evidenced = _IE_ORG_STRIP_RE.sub(" ", quote)
+            if not (
+                _RESIDENCE_SHAPE_RE.search(residence_evidenced)
+                or _IE_RE.search(residence_evidenced)
+            ):
+                continue
+            return quote[:400]
     return None
 
 

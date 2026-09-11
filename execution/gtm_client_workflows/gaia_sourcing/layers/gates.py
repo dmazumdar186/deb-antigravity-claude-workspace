@@ -13,6 +13,7 @@ of the layering.
 from __future__ import annotations
 
 import re
+from datetime import date
 from typing import Optional
 
 from ..core.contracts import GateResult, JobSpec, Person, ValidatedClaim
@@ -145,8 +146,17 @@ _IRISH_BODY_RE = re.compile(
     re.I,
 )
 
+# 2026-09-11 adversarial-audit fix (item 2): "across the UK and Ireland" is a
+# project-jurisdiction phrase, not a residence statement, and it must be
+# caught by the same non-IE-token-without-residence-shape rule as every other
+# foreign jurisdiction mention. Bare "uk"/"u.k." and "great britain" were
+# missing from this list, so that exact sentence slipped through. Northern
+# Ireland is already excluded earlier in check_located_ie via _NI_RE/_strip_ni,
+# but it is added here too so any caller that consults _NON_IE_RE directly
+# (without the NI-stripping step) still treats it as a non-Republic token.
 _NON_IE_RE = re.compile(
-    r"\b(united kingdom|england|scotland|wales|london|manchester|birmingham|"
+    r"\b(united kingdom|u\.k\.|uk|great britain|northern ireland|england|"
+    r"scotland|wales|london|manchester|birmingham|"
     r"leeds|glasgow|edinburgh|bristol|qatar|dubai|uae|australia|canada|"
     r"united states|new zealand)\b",
     re.I,
@@ -202,7 +212,8 @@ def _strip_ni(text: str) -> str:
 # substring "Ireland" with nothing at all said about where the PERSON lives.
 _IE_ORG_STRIP_RE = re.compile(
     r"\bengineers ireland\b|\binstitution of engineers of ireland\b|"
-    r"\bengineers journal\b",
+    r"\bengineers journal\b|\bconsulting engineers of ireland\b|\bacei\b|"
+    r"\birish concrete society\b|\binstitution of structural engineers\b",
     re.I,
 )
 
@@ -233,6 +244,27 @@ _RESIDENCE_SHAPE_RE = re.compile(
     r"\blocation:\s*",
     re.I,
 )
+
+
+# 2026-09-11 adversarial-audit fix (item 3): claims authored by the pipeline
+# itself -- layers.extract._find_location_quote's default-location claim and
+# run.stage_locate's --force recompute -- both write an assertion shaped
+# exactly "<Name> is based in <firm default location>". That ASSERTION is the
+# pipeline's own inference from a firm default, not evidence; only its quoted
+# evidence_quote (the verbatim text pulled off the page) is actually
+# evidence. Folding the assertion into the haystack let the firm default
+# ("Ireland") itself satisfy the located_ie gate regardless of what the page
+# actually said. The Claim model has no provenance field (see docstring
+# above check_located_ie's params for the rest of this fix); detected by
+# the fixed assertion shape both call sites use.
+_PIPELINE_LOCATION_ASSERTION_RE = re.compile(r"^.+\bis based in\b", re.I)
+
+
+def _is_pipeline_location_claim(c: ValidatedClaim) -> bool:
+    return (
+        c.dimension == "location"
+        and bool(_PIPELINE_LOCATION_ASSERTION_RE.match(c.assertion or ""))
+    )
 
 
 def _claims_by_dim(claims: list[ValidatedClaim], *dims: str) -> list[ValidatedClaim]:
@@ -312,7 +344,13 @@ def check_located_ie(
     treat_unknown_as = params.get("treat_unknown_as", "fail")
 
     loc_claims = _direct(_claims_by_dim(claims, "location"))
-    haystacks = [(c.claim_id, c.assertion + " " + c.evidence_quote) for c in loc_claims]
+    # Pipeline-authored claims (item 3 above) contribute only their quote --
+    # the assertion is the pipeline's own inference, not evidence.
+    haystacks = [
+        (c.claim_id, c.evidence_quote if _is_pipeline_location_claim(c)
+         else c.assertion + " " + c.evidence_quote)
+        for c in loc_claims
+    ]
     if person.location:
         haystacks.append(("person.location", person.location))
 
@@ -551,6 +589,33 @@ def extract_years(text: str) -> Optional[int]:
 # extract_years' word-number sibling in some phrasings, so an unguarded gate
 # will credit a person with a firm's whole trading history.
 _PERSON_SUBJECT_RE = re.compile(r"\b(i|my|me|he|she|his|her|him)\b", re.I)
+
+
+# 2026-09-11 second-audit fix (item 5): when no years-experience figure is
+# stated at all, an education claim's graduation year is a cheap, deterministic
+# years-of-experience estimate -- "graduated from UCD in 2005" implies roughly
+# (current year - 2005) years in the field. "BE"/"B.Eng" is matched
+# case-SENSITIVELY (bare "be" is one of the most common words in English and
+# would otherwise match almost every education-dimension quote at random).
+_GRAD_VERB_RE = re.compile(
+    r"\b(?:graduat(?:ed|ing)|qualified)\b[^.\n]{0,60}?\b(19\d{2}|20\d{2})\b",
+    re.I,
+)
+_GRAD_DEGREE_RE = re.compile(r"\bB\.?E\.?\b[^.\n]{0,40}?\b(19\d{2}|20\d{2})\b")
+
+
+def _education_grad_year(text: str) -> Optional[int]:
+    """The graduation/qualification year named in `text`, or None."""
+    if not text:
+        return None
+    for rx in (_GRAD_VERB_RE, _GRAD_DEGREE_RE):
+        m = rx.search(text)
+        if m:
+            try:
+                return int(m.group(1))
+            except (TypeError, ValueError):
+                continue
+    return None
 
 
 def _years_subject_is_person(quote: str, person: Person) -> bool:
@@ -904,6 +969,46 @@ def check_seniority_ceiling(
         if years is not None:
             evidenced.append((years, c.claim_id))
     best_years = max(evidenced, key=lambda t: t[0]) if evidenced else None
+
+    # 2026-09-11 second-audit fix (item 5): no stated years-experience figure
+    # at all -- fall back to an education claim's graduation year as a years
+    # estimate, rather than the generic "grade not evidenced" note below.
+    if best_years is None and max_years is not None:
+        grad_hit: Optional[tuple[int, str, int]] = None  # (years, claim_id, grad_year)
+        for c in _direct(_claims_by_dim(claims, "education")):
+            grad_year = (
+                _education_grad_year(c.evidence_quote)
+                or _education_grad_year(c.assertion)
+            )
+            if grad_year is None:
+                continue
+            years = date.today().year - grad_year
+            if grad_hit is None or years > grad_hit[0]:
+                grad_hit = (years, c.claim_id, grad_year)
+        if grad_hit is not None:
+            years, cid, grad_year = grad_hit
+            over = years - max_years
+            if over >= 2:
+                return GateResult(
+                    gate_id="seniority_ceiling",
+                    passed=False,
+                    basis=cid,
+                    note=(
+                        "graduated " + str(grad_year) + ": ~" + str(years)
+                        + " years, above the " + str(max_years) + "-year ceiling"
+                    ),
+                )
+            if over > 0:
+                return GateResult(
+                    gate_id="seniority_ceiling",
+                    passed=True,
+                    basis=cid,
+                    note=(
+                        "graduated " + str(grad_year) + ": ~" + str(years)
+                        + " years, at the " + str(max_years) + "-year ceiling"
+                    ),
+                )
+
     if max_years is not None and best_years is not None and best_years[0] > max_years:
         return GateResult(
             gate_id="seniority_ceiling",

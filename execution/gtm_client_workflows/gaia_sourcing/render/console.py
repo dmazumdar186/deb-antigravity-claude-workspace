@@ -687,6 +687,12 @@ def render_card(snap: RunSnapshot, pid: str, campaign_id: str, page_status: dict
     body.append('<h3>Outreach draft</h3>')
     if not outreach:
         body.append('<p class="empty">No outreach drafted for this person yet.</p>')
+    elif outreach.get("dropped"):
+        # 2026-09-11 second-audit fix (item 7): stage_messages now records
+        # WHY a draft was dropped -- show the real reason, never a blank
+        # "no draft" box that reads as "not attempted yet".
+        body.append('<p class="empty">Draft withheld: '
+                   + e(str(outreach["dropped"])) + "</p>")
     else:
         body.append('<p class="note">LinkedIn note</p><div class="msg-box">'
                    + e(outreach.get("linkedin_note", "")) + "</div>")

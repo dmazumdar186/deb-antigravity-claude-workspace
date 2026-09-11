@@ -875,10 +875,30 @@ def _why_cell(ev: dict, claims: list[dict], spec) -> str:
     return "".join(out)
 
 
-def _msg_cell(outreach: dict | None) -> str:
-    """What to send, and nothing else. Two messages: LinkedIn, then email."""
-    if not outreach:
+def _msg_cell(outreach: dict | None, notice_live: bool = True) -> str:
+    """What to send, and nothing else. Two messages: LinkedIn, then email.
+
+    2026-09-11 second-audit fix (item 6a): a missing draft used to always
+    print "Withheld until the privacy notice is live" -- true only when the
+    notice really is down. When the notice IS live and a draft is simply
+    absent, that line was a lie; stage_messages (run.py) now records the
+    real reason under outreach["dropped"] (compliance failure, opt-out, a
+    model returning nothing, or an exception), and that reason is shown
+    instead. `notice_live` defaults True so existing callers that pass a
+    real outreach dict keep rendering it unchanged.
+    """
+    if not notice_live:
         return '<p class="none">Withheld until the privacy notice is live.</p>'
+    if not outreach:
+        return '<p class="none">Draft not generated: model returned nothing.</p>'
+    if outreach.get("dropped"):
+        reason = str(outreach["dropped"])
+        if reason == "model returned nothing":
+            return '<p class="none">Draft not generated: model returned nothing.</p>'
+        return (
+            '<p class="none">Draft withheld: failed the compliance check ('
+            + e(reason) + ").</p>"
+        )
     out: list[str] = []
     blocks = [("LinkedIn note", outreach["linkedin_note"]),
               ("Email &mdash; " + e(outreach["email_subject"]), outreach["email_body"])]
@@ -949,6 +969,30 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
         facts.append(
             '<p class="gap">Second-opinion review incomplete for this card.</p>'
         )
+
+    # 2026-09-11 second-audit fix (item 6c): every OTHER adversarial finding
+    # was silently dropped -- only REVIEW INCOMPLETE ever reached the card.
+    # A second-opinion pass that found something (without erroring outright)
+    # is exactly the information a reader needs before a first call.
+    for finding in (ev.get("adversarial_findings") or []):
+        f = str(finding)
+        if "REVIEW INCOMPLETE" in f:
+            continue  # already surfaced by the line above
+        facts.append('<p class="gap">Second opinion: ' + e(f) + "</p>")
+
+    # 2026-09-11 second-audit fix (item 6b): the seniority-floor and
+    # located_ie gates sometimes pass with a note asking the reader to
+    # confirm something on the first call ("grade not evidenced...", "Ireland
+    # evidenced alongside other jurisdictions...", the graduation-year
+    # estimate note). That note used to live only in gate.json -- never on
+    # the card a reader actually looks at.
+    for g in (ev.get("gates") or []):
+        if g.get("gate_id") not in ("seniority_ceiling", "located_ie"):
+            continue
+        note = g.get("note")
+        if not note:
+            continue
+        facts.append('<p class="src">Confirm on first call: ' + e(str(note)) + "</p>")
 
     # Lower-confidence evidence had a labelled section on the card and no home
     # at all in the table. It is weaker than a verbatim quote, which is a
@@ -1046,6 +1090,7 @@ def row_html(
     outreach: dict | None,
     links: dict,
     spec,
+    notice_live: bool = True,
 ) -> str:
     """One candidate as two table rows: the line, and the detail it hides."""
     # Scoped by role: the same person delivered under both roles would
@@ -1096,7 +1141,7 @@ def row_html(
         '<tr class="r">'
         + "<td>" + who + "</td>"
         + "<td>" + _why_cell(ev, claims, spec) + "</td>"
-        + "<td>" + _msg_cell(outreach) + "</td>"
+        + "<td>" + _msg_cell(outreach, notice_live) + "</td>"
         + '<td><button class="det-btn" type="button" aria-expanded="false"'
           ' aria-controls="' + rid + '">'
           '<span class="det-ar" aria-hidden="true">&#9656;</span>'
@@ -1338,8 +1383,9 @@ def build(allow_placeholder_notice: bool = False) -> None:
             body.append(
                 row_html(
                     person, pclaims, ev, contact, movs.get(pid, {}),
-                    outreach.get(pid) if include_outreach else None,
+                    outreach.get(pid),
                     links.get(pid, {}), spec,
+                    notice_live=include_outreach,
                 )
             )
 
