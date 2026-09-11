@@ -148,6 +148,108 @@ RUN_COST: list[dict] = []
 # in the job title overrides any firm-level location default.
 _OFFICE_RE = re.compile(r"\(([^)]*office[^)]*)\)", re.I)
 
+# How far either side of a person's name occurrence to look for a location
+# token before falling back to a whole-page search. Directory pages routinely
+# state an office address in a masthead/footer near each person's card.
+_LOCATION_SEARCH_WINDOW = 500
+
+
+def window_around_names(
+    text: str, forename: str, surname: str, window_chars: int, whole_page_cap: int = 6000
+) -> str:
+    """A slice of `text` centred on the first co-occurrence of forename+surname.
+
+    Built for run.py's stage_deepen_near_misses: a whole fetched page sent to
+    the L5 extractor is the cost driver a EUR 5.98-for-60-people run traced
+    to (CONFIG.deepen_window_chars docstring, core/config.py) -- most of a
+    long page is not about the one person being deepened. `window_chars`
+    either side of the first place both names appear together keeps the
+    paragraph that actually concerns them while dropping the rest of the
+    page from the (paid) extraction call.
+
+    The full, unwindowed page is still what gets cached in docs.jsonl and
+    what layers.validator checks every claim's quote against -- only the
+    extraction INPUT is windowed here, so a quote just outside the window
+    still validates.
+
+    Falls back to the first `whole_page_cap` characters when the two names
+    never co-occur (e.g. a directory-index-style page where only the
+    surname or only the forename appears) -- still capped, not the whole
+    page, so a near-miss with no real match costs no more than a bounded
+    slice.
+    """
+    if not text:
+        return text
+    low = text.lower()
+    f_low, s_low = (forename or "").lower(), (surname or "").lower()
+    idx = -1
+    if f_low and s_low:
+        search_from = 0
+        while True:
+            fi = low.find(f_low, search_from)
+            if fi == -1:
+                break
+            span_start = max(0, fi - window_chars)
+            span_end = min(len(text), fi + len(forename) + window_chars)
+            if s_low in low[span_start:span_end]:
+                idx = fi
+                break
+            search_from = fi + 1
+    if idx == -1:
+        return text[:whole_page_cap]
+    start = max(0, idx - window_chars)
+    end = min(len(text), idx + len(forename) + window_chars)
+    return text[start:end]
+
+
+def _find_location_quote(
+    text: str, name: str, city: Optional[str]
+) -> Optional[str]:
+    """A verbatim quote in `text` evidencing an Ireland/city-based location.
+
+    Used only when a person's location was set from the firm's default
+    (never when the model or an office-title override already supplied a
+    location) -- this is what turns a bare default into real, quoted
+    evidence for the located_ie gate and RADAR_CONTRACTS' "no claim without
+    a verbatim quote" rule.
+
+    Searches for the office city (if the firm has exactly one known one)
+    ahead of the bare word "Ireland", first within _LOCATION_SEARCH_WINDOW
+    characters of the person's name, then anywhere on the page (an address
+    in the site footer counts -- a directory page's own contact details are
+    evidence of where the FIRM, and by extension an unqualified staff entry,
+    is based). Returns an exact substring of the source text so
+    layers/validator.py's normalize() comparison always matches it, or None
+    if neither token appears anywhere on the page.
+    """
+    tokens = [t for t in ([city] if city else []) + ["Ireland"] if t]
+    if not tokens or not text:
+        return None
+
+    low = text.lower()
+    name_idx = low.find(name.lower()) if name else -1
+    spans = []
+    if name_idx != -1:
+        spans.append((
+            max(0, name_idx - _LOCATION_SEARCH_WINDOW),
+            min(len(text), name_idx + len(name) + _LOCATION_SEARCH_WINDOW),
+        ))
+    spans.append((0, len(text)))  # whole-page fallback
+
+    for start, end in spans:
+        window = text[start:end]
+        window_low = window.lower()
+        for token in tokens:
+            tidx = window_low.find(token.lower())
+            if tidx == -1:
+                continue
+            q_start = max(0, tidx - 20)
+            q_end = min(len(window), tidx + len(token) + 20)
+            quote = window[q_start:q_end].strip()
+            if len(quote) >= 12:
+                return quote[:400]
+    return None
+
 
 def _window(text: str) -> str:
     if len(text) <= _HEAD + _TAIL:
@@ -492,6 +594,38 @@ def extract_directory(
                 )
             except Exception:
                 continue  # malformed item dropped, never repaired
+
+        # Turn the firm-default location into real, quoted evidence when the
+        # page itself states the office city or "Ireland" -- a bare default
+        # is not evidence for located_ie's direct-evidence haystack
+        # (gates.check_located_ie reads person.location too, but a claim with
+        # a verbatim quote is what the client-facing card actually shows).
+        # Only fires when the location came from the default (an explicit
+        # office-title override, e.g. "(Belfast Office)", is itself already
+        # evidence and needs no manufactured quote).
+        used_default = default_location and person.location == default_location
+        if used_default:
+            city = None
+            if default_location != "Ireland" and default_location.endswith(", Ireland"):
+                city = default_location.rsplit(",", 1)[0].strip()
+            quote = _find_location_quote(doc.content_text, name, city)
+            if quote:
+                cid = _claim_id(pid, doc.doc_id, quote)
+                if cid not in seen_ids:
+                    seen_ids.add(cid)
+                    claims.append(
+                        Claim(
+                            claim_id=cid,
+                            subject_person_id=pid,
+                            dimension="location",
+                            assertion=name + " is based in " + default_location,
+                            evidence_quote=quote,
+                            source_doc_id=doc.doc_id,
+                            source_url=doc.url,
+                            confidence="direct",
+                        )
+                    )
+
         if claims:
             results.append((person, claims))
     return results

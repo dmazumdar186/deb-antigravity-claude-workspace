@@ -1169,3 +1169,120 @@ def test_harvest_discovery_respects_the_total_query_budget(R, monkeypatch):
 
     assert len(calls) == 1
     assert calls[0].role_id == ROLE2.role_id
+
+
+# ---------------------------------------------------------------------------
+# stage_locate -- cheap, no-LLM Role 1 location backfill
+# (2026-09-11 widening: Firm.domicile/office_cities need to reach ALREADY
+# extracted persons without re-running stage_harvest_r1 or paying for L5
+# extraction again.)
+# ---------------------------------------------------------------------------
+
+
+def test_default_location_for_firm_single_vs_several_vs_non_ie():
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    single = cb.Firm("f1", "F1", "f1.ie", domicile="IE", office_cities=["Cork"])
+    several = cb.Firm("f2", "F2", "f2.ie", domicile="IE", office_cities=["Dublin", "Cork"])
+    unknown = cb.Firm("f3", "F3", "f3.ie", domicile="IE", office_cities=[])
+    non_ie = cb.Firm("f4", "F4", "f4.com", domicile="UK", office_cities=[])
+
+    assert mod._default_location_for_firm(single) == "Cork, Ireland"
+    assert mod._default_location_for_firm(several) == "Ireland"
+    assert mod._default_location_for_firm(unknown) == "Ireland"
+    assert mod._default_location_for_firm(non_ie) is None
+
+
+def test_stage_locate_backfills_location_and_adds_a_quoted_claim(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                    office_cities=["Cork"])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy, Director. Our office is in Cork, Ireland.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "cork_firm", "firm_name": "Cork Firm",
+        "url": "https://corkfirm.ie/people", "doc_id": "d1", "chars": 100,
+        "default_location": "Cork, Ireland",
+    }])
+    persons = {"brian_murphy": _person(
+        "brian_murphy", "Brian Murphy", R1, "company_directory",
+        employer="Cork Firm", location=None, doc_ids=["d1"],
+    )}
+    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate()
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] == "Cork, Ireland"
+    location_claims = [c for c in out["claims"] if c["dimension"] == "location"]
+    assert len(location_claims) == 1
+    assert location_claims[0]["evidence_quote"] in "Brian Murphy, Director. Our office is in Cork, Ireland."
+
+    locate_out = json.loads((R.RUN_DIR / "locate.json").read_text(encoding="utf-8"))
+    assert locate_out["relocated"] == 1
+    assert locate_out["new_location_claims"] == 1
+
+    # validate + gate re-run because a claim was added.
+    assert (R.RUN_DIR / "validate.json").exists()
+    assert (R.RUN_DIR / "gate.json").exists()
+
+
+def test_stage_locate_never_overwrites_an_existing_location(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                    office_cities=["Cork"])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy is based in Galway.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "cork_firm", "firm_name": "Cork Firm",
+        "url": "https://corkfirm.ie/people", "doc_id": "d1", "chars": 100,
+        "default_location": "Cork, Ireland",
+    }])
+    persons = {"brian_murphy": _person(
+        "brian_murphy", "Brian Murphy", R1, "company_directory",
+        employer="Cork Firm", location="Galway, Ireland", doc_ids=["d1"],
+    )}
+    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate()
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] == "Galway, Ireland"
+    assert out["claims"] == []
+
+
+def test_stage_locate_gives_no_location_for_an_intl_firm(R, monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("global_firm", "Global Firm", "global.com", domicile="INTL",
+                    office_cities=[])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy, Director.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "global_firm", "firm_name": "Global Firm",
+        "url": "https://global.com/people", "doc_id": "d1", "chars": 100,
+        "default_location": None,
+    }])
+    persons = {"brian_murphy": _person(
+        "brian_murphy", "Brian Murphy", R1, "company_directory",
+        employer="Global Firm", location=None, doc_ids=["d1"],
+    )}
+    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate()
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] is None
+    assert out["claims"] == []
+
+    locate_out = json.loads((R.RUN_DIR / "locate.json").read_text(encoding="utf-8"))
+    assert locate_out["relocated"] == 0

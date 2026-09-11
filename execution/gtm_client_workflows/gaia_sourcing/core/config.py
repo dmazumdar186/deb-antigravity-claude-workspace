@@ -121,7 +121,10 @@ class RunConfig:
     # (Firecrawl, Prospeo, Serper -- see the max_cost_eur docstring above).
     # Enforced in the same place as max_cost_eur: core.providers.call_role
     # and core.ocr's Anthropic transcription path.
-    max_cost_eur_total: float = 22.0
+    # 2026-09-11: operator holds $30 of credit; the Console spend limit is
+    # the hard stop; cumulative EUR 15.68 after the first full runs, deepen
+    # round 2 windowed.
+    max_cost_eur_total: float = 25.0
     # L6 drop-rate alarm. Above this, the L5 prompt is wrong -- see section 7.
     max_drop_rate: float = 0.15
     request_timeout_s: int = 60
@@ -205,12 +208,29 @@ class RunConfig:
     # Cap on how many near-miss candidates stage_deepen_near_misses will
     # spend search budget on, richest-evidence-first (same shape as
     # stage_deepen_r1's cap of 30 gate-passers).
-    deepen_near_miss_cap: int = 60
+    # 2026-09-11: raised 60 -> 200 now that fetched-page extraction is
+    # windowed (see deepen_window_chars) rather than sending whole pages to
+    # the LLM -- the EUR 5.98-for-60-people run that justified the old cap
+    # was paying for full-page extraction, not for the search itself.
+    deepen_near_miss_cap: int = 200
     # Total Serper query budget for stage_deepen_near_misses, summed across
     # every near-miss candidate (up to 3 queries each -- see
     # stage_deepen_near_misses' docstring). Serper is free but rate-limited;
     # this is a sanity ceiling, not a cost control.
-    deepen_max_queries: int = 150
+    # 2026-09-11: raised 150 -> 500 alongside deepen_near_miss_cap -- Serper's
+    # free tier is 2,500 queries/month and ~370 had been used so far, leaving
+    # ample headroom for the larger near-miss pool.
+    deepen_max_queries: int = 500
+    # 2026-09-11 -- stage_deepen_near_misses windows a fetched page to this
+    # many characters either side of the first co-occurrence of the person's
+    # forename+surname (layers.extract.window_around_names) before it is sent
+    # to the L5 extractor, instead of the whole page. The full page stays in
+    # docs.jsonl untouched -- L6's quote validator still checks every claim
+    # against the complete cached text, so a quote just outside the window
+    # still validates; only the (paid) extraction INPUT shrinks. Sized well
+    # above the 12-400 char quote range so a real answer near either name is
+    # never cut off mid-sentence.
+    deepen_window_chars: int = 2500
 
     @property
     def run_dir(self) -> Path:

@@ -45,6 +45,33 @@ class Firm:
     domain: str
     # Where the people pages tend to live on this site.
     people_paths: list[str] = field(default_factory=list)
+    # Country the firm is domiciled/headquartered in -- "IE" (indigenous
+    # Irish consultancy), "UK", or "INTL" (any other multinational, e.g.
+    # US/French/Swedish-owned). Drives run.py's default_location for a
+    # person whose directory entry states no office of its own: an
+    # IE-domiciled firm's staff directory lists Irish staff by default; a
+    # UK/INTL firm's does not, and each person there must evidence Ireland
+    # individually or fail the located_ie gate (2026-09-11 widening,
+    # RADAR scope update: 250/471 Role 1 people failed located_ie because
+    # only the original 16 firms carried a default location at all).
+    #
+    # Set from firm-specific knowledge where confidently known (see the
+    # per-firm comments below); otherwise the deterministic fallback is
+    # applied: domicile "IE" only when the domain is .ie AND the firm is an
+    # ACEI member (every firm in this list is), else "INTL" with an empty
+    # office_cities. An attempt to read city-level detail off ACEI's own
+    # 2026 directory PDF (acei.ie) failed this session -- the file exceeds
+    # WebFetch's 10MB fetch limit -- so most of the 42 2026-09-11 firms
+    # carry the fallback rather than a verified office list; a person from
+    # one of those still gets Person.location = "Ireland" (the "several
+    # offices" branch), which is enough to pass located_ie's Republic-wide
+    # check even though it will not name a specific city.
+    domicile: str = "INTL"
+    # Known office-city names in Ireland (e.g. ["Dublin"], ["Cork"]).
+    # Empty for a domicile != "IE" firm, and also for an IE firm whose exact
+    # office count is not confidently known (treated as "several" -- see
+    # run.py's _default_location_for_firm).
+    office_cities: list[str] = field(default_factory=list)
 
 
 # Irish structural / civil consultancies with an Ireland presence.
@@ -56,30 +83,30 @@ FIRMS: list[Firm] = [
     # garland.ie, ftco.ie, bmce.ie, caseyodonnell.ie, kmce.ie) and one
     # (byrnelooby.com) now redirects to its acquirer Ayesa, whose site carries
     # no per-engineer bios. Guessing a domain from a firm name is not sourcing.
-    Firm("rod", "Roughan & O'Donovan", "rod.ie", ["/people", "/about/our-people"]),
-    Firm("punch", "PUNCH Consulting Engineers", "punchconsulting.com", ["/our-team", "/people"]),
-    Firm("dbfl", "DBFL Consulting Engineers", "dbfl.ie", ["/about-us/our-team/", "/our-team"]),
-    Firm("oconnor_sutton", "O'Connor Sutton Cronin", "ocsc.ie", ["/people/"]),
-    Firm("mwp", "Malachy Walsh & Partners", "mwp.ie", ["/our-team", "/people"]),
-    Firm("nodwyer", "Nicholas O'Dwyer", "nodwyer.com", ["/our-team", "/people"]),
+    Firm("rod", "Roughan & O'Donovan", "rod.ie", ["/people", "/about/our-people"], domicile='IE', office_cities=[]),
+    Firm("punch", "PUNCH Consulting Engineers", "punchconsulting.com", ["/our-team", "/people"], domicile='IE', office_cities=[]),
+    Firm("dbfl", "DBFL Consulting Engineers", "dbfl.ie", ["/about-us/our-team/", "/our-team"], domicile='IE', office_cities=['Dublin']),
+    Firm("oconnor_sutton", "O'Connor Sutton Cronin", "ocsc.ie", ["/people/"], domicile='IE', office_cities=[]),
+    Firm("mwp", "Malachy Walsh & Partners", "mwp.ie", ["/our-team", "/people"], domicile='IE', office_cities=[]),
+    Firm("nodwyer", "Nicholas O'Dwyer", "nodwyer.com", ["/our-team", "/people"], domicile='IE', office_cities=[]),
     # Corrected: the firm trades as bmce.ie in print but publishes at
     # barrettmahony.com, where the team index is split by office.
     Firm("barrett_mahony", "Barrett Mahony Consulting Engineers", "barrettmahony.com",
-         ["/practice/team/all", "/practice/team/dublin"]),
+         ["/practice/team/all", "/practice/team/dublin"], domicile='IE', office_cities=[]),
     # Cork-domiciled, which matters for Role 2's Cork location.
-    Firm("horganlynch", "Horganlynch", "horganlynch.ie", ["/our-people"]),
-    Firm("kilgallen", "Kilgallen & Partners", "kilgallen.ie", ["/team"]),
-    Firm("tjoc", "TJ O'Connor & Associates", "tjoc.ie", ["/team", "/our-team", "/people"]),
-    Firm("cora", "CORA Consulting Engineers", "cora.ie", ["/about"]),
-    Firm("downes", "Downes Associates", "downesassociates.ie", ["/team", "/about"]),
-    Firm("axis", "Axis Engineering", "axiseng.ie", ["/team", "/about"]),
+    Firm("horganlynch", "Horganlynch", "horganlynch.ie", ["/our-people"], domicile='IE', office_cities=['Cork']),
+    Firm("kilgallen", "Kilgallen & Partners", "kilgallen.ie", ["/team"], domicile='IE', office_cities=['Dublin']),
+    Firm("tjoc", "TJ O'Connor & Associates", "tjoc.ie", ["/team", "/our-team", "/people"], domicile='IE', office_cities=['Dublin']),
+    Firm("cora", "CORA Consulting Engineers", "cora.ie", ["/about"], domicile='IE', office_cities=['Dublin']),
+    Firm("downes", "Downes Associates", "downesassociates.ie", ["/team", "/about"], domicile='IE', office_cities=['Dublin']),
+    Firm("axis", "Axis Engineering", "axiseng.ie", ["/team", "/about"], domicile='IE', office_cities=['Dublin']),
     # Global firms with an Ireland presence. Their people pages list worldwide
     # staff, so run.py gives them no default location -- each person must
     # evidence Ireland or fail the located_ie gate.
-    Firm("rps", "RPS Group Ireland", "rpsgroup.com", ["/our-people"]),
-    Firm("arup_ie", "Arup Ireland", "arup.com", ["/our-firm/people"]),
-    Firm("jacobs_ie", "Jacobs Ireland", "jacobs.com", ["/about/people"]),
-    Firm("mottmac_ie", "Mott MacDonald Ireland", "mottmac.com", ["/our-people"]),
+    Firm("rps", "RPS Group Ireland", "rpsgroup.com", ["/our-people"], domicile='INTL', office_cities=[]),
+    Firm("arup_ie", "Arup Ireland", "arup.com", ["/our-firm/people"], domicile='UK', office_cities=[]),
+    Firm("jacobs_ie", "Jacobs Ireland", "jacobs.com", ["/about/people"], domicile='INTL', office_cities=[]),
+    Firm("mottmac_ie", "Mott MacDonald Ireland", "mottmac.com", ["/our-people"], domicile='UK', office_cities=[]),
     # -------------------------------------------------------------------
     # Widened 2026-09-11 from the ACEI (Association of Consulting Engineers
     # of Ireland) 2026 Annual Review & Directory of Members
@@ -110,62 +137,62 @@ FIRMS: list[Firm] = [
     # bjsconsultants.com, hughmunro.ie, roadplan.ie) return 403/406 to a
     # plain requests fetch and need find_people_indexes'/fetch's real
     # browser-like headers to get past the block.
-    Firm("bdp", "BDP", "bdp.com", ["/our-people"]),
-    Firm("ors", "ORS", "ors.ie", ["/people", "/our-people"]),
-    Firm("egis", "Egis Ireland", "egis-group.com", ["/our-people"]),
-    Firm("ryanhanley", "Ryan Hanley", "ryanhanley.ie", ["/our-team", "/team"]),
-    Firm("csea", "Clifton Scannell Emerson Associates", "csea.ie", ["/our-people"]),
-    Firm("fehilytimoney", "Fehily Timoney & Company", "fehilytimoney.ie", ["/our-team"]),
+    Firm("bdp", "BDP", "bdp.com", ["/our-people"], domicile='UK', office_cities=[]),
+    Firm("ors", "ORS", "ors.ie", ["/people", "/our-people"], domicile='IE', office_cities=['Dublin']),
+    Firm("egis", "Egis Ireland", "egis-group.com", ["/our-people"], domicile='INTL', office_cities=[]),
+    Firm("ryanhanley", "Ryan Hanley", "ryanhanley.ie", ["/our-team", "/team"], domicile='IE', office_cities=[]),
+    Firm("csea", "Clifton Scannell Emerson Associates", "csea.ie", ["/our-people"], domicile='IE', office_cities=[]),
+    Firm("fehilytimoney", "Fehily Timoney & Company", "fehilytimoney.ie", ["/our-team"], domicile='IE', office_cities=[]),
     Firm("jodireland", "Jennings O'Donovan & Partners", "jodireland.com",
-         ["/our-team", "/team", "/people"]),
-    Firm("garland", "Garland", "garlandconsultancy.com", ["/team", "/our-team"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=['Sligo']),
+    Firm("garland", "Garland", "garlandconsultancy.com", ["/team", "/our-team"], domicile='IE', office_cities=[]),
     Firm("amey", "Amey Infrastructure Ireland", "ameygroup.ie",
-         ["/our-people", "/people", "/about-us/our-people"]),
-    Firm("csconsulting", "CS Consulting Group", "csconsulting.ie", ["/our-team"]),
-    Firm("cundall", "Cundall", "cundall.com", ["/people"]),
-    Firm("hhp", "Hayes Higgins Partnership", "hhp.ie", ["/our-team", "/team", "/people"]),
-    Firm("eireng", "EirEng Consulting Engineers", "eireng.ie", ["/our-team"]),
+         ["/our-people", "/people", "/about-us/our-people"], domicile='UK', office_cities=[]),
+    Firm("csconsulting", "CS Consulting Group", "csconsulting.ie", ["/our-team"], domicile='IE', office_cities=[]),
+    Firm("cundall", "Cundall", "cundall.com", ["/people"], domicile='UK', office_cities=[]),
+    Firm("hhp", "Hayes Higgins Partnership", "hhp.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("eireng", "EirEng Consulting Engineers", "eireng.ie", ["/our-team"], domicile='IE', office_cities=[]),
     Firm("gdaly", "GDCL Consulting Engineers", "gdalyconsulting.com",
-         ["/our-team", "/team", "/people"]),
-    Firm("c3", "Clandillon Civil Consulting", "c3.ie", ["/team", "/our-team", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("c3", "Clandillon Civil Consulting", "c3.ie", ["/team", "/our-team", "/people"], domicile='IE', office_cities=[]),
     Firm("hanleypepper", "Hanley Pepper", "hanleypepper.ie",
-         ["/our-team", "/team", "/people"]),
-    Firm("omc", "OMC Group", "omcgroup.ie", ["/team"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("omc", "OMC Group", "omcgroup.ie", ["/team"], domicile='IE', office_cities=[]),
     Firm("doba", "Donnachadh O'Brien & Associates", "doba.ie",
-         ["/our-team", "/team", "/people"]),
-    Firm("mea", "MEA Consulting Engineers", "mea.ie", ["/our-team", "/team", "/people"]),
-    Firm("muir", "Muir Associates", "muir.ie", ["/our-team", "/team", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("mea", "MEA Consulting Engineers", "mea.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("muir", "Muir Associates", "muir.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("sds_design", "SDS Design Engineers", "structuraldesign.ie",
-         ["/team", "/our-team", "/people"]),
-    Firm("engenuiti", "Engenuiti", "engenuiti.ie", ["/our-team", "/team", "/people"]),
+         ["/team", "/our-team", "/people"], domicile='IE', office_cities=[]),
+    Firm("engenuiti", "Engenuiti", "engenuiti.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("joda", "JODA Engineering Consultants", "joda.ie",
-         ["/our-team", "/team", "/people"]),
-    Firm("dfk", "Doherty Finegan Kelly", "dfk.ie", ["/about-us/our-team"]),
-    Firm("mpa", "Martin Peters Associates", "mpa.ie", ["/team"]),
-    Firm("mma", "MMA Consulting Engineers", "mhl.ie", ["/people"]),
-    Firm("wdg", "Walsh Design Group", "wdg.ie", ["/our-team", "/team", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("dfk", "Doherty Finegan Kelly", "dfk.ie", ["/about-us/our-team"], domicile='IE', office_cities=[]),
+    Firm("mpa", "Martin Peters Associates", "mpa.ie", ["/team"], domicile='IE', office_cities=[]),
+    Firm("mma", "MMA Consulting Engineers", "mhl.ie", ["/people"], domicile='IE', office_cities=[]),
+    Firm("wdg", "Walsh Design Group", "wdg.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("kmp", "Kavanagh Mansfield & Partners", "kmp.ie",
-         ["/our-team", "/team", "/people"]),
-    Firm("langan", "Langan Consulting Engineers", "langaneng.ie", ["/about-us/our-team"]),
-    Firm("molonymillar", "Molony & Millar", "molonymillar.ie", ["/team"]),
-    Firm("chh", "CHH Consulting Engineers", "chh.ie", ["/our-team", "/team", "/people"]),
-    Firm("sweco_ie", "Sweco Ireland", "sweco.ie", ["/our-people", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("langan", "Langan Consulting Engineers", "langaneng.ie", ["/about-us/our-team"], domicile='IE', office_cities=[]),
+    Firm("molonymillar", "Molony & Millar", "molonymillar.ie", ["/team"], domicile='IE', office_cities=[]),
+    Firm("chh", "CHH Consulting Engineers", "chh.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("sweco_ie", "Sweco Ireland", "sweco.ie", ["/our-people", "/people"], domicile='INTL', office_cities=[]),
     Firm("bjs", "BJS Consultants", "bjsconsultants.com",
-         ["/our-team", "/team", "/people"]),
-    Firm("civic", "CIVIC Consulting Engineers", "team-civic.com", ["/team"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("civic", "CIVIC Consulting Engineers", "team-civic.com", ["/team"], domicile='IE', office_cities=[]),
     Firm("hughmunro", "Hugh Munro & Co", "hughmunro.ie",
-         ["/our-team", "/team", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=['Cavan']),
     Firm("mce", "MCE Consulting Engineers", "mceeng.ie",
-         ["/our-team", "/team", "/people"]),
-    Firm("mtw", "MTW Consultants", "mtw.ie", ["/our-team", "/team", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("mtw", "MTW Consultants", "mtw.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("poga", "POGA Consulting Engineers", "poga.ie",
-         ["/our-team", "/team", "/people"]),
-    Firm("furey", "Furey Consulting Engineers", "fureyconsulting.ie", ["/team"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("furey", "Furey Consulting Engineers", "fureyconsulting.ie", ["/team"], domicile='IE', office_cities=[]),
     Firm("mcullen", "Malachi Cullen Consulting Engineers", "mcullen.ie",
-         ["/our-team", "/team", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("roadplan", "Roadplan Consulting", "roadplan.ie",
-         ["/our-team", "/team", "/people"]),
-    Firm("pmce", "PMCE Ltd", "pmceconsultants.com", ["/our-team", "/team", "/people"]),
+         ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
+    Firm("pmce", "PMCE Ltd", "pmceconsultants.com", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
 ]
 
 

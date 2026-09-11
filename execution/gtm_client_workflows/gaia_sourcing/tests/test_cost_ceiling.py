@@ -298,10 +298,10 @@ def test_max_cost_eur_default_is_twelve():
     assert RunConfig().max_cost_eur == 12.0
 
 
-def test_max_cost_eur_total_default_is_twentytwo():
+def test_max_cost_eur_total_default_is_twentyfive():
     from gtm_client_workflows.gaia_sourcing.core.config import RunConfig
 
-    assert RunConfig().max_cost_eur_total == 22.0
+    assert RunConfig().max_cost_eur_total == 25.0
 
 
 # ---------------------------------------------------------------------------

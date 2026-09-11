@@ -14,6 +14,7 @@ Stage order:
   harvest_r2_web   oral-hearing evidence on scheme/authority sites       (free)
   harvest_discovery  sources.registry providers (serper_people etc.)     (free)
   extract          L5  evidence extraction, both roles                  (paid)
+  locate       cheap no-LLM Role 1 location backfill from Firm.domicile (free)
   validate     L6  quote validation -- THE PRODUCT                  (free)
   gate         L7  deterministic gates + tiering                    (free)
   deepen_r1    Re-render the individual profile pages of candidates
@@ -89,7 +90,13 @@ from .eval import scorecard as eval_scorecard
 from .eval.labels import build_worksheet_row, cohen_kappa, load_labels
 from .integrations.recruit_crm import RecruitCRMClient, sync_delivery
 from .layers import adversarial, contact, gates, linkcheck, messages, movability, optout
-from .layers.extract import extract_directory, extract_from_document
+from .layers.extract import (
+    _claim_id as _extract_claim_id,
+    _find_location_quote,
+    extract_directory,
+    extract_from_document,
+    window_around_names,
+)
 from .layers.icp_check import icp_check_from_gate_json
 from .layers.replies import classify_reply
 from .layers.validator import validate_all
@@ -273,15 +280,35 @@ def load_docs() -> dict[str, RawDocument]:
 # Stage 1a -- Role 1 staff directories, Firecrawl-rendered
 # ---------------------------------------------------------------------------
 
-# Firms domiciled in Ireland. Their staff directory lists Irish staff, so a
-# person with no stated office is in Ireland by default. The global firms
-# (RPS / Arup / Jacobs) list worldwide staff on the same page, so they get no
-# default and must evidence location per-person or fail located_ie.
+# Deprecated 2026-09-11: superseded by Firm.domicile/office_cities
+# (sources/company_bios.py) and _default_location_for_firm below, which cover
+# all 59 firms instead of only the original 13. Kept as a frozen historical
+# reference only -- nothing in this module reads it any more.
 _IRISH_DOMICILED = {
     "rod", "punch", "dbfl", "oconnor_sutton", "mwp", "nodwyer",
     "barrett_mahony", "horganlynch", "kilgallen", "tjoc", "cora",
     "downes", "axis",
 }
+
+
+def _default_location_for_firm(firm) -> Optional[str]:
+    """The location a firm's directory implies for a person with no stated office.
+
+    IE-domiciled firms with exactly one known office city -> "<City>, Ireland"
+    (the strongest default: it also lets the located_ie gate's `counties`
+    param match a specific county straight away). An IE firm with several
+    known cities, or an IE firm whose office count is not confidently known
+    (Firm.office_cities == []), gets the generic "Ireland" -- still enough to
+    pass located_ie's Republic-wide check. UK/INTL firms get no default at
+    all: their staff directories list worldwide staff, so a person there must
+    evidence Ireland individually or fail located_ie, exactly as before this
+    widening.
+    """
+    if firm.domicile != "IE":
+        return None
+    if len(firm.office_cities) == 1:
+        return firm.office_cities[0] + ", Ireland"
+    return "Ireland"
 
 
 def stage_harvest_r1(force: bool = False) -> None:
@@ -314,9 +341,7 @@ def stage_harvest_r1(force: bool = False) -> None:
                             "url": url,
                             "doc_id": doc.doc_id,
                             "chars": len(doc.content_text),
-                            "default_location": (
-                                "Ireland" if firm.slug in _IRISH_DOMICILED else None
-                            ),
+                            "default_location": _default_location_for_firm(firm),
                         }
                     )
                 log("  " + firm.slug + ": " + str(len(doc.content_text)) + " chars <- " + url)
@@ -811,6 +836,118 @@ def stage_extract(force: bool = False) -> None:
         "extracted_doc_ids": sorted(seen_docs),
     })
     log("extract: " + str(len(persons)) + " persons, " + str(len(claims)) + " raw claims")
+
+
+# ---------------------------------------------------------------------------
+# Stage 2b -- cheap, no-LLM location backfill
+# ---------------------------------------------------------------------------
+
+
+def stage_locate(force: bool = False) -> None:
+    """Re-derive Role 1 Person.location from Firm.domicile without any LLM call.
+
+    Exists so a change to sources.company_bios.Firm's domicile/office_cities
+    -- like this widening, which gave the 42 firms added 2026-09-11 a
+    default location for the first time -- can be picked up by every
+    already-extracted person WITHOUT re-running stage_harvest_r1 (a paid
+    Firecrawl render) or stage_extract's L5 calls (paid, and the very
+    directory pages that would be re-fetched are already cached in
+    docs.jsonl). Everything this stage touches is already on disk:
+    harvest_r1.json for the firm_slug each directory page came from,
+    docs.jsonl for the cached page text, and extract.json for the persons
+    to backfill.
+
+    Only fills a company_directory person's location when it is currently
+    EMPTY -- an existing location (however it got there) is never
+    overwritten, so this is safe to re-run after any future firm-list edit.
+    Mirrors extract_directory's own default-location behaviour exactly:
+    Person.location is set from Firm's default AND, when the cached page
+    states the office city or "Ireland" near the person's name (or anywhere
+    on the page), a quoted `location` Claim is added too
+    (layers.extract._find_location_quote) -- a bare default is not evidence
+    on its own.
+    """
+    if not done("extract"):
+        log("locate: extract.json missing -- run stage_extract first, skipping")
+        return
+    if done("locate") and not force:
+        log("locate: cached, skipping")
+        return
+
+    data = load("extract")
+    persons: dict = data.get("persons", {})
+    claims: list[dict] = data.get("claims", [])
+    have_claim_ids = {c["claim_id"] for c in claims}
+
+    r1 = load("harvest_r1") if done("harvest_r1") else []
+    rec_by_doc_id = {r["doc_id"]: r for r in r1}
+    firm_by_slug = {f.slug: f for f in company_bios.FIRMS}
+    corpus = load_docs()
+
+    relocated = 0
+    new_location_claims = 0
+    for pid, prec in persons.items():
+        if prec.get("role_id") != ROLE1.role_id:
+            continue
+        if prec.get("source") != "company_directory":
+            continue
+        if prec.get("location"):
+            continue
+
+        rec = None
+        for did in prec.get("doc_ids", []) or []:
+            rec = rec_by_doc_id.get(did)
+            if rec is not None:
+                break
+        if rec is None:
+            continue
+        firm = firm_by_slug.get(rec.get("firm_slug"))
+        if firm is None:
+            continue
+        default_location = _default_location_for_firm(firm)
+        if not default_location:
+            continue
+
+        prec["location"] = default_location
+        relocated += 1
+
+        doc = corpus.get(rec["doc_id"])
+        if doc is None:
+            continue
+        city = None
+        if default_location != "Ireland" and default_location.endswith(", Ireland"):
+            city = default_location.rsplit(",", 1)[0].strip()
+        quote = _find_location_quote(doc.content_text, prec.get("full_name", ""), city)
+        if not quote:
+            continue
+        cid = _extract_claim_id(pid, doc.doc_id, quote)
+        if cid in have_claim_ids:
+            continue
+        have_claim_ids.add(cid)
+        claims.append(
+            Claim(
+                claim_id=cid,
+                subject_person_id=pid,
+                dimension="location",
+                assertion=prec.get("full_name", "") + " is based in " + default_location,
+                evidence_quote=quote,
+                source_doc_id=doc.doc_id,
+                source_url=doc.url,
+                confidence="direct",
+            ).model_dump()
+        )
+        new_location_claims += 1
+
+    data["persons"] = persons
+    data["claims"] = claims
+    save("extract", data)
+    save("locate", {"relocated": relocated, "new_location_claims": new_location_claims})
+    log("locate: " + str(relocated) + " persons given a location, "
+        + str(new_location_claims) + " location claims quoted from cached pages")
+
+    if relocated:
+        stage_validate(force=True)
+        stage_gate(force=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1472,8 +1609,21 @@ def stage_deepen_near_misses(force: bool = False) -> None:
             return
         found_claims: list[Claim] = []
         for doc in person_docs:
+            # Window the extraction INPUT to CONFIG.deepen_window_chars either
+            # side of the first co-occurrence of the person's names -- the
+            # full page is still what gets cached (docs.extend below) and
+            # what the L6 validator checks quotes against, so a quote just
+            # outside the window still validates. See
+            # layers.extract.window_around_names and CONFIG.deepen_window_chars.
+            windowed_text = window_around_names(
+                doc.content_text, forename, surname, CONFIG.deepen_window_chars
+            )
+            log("  " + pid + ": windowed " + doc.doc_id + " to "
+                + str(len(windowed_text)) + " chars (full "
+                + str(len(doc.content_text)) + ")")
+            extract_doc = doc.model_copy(update={"content_text": windowed_text})
             try:
-                claims, _hints = extract_from_document(person, doc)
+                claims, _hints = extract_from_document(person, extract_doc)
             except Exception as exc:
                 log("  " + pid + " near-miss extract FAILED: " + repr(exc)[:120])
                 continue
@@ -2288,6 +2438,7 @@ STAGES = {
     "harvest_r2_web": stage_harvest_r2_web,
     "harvest_discovery": stage_harvest_discovery,
     "extract": stage_extract,
+    "locate": stage_locate,
     "validate": stage_validate,
     "gate": stage_gate,
     "deepen_r1": stage_deepen_r1,
