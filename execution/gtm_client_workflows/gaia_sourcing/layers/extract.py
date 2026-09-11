@@ -19,6 +19,23 @@ from typing import Optional
 from ..core.contracts import Claim, Person, RawDocument
 from ..core.providers import ROLE_EXTRACT, call_role
 
+
+
+_POSTNOMINAL_RE = re.compile(
+    r"(?:[,\s]+(?:CEng|C\.Eng|MIEI|FIEI|M\.I\.E\.I\.?|FConsEI|MIStructE|FIStructE|MICE|FICE|"
+    r"BEng|B\.Eng|MEng|M\.Eng|BSc|B\.Sc|MSc|M\.Sc|PhD|Ph\.D|Dip\s?Eng|HDip|PMP|MBA|Eur\s?Ing|EurIng)"
+    r"(?:\s*\([^)]*\))?\.?)+\s*$",
+    re.I,
+)
+
+
+def strip_postnominals(name: str) -> str:
+    """'Kate FitzGerald CEng MIEI' -> 'Kate FitzGerald'. Post-nominals are
+    evidence (they feed the chartered gate from the quote), not part of the
+    name; a card that greets someone by their letters reads as machine output."""
+    if not name:
+        return name
+    return _POSTNOMINAL_RE.sub("", name.strip()).strip(" ,")
 SYSTEM = """You extract evidenced claims about ONE engineer from public documents.
 
 You are part of a recruitment sourcing pipeline for an Irish recruitment
@@ -557,7 +574,7 @@ def extract_directory(
         # located_ie gate, so the title is checked before the firm default.
         person = Person(
             person_id=pid,
-            full_name=name,
+            full_name=strip_postnominals(name),
             current_title=title,
             current_employer=employer,
             location=(title if title and _OFFICE_RE.search(title) else default_location),

@@ -33,6 +33,7 @@ from pathlib import Path
 from urllib.parse import quote_plus
 
 from ..core.cache import head_ok
+from ..layers.extract import strip_postnominals
 from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
 from ..roles import ROLE1, ROLE2
 
@@ -642,7 +643,7 @@ def _reach_routes(person: dict, contact: dict) -> list[tuple[str, str, str]]:
     from ..layers.contact import _employer_domain, domain_of
 
     routes: list[tuple[str, str, str]] = []
-    name = (person.get("full_name") or "").strip()
+    name = strip_postnominals((person.get("full_name") or "").strip())
     employer = (person.get("current_employer") or "").strip()
     status = contact.get("email_status", "none")
     email = contact.get("email")
@@ -1070,7 +1071,7 @@ def row_html(
         buttons.append('<span class="none">No email address found</span>')
 
     who = (
-        '<p class="nm">' + e(person["full_name"]) + "</p>"
+        '<p class="nm">' + e(strip_postnominals(person["full_name"])) + "</p>"
         + '<p class="ro">'
         + e(person.get("current_title") or "Title not stated")
         + (" &middot; " + e(person["current_employer"])
@@ -1309,7 +1310,7 @@ def build(allow_placeholder_notice: bool = False) -> None:
                 {
                     "role": spec.title,
                     "tier": ev.get("tier", g["tier"]),
-                    "full_name": person["full_name"],
+                    "full_name": strip_postnominals(person["full_name"]),
                     "current_title": person.get("current_title") or "",
                     "current_employer": person.get("current_employer") or "",
                     "location": person.get("location") or "",

@@ -1775,6 +1775,13 @@ def _delivery_set() -> dict[str, list[str]]:
             t = _final_tier(pid, gate_out, adv)
             if t == "EXCLUDED":
                 continue
+            # 2026-09-11: a card with no named employer failed the acceptance
+            # gate ("every candidate has a named employer") after passing every
+            # hard gate. Held back by name, never silently.
+            if not (persons.get(pid) and (persons[pid].current_employer or "").strip()):
+                log("delivery: " + pid + " held back: no employer stated on any source")
+                overflow.setdefault(role_id + ":no_employer", []).append(pid)
+                continue
             # pid is the final key on purpose. Without it two candidates tied
             # on (tier, n_claims) are ordered by whatever the upstream
             # iteration happened to produce, and the renderer -- which walked

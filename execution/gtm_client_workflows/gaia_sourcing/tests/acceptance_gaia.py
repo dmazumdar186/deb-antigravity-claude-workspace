@@ -28,7 +28,7 @@ from ..layers import gates
 from ..roles import ROLE1, ROLE2, is_client_side
 
 OUT = CONFIG.deliverables_dir  # per campaign (GAIA_CAMPAIGN_ID)
-RUN = PKG_ROOT / "run" / "gaia-2026-08-20"
+RUN = CONFIG.run_dir  # per campaign (GAIA_CAMPAIGN_ID)
 
 FAILURES: list[str] = []
 CHECKS = 0

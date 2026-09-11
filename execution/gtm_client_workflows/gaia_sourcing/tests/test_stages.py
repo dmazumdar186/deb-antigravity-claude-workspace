@@ -59,7 +59,8 @@ def _person(pid: str, name: str, role_id: str, source: str, **kw) -> dict:
         "person_id": pid,
         "full_name": name,
         "current_title": kw.get("title"),
-        "current_employer": kw.get("employer"),
+        # delivery requires a named employer (2026-09-11); fixtures default to one
+        "current_employer": kw.get("employer", "Fixture Consulting Engineers"),
         "location": kw.get("location"),
         "doc_ids": kw.get("doc_ids", ["d1"]),
         "linkedin_url": kw.get("linkedin_url"),
