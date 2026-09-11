@@ -29,10 +29,10 @@ Each of these passed every hard gate but one. They are listed
 because a single named gap is something you can act on -- by
 widening the brief, or by asking us to verify the one open point.
 
-- Andrew Archer -- missing only: seniority_ceiling
-- Colin Wyllie -- Jacobs -- missing only: chartered
-- Gerry Healy -- Jacobs -- missing only: seniority_ceiling
-- Rory McDonnell -- Jacobs -- missing only: chartered
+- Andrew Archer -- missing only: above the seniority ceiling [seniority_ceiling]
+- Colin Wyllie -- Jacobs -- missing only: chartership evidence (Engineers Ireland) [chartered]
+- Gerry Healy -- Jacobs -- missing only: above the seniority ceiling [seniority_ceiling]
+- Rory McDonnell -- Jacobs -- missing only: chartership evidence (Engineers Ireland) [chartered]
 
 ## Client-side engineers (deliberately NOT in the shortlist)
 
