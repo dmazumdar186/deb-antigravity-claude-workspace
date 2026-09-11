@@ -1720,6 +1720,9 @@ _LICENSED_PROVIDER_MODULES = {
     "pdl": "gtm_client_workflows.gaia_sourcing.sources.pdl",
     "crustdata": "gtm_client_workflows.gaia_sourcing.sources.crustdata",
     "apollo": "gtm_client_workflows.gaia_sourcing.sources.apollo",
+    # Free, not licensed, but --coverage-test drives it the same way -- see
+    # sources/serper_people.py.
+    "serper_people": "gtm_client_workflows.gaia_sourcing.sources.serper_people",
 }
 
 # go/no-go threshold per RADAR_CONTRACTS.md section A: "40 matched with
@@ -2020,13 +2023,13 @@ def main() -> int:
     )
     ap.add_argument(
         "--coverage-test", default=None, metavar="PROVIDER",
-        help="fetch one page (limit 50) from a licensed source provider "
-             "(pdl/crustdata/apollo) and print matched/title/employer/"
-             "dates/city/cost plus a go/no-go line, then exit -- does not "
-             "touch a run directory. Requires the provider's own API key "
-             "(PDL_API_KEY/CRUSTDATA_API_KEY/APOLLO_API_KEY); see "
-             "deliverables/gaia_2026-09-10/KEY_INSTRUCTIONS.md. Combine "
-             "with --niche.",
+        help="fetch one page (limit 50) from a source provider "
+             "(pdl/crustdata/apollo/serper_people) and print matched/title/"
+             "employer/dates/city/cost plus a go/no-go line, then exit -- "
+             "does not touch a run directory. Requires the provider's own "
+             "API key (PDL_API_KEY/CRUSTDATA_API_KEY/APOLLO_API_KEY/"
+             "SERPER_API_KEY); see deliverables/gaia_2026-09-10/"
+             "KEY_INSTRUCTIONS.md. Combine with --niche.",
     )
     ap.add_argument(
         "--niche", default="structural", choices=sorted(_NICHE_TERMS),
