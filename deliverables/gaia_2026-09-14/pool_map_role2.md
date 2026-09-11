@@ -18,7 +18,7 @@ is a claim, not a finding.
 | chartered | 55 |
 | seniority | 53 |
 | located_ie | 47 |
-| discipline | 36 |
+| discipline | 34 |
 | employer_sector | 29 |
 | seniority_ceiling | 16 |
 | not_client | 1 |
@@ -30,6 +30,7 @@ because a single named gap is something you can act on -- by
 widening the brief, or by asking us to verify the one open point.
 
 - Andrew Archer -- missing only: above the seniority ceiling [seniority_ceiling]
+- Chris Conroy -- Jacobs -- missing only: chartership evidence (Engineers Ireland) [chartered]
 - Colin Wyllie -- Jacobs -- missing only: chartership evidence (Engineers Ireland) [chartered]
 - Gerry Healy -- Jacobs -- missing only: above the seniority ceiling [seniority_ceiling]
 - Rory McDonnell -- Jacobs -- missing only: chartership evidence (Engineers Ireland) [chartered]

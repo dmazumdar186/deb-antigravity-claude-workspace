@@ -2936,11 +2936,26 @@ def _check_rule_text(gate) -> str:
             "stated in a public source."
         )
     if gate.check == "located_ie":
+        counties = p.get("counties") or []
+        if p.get("treat_unknown_as") == "pass_with_note":
+            # item 2: the STRICT sentence below is false for a role whose
+            # unknown-residence fallback is opt-in accepted (Role 2's own
+            # Cork clause) -- the rule as actually enforced admits Irish
+            # scheme/client work with a confirm-on-first-call note, so the
+            # page must say that rather than "stated directly ... does not
+            # count", which this exact brief does not enforce.
+            text = "Lives in the Republic of Ireland"
+            if counties:
+                text += ", within " + ", ".join(counties)
+            text += (
+                "; until the rule is set, Irish scheme or client work is "
+                "accepted with a confirm-on-first-call note."
+            )
+            return text
         text = (
             "Lives in the Republic of Ireland, stated directly (a project "
             "in Ireland or the firm's office does not count)."
         )
-        counties = p.get("counties") or []
         if counties:
             text = text[:-1] + ", within " + ", ".join(counties) + "."
         return text
@@ -3349,8 +3364,6 @@ _OUTSIDE_ROI_PLACES: list[tuple[str, re.Pattern]] = [
 # fails the residence-shape test below, so it is mapped to the same
 # absence line rather than passed through verbatim.
 _LOCATED_IE_NOTE_MAP = {
-    "no direct residence evidence; irish scheme work only":
-        "No statement of where they live was found; only Irish project work.",
     "no public evidence of an ireland-based location found.":
         "No statement of where they live was found.",
     "evidence places this candidate outside ireland.":
@@ -3403,7 +3416,7 @@ def _claim_evidence(c: dict) -> dict:
 
 
 def _check_located_ie_reason(
-    note: Optional[str], person: dict, claims: list[dict]
+    note: Optional[str], basis: Optional[str], person: dict, claims: list[dict]
 ) -> tuple[str, str, list[dict]]:
     """(plain-English reason, residence bucket for summary.residence --
     ALWAYS one of 'outside_republic' | 'no_evidence' | 'unclassified' --
@@ -3495,7 +3508,29 @@ def _check_located_ie_reason(
                 "outside_republic", [],
             )
 
-    mapped = _LOCATED_IE_NOTE_MAP.get((note or "").strip().lower())
+    note_key = (note or "").strip().lower()
+    if note_key == "no direct residence evidence; irish scheme work only":
+        # Adversarial-audit fix 2026-09-11 item 3: the SAME note covers two
+        # different facts -- a scheme/project claim ("worked on the N6
+        # Galway scheme") is evidence the person worked in Ireland; an
+        # employer claim about the firm's own Irish office ("first joined
+        # the Cork office of Horganlynch") is evidence about the FIRM, not
+        # a stated place of residence either way. Read the basis claim's
+        # own dimension (this note's basis is always `scheme_hit.claim_id`
+        # -- see layers/gates.py::check_located_ie) rather than treating
+        # both shapes as one generic "Irish project work" line.
+        basis_claim = next((c for c in claims if c.get("claim_id") == basis), None)
+        evidence = [_claim_evidence(basis_claim)] if basis_claim else []
+        if basis_claim and basis_claim.get("dimension") == "employer":
+            return (
+                "No statement of where they live was found; only the "
+                "firm's Irish office."
+            ), "no_evidence", evidence
+        return (
+            "No statement of where they live was found; only Irish "
+            "project work."
+        ), "no_evidence", evidence
+    mapped = _LOCATED_IE_NOTE_MAP.get(note_key)
     if mapped:
         return mapped, "no_evidence", []
     if note:
@@ -3579,18 +3614,48 @@ _SENIORITY_FLOOR_NO_EVIDENCE_RE = re.compile(
 )
 
 
-def _check_seniority_floor_reason(note: Optional[str]) -> str:
+def _check_seniority_floor_reason(note: Optional[str], unverified_years: bool = False) -> str:
+    """Adversarial-audit fix 2026-09-11 item 5: `unverified_years` is True
+    when extract.json carries a years_experience claim for this person
+    that did NOT survive L6 quote validation (present in extract, absent
+    from validate) -- factual, not a guess at what the figure was."""
     if note and _SENIORITY_FLOOR_NO_EVIDENCE_RE.match(note.strip()):
-        return (
+        reason = (
             "No stated years-of-experience figure was found (the check "
             "does not infer years from join dates)."
         )
+        if unverified_years:
+            reason += (
+                " (a years figure exists in the source but could not be "
+                "verified character by character)"
+            )
+        return reason
     return note or GATE_ID_LABELS.get("seniority", "seniority evidence")
+
+
+# Basis markers that name a FIELD, not a claim_id -- never looked up in the
+# claims list (see check_employer_sector/check_seniority_ceiling's
+# "person.title"/"person.location" bases in layers/gates.py).
+_CHECK_NON_CLAIM_BASIS_MARKERS = {"person.title", "person.location", "person.employer"}
+
+
+def _basis_claim_evidence(basis: Optional[str], claims: list[dict]) -> list[dict]:
+    """Adversarial-audit fix 2026-09-11 (second pass) item 1: whenever a
+    failed gate's own basis names a claim, that claim belongs in the row's
+    evidence -- generalised across every gate, not just the ones with
+    their own hand-written reason branch. Gerry Healy's seniority_ceiling
+    failure ('Evidenced at 26 years' experience...') has a years-claim
+    basis that no gate-specific branch above attaches; this catches it
+    (and every other gate's basis claim) in one place."""
+    if not basis or basis in _CHECK_NON_CLAIM_BASIS_MARKERS:
+        return []
+    claim = next((c for c in claims if c.get("claim_id") == basis), None)
+    return [_claim_evidence(claim)] if claim else []
 
 
 def _check_failed_rec(
     g, spec: JobSpec, person: dict, claims: list[dict],
-    person_obj, claim_objs,
+    person_obj, claim_objs, unverified_years: bool = False,
 ) -> tuple[dict, Optional[str], list[dict], Optional[str]]:
     """One failed[] entry (gate_id/label/reason), the residence bucket to
     tally in summary.residence (only ever set for located_ie), any extra
@@ -3607,17 +3672,25 @@ def _check_failed_rec(
             g.note, person_obj, claim_objs, _check_grade_label(spec)
         )
     elif g.gate_id == "located_ie":
-        reason, bucket, extra_evidence = _check_located_ie_reason(g.note, person, claims)
+        reason, bucket, extra_evidence = _check_located_ie_reason(
+            g.note, g.basis, person, claims
+        )
     elif g.gate_id == "seniority":
-        reason = _check_seniority_floor_reason(g.note)
+        reason = _check_seniority_floor_reason(g.note, unverified_years)
     else:
         reason = g.note or label
+    # item 1, generalised: the gate's own basis claim is evidence on the
+    # row regardless of which branch above ran.
+    for e in _basis_claim_evidence(g.basis, claims):
+        if e not in extra_evidence:
+            extra_evidence.append(e)
     return {"gate_id": g.gate_id, "label": label, "reason": reason}, bucket, extra_evidence, resolved_title
 
 
 def _check_one_line(
     status: str, failed_recs: list[dict], client_side: bool,
     person: dict, spec: JobSpec, how: str = "exact",
+    passed_with_note_count: int = 0,
 ) -> str:
     """Plain English, <=20 words, one deterministic template per status --
     never a model call. Banned words (AI/LLM/model/pipeline/automated/
@@ -3662,7 +3735,13 @@ def _check_one_line(
             clause = _lower_first_unless_grade_word(reason)
             if clause.endswith("."):
                 clause = clause[:-1]
-            return "Near miss: " + clause + "; everything else passes."
+            # item 2: a gate that PASSED with a note is not the same thing
+            # as a gate that passed cleanly -- named in the tail rather
+            # than folded silently into "everything else passes".
+            tail = "everything else passes"
+            if passed_with_note_count:
+                tail += ", " + str(passed_with_note_count) + " with a note"
+            return "Near miss: " + clause + "; " + tail + "."
         label = _CHECK_MISSING_LABELS.get(gid, GATE_ID_LABELS.get(gid, gid or "one rule"))
         return "Near miss: only " + label + " missing."
 
@@ -3772,6 +3851,14 @@ def run_check(
     persons_obj, by_person, roles = _persons_and_claims()
     persons_raw: dict[str, dict] = {pid: p.model_dump() for pid, p in persons_obj.items()}
 
+    # Adversarial-audit fix 2026-09-11 (second pass) item 5: raw extract.json
+    # claims, grouped by person, so a years_experience claim that never
+    # survived L6 quote validation (present in extract, absent from
+    # validate) can be surfaced factually rather than silently vanishing.
+    raw_claims_by_person: dict[str, list[dict]] = {}
+    for c in load("extract").get("claims", []):
+        raw_claims_by_person.setdefault(c.get("subject_person_id"), []).append(c)
+
     if check_role is not None and check_role not in local_roles:
         raise SystemExit(
             "--check-role: unknown role '" + check_role + "' (known: "
@@ -3805,6 +3892,7 @@ def run_check(
             # (layers/intake.py::slug_for_unmatched, itself
             # layers/extract.py::slugify_person_name).
             row_person_id = intake_module.slug_for_unmatched(row.name)
+            passed_with_note: list[dict] = []
         else:
             pid = m.person_id
             person = persons_raw[pid]
@@ -3823,12 +3911,33 @@ def run_check(
             gate_dicts = [g.model_dump() for g in results]
             client_side = is_client_side(person.get("current_employer"))
             status, failed = _check_classify(results, client_side)
+            # item 2: a gate that PASSED but carries a note (a confirm-on-
+            # first-call caveat) is currently invisible -- surfaced on the
+            # row so a PASS or NEAR_MISS card is never silently rosier than
+            # the evidence actually supports.
+            passed_with_note = [
+                {
+                    "gate_id": r.gate_id,
+                    "label": _check_gate_label_for(r.gate_id, spec),
+                    "note": r.note,
+                }
+                for r in results if r.passed and r.note
+            ]
+            # item 5: a years_experience claim that exists in extract.json
+            # but never survived L6 quote validation for this person.
+            validated_ids = {c.claim_id for c in pclaim_objs}
+            unverified_years = any(
+                c.get("dimension") == "years_experience"
+                and c.get("claim_id") not in validated_ids
+                for c in raw_claims_by_person.get(pid, [])
+            )
             failed_recs = []
             extra_evidence_all: list[dict] = []
             resolved_title: Optional[str] = None
             for g in failed:
                 rec, bucket, extra_ev, r_title = _check_failed_rec(
                     g, spec, person, pclaims, persons_obj[pid], pclaim_objs,
+                    unverified_years,
                 )
                 failed_recs.append(rec)
                 by_rule[g.gate_id] = by_rule.get(g.gate_id, 0) + 1
@@ -3883,6 +3992,7 @@ def run_check(
             status, failed_recs,
             is_client_side(person_for_line.get("current_employer")) if m.person_id else False,
             person_for_line, spec_for_line, how=m.how,
+            passed_with_note_count=len(passed_with_note),
         )
         row_out.append({
             "name": row.name,
@@ -3893,6 +4003,7 @@ def run_check(
             "status": status,
             "failed": failed_recs,
             "evidence": evidence,
+            "passed_with_note": passed_with_note,
             "contact": contact_status,
             "one_line": one_line,
             "linkedin_url": linkedin_url or "",

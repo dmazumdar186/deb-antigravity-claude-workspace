@@ -593,14 +593,30 @@ def check_discipline(
 ) -> GateResult:
     include = [t.lower() for t in params.get("include", [])]
     exclude = [t.lower() for t in params.get("exclude", [])]
-    blobs = [
+    include_blobs = [
         (c.claim_id, (c.assertion + " " + c.evidence_quote).lower())
         for c in _direct(_claims_by_dim(claims, "sector", "employer", "project"))
     ]
+    # Adversarial-audit fix 2026-09-11: an EXCLUDE term must never fire from
+    # an employer or project SENTENCE that merely mentions it in passing --
+    # "acting as Health and Safety Officer for O'Connor Sutton Cronin" is one
+    # duty among a Civil/Structural Associate Director's responsibilities,
+    # not a statement that the person IS a health-and-safety officer, and it
+    # wrongly excluded a structural engineer whose title said exactly that.
+    # Restricted to the two places an exclusion is actually a statement
+    # about what this person IS: their own stated discipline (a sector-
+    # dimension claim) or their title. INCLUDE matching is unchanged --
+    # sector/employer/project all still count as evidence FOR a discipline.
+    exclude_blobs = [
+        (c.claim_id, (c.assertion + " " + c.evidence_quote).lower())
+        for c in _direct(_claims_by_dim(claims, "sector"))
+    ]
     if person.current_title:
-        blobs.append(("person.title", person.current_title.lower()))
+        title_blob = ("person.title", person.current_title.lower())
+        include_blobs.append(title_blob)
+        exclude_blobs.append(title_blob)
 
-    for cid, blob in blobs:
+    for cid, blob in exclude_blobs:
         for term in exclude:
             if term in blob:
                 return GateResult(
@@ -609,7 +625,7 @@ def check_discipline(
                     basis=cid,
                     note="Evidence indicates an excluded discipline: " + term,
                 )
-    for cid, blob in blobs:
+    for cid, blob in include_blobs:
         for term in include:
             if term in blob:
                 return GateResult(gate_id="discipline", passed=True, basis=cid)

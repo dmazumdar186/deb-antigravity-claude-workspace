@@ -437,7 +437,7 @@ def test_located_ie_reason_outside_republic_from_stamped_location_field(R):
     is the extraction model's own inference, not a residence statement."""
     person = {"location": "London, UK", "location_source": "firm_default"}
     reason, bucket, evidence = R._check_located_ie_reason(
-        "no direct residence evidence; irish scheme work only", person, []
+        "no direct residence evidence; irish scheme work only", None, person, []
     )
     assert reason == "Based in London, outside the Republic of Ireland."
     assert bucket == "outside_republic"
@@ -447,7 +447,7 @@ def test_located_ie_reason_outside_republic_from_stamped_location_field(R):
 def test_located_ie_reason_unstamped_location_field_is_not_evidence(R):
     person = {"location": "London, UK", "location_source": None}
     reason, bucket, evidence = R._check_located_ie_reason(
-        "no direct residence evidence; irish scheme work only", person, []
+        "no direct residence evidence; irish scheme work only", None, person, []
     )
     assert "Based in" not in reason
     assert bucket == "no_evidence"
@@ -464,7 +464,7 @@ def test_located_ie_reason_outside_republic_from_genuine_residence_claim(R):
         "assertion": "Based in London", "source_url": "https://example.ie/p",
     }]
     reason, bucket, evidence = R._check_located_ie_reason(
-        "no direct residence evidence; irish scheme work only", person, claims
+        "no direct residence evidence; irish scheme work only", None, person, claims
     )
     assert reason == "Based in London, outside the Republic of Ireland."
     assert bucket == "outside_republic"
@@ -487,7 +487,7 @@ def test_located_ie_reason_office_quote_is_not_a_residence_statement(R):
         "assertion": "Joined the London office", "source_url": "https://example.ie/p",
     }]
     reason, bucket, evidence = R._check_located_ie_reason(
-        "no direct residence evidence; irish scheme work only", person, claims
+        "no direct residence evidence; irish scheme work only", None, person, claims
     )
     assert reason == "Joined the firm's London office in 2013; no statement of where they live."
     assert bucket == "no_evidence"
@@ -511,7 +511,7 @@ def test_located_ie_reason_office_history_two_office_claims(R):
         },
     ]
     reason, bucket, evidence = R._check_located_ie_reason(
-        "no direct residence evidence; irish scheme work only", person, claims
+        "no direct residence evidence; irish scheme work only", None, person, claims
     )
     assert reason == (
         "Office history: London (2013), Sofia (2016); no statement of "
@@ -539,7 +539,7 @@ def test_located_ie_reason_genuine_residence_wins_over_office_scanned_first(R):
         },
     ]
     reason, bucket, evidence = R._check_located_ie_reason(
-        "no direct residence evidence; irish scheme work only", person, claims
+        "no direct residence evidence; irish scheme work only", None, person, claims
     )
     assert reason == "Based in Belfast, outside the Republic of Ireland."
     assert bucket == "outside_republic"
@@ -571,7 +571,7 @@ def test_located_ie_reason_project_and_market_mentions_are_not_residence(R):
             "dimension": "location", "confidence": "direct",
             "evidence_quote": quote, "assertion": quote,
         }]
-        reason, bucket, evidence = R._check_located_ie_reason(note, person, claims)
+        reason, bucket, evidence = R._check_located_ie_reason(note, None, person, claims)
         assert "Based in" not in reason, (quote, reason)
         assert bucket == "no_evidence"
         assert reason == expected
@@ -579,7 +579,7 @@ def test_located_ie_reason_project_and_market_mentions_are_not_residence(R):
 
 def test_located_ie_reason_scheme_only_absence(R):
     reason, bucket, evidence = R._check_located_ie_reason(
-        "no direct residence evidence; Irish scheme work only", {}, []
+        "no direct residence evidence; Irish scheme work only", None, {}, []
     )
     assert reason == "No statement of where they live was found; only Irish project work."
     assert bucket == "no_evidence"
@@ -590,7 +590,7 @@ def test_located_ie_reason_evidence_outside_ireland_note_is_mapped_not_verbatim(
     note overclaims when the underlying quote is a project/market mention
     rather than residence -- it must never pass through verbatim."""
     reason, bucket, evidence = R._check_located_ie_reason(
-        "Evidence places this candidate outside Ireland.", {}, []
+        "Evidence places this candidate outside Ireland.", None, {}, []
     )
     assert reason == "No statement of where they live was found."
     assert bucket == "no_evidence"
@@ -598,14 +598,14 @@ def test_located_ie_reason_evidence_outside_ireland_note_is_mapped_not_verbatim(
 
 def test_located_ie_reason_no_evidence_at_all(R):
     reason, bucket, evidence = R._check_located_ie_reason(
-        "No public evidence of an Ireland-based location found.", {}, []
+        "No public evidence of an Ireland-based location found.", None, {}, []
     )
     assert reason == "No statement of where they live was found."
     assert bucket == "no_evidence"
 
 
 def test_located_ie_reason_never_says_not_in_ireland_when_merely_absent(R):
-    reason, bucket, evidence = R._check_located_ie_reason(None, {}, [])
+    reason, bucket, evidence = R._check_located_ie_reason(None, None, {}, [])
     assert "not in ireland" not in reason.lower()
     assert reason == "No statement of where they live was found."
 
@@ -615,7 +615,7 @@ def test_located_ie_reason_unrecognised_note_is_unclassified(R):
     recognise is shown verbatim but tallied as its own 'unclassified'
     bucket, never silently folded into 'no_evidence'."""
     reason, bucket, evidence = R._check_located_ie_reason(
-        "Some future gate note this mapping has never seen.", {}, []
+        "Some future gate note this mapping has never seen.", None, {}, []
     )
     assert bucket == "unclassified"
     assert reason == "Some future gate note this mapping has never seen."
@@ -946,3 +946,188 @@ def test_lower_first_unless_grade_word_keeps_grade_words_capitalised(R):
         "Associate Director grade, above the Senior Engineer ceiling."
     ) == "Associate Director grade, above the Senior Engineer ceiling."
     assert R._lower_first_unless_grade_word("") == ""
+
+
+# ---------------------------------------------------------------------------
+# Second adversarial audit, 2026-09-11
+# ---------------------------------------------------------------------------
+
+
+def _seniority_spec(role_id: str) -> JobSpec:
+    return JobSpec(
+        role_id=role_id, title="X", client="Gaia Talent", locations=["Ireland"],
+        target_count=5, primary_signal_dimension="technical_skill",
+        hard_gates=[
+            HardGate(gate_id="seniority", description="x", check="seniority_years",
+                      params={"min_years": 8}),
+        ],
+    )
+
+
+def test_failed_rec_attaches_basis_claim_evidence_for_years_ceiling_failure(R):
+    """item 1: Gerry Healy's real shape -- a seniority_ceiling failure via
+    the YEARS-evidenced branch (not the grade branch) still carries a
+    basis claim, and it must land in the row's evidence, generalised
+    across every gate rather than hand-added per branch."""
+    from gtm_client_workflows.gaia_sourcing.core.contracts import GateResult
+
+    spec = _ceiling_spec("role1_x")
+    person_obj = Person(person_id="p1", full_name="Gerry Healy", current_title=None)
+    claim = _grade_claim(
+        "clm_years", "I confirm that I have over 26 years post graduate experience"
+    ).model_copy(update={"dimension": "years_experience"})
+    g = GateResult(
+        gate_id="seniority_ceiling", passed=False, basis="clm_years",
+        note="Evidenced at 26 years' experience, above the 25-year ceiling.",
+    )
+    rec, bucket, extra_evidence, resolved_title = R._check_failed_rec(
+        g, spec, {}, [claim.model_dump()], person_obj, [claim],
+    )
+    assert rec["reason"] == "Evidenced at 26 years' experience, above the 25-year ceiling."
+    assert len(extra_evidence) == 1
+    assert extra_evidence[0]["quote"] == claim.evidence_quote
+
+
+def test_failed_rec_generalised_basis_evidence_for_any_gate(R):
+    """item 1, generalised: a discipline-gate failure's basis claim also
+    lands in evidence, not just seniority_ceiling/located_ie."""
+    from gtm_client_workflows.gaia_sourcing.core.contracts import GateResult
+
+    spec = _ceiling_spec("role1_x")
+    person_obj = Person(person_id="p1", full_name="Test Person")
+    claim = _grade_claim("clm_disc", "Qualified town planner").model_copy(
+        update={"dimension": "sector"}
+    )
+    g = GateResult(
+        gate_id="discipline", passed=False, basis="clm_disc",
+        note="Evidence indicates an excluded discipline: town planner",
+    )
+    rec, bucket, extra_evidence, resolved_title = R._check_failed_rec(
+        g, spec, {}, [claim.model_dump()], person_obj, [claim],
+    )
+    assert len(extra_evidence) == 1
+    assert extra_evidence[0]["quote"] == claim.evidence_quote
+
+
+def test_passed_with_note_appears_in_row_and_one_line_suffix(R, tmp_path):
+    """item 2: a gate that passed WITH a note (a confirm-on-first-call
+    caveat) is surfaced on the row, and a NEAR_MISS one_line names how
+    many such notes exist."""
+    persons = {"eve_note": _person("eve_note", "Eve Note")}
+    claims = [
+        _claim("eve_note", "c1", "employer", "Works on an Irish scheme",
+               "Eve worked on the N6 Galway scheme in Ireland"),
+    ]
+    (tmp_path / "extract.json").write_text(json.dumps({"persons": persons}), encoding="utf-8")
+    (tmp_path / "validate.json").write_text(json.dumps({"claims": claims}), encoding="utf-8")
+    input_csv = tmp_path / "in.csv"
+    input_csv.write_text("name\nEve Note\n", encoding="utf-8")
+    # --lenient-location, explicit: --check's own Role-1 "no flags"
+    # default otherwise forces require_direct_evidence -- this test wants
+    # the scheme-fallback PASS-with-note path, not that stricter default.
+    contract = R.run_check(str(input_csv), tmp_path / "out", lenient_location=True)
+    row = contract["rows"][0]
+    assert row["status"] == "NEAR_MISS"  # fails chartered only; located_ie passes with a note
+    assert len(row["passed_with_note"]) == 1
+    assert row["passed_with_note"][0]["gate_id"] == "located_ie"
+    assert row["one_line"].endswith("everything else passes, 1 with a note.")
+
+
+def test_check_rule_text_located_ie_pass_with_note_wording():
+    """item 2: Role 2's exact wording when treat_unknown_as is
+    pass_with_note."""
+    gate = HardGate(
+        gate_id="located_ie", description="stale", check="located_ie",
+        params={"counties": ["Cork"], "treat_unknown_as": "pass_with_note"},
+    )
+    from gtm_client_workflows.gaia_sourcing import run as mod
+    text = mod._check_rule_text(gate)
+    assert text == (
+        "Lives in the Republic of Ireland, within Cork; until the rule is "
+        "set, Irish scheme or client work is accepted with a "
+        "confirm-on-first-call note."
+    )
+
+
+def test_located_ie_reason_scheme_only_employer_basis_says_firms_office(R):
+    """item 3: an employer/office-shaped basis claim -> firm's Irish
+    office, never generic 'Irish project work' (Pat Brady's real shape)."""
+    claims = [{
+        "claim_id": "c1", "dimension": "employer", "confidence": "direct",
+        "evidence_quote": "first joined the Cork office of Horganlynch in 1990",
+        "assertion": "Joined the Cork office", "source_url": "https://example.ie/p",
+    }]
+    reason, bucket, evidence = R._check_located_ie_reason(
+        "no direct residence evidence; Irish scheme work only", "c1", {}, claims,
+    )
+    assert reason == "No statement of where they live was found; only the firm's Irish office."
+    assert bucket == "no_evidence"
+    assert evidence and evidence[0]["quote"] == claims[0]["evidence_quote"]
+
+
+def test_located_ie_reason_scheme_only_project_basis_says_irish_project_work(R):
+    """item 3: a project/statutory_process basis claim keeps the existing
+    'Irish project work' wording."""
+    claims = [{
+        "claim_id": "c2", "dimension": "project", "confidence": "direct",
+        "evidence_quote": "worked on the N6 Galway City Ring Road scheme",
+        "assertion": "Worked on N6 scheme", "source_url": "https://example.ie/p",
+    }]
+    reason, bucket, evidence = R._check_located_ie_reason(
+        "no direct residence evidence; Irish scheme work only", "c2", {}, claims,
+    )
+    assert reason == "No statement of where they live was found; only Irish project work."
+    assert bucket == "no_evidence"
+
+
+def test_seniority_floor_unverified_years_suffix(R):
+    """item 5: factual suffix when a years claim exists in extract.json
+    but never survived L6 quote validation."""
+    reason = R._check_seniority_floor_reason(
+        "No public evidence of 10+ years' experience found.", True,
+    )
+    assert reason == (
+        "No stated years-of-experience figure was found (the check does "
+        "not infer years from join dates). (a years figure exists in the "
+        "source but could not be verified character by character)"
+    )
+
+
+def test_seniority_floor_no_suffix_when_verified_or_absent(R):
+    reason = R._check_seniority_floor_reason(
+        "No public evidence of 10+ years' experience found.", False,
+    )
+    assert "years figure exists" not in reason
+
+
+def test_run_check_unverified_years_end_to_end(R, tmp_path, monkeypatch):
+    """item 5, end to end: extract.json carries a years_experience claim
+    for this person that never made it into validate.json."""
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    spec = _seniority_spec(R1)
+    monkeypatch.setattr(mod, "ROLE1", spec)
+    monkeypatch.setattr(mod, "ROLES", {spec.role_id: spec})
+
+    persons = {"sam_unverified": _person("sam_unverified", "Sam Unverified")}
+    extract_data = {
+        "persons": persons,
+        "claims": [{
+            "claim_id": "yc1", "subject_person_id": "sam_unverified",
+            "dimension": "years_experience", "assertion": "Over 20 years",
+            "evidence_quote": "a phrase that never validated",
+            "source_doc_id": "d1", "source_url": "https://example.ie/p",
+            "confidence": "direct",
+        }],
+    }
+    (tmp_path / "extract.json").write_text(json.dumps(extract_data), encoding="utf-8")
+    (tmp_path / "validate.json").write_text(json.dumps({"claims": []}), encoding="utf-8")
+    input_csv = tmp_path / "in.csv"
+    input_csv.write_text("name\nSam Unverified\n", encoding="utf-8")
+    contract = mod.run_check(str(input_csv), tmp_path / "out")
+    row = contract["rows"][0]
+    seniority_fail = next(f for f in row["failed"] if f["gate_id"] == "seniority")
+    assert seniority_fail["reason"].endswith(
+        "(a years figure exists in the source but could not be verified "
+        "character by character)"
+    )
