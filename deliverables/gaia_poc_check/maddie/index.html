@@ -1,0 +1,134 @@
+<title>Shortlist Check Engineering Notes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F7F8F6; --panel:#F6F8F6; --ink:#16211C; --muted:#5C6B63; --line:#DFE5E0;
+  --accent:#1D6F4F; --warn:#8A5A00; --warnbg:#FFF6E5; --stamp:#9B2C1F; --stampbg:#FBEFEC; --code:#EEF2EF;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#121815; --panel:#1A231E; --ink:#E8EDE9; --muted:#9AA79F; --line:#2A3630;
+  --accent:#4FBF8E; --warn:#E0B46A; --warnbg:#2A2410; --stamp:#E07A6B; --stampbg:#2E1A17; --code:#1F2A24;
+}}
+:root[data-theme="dark"]{
+  --paper:#121815; --panel:#1A231E; --ink:#E8EDE9; --muted:#9AA79F; --line:#2A3630;
+  --accent:#4FBF8E; --warn:#E0B46A; --warnbg:#2A2410; --stamp:#E07A6B; --stampbg:#2E1A17; --code:#1F2A24;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;padding-block:32px 72px;padding-inline:20px}
+.wrap{max-width:960px;margin:0 auto}
+.eyebrow{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 8px;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:20px;margin:40px 0 10px;text-wrap:balance}
+h3{font-size:16px;margin:22px 0 6px}
+p{max-width:65ch;margin:0 0 12px}
+.lede{color:var(--muted);font-size:15px}
+.rule{border:0;border-top:3px solid var(--accent);margin:18px 0 24px}
+ul{max-width:70ch;padding-left:20px;margin:0 0 12px}
+li{margin:0 0 6px}
+code,pre{font-family:"IBM Plex Mono",Consolas,monospace;font-size:13px}
+code{background:var(--code);padding:1px 5px;border-radius:3px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:5px;padding:12px 14px;overflow-x:auto;margin:0 0 14px;line-height:1.5}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:0 0 14px}
+th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--accent);padding:0 10px 6px}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td.mono{font-family:"IBM Plex Mono",Consolas,monospace;font-size:13px;white-space:nowrap}
+.tw{overflow-x:auto}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 18px}
+.flow div{border:1px solid var(--line);background:var(--panel);padding:12px;font-size:14px}
+.flow div strong{display:block;margin-bottom:4px}
+.flow div.mine{border-color:var(--accent)}
+.flow .own{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.note{background:var(--warnbg);border-left:4px solid var(--warn);padding:10px 12px;margin:14px 0;max-width:70ch}
+.boundary{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin:14px 0;max-width:70ch}
+footer{margin-top:44px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:760px){.flow{grid-template-columns:1fr 1fr}}
+@media (max-width:460px){.flow{grid-template-columns:1fr}h1{font-size:26px}}
+@media print{body{padding:0}pre{white-space:pre-wrap}}
+</style>
+<div class="wrap">
+<p class="eyebrow">Gaia Talent · Shortlist Check · engineering notes</p>
+<h1>What runs before the screener, and how it stays out of its way</h1>
+<p class="lede">For Maddie, who built Gaia's inbound screener. This is the technical companion to Keith's one-page check. It describes a verification stage that sits upstream of the inbound flow, writes into Recruit CRM in the shape Maddie already expects, and never touches an applicant.</p>
+<hr class="rule">
+
+<h2>Where it sits</h2>
+<div class="flow">
+  <div><span class="own">Gaia · exists</span><strong>Names</strong>Recruit CRM AI Sourcing, LinkedIn Recruiter, a consultant's own list. Exported as CSV or pasted.</div>
+  <div class="mine"><span class="own">Prodcraft · this</span><strong>Check</strong>Locate public evidence per name, extract claims with a verbatim quote, validate the quote against the cached page, apply the brief as hard gates.</div>
+  <div class="mine"><span class="own">Prodcraft · this</span><strong>Hand-off</strong>PASS names upserted in Recruit CRM at stage "Sourced" with an evidence note and the Article 14 date. Dry-run by default.</div>
+  <div><span class="own">Gaia · Maddie's screener</span><strong>Screening</strong>A reply of "interested" moves the candidate to the stage the screener already listens on. Its trigger, its scoring, its call. Unchanged.</div>
+</div>
+<div class="boundary">
+<strong>The boundary, stated once.</strong> Maddie's screener owns everything from "a person is in the CRM and talking to Gaia" onward. This stage owns "is this name worth a consultant's hour, and what is the proof". It produces a candidate record and a note; it does not score CVs, does not invite to screening, does not send. If a sourced candidate entering at "Sourced" would fire the inbound trigger twice, the stage name is a config value and we pick one that does not.
+</div>
+
+<h2>The evidence rule</h2>
+<p>No quote, no claim. Every claim about a person carries a verbatim <code>evidence_quote</code> (12 to 400 characters) and a <code>source_doc_id</code>. The validator re-reads the cached document and rejects any quote that is not present character for character. Rejected claims are dropped, never softened; the drop rate is reported on the scorecard. Gates only see validated claims.</p>
+<pre>Claim(claim_id, subject_person_id, dimension, assertion ≤ 280 chars,
+      evidence_quote 12–400 chars, source_doc_id, source_url,
+      confidence: direct | inferred)
+ValidatedClaim(… , quote_verified: bool)
+GateResult(gate_id, passed, basis: claim_id, note)</pre>
+<p>Only <code>confidence = direct</code> claims can satisfy a hard gate. Inferred claims are shown on the card as "inferred, not directly stated" and never pass anything.</p>
+
+<h2>The gates are code, not prompts</h2>
+<div class="tw"><table>
+<tr><th>Gate</th><th>Passes on</th><th>Does not pass on</th></tr>
+<tr><td class="mono">chartered</td><td>CEng with MIEI, FIEI ("C. Eng", "F.I.E.I." accepted) or "Engineers Ireland" in a direct quote naming the person</td><td>MIEI alone; ICE or IStructE alone</td></tr>
+<tr><td class="mono">located_ie</td><td>A residence-shaped quote: "based in Dublin", "Location: County Meath", "Dublin, County Dublin, Ireland"; county lists when the brief sets them</td><td>Project locations, universities, "across the UK and Ireland", a firm's office default when the brief requires direct evidence; unstamped location fields still exclude Belfast and London</td></tr>
+<tr><td class="mono">seniority_ceiling</td><td>Highest rung across the person's title and every employer quote naming them is at or below the brief's ceiling</td><td>"Head of Design" on the firm's own page, Associate, Director, above the set rung</td></tr>
+<tr><td class="mono">seniority</td><td>Years floor from a direct quote</td><td>Years inferred from a title</td></tr>
+<tr><td class="mono">discipline</td><td>Direct evidence of the brief's discipline</td><td>Adjacent disciplines</td></tr>
+<tr><td class="mono">not_client</td><td>Employer is not the end client or an off-limits firm</td><td>TOBIN, AtkinsRéalis, the commissioning bodies (listed separately, never hidden)</td></tr>
+<tr><td class="mono">employer_sector</td><td>Consultancy</td><td>Client-side bodies are set aside in their own list</td></tr>
+</table></div>
+<p>A composition guard refuses any delivery whose grades or locations violate the brief. That guard is the one-line check that would have caught the 20 August list. The brief is a typed object (<code>JobSpec</code> with <code>SeniorityBand</code> and <code>LocationRule</code>); CLI overrides <code>--max-grade</code>, <code>--counties</code>, <code>--strict-location</code> mutate it before any stage runs, so a re-cut is a gate re-run on cached evidence, no model call.</p>
+
+<h2>Intake for names Gaia already has</h2>
+<p>New in this proof of concept. A CSV or pasted list (name, employer, title, LinkedIn URL; only name is required) is normalised (case-folded, accent-stripped, post-nominals removed, O'Reilly and O’Reilly identical) and matched against the assessed pool. Matched names are gated immediately and offline. Unmatched names go to discovery: a search scoped to name plus employer, a fetch of the person's own page and the firm's people page, extraction, validation, gates. Discovery is built on the same pattern the pipeline uses for technical evidence and is budget-capped per run; the proof of concept ran on names already in the pool, at zero model spend.</p>
+<pre>python3 -m gtm_client_workflows.gaia_sourcing.run --check names.csv --max-grade senior_engineer --strict-location
+# writes check_results.json, check.csv (CRM-importable), and the one-page report</pre>
+
+<h2>Cost and speed per name</h2>
+<div class="tw"><table>
+<tr><th>Step</th><th>Calls</th><th>Model</th><th>Approx cost</th></tr>
+<tr><td>Match against pool</td><td>none</td><td>none</td><td class="mono">EUR 0.00</td></tr>
+<tr><td>Discovery for a new name</td><td>2–4 search, 2–3 fetch</td><td>none</td><td class="mono">EUR 0.02–0.05</td></tr>
+<tr><td>Extraction</td><td>1 per document</td><td>Sonnet class</td><td class="mono">EUR 0.05–0.15</td></tr>
+<tr><td>Validation, gates, render</td><td>none</td><td>none</td><td class="mono">EUR 0.00</td></tr>
+<tr><td>Second opinion (optional)</td><td>1 per PASS card</td><td>top tier</td><td class="mono">≈ EUR 0.12</td></tr>
+</table></div>
+<p>A 50-name list therefore costs on the order of EUR 5 to 15 and returns inside an hour. Every provider call is metered against a per-run and a cumulative ceiling and the run stops, loudly, when a ceiling is hit.</p>
+
+<h2>Recruit CRM adapter</h2>
+<ul>
+<li>Endpoints used: create or update candidate, add note, assign to job. Update writes only empty fields; a consultant's data is never overwritten. Dedupe on email or LinkedIn URL.</li>
+<li>Dry-run is the default: every write is appended to an audit log (<code>logs/recruit_crm_audit.jsonl</code>) and nothing goes over the wire. Live mode needs <code>RECRUIT_CRM_API_KEY</code> (Business plan or above) and an explicit flag. Write cap of 50 per run in both modes.</li>
+<li>Field names are marked assumed until the first live run, which is treated as a contract test against your account, with you watching.</li>
+<li>On the Pro plan the same payload goes through Zapier's Recruit CRM app or the CSV import. Same columns either way.</li>
+</ul>
+
+<h2>Replies</h2>
+<p>Rules first, model fallback, opt-out honoured: interested, not now, no, question, out of office, bounce. "Not now" snoozes 90 days and writes a note; STOP closes the record and erases. This is the one place a model is allowed near a customer message, and its output is a label, never a sent message. Any send is a consultant, from their own seat.</p>
+
+<h2>Verification of the work itself</h2>
+<ul>
+<li>Unit and contract tests across gates, validator, identity, intake, adapters and rendering; the suite runs on every change.</li>
+<li>An acceptance gate reads the finished deliverable as a managing director would: every claim has a quote and a source link, no client-side firm in the shortlist, links resolve, gaps admitted.</li>
+<li>Independent adversarial audits count from source; every substantive finding so far became a regression test.</li>
+<li>Deterministic scorecard per delivery: composition violations (must be 0), quote drop rate, grade precision, residence precision, cost per delivered card.</li>
+</ul>
+
+<div class="note">
+<strong>Honest limits.</strong> The Engineers Ireland register is not automated until its terms are checked; chartership is currently evidenced from the person's own post-nominals and the employer's page, and the card says which. Coverage for the 8 to 15 year grade needs a licensed people-data source; the public record is senior by construction. Both are pilot-scope decisions, not promises.
+</div>
+
+<h2>What I would like from you</h2>
+<ul>
+<li>The Recruit CRM plan tier and, if Business or above, an API key scoped to a test job.</li>
+<li>The stage name the screener's trigger listens on, so the sourced stage is chosen to sit before it.</li>
+<li>Half an hour on the first live adapter run.</li>
+</ul>
+
+<footer>Prepared by Debanjan Mazumdar, Prodcraft, September 2026. Companion to Keith's one-page check. Source: the gaia_sourcing package, campaign gaia-2026-09-14.</footer>
+</div>

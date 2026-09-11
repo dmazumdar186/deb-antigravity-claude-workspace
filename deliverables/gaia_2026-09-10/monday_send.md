@@ -2,6 +2,7 @@
 
 Two things the operator sends: the email (§1) and the Loom it links to (§2, script).
 Facts come from `deliverables/gaia_2026-09-14/` (campaign `gaia-2026-09-14`) and the runbook §1c.
+Record check 2026-09-11: Keith's feedback on the 20 August list, as recorded in commit a626381 on the morning of the call, was "too senior, some not in Ireland", so "you were right on both" stands (on the call itself he repeated only the seniority point; the transcript is in `transcript_2026-09-10_fathom.md`). Maddie is the developer who built Gaia's inbound screener (operator's correction; the Fathom transcript garbles the name as "Steph"). Also, the call brief's "Brady (Horganlynch Belfast)" is wrong. The August dossier says he joined Horganlynch's Cork office in 1990 and only names a Belfast project, and the current cache reads his location as Cork. Say "three London, one unproven", never "Belfast".
 Words never used with Keith: AI, platform, system, automated, 2.3x. Say: the filter, the list, corrected, verified, checked by hand.
 No price in this email; the follow-up call does that.
 
@@ -16,12 +17,14 @@ Keith,
 
 As promised on Thursday. Three links, one short video, then the honest numbers.
 
+You said the August list was too senior and that some were not in Ireland. You were right on both. Both were filter settings; both are fixed below.
+
 - Corrected shortlist: https://claude.ai/code/artifact/16f9282e-e30e-4a4b-b6e2-624d836a7e80
 - Brief Controls (your 20 August list with the two filters you can set yourself): https://claude.ai/code/artifact/3d47597e-04bd-42ec-bb15-ce6126b93703
-- The page for Steph, on where this hands over to Maddie and Recruit CRM: https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed
+- The page for Maddie, on where this hands over to her screener and Recruit CRM: https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed
 - Loom, 5 minutes: {LOOM_URL}
 
-Could you forward the third link to Steph? It is written for her.
+Could you forward the third link to Maddie? It is written for her.
 
 **Where the corrected list stands**
 
@@ -31,7 +34,7 @@ Transport Major Projects Manager, Cork: 65 checked, 0 delivered against the 5 as
 
 I would rather send you two right names than ten wrong ones again, so that is what this is. The rules now doing the cutting:
 
-- Residence: only a statement of where the person lives counts ("based in Dublin", "Location: County Meath"). Working on an Irish scheme, or a firm's Irish office, no longer counts. The London and Belfast four from 20 August fall out on this rule.
+- Residence: only a statement of where the person lives counts ("based in Dublin", "Location: County Meath"). Working on an Irish scheme, or a firm's Irish office, no longer counts. Three of the 20 August names (Taskov, Petho, Penco, all London) fall out on this rule, and Pat Brady drops until someone confirms where he lives: the August evidence only says "Ireland" and lists a Belfast project.
 - Seniority: a ceiling as well as a floor, read from the title and from what their employer says about them. Head of Design, Associate, Director and above are out.
 - Chartership: CEng plus Engineers Ireland (MIEI/FIEI) needed. MIEI alone, or ICE/IStructE alone, does not pass.
 - Contact: verified or labelled. Alicia has no verified email, so her card says "none, call the firm" rather than a guessed address.
@@ -40,11 +43,11 @@ The near-misses are listed under each role. For the structural role: 14 people m
 
 The Cork role cannot reach five by filtering. The pool we searched (consultancy leadership pages, oral-hearing witnesses) is senior by construction. Reaching Cork-based transport leads at the right grade needs a licensed people-data source, which is a separate, paid step I have not taken without your say-so.
 
-**Two questions, one line each, and one for Steph**
+**Two questions, one line each, and one for Maddie**
 
 1. Seniority ceiling for the structural role: Senior Engineer only, or is Principal / Associate acceptable? A salary band answers this best.
 2. Ireland rule: resident in the Republic only? For Cork, what commute radius, and are returning relocators in or out?
-3. For Steph: which Recruit CRM plan are you on? API access needs Business or above. On Pro, the hand-off runs through Zapier or the CSV import, which is fine, just a different wire.
+3. For Maddie: which Recruit CRM plan are you on? API access needs Business or above. On Pro, the hand-off runs through Zapier or the CSV import, which is fine, just a different wire.
 
 Reply with the three answers and I will re-cut the list the same day, no charge. If it is not a clear improvement on seniority and location, you owe nothing and we stop here.
 
@@ -62,13 +65,13 @@ Screen setup before recording: three tabs in this order: Brief Controls, correct
 
 On screen: Brief Controls, untouched, showing the 20 August 13.
 
-Say: "Keith, you said two things on Thursday and both were right. First, the list was too senior: ten out of ten on the structural role were Director or Associate Director. That was our filter, it had a floor and no ceiling, and it treated a Director title as proof of experience. Second, four were not in Ireland: Taskov, Petho, Penco in London, Brady in Belfast. That filter accepted 'worked on an Irish scheme' as living in Ireland. Both were settings. Here is what changed."
+Say: "Keith, you said two things and both were right. First, the list was too senior: ten out of ten on the structural role were Director or Associate Director. That was our filter, it had a floor and no ceiling, and it treated a Director title as proof of experience. Second, some were not in Ireland: Taskov, Petho and Penco are London-based, and a fourth, Pat Brady, had no residence evidence at all, only a project list. That filter accepted 'worked on an Irish scheme' as living in Ireland. Both were settings. Here is what changed."
 
 ### Step 2 (0:45–1:45) — Brief Controls, the re-cut
 
 On screen: Brief Controls. Set the seniority ceiling to Senior Engineer. Then set the Ireland rule to Republic only, direct evidence required.
 
-Say: "This is your 20 August list with the two rules as controls. Ceiling to Senior Engineer." (Watch the Director and Associate Director names drop.) "Ireland rule to Republic, direct evidence." (Watch the London and Belfast four drop.) "What's left is the 'missed by one' list: each name and the single thing it was missing. You can set these yourself; nothing here needs me."
+Say: "This is your 20 August list with the two rules as controls. Ceiling to Senior Engineer." (Watch the Director and Associate Director names drop.) "Ireland rule to Republic, direct evidence." (Watch the three London names and Brady drop.) "What's left is the 'missed by one' list: each name and the single thing it was missing. You can set these yourself; nothing here needs me."
 
 Do not tour the interface. Two control changes, then move on.
 
@@ -80,20 +83,20 @@ Say: "The corrected run. Structural role: 471 checked, two delivered. Alicia Joy
 
 ### Step 4 (2:45–3:45) — The hand-off
 
-On screen: terminal. Run the dry-run sync, then the reply classifier. Then switch to the v2 page, section "What Steph needs to know".
+On screen: terminal. Run the dry-run sync, then the reply classifier. Then switch to the v2 page, section "What Maddie needs to know".
 
 ```
 python3 -m gtm_client_workflows.gaia_sourcing.run --stage sync_crm
 python3 -m gtm_client_workflows.gaia_sourcing.run --classify-reply "Thanks, not looking right now"
 ```
 
-Say: "This is where it meets Recruit CRM. Dry-run first: each delivered card becomes a candidate on the job, deduplicated on email or LinkedIn URL, never overwriting a consultant's data, with the evidence note and the Article 14 notice date. A reply comes back and gets classified: interested, not now, no, question, bounce. 'Not now' snoozes 90 days and writes a note. 'Interested' sets the stage you choose, and Maddie or Isadora take it from there, exactly as they do for applicants. Nothing sends on its own; a named consultant sends from their own seat. The page for Steph has the fields and endpoints."
+Say: "This is where it meets Recruit CRM. Dry-run first: each delivered card becomes a candidate on the job, deduplicated on email or LinkedIn URL, never overwriting a consultant's data, with the evidence note and the Article 14 notice date. A reply comes back and gets classified: interested, not now, no, question, bounce. 'Not now' snoozes 90 days and writes a note. 'Interested' sets the stage you choose, and Maddie's screener or Isadora take it from there, exactly as they do for applicants. Nothing sends on its own; a named consultant sends from their own seat. The page for Maddie has the fields and endpoints."
 
 ### Step 5 (3:45–4:30) — What I need from you
 
 On screen: back to Brief Controls, cursor on the two controls.
 
-Say: "Three lines back from you. One: seniority ceiling for the structural role, Senior Engineer only, or Principal and Associate too; a salary band is the cleanest answer. Two: the Ireland rule, Republic only, and for Cork the commute radius and whether relocators count. Three, for Steph: which Recruit CRM plan you are on, because API access starts at Business. And if you tell me which two live roles matter most this month, those run next. That's it. Thanks Keith."
+Say: "Three lines back from you. One: seniority ceiling for the structural role, Senior Engineer only, or Principal and Associate too; a salary band is the cleanest answer. Two: the Ireland rule, Republic only, and for Cork the commute radius and whether relocators count. Three, for Maddie: which Recruit CRM plan you are on, because API access starts at Business. And if you tell me which two live roles matter most this month, those run next. That's it. Thanks Keith."
 
 Stop recording. Paste the link into `{LOOM_URL}` above.
 

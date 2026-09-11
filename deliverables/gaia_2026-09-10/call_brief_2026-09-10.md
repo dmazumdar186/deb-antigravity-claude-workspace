@@ -1,5 +1,7 @@
 # Keith Molony call brief — Thu 10 Sep 2026, 17:00, 15 minutes
 
+> Corrections after the call (2026-09-11): Pat Brady is at Horganlynch's Cork office, not Belfast (the dossier names a Belfast project); the residence miss is three London names plus Brady with no residence evidence. The developer who built Gaia's inbound screener is Maddie; there is no Steph (Fathom garbled the name). Keith's written feedback before the call was "too senior, some not in Ireland" (commit a626381).
+
 Panel-revised (customer POV, engineering rigor, Saraev automation doctrine, offer design, adversarial/compliance). Single deliverable for the operator to read before dialling.
 
 ## 0. Five facts to have memorised
