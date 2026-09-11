@@ -216,6 +216,124 @@ def test_an_empty_model_response_yields_nothing_rather_than_raising(monkeypatch)
     assert extract.extract_directory(_doc()) == []
 
 
+# ---------------------------------------------------------------------------
+# Firm-default location becomes a quoted claim, not just Person.location
+# (2026-09-11 widening: 250/471 Role 1 people failed located_ie because a
+# firm-directory page never itself says where a person lives)
+# ---------------------------------------------------------------------------
+
+
+def test_ie_firm_single_city_default_gets_person_location_and_a_quoted_claim(monkeypatch):
+    """An IE-domiciled firm with exactly one Irish office (e.g. Cork) yields
+    'City, Ireland' on Person.location AND a location Claim quoting the page
+    itself -- a bare default is not evidence, a verbatim quote is."""
+    _model(monkeypatch, {"people": [
+        _entry("Brian Murphy", "Chartered Engineer (CEng MIEI)", title="Director"),
+    ]})
+    doc = _doc(DIRECTORY_TEXT + " Our office is in Cork, Ireland.")
+
+    found = extract.extract_directory(doc, default_location="Cork, Ireland")
+
+    assert len(found) == 1
+    person, claims = found[0]
+    assert person.location == "Cork, Ireland"
+    location_claims = [c for c in claims if c.dimension == "location"]
+    assert len(location_claims) == 1
+    lc = location_claims[0]
+    assert lc.confidence == "direct"
+    # The quote must be a verbatim substring of the page -- exactly what L6's
+    # quote validator (layers.validator.normalize) requires to keep it.
+    assert lc.evidence_quote in doc.content_text
+
+
+def test_intl_firm_gets_no_default_location_or_location_claim(monkeypatch):
+    """A UK/INTL firm's directory lists worldwide staff -- no default at all,
+    per run.py's _default_location_for_firm, so nothing is fabricated here."""
+    _model(monkeypatch, {"people": [
+        _entry("Brian Murphy", "Chartered Engineer (CEng MIEI)", title="Director"),
+    ]})
+
+    found = extract.extract_directory(_doc(), default_location=None)
+
+    assert len(found) == 1
+    person, claims = found[0]
+    assert person.location is None
+    assert [c for c in claims if c.dimension == "location"] == []
+
+
+def test_no_location_claim_manufactured_when_the_page_never_states_it(monkeypatch):
+    """A default location with no supporting token anywhere on the page keeps
+    Person.location but adds no claim -- 'keep only Person.location' per spec."""
+    _model(monkeypatch, {"people": [
+        _entry("Brian Murphy", "Chartered Engineer (CEng MIEI)", title="Director"),
+    ]})
+    # DIRECTORY_TEXT contains neither "Cork" nor "Ireland".
+    doc = _doc(DIRECTORY_TEXT)
+
+    found = extract.extract_directory(doc, default_location="Cork, Ireland")
+
+    assert len(found) == 1
+    person, claims = found[0]
+    assert person.location == "Cork, Ireland"
+    assert [c for c in claims if c.dimension == "location"] == []
+
+
+def test_explicit_office_title_override_is_not_treated_as_the_default(monkeypatch):
+    """"Regional Director (Belfast Office)" already carries its own evidence
+    in the title -- no manufactured location claim should be added on top."""
+    _model(monkeypatch, {"people": [{
+        "full_name": "Brian Murphy", "job_title": "Regional Director (Belfast Office)",
+        "claims": [{"dimension": "chartership", "assertion": "Chartered.",
+                    "evidence_quote": "Chartered Engineer (CEng MIEI)",
+                    "confidence": "direct"}],
+    }]})
+    doc = _doc(DIRECTORY_TEXT + " Head office: Dublin, Ireland.")
+
+    found = extract.extract_directory(doc, default_location="Dublin, Ireland")
+
+    person, claims = found[0]
+    assert "Belfast" in person.location
+    assert [c for c in claims if c.dimension == "location"] == []
+
+
+# ---------------------------------------------------------------------------
+# window_around_names (stage_deepen_near_misses cost control)
+# ---------------------------------------------------------------------------
+
+
+def test_window_around_names_keeps_only_the_fragment_near_both_names():
+    padding = "Padding text unrelated to anyone in particular. " * 200
+    text = padding + "Brian Murphy is a Chartered Engineer (CEng MIEI)." + padding
+
+    windowed = extract.window_around_names(text, "Brian", "Murphy", window_chars=200)
+
+    assert "Chartered Engineer" in windowed
+    assert len(windowed) < len(text)
+    # Far-away padding text should be excluded, not just the near names kept.
+    assert windowed.count("Padding text unrelated") < text.count("Padding text unrelated")
+
+
+def test_window_around_names_finds_a_match_near_the_end_of_a_long_page():
+    padding = "Unrelated filler paragraph about the firm's history. " * 300
+    text = padding + "Fiona Lynch, CEng MIEI, leads the bridges team."
+
+    windowed = extract.window_around_names(text, "Fiona", "Lynch", window_chars=300)
+
+    assert "CEng MIEI" in windowed
+    assert len(windowed) < len(text)
+
+
+def test_window_around_names_falls_back_to_capped_whole_page_when_names_absent():
+    text = "Nothing about this person here. " * 1000
+
+    windowed = extract.window_around_names(
+        text, "Nobody", "Present", window_chars=2500, whole_page_cap=6000
+    )
+
+    assert len(windowed) == 6000
+    assert windowed == text[:6000]
+
+
 def test_head_weighted_truncation_keeps_the_qualifications_section():
     """Documents run to 180k chars; the qualifications section is at the front
     and the tail is scheme detail."""
