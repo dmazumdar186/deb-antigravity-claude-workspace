@@ -2541,7 +2541,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--plan", default=None,
-        help="force a provider plan (free/hybrid/openrouter/anthropic/budget) "
+        help="force a provider plan (free/hybrid/openrouter/anthropic/anthropic_budget/budget) "
              "instead of auto-selecting by what the credentials can pay for",
     )
     # Brief-level knobs (client feedback 2026-09-10) settable on a call
