@@ -50,3 +50,7 @@ git add -f execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-1
 git commit -m "gaia: run cache rescue (cache branch only, never merge)" && git push -u origin gaia-run-cache-2026-09-14
 ```
 Then in the new container: `git fetch origin gaia-run-cache-2026-09-14 && git show origin/gaia-run-cache-2026-09-14:execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-14.tar.gz | tar xzf - -C execution/gtm_client_workflows/gaia_sourcing`, then `--stage poolmap,render,console`, `tests.acceptance_gaia`, and the re-cut per step 3 when thresholds arrive. Never merge the cache branch.
+
+## Addendum 2026-09-11 (late): Shortlist Check proof of concept
+
+Built, audited (anneal, code review, two adversarial audits, all findings closed), committed on branch and main. `run.py --check <names.csv>` gates any list of names against the cached pool under each role's brief, offline. Deliverables and plan in `deliverables/gaia_poc_check/` (PLAN.md carries the day-2 questions). Keith's page https://claude.ai/code/artifact/a8a673b4-0641-4278-a602-670b6daf1241 · Maddie's notes https://claude.ai/code/artifact/0f7821a2-eb07-4c4e-9637-2d3c9574c51c. Cache is restored in this container (from branch gaia-run-cache-2026-09-14, never merge). Suite 1,240; acceptance 41/41; spend EUR 25.69.
