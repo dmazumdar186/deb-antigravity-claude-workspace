@@ -1020,6 +1020,80 @@ def stage_locate(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Stage 4c -- identity hygiene (offline, no LLM). 2026-09-11: the adversarial
+# audit found delivered cards whose claims came from OTHER people with the same
+# name (a Mayo structural engineer merged with a Missouri car salesman), all
+# attached by the earlier near-miss deepening before its corroboration rule
+# existed. Re-extraction is not affordable; the same corroboration rule applied
+# to the cached page text removes the wrong-person claims for free.
+# ---------------------------------------------------------------------------
+
+_HYGIENE_SOURCE_TYPES = {"other", "search_snippet", "technical_evidence"}
+
+
+def stage_identity_hygiene(force: bool = False) -> None:
+    if not done("extract"):
+        log("identity_hygiene: extract.json missing -- run stage_extract first, skipping")
+        return
+    if done("identity_hygiene") and not force:
+        log("identity_hygiene: cached, skipping")
+        return
+    from .layers.identity import has_identity_corroboration
+    from .sources.registers import fragment_with_both_names
+
+    data = load("extract")
+    persons = data.get("persons", {})
+    claims = data.get("claims", [])
+    corpus = load_docs()
+    dropped_total = 0
+    per_person: dict[str, int] = {}
+    kept: list[dict] = []
+    for c in claims:
+        pid = c.get("subject_person_id")
+        prec = persons.get(pid)
+        doc = corpus.get(c.get("source_doc_id"))
+        if prec is None or doc is None or doc.source_type not in _HYGIENE_SOURCE_TYPES:
+            kept.append(c)
+            continue
+        parts = (prec.get("full_name") or "").split()
+        forename, surname = (parts[0], parts[-1]) if len(parts) >= 2 else ("", "")
+        window = fragment_with_both_names(doc.content_text, forename, surname) if forename else None
+        if window is None:
+            # the name never co-occurs on the page: the quote may still be
+            # verbatim, but nothing ties the page to this person
+            reason = "name not on page together"
+        elif not has_identity_corroboration(window, prec.get("current_employer")):
+            reason = "no corroboration or contradicting profession"
+        else:
+            kept.append(c)
+            continue
+        dropped_total += 1
+        per_person[pid] = per_person.get(pid, 0) + 1
+        log("identity_hygiene: " + str(pid) + " dropped claim from "
+            + str(c.get("source_url", ""))[-60:] + ": " + reason)
+    # a person keeps a doc_id only while some kept claim still cites it
+    cited: dict[str, set] = {}
+    for c in kept:
+        cited.setdefault(c["subject_person_id"], set()).add(c["source_doc_id"])
+    for pid, prec in persons.items():
+        ids = prec.get("doc_ids") or []
+        prec["doc_ids"] = [
+            d for d in ids
+            if (corpus.get(d) is None or corpus[d].source_type not in _HYGIENE_SOURCE_TYPES
+                or d in cited.get(pid, set()))
+        ]
+    data["claims"] = kept
+    save("extract", data)
+    save("identity_hygiene", {"dropped": dropped_total, "per_person": per_person})
+    log("identity_hygiene: dropped " + str(dropped_total) + " claims across "
+        + str(len(per_person)) + " persons; " + str(len(kept)) + " claims kept")
+    if dropped_total:
+        stage_validate(force=True)
+        stage_gate(force=True)
+
+
+
+# ---------------------------------------------------------------------------
 # Stage 3 -- L6 validation. The product.
 # ---------------------------------------------------------------------------
 
@@ -2560,6 +2634,7 @@ STAGES = {
     "harvest_discovery": stage_harvest_discovery,
     "extract": stage_extract,
     "locate": stage_locate,
+    "identity_hygiene": stage_identity_hygiene,
     "validate": stage_validate,
     "gate": stage_gate,
     "deepen_r1": stage_deepen_r1,

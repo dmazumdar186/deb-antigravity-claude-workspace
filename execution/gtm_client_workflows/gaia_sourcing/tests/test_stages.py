@@ -1348,3 +1348,36 @@ def test_stage_locate_gives_no_location_for_an_intl_firm(R, monkeypatch):
 
     locate_out = json.loads((R.RUN_DIR / "locate.json").read_text(encoding="utf-8"))
     assert locate_out["relocated"] == 0
+
+
+def test_identity_hygiene_drops_only_uncorroborated_deepen_claims(R, monkeypatch):
+    """A directory claim stays; a same-name car-sales page claim is dropped
+    (2026-09-11 audit: a Mayo engineer merged with a Missouri salesman)."""
+    directory = _doc("d_dir", "Shane Heffernan BE CEng MIEI, Structural Design Engineer at Lally Chartered Engineers, Mayo.")
+    directory.source_type = "company_bio"
+    porsche = _doc("d_sales", "Shane Heffernan, Porsche Sales Professional, 14 years of automotive experience in St Louis.")
+    porsche.source_type = "other"
+    lally = _doc("d_lally", "Shane Heffernan - Lead Structural Design Engineer, Lally Chartered Engineers.")
+    lally.source_type = "other"
+    R.save_docs([directory, porsche, lally])
+    persons = {"shane": _person("shane", "Shane Heffernan", "role1_senior_structural_engineer", "company_directory",
+                                employer="Lally Chartered Engineers", doc_ids=["d_dir", "d_sales", "d_lally"])}
+    def claim(cid, doc, quote, dim="years_experience"):
+        return {"claim_id": cid, "subject_person_id": "shane", "dimension": dim, "assertion": quote[:40],
+                "evidence_quote": quote, "source_doc_id": doc, "source_url": "https://example.ie/" + doc,
+                "confidence": "direct"}
+    claims = [
+        claim("c1", "d_dir", "Shane Heffernan BE CEng MIEI, Structural Design Engineer", "chartership"),
+        claim("c2", "d_sales", "14 years of automotive experience in St Louis"),
+        claim("c3", "d_lally", "Lead Structural Design Engineer, Lally Chartered Engineers", "employer"),
+    ]
+    R.save("extract", {"persons": persons, "claims": claims, "extracted_doc_ids": ["d_dir", "d_sales", "d_lally"]})
+    monkeypatch.setattr(R, "stage_validate", lambda force=False: None)
+    monkeypatch.setattr(R, "stage_gate", lambda force=False: None)
+    R.stage_identity_hygiene(force=True)
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    ids = {c["claim_id"] for c in out["claims"]}
+    assert ids == {"c1", "c3"}
+    assert out["persons"]["shane"]["doc_ids"] == ["d_dir", "d_lally"]
+    hyg = json.loads((R.RUN_DIR / "identity_hygiene.json").read_text(encoding="utf-8"))
+    assert hyg["dropped"] == 1 and hyg["per_person"] == {"shane": 1}
