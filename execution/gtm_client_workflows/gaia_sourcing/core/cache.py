@@ -423,12 +423,33 @@ def fetch_rendered(
         return fetch(url, source_type=source_type, force=force)
 
     try:
-        resp = requests.post(
-            "https://api.firecrawl.dev/v2/scrape",
-            json={"url": url, "formats": ["markdown"], "onlyMainContent": True},
-            headers={"Authorization": "Bearer " + secret("FIRECRAWL_API_KEY")},
-            timeout=180,
-        )
+        # 2026-09-11: four workers against Firecrawl's free-plan rate limit
+        # produced 429s that were swallowed as "empty page" and cached as
+        # permanent failures -- 50 of 58 firm directories "had no people page".
+        # Retry 429/5xx with backoff (honouring Retry-After) and never cache a
+        # rate-limit failure; log the status so the run log shows the cause.
+        resp = None
+        for attempt in range(4):
+            resp = requests.post(
+                "https://api.firecrawl.dev/v2/scrape",
+                json={"url": url, "formats": ["markdown"], "onlyMainContent": True},
+                headers={"Authorization": "Bearer " + secret("FIRECRAWL_API_KEY")},
+                timeout=180,
+            )
+            if resp.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                retry_after = resp.headers.get("Retry-After")
+                wait = float(retry_after) if retry_after and retry_after.isdigit() else 5.0 * (attempt + 1)
+                print("[cache] firecrawl HTTP " + str(resp.status_code) + " for " + url[-60:]
+                      + "; retrying in " + format(wait, ".0f") + "s")
+                time.sleep(wait)
+                continue
+            break
+        if resp.status_code != 200:
+            print("[cache] firecrawl HTTP " + str(resp.status_code) + " for " + url[-60:]
+                  + " -- not cached" if resp.status_code in (429, 500, 502, 503, 504)
+                  else "[cache] firecrawl HTTP " + str(resp.status_code) + " for " + url[-60:])
+            if resp.status_code in (429, 500, 502, 503, 504):
+                return fetch(url, source_type=source_type, force=force)
         payload = resp.json() if resp.status_code == 200 else {}
         text = (payload.get("data") or {}).get("markdown", "") or ""
         title = ((payload.get("data") or {}).get("metadata") or {}).get("title")
