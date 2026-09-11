@@ -189,6 +189,28 @@ class RunConfig:
     # queries per (term, location) pair, so this is the knob that actually
     # bounds spend/rate-limit exposure when ROLES x terms x locations grows.
     discovery_max_queries: int = 120
+    # 2026-09-11 -- run.py's stage_deepen_near_misses. Gate ids that count as
+    # an "evidence gap" rather than a real disqualification: a person whose
+    # SET of failed gates is a subset of this list is a near-miss worth a
+    # second, targeted search. Chartership and years-of-experience are both
+    # things a search snippet routinely omits even for a genuinely qualified
+    # person (RADAR scope update 2026-09-11: 45 Role 1 + 10 Role 2 candidates
+    # failed exactly this pair together). Never add "discipline",
+    # "seniority_ceiling", "not_client" or "located_ie" here -- those are
+    # real exclusions, not evidence gaps, and deepening them would spend
+    # search budget trying to explain away a correct rejection.
+    deepen_gates: list[str] = field(
+        default_factory=lambda: ["chartered", "seniority"]
+    )
+    # Cap on how many near-miss candidates stage_deepen_near_misses will
+    # spend search budget on, richest-evidence-first (same shape as
+    # stage_deepen_r1's cap of 30 gate-passers).
+    deepen_near_miss_cap: int = 60
+    # Total Serper query budget for stage_deepen_near_misses, summed across
+    # every near-miss candidate (up to 3 queries each -- see
+    # stage_deepen_near_misses' docstring). Serper is free but rate-limited;
+    # this is a sanity ceiling, not a cost control.
+    deepen_max_queries: int = 150
 
     @property
     def run_dir(self) -> Path:

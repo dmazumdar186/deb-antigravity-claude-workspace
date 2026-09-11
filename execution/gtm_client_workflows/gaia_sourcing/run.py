@@ -21,6 +21,15 @@ Stage order:
                Aimed only at gate-passers, because the directory blurb
                establishes chartership but rarely Eurocode/Tekla, and
                that gap is what holds Role 1 at Tier C.              (paid)
+  deepen_near_misses  Targeted search for candidates who fail ONLY an
+               evidence-gap gate (CONFIG.deepen_gates, default chartered +
+               seniority) -- a search snippet rarely shows "CEng MIEI" or
+               "12 years" even for a genuinely qualified person, and the
+               chartership registers themselves are not automatable
+               (WAF/Cloudflare). Public bio pages, Engineers Journal
+               articles, conference bios and award citations often state it
+               plainly.                                    (Serper free,
+                                                              extraction paid)
   adversarial  L8  blind second pass + deterministic demotion        (paid)
   contact      L9  Prospeo enrichment                               (paid)
   movability   L10                                                  (paid)
@@ -54,6 +63,7 @@ from pathlib import Path
 from typing import Optional
 
 from .core import alerts
+from .core.cache import fetch as cache_fetch
 from .core.cache import fetch_rendered
 from .core.config import CONFIG, PKG_ROOT, WORKSPACE_ROOT, secret
 from .core.providers import (
@@ -93,6 +103,8 @@ from .sources import (
     oral_hearing_web,
     technical_evidence,
 )
+from .sources.licensed_common import raw_hash
+from .sources.registers import fragment_with_both_names
 
 RUN_DIR = PKG_ROOT / "run" / CONFIG.campaign_id
 LOG_DIR = PKG_ROOT / "logs"
@@ -1292,6 +1304,224 @@ def stage_deepen_r1(force: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Stage 5b -- targeted search for near-miss candidates (evidence-gap gates)
+# ---------------------------------------------------------------------------
+
+# The registers themselves (Engineers Ireland/IStructE/ICE) cannot be
+# scraped -- they sit behind WAF/Cloudflare (sources/registers.py) -- so a
+# person's chartership is only ever recoverable from a public page that
+# QUOTES it: a firm bio page, an Engineers Journal/Engineers Ireland
+# article, a conference bio, an award citation, or the search snippet's own
+# headline text. Reusing gates._CHARTERED_RE keeps "does this text evidence
+# chartership" defined in exactly one place in the whole pipeline.
+_CHARTER_TOKEN_RE = gates._CHARTERED_RE
+
+# Never fetch a LinkedIn URL here: linkedin_lookup.py and sources/
+# serper_people.py already establish that a LinkedIn RESULT (not a fetched
+# page) is a search_snippet; the page itself requires a login wall this
+# pipeline has no session for, and fetching it would just cache a login
+# page as if it were evidence.
+_LINKEDIN_HOST_RE = re.compile(r"linkedin\.com", re.I)
+
+
+def _near_miss_queries(full_name: str, employer: Optional[str]) -> list[str]:
+    """Up to two employer-scoped queries plus one years-of-experience query.
+
+    Quoted on the full name throughout -- an unquoted Irish name returns the
+    whole country, same rationale as sources/technical_evidence.py.
+    """
+    q = '"' + full_name + '"'
+    emp = employer or ""
+    out = [
+        q + ' (CEng OR MIEI OR "Chartered Engineer") ' + emp,
+        q + ' "' + emp + '" engineer',
+        q + ' engineer "years" (experience OR chartered)',
+    ]
+    return out
+
+
+def _snippet_doc(title: str, snippet: str, link: str) -> RawDocument:
+    """A Serper organic result as its own RawDocument.
+
+    Exact content_text shape as sources/serper_people.py's `_to_document` --
+    the quote validator (layers/validator.py) checks a claim's
+    evidence_quote against this text verbatim, so the three lines and their
+    order are load-bearing, not cosmetic.
+    """
+    content_text = "title: " + title + "\nsnippet: " + snippet + "\nurl: " + link
+    return RawDocument(
+        doc_id=raw_hash({"title": title, "snippet": snippet, "url": link}),
+        url=link,
+        source_type="search_snippet",
+        fetched_at=date.today(),
+        content_text=content_text,
+        http_status=200,
+        title=title or None,
+    )
+
+
+def stage_deepen_near_misses(force: bool = False) -> None:
+    """Targeted search for candidates who fail ONLY an evidence-gap gate.
+
+    A search snippet establishes a person's name, title and employer but
+    rarely their chartership post-nominals or a stated years-of-experience
+    figure -- CONFIG.deepen_gates (default ["chartered", "seniority"]) names
+    the gates where "no public evidence found" plausibly means "the evidence
+    exists but the harvested source never showed it" rather than "this
+    person genuinely does not qualify". A near-miss is anyone whose FAILED
+    gates are a subset of that list; failing any other gate (discipline,
+    seniority_ceiling, not_client, located_ie) is a real exclusion and is
+    never deepened.
+
+    For each near-miss (capped at CONFIG.deepen_near_miss_cap,
+    richest-evidence-first), up to three Serper queries look for a page that
+    states it explicitly. The Serper result's own title+snippet is kept as a
+    search_snippet document when it already carries a chartership token --
+    the snippet is public text and L6's validator checks a claim's quote
+    against it like any other source. Every non-LinkedIn organic result is
+    also fetched; the fetched page is kept as evidence only when the
+    person's forename and surname co-occur within a tight fragment of it
+    (sources/registers.fragment_with_both_names) -- the same "no claim ships
+    without a verbatim quote naming this person" rule the register plugins
+    use, because a page merely containing "Chartered Engineer" somewhere
+    proves nothing about THIS candidate.
+
+    New documents are extracted and their claims folded back into
+    extract.json, then validate + gate re-run exactly as stage_deepen_r1
+    does, so tiering reflects them before the next stage runs.
+    """
+    if not done("gate"):
+        log("deepen_near_misses: gate.json missing -- run stage_gate first, skipping")
+        return
+    if done("deepen_near_misses") and not force:
+        log("deepen_near_misses: cached, skipping")
+        return
+
+    persons, _, _ = _persons_and_claims()
+    gate_out = load("gate")
+    deepen_gates = set(CONFIG.deepen_gates)
+
+    ranked = sorted(
+        (-g["n_claims"], pid) for pid, g in gate_out.items()
+        if g["tier"] == "EXCLUDED" and not g["client_side"]
+        and {gr["gate_id"] for gr in g["gates"] if not gr["passed"]}
+        and {gr["gate_id"] for gr in g["gates"] if not gr["passed"]} <= deepen_gates
+    )
+    targets = [pid for _, pid in ranked][: CONFIG.deepen_near_miss_cap]
+    log("deepen_near_misses: " + str(len(targets)) + " near-miss candidates "
+        + "(gates " + ", ".join(sorted(deepen_gates)) + "), cap "
+        + str(CONFIG.deepen_near_miss_cap))
+
+    lock = threading.Lock()
+    query_count = 0
+    query_budget_hit = False
+    docs: list[RawDocument] = []
+    docs_by_pid: dict[str, int] = {}
+    new_claims: list[dict] = []
+
+    def one(pid: str) -> None:
+        nonlocal query_count, query_budget_hit
+        person = persons[pid]
+        name_parts = [p for p in person.full_name.split() if p]
+        if len(name_parts) < 2:
+            return
+        forename, surname = name_parts[0], name_parts[-1]
+        person_docs: list[RawDocument] = []
+        seen_urls: set[str] = set()
+
+        for query in _near_miss_queries(person.full_name, person.current_employer):
+            with lock:
+                if query_count >= CONFIG.deepen_max_queries:
+                    query_budget_hit = True
+                    break
+                query_count += 1
+            try:
+                results = oral_hearing_web.serper_search(query, num=10)
+            except Exception as exc:
+                log("  " + pid + " near-miss query FAILED: " + repr(exc)[:120])
+                continue
+            for item in results:
+                link = (item.get("link") or "").strip()
+                if not link or link in seen_urls:
+                    continue
+                seen_urls.add(link)
+                title = item.get("title") or ""
+                snippet = item.get("snippet") or ""
+                # The two checks below are independent, not either/or: a
+                # LinkedIn headline snippet can carry "CEng MIEI" in its own
+                # right (kept here) even though its page is never fetched
+                # (below), and a firm-bio result can supply BOTH its own
+                # snippet-as-evidence and its fetched page as a second,
+                # richer document.
+                if _CHARTER_TOKEN_RE.search(title + " " + snippet):
+                    person_docs.append(_snippet_doc(title, snippet, link))
+                if _LINKEDIN_HOST_RE.search(link):
+                    continue
+                try:
+                    page = cache_fetch(link, source_type="other")
+                except Exception as exc:
+                    log("  " + pid + " near-miss fetch FAILED: " + repr(exc)[:120])
+                    continue
+                if page is None or len(page.content_text) < 300:
+                    continue
+                if fragment_with_both_names(page.content_text, forename, surname) is None:
+                    continue
+                person_docs.append(page)
+
+        if not person_docs:
+            return
+        found_claims: list[Claim] = []
+        for doc in person_docs:
+            try:
+                claims, _hints = extract_from_document(person, doc)
+            except Exception as exc:
+                log("  " + pid + " near-miss extract FAILED: " + repr(exc)[:120])
+                continue
+            found_claims.extend(claims)
+        with lock:
+            docs.extend(person_docs)
+            docs_by_pid[pid] = docs_by_pid.get(pid, 0) + len(person_docs)
+            new_claims.extend(c.model_dump() for c in found_claims)
+
+    run_all(one, targets, workers=4, label="deepen_near_miss")
+    if query_budget_hit:
+        log("  deepen_near_misses: query budget (" + str(CONFIG.deepen_max_queries)
+            + ") reached -- remaining candidates got fewer than 3 queries")
+
+    save_docs(docs)
+    save("deepen_near_misses", {
+        "targets": targets,
+        "docs_by_pid": docs_by_pid,
+        "claims": new_claims,
+        "queries_used": query_count,
+    })
+
+    if new_claims:
+        data = load("extract")
+        have = {c["claim_id"] for c in data["claims"]}
+        data["claims"].extend(c for c in new_claims if c["claim_id"] not in have)
+        save("extract", data)
+        stage_validate(force=True)
+        stage_gate(force=True)
+
+    new_gate = load("gate") if new_claims else gate_out
+    now_passing = 0
+    for pid in targets:
+        n = docs_by_pid.get(pid, 0)
+        rec = new_gate.get(pid, {})
+        chartered_passed = any(
+            g["gate_id"] == "chartered" and g["passed"] for g in rec.get("gates", [])
+        )
+        if chartered_passed:
+            now_passing += 1
+        log("  " + pid + ": +" + str(n) + " docs, chartered="
+            + ("pass" if chartered_passed else "fail"))
+
+    log("deepen_near_misses: " + str(now_passing) + " of " + str(len(targets))
+        + " near-misses now pass chartered; " + str(query_count) + " queries")
+
+
+# ---------------------------------------------------------------------------
 # Stage 6 -- L8 adversarial (blind)
 # ---------------------------------------------------------------------------
 
@@ -2061,6 +2291,7 @@ STAGES = {
     "validate": stage_validate,
     "gate": stage_gate,
     "deepen_r1": stage_deepen_r1,
+    "deepen_near_misses": stage_deepen_near_misses,
     "adversarial": stage_adversarial,
     "contact": stage_contact,
     "movability": stage_movability,
