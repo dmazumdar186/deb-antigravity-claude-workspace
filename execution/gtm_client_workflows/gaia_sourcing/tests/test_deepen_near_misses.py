@@ -262,8 +262,9 @@ def test_fetched_page_kept_when_both_names_co_occur(R, monkeypatch):
             source_type="other",
             fetched_at=date(2026, 9, 11),
             content_text=(
-                "Firstname0 Surname0 is a Chartered Engineer (CEng MIEI) at "
-                "Acme Engineering with over a decade of design experience. " * 5
+                "Firstname0 Surname0 is a Chartered Structural Engineer (CEng "
+                "MIEI) at Acme Engineering with over a decade of design "
+                "experience. " * 5
             ),
             http_status=200,
         )
@@ -276,7 +277,7 @@ def test_fetched_page_kept_when_both_names_co_occur(R, monkeypatch):
             subject_person_id=person.person_id,
             dimension="chartership",
             assertion=person.full_name + " is CEng MIEI",
-            evidence_quote="Chartered Engineer (CEng MIEI) at Acme Engineering",
+            evidence_quote="Chartered Structural Engineer (CEng MIEI) at Acme Engineering",
             source_doc_id=doc.doc_id,
             source_url=doc.url,
             confidence="direct",
@@ -306,7 +307,7 @@ def test_linkedin_result_never_fetched(R, monkeypatch):
     def fake_search(q, num=10):
         return [{
             "title": "Firstname0 Surname0 - CEng MIEI - Acme Engineering | LinkedIn",
-            "snippet": "Chartered Engineer at Acme Engineering.",
+            "snippet": "Chartered Structural Engineer at Acme Engineering.",
             "link": "https://ie.linkedin.com/in/firstname0surname0",
         }]
 
@@ -401,8 +402,8 @@ def test_a_lally_chartered_engineers_page_is_accepted(R, monkeypatch):
             source_type="other",
             fetched_at=date(2026, 9, 11),
             content_text=(
-                "Firstname0 Surname0 is a Chartered Engineer with Lally "
-                "Chartered Engineers, CEng MIEI. " * 5
+                "Firstname0 Surname0 is a Chartered Structural Engineer with "
+                "Lally Chartered Engineers, CEng MIEI. " * 5
             ),
             http_status=200,
         )

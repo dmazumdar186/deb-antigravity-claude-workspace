@@ -391,14 +391,26 @@ def _cluster_person_id(members: list[RawPersonRecord]) -> str:
 # profession.
 # ---------------------------------------------------------------------------
 
+# 2026-09-11 second-audit fix (item 4): bare "engineer"/"engineering" is NOT
+# corroboration on its own -- a GooseChase treasure-hunt page or an
+# electrical/software/mechanical bio also says "engineer" freely, and that is
+# exactly how "Andrew Cross" (uwaterloo GooseChase) got attached to a
+# structural engineer of the same name. Requires the DISCIPLINE to be named
+# (structural/civil/consulting), not just the generic job-family word.
 _DISCIPLINE_TOKEN_RE = re.compile(
-    r"structural|civil|engineer|engineering|consult", re.I
+    r"structural|civil|consult(?:ing|ancy)", re.I
 )
 
+# 2026-09-11 second-audit fix (item 4): widened with adjacent professions and
+# generic-engineer titles a "civil/structural" page never uses for itself --
+# a page naming these alongside a bare "engineer" is evidence of the WRONG
+# profession, not corroboration of a structural/civil engineer.
 _CONTRADICTING_PROFESSION_RE = re.compile(
-    r"\bsales\b|automotive|journalism|journalist|\bnurse\b|\bteacher\b|"
-    r"solicitor|barrister|\bchef\b|pharmac|physio|\bdentist\b|estate agent|"
-    r"\brecruit",
+    r"\bsales\b|\bmarketing\b|automotive|journalism|journalist|\bnurse\b|"
+    r"\bnursing\b|\bteacher\b|solicitor|barrister|\bchef\b|pharmac|physio|"
+    r"\bdentist\b|estate agent|\brecruit|founder|co-founder|\bceo\b|"
+    r"chief executive|startup|mechanical engineer|\bsoftware\b|"
+    r"electrical engineer|aerospace|automotive|\bprofessor\b|\blecturer\b",
     re.I,
 )
 

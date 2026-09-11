@@ -319,6 +319,36 @@ def main() -> int:
         check("reply with the word STOP" in text,
               "every outreach draft carries the opt-out line")
 
+        # 2026-09-11 second-audit fix (item 6a): the notice is live (we are
+        # inside this branch), so a shipped candidate whose draft was
+        # actually dropped (compliance failure, opt-out, model returned
+        # nothing) must show the REAL reason on the card, never the
+        # privacy-notice-is-down line -- that line would be a lie once the
+        # notice is live.
+        messages_path = RUN / "messages.json"
+        if messages_path.exists():
+            msgs = json.loads(messages_path.read_text(encoding="utf-8"))
+            dropped_shipped = [
+                pid for pid in shipped
+                if isinstance(msgs.get(pid), dict) and msgs[pid].get("dropped")
+            ]
+            check(
+                "Withheld until the privacy notice is live." not in html
+                or not dropped_shipped,
+                "a dropped draft never shows the privacy-notice-is-down line "
+                "while the notice is live",
+                str(dropped_shipped),
+            )
+            check(
+                all(
+                    ("Draft withheld: failed the compliance check" in html)
+                    or ("Draft not generated: model returned nothing" in html)
+                    for _ in dropped_shipped[:1]
+                ) if dropped_shipped else True,
+                "a dropped draft's real reason is shown on the card",
+                str(dropped_shipped),
+            )
+
     print("\n-- Pool map honesty ----------------------------------------------")
     for name, spec in (("pool_map_role1.md", ROLE1), ("pool_map_role2.md", ROLE2)):
         pm = (OUT / name).read_text(encoding="utf-8")

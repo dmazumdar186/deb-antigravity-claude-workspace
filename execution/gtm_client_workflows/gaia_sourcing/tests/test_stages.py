@@ -765,7 +765,31 @@ def test_a_non_compliant_draft_is_dropped_never_patched(graded_pool, monkeypatch
 
     graded_pool.stage_messages()
 
-    assert graded_pool.load("messages") == {}
+    # 2026-09-11 second-audit fix (item 7): the drop reason is now recorded
+    # per pid (so render.py can show it honestly), not silently omitted.
+    out = graded_pool.load("messages")
+    assert set(out) == {"a1", "a2", "b1", "c1"}
+    assert all(
+        rec.get("dropped") == "Art. 14 notice missing from the email body."
+        for rec in out.values()
+    )
+
+
+def test_a_draft_of_none_is_recorded_as_model_returned_nothing(graded_pool, monkeypatch):
+    """2026-09-11 second-audit fix (item 7): messages.draft() returning None
+    (the model produced nothing usable) must be recorded with its own
+    reason, distinct from a compliance drop, so render.py can show the
+    honest "Draft not generated" message rather than implying a compliance
+    failure or a dead privacy notice."""
+    from gtm_client_workflows.gaia_sourcing.layers import messages as messages_layer
+
+    monkeypatch.setattr(messages_layer, "draft", lambda *a, **kw: None)
+
+    graded_pool.stage_messages()
+
+    out = graded_pool.load("messages")
+    assert set(out) == {"a1", "a2", "b1", "c1"}
+    assert all(rec.get("dropped") == "model returned nothing" for rec in out.values())
 
 
 def test_a_compliant_draft_survives(graded_pool, monkeypatch):
@@ -800,8 +824,12 @@ def test_an_opted_out_candidate_never_gets_a_draft(graded_pool, monkeypatch, tmp
     graded_pool.stage_messages()
 
     assert "a1" not in called_for, "opt-out must be checked BEFORE draft() is ever called"
-    assert "a1" not in graded_pool.load("messages")
-    assert set(graded_pool.load("messages")) == {"a2", "b1", "c1"}
+    out = graded_pool.load("messages")
+    # 2026-09-11 second-audit fix (item 7): a1's drop reason is now recorded
+    # too (render.py needs it to show the real reason), but it never got a
+    # real drafted message -- only {"dropped": ...}.
+    assert out["a1"] == {"dropped": "opted out"}
+    assert set(out) == {"a1", "a2", "b1", "c1"}
     assert "a1 draft_blocked_optout" in capsys.readouterr().out
 
 
@@ -1378,7 +1406,18 @@ def test_stage_locate_force_recomputes_stale_firm_default_when_firm_turns_multi_
             employer="Cork Firm", location="Cork, Ireland", doc_ids=["d1"],
         ),
     }
-    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+    # 2026-09-11 second-audit fix (item 1): --force also clears a legacy,
+    # pre-provenance firm-default location detected by SHAPE (exactly
+    # "Ireland" or "<city>, Ireland" with no surviving location-claim
+    # evidence). Cora must carry real quoted evidence -- not just an
+    # unstamped location string -- to prove her location came from
+    # extraction rather than a stale firm default, or this new pass would
+    # (correctly) clear her too.
+    claims = [_claim(
+        "cora_walsh", "location", "Cora Walsh is based in our Cork office",
+        "based in our Cork office",
+    )]
+    R.save("extract", {"persons": persons, "claims": claims, "extracted_doc_ids": ["d1"]})
 
     # First pass: brian gets the firm default (stamped firm_default), cora
     # already had an extracted location and is untouched.
@@ -1405,6 +1444,59 @@ def test_stage_locate_force_recomputes_stale_firm_default_when_firm_turns_multi_
     # Cora's location came from extraction, not a firm default -- untouched.
     assert out2["persons"]["cora_walsh"]["location"] == "Cork, Ireland"
     assert out2["persons"]["cora_walsh"].get("location_source") is None
+
+
+def test_stage_locate_force_clears_a_legacy_unstamped_default(R, monkeypatch):
+    """2026-09-11 second-audit fix (item 1): 55 O'Connor Sutton Cronin persons
+    were extracted BEFORE location_source existed at all -- their "Ireland"
+    is a PRE-fix firm default with no stamp, so the ordinary stamped-clearing
+    pass can never see them and --force never touches them. Detected instead
+    by shape: company_directory + unstamped + location exactly "Ireland" (or
+    "<city>, Ireland") + no location claim whose quote survives the residence
+    check. An OCSC-shaped person with no location claim clears to None; a
+    person with a real quote ("based in our Cork office") keeps it."""
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    # OCSC-shaped: IE domicile but ALSO a Belfast/GB office -- multi_country,
+    # so _default_location_for_firm grants nothing for it today.
+    ocsc = cb.Firm("ocsc", "O'Connor Sutton Cronin", "ocsc.example",
+                    domicile="IE", office_cities=["Dublin"], multi_country=True)
+    monkeypatch.setattr(cb, "FIRMS", [ocsc])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [ocsc])
+
+    R.save_docs([_doc("d1", "Some staff directory page for OCSC.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "ocsc", "firm_name": "O'Connor Sutton Cronin",
+        "url": "https://ocsc.example/people", "doc_id": "d1", "chars": 100,
+        "default_location": None,
+    }])
+    persons = {
+        # Legacy default: pre-fix extraction stamped this "Ireland" with no
+        # location_source and no supporting location claim at all.
+        "legacy_person": _person(
+            "legacy_person", "Legacy Person", R1, "company_directory",
+            employer="O'Connor Sutton Cronin", location="Ireland", doc_ids=["d1"],
+        ),
+        # Real evidence: a location claim whose quote survives the residence
+        # check must never be cleared by this pass.
+        "cork_person": _person(
+            "cork_person", "Cork Person", R1, "company_directory",
+            employer="O'Connor Sutton Cronin", location="Cork, Ireland",
+            doc_ids=["d1"],
+        ),
+    }
+    claims = [_claim(
+        "cork_person", "location", "Cork Person is based in our Cork office",
+        "based in our Cork office",
+    )]
+    R.save("extract", {"persons": persons, "claims": claims, "extracted_doc_ids": ["d1"]})
+
+    R.stage_locate(force=True)
+
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["legacy_person"]["location"] is None
+    assert out["persons"]["legacy_person"].get("location_source") is None
+    assert out["persons"]["cork_person"]["location"] == "Cork, Ireland"
 
 
 def test_stage_locate_gives_no_location_for_an_intl_firm(R, monkeypatch):
