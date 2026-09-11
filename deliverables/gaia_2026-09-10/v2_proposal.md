@@ -4,7 +4,7 @@ For Keith Molony and Maddie (Gaia Talent). From Debanjan Mazumdar, Prodcraft. De
 
 ## What Gaia has today, and where this sits
 
-Maddie's screener is inbound. A CV arrives in Gmail, the screener scores it against live jobs, invites anyone over 60 to a screening call, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.
+Maddie's screener is inbound. A CV arrives in Gmail, the screener scores it against live jobs, flags any CV that scores over 60 out of 100 against a job it is applying for, offers a screening call on one click, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.
 
 This system is outbound. It finds the chartered, grade-matched, Ireland-based engineers who never applied, proves each one with a quote from a public document, checks their contact details, and drops them into Recruit CRM as candidates on the job, so Isadora or Maddie's screener takes over from there. Together they cover both halves of a search.
 
@@ -47,7 +47,7 @@ Both are now brief settings you set per role: a seniority band (grade ceiling an
 
 ## The corrected cut, as it stands (11 September)
 
-- Senior Structural Engineer: 471 people assessed from 58 Irish consultancy directories, 25 oral-hearing witness statements and 103 search-snippet discoveries; 2 of 10 passed every hard gate with direct evidence and are delivered (Alicia Joyce, CSEA; John Alcaras, Arcadis). 14 more miss only on residence evidence (their firm pages do not say where they sit), 9 miss only on chartership evidence. Each is named in the pool map so you can tell us which to verify.
+- Senior Structural Engineer: 471 people assessed from 58 Irish consultancy directories, 25 oral-hearing witness statements and 103 search-snippet discoveries; 2 of 10 passed every hard gate with direct evidence and are delivered (Alicia Joyce, CSEA; John Alcaras, Arcadis). 14 more miss only on residence evidence (their firm pages do not say where they sit), 8 miss only on chartership evidence. Each is named in the pool map so you can tell us which to verify.
 - Transport Major Projects Manager (Cork): 65 assessed, 0 of 5. The pool has no Cork-based, chartered transport lead on the public record we can reach for free. Reaching five needs a licensed people-data source; we say so rather than pad.
 - What changed since 20 August: the seniority ceiling and the strict Republic-of-Ireland residence rule now run as hard gates; an office address or a project location no longer counts as where someone lives; chartership means Engineers Ireland (CEng MIEI/FIEI), not ICE or IStructE alone.
 - Model spend for the whole corrected campaign: EUR 25.69, about EUR 13 per delivered card at this pool size; the per-role running cost below assumes a pool three to five times larger.

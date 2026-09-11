@@ -946,6 +946,25 @@ def _display_title(title: str) -> str:
     return t.rstrip(" .\u2026").strip()
 
 
+def gate_basis_claims(
+    claims: list[dict], gate_recs: list[dict], gate_ids: tuple[str, ...] = ("located_ie", "chartered"),
+) -> list[dict]:
+    """The verbatim claim(s) a gate actually rested on, for the gates whose
+    `basis` field names a claim_id (located_ie / chartered). Used by both
+    `_detail_cell` (the residence/chartership basis comes first in a card's
+    evidence pane) and `run.py --check` (deliverables/gaia_poc_check/
+    PLAN.md's evidence contract) so the two never disagree about which quote
+    a gate verdict rested on. `employer_sector`'s basis is "person.employer"
+    when set -- a field name, not a claim_id -- and is deliberately excluded
+    here; the caller reads `person.current_employer` directly for that one.
+    """
+    basis_ids = {
+        g.get("basis") for g in (gate_recs or [])
+        if g.get("gate_id") in gate_ids and g.get("basis")
+    }
+    return [c for c in claims if c.get("claim_id") in basis_ids]
+
+
 def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     """Everything else, inside a hard word budget.
 
@@ -964,11 +983,8 @@ def _detail_cell(person, claims, ev, contact, mov, links, spec) -> str:
     # come first (third audit 2026-09-11: Alicia Joyce's card showed a
     # project quote while "Dublin, County Dublin, Ireland" -- the located_ie
     # basis -- was cut for budget). Then the primary signal, then the rest.
-    basis_ids = {
-        g.get("basis") for g in (ev.get("gates") or [])
-        if g.get("gate_id") in ("located_ie", "chartered") and g.get("basis")
-    }
-    basis = [c for c in claims if c.get("claim_id") in basis_ids]
+    basis = gate_basis_claims(claims, ev.get("gates") or [])
+    basis_ids = {c.get("claim_id") for c in basis}
     rest = [c for c in claims if c.get("claim_id") not in basis_ids]
     primary = [c for c in rest if c["dimension"] == spec.primary_signal_dimension]
     other = [c for c in rest if c["dimension"] != spec.primary_signal_dimension]

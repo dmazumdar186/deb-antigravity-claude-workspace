@@ -66,7 +66,7 @@ fixed in code with a regression test (suite: 1,086 tests; acceptance gate:
 
 Result: Role 1 -- 471 assessed, 2 gate-passers, **2 of 10 delivered**
 (Alicia Joyce / CSEA, John Alcaras / Arcadis); 14 near-misses on residence
-evidence, 9 on chartership evidence, listed in `pool_map_role1.md`.
+evidence, 8 on chartership evidence, listed in `pool_map_role1.md`.
 Role 2 -- 65 assessed, **0 of 5**. Model spend EUR 25.69 of a EUR 26.50
 cap (operator's USD 30 Console limit is the hard stop). Do NOT re-run
 extract or deepen; only offline stages (locate, identity_hygiene, validate,
