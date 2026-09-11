@@ -21,10 +21,24 @@ from ..core.providers import ROLE_EXTRACT, call_role
 
 
 
+_POSTNOM_TOKENS = (
+    r"CEng|C\.Eng|MIEI|FIEI|M\.I\.E\.I\.?|FConsEI|MIStructE|FIStructE|MICE|FICE|"
+    r"BEng|B\.Eng|MEng|M\.Eng|BSc|B\.Sc|MSc|M\.Sc|PhD|Ph\.D|Dip\s?Eng|HDip|PMP|MBA|Eur\s?Ing|EurIng"
+)
+
 _POSTNOMINAL_RE = re.compile(
-    r"(?:[,\s]+(?:CEng|C\.Eng|MIEI|FIEI|M\.I\.E\.I\.?|FConsEI|MIStructE|FIStructE|MICE|FICE|"
-    r"BEng|B\.Eng|MEng|M\.Eng|BSc|B\.Sc|MSc|M\.Sc|PhD|Ph\.D|Dip\s?Eng|HDip|PMP|MBA|Eur\s?Ing|EurIng)"
-    r"(?:\s*\([^)]*\))?\.?)+\s*$",
+    r"(?:[,\s]+(?:" + _POSTNOM_TOKENS + r")(?:\s*\([^)]*\))?\.?)+\s*$",
+    re.I,
+)
+
+# 2026-09-11: current_title strings sometimes carry the SAME post-nominal
+# letters LEADING the string instead of trailing it -- "CEng MIEI Senior
+# Structural Engineer" or "(CEng, MIEI) Senior Structural Engineer" -- because
+# some firm directories list the letters before the role. Rendered as-is the
+# card greets nobody by a job title, it greets them with letters. Handles an
+# optional wrapping parenthesis and comma-or-space separated runs of tokens.
+_LEADING_POSTNOMINAL_RE = re.compile(
+    r"^\(?(?:" + _POSTNOM_TOKENS + r")(?:[,\s]+(?:" + _POSTNOM_TOKENS + r"))*\)?[,\s]*",
     re.I,
 )
 
@@ -32,10 +46,16 @@ _POSTNOMINAL_RE = re.compile(
 def strip_postnominals(name: str) -> str:
     """'Kate FitzGerald CEng MIEI' -> 'Kate FitzGerald'. Post-nominals are
     evidence (they feed the chartered gate from the quote), not part of the
-    name; a card that greets someone by their letters reads as machine output."""
+    name; a card that greets someone by their letters reads as machine
+    output. Also strips a LEADING post-nominal group (with or without a
+    wrapping parenthesis/commas) -- used at render time on current_title too,
+    e.g. 'CEng MIEI Senior Structural Engineer' -> 'Senior Structural
+    Engineer'."""
     if not name:
         return name
-    return _POSTNOMINAL_RE.sub("", name.strip()).strip(" ,")
+    s = _POSTNOMINAL_RE.sub("", name.strip()).strip(" ,")
+    s = _LEADING_POSTNOMINAL_RE.sub("", s).strip(" ,")
+    return s
 SYSTEM = """You extract evidenced claims about ONE engineer from public documents.
 
 You are part of a recruitment sourcing pipeline for an Irish recruitment

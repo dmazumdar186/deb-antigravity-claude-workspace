@@ -298,10 +298,13 @@ def test_max_cost_eur_default_is_twelve():
     assert RunConfig().max_cost_eur == 12.0
 
 
-def test_max_cost_eur_total_default_is_twentyfive():
+def test_max_cost_eur_total_default_is_twentysixfive():
+    """Raised 25.0 -> 26.5 on 2026-09-11: cumulative EUR 24.46 after the
+    corrected re-delivery, ~EUR 0.7 tail run still needed; the Console's $30
+    limit is the actual hard stop."""
     from gtm_client_workflows.gaia_sourcing.core.config import RunConfig
 
-    assert RunConfig().max_cost_eur_total == 25.0
+    assert RunConfig().max_cost_eur_total == 26.5
 
 
 # ---------------------------------------------------------------------------

@@ -540,6 +540,29 @@ def test_delivery_set_overflow_is_empty_when_nothing_is_cut(graded_pool, capsys)
     assert "cut:" not in capsys.readouterr().out
 
 
+def test_delivery_set_holds_back_candidates_with_no_named_employer(graded_pool):
+    """2026-09-11: a candidate with no named employer must never ship (the
+    acceptance gate 'every candidate has a named employer' would fail), but
+    must be recorded under out["held_back"][role_id] as
+    {"person_id", "reason"} -- never smuggled into `overflow` under a
+    synthetic "role_id:no_employer" key, and never left off delivery.json
+    entirely."""
+    data = graded_pool.load("extract")
+    data["persons"]["a1"]["current_employer"] = ""
+    graded_pool.save("extract", data)
+
+    delivery = graded_pool._delivery_set()
+
+    assert "a1" not in delivery[R1]
+    assert "a1" not in delivery["overflow"][R1]
+    assert R1 + ":no_employer" not in delivery["overflow"]
+    assert R1 + ":no_employer" not in delivery
+    held = delivery["held_back"][R1]
+    assert {"person_id": "a1", "reason": "no employer stated"} in held
+    # a2 has an employer and still qualifies, so it ships in a1's place.
+    assert "a2" in delivery[R1]
+
+
 def test_an_adversarial_demotion_reorders_delivery(graded_pool):
     """L8's verdict is what ships, not the pre-critique tier."""
     graded_pool.save("adversarial", {
@@ -1280,6 +1303,9 @@ def test_stage_locate_backfills_location_and_adds_a_quoted_claim(R, monkeypatch)
 
     out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
     assert out["persons"]["brian_murphy"]["location"] == "Cork, Ireland"
+    # 2026-09-11: a location set from a firm default must be stamped so a
+    # later --force can tell it apart from an extracted/quoted location.
+    assert out["persons"]["brian_murphy"]["location_source"] == "firm_default"
     location_claims = [c for c in out["claims"] if c["dimension"] == "location"]
     assert len(location_claims) == 1
     assert location_claims[0]["evidence_quote"] in "Brian Murphy, Director. Our office is in Cork, Ireland."
@@ -1318,6 +1344,67 @@ def test_stage_locate_never_overwrites_an_existing_location(R, monkeypatch):
     out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
     assert out["persons"]["brian_murphy"]["location"] == "Galway, Ireland"
     assert out["claims"] == []
+    # A location this stage never touched must carry no firm_default stamp.
+    assert out["persons"]["brian_murphy"].get("location_source") is None
+
+
+def test_stage_locate_force_recomputes_stale_firm_default_when_firm_turns_multi_country(R, monkeypatch):
+    """2026-09-11: a person whose location came from a firm default must lose
+    it on --force once the firm is (re)classified multi_country, so a stale
+    "Ireland" default is never served after the firm data that granted it
+    stops supporting it. A person whose location came from extraction/an
+    on-page quote (no location_source stamp) must be completely untouched by
+    the same --force pass."""
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                    office_cities=["Cork"])
+    monkeypatch.setattr(cb, "FIRMS", [firm])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm])
+
+    R.save_docs([_doc("d1", "Brian Murphy, Director. Our office is in Cork, Ireland.")])
+    R.save("harvest_r1", [{
+        "firm_slug": "cork_firm", "firm_name": "Cork Firm",
+        "url": "https://corkfirm.ie/people", "doc_id": "d1", "chars": 100,
+        "default_location": "Cork, Ireland",
+    }])
+    persons = {
+        "brian_murphy": _person(
+            "brian_murphy", "Brian Murphy", R1, "company_directory",
+            employer="Cork Firm", location=None, doc_ids=["d1"],
+        ),
+        "cora_walsh": _person(
+            "cora_walsh", "Cora Walsh", R1, "company_directory",
+            employer="Cork Firm", location="Cork, Ireland", doc_ids=["d1"],
+        ),
+    }
+    R.save("extract", {"persons": persons, "claims": [], "extracted_doc_ids": ["d1"]})
+
+    # First pass: brian gets the firm default (stamped firm_default), cora
+    # already had an extracted location and is untouched.
+    R.stage_locate()
+    out = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    assert out["persons"]["brian_murphy"]["location"] == "Cork, Ireland"
+    assert out["persons"]["brian_murphy"]["location_source"] == "firm_default"
+    assert out["persons"]["cora_walsh"]["location"] == "Cork, Ireland"
+    assert out["persons"]["cora_walsh"].get("location_source") is None
+
+    # The firm is now discovered to have a Belfast office too -- multi_country.
+    firm2 = cb.Firm("cork_firm", "Cork Firm", "corkfirm.ie", domicile="IE",
+                     office_cities=["Cork"], multi_country=True)
+    monkeypatch.setattr(cb, "FIRMS", [firm2])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm2])
+
+    R.stage_locate(force=True)
+
+    out2 = json.loads((R.RUN_DIR / "extract.json").read_text(encoding="utf-8"))
+    # Brian's stale firm_default location is cleared, and the firm no longer
+    # grants a default at all -- so it stays None rather than being reset.
+    assert out2["persons"]["brian_murphy"]["location"] is None
+    assert out2["persons"]["brian_murphy"].get("location_source") is None
+    # Cora's location came from extraction, not a firm default -- untouched.
+    assert out2["persons"]["cora_walsh"]["location"] == "Cork, Ireland"
+    assert out2["persons"]["cora_walsh"].get("location_source") is None
 
 
 def test_stage_locate_gives_no_location_for_an_intl_firm(R, monkeypatch):

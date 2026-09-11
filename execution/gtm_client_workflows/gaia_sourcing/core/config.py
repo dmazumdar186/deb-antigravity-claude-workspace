@@ -124,7 +124,14 @@ class RunConfig:
     # 2026-09-11: operator holds $30 of credit; the Console spend limit is
     # the hard stop; cumulative EUR 15.68 after the first full runs, deepen
     # round 2 windowed.
-    max_cost_eur_total: float = 25.0
+    # 2026-09-11 (later same day): cumulative EUR 24.46 after the corrected
+    # re-delivery (held-back/no-employer fix, renderer honouring delivery.json,
+    # location-provenance recompute). One more tail run of ~EUR 0.7 is still
+    # needed to finish it. 25.0 no longer leaves room for that tail without
+    # tripping the ceiling early and stalling the run; the Console's $30 limit
+    # remains the actual hard stop. 26.5 EUR ~= $28.8 at the USD_TO_EUR rate
+    # below -- still under the Console ceiling with headroom for FX drift.
+    max_cost_eur_total: float = 26.5
     # L6 drop-rate alarm. Above this, the L5 prompt is wrong -- see section 7.
     max_drop_rate: float = 0.15
     request_timeout_s: int = 60

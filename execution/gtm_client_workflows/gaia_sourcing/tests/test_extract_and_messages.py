@@ -491,3 +491,20 @@ def test_postnominals_are_stripped_from_names():
     assert strip_postnominals("Seán Ó Ríordáin, PhD") == "Seán Ó Ríordáin"
     assert strip_postnominals("Ken Manley") == "Ken Manley"
     assert strip_postnominals("") == ""
+
+
+def test_postnominals_are_stripped_leading_a_title_too():
+    """2026-09-11: some firm directories list the letters BEFORE the role,
+    e.g. 'CEng MIEI Senior Structural Engineer', with or without a wrapping
+    parenthesis and commas. Applied to current_title at render time, this
+    must reduce to the bare title, same as it already does for names."""
+    from gtm_client_workflows.gaia_sourcing.layers.extract import strip_postnominals
+    assert (strip_postnominals("CEng MIEI Senior Structural Engineer")
+            == "Senior Structural Engineer")
+    assert (strip_postnominals("(CEng, MIEI) Senior Structural Engineer")
+            == "Senior Structural Engineer")
+    assert (strip_postnominals("(CEng) Senior Structural Engineer")
+            == "Senior Structural Engineer")
+    # No postnominal present -- untouched.
+    assert (strip_postnominals("Senior Structural Engineer")
+            == "Senior Structural Engineer")

@@ -702,3 +702,169 @@ def test_the_evidence_itself_survived_the_cut(rendered):
     assert "<blockquote>" in html
     assert "EN 1992-1-1" in html
     assert 'class="src"' in html
+
+
+# ---------------------------------------------------------------------------
+# Post-nominals leading current_title (2026-09-11)
+# ---------------------------------------------------------------------------
+
+
+def test_leading_postnominals_are_stripped_from_the_rendered_title(tmp_path, monkeypatch):
+    """A directory that lists 'CEng MIEI Senior Structural Engineer' must not
+    greet the reader with the letters before the role -- same property that
+    already holds for names, now applied to current_title too."""
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    out_dir = tmp_path / "deliverables"
+    monkeypatch.setattr(R, "RUN_DIR", run_dir)
+    monkeypatch.setattr(R, "OUT_DIR", out_dir)
+    monkeypatch.setattr(R, "head_ok", lambda url, timeout=20: (False, 404))
+
+    def w(name, obj):
+        (run_dir / (name + ".json")).write_text(json.dumps(obj), encoding="utf-8")
+
+    w("extract", {
+        "persons": {
+            "p1": {
+                "person_id": "p1", "full_name": "Kate FitzGerald CEng MIEI",
+                "current_title": "(CEng, MIEI) Senior Structural Engineer",
+                "current_employer": "Example Engineers", "location": "Dublin",
+                "doc_ids": ["d1"],
+                "role_id": "role1_senior_structural_engineer",
+                "profile_url": "https://example.ie/p/one",
+            }
+        },
+        "claims": [CLAIM],
+    })
+    w("validate", {"claims": [CLAIM], "stats": {"drop_rate": 0.0}})
+    w("gate", {"p1": {
+        "role_id": "role1_senior_structural_engineer", "tier": "B",
+        "gates": [GATE_OK], "n_claims": 1, "client_side": False,
+    }})
+    w("adversarial", {})
+    w("contact", {"p1": {
+        "person_id": "p1", "email": None, "email_status": "none",
+        "linkedin_url": None,
+    }})
+    w("movability", {})
+    w("messages", {})
+    w("linkcheck", {})
+    w("poolmap", {
+        "role1_senior_structural_engineer": {
+            "role_id": "role1_senior_structural_engineer",
+            "profiles_assessed": 1, "raw_claims": 1, "evidence_validated": 1,
+            "passed_all_gates": 1, "delivered": 1, "exclusions": [],
+            "client_side_sidebar": [],
+        },
+        "role2_transport_major_projects_manager": {
+            "role_id": "role2_transport_major_projects_manager",
+            "profiles_assessed": 0, "raw_claims": 0, "evidence_validated": 0,
+            "passed_all_gates": 0, "delivered": 0, "exclusions": [],
+            "client_side_sidebar": [],
+        },
+    })
+    w("delivery", {"role1_senior_structural_engineer": ["p1"],
+                    "role2_transport_major_projects_manager": []})
+
+    R.build(allow_placeholder_notice=True)
+    html = (out_dir / "dossier.html").read_text(encoding="utf-8")
+    csv_text = (out_dir / "candidates.csv").read_text(encoding="utf-8-sig")
+
+    assert "CEng" not in html and "MIEI" not in html
+    assert "Senior Structural Engineer" in html
+    assert "Kate FitzGerald" in html
+    assert "CEng" not in csv_text and "MIEI" not in csv_text
+
+
+# ---------------------------------------------------------------------------
+# The renderer must honour delivery.json exactly, never recompute a longer
+# list from gate_out when delivery.json legitimately shipped fewer people
+# (2026-09-11: 13 rendered against a delivery.json that listed 10).
+# ---------------------------------------------------------------------------
+
+
+def test_renderer_honours_delivery_json_even_when_more_people_passed_the_gate(
+    tmp_path, monkeypatch
+):
+    """delivery.json restricts role1 to one person; a second person also
+    passed every gate (tier A, no adversarial exclusion) but was never put in
+    delivery.json (e.g. cut by target_count, or held back). The rendered page
+    and CSV must carry only the one person delivery.json actually names."""
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    out_dir = tmp_path / "deliverables"
+    monkeypatch.setattr(R, "RUN_DIR", run_dir)
+    monkeypatch.setattr(R, "OUT_DIR", out_dir)
+    monkeypatch.setattr(R, "head_ok", lambda url, timeout=20: (False, 404))
+
+    def w(name, obj):
+        (run_dir / (name + ".json")).write_text(json.dumps(obj), encoding="utf-8")
+
+    claim1 = dict(CLAIM, claim_id="c1", subject_person_id="p1")
+    claim2 = dict(CLAIM, claim_id="c2", subject_person_id="p2",
+                  evidence_quote="a second, unrelated verbatim quote")
+
+    def person(pid, name):
+        return {
+            "person_id": pid, "full_name": name,
+            "current_title": "Senior Structural Engineer",
+            "current_employer": "Example Engineers", "location": "Dublin",
+            "doc_ids": ["d1"],
+            "role_id": "role1_senior_structural_engineer",
+        }
+
+    w("extract", {
+        "persons": {"p1": person("p1", "Sean O'Brien"),
+                    "p2": person("p2", "Aoife Walsh")},
+        "claims": [claim1, claim2],
+    })
+    w("validate", {"claims": [claim1, claim2], "stats": {"drop_rate": 0.0}})
+    w("gate", {
+        "p1": {"role_id": "role1_senior_structural_engineer", "tier": "A",
+               "gates": [GATE_OK], "n_claims": 1, "client_side": False},
+        "p2": {"role_id": "role1_senior_structural_engineer", "tier": "A",
+               "gates": [GATE_OK], "n_claims": 1, "client_side": False},
+    })
+    w("adversarial", {})
+    w("contact", {
+        "p1": {"person_id": "p1", "email": None, "email_status": "none",
+               "linkedin_url": None},
+        "p2": {"person_id": "p2", "email": None, "email_status": "none",
+               "linkedin_url": None},
+    })
+    w("movability", {})
+    w("messages", {})
+    w("linkcheck", {})
+    w("poolmap", {
+        "role1_senior_structural_engineer": {
+            "role_id": "role1_senior_structural_engineer",
+            "profiles_assessed": 2, "raw_claims": 2, "evidence_validated": 2,
+            "passed_all_gates": 2, "delivered": 1, "exclusions": [],
+            "client_side_sidebar": [],
+        },
+        "role2_transport_major_projects_manager": {
+            "role_id": "role2_transport_major_projects_manager",
+            "profiles_assessed": 0, "raw_claims": 0, "evidence_validated": 0,
+            "passed_all_gates": 0, "delivered": 0, "exclusions": [],
+            "client_side_sidebar": [],
+        },
+    })
+    # delivery.json (the pipeline's own decision) names only p1 -- p2 passed
+    # every gate but is held back / cut and must NEVER reach the page.
+    w("delivery", {"role1_senior_structural_engineer": ["p1"],
+                    "role2_transport_major_projects_manager": [],
+                    "overflow": {"role1_senior_structural_engineer": ["p2"],
+                                 "role2_transport_major_projects_manager": []},
+                    "held_back": {"role1_senior_structural_engineer": [],
+                                   "role2_transport_major_projects_manager": []}})
+
+    R.build(allow_placeholder_notice=True)
+    html = (out_dir / "dossier.html").read_text(encoding="utf-8")
+    csv_text = (out_dir / "candidates.csv").read_text(encoding="utf-8-sig")
+
+    assert "Sean O" in html
+    assert "Aoife Walsh" not in html
+    assert csv_text.count("Sean O") == 1
+    assert "Aoife Walsh" not in csv_text
+    # Exactly one delivered card for the role.
+    assert html.count('id="d-role1_senior_structural_engineer-') == 1
