@@ -327,6 +327,48 @@ def _window(text: str) -> str:
     return text[:_HEAD] + "\n\n[... middle of document omitted ...]\n\n" + text[-_TAIL:]
 
 
+# Case-insensitivity is scoped to the title keyword and month only; the firm
+# capture stays case-sensitive so "engineer at several irish firms" cannot
+# yield a firm (code review, 2026-09-11). The keyword carries a trailing \b
+# so "Engineers Ireland ... speaks at Croke Park" cannot either.
+_EMPLOYER_AT_RE = re.compile(
+    r"\b(?i:engineer|director|associate|manager|lead|consultant|head of \w+)\b"
+    r"[^.\n|\u00b7]{0,40}?\s+(?i:at)\s+"
+    r"([A-Z][A-Za-z0-9&'\-]*(?:\s+[A-Z][A-Za-z0-9&'\-]*){0,4})"
+)
+_EMPLOYER_LINKEDIN_EXP_RE = re.compile(
+    r"\b(?i:engineer|director|associate|manager|consultant)\.\s+"
+    r"([A-Z][^\n]{2,60}?)\.\s+"
+    r"(?i:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4}"
+)
+_EMPLOYER_STOP_RE = re.compile(
+    r"(?i)^(?:the|a|an|present|current|university|college|institute)\b"
+)
+
+
+def employer_from_own_text(text: str) -> Optional[tuple[str, str]]:
+    """Deterministic employer recovery from a person's OWN document text.
+
+    Third audit 2026-09-11: "JOHN ALCARAS BSc CEng MIEI. Lead / Senior
+    Structural Engineer at Arcadis." and "Senior Structural Engineer. J.A.
+    Gorman Consulting Engineers Ltd. Jan 2014" both name the employer, yet
+    the model emitted no employer claim and both people were held back as
+    "no employer stated on any source". Two shapes are recognised: "<title>
+    at <Firm>" and LinkedIn's "<title>. <Firm>. <Mon YYYY>". Returns
+    (firm, verbatim_quote) -- the quote is an exact substring of `text` so
+    the validator's containment check holds -- or None.
+    """
+    for rx in (_EMPLOYER_AT_RE, _EMPLOYER_LINKEDIN_EXP_RE):
+        for m in rx.finditer(text or ""):
+            firm = m.group(1).strip(" ,;:")
+            if len(firm) < 3 or _EMPLOYER_STOP_RE.match(firm):
+                continue
+            if firm.lower() in ("linkedin", "ireland", "dublin", "cork"):
+                continue
+            return firm, m.group(0)
+    return None
+
+
 def _claim_id(person_id: str, doc_id: str, quote: str) -> str:
     h = hashlib.sha256((person_id + doc_id + quote).encode("utf-8")).hexdigest()
     return "clm_" + h[:16]
@@ -631,6 +673,14 @@ def extract_directory(
             current_title=title,
             current_employer=employer,
             location=(title if title and _OFFICE_RE.search(title) else default_location),
+            # Provenance travels with the value: a firm default set here is
+            # the same datum stage_locate stamps, and the located_ie gate
+            # accepts Person.location only when it is stamped.
+            location_source=(
+                "firm_default"
+                if default_location and not (title and _OFFICE_RE.search(title))
+                else None
+            ),
             doc_ids=[doc.doc_id],
         )
         claims: list[Claim] = []

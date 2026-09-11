@@ -40,13 +40,16 @@ from ..sources.company_bios import FIRMS
 # See _passes_chartered_ie below, which is what check_chartered actually
 # calls; _CHARTERED_RE is kept only for the pieces still used standalone.
 _IE_CHARTER_CO_TOKEN_RE = re.compile(
-    r"\bmiei\b|\bfiei\b|\bengineers ireland\b|"
+    r"\bm\.?\s?i\.?\s?e\.?\s?i\b|\bf\.?\s?i\.?\s?e\.?\s?i\b|\bengineers ireland\b|"
     r"\binstitution of engineers of ireland\b",
     re.I,
 )
-_CENG_RE = re.compile(r"\bceng\b|\bc\.eng\b", re.I)
+# "CEng", "C.Eng", "C. Eng" (third audit: John McBeath's "C. Eng, B. Eng"
+# was read as MIEI-only).
+_CENG_RE = re.compile(r"\bc\.?\s?eng\b", re.I)
 _CHARTERED_ENGINEER_PHRASE_RE = re.compile(r"\bchartered engineer\b", re.I)
-_FIEI_ALONE_RE = re.compile(r"\bfiei\b", re.I)
+# "FIEI" and the dotted "F.I.E.I." (third audit: Paul Healy).
+_FIEI_ALONE_RE = re.compile(r"\bf\.?\s?i\.?\s?e\.?\s?i\b", re.I)
 _BARE_MIEI_RE = re.compile(r"\bmiei\b", re.I)
 _FULL_CHARTERED_PHRASES_RE = re.compile(
     r"\bchartered member of the institution of engineers of ireland\b|"
@@ -213,6 +216,14 @@ def _strip_ni(text: str) -> str:
 _IE_ORG_STRIP_RE = re.compile(
     r"\bengineers ireland\b|\binstitution of engineers of ireland\b|"
     r"\bengineers journal\b|\bconsulting engineers of ireland\b|\bacei\b|"
+    # 2026-09-11 third-cut fix: a windowed quote can start mid-word
+    # ("ulting Engineers of Ireland (ACEI)"), so the \b-anchored org name
+    # above never matched and the fragment passed as Republic residence.
+    # "engineers of ireland" is only ever part of an organisation's name.
+    # No prefix: "\w*\s*" would also eat a complete preceding word such as
+    # the county in "Cork engineers of Ireland branch chair". Stripping the
+    # phrase alone leaves "ulting  ( ) and was awar" -- no Irish token.
+    r"\bengineers of ireland\b|"
     r"\birish concrete society\b|\binstitution of structural engineers\b",
     re.I,
 )
@@ -351,8 +362,25 @@ def check_located_ie(
          else c.assertion + " " + c.evidence_quote)
         for c in loc_claims
     ]
-    if person.location:
+    # Person.location is a residence basis only when it carries provenance
+    # (`location_source`, stamped by stage_locate from the firm's domicile
+    # under the multi-country guard). An UNSTAMPED value is the extraction
+    # model's own inference and, on the 2026-09-11 third cut, three of the
+    # four delivered cards rested on exactly that: "Limerick" read off
+    # "University of Hospital Limerick Project", "Dublin" off "University
+    # College Dublin", "Ireland" off "across the UK and Ireland". None says
+    # where the person lives. Where a page or snippet really states a
+    # residence, extraction (or _find_location_quote) emits a quoted
+    # location claim and the person passes on that claim instead.
+    if person.location and person.location_source:
         haystacks.append(("person.location", person.location))
+    # Provenance gates what can PASS a person, never what can exclude one:
+    # an unstamped "Regional Director (Belfast Office)" or "London" must
+    # still trip the NI / outside-Ireland exclusions below (code review,
+    # 2026-09-11 third cut).
+    exclusion_haystacks = list(haystacks)
+    if person.location and not person.location_source:
+        exclusion_haystacks.append(("person.location", person.location))
 
     # Northern Ireland excludes only when NO Republic evidence exists anywhere
     # in the claim set. A witness who has "co-ordinated EIARs in a number of
@@ -362,9 +390,11 @@ def check_located_ie(
     # NI phrases are stripped before the Republic test because "Northern
     # Ireland" contains the substring "Ireland" -- without this, a Belfast
     # address reads as Republic evidence and the NI exclusion never fires.
-    any_republic = any(_IE_RE.search(_clean_residence_haystack(b)) for _, b in haystacks)
+    any_republic = any(
+        _IE_RE.search(_clean_residence_haystack(b)) for _, b in exclusion_haystacks
+    )
     if not any_republic:
-        for cid, blob in haystacks:
+        for cid, blob in exclusion_haystacks:
             if _NI_RE.search(blob):
                 return GateResult(
                     gate_id="located_ie",
@@ -382,6 +412,13 @@ def check_located_ie(
     # discarded so the eventual failure note is specific, not generic.
     county_reject_cid: Optional[str] = None
     for cid, blob in haystacks:
+        # A stamped firm default is the employer's office, not a statement
+        # about the person. It can carry the gate only when the brief does
+        # not demand direct residence evidence (third audit 2026-09-11:
+        # Role 1 sets require_direct_evidence, so Joseph Toher's CS
+        # Consulting default is not enough on its own).
+        if require_direct and cid == "person.location":
+            continue
         cleaned = _clean_residence_haystack(blob)
         if not _IE_RE.search(cleaned):
             continue
@@ -393,7 +430,7 @@ def check_located_ie(
         # passes it even where a foreign jurisdiction is also mentioned.
         if _NON_IE_RE.search(blob) and not _RESIDENCE_SHAPE_RE.search(blob):
             continue
-        if not _county_matches(blob, counties):
+        if not _county_matches(cleaned, counties):
             if county_reject_cid is None:
                 county_reject_cid = cid
             continue
@@ -402,6 +439,14 @@ def check_located_ie(
             note = (
                 "Ireland evidenced alongside other jurisdictions -- confirm "
                 "current base in the first call."
+            )
+        elif cid == "person.location":
+            # A stamped firm default is the firm's only listed office, not a
+            # statement about this person. Say so on the card.
+            note = (
+                "Residence inferred from the employer's only listed office; "
+                "no on-page statement for this person -- confirm current "
+                "base in the first call."
             )
         return GateResult(
             gate_id="located_ie", passed=True, basis=cid, note=note
@@ -473,7 +518,7 @@ def check_located_ie(
             ),
         )
 
-    for cid, blob in haystacks:
+    for cid, blob in exclusion_haystacks:
         if _NON_IE_RE.search(blob):
             return GateResult(
                 gate_id="located_ie",
@@ -874,6 +919,17 @@ _GRADE_PATTERNS: list[tuple[str, re.Pattern]] = [
 ]
 
 
+_NAME_POSTNOM_RE = re.compile(
+    r"(?:[,\s]+(?:b\.?sc|b\.?eng?|b\.?e|m\.?sc|m\.?eng|ph\.?d|c\.?eng|m\.?i\.?e\.?i|"
+    r"f\.?i\.?e\.?i|mistructe|mice|ceng|pmp|mba|dip\w*)\.?)+\s*$", re.I)
+
+
+def _bare_name(full_name: Optional[str]) -> str:
+    """Lower-cased name with trailing post-nominals removed, so "JOHN ALCARAS
+    BSc CEng MIEI" can be found inside a quote (code review, 2026-09-11)."""
+    return _NAME_POSTNOM_RE.sub("", (full_name or "").strip()).strip(" ,").lower()
+
+
 def _grade_of(
     person: Person, claims: list[ValidatedClaim]
 ) -> Optional[tuple[str, str]]:
@@ -895,8 +951,25 @@ def _grade_of(
     texts: list[tuple[str, str]] = []
     if person.current_title:
         texts.append((person.current_title, "person.title"))
-    for c in _direct(_claims_by_dim(claims, "employer")):
-        texts.append((c.assertion + " " + c.evidence_quote, c.claim_id))
+    name_low = _bare_name(person.full_name)
+    for c in _claims_by_dim(claims, "employer"):
+        if c.confidence == "direct":
+            texts.append((c.assertion + " " + c.evidence_quote, c.claim_id))
+            continue
+        quote_low = (c.evidence_quote or "").lower()
+        pos = quote_low.find(name_low) if name_low else -1
+        if pos >= 0:
+            # Third audit 2026-09-11 (Mark Clyne): an INFERRED employer claim
+            # whose verbatim quote names the person ("Mark Clyne. Head of
+            # Design, Chartered Structural Engineer.") is a title statement
+            # about that person and counts for the grade ceiling. Only the
+            # span from the name to the end of that sentence is scanned, so
+            # a neighbouring bio on a windowed team page cannot grade them.
+            span = c.evidence_quote[pos:]
+            m = re.search(r"[.\n|\u00b7]", span[len(name_low) + 1:])
+            if m:
+                span = span[: len(name_low) + 1 + m.end()]
+            texts.append((span, c.claim_id))
 
     best: Optional[tuple[int, str, str]] = None  # (rank, grade, basis)
     for text, basis in texts:
@@ -1236,7 +1309,14 @@ _CONSULTANCY_SHAPE_RE = re.compile(
 # delivery work), never as a legitimate Role 1 (structural consultancy)
 # employer, so it is gated behind `allow_client_side_firms_role2` rather than
 # always-on.
-_COMMON_CONSULTANCY_FIRMS = ["arup", "jacobs", "aecom", "atkins", "wsp", "mott", "rps"]
+_COMMON_CONSULTANCY_FIRMS = [
+    "arup", "jacobs", "aecom", "atkins", "wsp", "mott", "rps",
+    # Third audit 2026-09-11: John Alcaras (Arcadis) was held back because the
+    # majors below did not read as consultancies. All are engineering
+    # consultancies with Irish offices.
+    "arcadis", "stantec", "ramboll", "sweco", "systra", "waterman",
+    "roughan", "byrne looby", "tetra tech",
+]
 _ROLE2_ONLY_FIRMS = ["tii"]
 
 _CONSULTANCY_CONTEXT_RE = re.compile(

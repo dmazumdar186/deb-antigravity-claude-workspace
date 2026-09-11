@@ -463,7 +463,9 @@ def cluster_to_person(cluster: PersonCluster) -> Person:
     members = cluster.members
     linkedin = next((m.linkedin_url for m in members if m.linkedin_url), None)
     title = next((m.title for m in reversed(members) if m.title), None)
-    location = next((m.location for m in reversed(members) if m.location), None)
+    loc_member = next((m for m in reversed(members) if m.location), None)
+    location = loc_member.location if loc_member else None
+    location_source = loc_member.location_source if loc_member else None
     doc_ids: list[str] = []
     for m in members:
         for d in m.doc_ids:
@@ -475,6 +477,7 @@ def cluster_to_person(cluster: PersonCluster) -> Person:
         current_title=title,
         current_employer=_canonical_employer(members),
         location=location,
+        location_source=location_source,
         doc_ids=doc_ids,
         linkedin_url=linkedin,
     )

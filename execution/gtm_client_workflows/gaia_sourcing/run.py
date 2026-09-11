@@ -94,6 +94,8 @@ from .layers.identity import has_identity_corroboration
 from .layers.extract import (
     _claim_id as _extract_claim_id,
     _find_location_quote,
+    employer_from_own_text,
+    strip_postnominals,
     extract_directory,
     extract_from_document,
     window_around_names,
@@ -963,6 +965,20 @@ def stage_locate(force: bool = False) -> None:
     firm_by_slug = {f.slug: f for f in company_bios.FIRMS}
     corpus = load_docs()
 
+    loc_claims_by_pid: dict[str, list[dict]] = {}
+    for c in claims:
+        if c.get("dimension") == "location":
+            loc_claims_by_pid.setdefault(
+                c.get("subject_person_id"), []
+            ).append(c)
+
+    def _has_real_location_evidence(pid: str) -> bool:
+        for c in loc_claims_by_pid.get(pid, []):
+            cleaned = gates._clean_residence_haystack(c.get("evidence_quote") or "")
+            if gates._RESIDENCE_SHAPE_RE.search(cleaned) or gates._IE_RE.search(cleaned):
+                return True
+        return False
+
     if force:
         cleared = 0
         for prec in persons.values():
@@ -987,12 +1003,6 @@ def stage_locate(force: bool = False) -> None:
         # cleared; if the CURRENT _default_location_for_firm still grants a
         # default for their firm, it is reapplied WITH the provenance stamp
         # so it is tracked correctly from here on.
-        loc_claims_by_pid: dict[str, list[dict]] = {}
-        for c in claims:
-            if c.get("dimension") == "location":
-                loc_claims_by_pid.setdefault(
-                    c.get("subject_person_id"), []
-                ).append(c)
 
         legacy_cleared = 0
         legacy_restamped = 0
@@ -1007,13 +1017,7 @@ def stage_locate(force: bool = False) -> None:
             if not loc or not (loc == "Ireland" or loc.endswith(", Ireland")):
                 continue
 
-            has_real_evidence = False
-            for c in loc_claims_by_pid.get(pid, []):
-                cleaned = gates._clean_residence_haystack(c.get("evidence_quote") or "")
-                if gates._RESIDENCE_SHAPE_RE.search(cleaned) or gates._IE_RE.search(cleaned):
-                    has_real_evidence = True
-                    break
-            if has_real_evidence:
+            if _has_real_location_evidence(pid):
                 continue
 
             rec = None
@@ -1038,14 +1042,54 @@ def stage_locate(force: bool = False) -> None:
                 + (", " + str(legacy_restamped)
                    + " re-stamped under current firm data" if legacy_restamped else ""))
 
+    # Employer recovery for every role: a person with no current_employer
+    # whose own document states one in a recognisable shape gets it, with a
+    # quoted direct employer claim (third audit 2026-09-11: Alcaras, Clyne).
+    employers_recovered = 0
+    for pid, prec in persons.items():
+        if (prec.get("current_employer") or "").strip():
+            continue
+        name_parts = strip_postnominals(prec.get("full_name") or "").split()
+        if len(name_parts) < 2:
+            continue
+        for did in prec.get("doc_ids", []) or []:
+            doc = corpus.get(did)
+            if doc is None:
+                continue
+            # Name-anchored: only the text around this person's own name is
+            # searched, so a team page or a post listing several people
+            # cannot hand one person another's employer (code review).
+            window = window_around_names(
+                doc.content_text, name_parts[0], name_parts[-1], 300
+            )
+            if not window or name_parts[-1].lower() not in window.lower():
+                continue
+            hit = employer_from_own_text(window)
+            if not hit:
+                continue
+            firm, quote = hit
+            cid = _extract_claim_id(pid, did, quote)
+            if cid not in have_claim_ids:
+                claims.append({
+                    "claim_id": cid, "subject_person_id": pid,
+                    "dimension": "employer",
+                    "assertion": prec.get("full_name", pid) + " works at " + firm,
+                    "evidence_quote": quote, "source_doc_id": did,
+                    "source_url": str(doc.url), "confidence": "direct",
+                })
+                have_claim_ids.add(cid)
+            prec["current_employer"] = firm
+            employers_recovered += 1
+            log("locate: " + pid + " employer recovered from own text: " + firm)
+            break
+
     relocated = 0
+    backfilled = 0
     new_location_claims = 0
     for pid, prec in persons.items():
         if prec.get("role_id") != ROLE1.role_id:
             continue
         if prec.get("source") != "company_directory":
-            continue
-        if prec.get("location"):
             continue
 
         rec = None
@@ -1059,6 +1103,19 @@ def stage_locate(force: bool = False) -> None:
         if firm is None:
             continue
         default_location = _default_location_for_firm(firm)
+
+        if prec.get("location"):
+            # Back-fill provenance for a location that IS the current firm
+            # default but was set unstamped (extract runs before 2026-09-11
+            # stamped at source). Same datum, same stamp.
+            # A person with a real quoted residence keeps extraction's
+            # provenance (None) -- the claim carries the gate for them.
+            if (default_location and not prec.get("location_source")
+                    and prec.get("location") == default_location
+                    and not _has_real_location_evidence(pid)):
+                prec["location_source"] = "firm_default"
+                backfilled += 1
+            continue
         if not default_location:
             continue
 
@@ -1102,11 +1159,15 @@ def stage_locate(force: bool = False) -> None:
     data["persons"] = persons
     data["claims"] = claims
     save("extract", data)
-    save("locate", {"relocated": relocated, "new_location_claims": new_location_claims})
+    save("locate", {"relocated": relocated, "new_location_claims": new_location_claims,
+                    "employers_recovered": employers_recovered,
+                    "provenance_backfilled": backfilled})
     log("locate: " + str(relocated) + " persons given a location, "
+        + str(employers_recovered) + " employers recovered from own text, "
+        + str(backfilled) + " unstamped firm defaults given provenance, "
         + str(new_location_claims) + " location claims quoted from cached pages")
 
-    if relocated:
+    if relocated or employers_recovered or backfilled:
         stage_validate(force=True)
         stage_gate(force=True)
 
@@ -1775,14 +1836,31 @@ def stage_deepen_near_misses(force: bool = False) -> None:
         return
 
     persons, _, _ = _persons_and_claims()
+    # `source` is popped off each person record by _persons_and_claims and
+    # not returned; read it from extract.json directly (code review
+    # 2026-09-11: the third tuple element is roles, not sources).
+    sources = {
+        pid: rec.get("source", "") for pid, rec in load("extract")["persons"].items()
+    }
     gate_out = load("gate")
     deepen_gates = set(CONFIG.deepen_gates)
+
+    def _eligible(pid: str, failed: set[str]) -> bool:
+        if not failed or not failed <= deepen_gates:
+            return False
+        # located_ie is a real exclusion for a company-directory person (the
+        # firm's own page says where its offices are) but an EVIDENCE GAP for
+        # a search-snippet person: a 300-character snippet routinely omits
+        # the profile's location line. Deepening it is allowed only for the
+        # latter (2026-09-11 third cut: Kate FitzGerald, Seckin Cetinkaya).
+        if "located_ie" in failed and sources.get(pid) != "search_snippet":
+            return False
+        return True
 
     ranked = sorted(
         (-g["n_claims"], pid) for pid, g in gate_out.items()
         if g["tier"] == "EXCLUDED" and not g["client_side"]
-        and {gr["gate_id"] for gr in g["gates"] if not gr["passed"]}
-        and {gr["gate_id"] for gr in g["gates"] if not gr["passed"]} <= deepen_gates
+        and _eligible(pid, {gr["gate_id"] for gr in g["gates"] if not gr["passed"]})
     )
     targets = [pid for _, pid in ranked][: CONFIG.deepen_near_miss_cap]
     log("deepen_near_misses: " + str(len(targets)) + " near-miss candidates "
@@ -2073,9 +2151,10 @@ def _delivery_set() -> dict[str, list[str]]:
             # out["held_back"][role_id], never as an extra key inside
             # `overflow` or at the top level of `out` (see docstring above).
             if not (persons.get(pid) and (persons[pid].current_employer or "").strip()):
-                log("delivery: " + pid + " held back: no employer stated on any source")
+                log("delivery: " + pid + " held back: employer not captured from any source")
                 held_back.setdefault(role_id, []).append(
-                    {"person_id": pid, "reason": "no employer stated"}
+                    {"person_id": pid,
+                     "reason": "employer not captured from any source text"}
                 )
                 continue
             # pid is the final key on purpose. Without it two candidates tied
@@ -2136,6 +2215,17 @@ def stage_contact(force: bool = False) -> None:
         # SEARCH, which is honest but is not a contact route -- and the
         # profiles turn out to be findable in one query. Resolved here rather
         # than at render time so the URL is checked by L12 like any other link.
+        if not rec_d.get("linkedin_url"):
+            # Fourth audit 2026-09-11 (Alcaras): the person's own cited
+            # source was already a linkedin.com/in/ profile, yet the card
+            # offered a search URL. Take the cited profile first.
+            for did in persons[pid].doc_ids or []:
+                d = corpus.get(did)
+                u = str(d.url) if d is not None else ""
+                if re.search(r"linkedin\.com/in/[^/?#\s]+", u):
+                    rec_d["linkedin_url"] = u.split("?")[0]
+                    log("    LinkedIn from cited source: " + rec_d["linkedin_url"])
+                    break
         if not rec_d.get("linkedin_url"):
             found = linkedin_lookup.resolve(
                 persons[pid].full_name, persons[pid].current_employer
@@ -2522,6 +2612,11 @@ def stage_poolmap(force: bool = False) -> None:
                            sorted(reasons.items(), key=lambda kv: -kv[1])],
             "near_misses": sorted(near_misses),
             "client_side_sidebar": sorted(set(client_side)),
+            "held_back": [
+                (persons[h["person_id"]].full_name if h["person_id"] in persons
+                 else h["person_id"]) + " -- " + h["reason"]
+                for h in (delivery.get("held_back", {}) or {}).get(role_id, [])
+            ],
         }
     # The delivered shortlist, written down rather than recomputed.
     #
@@ -3037,7 +3132,20 @@ def main() -> int:
         "--niche", default="structural", choices=sorted(_NICHE_TERMS),
         help="niche terms for --coverage-test (default: structural)",
     )
+    ap.add_argument(
+        "--deepen-gates", default=None,
+        help="comma-separated gate ids stage_deepen_near_misses may target "
+             "(overrides CONFIG.deepen_gates for this run). located_ie is "
+             "honoured only for search-snippet persons -- a directory "
+             "person's residence miss is a real exclusion, not an evidence "
+             "gap.",
+    )
     args = ap.parse_args()
+
+    if args.deepen_gates:
+        CONFIG.deepen_gates = [
+            g.strip() for g in args.deepen_gates.split(",") if g.strip()
+        ]
 
     if args.coverage_test is not None:
         return run_coverage_test(args.coverage_test, args.niche)

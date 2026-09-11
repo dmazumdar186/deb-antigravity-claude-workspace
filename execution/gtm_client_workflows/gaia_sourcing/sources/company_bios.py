@@ -162,7 +162,9 @@ FIRMS: list[Firm] = [
     Firm("garland", "Garland", "garlandconsultancy.com", ["/team", "/our-team"], domicile='IE', office_cities=[]),
     Firm("amey", "Amey Infrastructure Ireland", "ameygroup.ie",
          ["/our-people", "/people", "/about-us/our-people"], domicile='UK', office_cities=[]),
-    Firm("csconsulting", "CS Consulting Group", "csconsulting.ie", ["/our-team"], domicile='IE', office_cities=[]),
+    # office_cities verified 2026-09-11 from the cached /our-team footer:
+    # "DUBLIN HQ: 19-22 Dame Street, Dublin 2" -- the only office listed.
+    Firm("csconsulting", "CS Consulting Group", "csconsulting.ie", ["/our-team"], domicile='IE', office_cities=['Dublin']),
     Firm("cundall", "Cundall", "cundall.com", ["/people"], domicile='UK', office_cities=[]),
     Firm("hhp", "Hayes Higgins Partnership", "hhp.ie", ["/our-team", "/team", "/people"], domicile='IE', office_cities=[]),
     Firm("eireng", "EirEng Consulting Engineers", "eireng.ie", ["/our-team"], domicile='IE', office_cities=[]),

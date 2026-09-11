@@ -34,7 +34,7 @@ Both are now brief settings you set per role: a seniority band (grade ceiling an
 - Brief lock. A list that breaks the seniority or location brief cannot be delivered.
 - Evidence lock. No quote, no claim. Off-limits firms (AtkinsRéalis, TOBIN) are blocked everywhere.
 - Contact honesty. Verified, catch-all, inferred and none are never merged.
-- Cost ceiling per run, enforced in code. Last full run: €0.60 of model spend.
+- Cost ceiling per run and per campaign, enforced in code before every model call. Corrected campaign to date: €25.69.
 - Privacy. Article 14 notice is a fixed text, injected on every draft, with the source of the data named. Licensed data providers only; no scraping through fake accounts.
 - Change log. Any threshold change is a command-line flag, logged with the run, so a list can always be traced to the brief it was cut against.
 
@@ -45,9 +45,16 @@ Both are now brief settings you set per role: a seniority band (grade ceiling an
 - This page, for Steph: where the hand-off to Maddie sits, and the Recruit CRM fields and endpoints used.
 - An honest count: how many candidates survived per role and why. Role 2 (Cork) never had more than four who passed every gate; reaching five is a source question, not a filter question, and the page will say so.
 
+## The corrected cut, as it stands (11 September)
+
+- Senior Structural Engineer: 471 people assessed from 58 Irish consultancy directories, 25 oral-hearing witness statements and 103 search-snippet discoveries; 2 of 10 passed every hard gate with direct evidence and are delivered (Alicia Joyce, CSEA; John Alcaras, Arcadis). 14 more miss only on residence evidence (their firm pages do not say where they sit), 9 miss only on chartership evidence. Each is named in the pool map so you can tell us which to verify.
+- Transport Major Projects Manager (Cork): 65 assessed, 0 of 5. The pool has no Cork-based, chartered transport lead on the public record we can reach for free. Reaching five needs a licensed people-data source; we say so rather than pad.
+- What changed since 20 August: the seniority ceiling and the strict Republic-of-Ireland residence rule now run as hard gates; an office address or a project location no longer counts as where someone lives; chartership means Engineers Ireland (CEng MIEI/FIEI), not ICE or IStructE alone.
+- Model spend for the whole corrected campaign: EUR 25.69, about EUR 13 per delivered card at this pool size; the per-role running cost below assumes a pool three to five times larger.
+
 ## Build timeline if you go ahead
 
-Working pipeline exists (580+ automated tests). Recruit CRM sync, reply classification and the brief settings are built. Wiring to your Recruit CRM account, your job slugs and a named-consultant sender takes 3 to 5 working days, as said on the call. Running cost per role is about €100 in data and model calls, against a placement fee of €14k to €20k.
+Working pipeline exists (1,086 automated tests plus a 41-check acceptance gate on every delivery). Recruit CRM sync, reply classification and the brief settings are built. Wiring to your Recruit CRM account, your job slugs and a named-consultant sender takes 3 to 5 working days, as said on the call. Running cost per role is about €100 in data and model calls, against a placement fee of €14k to €20k.
 
 ## What Steph needs to know about the Recruit CRM hand-off
 

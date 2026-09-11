@@ -54,6 +54,46 @@ fresh cache, Serper key present). Learned and fixed today:
   the `anthropic` package is installed); they are cached as
   `empty_after_parse` and must be purged before the keyed re-run.
 
+## 1c. Cloud-session state (2026-09-11 evening) -- the corrected cut EXISTS
+
+Everything in sections 0-2 was executed in the cloud session on campaign
+`gaia-2026-09-14` (always `export GAIA_CAMPAIGN_ID=gaia-2026-09-14`). The
+delivery is committed under `deliverables/gaia_2026-09-14/` (dossier.html,
+site/index.html, candidates.csv, pool maps; `console/` is regenerable and
+gitignored). Four adversarial audits ran; every substantive finding was
+fixed in code with a regression test (suite: 1,086 tests; acceptance gate:
+41 checks, passing).
+
+Result: Role 1 -- 471 assessed, 2 gate-passers, **2 of 10 delivered**
+(Alicia Joyce / CSEA, John Alcaras / Arcadis); 14 near-misses on residence
+evidence, 9 on chartership evidence, listed in `pool_map_role1.md`.
+Role 2 -- 65 assessed, **0 of 5**. Model spend EUR 25.69 of a EUR 26.50
+cap (operator's USD 30 Console limit is the hard stop). Do NOT re-run
+extract or deepen; only offline stages (locate, identity_hygiene, validate,
+gate, poolmap, render, console) are affordable.
+
+Rules that now bind every cut (all hard gates, all tested):
+- Residence: only a residence-shaped quote ("based in Dublin", "Location:
+  County Meath", "Dublin, County Dublin, Ireland") passes. A firm's office
+  default passes only when the brief does NOT set require_direct_evidence
+  (Role 1 does), and then with a "confirm on first call" note on the card.
+  Project locations, universities and "across the UK and Ireland" never do.
+- Grade ceiling: highest rung across the title and every employer quote
+  that names the person (so "Head of Design" on the firm's own page counts).
+- Chartership: CEng (incl. "C. Eng") + MIEI/FIEI/F.I.E.I./"Engineers
+  Ireland". MIEI alone, ICE or IStructE alone do not pass.
+- Employer: recovered deterministically from the person's own text when the
+  model missed it ("<title> at <Firm>", LinkedIn "<title>. <Firm>. <Mon
+  YYYY>"); anyone still without one is named as held back, never hidden.
+- Cards always show the residence and chartership basis quotes first;
+  second opinions come last (max 2, clipped) and never push the
+  email-honesty line off the card.
+
+Known data note: `run/gaia-2026-09-14/docs.jsonl` carries 4 malformed lines
+(concurrent writers earlier in the session); `load_docs` skips them with a
+log line. Claims citing those docs failed quote validation and were dropped,
+which is the safe direction.
+
 ## 2. Widen the pool for the right grade (needs keys, ~€15–40, 2–4 h)
 
 Role 1 needs 8–15-year Senior/Principal engineers; the "our people" pages

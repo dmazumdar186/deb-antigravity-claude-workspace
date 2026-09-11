@@ -1,0 +1,319 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='robots' content='noindex,nofollow,noarchive,nosnippet'><meta name='referrer' content='no-referrer'><title>Gaia Talent -- TOBIN / AtkinsRealis shortlist</title><style>
+:root{
+  --ink:#16211c; --muted:#5c6b63; --line:#dfe5e0; --bg:#ffffff;
+  --panel:#f6f8f6; --accent:#1d6f4f; --warn:#8a5a00; --warnbg:#fff6e5;
+  --quote:#334b40;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.5 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
+header.doc{border-bottom:3px solid var(--accent);padding-bottom:16px;margin-bottom:10px}
+h1{font-size:26px;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:15px;margin:0}
+.lede{color:var(--muted);margin:6px 0 16px;font-size:14.5px}
+/* The standing note runs the full width of the table beneath it. Capped at
+   80ch it wrapped after roughly half the page and left the right-hand side
+   empty, so the header looked misaligned with the four columns it introduces. */
+.lede.wide,.role-lede{max-width:none;text-align:left}
+h2{font-size:20px;margin:34px 0 2px}
+h2 .of{
+  color:var(--muted);font-weight:400;font-size:13px;margin-left:10px;
+  border:1px solid var(--line);border-radius:4px;padding:1px 7px;white-space:nowrap;
+}
+h2 .of.short{color:var(--warn);border-color:#e0b46a}
+.banner{
+  background:var(--warnbg);border:1px solid #e6c98a;border-left:5px solid var(--warn);
+  color:var(--warn);padding:11px 13px;border-radius:6px;margin:16px 0;font-size:14px;
+}
+
+/* One table, four columns. The card layout put ~980 words in front of a
+   reader whose whole question is "who do I contact, and what do I say". */
+table.sl{
+  width:100%;border-collapse:collapse;margin:14px 0 8px;
+  font-size:14px;table-layout:fixed;
+}
+table.sl th{
+  text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);font-weight:600;padding:0 12px 7px;border-bottom:2px solid var(--accent);
+}
+table.sl td{
+  padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top;
+}
+col.c-who{width:20%} col.c-why{width:27%} col.c-msg{width:38%} col.c-det{width:15%}
+tr.r:hover td{background:var(--panel)}
+
+.nm{font-size:16px;font-weight:600;letter-spacing:-.01em;margin:0 0 2px}
+.ro{color:var(--muted);font-size:12.5px;margin:0 0 9px;line-height:1.35}
+.btns{display:flex;flex-direction:column;gap:5px;align-items:stretch}
+.cta{
+  display:block;text-align:center;font-size:13px;font-weight:600;text-decoration:none;
+  background:var(--accent);color:#fff;border-radius:5px;padding:6px 10px;
+  transition:background 160ms cubic-bezier(.22,1,.36,1);
+}
+a.cta:hover,a.cta:focus-visible{background:#17583f}
+/* A search box is not a profile. Same amber the email column uses for a
+   guess, so one convention covers both kinds of uncertainty. */
+.cta-li.weak{background:var(--bg);color:var(--warn);border:1px solid #e0b46a}
+a.cta-li.weak:hover,a.cta-li.weak:focus-visible{background:var(--warnbg)}
+.cta-em,.cta-alt{background:var(--bg);color:var(--accent);border:1px solid var(--accent)}
+a.cta-alt:hover,a.cta-alt:focus-visible{background:var(--panel)}
+a.cta-em:hover,a.cta-em:focus-visible{background:var(--panel)}
+.cta-em.weak{color:var(--warn);border-color:#e0b46a}
+a.cta-em.weak:hover,a.cta-em.weak:focus-visible{background:var(--warnbg)}
+/* Clipboard confirmation. mailto: has no success callback, so the copy is the
+   only part of the click we can prove happened. */
+a.cta-em.copied,a.cta-em.weak.copied{
+  background:var(--accent);color:#fff;border-color:var(--accent)
+}
+.none{color:var(--muted);font-size:12px;font-style:italic}
+
+.tier{
+  display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.05em;border:1px solid var(--line);border-radius:4px;
+  padding:1px 6px;margin-bottom:7px;color:var(--muted);
+}
+.tier.a{color:var(--accent);border-color:var(--accent)}
+.tier.b{color:var(--ink)}
+.why{margin:0;padding-left:16px}
+.why li{margin:0 0 5px;line-height:1.45}
+
+.msg-k{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+  font-weight:600;margin:0 0 3px;display:flex;gap:8px;align-items:baseline;
+}
+.msg-k .lbl{flex:1 1 auto;min-width:0}
+.msg-wrap+.msg-k{margin-top:10px}
+/* Reading the message in a 132px box is not the job -- sending it is. The
+   button copies the exact text that would be sent, so the box only has to
+   show enough to recognise which message it is. */
+button.cp{
+  flex:0 0 auto;font:600 10.5px/1 inherit;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--accent);background:none;border:1px solid var(--line);border-radius:4px;
+  padding:3px 7px;cursor:pointer;
+}
+button.cp:hover,button.cp:focus-visible{border-color:var(--accent);background:var(--panel)}
+button.cp.copied{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* A capped box with no visible edge reads as a cut-off document. The fade is
+   the "there is more" signal that a screenshot can actually show. */
+.msg-wrap{position:relative}
+/* Only where there is genuinely more to see. A fade over a message that
+   already fits promises content that does not exist. */
+.msg-wrap.more::after{
+  /* A fade alone reads as a soft edge, not as "keep reading" -- a recruiter
+     skimming could take the email for a short one and never see the GDPR
+     footer under it. The fade carries a label. */
+  content:"scroll for the rest";position:absolute;left:1px;right:1px;bottom:1px;
+  height:30px;padding-right:9px;
+  display:flex;align-items:flex-end;justify-content:flex-end;
+  font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);
+  background:linear-gradient(rgba(246,248,246,0),var(--panel) 62%);
+  border-radius:0 0 5px 5px;pointer-events:none;
+}
+pre.msg{
+  margin:0;white-space:pre-wrap;word-wrap:break-word;font:12.5px/1.5 inherit;
+  background:var(--panel);border:1px solid var(--line);border-radius:5px;
+  padding:8px 10px;color:var(--quote);
+  max-height:132px;overflow-y:scroll;scrollbar-width:thin;
+}
+
+.det-btn{
+  font:600 13px/1 inherit;color:var(--accent);background:none;
+  border:1px solid var(--line);border-radius:5px;padding:7px 10px;cursor:pointer;
+  width:100%;text-align:left;
+}
+.det-btn:hover,.det-btn:focus-visible{border-color:var(--accent);background:var(--panel)}
+.det-ar{
+  display:inline-block;font-size:10px;margin-right:6px;
+  transition:transform 140ms cubic-bezier(.22,1,.36,1);
+}
+.det-btn[aria-expanded="true"] .det-ar{transform:rotate(90deg)}
+tr.det>td{background:var(--panel);padding:14px 16px 16px}
+.det-in{max-width:88ch;font-size:13.5px;line-height:1.55}
+.det-in p{margin:0 0 7px}
+.det-in .claim{
+  margin:0 0 8px;padding-left:11px;border-left:3px solid var(--line);
+}
+.det-in blockquote{margin:0;padding:0;border:0;color:var(--quote);display:inline}
+.det-in .src{font-size:11.5px;color:var(--muted);display:inline;margin-left:6px}
+.det-in .facts{margin:9px 0 0;padding-top:8px;border-top:1px solid var(--line)}
+.det-in a{color:var(--accent)}
+.gap{color:var(--warn)}
+
+@media (max-width:900px){
+  table.sl,table.sl thead,table.sl tbody,table.sl tr,table.sl td{display:block;width:100%}
+  /* Must out-specify the rule above, or `hidden` stops meaning hidden. */
+  table.sl tr[hidden]{display:none}
+  table.sl thead{display:none}
+  table.sl td{border:0;padding:6px 0}
+  tr.r{border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0;display:block}
+  .btns{flex-direction:row;flex-wrap:wrap}
+  .cta{display:inline-block}
+}
+@media print{
+  .det-btn,button.cp{display:none}
+  .msg-wrap.more::after{display:none}
+  tr.det{display:table-row !important}
+  tr.r,tr.det,pre.msg{page-break-inside:avoid;break-inside:avoid}
+  pre.msg{max-height:none;overflow:visible}
+  a{color:inherit;text-decoration:none}
+}
+</style></head><body><div class='wrap'><header class='doc'><h1>Senior Structural Engineer &amp; Transport Major Projects Manager</h1><p class='sub'>Evidence-backed shortlist prepared for Gaia Talent Ltd &middot; 11 September 2026 &middot; 2 candidates</p></header><p class='lede wide'><strong>Approach on the professional network first.</strong> Mailing a senior engineer at their employer&rsquo;s address about leaving that employer is monitored mail and poor tradecraft &mdash; the email button is there for when the first channel goes quiet, and every row carries a switchboard number for when both do. Each candidate is one row: who they are, why they are on the list, and the message to send; open <em>Detail</em> for the evidence behind it. Every factual statement is a verbatim quote from a public document, checked character-by-character against its cached source, and claims that could not be matched were dropped rather than softened.</p><section class="role-band" id="role1_senior_structural_engineer"><h2>Senior Structural Engineer<span class="of short">2 of 10</span></h2><p class="lede role-lede">Limerick, Galway, Dublin, Ireland. Assessed 471 profiles; 2 passed every hard gate. 0 of 2 are ready to contact now &mdash; verified address and a resolved profile &mdash; and those are listed first. The rest need a step before they can be approached and follow below, ranked as they were on strength of evidence on technical skill.</p></section><div class="banner"><strong>Short of target.</strong> 2 of 10 delivered. The pool map for this role lists exactly which gate removed each of the others. Padding the list with candidates who fail a hard gate would be the alternative, and it is not one.</div><table class="sl"><colgroup><col class="c-who"><col class="c-why"><col class="c-msg"><col class="c-det"></colgroup><thead><tr><th>Candidate</th><th>Why them</th><th>Message to send</th><th>Detail</th></tr></thead><tbody><tr class="r"><td><p class="nm">Alicia Joyce</p><p class="ro">Senior Structural Engineer &middot; CSEA</p><div class="btns"><a class="cta cta-li" href="https://ie.linkedin.com/in/alicia-joyce-a62a2190">LinkedIn</a><a class="cta cta-alt" href="https://duckduckgo.com/?q=CSEA+Ireland+contact">Call the firm</a><span class="none">No email address found</span></div></td><td><span class="tier c">Tier C</span><ul class="why"><li>Senior Structural Engineer at CSEA</li><li>Works in structural engineering</li><li>Based in Dublin, County Dublin, Ireland</li></ul></td><td><p class="msg-k"><span class="lbl">LinkedIn note</span><button class="cp" type="button" aria-live="polite" data-copy="Alicia - noted your CEng/MIEI chartership and your work as Senior Structural Engineer at CSEA. I&#x27;m recruiting a similar senior role with an infrastructure consultancy across Dublin, Limerick and Galway. Open to a short call?">Copy</button></p><div class="msg-wrap"><pre class="msg">Alicia - noted your CEng/MIEI chartership and your work as Senior Structural Engineer at CSEA. I&#x27;m recruiting a similar senior role with an infrastructure consultancy across Dublin, Limerick and Galway. Open to a short call?</pre></div><p class="msg-k"><span class="lbl">Email &mdash; Senior Structural Engineer role - Dublin, Limerick or Galway</span><button class="cp" type="button" aria-live="polite" data-copy="Alicia,
+
+Your CEng and MIEI chartership, alongside your current role as Senior Structural Engineer at CSEA, caught my attention for a search I&#x27;m running.
+
+I&#x27;m working with a major infrastructure consultancy looking to bring in a Senior Structural Engineer. They have flexibility on base location - Dublin, Limerick or Galway - and the role sits within their structural team working on infrastructure-scale projects.
+
+Given your background, I think the conversation is worth having even if you&#x27;re not actively looking. Would you be open to a short call this week or next to talk through the detail?
+
+--
+How we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer&#x27;s published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice
+
+If you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again.">Copy</button></p><div class="msg-wrap"><pre class="msg">Alicia,
+
+Your CEng and MIEI chartership, alongside your current role as Senior Structural Engineer at CSEA, caught my attention for a search I&#x27;m running.
+
+I&#x27;m working with a major infrastructure consultancy looking to bring in a Senior Structural Engineer. They have flexibility on base location - Dublin, Limerick or Galway - and the role sits within their structural team working on infrastructure-scale projects.
+
+Given your background, I think the conversation is worth having even if you&#x27;re not actively looking. Would you be open to a short call this week or next to talk through the detail?
+
+--
+How we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer&#x27;s published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice
+
+If you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again.</pre></div><p class="msg-k"><span class="lbl">Follow-up, about a week later</span><button class="cp" type="button" aria-live="polite" data-copy="Alicia - following up on this. One detail worth adding: the consultancy is happy to keep Dublin as your base if that suits, rather than requiring relocation. Let me know if a quick call works.">Copy</button></p><div class="msg-wrap"><pre class="msg">Alicia - following up on this. One detail worth adding: the consultancy is happy to keep Dublin as your base if that suits, rather than requiring relocation. Let me know if a quick call works.</pre></div></td><td><button class="det-btn" type="button" aria-expanded="false" aria-controls="d-role1_senior_structural_engineer-alicia_joyce"><span class="det-ar" aria-hidden="true">&#9656;</span><span class="det-lb">Click here for details</span></button></td></tr><tr class="det" id="d-role1_senior_structural_engineer-alicia_joyce" hidden><td colspan="4"><div class="det-in"><div class="claim"><blockquote>&ldquo;Dublin, County Dublin, Ireland&rdquo;</blockquote><div class="src"><a href="https://ie.linkedin.com/in/alicia-joyce-a62a2190" target="_blank" rel="noopener noreferrer">source</a></div></div><div class="claim"><blockquote>&ldquo;Alicia Joyce. (CEng, MIEI) Senior Structural Engineer at CSEA&rdquo;</blockquote><div class="src"><a href="https://ie.linkedin.com/posts/carlo-orani_blockchain-blockchaintechnology-buildinginformationmodeling-activity-6924624426994966529-q4YC?trk=public_profile_like_view" target="_blank" rel="noopener noreferrer">source</a></div></div><div class="facts"><p class="gap">Second-opinion review incomplete for this card.</p><p class="src">Inferred, not directly stated: Associated with University of Pretoria; Employer CSEA is Clifton Scannell Emerson Associates</p><p class="src">No email address found.</p><p><strong class="mov-low">low movability.</strong> Chartership completion is noted, but there&#x27;s no evidence of tenure length or prior job changes to gauge stability or restlessness.</p><p class="src">Find CSEA and ask for Alicia Joyce</p></div></div></td></tr><tr class="r"><td><p class="nm">John Alcaras</p><p class="ro">Lead / Senior Structural Engineer &middot; Arcadis</p><div class="btns"><a class="cta cta-li" href="https://ie.linkedin.com/in/john-alcaras-bsc-ceng-miei-82647741">LinkedIn</a><a class="cta cta-alt" href="https://duckduckgo.com/?q=Arcadis+Ireland+contact">Call the firm</a><span class="none">No email address found</span></div></td><td><span class="tier c">Tier C</span><ul class="why"><li>CEng MIEI chartership with Engineers Ireland is evidenced directly in his own LinkedIn title and confirmed again in a separate LinkedIn post.</li><li>Based in Dublin, County Dublin, which satisfies the Republic of Ireland residence requirement and commutability to one of the listed hub cities.</li><li>Employer is Arcadis, a genuine engineering consultancy with no conflict to TOBIN or AtkinsRealis.</li></ul></td><td><p class="msg-k"><span class="lbl">LinkedIn note</span><button class="cp" type="button" aria-live="polite" data-copy="John, your CEng/MIEI background at Arcadis stood out. Recruiting a Senior Structural Engineer for a consultancy with roles in Dublin, Limerick and Galway. Worth a short call?">Copy</button></p><div class="msg-wrap"><pre class="msg">John, your CEng/MIEI background at Arcadis stood out. Recruiting a Senior Structural Engineer for a consultancy with roles in Dublin, Limerick and Galway. Worth a short call?</pre></div><p class="msg-k"><span class="lbl">Email &mdash; Senior Structural Engineer - Dublin, Limerick or Galway</span><button class="cp" type="button" aria-live="polite" data-copy="Hi John,
+
+Your Chartered Engineer and MIEI status with Engineers Ireland, alongside your time at Arcadis, put you firmly in the bracket for a role I&#x27;m working on.
+
+A major infrastructure consultancy is hiring a Senior Structural Engineer, with options to be based in Dublin, Limerick or Galway. It&#x27;s a chartered-level position, working across structural design on infrastructure projects, with real scope to take technical ownership.
+
+I don&#x27;t want to overload this first note with detail before I know if the timing or location works for you. Would you be open to a short call this week to talk through the role properly?
+
+Best,
+The Gaia Talent team
+
+--
+How we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer&#x27;s published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice
+
+If you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again.">Copy</button></p><div class="msg-wrap"><pre class="msg">Hi John,
+
+Your Chartered Engineer and MIEI status with Engineers Ireland, alongside your time at Arcadis, put you firmly in the bracket for a role I&#x27;m working on.
+
+A major infrastructure consultancy is hiring a Senior Structural Engineer, with options to be based in Dublin, Limerick or Galway. It&#x27;s a chartered-level position, working across structural design on infrastructure projects, with real scope to take technical ownership.
+
+I don&#x27;t want to overload this first note with detail before I know if the timing or location works for you. Would you be open to a short call this week to talk through the role properly?
+
+Best,
+The Gaia Talent team
+
+--
+How we got your details: Gaia Talent Ltd sourced your professional information from publicly available sources (including public planning records and your employer&#x27;s published team pages). We process it under legitimate interest (GDPR Art. 6(1)(f)) to contact you about a relevant engineering role. Full privacy notice, including your rights and our retention period: https://gaia-privacy.pages.dev/gaia-candidate-notice
+
+If you would rather not hear from us, reply with the word STOP and we will erase your details and not contact you again.</pre></div><p class="msg-k"><span class="lbl">Follow-up, about a week later</span><button class="cp" type="button" aria-live="polite" data-copy="Hi John, following up on the Senior Structural Engineer role. The client has interviews scheduled for later this month, so happy to get you in front of them if the locations suit. Worth a quick chat?">Copy</button></p><div class="msg-wrap"><pre class="msg">Hi John, following up on the Senior Structural Engineer role. The client has interviews scheduled for later this month, so happy to get you in front of them if the locations suit. Worth a quick chat?</pre></div></td><td><button class="det-btn" type="button" aria-expanded="false" aria-controls="d-role1_senior_structural_engineer-john_alcaras_bsc_ceng_miei"><span class="det-ar" aria-hidden="true">&#9656;</span><span class="det-lb">Click here for details</span></button></td></tr><tr class="det" id="d-role1_senior_structural_engineer-john_alcaras_bsc_ceng_miei" hidden><td colspan="4"><div class="det-in"><div class="claim"><blockquote>&ldquo;Dublin, County Dublin&rdquo;</blockquote><div class="src"><a href="https://ie.linkedin.com/in/john-alcaras-bsc-ceng-miei-82647741" target="_blank" rel="noopener noreferrer">source</a></div></div><div class="claim"><blockquote>&ldquo;JOHN ALCARAS BSc CEng MIEI.&rdquo;</blockquote><div class="src"><a href="https://www.linkedin.com/posts/paul-cassidy-9222988b_i-was-delighted-to-receive-my-chartered-engineer-activity-7461139331454525440-45UD" target="_blank" rel="noopener noreferrer">source</a></div></div><div class="claim"><blockquote>&ldquo;Lead / Senior Structural Engineer at Arcadis&rdquo;</blockquote><div class="src"><a href="https://ie.linkedin.com/in/john-alcaras-bsc-ceng-miei-82647741" target="_blank" rel="noopener noreferrer">source</a></div></div><div class="facts"><p class="src">Inferred, not directly stated: Possibly attended University of the Philippines; Works in structural engineering</p><p class="src">No email address found.</p><p><strong class="mov-unknown">unknown movability.</strong> Evidence shows chartership and Dublin base matching the role&#x27;s region, but there&#x27;s no tenure or career trajectory data to judge how settled they are at Arcadis.</p><p class="src">Find Arcadis and ask for John Alcaras</p><p class="gap">Second opinion: The title &#x27;Lead / Senior Structural Engineer&#x27; is self-reported on LinkedIn with no corroborating grade or org-chart evidence, so it&#x27;s unclear whether this maps to the required Principal/Associate ceiling or is title inflation at Arcadis.</p><p class="gap">Second opinion: No years of professional experience are evidenced anywhere in the material, so the required 8-18 year band cannot be confirmed from the supplied sources.</p><p class="src">+1 more second-opinion finding(s) in the run record.</p></div></div></td></tr></tbody></table><section class="role-band" id="role2_transport_major_projects_manager"><h2>Transport Major Projects Manager<span class="of short">0 of 5</span></h2><p class="lede role-lede">Cork, Ireland. Assessed 65 profiles; 0 passed every hard gate. 0 of 0 are ready to contact now &mdash; verified address and a resolved profile &mdash; and those are listed first. The rest need a step before they can be approached and follow below, ranked as they were on strength of evidence on statutory process.</p></section><div class="banner"><strong>Short of target.</strong> 0 of 5 delivered. The pool map for this role lists exactly which gate removed each of the others. Padding the list with candidates who fail a hard gate would be the alternative, and it is not one.</div><table class="sl"><colgroup><col class="c-who"><col class="c-why"><col class="c-msg"><col class="c-det"></colgroup><thead><tr><th>Candidate</th><th>Why them</th><th>Message to send</th><th>Detail</th></tr></thead><tbody></tbody></table><h2>Client-side engineers &mdash; not part of the shortlist</h2><p class='lede'>These people have the statutory-process experience the transport role wants, but they work for the bodies that commission the schemes rather than the consultancies that deliver them. A different conversation, listed here because leaving them out entirely would hide something useful.</p><ul><li>Barry Kelly &mdash; ESB Engineering and Major Projects</li><li>Brendan Duggan &mdash; ESB</li><li>David Dineen &mdash; Córas Iompair Éireann (C.I.É.) since 2003</li><li>David Vaughan &mdash; Iarnród Éireann</li><li>Denis Hickey &mdash; Iarnród Éireann Irish Rail</li><li>Donnacha Cody &mdash; ESB</li><li>Fiona Meaney &mdash; ESB</li><li>Ger McCarthy &mdash; Cork County Council</li><li>James Tobin &mdash; ESB Engineering &amp; Major Projects</li><li>John Kelly CEng FIEI, Exec Coach &mdash; ESB</li><li>Kathy Kissane CEng MIEI FPWI &mdash; Iarnród Éireann</li><li>Kieran Kissane &mdash; Cork County Council</li><li>Leo Crehan &mdash; Dublin City Council</li><li>Michael Horan &mdash; Transport Infrastructure Ireland (TII)</li><li>Michael Purdon &mdash; Cork County Council</li><li>Niall Fitzpatrick &mdash; ESB (Engineering and Major projects)</li><li>Paul Brown &mdash; TII</li><li>Paul Smith &mdash; ESB</li><li>Philip White &mdash; ESB Engineering &amp; Major</li><li>Qi-Yan Tan &mdash; ESB Engineering &amp; Major Projects</li><li>Richard Lane &mdash; ESB Engineering &amp; Major Projects</li><li>Tom O&#x27;Neill &mdash; ESB Engineering and Major Projects</li></ul><footer><p><strong>Method.</strong> Public sources only: company staff directories and An Coimisi&uacute;n Pleanála oral-hearing documents. No claim appears without a verbatim quote that was verified against its cached source. Tiering is deterministic: hard gates are Python, never a model's opinion. Each shortlisted candidate was reviewed a second time by a reviewer that could not see the first review's verdict.</p><p><strong>Contact-data honesty.</strong> Addresses are labelled <em>verified</em>, <em>catch-all</em> or <em>pattern guess</em> and those labels are never collapsed. A pattern guess is a guess.</p><p>Generated 2026-09-11 &middot; campaign gaia-2026-09-14.</p></footer></div><script>
+(function(){
+  var RESTORE = 1800;
+  function flash(a, msg){
+    if (a.dataset.busy) { return; }
+    var original = a.textContent;
+    a.dataset.busy = '1';
+    a.classList.add('copied');
+    a.textContent = msg;
+    setTimeout(function(){
+      a.textContent = original;
+      a.classList.remove('copied');
+      delete a.dataset.busy;
+    }, RESTORE);
+  }
+  function legacyCopy(text){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  document.addEventListener('click', function(ev){
+    var t = ev.target;
+    if (!t || !t.closest) { return; }
+    var a = t.closest('a.cta-em, a[href^="mailto:"], button.cp');
+    if (!a) { return; }
+    var literal = a.getAttribute('data-copy');
+    if (literal !== null) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(literal).then(function(){
+          flash(a, 'Copied');
+        }, function(){
+          flash(a, legacyCopy(literal) ? 'Copied' : 'Select the text below');
+        });
+      } else {
+        flash(a, legacyCopy(literal) ? 'Copied' : 'Select the text below');
+      }
+      return;
+    }
+    /* The button carries the address explicitly; the reach-block links carry
+       it only in the href, so fall back to reading it off there rather than
+       leaving those clicks inert for the same reason as before. */
+    var addr = a.getAttribute('data-email');
+    if (!addr) {
+      var h = a.getAttribute('href') || '';
+      addr = h.replace(/^mailto:/i, '').split('?')[0];
+      try { addr = decodeURIComponent(addr); } catch (err) { /* keep raw */ }
+    }
+    if (!addr) { return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(addr).then(function(){
+        flash(a, 'Address copied');
+      }, function(){
+        flash(a, legacyCopy(addr) ? 'Address copied' : addr);
+      });
+    } else {
+      flash(a, legacyCopy(addr) ? 'Address copied' : addr);
+    }
+  });
+
+  /* Mark only the message boxes that actually overflow, so the fade is a
+     fact about the content rather than a decoration on every box. */
+  function markOverflow(){
+    var wraps = document.querySelectorAll('.msg-wrap');
+    for (var i = 0; i < wraps.length; i++) {
+      var pre = wraps[i].querySelector('pre.msg');
+      if (!pre) { continue; }
+      var more = pre.scrollHeight > pre.clientHeight + 2;
+      wraps[i].classList.toggle('more', more);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', markOverflow);
+  } else {
+    markOverflow();
+  }
+  window.addEventListener('resize', markOverflow);
+
+  /* The detail pane. A <details> element inside a table cell would open
+     inside that column's width, which is the narrowest place on the page to
+     read a quotation; this toggles a full-width row underneath instead.
+     hidden is the only state -- no class, no inline style -- so print CSS can
+     override it and show every pane at once. */
+  document.addEventListener('click', function(ev){
+    var t = ev.target;
+    if (!t || !t.closest) { return; }
+    var btn = t.closest('.det-btn');
+    if (!btn) { return; }
+    var row = document.getElementById(btn.getAttribute('aria-controls'));
+    if (!row) { return; }
+    var open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    row.hidden = open;
+    var lb = btn.querySelector('.det-lb');
+    if (lb) { lb.textContent = open ? 'Click here for details' : 'Hide details'; }
+  });
+})();
+</script></body></html>
