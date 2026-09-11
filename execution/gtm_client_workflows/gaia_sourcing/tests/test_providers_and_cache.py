@@ -653,3 +653,41 @@ def test_render_page_text_executes_javascript():
     text, _title = result
     assert "Hello" in text
     assert "World" in text
+
+
+def test_firecrawl_rate_limit_is_retried_and_never_cached(monkeypatch, tmp_path):
+    """A 429 from Firecrawl retries with backoff; if it persists the raw fetch
+    is used and no rendered failure is cached (2026-09-11 regression)."""
+    from gtm_client_workflows.gaia_sourcing.core import cache as C
+
+    monkeypatch.setattr(C, "CACHE_DIR", tmp_path)
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
+    from gtm_client_workflows.gaia_sourcing.core import config as CFG
+    monkeypatch.setattr(CFG, "secret", lambda name, required=True: "fc-test")
+    monkeypatch.setattr(C.time, "sleep", lambda s: None)
+    calls = {"n": 0}
+
+    class R:
+        def __init__(self, code, body=None):
+            self.status_code = code; self._body = body or {}; self.headers = {"Retry-After": "1"}
+        def json(self): return self._body
+
+    def fake_post(*a, **k):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            return R(429)
+        return R(200, {"data": {"markdown": "Aoife Example CEng MIEI Senior Engineer", "metadata": {"title": "People"}}})
+
+    monkeypatch.setattr(C.requests, "post", fake_post)
+    doc = C.fetch_rendered("https://example.ie/people", source_type="company_bio", force=True)
+    assert calls["n"] == 3
+    assert doc is not None and "CEng" in doc.content_text
+    # persistent 429 -> raw fallback, nothing cached under the rendered key
+    calls["n"] = -100
+    monkeypatch.setattr(C, "fetch", lambda url, source_type="other", force=False: None)
+    monkeypatch.setattr(C.requests, "post", lambda *a, **k: R(429))
+    out = C.fetch_rendered("https://example.ie/other", source_type="company_bio", force=True)
+    assert out is None
+    assert not list(tmp_path.glob("*.meta.json")) or all(
+        json.loads(m.read_text()).get("url") != "https://example.ie/other" for m in tmp_path.glob("*.meta.json")
+    )

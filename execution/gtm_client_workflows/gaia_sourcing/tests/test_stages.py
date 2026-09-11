@@ -15,6 +15,7 @@ stage function against it. Zero network, zero LLM, zero paid calls.
 from __future__ import annotations
 
 import json
+import sys
 from datetime import date
 
 import pytest
@@ -79,6 +80,107 @@ def _claim(pid: str, dimension: str, assertion: str, quote: str, **kw) -> dict:
         "confidence": kw.get("confidence", "direct"),
         "quote_verified": True,
     }
+
+
+# ---------------------------------------------------------------------------
+# stage_harvest_r1 -- the "no people page found" log line
+#
+# 2026-09-11: a 58-firm run yielded pages from only 7 firms and gave no
+# visibility into which firms came back empty or why. This pins that the
+# stage now names every firm that never produced a page >= 800 chars, and
+# counts them in its final summary line, without touching the 800-char rule
+# itself (a fixture doc under 800 chars must still be silently skipped as a
+# harvested page but must still count its firm as "no page found").
+# ---------------------------------------------------------------------------
+
+
+def test_harvest_r1_logs_and_counts_firms_with_no_people_page(R, monkeypatch, capsys):
+    from gtm_client_workflows.gaia_sourcing.sources import company_bios as cb
+
+    firm_ok = cb.Firm(slug="ok_firm", name="OK Firm", domain="ok.ie", people_paths=["/people"])
+    firm_empty = cb.Firm(slug="empty_firm", name="Empty Firm", domain="empty.ie",
+                          people_paths=["/team"])
+    monkeypatch.setattr(cb, "FIRMS", [firm_ok, firm_empty])
+    monkeypatch.setattr(R.company_bios, "FIRMS", [firm_ok, firm_empty])
+
+    def fake_discover(firm, limit=4):
+        return ["https://www." + firm.domain + "/people"]
+
+    monkeypatch.setattr(R.company_bios, "discover_people_urls", fake_discover)
+
+    def fake_fetch_rendered(url, source_type="company_bio"):
+        if "ok.ie" in url:
+            return _doc("d_ok", "Chartered engineer. " * 60, url=url)  # >= 800 chars
+        return _doc("d_short", "too short", url=url)  # < 800 chars -- dropped silently
+
+    monkeypatch.setattr(R, "fetch_rendered", fake_fetch_rendered)
+
+    R.stage_harvest_r1()
+
+    out = capsys.readouterr().out
+    assert "empty_firm: no people page found (tried 1 urls)" in out
+    assert "1 firms with no people page found" in out
+
+    records = json.loads((R.RUN_DIR / "harvest_r1.json").read_text(encoding="utf-8"))
+    assert {r["firm_slug"] for r in records} == {"ok_firm"}
+
+
+# ---------------------------------------------------------------------------
+# --purge-failed-cache -- an empty needle purges only the errorless 404s
+#
+# 2026-09-11: the 108 guessed team-page URLs that 404'd during harvest_r1
+# needed purging before a re-run with real discovery, but the pre-existing
+# flag's empty-needle case (`needle and needle not in error`) purged EVERY
+# not-ok cache entry, including empty_after_parse ones the operator did not
+# name -- indistinguishable failure modes get the same "start over" cost.
+# ---------------------------------------------------------------------------
+
+
+def _write_cache_meta(cache_dir, name: str, meta: dict) -> None:
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    (cache_dir / (name + ".meta.json")).write_text(json.dumps(meta), encoding="utf-8")
+    (cache_dir / (name + ".body")).write_text("x", encoding="utf-8")
+
+
+def test_empty_needle_purges_only_entries_with_no_explicit_error(monkeypatch, tmp_path, capsys):
+    from gtm_client_workflows.gaia_sourcing import run as mod
+    from gtm_client_workflows.gaia_sourcing.core import cache as cache_mod
+
+    monkeypatch.setattr(cache_mod, "CACHE_DIR", tmp_path)
+    # A guessed team-page 404: fetch()/fetch_rendered() write no "error" key
+    # at all for a non-200 status -- see core/cache.py's fetch().
+    _write_cache_meta(tmp_path, "a", {"ok": False, "http_status": 404, "url": "https://x/a"})
+    # empty_after_parse carries an explicit error and must survive.
+    _write_cache_meta(tmp_path, "b", {"ok": False, "error": "empty_after_parse", "url": "https://x/b"})
+    # A successful entry must never be touched.
+    _write_cache_meta(tmp_path, "c", {"ok": True, "doc_id": "d", "url": "https://x/c",
+                                       "fetched_at": "2026-09-11", "http_status": 200})
+
+    monkeypatch.setattr(sys, "argv", ["run.py", "--purge-failed-cache", ""])
+
+    rc = mod.main()
+
+    assert rc == 0
+    assert not (tmp_path / "a.meta.json").exists()
+    assert (tmp_path / "b.meta.json").exists()
+    assert (tmp_path / "c.meta.json").exists()
+    assert "purged 1 failed cache entries" in capsys.readouterr().out
+
+
+def test_a_named_needle_still_purges_only_matching_entries(monkeypatch, tmp_path):
+    from gtm_client_workflows.gaia_sourcing import run as mod
+    from gtm_client_workflows.gaia_sourcing.core import cache as cache_mod
+
+    monkeypatch.setattr(cache_mod, "CACHE_DIR", tmp_path)
+    _write_cache_meta(tmp_path, "a", {"ok": False, "http_status": 404, "url": "https://x/a"})
+    _write_cache_meta(tmp_path, "b", {"ok": False, "error": "empty_after_parse", "url": "https://x/b"})
+
+    monkeypatch.setattr(sys, "argv", ["run.py", "--purge-failed-cache", "empty_after_parse"])
+
+    mod.main()
+
+    assert (tmp_path / "a.meta.json").exists()       # untouched -- named needle, no match
+    assert not (tmp_path / "b.meta.json").exists()    # explicitly named -- purged
 
 
 # ---------------------------------------------------------------------------

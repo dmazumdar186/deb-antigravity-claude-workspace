@@ -353,6 +353,24 @@ def _anthropic_client() -> Any:
     return _ANTHROPIC_CLIENT
 
 
+
+def strict_object_schema(schema):
+    """Return a deep copy with additionalProperties:false on every object node.
+
+    Walks properties, items, anyOf/oneOf/allOf and $defs so nested objects
+    (claim lists, per-person records) satisfy the API's strict-tool rule.
+    """
+    if isinstance(schema, list):
+        return [strict_object_schema(x) for x in schema]
+    if not isinstance(schema, dict):
+        return schema
+    out = {k: strict_object_schema(v) if k in ("properties", "items", "anyOf", "oneOf", "allOf", "$defs", "definitions") or isinstance(v, (dict, list)) else v
+           for k, v in schema.items()}
+    if out.get("type") == "object" or "properties" in out:
+        out.setdefault("additionalProperties", False)
+    return out
+
+
 def _call_anthropic(
     model: str, system: str, user: str, tool: dict, max_tokens: int, temperature: float
 ) -> tuple[Optional[dict], dict]:
@@ -370,8 +388,11 @@ def _call_anthropic(
     # layer schemas don't set, so it's added defensively here) + an explicit
     # sentence naming the tool, appended to the system prompt so every caller
     # gets it without editing each layer's prompt text.
-    strict_schema = dict(tool["input_schema"])
-    strict_schema.setdefault("additionalProperties", False)
+    # 2026-09-11: the API now rejects ANY nested object without an explicit
+    # additionalProperties:false ("tools.0.custom: For 'object' type,
+    # 'additionalProperties' must be explicitly set to false"), so the
+    # top-level setdefault was no longer enough -- every extraction call 400'd.
+    strict_schema = strict_object_schema(tool["input_schema"])
     strict_tool = {**tool, "input_schema": strict_schema, "strict": True}
     resp = client.messages.create(
         model=model,

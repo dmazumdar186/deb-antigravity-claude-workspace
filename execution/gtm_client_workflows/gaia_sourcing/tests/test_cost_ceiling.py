@@ -412,3 +412,21 @@ def test_preflight_refuses_before_dispatch_when_run_ceiling_breached(monkeypatch
     with pytest.raises(P.CostCeilingExceeded):
         P.call_role("judge_test", "s", "u", {"name": "t", "input_schema": {"type": "object"}}, 10, 0.0)
     assert called["n"] == 0
+
+
+def test_strict_object_schema_marks_every_nested_object():
+    from gtm_client_workflows.gaia_sourcing.core import providers as P
+    schema = {
+        "type": "object",
+        "properties": {
+            "claims": {"type": "array", "items": {"type": "object", "properties": {"q": {"type": "string"}}}},
+            "person": {"type": "object", "properties": {"name": {"type": "string"}}},
+            "flag": {"type": "boolean"},
+        },
+    }
+    out = P.strict_object_schema(schema)
+    assert out["additionalProperties"] is False
+    assert out["properties"]["claims"]["items"]["additionalProperties"] is False
+    assert out["properties"]["person"]["additionalProperties"] is False
+    assert "additionalProperties" not in out["properties"]["flag"]
+    assert "additionalProperties" not in schema  # input untouched
