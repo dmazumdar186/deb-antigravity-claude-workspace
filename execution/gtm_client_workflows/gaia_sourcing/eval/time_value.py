@@ -28,7 +28,11 @@ class Assumptions:
     # -- there is no "emails sent" field anywhere in the cache. Kept as an
     # editable assumption, same as the three above, so a future run's
     # caller can correct it without touching code; run_check reads it via
-    # `august_list(a=assumptions)` instead of a hard-coded default.
+    # `august_list(names=..., emails_written=assumptions.emails_written,
+    # a=assumptions)` instead of a hard-coded default. (2026-09-13: names
+    # and emails_written both became required kwargs on august_list --
+    # the 13/4 defaults were unused dead weight since run.py always passes
+    # both explicitly.)
     emails_written: int = 4
 
 
@@ -50,9 +54,7 @@ def weekly(a: Assumptions) -> dict:
     }
 
 
-def august_list(
-    names: int = 13, emails_written: int = 4, a: Assumptions | None = None
-) -> dict:
+def august_list(names: int, emails_written: int, a: Assumptions | None = None) -> dict:
     """The 20 August delivery's own numbers: consultant hours spent on a
     list where every name later proved wrong for the brief, and how many of
     those went as far as an email to someone who could never be placed on

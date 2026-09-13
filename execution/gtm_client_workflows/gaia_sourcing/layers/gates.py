@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import re
 from datetime import date
-from typing import Optional
+from typing import NamedTuple, Optional
 
 from ..core.contracts import GateResult, JobSpec, Person, ValidatedClaim
 from ..sources.company_bios import FIRMS
@@ -636,10 +636,25 @@ def check_discipline(
     )
 
 
+# 2026-09-13 fix: a figure preceded by one of these (case-insensitive), or
+# followed by "+", states a LOWER bound, not an exact figure -- "over 15
+# years" and "15+ years" both mean the person has AT LEAST 16 whole years,
+# not exactly 15. Patrick Raggett's quote "with over 15 years of experience"
+# was reading as within a 15-year seniority CEILING because extract_years
+# returned the bare 15 instead of treating it as a floor of 16.
+_LOWER_BOUND_PREFIX_SRC = (
+    r"(?:over|more\s+than|in\s+excess\s+of|exceeding|upwards\s+of|at\s+least)"
+)
+
 _YEARS_RE = re.compile(
     # \b on both sides of the digits: without it, "2024" yields a spurious
     # "24 years" match and a four-digit year satisfies a seniority gate.
-    r"\b(\d{1,2})\b\s*\+?\s*years?"
+    # `full` captures exactly the surface phrase ("over 15", "15+", "26")
+    # so callers can quote it back rather than reporting a number the
+    # source text never actually stated.
+    r"(?P<full>(?:\b(?P<prefix>" + _LOWER_BOUND_PREFIX_SRC + r")\s+)?"
+    r"\b(?P<num>\d{1,2})\b(?P<plus>\+)?)"
+    r"\s*years?"
     r"(?:\s*(?:of\s+)?(?:post[- ]?graduate\s+)?"
     r"(?:professional\s+|relevant\s+|industry\s+)?experience)?",
     re.I,
@@ -655,47 +670,111 @@ _WORD_NUM = {
 }
 _TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50}
 _WORD_YEARS_RE = re.compile(
-    r"\b(twenty|thirty|forty|fifty)(?:[\s-]+(one|two|three|four|five|six|"
-    r"seven|eight|nine))?\s+years?\b|\b(ten|eleven|twelve|thirteen|fourteen|"
-    r"fifteen|sixteen|seventeen|eighteen|nineteen)\s+years?\b",
+    r"(?P<wfull>(?:\b(?P<wprefix>" + _LOWER_BOUND_PREFIX_SRC + r")\s+)?"
+    r"\b(?:(?P<tens>twenty|thirty|forty|fifty)(?:[\s-]+(?P<ones>one|two|three|"
+    r"four|five|six|seven|eight|nine))?|(?P<teens>ten|eleven|twelve|thirteen|"
+    r"fourteen|fifteen|sixteen|seventeen|eighteen|nineteen)))"
+    r"\s+years?\b",
     re.I,
 )
 
 
-def _extract_word_years(text: str) -> Optional[int]:
-    best = None
+class YearsFigure(NamedTuple):
+    """One years-experience figure found in text.
+
+    `base` is the literal number the text states ("15" in "over 15 years").
+    `is_lower_bound` is True when the text frames it as a floor (a
+    prefix word like "over"/"at least", or a trailing "+"). `effective` is
+    the true minimum implied -- base+1 for a lower bound, else base -- and
+    is what should be compared against a seniority floor or ceiling.
+    `phrase` is the exact surface text ("over 15", "15+", "26", "over
+    twenty") so a reason string can quote the source instead of inventing
+    a precision the source never stated.
+    """
+
+    base: int
+    is_lower_bound: bool
+    phrase: str
+
+    @property
+    def effective(self) -> int:
+        return self.base + 1 if self.is_lower_bound else self.base
+
+
+def _digit_years_candidate(text: str) -> Optional[YearsFigure]:
+    best: Optional[YearsFigure] = None
+    for m in _YEARS_RE.finditer(text):
+        try:
+            n = int(m.group("num"))
+        except (TypeError, ValueError):
+            continue
+        if not (1 <= n <= 60):
+            continue
+        if best is None or n > best.base:
+            is_lower = bool(m.group("prefix")) or bool(m.group("plus"))
+            best = YearsFigure(base=n, is_lower_bound=is_lower, phrase=m.group("full"))
+    return best
+
+
+def _word_years_candidate(text: str) -> Optional[YearsFigure]:
+    best: Optional[YearsFigure] = None
     for m in _WORD_YEARS_RE.finditer(text):
-        if m.group(1):
-            val = _TENS[m.group(1).lower()]
-            if m.group(2):
-                val += _WORD_NUM[m.group(2).lower()]
-        elif m.group(3):
-            val = _WORD_NUM[m.group(3).lower()]
+        if m.group("tens"):
+            val = _TENS[m.group("tens").lower()]
+            if m.group("ones"):
+                val += _WORD_NUM[m.group("ones").lower()]
+        elif m.group("teens"):
+            val = _WORD_NUM[m.group("teens").lower()]
         else:
             continue
-        if best is None or val > best:
-            best = val
+        if best is None or val > best.base:
+            is_lower = bool(m.group("wprefix"))
+            best = YearsFigure(base=val, is_lower_bound=is_lower, phrase=m.group("wfull"))
     return best
+
+
+def _extract_word_years(text: str) -> Optional[int]:
+    """Back-compat shim: worded-figure value only, no bound information."""
+    cand = _word_years_candidate(text)
+    return cand.base if cand is not None else None
+
+
+def extract_years_figure(text: str) -> Optional[YearsFigure]:
+    """The largest plausible years-experience figure in `text`, with its
+    lower-bound status and quotable surface phrase.
+
+    Bounded at 60 (on the literal stated number) so a stray four-digit year
+    or a scheme name containing digits cannot satisfy a seniority gate.
+    Between a digit and a worded figure with the same base value, the digit
+    figure wins (mirrors the historical extract_years tie-break).
+    """
+    best = _digit_years_candidate(text)
+    worded = _word_years_candidate(text)
+    if worded is not None and (best is None or worded.base > best.base):
+        best = worded
+    return best
+
+
+def extract_years_bound(text: str) -> Optional[tuple[int, bool]]:
+    """(effective_years, is_lower_bound) for the largest plausible figure in
+    `text`. effective_years is base+1 when the figure is a stated lower
+    bound ("over 15 years" -> (16, True)) -- the true minimum the person can
+    be credited with -- else the figure itself ("18 years" -> (18, False)).
+    """
+    fig = extract_years_figure(text)
+    return (fig.effective, fig.is_lower_bound) if fig is not None else None
 
 
 def extract_years(text: str) -> Optional[int]:
-    """Largest plausible 'N years experience' figure in the text.
-
-    Bounded at 60 so a stray four-digit year or a scheme name containing
-    digits cannot satisfy a seniority gate.
+    """Largest plausible 'N years experience' figure in the text, as the
+    effective (lower-bound-adjusted) integer -- see extract_years_bound.
+    Existing callers that only want a single comparable number are
+    unaffected; callers that need to quote the source's own wording in a
+    reason string should use extract_years_figure().phrase instead of
+    str()-ing this value.
     """
-    best: Optional[int] = None
-    for m in _YEARS_RE.finditer(text):
-        try:
-            n = int(m.group(1))
-        except (TypeError, ValueError):
-            continue
-        if 1 <= n <= 60 and (best is None or n > best):
-            best = n
-    worded = _extract_word_years(text)
-    if worded is not None and (best is None or worded > best):
-        best = worded
-    return best
+    bound = extract_years_bound(text)
+    return bound[0] if bound is not None else None
 
 
 # RADAR_CONTRACTS.md section C: a years figure only counts toward a person's
@@ -806,18 +885,17 @@ def check_seniority(
 ) -> GateResult:
     minimum = int(params.get("min_years", 8))
     require_subject = bool(params.get("require_subject_is_person", False))
-    evidenced: list[tuple[int, str]] = []
+    # (effective years, claim_id, quotable phrase -- "over 15"/"15+"/"26")
+    evidenced: list[tuple[int, str, str]] = []
     for c in _direct(_claims_by_dim(claims, "years_experience")):
         if require_subject and not (
             _years_subject_is_person(c.evidence_quote, person)
             or _years_subject_is_person(c.assertion, person)
         ):
             continue
-        years = extract_years(c.evidence_quote)
-        if years is None:
-            years = extract_years(c.assertion)
-        if years is not None:
-            evidenced.append((years, c.claim_id))
+        fig = extract_years_figure(c.evidence_quote) or extract_years_figure(c.assertion)
+        if fig is not None:
+            evidenced.append((fig.effective, c.claim_id, fig.phrase))
 
     if not evidenced:
         # Staff-directory bios state a GRADE, not a number of years. A
@@ -908,7 +986,7 @@ def check_seniority(
             note="No public evidence of " + str(minimum) + "+ years' experience found.",
         )
 
-    best_years, best_cid = max(evidenced, key=lambda t: t[0])
+    best_years, best_cid, best_phrase = max(evidenced, key=lambda t: t[0])
     if best_years >= minimum:
         return GateResult(gate_id="seniority", passed=True, basis=best_cid)
     return GateResult(
@@ -916,7 +994,7 @@ def check_seniority(
         passed=False,
         basis=best_cid,
         note=(
-            "Evidenced at " + str(best_years) + " years' experience, below the "
+            "Evidenced at " + best_phrase + " years' experience, below the "
             + str(minimum) + "-year threshold."
         ),
     )
@@ -1100,18 +1178,17 @@ def check_seniority_ceiling(
             )
 
     require_subject = bool(params.get("require_subject_is_person", False))
-    evidenced: list[tuple[int, str]] = []
+    # (effective years, claim_id, quotable phrase -- "over 15"/"15+"/"26")
+    evidenced: list[tuple[int, str, str]] = []
     for c in _direct(_claims_by_dim(claims, "years_experience")):
         if require_subject and not (
             _years_subject_is_person(c.evidence_quote, person)
             or _years_subject_is_person(c.assertion, person)
         ):
             continue
-        years = extract_years(c.evidence_quote)
-        if years is None:
-            years = extract_years(c.assertion)
-        if years is not None:
-            evidenced.append((years, c.claim_id))
+        fig = extract_years_figure(c.evidence_quote) or extract_years_figure(c.assertion)
+        if fig is not None:
+            evidenced.append((fig.effective, c.claim_id, fig.phrase))
     best_years = max(evidenced, key=lambda t: t[0]) if evidenced else None
 
     # 2026-09-11 second-audit fix (item 5): no stated years-experience figure
@@ -1159,7 +1236,7 @@ def check_seniority_ceiling(
             passed=False,
             basis=best_years[1],
             note=(
-                "Evidenced at " + str(best_years[0]) + " years' experience, "
+                "Evidenced at " + best_years[2] + " years' experience, "
                 "above the " + str(max_years) + "-year ceiling."
             ),
         )

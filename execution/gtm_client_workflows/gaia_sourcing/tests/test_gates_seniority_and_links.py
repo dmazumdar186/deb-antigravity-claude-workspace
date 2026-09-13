@@ -33,18 +33,42 @@ def _vc(dimension, assertion, quote, confidence="direct"):
 
 
 @pytest.mark.parametrize("text,expected", [
-    ("over 26 years post graduate experience", 26),
+    # "over N" / "N+" state a LOWER bound: the true minimum is N+1, not the
+    # literal figure (2026-09-13 fix -- see the seniority-ceiling section
+    # below for the Patrick Raggett-shaped regression this closes).
+    ("over 26 years post graduate experience", 27),
     ("18 years of experience", 18),
     ("has 8 years' experience", 8),
-    ("30+ years experience", 30),
+    ("30+ years experience", 31),
     # Witness statements and bios routinely spell the number out.
     ("eighteen years of experience", 18),
     ("twenty five years experience", 25),
     ("thirty years of experience in transport", 30),
     ("twelve years across commercial projects", 12),
+    ("more than 15 years in structural design", 16),
+    ("in excess of 15 years", 16),
+    ("exceeding 15 years", 16),
+    ("upwards of 15 years", 16),
+    ("at least 15 years", 16),
+    ("over twenty years of experience", 21),
 ])
 def test_years_are_read_from_prose(text, expected):
     assert gates.extract_years(text) == expected
+
+
+def test_extract_years_figure_reports_the_stated_lower_bound_phrase():
+    """The reason-string phrase quotes the source's own words -- "over 15",
+    not an invented "16" the source never said."""
+    fig = gates.extract_years_figure("with over 15 years of experience")
+    assert fig.base == 15
+    assert fig.is_lower_bound is True
+    assert fig.effective == 16
+    assert fig.phrase == "over 15"
+
+    exact = gates.extract_years_figure("18 years of experience")
+    assert exact.is_lower_bound is False
+    assert exact.effective == 18
+    assert exact.phrase == "18"
 
 
 @pytest.mark.parametrize("text", [
@@ -65,6 +89,58 @@ def test_the_largest_plausible_figure_wins():
 
 def test_a_worded_number_beats_a_smaller_digit():
     assert gates.extract_years("2 years here, twenty years in total") == 20
+
+
+# ---------------------------------------------------------------------------
+# "Over N years" is a lower bound, not the number N (2026-09-13 fix).
+#
+# Patrick Raggett's quote "with over 15 years of experience" was reading as
+# AT MOST 15 years, so a seniority CEILING of 15 wrongly passed him -- the
+# 15-year figure he actually stated is a floor, not a ceiling-satisfying
+# exact number. Against a 15-year ceiling "over 15 years" must fail; against
+# a 15-year floor it must still pass, since 16 (or more) clears 15 either way.
+# ---------------------------------------------------------------------------
+
+
+def _raggett_person():
+    return Person(person_id="praggett", full_name="Patrick Raggett",
+                  current_title=None, current_employer="A Firm")
+
+
+def _raggett_claims():
+    return [
+        _vc("years_experience", "Over 15 years of experience",
+            "with over 15 years of experience"),
+    ]
+
+
+def test_over_n_years_fails_a_ceiling_of_n():
+    result = gates.check_seniority_ceiling(
+        _raggett_person(), _raggett_claims(), {"max_years": 15}
+    )
+    assert result.passed is False
+    # The reason quotes the source's own words -- "over 15" -- rather than
+    # inventing a precision ("16 years") the quote never actually stated.
+    assert "over 15" in (result.note or "")
+    assert "16" not in (result.note or "")
+
+
+def test_over_n_years_still_clears_a_floor_of_n():
+    result = gates.check_seniority(
+        _raggett_person(), _raggett_claims(), {"min_years": 15}
+    )
+    assert result.passed is True
+
+
+def test_over_n_years_fails_a_floor_above_n():
+    """The lower bound is real: "over 15" clears a floor of 15 or 16, but
+    still correctly fails a floor of 17 -- it is evidence of AT LEAST 16,
+    not of some unstated larger number."""
+    result = gates.check_seniority(
+        _raggett_person(), _raggett_claims(), {"min_years": 17}
+    )
+    assert result.passed is False
+    assert "over 15" in (result.note or "")
 
 
 # ---------------------------------------------------------------------------

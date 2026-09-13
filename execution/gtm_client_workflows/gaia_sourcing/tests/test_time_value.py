@@ -36,7 +36,11 @@ def test_weekly_is_editable_via_assumptions():
 
 
 def test_august_list_defaults():
-    out = august_list()
+    # names/emails_written are the 20 August delivery's OWN counts (13 names,
+    # 4 emails) -- run.py always passes them explicitly; august_list has no
+    # default for either, so the caller cannot silently drift from the real
+    # delivery's numbers (2026-09-13 fix).
+    out = august_list(names=13, emails_written=4)
     assert out["consultant_hours_spent"] == 3.25  # 13 * 15 / 60
     assert out["calls_that_would_have_been_wrong"] == 13
     assert out["emails_to_unplaceable"] == 4
@@ -53,4 +57,6 @@ def test_august_list_custom_counts_and_assumptions():
 def test_every_number_is_deterministic_no_randomness():
     a = Assumptions()
     assert weekly(a) == weekly(a)
-    assert august_list(a=a) == august_list(a=a)
+    assert august_list(names=13, emails_written=4, a=a) == august_list(
+        names=13, emails_written=4, a=a
+    )
