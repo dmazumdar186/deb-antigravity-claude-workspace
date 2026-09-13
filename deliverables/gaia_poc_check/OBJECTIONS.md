@@ -9,8 +9,8 @@ repo" rather than repeated here as fact.
 
 Sources cited inline: `PLAN.md`, `transcript_2026-09-10_fathom.md`,
 `check_results.json`, `recruit_crm_capabilities_2026-09.md`, `keith_copy.md`,
-and the four lens files (`lens_keith.md`, `lens_team.md`, `lens_money.md`,
-`lens_law.md`).
+and the four lens files (`lenses/lens_keith.md`, `lenses/lens_team.md`, `lenses/lens_money.md`,
+`lenses/lens_law.md`).
 
 ---
 
@@ -19,7 +19,7 @@ and the four lens files (`lens_keith.md`, `lens_team.md`, `lens_money.md`,
 You said the August list was too senior and that some weren't in Ireland —
 you were right on both, and now every name on the list carries the exact
 sentence and the link that proves it, or the exact reason it's out, so
-you're never handed thirteen maybes to call through again. (`lens_keith.md`
+you're never handed thirteen maybes to call through again. (`lenses/lens_keith.md`
 §3, grounded in `monday_send.md` lines 5, 21; `check_results.json` per-row
 `one_line`/`evidence`; `PLAN.md` line 7.)
 
@@ -38,7 +38,7 @@ to enforce a hard rule like "must be chartered" or "must live in County X"
 similar a person looks to the brief; the check tells you whether they
 actually clear it, and shows the sentence that proves or fails it, with the
 link.
-*Source: `recruit_crm_capabilities_2026-09.md` §3; `PLAN.md` item 7; `lens_keith.md` Q1.*
+*Source: `recruit_crm_capabilities_2026-09.md` §3; `PLAN.md` item 7; `lenses/lens_keith.md` Q1.*
 
 **Q2. "Last time you sent me 13 names and every one was wrong. What's
 different this time?"**
@@ -64,7 +64,7 @@ proves people who never applied — the ones a consultant is about to
 cold-call — before the call gets made, so the emails your team wrote in
 August go to people who could actually be placed, not to people who could
 never clear the brief.
-*Source: `transcript_2026-09-10_fathom.md` line 9; `PLAN.md` line 49; `lens_keith.md` Q4.*
+*Source: `transcript_2026-09-10_fathom.md` line 9; `PLAN.md` line 49; `lenses/lens_keith.md` Q4.*
 
 **Q5. "How does this get onto my desk day to day — another page to check,
 another login?"**
@@ -117,7 +117,7 @@ Cork. What good is that to me?"**
 public record reachable for free — the honest number, not a padded one.
 Reaching five needs a licensed people-data source, a separate paid step not
 taken without your say-so.
-*Source: `monday_send.md` line 45; `v2_proposal.md` "The corrected cut", "Not in scope, deliberately".*
+*Source: `monday_send.md` "The Cork role cannot reach five" paragraph; `v2_proposal.md` "The corrected cut", "Not in scope, deliberately".*
 
 **Q11. "You said 5 working days to wire this in — what does that actually
 involve, and what do you need from me?"**
@@ -133,7 +133,7 @@ August, what happens?"**
 "Reply with the three answers and I will re-cut the list the same day, no
 charge. If it is not a clear improvement on seniority and location, you owe
 nothing and we stop here."
-*Source: `monday_send.md` line 53.*
+*Source: `monday_send.md` "Reply with the three answers" paragraph.*
 
 ---
 
@@ -150,7 +150,7 @@ CV-arrival webhook). *Open item, `PLAN.md` item 5.*
 **"Is 'verified' verified, or just the model said so and nobody
 checked?"** Verified means character-for-character substring match against
 a cached document by `validator.py`, deterministic, never model-based,
-logged with a published drop rate (0.9% on the live campaign). It does NOT
+logged with a published drop rate (3.8% on the corrected campaign per validate.json / scorecard.json; the 0.9% in HANDOFF.md was the August run). It does NOT
 verify the underlying fact is true or current — see next.
 
 **"What happens when a firm's people page is stale — do I get a
@@ -266,7 +266,7 @@ checked against the public record before we call":
 **Placement fee at risk.** EUR 14-20k (18% of EUR 80-110k). The check's
 own per-role operating cost is roughly EUR 100-120 — a >100x ratio on cost
 alone, before counting time saved.
-*Source: `lens_money.md` §B(1); `call_brief_2026-09-10.md` §3.*
+*Source: `lenses/lens_money.md` §B(1); `call_brief_2026-09-10.md` §3.*
 
 **Consultant hours, at 5 / 10 / 15 minutes per name** (`eval/time_value.py`,
 `names_per_week` = 40, `hourly_cost_eur` = 45):
@@ -394,7 +394,7 @@ the shape already offered in the call brief's proposal rung B (EUR
 1,500-2,500, under 15% of one placement fee, "no fee if missed"). The
 per-niche-per-month shape (Radar spec) and the own-it/build-fee rung are
 later-stage options, explicitly separate from the check itself.
-*Source: `lens_money.md` §B(4); `radar_final_spec.md`; `PLAN.md` open item 6.*
+*Source: `lenses/lens_money.md` §B(4); `radar_final_spec.md`; `PLAN.md` open item 6.*
 
 ---
 
