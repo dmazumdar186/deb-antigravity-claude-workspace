@@ -5,6 +5,7 @@ Facts come from `deliverables/gaia_2026-09-14/` (campaign `gaia-2026-09-14`) and
 Record check 2026-09-11: Keith's feedback on the 20 August list, as recorded in commit a626381 on the morning of the call, was "too senior, some not in Ireland", so "you were right on both" stands (on the call itself he repeated only the seniority point; the transcript is in `transcript_2026-09-10_fathom.md`). Maddie is the developer who built Gaia's inbound screener (operator's correction; the Fathom transcript garbles the name as "Steph"). Also, the call brief's "Brady (Horganlynch Belfast)" is wrong. The August dossier says he joined Horganlynch's Cork office in 1990 and only names a Belfast project, and the current cache reads his location as Cork. Say "three London, one unproven", never "Belfast".
 Words never used with Keith: AI, platform, system, automated, 2.3x. Say: the filter, the list, corrected, verified, checked by hand.
 No price in this email; the follow-up call does that.
+Day-2 decision (2026-09-13): the Shortlist Check page (deliverables/gaia_poc_check/) is NOT linked in this email. It goes on the follow-up call, re-run under Keith's own thresholds, with the price; the minutes-per-name question is asked live there too. Three links stay.
 
 Before sending, fill the two placeholders: `{LOOM_URL}` and, if a Monday call slot was booked on Thursday, the time in the last line.
 
