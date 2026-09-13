@@ -16,6 +16,7 @@ from gtm_client_workflows.gaia_sourcing.layers.intake import (
     normalise_employer,
     normalise_name,
     slug_for_unmatched,
+    split_delivered,
 )
 
 
@@ -335,3 +336,53 @@ def test_slug_for_unmatched_differs_for_non_identical_spellings():
     # differently, because this is a slug function, not identity
     # resolution.
     assert slug_for_unmatched("Mike O'Reilly") != slug_for_unmatched("Michael O'Reilly")
+
+
+# ---------------------------------------------------------------------------
+# split_delivered -- shared 20-August-plus-14-September position rule
+# (numbers-audit fix 2026-09-14, item o).
+# ---------------------------------------------------------------------------
+
+
+def test_split_delivered_splits_13_plus_2_on_the_known_pattern():
+    rows = [{"name": f"Person {i}"} for i in range(15)]
+    original, delivered = split_delivered(rows, "input_2026-08-20.csv")
+    assert len(original) == 13
+    assert [r["name"] for r in delivered] == ["Person 13", "Person 14"]
+
+
+def test_split_delivered_matches_a_path_ending_in_the_known_filename():
+    rows = [{"name": f"Person {i}"} for i in range(15)]
+    original, delivered = split_delivered(
+        rows, "../deliverables/gaia_poc_check/input_2026-08-20.csv"
+    )
+    assert len(original) == 13 and len(delivered) == 2
+
+
+def test_split_delivered_falls_back_to_all_original_on_wrong_count():
+    rows = [{"name": f"Person {i}"} for i in range(14)]
+    original, delivered = split_delivered(rows, "input_2026-08-20.csv")
+    assert len(original) == 14
+    assert delivered == []
+
+
+def test_split_delivered_falls_back_to_all_original_on_wrong_source():
+    rows = [{"name": f"Person {i}"} for i in range(15)]
+    original, delivered = split_delivered(rows, "some_other_file.csv")
+    assert len(original) == 15
+    assert delivered == []
+
+
+def test_split_delivered_handles_empty_and_none_rows():
+    assert split_delivered(None, "input_2026-08-20.csv") == ([], [])
+    assert split_delivered([], "input_2026-08-20.csv") == ([], [])
+
+
+def test_split_delivered_is_a_position_rule_not_a_status_rule():
+    """Status fields on the rows (or their absence) must never influence
+    the split -- only position and the row count/source gate."""
+    rows = [{"name": f"Person {i}", "status": "PASS" if i < 13 else "OUT"}
+            for i in range(15)]
+    original, delivered = split_delivered(rows, "input_2026-08-20.csv")
+    assert [r["name"] for r in original] == [f"Person {i}" for i in range(13)]
+    assert [r["name"] for r in delivered] == ["Person 13", "Person 14"]

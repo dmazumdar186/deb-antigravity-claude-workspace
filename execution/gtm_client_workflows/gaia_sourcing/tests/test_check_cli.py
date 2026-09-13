@@ -217,7 +217,11 @@ def test_check_csv_has_required_columns(R, run_dir, tmp_path):
     out_dir = tmp_path / "out"
     R.run_check(str(input_csv), out_dir)
 
-    lines = (out_dir / "check.csv").read_text(encoding="utf-8").splitlines()
+    # utf-8-sig (code-review item f, 2026-09-14): check.csv is written with
+    # a BOM so Excel renders accented names correctly on first open; read
+    # it back the same way so the BOM is stripped rather than glued onto
+    # the first header name.
+    lines = (out_dir / "check.csv").read_text(encoding="utf-8-sig").splitlines()
     header = lines[0].split(",")
     for col in ("name", "employer", "title", "status", "reasons",
                 "evidence_note", "contact", "linkedin_url"):
@@ -637,8 +641,35 @@ def test_seniority_ceiling_reason_stated_title(R):
         person, [], "Senior Engineer",
     )
     assert reason == "Director grade, above the Senior Engineer ceiling."
-    assert evidence == []
+    # Numbers-audit item q (2026-09-14): a title-only basis must still
+    # carry an evidence line -- the title itself -- rather than [].
+    assert len(evidence) == 1
+    assert evidence[0] == {
+        "dimension": "title", "quote": "Director", "source_url": "",
+    }
     assert resolved is None
+
+
+def test_seniority_ceiling_reason_title_evidence_prefers_linkedin_url(R):
+    person = Person(
+        person_id="p1", full_name="Test Person", current_title="Director",
+        linkedin_url="https://www.linkedin.com/in/testperson",
+    )
+    reason, evidence, resolved = R._check_seniority_ceiling_reason(
+        "Title 'Director' is above the brief ceiling (senior_engineer)",
+        person, [], "Senior Engineer",
+    )
+    assert evidence[0]["source_url"] == "https://www.linkedin.com/in/testperson"
+
+
+def test_seniority_ceiling_reason_title_evidence_falls_back_to_employer_claim_url(R):
+    person = Person(person_id="p1", full_name="Test Person", current_title="Director")
+    claims = [_grade_claim("clm_emp", "Test Person works at Acme Consulting.")]
+    reason, evidence, resolved = R._check_seniority_ceiling_reason(
+        "Title 'Director' is above the brief ceiling (senior_engineer)",
+        person, claims, "Senior Engineer",
+    )
+    assert evidence[0]["source_url"] == "https://example.ie/p"
 
 
 def test_seniority_ceiling_reason_empty_title_resolves_grade_from_claim(R):
@@ -1186,3 +1217,99 @@ def test_check_sync_json_has_thirteen_rows(R, tmp_path, monkeypatch):
         assert "email" not in sync_row["payload"]
         assert sync_row["payload"]["custom_fields"]["Shortlist Check line"] == row["one_line"]
         assert "Art. 14 notice:" in sync_row["note"]
+
+
+# ---------------------------------------------------------------------------
+# Code-review + numbers-audit fixes, 2026-09-14.
+# ---------------------------------------------------------------------------
+
+
+def test_check_input_source_is_the_bare_filename_not_the_full_path(R, run_dir, tmp_path):
+    """Item g: the operator's local path (tmp_path here; a laptop's home
+    directory or a client's own folder structure in the field) must never
+    leak into a client-facing deliverable."""
+    input_csv = _write_input(tmp_path)
+    out_dir = tmp_path / "out"
+    contract = R.run_check(str(input_csv), out_dir)
+    assert contract["input"]["source"] == "input.csv"
+    assert str(tmp_path) not in contract["input"]["source"]
+
+
+def test_check_csv_formula_prefixed_cell_is_escaped(R, tmp_path, monkeypatch):
+    """Item e: a name/title/quote that starts with =, +, -, @, tab, or CR
+    must not reach check.csv as a live formula prefix -- Excel/Sheets would
+    otherwise evaluate it as a formula on open."""
+    from gtm_client_workflows.gaia_sourcing import run as mod
+    from gtm_client_workflows.gaia_sourcing.core import providers
+
+    monkeypatch.setattr(mod, "RUN_DIR", tmp_path)
+    spec = _test_spec()
+    monkeypatch.setattr(mod, "ROLE1", spec)
+    monkeypatch.setattr(mod, "ROLES", {spec.role_id: spec})
+    monkeypatch.setattr(providers, "call_role",
+                         lambda *a, **k: (_ for _ in ()).throw(AssertionError("no provider")))
+    providers.reset_spend()
+
+    persons = {
+        "formula_person": _person("formula_person", "=SUM(A1:A9) Person"),
+    }
+    claims = [
+        _claim("formula_person", "c1", "chartership", "=cmd|' /C calc'!A1",
+               "=cmd|' /C calc'!A1"),
+    ]
+    (tmp_path / "extract.json").write_text(json.dumps({"persons": persons}), encoding="utf-8")
+    (tmp_path / "validate.json").write_text(json.dumps({"claims": claims}), encoding="utf-8")
+
+    p = tmp_path / "input.csv"
+    p.write_text("name,employer,title\n=SUM(A1:A9) Person,Acme,Engineer\n", encoding="utf-8")
+    out_dir = tmp_path / "out"
+    mod.run_check(str(p), out_dir)
+
+    csv_text = (out_dir / "check.csv").read_text(encoding="utf-8-sig")
+    assert "\n'=SUM(A1:A9) Person," in csv_text
+    assert "\n=SUM(A1:A9) Person," not in csv_text
+
+
+def test_check_sync_checked_on_derives_from_generated_at(R, run_dir, tmp_path):
+    """Item 4 (original audit) / LOW fix: check_sync.json's Art. 14
+    'collected on' date must be the run's own generated_at, not
+    date.today() at export time."""
+    input_csv = _write_input(tmp_path)
+    out_dir = tmp_path / "out"
+    contract = R.run_check(str(input_csv), out_dir)
+
+    sync = json.loads((out_dir / "check_sync.json").read_text(encoding="utf-8"))
+    generated_date = contract["generated_at"][:10]
+    for row in sync["rows"]:
+        assert "collected " + generated_date in row["note"]
+
+
+def test_check_sync_write_creates_missing_parent_dir(R, run_dir, tmp_path):
+    """Item h: _write_check_sync must mkdir its own parent rather than
+    assuming a caller already created it."""
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    contract = {
+        "campaign": "c1", "generated_at": "2026-09-14T00:00:00+00:00",
+        "brief_version": "v1", "rows": [],
+    }
+    nested = tmp_path / "does" / "not" / "exist" / "check_sync.json"
+    out = mod._write_check_sync(nested, contract)
+    assert out.exists()
+
+
+def test_check_csv_failed_entry_missing_reason_does_not_crash(R, tmp_path, monkeypatch):
+    """Item h: a failed[] dict without a "reason" key must fall back to
+    an empty string rather than KeyError-ing the CSV export."""
+    from gtm_client_workflows.gaia_sourcing import run as mod
+
+    rows = [{
+        "name": "No Reason Given", "employer": "Acme", "title": "Engineer",
+        "role_title": "Engineer", "status": "OUT",
+        "failed": [{"gate_id": "not_client", "label": "Not client-side"}],
+        "evidence": [], "contact": "unknown", "one_line": "Out.",
+    }]
+    out_path = tmp_path / "check.csv"
+    mod._write_check_csv(out_path, rows)
+    text = out_path.read_text(encoding="utf-8-sig")
+    assert "No Reason Given" in text

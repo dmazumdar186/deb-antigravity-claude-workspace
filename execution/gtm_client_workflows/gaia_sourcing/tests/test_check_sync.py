@@ -85,6 +85,33 @@ def test_payload_carries_title_and_employer_from_the_row_only():
     assert payload["current_organization"] == "TOBIN Consulting Engineers"
 
 
+def test_payload_includes_linkedin_url_when_present():
+    """Code-review item i (2026-09-14): linkedin_url is the dedupe key a
+    live write needs, and is not a contact/email detail, so it is not
+    subject to the "never carries an email" rule above."""
+    row = _row(linkedin_url="https://www.linkedin.com/in/johnalcaras")
+    payload = rc.check_row_to_payload(row)
+    assert payload["linkedin_url"] == "https://www.linkedin.com/in/johnalcaras"
+
+
+def test_payload_omits_linkedin_url_when_absent():
+    payload = rc.check_row_to_payload(_row())
+    assert "linkedin_url" not in payload
+
+
+def test_payload_custom_fields_empty_values_are_filtered_and_key_dropped_if_empty():
+    """Code-review item i: an unset one_line/brief_version/status must not
+    leave an empty-string custom field in a live payload, and if every
+    custom field turns out empty, `custom_fields` itself is dropped."""
+    row = _row(status="", one_line="", brief_version="")
+    payload = rc.check_row_to_payload(row)
+    assert "custom_fields" not in payload
+
+    row2 = _row(status="PASS", one_line="", brief_version="")
+    payload2 = rc.check_row_to_payload(row2)
+    assert payload2["custom_fields"] == {"Shortlist Check": "PASS"}
+
+
 # ---------------------------------------------------------------------------
 # check_note
 # ---------------------------------------------------------------------------
@@ -109,18 +136,43 @@ def test_note_says_none_when_nothing_failed():
     assert "none" in note.lower()
 
 
-def test_note_carries_up_to_three_evidence_quotes_and_source():
+def test_note_carries_up_to_five_evidence_quotes_and_source():
+    """2026-09-14 numbers-audit item n: the cap was raised 3 -> 5 so a row
+    with several evidence lines (failing-gate quote, seniority quote,
+    residence quote, chartership quote, employer quote) is not truncated
+    before the reader reaches the quote a failing reason actually names."""
     row = _row(evidence=[
         {"dimension": "chartership", "quote": "Quote one.", "source_url": "https://a.ie"},
         {"dimension": "location", "quote": "Quote two.", "source_url": "https://b.ie"},
         {"dimension": "years_experience", "quote": "Quote three.", "source_url": "https://c.ie"},
-        {"dimension": "extra", "quote": "Quote four (dropped).", "source_url": "https://d.ie"},
+        {"dimension": "extra", "quote": "Quote four.", "source_url": "https://d.ie"},
+        {"dimension": "employer", "quote": "Quote five.", "source_url": "https://e.ie"},
+        {"dimension": "extra", "quote": "Quote six (dropped).", "source_url": "https://f.ie"},
     ])
     note = rc.check_note(row, row["brief_version"], date(2026, 9, 13))
     assert "Quote one." in note and "https://a.ie" in note
     assert "Quote two." in note
     assert "Quote three." in note
-    assert "Quote four (dropped)." not in note
+    assert "Quote four." in note
+    assert "Quote five." in note
+    assert "Quote six (dropped)." not in note
+
+
+def test_note_shows_the_fourth_evidence_entry_when_it_is_the_failing_gate_quote():
+    """2026-09-14 item n regression: with 4 evidence entries, the 4th (a
+    failing gate's own basis quote, per run.py's ordering) must still show
+    up in the note -- it would have been dropped under the old cap of 3."""
+    row = _row(evidence=[
+        {"dimension": "chartership", "quote": "Chartership quote.", "source_url": "https://a.ie"},
+        {"dimension": "location", "quote": "Residence quote.", "source_url": "https://b.ie"},
+        {"dimension": "discipline", "quote": "Discipline quote.", "source_url": "https://c.ie"},
+        {"dimension": "years_experience",
+         "quote": "Over 26 years post graduate experience.",
+         "source_url": "https://d.ie"},
+    ])
+    note = rc.check_note(row, row["brief_version"], date(2026, 9, 13))
+    assert "Over 26 years post graduate experience." in note
+    assert "https://d.ie" in note
 
 
 def test_not_checked_row_note_says_no_proof():
@@ -148,3 +200,15 @@ def test_note_status_line_uses_crm_facing_wording():
     note = rc.check_note(_row(status="OUT"), "role1@abc1234", date(2026, 9, 13))
     assert "OUT" in note.splitlines()[0]
     assert "NEAR MISS" not in note.splitlines()[0]
+
+
+def test_note_skips_a_malformed_failed_entry_instead_of_crashing():
+    """Code-review item i: a `failed` entry that is not a dict (a bare
+    gate_id string from some future/partial caller) must be skipped, not
+    crash note generation with an AttributeError."""
+    row = _row(failed=[
+        "seniority_ceiling",
+        {"gate_id": "located_ie", "label": "Residence", "reason": "Outside Ireland."},
+    ])
+    note = rc.check_note(row, row["brief_version"], date(2026, 9, 13))
+    assert "Residence: Outside Ireland." in note

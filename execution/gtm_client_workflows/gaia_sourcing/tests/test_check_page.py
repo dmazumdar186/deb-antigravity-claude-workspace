@@ -419,10 +419,20 @@ def test_delivery_split_splits_by_position_not_status():
     assert delivered == ["Person 13", "Person 14"]
 
 
-def test_delivery_split_empty_when_fewer_than_two_rows():
-    assert _delivery_split([{"name": "Solo"}]) == ([], [])
+def test_delivery_split_falls_back_to_all_original_off_the_known_pattern():
+    """2026-09-14 (item o): `_delivery_split` now delegates to
+    layers.intake.split_delivered, whose fallback for anything that isn't
+    exactly 15 rows is "every row is original, nothing is delivered" --
+    never an invented `([], [])` that would silently drop real rows from
+    the "N of M" count."""
+    assert _delivery_split([{"name": "Solo"}]) == (["Solo"], [])
     assert _delivery_split(None) == ([], [])
     assert _delivery_split([]) == ([], [])
+
+
+def test_delivery_split_still_falls_back_when_row_count_is_not_fifteen():
+    rows = [{"name": f"Person {i}"} for i in range(14)]
+    assert _delivery_split(rows) == ([f"Person {i}" for i in range(14)], [])
 
 
 def test_headline_verdict_uses_plain_fallback_for_the_sample_fixture(page):
@@ -511,15 +521,19 @@ def test_proof_not_score_uses_generic_wording_outside_the_pattern(split_page, re
     assert "0 of" not in generic_page
 
 
-def test_split_pattern_page_stays_free_of_banned_words(split_results):
-    static_only = dict(split_results)
-    static_only["rows"] = []
-    static_only["pool"] = []
-    static_only["brief"] = []
-    static_only["summary"] = {}
-    static_only["campaign"] = ""
-    static_only["input"] = {}
-    assert banned_words_in(_build(static_only)) == []
+def test_split_pattern_page_stays_free_of_banned_words(split_page):
+    """Code-review item j (2026-09-14): the old version of this test built
+    its own blanked-out `static_only` copy with `input={}` -- exactly the
+    shape that can never satisfy the split-pattern gate, so it was really
+    just re-running the GENERIC-branch check
+    test_banned_words_absent_from_static_copy already covers, never the
+    split branch's own fixed copy. `render_check_page` itself now probes
+    the split branch (see its
+    body) and raises if that copy carries a banned word -- so simply
+    reaching this line, via the `split_page` fixture that already calls
+    render_check_page(split_results), is the real assertion. The explicit
+    check below is belt-and-braces against the actual rendered page."""
+    assert banned_words_in(split_page) == []
 
 
 def test_questions_section_has_eight_items(page):

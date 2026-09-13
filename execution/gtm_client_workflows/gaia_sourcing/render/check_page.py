@@ -33,6 +33,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from ..layers import intake as intake_module
+
 __all__ = ["render_check_page", "write_check_page", "banned_words_in", "BANNED_WORDS"]
 
 # ---------------------------------------------------------------------------
@@ -172,10 +174,24 @@ def _render_evidence(evidence: list[dict] | None) -> str:
             # link; it is printed as inert text so a malicious or malformed
             # source_url in the data can never become an href.
             source_html = f'<span class="src-plain">{e(raw_url)}</span>' if raw_url else ""
-        parts.append(
-            f'<div class="claim"><blockquote>&ldquo;{quote}&rdquo;</blockquote> '
-            f'{source_html}</div>'
-        )
+        if ev.get("dimension") == "title":
+            # Numbers-audit item q (2026-09-14): a seniority-ceiling
+            # failure whose only basis is the person's TITLE (Raggett, P.
+            # Healy, Horan, Brady, Petho, Penco -- no quote states the
+            # grade in prose) had no evidence line at all, breaking the
+            # page's "every line has a quote" promise. It carries no real
+            # sentence to put in quotation marks, so it is rendered
+            # plainly -- never inside a blockquote, which would imply a
+            # sentence someone actually wrote.
+            parts.append(
+                f'<div class="claim"><p class="title-evidence">'
+                f'Title on the source page: {quote}</p> {source_html}</div>'
+            )
+        else:
+            parts.append(
+                f'<div class="claim"><blockquote>&ldquo;{quote}&rdquo;</blockquote> '
+                f'{source_html}</div>'
+            )
     return "".join(parts)
 
 
@@ -384,17 +400,27 @@ def _delivery_split(input_rows: list[dict] | None) -> tuple[list[str], list[str]
     """Splits `input.rows` (in submitted order) into the original names and
     the two delivered names, by position -- the two delivered rows
     (Alicia Joyce, John Alcaras) are appended to the end of
-    `input_2026-08-20.csv`, never mixed in. Returns `([], [])` when there
-    are fewer than 2 rows to split. This is a position rule, not a status
-    rule: it must never look at PASS/OUT to decide which rows were
+    `input_2026-08-20.csv`, never mixed in. This is a position rule, not a
+    status rule: it must never look at PASS/OUT to decide which rows were
     "delivered", since a future re-run could see either group pass or fail
-    and the provenance split must stay stable regardless."""
-    input_rows = input_rows or []
-    if len(input_rows) < 2:
-        return [], []
+    and the provenance split must stay stable regardless.
+
+    Numbers-audit fix (2026-09-14, item o): the actual split logic now
+    lives in layers.intake.split_delivered (shared with run.py, so the two
+    can never disagree), which also requires the known `source_name` before
+    it will split anything -- hardcoded here to the one file this page's
+    provenance sentence is ever about, since every call site of this
+    function has already confirmed that via `_intake_description`'s own
+    gate. Falls back to treating every row as "original" (nothing
+    "delivered") when the shape does not match -- fewer than 15 rows, or
+    the file check fails -- rather than an invented `([], [])`.
+    """
+    original, delivered = intake_module.split_delivered(
+        input_rows or [], "input_2026-08-20.csv"
+    )
     return (
-        [str(r.get("name") or "") for r in input_rows[:-2]],
-        [str(r.get("name") or "") for r in input_rows[-2:]],
+        [str(r.get("name") or "") for r in original],
+        [str(r.get("name") or "") for r in delivered],
     )
 
 
@@ -408,18 +434,26 @@ def _render_proof_not_score_section(input_data: dict | None, rows: list[dict] | 
     clear of the banned-word check under a blanked-out render."""
     input_data = input_data or {}
     summary = summary or {}
-    submitted = summary.get("submitted", 0)
+    # Code-review item l: coerce so a null/absent `submitted` compares as 0,
+    # never raises or silently mismatches 15 via `None == 15`.
+    submitted = int(summary.get("submitted") or 0)
     source = str(input_data.get("source") or "")
     is_split = source.endswith("input_2026-08-20.csv") and submitted == 15
 
     if is_split:
-        original_names, _delivered_names = _delivery_split(input_data.get("rows"))
-        original_set = set(original_names)
-        original_count = len(original_set)
-        original_pass = sum(
-            1 for r in (rows or [])
-            if r.get("name") in original_set and r.get("status") == "PASS"
+        # Numbers-audit item 3 / item k (2026-09-14): match by POSITION,
+        # not by name string. `rows` (the check's own result rows) is
+        # positionally aligned with `input.rows` -- run.py builds both from
+        # the same `matches` list, in the same order -- so splitting the
+        # RESULT rows themselves with the identical position rule gives an
+        # original_count/original_pass that can never disagree with a
+        # result row whose name happens to collide with another row's, and
+        # needs no name-set intersection at all.
+        original_rows, _delivered_rows = intake_module.split_delivered(
+            rows or [], "input_2026-08-20.csv"
         )
+        original_count = len(original_rows)
+        original_pass = sum(1 for r in original_rows if r.get("status") == "PASS")
         p1 = (
             "A match score says how alike a person looks to the job on paper. It cannot remove a "
             "name that breaks a rule you set &mdash; it only marks it down. Your August list came "
@@ -939,7 +973,10 @@ def _build(results: dict) -> str:
     rows = results.get("rows") or []
     pool = results.get("pool") or []
 
-    submitted = summary.get("submitted", 0)
+    # Code-review item l: coerce so a null `submitted` (or a stringly-typed
+    # one from a hand-edited contract) still compares correctly to 15, in
+    # both places this file makes that comparison.
+    submitted = int(summary.get("submitted") or 0)
     n_pass = summary.get("pass", 0)
     n_out = summary.get("out", 0)
     n_near = summary.get("near_miss", 0)
@@ -1145,6 +1182,27 @@ def render_check_page(results: dict) -> str:
     bad = banned_words_in(_build(static_only))
     if bad:
         raise ValueError(f"banned word(s) found in static copy: {bad}")
+
+    # Code-review item j (2026-09-14): the probe above always takes
+    # `_render_proof_not_score_section`'s GENERIC branch, because
+    # `input={}` and `summary={}` can never satisfy the is_split gate
+    # (source ending in "input_2026-08-20.csv" AND submitted == 15) --
+    # so the SPLIT branch's own fixed copy ("A match score says how
+    # alike...names on it clear this brief once every rule is checked")
+    # was never actually checked for banned words. A second probe forces
+    # that branch: input/summary carry just enough to satisfy the gate,
+    # everything else stays blanked exactly like the probe above.
+    split_only = dict(results)
+    split_only["rows"] = []
+    split_only["pool"] = []
+    split_only["brief"] = []
+    split_only["summary"] = {"submitted": 15}
+    split_only["campaign"] = ""
+    split_only["input"] = {"source": "input_2026-08-20.csv"}
+    split_only["generated_at"] = ""
+    bad_split = banned_words_in(_build(split_only))
+    if bad_split:
+        raise ValueError(f"banned word(s) found in split-pattern static copy: {bad_split}")
 
     return page
 

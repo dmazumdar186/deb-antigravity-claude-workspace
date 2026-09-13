@@ -3096,30 +3096,57 @@ def _check_classify(gate_results: list, client_side: bool) -> tuple[str, list]:
     return "PASS", failed
 
 
+# Numbers-audit fix (2026-09-14, item m): the seniority and seniority_ceiling
+# gates' basis claims were never surfaced -- only located_ie/chartered were
+# -- so a PASSING seniority gate's own quote (Pearse Sutton's "I have over
+# 40 years...", Gerry Healy's "over 26 years") never made it onto the row,
+# the rendered card, or the CRM note, even when that quote is the whole
+# reason the person is on the list at all. `discipline` is included for the
+# same reason. Order matters for check_note (item n): a FAILING gate's own
+# basis quote must appear before a passing gate's, so a reader who only
+# gets the first few evidence lines (check_note caps at 5) still sees why
+# the row failed.
+_CHECK_EVIDENCE_GATE_IDS = (
+    "seniority", "seniority_ceiling", "located_ie", "chartered", "discipline",
+)
+
+
 def _check_evidence(claims: list[dict], gate_recs: list[dict]) -> list[dict]:
-    """Residence + chartership + employer basis quotes -- the exact
-    selection render.render.gate_basis_claims already makes for a dossier
-    card's evidence pane, reused here (not re-implemented) so a check row
-    and a rendered card can never disagree about which quote a gate verdict
-    rested on. Employer has no gate-basis CLAIM (check_employer_sector's
-    basis is the literal string "person.employer", not a claim_id -- see
-    layers/gates.py) so its evidence is the first direct employer-dimension
-    claim instead, the same claim _persons_and_claims() reads to resolve
-    current_employer."""
-    basis = render_module.gate_basis_claims(claims, gate_recs, ("located_ie", "chartered"))
+    """Seniority + seniority-ceiling + residence + chartership + discipline
+    basis quotes, failing-gate basis first then passing-gate basis, plus
+    one employer claim -- the same selection render.render.gate_basis_claims
+    already makes for a dossier card's evidence pane (extended to the
+    fuller gate_ids set here), reused rather than re-implemented so a check
+    row and a rendered card can never disagree about which quote a gate
+    verdict rested on. Employer has no gate-basis CLAIM
+    (check_employer_sector's basis is the literal string "person.employer",
+    not a claim_id -- see layers/gates.py) so its evidence is the first
+    direct employer-dimension claim instead, the same claim
+    _persons_and_claims() reads to resolve current_employer.
+    """
+    basis = render_module.gate_basis_claims(claims, gate_recs, _CHECK_EVIDENCE_GATE_IDS)
+    basis_ids = {c.get("claim_id") for c in basis}
+    failing_basis_ids = {
+        g.get("basis") for g in (gate_recs or [])
+        if g.get("gate_id") in _CHECK_EVIDENCE_GATE_IDS
+        and g.get("basis") and not g.get("passed")
+    }
+    ordered = (
+        [c for c in basis if c.get("claim_id") in failing_basis_ids]
+        + [c for c in basis if c.get("claim_id") not in failing_basis_ids]
+    )
     out = [
         {
             "dimension": c.get("dimension"),
             "quote": c.get("evidence_quote"),
             "source_url": str(c.get("source_url") or ""),
         }
-        for c in basis
+        for c in ordered
     ]
-    seen_ids = {c.get("claim_id") for c in basis}
     employer_claim = next(
         (c for c in claims
          if c.get("dimension") == "employer" and c.get("confidence") == "direct"
-         and c.get("claim_id") not in seen_ids),
+         and c.get("claim_id") not in basis_ids),
         None,
     )
     if employer_claim:
@@ -3370,6 +3397,10 @@ _LOCATED_IE_NOTE_MAP = {
         "No statement of where they live was found.",
     "evidence places this candidate outside ireland.":
         "No statement of where they live was found.",
+    # gates.py wording since 2026-09-13 (audit item p): the gate itself now
+    # says only what the quotes support; pass it through, bucket no_evidence.
+    "no statement of where they live; the quotes mention other places as projects or markets.":
+        "No statement of where they live; the quotes mention other places as projects or markets.",
 }
 
 # A residence-shaped quote that ALSO names an outside place, but describes
@@ -3582,7 +3613,31 @@ def _check_seniority_ceiling_reason(
     if basis == "person.title":
         title = (person_obj.current_title or "").strip()
         if title:
-            return title + " grade, above the " + ceiling_label + " ceiling.", [], None
+            # Numbers-audit item q (2026-09-14): when the ceiling gate's
+            # only basis is the person's TITLE (no quote in prose states
+            # the grade -- e.g. Raggett, P. Healy, Horan, Brady, Petho,
+            # Penco), the row previously carried no evidence line at all
+            # for this reason, breaking the page's "every line has a
+            # quote" promise. The title itself, exactly as cached, is the
+            # actual evidence -- attach it with the person's own
+            # LinkedIn/profile URL when known, else the source_url of the
+            # employer claim that names their current employer (the same
+            # claim current_employer itself is read from).
+            source_url = str(person_obj.linkedin_url) if person_obj.linkedin_url else ""
+            if not source_url:
+                employer_claim = next(
+                    (c for c in claim_objs
+                     if c.dimension == "employer" and c.confidence == "direct"),
+                    None,
+                )
+                source_url = str(employer_claim.source_url) if employer_claim else ""
+            evidence = [{
+                "dimension": "title", "quote": title, "source_url": source_url,
+            }]
+            return (
+                title + " grade, above the " + ceiling_label + " ceiling.",
+                evidence, None,
+            )
         return (
             "Grade not stated anywhere public; cannot be confirmed under "
             "the " + ceiling_label + " ceiling."
@@ -4064,13 +4119,35 @@ def run_check(
     ]
 
     assumptions = time_value_module.Assumptions()
+    # Code-review item g (2026-09-14): the bare filename, never the full
+    # operator-local path -- the CSV's own on-disk location (a client's
+    # laptop, this operator's home directory) is not something a client
+    # deliverable should leak, and check_page._intake_description's own
+    # `source.endswith(...)` test is unaffected by dropping the directory.
+    source_name = Path(input_path).name
+    # Numbers-audit fix (2026-09-14, item o): names/calls_that_would_have_
+    # been_wrong must describe the ORIGINAL 20-August list alone, not the
+    # whole submitted batch -- run/gaia-2026-09-14's page was claiming
+    # "3.75 consultant hours on the 20 August list alone" (computed from
+    # all 15 rows) next to "a list where 2 of 15 qualified" (also wrong:
+    # that list had 13 names and 0 passes). Shared with check_page.py via
+    # layers.intake.split_delivered so the two pages of arithmetic can
+    # never again disagree about which rows were "the August list".
+    original_rows, _delivered_rows = intake_module.split_delivered(row_out, source_name)
+    august = time_value_module.august_list(
+        names=len(original_rows), emails_written=assumptions.emails_written,
+        a=assumptions,
+    )
+    august["calls_that_would_have_been_wrong"] = sum(
+        1 for r in original_rows if r.get("status") != "PASS"
+    )
     contract = {
         "campaign": CONFIG.campaign_id,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "brief_version": "+".join(sorted(used_role_ids)) + "@" + sha,
         "brief": brief_list,
         "input": {
-            "source": str(input_path),
+            "source": source_name,
             "rows": [
                 {"name": r.name, "employer": r.employer, "title": r.title}
                 for r in rows
@@ -4097,10 +4174,7 @@ def run_check(
                 "hourly_cost_eur": assumptions.hourly_cost_eur,
                 "emails_written": assumptions.emails_written,
             },
-            "august_list": time_value_module.august_list(
-                names=len(rows), emails_written=assumptions.emails_written,
-                a=assumptions,
-            ),
+            "august_list": august,
             "weekly": time_value_module.weekly(assumptions),
         },
     }
@@ -4137,11 +4211,34 @@ def run_check(
     return contract
 
 
+_CSV_DANGEROUS_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: object) -> str:
+    """Code-review item e (2026-09-14): CSV/formula-injection guard. Excel
+    and Google Sheets treat a cell that STARTS with =, +, -, @, a tab, or a
+    CR as a formula to evaluate when the file is opened, not literal text
+    -- a quote, reason, or name that happens to begin with one of these
+    (a negative number written as text, a stray "=" in pasted text) would
+    otherwise execute as a formula on whoever opens check.csv next.
+    Prefixing a single leading apostrophe forces text interpretation
+    without changing what a human reading the cell sees."""
+    s = "" if value is None else str(value)
+    if s and s[0] in _CSV_DANGEROUS_PREFIXES:
+        return "'" + s
+    return s
+
+
 def _write_check_csv(path: Path, rows: list[dict]) -> None:
     import csv as csv_module
     from .integrations.recruit_crm import check_status_label
 
-    with path.open("w", newline="", encoding="utf-8") as fh:
+    # Code-review item f (2026-09-14): utf-8-sig so Excel (which otherwise
+    # guesses a legacy codepage) renders Irish names' accented characters
+    # correctly on first open, rather than only when re-imported with the
+    # encoding specified by hand. `newline=""` stays -- csv's own docs
+    # require it so the module controls line endings itself.
+    with path.open("w", newline="", encoding="utf-8-sig") as fh:
         writer = csv_module.writer(fh)
         # "status" (internal token: PASS/NEAR_MISS/OUT/NOT_CHECKED) and
         # "one_line" did not already exist as CRM-field-named columns, so
@@ -4157,16 +4254,22 @@ def _write_check_csv(path: Path, rows: list[dict]) -> None:
             "Shortlist Check", "Shortlist Check line",
         ])
         for r in rows:
-            reasons = "; ".join(f["reason"] for f in r["failed"])
+            # Code-review item h: a failed[] entry missing "reason" (e.g. a
+            # bare not_client synthetic entry from a future code path) must
+            # not KeyError the whole export -- an empty string is the right
+            # fallback since the label alone still names the rule.
+            reasons = "; ".join(f.get("reason", "") for f in r["failed"])
             evidence_note = " | ".join(
                 (e.get("quote") or "") + " (" + (e.get("source_url") or "") + ")"
                 for e in r["evidence"]
             )
             writer.writerow([
-                r["name"], r["employer"], r["title"], r.get("role_title", ""),
-                r["status"], reasons, evidence_note, r["contact"],
-                r.get("linkedin_url", ""),
-                check_status_label(r["status"]), r.get("one_line", ""),
+                _csv_safe(v) for v in (
+                    r["name"], r["employer"], r["title"], r.get("role_title", ""),
+                    r["status"], reasons, evidence_note, r["contact"],
+                    r.get("linkedin_url", ""),
+                    check_status_label(r["status"]), r.get("one_line", ""),
+                )
             ])
 
 
@@ -4177,7 +4280,19 @@ def _write_check_sync(path: Path, contract: dict) -> Path:
     so explicitly so a reader can never mistake this for a live write log.
     """
     brief_version = contract.get("brief_version", "")
-    checked_on = date.today()
+    # LOW fix (2026-09-14): derive the Art. 14 "collected on" date from the
+    # contract's own `generated_at` rather than the wall-clock date this
+    # sync file happens to be WRITTEN on -- a re-run of --check days after
+    # the underlying extract/validate stages ran should not silently
+    # backdate-forward the collection date it tells the CRM.
+    generated_at = contract.get("generated_at")
+    try:
+        checked_on = datetime.fromisoformat(str(generated_at)).date()
+    except (TypeError, ValueError):
+        # No parseable generated_at at all (a hand-built or truncated
+        # contract) -- fall back to today rather than crashing the sync
+        # write over a cosmetic date field.
+        checked_on = date.today()
     sync_rows: list[dict] = []
     for r in contract.get("rows", []):
         row_for_sync = dict(r)
@@ -4195,7 +4310,16 @@ def _write_check_sync(path: Path, contract: dict) -> Path:
         "generated_at": contract.get("generated_at"),
         "rows": sync_rows,
     }
-    path.write_text(json.dumps(doc, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    # Code-review item h: mkdir before writing -- callers elsewhere always
+    # created out_dir first, but this function had no guarantee of its own
+    # if ever called on a fresh path directly (e.g. from a test or a
+    # future caller). newline="\n" pins the line ending across platforms
+    # rather than leaving it to the OS default.
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(doc, ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8", newline="\n",
+    )
     return path
 
 

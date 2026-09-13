@@ -1,7 +1,7 @@
 {
   "campaign": "gaia-2026-09-14",
-  "generated_at": "2026-09-13T12:12:55.562256+00:00",
-  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@ec9283b",
+  "generated_at": "2026-09-13T12:40:14.589823+00:00",
+  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@e3a945f",
   "brief": [
     {
       "role_id": "role1_senior_structural_engineer",
@@ -141,7 +141,7 @@
     }
   ],
   "input": {
-    "source": "../deliverables/gaia_poc_check/input_2026-08-20.csv",
+    "source": "input_2026-08-20.csv",
     "rows": [
       {
         "name": "Eddie Lyons",
@@ -278,6 +278,11 @@
           "dimension": "employer",
           "quote": "Civil / Structural Director",
           "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "years_experience",
+          "quote": "Eddie has over 25 years of experience in structural and civil engineering in Ireland on private and public developments",
+          "source_url": "https://ocsc.ie/people/"
         }
       ],
       "passed_with_note": [],
@@ -311,8 +316,18 @@
           "source_url": "https://ocsc.ie/people/"
         },
         {
+          "dimension": "years_experience",
+          "quote": "Colin has over 15 years’ experience working for both Contracting and Consulting companies within the industry",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
           "dimension": "employer",
           "quote": "Colin Wilson is an Associate Director with O’Connor Sutton Cronin & Associates with qualifications in Civil Engineering and Road Safety Auditing and Engineering.",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "title",
+          "quote": "Civil / Structural Associate Director",
           "source_url": "https://ocsc.ie/people/"
         }
       ],
@@ -342,11 +357,6 @@
       ],
       "evidence": [
         {
-          "dimension": "chartership",
-          "quote": "He is a Chartered Engineer( CEng MIEI) and Fellow of the Association of Consulting Engineers of Ireland.",
-          "source_url": "https://ocsc.ie/people/"
-        },
-        {
           "dimension": "project",
           "quote": "he is focused on developer led large-scale mixed-use developments both in Ireland and the UK",
           "source_url": "https://ocsc.ie/people/"
@@ -354,6 +364,21 @@
         {
           "dimension": "employer",
           "quote": "Michael O’Reilly is a Structural/Civil Director with O’Connor Sutton Cronin, with a focus on Structural and Civil Engineering design excellence.",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "chartership",
+          "quote": "He is a Chartered Engineer( CEng MIEI) and Fellow of the Association of Consulting Engineers of Ireland.",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "years_experience",
+          "quote": "He has in 20+ years of consulting experience.",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "title",
+          "quote": "Structural/Civil Director",
           "source_url": "https://ocsc.ie/people/"
         }
       ],
@@ -388,8 +413,23 @@
           "source_url": "https://ocsc.ie/people/"
         },
         {
+          "dimension": "years_experience",
+          "quote": "Patrick is a Chartered Engineer with over 15 years of experience in all areas of civil engineering",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "project",
+          "quote": "major infrastructural schemes such as the Royal Canal Greenway Phase 3.",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
           "dimension": "employer",
           "quote": "acting as Health and safety Officer for O’Connor Sutton Cronin",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "title",
+          "quote": "Civil / Structural Associate Director",
           "source_url": "https://ocsc.ie/people/"
         }
       ],
@@ -409,7 +449,7 @@
         {
           "gate_id": "located_ie",
           "label": "residence evidence (Republic of Ireland)",
-          "reason": "No statement of where they live was found."
+          "reason": "No statement of where they live; the quotes mention other places as projects or markets."
         },
         {
           "gate_id": "seniority_ceiling",
@@ -419,14 +459,29 @@
       ],
       "evidence": [
         {
+          "dimension": "location",
+          "quote": "has been responsible for the successful delivery of a wide range of structural projects in Ireland and the UK",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
           "dimension": "chartership",
           "quote": "BSc(Eng), Dip.Struct.Eng, CEng., F.I.E.I., F.I.Struct.E., F.Cons.EI",
           "source_url": "https://ocsc.ie/people/"
         },
         {
-          "dimension": "location",
-          "quote": "has been responsible for the successful delivery of a wide range of structural projects in Ireland and the UK",
+          "dimension": "years_experience",
+          "quote": "Paul Healy has over 35 years experience in Civil/Structural Engineering within the Built Environment",
           "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "sector",
+          "quote": "These include hospitals, university buildings, schools, swimming pools, industrial/distribution centers, residential, commercial, airport buildings and bridges.",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "title",
+          "quote": "Civil / Structural Director",
+          "source_url": ""
         }
       ],
       "passed_with_note": [],
@@ -455,18 +510,23 @@
       ],
       "evidence": [
         {
-          "dimension": "chartership",
-          "quote": "B. Eng (UCD), Chartered Engineer (MIEI), FConsEI",
-          "source_url": "https://ocsc.ie/people/"
-        },
-        {
           "dimension": "statutory_process",
           "quote": "Anthony has significant knowledge and experience in attaining planning through the various planning processes in Ireland.",
           "source_url": "https://ocsc.ie/people/"
         },
         {
+          "dimension": "chartership",
+          "quote": "B. Eng (UCD), Chartered Engineer (MIEI), FConsEI",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
           "dimension": "employer",
           "quote": "Anthony leads a team of Civil Engineers and allied professionals.",
+          "source_url": "https://ocsc.ie/people/"
+        },
+        {
+          "dimension": "employer",
+          "quote": "Civil / Structural Director",
           "source_url": "https://ocsc.ie/people/"
         }
       ],
@@ -507,13 +567,13 @@
       ],
       "evidence": [
         {
-          "dimension": "chartership",
-          "quote": "MSc(Eng), BSc, DipStructEng, CEng, MIEI, KIIP Chartered Engineer",
+          "dimension": "employer",
+          "quote": "Rouslan joined Barrett Mahony in 2004 as a Design engineer in the Dublin office, having worked previously with a number of structural engineering consultancy practices in Bulgaria and Ireland",
           "source_url": "https://www.barrettmahony.com/practice/team/all"
         },
         {
-          "dimension": "employer",
-          "quote": "Rouslan joined Barrett Mahony in 2004 as a Design engineer in the Dublin office, having worked previously with a number of structural engineering consultancy practices in Bulgaria and Ireland",
+          "dimension": "chartership",
+          "quote": "MSc(Eng), BSc, DipStructEng, CEng, MIEI, KIIP Chartered Engineer",
           "source_url": "https://www.barrettmahony.com/practice/team/all"
         },
         {
@@ -529,6 +589,11 @@
         {
           "dimension": "location",
           "quote": "In 2016 Rouslan assisted with establishing BMCE's Sofia office in Bulgaria and was appointed Regional Director, managing a team of ten plus Structural Design engineers",
+          "source_url": "https://www.barrettmahony.com/practice/team/all"
+        },
+        {
+          "dimension": "title",
+          "quote": "Director",
           "source_url": "https://www.barrettmahony.com/practice/team/all"
         }
       ],
@@ -568,8 +633,23 @@
           "source_url": "https://www.horganlynch.ie/our-people/"
         },
         {
+          "dimension": "years_experience",
+          "quote": "Over the past 20 years he has amassed extensive experience in Civil/Structural design and Project management",
+          "source_url": "https://www.horganlynch.ie/our-people/"
+        },
+        {
+          "dimension": "sector",
+          "quote": "Pat has particular experience in Structural Conservation and repair of historic and protected structures and heads up our Conservation Engineering services.",
+          "source_url": "https://www.horganlynch.ie/our-people/"
+        },
+        {
           "dimension": "employer",
           "quote": "He became an Associate in 2003, and a Partner in 2007.",
+          "source_url": "https://www.horganlynch.ie/our-people/"
+        },
+        {
+          "dimension": "title",
+          "quote": "Director",
           "source_url": "https://www.horganlynch.ie/our-people/"
         }
       ],
@@ -594,7 +674,7 @@
         {
           "gate_id": "located_ie",
           "label": "residence evidence (Republic of Ireland)",
-          "reason": "No statement of where they live was found."
+          "reason": "No statement of where they live; the quotes mention other places as projects or markets."
         },
         {
           "gate_id": "seniority_ceiling",
@@ -616,6 +696,16 @@
         {
           "dimension": "employer",
           "quote": "Mark is a Chartered Structural Engineer who joined Barrett Mahony Consulting Engineers (BMCE) in 2015.",
+          "source_url": "https://www.barrettmahony.com/practice/team/london"
+        },
+        {
+          "dimension": "employer",
+          "quote": "Before joining BMCE, Mark gained valuable experience working with Canadian structural engineering consultancies and at one of Hungary's leading multidisciplinary engineering companies",
+          "source_url": "https://www.barrettmahony.com/practice/team/london"
+        },
+        {
+          "dimension": "title",
+          "quote": "Associate Director",
           "source_url": "https://www.barrettmahony.com/practice/team/london"
         }
       ],
@@ -666,8 +756,18 @@
           "source_url": "https://www.barrettmahony.com/practice/team/london"
         },
         {
+          "dimension": "sector",
+          "quote": "Philip has been involved in a wide variety of projects across the UK covering the full spectrum of structural engineering work including residential, industrial, commercial, refurbishment/conservation and temporary works design.",
+          "source_url": "https://www.barrettmahony.com/practice/team/london"
+        },
+        {
           "dimension": "location",
           "quote": "Philip joined Barrett Mahony London in 2015",
+          "source_url": "https://www.barrettmahony.com/practice/team/london"
+        },
+        {
+          "dimension": "title",
+          "quote": "Associate Director",
           "source_url": "https://www.barrettmahony.com/practice/team/london"
         }
       ],
@@ -698,13 +798,13 @@
       ],
       "evidence": [
         {
-          "dimension": "chartership",
-          "quote": "BEng (Hons) CEng FIEI IntPE (Irl)",
+          "dimension": "years_experience",
+          "quote": "I confirm that I have\nover 26 years post graduate experience",
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf"
         },
         {
-          "dimension": "project",
-          "quote": "I have been involved in the Project since May 2021 and I am currently engaged as the Project Director\nproviding overview and guidance to the Project team and Iarnród Éireann.",
+          "dimension": "chartership",
+          "quote": "BEng (Hons) CEng FIEI IntPE (Irl)",
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf"
         },
         {
@@ -713,8 +813,8 @@
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf"
         },
         {
-          "dimension": "years_experience",
-          "quote": "I confirm that I have\nover 26 years post graduate experience",
+          "dimension": "project",
+          "quote": "I have been involved in the Project since May 2021 and I am currently engaged as the Project Director\nproviding overview and guidance to the Project team and Iarnród Éireann.",
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/310286/Additional%20App%20Docs/OH%20submission%20from%20applicant/Overview%20of%20Railway%20Order%20%20Railway%20Works-%20Gerry%20Healy%20-%2025.9.22.pdf"
         }
       ],
@@ -745,18 +845,23 @@
       ],
       "evidence": [
         {
+          "dimension": "employer",
+          "quote": "I am a Transport Planner and Director for SYSTRA\nin Ireland.",
+          "source_url": "https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf"
+        },
+        {
           "dimension": "chartership",
           "quote": "I am a member of Engineers Ireland and a Chartered Engineer.",
           "source_url": "https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf"
         },
         {
-          "dimension": "project",
-          "quote": "Since 2016, I have been responsible for the modelling and appraisal of a number\nof complex urban projects, utilising the NTA’s Regional Transport Models. This\nhas included the Galway Transport Strategy (GTS), Transport Masterplans for 9\nLocal Area Plans in Metropolitan Cork, Limerick Urban Centre Revitalisation -\nO'Connell Street Project, the Clonburris SDZ and Fingal South Transport Strategy.",
+          "dimension": "years_experience",
+          "quote": "I have over 20 years of experience in transport planning, engineering, modelling\nand scheme appraisal.",
           "source_url": "https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf"
         },
         {
-          "dimension": "employer",
-          "quote": "I am a Transport Planner and Director for SYSTRA\nin Ireland.",
+          "dimension": "project",
+          "quote": "Since 2016, I have been responsible for the modelling and appraisal of a number\nof complex urban projects, utilising the NTA’s Regional Transport Models. This\nhas included the Galway Transport Strategy (GTS), Transport Masterplans for 9\nLocal Area Plans in Metropolitan Cork, Limerick Urban Centre Revitalisation -\nO'Connell Street Project, the Clonburris SDZ and Fingal South Transport Strategy.",
           "source_url": "https://www.n6galwaycityringroad.ie/sites/default/files/media/GCRR_4.03.34.3.11%20%20BoE_Traffic_I1_17022020.pdf"
         }
       ],
@@ -787,7 +892,7 @@
         {
           "gate_id": "located_ie",
           "label": "residence evidence (Republic of Ireland)",
-          "reason": "No statement of where they live was found."
+          "reason": "No statement of where they live; the quotes mention other places as projects or markets."
         },
         {
           "gate_id": "discipline",
@@ -802,8 +907,18 @@
       ],
       "evidence": [
         {
+          "dimension": "employer",
+          "quote": "I am a Director of Cronin & Sutton Consulting.",
+          "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf"
+        },
+        {
           "dimension": "location",
           "quote": "experience in Ireland, the UK and Canada",
+          "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf"
+        },
+        {
+          "dimension": "years_experience",
+          "quote": "I have over 40 years of  civil and  structural engineering consultancy\nexperience in Ireland, the UK and Canada.",
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf"
         },
         {
@@ -813,7 +928,7 @@
         },
         {
           "dimension": "employer",
-          "quote": "I am a Director of Cronin & Sutton Consulting.",
+          "quote": "Cronin & Sutton Consulting Group are engaged as the Civil and Structural\nEngineering Consultants for the Spencer Place Development.",
           "source_url": "https://www.pleanala.ie/publicaccess/Case%20Documentation/314232/314232%20-22%20Oral%20Hearing%20-%2028th%20Sept%20-%2013th%20Oct%2023/Day%201%20-%2028th%20Sep%20-%20Gresham/9.%20CS%20Consulting%20Group%20-%20John%20Spain.pdf"
         }
       ],
@@ -832,6 +947,11 @@
       "failed": [],
       "evidence": [
         {
+          "dimension": "employer",
+          "quote": "Senior Structural Engineer at CSEA",
+          "source_url": "https://ie.linkedin.com/in/alicia-joyce-a62a2190"
+        },
+        {
           "dimension": "location",
           "quote": "Dublin, County Dublin, Ireland",
           "source_url": "https://ie.linkedin.com/in/alicia-joyce-a62a2190"
@@ -840,11 +960,6 @@
           "dimension": "chartership",
           "quote": "Alicia Joyce. (CEng, MIEI) Senior Structural Engineer at CSEA",
           "source_url": "https://ie.linkedin.com/posts/carlo-orani_blockchain-blockchaintechnology-buildinginformationmodeling-activity-6924624426994966529-q4YC?trk=public_profile_like_view"
-        },
-        {
-          "dimension": "employer",
-          "quote": "Senior Structural Engineer at CSEA",
-          "source_url": "https://ie.linkedin.com/in/alicia-joyce-a62a2190"
         }
       ],
       "passed_with_note": [
@@ -6527,8 +6642,8 @@
       "emails_written": 4
     },
     "august_list": {
-      "consultant_hours_spent": 3.75,
-      "calls_that_would_have_been_wrong": 15,
+      "consultant_hours_spent": 3.25,
+      "calls_that_would_have_been_wrong": 13,
       "emails_to_unplaceable": 4
     },
     "weekly": {

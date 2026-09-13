@@ -421,3 +421,42 @@ def match_pool(rows: list[IntakeRow], persons: dict[str, dict]) -> list[Match]:
             out.append(Match(row=row, person_id=None, person=None,
                               how="ambiguous", candidates=sorted(candidates)))
     return out
+
+
+# ---------------------------------------------------------------------------
+# Numbers-audit fix (2026-09-14, item o): a single, shared definition of
+# "which rows in a --check run were the ORIGINAL 20 August delivery vs the
+# 2 names delivered on 14 September" -- previously duplicated (and out of
+# sync) between run.py's august_list() call (which used len(rows) for the
+# WHOLE submitted batch, so the page claimed "3.75 consultant hours on the
+# 20 August list alone" while quoting a "2 of 15 qualified" figure for a
+# list that in fact had 13 names and 0 passes) and render/check_page.py's
+# `_delivery_split` (name-string matching against result rows, rather than
+# a hard position rule).
+# ---------------------------------------------------------------------------
+
+
+def split_delivered(rows: list[dict] | None, source_name: str) -> tuple[list[dict], list[dict]]:
+    """Splits `rows` into (original, delivered) by POSITION, never by
+    status: the last 2 of exactly 15 rows are the 14 September delivery
+    appended to the 13-name `input_2026-08-20.csv` list. Both conditions --
+    the source file AND the row count -- must hold, mirroring
+    render.check_page._intake_description's own gate, so a different
+    15-row list run through the same check (or a future 16th row added to
+    this one) is never silently mis-split. When the pattern does not
+    match, every row is "original" and nothing is "delivered" -- this is a
+    fallback to the always-true, always-safe interpretation, never an
+    empty result invented out of nothing.
+
+    Callers needing just the names (a rendered page's provenance
+    sentence) or the full row dicts (run_check's own-numbers-per-row
+    calculation) both get what they need from the same two lists;
+    `rows` here can be either the raw intake rows (name/employer/title
+    only) or run.py's own check-result rows (which also carry `status`)
+    -- the split does not look inside a row's fields at all, only at its
+    position and the input's shape.
+    """
+    all_rows = list(rows or [])
+    if not str(source_name or "").endswith("input_2026-08-20.csv") or len(all_rows) != 15:
+        return all_rows, []
+    return all_rows[:-2], all_rows[-2:]

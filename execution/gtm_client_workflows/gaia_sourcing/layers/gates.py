@@ -575,11 +575,30 @@ def check_located_ie(
 
     for cid, blob in exclusion_haystacks:
         if _NON_IE_RE.search(blob):
+            # Numbers-audit fix (2026-09-14, item p): "Evidence places this
+            # candidate outside Ireland" was firing for quotes that name
+            # another country as a PROJECT or MARKET, not a residence --
+            # Paul Healy's "Ireland and the UK", Mark Petho's "projects in
+            # London", Pearse Sutton's "Ireland, the UK and Canada". None of
+            # those states where the person lives; the wording must say
+            # only what is actually true. Reuse the exact same
+            # residence-shaped test (_RESIDENCE_SHAPE_RE) the PASS path
+            # above already requires before crediting a multi-jurisdiction
+            # quote as residence evidence -- if the quote does not clear
+            # that bar, it cannot be read as placing the person "outside"
+            # anywhere either.
+            if _RESIDENCE_SHAPE_RE.search(blob):
+                note = "Evidence places this candidate outside Ireland."
+            else:
+                note = (
+                    "No statement of where they live; the quotes mention "
+                    "other places as projects or markets."
+                )
             return GateResult(
                 gate_id="located_ie",
                 passed=False,
                 basis=cid,
-                note="Evidence places this candidate outside Ireland.",
+                note=note,
             )
     return GateResult(
         gate_id="located_ie",
@@ -642,19 +661,52 @@ def check_discipline(
 # not exactly 15. Patrick Raggett's quote "with over 15 years of experience"
 # was reading as within a 15-year seniority CEILING because extract_years
 # returned the bare 15 instead of treating it as a floor of 16.
-_LOWER_BOUND_PREFIX_SRC = (
-    r"(?:over|more\s+than|in\s+excess\s+of|exceeding|upwards\s+of|at\s+least)"
+#
+# 2026-09-14 fix (audit item 1, CRITICAL): "no more than 15 years" / "not
+# more than 15 years" contain the substring "more than 15" and were being
+# read as a LOWER bound of 16 -- exactly backwards, since the phrase states
+# a CEILING. Ceiling phrases ("no more than", "not more than", "up to",
+# "fewer than", "less than", "under", "at most") are now matched as their
+# own alternative (`ceil`), tried before the plain lower-bound alternatives
+# in the same optional group -- since regex finds the leftmost match, "no
+# more than 15" matches starting at "no", consuming the whole ceiling
+# phrase, so the bare "more than" alternative never gets a chance to match
+# the tail of it. A figure with a ceiling prefix is flagged
+# `is_upper_bound=True`, `is_lower_bound=False`; its `effective` value is
+# the literal base (no +1 bump) since it is already a stated maximum.
+#
+# 2026-09-14 fix (audit item 2, HIGH): "at least N" is INCLUSIVE (>= N) --
+# unlike "over N" (strict, > N), it does not imply N+1. The lower-bound
+# prefixes are now split into `strict` (over, more than, in excess of,
+# exceeding) which bump effective to base+1, and `incl` (at least, a
+# minimum of, upwards of; also a trailing "+") which keep effective at
+# base while still being flagged is_lower_bound=True for reason-string
+# purposes. Correction 2026-09-14 (code review): "upwards of N" and "N+"
+# read colloquially as "N or more", i.e. inclusive, not strict -- moved
+# out of the strict set into the inclusive one.
+_CEILING_PREFIX_SRC = (
+    r"(?:no\s+more\s+than|not\s+more\s+than|up\s+to|fewer\s+than|"
+    r"less\s+than|under|at\s+most)"
 )
+_STRICT_LOWER_BOUND_PREFIX_SRC = (
+    r"(?:over|more\s+than|in\s+excess\s+of|exceeding)"
+)
+_INCLUSIVE_LOWER_BOUND_PREFIX_SRC = r"(?:at\s+least|a\s+minimum\s+of|upwards\s+of)"
 
 _YEARS_RE = re.compile(
     # \b on both sides of the digits: without it, "2024" yields a spurious
     # "24 years" match and a four-digit year satisfies a seniority gate.
     # `full` captures exactly the surface phrase ("over 15", "15+", "26")
     # so callers can quote it back rather than reporting a number the
-    # source text never actually stated.
-    r"(?P<full>(?:\b(?P<prefix>" + _LOWER_BOUND_PREFIX_SRC + r")\s+)?"
+    # source text never actually stated. `ceil` is checked before `strict`/
+    # `incl` in the alternation so a ceiling phrase wins the leftmost match.
+    # Trailing \b after "years?" (code review item b): without it, "12
+    # yearly reports" matches "12 year" as a bare years-experience figure.
+    r"(?P<full>(?:\b(?:(?P<ceil>" + _CEILING_PREFIX_SRC + r")|"
+    r"(?P<strict>" + _STRICT_LOWER_BOUND_PREFIX_SRC + r")|"
+    r"(?P<incl>" + _INCLUSIVE_LOWER_BOUND_PREFIX_SRC + r"))\s+)?"
     r"\b(?P<num>\d{1,2})\b(?P<plus>\+)?)"
-    r"\s*years?"
+    r"\s*years?\b"
     r"(?:\s*(?:of\s+)?(?:post[- ]?graduate\s+)?"
     r"(?:professional\s+|relevant\s+|industry\s+)?experience)?",
     re.I,
@@ -670,7 +722,9 @@ _WORD_NUM = {
 }
 _TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50}
 _WORD_YEARS_RE = re.compile(
-    r"(?P<wfull>(?:\b(?P<wprefix>" + _LOWER_BOUND_PREFIX_SRC + r")\s+)?"
+    r"(?P<wfull>(?:\b(?:(?P<wceil>" + _CEILING_PREFIX_SRC + r")|"
+    r"(?P<wstrict>" + _STRICT_LOWER_BOUND_PREFIX_SRC + r")|"
+    r"(?P<wincl>" + _INCLUSIVE_LOWER_BOUND_PREFIX_SRC + r"))\s+)?"
     r"\b(?:(?P<tens>twenty|thirty|forty|fifty)(?:[\s-]+(?P<ones>one|two|three|"
     r"four|five|six|seven|eight|nine))?|(?P<teens>ten|eleven|twelve|thirteen|"
     r"fourteen|fifteen|sixteen|seventeen|eighteen|nineteen)))"
@@ -683,22 +737,51 @@ class YearsFigure(NamedTuple):
     """One years-experience figure found in text.
 
     `base` is the literal number the text states ("15" in "over 15 years").
-    `is_lower_bound` is True when the text frames it as a floor (a
-    prefix word like "over"/"at least", or a trailing "+"). `effective` is
-    the true minimum implied -- base+1 for a lower bound, else base -- and
-    is what should be compared against a seniority floor or ceiling.
-    `phrase` is the exact surface text ("over 15", "15+", "26", "over
-    twenty") so a reason string can quote the source instead of inventing
-    a precision the source never stated.
+    `is_lower_bound` is True when the text frames it as a floor (a strict
+    prefix word like "over", an inclusive one like "at least", or a
+    trailing "+"). `is_upper_bound` is True when the text frames it as a
+    stated ceiling ("no more than", "up to", "fewer than", ...) -- such a
+    figure is never a lower bound and proves no minimum at all.
+    `is_inclusive_lower_bound` distinguishes "at least N" (>= N) from a
+    strict lower bound like "over N" (> N): only the strict case bumps
+    `effective` to base+1.
+    `effective` is base+1 for a strict lower bound, base for everything
+    else (an inclusive lower bound, a stated ceiling, or a bare figure).
+    It is the number a seniority CEILING gate should compare against
+    (check_seniority_ceiling uses it directly): a strict "over 15" is
+    already above a 15-year cap. A seniority FLOOR gate must NOT use
+    `effective` -- "over 7 years" is not proof of the 8 a floor of 8 asks
+    for (it may be 7 years and a month) -- so check_seniority compares
+    against the literal `base` instead; see the comment at its call site.
+    `phrase` is the exact surface text ("over 15", "15+", "26", "no more
+    than 15", "over twenty") so a reason string can quote the source
+    instead of inventing a precision the source never stated.
     """
 
     base: int
     is_lower_bound: bool
     phrase: str
+    is_upper_bound: bool = False
+    is_inclusive_lower_bound: bool = False
 
     @property
     def effective(self) -> int:
-        return self.base + 1 if self.is_lower_bound else self.base
+        if self.is_lower_bound and not self.is_inclusive_lower_bound:
+            return self.base + 1
+        return self.base
+
+
+def _rank_key(fig: YearsFigure) -> tuple[int, bool]:
+    """Sort key for picking the "best" of several years figures in one
+    text. Audit item 3a (2026-09-14): rank by (`effective`, is_lower_bound)
+    rather than by the literal `base` -- "15 years in bridges ... over 15
+    years overall" must keep the over-15 bound (effective 16) regardless of
+    which phrase appears first or second in the text, and a tie on
+    effective still prefers the figure that is flagged as a bound (a
+    stated "at least N" should not lose to a coincidental bare N elsewhere
+    in the same text).
+    """
+    return (fig.effective, fig.is_lower_bound)
 
 
 def _digit_years_candidate(text: str) -> Optional[YearsFigure]:
@@ -710,9 +793,21 @@ def _digit_years_candidate(text: str) -> Optional[YearsFigure]:
             continue
         if not (1 <= n <= 60):
             continue
-        if best is None or n > best.base:
-            is_lower = bool(m.group("prefix")) or bool(m.group("plus"))
-            best = YearsFigure(base=n, is_lower_bound=is_lower, phrase=m.group("full"))
+        is_ceiling = bool(m.group("ceil"))
+        is_strict = bool(m.group("strict"))
+        # A trailing "+" reads as "N or more" -- inclusive, like "at least"
+        # -- not strict like "over" (code review correction, 2026-09-14).
+        is_incl = bool(m.group("incl")) or bool(m.group("plus"))
+        is_lower = (is_strict or is_incl) and not is_ceiling
+        cand = YearsFigure(
+            base=n,
+            is_lower_bound=is_lower,
+            phrase=m.group("full"),
+            is_upper_bound=is_ceiling,
+            is_inclusive_lower_bound=is_incl and not is_ceiling,
+        )
+        if best is None or _rank_key(cand) > _rank_key(best):
+            best = cand
     return best
 
 
@@ -727,9 +822,19 @@ def _word_years_candidate(text: str) -> Optional[YearsFigure]:
             val = _WORD_NUM[m.group("teens").lower()]
         else:
             continue
-        if best is None or val > best.base:
-            is_lower = bool(m.group("wprefix"))
-            best = YearsFigure(base=val, is_lower_bound=is_lower, phrase=m.group("wfull"))
+        is_ceiling = bool(m.group("wceil"))
+        is_strict = bool(m.group("wstrict"))
+        is_incl = bool(m.group("wincl"))
+        is_lower = (is_strict or is_incl) and not is_ceiling
+        cand = YearsFigure(
+            base=val,
+            is_lower_bound=is_lower,
+            phrase=m.group("wfull"),
+            is_upper_bound=is_ceiling,
+            is_inclusive_lower_bound=is_incl and not is_ceiling,
+        )
+        if best is None or _rank_key(cand) > _rank_key(best):
+            best = cand
     return best
 
 
@@ -740,26 +845,29 @@ def _extract_word_years(text: str) -> Optional[int]:
 
 
 def extract_years_figure(text: str) -> Optional[YearsFigure]:
-    """The largest plausible years-experience figure in `text`, with its
-    lower-bound status and quotable surface phrase.
+    """The best-ranked years-experience figure in `text` (see `_rank_key`
+    for how "best" is chosen among several candidates), with its bound
+    status and quotable surface phrase.
 
     Bounded at 60 (on the literal stated number) so a stray four-digit year
     or a scheme name containing digits cannot satisfy a seniority gate.
-    Between a digit and a worded figure with the same base value, the digit
+    Between a digit and a worded figure that rank equally, the digit
     figure wins (mirrors the historical extract_years tie-break).
     """
     best = _digit_years_candidate(text)
     worded = _word_years_candidate(text)
-    if worded is not None and (best is None or worded.base > best.base):
+    if worded is not None and (best is None or _rank_key(worded) > _rank_key(best)):
         best = worded
     return best
 
 
 def extract_years_bound(text: str) -> Optional[tuple[int, bool]]:
-    """(effective_years, is_lower_bound) for the largest plausible figure in
-    `text`. effective_years is base+1 when the figure is a stated lower
-    bound ("over 15 years" -> (16, True)) -- the true minimum the person can
-    be credited with -- else the figure itself ("18 years" -> (18, False)).
+    """(effective_years, is_lower_bound) for the best-ranked figure in
+    `text`. effective_years is base+1 only for a STRICT stated lower
+    bound ("over 15 years" -> (16, True)) -- the true minimum the person
+    can be credited with; an inclusive lower bound ("at least 15 years")
+    or a stated ceiling ("no more than 15 years") both keep effective_years
+    at the literal figure ("18 years" -> (18, False)).
     """
     fig = extract_years_figure(text)
     return (fig.effective, fig.is_lower_bound) if fig is not None else None
@@ -767,11 +875,18 @@ def extract_years_bound(text: str) -> Optional[tuple[int, bool]]:
 
 def extract_years(text: str) -> Optional[int]:
     """Largest plausible 'N years experience' figure in the text, as the
-    effective (lower-bound-adjusted) integer -- see extract_years_bound.
-    Existing callers that only want a single comparable number are
-    unaffected; callers that need to quote the source's own wording in a
-    reason string should use extract_years_figure().phrase instead of
-    str()-ing this value.
+    effective (bound-adjusted) integer -- see extract_years_bound.
+
+    This is the historical, single-number API and is kept for
+    RADAR_CONTRACTS.md and any external caller that only wants one
+    comparable integer with no bound information. The seniority gates
+    themselves (check_seniority, check_seniority_ceiling) do NOT call this
+    -- they call extract_years_figure() directly, because a floor gate and
+    a ceiling gate must treat a stated bound differently (see the
+    "FLOOR uses the stated base" comment on check_seniority), which a
+    single collapsed integer cannot express. Callers that need to quote
+    the source's own wording in a reason string should use
+    extract_years_figure().phrase instead of str()-ing this value.
     """
     bound = extract_years_bound(text)
     return bound[0] if bound is not None else None
@@ -885,7 +1000,9 @@ def check_seniority(
 ) -> GateResult:
     minimum = int(params.get("min_years", 8))
     require_subject = bool(params.get("require_subject_is_person", False))
-    # (effective years, claim_id, quotable phrase -- "over 15"/"15+"/"26")
+    # (base years, claim_id, quotable phrase -- "over 15"/"15+"/"26"). The
+    # FLOOR gate deliberately uses `fig.base`, never `fig.effective`: see
+    # the comment inside the loop below.
     evidenced: list[tuple[int, str, str]] = []
     for c in _direct(_claims_by_dim(claims, "years_experience")):
         if require_subject and not (
@@ -894,6 +1011,13 @@ def check_seniority(
         ):
             continue
         fig = extract_years_figure(c.evidence_quote) or extract_years_figure(c.assertion)
+        if fig is not None and fig.is_upper_bound:
+            # Audit item 1 (2026-09-14): a stated CEILING ("no more than 15
+            # years") proves no minimum at all -- it is evidence the person
+            # has AT MOST 15, which says nothing about whether they clear
+            # an 8-year floor. Skip it for this gate entirely rather than
+            # crediting it as if it were a floor figure.
+            continue
         if fig is not None:
             # FLOOR uses the stated base, never base+1: "over 7 years" proves
             # more than 7, which is not proof of the 8 a floor of 8 asks for

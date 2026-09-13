@@ -33,13 +33,16 @@ def _vc(dimension, assertion, quote, confidence="direct"):
 
 
 @pytest.mark.parametrize("text,expected", [
-    # "over N" / "N+" state a LOWER bound: the true minimum is N+1, not the
-    # literal figure (2026-09-13 fix -- see the seniority-ceiling section
-    # below for the Patrick Raggett-shaped regression this closes).
+    # "over N" states a STRICT lower bound: the true minimum is N+1, not
+    # the literal figure (2026-09-13 fix -- see the seniority-ceiling
+    # section below for the Patrick Raggett-shaped regression this closes).
     ("over 26 years post graduate experience", 27),
     ("18 years of experience", 18),
     ("has 8 years' experience", 8),
-    ("30+ years experience", 31),
+    # "N+" and "upwards of N" read as "N or more" -- INCLUSIVE, like "at
+    # least" -- so they do NOT bump to N+1 (2026-09-14 code-review
+    # correction; they were originally lumped in with the strict prefixes).
+    ("30+ years experience", 30),
     # Witness statements and bios routinely spell the number out.
     ("eighteen years of experience", 18),
     ("twenty five years experience", 25),
@@ -48,9 +51,25 @@ def _vc(dimension, assertion, quote, confidence="direct"):
     ("more than 15 years in structural design", 16),
     ("in excess of 15 years", 16),
     ("exceeding 15 years", 16),
-    ("upwards of 15 years", 16),
-    ("at least 15 years", 16),
+    ("upwards of 15 years", 15),
+    # "at least N" is INCLUSIVE (>= N), not strict -- 2026-09-14 audit item
+    # 2, HIGH. It must not be bumped to N+1.
+    ("at least 15 years", 15),
     ("over twenty years of experience", 21),
+    # Ceiling phrases (2026-09-14 audit item 1, CRITICAL) state a MAXIMUM,
+    # not a minimum -- "no more than 15" and "not more than 15" contain the
+    # substring "more than 15" and were previously misread as a lower
+    # bound of 16. extract_years() (the collapsed single-integer API) still
+    # returns the literal figure for these -- it is extract_years_figure()
+    # and the gates that care about the bound DIRECTION (see the ceiling-
+    # phrase tests below and check_seniority's floor skip).
+    ("no more than 15 years", 15),
+    ("not more than 15 years", 15),
+    ("up to 15 years", 15),
+    ("fewer than 15 years", 15),
+    ("less than 15 years", 15),
+    ("under 15 years", 15),
+    ("at most 15 years", 15),
 ])
 def test_years_are_read_from_prose(text, expected):
     assert gates.extract_years(text) == expected
@@ -62,13 +81,120 @@ def test_extract_years_figure_reports_the_stated_lower_bound_phrase():
     fig = gates.extract_years_figure("with over 15 years of experience")
     assert fig.base == 15
     assert fig.is_lower_bound is True
+    assert fig.is_upper_bound is False
     assert fig.effective == 16
     assert fig.phrase == "over 15"
 
     exact = gates.extract_years_figure("18 years of experience")
     assert exact.is_lower_bound is False
+    assert exact.is_upper_bound is False
     assert exact.effective == 18
     assert exact.phrase == "18"
+
+
+@pytest.mark.parametrize("text", [
+    "no more than 15 years",
+    "not more than 15 years",
+    "up to 15 years",
+])
+def test_ceiling_phrases_are_not_read_as_a_lower_bound(text):
+    """2026-09-14 audit item 1 (CRITICAL): a figure preceded by a ceiling
+    phrase must never come back as a lower bound -- it is evidence of a
+    MAXIMUM, not a minimum. Plain "more than 15 years" (no negation) is
+    still, correctly, a lower bound -- tested separately below."""
+    fig = gates.extract_years_figure(text)
+    assert fig.base == 15
+    assert fig.is_lower_bound is False
+    assert fig.is_upper_bound is True
+    assert fig.effective == 15
+
+
+def test_plain_more_than_is_still_a_lower_bound():
+    """Without a "no"/"not" negation, "more than 15" is unchanged: still a
+    strict lower bound, effective 16."""
+    fig = gates.extract_years_figure("more than 15 years")
+    assert fig.is_lower_bound is True
+    assert fig.is_upper_bound is False
+    assert fig.effective == 16
+
+
+def test_at_least_is_inclusive_not_strict():
+    """2026-09-14 audit item 2 (HIGH): "at least N" means >= N, so effective
+    stays at the literal figure -- it must not be bumped to N+1 the way a
+    strict bound ("over N") is."""
+    fig = gates.extract_years_figure("at least 15 years")
+    assert fig.base == 15
+    assert fig.is_lower_bound is True
+    assert fig.is_inclusive_lower_bound is True
+    assert fig.effective == 15
+
+
+def test_at_least_n_passes_a_ceiling_of_n():
+    """"At least 15 years" is >= 15, so it does not exceed a 15-year
+    ceiling -- unlike "over 15 years" (strict, > 15), which does."""
+    person = Person(person_id="p", full_name="A Candidate",
+                     current_title=None, current_employer="A Firm")
+    claims = [_vc("years_experience", "At least 15 years of experience",
+                  "with at least 15 years of experience")]
+    result = gates.check_seniority_ceiling(person, claims, {"max_years": 15})
+    assert result.passed is True
+
+
+def test_over_n_fails_a_ceiling_of_n_where_at_least_n_passes():
+    """The strict/inclusive split matters at the boundary: "over 15" (>15)
+    fails a 15-year ceiling while "at least 15" (>=15) passes it."""
+    person = Person(person_id="p", full_name="A Candidate",
+                     current_title=None, current_employer="A Firm")
+    claims = [_vc("years_experience", "Over 15 years of experience",
+                  "with over 15 years of experience")]
+    result = gates.check_seniority_ceiling(person, claims, {"max_years": 15})
+    assert result.passed is False
+
+
+def test_a_stated_ceiling_proves_no_minimum_for_the_floor_gate():
+    """2026-09-14 audit item 1: "no more than 15 years" must not clear an
+    8-year floor just because 15 >= 8 -- the phrase states a maximum, and
+    is skipped entirely by the floor gate rather than misread as a floor
+    figure. With no other evidence, the floor gate fails."""
+    person = Person(person_id="p", full_name="A Candidate",
+                     current_title=None, current_employer="A Firm")
+    claims = [_vc("years_experience", "No more than 15 years of experience",
+                  "with no more than 15 years of experience")]
+    result = gates.check_seniority(person, claims, {"min_years": 8})
+    assert result.passed is False
+
+
+def test_a_stated_ceiling_still_evidences_a_seniority_ceiling():
+    """The same phrase IS usable evidence for the ceiling gate: "no more
+    than 15 years" is itself proof the person does not exceed a 15-year
+    cap (base, not base+1, since it is already a stated maximum)."""
+    person = Person(person_id="p", full_name="A Candidate",
+                     current_title=None, current_employer="A Firm")
+    claims = [_vc("years_experience", "No more than 15 years of experience",
+                  "with no more than 15 years of experience")]
+    result = gates.check_seniority_ceiling(person, claims, {"max_years": 15})
+    assert result.passed is True
+
+
+@pytest.mark.parametrize("text", [
+    "15 years in bridges, over 15 years overall",
+    "over 15 years overall, 15 years in bridges",
+])
+def test_tie_break_keeps_the_bound_regardless_of_order(text):
+    """2026-09-14 code-review item 3a: when several figures share the same
+    base value, the one flagged as a bound must win regardless of which
+    one the text states first."""
+    fig = gates.extract_years_figure(text)
+    assert fig.base == 15
+    assert fig.is_lower_bound is True
+    assert fig.effective == 16
+
+
+def test_years_regex_does_not_match_yearly():
+    """2026-09-14 code-review item 3b: "12 yearly reports" must not parse
+    as "12 years" -- the years?/b needs a trailing word boundary."""
+    assert gates.extract_years("12 yearly reports") is None
+    assert gates.extract_years("12 years of yearly reports") == 12
 
 
 @pytest.mark.parametrize("text", [
@@ -133,9 +259,11 @@ def test_over_n_years_still_clears_a_floor_of_n():
 
 
 def test_over_n_years_fails_a_floor_above_n():
-    """The lower bound is real: "over 15" clears a floor of 15 or 16, but
-    still correctly fails a floor of 17 -- it is evidence of AT LEAST 16,
-    not of some unstated larger number."""
+    """The lower bound is real, but the FLOOR gate compares against the
+    stated `base` (15), not `effective` (16) -- see check_seniority's
+    comment on why. So "over 15" clears a floor of 15 but not 16 or 17: it
+    is evidence of AT LEAST 16, but not proof of 16 itself, so the floor
+    gate credits it only with the 15 actually stated."""
     result = gates.check_seniority(
         _raggett_person(), _raggett_claims(), {"min_years": 17}
     )
@@ -483,3 +611,44 @@ def test_lower_bound_does_not_round_up_against_a_floor():
     assert "over 7" in (floor.note or "")
     floor7 = gates.check_seniority(person, claims, {"min_years": 7})
     assert floor7.passed is True
+
+
+# ---------------------------------------------------------------------------
+# located_ie's "outside Ireland" note must say only what is true
+# (numbers-audit fix 2026-09-14, item p).
+# ---------------------------------------------------------------------------
+
+
+def _located_ie_person():
+    return Person(person_id="p", full_name="A Candidate",
+                  current_title=None, current_employer="A Firm")
+
+
+@pytest.mark.parametrize("quote", [
+    "extensive experience in Ireland and the UK",
+    "has delivered projects in London, Manchester and Dublin",
+    "experience in Ireland, the UK and Canada across major schemes",
+])
+def test_project_or_market_mentions_are_not_read_as_outside_residence(quote):
+    """Paul Healy ('Ireland and the UK'), Mark Petho ('projects in
+    London'), Pearse Sutton ('Ireland, the UK and Canada') all name other
+    places as PROJECTS or MARKETS, not as where the person lives -- the
+    gate must not claim residence evidence it does not have."""
+    claims = [_vc("location", quote, quote)]
+    result = gates.check_located_ie(_located_ie_person(), claims, {})
+    assert result.passed is False
+    assert result.note == (
+        "No statement of where they live; the quotes mention other places "
+        "as projects or markets."
+    )
+    assert "Evidence places this candidate outside Ireland" not in (result.note or "")
+
+
+def test_a_genuine_residence_statement_still_says_outside_ireland():
+    """A quote that actually clears _RESIDENCE_SHAPE_RE ("based in") keeps
+    the stronger, still-accurate wording."""
+    quote = "based in our London office, covering projects across the UK"
+    claims = [_vc("location", quote, quote)]
+    result = gates.check_located_ie(_located_ie_person(), claims, {})
+    assert result.passed is False
+    assert result.note == "Evidence places this candidate outside Ireland."

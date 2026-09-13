@@ -306,29 +306,56 @@ def check_row_to_payload(
     the caller put one on the row -- run_check does, from the contract's
     top-level `brief_version`). Every value comes from `row` only; nothing
     here invents text.
+
+    Code-review item i (2026-09-14): `linkedin_url` (NOT an email address --
+    it carries no contact detail the omit-by-confidence rule above needs to
+    guard) is included from the row when present, since it is the dedupe
+    key a live write actually needs to avoid creating a duplicate
+    candidate record. `custom_fields`' own empty values (an unset
+    one_line/brief_version, or a status that fails to map to a label) are
+    filtered out, and the whole `custom_fields` key is dropped when
+    nothing in it survives -- an empty `{}` is noise a live payload should
+    never carry.
     """
     first, last = _split_name(strip_postnominals(row.get("name") or ""))
+    custom_fields = {
+        k: v for k, v in {
+            "Shortlist Check": check_status_label(row.get("status") or ""),
+            "Shortlist Check line": row.get("one_line") or "",
+            "Shortlist Check brief": row.get("brief_version") or "",
+        }.items()
+        if v not in (None, "")
+    }
     payload: dict[str, Any] = {
         "first_name": first,
         "last_name": last,
         "position": row.get("title"),
         "current_organization": row.get("employer"),
         "candidate_source": source,
-        "custom_fields": {
-            "Shortlist Check": check_status_label(row.get("status") or ""),
-            "Shortlist Check line": row.get("one_line") or "",
-            "Shortlist Check brief": row.get("brief_version") or "",
-        },
+        "linkedin_url": row.get("linkedin_url") or "",
+        "custom_fields": custom_fields,
     }
-    return {k: v for k, v in payload.items() if v not in (None, "")}
+    return {
+        k: v for k, v in payload.items()
+        if v not in (None, "") and v != {}
+    }
 
 
 def check_note(row: dict, brief_version: str, checked_on: date) -> str:
     """Plain-text note for the check's candidate record: status, rules
-    failed (label + reason, or "none"), up to 3 evidence quotes + source
+    failed (label + reason, or "none"), up to 5 evidence quotes + source
     URL ("no proof on file" when there is none), the contact label, and the
     fixed Art. 14 line (I6 -- injected verbatim, never generated, same text
     `evidence_note` uses above).
+
+    Numbers-audit fix (2026-09-14, item n): the cap was 3, which cut a
+    failing gate's own basis quote off a row with several evidence lines
+    (Gerry Healy's reason cited a quote that never made it into the note;
+    Rouslan Taskov's office quotes were cut). Raised to 5. run.py's
+    `_check_evidence` now also orders failing-gate basis quotes before
+    passing-gate ones, so raising the cap here is a real fix and not just
+    a coincidence of ordering -- but the ordering is what actually
+    guarantees a failing gate's quote survives a long list.
     """
     lines = [
         "Shortlist Check (" + brief_version + "): "
@@ -337,6 +364,11 @@ def check_note(row: dict, brief_version: str, checked_on: date) -> str:
         "Rules failed:",
     ]
     failed = row.get("failed") or []
+    # Code-review item i: a malformed `failed` entry (not a dict -- a bare
+    # gate_id string from some future/partial caller) must not crash note
+    # generation with an AttributeError; skip it rather than guess its
+    # shape.
+    failed = [f for f in failed if isinstance(f, dict)]
     if failed:
         for f in failed:
             label = f.get("label") or f.get("gate_id") or ""
@@ -349,7 +381,7 @@ def check_note(row: dict, brief_version: str, checked_on: date) -> str:
     lines.append("Proof:")
     evidence = row.get("evidence") or []
     if evidence:
-        for ev in evidence[:3]:
+        for ev in evidence[:5]:
             lines.append(
                 '  - "' + (ev.get("quote") or "").strip() + '" -- '
                 + str(ev.get("source_url") or "")
