@@ -1131,3 +1131,58 @@ def test_run_check_unverified_years_end_to_end(R, tmp_path, monkeypatch):
         "(a years figure exists in the source but could not be verified "
         "character by character)"
     )
+
+
+def _thirteen_row_input(tmp_path: Path) -> Path:
+    """13 rows, following _write_input's pattern -- day 2 decision (a)
+    (PLAN.md "Day 2 decisions"): check_sync.json must carry one row per
+    check_results.json row, and the real regenerate run against the 20
+    August list is 13 names, so this fixture matches that count."""
+    p = tmp_path / "thirteen.csv"
+    lines = ["name,employer,title"]
+    for i in range(1, 14):
+        lines.append(f"Person {i:02d},Acme Engineering,Engineer")
+    p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return p
+
+
+def test_check_sync_json_has_thirteen_rows(R, tmp_path, monkeypatch):
+    """run_check must write check_sync.json (day 2 decision (a)) alongside
+    check_results.json/check.csv -- one dry-run Recruit CRM payload + note
+    per input row, mode "dry_run", never a live call."""
+    from gtm_client_workflows.gaia_sourcing.core import providers
+
+    persons = {
+        f"person_{i:02d}": _person(f"person_{i:02d}", f"Person {i:02d}")
+        for i in range(1, 14)
+    }
+    claims = [
+        _claim(f"person_{i:02d}", f"c{i}", "chartership", "is CEng MIEI",
+               f"Person {i:02d} is CEng MIEI with Engineers Ireland")
+        for i in range(1, 14)
+        if i % 2 == 0  # half pass chartered, half fail it -- mixed statuses
+    ]
+    (tmp_path / "extract.json").write_text(json.dumps({"persons": persons}), encoding="utf-8")
+    (tmp_path / "validate.json").write_text(json.dumps({"claims": claims}), encoding="utf-8")
+
+    input_csv = _thirteen_row_input(tmp_path)
+    out_dir = tmp_path / "out"
+    contract = R.run_check(str(input_csv), out_dir)
+    assert providers.spend_eur() == 0.0
+
+    sync_path = out_dir / "check_sync.json"
+    assert sync_path.exists(), "run_check must write check_sync.json"
+    sync_doc = json.loads(sync_path.read_text(encoding="utf-8"))
+
+    assert sync_doc["mode"] == "dry_run"
+    assert sync_doc["brief_version"] == contract["brief_version"]
+    assert sync_doc["campaign"] == contract["campaign"]
+    assert len(sync_doc["rows"]) == 13
+
+    by_name = {r["name"]: r for r in sync_doc["rows"]}
+    for row in contract["rows"]:
+        sync_row = by_name[row["name"]]
+        assert sync_row["status"] == row["status"]
+        assert "email" not in sync_row["payload"]
+        assert sync_row["payload"]["custom_fields"]["Shortlist Check line"] == row["one_line"]
+        assert "Art. 14 notice:" in sync_row["note"]

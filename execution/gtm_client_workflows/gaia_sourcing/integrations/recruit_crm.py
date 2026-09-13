@@ -265,6 +265,110 @@ def evidence_note(
 
 
 # ---------------------------------------------------------------------------
+# Shortlist Check payload builders -- day 2 decision (a),
+# deliverables/gaia_poc_check/PLAN.md "Day 2 decisions": the check's output
+# becomes the "Checked" column in Recruit CRM (Maddie's dashboard reads
+# Recruit CRM, so it shows the field like any other -- no UI of ours). These
+# two mirror card_to_payload / evidence_note above but read a
+# check_results.json ROW (run.py::run_check ~line 3808-4110), never a
+# CandidateCard. Dry-run only -- run.py never calls upsert_candidate for the
+# check; see run_check's check_sync.json write.
+# ---------------------------------------------------------------------------
+
+# check_results.json row status -> the CRM-facing label. Matches PLAN.md's
+# contract wording exactly ("PASS | NEAR MISS | OUT | NOT CHECKED").
+_CHECK_STATUS_LABELS = {
+    "PASS": "PASS",
+    "NEAR_MISS": "NEAR MISS",
+    "OUT": "OUT",
+    "NOT_CHECKED": "NOT CHECKED",
+}
+
+
+def check_status_label(status: str) -> str:
+    """check_results.json's internal status token -> the CRM-facing label."""
+    return _CHECK_STATUS_LABELS.get(status, status)
+
+
+def check_row_to_payload(
+    row: dict, source: str = "Prodcraft Shortlist Check"
+) -> dict:
+    """Map one check_results.json row to a Recruit CRM candidate payload.
+
+    No email address is EVER put in this payload -- a check row carries
+    only a contact LABEL (verified/catch_all/guess/none/unknown), never an
+    address, so there is nothing to omit-by-confidence the way
+    card_to_payload does; the field is simply never written here.
+
+    `custom_fields` is the "Checked" column: `Shortlist Check` (PASS / NEAR
+    MISS / OUT / NOT CHECKED), `Shortlist Check line` (the row's own
+    one_line), and `Shortlist Check brief` (the row's own brief_version, if
+    the caller put one on the row -- run_check does, from the contract's
+    top-level `brief_version`). Every value comes from `row` only; nothing
+    here invents text.
+    """
+    first, last = _split_name(strip_postnominals(row.get("name") or ""))
+    payload: dict[str, Any] = {
+        "first_name": first,
+        "last_name": last,
+        "position": row.get("title"),
+        "current_organization": row.get("employer"),
+        "candidate_source": source,
+        "custom_fields": {
+            "Shortlist Check": check_status_label(row.get("status") or ""),
+            "Shortlist Check line": row.get("one_line") or "",
+            "Shortlist Check brief": row.get("brief_version") or "",
+        },
+    }
+    return {k: v for k, v in payload.items() if v not in (None, "")}
+
+
+def check_note(row: dict, brief_version: str, checked_on: date) -> str:
+    """Plain-text note for the check's candidate record: status, rules
+    failed (label + reason, or "none"), up to 3 evidence quotes + source
+    URL ("no proof on file" when there is none), the contact label, and the
+    fixed Art. 14 line (I6 -- injected verbatim, never generated, same text
+    `evidence_note` uses above).
+    """
+    lines = [
+        "Shortlist Check (" + brief_version + "): "
+        + check_status_label(row.get("status") or "") + ".",
+        "",
+        "Rules failed:",
+    ]
+    failed = row.get("failed") or []
+    if failed:
+        for f in failed:
+            label = f.get("label") or f.get("gate_id") or ""
+            reason = f.get("reason") or ""
+            lines.append("  - " + label + ": " + reason)
+    else:
+        lines.append("  - none")
+
+    lines.append("")
+    lines.append("Proof:")
+    evidence = row.get("evidence") or []
+    if evidence:
+        for ev in evidence[:3]:
+            lines.append(
+                '  - "' + (ev.get("quote") or "").strip() + '" -- '
+                + str(ev.get("source_url") or "")
+            )
+    else:
+        lines.append("  - no proof on file")
+
+    lines.append("")
+    lines.append("Contact: " + str(row.get("contact") or "unknown"))
+
+    lines.append("")
+    lines.append(
+        "Art. 14 notice: " + PRIVACY_NOTICE_URL + " -- collected "
+        + checked_on.isoformat() + " from public sources; outreach must include it."
+    )
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Client
 # ---------------------------------------------------------------------------
 

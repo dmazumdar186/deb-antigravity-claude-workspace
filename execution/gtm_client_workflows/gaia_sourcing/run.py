@@ -89,7 +89,9 @@ from .core.contracts import (
 )
 from .eval import scorecard as eval_scorecard
 from .eval.labels import build_worksheet_row, cohen_kappa, load_labels
-from .integrations.recruit_crm import RecruitCRMClient, sync_delivery
+from .integrations.recruit_crm import (
+    RecruitCRMClient, check_note, check_row_to_payload, sync_delivery,
+)
 from .layers import adversarial, contact, gates, linkcheck, messages, movability, optout
 from .layers.identity import has_identity_corroboration
 from .layers.extract import (
@@ -4108,6 +4110,8 @@ def run_check(
         json.dumps(contract, ensure_ascii=False, indent=2, default=str), encoding="utf-8",
     )
     _write_check_csv(out_dir / "check.csv", row_out)
+    sync_path = _write_check_sync(out_dir / "check_sync.json", contract)
+    log("check: wrote " + str(sync_path))
 
     log("check: " + str(contract["summary"]["submitted"]) + " submitted"
         + (" (" + str(duplicates_dropped) + " duplicate name(s) dropped)"
@@ -4135,11 +4139,22 @@ def run_check(
 
 def _write_check_csv(path: Path, rows: list[dict]) -> None:
     import csv as csv_module
+    from .integrations.recruit_crm import check_status_label
+
     with path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv_module.writer(fh)
+        # "status" (internal token: PASS/NEAR_MISS/OUT/NOT_CHECKED) and
+        # "one_line" did not already exist as CRM-field-named columns, so
+        # step 2 of the check_sync build (day 2 decision (a)) adds them
+        # here under the exact custom-field names Recruit CRM will carry --
+        # "Shortlist Check" (CRM-facing status label) and "Shortlist Check
+        # line" (the one_line) -- so the CSV export and the CRM field never
+        # drift apart. This does not duplicate "status"/"reasons": those
+        # stay for the operator's own reading of the raw internal token.
         writer.writerow([
             "name", "employer", "title", "role", "status", "reasons",
             "evidence_note", "contact", "linkedin_url",
+            "Shortlist Check", "Shortlist Check line",
         ])
         for r in rows:
             reasons = "; ".join(f["reason"] for f in r["failed"])
@@ -4151,7 +4166,37 @@ def _write_check_csv(path: Path, rows: list[dict]) -> None:
                 r["name"], r["employer"], r["title"], r.get("role_title", ""),
                 r["status"], reasons, evidence_note, r["contact"],
                 r.get("linkedin_url", ""),
+                check_status_label(r["status"]), r.get("one_line", ""),
             ])
+
+
+def _write_check_sync(path: Path, contract: dict) -> Path:
+    """check_sync.json (day 2 decision (a)): one dry-run Recruit CRM payload
+    + note per check_results.json row, same shape family as sync_delivery's
+    per-item output. Dry run only -- this never calls the CRM; `mode` says
+    so explicitly so a reader can never mistake this for a live write log.
+    """
+    brief_version = contract.get("brief_version", "")
+    checked_on = date.today()
+    sync_rows: list[dict] = []
+    for r in contract.get("rows", []):
+        row_for_sync = dict(r)
+        row_for_sync["brief_version"] = brief_version
+        sync_rows.append({
+            "name": r.get("name"),
+            "status": r.get("status"),
+            "payload": check_row_to_payload(row_for_sync),
+            "note": check_note(row_for_sync, brief_version, checked_on),
+        })
+    doc = {
+        "mode": "dry_run",
+        "campaign": contract.get("campaign"),
+        "brief_version": brief_version,
+        "generated_at": contract.get("generated_at"),
+        "rows": sync_rows,
+    }
+    path.write_text(json.dumps(doc, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    return path
 
 
 def _apply_brief_overrides(args: argparse.Namespace) -> None:

@@ -117,6 +117,31 @@ GateResult(gate_id, passed, basis: claim_id, note)</pre>
 <li>On the Pro plan the same payload goes through Zapier's Recruit CRM app or the CSV import. Same columns either way.</li>
 </ul>
 
+<h2>The checked column</h2>
+<p>Day 2 decision: the check's daily home is a field on the candidate record in Recruit CRM, not a new page &mdash; your dashboard reads Recruit CRM, so it shows this like any other field, with nothing of ours drawn on your screen. Three custom fields, written by the same adapter above:</p>
+<ul>
+<li><code>Shortlist Check</code> &mdash; <code>PASS | NEAR MISS | OUT | NOT CHECKED</code>.</li>
+<li><code>Shortlist Check line</code> &mdash; the one-line verdict, e.g. "Out: Civil / Structural Director grade, above the Senior Engineer ceiling."</li>
+<li><code>Shortlist Check brief</code> &mdash; the role id and git commit the check ran against, so a verdict can always be traced back to the exact rules that produced it.</li>
+</ul>
+<p>Alongside the fields, a note in the same plain-text shape as the sourcing note above: the status, the rules failed with each reason, up to three proof quotes with their source link, the contact label, and the Art. 14 line. A real one, from Eddie Lyons's row on the 20 August list:</p>
+<pre>Shortlist Check (role1_senior_structural_engineer+role2_transport_major_projects_manager@5d4a04a): OUT.
+
+Rules failed:
+  - residence evidence (Republic of Ireland): No statement of where they live was found.
+  - Senior Engineer ceiling: Civil / Structural Director grade, above the Senior Engineer ceiling.
+
+Proof:
+  - "BE, CEng MIStructE, MIEI, RConsEI" -- https://ocsc.ie/people/
+  - "Civil / Structural Director" -- https://ocsc.ie/people/
+
+Contact: verified
+
+Art. 14 notice: https://gaia-privacy.pages.dev/gaia-candidate-notice -- collected 2026-09-13 from public sources; outreach must include it.</pre>
+<p>No email address is ever written by the check. A check row carries only a contact label (verified, catch-all, guess, none, unknown), never an address, so there is nothing to include or omit by confidence &mdash; the field is simply never in the payload.</p>
+<p>The check does not change the candidate's stage. It writes only the three fields and the note above; your screener's trigger stage is untouched, so a sourced candidate entering at whatever stage you choose does not fire your inbound flow twice.</p>
+<p><code>check_sync.json</code> is the dry-run record: one payload and note per name, written next to <code>check_results.json</code> on every run, with <code>"mode": "dry_run"</code> so it can never be mistaken for a real write. Nothing here has gone over the wire to Recruit CRM &mdash; the first live write is still the contract test described above, with you watching.</p>
+
 <h2>Replies</h2>
 <p>Rules first, model fallback, opt-out honoured: interested, not now, no, question, out of office, bounce. "Not now" snoozes 90 days and writes a note; STOP closes the record and erases. This is the one place a model is allowed near a customer message, and its output is a label, never a sent message. Any send is a consultant, from their own seat.</p>
 

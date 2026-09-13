@@ -1,7 +1,7 @@
 {
   "campaign": "gaia-2026-09-14",
-  "generated_at": "2026-09-11T19:54:13.686915+00:00",
-  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@3288ec0",
+  "generated_at": "2026-09-13T11:58:08.969895+00:00",
+  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@5d4a04a",
   "brief": [
     {
       "role_id": "role1_senior_structural_engineer",
@@ -683,7 +683,7 @@
         {
           "gate_id": "seniority_ceiling",
           "label": "Associate Director ceiling",
-          "reason": "Evidenced at 26 years' experience, above the 25-year ceiling."
+          "reason": "Evidenced at 27 years' experience, above the 25-year ceiling."
         }
       ],
       "evidence": [
@@ -716,7 +716,7 @@
         }
       ],
       "contact": "verified",
-      "one_line": "Near miss: evidenced at 26 years' experience, above the 25-year ceiling; everything else passes, 1 with a note.",
+      "one_line": "Near miss: evidenced at 27 years' experience, above the 25-year ceiling; everything else passes, 1 with a note.",
       "linkedin_url": ""
     },
     {
@@ -2770,7 +2770,8 @@
       "failed_labels": [
         "chartership evidence (Engineers Ireland)",
         "residence evidence (Republic of Ireland)",
-        "discipline match"
+        "discipline match",
+        "Senior Engineer ceiling"
       ]
     },
     {
@@ -5612,10 +5613,9 @@
     {
       "name": "Ronan McCrea",
       "employer": "Clandillon Civil Consulting",
-      "status": "OUT",
+      "status": "NEAR_MISS",
       "failed_labels": [
-        "chartership evidence (Engineers Ireland)",
-        "seniority evidence"
+        "chartership evidence (Engineers Ireland)"
       ]
     },
     {

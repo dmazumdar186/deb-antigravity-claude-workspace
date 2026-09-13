@@ -799,7 +799,8 @@ def _build(results: dict) -> str:
     verdict = (
         f'<p class="verdict">{e(submitted)} names went in. {e(n_pass)} pass the brief. '
         f'{e(n_out)} are out and {e(n_near)} miss by one rule. Every name below says which rule '
-        'it failed, in one line, with the proof underneath.</p>'
+        'it failed, in one line, with the proof underneath. A match score says how alike someone '
+        'is to the job. This check says whether they meet the brief, and shows why.</p>'
         '<p class="subline">You said this list was too senior and that some were not in Ireland. '
         'You were right on both. This is the list you were sent on 20 August. The check was run '
         f'again on {e(checked_date)} against the brief you set on the call. Nothing here was '
