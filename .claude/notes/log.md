@@ -92,3 +92,43 @@ Source: execution/gtm_client_workflows/gaia_sourcing
 ## [2026-09-11 10:00] constraint gaia_sourcing run cache rescue branch must never merge
 Branch gaia-run-cache-2026-09-14 holds the run cache tarball for rescue purposes only; never merge it into main.
 Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-13 16:00] technical gaia_sourcing years-figure gate semantics fixed
+Strict prefixes (over/more than/in excess of/exceeding) are base+1 for a ceiling but base for a floor; inclusive phrases (at least, 15+, upwards of) are base; no-more-than/up-to/fewer-than never satisfy a floor; reason string quotes the matched phrase.
+Source: deliverables/gaia_poc_check/PLAN.md
+
+## [2026-09-13 16:00] technical gaia_sourcing validator OCR fold rescued one quote
+validator.normalize folds OCR-confused 1/l/I; rescued exactly 1 of 154 unique dropped quotes (Pearse Sutton, "over 40 years").
+Source: deliverables/gaia_poc_check/PLAN.md
+
+## [2026-09-13 16:00] learned gaia_sourcing floor-vs-ceiling bug changed a client-facing count
+An interim run credited Ronan McCrea's "over 7 years" against an 8-year floor and changed the near-miss count; must re-run gate..console and recount pool maps after any gates.py change.
+Source: deliverables/gaia_poc_check/PLAN.md
+
+## [2026-09-13 16:00] constraint gaia_sourcing run.py residence bucket map needs manual sync with gates.py
+run.py's residence bucket map must be extended whenever gates.py changes a located_ie note string, or rows fall into "unclassified".
+Source: execution/gtm_client_workflows/gaia_sourcing/run.py
+
+## [2026-09-13 16:00] pattern gaia_sourcing --check evidence must surface every gate's basis quote
+Failing gates render first; a reason with no supporting quote is a defect. CRM notes cap at 5 items.
+Source: execution/gtm_client_workflows/gaia_sourcing/render
+
+## [2026-09-13 16:00] constraint gaia_sourcing check.csv client-deliverable hardening
+check.csv must be written utf-8-sig with a formula-injection guard; input.source must be a bare filename, not a path.
+Source: execution/gtm_client_workflows/gaia_sourcing/run.py
+
+## [2026-09-13 16:00] pattern gaia_sourcing 15-name input convention shared across run.py and check_page.py
+13 August delivery names + 2 delivered names, with intake.split_delivered's position rule for "delivered" rows relied on by both run.py and check_page.py.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-13 16:00] process gaia_sourcing seven-lens objection fan-out
+Keith, Isadora, Maddie, end client, CFO, data-protection solicitor, Recruit CRM sales lenses produced OBJECTIONS.md; lens files under deliverables/gaia_poc_check/lenses/.
+Source: deliverables/gaia_poc_check/OBJECTIONS.md
+
+## [2026-09-13 16:00] technical gaia_sourcing fresh cloud container setup
+pip install -r requirements.txt minus langdetect (no wheel) plus pydantic[email]; run cache restored from branch gaia-run-cache-2026-09-14.
+Source: execution/gtm_client_workflows/gaia_sourcing
+
+## [2026-09-13 16:00] constraint gaia_sourcing sandbox-only test failures
+test_ocr's local engine needs fitz and the Chromium render test needs a browser binary, both unavailable in this sandbox; not real regressions.
+Source: execution/gtm_client_workflows/gaia_sourcing/tests
