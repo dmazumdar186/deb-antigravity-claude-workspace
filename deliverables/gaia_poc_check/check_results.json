@@ -1,7 +1,7 @@
 {
   "campaign": "gaia-2026-09-14",
-  "generated_at": "2026-09-13T11:58:08.969895+00:00",
-  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@5d4a04a",
+  "generated_at": "2026-09-13T12:12:55.562256+00:00",
+  "brief_version": "role1_senior_structural_engineer+role2_transport_major_projects_manager@ec9283b",
   "brief": [
     {
       "role_id": "role1_senior_structural_engineer",
@@ -207,22 +207,32 @@
         "name": "Pearse Sutton",
         "employer": "Cronin & Sutton Consulting",
         "title": "Director"
+      },
+      {
+        "name": "Alicia Joyce",
+        "employer": "CSEA",
+        "title": "Senior Structural Engineer"
+      },
+      {
+        "name": "John Alcaras",
+        "employer": "Arcadis",
+        "title": "Lead / Senior Structural Engineer"
       }
     ]
   },
   "summary": {
-    "submitted": 13,
+    "submitted": 15,
     "duplicates_dropped": 0,
-    "matched": 13,
+    "matched": 15,
     "not_checked": 0,
-    "pass": 0,
+    "pass": 2,
     "near_miss": 2,
     "out": 11,
     "by_rule": {
       "seniority_ceiling": 13,
       "located_ie": 11,
-      "seniority": 2,
       "chartered": 2,
+      "seniority": 1,
       "discipline": 1
     },
     "residence": {
@@ -234,7 +244,7 @@
       "verified": 7,
       "catch_all": 0,
       "guess": 5,
-      "none": 1,
+      "none": 3,
       "unknown": 0
     }
   },
@@ -683,7 +693,7 @@
         {
           "gate_id": "seniority_ceiling",
           "label": "Associate Director ceiling",
-          "reason": "Evidenced at 27 years' experience, above the 25-year ceiling."
+          "reason": "Evidenced at over 26 years' experience, above the 25-year ceiling."
         }
       ],
       "evidence": [
@@ -716,7 +726,7 @@
         }
       ],
       "contact": "verified",
-      "one_line": "Near miss: evidenced at 27 years' experience, above the 25-year ceiling; everything else passes, 1 with a note.",
+      "one_line": "Near miss: evidenced at over 26 years' experience, above the 25-year ceiling; everything else passes, 1 with a note.",
       "linkedin_url": ""
     },
     {
@@ -785,11 +795,6 @@
           "reason": "No public evidence placing this candidate in the target discipline."
         },
         {
-          "gate_id": "seniority",
-          "label": "seniority evidence",
-          "reason": "No stated years-of-experience figure was found (the check does not infer years from join dates). (a years figure exists in the source but could not be verified character by character)"
-        },
-        {
           "gate_id": "seniority_ceiling",
           "label": "Associate Director ceiling",
           "reason": "Director grade, stated in public evidence, above the Associate Director ceiling."
@@ -816,6 +821,78 @@
       "contact": "none",
       "one_line": "Out: Director grade, stated in public evidence, above the Associate Director ceiling.",
       "linkedin_url": ""
+    },
+    {
+      "name": "Alicia Joyce",
+      "person_id": "alicia_joyce",
+      "employer": "CSEA",
+      "title": "(CEng, MIEI) Senior Structural Engineer",
+      "role_title": "Senior Structural Engineer",
+      "status": "PASS",
+      "failed": [],
+      "evidence": [
+        {
+          "dimension": "location",
+          "quote": "Dublin, County Dublin, Ireland",
+          "source_url": "https://ie.linkedin.com/in/alicia-joyce-a62a2190"
+        },
+        {
+          "dimension": "chartership",
+          "quote": "Alicia Joyce. (CEng, MIEI) Senior Structural Engineer at CSEA",
+          "source_url": "https://ie.linkedin.com/posts/carlo-orani_blockchain-blockchaintechnology-buildinginformationmodeling-activity-6924624426994966529-q4YC?trk=public_profile_like_view"
+        },
+        {
+          "dimension": "employer",
+          "quote": "Senior Structural Engineer at CSEA",
+          "source_url": "https://ie.linkedin.com/in/alicia-joyce-a62a2190"
+        }
+      ],
+      "passed_with_note": [
+        {
+          "gate_id": "seniority",
+          "label": "seniority evidence",
+          "note": "years not stated; senior title accepted for the floor -- confirm years on first call"
+        }
+      ],
+      "contact": "none",
+      "one_line": "Pass: meets every rule on the Senior Structural Engineer brief.",
+      "linkedin_url": "https://ie.linkedin.com/in/alicia-joyce-a62a2190"
+    },
+    {
+      "name": "John Alcaras",
+      "person_id": "john_alcaras_bsc_ceng_miei",
+      "employer": "Arcadis",
+      "title": "Lead / Senior Structural Engineer ...",
+      "role_title": "Senior Structural Engineer",
+      "status": "PASS",
+      "failed": [],
+      "evidence": [
+        {
+          "dimension": "location",
+          "quote": "Dublin, County Dublin",
+          "source_url": "https://ie.linkedin.com/in/john-alcaras-bsc-ceng-miei-82647741"
+        },
+        {
+          "dimension": "chartership",
+          "quote": "JOHN ALCARAS BSc CEng MIEI.",
+          "source_url": "https://www.linkedin.com/posts/paul-cassidy-9222988b_i-was-delighted-to-receive-my-chartered-engineer-activity-7461139331454525440-45UD"
+        },
+        {
+          "dimension": "employer",
+          "quote": "Lead / Senior Structural Engineer at Arcadis",
+          "source_url": "https://ie.linkedin.com/in/john-alcaras-bsc-ceng-miei-82647741"
+        }
+      ],
+      "passed_with_note": [
+        {
+          "gate_id": "seniority",
+          "label": "seniority evidence",
+          "note": "years not stated; lead title accepted for the floor -- confirm years on first call"
+        }
+      ],
+      "contact": "none",
+      "one_line": "Pass: meets every rule on the Senior Structural Engineer brief.",
+      "linkedin_url": "https://ie.linkedin.com/in/john-alcaras-bsc-ceng-miei-82647741"
     }
   ],
   "pool": [
@@ -5116,7 +5193,6 @@
       "failed_labels": [
         "residence evidence (Republic of Ireland)",
         "discipline match",
-        "seniority evidence",
         "Associate Director ceiling"
       ]
     },
@@ -5613,9 +5689,10 @@
     {
       "name": "Ronan McCrea",
       "employer": "Clandillon Civil Consulting",
-      "status": "NEAR_MISS",
+      "status": "OUT",
       "failed_labels": [
-        "chartership evidence (Engineers Ireland)"
+        "chartership evidence (Engineers Ireland)",
+        "seniority evidence"
       ]
     },
     {
@@ -6450,8 +6527,8 @@
       "emails_written": 4
     },
     "august_list": {
-      "consultant_hours_spent": 3.25,
-      "calls_that_would_have_been_wrong": 13,
+      "consultant_hours_spent": 3.75,
+      "calls_that_would_have_been_wrong": 15,
       "emails_to_unplaceable": 4
     },
     "weekly": {

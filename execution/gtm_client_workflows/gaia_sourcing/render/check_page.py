@@ -355,6 +355,175 @@ def _project_and_brief_lines(briefs: list[dict] | None) -> tuple[str, str]:
     return project, brief_line
 
 
+def _intake_description(input_data: dict | None, submitted: int) -> str:
+    """The headline's opening sentence, describing where the checked names
+    came from -- never a hardcoded "15".
+
+    The only case that names the two delivery groups is the exact one this
+    page was built for: the input file is the original 20 August delivery
+    (`input.source` ends with `input_2026-08-20.csv`) AND the submitted
+    count is 15 (the 13 names originally sent plus the 2 delivered on 14
+    September). Neither fact alone is enough -- the same file could later
+    grow a 16th row, or a different, unrelated 15-row list could be run
+    through the check -- so both must hold before the page claims that
+    specific provenance. Every other input (a different file, a different
+    row count) falls back to a plain, always-true count so the page never
+    states a history it cannot verify from the data in front of it.
+    """
+    input_data = input_data or {}
+    source = str(input_data.get("source") or "")
+    if source.endswith("input_2026-08-20.csv") and submitted == 15:
+        return (
+            f"{submitted} names went in: the 13 you were sent on 20 August "
+            "and the 2 delivered on 14 September."
+        )
+    return f"{submitted} names went in."
+
+
+def _delivery_split(input_rows: list[dict] | None) -> tuple[list[str], list[str]]:
+    """Splits `input.rows` (in submitted order) into the original names and
+    the two delivered names, by position -- the two delivered rows
+    (Alicia Joyce, John Alcaras) are appended to the end of
+    `input_2026-08-20.csv`, never mixed in. Returns `([], [])` when there
+    are fewer than 2 rows to split. This is a position rule, not a status
+    rule: it must never look at PASS/OUT to decide which rows were
+    "delivered", since a future re-run could see either group pass or fail
+    and the provenance split must stay stable regardless."""
+    input_rows = input_rows or []
+    if len(input_rows) < 2:
+        return [], []
+    return (
+        [str(r.get("name") or "") for r in input_rows[:-2]],
+        [str(r.get("name") or "") for r in input_rows[-2:]],
+    )
+
+
+def _render_proof_not_score_section(input_data: dict | None, rows: list[dict] | None, summary: dict | None) -> str:
+    """"Why proof, not a score" -- four short paragraphs answering Keith's
+    own comparison to Recruit CRM's 0-100 match score (transcript
+    2026-09-10: "0 to 100 match scores, similar to what you did"). Only the
+    first paragraph's numbers are data-derived (and only when the known
+    20-August-plus-14-September pattern applies, per `_intake_description`);
+    the rest is fixed copy that never touches caller data, so it stays
+    clear of the banned-word check under a blanked-out render."""
+    input_data = input_data or {}
+    summary = summary or {}
+    submitted = summary.get("submitted", 0)
+    source = str(input_data.get("source") or "")
+    is_split = source.endswith("input_2026-08-20.csv") and submitted == 15
+
+    if is_split:
+        original_names, _delivered_names = _delivery_split(input_data.get("rows"))
+        original_set = set(original_names)
+        original_count = len(original_set)
+        original_pass = sum(
+            1 for r in (rows or [])
+            if r.get("name") in original_set and r.get("status") == "PASS"
+        )
+        p1 = (
+            "A match score says how alike a person looks to the job on paper. It cannot remove a "
+            "name that breaks a rule you set &mdash; it only marks it down. Your August list came "
+            "through a filter with a floor and no ceiling, which is the same mistake, and "
+            f"{e(original_pass)} of {e(original_count)} names on it clear this brief once every "
+            "rule is checked."
+        )
+    else:
+        p1 = (
+            "A match score says how alike a person looks to the job on paper. It cannot remove a "
+            "name that breaks a rule you set &mdash; it only marks it down. A list can look right "
+            "and still fail the brief once every name on it is checked against that brief, as this "
+            "one did."
+        )
+
+    p2 = (
+        "The check works differently: for every name it applies the rules in the brief &mdash; "
+        "grade, residence, chartership, contact confidence &mdash; and each one has to be proved by "
+        "the exact sentence from a public page, with the link, checked character by character "
+        "against that page. If the sentence is not there, the name comes back out, with the rule it "
+        "failed and why."
+    )
+    p3 = (
+        "A wrong name reaching TOBIN or AtkinsR&eacute;alis costs a slot in the next brief and a "
+        "consultant&rsquo;s credibility with the client, not just the hour that went into sending "
+        "it."
+    )
+    p4 = (
+        "The check is not sourcing, not Maddie&rsquo;s screener, and not a CRM. It sits between the "
+        "search and the call: after a name is found, before anyone picks up the phone."
+    )
+    return (
+        '<h2>Why proof, not a score</h2>'
+        f'<p>{p1}</p><p>{p2}</p><p>{p3}</p><p>{p4}</p>'
+    )
+
+
+_QUESTIONS_YOU_WILL_HAVE = [
+    (
+        "Recruit CRM already gives me 0 to 100 match scores on 800 million profiles &mdash; why do "
+        "I need this too?",
+        "A score says how similar someone looks to the job; a rule like &ldquo;must be "
+        "chartered&rdquo; only lowers a non-qualifier&rsquo;s score, it never removes the name. "
+        "This check says whether a person actually clears the brief and shows the exact sentence "
+        "that proves it, or the reason they are out.",
+    ),
+    (
+        "Last time you sent me 13 names and every one was wrong. What is different now?",
+        "The check now applies a ceiling as well as a floor on seniority, and only a direct "
+        "statement of residence counts, not a firm&rsquo;s Irish office. Run again under those "
+        "rules, the same 13 names still come back at zero &mdash; that matches your own read, with "
+        "the reason attached to each one.",
+    ),
+    (
+        "Maddie already flags anyone scoring over 60 and gets them on a call &mdash; what does "
+        "this add?",
+        "Maddie&rsquo;s screener catches people who apply to you. This check finds and proves "
+        "people who never applied, before a consultant picks up the phone, so the calls that do "
+        "get made are to people who could actually be placed.",
+    ),
+    (
+        "What happens with a name that is not on any public page?",
+        "It comes back Not Checked, never a guess dressed up as a verdict. A name like that takes "
+        "one working day to look into properly and comes back with the same proof lines as "
+        "everything else.",
+    ),
+    (
+        "How current is the evidence behind a PASS?",
+        "Every quote is checked against the page as it read on the date shown on the card. A "
+        "person can change firms or be promoted after that date, so the date checked travels with "
+        "the proof rather than being hidden.",
+    ),
+    (
+        "What do I do with a NEAR MISS &mdash; call or skip?",
+        "That is a judgement call for the consultant, not something the check decides for you. The "
+        "card gives the exact margin, for example one year over an experience ceiling, so you are "
+        "not guessing at how close it actually is.",
+    ),
+    (
+        "Does this touch or slow down Maddie&rsquo;s screen in any way?",
+        "No. The check writes a candidate in at the sourcing stage; Maddie&rsquo;s screener keeps "
+        "its own trigger and its own call untouched.",
+    ),
+    (
+        "How much of this is your judgement versus a rule?",
+        "Every PASS or OUT comes from a rule in the brief you set, checked against a quoted, "
+        "sourced sentence, never a similarity guess. Where the evidence is silent, the check says "
+        "so rather than assuming a pass.",
+    ),
+]
+
+
+def _render_questions_section() -> str:
+    """"Questions you will have" -- fixed copy only (drawn from
+    `deliverables/gaia_poc_check/OBJECTIONS.md` section 1, condensed to two
+    sentences per answer for Keith's page); never touches caller data, so
+    it stays clear of the banned-word check under a blanked-out render."""
+    items = "".join(
+        f'<div class="qna-item"><h3>{q}</h3><p>{a}</p></div>'
+        for q, a in _QUESTIONS_YOU_WILL_HAVE
+    )
+    return f'<h2>Questions you will have</h2><div class="qna-list">{items}</div>'
+
+
 def _render_residence_note(residence: dict | None) -> str:
     """Coordinator fix 2026-09-11 item 3: absence of a residence statement
     and evidence of one outside the Republic are different facts: this
@@ -505,6 +674,12 @@ button#try-check:hover,button#try-check:focus-visible{background:#17583f}
 
 ul.plain{margin:8px 0;padding-left:18px}
 ul.plain li{margin:0 0 8px}
+
+.qna-list{margin:14px 0}
+.qna-item{padding:14px 0;border-top:1px solid var(--line)}
+.qna-item:first-child{border-top:0}
+.qna-item h3{font-size:14.5px;margin:0 0 6px;font-weight:600}
+.qna-item p{margin:0;font-size:14px;color:var(--muted);max-width:70ch}
 
 footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
 
@@ -796,8 +971,10 @@ def _build(results: dict) -> str:
         '</dl>'
     )
 
+    intake_line = _intake_description(results.get("input"), submitted)
+
     verdict = (
-        f'<p class="verdict">{e(submitted)} names went in. {e(n_pass)} pass the brief. '
+        f'<p class="verdict">{e(intake_line)} {e(n_pass)} pass the brief. '
         f'{e(n_out)} are out and {e(n_near)} miss by one rule. Every name below says which rule '
         'it failed, in one line, with the proof underneath. A match score says how alike someone '
         'is to the job. This check says whether they meet the brief, and shows why.</p>'
@@ -807,6 +984,8 @@ def _build(results: dict) -> str:
         'typed by hand; every line is a quote from a public page, checked character by character '
         'against that page.</p>'
     )
+
+    proof_not_score_section = _render_proof_not_score_section(results.get("input"), rows, summary)
 
     ledger_section = (
         '<h2>The ledger</h2>'
@@ -921,6 +1100,8 @@ def _build(results: dict) -> str:
         'the corrected one, with the count told straight both times.</p>'
     )
 
+    questions_section = _render_questions_section()
+
     footer = (
         '<footer><p>Prepared for Keith Molony, Gaia Talent Ltd, by Debanjan Mazumdar, Prodcraft, '
         f'{e(checked_date)}. Campaign {campaign}. Public sources only; every candidate receives '
@@ -931,8 +1112,8 @@ def _build(results: dict) -> str:
         '<div class="wrap">'
         '<p class="eyebrow">Gaia Talent Ltd &middot; prepared by Prodcraft</p>'
         '<h1>Your 20 August list, checked.</h1>'
-        f'{title_block}{verdict}{ledger_section}{try_section}{arithmetic_section}'
-        f'{fits_section}{not_section}{why_section}{footer}'
+        f'{title_block}{verdict}{proof_not_score_section}{ledger_section}{try_section}'
+        f'{arithmetic_section}{fits_section}{not_section}{why_section}{questions_section}{footer}'
         '</div>'
     )
 

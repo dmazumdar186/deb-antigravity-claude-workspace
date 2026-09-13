@@ -895,7 +895,14 @@ def check_seniority(
             continue
         fig = extract_years_figure(c.evidence_quote) or extract_years_figure(c.assertion)
         if fig is not None:
-            evidenced.append((fig.effective, c.claim_id, fig.phrase))
+            # FLOOR uses the stated base, never base+1: "over 7 years" proves
+            # more than 7, which is not proof of the 8 a floor of 8 asks for
+            # (it may be 7 years and a month). The ceiling gate is the
+            # opposite case -- "over 15" is strictly above a 15-year cap --
+            # and uses fig.effective. Found 2026-09-13: Ronan McCrea's
+            # "over 7 years" cleared Role 1's 8-year floor on the effective
+            # figure and appeared as a new near-miss.
+            evidenced.append((fig.base, c.claim_id, fig.phrase))
 
     if not evidenced:
         # Staff-directory bios state a GRADE, not a number of years. A

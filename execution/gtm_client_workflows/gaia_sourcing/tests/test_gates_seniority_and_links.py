@@ -467,3 +467,19 @@ def test_a_plain_residence_statement_still_passes():
     result = gates.check_located_ie(
         _person(), _loc("Based in Cork, Ireland"), {})
     assert result.passed is True
+
+
+def test_lower_bound_does_not_round_up_against_a_floor():
+    """"over 7 years" proves more than 7, not the 8 an 8-year floor asks for
+    (floor uses the base); "over 15" is strictly above a 15-year ceiling
+    (ceiling uses base+1). Ronan McCrea regression, 2026-09-13."""
+    person = Person(person_id="rmccrea", full_name="Ronan McCrea",
+                    current_title="Engineer", current_employer="C3")
+    claims = [_vc("years_experience",
+                  "Ronan McCrea has over 7 years of experience",
+                  "With over 7 years of proven ability to work across many engineering disciplines")]
+    floor = gates.check_seniority(person, claims, {"min_years": 8})
+    assert floor.passed is False
+    assert "over 7" in (floor.note or "")
+    floor7 = gates.check_seniority(person, claims, {"min_years": 7})
+    assert floor7.passed is True

@@ -19,6 +19,8 @@ import pytest
 from gtm_client_workflows.gaia_sourcing.render.check_page import (
     _JS,
     _build,
+    _delivery_split,
+    _intake_description,
     banned_words_in,
     render_check_page,
     write_check_page,
@@ -37,6 +39,8 @@ SECTION_HEADINGS = [
     "How it fits with what you have",
     "What it is not",
     "Why this cannot come from the tools you already pay for",
+    "Why proof, not a score",
+    "Questions you will have",
 ]
 
 
@@ -377,6 +381,160 @@ def test_js_comma_rule_drops_only_all_post_nominal_tails():
     # "John" is not a post-nominal -> the comma becomes a space, not a drop
     assert reversed_name == "smith john"
     assert split_result == "Smith  John"
+
+
+# ---------------------------------------------------------------------------
+# Data-driven headline / "Why proof, not a score" / "Questions you will
+# have" -- deliverables/gaia_poc_check/PLAN.md Day 2 decision (c).
+# ---------------------------------------------------------------------------
+
+
+def test_intake_description_fallback_for_other_sources():
+    assert _intake_description({"source": "20 August 2026 delivery"}, 4) == "4 names went in."
+    assert (
+        _intake_description({"source": "../x/input_2026-08-20.csv"}, 13)
+        == "13 names went in."
+    )
+    assert _intake_description(None, 0) == "0 names went in."
+
+
+def test_intake_description_names_the_two_groups_only_when_both_conditions_hold():
+    # right file, wrong count -> no claim about the two groups
+    assert (
+        _intake_description({"source": "../x/input_2026-08-20.csv"}, 14)
+        == "14 names went in."
+    )
+    # right file AND count 15 -> names the two groups
+    line = _intake_description({"source": "../x/input_2026-08-20.csv"}, 15)
+    assert line == (
+        "15 names went in: the 13 you were sent on 20 August and the 2 "
+        "delivered on 14 September."
+    )
+
+
+def test_delivery_split_splits_by_position_not_status():
+    rows = [{"name": f"Person {i}"} for i in range(15)]
+    original, delivered = _delivery_split(rows)
+    assert len(original) == 13
+    assert delivered == ["Person 13", "Person 14"]
+
+
+def test_delivery_split_empty_when_fewer_than_two_rows():
+    assert _delivery_split([{"name": "Solo"}]) == ([], [])
+    assert _delivery_split(None) == ([], [])
+    assert _delivery_split([]) == ([], [])
+
+
+def test_headline_verdict_uses_plain_fallback_for_the_sample_fixture(page):
+    # Base fixture's source is "20 August 2026 delivery" (not the CSV path)
+    # and submitted=4 -> plain count, no two-group claim.
+    assert (
+        '<p class="verdict">4 names went in. 1 pass the brief. 1 are out '
+        'and 1 miss by one rule.' in page
+    )
+
+
+def test_proof_not_score_section_generic_when_pattern_absent(page):
+    assert "Why proof, not a score" in page
+    assert (
+        "A match score says how alike a person looks to the job on paper." in page
+    )
+    assert "not sourcing, not Maddie&rsquo;s screener, and not a CRM" in page
+
+
+@pytest.fixture
+def split_results(results) -> dict:
+    """Simulates the real 20-August-plus-14-September pattern this page was
+    built for: 13 original rows (0 PASS) plus the 2 delivered rows (both
+    PASS), so the data-derived "0 of 13" claim can be tested against
+    synthetic data rather than only the one live fixture on disk."""
+    r = copy.deepcopy(results)
+    original_rows = [
+        {"name": f"Orig Name {i}", "employer": "Firm", "title": "Director"}
+        for i in range(13)
+    ]
+    delivered_rows = [
+        {"name": "Alicia Joyce", "employer": "CSEA", "title": "Senior Structural Engineer"},
+        {"name": "John Alcaras", "employer": "Arcadis", "title": "Senior Structural Engineer"},
+    ]
+    r["input"]["source"] = "../deliverables/gaia_poc_check/input_2026-08-20.csv"
+    r["input"]["rows"] = original_rows + delivered_rows
+    r["summary"]["submitted"] = 15
+    r["summary"]["pass"] = 2
+    r["summary"]["out"] = 11
+    r["summary"]["near_miss"] = 2
+    result_rows = [
+        {
+            "name": row["name"], "employer": row["employer"], "title": row["title"],
+            "status": "OUT",
+            "failed": [{"gate_id": "seniority_ceiling", "label": "seniority", "reason": "too senior"}],
+            "evidence": [], "contact": "guess", "one_line": "Out: too senior.",
+        }
+        for row in original_rows
+    ] + [
+        {
+            "name": row["name"], "employer": row["employer"], "title": row["title"],
+            "status": "PASS", "failed": [],
+            "evidence": [{"dimension": "location", "quote": "Dublin", "source_url": "https://example.com"}],
+            "contact": "none", "one_line": "Pass: meets every rule.",
+        }
+        for row in delivered_rows
+    ]
+    r["rows"] = result_rows
+    return r
+
+
+@pytest.fixture
+def split_page(split_results) -> str:
+    return render_check_page(split_results)
+
+
+def test_headline_names_two_groups_when_pattern_matches(split_page):
+    assert (
+        '<p class="verdict">15 names went in: the 13 you were sent on 20 August '
+        'and the 2 delivered on 14 September. 2 pass the brief. 11 are out and '
+        '2 miss by one rule.' in split_page
+    )
+
+
+def test_proof_not_score_section_counts_original_list_only(split_page):
+    # 0 of the 13 original names PASS (the 2 PASSes are the delivered pair,
+    # excluded from this count by position, not by status).
+    assert "0 of 13 names on it clear this brief once every rule is checked." in split_page
+
+
+def test_proof_not_score_uses_generic_wording_outside_the_pattern(split_page, results):
+    # Sanity: the generic (no-numbers) paragraph from the base fixture must
+    # NOT appear on the split page, and vice versa.
+    generic_page = render_check_page(results)
+    assert "look right and still fail the brief once every name on it is checked" not in split_page
+    assert "0 of" not in generic_page
+
+
+def test_split_pattern_page_stays_free_of_banned_words(split_results):
+    static_only = dict(split_results)
+    static_only["rows"] = []
+    static_only["pool"] = []
+    static_only["brief"] = []
+    static_only["summary"] = {}
+    static_only["campaign"] = ""
+    static_only["input"] = {}
+    assert banned_words_in(_build(static_only)) == []
+
+
+def test_questions_section_has_eight_items(page):
+    assert page.count('class="qna-item"') == 8
+
+
+def test_questions_section_covers_the_key_objections(page):
+    assert "why do I need this too?" in page
+    assert "What is different now?" in page
+    assert "what does this add?" in page
+    assert "not on any public page?" in page
+    assert "How current is the evidence behind a PASS?" in page
+    assert "call or skip?" in page
+    assert "slow down Maddie&rsquo;s screen" in page
+    assert "judgement versus a rule?" in page
 
 
 @pytest.mark.skipif(_NODE is None, reason="node not available on this machine")

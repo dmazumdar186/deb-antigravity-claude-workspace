@@ -16,13 +16,14 @@ Before sending, fill the two placeholders: `{LOOM_URL}` and, if a Monday call sl
 
 Keith,
 
-As promised on Thursday. Three links, one short video, then the honest numbers.
+As promised on Thursday. Four links, one short video, then the honest numbers.
 
 You said the August list was too senior and that some were not in Ireland. You were right on both. Both were filter settings; both are fixed below.
 
 - Corrected shortlist: https://claude.ai/code/artifact/16f9282e-e30e-4a4b-b6e2-624d836a7e80
 - Brief Controls (your 20 August list with the two filters you can set yourself): https://claude.ai/code/artifact/3d47597e-04bd-42ec-bb15-ce6126b93703
 - The page for Maddie, on where this hands over to her screener and Recruit CRM: https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed
+- Shortlist Check (your 20 August list and the two new names, every one checked against the brief, with the sentence and the link that proves each line): https://claude.ai/code/artifact/a8a673b4-0641-4278-a602-670b6daf1241
 - Loom, 5 minutes: {LOOM_URL}
 
 Could you forward the third link to Maddie? It is written for her.
@@ -58,9 +59,9 @@ Deb
 
 ---
 
-## 2. Loom script (target 4:30, hard cap 5:00)
+## 2. Loom script (target 5:00, hard cap 5:30)
 
-Screen setup before recording: three tabs in this order: Brief Controls, corrected shortlist, v2 page. A terminal at `execution/` with `GAIA_CAMPAIGN_ID=gaia-2026-09-14` exported and font large enough to read. Camera on, small. No intro slide.
+Screen setup before recording: four tabs in this order: Brief Controls, corrected shortlist, Shortlist Check, v2 page. A terminal at `execution/` with `GAIA_CAMPAIGN_ID=gaia-2026-09-14` exported and font large enough to read. Camera on, small. No intro slide.
 
 ### Step 1 (0:00–0:45) — "You were right on both"
 
@@ -82,7 +83,13 @@ On screen: corrected shortlist tab. Scroll to the banner counts, then open Alici
 
 Say: "The corrected run. Structural role: 471 checked, two delivered. Alicia Joyce at CSEA, John Alcaras at Arcadis. On each card the first two lines are the evidence: the residence quote and the chartership quote, verbatim, with the source. Alicia has no verified email, so the card says so and says call the firm; no guessed addresses this time. Cork role: 65 checked, zero delivered. I am not going to pad that. Below the cards, the near-misses: 14 short only on residence evidence, 8 short only on chartership. The CSV is the same rows for your ATS."
 
-### Step 4 (2:45–3:45) — The hand-off
+### Step 3b (2:45–3:30) — Shortlist Check, the proof
+
+On screen: the Shortlist Check tab. Show the headline line, then scroll the ledger to Alicia Joyce (PASS, quotes visible), then to one OUT row (Eddie Lyons), then the "Why proof, not a score" section.
+
+Say: "This is the part I want you to judge me on. Fifteen names: your thirteen from August and the two new ones. Each one checked against the brief, rule by rule: grade, where they live, chartership, contact. For every line the exact sentence from the public page and the link, checked character by character. Alicia passes, here is the proof. Eddie Lyons is out: Director grade, and the quote says so. A match score tells you how alike someone looks to a job. This tells you whether they meet the brief, and why. That's the difference from what Julia's email is selling you."
+
+### Step 4 (3:30–4:15) — The hand-off
 
 On screen: terminal. Run the dry-run sync, then the reply classifier. Then switch to the v2 page, section "What Maddie needs to know".
 
@@ -93,7 +100,7 @@ python3 -m gtm_client_workflows.gaia_sourcing.run --classify-reply "Thanks, not 
 
 Say: "This is where it meets Recruit CRM. Dry-run first: each delivered card becomes a candidate on the job, deduplicated on email or LinkedIn URL, never overwriting a consultant's data, with the evidence note and the Article 14 notice date. A reply comes back and gets classified: interested, not now, no, question, bounce. 'Not now' snoozes 90 days and writes a note. 'Interested' sets the stage you choose, and Maddie's screener or Isadora take it from there, exactly as they do for applicants. Nothing sends on its own; a named consultant sends from their own seat. The page for Maddie has the fields and endpoints."
 
-### Step 5 (3:45–4:30) — What I need from you
+### Step 5 (4:15–5:00) — What I need from you
 
 On screen: back to Brief Controls, cursor on the two controls.
 

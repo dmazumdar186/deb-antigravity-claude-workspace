@@ -7,7 +7,7 @@ is a claim, not a finding.
 |---|---|
 | Profiles assessed | 65 |
 | Raw claims extracted | 427 |
-| Claims surviving quote validation | 366 |
+| Claims surviving quote validation | 367 |
 | Passed every hard gate | 0 |
 | Delivered | 0 of 5 |
 
@@ -16,7 +16,7 @@ is a claim, not a finding.
 | Hard gate not met | Candidates |
 |---|---|
 | chartered | 55 |
-| seniority | 53 |
+| seniority | 52 |
 | located_ie | 47 |
 | discipline | 34 |
 | employer_sector | 29 |
@@ -65,4 +65,4 @@ counted toward the target.
 - Richard Lane -- ESB Engineering & Major Projects
 - Tom O'Neill -- ESB Engineering and Major Projects
 
-Generated 2026-09-11 -- campaign gaia-2026-09-14.
+Generated 2026-09-13 -- campaign gaia-2026-09-14.
