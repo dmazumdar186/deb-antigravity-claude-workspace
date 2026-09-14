@@ -81,7 +81,20 @@ Code lives in `execution/gtm_client_workflows/gaia_sourcing/` and follows its co
 }
 ```
 
-## Live artifacts (11 Sep, private)
+## Live site (14 Sep, public, no login) — send these, never artifact links
+
+Keith could not open claude.ai artifact links (14 Sep). The same pages are served as a static site from `deliverables/gaia_site_2026-09-14/` on GitHub Pages (branch `gh-pages`, byte-identical to the bundle, every page noindex):
+
+- Home: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/
+- Corrected shortlist: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/shortlist/
+- Shortlist Check (Keith's page): https://dmazumdar186.github.io/deb-antigravity-claude-workspace/check/
+- Brief Controls: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/brief-controls/
+- Next 30 days: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/next-30-days/
+- For Maddie: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/for-maddie/ · engineering notes: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/for-maddie/engineering/
+
+Vercel (project `gaia-keith`) is the intended long-term host but is not live: the token in the cloud environment is limited (Vercel reports `limited: true`; `POST /v13/deployments` returns 403 "You don't have permission to create a project") and the variable is misspelled `VERCEL_TOEKN`. `vercel.json` in the bundle already carries the noindex headers. GitHub Pages stays up until Vercel is live.
+
+## Live artifacts (11 Sep, private — superseded by the public site above)
 
 - Keith's page: https://claude.ai/code/artifact/a8a673b4-0641-4278-a602-670b6daf1241
 - Maddie's engineering notes: https://claude.ai/code/artifact/0f7821a2-eb07-4c4e-9637-2d3c9574c51c
