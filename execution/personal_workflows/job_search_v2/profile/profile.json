@@ -991,6 +991,7 @@
       "India"
     ]
   },
+  "domain_scope": "Software / digital products only (B2B SaaS, retail tech, GenAI/LLM/RAG, e-commerce, fintech, marketing automation). No hardware, electronics, instrumentation, semiconductor, embedded/firmware, systems-software, mechanical, or physical-product roles — the CV carries no such skills.",
   "hard_filters": {
     "skip_title_substrings": [
       "junior",
@@ -1011,6 +1012,23 @@
       "intern",
       "alternance",
       "graduate"
+    ],
+    "skip_domain_anchors": [
+      "semiconductor",
+      "microchip",
+      "firmware",
+      "embedded systems",
+      "instrumentation",
+      "electronics",
+      "hardware",
+      "pcb",
+      "asic",
+      "fpga",
+      "medical device",
+      "mechanical",
+      "automotive ecu",
+      "avionics",
+      "photonics"
     ]
   },
   "proof_points": [

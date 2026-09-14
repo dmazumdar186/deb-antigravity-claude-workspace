@@ -1,4 +1,4 @@
-# Ranking rubric — job_search_v2 (v4 — 2026-09-01, PM/PO-only)
+# Ranking rubric — job_search_v2 (v5 — 2026-09-10, domain-scope hard rule)
 
 > Scope note (2026-09-01 operator rework): Track A = AI / Senior **Product
 > Manager**; Track B = **Product Owner** (incl. AI Product Owner). Engineering,
@@ -79,6 +79,12 @@ Also return:
   caller will SKIP the job.
 - If language of title+description is detected as anything other than EN/FR
   (German, Dutch, Italian, Spanish, etc.), all dimensions = 0.
+- If the product is non-digital — hardware, electronics, instrumentation,
+  semiconductors/microchips, embedded/firmware, systems software, mechanical,
+  medical devices, automotive/avionics hardware — set title_fit = 0 and
+  skill_overlap = 0 and reasoning = 'domain mismatch: <domain>'. The profile
+  has ONLY software/digital-product skills; a PM role whose product is
+  physical does not match regardless of the words 'AI' or 'product manager'.
 
 ## Output
 
