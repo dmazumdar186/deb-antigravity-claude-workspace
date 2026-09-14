@@ -44,3 +44,6 @@ pytest>=7.0
 
 # job_digest profile.yaml loader
 pyyaml>=6.0
+
+# Headless-browser fallback for job_search_v2 posting verification (Stage 3.8 strict mode)
+playwright>=1.45

@@ -53,6 +53,9 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
     JobSource,
     NormalizedJob,
 )
+from execution.personal_workflows.job_search_v2.normalizer.browser_fetch import (  # noqa: E402
+    make_browser_fetcher,
+)
 
 logger = logging.getLogger("normalizer.posting_verifier")
 
@@ -90,7 +93,6 @@ class PageVerdict:
 
 @dataclass(frozen=True)
 class VerificationRecord:
-    content_hash: str
     status: _RECORD_STATUS
     posted_at: datetime | None
     date_source: _DATE_SOURCE
@@ -99,6 +101,9 @@ class VerificationRecord:
     evidence: str
     decision: _DECISION
     reason: str
+    # Defaults to "" for verify_url() callers (e.g. the sheet re-verification
+    # pass) that have no NormalizedJob / content_hash to attach.
+    content_hash: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -160,6 +165,33 @@ _APPLY_SIGNALS = (
     "postuler",
     "candidater",
 )
+
+# LinkedIn guest-page open signals: class-name fragments that show up on a
+# live posting's apply CTA / top-card, even when the page variant carries no
+# JSON-LD JobPosting and no apply-text match (observed live 2026-09:
+# LinkedIn intermittently serves this lighter variant, which a second
+# request typically resolves to the full page).
+_CLASS_OPEN_SIGNALS = (
+    "apply-button",
+    "top-card-layout",
+    "jobs-apply-button",
+)
+
+
+def _detect_class_open_signal(html: str) -> bool:
+    try:
+        from bs4 import BeautifulSoup  # type: ignore
+
+        soup = BeautifulSoup(html, "html.parser")
+    except Exception as exc:  # noqa: BLE001 — bs4 parse surface, never fatal
+        logger.warning("posting_verifier: class-signal scan failed (%s)", exc)
+        return False
+    for el in soup.find_all(class_=True):
+        classes = el.get("class") or []
+        joined = " ".join(classes).lower()
+        if any(sig in joined for sig in _CLASS_OPEN_SIGNALS):
+            return True
+    return False
 
 
 def _strip_accents(text: str) -> str:
@@ -503,12 +535,22 @@ def parse_posting_page(html: str, url: str, now: datetime) -> PageVerdict:
     if not evidence and posted_at is not None:
         evidence = "date_found"
 
-    # 5. Status resolution: open if JobPosting JSON-LD or an apply signal
+    # 5. Status resolution: open if JobPosting JSON-LD, an apply text signal,
+    # or an apply/top-card class-name fragment (LinkedIn guest-page variant)
     # exists; else unknown.
-    if has_jsonld_jobposting or _detect_apply_signal(visible_low):
+    has_class_signal = False
+    if not (has_jsonld_jobposting or _detect_apply_signal(visible_low)):
+        has_class_signal = _detect_class_open_signal(html)
+
+    if has_jsonld_jobposting or _detect_apply_signal(visible_low) or has_class_signal:
         status: _STATUS = "open"
         if not evidence:
-            evidence = "jsonld:jobposting" if has_jsonld_jobposting else "text:apply_signal"
+            if has_jsonld_jobposting:
+                evidence = "jsonld:jobposting"
+            elif has_class_signal:
+                evidence = "class:apply_signal"
+            else:
+                evidence = "text:apply_signal"
     else:
         status = "unknown"
         if not evidence:
@@ -604,21 +646,82 @@ def _is_listing_redirect(final_url: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def verify_job(
-    job: NormalizedJob,
+_FetchFn = Callable[[str], tuple[int | None, str, str]]
+
+
+def _classify_fetch(
+    http_status: int | None, html: str, final_url: str, now: datetime
+) -> tuple[str, object]:
+    """Map a raw (status, html, final_url) triple onto one of:
+    - ("closed", evidence: str)
+    - ("blocked", evidence: str)          -- host blocked us, retry-worthy
+    - ("verdict", PageVerdict)             -- got a real page to reason about
+    Never raises: this is the shared classification used by both the direct
+    fetch and any browser-fallback / re-fetch attempt.
+    """
+    if http_status in (404, 410):
+        return "closed", f"http:{http_status}"
+
+    if http_status is None or http_status in (403, 429, 999) or (http_status and http_status >= 500):
+        return "blocked", f"http:{http_status if http_status is not None else 'error'}"
+
+    if _is_listing_redirect(final_url):
+        return "closed", f"redirect:{final_url}"
+
+    if not _visible_text(html or "").strip():
+        # WTTJ answers its anti-bot challenge with "202 Accepted" and an empty
+        # body; other hosts serve blank interstitials. No page → blocked,
+        # never "no signal" (which would drop a live job as undatable).
+        return "blocked", f"http:{http_status}:empty_body"
+
+    return "verdict", parse_posting_page(html, final_url, now)
+
+
+def _ignore_future_date(verdict: PageVerdict, now: datetime, url: str) -> PageVerdict:
+    # A page date more than a day in the FUTURE is a site bug / placeholder,
+    # not a posting date: ignore it and fall through to the source date.
+    if verdict.posted_at is not None and (verdict.posted_at - now) > timedelta(days=1):
+        logger.info("posting_verifier: ignoring future page date %s for %s", verdict.posted_at, url)
+        return PageVerdict(
+            status=verdict.status, posted_at=None, valid_through=verdict.valid_through,
+            evidence=verdict.evidence + "+future_date_ignored",
+            http_status=verdict.http_status, final_url=verdict.final_url,
+        )
+    return verdict
+
+
+def verify_url(
+    url: str,
+    *,
+    source_posted_at: datetime | None,
+    source: JobSource | None,
     now: datetime,
-    fetch: Callable[[str], tuple[int | None, str, str]] = fetch_page,
+    fetch: _FetchFn = fetch_page,
     max_age_days: int = 7,
+    strict: bool = True,
+    browser_fetch: _FetchFn | None = None,
 ) -> VerificationRecord:
+    """Core liveness check for a single URL. No NormalizedJob required — the
+    sheet re-verification pass calls this directly, so the returned record's
+    `content_hash` defaults to "" (verify_job() attaches the real hash).
+
+    Strict mode (the default, matching the operator's "manual tester" bar):
+    - a host that stays blocked even after one browser-fallback attempt is
+      dropped (`unverifiable_blocked`) instead of trusted on source date.
+    - a dated page with no positive open signal ("unknown") gets exactly one
+      re-fetch; if it is still unconfirmed, it is dropped
+      (`unconfirmed_open`) instead of kept.
+
+    Lenient mode (`strict=False`) reproduces the pre-strict-mode behaviour:
+    blocked-with-fresh-source-date and unconfirmed-but-dated pages are both
+    kept.
+    """
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
 
-    http_status, html, final_url = fetch(str(job.url))
-
-    trust_source = job.source in _TRUST_SOURCE_DATE_SOURCES
-    source_posted_at = job.posted_at
     if source_posted_at is not None and source_posted_at.tzinfo is None:
         source_posted_at = source_posted_at.replace(tzinfo=timezone.utc)
+    trust_source = source in _TRUST_SOURCE_DATE_SOURCES
 
     def _finalize(
         status: _RECORD_STATUS,
@@ -637,15 +740,21 @@ def verify_job(
         elif age_days is not None and age_days > max_age_days:
             decision = "drop"
             reason = "stale"
-        elif status == "unverifiable" and date_source == "source":
-            decision = "keep"
-            reason = "ok_unverified_fresh"
+        elif status == "unverifiable":
+            if strict:
+                decision, reason = "drop", "unverifiable_blocked"
+            else:
+                decision, reason = "keep", "ok_unverified_fresh"
+        elif status == "unknown":
+            if strict:
+                decision, reason = "drop", "unconfirmed_open"
+            else:
+                decision, reason = "keep", "ok"
         else:
             decision = "keep"
             reason = "ok"
 
         record = VerificationRecord(
-            content_hash=job.content_hash,
             status=status,
             posted_at=posted_at,
             date_source=date_source,
@@ -656,46 +765,61 @@ def verify_job(
             reason=reason,
         )
         logger.info(
-            "posting_verifier: %s decision=%s reason=%s status=%s age_days=%s url=%s",
-            job.title, record.decision, record.reason, record.status, record.age_days, job.url,
+            "posting_verifier: decision=%s reason=%s status=%s age_days=%s url=%s",
+            record.decision, record.reason, record.status, record.age_days, url,
         )
         return record
 
-    # HTTP-status shortcuts.
-    if http_status in (404, 410):
-        return _finalize("closed", None, "none", f"http:{http_status}")
+    http_status, html, final_url = fetch(url)
+    kind, payload = _classify_fetch(http_status, html, final_url, now)
 
-    if http_status is None or http_status in (403, 429, 999) or (http_status and http_status >= 500):
-        # Fetch blocked. Fall back to source date if trusted/within window.
-        evidence = f"http:{http_status if http_status is not None else 'error'}"
+    if kind == "blocked" and browser_fetch is not None:
+        b_status, b_html, b_final = browser_fetch(url)
+        b_kind, b_payload = _classify_fetch(b_status, b_html, b_final, now)
+        if b_kind == "closed":
+            return _finalize("closed", None, "none", f"browser:{b_payload}")
+        if b_kind == "blocked":
+            kind, payload = "blocked", f"browser:{b_payload}"
+        else:  # "verdict" — the browser got past the block.
+            bv = b_payload  # type: PageVerdict
+            kind, payload = "verdict", PageVerdict(
+                status=bv.status, posted_at=bv.posted_at, valid_through=bv.valid_through,
+                evidence=f"browser:{bv.evidence}", http_status=bv.http_status, final_url=bv.final_url,
+            )
+
+    if kind == "closed":
+        return _finalize("closed", None, "none", payload)  # type: ignore[arg-type]
+
+    if kind == "blocked":
+        evidence = payload  # type: ignore[assignment]
         if source_posted_at is not None:
             return _finalize("unverifiable", source_posted_at, "source", evidence)
         return _finalize("unverifiable", None, "none", evidence)
 
-    if _is_listing_redirect(final_url):
-        return _finalize("closed", None, "none", f"redirect:{final_url}")
-
-    if not _visible_text(html or "").strip():
-        # WTTJ answers its anti-bot challenge with "202 Accepted" and an empty
-        # body; other hosts serve blank interstitials. No page → unverifiable,
-        # never "no signal" (which would drop a live job as undatable).
-        evidence = f"http:{http_status}:empty_body"
-        if source_posted_at is not None:
-            return _finalize("unverifiable", source_posted_at, "source", evidence)
-        return _finalize("unverifiable", None, "none", evidence)
-
-    verdict = parse_posting_page(html, final_url, now)
+    verdict: PageVerdict = payload  # type: ignore[assignment]
 
     if verdict.status == "closed":
         return _finalize("closed", verdict.posted_at, "page" if verdict.posted_at else "none", verdict.evidence)
 
-    # A page date more than a day in the FUTURE is a site bug / placeholder,
-    # not a posting date: ignore it and fall through to the source date.
-    if verdict.posted_at is not None and (verdict.posted_at - now) > timedelta(days=1):
-        logger.info("posting_verifier: ignoring future page date %s for %s", verdict.posted_at, job.url)
-        verdict = PageVerdict(status=verdict.status, posted_at=None, valid_through=verdict.valid_through,
-                              evidence=verdict.evidence + "+future_date_ignored",
-                              http_status=verdict.http_status, final_url=verdict.final_url)
+    verdict = _ignore_future_date(verdict, now, url)
+
+    # Strict mode: an "unknown" page (dated but no positive open signal, or
+    # no signal at all) gets exactly one re-fetch — LinkedIn intermittently
+    # serves a lighter guest-page variant that comes back complete on the
+    # next request. Take the better verdict; open/closed beats unknown.
+    if strict and verdict.status == "unknown":
+        r_status, r_html, r_final = fetch(url)
+        r_kind, r_payload = _classify_fetch(r_status, r_html, r_final, now)
+        if r_kind == "closed":
+            return _finalize("closed", None, "none", f"refetch:{r_payload}")
+        if r_kind == "verdict":
+            refetched: PageVerdict = _ignore_future_date(r_payload, now, url)  # type: ignore[arg-type]
+            if refetched.status in ("open", "closed"):
+                verdict = refetched
+        # r_kind == "blocked" (or still-unknown refetch): keep original verdict.
+
+    if verdict.status == "closed":
+        return _finalize("closed", verdict.posted_at, "page" if verdict.posted_at else "none", verdict.evidence)
 
     # Page date wins over source date whenever present, even if it makes the
     # job look staler (or fresher) than the source claimed.
@@ -715,6 +839,34 @@ def verify_job(
     return _finalize("unknown" if verdict.status != "open" else "open", None, "none", verdict.evidence)
 
 
+def verify_job(
+    job: NormalizedJob,
+    now: datetime,
+    fetch: _FetchFn = fetch_page,
+    max_age_days: int = 7,
+    strict: bool = True,
+    browser_fetch: _FetchFn | None = None,
+) -> VerificationRecord:
+    from dataclasses import replace as _dc_replace
+
+    record = verify_url(
+        str(job.url),
+        source_posted_at=job.posted_at,
+        source=job.source,
+        now=now,
+        fetch=fetch,
+        max_age_days=max_age_days,
+        strict=strict,
+        browser_fetch=browser_fetch,
+    )
+    record = _dc_replace(record, content_hash=job.content_hash)
+    logger.info(
+        "posting_verifier: %s decision=%s reason=%s status=%s age_days=%s url=%s",
+        job.title, record.decision, record.reason, record.status, record.age_days, job.url,
+    )
+    return record
+
+
 # ---------------------------------------------------------------------------
 # Batch entry point
 # ---------------------------------------------------------------------------
@@ -725,15 +877,27 @@ def verify_jobs(
     *,
     max_age_days: int = 7,
     now: datetime | None = None,
-    fetch: Callable[[str], tuple[int | None, str, str]] = fetch_page,
+    fetch: _FetchFn = fetch_page,
     concurrency: int = 8,
     enabled: bool = True,
+    strict: bool = True,
+    browser_fallback: bool = True,
+    browser_fetch: _FetchFn | None = None,
 ) -> tuple[list[NormalizedJob], dict, dict[str, VerificationRecord]]:
-    """Fan out verify_job() over `jobs` and partition kept vs dropped.
+    """Fan out verify_job() over `jobs` (pass 1, threaded) and partition kept
+    vs dropped. Then, SERIALLY (pass 2 — a shared browser session is not
+    thread-safe), retries every record left `unverifiable` or `unknown`:
+    unverifiable records get one attempt through a headless-Chromium fetch
+    (bypasses hosts like weworkremotely.com that block httpx), unknown
+    records get one more plain re-fetch (LinkedIn's guest-page variant often
+    resolves on a second request). A record is replaced only when pass 2 is
+    more decisive than pass 1.
 
     Returns (kept, stats, records) where records maps content_hash ->
     VerificationRecord for every job that was checked.
     """
+    from dataclasses import replace as _dc_replace
+
     if now is None:
         now = datetime.now(timezone.utc)
     elif now.tzinfo is None:
@@ -756,15 +920,6 @@ def verify_jobs(
         }
         return list(jobs), {"disabled": True}, records
 
-    kept: list[NormalizedJob] = []
-    by_reason: dict[str, int] = {}
-    by_status: dict[str, int] = {}
-    rejected_sample: list[dict] = []
-    records: dict[str, VerificationRecord] = {}
-    host_attempts: dict[str, int] = {}
-    host_unverifiable: dict[str, int] = {}
-    _REJECT_SAMPLE_CAP = 300
-
     def _host(u: str) -> str:
         try:
             return urlsplit(u).netloc.lower()
@@ -773,7 +928,7 @@ def verify_jobs(
 
     def _run_one(job: NormalizedJob) -> tuple[NormalizedJob, VerificationRecord]:
         try:
-            return job, verify_job(job, now, fetch=fetch, max_age_days=max_age_days)
+            return job, verify_job(job, now, fetch=fetch, max_age_days=max_age_days, strict=strict)
         except Exception as exc:  # noqa: BLE001 — one bad page must never kill the cron
             logger.warning("posting_verifier: verify_job crashed for %s (%s) — treating as unverifiable", job.url, exc)
             posted = job.posted_at
@@ -787,6 +942,8 @@ def verify_jobs(
                 reason="ok_unverified_fresh" if fresh else ("stale" if posted is not None else "unverifiable_no_date"),
             )
 
+    # --- Pass 1: threaded, no browser fallback (a shared Chromium instance
+    # is not thread-safe by design). ---
     results: list[tuple[NormalizedJob, VerificationRecord]] = []
     if not jobs:
         results = []
@@ -798,7 +955,84 @@ def verify_jobs(
             for fut in as_completed(futures):
                 results.append(fut.result())
 
-    for job, record in results:
+    results_by_hash: dict[str, tuple[NormalizedJob, VerificationRecord]] = {
+        job.content_hash: (job, record) for job, record in results
+    }
+
+    # --- Pass 2: serial re-check of anything pass 1 could not confirm. ---
+    pass2_attempted = 0
+    pass2_recovered = 0
+    used_browser = False
+
+    candidates = [
+        (job, record) for job, record in results
+        if record.status in ("unverifiable", "unknown")
+    ]
+
+    run_pass2 = bool(candidates) and (browser_fetch is not None or browser_fallback)
+    if run_pass2:
+        owns_browser_cm = False
+        resolved_browser_fetch = browser_fetch
+        browser_cm = None
+        if resolved_browser_fetch is None and browser_fallback:
+            browser_cm = make_browser_fetcher()
+            resolved_browser_fetch = browser_cm.__enter__()
+            owns_browser_cm = True
+        try:
+            used_browser = resolved_browser_fetch is not None
+            for job, old_record in candidates:
+                if old_record.status == "unverifiable":
+                    if resolved_browser_fetch is None:
+                        continue  # no browser available — nothing more to try
+                    pass2_fetch = resolved_browser_fetch
+                else:  # "unknown" — plain variant re-fetch
+                    pass2_fetch = fetch
+
+                try:
+                    new_record = verify_url(
+                        str(job.url),
+                        source_posted_at=job.posted_at,
+                        source=job.source,
+                        now=now,
+                        fetch=pass2_fetch,
+                        max_age_days=max_age_days,
+                        strict=strict,
+                        browser_fetch=None,
+                    )
+                except Exception as exc:  # noqa: BLE001 — pass 2 must never kill the batch
+                    logger.warning(
+                        "posting_verifier: pass2 verify_url crashed for %s (%s) — keeping pass1 record",
+                        job.url, exc,
+                    )
+                    continue
+
+                pass2_attempted += 1
+                new_record = _dc_replace(new_record, content_hash=job.content_hash)
+                if new_record.status != old_record.status:
+                    if new_record.status in ("open", "closed"):
+                        pass2_recovered += 1
+                    results_by_hash[job.content_hash] = (job, new_record)
+                    logger.info(
+                        "posting_verifier: pass2 %s -> %s for %s (reason=%s)",
+                        old_record.status, new_record.status, job.url, new_record.reason,
+                    )
+                elif new_record.reason != old_record.reason or new_record.decision != old_record.decision:
+                    results_by_hash[job.content_hash] = (job, new_record)
+        finally:
+            if owns_browser_cm:
+                browser_cm.__exit__(None, None, None)
+
+    # --- Final partition / stats over the merged pass1+pass2 records. ---
+    kept: list[NormalizedJob] = []
+    by_reason: dict[str, int] = {}
+    by_status: dict[str, int] = {}
+    rejected_sample: list[dict] = []
+    records: dict[str, VerificationRecord] = {}
+    host_attempts: dict[str, int] = {}
+    host_unverifiable: dict[str, int] = {}
+    _REJECT_SAMPLE_CAP = 300
+
+    for job, record in results_by_hash.values():
         host = _host(str(job.url))
         host_attempts[host] = host_attempts.get(host, 0) + 1
         if record.status == "unverifiable":
@@ -822,6 +1056,7 @@ def verify_jobs(
                     "url": str(job.url),
                     "reason": record.reason,
                     "evidence": record.evidence,
+                    "status": record.status,
                 })
 
     unverifiable_ratio_by_host = {
@@ -849,8 +1084,15 @@ def verify_jobs(
         "rejected_sample": rejected_sample,
         "unverifiable_ratio_by_host": unverifiable_ratio_by_host,
         "warnings": warnings,
+        "pass2_attempted": pass2_attempted,
+        "pass2_recovered": pass2_recovered,
+        "browser_used": used_browser,
+        "strict": strict,
     }
-    logger.info("posting_verifier: total_in=%s kept=%s rejected=%s", stats["total_in"], stats["kept"], stats["rejected"])
+    logger.info(
+        "posting_verifier: total_in=%s kept=%s rejected=%s pass2_attempted=%s pass2_recovered=%s",
+        stats["total_in"], stats["kept"], stats["rejected"], pass2_attempted, pass2_recovered,
+    )
     return kept, stats, records
 
 

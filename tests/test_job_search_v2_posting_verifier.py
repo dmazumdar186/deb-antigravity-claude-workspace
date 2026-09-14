@@ -288,9 +288,22 @@ def test_verify_job_410_is_closed():
     assert rec.status == "closed"
 
 
-def test_verify_job_403_with_fresh_source_date_kept():
+def test_verify_job_403_strict_default_drops_blocked():
+    # strict=True is now the default: a blocked host is no longer trusted on
+    # source date alone, even when the source date is fresh.
     job = make_job(posted_at=NOW - timedelta(days=2))
     rec = pv.verify_job(job, NOW, fetch=fetch_returning(403, ""))
+    assert rec.status == "unverifiable"
+    assert rec.decision == "drop"
+    assert rec.reason == "unverifiable_blocked"
+    assert rec.date_source == "source"
+
+
+def test_verify_job_403_lenient_mode_keeps_fresh_source_date():
+    # Was: test_verify_job_403_with_fresh_source_date_kept (lenient-by-default
+    # expectation). Now requires strict=False explicitly.
+    job = make_job(posted_at=NOW - timedelta(days=2))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(403, ""), strict=False)
     assert rec.status == "unverifiable"
     assert rec.decision == "keep"
     assert rec.reason == "ok_unverified_fresh"
@@ -517,13 +530,23 @@ def test_script_only_404_string_does_not_close_live_page():
 
 
 def test_empty_2xx_body_is_unverifiable_not_no_signal():
+    # Was: expected "keep"/"ok_unverified_fresh" by default. strict=True is
+    # now the default, so a blocked/empty-body page with a fresh source date
+    # drops (unverifiable_blocked); the lenient path is covered separately.
     now = _dt(2026, 9, 10, tzinfo=_tz.utc)
     fresh = _mk_job_for_edge("https://www.welcometothejungle.com/en/companies/x/jobs/pm_paris", now - _td(days=1))
     rec = _pv.verify_job(fresh, now, fetch=lambda u: (202, "", u))
-    assert rec.status == "unverifiable" and rec.decision == "keep" and rec.reason == "ok_unverified_fresh"
+    assert rec.status == "unverifiable" and rec.decision == "drop" and rec.reason == "unverifiable_blocked"
     undated = _mk_job_for_edge("https://www.welcometothejungle.com/en/companies/x/jobs/pm2_paris", None)
     rec2 = _pv.verify_job(undated, now, fetch=lambda u: (202, "", u))
     assert rec2.decision == "drop" and rec2.reason == "unverifiable_no_date"
+
+
+def test_empty_2xx_body_lenient_mode_keeps_fresh_source_date():
+    now = _dt(2026, 9, 10, tzinfo=_tz.utc)
+    fresh = _mk_job_for_edge("https://www.welcometothejungle.com/en/companies/x/jobs/pm_paris", now - _td(days=1))
+    rec = _pv.verify_job(fresh, now, fetch=lambda u: (202, "", u), strict=False)
+    assert rec.status == "unverifiable" and rec.decision == "keep" and rec.reason == "ok_unverified_fresh"
 
 
 def test_fetch_page_retries_soft_block_once(monkeypatch):
@@ -567,6 +590,199 @@ def test_verify_jobs_survives_exception_in_fetch():
     assert recs[fresh.content_hash].reason == "ok_unverified_fresh"
     assert recs[old.content_hash].reason == "stale"
     assert all(r.evidence.startswith("error:") for r in recs.values())
+
+
+# ---------------------------------------------------------------------------
+# Strict mode / browser-fallback / verify_url (new in this change)
+# ---------------------------------------------------------------------------
+
+
+def _jsonld_open_html(date_iso: str) -> str:
+    return (
+        '<html><head><script type="application/ld+json">'
+        f'{{"@type": "JobPosting", "datePosted": "{date_iso}"}}'
+        "</script></head><body>Apply now for this great job."
+        + "x" * 600 + "</body></html>"
+    )
+
+
+def test_verify_url_usable_without_a_job_content_hash_empty():
+    rec = pv.verify_url(
+        "https://example.com/jobs/999",
+        source_posted_at=NOW - timedelta(days=1),
+        source=JobSource.FIXTURE,
+        now=NOW,
+        fetch=fetch_returning(404, ""),
+    )
+    assert rec.content_hash == ""
+    assert rec.status == "closed"
+
+
+def test_browser_fallback_recovers_403_into_open():
+    job = make_job(posted_at=NOW - timedelta(days=1))
+    html = _jsonld_open_html((NOW - timedelta(days=1)).date().isoformat())
+    rec = pv.verify_job(
+        job, NOW,
+        fetch=fetch_returning(403, ""),
+        browser_fetch=fetch_returning(200, html),
+    )
+    assert rec.status == "open"
+    assert rec.decision == "keep"
+    assert rec.evidence.startswith("browser:")
+
+
+def test_browser_fallback_recovers_403_into_closed_via_404():
+    job = make_job(posted_at=NOW - timedelta(days=1))
+    rec = pv.verify_job(
+        job, NOW,
+        fetch=fetch_returning(403, ""),
+        browser_fetch=fetch_returning(404, ""),
+    )
+    assert rec.status == "closed"
+    assert rec.decision == "drop"
+    assert rec.reason == "closed"
+    assert "browser:" in rec.evidence
+
+
+def test_browser_fallback_recovers_403_into_closed_via_text():
+    job = make_job(posted_at=NOW - timedelta(days=1))
+    html = "<html><body>" + "filler " * 100 + "This job has expired</body></html>"
+    rec = pv.verify_job(
+        job, NOW,
+        fetch=fetch_returning(403, ""),
+        browser_fetch=fetch_returning(200, html),
+    )
+    assert rec.status == "closed"
+    assert rec.decision == "drop"
+    assert rec.reason == "closed"
+
+
+def test_browser_fallback_still_blocked_strict_drops_unverifiable_blocked():
+    job = make_job(posted_at=NOW - timedelta(days=1))
+    rec = pv.verify_job(
+        job, NOW,
+        fetch=fetch_returning(403, ""),
+        browser_fetch=fetch_returning(403, ""),
+    )
+    assert rec.status == "unverifiable"
+    assert rec.decision == "drop"
+    assert rec.reason == "unverifiable_blocked"
+    assert rec.evidence.startswith("browser:")
+
+
+def _linkedin_unknown_html() -> str:
+    # Has a <time datetime> but no JSON-LD JobPosting and no apply text —
+    # the "unknown" LinkedIn variant observed live.
+    return (
+        '<html><body><time datetime="2026-09-09">Sept 9</time>'
+        "<p>Some job description content here.</p>" + "x" * 600 + "</body></html>"
+    )
+
+
+def test_unknown_status_refetch_returns_full_page_open_kept_strict():
+    job = make_job(posted_at=NOW - timedelta(days=1))
+    calls = {"n": 0}
+
+    def fetch(url):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return 200, _linkedin_unknown_html(), url
+        return 200, _jsonld_open_html((NOW - timedelta(days=1)).date().isoformat()), url
+
+    rec = pv.verify_job(job, NOW, fetch=fetch)
+    assert calls["n"] == 2
+    assert rec.status == "open"
+    assert rec.decision == "keep"
+
+
+def test_unknown_status_twice_strict_drops_unconfirmed_open():
+    job = make_job(posted_at=NOW - timedelta(days=1))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, _linkedin_unknown_html()))
+    assert rec.status == "unknown"
+    assert rec.decision == "drop"
+    assert rec.reason == "unconfirmed_open"
+
+
+def test_unknown_status_twice_lenient_keeps():
+    job = make_job(posted_at=NOW - timedelta(days=1))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, _linkedin_unknown_html()), strict=False)
+    assert rec.status == "unknown"
+    assert rec.decision == "keep"
+    assert rec.reason == "ok"
+
+
+def test_linkedin_class_name_open_signal():
+    html = (
+        '<html><body><div class="top-card-layout__entity-info">'
+        "<h1>Product Manager</h1></div>"
+        '<button class="jobs-apply-button">Submit</button>'
+        + "x" * 600 + "</body></html>"
+    )
+    v = pv.parse_posting_page(html, "https://linkedin.com/jobs/view/1", NOW)
+    assert v.status == "open"
+    assert v.evidence == "class:apply_signal"
+
+
+# ---------------------------------------------------------------------------
+# verify_jobs — pass 2
+# ---------------------------------------------------------------------------
+
+
+def test_verify_jobs_pass2_uses_browser_for_unverifiable_and_fetch_for_unknown():
+    fresh = NOW - timedelta(days=1)
+    blocked_job = make_job(url="https://blocked.example.com/jobs/1", posted_at=fresh, title="Blocked")
+    unknown_job = make_job(url="https://linkedin.example.com/jobs/2", posted_at=fresh, title="Unknown")
+
+    fetch_calls = {"blocked.example.com": 0, "linkedin.example.com": 0}
+
+    def fetch(url):
+        host = "blocked.example.com" if "blocked" in url else "linkedin.example.com"
+        fetch_calls[host] += 1
+        if host == "blocked.example.com":
+            return 403, "", url
+        # First fetch (pass 1) and the internal strict re-fetch inside
+        # verify_url both see the "unknown" variant; only pass 2's dedicated
+        # re-fetch (the 3rd normal-fetch call for this URL) resolves it.
+        if fetch_calls[host] <= 2:
+            return 200, _linkedin_unknown_html(), url
+        return 200, _jsonld_open_html(fresh.date().isoformat()), url
+
+    browser_calls = {"n": 0}
+
+    def browser_fetch(url):
+        browser_calls["n"] += 1
+        return 200, _jsonld_open_html(fresh.date().isoformat()), url
+
+    kept, stats, records = pv.verify_jobs(
+        [blocked_job, unknown_job], now=NOW, fetch=fetch, concurrency=2,
+        browser_fetch=browser_fetch,
+    )
+
+    assert browser_calls["n"] == 1  # only the unverifiable record used the browser
+    assert fetch_calls["blocked.example.com"] == 1  # never fell back to plain fetch
+    assert fetch_calls["linkedin.example.com"] == 3  # pass1 fetch + 1 internal retry + pass2 refetch
+
+    assert records[blocked_job.content_hash].status == "open"
+    assert records[unknown_job.content_hash].status == "open"
+    assert stats["pass2_attempted"] == 2
+    assert stats["pass2_recovered"] == 2
+    assert stats["browser_used"] is True
+    assert stats["strict"] is True
+    assert kept and len(kept) == 2
+
+
+def test_verify_jobs_browser_fallback_false_skips_pass2():
+    job = make_job(url="https://blocked.example.com/jobs/1", posted_at=NOW - timedelta(days=1))
+    kept, stats, records = pv.verify_jobs(
+        [job], now=NOW, fetch=fetch_returning(403, ""), concurrency=1,
+        browser_fallback=False,
+    )
+    assert stats["pass2_attempted"] == 0
+    assert stats["browser_used"] is False
+    assert records[job.content_hash].status == "unverifiable"
+    assert records[job.content_hash].decision == "drop"
+    assert records[job.content_hash].reason == "unverifiable_blocked"
+    assert kept == []
 
 
 def test_future_page_date_is_ignored():

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -37,7 +38,7 @@ from execution.personal_workflows.job_search_v2.normalizer.title_filter import c
 from execution.personal_workflows.job_search_v2.normalizer.language_filter import classify_language  # noqa: E402
 from execution.personal_workflows.job_search_v2.normalizer.domain_filter import classify_domain  # noqa: E402
 from execution.personal_workflows.job_search_v2.normalizer.posting_verifier import (  # noqa: E402
-    fetch_page, parse_posting_page, _is_listing_redirect,
+    fetch_page, verify_url,
 )
 from execution.personal_workflows.job_search_v2.profile import loader as _profile_loader  # noqa: E402
 from execution.personal_workflows.job_search_v2.normalizer.location_filter import load_config  # noqa: E402
@@ -318,138 +319,226 @@ def dedup_rows(sp, tabs: list[str] | None = None, dry_run: bool = False) -> dict
 # ---------------------------------------------------------------------------
 STAMP_COL = "Verified"
 POSTED_COL = "Posted"
-DEFAULT_REVERIFY_MAX_FETCHES = 400
+DEFAULT_REVERIFY_MAX_FETCHES = 600
 
 
-def _row_verdict(link: str, now, max_age_days: float, fetch) -> tuple[str, str, object]:
-    """Return (decision, stamp, posted_date) for one existing sheet row.
+def _row_verdict(link: str, now, max_age_days: float, fetch, *, strict: bool = True,
+                 browser_fetch=None, source_posted_at=None) -> tuple[str, str, object]:
+    """Return (decision, stamp, posted_date) for one UNSTAMPED existing sheet row.
 
-    decision ∈ {"keep", "remove", "keep_unverified"}; stamp is the Verified
-    cell text; posted_date is a datetime or None.
+    Delegates to posting_verifier.verify_url so the sheet sweep and Stage 3.8
+    apply exactly the same rules (strict: blocked/unconfirmed → remove).
+    decision ∈ {"keep", "remove", "keep_unverified"}.
     """
     from execution.personal_workflows.job_search_v2.notifier.sheet import verification_stamp
 
-    http_status, html, final_url = fetch(link)
-    if http_status in (404, 410):
-        return "remove", f"closed · http {http_status}", None
-    blocked = http_status is None or http_status in (403, 429, 999) or (http_status and http_status >= 500)
-    if blocked or not (html or "").strip():
-        return "keep_unverified", verification_stamp("unverifiable", None, now, "ok_unverified_fresh"), None
-    if _is_listing_redirect(final_url):
-        return "remove", f"closed · redirect {final_url[:60]}", None
-    verdict = parse_posting_page(html, final_url, now)
-    if verdict.status == "closed":
-        return "remove", f"closed · {verdict.evidence[:60]}", verdict.posted_at
-    if verdict.posted_at is None:
-        return "remove", "undatable", None
-    age_days = (now - verdict.posted_at).total_seconds() / 86400.0
-    if age_days > max_age_days:
-        return "remove", f"stale · posted {verdict.posted_at.date().isoformat()} ({age_days:.0f}d)", verdict.posted_at
-    return "keep", verification_stamp(verdict.status if verdict.status != "unknown" else "open",
-                                       verdict.posted_at, now), verdict.posted_at
+    rec = verify_url(link, source_posted_at=source_posted_at, source=None, now=now, fetch=fetch,
+                     max_age_days=max_age_days, strict=strict, browser_fetch=browser_fetch)
+    if rec.decision == "drop":
+        return "remove", f"{rec.reason} · {rec.evidence[:60]}", rec.posted_at
+    if rec.reason == "ok_unverified_fresh":
+        return "keep_unverified", verification_stamp("unverifiable", rec.posted_at, now, rec.reason), rec.posted_at
+    return "keep", verification_stamp("open", rec.posted_at, now), rec.posted_at
+
+
+def _recheck_verdict(link: str, now, fetch, *, strict: bool = True, browser_fetch=None) -> tuple[str, str]:
+    """Liveness-only re-check of an already-stamped row. Returns (decision, evidence)
+    with decision ∈ {"open", "closed", "blocked"}. Freshness is NOT re-judged
+    (the row was fresh at insert); only "still accepting applications" is."""
+    rec = verify_url(link, source_posted_at=None, source=None, now=now, fetch=fetch,
+                     max_age_days=10**6, strict=strict, browser_fetch=browser_fetch)
+    if rec.status == "closed":
+        return "closed", rec.evidence
+    if rec.reason in ("unverifiable_blocked", "unverifiable_no_date") or rec.status == "unverifiable":
+        return "blocked", rec.evidence
+    if rec.reason == "unconfirmed_open":
+        return "blocked", rec.evidence
+    return "open", rec.evidence
 
 
 def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
                   max_age_days: float = 7.0, max_fetches: int = DEFAULT_REVERIFY_MAX_FETCHES,
                   concurrency: int = 6, only_unstamped: bool = True, fetch=fetch_page,
-                  now=None) -> dict:
-    """Open every (unstamped) row's Link; remove closed / stale / undatable rows,
-    stamp the survivors. Returns {"checked", "removed", "stamped", "unverified",
-    "remaining_unstamped", "per_tab", "sample_removed"}."""
+                  now=None, recheck_after_days: float = 3.0, strict: bool = True,
+                  browser_fallback: bool = True, browser_fetch=None) -> dict:
+    """Two sweeps over every role tab, within one page budget (`max_fetches`):
+
+      1. UNSTAMPED rows (pre-Stage-3.8 history): open the Link, remove closed /
+         stale / undatable / (strict) blocked rows, stamp the survivors.
+      2. STAMPED rows whose last check (rechecked or checked) is older than
+         `recheck_after_days`: liveness-only re-check; closed → removed,
+         open → " · rechecked <today>", blocked (strict) → removed.
+
+    Returns {"checked", "removed", "stamped", "unverified", "rechecked",
+    "recheck_removed", "remaining_unstamped", "remaining_recheck", "per_tab",
+    "sample_removed", "browser_used"}.
+    """
     import gspread  # type: ignore
     from concurrent.futures import ThreadPoolExecutor
-    from datetime import datetime, timezone
-    from execution.personal_workflows.job_search_v2.notifier.sheet import _ensure_headers, STANDARD_HEADERS
+    from datetime import datetime, timezone, date
+    from execution.personal_workflows.job_search_v2.notifier.sheet import (
+        _ensure_headers, STANDARD_HEADERS, parse_verification_stamp,
+    )
 
     now = now or datetime.now(timezone.utc)
-    stats: dict = {"checked": 0, "removed": 0, "stamped": 0, "unverified": 0,
-                   "remaining_unstamped": 0, "per_tab": {}, "sample_removed": []}
+    today = now.date()
+    stats: dict = {"checked": 0, "removed": 0, "stamped": 0, "unverified": 0, "rechecked": 0,
+                   "recheck_removed": 0, "remaining_unstamped": 0, "remaining_recheck": 0,
+                   "per_tab": {}, "sample_removed": [], "browser_used": False}
     budget = max(0, int(max_fetches))
-    for tab in (tabs or ROLE_TABS):
+
+    # One shared headless browser for the whole sweep (serial use only).
+    browser_cm = None
+    if browser_fetch is None and browser_fallback and strict:
         try:
-            ws = sp.worksheet(tab)
-        except gspread.WorksheetNotFound:
-            continue
-        if not dry_run:
-            _ensure_headers(ws, STANDARD_HEADERS)
-        all_rows = ws.get_all_values()
-        if not all_rows:
-            continue
-        header = list(all_rows[0])
-        for col in (POSTED_COL, STAMP_COL):
-            if col not in header:
-                header.append(col)
-        idx = {h: i for i, h in enumerate(header) if h and h.strip()}
-        link_i, stamp_i, posted_i = idx.get("Link"), idx[STAMP_COL], idx[POSTED_COL]
-        if link_i is None:
-            continue
-        width = len(header)
-        rows = [list(r) + [""] * (width - len(r)) for r in all_rows[1:] if any(c.strip() for c in r)]
-
-        todo = []
-        for n, row in enumerate(rows):
-            link = row[link_i].strip() if len(row) > link_i else ""
-            stamped = bool(row[stamp_i].strip())
-            if not link.startswith("http"):
+            from execution.personal_workflows.job_search_v2.normalizer.browser_fetch import make_browser_fetcher
+            browser_cm = make_browser_fetcher()
+            browser_fetch = browser_cm.__enter__()
+            stats["browser_used"] = browser_fetch is not None
+        except Exception as exc:  # noqa: BLE001 — browser is optional
+            logger.warning("reverify: browser fallback unavailable: %s", exc)
+            browser_fetch = None
+    try:
+        for tab in (tabs or ROLE_TABS):
+            try:
+                ws = sp.worksheet(tab)
+            except gspread.WorksheetNotFound:
                 continue
-            if only_unstamped and stamped:
+            if not dry_run:
+                _ensure_headers(ws, STANDARD_HEADERS)
+            all_rows = ws.get_all_values()
+            if not all_rows:
                 continue
-            todo.append(n)
-        stats["remaining_unstamped"] += max(0, len(todo) - budget)
-        todo = todo[:budget]
-        budget -= len(todo)
+            header = list(all_rows[0])
+            for col in (POSTED_COL, STAMP_COL):
+                if col not in header:
+                    header.append(col)
+            idx = {h: i for i, h in enumerate(header) if h and h.strip()}
+            link_i, stamp_i, posted_i = idx.get("Link"), idx[STAMP_COL], idx[POSTED_COL]
+            if link_i is None:
+                continue
+            width = len(header)
+            rows = [list(r) + [""] * (width - len(r)) for r in all_rows[1:] if any(c.strip() for c in r)]
 
-        verdicts: dict[int, tuple[str, str, object]] = {}
-        if todo:
-            with ThreadPoolExecutor(max_workers=max(1, concurrency)) as pool:
-                for n, res in zip(todo, pool.map(lambda i: _row_verdict(rows[i][link_i].strip(), now, max_age_days, fetch), todo)):
-                    verdicts[n] = res
+            todo_unstamped: list[int] = []
+            todo_recheck: list[int] = []
+            for n, row in enumerate(rows):
+                link = row[link_i].strip()
+                if not link.startswith("http"):
+                    continue
+                parsed = parse_verification_stamp(row[stamp_i])
+                if parsed is None:
+                    if not row[stamp_i].strip() or not only_unstamped:
+                        todo_unstamped.append(n)
+                    continue
+                last = parsed["rechecked"] or parsed["checked"]
+                try:
+                    last_d = date.fromisoformat(last)
+                except ValueError:
+                    todo_unstamped.append(n)
+                    continue
+                if (today - last_d).days >= recheck_after_days:
+                    todo_recheck.append(n)
+            stats["remaining_unstamped"] += max(0, len(todo_unstamped) - budget)
+            todo_unstamped = todo_unstamped[:budget]
+            budget -= len(todo_unstamped)
+            stats["remaining_recheck"] += max(0, len(todo_recheck) - budget)
+            todo_recheck = todo_recheck[:budget]
+            budget -= len(todo_recheck)
 
-        kept_rows, removed_here, stamped_here, unverified_here = [], [], 0, 0
-        for n, row in enumerate(rows):
-            v = verdicts.get(n)
-            if v is None:
+            # Pass 1 (unstamped) — HTTP in a pool; blocked ones retried serially in the browser.
+            verdicts: dict[int, tuple[str, str, object]] = {}
+            if todo_unstamped:
+                with ThreadPoolExecutor(max_workers=max(1, concurrency)) as pool:
+                    for n, res in zip(todo_unstamped, pool.map(
+                            lambda i: _row_verdict(rows[i][link_i].strip(), now, max_age_days, fetch, strict=strict), todo_unstamped)):
+                        verdicts[n] = res
+                if browser_fetch is not None:
+                    for n in todo_unstamped:
+                        decision, stamp, _ = verdicts[n]
+                        if decision == "remove" and ("unverifiable" in stamp or "blocked" in stamp):
+                            verdicts[n] = _row_verdict(rows[n][link_i].strip(), now, max_age_days, fetch,
+                                                       strict=strict, browser_fetch=browser_fetch)
+            # Pass 2 (re-check) — HTTP in a pool, browser retry for blocked.
+            rechecks: dict[int, tuple[str, str]] = {}
+            if todo_recheck:
+                with ThreadPoolExecutor(max_workers=max(1, concurrency)) as pool:
+                    for n, res in zip(todo_recheck, pool.map(
+                            lambda i: _recheck_verdict(rows[i][link_i].strip(), now, fetch, strict=strict), todo_recheck)):
+                        rechecks[n] = res
+                if browser_fetch is not None:
+                    for n in todo_recheck:
+                        if rechecks[n][0] == "blocked":
+                            rechecks[n] = _recheck_verdict(rows[n][link_i].strip(), now, fetch,
+                                                           strict=strict, browser_fetch=browser_fetch)
+
+            kept_rows, removed_here = [], []
+            stamped_here = unverified_here = rechecked_here = recheck_removed_here = 0
+            for n, row in enumerate(rows):
+                title = row[idx["Title"]] if "Title" in idx else ""
+                v = verdicts.get(n)
+                rc = rechecks.get(n)
+                if v is not None:
+                    decision, stamp, posted = v
+                    stats["checked"] += 1
+                    if decision == "remove":
+                        removed_here.append(f"{title} [{stamp}]")
+                        continue
+                    row[stamp_i] = stamp
+                    if posted is not None:
+                        row[posted_i] = posted.isoformat()[:10]
+                    if decision == "keep_unverified":
+                        unverified_here += 1
+                    else:
+                        stamped_here += 1
+                elif rc is not None:
+                    decision, evidence = rc
+                    if decision == "closed" or (decision == "blocked" and strict):
+                        removed_here.append(f"{title} [recheck:{decision} · {evidence[:50]}]")
+                        recheck_removed_here += 1
+                        continue
+                    base = re.sub(r"\s*·\s*rechecked\s+\d{4}-\d{2}-\d{2}\s*$", "", row[stamp_i].strip())
+                    row[stamp_i] = f"{base} · rechecked {today.isoformat()}"
+                    rechecked_here += 1
                 kept_rows.append(row)
-                continue
-            decision, stamp, posted = v
-            stats["checked"] += 1
-            if decision == "remove":
-                removed_here.append(f"{row[idx['Title']] if 'Title' in idx else ''} [{stamp}]")
-                continue
-            row[stamp_i] = stamp
-            if posted is not None:
-                row[posted_i] = posted.isoformat()[:10]
-            if decision == "keep_unverified":
-                unverified_here += 1
-            else:
-                stamped_here += 1
-            kept_rows.append(row)
 
-        stats["removed"] += len(removed_here)
-        stats["stamped"] += stamped_here
-        stats["unverified"] += unverified_here
-        stats["per_tab"][tab] = {"checked": len(verdicts), "removed": len(removed_here),
-                                 "stamped": stamped_here, "unverified": unverified_here}
-        stats["sample_removed"].extend(removed_here[:5])
-        logger.info("reverify %s: checked %d, removed %d, stamped %d, unverified %d",
-                    tab, len(verdicts), len(removed_here), stamped_here, unverified_here)
+            stats["removed"] += len(removed_here)
+            stats["stamped"] += stamped_here
+            stats["unverified"] += unverified_here
+            stats["rechecked"] += rechecked_here
+            stats["recheck_removed"] += recheck_removed_here
+            stats["per_tab"][tab] = {"checked": len(verdicts), "removed": len(removed_here) - recheck_removed_here,
+                                     "stamped": stamped_here, "unverified": unverified_here,
+                                     "rechecked": rechecked_here, "recheck_removed": recheck_removed_here}
+            stats["sample_removed"].extend(removed_here[:5])
+            logger.info("reverify %s: checked %d (removed %d, stamped %d, unverified %d); rechecked %d (removed %d)",
+                        tab, len(verdicts), len(removed_here) - recheck_removed_here, stamped_here, unverified_here,
+                        rechecked_here, recheck_removed_here)
 
-        if dry_run or not verdicts:
-            continue
-        end_col = _col_index_to_letter(width)
-        try:
-            ws.batch_clear([f"A2:{end_col}{len(all_rows)}"])
-        except Exception as exc:  # noqa: BLE001 — best-effort clear; the rewrite below still lands
-            logger.warning("%s: clear failed: %s", ws.title, exc)
-        ws.update(range_name=f"A1:{end_col}{len(kept_rows) + 1}", values=[header] + kept_rows,
-                  value_input_option="USER_ENTERED")
+            if dry_run or not (verdicts or rechecks):
+                continue
+            end_col = _col_index_to_letter(width)
+            try:
+                ws.batch_clear([f"A2:{end_col}{len(all_rows)}"])
+            except Exception as exc:  # noqa: BLE001 — best-effort clear; the rewrite below still lands
+                logger.warning("%s: clear failed: %s", ws.title, exc)
+            ws.update(range_name=f"A1:{end_col}{len(kept_rows) + 1}", values=[header] + kept_rows,
+                      value_input_option="USER_ENTERED")
+    finally:
+        if browser_cm is not None:
+            try:
+                browser_cm.__exit__(None, None, None)
+            except Exception:  # noqa: BLE001 — teardown must never mask the sweep result
+                pass
     return stats
 
 
 def purge_sheet(sp, tabs: list[str] | None = None, dry_run: bool = False,
                 delete_obsolete: bool = True, dedup: bool = True,
                 reverify: bool = True, max_age_days: float = 7.0,
-                reverify_max_fetches: int = DEFAULT_REVERIFY_MAX_FETCHES) -> dict:
+                reverify_max_fetches: int = DEFAULT_REVERIFY_MAX_FETCHES,
+                recheck_after_days: float = 3.0, strict: bool = True,
+                browser_fallback: bool = True) -> dict:
     """Purge irrelevant rows from `tabs` (default ROLE_TABS + Top Matches) and
     delete OBSOLETE_TABS. Callable from run.py (Stage 3.9 sheet hygiene).
     Returns {"removed_rows": int, "deleted_tabs": [..], "per_tab": {...},
@@ -479,7 +568,9 @@ def purge_sheet(sp, tabs: list[str] | None = None, dry_run: bool = False,
         # Liveness + freshness sweep of rows that pre-date Stage 3.8 (unstamped).
         rv_tabs = [t for t in (tabs or ROLE_TABS) if t != TOP_MATCHES_TAB]
         rv = reverify_rows(sp, tabs=rv_tabs or ROLE_TABS, dry_run=dry_run,
-                           max_age_days=max_age_days, max_fetches=reverify_max_fetches)
+                           max_age_days=max_age_days, max_fetches=reverify_max_fetches,
+                           recheck_after_days=recheck_after_days, strict=strict,
+                           browser_fallback=browser_fallback)
         stats["reverify"] = rv
         stats["removed_rows"] += rv["removed"]
 
@@ -514,6 +605,10 @@ def main() -> int:
                              "stamp the survivors (default on).")
     parser.add_argument("--max-age-days", type=float, default=7.0)
     parser.add_argument("--reverify-max-fetches", type=int, default=DEFAULT_REVERIFY_MAX_FETCHES)
+    parser.add_argument("--recheck-after-days", type=float, default=3.0,
+                        help="Re-open stamped rows whose last check is older than N days (closed → removed).")
+    parser.add_argument("--lenient", action="store_true",
+                        help="Debugging: keep blocked / unconfirmed rows stamped 'unverified' instead of removing them.")
     args = parser.parse_args()
 
     sp, err = _open_sheet(None, None)
@@ -525,7 +620,8 @@ def main() -> int:
     stats = purge_sheet(sp, tabs=tabs, dry_run=args.dry_run,
                         delete_obsolete=not args.keep_obsolete_tabs, dedup=args.dedup,
                         reverify=args.reverify, max_age_days=args.max_age_days,
-                        reverify_max_fetches=args.reverify_max_fetches)
+                        reverify_max_fetches=args.reverify_max_fetches,
+                        recheck_after_days=args.recheck_after_days, strict=not args.lenient)
 
     tag = "[dry-run] " if args.dry_run else ""
     for tab, s in stats["per_tab"].items():
@@ -538,8 +634,10 @@ def main() -> int:
         print(f"{tag}Duplicate rows {'that would be removed' if args.dry_run else 'removed'}: {stats['removed_duplicates']}")
     if stats.get("reverify"):
         rv = stats["reverify"]
-        print(f"{tag}Re-verified {rv['checked']} rows: removed {rv['removed']}, stamped {rv['stamped']}, "
-              f"unverified {rv['unverified']}, still unstamped {rv['remaining_unstamped']}")
+        print(f"{tag}Re-verified {rv['checked']} rows: removed {rv['removed'] - rv['recheck_removed']}, stamped {rv['stamped']}, "
+              f"unverified {rv['unverified']}, still unstamped {rv['remaining_unstamped']}; "
+              f"re-checked {rv['rechecked'] + rv['recheck_removed']} stamped rows: {rv['recheck_removed']} closed/removed, "
+              f"{rv['remaining_recheck']} pending")
         for t in rv["sample_removed"][:10]:
             print(f"    removed e.g.: {t[:90]}")
     print(f"\nTotal {'would remove' if args.dry_run else 'removed'}: {stats['removed_rows']} irrelevant rows.")

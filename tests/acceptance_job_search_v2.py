@@ -217,16 +217,21 @@ LANG_DESC_CORPUS = [
 ]
 
 
+# Evaluated with today=2026-09-14, strict=True, recheck limit 6d.
 STAMP_CORPUS = [
     ("open · posted 2026-09-08 · checked 2026-09-10", True),
-    ("unverified (source date) · posted 2026-09-09 · checked 2026-09-10", True),
+    ("open · posted 2026-09-08 · checked 2026-09-10 · rechecked 2026-09-13", True),
+    ("unverified (source date) · posted 2026-09-09 · checked 2026-09-10", False),  # strict: never confirmed
     ("open · posted 2026-09-03 · checked 2026-09-10", True),   # exactly 7d = allowed
     ("open · posted 2026-09-02 · checked 2026-09-10", False),  # 8d = stale at insert
+    ("open · posted 2026-09-01 · checked 2026-09-01", False),  # last check 13d ago, never re-confirmed
+    ("open · posted 2026-09-01 · checked 2026-09-01 · rechecked 2026-09-12", True),
     ("open · posted unknown · checked 2026-09-10", False),
     ("closed · posted 2026-09-09 · checked 2026-09-10", False),
     ("", False),
     ("verified", False),
 ]
+_STAMP_CORPUS_TODAY = __import__("datetime").date(2026, 9, 14)
 
 
 def check_regression_corpus() -> list[str]:
@@ -274,7 +279,7 @@ def check_regression_corpus() -> list[str]:
             failures.append(f"MUST_KEEP but domain-gate dropped: '{t[:55]}' ({dom_reason})")
     # Verified-stamp parser must itself hold the line (frozen expectations).
     for stamp, want_clean in STAMP_CORPUS:
-        got = check_verified_stamp(stamp)
+        got = check_verified_stamp(stamp, today=_STAMP_CORPUS_TODAY, strict=True, recheck_max_age_days=6)
         if (got is None) != want_clean:
             failures.append(f"STAMP want_clean={want_clean} but got {got!r} for {stamp!r}")
     # Description-level language checks (the title-only loop above can't see these).
@@ -297,15 +302,38 @@ def check_regression_corpus() -> list[str]:
 # is more than MAX_AGE_DAYS before its check date, or it was never dated.
 # ---------------------------------------------------------------------------
 MAX_AGE_DAYS = 7.0
+# Strict mode (2026-09-14): every kept link must be positively confirmed open
+# on its own page, and re-confirmed at least every RECHECK_MAX_AGE_DAYS
+# (= 2 × config verification.recheck_after_days, leaving one missed cron day
+# of slack). Read from config so the gate and the pipeline never drift.
+_VER_CFG = {}
+try:
+    _VER_CFG = (json.loads((Path(__file__).resolve().parents[1] / "config" / "job_search_v2.json")
+                           .read_text(encoding="utf-8")).get("verification", {}) or {})
+except (OSError, json.JSONDecodeError):
+    pass
+STRICT = bool(_VER_CFG.get("strict", True))
+RECHECK_MAX_AGE_DAYS = 2.0 * float(_VER_CFG.get("recheck_after_days", 3))
 _STAMP_RE = __import__("re").compile(
     r"^(?P<label>open|closed|unknown|unverified \(source date\))\s*·\s*posted\s+(?P<posted>\d{4}-\d{2}-\d{2}|unknown)"
-    r"\s*·\s*checked\s+(?P<checked>\d{4}-\d{2}-\d{2})\s*$"
+    r"\s*·\s*checked\s+(?P<checked>\d{4}-\d{2}-\d{2})(?:\s*·\s*rechecked\s+(?P<rechecked>\d{4}-\d{2}-\d{2}))?\s*$"
 )
 
 
-def check_verified_stamp(stamp: str, max_age_days: float = MAX_AGE_DAYS) -> str | None:
-    """Return a violation string for a Verified cell, or None when compliant."""
+def check_verified_stamp(stamp: str, max_age_days: float = MAX_AGE_DAYS, *, today=None,
+                         strict: bool | None = None, recheck_max_age_days: float | None = None) -> str | None:
+    """Return a violation string for a Verified cell, or None when compliant.
+
+    Rules: stamp present and parsable; not closed; posted date known; posted
+    within `max_age_days` of the ORIGINAL check; strict → the "unverified
+    (source date)" label is a violation; the latest check (rechecked, else
+    checked) must be within `recheck_max_age_days` of `today`.
+    """
     from datetime import date
+
+    strict = STRICT if strict is None else strict
+    recheck_max_age_days = RECHECK_MAX_AGE_DAYS if recheck_max_age_days is None else recheck_max_age_days
+    today = today or date.today()
 
     text = (stamp or "").strip()
     if not text:
@@ -315,11 +343,14 @@ def check_verified_stamp(stamp: str, max_age_days: float = MAX_AGE_DAYS) -> str 
         return f"unparsable Verified stamp ({text[:40]})"
     if m.group("label") == "closed":
         return "verified CLOSED (no longer accepting applications)"
+    if strict and m.group("label").startswith("unverified"):
+        return "link never positively confirmed open (strict mode forbids source-date-only rows)"
     if m.group("posted") == "unknown":
         return "posted date unknown at verification"
     try:
         posted = date.fromisoformat(m.group("posted"))
         checked = date.fromisoformat(m.group("checked"))
+        last = date.fromisoformat(m.group("rechecked")) if m.group("rechecked") else checked
     except ValueError as exc:
         return f"bad date in Verified stamp ({exc})"
     age = (checked - posted).days
@@ -327,6 +358,9 @@ def check_verified_stamp(stamp: str, max_age_days: float = MAX_AGE_DAYS) -> str 
         return f"stale at insert: posted {posted.isoformat()}, {age}d before check"
     if age < -1:
         return f"posted date in the future relative to check ({posted.isoformat()} > {checked.isoformat()})"
+    since_last = (today - last).days
+    if since_last > recheck_max_age_days:
+        return f"not re-confirmed open for {since_last}d (last check {last.isoformat()}, limit {recheck_max_age_days:g}d)"
     return None
 
 
@@ -520,6 +554,11 @@ def check_pipeline_degradation() -> list[str]:
         failures.append(
             "POSTING VERIFICATION SKIPPED on a live run (stats.verification missing or "
             "disabled) — every row must be page-checked for freshness + liveness."
+        )
+    elif stats.get("mode") == "live" and STRICT and verification.get("strict") is False:
+        failures.append(
+            "POSTING VERIFICATION RAN IN LENIENT MODE on a live run while config "
+            "verification.strict is true — unconfirmed links may have been shipped."
         )
     for w in verification.get("warnings", []) or []:
         print(f"  [WARN] posting_verifier: {w}")

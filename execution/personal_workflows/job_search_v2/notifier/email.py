@@ -72,6 +72,24 @@ def build_digest(
         f"  C (skim):         {by_tier.get('C', 0)}"
     )
 
+    # Verification line (2026-09-14 strict mode): what was checked and what
+    # was dropped for uncertainty, so the cost of strictness is visible.
+    ver = stats.get("verification", {}) or {}
+    by_reason = ver.get("by_reason", {}) or {}
+    hyg = (stats.get("sheet_hygiene", {}) or {}).get("reverify", {}) or {}
+    if ver and not ver.get("disabled"):
+        verification_block = (
+            f"  links opened & checked: {ver.get('total_in', 0)} — kept {ver.get('kept', 0)}, "
+            f"dropped {ver.get('rejected', 0)} "
+            f"(closed {by_reason.get('closed', 0)}, stale {by_reason.get('stale', 0)}, "
+            f"blocked {by_reason.get('unverifiable_blocked', 0) + by_reason.get('unverifiable_no_date', 0)}, "
+            f"unconfirmed {by_reason.get('unconfirmed_open', 0) + by_reason.get('age_unknown', 0)})\n"
+            f"  sheet re-check: {hyg.get('checked', 0)} rows re-opened, {hyg.get('removed', 0)} removed"
+            f"{' (mode: strict)' if ver.get('strict', True) else ' (mode: LENIENT)'}"
+        )
+    else:
+        verification_block = "  VERIFICATION DID NOT RUN — links in this digest are unchecked"
+
     # Top 5 picks: tier A > B > C, score desc, then posted_at desc.
     tier_order = {"A": 0, "B": 1, "C": 2, "SKIP": 3}
 
@@ -110,6 +128,8 @@ def build_digest(
         f"Per source:\n{src_block}\n"
         f"\n"
         f"Tier breakdown:\n{tier_block}\n"
+        f"\n"
+        f"Verification:\n{verification_block}\n"
         f"\n"
         f"Top 5 picks:\n{top_block}\n"
         f"\n"

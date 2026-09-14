@@ -151,6 +151,17 @@ SQLite seen.db, `content_hash = sha256(title|company|canonical_url)`, TTL 60d, m
 
 ---
 
+## Strict verification mode (2026-09-14 — "would a manual tester sign this off?")
+
+Panel audit (tester / skeptic / customer / sales / automation-boundaries) of the 2026-09-10 build found three ways an unconfirmed link could still reach a client: blocked hosts kept on the source date, dated pages without a positive "open" signal, and rows never re-checked after insertion. Strict mode closes all three and is the default (`config/job_search_v2.json` → `verification.strict: true`; `--lenient-verify` / purge `--lenient` are debugging-only and the acceptance gate fails a live run whose stats show `strict: false`).
+
+- **Positive confirmation required.** A kept link must show a JobPosting JSON-LD block or an apply / postuler / candidater control on its own page. A page with a date but no open signal is re-fetched once (LinkedIn serves a lighter variant intermittently); still unconfirmed → dropped `unconfirmed_open`.
+- **Blocked hosts get a browser, not a pass.** 403 / 429 / 999 / 5xx / empty body → one headless-Chromium retry (`normalizer/browser_fetch.py`, Playwright; the cron installs Chromium in `.github/workflows/job_search_daily.yml`). weworkremotely.com serves the full page to the browser. Still blocked → dropped `unverifiable_blocked`. `ok_unverified_fresh` exists only in lenient mode.
+- **Re-confirmation every 3 days.** Stage 3.9 (`purge_irrelevant_rows.reverify_rows`) re-opens every stamped row whose last check is older than `verification.recheck_after_days` (3): closed → removed, open → `· rechecked YYYY-MM-DD` appended to the stamp, blocked (strict) → removed. Budget `verification.reverify_max_fetches` (600 pages/run) shared with the unstamped-row sweep; overflow drains on the next run (`remaining_recheck` in stats).
+- **Acceptance gate** (`check_verified_stamp`): violation when the label is `unverified …` (strict), or the latest check (`rechecked`, else `checked`) is older than 2 × `recheck_after_days` (6 d — one missed cron day of slack), on top of the existing missing / closed / undated / stale-at-insert rules. `STRICT` and the limit are read from the config so gate and pipeline cannot drift.
+- **Digest email** carries a "Verification" block: links opened, kept, dropped by reason (closed / stale / blocked / unconfirmed), sheet re-check counts and the mode — the cost of strictness is always visible.
+- Sandbox note: the cloud sandbox sits behind a private-CA proxy; the browser fetcher only ignores TLS errors when `JOB_SEARCH_V2_INSECURE_TLS=1` (never set in production). `PLAYWRIGHT_CHROMIUM_PATH` overrides the Chromium binary.
+
 ## Edge cases / known constraints
 
 - **WTTJ 202 anti-bot challenge:** WTTJ answers its anti-bot challenge with HTTP 202 + an empty body. `posting_verifier.fetch_page` retries once (3s backoff) on 202/429/503 or any 2xx body under 500 chars; leftovers after the retry become `ok_unverified_fresh` (source date trusted) rather than a false "no signal" drop.

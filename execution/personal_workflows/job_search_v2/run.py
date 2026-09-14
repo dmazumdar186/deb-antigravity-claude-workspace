@@ -13,6 +13,11 @@ inputs:
                                    the job's OWN page is opened, its real posted date read, and anything
                                    older, closed / no longer accepting applications, or undatable is dropped
         --no-verify              : skip Stage 3.8 (debugging only — never in the cron YAML)
+        --lenient-verify         : debugging only — keep blocked / unconfirmed links stamped
+                                   'unverified'. Default STRICT (config verification.strict):
+                                   a kept link is positively confirmed open on its own page
+                                   (one headless-browser retry for blocked hosts, one re-fetch
+                                   for pages without an open signal), else dropped.
     - env (live mode): FRANCE_TRAVAIL_CLIENT_ID/SECRET, GMAIL_TOKEN_PATH (linkedin_gmail),
                        SHEETS_SPREADSHEET_ID, GOOGLE_SERVICE_ACCOUNT_PATH,
                        GMAIL_SMTP_USER/APP_PASSWORD/NOTIFY_TO
@@ -512,6 +517,11 @@ def main() -> int:
                              "(default: config verification.max_age_days, 7). The posted date "
                              "is read from the job's own page; the source's date is only a "
                              "fallback when the page cannot be fetched.")
+    parser.add_argument("--lenient-verify", action="store_true",
+                        help="Debugging only: keep blocked-host / unconfirmed-open jobs on the source "
+                             "date (stamped 'unverified'). Default is STRICT: every kept link is "
+                             "positively confirmed open on its own page. The acceptance gate fails "
+                             "'unverified' rows while config verification.strict is true.")
     parser.add_argument("--no-ranker", action="store_true",
                         help="Skip Gemini ranking (jobs still flow through; all tier=B placeholder).")
     parser.add_argument("--no-sonnet-rerank", action="store_true",
@@ -631,11 +641,14 @@ def main() -> int:
         # long-dead postings and make the fixture run non-deterministic.
         verify_enabled = False
         logger.info("run: posting verification disabled in %s mode", args.mode)
+    verify_strict = bool(verification_cfg.get("strict", True)) and not args.lenient_verify
     filtered_jobs, verify_stats, verification_records = verify_jobs(
         domain_kept,
         max_age_days=max_age_days,
         concurrency=int(verification_cfg.get("concurrency", 8)),
         enabled=verify_enabled,
+        strict=verify_strict,
+        browser_fallback=bool(verification_cfg.get("browser_fallback", True)),
     )
     (run_dir / "verification.jsonl").write_text(
         records_to_jsonl(verification_records), encoding="utf-8",
@@ -729,7 +742,14 @@ def main() -> int:
             if sp is None:
                 logger.warning("run: sheet hygiene skipped — cannot open sheet: %s", sheet_err)
             else:
-                purge_stats = purge_sheet(sp, dry_run=False, delete_obsolete=True)
+                purge_stats = purge_sheet(
+                    sp, dry_run=False, delete_obsolete=True,
+                    max_age_days=max_age_days,
+                    reverify_max_fetches=int(verification_cfg.get("reverify_max_fetches", 600)),
+                    recheck_after_days=float(verification_cfg.get("recheck_after_days", 3)),
+                    strict=verify_strict,
+                    browser_fallback=bool(verification_cfg.get("browser_fallback", True)),
+                )
                 if purge_stats.get("removed_rows") or purge_stats.get("deleted_tabs"):
                     logger.info("run: sheet hygiene removed %d stale rows, deleted tabs %s",
                                 purge_stats.get("removed_rows", 0), purge_stats.get("deleted_tabs"))

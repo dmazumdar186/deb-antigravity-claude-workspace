@@ -22,6 +22,7 @@ one column right because the Sheets API table-range had captured an empty leadin
 from __future__ import annotations
 
 import logging
+import re
 import os
 import sys
 from datetime import datetime, timezone
@@ -71,11 +72,13 @@ STANDARD_HEADERS = [
 ]
 
 
-def verification_stamp(status: str, posted_at, checked_at, reason: str = "") -> str:
+def verification_stamp(status: str, posted_at, checked_at, reason: str = "", rechecked_at=None) -> str:
     """Human-readable liveness stamp written to the Verified column.
 
-    Shape: "open · posted 2026-09-08 · checked 2026-09-10" — and, when the
-    page could not be fetched, "unverified (source date) · posted … · checked …".
+    Shape: "open · posted 2026-09-08 · checked 2026-09-10[ · rechecked 2026-09-13]".
+    `checked` is the ORIGINAL verification (freshness-at-insert is judged
+    against it); `rechecked` is the latest liveness re-check by the Stage 3.9
+    sweep. Lenient mode only: "unverified (source date) · posted … · checked …".
     The acceptance gate parses this shape back (tests/acceptance_job_search_v2.py).
     """
     posted = posted_at.isoformat()[:10] if posted_at else "unknown"
@@ -83,7 +86,28 @@ def verification_stamp(status: str, posted_at, checked_at, reason: str = "") -> 
     label = status
     if reason == "ok_unverified_fresh" or status == "unverifiable":
         label = "unverified (source date)"
-    return f"{label} · posted {posted} · checked {checked}"
+    stamp = f"{label} · posted {posted} · checked {checked}"
+    if rechecked_at is not None:
+        stamp += f" · rechecked {rechecked_at.isoformat()[:10]}"
+    return stamp
+
+
+_STAMP_PARSE_RE = re.compile(
+    r"^(?P<label>open|closed|unknown|unverified \(source date\))\s*·\s*posted\s+(?P<posted>\d{4}-\d{2}-\d{2}|unknown)"
+    r"\s*·\s*checked\s+(?P<checked>\d{4}-\d{2}-\d{2})(?:\s*·\s*rechecked\s+(?P<rechecked>\d{4}-\d{2}-\d{2}))?\s*$"
+)
+
+
+def parse_verification_stamp(stamp: str) -> dict | None:
+    """Inverse of verification_stamp(). Returns {label, posted, checked, rechecked}
+    (dates as ISO strings or None) or None when the cell is not a stamp."""
+    m = _STAMP_PARSE_RE.match((stamp or "").strip())
+    if not m:
+        return None
+    d = m.groupdict()
+    if d["posted"] == "unknown":
+        d["posted"] = None
+    return d
 
 
 # ---------------------------------------------------------------------------

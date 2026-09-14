@@ -319,17 +319,28 @@ def test_row_verdict_404_removes_closed():
     assert posted is None
 
 
-def test_row_verdict_403_keeps_unverified_stamp():
+def test_row_verdict_403_strict_removes_lenient_keeps_unverified():
     fetch = lambda u: (403, "", u)  # noqa: E731
+    # Strict (default): a blocked host is never shipped on trust.
     decision, stamp, posted = purge_mod._row_verdict("https://x.example/j", NOW, 7.0, fetch)
+    assert decision == "remove" and stamp.startswith("unverifiable")
+    # Strict + browser fallback that serves the page → confirmed open.
+    good = ('<html><body><script type="application/ld+json">{"@type":"JobPosting","datePosted":"%s"}</script>'
+            '<button>Apply</button>' + "x" * 600 + "</body></html>") % (NOW - timedelta(days=2)).date().isoformat()
+    decision, stamp, posted = purge_mod._row_verdict("https://x.example/j", NOW, 7.0, fetch,
+                                                     browser_fetch=lambda u: (200, good, u))
+    assert decision == "keep" and stamp.startswith("open · posted")
+    # Lenient: kept on the (unknown) source date, flagged.
+    decision, stamp, posted = purge_mod._row_verdict("https://x.example/j", NOW, 7.0, fetch, strict=False,
+                                                     source_posted_at=NOW - timedelta(days=1))
     assert decision == "keep_unverified"
     assert stamp.startswith("unverified (source date) ·")
 
 
-def test_row_verdict_empty_body_keeps_unverified():
+def test_row_verdict_empty_body_strict_removes():
     fetch = lambda u: (200, "", u)  # noqa: E731
     decision, stamp, posted = purge_mod._row_verdict("https://x.example/j", NOW, 7.0, fetch)
-    assert decision == "keep_unverified"
+    assert decision == "remove" and "unverifiable" in stamp
 
 
 def test_row_verdict_redirect_to_search_page_removes():
@@ -378,7 +389,7 @@ def test_row_verdict_apply_button_no_date_removes_undatable():
     fetch = lambda u: (200, html, u)  # noqa: E731
     decision, stamp, posted = purge_mod._row_verdict("https://x.example/j", NOW, 7.0, fetch)
     assert decision == "remove"
-    assert stamp == "undatable"
+    assert stamp.startswith("age_unknown")
 
 
 # ===========================================================================
@@ -419,13 +430,13 @@ def test_reverify_rows_matrix_and_stats():
 
     stats = purge_mod.reverify_rows(
         sp, tabs=["PM"], dry_run=False, max_age_days=7.0, max_fetches=100,
-        concurrency=2, only_unstamped=True, fetch=_make_reverify_fetch(), now=NOW,
+        concurrency=2, only_unstamped=True, fetch=_make_reverify_fetch(), now=NOW, browser_fallback=False,
     )
 
     assert stats["checked"] == 4
-    assert stats["removed"] == 2  # stale + closed
+    assert stats["removed"] == 3  # stale + closed + blocked (strict, no browser)
     assert stats["stamped"] == 1  # fresh
-    assert stats["unverified"] == 1  # blocked
+    assert stats["unverified"] == 0
     assert stats["remaining_unstamped"] == 0
 
     header_row = ws.get_all_values()[0]
@@ -434,7 +445,7 @@ def test_reverify_rows_matrix_and_stats():
     remaining_titles = {
         r[header_row.index("Title")] for r in ws.get_all_values()[1:] if any(c.strip() for c in r)
     }
-    assert remaining_titles == {"Fresh PM", "Blocked PM"}
+    assert remaining_titles == {"Fresh PM"}
 
     verified_col = header_row.index("Verified")
     posted_col = header_row.index("Posted")
@@ -456,10 +467,10 @@ def test_reverify_rows_dry_run_changes_nothing_but_reports():
 
     stats = purge_mod.reverify_rows(
         sp, tabs=["PM"], dry_run=True, max_age_days=7.0, max_fetches=100,
-        concurrency=2, only_unstamped=True, fetch=_make_reverify_fetch(), now=NOW,
+        concurrency=2, only_unstamped=True, fetch=_make_reverify_fetch(), now=NOW, browser_fallback=False,
     )
 
-    assert stats["removed"] == 2
+    assert stats["removed"] == 3
     assert stats["stamped"] == 1
     assert ws.get_all_values() == before
 
@@ -499,7 +510,7 @@ def test_reverify_rows_only_unstamped_skips_already_stamped_rows():
 
     stats = purge_mod.reverify_rows(
         sp, tabs=["PM"], dry_run=False, max_age_days=7.0, max_fetches=100,
-        concurrency=2, only_unstamped=True, fetch=counting_fetch, now=NOW,
+        concurrency=2, only_unstamped=True, fetch=counting_fetch, now=NOW, browser_fallback=False,
     )
 
     assert calls == ["https://x.example/stale"]
@@ -520,7 +531,7 @@ def test_reverify_rows_skips_non_http_links():
 
     stats = purge_mod.reverify_rows(
         sp, tabs=["PM"], dry_run=False, max_age_days=7.0, max_fetches=100,
-        concurrency=2, only_unstamped=True, fetch=counting_fetch, now=NOW,
+        concurrency=2, only_unstamped=True, fetch=counting_fetch, now=NOW, browser_fallback=False,
     )
 
     assert calls == []
@@ -715,3 +726,93 @@ def test_run_fixture_mode_dry_run_smoke():
 
     for key in ("domain_filter", "verification", "after_verification", "sheet_dedup"):
         assert key in summary, f"summary.json missing {key!r} (run_dir={newest})"
+
+
+
+# ===========================================================================
+# Strict re-check sweep of already-stamped rows (2026-09-14)
+# ===========================================================================
+
+def _stamped_pm_rows():
+    # header: Company, Title, Country, Location, Contract, Link, Posted, Verified
+    old = (NOW - timedelta(days=5)).date().isoformat()
+    recent = (NOW - timedelta(days=1)).date().isoformat()
+    return [
+        ["Acme", "Still Open PM", "", "Paris", "CDI", "https://x.example/open", "2026-09-05",
+         f"open · posted 2026-09-05 · checked {old}"],
+        ["Acme", "Now Closed PM", "", "Paris", "CDI", "https://x.example/closed", "2026-09-05",
+         f"open · posted 2026-09-05 · checked {old}"],
+        ["Acme", "Recently Checked PM", "", "Paris", "CDI", "https://x.example/recent", "2026-09-08",
+         f"open · posted 2026-09-08 · checked {recent}"],
+        ["Acme", "Blocked PM", "", "Paris", "CDI", "https://x.example/blocked", "2026-09-05",
+         f"open · posted 2026-09-05 · checked {old} · rechecked {old}"],
+    ]
+
+
+def _recheck_fetch(calls):
+    open_html = ('<html><body><script type="application/ld+json">{"@type":"JobPosting","datePosted":"2026-09-05"}'
+                 '</script><button>Apply</button>' + "x" * 600 + "</body></html>")
+    closed_html = "<html><body><h1>No longer accepting applications</h1>" + "<p>f</p>" * 100 + "</body></html>"
+
+    def fetch(u):
+        calls.append(u)
+        if u.endswith("/closed"):
+            return 200, closed_html, u
+        if u.endswith("/blocked"):
+            return 403, "", u
+        return 200, open_html, u
+    return fetch
+
+
+def test_recheck_sweep_removes_closed_and_blocked_and_restamps_open():
+    header = ["Company", "Title", "Country", "Location", "Contract", "Link", "Posted", "Verified"]
+    ws = FakeWorksheet("PM", header=header, rows=_stamped_pm_rows())
+    sp = FakeSpreadsheet({"PM": ws})
+    calls: list[str] = []
+    stats = purge_mod.reverify_rows(
+        sp, tabs=["PM"], dry_run=False, max_fetches=100, concurrency=2, fetch=_recheck_fetch(calls),
+        now=NOW, recheck_after_days=3.0, strict=True, browser_fallback=False,
+    )
+    assert stats["checked"] == 0  # no unstamped rows
+    assert stats["rechecked"] == 1 and stats["recheck_removed"] == 2
+    assert not any(u.endswith("/recent") for u in calls), "rows checked < 3 days ago must not be re-fetched"
+    rows = [r for r in ws.get_all_values()[1:] if any(c.strip() for c in r)]
+    titles = {r[1] for r in rows}
+    assert titles == {"Still Open PM", "Recently Checked PM"}
+    still_open = next(r for r in rows if r[1] == "Still Open PM")
+    assert still_open[7].endswith(f"· rechecked {NOW.date().isoformat()}")
+    assert still_open[7].count("rechecked") == 1
+
+
+def test_recheck_sweep_lenient_keeps_blocked_and_budget_is_shared():
+    header = ["Company", "Title", "Country", "Location", "Contract", "Link", "Posted", "Verified"]
+    ws = FakeWorksheet("PM", header=header, rows=_stamped_pm_rows())
+    sp = FakeSpreadsheet({"PM": ws})
+    calls: list[str] = []
+    stats = purge_mod.reverify_rows(
+        sp, tabs=["PM"], dry_run=False, max_fetches=2, concurrency=1, fetch=_recheck_fetch(calls),
+        now=NOW, recheck_after_days=3.0, strict=False, browser_fallback=False,
+    )
+    assert len(calls) == 2 and stats["remaining_recheck"] == 1
+
+
+def test_recheck_sweep_uses_browser_for_blocked_rows():
+    header = ["Company", "Title", "Country", "Location", "Contract", "Link", "Posted", "Verified"]
+    ws = FakeWorksheet("PM", header=header, rows=_stamped_pm_rows())
+    sp = FakeSpreadsheet({"PM": ws})
+    open_html = ('<html><body><script type="application/ld+json">{"@type":"JobPosting","datePosted":"2026-09-05"}'
+                 '</script><button>Apply</button>' + "x" * 600 + "</body></html>")
+    browser_calls: list[str] = []
+
+    def browser_fetch(u):
+        browser_calls.append(u)
+        return 200, open_html, u
+
+    stats = purge_mod.reverify_rows(
+        sp, tabs=["PM"], dry_run=False, max_fetches=100, concurrency=2, fetch=_recheck_fetch([]),
+        now=NOW, recheck_after_days=3.0, strict=True, browser_fetch=browser_fetch,
+    )
+    assert browser_calls == ["https://x.example/blocked"]
+    assert stats["recheck_removed"] == 1  # only the genuinely closed one
+    titles = {r[1] for r in ws.get_all_values()[1:] if any(c.strip() for c in r)}
+    assert "Blocked PM" in titles
