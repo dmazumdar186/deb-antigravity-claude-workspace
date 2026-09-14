@@ -38,14 +38,35 @@ _PUNCT_MAP = {
 }
 
 
+# 2026-09-13 fix: PDF OCR routinely confuses capital I, lowercase l, and the
+# digit 1 -- observed case, Pearse Sutton's claim clm_1ed0104d35997fe1
+# ("I have over 40 years of civil and structural engineering consultancy
+# experience...") was dropped because the source PDF's OCR layer rendered
+# it as "1 have over 40 years..." (the same document also has "lrish" for
+# "Irish"). Folded to "i" (after lowercasing, so this covers "1" and "l")
+# on BOTH sides of the comparison -- applied inside normalize(), which
+# validate_claim() calls on both the claim's evidence_quote and the source
+# doc's content_text, so it cannot introduce an asymmetry between them.
+#
+# This is a per-character fold, not a fuzzy/edit-distance match: it cannot
+# make a FABRICATED sentence match, because every other character in the
+# quote must still match, in order, character for character -- it only
+# collapses the three glyphs OCR is known to interchange for one another,
+# the same "eliminate false negatives without creating false positives"
+# standard normalize() already applies to punctuation and ligatures above.
+_OCR_CONFUSION_MAP = str.maketrans({"1": "i", "l": "i"})
+
+
 def normalize(s: str) -> str:
     """Normalise text for substring comparison.
 
     Deliberately aggressive: NFKD, punctuation folding, whitespace collapse,
-    lowercase. The goal is to eliminate false NEGATIVES (a true quote failing
-    to match because a PDF used a ligature) without creating false POSITIVES
-    (a fabricated quote matching by accident). Collapsing whitespace and
-    punctuation cannot make an invented sentence appear in a document.
+    lowercase, OCR glyph-confusion folding. The goal is to eliminate false
+    NEGATIVES (a true quote failing to match because a PDF used a ligature,
+    or its OCR layer confused I/l/1) without creating false POSITIVES (a
+    fabricated quote matching by accident). None of these foldings can make
+    an invented sentence appear in a document -- they only widen what counts
+    as the SAME character, never what counts as a match for a whole quote.
     """
     s = unicodedata.normalize("NFKD", s)
     for src, dst in _PUNCT_MAP.items():
@@ -53,7 +74,8 @@ def normalize(s: str) -> str:
     # Strip combining marks left by NFKD so "Réalis" matches "Realis".
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
     s = re.sub(r"[\s]+", " ", s)
-    return s.strip().lower()
+    s = s.strip().lower()
+    return s.translate(_OCR_CONFUSION_MAP)
 
 
 def validate_claim(claim: Claim, corpus: dict[str, RawDocument]) -> bool:

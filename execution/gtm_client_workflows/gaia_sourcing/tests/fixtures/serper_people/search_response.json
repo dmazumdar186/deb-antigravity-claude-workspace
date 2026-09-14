@@ -1,0 +1,47 @@
+{
+  "searchParameters": {
+    "q": "\"senior structural engineer\" \"Cork\" site:linkedin.com/in",
+    "gl": "ie",
+    "hl": "en",
+    "num": 10,
+    "type": "search"
+  },
+  "organic": [
+    {
+      "title": "Aoife Example - Senior Structural Engineer - DBFL | LinkedIn",
+      "link": "https://ie.linkedin.com/in/aoife-example-12345",
+      "snippet": "Location: Cork · 500+ connections · Experience: DBFL Consulting Engineers",
+      "position": 1
+    },
+    {
+      "title": "Cian Example – Associate Director at Arup",
+      "link": "https://ie.linkedin.com/in/cian-example-67890",
+      "snippet": "County Kerry · 8 years experience in structural design",
+      "position": 2
+    },
+    {
+      "title": "Niamh Example | LinkedIn",
+      "link": "https://linkedin.com/in/niamh-example-11223",
+      "snippet": "Dublin, Ireland · Structural Engineer at Roughan & O'Donovan",
+      "position": 3
+    },
+    {
+      "title": "Padraig Example - Structural Engineer - Arup | LinkedIn",
+      "link": "https://ie.linkedin.com/in/aoife-example-12345?trk=public_profile",
+      "snippet": "Ireland · Structural Engineer",
+      "position": 4
+    },
+    {
+      "title": "Sample Company Careers | LinkedIn",
+      "link": "https://ie.linkedin.com/company/sample-engineers",
+      "snippet": "Sample Engineers is hiring structural engineers across Ireland",
+      "position": 5
+    },
+    {
+      "title": "Oisin Example - Chartered Structural Engineer",
+      "link": "https://uk.linkedin.com/in/oisin-example-44556",
+      "snippet": "Manchester, United Kingdom · Structural Engineer",
+      "position": 6
+    }
+  ]
+}

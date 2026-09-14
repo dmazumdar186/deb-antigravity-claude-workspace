@@ -1,0 +1,2 @@
+{"person_id": "alice", "grade": "principal_or_associate", "location_country": "IE", "chartered": "yes", "labeller": "sam", "at": "2026-09-10T09:00:00Z", "notes": "grade: \"Principal Engineer\" | location_country: \"Galway, Ireland\" | chartered: \"Chartered Engineer\""}
+{"person_id": "dave", "grade": "senior_engineer", "location_country": "IE", "chartered": "unknown", "labeller": "sam", "at": "2026-09-10T09:05:00Z", "notes": "grade: \"Senior Engineer\" | location_country: \"Cork, Ireland\" | chartered: (no mention)"}

@@ -1,0 +1,6 @@
+[
+  {"source": "acp_witness_statement", "source_ref": "r1", "full_name": "Michael Walsh",
+   "location": "Cork", "doc_ids": ["d1"]},
+  {"source": "acp_witness_statement", "source_ref": "r2", "full_name": "Michael Walsh",
+   "location": "Cork", "doc_ids": ["d2"]}
+]

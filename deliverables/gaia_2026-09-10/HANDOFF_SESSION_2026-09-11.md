@@ -1,0 +1,75 @@
+# Session handoff — Gaia Radar, 2026-09-11 evening (UTC)
+
+Branch `claude/candidate-search-filters-xtxcks`; merged into `main` after every unit. Working copy is clean after the last push (check `git status --short`; `deliverables/gaia_2026-09-14/console/` is gitignored and regenerable).
+
+## Standing orders (CLAUDE.md principle 5)
+No HITL: never ask the operator; exhaust options; audit (anneal-reviewer, code-reviewer, pipeline-auditor), commit, push branch + main after every unit, admin rights assumed. Keys live in the workspace `.env` (gitignored, never commit): ANTHROPIC, FIRECRAWL, PROSPEO, SERPER, APOLLO (Apollo free plan has no API access). PDL: operator cannot sign up. Firecrawl MCP is dead (401); Firecrawl REST via the key works. Playwright/Chromium cannot egress through the sandbox proxy. Cloud sessions use `python3`, never `py`.
+
+## Money
+Anthropic ledger: EUR 25.69 cumulative of a EUR 26.50 cap (`run.py --spend`; `core/config.py max_cost_eur_total`); the operator's USD 30 Console spend limit is the hard stop. Do NOT re-run extract or deepen (EUR 3-6 each). Affordable: offline stages (locate, identity_hygiene, validate, gate, poolmap, scorecard, render, console) and, at most once, `--stage adversarial --force --plan anthropic_budget` (~EUR 0.05 per card) or `--stage messages --force` (~EUR 0.01 per card).
+
+## Goal by Monday 14 Sep 17:00
+Send Keith Molony (Gaia Talent) the corrected shortlist link + Loom + the v2 page (for Maddie, the developer who built the inbound screener; no one named Steph exists). Promise: Senior Engineer grade, Republic of Ireland residence with direct evidence, Engineers Ireland chartership, verified/labelled contact, honest counts.
+
+## Where it stands (DONE in this session)
+Campaign `gaia-2026-09-14` (`export GAIA_CAMPAIGN_ID=gaia-2026-09-14`; deliverables in `deliverables/gaia_2026-09-14/`; never write into `gaia_2026-08-20`).
+- Role 1: 471 assessed, 2 gate-passers, **2 of 10 delivered** (Alicia Joyce / CSEA, John Alcaras / Arcadis). Near-misses named in `pool_map_role1.md` (14 on residence evidence, 8 on chartership).
+- Role 2: 65 assessed, **0 of 5**.
+- Acceptance gate: 41 checks PASS. Suite: 1,086 tests PASS. Four pipeline-auditor audits; the fourth ran on the frozen tree (its verdict is in the commit message of the final commit).
+- Rules now binding (all tested, see the runbook §1c): residence needs a residence-shaped quote; firm-office defaults pass only when the brief does not require direct evidence, and then with a card note; unstamped `Person.location` never passes but still excludes (Belfast/London); grade ceiling scans the title and every employer quote naming the person; chartership accepts "C. Eng"/"F.I.E.I."; employer is recovered deterministically from the person's own text; held-backs are named in the banner and pool map; basis quotes are pinned first on every card; second opinions render last, max 2, clipped.
+- Docs updated with real numbers: `deliverables/gaia_2026-09-10/RUNBOOK_monday_delivery.md` (§1c), `v2_proposal.md` + `v2_proposal/index.html` ("The corrected cut, as it stands").
+
+## Next steps, in order
+1. Verify the tree is clean and `main` == branch head (`git log --oneline -3`). If any audit finding was left open, it is listed in the last commit message under "Open".
+2. Republish `deliverables/gaia_2026-09-14/site/index.html` to the existing artifact https://claude.ai/code/artifact/16f9282e-e30e-4a4b-b6e2-624d836a7e80 (Artifact tool, `url` param) and `deliverables/gaia_2026-09-10/v2_proposal/index.html` to https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed. Publish `deliverables/gaia_2026-09-14/console/index.html` as a new artifact if the console is wanted in the Loom (regenerate with `--stage console` first if the folder is missing).
+3. Brief Controls (https://claude.ai/code/artifact/3d47597e-04bd-42ec-bb15-ce6126b93703) deliberately still re-cuts the 20 August 13-card list: that is the "you were right on both" demo. Leave it.
+4. Loom storyboard + email text: `deliverables/gaia_2026-09-10/radar_final_spec.md` and the runbook §5-6. The operator records the Loom; draft the email body for them in chat if asked.
+5. If spend allows and a reviewer wants more names: the only cheap lever left is `--stage deepen_near_misses --force --deepen-gates located_ie --plan anthropic_budget --accept-senior-titles` (targets ONLY search-snippet persons failing residence; 0 targets at last run because the two snippet near-misses were re-classified). Do not widen FIRMS without re-harvesting (paid).
+
+## Known honest gaps to state to Keith
+Role 2 (Cork) yields zero under strict residence; the pool needs Cork-based transport leads from a licensed people-data source. Chartership registers cannot be automated. Alicia Joyce has no verified email (labelled "none"); her second-opinion pass returned nothing parseable twice and the card says so. `docs.jsonl` has 4 malformed lines (skipped with a log line; affected claims were dropped, the safe direction).
+
+## Artifacts
+Call brief https://claude.ai/code/artifact/e5cd1898-abd0-4f02-81c2-3eeef8c7c7be · Brief Controls https://claude.ai/code/artifact/3d47597e-04bd-42ec-bb15-ce6126b93703 · v2 page https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed · corrected shortlist https://claude.ai/code/artifact/16f9282e-e30e-4a4b-b6e2-624d836a7e80
+
+## Addendum — successor session, 2026-09-11 late evening (UTC)
+
+Done: `deliverables/gaia_2026-09-10/monday_send.md` (email + Loom script), pushed to branch and main. The two LOW audit items are fixed in code with regression tests (pool-map near-miss lines now read "missing only: residence evidence (Republic of Ireland) [located_ie]"; every delivered card without a validated `years_experience` claim renders "Years of experience: not evidenced in the source material; confirm on first call." before the second opinions). Suite: 1,093 pass; the only failure is `test_render_page_text_executes_javascript`, which fails identically on the pre-change tree because Chromium cannot egress in the sandbox.
+
+**Blocker, stated plainly: the campaign run cache is NOT in this container.** `execution/gtm_client_workflows/gaia_sourcing/run/gaia-2026-09-14/` is empty here (it is gitignored and lived in the container of session `session_011epq9dELTU6xLKSHxkKK1t`, still idle and connected at 17:30 UTC). Consequences:
+- `run.py --spend` reads EUR 0.00 here; the true ledger (EUR 25.69) is in the old container.
+- `tests.acceptance_gaia` cannot run here (needs `contact.json`); the committed dossier and pool maps are unchanged, so the two LOW fixes are verified by unit tests only and will appear in the deliverable on the next `--stage poolmap,render` run on a machine that has the cache.
+- Next-step 3 (re-cut on Keith's thresholds) cannot run in this container until the cache is restored. An attempt to wake the old session with a Routine asking it to push the cache to a branch was denied by the permission classifier.
+
+Recovery (one paste into the OLD session, or any machine that has the cache):
+```
+git fetch origin main && git checkout -B gaia-run-cache-2026-09-14 origin/main
+tar czf execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-14.tar.gz \
+  -C execution/gtm_client_workflows/gaia_sourcing run/gaia-2026-09-14 logs   # logs = spend ledger; exclude run/_httpcache
+git add -f execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-14.tar.gz
+git commit -m "gaia: run cache rescue (cache branch only, never merge)" && git push -u origin gaia-run-cache-2026-09-14
+```
+Then in the new container: `git fetch origin gaia-run-cache-2026-09-14 && git show origin/gaia-run-cache-2026-09-14:execution/gtm_client_workflows/gaia_sourcing/run_cache_gaia-2026-09-14.tar.gz | tar xzf - -C execution/gtm_client_workflows/gaia_sourcing`, then `--stage poolmap,render,console`, `tests.acceptance_gaia`, and the re-cut per step 3 when thresholds arrive. Never merge the cache branch.
+
+## Addendum 2026-09-11 (late): Shortlist Check proof of concept
+
+Built, audited (anneal, code review, two adversarial audits, all findings closed), committed on branch and main. `run.py --check <names.csv>` gates any list of names against the cached pool under each role's brief, offline. Deliverables and plan in `deliverables/gaia_poc_check/` (PLAN.md carries the day-2 questions). Keith's page https://claude.ai/code/artifact/a8a673b4-0641-4278-a602-670b6daf1241 · Maddie's notes https://claude.ai/code/artifact/0f7821a2-eb07-4c4e-9637-2d3c9574c51c. Cache is restored in this container (from branch gaia-run-cache-2026-09-14, never merge). Suite 1,240; acceptance 41/41; spend EUR 25.69.
+
+## Addendum — day 2, 2026-09-13 (UTC)
+
+Branch `claude/modest-volta-aginz3`, merged into `main` at every unit. Operator instruction on the day: the Shortlist Check POC is the deliverable and must convince Keith he is worth paying for over Recruit CRM and Maddie's screener; "those 15 candidates" = the 13 August names plus the two delivered (Alicia Joyce, John Alcaras).
+
+Done:
+- Decisions in `deliverables/gaia_poc_check/PLAN.md` "Day 2 decisions": (a) the daily home is a Recruit CRM field + note ("Shortlist Check", "Shortlist Check line", "Shortlist Check brief") written by the same adapter, so Maddie's dashboard shows it with no UI of ours; `check_sync.json` is the dry-run record. (b) minutes-per-name stays a labelled assumption (15) and is asked live, not in the email. (c) the check page ships Monday as the fourth link (reversed from an earlier hold on the operator's instruction); `monday_send.md` carries the link and Loom step 3b.
+- Keith's page: 15 names, 2 pass, 2 near miss, 11 out; "Why proof, not a score" and "Questions you will have" sections; every gate's basis quote surfaced (Sutton "over 40 years", Healy "over 26 years"); title-only ceiling failures carry "Title on the source page"; August block reads 13 names, 3.25 h, 0 of 13. Live: https://claude.ai/code/artifact/a8a673b4-0641-4278-a602-670b6daf1241 (v2). Maddie's notes v2 (checked-column section). Shortlist artifact v4 (re-validate, no content change).
+- `deliverables/gaia_poc_check/OBJECTIONS.md`: the operator's call sheet from seven lenses (files under `lenses/`). Legal point for the operator, not the page: the two delivered cards quote LinkedIn text; LinkedIn's terms forbid copying profile text; decide before scaling.
+- Code: lower-bound years (strict vs inclusive; ceiling phrases; floor uses base), validator OCR 1/l fold, located_ie note wording, check.csv utf-8-sig + formula guard, bare input filename, CRM note cap 5 with failing-gate quotes first, empty custom_fields dropped, linkedin_url dedupe key. Audit stack: anneal FAIL→fixed, code review FAIL→fixed, pipeline audit WARNINGS→fixed. Suite 1,322 pass (+2 sandbox-only failures: test_ocr local engine, Chromium render). Acceptance 41/41. Spend EUR 25.69 (no model calls today).
+- Offline re-validate: role 2 claims 366→367 (Sutton), seniority-not-met 53→52; role 1 unchanged (14 residence / 8 chartership near-misses); delivered set unchanged.
+
+Still open: Keith's two threshold answers (re-cut per step 3 of the original handoff, then re-run `--check` so the POC page reflects the same brief); Maddie's confirmation of the screener's trigger stage; Recruit CRM plan tier; the LinkedIn-quote policy; PRIVACY_NOTICE_URL is still a pages.dev staging domain (law lens); no retention job for cached page copies exists (law lens).
+
+## Addendum 2026-09-14: public site, hosting
+
+The Monday email links go to the public GitHub Pages site (no login), not to claude.ai artifacts, which Keith could not open. Bundle: `deliverables/gaia_site_2026-09-14/` (relative links, noindex meta on every page, `_headers` + `vercel.json` with `X-Robots-Tag: noindex, nofollow, noarchive`). Served from branch `gh-pages`, byte-identical to the bundle; all seven paths verified 200 on 14 Sep: `/`, `/shortlist/`, `/check/`, `/brief-controls/`, `/next-30-days/`, `/for-maddie/`, `/for-maddie/engineering/`. Base URL: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/
+
+Vercel switch (project `gaia-keith`) attempted 14 Sep and blocked by the credential, not by the code: the cloud environment variable is spelled `VERCEL_TOEKN`, and the token is limited (GET /v2/user says `limited: true`; teams, memberships and tokens list 403; `POST /v13/deployments` with or without `teamId` returns 403 "You don't have permission to create a project"; no `gaia-keith` project exists to attach to). Fix on the Vercel side: a token with full access to team `team_IdTuX3Gzq2jYG3u9SI9DA2QU` (or a `gaia-keith` project created once in the dashboard), stored as `VERCEL_TOKEN`. Deploy script (stdlib, never prints the token) is reproducible from this addendum: walk the bundle, POST files base64 to `/v13/deployments` with `name: gaia-keith, target: production`, poll `readyState`. Then swap the four links in `monday_send.md`, this addendum and PLAN.md to the Vercel URL and delete `gh-pages`. Until then `gh-pages` stays.

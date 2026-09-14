@@ -57,7 +57,14 @@ def _throttle(url: str) -> None:
 
 
 def _pdf_to_text(raw: bytes) -> str:
-    import fitz  # PyMuPDF
+    try:
+        import fitz  # PyMuPDF
+    except ImportError as exc:
+        # 2026-09-10: a sandbox without PyMuPDF harvested 2,030 case documents
+        # and produced zero witness statements with no error anywhere -- every
+        # PDF quietly became empty text and failed the evidence gate. A missing
+        # parser is a hard failure, not an empty document.
+        raise RuntimeError("PyMuPDF is not installed (pip install pymupdf); PDF text extraction is impossible") from exc
 
     with fitz.open(stream=raw, filetype="pdf") as doc:
         return "\n".join(page.get_text() for page in doc)
@@ -235,8 +242,12 @@ def _extract_title(raw: bytes, ctype: str) -> Optional[str]:
 
         t = BeautifulSoup(raw, "html.parser").title
         return t.get_text(strip=True) if t else None
-    except Exception:
-        return None  # title is cosmetic; never fail a fetch over it
+    except Exception as exc:
+        # title is cosmetic; never fail a fetch over it -- but say what was
+        # skipped, since a silent failure here is otherwise indistinguishable
+        # from a page that genuinely has no <title>.
+        print("[cache] could not extract a title: " + repr(exc)[:120])
+        return None
 
 
 def normalise_ws(text: str) -> str:
@@ -278,6 +289,30 @@ def head_ok(url: str, timeout: int = 20) -> tuple[bool, int]:
         return False, 0
 
 
+def post_json(
+    url: str, payload: dict, timeout: int = 10
+) -> tuple[bool, int]:
+    """The one sanctioned HTTP POST helper for small, best-effort,
+    out-of-band calls that are NOT part of the sourcing pipeline itself --
+    currently core/alerts.py's webhook post (RADAR_CONTRACTS.md section E).
+
+    Deliberately NOT cached (unlike fetch()/fetch_rendered()) and
+    deliberately has NO retries: an alert that silently retries hides how
+    flaky the destination actually is, and this call's own log line already
+    tells the operator whether it landed. Never raises -- a broken webhook
+    must degrade the caller (a skipped notification), not the run.
+    """
+    try:
+        resp = requests.post(url, json=payload, timeout=timeout)
+        return (200 <= resp.status_code < 300), resp.status_code
+    except Exception as exc:
+        print(
+            "[cache] post_json to " + urlparse(url).netloc
+            + " failed: " + repr(exc)[:160]
+        )
+        return False, 0
+
+
 def fetch_raw(url: str, force: bool = False) -> Optional[bytes]:
     """Cached fetch that preserves the ORIGINAL bytes.
 
@@ -302,6 +337,9 @@ def fetch_raw(url: str, force: bool = False) -> Optional[bytes]:
     with _LOCK:
         raw_p.write_bytes(resp.content)
     return resp.content
+
+
+_RENDER_FALLBACK_WARNED = False
 
 
 def fetch_rendered(
@@ -337,13 +375,81 @@ def fetch_rendered(
 
     from .config import secret
 
+    if not secret("FIRECRAWL_API_KEY", required=False):
+        # No paid renderer available. Try local Playwright + Chromium next --
+        # a free way to get past the same JS-only shell Firecrawl exists to
+        # solve. Only if that too is unavailable/fails do we fall back to raw
+        # HTTP, which server-rendered directories still yield something for
+        # but client-rendered ones return as an empty shell.
+        from . import render_local
+
+        if render_local.available():
+            rendered = render_local.render_page_text(url)
+            if rendered is not None:
+                text, title = rendered
+                text = normalise_ws(text)
+                if text.strip():
+                    doc_id = content_id(text)
+                    with _LOCK:
+                        body_p.write_text(text, encoding="utf-8")
+                        meta_p.write_text(
+                            json.dumps(
+                                {
+                                    "ok": True, "doc_id": doc_id, "url": url,
+                                    "source_type": source_type, "rendered": True,
+                                    "renderer": "playwright",
+                                    "fetched_at": date.today().isoformat(),
+                                    "title": title,
+                                }
+                            ),
+                            encoding="utf-8",
+                        )
+                    return RawDocument(
+                        doc_id=doc_id, url=url, source_type=source_type,
+                        fetched_at=date.today(), content_text=text,
+                        http_status=200, title=title,
+                    )
+                # Rendered to nothing: fall through to raw HTTP below rather
+                # than caching a rendered failure (same rule as the
+                # no-renderer-at-all path -- a bad cache entry here would be
+                # trusted by every later keyed run).
+            # render_page_text returned None (launch/navigation failure): same
+            # fall-through, no cache write.
+
+        global _RENDER_FALLBACK_WARNED
+        if not _RENDER_FALLBACK_WARNED:
+            print("[cache] FIRECRAWL_API_KEY absent: rendered fetches fall back to raw HTTP")
+            _RENDER_FALLBACK_WARNED = True
+        return fetch(url, source_type=source_type, force=force)
+
     try:
-        resp = requests.post(
-            "https://api.firecrawl.dev/v2/scrape",
-            json={"url": url, "formats": ["markdown"], "onlyMainContent": True},
-            headers={"Authorization": "Bearer " + secret("FIRECRAWL_API_KEY")},
-            timeout=180,
-        )
+        # 2026-09-11: four workers against Firecrawl's free-plan rate limit
+        # produced 429s that were swallowed as "empty page" and cached as
+        # permanent failures -- 50 of 58 firm directories "had no people page".
+        # Retry 429/5xx with backoff (honouring Retry-After) and never cache a
+        # rate-limit failure; log the status so the run log shows the cause.
+        resp = None
+        for attempt in range(4):
+            resp = requests.post(
+                "https://api.firecrawl.dev/v2/scrape",
+                json={"url": url, "formats": ["markdown"], "onlyMainContent": True},
+                headers={"Authorization": "Bearer " + secret("FIRECRAWL_API_KEY")},
+                timeout=180,
+            )
+            if resp.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                retry_after = resp.headers.get("Retry-After")
+                wait = float(retry_after) if retry_after and retry_after.isdigit() else 5.0 * (attempt + 1)
+                print("[cache] firecrawl HTTP " + str(resp.status_code) + " for " + url[-60:]
+                      + "; retrying in " + format(wait, ".0f") + "s")
+                time.sleep(wait)
+                continue
+            break
+        if resp.status_code != 200:
+            print("[cache] firecrawl HTTP " + str(resp.status_code) + " for " + url[-60:]
+                  + " -- not cached" if resp.status_code in (429, 500, 502, 503, 504)
+                  else "[cache] firecrawl HTTP " + str(resp.status_code) + " for " + url[-60:])
+            if resp.status_code in (429, 500, 502, 503, 504):
+                return fetch(url, source_type=source_type, force=force)
         payload = resp.json() if resp.status_code == 200 else {}
         text = (payload.get("data") or {}).get("markdown", "") or ""
         title = ((payload.get("data") or {}).get("metadata") or {}).get("title")

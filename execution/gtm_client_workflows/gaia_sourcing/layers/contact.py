@@ -42,11 +42,12 @@ import re
 import time
 import urllib.error
 import urllib.request
+from datetime import date
 from typing import Optional
 from urllib.parse import urlparse
 
-from ..core.config import secret
-from ..core.contracts import ContactRecord, EmailStatus, Person
+from ..core.config import CONFIG, secret
+from ..core.contracts import ContactRecord, EmailStatus, Person, RawDocument
 
 PROSPEO_ENRICH = "https://api.prospeo.io/enrich-person"
 PROSPEO_ACCOUNT = "https://api.prospeo.io/account-information"
@@ -162,8 +163,45 @@ def _employer_domain(employer: Optional[str]) -> Optional[str]:
     return None
 
 
-def enrich(person: Person, employer_domain: Optional[str] = None) -> ContactRecord:
-    """Look up one person. Never raises -- a failed lookup yields status 'none'."""
+def evidence_age_days(person_id: str, docs: list[RawDocument]) -> Optional[int]:
+    """Age in days of the newest employer-dimension document behind this
+    person's contact evidence (RADAR_CONTRACTS.md section E "Stale
+    evidence").
+
+    Pure, no I/O: `docs` is the (already person- and dimension-filtered) set
+    of RawDocuments the caller considers this person's employer evidence --
+    the caller decides what belongs to `person_id`, this function only takes
+    the newest `fetched_at` among them and reports its age against today.
+    `person_id` is accepted for the caller's own bookkeeping/logging and is
+    not otherwise used here -- it deliberately does not do the filtering
+    itself, so a test can hand it a hand-built doc list without wiring up
+    the whole claims/doc-store pipeline.
+
+    Returns None when there is no dated document to judge staleness against
+    -- absence of evidence must never render as "fresh".
+    """
+    fetched_dates = [d.fetched_at for d in docs if getattr(d, "fetched_at", None)]
+    if not fetched_dates:
+        return None
+    newest = max(fetched_dates)
+    return (date.today() - newest).days
+
+
+def enrich(
+    person: Person,
+    employer_domain: Optional[str] = None,
+    employer_docs: Optional[list[RawDocument]] = None,
+) -> ContactRecord:
+    """Look up one person. Never raises -- a failed lookup yields status 'none'.
+
+    `employer_docs`, when given, is this person's employer-dimension source
+    documents; `evidence_age_days`/`stale` on the returned ContactRecord are
+    computed from it (run.py's stage_contact is expected to pass these once
+    wired -- see this package's HANDOFF.md). Omitted (the default), the
+    record simply carries no age information rather than a fabricated one.
+    """
+    age_days = evidence_age_days(person.person_id, employer_docs or [])
+    is_stale = age_days is not None and age_days > CONFIG.max_evidence_age_days
     domain = employer_domain or _employer_domain(person.current_employer)
     first, last = _split_name(person.full_name)
 
@@ -172,7 +210,10 @@ def enrich(person: Person, employer_domain: Optional[str] = None) -> ContactReco
         data["linkedin_url"] = str(person.linkedin_url)
     else:
         if not first or not last:
-            return _no_contact(person, "Name could not be split into first/last.")
+            return _no_contact(
+                person, "Name could not be split into first/last.",
+                age_days=age_days, stale=is_stale,
+            )
         data["first_name"] = first
         data["last_name"] = last
         if person.current_employer:
@@ -181,7 +222,8 @@ def enrich(person: Person, employer_domain: Optional[str] = None) -> ContactReco
             data["company_website"] = domain
         if not (data.get("company_name") or data.get("company_website")):
             return _no_contact(
-                person, "No employer known, so no lookup key beyond a bare name."
+                person, "No employer known, so no lookup key beyond a bare name.",
+                age_days=age_days, stale=is_stale,
             )
 
     _RUN_STATS["calls"] += 1
@@ -193,10 +235,10 @@ def enrich(person: Person, employer_domain: Optional[str] = None) -> ContactReco
 
     if status == "no_match":
         _RUN_STATS["no_match"] += 1
-        return _pattern_fallback(person, domain)
+        return _pattern_fallback(person, domain, age_days=age_days, stale=is_stale)
     if status != "ok" or not payload:
         _RUN_STATS["errors"] += 1
-        return _pattern_fallback(person, domain)
+        return _pattern_fallback(person, domain, age_days=age_days, stale=is_stale)
 
     p = payload.get("person") or {}
     email_block = p.get("email") or {}
@@ -211,7 +253,7 @@ def enrich(person: Person, employer_domain: Optional[str] = None) -> ContactReco
         email = None
 
     if not email:
-        return _pattern_fallback(person, domain)
+        return _pattern_fallback(person, domain, age_days=age_days, stale=is_stale)
 
     _RUN_STATS["hits"] += 1
     _RUN_STATS["credits_used"] += 0 if payload.get("free_enrichment") else 1
@@ -234,6 +276,8 @@ def enrich(person: Person, employer_domain: Optional[str] = None) -> ContactReco
         linkedin_live=False,  # set by L12, never asserted here
         recommended_first_channel="linkedin" if linkedin else _fallback_channel(label),
         channel_rationale=_rationale(label, bool(linkedin)),
+        evidence_age_days=age_days,
+        stale=is_stale,
     )
 
 
@@ -266,7 +310,12 @@ def _rationale(label: EmailStatus, has_linkedin: bool) -> str:
     return base + tail
 
 
-def _no_contact(person: Person, why: str) -> ContactRecord:
+def _no_contact(
+    person: Person,
+    why: str,
+    age_days: Optional[int] = None,
+    stale: bool = False,
+) -> ContactRecord:
     return ContactRecord(
         person_id=person.person_id,
         email=None,
@@ -274,6 +323,8 @@ def _no_contact(person: Person, why: str) -> ContactRecord:
         linkedin_url=str(person.linkedin_url) if person.linkedin_url else None,
         recommended_first_channel="linkedin",
         channel_rationale="No email route found. " + why,
+        evidence_age_days=age_days,
+        stale=stale,
     )
 
 
@@ -281,15 +332,29 @@ def _no_contact(person: Person, why: str) -> ContactRecord:
 # firstname.lastname@ is the dominant convention at Irish engineering
 # consultancies. It is a GUESS, it is labelled a guess on the card, and I8
 # means nobody should be sending to it as a first touch anyway.
-def _pattern_fallback(person: Person, domain: Optional[str]) -> ContactRecord:
+def _pattern_fallback(
+    person: Person,
+    domain: Optional[str],
+    age_days: Optional[int] = None,
+    stale: bool = False,
+) -> ContactRecord:
     if not domain:
-        return _no_contact(person, "No confirmed employer domain to infer from.")
+        return _no_contact(
+            person, "No confirmed employer domain to infer from.",
+            age_days=age_days, stale=stale,
+        )
     first, last = _split_name(person.full_name)
     if not first or not last:
-        return _no_contact(person, "Name could not be split into first/last.")
+        return _no_contact(
+            person, "Name could not be split into first/last.",
+            age_days=age_days, stale=stale,
+        )
     local = _slug(first) + "." + _slug(last)
     if not local.strip("."):
-        return _no_contact(person, "Name did not reduce to an ASCII local part.")
+        return _no_contact(
+            person, "Name did not reduce to an ASCII local part.",
+            age_days=age_days, stale=stale,
+        )
     guess = local + "@" + domain
     return ContactRecord(
         person_id=person.person_id,
@@ -299,6 +364,8 @@ def _pattern_fallback(person: Person, domain: Optional[str]) -> ContactRecord:
         linkedin_url=str(person.linkedin_url) if person.linkedin_url else None,
         recommended_first_channel="linkedin",
         channel_rationale=_rationale("pattern_guess", bool(person.linkedin_url)),
+        evidence_age_days=age_days,
+        stale=stale,
     )
 
 

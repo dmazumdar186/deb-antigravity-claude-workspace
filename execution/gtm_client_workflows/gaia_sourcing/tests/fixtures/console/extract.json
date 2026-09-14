@@ -1,0 +1,210 @@
+{
+  "persons": {
+    "alice_kearney": {
+      "person_id": "alice_kearney",
+      "full_name": "Alice Kearney",
+      "current_title": "Senior Structural Engineer",
+      "current_employer": "O'Connor Sutton Cronin",
+      "location": "Dublin, Ireland",
+      "doc_ids": ["doc1"],
+      "linkedin_url": null,
+      "role_id": "role1_senior_structural_engineer",
+      "source": "company_directory"
+    },
+    "brian_walsh": {
+      "person_id": "brian_walsh",
+      "full_name": "Brian Walsh",
+      "current_title": "Senior Structural Engineer",
+      "current_employer": "RPS",
+      "location": "Cork, Ireland",
+      "doc_ids": ["doc2"],
+      "linkedin_url": null,
+      "role_id": "role1_senior_structural_engineer",
+      "source": "company_directory"
+    },
+    "ciara_hennessy": {
+      "person_id": "ciara_hennessy",
+      "full_name": "Ciara Hennessy",
+      "current_title": "Technical Director",
+      "current_employer": "Jacobs",
+      "location": "Cork, Ireland",
+      "doc_ids": ["doc3"],
+      "linkedin_url": null,
+      "role_id": "role2_transport_major_projects_manager",
+      "source": "acp_witness_statement"
+    }
+  },
+  "claims": [
+    {
+      "claim_id": "c_alice_chartership",
+      "subject_person_id": "alice_kearney",
+      "dimension": "chartership",
+      "assertion": "Alice is a Chartered Engineer with Engineers Ireland (CEng MIEI).",
+      "evidence_quote": "I am a Chartered Engineer with Engineers Ireland, CEng MIEI.",
+      "source_doc_id": "doc1",
+      "source_url": "https://example.com/ocsc/people/alice-kearney",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_alice_location",
+      "subject_person_id": "alice_kearney",
+      "dimension": "location",
+      "assertion": "Alice is based in Dublin, Ireland.",
+      "evidence_quote": "I am based in our Dublin office in Ireland.",
+      "source_doc_id": "doc1",
+      "source_url": "https://example.com/ocsc/people/alice-kearney",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_alice_employer",
+      "subject_person_id": "alice_kearney",
+      "dimension": "employer",
+      "assertion": "Alice is employed by O'Connor Sutton Cronin as Senior Structural Engineer.",
+      "evidence_quote": "I am employed by O'Connor Sutton Cronin as a Senior Structural Engineer.",
+      "source_doc_id": "doc1",
+      "source_url": "https://example.com/ocsc/people/alice-kearney",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_alice_years",
+      "subject_person_id": "alice_kearney",
+      "dimension": "years_experience",
+      "assertion": "Alice has 12 years of professional experience.",
+      "evidence_quote": "I have 12 years of professional experience in structural engineering.",
+      "source_doc_id": "doc1",
+      "source_url": "https://example.com/ocsc/people/alice-kearney",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_alice_tech1",
+      "subject_person_id": "alice_kearney",
+      "dimension": "technical_skill",
+      "assertion": "Alice has Eurocode design experience.",
+      "evidence_quote": "I have extensive experience in Eurocode structural design.",
+      "source_doc_id": "doc1",
+      "source_url": "https://example.com/ocsc/people/alice-kearney",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_alice_tech2",
+      "subject_person_id": "alice_kearney",
+      "dimension": "technical_skill",
+      "assertion": "Alice uses Tekla Structural Designer.",
+      "evidence_quote": "I regularly use Tekla Structural Designer for reinforced concrete design.",
+      "source_doc_id": "doc1",
+      "source_url": "https://example.com/ocsc/people/alice-kearney",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_brian_chartership",
+      "subject_person_id": "brian_walsh",
+      "dimension": "chartership",
+      "assertion": "Brian is a Chartered Engineer, CEng MIEI.",
+      "evidence_quote": "I am a Chartered Engineer, CEng MIEI, with Engineers Ireland.",
+      "source_doc_id": "doc2",
+      "source_url": "https://example.com/rps/people/brian-walsh",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_brian_location",
+      "subject_person_id": "brian_walsh",
+      "dimension": "location",
+      "assertion": "Brian works from the Cork office in Ireland.",
+      "evidence_quote": "I work from our Cork office in Ireland.",
+      "source_doc_id": "doc2",
+      "source_url": "https://example.com/rps/people/brian-walsh",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_brian_employer",
+      "subject_person_id": "brian_walsh",
+      "dimension": "employer",
+      "assertion": "Brian is employed by RPS as a Senior Structural Engineer.",
+      "evidence_quote": "I am employed by RPS as a Senior Structural Engineer.",
+      "source_doc_id": "doc2",
+      "source_url": "https://example.com/rps/people/brian-walsh",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_brian_years",
+      "subject_person_id": "brian_walsh",
+      "dimension": "years_experience",
+      "assertion": "Brian has over 15 years of professional experience.",
+      "evidence_quote": "I have over 15 years of professional experience in civil engineering.",
+      "source_doc_id": "doc2",
+      "source_url": "https://example.com/rps/people/brian-walsh",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_brian_tech1",
+      "subject_person_id": "brian_walsh",
+      "dimension": "technical_skill",
+      "assertion": "Brian designs structural steel frames using Robot Structural Analysis.",
+      "evidence_quote": "I have designed structural steel frames using Robot Structural Analysis.",
+      "source_doc_id": "doc2",
+      "source_url": "https://example.com/rps/people/brian-walsh",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_ciara_chartership",
+      "subject_person_id": "ciara_hennessy",
+      "dimension": "chartership",
+      "assertion": "Ciara is a Chartered Engineer and Fellow of Engineers Ireland.",
+      "evidence_quote": "I am a Chartered Engineer and Fellow of Engineers Ireland.",
+      "source_doc_id": "doc3",
+      "source_url": "https://example.com/acp/case-314232/witness-ciara-hennessy",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_ciara_location",
+      "subject_person_id": "ciara_hennessy",
+      "dimension": "location",
+      "assertion": "Ciara is based in Cork, Ireland.",
+      "evidence_quote": "I am based in Cork, Ireland.",
+      "source_doc_id": "doc3",
+      "source_url": "https://example.com/acp/case-314232/witness-ciara-hennessy",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_ciara_employer",
+      "subject_person_id": "ciara_hennessy",
+      "dimension": "employer",
+      "assertion": "Ciara is employed by Jacobs as Technical Director.",
+      "evidence_quote": "I am employed by Jacobs as Technical Director.",
+      "source_doc_id": "doc3",
+      "source_url": "https://example.com/acp/case-314232/witness-ciara-hennessy",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_ciara_years",
+      "subject_person_id": "ciara_hennessy",
+      "dimension": "years_experience",
+      "assertion": "Ciara has 22 years of professional experience in transport infrastructure.",
+      "evidence_quote": "I have 22 years of professional experience in transport infrastructure.",
+      "source_doc_id": "doc3",
+      "source_url": "https://example.com/acp/case-314232/witness-ciara-hennessy",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_ciara_employer_transport",
+      "subject_person_id": "ciara_hennessy",
+      "dimension": "employer",
+      "assertion": "Ciara is Technical Director of Transport at Jacobs.",
+      "evidence_quote": "I am Technical Director of Transport at Jacobs, with responsibility for major projects.",
+      "source_doc_id": "doc3",
+      "source_url": "https://example.com/acp/case-314232/witness-ciara-hennessy",
+      "confidence": "direct"
+    },
+    {
+      "claim_id": "c_ciara_statutory",
+      "subject_person_id": "ciara_hennessy",
+      "dimension": "statutory_process",
+      "assertion": "Ciara gave oral hearing evidence on the DART+ West railway order.",
+      "evidence_quote": "I gave oral hearing evidence to An Coimisiun Pleanala on the DART+ West railway order.",
+      "source_doc_id": "doc3",
+      "source_url": "https://example.com/acp/case-314232/witness-ciara-hennessy",
+      "confidence": "direct"
+    }
+  ],
+  "extracted_doc_ids": ["doc1", "doc2", "doc3"]
+}

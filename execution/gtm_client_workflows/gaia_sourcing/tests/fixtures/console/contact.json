@@ -1,0 +1,32 @@
+{
+  "alice_kearney": {
+    "person_id": "alice_kearney",
+    "email": "alice.kearney@example.com",
+    "email_status": "verified",
+    "email_provider": "prospeo",
+    "linkedin_url": "https://www.linkedin.com/in/alice-kearney",
+    "linkedin_live": true,
+    "recommended_first_channel": "linkedin",
+    "channel_rationale": "Verified email and a resolved LinkedIn profile."
+  },
+  "brian_walsh": {
+    "person_id": "brian_walsh",
+    "email": "brian.walsh@example.com",
+    "email_status": "catch_all",
+    "email_provider": "prospeo",
+    "linkedin_url": null,
+    "linkedin_live": false,
+    "recommended_first_channel": "linkedin",
+    "channel_rationale": "No resolved LinkedIn profile; email domain accepts all mail."
+  },
+  "ciara_hennessy": {
+    "person_id": "ciara_hennessy",
+    "email": null,
+    "email_status": "none",
+    "email_provider": null,
+    "linkedin_url": null,
+    "linkedin_live": false,
+    "recommended_first_channel": "linkedin",
+    "channel_rationale": "No contact details found yet."
+  }
+}

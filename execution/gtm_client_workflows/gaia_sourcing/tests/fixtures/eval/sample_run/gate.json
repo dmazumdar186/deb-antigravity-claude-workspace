@@ -1,0 +1,37 @@
+{
+ "alice": {
+  "role_id": "role1_senior_structural_engineer",
+  "tier": "A",
+  "gates": [],
+  "n_claims": 5,
+  "client_side": false
+ },
+ "bob": {
+  "role_id": "role1_senior_structural_engineer",
+  "tier": "B",
+  "gates": [],
+  "n_claims": 3,
+  "client_side": false
+ },
+ "carol": {
+  "role_id": "role1_senior_structural_engineer",
+  "tier": "EXCLUDED",
+  "gates": [],
+  "n_claims": 1,
+  "client_side": false
+ },
+ "dave": {
+  "role_id": "role2_transport_major_projects_manager",
+  "tier": "A",
+  "gates": [],
+  "n_claims": 4,
+  "client_side": false
+ },
+ "erin": {
+  "role_id": "role2_transport_major_projects_manager",
+  "tier": "B",
+  "gates": [],
+  "n_claims": 2,
+  "client_side": false
+ }
+}
