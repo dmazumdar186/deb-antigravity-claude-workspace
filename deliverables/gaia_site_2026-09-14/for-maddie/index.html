@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive,nosnippet"><meta name="referrer" content="no-referrer"><style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Gaia Sourcing v2</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive,nosnippet"><meta name="referrer" content="no-referrer"><style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><title>Gaia Sourcing v2</title></head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -176,7 +176,7 @@
   .foot{color:var(--muted); font-size:0.85rem; margin-top:2.5rem;}
 </style>
 
-<div class="topbar">Gaia Sourcing v2 · Prodcraft · for Gaia Talent · draft for Monday 14 Sep 2026</div>
+<div class="topbar">Gaia Sourcing v2 · Prodcraft · for Gaia Talent · Monday 14 Sep 2026</div>
 
 <div class="wrap">
 
@@ -185,7 +185,7 @@
 
   <h2 id="today">What Gaia has today, and where this sits</h2>
   <p>Maddie's screener is inbound. A CV arrives in Gmail, the screener scores it against live jobs, flags any CV that scores over 60 out of 100 against a job it is applying for, offers a screening call on one click, and writes the candidate with notes into Recruit CRM. It handles the people who come to you.</p>
-  <p>This system is outbound. It finds the chartered, grade-matched, Ireland-based engineers who never applied, proves each one with a quote from a public document, checks their contact details, and drops them into Recruit CRM as candidates on the job, so Isadora or Maddie's screener takes over from there. Together they cover both halves of a search.</p>
+  <p>This check is outbound. It finds the chartered, grade-matched, Ireland-based engineers who never applied, proves each one with a quote from a public document, checks their contact details, and drops them into Recruit CRM as candidates on the job, so Isadora or Maddie's screener takes over from there. Together they cover both halves of a search.</p>
   <p>Recruit CRM's own AI sourcing (800 million external profiles, 0 to 100 match scores) is a search over a licensed profile database. This is a different layer: it reads what people wrote and said on the record (oral-hearing witness statements, firm bio pages, professional registers), so a card carries evidence, not a similarity score, and it applies your brief as hard rules, not a ranking.</p>
 
   <div class="diagram-frame">
@@ -296,7 +296,7 @@
   <p>You said the list was too senior and some were not in Ireland. Both were filter settings.</p>
   <ul>
     <li>The seniority filter had a floor (8 years) and no ceiling, and it treated a Director title as proof of experience. All 10 Senior Structural Engineer cards were Director or Associate Director.</li>
-    <li>The Ireland filter accepted "worked on an Irish scheme" as proof of living in Ireland. That let three London-based engineers through, and a fourth with no residence evidence at all.</li>
+    <li>The Ireland filter accepted "worked on an Irish scheme" as proof of living in Ireland. That let two engineers evidenced only at a London office through, and eleven with no residence statement at all.</li>
   </ul>
   <p>Both are now brief settings you set per role: a seniority band (grade ceiling and years) and a residence rule (Republic only, county list, relocation yes or no). A final check refuses to deliver a list whose titles or locations break the brief. The re-cut of your own 13 under a Senior Engineer ceiling is at the Brief Controls link: <strong>none of the 13 survive</strong>, which is exactly your read of the list.</p>
 
@@ -349,7 +349,7 @@
     <li>Link: the sourcing dossier (same format as before) with Brief Controls, corrected for Senior Engineer grade and Ireland residence, for the two original roles, plus a CSV.</li>
     <li>Loom: how it runs, how the brief settings work, and how a candidate lands in Recruit CRM.</li>
     <li>This page, for Maddie: where the hand-off to her screener sits, and the Recruit CRM fields and endpoints used.</li>
-    <li>An honest count: how many candidates survived per role and why. <strong>Role 2 (Cork) never had more than four</strong> who passed every gate; reaching five is a source question, not a filter question, and the page will say so.</li>
+    <li>An honest count: how many candidates survived per role and why. <strong>Role 2 (Cork) had no one</strong> who passed every gate; reaching five is a source question, not a filter question, and the page will say so.</li>
   </ul>
 
   <h2 id="corrected-cut">The corrected cut, as it stands (11 September)</h2>
@@ -361,7 +361,7 @@
   </ul>
 
   <h2 id="timeline">Build timeline if you go ahead</h2>
-  <p>Working pipeline exists (1,086 automated tests plus a 41-check acceptance gate on every delivery). Recruit CRM sync, reply classification and the brief settings are built. Wiring to your Recruit CRM account, your job slugs and a named-consultant sender takes 3 to 5 working days, as said on the call. Running cost per role is about €100 in data and model calls, against a placement fee of €14k to €20k.</p>
+  <p>Working pipeline exists (1,086 tests plus a 41-check acceptance gate on every delivery). Recruit CRM sync, reply classification and the brief settings are built. Wiring to your Recruit CRM account, your job slugs and a named-consultant sender takes 3 to 5 working days, as said on the call. Running cost per role is about €100 in data and model calls, against a placement fee of €14k to €20k.</p>
 
   <h2 id="steph">What Maddie needs to know about the Recruit CRM hand-off</h2>
   <ul>
@@ -374,21 +374,21 @@
 
   <h2 id="tools">The tools Keith mentioned, and where this differs</h2>
   <ul>
-    <li><strong>Recruit CRM AI sourcing:</strong> natural-language search over a licensed database of 800 million profiles with a match score, one-click import, on credits. A search over profiles; no evidence quotes, no chartership check, no outbound drafts or reply handling on its marketing pages (to be confirmed with Recruit CRM). This system reads what the person actually wrote or said on the record and applies the brief as hard rules.</li>
-    <li><strong>Wiggli:</strong> ATS plus AI sourcing over 850 million people, contact waterfall across 14 data sources, Hunter plan €140 a month for up to 5 users. Irish coverage unpublished. Worth a trial search if Gaia wants a second database source; it does not replace evidence or gating.</li>
-    <li><strong>Lusha and enrichment tools:</strong> Keith's own read ("they enrich but don't have the data") matches the published European coverage picture. Compliance note: Italy's regulator fined Lusha €2 million in July 2026, rejecting "legitimate interest" for enrichment data. Sourcing from public records with a named source and an Article 14 notice is the safer basis, and it is how this system already works.</li>
+    <li><strong>Recruit CRM AI sourcing:</strong> natural-language search over a licensed database of 800 million profiles with a match score, one-click import, on credits. A search over profiles; no evidence quotes, no chartership check, no outbound drafts or reply handling on its marketing pages (to be confirmed with Recruit CRM). This check reads what the person actually wrote or said on the record and applies the brief as hard rules.</li>
+    <li><strong>Wiggli:</strong> ATS plus its sourcing add-on over 850 million people, contact waterfall across 14 data sources, Hunter plan €140 a month for up to 5 users. Irish coverage unpublished. Worth a trial search if Gaia wants a second database source; it does not replace evidence or gating.</li>
+    <li><strong>Lusha and enrichment tools:</strong> Keith's own read ("they enrich but don't have the data") matches the published European coverage picture. Compliance note: Italy's regulator fined Lusha €2 million in July 2026, rejecting "legitimate interest" for enrichment data. Sourcing from public records with a named source and an Article 14 notice is the safer basis, and it is how this check already works.</li>
     <li><strong>InMail:</strong> response rates have fallen from 10 to 15% toward 3 to 8%, and LinkedIn cut open InMail sends to under 100 a month in late 2025. That is why the drafts here are short, evidence-specific, sent from a named consultant, and email goes only to verified addresses.</li>
   </ul>
 
   <h2 id="not-in-scope">Not in scope, deliberately</h2>
   <ul>
-    <li>No AI voice calls, no automated sends: Maddie's screener and your consultants own every conversation.</li>
+    <li>No voice calls, no unattended sends: Maddie's screener and your consultants own every conversation.</li>
     <li>No replacement of Recruit CRM or LinkedIn Recruiter; this feeds the first and reduces reliance on the second.</li>
     <li>No claim of a reply rate. The pilot counts replies; it does not promise them.</li>
   </ul>
 
   <hr class="rule">
-  <p class="foot">Prodcraft · prepared for Gaia Talent · draft for Monday 14 Sep 2026, 17:00</p>
+  <p class="foot">Prodcraft · prepared for Gaia Talent · Monday 14 Sep 2026, 17:00</p>
 
 </div>
 </body></html>
