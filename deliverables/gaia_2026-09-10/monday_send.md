@@ -1,5 +1,6 @@
 # Monday send — Keith Molony, Gaia Talent (Mon 14 Sep 2026, before 17:00)
 
+Public site (no login), built from deliverables/gaia_site_2026-09-14 on branch gh-pages: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/ . Keith could not open claude.ai artifact links (14 Sep 17:37); never send artifact links to the client again.
 Two things the operator sends: the email (§1) and the Loom it links to (§2, script).
 Facts come from `deliverables/gaia_2026-09-14/` (campaign `gaia-2026-09-14`) and the runbook §1c.
 Record check 2026-09-11: Keith's feedback on the 20 August list, as recorded in commit a626381 on the morning of the call, was "too senior, some not in Ireland", so "you were right on both" stands (on the call itself he repeated only the seniority point; the transcript is in `transcript_2026-09-10_fathom.md`). Maddie is the developer who built Gaia's inbound screener (operator's correction; the Fathom transcript garbles the name as "Steph"). Also, the call brief's "Brady (Horganlynch Belfast)" is wrong. The August dossier says he joined Horganlynch's Cork office in 1990 and only names a Belfast project, and the current cache reads his location as Cork. Say "three London, one unproven", never "Belfast".
@@ -19,9 +20,9 @@ As promised on Thursday. Three links, one short video, then the honest numbers.
 
 You said the August list was too senior and that some were not in Ireland. You were right on both. Both were filter settings; both are fixed below.
 
-- Corrected shortlist: https://claude.ai/code/artifact/16f9282e-e30e-4a4b-b6e2-624d836a7e80
-- Brief Controls (your 20 August list with the two filters you can set yourself): https://claude.ai/code/artifact/3d47597e-04bd-42ec-bb15-ce6126b93703
-- The page for Maddie, on where this hands over to her screener and Recruit CRM: https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed
+- Corrected shortlist: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/shortlist/
+- Brief Controls (your 20 August list with the two filters you can set yourself): https://dmazumdar186.github.io/deb-antigravity-claude-workspace/brief-controls/
+- The page for Maddie, on where this hands over to her screener and Recruit CRM: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/for-maddie/
 - Loom, 5 minutes: {LOOM_URL}
 
 Could you forward the third link to Maddie? It is written for her.
