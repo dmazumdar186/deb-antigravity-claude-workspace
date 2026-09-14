@@ -11,6 +11,8 @@ at the boundary instead of silently dropping fields downstream.
 from __future__ import annotations
 
 import hashlib
+import re
+import unicodedata
 from datetime import datetime, timezone
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
@@ -101,6 +103,10 @@ class NormalizedJob(BaseModel):
     fetched_at: datetime
     content_hash: str = Field(..., description="SHA256(title|company|canonical_url) — exact-match dedup key.")
     also_seen_on: list[JobSource] = Field(default_factory=list)
+    # 2026-09-10 dedup-fingerprint fix: fuzzy cross-source dedup key, SHA256 of
+    # normalized(title)|normalized(company). Defaults to "" so pre-existing
+    # serialized JSONL (written before this field existed) still parses.
+    fingerprint: str = Field(default="", description="SHA256(norm_title|norm_company) — fuzzy cross-source dedup key.")
 
     @field_validator("content_hash")
     @classmethod
@@ -149,7 +155,16 @@ _TRACKING_PARAMS = frozenset({
     "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
     "gh_src", "gh_jid", "fbclid", "gclid", "mc_eid", "mc_cid",
     "ref", "refsrc", "trk", "trkCampaign", "lipi",
+    # 2026-09-10 dedup-fingerprint fix: common job-board tracking/session params
+    # that vary per impression/click for what is otherwise the identical posting.
+    # Deliberately NOT adding `q` — that's a query param some boards use to
+    # identify the job itself, not tracking.
+    "refId", "trackingId", "position", "pageNum", "originalSubdomain",
+    "origin", "campaign", "xkcb", "xpse", "vjs", "advn", "sjdu",
+    "utm_id", "mkt_tok", "_hsenc", "_hsmi", "hsCtaTracking",
+    "itm_source", "itm_medium",
 })
+_TRACKING_PARAMS_LOWER = frozenset(p.lower() for p in _TRACKING_PARAMS)
 
 
 def canonicalize_url(url: str) -> str:
@@ -163,5 +178,86 @@ def canonicalize_url(url: str) -> str:
     from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
     parts = urlsplit(str(url))
-    cleaned_query = urlencode([(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=False) if k.lower() not in _TRACKING_PARAMS])
-    return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path, cleaned_query, ""))
+    cleaned_query = urlencode([(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=False) if k.lower() not in _TRACKING_PARAMS_LOWER])
+    # 2026-09-10 dedup-fingerprint fix: strip a trailing "/" on path and
+    # fragment so "/jobs/1" and "/jobs/1/" canonicalize identically.
+    path = parts.path[:-1] if parts.path.endswith("/") and len(parts.path) > 1 else parts.path
+    fragment = parts.fragment[:-1] if parts.fragment.endswith("/") and len(parts.fragment) > 1 else parts.fragment
+    return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, cleaned_query, fragment))
+
+
+# ----- fingerprint: fuzzy cross-source dedup -----
+
+# Gender-marker variants seen on FR/DE/EN job boards, checked (case-insensitively,
+# after accent-stripping) as literal substrings once punctuation is stripped to
+# a single space. Longest-first so e.g. "h/f/x" doesn't get partially eaten by
+# a shorter "h/f" removal leaving a stray "/x".
+_GENDER_MARKERS = sorted(
+    [
+        "h/f/x", "f/m/x", "m/f/d", "m/w/d", "w/m/d", "x/f/m",
+        "h/f", "f/h", "m/w", "w/m", "m/f", "f/m",
+        "all genders",
+    ],
+    key=len,
+    reverse=True,
+)
+
+_LEGAL_SUFFIXES = frozenset({
+    "sas", "sa", "sarl", "sasu", "eurl", "gmbh", "ag", "ltd", "inc", "llc",
+    "bv", "nv", "plc", "group", "groupe",
+})
+
+_PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
+_WS_RE = re.compile(r"\s+")
+
+
+def _strip_accents(s: str) -> str:
+    nfkd = unicodedata.normalize("NFKD", s)
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
+
+
+def _normalize_title(title: str) -> str:
+    s = _strip_accents(title).lower()
+    for marker in _GENDER_MARKERS:
+        s = s.replace(f"({marker})", " ").replace(marker, " ")
+    s = _PUNCT_RE.sub(" ", s)
+    s = _WS_RE.sub(" ", s).strip()
+    # Contract / location suffixes boards bolt onto the same posting
+    # ("Product Manager - CDI", "Product Manager (CDI) Paris") are not part of
+    # the job identity; drop them when they trail the title.
+    s = _TRAILING_CONTRACT_RE.sub("", s).strip()
+    return s
+
+
+_TRAILING_CONTRACT_RE = re.compile(r"(\s+(cdi|cdd|freelance|full\s*time|temps\s+plein|permanent))+$")
+
+
+def _normalize_company(company: str) -> str:
+    s = _strip_accents(company).lower().strip()
+    # Recruiter marker: leading "via " or trailing " via <x>".
+    if s.startswith("via "):
+        s = s[4:].strip()
+    s = re.sub(r"\s+via\s+\S+.*$", "", s).strip()
+    s = _PUNCT_RE.sub(" ", s)
+    s = _WS_RE.sub(" ", s).strip()
+    tokens = [t for t in s.split(" ") if t and t not in _LEGAL_SUFFIXES]
+    return " ".join(tokens)
+
+
+def compute_fingerprint(title: str, company: str) -> str:
+    """SHA256 of normalized(title)|normalized(company) — a fuzzy cross-source
+    dedup key that survives gender-marker suffixes, accents, punctuation,
+    legal-entity suffixes, and recruiter "via X" wrapping that make the exact
+    content_hash miss the same posting seen from two different boards.
+
+    If company is empty/"unknown"/"confidential" (after normalization), the
+    fingerprint is title-only (paired with the literal "|_" so it can never
+    collide with a real normalized empty-string company).
+    """
+    norm_title = _normalize_title(title)
+    norm_company = _normalize_company(company)
+    if norm_company in ("", "unknown", "confidential"):
+        payload = f"{norm_title}|_"
+    else:
+        payload = f"{norm_title}|{norm_company}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()

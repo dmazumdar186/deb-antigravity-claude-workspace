@@ -42,6 +42,7 @@ if str(_WORKSPACE) not in sys.path:
 
 from execution.personal_workflows.job_search_v2.normalizer.title_filter import classify_title  # noqa: E402
 from execution.personal_workflows.job_search_v2.normalizer.language_filter import classify_language  # noqa: E402
+from execution.personal_workflows.job_search_v2.normalizer.domain_filter import classify_domain  # noqa: E402
 
 load_dotenv(find_dotenv(usecwd=False))
 
@@ -136,8 +137,27 @@ MUST_REJECT_BY_LANGUAGE = [
     "Product Owner für unseren Standort in Berlin",
 ]
 
+# Titles the DOMAIN gate must reject (2026-09-10). The operator's CV is
+# software-only; PM/PO roles for physical / electronic / instrumentation /
+# semiconductor / embedded / systems-software products pass the title gate
+# ("Product Manager") but do NOT match the profile. Verified independently.
+MUST_REJECT_BY_DOMAIN = [
+    "Product Manager – Semiconductor Test Solutions",
+    "Hardware Product Manager",
+    "Chef de Produit Instrumentation",
+    "Product Manager Embedded Systems (H/F)",
+    "Product Manager - Systems Software",
+    "Product Owner Électronique de puissance",
+    "Product Manager - Microchips & ASIC",
+    "Senior Product Manager, Medical Devices",
+    "Product Manager Firmware & Connectivity",
+    "Chef de produit mécanique H/F",
+    "Product Manager FPGA Platforms",
+    "Product Manager – Test & Measurement Instruments",
+]
+
 # Combined view for the pipeline-outcome check (backwards compat).
-MUST_REJECT = MUST_REJECT_BY_TITLE + MUST_REJECT_BY_LANGUAGE
+MUST_REJECT = MUST_REJECT_BY_TITLE + MUST_REJECT_BY_LANGUAGE + MUST_REJECT_BY_DOMAIN
 MUST_KEEP = [
     # 2026-09-01 PM/PO-only rework: the operator's target set is Product
     # Manager (plain / data / growth / technical / functional / platform / AI)
@@ -197,6 +217,18 @@ LANG_DESC_CORPUS = [
 ]
 
 
+STAMP_CORPUS = [
+    ("open · posted 2026-09-08 · checked 2026-09-10", True),
+    ("unverified (source date) · posted 2026-09-09 · checked 2026-09-10", True),
+    ("open · posted 2026-09-03 · checked 2026-09-10", True),   # exactly 7d = allowed
+    ("open · posted 2026-09-02 · checked 2026-09-10", False),  # 8d = stale at insert
+    ("open · posted unknown · checked 2026-09-10", False),
+    ("closed · posted 2026-09-09 · checked 2026-09-10", False),
+    ("", False),
+    ("verified", False),
+]
+
+
 def check_regression_corpus() -> list[str]:
     """Run the frozen corpus through the gate. Returns list of failures (empty=OK).
 
@@ -226,13 +258,25 @@ def check_regression_corpus() -> list[str]:
         lang_ok, reason = classify_language(t, "")
         if lang_ok:
             failures.append(f"MUST_REJECT_BY_LANGUAGE but lang-gate accepted: '{t[:55]}' ({reason})")
+    for t in MUST_REJECT_BY_DOMAIN:
+        dom_ok, reason = classify_domain(t, "")
+        if dom_ok:
+            failures.append(f"MUST_REJECT_BY_DOMAIN but domain-gate accepted: '{t[:55]}' ({reason})")
     for t in MUST_KEEP:
         rel_ok, rel_reason = classify_title(t)
         lang_ok, lang_reason = classify_language(t, "")
+        dom_ok, dom_reason = classify_domain(t, "")
         if not rel_ok:
             failures.append(f"MUST_KEEP but title-gate dropped: '{t[:55]}' ({rel_reason})")
         if not lang_ok:
             failures.append(f"MUST_KEEP but lang-gate dropped: '{t[:55]}' ({lang_reason})")
+        if not dom_ok:
+            failures.append(f"MUST_KEEP but domain-gate dropped: '{t[:55]}' ({dom_reason})")
+    # Verified-stamp parser must itself hold the line (frozen expectations).
+    for stamp, want_clean in STAMP_CORPUS:
+        got = check_verified_stamp(stamp)
+        if (got is None) != want_clean:
+            failures.append(f"STAMP want_clean={want_clean} but got {got!r} for {stamp!r}")
     # Description-level language checks (the title-only loop above can't see these).
     for title, desc, want_keep in LANG_DESC_CORPUS:
         lang_ok, reason = classify_language(title, desc)
@@ -240,6 +284,50 @@ def check_regression_corpus() -> list[str]:
             verb = "dropped" if want_keep else "kept"
             failures.append(f"LANG_DESC want_keep={want_keep} but {verb}: '{title[:40]}' ({reason})")
     return failures
+
+
+# ---------------------------------------------------------------------------
+# FRESHNESS / LIVENESS invariant (2026-09-10).
+#
+# Every role-tab row must carry a "Verified" stamp written either by Stage 3.8
+# (new rows) or by the Stage 3.9 re-verification sweep (historical rows):
+#     "open · posted YYYY-MM-DD · checked YYYY-MM-DD"
+#     "unverified (source date) · posted YYYY-MM-DD · checked YYYY-MM-DD"
+# A row is a violation when the stamp is missing, unparsable, its posted date
+# is more than MAX_AGE_DAYS before its check date, or it was never dated.
+# ---------------------------------------------------------------------------
+MAX_AGE_DAYS = 7.0
+_STAMP_RE = __import__("re").compile(
+    r"^(?P<label>open|closed|unknown|unverified \(source date\))\s*·\s*posted\s+(?P<posted>\d{4}-\d{2}-\d{2}|unknown)"
+    r"\s*·\s*checked\s+(?P<checked>\d{4}-\d{2}-\d{2})\s*$"
+)
+
+
+def check_verified_stamp(stamp: str, max_age_days: float = MAX_AGE_DAYS) -> str | None:
+    """Return a violation string for a Verified cell, or None when compliant."""
+    from datetime import date
+
+    text = (stamp or "").strip()
+    if not text:
+        return "no Verified stamp (row never liveness/freshness-checked)"
+    m = _STAMP_RE.match(text)
+    if not m:
+        return f"unparsable Verified stamp ({text[:40]})"
+    if m.group("label") == "closed":
+        return "verified CLOSED (no longer accepting applications)"
+    if m.group("posted") == "unknown":
+        return "posted date unknown at verification"
+    try:
+        posted = date.fromisoformat(m.group("posted"))
+        checked = date.fromisoformat(m.group("checked"))
+    except ValueError as exc:
+        return f"bad date in Verified stamp ({exc})"
+    age = (checked - posted).days
+    if age > max_age_days:
+        return f"stale at insert: posted {posted.isoformat()}, {age}d before check"
+    if age < -1:
+        return f"posted date in the future relative to check ({posted.isoformat()} > {checked.isoformat()})"
+    return None
 
 
 def _open_sheet():
@@ -253,14 +341,29 @@ def _open_sheet():
     return gspread.authorize(creds).open_by_key(sid)
 
 
-def _check_row(tab: str, title: str, location: str, link: str) -> list[str]:
-    """Return a list of violation strings for one row (empty = clean)."""
+def _check_row(tab: str, title: str, location: str, link: str, verified: str | None = None) -> list[str]:
+    """Return a list of violation strings for one row (empty = clean).
+
+    `verified` is the row's Verified cell; pass None to skip the freshness /
+    liveness check (Top Matches is a derived dashboard without that column).
+    """
     violations: list[str] = []
 
     # 1. Relevance — must match one of the operator's two tracks.
     ok, reason = classify_title(title)
     if not ok:
         violations.append(f"irrelevant title ({reason.split(':',1)[-1]})")
+
+    # 1b. Domain — software / digital products only (2026-09-10).
+    dom_ok, dom_reason = classify_domain(title, "")
+    if not dom_ok:
+        violations.append(f"non-software domain ({dom_reason.split(':',1)[-1]})")
+
+    # 1c. Freshness + liveness stamp (2026-09-10).
+    if verified is not None:
+        stamp_violation = check_verified_stamp(verified)
+        if stamp_violation:
+            violations.append(stamp_violation)
 
     # 2. Language — title must read as EN or FR.
     lang_ok, lang_reason = classify_language(title, "")
@@ -409,6 +512,18 @@ def check_pipeline_degradation() -> list[str]:
             f"heuristic-placeholder."
         )
 
+    # 2026-09-10: Stage 3.8 posting verification must have RUN on a live run.
+    # A run that skipped it (--no-verify, or config.verification.enabled=false)
+    # can write unverified rows — the exact defect class this gate exists for.
+    verification = stats.get("verification", {}) or {}
+    if stats.get("mode") == "live" and (verification.get("disabled") or not verification):
+        failures.append(
+            "POSTING VERIFICATION SKIPPED on a live run (stats.verification missing or "
+            "disabled) — every row must be page-checked for freshness + liveness."
+        )
+    for w in verification.get("warnings", []) or []:
+        print(f"  [WARN] posting_verifier: {w}")
+
     per_source = stats.get("per_source", {}) or {}
     non_zero_sources = sum(1 for _, n in per_source.items() if int(n or 0) > 0)
     if non_zero_sources < DEGRADATION_THRESHOLDS["non_zero_sources_min"]:
@@ -524,6 +639,7 @@ def main() -> int:
         title_i = idx.get("Title")
         loc_i = idx.get("Location")
         link_i = idx.get("Link")
+        verified_i = idx.get("Verified")
         if title_i is None:
             tab_reports.append((tab, 0, 0, ["no Title column"]))
             continue
@@ -537,7 +653,13 @@ def main() -> int:
             if not title.strip():
                 continue
             total_rows += 1
-            vs = _check_row(tab, title, location, link)
+            if tab == TOP_MATCHES_TAB:
+                verified = None  # derived dashboard: no Verified column by design
+            else:
+                # A role tab WITHOUT the column (pre-migration) yields "" → violation,
+                # which is the intended signal: the sheet was never verified.
+                verified = r[verified_i] if (verified_i is not None and len(r) > verified_i) else ""
+            vs = _check_row(tab, title, location, link, verified)
             if vs:
                 total_violations += 1
                 tab_violations.append(f"    '{title[:55]}' [{location[:25]}] -> {'; '.join(vs)}")

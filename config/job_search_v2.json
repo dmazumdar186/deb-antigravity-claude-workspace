@@ -87,6 +87,12 @@
     "preferred_locations_weight": 0.3,
     "preferred_signals_weight": 0.3
   },
+  "verification": {
+    "comment": "Stage 3.8 posting verification (2026-09-10). Every job's own page is fetched; the real posted date and the still-accepting-applications state are read from it. Jobs closed, older than max_age_days, or undatable are dropped before ranking. Source dates are only a fallback when the host blocks the fetch.",
+    "enabled": true,
+    "max_age_days": 7,
+    "concurrency": 8
+  },
   "fan_out": {
     "comment": "Per-source defaults passed by run.py. Override via CLI.",
     "max_pages": 3,

@@ -105,8 +105,12 @@ NORM_OUT="$TMP_DIR/normalized.jsonl"
 
 NORM_LINES=$(wc -l < "$NORM_OUT" | tr -d ' \r')
 echo "      → $NORM_LINES NormalizedJob lines"
-if [ "$NORM_LINES" -lt 15 ]; then
-    echo "FAIL: normalize produced $NORM_LINES lines, expected ≥15" >&2
+# 2026-09-10: 15 fixture SourceJobs collapse to 13 NormalizedJobs — the
+# "AI Product Manager @ Demo AI Lab" posting appears in the france_travail,
+# indeed_gmail and wttj fixtures with three different URLs and is now merged by
+# title+company fingerprint (cross-source dedup, operator complaint: duplicates).
+if [ "$NORM_LINES" -lt 13 ]; then
+    echo "FAIL: normalize produced $NORM_LINES lines, expected ≥13" >&2
     exit 1
 fi
 

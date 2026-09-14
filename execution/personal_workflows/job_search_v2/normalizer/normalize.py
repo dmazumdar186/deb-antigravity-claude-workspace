@@ -24,6 +24,7 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
     SourceJob,
     canonicalize_url,
     compute_content_hash,
+    compute_fingerprint,
 )
 
 
@@ -118,23 +119,59 @@ def to_normalized(src: SourceJob) -> NormalizedJob:
         remote_mode=_detect_remote(src.location_raw, src.description_snippet),
         fetched_at=src.fetched_at,
         content_hash=compute_content_hash(src.title, src.company, canonical),
+        fingerprint=compute_fingerprint(src.title, src.company),
     )
+
+
+def _merge_into(existing: NormalizedJob, incoming: NormalizedJob) -> NormalizedJob:
+    """Merge `incoming` (a newly-seen dupe of `existing`, by content_hash or
+    fingerprint) into `existing`, keeping `existing` as the surviving record but:
+      - appending incoming.source to also_seen_on (if new)
+      - preferring a non-None posted_at when existing lacks one
+      - preferring the longer description_snippet
+    """
+    updates: dict = {}
+    if incoming.source != existing.source and incoming.source not in existing.also_seen_on:
+        updates["also_seen_on"] = [*existing.also_seen_on, incoming.source]
+    if existing.posted_at is None and incoming.posted_at is not None:
+        updates["posted_at"] = incoming.posted_at
+    if len(incoming.description_snippet or "") > len(existing.description_snippet or ""):
+        updates["description_snippet"] = incoming.description_snippet
+    if not updates:
+        return existing
+    return existing.model_copy(update=updates)
 
 
 def batch_normalize(jobs: list[SourceJob]) -> list[NormalizedJob]:
     """Map a batch of SourceJobs to NormalizedJobs. Merges in-batch cross-source dupes
-    via content_hash, populating `also_seen_on` on the surviving job.
+    that share either content_hash (exact same title|company|canonical_url) or
+    fingerprint (fuzzy same title+company, e.g. same posting from two boards with
+    different tracking-param URLs) — first occurrence wins as the surviving record,
+    with `also_seen_on` / posted_at / description_snippet backfilled from the merged
+    duplicates (see `_merge_into`).
     """
     by_hash: dict[str, NormalizedJob] = {}
+    by_fingerprint: dict[str, str] = {}  # fingerprint -> content_hash of the surviving job
+
     for src in jobs:
         nj = to_normalized(src)
+
+        winner_hash: str | None = None
         if nj.content_hash in by_hash:
-            existing = by_hash[nj.content_hash]
-            if nj.source != existing.source and nj.source not in existing.also_seen_on:
-                merged = existing.model_copy(update={"also_seen_on": [*existing.also_seen_on, nj.source]})
-                by_hash[nj.content_hash] = merged
+            winner_hash = nj.content_hash
+        elif nj.fingerprint and nj.fingerprint in by_fingerprint:
+            winner_hash = by_fingerprint[nj.fingerprint]
+
+        if winner_hash is not None:
+            existing = by_hash[winner_hash]
+            by_hash[winner_hash] = _merge_into(existing, nj)
+            if nj.fingerprint:
+                by_fingerprint.setdefault(nj.fingerprint, winner_hash)
         else:
             by_hash[nj.content_hash] = nj
+            if nj.fingerprint:
+                by_fingerprint.setdefault(nj.fingerprint, nj.content_hash)
+
     return list(by_hash.values())
 
 

@@ -36,18 +36,54 @@ if str(_PKG_DIR.parent.parent.parent.parent) not in sys.path:
 from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
     NormalizedJob,
     RankedJob,
+    canonicalize_url,
+    compute_fingerprint,
 )
 
 load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("notifier.sheet")
 
+# 2026-09-10 dedup-fingerprint fix: populated by every append_jobs() call so
+# run.py can log/report the cross-tab dedup breakdown without a signature
+# change to append_jobs (which callers already depend on as
+# (rows_appended, per_tab_counts, ok)).
+LAST_APPEND_STATS: dict[str, int] = {
+    "appended": 0,
+    "skipped_existing_id": 0,
+    "skipped_existing_link": 0,
+    "skipped_existing_fingerprint": 0,
+    "skipped_in_batch": 0,
+}
+
 # Canonical header set for per-role tabs. Trimmed 2026-06-24 per operator request:
 # dropped _id / First Seen / Posted / Remote? / Source / Also Seen On / Status /
 # Notes / Tier — cross-day dedup is handled by seen.db at the pipeline level, so
 # the in-sheet _id column is no longer load-bearing for correctness.
+# 2026-09-10: "Posted" + "Verified" re-added (operator complaint: rows were
+# expired / months old). Posted = the date read from the job's OWN page by
+# Stage 3.8 (source date only as fallback). Verified = the liveness stamp
+# `open · posted YYYY-MM-DD · checked YYYY-MM-DD` the acceptance gate audits.
+# _ensure_headers() appends any missing header at the next free column, so
+# the live sheet self-migrates on the first run.
 STANDARD_HEADERS = [
     "Company", "Title", "Country", "Location", "Contract", "Link",
+    "Posted", "Verified",
 ]
+
+
+def verification_stamp(status: str, posted_at, checked_at, reason: str = "") -> str:
+    """Human-readable liveness stamp written to the Verified column.
+
+    Shape: "open · posted 2026-09-08 · checked 2026-09-10" — and, when the
+    page could not be fetched, "unverified (source date) · posted … · checked …".
+    The acceptance gate parses this shape back (tests/acceptance_job_search_v2.py).
+    """
+    posted = posted_at.isoformat()[:10] if posted_at else "unknown"
+    checked = checked_at.isoformat()[:10] if checked_at else ""
+    label = status
+    if reason == "ok_unverified_fresh" or status == "unverifiable":
+        label = "unverified (source date)"
+    return f"{label} · posted {posted} · checked {checked}"
 
 
 # ---------------------------------------------------------------------------
@@ -106,9 +142,19 @@ def route_to_tab(title: str, routing_config: dict) -> str:
     return routing_config.get("fallback_tab", "PM")
 
 
-def _job_to_dict(job: NormalizedJob, ranked: RankedJob | None, run_now: str) -> dict[str, str]:
-    """Build a {header_name: value} dict so the writer can place each value by name."""
-    posted = job.posted_at.isoformat()[:10] if job.posted_at else ""
+def _job_to_dict(job: NormalizedJob, ranked: RankedJob | None, run_now: str, record=None) -> dict[str, str]:
+    """Build a {header_name: value} dict so the writer can place each value by name.
+
+    `record` is the Stage 3.8 VerificationRecord (posting_verifier) for this
+    job, if any: its page-derived posted date wins over the source's, and it
+    fills the Verified stamp. Without it (verification disabled / fixture
+    mode) Posted falls back to the source date and Verified stays blank.
+    """
+    effective_posted = record.posted_at if (record is not None and record.posted_at is not None) else job.posted_at
+    posted = effective_posted.isoformat()[:10] if effective_posted else ""
+    verified = ""
+    if record is not None and getattr(record, "reason", "") != "disabled":
+        verified = verification_stamp(record.status, record.posted_at, record.checked_at, record.reason)
     also_seen = ", ".join(s.value for s in job.also_seen_on) if job.also_seen_on else ""
     tier = ranked.tier.value if ranked else ""
     return {
@@ -124,9 +170,17 @@ def _job_to_dict(job: NormalizedJob, ranked: RankedJob | None, run_now: str) -> 
         "Source": job.source.value,
         "Also Seen On": also_seen,
         "Link": str(job.url),
+        "Verified": verified,
         "Status": "New",
         "Notes": ranked.reasoning if ranked else "",
         "Tier": tier,
+        # 2026-09-10 dedup-fingerprint fix: carried on the dict for the
+        # cross-tab dedup pass in _dedup_dicts. Never written to the sheet —
+        # no header named "fingerprint" exists in STANDARD_HEADERS and the
+        # name-based writer only ever places columns it finds in the header
+        # row, so this key is silently dropped at write time (same as any
+        # other non-header key already in this dict, e.g. "_id").
+        "fingerprint": job.fingerprint or compute_fingerprint(job.title, job.company),
     }
 
 
@@ -184,6 +238,167 @@ def _ensure_headers(ws, expected: list[str]) -> dict[str, int]:
     )
     logger.info("notifier.sheet: added missing headers to %s: %s", ws.title, missing)
     return _read_header_map(ws)
+
+
+# Tabs excluded from cross-tab dedup scanning: dashboards, not per-role rosters.
+_NON_ROLE_TABS = {TOP_MATCHES_TAB, SUMMARY_TAB}
+
+
+def _discover_role_tabs(sp, routing_config: dict | None) -> list[str]:
+    """All tabs that could hold a duplicate of an incoming job: every tab
+    `route_to_tab` can route to (routing_config's synonym tabs + fallback_tab),
+    plus any worksheet already in the spreadsheet that looks like a per-role
+    roster (has both a Title and a Company column) and isn't a dashboard tab.
+
+    2026-09-10 dedup-fingerprint fix: root cause #3 of the duplicate-row bug —
+    the append path only ever checked the ONE tab a job was being routed into,
+    so the same posting landing in "PM" one day and "AI PM" the next (routing
+    config tweak, borderline title) never got caught.
+    """
+    import gspread  # type: ignore
+
+    routing_config = routing_config or {"fallback_tab": "PM", "titles": {}}
+    tabs: set[str] = {routing_config.get("fallback_tab", "PM")}
+    for cfg in (routing_config.get("titles", {}) or {}).values():
+        tab = cfg.get("tab")
+        if tab:
+            tabs.add(tab)
+
+    try:
+        for ws in sp.worksheets():
+            if ws.title in _NON_ROLE_TABS or ws.title in tabs:
+                continue
+            try:
+                header = ws.row_values(1)
+            except Exception as exc:  # noqa: BLE001 — best-effort discovery
+                logger.warning("notifier.sheet: could not read header of %s: %s", ws.title, exc)
+                continue
+            if "Title" in header and "Company" in header:
+                tabs.add(ws.title)
+    except Exception as exc:  # noqa: BLE001 — gspread surface; fall back to routing-config tabs only
+        logger.warning("notifier.sheet: worksheet discovery failed: %s", exc)
+
+    return sorted(tabs)
+
+
+def _read_existing_keys(ws) -> tuple[set[str], set[str], set[str]]:
+    """Read one worksheet's rows and return (ids, canonical_links, fingerprints)
+    already present in it. Best-effort: a column that doesn't exist yields an
+    empty contribution rather than raising.
+    """
+    ids: set[str] = set()
+    links: set[str] = set()
+    fingerprints: set[str] = set()
+
+    try:
+        all_rows = ws.get_all_values()
+    except Exception as exc:  # noqa: BLE001 — gspread surface; best-effort
+        logger.warning("notifier.sheet: could not read %s for dedup scan: %s", ws.title, exc)
+        return ids, links, fingerprints
+    if not all_rows:
+        return ids, links, fingerprints
+
+    header = all_rows[0]
+    idx = {h: i for i, h in enumerate(header) if h and h.strip()}
+    id_i = idx.get("_id")
+    link_i = idx.get("Link")
+    company_i = idx.get("Company")
+    title_i = idx.get("Title")
+
+    for row in all_rows[1:]:
+        if id_i is not None and len(row) > id_i and row[id_i].strip():
+            ids.add(row[id_i].strip())
+        if link_i is not None and len(row) > link_i and row[link_i].strip():
+            raw_link = row[link_i].strip().lstrip("'")  # undo formula-injection quote-prefix
+            try:
+                links.add(canonicalize_url(raw_link))
+            except Exception as exc:  # noqa: BLE001 — malformed URL in the sheet; skip it
+                logger.warning("notifier.sheet: could not canonicalize link %r in %s: %s", raw_link, ws.title, exc)
+        if title_i is not None and company_i is not None and len(row) > max(title_i, company_i):
+            title, company = row[title_i].strip(), row[company_i].strip()
+            if title:
+                fingerprints.add(compute_fingerprint(title, company))
+
+    return ids, links, fingerprints
+
+
+def _collect_existing_keys_across_tabs(sp, tabs: list[str]) -> tuple[set[str], set[str], set[str]]:
+    """Union the (ids, canonical_links, fingerprints) already present across
+    every tab in `tabs`. Reads each tab exactly once."""
+    import gspread  # type: ignore
+
+    all_ids: set[str] = set()
+    all_links: set[str] = set()
+    all_fingerprints: set[str] = set()
+    for tab in tabs:
+        try:
+            ws = sp.worksheet(tab)
+        except gspread.WorksheetNotFound:
+            continue
+        ids, links, fps = _read_existing_keys(ws)
+        all_ids |= ids
+        all_links |= links
+        all_fingerprints |= fps
+    return all_ids, all_links, all_fingerprints
+
+
+def _dedup_dicts(
+    dicts: list[dict[str, str]],
+    existing_ids: set[str],
+    existing_links: set[str],
+    existing_fingerprints: set[str],
+) -> tuple[list[dict[str, str]], dict[str, int]]:
+    """Drop any dict whose _id, canonicalized Link, or fingerprint already
+    exists in `existing_*` — or was already seen earlier IN THIS SAME BATCH —
+    and report why each drop happened.
+
+    Check order (id -> link -> fingerprint -> in-batch) matters only for which
+    stat bucket a drop lands in; a dict is dropped on the first key that hits.
+    """
+    stats = {
+        "appended": 0,
+        "skipped_existing_id": 0,
+        "skipped_existing_link": 0,
+        "skipped_existing_fingerprint": 0,
+        "skipped_in_batch": 0,
+    }
+    kept: list[dict[str, str]] = []
+    seen_ids: set[str] = set()
+    seen_links: set[str] = set()
+    seen_fingerprints: set[str] = set()
+
+    for d in dicts:
+        job_id = (d.get("_id") or "").strip()
+        raw_link = (d.get("Link") or "").strip()
+        try:
+            link = canonicalize_url(raw_link) if raw_link else ""
+        except Exception:  # noqa: BLE001 — malformed link on an incoming job; don't let it block dedup
+            link = ""
+        fingerprint = (d.get("fingerprint") or "").strip()
+
+        if job_id and job_id in existing_ids:
+            stats["skipped_existing_id"] += 1
+            continue
+        if link and link in existing_links:
+            stats["skipped_existing_link"] += 1
+            continue
+        if fingerprint and fingerprint in existing_fingerprints:
+            stats["skipped_existing_fingerprint"] += 1
+            continue
+        if (job_id and job_id in seen_ids) or (link and link in seen_links) or (fingerprint and fingerprint in seen_fingerprints):
+            stats["skipped_in_batch"] += 1
+            continue
+
+        if job_id:
+            seen_ids.add(job_id)
+        if link:
+            seen_links.add(link)
+        if fingerprint:
+            seen_fingerprints.add(fingerprint)
+        kept.append(d)
+
+    stats["appended"] = len(kept)
+    return kept, stats
 
 
 def _append_dicts(ws, dicts: list[dict[str, str]], dedup_id_field: str = "_id") -> int:
@@ -300,8 +515,12 @@ def append_jobs(
     spreadsheet_id: str | None = None,
     service_account_path: Path | None = None,
     dry_run: bool = False,
+    verification: dict | None = None,
 ) -> tuple[int, dict[str, int], bool]:
     """Append jobs to their routed tabs by COLUMN NAME (not position).
+
+    `verification` maps content_hash -> posting_verifier.VerificationRecord;
+    it feeds the Posted / Verified columns (see _job_to_dict).
 
     Returns (total_rows_written, per_tab_counts, ok).
 
@@ -313,20 +532,29 @@ def append_jobs(
         logger.info("notifier.sheet: 0 jobs to append, skipping")
         return 0, {}, True
 
+    global LAST_APPEND_STATS
+
     routing_config = routing_config or {"fallback_tab": "PM", "titles": {}}
     ranked_by_hash = ranked_by_hash or {}
     now_iso = datetime.now(timezone.utc).isoformat()
 
-    per_tab: dict[str, list[dict[str, str]]] = {}
+    tabbed: list[tuple[str, dict[str, str]]] = []
     for job in jobs:
         tab = route_to_tab(job.title, routing_config)
         ranked = ranked_by_hash.get(job.content_hash)
-        per_tab.setdefault(tab, []).append(_job_to_dict(job, ranked, now_iso))
-
-    per_tab_counts = {tab: len(rows) for tab, rows in per_tab.items()}
+        record = (verification or {}).get(job.content_hash)
+        tabbed.append((tab, _job_to_dict(job, ranked, now_iso, record)))
 
     if dry_run:
-        logger.info("notifier.sheet [dry-run]: would consider %s", per_tab_counts)
+        # No live sheet to scan for cross-tab dupes — dedup against the batch itself only.
+        kept, dedup_stats = _dedup_dicts([d for _, d in tabbed], set(), set(), set())
+        kept_obj_ids = {id(d) for d in kept}
+        per_tab_counts: dict[str, int] = {}
+        for tab, d in tabbed:
+            if id(d) in kept_obj_ids:
+                per_tab_counts[tab] = per_tab_counts.get(tab, 0) + 1
+        LAST_APPEND_STATS = dedup_stats
+        logger.info("notifier.sheet [dry-run]: dedup stats %s, would append %s", dedup_stats, per_tab_counts)
         return sum(per_tab_counts.values()), per_tab_counts, True
 
     sp, err = _open_sheet(spreadsheet_id, service_account_path)
@@ -335,6 +563,21 @@ def append_jobs(
         return 0, {}, False
 
     import gspread  # type: ignore
+
+    # 2026-09-10 dedup-fingerprint fix (root cause #3): scan every role tab
+    # ONCE, up front, and dedup the whole incoming batch against the union —
+    # not just against the single tab each job happens to route into.
+    role_tabs = _discover_role_tabs(sp, routing_config)
+    existing_ids, existing_links, existing_fingerprints = _collect_existing_keys_across_tabs(sp, role_tabs)
+    kept, dedup_stats = _dedup_dicts([d for _, d in tabbed], existing_ids, existing_links, existing_fingerprints)
+    LAST_APPEND_STATS = dedup_stats
+    logger.info("notifier.sheet: cross-tab dedup stats %s", dedup_stats)
+
+    kept_obj_ids = {id(d) for d in kept}
+    per_tab: dict[str, list[dict[str, str]]] = {}
+    for tab, d in tabbed:
+        if id(d) in kept_obj_ids:
+            per_tab.setdefault(tab, []).append(d)
 
     total_written = 0
     written_per_tab: dict[str, int] = {}
@@ -352,6 +595,9 @@ def append_jobs(
                 )
                 logger.info("notifier.sheet: created missing tab %s with canonical headers", tab)
 
+            # Cross-tab id/link/fingerprint dedup already ran above; this
+            # remaining per-tab _id check is a cheap redundant safety net for
+            # any tab that legitimately has an "_id" column left over.
             written = _append_dicts(ws, dicts)
             total_written += written
             written_per_tab[tab] = written
