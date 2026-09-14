@@ -59,7 +59,7 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45  # 2026-09-14: sources ~15 min + strict verification + time-boxed sheet sweep (8 min)
     steps:
       - name: Checkout
         uses: actions/checkout@v4

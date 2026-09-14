@@ -866,3 +866,28 @@ def test_acceptance_unstamped_row_is_pending_only_while_backlog(monkeypatch, tmp
     outside.write_text("{}", encoding="utf-8")
     monkeypatch.setenv("CURRENT_RUN_STATS_PATH", str(outside))
     assert acc.load_current_run_stats() is None
+
+
+def test_sweep_deadline_defers_unreached_rows():
+    import time as _t
+    header = ["Company", "Title", "Country", "Location", "Contract", "Link", "Posted", "Verified"]
+    rows = [["Acme", f"Slow {i}", "", "Paris", "CDI", f"https://x.example/slow{i}", "", ""] for i in range(6)]
+    ws = FakeWorksheet("PM", header=header, rows=rows)
+    sp = FakeSpreadsheet({"PM": ws})
+    open_html = ('<html><body><script type="application/ld+json">{"@type":"JobPosting","datePosted":"%s"}</script>'
+                 '<button>Apply</button>' + "x" * 600 + "</body></html>") % (NOW - timedelta(days=1)).date().isoformat()
+
+    def slow_fetch(u):
+        _t.sleep(0.3)
+        return 200, open_html, u
+
+    stats = purge_mod.reverify_rows(
+        sp, tabs=["PM"], dry_run=False, max_fetches=100, concurrency=1, fetch=slow_fetch,
+        now=NOW, strict=True, browser_fallback=False, max_seconds=0.5,
+    )
+    assert stats["deadline_hit"] is True
+    assert stats["stamped"] >= 1
+    assert stats["stamped"] + stats["remaining_unstamped"] == 6
+    assert stats["removed"] == 0
+    titles = {r[1] for r in ws.get_all_values()[1:] if any(c.strip() for c in r)}
+    assert len(titles) == 6  # nothing removed unseen

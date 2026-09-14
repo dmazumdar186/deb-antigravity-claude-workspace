@@ -99,6 +99,8 @@
     "recheck_comment": "Stage 3.9 re-opens every sheet row whose last check is older than recheck_after_days; closed rows are removed, open rows get a 'rechecked' date. reverify_max_fetches bounds the per-run page budget.",
     "reverify_max_fetches": 1200,
     "max_browser_retries": 150,
+    "sweep_max_seconds": 480,
+    "sweep_comment": "Run 255 (2026-09-14) was cancelled at the 30-min job limit: sources took 15 min, the sweep 12+. The sweep now stops scheduling fetches after sweep_max_seconds and defers the rest; the job limit is 45 min.",
     "backlog_comment": "2026-09-14: the live sheet had 3,894 unstamped historical rows. While remaining_unstamped/remaining_recheck > 0 the acceptance gate reports unstamped rows as PENDING (never in a digest) instead of failing; once the backlog is 0, an unstamped row is a violation."
   },
   "fan_out": {
