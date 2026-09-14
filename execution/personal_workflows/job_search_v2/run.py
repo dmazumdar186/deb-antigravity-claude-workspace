@@ -745,10 +745,12 @@ def main() -> int:
                 purge_stats = purge_sheet(
                     sp, dry_run=False, delete_obsolete=True,
                     max_age_days=max_age_days,
-                    reverify_max_fetches=int(verification_cfg.get("reverify_max_fetches", 600)),
+                    reverify_max_fetches=int(verification_cfg.get("reverify_max_fetches", 1200)),
                     recheck_after_days=float(verification_cfg.get("recheck_after_days", 3)),
                     strict=verify_strict,
                     browser_fallback=bool(verification_cfg.get("browser_fallback", True)),
+                    concurrency=int(verification_cfg.get("concurrency", 8)),
+                    max_browser_retries=int(verification_cfg.get("max_browser_retries", 150)),
                 )
                 if purge_stats.get("removed_rows") or purge_stats.get("deleted_tabs"):
                     logger.info("run: sheet hygiene removed %d stale rows, deleted tabs %s",

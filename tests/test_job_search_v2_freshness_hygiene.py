@@ -816,3 +816,53 @@ def test_recheck_sweep_uses_browser_for_blocked_rows():
     assert stats["recheck_removed"] == 1  # only the genuinely closed one
     titles = {r[1] for r in ws.get_all_values()[1:] if any(c.strip() for c in r)}
     assert "Blocked PM" in titles
+
+
+# ===========================================================================
+# Browser-retry cap (deferral, never silent removal) + acceptance PENDING backlog
+# ===========================================================================
+
+def test_browser_cap_defers_blocked_rows_instead_of_removing():
+    header = ["Company", "Title", "Country", "Location", "Contract", "Link", "Posted", "Verified"]
+    rows = [["Acme", f"Blocked {i}", "", "Paris", "CDI", f"https://x.example/blocked{i}", "", ""] for i in range(3)]
+    ws = FakeWorksheet("PM", header=header, rows=rows)
+    sp = FakeSpreadsheet({"PM": ws})
+    open_html = ('<html><body><script type="application/ld+json">{"@type":"JobPosting","datePosted":"%s"}</script>'
+                 '<button>Apply</button>' + "x" * 600 + "</body></html>") % (NOW - timedelta(days=1)).date().isoformat()
+    browser_calls: list[str] = []
+
+    def browser_fetch(u):
+        browser_calls.append(u)
+        return 200, open_html, u
+
+    stats = purge_mod.reverify_rows(
+        sp, tabs=["PM"], dry_run=False, max_fetches=100, concurrency=1, fetch=lambda u: (403, "", u),
+        now=NOW, strict=True, browser_fetch=browser_fetch, max_browser_retries=1,
+    )
+    assert len(browser_calls) == 1
+    assert stats["stamped"] == 1 and stats["removed"] == 0
+    assert stats["remaining_unstamped"] == 2  # deferred, still present
+    titles = {r[1] for r in ws.get_all_values()[1:] if any(c.strip() for c in r)}
+    assert titles == {"Blocked 0", "Blocked 1", "Blocked 2"}
+
+
+def test_acceptance_reverify_backlog_from_stats():
+    assert acc.reverify_backlog(None) == 0
+    assert acc.reverify_backlog({"sheet_hygiene": {"reverify": {"remaining_unstamped": 5, "remaining_recheck": 2}}}) == 7
+    assert acc.reverify_backlog({"sheet_hygiene": {}}) == 0
+
+
+def test_acceptance_unstamped_row_is_pending_only_while_backlog(monkeypatch, tmp_path):
+    # PENDING_STAMP_VIOLATION is exactly what an unstamped row yields.
+    assert acc._check_row("PM", "Senior Product Manager", "Paris", "https://x", "") == [acc.PENDING_STAMP_VIOLATION]
+    # load_current_run_stats honours the .tmp/ boundary.
+    repo_tmp = Path(__file__).resolve().parents[1] / ".tmp" / "job_search_v2" / "runs" / "run_test_backlog"
+    repo_tmp.mkdir(parents=True, exist_ok=True)
+    f = repo_tmp / "current_stats.json"
+    f.write_text(json.dumps({"sheet_hygiene": {"reverify": {"remaining_unstamped": 3}}}), encoding="utf-8")
+    monkeypatch.setenv("CURRENT_RUN_STATS_PATH", str(f))
+    assert acc.reverify_backlog(acc.load_current_run_stats()) == 3
+    outside = tmp_path / "evil.json"
+    outside.write_text("{}", encoding="utf-8")
+    monkeypatch.setenv("CURRENT_RUN_STATS_PATH", str(outside))
+    assert acc.load_current_run_stats() is None

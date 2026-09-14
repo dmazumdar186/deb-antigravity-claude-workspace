@@ -364,6 +364,42 @@ def check_verified_stamp(stamp: str, max_age_days: float = MAX_AGE_DAYS, *, toda
     return None
 
 
+PENDING_STAMP_VIOLATION = "no Verified stamp (row never liveness/freshness-checked)"
+
+
+def load_current_run_stats() -> dict | None:
+    """The current run's pipeline_stats (CURRENT_RUN_STATS_PATH, validated to
+    live under .tmp/), or None when the gate runs standalone."""
+    current_path = os.environ.get("CURRENT_RUN_STATS_PATH", "").strip()
+    if not current_path:
+        return None
+    try:
+        resolved = Path(current_path).resolve()
+        tmp_root = (Path(__file__).resolve().parents[1] / ".tmp").resolve()
+        if not resolved.is_relative_to(tmp_root) or not resolved.exists():
+            return None
+        return json.loads(resolved.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return None
+
+
+def reverify_backlog(stats: dict | None) -> int:
+    """Rows the Stage 3.9 sweep could NOT reach this run (page budget spent).
+
+    While this is > 0 the sweep is still draining pre-strict-mode history, so an
+    UNSTAMPED row is reported as PENDING (not yet checked, never shipped in the
+    digest — only new, verified rows are) instead of a violation. Once the
+    backlog is 0 an unstamped row is a violation again. Historical sheet on
+    2026-09-14: 3,894 unstamped rows vs a 1,200-page budget per run."""
+    if not stats:
+        return 0
+    rv = (stats.get("sheet_hygiene", {}) or {}).get("reverify", {}) or {}
+    try:
+        return int(rv.get("remaining_unstamped", 0) or 0) + int(rv.get("remaining_recheck", 0) or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _open_sheet():
     import gspread  # type: ignore
     from google.oauth2.service_account import Credentials  # type: ignore
@@ -658,6 +694,8 @@ def main() -> int:
 
     total_rows = 0
     total_violations = 0
+    total_pending = 0
+    backlog = reverify_backlog(load_current_run_stats())
     tab_reports: list[tuple[str, int, int, list[str]]] = []
 
     tabs = ROLE_TABS + [TOP_MATCHES_TAB]
@@ -699,6 +737,9 @@ def main() -> int:
                 # which is the intended signal: the sheet was never verified.
                 verified = r[verified_i] if (verified_i is not None and len(r) > verified_i) else ""
             vs = _check_row(tab, title, location, link, verified)
+            if backlog > 0 and vs == [PENDING_STAMP_VIOLATION]:
+                total_pending += 1  # sweep still draining history — not yet checked, not a defect
+                continue
             if vs:
                 total_violations += 1
                 tab_violations.append(f"    '{title[:55]}' [{location[:25]}] -> {'; '.join(vs)}")
@@ -719,6 +760,10 @@ def main() -> int:
             print(f"    ... +{len(viol) - 10} more")
     print("-" * 72)
     print(f"Total rows checked: {total_rows} | rows with violations: {total_violations}")
+    if total_pending:
+        print(f"[PENDING] {total_pending} historical rows await their first page check "
+              f"(sweep backlog this run: {backlog}); they are not in any digest and become "
+              f"violations once the backlog reaches 0.")
 
     failed = total_violations > 0
     if top_count == 0:
