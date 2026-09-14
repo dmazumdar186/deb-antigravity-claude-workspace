@@ -88,3 +88,7 @@ Source: execution/personal_workflows/job_search_v2/normalizer/posting_verifier.p
 ## [2026-09-14 12:00] constraint job_search_v2 cloud sandbox limitations
 gspread (_cffi_backend/cryptography) and pdfplumber cannot import in this sandbox (tests stub gspread in sys.modules); langdetect has no wheel for Python 3.11 here so the language filter defaults to accept locally, though CI installs it fine.
 Source: execution/personal_workflows/job_search_v2/
+
+## [2026-09-14 13:15] learned job_search_v2 strict verification mode closes three unverified-link leaks
+Panel audit found blocked-host, dated-but-unconfirmed, and never-rechecked rows leaking past the verifier; strict mode (config verification.strict, default true) drops unverifiable_blocked/unconfirmed_open and rechecks stamped rows every recheck_after_days (3).
+Source: execution/personal_workflows/job_search_v2/normalizer/posting_verifier.py, purge_irrelevant_rows.py, commit 5d6f7b6
