@@ -751,6 +751,7 @@ def main() -> int:
                     browser_fallback=bool(verification_cfg.get("browser_fallback", True)),
                     concurrency=int(verification_cfg.get("concurrency", 8)),
                     max_browser_retries=int(verification_cfg.get("max_browser_retries", 150)),
+                    sweep_max_seconds=float(verification_cfg.get("sweep_max_seconds", 480)),
                 )
                 if purge_stats.get("removed_rows") or purge_stats.get("deleted_tabs"):
                     logger.info("run: sheet hygiene removed %d stale rows, deleted tabs %s",
