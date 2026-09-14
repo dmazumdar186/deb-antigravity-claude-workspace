@@ -104,3 +104,6 @@ execution/.coverage
 
 # Regenerable ad-creative PNG renders (py execution/content/ad_creative_batch.py) — keep binaries out
 deliverables/ad_creative/**/renders/
+
+# Vercel CLI link metadata (never commit)
+.vercel/
