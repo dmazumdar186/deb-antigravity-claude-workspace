@@ -168,7 +168,11 @@ def check_summary(ws, failures: list[str]) -> None:
 
 
 def main() -> int:
-    sp = _open_sheet()
+    # 2026-09-14 (cron run 256): open_by_key itself is a metadata READ and was the
+    # first call after the strict-mode sweep + acceptance gate had spent the
+    # per-minute read quota — it 429'd before any tab check ran. Same backoff
+    # as every other read in this file.
+    sp = _retry_429(_open_sheet)
     failures: list[str] = []
     role_tabs = ["PM", "AI PM", "PO", "AI PO"]
 
