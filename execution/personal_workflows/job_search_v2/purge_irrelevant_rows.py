@@ -319,7 +319,10 @@ def dedup_rows(sp, tabs: list[str] | None = None, dry_run: bool = False) -> dict
 # ---------------------------------------------------------------------------
 STAMP_COL = "Verified"
 POSTED_COL = "Posted"
-DEFAULT_REVERIFY_MAX_FETCHES = 600
+DEFAULT_REVERIFY_MAX_FETCHES = 1200
+# Serial headless-browser retries per run (~3 s each). Blocked rows beyond the
+# cap are deferred to the next run, never removed unseen.
+DEFAULT_MAX_BROWSER_RETRIES = 150
 
 
 def _row_verdict(link: str, now, max_age_days: float, fetch, *, strict: bool = True,
@@ -360,7 +363,8 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
                   max_age_days: float = 7.0, max_fetches: int = DEFAULT_REVERIFY_MAX_FETCHES,
                   concurrency: int = 6, only_unstamped: bool = True, fetch=fetch_page,
                   now=None, recheck_after_days: float = 3.0, strict: bool = True,
-                  browser_fallback: bool = True, browser_fetch=None) -> dict:
+                  browser_fallback: bool = True, browser_fetch=None,
+                  max_browser_retries: int = DEFAULT_MAX_BROWSER_RETRIES) -> dict:
     """Two sweeps over every role tab, within one page budget (`max_fetches`):
 
       1. UNSTAMPED rows (pre-Stage-3.8 history): open the Link, remove closed /
@@ -386,6 +390,7 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
                    "recheck_removed": 0, "remaining_unstamped": 0, "remaining_recheck": 0,
                    "per_tab": {}, "sample_removed": [], "browser_used": False}
     budget = max(0, int(max_fetches))
+    browser_budget = max(0, int(max_browser_retries))
 
     # One shared headless browser for the whole sweep (serial use only).
     browser_cm = None
@@ -453,12 +458,20 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
                     for n, res in zip(todo_unstamped, pool.map(
                             lambda i: _row_verdict(rows[i][link_i].strip(), now, max_age_days, fetch, strict=strict), todo_unstamped)):
                         verdicts[n] = res
-                if browser_fetch is not None:
-                    for n in todo_unstamped:
-                        decision, stamp, _ = verdicts[n]
-                        if decision == "remove" and ("unverifiable" in stamp or "blocked" in stamp):
-                            verdicts[n] = _row_verdict(rows[n][link_i].strip(), now, max_age_days, fetch,
-                                                       strict=strict, browser_fetch=browser_fetch)
+                for n in todo_unstamped:
+                    decision, stamp, _ = verdicts[n]
+                    if decision == "remove" and ("unverifiable" in stamp or "blocked" in stamp):
+                        if browser_fetch is None:
+                            continue  # strict without a browser: the row is removed
+                        if browser_budget <= 0:
+                            # Browser retries are serial (~3 s each); past the cap the
+                            # row is DEFERRED to the next run, never removed unseen.
+                            verdicts.pop(n)
+                            stats["remaining_unstamped"] += 1
+                            continue
+                        browser_budget -= 1
+                        verdicts[n] = _row_verdict(rows[n][link_i].strip(), now, max_age_days, fetch,
+                                                   strict=strict, browser_fetch=browser_fetch)
             # Pass 2 (re-check) — HTTP in a pool, browser retry for blocked.
             rechecks: dict[int, tuple[str, str]] = {}
             if todo_recheck:
@@ -466,11 +479,18 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
                     for n, res in zip(todo_recheck, pool.map(
                             lambda i: _recheck_verdict(rows[i][link_i].strip(), now, fetch, strict=strict), todo_recheck)):
                         rechecks[n] = res
-                if browser_fetch is not None:
-                    for n in todo_recheck:
-                        if rechecks[n][0] == "blocked":
-                            rechecks[n] = _recheck_verdict(rows[n][link_i].strip(), now, fetch,
-                                                           strict=strict, browser_fetch=browser_fetch)
+                for n in todo_recheck:
+                    if rechecks[n][0] != "blocked":
+                        continue
+                    if browser_fetch is None:
+                        continue
+                    if browser_budget <= 0:
+                        rechecks.pop(n)  # deferred, keeps its current stamp
+                        stats["remaining_recheck"] += 1
+                        continue
+                    browser_budget -= 1
+                    rechecks[n] = _recheck_verdict(rows[n][link_i].strip(), now, fetch,
+                                                   strict=strict, browser_fetch=browser_fetch)
 
             kept_rows, removed_here = [], []
             stamped_here = unverified_here = rechecked_here = recheck_removed_here = 0
@@ -538,7 +558,8 @@ def purge_sheet(sp, tabs: list[str] | None = None, dry_run: bool = False,
                 reverify: bool = True, max_age_days: float = 7.0,
                 reverify_max_fetches: int = DEFAULT_REVERIFY_MAX_FETCHES,
                 recheck_after_days: float = 3.0, strict: bool = True,
-                browser_fallback: bool = True) -> dict:
+                browser_fallback: bool = True, concurrency: int = 6,
+                max_browser_retries: int = DEFAULT_MAX_BROWSER_RETRIES) -> dict:
     """Purge irrelevant rows from `tabs` (default ROLE_TABS + Top Matches) and
     delete OBSOLETE_TABS. Callable from run.py (Stage 3.9 sheet hygiene).
     Returns {"removed_rows": int, "deleted_tabs": [..], "per_tab": {...},
@@ -570,7 +591,8 @@ def purge_sheet(sp, tabs: list[str] | None = None, dry_run: bool = False,
         rv = reverify_rows(sp, tabs=rv_tabs or ROLE_TABS, dry_run=dry_run,
                            max_age_days=max_age_days, max_fetches=reverify_max_fetches,
                            recheck_after_days=recheck_after_days, strict=strict,
-                           browser_fallback=browser_fallback)
+                           browser_fallback=browser_fallback, concurrency=concurrency,
+                           max_browser_retries=max_browser_retries)
         stats["reverify"] = rv
         stats["removed_rows"] += rv["removed"]
 

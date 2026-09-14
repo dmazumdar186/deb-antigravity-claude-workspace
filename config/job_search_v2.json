@@ -97,7 +97,9 @@
     "concurrency": 8,
     "recheck_after_days": 3,
     "recheck_comment": "Stage 3.9 re-opens every sheet row whose last check is older than recheck_after_days; closed rows are removed, open rows get a 'rechecked' date. reverify_max_fetches bounds the per-run page budget.",
-    "reverify_max_fetches": 600
+    "reverify_max_fetches": 1200,
+    "max_browser_retries": 150,
+    "backlog_comment": "2026-09-14: the live sheet had 3,894 unstamped historical rows. While remaining_unstamped/remaining_recheck > 0 the acceptance gate reports unstamped rows as PENDING (never in a digest) instead of failing; once the backlog is 0, an unstamped row is a violation."
   },
   "fan_out": {
     "comment": "Per-source defaults passed by run.py. Override via CLI.",
