@@ -44,7 +44,7 @@ VALID_REMOTE = {"Yes", "No", "Remote", "Hybrid", "Onsite", "Unknown", ""}
 VALID_CONTRACT = {"CDI", "CDD", "Stage", "Freelance", "Internship", "Unknown", ""}
 
 
-def _retry_429(fn, *, attempts: int = 4, base_delay: float = 12.0):
+def _retry_429(fn, *, attempts: int = 6, base_delay: float = 15.0):
     """Call fn(); on a Sheets 429 (read-quota), sleep and retry. The synthetic
     opens 8 tabs in ~4s right after the writer made ~50 calls, so the 60/min
     read quota is often saturated. 4 attempts × 12s baseline = up to 90s of

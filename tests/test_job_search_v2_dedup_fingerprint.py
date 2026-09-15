@@ -656,3 +656,14 @@ def test_fingerprint_ignores_trailing_contract_suffix():
     from execution.personal_workflows.job_search_v2.contracts import compute_fingerprint as fp
     assert fp("Product Manager - CDI", "Doctolib") == fp("Product Manager (H/F)", "Doctolib SAS")
     assert fp("Product Manager CDI Paris", "Doctolib") != fp("Product Manager", "Doctolib")  # location stays
+
+
+
+def test_title_only_role_anchor_settles_language_without_langdetect():
+    from execution.personal_workflows.job_search_v2.normalizer.language_filter import classify_language
+    ok, reason = classify_language(
+        "Product Specialist/Chef de produit- Endovasculaire- Rungis, Île-de-France, France (H/F)", "")
+    assert ok is True and reason == "accept:role_anchor_en_fr"
+    # A German tell still rejects even with an English role anchor.
+    ok2, reason2 = classify_language("Product Manager für unseren Standort Berlin", "")
+    assert ok2 is False

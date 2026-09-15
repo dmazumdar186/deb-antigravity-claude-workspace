@@ -363,3 +363,12 @@ def test_hardware_title_anchors_nonempty_and_compiled():
 def test_software_context_anchors_nonempty():
     assert len(SOFTWARE_CONTEXT_ANCHORS) >= 8
     assert "saas" in SOFTWARE_CONTEXT_ANCHORS
+
+
+def test_endovascular_medical_device_product_is_hardware():
+    # Cron run 257 (2026-09-14): stents / implants are physical medical devices.
+    assert classify_domain("Product Specialist/Chef de produit- Endovasculaire- Rungis", "")[0] is False
+    assert classify_domain("Product Manager Implantable Devices", "")[0] is False
+    assert classify_domain("Chef de produit Instruments chirurgicaux H/F", "")[0] is False
+    # Software adjacent to healthcare stays in scope.
+    assert classify_domain("Product Manager – Patient App", "")[0] is True
