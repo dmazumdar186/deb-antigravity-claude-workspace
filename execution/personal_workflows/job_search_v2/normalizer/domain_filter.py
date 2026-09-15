@@ -91,7 +91,11 @@ _HW_PATTERNS: list[tuple[str, str]] = [
     ("sensor", r"\bsensors?\b|\bcapteurs?\b"),
     ("power_electronics", r"\bpower\s+electronics\b|\belectronique\s+de\s+puissance\b"),
     ("battery", r"\bbatter(y|ies)\b|\bbatteries?\b"),
-    ("medical_device", r"\bmedical\s+devices?\b|\bdispositifs?\s+medic(al|aux)\b"),
+    ("medical_device", r"\bmedical\s+devices?\b|\bdispositifs?\s+medic(al|aux)\b"
+                       # 2026-09-14 run 257: "Chef de produit Endovasculaire" (stents/implants) slipped.
+                       r"|\bendovascul(ar|aire)\b|\bimplantable\b|\bimplants?\s+(medic|orthop|dentaire|dental)"
+                       r"|\bprothes(e|es|is|ic)s?\b|\bsurgical\s+(instruments?|devices?|robot)"
+                       r"|\binstruments?\s+chirurgic(al|aux)\b|\bstents?\b"),
     ("mechanical", r"\bmechanical\b|\bmecanique\b"),
     ("automotive_ecu", r"\becus?\b|\badas\b|\bvehicle\s+systems?\b"),
     ("avionics", r"\bavionics?\b|\bavioniques?\b"),
