@@ -2,7 +2,9 @@
 sample_audit.py
 description: Audit a random seeded sample of businesses in a metro; record a metro_stats row with a Wilson CI.
 inputs: --metro X --n 40 [--mock] [--seed 42] [--store ...] [--store-root PATH] [--skip-vision] [--skip-screenshots]
-outputs: One `audits` row per sampled business, one `metro_stats` row, stdout stat line + the metro_stats row.
+    [--reuse-audits]
+outputs: One `audits` row per sampled business (skipped for businesses that already have a current audit when
+    --reuse-audits is given), one `metro_stats` row, stdout stat line + the metro_stats row.
 """
 
 from __future__ import annotations
@@ -38,6 +40,13 @@ def main() -> None:
     parser.add_argument("--store-root", default=None)
     parser.add_argument("--skip-vision", action="store_true")
     parser.add_argument("--skip-screenshots", action="store_true")
+    parser.add_argument(
+        "--reuse-audits",
+        action="store_true",
+        help="Use each sampled business's latest stored audit (same score_version) instead of "
+        "re-auditing; only businesses without one are audited. Writes only metro_stats for reused rows. "
+        "run_metro.py passes this after the full audit stage so nothing is audited twice.",
+    )
     args = parser.parse_args()
 
     settings = config.bootstrap()
@@ -58,12 +67,22 @@ def main() -> None:
 
     qualified = 0
     audited = 0
+    reused = 0
     errors = 0
     llm_cost_usd = 0.0
     lock = threading.Lock()
 
     def _run(business: dict) -> None:
-        nonlocal qualified, audited, errors, llm_cost_usd
+        nonlocal qualified, audited, reused, errors, llm_cost_usd
+        if args.reuse_audits:
+            existing = st.latest_audit(business["id"])
+            if existing and existing.get("score_version") == scoring.SCORE_VERSION:
+                with lock:
+                    reused += 1
+                    audited += 1
+                    if existing.get("bucket") == "qualified":
+                        qualified += 1
+                return
         audit_row, error = audit_site.audit_one_business(
             business,
             settings=settings,
@@ -107,6 +126,7 @@ def main() -> None:
         "metro": args.metro,
         "in": len(eligible),
         "sampled": audited,
+        "reused_audits": reused,
         "qualified": qualified,
         "errors": errors,
         "llm_cost_usd": round(llm_cost_usd, 6),
