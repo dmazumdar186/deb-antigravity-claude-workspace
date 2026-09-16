@@ -820,3 +820,23 @@ class TestVisionGolden:
                 "Golden Test Business", "https://golden-test.example/", png_bytes, None, mock=False
             )
             assert spec["min_score"] <= result["vision_dated_score"] <= spec["max_score"], name
+
+
+class TestMobileFriendlyDerivation:
+    """viewport present + PSI unknown must be None (0 points), never a 15-point penalty."""
+
+    def test_viewport_without_psi_is_unknown(self):
+        from execution.personal_workflows.prodcraft_medspa.audit import scoring
+
+        # score() contract: None never fails the signal
+        s = scoring.score({"has_website": True, "is_mobile_friendly": None})
+        assert "not_mobile_friendly" not in [g["signal"] for g in s["gaps"]]
+        s2 = scoring.score({"has_website": True, "is_mobile_friendly": False})
+        assert "not_mobile_friendly" in [g["signal"] for g in s2["gaps"]]
+
+    def test_live_derivation_matrix(self):
+        import re
+        src = (AUDIT_FIXTURES.parent / "audit_site.py").read_text(encoding="utf-8")
+        # the derivation must branch on PSI None explicitly (regression guard for the AND-with-None bug)
+        assert "psi_mobile_result.is_mobile_friendly is None" in src
+        assert 'raw["site_text"]' in src

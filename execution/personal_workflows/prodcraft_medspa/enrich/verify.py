@@ -5,9 +5,12 @@ description: Waterfall step 7 — verify the chosen email via MillionVerifier. W
   subprocessed, per CONTRACTS.md); --mock reads this package's own fixtures so the enrich test suite
   has no dependency on execution/enrichment/'s unrelated mock dataset.
 inputs: email str; mock: bool; fixtures_root: Path; api_key: str | None.
-outputs: (email_status, cost_usd) tuple — email_status in {deliverable, risky, undeliverable, unknown}.
-  Only an "ok"-class MillionVerifier result maps to "deliverable"; "catch_all" maps to "risky" and is
-  never promoted to deliverable.
+outputs: (email_status, cost_usd) tuple — email_status in {deliverable, risky, undeliverable,
+  unverified, unknown}. Only an "ok"-class MillionVerifier result maps to "deliverable"; "catch_all"
+  maps to "risky" and is never promoted to deliverable. When MILLION_VERIFIER_API_KEY is unset and
+  the call is not --mock, no live check is possible: status is "unverified" (never "unknown", which
+  is reserved for a genuine-but-unrecognised verifier response), a note goes to stderr, and this
+  never raises.
 """
 
 from __future__ import annotations
@@ -55,7 +58,13 @@ def verify(email: str | None, *, mock: bool, fixtures_root: Path, api_key: str |
         return _classify(result.get("result")), COST_PER_CHECK_USD
 
     if not api_key:
-        return "unknown", 0.0
+        print(
+            "[verify] MILLION_VERIFIER_API_KEY is unset; classifying "
+            f"{email!r} as 'unverified' (no live verification performed — this is not a bounce, "
+            "just an unmeasured email; set the key or run --mock to get a real classification)",
+            file=sys.stderr,
+        )
+        return "unverified", 0.0
 
     from execution.enrichment.million_verifier import verify_email  # reuse the existing API function
 

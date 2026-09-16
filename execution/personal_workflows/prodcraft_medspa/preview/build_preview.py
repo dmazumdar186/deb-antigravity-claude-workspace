@@ -309,15 +309,30 @@ def find_previews_for_business(store, business_id: str) -> list[dict]:
     return store.list_previews(business_id)
 
 
-def eligibility_reason(business: dict, audit: dict | None) -> str | None:
-    """None means eligible; otherwise the drop_reason-style string to log."""
+def eligibility_reason(
+    business: dict, audit: dict | None, *, email_policy: str = "deliverable_only", min_score: int = 45
+) -> str | None:
+    """None means eligible; otherwise the drop_reason-style string to log.
+
+    `email_policy` (read from `config.email_policy`, default "deliverable_only"): production stays
+    "deliverable_only" (only a MillionVerifier-confirmed email qualifies) with no seed change
+    required. "allow_unverified" is the test-mode value for a metro with no verifier key — it also
+    accepts email_status == "unverified" (set by discovery/import_csv.py or by verify.py when
+    MILLION_VERIFIER_API_KEY is unset) so a preview can still be built end to end. The policy that
+    built a given row is recorded on the preview row itself, not inside the customer-visible
+    `content` blob, so the audit trail shows which mode produced it.
+    """
     if business.get("do_not_contact"):
         return "do_not_contact"
-    if business.get("email_status") != "deliverable":
+    allowed_statuses = ("deliverable", "unverified") if email_policy == "allow_unverified" else ("deliverable",)
+    if business.get("email_status") not in allowed_statuses:
         return "email_not_deliverable"
     if audit is None:
         return "no_audit"
-    if audit.get("bucket") != "qualified":
+    # `min_score` (config.min_score, default 45 = the qualified bucket boundary). An operator may lower
+    # it for a degraded-mode metro (no PSI/vision keys: 40 of 100 points unmeasurable) or a test run;
+    # the value that built a row is recorded on the preview row as `min_score`.
+    if (audit.get("total_score") or 0) < min_score and audit.get("bucket") != "qualified":
         return f"bucket_{audit.get('bucket')}"
     return None
 
@@ -400,10 +415,12 @@ def _process_business(
     base_domain: str,
     tmp_root: Path,
     stats: dict,
+    email_policy: str,
+    min_score: int = 45,
 ) -> None:
     business_id = business.get("id")
     audit = store.latest_audit(business_id)
-    reason = eligibility_reason(business, audit)
+    reason = eligibility_reason(business, audit, email_policy=email_policy, min_score=min_score)
     if reason:
         store.log_event("business", business_id, "preview_skip", {"reason": reason})
         return
@@ -478,6 +495,8 @@ def _process_business(
         "deployed_at": models.now_iso(),
         "expires_at": expires_at,
         "takedown": False,
+        "email_policy": email_policy,
+        "min_score": min_score,
     }
     store.upsert_preview(preview_row)
     store.log_event(
@@ -504,6 +523,8 @@ def main() -> None:
 
     store_kind = reject_mock_with_supabase(parser, args)
     store = get_store(kind=store_kind, root=args.store_root)
+    email_policy = store.get_config("email_policy", "deliverable_only")
+    min_score = int(store.get_config("min_score", 45) or 45)
 
     stats = {
         "script": "build_preview",
@@ -521,8 +542,14 @@ def main() -> None:
         biz = store.get_business(args.business_id)
         businesses = [biz] if biz else []
     else:
+        # Under "allow_unverified" a business without a *deliverable* email may still be eligible
+        # (email_status == "unverified"), so the store-level has_email filter (which only matches
+        # "deliverable") must be dropped here; eligibility_reason() below still enforces the real
+        # policy per-business.
+        has_email_filter = None if email_policy == "allow_unverified" else True
+        bucket_filter = "qualified" if min_score >= 45 else None
         businesses = store.find_businesses(
-            metro=args.metro, bucket="qualified", has_email=True, do_not_contact=False
+            metro=args.metro, bucket=bucket_filter, has_email=has_email_filter, do_not_contact=False
         )
 
     if args.limit is not None:
@@ -544,6 +571,8 @@ def main() -> None:
                 base_domain=base_domain,
                 tmp_root=settings.TMP,
                 stats=stats,
+                email_policy=email_policy,
+                min_score=min_score,
             )
         except Exception as exc:  # noqa: BLE001 — one bad business must not abort the whole metro run
             stats["errors"] += 1

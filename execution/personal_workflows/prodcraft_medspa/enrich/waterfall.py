@@ -1,12 +1,18 @@
 """
 waterfall.py
 description: Enrichment waterfall CLI. For every business in --metro whose latest audit bucket is
-  qualified (total_score >= --min-score), not do_not_contact, and without a deliverable email (unless
-  --force), runs the owner/email waterfall (contact page -> GBP reviews -> state registry -> Apollo ->
-  Findymail -> Hunter -> generic-inbox fallback), stopping at the first step that yields an email, then
-  verifies the chosen email via MillionVerifier. Updates businesses.owner_name/owner_first/owner_email/
-  email_status/email_source and logs one `enrich:step:{name}:{hit|miss}` event per step tried, plus one
-  `enrich:step:verify` event, so find-rate per source is measurable from `events`.
+  qualified (total_score >= --min-score), not do_not_contact, and without BOTH an owner_email and an
+  owner_name already set (unless --force), runs the owner/email waterfall (contact page -> GBP
+  reviews -> state registry -> Apollo -> Findymail -> Hunter -> generic-inbox fallback), stopping at
+  the first step that yields an email, then verifies the chosen email via MillionVerifier. A business
+  that already has an owner_email (e.g. imported via discovery/import_csv.py) but no owner_name keeps
+  that email untouched — the steps still run to fill in owner_name, but owner_email/email_status/
+  email_source are never overwritten and MillionVerifier is never called for it. Updates
+  businesses.owner_name/owner_first/owner_email/email_status/email_source and logs one
+  `enrich:step:{name}:{hit|miss}` event per step tried, plus one `enrich:step:verify` event, so
+  find-rate per source is measurable from `events`. Reads config.email_policy (default
+  "deliverable_only") purely for the stat line's audit trail; see preview/build_preview.py for where
+  the policy actually changes behaviour.
 inputs: --metro (required), --business-id, --min-score (default 45), --mock, --store {local,supabase},
   --store-root, --limit, --force; env per CONTRACTS.md ("enrich" stage): APOLLO_API_KEY,
   FINDYMAIL_API_KEY|HUNTER_API_KEY, MILLION_VERIFIER_API_KEY, GOOGLE_PLACES_API_KEY.
@@ -66,7 +72,11 @@ def domain_from_business(business: dict) -> str | None:
 def eligible_businesses(
     store: Store, *, metro: str, business_id: str | None, min_score: int, force: bool
 ) -> list[dict]:
-    """qualified (total_score >= min_score) + not do_not_contact + (no deliverable email unless force)."""
+    """qualified (total_score >= min_score) + not do_not_contact + (no owner_email at all, unless
+    force). Broadened from "no *deliverable* email" to "no email at all" so a CSV-imported email
+    (email_status="unverified") survives instead of being overwritten by the paid waterfall — a
+    business with an email but no owner_name yet stays eligible so the owner-name-finding steps
+    still run for it (see run_waterfall_for_business's preserve_email path)."""
     candidates = store.find_businesses(metro=metro, do_not_contact=False)
     if business_id:
         candidates = [b for b in candidates if b.get("id") == business_id]
@@ -76,18 +86,24 @@ def eligible_businesses(
         latest = store.latest_audit(business["id"])
         if not latest or (latest.get("total_score") or 0) < min_score:
             continue
-        already_deliverable = business.get("email_status") == "deliverable" and business.get("owner_email")
-        if already_deliverable and not force:
+        already_resolved = bool(business.get("owner_email")) and bool(business.get("owner_name"))
+        if already_resolved and not force:
             continue
         out.append(business)
     return out
 
 
 def run_waterfall_for_business(
-    business: dict, *, ctx_template: dict, store: Store
+    business: dict, *, ctx_template: dict, store: Store, force: bool = False
 ) -> tuple[dict, str | None, float]:
     """Run every step for one business, in order, stopping at the first email hit. Returns
-    (patch, hit_source, total_cost_usd)."""
+    (patch, hit_source, total_cost_usd).
+
+    `preserve_email`: when the business already carries an owner_email (e.g. a CSV import) and
+    --force wasn't passed, that email is never overwritten here — the steps still run (so a
+    missing owner_name can still be filled in from a side effect like state_registry/contact_page/
+    gbp_reviews), but the resulting patch omits owner_email/email_status/email_source entirely and
+    verify.verify() is never called (no wasted MillionVerifier cost on an email we won't write)."""
     ctx = StepContext(
         mock=ctx_template["mock"],
         fixtures_root=ctx_template["fixtures_root"],
@@ -95,6 +111,7 @@ def run_waterfall_for_business(
         session=ctx_template["session"],
         domain=domain_from_business(business),
     )
+    preserve_email = bool(business.get("owner_email")) and not force
 
     total_cost = 0.0
     chosen: StepResult | None = None
@@ -118,6 +135,9 @@ def run_waterfall_for_business(
         "owner_name": (chosen.owner_name if chosen else None) or ctx.owner_name,
         "owner_first": (chosen.owner_first if chosen else None) or ctx.owner_first,
     }
+
+    if preserve_email:
+        return patch, None, total_cost
 
     if chosen:
         patch["owner_email"] = chosen.email
@@ -154,6 +174,12 @@ def run(
     settings,
 ) -> dict:
     """Programmatic entry point (used by the CLI and by tests) — returns the stat dict."""
+    # Read-only here: production stays "deliverable_only" by default (no seed change required);
+    # "allow_unverified" is the test-mode value build_preview.py's eligibility honours. Recorded
+    # on the stat line purely for the audit trail — it does not change waterfall's own gating,
+    # which already preserves any pre-existing owner_email (see eligible_businesses' docstring)
+    # regardless of policy.
+    email_policy = store.get_config("email_policy", "deliverable_only")
     ctx_template = {
         "mock": mock,
         "fixtures_root": fixtures_root,
@@ -174,10 +200,11 @@ def run(
         "by_source": {k: 0 for k in BY_SOURCE_KEYS},
         "unresolved": 0,
         "cost_usd": 0.0,
+        "email_policy": email_policy,
     }
 
     for business in candidates:
-        patch, hit_source, cost = run_waterfall_for_business(business, ctx_template=ctx_template, store=store)
+        patch, hit_source, cost = run_waterfall_for_business(business, ctx_template=ctx_template, store=store, force=force)
         stats["cost_usd"] += cost
 
         if patch.get("owner_name"):

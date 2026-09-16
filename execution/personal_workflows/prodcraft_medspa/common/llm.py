@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Any
@@ -148,3 +149,33 @@ def call(
         "mock": False,
         "cost_usd": _cost_usd(model, usage),
     }
+
+
+MANUAL_MODEL_ID = "manual:operator"
+
+
+def manual_envelope(prompt_name: str, payload: dict | str) -> dict:
+    """Envelope for an operator-authored answer that replaces an LLM call.
+
+    Businesses may carry `llm_overrides: {prompt_name: payload}` (set by the operator or an agent who
+    read the site). The pipeline uses it instead of calling the model, so a metro can run with no
+    ANTHROPIC_API_KEY and, more importantly, so hand-written personalization is first-class and
+    auditable: model_id is `manual:operator`, prompt_sha256 is the hash of the payload, cost is 0.
+    """
+    text = payload if isinstance(payload, str) else json.dumps(payload)
+    return {
+        "text": text,
+        "model_id": MANUAL_MODEL_ID,
+        "prompt_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "usage": _zero_usage(),
+        "cost_usd": 0.0,
+        "mock": False,
+        "manual": True,
+    }
+
+
+def override_for(business: dict | None, prompt_name: str):
+    """Return the operator override payload for `prompt_name` on this business row, or None."""
+    overrides = (business or {}).get("llm_overrides") or {}
+    value = overrides.get(prompt_name) if isinstance(overrides, dict) else None
+    return value if value not in (None, "", {}) else None

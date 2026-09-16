@@ -19,7 +19,12 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Any
 
-GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
+GMAIL_SCOPES = [
+    "https://www.googleapis.com/auth/gmail.compose",
+    # Added for outreach/send.py's users.messages.send (automated sending per the operator's
+    # 2026-09-16 no-human-until-reply decision) — _get_credentials is shared by both callers.
+    "https://www.googleapis.com/auth/gmail.send",
+]
 
 
 def _get_credentials(settings: Any):

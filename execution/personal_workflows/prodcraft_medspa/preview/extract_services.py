@@ -173,14 +173,18 @@ def extract_services(
     primary_type = business.get("primary_type") or "spa"
     business_name = business.get("name") or ""
 
-    result = llm.call(
-        "extract_services",
-        prompt_path or PROMPT_PATH,
-        {"site_text": site_text, "primary_type": primary_type, "business_name": business_name},
-        model=model,
-        mock=mock,
-        fixtures_root=fixtures_root or DEFAULT_FIXTURES_ROOT,
-    )
+    override = llm.override_for(business, "extract_services")
+    if override is not None:
+        result = llm.manual_envelope("extract_services", override)
+    else:
+        result = llm.call(
+            "extract_services",
+            prompt_path or PROMPT_PATH,
+            {"site_text": site_text, "primary_type": primary_type, "business_name": business_name},
+            model=model,
+            mock=mock,
+            fixtures_root=fixtures_root or DEFAULT_FIXTURES_ROOT,
+        )
 
     try:
         parsed = json.loads(result["text"])

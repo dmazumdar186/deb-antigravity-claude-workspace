@@ -345,3 +345,148 @@ def test_verify_counts_flags_low_suburbs(tmp_path, capsys):
     assert stat["script"] == "verify_counts"
     assert stat["suburbs"] >= 4
     assert stat["flagged"] == 2  # Northbrook (5/20) and Highland Park (0/5) per the manual fixture
+
+
+# ---------------------------------------------------------------------------
+# import_csv.py
+# ---------------------------------------------------------------------------
+
+
+def _write_csv(path, header, rows):
+    import csv as _csv
+
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = _csv.writer(f)
+        writer.writerow(header)
+        for row in rows:
+            writer.writerow(row)
+
+
+def test_import_csv_missing_review_count_kept():
+    from execution.personal_workflows.prodcraft_medspa.discovery import import_csv
+
+    rows = [{"name": "Unrated Spa", "address": "1 Main St", "review_count": ""}]
+    unique, dropped = import_csv.process_csv_rows(rows, [], "chicago_north_shore", "manual", {})
+    assert unique[0]["drop_reason"] is None
+    assert unique[0]["review_count"] is None
+    assert dropped == {"chain": 0, "no_name": 0, "too_small": 0}
+
+
+def test_import_csv_keeps_and_drops_correctly():
+    from execution.personal_workflows.prodcraft_medspa.discovery import import_csv
+
+    chains = ["ulta"]
+    rows = [
+        {"name": "Glow Aesthetics", "address": "1 Main St", "review_count": "50"},
+        {"name": "Ulta Beauty", "address": "2 Main St", "review_count": "500"},
+        {"name": "Tiny Spa", "address": "3 Main St", "review_count": "3"},
+        {"name": "", "address": "4 Main St", "review_count": "40"},
+    ]
+    unique, dropped = import_csv.process_csv_rows(rows, chains, "chicago_north_shore", "manual", {})
+    assert len(unique) == 4
+    by_name = {r["name"]: r for r in unique}
+    assert by_name["Glow Aesthetics"]["drop_reason"] is None
+    assert by_name["Ulta Beauty"]["drop_reason"] == "chain"
+    assert by_name["Ulta Beauty"]["is_chain"] is True
+    assert by_name["Tiny Spa"]["drop_reason"] == "too_small"
+    assert unique[3]["drop_reason"] == "no_name"  # the blank-name row (no "name" key to look up by)
+    assert dropped == {"chain": 1, "no_name": 1, "too_small": 1}
+
+
+def test_import_csv_derives_stable_place_id_from_name_and_address():
+    from execution.personal_workflows.prodcraft_medspa.discovery import import_csv
+
+    id1 = import_csv._derive_place_id("Glow Aesthetics", "1 Main St")
+    id2 = import_csv._derive_place_id("Glow Aesthetics", "1 Main St")
+    id3 = import_csv._derive_place_id("Glow Aesthetics", "2 Main St")
+    assert id1 == id2
+    assert id1 != id3
+    assert id1.startswith("import:")
+
+
+def test_import_csv_sets_unverified_email_fields_when_email_given():
+    from execution.personal_workflows.prodcraft_medspa.discovery import import_csv
+
+    rows = [
+        {"name": "Glow Aesthetics", "address": "1 Main St", "email": "owner@example-medspa-import.test"},
+        {"name": "No Email Spa", "address": "2 Main St"},
+    ]
+    unique, _ = import_csv.process_csv_rows(rows, [], "chicago_north_shore", "manual", {})
+    by_name = {r["name"]: r for r in unique}
+    glow = by_name["Glow Aesthetics"]
+    assert glow["owner_email"] == "owner@example-medspa-import.test"
+    assert glow["email_status"] == "unverified"
+    assert glow["email_source"] == "csv"
+    no_email = by_name["No Email Spa"]
+    assert "owner_email" not in no_email
+    assert "email_status" not in no_email
+
+
+def test_import_csv_cli_missing_name_column_errors(tmp_path, capsys):
+    from execution.personal_workflows.prodcraft_medspa.discovery import import_csv
+
+    csv_path = tmp_path / "bad.csv"
+    _write_csv(csv_path, ["website", "phone"], [["https://example-medspa-x.test", "(847) 555-0100"]])
+
+    with pytest.raises(SystemExit) as exc_info:
+        import_csv.main(["--csv", str(csv_path), "--metro", "chicago_north_shore", "--store-root", str(tmp_path / "store")])
+    assert exc_info.value.code != 0
+    assert "name" in capsys.readouterr().err.lower()
+
+
+def test_import_csv_cli_end_to_end_and_idempotent_rerun(tmp_path, capsys):
+    from execution.personal_workflows.prodcraft_medspa.discovery import import_csv
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    store_root = tmp_path / "store"
+    _seed_chains(store_root)
+
+    csv_path = tmp_path / "prospects.csv"
+    _write_csv(
+        csv_path,
+        ["Name", "Website", "Phone", "Address", "City", "State", "Review_Count", "Email"],
+        [
+            [
+                "Example Med Spa One",
+                "https://example-medspa-import-1.test",
+                "(847) 555-0101",
+                "1 Main St",
+                "Winnetka",
+                "IL",
+                "80",
+                "owner1@example-medspa-import-1.test",
+            ],
+            ["Ulta Beauty", "https://ulta.example.test", "(847) 555-0102", "2 Main St", "Winnetka", "IL", "500", ""],
+            ["Tiny New Spa", "https://example-medspa-import-2.test", "(847) 555-0103", "3 Main St", "Winnetka", "IL", "2", ""],
+            ["", "", "(847) 555-0104", "4 Main St", "Winnetka", "IL", "40", ""],
+        ],
+    )
+
+    argv = ["--csv", str(csv_path), "--metro", "chicago_north_shore", "--source", "web_search", "--store-root", str(store_root)]
+    import_csv.main(argv)
+    out = capsys.readouterr().out
+    stat1 = json.loads(out.strip().splitlines()[-1])
+    assert stat1["script"] == "import_csv"
+    assert stat1["in"] == 4
+    assert stat1["unique"] == 4
+    assert stat1["kept"] == 1
+    assert stat1["dropped"] == {"chain": 1, "no_name": 1, "too_small": 1}
+
+    store = LocalStore(root=store_root)
+    businesses = store.find_businesses(metro="chicago_north_shore")
+    assert len(businesses) == 4
+    kept = next(b for b in businesses if b["name"] == "Example Med Spa One")
+    assert kept["discovery_source"] == "csv:web_search"
+    assert kept["owner_email"] == "owner1@example-medspa-import-1.test"
+    assert kept["email_status"] == "unverified"
+    assert kept["email_source"] == "csv"
+    assert kept["drop_reason"] is None
+
+    # Re-import the same file: idempotent (place_ids are stable, upsert merges — no duplicates).
+    import_csv.main(argv)
+    capsys.readouterr()
+    store2 = LocalStore(root=store_root)
+    businesses2 = store2.find_businesses(metro="chicago_north_shore")
+    assert len(businesses2) == 4
+    place_ids = [b["place_id"] for b in businesses2]
+    assert len(place_ids) == len(set(place_ids))

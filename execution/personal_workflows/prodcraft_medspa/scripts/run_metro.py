@@ -4,9 +4,13 @@ description: Orchestrator that chains discovery -> audit -> enrich -> preview fo
     stage run as a subprocess CLI per CONTRACTS.md. Prints a funnel table (found -> operational ->
     audited -> qualified -> owner found -> email verified -> preview built) computed two ways —
     from each stage's self-reported JSON stat line AND cross-checked directly against the store —
-    plus per-stage drop reasons and total estimated cost.
+    plus per-stage drop reasons and total estimated cost. `--import-csv PATH` inserts an `import`
+    stage (discovery.import_csv) at the very front, before `discovery`, for when a manually curated
+    CSV of prospects (e.g. from a web-search session with no GOOGLE_PLACES_API_KEY) should seed the
+    businesses table instead of / in addition to a live Places search.
 inputs: CLI: --metro X [--mock] [--store {local,supabase}] [--store-root P]
-    [--stages discovery,audit,enrich,preview] [--sample-n 0] [--sample-only] [--auto-approve] [--skip-vision]
+    [--stages discovery,audit,enrich,preview] [--import-csv PATH] [--import-source NAME]
+    [--sample-n 0] [--sample-only] [--auto-approve] [--skip-vision]
     [--skip-screenshots]
     [--continue-on-error]. Env: whatever the invoked stage subprocesses need (unset is fine with --mock).
 outputs: stdout funnel table + JSON summary; .tmp/prodcraft_medspa/runs/{metro}_{timestamp}.json run
@@ -41,6 +45,10 @@ ALL_STAGES = ["discovery", "audit", "enrich", "preview"]
 # Optional stage appended by --auto-approve (implied by --mock): preview.approve --metro X --all-review.
 # Never in the default list: in production a human approves each preview in the dashboard first.
 APPROVE_STAGE = "approve"
+# Optional stage inserted (always at the front, before `discovery`) by --import-csv PATH:
+# discovery.import_csv --csv PATH --metro X. Never in the default list — it only runs when the
+# operator explicitly hands it a CSV (e.g. a metro with no GOOGLE_PLACES_API_KEY).
+IMPORT_STAGE = "import"
 
 # stage -> module path under execution.personal_workflows.prodcraft_medspa
 STAGE_MODULE = {
@@ -50,6 +58,7 @@ STAGE_MODULE = {
     "enrich": "enrich.waterfall",
     "preview": "preview.build_preview",
     "approve": "preview.approve",
+    "import": "discovery.import_csv",
 }
 
 
@@ -89,13 +98,23 @@ def build_stage_args(stage: str, args: argparse.Namespace) -> tuple[str, list[st
         return STAGE_MODULE["audit_sample"], cli
 
     if stage == "enrich":
-        return STAGE_MODULE["enrich"], base + ["--min-score", "45"]
+        return STAGE_MODULE["enrich"], base + ["--min-score", str(getattr(args, "min_score", 45) or 45)]
 
     if stage == "preview":
         return STAGE_MODULE["preview"], base
 
     if stage == APPROVE_STAGE:
         return STAGE_MODULE["approve"], base + ["--all-review", "--actor", "run_metro"]
+
+    if stage == IMPORT_STAGE:
+        csv_path = getattr(args, "import_csv", None)
+        if not csv_path:
+            raise ValueError("import stage requires --import-csv PATH")
+        cli = ["--csv", csv_path, "--metro", args.metro] + common_store_args(args)
+        source = getattr(args, "import_source", None)
+        if source:
+            cli += ["--source", source]
+        return STAGE_MODULE["import"], cli
 
     raise ValueError(f"unknown stage: {stage}")
 
@@ -111,6 +130,11 @@ def expand_stages(stage_list: list[str], args: argparse.Namespace, store_kind: s
     Default: `audit` (full) then `audit_sample` (metro_stats only, reusing the stored audits).
     `--sample-only`: `audit_sample` replaces `audit` (nothing else is audited).
     Without --sample-n the list is returned unchanged.
+
+    `--import-csv PATH` additionally inserts `import` at index 0 (before everything, including
+    `discovery`) whenever it isn't already present — this is pure list math like the rest of the
+    function; `build_stage_args("import", ...)` is what actually needs the path and raises if it's
+    missing.
     """
     sample_n = int(getattr(args, "sample_n", 0) or 0)
     expanded: list[str] = []
@@ -121,6 +145,8 @@ def expand_stages(stage_list: list[str], args: argparse.Namespace, store_kind: s
             expanded.append("audit_sample")
         else:
             expanded.append(stage)
+    if getattr(args, "import_csv", None) and IMPORT_STAGE not in expanded:
+        expanded.insert(0, IMPORT_STAGE)
     auto_approve = (getattr(args, "auto_approve", False) or getattr(args, "mock", False)) and store_kind == "local"
     if auto_approve and "preview" in expanded and APPROVE_STAGE not in expanded:
         expanded.insert(expanded.index("preview") + 1, APPROVE_STAGE)
@@ -281,6 +307,20 @@ def main() -> None:
     parser.add_argument("--store-root", dest="store_root", default=None)
     parser.add_argument("--stages", default=",".join(ALL_STAGES))
     parser.add_argument(
+        "--import-csv",
+        dest="import_csv",
+        default=None,
+        help="Path to a CSV of prospects; inserts an 'import' stage (discovery.import_csv) before "
+        "everything else, including discovery. Columns per discovery/import_csv.py's contract.",
+    )
+    parser.add_argument(
+        "--import-source",
+        dest="import_source",
+        default=None,
+        help="Recorded as discovery_source csv:<source> on imported rows (import_csv.py's own "
+        "default is 'manual' when this is omitted).",
+    )
+    parser.add_argument(
         "--sample-n",
         dest="sample_n",
         type=int,
@@ -305,6 +345,14 @@ def main() -> None:
         "review step; implied by --mock). Local-store only: `parser.error`s against a Supabase/live "
         "store, where previews stay in 'review' until a human approves.",
     )
+    parser.add_argument(
+        "--min-score",
+        dest="min_score",
+        type=int,
+        default=None,
+        help="Enrich threshold (default: config.min_score, else 45 = qualified). Lower it only for a "
+        "degraded-mode metro (no PSI/vision keys) or a dry run; build_preview reads the same config key.",
+    )
     parser.add_argument("--continue-on-error", action="store_true")
     args = parser.parse_args()
 
@@ -326,10 +374,12 @@ def main() -> None:
     if args.sample_only and not args.sample_n:
         parser.error("--sample-only requires --sample-n N")
 
+    store = get_store(kind=store_kind, root=args.store_root)
+    if args.min_score is None:
+        args.min_score = int(store.get_config("min_score", 45) or 45)
+
     results = run_stages(stage_list, args, store_kind)
     any_failed = any(not r["ok"] for r in results)
-
-    store = get_store(kind=store_kind, root=args.store_root)
     funnel = compute_funnel(store, args.metro)
     print_funnel_table(funnel)
 

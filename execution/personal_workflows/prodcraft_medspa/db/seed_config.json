@@ -13,5 +13,6 @@
     "signature": ""
   },
   "touch_days": [0, 3, 7, 12],
-  "preview_expiry_days": 30
+  "preview_expiry_days": 30,
+  "queue_pick": "random"
 }

@@ -2,13 +2,17 @@
 daily.py
 description: The operator's morning command. Runs outreach.advance -> outreach.scan_replies ->
     preview.takedown (for any business scan_replies flags for takedown) -> outreach.daily_queue
-    --create-drafts, and prints the resulting queue. Each stage is a subprocess CLI per
-    CONTRACTS.md; a missing module (another agent's package not built yet in this checkout) is a
-    reported stage failure, not a crash.
+    --create-drafts -> outreach.send, and prints the resulting queue + send stat. Sending is
+    automated per the operator's 2026-09-16 decision (no human in the loop until a prospect
+    replies positive or neutral); pass --no-send to keep the old draft-only behaviour. Each stage
+    is a subprocess CLI per CONTRACTS.md; a missing module (another agent's package not built yet
+    in this checkout) is a reported stage failure, not a crash.
 inputs: CLI: [--date D] [--mock] [--store {local,supabase}] [--store-root P] [--replies-only]
-    [--phase0-status]. Env: whatever the invoked stage subprocesses need (unset is fine with --mock).
-outputs: stdout: per-stage results + the daily queue (or the phase0 gate state with
-    --phase0-status); common.notify.error("daily", ...) on any stage failure.
+    [--phase0-status] [--no-send] [--recipient-override EMAIL] [--limit N]. Env: whatever the
+    invoked stage subprocesses need (unset is fine with --mock); PRODCRAFT_RECIPIENT_OVERRIDE is
+    read by outreach.send itself if --recipient-override is not passed.
+outputs: stdout: per-stage results + the daily queue + the send stat (or the phase0 gate state
+    with --phase0-status); common.notify.error("daily", ...) on any stage failure.
 """
 
 from __future__ import annotations
@@ -76,6 +80,18 @@ def main() -> None:
         help="advance + scan_replies + takedowns only, no drafts (used by the 30-minute cron)",
     )
     parser.add_argument("--phase0-status", action="store_true", help="print the phase0 gate state and exit")
+    parser.add_argument(
+        "--no-send",
+        action="store_true",
+        help="stop after daily_queue --create-drafts; skip outreach.send (pre-2026-09-16 draft-only behaviour)",
+    )
+    parser.add_argument(
+        "--recipient-override",
+        dest="recipient_override",
+        default=None,
+        help="passed through to outreach.send: send every message to this address instead of owner_email",
+    )
+    parser.add_argument("--limit", type=int, default=None, help="passed through to outreach.send")
     args = parser.parse_args()
 
     store_kind = reject_mock_with_supabase(parser, args)
@@ -108,6 +124,7 @@ def main() -> None:
         print("[daily] no takedowns flagged by scan_replies this run", file=sys.stderr)
 
     queue_result: dict[str, Any] | None = None
+    send_result: dict[str, Any] | None = None
     if not args.replies_only:
         queue_result = run_step(
             "daily_queue",
@@ -118,6 +135,17 @@ def main() -> None:
         print("\n--- daily_queue output ---")
         print(queue_result["stdout"].strip() or "(no output)")
 
+        if not args.no_send:
+            send_args = ["--date", run_date] + common_store_args(args)
+            if args.recipient_override:
+                send_args += ["--recipient-override", args.recipient_override]
+            if args.limit is not None:
+                send_args += ["--limit", str(args.limit)]
+            send_result = run_step("send", "outreach.send", send_args)
+            results.append(send_result)
+            print("\n--- send output ---")
+            print(json.dumps(send_result["stat"]) if send_result.get("stat") else "(no output)")
+
     any_failed = any(not r["ok"] for r in results)
     print(
         json.dumps(
@@ -125,7 +153,9 @@ def main() -> None:
                 "script": "daily",
                 "date": run_date,
                 "replies_only": args.replies_only,
+                "no_send": args.no_send,
                 "takedowns_run": len(takedown_ids),
+                "sent": (send_result or {}).get("stat", {}).get("sent") if send_result else None,
                 "any_failed": any_failed,
             }
         )

@@ -215,14 +215,18 @@ def render_draft(
             "services_json": json.dumps(services),
             "suburb": business.get("suburb") or business.get("city") or "",
         }
-        llm_envelope = llm.call(
-            "fuzzy_variables",
-            PROMPTS_DIR / "fuzzy_variables.md",
-            variables,
-            model="claude-sonnet-5",
-            mock=mock,
-            fixtures_root=fixtures_root or LLM_FIXTURES_ROOT,
-        )
+        override = llm.override_for(business, "fuzzy_variables")
+        if override is not None:
+            llm_envelope = llm.manual_envelope("fuzzy_variables", override)
+        else:
+            llm_envelope = llm.call(
+                "fuzzy_variables",
+                PROMPTS_DIR / "fuzzy_variables.md",
+                variables,
+                model="claude-sonnet-5",
+                mock=mock,
+                fixtures_root=fixtures_root or LLM_FIXTURES_ROOT,
+            )
         fuzzy = json.loads(llm_envelope["text"])
         hard_vars["oneSentenceSpecificBookingGapObservedOnTheirSite"] = fuzzy.get(
             "oneSentenceSpecificBookingGapObservedOnTheirSite", ""

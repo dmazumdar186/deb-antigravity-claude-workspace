@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -50,9 +51,44 @@ def _parse_date(value: str | None) -> date:
         raise SystemExit(f"--date must be YYYY-MM-DD, got {value!r}") from None
 
 
+def _score_for_business(st: Any, business_id: str) -> float:
+    audit = st.latest_audit(business_id)
+    return float((audit or {}).get("total_score") or 0)
+
+
+def _ordered_new_touch1_candidates(st: Any, businesses: dict, today: date) -> list[dict]:
+    """Order businesses eligible for a new touch-1 enqueue per `config.queue_pick`.
+
+    `"score"` orders by latest audit total_score desc (the old implicit behaviour). The default,
+    `"random"`, shuffles per metro with `random.Random(f"{today}:{metro}")` so a rerun on the same
+    date reproduces the identical order/selection (idempotent) — the operator wants ~5 random
+    picks per day rather than always the same highest-score businesses. This ordering only
+    matters when there are more eligible candidates than the daily cap: `enqueue_new_touch1`
+    itself enqueues every eligible business (uncapped), but insertion order here becomes the
+    `created_at` tie-break `LocalStore.queue()`/`SupabaseStore.queue()` use to pick today's
+    capped batch.
+    """
+    pick_mode = (st.get_config("queue_pick", "random") or "random").strip().lower()
+    rows = list(businesses.values())
+    if pick_mode == "score":
+        rows.sort(key=lambda b: _score_for_business(st, b["id"]), reverse=True)
+        return rows
+
+    by_metro: dict[str, list[dict]] = {}
+    for b in rows:
+        by_metro.setdefault(b.get("metro") or "", []).append(b)
+    ordered: list[dict] = []
+    for metro in sorted(by_metro):
+        group = by_metro[metro]
+        random.Random(f"{today.isoformat()}:{metro}").shuffle(group)
+        ordered.extend(group)
+    return ordered
+
+
 def enqueue_new_touch1(st: Any, today: date) -> int:
     """Enqueue touch-1 rows for every business with an approved/live preview, a deliverable
-    email, not do_not_contact, and no outreach row yet."""
+    email, not do_not_contact, and no outreach row yet. Enqueue order follows `config.queue_pick`
+    (see `_ordered_new_touch1_candidates`)."""
     businesses = {
         b["id"]: b for b in st.find_businesses(do_not_contact=False, has_email=True) if not b.get("is_chain")
     }
@@ -71,7 +107,8 @@ def enqueue_new_touch1(st: Any, today: date) -> int:
             latest_eligible_preview[p["business_id"]] = p
 
     enqueued = 0
-    for business_id, business in businesses.items():
+    for business in _ordered_new_touch1_candidates(st, businesses, today):
+        business_id = business["id"]
         if business_id in existing_touch1_business_ids:
             continue
         preview = latest_eligible_preview.get(business_id)

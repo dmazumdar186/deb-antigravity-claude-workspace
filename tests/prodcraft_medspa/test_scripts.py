@@ -219,7 +219,7 @@ def _metro_args(**overrides):
     base = dict(
         metro="chicago_north_shore", mock=True, store="local", store_root="/tmp/x",
         sample_n=0, sample_only=False, auto_approve=False, skip_vision=False, skip_screenshots=False,
-        continue_on_error=False,
+        continue_on_error=False, import_csv=None, import_source=None,
     )
     base.update(overrides)
     return argparse.Namespace(**base)
@@ -279,6 +279,57 @@ def test_expand_stages_never_adds_approve_against_supabase_store():
 def test_audit_sample_stage_requires_sample_n():
     with pytest.raises(ValueError):
         run_metro.build_stage_args("audit_sample", _metro_args(sample_n=0))
+
+
+# ---------------------------------------------------------------------------
+# --import-csv (build instructions item on run_metro.py)
+# ---------------------------------------------------------------------------
+
+
+def test_expand_stages_import_csv_inserts_import_stage_first():
+    args = _metro_args(import_csv="/tmp/prospects.csv")
+    stages = run_metro.expand_stages(["discovery", "audit", "enrich", "preview"], args, "local")
+    # --mock (the _metro_args default) still implies --auto-approve, appended after preview;
+    # --import-csv's insertion must not disturb that.
+    assert stages == ["import", "discovery", "audit", "enrich", "preview", "approve"]
+
+
+def test_expand_stages_import_csv_without_discovery_still_inserts_at_front():
+    args = _metro_args(import_csv="/tmp/prospects.csv", mock=False)
+    stages = run_metro.expand_stages(["enrich"], args, "local")
+    assert stages == ["import", "enrich"]
+
+
+def test_expand_stages_without_import_csv_flag_has_no_import_stage():
+    args = _metro_args(import_csv=None)
+    stages = run_metro.expand_stages(["discovery", "audit"], args, "local")
+    assert "import" not in stages
+
+
+def test_expand_stages_import_csv_idempotent_if_already_present():
+    args = _metro_args(import_csv="/tmp/prospects.csv", mock=False)
+    stages = run_metro.expand_stages(["import", "discovery"], args, "local")
+    assert stages == ["import", "discovery"]  # not inserted twice
+
+
+def test_build_stage_args_import_stage():
+    module, cli = run_metro.build_stage_args("import", _metro_args(import_csv="/tmp/prospects.csv"))
+    assert module == "discovery.import_csv"
+    assert cli[cli.index("--csv") + 1] == "/tmp/prospects.csv"
+    assert cli[cli.index("--metro") + 1] == "chicago_north_shore"
+    assert "--mock" in cli
+
+
+def test_build_stage_args_import_stage_with_source():
+    _, cli = run_metro.build_stage_args(
+        "import", _metro_args(import_csv="/tmp/prospects.csv", import_source="web_search_2026_09")
+    )
+    assert cli[cli.index("--source") + 1] == "web_search_2026_09"
+
+
+def test_build_stage_args_import_stage_requires_path():
+    with pytest.raises(ValueError):
+        run_metro.build_stage_args("import", _metro_args(import_csv=None))
 
 
 def test_run_metro_cli_missing_stage_module_exits_nonzero(tmp_path):
@@ -505,7 +556,7 @@ def test_sync_sheets_mock_csv_columns_match_v_pipeline(tmp_path, monkeypatch):
     assert set(rows[0].keys()) == set(sync_sheets.V_PIPELINE_COLUMNS)
 
     out_csv = tmp_path / "v_pipeline.csv"
-    sync_sheets.write_csv(rows, out_csv)
+    sync_sheets.write_csv(rows, out_csv, sync_sheets.V_PIPELINE_COLUMNS)
     with open(out_csv, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         assert reader.fieldnames == sync_sheets.V_PIPELINE_COLUMNS
@@ -584,3 +635,330 @@ def test_replies_workflow_references_every_contracts_env_name():
 def test_replies_workflow_guarded_by_cron_enabled_variable():
     text = (REPO_ROOT / ".github" / "workflows" / "prodcraft_medspa_replies.yml").read_text(encoding="utf-8")
     assert "vars.PRODCRAFT_CRON_ENABLED == 'true'" in text
+
+
+# ---------------------------------------------------------------------------
+# daily.py — full mock chain (apply_schema -> run_metro --mock -> daily.py --mock) now ends
+# with sent rows (operator decision 2026-09-16: sending is automated, no human in the loop).
+# ---------------------------------------------------------------------------
+
+
+def _run(cmd: list[str]) -> subprocess.CompletedProcess:
+    # Generous timeout: run_metro.py --mock does a real `npm run build` per preview, which can
+    # take well over 5 minutes under concurrent load from other agents' test runs in this repo.
+    return subprocess.run(
+        cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900
+    )
+
+
+def test_daily_mock_chain_ends_with_sent_rows(tmp_path):
+    store_root = tmp_path / "store"
+
+    apply_schema = _run(
+        [sys.executable, str(PKG_ROOT / "db" / "apply_schema.py"), "--store", "local", "--root", str(store_root)]
+    )
+    assert apply_schema.returncode == 0, apply_schema.stderr
+
+    metro = _run(
+        [
+            sys.executable, str(PKG_ROOT / "scripts" / "run_metro.py"),
+            "--metro", "chicago_north_shore", "--mock", "--store", "local", "--store-root", str(store_root),
+        ]
+    )
+    assert metro.returncode == 0, metro.stderr
+
+    daily = _run(
+        [
+            sys.executable, str(PKG_ROOT / "scripts" / "daily.py"),
+            "--mock", "--store", "local", "--store-root", str(store_root),
+            "--recipient-override", "test@example.test",
+        ]
+    )
+    assert daily.returncode == 0, daily.stderr
+    last_line = daily.stdout.strip().splitlines()[-1]
+    stat = json.loads(last_line)
+    assert stat["script"] == "daily"
+    assert stat["sent"] == 4
+    assert stat["any_failed"] is False
+
+    # A second same-day run must not re-send (already sent; next touch not due yet).
+    daily2 = _run(
+        [
+            sys.executable, str(PKG_ROOT / "scripts" / "daily.py"),
+            "--mock", "--store", "local", "--store-root", str(store_root),
+            "--recipient-override", "test@example.test",
+        ]
+    )
+    assert daily2.returncode == 0, daily2.stderr
+    stat2 = json.loads(daily2.stdout.strip().splitlines()[-1])
+    assert stat2["sent"] == 0
+
+
+def test_replies_and_daily_workflows_share_concurrency_group():
+    replies_text = (REPO_ROOT / ".github" / "workflows" / "prodcraft_medspa_replies.yml").read_text(encoding="utf-8")
+    daily_text = (REPO_ROOT / ".github" / "workflows" / "prodcraft_medspa_daily.yml").read_text(encoding="utf-8")
+    assert "group: prodcraft-medspa\n" in replies_text
+    assert "group: prodcraft-medspa\n" in daily_text
+
+
+DAILY_WORKFLOW_EXTRA_SECRETS = [
+    "GOOGLE_SERVICE_ACCOUNT_JSON",
+    "PREVIEW_PUBLISH_SECRET",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+]
+
+
+def test_daily_workflow_yaml_parses_and_is_gated():
+    path = REPO_ROOT / ".github" / "workflows" / "prodcraft_medspa_daily.yml"
+    assert path.exists()
+    with open(path, encoding="utf-8") as f:
+        doc = yaml.safe_load(f)
+    assert doc is not None
+    assert "jobs" in doc
+    assert doc["jobs"]["daily"]["if"] == "vars.PRODCRAFT_CRON_ENABLED == 'true'"
+    # PyYAML's safe_load parses the bare `on:` key as the boolean True (YAML 1.1), not "on".
+    on_section = doc.get("on", doc.get(True))
+    assert on_section["schedule"][0]["cron"] == "0 14 * * *"
+    assert "workflow_dispatch" in on_section
+    assert "metro" in on_section["workflow_dispatch"]["inputs"]
+
+
+def test_daily_workflow_references_every_contracts_env_name_plus_new_ones():
+    text = (REPO_ROOT / ".github" / "workflows" / "prodcraft_medspa_daily.yml").read_text(encoding="utf-8")
+    missing = [name for name in CONTRACTS_ENV_NAMES if f"secrets.{name}" not in text]
+    assert not missing, f"prodcraft_medspa_daily.yml is missing secrets for: {missing}"
+    missing_new = [name for name in DAILY_WORKFLOW_EXTRA_SECRETS if f"secrets.{name}" not in text]
+    assert not missing_new, f"prodcraft_medspa_daily.yml is missing secrets for: {missing_new}"
+    assert "vars.PRODCRAFT_RECIPIENT_OVERRIDE" in text
+
+
+def test_daily_workflow_runs_metro_then_daily_then_sync_sheets_then_npm_ci():
+    text = (REPO_ROOT / ".github" / "workflows" / "prodcraft_medspa_daily.yml").read_text(encoding="utf-8")
+    assert "npm ci" in text
+    assert "run_metro.py" in text
+    idx_metro = text.index("run_metro.py")
+    idx_daily = text.index("daily.py")
+    idx_sync = text.index("sync_sheets.py")
+    assert idx_metro < idx_daily < idx_sync
+
+
+# ---------------------------------------------------------------------------
+# sync_sheets.py — two-tab mirror (pipeline + daily_log), --xlsx
+# ---------------------------------------------------------------------------
+
+
+def _seed_sent_outreach_store(tmp_path):
+    store = LocalStore(root=tmp_path / "store")
+    b = store.upsert_business(
+        {
+            "place_id": "p1",
+            "name": "Glow Aesthetics",
+            "suburb": "Winnetka",
+            "metro": "chicago_north_shore",
+            "website_url": "https://glowaesthetics.example",
+            "owner_name": "Jamie Rivera",
+            "owner_email": "jamie@example.test",
+            "email_status": "deliverable",
+            "is_chain": False,
+        }
+    )
+    store.insert_audit({"business_id": b["id"], "total_score": 60, "bucket": "qualified"})
+    store.upsert_preview(
+        {"business_id": b["id"], "content_hash": "h1", "subdomain_url": "https://glow-k3x9.preview.prodcraft.fyi", "status": "approved"}
+    )
+    store.upsert_outreach(
+        {
+            "business_id": b["id"],
+            "touch": 1,
+            "status": "sent",
+            "sent_at": "2026-09-15T12:00:00Z",
+            "draft_subject": "Quick idea for Glow Aesthetics' bookings",
+            "gmail_thread_id": "thread-abc",
+            "reply_sentiment": "positive",
+            "reply_summary": "Interested, wants a call Thursday.",
+            "replied_at": "2026-09-16T09:00:00Z",
+        }
+    )
+    return store, b
+
+
+def test_sync_sheets_v_pipeline_columns_include_reply_and_test_recipient():
+    """Task spec: pipeline tab = existing v_pipeline columns plus reply_sentiment, reply_summary,
+    replied_at, test_recipient (preview_status/outreach_status/touch/sent_at already existed)."""
+    for col in ("reply_sentiment", "reply_summary", "replied_at", "test_recipient", "preview_status", "outreach_status", "touch", "sent_at"):
+        assert col in sync_sheets.V_PIPELINE_COLUMNS
+
+
+def test_sync_sheets_compute_v_pipeline_carries_reply_fields(tmp_path):
+    store, _b = _seed_sent_outreach_store(tmp_path)
+    rows = sync_sheets.compute_v_pipeline(store)
+    assert len(rows) == 1
+    assert rows[0]["reply_sentiment"] == "positive"
+    assert rows[0]["reply_summary"] == "Interested, wants a call Thursday."
+    assert rows[0]["replied_at"] == "2026-09-16T09:00:00Z"
+    assert rows[0]["test_recipient"] is None
+
+
+def test_sync_sheets_compute_daily_log_one_row_per_send(tmp_path):
+    store, b = _seed_sent_outreach_store(tmp_path)
+    rows = sync_sheets.compute_daily_log(store)
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["date"] == "2026-09-15"
+    assert row["business"] == "Glow Aesthetics"
+    assert row["recipient"] == "jamie@example.test"  # falls back to owner_email, no test_recipient set
+    assert row["subject"] == "Quick idea for Glow Aesthetics' bookings"
+    assert row["preview_url"] == "https://glow-k3x9.preview.prodcraft.fyi"
+    assert row["gmail_thread_id"] == "thread-abc"
+    assert row["status"] == "sent"
+
+
+def test_sync_sheets_compute_daily_log_prefers_test_recipient_over_owner_email(tmp_path):
+    store = LocalStore(root=tmp_path / "store")
+    b = store.upsert_business({"place_id": "p1", "name": "Glow", "metro": "m", "owner_email": "real@owner.test", "is_chain": False})
+    store.upsert_outreach(
+        {"business_id": b["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-15T00:00:00Z", "test_recipient": "operator@override.test"}
+    )
+    rows = sync_sheets.compute_daily_log(store)
+    assert rows[0]["recipient"] == "operator@override.test"
+
+
+def test_sync_sheets_compute_daily_log_excludes_unsent_rows(tmp_path):
+    store = LocalStore(root=tmp_path / "store")
+    b = store.upsert_business({"place_id": "p1", "name": "Glow", "metro": "m", "is_chain": False})
+    store.upsert_outreach({"business_id": b["id"], "touch": 1, "status": "queued"})  # no sent_at
+    assert sync_sheets.compute_daily_log(store) == []
+
+
+def test_sync_sheets_mock_produces_both_csvs_with_documented_headers(tmp_path, monkeypatch):
+    store, _b = _seed_sent_outreach_store(tmp_path)
+    monkeypatch.setattr(sync_sheets, "get_store", lambda kind=None, root=None: store)
+    monkeypatch.setattr(sync_sheets, "REPO_ROOT", tmp_path)
+
+    argv = ["sync_sheets.py", "--mock"]
+    monkeypatch.setattr(sys, "argv", argv)
+    sync_sheets.main()
+
+    pipeline_csv = tmp_path / ".tmp" / "prodcraft_medspa" / "v_pipeline.csv"
+    daily_log_csv = tmp_path / ".tmp" / "prodcraft_medspa" / "daily_log.csv"
+    assert pipeline_csv.exists()
+    assert daily_log_csv.exists()
+
+    with open(pipeline_csv, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        assert reader.fieldnames == sync_sheets.V_PIPELINE_COLUMNS
+        assert len(list(reader)) == 1
+
+    with open(daily_log_csv, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        assert reader.fieldnames == sync_sheets.DAILY_LOG_COLUMNS
+        assert len(list(reader)) == 1
+
+
+def test_sync_sheets_xlsx_skips_cleanly_when_openpyxl_missing(tmp_path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "openpyxl", None)  # force `import openpyxl` to raise ImportError
+    out_path = tmp_path / "mirror.xlsx"
+    wrote = sync_sheets.write_xlsx([{"name": "x"}], [{"business": "x"}], out_path)
+    assert wrote is False
+    assert not out_path.exists()
+
+
+def test_sync_sheets_xlsx_writes_workbook_when_openpyxl_present(tmp_path):
+    openpyxl = pytest.importorskip("openpyxl")
+    store, _b = _seed_sent_outreach_store(tmp_path)
+    pipeline_rows = sync_sheets.compute_v_pipeline(store)
+    daily_log_rows = sync_sheets.compute_daily_log(store)
+    out_path = tmp_path / "mirror.xlsx"
+
+    wrote = sync_sheets.write_xlsx(pipeline_rows, daily_log_rows, out_path)
+    assert wrote is True
+    assert out_path.exists()
+
+    wb = openpyxl.load_workbook(str(out_path))
+    assert set(wb.sheetnames) == {"pipeline", "daily_log"}
+    pipeline_header = [c.value for c in next(wb["pipeline"].iter_rows(min_row=1, max_row=1))]
+    assert pipeline_header == sync_sheets.V_PIPELINE_COLUMNS
+    daily_log_header = [c.value for c in next(wb["daily_log"].iter_rows(min_row=1, max_row=1))]
+    assert daily_log_header == sync_sheets.DAILY_LOG_COLUMNS
+
+
+# ---------------------------------------------------------------------------
+# doctor.py — Gmail gmail.send scope, sheets config, recipient override, queue_pick
+# ---------------------------------------------------------------------------
+
+
+def test_doctor_gmail_send_scope_missing_reports_false(monkeypatch):
+    from execution.personal_workflows.prodcraft_medspa.common.config import bootstrap
+
+    monkeypatch.setenv("GMAIL_TOKEN_JSON", json.dumps({"scopes": ["https://www.googleapis.com/auth/gmail.readonly"]}))
+    settings = bootstrap()
+    ok, detail = doctor.check_gmail_send_scope(settings)
+    assert ok is False
+    assert "missing gmail.send" in detail
+
+
+def test_doctor_gmail_send_scope_present_reports_true(monkeypatch):
+    from execution.personal_workflows.prodcraft_medspa.common.config import bootstrap
+
+    monkeypatch.setenv("GMAIL_TOKEN_JSON", json.dumps({"scopes": ["https://www.googleapis.com/auth/gmail.send"]}))
+    settings = bootstrap()
+    ok, detail = doctor.check_gmail_send_scope(settings)
+    assert ok is True
+    assert "gmail.send" in detail
+
+
+def test_doctor_gmail_send_scope_skips_without_token(monkeypatch):
+    from execution.personal_workflows.prodcraft_medspa.common.config import bootstrap
+
+    monkeypatch.delenv("GMAIL_TOKEN_JSON", raising=False)
+    settings = bootstrap()
+    ok, detail = doctor.check_gmail_send_scope(settings)
+    assert ok is None
+
+
+def test_doctor_masked_recipient_override_shows_domain_only(monkeypatch):
+    monkeypatch.setenv("PRODCRAFT_RECIPIENT_OVERRIDE", "operator@example.test")
+    display, warning = doctor.masked_recipient_override()
+    assert display == "***@example.test"
+    assert "operator@example.test" not in display
+    assert warning != ""
+
+
+def test_doctor_masked_recipient_override_unset(monkeypatch):
+    monkeypatch.delenv("PRODCRAFT_RECIPIENT_OVERRIDE", raising=False)
+    display, warning = doctor.masked_recipient_override()
+    assert display == "(not set)"
+    assert warning == ""
+
+
+def test_doctor_sheets_config_reports_missing(monkeypatch):
+    monkeypatch.delenv("GOOGLE_SHEETS_MIRROR_ID", raising=False)
+    monkeypatch.delenv("GOOGLE_SERVICE_ACCOUNT_PATH", raising=False)
+    monkeypatch.delenv("GOOGLE_SERVICE_ACCOUNT_JSON", raising=False)
+    ok, detail = doctor.check_sheets_config()
+    assert ok is False
+    assert "GOOGLE_SHEETS_MIRROR_ID" in detail
+
+
+def test_doctor_sheets_config_ok_when_present(monkeypatch):
+    monkeypatch.setenv("GOOGLE_SHEETS_MIRROR_ID", "sheet123")
+    monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_PATH", "/tmp/sa.json")
+    ok, detail = doctor.check_sheets_config()
+    assert ok is True
+
+
+def test_doctor_cli_still_does_not_crash_with_new_checks():
+    proc = subprocess.run(
+        [sys.executable, str(PKG_ROOT / "scripts" / "doctor.py"), "--stages", "outreach,sheets"],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+    )
+    assert "Traceback" not in proc.stderr
+    last_line = proc.stdout.strip().splitlines()[-1]
+    stat = json.loads(last_line)
+    assert stat["script"] == "doctor"

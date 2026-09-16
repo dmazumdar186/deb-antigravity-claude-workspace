@@ -119,3 +119,16 @@ def test_call_mock_without_fixtures_root_raises_value_error(tmp_path):
     prompt_path.write_text("hi", encoding="utf-8")
     with pytest.raises(ValueError):
         call("x", prompt_path, {}, model="claude-sonnet-5", mock=True)
+
+
+def test_manual_envelope_and_override_lookup():
+    from execution.personal_workflows.prodcraft_medspa.common import llm
+
+    biz = {"llm_overrides": {"fuzzy_variables": {"a": 1}, "extract_services": ""}}
+    assert llm.override_for(biz, "fuzzy_variables") == {"a": 1}
+    assert llm.override_for(biz, "extract_services") is None  # empty string is not an override
+    assert llm.override_for({}, "fuzzy_variables") is None
+    env = llm.manual_envelope("fuzzy_variables", {"a": 1})
+    assert env["model_id"] == "manual:operator" and env["manual"] is True and env["mock"] is False
+    assert env["cost_usd"] == 0.0 and len(env["prompt_sha256"]) == 64
+    assert env["text"] == '{"a": 1}'

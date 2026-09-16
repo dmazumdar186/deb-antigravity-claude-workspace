@@ -202,7 +202,20 @@ def audit_one_business(
         psi_mobile_result = psi.run_pagespeed(final_url, "mobile", api_key)
         psi_desktop_result = psi.run_pagespeed(final_url, "desktop", api_key)
 
-    is_mobile_friendly = html_has_viewport and bool(psi_mobile_result.is_mobile_friendly)
+    # CONTRACTS.md: not_mobile_friendly fails when there is no viewport meta OR the PSI mobile-friendly
+    # audit fails. With no PSI result (no key, quota, or error) the PSI half is UNKNOWN, not a failure:
+    # the old `viewport and bool(None)` penalised every live site 15 points when PAGESPEED_API_KEY was
+    # unset (found on the first live audit, 2026-09-16). None scores 0 for this signal.
+    if not html_has_viewport:
+        is_mobile_friendly: bool | None = False
+    elif psi_mobile_result.is_mobile_friendly is None:
+        is_mobile_friendly = None
+    else:
+        is_mobile_friendly = bool(psi_mobile_result.is_mobile_friendly)
+    # Visible page text feeds preview/extract_services (services + tagline); without it every preview
+    # falls back to generic services.
+    raw["site_text"] = html_signals.site_text(html)[:20000]
+    raw["title"] = html_signals.title(html)
     raw["psi"] = {
         "mobile": {
             "performance_score": psi_mobile_result.performance_score,

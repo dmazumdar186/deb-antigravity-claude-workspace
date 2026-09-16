@@ -8,6 +8,7 @@ outputs: N/A (test assertions only).
 from __future__ import annotations
 
 import itertools
+import json
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from execution.personal_workflows.prodcraft_medspa.outreach import (
     gmail_reader,
     lint_draft,
     scan_replies,
+    send,
     state_machine,
 )
 from execution.personal_workflows.prodcraft_medspa.outreach.fixtures import seed_mock_store
@@ -421,6 +423,151 @@ def test_enqueue_includes_approved_and_live(local_store):
 
     enqueued = daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 10))
     assert enqueued == 2
+
+
+# ---------------------------------------------------------------------------
+# scan_replies — human-takeover notification, idempotency, envelope persistence
+# ---------------------------------------------------------------------------
+
+_NOTIFY_REPLY_PATH = "execution.personal_workflows.prodcraft_medspa.common.notify.reply"
+
+
+def _seed_sent_row(local_store, owner_email, *, name="Fixture Med Spa"):
+    business = _make_business(local_store, name=name, email=owner_email)
+    preview = _make_preview(local_store, business_id=business["id"])
+    row = _make_outreach_row(
+        local_store,
+        business_id=business["id"],
+        touch=1,
+        status="sent",
+        preview_id=preview["id"],
+        sent_at="2026-09-01T00:00:00Z",
+    )
+    return business, preview, row
+
+
+def test_scan_replies_positive_notifies_exactly_once(local_store, monkeypatch):
+    _seed_sent_row(local_store, "owner1@example-medspa-1.test")
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
+    stats = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["positive"] == 1
+    assert len(calls) == 1
+    assert calls[0]["sentiment"] == "positive"
+    assert calls[0]["wants_call"] is True
+
+    replied = [r for r in _store_helpers.list_all(local_store, "outreach") if r.get("status") == "replied"]
+    assert len(replied) == 1
+    assert replied[0]["reply_sentiment"] == "positive"
+    assert replied[0].get("notified_at")
+
+
+def test_scan_replies_neutral_notifies_exactly_once(local_store, monkeypatch):
+    _seed_sent_row(local_store, "owner2@example-medspa-2.test")
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
+    stats = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["neutral"] == 1
+    assert len(calls) == 1
+    assert calls[0]["sentiment"] == "neutral"
+
+
+def test_scan_replies_negative_does_not_notify_and_closes_lost(local_store, monkeypatch):
+    _seed_sent_row(local_store, "owner3@example-medspa-3.test")
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
+    stats = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["negative"] == 1
+    assert calls == []
+    row = [r for r in _store_helpers.list_all(local_store, "outreach") if r.get("reply_sentiment") == "negative"][0]
+    assert row["status"] == "closed_lost"
+
+
+def test_scan_replies_second_scan_does_not_renotify(local_store, monkeypatch):
+    _seed_sent_row(local_store, "owner1@example-medspa-1.test")
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
+    stats1 = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 10))
+    stats2 = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 11))
+
+    assert stats1["positive"] == 1
+    assert stats2["checked"] == 0
+    assert len(calls) == 1
+
+
+def test_scan_replies_skips_message_id_already_recorded_in_notes(local_store, monkeypatch):
+    """A row that already has this fixture's message_id in notes.seen_reply_ids (e.g. one that
+    stayed `sent` after a prior bounce/ooo pass) must not be reclassified or renotified."""
+    _business, _preview, row = _seed_sent_row(local_store, "owner1@example-medspa-1.test")
+    local_store.update_outreach(row["id"], {"notes": json.dumps({"seen_reply_ids": ["msg-mock-001"]})})
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
+    stats = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["checked"] == 0
+    assert calls == []
+
+
+def test_scan_replies_live_path_persists_llm_classify_envelope(local_store, monkeypatch):
+    """The live classifier envelope (model_id, prompt_sha256, usage, mock) is merged into
+    notes.llm_classify alongside seen_reply_ids, never overwriting other notes keys."""
+    _business, _preview, row = _seed_sent_row(local_store, "owner1@example-medspa-1.test")
+    local_store.update_outreach(row["id"], {"gmail_thread_id": "thread-mock-001"})
+
+    reply = {
+        "thread_id": "thread-mock-001",
+        "message_id": "msg-live-001",
+        "from": "Dana Ortiz <owner1@example-medspa-1.test>",
+        "body_text": "Sounds interesting, can we hop on a call this week?",
+        "received_at": "2026-09-10T10:00:00Z",
+    }
+    monkeypatch.setattr(scan_replies.gmail_reader, "search_replies", lambda **kwargs: [reply])
+    monkeypatch.setattr(
+        scan_replies.llm,
+        "call",
+        lambda *a, **k: {
+            "text": json.dumps(
+                {
+                    "sentiment": "positive",
+                    "wants_call": True,
+                    "remove_request": False,
+                    "summary": "Wants a call this week.",
+                    "suggested_next_step": "book_call",
+                }
+            ),
+            "model_id": "claude-sonnet-5",
+            "prompt_sha256": "deadbeef",
+            "usage": {
+                "input_tokens": 10,
+                "output_tokens": 5,
+                "cache_read_input_tokens": 0,
+                "cache_creation_input_tokens": 0,
+            },
+            "mock": False,
+        },
+    )
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
+    stats = scan_replies.scan(local_store, object(), mock=False, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["positive"] == 1
+    assert len(calls) == 1
+    updated = [r for r in _store_helpers.list_all(local_store, "outreach") if r["id"] == row["id"]][0]
+    notes = json.loads(updated["notes"])
+    assert notes["llm_classify"]["model_id"] == "claude-sonnet-5"
+    assert notes["llm_classify"]["prompt_sha256"] == "deadbeef"
+    assert "usage" in notes["llm_classify"]
+    assert notes["llm_classify"]["mock"] is False
+    assert notes["seen_reply_ids"] == ["msg-live-001"]
 
 
 def test_enqueue_excludes_takedown_preview(local_store):
@@ -1011,3 +1158,228 @@ def test_doctor_sender_check_reports_missing_then_ok(tmp_path):
     store.set_config("sender", {"name": "Operator Name", "physical_address": "1 Main St, Chicago, IL 60601"})
     ok, _ = doctor.check_sender_config(store)
     assert ok is True
+
+
+# ---------------------------------------------------------------------------
+# outreach/send.py — automated sending (operator decision 2026-09-16)
+# ---------------------------------------------------------------------------
+
+VALID_SEND_BODY = (
+    "Hi Sam,\n\nCheck it out: https://x.preview.prodcraft.fyi\n\n"
+    "Debanjan\n123 Main St, Chicago, IL 60601\nReply 'no' and I won't follow up."
+)
+
+
+def _drafted_row(local_store, *, business, preview, touch=1, notes=None, **extra):
+    return _make_outreach_row(
+        local_store,
+        business_id=business["id"],
+        touch=touch,
+        status="drafted",
+        preview_id=preview["id"] if preview else None,
+        draft_subject=extra.pop("draft_subject", "quick question about booking"),
+        draft_body=extra.pop("draft_body", VALID_SEND_BODY),
+        notes=notes,
+        **extra,
+    )
+
+
+def test_send_transitions_drafted_to_sent_and_records_ids(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    row = _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats == {"script": "send", "in": 1, "sent": 1, "dropped": {
+        "cap_reached": 0, "halted": 0, "lint_failed": 0, "dnc": 0,
+        "preview_not_approved": 0, "already_replied": 0, "no_email": 0, "gmail_error": 0,
+    }}
+
+    updated = sender_configured.update_outreach(row["id"], {})
+    assert updated["status"] == "sent"
+    assert updated["sent_at"]
+    assert updated["gmail_message_id"].startswith("mock-")
+    assert "gmail_thread_id" in updated
+
+
+def test_send_respects_cap_across_touches(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    today = date(2026, 9, 16)
+    sender_configured.set_config(
+        "phase0", {"passed": False, "sends": 0, "calls_booked": 0, "queue_cap_locked": 2, "queue_cap_open": 20}
+    )
+    # One already-sent row today (touch 2, counts toward the cap) and two fresh drafted rows.
+    b0 = _make_business(sender_configured, name="Already Sent Spa", email="s0@example-medspa-0.test")
+    sender_configured.upsert_outreach(
+        {"business_id": b0["id"], "touch": 2, "status": "sent", "sent_at": f"{today.isoformat()}T00:00:00Z"}
+    )
+    b1 = _make_business(sender_configured, name="Cap Spa 1", email="s1@example-medspa-1.test")
+    p1 = _make_preview(sender_configured, business_id=b1["id"])
+    _drafted_row(sender_configured, business=b1, preview=p1)
+    b2 = _make_business(sender_configured, name="Cap Spa 2", email="s2@example-medspa-2.test")
+    p2 = _make_preview(sender_configured, business_id=b2["id"])
+    _drafted_row(sender_configured, business=b2, preview=p2)
+
+    stats = send.run_send(sender_configured, settings, today=today, mock=True)
+    # cap is 2, 1 already sent today -> only 1 more can go out.
+    assert stats["sent"] == 1
+    assert stats["dropped"]["cap_reached"] == 1
+
+
+def test_send_halted_queue_sends_nothing(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    today = date(2026, 9, 16)
+    # Push the bounce rate over 2% (mirrors test_bounce_halt_triggers_above_2_percent).
+    for i in range(100):
+        b = _make_business(sender_configured, name=f"Bounce Spa {i}", email=f"bo{i}@example-medspa-{i}.test")
+        sentiment = "bounce" if i < 3 else None
+        sender_configured.upsert_outreach(
+            {
+                "business_id": b["id"], "touch": 1, "status": "sent",
+                "sent_at": f"{today.isoformat()}T00:00:00Z", "reply_sentiment": sentiment,
+            }
+        )
+    business = _make_business(sender_configured, name="Halted Spa", email="halted@example-medspa-h.test")
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=today, mock=True)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["halted"] == 1
+
+
+def test_send_recipient_override_rewrites_to_and_prefixes_subject(sender_configured, fixtures_root, tmp_path):
+    settings = FakeSettings(tmp_path)
+    business = _make_business(sender_configured, email="realowner@example-medspa-real.test")
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    row = _drafted_row(sender_configured, business=business, preview=preview, draft_subject="quick question")
+
+    stats = send.run_send(
+        sender_configured, settings, today=date(2026, 9, 16), mock=True,
+        recipient_override="dry-run@example.test",
+    )
+    assert stats["sent"] == 1
+
+    updated = sender_configured.update_outreach(row["id"], {})
+    assert updated["test_recipient"] == "dry-run@example.test"
+
+    eml_files = list((settings.TMP / "sent").glob("*.eml"))
+    assert len(eml_files) == 1
+    content = eml_files[0].read_text(encoding="utf-8")
+    assert "To: dry-run@example.test" in content
+    assert "Subject: [TEST to realowner@example-medspa-real.test] quick question" in content
+
+
+def test_send_lint_failed_rows_never_send(sender_configured, fixtures_root):
+    import json as _json
+
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    row = _drafted_row(
+        sender_configured, business=business, preview=preview,
+        notes=_json.dumps({"lint_violations": ["can_spam:4"]}),
+    )
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["lint_failed"] == 1
+    unchanged = sender_configured.update_outreach(row["id"], {})
+    assert unchanged["status"] == "drafted"
+
+
+def test_send_dnc_never_sends(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured, do_not_contact=True)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["dnc"] == 1
+
+
+def test_send_preview_not_approved_never_sends(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"], status="review")
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["preview_not_approved"] == 1
+
+
+def test_send_skips_business_with_another_replied_or_terminal_row(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview, touch=1)
+    sender_configured.upsert_outreach({"business_id": business["id"], "touch": 2, "status": "replied"})
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["already_replied"] == 1
+
+
+def test_send_no_email_never_sends(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured, owner_email=None)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["no_email"] == 1
+
+
+def test_send_limit_caps_this_run_regardless_of_daily_cap(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    for i in range(3):
+        b = _make_business(sender_configured, name=f"Limit Spa {i}", email=f"lim{i}@example-medspa-{i}.test")
+        p = _make_preview(sender_configured, business_id=b["id"])
+        _drafted_row(sender_configured, business=b, preview=p)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True, limit=1)
+    assert stats["sent"] == 1
+
+
+# ---------------------------------------------------------------------------
+# daily_queue.py — random daily pick (config.queue_pick)
+# ---------------------------------------------------------------------------
+
+
+def test_queue_pick_random_is_deterministic_and_differs_from_score_order(local_store):
+    local_store.set_config("queue_pick", "random")
+    businesses = {}
+    for i in range(8):
+        b = _make_business(
+            local_store, name=f"Pick Spa {i}", email=f"pick{i}@example-medspa-{i}.test",
+            metro="chicago-north-shore",
+        )
+        _make_audit(local_store, business_id=b["id"], total_score=100 - i * 10)
+        businesses[b["id"]] = b
+
+    today = date(2026, 9, 16)
+    ordered_1 = [b["id"] for b in daily_queue._ordered_new_touch1_candidates(local_store, businesses, today)]
+    ordered_2 = [b["id"] for b in daily_queue._ordered_new_touch1_candidates(local_store, businesses, today)]
+    assert ordered_1 == ordered_2  # idempotent: same date + metro -> same order
+
+    score_order = [
+        b["id"] for b in sorted(businesses.values(), key=lambda b: -local_store.latest_audit(b["id"])["total_score"])
+    ]
+    assert ordered_1 != score_order
+
+
+def test_queue_pick_score_orders_by_audit_total_score_desc(local_store):
+    local_store.set_config("queue_pick", "score")
+    businesses = {}
+    for i in range(5):
+        b = _make_business(local_store, name=f"Score Spa {i}", email=f"score{i}@example-medspa-{i}.test")
+        _make_audit(local_store, business_id=b["id"], total_score=i * 10)  # ascending: last is highest
+        businesses[b["id"]] = b
+
+    ordered = daily_queue._ordered_new_touch1_candidates(local_store, businesses, date(2026, 9, 16))
+    scores = [local_store.latest_audit(b["id"])["total_score"] for b in ordered]
+    assert scores == sorted(scores, reverse=True)

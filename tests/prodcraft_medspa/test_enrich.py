@@ -256,6 +256,19 @@ def test_verify_no_email_is_unknown_and_free():
     assert cost == 0.0
 
 
+def test_verify_no_api_key_not_mock_returns_unverified_not_unknown(capsys):
+    """When MILLION_VERIFIER_API_KEY is unset and the call isn't --mock, there is no live path to
+    even attempt: this is a distinct, honest 'unverified' status (never 'unknown', which is
+    reserved for a genuine-but-unrecognised verifier response), never raises, and a note goes to
+    stderr."""
+    status, cost = verify.verify(
+        "someone@example-medspa-99.test", mock=False, fixtures_root=ENRICH_FIXTURES, api_key=None
+    )
+    assert status == "unverified"
+    assert cost == 0.0
+    assert "unverified" in capsys.readouterr().err
+
+
 # ---------------------------------------------------------------------------
 # Full waterfall — ordering, stop-at-first-hit, source distribution, gates
 # ---------------------------------------------------------------------------
@@ -355,6 +368,70 @@ def test_waterfall_respects_min_score(local_store):
     assert candidates == []
 
 
+def test_waterfall_preserves_preexisting_email_but_fills_missing_owner_name(local_store):
+    """CSV-import scenario (build instructions item 2): a business already has an owner_email
+    (e.g. from discovery/import_csv.py) but no owner_name. The waterfall must never overwrite that
+    email, yet should still run the steps that can fill in the missing name."""
+    seed(local_store)
+    settings = Settings()
+    p05 = next(b for b in local_store.find_businesses(metro="chicago-north-shore") if b["place_id"] == "p05")
+    local_store.upsert_business(
+        {
+            "id": p05["id"],
+            "place_id": p05["place_id"],
+            "owner_email": "csv-owner@example-medspa-05.test",
+            "email_status": "unverified",
+            "email_source": "csv",
+        }
+    )
+    assert not local_store.get_business(p05["id"]).get("owner_name")
+
+    stats = waterfall.run(
+        metro="chicago-north-shore",
+        business_id=p05["id"],
+        min_score=45,
+        mock=True,
+        store=local_store,
+        limit=None,
+        force=False,
+        fixtures_root=ENRICH_FIXTURES,
+        settings=settings,
+    )
+    assert stats["in"] == 1
+    assert stats["email_found"] == 0  # no *new* email is reported — the CSV one was preserved
+    assert stats["by_source"] == {k: 0 for k in waterfall.BY_SOURCE_KEYS}
+
+    updated = local_store.get_business(p05["id"])
+    assert updated["owner_email"] == "csv-owner@example-medspa-05.test"
+    assert updated["email_status"] == "unverified"
+    assert updated["email_source"] == "csv"
+    assert updated["owner_name"] == "Emily Ortiz"  # filled in via state_registry's side effect
+
+
+def test_waterfall_force_overwrites_preexisting_email(local_store):
+    seed(local_store)
+    settings = Settings()
+    p01 = next(b for b in local_store.find_businesses(metro="chicago-north-shore") if b["place_id"] == "p01")
+    local_store.upsert_business(
+        {"id": p01["id"], "place_id": p01["place_id"], "owner_email": "old@example.test", "email_status": "unverified"}
+    )
+
+    waterfall.run(
+        metro="chicago-north-shore",
+        business_id=p01["id"],
+        min_score=45,
+        mock=True,
+        store=local_store,
+        limit=None,
+        force=True,
+        fixtures_root=ENRICH_FIXTURES,
+        settings=settings,
+    )
+    updated = local_store.get_business(p01["id"])
+    assert updated["owner_email"] == "maria@example-medspa-01.test"  # --force re-runs and overwrites
+    assert updated["email_status"] == "deliverable"
+
+
 def test_waterfall_second_run_finds_nothing_new(local_store):
     seed(local_store)
     settings = Settings()
@@ -382,10 +459,15 @@ def test_waterfall_second_run_finds_nothing_new(local_store):
         fixtures_root=ENRICH_FIXTURES,
         settings=settings,
     )
-    # Only a *deliverable* email removes a business from the queue (per CLI contract: "without a
-    # deliverable email unless --force"). p09 (risky, generic_inbox) and p10 (no domain, unresolved)
-    # remain eligible and re-resolve identically on the second pass.
-    assert second["in"] == 2
-    assert second["email_found"] == 1
-    assert second["unresolved"] == 1
-    assert second["by_source"]["generic_inbox"] == 1
+    # Eligibility is now "no owner_email AND owner_name both set" rather than "no *deliverable*
+    # email" (build instructions item 2: preserve any pre-existing owner_email — e.g. a CSV import
+    # — instead of re-running the paid waterfall on it). p02 (contact_page hit an email but never a
+    # name shape — see test_contact_page_hit_email_only_no_name) and p09 (risky, generic_inbox) both
+    # already carry an owner_email from the first pass, so run_waterfall_for_business's
+    # preserve_email path runs their steps again only to look for a still-missing owner_name (never
+    # found in either fixture) and does not touch their email; p10 (no domain at all) stays fully
+    # unresolved as before. None of the three yield anything new on the second pass.
+    assert second["in"] == 3
+    assert second["email_found"] == 0
+    assert second["unresolved"] == 3
+    assert second["by_source"] == {k: 0 for k in waterfall.BY_SOURCE_KEYS}

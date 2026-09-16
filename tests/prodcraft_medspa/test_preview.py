@@ -78,7 +78,7 @@ def _seed_glow(store):
     return business, audit
 
 
-def _run_build(store, business, tmp_path, *, force=False):
+def _run_build(store, business, tmp_path, *, force=False, email_policy="deliverable_only"):
     stats = {
         "llm_cost_usd": 0.0,
         "built": 0,
@@ -97,6 +97,7 @@ def _run_build(store, business, tmp_path, *, force=False):
         base_domain="preview.prodcraft.fyi",
         tmp_root=tmp_path,
         stats=stats,
+        email_policy=email_policy,
     )
     return stats
 
@@ -363,6 +364,46 @@ def test_mock_r2_blocks_path_traversal(tmp_path):
 # ---------------------------------------------------------------------------
 # Mock end-to-end build_preview
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# email_policy eligibility (build instructions item 2)
+# ---------------------------------------------------------------------------
+
+
+def test_eligibility_deliverable_only_rejects_unverified():
+    business = {"do_not_contact": False, "email_status": "unverified"}
+    audit = {"bucket": "qualified"}
+    assert build_preview.eligibility_reason(business, audit) == "email_not_deliverable"
+    assert build_preview.eligibility_reason(business, audit, email_policy="deliverable_only") == "email_not_deliverable"
+
+
+def test_eligibility_allow_unverified_accepts_unverified_but_not_undeliverable():
+    audit = {"bucket": "qualified"}
+    unverified = {"do_not_contact": False, "email_status": "unverified"}
+    assert build_preview.eligibility_reason(unverified, audit, email_policy="allow_unverified") is None
+
+    undeliverable = {"do_not_contact": False, "email_status": "undeliverable"}
+    assert build_preview.eligibility_reason(undeliverable, audit, email_policy="allow_unverified") == "email_not_deliverable"
+
+    deliverable = {"do_not_contact": False, "email_status": "deliverable"}
+    assert build_preview.eligibility_reason(deliverable, audit, email_policy="allow_unverified") is None
+
+
+def test_build_preview_allow_unverified_builds_an_unverified_email_row(local_store, tmp_path):
+    business, _audit = _seed_glow(local_store)
+    local_store.upsert_business({"id": business["id"], "place_id": business["place_id"], "email_status": "unverified"})
+    business = local_store.get_business(business["id"])
+
+    stats_default = _run_build(local_store, business, tmp_path, email_policy="deliverable_only")
+    assert stats_default["built"] == 0  # deliverable_only still rejects it
+
+    stats_allow = _run_build(local_store, business, tmp_path, email_policy="allow_unverified")
+    assert stats_allow["built"] == 1
+
+    preview = build_preview.find_previews_for_business(local_store, business["id"])[0]
+    assert preview["email_policy"] == "allow_unverified"
+    assert "email_policy" not in preview["content"]  # never leaks into the customer-visible business.json
 
 
 def test_build_preview_mock_end_to_end_creates_review_preview(local_store, tmp_path):
