@@ -404,6 +404,17 @@ table.hours-table th {
     margin-top: 32px;
   }
   .folio-card {
+    /* Defensive reset: MotionController writes --folio-* as inline custom
+       properties keyed off a desktop matchMedia, and it also clears them
+       when that media query stops matching — but the values are reset here
+       too so the stacked mobile layout is correct even without JS, and the
+       opacity/transform !important below never actually depend on it. */
+    --folio-x: 0%;
+    --folio-y: 0%;
+    --folio-rotation: 0deg;
+    --folio-scale: 1;
+    --folio-opacity: 1;
+    --folio-caption-opacity: 1;
     position: relative;
     border-radius: 20px;
     background: var(--gallery, #f2efe8);
@@ -561,6 +572,12 @@ table.hours-table th {
     inset: auto;
   }
   .approach__steps li {
+    /* Defensive reset: see the matching --folio-* comment above — same
+       stale-inline-custom-property concern for MotionController's drum. */
+    --drum-y: 0%;
+    --drum-rotate: 0deg;
+    --drum-scale: 1;
+    --drum-opacity: 1;
     position: relative;
     top: auto;
     padding: 22px 0;

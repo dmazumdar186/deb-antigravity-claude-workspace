@@ -255,6 +255,40 @@ def _check_reduced_motion_fallback(browser, base_url: str) -> list[str]:
     return failures
 
 
+def _check_mobile_folio_opacity(browser, base_url: str) -> list[str]:
+    """Below the 800px desktop-motion breakpoint, every folio card must sit at
+    full opacity in the stacked layout — never a leftover --folio-opacity
+    written by MotionController while the page was last above 800px wide."""
+    failures: list[str] = []
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    page.goto(f"{base_url}/", wait_until="networkidle")
+
+    # Scroll partway into the folio section at desktop width first, so
+    # MotionController actually writes non-1 --folio-opacity values, then
+    # shrink below the 800px breakpoint and confirm they don't linger.
+    page.evaluate(
+        "() => { const folio = document.querySelector('[data-folio]'); "
+        "if (folio) window.scrollTo(0, folio.offsetTop + folio.offsetHeight * 0.5); }"
+    )
+    page.wait_for_timeout(200)
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.wait_for_timeout(250)
+
+    opacities = page.evaluate(
+        "() => Array.from(document.querySelectorAll('[data-folio-card]'))"
+        ".map((el) => parseFloat(window.getComputedStyle(el).opacity))"
+    )
+    if not opacities:
+        failures.append("no [data-folio-card] elements found at 390px")
+    for i, op in enumerate(opacities):
+        if op < 1:
+            failures.append(f"folio card [{i}] has opacity {op} (<1) in the 390px stacked layout")
+
+    context.close()
+    return failures
+
+
 def run() -> dict:
     if not OUT_DIR.exists():
         raise SystemExit(
@@ -518,6 +552,7 @@ def run() -> dict:
             motion_failures.extend(_check_hero_states(browser, base_url))
             motion_failures.extend(_check_folio_transforms(browser, base_url))
             motion_failures.extend(_check_reduced_motion_fallback(browser, base_url))
+            motion_failures.extend(_check_mobile_folio_opacity(browser, base_url))
             results["motion_checks"] = motion_failures
             failures.extend(f"[motion] {f}" for f in motion_failures)
 

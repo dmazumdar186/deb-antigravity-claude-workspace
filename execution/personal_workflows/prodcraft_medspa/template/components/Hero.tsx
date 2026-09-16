@@ -54,7 +54,7 @@ export default function Hero({ business }: { business: Business }) {
             </div>
           </div>
 
-          <div className="hero__state" data-hero-state="1">
+          <div className="hero__state" data-hero-state="1" aria-hidden="true">
             <p className="eyebrow hero__eyebrow">02 / Treat</p>
             <h2>
               {topService}
@@ -64,7 +64,7 @@ export default function Hero({ business }: { business: Business }) {
             <p className="hero__lede">A consultation, a plan, and a provider who walks you through it.</p>
           </div>
 
-          <div className="hero__state" data-hero-state="2">
+          <div className="hero__state" data-hero-state="2" aria-hidden="true">
             <p className="eyebrow hero__eyebrow">03 / Recover</p>
             <h2>
               Know what
@@ -76,7 +76,7 @@ export default function Hero({ business }: { business: Business }) {
             </p>
           </div>
 
-          <div className="hero__state" data-hero-state="3">
+          <div className="hero__state" data-hero-state="3" aria-hidden="true">
             <p className="eyebrow hero__eyebrow">04 / Book</p>
             <h2>
               Your next visit

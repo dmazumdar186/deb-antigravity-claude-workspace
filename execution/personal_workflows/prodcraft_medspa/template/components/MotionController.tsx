@@ -22,28 +22,30 @@ import { activeStepIndex, drumStepState, folioCardState, heroFrame, sectionProgr
 
 export default function MotionController() {
   useEffect(() => {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reduceMotion = reduceMotionQuery.matches;
     const desktopMotion = window.matchMedia('(min-width: 800px)');
 
     // --- reveal-on-scroll for [data-reveal] sections not already using the
     // React <Reveal> component (kept for parity with the reference's pattern
     // and for any future plain-HTML section). ---
     const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+    let revealObserver: IntersectionObserver | null = null;
     if (revealItems.length) {
       if (reduceMotion || !('IntersectionObserver' in window)) {
         revealItems.forEach((el) => el.classList.add('is-visible'));
       } else {
-        const observer = new IntersectionObserver(
+        revealObserver = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
               if (!entry.isIntersecting) return;
               entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
+              revealObserver?.unobserve(entry.target);
             });
           },
           { rootMargin: '0px 0px -10% 0px', threshold: 0.06 }
         );
-        revealItems.forEach((el) => observer.observe(el));
+        revealItems.forEach((el) => revealObserver?.observe(el));
       }
     }
 
@@ -60,25 +62,78 @@ export default function MotionController() {
     let currentHeroState = -1;
     let scheduled = false;
 
+    // Clears every motion custom property this controller has ever written to
+    // the folio cards / drum steps, and restores the header progress + hero
+    // step-rail fill to their rest values. Called when prefers-reduced-motion
+    // flips on mid-session (content must show fully, unanimated) and when the
+    // desktop breakpoint is left (the stacked mobile layout must never carry
+    // stale --folio-*/--drum-* values, even though globals.css's mobile
+    // media-query rules already `!important`-override them defensively).
+    const clearFolioAndDrumProps = () => {
+      folioCards.forEach((card) => {
+        card.style.removeProperty('--folio-x');
+        card.style.removeProperty('--folio-y');
+        card.style.removeProperty('--folio-rotation');
+        card.style.removeProperty('--folio-scale');
+        card.style.removeProperty('--folio-opacity');
+        card.style.removeProperty('--folio-caption-opacity');
+        card.style.removeProperty('z-index');
+      });
+      approachSteps.forEach((step) => {
+        step.style.removeProperty('--drum-y');
+        step.style.removeProperty('--drum-rotate');
+        step.style.removeProperty('--drum-scale');
+        step.style.removeProperty('--drum-opacity');
+        step.removeAttribute('aria-current');
+      });
+    };
+
+    // Shows every hero copy state and clears the accessibility-hiding on the
+    // off states (all become visually visible via the reduced-motion CSS
+    // block regardless of `is-on`, so the a11y tree must match).
+    const showAllHeroStates = () => {
+      currentHeroState = -1;
+      heroStates.forEach((el) => {
+        el.classList.add('is-on');
+        el.removeAttribute('aria-hidden');
+      });
+      heroBgs.forEach((el) => el.classList.add('is-on'));
+      heroSteps.forEach((el) => el.style.setProperty('--fill', '1'));
+    };
+
     const update = () => {
       scheduled = false;
       const viewport = window.innerHeight;
 
+      // --- READ PHASE: gather every layout metric first (scrollHeight,
+      // scrollY, getBoundingClientRect x3) before any style write below, so
+      // a single frame only forces layout once instead of interleaving
+      // reads and writes into three separate synchronous layouts. ---
+      const pageRange = header ? Math.max(document.documentElement.scrollHeight - viewport, 1) : 0;
+      const scrollY = window.scrollY;
+      const heroRect = hero && heroStates.length ? hero.getBoundingClientRect() : null;
+      const runFolio = !reduceMotion && desktopMotion.matches && !!folio && folioCards.length > 0;
+      const folioRect = runFolio ? folio!.getBoundingClientRect() : null;
+      const runApproach = !reduceMotion && desktopMotion.matches && !!approach && approachSteps.length > 0;
+      const approachRect = runApproach ? approach!.getBoundingClientRect() : null;
+
+      // --- WRITE PHASE: apply every DOM mutation using only the locals
+      // captured above; nothing below re-reads layout. ---
       if (header) {
-        const pageRange = Math.max(document.documentElement.scrollHeight - viewport, 1);
-        const pageProgress = Math.min(1, Math.max(0, window.scrollY / pageRange));
-        header.classList.toggle('is-scrolled', window.scrollY > 24);
+        const pageProgress = Math.min(1, Math.max(0, scrollY / pageRange));
+        header.classList.toggle('is-scrolled', scrollY > 24);
         header.style.setProperty('--page-progress', String(pageProgress));
       }
 
-      if (hero && heroStates.length) {
-        const rect = hero.getBoundingClientRect();
-        const progress = sectionProgress(rect, viewport);
+      if (heroRect) {
+        const progress = sectionProgress(heroRect, viewport);
         const frame = heroFrame(progress, heroStates.length);
         if (frame.stateIndex !== currentHeroState) {
           currentHeroState = frame.stateIndex;
           heroStates.forEach((el) => {
-            el.classList.toggle('is-on', Number(el.dataset.heroState) === currentHeroState);
+            const isOn = Number(el.dataset.heroState) === currentHeroState;
+            el.classList.toggle('is-on', isOn);
+            el.setAttribute('aria-hidden', String(!isOn));
           });
           heroBgs.forEach((el) => {
             el.classList.toggle('is-on', Number(el.dataset.heroBg) === currentHeroState);
@@ -87,8 +142,8 @@ export default function MotionController() {
         heroSteps.forEach((el, i) => el.style.setProperty('--fill', frame.fill[i]?.toFixed(3) ?? '0'));
       }
 
-      if (!reduceMotion && desktopMotion.matches && folio && folioCards.length) {
-        const progress = sectionProgress(folio.getBoundingClientRect(), viewport);
+      if (folioRect) {
+        const progress = sectionProgress(folioRect, viewport);
         folioCards.forEach((card, index) => {
           const state = folioCardState(progress, index, folioCards.length);
           card.style.setProperty('--folio-x', `${state.xPercent}%`);
@@ -101,10 +156,10 @@ export default function MotionController() {
         });
       }
 
-      if (!reduceMotion && desktopMotion.matches && approach && approachSteps.length) {
-        const progress = sectionProgress(approach.getBoundingClientRect(), viewport);
+      if (approachRect) {
+        const progress = sectionProgress(approachRect, viewport);
         const active = activeStepIndex(progress, approachSteps.length);
-        approach.style.setProperty('--approach-progress', `${progress * 100}%`);
+        approach!.style.setProperty('--approach-progress', `${progress * 100}%`);
         approachSteps.forEach((step, index) => {
           const state = drumStepState(progress, index, approachSteps.length);
           step.style.setProperty('--drum-y', `${state.yPercent}%`);
@@ -123,15 +178,34 @@ export default function MotionController() {
       requestAnimationFrame(update);
     };
 
+    const handleReduceMotionChange = (e: MediaQueryListEvent) => {
+      reduceMotion = e.matches;
+      if (reduceMotion) {
+        clearFolioAndDrumProps();
+        showAllHeroStates();
+      }
+      schedule();
+    };
+
+    const handleDesktopMotionChange = () => {
+      if (!desktopMotion.matches) {
+        clearFolioAndDrumProps();
+      }
+      schedule();
+    };
+
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
-    desktopMotion.addEventListener?.('change', schedule);
+    desktopMotion.addEventListener?.('change', handleDesktopMotionChange);
+    reduceMotionQuery.addEventListener?.('change', handleReduceMotionChange);
     update();
 
     return () => {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
-      desktopMotion.removeEventListener?.('change', schedule);
+      desktopMotion.removeEventListener?.('change', handleDesktopMotionChange);
+      reduceMotionQuery.removeEventListener?.('change', handleReduceMotionChange);
+      revealObserver?.disconnect();
     };
   }, []);
 
