@@ -57,8 +57,9 @@ python3 execution/personal_workflows/prodcraft_medspa/scripts/daily.py --mock --
 Mock chain DoD: 22 found -> 16 kept -> 16 audited -> 6 qualified -> 4 verified -> 4 previews -> 4 approved ->
 4 drafted -> **4 sent** (mock .eml under `.tmp/prodcraft_medspa/sent/`); a second `daily.py` run sends 0.
 Without `--recipient-override`, `daily.py --mock` sends 0 and reports `live_send_not_confirmed` by design.
-Last full run this session: see the final line of `git log -1` commit message for the numbers (pytest 622+ passed,
-35 skipped; vitest 29; typecheck, build and acceptance clean). Never run two `run_metro`/`build_preview` processes
+Last full run this session: pytest 638 passed / 35 skipped (about 115 s); vitest 29; typecheck, build and
+acceptance clean; `test_suite_tiers.sh` ALL CHECKS PASSED (pytest threshold raised to 180 s for the larger suite).
+Never run two `run_metro`/`build_preview` processes
 against the same checkout at once; the build lock serializes them.
 
 ## Honest gaps (open after round 2)

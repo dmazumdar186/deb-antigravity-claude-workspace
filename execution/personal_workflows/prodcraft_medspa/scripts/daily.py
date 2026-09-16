@@ -178,6 +178,9 @@ def main() -> None:
             print(json.dumps(send_result["stat"]) if send_result.get("stat") else "(no output)")
 
     any_failed = any(not r["ok"] for r in results)
+    # send_result is None when --replies-only/--no-send skipped the step, and its "stat" is None
+    # when outreach.send printed no final JSON line (e.g. an argparse error on a bad --date).
+    send_stat = (send_result or {}).get("stat") or {}
     print(
         json.dumps(
             {
@@ -186,12 +189,12 @@ def main() -> None:
                 "replies_only": args.replies_only,
                 "no_send": args.no_send,
                 "takedowns_run": len(takedown_ids),
-                "sent": (send_result or {}).get("stat", {}).get("sent") if send_result else None,
+                "sent": send_stat.get("sent"),
                 # outreach.send.py's C2 live-send-gate fields, passed through so a caller reading
                 # only daily.py's own final line (not the "--- send output ---" block above) can
                 # still tell a dry-run from a live-recipient run.
-                "recipient_override": (send_result or {}).get("stat", {}).get("recipient_override") if send_result else None,
-                "live_recipients": (send_result or {}).get("stat", {}).get("live_recipients") if send_result else None,
+                "recipient_override": send_stat.get("recipient_override"),
+                "live_recipients": send_stat.get("live_recipients"),
                 "any_failed": any_failed,
             }
         )
