@@ -272,6 +272,17 @@ async function loadStats() {
 
     $('#stat-bounce').textContent = fmtPct(data.bounce_rate_30d);
     $('#stat-sends-per-reply').textContent = data.sends_per_reply == null ? '—' : data.sends_per_reply.toFixed(1);
+    const healthLabels = {
+      insufficient_data: 'too few sends to judge (need 30)',
+      on_track: 'on track (>= 10% reply)',
+      below_target: 'below target (4-10% reply)',
+      below_platform_average: 'below platform average (< 4% reply): fix the offer before scaling',
+    };
+    const healthEl = $('#stat-reply-health');
+    if (healthEl) {
+      healthEl.textContent = healthLabels[data.reply_rate_health] || '—';
+      healthEl.dataset.health = data.reply_rate_health || '';
+    }
 
     const replyBody = $('#reply-rate-table tbody');
     replyBody.innerHTML = Object.entries(data.reply_rate_per_touch || {})

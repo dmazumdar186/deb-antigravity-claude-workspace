@@ -29,6 +29,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from execution.personal_workflows.prodcraft_medspa.common import config, http, notify  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.store import Store, get_store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 from . import apollo, contact_page, findymail, generic_inbox, gbp_reviews, hunter, state_registry, verify  # noqa: E402
 from .context import StepContext, StepResult  # noqa: E402
@@ -197,7 +198,7 @@ def main() -> None:
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    store_kind = "local" if args.mock else (args.store or settings.store_kind)
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock implies local; never supabase
     store = get_store(kind=store_kind, root=args.store_root) if store_kind == "local" else get_store(kind=store_kind)
     fixtures_root = Path(__file__).resolve().parent / "fixtures"
 

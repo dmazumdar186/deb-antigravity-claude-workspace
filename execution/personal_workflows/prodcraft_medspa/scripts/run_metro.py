@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import uuid
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +33,7 @@ from execution.personal_workflows.prodcraft_medspa.common import notify  # noqa:
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
     common_store_args,
+    reject_mock_with_supabase,
     run_module,
 )
 
@@ -98,9 +100,13 @@ def build_stage_args(stage: str, args: argparse.Namespace) -> tuple[str, list[st
     raise ValueError(f"unknown stage: {stage}")
 
 
-def expand_stages(stage_list: list[str], args: argparse.Namespace) -> list[str]:
+def expand_stages(stage_list: list[str], args: argparse.Namespace, store_kind: str) -> list[str]:
     """Insert the `audit_sample` stage when --sample-n is set, and `approve` after `preview` when
-    --auto-approve is set or --mock is on (the mock chain must reach a non-empty daily queue).
+    --auto-approve is set or --mock is on AND `store_kind == "local"` (the mock chain must reach a
+    non-empty daily queue, but `--auto-approve`/`--mock` may never add a live bulk-approve stage
+    against a Supabase store — code-reviewer C4/M1; that combination is instead a `parser.error`
+    in `main()` before this is called, so this function stays pure: no errors, no I/O, just list
+    math the caller's guard has already made safe).
 
     Default: `audit` (full) then `audit_sample` (metro_stats only, reusing the stored audits).
     `--sample-only`: `audit_sample` replaces `audit` (nothing else is audited).
@@ -115,16 +121,28 @@ def expand_stages(stage_list: list[str], args: argparse.Namespace) -> list[str]:
             expanded.append("audit_sample")
         else:
             expanded.append(stage)
-    auto_approve = getattr(args, "auto_approve", False) or getattr(args, "mock", False)
+    auto_approve = (getattr(args, "auto_approve", False) or getattr(args, "mock", False)) and store_kind == "local"
     if auto_approve and "preview" in expanded and APPROVE_STAGE not in expanded:
         expanded.insert(expanded.index("preview") + 1, APPROVE_STAGE)
     return expanded
 
 
-def run_stages(stage_list: list[str], args: argparse.Namespace) -> list[dict[str, Any]]:
-    """Run each stage in order. Stops at the first failure unless --continue-on-error."""
+def run_stages(
+    stage_list: list[str], args: argparse.Namespace, store_kind: str | None = None
+) -> list[dict[str, Any]]:
+    """Run each stage in order. Stops at the first failure unless --continue-on-error.
+
+    `store_kind` defaults to `resolve_store_kind(args)` when omitted (existing direct callers of
+    `run_stages` need not resolve it themselves), but `main()` always passes the value it already
+    computed via `reject_mock_with_supabase()` so the guard's decision is the one that flows into
+    `expand_stages()`.
+    """
+    if store_kind is None:
+        from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import resolve_store_kind
+
+        store_kind = resolve_store_kind(args)
     results: list[dict[str, Any]] = []
-    stage_list = expand_stages(stage_list, args)
+    stage_list = expand_stages(stage_list, args, store_kind)
     for stage in stage_list:
         module, cli_args = build_stage_args(stage, args)
         print(f"\n=== stage: {stage} ({module}) ===", file=sys.stderr)
@@ -165,10 +183,11 @@ def compute_funnel(store: Any, metro: str) -> dict[str, Any]:
     found = businesses
 
     operational = [b for b in found if not b.get("is_chain") and b.get("drop_reason") is None]
+    operational_ids = {b["id"] for b in operational}
     operational_drop_reasons = Counter(
         (b.get("drop_reason") or ("chain" if b.get("is_chain") else "unknown"))
         for b in found
-        if b not in operational
+        if b["id"] not in operational_ids
     )
 
     audits_by_business: dict[str, dict] = {}
@@ -179,17 +198,21 @@ def compute_funnel(store: Any, metro: str) -> dict[str, Any]:
     audited = [b for b in operational if b["id"] in audits_by_business]
 
     qualified = [b for b in audited if audits_by_business[b["id"]].get("bucket") == "qualified"]
+    qualified_ids = {b["id"] for b in qualified}
     qualified_drop_reasons = Counter(
         audits_by_business[b["id"]].get("bucket") or "unknown"
         for b in audited
-        if b not in qualified
+        if b["id"] not in qualified_ids
     )
 
     owner_found = [b for b in qualified if b.get("owner_name") or b.get("owner_email")]
 
     email_verified = [b for b in owner_found if b.get("email_status") == "deliverable"]
+    email_verified_ids = {b["id"] for b in email_verified}
+    # "no_email" (email_status never set — no owner email was even attempted/found) is distinct
+    # from a genuine but non-deliverable "unknown" verifier status (pipeline-auditor).
     email_status_reasons = Counter(
-        b.get("email_status") or "unknown" for b in owner_found if b not in email_verified
+        (b.get("email_status") or "no_email") for b in owner_found if b["id"] not in email_verified_ids
     )
 
     previews = _all_previews(store)
@@ -206,6 +229,14 @@ def compute_funnel(store: Any, metro: str) -> dict[str, Any]:
         ("preview built", len(preview_built), {"no_preview": len(email_verified) - len(preview_built)} if len(email_verified) > len(preview_built) else None),
     ]
     return {"metro": metro, "stages": stages}
+
+
+def run_record_filename(metro: str) -> str:
+    """{metro}_{UTC timestamp to the second}_{short uuid4}.json — the uuid4 suffix guarantees
+    uniqueness even when two runs for the same metro start in the same second (pipeline-auditor:
+    plain second-resolution timestamps collided in that case)."""
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return f"{metro}_{ts}_{uuid.uuid4().hex[:8]}.json"
 
 
 def _pct(count: int, prev: int) -> str:
@@ -271,10 +302,20 @@ def main() -> None:
         dest="auto_approve",
         action="store_true",
         help="After the preview stage run preview.approve --all-review for this metro (skips the dashboard "
-        "review step; implied by --mock). Live default: previews stay in 'review' until a human approves.",
+        "review step; implied by --mock). Local-store only: `parser.error`s against a Supabase/live "
+        "store, where previews stay in 'review' until a human approves.",
     )
     parser.add_argument("--continue-on-error", action="store_true")
     args = parser.parse_args()
+
+    store_kind = reject_mock_with_supabase(parser, args)
+    if args.auto_approve and store_kind != "local":
+        parser.error(
+            "--auto-approve is local-store only; approve a Supabase/live store's previews via "
+            "the dashboard, or `preview.approve --preview-id`/`--metro --all-review "
+            "--yes-i-reviewed-them` for a deliberate manual bulk approve (run_metro never "
+            "passes --yes-i-reviewed-them itself)"
+        )
     if args.mock and not args.auto_approve:
         print("[run_metro] --mock implies --auto-approve so the mock chain reaches the daily queue", file=sys.stderr)
 
@@ -285,10 +326,10 @@ def main() -> None:
     if args.sample_only and not args.sample_n:
         parser.error("--sample-only requires --sample-n N")
 
-    results = run_stages(stage_list, args)
+    results = run_stages(stage_list, args, store_kind)
     any_failed = any(not r["ok"] for r in results)
 
-    store = get_store(kind=args.store, root=args.store_root) if args.store_root else get_store(kind=args.store)
+    store = get_store(kind=store_kind, root=args.store_root)
     funnel = compute_funnel(store, args.metro)
     print_funnel_table(funnel)
 
@@ -313,8 +354,7 @@ def main() -> None:
     }
     runs_dir = REPO_ROOT / ".tmp" / "prodcraft_medspa" / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    out_path = runs_dir / f"{args.metro}_{ts}.json"
+    out_path = runs_dir / run_record_filename(args.metro)
     out_path.write_text(json.dumps(run_record, indent=2, default=str), encoding="utf-8")
     print(f"\nRun record: {out_path}")
 

@@ -30,6 +30,7 @@ from execution.personal_workflows.prodcraft_medspa.audit import (  # noqa: E402
     vision,
 )
 from execution.personal_workflows.prodcraft_medspa.common import config, notify, store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 MAX_WORKERS = 4
 AUDIT_STALE_DAYS = 30
@@ -227,6 +228,12 @@ def audit_one_business(
     mobile_png: bytes | None = None
     desktop_png: bytes | None = None
 
+    if mock and not skip_screenshots:
+        # CONTRACTS.md: --mock touches no network. Playwright cannot open a *.test host anyway; it
+        # only produced ERR_NAME_NOT_RESOLVED noise (and proxy traffic). CTA detection stays None
+        # under mock, which scores 0 for that signal, so the mock funnel is unchanged.
+        raw["screenshots"] = {"error": "skipped under --mock (no network)"}
+        skip_screenshots = True
     if not skip_screenshots:
         slug = business.get("slug") or business["id"]
         shot = screenshots.capture_screenshots(final_url, slug)
@@ -356,7 +363,7 @@ def main() -> None:
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    store_kind = args.store or ("local" if args.mock else settings.store_kind)
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock implies local; never supabase
     st = store.get_store(kind=store_kind, root=args.store_root)
 
     mock_map = _load_mock_map() if args.mock else None

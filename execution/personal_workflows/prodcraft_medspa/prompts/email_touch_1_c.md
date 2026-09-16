@@ -7,7 +7,7 @@ subject: noticed something on {{business_name}}'s site
 
 Hi {{owner_first}},
 
-I was looking at {{business_name}} ({{fiveWordPlainDescriptionOfTheirBusiness}}) and one thing stood out: {{oneSentenceSpecificBookingGapObservedOnTheirSite}}. About 78% of med spa bookings still come in by phone, and after-hours visitors just move on.
+I was looking at {{business_name}} ({{fiveWordPlainDescriptionOfTheirBusiness}}) and one thing stood out: {{oneSentenceSpecificBookingGapObservedOnTheirSite}}. Most med spa bookings still start with a phone call, and after-hours visitors just move on.
 
 So I put together a quick concept of what an online-booking-first homepage could look like for you: {{preview_url}}
 

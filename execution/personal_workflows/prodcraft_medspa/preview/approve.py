@@ -24,6 +24,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))  # repo root, for d
 
 from execution.personal_workflows.prodcraft_medspa.common import config, notify  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.store import Store, get_store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
+    reject_mock_with_supabase,
+)
 
 APPROVABLE_FROM = ("review",)
 
@@ -88,12 +91,27 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--mock", action="store_true")
     parser.add_argument("--store", choices=["local", "supabase"], default=None)
     parser.add_argument("--store-root", dest="store_root", default=None)
+    parser.add_argument(
+        "--yes-i-reviewed-them",
+        dest="yes_i_reviewed_them",
+        action="store_true",
+        help="Required in addition to --all-review for a LIVE bulk approve (--metro against a "
+        "Supabase store): confirms a human actually reviewed every preview about to be approved. "
+        "Not required against a local store. run_metro.py never passes this flag — its own "
+        "--auto-approve is local-store only, so it can never trigger a live bulk approve here.",
+    )
     args = parser.parse_args(argv)
 
     if args.metro and not args.all_review:
         parser.error("--metro requires --all-review (bulk approve is deliberate, not a default)")
 
-    store_kind = args.store or ("local" if args.mock else None)
+    store_kind = reject_mock_with_supabase(parser, args)
+    if args.metro and store_kind == "supabase" and not args.yes_i_reviewed_them:
+        parser.error(
+            "a live bulk approve (--metro against --store supabase) also requires "
+            "--yes-i-reviewed-them — this is deliberate friction so run_metro's automated "
+            "--auto-approve (local-store only) can never reach a live approve through this path"
+        )
     store = get_store(kind=store_kind, root=args.store_root)
     try:
         stat = run(store, preview_id=args.preview_id, metro=args.metro, actor=args.actor)

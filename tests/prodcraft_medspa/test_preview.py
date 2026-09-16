@@ -453,6 +453,73 @@ def test_takedown_flips_flags_and_deletes_r2_prefix(local_store, tmp_path):
     assert kv_data["status"] == "takedown"
 
 
+def test_takedown_uses_update_row_not_upsert_business(local_store, tmp_path, monkeypatch):
+    """code-reviewer C4/M1: do_not_contact is patched via store.update_row (patch-by-id), never
+    a read-modify-upsert_business round trip, which would lose a concurrent write to the same
+    business row between takedown's read and its write."""
+    business, _audit = _seed_glow(local_store)
+    _run_build(local_store, business, tmp_path)
+    preview = build_preview.find_previews_for_business(local_store, business["id"])[0]
+
+    calls = {"upsert_business": 0, "update_row": 0}
+    orig_upsert = local_store.upsert_business
+    orig_update_row = local_store.update_row
+
+    def _tracked_upsert(row):
+        calls["upsert_business"] += 1
+        return orig_upsert(row)
+
+    def _tracked_update_row(table, row_id, patch):
+        if table == "businesses":
+            calls["update_row"] += 1
+        return orig_update_row(table, row_id, patch)
+
+    monkeypatch.setattr(local_store, "upsert_business", _tracked_upsert)
+    monkeypatch.setattr(local_store, "update_row", _tracked_update_row)
+
+    takedown.take_down_preview(local_store, preview, mock=True, tmp_root=tmp_path)
+
+    assert calls["update_row"] == 1
+    assert calls["upsert_business"] == 0
+    assert local_store.get_business(business["id"])["do_not_contact"] is True
+
+
+# ---------------------------------------------------------------------------
+# takedown.py CLI — --mock/--store supabase guard (item 1)
+# ---------------------------------------------------------------------------
+
+
+def test_takedown_cli_mock_with_store_supabase_exits_2():
+    import subprocess
+    import sys as _sys
+
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.preview.takedown",
+         "--business-id", "x", "--mock", "--store", "supabase"],
+        cwd=str(PKG_ROOT.parents[2]), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 2
+    assert "--mock cannot be combined with --store supabase" in proc.stderr
+
+
+# ---------------------------------------------------------------------------
+# build_preview.py CLI — --mock/--store supabase guard (item 1)
+# ---------------------------------------------------------------------------
+
+
+def test_build_preview_cli_mock_with_store_supabase_exits_2():
+    import subprocess
+    import sys as _sys
+
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.preview.build_preview",
+         "--business-id", "x", "--mock", "--store", "supabase"],
+        cwd=str(PKG_ROOT.parents[2]), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 2
+    assert "--mock cannot be combined with --store supabase" in proc.stderr
+
+
 def test_resolve_target_previews_by_host_and_preview_id(local_store, tmp_path):
     business, _audit = _seed_glow(local_store)
     _run_build(local_store, business, tmp_path)
@@ -555,3 +622,109 @@ def test_approve_unknown_preview_id_is_a_reported_drop(local_store):
 
     stat = approve.run(local_store, preview_id="nope", metro=None, actor="test")
     assert stat == {"script": "approve", "in": 0, "out": 0, "dropped": {"not_found": 1}, "preview_ids": []}
+
+
+# ---------------------------------------------------------------------------
+# preview/approve.py CLI — --mock/--store supabase guard + live-bulk-approve guard (item 1, 4)
+# ---------------------------------------------------------------------------
+
+
+def _run_approve_cli(args, cwd):
+    import subprocess
+    import sys as _sys
+
+    return subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.preview.approve", *args],
+        cwd=str(cwd), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+
+
+def test_approve_cli_mock_with_store_supabase_exits_2(tmp_path):
+    proc = _run_approve_cli(
+        ["--preview-id", "x", "--mock", "--store", "supabase"], PKG_ROOT.parents[2]
+    )
+    assert proc.returncode == 2
+    assert "--mock cannot be combined with --store supabase" in proc.stderr
+
+
+def test_approve_cli_live_bulk_approve_requires_yes_i_reviewed_them(tmp_path):
+    """A live bulk approve (--metro against --store supabase) must refuse without
+    --yes-i-reviewed-them — run_metro.py's own --auto-approve is local-store only and never
+    passes this flag, so this path is reachable only by a deliberate manual invocation."""
+    proc = _run_approve_cli(
+        ["--metro", "chicago_north_shore", "--all-review", "--store", "supabase"], PKG_ROOT.parents[2]
+    )
+    assert proc.returncode == 2
+    assert "--yes-i-reviewed-them" in proc.stderr
+
+
+def test_approve_cli_local_bulk_approve_does_not_require_yes_i_reviewed_them(local_store, tmp_path):
+    """The extra confirmation flag is Supabase/live-only; a local (e.g. --mock) bulk approve
+    (exactly what run_metro.py's --auto-approve invokes) keeps working exactly as before, with
+    no --yes-i-reviewed-them needed."""
+    business, _audit = _seed_glow(local_store)
+    _seed_preview(local_store, business["id"], status="review")
+    proc = _run_approve_cli(
+        [
+            "--metro", business["metro"], "--all-review", "--actor", "run_metro",
+            "--mock", "--store-root", str(local_store.root),
+        ],
+        PKG_ROOT.parents[2],
+    )
+    assert proc.returncode == 0, proc.stderr
+    stat = json.loads(proc.stdout.strip().splitlines()[-1])
+    assert stat["out"] == 1
+
+
+# ---------------------------------------------------------------------------
+# build isolation: inter-process lock + output sanity check
+# ---------------------------------------------------------------------------
+
+
+def test_process_lock_is_exclusive_across_processes(tmp_path):
+    """A second process must wait (and time out) while the first holds template/.build.lock."""
+    import subprocess as sp
+    import sys as _sys
+
+    from execution.personal_workflows.prodcraft_medspa.preview import build_preview
+
+    lock_path = tmp_path / ".build.lock"
+    with build_preview._ProcessLock(lock_path):
+        code = (
+            "import sys; sys.path.insert(0, %r)\n"
+            "from execution.personal_workflows.prodcraft_medspa.preview.build_preview import _ProcessLock\n"
+            "from pathlib import Path\n"
+            "try:\n"
+            "    with _ProcessLock(Path(%r), wait_s=1.5): print('ACQUIRED')\n"
+            "except TimeoutError: print('TIMEOUT')\n"
+        ) % (str(PKG_ROOT.parents[2]), str(lock_path))
+        proc = sp.run([_sys.executable, "-c", code], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
+    assert proc.stdout.strip() == "TIMEOUT", proc.stderr
+    # released: a fresh acquire succeeds immediately
+    with build_preview._ProcessLock(lock_path, wait_s=1):
+        pass
+
+
+def test_assert_build_matches_rejects_foreign_output(tmp_path):
+    from execution.personal_workflows.prodcraft_medspa.preview import build_preview
+
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "index.html").write_text("<title>Other Spa &amp; Co</title>", encoding="utf-8")
+    with pytest.raises(RuntimeError):
+        build_preview._assert_build_matches(out, {"name": "Glow Aesthetics"})
+    build_preview._assert_build_matches(out, {"name": "Other Spa & Co"})  # escaped form is accepted
+
+
+def test_touch4_already_sent_detects_deadline_email(local_store):
+    from execution.personal_workflows.prodcraft_medspa.preview import publish
+
+    business, _audit = _seed_glow(local_store)
+    assert publish.touch4_already_sent(local_store, business["id"]) is False
+    local_store.upsert_outreach({"business_id": business["id"], "touch": 4, "status": "drafted", "next_touch_at": "2026-09-01"})
+    assert publish.touch4_already_sent(local_store, business["id"]) is False  # drafted, not sent
+    local_store.update_outreach(
+        local_store.list_outreach(business["id"])[0]["id"], {"status": "sent"}
+    )
+    assert publish.touch4_already_sent(local_store, business["id"]) is True
+    assert publish.touch4_already_sent(local_store, None) is False

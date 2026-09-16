@@ -128,6 +128,7 @@ export const onRequestGet: PagesFunction<Env> = (context) =>
     const totalSends = outreach.filter((o) => o.status !== 'queued' && o.status !== 'drafted').length;
     const totalReplies = outreach.filter((o) => ['replied', 'call_booked', 'closed_won', 'closed_lost'].includes(o.status)).length;
     const sendsPerReply = totalReplies === 0 ? null : totalSends / totalReplies;
+    const replyRateHealth = replyRateHealthOf(totalSends, totalReplies);
 
     const today = new Date().toISOString().slice(0, 10);
     const bounceRate = bounceRate30d(
@@ -144,8 +145,28 @@ export const onRequestGet: PagesFunction<Env> = (context) =>
       funnel_by_metro: Object.fromEntries(funnels),
       reply_rate_per_touch: replyRatePerTouch,
       sends_per_reply: sendsPerReply,
+      reply_rate_health: replyRateHealth,
       bounce_rate_30d: bounceRate,
       phase0: phase0 ?? { passed: false, sends: 0, calls_booked: 0 },
       metro_stats: [...latestMetroStats.values()],
     });
   });
+
+/**
+ * Hormozi #5: the operator must know by prospect ~30 whether they are in the ~15% reply world
+ * (spec assumption, ~75 sends per close) or the 3-4% platform-average world (sends per close
+ * quadruple). Below MIN_SENDS the sample is too small to say anything.
+ */
+export const REPLY_RATE_MIN_SENDS = 30;
+export const REPLY_RATE_ON_TRACK = 0.10;
+export const REPLY_RATE_PLATFORM_AVERAGE = 0.04;
+
+export type ReplyRateHealth = 'insufficient_data' | 'on_track' | 'below_target' | 'below_platform_average';
+
+export function replyRateHealthOf(totalSends: number, totalReplies: number): ReplyRateHealth {
+  if (totalSends < REPLY_RATE_MIN_SENDS) return 'insufficient_data';
+  const rate = totalReplies / totalSends;
+  if (rate >= REPLY_RATE_ON_TRACK) return 'on_track';
+  if (rate >= REPLY_RATE_PLATFORM_AVERAGE) return 'below_target';
+  return 'below_platform_average';
+}

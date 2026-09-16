@@ -177,9 +177,44 @@ def _cmd_extend(args: argparse.Namespace) -> dict:
     meta_dir = settings.TMP / "kv"
 
     extend(host, new_expires, mock=args.mock, meta_dir=meta_dir)
-    updated = store.update_preview(args.preview_id, {"expires_at": new_expires, "status": "active"})
-    store.log_event("preview", args.preview_id, "extended", {"days": args.days, "expires_at": new_expires})
-    return {"script": "publish.extend", "preview_id": args.preview_id, "expires_at": new_expires, "status": updated.get("status")}
+    # previews.status enum is review|approved|live|expired|takedown (db/schema.sql). "active" was never
+    # valid and knocked extended previews out of the daily queue. Only an `expired` row changes status
+    # (back to live, matching the Worker's /api/extend which clears the expired flag); others keep theirs.
+    patch = {"expires_at": new_expires}
+    if preview.get("status") == "expired":
+        patch["status"] = "live"
+    updated = store.update_preview(args.preview_id, patch)
+    # Scarcity must stay true (Hormozi lens): touch 4 tells the prospect the concept comes down on the
+    # old expires_at. If that email already went out, extending silently makes the stated deadline
+    # false. We do not block (a late interested reply is exactly when you extend), but we log it and
+    # tell the operator so they can send a one-line correction.
+    stated_deadline_sent = touch4_already_sent(store, preview.get("business_id"))
+    payload = {"days": args.days, "expires_at": new_expires, "after_touch4_sent": stated_deadline_sent}
+    store.log_event("preview", args.preview_id, "extended", payload)
+    if stated_deadline_sent:
+        print(
+            f"[publish.extend] WARNING: touch 4 already told this prospect the preview expires on "
+            f"{preview.get('expires_at')}; it now expires {new_expires}. Send a one-line correction.",
+            file=sys.stderr,
+        )
+    return {
+        "script": "publish.extend",
+        "preview_id": args.preview_id,
+        "expires_at": new_expires,
+        "status": updated.get("status"),
+        "after_touch4_sent": stated_deadline_sent,
+    }
+
+
+_SENT_STATUSES = ("sent", "replied", "call_booked", "closed_won", "closed_lost")
+
+
+def touch4_already_sent(store: Store, business_id: str | None) -> bool:
+    """True when a touch-4 (deadline) email for this business has already left the drafts folder."""
+    if not business_id:
+        return False
+    rows = store.list_outreach(business_id)
+    return any(int(r.get("touch") or 0) == 4 and r.get("status") in _SENT_STATUSES for r in rows)
 
 
 def main(argv: list[str] | None = None) -> None:

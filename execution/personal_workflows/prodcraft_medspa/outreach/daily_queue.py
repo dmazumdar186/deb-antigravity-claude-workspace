@@ -31,6 +31,9 @@ from execution.personal_workflows.prodcraft_medspa.outreach import (  # noqa: E4
     lint_draft,
     state_machine,
 )
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
+    reject_mock_with_supabase,
+)
 
 BOUNCE_WINDOW_DAYS = 30
 BOUNCE_RATE_HALT = 0.02
@@ -124,6 +127,25 @@ def halt_reason(st: Any, today: date) -> str | None:
     return None
 
 
+def _preview_evidence(row: dict, st: Any) -> str:
+    """Evidence-based preview column: the preview's host if its subdomain_url is actually
+    present in the rendered draft body, else an explicit "(no preview link)" — never inferred
+    merely from draft_subject truthiness (a draft can exist with a broken/missing preview link)."""
+    preview_id = row.get("preview_id")
+    body = row.get("draft_body") or ""
+    if not preview_id or not body:
+        return "(no preview link)"
+    preview = None
+    for p in _store_helpers.previews_for_business(st, row.get("business_id")):
+        if p.get("id") == preview_id:
+            preview = p
+            break
+    subdomain_url = (preview or {}).get("subdomain_url") or ""
+    if subdomain_url and subdomain_url in body:
+        return subdomain_url.split("//", 1)[-1].split("/", 1)[0]
+    return "(no preview link)"
+
+
 def _print_table(rows: list[dict], st: Any) -> None:
     header = f"{'business':<28} {'owner':<14} {'touch':<5} {'score':<5} {'gap':<28} preview"
     print(header)
@@ -137,7 +159,7 @@ def _print_table(rows: list[dict], st: Any) -> None:
             f"{row.get('touch', ''):<5} "
             f"{audit.get('total_score', ''):<5} "
             f"{(row.get('gap_primary') or '')[:28]:<28} "
-            f"{row.get('draft_subject') and '(has preview link in body)' or ''}"
+            f"{_preview_evidence(row, st)}"
         )
 
 
@@ -218,15 +240,32 @@ def run_daily_queue(
             "template_variant": rendered.get("variant"),
         }
 
+        # `outreach` has no raw LLM-envelope column, so `notes` is the one JSON object every
+        # LLM-derived fact about this draft (fuzzy_variables' envelope, lint outcomes) rides in
+        # on — a single merged dict, not one overwriting the other.
+        notes_obj: dict[str, Any] = {}
+        llm_envelope = rendered.get("llm")
+        if llm_envelope:
+            notes_obj["llm"] = {
+                "model_id": llm_envelope.get("model_id"),
+                "prompt_sha256": llm_envelope.get("prompt_sha256"),
+                "usage": llm_envelope.get("usage"),
+                "mock": llm_envelope.get("mock"),
+            }
+
         if lint_result["violations"]:
             lint_failed += 1
-            patch["notes"] = json.dumps({"lint_violations": lint_result["violations"]})
+            notes_obj["lint_violations"] = lint_result["violations"]
+            patch["notes"] = json.dumps(notes_obj)
             st.update_outreach(row["id"], patch)
             st.log_event("outreach", row["id"], "lint_failed", {"violations": lint_result["violations"]})
             continue
 
         if lint_result.get("needs_operator_input"):
-            patch["notes"] = json.dumps({"needs_operator_input": True})
+            notes_obj["needs_operator_input"] = True
+
+        if notes_obj:
+            patch["notes"] = json.dumps(notes_obj)
 
         st.update_outreach(row["id"], patch)
         row.update(patch)
@@ -282,6 +321,7 @@ def main() -> None:
     args = parser.parse_args()
 
     settings = config.bootstrap()
+    reject_mock_with_supabase(parser, args)  # --mock + --store supabase is a hard error
     store_kind = args.store or ("local" if args.mock else settings.store_kind)
     st = store_mod.get_store(kind=store_kind, root=args.store_root)
     today = _parse_date(args.date)

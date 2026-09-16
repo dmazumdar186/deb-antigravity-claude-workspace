@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 from execution.personal_workflows.prodcraft_medspa.common import config, store as store_mod  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.outreach import _store_helpers, state_machine  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 CLOSE_LOST_GRACE_DAYS = 5
 
@@ -78,7 +79,7 @@ def main() -> None:
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    store_kind = args.store or ("local" if args.mock else settings.store_kind)
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock implies local; never supabase
     st = store_mod.get_store(kind=store_kind, root=args.store_root)
     today = _parse_date(args.date)
 

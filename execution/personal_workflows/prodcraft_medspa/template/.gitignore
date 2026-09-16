@@ -5,3 +5,4 @@ business.json
 .env
 .env.local
 *.tsbuildinfo
+.build.lock

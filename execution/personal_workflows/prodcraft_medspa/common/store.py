@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 import time
 import uuid
@@ -30,12 +31,36 @@ TABLES = (
     "chains",
 )
 
+# Tables addressable by generic get_row()/update_row() (id-keyed). `config` is keyed on `key`
+# and `chains` is keyed on `pattern` — they have no `id` column, so id-based accessors reject
+# them with ValueError; list_rows() still works against the full TABLES allowlist for both.
+ID_TABLES = frozenset(TABLES) - {"config", "chains"}
+
 _QUEUE_STATUSES = ("queued", "sent")
 
 # Tables whose rows carry an `updated_at` column that generic update_row() should refresh.
 # Mirrors existing hand-written behaviour: update_outreach() always stamps updated_at;
 # update_preview() never does (previews has no updated_at column in schema.sql).
 _TABLES_WITH_UPDATED_AT = frozenset({"businesses", "outreach"})
+
+# Column/filter/order-by identifiers accepted anywhere a caller-supplied name reaches a
+# PostgREST query string (list_rows filters and order_by). Deliberately conservative
+# (lower snake_case only) — this is what stands between an LLM- or caller-derived key and
+# PostgREST operator injection via `+`/`#`/`&` in an f-string-built URL.
+_KEY_RE = re.compile(r"[a-z_][a-z0-9_]*")
+
+
+def _validate_key(key: str) -> str:
+    if not _KEY_RE.fullmatch(key):
+        raise ValueError(f"invalid column/filter/order key: {key!r}")
+    return key
+
+
+def _pg_value(value: Any) -> str:
+    """Normalise a Python value for a PostgREST `eq.`/`is.` filter. Booleans -> 'true'/'false'."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
 
 
 def _now_iso() -> str:
@@ -85,7 +110,7 @@ class Store(Protocol):
         self, table: str, *, order_by: str | None = None, descending: bool = False, limit: int | None = None, **filters: Any
     ) -> list[dict]: ...  # generic table read; equality filters only, None value means "is null"; table validated against TABLES
 
-    def get_row(self, table: str, row_id: str) -> dict | None: ...  # single row by id, or None if not found
+    def get_row(self, table: str, row_id: str) -> dict | None: ...  # single row by id, or None if not found; table must be in ID_TABLES
 
     def update_row(self, table: str, row_id: str, patch: dict) -> dict: ...  # generic patch-by-id; stamps updated_at for tables that have it
 
@@ -93,7 +118,7 @@ class Store(Protocol):
 
     def list_outreach(self, business_id: str) -> list[dict]: ...  # all outreach rows for one business, newest (created_at) first
 
-    def load_chains(self, patterns: list[dict]) -> int: ...  # seed helper: upsert every {"pattern", "note"} row, returns count seeded
+    def load_chains(self, patterns: list[dict]) -> int: ...  # seed helper: merge every {"pattern", "note"} row, returns count processed
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +161,15 @@ class LocalStore:
         with self._lock:
             rows = self._read("businesses")
             place_id = row.get("place_id")
+            slug = row.get("slug")
             now = _now_iso()
+            if slug is not None:
+                for other in rows:
+                    if other.get("slug") == slug and other.get("place_id") != place_id:
+                        raise ValueError(
+                            f"slug {slug!r} already belongs to place_id {other.get('place_id')!r} "
+                            f"(schema.sql declares businesses.slug unique)"
+                        )
             for i, existing in enumerate(rows):
                 if existing.get("place_id") == place_id:
                     merged = {**existing, **row}
@@ -361,9 +394,12 @@ class LocalStore:
     def log_event(self, entity: str, entity_id: str, event: str, payload: dict | None = None) -> None:
         with self._lock:
             rows = self._read("events")
+            # max(existing ids)+1 rather than len(rows)+1: len() collides with a prior id once
+            # any row has been pruned (e.g. a retention job deleting old events).
+            next_id = max((r.get("id", 0) for r in rows), default=0) + 1
             rows.append(
                 {
-                    "id": len(rows) + 1,
+                    "id": next_id,
                     "entity": entity,
                     "entity_id": entity_id,
                     "event": event,
@@ -380,9 +416,25 @@ class LocalStore:
         return [r["pattern"] for r in rows]
 
     def load_chains(self, patterns: list[dict]) -> int:
-        """Seed helper: patterns is a list of {"pattern": ..., "note": ...} dicts. Returns count seeded."""
+        """Seed helper: merge each {"pattern": ..., "note": ...} dict into the chains table,
+        keyed on `pattern`. Existing rows not present in `patterns` are kept (this merges,
+        it does not replace the table); a row whose pattern already exists is updated in
+        place. Raises ValueError if any entry lacks `pattern`. Returns the count of entries
+        processed (not the resulting table size)."""
+        for entry in patterns:
+            if not entry.get("pattern"):
+                raise ValueError(f"chains entry missing 'pattern': {entry!r}")
         with self._lock:
-            self._write("chains", patterns)
+            rows = self._read("chains")
+            index_by_pattern = {r.get("pattern"): i for i, r in enumerate(rows)}
+            for entry in patterns:
+                pattern = entry["pattern"]
+                if pattern in index_by_pattern:
+                    rows[index_by_pattern[pattern]] = {**rows[index_by_pattern[pattern]], **entry}
+                else:
+                    rows.append(dict(entry))
+                    index_by_pattern[pattern] = len(rows) - 1
+            self._write("chains", rows)
         return len(patterns)
 
     # -- generic table access ----------------------------------------------
@@ -398,11 +450,21 @@ class LocalStore:
     ) -> list[dict]:
         """Equality-filter every kwarg in `filters` (None value means "column is null").
 
-        `order_by` sorts ascending by default (missing/None values sort first); `limit` truncates
-        after ordering. Raises ValueError for a table not in `TABLES`.
+        `order_by` sorts ascending by default (missing/None values sort last); `limit` truncates
+        after ordering. Raises ValueError for a table not in `TABLES`, or for a filter/order_by
+        key that isn't a plain lower-snake-case identifier (mirrors SupabaseStore's PostgREST
+        query-string safety check, so both backends reject the same inputs).
+
+        Tie-order caveat: when `order_by` values are of mixed Python types across rows, they are
+        coerced to `str` for comparison purposes only (returned rows keep their original values);
+        ties after coercion fall back to input order (Python's sort is stable).
         """
         if table not in TABLES:
             raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        for key in filters:
+            _validate_key(key)
+        if order_by is not None:
+            _validate_key(order_by)
         rows = self._read(table)
         for key, value in filters.items():
             if value is None:
@@ -410,22 +472,31 @@ class LocalStore:
             else:
                 rows = [r for r in rows if r.get(key) == value]
         if order_by:
-            rows = sorted(rows, key=lambda r: (r.get(order_by) is None, r.get(order_by)), reverse=descending)
+            values = [r.get(order_by) for r in rows]
+            mixed_types = len({type(v) for v in values if v is not None}) > 1
+
+            def _sort_key(r: dict) -> tuple[bool, Any]:
+                v = r.get(order_by)
+                if v is None:
+                    return (True, "")
+                return (False, str(v) if mixed_types else v)
+
+            rows = sorted(rows, key=_sort_key, reverse=descending)
         if limit is not None:
             rows = rows[:limit]
         return rows
 
     def get_row(self, table: str, row_id: str) -> dict | None:
-        if table not in TABLES:
-            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        if table not in ID_TABLES:
+            raise ValueError(f"table {table!r} has no id column (use list_rows/get_config/chains)")
         for row in self._read(table):
             if row.get("id") == row_id:
                 return row
         return None
 
     def update_row(self, table: str, row_id: str, patch: dict) -> dict:
-        if table not in TABLES:
-            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        if table not in ID_TABLES:
+            raise ValueError(f"table {table!r} has no id column (use list_rows/set_config/load_chains)")
         with self._lock:
             rows = self._read(table)
             for i, existing in enumerate(rows):
@@ -453,6 +524,8 @@ class LocalStore:
 class SupabaseStore:
     """PostgREST-backed Store using the Supabase service key. Never logs the key."""
 
+    _PAGE_SIZE = 1000
+
     def __init__(self, url: str | None = None, service_key: str | None = None):
         self.url = (url or os.environ.get("SUPABASE_URL") or "").rstrip("/")
         self._service_key = service_key or os.environ.get("SUPABASE_SERVICE_KEY") or ""
@@ -470,21 +543,46 @@ class SupabaseStore:
             headers["Prefer"] = prefer
         return headers
 
-    def _request(self, method: str, path: str, **kwargs: Any) -> requests.Response:
-        """Retry 3x with backoff on 5xx/429. Never includes the key in exception text."""
+    def _request(self, method: str, path: str, *, idempotent: bool = True, **kwargs: Any) -> requests.Response:
+        """Retry up to 3x with backoff on 429/5xx (5xx only when `idempotent`) and on connection
+        errors regardless of `idempotent`. Never sleeps after the final attempt. Never includes
+        the key in exception text; does include the response status code and a body snippet.
+
+        `idempotent=False` is for POSTs that would duplicate a row if a "successful" insert's
+        response was merely lost before we saw it (e.g. `events`, which has a bigserial id and
+        no natural key to de-dupe on) — those calls skip the 5xx retry entirely and only retry
+        on 429/connection errors, where we know the server never processed the request.
+        Idempotent inserts (`audits`, `metro_stats`) instead get a client-side uuid `id` plus
+        `Prefer: resolution=merge-duplicates`, so retrying them after a 5xx is safe and they
+        keep `idempotent=True` (the default).
+        """
         url = f"{self.url}/rest/v1/{path}"
         last_exc: Exception | None = None
-        for attempt in range(3):
+        attempts = 3
+        for attempt in range(attempts):
             try:
                 resp = self._session.request(method, url, timeout=20, **kwargs)
-                if resp.status_code in (429, 500, 502, 503, 504):
-                    time.sleep(1 * (2**attempt))
+                retryable_status = resp.status_code == 429 or (idempotent and resp.status_code in (500, 502, 503, 504))
+                if retryable_status:
+                    last_exc = RuntimeError(
+                        f"Supabase request failed: {method} {path} -> {resp.status_code} {resp.text[:200]}"
+                    )
+                    if attempt < attempts - 1:
+                        time.sleep(1 * (2**attempt))
                     continue
                 resp.raise_for_status()
                 return resp
+            except requests.exceptions.HTTPError:
+                raise RuntimeError(
+                    f"Supabase request failed: {method} {path} -> {resp.status_code} {resp.text[:200]}"
+                ) from None
             except requests.exceptions.RequestException as exc:
                 last_exc = exc
-                time.sleep(1 * (2**attempt))
+                if attempt < attempts - 1:
+                    time.sleep(1 * (2**attempt))
+        if isinstance(last_exc, RuntimeError):
+            # Already carries the status code + body snippet from the last retryable response.
+            raise last_exc
         raise RuntimeError(f"Supabase request failed after retries: {method} {path}") from last_exc
 
     # -- businesses ----------------------------------------------------------
@@ -501,7 +599,7 @@ class SupabaseStore:
 
     def get_business(self, business_id: str) -> dict | None:
         resp = self._request(
-            "GET", f"businesses?id=eq.{business_id}", headers=self._headers()
+            "GET", "businesses", params=[("id", f"eq.{business_id}")], headers=self._headers()
         )
         data = resp.json()
         return data[0] if data else None
@@ -514,20 +612,19 @@ class SupabaseStore:
         is_chain = filters.get("is_chain")
         drop_reason_is_null = filters.get("drop_reason_is_null")
 
-        params = []
+        params: list[tuple[str, str]] = []
         if metro is not None:
-            params.append(f"metro=eq.{metro}")
+            params.append(("metro", f"eq.{_pg_value(metro)}"))
         if do_not_contact is not None:
-            params.append(f"do_not_contact=eq.{str(bool(do_not_contact)).lower()}")
+            params.append(("do_not_contact", f"eq.{_pg_value(bool(do_not_contact))}"))
         if is_chain is not None:
-            params.append(f"is_chain=eq.{str(bool(is_chain)).lower()}")
+            params.append(("is_chain", f"eq.{_pg_value(bool(is_chain))}"))
         if drop_reason_is_null is not None:
-            params.append("drop_reason=is.null" if drop_reason_is_null else "drop_reason=not.is.null")
+            params.append(("drop_reason", "is.null" if drop_reason_is_null else "not.is.null"))
         if has_email is not None:
-            params.append("email_status=eq.deliverable" if has_email else "email_status=neq.deliverable")
+            params.append(("email_status", "eq.deliverable" if has_email else "neq.deliverable"))
 
-        query = "businesses?" + "&".join(params) if params else "businesses"
-        resp = self._request("GET", query, headers=self._headers())
+        resp = self._request("GET", "businesses", params=params, headers=self._headers())
         businesses = resp.json()
 
         if bucket is None:
@@ -538,7 +635,8 @@ class SupabaseStore:
         for b in businesses:
             audit_resp = self._request(
                 "GET",
-                f"audits?business_id=eq.{b['id']}&order=audited_at.desc&limit=1",
+                "audits",
+                params=[("business_id", f"eq.{b['id']}"), ("order", "audited_at.desc"), ("limit", "1")],
                 headers=self._headers(),
             )
             audits = audit_resp.json()
@@ -549,8 +647,15 @@ class SupabaseStore:
     # -- audits ----------------------------------------------------------
 
     def insert_audit(self, row: dict) -> dict:
+        # Idempotent insert: client-side id + merge-duplicates so a retried POST after a lost
+        # 5xx response upserts the same row instead of creating a duplicate audit.
+        body = dict(row)
+        body.setdefault("id", _new_id())
         resp = self._request(
-            "POST", "audits", headers=self._headers(prefer="return=representation"), json=row
+            "POST",
+            "audits?on_conflict=id",
+            headers=self._headers(prefer="return=representation,resolution=merge-duplicates"),
+            json=body,
         )
         data = resp.json()
         return data[0] if isinstance(data, list) else data
@@ -558,7 +663,8 @@ class SupabaseStore:
     def latest_audit(self, business_id: str) -> dict | None:
         resp = self._request(
             "GET",
-            f"audits?business_id=eq.{business_id}&order=audited_at.desc&limit=1",
+            "audits",
+            params=[("business_id", f"eq.{business_id}"), ("order", "audited_at.desc"), ("limit", "1")],
             headers=self._headers(),
         )
         data = resp.json()
@@ -579,7 +685,8 @@ class SupabaseStore:
     def update_preview(self, preview_id: str, patch: dict) -> dict:
         resp = self._request(
             "PATCH",
-            f"previews?id=eq.{preview_id}",
+            "previews",
+            params=[("id", f"eq.{preview_id}")],
             headers=self._headers(prefer="return=representation"),
             json=patch,
         )
@@ -601,7 +708,8 @@ class SupabaseStore:
     def update_outreach(self, outreach_id: str, patch: dict) -> dict:
         resp = self._request(
             "PATCH",
-            f"outreach?id=eq.{outreach_id}",
+            "outreach",
+            params=[("id", f"eq.{outreach_id}")],
             headers=self._headers(prefer="return=representation"),
             json=patch,
         )
@@ -609,13 +717,13 @@ class SupabaseStore:
         return data[0] if isinstance(data, list) else data
 
     def queue(self, today: date, cap: int) -> list[dict]:
-        status_filter = "status=in.(" + ",".join(_QUEUE_STATUSES) + ")"
-        resp = self._request(
-            "GET",
-            f"outreach?next_touch_at=lte.{today.isoformat()}&{status_filter}"
-            f"&order=next_touch_at.asc,created_at.asc&limit={cap}",
-            headers=self._headers(),
-        )
+        params = [
+            ("next_touch_at", f"lte.{today.isoformat()}"),
+            ("status", "in.(" + ",".join(_QUEUE_STATUSES) + ")"),
+            ("order", "next_touch_at.asc,created_at.asc"),
+            ("limit", str(cap)),
+        ]
+        resp = self._request("GET", "outreach", params=params, headers=self._headers())
         return resp.json()
 
     # -- deals ----------------------------------------------------------
@@ -633,8 +741,14 @@ class SupabaseStore:
     # -- metro_stats ----------------------------------------------------------
 
     def insert_metro_stats(self, row: dict) -> dict:
+        # Idempotent insert: same rationale as insert_audit (client-side id + merge-duplicates).
+        body = dict(row)
+        body.setdefault("id", _new_id())
         resp = self._request(
-            "POST", "metro_stats", headers=self._headers(prefer="return=representation"), json=row
+            "POST",
+            "metro_stats?on_conflict=id",
+            headers=self._headers(prefer="return=representation,resolution=merge-duplicates"),
+            json=body,
         )
         data = resp.json()
         return data[0] if isinstance(data, list) else data
@@ -642,7 +756,7 @@ class SupabaseStore:
     # -- config ----------------------------------------------------------
 
     def get_config(self, key: str, default: Any = None) -> Any:
-        resp = self._request("GET", f"config?key=eq.{key}", headers=self._headers())
+        resp = self._request("GET", "config", params=[("key", f"eq.{key}")], headers=self._headers())
         data = resp.json()
         return data[0]["value"] if data else default
 
@@ -657,11 +771,16 @@ class SupabaseStore:
     # -- events ----------------------------------------------------------
 
     def log_event(self, entity: str, entity_id: str, event: str, payload: dict | None = None) -> None:
+        # events.id is a bigserial with no unique business key to merge-duplicates on, so a
+        # retried POST after a lost 5xx response could double-insert; we deliberately do NOT
+        # retry on 5xx here (idempotent=False), only on 429/connection errors where the server
+        # is known not to have processed the request.
         self._request(
             "POST",
             "events",
             headers=self._headers(),
             json={"entity": entity, "entity_id": entity_id, "event": event, "payload": payload or {}},
+            idempotent=False,
         )
 
     # -- chains ----------------------------------------------------------
@@ -683,38 +802,75 @@ class SupabaseStore:
     ) -> list[dict]:
         """Equality-filter every kwarg in `filters` (`?col=eq.value`; None value becomes `?col=is.null`).
 
-        `order_by` maps to PostgREST `order=col.asc|desc`; `limit` maps to `limit=`. Raises
-        ValueError for a table not in `TABLES` (prevents an LLM- or caller-derived name from
-        reaching an arbitrary PostgREST path).
+        `order_by` maps to PostgREST `order=col.asc|desc`. Filter/order keys are validated
+        against `_KEY_RE` (ValueError otherwise) and values are always sent via `requests`
+        `params=` as (key, value) tuples — never f-string-interpolated into the URL — so `+`,
+        `#`, `&`, and other PostgREST/URL-significant characters in a filter value are encoded
+        correctly instead of becoming a literal space, truncating the query, or injecting an
+        extra parameter.
+
+        Paginates internally in pages of `_PAGE_SIZE` (1000, PostgREST's default max-rows) using
+        `Range-Unit: items` + `Range: a-b`, continuing until a short page comes back, because a
+        naive single request silently truncates a full-table read at PostgREST's server-side cap.
+        `limit`, if given, caps the total across all pages (not just the first page).
+        Raises ValueError for a table not in `TABLES` (prevents an LLM- or caller-derived name
+        from reaching an arbitrary PostgREST path).
         """
         if table not in TABLES:
             raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
-        params = []
+        for key in filters:
+            _validate_key(key)
+        if order_by is not None:
+            _validate_key(order_by)
+
+        base_params: list[tuple[str, str]] = []
         for key, value in filters.items():
-            params.append(f"{key}=is.null" if value is None else f"{key}=eq.{value}")
+            base_params.append((key, "is.null" if value is None else f"eq.{_pg_value(value)}"))
         if order_by:
-            params.append(f"order={order_by}.{'desc' if descending else 'asc'}")
+            base_params.append(("order", f"{order_by}.{'desc' if descending else 'asc'}"))
+
+        rows: list[dict] = []
+        offset = 0
+        while True:
+            if limit is not None:
+                remaining = limit - len(rows)
+                if remaining <= 0:
+                    break
+                page_size = min(self._PAGE_SIZE, remaining)
+            else:
+                page_size = self._PAGE_SIZE
+            headers = self._headers()
+            headers["Range-Unit"] = "items"
+            headers["Range"] = f"{offset}-{offset + page_size - 1}"
+            resp = self._request("GET", table, params=base_params, headers=headers)
+            page = resp.json()
+            rows.extend(page)
+            if len(page) < page_size:
+                break
+            offset += page_size
         if limit is not None:
-            params.append(f"limit={limit}")
-        query = f"{table}?" + "&".join(params) if params else table
-        resp = self._request("GET", query, headers=self._headers())
-        return resp.json()
+            rows = rows[:limit]
+        return rows
 
     def get_row(self, table: str, row_id: str) -> dict | None:
-        if table not in TABLES:
-            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
-        resp = self._request("GET", f"{table}?id=eq.{row_id}", headers=self._headers())
+        if table not in ID_TABLES:
+            raise ValueError(f"table {table!r} has no id column (use list_rows/get_config/chains)")
+        resp = self._request("GET", table, params=[("id", f"eq.{row_id}")], headers=self._headers())
         data = resp.json()
         return data[0] if data else None
 
     def update_row(self, table: str, row_id: str, patch: dict) -> dict:
-        if table not in TABLES:
-            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        if table not in ID_TABLES:
+            raise ValueError(f"table {table!r} has no id column (use list_rows/set_config/load_chains)")
         body = dict(patch)
         if table in _TABLES_WITH_UPDATED_AT:
             body["updated_at"] = _now_iso()
         resp = self._request(
-            "PATCH", f"{table}?id=eq.{row_id}", headers=self._headers(prefer="return=representation"), json=body
+            "PATCH",
+            table,
+            params=[("id", f"eq.{row_id}")],
+            headers=self._headers(prefer="return=representation"),
+            json=body,
         )
         data = resp.json()
         if not data:
@@ -728,7 +884,11 @@ class SupabaseStore:
         return self.list_rows("outreach", business_id=business_id, order_by="created_at", descending=True)
 
     def load_chains(self, patterns: list[dict]) -> int:
-        """Seed helper: upsert every {"pattern", "note"} row via PostgREST merge-duplicates."""
+        """Seed helper: upsert every {"pattern", "note"} row via PostgREST merge-duplicates.
+        Raises ValueError if any entry lacks `pattern` (mirrors LocalStore's validation)."""
+        for entry in patterns:
+            if not entry.get("pattern"):
+                raise ValueError(f"chains entry missing 'pattern': {entry!r}")
         for entry in patterns:
             self._request(
                 "POST",

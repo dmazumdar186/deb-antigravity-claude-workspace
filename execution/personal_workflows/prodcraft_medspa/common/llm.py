@@ -100,6 +100,7 @@ def call(
             "prompt_sha256": prompt_sha256,
             "usage": _zero_usage(),
             "cost_usd": 0.0,
+            "mock": True,  # persisted alongside model_id so a fixture response is distinguishable after the fact
         }
 
     try:
@@ -144,5 +145,6 @@ def call(
         "model_id": model,
         "prompt_sha256": prompt_sha256,
         "usage": usage,
+        "mock": False,
         "cost_usd": _cost_usd(model, usage),
     }

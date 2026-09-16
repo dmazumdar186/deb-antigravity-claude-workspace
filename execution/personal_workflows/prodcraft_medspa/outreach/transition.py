@@ -3,7 +3,9 @@ transition.py
 description: CLI for outreach/state_machine.py's transition() — the Python-side state-machine
     authority (the dashboard does the same thing via Cloudflare Pages Functions).
 inputs: CLI: --outreach-id ID --to STATE [--sent-at ISO] [--sentiment ...] [--notes ...]
-    [--store {local,supabase}] [--store-root PATH].
+    [--mock] [--store {local,supabase}] [--store-root PATH]. transition.py makes no network calls
+    of its own either way; --mock exists per CONTRACTS.md's "every script that touches the Store
+    has --mock and --store" and just forces the local JSON store.
 outputs: stdout JSON of the resulting (or newly-created, for sent->queued) outreach row plus a
     stat line; Store mutations per state_machine.transition()'s documented side effects.
 """
@@ -20,6 +22,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 from execution.personal_workflows.prodcraft_medspa.common import config, store as store_mod  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.outreach import state_machine  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.outreach._store_helpers import list_all  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
+    reject_mock_with_supabase,
+)
 
 
 def main() -> None:
@@ -29,12 +34,14 @@ def main() -> None:
     parser.add_argument("--sent-at", default=None)
     parser.add_argument("--sentiment", default=None)
     parser.add_argument("--notes", default=None)
+    parser.add_argument("--mock", action="store_true", help="force the local JSON store (transition.py has no network calls)")
     parser.add_argument("--store", choices=["local", "supabase"], default=None)
     parser.add_argument("--store-root", default=None)
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    store_kind = args.store or settings.store_kind
+    reject_mock_with_supabase(parser, args)  # --mock + --store supabase is a hard error
+    store_kind = args.store or ("local" if args.mock else settings.store_kind)
     st = store_mod.get_store(kind=store_kind, root=args.store_root)
 
     matches = [r for r in list_all(st, "outreach") if r.get("id") == args.outreach_id]

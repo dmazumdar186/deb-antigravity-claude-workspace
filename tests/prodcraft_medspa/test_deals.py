@@ -166,3 +166,40 @@ def test_list_returns_all_deals(local_store):
     deals.record(local_store, business_id=b2["id"], tier="premium", setup_price=None, mrr=None, signed=None, baseline=5, booking_tool=None)
     result = deals.list_deals(local_store)
     assert len(result) == 2
+
+
+# ---------------------------------------------------------------------------
+# deals.py CLI — --mock backfill (item 5) + --mock/--store supabase guard (item 1)
+# ---------------------------------------------------------------------------
+
+
+def _run_deals_cli(args):
+    import subprocess
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    repo_root = _Path(__file__).resolve().parents[2]
+    return subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.deals.deals", *args],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+
+
+def test_deals_cli_mock_forces_local_store(tmp_path):
+    import json as _json
+
+    store_root = tmp_path / "store"
+    proc = _run_deals_cli(
+        ["record", "--business-id", "biz-1", "--tier", "growth", "--baseline", "10",
+         "--mock", "--store-root", str(store_root)]
+    )
+    assert proc.returncode == 0, proc.stderr
+    out = _json.loads(proc.stdout.strip().splitlines()[-1])
+    assert out["deal"]["mrr"] == 199.0
+    assert (store_root / "deals.json").exists()  # confirms it actually wrote the LOCAL store
+
+
+def test_deals_cli_mock_with_store_supabase_exits_2():
+    proc = _run_deals_cli(["list", "--mock", "--store", "supabase"])
+    assert proc.returncode == 2
+    assert "--mock cannot be combined with --store supabase" in proc.stderr

@@ -28,6 +28,7 @@ from execution.personal_workflows.prodcraft_medspa.common import notify  # noqa:
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
     common_store_args,
+    reject_mock_with_supabase,
     run_module,
 )
 
@@ -77,7 +78,8 @@ def main() -> None:
     parser.add_argument("--phase0-status", action="store_true", help="print the phase0 gate state and exit")
     args = parser.parse_args()
 
-    store = get_store(kind=args.store, root=args.store_root) if args.store_root else get_store(kind=args.store)
+    store_kind = reject_mock_with_supabase(parser, args)
+    store = get_store(kind=store_kind, root=args.store_root)
 
     if args.phase0_status:
         phase0 = store.get_config("phase0", default={})

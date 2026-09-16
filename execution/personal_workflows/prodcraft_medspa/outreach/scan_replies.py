@@ -37,6 +37,7 @@ from execution.personal_workflows.prodcraft_medspa.outreach import (  # noqa: E4
     gmail_reader,
     state_machine,
 )
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 PROMPTS_DIR = Path(__file__).resolve().parents[1] / "prompts"
 LLM_FIXTURES_ROOT = PROMPTS_DIR / "fixtures"
@@ -253,7 +254,7 @@ def main() -> None:
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    store_kind = args.store or ("local" if args.mock else settings.store_kind)
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock implies local; never supabase
     st = store_mod.get_store(kind=store_kind, root=args.store_root)
 
     try:

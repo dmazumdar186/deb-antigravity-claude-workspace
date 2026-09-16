@@ -395,7 +395,11 @@ def main() -> None:
         print("\n(pass --live to make one cheap authenticated call per service and check Node/Chromium/node_modules)")
 
     print("\n=== Store config ===")
-    sender_ok, sender_detail = check_sender_config(get_store())
+    try:
+        # never crash without env: an unconfigured Supabase store is a report row, not a traceback
+        sender_ok, sender_detail = check_sender_config(get_store())
+    except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
+        sender_ok, sender_detail = False, f"store unavailable: {type(exc).__name__}: {exc}"
     print_table([("config.sender", "yes" if sender_ok else "no", sender_detail)], ("check", "ok", "detail"))
     if not sender_ok and "outreach" in selected_stages:
         stage_missing.setdefault("outreach", []).append("config.sender")

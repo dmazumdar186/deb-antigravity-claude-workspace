@@ -266,6 +266,69 @@ def test_daily_queue_cap_locked_5_then_open_20(local_store, fixtures_root):
     assert stats2["cap"] == 20
 
 
+def test_daily_queue_drafted_row_notes_carry_llm_envelope(local_store, fixtures_root):
+    """Research-lens: the fuzzy_variables LLM envelope (model_id, prompt_sha256, usage, mock)
+    must be persisted onto the drafted outreach row's `notes` JSON, not discarded except for
+    cost — `outreach` has no raw-envelope column, so `notes` is the merged home for it."""
+    seed_mock_store.seed(local_store, today=date(2026, 9, 10))
+    settings = FakeSettings(Path(local_store.root))
+    stats = daily_queue.run_daily_queue(
+        local_store, settings, today=date(2026, 9, 10), mock=True, create_drafts=False, variant="auto"
+    )
+    assert stats["drafted"] > 0
+
+    drafted_rows = [
+        r
+        for r in _store_helpers.list_all(local_store, "outreach")
+        if r.get("status") == "drafted" and int(r.get("touch") or 0) == 1
+    ]
+    assert drafted_rows, "expected at least one touch-1 drafted row"
+    import json as _json
+
+    found_envelope = False
+    for row in drafted_rows:
+        notes_raw = row.get("notes")
+        if not notes_raw:
+            continue
+        notes = _json.loads(notes_raw)
+        if "llm" in notes:
+            found_envelope = True
+            assert notes["llm"]["prompt_sha256"]
+            assert notes["llm"]["model_id"]
+            assert "usage" in notes["llm"]
+    assert found_envelope, "expected at least one drafted row's notes to carry the llm envelope"
+
+
+def test_print_table_preview_column_is_evidence_based(local_store, capsys):
+    """The preview column reflects whether the preview's subdomain_url is actually present in
+    draft_body, not merely whether draft_subject is truthy (pipeline-auditor)."""
+    business = _make_business(local_store)
+    preview = _make_preview(local_store, business_id=business["id"])
+    row_with_link = _make_outreach_row(
+        local_store,
+        business_id=business["id"],
+        touch=1,
+        status="drafted",
+        preview_id=preview["id"],
+        draft_subject="subject",
+        draft_body=f"Hi — check it out: {preview['subdomain_url']}\n\nThanks",
+    )
+    business2 = _make_business(local_store, name="No Link Spa", email="nolink@example-medspa-x.test")
+    row_no_link = _make_outreach_row(
+        local_store,
+        business_id=business2["id"],
+        touch=1,
+        status="drafted",
+        draft_subject="subject",
+        draft_body="Hi — no link here at all.",
+    )
+    daily_queue._print_table([row_with_link, row_no_link], local_store)
+    out = capsys.readouterr().out
+    host = preview["subdomain_url"].split("//", 1)[-1]
+    assert host in out
+    assert "(no preview link)" in out
+
+
 # ---------------------------------------------------------------------------
 # bounce halt at > 2%
 # ---------------------------------------------------------------------------
@@ -453,7 +516,7 @@ def test_draft_proof_line_fallback_when_no_config(sender_configured, fixtures_ro
     settings = FakeSettings(fixtures_root)
     business = _make_business(sender_configured)
     rendered = _render(sender_configured, settings, touch=3, business=business)
-    assert "78%" in rendered["body"]
+    assert "phone call" in rendered["body"]  # fallback proof line (qualitative, unsourced numbers removed)
 
 
 def test_draft_proof_line_uses_config_when_present(sender_configured, fixtures_root):
@@ -840,6 +903,102 @@ def test_mock_sender_is_clearly_synthetic_and_passes_lint():
     body = f"Hi there,\n\nshort body.\n\n{sender['name']}\n{sender['physical_address']}\n{lint_draft.OPT_OUT_LINE}"
     result = lint_draft.lint("quick question", body, touch=1, sender_name=sender["name"], sender_physical_address=sender["physical_address"])
     assert result["violations"] == []
+
+
+class _FakeNonLocalStore:
+    """Stand-in for a remote Store implementation (e.g. SupabaseStore) that is NOT a LocalStore
+    instance, used to prove MOCK_SENDER can never render against a non-local store even when the
+    caller passes mock=True (code-reviewer C4/M1)."""
+
+    def __init__(self, sender=None):
+        self._sender = sender or {}
+
+    def get_config(self, key, default=None):
+        if key == "sender":
+            return self._sender
+        return default
+
+
+def test_mock_sender_never_used_against_non_local_store(fixtures_root):
+    """draft_email.render_draft must fail the CAN-SPAM lint (empty sender) rather than fall back
+    to MOCK_SENDER when the store is not a LocalStore, even under mock=True."""
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    fake_store = _FakeNonLocalStore(sender={})
+    assert not isinstance(fake_store, LocalStore)
+    settings = FakeSettings(fixtures_root)
+    business = _make_business_dict_only()
+    outreach_row = {"business_id": business["id"], "touch": 1, "status": "queued"}
+    # fixtures_root omitted: render_draft defaults to its own prompts/fixtures LLM fixture dir
+    # (LLM_FIXTURES_ROOT), NOT the top-level fixtures/ dir this test file's `fixtures_root`
+    # fixture points at (see draft_email.py's module docstring on render_draft's own param).
+    rendered = draft_email.render_draft(
+        fake_store,
+        settings,
+        outreach_row=outreach_row,
+        business=business,
+        audit_row=None,
+        preview_row=None,
+        variant="a",
+        mock=True,
+    )
+    # Real sender fields stayed empty — MOCK_SENDER (whose name contains "mock") never rendered in.
+    assert rendered["sender"]["name"] == ""
+    assert rendered["sender"]["physical_address"] == ""
+    assert draft_email.MOCK_SENDER["name"] not in rendered["body"]
+
+
+def _make_business_dict_only():
+    return {
+        "id": "biz-fake-nonlocal-1",
+        "name": "Fake Non-Local Med Spa",
+        "owner_first": "Sam",
+        "suburb": "Evanston",
+        "primary_type": "spa",
+    }
+
+
+# ---------------------------------------------------------------------------
+# transition.py CLI — --mock backfill (item 5) + --mock/--store supabase guard (item 1)
+# ---------------------------------------------------------------------------
+
+
+def test_transition_cli_mock_forces_local_store(tmp_path):
+    import json as _json
+    import subprocess
+    import sys as _sys
+
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    store_root = tmp_path / "store"
+    store = LocalStore(root=store_root)
+    business = _make_business(store)
+    row = _make_outreach_row(store, business_id=business["id"], touch=1, status="drafted")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.transition",
+         "--outreach-id", row["id"], "--to", "sent", "--sent-at", "2026-09-10",
+         "--mock", "--store-root", str(store_root)],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 0, proc.stderr
+    out = _json.loads(proc.stdout.strip().splitlines()[-1])
+    assert out["outreach"]["status"] == "sent"
+
+
+def test_transition_cli_mock_with_store_supabase_exits_2():
+    import subprocess
+    import sys as _sys
+
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.transition",
+         "--outreach-id", "does-not-matter", "--to", "sent", "--mock", "--store", "supabase"],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 2
+    assert "--mock cannot be combined with --store supabase" in proc.stderr
 
 
 def test_doctor_sender_check_reports_missing_then_ok(tmp_path):

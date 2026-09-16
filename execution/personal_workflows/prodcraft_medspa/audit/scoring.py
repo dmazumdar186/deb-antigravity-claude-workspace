@@ -16,6 +16,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 from execution.personal_workflows.prodcraft_medspa.common import config, store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 SCORE_VERSION = "1.0"
 
@@ -198,18 +199,19 @@ def _signals_from_audit_row(row: dict) -> dict:
 
 def main() -> None:
     """description: Recompute total_score/bucket/gaps for the latest audit of each business in a metro.
-    inputs: --recompute --metro X [--store {local,supabase}] [--store-root PATH]
+    inputs: --recompute --metro X [--mock] [--store {local,supabase}] [--store-root PATH]
     outputs: stdout stat line; stored audit rows patched where the recomputed score differs.
     """
     parser = argparse.ArgumentParser(description="Recompute audit scores from stored signals (pure function proof)")
     parser.add_argument("--recompute", action="store_true", required=True)
     parser.add_argument("--metro", required=True)
+    parser.add_argument("--mock", action="store_true", help="force the local store (no network); recompute is pure anyway")
     parser.add_argument("--store", choices=["local", "supabase"], default=None)
     parser.add_argument("--store-root", default=None)
     args = parser.parse_args()
+    store_kind = reject_mock_with_supabase(parser, args)
 
-    settings = config.bootstrap()
-    store_kind = args.store or settings.store_kind
+    config.bootstrap()
     st = store.get_store(kind=store_kind, root=args.store_root)
 
     businesses = st.find_businesses(metro=args.metro)

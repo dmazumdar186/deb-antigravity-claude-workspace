@@ -8,7 +8,9 @@ inputs: CLI subcommands:
     golive --business-id ID --live-at ISO
     proof --business-id ID --bookings-60d N
     list
-    Common: [--store {local,supabase}] [--store-root PATH].
+    Common: [--mock] [--store {local,supabase}] [--store-root PATH]. deals.py makes no network
+        calls of its own either way; --mock exists per CONTRACTS.md's "every script that touches
+        the Store has --mock and --store" and just forces the local JSON store.
 outputs: stdout JSON stat lines per subcommand; Store mutations via store.upsert_deal and, on
     `record`, outreach/state_machine.transition(..., "closed_won").
 """
@@ -26,6 +28,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 from execution.personal_workflows.prodcraft_medspa.common import config, store as store_mod  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.outreach import _store_helpers, state_machine  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
+    reject_mock_with_supabase,
+)
 
 # PROJECT_SPEC.md §9 — Tiers: Starter $2,500 + $99/mo · Growth $4,500 + $199/mo (default) ·
 # Premium $8,000 + $299/mo · Founding: Growth pricing structure but discounted per Hormozi #1
@@ -159,13 +164,15 @@ def main() -> None:
     p_list = sub.add_parser("list")
 
     for p in (p_record, p_golive, p_proof, p_list):
+        p.add_argument("--mock", action="store_true", help="force the local JSON store (deals.py has no network calls)")
         p.add_argument("--store", choices=["local", "supabase"], default=None)
         p.add_argument("--store-root", default=None)
 
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    store_kind = args.store or settings.store_kind
+    reject_mock_with_supabase(parser, args)  # --mock + --store supabase is a hard error
+    store_kind = args.store or ("local" if args.mock else settings.store_kind)
     st = store_mod.get_store(kind=store_kind, root=args.store_root)
 
     if args.command == "record":

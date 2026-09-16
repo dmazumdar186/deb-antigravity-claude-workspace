@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from execution.personal_workflows.prodcraft_medspa.common import llm
+from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
 from execution.personal_workflows.prodcraft_medspa.outreach import _store_helpers
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +27,9 @@ PROMPTS_DIR = PKG_ROOT / "prompts"
 LLM_FIXTURES_ROOT = PROMPTS_DIR / "fixtures"  # prompts/fixtures/llm/{prompt_name}.txt, per prompts/README.md
 
 _VARIANTS = ("a", "b", "c")
-_FALLBACK_PROOF_LINE = "About 78% of med spa bookings still come in by phone."
+# Qualitative on purpose: the spec's "78%" figure has no citation in this repo (Amodei lens, 2026-09-16).
+# The operator can put a sourced statistic in config.proof_lines, which takes precedence over this line.
+_FALLBACK_PROOF_LINE = "Most med spa bookings still start with a phone call."
 
 _VAR_RE = re.compile(r"\{\{(\w+)\}\}")
 
@@ -170,10 +173,14 @@ def render_draft(
     )
 
     sender = store.get_config("sender", {"name": "", "physical_address": "", "signature": ""}) or {}
-    if mock and not (sender.get("name") and sender.get("physical_address")):
+    # MOCK_SENDER is a synthetic fallback: it may only render when BOTH --mock is set AND the
+    # store is a LocalStore, never merely because the caller passed mock=True against some other
+    # Store implementation (code-reviewer C4/M1) — a remote/live store must always fail the
+    # CAN-SPAM lint on an empty config.sender, exactly like a real live run would.
+    if mock and isinstance(store, LocalStore) and not (sender.get("name") and sender.get("physical_address")):
         print(
-            "[draft_email] --mock and config.sender is empty: using the synthetic MOCK_SENDER "
-            "(live runs fail the CAN-SPAM lint until the operator sets config.sender)",
+            "[draft_email] --mock (LocalStore) and config.sender is empty: using the synthetic "
+            "MOCK_SENDER (live/remote runs fail the CAN-SPAM lint until the operator sets config.sender)",
             file=sys.stderr,
         )
         sender = MOCK_SENDER

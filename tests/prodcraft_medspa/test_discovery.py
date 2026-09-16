@@ -99,6 +99,15 @@ def test_matches_chain():
     assert not places_search._matches_chain("Glow Aesthetics", chains)
 
 
+def test_matches_chain_is_word_bounded_not_substring():
+    chains = ["ulta", "ideal image"]
+    assert places_search._matches_chain("Ulta Beauty Skokie", chains)
+    assert places_search._matches_chain("ULTA", chains)
+    assert not places_search._matches_chain("Consultation Skin Clinic", chains)
+    assert not places_search._matches_chain("Aesthetic Consultants of Evanston", chains)
+    assert not places_search._matches_chain("Multa Beauty", chains)
+
+
 def test_parse_city():
     assert places_search._parse_city("530 Green Bay Rd, Winnetka, IL 60093, USA") == "Winnetka"
     assert places_search._parse_city("") == ""

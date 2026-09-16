@@ -26,8 +26,11 @@ if str(REPO_ROOT) not in sys.path:
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 
 # Signal name -> function(audit_row) -> bool | None (None = can't evaluate, excluded from that signal).
-# Exact fail conditions per CONTRACTS.md's scoring table (audit/scoring.py is the source of truth;
-# this mirrors it read-only so fit_weights has no import-order dependency on that package).
+# Mirrors CONTRACTS.md's scoring table read-only (audit/scoring.py is the source of truth; no
+# import-order dependency on that package). Two deliberate simplifications for a binary
+# correlation signal: `poor_performance` folds the 15/10-point tiers into one `psi_mobile < 70`
+# indicator, and `no_booking_widget` treats "" / "null" like None (defensive against string-typed
+# rows from Supabase). Everything else is the exact fail condition.
 SIGNALS: dict[str, Any] = {
     "no_website": lambda a: a.get("has_website") is False,
     "no_booking_widget": lambda a: a.get("booking_widget") in (None, "", "null"),

@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 from execution.personal_workflows.prodcraft_medspa.audit import audit_site, scoring  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.audit.stats import wilson  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common import config, store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 MAX_WORKERS = 4
 
@@ -50,7 +51,7 @@ def main() -> None:
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    store_kind = args.store or ("local" if args.mock else settings.store_kind)
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock implies local; never supabase
     st = store.get_store(kind=store_kind, root=args.store_root)
 
     eligible = st.find_businesses(metro=args.metro, is_chain=False, drop_reason_is_null=True)

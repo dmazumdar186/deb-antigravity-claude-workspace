@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -29,6 +30,7 @@ from execution.personal_workflows.prodcraft_medspa.discovery.tiles import (  # n
     load_tiles,
     metro_state,
 )
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 PLACES_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
 
@@ -148,8 +150,19 @@ def _generate_synthetic_mock(metro: str, tile: Tile, n: int = 5) -> list[dict]:
 
 
 def _matches_chain(name: str, chains: list[str]) -> bool:
+    """Word-boundary match of a chain pattern against the business name (case-insensitive).
+
+    A plain substring test dropped legitimate prospects: the pattern "ulta" matched
+    "Consultation Skin Clinic" and "Aesthetic Consultants" (pipeline-auditor, 2026-09-16).
+    Patterns are matched as whole words/phrases; "ideal image" still matches "Ideal Image Northbrook".
+    """
     lowered = name.lower()
-    return any(pattern.lower() in lowered for pattern in chains if pattern)
+    for pattern in chains:
+        if not pattern:
+            continue
+        if re.search(rf"(?<![a-z0-9]){re.escape(pattern.lower())}(?![a-z0-9])", lowered):
+            return True
+    return False
 
 
 def _parse_city(formatted_address: str) -> str:
@@ -311,7 +324,9 @@ def _stat_line(metro: str, tiles: int, api_calls: int, found: int, unique: int, 
 
 def main(argv: list[str] | None = None) -> None:
     settings = config.bootstrap()
-    args = build_arg_parser().parse_args(argv)
+    parser = build_arg_parser()
+    args = parser.parse_args(argv)
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock implies local; never supabase
     queries = [q.strip() for q in args.queries.split(",") if q.strip()] if args.queries else list(DEFAULT_QUERIES)
 
     try:
@@ -333,7 +348,7 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     try:
-        store = get_store(kind=args.store or settings.store_kind, root=args.store_root)
+        store = get_store(kind=store_kind, root=args.store_root)
     except Exception as exc:  # noqa: BLE001 — surfaced via the error channel, not a silent skip
         notify.error("discovery", f"store init failed: {exc}")
         print(f"store init failed: {exc}", file=sys.stderr)

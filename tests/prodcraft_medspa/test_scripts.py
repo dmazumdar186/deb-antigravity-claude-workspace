@@ -32,6 +32,8 @@ from execution.personal_workflows.prodcraft_medspa.scripts import (  # noqa: E40
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
     common_store_args,
     parse_stat_line,
+    reject_mock_with_supabase,
+    resolve_store_kind,
     run_module,
 )
 
@@ -65,6 +67,56 @@ def test_common_store_args():
         store_root = "/tmp/foo"
 
     assert common_store_args(Ns()) == ["--mock", "--store", "local", "--store-root", "/tmp/foo"]
+
+
+# ---------------------------------------------------------------------------
+# _stage_runner — resolve_store_kind / reject_mock_with_supabase (code-reviewer C4/M1)
+# ---------------------------------------------------------------------------
+
+
+def _ns(**overrides):
+    import argparse
+
+    base = dict(mock=False, store=None)
+    base.update(overrides)
+    return argparse.Namespace(**base)
+
+
+def test_resolve_store_kind_explicit_store_wins():
+    assert resolve_store_kind(_ns(store="supabase")) == "supabase"
+    assert resolve_store_kind(_ns(mock=True, store="local")) == "local"
+
+
+def test_resolve_store_kind_mock_implies_local_even_with_supabase_env(monkeypatch):
+    """CONTRACTS.md: '--mock implies --store local unless overridden' — including when
+    PRODCRAFT_STORE=supabase is set in the environment and --store is left unset."""
+    monkeypatch.setenv("PRODCRAFT_STORE", "supabase")
+    assert resolve_store_kind(_ns(mock=True)) == "local"
+
+
+def test_resolve_store_kind_no_mock_no_store_falls_back_to_env_then_local(monkeypatch):
+    monkeypatch.setenv("PRODCRAFT_STORE", "supabase")
+    assert resolve_store_kind(_ns()) == "supabase"
+    monkeypatch.delenv("PRODCRAFT_STORE", raising=False)
+    assert resolve_store_kind(_ns()) == "local"
+
+
+def test_reject_mock_with_supabase_errors_on_explicit_combo():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    with pytest.raises(SystemExit) as exc_info:
+        reject_mock_with_supabase(parser, _ns(mock=True, store="supabase"))
+    assert exc_info.value.code == 2
+
+
+def test_reject_mock_with_supabase_ok_and_returns_resolved_kind(monkeypatch):
+    import argparse
+
+    monkeypatch.delenv("PRODCRAFT_STORE", raising=False)
+    parser = argparse.ArgumentParser()
+    assert reject_mock_with_supabase(parser, _ns(mock=True)) == "local"
+    assert reject_mock_with_supabase(parser, _ns(store="supabase")) == "supabase"
 
 
 # ---------------------------------------------------------------------------
@@ -123,6 +175,34 @@ def test_compute_funnel_drop_reasons_present(tmp_path):
     assert reasons_by_stage["qualified"] == {"borderline": 1}
 
 
+def test_compute_funnel_labels_missing_email_status_no_email_not_unknown(tmp_path):
+    """pipeline-auditor: a business with email_status=None (no email attempt at all) is
+    'no_email', distinct from a genuine-but-non-deliverable verifier status literally named
+    'unknown'."""
+    store = LocalStore(root=tmp_path / "store")
+    metro = "chicago_north_shore"
+    b1 = store.upsert_business({"place_id": "p1", "name": "Owner No Email", "metro": metro, "is_chain": False})
+    b2 = store.upsert_business({"place_id": "p2", "name": "Owner Unknown Status", "metro": metro, "is_chain": False})
+    store.insert_audit({"business_id": b1["id"], "bucket": "qualified", "total_score": 60})
+    store.insert_audit({"business_id": b2["id"], "bucket": "qualified", "total_score": 60})
+    store.upsert_business({**b1, "owner_name": "A"})  # email_status left unset -> None
+    store.upsert_business({**b2, "owner_name": "B", "email_status": "unknown"})
+
+    funnel = run_metro.compute_funnel(store, metro)
+    reasons_by_stage = {name: reasons for name, _count, reasons in funnel["stages"]}
+    assert reasons_by_stage["email verified"] == {"no_email": 1, "unknown": 1}
+
+
+def test_run_record_filename_unique_within_same_second():
+    """pipeline-auditor: two runs for the same metro starting in the same second must not
+    collide on the run-record filename."""
+    names = {run_metro.run_record_filename("chicago_north_shore") for _ in range(20)}
+    assert len(names) == 20
+    for name in names:
+        assert name.startswith("chicago_north_shore_")
+        assert name.endswith(".json")
+
+
 def test_estimate_total_cost_sums_reported_cost_usd():
     results = [
         {"stat": {"script": "a", "cost_usd": 1.5}},
@@ -153,7 +233,7 @@ def test_audit_stage_always_runs_full_audit_even_with_sample_n():
 
 
 def test_expand_stages_adds_sample_after_full_audit():
-    stages = run_metro.expand_stages(["discovery", "audit", "enrich", "preview"], _metro_args(sample_n=40))
+    stages = run_metro.expand_stages(["discovery", "audit", "enrich", "preview"], _metro_args(sample_n=40), "local")
     assert stages == ["discovery", "audit", "audit_sample", "enrich", "preview", "approve"]  # mock implies approve
     module, cli = run_metro.build_stage_args("audit_sample", _metro_args(sample_n=40))
     assert module == "audit.sample_audit"
@@ -162,29 +242,38 @@ def test_expand_stages_adds_sample_after_full_audit():
 
 
 def test_expand_stages_sample_only_replaces_full_audit():
-    stages = run_metro.expand_stages(["discovery", "audit"], _metro_args(sample_n=40, sample_only=True))
+    stages = run_metro.expand_stages(["discovery", "audit"], _metro_args(sample_n=40, sample_only=True), "local")
     assert stages == ["discovery", "audit_sample"]
     _, cli = run_metro.build_stage_args("audit_sample", _metro_args(sample_n=40, sample_only=True))
     assert "--reuse-audits" not in cli
 
 
 def test_expand_stages_unchanged_without_sample_n():
-    assert run_metro.expand_stages(["discovery", "audit"], _metro_args(mock=False)) == ["discovery", "audit"]
+    assert run_metro.expand_stages(["discovery", "audit"], _metro_args(mock=False), "local") == ["discovery", "audit"]
 
 
 def test_expand_stages_live_default_has_no_approve_stage():
     """Production: previews stay in review until a human approves (automation-boundaries.md)."""
-    stages = run_metro.expand_stages(run_metro.ALL_STAGES, _metro_args(mock=False))
+    stages = run_metro.expand_stages(run_metro.ALL_STAGES, _metro_args(mock=False), "local")
     assert "approve" not in stages
 
 
 def test_expand_stages_mock_or_auto_approve_appends_approve_after_preview():
     for kwargs in ({"mock": True}, {"mock": False, "auto_approve": True}):
-        stages = run_metro.expand_stages(run_metro.ALL_STAGES, _metro_args(**kwargs))
+        stages = run_metro.expand_stages(run_metro.ALL_STAGES, _metro_args(**kwargs), "local")
         assert stages == ["discovery", "audit", "enrich", "preview", "approve"], kwargs
     module, cli = run_metro.build_stage_args("approve", _metro_args(mock=True))
     assert module == "preview.approve"
     assert "--all-review" in cli and "--metro" in cli
+
+
+def test_expand_stages_never_adds_approve_against_supabase_store():
+    """code-reviewer C4/M1: --auto-approve (or --mock's implied auto-approve) may only add the
+    approve stage when the resolved store is local. expand_stages stays pure (no error) — main()
+    is what parser.error()s on this combination before ever calling expand_stages."""
+    for kwargs in ({"mock": True, "store": "supabase"}, {"auto_approve": True, "store": "supabase"}):
+        stages = run_metro.expand_stages(run_metro.ALL_STAGES, _metro_args(**kwargs), "supabase")
+        assert "approve" not in stages, kwargs
 
 
 def test_audit_sample_stage_requires_sample_n():
@@ -221,6 +310,53 @@ def test_run_metro_cli_missing_stage_module_exits_nonzero(tmp_path):
     assert len(results) == 1
     assert results[0]["ok"] is False
     assert "not implemented yet" in results[0]["error"]
+
+
+def test_run_metro_cli_mock_with_store_supabase_exits_2(tmp_path):
+    """code-reviewer C4/M1: --mock must never reach a Supabase store."""
+    proc = subprocess.run(
+        [sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.scripts.run_metro",
+         "--metro", "chicago_north_shore", "--mock", "--store", "supabase"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 2
+    assert "--mock cannot be combined with --store supabase" in proc.stderr
+
+
+def test_run_metro_cli_auto_approve_with_store_supabase_exits_2(tmp_path):
+    """--auto-approve is local-store only; a Supabase/live store must parser.error(), not
+    silently skip the approve stage."""
+    proc = subprocess.run(
+        [sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.scripts.run_metro",
+         "--metro", "chicago_north_shore", "--auto-approve", "--store", "supabase"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 2
+    assert "--auto-approve is local-store only" in proc.stderr
+
+
+def test_run_metro_cli_mock_with_env_supabase_resolves_local(tmp_path):
+    """CONTRACTS.md: '--mock implies --store local unless overridden' — including when
+    PRODCRAFT_STORE=supabase is set in the environment and --store is left unset. `--stages ""`
+    (no stages) isolates run_metro's OWN store resolution (used for its compute_funnel
+    cross-check) from the stage subprocesses it would otherwise shell out to — those are other
+    packages' CLIs and this test must not depend on their own --mock/--store handling being
+    correct."""
+    env = dict(__import__("os").environ)
+    env["PRODCRAFT_STORE"] = "supabase"
+    env.pop("SUPABASE_URL", None)
+    env.pop("SUPABASE_SERVICE_KEY", None)
+    proc = subprocess.run(
+        [sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.scripts.run_metro",
+         "--metro", "chicago_north_shore", "--mock", "--store-root", str(tmp_path / "store"),
+         "--stages", ""],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
+    )
+    # If run_metro's own store resolution had picked Supabase, compute_funnel's get_store() call
+    # would fail trying to reach a real Supabase endpoint (no SUPABASE_URL/SERVICE_KEY in env)
+    # rather than succeed against the local --store-root.
+    assert "SupabaseStore" not in proc.stderr
+    assert proc.returncode == 0, proc.stderr
 
 
 # ---------------------------------------------------------------------------

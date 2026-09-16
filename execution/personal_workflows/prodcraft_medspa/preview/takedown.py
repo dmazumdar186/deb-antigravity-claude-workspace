@@ -28,6 +28,9 @@ from execution.personal_workflows.prodcraft_medspa.preview import publish, r2  #
 from execution.personal_workflows.prodcraft_medspa.preview.build_preview import (  # noqa: E402
     find_previews_for_business,
 )
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
+    reject_mock_with_supabase,
+)
 
 _TERMINAL_OUTREACH_STATUSES = {"closed_won", "closed_lost", "dnc"}
 
@@ -88,7 +91,11 @@ def take_down_preview(store, preview: dict, *, mock: bool, tmp_root: Path) -> di
     business_id = preview.get("business_id")
     business = store.get_business(business_id) if business_id else None
     if business:
-        store.upsert_business({**business, "do_not_contact": True})
+        # update_row() patches by id instead of round-tripping the whole row through
+        # upsert_business() (keyed on place_id) — avoids a lost-update window against a
+        # business row another process mutated between the read above and this write
+        # (code-reviewer C4/M1).
+        store.update_row("businesses", business["id"], {"do_not_contact": True})
 
     outreach_closed = 0
     for row in _find_outreach_for_business(store, business_id) if business_id else []:
@@ -123,7 +130,7 @@ def main() -> None:
     parser.add_argument("--store-root", default=None)
     args = parser.parse_args()
 
-    store_kind = args.store or ("local" if args.mock else None)
+    store_kind = reject_mock_with_supabase(parser, args)
     store = get_store(kind=store_kind, root=args.store_root)
 
     previews = resolve_target_previews(

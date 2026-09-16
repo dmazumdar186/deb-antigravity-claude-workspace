@@ -5,13 +5,19 @@ description: Shared subprocess-invocation helpers for run_metro.py and daily.py.
     module is imported or run — per CONTRACTS.md, callers run each stage as a subprocess
     `python3 -m execution.personal_workflows.prodcraft_medspa.<pkg>.<script> ...` and treat a
     missing module as a clean stage failure rather than crashing the orchestrator.
-inputs: Imported only; no CLI args, no env vars of its own.
+    Also centralises the `--mock`/`--store` resolution + guard every stage CLI must apply
+    (CONTRACTS.md, code-reviewer C4/M1): `resolve_store_kind()` and
+    `reject_mock_with_supabase()`.
+inputs: Imported only; no CLI args, no env vars of its own (resolve_store_kind reads
+    env PRODCRAFT_STORE as a fallback, mirroring common.store.get_store's own default).
 outputs: dict results describing each subprocess invocation; no files written.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -118,6 +124,30 @@ def run_module(module_dotted: str, args: list[str], *, timeout: int = 1800) -> d
         "stdout": proc.stdout,
         "stderr": proc.stderr,
     }
+
+
+def resolve_store_kind(args: argparse.Namespace) -> str:
+    """CONTRACTS.md: "--mock implies --store local unless overridden." Resolution order:
+    explicit `--store` wins outright; else `--mock` forces local; else env `PRODCRAFT_STORE`;
+    else `local`. Never consults `settings.store_kind` before checking `--mock` (that ordering
+    is the bug this fixes: a live-default settings.store_kind of "supabase" must not survive
+    --mock just because --store was left unset)."""
+    store = getattr(args, "store", None)
+    if store:
+        return store
+    if getattr(args, "mock", False):
+        return "local"
+    return os.environ.get("PRODCRAFT_STORE") or "local"
+
+
+def reject_mock_with_supabase(parser: argparse.ArgumentParser, args: argparse.Namespace) -> str:
+    """Call immediately after `parser.parse_args()`. Hard-fails (`parser.error`, exit 2) when
+    `--mock` is combined with an explicit `--store supabase` — `--mock` must never reach a live
+    store (code-reviewer C4/M1). Returns the resolved store kind (see `resolve_store_kind`) so
+    callers can use it directly instead of recomputing it."""
+    if getattr(args, "mock", False) and getattr(args, "store", None) == "supabase":
+        parser.error("--mock cannot be combined with --store supabase")
+    return resolve_store_kind(args)
 
 
 def common_store_args(args) -> list[str]:

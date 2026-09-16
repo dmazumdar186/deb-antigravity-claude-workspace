@@ -35,6 +35,9 @@ from execution.personal_workflows.prodcraft_medspa.common import config, models,
 from execution.personal_workflows.prodcraft_medspa.common import slug as slug_module  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.preview import content_lint, extract_services, publish, r2  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
+    reject_mock_with_supabase,
+)
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_DIR = PKG_ROOT / "template"
@@ -61,6 +64,74 @@ _DASH_CHARS = ("–", "—", "−")  # en dash, em dash, minus sign
 _THIN_SPACE_CHARS = (" ", " ", " ")
 
 _BUILD_LOCK = threading.Lock()  # `npm run build` writes to the shared template/ dir — serialize builds.
+_BUILD_LOCK_FILE = ".build.lock"  # inter-process twin of _BUILD_LOCK, held next to template/package.json
+_BUILD_LOCK_WAIT_S = 900
+
+
+class _ProcessLock:
+    """Cross-process exclusive lock on `template_dir/.build.lock`.
+
+    Two run_metro processes (an operator run and a cron, or two agents) that build in the same
+    template/ dir at once clobber each other's business.json and out/: one build fails, or worse,
+    business A's site ships under business B's host. threading.Lock only serializes one process.
+    POSIX uses fcntl.flock; Windows uses msvcrt.locking. Both poll with a bounded wait so a stuck
+    holder surfaces as a TimeoutError, never a silent hang.
+    """
+
+    def __init__(self, path: Path, wait_s: float = _BUILD_LOCK_WAIT_S):
+        self.path = path
+        self.wait_s = wait_s
+        self._fh = None
+
+    def __enter__(self) -> "_ProcessLock":
+        import time
+
+        self._fh = open(self.path, "a+", encoding="utf-8")  # noqa: SIM115 — held for the lock's lifetime
+        deadline = time.monotonic() + self.wait_s
+        while True:
+            try:
+                if os.name == "nt":
+                    import msvcrt
+
+                    self._fh.seek(0)
+                    msvcrt.locking(self._fh.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(self._fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return self
+            except OSError:
+                if time.monotonic() >= deadline:
+                    self._fh.close()
+                    raise TimeoutError(f"another preview build has held {self.path} for over {self.wait_s:.0f}s")
+                time.sleep(0.5)
+
+    def __exit__(self, *exc: object) -> None:
+        try:
+            if os.name == "nt":
+                import msvcrt
+
+                self._fh.seek(0)
+                msvcrt.locking(self._fh.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(self._fh.fileno(), fcntl.LOCK_UN)
+        finally:
+            self._fh.close()
+
+
+def _assert_build_matches(out_dir: Path, business_json: dict) -> None:
+    """The built export must be THIS business's, not a neighbour's left over from a racing build."""
+    index = out_dir / "index.html"
+    if not index.exists():
+        raise RuntimeError(f"template build produced no {index}")
+    html_text = index.read_text(encoding="utf-8", errors="replace")
+    name = business_json["name"]
+    import html as _html
+
+    if name not in html_text and _html.escape(name) not in html_text and _html.escape(name, quote=False) not in html_text:
+        raise RuntimeError(f"template build output does not contain business name {name!r}; refusing to publish it")
 
 
 # ---------------------------------------------------------------------------
@@ -292,8 +363,12 @@ def build_template_site(
         _synthesize_minimal_site(business_json, build_dir)
         return build_dir
 
-    (template_dir / "business.json").write_text(json.dumps(business_json, indent=2), encoding="utf-8")
-    with _BUILD_LOCK:  # builds share the template/ working dir — serialize (python-hardening.md #2)
+    out_dir = template_dir / "out"
+    # builds share the template/ working dir — serialize within this process (python-hardening.md #2)
+    # AND across processes (_ProcessLock). business.json is written INSIDE the lock so a racing process
+    # cannot swap it between our write and our build.
+    with _BUILD_LOCK, _ProcessLock(template_dir / _BUILD_LOCK_FILE):
+        (template_dir / "business.json").write_text(json.dumps(business_json, indent=2), encoding="utf-8")
         subprocess.run(
             ["npm", "run", "build"],
             cwd=template_dir,
@@ -302,10 +377,10 @@ def build_template_site(
             encoding="utf-8",
             errors="replace",
         )
-    out_dir = template_dir / "out"
-    if build_dir.exists():
-        shutil.rmtree(build_dir)
-    shutil.copytree(out_dir, build_dir)
+        _assert_build_matches(out_dir, business_json)
+        if build_dir.exists():
+            shutil.rmtree(build_dir)
+        shutil.copytree(out_dir, build_dir)
     return build_dir
 
 
@@ -427,7 +502,7 @@ def main() -> None:
     if not args.metro and not args.business_id:
         parser.error("either --metro or --business-id is required")
 
-    store_kind = args.store or ("local" if args.mock else None)
+    store_kind = reject_mock_with_supabase(parser, args)
     store = get_store(kind=store_kind, root=args.store_root)
 
     stats = {

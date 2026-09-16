@@ -9,12 +9,36 @@ outputs: N/A (pytest).
 from __future__ import annotations
 
 import json
+import time
 from datetime import date, timedelta
 
 import pytest
+import requests
 
-from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore, SupabaseStore
+from execution.personal_workflows.prodcraft_medspa.common.store import ID_TABLES, LocalStore, SupabaseStore
 from tests.prodcraft_medspa.conftest import skip_without_supabase, PKG_ROOT
+
+
+def _fake_supabase_store() -> SupabaseStore:
+    """A SupabaseStore that never touches the network — used to unit-test URL/params
+    construction and retry logic by monkeypatching `_request` or `_session.request`."""
+    return SupabaseStore(url="https://fake-project.supabase.co", service_key="fake-service-key")
+
+
+class _FakeResp:
+    """Minimal stand-in for requests.Response, enough for _request()'s retry logic."""
+
+    def __init__(self, status_code: int, text: str = "", json_data=None):
+        self.status_code = status_code
+        self.text = text
+        self._json_data = json_data if json_data is not None else []
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.exceptions.HTTPError(f"{self.status_code} error")
+
+    def json(self):
+        return self._json_data
 
 
 def _local_factory(tmp_path):
@@ -302,16 +326,8 @@ def test_chains_loaded_after_seeding(store):
     seed_path = PKG_ROOT / "db" / "seed_chains.json"
     patterns = json.loads(seed_path.read_text(encoding="utf-8"))
 
-    if isinstance(store, LocalStore):
-        store.load_chains(patterns)
-    else:
-        for entry in patterns:
-            store._request(  # noqa: SLF001
-                "POST",
-                "chains?on_conflict=pattern",
-                headers=store._headers(prefer="resolution=merge-duplicates"),  # noqa: SLF001
-                json=entry,
-            )
+    count = store.load_chains(patterns)
+    assert count == len(patterns)
 
     loaded = store.chains()
     assert "ideal image" in loaded
@@ -363,13 +379,18 @@ def test_list_rows_filters_orders_and_limits(store):
 
 def test_list_rows_none_filter_means_is_null(store):
     business = store.upsert_business(_business_row(place_id="lr-null"))
-    store.upsert_business({**_business_row(place_id="lr-not-null"), "drop_reason": "too_small"})
+    not_null_business = store.upsert_business(
+        {**_business_row(place_id="lr-not-null"), "drop_reason": "too_small"}
+    )
 
     null_rows = store.list_rows("businesses", place_id="lr-null", drop_reason=None)
     assert any(r["id"] == business["id"] for r in null_rows)
 
+    # place_id="lr-not-null" AND drop_reason IS NULL should match nothing: that business has
+    # drop_reason set, so filtering for a null drop_reason must exclude it (previously this
+    # half of the test asserted over an empty/self-consistent comprehension and could not fail).
     not_null_rows = store.list_rows("businesses", place_id="lr-not-null", drop_reason=None)
-    assert not any(r.get("drop_reason") is None for r in not_null_rows if r.get("place_id") == "lr-not-null")
+    assert not any(r["id"] == not_null_business["id"] for r in not_null_rows)
 
 
 def test_list_rows_unknown_table_raises_value_error(store):
@@ -460,3 +481,340 @@ def test_local_store_deals_and_metro_stats(tmp_path):
         {"metro": "Chicago North Shore", "sampled": 40, "qualified": 12, "pct_qualified": 30.0, "ci_low": 18.0, "ci_high": 45.0, "score_version": "1.0"}
     )
     assert stats["id"]
+
+
+# ---------------------------------------------------------------------------
+# C1: filter/order key validation and unencoded-value injection (list_rows/get_row/update_row)
+# ---------------------------------------------------------------------------
+
+
+def test_list_rows_rejects_invalid_filter_key(store):
+    with pytest.raises(ValueError):
+        store.list_rows("businesses", **{"bad key; drop": "x"})
+
+
+def test_list_rows_rejects_invalid_order_by_key(store):
+    with pytest.raises(ValueError):
+        store.list_rows("businesses", order_by="bad-key")
+
+
+def test_supabase_list_rows_sends_filters_via_params_not_url_string():
+    """Values are handed to `requests` as (key, value) tuples, not concatenated into the path,
+    so `requests` — not our f-strings — is responsible for percent-encoding special characters
+    like `+`, `#`, `&` correctly."""
+    store = _fake_supabase_store()
+    captured = {}
+
+    def fake_request(method, path, **kwargs):
+        captured["path"] = path
+        captured["params"] = kwargs.get("params")
+        return _FakeResp(200, json_data=[])
+
+    store._request = fake_request  # noqa: SLF001
+    store.list_rows("businesses", name="A+B & C#D")
+
+    assert captured["path"] == "businesses"  # no query string baked into the path
+    params = dict(captured["params"])
+    assert params["name"] == "eq.A+B & C#D"  # raw value preserved for requests to encode
+
+
+def test_supabase_get_row_and_update_row_use_params_for_id():
+    store = _fake_supabase_store()
+    captured = []
+
+    def fake_request(method, path, **kwargs):
+        captured.append((method, path, kwargs.get("params")))
+        return _FakeResp(200, json_data=[{"id": "biz+1"}])
+
+    store._request = fake_request  # noqa: SLF001
+    store.get_row("businesses", "biz+1")
+    store.update_row("businesses", "biz+1", {"name": "x"})
+
+    for method, path, params in captured:
+        assert path == "businesses"
+        assert dict(params)["id"] == "eq.biz+1"
+
+
+def test_supabase_find_businesses_normalizes_booleans():
+    store = _fake_supabase_store()
+    captured = {}
+
+    def fake_request(method, path, **kwargs):
+        captured["params"] = kwargs.get("params")
+        return _FakeResp(200, json_data=[])
+
+    store._request = fake_request  # noqa: SLF001
+    store.find_businesses(do_not_contact=True, is_chain=False)
+
+    params = dict(captured["params"])
+    assert params["do_not_contact"] == "eq.true"
+    assert params["is_chain"] == "eq.false"
+
+
+# ---------------------------------------------------------------------------
+# C2: SupabaseStore.list_rows pagination
+# ---------------------------------------------------------------------------
+
+
+def test_supabase_list_rows_pages_until_short_page_returned():
+    store = _fake_supabase_store()
+    total_rows = [{"id": i} for i in range(1500)]
+    ranges_requested = []
+
+    def fake_request(method, path, **kwargs):
+        rng = kwargs["headers"]["Range"]
+        ranges_requested.append(rng)
+        start, end = (int(x) for x in rng.split("-"))
+        return _FakeResp(200, json_data=total_rows[start : end + 1])
+
+    store._request = fake_request  # noqa: SLF001
+    rows = store.list_rows("businesses")
+
+    assert rows == total_rows
+    assert ranges_requested == ["0-999", "1000-1999"]  # second page is short (500) -> loop stops
+
+
+def test_supabase_list_rows_limit_caps_total_across_pages():
+    store = _fake_supabase_store()
+    total_rows = [{"id": i} for i in range(2500)]
+    ranges_requested = []
+
+    def fake_request(method, path, **kwargs):
+        rng = kwargs["headers"]["Range"]
+        ranges_requested.append(rng)
+        start, end = (int(x) for x in rng.split("-"))
+        return _FakeResp(200, json_data=total_rows[start : end + 1])
+
+    store._request = fake_request  # noqa: SLF001
+    rows = store.list_rows("businesses", limit=1500)
+
+    assert rows == total_rows[:1500]
+    assert ranges_requested == ["0-999", "1000-1499"]  # second page request capped by remaining limit
+
+
+# ---------------------------------------------------------------------------
+# M3: load_chains merges (doesn't overwrite) and validates `pattern`
+# ---------------------------------------------------------------------------
+
+
+def test_load_chains_merges_keeps_existing_and_adds_new(store):
+    store.load_chains([{"pattern": "acme", "note": "n1"}])
+    count = store.load_chains([{"pattern": "acme", "note": "n1-updated"}, {"pattern": "beta", "note": "n2"}])
+
+    assert count == 2
+    loaded = set(store.chains())
+    assert {"acme", "beta"}.issubset(loaded)
+
+
+def test_load_chains_missing_pattern_raises_value_error(store):
+    with pytest.raises(ValueError):
+        store.load_chains([{"note": "no pattern here"}])
+
+
+def test_local_store_load_chains_merge_preserves_rows_not_in_new_batch(tmp_path):
+    store = _local_factory(tmp_path)
+    store.load_chains([{"pattern": "acme", "note": "n1"}, {"pattern": "gamma", "note": "g"}])
+    store.load_chains([{"pattern": "acme", "note": "n1-updated"}])
+
+    rows = store._read("chains")  # noqa: SLF001
+    by_pattern = {r["pattern"]: r for r in rows}
+    assert by_pattern["acme"]["note"] == "n1-updated"
+    assert "gamma" in by_pattern  # a full _write() overwrite would have dropped this row
+
+
+# ---------------------------------------------------------------------------
+# M4: _request retry/error-message/idempotency behaviour
+# ---------------------------------------------------------------------------
+
+
+def test_request_error_message_includes_status_code_and_body(monkeypatch):
+    store = _fake_supabase_store()
+    monkeypatch.setattr(time, "sleep", lambda s: None)
+    monkeypatch.setattr(
+        store._session, "request", lambda *a, **k: _FakeResp(500, text="internal server error detail")  # noqa: SLF001
+    )
+
+    with pytest.raises(RuntimeError) as exc_info:
+        store._request("GET", "businesses")  # noqa: SLF001
+
+    msg = str(exc_info.value)
+    assert "500" in msg
+    assert "internal server error detail" in msg
+
+
+def test_request_does_not_sleep_after_final_attempt(monkeypatch):
+    store = _fake_supabase_store()
+    sleep_calls = []
+    monkeypatch.setattr(time, "sleep", lambda s: sleep_calls.append(s))
+    monkeypatch.setattr(store._session, "request", lambda *a, **k: _FakeResp(503, text="unavailable"))  # noqa: SLF001
+
+    with pytest.raises(RuntimeError):
+        store._request("GET", "businesses")  # noqa: SLF001
+
+    assert len(sleep_calls) == 2  # 3 attempts -> sleeps after attempt 1 and 2, not after attempt 3
+
+
+def test_request_4xx_is_not_retried(monkeypatch):
+    store = _fake_supabase_store()
+    call_count = {"n": 0}
+
+    def fake_request(*a, **k):
+        call_count["n"] += 1
+        return _FakeResp(409, text="conflict: duplicate slug")
+
+    monkeypatch.setattr(time, "sleep", lambda s: (_ for _ in ()).throw(AssertionError("must not sleep on 4xx")))
+    monkeypatch.setattr(store._session, "request", fake_request)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        store._request("POST", "businesses")  # noqa: SLF001
+
+    assert call_count["n"] == 1  # no retry storm on a 4xx
+    assert "409" in str(exc_info.value)
+
+
+def test_supabase_insert_audit_uses_client_side_id_and_merge_duplicates():
+    store = _fake_supabase_store()
+    captured = {}
+
+    def fake_request(method, path, **kwargs):
+        captured["path"] = path
+        captured["headers"] = kwargs["headers"]
+        captured["json"] = kwargs["json"]
+        return _FakeResp(201, json_data=[kwargs["json"]])
+
+    store._request = fake_request  # noqa: SLF001
+    row = store.insert_audit({"business_id": "b1", "total_score": 10})
+
+    assert "id" in row and row["id"]
+    assert "on_conflict=id" in captured["path"]
+    assert "resolution=merge-duplicates" in captured["headers"]["Prefer"]
+
+
+def test_supabase_insert_metro_stats_uses_client_side_id_and_merge_duplicates():
+    store = _fake_supabase_store()
+    captured = {}
+
+    def fake_request(method, path, **kwargs):
+        captured["path"] = path
+        captured["headers"] = kwargs["headers"]
+        captured["json"] = kwargs["json"]
+        return _FakeResp(201, json_data=[kwargs["json"]])
+
+    store._request = fake_request  # noqa: SLF001
+    row = store.insert_metro_stats({"metro": "Chicago North Shore", "sampled": 10})
+
+    assert "id" in row and row["id"]
+    assert "on_conflict=id" in captured["path"]
+    assert "resolution=merge-duplicates" in captured["headers"]["Prefer"]
+
+
+def test_supabase_log_event_does_not_retry_on_5xx(monkeypatch):
+    store = _fake_supabase_store()
+    call_count = {"n": 0}
+
+    def fake_request(*a, **k):
+        call_count["n"] += 1
+        return _FakeResp(500, text="boom")
+
+    monkeypatch.setattr(time, "sleep", lambda s: (_ for _ in ()).throw(AssertionError("must not sleep/retry on 5xx")))
+    monkeypatch.setattr(store._session, "request", fake_request)
+
+    with pytest.raises(RuntimeError):
+        store.log_event("business", "b1", "test-event")
+
+    assert call_count["n"] == 1  # events has no natural key to de-dupe on; a 5xx must not retry
+
+
+def test_supabase_log_event_does_retry_on_429(monkeypatch):
+    store = _fake_supabase_store()
+    responses = [_FakeResp(429, text="rate limited"), _FakeResp(201, json_data=[{"id": 1}])]
+
+    def fake_request(*a, **k):
+        return responses.pop(0)
+
+    monkeypatch.setattr(time, "sleep", lambda s: None)
+    monkeypatch.setattr(store._session, "request", fake_request)
+
+    store.log_event("business", "b1", "test-event")  # must not raise: 429 is retried even though idempotent=False
+    assert responses == []
+
+
+# ---------------------------------------------------------------------------
+# M5: ID_TABLES restricts get_row/update_row to id-keyed tables
+# ---------------------------------------------------------------------------
+
+
+def test_id_tables_excludes_config_and_chains():
+    assert "config" not in ID_TABLES
+    assert "chains" not in ID_TABLES
+    assert "businesses" in ID_TABLES
+
+
+def test_get_row_rejects_id_less_tables(store):
+    with pytest.raises(ValueError):
+        store.get_row("config", "some-key")
+    with pytest.raises(ValueError):
+        store.get_row("chains", "some-pattern")
+
+
+def test_update_row_rejects_id_less_tables(store):
+    with pytest.raises(ValueError):
+        store.update_row("config", "some-key", {"value": 1})
+    with pytest.raises(ValueError):
+        store.update_row("chains", "some-pattern", {"note": "x"})
+
+
+# ---------------------------------------------------------------------------
+# Minor (a): list_rows order_by tolerates mixed types
+# ---------------------------------------------------------------------------
+
+
+def test_list_rows_order_by_mixed_types_does_not_raise(store):
+    store.upsert_business({**_business_row(place_id="mix-1"), "rating": 4.5})
+    store.upsert_business({**_business_row(place_id="mix-2"), "rating": "no-rating"})
+
+    rows = store.list_rows("businesses", order_by="rating")
+    place_ids = {r["place_id"] for r in rows if r["place_id"] in ("mix-1", "mix-2")}
+    assert place_ids == {"mix-1", "mix-2"}  # would previously raise TypeError comparing float/str
+
+
+# ---------------------------------------------------------------------------
+# Minor (b): LocalStore events id survives pruning (max(existing ids)+1, not len(rows)+1)
+# ---------------------------------------------------------------------------
+
+
+def test_local_store_log_event_id_survives_pruning(tmp_path):
+    store = _local_factory(tmp_path)
+    business = store.upsert_business(_business_row(place_id="place-event-prune"))
+    store.log_event("business", business["id"], "e1")
+    store.log_event("business", business["id"], "e2")
+
+    events = store._read("events")  # noqa: SLF001
+    assert [e["id"] for e in events] == [1, 2]
+
+    store._write("events", events[1:])  # noqa: SLF001  simulate a retention job pruning id=1
+    store.log_event("business", business["id"], "e3")
+
+    ids_after = [e["id"] for e in store._read("events")]  # noqa: SLF001
+    assert ids_after == [2, 3]  # not [2, 2] -- len(rows)+1 would have collided here
+
+
+# ---------------------------------------------------------------------------
+# Research lens: businesses.slug unique constraint enforced client-side by LocalStore
+# ---------------------------------------------------------------------------
+
+
+def test_local_store_upsert_business_rejects_slug_collision_across_place_ids(tmp_path):
+    store = _local_factory(tmp_path)
+    store.upsert_business(_business_row(place_id="place-slug-a", slug="glow-aesthetics"))
+
+    with pytest.raises(ValueError):
+        store.upsert_business(_business_row(place_id="place-slug-b", slug="glow-aesthetics"))
+
+
+def test_local_store_upsert_business_same_place_id_can_keep_its_own_slug(tmp_path):
+    store = _local_factory(tmp_path)
+    first = store.upsert_business(_business_row(place_id="place-slug-c", slug="glow-aesthetics-c"))
+    second = store.upsert_business(_business_row(place_id="place-slug-c", slug="glow-aesthetics-c", rating=5.0))
+    assert first["id"] == second["id"]
+    assert second["rating"] == 5.0

@@ -45,8 +45,22 @@ top of each script via `common.config.bootstrap()`).
   `inputs:` / `outputs:`; `load_dotenv()`; argparse; no bare `except: pass`; subprocess calls carry
   `encoding="utf-8", errors="replace"`; locks around shared state in thread pools; LLM- or API-derived paths are
   resolved and boundary-checked; no `#!/usr/bin/env python` shebang.
-- Every script has `--mock` (uses `fixtures/`, no network, no secrets) and `--store {local,supabase}`
-  (default from env `PRODCRAFT_STORE`, fallback `local`). `--mock` implies `--store local` unless overridden.
+- Every script that reads or writes the Store has `--mock` (uses `fixtures/`, no network, no secrets)
+  and `--store {local,supabase}` (default from env `PRODCRAFT_STORE`, fallback `local`). `--mock`
+  implies `--store local` unless `--store` is given explicitly — and `--mock` combined with an
+  explicit `--store supabase` is a hard `parser.error` (exit 2), never a silent override
+  (code-reviewer C4/M1: `--mock` must never reach a live Supabase store). Centralised in
+  `scripts/_stage_runner.py`'s `resolve_store_kind()` / `reject_mock_with_supabase()` — call the
+  latter immediately after `parser.parse_args()`. Pure-function CLIs that touch no store
+  (`preview/content_lint.py`, `outreach/lint_draft.py`, `preview/r2.py --selftest`,
+  `common/notify.py --sample`, `scripts/doctor.py`, `outreach/gmail_drafts.py`,
+  `preview/extract_services.py`'s standalone CLI) take neither flag. Known gap:
+  `audit/scoring.py --recompute` DOES call `get_store()` (has `--store` already) but has no
+  `--mock` yet — out of scope for this pass (owned by the audit/ package), flagged for its owner.
+  "No network" under `--mock`
+  means no external HTTP calls; `preview/build_preview.py --mock` is the one exception that still
+  runs a real local process, `npm run build` (local Node, no network) — pass `--skip-build` to
+  synthesize a minimal site instead and skip that too.
 - Every dropped row is written with a `drop_reason`; nothing is silently skipped. Every script ends by printing a
   one-line JSON stat (`{"script": ..., "in": n, "out": n, "dropped": {...}}`) to stdout.
 - Secrets only via env. Names (all optional unless the stage runs live):
@@ -91,7 +105,7 @@ class Store(Protocol):
                                                               # for tables that have the column
     def list_previews(self, business_id: str) -> list[dict]   # thin list_rows() wrapper, newest first
     def list_outreach(self, business_id: str) -> list[dict]   # thin list_rows() wrapper, newest first
-    def load_chains(self, patterns: list[dict]) -> int        # seed helper: upsert {"pattern","note"} rows
+    def load_chains(self, patterns: list[dict]) -> int        # seed helper: merge {"pattern","note"} rows by pattern
 ```
 `LocalStore(root=".tmp/prodcraft_medspa/store")` keeps one JSON file per table and is fully functional.
 `SupabaseStore` uses PostgREST over `requests` with the service key (`Prefer: resolution=merge-duplicates` for
@@ -102,8 +116,18 @@ table data the narrow accessors above don't cover (e.g. "every row in a table", 
 row by id"). Callers must never reach into `LocalStore._read`/`_write` or `SupabaseStore._request`/`_headers`
 directly — `table` is checked against the `TABLES` allowlist (`businesses, audits, previews, outreach, deals,
 metro_stats, config, events, chains`) so an LLM- or caller-derived table name can never reach an arbitrary
-PostgREST path. For `SupabaseStore`, `list_rows` filters become `?col=eq.value` / `?col=is.null` query params,
-`order_by`/`descending` become `order=col.asc|desc`, and `limit` becomes `limit=`.
+PostgREST path; `get_row`/`update_row` are further restricted to `ID_TABLES` (`TABLES` minus `config` and
+`chains`, which have no `id` column) and raise `ValueError` otherwise. Every filter/order-by key (caller- or
+LLM-derived) is validated against `[a-z_][a-z0-9_]*` before it can reach a PostgREST query string; filter and
+id values are always sent via `requests` `params=` as `(key, value)` tuples, never f-string-interpolated into
+the URL, so `+`/`#`/`&` in a value can't mangle or inject into the query, and booleans are normalised to
+`true`/`false`. `SupabaseStore.list_rows` paginates internally (1000-row pages via `Range-Unit`/`Range`) so a
+full-table read isn't silently truncated at PostgREST's server-side row cap; `limit` still caps the total.
+`insert_audit`/`insert_metro_stats` generate a client-side uuid `id` and upsert
+(`resolution=merge-duplicates`) so a retried POST after a lost 5xx response can't duplicate the row;
+`log_event`'s POST is not retried on 5xx (only on 429/connection errors) since `events` has no natural key to
+de-dupe on. `LocalStore.upsert_business` raises `ValueError` on a `slug` collision with a different
+`place_id`, mirroring the unique constraint on `businesses.slug` in `db/schema.sql`.
 
 ## `business.json` (template input contract, produced by `preview/build_preview.py`)
 
