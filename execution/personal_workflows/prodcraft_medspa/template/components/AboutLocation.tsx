@@ -20,6 +20,10 @@ export default function AboutLocation({ business }: { business: Business }) {
         </Reveal>
 
         <Reveal>
+          {business.hours.every((h) => !h.open || !h.close) ? (
+            // No hours in the source data: never claim "Closed" every day. Say so plainly instead.
+            <p className="text-sm text-ink/70">Please call for current hours.</p>
+          ) : (
           <table className="hours-table w-full text-sm">
             <tbody>
               {business.hours.map((h) => (
@@ -34,6 +38,7 @@ export default function AboutLocation({ business }: { business: Business }) {
               ))}
             </tbody>
           </table>
+          )}
         </Reveal>
       </div>
     </section>

@@ -1383,3 +1383,25 @@ def test_queue_pick_score_orders_by_audit_total_score_desc(local_store):
     ordered = daily_queue._ordered_new_touch1_candidates(local_store, businesses, date(2026, 9, 16))
     scores = [local_store.latest_audit(b["id"])["total_score"] for b in ordered]
     assert scores == sorted(scores, reverse=True)
+
+
+def test_enqueue_honours_email_policy_allow_unverified(local_store):
+    """allow_unverified: an `unverified` email row with an approved preview is enqueued; default is not."""
+    from execution.personal_workflows.prodcraft_medspa.outreach import daily_queue
+
+    b = local_store.upsert_business({"place_id": "p-unv", "name": "Unverified Spa", "slug": "unverified-spa", "metro": "m",
+                                     "owner_email": "info@example-medspa-unv.test", "email_status": "unverified",
+                                     "do_not_contact": False, "is_chain": False})
+    local_store.insert_audit({"business_id": b["id"], "bucket": "borderline", "total_score": 30, "gaps": [{"signal": "no_booking_widget", "points": 22, "human_phrase": "x"}], "score_version": "1.0"})
+    local_store.upsert_preview({"business_id": b["id"], "status": "approved", "subdomain_url": "https://u.preview.prodcraft.fyi", "content_hash": "h", "content": {}, "takedown": False})
+    assert daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 16)) == 0
+    local_store.set_config("email_policy", "allow_unverified")
+    assert daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 16)) == 1
+
+
+def test_lint_failed_rows_are_rerendered_on_next_run():
+    from execution.personal_workflows.prodcraft_medspa.outreach import daily_queue
+
+    assert daily_queue._lint_failed_before({"draft_subject": "x", "notes": '{"lint_violations": ["can_spam:8"]}'}) is True
+    assert daily_queue._lint_failed_before({"draft_subject": "x", "notes": {"llm": {}}}) is False
+    assert daily_queue._lint_failed_before({"draft_subject": "x", "notes": None}) is False

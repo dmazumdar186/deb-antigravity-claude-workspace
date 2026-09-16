@@ -21,6 +21,8 @@ function Star({ filled }: { filled: boolean }) {
 }
 
 export default function TrustBar({ business }: { business: Business }) {
+  // No reviews (CSV-imported rows, brand-new listings): render nothing rather than "0.0 · 0 Google reviews".
+  if (!business.review_count || business.review_count < 1 || !business.rating) return null;
   const rounded = Math.round(business.rating);
   return (
     <section className="gutter border-y border-black/5 bg-gallery py-6">

@@ -182,6 +182,13 @@ def google_maps_url(business: dict) -> str:
     if explicit:
         return explicit
     place_id = business.get("place_id") or ""
+    if not place_id or place_id.startswith("import:"):
+        # CSV-imported rows carry a synthetic id; a place_id link would 404. Fall back to a search link
+        # on name + address, which always resolves to the listing when one exists.
+        from urllib.parse import quote_plus
+
+        query = " ".join(x for x in (business.get("name"), business.get("address")) if x)
+        return f"https://www.google.com/maps/search/?api=1&query={quote_plus(query)}"
     return f"https://www.google.com/maps/place/?q=place_id:{place_id}"
 
 
@@ -417,6 +424,7 @@ def _process_business(
     stats: dict,
     email_policy: str,
     min_score: int = 45,
+    publish_mode: str = "r2",
 ) -> None:
     business_id = business.get("id")
     audit = store.latest_audit(business_id)
@@ -466,7 +474,12 @@ def _process_business(
     )
     stats["built"] += 1
 
-    if mock:
+    # publish_mode "local" (config.preview_publish_mode or --publish-mode): keep the built export under
+    # .tmp/prodcraft_medspa/r2/ and skip the Worker call. For an operator without Cloudflare yet, who
+    # hosts the export elsewhere by hand; the preview row records publish_mode so the URL can be
+    # patched (`update_preview`) and the audit trail shows it never went through R2/Worker.
+    local_publish = mock or publish_mode == "local"
+    if local_publish:
         r2_client = r2.MockR2(root=tmp_root / "r2")
     else:
         r2_client = r2.R2Client(
@@ -480,7 +493,7 @@ def _process_business(
     stats["uploaded"] += 1
 
     preview_id = str(uuid.uuid4())
-    publish.publish(host, expires_at, business_id, preview_id, mock=mock, meta_dir=tmp_root / "kv")
+    publish.publish(host, expires_at, business_id, preview_id, mock=local_publish, meta_dir=tmp_root / "kv")
     stats["published"] += 1
 
     preview_row = {
@@ -497,6 +510,8 @@ def _process_business(
         "takedown": False,
         "email_policy": email_policy,
         "min_score": min_score,
+        "publish_mode": "mock" if mock else publish_mode,
+        "local_build_dir": str(build_dir) if local_publish else None,
     }
     store.upsert_preview(preview_row)
     store.log_event(
@@ -516,6 +531,14 @@ def main() -> None:
     parser.add_argument("--store-root", default=None)
     parser.add_argument("--skip-build", action="store_true")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument(
+        "--publish-mode",
+        dest="publish_mode",
+        choices=["r2", "local"],
+        default=None,
+        help="r2 (default; needs Cloudflare env) uploads to R2 and calls the Worker; local keeps the export "
+        "under .tmp/prodcraft_medspa/r2/ for hand hosting. Default: config.preview_publish_mode, else r2.",
+    )
     args = parser.parse_args()
 
     if not args.metro and not args.business_id:
@@ -525,6 +548,7 @@ def main() -> None:
     store = get_store(kind=store_kind, root=args.store_root)
     email_policy = store.get_config("email_policy", "deliverable_only")
     min_score = int(store.get_config("min_score", 45) or 45)
+    publish_mode = args.publish_mode or str(store.get_config("preview_publish_mode", "r2") or "r2")
 
     stats = {
         "script": "build_preview",
@@ -573,6 +597,7 @@ def main() -> None:
                 stats=stats,
                 email_policy=email_policy,
                 min_score=min_score,
+                publish_mode=publish_mode,
             )
         except Exception as exc:  # noqa: BLE001 — one bad business must not abort the whole metro run
             stats["errors"] += 1

@@ -85,12 +85,29 @@ def _ordered_new_touch1_candidates(st: Any, businesses: dict, today: date) -> li
     return ordered
 
 
+def _email_policy(st: Any) -> str:
+    return str(st.get_config("email_policy", "deliverable_only") or "deliverable_only")
+
+
+def _has_email_filter(st: Any):
+    """Store-level prefilter: only `deliverable` matches has_email=True, so under allow_unverified the
+    prefilter is dropped and `_email_ok` decides per business (mirrors preview/build_preview.py)."""
+    return None if _email_policy(st) == "allow_unverified" else True
+
+
+def _email_ok(st: Any, business: dict) -> bool:
+    allowed = ("deliverable", "unverified") if _email_policy(st) == "allow_unverified" else ("deliverable",)
+    return bool(business.get("owner_email")) and business.get("email_status") in allowed
+
+
 def enqueue_new_touch1(st: Any, today: date) -> int:
     """Enqueue touch-1 rows for every business with an approved/live preview, a deliverable
     email, not do_not_contact, and no outreach row yet. Enqueue order follows `config.queue_pick`
     (see `_ordered_new_touch1_candidates`)."""
     businesses = {
-        b["id"]: b for b in st.find_businesses(do_not_contact=False, has_email=True) if not b.get("is_chain")
+        b["id"]: b
+        for b in st.find_businesses(do_not_contact=False, has_email=_has_email_filter(st))
+        if not b.get("is_chain") and _email_ok(st, b)
     }
     existing_touch1_business_ids = {
         r["business_id"] for r in _store_helpers.list_all(st, "outreach") if int(r.get("touch") or 0) == 1
@@ -168,6 +185,16 @@ def halt_reason(st: Any, today: date) -> str | None:
     return None
 
 
+def _lint_failed_before(row: dict) -> bool:
+    notes = row.get("notes")
+    if isinstance(notes, str):
+        try:
+            notes = json.loads(notes)
+        except ValueError:
+            return False
+    return bool(isinstance(notes, dict) and notes.get("lint_violations"))
+
+
 def _preview_evidence(row: dict, st: Any) -> str:
     """Evidence-based preview column: the preview's host if its subdomain_url is actually
     present in the rendered draft body, else an explicit "(no preview link)" — never inferred
@@ -239,7 +266,12 @@ def run_daily_queue(
     llm_cost_usd = 0.0
 
     for row in selected:
-        if row.get("status") != "queued" or row.get("draft_subject"):
+        if row.get("status") != "queued":
+            continue
+        # A row that already has a draft is skipped UNLESS its last render failed lint: after the operator
+        # fixes the cause (sender config, an override, a template) the next run must retry, or the row
+        # would sit in `queued` forever with no path out (found on the first live run, 2026-09-16).
+        if row.get("draft_subject") and not _lint_failed_before(row):
             continue
 
         business = st.get_business(row["business_id"])

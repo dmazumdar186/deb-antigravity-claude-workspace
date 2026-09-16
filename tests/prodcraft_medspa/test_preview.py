@@ -769,3 +769,11 @@ def test_touch4_already_sent_detects_deadline_email(local_store):
     )
     assert publish.touch4_already_sent(local_store, business["id"]) is True
     assert publish.touch4_already_sent(local_store, None) is False
+
+
+def test_google_maps_url_falls_back_to_search_for_imported_rows():
+    from execution.personal_workflows.prodcraft_medspa.preview import build_preview
+
+    url = build_preview.google_maps_url({"place_id": "import:abc123", "name": "Glow Spa", "address": "1 Main St, Winnetka, IL"})
+    assert url.startswith("https://www.google.com/maps/search/?api=1&query=Glow+Spa+1+Main+St")
+    assert build_preview.google_maps_url({"place_id": "ChIJ123"}).endswith("place_id:ChIJ123")
