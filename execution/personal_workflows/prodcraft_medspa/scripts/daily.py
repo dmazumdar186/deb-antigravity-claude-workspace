@@ -6,7 +6,10 @@ description: The operator's morning command. Runs outreach.advance -> outreach.s
     automated per the operator's 2026-09-16 decision (no human in the loop until a prospect
     replies positive or neutral); pass --no-send to keep the old draft-only behaviour. Each stage
     is a subprocess CLI per CONTRACTS.md; a missing module (another agent's package not built yet
-    in this checkout) is a reported stage failure, not a crash.
+    in this checkout) is a reported stage failure, not a crash. After the store is opened,
+    common.config_validate.assert_valid_config() runs over the live config (same key subset as
+    scripts/run_metro.py's own check) — an invalid value exits 1 with common.notify.error("daily",
+    ...) before any stage runs (round-2 audit item 8).
 inputs: CLI: [--date D] [--mock] [--store {local,supabase}] [--store-root P] [--replies-only]
     [--phase0-status] [--no-send] [--recipient-override EMAIL] [--limit N]. Env: whatever the
     invoked stage subprocesses need (unset is fine with --mock); PRODCRAFT_RECIPIENT_OVERRIDE is
@@ -29,12 +32,31 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from execution.personal_workflows.prodcraft_medspa.common import notify  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.common.config_validate import assert_valid_config  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
     common_store_args,
     reject_mock_with_supabase,
     run_module,
 )
+
+
+def _build_validation_cfg(store: Any) -> dict[str, Any]:
+    """item 8 (round-2 audit): the same subset of `config` keys
+    scripts/run_metro.py's build_validation_cfg() assembles — daily.py owns its own copy rather
+    than importing run_metro.py (a sibling CLI script, not a shared library module) purely to
+    validate config before running today's stages. Missing keys resolve to None (get_config's own
+    default), which config_validate.validate_config() treats as "not configured" and never flags."""
+    return {
+        "queue_pick": store.get_config("queue_pick"),
+        "email_policy": store.get_config("email_policy"),
+        "preview_publish_mode": store.get_config("preview_publish_mode"),
+        "min_score": store.get_config("min_score"),
+        "live_send_confirmed": store.get_config("live_send_confirmed"),
+        "preview_host_suffix": store.get_config("preview_host_suffix"),
+        "auto_approve_previews": store.get_config("auto_approve_previews"),
+        "phase0": store.get_config("phase0"),
+    }
 
 
 def _extract_takedown_ids(scan_stat: dict[str, Any] | None) -> list[str]:
@@ -96,6 +118,15 @@ def main() -> None:
 
     store_kind = reject_mock_with_supabase(parser, args)
     store = get_store(kind=store_kind, root=args.store_root)
+
+    # item 8 (round-2 audit): fail loudly on a mistyped/out-of-range config value before running
+    # any stage, rather than letting it silently degrade a stage hours into the morning run.
+    try:
+        assert_valid_config(_build_validation_cfg(store))
+    except ValueError as exc:
+        print(f"[daily] {exc}", file=sys.stderr)
+        notify.error("daily", f"invalid config: {exc}", 1)
+        sys.exit(1)
 
     if args.phase0_status:
         phase0 = store.get_config("phase0", default={})

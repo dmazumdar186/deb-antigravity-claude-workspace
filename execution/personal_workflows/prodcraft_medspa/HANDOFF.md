@@ -81,6 +81,8 @@ against the same checkout at once; the build lock serializes them.
   `automation-boundaries.md` until the operator sees one.
 - **Copy decisions left to the operator**: CTA softness, subject-line variety, proof lines (none until a founding
   client yields a before/after number).
+- `scan_replies` takes a negative reply's preview down through `take_down_preview` and then reverts the
+  `do_not_contact` flag that helper sets; a `dnc=False` parameter on the helper would be the clean fix.
 - Prompts and README/CONTRACTS prose contain em-dashes; customer-facing email text contains none (checked for U+2014).
 
 ## 7. Operator-only (cannot be done in cloud, no secrets)

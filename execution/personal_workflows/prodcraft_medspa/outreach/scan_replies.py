@@ -2,16 +2,21 @@
 scan_replies.py
 description: Poll Gmail for replies to `sent` outreach rows, classify each with
     prompts/classify_reply.md, and drive outreach/state_machine.py transitions
-    (remove -> dnc + takedown, bounce -> undeliverable + cancel other touches, ooo -> push
-    next_touch_at, positive/neutral/negative -> sent->replied, negative then -> closed_lost).
-    Per the 2026-09-16 operator decision, a positive or neutral reply (or any reply asking for a
-    call) posts a Telegram alert via common.notify.reply() and the operator takes over manually
-    from there; this script itself never auto-replies.
+    (remove -> dnc + takedown + Telegram notify, bounce -> undeliverable + cancel other touches,
+    ooo -> push next_touch_at, positive/neutral/negative -> sent->replied, negative then ->
+    closed_lost + a preview takedown via the same real unpublish path as remove but WITHOUT
+    flipping do_not_contact — round-2 audit item 7, a negative reply is a lost deal, not a
+    do-not-contact request). Per the 2026-09-16 operator decision, a positive or neutral reply (or
+    any reply asking for a call) posts a Telegram alert via common.notify.reply() and the operator
+    takes over manually from there; this script itself never auto-replies. A remove reply also
+    posts the same alert (sentiment forced to "remove") and stamps the row's
+    `notes.remove_source` ("keyword" under --mock's deterministic matcher, "llm" on the live
+    classifier path) so an operator auditing a takedown knows which classifier flagged it.
 inputs: CLI: [--mock] [--store {local,supabase}] [--store-root PATH] [--since-days 14].
 outputs: Store mutations via state_machine.transition / store.update_outreach /
-    store.upsert_business; a Telegram reply alert for positive/neutral (or wants_call) replies;
-    stdout stat line {"script":"scan_replies","checked":n,"positive":n,"neutral":n,"negative":n,
-    "bounce":n,"ooo":n,"remove":n,"takedowns":[...]}.
+    store.upsert_business; a Telegram reply alert for positive/neutral/remove (or wants_call)
+    replies; stdout stat line {"script":"scan_replies","checked":n,"positive":n,"neutral":n,
+    "negative":n,"bounce":n,"ooo":n,"remove":n,"takedowns":[...]}.
 
 Mock classification note (per CONTRACTS.md): common.llm.call(mock=True) always returns the SAME
 fixture per prompt name (prompts/fixtures/llm/classify_reply.txt is fixed to one "positive,
@@ -161,10 +166,12 @@ def _already_seen(outreach_row: dict, message_key: str) -> bool:
     return message_key in (_load_notes(outreach_row.get("notes")).get("seen_reply_ids") or [])
 
 
-def _merge_notes(notes_raw: Any, *, llm_classify: dict | None, message_key: str) -> str:
-    """Merge (never overwrite) this reply's `llm_classify` envelope and `seen_reply_ids` entry
-    into the row's existing `notes` JSON, so daily_queue's own "llm"/"lint_violations" keys and
-    any previously-seen reply ids survive."""
+def _merge_notes(
+    notes_raw: Any, *, llm_classify: dict | None, message_key: str, extra: dict | None = None
+) -> str:
+    """Merge (never overwrite) this reply's `llm_classify` envelope, `seen_reply_ids` entry, and
+    any `extra` fields (e.g. item 7's `remove_source`) into the row's existing `notes` JSON, so
+    daily_queue's own "llm"/"lint_violations" keys and any previously-seen reply ids survive."""
     notes = _load_notes(notes_raw)
     if llm_classify is not None:
         notes["llm_classify"] = llm_classify
@@ -172,6 +179,8 @@ def _merge_notes(notes_raw: Any, *, llm_classify: dict | None, message_key: str)
     if message_key not in seen:
         seen.append(message_key)
     notes["seen_reply_ids"] = seen
+    if extra:
+        notes.update(extra)
     return json.dumps(notes)
 
 
@@ -184,6 +193,78 @@ def _envelope_for_notes(envelope: dict | None) -> dict | None:
         "usage": envelope.get("usage"),
         "mock": envelope.get("mock"),
     }
+
+
+def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
+    """item 7 (round-2 audit): take down every non-takendown preview linked to `outreach_row`'s
+    business via the SAME real unpublish path state_machine.py's dnc flow uses
+    (preview/takedown.py's `take_down_preview()` — R2 prefix delete + Worker /remove), for a
+    `negative` reply.
+
+    `take_down_preview()` itself unconditionally stamps `businesses.do_not_contact = True` (it was
+    written for the dnc/remove path, which IS a do-not-contact request) — a negative reply is NOT
+    one, so this wrapper reverts that one field back to its pre-call value immediately after, while
+    keeping every other real side effect (R2 delete, Worker /remove, `previews.status='takedown'`,
+    the `outreach`/`business` `takedown` events). Idempotent: a preview already marked takedown is
+    skipped. Returns the list of preview ids actually taken down."""
+    from execution.personal_workflows.prodcraft_medspa.common import config as config_mod
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+    from execution.personal_workflows.prodcraft_medspa.preview.takedown import take_down_preview
+
+    business_id = outreach_row.get("business_id")
+    preview_id = outreach_row.get("preview_id")
+    previews: list[dict] = []
+    if preview_id:
+        p = st.get_row("previews", preview_id)
+        if p is not None:
+            previews = [p]
+    elif business_id:
+        previews = [
+            p for p in _store_helpers.previews_for_business(st, business_id) if not p.get("takedown")
+        ]
+
+    if not previews:
+        return []
+
+    was_do_not_contact = None
+    if business_id:
+        business = st.get_business(business_id)
+        was_do_not_contact = bool((business or {}).get("do_not_contact"))
+
+    settings = config_mod.bootstrap()
+    taken_down: list[str] = []
+    for preview_row in previews:
+        if preview_row.get("status") == "takedown" or preview_row.get("takedown") is True:
+            st.log_event(
+                "preview", preview_row.get("id"), "takedown_requested",
+                {"reason": "negative_reply", "outcome": "already_takendown"},
+            )
+            continue
+        try:
+            take_down_preview(st, preview_row, mock=isinstance(st, LocalStore), tmp_root=settings.TMP)
+            st.log_event(
+                "preview", preview_row.get("id"), "takedown_requested",
+                {"reason": "negative_reply", "outcome": "ok"},
+            )
+            taken_down.append(preview_row.get("id"))
+        except Exception as exc:  # noqa: BLE001 — a takedown failure must not block closed_lost itself
+            print(
+                f"[scan_replies] negative-reply takedown failed for preview {preview_row.get('id')}: {exc}",
+                file=sys.stderr,
+            )
+            st.log_event(
+                "preview", preview_row.get("id"), "takedown_requested",
+                {"reason": "negative_reply", "outcome": "error", "error": str(exc)},
+            )
+
+    if business_id and was_do_not_contact is False:
+        # take_down_preview() just flipped do_not_contact True as a side effect of the shared
+        # unpublish path — revert it, since a negative reply is not a do-not-contact request.
+        current = st.get_business(business_id)
+        if current and current.get("do_not_contact"):
+            st.update_row("businesses", business_id, {"do_not_contact": False})
+
+    return taken_down
 
 
 def _send_reply_notification(st: Any, updated_row: dict, business: dict, classification: dict, thread_id: str) -> None:
@@ -239,7 +320,17 @@ def _handle_reply(
     notes = _merge_notes(outreach_row.get("notes"), llm_classify=llm_classify, message_key=message_key)
 
     if classification.get("remove_request") or sentiment == "remove":
-        state_machine.transition(
+        # item 7 (round-2 audit): remove_source records whether this classification came from the
+        # --mock deterministic keyword matcher (`_mock_classify`, envelope is None) or the live
+        # LLM classifier (envelope set) — an operator auditing a takedown wants to know which.
+        remove_source = "keyword" if envelope is None else "llm"
+        notes_with_source = _merge_notes(
+            outreach_row.get("notes"),
+            llm_classify=llm_classify,
+            message_key=message_key,
+            extra={"remove_source": remove_source},
+        )
+        updated_row = state_machine.transition(
             st,
             outreach_row,
             "dnc",
@@ -247,8 +338,13 @@ def _handle_reply(
             reply_excerpt=excerpt,
             replied_at=reply.get("received_at"),
             gmail_thread_id=thread_id,
-            notes=notes,
+            notes=notes_with_source,
         )
+        # item 7: a remove request also pages the operator, same Telegram channel as a
+        # positive/neutral reply — sentiment is forced to "remove" regardless of what the
+        # classifier's own `sentiment` field said, so the alert is never mislabeled.
+        business = st.get_business(outreach_row.get("business_id")) or {}
+        _send_reply_notification(st, updated_row, business, {**classification, "sentiment": "remove"}, thread_id)
         return "remove"
 
     if sentiment == "bounce":
@@ -306,7 +402,13 @@ def _handle_reply(
         # sent->replied already happened above; close the row out unless the state machine no
         # longer allows replied->closed_lost, in which case leave it replied and log why.
         try:
-            state_machine.transition(st, updated_row, "closed_lost")
+            updated_row = state_machine.transition(st, updated_row, "closed_lost")
+            # item 7 (round-2 audit): a negative reply takes down the preview via the SAME real
+            # unpublish path the dnc/remove flow uses (R2 prefix delete + Worker /remove) — the
+            # prospect said no, so the preview link no longer needs to stay live — but, unlike
+            # dnc/remove, this is NOT a do-not-contact request: `businesses.do_not_contact` stays
+            # untouched and other outreach rows are not cascaded to a terminal status.
+            _takedown_previews_without_dnc(st, updated_row)
         except state_machine.IllegalTransition as exc:
             st.log_event("outreach", updated_row["id"], "closed_lost_skipped", {"reason": str(exc)})
 

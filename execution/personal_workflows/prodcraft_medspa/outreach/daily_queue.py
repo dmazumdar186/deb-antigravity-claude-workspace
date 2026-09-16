@@ -24,7 +24,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
-from execution.personal_workflows.prodcraft_medspa.common import config, store as store_mod  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.common import config, config_validate, store as store_mod  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.outreach import (  # noqa: E402
     _store_helpers,
     draft_email,
@@ -38,7 +38,14 @@ from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import 
 
 BOUNCE_WINDOW_DAYS = 30
 BOUNCE_RATE_HALT = 0.02
-DEFAULT_PHASE0 = {"passed": False, "sends": 0, "calls_booked": 0, "queue_cap_locked": 5, "queue_cap_open": 20}
+DEFAULT_PHASE0 = {
+    "passed": False,
+    "sends": 0,
+    "calls_booked": 0,
+    "queue_cap_locked": 5,
+    "queue_cap_open": 20,
+    "queue_pick_until_passed": "score",
+}
 
 
 def _parse_date(value: str | None) -> date:
@@ -56,11 +63,26 @@ def _score_for_business(st: Any, business_id: str) -> float:
     return float((audit or {}).get("total_score") or 0)
 
 
-def _ordered_new_touch1_candidates(st: Any, businesses: dict, today: date) -> list[dict]:
-    """Order businesses eligible for a new touch-1 enqueue per `config.queue_pick`.
+def _pick_mode(st: Any) -> str:
+    """Effective queue-pick strategy (round-2 audit item 4). While `config.phase0.passed` is
+    False, ALWAYS use `config.phase0.queue_pick_until_passed` (default "score") regardless of
+    `config.queue_pick` — Phase 0 (validating the pipeline against real replies) must not drift
+    into a low-signal random sample just because the operator's steady-state preference is
+    "random". Once phase0 has passed, `config.queue_pick` governs as before. Matches the contract
+    already documented under "Outreach state machine" in CONTRACTS.md."""
+    phase0 = st.get_config("phase0", DEFAULT_PHASE0) or DEFAULT_PHASE0
+    if not phase0.get("passed"):
+        return str(phase0.get("queue_pick_until_passed", "score") or "score").strip().lower()
+    return str(st.get_config("queue_pick", "random") or "random").strip().lower()
 
-    `"score"` orders by latest audit total_score desc (the old implicit behaviour). The default,
-    `"random"`, shuffles per metro with `random.Random(f"{today}:{metro}")` so a rerun on the same
+
+def _ordered_new_touch1_candidates(st: Any, businesses: dict, today: date) -> list[dict]:
+    """Order businesses eligible for a new touch-1 enqueue per the effective pick mode
+    (`_pick_mode` — `config.phase0.queue_pick_until_passed` until phase0 passes, then
+    `config.queue_pick`).
+
+    `"score"` orders by latest audit total_score desc (the old implicit behaviour). `"random"`
+    shuffles per metro with `random.Random(f"{today}:{metro}")` so a rerun on the same
     date reproduces the identical order/selection (idempotent) — the operator wants ~5 random
     picks per day rather than always the same highest-score businesses. This ordering only
     matters when there are more eligible candidates than the daily cap: `enqueue_new_touch1`
@@ -68,7 +90,7 @@ def _ordered_new_touch1_candidates(st: Any, businesses: dict, today: date) -> li
     `created_at` tie-break `LocalStore.queue()`/`SupabaseStore.queue()` use to pick today's
     capped batch.
     """
-    pick_mode = (st.get_config("queue_pick", "random") or "random").strip().lower()
+    pick_mode = _pick_mode(st)
     rows = list(businesses.values())
     if pick_mode == "score":
         rows.sort(key=lambda b: _score_for_business(st, b["id"]), reverse=True)
@@ -113,7 +135,8 @@ def enqueue_new_touch1(st: Any, today: date) -> int:
     """Enqueue touch-1 rows for every business with an approved/live preview, a deliverable
     email, not do_not_contact, and no outreach row yet. Enqueue order follows `config.queue_pick`
     (see `_ordered_new_touch1_candidates`)."""
-    pick_mode = (st.get_config("queue_pick", "random") or "random").strip().lower()
+    pick_mode = _pick_mode(st)
+    raw_queue_pick = (st.get_config("queue_pick", "random") or "random").strip().lower()
     businesses = {
         b["id"]: b
         for b in st.find_businesses(do_not_contact=False, has_email=_has_email_filter(st))
@@ -156,13 +179,26 @@ def enqueue_new_touch1(st: Any, today: date) -> int:
                 "status": "queued",
                 "next_touch_at": today.isoformat(),
                 "gap_primary": gap_primary,
+                # item 5 (round-2 audit): the audit total_score AT ENQUEUE TIME — a score can
+                # drift (re-audit, manual patch) between queueing and sending, so a later read of
+                # `total_score` off the latest audit isn't necessarily what this row was queued
+                # on. Column added by migration 0004; this is the write side.
+                "score_at_send": audit.get("total_score"),
             }
         )
         st.log_event(
             "business",
             business_id,
             "outreach_enqueued",
-            {"touch": 1, "queue_pick": pick_mode, "seed": _enqueue_seed(pick_mode, today, business)},
+            {
+                "touch": 1,
+                # item 4: `queue_pick` is the raw config value (what the operator configured);
+                # `queue_pick_effective` is what actually governed THIS enqueue (may differ from
+                # `queue_pick` while phase0 hasn't passed yet — see _pick_mode()).
+                "queue_pick": raw_queue_pick,
+                "queue_pick_effective": pick_mode,
+                "seed": _enqueue_seed(pick_mode, today, business),
+            },
         )
         enqueued += 1
     return enqueued
@@ -171,6 +207,57 @@ def enqueue_new_touch1(st: Any, today: date) -> int:
 def _queue_cap(st: Any) -> int:
     phase0 = st.get_config("phase0", DEFAULT_PHASE0) or DEFAULT_PHASE0
     return int(phase0.get("queue_cap_open", 20)) if phase0.get("passed") else int(phase0.get("queue_cap_locked", 5))
+
+
+def _first_live_send_date(st: Any) -> date | None:
+    """Earliest `sent` outreach row with no `test_recipient` (round-2 audit item 3) — the
+    operator's own dry-run sends to their inbox never count as the warmup ramp's day zero."""
+    earliest: date | None = None
+    for r in _store_helpers.list_all(st, "outreach"):
+        if r.get("status") != "sent" or r.get("test_recipient"):
+            continue
+        sent_at = r.get("sent_at")
+        if not sent_at:
+            continue
+        try:
+            d = datetime.fromisoformat(str(sent_at).replace("Z", "+00:00")).date()
+        except ValueError:
+            continue
+        if earliest is None or d < earliest:
+            earliest = d
+    return earliest
+
+
+def effective_cap(st: Any, today: date, mock: bool = False) -> int:
+    """Round-2 audit item 3: the Phase-0 warmup ramp. Effective cap = min(phase0.cap,
+    phase0.warmup_start_cap + floor(days_since_first_live_send * (cap - start_cap) /
+    warmup_days)); before any live send, the cap is `phase0.warmup_start_cap`.
+
+    `--mock` (and any run passing `mock=True`) is NEVER subject to the ramp — it returns the
+    plain `phase0.cap` (falling back to `_queue_cap()`'s locked/open value when `phase0.cap`
+    isn't configured), so the mock chain's day-one DoD (4 sends) is unaffected. Dry-run rows
+    (`test_recipient` set) are excluded from "first live send" by `_first_live_send_date` so an
+    operator dry-run to their own inbox never starts the ramp clock. Used by both
+    `run_daily_queue` (drafting cap) and `outreach/send.py` (sending cap) — printed as `cap` in
+    both scripts' stat lines.
+    """
+    phase0 = st.get_config("phase0", DEFAULT_PHASE0) or DEFAULT_PHASE0
+    cap = int(phase0.get("cap") or _queue_cap(st))
+    if mock:
+        return cap
+
+    start_cap = int(phase0.get("warmup_start_cap", config_validate.PHASE0_WARMUP_START_CAP_DEFAULT))
+    warmup_days = int(phase0.get("warmup_days", config_validate.PHASE0_WARMUP_DAYS_DEFAULT))
+
+    first_live = _first_live_send_date(st)
+    if first_live is None:
+        return min(cap, start_cap)
+    if warmup_days <= 0:
+        return cap
+
+    days_since = max(0, (today - first_live).days)
+    ramped = start_cap + (days_since * (cap - start_cap)) // warmup_days
+    return max(start_cap, min(cap, ramped))
 
 
 def halt_reason(st: Any, today: date) -> str | None:
@@ -289,7 +376,7 @@ def run_daily_queue(
         return {
             "script": "daily_queue",
             "date": today.isoformat(),
-            "cap": _queue_cap(st),
+            "cap": effective_cap(st, today, mock=mock),
             "halted": True,
             "enqueued": enqueued,
             "queued_today": 0,
@@ -300,7 +387,7 @@ def run_daily_queue(
             "llm_cost_usd": 0.0,
         }
 
-    cap = _queue_cap(st)
+    cap = effective_cap(st, today, mock=mock)
     # C4 queue-starvation fix: `Store.queue(today, cap)` returns a MIX of `queued` and `sent`
     # rows (both are "due" per next_touch_at), capped and ordered BEFORE any status filtering —
     # so historical `sent` rows due for a future touch can crowd the top-`cap` slice and starve

@@ -698,6 +698,32 @@ def test_daily_mock_chain_ends_with_sent_rows(tmp_path):
     assert stat2["live_recipients"] is False
 
 
+def test_daily_exits_nonzero_on_invalid_config_before_any_stage(tmp_path):
+    """item 8 (round-2 audit): daily.py calls config_validate.assert_valid_config() right after
+    opening the store, so a mistyped/out-of-range value fails loudly (exit 1, notify.error) before
+    any stage subprocess runs — never a silent degrade hours into the run."""
+    store_root = tmp_path / "store"
+    apply_schema = _run(
+        [sys.executable, str(PKG_ROOT / "db" / "apply_schema.py"), "--store", "local", "--root", str(store_root)]
+    )
+    assert apply_schema.returncode == 0, apply_schema.stderr
+
+    store = LocalStore(root=store_root)
+    store.set_config("queue_pick", "rnadom")  # deliberate typo — not in ALLOWED_QUEUE_PICK
+
+    daily = _run(
+        [
+            sys.executable, str(PKG_ROOT / "scripts" / "daily.py"),
+            "--mock", "--store", "local", "--store-root", str(store_root),
+            "--recipient-override", "test@example.test",
+        ]
+    )
+    assert daily.returncode != 0
+    assert "queue_pick" in daily.stderr
+    # No stage ran: no daily_queue/send output blocks in stdout.
+    assert "daily_queue output" not in daily.stdout
+
+
 def test_daily_queue_starvation_fix_two_day_simulation(tmp_path):
     """C4 proof, end-to-end: apply_schema -> run_metro --mock -> daily.py (day 1) sends the
     funnel's 4 businesses; a day-2 run with no new eligible businesses drafts 0 (no starvation,

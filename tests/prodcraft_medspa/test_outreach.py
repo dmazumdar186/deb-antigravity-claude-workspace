@@ -396,6 +396,24 @@ def test_bounce_halt_ignores_sends_outside_30_day_window(local_store):
 # ---------------------------------------------------------------------------
 
 
+def test_enqueue_stamps_score_at_send_from_latest_audit(local_store):
+    """item 5: the queued row's score_at_send is the audit total_score AT ENQUEUE TIME, not a
+    later-read of the (possibly drifted) latest audit."""
+    business = _make_business(local_store)
+    _make_audit(local_store, business_id=business["id"], total_score=63)
+    _make_preview(local_store, business_id=business["id"], status="approved")
+
+    assert daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 10)) == 1
+
+    row = [r for r in _store_helpers.list_all(local_store, "outreach") if r.get("business_id") == business["id"]][0]
+    assert row["score_at_send"] == 63
+
+    # A later re-audit must not retroactively change the already-enqueued row's score_at_send.
+    _make_audit(local_store, business_id=business["id"], total_score=91)
+    row_after_reaudit = local_store.get_row("outreach", row["id"])
+    assert row_after_reaudit["score_at_send"] == 63
+
+
 def test_enqueue_excludes_do_not_contact(local_store):
     business = _make_business(local_store, do_not_contact=True)
     _make_preview(local_store, business_id=business["id"], status="approved")
@@ -815,12 +833,16 @@ def test_lint_real_unresolved_variable_fails():
 
 
 def test_variant_rotation_a_b_c(sender_configured, fixtures_root):
-    # outreach is keyed on (business_id, touch), so each successive touch-1 draft needs its own
-    # business — matches the real daily_queue.py flow (one touch-1 row per business).
+    # item 6 (round-2 audit): "auto" is now a STABLE hash of business_id, not a rotating counter
+    # — sha1("biz-0")..sha1("biz-5") were precomputed to land in all three buckets (0,0,2,2,1,2)
+    # so this test deterministically exercises all three variants rather than depending on
+    # store-generated random uuids (which could statistically miss a bucket across 6 draws).
     settings = FakeSettings(fixtures_root)
     variants = []
     for i in range(6):
-        business = _make_business(sender_configured, name=f"Rotation Spa {i}", email=f"r{i}@example-medspa-{i}.test")
+        business = _make_business(
+            sender_configured, name=f"Rotation Spa {i}", email=f"r{i}@example-medspa-{i}.test", id=f"biz-{i}"
+        )
         row = _make_outreach_row(sender_configured, business_id=business["id"], touch=1, status="queued")
         rendered = draft_email.render_draft(
             sender_configured, settings, outreach_row=row, business=business, audit_row=None, preview_row=None,
@@ -828,7 +850,29 @@ def test_variant_rotation_a_b_c(sender_configured, fixtures_root):
         )
         sender_configured.update_outreach(row["id"], {"template_variant": rendered["variant"]})
         variants.append(rendered["variant"])
-    assert variants == ["a", "b", "c", "a", "b", "c"]
+    assert set(variants) == {"a", "b", "c"}, f"expected all three variants across 6 businesses, got {variants}"
+
+
+def test_variant_auto_is_stable_per_business_across_rerenders(sender_configured, fixtures_root):
+    """item 6: a re-render (e.g. a redraft after a lint fix) must keep the SAME variant once the
+    outreach row has committed to one, rather than recomputing off business_id fresh each time."""
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured, name="Stable Variant Spa", id="biz-stable")
+    row = _make_outreach_row(sender_configured, business_id=business["id"], touch=1, status="queued")
+
+    first = draft_email.render_draft(
+        sender_configured, settings, outreach_row=row, business=business, audit_row=None, preview_row=None,
+        variant="auto", mock=True,
+    )
+    row = sender_configured.update_outreach(row["id"], {"template_variant": first["variant"]})
+
+    # A different variant would be picked purely off business_id hashing only if the row didn't
+    # already carry template_variant — simulate a redraft by re-rendering the now-persisted row.
+    second = draft_email.render_draft(
+        sender_configured, settings, outreach_row=row, business=business, audit_row=None, preview_row=None,
+        variant="auto", mock=True,
+    )
+    assert second["variant"] == first["variant"]
 
 
 def test_variant_explicit_overrides_rotation(sender_configured, fixtures_root):
@@ -894,20 +938,62 @@ def test_scan_replies_mock_classify_matches_rule_order():
     assert neutral["sentiment"] == "neutral"
 
 
-def test_scan_replies_remove_triggers_dnc_and_takedown(local_store):
+def test_scan_replies_remove_triggers_dnc_and_takedown(local_store, monkeypatch):
+    """item 7 (round-2 audit): a remove reply also fires exactly one Telegram notify (sentiment
+    forced to "remove") and stamps notes.remove_source ("keyword" under --mock)."""
     business = _make_business(local_store, email="owner4@example-medspa-4.test")
     preview = _make_preview(local_store, business_id=business["id"])
     row = local_store.upsert_outreach(
         {"business_id": business["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-01T00:00:00Z", "preview_id": preview["id"]}
     )
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
     fixtures_root_pkg = PKG_ROOT / "outreach" / "fixtures"
     settings = FakeSettings(fixtures_root_pkg)
     stats = scan_replies.scan(local_store, settings, mock=True, since_days=14, today=date(2026, 9, 10))
     assert stats["remove"] == 1
+    assert len(stats["takedowns"]) == 1
     updated = local_store.get_business(business["id"])
     assert updated["do_not_contact"] is True
     updated_row = local_store.update_outreach(row["id"], {})
     assert updated_row["status"] == "dnc"
+
+    updated_preview = local_store.get_row("previews", preview["id"])
+    assert updated_preview["status"] == "takedown"
+
+    assert len(calls) == 1
+    assert calls[0]["sentiment"] == "remove"
+
+    notes = json.loads(updated_row["notes"])
+    assert notes["remove_source"] == "keyword"  # --mock uses the deterministic keyword matcher
+
+
+def test_scan_replies_negative_closes_lost_and_takes_down_preview_without_dnc(local_store):
+    """item 7: negative -> closed_lost AND preview takedown via the same real unpublish path as
+    remove, but WITHOUT flipping do_not_contact (unlike remove, this isn't a do-not-contact
+    request)."""
+    business = _make_business(local_store, email="owner3@example-medspa-3.test")
+    preview = _make_preview(local_store, business_id=business["id"])
+    row = local_store.upsert_outreach(
+        {
+            "business_id": business["id"], "touch": 1, "status": "sent",
+            "sent_at": "2026-09-01T00:00:00Z", "preview_id": preview["id"],
+        }
+    )
+    fixtures_root_pkg = PKG_ROOT / "outreach" / "fixtures"
+    settings = FakeSettings(fixtures_root_pkg)
+    stats = scan_replies.scan(local_store, settings, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["negative"] == 1
+    updated_row = local_store.update_outreach(row["id"], {})
+    assert updated_row["status"] == "closed_lost"
+
+    updated_preview = local_store.get_row("previews", preview["id"])
+    assert updated_preview["status"] == "takedown"
+
+    updated_business = local_store.get_business(business["id"])
+    assert updated_business["do_not_contact"] is False
 
 
 def test_scan_replies_bounce_sets_business_undeliverable(local_store):
@@ -1196,10 +1282,10 @@ def test_send_transitions_drafted_to_sent_and_records_ids(sender_configured, fix
     row = _drafted_row(sender_configured, business=business, preview=preview)
 
     stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
-    assert stats == {"script": "send", "in": 1, "sent": 1, "dropped": {
+    assert stats == {"script": "send", "in": 1, "sent": 1, "cap": 5, "dropped": {
         "cap_reached": 0, "halted": 0, "lint_failed": 0, "dnc": 0,
         "preview_not_approved": 0, "already_replied": 0, "no_email": 0, "gmail_error": 0,
-        "live_send_not_confirmed": 0, "header_injection": 0,
+        "live_send_not_confirmed": 0, "header_injection": 0, "preview_not_public": 0,
     }, "recipient_override": False, "live_recipients": True}
 
     updated = sender_configured.update_outreach(row["id"], {})
@@ -1358,6 +1444,12 @@ def test_send_limit_caps_this_run_regardless_of_daily_cap(sender_configured, fix
 
 def test_queue_pick_random_is_deterministic_and_differs_from_score_order(local_store):
     local_store.set_config("queue_pick", "random")
+    # item 4 (round-2 audit): while phase0.passed is False, the effective pick mode is
+    # phase0.queue_pick_until_passed ("score" by default) regardless of config.queue_pick — this
+    # test exercises the steady-state "random" behavior, so it must mark phase0 passed.
+    local_store.set_config(
+        "phase0", {"passed": True, "sends": 5, "calls_booked": 1, "queue_cap_locked": 5, "queue_cap_open": 20}
+    )
     businesses = {}
     for i in range(8):
         b = _make_business(
@@ -1802,6 +1894,138 @@ def test_send_email_raises_header_injection_error_directly():
         )
 
 
+def test_send_email_mock_includes_list_unsubscribe_header(tmp_path):
+    """item 2 (round-2 audit): every send carries a machine-readable opt-out header."""
+    settings = FakeSettings(tmp_path)
+    result = send.send_email(
+        to_email="prospect@example.test", subject="quick question", body="body text",
+        sender_name="Debanjan", settings=settings, mock=True, business_id="biz-unsub",
+    )
+    content = Path(result["eml_path"]).read_text(encoding="utf-8")
+    assert f"List-Unsubscribe: <mailto:{send.MOCK_AUTHENTICATED_ADDRESS}?subject=unsubscribe>" in content
+
+
+# --- round-2 audit item 1: preview-host guard (live sends only) ---
+
+
+def test_send_live_guard_blocks_non_public_preview_without_override(sender_configured, fixtures_root):
+    """A live send (mock=False, no --recipient-override) refuses a row whose preview is not
+    publicly reachable (publish_mode != "r2") — dropped before ever touching the Gmail API, so
+    this stays safe to run without google-api-python-client installed."""
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"], publish_mode="local")
+    row = _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=False)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["preview_not_public"] == 1
+    unchanged = sender_configured.update_outreach(row["id"], {})
+    assert unchanged["status"] == "drafted"
+
+
+def test_send_live_guard_blocks_wrong_host_suffix_without_override(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(
+        sender_configured, business_id=business["id"], publish_mode="r2",
+        subdomain_url="https://evil-lookalike.not-prodcraft.example",
+    )
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=False)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["preview_not_public"] == 1
+
+
+def test_send_live_guard_passes_public_r2_preview(sender_configured, fixtures_root):
+    """A genuinely public preview (publish_mode="r2", host ends in preview_host_suffix) clears
+    the guard and reaches the real send path — which then fails on the missing Gmail dependency
+    (gmail_error), proving the row was NOT dropped as preview_not_public."""
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(
+        sender_configured, business_id=business["id"], publish_mode="r2",
+        subdomain_url="https://x-real.preview.prodcraft.fyi",
+    )
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=False)
+    assert stats["dropped"]["preview_not_public"] == 0
+    assert stats["dropped"]["gmail_error"] == 1  # no google-api-python-client in the test env
+
+
+def test_send_recipient_override_bypasses_preview_guard_with_warning(sender_configured, fixtures_root, capsys):
+    """--recipient-override bypasses the guard even for a non-public preview, and prints a
+    WARNING so a scrollback/CI log makes the bypass unmistakable."""
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"], publish_mode="local")
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(
+        sender_configured, settings, today=date(2026, 9, 16), mock=True,
+        recipient_override="dry-run@example.test",
+    )
+    assert stats["sent"] == 1
+    assert stats["dropped"]["preview_not_public"] == 0
+    out = capsys.readouterr().out
+    assert "WARNING" in out and "preview-host guard" in out
+
+
+# --- round-2 audit item 3: Phase-0 warmup ramp (daily_queue.effective_cap) ---
+
+
+def test_effective_cap_mock_is_never_ramped(local_store):
+    local_store.set_config("phase0", {"passed": False, "cap": 20, "warmup_days": 14, "warmup_start_cap": 2})
+    assert daily_queue.effective_cap(local_store, date(2026, 9, 16), mock=True) == 20
+
+
+def test_effective_cap_before_any_live_send_is_start_cap(local_store):
+    local_store.set_config("phase0", {"passed": False, "cap": 20, "warmup_days": 14, "warmup_start_cap": 2})
+    assert daily_queue.effective_cap(local_store, date(2026, 9, 16), mock=False) == 2
+
+
+def test_effective_cap_dry_run_rows_do_not_start_the_ramp_clock(local_store):
+    """A test_recipient (dry-run) sent row must never count as day zero of the ramp."""
+    local_store.set_config("phase0", {"passed": False, "cap": 20, "warmup_days": 14, "warmup_start_cap": 2})
+    b = _make_business(local_store)
+    local_store.upsert_outreach(
+        {"business_id": b["id"], "touch": 1, "status": "sent",
+         "sent_at": "2026-09-01T00:00:00Z", "test_recipient": "dry-run@example.test"}
+    )
+    assert daily_queue.effective_cap(local_store, date(2026, 9, 16), mock=False) == 2
+
+
+def test_effective_cap_ramps_linearly_from_first_live_send(local_store):
+    local_store.set_config("phase0", {"passed": False, "cap": 16, "warmup_days": 14, "warmup_start_cap": 2})
+    b = _make_business(local_store)
+    local_store.upsert_outreach(
+        {"business_id": b["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-02T00:00:00Z"}
+    )
+    # start_cap(2) + floor(days_since * (cap-start_cap)/warmup_days) = 2 + floor(7*14/14) = 9
+    assert daily_queue.effective_cap(local_store, date(2026, 9, 9), mock=False) == 9
+
+
+def test_effective_cap_never_exceeds_cap_after_warmup_completes(local_store):
+    local_store.set_config("phase0", {"passed": False, "cap": 16, "warmup_days": 14, "warmup_start_cap": 2})
+    b = _make_business(local_store)
+    local_store.upsert_outreach(
+        {"business_id": b["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-02T00:00:00Z"}
+    )
+    assert daily_queue.effective_cap(local_store, date(2026, 10, 1), mock=False) == 16
+
+
+def test_effective_cap_used_by_send_and_printed_in_stat(sender_configured, fixtures_root):
+    sender_configured.set_config(
+        "phase0", {"passed": False, "sends": 0, "calls_booked": 0, "queue_cap_locked": 5, "queue_cap_open": 20,
+                   "cap": 16, "warmup_days": 14, "warmup_start_cap": 2}
+    )
+    settings = FakeSettings(fixtures_root)
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["cap"] == 16  # --mock is never ramped
+
+
 # --- item 8: draft_email._loom_url stderr logging + llm.override_for dict-only guard (M6) ---
 
 
@@ -2148,6 +2372,10 @@ def test_daily_queue_persists_manual_flag_from_llm_overrides(local_store, fixtur
 
 def test_enqueue_logs_pick_mode_and_seed_on_event(local_store):
     local_store.set_config("queue_pick", "random")
+    # item 4: phase0 must be passed for config.queue_pick ("random") to govern; see comment above.
+    local_store.set_config(
+        "phase0", {"passed": True, "sends": 5, "calls_booked": 1, "queue_cap_locked": 5, "queue_cap_open": 20}
+    )
     business = _make_business(local_store)
     _make_audit(local_store, business_id=business["id"])
     _make_preview(local_store, business_id=business["id"])
@@ -2157,6 +2385,7 @@ def test_enqueue_logs_pick_mode_and_seed_on_event(local_store):
     events = [e for e in local_store.list_rows("events") if e.get("event") == "outreach_enqueued"]
     assert len(events) == 1
     assert events[0]["payload"]["queue_pick"] == "random"
+    assert events[0]["payload"]["queue_pick_effective"] == "random"
     assert events[0]["payload"]["seed"] == f"2026-09-16:{business.get('metro')}"
 
 
@@ -2170,7 +2399,52 @@ def test_enqueue_seed_is_none_for_score_pick_mode(local_store):
 
     events = [e for e in local_store.list_rows("events") if e.get("event") == "outreach_enqueued"]
     assert events[0]["payload"]["queue_pick"] == "score"
+    assert events[0]["payload"]["queue_pick_effective"] == "score"
     assert events[0]["payload"]["seed"] is None
+
+
+def test_enqueue_pick_mode_forces_score_while_phase0_not_passed(local_store):
+    """item 4: config.queue_pick="random" is ignored while phase0.passed is False — the
+    effective pick mode falls back to phase0.queue_pick_until_passed (default "score"), so
+    Phase 0 validation runs deterministically against real replies instead of a random sample."""
+    local_store.set_config("queue_pick", "random")  # operator's steady-state preference
+    businesses = {}
+    for i in range(5):
+        b = _make_business(
+            local_store, name=f"Phase0 Spa {i}", email=f"phase0-{i}@example-medspa-{i}.test",
+            metro="chicago-north-shore",
+        )
+        _make_audit(local_store, business_id=b["id"], total_score=100 - i * 10)
+        _make_preview(local_store, business_id=b["id"])
+        businesses[b["id"]] = b
+
+    daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 16))
+
+    events = [e for e in local_store.list_rows("events") if e.get("event") == "outreach_enqueued"]
+    assert len(events) == 5
+    for event in events:
+        assert event["payload"]["queue_pick"] == "random"  # raw config value, unchanged
+        assert event["payload"]["queue_pick_effective"] == "score"  # what actually governed
+        assert event["payload"]["seed"] is None  # score mode never seeds a shuffle
+
+    # Explicit phase0.queue_pick_until_passed override is honoured too.
+    local_store.set_config(
+        "phase0",
+        {
+            "passed": False, "sends": 0, "calls_booked": 0, "queue_cap_locked": 5, "queue_cap_open": 20,
+            "queue_pick_until_passed": "random",
+        },
+    )
+    b2 = _make_business(local_store, name="Phase0 Override Spa", email="phase0-override@example-medspa-o.test")
+    _make_audit(local_store, business_id=b2["id"])
+    _make_preview(local_store, business_id=b2["id"])
+    daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 16))
+    override_events = [
+        e for e in local_store.list_rows("events")
+        if e.get("event") == "outreach_enqueued" and e.get("entity_id") == b2["id"]
+    ]
+    assert len(override_events) == 1
+    assert override_events[0]["payload"]["queue_pick_effective"] == "random"
 
 
 # --- item 10: UTC-aware "sent today" comparisons (send.py + daily_queue.py) ---

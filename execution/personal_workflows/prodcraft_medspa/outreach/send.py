@@ -5,7 +5,8 @@ description: Send drafted outreach emails via the Gmail API (users.messages.send
     replies positive or neutral — so sending is automated here (previously "human sends" via
     gmail_drafts.py drafts). Sends only rows in status `drafted` that passed lint, whose business
     is not do_not_contact, whose preview is approved/live and not takedown, respects the daily cap
-    (outreach.daily_queue._queue_cap) counted across all touches sent today, the bounce halt
+    (outreach.daily_queue.effective_cap, the Phase-0 warmup-ramped cap) counted across all touches
+    sent today, the bounce halt
     (outreach.daily_queue.halt_reason), and never sends to a business that already has another
     outreach row in a replied/terminal status (replied, call_booked, closed_won, closed_lost, dnc).
 inputs: CLI: [--date YYYY-MM-DD] [--mock] [--store {local,supabase}] [--store-root PATH]
@@ -13,9 +14,15 @@ inputs: CLI: [--date YYYY-MM-DD] [--mock] [--store {local,supabase}] [--store-ro
     --recipient-override is not passed. `--mock` writes a .eml file under
     .tmp/prodcraft_medspa/sent/ instead of calling the Gmail API and records a fake message id
     `mock-<uuid>`.
-outputs: stdout JSON stat line {"script":"send","in":n,"sent":n,"dropped":{"cap_reached":n,
-    "halted":n,"lint_failed":n,"dnc":n,"preview_not_approved":n,"already_replied":n,"no_email":n,
-    "gmail_error":n}}. Store mutations: outreach status drafted->sent (via state_machine.transition,
+outputs: stdout JSON stat line {"script":"send","in":n,"sent":n,"cap":n,"dropped":{"cap_reached":n,
+    "halted":n,"lint_failed":n,"dnc":n,"preview_not_approved":n,"preview_not_public":n,
+    "already_replied":n,"no_email":n,"gmail_error":n}}. `cap` is the Phase-0 warmup-ramped cap
+    (daily_queue.effective_cap; plain phase0.cap under --mock). `preview_not_public` counts rows
+    dropped because a LIVE send (not --mock, no --recipient-override) found the row's preview
+    publish_mode != "r2" or its subdomain_url host not ending in config.preview_host_suffix — an
+    operator dry-run via --recipient-override bypasses this guard (prints a WARNING). Every sent
+    message carries a `List-Unsubscribe: <mailto:...>` header alongside the body's plain-text
+    opt-out line. Store mutations: outreach status drafted->sent (via state_machine.transition,
     which sets sent_at and increments phase0.sends for touch 1), gmail_message_id/gmail_thread_id
     patches, `test_recipient` patch when --recipient-override is used, and a `sent` events row per
     send.
@@ -83,8 +90,27 @@ def _print_recipient_banner(recipient_override: str | None) -> None:
     never mistaken for a safe dry run in a scrollback or a CI log."""
     if recipient_override:
         print(f"RECIPIENT OVERRIDE ACTIVE -> {_mask_email(recipient_override)}")
+        # item 1 (round-2 audit): --recipient-override also bypasses the preview-host guard below
+        # (a dry-run to the operator's own inbox has no business checking the PROSPECT-facing
+        # preview host) — printed unmistakably so a scrollback/CI log never hides that the guard
+        # was skipped this run.
+        print("WARNING: --recipient-override bypasses the preview-host guard (preview_not_public check skipped)")
     else:
         print("LIVE RECIPIENTS: real prospects will receive mail")
+
+
+def _preview_host_ok(preview_row: dict | None, preview_host_suffix: str) -> bool:
+    """item 1 (round-2 audit): a live send (no --recipient-override) may only go out for a row
+    whose preview is actually publicly reachable — `publish_mode == "r2"` (not "local"/"mock")
+    AND its host ends with `config.preview_host_suffix`. A preview built --publish-mode local (or
+    still under a mock run's synthetic "mock" publish_mode) is never public, so sending its link to
+    a real prospect would hand them a dead/inaccessible URL."""
+    if not preview_row:
+        return False
+    if preview_row.get("publish_mode") != "r2":
+        return False
+    host = (preview_row.get("subdomain_url") or "").split("//", 1)[-1].split("/", 1)[0]
+    return bool(host) and host.endswith(preview_host_suffix)
 
 
 def _parse_date(value: str | None) -> date:
@@ -112,15 +138,21 @@ def _lint_failed(row: dict) -> bool:
     return bool(_parse_notes(row).get("lint_violations"))
 
 
-def _preview_ok(st: Any, row: dict) -> bool:
-    """The row's preview must exist, be approved/live, and not be under takedown."""
+def _find_preview(st: Any, row: dict) -> dict | None:
     preview_id = row.get("preview_id")
     if not preview_id:
-        return False
+        return None
     for p in _store_helpers.previews_for_business(st, row.get("business_id")):
         if p.get("id") == preview_id:
-            return p.get("status") in ("approved", "live") and not p.get("takedown")
-    return False
+            return p
+    return None
+
+
+def _preview_ok(preview_row: dict | None) -> bool:
+    """The row's preview must exist, be approved/live, and not be under takedown."""
+    if not preview_row:
+        return False
+    return preview_row.get("status") in ("approved", "live") and not preview_row.get("takedown")
 
 
 def _business_has_replied_or_terminal_row(st: Any, business_id: str | None, exclude_outreach_id: str | None) -> bool:
@@ -195,6 +227,9 @@ def send_email(
         message["To"] = to_email
         message["Subject"] = subject
         message["From"] = formataddr((sender_name, authenticated_address))
+        # item 2 (round-2 audit): CAN-SPAM-adjacent good practice — a machine-readable opt-out
+        # header alongside the body's plain-text opt-out line lint_draft.py already requires.
+        message["List-Unsubscribe"] = f"<mailto:{authenticated_address}?subject=unsubscribe>"
         message.set_content(body)
         eml_path.write_bytes(message.as_bytes())
         return {
@@ -220,6 +255,7 @@ def send_email(
     message["To"] = to_email
     message["Subject"] = subject
     message["From"] = formataddr((sender_name, authenticated_address))
+    message["List-Unsubscribe"] = f"<mailto:{authenticated_address}?subject=unsubscribe>"
     message.set_content(body)
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode("ascii")
 
@@ -247,9 +283,22 @@ def run_send(
         "gmail_error": 0,
         "live_send_not_confirmed": 0,
         "header_injection": 0,
+        "preview_not_public": 0,
     }
     live_recipients = not bool(recipient_override)
     _print_recipient_banner(recipient_override)
+    preview_host_suffix = str(
+        st.get_config("preview_host_suffix", ".preview.prodcraft.fyi") or ".preview.prodcraft.fyi"
+    )
+    # item 1: the guard only applies to a genuinely live send (not --mock, no
+    # --recipient-override) — a --mock run never reaches a real prospect (it writes a .eml file),
+    # and an operator dry-run (--recipient-override) never reaches a real prospect either (WARNING
+    # already printed above by _print_recipient_banner), so both are exempt by design.
+    preview_guard_active = not mock and not recipient_override
+    # item 3: warmup-ramped cap (never applies under --mock; see daily_queue.effective_cap).
+    # Computed early (pure, cheap) so every return path — including the two early-exit gates
+    # below — can report it in the stat line, not just the happy path.
+    cap = daily_queue.effective_cap(st, today, mock=mock)
 
     candidate_rows = list(_store_helpers.outreach_by_status(st, "drafted"))
     in_count = len(candidate_rows)
@@ -280,6 +329,7 @@ def run_send(
             "dropped": dropped,
             "recipient_override": bool(recipient_override),
             "live_recipients": live_recipients,
+            "cap": cap,
         }
 
     halt = daily_queue.halt_reason(st, today)
@@ -293,9 +343,9 @@ def run_send(
             "dropped": dropped,
             "recipient_override": bool(recipient_override),
             "live_recipients": live_recipients,
+            "cap": cap,
         }
 
-    cap = daily_queue._queue_cap(st)
     remaining_cap = max(0, cap - _sent_today_count(st, today))
 
     # Deterministic processing order (oldest-due first), mirroring LocalStore.queue()'s ordering.
@@ -315,8 +365,22 @@ def run_send(
         if _lint_failed(row):
             dropped["lint_failed"] += 1
             continue
-        if not _preview_ok(st, row):
+        preview_row = _find_preview(st, row)
+        if not _preview_ok(preview_row):
             dropped["preview_not_approved"] += 1
+            continue
+        if preview_guard_active and not _preview_host_ok(preview_row, preview_host_suffix):
+            dropped["preview_not_public"] += 1
+            st.log_event(
+                "outreach",
+                row["id"],
+                "send_dropped",
+                {
+                    "reason": "preview_not_public",
+                    "publish_mode": (preview_row or {}).get("publish_mode"),
+                    "subdomain_url": (preview_row or {}).get("subdomain_url"),
+                },
+            )
             continue
         if _business_has_replied_or_terminal_row(st, business_id, row.get("id")):
             dropped["already_replied"] += 1
@@ -433,6 +497,7 @@ def run_send(
         "dropped": dropped,
         "recipient_override": bool(recipient_override),
         "live_recipients": live_recipients,
+        "cap": cap,
     }
 
 

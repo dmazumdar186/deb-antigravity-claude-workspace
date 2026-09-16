@@ -11,6 +11,7 @@ outputs: {"subject": str, "body": str, "variant": "a"|"b"|"c"|None, "llm": envel
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -90,18 +91,22 @@ def _render(template: str, variables: dict[str, Any]) -> str:
     return _VAR_RE.sub(_sub, template)
 
 
-def pick_variant(store: Any, variant: str) -> str:
-    """'a'/'b'/'c' pass through. 'auto' rotates a->b->c by count of touch-1 drafts so far."""
+def pick_variant(business_id: str, variant: str, existing_variant: str | None = None) -> str:
+    """'a'/'b'/'c' pass through (explicit operator override, always wins). 'auto' is STABLE per
+    business (round-2 audit item 6): `["a","b","c"][int(sha1(business_id).hexdigest(), 16) % 3]`,
+    not a rotating counter — so a business's variant never changes across enqueue/redraft cycles
+    just because other businesses were drafted in between (the old "rotate by count of touch-1
+    drafts so far" implementation could reassign the same business a different variant on a
+    redraft). `existing_variant`, when already set on the outreach row (a prior render), is
+    returned as-is under "auto" so a re-render never flips the variant it already committed to."""
     if variant in _VARIANTS:
         return variant
     if variant != "auto":
         raise ValueError(f"unknown variant {variant!r}")
-    touch1_drafted = [
-        r
-        for r in _store_helpers.list_all(store, "outreach")
-        if int(r.get("touch") or 0) == 1 and r.get("template_variant")
-    ]
-    return _VARIANTS[len(touch1_drafted) % len(_VARIANTS)]
+    if existing_variant in _VARIANTS:
+        return existing_variant
+    digest = hashlib.sha1(business_id.encode("utf-8")).hexdigest()
+    return _VARIANTS[int(digest, 16) % len(_VARIANTS)]
 
 
 def _expires_on_weekday(expires_at: str | None, today: date | None = None) -> str:
@@ -174,7 +179,9 @@ def render_draft(
     """Render one outreach draft. `fixtures_root` is the fuzzy_variables LLM mock fixtures dir
     (defaults to prompts/fixtures, per prompts/README.md — NOT the top-level fixtures/ dir)."""
     touch = int(outreach_row.get("touch") or 1)
-    resolved_variant = pick_variant(store, variant) if touch == 1 else None
+    resolved_variant = (
+        pick_variant(business["id"], variant, outreach_row.get("template_variant")) if touch == 1 else None
+    )
     template_path = _template_path(touch, resolved_variant)
     _front_matter, subject_template, body_template = _parse_template(
         template_path.read_text(encoding="utf-8")

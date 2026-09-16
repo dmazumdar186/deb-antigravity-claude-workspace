@@ -277,6 +277,65 @@ replies workflow.
 | `pct_qualified` per metro | `metro_stats.pct_qualified` (PROJECT_SPEC.md §5.3 `sample_audit`), one row per metro |
 | Cost per business | `audits.llm_cost_usd` summed per business (or per metro) over `audits`; `audit_site.py`'s stdout stat line also reports a per-run `llm_cost_usd` total |
 
+## Round-2 audit additions (`outreach/send.py`, `outreach/daily_queue.py`, `outreach/draft_email.py`, `outreach/scan_replies.py`, `scripts/daily.py`)
+
+- **Preview-host guard (`send.py`)**: a live send (`--mock` not passed) WITHOUT
+  `--recipient-override` refuses to send any row whose preview's `publish_mode != "r2"` or whose
+  `subdomain_url` host doesn't end with `config.preview_host_suffix` (default
+  `.preview.prodcraft.fyi`) — dropped as `preview_not_public`, logged as a `send_dropped` event,
+  row left `drafted` (not transitioned). `--recipient-override` bypasses the guard entirely
+  (prints an unmistakable `WARNING: --recipient-override bypasses the preview-host guard`
+  banner) since an operator dry-run never reaches a real prospect. `--mock` is also exempt (it
+  never reaches a real prospect either — it writes a `.eml` file).
+- **`List-Unsubscribe` header (`send.py`)**: every sent message (mock and live) carries
+  `List-Unsubscribe: <mailto:{authenticated_address}?subject=unsubscribe>` alongside the body's
+  plain-text opt-out line `lint_draft.py` already requires.
+- **Phase-0 warmup ramp (`daily_queue.effective_cap`, used by both `daily_queue.py` and
+  `send.py`)**: `config.phase0.warmup_days` (default 14) and `config.phase0.warmup_start_cap`
+  (default 2) ramp the effective daily cap linearly: `min(phase0.cap, warmup_start_cap +
+  floor(days_since_first_live_send * (phase0.cap - warmup_start_cap) / warmup_days))`. Before any
+  live send exists, the effective cap is `warmup_start_cap`. "First live send" is the earliest
+  `sent` outreach row with **no** `test_recipient` — an operator dry-run to their own inbox never
+  starts the ramp clock. `--mock` runs (and any caller passing `mock=True`) are **never** ramped
+  (`effective_cap` returns the plain `phase0.cap`, falling back to `_queue_cap()`'s locked/open
+  value) so the mock chain's day-one DoD (4 sends) is unaffected. Both scripts print the resolved
+  cap as `"cap"` in their stdout stat line.
+- **Queue-pick phase gate (`daily_queue._pick_mode`)**: while `config.phase0.passed` is `false`,
+  the effective pick mode is `config.phase0.queue_pick_until_passed` (default `"score"`)
+  regardless of `config.queue_pick` — Phase 0 must validate against real replies, not a random
+  sample, even if the operator's steady-state preference is `"random"`. Once `phase0.passed` is
+  `true`, `config.queue_pick` governs as documented below. The `outreach_enqueued` event's payload
+  carries both `queue_pick` (raw config value) and `queue_pick_effective` (what actually governed
+  this enqueue).
+- **`score_at_send` (`daily_queue.enqueue_new_touch1`)**: `outreach.score_at_send` is stamped from
+  the business's `audits.total_score` at enqueue time (see the dedicated section below); a later
+  re-audit never retroactively changes an already-enqueued row's value.
+- **Stable per-business template variant (`draft_email.pick_variant`)**: `variant="auto"` is now a
+  STABLE hash of `business_id` — `["a","b","c"][int(sha1(business_id).hexdigest(), 16) % 3]` — not
+  a rotating counter. A re-render of an outreach row that already has `template_variant` set
+  reuses that value rather than recomputing, so a redraft never flips a business's variant.
+- **Negative reply takedown, without DNC (`scan_replies.py`)**: a `negative` reply still goes
+  `sent -> replied -> closed_lost`, and ALSO takes down every non-takendown preview linked to that
+  business via the same real unpublish path (`preview/takedown.py`'s `take_down_preview()` — R2
+  prefix delete + Worker `/remove`) the `dnc`/`remove` flow uses — but this is explicitly **not**
+  a do-not-contact request: `businesses.do_not_contact` is left/reverted to its prior value and no
+  other outreach rows are cascaded. (This amends the "closed_lost... no forced takedown" line
+  below, which still holds for every OTHER path into `closed_lost` — touch-4 grace expiry via
+  `advance.py`, etc. — a negative reply is the one exception.)
+- **Remove reply also notifies (`scan_replies.py`)**: a `remove` reply keeps its existing
+  `dnc` + takedown behavior and now ALSO posts the same Telegram alert `common.notify.reply()`
+  sends for a positive/neutral reply, with `sentiment` forced to `"remove"` regardless of what the
+  classifier's own `sentiment` field said. The row's `notes.remove_source` records which
+  classifier flagged it: `"keyword"` under `--mock`'s deterministic matcher (`_mock_classify`),
+  `"llm"` on the live classifier path.
+- **Config validation on `daily.py`**: `scripts/daily.py` calls
+  `common.config_validate.assert_valid_config()` (same key subset as `run_metro.py`'s own check)
+  immediately after opening the store, before running any stage — an invalid value exits 1 with a
+  `common.notify.error("daily", ...)` call rather than letting a stage silently degrade on it.
+  `daily.py`'s own post-scan takedown loop stays a harmless no-op for any business already taken
+  down by `state_machine.py`'s dnc path or the new negative-reply path above (idempotent, per
+  `preview/takedown.py`'s own status check).
+
 ## Outreach state machine (`outreach/state_machine.py`)
 
 States: `queued, drafted, sent, replied, call_booked, closed_won, closed_lost, dnc`. Touch days: 0, 3, 7, 12.
