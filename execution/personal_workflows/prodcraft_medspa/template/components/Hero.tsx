@@ -25,7 +25,7 @@ export default function Hero({ business }: { business: Business }) {
         {HERO_IMAGES.map((file, i) => (
           <div className="hero__bg" data-hero-bg={i} key={file}>
             <img
-              src={`/stock/${file}`}
+              src={`stock/${file}`}
               width={1600}
               height={1000}
               alt={`Abstract editorial artwork evoking ${business.name}'s treatment space, mood ${i + 1}`}
