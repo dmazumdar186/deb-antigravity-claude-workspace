@@ -1,0 +1,117 @@
+name: prodcraft-medspa-daily
+
+# Fully automated daily loop (operator decision 2026-09-16): discover/audit/enrich/build previews
+# for the configured metro, pick 5 (random) qualified spas with a built preview, send the outreach
+# email, and mirror everything to a Google Sheet. Shares the `prodcraft-medspa` concurrency group
+# with prodcraft_medspa_replies.yml so the two workflows never touch the store at the same time.
+# Inert until the operator flips the `PRODCRAFT_CRON_ENABLED` repo variable to "true" — see
+# directives/personal_workflows/prodcraft_medspa_pipeline.md for the one-time setup this depends on
+# (Supabase project + schema, R2 bucket, Worker deploy, Gmail OAuth token with gmail.send,
+# Telegram channel, Google Sheets mirror + service account).
+#
+# PRODCRAFT_RECIPIENT_OVERRIDE (repo VARIABLE, not a secret) lets the operator point every send at
+# their own inbox for the first days; clear it once live sends are trusted.
+
+on:
+  schedule:
+    - cron: "0 14 * * *"  # 14:00 UTC daily = 9:00am America/Chicago (UTC-5, CDT)
+  workflow_dispatch:
+    inputs:
+      metro:
+        description: "Metro slug to run (defaults to the PRODCRAFT_METRO repo variable, then chicago_north_shore)"
+        required: false
+        default: ""
+
+concurrency:
+  group: prodcraft-medspa
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  daily:
+    if: vars.PRODCRAFT_CRON_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PRODCRAFT_STORE: supabase
+      PRODCRAFT_ENV: github-actions
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+      PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
+      FINDYMAIL_API_KEY: ${{ secrets.FINDYMAIL_API_KEY }}
+      HUNTER_API_KEY: ${{ secrets.HUNTER_API_KEY }}
+      MILLION_VERIFIER_API_KEY: ${{ secrets.MILLION_VERIFIER_API_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      PREVIEW_BASE_DOMAIN: ${{ secrets.PREVIEW_BASE_DOMAIN }}
+      PREVIEW_PUBLISH_SECRET: ${{ secrets.PREVIEW_PUBLISH_SECRET }}
+      GMAIL_CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }}
+      GMAIL_TOKEN_JSON: ${{ secrets.GMAIL_TOKEN_JSON }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      GOOGLE_SHEETS_MIRROR_ID: ${{ secrets.GOOGLE_SHEETS_MIRROR_ID }}
+      DASHBOARD_USER: ${{ secrets.DASHBOARD_USER }}
+      DASHBOARD_PASS: ${{ secrets.DASHBOARD_PASS }}
+      PRODCRAFT_RECIPIENT_OVERRIDE: ${{ vars.PRODCRAFT_RECIPIENT_OVERRIDE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm ci (template — previews need the build)
+        working-directory: execution/personal_workflows/prodcraft_medspa/template
+        run: npm ci
+
+      - name: Write Google service account key
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$GOOGLE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/prodcraft-service-account.json"
+          echo "GOOGLE_SERVICE_ACCOUNT_PATH=$RUNNER_TEMP/prodcraft-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Run metro (discovery -> audit -> enrich -> preview)
+        run: |
+          python execution/personal_workflows/prodcraft_medspa/scripts/run_metro.py \
+            --metro "${{ github.event.inputs.metro || vars.PRODCRAFT_METRO || 'chicago_north_shore' }}" \
+            --store supabase --continue-on-error
+
+      - name: Run daily send (picks 5 qualified spas, sends, mirrors to Sheets via this job's own sync step)
+        run: |
+          python execution/personal_workflows/prodcraft_medspa/scripts/daily.py --store supabase
+
+      - name: Sync to Google Sheets (pipeline + daily_log tabs)
+        run: |
+          python execution/personal_workflows/prodcraft_medspa/scripts/sync_sheets.py --store supabase
+
+      - name: Notify Telegram on failure
+        if: failure()
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from execution.personal_workflows.prodcraft_medspa.common import notify
+          notify.error('github-actions.daily', 'workflow failed', 1)
+          "

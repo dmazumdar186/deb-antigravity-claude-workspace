@@ -12,7 +12,7 @@ on:
   workflow_dispatch: {}
 
 concurrency:
-  group: prodcraft-medspa-replies
+  group: prodcraft-medspa
   cancel-in-progress: false
 
 permissions:

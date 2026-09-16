@@ -101,6 +101,11 @@ create table if not exists outreach (
   replied_at        timestamptz,
   reply_sentiment   text,                            -- positive|neutral|negative|remove|bounce
   reply_excerpt     text,
+  reply_summary     text,                            -- one-line LLM summary of the reply
+  reply_suggested_next_step text,                     -- LLM-suggested next action for the operator
+  notified_at       timestamptz,                      -- when notify.reply fired for this row's reply
+  test_recipient    text,                             -- set instead of the owner's real inbox while
+                                                       -- PRODCRAFT_RECIPIENT_OVERRIDE is active
   next_touch_at     date,
   notes             text,
   created_at        timestamptz not null default now(),
@@ -164,11 +169,15 @@ create table if not exists chains (
   note      text
 );
 
--- Read-only mirror for Sheets
+-- Read-only mirror for Sheets. Column set matches scripts/sync_sheets.py's V_PIPELINE_COLUMNS
+-- exactly (both LocalStore and Supabase must produce identical columns; LocalStore recomputes
+-- this same join in Python). reply_summary/reply_suggested_next_step/notified_at/test_recipient
+-- on `outreach` are added by db/migrations/0002_v_pipeline_outreach_columns.sql.
 create or replace view v_pipeline as
 select b.name, b.suburb, b.metro, b.website_url, b.owner_name, b.owner_email, b.email_status,
        a.total_score, a.bucket, p.subdomain_url as preview_url, p.status as preview_status,
-       o.touch, o.status as outreach_status, o.sent_at, o.next_touch_at
+       o.touch, o.status as outreach_status, o.sent_at, o.next_touch_at,
+       o.reply_sentiment, o.reply_summary, o.replied_at, o.test_recipient
 from businesses b
 left join lateral (select * from audits where business_id = b.id order by audited_at desc limit 1) a on true
 left join lateral (select * from previews where business_id = b.id order by created_at desc limit 1) p on true

@@ -3,18 +3,25 @@ doctor.py
 description: For every pipeline stage, lists each required env var present/missing (never prints
     values); with --live, makes one cheap authenticated call per service and prints
     `service | env present | live ok | detail`. Also checks Node >= 20, a Chromium install,
-    template/node_modules, and preview/worker/node_modules. Exits non-zero if any stage selected
-    via --stages is missing a required var. Must never crash with no env configured.
-inputs: CLI: [--live] [--stages discovery,audit,enrich,preview,outreach,store,notify]. Env: every
-    var in CONTRACTS.md's "Secrets only via env" list (all optional for the default, non-live run).
-outputs: stdout: env-presence table, and with --live, the live-check table + Node/Chromium/
-    node_modules checks; final JSON stat line.
+    template/node_modules, preview/worker/node_modules, the Gmail token's gmail.send scope (parsed
+    from GMAIL_TOKEN_JSON, no network call), GOOGLE_SHEETS_MIRROR_ID + service-account presence,
+    config.queue_pick, and PRODCRAFT_RECIPIENT_OVERRIDE (shown domain-only, with a warning that
+    every send goes there while set). Exits non-zero if any stage selected via --stages is missing
+    a required var — 'outreach' also fails if the Gmail token is confirmed missing gmail.send;
+    'sheets' is opt-in like 'store'/'notify'. Must never crash with no env configured.
+inputs: CLI: [--live] [--stages discovery,audit,enrich,preview,outreach,store,notify,sheets]. Env:
+    every var in CONTRACTS.md's "Secrets only via env" list plus GOOGLE_SERVICE_ACCOUNT_PATH/
+    GOOGLE_SERVICE_ACCOUNT_JSON and PRODCRAFT_RECIPIENT_OVERRIDE (all optional for the default,
+    non-live run).
+outputs: stdout: env-presence table, gmail-scope/sheets/store-config tables, and with --live, the
+    live-check table + Node/Chromium/node_modules checks; final JSON stat line.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -312,6 +319,54 @@ def check_node_modules(path: Path) -> tuple[bool | None, str]:
     return exists, str(path / "node_modules")
 
 
+def check_gmail_send_scope(settings) -> tuple[bool | None, str]:
+    """Parses GMAIL_TOKEN_JSON's `scopes` field (never a network call — that's `_live_gmail`'s
+    job) and reports whether `gmail.send` is present, since the daily loop's automated send needs
+    it. None = skipped (no token configured, or an older token JSON with no `scopes` field —
+    those are reported but never fail a stage; only a token confirmed to be missing the scope does).
+    """
+    token_raw = settings.GMAIL_TOKEN_JSON
+    if not token_raw:
+        return None, "skipped (GMAIL_TOKEN_JSON not set)"
+    try:
+        token_info = json.loads(token_raw)
+    except (ValueError, TypeError) as exc:
+        return False, f"GMAIL_TOKEN_JSON is not valid JSON: {type(exc).__name__}: {exc}"
+    scopes = token_info.get("scopes")
+    if not scopes:
+        return None, "token JSON has no 'scopes' field — cannot verify (older token format)"
+    has_send = any("gmail.send" in s for s in scopes)
+    detail = f"scopes: {', '.join(scopes)}"
+    return has_send, detail if has_send else f"missing gmail.send — {detail}"
+
+
+def check_sheets_config() -> tuple[bool, str]:
+    """GOOGLE_SHEETS_MIRROR_ID + a service-account key path/JSON must both be present before
+    sync_sheets.py's live path (vs. its CSV fallback) can run."""
+    mirror_id = os.environ.get("GOOGLE_SHEETS_MIRROR_ID", "").strip()
+    sa_present = bool(os.environ.get("GOOGLE_SERVICE_ACCOUNT_PATH", "").strip()) or bool(
+        os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+    )
+    missing = []
+    if not mirror_id:
+        missing.append("GOOGLE_SHEETS_MIRROR_ID")
+    if not sa_present:
+        missing.append("GOOGLE_SERVICE_ACCOUNT_PATH (or GOOGLE_SERVICE_ACCOUNT_JSON)")
+    if missing:
+        return False, f"missing: {', '.join(missing)}"
+    return True, "GOOGLE_SHEETS_MIRROR_ID + service account present"
+
+
+def masked_recipient_override() -> tuple[str, str]:
+    """Never print the full override address — only its domain — since doctor's output can land
+    in CI logs. Returns (display_value, warning_or_empty)."""
+    val = os.environ.get("PRODCRAFT_RECIPIENT_OVERRIDE", "").strip()
+    if not val:
+        return "(not set)", ""
+    domain = val.split("@", 1)[1] if "@" in val else "?"
+    return f"***@{domain}", "WARNING: every send goes to this address while PRODCRAFT_RECIPIENT_OVERRIDE is set"
+
+
 def check_sender_config(store) -> tuple[bool, str]:
     """config.sender.name and .physical_address must be set before any outreach draft can pass
     lint_draft (CAN-SPAM rules 1 and 3). Seeded empty on purpose; the operator fills it once via
@@ -394,13 +449,44 @@ def main() -> None:
     else:
         print("\n(pass --live to make one cheap authenticated call per service and check Node/Chromium/node_modules)")
 
+    print("\n=== Gmail token scope ===")
+    scope_ok, scope_detail = check_gmail_send_scope(settings)
+    print_table(
+        [("gmail.send scope", "n/a" if scope_ok is None else ("yes" if scope_ok else "no"), scope_detail)],
+        ("check", "ok", "detail"),
+    )
+    if scope_ok is False and "outreach" in selected_stages:
+        # only a token confirmed missing the scope fails the stage; "n/a" (no token / no scopes
+        # field) is already covered by the GMAIL_TOKEN_JSON presence check above.
+        stage_missing.setdefault("outreach", []).append("GMAIL_TOKEN_JSON missing gmail.send scope")
+
+    print("\n=== Google Sheets mirror ===")
+    sheets_ok, sheets_detail = check_sheets_config()
+    print_table([("sheets", "yes" if sheets_ok else "no", sheets_detail)], ("check", "ok", "detail"))
+    if not sheets_ok and "sheets" in selected_stages:
+        stage_missing.setdefault("sheets", []).append("GOOGLE_SHEETS_MIRROR_ID/service-account")
+
     print("\n=== Store config ===")
     try:
         # never crash without env: an unconfigured Supabase store is a report row, not a traceback
-        sender_ok, sender_detail = check_sender_config(get_store())
+        store = get_store()
+        sender_ok, sender_detail = check_sender_config(store)
+        try:
+            queue_pick = store.get_config("queue_pick", None)
+        except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
+            queue_pick = f"error: {type(exc).__name__}: {exc}"
     except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
         sender_ok, sender_detail = False, f"store unavailable: {type(exc).__name__}: {exc}"
-    print_table([("config.sender", "yes" if sender_ok else "no", sender_detail)], ("check", "ok", "detail"))
+        queue_pick = "store unavailable"
+    override_display, override_warning = masked_recipient_override()
+    config_rows = [
+        ("config.sender", "yes" if sender_ok else "no", sender_detail),
+        ("config.queue_pick", "n/a", str(queue_pick)),
+        ("PRODCRAFT_RECIPIENT_OVERRIDE", "n/a", override_display),
+    ]
+    print_table(config_rows, ("check", "ok", "detail"))
+    if override_warning:
+        print(override_warning)
     if not sender_ok and "outreach" in selected_stages:
         stage_missing.setdefault("outreach", []).append("config.sender")
 
