@@ -31,9 +31,11 @@ def _parse_date(value: str | None) -> date:
         return date.today()
     try:
         return datetime.strptime(value, "%Y-%m-%d").date()
-    except ValueError:
-        # one-line usage error instead of a traceback surfacing through daily.py's stderr
-        raise SystemExit(f"--date must be YYYY-MM-DD, got {value!r}") from None
+    except (ValueError, TypeError):
+        # exit code 2 (argparse's own usage-error convention) and a one-line message on stderr —
+        # never a traceback surfacing through daily.py's stderr (round-2 audit finding).
+        print(f"invalid --date, expected YYYY-MM-DD (got {value!r})", file=sys.stderr)
+        raise SystemExit(2) from None
 
 
 def _as_date(value: str | None) -> date | None:

@@ -1,7 +1,8 @@
 """
 deals.py
 description: Deal recording, go-live, and the 60-day booking-rate guarantee proof (PROJECT_SPEC.md
-    §9 tiers, guarantee_met = bookings_60d > baseline_online_bookings_30d * 2).
+    §9 tiers, guarantee_met = bookings_60d > max(baseline_online_bookings_30d, ZERO_BASELINE_FLOOR) * 2
+    — the floor stops a zero/near-zero baseline client from trivially "meeting" the guarantee).
 inputs: CLI subcommands:
     record --business-id ID --tier founding|starter|growth|premium [--setup-price] [--mrr]
         [--signed ISO] [--baseline N] [--booking-tool X]
@@ -46,6 +47,13 @@ FOUNDING_NOTE = (
     "founding tier: Growth-tier care plan ($199/mo) at a discounted Starter-level setup price "
     "in exchange for a before/after booking number and a testimonial (Hormozi #1, panel pass D8)."
 )
+
+# Round-2 audit finding: a client whose baseline_online_bookings_30d was recorded as 0 (or not
+# tracked at all before ProdCraft) could "meet" a naive `bookings_60d > baseline * 2` guarantee
+# with a single booking (0 * 2 = 0, and 1 > 0). Flooring the multiplied baseline at
+# ZERO_BASELINE_FLOOR * 2 makes the guarantee require a real, meaningful booking count even from a
+# zero (or near-zero) starting point.
+ZERO_BASELINE_FLOOR = 5
 
 
 def _parse_date(value: str | None) -> str | None:
@@ -113,14 +121,14 @@ def proof(st: Any, *, business_id: str, bookings_60d: int) -> dict:
             "run `deals record --baseline N` first"
         )
 
-    guarantee_met = bookings_60d > baseline * 2
+    threshold = max(baseline, ZERO_BASELINE_FLOOR) * 2
+    guarantee_met = bookings_60d > threshold
     deal = st.upsert_deal(
         {"business_id": business_id, "bookings_60d": bookings_60d, "guarantee_met": guarantee_met}
     )
     st.log_event("deal", deal["id"], "proof", {"bookings_60d": bookings_60d, "guarantee_met": guarantee_met})
 
     verdict = "GUARANTEE MET" if guarantee_met else "guarantee NOT met"
-    threshold = baseline * 2
     owed = (
         "balance owed in full"
         if guarantee_met

@@ -11,6 +11,22 @@ inputs: --preview-id ID (one preview) | --metro X --all-review (every review-sta
     whose business is in X and not do_not_contact). --mock, --store {local,supabase}, --store-root PATH.
 outputs: `previews.status` = approved, `events` rows (entity=preview, event=status:review->approved),
     stdout JSON stat line {"script":"approve","in":n,"out":n,"dropped":{...}}.
+
+Two paths reach `approve_preview()`, and both must stay in lockstep since it's the single place
+that decides a preview is safe to link to a prospect:
+  1. Human path (this script's CLI): an operator runs `preview.approve` by hand after actually
+     looking at each preview in the dashboard (--preview-id) or after reviewing a whole batch
+     (--metro --all-review, plus --yes-i-reviewed-them against a live Supabase store). This is the
+     default, always-safe path per .claude/rules/automation-boundaries.md.
+  2. Automated opt-in path (`scripts/preview_gate.py`): runs Playwright acceptance checks against
+     each review-status preview's built output and, only when config.auto_approve_previews is
+     `true` (default `false` — an explicit operator opt-in), calls this module's
+     `approve_preview()` directly for previews that pass. A failing preview is never auto-rejected
+     by that path — it stays in `review` with a `gate_failed` event so a human still looks. With
+     `auto_approve_previews` left at its default, preview_gate.py only records gate results and
+     changes no preview's status; the daily workflow runs it after every metro so results are never
+     more than a day stale, but a human still has to flip the config (or approve manually) before
+     anything moves.
 """
 
 from __future__ import annotations

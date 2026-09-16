@@ -34,6 +34,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from execution.personal_workflows.prodcraft_medspa.common import notify  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.common.config_validate import assert_valid_config  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
     common_store_args,
@@ -257,6 +258,23 @@ def compute_funnel(store: Any, metro: str) -> dict[str, Any]:
     return {"metro": metro, "stages": stages}
 
 
+def build_validation_cfg(store: Any) -> dict[str, Any]:
+    """Assemble the subset of `config` keys common/config_validate.py knows how to check. Missing
+    keys resolve to None (get_config's own default), which validate_config() treats as "not
+    configured" and never flags — this is a startup sanity check on values that ARE set, not a
+    completeness check."""
+    return {
+        "queue_pick": store.get_config("queue_pick"),
+        "email_policy": store.get_config("email_policy"),
+        "preview_publish_mode": store.get_config("preview_publish_mode"),
+        "min_score": store.get_config("min_score"),
+        "live_send_confirmed": store.get_config("live_send_confirmed"),
+        "preview_host_suffix": store.get_config("preview_host_suffix"),
+        "auto_approve_previews": store.get_config("auto_approve_previews"),
+        "phase0": store.get_config("phase0"),
+    }
+
+
 def run_record_filename(metro: str) -> str:
     """{metro}_{UTC timestamp to the second}_{short uuid4}.json — the uuid4 suffix guarantees
     uniqueness even when two runs for the same metro start in the same second (pipeline-auditor:
@@ -375,6 +393,12 @@ def main() -> None:
         parser.error("--sample-only requires --sample-n N")
 
     store = get_store(kind=store_kind, root=args.store_root)
+
+    try:
+        assert_valid_config(build_validation_cfg(store))
+    except ValueError as exc:
+        parser.error(str(exc))
+
     if args.min_score is None:
         args.min_score = int(store.get_config("min_score", 45) or 45)
 

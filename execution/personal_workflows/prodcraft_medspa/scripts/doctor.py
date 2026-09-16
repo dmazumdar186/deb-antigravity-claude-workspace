@@ -22,9 +22,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -51,7 +53,10 @@ SERVICE_ENV_VARS: dict[str, list[str]] = {
     "million_verifier": ["MILLION_VERIFIER_API_KEY"],
     "supabase": ["SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
     "cloudflare": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
-    "r2": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "R2_BUCKET"],
+    # build_preview.py reads R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY straight from os.environ (not
+    # via the CLOUDFLARE_API_TOKEN Cloudflare-API path) for the actual R2 S3-compatible upload —
+    # missing them is a real "preview stage will fail live" gap, not just a nice-to-have.
+    "r2": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "R2_BUCKET", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"],
     "gmail": ["GMAIL_CREDENTIALS_JSON", "GMAIL_TOKEN_JSON"],
     "telegram": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"],
 }
@@ -246,7 +251,10 @@ def _live_gmail(settings) -> tuple[bool | None, str]:
 
         token_info = _json.loads(settings.GMAIL_TOKEN_JSON)
         creds = Credentials.from_authorized_user_info(token_info)
-        service = build("gmail", "v1", credentials=creds)
+        # cache_discovery=False: googleapiclient's default discovery-doc file cache writes to a
+        # location that may not be writable (or even present) in a sandboxed/serverless doctor
+        # run; the kwarg is supported by every googleapiclient version this package targets.
+        service = build("gmail", "v1", credentials=creds, cache_discovery=False)
         profile = service.users().getProfile(userId="me").execute()
         return True, f"profile ok ({profile.get('emailAddress', '?')})"
     except Exception as exc:  # noqa: BLE001
@@ -381,6 +389,114 @@ def check_sender_config(store) -> tuple[bool, str]:
     return True, "config.sender name + physical_address set"
 
 
+_PLACEHOLDER_PHRASES = ("operator to confirm", "placeholder")
+# "<street or PO box>, <City>, <ST> <ZIP>" — a loose shape check (not USPS-grade validation), just
+# enough to catch an empty/placeholder value before it reaches a CAN-SPAM-required footer.
+_ADDRESS_SHAPE_RE = re.compile(r"^.+,\s*.+,\s*[A-Za-z]{2}\s+\d{5}(-\d{4})?$")
+
+
+def check_sender_address_is_valid(store) -> tuple[bool | None, str]:
+    """config.sender.physical_address must look like a real mailing address, not a placeholder.
+    None = skipped (address not set at all — check_sender_config already reports that as missing)."""
+    try:
+        sender = store.get_config("sender", {}) or {}
+    except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
+        return False, f"could not read config.sender: {type(exc).__name__}: {exc}"
+    address = (sender.get("physical_address") or "").strip()
+    if not address:
+        return None, "skipped (config.sender.physical_address not set)"
+    lowered = address.lower()
+    for phrase in _PLACEHOLDER_PHRASES:
+        if phrase in lowered:
+            return False, f"looks like a placeholder (contains {phrase!r}): {address!r}"
+    if not _ADDRESS_SHAPE_RE.match(address):
+        return False, f"does not look like '<street or PO box>, <City>, <ST> <ZIP>': {address!r}"
+    return True, f"format looks valid: {address!r}"
+
+
+def _resolve_txt_records(domain: str) -> list[str] | None:
+    """Best-effort TXT lookup for `domain`. Returns the record strings, `[]` when the lookup
+    succeeded but found nothing, or `None` when no lookup method was available/it failed outright
+    (dnspython not installed AND no `nslookup` on PATH, or a network/timeout error) — the caller
+    reports `None` as "unchecked" rather than conflating it with a genuine missing record."""
+    try:
+        import dns.resolver  # type: ignore[import-untyped]
+
+        try:
+            answers = dns.resolver.resolve(domain, "TXT", lifetime=10)
+            return ["".join(s.decode("utf-8", errors="replace") if isinstance(s, bytes) else s for s in r.strings) for r in answers]
+        except dns.resolver.NXDOMAIN:
+            return []
+        except dns.resolver.NoAnswer:
+            return []
+        except Exception:  # noqa: BLE001 — resolver present but the lookup itself failed (network/timeout)
+            return None
+    except ImportError:
+        pass
+
+    nslookup = shutil.which("nslookup")
+    if not nslookup:
+        return None
+    try:
+        proc = subprocess.run(
+            [nslookup, "-type=TXT", domain],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+        )
+    except Exception:  # noqa: BLE001 — subprocess itself failed to launch/timed out
+        return None
+    if proc.returncode != 0:
+        return None
+    return [line.strip() for line in proc.stdout.splitlines() if "text =" in line.lower()]
+
+
+def check_spf_dmarc(store) -> tuple[str, str, str]:
+    """Returns (spf_status, dmarc_status, detail), each one of 'ok'/'missing'/'unchecked'. Domain
+    is derived from config.sender.email; never crashes."""
+    try:
+        sender = store.get_config("sender", {}) or {}
+    except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
+        return "unchecked", "unchecked", f"could not read config.sender: {type(exc).__name__}: {exc}"
+    email = (sender.get("email") or "").strip()
+    if "@" not in email:
+        return "unchecked", "unchecked", "skipped (config.sender.email not set)"
+    domain = email.split("@", 1)[1].strip()
+    if not domain:
+        return "unchecked", "unchecked", "skipped (config.sender.email has no domain)"
+
+    spf_records = _resolve_txt_records(domain)
+    spf_status = "unchecked" if spf_records is None else ("ok" if any(r.lower().startswith("v=spf1") for r in spf_records) else "missing")
+
+    dmarc_records = _resolve_txt_records(f"_dmarc.{domain}")
+    dmarc_status = "unchecked" if dmarc_records is None else ("ok" if any("v=dmarc1" in r.lower() for r in dmarc_records) else "missing")
+
+    return spf_status, dmarc_status, f"domain: {domain}"
+
+
+def check_email_found_rate(store) -> tuple[str, str]:
+    """Day-10 silent-rot canary: the enrich waterfall's email-found rate over the last 10 days
+    (businesses with an email_status set in that window = "enriched"; of those, the fraction with
+    owner_email set = "found"). WARN when the rate is below 30% AND there are at least 10 enriched
+    rows to make that rate meaningful (fewer than 10 is reported but never flagged — too noisy to
+    trust). Never crashes."""
+    try:
+        businesses = store.list_rows("businesses")
+    except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
+        return "unchecked", f"could not read businesses: {type(exc).__name__}: {exc}"
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
+    recent = [b for b in businesses if b.get("email_status") is not None and (b.get("updated_at") or "") >= cutoff]
+    enriched_n = len(recent)
+    if enriched_n < 10:
+        return "n/a", f"only {enriched_n} enriched in the last 10 days (need >= 10 for a stable rate)"
+    found_n = sum(1 for b in recent if b.get("owner_email"))
+    rate = found_n / enriched_n
+    status = "WARN" if rate < 0.30 else "ok"
+    return status, f"{found_n}/{enriched_n} = {rate * 100:.1f}% found (last 10 days)"
+
+
 def print_table(rows: list[tuple[str, ...]], headers: tuple[str, ...]) -> None:
     widths = [len(h) for h in headers]
     for row in rows:
@@ -471,24 +587,51 @@ def main() -> None:
         # never crash without env: an unconfigured Supabase store is a report row, not a traceback
         store = get_store()
         sender_ok, sender_detail = check_sender_config(store)
+        address_ok, address_detail = check_sender_address_is_valid(store)
         try:
             queue_pick = store.get_config("queue_pick", None)
         except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
             queue_pick = f"error: {type(exc).__name__}: {exc}"
+        try:
+            live_send_confirmed = store.get_config("live_send_confirmed", False)
+        except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
+            live_send_confirmed = f"error: {type(exc).__name__}: {exc}"
+        email_found_status, email_found_detail = check_email_found_rate(store)
     except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
         sender_ok, sender_detail = False, f"store unavailable: {type(exc).__name__}: {exc}"
+        address_ok, address_detail = None, "skipped (store unavailable)"
         queue_pick = "store unavailable"
+        live_send_confirmed = "store unavailable"
+        email_found_status, email_found_detail = "unchecked", "skipped (store unavailable)"
+        store = None
     override_display, override_warning = masked_recipient_override()
     config_rows = [
         ("config.sender", "yes" if sender_ok else "no", sender_detail),
+        ("config.sender address format", "n/a" if address_ok is None else ("yes" if address_ok else "no"), address_detail),
         ("config.queue_pick", "n/a", str(queue_pick)),
+        ("config.live_send_confirmed", "n/a", str(live_send_confirmed)),
+        ("email-found rate (10d canary)", email_found_status, email_found_detail),
         ("PRODCRAFT_RECIPIENT_OVERRIDE", "n/a", override_display),
     ]
     print_table(config_rows, ("check", "ok", "detail"))
     if override_warning:
         print(override_warning)
+    if email_found_status == "WARN":
+        print(f"WARNING: enrich email-found rate has dropped below 30% — {email_found_detail}")
     if not sender_ok and "outreach" in selected_stages:
         stage_missing.setdefault("outreach", []).append("config.sender")
+    if address_ok is False and "outreach" in selected_stages:
+        stage_missing.setdefault("outreach", []).append("config.sender physical_address format")
+
+    print("\n=== Email deliverability (SPF/DMARC) ===")
+    if store is not None:
+        spf_status, dmarc_status, spf_dmarc_detail = check_spf_dmarc(store)
+    else:
+        spf_status, dmarc_status, spf_dmarc_detail = "unchecked", "unchecked", "skipped (store unavailable)"
+    print_table(
+        [("spf", spf_status, spf_dmarc_detail), ("dmarc", dmarc_status, spf_dmarc_detail)],
+        ("check", "status", "detail"),
+    )
 
     failing_stages = [s for s in selected_stages if stage_missing.get(s)]
     print(

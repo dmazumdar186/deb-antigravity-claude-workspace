@@ -30,6 +30,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
 # Column order matches db/schema.sql's `create or replace view v_pipeline as select ...`
 V_PIPELINE_COLUMNS = [
@@ -204,6 +205,25 @@ def write_xlsx(pipeline_rows: list[dict], daily_log_rows: list[dict], out_path: 
     return True
 
 
+def _column_letter(n: int) -> str:
+    """1-indexed column number -> spreadsheet column letters (A, B, ..., Z, AA, AB, ..., AZ, BA, ...).
+
+    Replaces the old `chr(ord("A") + n - 1)`, which only ever produced a single character and
+    silently emitted an out-of-range/garbage character (or raised) for any sheet past column 26
+    ('Z') — this pipeline's own V_PIPELINE_COLUMNS is currently 19 wide, but DAILY_LOG_COLUMNS plus
+    any future column additions make >26 a real possibility. Equivalent to gspread.utils's
+    rowcol_to_a1 column half, reimplemented here so this module has no hard gspread dependency at
+    CSV/--mock time (gspread is only imported, lazily, inside _get_service_account_client()).
+    """
+    if n < 1:
+        raise ValueError(f"column number must be >= 1, got {n}")
+    letters = ""
+    while n > 0:
+        n, remainder = divmod(n - 1, 26)
+        letters = chr(ord("A") + remainder) + letters
+    return letters
+
+
 def _get_service_account_client():
     import gspread  # type: ignore[import-untyped]
 
@@ -244,7 +264,7 @@ def write_google_sheet(rows: list[dict], spreadsheet_id: str, tab_name: str, col
     if pad > 0:
         all_rows += [[""] * len(header) for _ in range(pad)]
 
-    end_col = chr(ord("A") + len(header) - 1)
+    end_col = _column_letter(len(header))
     ws.update(values=all_rows, range_name=f"A1:{end_col}{len(all_rows)}", value_input_option="RAW")
 
 
@@ -261,8 +281,9 @@ def main() -> None:
         "fatal, if it's not installed)",
     )
     args = parser.parse_args()
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock implies local; never supabase
 
-    store = get_store(kind=args.store, root=args.store_root) if args.store_root else get_store(kind=args.store)
+    store = get_store(kind=store_kind, root=args.store_root) if args.store_root else get_store(kind=store_kind)
     pipeline_rows = compute_v_pipeline(store)
     daily_log_rows = compute_daily_log(store)
     total_rows = len(pipeline_rows) + len(daily_log_rows)

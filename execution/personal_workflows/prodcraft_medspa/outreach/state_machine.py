@@ -9,8 +9,9 @@ outputs: transition() mutates the Store (update_outreach / upsert_outreach / ups
 
 from __future__ import annotations
 
+import sys
 from datetime import date, datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Callable
 
 from execution.personal_workflows.prodcraft_medspa.outreach import _store_helpers
 
@@ -31,6 +32,9 @@ STATES = (
 TRANSITIONS: set[tuple[str, str]] = {
     ("queued", "drafted"),
     ("drafted", "sent"),
+    ("drafted", "queued"),  # sanctioned "redraft": a lint/QA rejection sends a draft back to the
+                             # front of the queue instead of leaving it stuck in "drafted" (round-2
+                             # audit finding — see redraft() below).
     ("sent", "replied"),
     ("sent", "queued"),  # side effect: creates the touch+1 row; see _create_next_touch
     ("sent", "closed_lost"),
@@ -131,7 +135,46 @@ def _cancel_other_touches(store: Any, business_id: str | None, keep_outreach_id:
     return touched
 
 
-def _apply_dnc(store: Any, outreach_row: dict, **fields: Any) -> dict:
+def _default_takedown_fn(store: Any) -> Callable[[dict], dict]:
+    """Builds the real takedown callable: preview/takedown.py's take_down_preview(), the actual
+    unpublish (R2 prefix delete + Worker /remove call), never just a status flip. `mock` is
+    inferred from the store implementation (LocalStore -> mock; anything else, e.g. SupabaseStore
+    -> live) so a live DNC actually reaches R2/the Worker without every caller having to plumb a
+    --mock flag through to the state machine."""
+
+    def _run(preview_row: dict) -> dict:
+        from execution.personal_workflows.prodcraft_medspa.common import config as config_mod
+        from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+        from execution.personal_workflows.prodcraft_medspa.preview.takedown import take_down_preview
+
+        settings = config_mod.bootstrap()
+        return take_down_preview(store, preview_row, mock=isinstance(store, LocalStore), tmp_root=settings.TMP)
+
+    return _run
+
+
+def _takedown_one_preview(store: Any, preview_row: dict, takedown_fn: Callable[[dict], dict]) -> None:
+    """Idempotent: a preview already marked takedown is never handed to `takedown_fn` again (so
+    two `dnc` transitions, or a `dnc` after a manual takedown, call the real unpublish path at
+    most once), but a `takedown_requested` event is still logged every time for the audit trail."""
+    preview_id = preview_row.get("id")
+    if preview_row.get("status") == "takedown" or preview_row.get("takedown") is True:
+        store.log_event("preview", preview_id, "takedown_requested", {"reason": "dnc", "outcome": "already_takendown"})
+        return
+    try:
+        result = takedown_fn(preview_row)
+        outcome = {
+            k: result.get(k) for k in ("r2_objects_deleted", "outreach_closed", "status")
+        } if isinstance(result, dict) else None
+        store.log_event("preview", preview_id, "takedown_requested", {"reason": "dnc", "outcome": "ok", "result": outcome})
+    except Exception as exc:  # noqa: BLE001 — a takedown failure (R2/Worker outage) must not block dnc itself;
+        # logged (both here and via events) so it's never silently swallowed, matching
+        # python-hardening.md rule 5.
+        print(f"[state_machine] dnc takedown failed for preview {preview_id}: {exc}", file=sys.stderr)
+        store.log_event("preview", preview_id, "takedown_requested", {"reason": "dnc", "outcome": "error", "error": str(exc)})
+
+
+def _apply_dnc(store: Any, outreach_row: dict, *, takedown_fn: Callable[[dict], dict] | None = None, **fields: Any) -> dict:
     frm = outreach_row.get("status")
     patch = dict(fields)
     patch["status"] = "dnc"
@@ -147,30 +190,40 @@ def _apply_dnc(store: Any, outreach_row: dict, **fields: Any) -> dict:
             store.upsert_business({**business, "do_not_contact": True})
             store.log_event("business", business_id, "do_not_contact:true", {})
 
+    # Takedown is no longer a bare status flip left for a later script (scripts/daily.py) to
+    # maybe do — it happens right here so a dnc/remove request can never leave a preview live
+    # (round-2 trust/safety finding). take_down_preview() itself is idempotent-safe to call
+    # again from daily.py's later pass; _takedown_one_preview()'s own guard just avoids the
+    # redundant R2/Worker round-trip when we already know the preview is down.
+    resolved_takedown_fn = takedown_fn or _default_takedown_fn(store)
     preview_id = outreach_row.get("preview_id")
-    now = _now_iso()
     if preview_id:
-        try:
-            store.update_preview(preview_id, {"status": "takedown", "takedown": True, "takedown_at": now})
-            store.log_event("preview", preview_id, "takedown_requested", {"reason": "dnc"})
-        except KeyError:
-            # preview row not found under this store (e.g. deleted already) — not fatal to dnc.
-            pass
+        preview_row = store.get_row("previews", preview_id)
+        if preview_row is not None:
+            _takedown_one_preview(store, preview_row, resolved_takedown_fn)
+        else:
+            # preview row not found under this store (e.g. deleted already) — not fatal to dnc,
+            # but worth a log line rather than a silent no-op.
+            print(f"[state_machine] dnc: preview {preview_id} not found for takedown", file=sys.stderr)
     elif business_id:
         for p in _store_helpers.previews_for_business(store, business_id):
-            if p.get("status") != "takedown":
-                store.update_preview(p["id"], {"status": "takedown", "takedown": True, "takedown_at": now})
-                store.log_event("preview", p["id"], "takedown_requested", {"reason": "dnc"})
+            _takedown_one_preview(store, p, resolved_takedown_fn)
 
     return updated
 
 
-def transition(store: Any, outreach_row: dict, to: str, **fields: Any) -> dict:
+def transition(
+    store: Any, outreach_row: dict, to: str, *, takedown_fn: Callable[[dict], dict] | None = None, **fields: Any
+) -> dict:
     """Apply one legal state transition to `outreach_row` and return the resulting row.
 
     `fields` are extra columns to patch (sentiment, notes, sent_at, ...) alongside the status
     change. Every call logs an `events` row. Raises IllegalTransition for anything not in
     TRANSITIONS (dnc is always legal from any state, including terminal ones).
+
+    `takedown_fn`, meaningful only for `to == "dnc"`, overrides the real takedown callable
+    (preview/takedown.py's take_down_preview by default) — tests inject a stub here instead of
+    hitting R2/the Worker.
     """
     frm = outreach_row.get("status")
     if frm not in STATES:
@@ -179,7 +232,7 @@ def transition(store: Any, outreach_row: dict, to: str, **fields: Any) -> dict:
         raise IllegalTransition(f"unknown target state {to!r}")
 
     if to == "dnc":
-        return _apply_dnc(store, outreach_row, **fields)
+        return _apply_dnc(store, outreach_row, takedown_fn=takedown_fn, **fields)
 
     if (frm, to) not in TRANSITIONS:
         raise IllegalTransition(f"{frm} -> {to} is not a legal transition")
@@ -209,3 +262,14 @@ def transition(store: Any, outreach_row: dict, to: str, **fields: Any) -> dict:
         store.log_event("outreach", outreach_row["id"], "closed_lost", {"touch": outreach_row.get("touch")})
 
     return updated
+
+
+def redraft(store: Any, outreach_id: str, reason: str) -> dict:
+    """Sanctioned `drafted -> queued` helper ("redraft"): a lint/QA rejection or an operator
+    "start this one over" sends a drafted-but-not-yet-sent row back to the front of the queue
+    instead of leaving it stuck in `drafted` with no legal way out. Raises `KeyError` if
+    `outreach_id` doesn't exist, and `IllegalTransition` if the row isn't currently `drafted`."""
+    row = store.get_row("outreach", outreach_id)
+    if row is None:
+        raise KeyError(f"outreach {outreach_id} not found")
+    return transition(store, row, "queued", reason=reason)

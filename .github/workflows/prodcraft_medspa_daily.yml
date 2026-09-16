@@ -1,16 +1,23 @@
 name: prodcraft-medspa-daily
 
 # Fully automated daily loop (operator decision 2026-09-16): discover/audit/enrich/build previews
-# for the configured metro, pick 5 (random) qualified spas with a built preview, send the outreach
-# email, and mirror everything to a Google Sheet. Shares the `prodcraft-medspa` concurrency group
-# with prodcraft_medspa_replies.yml so the two workflows never touch the store at the same time.
-# Inert until the operator flips the `PRODCRAFT_CRON_ENABLED` repo variable to "true" — see
+# for the configured metro, gate + (opt-in) auto-approve previews, pick 5 (random) qualified spas
+# with a built + approved preview, send the outreach email, and mirror everything to a Google
+# Sheet. Shares the `prodcraft-medspa` concurrency group with prodcraft_medspa_replies.yml so the
+# two workflows never touch the store at the same time. Inert until the operator flips the
+# `PRODCRAFT_CRON_ENABLED` repo variable to "true" — see
 # directives/personal_workflows/prodcraft_medspa_pipeline.md for the one-time setup this depends on
 # (Supabase project + schema, R2 bucket, Worker deploy, Gmail OAuth token with gmail.send,
-# Telegram channel, Google Sheets mirror + service account).
+# Telegram channel, Google Sheets mirror + service account, R2 S3 API token).
 #
 # PRODCRAFT_RECIPIENT_OVERRIDE (repo VARIABLE, not a secret) lets the operator point every send at
 # their own inbox for the first days; clear it once live sends are trusted.
+#
+# Expected runtime (round-2 fixops item 3): ~30-45 min on a normal metro run (dominated by the
+# "Run metro" step's discovery/audit/enrich/preview chain), well inside the ~64 min sum of the
+# per-step timeouts below and the 75-minute job-level backstop. Steps are ordered and individually
+# timed out so a stuck stage is SIGKILLed on its own step (visible in the run log as *that* step
+# failing) instead of silently eating the whole job budget and skipping sync_sheets/Telegram.
 
 on:
   schedule:
@@ -33,7 +40,9 @@ jobs:
   daily:
     if: vars.PRODCRAFT_CRON_ENABLED == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Backstop only — each step below has its own timeout-minutes and the steps sum to ~64 min;
+    # this catches anything upstream (checkout, action setup) that isn't one of those steps.
+    timeout-minutes: 75
     env:
       PRODCRAFT_STORE: supabase
       PRODCRAFT_ENV: github-actions
@@ -61,6 +70,7 @@ jobs:
       DASHBOARD_USER: ${{ secrets.DASHBOARD_USER }}
       DASHBOARD_PASS: ${{ secrets.DASHBOARD_PASS }}
       PRODCRAFT_RECIPIENT_OVERRIDE: ${{ vars.PRODCRAFT_RECIPIENT_OVERRIDE }}
+      METRO: ${{ github.event.inputs.metro || vars.PRODCRAFT_METRO || 'chicago_north_shore' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,11 +80,28 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: execution/personal_workflows/prodcraft_medspa/requirements.txt
 
-      - name: Install Python dependencies
+      - name: Install Python dependencies (scoped to prodcraft_medspa)
+        timeout-minutes: 5
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r execution/personal_workflows/prodcraft_medspa/requirements.txt
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('execution/personal_workflows/prodcraft_medspa/requirements.txt') }}
+
+      - name: Install Playwright Chromium
+        timeout-minutes: 8
+        # --with-deps also installs the OS-level libraries Chromium needs on a bare ubuntu-latest
+        # runner; safe to re-run even when the cache above hit (it no-ops on an already-installed
+        # browser but still verifies/repairs missing system deps).
+        run: |
+          python -m playwright install --with-deps chromium
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -82,36 +109,57 @@ jobs:
           node-version: "22"
 
       - name: npm ci (template — previews need the build)
+        timeout-minutes: 5
         working-directory: execution/personal_workflows/prodcraft_medspa/template
         run: npm ci
 
       - name: Write Google service account key
+        timeout-minutes: 1
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: |
           echo "$GOOGLE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/prodcraft-service-account.json"
           echo "GOOGLE_SERVICE_ACCOUNT_PATH=$RUNNER_TEMP/prodcraft-service-account.json" >> "$GITHUB_ENV"
 
+      - name: Doctor precheck (preview + outreach stages must be live-configured before spending API budget)
+        timeout-minutes: 5
+        run: |
+          python execution/personal_workflows/prodcraft_medspa/scripts/doctor.py --live --stages preview,outreach
+
       - name: Run metro (discovery -> audit -> enrich -> preview)
+        timeout-minutes: 25
         run: |
           python execution/personal_workflows/prodcraft_medspa/scripts/run_metro.py \
-            --metro "${{ github.event.inputs.metro || vars.PRODCRAFT_METRO || 'chicago_north_shore' }}" \
+            --metro "$METRO" \
             --store supabase --continue-on-error
 
-      - name: Run daily send (picks 5 qualified spas, sends, mirrors to Sheets via this job's own sync step)
+      - name: Gate previews (Playwright acceptance re-check; auto-approves only if config.auto_approve_previews is true)
+        timeout-minutes: 8
+        run: |
+          python execution/personal_workflows/prodcraft_medspa/scripts/preview_gate.py \
+            --metro "$METRO" \
+            --store supabase
+
+      - name: Run daily send (picks up to 5 qualified spas with an approved preview, sends, mirrors to Sheets via this job's own sync step)
+        timeout-minutes: 8
         run: |
           python execution/personal_workflows/prodcraft_medspa/scripts/daily.py --store supabase
 
       - name: Sync to Google Sheets (pipeline + daily_log tabs)
+        # Runs even if an earlier step failed or the job was cancelled, so the sheet still reflects
+        # whatever the store ended up with instead of going stale on a mid-run failure.
+        if: always()
+        timeout-minutes: 5
         run: |
           python execution/personal_workflows/prodcraft_medspa/scripts/sync_sheets.py --store supabase
 
       - name: Notify Telegram on failure
-        if: failure()
+        if: failure() || cancelled()
+        timeout-minutes: 2
         run: |
           python -c "
           import sys
           sys.path.insert(0, '.')
           from execution.personal_workflows.prodcraft_medspa.common import notify
-          notify.error('github-actions.daily', 'workflow failed', 1)
+          notify.error('github-actions.daily', 'workflow failed or was cancelled', 1)
           "

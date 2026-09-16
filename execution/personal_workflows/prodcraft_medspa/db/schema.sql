@@ -30,6 +30,9 @@ create table if not exists businesses (
   owner_email     text,
   email_status    text,                       -- deliverable|undeliverable|risky|unknown|null
   email_source    text,                       -- contact_page|gbp_reviews|state_registry|apollo|findymail|hunter|generic_inbox
+  discovery_source text,                      -- places|csv:<source> (added by 0003_round2_columns.sql)
+  llm_overrides   jsonb,                      -- operator-provided per-business LLM field overrides (0003)
+  pii_purged_at   timestamptz,                -- set by Store.purge_pii()/scripts/purge_pii.py (0003)
   do_not_contact  boolean not null default false,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
@@ -80,6 +83,12 @@ create table if not exists previews (
   expires_at     timestamptz,
   takedown       boolean not null default false,
   takedown_at    timestamptz,
+  publish_mode   text not null default 'r2',   -- r2|local|mock (0003_round2_columns.sql)
+  local_build_dir text,                        -- set when publish_mode = local/mock (0003)
+  email_policy   text,                         -- email_policy in effect when this preview was built (0003)
+  min_score      integer,                      -- min_score threshold in effect when built (0003)
+  hosted_at      text,                         -- external host, when hand-hosted outside R2/Worker (0003)
+  original_host  text,                         -- pre-rehost host, if this preview's URL was later changed (0003)
   created_at     timestamptz not null default now()
 );
 create index if not exists previews_business_idx on previews (business_id);
@@ -106,6 +115,11 @@ create table if not exists outreach (
   notified_at       timestamptz,                      -- when notify.reply fired for this row's reply
   test_recipient    text,                             -- set instead of the owner's real inbox while
                                                        -- PRODCRAFT_RECIPIENT_OVERRIDE is active
+  gmail_message_id  text,                              -- the sent message's Gmail id (0003_round2_columns.sql)
+  sent_via          text,                              -- gmail_api|gmail_draft|... (0003)
+  seen_reply_ids    jsonb not null default '[]'::jsonb, -- Gmail message ids scan_replies has already
+                                                        -- processed for this row, for reply-scan dedupe (0003)
+  pii_purged_at     timestamptz,                       -- set by Store.purge_pii()/scripts/purge_pii.py (0003)
   next_touch_at     date,
   notes             text,
   created_at        timestamptz not null default now(),
@@ -126,7 +140,9 @@ create table if not exists deals (
   current_booking_tool           text,
   live_at                        date,
   bookings_60d                   integer,
-  guarantee_met                  boolean,         -- computed: bookings_60d > baseline*2 (60d vs 30d baseline)
+  guarantee_met                  boolean,         -- computed: bookings_60d > max(baseline, 5) * 2
+                                                    -- (60d vs 30d baseline; ZERO_BASELINE_FLOOR=5 in
+                                                    -- deals/deals.py stops a zero-baseline "win")
   balance_paid_at                date,
   care_plan_active               boolean not null default false,
   notes                          text,

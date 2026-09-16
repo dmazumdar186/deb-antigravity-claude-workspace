@@ -71,6 +71,45 @@ def _new_id() -> str:
     return str(uuid.uuid4())
 
 
+# Statuses that must never be silently downgraded back to "review" by a re-upsert (e.g. a
+# rebuild of already-approved/live content that reuses the same (business_id, content_hash) key
+# — an operator's or dashboard's forward progress on a preview must not be clobbered by a later
+# pipeline run of the same content).
+_PREVIEW_STICKY_STATUSES = ("approved", "live")
+
+# Fields purge_pii() blanks. businesses: owner identity + phone + the enrich-waterfall's evidence
+# of where the email came from. outreach: every field that could itself carry or point at PII
+# (Gmail ids reveal a real thread; reply_* fields quote the prospect's own words). Deliberately
+# excludes status/touch/sent_at/next_touch_at/ids/draft_* (draft content is our own copy, not the
+# prospect's PII) so the funnel/audit trail stays intact after a purge. See CONTRACTS.md "PII
+# retention" for the policy (DNC: purge within 10 business days; closed_lost: after 180 days).
+_BUSINESS_PII_FIELDS = ("owner_name", "owner_first", "owner_email", "phone", "email_source")
+_OUTREACH_PII_FIELDS = (
+    "gmail_message_id",
+    "gmail_thread_id",
+    "gmail_draft_id",
+    "test_recipient",
+    "reply_excerpt",
+    "reply_summary",
+    "reply_suggested_next_step",
+)
+
+
+def _guarded_preview_merge_fields(existing: dict, incoming_row: dict) -> dict:
+    """Drop fields from `incoming_row` that would silently regress an existing preview merge:
+    downgrading status from approved/live back to review, or overwriting an already-set
+    subdomain_url with a different one. Returns a shallow copy of `incoming_row` with any
+    offending keys removed; callers still `{**existing, **result}` to apply the rest."""
+    incoming = dict(incoming_row)
+    if existing.get("status") in _PREVIEW_STICKY_STATUSES and incoming.get("status") == "review":
+        incoming.pop("status", None)
+    existing_url = existing.get("subdomain_url")
+    incoming_url = incoming.get("subdomain_url")
+    if existing_url and incoming_url and incoming_url != existing_url:
+        incoming.pop("subdomain_url", None)
+    return incoming
+
+
 class Store(Protocol):
     """Persistence interface every pipeline stage codes against. See CONTRACTS.md."""
 
@@ -113,6 +152,16 @@ class Store(Protocol):
     def get_row(self, table: str, row_id: str) -> dict | None: ...  # single row by id, or None if not found; table must be in ID_TABLES
 
     def update_row(self, table: str, row_id: str, patch: dict) -> dict: ...  # generic patch-by-id; stamps updated_at for tables that have it
+
+    def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict: ...
+    # applies update_row(table, id, patch) and logs an "manual_patch" event with
+    # payload {table, id, fields: list(patch), reason} — the sanctioned way for an operator/
+    # dashboard to hand-correct a row while leaving an audit trail.
+
+    def purge_pii(self, business_id: str, reason: str) -> dict: ...
+    # Blanks owner_name/owner_email/phone and enrich-evidence fields on the business row and its
+    # outreach rows (keeps ids/statuses/do_not_contact), stamps pii_purged_at, logs "pii_purged".
+    # See CONTRACTS.md "PII retention" for the policy this backs.
 
     def list_previews(self, business_id: str) -> list[dict]: ...  # all previews for one business, newest (created_at) first
 
@@ -262,7 +311,8 @@ class LocalStore:
             now = _now_iso()
             for i, existing in enumerate(rows):
                 if (existing.get("business_id"), existing.get("content_hash")) == key:
-                    merged = {**existing, **row}
+                    incoming = _guarded_preview_merge_fields(existing, row)
+                    merged = {**existing, **incoming}
                     merged["id"] = existing["id"]
                     merged["created_at"] = existing.get("created_at", now)
                     rows[i] = merged
@@ -509,6 +559,29 @@ class LocalStore:
                     return merged
             raise KeyError(f"{table} row {row_id} not found")
 
+    def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict:
+        updated = self.update_row(table, id, patch)
+        self.log_event(table, id, "manual_patch", {"table": table, "id": id, "fields": list(patch), "reason": reason})
+        return updated
+
+    def purge_pii(self, business_id: str, reason: str) -> dict:
+        now = _now_iso()
+        business_patch = {field: None for field in _BUSINESS_PII_FIELDS}
+        business_patch["do_not_contact"] = True
+        business_patch["pii_purged_at"] = now
+        updated = self.update_row("businesses", business_id, business_patch)
+
+        outreach_rows = self.list_rows("outreach", business_id=business_id)
+        outreach_patch = {field: None for field in _OUTREACH_PII_FIELDS}
+        outreach_patch["pii_purged_at"] = now
+        touched = 0
+        for row in outreach_rows:
+            self.update_row("outreach", row["id"], outreach_patch)
+            touched += 1
+
+        self.log_event("business", business_id, "pii_purged", {"reason": reason, "outreach_rows_touched": touched})
+        return updated
+
     def list_previews(self, business_id: str) -> list[dict]:
         return self.list_rows("previews", business_id=business_id, order_by="created_at", descending=True)
 
@@ -673,11 +746,28 @@ class SupabaseStore:
     # -- previews ----------------------------------------------------------
 
     def upsert_preview(self, row: dict) -> dict:
+        """Same guard as LocalStore.upsert_preview (never downgrade approved/live -> review,
+        never silently overwrite an existing subdomain_url): PostgREST's merge-duplicates has no
+        conditional-field concept, so this reads the existing row (if any) first and strips the
+        offending keys from the body before the upsert POST."""
+        body = dict(row)
+        business_id = row.get("business_id")
+        content_hash = row.get("content_hash")
+        if business_id is not None and content_hash is not None:
+            existing_resp = self._request(
+                "GET",
+                "previews",
+                params=[("business_id", f"eq.{business_id}"), ("content_hash", f"eq.{content_hash}")],
+                headers=self._headers(),
+            )
+            existing_rows = existing_resp.json()
+            if existing_rows:
+                body = _guarded_preview_merge_fields(existing_rows[0], body)
         resp = self._request(
             "POST",
             "previews?on_conflict=business_id,content_hash",
             headers=self._headers(prefer="return=representation,resolution=merge-duplicates"),
-            json=row,
+            json=body,
         )
         data = resp.json()
         return data[0] if isinstance(data, list) else data
@@ -876,6 +966,29 @@ class SupabaseStore:
         if not data:
             raise KeyError(f"{table} row {row_id} not found")
         return data[0] if isinstance(data, list) else data
+
+    def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict:
+        updated = self.update_row(table, id, patch)
+        self.log_event(table, id, "manual_patch", {"table": table, "id": id, "fields": list(patch), "reason": reason})
+        return updated
+
+    def purge_pii(self, business_id: str, reason: str) -> dict:
+        now = _now_iso()
+        business_patch = {field: None for field in _BUSINESS_PII_FIELDS}
+        business_patch["do_not_contact"] = True
+        business_patch["pii_purged_at"] = now
+        updated = self.update_row("businesses", business_id, business_patch)
+
+        outreach_rows = self.list_rows("outreach", business_id=business_id)
+        outreach_patch = {field: None for field in _OUTREACH_PII_FIELDS}
+        outreach_patch["pii_purged_at"] = now
+        for row in outreach_rows:
+            self.update_row("outreach", row["id"], outreach_patch)
+
+        self.log_event(
+            "business", business_id, "pii_purged", {"reason": reason, "outreach_rows_touched": len(outreach_rows)}
+        )
+        return updated
 
     def list_previews(self, business_id: str) -> list[dict]:
         return self.list_rows("previews", business_id=business_id, order_by="created_at", descending=True)

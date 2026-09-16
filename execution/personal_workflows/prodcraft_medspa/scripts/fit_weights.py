@@ -31,20 +31,36 @@ from execution.personal_workflows.prodcraft_medspa.common.store import get_store
 # correlation signal: `poor_performance` folds the 15/10-point tiers into one `psi_mobile < 70`
 # indicator, and `no_booking_widget` treats "" / "null" like None (defensive against string-typed
 # rows from Supabase). Everything else is the exact fail condition.
+def _bool_signal(field: str):
+    """A `field is False`-style boolean signal that treats `None` (never measured — PSI/vision
+    skipped, an older audit row predating a column, etc.) as *unknown*, excluded from that
+    signal's fit, rather than folding it into the "false" (signal-not-present) group. Folding
+    None into False was the round-2 audit finding: a business we never even checked for mobile-
+    friendliness was silently counted as "is mobile friendly", biasing the correlation."""
+
+    def fn(a: dict) -> bool | None:
+        val = a.get(field)
+        if val is None:
+            return None
+        return val is False
+
+    return fn
+
+
 SIGNALS: dict[str, Any] = {
-    "no_website": lambda a: a.get("has_website") is False,
+    "no_website": _bool_signal("has_website"),
     "no_booking_widget": lambda a: a.get("booking_widget") in (None, "", "null"),
-    "not_mobile_friendly": lambda a: a.get("is_mobile_friendly") is False,
+    "not_mobile_friendly": _bool_signal("is_mobile_friendly"),
     "poor_performance": lambda a: isinstance(a.get("psi_mobile"), (int, float)) and a["psi_mobile"] < 70,
     "dated_design": lambda a: isinstance(a.get("vision_dated_score"), (int, float)) and a["vision_dated_score"] >= 7,
-    "no_cta_above_fold": lambda a: a.get("has_cta_above_fold") is False,
-    "no_ssl": lambda a: a.get("has_ssl") is False,
+    "no_cta_above_fold": _bool_signal("has_cta_above_fold"),
+    "no_ssl": _bool_signal("has_ssl"),
     "old_builder": lambda a: (
         a.get("builder") in ("wix", "godaddy")
         or (a.get("builder") == "wordpress" and isinstance(a.get("theme_year"), (int, float)) and a["theme_year"] < 2018)
         or bool(a.get("has_jquery_legacy"))
     ),
-    "no_analytics": lambda a: a.get("has_analytics") is False,
+    "no_analytics": _bool_signal("has_analytics"),
 }
 
 

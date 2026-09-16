@@ -103,10 +103,40 @@ class Store(Protocol):
     def update_row(self, table: str, row_id: str, patch: dict) -> dict
                                                               # generic patch-by-id; stamps updated_at
                                                               # for tables that have the column
+    def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict
+                                                              # update_row() + logs a "manual_patch" event
+                                                              # {table, id, fields: list(patch), reason} —
+                                                              # the sanctioned way for an operator/dashboard
+                                                              # hand-correction to leave an audit trail
+    def purge_pii(self, business_id: str, reason: str) -> dict
+                                                              # blanks owner_name/owner_email/phone/email_source
+                                                              # on the business row and Gmail ids + reply_* on
+                                                              # its outreach rows, stamps pii_purged_at, logs
+                                                              # "pii_purged". See "PII retention" below.
     def list_previews(self, business_id: str) -> list[dict]   # thin list_rows() wrapper, newest first
     def list_outreach(self, business_id: str) -> list[dict]   # thin list_rows() wrapper, newest first
     def load_chains(self, patterns: list[dict]) -> int        # seed helper: merge {"pattern","note"} rows by pattern
 ```
+
+`upsert_preview` merge guard (both LocalStore and SupabaseStore): when a re-upsert hits the same
+`(business_id, content_hash)` key, the merge never lets the incoming row downgrade `status` from
+`approved`/`live` back to `review` (a re-build of already-approved/live content must not clobber
+an operator's or dashboard's forward progress), and never lets it silently overwrite an already-set
+`subdomain_url` with a different one. Both are enforced by stripping those two fields from the
+incoming row before the merge when they'd regress it — every other field still updates normally.
+The returned row's `id` is always the *existing* row's id in this case, never a fresh uuid, so
+callers (e.g. `preview/build_preview.py`) must use the returned row's `id` for anything downstream
+(publish calls, `log_event`) rather than an id generated before the upsert.
+
+## PII retention
+
+`Store.purge_pii(business_id, reason)` is the mechanism; `scripts/purge_pii.py` is the CLI. Policy:
+a `dnc` (do-not-contact) business's PII is purged within **10 business days** of the dnc transition
+— run manually by the operator today (`purge_pii.py --business-id ID --reason ...`); a scheduled
+worker may automate this later. A `closed_lost` deal/prospect's PII is purged after **180 days**
+with no further contact. Purge never deletes rows (ids/statuses/timestamps/`do_not_contact` and the
+funnel/audit trail all survive) — it blanks the fields listed in `common/store.py`'s
+`_BUSINESS_PII_FIELDS`/`_OUTREACH_PII_FIELDS` and stamps `pii_purged_at`.
 `LocalStore(root=".tmp/prodcraft_medspa/store")` keeps one JSON file per table and is fully functional.
 `SupabaseStore` uses PostgREST over `requests` with the service key (`Prefer: resolution=merge-duplicates` for
 upserts). Both pass the same `tests/prodcraft_medspa/test_store.py` contract suite (Supabase tests skip without env).
@@ -175,12 +205,30 @@ always the lost-booking framing, e.g. "clients can't book without calling").
 
 States: `queued, drafted, sent, replied, call_booked, closed_won, closed_lost, dnc`. Touch days: 0, 3, 7, 12.
 Transitions (anything not listed raises `IllegalTransition`):
-`queued→drafted`, `drafted→sent`, `sent→replied`, `sent→queued(next touch)` (creates touch+1 row when touch<4),
+`queued→drafted`, `drafted→sent`, `drafted→queued` ("redraft" — a lint/QA rejection or an operator
+restart; use the `redraft(store, outreach_id, reason)` helper, which logs the transition's
+`events` row with `reason` in the payload rather than calling `transition()` directly),
+`sent→replied`, `sent→queued(next touch)` (creates touch+1 row when touch<4),
 `sent→closed_lost` (touch 4 and `next_touch_at + 5d` passed), `replied→call_booked`, `replied→closed_lost`,
-`call_booked→closed_won`, `call_booked→closed_lost`, `*→dnc`. `dnc` also sets `businesses.do_not_contact`,
-`previews.takedown`, and cancels all other touches. Every transition logs an `events` row.
+`call_booked→closed_won`, `call_booked→closed_lost`, `*→dnc`. `dnc` sets `businesses.do_not_contact`,
+cancels all other touches, and calls the real takedown path — `preview/takedown.py`'s
+`take_down_preview()` (R2 prefix delete + Worker `/remove`), not just a status flip — for every
+non-takendown preview on the business; this is idempotent (a preview already marked `takedown` is
+skipped, logging `takedown_requested` with `outcome: already_takendown` instead of re-running it),
+so a later `scripts/daily.py` takedown pass over the same row is a safe no-op. Tests inject
+`transition(..., takedown_fn=...)` to stub the real R2/Worker call. Every transition logs an
+`events` row.
 Queue cap: `config.phase0.passed` false → 5/day, true → 20/day. Queue halts (returns `[]` with a printed reason)
-when rolling 30-day bounce rate `> 2%`.
+when rolling 30-day bounce rate `> 2%`. `config.phase0.queue_pick_until_passed` (default `"score"`):
+`daily_queue.py` (owned by fixsend) uses this queue-pick strategy while `phase0.passed` is `false`,
+and falls back to `config.queue_pick` once phase0 has passed — validated by
+`common/config_validate.py` alongside `queue_pick` itself.
+
+`config.auto_approve_previews` (bool, default `false` in `db/seed_config.json`): manual review in
+the dashboard stays the default gate on every preview before it's linked to a prospect; setting
+this `true` is an explicit operator opt-in for `preview/approve.py` to bulk-approve without a human
+look at each one (that script's own behavior change is owned by whoever implements it — this repo's
+contract is just the config key + `common/config_validate.py`'s bool check).
 
 ## Template (Next.js) acceptance (tests/prodcraft_medspa/acceptance_template.py)
 

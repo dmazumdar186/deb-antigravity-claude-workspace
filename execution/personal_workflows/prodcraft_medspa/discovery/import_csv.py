@@ -22,6 +22,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -41,6 +42,14 @@ from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import 
 # is no Places `businessStatus` field to distrust here), per the operator's build instructions.
 DROP_REASONS = ("chain", "no_name", "too_small")
 REQUIRED_HEADER = "name"
+
+# Strict: no whitespace anywhere (rejects "name @ex.com" / trailing-space paste artifacts from a
+# spreadsheet), and a TLD of at least 2 letters is required (rejects "owner@localcompany" typos).
+_EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$")
+
+
+def _valid_email(value: str | None) -> bool:
+    return bool(value) and bool(_EMAIL_RE.match(value)) and " " not in value
 
 
 def _derive_place_id(name: str, address: str) -> str:
@@ -137,7 +146,8 @@ def process_csv_rows(
         city = (row.get("city") or "").strip() or None
         slug = _resolve_slug(name, place_id, city or "", existing_slugs)
 
-        email = (row.get("email") or "").strip() or None
+        email_raw = (row.get("email") or "").strip() or None
+        email = email_raw if _valid_email(email_raw) else None
         owner_name = (row.get("owner_name") or "").strip() or None
 
         biz_row: dict = {
@@ -226,7 +236,10 @@ def main(argv: list[str] | None = None) -> None:
     unique_rows, dropped = process_csv_rows(csv_rows, chains, args.metro, args.source, existing_slugs)
 
     for row in unique_rows:
-        store.upsert_business(row)
+        stored = store.upsert_business(row)
+        store.log_event(
+            "business", stored["id"], "import", {"source": row.get("discovery_source"), "had_email": bool(row.get("owner_email"))}
+        )
 
     kept = sum(1 for row in unique_rows if row["drop_reason"] is None)
     print(_stat_line(len(csv_rows), len(unique_rows), kept, dropped))

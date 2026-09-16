@@ -492,12 +492,8 @@ def _process_business(
     r2_client.upload_dir(build_dir, prefix)
     stats["uploaded"] += 1
 
-    preview_id = str(uuid.uuid4())
-    publish.publish(host, expires_at, business_id, preview_id, mock=local_publish, meta_dir=tmp_root / "kv")
-    stats["published"] += 1
-
     preview_row = {
-        "id": preview_id,
+        "id": str(uuid.uuid4()),
         "business_id": business_id,
         "template_id": "medspa-v1",
         "slug_suffix": slug_suffix,
@@ -513,7 +509,17 @@ def _process_business(
         "publish_mode": "mock" if mock else publish_mode,
         "local_build_dir": str(build_dir) if local_publish else None,
     }
-    store.upsert_preview(preview_row)
+    # upsert_preview() is keyed on (business_id, content_hash): a re-build of unchanged content
+    # for a business that already has a preview row returns THAT existing row (its own id, not
+    # the uuid we just generated above) — use the returned row's id for everything downstream so
+    # the KV/Worker publish call and both events below never reference an id that was never
+    # actually stored (orphan built/published events, code-reviewer round-2 finding).
+    stored_preview = store.upsert_preview(preview_row)
+    preview_id = stored_preview["id"]
+
+    publish.publish(host, expires_at, business_id, preview_id, mock=local_publish, meta_dir=tmp_root / "kv")
+    stats["published"] += 1
+
     store.log_event(
         "preview", preview_id, "built", {"host": host, "used_fallback_services": services_result["used_fallback"]}
     )
@@ -603,8 +609,11 @@ def main() -> None:
             stats["errors"] += 1
             try:
                 store.log_event("business", business_id, "preview_error", {"error": str(exc)})
-            except Exception:  # noqa: BLE001 — logging must never mask the original failure
-                pass
+            except Exception as log_exc:  # noqa: BLE001 — logging must never mask the original failure
+                print(
+                    f"[build_preview] could not log preview_error event for business {business_id}: {log_exc}",
+                    file=sys.stderr,
+                )
             notify.error("build_preview", f"{business_id}: {exc}")
 
     stats["llm_cost_usd"] = round(stats["llm_cost_usd"], 6)

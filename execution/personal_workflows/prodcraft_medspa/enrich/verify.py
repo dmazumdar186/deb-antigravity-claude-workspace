@@ -58,9 +58,12 @@ def verify(email: str | None, *, mock: bool, fixtures_root: Path, api_key: str |
         return _classify(result.get("result")), COST_PER_CHECK_USD
 
     if not api_key:
+        # Domain only, never the full address: this line can land in CI/doctor logs, and a full
+        # prospect email address is PII that has no business appearing in stderr.
+        domain = email.split("@", 1)[1] if "@" in email else "?"
         print(
-            "[verify] MILLION_VERIFIER_API_KEY is unset; classifying "
-            f"{email!r} as 'unverified' (no live verification performed — this is not a bounce, "
+            "[verify] MILLION_VERIFIER_API_KEY is unset; classifying an email at "
+            f"@{domain} as 'unverified' (no live verification performed — this is not a bounce, "
             "just an unmeasured email; set the key or run --mock to get a real classification)",
             file=sys.stderr,
         )

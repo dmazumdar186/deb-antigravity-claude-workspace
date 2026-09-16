@@ -26,7 +26,13 @@ REQUIRED_BY_STAGE: dict[str, list[str]] = {
         "FINDYMAIL_API_KEY|HUNTER_API_KEY",
         "MILLION_VERIFIER_API_KEY",
     ],
-    "preview": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "R2_BUCKET"],
+    "preview": [
+        "CLOUDFLARE_API_TOKEN",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "R2_BUCKET",
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY",
+    ],
     "outreach": ["GMAIL_CREDENTIALS_JSON", "GMAIL_TOKEN_JSON", "ANTHROPIC_API_KEY"],
     "store": ["SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
     "notify": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"],
@@ -48,6 +54,8 @@ _ENV_VAR_NAMES = [
     "CLOUDFLARE_API_TOKEN",
     "CLOUDFLARE_ACCOUNT_ID",
     "R2_BUCKET",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
     "PREVIEW_BASE_DOMAIN",
     "GMAIL_CREDENTIALS_JSON",
     "GMAIL_TOKEN_JSON",
@@ -83,6 +91,8 @@ class Settings:
     CLOUDFLARE_API_TOKEN: str | None = None
     CLOUDFLARE_ACCOUNT_ID: str | None = None
     R2_BUCKET: str | None = "prodcraft-previews"
+    R2_ACCESS_KEY_ID: str | None = None
+    R2_SECRET_ACCESS_KEY: str | None = None
     PREVIEW_BASE_DOMAIN: str | None = "preview.prodcraft.fyi"
     GMAIL_CREDENTIALS_JSON: str | None = None
     GMAIL_TOKEN_JSON: str | None = None
