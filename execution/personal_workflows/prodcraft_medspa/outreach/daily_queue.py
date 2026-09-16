@@ -43,7 +43,11 @@ DEFAULT_PHASE0 = {"passed": False, "sends": 0, "calls_booked": 0, "queue_cap_loc
 def _parse_date(value: str | None) -> date:
     if not value:
         return date.today()
-    return datetime.strptime(value, "%Y-%m-%d").date()
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        # one-line usage error instead of a traceback surfacing through daily.py's stderr
+        raise SystemExit(f"--date must be YYYY-MM-DD, got {value!r}") from None
 
 
 def enqueue_new_touch1(st: Any, today: date) -> int:

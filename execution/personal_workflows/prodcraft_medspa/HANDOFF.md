@@ -20,6 +20,10 @@ builds) -> approved 4 (mock-only auto-approve) -> daily queue 4 enqueued, 4 draf
 drafts. A second run on the same store changes no row counts (`skipped_unchanged 4`). Every number was recomputed
 by hand from fixtures by the pipeline-auditor.
 
+Six-tier `/test-suite` (unit, integration, e2e, sanity, performance, monkey) is saved as
+`tests/prodcraft_medspa/test_suite_tiers.sh` (64 checks, all PASS, ~3 min; needs PLAYWRIGHT_BROWSERS_PATH for the
+acceptance step). Baselines: full mock chain ~57 s, pytest ~6 s, store JSON ~100 KB per metro run.
+
 Green set: `pytest tests/prodcraft_medspa` 405 passed / 35 skipped; worker 15, dashboard 38, template 16 vitest +
 clean typechecks; `template: npm run build` + `acceptance_template.py` 0 failures on both viewports.
 
@@ -58,6 +62,7 @@ cd execution/personal_workflows/prodcraft_medspa/preview/worker && npm test && n
 cd execution/personal_workflows/prodcraft_medspa/dashboard && npm test && npm run typecheck
 cd execution/personal_workflows/prodcraft_medspa/template && npm run typecheck && npm test && npm run build
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tests/prodcraft_medspa/acceptance_template.py
+PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers bash tests/prodcraft_medspa/test_suite_tiers.sh
 (the apply_schema -> run_metro --mock -> daily.py --mock chain above; expect 4 previews and a 4-row drafted queue)
 ```
 Do not run two `run_metro` processes against the same checkout at once during verification; the build lock
@@ -82,6 +87,8 @@ serializes them, so the second waits (up to 15 minutes) rather than failing.
 - `scan_replies.py` persists only the classification, not the full LLM envelope, on the outreach row.
 - The self-healing "3 recurrences" rule is a standing instruction; nothing counts recurrences.
 - `events` grows on every run by design (append-only log); the other tables are idempotent.
+- SIGTERM to `run_metro.py` does not propagate to the in-flight stage subprocess; an orphaned Next.js build
+  keeps the build lock for a few more seconds and then releases it cleanly (never stuck).
 - Prompts, templates and README/CONTRACTS prose still contain em-dashes; the customer-facing email templates
   and rendered drafts contain none (checked for U+2014).
 

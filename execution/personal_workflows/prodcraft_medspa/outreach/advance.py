@@ -29,7 +29,11 @@ CLOSE_LOST_GRACE_DAYS = 5
 def _parse_date(value: str | None) -> date:
     if not value:
         return date.today()
-    return datetime.strptime(value, "%Y-%m-%d").date()
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        # one-line usage error instead of a traceback surfacing through daily.py's stderr
+        raise SystemExit(f"--date must be YYYY-MM-DD, got {value!r}") from None
 
 
 def _as_date(value: str | None) -> date | None:

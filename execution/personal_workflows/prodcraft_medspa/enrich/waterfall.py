@@ -31,9 +31,20 @@ from execution.personal_workflows.prodcraft_medspa.common import config, http, n
 from execution.personal_workflows.prodcraft_medspa.common.store import Store, get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import reject_mock_with_supabase  # noqa: E402
 
-from . import apollo, contact_page, findymail, generic_inbox, gbp_reviews, hunter, state_registry, verify  # noqa: E402
-from .context import StepContext, StepResult  # noqa: E402
-from .names import domain_from_url  # noqa: E402
+# Absolute imports so the script runs both as `python3 -m ...enrich.waterfall` and as a direct file path
+# (CONTRACTS.md dual-invocation rule); relative imports fail in the second form.
+from execution.personal_workflows.prodcraft_medspa.enrich import (  # noqa: E402
+    apollo,
+    contact_page,
+    findymail,
+    gbp_reviews,
+    generic_inbox,
+    hunter,
+    state_registry,
+    verify,
+)
+from execution.personal_workflows.prodcraft_medspa.enrich.context import StepContext, StepResult  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.enrich.names import domain_from_url  # noqa: E402
 
 STEPS: list[tuple[str, object]] = [
     ("contact_page", contact_page.run),
