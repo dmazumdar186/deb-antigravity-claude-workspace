@@ -1,0 +1,12 @@
+{
+  "reviews": [
+    {
+      "authorAttribution": {"displayName": "Repeat Client"},
+      "text": {"text": "Debra Walsh, the owner, personally handles every inquiry here -- email her directly at debra@example-medspa-winnetkawellness.test for scheduling."}
+    },
+    {
+      "authorAttribution": {"displayName": "First-timer"},
+      "text": {"text": "Cozy waiting room, friendly staff, would come back."}
+    }
+  ]
+}

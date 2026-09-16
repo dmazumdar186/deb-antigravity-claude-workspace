@@ -9,5 +9,11 @@
   "victor@example-medspa-08.test": {"result": "ok", "quality_score": 91},
   "info@example-medspa-09.test": {"result": "catch_all", "quality_score": 60},
   "sam@example-medspa-11.test": {"result": "ok", "quality_score": 88},
-  "bounced@example-medspa-12.test": {"result": "invalid", "quality_score": 0}
+  "bounced@example-medspa-12.test": {"result": "invalid", "quality_score": 0},
+
+  "maria@example-medspa-glow.test": {"result": "ok", "quality_score": 95},
+  "amy@example-medspa-northshore.test": {"result": "ok", "quality_score": 92},
+  "emily@example-medspa-sheridan.test": {"result": "ok", "quality_score": 90},
+  "emily@example-medspa-greenbay.test": {"result": "ok", "quality_score": 89},
+  "debra@example-medspa-winnetkawellness.test": {"result": "catch_all", "quality_score": 55}
 }

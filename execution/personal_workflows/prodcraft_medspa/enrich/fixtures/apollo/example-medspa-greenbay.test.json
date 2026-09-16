@@ -1,0 +1,9 @@
+{
+  "person": {
+    "name": "Emily Ortiz",
+    "first_name": "Emily",
+    "last_name": "Ortiz",
+    "email": "emily@example-medspa-greenbay.test",
+    "email_status": "verified"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "reviews": [
+    {
+      "authorAttribution": {"displayName": "Longtime Client"},
+      "text": {"text": "Amy Nguyen, the owner, personally reached out after my appointment ran long. You can email her directly at amy@example-medspa-northshore.test if you ever have a scheduling question."}
+    },
+    {
+      "authorAttribution": {"displayName": "Another Visitor"},
+      "text": {"text": "Clean, calm space and a very attentive front desk team."}
+    }
+  ]
+}

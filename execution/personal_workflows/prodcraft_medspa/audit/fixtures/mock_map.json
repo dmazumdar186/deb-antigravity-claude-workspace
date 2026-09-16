@@ -98,5 +98,78 @@
     "fixture": "site_http_only",
     "status": 200,
     "final_url": "http://example-medspa-20.test/"
+  },
+
+  "_note": "Below: canonical chicago_north_shore metro hosts (discovery/fixtures/places_chicago_north_shore.json), re-keyed onto the same 8 fixture pages/statuses above so scripts/run_metro.py --mock actually flows discovery -> audit -> enrich -> preview. See CONTRACTS.md Fixtures section / HANDOFF.md open item 1.",
+
+  "example-medspa-glow.test": {
+    "fixture": "site_wix_nobooking",
+    "status": 200,
+    "final_url": "https://example-medspa-glow.test/"
+  },
+  "example-medspa-northshore.test": {
+    "fixture": "site_wordpress_old_theme",
+    "status": 200,
+    "final_url": "https://example-medspa-northshore.test/"
+  },
+  "example-medspa-sheridan.test": {
+    "fixture": "site_broken_404",
+    "status": 404,
+    "final_url": "https://example-medspa-sheridan.test/"
+  },
+  "example-medspa-greenbay.test": {
+    "fixture": "site_wordpress_old_theme",
+    "status": 200,
+    "final_url": "https://example-medspa-greenbay.test/"
+  },
+  "example-medspa-elmstreet.test": {
+    "fixture": "site_no_viewport",
+    "status": 200,
+    "final_url": "https://example-medspa-elmstreet.test/"
+  },
+  "example-medspa-northbrookcourt.test": {
+    "fixture": "site_squarespace_calendly",
+    "status": 200,
+    "final_url": "https://example-medspa-northbrookcourt.test/"
+  },
+  "example-medspa-sanders.test": {
+    "fixture": "site_godaddy_no_analytics",
+    "status": 200,
+    "final_url": "https://example-medspa-sanders.test/"
+  },
+  "example-medspa-shermer.test": {
+    "fixture": "site_modern_booking",
+    "status": 200,
+    "final_url": "https://example-medspa-shermer.test/"
+  },
+  "example-medspa-central.test": {
+    "fixture": "site_http_only",
+    "status": 200,
+    "final_url": "http://example-medspa-central.test/"
+  },
+  "example-medspa-chicagoave.test": {
+    "fixture": "site_modern_booking",
+    "status": 200,
+    "final_url": "https://example-medspa-chicagoave.test/"
+  },
+  "example-medspa-dempster.test": {
+    "fixture": "site_http_only",
+    "status": 200,
+    "final_url": "http://example-medspa-dempster.test/"
+  },
+  "example-medspa-davisstreet.test": {
+    "fixture": "site_no_viewport",
+    "status": 200,
+    "final_url": "https://example-medspa-davisstreet.test/"
+  },
+  "example-medspa-greenbayevanston.test": {
+    "fixture": "site_squarespace_calendly",
+    "status": 200,
+    "final_url": "https://example-medspa-greenbayevanston.test/"
+  },
+  "example-medspa-ridgeave.test": {
+    "fixture": "site_godaddy_no_analytics",
+    "status": 200,
+    "final_url": "https://example-medspa-ridgeave.test/"
   }
 }
