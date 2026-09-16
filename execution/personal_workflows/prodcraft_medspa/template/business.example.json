@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "name": "Glow Aesthetics",
+  "slug": "glow-aesthetics",
+  "slug_suffix": "k3x9qa",
+  "city": "Winnetka",
+  "state": "IL",
+  "address": "123 Green Bay Rd, Winnetka, IL 60093",
+  "phone": "(847) 555-0100",
+  "phone_href": "tel:+18475550100",
+  "hours": [
+    { "day": "Mon", "open": "9:00 AM", "close": "6:00 PM" },
+    { "day": "Tue", "open": "9:00 AM", "close": "6:00 PM" },
+    { "day": "Wed", "open": "9:00 AM", "close": "6:00 PM" },
+    { "day": "Thu", "open": "9:00 AM", "close": "7:00 PM" },
+    { "day": "Fri", "open": "9:00 AM", "close": "5:00 PM" },
+    { "day": "Sat", "open": "10:00 AM", "close": "3:00 PM" },
+    { "day": "Sun", "open": null, "close": null }
+  ],
+  "services": [
+    { "name": "Botox", "blurb": "Schedule a consultation.", "icon": "syringe" },
+    { "name": "Dermal Fillers", "blurb": "Schedule a consultation.", "icon": "droplet" },
+    { "name": "Laser Hair Removal", "blurb": "Schedule a consultation.", "icon": "laser" },
+    { "name": "Chemical Peels", "blurb": "Schedule a consultation.", "icon": "sparkle" },
+    { "name": "Microneedling", "blurb": "Schedule a consultation.", "icon": "needle" },
+    { "name": "Body Contouring", "blurb": "Schedule a consultation.", "icon": "body" }
+  ],
+  "rating": 4.8,
+  "review_count": 132,
+  "google_maps_url": "https://maps.google.com/?cid=1234567890",
+  "tagline": "Book your next treatment in under a minute.",
+  "primary_color": "#0c76b7",
+  "accent_color": "#F4F1EA",
+  "hero_image": "hero-01.png",
+  "preview": {
+    "expires_at": "2026-10-10",
+    "remove_url": "https://preview.prodcraft.fyi/glow-aesthetics-k3x9qa/remove",
+    "watermark": "Concept preview by ProdCraft — not affiliated with or endorsed by Glow Aesthetics. Remove: reply 'remove'."
+  },
+  "booking_demo": true
+}

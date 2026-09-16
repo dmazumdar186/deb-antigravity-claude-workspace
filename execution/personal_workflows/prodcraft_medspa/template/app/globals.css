@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #7c5cff;
+  --brand-ink: #ffffff;
+  /* Measured height of StickyMobileBar (py-3 + pill button + border) with a
+     small buffer. Used to keep the footer's own content — including its
+     "Remove this preview" link — clear of the fixed bottom bar on mobile. */
+  --sticky-bar-h: 76px;
+  color-scheme: light;
+}
+
+html,
+body {
+  background: #fcfaf5;
+  color: #090a0c;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+}
+
+.font-display {
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+}
+
+.eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.gutter {
+  padding-left: clamp(20px, 4vw, 72px);
+  padding-right: clamp(20px, 4vw, 72px);
+}
+
+.content-max {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid currentColor;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-pill:active {
+  transform: scale(0.97);
+}
+
+.btn-pill-solid {
+  background: var(--brand);
+  color: var(--brand-ink);
+  border-color: var(--brand);
+}
+
+/*
+ * Reveal animation: fade + translateY, gated behind prefers-reduced-motion.
+ * Deliberately NOT opacity:0 at rest — a full-page screenshot, PDF export, or
+ * a crawler never fires a real scroll event, so an IntersectionObserver only
+ * ever sees the first and last rendered frames; anything strictly between
+ * them would stay invisible forever in those contexts. Content stays fully
+ * legible (opacity 1) at all times; only a small translateY + opacity dip
+ * animates in, so a reveal that never triggers still reads as a normal,
+ * finished section rather than missing content.
+ */
+.reveal {
+  opacity: 0.7;
+  transform: translateY(8px);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+table.hours-table td,
+table.hours-table th {
+  padding: 0.5rem 0;
+}
+
+/* Keeps the footer's content (incl. its "Remove this preview" link) clear of
+   StickyMobileBar, which is `fixed` to the bottom below the `md` breakpoint. */
+@media (max-width: 767px) {
+  .footer-mobile-safe {
+    padding-bottom: calc(var(--sticky-bar-h) + 1rem);
+  }
+}
