@@ -53,14 +53,16 @@ export function folioCardState(progress: number, index: number, count: number): 
   const direction = index % 2 === 0 ? 1 : -1;
   const exit = clamp01((-offset - 0.08) / 0.82);
   const depth = Math.max(0, Math.min(4, offset));
-  const captionDistance = Math.abs(offset);
   return {
     xPercent: exit > 0 ? direction * 36 * exit : direction * depth * 2.8,
     yPercent: exit > 0 ? -76 * exit : depth * 3.2,
     rotationDeg: exit > 0 ? direction * 3.5 * exit : direction * depth * 0.8,
     scale: exit > 0 ? 1 - 0.03 * exit : Math.max(0.9, 1 - depth * 0.028),
     opacity: exit > 0 ? 1 - 0.96 * exit : Math.max(0.58, 1 - depth * 0.1),
-    captionOpacity: exit > 0 ? 0 : 1 - clamp01(captionDistance / 0.45),
+    // The front card keeps legible text until it actually exits (text-only cards have no
+    // imagery to carry them, so a midpoint fade-to-zero read as a blank stage); deeper cards
+    // dim by depth but never below 0.35.
+    captionOpacity: exit > 0 ? 1 - exit : Math.max(0.35, 1 - depth * 0.35),
     zIndex: count - index,
   };
 }
