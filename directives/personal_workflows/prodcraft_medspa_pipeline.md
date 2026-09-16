@@ -80,6 +80,9 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
    the id into `wrangler.toml`), `npx wrangler secret put SUPABASE_URL` /
    `SUPABASE_SERVICE_KEY` / `REMOVE_WEBHOOK_SECRET`, `npm run deploy`. Add the wildcard CNAME
    `*.preview` on the `prodcraft.fyi` zone per that README's "DNS" section.
+2b. Create the R2 S3 API token (Cloudflare dashboard > R2 > Manage R2 API Tokens > Object Read and Write on
+   the bucket) and set `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`; `build_preview.py` uploads with them and
+   `doctor.py --stages preview` reports them missing by name.
 3. Deploy the dashboard: `dashboard/README.md`'s "Deploy" — `npx wrangler pages project create
    prodcraft-medspa-dashboard`, then `pages secret put` for `DASHBOARD_USER`, `DASHBOARD_PASS`,
    `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, then `npm run deploy`.
@@ -97,6 +100,27 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
    selected-stage row must show `OK`, every configured service's `live ok` column `yes`.
 
 ### The automated loop (operator standing order 2026-09-16: no human until a positive or neutral reply)
+
+**Secrets set -> first live 5 sent, verbatim** (run from the repo root; `P=execution/personal_workflows/prodcraft_medspa`):
+
+```bash
+python3 $P/db/apply_schema.py --store supabase
+python3 $P/scripts/doctor.py --live                      # every row OK before spending API budget
+python3 $P/scripts/run_metro.py --metro chicago_north_shore --store supabase
+# approve previews: manual gate (default) ...
+python3 $P/preview/approve.py --metro chicago_north_shore --store supabase --all-review --yes-i-reviewed-them
+# ... or the automated gate (opt in once: set_config('auto_approve_previews', True)); the cron runs this step daily
+python3 $P/scripts/preview_gate.py --metro chicago_north_shore --store supabase
+python3 $P/scripts/daily.py --store supabase --recipient-override you@example.com   # dry run to your inbox
+# read every email and preview on a phone, then:
+#   set_config('live_send_confirmed', True); clear PRODCRAFT_RECIPIENT_OVERRIDE; set PRODCRAFT_CRON_ENABLED=true
+```
+
+The first live day sends `phase0.warmup_start_cap` (2) and ramps to `phase0.cap` (5) over `phase0.warmup_days`
+(14); dry-run rows do not start the ramp. Reconciling this with `.claude/rules/automation-boundaries.md`: the outbound
+email is first-draft copy from a human-authored template pool with a lint gate and a mandatory dry run, so per-send
+auto-ship is judged compliant; the human stays in the loop for every reply and for preview approval unless the
+operator opts into `auto_approve_previews`.
 
 7. **Measure the metro first** (cheap): `python3 execution/personal_workflows/prodcraft_medspa/scripts/run_metro.py
    --metro chicago_north_shore --stages discovery,audit --sample-n 40 --sample-only`. Review the funnel and the
