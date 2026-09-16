@@ -3,7 +3,9 @@ gmail_reader.py
 description: Read inbound Gmail replies for scan_replies.py. Live path uses the Gmail API
     (users.threads.get / users.messages.list); --mock reads outreach/fixtures/inbox/*.json.
 inputs: Imported by scan_replies.py. Live: env GMAIL_TOKEN_JSON (see gmail_drafts.py for the
-    shared auth pattern). Mock: fixtures_root/inbox/*.json.
+    shared auth pattern). search_replies() also takes an optional gmail_thread_id so replies
+    from a different address in the same thread are matched, not just the tracked owner_email.
+    Mock: fixtures_root/inbox/*.json.
 outputs: list[dict] reply records: {"thread_id", "from", "to", "subject", "body_text",
     "received_at"}; no writes.
 """
@@ -55,8 +57,13 @@ def _get_credentials(settings: Any):
     return _creds(settings)
 
 
-def search_replies(*, owner_email: str, since_days: int, settings: Any) -> list[dict]:
-    """Live: search `from:{owner_email} newer_than:{since_days}d`, return one record per message."""
+def search_replies(
+    *, owner_email: str = "", since_days: int, settings: Any, thread_id: str | None = None
+) -> list[dict]:
+    """Live: search `from:{owner_email} newer_than:{since_days}d`, plus every message already in
+    `thread_id` (when the outreach row has one, from the send step) so a reply sent from a
+    different address in that same Gmail thread is still caught. Returns one record per message,
+    deduped by message_id (thread messages first, then any additional from-address matches)."""
     try:
         from googleapiclient.discovery import build
     except ImportError as exc:
@@ -67,12 +74,30 @@ def search_replies(*, owner_email: str, since_days: int, settings: Any) -> list[
 
     creds = _get_credentials(settings)
     service = build("gmail", "v1", credentials=creds, cache_discovery=False)
-    query = f"from:{owner_email} newer_than:{since_days}d"
-    resp = service.users().messages().list(userId="me", q=query).execute()
+
     records: list[dict] = []
-    for msg_meta in resp.get("messages", []):
-        msg = service.users().messages().get(userId="me", id=msg_meta["id"], format="full").execute()
-        records.append(_parse_message(msg))
+    seen_ids: set[str] = set()
+
+    if thread_id:
+        thread = service.users().threads().get(userId="me", id=thread_id, format="full").execute()
+        for msg in thread.get("messages", []):
+            record = _parse_message(msg)
+            message_id = record.get("message_id")
+            if message_id and message_id not in seen_ids:
+                seen_ids.add(message_id)
+                records.append(record)
+
+    if owner_email:
+        query = f"from:{owner_email} newer_than:{since_days}d"
+        resp = service.users().messages().list(userId="me", q=query).execute()
+        for msg_meta in resp.get("messages", []):
+            if msg_meta["id"] in seen_ids:
+                continue
+            msg = service.users().messages().get(userId="me", id=msg_meta["id"], format="full").execute()
+            record = _parse_message(msg)
+            seen_ids.add(record.get("message_id") or msg_meta["id"])
+            records.append(record)
+
     return records
 
 
