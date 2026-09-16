@@ -52,7 +52,7 @@ def _walk_strings(obj: Any):
 
 def watermark_for(name: str) -> str:
     """The exact watermark text required by CONTRACTS.md for a business named `name`."""
-    return f"Concept preview by ProdCraft — not affiliated with or endorsed by {name}. Remove: reply 'remove'."
+    return f"Concept preview by ProdCraft , not affiliated with or endorsed by {name}. Not for you? Reply 'no' to the email and this preview comes down."
 
 
 def lint(business: dict) -> list[str]:

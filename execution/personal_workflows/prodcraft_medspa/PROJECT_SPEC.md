@@ -142,7 +142,7 @@ Output → `businesses.owner_name, owner_email, email_status, email_source`.
   - Stock/placeholder hero + service imagery (licensed set in repo). No scraped photos, no logo, no staff/patient images.
   - Business name in plain type only. No logo reproduction.
   - Reviews: show rating + count and link out to Google. Do not copy review text.
-  - Watermark bar, every page: "Concept preview by ProdCraft — not affiliated with or endorsed by {name}. Remove: reply 'remove'."
+  - Watermark bar, every page: "Concept preview by ProdCraft , not affiliated with or endorsed by {name}. Not for you? Reply 'no' to the email and this preview comes down."
   - `<meta name="robots" content="noindex,nofollow">`, `robots.txt` disallow all, unguessable slug suffix.
   - No medical claims. Service descriptions are generic ("Botox — schedule a consultation").
 - Booking: embed a live demo booking widget (e.g., Calendly demo or a Boulevard-styled mock) so the "book at 11pm" pitch is visible.

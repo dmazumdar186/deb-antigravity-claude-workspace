@@ -35,7 +35,7 @@
   "preview": {
     "_expires_at_note": "today + config.preview_expiry_days, popped before comparison",
     "_remove_url_note": "https://{slug}-{slug_suffix}.{base_domain}/remove, popped before comparison",
-    "watermark": "Concept preview by ProdCraft — not affiliated with or endorsed by Glow Aesthetics. Remove: reply 'remove'."
+    "watermark": "Concept preview by ProdCraft , not affiliated with or endorsed by Glow Aesthetics. Not for you? Reply 'no' to the email and this preview comes down."
   },
   "booking_demo": true
 }

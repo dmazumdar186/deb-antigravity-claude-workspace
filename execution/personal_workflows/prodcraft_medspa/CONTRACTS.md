@@ -173,7 +173,7 @@ de-dupe on. `LocalStore.upsert_business` raises `ValueError` on a `slug` collisi
   "tagline": "Book your next treatment in under a minute.",
   "primary_color": "#7C5CFF", "accent_color": "#F4F1EA",
   "hero_image": "hero-01.jpg",          // from template/public/stock/ only
-  "preview": {"expires_at": "2026-10-10", "remove_url": "https://.../remove", "watermark": "Concept preview by ProdCraft — not affiliated with or endorsed by Glow Aesthetics. Remove: reply 'remove'."},
+  "preview": {"expires_at": "2026-10-10", "remove_url": "https://.../remove", "watermark": "Concept preview by ProdCraft , not affiliated with or endorsed by Glow Aesthetics. Not for you? Reply 'no' to the email and this preview comes down."},
   "booking_demo": true
 }
 ```
@@ -290,6 +290,14 @@ replies workflow.
 - **`List-Unsubscribe` header (`send.py`)**: every sent message (mock and live) carries
   `List-Unsubscribe: <mailto:{authenticated_address}?subject=unsubscribe>` alongside the body's
   plain-text opt-out line `lint_draft.py` already requires.
+- **Live-recipients gate (`send.py`, round-3 audit item 8)**: `PRODCRAFT_RECIPIENT_OVERRIDE` (or
+  `--recipient-override`) resolves an unset/misnamed value to `""` -> `None`, which is
+  indistinguishable from an operator who deliberately wants live sends — so under
+  `PRODCRAFT_ENV == "github-actions"` with no override resolved, `send.py` additionally requires
+  the repo variable `PRODCRAFT_LIVE_RECIPIENTS == "true"`; otherwise it refuses with
+  `dropped.live_recipients_not_enabled` and a single `notify.error`. Wired into all three
+  workflows' `env:` blocks (`prodcraft_medspa_daily.yml`, `_replies.yml`, `_weekly.yml`) even
+  though only the daily workflow currently reaches `send.py`.
 - **Phase-0 warmup ramp (`daily_queue.effective_cap`, used by both `daily_queue.py` and
   `send.py`)**: `config.phase0.warmup_days` (default 14) and `config.phase0.warmup_start_cap`
   (default 2) ramp the effective daily cap linearly: `min(phase0.cap, warmup_start_cap +
