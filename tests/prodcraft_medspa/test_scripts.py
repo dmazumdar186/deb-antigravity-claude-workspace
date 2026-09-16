@@ -133,6 +133,49 @@ def test_estimate_total_cost_sums_reported_cost_usd():
     assert run_metro.estimate_total_cost(results) == pytest.approx(3.75)
 
 
+def _metro_args(**overrides):
+    import argparse
+
+    base = dict(
+        metro="chicago_north_shore", mock=True, store="local", store_root="/tmp/x",
+        sample_n=0, sample_only=False, skip_vision=False, skip_screenshots=False, continue_on_error=False,
+    )
+    base.update(overrides)
+    return argparse.Namespace(**base)
+
+
+def test_audit_stage_always_runs_full_audit_even_with_sample_n():
+    """HANDOFF item 2: --sample-n must never replace audit.audit_site."""
+    module, cli = run_metro.build_stage_args("audit", _metro_args(sample_n=40))
+    assert module == "audit.audit_site"
+    assert "--n" not in cli
+
+
+def test_expand_stages_adds_sample_after_full_audit():
+    stages = run_metro.expand_stages(["discovery", "audit", "enrich", "preview"], _metro_args(sample_n=40))
+    assert stages == ["discovery", "audit", "audit_sample", "enrich", "preview"]
+    module, cli = run_metro.build_stage_args("audit_sample", _metro_args(sample_n=40))
+    assert module == "audit.sample_audit"
+    assert cli[cli.index("--n") + 1] == "40"
+    assert "--reuse-audits" in cli  # metro_stats only; nothing audited twice
+
+
+def test_expand_stages_sample_only_replaces_full_audit():
+    stages = run_metro.expand_stages(["discovery", "audit"], _metro_args(sample_n=40, sample_only=True))
+    assert stages == ["discovery", "audit_sample"]
+    _, cli = run_metro.build_stage_args("audit_sample", _metro_args(sample_n=40, sample_only=True))
+    assert "--reuse-audits" not in cli
+
+
+def test_expand_stages_unchanged_without_sample_n():
+    assert run_metro.expand_stages(["discovery", "audit"], _metro_args()) == ["discovery", "audit"]
+
+
+def test_audit_sample_stage_requires_sample_n():
+    with pytest.raises(ValueError):
+        run_metro.build_stage_args("audit_sample", _metro_args(sample_n=0))
+
+
 def test_run_metro_cli_missing_stage_module_exits_nonzero(tmp_path):
     """End-to-end: run_metro.py against a stage whose module does not exist yet
     (preview.build_preview exists, but we point --stages at just 'enrich' with a metro that has no

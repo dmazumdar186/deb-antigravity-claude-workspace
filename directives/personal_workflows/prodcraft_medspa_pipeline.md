@@ -90,10 +90,12 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 ### Phase 0 (manual smoke test — do this before any cron is armed)
 
 7. `python3 execution/personal_workflows/prodcraft_medspa/scripts/run_metro.py --metro
-   chicago_north_shore --sample-n 40` — discovery + a 40-site audit sample, no enrich/preview yet.
+   chicago_north_shore --stages discovery,audit --sample-n 40 --sample-only` — discovery + a 40-site
+   audit sample, no full audit, no enrich/preview yet. (Without `--sample-only`, `--sample-n N` runs
+   the full audit AND then `sample_audit --reuse-audits`, which only adds the `metro_stats` row.)
    Review the printed funnel and `metro_stats` row; this replaces the spec's 40% qualification
    guess with a measured one for this metro (PROJECT_SPEC.md §5.3, §14).
-8. Re-run `run_metro.py --metro chicago_north_shore` with default stages (no `--sample-n`) to
+8. Re-run `run_metro.py --metro chicago_north_shore` with default stages (drop `--sample-only`) to
    audit/enrich/preview the full pull, or hand-pick the top 5 by score with a findable owner name
    per PROJECT_SPEC.md §3 Phase 0 step 2 and build previews for just those 5 by hand.
 9. Review each preview in the dashboard's Previews tab; flip `review` -> `approved` only for the

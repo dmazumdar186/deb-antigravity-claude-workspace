@@ -6,7 +6,7 @@ description: Orchestrator that chains discovery -> audit -> enrich -> preview fo
     from each stage's self-reported JSON stat line AND cross-checked directly against the store —
     plus per-stage drop reasons and total estimated cost.
 inputs: CLI: --metro X [--mock] [--store {local,supabase}] [--store-root P]
-    [--stages discovery,audit,enrich,preview] [--sample-n 0] [--skip-vision] [--skip-screenshots]
+    [--stages discovery,audit,enrich,preview] [--sample-n 0] [--sample-only] [--skip-vision] [--skip-screenshots]
     [--continue-on-error]. Env: whatever the invoked stage subprocesses need (unset is fine with --mock).
 outputs: stdout funnel table + JSON summary; .tmp/prodcraft_medspa/runs/{metro}_{timestamp}.json run
     record; on any stage failure, common.notify.error("run_metro", ...) and a non-zero exit unless
@@ -46,22 +46,40 @@ STAGE_MODULE = {
 }
 
 
+def _audit_flags(args: argparse.Namespace) -> list[str]:
+    extra: list[str] = []
+    if getattr(args, "skip_vision", False):
+        extra.append("--skip-vision")
+    if getattr(args, "skip_screenshots", False):
+        extra.append("--skip-screenshots")
+    return extra
+
+
 def build_stage_args(stage: str, args: argparse.Namespace) -> tuple[str, list[str]]:
-    """Return (module_dotted, cli_args) for one stage."""
+    """Return (module_dotted, cli_args) for one stage.
+
+    `audit` always maps to the full `audit.audit_site` run. `--sample-n N` never replaces it: the
+    sample is expanded by `expand_stages` into a separate `audit_sample` stage that runs
+    `audit.sample_audit --reuse-audits` AFTER the full audit, so it only writes the `metro_stats`
+    row (Wilson interval) from audits that already exist. `--sample-only` is the cheap Phase 0
+    path (directive step 7): sample N sites, no full audit.
+    """
     base = ["--metro", args.metro] + common_store_args(args)
 
     if stage == "discovery":
         return STAGE_MODULE["discovery"], base
 
     if stage == "audit":
-        if args.sample_n and args.sample_n > 0:
-            return STAGE_MODULE["audit_sample"], base + ["--n", str(args.sample_n)]
-        extra = []
-        if args.skip_vision:
-            extra.append("--skip-vision")
-        if args.skip_screenshots:
-            extra.append("--skip-screenshots")
-        return STAGE_MODULE["audit_full"], base + extra
+        return STAGE_MODULE["audit_full"], base + _audit_flags(args)
+
+    if stage == "audit_sample":
+        sample_n = int(getattr(args, "sample_n", 0) or 0)
+        if sample_n <= 0:
+            raise ValueError("audit_sample stage requires --sample-n > 0")
+        cli = base + ["--n", str(sample_n)] + _audit_flags(args)
+        if not getattr(args, "sample_only", False):
+            cli.append("--reuse-audits")
+        return STAGE_MODULE["audit_sample"], cli
 
     if stage == "enrich":
         return STAGE_MODULE["enrich"], base + ["--min-score", "45"]
@@ -72,9 +90,31 @@ def build_stage_args(stage: str, args: argparse.Namespace) -> tuple[str, list[st
     raise ValueError(f"unknown stage: {stage}")
 
 
+def expand_stages(stage_list: list[str], args: argparse.Namespace) -> list[str]:
+    """Insert the `audit_sample` stage when --sample-n is set.
+
+    Default: `audit` (full) then `audit_sample` (metro_stats only, reusing the stored audits).
+    `--sample-only`: `audit_sample` replaces `audit` (nothing else is audited).
+    Without --sample-n the list is returned unchanged.
+    """
+    sample_n = int(getattr(args, "sample_n", 0) or 0)
+    if sample_n <= 0 or "audit" not in stage_list:
+        return list(stage_list)
+    expanded: list[str] = []
+    for stage in stage_list:
+        if stage == "audit":
+            if not getattr(args, "sample_only", False):
+                expanded.append("audit")
+            expanded.append("audit_sample")
+        else:
+            expanded.append(stage)
+    return expanded
+
+
 def run_stages(stage_list: list[str], args: argparse.Namespace) -> list[dict[str, Any]]:
     """Run each stage in order. Stops at the first failure unless --continue-on-error."""
     results: list[dict[str, Any]] = []
+    stage_list = expand_stages(stage_list, args)
     for stage in stage_list:
         module, cli_args = build_stage_args(stage, args)
         print(f"\n=== stage: {stage} ({module}) ===", file=sys.stderr)
@@ -199,7 +239,21 @@ def main() -> None:
     parser.add_argument("--store", choices=["local", "supabase"], default=None)
     parser.add_argument("--store-root", dest="store_root", default=None)
     parser.add_argument("--stages", default=",".join(ALL_STAGES))
-    parser.add_argument("--sample-n", dest="sample_n", type=int, default=0)
+    parser.add_argument(
+        "--sample-n",
+        dest="sample_n",
+        type=int,
+        default=0,
+        help="Also run audit.sample_audit --reuse-audits on N businesses after the full audit "
+        "(writes the metro_stats row with a Wilson interval; nothing is audited twice).",
+    )
+    parser.add_argument(
+        "--sample-only",
+        dest="sample_only",
+        action="store_true",
+        help="With --sample-n: run ONLY the N-site sample audit instead of the full audit "
+        "(the cheap Phase 0 measurement; pair with --stages discovery,audit).",
+    )
     parser.add_argument("--skip-vision", action="store_true")
     parser.add_argument("--skip-screenshots", action="store_true")
     parser.add_argument("--continue-on-error", action="store_true")
@@ -209,6 +263,8 @@ def main() -> None:
     unknown = [s for s in stage_list if s not in ALL_STAGES]
     if unknown:
         parser.error(f"unknown stage(s) in --stages: {unknown} (valid: {ALL_STAGES})")
+    if args.sample_only and not args.sample_n:
+        parser.error("--sample-only requires --sample-n N")
 
     results = run_stages(stage_list, args)
     any_failed = any(not r["ok"] for r in results)
