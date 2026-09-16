@@ -962,3 +962,17 @@ def test_doctor_cli_still_does_not_crash_with_new_checks():
     last_line = proc.stdout.strip().splitlines()[-1]
     stat = json.loads(last_line)
     assert stat["script"] == "doctor"
+
+
+def test_fit_weights_excludes_test_recipient_rows(tmp_path):
+    """Dry-run sends to the operator's own inbox must never enter reply-rate statistics."""
+    from execution.personal_workflows.prodcraft_medspa.scripts import fit_weights
+
+    store = LocalStore(root=tmp_path / "store")
+    b = store.upsert_business({"place_id": "p1", "name": "Spa", "slug": "spa", "metro": "m"})
+    a = store.insert_audit({"business_id": b["id"], "bucket": "qualified", "total_score": 60, "score_version": "1.0", "gaps": []})
+    store.upsert_outreach({"business_id": b["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-16T00:00:00Z", "audit_id": a["id"], "test_recipient": "me@example.test", "next_touch_at": "2026-09-16"})
+    b2 = store.upsert_business({"place_id": "p2", "name": "Spa 2", "slug": "spa-2", "metro": "m"})
+    a2 = store.insert_audit({"business_id": b2["id"], "bucket": "qualified", "total_score": 60, "score_version": "1.0", "gaps": []})
+    store.upsert_outreach({"business_id": b2["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-16T00:00:00Z", "audit_id": a2["id"], "next_touch_at": "2026-09-16"})
+    assert len(fit_weights.touch1_outcomes(store)) == 1

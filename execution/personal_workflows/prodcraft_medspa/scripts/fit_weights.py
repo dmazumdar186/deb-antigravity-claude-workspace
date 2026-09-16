@@ -73,6 +73,9 @@ def touch1_outcomes(store: Any) -> list[tuple[dict, bool]]:
             continue
         if row.get("status") not in sent_states and not row.get("sent_at"):
             continue
+        if row.get("test_recipient"):
+            # operator dry-run rows (sent to the operator's own inbox) are not prospect outcomes
+            continue
         audit = None
         if row.get("audit_id"):
             audit = audits_by_id.get(row["audit_id"])

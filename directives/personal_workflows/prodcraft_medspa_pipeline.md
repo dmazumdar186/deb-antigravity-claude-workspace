@@ -36,6 +36,7 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 | Script | Purpose |
 |---|---|
 | `discovery/places_search.py` | Google Places Text Search (New) per tile, dedupe on `place_id`, chain/closed/too-small filtering. |
+| `discovery/import_csv.py` | Ingest an operator-curated list (`--csv PATH --metro X`; columns name, website, phone, address, city, state, email, review_count, owner_name, place_id). Same chain/no-name/too-small filters as Places; CSV emails land as `email_status=unverified`. `run_metro.py --import-csv PATH` runs it as the first stage. |
 | `audit/audit_site.py` | Full per-site audit: SSL, viewport, PSI, tech detect, booking-widget grep, CTA check, footer year, screenshots, vision score, scoring. |
 | `audit/sample_audit.py` | Random N-business audit-only sample -> `metro_stats` row with a Wilson 95% interval. |
 | `enrich/waterfall.py` | 6-step owner-name/email waterfall + MillionVerifier verification, gated on `--min-score`. |
@@ -43,15 +44,16 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 | `preview/takedown.py` | Immediate unpublish (deletes the R2 prefix, flips `previews.takedown`) for one business id. |
 | `preview/approve.py` | CLI twin of the dashboard approve button: `review` -> `approved` for `--preview-id ID` or `--metro X --all-review`; logs an `events` row. `run_metro.py --auto-approve` (implied by `--mock`) runs it after the preview stage. |
 | `preview/publish.py` | Worker API client (`/api/publish`, `/api/extend`, `/api/meta`) used by build_preview/takedown. Its CLI is the only way to extend a preview: `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30 [--mock]`. There is no `preview/extend.py` module. |
-| `outreach/daily_queue.py` | Today's queue (score desc, cap per phase0 gate), optional Gmail draft creation. |
-| `outreach/scan_replies.py` | Classifies inbox replies; flags remove/opt-out language for takedown + DNC. |
+| `outreach/daily_queue.py` | Today's queue: picks `config.queue_pick` (`random`, seeded by date+metro, or `score`) up to the phase0 cap, renders + lints drafts, re-renders rows whose last lint failed; `--create-drafts` also files Gmail drafts. |
+| `outreach/send.py` | Sends every lint-clean `drafted` row via Gmail (`gmail.send` scope) and transitions it to `sent`; enforces the daily cap across touches, the bounce halt, DNC, approved/live preview, and never mails a business that already replied. `--recipient-override EMAIL` (or env `PRODCRAFT_RECIPIENT_OVERRIDE`) redirects every message to the operator with a `[TEST to <owner_email>]` subject. |
+| `outreach/scan_replies.py` | Classifies inbox replies; `remove` -> takedown + DNC; `negative` -> closed_lost; `positive`/`neutral` -> Telegram message to the operator (`notify.reply`), row marked replied, no further touches. The operator answers those threads by hand. |
 | `outreach/advance.py` | Runs due state-machine transitions (e.g. `sent` -> next touch, `sent` -> `closed_lost`). |
 | `deals/deals.py` | `record`/`golive`/`proof`/`list` — contract, baseline booking count, 60-day guarantee math. |
 | `scripts/run_metro.py` | Chains discovery -> audit -> enrich -> preview for one metro; prints the funnel table. |
-| `scripts/daily.py` | The operator's morning command: advance -> scan_replies -> takedowns -> daily_queue --create-drafts. |
+| `scripts/daily.py` | The unattended daily loop: advance -> scan_replies -> takedowns -> daily_queue -> send. `--no-send` keeps drafts only; `--recipient-override EMAIL`, `--limit N` pass through to send. |
 | `scripts/doctor.py` | Env-presence + (with `--live`) one cheap authenticated call per service, Node/Chromium/node_modules checks. |
 | `scripts/fit_weights.py` | Per-signal reply rate + point-biserial correlation from real outreach outcomes (never changes weights). |
-| `scripts/sync_sheets.py` | Mirrors `v_pipeline` to a Google Sheet tab `pipeline` (or CSV under `--mock`). |
+| `scripts/sync_sheets.py` | Mirrors two tabs, `pipeline` (v_pipeline + outreach/reply columns) and `daily_log` (one row per send), to the Google Sheet `GOOGLE_SHEETS_MIRROR_ID`; `--mock` writes CSVs; `--xlsx PATH` also writes a workbook. |
 | `db/apply_schema.py` | Applies `db/schema.sql` and seeds chains/config into the target store. |
 
 ## Outputs
@@ -94,45 +96,43 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 6b. `python3 execution/personal_workflows/prodcraft_medspa/scripts/doctor.py --live` — every
    selected-stage row must show `OK`, every configured service's `live ok` column `yes`.
 
-### Phase 0 (manual smoke test — do this before any cron is armed)
+### The automated loop (operator standing order 2026-09-16: no human until a positive or neutral reply)
 
-7. `python3 execution/personal_workflows/prodcraft_medspa/scripts/run_metro.py --metro
-   chicago_north_shore --stages discovery,audit --sample-n 40 --sample-only` — discovery + a 40-site
-   audit sample, no full audit, no enrich/preview yet. (Without `--sample-only`, `--sample-n N` runs
-   the full audit AND then `sample_audit --reuse-audits`, which only adds the `metro_stats` row.)
-   Review the printed funnel and `metro_stats` row; this replaces the spec's 40% qualification
-   guess with a measured one for this metro (PROJECT_SPEC.md §5.3, §14).
-8. Re-run `run_metro.py --metro chicago_north_shore` with default stages (drop `--sample-only`) to
-   audit/enrich/preview the full pull, or hand-pick the top 5 by score with a findable owner name
-   per PROJECT_SPEC.md §3 Phase 0 step 2 and build previews for just those 5 by hand.
-9. Review each preview in the dashboard's Previews tab; flip `review` -> `approved` only for the
-   ones you'd actually send. Without the dashboard: open the preview URL, then
-   `python3 -m execution.personal_workflows.prodcraft_medspa.preview.approve --preview-id ID`.
-   Only `approved`/`live` previews enter the daily queue; `run_metro.py` never approves on a live run.
-10. `python3 execution/personal_workflows/prodcraft_medspa/scripts/daily.py` — prints the queue
-    (capped at 5 by the phase0 gate); hand-edit and send each draft from Gmail.
-11. If a prospect replies interested but cannot meet before the preview expires, extend it:
+7. **Measure the metro first** (cheap): `python3 execution/personal_workflows/prodcraft_medspa/scripts/run_metro.py
+   --metro chicago_north_shore --stages discovery,audit --sample-n 40 --sample-only`. Review the funnel and the
+   `metro_stats` row (PROJECT_SPEC.md §5.3, §14). Without a Places key, feed a curated list instead:
+   `run_metro.py --metro X --import-csv path/to/spas.csv --stages discovery,audit` (the import stage runs first).
+8. **Config keys that shape the loop** (set once via the dashboard Config tab or `store.set_config`):
+   `sender` (name + postal address; CAN-SPAM, drafts fail lint until set), `queue_pick` (`random` default, 5 random
+   qualified businesses a day; `score` for highest-score-first), `email_policy` (`deliverable_only` default;
+   `allow_unverified` only for a metro without a verifier key or a dry run), `min_score` (default 45 = qualified;
+   lower it only when PSI/vision keys are missing and 40 of 100 points are unmeasurable; the value is recorded on
+   every preview row), `preview_publish_mode` (`r2` default; `local` keeps exports under `.tmp/prodcraft_medspa/r2/`
+   for hand hosting), `proof_lines`, `phase0`.
+9. **Dry run to your own inbox first.** Set the repo variable `PRODCRAFT_RECIPIENT_OVERRIDE=<your address>` (or pass
+   `--recipient-override`) so every send goes to you with a `[TEST to <owner_email>]` subject; the store still
+   records the real owner email and `test_recipient`. Run `run_metro.py --metro X --auto-approve` (local store; on
+   Supabase, approve previews in the dashboard or with `preview/approve.py --metro X --all-review --yes-i-reviewed-them`
+   after looking at them) then `daily.py --recipient-override you@example.com`. Read every email and preview on a
+   phone. Clear the variable only when the copy, the previews and the sender block are what you would send yourself.
+10. **Arm the crons.** Set `PRODCRAFT_CRON_ENABLED=true` and every secret named in
+    `.github/workflows/prodcraft_medspa_daily.yml` (daily 9am Chicago: run_metro -> daily.py -> sync_sheets) and
+    `prodcraft_medspa_replies.yml` (every 30 minutes: advance -> scan_replies -> takedowns). They share one
+    concurrency group and post to Telegram on failure. From here the loop is unattended: discover, audit, build,
+    approve (dashboard, or the operator's `approve.py`), pick 5, send, scan.
+11. **What the operator does:** read Telegram. A positive or neutral reply arrives as one message (business, owner,
+    summary, suggested next step, preview link, Gmail thread link); answer that thread yourself. Negative replies
+    close the row, remove requests take the preview down within the 30-minute scan, bounces feed the 2% halt.
+    Weekly, open the Google Sheet (`pipeline` and `daily_log` tabs).
+12. If a prospect replies interested but cannot meet before the preview expires, extend it:
     `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30`
-    (the preview id is in the dashboard's Previews tab or `previews.id`; the command renews `expires_at`
-    on the Worker and the store and logs an `extended` event; touch 4's deadline recomputes from the new date).
-    Follow up per PROJECT_SPEC.md §8.2 (day 3 Loom, day 7 proof line, day 12 breakup). Run
-    `daily.py` each morning; it advances due touches and drafts the next one.
-12. Gate: `python3 scripts/daily.py --phase0-status`. `calls_booked >= 1` -> `config.phase0.passed`
-    flips true (set via the dashboard's Config tab or `deals.py`), and the queue cap lifts 5 -> 20.
-    `calls_booked == 0` after all 5 close out -> rewrite the email/offer per PROJECT_SPEC.md §3 step
-    5 and retry with 5 new prospects before automating anything further.
-
-### Phase 1+ (after the gate passes)
-
-13. Arm the reply-scan cron: set the `PRODCRAFT_CRON_ENABLED` repo variable to `true` (GitHub repo
-    Settings -> Secrets and variables -> Variables) and add every secret named in
-    `.github/workflows/prodcraft_medspa_replies.yml` to GitHub Secrets. The workflow is inert
-    (`if: vars.PRODCRAFT_CRON_ENABLED == 'true'`) until this is done.
-14. Run `run_metro.py --metro chicago_north_shore` daily or on a schedule of your choosing (not yet
-    cron'd — discovery/audit/enrich/preview are cheap but not zero-cost; PROJECT_SPEC.md §12).
-15. Run `daily.py` every morning; send from the dashboard's drafts.
-16. Weekly: `scripts/sync_sheets.py` to refresh the read-only Sheets mirror; after >= 50 touch-1
-    sends, `scripts/fit_weights.py` to see which audit signals actually predict replies.
+    (renews `expires_at` on the Worker and the store, logs an `extended` event, warns if touch 4 already stated the
+    old deadline). Follow up per PROJECT_SPEC.md §8.2; `daily.py` advances touches and sends the next one.
+13. Gate: `python3 scripts/daily.py --phase0-status`. `calls_booked >= 1` -> flip `config.phase0.passed` (dashboard
+    Config tab) and the daily cap lifts 5 -> 20. `calls_booked == 0` after the first 5 close out -> rewrite the
+    email/offer per PROJECT_SPEC.md §3 step 5 before widening.
+14. Weekly: `scripts/sync_sheets.py`; after >= 50 touch-1 sends, `scripts/fit_weights.py` (rows with
+    `test_recipient` set are your own dry runs and must be excluded from any reply-rate statistic).
 
 ### Next metro
 
@@ -169,6 +169,13 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
   `config.sender` is empty, so the chain `apply_schema -> run_metro --mock -> daily.py --mock` ends
   with a non-empty, fully drafted queue. Neither happens on a live run: previews wait for a human
   approve (dashboard or `preview/approve.py`) and an empty sender fails the lint.
+- **Operator-authored personalization.** A business row may carry `llm_overrides: {"extract_services": {...},
+  "fuzzy_variables": {...}}`; the pipeline uses it instead of calling the model (model_id `manual:operator`,
+  recorded on the row). Overrides still pass the services allowlist, content lint and the CAN-SPAM lint.
+- **Degraded-mode audit.** Without `PAGESPEED_API_KEY` and `ANTHROPIC_API_KEY`, `psi_mobile`, `is_mobile_friendly`
+  (when a viewport meta exists) and `vision_dated_score` are None and score 0: at most 60 of 100 points are
+  measurable and the 45 threshold is rarely reached. Set the keys before judging a metro; a lowered `min_score`
+  is a dry-run setting, not a scoring decision.
 - **What `--mock` proves and doesn't.** Every stage's `--mock` path runs against fixtures with no
   network and no secrets — it proves the code paths, JSON shapes, and store writes are correct. It
   does *not* prove a live API contract still matches (field names, rate limits, auth flow); that's
