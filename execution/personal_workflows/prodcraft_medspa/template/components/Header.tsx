@@ -2,7 +2,7 @@ import type { Business } from '@/lib/validate';
 
 export default function Header({ business }: { business: Business }) {
   return (
-    <header className="gutter border-b border-black/5 bg-paper">
+    <header className="site-header gutter border-b border-black/5 bg-paper" data-header>
       <div className="content-max flex items-center justify-between py-4">
         <span className="text-base font-medium tracking-tight">{business.name}</span>
         <nav className="flex items-center gap-3">
@@ -14,6 +14,12 @@ export default function Header({ business }: { business: Business }) {
             <span aria-hidden="true">&rarr;</span>
           </a>
         </nav>
+      </div>
+      {/* Page scroll-progress bar, filled via --page-progress (set by
+          MotionController). Static and invisible (scaleX(0)) until JS runs
+          or if JS never runs (see html:not(.has-js) in globals.css). */}
+      <div className="site-header__progress" aria-hidden="true">
+        <i />
       </div>
     </header>
   );

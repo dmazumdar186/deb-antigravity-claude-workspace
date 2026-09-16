@@ -11,8 +11,16 @@ import base64
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
+
+# Prompts whose override payload MUST be a dict (not a bare string) — the caller destructures
+# specific keys out of it (draft_email.py reads fuzzy_variables' two keys by name; enrich/
+# extract_services.py similarly). A non-dict override for these is a caller mistake, not a
+# valid "operator hand-wrote the whole answer" case (that path is manual_envelope(), which
+# accepts str|dict on purpose), so override_for() must refuse it rather than pass it through.
+_DICT_ONLY_OVERRIDE_PROMPTS = frozenset({"fuzzy_variables", "extract_services"})
 
 # Pricing per MTok (USD), per .claude/rules/python-hardening.md rule 4:
 # input / cache_read / cache_write / output, read from each model's published rate.
@@ -175,7 +183,22 @@ def manual_envelope(prompt_name: str, payload: dict | str) -> dict:
 
 
 def override_for(business: dict | None, prompt_name: str):
-    """Return the operator override payload for `prompt_name` on this business row, or None."""
+    """Return the operator override payload for `prompt_name` on this business row, or None.
+
+    For `_DICT_ONLY_OVERRIDE_PROMPTS` (fuzzy_variables, extract_services), a non-dict override
+    (e.g. an operator accidentally pasted a bare string where the prompt's caller expects named
+    keys) is invalid: returns None and prints a stderr warning instead of letting a caller crash
+    with an AttributeError deep inside rendering/extraction.
+    """
     overrides = (business or {}).get("llm_overrides") or {}
     value = overrides.get(prompt_name) if isinstance(overrides, dict) else None
-    return value if value not in (None, "", {}) else None
+    if value in (None, "", {}):
+        return None
+    if prompt_name in _DICT_ONLY_OVERRIDE_PROMPTS and not isinstance(value, dict):
+        print(
+            f"[llm.override_for] ignoring llm_overrides[{prompt_name!r}] on business "
+            f"{(business or {}).get('id')!r}: expected a dict, got {type(value).__name__}",
+            file=sys.stderr,
+        )
+        return None
+    return value

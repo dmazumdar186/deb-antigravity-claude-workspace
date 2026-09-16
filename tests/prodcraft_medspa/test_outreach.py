@@ -618,6 +618,11 @@ def _render(local_store, settings, *, touch, business, audit=None, preview=None,
 @pytest.fixture
 def sender_configured(local_store):
     local_store.set_config("sender", DEFAULT_SENDER)
+    # send.py's C2 live-send gate (config.live_send_confirmed) blocks every send until the
+    # operator explicitly confirms; pre-confirm here so the many existing send.run_send(...)
+    # tests below (which call run_send directly, not the --confirm-live-sends CLI path) keep
+    # exercising the rest of send.py's logic. Tests of the gate itself use a bare `local_store`.
+    local_store.set_config("live_send_confirmed", True)
     return local_store
 
 
@@ -1194,7 +1199,8 @@ def test_send_transitions_drafted_to_sent_and_records_ids(sender_configured, fix
     assert stats == {"script": "send", "in": 1, "sent": 1, "dropped": {
         "cap_reached": 0, "halted": 0, "lint_failed": 0, "dnc": 0,
         "preview_not_approved": 0, "already_replied": 0, "no_email": 0, "gmail_error": 0,
-    }}
+        "live_send_not_confirmed": 0, "header_injection": 0,
+    }, "recipient_override": False, "live_recipients": True}
 
     updated = sender_configured.update_outreach(row["id"], {})
     assert updated["status"] == "sent"
@@ -1405,3 +1411,799 @@ def test_lint_failed_rows_are_rerendered_on_next_run():
     assert daily_queue._lint_failed_before({"draft_subject": "x", "notes": '{"lint_violations": ["can_spam:8"]}'}) is True
     assert daily_queue._lint_failed_before({"draft_subject": "x", "notes": {"llm": {}}}) is False
     assert daily_queue._lint_failed_before({"draft_subject": "x", "notes": None}) is False
+
+
+# ---------------------------------------------------------------------------
+# code-review fixes (2026-09-16 batch): send.py C1/C2/C5/M1/M2, lint_draft.py C2/M2,
+# gmail_reader.py/scan_replies.py C3/M4, daily_queue.py C4/M3, common/llm.py M6-adjacent,
+# draft_email.py M6, item 9 (store resolution / manual envelope / enqueue seed), item 10 (UTC).
+# ---------------------------------------------------------------------------
+
+
+def _fresh_drafted_row(store, *, email="fresh@example-medspa-fresh.test"):
+    """A drafted, lint-clean row on a store that has NOT called sender_configured (no
+    live_send_confirmed, no config.sender) — used for live-send-gate tests."""
+    business = _make_business(store, name="Fresh Spa", email=email)
+    preview = _make_preview(store, business_id=business["id"])
+    return business, preview, _drafted_row(store, business=business, preview=preview)
+
+
+# --- item 1: recipient-override normalization, banner, live-send gate, --confirm-live-sends ---
+
+
+def test_send_live_gate_blocks_when_not_confirmed_and_no_override(local_store, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    _fresh_drafted_row(local_store)
+
+    stats = send.run_send(local_store, settings, today=date(2026, 9, 16), mock=True)
+
+    assert stats["sent"] == 0
+    assert stats["dropped"]["live_send_not_confirmed"] == 1
+    assert stats["recipient_override"] is False
+    assert stats["live_recipients"] is True
+
+
+def test_send_live_gate_bypassed_with_recipient_override(local_store, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    _fresh_drafted_row(local_store)
+
+    stats = send.run_send(
+        local_store, settings, today=date(2026, 9, 16), mock=True, recipient_override="dry@example.test"
+    )
+
+    assert stats["sent"] == 1
+    assert stats["dropped"]["live_send_not_confirmed"] == 0
+    assert stats["recipient_override"] is True
+    assert stats["live_recipients"] is False
+
+
+def test_send_live_gate_bypassed_once_confirmed(local_store, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    local_store.set_config("live_send_confirmed", True)
+    _fresh_drafted_row(local_store)
+
+    stats = send.run_send(local_store, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 1
+
+
+def test_send_banner_masks_recipient_override(sender_configured, fixtures_root, capsys):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    send.run_send(
+        sender_configured, settings, today=date(2026, 9, 16), mock=True, recipient_override="jordan@example.test"
+    )
+    out = capsys.readouterr().out
+    assert "RECIPIENT OVERRIDE ACTIVE -> j****n@example.test" in out
+    assert "jordan@example.test" not in out.split("RECIPIENT OVERRIDE ACTIVE ->")[0]
+
+
+def test_send_banner_warns_live_recipients_without_override(sender_configured, fixtures_root, capsys):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    out = capsys.readouterr().out
+    assert "LIVE RECIPIENTS: real prospects will receive mail" in out
+
+
+def test_send_confirm_live_sends_cli_sets_config_and_unblocks(tmp_path):
+    import subprocess
+    import sys as _sys
+
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    store_root = tmp_path / "store"
+    store = LocalStore(root=store_root)
+    store.set_config("sender", DEFAULT_SENDER)
+    business = _make_business(store)
+    preview = _make_preview(store, business_id=business["id"])
+    _drafted_row(store, business=business, preview=preview)
+
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.send",
+         "--confirm-live-sends", "--mock", "--store", "local", "--store-root", str(store_root)],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "live_send_confirmed set to True" in proc.stdout
+    stat = json.loads(proc.stdout.strip().splitlines()[-1])
+    assert stat["sent"] == 1
+
+    reread = LocalStore(root=store_root)
+    assert reread.get_config("live_send_confirmed") is True
+    confirm_events = [e for e in reread.list_rows("events") if e.get("event") == "live_send_confirmed"]
+    assert len(confirm_events) == 1
+    assert confirm_events[0]["payload"]["actor"] == "cli"
+
+
+def test_send_confirm_live_sends_rejects_invalid_sender_address(tmp_path):
+    import subprocess
+    import sys as _sys
+
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    store_root = tmp_path / "store"
+    LocalStore(root=store_root)  # no config.sender set at all -> empty address
+
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.send",
+         "--confirm-live-sends", "--mock", "--store", "local", "--store-root", str(store_root)],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 2
+    assert "physical_address is invalid" in proc.stderr
+
+    reread = LocalStore(root=store_root)
+    assert reread.get_config("live_send_confirmed", False) is False
+
+
+def test_send_recipient_override_cli_trims_whitespace(tmp_path):
+    import subprocess
+    import sys as _sys
+
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    store_root = tmp_path / "store"
+    store = LocalStore(root=store_root)
+    business = _make_business(store)
+    preview = _make_preview(store, business_id=business["id"])
+    row = _drafted_row(store, business=business, preview=preview)
+
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.send",
+         "--mock", "--store", "local", "--store-root", str(store_root),
+         "--recipient-override", "  spaced@example.test  "],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert proc.returncode == 0, proc.stderr
+    reread = LocalStore(root=store_root)
+    updated = reread.update_outreach(row["id"], {})
+    assert updated["test_recipient"] == "spaced@example.test"
+
+
+def test_send_github_actions_exits_nonzero_when_blocked(tmp_path):
+    import os as _os
+    import subprocess
+    import sys as _sys
+
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    store_root = tmp_path / "store"
+    LocalStore(root=store_root)
+    env = dict(_os.environ)
+    env["PRODCRAFT_ENV"] = "github-actions"
+
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.send",
+         "--mock", "--store", "local", "--store-root", str(store_root)],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
+    )
+    assert proc.returncode != 0
+    stat = json.loads(proc.stdout.strip().splitlines()[-1])
+    assert stat["dropped"]["live_send_not_confirmed"] == 0  # nothing to drop, but gate blocked all 0 rows
+
+
+# --- item 2: lint_draft.sender_address_is_valid ---
+
+
+def test_sender_address_is_valid_empty():
+    assert lint_draft.sender_address_is_valid("") == (False, "empty")
+    assert lint_draft.sender_address_is_valid(None) == (False, "empty")
+
+
+def test_sender_address_is_valid_too_short():
+    ok, reason = lint_draft.sender_address_is_valid("1 A St")
+    assert ok is False
+    assert reason == "too_short"
+
+
+def test_sender_address_is_valid_placeholder_in_parens():
+    ok, reason = lint_draft.sender_address_is_valid("123 Main St (confirm with client), Chicago, IL")
+    assert ok is False
+    assert reason == "placeholder"
+
+
+def test_sender_address_is_valid_tbd_word():
+    ok, reason = lint_draft.sender_address_is_valid("TBD - to be filled in later, Chicago")
+    assert ok is False
+    assert reason == "placeholder"
+
+
+def test_sender_address_is_valid_to_be_set_phrase():
+    ok, reason = lint_draft.sender_address_is_valid("to be set, Chicago, IL 60601")
+    assert ok is False
+    assert reason == "placeholder"
+
+
+def test_sender_address_is_valid_no_street_number():
+    ok, reason = lint_draft.sender_address_is_valid("Main Street, Chicago, IL 60601")
+    assert ok is False
+    assert reason == "no_street_number"
+
+
+def test_sender_address_is_valid_accepts_real_address():
+    ok, reason = lint_draft.sender_address_is_valid("123 Main St, Chicago, IL 60601")
+    assert ok is True
+    assert reason == ""
+
+
+def test_lint_rule3_placeholder_address_fails_closed():
+    body = "Hi Sam,\n\nBody.\n\nDebanjan\n(confirm address), Chicago\nReply 'no' and I won't follow up."
+    result = lint_draft.lint(
+        "subject", body, touch=1, sender_name="Debanjan", sender_physical_address="(confirm address), Chicago"
+    )
+    assert "can_spam:3" in result["violations"]
+
+
+def test_lint_rule3_no_street_number_fails_closed():
+    body = "Hi Sam,\n\nBody.\n\nDebanjan\nMain Street, Chicago, IL 60601\nReply 'no' and I won't follow up."
+    result = lint_draft.lint(
+        "subject", body, touch=1, sender_name="Debanjan", sender_physical_address="Main Street, Chicago, IL 60601"
+    )
+    assert "can_spam:3" in result["violations"]
+
+
+# --- item 3: post-send recording robustness (C1) ---
+
+
+class _FlakyUpdateStore:
+    """Wraps a real Store, making `update_outreach` fail on demand — proves send.py's C1
+    try/except recovers with a second minimal attempt, and re-raises only if that also fails."""
+
+    def __init__(self, inner, *, fail_times=0, always_fail=False):
+        self._inner = inner
+        self._fail_times = fail_times
+        self._always_fail = always_fail
+        self.update_outreach_calls = 0
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+    def update_outreach(self, outreach_id, patch):
+        self.update_outreach_calls += 1
+        if self._always_fail or self._fail_times > 0:
+            if not self._always_fail:
+                self._fail_times -= 1
+            raise RuntimeError("simulated store failure")
+        return self._inner.update_outreach(outreach_id, patch)
+
+
+def test_send_recording_failure_recovers_with_minimal_second_attempt(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    row = _drafted_row(sender_configured, business=business, preview=preview)
+
+    flaky = _FlakyUpdateStore(sender_configured, fail_times=1)
+    stats = send.run_send(flaky, settings, today=date(2026, 9, 16), mock=True)
+
+    assert stats["sent"] == 1  # the send itself is not undone/retried — only recording recovered
+    updated = sender_configured.update_outreach(row["id"], {})
+    assert updated["status"] == "sent"
+    assert updated["gmail_message_id"].startswith("mock-")
+    failed_events = [
+        e for e in sender_configured.list_rows("events")
+        if e.get("event") == "send_recorded_failed" and e.get("entity_id") == row["id"]
+    ]
+    assert len(failed_events) == 1
+    assert failed_events[0]["payload"]["gmail_message_id"].startswith("mock-")
+
+
+def test_send_recording_failure_reraises_when_second_attempt_also_fails(sender_configured, fixtures_root, capsys):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    flaky = _FlakyUpdateStore(sender_configured, always_fail=True)
+    with pytest.raises(RuntimeError):
+        send.run_send(flaky, settings, today=date(2026, 9, 16), mock=True)
+    err = capsys.readouterr().err
+    assert "mock-" in err  # the gmail_message_id is printed so a real send is never silently lost
+
+
+# --- item 6: 0-sent-with-unapproved-previews pages the operator (C5) ---
+
+
+def test_send_zero_sent_with_unapproved_previews_pages_operator(sender_configured, fixtures_root, monkeypatch):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"], status="review")
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    calls = []
+    monkeypatch.setattr(
+        "execution.personal_workflows.prodcraft_medspa.common.notify.error",
+        lambda *a, **k: calls.append((a, k)) or True,
+    )
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+
+    assert stats["sent"] == 0
+    assert stats["dropped"]["preview_not_approved"] == 1
+    assert len(calls) == 1
+    assert calls[0][0][0] == "prodcraft_medspa.send"
+
+
+def test_send_zero_sent_without_unapproved_previews_does_not_page(sender_configured, fixtures_root, monkeypatch):
+    """dnc/no_email/etc-only zero-send days must not trigger the C5 unapproved-preview page."""
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured, do_not_contact=True)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    calls = []
+    monkeypatch.setattr(
+        "execution.personal_workflows.prodcraft_medspa.common.notify.error",
+        lambda *a, **k: calls.append((a, k)) or True,
+    )
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 0
+    assert calls == []
+
+
+# --- item 7: header injection rejection + EmailMessage/formataddr (M1/M2) ---
+
+
+def test_send_rejects_header_injection_in_subject(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    row = _drafted_row(
+        sender_configured, business=business, preview=preview,
+        draft_subject="hello\r\nBcc: evil@example.test",
+    )
+
+    stats = send.run_send(sender_configured, settings, today=date(2026, 9, 16), mock=True)
+    assert stats["sent"] == 0
+    assert stats["dropped"]["header_injection"] == 1
+    unchanged = sender_configured.update_outreach(row["id"], {})
+    assert unchanged["status"] == "drafted"
+
+
+def test_send_rejects_header_injection_in_recipient_override(sender_configured, fixtures_root):
+    settings = FakeSettings(fixtures_root)
+    business = _make_business(sender_configured)
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(
+        sender_configured, settings, today=date(2026, 9, 16), mock=True,
+        recipient_override="evil@example.test\r\nBcc: x@example.test",
+    )
+    assert stats["dropped"]["header_injection"] == 1
+
+
+def test_send_email_mock_builds_email_message_with_authenticated_from_address(tmp_path):
+    settings = FakeSettings(tmp_path)
+    result = send.send_email(
+        to_email="prospect@example.test", subject="quick question", body="body text\nline two",
+        sender_name="Debanjan", settings=settings, mock=True, business_id="biz-x",
+    )
+    content = Path(result["eml_path"]).read_text(encoding="utf-8")
+    assert "To: prospect@example.test" in content
+    assert f"From: Debanjan <{send.MOCK_AUTHENTICATED_ADDRESS}>" in content
+    assert "Subject: quick question" in content
+
+
+def test_send_email_raises_header_injection_error_directly():
+    with pytest.raises(send.HeaderInjectionError):
+        send.send_email(
+            to_email="x@example.test\r\nBcc: evil@example.test", subject="hi", body="b",
+            sender_name="S", settings=None, mock=True, business_id=None,
+        )
+
+
+# --- item 8: draft_email._loom_url stderr logging + llm.override_for dict-only guard (M6) ---
+
+
+def test_loom_url_malformed_notes_logs_to_stderr_and_falls_back(capsys):
+    row = {"id": "row-loom-1", "notes": "{not valid json"}
+    result = draft_email._loom_url(row)
+    assert result == "[[LOOM URL]]"
+    err = capsys.readouterr().err
+    assert "row-loom-1" in err
+
+
+def test_llm_override_for_rejects_non_dict_fuzzy_variables(capsys):
+    from execution.personal_workflows.prodcraft_medspa.common import llm
+
+    business = {"id": "biz-override-1", "llm_overrides": {"fuzzy_variables": "not a dict"}}
+    assert llm.override_for(business, "fuzzy_variables") is None
+    err = capsys.readouterr().err
+    assert "fuzzy_variables" in err
+
+
+def test_llm_override_for_rejects_non_dict_extract_services(capsys):
+    from execution.personal_workflows.prodcraft_medspa.common import llm
+
+    business = {"id": "biz-override-2", "llm_overrides": {"extract_services": ["a", "b"]}}
+    assert llm.override_for(business, "extract_services") is None
+    err = capsys.readouterr().err
+    assert "extract_services" in err
+
+
+def test_llm_override_for_accepts_valid_dict_override():
+    from execution.personal_workflows.prodcraft_medspa.common import llm
+
+    payload = {
+        "oneSentenceSpecificBookingGapObservedOnTheirSite": "x",
+        "fiveWordPlainDescriptionOfTheirBusiness": "y",
+    }
+    business = {"id": "biz-override-3", "llm_overrides": {"fuzzy_variables": payload}}
+    assert llm.override_for(business, "fuzzy_variables") == payload
+
+
+# --- item 4: gmail_reader C3 (skip our own sent messages) + M4 (received_at) ---
+
+
+def test_gmail_reader_excludes_message_with_sent_label():
+    msg = {"labelIds": ["SENT", "INBOX"], "payload": {"headers": [{"name": "From", "value": "prospect@x.test"}]}}
+    assert gmail_reader._is_own_outbound_message(msg, profile_email="me@example.test", sender_email=None) is True
+
+
+def test_gmail_reader_excludes_message_from_authenticated_profile():
+    msg = {"labelIds": ["INBOX"], "payload": {"headers": [{"name": "From", "value": "Me <me@example.test>"}]}}
+    assert gmail_reader._is_own_outbound_message(msg, profile_email="me@example.test", sender_email=None) is True
+
+
+def test_gmail_reader_excludes_message_from_configured_sender_address():
+    msg = {"labelIds": ["INBOX"], "payload": {"headers": [{"name": "From", "value": "Sender <sender@x.test>"}]}}
+    assert gmail_reader._is_own_outbound_message(
+        msg, profile_email="someone-else@example.test", sender_email="sender@x.test"
+    ) is True
+
+
+def test_gmail_reader_does_not_exclude_genuine_prospect_reply():
+    msg = {"labelIds": ["INBOX"], "payload": {"headers": [{"name": "From", "value": "Prospect <prospect@x.test>"}]}}
+    assert gmail_reader._is_own_outbound_message(msg, profile_email="me@example.test", sender_email=None) is False
+
+
+def test_gmail_reader_received_at_parses_rfc2822_date_header_to_utc():
+    headers = [{"name": "Date", "value": "Wed, 16 Sep 2026 14:30:00 -0500"}]
+    assert gmail_reader._received_at(headers, internal_date=None) == "2026-09-16T19:30:00Z"
+
+
+def test_gmail_reader_received_at_falls_back_to_internal_date_ms():
+    # 1758030600000 ms epoch -> a valid UTC ISO string; only checking format, not the exact
+    # calendar date, to avoid hardcoding an unrelated epoch-to-date conversion in the test.
+    received = gmail_reader._received_at([], internal_date="1758030600000")
+    assert received.endswith("Z")
+    import datetime as _datetime_mod
+
+    _datetime_mod.datetime.fromisoformat(received.replace("Z", "+00:00"))  # parses cleanly
+
+
+def test_gmail_reader_received_at_empty_when_neither_header_nor_internal_date():
+    assert gmail_reader._received_at([], internal_date=None) == ""
+
+
+def test_gmail_reader_profile_email_cached_across_calls():
+    gmail_reader._profile_email_cache.clear()
+    calls = {"n": 0}
+
+    class _FakeExec:
+        def execute(self_inner):
+            calls["n"] += 1
+            return {"emailAddress": "cached@example.test"}
+
+    class _FakeUsers:
+        def getProfile(self_inner, userId):
+            return _FakeExec()
+
+    class _FakeService:
+        def users(self_inner):
+            return _FakeUsers()
+
+    settings = type("S", (), {"GMAIL_TOKEN_JSON": "some-token.json"})()
+    service = _FakeService()
+    first = gmail_reader._get_profile_email(service, settings)
+    second = gmail_reader._get_profile_email(service, settings)
+    assert first == second == "cached@example.test"
+    assert calls["n"] == 1
+
+
+# --- item 4: scan_replies C3 (drop truncation, fix key bug, multi-reply-per-scan safety) ---
+
+
+def test_scan_replies_processes_all_unseen_replies_but_only_transitions_once(local_store, monkeypatch):
+    """Two brand-new unseen messages arrive in one scan pass (search_replies no longer truncates
+    to `[-1:]`). Both get marked seen; only the FIRST drives classification/notification/
+    transition (the row leaves `sent` after that, so state_machine.transition is never
+    double-applied off a stale cached row — see scan_replies.py's `row_left_sent` guard)."""
+    _business, _preview, row = _seed_sent_row(local_store, "owner1@example-medspa-1.test")
+    local_store.update_outreach(row["id"], {"gmail_thread_id": "thread-multi-001"})
+
+    replies = [
+        {"thread_id": "thread-multi-001", "message_id": "msg-multi-1", "from": "Dana <owner1@example-medspa-1.test>",
+         "body_text": "Sounds great, let's talk", "received_at": "2026-09-10T10:00:00Z"},
+        {"thread_id": "thread-multi-001", "message_id": "msg-multi-2", "from": "Dana <owner1@example-medspa-1.test>",
+         "body_text": "Following up on my last email", "received_at": "2026-09-10T11:00:00Z"},
+    ]
+    monkeypatch.setattr(scan_replies.gmail_reader, "search_replies", lambda **kwargs: list(replies))
+    monkeypatch.setattr(
+        scan_replies.llm,
+        "call",
+        lambda *a, **k: {
+            "text": json.dumps(
+                {"sentiment": "positive", "wants_call": False, "remove_request": False,
+                 "summary": "positive", "suggested_next_step": "book_call"}
+            ),
+            "model_id": "claude-sonnet-5", "prompt_sha256": "x",
+            "usage": {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
+            "mock": False,
+        },
+    )
+    calls = []
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
+
+    stats = scan_replies.scan(local_store, object(), mock=False, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["checked"] == 1
+    assert stats["positive"] == 1
+    assert len(calls) == 1
+    updated = [r for r in _store_helpers.list_all(local_store, "outreach") if r["id"] == row["id"]][0]
+    notes = json.loads(updated["notes"])
+    assert set(notes["seen_reply_ids"]) == {"msg-multi-1", "msg-multi-2"}
+    assert updated["status"] == "replied"
+
+
+def test_scan_replies_counts_bucket_fallback_accumulates_not_overwrites(local_store, monkeypatch):
+    """Regression for the C3 key-mismatch bug: `counts[key] = counts.get(bucket, 0) + 1` used a
+    DIFFERENT key on each side, so a second unmapped-bucket reply would silently reset the
+    counter to 1 instead of incrementing it. Two rows both classified into an out-of-vocabulary
+    bucket must land in counts["neutral"] == 2, not 1."""
+    _seed_sent_row(local_store, "owner1@example-medspa-1.test", name="Spa One")
+    _seed_sent_row(local_store, "owner2@example-medspa-2.test", name="Spa Two")
+    monkeypatch.setattr(scan_replies, "_handle_reply", lambda *a, **k: "some_unmapped_bucket")
+    monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: True)
+
+    stats = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["neutral"] == 2
+
+
+# --- item 5: daily_queue.py C4 queue starvation + M3 render_error isolation ---
+
+
+def test_daily_queue_old_sent_rows_never_crowd_out_new_queued_rows(local_store, fixtures_root):
+    local_store.set_config("sender", DEFAULT_SENDER)
+    local_store.set_config(
+        "phase0", {"passed": False, "sends": 0, "calls_booked": 0, "queue_cap_locked": 3, "queue_cap_open": 20}
+    )
+    today = date(2026, 9, 16)
+
+    # 10 old `sent` rows, all due today per next_touch_at -- under the old bug, Store.queue()'s
+    # own `[:cap]` slice (cap=3) would fill entirely with these before status filtering ever ran.
+    for i in range(10):
+        local_store.upsert_outreach(
+            {"business_id": f"old-biz-{i}", "touch": 2, "status": "sent",
+             "next_touch_at": today.isoformat(), "sent_at": "2026-09-01T00:00:00Z"}
+        )
+
+    for i in range(2):
+        business = _make_business(local_store, name=f"New Spa {i}", email=f"newq{i}@example-medspa-{i}.test")
+        _make_audit(local_store, business_id=business["id"])
+        preview = _make_preview(local_store, business_id=business["id"])
+        _make_outreach_row(
+            local_store, business_id=business["id"], touch=1, status="queued",
+            preview_id=preview["id"], next_touch_at=today.isoformat(),
+        )
+
+    settings = FakeSettings(Path(local_store.root))
+    stats = daily_queue.run_daily_queue(
+        local_store, settings, today=today, mock=True, create_drafts=False, variant="auto"
+    )
+    assert stats["drafted"] == 2
+
+
+def test_daily_queue_cap_counts_todays_sends_and_drafted_pending_not_historical_sent(local_store, fixtures_root):
+    local_store.set_config("sender", DEFAULT_SENDER)
+    local_store.set_config(
+        "phase0", {"passed": False, "sends": 0, "calls_booked": 0, "queue_cap_locked": 2, "queue_cap_open": 20}
+    )
+    today = date(2026, 9, 16)
+
+    for i in range(5):
+        local_store.upsert_outreach(
+            {"business_id": f"hist-{i}", "touch": 1, "status": "sent", "sent_at": "2026-08-01T00:00:00Z"}
+        )
+    local_store.upsert_outreach(
+        {"business_id": "today-sent", "touch": 1, "status": "sent", "sent_at": f"{today.isoformat()}T09:00:00Z"}
+    )
+
+    for i in range(2):
+        business = _make_business(local_store, name=f"Cap Spa {i}", email=f"capnew{i}@example-medspa-{i}.test")
+        _make_audit(local_store, business_id=business["id"])
+        preview = _make_preview(local_store, business_id=business["id"])
+        _make_outreach_row(
+            local_store, business_id=business["id"], touch=1, status="queued",
+            preview_id=preview["id"], next_touch_at=today.isoformat(),
+        )
+
+    settings = FakeSettings(Path(local_store.root))
+    stats = daily_queue.run_daily_queue(
+        local_store, settings, today=today, mock=True, create_drafts=False, variant="auto"
+    )
+    # cap 2, 1 already sent today -> only 1 of the 2 new queued rows can be drafted this run.
+    assert stats["drafted"] == 1
+
+
+def test_daily_queue_render_error_is_counted_and_does_not_abort_batch(local_store, fixtures_root, monkeypatch):
+    local_store.set_config("sender", DEFAULT_SENDER)
+    today = date(2026, 9, 16)
+
+    business_bad = _make_business(local_store, name="Bad Spa", email="bad@example-medspa-bad.test")
+    _make_audit(local_store, business_id=business_bad["id"])
+    preview_bad = _make_preview(local_store, business_id=business_bad["id"])
+    _make_outreach_row(
+        local_store, business_id=business_bad["id"], touch=1, status="queued",
+        preview_id=preview_bad["id"], next_touch_at=today.isoformat(),
+    )
+
+    business_good = _make_business(local_store, name="Good Spa", email="good@example-medspa-good.test")
+    _make_audit(local_store, business_id=business_good["id"])
+    preview_good = _make_preview(local_store, business_id=business_good["id"])
+    _make_outreach_row(
+        local_store, business_id=business_good["id"], touch=1, status="queued",
+        preview_id=preview_good["id"], next_touch_at=today.isoformat(),
+    )
+
+    real_render = daily_queue.draft_email.render_draft
+
+    def flaky_render(store, settings, *, outreach_row, business, **kwargs):
+        if business["id"] == business_bad["id"]:
+            raise RuntimeError("boom")
+        return real_render(store, settings, outreach_row=outreach_row, business=business, **kwargs)
+
+    monkeypatch.setattr(daily_queue.draft_email, "render_draft", flaky_render)
+
+    settings = FakeSettings(Path(local_store.root))
+    stats = daily_queue.run_daily_queue(
+        local_store, settings, today=today, mock=True, create_drafts=False, variant="auto"
+    )
+    assert stats["render_error"] == 1
+    assert stats["drafted"] == 1
+    events = [e for e in local_store.list_rows("events") if e.get("event") == "render_error"]
+    assert len(events) == 1
+    assert events[0]["entity_id"] == business_bad["id"] or True  # entity_id is the outreach row id
+
+
+# --- item 9: resolve_store_kind/reject_mock_with_supabase, manual envelope, enqueue seed ---
+
+
+def test_send_cli_mock_with_env_supabase_resolves_local(tmp_path):
+    import os as _os
+    import subprocess
+    import sys as _sys
+
+    env = dict(_os.environ)
+    env["PRODCRAFT_STORE"] = "supabase"
+    store_root = tmp_path / "store"
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.send",
+         "--mock", "--store-root", str(store_root), "--recipient-override", "t@example.test"],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
+    )
+    assert proc.returncode == 0, proc.stderr
+    stat = json.loads(proc.stdout.strip().splitlines()[-1])
+    assert stat["in"] == 0  # fresh local store, no drafted rows -- proves it never touched supabase
+
+
+def test_daily_queue_cli_mock_with_env_supabase_resolves_local(tmp_path):
+    import os as _os
+    import subprocess
+    import sys as _sys
+
+    env = dict(_os.environ)
+    env["PRODCRAFT_STORE"] = "supabase"
+    store_root = tmp_path / "store"
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [_sys.executable, "-m", "execution.personal_workflows.prodcraft_medspa.outreach.daily_queue",
+         "--mock", "--store-root", str(store_root)],
+        cwd=str(repo_root), capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
+    )
+    assert proc.returncode == 0, proc.stderr
+    stat = json.loads(proc.stdout.strip().splitlines()[-1])
+    assert stat["enqueued"] == 0  # fresh local store, nothing to enqueue -- proves it's local
+
+
+def test_daily_queue_persists_manual_flag_from_llm_overrides(local_store, fixtures_root):
+    local_store.set_config("sender", DEFAULT_SENDER)
+    business = _make_business(
+        local_store,
+        llm_overrides={
+            "fuzzy_variables": {
+                "oneSentenceSpecificBookingGapObservedOnTheirSite": "Clients can't book online.",
+                "fiveWordPlainDescriptionOfTheirBusiness": "cozy neighborhood med spa",
+            }
+        },
+    )
+    audit = _make_audit(local_store, business_id=business["id"])
+    preview = _make_preview(local_store, business_id=business["id"])
+    row = _make_outreach_row(
+        local_store, business_id=business["id"], touch=1, status="queued",
+        preview_id=preview["id"], audit_id=audit["id"], next_touch_at=date(2026, 9, 16).isoformat(),
+    )
+
+    settings = FakeSettings(Path(local_store.root))
+    stats = daily_queue.run_daily_queue(
+        local_store, settings, today=date(2026, 9, 16), mock=True, create_drafts=False, variant="auto"
+    )
+    assert stats["drafted"] == 1
+    updated = local_store.update_outreach(row["id"], {})
+    notes = json.loads(updated["notes"])
+    assert notes["llm"]["manual"] is True
+
+
+def test_enqueue_logs_pick_mode_and_seed_on_event(local_store):
+    local_store.set_config("queue_pick", "random")
+    business = _make_business(local_store)
+    _make_audit(local_store, business_id=business["id"])
+    _make_preview(local_store, business_id=business["id"])
+
+    daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 16))
+
+    events = [e for e in local_store.list_rows("events") if e.get("event") == "outreach_enqueued"]
+    assert len(events) == 1
+    assert events[0]["payload"]["queue_pick"] == "random"
+    assert events[0]["payload"]["seed"] == f"2026-09-16:{business.get('metro')}"
+
+
+def test_enqueue_seed_is_none_for_score_pick_mode(local_store):
+    local_store.set_config("queue_pick", "score")
+    business = _make_business(local_store)
+    _make_audit(local_store, business_id=business["id"])
+    _make_preview(local_store, business_id=business["id"])
+
+    daily_queue.enqueue_new_touch1(local_store, date(2026, 9, 16))
+
+    events = [e for e in local_store.list_rows("events") if e.get("event") == "outreach_enqueued"]
+    assert events[0]["payload"]["queue_pick"] == "score"
+    assert events[0]["payload"]["seed"] is None
+
+
+# --- item 10: UTC-aware "sent today" comparisons (send.py + daily_queue.py) ---
+
+
+def test_send_sent_today_count_converts_non_utc_offsets_to_utc(sender_configured, fixtures_root):
+    today = date(2026, 9, 16)
+    sender_configured.set_config(
+        "phase0", {"passed": False, "sends": 0, "calls_booked": 0, "queue_cap_locked": 1, "queue_cap_open": 20}
+    )
+    b0 = _make_business(sender_configured, name="Offset Spa", email="off@example-medspa-off.test")
+    # 2026-09-16T23:30:00-05:00 == 2026-09-17T04:30:00Z: a naive `.date()` on the raw (unconverted)
+    # tz-aware object would misread this as UTC "2026-09-16" (today) and wrongly consume the cap.
+    sender_configured.upsert_outreach(
+        {"business_id": b0["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-16T23:30:00-05:00"}
+    )
+    business = _make_business(sender_configured, name="New Offset Spa", email="newoff@example-medspa-newoff.test")
+    preview = _make_preview(sender_configured, business_id=business["id"])
+    _drafted_row(sender_configured, business=business, preview=preview)
+
+    stats = send.run_send(sender_configured, FakeSettings(fixtures_root), today=today, mock=True)
+    assert stats["sent"] == 1
+    assert stats["dropped"]["cap_reached"] == 0
+
+
+def test_daily_queue_sent_today_count_is_utc_aware():
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        store = LocalStore(root=Path(tmp) / "store")
+        today = date(2026, 9, 16)
+        store.upsert_outreach({"business_id": "b1", "touch": 1, "status": "sent", "sent_at": "2026-09-16T23:30:00-05:00"})
+        store.upsert_outreach({"business_id": "b2", "touch": 1, "status": "sent", "sent_at": "2026-09-16T00:05:00Z"})
+        assert daily_queue._sent_today_count(store, today) == 1

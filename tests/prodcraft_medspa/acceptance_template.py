@@ -3,12 +3,20 @@ acceptance_template.py
 description: Acceptance test for the ProdCraft 0.5-preview Next.js template's
   static export. Serves `template/out/` locally with `http.server` and runs
   Playwright checks (390x844 mobile emulation + 1440x900 desktop): no
-  horizontal overflow, a `[data-cta="book"]` element fully inside the first
-  viewport, watermark bar visible, `[data-remove-link]` present with an href,
+  horizontal overflow at top or bottom of scroll (checked at BOTH 390px and
+  1440px), a `[data-cta="book"]` element fully inside the first viewport,
+  watermark bar visible, `[data-remove-link]` present with an href,
   `noindex` robots meta, zero console errors, zero failed requests, every
   `img` has non-empty alt + intrinsic width/height, total transferred bytes
   < 1.5 MB, no forbidden medical-claim terms in rendered text, and the
-  `/expired/` page renders.
+  `/expired/` page renders. Also (template v2, scroll-scrubbed motion):
+  the hero's numbered copy states change `is-on` class as the page scrolls
+  (`_check_hero_states`), sticky folio cards actually get a CSS transform
+  applied on a desktop-width viewport (`_check_folio_transforms`), and with
+  `prefers-reduced-motion: reduce` emulated, the hero/folio/approach sections
+  render all their content visible with no transform applied at all
+  (`_check_reduced_motion_fallback`) — i.e. the JS-driven motion never gates
+  content visibility.
 inputs: template/out/ (the built static export — run `npm run build` first)
 outputs: screenshots under .tmp/prodcraft_medspa/acceptance/{viewport}.png;
   prints a one-line JSON summary; exits non-zero on any failure.
@@ -31,18 +39,34 @@ OUT_DIR = TEMPLATE_ROOT / "out"
 SCREENSHOT_DIR = REPO_ROOT / ".tmp" / "prodcraft_medspa" / "acceptance"
 
 
-def _expected_watermark_text() -> str:
-    """Reads the exact `preview.watermark` sentence the built site must show.
+def _format_expiry(expires_at: str) -> str:
+    """Mirrors WatermarkBar.tsx's `formatExpiry`: "Month D, YYYY", or the raw
+    string unchanged if it doesn't parse as a date."""
+    import datetime
 
-    Prefers the built `business.json` at the template root (what actually
-    drove this build); falls back to `business.example.json` when no
-    business.json is present (e.g. a bare checkout before ensure-business
-    has run).
+    try:
+        d = datetime.date.fromisoformat(expires_at)
+    except ValueError:
+        return expires_at
+    return f"{d.strftime('%B')} {d.day}, {d.year}"
+
+
+def _expected_watermark_text() -> str:
+    """Builds the exact single-sentence watermark the built site must show.
+
+    WatermarkBar.tsx composes this from `business.name` +
+    `business.preview.expires_at` (never rendering `preview.watermark`
+    verbatim — see that component's docstring for why). Prefers the built
+    `business.json` at the template root (what actually drove this build);
+    falls back to `business.example.json` when no business.json is present
+    (e.g. a bare checkout before ensure-business has run).
     """
     for candidate in (TEMPLATE_ROOT / "business.json", TEMPLATE_ROOT / "business.example.json"):
         if candidate.exists():
             data = json.loads(candidate.read_text(encoding="utf-8"))
-            return data["preview"]["watermark"]
+            name = data["name"]
+            expires = _format_expiry(data["preview"]["expires_at"])
+            return f"Concept preview by ProdCraft, not affiliated with or endorsed by {name}. Expires {expires}."
     raise SystemExit(
         f"neither business.json nor business.example.json found under {TEMPLATE_ROOT}"
     )
@@ -124,6 +148,111 @@ def _check_price_pattern(text_lower: str) -> bool:
     import re
 
     return bool(re.search(r"\$\s?\d", text_lower))
+
+
+def _check_hero_states(browser, base_url: str) -> list[str]:
+    """The hero's numbered copy states must swap `is-on` as scroll advances."""
+    failures: list[str] = []
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    page.goto(f"{base_url}/", wait_until="networkidle")
+
+    initial = page.evaluate(
+        "() => { const el = document.querySelector('.hero__state.is-on'); "
+        "return el ? el.getAttribute('data-hero-state') : null; }"
+    )
+    if initial is None:
+        failures.append("no [data-hero-state] element starts with class is-on")
+
+    # Scroll to the middle of the hero's own (tall) scroll range.
+    page.evaluate(
+        "() => { const hero = document.querySelector('[data-hero]'); "
+        "if (hero) window.scrollTo(0, hero.offsetTop + hero.offsetHeight * 0.6); }"
+    )
+    page.wait_for_timeout(200)
+    later = page.evaluate(
+        "() => { const el = document.querySelector('.hero__state.is-on'); "
+        "return el ? el.getAttribute('data-hero-state') : null; }"
+    )
+    if later is None:
+        failures.append("no [data-hero-state] element has class is-on after scrolling into the hero")
+    elif later == initial:
+        failures.append(f"hero state did not change after scrolling (stayed at state {initial!r})")
+
+    context.close()
+    return failures
+
+
+def _check_folio_transforms(browser, base_url: str) -> list[str]:
+    """Sticky folio cards must receive an actual CSS transform on desktop."""
+    failures: list[str] = []
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    page.goto(f"{base_url}/", wait_until="networkidle")
+
+    card_count = page.evaluate("document.querySelectorAll('[data-folio-card]').length")
+    if not card_count:
+        failures.append("no [data-folio-card] elements found")
+        context.close()
+        return failures
+
+    before = page.evaluate(
+        "() => window.getComputedStyle(document.querySelectorAll('[data-folio-card]')[0]).transform"
+    )
+    page.evaluate(
+        "() => { const folio = document.querySelector('[data-folio]'); "
+        "if (folio) window.scrollTo(0, folio.offsetTop + folio.offsetHeight * 0.5); }"
+    )
+    page.wait_for_timeout(250)
+    after = page.evaluate(
+        "() => window.getComputedStyle(document.querySelectorAll('[data-folio-card]')[0]).transform"
+    )
+    if before == after:
+        failures.append(f"folio card transform did not change on scroll (stayed {after!r})")
+    if after in ("none", ""):
+        failures.append("folio card has no transform applied mid-scroll on desktop")
+
+    context.close()
+    return failures
+
+
+def _check_reduced_motion_fallback(browser, base_url: str) -> list[str]:
+    """With reduced motion, every hero/folio/approach element must be visible with no transform."""
+    failures: list[str] = []
+    context = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+    page = context.new_page()
+    page.goto(f"{base_url}/", wait_until="networkidle")
+
+    report = page.evaluate(
+        """
+        () => {
+          const bad = [];
+          const groups = {
+            hero: document.querySelectorAll('.hero__state'),
+            folio: document.querySelectorAll('[data-folio-card]'),
+            approach: document.querySelectorAll('[data-approach-step]'),
+          };
+          for (const [name, nodes] of Object.entries(groups)) {
+            nodes.forEach((el, i) => {
+              const style = window.getComputedStyle(el);
+              const rect = el.getBoundingClientRect();
+              const visible = style.display !== 'none' && style.visibility !== 'hidden'
+                && parseFloat(style.opacity) >= 0.99;
+              const noTransform = style.transform === 'none' || style.transform === '';
+              if (!visible || !noTransform || rect.width === 0) {
+                bad.push(`${name}[${i}]: visible=${visible} noTransform=${noTransform} transform=${style.transform}`);
+              }
+            });
+          }
+          return bad;
+        }
+        """
+    )
+    if report:
+        failures.append(f"reduced-motion elements not fully visible / still transformed: {report}")
+
+    context.close()
+    return failures
 
 
 def run() -> dict:
@@ -384,16 +513,32 @@ def run() -> dict:
             results["expired_page_ok"] = expired_ok
             context.close()
 
+            # --- template v2 motion checks (desktop-only effects + reduced-motion fallback) ---
+            motion_failures: list[str] = []
+            motion_failures.extend(_check_hero_states(browser, base_url))
+            motion_failures.extend(_check_folio_transforms(browser, base_url))
+            motion_failures.extend(_check_reduced_motion_fallback(browser, base_url))
+            results["motion_checks"] = motion_failures
+            failures.extend(f"[motion] {f}" for f in motion_failures)
+
             browser.close()
     finally:
         httpd.shutdown()
 
+    # One "check group" per viewport, plus /expired/ and the motion checks —
+    # each group counts as passed only if it recorded zero failures.
+    group_passed = [not v["failures"] for k, v in results.items() if k not in ("expired_page_ok", "motion_checks")]
+    group_passed.append(bool(results.get("expired_page_ok")))
+    group_passed.append(not results.get("motion_checks"))
+    total_checks = len(group_passed)
     summary = {
         "script": "acceptance_template",
-        "in": len(VIEWPORTS) + 1,
-        "out": len(VIEWPORTS) + 1 - len(failures),
+        "in": total_checks,
+        "out": sum(1 for ok in group_passed if ok),
         "dropped": {"failures": failures},
-        "results": {k: (v if k == "expired_page_ok" else v["failures"]) for k, v in results.items()},
+        "results": {
+            k: (v if k in ("expired_page_ok", "motion_checks") else v["failures"]) for k, v in results.items()
+        },
     }
     print(json.dumps(summary))
 

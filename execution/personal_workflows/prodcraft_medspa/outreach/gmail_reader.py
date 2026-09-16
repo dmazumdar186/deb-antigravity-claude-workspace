@@ -12,10 +12,17 @@ outputs: list[dict] reply records: {"thread_id", "from", "to", "subject", "body_
 
 from __future__ import annotations
 
+import email.utils
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+# Cache of the authenticated Gmail profile's own address, keyed by GMAIL_TOKEN_JSON path (one
+# entry per credential set — a session normally only ever uses one, but this keeps two distinct
+# settings objects in the same test process from clobbering each other's cached value).
+_profile_email_cache: dict[str, str] = {}
 
 # Strips common quoted-history markers ("On ... wrote:", "-----Original Message-----", leading
 # ">" quote lines) so classify_reply.md only sees the new text, not the whole thread.
@@ -57,13 +64,52 @@ def _get_credentials(settings: Any):
     return _creds(settings)
 
 
+def _get_profile_email(service: Any, settings: Any) -> str:
+    """Fetch (and module-cache) the authenticated Gmail account's own address via
+    users().getProfile(), so search_replies can exclude our own outbound messages (C3)."""
+    cache_key = str(getattr(settings, "GMAIL_TOKEN_JSON", None) or "default")
+    cached = _profile_email_cache.get(cache_key)
+    if cached is not None:
+        return cached
+    profile = service.users().getProfile(userId="me").execute()
+    email_address = (profile.get("emailAddress") or "").strip().lower()
+    _profile_email_cache[cache_key] = email_address
+    return email_address
+
+
+def _is_own_outbound_message(msg: dict, *, profile_email: str, sender_email: str | None) -> bool:
+    """True when `msg` (a raw users().messages().get(format="full") response) is a message WE
+    sent — either Gmail labelled it SENT, or its From header matches the authenticated profile
+    address or the configured sender address. scan_replies must never classify our own send as
+    an inbound reply (code-review C3)."""
+    label_ids = msg.get("labelIds") or []
+    if "SENT" in label_ids:
+        return True
+    from_header = _header(msg.get("payload", {}).get("headers", []), "From").lower()
+    if profile_email and profile_email in from_header:
+        return True
+    if sender_email and sender_email.strip().lower() in from_header:
+        return True
+    return False
+
+
 def search_replies(
-    *, owner_email: str = "", since_days: int, settings: Any, thread_id: str | None = None
+    *,
+    owner_email: str = "",
+    since_days: int,
+    settings: Any,
+    thread_id: str | None = None,
+    sender_email: str | None = None,
 ) -> list[dict]:
     """Live: search `from:{owner_email} newer_than:{since_days}d`, plus every message already in
     `thread_id` (when the outreach row has one, from the send step) so a reply sent from a
-    different address in that same Gmail thread is still caught. Returns one record per message,
-    deduped by message_id (thread messages first, then any additional from-address matches)."""
+    different address in that same Gmail thread is still caught. Excludes any message that is
+    OUR OWN outbound send (Gmail SENT label, or From matching the authenticated profile address
+    or `sender_email` if given) so a self-sent message is never misread as an inbound reply
+    (code-review C3). Returns EVERY remaining message as one record each (the caller,
+    scan_replies.py, is responsible for idempotency via notes.seen_reply_ids — this function no
+    longer truncates to "the last one"), deduped by message_id (thread messages first, then any
+    additional from-address matches)."""
     try:
         from googleapiclient.discovery import build
     except ImportError as exc:
@@ -74,6 +120,7 @@ def search_replies(
 
     creds = _get_credentials(settings)
     service = build("gmail", "v1", credentials=creds, cache_discovery=False)
+    profile_email = _get_profile_email(service, settings)
 
     records: list[dict] = []
     seen_ids: set[str] = set()
@@ -81,6 +128,8 @@ def search_replies(
     if thread_id:
         thread = service.users().threads().get(userId="me", id=thread_id, format="full").execute()
         for msg in thread.get("messages", []):
+            if _is_own_outbound_message(msg, profile_email=profile_email, sender_email=sender_email):
+                continue
             record = _parse_message(msg)
             message_id = record.get("message_id")
             if message_id and message_id not in seen_ids:
@@ -94,6 +143,8 @@ def search_replies(
             if msg_meta["id"] in seen_ids:
                 continue
             msg = service.users().messages().get(userId="me", id=msg_meta["id"], format="full").execute()
+            if _is_own_outbound_message(msg, profile_email=profile_email, sender_email=sender_email):
+                continue
             record = _parse_message(msg)
             seen_ids.add(record.get("message_id") or msg_meta["id"])
             records.append(record)
@@ -136,6 +187,35 @@ def _extract_plain_text(payload: dict) -> str:
     return ""
 
 
+def _received_at(headers: list[dict], internal_date: Any) -> str:
+    """M4: parse the RFC 2822 `Date` header into a UTC ISO-8601 string; fall back to Gmail's
+    own `internalDate` (epoch milliseconds, always present and server-assigned) when the Date
+    header is missing or unparseable, rather than passing through a raw, non-ISO header value."""
+    date_header = _header(headers, "Date")
+    if date_header:
+        try:
+            parsed = email.utils.parsedate_to_datetime(date_header)
+        except (TypeError, ValueError, IndexError):
+            parsed = None
+        if parsed is not None:
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    if internal_date not in (None, ""):
+        try:
+            epoch_ms = int(internal_date)
+            return (
+                datetime.fromtimestamp(epoch_ms / 1000, tz=timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
+        except (TypeError, ValueError, OverflowError, OSError):
+            pass
+
+    return ""
+
+
 def _parse_message(msg: dict) -> dict:
     payload = msg.get("payload", {})
     headers = payload.get("headers", [])
@@ -147,5 +227,5 @@ def _parse_message(msg: dict) -> dict:
         "to": _header(headers, "To"),
         "subject": _header(headers, "Subject"),
         "body_text": strip_quoted_history(raw_body),
-        "received_at": _header(headers, "Date"),
+        "received_at": _received_at(headers, msg.get("internalDate")),
     }

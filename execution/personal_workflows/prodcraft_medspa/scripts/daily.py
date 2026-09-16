@@ -156,6 +156,11 @@ def main() -> None:
                 "no_send": args.no_send,
                 "takedowns_run": len(takedown_ids),
                 "sent": (send_result or {}).get("stat", {}).get("sent") if send_result else None,
+                # outreach.send.py's C2 live-send-gate fields, passed through so a caller reading
+                # only daily.py's own final line (not the "--- send output ---" block above) can
+                # still tell a dry-run from a live-recipient run.
+                "recipient_override": (send_result or {}).get("stat", {}).get("recipient_override") if send_result else None,
+                "live_recipients": (send_result or {}).get("stat", {}).get("live_recipients") if send_result else None,
                 "any_failed": any_failed,
             }
         )

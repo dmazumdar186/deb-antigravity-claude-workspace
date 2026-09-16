@@ -28,6 +28,42 @@ _LEADING_RE_RE = re.compile(r"^\s*re\s*:", re.IGNORECASE)
 _LOOM_PLACEHOLDER = "[[LOOM URL]]"
 _BANNED_WORD_RE = re.compile(r"\b(" + "|".join(re.escape(w) for w in BANNED_WORDS) + r")\b", re.IGNORECASE)
 
+# code-review C2/M2: a sender physical address that is empty, an unresolved operator
+# placeholder, or missing a street number must never pass CAN-SPAM rule #3 or the live-send
+# confirmation gate (send.py --confirm-live-sends). Matched case-insensitively.
+_ADDRESS_PLACEHOLDER_PAREN_RE = re.compile(
+    r"\([^)]*(?:confirm|tbd|placeholder|to be set)[^)]*\)", re.IGNORECASE
+)
+_ADDRESS_PLACEHOLDER_WORD_RE = re.compile(r"\b(?:tbd|placeholder|to be set)\b", re.IGNORECASE)
+_ADDRESS_MIN_LEN = 12
+_DIGIT_RE = re.compile(r"\d")
+
+
+def sender_address_is_valid(address: str | None) -> tuple[bool, str]:
+    """Validate a sender physical address for CAN-SPAM rule #3 / the live-send confirmation gate.
+
+    Rejects (in order, returning the first matching reason):
+      - empty/whitespace-only -> "empty"
+      - shorter than 12 chars -> "too_short"
+      - an operator placeholder, e.g. "(confirm)", "TBD", "placeholder", "to be set" -> "placeholder"
+      - no digit before the city (i.e. no street number in the segment before the first comma)
+        -> "no_street_number"
+
+    Returns (True, "") when the address passes every check. Exported for doctor.py, which
+    imports this exact name to warn the operator before the first live send.
+    """
+    addr = (address or "").strip()
+    if not addr:
+        return False, "empty"
+    if len(addr) < _ADDRESS_MIN_LEN:
+        return False, "too_short"
+    if _ADDRESS_PLACEHOLDER_PAREN_RE.search(addr) or _ADDRESS_PLACEHOLDER_WORD_RE.search(addr):
+        return False, "placeholder"
+    street_segment = addr.split(",", 1)[0]
+    if not _DIGIT_RE.search(street_segment):
+        return False, "no_street_number"
+    return True, ""
+
 
 def lint(
     subject: str,
@@ -61,8 +97,11 @@ def lint(
     if touch == 1 and _LEADING_RE_RE.match(subject or ""):
         violations.append("can_spam:2")
 
-    # Rule 3 — physical postal address present, resolved, and in the signature block.
-    if not sender_physical_address or not sender_physical_address.strip():
+    # Rule 3 — physical postal address present, resolved, VALID (not a placeholder, not
+    # missing a street number, not suspiciously short — sender_address_is_valid), and in the
+    # signature block.
+    address_valid, _address_reason = sender_address_is_valid(sender_physical_address)
+    if not address_valid:
         violations.append("can_spam:3")
     elif sender_physical_address not in body:
         violations.append("can_spam:3")

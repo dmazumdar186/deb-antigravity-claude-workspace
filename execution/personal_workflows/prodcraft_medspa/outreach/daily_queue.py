@@ -18,7 +18,7 @@ import argparse
 import json
 import random
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -100,10 +100,20 @@ def _email_ok(st: Any, business: dict) -> bool:
     return bool(business.get("owner_email")) and business.get("email_status") in allowed
 
 
+def _enqueue_seed(pick_mode: str, today: date, business: dict) -> str | None:
+    """The exact seed string `_ordered_new_touch1_candidates` used to order this business's
+    metro group, for research-lens auditability on the `outreach_enqueued` event (item 9).
+    `None` under `"score"` mode, which has no randomness to seed."""
+    if pick_mode != "random":
+        return None
+    return f"{today.isoformat()}:{business.get('metro') or ''}"
+
+
 def enqueue_new_touch1(st: Any, today: date) -> int:
     """Enqueue touch-1 rows for every business with an approved/live preview, a deliverable
     email, not do_not_contact, and no outreach row yet. Enqueue order follows `config.queue_pick`
     (see `_ordered_new_touch1_candidates`)."""
+    pick_mode = (st.get_config("queue_pick", "random") or "random").strip().lower()
     businesses = {
         b["id"]: b
         for b in st.find_businesses(do_not_contact=False, has_email=_has_email_filter(st))
@@ -148,7 +158,12 @@ def enqueue_new_touch1(st: Any, today: date) -> int:
                 "gap_primary": gap_primary,
             }
         )
-        st.log_event("business", business_id, "outreach_enqueued", {"touch": 1})
+        st.log_event(
+            "business",
+            business_id,
+            "outreach_enqueued",
+            {"touch": 1, "queue_pick": pick_mode, "seed": _enqueue_seed(pick_mode, today, business)},
+        )
         enqueued += 1
     return enqueued
 
@@ -214,6 +229,32 @@ def _preview_evidence(row: dict, st: Any) -> str:
     return "(no preview link)"
 
 
+def _sent_today_count(st: Any, today: date) -> int:
+    """Count outreach rows sent today, compared in UTC (item 10 — `sent_at` is always a UTC ISO
+    string; a naive local `.date()` comparison would mis-bucket a late-evening manual run)."""
+    today_str = today.isoformat()
+    count = 0
+    for r in _store_helpers.list_all(st, "outreach"):
+        sent_at = r.get("sent_at")
+        if not sent_at:
+            continue
+        try:
+            sent_dt = datetime.fromisoformat(str(sent_at).replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if sent_dt.tzinfo is None:
+            sent_dt = sent_dt.replace(tzinfo=timezone.utc)
+        if sent_dt.astimezone(timezone.utc).date().isoformat() == today_str:
+            count += 1
+    return count
+
+
+def _drafted_pending_count(st: Any) -> int:
+    """Rows already `drafted` (consumed a cap slot, not yet sent) — counted regardless of date
+    since the automated pipeline sends them the same run/day they were drafted."""
+    return sum(1 for r in _store_helpers.list_all(st, "outreach") if r.get("status") == "drafted")
+
+
 def _print_table(rows: list[dict], st: Any) -> None:
     header = f"{'business':<28} {'owner':<14} {'touch':<5} {'score':<5} {'gap':<28} preview"
     print(header)
@@ -254,15 +295,27 @@ def run_daily_queue(
             "queued_today": 0,
             "drafted": 0,
             "lint_failed": 0,
+            "render_error": 0,
             "gmail_drafts": 0,
             "llm_cost_usd": 0.0,
         }
 
     cap = _queue_cap(st)
-    selected = st.queue(today, cap)
+    # C4 queue-starvation fix: `Store.queue(today, cap)` returns a MIX of `queued` and `sent`
+    # rows (both are "due" per next_touch_at), capped and ordered BEFORE any status filtering —
+    # so historical `sent` rows due for a future touch can crowd the top-`cap` slice and starve
+    # out genuinely new `queued` rows from ever being drafted. Fix: over-fetch every due row
+    # (queued+sent, uncapped), filter to `queued` only, THEN cap — and cap against how much of
+    # today's budget is actually still free (today's real sends + rows already `drafted` and
+    # awaiting send today), not against `Store.queue()`'s own naive slice.
+    consumed_today = _sent_today_count(st, today) + _drafted_pending_count(st)
+    remaining_today = max(0, cap - consumed_today)
+    all_due = st.queue(today, len(_store_helpers.list_all(st, "outreach")) + 1)
+    selected = [r for r in all_due if r.get("status") == "queued"][:remaining_today]
 
     drafted = 0
     lint_failed = 0
+    render_errors = 0
     llm_cost_usd = 0.0
 
     for row in selected:
@@ -274,77 +327,87 @@ def run_daily_queue(
         if row.get("draft_subject") and not _lint_failed_before(row):
             continue
 
-        business = st.get_business(row["business_id"])
-        if not business:
-            continue
-        audit_row = st.latest_audit(row["business_id"])
-        preview_row = None
-        if row.get("preview_id"):
-            for p in _store_helpers.previews_for_business(st, row["business_id"]):
-                if p.get("id") == row.get("preview_id"):
-                    preview_row = p
-                    break
+        try:
+            business = st.get_business(row["business_id"])
+            if not business:
+                continue
+            audit_row = st.latest_audit(row["business_id"])
+            preview_row = None
+            if row.get("preview_id"):
+                for p in _store_helpers.previews_for_business(st, row["business_id"]):
+                    if p.get("id") == row.get("preview_id"):
+                        preview_row = p
+                        break
 
-        rendered = draft_email.render_draft(
-            st,
-            settings,
-            outreach_row=row,
-            business=business,
-            audit_row=audit_row,
-            preview_row=preview_row,
-            variant=variant,
-            mock=mock,
-        )
-        if rendered.get("llm"):
-            llm_cost_usd += rendered["llm"].get("cost_usd", 0.0)
+            rendered = draft_email.render_draft(
+                st,
+                settings,
+                outreach_row=row,
+                business=business,
+                audit_row=audit_row,
+                preview_row=preview_row,
+                variant=variant,
+                mock=mock,
+            )
+            if rendered.get("llm"):
+                llm_cost_usd += rendered["llm"].get("cost_usd", 0.0)
 
-        sender = rendered.get("sender") or {}
-        lint_result = lint_draft.lint(
-            rendered["subject"],
-            rendered["body"],
-            touch=int(row.get("touch") or 1),
-            sender_name=sender.get("name"),
-            sender_physical_address=sender.get("physical_address"),
-        )
+            sender = rendered.get("sender") or {}
+            lint_result = lint_draft.lint(
+                rendered["subject"],
+                rendered["body"],
+                touch=int(row.get("touch") or 1),
+                sender_name=sender.get("name"),
+                sender_physical_address=sender.get("physical_address"),
+            )
 
-        patch = {
-            "draft_subject": rendered["subject"],
-            "draft_body": rendered["body"],
-            "template_variant": rendered.get("variant"),
-        }
-
-        # `outreach` has no raw LLM-envelope column, so `notes` is the one JSON object every
-        # LLM-derived fact about this draft (fuzzy_variables' envelope, lint outcomes) rides in
-        # on — a single merged dict, not one overwriting the other.
-        notes_obj: dict[str, Any] = {}
-        llm_envelope = rendered.get("llm")
-        if llm_envelope:
-            notes_obj["llm"] = {
-                "model_id": llm_envelope.get("model_id"),
-                "prompt_sha256": llm_envelope.get("prompt_sha256"),
-                "usage": llm_envelope.get("usage"),
-                "mock": llm_envelope.get("mock"),
+            patch = {
+                "draft_subject": rendered["subject"],
+                "draft_body": rendered["body"],
+                "template_variant": rendered.get("variant"),
             }
 
-        if lint_result["violations"]:
-            lint_failed += 1
-            notes_obj["lint_violations"] = lint_result["violations"]
-            patch["notes"] = json.dumps(notes_obj)
+            # `outreach` has no raw LLM-envelope column, so `notes` is the one JSON object every
+            # LLM-derived fact about this draft (fuzzy_variables' envelope, lint outcomes) rides in
+            # on — a single merged dict, not one overwriting the other.
+            notes_obj: dict[str, Any] = {}
+            llm_envelope = rendered.get("llm")
+            if llm_envelope:
+                notes_obj["llm"] = {
+                    "model_id": llm_envelope.get("model_id"),
+                    "prompt_sha256": llm_envelope.get("prompt_sha256"),
+                    "usage": llm_envelope.get("usage"),
+                    "mock": llm_envelope.get("mock"),
+                    # research lens (item 9): whether this envelope is an operator-authored
+                    # manual_envelope() override rather than a real LLM call.
+                    "manual": bool(llm_envelope.get("manual", False)),
+                }
+
+            if lint_result["violations"]:
+                lint_failed += 1
+                notes_obj["lint_violations"] = lint_result["violations"]
+                patch["notes"] = json.dumps(notes_obj)
+                st.update_outreach(row["id"], patch)
+                st.log_event("outreach", row["id"], "lint_failed", {"violations": lint_result["violations"]})
+                continue
+
+            if lint_result.get("needs_operator_input"):
+                notes_obj["needs_operator_input"] = True
+
+            if notes_obj:
+                patch["notes"] = json.dumps(notes_obj)
+
             st.update_outreach(row["id"], patch)
-            st.log_event("outreach", row["id"], "lint_failed", {"violations": lint_result["violations"]})
+            row.update(patch)
+            state_machine.transition(st, {**row, "status": "queued"}, "drafted")
+            row["status"] = "drafted"
+            drafted += 1
+        except Exception as exc:  # noqa: BLE001 — M3: one bad render must not abort the whole batch
+            render_errors += 1
+            st.log_event(
+                "outreach", row["id"], "render_error", {"error": f"{type(exc).__name__}: {exc}"}
+            )
             continue
-
-        if lint_result.get("needs_operator_input"):
-            notes_obj["needs_operator_input"] = True
-
-        if notes_obj:
-            patch["notes"] = json.dumps(notes_obj)
-
-        st.update_outreach(row["id"], patch)
-        row.update(patch)
-        state_machine.transition(st, {**row, "status": "queued"}, "drafted")
-        row["status"] = "drafted"
-        drafted += 1
 
     gmail_draft_count = 0
     if create_drafts:
@@ -378,6 +441,7 @@ def run_daily_queue(
         "queued_today": len(selected),
         "drafted": drafted,
         "lint_failed": lint_failed,
+        "render_error": render_errors,
         "gmail_drafts": gmail_draft_count,
         "llm_cost_usd": round(llm_cost_usd, 6),
     }
@@ -394,8 +458,7 @@ def main() -> None:
     args = parser.parse_args()
 
     settings = config.bootstrap()
-    reject_mock_with_supabase(parser, args)  # --mock + --store supabase is a hard error
-    store_kind = args.store or ("local" if args.mock else settings.store_kind)
+    store_kind = reject_mock_with_supabase(parser, args)  # --mock + --store supabase is a hard error
     st = store_mod.get_store(kind=store_kind, root=args.store_root)
     today = _parse_date(args.date)
 

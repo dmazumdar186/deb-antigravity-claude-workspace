@@ -146,8 +146,16 @@ def _loom_url(outreach_row: dict) -> str:
             notes = json.loads(notes_raw) if isinstance(notes_raw, str) else notes_raw
             if isinstance(notes, dict) and notes.get("loom_url"):
                 return str(notes["loom_url"])
-        except (json.JSONDecodeError, TypeError):
-            pass
+        except (json.JSONDecodeError, TypeError) as exc:
+            # M6: malformed `notes` JSON must never crash rendering (fall back to the
+            # placeholder, which lint_draft.py flags as needs_operator_input rather than
+            # failing) — but a silently swallowed parse error is exactly the kind of bug this
+            # workspace's python-hardening rule #5 bans; log it so it's visible.
+            print(
+                f"[draft_email] outreach row {outreach_row.get('id')!r}: could not parse notes "
+                f"for loom_url ({type(exc).__name__}: {exc}); falling back to placeholder",
+                file=sys.stderr,
+            )
     return "[[LOOM URL]]"
 
 

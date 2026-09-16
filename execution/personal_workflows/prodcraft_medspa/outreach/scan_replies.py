@@ -341,18 +341,35 @@ def scan(st: Any, settings: Any, *, mock: bool, since_days: int, today: date | N
             if not thread_id and not owner_email:
                 continue
             # search_replies matches on gmail_thread_id (whole thread, any sender) as well as
-            # owner_email, so a reply from a different address in the same thread is caught.
+            # owner_email, so a reply from a different address in the same thread is caught. It
+            # already excludes our own outbound messages (SENT label / From == us) and returns
+            # EVERY inbound message, not just the newest — idempotency is `notes.seen_reply_ids`
+            # below, not a `[-1:]` truncation (code-review C3: that truncation could silently
+            # drop an unseen reply that arrived between two scans behind a newer one).
             replies = gmail_reader.search_replies(
                 owner_email=owner_email or "", since_days=since_days, settings=settings, thread_id=thread_id
             )
             if not replies:
                 continue
-            replies = replies[-1:]  # only the newest inbound message this pass
+
+        # A row can only leave `status: sent` once per scan pass (state_machine.transition()
+        # validates against the STATIC status on the `row` dict we pass it, not a re-read from
+        # the store, so calling it twice off a stale "sent" row would silently double-apply a
+        # transition). Once the first reply this pass moves the row off `sent`, every further
+        # unseen message for this same row is recorded as seen (idempotency) but not
+        # re-classified/re-transitioned this pass — a later scan will simply find nothing left
+        # to do for it (status is no longer `sent`, so this row won't be revisited).
+        row_left_sent = False
 
         for reply in replies:
             message_key = _reply_message_key(reply)
             if _already_seen(row, message_key):
                 continue  # already classified and (if applicable) notified on a prior scan
+
+            if row_left_sent:
+                merged_notes = _merge_notes(row.get("notes"), llm_classify=None, message_key=message_key)
+                row = st.update_outreach(row["id"], {"notes": merged_notes})
+                continue
 
             checked += 1
             envelope = None
@@ -371,9 +388,19 @@ def scan(st: Any, settings: Any, *, mock: bool, since_days: int, today: date | N
                 classification = json.loads(envelope["text"])
 
             bucket = _handle_reply(st, row, reply, classification, today, envelope=envelope, message_key=message_key)
-            counts[bucket if bucket in counts else "neutral"] = counts.get(bucket, 0) + 1
+            key = bucket if bucket in counts else "neutral"  # compute once — fixes the C3 key-mismatch bug
+            counts[key] = counts.get(key, 0) + 1
             if bucket == "remove":
                 takedowns.append(row.get("business_id"))
+            if bucket not in ("bounce", "ooo"):
+                row_left_sent = True
+            # Refresh `row` from the store so a further unseen message this same pass (bounce/ooo
+            # keep looping, or a stray extra reply after the row left `sent`) merges its
+            # seen_reply_ids on top of what THIS reply's classification/transition just wrote,
+            # instead of a stale pre-loop copy that would silently clobber it.
+            refreshed = st.get_row("outreach", row["id"])
+            if refreshed is not None:
+                row = refreshed
 
     return {
         "script": "scan_replies",

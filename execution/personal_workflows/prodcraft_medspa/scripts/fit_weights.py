@@ -78,15 +78,18 @@ def _all_rows(store: Any, table: str) -> list[dict]:
     return store.list_rows(table)
 
 
-def touch1_outcomes(store: Any, *, metro: str | None = None, mode: str = "full") -> list[tuple[dict, dict, bool]]:
+def touch1_outcomes(store: Any, *, metro: str | None = None, mode: str = "all") -> list[tuple[dict, dict, bool]]:
     """Return [(audit_row, outreach_row, replied_bool), ...] for every touch-1 outreach row that
     was sent, joined to its business's latest matching audit.
 
     `metro`: None (default) = all metros; else only outreach whose business.metro matches exactly.
-    `mode`: "full" (default) restricts to audits whose stored `mode` column is "full"; "degraded"
-    the mirror; "all" applies no mode filter. An audit row predating this column (mode is absent/
-    None) matches only "all", never "full" or "degraded" — we don't know what it measured, so it's
-    excluded from a mode-specific fit rather than silently counted as either.
+    `mode`: "all" (default here -- keeps this function's own behavior unchanged for existing
+    callers) applies no mode filter; "full" restricts to audits whose stored `mode` column is
+    "full"; "degraded" the mirror. An audit row predating this column (mode is absent/None)
+    matches only "all", never "full" or "degraded" -- we don't know what it measured, so it's
+    excluded from a mode-specific fit rather than silently counted as either. main()'s CLI passes
+    `--mode` explicitly and defaults ITS OWN flag to "full" (CONTRACTS.md) -- that CLI-level
+    default is deliberately stricter than this function's own default.
     """
     if mode not in ("full", "degraded", "all"):
         raise ValueError(f"mode must be one of full/degraded/all, got {mode!r}")

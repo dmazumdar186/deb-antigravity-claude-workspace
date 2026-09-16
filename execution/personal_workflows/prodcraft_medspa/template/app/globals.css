@@ -5,6 +5,12 @@
 :root {
   --brand: #7c5cff;
   --brand-ink: #ffffff;
+  /* Mirror tailwind.config.ts's ink/paper/gallery tokens as CSS custom
+     properties too, for the plain-CSS motion sections below that need them
+     inside var(--folio-x)-style calc()/transform chains Tailwind can't reach. */
+  --ink: #090a0c;
+  --paper: #fcfaf5;
+  --gallery: #f2efe8;
   /* Measured height of StickyMobileBar (py-3 + pill button + border) with a
      small buffer. Used to keep the footer's own content — including its
      "Remove this preview" link — clear of the fixed bottom bar on mobile. */
@@ -111,4 +117,653 @@ table.hours-table th {
   .footer-mobile-safe {
     padding-bottom: calc(var(--sticky-bar-h) + 1rem);
   }
+}
+
+/* ==========================================================================
+   Scroll-scrubbed motion: header progress, hero film, folio stack, drum.
+   Technique ported (not copied) from a reference exhibit site's vanilla CSS.
+   All driven by CSS custom properties MotionController.tsx writes; resting
+   values are set inline below so the page reads correctly even before JS
+   runs. See the `html:not(.has-js)` and `prefers-reduced-motion` blocks at
+   the end of this section for the no-motion fallback every effect here has.
+   ========================================================================== */
+
+/* --- Header progress bar + is-scrolled state ----------------------------- */
+.site-header {
+  --page-progress: 0;
+  position: relative;
+  transition: box-shadow 200ms ease;
+}
+.site-header.is-scrolled {
+  box-shadow: 0 1px 0 rgba(9, 10, 12, 0.08);
+}
+.site-header__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  overflow: hidden;
+}
+.site-header__progress i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--brand);
+  transform: scaleX(var(--page-progress));
+  transform-origin: left;
+  will-change: transform;
+}
+
+/* --- Hero: scroll-scrubbed, numbered copy states, image crossfade -------- */
+.hero {
+  position: relative;
+  height: 300vh;
+  background: #090a0c;
+  color: #fff;
+}
+.hero__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #090a0c;
+}
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+.hero__bg.is-on {
+  opacity: 1;
+}
+.hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(9, 10, 12, 0.18) 0%, rgba(9, 10, 12, 0.42) 45%, rgba(9, 10, 12, 0.86) 100%);
+  pointer-events: none;
+}
+.hero__copy {
+  position: absolute;
+  inset: 96px clamp(20px, 4vw, 72px) 0;
+  display: grid;
+  align-items: center;
+  pointer-events: none;
+}
+.hero__state {
+  grid-area: 1 / 1;
+  max-width: min(46vw, 680px);
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 420ms ease, transform 520ms cubic-bezier(0.2, 0.72, 0.2, 1);
+}
+.hero__state.is-on {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.hero__eyebrow {
+  color: rgba(255, 255, 255, 0.72);
+}
+.hero h1,
+.hero h2 {
+  margin: 18px 0 20px;
+  font-size: clamp(36px, 6vw, 92px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  color: #fff;
+}
+.hero__lede {
+  max-width: 44ch;
+  font-size: clamp(15px, 1.2vw, 19px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+}
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+.hero__call {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.hero__steps {
+  position: absolute;
+  z-index: 3;
+  right: clamp(20px, 4vw, 72px);
+  bottom: 22px;
+  left: clamp(20px, 4vw, 72px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 18px;
+  font: 600 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+.hero__steps li {
+  position: relative;
+  flex: 1 1 0;
+  padding-top: 10px;
+  transition: color 300ms ease;
+}
+.hero__steps li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+}
+.hero__steps li::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--brand);
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left;
+}
+
+@media (max-width: 799px) {
+  .hero__copy {
+    /* Top-aligned on mobile rather than bottom-aligned: `.hero__stage` is
+       `position: sticky` and, before the user has scrolled at all, sits in
+       normal document flow below Header/WatermarkBar — so its own bottom
+       edge can fall below the visible viewport on first paint. Anchoring
+       content to the TOP of the stage keeps it inside the visible area
+       (and clear of StickyMobileBar, fixed to the real viewport bottom)
+       regardless of how tall the header/watermark happen to be. */
+    align-items: start;
+    padding-top: 28px;
+    inset: 84px clamp(20px, 4vw, 72px) 0;
+  }
+  .hero__state {
+    max-width: 100%;
+  }
+  .hero h1,
+  .hero h2 {
+    font-size: clamp(34px, 11vw, 60px);
+  }
+  .hero__actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+/* --- Folio: sticky stacked service cards, fanning out with scroll -------- */
+.folio {
+  position: relative;
+}
+@media (min-width: 800px) {
+  .folio {
+    min-height: calc(var(--card-count, 6) * 62vh);
+  }
+  .folio__sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .folio__stage {
+    position: relative;
+    width: min(68vw, 980px);
+    height: 62vh;
+  }
+  .folio-card {
+    --folio-x: 0%;
+    --folio-y: 0%;
+    --folio-rotation: 0deg;
+    --folio-scale: 1;
+    --folio-opacity: 1;
+    --folio-caption-opacity: 1;
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+    background: var(--gallery, #f2efe8);
+    box-shadow: 0 40px 90px rgba(9, 10, 12, 0.4);
+    opacity: var(--folio-opacity);
+    transform: translate3d(var(--folio-x), var(--folio-y), 0) rotate(var(--folio-rotation)) scale(var(--folio-scale));
+    will-change: transform, opacity;
+  }
+  .folio-card__inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 18px;
+    padding: clamp(28px, 3.4vw, 52px);
+    color: var(--ink, #090a0c);
+    opacity: var(--folio-caption-opacity);
+  }
+  .folio-card__icon {
+    color: var(--brand);
+  }
+  .folio-card__index {
+    display: block;
+    font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.14em;
+    color: rgba(9, 10, 12, 0.5);
+  }
+  .folio-card__body h3 {
+    margin: 8px 0 10px;
+    font-size: clamp(26px, 3vw, 44px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+  .folio-card__body p {
+    max-width: 46ch;
+    color: rgba(9, 10, 12, 0.65);
+    font-size: clamp(14px, 1.1vw, 17px);
+    line-height: 1.5;
+  }
+  .folio-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 4px;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 799px) {
+  .folio__sticky {
+    position: static;
+    height: auto;
+  }
+  .folio__stage {
+    position: static;
+    display: grid;
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .folio-card {
+    position: relative;
+    border-radius: 20px;
+    background: var(--gallery, #f2efe8);
+    color: var(--ink, #090a0c);
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .folio-card__inner {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .folio-card__icon {
+    color: var(--brand);
+  }
+  .folio-card__index {
+    font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.14em;
+    color: rgba(9, 10, 12, 0.5);
+  }
+  .folio-card__body h3 {
+    margin: 4px 0 6px;
+    font-size: 22px;
+    font-weight: 500;
+  }
+  .folio-card__body p {
+    color: rgba(9, 10, 12, 0.65);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .folio-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 3px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 4px;
+  }
+}
+
+/* --- Approach drum: "your visit" numbered steps in a sticky 3D window ---- */
+.approach {
+  --approach-progress: 0%;
+}
+@media (min-width: 800px) {
+  .approach {
+    min-height: 320vh;
+  }
+  .approach__sticky {
+    position: sticky;
+    top: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(380px, 1.1fr);
+    gap: 6vw;
+    align-items: center;
+    padding: clamp(80px, 10vh, 120px) 0;
+    overflow: hidden;
+  }
+  /* Both columns get the SAME box height (matching .approach__window's own
+     `min(46vh, 420px)`) so their vertical centers coincide exactly — the
+     heading's content is then centered within that box with flex, instead
+     of relying on the grid row's auto-sizing (which follows the taller
+     column and can visually decenter a shorter one). */
+  .approach__heading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: min(46vh, 420px);
+  }
+  .approach__progress {
+    width: 100%;
+    height: 2px;
+    margin-top: 30px;
+    background: rgba(9, 10, 12, 0.15);
+  }
+  .approach__progress i {
+    display: block;
+    width: var(--approach-progress);
+    height: 100%;
+    background: var(--brand);
+  }
+  .approach__window {
+    position: relative;
+    height: min(46vh, 420px);
+    overflow: hidden;
+    perspective: 1200px;
+    border-top: 1px solid rgba(9, 10, 12, 0.15);
+    border-bottom: 1px solid rgba(9, 10, 12, 0.15);
+  }
+  .approach__steps {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+  }
+  .approach__steps li {
+    --drum-y: 94%;
+    --drum-rotate: 62deg;
+    --drum-scale: 0.88;
+    --drum-opacity: 0;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 18px;
+    padding: 30px clamp(8px, 1.6vw, 24px);
+    opacity: var(--drum-opacity);
+    transform: translate3d(0, calc(-50% + var(--drum-y)), 0) rotateX(var(--drum-rotate)) scale(var(--drum-scale));
+    will-change: transform, opacity;
+  }
+  .approach__steps span {
+    color: var(--brand);
+    font: 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.12em;
+  }
+  .approach__steps h3 {
+    margin-bottom: 12px;
+    font-size: clamp(32px, 3.6vw, 56px);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+  }
+  .approach__steps p {
+    max-width: 52ch;
+    color: rgba(9, 10, 12, 0.65);
+    font-size: clamp(14px, 1.05vw, 17px);
+    line-height: 1.48;
+  }
+}
+
+@media (max-width: 799px) {
+  .approach__sticky {
+    position: static;
+    display: block;
+  }
+  .approach__progress {
+    display: none;
+  }
+  .approach__drum {
+    margin-top: 36px;
+  }
+  .approach__window {
+    height: auto;
+    overflow: visible;
+    perspective: none;
+  }
+  .approach__steps {
+    position: relative;
+    inset: auto;
+  }
+  .approach__steps li {
+    position: relative;
+    top: auto;
+    padding: 22px 0;
+    border-top: 1px solid rgba(9, 10, 12, 0.15);
+    opacity: 1 !important;
+    transform: none !important;
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 16px;
+  }
+  .approach__steps li:last-child {
+    border-bottom: 1px solid rgba(9, 10, 12, 0.15);
+  }
+  .approach__steps span {
+    color: var(--brand);
+    font: 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.12em;
+  }
+  .approach__steps h3 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 500;
+  }
+  .approach__steps p {
+    color: rgba(9, 10, 12, 0.65);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* --- Proof strip ----------------------------------------------------------*/
+.proof__link {
+  display: block;
+}
+.proof__stat {
+  margin-top: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.proof__rating {
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+}
+.proof__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.proof__stars {
+  display: flex;
+  color: #f0b429;
+}
+
+/* --- Reduced motion: every scroll-scrubbed section renders fully visible,
+   in document flow, with no transform. ------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .hero__stage {
+    height: auto;
+    min-height: 100svh;
+    position: relative;
+  }
+  .hero__copy {
+    position: relative;
+    inset: auto;
+    display: block;
+    padding: 64px clamp(20px, 4vw, 72px);
+    pointer-events: auto;
+  }
+  .hero__state {
+    position: static;
+    max-width: 100%;
+    opacity: 1;
+    transform: none;
+    transition: none;
+    margin-bottom: 40px;
+    pointer-events: auto;
+  }
+  .hero__bg {
+    position: relative;
+    height: 42vh;
+    opacity: 1;
+    transition: none;
+  }
+  .hero__bg:not([data-hero-bg='0']) {
+    display: none;
+  }
+  .hero__scrim {
+    display: none;
+  }
+  .folio {
+    min-height: auto !important;
+  }
+  .folio__sticky {
+    position: static;
+    height: auto;
+  }
+  .folio__stage {
+    position: static;
+    display: grid;
+    gap: 16px;
+  }
+  .folio-card {
+    position: relative;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .approach {
+    min-height: auto !important;
+  }
+  .approach__sticky {
+    position: static;
+  }
+  .approach__window {
+    height: auto;
+    overflow: visible;
+    perspective: none;
+  }
+  .approach__steps {
+    position: relative;
+    inset: auto;
+  }
+  .approach__steps li {
+    position: relative;
+    top: auto;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* --- No JS: same fallback as prefers-reduced-motion above, keyed off the
+   `has-js` class the inline script in app/layout.tsx adds before hydration. */
+html:not(.has-js) .hero,
+html:not(.has-js) .hero__stage {
+  height: auto;
+  min-height: 100svh;
+  position: relative;
+}
+html:not(.has-js) .hero__copy {
+  position: relative;
+  inset: auto;
+  display: block;
+  padding: 64px clamp(20px, 4vw, 72px);
+  pointer-events: auto;
+}
+html:not(.has-js) .hero__state {
+  position: static;
+  max-width: 100%;
+  opacity: 1;
+  transform: none;
+  margin-bottom: 40px;
+  pointer-events: auto;
+}
+html:not(.has-js) .hero__bg {
+  position: relative;
+  height: 42vh;
+  opacity: 1;
+}
+html:not(.has-js) .hero__bg:not([data-hero-bg='0']) {
+  display: none;
+}
+html:not(.has-js) .hero__scrim {
+  display: none;
+}
+html:not(.has-js) .folio {
+  min-height: auto;
+}
+html:not(.has-js) .folio__sticky {
+  position: static;
+  height: auto;
+}
+html:not(.has-js) .folio__stage {
+  position: static;
+  display: grid;
+  gap: 16px;
+}
+html:not(.has-js) .folio-card {
+  position: relative;
+  opacity: 1;
+  transform: none;
+}
+html:not(.has-js) .approach {
+  min-height: auto;
+}
+html:not(.has-js) .approach__sticky {
+  position: static;
+}
+html:not(.has-js) .approach__window {
+  height: auto;
+  overflow: visible;
+  perspective: none;
+}
+html:not(.has-js) .approach__steps {
+  position: relative;
+  inset: auto;
+}
+html:not(.has-js) .approach__steps li {
+  position: relative;
+  top: auto;
+  opacity: 1;
+  transform: none;
 }

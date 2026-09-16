@@ -8,9 +8,13 @@
 //   `primary_color` when present (falls back to a neutral default otherwise),
 //   and idempotent: re-running with the same color is a fast no-op so it's
 //   safe to run on every `npm run build`.
-// inputs: ../business.json (optional — read for `primary_color`)
-// outputs: public/stock/hero-01..04.png (1600x1000 + 800x500 variants),
-//   public/stock/texture-01.png, public/stock/favicon.ico,
+// inputs: ../business.json (optional — read for `primary_color`/`accent_color`)
+// outputs: public/stock/hero-01..04.png (1600x1000 + 800x500 variants) — each
+//   of the 4 hero stills gets a DISTINCT palette derived from primary_color
+//   (lerped progressively toward accent_color/ink across the 4 states, see
+//   paletteForVariant) so the scroll-scrubbed hero crossfade in
+//   components/Hero.tsx reads as 4 different moods, not 4 crops of the same
+//   image — plus public/stock/texture-01.png, public/stock/favicon.ico,
 //   public/stock/.gen-manifest.json (idempotency marker), public/stock/LICENSE.md
 
 import { mkdirSync, writeFileSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -24,6 +28,7 @@ const outDir = path.join(templateRoot, 'public', 'stock');
 mkdirSync(outDir, { recursive: true });
 
 const DEFAULT_BRAND = '#7c5cff';
+const DEFAULT_ACCENT = '#f4f1ea';
 const FILES = [
   'hero-01.png',
   'hero-01-sm.png',
@@ -54,7 +59,22 @@ function readBrandColor() {
   return DEFAULT_BRAND;
 }
 
-function isUpToDate(brandColor) {
+function readAccentColor() {
+  const businessPath = path.join(templateRoot, 'business.json');
+  if (existsSync(businessPath)) {
+    try {
+      const data = JSON.parse(readFileSync(businessPath, 'utf-8'));
+      if (typeof data.accent_color === 'string' && /^#[0-9a-fA-F]{6}$/.test(data.accent_color)) {
+        return data.accent_color.toLowerCase();
+      }
+    } catch {
+      // same fallback rationale as readBrandColor above.
+    }
+  }
+  return DEFAULT_ACCENT;
+}
+
+function isUpToDate(brandColor, accentColor) {
   if (!existsSync(MANIFEST_PATH)) return false;
   let manifest;
   try {
@@ -63,7 +83,31 @@ function isUpToDate(brandColor) {
     return false;
   }
   if (manifest.primary_color !== brandColor) return false;
+  if (manifest.accent_color !== accentColor) return false;
   return FILES.every((f) => existsSync(path.join(outDir, f)));
+}
+
+/**
+ * Derives a distinct base RGB for each of the 4 hero states from the brand
+ * color, progressing toward the accent color (and, for the "recover" mood,
+ * toward ink) so the 4 hero stills read as 4 different palettes rather than
+ * 4 crops of one gradient:
+ *   0 (CONSULT) — pure brand color
+ *   1 (TREAT)   — brand warmed toward accent, 35%
+ *   2 (RECOVER) — brand deepened toward ink, 38% (calmer, moodier)
+ *   3 (BOOK)    — brand brightened toward accent, 65% (most inviting)
+ */
+function paletteForVariant(variant, brandRgb, accentRgb) {
+  switch (variant) {
+    case 0:
+      return brandRgb;
+    case 1:
+      return lerpColor(brandRgb, accentRgb, 0.35);
+    case 2:
+      return lerpColor(brandRgb, INK, 0.38);
+    default:
+      return lerpColor(brandRgb, accentRgb, 0.65);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -248,19 +292,22 @@ function writeFavicon(brandRgb) {
 function main() {
   const start = Date.now();
   const brandColor = readBrandColor();
+  const accentColor = readAccentColor();
 
-  if (isUpToDate(brandColor)) {
-    console.log(`[gen-stock] up to date for ${brandColor} — skipping (${FILES.length} files present)`);
+  if (isUpToDate(brandColor, accentColor)) {
+    console.log(`[gen-stock] up to date for ${brandColor}/${accentColor} — skipping (${FILES.length} files present)`);
     return;
   }
 
   const brandRgb = hexToRgb(brandColor);
+  const accentRgb = hexToRgb(accentColor);
 
   for (let i = 0; i < 4; i++) {
     const n = i + 1;
     const seed = 1000 + n * 97;
-    writeImage(`hero-0${n}.png`, 1600, 1000, seed, i, brandRgb);
-    writeImage(`hero-0${n}-sm.png`, 800, 500, seed + 1, i, brandRgb);
+    const variantRgb = paletteForVariant(i, brandRgb, accentRgb);
+    writeImage(`hero-0${n}.png`, 1600, 1000, seed, i, variantRgb);
+    writeImage(`hero-0${n}-sm.png`, 800, 500, seed + 1, i, variantRgb);
   }
 
   // One texture asset (used as a decorative fill/background element).
@@ -293,7 +340,11 @@ with \`npm run gen-stock\`.
 
   writeFileSync(
     MANIFEST_PATH,
-    JSON.stringify({ primary_color: brandColor, files: FILES, generated_at: new Date().toISOString() }, null, 2)
+    JSON.stringify(
+      { primary_color: brandColor, accent_color: accentColor, files: FILES, generated_at: new Date().toISOString() },
+      null,
+      2
+    )
   );
 
   const elapsedMs = Date.now() - start;

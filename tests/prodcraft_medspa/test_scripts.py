@@ -692,6 +692,85 @@ def test_daily_mock_chain_ends_with_sent_rows(tmp_path):
     assert daily2.returncode == 0, daily2.stderr
     stat2 = json.loads(daily2.stdout.strip().splitlines()[-1])
     assert stat2["sent"] == 0
+    # item 1: daily.py's own final line passes through send.py's C2 live-send-gate fields, not
+    # just "sent" -- readable without parsing the "--- send output ---" block above it.
+    assert stat2["recipient_override"] is True
+    assert stat2["live_recipients"] is False
+
+
+def test_daily_queue_starvation_fix_two_day_simulation(tmp_path):
+    """C4 proof, end-to-end: apply_schema -> run_metro --mock -> daily.py (day 1) sends the
+    funnel's 4 businesses; a day-2 run with no new eligible businesses drafts 0 (no starvation,
+    no phantom candidates — the real "no new candidates" reason, not a cap miscount); adding a
+    5th eligible business between the two days gets it drafted AND sent on day 2."""
+    store_root = tmp_path / "store"
+
+    apply_schema = _run(
+        [sys.executable, str(PKG_ROOT / "db" / "apply_schema.py"), "--store", "local", "--root", str(store_root)]
+    )
+    assert apply_schema.returncode == 0, apply_schema.stderr
+
+    metro = _run(
+        [
+            sys.executable, str(PKG_ROOT / "scripts" / "run_metro.py"),
+            "--metro", "chicago_north_shore", "--mock", "--store", "local", "--store-root", str(store_root),
+        ]
+    )
+    assert metro.returncode == 0, metro.stderr
+
+    day1 = _run(
+        [
+            sys.executable, str(PKG_ROOT / "scripts" / "daily.py"),
+            "--date", "2026-09-16", "--mock", "--store", "local", "--store-root", str(store_root),
+            "--recipient-override", "t@example.test",
+        ]
+    )
+    assert day1.returncode == 0, day1.stderr
+    stat1 = json.loads(day1.stdout.strip().splitlines()[-1])
+    assert stat1["sent"] == 4
+
+    # Between the two days: add one more eligible business by hand (deliverable email, no
+    # do_not_contact, an approved preview, and an audit) so it's a genuinely NEW touch-1
+    # candidate on day 2.
+    store = LocalStore(root=store_root)
+    extra_business = store.upsert_business(
+        {
+            "place_id": "extra-place-5th", "name": "Fifth Spa", "slug": "fifth-spa",
+            "metro": "chicago_north_shore", "owner_first": "Robin", "owner_email": "fifth@example-medspa-5th.test",
+            "email_status": "deliverable", "do_not_contact": False, "is_chain": False,
+        }
+    )
+    extra_audit = store.insert_audit(
+        {
+            "business_id": extra_business["id"], "score_version": "1.0", "total_score": 60,
+            "bucket": "qualified", "gaps": [{"signal": "no_booking_widget", "points": 22, "human_phrase": "x"}],
+        }
+    )
+    store.upsert_preview(
+        {
+            "business_id": extra_business["id"], "status": "approved", "content_hash": "h-5th",
+            "subdomain_url": "https://fifth-spa-5th.preview.prodcraft.fyi", "content": {}, "takedown": False,
+        }
+    )
+
+    day2 = _run(
+        [
+            sys.executable, str(PKG_ROOT / "scripts" / "daily.py"),
+            "--date", "2026-09-17", "--mock", "--store", "local", "--store-root", str(store_root),
+            "--recipient-override", "t@example.test",
+        ]
+    )
+    assert day2.returncode == 0, day2.stderr
+
+    reread = LocalStore(root=store_root)
+    fifth_row = [
+        r for r in reread.list_rows("outreach", business_id=extra_business["id"]) if int(r.get("touch") or 0) == 1
+    ]
+    assert len(fifth_row) == 1, "the 5th business added between days must get a new touch-1 row on day 2"
+    assert fifth_row[0]["status"] == "sent", "the 5th business must be drafted AND sent on day 2 (not starved)"
+
+    stat2 = json.loads(day2.stdout.strip().splitlines()[-1])
+    assert stat2["sent"] == 1  # exactly the 5th business — the original 4 are already `sent`, not due again
 
 
 def test_replies_and_daily_workflows_share_concurrency_group():

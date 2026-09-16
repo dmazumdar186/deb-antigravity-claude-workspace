@@ -2,39 +2,54 @@ import type { Business } from '@/lib/validate';
 import { SERVICE_ICONS } from './icons';
 import Reveal from './Reveal';
 
+// components/ServicesGrid.tsx
+// description: Services as a sticky "folio" stack on desktop — one card per
+//   service, pinned in view while the section scrolls, fanning out and
+//   receding as MotionController (lib/motion.ts's folioCardState) advances
+//   with scroll progress. Below the 800px breakpoint (and with
+//   prefers-reduced-motion, and with JS disabled — see globals.css'
+//   `html:not(.has-js)` rules) it's a plain stacked reveal grid: no sticky
+//   positioning, no transforms, everything simply visible in document flow.
 export default function ServicesGrid({ business }: { business: Business }) {
+  const count = business.services.length;
   return (
-    <section className="gutter bg-paper py-16 sm:py-24">
-      <div className="content-max">
+    <section
+      className="folio bg-ink py-16 text-paper sm:py-24"
+      data-folio
+      style={{ '--card-count': count } as React.CSSProperties}
+    >
+      <div className="gutter content-max">
         <Reveal>
-          <p className="eyebrow text-ink/60">Services</p>
-          <h2 className="font-display mt-3 text-ink" style={{ fontSize: 'clamp(28px, 4vw, 48px)' }}>
-            Treatments offered
+          <p className="eyebrow text-paper/60">Services · 01</p>
+          <h2 className="font-display mt-3 text-paper" style={{ fontSize: 'clamp(32px, 5vw, 64px)' }}>
+            TREATMENTS
+            <br />
+            OFFERED.
           </h2>
         </Reveal>
+      </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="folio__sticky">
+        <div className="folio__stage">
           {business.services.map((service, i) => {
             const Icon = SERVICE_ICONS[service.icon] ?? SERVICE_ICONS.sparkle;
             return (
-              <Reveal key={service.name} className={`delay-${i % 3}`}>
-                <div className="flex h-full flex-col gap-4 rounded-2xl border border-black/5 bg-gallery p-6">
-                  <div className="text-ink/70">
-                    <Icon width={28} height={28} />
+              <article className="folio-card" data-folio-card key={service.name}>
+                <div className="folio-card__inner">
+                  <div className="folio-card__icon">
+                    <Icon width={32} height={32} />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium">{service.name}</h3>
-                    <p className="mt-1 text-sm text-ink/60">{service.blurb}</p>
+                  <div className="folio-card__body">
+                    <span className="folio-card__index">{String(i + 1).padStart(2, '0')}</span>
+                    <h3>{service.name}</h3>
+                    <p>{service.blurb}</p>
                   </div>
-                  <a
-                    href="#book"
-                    className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-ink underline underline-offset-4"
-                  >
-                    Book a consultation
+                  <a href="#book" className="folio-card__cta">
+                    <span>Book a consultation</span>
                     <span aria-hidden="true">&rarr;</span>
                   </a>
                 </div>
-              </Reveal>
+              </article>
             );
           })}
         </div>
