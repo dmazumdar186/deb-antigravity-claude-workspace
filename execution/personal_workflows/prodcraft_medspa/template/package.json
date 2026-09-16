@@ -6,7 +6,7 @@
     "dev": "next dev",
     "gen-stock": "node scripts/gen-stock.mjs",
     "prebuild": "node scripts/ensure-business.mjs",
-    "build": "npm run prebuild && next build",
+    "build": "npm run prebuild && npm run gen-stock && next build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "next lint"

@@ -29,7 +29,7 @@ If no `business.json` is present, `npm run build` copies
 | Script | What it does |
 |---|---|
 | `npm run dev` | Local dev server (`next dev`) against whatever `business.json` is present. |
-| `npm run build` | `ensure-business` → `next build` (static export to `out/`). |
+| `npm run build` | `ensure-business` → `gen-stock` (idempotent) → `next build` (static export to `out/`). |
 | `npm test` | Vitest unit tests: validator, content linter, color contrast. |
 | `npm run typecheck` | `tsc --noEmit`. |
 | `npm run gen-stock` | Regenerates `public/stock/*` procedural imagery (pure Node, no deps). |

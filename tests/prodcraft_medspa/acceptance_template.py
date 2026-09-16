@@ -30,6 +30,23 @@ TEMPLATE_ROOT = REPO_ROOT / "execution" / "personal_workflows" / "prodcraft_meds
 OUT_DIR = TEMPLATE_ROOT / "out"
 SCREENSHOT_DIR = REPO_ROOT / ".tmp" / "prodcraft_medspa" / "acceptance"
 
+
+def _expected_watermark_text() -> str:
+    """Reads the exact `preview.watermark` sentence the built site must show.
+
+    Prefers the built `business.json` at the template root (what actually
+    drove this build); falls back to `business.example.json` when no
+    business.json is present (e.g. a bare checkout before ensure-business
+    has run).
+    """
+    for candidate in (TEMPLATE_ROOT / "business.json", TEMPLATE_ROOT / "business.example.json"):
+        if candidate.exists():
+            data = json.loads(candidate.read_text(encoding="utf-8"))
+            return data["preview"]["watermark"]
+    raise SystemExit(
+        f"neither business.json nor business.example.json found under {TEMPLATE_ROOT}"
+    )
+
 MAX_TRANSFER_BYTES = 1.5 * 1024 * 1024
 
 FORBIDDEN_TERMS = [
@@ -122,6 +139,8 @@ def run() -> dict:
         raise SystemExit(f"playwright is not installed: {exc}") from exc
 
     SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+
+    expected_watermark = _expected_watermark_text()
 
     port = _free_port()
     httpd = _serve(OUT_DIR, port)
@@ -217,6 +236,21 @@ def run() -> dict:
                 if not watermark_visible:
                     viewport_failures.append("watermark bar not visible")
 
+                # --- watermark bar contains the full preview.watermark sentence ---
+                watermark_text = page.evaluate(
+                    """
+                    () => {
+                      const el = document.querySelector('[data-watermark]');
+                      return el ? el.innerText : null;
+                    }
+                    """
+                )
+                if watermark_text is None or expected_watermark not in watermark_text:
+                    viewport_failures.append(
+                        f"watermark bar innerText missing full preview.watermark sentence "
+                        f"(expected {expected_watermark!r}, got {watermark_text!r})"
+                    )
+
                 # --- data-remove-link present with href ---
                 remove_link_href = page.evaluate(
                     """
@@ -254,6 +288,49 @@ def run() -> dict:
                 )
                 if bad_images:
                     viewport_failures.append(f"images missing alt/width/height: {bad_images}")
+
+                # --- sticky mobile bar must not cover the footer remove-preview link ---
+                if viewport_cfg["kwargs"].get("is_mobile"):
+                    page.evaluate(
+                        "document.querySelector('footer [data-remove-link]')"
+                        ".scrollIntoView({block: 'center'})"
+                    )
+                    page.wait_for_timeout(150)
+                    overlap_check = page.evaluate(
+                        """
+                        () => {
+                          const link = document.querySelector('footer [data-remove-link]');
+                          const bar = document.querySelector('.fixed.inset-x-0.bottom-0');
+                          if (!link) return { ok: false, reason: 'footer remove link not found' };
+                          if (!bar) return { ok: true, reason: 'no sticky bottom bar present' };
+                          const barStyle = window.getComputedStyle(bar);
+                          if (barStyle.display === 'none' || barStyle.visibility === 'hidden') {
+                            return { ok: true, reason: 'sticky bottom bar not displayed' };
+                          }
+                          const l = link.getBoundingClientRect();
+                          const b = bar.getBoundingClientRect();
+                          const intersects = l.left < b.right && l.right > b.left
+                            && l.top < b.bottom && l.bottom > b.top;
+                          if (!intersects) return { ok: true, reason: 'no bbox intersection' };
+                          const cx = l.left + l.width / 2;
+                          const cy = l.top + l.height / 2;
+                          const top = document.elementFromPoint(cx, cy);
+                          const clickable = top === link || (top && link.contains(top));
+                          return {
+                            ok: clickable,
+                            reason: clickable
+                              ? 'bbox overlaps but link is the top hit-tested element'
+                              : 'sticky bar covers the footer remove link',
+                          };
+                        }
+                        """
+                    )
+                    if not overlap_check.get("ok"):
+                        viewport_failures.append(
+                            f"sticky mobile bar covers footer remove link: {overlap_check.get('reason')}"
+                        )
+                    page.evaluate("window.scrollTo(0, 0)")
+                    page.wait_for_timeout(100)
 
                 # --- forbidden terms / price pattern in body text ---
                 body_text = page.evaluate("document.body.innerText")
