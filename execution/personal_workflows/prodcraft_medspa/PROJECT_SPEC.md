@@ -198,6 +198,20 @@ Call script core:
 
 Onboarding must capture: current booking tool, baseline online-booking count (last 30 days), services list, brand assets (now licensed to use), medical-director approval of copy.
 
+### 9.1 Guarantee proof — evidence and the zero-baseline floor
+
+Booking counts (baseline and day-60) are **client-self-reported** — ProdCraft has no read access
+into the client's booking system — so both counts must be backed by evidence captured at the time:
+a screenshot or export from the client's booking tool at baseline (30 days pre-launch) and again at
+day 60. `deals/deals.py` refuses to record a baseline, or to run the 60-day proof, without an
+`--evidence-ref` (a URL or file ref to that screenshot/export); each is stored on the deal row
+(`baseline_evidence_ref`, `evidence_ref`) so a later dispute has something to point to.
+
+**ZERO_BASELINE_FLOOR rule**: `guarantee_met = bookings_60d > max(baseline_online_bookings_30d, 5) * 2`.
+A client whose baseline was 0 (or never tracked before ProdCraft) cannot "meet" the guarantee with a
+token booking — the multiplied baseline is floored at 5 * 2 = 10, so day-60 must clear a real,
+meaningful count even from a zero starting point. See `deals/deals.py`'s `ZERO_BASELINE_FLOOR`.
+
 ---
 
 ## 10. Data model (Supabase)

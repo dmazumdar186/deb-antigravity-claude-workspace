@@ -2,7 +2,9 @@
 scoring.py
 description: Pure scoring function over stored audit signals. No I/O — CONTRACTS.md "Scoring" table exactly.
 inputs: Imported by audit_site.py (fresh signals) and scoring.py's own --recompute CLI (stored signals).
-outputs: score(signals) -> {"total", "bucket", "gaps", "score_version"}; CLI recomputes and diffs stored audits.
+outputs: score(signals) -> {"total", "bucket", "gaps", "score_version", "max_measurable"}; CLI
+    recomputes and diffs stored audits, logging a `score_recompute_diff` event per business whose
+    score/bucket would change (never patching rows — see main()).
 """
 
 from __future__ import annotations
@@ -38,6 +40,54 @@ HUMAN_PHRASES: dict[str, str] = {
 
 _OLD_BUILDERS = {"wix", "godaddy"}
 
+# Max points per signal, used by _max_measurable() below — the ceiling a signal COULD contribute
+# if it fails, counted only when the underlying measurement was actually taken (not None). This
+# is what makes a 30 legible in "degraded" mode (item 1, learning-systems lens): a business
+# audited with PSI/vision skipped has a lower max_measurable, so 30/58 reads very differently
+# from 30/100.
+_SIGNAL_MAX_POINTS: dict[str, int] = {
+    "no_booking_widget": 22,
+    "not_mobile_friendly": 15,
+    "poor_performance": 15,
+    "dated_design": 15,
+    "no_cta_above_fold": 10,
+    "no_ssl": 8,
+    "old_builder": 8,
+    "no_analytics": 4,
+    "stale_footer": 3,
+}
+
+
+def _max_measurable(signals: dict[str, Any]) -> int:
+    """Sum of _SIGNAL_MAX_POINTS for every signal whose underlying measurement is present.
+
+    `no_website` is a full-observability short-circuit (100). `no_booking_widget` is grep-based
+    against the fetched HTML, never "unmeasured" once a site was fetched, so it always counts.
+    Every other signal depends on an external check (PSI, vision, screenshots, tech-detect) that
+    can come back None (not run, or ran and returned nothing) — that counts as unmeasured, not
+    "measured and passing".
+    """
+    if signals.get("has_website") is False:
+        return 100
+    total = _SIGNAL_MAX_POINTS["no_booking_widget"]
+    if signals.get("is_mobile_friendly") is not None:
+        total += _SIGNAL_MAX_POINTS["not_mobile_friendly"]
+    if signals.get("psi_mobile") is not None:
+        total += _SIGNAL_MAX_POINTS["poor_performance"]
+    if signals.get("vision_dated_score") is not None:
+        total += _SIGNAL_MAX_POINTS["dated_design"]
+    if signals.get("has_cta_above_fold") is not None:
+        total += _SIGNAL_MAX_POINTS["no_cta_above_fold"]
+    if signals.get("has_ssl") is not None:
+        total += _SIGNAL_MAX_POINTS["no_ssl"]
+    if signals.get("builder") is not None or signals.get("has_jquery_legacy") is not None:
+        total += _SIGNAL_MAX_POINTS["old_builder"]
+    if signals.get("has_analytics") is not None:
+        total += _SIGNAL_MAX_POINTS["no_analytics"]
+    if signals.get("footer_year") is not None:
+        total += _SIGNAL_MAX_POINTS["stale_footer"]
+    return total
+
 
 def _bucket(total: int) -> str:
     if total >= 45:
@@ -68,6 +118,7 @@ def score(signals: dict[str, Any]) -> dict:
             "bucket": _bucket(100),
             "gaps": [gap],
             "score_version": SCORE_VERSION,
+            "max_measurable": _max_measurable(signals),
         }
 
     gaps: list[dict] = []
@@ -176,6 +227,7 @@ def score(signals: dict[str, Any]) -> dict:
         "bucket": _bucket(total),
         "gaps": gaps,
         "score_version": SCORE_VERSION,
+        "max_measurable": _max_measurable(signals),
     }
 
 
@@ -231,8 +283,20 @@ def main() -> None:
         ):
             # The Store contract has no generic audit patcher (audits are append-only via
             # insert_audit) — this CLI's job is to prove score() is a pure function of the
-            # stored signal columns, so it counts and reports diffs rather than writing.
+            # stored signal columns, so it counts and reports diffs rather than writing. It
+            # still logs the diff as an event so an operator can see exactly which businesses
+            # would move and why (item 3, learning-systems lens).
             diff_count += 1
+            st.log_event(
+                "business",
+                business["id"],
+                "score_recompute_diff",
+                {
+                    "old": {"total_score": latest.get("total_score"), "bucket": latest.get("bucket")},
+                    "new": {"total_score": recomputed["total"], "bucket": recomputed["bucket"]},
+                    "score_version": recomputed["score_version"],
+                },
+            )
 
     print(
         f'{{"script": "scoring", "metro": "{args.metro}", "checked": {checked}, "diffs": {diff_count}}}'

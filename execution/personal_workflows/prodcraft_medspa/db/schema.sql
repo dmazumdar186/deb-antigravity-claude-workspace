@@ -64,6 +64,12 @@ create table if not exists audits (
   total_score           integer not null,
   bucket                text not null,        -- qualified|borderline|skip
   gaps                  jsonb not null default '[]'::jsonb,  -- ordered list of {signal, points, human_phrase}
+  mode                  text,                 -- full|degraded (0004): "full" only when PSI, vision,
+                                                -- and screenshots all actually ran and returned a value
+  max_measurable        integer,              -- (0004) points that could have been measured in this
+                                                -- mode, so total_score is legible without knowing mode
+  llm_cost_usd          numeric(8,4),         -- (0004) vision LLM call cost for this audit, computed
+                                                -- in audit_site.py, previously dropped on the floor
   screenshot_mobile_url text,
   screenshot_desktop_url text,
   raw                   jsonb not null default '{}'::jsonb
@@ -107,6 +113,9 @@ create table if not exists outreach (
   gmail_draft_id    text,
   gmail_thread_id   text,
   sent_at           timestamptz,
+  score_at_send     integer,                          -- (0004) audits.total_score at the moment
+                                                        -- this touch was sent, stamped by
+                                                        -- daily_queue.py — see CONTRACTS.md
   replied_at        timestamptz,
   reply_sentiment   text,                            -- positive|neutral|negative|remove|bounce
   reply_excerpt     text,
@@ -145,6 +154,9 @@ create table if not exists deals (
                                                     -- deals/deals.py stops a zero-baseline "win")
   balance_paid_at                date,
   care_plan_active               boolean not null default false,
+  evidence_ref                   text,            -- (0004) URL or file ref for the client's
+                                                    -- day-60 booking export/screenshot proof
+  baseline_evidence_ref          text,            -- (0004) same, for the baseline count
   notes                          text,
   created_at                     timestamptz not null default now()
 );

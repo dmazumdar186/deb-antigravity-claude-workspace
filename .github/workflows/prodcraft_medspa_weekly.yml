@@ -1,0 +1,65 @@
+name: prodcraft-medspa-weekly
+
+# Every Monday 15:00 UTC: fit_weights.py against the live store, posting the compact weekly
+# summary to Telegram (item 5, learning-systems + long-horizon lenses). Inert until the operator
+# flips the `PRODCRAFT_CRON_ENABLED` repo variable to "true" — see
+# directives/personal_workflows/prodcraft_medspa_pipeline.md for the one-time setup this depends
+# on (Supabase project + schema, Telegram channel). Mirrors prodcraft_medspa_replies.yml's shape.
+
+on:
+  schedule:
+    - cron: "0 15 * * 1"
+  workflow_dispatch: {}
+
+concurrency:
+  group: prodcraft-medspa
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  weekly:
+    if: vars.PRODCRAFT_CRON_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: execution/personal_workflows/prodcraft_medspa/requirements.txt
+
+      - name: Install dependencies (scoped to prodcraft_medspa; round-2 fixops item 4)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r execution/personal_workflows/prodcraft_medspa/requirements.txt
+
+      - name: Run fit_weights.py --store supabase --report-telegram
+        env:
+          PRODCRAFT_STORE: supabase
+          PRODCRAFT_ENV: github-actions
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python execution/personal_workflows/prodcraft_medspa/scripts/fit_weights.py --store supabase --report-telegram
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PRODCRAFT_ENV: github-actions
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from execution.personal_workflows.prodcraft_medspa.common import notify
+          notify.error('prodcraft_medspa_weekly', 'GitHub Actions run failed — see workflow run for details', 1)
+          "

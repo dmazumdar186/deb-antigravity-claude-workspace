@@ -3,7 +3,8 @@ audit_site.py
 description: Orchestrate the per-business website audit (fetch, signals, PSI, screenshots, vision, score).
 inputs: --metro X [--business-id ID] [--limit N] [--mock] [--store ...] [--store-root PATH]
         [--skip-vision] [--skip-screenshots] [--force]
-outputs: One `audits` row per audited business (with `raw`), an `events` log entry, and a stdout stat line.
+outputs: One `audits` row per audited business (with `raw`, `mode`, `max_measurable`), an `events`
+    log entry, and a stdout stat line (includes a `modes: {full, degraded}` breakdown).
 """
 
 from __future__ import annotations
@@ -133,6 +134,8 @@ def audit_one_business(
                 "total_score": scored["total"],
                 "bucket": scored["bucket"],
                 "gaps": scored["gaps"],
+                "mode": "degraded",
+                "max_measurable": scored["max_measurable"],
                 "raw": {"reason": "no website_url on business row"},
             },
             None,
@@ -145,6 +148,7 @@ def audit_one_business(
         else:
             fetch_result = fetch.fetch_site(website_url)
     except Exception as exc:  # noqa: BLE001 — a fetch failure degrades this business, not the whole run
+        _fetch_fail_scored = scoring.score({"has_website": False})
         return (
             {
                 "business_id": business["id"],
@@ -152,7 +156,9 @@ def audit_one_business(
                 "has_website": False,
                 "total_score": 100,
                 "bucket": "qualified",
-                "gaps": scoring.score({"has_website": False})["gaps"],
+                "gaps": _fetch_fail_scored["gaps"],
+                "mode": "degraded",
+                "max_measurable": _fetch_fail_scored["max_measurable"],
                 "raw": {"error": str(exc)},
             },
             str(exc),
@@ -179,6 +185,8 @@ def audit_one_business(
                 "total_score": scored["total"],
                 "bucket": scored["bucket"],
                 "gaps": scored["gaps"],
+                "mode": "degraded",
+                "max_measurable": scored["max_measurable"],
                 "raw": raw,
             },
             None,
@@ -305,6 +313,19 @@ def audit_one_business(
     }
     scored = scoring.score(signals)
 
+    # CONTRACTS.md: audit `mode` is "full" only when PSI, vision, and screenshots all actually
+    # ran and returned a value; otherwise "degraded" — makes a 30 legible (30/max_measurable
+    # instead of a bare 30/100) when part of the pipeline was skipped or came back empty.
+    mode = (
+        "full"
+        if (
+            psi_mobile_result.performance_score is not None
+            and vision_dated_score is not None
+            and not skip_screenshots
+        )
+        else "degraded"
+    )
+
     audit_row = {
         "business_id": business["id"],
         "score_version": scored["score_version"],
@@ -328,6 +349,8 @@ def audit_one_business(
         "total_score": scored["total"],
         "bucket": scored["bucket"],
         "gaps": scored["gaps"],
+        "mode": mode,
+        "max_measurable": scored["max_measurable"],
         "screenshot_mobile_url": screenshot_mobile_url,
         "screenshot_desktop_url": screenshot_desktop_url,
         "final_url": final_url,
@@ -394,6 +417,7 @@ def main() -> None:
         "in": len(all_businesses),
         "audited": 0,
         "buckets": {"qualified": 0, "borderline": 0, "skip": 0},
+        "modes": {"full": 0, "degraded": 0},
         "no_website": 0,
         "errors": 0,
         "llm_cost_usd": 0.0,
@@ -420,6 +444,9 @@ def main() -> None:
             bucket = audit_row.get("bucket")
             if bucket in stats["buckets"]:
                 stats["buckets"][bucket] += 1
+            mode = audit_row.get("mode")
+            if mode in stats["modes"]:
+                stats["modes"][mode] += 1
             if audit_row.get("has_website") is False:
                 stats["no_website"] += 1
             stats["llm_cost_usd"] += audit_row.get("llm_cost_usd", 0.0)

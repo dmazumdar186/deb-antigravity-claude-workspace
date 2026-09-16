@@ -201,6 +201,82 @@ Buckets: `>= 45` qualified · `25–44` borderline · `< 25` skip. `score()` ret
 ordered by points desc. `human_phrase` is the customer-safe wording used in emails (never "your site is bad";
 always the lost-booking framing, e.g. "clients can't book without calling").
 
+## Audit legibility: `mode` and `max_measurable` (`audit/audit_site.py`, `audit/scoring.py`)
+
+Every `audits` row stamps `mode text` (`full` or `degraded`): `full` only when PSI, the Claude
+vision pass, and Playwright screenshots all actually ran and returned a value for that business;
+anything skipped (`--skip-vision`/`--skip-screenshots`, `--mock`, a fetch/PSI failure, no
+`website_url`) yields `degraded`. `scoring.score()` also returns `max_measurable` (int): the sum
+of points for every signal whose underlying measurement was present (not `None`), independent of
+whether that signal passed or failed. `no_booking_widget` (22 pts) is always measurable once a
+site was fetched (grep-based, no external dependency); `no_website` short-circuits both `mode`
+(`degraded`) and `max_measurable` (100) to full observability. Purpose: a `total_score` of 30 with
+`max_measurable: 45` (mostly degraded) reads very differently from 30 with `max_measurable: 100`
+(fully measured, genuinely low-risk) — CONTRACTS.md scoring table's raw points alone can't tell
+those apart. `audits.llm_cost_usd numeric(8,4)` (migration 0004) persists the vision-call cost
+`audit_site.py` was already computing but dropping. `audit_site.py`'s stdout stat line adds a
+`modes: {full, degraded}` breakdown alongside `buckets`.
+
+## `fit_weights.py` (`scripts/fit_weights.py`) — inputs and filters
+
+Reads `outreach` touch-1 sends joined to each business's latest matching `audits` row (never
+patches scoring weights; measurement only). Filters, all optional:
+- `--metro NAME` (default: all metros) — matches `businesses.metro` exactly.
+- `--mode {full,degraded,all}` (default `full`) — matches `audits.mode` exactly; an audit row
+  predating the `mode` column (value absent/`None`) matches only `--mode all`, never `full` or
+  `degraded`, since we don't know what it measured.
+- `--min-sent N` (default 50) — refuses to fit (prints why, writes nothing) below this many
+  touch-1 sends in the filtered population.
+
+Output `.tmp/prodcraft_medspa/fit_weights.json` stamps `metro` (the filter value or `"all"`),
+`mode`, and `queue_pick` (the live `config.queue_pick` value at run time) alongside the existing
+per-signal reply-rate/point-biserial table, plus a new `template_variants` table: reply rate per
+`outreach.template_variant` (`a`/`b`/`c`; sends predating variants group under `"unknown"`).
+
+`--report-telegram` posts a 7-line-max compact summary (scope, touch-1 sent + reply rate, top-2
+signals by `|point_biserial_r|`, best template variant, `queue_pick`) via the new
+`common.notify.weekly_report(lines)` — same Telegram transport/env/no-op behavior as
+`notify.error`/`notify.reply`. Below `--min-sent`, it instead posts `"not enough data yet:
+N/50 sends"`. Under `--mock`, `--report-telegram` prints the lines instead of sending (per the
+existing `--mock` = no-network rule).
+
+## `outreach.score_at_send` (migration 0004; owned by `daily_queue.py`)
+
+`outreach.score_at_send integer` records the business's `audits.total_score` at the moment a
+touch was sent — a score can drift between queueing and sending (a re-audit, a manual patch), so
+`total_score` read back later off the latest audit isn't necessarily what the prospect was queued
+on. **`scripts/daily_queue.py` (owned by another agent) is the one that should stamp this column**
+on send; this migration only adds it. Until that lands, the column stays `null` and any
+measurement reading it should treat `null` as "not yet backfilled," not "score was zero."
+
+## Guarantee evidence (`deals/deals.py`) — `evidence_ref`
+
+`deals record --baseline N` requires `--evidence-ref` (a URL or file ref to the client's baseline
+booking export/screenshot) whenever `--baseline` is given; stored as `deals.baseline_evidence_ref`.
+`deals proof --bookings-60d N` requires `--evidence-ref` for the day-60 evidence unconditionally,
+and also refuses if the deal's `baseline_evidence_ref` was never captured — both raise `ValueError`
+with the missing-evidence explanation rather than silently proceeding. See PROJECT_SPEC.md §9.1 for
+the self-reported-booking-counts rationale and the `ZERO_BASELINE_FLOOR` rule.
+
+## Weekly measurement routine (`.github/workflows/prodcraft_medspa_weekly.yml`)
+
+Monday 15:00 UTC (gated on the `PRODCRAFT_CRON_ENABLED` repo variable, same as
+`prodcraft_medspa_replies.yml`; same `prodcraft-medspa` concurrency group so the two workflows
+never race the store). Runs `fit_weights.py --store supabase --report-telegram` against the live
+Supabase store; posts a Telegram error on workflow failure via `notify.error`. Dependency install
+is scoped to `execution/personal_workflows/prodcraft_medspa/requirements.txt`, matching the
+replies workflow.
+
+### The "5 weekly numbers" (what the operator should see every Monday)
+
+| Number | Source |
+|---|---|
+| Sends vs cap | `config.phase0.{queue_cap_locked,queue_cap_open}` vs actual `outreach` rows with `sent_at` in the trailing 7 days (not yet computed by `fit_weights.py`; read `outreach`/`config` directly until a dedicated stat lands) |
+| Touch-1 reply rate | `fit_weights.py`'s `overall_reply_rate` (this file's `touch1_outcomes()` / `compute_signal_table()`) |
+| Rolling bounce rate | The 30-day bounce-rate gate already enforced by `outreach/state_machine.py`'s queue halt (CONTRACTS.md "Outreach state machine") — not part of `fit_weights.json` today |
+| `pct_qualified` per metro | `metro_stats.pct_qualified` (PROJECT_SPEC.md §5.3 `sample_audit`), one row per metro |
+| Cost per business | `audits.llm_cost_usd` summed per business (or per metro) over `audits`; `audit_site.py`'s stdout stat line also reports a per-run `llm_cost_usd` total |
+
 ## Outreach state machine (`outreach/state_machine.py`)
 
 States: `queued, drafted, sent, replied, call_booked, closed_won, closed_lost, dnc`. Touch days: 0, 3, 7, 12.

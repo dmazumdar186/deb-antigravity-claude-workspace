@@ -515,22 +515,50 @@ def test_compute_signal_table_excludes_none_rows_from_that_signal():
 
 def test_guarantee_not_trivially_met_with_zero_baseline(local_store):
     business = local_store.upsert_business({"place_id": "p-deal1", "name": "J", "slug": "j", "metro": "m"})
-    deals.record(local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None, baseline=0, booking_tool=None)
-    result = deals.proof(local_store, business_id=business["id"], bookings_60d=1)
+    deals.record(
+        local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None,
+        baseline=0, booking_tool=None, evidence_ref="https://example.test/baseline.png",
+    )
+    result = deals.proof(local_store, business_id=business["id"], bookings_60d=1, evidence_ref="https://example.test/day60.png")
     assert result["deal"]["guarantee_met"] is False
     assert result["threshold_2x_baseline"] == deals.ZERO_BASELINE_FLOOR * 2
 
 
 def test_guarantee_met_above_floored_threshold(local_store):
     business = local_store.upsert_business({"place_id": "p-deal2", "name": "K", "slug": "k", "metro": "m"})
-    deals.record(local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None, baseline=0, booking_tool=None)
-    result = deals.proof(local_store, business_id=business["id"], bookings_60d=11)
+    deals.record(
+        local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None,
+        baseline=0, booking_tool=None, evidence_ref="https://example.test/baseline.png",
+    )
+    result = deals.proof(local_store, business_id=business["id"], bookings_60d=11, evidence_ref="https://example.test/day60.png")
     assert result["deal"]["guarantee_met"] is True
 
 
 def test_guarantee_uses_real_baseline_when_above_floor(local_store):
     business = local_store.upsert_business({"place_id": "p-deal3", "name": "L", "slug": "l", "metro": "m"})
-    deals.record(local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None, baseline=20, booking_tool=None)
-    result = deals.proof(local_store, business_id=business["id"], bookings_60d=41)
+    deals.record(
+        local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None,
+        baseline=20, booking_tool=None, evidence_ref="https://example.test/baseline.png",
+    )
+    result = deals.proof(local_store, business_id=business["id"], bookings_60d=41, evidence_ref="https://example.test/day60.png")
     assert result["threshold_2x_baseline"] == 40
     assert result["deal"]["guarantee_met"] is True
+
+
+def test_record_baseline_requires_evidence_ref(local_store):
+    business = local_store.upsert_business({"place_id": "p-deal4", "name": "M", "slug": "m4", "metro": "m"})
+    with pytest.raises(ValueError, match="evidence"):
+        deals.record(
+            local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None,
+            baseline=5, booking_tool=None,
+        )
+
+
+def test_proof_requires_evidence_ref(local_store):
+    business = local_store.upsert_business({"place_id": "p-deal5", "name": "N", "slug": "m5", "metro": "m"})
+    deals.record(
+        local_store, business_id=business["id"], tier="starter", setup_price=None, mrr=None, signed=None,
+        baseline=5, booking_tool=None, evidence_ref="https://example.test/baseline.png",
+    )
+    with pytest.raises(ValueError, match="evidence"):
+        deals.proof(local_store, business_id=business["id"], bookings_60d=20)

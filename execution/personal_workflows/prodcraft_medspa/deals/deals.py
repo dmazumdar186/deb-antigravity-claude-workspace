@@ -68,9 +68,19 @@ def _parse_date(value: str | None) -> str | None:
 
 
 def record(st: Any, *, business_id: str, tier: str, setup_price: float | None, mrr: float | None,
-           signed: str | None, baseline: int | None, booking_tool: str | None) -> dict:
+           signed: str | None, baseline: int | None, booking_tool: str | None,
+           evidence_ref: str | None = None) -> dict:
     if tier not in TIER_DEFAULTS:
         raise ValueError(f"unknown tier {tier!r}; must be one of {sorted(TIER_DEFAULTS)}")
+    # Guarantee proof requires evidence captured at BOTH ends (PROJECT_SPEC.md guarantee clause):
+    # a baseline count with no evidence ref can't later be defended against a client dispute, so
+    # refuse rather than silently recording an unprovable baseline.
+    if baseline is not None and not evidence_ref:
+        raise ValueError(
+            "--evidence-ref is required when recording --baseline (URL or file ref for the "
+            "client's baseline booking export/screenshot) — a baseline with no evidence can't "
+            "back the 60-day guarantee proof"
+        )
     defaults = TIER_DEFAULTS[tier]
     row = {
         "business_id": business_id,
@@ -81,6 +91,8 @@ def record(st: Any, *, business_id: str, tier: str, setup_price: float | None, m
         "baseline_online_bookings_30d": baseline,
         "current_booking_tool": booking_tool,
     }
+    if baseline is not None:
+        row["baseline_evidence_ref"] = evidence_ref
     if tier == "founding":
         row["notes"] = FOUNDING_NOTE
     deal = st.upsert_deal(row)
@@ -108,7 +120,13 @@ def golive(st: Any, *, business_id: str, live_at: str) -> dict:
     return deal
 
 
-def proof(st: Any, *, business_id: str, bookings_60d: int) -> dict:
+def proof(st: Any, *, business_id: str, bookings_60d: int, evidence_ref: str | None = None) -> dict:
+    if not evidence_ref:
+        raise ValueError(
+            "--evidence-ref is required for a 60-day guarantee proof (URL or file ref for the "
+            "client's day-60 booking export/screenshot) — the guarantee is client-self-reported "
+            "and must be backed by evidence at both baseline and day 60 (PROJECT_SPEC.md)"
+        )
     existing = None
     for row in _store_helpers.list_all(st, "deals"):
         if row.get("business_id") == business_id:
@@ -118,13 +136,23 @@ def proof(st: Any, *, business_id: str, bookings_60d: int) -> dict:
     if baseline is None:
         raise ValueError(
             f"no baseline_online_bookings_30d recorded for business {business_id}; "
-            "run `deals record --baseline N` first"
+            "run `deals record --baseline N --evidence-ref ...` first"
+        )
+    if not (existing or {}).get("baseline_evidence_ref"):
+        raise ValueError(
+            f"business {business_id} has a baseline count but no baseline_evidence_ref on file; "
+            "re-run `deals record --baseline N --evidence-ref ...` before proving the guarantee"
         )
 
     threshold = max(baseline, ZERO_BASELINE_FLOOR) * 2
     guarantee_met = bookings_60d > threshold
     deal = st.upsert_deal(
-        {"business_id": business_id, "bookings_60d": bookings_60d, "guarantee_met": guarantee_met}
+        {
+            "business_id": business_id,
+            "bookings_60d": bookings_60d,
+            "guarantee_met": guarantee_met,
+            "evidence_ref": evidence_ref,
+        }
     )
     st.log_event("deal", deal["id"], "proof", {"bookings_60d": bookings_60d, "guarantee_met": guarantee_met})
 
@@ -160,6 +188,10 @@ def main() -> None:
     p_record.add_argument("--signed", default=None)
     p_record.add_argument("--baseline", type=int, default=None)
     p_record.add_argument("--booking-tool", default=None)
+    p_record.add_argument(
+        "--evidence-ref", default=None,
+        help="URL or file ref for the client's baseline booking export/screenshot; required with --baseline",
+    )
 
     p_golive = sub.add_parser("golive")
     p_golive.add_argument("--business-id", required=True)
@@ -168,6 +200,10 @@ def main() -> None:
     p_proof = sub.add_parser("proof")
     p_proof.add_argument("--business-id", required=True)
     p_proof.add_argument("--bookings-60d", type=int, required=True)
+    p_proof.add_argument(
+        "--evidence-ref", default=None,
+        help="URL or file ref for the client's day-60 booking export/screenshot; required",
+    )
 
     p_list = sub.add_parser("list")
 
@@ -193,13 +229,14 @@ def main() -> None:
             signed=args.signed,
             baseline=args.baseline,
             booking_tool=args.booking_tool,
+            evidence_ref=args.evidence_ref,
         )
         print(json.dumps({"script": "deals.record", "deal": deal}))
     elif args.command == "golive":
         deal = golive(st, business_id=args.business_id, live_at=args.live_at)
         print(json.dumps({"script": "deals.golive", "deal": deal}))
     elif args.command == "proof":
-        result = proof(st, business_id=args.business_id, bookings_60d=args.bookings_60d)
+        result = proof(st, business_id=args.business_id, bookings_60d=args.bookings_60d, evidence_ref=args.evidence_ref)
         print(json.dumps({"script": "deals.proof", **result}))
         print(f"{result['verdict']}: {result['bookings_60d']} vs threshold {result['threshold_2x_baseline']} -> {result['owed']}")
     elif args.command == "list":
