@@ -33,11 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))  # repo root, for d
 
 from execution.personal_workflows.prodcraft_medspa.common import config, models, notify  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common import slug as slug_module  # noqa: E402
-from execution.personal_workflows.prodcraft_medspa.common.store import (  # noqa: E402
-    LocalStore,
-    SupabaseStore,
-    get_store,
-)
+from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.preview import content_lint, extract_services, publish, r2  # noqa: E402
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
@@ -234,21 +230,12 @@ def content_hash(business_json: dict) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Store helpers — Store protocol has no "previews by business_id" query; this reaches into each
-# implementation's own internals (LocalStore._read / SupabaseStore._request) rather than editing
-# common/store.py, which is out of this package's build scope. Flagged in the build report.
+# Store helpers
 # ---------------------------------------------------------------------------
 
 
 def find_previews_for_business(store, business_id: str) -> list[dict]:
-    if isinstance(store, LocalStore):
-        return [r for r in store._read("previews") if r.get("business_id") == business_id]  # noqa: SLF001
-    if isinstance(store, SupabaseStore):
-        resp = store._request(  # noqa: SLF001
-            "GET", f"previews?business_id=eq.{business_id}", headers=store._headers()  # noqa: SLF001
-        )
-        return resp.json()
-    return []
+    return store.list_previews(business_id)
 
 
 def eligibility_reason(business: dict, audit: dict | None) -> str | None:

@@ -162,18 +162,7 @@ def takedown(host: str, *, mock: bool = False, meta_dir: Path | None = None) -> 
 
 
 def _find_preview(store: Store, preview_id: str) -> dict | None:
-    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore, SupabaseStore
-
-    if isinstance(store, LocalStore):
-        for row in store._read("previews"):  # noqa: SLF001 — Store protocol has no by-id preview lookup
-            if row.get("id") == preview_id:
-                return row
-        return None
-    if isinstance(store, SupabaseStore):
-        resp = store._request("GET", f"previews?id=eq.{preview_id}", headers=store._headers())  # noqa: SLF001
-        data = resp.json()
-        return data[0] if data else None
-    return None
+    return store.get_row("previews", preview_id)
 
 
 def _cmd_extend(args: argparse.Namespace) -> dict:

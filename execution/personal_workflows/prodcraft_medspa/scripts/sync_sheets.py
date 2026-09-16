@@ -24,11 +24,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from execution.personal_workflows.prodcraft_medspa.common.store import (  # noqa: E402
-    LocalStore,
-    SupabaseStore,
-    get_store,
-)
+from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 
 # Column order matches db/schema.sql's `create or replace view v_pipeline as select ...`
 V_PIPELINE_COLUMNS = [
@@ -51,14 +47,8 @@ V_PIPELINE_COLUMNS = [
 
 
 def _all_rows(store: Any, table: str) -> list[dict]:
-    """Same rationale as run_metro.py's _all_previews / fit_weights.py's _all_rows: the Store
-    Protocol has no generic "list table" method, so this reaches into each concrete store."""
-    if isinstance(store, LocalStore):
-        return store._read(table)  # noqa: SLF001
-    if isinstance(store, SupabaseStore):
-        resp = store._request("GET", table, headers=store._headers())  # noqa: SLF001
-        return resp.json()
-    return []
+    """Full-table read via the Store Protocol's generic list_rows()."""
+    return store.list_rows(table)
 
 
 def compute_v_pipeline(store: Any) -> list[dict]:

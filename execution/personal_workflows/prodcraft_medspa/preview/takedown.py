@@ -18,17 +18,12 @@ import argparse
 import json
 import os
 import sys
-import urllib.parse
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))  # repo root, for direct-script execution
 
 from execution.personal_workflows.prodcraft_medspa.common import config, models, notify  # noqa: E402
-from execution.personal_workflows.prodcraft_medspa.common.store import (  # noqa: E402
-    LocalStore,
-    SupabaseStore,
-    get_store,
-)
+from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.preview import publish, r2  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.preview.build_preview import (  # noqa: E402
     find_previews_for_business,
@@ -38,40 +33,17 @@ _TERMINAL_OUTREACH_STATUSES = {"closed_won", "closed_lost", "dnc"}
 
 
 def _find_preview_by_id(store, preview_id: str) -> dict | None:
-    if isinstance(store, LocalStore):
-        for row in store._read("previews"):  # noqa: SLF001 — Store protocol has no by-id preview lookup
-            if row.get("id") == preview_id:
-                return row
-        return None
-    if isinstance(store, SupabaseStore):
-        resp = store._request("GET", f"previews?id=eq.{preview_id}", headers=store._headers())  # noqa: SLF001
-        data = resp.json()
-        return data[0] if data else None
-    return None
+    return store.get_row("previews", preview_id)
 
 
 def _find_preview_by_host(store, host: str) -> dict | None:
     subdomain_url = f"https://{host}"
-    if isinstance(store, LocalStore):
-        for row in store._read("previews"):  # noqa: SLF001
-            if row.get("subdomain_url") == subdomain_url:
-                return row
-        return None
-    if isinstance(store, SupabaseStore):
-        quoted = urllib.parse.quote(subdomain_url, safe="")
-        resp = store._request("GET", f"previews?subdomain_url=eq.{quoted}", headers=store._headers())  # noqa: SLF001
-        data = resp.json()
-        return data[0] if data else None
-    return None
+    matches = store.list_rows("previews", subdomain_url=subdomain_url)
+    return matches[0] if matches else None
 
 
 def _find_outreach_for_business(store, business_id: str) -> list[dict]:
-    if isinstance(store, LocalStore):
-        return [r for r in store._read("outreach") if r.get("business_id") == business_id]  # noqa: SLF001
-    if isinstance(store, SupabaseStore):
-        resp = store._request("GET", f"outreach?business_id=eq.{business_id}", headers=store._headers())  # noqa: SLF001
-        return resp.json()
-    return []
+    return store.list_outreach(business_id)
 
 
 def resolve_target_previews(store, *, business_id: str | None, preview_id: str | None, host: str | None) -> list[dict]:

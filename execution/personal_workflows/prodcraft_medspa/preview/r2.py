@@ -70,7 +70,7 @@ def _signing_key(secret_key: str, date_stamp: str, region: str, service: str) ->
     return _hmac_sha256(k_service, "aws4_request")
 
 
-def sign_request(
+def sigv4_sign(
     method: str,
     url: str,
     headers: dict[str, str],
@@ -149,7 +149,7 @@ class R2Client:
             return base
         return f"{base}/{quote(key, safe='/~')}"
 
-    def _request(
+    def _call_r2(
         self,
         method: str,
         key: str = "",
@@ -160,14 +160,14 @@ class R2Client:
         url = self._url(key)
         if params:
             url = f"{url}?{urlencode(sorted(params.items()))}"
-        signed = sign_request(method, url, extra_headers or {}, body, self.access_key, self.secret_key, self.region, self.service)
+        signed = sigv4_sign(method, url, extra_headers or {}, body, self.access_key, self.secret_key, self.region, self.service)
         resp = requests.request(method, url, headers=signed, data=body, timeout=30)
         resp.raise_for_status()
         return resp
 
     def upload_bytes(self, key: str, data: bytes, content_type: str | None = None) -> None:
         headers = {"content-type": content_type or content_type_for(key)}
-        self._request("PUT", key, body=data, extra_headers=headers)
+        self._call_r2("PUT", key, body=data, extra_headers=headers)
 
     def upload_file(self, local_path: str | Path, key: str, content_type: str | None = None) -> None:
         self.upload_bytes(key, Path(local_path).read_bytes(), content_type=content_type)
@@ -206,7 +206,7 @@ class R2Client:
             params = {"list-type": "2", "prefix": prefix, "max-keys": "1000"}
             if continuation:
                 params["continuation-token"] = continuation
-            resp = self._request("GET", params=params)
+            resp = self._call_r2("GET", params=params)
             root = ET.fromstring(resp.content)
             for contents in root.findall("s3:Contents", _S3_NS):
                 key_el = contents.find("s3:Key", _S3_NS)
@@ -222,7 +222,7 @@ class R2Client:
         return keys
 
     def delete_object(self, key: str) -> None:
-        self._request("DELETE", key)
+        self._call_r2("DELETE", key)
 
     def delete_prefix(self, prefix: str) -> int:
         keys = self.list_objects(prefix)
@@ -296,8 +296,8 @@ def _sigv4_selftest() -> dict[str, Any]:
         "s3",
         fixed_dt,
     )
-    headers_a = sign_request(*args)
-    headers_b = sign_request(*args)
+    headers_a = sigv4_sign(*args)
+    headers_b = sigv4_sign(*args)
     deterministic = headers_a["Authorization"] == headers_b["Authorization"]
     expected_header_set = {"range", "host", "x-amz-content-sha256", "x-amz-date", "Authorization"}
     has_expected_headers = expected_header_set.issubset(headers_a.keys())

@@ -339,6 +339,117 @@ def test_local_store_atomic_write_leaves_no_tmp_files(tmp_path):
     assert tmp_files == []
 
 
+# ---------------------------------------------------------------------------
+# Generic list_rows / get_row / update_row / list_previews / list_outreach
+# ---------------------------------------------------------------------------
+
+
+def test_list_rows_filters_orders_and_limits(store):
+    b1 = store.upsert_business(_business_row(place_id="lr-1", metro="Chicago North Shore"))
+    b2 = store.upsert_business(_business_row(place_id="lr-2", metro="Chicago North Shore", name="Second Spa"))
+    store.upsert_business(_business_row(place_id="lr-3", metro="Denver Metro", name="Other Metro Spa"))
+
+    matches = store.list_rows("businesses", metro="Chicago North Shore")
+    matched_ids = {r["id"] for r in matches}
+    assert {b1["id"], b2["id"]}.issubset(matched_ids)
+    assert all(r["metro"] == "Chicago North Shore" for r in matches)
+
+    ordered = store.list_rows("businesses", metro="Chicago North Shore", order_by="created_at", descending=True)
+    assert ordered[0]["id"] == b2["id"]
+
+    limited = store.list_rows("businesses", metro="Chicago North Shore", limit=1)
+    assert len(limited) == 1
+
+
+def test_list_rows_none_filter_means_is_null(store):
+    business = store.upsert_business(_business_row(place_id="lr-null"))
+    store.upsert_business({**_business_row(place_id="lr-not-null"), "drop_reason": "too_small"})
+
+    null_rows = store.list_rows("businesses", place_id="lr-null", drop_reason=None)
+    assert any(r["id"] == business["id"] for r in null_rows)
+
+    not_null_rows = store.list_rows("businesses", place_id="lr-not-null", drop_reason=None)
+    assert not any(r.get("drop_reason") is None for r in not_null_rows if r.get("place_id") == "lr-not-null")
+
+
+def test_list_rows_unknown_table_raises_value_error(store):
+    with pytest.raises(ValueError):
+        store.list_rows("not_a_real_table")
+
+
+def test_get_row_hit_and_miss(store):
+    business = store.upsert_business(_business_row(place_id="gr-hit"))
+    fetched = store.get_row("businesses", business["id"])
+    assert fetched["id"] == business["id"]
+
+    assert store.get_row("businesses", "00000000-0000-0000-0000-000000000000") is None
+
+
+def test_get_row_unknown_table_raises_value_error(store):
+    with pytest.raises(ValueError):
+        store.get_row("not_a_real_table", "some-id")
+
+
+def test_update_row_patches_and_stamps_updated_at(store):
+    business = store.upsert_business(_business_row(place_id="ur-1"))
+    before = business.get("updated_at")
+
+    updated = store.update_row("businesses", business["id"], {"name": "Renamed Spa"})
+    assert updated["name"] == "Renamed Spa"
+    assert updated.get("updated_at") is not None
+    assert before is None or updated["updated_at"] >= before
+
+
+def test_update_row_missing_row_raises_key_error(store):
+    with pytest.raises(KeyError):
+        store.update_row("businesses", "00000000-0000-0000-0000-000000000000", {"name": "nope"})
+
+
+def test_update_row_unknown_table_raises_value_error(store):
+    with pytest.raises(ValueError):
+        store.update_row("not_a_real_table", "some-id", {"x": 1})
+
+
+def test_list_previews_returns_newest_first(store):
+    business = store.upsert_business(_business_row(place_id="lp-1"))
+    bid = business["id"]
+    store.upsert_preview(
+        {
+            "business_id": bid,
+            "content_hash": "h1",
+            "slug_suffix": "s1",
+            "subdomain_url": "https://a.preview.prodcraft.fyi",
+            "content": {},
+            "created_at": "2026-01-01T00:00:00Z",
+        }
+    )
+    store.upsert_preview(
+        {
+            "business_id": bid,
+            "content_hash": "h2",
+            "slug_suffix": "s2",
+            "subdomain_url": "https://b.preview.prodcraft.fyi",
+            "content": {},
+            "created_at": "2026-06-01T00:00:00Z",
+        }
+    )
+
+    previews = store.list_previews(bid)
+    assert len(previews) == 2
+    assert previews[0]["content_hash"] == "h2"  # newest first
+
+
+def test_list_outreach_returns_newest_first(store):
+    business = store.upsert_business(_business_row(place_id="lo-1"))
+    bid = business["id"]
+    store.upsert_outreach({"business_id": bid, "touch": 1, "status": "sent", "created_at": "2026-01-01T00:00:00Z"})
+    store.upsert_outreach({"business_id": bid, "touch": 2, "status": "queued", "created_at": "2026-02-01T00:00:00Z"})
+
+    rows = store.list_outreach(bid)
+    assert len(rows) == 2
+    assert rows[0]["touch"] == 2  # newest first
+
+
 def test_local_store_deals_and_metro_stats(tmp_path):
     store = _local_factory(tmp_path)
     business = store.upsert_business(_business_row(place_id="place-deal"))

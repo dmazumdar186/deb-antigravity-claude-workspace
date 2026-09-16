@@ -32,6 +32,11 @@ TABLES = (
 
 _QUEUE_STATUSES = ("queued", "sent")
 
+# Tables whose rows carry an `updated_at` column that generic update_row() should refresh.
+# Mirrors existing hand-written behaviour: update_outreach() always stamps updated_at;
+# update_preview() never does (previews has no updated_at column in schema.sql).
+_TABLES_WITH_UPDATED_AT = frozenset({"businesses", "outreach"})
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -75,6 +80,20 @@ class Store(Protocol):
     def log_event(self, entity: str, entity_id: str, event: str, payload: dict | None = None) -> None: ...
 
     def chains(self) -> list[str]: ...
+
+    def list_rows(
+        self, table: str, *, order_by: str | None = None, descending: bool = False, limit: int | None = None, **filters: Any
+    ) -> list[dict]: ...  # generic table read; equality filters only, None value means "is null"; table validated against TABLES
+
+    def get_row(self, table: str, row_id: str) -> dict | None: ...  # single row by id, or None if not found
+
+    def update_row(self, table: str, row_id: str, patch: dict) -> dict: ...  # generic patch-by-id; stamps updated_at for tables that have it
+
+    def list_previews(self, business_id: str) -> list[dict]: ...  # all previews for one business, newest (created_at) first
+
+    def list_outreach(self, business_id: str) -> list[dict]: ...  # all outreach rows for one business, newest (created_at) first
+
+    def load_chains(self, patterns: list[dict]) -> int: ...  # seed helper: upsert every {"pattern", "note"} row, returns count seeded
 
 
 # ---------------------------------------------------------------------------
@@ -360,10 +379,70 @@ class LocalStore:
         rows = self._read("chains")
         return [r["pattern"] for r in rows]
 
-    def load_chains(self, patterns: list[dict]) -> None:
-        """Seed helper: patterns is a list of {"pattern": ..., "note": ...} dicts."""
+    def load_chains(self, patterns: list[dict]) -> int:
+        """Seed helper: patterns is a list of {"pattern": ..., "note": ...} dicts. Returns count seeded."""
         with self._lock:
             self._write("chains", patterns)
+        return len(patterns)
+
+    # -- generic table access ----------------------------------------------
+
+    def list_rows(
+        self,
+        table: str,
+        *,
+        order_by: str | None = None,
+        descending: bool = False,
+        limit: int | None = None,
+        **filters: Any,
+    ) -> list[dict]:
+        """Equality-filter every kwarg in `filters` (None value means "column is null").
+
+        `order_by` sorts ascending by default (missing/None values sort first); `limit` truncates
+        after ordering. Raises ValueError for a table not in `TABLES`.
+        """
+        if table not in TABLES:
+            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        rows = self._read(table)
+        for key, value in filters.items():
+            if value is None:
+                rows = [r for r in rows if r.get(key) is None]
+            else:
+                rows = [r for r in rows if r.get(key) == value]
+        if order_by:
+            rows = sorted(rows, key=lambda r: (r.get(order_by) is None, r.get(order_by)), reverse=descending)
+        if limit is not None:
+            rows = rows[:limit]
+        return rows
+
+    def get_row(self, table: str, row_id: str) -> dict | None:
+        if table not in TABLES:
+            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        for row in self._read(table):
+            if row.get("id") == row_id:
+                return row
+        return None
+
+    def update_row(self, table: str, row_id: str, patch: dict) -> dict:
+        if table not in TABLES:
+            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        with self._lock:
+            rows = self._read(table)
+            for i, existing in enumerate(rows):
+                if existing.get("id") == row_id:
+                    merged = {**existing, **patch}
+                    if table in _TABLES_WITH_UPDATED_AT:
+                        merged["updated_at"] = _now_iso()
+                    rows[i] = merged
+                    self._write(table, rows)
+                    return merged
+            raise KeyError(f"{table} row {row_id} not found")
+
+    def list_previews(self, business_id: str) -> list[dict]:
+        return self.list_rows("previews", business_id=business_id, order_by="created_at", descending=True)
+
+    def list_outreach(self, business_id: str) -> list[dict]:
+        return self.list_rows("outreach", business_id=business_id, order_by="created_at", descending=True)
 
 
 # ---------------------------------------------------------------------------
@@ -590,6 +669,74 @@ class SupabaseStore:
     def chains(self) -> list[str]:
         resp = self._request("GET", "chains?select=pattern", headers=self._headers())
         return [r["pattern"] for r in resp.json()]
+
+    # -- generic table access ----------------------------------------------
+
+    def list_rows(
+        self,
+        table: str,
+        *,
+        order_by: str | None = None,
+        descending: bool = False,
+        limit: int | None = None,
+        **filters: Any,
+    ) -> list[dict]:
+        """Equality-filter every kwarg in `filters` (`?col=eq.value`; None value becomes `?col=is.null`).
+
+        `order_by` maps to PostgREST `order=col.asc|desc`; `limit` maps to `limit=`. Raises
+        ValueError for a table not in `TABLES` (prevents an LLM- or caller-derived name from
+        reaching an arbitrary PostgREST path).
+        """
+        if table not in TABLES:
+            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        params = []
+        for key, value in filters.items():
+            params.append(f"{key}=is.null" if value is None else f"{key}=eq.{value}")
+        if order_by:
+            params.append(f"order={order_by}.{'desc' if descending else 'asc'}")
+        if limit is not None:
+            params.append(f"limit={limit}")
+        query = f"{table}?" + "&".join(params) if params else table
+        resp = self._request("GET", query, headers=self._headers())
+        return resp.json()
+
+    def get_row(self, table: str, row_id: str) -> dict | None:
+        if table not in TABLES:
+            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        resp = self._request("GET", f"{table}?id=eq.{row_id}", headers=self._headers())
+        data = resp.json()
+        return data[0] if data else None
+
+    def update_row(self, table: str, row_id: str, patch: dict) -> dict:
+        if table not in TABLES:
+            raise ValueError(f"unknown table: {table!r} (known: {TABLES})")
+        body = dict(patch)
+        if table in _TABLES_WITH_UPDATED_AT:
+            body["updated_at"] = _now_iso()
+        resp = self._request(
+            "PATCH", f"{table}?id=eq.{row_id}", headers=self._headers(prefer="return=representation"), json=body
+        )
+        data = resp.json()
+        if not data:
+            raise KeyError(f"{table} row {row_id} not found")
+        return data[0] if isinstance(data, list) else data
+
+    def list_previews(self, business_id: str) -> list[dict]:
+        return self.list_rows("previews", business_id=business_id, order_by="created_at", descending=True)
+
+    def list_outreach(self, business_id: str) -> list[dict]:
+        return self.list_rows("outreach", business_id=business_id, order_by="created_at", descending=True)
+
+    def load_chains(self, patterns: list[dict]) -> int:
+        """Seed helper: upsert every {"pattern", "note"} row via PostgREST merge-duplicates."""
+        for entry in patterns:
+            self._request(
+                "POST",
+                "chains?on_conflict=pattern",
+                headers=self._headers(prefer="resolution=merge-duplicates"),
+                json=entry,
+            )
+        return len(patterns)
 
 
 def get_store(kind: str | None = None, root: str | Path | None = None) -> Store:

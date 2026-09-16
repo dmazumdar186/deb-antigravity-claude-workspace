@@ -80,10 +80,29 @@ class Store(Protocol):
     def set_config(self, key: str, value) -> None
     def log_event(self, entity: str, entity_id: str, event: str, payload: dict | None = None) -> None
     def chains(self) -> list[str]
+    def list_rows(self, table, *, order_by=None, descending=False, limit=None, **filters) -> list[dict]
+                                                              # generic read; equality filters only,
+                                                              # None value means "column is null";
+                                                              # table validated against an allowlist
+    def get_row(self, table: str, row_id: str) -> dict | None  # single row by id, or None
+    def update_row(self, table: str, row_id: str, patch: dict) -> dict
+                                                              # generic patch-by-id; stamps updated_at
+                                                              # for tables that have the column
+    def list_previews(self, business_id: str) -> list[dict]   # thin list_rows() wrapper, newest first
+    def list_outreach(self, business_id: str) -> list[dict]   # thin list_rows() wrapper, newest first
+    def load_chains(self, patterns: list[dict]) -> int        # seed helper: upsert {"pattern","note"} rows
 ```
 `LocalStore(root=".tmp/prodcraft_medspa/store")` keeps one JSON file per table and is fully functional.
 `SupabaseStore` uses PostgREST over `requests` with the service key (`Prefer: resolution=merge-duplicates` for
 upserts). Both pass the same `tests/prodcraft_medspa/test_store.py` contract suite (Supabase tests skip without env).
+
+`list_rows`/`get_row`/`update_row` are the only sanctioned way for callers outside `common/store.py` to reach
+table data the narrow accessors above don't cover (e.g. "every row in a table", "a preview by id", "patch any
+row by id"). Callers must never reach into `LocalStore._read`/`_write` or `SupabaseStore._request`/`_headers`
+directly — `table` is checked against the `TABLES` allowlist (`businesses, audits, previews, outreach, deals,
+metro_stats, config, events, chains`) so an LLM- or caller-derived table name can never reach an arbitrary
+PostgREST path. For `SupabaseStore`, `list_rows` filters become `?col=eq.value` / `?col=is.null` query params,
+`order_by`/`descending` become `order=col.asc|desc`, and `limit` becomes `limit=`.
 
 ## `business.json` (template input contract, produced by `preview/build_preview.py`)
 

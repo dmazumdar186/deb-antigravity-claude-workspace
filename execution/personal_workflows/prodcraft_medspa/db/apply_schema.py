@@ -19,11 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from execution.personal_workflows.prodcraft_medspa.common.store import (  # noqa: E402
-    LocalStore,
-    SupabaseStore,
-    get_store,
-)
+from execution.personal_workflows.prodcraft_medspa.common.store import SupabaseStore, get_store  # noqa: E402
 
 SCHEMA_PATH = PKG_ROOT / "db" / "schema.sql"
 SEED_CHAINS_PATH = PKG_ROOT / "db" / "seed_chains.json"
@@ -62,20 +58,7 @@ def _apply_schema_supabase() -> str:
 
 def _seed_chains(store) -> int:
     patterns = json.loads(SEED_CHAINS_PATH.read_text(encoding="utf-8"))
-    if isinstance(store, LocalStore):
-        store.load_chains(patterns)
-        return len(patterns)
-    # SupabaseStore: upsert each chain row via PostgREST.
-    count = 0
-    for entry in patterns:
-        store._request(  # noqa: SLF001 — apply_schema is the one sanctioned direct-call site
-            "POST",
-            "chains?on_conflict=pattern",
-            headers=store._headers(prefer="resolution=merge-duplicates"),  # noqa: SLF001
-            json=entry,
-        )
-        count += 1
-    return count
+    return store.load_chains(patterns)
 
 
 def _seed_config(store) -> int:

@@ -28,11 +28,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from execution.personal_workflows.prodcraft_medspa.common import notify  # noqa: E402
-from execution.personal_workflows.prodcraft_medspa.common.store import (  # noqa: E402
-    LocalStore,
-    SupabaseStore,
-    get_store,
-)
+from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
     common_store_args,
     run_module,
@@ -103,18 +99,8 @@ def run_stages(stage_list: list[str], args: argparse.Namespace) -> list[dict[str
 
 
 def _all_previews(store: Any) -> list[dict]:
-    """Best-effort preview-row listing across either Store implementation.
-
-    The Store Protocol (CONTRACTS.md) has no generic "list previews" method; this reaches into
-    each concrete implementation's own storage (LocalStore's JSON file, SupabaseStore's REST
-    endpoint) rather than widening the shared interface for one orchestrator-only need.
-    """
-    if isinstance(store, LocalStore):
-        return store._read("previews")  # noqa: SLF001 — same package, documented above
-    if isinstance(store, SupabaseStore):
-        resp = store._request("GET", "previews", headers=store._headers())  # noqa: SLF001
-        return resp.json()
-    return []
+    """Every preview row, via the Store Protocol's generic list_rows()."""
+    return store.list_rows("previews")
 
 
 def compute_funnel(store: Any, metro: str) -> dict[str, Any]:

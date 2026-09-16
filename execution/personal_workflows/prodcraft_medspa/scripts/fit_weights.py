@@ -23,11 +23,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from execution.personal_workflows.prodcraft_medspa.common.store import (  # noqa: E402
-    LocalStore,
-    SupabaseStore,
-    get_store,
-)
+from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 
 # Signal name -> function(audit_row) -> bool | None (None = can't evaluate, excluded from that signal).
 # Exact fail conditions per CONTRACTS.md's scoring table (audit/scoring.py is the source of truth;
@@ -50,15 +46,8 @@ SIGNALS: dict[str, Any] = {
 
 
 def _all_rows(store: Any, table: str) -> list[dict]:
-    """Best-effort full-table read across either Store implementation (see run_metro.py's
-    _all_previews for the same pattern/rationale — no generic "list table" method in the Store
-    Protocol)."""
-    if isinstance(store, LocalStore):
-        return store._read(table)  # noqa: SLF001
-    if isinstance(store, SupabaseStore):
-        resp = store._request("GET", table, headers=store._headers())  # noqa: SLF001
-        return resp.json()
-    return []
+    """Full-table read via the Store Protocol's generic list_rows()."""
+    return store.list_rows(table)
 
 
 def touch1_outcomes(store: Any) -> list[tuple[dict, bool]]:
