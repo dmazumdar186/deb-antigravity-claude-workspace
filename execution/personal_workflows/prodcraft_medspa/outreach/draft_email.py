@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,15 @@ _VARIANTS = ("a", "b", "c")
 _FALLBACK_PROOF_LINE = "About 78% of med spa bookings still come in by phone."
 
 _VAR_RE = re.compile(r"\{\{(\w+)\}\}")
+
+# Used ONLY under --mock when config.sender is still empty, so the mock chain can exercise
+# lint_draft -> drafted. Live runs never fall back: an empty sender fails the CAN-SPAM lint
+# (rules 1 and 3) by design, and doctor.py reports the missing config before the first send.
+MOCK_SENDER = {
+    "name": "Sam Example, ProdCraft (mock sender)",
+    "physical_address": "100 Example Ave, Springfield, IL 62701",
+    "signature": "",
+}
 
 
 def _template_path(touch: int, variant: str | None) -> Path:
@@ -160,6 +170,13 @@ def render_draft(
     )
 
     sender = store.get_config("sender", {"name": "", "physical_address": "", "signature": ""}) or {}
+    if mock and not (sender.get("name") and sender.get("physical_address")):
+        print(
+            "[draft_email] --mock and config.sender is empty: using the synthetic MOCK_SENDER "
+            "(live runs fail the CAN-SPAM lint until the operator sets config.sender)",
+            file=sys.stderr,
+        )
+        sender = MOCK_SENDER
     owner_first = business.get("owner_first") or "there"
     preview_url = (preview_row or {}).get("subdomain_url") or ""
     prev_row = _prev_touch_row(store, business["id"], touch) if touch > 1 else None
@@ -215,4 +232,7 @@ def render_draft(
         "body": body,
         "variant": resolved_variant,
         "llm": llm_envelope,
+        # the sender actually rendered into the body; daily_queue lints against THIS, not a re-read
+        # of config, so the mock fallback and any future sender resolution stay a single source of truth
+        "sender": {"name": sender.get("name") or "", "physical_address": sender.get("physical_address") or ""},
     }

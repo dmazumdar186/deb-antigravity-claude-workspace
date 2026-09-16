@@ -18,14 +18,15 @@ _NAME_CORE = r"[A-Z][a-zA-Z'\-]+(?:\s[A-Z]\.)?\s[A-Z][a-zA-Z'\-]+"
 
 TITLE_PREFIX_RE = re.compile(rf"\bDr\.\s+({_NAME_CORE})")
 CREDENTIAL_SUFFIX_RE = re.compile(rf"\b({_NAME_CORE}),?\s+(?:RN|NP|MD|DO|PA-C|PA)\b")
+# The ownership keywords are case-insensitive via a scoped (?i:...) group; the name itself must stay
+# Title Case. A pattern-wide re.IGNORECASE used to let _NAME_CORE match "personally reached" after
+# "owner," and ship that as an owner_name (found in the mock funnel, 2026-09-16).
 KEYWORD_CONTEXT_RE = re.compile(
-    rf"(?:founder|founded by|co-founder|owner|practice owner|medical director)s?\b[^.\n]{{0,60}}?({_NAME_CORE})",
-    re.IGNORECASE,
+    rf"(?i:founder|founded by|co-founder|owner|practice owner|medical director)s?\b[^.\n]{{0,60}}?({_NAME_CORE})",
 )
 KEYWORD_CONTEXT_REVERSE_RE = re.compile(
-    rf"({_NAME_CORE})[^.\n]{{0,40}}?,?\s*(?:is the founder|is our founder|is the owner|is our owner|"
+    rf"({_NAME_CORE})[^.\n]{{0,40}}?,?\s*(?i:is the founder|is our founder|is the owner|is our owner|"
     rf"owner|founder|co-founder)\b",
-    re.IGNORECASE,
 )
 
 _TAG_RE = re.compile(r"<[^>]+>")

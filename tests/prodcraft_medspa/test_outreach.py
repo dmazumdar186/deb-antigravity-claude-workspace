@@ -818,3 +818,37 @@ def test_strip_quoted_history_drops_gt_prefixed_lines():
     stripped = gmail_reader.strip_quoted_history(body)
     assert "quoted line" not in stripped
     assert "My reply here" in stripped
+
+
+# ---------------------------------------------------------------------------
+# config.sender gate: mock falls back to a synthetic sender, live fails closed
+# ---------------------------------------------------------------------------
+
+
+def test_lint_fails_closed_when_sender_config_empty():
+    from execution.personal_workflows.prodcraft_medspa.outreach import lint_draft
+
+    result = lint_draft.lint("subject", "body\nReply 'no' and I won't follow up.", touch=1, sender_name="", sender_physical_address="")
+    assert "can_spam:1" in result["violations"] and "can_spam:3" in result["violations"]
+
+
+def test_mock_sender_is_clearly_synthetic_and_passes_lint():
+    from execution.personal_workflows.prodcraft_medspa.outreach import draft_email, lint_draft
+
+    sender = draft_email.MOCK_SENDER
+    assert "mock" in sender["name"].lower() and "Example" in sender["physical_address"]
+    body = f"Hi there,\n\nshort body.\n\n{sender['name']}\n{sender['physical_address']}\n{lint_draft.OPT_OUT_LINE}"
+    result = lint_draft.lint("quick question", body, touch=1, sender_name=sender["name"], sender_physical_address=sender["physical_address"])
+    assert result["violations"] == []
+
+
+def test_doctor_sender_check_reports_missing_then_ok(tmp_path):
+    from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
+    from execution.personal_workflows.prodcraft_medspa.scripts import doctor
+
+    store = LocalStore(root=tmp_path / "store")
+    ok, detail = doctor.check_sender_config(store)
+    assert ok is False and "name" in detail and "physical_address" in detail
+    store.set_config("sender", {"name": "Operator Name", "physical_address": "1 Main St, Chicago, IL 60601"})
+    ok, _ = doctor.check_sender_config(store)
+    assert ok is True

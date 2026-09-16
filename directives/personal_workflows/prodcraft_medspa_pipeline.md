@@ -41,6 +41,7 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 | `enrich/waterfall.py` | 6-step owner-name/email waterfall + MillionVerifier verification, gated on `--min-score`. |
 | `preview/build_preview.py` | `business.json` -> template static build -> R2 upload -> Worker `/api/publish`. |
 | `preview/takedown.py` | Immediate unpublish (deletes the R2 prefix, flips `previews.takedown`) for one business id. |
+| `preview/approve.py` | CLI twin of the dashboard approve button: `review` -> `approved` for `--preview-id ID` or `--metro X --all-review`; logs an `events` row. `run_metro.py --auto-approve` (implied by `--mock`) runs it after the preview stage. |
 | `preview/publish.py` | Worker API client (`/api/publish`, `/api/extend`, `/api/meta`) used by build_preview/takedown. Its CLI is the only way to extend a preview: `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30 [--mock]`. There is no `preview/extend.py` module. |
 | `outreach/daily_queue.py` | Today's queue (score desc, cap per phase0 gate), optional Gmail draft creation. |
 | `outreach/scan_replies.py` | Classifies inbox replies; flags remove/opt-out language for takedown + DNC. |
@@ -84,7 +85,13 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
    save the resulting token as `GMAIL_TOKEN_JSON`, the client secret as `GMAIL_CREDENTIALS_JSON`.
 5. Create the Telegram error channel, set `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`, then verify:
    `python3 -m execution.personal_workflows.prodcraft_medspa.common.notify --sample`.
-6. `python3 execution/personal_workflows/prodcraft_medspa/scripts/doctor.py --live` — every
+6a. Set the sender identity once (CAN-SPAM rules 1 and 3; every draft fails `lint_draft` until this is
+   set, and `doctor.py --stages outreach` reports it): from the dashboard Config tab, or
+   `python3 -c "from execution.personal_workflows.prodcraft_medspa.common.store import get_store; get_store().set_config('sender', {'name': 'Your Name, ProdCraft', 'physical_address': 'Street, City, ST ZIP', 'signature': ''})"`.
+   Under `--mock` only, `draft_email.py` substitutes a clearly synthetic `MOCK_SENDER` so the mock chain
+   reaches `drafted`.
+
+6b. `python3 execution/personal_workflows/prodcraft_medspa/scripts/doctor.py --live` — every
    selected-stage row must show `OK`, every configured service's `live ok` column `yes`.
 
 ### Phase 0 (manual smoke test — do this before any cron is armed)
@@ -99,7 +106,9 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
    audit/enrich/preview the full pull, or hand-pick the top 5 by score with a findable owner name
    per PROJECT_SPEC.md §3 Phase 0 step 2 and build previews for just those 5 by hand.
 9. Review each preview in the dashboard's Previews tab; flip `review` -> `approved` only for the
-   ones you'd actually send.
+   ones you'd actually send. Without the dashboard: open the preview URL, then
+   `python3 -m execution.personal_workflows.prodcraft_medspa.preview.approve --preview-id ID`.
+   Only `approved`/`live` previews enter the daily queue; `run_metro.py` never approves on a live run.
 10. `python3 execution/personal_workflows/prodcraft_medspa/scripts/daily.py` — prints the queue
     (capped at 5 by the phase0 gate); hand-edit and send each draft from Gmail.
 11. If a prospect replies interested but cannot meet before the preview expires, extend it:
@@ -155,6 +164,11 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
   "queue_cap_open": 20}`; nothing in this pipeline widens the queue past 5/day until a human
   flips `passed` to `true` after a real call books. `run_metro.py` and `daily.py` never do this
   automatically — it is a judgment call, not a metric threshold (Karpathy #3, Saraev #1).
+- **`--mock` shortcuts two human steps, on purpose.** `run_metro.py --mock` appends the `approve`
+  stage (every review preview -> approved) and `draft_email.py --mock` uses `MOCK_SENDER` when
+  `config.sender` is empty, so the chain `apply_schema -> run_metro --mock -> daily.py --mock` ends
+  with a non-empty, fully drafted queue. Neither happens on a live run: previews wait for a human
+  approve (dashboard or `preview/approve.py`) and an empty sender fails the lint.
 - **What `--mock` proves and doesn't.** Every stage's `--mock` path runs against fixtures with no
   network and no secrets — it proves the code paths, JSON shapes, and store writes are correct. It
   does *not* prove a live API contract still matches (field names, rate limits, auth flow); that's

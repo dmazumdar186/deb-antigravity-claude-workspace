@@ -17,7 +17,8 @@ execution/personal_workflows/prodcraft_medspa/
   enrich/            waterfall.py, contact_page.py, gbp_reviews.py, state_registry.py, apollo.py, findymail.py,
                      hunter.py, verify.py (wraps execution/enrichment/million_verifier.py), fixtures/
   preview/           build_preview.py (business.json → template build → R2 upload), extract_services.py,
-                     content_lint.py, takedown.py, worker/ (TypeScript CF Worker: wildcard host, expiry cron,
+                     content_lint.py, publish.py (Worker API + `extend` CLI), approve.py (review → approved CLI),
+                     takedown.py, worker/ (TypeScript CF Worker: wildcard host, expiry cron,
                      /remove endpoint, /expired page)
   template/          Next.js 15 App Router, Tailwind, static export, reads business.json at build time
   dashboard/         static HTML/JS + functions/ (Pages Functions, Basic Auth middleware, Supabase REST via service key)

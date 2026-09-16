@@ -494,3 +494,64 @@ def test_extend_updates_store_and_mock_kv(local_store, tmp_path):
 
     kv_data = json.loads((tmp_path / "kv" / f"{host}.json").read_text(encoding="utf-8"))
     assert kv_data["expires_at"] == new_expires
+
+
+# ---------------------------------------------------------------------------
+# preview/approve.py — CLI counterpart of the dashboard approve button
+# ---------------------------------------------------------------------------
+
+
+def _seed_preview(store, business_id: str, status: str = "review", takedown: bool = False) -> dict:
+    return store.upsert_preview(
+        {
+            "business_id": business_id,
+            "template_id": "medspa-v1",
+            "slug_suffix": "abc123",
+            "subdomain_url": f"https://x-{status}.preview.prodcraft.fyi",
+            "status": status,
+            "content": {"name": "x"},
+            "content_hash": f"hash-{status}-{takedown}",
+            "takedown": takedown,
+        }
+    )
+
+
+def test_approve_moves_review_to_approved_and_logs_event(local_store):
+    from execution.personal_workflows.prodcraft_medspa.preview import approve
+
+    business, _audit = _seed_glow(local_store)
+    preview = _seed_preview(local_store, business["id"])
+    stat = approve.run(local_store, preview_id=preview["id"], metro=None, actor="test")
+    assert stat["out"] == 1 and stat["dropped"] == {}
+    assert local_store.get_row("previews", preview["id"])["status"] == "approved"
+    events = local_store.list_rows("events", entity="preview", entity_id=preview["id"])
+    assert any(e["event"] == "status:review->approved" for e in events)
+
+
+def test_approve_metro_skips_non_review_takedown_and_dnc(local_store):
+    from execution.personal_workflows.prodcraft_medspa.preview import approve
+
+    business, _audit = _seed_glow(local_store)
+    _seed_preview(local_store, business["id"], status="review")
+    _seed_preview(local_store, business["id"], status="live")
+    _seed_preview(local_store, business["id"], status="review", takedown=True)
+    stat = approve.run(local_store, preview_id=None, metro=business["metro"], actor="test")
+    assert stat["out"] == 1
+    assert stat["dropped"] == {"takedown": 1}  # live rows are never candidates; takedown rows are reported
+
+    # second run is idempotent: nothing approvable left; the takedown row is still reported, not hidden
+    again = approve.run(local_store, preview_id=None, metro=business["metro"], actor="test")
+    assert again["out"] == 0 and again["dropped"] == {"takedown": 1}
+
+    # do_not_contact business: approve refuses
+    dnc = local_store.upsert_business({**business, "id": None, "place_id": "p-dnc", "slug": "dnc-spa", "do_not_contact": True})
+    p = _seed_preview(local_store, dnc["id"])
+    stat = approve.run(local_store, preview_id=p["id"], metro=None, actor="test")
+    assert stat["dropped"] == {"do_not_contact": 1}
+
+
+def test_approve_unknown_preview_id_is_a_reported_drop(local_store):
+    from execution.personal_workflows.prodcraft_medspa.preview import approve
+
+    stat = approve.run(local_store, preview_id="nope", metro=None, actor="test")
+    assert stat == {"script": "approve", "in": 0, "out": 0, "dropped": {"not_found": 1}, "preview_ids": []}

@@ -6,7 +6,8 @@ description: Orchestrator that chains discovery -> audit -> enrich -> preview fo
     from each stage's self-reported JSON stat line AND cross-checked directly against the store —
     plus per-stage drop reasons and total estimated cost.
 inputs: CLI: --metro X [--mock] [--store {local,supabase}] [--store-root P]
-    [--stages discovery,audit,enrich,preview] [--sample-n 0] [--sample-only] [--skip-vision] [--skip-screenshots]
+    [--stages discovery,audit,enrich,preview] [--sample-n 0] [--sample-only] [--auto-approve] [--skip-vision]
+    [--skip-screenshots]
     [--continue-on-error]. Env: whatever the invoked stage subprocesses need (unset is fine with --mock).
 outputs: stdout funnel table + JSON summary; .tmp/prodcraft_medspa/runs/{metro}_{timestamp}.json run
     record; on any stage failure, common.notify.error("run_metro", ...) and a non-zero exit unless
@@ -35,6 +36,9 @@ from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import 
 )
 
 ALL_STAGES = ["discovery", "audit", "enrich", "preview"]
+# Optional stage appended by --auto-approve (implied by --mock): preview.approve --metro X --all-review.
+# Never in the default list: in production a human approves each preview in the dashboard first.
+APPROVE_STAGE = "approve"
 
 # stage -> module path under execution.personal_workflows.prodcraft_medspa
 STAGE_MODULE = {
@@ -43,6 +47,7 @@ STAGE_MODULE = {
     "audit_sample": "audit.sample_audit",
     "enrich": "enrich.waterfall",
     "preview": "preview.build_preview",
+    "approve": "preview.approve",
 }
 
 
@@ -87,27 +92,32 @@ def build_stage_args(stage: str, args: argparse.Namespace) -> tuple[str, list[st
     if stage == "preview":
         return STAGE_MODULE["preview"], base
 
+    if stage == APPROVE_STAGE:
+        return STAGE_MODULE["approve"], base + ["--all-review", "--actor", "run_metro"]
+
     raise ValueError(f"unknown stage: {stage}")
 
 
 def expand_stages(stage_list: list[str], args: argparse.Namespace) -> list[str]:
-    """Insert the `audit_sample` stage when --sample-n is set.
+    """Insert the `audit_sample` stage when --sample-n is set, and `approve` after `preview` when
+    --auto-approve is set or --mock is on (the mock chain must reach a non-empty daily queue).
 
     Default: `audit` (full) then `audit_sample` (metro_stats only, reusing the stored audits).
     `--sample-only`: `audit_sample` replaces `audit` (nothing else is audited).
     Without --sample-n the list is returned unchanged.
     """
     sample_n = int(getattr(args, "sample_n", 0) or 0)
-    if sample_n <= 0 or "audit" not in stage_list:
-        return list(stage_list)
     expanded: list[str] = []
     for stage in stage_list:
-        if stage == "audit":
+        if stage == "audit" and sample_n > 0:
             if not getattr(args, "sample_only", False):
                 expanded.append("audit")
             expanded.append("audit_sample")
         else:
             expanded.append(stage)
+    auto_approve = getattr(args, "auto_approve", False) or getattr(args, "mock", False)
+    if auto_approve and "preview" in expanded and APPROVE_STAGE not in expanded:
+        expanded.insert(expanded.index("preview") + 1, APPROVE_STAGE)
     return expanded
 
 
@@ -256,8 +266,17 @@ def main() -> None:
     )
     parser.add_argument("--skip-vision", action="store_true")
     parser.add_argument("--skip-screenshots", action="store_true")
+    parser.add_argument(
+        "--auto-approve",
+        dest="auto_approve",
+        action="store_true",
+        help="After the preview stage run preview.approve --all-review for this metro (skips the dashboard "
+        "review step; implied by --mock). Live default: previews stay in 'review' until a human approves.",
+    )
     parser.add_argument("--continue-on-error", action="store_true")
     args = parser.parse_args()
+    if args.mock and not args.auto_approve:
+        print("[run_metro] --mock implies --auto-approve so the mock chain reaches the daily queue", file=sys.stderr)
 
     stage_list = [s.strip() for s in args.stages.split(",") if s.strip()]
     unknown = [s for s in stage_list if s not in ALL_STAGES]

@@ -25,6 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.config import (  # noqa: E402
     REQUIRED_BY_STAGE,
     bootstrap,
@@ -311,6 +312,20 @@ def check_node_modules(path: Path) -> tuple[bool | None, str]:
     return exists, str(path / "node_modules")
 
 
+def check_sender_config(store) -> tuple[bool, str]:
+    """config.sender.name and .physical_address must be set before any outreach draft can pass
+    lint_draft (CAN-SPAM rules 1 and 3). Seeded empty on purpose; the operator fills it once via
+    the dashboard Config tab or store.set_config("sender", {...})."""
+    try:
+        sender = store.get_config("sender", {}) or {}
+    except Exception as exc:  # noqa: BLE001 — report, never crash doctor
+        return False, f"could not read config.sender: {type(exc).__name__}: {exc}"
+    missing = [k for k in ("name", "physical_address") if not (sender.get(k) or "").strip()]
+    if missing:
+        return False, f"config.sender missing: {', '.join(missing)} (drafts fail CAN-SPAM lint until set)"
+    return True, "config.sender name + physical_address set"
+
+
 def print_table(rows: list[tuple[str, ...]], headers: tuple[str, ...]) -> None:
     widths = [len(h) for h in headers]
     for row in rows:
@@ -378,6 +393,12 @@ def main() -> None:
         print_table(env_rows, ("check", "ok", "detail"))
     else:
         print("\n(pass --live to make one cheap authenticated call per service and check Node/Chromium/node_modules)")
+
+    print("\n=== Store config ===")
+    sender_ok, sender_detail = check_sender_config(get_store())
+    print_table([("config.sender", "yes" if sender_ok else "no", sender_detail)], ("check", "ok", "detail"))
+    if not sender_ok and "outreach" in selected_stages:
+        stage_missing.setdefault("outreach", []).append("config.sender")
 
     failing_stages = [s for s in selected_stages if stage_missing.get(s)]
     print(

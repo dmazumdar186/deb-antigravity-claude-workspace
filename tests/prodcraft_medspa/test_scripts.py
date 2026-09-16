@@ -138,7 +138,8 @@ def _metro_args(**overrides):
 
     base = dict(
         metro="chicago_north_shore", mock=True, store="local", store_root="/tmp/x",
-        sample_n=0, sample_only=False, skip_vision=False, skip_screenshots=False, continue_on_error=False,
+        sample_n=0, sample_only=False, auto_approve=False, skip_vision=False, skip_screenshots=False,
+        continue_on_error=False,
     )
     base.update(overrides)
     return argparse.Namespace(**base)
@@ -153,7 +154,7 @@ def test_audit_stage_always_runs_full_audit_even_with_sample_n():
 
 def test_expand_stages_adds_sample_after_full_audit():
     stages = run_metro.expand_stages(["discovery", "audit", "enrich", "preview"], _metro_args(sample_n=40))
-    assert stages == ["discovery", "audit", "audit_sample", "enrich", "preview"]
+    assert stages == ["discovery", "audit", "audit_sample", "enrich", "preview", "approve"]  # mock implies approve
     module, cli = run_metro.build_stage_args("audit_sample", _metro_args(sample_n=40))
     assert module == "audit.sample_audit"
     assert cli[cli.index("--n") + 1] == "40"
@@ -168,7 +169,22 @@ def test_expand_stages_sample_only_replaces_full_audit():
 
 
 def test_expand_stages_unchanged_without_sample_n():
-    assert run_metro.expand_stages(["discovery", "audit"], _metro_args()) == ["discovery", "audit"]
+    assert run_metro.expand_stages(["discovery", "audit"], _metro_args(mock=False)) == ["discovery", "audit"]
+
+
+def test_expand_stages_live_default_has_no_approve_stage():
+    """Production: previews stay in review until a human approves (automation-boundaries.md)."""
+    stages = run_metro.expand_stages(run_metro.ALL_STAGES, _metro_args(mock=False))
+    assert "approve" not in stages
+
+
+def test_expand_stages_mock_or_auto_approve_appends_approve_after_preview():
+    for kwargs in ({"mock": True}, {"mock": False, "auto_approve": True}):
+        stages = run_metro.expand_stages(run_metro.ALL_STAGES, _metro_args(**kwargs))
+        assert stages == ["discovery", "audit", "enrich", "preview", "approve"], kwargs
+    module, cli = run_metro.build_stage_args("approve", _metro_args(mock=True))
+    assert module == "preview.approve"
+    assert "--all-review" in cli and "--metro" in cli
 
 
 def test_audit_sample_stage_requires_sample_n():

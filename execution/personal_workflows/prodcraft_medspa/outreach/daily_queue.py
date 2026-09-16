@@ -203,7 +203,7 @@ def run_daily_queue(
         if rendered.get("llm"):
             llm_cost_usd += rendered["llm"].get("cost_usd", 0.0)
 
-        sender = st.get_config("sender", {"name": "", "physical_address": "", "signature": ""}) or {}
+        sender = rendered.get("sender") or {}
         lint_result = lint_draft.lint(
             rendered["subject"],
             rendered["body"],
