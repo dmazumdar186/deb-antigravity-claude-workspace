@@ -109,6 +109,13 @@ def _mock_psi(fixture_name: str, strategy: str) -> psi.PsiResult:
     return psi._parse_psi_response(data)  # noqa: SLF001 — reuse the real parser on a fixture payload
 
 
+def derive_mode(psi_score, vision_dated_score, screenshots_ok: bool) -> str:
+    """CONTRACTS.md: audit `mode` is "full" only when PSI, the vision pass and the Playwright
+    screenshots all actually ran AND returned a value; a capture that raised or came back without a
+    CTA verdict (screenshots_ok False) makes the audit "degraded" even if it was not skipped."""
+    return "full" if (psi_score is not None and vision_dated_score is not None and screenshots_ok) else "degraded"
+
+
 def audit_one_business(
     business: dict,
     *,
@@ -255,11 +262,13 @@ def audit_one_business(
         # under mock, which scores 0 for that signal, so the mock funnel is unchanged.
         raw["screenshots"] = {"error": "skipped under --mock (no network)"}
         skip_screenshots = True
+    screenshots_ok = False  # true only when capture succeeded AND returned a CTA value
     if not skip_screenshots:
         slug = business.get("slug") or business["id"]
         shot = screenshots.capture_screenshots(final_url, slug)
         cta_above_fold = shot.cta_above_fold
         raw["screenshots"] = {"error": shot.error}
+        screenshots_ok = shot.error is None and shot.cta_above_fold is not None
         if shot.mobile_path:
             screenshot_mobile_url = screenshots.upload_screenshot(shot.mobile_path, slug, "mobile", store_kind)
             try:
@@ -316,15 +325,7 @@ def audit_one_business(
     # CONTRACTS.md: audit `mode` is "full" only when PSI, vision, and screenshots all actually
     # ran and returned a value; otherwise "degraded" — makes a 30 legible (30/max_measurable
     # instead of a bare 30/100) when part of the pipeline was skipped or came back empty.
-    mode = (
-        "full"
-        if (
-            psi_mobile_result.performance_score is not None
-            and vision_dated_score is not None
-            and not skip_screenshots
-        )
-        else "degraded"
-    )
+    mode = derive_mode(psi_mobile_result.performance_score, vision_dated_score, screenshots_ok)
 
     audit_row = {
         "business_id": business["id"],

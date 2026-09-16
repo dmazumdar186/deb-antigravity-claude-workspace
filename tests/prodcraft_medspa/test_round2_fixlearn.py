@@ -451,3 +451,13 @@ def test_weekly_workflow_yaml_is_valid_and_wired():
     run_step = next(s for s in job["steps"] if "fit_weights.py" in s.get("run", ""))
     assert "--store supabase" in run_step["run"]
     assert "--report-telegram" in run_step["run"]
+
+
+def test_derive_mode_requires_screenshot_success_not_just_not_skipped():
+    """Round-3 Karpathy finding: a failed capture (error set, cta None) must not be stamped full."""
+    from execution.personal_workflows.prodcraft_medspa.audit import audit_site
+
+    assert audit_site.derive_mode(80, 3, True) == "full"
+    assert audit_site.derive_mode(80, 3, False) == "degraded"
+    assert audit_site.derive_mode(None, 3, True) == "degraded"
+    assert audit_site.derive_mode(80, None, True) == "degraded"
