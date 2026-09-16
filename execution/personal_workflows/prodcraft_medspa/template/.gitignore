@@ -6,3 +6,6 @@ business.json
 .env.local
 *.tsbuildinfo
 .build.lock
+public/favicon.ico
+public/stock/favicon.ico
+public/stock/.gen-manifest.json
