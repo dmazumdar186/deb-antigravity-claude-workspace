@@ -41,6 +41,7 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 | `enrich/waterfall.py` | 6-step owner-name/email waterfall + MillionVerifier verification, gated on `--min-score`. |
 | `preview/build_preview.py` | `business.json` -> template static build -> R2 upload -> Worker `/api/publish`. |
 | `preview/takedown.py` | Immediate unpublish (deletes the R2 prefix, flips `previews.takedown`) for one business id. |
+| `preview/publish.py` | Worker API client (`/api/publish`, `/api/extend`, `/api/meta`) used by build_preview/takedown. Its CLI is the only way to extend a preview: `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30 [--mock]`. There is no `preview/extend.py` module. |
 | `outreach/daily_queue.py` | Today's queue (score desc, cap per phase0 gate), optional Gmail draft creation. |
 | `outreach/scan_replies.py` | Classifies inbox replies; flags remove/opt-out language for takedown + DNC. |
 | `outreach/advance.py` | Runs due state-machine transitions (e.g. `sent` -> next touch, `sent` -> `closed_lost`). |
@@ -99,7 +100,11 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
    ones you'd actually send.
 10. `python3 execution/personal_workflows/prodcraft_medspa/scripts/daily.py` — prints the queue
     (capped at 5 by the phase0 gate); hand-edit and send each draft from Gmail.
-11. Follow up per PROJECT_SPEC.md §8.2 (day 3 Loom, day 7 proof line, day 12 breakup). Run
+11. If a prospect replies interested but cannot meet before the preview expires, extend it:
+    `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30`
+    (the preview id is in the dashboard's Previews tab or `previews.id`; the command renews `expires_at`
+    on the Worker and the store and logs an `extended` event; touch 4's deadline recomputes from the new date).
+    Follow up per PROJECT_SPEC.md §8.2 (day 3 Loom, day 7 proof line, day 12 breakup). Run
     `daily.py` each morning; it advances due touches and drafts the next one.
 12. Gate: `python3 scripts/daily.py --phase0-status`. `calls_booked >= 1` -> `config.phase0.passed`
     flips true (set via the dashboard's Config tab or `deals.py`), and the queue cap lifts 5 -> 20.
