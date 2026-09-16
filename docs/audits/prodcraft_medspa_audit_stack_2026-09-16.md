@@ -108,3 +108,39 @@ customer-facing message is ever sent by code (drafts only; takedown is the one c
 two named fuzzy variables inside human-written templates; error channel shape correct with 13 call sites.
 - **[OPEN]** The "3 recurrences" self-healing rule is a standing instruction with no counter.
 - **[OPEN]** `notify.py --sample` has never been observed in the Telegram channel (needs secrets).
+
+---
+
+# Round 2 (same day, after the automated loop, the live first-5 dry run and template v2)
+
+Subject: the fully automated loop (import/discover -> audit -> enrich -> preview -> queue -> **send** -> scan ->
+Telegram), the live first-5 dry run to the operator's own inbox (store `.tmp/prodcraft_medspa/live/store1`, not in
+git), and the scroll-driven template v2. Eleven lenses plus pipeline-auditor and code-reviewer, every one a real
+sub-agent ending with Honest gaps. Fixes landed in commits 49cac2a, 1290b1e, d32b88e, fa7d256, ee8041f and the
+send-path follow-up (see HANDOFF.md for the final verification pass).
+
+| Lens | Verdict | Blocking findings -> status |
+|---|---|---|
+| Pipeline-auditor (Fable) | WARNINGS | emailed preview links were private artifact URLs -> **[FIXED]** send-time `preview_not_public` guard (live sends without override refuse non-r2 / wrong-host previews); `build_preview` logged orphan built/published events with a never-stored uuid and the merge downgraded approved -> review -> **[FIXED]** returned-row id + sticky-status merge guard; unlogged manual store patches -> **[FIXED]** `Store.manual_patch` and `redraft` transition; 9 stale pre-fix audit rows -> **[FIXED]** flagged `superseded` with a logged event; `min_score 20` admitted a skip-bucket site -> **[FIXED]** validation floor 25 (Perlis dropped from the rebuilt set) |
+| Code-reviewer (Opus) | FAIL -> fixed | missing Supabase columns -> **[FIXED]** migrations 0003/0004; override silently unset -> **[FIXED]** banner + stat + `live_send_confirmed` gate; own outbound message classified as a reply -> **[FIXED]**; day-2 queue starvation -> **[FIXED]** with a two-day simulation test; no live approval path -> **[FIXED]** `preview_gate.py` (opt-in `auto_approve_previews`, default false); `chr(ord("A")+n)` -> **[FIXED]**; header injection / From header / RFC 2822 dates / PII in logs / silent excepts -> **[FIXED]** |
+| Karpathy | PASS-WITH-CHANGES | fit_weights counted dry-run rows -> **[FIXED]** `test_recipient` exclusion |
+| Cherny | PASS-WITH-CHANGES | `--date not-a-date` leaked a traceback -> **[FIXED]** both parsers; REGISTRY missing two scripts -> **[FIXED]** regenerated; HANDOFF stale -> **[FIXED]** rewritten |
+| Dario Amodei | PASS-WITH-CHANGES | placeholder postal address passed lint -> **[FIXED]** `sender_address_is_valid`; no enforced live gate -> **[FIXED]** `live_send_confirmed` + `--confirm-live-sends` |
+| Research team | PASS-WITH-CHANGES | config validation, None-signal handling, seed recording, sanctioned `redraft`, CONTRACTS None semantics -> **[FIXED]** |
+| Hormozi | PASS-WITH-CHANGES | zero-baseline guarantee trivially met -> **[FIXED]** `ZERO_BASELINE_FLOOR = 5`; Phase 0 should pick by score -> **[FIXED]** score ordering until `phase0.passed`; CTA/subject variety -> **[OPEN]** operator copy decision |
+| Saraev | PASS-WITH-CHANGES | no List-Unsubscribe header -> **[FIXED]**; no warmup ramp -> **[FIXED]** 2 -> 5 over 14 days from the first live send; SPF/DMARC never checked -> **[FIXED]** best-effort in doctor; sample Telegram send never observed -> **[OPEN]** needs secrets; auto-send vs automation-boundaries -> **[FIXED]** reconciled in the directive |
+| Daniela Amodei | PASS-WITH-CHANGES | takedown lived only in daily.py -> **[FIXED]** state machine takes down on DNC itself; no PII purge path -> **[FIXED]** `Store.purge_pii` + `scripts/purge_pii.py` + retention policy; forgotten override could go live -> **[FIXED]** `live_send_confirmed`; Places ToS / look-alike site legal question -> **[OPEN]** operator/counsel |
+| Sutskever | PASS-WITH-CHANGES | degraded and full audits indistinguishable -> **[FIXED]** `audits.mode` + `max_measurable`; fit_weights mixed regimes -> **[FIXED]** `--mode` filter (CLI default full); variant outcome never analysed -> **[FIXED]** variant table; remove classified by LLM alone -> **[FIXED]** Telegram notify on every remove with `remove_source`; no gold set for the classifier -> **[OPEN]** |
+| Murati | PASS-WITH-CHANGES | placeholder address in sent test emails -> **[FIXED]** (lint); all five drafts on variant c -> **[FIXED]** per-business hash; two opt-out verbs -> **[FIXED]** one sentence, "reply 'no'"; hero copy identical across spas -> **[FIXED]** template v2 states built from each spa's data; hours unknown for 5 of 5 -> **[OPEN]** needs Places details live |
+| Brockman | FAIL -> fixed | cron never approved previews -> **[FIXED]** `preview_gate.py` step; Playwright never installed in CI -> **[FIXED]**; no doctor pre-check -> **[FIXED]**; R2 access keys invisible to doctor/config -> **[FIXED]**; single 60-minute job -> **[FIXED]** per-step timeouts, sync always, Telegram on failure or cancel; R2 token setup step and verbatim command block missing -> **[FIXED]** directive |
+| Hassabis | PASS-WITH-CHANGES | cost not durably stored -> **[FIXED]** `audits.llm_cost_usd`; learning loop never scheduled -> **[FIXED]** weekly workflow + Telegram report; recompute diffs not stored -> **[FIXED]** `score_recompute_diff` events; guarantee unverifiable -> **[FIXED]** `--evidence-ref` required, PROJECT_SPEC 9.1; metro-blind fitting -> **[FIXED]** `--metro`; zero-sends-with-no-alert -> **[FIXED]** notify on zero sent with blocked previews |
+
+## Live first-5 dry run evidence (operator inbox only, no prospect emailed)
+
+- Five emails sent through the Gmail connector to the operator's address with `[TEST to <owner_email>]` subjects;
+  Gmail message ids and `test_recipient` recorded on the outreach rows; `daily_log` and `pipeline` tabs mirrored to
+  the connected Google Sheets.
+- Previews hosted as private claude.ai artifacts (no R2 secrets in cloud); rebuilt on template v2 and republished
+  to the same URLs (Version 4) for four spas; the fifth (score 22, skip bucket) is excluded by the new floor.
+- Every live path the loop needs (Places, PSI, Anthropic, Gmail OAuth, Telegram, Supabase, R2) is still
+  unexercised from code; connectors stood in for them in-session.
