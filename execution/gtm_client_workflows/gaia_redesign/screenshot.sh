@@ -60,6 +60,42 @@ echo "hero scene states (headless always captures from scroll 0, so ?scene= free
 for n in 1 2 3 4 5 6; do shot "index-1440-flow$n" "index.html?scene=$n" 1440 900; done
 shot "index-768-flow3" "index.html?scene=3" 768 1024
 
+# Two interaction states that only exist after a click. A headless run cannot
+# click, so each is captured from a throwaway copy of the page with a few lines
+# of script appended; both copies are deleted again below.
+echo "interaction states (menu open, pinned stack mid-scroll, composed message)"
+python3 - "$SITE" <<'PYEOF'
+import pathlib, sys
+site = pathlib.Path(sys.argv[1])
+src = (site / "index.html").read_text(encoding="utf-8")
+menu = """<script>addEventListener('load',function(){
+  setTimeout(function(){var t=document.querySelector('[data-menu-toggle]');if(t)t.click();},300);});</script>"""
+outbox = """<script>addEventListener('load',function(){setTimeout(function(){
+  var f=document.querySelector('[data-compose="contact-out"]');if(!f)return;
+  var v={'c-first':'Aoife','c-last':'Ni Bhriain','c-email':'aoife@example.ie','c-phone':'+353 87 000 0000',
+         'c-title':'Head of Environment','c-company':'Example Infrastructure','c-msg':'We need a senior ecologist for a wind farm in Co. Clare, starting January. Can we talk this week?'};
+  Object.keys(v).forEach(function(k){var e=document.getElementById(k);if(e)e.value=v[k];});
+  var sel=document.getElementById('c-src');if(sel)sel.value='Referral';
+  f.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+  document.getElementById('contact-out').scrollIntoView({block:'center',behavior:'auto'});},600);});</script>"""
+(site / "_shot-menu.html").write_text(src.replace("</body>", menu + "</body>"), encoding="utf-8")
+hide_hero = src.replace('<section class="flow flow--pinned" data-flow',
+                        '<section class="flow flow--pinned" style="display:none" data-flow')
+(site / "_shot-stack.html").write_text(
+    hide_hero.replace('<section class="band band--mist" id="about">',
+                      '<section class="band band--mist" id="about" style="display:none">'),
+    encoding="utf-8")
+(site / "_shot-outbox.html").write_text(
+    hide_hero.replace("</body>", outbox + "</body>")
+             .replace('<section class="band band--navy" id="contact">',
+                      '<section class="band band--navy" id="contact" style="padding-top:110px">'),
+    encoding="utf-8")
+PYEOF
+shot "index-390-menu-open" "_shot-menu.html" 390 844
+for pr in 0.10 0.42 0.78; do shot "index-1440-stack-$pr" "_shot-stack.html?stack=$pr" 1440 900; done
+shot "index-1440-outbox"   "_shot-outbox.html" 1440 2400
+rm -f "$SITE/_shot-menu.html" "$SITE/_shot-outbox.html" "$SITE/_shot-stack.html"
+
 echo "reduced-motion set"
 shot "rm-index-1440" "index.html"      1440 9000  --force-prefers-reduced-motion
 shot "rm-index-390"  "index.html"      390  15000 --force-prefers-reduced-motion

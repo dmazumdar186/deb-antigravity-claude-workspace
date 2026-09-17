@@ -31,6 +31,9 @@
   var flowState = function (progress, count) {
     var last = Math.max(count - 1, 0);
     var t = Math.min(last, (clamp01(progress) / 0.92) * last);
+    // The epsilon keeps `from` one below `last` when t lands exactly on the
+    // final state, so `to` stays in range and the closing leg still eases in
+    // rather than snapping (floor(6) would give from === to === 6, leg 0).
     var from = Math.floor(Math.min(t, Math.max(last - 0.001, 0)));
     var frac = t - from;
     var leg = clamp01((frac - 0.15) / 0.7);
@@ -70,20 +73,22 @@
     return Math.min(count - 1, Math.floor(clamp01(progress) * count));
   };
 
-  /* Pinned card stack: the front card lifts and fades out, the next one rises
-     into its place. Cards behind peek out below with decreasing scale. */
+  /* Pinned step sequence. One step is readable at a time: each holds while it
+     is within 0.38 of its own position, then cross-fades with the next one over
+     a window in which the two opacities always sum to 1. Text does not survive
+     being stacked at partial opacity, so this is a hold-and-swap rather than a
+     pile of peeking cards. */
   var stackCardState = function (progress, index, count) {
     var position = clamp01(progress) * Math.max(count - 1, 0);
     var offset = index - position;
-    var exit = clamp01((-offset - 0.05) / 0.85);
-    var depth = clamp(0, 3, offset);
+    var distance = Math.abs(offset);
     return {
-      yPercent: exit > 0 ? -12 - 24 * exit : depth * 4.6,
-      rotationDeg: exit > 0 ? -1.6 * exit : 0,
-      scale: exit > 0 ? 1 - 0.05 * exit : Math.max(0.9, 1 - depth * 0.035),
-      opacity: exit > 0 ? Math.max(0, 1 - 1.15 * exit) : Math.max(0, 1 - depth * 0.34),
-      isFront: Math.min(count - 1, Math.round(position)) === index,
-      zIndex: count - index
+      yPercent: offset * 22,
+      rotationDeg: 0,
+      scale: 1 - Math.min(distance, 1) * 0.03,
+      opacity: clamp01((0.62 - distance) / 0.24),
+      isFront: Math.min(Math.max(count - 1, 0), Math.round(position)) === index,
+      zIndex: 10 - Math.round(Math.min(distance, 9))
     };
   };
 

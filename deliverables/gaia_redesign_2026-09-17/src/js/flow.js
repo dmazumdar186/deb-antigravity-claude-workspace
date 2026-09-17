@@ -39,9 +39,10 @@
     if (state === 5) return 0.642 - Math.sin(x * 1.8 + 1.1) * 0.030 + n * 0.006;
     return 0.626 - Math.sin(x * 2.9 + 0.8) * 0.028 - Math.sin(x * 6.6) * 0.013 + n * 0.009;
   };
+  var STATES = 7;
   var PROFILES = [];
   (function buildProfiles() {
-    for (var s = 0; s < 7; s += 1) {
+    for (var s = 0; s < STATES; s += 1) {
       var p = [];
       for (var i = 0; i < VERTS; i += 1) p.push(profileAt(s, i));
       PROFILES.push(p);
@@ -59,6 +60,17 @@
     [[10, 26, 30], [20, 51, 42]]
   ];
 
+  var LAST = PROFILES.length - 1;
+  if (COUNT !== PROFILES.length) {
+    /* The markup and the scene must describe the same sequence; if they drift
+       the canvas would interpolate against the wrong profile. Fail visibly in
+       the console and leave the no-motion fallback in place. */
+    if (window.console) {
+      window.console.error('flow: ' + COUNT + ' panels but ' + PROFILES.length + ' scene states');
+    }
+    return;
+  }
+
   var ctx = canvas.getContext ? canvas.getContext('2d') : null;
   if (!ctx) return;
 
@@ -68,8 +80,10 @@
   var position = 0;
   var horizon = [];
   var visible = false;
+  var frozen = false;
   var rafId = 0;
   var lastDraw = 0;
+  var resizeRaf = 0;
 
   var rgba = function (c, a) {
     return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')';
@@ -110,8 +124,8 @@
   /* --------------------------------------------------------- elements */
 
   function drawSky(from, to, k) {
-    var a = SKY[Math.min(from, 6)];
-    var b = SKY[Math.min(to, 6)];
+    var a = SKY[Math.min(from, LAST)];
+    var b = SKY[Math.min(to, LAST)];
     var e = M.easeOutQuart(k);
     var mix = function (i, j) { return Math.round(M.lerp(a[i][j], b[i][j], e)); };
     var top = [mix(0, 0), mix(0, 1), mix(0, 2)];
@@ -162,21 +176,27 @@
       ctx.stroke();
     }
     /* two bearing lines from a station point */
-    var px = W * 0.66;
-    var py = yAt(px) - H * 0.30;
-    stroke(GREEN, 0.20 * w, 1);
-    ctx.setLineDash([5, 8]);
+    var ax = W * 0.615;
+    var ay = yAt(ax) - H * 0.235;
+    var bx2 = W * 0.965;
+    var by2 = yAt(bx2) + H * 0.035;
+    stroke(GREEN, 0.22 * w, 1);
+    ctx.setLineDash([5, 9]);
     ctx.beginPath();
-    ctx.moveTo(px, py);
-    ctx.lineTo(W * 0.24, yAt(W * 0.24) + H * 0.06);
-    ctx.moveTo(px, py);
-    ctx.lineTo(W * 0.98, yAt(W * 0.98) + H * 0.02);
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx2, by2);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.arc(px, py, 4, 0, PI2);
-    ctx.strokeStyle = rgba(GREEN, 0.5 * w);
-    ctx.stroke();
+    var ends = [[ax, ay, 4.5], [bx2, by2, 3]];
+    for (i = 0; i < 2; i += 1) {
+      ctx.beginPath();
+      ctx.arc(ends[i][0], ends[i][1], ends[i][2], 0, PI2);
+      ctx.fillStyle = rgba(DEEP, 0.85 * w);
+      ctx.fill();
+      ctx.strokeStyle = rgba(GREEN, 0.55 * w);
+      ctx.lineWidth = 1.3;
+      ctx.stroke();
+    }
   }
 
   function drawGround() {
@@ -492,12 +512,11 @@
   }
 
   /* State 6 — survey grid, tree line, birds. */
-  function drawEcology(w, now) {
+  function drawTrees(w) {
     if (w <= 0.001) return;
     var e = M.easeOutQuart(w);
-    var i;
     stroke(GREEN, 0.4 * w, 1.3);
-    for (i = 0; i < 16; i += 1) {
+    for (var i = 0; i < 16; i += 1) {
       var tx = (0.53 + i * 0.028) * W;
       var ty = yAt(tx);
       var th = (0.024 + M.hashNoise(i, 7) * 0.022) * H * e;
@@ -510,6 +529,12 @@
       ctx.lineTo(tx + th * 0.34, ty - th * 0.92);
       ctx.stroke();
     }
+  }
+
+  function drawEcology(w, now) {
+    if (w <= 0.001) return;
+    var i;
+    drawTrees(w);
     stroke(WHITE, 0.12 * w, 1);
     for (i = 1; i < 12; i += 1) {
       ctx.beginPath();
@@ -541,13 +566,13 @@
   /* --------------------------------------------------------- compositor */
   function draw(now) {
     if (!W || !H) return;
-    var from = Math.min(6, Math.floor(position));
-    var to = Math.min(6, Math.ceil(position));
+    var from = Math.min(LAST, Math.max(0, Math.floor(position)));
+    var to = Math.min(LAST, Math.max(0, Math.ceil(position)));
     var k = position - from;
     horizon = M.lerpProfile(PROFILES[from], PROFILES[to], k);
 
     var w = [];
-    for (var i = 0; i < 7; i += 1) w.push(M.stateWeight(position, i));
+    for (var i = 0; i <= LAST; i += 1) w.push(M.stateWeight(position, i));
     var ww = Math.max(w[3], w[4] * 0.92);
 
     ctx.clearRect(0, 0, W, H);
@@ -557,6 +582,18 @@
     drawSky(from, to, k);
     drawIntro(w[0]);
     drawGround();
+    /* At the opening state the scene shows every sector at once, faintly: the
+       first fold is the whole landscape, and scrolling walks through it. */
+    if (w[0] > 0.004) {
+      ctx.save();
+      ctx.globalAlpha = 0.26 * w[0];
+      drawSolar(1);
+      drawWind(1, now);
+      drawTransport(1);
+      drawTidal(1, 1, now);
+      drawTrees(1);
+      ctx.restore();
+    }
     drawSolar(w[2]);
     drawWind(w[1], now);
     drawTransport(w[5]);
@@ -572,8 +609,12 @@
     if (index === current) return;
     current = index;
     for (var i = 0; i < COUNT; i += 1) {
-      panels[i].classList.toggle('is-on', i === index);
-      panels[i].setAttribute('aria-hidden', i === index ? 'false' : 'true');
+      var on = i === index;
+      panels[i].classList.toggle('is-on', on);
+      panels[i].setAttribute('aria-hidden', on ? 'false' : 'true');
+      /* inert as well as aria-hidden: an aria-hidden subtree must not contain
+         anything tabbable, and every panel holds a link. */
+      panels[i].inert = !on;
       if (steps[i]) {
         steps[i].classList.toggle('is-on', i === index);
         if (i === index) steps[i].setAttribute('aria-current', 'step');
@@ -595,7 +636,7 @@
 
   var scheduled = false;
   function schedule() {
-    if (scheduled || !enabled()) return;
+    if (scheduled || frozen || !enabled()) return;
     scheduled = true;
     requestAnimationFrame(function () { scheduled = false; frame(); });
   }
@@ -640,13 +681,25 @@
     visible = true;
   }
 
+  function onResize() {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(function () {
+      resizeRaf = 0;
+      if (frozen) {
+        resize();
+        draw(performance.now());
+        return;
+      }
+      start();
+    });
+  }
   window.addEventListener('scroll', schedule, { passive: true });
-  window.addEventListener('resize', function () { start(); });
+  window.addEventListener('resize', onResize);
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) stop(); else play();
   });
-  if (wide.addEventListener) wide.addEventListener('change', start);
-  if (reduce.addEventListener) reduce.addEventListener('change', start);
+  if (wide.addEventListener) wide.addEventListener('change', onResize);
+  if (reduce.addEventListener) reduce.addEventListener('change', onResize);
 
   /* Rail steps are real buttons: click or keyboard jumps to that state. */
   steps.forEach(function (step, index) {
@@ -678,6 +731,7 @@
       var at = Math.min(COUNT - 1, Math.max(0, parseInt(scene[1], 10)));
       window.removeEventListener('scroll', schedule);
       root.classList.add('flow--static');
+      frozen = true;
       position = at;
       show(at);
       steps.forEach(function (step, i) { step.style.setProperty('--fill', i <= at ? '1' : '0'); });

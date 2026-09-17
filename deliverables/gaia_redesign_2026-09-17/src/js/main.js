@@ -48,22 +48,51 @@
   window.addEventListener('resize', onScroll);
   update();
 
+  /* Review hook, matching the hero's: index.html?stack=0.5 freezes the pinned
+     search-process stack at that progress so a still can be captured. */
+  (function freezeStack() {
+    var hook = /[?&]stack=([0-9.]+)/.exec(window.location.search || '');
+    if (!hook || !stack || !cards.length || !M) return;
+    if (!desktop.matches || reduce.matches) return;
+    var p = Math.min(1, Math.max(0, parseFloat(hook[1]) || 0));
+    window.removeEventListener('scroll', onScroll);
+    stack.style.setProperty('--stack-progress', p.toFixed(3));
+    cards.forEach(function (el, i) {
+      var st = M.stackCardState(p, i, cards.length);
+      el.style.setProperty('--card-y', st.yPercent.toFixed(2) + '%');
+      el.style.setProperty('--card-rot', st.rotationDeg.toFixed(2) + 'deg');
+      el.style.setProperty('--card-scale', st.scale.toFixed(3));
+      el.style.setProperty('--card-opacity', st.opacity.toFixed(3));
+      el.style.zIndex = String(st.zIndex);
+      el.classList.toggle('is-front', st.isFront);
+    });
+  }());
+
   /* ------------------------------------------------------------ menu */
   var toggle = document.querySelector('[data-menu-toggle]');
   var menu = document.querySelector('[data-menu]');
-  var main = document.querySelector('main');
   if (toggle && menu) {
+    /* The header and the footer are siblings of <main>, so inerting <main>
+       alone leaves both of them tabbable behind the open menu. Inert every
+       top-level element except the menu itself. */
+    var siblings = Array.prototype.filter.call(document.body.children, function (el) {
+      return el !== menu;
+    });
+    var restoreTo = null;
     var setMenu = function (open) {
+      if (open) restoreTo = document.activeElement;
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       menu.classList.toggle('is-open', open);
       menu.inert = !open;
       document.body.style.overflow = open ? 'hidden' : '';
-      if (main) main.inert = open;
+      siblings.forEach(function (el) { el.inert = open; });
       if (open) {
         var first = menu.querySelector('a, button');
         if (first) first.focus();
       } else {
-        toggle.focus();
+        var target = (restoreTo && document.contains(restoreTo)) ? restoreTo : toggle;
+        restoreTo = null;
+        if (target && target.focus) target.focus();
       }
     };
     menu.inert = true;
@@ -92,10 +121,14 @@
         });
       }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
       items.forEach(function (el) { obs.observe(el); });
-      /* Safety net: anything still hidden after 4s (headless renderers,
-         background tabs) is shown outright rather than shipping blank. */
+      /* Safety net for renderers that never run the observer — a background
+         tab, a headless screenshot, a print job. It must not fire for someone
+         actually looking at the page, or every reveal below the fold is spent
+         before they reach it. */
       window.setTimeout(function () {
+        if (document.visibilityState !== 'hidden' && document.hasFocus()) return;
         items.forEach(function (el) { el.classList.add('is-visible'); });
+        obs.disconnect();
       }, 4000);
     }
   }
@@ -109,7 +142,12 @@
       if (f.type === 'radio' && !f.checked) return;
       var value = (f.value || '').trim();
       if (!value) return;
-      var label = f.dataset.label || (form.querySelector('label[for="' + f.id + '"]') || {}).textContent || f.name;
+      var byId = null;
+      if (f.id) {
+        var sel = window.CSS && CSS.escape ? CSS.escape(f.id) : f.id.replace(/["\\]/g, '\\$&');
+        byId = form.querySelector('label[for="' + sel + '"]');
+      }
+      var label = f.dataset.label || (byId || {}).textContent || f.name;
       lines.push(String(label).replace(/\s+/g, ' ').trim() + ': ' + value);
     });
     return lines.join('\n');
@@ -119,6 +157,7 @@
     var out = document.getElementById(form.dataset.compose);
     if (!out) return;
     var pre = out.querySelector('pre');
+    if (!pre) return;
     var copy = out.querySelector('[data-copy]');
     var mail = out.querySelector('[data-mail]');
     form.addEventListener('submit', function (e) {
@@ -129,9 +168,12 @@
       var address = (document.body.dataset.contactEmail || '').trim();
       if (mail) {
         if (address) {
+          /* Long mailto URLs are silently truncated or refused by some clients;
+             the full message is on the page either way. */
+          var body = text.length > 1500 ? text.slice(0, 1500) + '\n\n[…]' : text;
           mail.href = 'mailto:' + address
             + '?subject=' + encodeURIComponent(form.dataset.subject || 'Website enquiry')
-            + '&body=' + encodeURIComponent(text);
+            + '&body=' + encodeURIComponent(body);
           mail.hidden = false;
         } else {
           mail.hidden = true;
@@ -141,13 +183,17 @@
       out.focus({ preventScroll: false });
     });
     if (copy) {
+      var copyTimer = 0;
       copy.addEventListener('click', function () {
         var text = pre.textContent;
         var done = function () {
           var span = copy.querySelector('.btn__t') || copy;
-          var was = span.textContent;
+          if (!span.dataset.label) span.dataset.label = span.textContent;
           span.textContent = 'Copied';
-          window.setTimeout(function () { span.textContent = was; }, 2200);
+          window.clearTimeout(copyTimer);
+          copyTimer = window.setTimeout(function () {
+            span.textContent = span.dataset.label;
+          }, 2200);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });

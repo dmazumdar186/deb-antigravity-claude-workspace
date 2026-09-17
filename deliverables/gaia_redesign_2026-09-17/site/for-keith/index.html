@@ -7,9 +7,8 @@
 <title>A note for Keith — Gaia Talent redesign</title>
 <meta name="description" content="Why this redesign exists, what the audit found, what changed, and how to make it yours.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=Public+Sans:wght@300..600&display=swap">
+<link rel="preload" href="../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/publicsans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../css/styles.css">
 <script>document.documentElement.className+=' has-js';</script>
 </head>
@@ -67,7 +66,7 @@
         <li><strong>No JobPosting structured data.</strong> Your 63 live roles carry no schema.org markup, so they are invisible to Google for Jobs and to every aggregator that reads it. That is free candidate flow you are not collecting.</li>
         <li><strong>The blog has been frozen since 2022.</strong> 130 posts, and one of them still refers to the National Biodiversity Conference 2022 in the present tense. A stale blog reads worse than no blog.</li>
         <li><strong>A live typo in the services copy</strong> &mdash; &ldquo;we truly understand the getting the right person&rdquo;.</li>
-        <li><strong>The hero is a stock abstract image at 242&nbsp;KB</strong>, and the stylesheet is ~298&nbsp;KB with 23 separate scripts. That is weight carried for a picture that says nothing about the work.</li>
+        <li><strong>The hero is a stock abstract image.</strong> It says nothing about the work.</li>
       </ol>
 
       <h2>What this redesign changes</h2>
@@ -76,9 +75,9 @@
         <li><strong>The hero is your sectors, drawn.</strong> Scroll moves through wind and hydro, solar, water and flood risk, wave and tidal, transport, ecology &mdash; one continuous landscape that rearranges itself, with a genuine live role attached to each one. Nothing stock. Nothing that could belong to an insurance broker.</li>
         <li><strong>Proof is on the page.</strong> B Corp, the score, Hometree, 35 years combined experience, 63 live roles &mdash; stated plainly, in your own words, in a band you cannot scroll past.</li>
         <li><strong>Every role is structured data.</strong> Each of the 63 roles carries JobPosting markup and links straight to its live page on gaiatalent.com. Nothing is duplicated or rewritten.</li>
-        <li><strong>The phone comes first.</strong> Both office numbers are in the header, in the hero sequence, in the footer and in the contact band at display size. The form is secondary to them by design.</li>
+        <li><strong>The phone comes first.</strong> The Dublin number is in the header on every page; both numbers are in the footer and at display size in the contact band. The form is secondary to them by design.</li>
         <li><strong>The search process is stated.</strong> Brief, market map, identify, vet and screen, place and plant &mdash; so a client can see what they are buying before they ring.</li>
-        <li><strong>It is light.</strong> No framework, no icon library, no third-party scripts. The numbers are in the table below.</li>
+        <li><strong>It is light, and it is self-contained.</strong> No framework, no icon library, no third-party scripts, and the two typefaces are served from your own folder rather than fetched from Google on every visit. The page makes no request to anyone but you. The numbers are in the table below.</li>
       </ul>
 
       <h2>What only you can supply</h2>
@@ -98,7 +97,7 @@
 
       <h2>Evidence</h2>
       <p>Measured from the built files in this folder, not estimated. No Lighthouse score is quoted here because I have not run one on your hosting.</p>
-      <div class="tbl-wrap"><table class="tbl"><caption>Built 2026-09-17. Sizes are of the files in this folder; the compressed column is what a browser actually downloads. This note page is excluded from the page measurements above.</caption><thead><tr><th scope="col">What</th><th scope="col">On disk</th><th scope="col">Compressed</th></tr></thead><tbody><tr><th scope="row">Home page (HTML)</th><td class="num">53.5&nbsp;KB</td><td class="num">9.5&nbsp;KB</td></tr><tr><th scope="row">Live roles page (HTML)</th><td class="num">100.0&nbsp;KB</td><td class="num">11.4&nbsp;KB</td></tr><tr><th scope="row">Team page (HTML)</th><td class="num">6.9&nbsp;KB</td><td class="num">2.1&nbsp;KB</td></tr><tr><th scope="row">Stylesheet (one file)</th><td class="num">31.9&nbsp;KB</td><td class="num">7.3&nbsp;KB</td></tr><tr><th scope="row">JavaScript (four files)</th><td class="num">27.9&nbsp;KB</td><td class="num">9.4&nbsp;KB</td></tr><tr><th scope="row">Images (logos, B Corp, five portraits)</th><td class="num">262.3&nbsp;KB</td><td class="num">212.1&nbsp;KB</td></tr><tr><th scope="row">Role data (JSON)</th><td class="num">48.5&nbsp;KB</td><td class="num">5.9&nbsp;KB</td></tr><tr><th scope="row">Third-party scripts, trackers, frameworks</th><td class="num">0</td><td class="num">0</td></tr><tr><th scope="row">Web fonts</th><td class="num" colspan="2">Two families (Archivo, Public Sans), loaded from Google Fonts with <code>display=swap</code></td></tr><tr><th scope="row">Checks run on this build</th><td colspan="2">63 role records rendered and counted against the dataset; every local link and image resolved to a file that exists; every image carries alt text and explicit width and height; every form control carries a real label; all JSON-LD blocks parsed; no absolute paths, so the site runs from any subfolder; 19 unit tests over the scroll and scene maths (node --test)</td></tr></tbody></table></div>
+      <div class="tbl-wrap"><table class="tbl"><caption>Built 2026-09-17. Sizes are of the files in this folder; the compressed column is what a browser actually downloads. This note page is excluded from the page measurements above.</caption><thead><tr><th scope="col">What</th><th scope="col">On disk</th><th scope="col">Compressed</th></tr></thead><tbody><tr><th scope="row">Home page (HTML)</th><td class="num">53.4&nbsp;KB</td><td class="num">9.4&nbsp;KB</td></tr><tr><th scope="row">Live roles page (HTML)</th><td class="num">99.9&nbsp;KB</td><td class="num">11.3&nbsp;KB</td></tr><tr><th scope="row">Team page (HTML)</th><td class="num">6.9&nbsp;KB</td><td class="num">2.1&nbsp;KB</td></tr><tr><th scope="row">Stylesheet (one file)</th><td class="num">34.0&nbsp;KB</td><td class="num">7.6&nbsp;KB</td></tr><tr><th scope="row">JavaScript (four files)</th><td class="num">29.0&nbsp;KB</td><td class="num">9.6&nbsp;KB</td></tr><tr><th scope="row">Images (logo, B Corp, five portraits, share card)</th><td class="num">262.3&nbsp;KB</td><td class="num">212.1&nbsp;KB</td></tr><tr><th scope="row">Web fonts (self-hosted, two files)</th><td class="num">114.2&nbsp;KB</td><td class="num">114.3&nbsp;KB</td></tr><tr><th scope="row">Role data (JSON)</th><td class="num">48.5&nbsp;KB</td><td class="num">5.9&nbsp;KB</td></tr><tr><th scope="row">Third-party scripts, trackers, frameworks</th><td class="num">0</td><td class="num">0</td></tr><tr><th scope="row">Font requests to third parties</th><td class="num" colspan="2">0 &mdash; Archivo and Public Sans are served from this folder (archivo-latin.woff2, publicsans-latin.woff2)</td></tr><tr><th scope="row">Checks run on this build</th><td colspan="2">63 role records rendered and counted against the dataset; every local link and image resolved to a file that exists; every image carries alt text and explicit width and height; every form control carries a real label; all JSON-LD blocks parsed; no absolute paths, so the site runs from any subfolder; no third-party requests at all: fonts, styles and scripts are all served from this folder; 19 unit tests over the scroll and scene maths (node --test)</td></tr></tbody></table></div>
 
       <h2>How to make it yours</h2>
       <ol>
@@ -112,7 +111,7 @@
 
       <h2>Where the data came from</h2>
       <p>The 63 roles, their locations, sectors and types were read from your own live job pages on 15 September 2026. Salaries are deliberately not shown: only seven of the 63 listings disclose one, and showing some but not others misleads candidates. Per-role posting dates are not shown either &mdash; the only dates available were sitemap timestamps, which are not posting dates. The page says &ldquo;as of 15 September 2026&rdquo; and nothing more precise than that is claimed.</p>
-      <p>Your sitemap listed 64 role URLs; one was a duplicate, so the real figure is 63. Every number on the site is computed from that file, not typed by hand.</p>
+      <p>Your sitemap lists 63 role pages plus the board itself; every number on the site is computed from those 63, not typed by hand.</p>
 
       <p style="margin-top:44px"><a class="btn btn--fill" href="../index.html"><span class="btn__t">Look at the site</span><span class="arw" aria-hidden="true">&rarr;</span></a></p>
     </div>

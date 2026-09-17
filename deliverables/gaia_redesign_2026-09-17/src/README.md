@@ -1,7 +1,8 @@
 # Gaia Talent — redesign concept
 
 A static, framework-free redesign concept for gaiatalent.com. Five pages, one
-stylesheet, four small scripts, no third-party runtime dependencies. This folder
+stylesheet, four small scripts, two self-hosted woff2 files, and no third-party
+requests of any kind at runtime. This folder
 (`src/`) holds the **templates**; the deployable output is built into `../site/`.
 
 Every fact on the public pages comes either from gaiatalent.com itself or from
@@ -39,7 +40,9 @@ Validation covers: relative paths only, every local `href`/`src` resolves, every
 image has `alt` + `width` + `height`, every form control has a `<label for>`,
 every JSON-LD block parses, the rendered role count equals the dataset, exactly
 one `<h1>` per rendering path, `robots` noindex present, no unrendered markers,
-no forbidden vocabulary on the public pages, and the CSS/JS weight budgets.
+no forbidden vocabulary on the public pages, both woff2 files present and
+preloaded on every page with no request left pointing at Google Fonts, and the
+CSS/JS weight budgets.
 
 Unit tests for the scroll and scene maths:
 
@@ -147,10 +150,22 @@ All paths are relative with no leading slash, so the site runs unchanged from
 `file://`, from a domain root, or from a subfolder such as
 `https://example.github.io/repo/gaia/`.
 
+### Fonts
+
+Archivo (variable, `wdth` 62–125 / `wght` 400–700) and Public Sans (`wght`
+300–700) live in `assets/fonts/` as two latin-subset woff2 files and are declared
+at the top of `css/styles.css`. Every page preloads both with
+`<link rel="preload" as="font" type="font/woff2" crossorigin>`. Nothing is
+fetched from fonts.googleapis.com, so there is no third-party request, no
+render-blocking stylesheet from another origin, and no dependency on Google's
+uptime or its logs. To swap a typeface, replace the file and the matching
+`@font-face` block — the rest of the sheet refers to the families by name only.
+
 ## 6. How the page is put together
 
-- `css/styles.css` — one sheet. Tokens (OKLCH with hex fallbacks) at the top,
-  then reset, type, shell, and one block per section. Colour strategy is
+- `css/styles.css` — one sheet. The two `@font-face` rules come first, then the
+  tokens (OKLCH with hex fallbacks), reset, type, shell, and one block per
+  section. Colour strategy is
   "committed": navy carries the hero, roles, proof and footer; cool mist bands
   carry the reading sections.
 - `js/motion.js` — pure maths, no DOM. Scroll progress, the hero state machine,
@@ -175,9 +190,10 @@ behind an animation that might not run.
 
 **Review hooks** (they change nothing in normal use):
 `index.html#state-3` scrolls straight to the fourth leg of the hero sequence;
-`index.html?scene=3` freezes the stage on that leg, which is how the scene
-screenshots are taken (a headless renderer always captures from the top of the
-document).
+`index.html?scene=3` freezes the stage on that leg; `index.html?stack=0.5`
+freezes the pinned search-process stack at that progress. The last two are how
+the scene and stack stills are captured, because a headless renderer always
+photographs from the top of the document.
 
 ## 7. Known gaps — for Gaia to fill
 

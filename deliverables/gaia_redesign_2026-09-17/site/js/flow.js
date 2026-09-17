@@ -132,21 +132,27 @@ ctx.moveTo(tx, ty - len);
 ctx.lineTo(tx, ty + len);
 ctx.stroke();
 }
-var px = W * 0.66;
-var py = yAt(px) - H * 0.30;
-stroke(GREEN, 0.20 * w, 1);
-ctx.setLineDash([5, 8]);
+var ax = W * 0.615;
+var ay = yAt(ax) - H * 0.235;
+var bx2 = W * 0.965;
+var by2 = yAt(bx2) + H * 0.035;
+stroke(GREEN, 0.22 * w, 1);
+ctx.setLineDash([5, 9]);
 ctx.beginPath();
-ctx.moveTo(px, py);
-ctx.lineTo(W * 0.24, yAt(W * 0.24) + H * 0.06);
-ctx.moveTo(px, py);
-ctx.lineTo(W * 0.98, yAt(W * 0.98) + H * 0.02);
+ctx.moveTo(ax, ay);
+ctx.lineTo(bx2, by2);
 ctx.stroke();
 ctx.setLineDash([]);
+var ends = [[ax, ay, 4.5], [bx2, by2, 3]];
+for (i = 0; i < 2; i += 1) {
 ctx.beginPath();
-ctx.arc(px, py, 4, 0, PI2);
-ctx.strokeStyle = rgba(GREEN, 0.5 * w);
+ctx.arc(ends[i][0], ends[i][1], ends[i][2], 0, PI2);
+ctx.fillStyle = rgba(DEEP, 0.85 * w);
+ctx.fill();
+ctx.strokeStyle = rgba(GREEN, 0.55 * w);
+ctx.lineWidth = 1.3;
 ctx.stroke();
+}
 }
 function drawGround() {
 ctx.beginPath();
@@ -441,12 +447,11 @@ ctx.lineTo(px, yAt(px));
 ctx.stroke();
 }
 }
-function drawEcology(w, now) {
+function drawTrees(w) {
 if (w <= 0.001) return;
 var e = M.easeOutQuart(w);
-var i;
 stroke(GREEN, 0.4 * w, 1.3);
-for (i = 0; i < 16; i += 1) {
+for (var i = 0; i < 16; i += 1) {
 var tx = (0.53 + i * 0.028) * W;
 var ty = yAt(tx);
 var th = (0.024 + M.hashNoise(i, 7) * 0.022) * H * e;
@@ -459,6 +464,11 @@ ctx.moveTo(tx, ty - th * 0.55);
 ctx.lineTo(tx + th * 0.34, ty - th * 0.92);
 ctx.stroke();
 }
+}
+function drawEcology(w, now) {
+if (w <= 0.001) return;
+var i;
+drawTrees(w);
 stroke(WHITE, 0.12 * w, 1);
 for (i = 1; i < 12; i += 1) {
 ctx.beginPath();
@@ -499,6 +509,16 @@ ctx.clearRect(0, 0, W, H);
 drawSky(from, to, k);
 drawIntro(w[0]);
 drawGround();
+if (w[0] > 0.004) {
+ctx.save();
+ctx.globalAlpha = 0.26 * w[0];
+drawSolar(1);
+drawWind(1, now);
+drawTransport(1);
+drawTidal(1, 1, now);
+drawTrees(1);
+ctx.restore();
+}
 drawSolar(w[2]);
 drawWind(w[1], now);
 drawTransport(w[5]);

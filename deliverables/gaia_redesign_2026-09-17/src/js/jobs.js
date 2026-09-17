@@ -13,42 +13,58 @@
   var typ = document.getElementById('f-type');
   var count = document.querySelector('[data-count]');
   var empty = document.querySelector('[data-empty]');
-  var clear = document.querySelector('[data-clear]');
+  var clears = Array.prototype.slice.call(document.querySelectorAll('[data-clear]'));
   var total = rows.length;
+  var urlTimer = 0;
 
   var norm = function (s) { return (s || '').toString().toLowerCase().trim(); };
 
+  /* A row carries every sector it belongs to, pipe-separated and lower-cased,
+     so the select options and the counts cannot disagree with what filters. */
+  var sectorsOf = function (row) { return norm(row.dataset.sector).split('|'); };
+
   function fromQuery() {
     var params = new URLSearchParams(window.location.search);
-    var set = function (el, key) {
+    var spill = [];
+    var setSelect = function (el, key) {
       if (!el) return;
       var v = params.get(key);
       if (!v) return;
       var want = norm(v);
-      if (el.tagName === 'SELECT') {
-        for (var i = 0; i < el.options.length; i += 1) {
-          if (norm(el.options[i].value) === want) { el.selectedIndex = i; return; }
-        }
-      } else {
-        el.value = v;
+      for (var i = 0; i < el.options.length; i += 1) {
+        if (norm(el.options[i].value) === want) { el.selectedIndex = i; return; }
       }
+      /* The value does not exist in this dataset (a stale or hand-edited link).
+         Drop it into the search box rather than silently showing everything. */
+      spill.push(v);
     };
-    set(q, 'q');
-    set(loc, 'location');
-    set(sec, 'sector');
-    set(typ, 'type');
+    setSelect(loc, 'location');
+    setSelect(sec, 'sector');
+    setSelect(typ, 'type');
+    if (q) {
+      var text = params.get('q') || '';
+      q.value = [text].concat(spill).filter(Boolean).join(' ').trim();
+    }
   }
 
-  function toQuery() {
-    var params = new URLSearchParams();
-    if (q && q.value.trim()) params.set('q', q.value.trim());
-    if (loc && loc.value) params.set('location', loc.value);
-    if (sec && sec.value) params.set('sector', sec.value);
-    if (typ && typ.value) params.set('type', typ.value);
-    var s = params.toString();
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', s ? '?' + s : window.location.pathname);
-    }
+  function syncUrl() {
+    window.clearTimeout(urlTimer);
+    urlTimer = window.setTimeout(function () {
+      if (!window.history || !window.history.replaceState) return;
+      var params = new URLSearchParams();
+      if (q && q.value.trim()) params.set('q', q.value.trim());
+      if (loc && loc.value) params.set('location', loc.value);
+      if (sec && sec.value) params.set('sector', sec.value);
+      if (typ && typ.value) params.set('type', typ.value);
+      var s = params.toString();
+      try {
+        window.history.replaceState(null, '', s ? '?' + s : window.location.pathname);
+      } catch (err) {
+        /* Some embedded and file:// contexts refuse replaceState. The filtering
+           itself is unaffected; only the shareable URL is lost. */
+        if (window.console) window.console.warn('Could not update the address bar:', err);
+      }
+    }, 250);
   }
 
   function apply() {
@@ -61,7 +77,7 @@
       var row = rows[i];
       var d = row.dataset;
       var ok = (!wl || norm(d.location) === wl)
-        && (!ws || norm(d.sector) === ws)
+        && (!ws || sectorsOf(row).indexOf(ws) !== -1)
         && (!wt || norm(d.type) === wt)
         && (!text || norm(d.search).indexOf(text) !== -1);
       row.hidden = !ok;
@@ -73,22 +89,21 @@
         : 'Showing <b>' + shown + '</b> of ' + total + ' live roles.';
     }
     if (empty) empty.classList.toggle('is-on', shown === 0);
-    toQuery();
+    syncUrl();
   }
 
-  [q, loc, sec, typ].forEach(function (el) {
-    if (!el) return;
-    el.addEventListener('input', apply);
-    el.addEventListener('change', apply);
+  if (q) q.addEventListener('input', apply);
+  [loc, sec, typ].forEach(function (el) {
+    if (el) el.addEventListener('change', apply);
   });
-  if (clear) {
-    clear.addEventListener('click', function () {
+  clears.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       if (q) q.value = '';
       [loc, sec, typ].forEach(function (el) { if (el) el.selectedIndex = 0; });
       apply();
       if (q) q.focus();
     });
-  }
+  });
 
   fromQuery();
   apply();

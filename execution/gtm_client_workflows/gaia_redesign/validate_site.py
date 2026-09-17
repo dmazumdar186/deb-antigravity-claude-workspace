@@ -11,11 +11,13 @@ outputs: a list of failure strings (empty means the build passes)
 
 from __future__ import annotations
 
+import html
 import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 # The public pages must not read as a machine wrote them. The note to the
 # client is the one page allowed to discuss how it was built.
@@ -47,8 +49,7 @@ class _Doc(HTMLParser):
         self.refs: list[tuple[str, str]] = []  # (attr, value)
         self.h1 = 0
         self.h1_fallback = 0
-        self._fb_depth = 0
-        self._depth = 0
+        self._in_fallback = False
         self.titles = 0
         self.robots = False
         self.lang = ""
@@ -59,18 +60,27 @@ class _Doc(HTMLParser):
         self._in_title = False
         self.title_text = ""
         self.job_rows = 0
+        self.job_hrefs: list[str] = []
+        self.options: list[str] = []
         self.featured_rows = 0
         self.ticker_links = 0
         self.team_rows = 0
 
-    VOID = {"img", "br", "hr", "meta", "link", "input", "source", "area", "col", "wbr"}
+    # The hero fallback is delimited by two marker comments rather than by
+    # element nesting: HTMLParser does not close <p>/<li> implicitly, so a depth
+    # counter drifts on real markup and the one-h1 check would misfire.
+    FALLBACK_OPEN = "flow-fallback:start"
+    FALLBACK_CLOSE = "flow-fallback:end"
+
+    def handle_comment(self, data: str) -> None:
+        token = data.strip()
+        if token == self.FALLBACK_OPEN:
+            self._in_fallback = True
+        elif token == self.FALLBACK_CLOSE:
+            self._in_fallback = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         a = {k: (v or "") for k, v in attrs}
-        if tag not in self.VOID:
-            self._depth += 1
-            if "flow__fallback" in a.get("class", "").split() and not self._fb_depth:
-                self._fb_depth = self._depth
         if tag == "html":
             self.lang = a.get("lang", "")
         if tag == "title":
@@ -81,7 +91,7 @@ class _Doc(HTMLParser):
             # canvas stage and the stacked fallback used below 800px, under
             # reduced motion and with JS off. Exactly one is ever displayed, so
             # each path is required to carry exactly one h1.
-            if self._fb_depth:
+            if self._in_fallback:
                 self.h1_fallback += 1
             else:
                 self.h1 += 1
@@ -100,8 +110,12 @@ class _Doc(HTMLParser):
         if tag in ("input", "select", "textarea"):
             if a.get("type") not in ("hidden", "submit", "button"):
                 self.field_ids.append((tag, a.get("id", "")))
+        if tag == "option":
+            self.options.append(a.get("value", ""))
         cls = a.get("class", "").split()
         if "rolerow" in cls:
+            if "data-job" in a:
+                self.job_hrefs.append(a.get("href", ""))
             if "data-job" in a:
                 self.job_rows += 1
             else:
@@ -112,10 +126,6 @@ class _Doc(HTMLParser):
             self.ticker_links += 1
 
     def handle_endtag(self, tag: str) -> None:
-        if tag not in self.VOID:
-            if self._fb_depth and self._depth == self._fb_depth:
-                self._fb_depth = 0
-            self._depth = max(0, self._depth - 1)
         if tag == "script":
             self._in_ld = False
         if tag == "title":
@@ -238,5 +248,20 @@ def validate(site: Path, jobs: list[dict[str, Any]]) -> list[str]:
         fails.append("js/motion.test.js was shipped into the site (tests stay in src)")
     if not (site / "robots.txt").exists():
         fails.append("robots.txt is missing")
+
+    # Fonts are self-hosted: the files must be there and every page must preload
+    # them, or the site silently falls back to a system sans.
+    font_dir = site / "assets" / "fonts"
+    fonts = sorted(font_dir.glob("*.woff2")) if font_dir.is_dir() else []
+    if len(fonts) < 2:
+        fails.append(f"expected two self-hosted woff2 files in {font_dir}, found {len(fonts)}")
+    for page in pages:
+        raw = page.read_text(encoding="utf-8")
+        rel = page.relative_to(site).as_posix()
+        if "fonts.googleapis.com" in raw or "fonts.gstatic.com" in raw:
+            fails.append(f"{rel}: still requests fonts from Google; they are self-hosted now")
+        for font in fonts:
+            if font.name not in raw:
+                fails.append(f"{rel}: does not preload {font.name}")
 
     return fails

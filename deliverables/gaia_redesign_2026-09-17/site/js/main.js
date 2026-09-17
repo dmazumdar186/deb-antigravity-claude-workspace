@@ -40,6 +40,23 @@ requestAnimationFrame(update);
 window.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('resize', onScroll);
 update();
+(function freezeStack() {
+var hook = /[?&]stack=([0-9.]+)/.exec(window.location.search || '');
+if (!hook || !stack || !cards.length || !M) return;
+if (!desktop.matches || reduce.matches) return;
+var p = Math.min(1, Math.max(0, parseFloat(hook[1]) || 0));
+window.removeEventListener('scroll', onScroll);
+stack.style.setProperty('--stack-progress', p.toFixed(3));
+cards.forEach(function (el, i) {
+var st = M.stackCardState(p, i, cards.length);
+el.style.setProperty('--card-y', st.yPercent.toFixed(2) + '%');
+el.style.setProperty('--card-rot', st.rotationDeg.toFixed(2) + 'deg');
+el.style.setProperty('--card-scale', st.scale.toFixed(3));
+el.style.setProperty('--card-opacity', st.opacity.toFixed(3));
+el.style.zIndex = String(st.zIndex);
+el.classList.toggle('is-front', st.isFront);
+});
+}());
 var toggle = document.querySelector('[data-menu-toggle]');
 var menu = document.querySelector('[data-menu]');
 var main = document.querySelector('main');

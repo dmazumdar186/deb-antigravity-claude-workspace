@@ -22,11 +22,14 @@ import gzip
 import html
 import json
 import re
+import os
 import shutil
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -188,6 +191,60 @@ def esc(value: Any) -> str:
     return html.escape(str(value), quote=True)
 
 
+def qs(value: str) -> str:
+    """A value safe inside a query string AND inside an HTML attribute.
+
+    '&' in a sector name has to be percent-encoded before it is escaped, or the
+    link silently splits into two query parameters and the board loads unfiltered.
+    """
+    return esc(quote(str(value), safe=""))
+
+
+def json_ld(payload: Any) -> str:
+    """JSON for an inline <script>. '<' is escaped so no string in the data can
+    close the element, and the two line separators are escaped because they are
+    literal newlines to a JavaScript parser but legal inside a JSON string."""
+    return (
+        json.dumps(payload, ensure_ascii=False)
+        .replace("<", "\\u003c")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+
+
+REQUIRED_JOB_KEYS = ("slug", "title", "url", "location", "type")
+
+
+def check_dataset(jobs: list[dict[str, Any]]) -> list[str]:
+    """Structural problems in jobs.json, named by slug so they can be found."""
+    problems: list[str] = []
+    seen: set[str] = set()
+    for index, job in enumerate(jobs):
+        slug = str(job.get("slug") or f"#{index}")
+        missing = [k for k in REQUIRED_JOB_KEYS if not str(job.get(k) or "").strip()]
+        if missing:
+            problems.append(f"{slug}: missing required key(s) {missing}")
+        url = str(job.get("url") or "")
+        if url and not url.lower().startswith(("https://", "http://")):
+            problems.append(f"{slug}: url is not http(s): {url[:60]!r}")
+        sectors = job.get("sectors") or []
+        if not isinstance(sectors, list) or not sectors:
+            problems.append(f"{slug}: sectors must be a non-empty list")
+        if slug in seen:
+            problems.append(f"{slug}: duplicate slug")
+        seen.add(slug)
+    return problems
+
+
+def sector_keys(job: dict[str, Any]) -> list[str]:
+    """Every sector a role belongs to, normalised.
+
+    The client-side filter, the chip counts and the select options all go
+    through this, so a chip can never promise a number the board cannot show.
+    """
+    return [str(x).strip().lower() for x in (job.get("sectors") or []) if str(x).strip()]
+
+
 # --------------------------------------------------------------- job renderers
 
 def _flow_role(job: dict[str, Any]) -> str:
@@ -201,15 +258,17 @@ def _flow_role(job: dict[str, Any]) -> str:
 
 
 def _role_row(job: dict[str, Any], *, board: bool) -> str:
-    sector = job["sectors"][0] if job.get("sectors") else ""
+    sectors = job.get("sectors") or []
+    sector = sectors[0] if sectors else ""
     data = ""
     if board:
-        haystack = " ".join([job["title"], job["location"], sector, job["type"], job.get("summary", "")])
+        haystack = " ".join([job["title"], job["location"], " ".join(sectors), job["type"], job.get("summary", "")])
         data = (
-            f' data-job data-location="{esc(job["location"])}" data-sector="{esc(sector)}"'
+            f' data-job data-location="{esc(job["location"])}"'
+            f' data-sector="{esc("|".join(sector_keys(job)))}"'
             f' data-type="{esc(job["type"])}" data-search="{esc(haystack.lower())}"'
         )
-    meta = [job["location"], sector.title() if sector.islower() else sector, job["type"]]
+    meta = [job["location"], ", ".join(x.title() if x.islower() else x for x in sectors), job["type"]]
     if board:
         meta.append(f'Consultant: {job.get("consultant", "")}')
     spans = "".join(f"<span>{esc(m)}</span>" for m in meta if m)
@@ -249,14 +308,26 @@ def render_ticker(jobs: list[dict[str, Any]]) -> str:
     )
 
 
-def render_chips(jobs: list[dict[str, Any]]) -> str:
-    counts: dict[str, int] = {}
+def sector_options(jobs: list[dict[str, Any]]) -> list[str]:
+    """Every sector value that at least one row can be filtered to."""
+    seen: dict[str, str] = {}
     for job in jobs:
-        for sector in job.get("sectors", []):
-            counts[sector] = counts.get(sector, 0) + 1
-    top = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:6]
+        for raw in job.get("sectors") or []:
+            seen.setdefault(str(raw).strip().lower(), str(raw).strip())
+    return [seen[k] for k in sorted(seen)]
+
+
+def sector_count(jobs: list[dict[str, Any]], value: str) -> int:
+    """Exactly what jobs.js counts for the same select value."""
+    key = value.strip().lower()
+    return sum(1 for job in jobs if key in sector_keys(job))
+
+
+def render_chips(jobs: list[dict[str, Any]]) -> str:
+    counts = [(name, sector_count(jobs, name)) for name in sector_options(jobs)]
+    top = sorted(counts, key=lambda kv: (-kv[1], kv[0]))[:6]
     chips = "".join(
-        f'<a class="chip" href="jobs/index.html?sector={esc(name)}">'
+        f'<a class="chip" href="jobs/index.html?sector={qs(name)}">'
         f'{esc(name if not name.islower() else name.title())}<span class="num">{count}</span></a>'
         for name, count in top
     )
@@ -275,7 +346,7 @@ def _select(field_id: str, label: str, values: list[str], any_label: str) -> str
 
 def render_filters(jobs: list[dict[str, Any]]) -> str:
     locations = sorted({j["location"] for j in jobs})
-    sectors = sorted({s for j in jobs for s in j.get("sectors", [])}, key=str.lower)
+    sectors = sector_options(jobs)
     types = sorted({j["type"] for j in jobs})
     return (
         _select("f-location", "Location", locations, "All locations")
@@ -311,11 +382,7 @@ def render_jobs_jsonld(jobs: list[dict[str, Any]]) -> str:
                 "jobLocation": {"@type": "Place", "address": address},
             }
         )
-    return (
-        '<script type="application/ld+json">'
-        + json.dumps(postings, ensure_ascii=False)
-        + "</script>"
-    )
+    return '<script type="application/ld+json">' + json_ld(postings) + "</script>"
 
 
 def render_org_jsonld() -> str:
@@ -349,20 +416,47 @@ def render_org_jsonld() -> str:
         for name, phone, locality in offices
     ]
     return "".join(
-        '<script type="application/ld+json">' + json.dumps(b, ensure_ascii=False) + "</script>"
-        for b in blocks
+        '<script type="application/ld+json">' + json_ld(b) + "</script>" for b in blocks
     )
 
 
+def sector_map_term(name: str, keywords: list[str], jobs: list[dict[str, Any]]) -> tuple[int, str]:
+    """Count and search term for one of Gaia's own 23 sectors.
+
+    The board has no field for these — they are Gaia's taxonomy, not the job
+    feed's — so the map links to a free-text search and the number is computed
+    with exactly the substring test that search performs. Whatever the
+    superscript says, clicking it lands on that many rows.
+    """
+    best = ""
+    best_count = 0
+    for keyword in keywords:
+        hits = sum(1 for job in jobs if keyword in job_haystack(job))
+        if hits > best_count:
+            best_count, best = hits, keyword
+    return best_count, best or keywords[0]
+
+
+def job_haystack(job: dict[str, Any]) -> str:
+    """The same text jobs.js searches (data-search on the row)."""
+    parts = [
+        job["title"],
+        job["location"],
+        " ".join(job.get("sectors") or []),
+        job["type"],
+        job.get("summary", "") or "",
+    ]
+    return " ".join(parts).lower()
+
+
 def render_sector_map(jobs: list[dict[str, Any]]) -> str:
-    haystacks = [(j["title"] + " " + " ".join(j.get("sectors", []))).lower() for j in jobs]
     out = []
     for name, keywords in SECTORS:
-        count = sum(1 for h in haystacks if any(k in h for k in keywords))
+        count, term = sector_map_term(name, keywords, jobs)
         size = 1.0 + min(count, 12) / 12 * 1.55
         weight = 600 if count else 500
         sup = f"<sup>{count}</sup>" if count else ""
-        href = f"jobs/index.html?q={html.escape(name.split(' &')[0], quote=True)}"
+        href = f"jobs/index.html?q={qs(term)}"
         out.append(
             f'<a href="{href}" data-live="{1 if count else 0}" '
             f'style="--s:{size:.2f}rem;--w:{weight}">{esc(name)}{sup}</a>'
@@ -401,23 +495,85 @@ def render_roster_revealed(prefix: str, *, jobs_href: str) -> str:
 
 # ------------------------------------------------------------------- evidence
 
+_MEASURED: dict[Path, tuple[int, int]] = {}
+
+
 def _measure(path: Path) -> tuple[int, int]:
-    raw = path.read_bytes()
-    return len(raw), len(gzip.compress(raw, 9))
+    """Raw and gzipped size of one file. Cached: the evidence table asks for
+    both columns and gzipping the images twice is the slowest thing in the build."""
+    hit = _MEASURED.get(path)
+    if hit is None:
+        raw = path.read_bytes()
+        hit = (len(raw), len(gzip.compress(raw, 9)))
+        _MEASURED[path] = hit
+    return hit
 
 
 def _kb(n: int) -> str:
     return f"{n / 1024:.1f}&nbsp;KB"
 
 
-def render_evidence(site: Path, jobs: list[dict[str, Any]]) -> str:
+def run_node_tests(src: Path) -> tuple[int, int] | None:
+    """(passed, failed) from `node --test js/motion.test.js`, or None if node
+    is unavailable. The evidence table quotes this, so it is never a literal."""
+    test = src / "js" / "motion.test.js"
+    if not test.exists():
+        return None
+    try:
+        proc = subprocess.run(
+            ["node", "--test", "js/motion.test.js"],
+            cwd=str(src),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=180,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"      node tests not run: {type(exc).__name__}: {exc}")
+        return None
+    passed = failed = 0
+    for line in proc.stdout.splitlines():
+        if line.startswith("# pass "):
+            passed = int(line.split()[-1])
+        elif line.startswith("# fail "):
+            failed = int(line.split()[-1])
+    return passed, failed
+
+
+def check_built_js(site: Path) -> list[str]:
+    """`node --check` every shipped script: the publish pass rewrites these
+    files, and a stripped comment must never be able to break the syntax."""
+    scripts = sorted((site / "js").glob("*.js"))
+    problems: list[str] = []
+    for script in scripts:
+        try:
+            proc = subprocess.run(
+                ["node", "--check", script.name],
+                cwd=str(script.parent),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=60,
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            print(f"      node --check skipped: {type(exc).__name__}: {exc}")
+            return []
+        if proc.returncode != 0:
+            problems.append(f"{script.name} does not parse after the publish pass: {proc.stderr.strip()[:200]}")
+    return problems
+
+
+def render_evidence(site: Path, jobs: list[dict[str, Any]], tests: tuple[int, int] | None) -> str:
     groups: list[tuple[str, list[Path]]] = [
         ("Home page (HTML)", [site / "index.html"]),
         ("Live roles page (HTML)", [site / "jobs" / "index.html"]),
         ("Team page (HTML)", [site / "team" / "index.html"]),
         ("Stylesheet (one file)", sorted((site / "css").glob("*.css"))),
         ("JavaScript (four files)", sorted((site / "js").glob("*.js"))),
-        ("Images (logos, B Corp, five portraits)", sorted((site / "assets").glob("*"))),
+        ("Images (logo, B Corp, five portraits, share card)", sorted(p for p in (site / "assets").glob("*") if p.is_file())),
+        ("Web fonts (self-hosted, two files)", sorted((site / "assets" / "fonts").glob("*.woff2"))),
         ("Role data (JSON)", sorted((site / "data").glob("*.json"))),
     ]
     rows = []
@@ -425,8 +581,9 @@ def render_evidence(site: Path, jobs: list[dict[str, Any]]) -> str:
         paths = [p for p in paths if p.is_file()]
         if not paths:
             continue
-        raw = sum(_measure(p)[0] for p in paths)
-        gz = sum(_measure(p)[1] for p in paths)
+        measured = [_measure(p) for p in paths]
+        raw = sum(m[0] for m in measured)
+        gz = sum(m[1] for m in measured)
         rows.append(
             f"<tr><th scope=\"row\">{esc(label)}</th>"
             f'<td class="num">{_kb(raw)}</td><td class="num">{_kb(gz)}</td></tr>'
@@ -435,10 +592,12 @@ def render_evidence(site: Path, jobs: list[dict[str, Any]]) -> str:
         '<tr><th scope="row">Third-party scripts, trackers, frameworks</th>'
         '<td class="num">0</td><td class="num">0</td></tr>'
     )
+    fonts = sorted((site / "assets" / "fonts").glob("*.woff2"))
     rows.append(
-        '<tr><th scope="row">Web fonts</th><td class="num" colspan="2">'
-        "Two families (Archivo, Public Sans), loaded from Google Fonts with "
-        "<code>display=swap</code></td></tr>"
+        '<tr><th scope="row">Font requests to third parties</th>'
+        '<td class="num" colspan="2">0 &mdash; Archivo and Public Sans are served from this folder ('
+        + esc(", ".join(f.name for f in fonts))
+        + ")</td></tr>"
     )
     checks = [
         f"{len(jobs)} role records rendered and counted against the dataset",
@@ -447,8 +606,16 @@ def render_evidence(site: Path, jobs: list[dict[str, Any]]) -> str:
         "every form control carries a real label",
         "all JSON-LD blocks parsed",
         "no absolute paths, so the site runs from any subfolder",
-        "19 unit tests over the scroll and scene maths (node --test)",
+        "no third-party requests at all: fonts, styles and scripts are all served from this folder",
+        "every shipped script re-parsed after the build (node --check)",
     ]
+    if tests:
+        passed, failed = tests
+        checks.append(
+            f"{passed} unit tests over the scroll and scene maths, "
+            + ("all passing" if not failed else f"{failed} FAILING")
+            + " (node --test)"
+        )
     rows.append(
         '<tr><th scope="row">Checks run on this build</th><td colspan="2">'
         + esc("; ".join(checks))
@@ -484,14 +651,57 @@ def publish_text(text: str) -> str:
 
 # --------------------------------------------------------------------- render
 
+def guard_output(src: Path, out: Path) -> str:
+    """Refuse to wipe anything that is not a build directory.
+
+    build() starts by deleting --out. Anything outside the repo's deliverables
+    tree or the agent scratchpad, and anything that contains or equals --src, is
+    rejected rather than removed.
+    """
+    repo = Path(__file__).resolve().parents[3]
+    allowed = [repo / "deliverables", Path("/tmp"), Path.home() / ".tmp", repo / ".tmp"]
+    scratch = os.environ.get("CLAUDE_SCRATCHPAD") or os.environ.get("TMPDIR")
+    if scratch:
+        allowed.append(Path(scratch).resolve())
+    if not any(_within(out, base) for base in allowed if base):
+        return (
+            f"--out {out} is outside the build areas "
+            f"({', '.join(str(b) for b in allowed if b)}); refusing to delete it"
+        )
+    if out == src or _within(src, out):
+        return f"--out {out} is or contains --src {src}; refusing to delete it"
+    if out.parent == out:
+        return f"--out {out} is a filesystem root; refusing to delete it"
+    return ""
+
+
+def _within(child: Path, parent: Path) -> bool:
+    try:
+        return child.resolve().is_relative_to(parent.resolve())
+    except (OSError, ValueError):
+        return False
+
+
 def build(src: Path, out: Path, *, skip_links: bool) -> int:
     if not src.is_dir():
         print(f"FAIL  source directory not found: {src}", file=sys.stderr)
         return 2
 
+    refusal = guard_output(src, out)
+    if refusal:
+        print(f"FAIL  {refusal}", file=sys.stderr)
+        return 2
+
     config = json.loads((src / "config.json").read_text(encoding="utf-8")) if (src / "config.json").exists() else {}
     jobs = json.loads((src / "data" / "jobs.json").read_text(encoding="utf-8"))
     consultants = json.loads((src / "data" / "consultants.json").read_text(encoding="utf-8"))
+
+    dataset_problems = check_dataset(jobs)
+    if dataset_problems:
+        print(f"FAIL  jobs.json has {len(dataset_problems)} problem(s):", file=sys.stderr)
+        for line in dataset_problems:
+            print(f"  - {line}", file=sys.stderr)
+        return 2
 
     # ---- live-link check (writes back into src so the data stays with the repo)
     link_path = src / "data" / "link_check.json"
@@ -587,17 +797,22 @@ def build(src: Path, out: Path, *, skip_links: bool) -> int:
 
     # evidence table last: it measures the files written above
     keith = out / "for-keith" / "index.html"
+    tests = run_node_tests(src)
+    if tests and tests[1]:
+        print(f"FAIL  {tests[1]} node test(s) failing", file=sys.stderr)
+        return 1
     apply(
         keith,
         {
-            "<!-- @evidence:table -->": render_evidence(out, jobs),
+            "<!-- @evidence:table -->": render_evidence(out, jobs, tests),
             "<!-- @links:verified -->": check_job_links.summary_sentence(link_report),
         },
     )
 
     # ---- validate
     print("…  validating")
-    failures = validate_site.validate(out, jobs)
+    failures = check_built_js(out)
+    failures += validate_site.validate(out, jobs)
     if failures:
         print(f"FAIL  {len(failures)} validation problem(s):", file=sys.stderr)
         for line in failures:

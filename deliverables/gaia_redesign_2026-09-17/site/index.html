@@ -12,9 +12,8 @@
 <meta property="og:image" content="assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=Public+Sans:wght@300..600&display=swap">
+<link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/publicsans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/styles.css">
 <script>document.documentElement.className+=' has-js';</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Gaia Talent", "url": "https://gaiatalent.com/", "description": "Specialist recruitment consultancy across environmental, engineering, sustainability and renewable energy in Ireland and the UK.", "telephone": "+353 1 211 8940", "areaServed": ["IE", "GB"], "sameAs": ["https://www.linkedin.com/company/gaia-talent/"]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "LocalBusiness", "name": "Gaia Talent — Dublin", "telephone": "+353 1 211 8940", "url": "https://gaiatalent.com/", "parentOrganization": {"@type": "Organization", "name": "Gaia Talent"}, "address": {"@type": "PostalAddress", "addressLocality": "Dublin", "addressCountry": "IE"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "LocalBusiness", "name": "Gaia Talent — Clare", "telephone": "+353 65 672 9020", "url": "https://gaiatalent.com/", "parentOrganization": {"@type": "Organization", "name": "Gaia Talent"}, "address": {"@type": "PostalAddress", "addressLocality": "County Clare", "addressCountry": "IE"}}</script>
@@ -139,7 +138,7 @@
           <p class="flow__line" style="margin-top:18px">Specialist recruitment across environmental, engineering, sustainability and renewable energy. Ireland and the UK.</p>
           <div class="flow__cta">
             <a class="btn btn--fill" href="#roles"><span class="btn__t">See live roles</span><span class="arw" aria-hidden="true">&rarr;</span></a>
-            <a class="btn" href="#contact"><span class="btn__t">Schedule a chat</span><span class="arw" aria-hidden="true">&rarr;</span></a>
+            <a class="btn" href="#contact"><span class="btn__t">Schedule a confidential one to one chat</span><span class="arw" aria-hidden="true">&rarr;</span></a>
           </div>
         </div>
         <div class="flow__art" aria-hidden="true"><svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" focusable="false" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M0 132 C 58 122 108 138 160 130 S 262 120 320 128 L320 200 L0 200Z" fill="#0b1622"/><path d="M0 132 C 58 122 108 138 160 130 S 262 120 320 128" stroke="#4fd066" stroke-width="1.6"/><g stroke="#ffffff" stroke-opacity=".16" stroke-dasharray="2 7" stroke-width="1"><path d="M0 112 C 58 102 108 118 160 110 S 262 100 320 108"/><path d="M0 92 C 58 82 108 98 160 90 S 262 80 320 88"/><path d="M0 72 C 58 62 108 78 160 70 S 262 60 320 68"/></g><g stroke="#4fd066" stroke-opacity=".5" stroke-width="1.4"><path d="M34 125v14"/><path d="M87 128v14"/><path d="M140 130v14"/><path d="M193 130v14"/><path d="M246 125v14"/><path d="M299 124v14"/></g></svg></div>
@@ -204,7 +203,7 @@
 </section>
 
 <!-- ======================================================= S2 STATEMENT -->
-<section class="band band--mist">
+<section class="band band--mist" id="about">
   <div class="wrap split">
     <div>
       <h2>Not a portal. A team that picks up the phone.</h2>
@@ -383,7 +382,7 @@
           <div>
             <button class="btn btn--fill" type="submit"><span class="btn__t">Prepare callback request</span><span class="arw" aria-hidden="true">&rarr;</span></button>
           </div>
-          <p class="form__note">This prepares the message for you to send or read out &mdash; nothing is submitted from this page.</p>
+          <p class="form__note">Your request is prepared here for you to send by email or read out on a call. Nothing is sent from this page.</p>
         </form>
         <div class="outbox" id="callback-out" role="status" aria-live="polite">
           <h3>Your callback request</h3>
@@ -452,7 +451,7 @@
         <div>
           <button class="btn btn--fill" type="submit"><span class="btn__t">Prepare my message</span><span class="arw" aria-hidden="true">&rarr;</span></button>
         </div>
-        <p class="form__note">This page is a static demonstration, so nothing leaves your browser. Your message is composed here for you to copy or email &mdash; or skip it and ring the office.</p>
+        <p class="form__note">Your message is prepared here for you to send by email or read out on a call. Nothing is sent from this page.</p>
       </form>
       <div class="outbox" id="contact-out" role="status" aria-live="polite">
         <h3>Your message</h3>

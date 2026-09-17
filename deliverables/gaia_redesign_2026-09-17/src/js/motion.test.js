@@ -94,6 +94,14 @@ test('stateWeight never leaves the scene empty mid-transition', () => {
   }
 });
 
+test('lerpProfile clips to the shorter profile rather than emitting NaN', () => {
+  const out = m.lerpProfile([0, 0, 0, 0, 0], [1, 2], 1);
+  assert.equal(out.length, 2);
+  assert.deepEqual(out, [1, 2]);
+  assert.ok(out.every(Number.isFinite));
+  assert.deepEqual(m.lerpProfile([], [1, 2, 3], 0.5), []);
+});
+
 test('lerpProfile interpolates vertex-wise with an ease-out', () => {
   const a = [0, 0, 0];
   const b = [1, 2, 4];
@@ -119,16 +127,17 @@ test('easeOutQuart is monotonic, clamped and starts fast', () => {
   }
 });
 
-test('stackCardState: first card is front at rest, retires as it exits', () => {
+test('stackCardState: first step is front and fully readable at rest', () => {
   const rest = m.stackCardState(0, 0, 5);
   assert.equal(rest.isFront, true);
   assert.equal(rest.opacity, 1);
   assert.equal(rest.yPercent, 0);
-  assert.equal(rest.zIndex, 5);
+  assert.equal(rest.zIndex, 10);
 
   const gone = m.stackCardState(1, 0, 5);
-  assert.equal(gone.opacity, 0, 'fully faded once the stack has advanced');
-  assert.ok(gone.yPercent < -12, 'lifted out of frame');
+  assert.equal(gone.opacity, 0, 'fully faded once the sequence has advanced');
+  assert.ok(gone.yPercent < -22, 'lifted out of frame');
+  assert.equal(m.stackCardState(0, 1, 5).opacity, 0, 'the next step waits off-stage');
   assert.ok(gone.scale < 1);
 });
 
@@ -140,14 +149,28 @@ test('stackCardState: exactly one card is front at any progress', () => {
   }
 });
 
-test('stackCardState: queued cards stay stacked and legible', () => {
-  const next = m.stackCardState(0, 1, 5);
-  assert.ok(next.yPercent > 0, 'peeks out below the front card');
-  assert.ok(next.scale < 1 && next.scale >= 0.9);
-  assert.ok(next.opacity > 0 && next.opacity < 1);
-  const deep = m.stackCardState(0, 4, 5);
-  assert.equal(deep.opacity, 0, 'the deepest card is not drawn');
-  assert.ok(deep.scale >= 0.9, 'scale floor honoured');
+test('stackCardState: never more than two steps are drawn at once', () => {
+  for (let i = 0; i <= 200; i += 1) {
+    const p = i / 200;
+    const drawn = [0, 1, 2, 3, 4].filter((idx) => m.stackCardState(p, idx, 5).opacity > 0.01);
+    assert.ok(drawn.length <= 2, `progress ${p} drew ${drawn.length} steps at once`);
+  }
+});
+
+test('stackCardState: some step is always legible', () => {
+  for (let i = 0; i <= 200; i += 1) {
+    const p = i / 200;
+    const total = [0, 1, 2, 3, 4].reduce((sum, idx) => sum + m.stackCardState(p, idx, 5).opacity, 0);
+    assert.ok(total > 0.95, `progress ${p} left the stage nearly blank (${total.toFixed(2)})`);
+  }
+});
+
+test('stackCardState: the step on top is the nearest one', () => {
+  const p = 0.4;
+  const states = [0, 1, 2, 3, 4].map((idx) => m.stackCardState(p, idx, 5));
+  const brightest = states.indexOf(states.reduce((a, b) => (b.opacity > a.opacity ? b : a)));
+  const highest = states.indexOf(states.reduce((a, b) => (b.zIndex > a.zIndex ? b : a)));
+  assert.equal(brightest, highest);
 });
 
 test('stackCardState opacity never goes negative', () => {
@@ -156,6 +179,7 @@ test('stackCardState opacity never goes negative', () => {
       const s = m.stackCardState(i / 100, idx, 5);
       assert.ok(s.opacity >= 0 && s.opacity <= 1);
       assert.ok(Number.isFinite(s.yPercent) && Number.isFinite(s.scale));
+      assert.ok(Number.isFinite(s.zIndex));
     }
   }
 });
@@ -169,6 +193,9 @@ test('activeStepIndex stays inside the list', () => {
 });
 
 test('hashNoise is deterministic and in 0..1', () => {
+  // Pinned literal: the horizon and the scatter must be byte-identical on every
+  // device and every reload, so a change to this function is a visible change.
+  assert.equal(m.hashNoise(7, 3).toFixed(12), '0.418177968844');
   assert.equal(m.hashNoise(7, 3), m.hashNoise(7, 3));
   assert.notEqual(m.hashNoise(7, 3), m.hashNoise(8, 3));
   for (let i = 0; i < 64; i += 1) {
