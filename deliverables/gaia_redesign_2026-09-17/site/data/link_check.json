@@ -1,9 +1,27 @@
 {
-  "checked_at": "2026-09-17T15:31:54+00:00",
+  "checked_at": "2026-09-17T16:12:14+00:00",
   "checked_on": "2026-09-17",
   "total": 63,
-  "ok": 62,
+  "ok": 59,
   "inconclusive": [
+    {
+      "url": "https://gaiatalent.com/jobs/design-project-senior-structural-engineer/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    },
+    {
+      "url": "https://gaiatalent.com/jobs/ecological-environmental-clerk-of-works/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    },
+    {
+      "url": "https://gaiatalent.com/jobs/principal-engineer-transportation/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    },
     {
       "url": "https://gaiatalent.com/jobs/principal-mechanical-engineer/",
       "status": 403,
@@ -83,11 +101,12 @@
       "ok": true
     },
     {
-      "status": 200,
-      "verdict": "ok",
-      "error": "",
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
       "url": "https://gaiatalent.com/jobs/design-project-senior-structural-engineer/",
-      "ok": true
+      "ok": false
     },
     {
       "status": 200,
@@ -97,11 +116,12 @@
       "ok": true
     },
     {
-      "status": 200,
-      "verdict": "ok",
-      "error": "",
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
       "url": "https://gaiatalent.com/jobs/ecological-environmental-clerk-of-works/",
-      "ok": true
+      "ok": false
     },
     {
       "status": 200,
@@ -209,11 +229,12 @@
       "ok": true
     },
     {
-      "status": 200,
-      "verdict": "ok",
-      "error": "",
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
       "url": "https://gaiatalent.com/jobs/principal-engineer-transportation/",
-      "ok": true
+      "ok": false
     },
     {
       "status": 200,
