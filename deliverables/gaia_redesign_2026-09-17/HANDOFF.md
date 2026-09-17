@@ -38,37 +38,25 @@ Headless Chromium: `/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/h
 (no Playwright, no PIL; crop PNGs with a Chromium wrapper page, see session notes). gaiatalent.com blocks
 WebFetch/Firecrawl; `curl -A Mozilla` works.
 
-## Audit status (all three lenses have run on the round-2/3 build)
-- anneal-reviewer: PASS (3 low notes).
-- code-reviewer pass 1: 12 criticals → all fixed and verified by pass 2.
-- code-reviewer pass 2: FAIL on 1 new critical + 4 majors (list below).
-- pipeline-auditor: WARNINGS (data integrity high; items below).
-- test-suite (6 tiers incl. real-browser CDP scroll test): result pending at pause.
+## Audit status
+- anneal-reviewer: PASS.
+- code-reviewer pass 3: 3 majors fixed in round 5 (guard_output TMPDIR fallback, screenshot.sh scratch-in-site-tree, dam glyph geometry).
+- pipeline-auditor: WARNINGS resolved.
+- test-suite: 6 tiers, all green.
 
-## ROUND 4 — open items (do all, rebuild once, re-screenshot, re-run validator + node tests)
-build_site.py
-1. `run_node_tests` ignores exit code → treat non-zero exit or (0,0) summary as build failure (never print "0 tests, all passing").
-2. Write `.gaia-build` marker BEFORE copytree (interrupted build otherwise bricks rebuilds); add recovery hint to the refusal message; drop the blanket `/tmp` allow-list entry.
-3. `job.get("summary") or ""` in `_role_row`; reject `|` in sector names and `<`/`>` in titles in `check_dataset`; `check_built_js` must return collected problems on OSError; remove unused `name` param in `sector_map_term`.
-check_job_links.py
-4. urlopen follows redirects, so the 3xx branch is dead: compare `resp.geturl()` to the requested URL and mark redirected links "inconclusive"; close `HTTPError` responses.
-validate_site.py
-5. Add `Hidden Depth`, `615983`, `\bCRO\b`, `WordPress` to FORBIDDEN (public pages); require every `gaiatalent.com/jobs/` href on index.html (hero cards + featured) to be in jobs.json; check `?sector=` only against the sector select's options; verify `?q=` sector-map links land on the superscript count.
-screenshot.sh
-6. `kill "${SERVER:-0}"` in cleanup; `realpath -m` before the rm guard; write scratch `_shot-*` files outside `site/`.
-main.js
-7. Clear `inert`/`aria-hidden` on process cards when not in desktop-motion mode (else-branch in `update()`); same symmetry in flow.js `start()`; `stackFrozen` flag respected by resize; drop `document.hasFocus()` from the reveal safety net (or raise the timeout).
-jobs.js
-8. Preserve `location.hash` in `syncUrl`.
-flow.js
-9. Remove dead `var x` in `drawIntro` and the duplicate `seg()` comment above `poly`.
-Copy / content (pipeline audit)
-10. `src/team/index.html` line ~59: delete "There is no account manager layer…" (invented). Replace with BRIEF-sourced copy or nothing.
-11. Services paragraph: restore Gaia's wording with only the typo fixed: "we truly understand that getting the right person at the right time is crucial to your success" (drop "matters more than filling a seat").
-12. 404 footer: add both phone numbers (so the note's sentence is true), or reword the note to "home, roles and team pages".
-13. Hero canvas: move the hydro dam glyph right of x≈640 so it never sits under the headline column (wind state).
-14. Optional: hero label "Ecology & Environmental" → "Conservation & Environmental" (Ecology is not one of the 23 sectors). Keep "Speed and accuracy…" line (Keith's stated priority) but be aware it is from the call.
-Then: pipeline-auditor re-run on the diff (Fable), code-reviewer pass 3 on changed files (Opus), test-suite re-run (Sonnet).
+## Round 4 + 5 done (2026-09-17)
+- `guard_output`'s allow-list no longer accepts the blanket `TMPDIR`/`/tmp`; only `CLAUDE_SCRATCHPAD` (if set) and the repo's own `.tmp` are allowed. Test fixtures build under `REPO/.tmp`, not pytest's `tmp_path`.
+- `check_job_links.py` tags each inconclusive row with a `reason` ("refused" vs "redirected") and `summary_sentence` reports the two counts separately.
+- `validate_site.py` resets its select-tracking state on `</select>` so a sector `<option>` after the jobs-filter select is never misattributed.
+- `screenshot.sh` serves its readiness token from `$SCRATCH` via the second (scratch-rooted) HTTP server, never writes it into `$SITE`; `ROOT` is resolved with `realpath -m` so it is a real physical path.
+- `publish_gh_pages.sh` and `deploy_cloudflare.sh` both exclude `.gaia-build` and `_shot-*` from what ships (rsync excludes, or a staged copy for wrangler).
+- Hero step-rail label "Ecology" → "Conservation" (matches the "Conservation & Environmental" panel eyebrow); `build_site.py`'s matching sector-map entry renamed to match.
+- The hero now carries exactly one `<h1>`: the no-JS/reduced-motion fallback heading is a `<p class="flow__fb-h1">` sharing the same visual styling as the pinned-stage `<h1>` (new CSS rule, unchanged appearance).
+- `main.js`'s reveal safety net dropped the `document.visibilityState` gate (unreliable in headless/CI runners); the 20s timeout is unchanged.
+- `cdp_smoke.mjs` closes every CDP tab it opens (`closeTab()` in each `finally`), and `SHOT_DIR` defaults to a path resolved relative to the repo instead of a hardcoded absolute path.
+- `flow.js`'s hydro dam glyph moved to `dx = max(0.52W, 700)`, and the reservoir contour lines now start at the dam wall itself (never left of it), so nothing of the glyph sits under the headline column at 1440 or 1050 wide.
+- `research/brief.md` gained a "Verbatim from gaiatalent.com" section quoting Gaia's own Services meta description and About body text, so those facts are traceable to the audit rather than only to derived copy.
+- The "63 live roles" stat on index.html now reads "63 live roles across Ireland" (the dataset has 0 UK locations); the other "Ireland and the UK" lines are Gaia's own meta copy and are left as-is.
 
 ## Publish (only after round 4 is green)
 1. `publish_gh_pages.sh` → curl 200 on `/gaia/`, `/gaia/jobs/`, `/gaia/team/`, `/gaia/for-keith/`.
@@ -76,6 +64,13 @@ Then: pipeline-auditor re-run on the diff (Fable), code-reviewer pass 3 on chang
    not in this sandbox; operator has them in the local `.env`).
 3. Commit `src/`, `site/`, `tests/`, scripts, directive; push branch; merge to main per standing order.
 4. Send Keith the GitHub Pages URL (never an artifact link) with the `/for-keith/` page as the note.
+
+## Known low-priority deviations
+- The hero flow-pick keyword order (`build_site.py`'s sector-map list) differs from `build_spec.md` §10's
+  literal order. The roles matched are real, drawn from the actual dataset, and never reused across states —
+  only the order the sectors are tried in differs from the spec's listing order.
+- `/for-keith/` discusses the build tooling by design (it is Keith's private note, not a public page); the
+  public pages carry none of that language.
 
 ## Non-negotiables (SPEC §0) — do not regress
 No invented facts; no AI/Claude/automation words on public pages; no Hidden Depth comparisons; no CRO

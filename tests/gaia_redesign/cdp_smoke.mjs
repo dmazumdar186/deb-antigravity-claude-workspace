@@ -22,7 +22,7 @@ import path from 'node:path';
 
 const SITE_PORT = process.env.SITE_PORT || '8899';
 const CDP_PORT = process.env.CDP_PORT || '9222';
-const SHOT_DIR = process.env.SHOT_DIR || '/home/user/deb-antigravity-claude-workspace/.tmp/gaia_redesign_shots/live';
+const SHOT_DIR = process.env.SHOT_DIR || path.resolve(import.meta.dirname, '../../.tmp/gaia_redesign_shots/live');
 const BASE = `http://localhost:${SITE_PORT}`;
 
 let results = [];
@@ -40,7 +40,8 @@ async function closeTab(id) {
 }
 
 class CDP {
-  constructor(wsUrl) {
+  constructor(wsUrl, tabId) {
+    this.tabId = tabId;
     this.ws = new WebSocket(wsUrl);
     this.id = 0;
     this.pending = new Map();
@@ -97,7 +98,7 @@ async function raf2() {
 
 async function drive(viewport) {
   const tab = await newTab();
-  const cdp = new CDP(tab.webSocketDebuggerUrl);
+  const cdp = new CDP(tab.webSocketDebuggerUrl, tab.id);
   await cdp.ready;
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
@@ -246,6 +247,7 @@ async function testDesktopHero() {
   } finally {
     const errs = cdp.pageErrors;
     check(errs.length === 0, 'no JS console errors / exceptions during desktop hero + stack run', errs.join(' | '));
+    await closeTab(cdp.tabId);
     await cdp.close();
   }
 }
@@ -301,6 +303,7 @@ async function testMobile() {
     return cdp;
   } finally {
     check(cdp.pageErrors.length === 0, 'no JS console errors / exceptions during mobile run', cdp.pageErrors.join(' | '));
+    await closeTab(cdp.tabId);
     await cdp.close();
   }
 }
@@ -322,6 +325,7 @@ async function testReducedMotion() {
     return cdp;
   } finally {
     check(cdp.pageErrors.length === 0, 'no JS console errors under reduced motion', cdp.pageErrors.join(' | '));
+    await closeTab(cdp.tabId);
     await cdp.close();
   }
 }
@@ -329,7 +333,7 @@ async function testReducedMotion() {
 async function testJobsFilter() {
   console.log('\n--- E2E: jobs/index.html filter (sector containing "&") ---');
   const tab = await newTab();
-  const cdp = new CDP(tab.webSocketDebuggerUrl);
+  const cdp = new CDP(tab.webSocketDebuggerUrl, tab.id);
   await cdp.ready;
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
@@ -387,6 +391,7 @@ async function testJobsFilter() {
     return cdp;
   } finally {
     check(cdp.pageErrors.length === 0, 'no JS console errors during jobs filter run', cdp.pageErrors.join(' | '));
+    await closeTab(cdp.tabId);
     await cdp.close();
   }
 }
@@ -435,6 +440,7 @@ async function perfFrameTime(width, height, label) {
     console.log(`${meanOk ? 'PASS' : 'FAIL'}  ${meanLabel}`);
     console.log(`${maxOk ? 'PASS' : 'FAIL'}  ${maxLabel}`);
   } finally {
+    await closeTab(cdp.tabId);
     await cdp.close();
   }
 }

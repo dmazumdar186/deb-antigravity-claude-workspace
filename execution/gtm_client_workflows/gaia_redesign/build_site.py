@@ -49,7 +49,7 @@ FLOW_PICKS = [
     ("Water & Flood Risk", ["flood risk", "hydrogeologist", "water"]),
     ("Wave & Tidal Energy", ["principal engineer – energy", "energy storage", "energy & renewables", "energy"]),
     ("Sustainable Transport", ["greenway", "bridge", "roads and transport", "transportation"]),
-    ("Ecology & Environmental", ["ornithology", "ecologist", "eia"]),
+    ("Conservation & Environmental", ["ornithology", "ecologist", "eia"]),
 ]
 
 FEATURED_SLUGS = [
@@ -684,7 +684,7 @@ def guard_output(src: Path, out: Path) -> str:
     """
     repo = Path(__file__).resolve().parents[3]
     allowed = [repo / "deliverables", Path.home() / ".tmp", repo / ".tmp"]
-    scratch = os.environ.get("CLAUDE_SCRATCHPAD") or os.environ.get("TMPDIR")
+    scratch = os.environ.get("CLAUDE_SCRATCHPAD")
     if scratch:
         allowed.append(Path(scratch).resolve())
     if not any(_within(out, base) for base in allowed if base):

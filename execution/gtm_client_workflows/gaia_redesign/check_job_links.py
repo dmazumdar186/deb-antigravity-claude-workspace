@@ -97,11 +97,11 @@ def _attempt(url: str) -> dict[str, Any]:
     if status in INCONCLUSIVE_STATUSES:
         retry = _status(url, head=False)
         if "verdict" in retry:
-            return {"status": status, "verdict": "inconclusive", "error": "server refused the request"}
+            return {"status": status, "verdict": "inconclusive", "reason": "refused", "error": "server refused the request"}
         if retry["status"] != 405:
             status, final_url = retry["status"], retry["final_url"]
     if status in INCONCLUSIVE_STATUSES:
-        return {"status": status, "verdict": "inconclusive", "error": "server refused the request"}
+        return {"status": status, "verdict": "inconclusive", "reason": "refused", "error": "server refused the request"}
     if status in (200, 206):
         if final_url.rstrip("/") != url.rstrip("/"):
             # urlopen already followed the redirect, so this is the only place
@@ -110,6 +110,7 @@ def _attempt(url: str) -> dict[str, Any]:
             return {
                 "status": status,
                 "verdict": "inconclusive",
+                "reason": "redirected",
                 "error": f"redirected to {final_url}",
             }
         return {"status": status, "verdict": "ok", "error": ""}
@@ -158,7 +159,10 @@ def check_all(urls: list[str], workers: int = WORKERS) -> dict[str, Any]:
         "checked_on": date.today().isoformat(),
         "total": len(urls),
         "ok": ok,
-        "inconclusive": [{"url": r["url"], "status": r["status"], "error": r["error"]} for r in inconclusive],
+        "inconclusive": [
+            {"url": r["url"], "status": r["status"], "error": r["error"], "reason": r.get("reason", "refused")}
+            for r in inconclusive
+        ],
         "failed": [{"url": r["url"], "status": r["status"], "error": r["error"]} for r in failed],
         "blocked": blocked,
         "control": {"url": CONTROL_URL, "status": control["status"], "verdict": control["verdict"]},
@@ -178,11 +182,15 @@ def summary_sentence(report: dict[str, Any]) -> str:
             f"on {when} (outbound network blocked), so no live-link claim is made here."
         )
     ok = report.get("ok", 0)
-    unknown = len(report.get("inconclusive", []) or [])
+    inconclusive = report.get("inconclusive", []) or []
+    refused = sum(1 for r in inconclusive if r.get("reason", "refused") == "refused")
+    redirected = sum(1 for r in inconclusive if r.get("reason") == "redirected")
     dead = len(report.get("failed", []) or [])
     sentence = f"{ok} of {total} role links were verified live on {when}"
-    if unknown:
-        sentence += f", {unknown} could not be checked (server refused the request)"
+    if refused:
+        sentence += f", {refused} could not be checked (server refused the request)"
+    if redirected:
+        sentence += f", {redirected} now redirect elsewhere"
     if dead:
         sentence += f", {dead} did not respond"
     return sentence + "."

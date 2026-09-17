@@ -5,7 +5,9 @@ description: Exercises build_site.py helper functions in isolation (unit tier)
   against deliberately injected faults (integration tier). Never touches
   deliverables/{src,site} — every build target is a fresh directory under
   this repo's .tmp/ (guard_output's allow-list dropped the blanket /tmp entry
-  in round 4, so a bare system tempdir is refused).
+  in round 4 and the TMPDIR fallback in round 5, so a bare system tempdir is
+  refused; the pytest fixture below allocates under REPO/.tmp too, not
+  pytest's own tmp_path under /tmp).
 inputs: none (reads the checked-in src/ tree read-only)
 outputs: stdout PASS/FAIL lines; process exit code 0 (all pass) / 1 (failures)
 
@@ -182,6 +184,7 @@ def test_check_job_links_flags_redirect_as_inconclusive():
         row = check_job_links.check_one("https://gaiatalent.com/jobs/old-slug/")
     check(row["verdict"] == "inconclusive", f"check_job_links: a redirected URL is 'inconclusive', not 'ok' (got {row['verdict']!r})")
     check(not row["ok"], "check_job_links: a redirected URL's ok flag is False")
+    check(row.get("reason") == "redirected", f"check_job_links: a redirected URL is tagged reason='redirected' (got {row.get('reason')!r})")
 
 
 def test_validate_site_forbidden_words_round4():
@@ -214,7 +217,7 @@ def test_guard_output(tmp_root: Path):
     msg2 = build_site.guard_output(SRC, Path("/etc"))
     check(bool(msg2), "guard_output: refuses an --out outside the allowed build areas")
     ok_out = tmp_root / "guard_ok"
-    check(build_site.guard_output(SRC, ok_out) == "", "guard_output: allows a fresh dir under an allowed base (/tmp)")
+    check(build_site.guard_output(SRC, ok_out) == "", "guard_output: allows a fresh dir under an allowed base (repo .tmp)")
     nonempty = tmp_root / "guard_nonempty"
     nonempty.mkdir()
     (nonempty / "keep.txt").write_text("x", encoding="utf-8")
@@ -382,8 +385,14 @@ try:
     import pytest
 
     @pytest.fixture
-    def tmp_root(tmp_path):
-        return tmp_path
+    def tmp_root():
+        base = REPO / ".tmp"
+        base.mkdir(exist_ok=True)
+        d = Path(tempfile.mkdtemp(prefix="gaia_test_build_pytest_", dir=str(base)))
+        try:
+            yield d
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
 
     def test_all_via_pytest(tmp_root):
         RESULTS.clear()

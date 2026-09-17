@@ -128,7 +128,6 @@ obs.unobserve(entry.target);
 }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
 items.forEach(function (el) { obs.observe(el); });
 window.setTimeout(function () {
-if (document.visibilityState !== 'hidden') return;
 items.forEach(function (el) { el.classList.add('is-visible'); });
 obs.disconnect();
 }, 20000);

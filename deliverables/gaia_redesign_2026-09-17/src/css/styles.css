@@ -108,14 +108,14 @@ ul, ol { list-style: none; padding: 0; }
 }
 
 /* ============================================================ 3. TYPE */
-h1, h2, h3, h4 {
+h1, h2, h3, h4, .flow__fb-h1 {
   font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
   font-stretch: 118%;
   font-variation-settings: "wdth" 118;
   text-wrap: balance;
 }
-h1 { font-size: var(--h1); line-height: .92; letter-spacing: -.02em; }
+h1, .flow__fb-h1 { font-size: var(--h1); line-height: .92; letter-spacing: -.02em; }
 h2 { font-size: var(--h2); line-height: .96; letter-spacing: -.015em; }
 h3 { font-size: var(--h3); line-height: 1.08; letter-spacing: -.01em; }
 p { text-wrap: pretty; }

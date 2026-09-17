@@ -27,7 +27,14 @@ git -C "$ROOT" worktree add -B gh-pages "$WT" origin/gh-pages
 # Replace only the sub-path (git rm keeps the operation scoped and reviewable).
 if [ -d "$WT/$SUB" ]; then git -C "$WT" rm -rq "$SUB"; fi
 mkdir -p "$WT/$SUB"
-cp -R "$SITE"/. "$WT/$SUB"/
+# Exclude build/scratch artifacts that must never ship: the build marker and
+# any leftover screenshot-scratch token file.
+if command -v rsync >/dev/null 2>&1; then
+  rsync -a --exclude='.gaia-build' --exclude='_shot-*' "$SITE"/ "$WT/$SUB"/
+else
+  cp -R "$SITE"/. "$WT/$SUB"/
+  find "$WT/$SUB" -maxdepth 1 \( -name '.gaia-build' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
+fi
 touch "$WT/.nojekyll"
 cd "$WT"
 git add -A "$SUB" .nojekyll

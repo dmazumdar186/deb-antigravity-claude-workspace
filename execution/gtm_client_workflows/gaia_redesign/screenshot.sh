@@ -4,7 +4,7 @@
 # so the fetches and history API behave exactly as they will in production.
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+ROOT="$(realpath -m "$(dirname "${BASH_SOURCE[0]}")/../../..")"
 SITE="${1:-$ROOT/deliverables/gaia_redesign_2026-09-17/site}"
 OUT="${2:-$ROOT/.tmp/gaia_redesign_shots}"
 PORT="${PORT:-8731}"
@@ -36,24 +36,42 @@ esac
 SCRATCH="$OUT/_scratch"
 mkdir -p "$SCRATCH"
 
-# A build-unique token proves we are photographing OUR server and not something
-# else that already had the port.
+# A build-unique token proves we are photographing OUR servers and not
+# something else that already had the port. It is served from $SCRATCH via
+# the second (scratch-rooted) HTTP server, never written into $SITE — nothing
+# scratch may ever land in the deploy tree.
 TOKEN="gaia-shots-$$-$(date +%s)"
-echo "$TOKEN" > "$SITE/_shot-token.txt"
+echo "$TOKEN" > "$SCRATCH/_shot-token.txt"
+PORT2="${PORT2:-$((PORT + 1))}"
 SERVER=""
+SERVER2=""
 cleanup() {
-  kill "${SERVER:-0}" 2>/dev/null
-  rm -f "$SITE/_shot-token.txt"
+  kill "${SERVER:-0}" "${SERVER2:-0}" 2>/dev/null
   rm -rf "$SCRATCH"
 }
 trap cleanup EXIT
+
+python3 -m http.server "$PORT2" --directory "$SCRATCH" >/dev/null 2>&1 &
+SERVER2=$!
+READY=0
+for _ in $(seq 1 40); do
+  kill -0 "$SERVER2" 2>/dev/null || { echo "Scratch server exited before it was ready (port $PORT2 in use?)" >&2; exit 1; }
+  if [ "$(curl -s --max-time 2 "http://127.0.0.1:$PORT2/_shot-token.txt")" = "$TOKEN" ]; then
+    READY=1; break
+  fi
+  sleep 0.25
+done
+if [ "$READY" != "1" ]; then
+  echo "Could not confirm our own scratch server on port $PORT2 after 10s" >&2
+  exit 1
+fi
 
 python3 -m http.server "$PORT" --directory "$SITE" >/dev/null 2>&1 &
 SERVER=$!
 READY=0
 for _ in $(seq 1 40); do
   kill -0 "$SERVER" 2>/dev/null || { echo "Server exited before it was ready (port $PORT in use?)" >&2; exit 1; }
-  if [ "$(curl -s --max-time 2 "http://127.0.0.1:$PORT/_shot-token.txt")" = "$TOKEN" ]; then
+  if [ "$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/index.html")" = "200" ]; then
     READY=1; break
   fi
   sleep 0.25
@@ -148,15 +166,6 @@ for anchor in ('id="about"', 'id="process"', 'id="services"', 'id="roles"',
     encoding="utf-8")
 PYEOF
 
-PORT2="${PORT2:-$((PORT + 1))}"
-python3 -m http.server "$PORT2" --directory "$SCRATCH" >/dev/null 2>&1 &
-SERVER2=$!
-cleanup() {
-  kill "${SERVER:-0}" "${SERVER2:-0}" 2>/dev/null
-  rm -f "$SITE/_shot-token.txt"
-  rm -rf "$SCRATCH"
-}
-trap cleanup EXIT
 for _ in $(seq 1 40); do
   kill -0 "$SERVER2" 2>/dev/null || { echo "Scratch server exited before it was ready (port $PORT2 in use?)" >&2; exit 1; }
   curl -s --max-time 2 -o /dev/null -w "" "http://127.0.0.1:$PORT2/_shot-menu.html" && break

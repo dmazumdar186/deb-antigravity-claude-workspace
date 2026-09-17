@@ -270,19 +270,22 @@
       ctx.fill();
     }
     /* hydropower: a dam wall with a still reservoir behind it. Kept right of
-       x~640 (the headline column's usual right edge at desktop widths) so it
-       never draws under the hero text — it used to sit at 0.285W, which put
-       it squarely under the headline at every width this scene runs at
-       (>=800px). */
+       x~700 (past the headline column's usual right edge at desktop widths,
+       including 1440 and 1050) so it never draws under the hero text — it
+       used to sit at 0.285W, which put it squarely under the headline at
+       every width this scene runs at (>=800px). */
     var dw = 0.135 * W;
-    var dx = Math.max(0.47 * W, 660);
+    var dx = Math.max(0.52 * W, 700);
     var dy = yAt(dx + dw / 2);
     var dh = 0.052 * H * e;
     stroke(WHITE, 0.45 * w, 1.5);
     path([dx, dy, dx + dw * 0.14, dy - dh, dx + dw * 0.86, dy - dh, dx + dw, dy]);
     stroke(GREEN, 0.22 * w, 1);
+    // Reservoir contour lines start at the dam wall itself, never left of it
+    // (they used to start 0.075W further left, which drew under the headline
+    // column), so nothing of the glyph draws under the headline at any width.
     for (var k = 1; k <= 3; k += 1) {
-      seg(dx - 0.075 * W, dy - dh + k * (dh / 4), dx + dw * 0.12, dy - dh + k * (dh / 4));
+      seg(dx, dy - dh + k * (dh / 4), dx + dw * 0.12, dy - dh + k * (dh / 4));
     }
   }
 

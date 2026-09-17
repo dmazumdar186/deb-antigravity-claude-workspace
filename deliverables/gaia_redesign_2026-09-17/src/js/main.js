@@ -170,16 +170,16 @@
          actually looking at the page, or every reveal below the fold is spent
          before they reach it. */
       window.setTimeout(function () {
-        /* Raised from 4s to 20s, and document.hasFocus() dropped from the
-           gate: hasFocus() is unreliable in a headless/CI runner, which can
-           hold OS-level focus on its own window while the tab it drives
-           never registers as "focused" — that combination used to make this
-           net fire immediately regardless of the timeout, well before
-           anyone had a chance to scroll. 20s is short enough to still catch
-           a genuinely abandoned render (a background tab, a print job) but
+        /* Unconditional after 20s: no visibilityState gate. hasFocus() and
+           visibilityState are both unreliable in a headless/CI runner, which
+           can hold OS-level focus and 'visible' state on its own window while
+           the tab it drives never scrolls anything into view — that used to
+           make this net either fire immediately or never fire at all,
+           depending on the runner. 20s is short enough to still catch a
+           genuinely abandoned render (a background tab, a print job) but
            long enough that a normal page visit, or a test driving several
-           seconds of scroll interaction first, never trips it. */
-        if (document.visibilityState !== 'hidden') return;
+           seconds of scroll interaction first, never needs it (the
+           observer will already have revealed everything by then). */
         items.forEach(function (el) { el.classList.add('is-visible'); });
         obs.disconnect();
       }, 20000);

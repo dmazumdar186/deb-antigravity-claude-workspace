@@ -148,6 +148,8 @@ class _Doc(HTMLParser):
             self._in_ld = False
         if tag == "title":
             self._in_title = False
+        if tag == "select":
+            self._current_select_id = ""
 
     def handle_data(self, data: str) -> None:
         if self._in_ld and self.jsonld:

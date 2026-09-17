@@ -1,9 +1,16 @@
 {
-  "checked_at": "2026-09-17T15:24:27+00:00",
+  "checked_at": "2026-09-17T15:31:54+00:00",
   "checked_on": "2026-09-17",
   "total": 63,
-  "ok": 63,
-  "inconclusive": [],
+  "ok": 62,
+  "inconclusive": [
+    {
+      "url": "https://gaiatalent.com/jobs/principal-mechanical-engineer/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    }
+  ],
   "failed": [],
   "blocked": false,
   "control": {
@@ -216,11 +223,12 @@
       "ok": true
     },
     {
-      "status": 200,
-      "verdict": "ok",
-      "error": "",
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
       "url": "https://gaiatalent.com/jobs/principal-mechanical-engineer/",
-      "ok": true
+      "ok": false
     },
     {
       "status": 200,

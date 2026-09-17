@@ -30,5 +30,19 @@ if ! $WRANGLER pages project list 2>/dev/null | grep -qE "(^|[[:space:]])$PROJEC
   $WRANGLER pages project create "$PROJECT" --production-branch main
 fi
 
-$WRANGLER pages deploy "$SITE" --project-name "$PROJECT" --branch main --commit-dirty=true
+# Stage a copy with build/scratch artifacts excluded (the build marker and
+# any leftover screenshot-scratch token file must never ship) rather than
+# deploying $SITE directly.
+STAGE="$ROOT/.tmp/cloudflare-deploy-stage"
+rm -rf "$STAGE"
+mkdir -p "$STAGE"
+if command -v rsync >/dev/null 2>&1; then
+  rsync -a --exclude='.gaia-build' --exclude='_shot-*' "$SITE"/ "$STAGE"/
+else
+  cp -R "$SITE"/. "$STAGE"/
+  find "$STAGE" -maxdepth 1 \( -name '.gaia-build' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
+fi
+
+$WRANGLER pages deploy "$STAGE" --project-name "$PROJECT" --branch main --commit-dirty=true
+rm -rf "$STAGE"
 echo "deployed: https://$PROJECT.pages.dev/"
