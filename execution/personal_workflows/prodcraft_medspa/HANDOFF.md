@@ -1,10 +1,10 @@
-# ProdCraft med-spa pipeline, handoff (2026-09-16, session 2, round 2)
+# ProdCraft med-spa pipeline, handoff (2026-09-17, session 2, after round 3)
 
 Branch: `claude/mobile-responsive-website-gup5d2` (all work committed and pushed; see `git log`).
 Spec: `PROJECT_SPEC.md` (9.1 guarantee evidence clause is new). Build contracts: `CONTRACTS.md`. Panel roster
 (eleven mandatory lenses, operator standing order): `.claude/memory/panel_roster.md`. Audit records:
 `docs/audits/prodcraft_medspa_panel_pass_2026-09-10.md`, `docs/audits/prodcraft_medspa_audit_stack_2026-09-16.md`
-(round 1 and round 2). Directive: `directives/personal_workflows/prodcraft_medspa_pipeline.md` (has the verbatim
+(rounds 1, 2 and 3). Directive: `directives/personal_workflows/prodcraft_medspa_pipeline.md` (has the verbatim
 "secrets set -> first live 5 sent" command block).
 
 ## State: the loop is automated end to end; only secrets and one config flag separate it from a real send
@@ -57,12 +57,14 @@ python3 execution/personal_workflows/prodcraft_medspa/scripts/daily.py --mock --
 Mock chain DoD: 22 found -> 16 kept -> 16 audited -> 6 qualified -> 4 verified -> 4 previews -> 4 approved ->
 4 drafted -> **4 sent** (mock .eml under `.tmp/prodcraft_medspa/sent/`); a second `daily.py` run sends 0.
 Without `--recipient-override`, `daily.py --mock` sends 0 and reports `live_send_not_confirmed` by design.
-Last full run this session: pytest 638 passed / 35 skipped (about 115 s); vitest 29; typecheck, build and
-acceptance clean; `test_suite_tiers.sh` ALL CHECKS PASSED (pytest threshold raised to 180 s for the larger suite).
+Last full run (head 898f4c6): pytest 645 passed / 35 skipped (about 115 s); vitest 29; typecheck, build and
+acceptance clean; `test_suite_tiers.sh` ALL CHECKS PASSED. Day-4 mock run: touch-2 rows draft, park for the
+Loom URL (`send.py` drop reason `needs_operator_input`), and send once `notes.loom_url` is recorded and the
+row is redrafted (`state_machine.redraft`).
 Never run two `run_metro`/`build_preview` processes
 against the same checkout at once; the build lock serializes them.
 
-## Honest gaps (open after round 2)
+## Honest gaps (open after round 3)
 
 - **No live path has run from code.** Places, PSI, Anthropic, Gmail OAuth, Telegram, Supabase (migrations 0003 and
   0004 unapplied), R2 and the Worker are all verified from fixtures and monkeypatched seams; connectors stood in
@@ -80,6 +82,9 @@ against the same checkout at once; the build lock serializes them.
   Every remove is now Telegram-notified so mis-classifications are visible.
 - **Sample Telegram send never observed** (no token in cloud); the error channel is not "wired up" by the rule in
   `automation-boundaries.md` until the operator sees one.
+- **Touch 2 needs a human input by design**: the Loom walkthrough URL. Every touch-2 draft parks until
+  `notes.loom_url` is set (dashboard or store patch) and the row is redrafted; `send.py` notifies once per day
+  with the parked count. Without Looms, only touch 1, 3 and 4 go out.
 - **Copy decisions left to the operator**: CTA softness, subject-line variety, proof lines (none until a founding
   client yields a before/after number).
 - `scan_replies` takes a negative reply's preview down through `take_down_preview` and then reverts the

@@ -144,3 +144,36 @@ send-path follow-up (see HANDOFF.md for the final verification pass).
   to the same URLs (Version 4) for four spas; the fifth (score 22, skip bucket) is excluded by the new floor.
 - Every live path the loop needs (Places, PSI, Anthropic, Gmail OAuth, Telegram, Supabase, R2) is still
   unexercised from code; connectors stood in for them in-session.
+
+---
+
+# Round 3 (2026-09-17, final head re-verification)
+
+The operator asked whether the project was ship ready. Round 2 had judged a mid-day state, so every lens
+re-ran against the final head, each re-verifying its own round-2 findings and then reading with fresh eyes.
+Fixes landed in 8632a59, 6eef986, c7b60c3, 0122d6c and 898f4c6.
+
+| Lens | Round-2 findings | New findings -> status |
+|---|---|---|
+| Pipeline-auditor (Fable) | all mock-chain and guard claims re-executed and PASS | redraft wrote a nonexistent column -> **[FIXED]**; daily.py swallowed send.py's banner -> **[FIXED]**; stale watermark sentence in the RSC payload -> **[FIXED]** at the source (content_lint); live store had triplicate preview rows and an approved preview for the excluded spa -> **[FIXED]** (deduped, demoted, logged) |
+| Code-reviewer (Opus) | n/a | FAIL: touch-2 drafts failed lint forever on the Loom placeholder, lint-failed rows starved the cap, one reply processed once per sent touch, PII in CI logs, purge left notes and drafts, racy cap, unfailable secret step, silent live switch, layout thrash, observer leak -> **all [FIXED]** |
+| Brockman | 8 of 8 FIXED | replies cron lacked R2 keys for takedowns -> **[FIXED]** |
+| Cherny | all FIXED | one test stale against the worker's in-flight tree -> **[FIXED]** |
+| Daniela Amodei | 4 of 4 FIXED | failed takedown had no retry -> **[FIXED]** reconcile_takedowns each daily run |
+| Dario Amodei | 2 of 2 FIXED | double-send race -> **[FIXED]** Store.claim_row; silent zero-send weeks -> **[FIXED]**; malformed classifier response aborted the scan -> **[FIXED]** |
+| Karpathy | FIXED | audit stamped "full" when screenshot capture failed -> **[FIXED]** derive_mode |
+| Murati | 4 of 4 FIXED, all four previews checked live at both widths | back-card headline clips under the front card corner -> **[OPEN]** cosmetic |
+| Hormozi | 4 of 4 FIXED (CTA softness stays an operator copy decision) | `[[LOOM URL]]` could reach a prospect -> **[FIXED]** send.py needs_operator_input guard; weeks-to-first-call not stated in PROJECT_SPEC -> **[OPEN]** doc |
+| Saraev | 6 of 6 FIXED | none |
+| Sutskever | 5 of 5 FIXED | negative takedown silent -> **[FIXED]**; right-censoring only on events -> **[FIXED]** row column; Phase 0 passed on one call -> **[FIXED]** calls_to_pass |
+| Hassabis | 6 of 6 FIXED | "sends vs cap" weekly number is a hand query -> **[OPEN]** |
+| Research team | 5 of 6 FIXED, 1 clarified | score_at_send prose said "on send" -> **[FIXED]** documented as enqueue-time snapshot matching fit_weights' join; claim_row added to the Store interface |
+
+Coordinator's own day-4 mock run (not found by any lens): touch 2 to 4 rows were never drafted because the
+already-drafted check keyed on the inherited subject; redraft left the old body; the park flag never
+cleared after a Loom URL was recorded; re-renders overwrote prior notes. All **[FIXED]** with
+`tests/prodcraft_medspa/test_round3.py`.
+
+Final verification on 898f4c6: pytest 645 passed / 35 skipped; vitest 29; typecheck, build, acceptance
+(including the new mobile card-opacity check) clean; `test_suite_tiers.sh` ALL CHECKS PASSED; mock chain
+day 1 sends 4, day 4 drafts 4 touch-2 rows, parks them, sends the one with a recorded Loom URL.
