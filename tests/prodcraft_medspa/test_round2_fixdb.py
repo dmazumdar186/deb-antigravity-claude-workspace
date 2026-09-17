@@ -339,7 +339,21 @@ def test_check_sender_address_is_valid_accepts_well_formed_address(local_store):
 
 
 def test_check_sender_address_is_valid_rejects_placeholder(local_store):
+    # item 9 (round-3 minor): doctor.py now delegates to outreach.lint_draft.sender_address_is_valid
+    # (the SAME validator send.py's --confirm-live-sends gate uses) instead of a second,
+    # independently drifting regex/phrase list — "operator to confirm" has no street number, so
+    # it's rejected as `no_street_number` rather than doctor's old bespoke "placeholder" phrase
+    # match; either way it must never pass.
     local_store.set_config("sender", {"name": "Jane", "physical_address": "operator to confirm"})
+    ok, detail = doctor.check_sender_address_is_valid(local_store)
+    assert ok is False
+    assert "invalid" in detail
+
+
+def test_check_sender_address_is_valid_rejects_parenthetical_placeholder(local_store):
+    local_store.set_config(
+        "sender", {"name": "Jane", "physical_address": "123 Main St (confirm), Winnetka, IL 60093"}
+    )
     ok, detail = doctor.check_sender_address_is_valid(local_store)
     assert ok is False
     assert "placeholder" in detail

@@ -72,6 +72,9 @@ create table if not exists audits (
                                                 -- in audit_site.py, previously dropped on the floor
   screenshot_mobile_url text,
   screenshot_desktop_url text,
+  superseded            boolean default false, -- (0005) true once a later audit for the same
+                                                -- business replaces this one as "the" audit
+  superseded_reason     text,                  -- (0005) why (e.g. "re-audit", "manual correction")
   raw                   jsonb not null default '{}'::jsonb
 );
 create index if not exists audits_business_idx on audits (business_id, audited_at desc);
@@ -116,6 +119,11 @@ create table if not exists outreach (
   score_at_send     integer,                          -- (0004) audits.total_score at the moment
                                                         -- this touch was sent, stamped by
                                                         -- daily_queue.py — see CONTRACTS.md
+  queue_pick_effective text,                           -- (0005) what actually governed THIS
+                                                        -- touch-1 enqueue (random|score; may
+                                                        -- differ from config.queue_pick while
+                                                        -- phase0 hasn't passed) — daily_queue.py,
+                                                        -- see CONTRACTS.md
   replied_at        timestamptz,
   reply_sentiment   text,                            -- positive|neutral|negative|remove|bounce
   reply_excerpt     text,

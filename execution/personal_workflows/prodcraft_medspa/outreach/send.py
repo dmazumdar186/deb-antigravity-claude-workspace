@@ -34,6 +34,7 @@ import argparse
 import base64
 import json
 import os
+import re
 import sys
 import uuid
 from datetime import date, datetime, timezone
@@ -138,6 +139,25 @@ def _lint_failed(row: dict) -> bool:
     return bool(_parse_notes(row).get("lint_violations"))
 
 
+# item 18 (CRITICAL, round-3 Hormozi lens): item 1's lint fix means a touch-2 draft with the
+# `[[LOOM URL]]` operator placeholder now PASSES lint (rule 6 no longer trips on it). Nothing in
+# send.py used to look at `notes.needs_operator_input` at all — without this guard, a live email
+# containing the literal text "[[LOOM URL]]" would go out to a real prospect the moment
+# daily_queue.py flags a row needs_operator_input (or a placeholder just never gets filled in).
+_UNRESOLVED_TOKEN_RE = re.compile(r"\[\[[^\[\]]*\]\]|\{\{[^{}]*\}\}")
+
+
+def _needs_operator_input(row: dict) -> bool:
+    """True when this drafted row must never be sent as-is: `notes.needs_operator_input` was
+    explicitly flagged (e.g. daily_queue.py's lint-failure escalation, item 2), OR its rendered
+    subject/body still carries an unresolved `[[...]]`/`{{...}}` token (the `[[LOOM URL]]`
+    placeholder with no `notes.loom_url` set, or any stray unrendered template variable)."""
+    if bool(_parse_notes(row).get("needs_operator_input")):
+        return True
+    full_text = f"{row.get('draft_subject') or ''}\n{row.get('draft_body') or ''}"
+    return bool(_UNRESOLVED_TOKEN_RE.search(full_text))
+
+
 def _find_preview(st: Any, row: dict) -> dict | None:
     preview_id = row.get("preview_id")
     if not preview_id:
@@ -164,6 +184,17 @@ def _business_has_replied_or_terminal_row(st: Any, business_id: str | None, excl
         if r.get("status") in _TERMINAL_OR_REPLIED_STATUSES:
             return True
     return False
+
+
+def _release_claim(st: Any, outreach_id: str) -> None:
+    """Best-effort rollback of an `outreach.claim_row(..., "sent")` claim whose send never
+    actually happened (HeaderInjectionError or any other pre-send exception). Never raises —
+    a failed rollback just leaves the row `sent`-but-undelivered for an operator to notice via
+    `send_failed`/`send_skipped` events, which is strictly better than crashing the whole batch."""
+    try:
+        st.claim_row("outreach", outreach_id, "sent", "drafted")
+    except Exception as exc:  # noqa: BLE001 — rollback is best-effort; log, never raise
+        print(f"[send] could not release claim on outreach {outreach_id}: {exc}", file=sys.stderr)
 
 
 def _sent_today_count(st: Any, today: date) -> int:
@@ -284,8 +315,45 @@ def run_send(
         "live_send_not_confirmed": 0,
         "header_injection": 0,
         "preview_not_public": 0,
+        "already_claimed": 0,
+        "live_recipients_not_enabled": 0,
+        "needs_operator_input": 0,
     }
     live_recipients = not bool(recipient_override)
+
+    # item 8 (round-3 major): an unset or misnamed PRODCRAFT_RECIPIENT_OVERRIDE resolves to ""
+    # which main() already turns into None — indistinguishable in-process from an operator who
+    # deliberately never set an override because they WANT live sends. In CI specifically, that
+    # ambiguity must resolve to "refuse," not "send live": a second explicit repo variable,
+    # PRODCRAFT_LIVE_RECIPIENTS, must equal "true" before a github-actions run with no
+    # --recipient-override is allowed to reach a real prospect.
+    if (
+        not recipient_override
+        and os.environ.get("PRODCRAFT_ENV") == "github-actions"
+        and (os.environ.get("PRODCRAFT_LIVE_RECIPIENTS") or "").strip().lower() != "true"
+    ):
+        dropped["live_recipients_not_enabled"] = 1
+        print(
+            "SEND BLOCKED: PRODCRAFT_ENV=github-actions with no --recipient-override requires "
+            "the repo variable PRODCRAFT_LIVE_RECIPIENTS=true to send live"
+        )
+        from execution.personal_workflows.prodcraft_medspa.common import notify
+
+        notify.error(
+            "prodcraft_medspa.send",
+            "live sends blocked: PRODCRAFT_LIVE_RECIPIENTS is not 'true' in github-actions",
+            1,
+        )
+        return {
+            "script": "send",
+            "in": 0,
+            "sent": 0,
+            "dropped": dropped,
+            "recipient_override": False,
+            "live_recipients": True,
+            "cap": 0,
+        }
+
     _print_recipient_banner(recipient_override)
     preview_host_suffix = str(
         st.get_config("preview_host_suffix", ".preview.prodcraft.fyi") or ".preview.prodcraft.fyi"
@@ -332,10 +400,15 @@ def run_send(
             "cap": cap,
         }
 
+    from execution.personal_workflows.prodcraft_medspa.common import notify
+
     halt = daily_queue.halt_reason(st, today)
     if halt:
         print(f"SEND HALTED: {halt}")
         dropped["halted"] = in_count
+        # item 12 (Dario lens, round-3): a bounce-rate halt used to return silently — a real
+        # production hazard (undeliverable mail piling up) with no operator signal at all.
+        notify.once_per_day(st, "send_halted", "prodcraft_medspa.send", f"SEND HALTED: {halt}", today)
         return {
             "script": "send",
             "in": in_count,
@@ -346,12 +419,20 @@ def run_send(
             "cap": cap,
         }
 
-    remaining_cap = max(0, cap - _sent_today_count(st, today))
+    # item 12 (Dario lens, round-3): a day with nothing queued to send is either fine (nothing
+    # due) or a sign the pipeline upstream stalled — either way the operator should know, once
+    # per day, rather than reading a silent "0 sent" in a cron log.
+    if in_count == 0:
+        notify.once_per_day(
+            st, "send_zero_candidates", "prodcraft_medspa.send",
+            "0 candidates, nothing to send today", today,
+        )
 
     # Deterministic processing order (oldest-due first), mirroring LocalStore.queue()'s ordering.
     candidate_rows.sort(key=lambda r: (r.get("next_touch_at") or "", r.get("created_at") or ""))
 
     sent_count = 0
+    sent_today_at_start = _sent_today_count(st, today)
     for row in candidate_rows:
         if limit is not None and sent_count >= limit:
             break
@@ -364,6 +445,12 @@ def run_send(
             continue
         if _lint_failed(row):
             dropped["lint_failed"] += 1
+            continue
+        if _needs_operator_input(row):
+            dropped["needs_operator_input"] += 1
+            st.log_event(
+                "outreach", row["id"], "send_skipped", {"reason": "needs_operator_input"}
+            )
             continue
         preview_row = _find_preview(st, row)
         if not _preview_ok(preview_row):
@@ -389,8 +476,24 @@ def run_send(
         if not owner_email:
             dropped["no_email"] += 1
             continue
-        if remaining_cap <= 0:
+        # item 6 (round-3 major): re-read the sent-today count immediately before each send
+        # instead of decrementing an in-memory counter computed once at the top of the run — two
+        # concurrent `send.py` processes sharing one Store would otherwise each decrement their
+        # own stale copy and together double the day's cap.
+        # The fresh store count is combined with this run's own tally (max of the two): the
+        # store count catches a concurrent process, the tally catches this process's own sends
+        # whose sent_at is stamped with the wall clock rather than the `today` being enforced.
+        used_today = max(_sent_today_count(st, today), sent_today_at_start + sent_count)
+        if max(0, cap - used_today) <= 0:
             dropped["cap_reached"] += 1
+            continue
+
+        # item 11 (round-3 critical, Dario lens): claim the row atomically before sending — the
+        # actual compare-and-set that prevents a concurrent second process from sending the SAME
+        # row twice. A failed claim means another process (or another pass) already sent it.
+        if not st.claim_row("outreach", row["id"], "drafted", "sent"):
+            dropped["already_claimed"] += 1
+            st.log_event("outreach", row["id"], "send_skipped", {"reason": "claim_failed"})
             continue
 
         to_email = recipient_override or owner_email
@@ -415,12 +518,17 @@ def run_send(
             st.log_event(
                 "outreach", row["id"], "send_failed", {"error": f"HeaderInjectionError: {exc}"}
             )
+            # item 11: the claim above already flipped this row to `sent` in the store even
+            # though no email went out — release the claim so a retry can pick it up, instead of
+            # leaving a falsely-"sent" row with no message ever delivered.
+            _release_claim(st, row["id"])
             continue
         except Exception as exc:  # noqa: BLE001 — one bad send must not abort the whole batch
             dropped["gmail_error"] += 1
             st.log_event(
                 "outreach", row["id"], "send_failed", {"error": f"{type(exc).__name__}: {exc}"}
             )
+            _release_claim(st, row["id"])
             continue
 
         # C1: the email is already out the door at this point — a failure recording it in the
@@ -477,7 +585,6 @@ def run_send(
                 raise
 
         sent_count += 1
-        remaining_cap -= 1
 
     if sent_count == 0 and dropped["preview_not_approved"] > 0:
         # C5: a silent zero-send day must page the operator, not sit quietly in a cron log.
@@ -488,6 +595,20 @@ def run_send(
             f"0 sent: {dropped['preview_not_approved']} candidates have unapproved previews; "
             "approve them in the dashboard or with preview/approve.py",
             1,
+        )
+
+    if dropped["needs_operator_input"] > 0:
+        # item 18 (CRITICAL, round-3 Hormozi lens): a row held back here (a stale placeholder or
+        # a lint-escalated flag) needs an operator to fill in the missing piece (e.g.
+        # notes.loom_url) and redraft — once per day, not once per row/run.
+        notify.once_per_day(
+            st,
+            "send_needs_operator_input",
+            "prodcraft_medspa.send",
+            f"{dropped['needs_operator_input']} drafted row(s) held back: needs_operator_input "
+            "(unresolved placeholder or a lint-escalated flag) — fill in the missing value "
+            "(e.g. notes.loom_url) and redraft",
+            today,
         )
 
     return {

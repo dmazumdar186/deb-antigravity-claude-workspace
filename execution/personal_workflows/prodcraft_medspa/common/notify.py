@@ -16,6 +16,7 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
@@ -26,21 +27,50 @@ load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 
 
+def once_per_day(store: Any, dedupe_key: str, service: str, message: str, today: Any) -> None:
+    """Post `error(service, message)` at most once per calendar day per `dedupe_key`, tracked in
+    `store.get_config('notify_dedupe', {})` — a small `{dedupe_key: last_notified_date_iso}` dict
+    on the SAME Store every caller already reads/writes. Used wherever a real production hazard
+    (a bounce halt, a zero-send day, a failed takedown) needs to page the operator without
+    spamming the same alert on every re-run of the same day (round-3 audit items 12/14).
+    `today` may be a `date` or an ISO string; only `.isoformat()`/`str()` matters.
+    """
+    today_str = today.isoformat() if hasattr(today, "isoformat") else str(today)
+    dedupe = dict(store.get_config("notify_dedupe", {}) or {})
+    if dedupe.get(dedupe_key) == today_str:
+        return
+    error(service, message, 1)
+    dedupe[dedupe_key] = today_str
+    store.set_config("notify_dedupe", dedupe)
+
+
+def _is_ci_env(environment: str | None) -> bool:
+    """item 4 (round-3 major): stderr in `PRODCRAFT_ENV == 'github-actions'` is a PERSISTED CI
+    log, not a transient console — the full `error` text (which can carry an owner name, owner
+    email, or business name via a caller's f-string) must never land there. Checks the resolved
+    `environment` (what actually gets printed/posted), not the raw env var, so a caller that
+    explicitly passes `environment=...` is honored the same way."""
+    return (environment or os.environ.get("PRODCRAFT_ENV") or "local") == "github-actions"
+
+
 def error(service: str, error: str, count: int = 1, environment: str | None = None) -> bool:
     """Post `service / environment / error / count` to the Telegram error channel.
 
     Returns True on a successful send, False on any failure or missing config
-    (in which case the message is also printed to stderr so it isn't lost).
+    (in which case the message is also printed to stderr so it isn't lost — redacted to
+    `service / sentiment=n/a / count` under PRODCRAFT_ENV=github-actions, since that stderr is a
+    persisted CI log; the full text still goes to Telegram either way).
     """
     env = environment or os.environ.get("PRODCRAFT_ENV") or "local"
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     line1 = f"{service} / {env} / {error} / {count}"
     text = f"{line1}\n{timestamp}"
+    stderr_text = f"{service} / {env} / [redacted for CI log] / {count}" if _is_ci_env(env) else text
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
-        print(f"[notify.error, no-op — Telegram not configured] {text}", file=sys.stderr)
+        print(f"[notify.error, no-op — Telegram not configured] {stderr_text}", file=sys.stderr)
         return False
 
     try:
@@ -54,7 +84,7 @@ def error(service: str, error: str, count: int = 1, environment: str | None = No
         resp.raise_for_status()
         return True
     except Exception as exc:  # noqa: BLE001 — notify must never raise; log and report failure instead
-        print(f"[notify.error failed: {exc}] {text}", file=sys.stderr)
+        print(f"[notify.error failed: {exc}] {stderr_text}", file=sys.stderr)
         return False
 
 
@@ -98,11 +128,20 @@ def reply(
         f"{env} / {timestamp}",
     ]
     text = "\n".join(lines)
+    # item 4 (round-3 major): stderr is a persisted CI log under github-actions — never print the
+    # full `text` (owner name/email, business name, reply summary) there. `outreach_id` isn't a
+    # parameter of reply(); gmail_thread_id is the closest non-PII identifier an operator can use
+    # to look the row up, so it stands in for it here.
+    stderr_text = (
+        f"prodcraft_medspa.reply / {sentiment} / thread={gmail_thread_id or 'n/a'}"
+        if _is_ci_env(env)
+        else text
+    )
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
-        print(f"[notify.reply, no-op: Telegram not configured] {text}", file=sys.stderr)
+        print(f"[notify.reply, no-op: Telegram not configured] {stderr_text}", file=sys.stderr)
         return False
 
     try:
@@ -116,7 +155,7 @@ def reply(
         resp.raise_for_status()
         return True
     except Exception as exc:  # noqa: BLE001 -- notify must never raise; log and report failure instead
-        print(f"[notify.reply failed: {exc}] {text}", file=sys.stderr)
+        print(f"[notify.reply failed: {exc}] {stderr_text}", file=sys.stderr)
         return False
 
 

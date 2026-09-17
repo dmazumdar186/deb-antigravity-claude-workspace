@@ -241,7 +241,37 @@ def test_phase0_sends_counter_ignores_touch2_sent(local_store):
     assert phase0.get("sends", 0) == 0
 
 
-def test_phase0_calls_booked_sets_passed_true(local_store):
+def test_phase0_calls_booked_sets_passed_true_after_default_threshold(local_store):
+    """item 17 (round-3, Sutskever lens): phase0.passed no longer flips on the first
+    call_booked — it takes DEFAULT_CALLS_TO_PASS (3, with no config.phase0.calls_to_pass set)."""
+    business = _make_business(local_store)
+    for i in range(state_machine.DEFAULT_CALLS_TO_PASS - 1):
+        row = _make_outreach_row(
+            local_store, business_id=business["id"], touch=1, status="replied", preview_id=None
+        )
+        # each call needs a distinct row (unique business_id+touch) — vary touch per iteration
+        local_store.update_outreach(row["id"], {"touch": i + 10})
+        row["touch"] = i + 10
+        state_machine.transition(local_store, row, "call_booked")
+    phase0 = local_store.get_config("phase0")
+    assert phase0["calls_booked"] == state_machine.DEFAULT_CALLS_TO_PASS - 1
+    assert phase0["passed"] is False
+
+    last_row = _make_outreach_row(local_store, business_id=business["id"], touch=99, status="replied")
+    state_machine.transition(local_store, last_row, "call_booked")
+    phase0 = local_store.get_config("phase0")
+    assert phase0["calls_booked"] == state_machine.DEFAULT_CALLS_TO_PASS
+    assert phase0["passed"] is True
+
+    events = [
+        e for e in _store_helpers.list_all(local_store, "events") if e.get("event") == "phase0_passed"
+    ]
+    assert len(events) == 1
+
+
+def test_phase0_calls_to_pass_configurable(local_store):
+    """A lower config.phase0.calls_to_pass passes phase0 sooner."""
+    local_store.set_config("phase0", {"passed": False, "sends": 0, "calls_booked": 0, "calls_to_pass": 1})
     business = _make_business(local_store)
     row = _make_outreach_row(local_store, business_id=business["id"], touch=1, status="replied")
     state_machine.transition(local_store, row, "call_booked")
@@ -494,7 +524,10 @@ def test_scan_replies_neutral_notifies_exactly_once(local_store, monkeypatch):
     assert calls[0]["sentiment"] == "neutral"
 
 
-def test_scan_replies_negative_does_not_notify_and_closes_lost(local_store, monkeypatch):
+def test_scan_replies_negative_notifies_with_provenance_and_closes_lost(local_store, monkeypatch):
+    """item 15 (round-3, Sutskever lens): a negative classification takes down the preview on the
+    classifier's word alone — that must be Telegram-visible (with provenance) same as
+    positive/neutral/remove, not silent, so a misclassification is caught."""
     _seed_sent_row(local_store, "owner3@example-medspa-3.test")
     calls = []
     monkeypatch.setattr(_NOTIFY_REPLY_PATH, lambda **kwargs: calls.append(kwargs) or True)
@@ -502,7 +535,9 @@ def test_scan_replies_negative_does_not_notify_and_closes_lost(local_store, monk
     stats = scan_replies.scan(local_store, None, mock=True, since_days=14, today=date(2026, 9, 10))
 
     assert stats["negative"] == 1
-    assert calls == []
+    assert len(calls) == 1
+    assert calls[0]["sentiment"] == "negative"
+    assert "classified by: keyword" in calls[0]["summary"]
     row = [r for r in _store_helpers.list_all(local_store, "outreach") if r.get("reply_sentiment") == "negative"][0]
     assert row["status"] == "closed_lost"
 
@@ -1286,6 +1321,7 @@ def test_send_transitions_drafted_to_sent_and_records_ids(sender_configured, fix
         "cap_reached": 0, "halted": 0, "lint_failed": 0, "dnc": 0,
         "preview_not_approved": 0, "already_replied": 0, "no_email": 0, "gmail_error": 0,
         "live_send_not_confirmed": 0, "header_injection": 0, "preview_not_public": 0,
+        "already_claimed": 0, "live_recipients_not_enabled": 0, "needs_operator_input": 0,
     }, "recipient_override": False, "live_recipients": True}
 
     updated = sender_configured.update_outreach(row["id"], {})

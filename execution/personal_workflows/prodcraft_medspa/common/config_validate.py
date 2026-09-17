@@ -34,6 +34,12 @@ PHASE0_WARMUP_DAYS_DEFAULT = 14
 PHASE0_WARMUP_START_CAP_MIN = 1
 PHASE0_WARMUP_START_CAP_DEFAULT = 2
 
+# item 17 (round-3, Sutskever lens): phase0.calls_to_pass gates how many call_booked transitions
+# it takes before phase0.passed flips (state_machine.py's _increment_phase0), not a bare n==1.
+PHASE0_CALLS_TO_PASS_MIN = 1
+PHASE0_CALLS_TO_PASS_MAX = 20
+PHASE0_CALLS_TO_PASS_DEFAULT = 3
+
 
 def _is_bool(value: Any) -> bool:
     return isinstance(value, bool)
@@ -122,6 +128,17 @@ def validate_config(cfg: dict) -> list[str]:
                         f"phase0.warmup_start_cap must be an int in [{PHASE0_WARMUP_START_CAP_MIN}, {upper}] "
                         f"(default {PHASE0_WARMUP_START_CAP_DEFAULT}), got {warmup_start_cap!r}"
                     )
+
+            calls_to_pass = phase0.get("calls_to_pass")
+            if calls_to_pass is not None and (
+                not _is_int(calls_to_pass)
+                or not (PHASE0_CALLS_TO_PASS_MIN <= calls_to_pass <= PHASE0_CALLS_TO_PASS_MAX)
+            ):
+                problems.append(
+                    f"phase0.calls_to_pass must be an int in [{PHASE0_CALLS_TO_PASS_MIN}, "
+                    f"{PHASE0_CALLS_TO_PASS_MAX}] (default {PHASE0_CALLS_TO_PASS_DEFAULT}), "
+                    f"got {calls_to_pass!r}"
+                )
 
     return problems
 

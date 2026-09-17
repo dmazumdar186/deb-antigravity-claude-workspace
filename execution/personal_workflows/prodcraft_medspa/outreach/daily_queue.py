@@ -184,6 +184,10 @@ def enqueue_new_touch1(st: Any, today: date) -> int:
                 # `total_score` off the latest audit isn't necessarily what this row was queued
                 # on. Column added by migration 0004; this is the write side.
                 "score_at_send": audit.get("total_score"),
+                # item 16 (round-3, Sutskever lens): previously stamped only on the
+                # outreach_enqueued event, unreadable by fit_weights.py without a store/events
+                # join. Column added by migration 0005; this is the write side.
+                "queue_pick_effective": pick_mode,
             }
         )
         st.log_event(
@@ -287,14 +291,37 @@ def halt_reason(st: Any, today: date) -> str | None:
     return None
 
 
-def _lint_failed_before(row: dict) -> bool:
+def _notes_dict(row: dict) -> dict:
     notes = row.get("notes")
     if isinstance(notes, str):
         try:
             notes = json.loads(notes)
         except ValueError:
-            return False
-    return bool(isinstance(notes, dict) and notes.get("lint_violations"))
+            return {}
+    return notes if isinstance(notes, dict) else {}
+
+
+def _lint_failed_before(row: dict) -> bool:
+    return bool(_notes_dict(row).get("lint_violations"))
+
+
+# item 2 (round-3 critical): after this many consecutive lint failures a row stops being
+# re-selected every day (it would otherwise eat the whole warmup cap forever, starving fresh
+# businesses out of ever being drafted) and instead waits for an operator to look at it.
+LINT_FAIL_LIMIT = 3
+
+
+def _needs_operator_input(row: dict) -> bool:
+    """True while a row is parked for the operator. The flag self-clears for the render path once
+    the missing input has been supplied (notes.loom_url set) unless the row is also parked for
+    LINT_FAIL_LIMIT consecutive lint failures; a successful re-render then writes it False."""
+    notes = _notes_dict(row)
+    if not notes.get("needs_operator_input"):
+        return False
+    lint_parked = int(notes.get("lint_fail_count") or 0) >= LINT_FAIL_LIMIT
+    if notes.get("loom_url") and not lint_parked:
+        return False
+    return True
 
 
 def _preview_evidence(row: dict, st: Any) -> str:
@@ -338,8 +365,20 @@ def _sent_today_count(st: Any, today: date) -> int:
 
 def _drafted_pending_count(st: Any) -> int:
     """Rows already `drafted` (consumed a cap slot, not yet sent) — counted regardless of date
-    since the automated pipeline sends them the same run/day they were drafted."""
-    return sum(1 for r in _store_helpers.list_all(st, "outreach") if r.get("status") == "drafted")
+    since the automated pipeline sends them the same run/day they were drafted.
+
+    item 18(b) (round-3, Hormozi lens): a row `notes.needs_operator_input == True` (an unresolved
+    placeholder, e.g. a touch-2 with no `notes.loom_url` set, or a lint-escalated flag) is stuck
+    in `drafted` forever — send.py refuses it every day until an operator fixes it and redrafts.
+    Counting it here would permanently eat one cap slot from every future day's fresh drafting,
+    which is exactly the starvation bug item 2 already fixed for `queued` rows. Excluded from
+    this count so it never again crowds out a business that CAN actually be sent.
+    """
+    return sum(
+        1
+        for r in _store_helpers.list_all(st, "outreach")
+        if r.get("status") == "drafted" and not _needs_operator_input(r)
+    )
 
 
 def _print_table(rows: list[dict], st: Any) -> None:
@@ -398,7 +437,12 @@ def run_daily_queue(
     consumed_today = _sent_today_count(st, today) + _drafted_pending_count(st)
     remaining_today = max(0, cap - consumed_today)
     all_due = st.queue(today, len(_store_helpers.list_all(st, "outreach")) + 1)
-    selected = [r for r in all_due if r.get("status") == "queued"][:remaining_today]
+    # item 2 (round-3 critical): a row flagged needs_operator_input (LINT_FAIL_LIMIT consecutive
+    # lint failures) is excluded from the selectable set entirely — it stays `queued` (an
+    # operator can still find/fix it) but never crowds out a fresh business's first draft again.
+    selected = [
+        r for r in all_due if r.get("status") == "queued" and not _needs_operator_input(r)
+    ][:remaining_today]
 
     drafted = 0
     lint_failed = 0
@@ -411,7 +455,11 @@ def run_daily_queue(
         # A row that already has a draft is skipped UNLESS its last render failed lint: after the operator
         # fixes the cause (sender config, an override, a template) the next run must retry, or the row
         # would sit in `queued` forever with no path out (found on the first live run, 2026-09-16).
-        if row.get("draft_subject") and not _lint_failed_before(row):
+        # Keyed on draft_body, not draft_subject: state_machine._create_next_touch copies the previous
+        # touch's draft_subject onto the new touch row (as the prev_subject source for "Re:" threading),
+        # so a subject alone means "touch N-1 was drafted", not "this touch is drafted" (round-3, found
+        # by the day-4 mock run: touches 2-4 were never drafted at all).
+        if row.get("draft_body") and not _lint_failed_before(row):
             continue
 
         try:
@@ -457,7 +505,9 @@ def run_daily_queue(
             # `outreach` has no raw LLM-envelope column, so `notes` is the one JSON object every
             # LLM-derived fact about this draft (fuzzy_variables' envelope, lint outcomes) rides in
             # on — a single merged dict, not one overwriting the other.
-            notes_obj: dict[str, Any] = {}
+            # Start from the row's existing notes so operator-supplied fields (loom_url) and prior
+            # flags survive a re-render; the rendered fields below are merged on top.
+            notes_obj: dict[str, Any] = dict(_notes_dict(row))
             llm_envelope = rendered.get("llm")
             if llm_envelope:
                 notes_obj["llm"] = {
@@ -473,13 +523,46 @@ def run_daily_queue(
             if lint_result["violations"]:
                 lint_failed += 1
                 notes_obj["lint_violations"] = lint_result["violations"]
+                # item 2 (round-3 critical): a lint-failed row must not sit at next_touch_at <=
+                # today forever — that made it get re-selected FIRST every day (it sorts by
+                # next_touch_at ascending) and eat the whole warmup cap, starving fresh
+                # businesses out of ever being drafted. Push it out a day, and count the
+                # failure so LINT_FAIL_LIMIT consecutive failures pulls it out of the
+                # selectable set (see `_needs_operator_input` filter above) instead of retrying
+                # forever.
+                prior_notes = _notes_dict(row)
+                fail_count = int(prior_notes.get("lint_fail_count") or 0) + 1
+                notes_obj["lint_fail_count"] = fail_count
+                current_next = row.get("next_touch_at")
+                base = datetime.fromisoformat(current_next).date() if current_next else today
+                patch["next_touch_at"] = (max(base, today) + timedelta(days=1)).isoformat()
+                newly_flagged = fail_count >= LINT_FAIL_LIMIT and not prior_notes.get("needs_operator_input")
+                if fail_count >= LINT_FAIL_LIMIT:
+                    notes_obj["needs_operator_input"] = True
                 patch["notes"] = json.dumps(notes_obj)
                 st.update_outreach(row["id"], patch)
-                st.log_event("outreach", row["id"], "lint_failed", {"violations": lint_result["violations"]})
+                st.log_event(
+                    "outreach",
+                    row["id"],
+                    "lint_failed",
+                    {"violations": lint_result["violations"], "lint_fail_count": fail_count},
+                )
+                if newly_flagged:
+                    from execution.personal_workflows.prodcraft_medspa.common import notify
+
+                    notify.error(
+                        "prodcraft_medspa.daily_queue",
+                        f"outreach row {row['id']} needs operator input after {fail_count} "
+                        f"consecutive lint failures: {lint_result['violations']}",
+                        1,
+                    )
                 continue
 
             if lint_result.get("needs_operator_input"):
                 notes_obj["needs_operator_input"] = True
+            elif notes_obj.get("needs_operator_input"):
+                # A clean render with every placeholder resolved clears the parked flag.
+                notes_obj["needs_operator_input"] = False
 
             if notes_obj:
                 patch["notes"] = json.dumps(notes_obj)

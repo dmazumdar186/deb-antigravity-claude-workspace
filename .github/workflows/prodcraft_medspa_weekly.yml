@@ -43,6 +43,9 @@ jobs:
         env:
           PRODCRAFT_STORE: supabase
           PRODCRAFT_ENV: github-actions
+          # item 8 (round-3 major): fit_weights.py never reaches send.py, but wired through for
+          # consistency/future-proofing (see CONTRACTS.md "Live-recipients gate").
+          PRODCRAFT_LIVE_RECIPIENTS: ${{ vars.PRODCRAFT_LIVE_RECIPIENTS }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

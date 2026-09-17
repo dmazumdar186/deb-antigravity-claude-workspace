@@ -85,6 +85,20 @@ against the same checkout at once; the build lock serializes them.
 - `scan_replies` takes a negative reply's preview down through `take_down_preview` and then reverts the
   `do_not_contact` flag that helper sets; a `dnc=False` parameter on the helper would be the clean fix.
 - Prompts and README/CONTRACTS prose contain em-dashes; customer-facing email text contains none (checked for U+2014).
+- **Local-run overlap (round-3 item 11)**: `send.py`'s double-send fix is `Store.claim_row`, a compare-and-set
+  PATCH-in-the-WHERE-clause on Supabase and a lock-guarded fresh-read on LocalStore — this closes the race for two
+  `send.py` processes against the SAME store, but two operators each running `send.py --mock` against their OWN
+  local `.tmp/` store are still two independent stores with no shared claim; that overlap is out of scope (local
+  mock runs were never meant to be concurrent-safe against each other).
+- **Silent-zero-send (round-3 item 12)**: the bounce-halt and 0-candidates notifies are deduped per calendar day
+  via `config['notify_dedupe']` on the live store — if the operator runs `send.py` against a *different* store
+  (e.g. a fresh `--store-root` for a one-off test), the dedupe key doesn't carry over and a second notify can fire
+  the same day; considered acceptable since that's an unusual manual scenario, not the cron path.
+- **Failed-takedown retry (round-3 items 10/14)**: `state_machine.reconcile_takedowns` retries a stale
+  do_not_contact/closed_lost preview once per `daily.py` run (normal and `--replies-only`); a takedown that keeps
+  failing every single run (R2/Worker genuinely down) re-attempts and re-notifies (deduped to once/preview/day)
+  indefinitely rather than ever giving up and escalating differently — no backoff or "stop retrying after N days"
+  policy exists yet.
 
 ## 7. Operator-only (cannot be done in cloud, no secrets)
 

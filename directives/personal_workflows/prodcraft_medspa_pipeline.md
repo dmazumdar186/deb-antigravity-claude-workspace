@@ -142,8 +142,11 @@ operator opts into `auto_approve_previews`.
 10. **Arm the crons.** Set `PRODCRAFT_CRON_ENABLED=true` and every secret named in
     `.github/workflows/prodcraft_medspa_daily.yml` (daily 9am Chicago: run_metro -> daily.py -> sync_sheets) and
     `prodcraft_medspa_replies.yml` (every 30 minutes: advance -> scan_replies -> takedowns). They share one
-    concurrency group and post to Telegram on failure. From here the loop is unattended: discover, audit, build,
-    approve (dashboard, or the operator's `approve.py`), pick 5, send, scan.
+    concurrency group and post to Telegram on failure. Also set the repo variable `PRODCRAFT_LIVE_RECIPIENTS=true`
+    once you're ready for real sends — without it `send.py` refuses to send in `github-actions` even with
+    `PRODCRAFT_RECIPIENT_OVERRIDE` unset (round-3 audit item 8; see CONTRACTS.md "Live-recipients gate"). From here
+    the loop is unattended: discover, audit, build, approve (dashboard, or the operator's `approve.py`), pick 5,
+    send, scan.
 11. **What the operator does:** read Telegram. A positive or neutral reply arrives as one message (business, owner,
     summary, suggested next step, preview link, Gmail thread link); answer that thread yourself. Negative replies
     close the row, remove requests take the preview down within the 30-minute scan, bounces feed the 2% halt.

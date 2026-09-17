@@ -256,6 +256,10 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
                 "preview", preview_row.get("id"), "takedown_requested",
                 {"reason": "negative_reply", "outcome": "error", "error": str(exc)},
             )
+            # item 14 (round-3, Dario lens): page the operator, once per preview per day.
+            state_machine._notify_takedown_failure(  # noqa: SLF001 — same package, documented internal helper
+                st, preview_row.get("id"), f"negative-reply takedown failed: {exc}"
+            )
 
     if business_id and was_do_not_contact is False:
         # take_down_preview() just flipped do_not_contact True as a side effect of the shared
@@ -369,7 +373,9 @@ def _handle_reply(
     if sentiment == "ooo":
         current_next = outreach_row.get("next_touch_at")
         base = datetime.fromisoformat(current_next).date() if current_next else today
-        pushed = base + timedelta(days=4)
+        # item 9 (round-3 minor): a stale next_touch_at in the past (a row overdue when the OOO
+        # reply arrives) must push from TODAY, not compound off a date that's already gone by.
+        pushed = max(base, today) + timedelta(days=4)
         st.update_outreach(
             outreach_row["id"],
             {"next_touch_at": pushed.isoformat(), "gmail_thread_id": thread_id, "notes": notes},
@@ -399,6 +405,21 @@ def _handle_reply(
         _send_reply_notification(st, updated_row, business, classification, thread_id)
 
     if sentiment == "negative":
+        # item 15 (round-3, Sutskever lens): a negative classification takes down the preview
+        # on the LLM's (or --mock's keyword matcher's) word alone, with no operator-visible
+        # signal — a misclassification here silently kills a live preview. Notify the same
+        # Telegram channel as positive/neutral/remove, with the classification's provenance
+        # (mirrors "remove_source": "llm" on the live path, "keyword" under --mock) folded into
+        # the summary so an operator scanning the channel can tell how much to trust it.
+        provenance = "keyword" if envelope is None else "llm"
+        business = st.get_business(outreach_row.get("business_id")) or {}
+        _send_reply_notification(
+            st,
+            updated_row,
+            business,
+            {**classification, "summary": f"{summary} (classified by: {provenance})"},
+            thread_id,
+        )
         # sent->replied already happened above; close the row out unless the state machine no
         # longer allows replied->closed_lost, in which case leave it replied and log why.
         try:
@@ -415,6 +436,16 @@ def _handle_reply(
     return sentiment
 
 
+def _mark_seen_on_row(st: Any, row: dict, message_key: str) -> dict:
+    """Record `message_key` in one row's `notes.seen_reply_ids` without classifying/transitioning
+    it (item 3 — every sibling row for the same business must know a message was already
+    handled, or a later scan would reclassify it against whichever sibling processes it next)."""
+    merged_notes = _merge_notes(row.get("notes"), llm_classify=None, message_key=message_key)
+    updated = st.update_outreach(row["id"], {"notes": merged_notes})
+    row["notes"] = merged_notes
+    return updated
+
+
 def scan(st: Any, settings: Any, *, mock: bool, since_days: int, today: date | None = None) -> dict:
     today = today or date.today()
     sent_rows = [r for r in _store_helpers.list_all(st, "outreach") if r.get("status") == "sent"]
@@ -429,80 +460,131 @@ def scan(st: Any, settings: Any, *, mock: bool, since_days: int, today: date | N
     else:
         replies_by_email = {}
 
+    # item 3 (round-3 critical): a business can have MULTIPLE `sent` rows at once — touch 1
+    # stays `sent` forever unless replied, while advance.py/daily_queue.py create touch 2+ as a
+    # SEPARATE row without ever changing touch 1's status. gmail_reader.search_replies(owner_email)
+    # matches by owner_email (and, previously, by each row's own thread_id via an OR), so the
+    # SAME inbound message was returned once per sibling row and classified/notified N times.
+    # Fix: group by business and process each business's replies once per pass, not once per row.
+    rows_by_business: dict[Any, list[dict]] = {}
     for row in sent_rows:
-        business = st.get_business(row.get("business_id"))
+        rows_by_business.setdefault(row.get("business_id"), []).append(row)
+
+    for business_id, biz_rows in rows_by_business.items():
+        biz_rows.sort(key=lambda r: (int(r.get("touch") or 1), r.get("created_at") or ""))
+        business = st.get_business(business_id) if business_id else None
         owner_email = (business or {}).get("owner_email")
 
         if mock:
             reply = replies_by_email.get(owner_email)
-            if not reply:
-                continue
-            replies = [reply]
+            replies = [reply] if reply else []
         else:
-            thread_id = row.get("gmail_thread_id")
-            if not thread_id and not owner_email:
+            if not owner_email and not any(r.get("gmail_thread_id") for r in biz_rows):
                 continue
-            # search_replies matches on gmail_thread_id (whole thread, any sender) as well as
-            # owner_email, so a reply from a different address in the same thread is caught. It
-            # already excludes our own outbound messages (SENT label / From == us) and returns
-            # EVERY inbound message, not just the newest — idempotency is `notes.seen_reply_ids`
-            # below, not a `[-1:]` truncation (code-review C3: that truncation could silently
-            # drop an unseen reply that arrived between two scans behind a newer one).
+            # Fetched ONCE per business, not once per sibling row: owner_email alone already
+            # matches every thread that business's replies could be in (search_replies' own
+            # owner_email fallback), so a per-row thread_id fetch only ever re-returned the same
+            # messages under a different row. It already excludes our own outbound messages
+            # (SENT label / From == us) and returns EVERY inbound message, not just the newest —
+            # idempotency is `notes.seen_reply_ids` below, not a `[-1:]` truncation (code-review
+            # C3: that truncation could silently drop an unseen reply behind a newer one).
             replies = gmail_reader.search_replies(
-                owner_email=owner_email or "", since_days=since_days, settings=settings, thread_id=thread_id
+                owner_email=owner_email or "", since_days=since_days, settings=settings, thread_id=None
             )
             if not replies:
                 continue
 
-        # A row can only leave `status: sent` once per scan pass (state_machine.transition()
-        # validates against the STATIC status on the `row` dict we pass it, not a re-read from
-        # the store, so calling it twice off a stale "sent" row would silently double-apply a
-        # transition). Once the first reply this pass moves the row off `sent`, every further
-        # unseen message for this same row is recorded as seen (idempotency) but not
-        # re-classified/re-transitioned this pass — a later scan will simply find nothing left
-        # to do for it (status is no longer `sent`, so this row won't be revisited).
-        row_left_sent = False
+        # A business's active outreach can only leave `status: sent` once per scan pass (once
+        # the first reply this pass moves ITS target row off `sent`, every further unseen
+        # message for this same business is recorded as seen on every sibling row — idempotency
+        # — but not re-classified/re-transitioned this pass).
+        business_left_sent = False
 
         for reply in replies:
             message_key = _reply_message_key(reply)
-            if _already_seen(row, message_key):
+
+            # Route to the specific sibling this message actually replied to (matched by
+            # gmail_thread_id) when we can tell; otherwise the earliest-touch row still `sent`.
+            target_row = None
+            reply_thread_id = reply.get("thread_id")
+            if reply_thread_id:
+                for r in biz_rows:
+                    if r.get("gmail_thread_id") == reply_thread_id:
+                        target_row = r
+                        break
+            if target_row is None:
+                target_row = biz_rows[0]
+
+            if _already_seen(target_row, message_key):
                 continue  # already classified and (if applicable) notified on a prior scan
 
-            if row_left_sent:
-                merged_notes = _merge_notes(row.get("notes"), llm_classify=None, message_key=message_key)
-                row = st.update_outreach(row["id"], {"notes": merged_notes})
+            if business_left_sent:
+                for r in biz_rows:
+                    _mark_seen_on_row(st, r, message_key)
                 continue
 
             checked += 1
             envelope = None
-            if mock:
-                classification = _mock_classify(reply.get("body_text", ""), reply.get("from", ""))
-            else:
-                our_last_email = row.get("draft_body") or ""
-                envelope = llm.call(
-                    "classify_reply",
-                    PROMPTS_DIR / "classify_reply.md",
-                    {"reply_text": reply.get("body_text", ""), "our_last_email": our_last_email},
-                    model="claude-sonnet-5",
-                    mock=False,
-                    fixtures_root=LLM_FIXTURES_ROOT,
-                )
-                classification = json.loads(envelope["text"])
+            try:
+                if mock:
+                    classification = _mock_classify(reply.get("body_text", ""), reply.get("from", ""))
+                else:
+                    our_last_email = target_row.get("draft_body") or ""
+                    envelope = llm.call(
+                        "classify_reply",
+                        PROMPTS_DIR / "classify_reply.md",
+                        {"reply_text": reply.get("body_text", ""), "our_last_email": our_last_email},
+                        model="claude-sonnet-5",
+                        mock=False,
+                        fixtures_root=LLM_FIXTURES_ROOT,
+                    )
+                    classification = json.loads(envelope["text"])
+            except Exception as exc:  # noqa: BLE001 — item 13: one malformed LLM response (bad
+                # JSON, missing/garbage fields) must never abort the whole scan pass. Log it,
+                # page the operator, and mark the message seen on every sibling row so it isn't
+                # retried into an infinite notify loop — an operator investigating `classify_error`
+                # events can always re-run scan_replies by hand once the cause is fixed.
+                from execution.personal_workflows.prodcraft_medspa.common import notify
 
-            bucket = _handle_reply(st, row, reply, classification, today, envelope=envelope, message_key=message_key)
+                st.log_event(
+                    "outreach",
+                    target_row["id"],
+                    "classify_error",
+                    {"error": f"{type(exc).__name__}: {exc}", "message_key": message_key},
+                )
+                notify.error(
+                    "prodcraft_medspa.scan_replies",
+                    f"classify_error on business {business_id}: {type(exc).__name__}: {exc}",
+                    1,
+                )
+                for r in biz_rows:
+                    _mark_seen_on_row(st, r, message_key)
+                continue
+
+            bucket = _handle_reply(st, target_row, reply, classification, today, envelope=envelope, message_key=message_key)
             key = bucket if bucket in counts else "neutral"  # compute once — fixes the C3 key-mismatch bug
             counts[key] = counts.get(key, 0) + 1
             if bucket == "remove":
-                takedowns.append(row.get("business_id"))
+                takedowns.append(business_id)
             if bucket not in ("bounce", "ooo"):
-                row_left_sent = True
-            # Refresh `row` from the store so a further unseen message this same pass (bounce/ooo
-            # keep looping, or a stray extra reply after the row left `sent`) merges its
-            # seen_reply_ids on top of what THIS reply's classification/transition just wrote,
-            # instead of a stale pre-loop copy that would silently clobber it.
-            refreshed = st.get_row("outreach", row["id"])
+                business_left_sent = True
+
+            # Mark this message seen on every OTHER sibling row too (item 3), so a later scan
+            # never reclassifies it against a row that never itself changed status.
+            for r in biz_rows:
+                if r.get("id") != target_row.get("id"):
+                    _mark_seen_on_row(st, r, message_key)
+
+            # Refresh `target_row` (and its slot in biz_rows) from the store so a further unseen
+            # message this same pass (bounce/ooo keep looping) merges its seen_reply_ids on top
+            # of what THIS reply's classification/transition just wrote, instead of a stale
+            # pre-loop copy that would silently clobber it.
+            refreshed = st.get_row("outreach", target_row["id"])
             if refreshed is not None:
-                row = refreshed
+                for i, r in enumerate(biz_rows):
+                    if r.get("id") == target_row.get("id"):
+                        biz_rows[i] = refreshed
+                        break
 
     return {
         "script": "scan_replies",

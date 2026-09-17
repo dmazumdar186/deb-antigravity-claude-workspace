@@ -70,6 +70,10 @@ jobs:
       DASHBOARD_USER: ${{ secrets.DASHBOARD_USER }}
       DASHBOARD_PASS: ${{ secrets.DASHBOARD_PASS }}
       PRODCRAFT_RECIPIENT_OVERRIDE: ${{ vars.PRODCRAFT_RECIPIENT_OVERRIDE }}
+      # item 8 (round-3 major): an unset/misnamed PRODCRAFT_RECIPIENT_OVERRIDE resolves to a
+      # live send — this second repo variable must also be "true" before send.py will treat a
+      # missing override as live in github-actions (see CONTRACTS.md "Live-recipients gate").
+      PRODCRAFT_LIVE_RECIPIENTS: ${{ vars.PRODCRAFT_LIVE_RECIPIENTS }}
       METRO: ${{ github.event.inputs.metro || vars.PRODCRAFT_METRO || 'chicago_north_shore' }}
     steps:
       - name: Checkout
@@ -118,6 +122,13 @@ jobs:
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: |
+          # item 7 (round-3 major): an unset secret used to write a silent empty file here — the
+          # step never failed, so the Sheets-mirror step later on would fail (or worse, no-op)
+          # with no obvious cause. Fail loudly, now, with a clear message.
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error::GOOGLE_SERVICE_ACCOUNT_JSON secret is empty or unset — cannot write the service account key file" >&2
+            exit 1
+          fi
           echo "$GOOGLE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/prodcraft-service-account.json"
           echo "GOOGLE_SERVICE_ACCOUNT_PATH=$RUNNER_TEMP/prodcraft-service-account.json" >> "$GITHUB_ENV"
 

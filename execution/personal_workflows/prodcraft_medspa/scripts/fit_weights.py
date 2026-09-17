@@ -204,8 +204,29 @@ def template_variant_table(rows: list[tuple[dict, dict, bool]]) -> dict[str, Any
     return table
 
 
+def queue_pick_effective_table(rows: list[tuple[dict, dict, bool]]) -> dict[str, Any]:
+    """item 16 (round-3, Sutskever lens): reply rate grouped by outreach.queue_pick_effective
+    ("random"/"score" — what actually governed each row's touch-1 enqueue; may differ from the
+    raw config.queue_pick while phase0 hasn't passed). A row predating this column (older sends)
+    groups under "unknown" rather than dropped, mirroring template_variant_table()'s pattern."""
+    by_pick: dict[str, list[bool]] = {}
+    for _audit, outreach_row, replied in rows:
+        pick = outreach_row.get("queue_pick_effective") or "unknown"
+        by_pick.setdefault(pick, []).append(replied)
+    table: dict[str, Any] = {}
+    for pick, outcomes in sorted(by_pick.items()):
+        n = len(outcomes)
+        table[pick] = {"n": n, "reply_rate": (sum(outcomes) / n) if n else None}
+    return table
+
+
 def print_table(result: dict[str, Any]) -> None:
-    print(f"touch-1 sent: {result['n_touch1_sent']}, overall reply rate: {result['overall_reply_rate']:.3f}")
+    # item 9 (round-3 minor): overall_reply_rate can be None (e.g. n_touch1_sent == 0 slipping
+    # past the --min-sent gate in an edge case) — formatting None with :.3f raises TypeError and
+    # would crash a script whose whole job is to report, not to fail.
+    overall = result.get("overall_reply_rate")
+    overall_display = "n/a" if overall is None else f"{overall:.3f}"
+    print(f"touch-1 sent: {result['n_touch1_sent']}, overall reply rate: {overall_display}")
     print(f"{'signal':<22} {'n_true':>7} {'reply%_true':>12} {'n_false':>8} {'reply%_false':>13} {'point_biserial_r':>18}")
     for name, row in result["signals"].items():
         rt = "n/a" if row["reply_rate_true"] is None else f"{row['reply_rate_true'] * 100:.1f}%"
@@ -304,6 +325,7 @@ def main() -> None:
     result["mode"] = args.mode
     result["queue_pick"] = queue_pick
     result["template_variants"] = variant_table
+    result["queue_pick_effective"] = queue_pick_effective_table(rows)
 
     out_path = REPO_ROOT / ".tmp" / "prodcraft_medspa" / "fit_weights.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)

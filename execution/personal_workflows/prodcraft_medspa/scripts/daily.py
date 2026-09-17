@@ -34,6 +34,7 @@ if str(REPO_ROOT) not in sys.path:
 from execution.personal_workflows.prodcraft_medspa.common import notify  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.config_validate import assert_valid_config  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.outreach import state_machine  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.scripts._stage_runner import (  # noqa: E402
     common_store_args,
     reject_mock_with_supabase,
@@ -154,6 +155,18 @@ def main() -> None:
     if not takedown_ids:
         print("[daily] no takedowns flagged by scan_replies this run", file=sys.stderr)
 
+    # item 10 (round-3 critical, trust lens): runs after EVERY scan pass, --replies-only included
+    # — catches a business that is do_not_contact/closed_lost but whose preview was never
+    # actually taken down (a takedown call that failed, a crash mid-flow, a manual patch that
+    # bypassed state_machine). This is a sweep, not a per-business step, so failures inside it are
+    # reported (notify.once_per_day, per preview) but never abort the rest of daily.py's run.
+    try:
+        reconcile_stat = state_machine.reconcile_takedowns(store, mock=args.mock)
+        print(f"[daily] reconcile_takedowns: {json.dumps(reconcile_stat)}", file=sys.stderr)
+    except Exception as exc:  # noqa: BLE001 — a reconcile failure must not abort the rest of daily.py
+        print(f"[daily] reconcile_takedowns failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        notify.error("daily.reconcile_takedowns", f"{type(exc).__name__}: {exc}", 1)
+
     queue_result: dict[str, Any] | None = None
     send_result: dict[str, Any] | None = None
     if not args.replies_only:
@@ -175,7 +188,12 @@ def main() -> None:
             send_result = run_step("send", "outreach.send", send_args)
             results.append(send_result)
             print("\n--- send output ---")
-            print(json.dumps(send_result["stat"]) if send_result.get("stat") else "(no output)")
+            # item 20 (round-3, pipeline-auditor lens): send.py's RECIPIENT OVERRIDE banner,
+            # its "bypasses the preview-host guard" WARNING, and any "SEND BLOCKED: ..." line
+            # are all printed to stdout, not carried in the final JSON `stat` line — printing
+            # only `stat` (as this used to) silently dropped every one of those from the cron
+            # log. Print the full captured stdout the same way the daily_queue step above does.
+            print(send_result["stdout"].strip() or "(no output)")
 
     any_failed = any(not r["ok"] for r in results)
     # send_result is None when --replies-only/--no-send skipped the step, and its "stat" is None

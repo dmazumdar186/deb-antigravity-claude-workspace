@@ -103,6 +103,15 @@ class Store(Protocol):
     def update_row(self, table: str, row_id: str, patch: dict) -> dict
                                                               # generic patch-by-id; stamps updated_at
                                                               # for tables that have the column
+    def claim_row(self, table: str, row_id: str, from_status: str, to_status: str) -> bool
+                                                              # (round-3 item 11) atomic compare-and-set:
+                                                              # patches `status` to `to_status` ONLY IF the
+                                                              # row's current status is still `from_status`
+                                                              # at write time; returns whether the claim
+                                                              # succeeded. Two concurrent callers racing the
+                                                              # same row: exactly one gets True. The
+                                                              # sanctioned way to guard against a double-send
+                                                              # (send.py claims drafted->sent before mailing).
     def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict
                                                               # update_row() + logs a "manual_patch" event
                                                               # {table, id, fields: list(patch), reason} —
@@ -242,12 +251,36 @@ existing `--mock` = no-network rule).
 
 ## `outreach.score_at_send` (migration 0004; owned by `daily_queue.py`)
 
-`outreach.score_at_send integer` records the business's `audits.total_score` at the moment a
-touch was sent — a score can drift between queueing and sending (a re-audit, a manual patch), so
-`total_score` read back later off the latest audit isn't necessarily what the prospect was queued
-on. **`scripts/daily_queue.py` (owned by another agent) is the one that should stamp this column**
-on send; this migration only adds it. Until that lands, the column stays `null` and any
-measurement reading it should treat `null` as "not yet backfilled," not "score was zero."
+`outreach.score_at_send integer` = the `total_score` of the audit referenced by
+`outreach.audit_id`, stamped by `daily_queue.enqueue_new_touch1()` when the row is **enqueued**
+(touch 1, `next_touch_at = today`) — not, despite the column's name, at the later moment it's
+actually sent. This is intentional: `fit_weights.py`'s `touch1_outcomes()` joins each outreach row
+to that SAME `audit_id` (falling back to the business's latest audit only when `audit_id` is
+unset), so the enqueue-time score is exactly the regressor fit_weights measures against. A
+re-audit or manual score patch between enqueue and send is deliberately NOT reflected here —
+reading `total_score` back off the latest audit later can disagree with `score_at_send`, and that
+divergence is itself informative (the site changed, or was corrected, after this touch was queued
+on the old number). A row predating migration 0004 has `score_at_send = null`; treat that as "not
+backfilled," not "score was zero."
+
+## `outreach.queue_pick_effective` (migration 0005; owned by `daily_queue.py`; round-3 item 16)
+
+`outreach.queue_pick_effective text` (`"random"`/`"score"`) records what actually governed THIS
+row's touch-1 enqueue — may differ from the raw `config.queue_pick` while `phase0.passed` is
+still false (see `daily_queue._pick_mode()`). Previously stamped only on the `outreach_enqueued`
+events row (unreadable by `fit_weights.py` without an events join); now also on the outreach row
+itself, so `scripts/fit_weights.py`'s `queue_pick_effective_table()` can report reply rate grouped
+by it directly. A row predating migration 0005 has `queue_pick_effective = null`, grouped under
+`"unknown"` in that table.
+
+## `audits.superseded` / `audits.superseded_reason` (migration 0005; round-3 item 21)
+
+Two columns the live store already wrote before `db/schema.sql`/the migration set caught up to
+them (a Supabase apply of a fresh schema would have 400'd the first write). `superseded boolean
+default false` marks an audit row that a later audit for the same business has replaced as "the"
+audit; `superseded_reason text` records why (e.g. `"re-audit"`, `"manual correction"`). No
+Python caller in this checkout sets them yet — the columns exist so a write from elsewhere in the
+pipeline (or a future one) doesn't fail against the schema.
 
 ## Guarantee evidence (`deals/deals.py`) — `evidence_ref`
 
@@ -343,6 +376,92 @@ replies workflow.
   `daily.py`'s own post-scan takedown loop stays a harmless no-op for any business already taken
   down by `state_machine.py`'s dnc path or the new negative-reply path above (idempotent, per
   `preview/takedown.py`'s own status check).
+
+## Round-3 audit additions (`outreach/send.py`, `outreach/daily_queue.py`, `outreach/scan_replies.py`, `outreach/state_machine.py`, `scripts/daily.py`, `common/notify.py`)
+
+- **`needs_operator_input` send guard (`send.py`, CRITICAL item 18)**: a `drafted` row is refused
+  — dropped as `needs_operator_input`, logged as a `send_skipped` event, left `drafted` — when
+  EITHER `notes.needs_operator_input` is true (daily_queue.py's lint-failure escalation, or
+  lint_draft's own `needs_operator_input` flag for an unresolved `[[LOOM URL]]` placeholder) OR
+  its rendered subject/body still contains an unresolved `[[...]]`/`{{...}}` token. This closes
+  the gap item 1's lint fix opened: once the `[[LOOM URL]]` placeholder legitimately passes lint
+  (rule 6 no longer trips on it), nothing else was stopping it from being mailed to a real
+  prospect. One `notify.once_per_day` per day, naming the held-back count, not one per row/run.
+  `daily_queue._drafted_pending_count()` excludes these rows from the daily cap count (they will
+  never leave `drafted` on their own, so counting them would starve fresh drafting every day
+  after) — an operator fixes the missing value (e.g. sets `notes.loom_url`) and calls
+  `state_machine.redraft()` to send it back through the pipeline.
+- **Atomic send claim (`send.py`/`Store.claim_row`, CRITICAL item 11)**: before mailing, `send.py`
+  claims `drafted -> sent` via `Store.claim_row` (see Store interface above); a failed claim
+  (another process already claimed the row) is dropped as `already_claimed` and the send is
+  skipped — the actual compare-and-set that prevents two concurrent `send.py` processes from
+  double-mailing the same row. A pre-send failure (header injection, a Gmail error) releases the
+  claim (`claim_row(..., "sent", "drafted")`) so a retry can pick the row back up.
+- **Fresh cap re-read per send (`send.py`, item 6)**: the remaining daily cap is
+  `max(0, cap - _sent_today_count(...))`, re-read immediately before EACH send inside the loop —
+  not a counter decremented once in memory — so two concurrent processes sharing one Store can't
+  each work off a stale copy and together exceed the day's cap.
+- **Bounce-halt / zero-candidates / needs-operator-input notify (`send.py`, items 12/18)**: a
+  bounce-rate halt, a day with 0 candidates, and a batch of `needs_operator_input` holds all now
+  page the operator via `common.notify.once_per_day(store, dedupe_key, service, message, today)`
+  — deduped per calendar day per `dedupe_key` via `config['notify_dedupe']`, so a re-run of the
+  same day's cron doesn't spam the channel. `send.py`'s live-recipients gate (below) and daily.py's
+  config-validation failure use a plain `notify.error()` instead (misconfiguration, not a
+  recurring daily state).
+- **CI-log redaction (`common/notify.py`, item 4)**: under `PRODCRAFT_ENV == "github-actions"`,
+  `notify.error()`/`notify.reply()`'s stderr fallback (used when Telegram is unconfigured or the
+  send itself fails) prints a redacted line instead of the full text — stderr there is a
+  persisted CI log, and the full text can carry an owner name/email, business name, or reply
+  quote. The Telegram message itself is never redacted either way.
+- **PII purge widened (`common/store.py`, item 5)**: `_OUTREACH_PII_FIELDS` now also blanks
+  `notes` (Gmail ids, `llm_classify` output which can quote the prospect's own words),
+  `draft_subject`, `draft_body` (rendered with the owner's first name and the business name) —
+  previously left behind after a purge.
+- **Lint-failure escalation (`daily_queue.py`, CRITICAL item 2)**: a row that fails lint has
+  `next_touch_at` pushed forward one day and `notes.lint_fail_count` incremented; at
+  `LINT_FAIL_LIMIT` (3) consecutive failures, `notes.needs_operator_input` is set and it's
+  excluded from the selectable `queued` set (see `_needs_operator_input()` in both
+  `daily_queue.py` and `send.py`) and dropped from `_drafted_pending_count()`'s cap accounting —
+  a permanently-broken draft no longer eats the whole day's warmup cap forever. A single
+  `notify.error()` fires on the transition into flagged (not on every subsequent failure).
+- **One reply, one business (`scan_replies.py`, CRITICAL item 3)**: replies are now fetched and
+  processed per BUSINESS, not per outreach row — a business can have multiple `sent` rows at once
+  (touch 1 stays `sent` forever unless replied; `advance.py` creates touch 2+ as a separate row),
+  and `gmail_reader.search_replies(owner_email)` matched the SAME inbound message for every
+  sibling row. A message is classified/notified once per business per pass; every sibling row
+  gets `notes.seen_reply_ids` updated so a later scan never reprocesses it.
+- **Malformed classifier response (`scan_replies.py`, item 13)**: the live LLM call + `json.loads`
+  around one reply's classification is wrapped in try/except — one bad response logs
+  `classify_error`, calls `notify.error()`, and marks the message seen (skipped, not retried into
+  a notify loop) without aborting the rest of the scan pass.
+- **Negative-reply Telegram alert (`scan_replies.py`, item 15)**: a `negative` classification
+  (which now, per item 1, can also come from a touch-2/3/4 draft the same way remove/positive do)
+  posts the same `notify.reply()` alert as positive/neutral/remove, with the classification's
+  provenance (`"llm"` live, `"keyword"` under `--mock`) folded into the summary — a
+  misclassification that silently kills a live preview link is no longer silent.
+- **Takedown reconciliation (`state_machine.reconcile_takedowns`, CRITICAL item 10)**: called from
+  `scripts/daily.py` after every scan pass (normal and `--replies-only`) — finds every business
+  that is `do_not_contact` OR has an outreach row `closed_lost` whose preview(s) are not
+  `status == "takedown"`, and retries the real unpublish path for each, logging a
+  `takedown_retry` event per attempt. A failed retry pages the operator once per preview per day
+  (item 14, via `_notify_takedown_failure`/`notify.once_per_day`) and never aborts the rest of the
+  reconcile pass or `daily.py` itself.
+- **`phase0.calls_to_pass` (`state_machine.py`, item 17)**: `phase0.passed` no longer flips on the
+  FIRST `call_booked` transition — it requires `config.phase0.calls_to_pass` (default 3,
+  validated 1..20 in `common/config_validate.py`) `call_booked` transitions. Each one still
+  increments `phase0.calls_booked`; the threshold check moved off a bare `set_passed_at=1`. A
+  `phase0_passed` event logs the field/value/threshold the moment it flips.
+- **`redraft()` never writes a `reason` column (`state_machine.py`, item 19)**: `outreach` has no
+  `reason` column in `db/schema.sql` — `transition()` now strips `reason` out of the generic
+  `patch` it sends to `Store.update_outreach()` for every non-`sent`/non-`dnc` transition
+  (previously `redraft(store, id, reason)` → `transition(..., reason=reason)` would 400 against
+  Supabase). `reason` still lands in the transition's logged `events` row (`{"fields": {...}}`)
+  — the audit trail this existed for.
+- **`daily.py` prints send.py's full stdout, not just its stat line (item 20)**: `send.py`'s
+  RECIPIENT OVERRIDE banner, its preview-host-guard-bypass WARNING, and any `SEND BLOCKED: ...`
+  line are printed to stdout, not carried in the final JSON stat line — `daily.py`'s "--- send
+  output ---" block now prints the captured stdout in full (matching how the daily_queue step
+  above it already does), so none of those reach the cron log silently dropped.
 
 ## Outreach state machine (`outreach/state_machine.py`)
 

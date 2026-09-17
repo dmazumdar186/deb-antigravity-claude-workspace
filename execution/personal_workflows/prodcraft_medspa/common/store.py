@@ -92,6 +92,14 @@ _OUTREACH_PII_FIELDS = (
     "reply_excerpt",
     "reply_summary",
     "reply_suggested_next_step",
+    # round-3 audit item 5: `notes` carries Gmail ids and llm_classify output (which can quote
+    # the prospect's own reply text); `draft_subject`/`draft_body` are rendered with
+    # owner_first and the business name baked into the greeting/body — all PII once purged.
+    # Blanked to None like every other field here (draft_* is our own copy, but a purge means
+    # "no PII survives," and a rendered draft naming the owner is PII by content, not origin).
+    "notes",
+    "draft_subject",
+    "draft_body",
 )
 
 
@@ -152,6 +160,13 @@ class Store(Protocol):
     def get_row(self, table: str, row_id: str) -> dict | None: ...  # single row by id, or None if not found; table must be in ID_TABLES
 
     def update_row(self, table: str, row_id: str, patch: dict) -> dict: ...  # generic patch-by-id; stamps updated_at for tables that have it
+
+    def claim_row(self, table: str, row_id: str, from_status: str, to_status: str) -> bool: ...
+    # Atomic compare-and-set: patches `status` to `to_status` ONLY IF the row's current status is
+    # still `from_status` at the moment of the write, and returns whether the claim succeeded.
+    # Two concurrent processes racing the same row: exactly one call returns True. Round-3 audit
+    # item 11 — the sanctioned way for send.py (or any other double-send-prone caller) to claim a
+    # row before acting on it, rather than trusting an earlier in-memory read of `status`.
 
     def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict: ...
     # applies update_row(table, id, patch) and logs an "manual_patch" event with
@@ -557,6 +572,26 @@ class LocalStore:
                     rows[i] = merged
                     self._write(table, rows)
                     return merged
+            raise KeyError(f"{table} row {row_id} not found")
+
+    def claim_row(self, table: str, row_id: str, from_status: str, to_status: str) -> bool:
+        if table not in ID_TABLES:
+            raise ValueError(f"table {table!r} has no id column (use list_rows/set_config/load_chains)")
+        with self._lock:
+            # Fresh read under the lock (item 11): a caller's in-memory `row` may be stale by
+            # the time it reaches this claim, so re-read from disk here rather than trusting
+            # what was passed in — the lock+read+write is what makes this atomic.
+            rows = self._read(table)
+            for i, existing in enumerate(rows):
+                if existing.get("id") == row_id:
+                    if existing.get("status") != from_status:
+                        return False
+                    merged = {**existing, "status": to_status}
+                    if table in _TABLES_WITH_UPDATED_AT:
+                        merged["updated_at"] = _now_iso()
+                    rows[i] = merged
+                    self._write(table, rows)
+                    return True
             raise KeyError(f"{table} row {row_id} not found")
 
     def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict:
@@ -966,6 +1001,26 @@ class SupabaseStore:
         if not data:
             raise KeyError(f"{table} row {row_id} not found")
         return data[0] if isinstance(data, list) else data
+
+    def claim_row(self, table: str, row_id: str, from_status: str, to_status: str) -> bool:
+        if table not in ID_TABLES:
+            raise ValueError(f"table {table!r} has no id column (use list_rows/set_config/load_chains)")
+        # item 11: the compare-and-set lives in the PATCH's own WHERE clause
+        # (`id=eq.<row_id>&status=eq.<from_status>`) — PostgREST only touches a row that still
+        # matches both filters at the moment the database applies the write, so a concurrent
+        # second PATCH racing the same row sees 0 rows affected instead of double-applying.
+        body = {"status": to_status}
+        if table in _TABLES_WITH_UPDATED_AT:
+            body["updated_at"] = _now_iso()
+        resp = self._request(
+            "PATCH",
+            table,
+            params=[("id", f"eq.{row_id}"), ("status", f"eq.{from_status}")],
+            headers=self._headers(prefer="return=representation"),
+            json=body,
+        )
+        data = resp.json()
+        return bool(data)
 
     def manual_patch(self, table: str, id: str, patch: dict, reason: str) -> dict:
         updated = self.update_row(table, id, patch)

@@ -86,6 +86,7 @@ def lint(
     # per CONTRACTS.md ("the linter flags as needs_operator_input rather than fail").
     needs_operator_input = _LOOM_PLACEHOLDER in full_text
     text_without_loom_placeholder = full_text.replace(_LOOM_PLACEHOLDER, "")
+    body_without_loom_placeholder = body.replace(_LOOM_PLACEHOLDER, "")
     if _UNRESOLVED_VAR_RE.search(text_without_loom_placeholder):
         violations.append("render:unresolved_variable")
 
@@ -116,8 +117,10 @@ def lint(
     if len(urls) > max_links:
         violations.append("can_spam:5")
 
-    # Rule 6 — no ALL-CAPS words (3+ letters) anywhere in subject or body.
-    if _ALLCAPS_WORD_RE.search(full_text):
+    # Rule 6 — no ALL-CAPS words (3+ letters) anywhere in subject or body. Excludes the
+    # deliberate "[[LOOM URL]]" placeholder (its own ALL-CAPS "LOOM"/"URL" tokens are not
+    # operator-written shouting — they're stripped the same way the unresolved-var check is).
+    if _ALLCAPS_WORD_RE.search(text_without_loom_placeholder):
         violations.append("can_spam:6")
 
     # Rule 7 — no "free" in the subject line.
@@ -130,7 +133,7 @@ def lint(
         violations.append("can_spam:8")
 
     # Extra content guard (not a can_spam_checklist.md rule, but required by this build).
-    for match in _BANNED_WORD_RE.finditer(body):
+    for match in _BANNED_WORD_RE.finditer(body_without_loom_placeholder):
         violations.append(f"content:banned_word:{match.group(1).lower()}")
 
     return {

@@ -8,7 +8,8 @@
     "cap": 5,
     "warmup_days": 14,
     "warmup_start_cap": 2,
-    "queue_pick_until_passed": "score"
+    "queue_pick_until_passed": "score",
+    "calls_to_pass": 3
   },
   "proof_lines": [],
   "sender": {

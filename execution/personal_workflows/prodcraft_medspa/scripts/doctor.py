@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -38,6 +37,9 @@ from execution.personal_workflows.prodcraft_medspa.common.store import get_store
 from execution.personal_workflows.prodcraft_medspa.common.config import (  # noqa: E402
     REQUIRED_BY_STAGE,
     bootstrap,
+)
+from execution.personal_workflows.prodcraft_medspa.outreach.lint_draft import (  # noqa: E402
+    sender_address_is_valid,
 )
 
 PKG_ROOT = REPO_ROOT / "execution" / "personal_workflows" / "prodcraft_medspa"
@@ -256,7 +258,12 @@ def _live_gmail(settings) -> tuple[bool | None, str]:
         # run; the kwarg is supported by every googleapiclient version this package targets.
         service = build("gmail", "v1", credentials=creds, cache_discovery=False)
         profile = service.users().getProfile(userId="me").execute()
-        return True, f"profile ok ({profile.get('emailAddress', '?')})"
+        # item 9 (round-3 minor): mask the authenticated address the same way
+        # masked_recipient_override() does below — doctor's output can land in CI logs, and the
+        # authenticated Gmail address is exactly as sensitive as the recipient override.
+        raw_address = profile.get("emailAddress") or "?"
+        domain = raw_address.split("@", 1)[1] if "@" in raw_address else "?"
+        return True, f"profile ok (***@{domain})"
     except Exception as exc:  # noqa: BLE001
         return False, f"error: {exc}"
 
@@ -389,15 +396,14 @@ def check_sender_config(store) -> tuple[bool, str]:
     return True, "config.sender name + physical_address set"
 
 
-_PLACEHOLDER_PHRASES = ("operator to confirm", "placeholder")
-# "<street or PO box>, <City>, <ST> <ZIP>" — a loose shape check (not USPS-grade validation), just
-# enough to catch an empty/placeholder value before it reaches a CAN-SPAM-required footer.
-_ADDRESS_SHAPE_RE = re.compile(r"^.+,\s*.+,\s*[A-Za-z]{2}\s+\d{5}(-\d{4})?$")
-
-
 def check_sender_address_is_valid(store) -> tuple[bool | None, str]:
     """config.sender.physical_address must look like a real mailing address, not a placeholder.
-    None = skipped (address not set at all — check_sender_config already reports that as missing)."""
+    None = skipped (address not set at all — check_sender_config already reports that as missing).
+
+    item 9 (round-3 minor): delegates to outreach.lint_draft.sender_address_is_valid — the SAME
+    validator send.py's --confirm-live-sends gate uses — instead of a second, independently
+    drifting regex/placeholder-phrase check that could pass here and still fail lint at send time
+    (or vice versa)."""
     try:
         sender = store.get_config("sender", {}) or {}
     except Exception as exc:  # noqa: BLE001 — doctor reports, it does not fail
@@ -405,12 +411,9 @@ def check_sender_address_is_valid(store) -> tuple[bool | None, str]:
     address = (sender.get("physical_address") or "").strip()
     if not address:
         return None, "skipped (config.sender.physical_address not set)"
-    lowered = address.lower()
-    for phrase in _PLACEHOLDER_PHRASES:
-        if phrase in lowered:
-            return False, f"looks like a placeholder (contains {phrase!r}): {address!r}"
-    if not _ADDRESS_SHAPE_RE.match(address):
-        return False, f"does not look like '<street or PO box>, <City>, <ST> <ZIP>': {address!r}"
+    valid, reason = sender_address_is_valid(address)
+    if not valid:
+        return False, f"invalid ({reason}): {address!r}"
     return True, f"format looks valid: {address!r}"
 
 
