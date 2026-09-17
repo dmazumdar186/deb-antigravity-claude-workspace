@@ -105,8 +105,6 @@
     ctx.strokeStyle = rgba(colour, alpha);
     ctx.lineWidth = width || 1.5;
   };
-  /* One straight stroke, in the current style. Used everywhere, so it is worth
-     a helper: masts, ticks, piers, gates and grid lines are all this shape. */
   /* A polyline sampled across the stage: every contour, ripple and field line
      in the scene is one of these. */
   var poly = function (steps, at) {
@@ -169,7 +167,6 @@
   function drawIntro(w) {
     if (w <= 0.001) return;
     var i;
-    var x;
     /* a distant ridge behind the working horizon */
     stroke(WHITE, 0.18 * w, 1.3);
     poly(48, function (x) { return yAt(x) - H * 0.085 - Math.sin(x / W * 5.2 + 0.9) * H * 0.022; });
@@ -272,9 +269,13 @@
       ctx.fillStyle = rgba(GREEN, 0.7 * w);
       ctx.fill();
     }
-    /* hydropower: a dam wall on the left with a still reservoir behind it */
-    var dx = 0.285 * W;
+    /* hydropower: a dam wall with a still reservoir behind it. Kept right of
+       x~640 (the headline column's usual right edge at desktop widths) so it
+       never draws under the hero text — it used to sit at 0.285W, which put
+       it squarely under the headline at every width this scene runs at
+       (>=800px). */
     var dw = 0.135 * W;
+    var dx = Math.max(0.47 * W, 660);
     var dy = yAt(dx + dw / 2);
     var dh = 0.052 * H * e;
     stroke(WHITE, 0.45 * w, 1.5);
@@ -599,8 +600,17 @@
 
   function start() {
     if (!enabled()) {
+      /* Same symmetry as main.js's update(): reset every panel, not just
+         show(0), so a later resize back into desktop-motion mode never
+         inherits a stale aria-hidden/inert from this state. */
       stop();
-      show(0);
+      current = -1;
+      for (var i = 0; i < COUNT; i += 1) {
+        panels[i].classList.remove('is-on');
+        panels[i].removeAttribute('aria-hidden');
+        panels[i].inert = false;
+        if (steps[i]) { steps[i].classList.remove('is-on'); steps[i].removeAttribute('aria-current'); }
+      }
       return;
     }
     resize();

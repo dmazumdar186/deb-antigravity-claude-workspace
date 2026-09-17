@@ -131,7 +131,6 @@ ctx.fillRect(0, 0, W, H);
 function drawIntro(w) {
 if (w <= 0.001) return;
 var i;
-var x;
 stroke(WHITE, 0.18 * w, 1.3);
 poly(48, function (x) { return yAt(x) - H * 0.085 - Math.sin(x / W * 5.2 + 0.9) * H * 0.022; });
 stroke(WHITE, 0.10 * w, 1.1);
@@ -224,8 +223,8 @@ ctx.arc(x, hub, 2.4, 0, PI2);
 ctx.fillStyle = rgba(GREEN, 0.7 * w);
 ctx.fill();
 }
-var dx = 0.285 * W;
 var dw = 0.135 * W;
+var dx = Math.max(0.47 * W, 660);
 var dy = yAt(dx + dw / 2);
 var dh = 0.052 * H * e;
 stroke(WHITE, 0.45 * w, 1.5);
@@ -519,7 +518,13 @@ rafId = 0;
 function start() {
 if (!enabled()) {
 stop();
-show(0);
+current = -1;
+for (var i = 0; i < COUNT; i += 1) {
+panels[i].classList.remove('is-on');
+panels[i].removeAttribute('aria-hidden');
+panels[i].inert = false;
+if (steps[i]) { steps[i].classList.remove('is-on'); steps[i].removeAttribute('aria-current'); }
+}
 return;
 }
 resize();

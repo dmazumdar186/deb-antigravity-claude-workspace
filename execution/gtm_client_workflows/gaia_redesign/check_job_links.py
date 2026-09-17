@@ -56,8 +56,15 @@ class _HeadRequest(urllib.request.Request):
         return "HEAD"
 
 
-def _status(url: str, *, head: bool) -> int | dict[str, Any]:
-    """HTTP status for one request, or an error row if it never got that far."""
+def _status(url: str, *, head: bool) -> dict[str, Any]:
+    """HTTP status (and where the request actually landed) for one request, or
+    an error row if it never got that far.
+
+    `urllib.request.urlopen` follows redirects itself, so a redirected URL
+    comes back with a 200 status from the *final* page, not the 3xx a raw
+    socket would see. `resp.geturl()` is compared against the requested URL
+    so a silent redirect is still visible to the caller.
+    """
     headers = {"User-Agent": UA, "Accept": "*/*"}
     if head:
         req: urllib.request.Request = _HeadRequest(url, headers=headers)
@@ -69,30 +76,43 @@ def _status(url: str, *, head: bool) -> int | dict[str, Any]:
         req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-            return int(getattr(resp, "status", 0) or resp.getcode() or 0)
+            status = int(getattr(resp, "status", 0) or resp.getcode() or 0)
+            final_url = resp.geturl()
+        return {"status": status, "final_url": final_url}
     except urllib.error.HTTPError as exc:
-        return int(exc.code)
+        try:
+            return {"status": int(exc.code), "final_url": exc.geturl() or url}
+        finally:
+            exc.close()
     except NETWORK_ERRORS as exc:
         return {"status": 0, "verdict": "failed", "error": f"{type(exc).__name__}: {str(exc)[:160]}"}
 
 
 def _attempt(url: str) -> dict[str, Any]:
     """One probe. HEAD first, then a ranged GET if the method was refused."""
-    status = _status(url, head=True)
-    if isinstance(status, dict):
-        return status
+    probe = _status(url, head=True)
+    if "verdict" in probe:
+        return probe
+    status, final_url = probe["status"], probe["final_url"]
     if status in INCONCLUSIVE_STATUSES:
         retry = _status(url, head=False)
-        if isinstance(retry, dict):
+        if "verdict" in retry:
             return {"status": status, "verdict": "inconclusive", "error": "server refused the request"}
-        status = retry if retry != 405 else status
-    if status in (200, 206):
-        return {"status": status, "verdict": "ok", "error": ""}
+        if retry["status"] != 405:
+            status, final_url = retry["status"], retry["final_url"]
     if status in INCONCLUSIVE_STATUSES:
         return {"status": status, "verdict": "inconclusive", "error": "server refused the request"}
-    if 200 < status < 400:
-        # A redirect is a live page, but not the URL we published.
-        return {"status": status, "verdict": "inconclusive", "error": f"HTTP {status} (redirect)"}
+    if status in (200, 206):
+        if final_url.rstrip("/") != url.rstrip("/"):
+            # urlopen already followed the redirect, so this is the only place
+            # a redirect is still visible: the page IS live, but not at the
+            # URL we published, so it is not counted as verified-as-published.
+            return {
+                "status": status,
+                "verdict": "inconclusive",
+                "error": f"redirected to {final_url}",
+            }
+        return {"status": status, "verdict": "ok", "error": ""}
     return {"status": status, "verdict": "failed", "error": f"HTTP {status}"}
 
 

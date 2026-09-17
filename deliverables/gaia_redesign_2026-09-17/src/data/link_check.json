@@ -1,15 +1,9 @@
 {
-  "checked_at": "2026-09-17T14:08:29+00:00",
+  "checked_at": "2026-09-17T15:22:28+00:00",
   "checked_on": "2026-09-17",
   "total": 63,
-  "ok": 62,
-  "inconclusive": [
-    {
-      "url": "https://gaiatalent.com/jobs/graduate-engineer-water-utilities/",
-      "status": 403,
-      "error": "server refused the request"
-    }
-  ],
+  "ok": 63,
+  "inconclusive": [],
   "failed": [],
   "blocked": false,
   "control": {
@@ -131,11 +125,11 @@
       "ok": true
     },
     {
-      "status": 403,
-      "verdict": "inconclusive",
-      "error": "server refused the request",
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
       "url": "https://gaiatalent.com/jobs/graduate-engineer-water-utilities/",
-      "ok": false
+      "ok": true
     },
     {
       "status": 200,

@@ -4,7 +4,11 @@
 //   Protocol (not a static screenshot) to exercise the scroll-scrubbed hero
 //   canvas, the pinned card stack, IntersectionObserver reveals, the
 //   solidifying header, the mobile menu and the jobs filter. Captures every
-//   console/Log message; any JS error fails the run.
+//   console/Log message; any JS error fails the run. The canvas perf check
+//   asserts two things over 60 rAFs while scrolling: mean rAF-to-rAF
+//   interval <=17.5ms (no sustained dropped frames) and worst-case interval
+//   <34ms (no double-dropped frame) — not a <=16ms mean, which is just the
+//   60Hz vsync interval and can never pass regardless of canvas cost.
 // inputs: env SITE_PORT (default 8899, must already be serving the built
 //   site), env CDP_PORT (default 9222, a headless_shell with
 //   --remote-debugging-port must already be listening), env SHOT_DIR
@@ -392,25 +396,44 @@ async function perfFrameTime(width, height, label) {
   const cdp = await drive({ width, height });
   try {
     // Measured entirely in-page (a single eval, one CDP round trip) so the
-    // number reflects real rAF-to-rAF pacing (scroll + draw()), not the
+    // numbers reflect real rAF-to-rAF pacing (scroll + draw()), not the
     // WebSocket/IPC overhead of driving each frame from outside the page.
-    const avg = await cdp.eval(
+    //
+    // rAF fires on vsync, so at 60Hz the interval BETWEEN two consecutive
+    // rAF callbacks is ~16.67ms by definition, before the canvas draws a
+    // single pixel — a `<= 16ms` threshold on the mean interval can never
+    // pass on a 60Hz display and was measuring the display's refresh rate,
+    // not our draw cost. Two real signals instead: the mean interval, which
+    // creeps up only if frames are being sustained-dropped (a canvas that
+    // is genuinely too slow to keep up with vsync), and the worst single
+    // interval, which catches an occasional double-dropped frame (a janky
+    // spike) that the mean can hide.
+    const { avg, max } = await cdp.eval(
       `(() => new Promise((resolve) => {
-        var n = 60, i = 0, y = 400, last = performance.now(), total = 0;
+        var n = 60, i = 0, y = 400, last = performance.now(), total = 0, worst = 0;
         function step(now) {
-          total += now - last; last = now;
+          var delta = now - last; total += delta; last = now;
+          if (delta > worst) worst = delta;
           window.scrollTo({ top: y, left: 0, behavior: 'instant' });
           y += 4; i += 1;
-          if (i < n) requestAnimationFrame(step); else resolve(total / n);
+          if (i < n) requestAnimationFrame(step); else resolve({ avg: total / n, max: worst });
         }
         requestAnimationFrame((now) => { last = now; requestAnimationFrame(step); });
       }))()`,
       true
     );
-    const ok = avg <= 16;
-    const label2 = `PERF canvas frame time @ ${label}: ${avg.toFixed(2)}ms/frame (threshold <=16ms; measured in-page over 60 rAFs while scrolling)`;
-    results.push({ ok, label: label2 });
-    console.log(`${ok ? 'PASS' : 'FAIL'}  ${label2}`);
+    // Mean threshold 17.5ms: a hair above one 60Hz frame (16.67ms), so a
+    // clean run passes but any sustained frame-dropping still fails it.
+    const meanOk = avg <= 17.5;
+    // Worst-case threshold 34ms: just under two dropped 60Hz frames
+    // (2 * 16.67 = 33.3ms), so one occasional double-drop is still a FAIL.
+    const maxOk = max < 34;
+    const meanLabel = `PERF canvas mean rAF interval @ ${label}: ${avg.toFixed(2)}ms/frame (threshold <=17.5ms; no sustained dropped frames; measured in-page over 60 rAFs while scrolling)`;
+    const maxLabel = `PERF canvas worst-case rAF interval @ ${label}: ${max.toFixed(2)}ms (threshold <34ms; no double-dropped frame; measured in-page over 60 rAFs while scrolling)`;
+    results.push({ ok: meanOk, label: meanLabel });
+    results.push({ ok: maxOk, label: maxLabel });
+    console.log(`${meanOk ? 'PASS' : 'FAIL'}  ${meanLabel}`);
+    console.log(`${maxOk ? 'PASS' : 'FAIL'}  ${maxLabel}`);
   } finally {
     await cdp.close();
   }

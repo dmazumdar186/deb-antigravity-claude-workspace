@@ -20,19 +20,31 @@ if [ -z "${CHROME:-}" ] || [ ! -x "$CHROME" ]; then
 fi
 echo "chromium: $CHROME"
 
-# Only ever clear PNGs from a shots directory under the repo's .tmp.
+# Only ever clear PNGs from a shots directory under the repo's .tmp. realpath -m
+# resolves the path (without requiring it to exist yet) before the case match,
+# so a relative or symlinked $OUT cannot slip past the prefix check.
+mkdir -p "$OUT"
+OUT="$(realpath -m "$OUT")"
 case "$OUT" in
-  "$ROOT"/.tmp/*) mkdir -p "$OUT"; rm -f "$OUT"/*.png ;;
+  "$ROOT"/.tmp/*) rm -f "$OUT"/*.png ;;
   *) echo "Refusing to clear '$OUT': it is not under $ROOT/.tmp" >&2; exit 1 ;;
 esac
+
+# Scratch pages (token + the click-simulation copies below) are written under
+# .tmp, never into $SITE, so they can never leak into a real deploy of the
+# site and never need cleaning out of it.
+SCRATCH="$OUT/_scratch"
+mkdir -p "$SCRATCH"
 
 # A build-unique token proves we are photographing OUR server and not something
 # else that already had the port.
 TOKEN="gaia-shots-$$-$(date +%s)"
 echo "$TOKEN" > "$SITE/_shot-token.txt"
+SERVER=""
 cleanup() {
-  kill "$SERVER" 2>/dev/null
-  rm -f "$SITE/_shot-token.txt" "$SITE/_shot-menu.html" "$SITE/_shot-outbox.html" "$SITE/_shot-stack.html"
+  kill "${SERVER:-0}" 2>/dev/null
+  rm -f "$SITE/_shot-token.txt"
+  rm -rf "$SCRATCH"
 }
 trap cleanup EXIT
 
@@ -53,13 +65,20 @@ fi
 
 FAILURES=0
 shot() { # name url width height [extra flags...]
+  # $url may be a bare path (served from $SITE on $PORT) or a full
+  # http://127.0.0.1:$PORT2/... URL (the scratch interaction pages).
   local name="$1" url="$2" w="$3" h="$4"; shift 4
+  local full="$url"
+  case "$url" in
+    http://*|https://*) ;;
+    *) full="http://127.0.0.1:$PORT/$url" ;;
+  esac
   rm -f "$OUT/$name.png"
   "$CHROME" --no-sandbox --disable-gpu --hide-scrollbars \
     --disable-dev-shm-usage --force-device-scale-factor=1 \
     --virtual-time-budget=6000 \
     --screenshot="$OUT/$name.png" --window-size="$w,$h" "$@" \
-    "http://127.0.0.1:$PORT/$url" >/dev/null 2>&1
+    "$full" >/dev/null 2>&1
   if [ -s "$OUT/$name.png" ]; then
     echo "  $name.png  ($w x $h)"
   else
@@ -89,11 +108,17 @@ shot "index-768-flow3" "index.html?scene=3" 768 1024
 
 # Two interaction states that only exist after a click. A headless run cannot
 # click, so each is captured from a throwaway copy of the page with a few lines
-# of script appended; both copies are deleted again below.
+# of script appended. Those copies are written to $SCRATCH (under .tmp), never
+# into $SITE, and served from a second, scratch-rooted http server; $SCRATCH
+# is deleted in cleanup() regardless of how the script exits.
 echo "interaction states (menu open, pinned stack mid-scroll, composed message)"
-python3 - "$SITE" <<'PYEOF'
+for d in css js assets data; do
+  [ -e "$SITE/$d" ] && ln -sfn "$SITE/$d" "$SCRATCH/$d"
+done
+python3 - "$SITE" "$SCRATCH" <<'PYEOF'
 import pathlib, sys
 site = pathlib.Path(sys.argv[1])
+scratch = pathlib.Path(sys.argv[2])
 src = (site / "index.html").read_text(encoding="utf-8")
 menu = """<script>addEventListener('load',function(){
   setTimeout(function(){var t=document.querySelector('[data-menu-toggle]');if(t)t.click();},300);});</script>"""
@@ -105,10 +130,10 @@ outbox = """<script>addEventListener('load',function(){setTimeout(function(){
   var sel=document.getElementById('c-src');if(sel)sel.value='Referral';
   f.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
   document.getElementById('contact-out').scrollIntoView({block:'center',behavior:'auto'});},600);});</script>"""
-(site / "_shot-menu.html").write_text(src.replace("</body>", menu + "</body>"), encoding="utf-8")
+(scratch / "_shot-menu.html").write_text(src.replace("</body>", menu + "</body>"), encoding="utf-8")
 hide_hero = src.replace('<section class="flow flow--pinned" data-flow',
                         '<section class="flow flow--pinned" style="display:none" data-flow')
-(site / "_shot-stack.html").write_text(
+(scratch / "_shot-stack.html").write_text(
     hide_hero.replace('<section class="band band--mist" id="about">',
                       '<section class="band band--mist" id="about" style="display:none">'),
     encoding="utf-8")
@@ -116,15 +141,31 @@ only_contact = hide_hero
 for anchor in ('id="about"', 'id="process"', 'id="services"', 'id="roles"',
                'id="sectors"', 'id="team"', 'id="proof"'):
     only_contact = only_contact.replace(anchor, anchor + ' style="display:none"')
-(site / "_shot-outbox.html").write_text(
+(scratch / "_shot-outbox.html").write_text(
     only_contact.replace("</body>", outbox + "</body>")
                 .replace('<section class="band band--navy" id="contact">',
                          '<section class="band band--navy" id="contact" style="padding-top:120px">'),
     encoding="utf-8")
 PYEOF
-shot "index-390-menu-open" "_shot-menu.html" 390 844
-for pr in 0.10 0.42 0.78; do shot "index-1440-stack-$pr" "_shot-stack.html?stack=$pr" 1440 900; done
-shot "index-1440-outbox"   "_shot-outbox.html" 1440 1800
+
+PORT2="${PORT2:-$((PORT + 1))}"
+python3 -m http.server "$PORT2" --directory "$SCRATCH" >/dev/null 2>&1 &
+SERVER2=$!
+cleanup() {
+  kill "${SERVER:-0}" "${SERVER2:-0}" 2>/dev/null
+  rm -f "$SITE/_shot-token.txt"
+  rm -rf "$SCRATCH"
+}
+trap cleanup EXIT
+for _ in $(seq 1 40); do
+  kill -0 "$SERVER2" 2>/dev/null || { echo "Scratch server exited before it was ready (port $PORT2 in use?)" >&2; exit 1; }
+  curl -s --max-time 2 -o /dev/null -w "" "http://127.0.0.1:$PORT2/_shot-menu.html" && break
+  sleep 0.25
+done
+
+shot "index-390-menu-open" "http://127.0.0.1:$PORT2/_shot-menu.html" 390 844
+for pr in 0.10 0.42 0.78; do shot "index-1440-stack-$pr" "http://127.0.0.1:$PORT2/_shot-stack.html?stack=$pr" 1440 900; done
+shot "index-1440-outbox"   "http://127.0.0.1:$PORT2/_shot-outbox.html" 1440 1800
 echo "reduced-motion set"
 shot "rm-index-1440" "index.html"      1440 9000  --force-prefers-reduced-motion
 shot "rm-index-390"  "index.html"      390  15000 --force-prefers-reduced-motion

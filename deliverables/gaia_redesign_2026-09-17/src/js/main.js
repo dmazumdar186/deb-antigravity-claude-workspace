@@ -39,6 +39,7 @@
   if (stack) stack.style.setProperty('--stack-span', String(cards.length));
 
   var pending = false;
+  var stackFrozen = false;
   function update() {
     pending = false;
     var vh = window.innerHeight;
@@ -47,8 +48,29 @@
       hdr.classList.toggle('is-scrolled', window.scrollY > 48);
       hdr.style.setProperty('--page-progress', String(Math.min(1, Math.max(0, window.scrollY / range))));
     }
-    if (M && stack && cards.length && desktop.matches && !reduce.matches) {
+    /* stackFrozen: index.html?stack=<p> pins the stack for a screenshot; a
+       resize (viewport rotate, devtools opening) must not repaint it back
+       onto the live scroll progress. Outside desktop-motion mode the cards
+       render as a plain stacked list (CSS handles the layout), so clear any
+       inert/aria-hidden a previous desktop paintStack() left behind, or a
+       resize down from desktop can leave cards keyboard/AT-unreachable. */
+    if (stackFrozen) {
+      /* no-op */
+    } else if (M && stack && cards.length && desktop.matches && !reduce.matches) {
       paintStack(M.sectionProgress(stack.getBoundingClientRect(), vh));
+    } else if (cards.length) {
+      var props = ['--card-y', '--card-rot', '--card-scale', '--card-opacity', 'z-index'];
+      cards.forEach(function (el) {
+        el.removeAttribute('aria-hidden');
+        el.inert = false;
+        el.classList.remove('is-front');
+        props.forEach(function (p) { el.style.removeProperty(p); });
+      });
+      stackSteps.forEach(function (s) {
+        s.classList.remove('is-on');
+        s.removeAttribute('aria-current');
+        s.style.removeProperty('--fill');
+      });
     }
   }
   function onScroll() {
@@ -67,6 +89,7 @@
     if (!hook || !stack || !cards.length || !M) return;
     if (!desktop.matches || reduce.matches) return;
     window.removeEventListener('scroll', onScroll);
+    stackFrozen = true;
     paintStack(Math.min(1, Math.max(0, parseFloat(hook[1]) || 0)));
   }());
 
@@ -95,8 +118,21 @@
       document.body.classList.toggle('is-menu-open', open);
       siblings.forEach(function (el) { el.inert = open; });
       if (open) {
-        var first = menu.querySelector('a, button');
-        if (first) first.focus();
+        /* `menu.inert = false` and the `.is-open` class (which drives the
+           menu's visibility) were just set above, but the browser does not
+           consider the menu's contents focusable until it has actually
+           applied that style/inert change during its next "update the
+           rendering" step — a focus() call before that step (same tick,
+           or even a single setTimeout(0)/requestAnimationFrame later, which
+           can both still land before that step runs) silently no-ops and
+           leaves focus on the toggle. Two nested rAFs guarantee at least
+           one full render step has happened first. */
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(function () {
+            var first = menu.querySelector('a, button');
+            if (first) first.focus();
+          });
+        });
       } else {
         var target = (restoreTo && document.contains(restoreTo)) ? restoreTo : toggle;
         restoreTo = null;
@@ -134,10 +170,19 @@
          actually looking at the page, or every reveal below the fold is spent
          before they reach it. */
       window.setTimeout(function () {
-        if (document.visibilityState !== 'hidden' && document.hasFocus()) return;
+        /* Raised from 4s to 20s, and document.hasFocus() dropped from the
+           gate: hasFocus() is unreliable in a headless/CI runner, which can
+           hold OS-level focus on its own window while the tab it drives
+           never registers as "focused" — that combination used to make this
+           net fire immediately regardless of the timeout, well before
+           anyone had a chance to scroll. 20s is short enough to still catch
+           a genuinely abandoned render (a background tab, a print job) but
+           long enough that a normal page visit, or a test driving several
+           seconds of scroll interaction first, never trips it. */
+        if (document.visibilityState !== 'hidden') return;
         items.forEach(function (el) { el.classList.add('is-visible'); });
         obs.disconnect();
-      }, 4000);
+      }, 20000);
     }
   }
 

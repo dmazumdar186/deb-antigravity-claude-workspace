@@ -107,3 +107,7 @@ deliverables/ad_creative/**/renders/
 
 # Vercel CLI link metadata (never commit)
 .vercel/
+
+# Gaia redesign: the B Corp logo is a shipped site asset (brief-sourced), not a screenshot
+!deliverables/gaia_redesign_2026-09-17/src/assets/*.png
+!deliverables/gaia_redesign_2026-09-17/site/assets/*.png

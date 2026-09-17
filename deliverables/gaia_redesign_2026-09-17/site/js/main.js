@@ -30,6 +30,7 @@ else step.removeAttribute('aria-current');
 }
 if (stack) stack.style.setProperty('--stack-span', String(cards.length));
 var pending = false;
+var stackFrozen = false;
 function update() {
 pending = false;
 var vh = window.innerHeight;
@@ -38,8 +39,22 @@ var range = Math.max(document.documentElement.scrollHeight - vh, 1);
 hdr.classList.toggle('is-scrolled', window.scrollY > 48);
 hdr.style.setProperty('--page-progress', String(Math.min(1, Math.max(0, window.scrollY / range))));
 }
-if (M && stack && cards.length && desktop.matches && !reduce.matches) {
+if (stackFrozen) {
+} else if (M && stack && cards.length && desktop.matches && !reduce.matches) {
 paintStack(M.sectionProgress(stack.getBoundingClientRect(), vh));
+} else if (cards.length) {
+var props = ['--card-y', '--card-rot', '--card-scale', '--card-opacity', 'z-index'];
+cards.forEach(function (el) {
+el.removeAttribute('aria-hidden');
+el.inert = false;
+el.classList.remove('is-front');
+props.forEach(function (p) { el.style.removeProperty(p); });
+});
+stackSteps.forEach(function (s) {
+s.classList.remove('is-on');
+s.removeAttribute('aria-current');
+s.style.removeProperty('--fill');
+});
 }
 }
 function onScroll() {
@@ -55,6 +70,7 @@ var hook = /[?&]stack=([0-9.]+)/.exec(window.location.search || '');
 if (!hook || !stack || !cards.length || !M) return;
 if (!desktop.matches || reduce.matches) return;
 window.removeEventListener('scroll', onScroll);
+stackFrozen = true;
 paintStack(Math.min(1, Math.max(0, parseFloat(hook[1]) || 0)));
 }());
 var toggle = document.querySelector('[data-menu-toggle]');
@@ -75,8 +91,12 @@ document.body.style.overflow = open ? 'hidden' : '';
 document.body.classList.toggle('is-menu-open', open);
 siblings.forEach(function (el) { el.inert = open; });
 if (open) {
+window.requestAnimationFrame(function () {
+window.requestAnimationFrame(function () {
 var first = menu.querySelector('a, button');
 if (first) first.focus();
+});
+});
 } else {
 var target = (restoreTo && document.contains(restoreTo)) ? restoreTo : toggle;
 restoreTo = null;
@@ -108,10 +128,10 @@ obs.unobserve(entry.target);
 }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
 items.forEach(function (el) { obs.observe(el); });
 window.setTimeout(function () {
-if (document.visibilityState !== 'hidden' && document.hasFocus()) return;
+if (document.visibilityState !== 'hidden') return;
 items.forEach(function (el) { el.classList.add('is-visible'); });
 obs.disconnect();
-}, 4000);
+}, 20000);
 }
 }
 function compose(form) {

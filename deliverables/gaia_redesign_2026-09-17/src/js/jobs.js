@@ -57,8 +57,9 @@
       if (sec && sec.value) params.set('sector', sec.value);
       if (typ && typ.value) params.set('type', typ.value);
       var s = params.toString();
+      var hash = window.location.hash || '';
       try {
-        window.history.replaceState(null, '', s ? '?' + s : window.location.pathname);
+        window.history.replaceState(null, '', (s ? '?' + s : window.location.pathname) + hash);
       } catch (err) {
         /* Some embedded and file:// contexts refuse replaceState. The filtering
            itself is unaffected; only the shareable URL is lost. */

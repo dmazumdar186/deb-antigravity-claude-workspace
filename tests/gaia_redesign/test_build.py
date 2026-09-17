@@ -3,7 +3,9 @@
 description: Exercises build_site.py helper functions in isolation (unit tier)
   and the build -> validate -> link-check chain against the real dataset and
   against deliberately injected faults (integration tier). Never touches
-  deliverables/{src,site} — every build target is a directory under /tmp.
+  deliverables/{src,site} — every build target is a fresh directory under
+  this repo's .tmp/ (guard_output's allow-list dropped the blanket /tmp entry
+  in round 4, so a bare system tempdir is refused).
 inputs: none (reads the checked-in src/ tree read-only)
 outputs: stdout PASS/FAIL lines; process exit code 0 (all pass) / 1 (failures)
 
@@ -111,7 +113,7 @@ def test_sector_options_and_chips():
 
 def test_job_haystack_and_sector_map_term():
     jobs = [_job(title="Senior Hydrogeologist"), _job(slug="b", title="Wind Consents Officer")]
-    count, term = build_site.sector_map_term("Hydropower & Onshore Wind", ["hydro", "wind", "consents"], jobs)
+    count, term = build_site.sector_map_term(["hydro", "wind", "consents"], jobs)
     check(count >= 1, "sector_map_term: finds at least one keyword hit across the two jobs")
     check(term in ("hydro", "wind", "consents"), "sector_map_term: returns one of the supplied keywords")
 
@@ -131,6 +133,79 @@ def test_publish_text_strips_block_comments_only():
     out = build_site.publish_text(src)
     check("/* header" not in out, "publish_text: strips a block comment")
     check("// not a comment (kept)" in out, "publish_text: leaves a trailing // alone (could be a URL/regex)")
+
+
+def test_run_node_tests_never_reports_zero_as_passing(tmp_root: Path):
+    # Item 1: a (0, 0) node --test summary, or a non-zero exit with no "# fail"
+    # line, must never come back as a clean pass.
+    src = tmp_root / "node_tests_crash"
+    (src / "js").mkdir(parents=True)
+    (src / "js" / "motion.test.js").write_text("throw new Error('boom');\n", encoding="utf-8")
+    result = build_site.run_node_tests(src)
+    check(
+        result is not None and result[1] > 0,
+        f"run_node_tests: a crashing test file (non-zero exit, no '# fail' line) is reported as a failure (got {result})",
+    )
+
+    with mock.patch("subprocess.run") as m:
+        m.return_value = mock.Mock(returncode=0, stdout="# pass 0\n# fail 0\n")
+        src2 = tmp_root / "node_tests_zero_summary"
+        (src2 / "js").mkdir(parents=True)
+        (src2 / "js" / "motion.test.js").write_text("", encoding="utf-8")
+        result2 = build_site.run_node_tests(src2)
+    check(
+        result2 is not None and result2[1] > 0,
+        f"run_node_tests: a clean-exit (0, 0) summary is still reported as a failure (got {result2})",
+    )
+
+
+def test_check_dataset_rejects_pipe_in_sector(tmp_root: Path):
+    # Item 3: '|' in a sector collides with data-sector's '|'-joined encoding.
+    bad = [_job(sectors=["Water | Flood"])]
+    problems = build_site.check_dataset(bad)
+    check(any("'|'" in p for p in problems), "check_dataset: rejects '|' inside a sector name")
+
+
+def test_check_job_links_flags_redirect_as_inconclusive():
+    # Item 4: urlopen follows redirects itself, so a redirected URL comes back
+    # with a 200 from the final page; geturl() differing from the requested
+    # URL is the only way to still see it, and it must be "inconclusive", not
+    # "ok" (the live link we published is not the one that answered).
+    class _Resp:
+        status = 200
+        def getcode(self): return 200
+        def geturl(self): return "https://gaiatalent.com/jobs/actually-moved/"
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    with mock.patch("urllib.request.urlopen", return_value=_Resp()):
+        row = check_job_links.check_one("https://gaiatalent.com/jobs/old-slug/")
+    check(row["verdict"] == "inconclusive", f"check_job_links: a redirected URL is 'inconclusive', not 'ok' (got {row['verdict']!r})")
+    check(not row["ok"], "check_job_links: a redirected URL's ok flag is False")
+
+
+def test_validate_site_forbidden_words_round4():
+    # Item 5: the four words/patterns round 4 added to FORBIDDEN.
+    import re as _re
+    for phrase in ("Hidden Depth", "615983", "our CRO", "built on WordPress"):
+        text = f"some text {phrase} on the page"
+        hit = any(_re.search(pattern, text) for pattern, _ in validate_site.FORBIDDEN)
+        check(hit, f"validate_site.FORBIDDEN: matches {phrase!r}")
+
+
+def test_main_js_clears_stack_inert_outside_desktop_motion():
+    # Item 7: main.js's update() must have a branch that clears inert/
+    # aria-hidden on the stack cards when not painting the desktop stack.
+    text = (SRC / "js" / "main.js").read_text(encoding="utf-8")
+    check("el.inert = false" in text, "main.js: update() clears card.inert outside desktop-motion mode")
+    check("removeAttribute('aria-hidden')" in text, "main.js: update() removes aria-hidden outside desktop-motion mode")
+
+
+def test_jobs_js_syncurl_preserves_hash():
+    # Item 8: syncUrl must not drop location.hash when it rewrites the query string.
+    text = (SRC / "js" / "jobs.js").read_text(encoding="utf-8")
+    check("window.location.hash" in text, "jobs.js: syncUrl reads location.hash")
+    check("+ hash)" in text or "+hash)" in text, "jobs.js: syncUrl appends hash back onto the replaceState URL")
 
 
 def test_guard_output(tmp_root: Path):
@@ -158,12 +233,18 @@ def test_integration_build_validate_linkcheck_stubbed(tmp_root: Path):
     shutil.copytree(SRC, src_copy)
 
     class _Resp:
+        def __init__(self, url):
+            self._url = url
         status = 200
         def getcode(self): return 200
+        def geturl(self): return self._url  # same URL requested: not a redirect
         def __enter__(self): return self
         def __exit__(self, *a): return False
 
-    with mock.patch("urllib.request.urlopen", return_value=_Resp()):
+    def _fake_urlopen(req, timeout=None):
+        return _Resp(req.full_url if hasattr(req, "full_url") else req)
+
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_urlopen):
         rc = build_site.build(src_copy, out, skip_links=False)
     check(rc == 0, "integration: build() returns 0 against the real dataset with urlopen stubbed 200")
     check((out / "index.html").exists(), "integration: index.html was written")
@@ -240,16 +321,18 @@ def test_validator_rejects_five_injected_faults(tmp_root: Path):
     )
     check(any("not in the dataset" in f for f in fails), "validator: catches a job link not present in the dataset")
 
-    # 5. </script> in a title breaking out of the JSON-LD block
+    # 5. </script> in a title breaking out of the JSON-LD block. Round 4's
+    # check_dataset now rejects any '<'/'>' in a title outright (belt as well
+    # as the pre-existing json_ld() escaping), so this is caught before a
+    # single file is rendered rather than after.
     evil_jobs = copy.deepcopy(FAULT_JOBS_BASE)
     evil_jobs[0]["title"] = 'Ecologist</script><script>alert(1)</script>'
     out, fails = _built_site_with(tmp_root, "scriptbreak", evil_jobs)
-    # The build's own json_ld() escaper should have neutralised this already;
-    # assert the shipped HTML contains no literal </script> break-out and that
-    # validate_site still reports the JSON-LD blocks as parseable.
-    home = (out / "index.html").read_text(encoding="utf-8")
-    check("</script><script>alert(1)</script>" not in home, "build: json_ld() neutralises a literal </script> inside a title")
-    check(fails == [], f"validator: a title containing </script> still yields a clean, parseable build (got {fails[:2]})")
+    check(not out.exists(), "build: a title containing '<'/'>' is rejected at the dataset stage, no output written")
+    check(
+        fails == ["build itself failed (rc=%d) before validation could run" % 2],
+        f"build: rc=2 (dataset validation failure), not a render-then-validate pass (got {fails[:2]})",
+    )
 
 
 def test_dataset_problems_block_the_build(tmp_root: Path):
@@ -266,7 +349,9 @@ def test_dataset_problems_block_the_build(tmp_root: Path):
 
 def main() -> int:
     import inspect
-    tmp_root = Path(tempfile.mkdtemp(prefix="gaia_test_build_"))
+    base = REPO / ".tmp"
+    base.mkdir(exist_ok=True)
+    tmp_root = Path(tempfile.mkdtemp(prefix="gaia_test_build_", dir=str(base)))
     try:
         for name, fn in sorted(globals().items()):
             if not name.startswith("test_") or not callable(fn):

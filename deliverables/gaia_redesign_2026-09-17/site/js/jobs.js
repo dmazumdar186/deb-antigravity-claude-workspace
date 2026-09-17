@@ -45,8 +45,9 @@ if (loc && loc.value) params.set('location', loc.value);
 if (sec && sec.value) params.set('sector', sec.value);
 if (typ && typ.value) params.set('type', typ.value);
 var s = params.toString();
+var hash = window.location.hash || '';
 try {
-window.history.replaceState(null, '', s ? '?' + s : window.location.pathname);
+window.history.replaceState(null, '', (s ? '?' + s : window.location.pathname) + hash);
 } catch (err) {
 if (window.console) window.console.warn('Could not update the address bar:', err);
 }
