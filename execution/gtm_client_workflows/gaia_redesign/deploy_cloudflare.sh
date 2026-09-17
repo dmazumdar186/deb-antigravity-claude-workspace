@@ -25,9 +25,13 @@ export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 WRANGLER="npx -y wrangler@4"
 $WRANGLER whoami >/dev/null 2>&1 || { echo "wrangler could not authenticate with the token" >&2; exit 1; }
 
-# Create the project on first run; ignore "already exists".
+# Create the project on first run; ignore "already exists" on reruns (the
+# `project list` grep is not a reliable existence check, so tolerate the
+# create error itself instead of gating on the list).
 if ! $WRANGLER pages project list 2>/dev/null | grep -qE "(^|[[:space:]])$PROJECT([[:space:]]|$)"; then
-  $WRANGLER pages project create "$PROJECT" --production-branch main
+  CREATE_OUT="$($WRANGLER pages project create "$PROJECT" --production-branch main 2>&1)" \
+    || { grep -qi "already exist" <<<"$CREATE_OUT" \
+         || { printf '%s\n' "${CREATE_OUT//$CLOUDFLARE_API_TOKEN/***}" >&2; exit 1; }; }
 fi
 
 # Stage a copy with build/scratch artifacts excluded (the build marker and
