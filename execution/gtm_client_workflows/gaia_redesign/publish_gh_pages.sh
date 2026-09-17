@@ -7,11 +7,22 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 SITE="${1:-$ROOT/deliverables/gaia_redesign_2026-09-17/site}"
 SUB="${2:-gaia}"
+[[ "$SUB" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || { echo "invalid subpath: $SUB" >&2; exit 1; }
 WT="$ROOT/.tmp/gh-pages-wt"
+REMOTE_URL="$(git -C "$ROOT" remote get-url origin | sed -E 's#(\.git)?$##')"
+OWNER="$(basename "$(dirname "$REMOTE_URL")")"
+REPO="$(basename "$REMOTE_URL")"
+cleanup() { git -C "$ROOT" worktree remove --force "$WT" 2>/dev/null || true; }
+trap cleanup EXIT
 [ -f "$SITE/index.html" ] || { echo "no index.html in $SITE" >&2; exit 1; }
 git -C "$ROOT" fetch origin gh-pages
 if [ -d "$WT" ]; then git -C "$ROOT" worktree remove --force "$WT"; fi
 git -C "$ROOT" worktree prune
+if git -C "$ROOT" rev-parse --verify -q gh-pages >/dev/null; then
+  if [ -n "$(git -C "$ROOT" log --oneline origin/gh-pages..gh-pages)" ]; then
+    echo "local gh-pages has unpushed commits; refusing to reset it" >&2; exit 1
+  fi
+fi
 git -C "$ROOT" worktree add -B gh-pages "$WT" origin/gh-pages
 # Replace only the sub-path (git rm keeps the operation scoped and reviewable).
 if [ -d "$WT/$SUB" ]; then git -C "$WT" rm -rq "$SUB"; fi
@@ -25,14 +36,14 @@ if git diff --cached --quiet; then
 else
   git commit -q -m "gaia redesign: publish $SUB/ ($(date -u +%Y-%m-%dT%H:%MZ))
 
-Co-Authored-By: Claude <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_012yGk6DQ9jVHhCS6neDKsrh"
+Co-Authored-By: Claude <noreply@anthropic.com>"
   for i in 1 2 3 4 5; do
     if git push -u origin gh-pages; then break; fi
     [ "$i" -eq 5 ] && exit 1
     sleep $((2 ** i))
+    # Re-base onto whatever landed on the remote meanwhile (non-fast-forward case).
+    git fetch origin gh-pages && git rebase origin/gh-pages
   done
 fi
-echo "published: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/$SUB/"
+echo "published: https://$OWNER.github.io/$REPO/$SUB/"
 cd "$ROOT"
-git worktree remove --force "$WT"
