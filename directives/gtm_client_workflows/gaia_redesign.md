@@ -150,6 +150,9 @@ operator ships serious, accurate, fast work. Research and the panel decisions li
 
 - 2026-09-17: created. Research (four scrape agents), six-lens panel, spec, build, publish to
   `gh-pages:/gaia/` (now **live**: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/gaia/).
+- 2026-09-17 (Cloudflare): `deploy_cloudflare.sh` run from a cloud session with the two `CLOUDFLARE_*`
+  vars present — **live**: https://gaia-talent-redesign.pages.dev/ (all four pages 200). The
+  project-create step now tolerates wrangler's "already exists" error, so reruns no longer abort.
 - 2026-09-17 (rounds 4-5): build now fails on a node-test crash or a clean `(0,0)` summary; `.gaia-build`
   marker written before `copytree` with a recovery hint on interrupted builds; `--out` allow-list
   tightened to repo `.tmp/` + `CLAUDE_SCRATCHPAD` only (bare `/tmp` removed); validator's forbidden-term

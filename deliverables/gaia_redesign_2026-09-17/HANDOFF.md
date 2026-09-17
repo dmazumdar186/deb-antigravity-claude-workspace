@@ -60,10 +60,11 @@ WebFetch/Firecrawl; `curl -A Mozilla` works.
 
 ## Publish (only after round 4 is green)
 1. `publish_gh_pages.sh` → curl 200 on `/gaia/`, `/gaia/jobs/`, `/gaia/team/`, `/gaia/for-keith/`.
-2. `deploy_cloudflare.sh` once the two CLOUDFLARE_* variables exist in the cloud environment (they are
-   not in this sandbox; operator has them in the local `.env`).
+2. `deploy_cloudflare.sh` → **done 2026-09-17**, live at https://gaia-talent-redesign.pages.dev/ (curl 200
+   on `/`, `/jobs/`, `/team/`, `/for-keith/`; the `/for-keith/` page carries the "For the record" opener).
+   Reruns are safe: the project-create step tolerates "already exists".
 3. Commit `src/`, `site/`, `tests/`, scripts, directive; push branch; merge to main per standing order.
-4. Send Keith the GitHub Pages URL (never an artifact link) with the `/for-keith/` page as the note.
+4. Send Keith the Cloudflare Pages URL (never an artifact link) with the `/for-keith/` page as the note.
 
 ## Known low-priority deviations
 - The hero flow-pick keyword order (`build_site.py`'s sector-map list) differs from `build_spec.md` §10's
