@@ -112,15 +112,19 @@ hide_hero = src.replace('<section class="flow flow--pinned" data-flow',
     hide_hero.replace('<section class="band band--mist" id="about">',
                       '<section class="band band--mist" id="about" style="display:none">'),
     encoding="utf-8")
+only_contact = hide_hero
+for anchor in ('id="about"', 'id="process"', 'id="services"', 'id="roles"',
+               'id="sectors"', 'id="team"', 'id="proof"'):
+    only_contact = only_contact.replace(anchor, anchor + ' style="display:none"')
 (site / "_shot-outbox.html").write_text(
-    hide_hero.replace("</body>", outbox + "</body>")
-             .replace('<section class="band band--navy" id="contact">',
-                      '<section class="band band--navy" id="contact" style="padding-top:110px">'),
+    only_contact.replace("</body>", outbox + "</body>")
+                .replace('<section class="band band--navy" id="contact">',
+                         '<section class="band band--navy" id="contact" style="padding-top:120px">'),
     encoding="utf-8")
 PYEOF
 shot "index-390-menu-open" "_shot-menu.html" 390 844
 for pr in 0.10 0.42 0.78; do shot "index-1440-stack-$pr" "_shot-stack.html?stack=$pr" 1440 900; done
-shot "index-1440-outbox"   "_shot-outbox.html" 1440 2400
+shot "index-1440-outbox"   "_shot-outbox.html" 1440 1800
 echo "reduced-motion set"
 shot "rm-index-1440" "index.html"      1440 9000  --force-prefers-reduced-motion
 shot "rm-index-390"  "index.html"      390  15000 --force-prefers-reduced-motion

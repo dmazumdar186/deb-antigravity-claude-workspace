@@ -64,6 +64,7 @@ line-height: 1.6;
 overflow-x: clip;
 }
 img, svg, canvas { display: block; max-width: 100%; }
+[hidden] { display: none !important; }
 img { height: auto; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: inherit; }
@@ -521,6 +522,7 @@ html:not(.has-js) .ticker__t { animation: none; width: auto; max-width: var(--ma
 html:not(.has-js) .ticker__g:nth-child(2) { display: none; }
 html:not(.has-js) .ticker__g { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px clamp(24px, 4vw, 56px); }
 html:not(.has-js) .ticker a { padding-inline: 0; white-space: normal; }
+html:not(.has-js) .ticker a::after { display: none; }
 @media (min-width: 800px) {
 html:not(.has-js) .ticker__g { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -768,6 +770,7 @@ transition-duration: .001ms !important; scroll-behavior: auto !important;
 .ticker__g:nth-child(2) { display: none; }
 .ticker__g { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px clamp(24px, 4vw, 56px); }
 .ticker a { padding-inline: 0; white-space: normal; }
+.ticker a::after { display: none; }
 .live__dot { animation: none; }
 }
 .flow__art { border: 1px solid var(--navy-700); border-radius: 3px; background: var(--navy-900); }
