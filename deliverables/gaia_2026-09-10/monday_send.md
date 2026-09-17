@@ -1,8 +1,9 @@
 # Monday send — Keith Molony, Gaia Talent (Mon 14 Sep 2026, before 17:00)
 
+Public site (no login), built from deliverables/gaia_site_2026-09-14 on branch gh-pages: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/ . Keith could not open claude.ai artifact links (14 Sep 17:37); never send artifact links to the client again.
 Two things the operator sends: the email (§1) and the Loom it links to (§2, script).
 Facts come from `deliverables/gaia_2026-09-14/` (campaign `gaia-2026-09-14`) and the runbook §1c.
-Record check 2026-09-11: Keith's feedback on the 20 August list, as recorded in commit a626381 on the morning of the call, was "too senior, some not in Ireland", so "you were right on both" stands (on the call itself he repeated only the seniority point; the transcript is in `transcript_2026-09-10_fathom.md`). Maddie is the developer who built Gaia's inbound screener (operator's correction; the Fathom transcript garbles the name as "Steph"). Also, the call brief's "Brady (Horganlynch Belfast)" is wrong. The August dossier says he joined Horganlynch's Cork office in 1990 and only names a Belfast project, and the current cache reads his location as Cork. Say "three London, one unproven", never "Belfast".
+Record check 2026-09-11: Keith's feedback on the 20 August list, as recorded in commit a626381 on the morning of the call, was "too senior, some not in Ireland", so "you were right on both" stands (on the call itself he repeated only the seniority point; the transcript is in `transcript_2026-09-10_fathom.md`). Maddie is the developer who built Gaia's inbound screener (operator's correction; the Fathom transcript garbles the name as "Steph"). Also, the call brief's "Brady (Horganlynch Belfast)" is wrong. The August dossier says he joined Horganlynch's Cork office in 1990 and only names a Belfast project, and the current cache reads his location as Cork. Say "two at a London office, eleven with no statement", never "Belfast".
 Words never used with Keith: AI, platform, system, automated, 2.3x. Say: the filter, the list, corrected, verified, checked by hand.
 No price in this email; the follow-up call does that.
 Day-2 decision (2026-09-13, revised the same day on the operator's instruction): the Shortlist Check page IS delivered Monday as the fourth link; it is the proof-of-concept Keith is being asked to pay for. The minutes-per-name question is still asked live, not in the email.
@@ -20,10 +21,10 @@ As promised on Thursday. Four links, one short video, then the honest numbers.
 
 You said the August list was too senior and that some were not in Ireland. You were right on both. Both were filter settings; both are fixed below.
 
-- Corrected shortlist: https://claude.ai/code/artifact/16f9282e-e30e-4a4b-b6e2-624d836a7e80
-- Brief Controls (your 20 August list with the two filters you can set yourself): https://claude.ai/code/artifact/3d47597e-04bd-42ec-bb15-ce6126b93703
-- The page for Maddie, on where this hands over to her screener and Recruit CRM: https://claude.ai/code/artifact/bc97d901-68da-4a96-9888-538dd8c65eed
-- Shortlist Check (your 20 August list and the two new names, every one checked against the brief, with the sentence and the link that proves each line): https://claude.ai/code/artifact/a8a673b4-0641-4278-a602-670b6daf1241
+- Corrected shortlist: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/shortlist/
+- Brief Controls (your 20 August list with the two filters you can set yourself): https://dmazumdar186.github.io/deb-antigravity-claude-workspace/brief-controls/
+- The page for Maddie, on where this hands over to her screener and Recruit CRM: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/for-maddie/
+- Shortlist Check (your 20 August list, every name checked against the brief, with the sentence and the link that proves each line): https://dmazumdar186.github.io/deb-antigravity-claude-workspace/check/
 - Loom, 5 minutes: {LOOM_URL}
 
 Could you forward the third link to Maddie? It is written for her.
@@ -41,7 +42,7 @@ I would rather send you two right names than ten wrong ones again, so that is wh
 - Chartership: CEng plus Engineers Ireland (MIEI/FIEI) needed. MIEI alone, or ICE/IStructE alone, does not pass.
 - Contact: verified or labelled. Alicia has no verified email, so her card says "none, call the firm" rather than a guessed address.
 
-The near-misses are listed under each role. For the structural role: 14 people missing only residence evidence, 8 missing only chartership evidence. Those are the first people re-examined once the two questions below are answered.
+I hold the near-miss names for the call. For the structural role: 14 people missing only residence evidence, 8 missing only chartership evidence. Those are the first people re-examined once the two questions below are answered.
 
 The Cork role cannot reach five by filtering. The pool we searched (consultancy leadership pages, oral-hearing witnesses) is senior by construction. Reaching Cork-based transport leads at the right grade needs a licensed people-data source, which is a separate, paid step I have not taken without your say-so.
 
@@ -79,15 +80,15 @@ Do not tour the interface. Two control changes, then move on.
 
 ### Step 3 (1:45–2:45) — The corrected dossier
 
-On screen: corrected shortlist tab. Scroll to the banner counts, then open Alicia Joyce's card, then John Alcaras's card, then the near-miss list, then the CSV link.
+On screen: corrected shortlist tab. Scroll to the banner counts, then open Alicia Joyce's card, then John Alcaras's card.
 
 Say: "The corrected run. Structural role: 471 checked, two delivered. Alicia Joyce at CSEA, John Alcaras at Arcadis. On each card the first two lines are the evidence: the residence quote and the chartership quote, verbatim, with the source. Alicia has no verified email, so the card says so and says call the firm; no guessed addresses this time. Cork role: 65 checked, zero delivered. I am not going to pad that. Below the cards, the near-misses: 14 short only on residence evidence, 8 short only on chartership. The CSV is the same rows for your ATS."
 
 ### Step 3b (2:45–3:30) — Shortlist Check, the proof
 
-On screen: the Shortlist Check tab. Show the headline line, then scroll the ledger to Alicia Joyce (PASS, quotes visible), then to one OUT row (Eddie Lyons), then the "Why proof, not a score" section.
+On screen: the Shortlist Check tab. Show the headline line, then scroll the ledger to one NEAR MISS row, then to one OUT row (Eddie Lyons), then the "Why this cannot come from the tools you already pay for" section.
 
-Say: "This is the part I want you to judge me on. Fifteen names: your thirteen from August and the two new ones. Each one checked against the brief, rule by rule: grade, where they live, chartership, contact. For every line the exact sentence from the public page and the link, checked character by character. Alicia passes, here is the proof. Eddie Lyons is out: Director grade, and the quote says so. A match score tells you how alike someone looks to a job. This tells you whether they meet the brief, and why. That's the difference from what Julia's email is selling you."
+Say: "This is the part I want you to judge me on. Thirteen names, your list from August. Each one checked against the brief, rule by rule: grade, where they live, chartership, contact. For every line the exact sentence from the public page and the link, checked character by character. None pass as the record stands; two are one missing statement away, and the ledger shows exactly which line each name fails. Eddie Lyons is out: Director grade, and the quote says so. A match score tells you how alike someone looks to a job. This tells you whether they meet the brief, and why. That's the difference from what Julia's email is selling you."
 
 ### Step 4 (3:30–4:15) — The hand-off
 

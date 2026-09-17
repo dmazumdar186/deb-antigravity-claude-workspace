@@ -87,6 +87,22 @@
     "preferred_locations_weight": 0.3,
     "preferred_signals_weight": 0.3
   },
+  "verification": {
+    "comment": "Stage 3.8 posting verification (2026-09-10). Every job's own page is fetched; the real posted date and the still-accepting-applications state are read from it. Jobs closed, older than max_age_days, or undatable are dropped before ranking. Source dates are only a fallback when the host blocks the fetch.",
+    "enabled": true,
+    "strict": true,
+    "strict_comment": "2026-09-14 strict mode: a kept link must be POSITIVELY confirmed open on its own page. Blocked hosts get one headless-browser retry (browser_fallback), pages without an open signal get one re-fetch; anything still unconfirmed is dropped (unverifiable_blocked / unconfirmed_open). Set strict=false only for debugging — the acceptance gate treats 'unverified' stamps as violations while strict is on.",
+    "browser_fallback": true,
+    "max_age_days": 7,
+    "concurrency": 8,
+    "recheck_after_days": 3,
+    "recheck_comment": "Stage 3.9 re-opens every sheet row whose last check is older than recheck_after_days; closed rows are removed, open rows get a 'rechecked' date. reverify_max_fetches bounds the per-run page budget.",
+    "reverify_max_fetches": 1200,
+    "max_browser_retries": 150,
+    "sweep_max_seconds": 480,
+    "sweep_comment": "Run 255 (2026-09-14) was cancelled at the 30-min job limit: sources took 15 min, the sweep 12+. The sweep now stops scheduling fetches after sweep_max_seconds and defers the rest; the job limit is 45 min.",
+    "backlog_comment": "2026-09-14: the live sheet had 3,894 unstamped historical rows. While remaining_unstamped/remaining_recheck > 0 the acceptance gate reports unstamped rows as PENDING (never in a digest) instead of failing; once the backlog is 0, an unstamped row is a violation."
+  },
   "fan_out": {
     "comment": "Per-source defaults passed by run.py. Override via CLI.",
     "max_pages": 3,

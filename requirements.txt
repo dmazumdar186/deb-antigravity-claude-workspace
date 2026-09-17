@@ -45,6 +45,8 @@ pytest>=7.0
 # job_digest profile.yaml loader
 pyyaml>=6.0
 
+# Headless-browser fallback for job_search_v2 posting verification (Stage 3.8 strict mode)
+playwright>=1.45
 # Free local OCR for scanned PDFs (execution/gtm_client_workflows/gaia_sourcing/core/ocr.py)
 # ONNX + onnxruntime, CPU-only, no system OCR binaries required.
 rapidocr-onnxruntime>=1.4.0

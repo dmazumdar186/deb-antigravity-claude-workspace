@@ -83,6 +83,14 @@ PL_TELLS = ("poszukujemy", "szukamy", " oraz ", " będzie ", " zespołu ",
 NON_EN_FR_TELLS = DE_TELLS + NL_TELLS + IT_TELLS + ES_TELLS + PL_TELLS
 
 
+# EN/FR role phrases that settle the language of a TITLE on their own.
+EN_FR_ROLE_ANCHORS = (
+    "product manager", "product owner", "head of product", "product lead",
+    "product director", "product specialist", "chef de produit", "chef de produits",
+    "responsable produit", "directeur produit", "directrice produit",
+)
+
+
 def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
     """Return (kept, reason). Reason is 'accept:<lang>' or 'reject:<lang>'."""
     # Strip gender/diversity markers first — they are not language content and
@@ -121,6 +129,18 @@ def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
 
     if len(sample) < LANGDETECT_MIN_CHARS:
         return True, "accept:short_no_foreign_tell"
+
+    # Title-only mode (acceptance gate / sheet audits pass an empty description):
+    # a tell-free title that carries an EN/FR role anchor IS English or French.
+    # langdetect on a lone title is noise — cron run 257 (2026-09-14) failed the
+    # gate on "Product Specialist/Chef de produit- Endovasculaire- Rungis…"
+    # detected as Romanian. With a real description the tell-word screen above
+    # still rejects genuinely German/Polish/… postings.
+    if not description_snippet.strip():
+        title_low = f" {title.lower()} "
+        for anchor in EN_FR_ROLE_ANCHORS:
+            if anchor in title_low:
+                return True, "accept:role_anchor_en_fr"
 
     try:
         from langdetect import detect_langs, DetectorFactory  # type: ignore

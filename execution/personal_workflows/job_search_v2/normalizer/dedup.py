@@ -95,11 +95,23 @@ def set_meta(db_path: Path, key: str, value: str) -> None:
         conn.close()
 
 
+def _migrate_fingerprint_column(conn: sqlite3.Connection) -> None:
+    """2026-09-10 dedup-fingerprint fix: older seen.db files (created before the
+    fingerprint dedup key existed, including any GitHub-Actions cache restored
+    from before this change) lack the `fingerprint` column. Add it in place so
+    those DBs keep their history instead of needing a --reset."""
+    cols = {row["name"] for row in conn.execute("PRAGMA table_info(seen)").fetchall()}
+    if "fingerprint" not in cols:
+        conn.execute("ALTER TABLE seen ADD COLUMN fingerprint TEXT")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_seen_fingerprint ON seen(fingerprint)")
+
+
 def _open_db(db_path: Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path), isolation_level=None)
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
+    _migrate_fingerprint_column(conn)
     return conn
 
 
@@ -125,7 +137,10 @@ def filter_new(
     expired_swept.
     """
     if not jobs:
-        return [], {"total_in": 0, "new": 0, "already_seen": 0, "expired_swept": 0}
+        return [], {
+            "total_in": 0, "new": 0, "already_seen": 0,
+            "already_seen_by_fingerprint": 0, "expired_swept": 0,
+        }
 
     conn = _open_db(db_path)
     try:
@@ -133,26 +148,46 @@ def filter_new(
 
         new_jobs: list[NormalizedJob] = []
         already_seen = 0
+        already_seen_by_fingerprint = 0
         now_iso = datetime.now(timezone.utc).isoformat()
 
         for job in jobs:
             existing = conn.execute(
-                "SELECT content_hash, source FROM seen WHERE content_hash = ?",
+                "SELECT content_hash FROM seen WHERE content_hash = ?",
                 (job.content_hash,),
             ).fetchone()
+            matched_by_fingerprint = False
+
+            if not existing and job.fingerprint:
+                existing = conn.execute(
+                    "SELECT content_hash FROM seen WHERE fingerprint = ?",
+                    (job.fingerprint,),
+                ).fetchone()
+                matched_by_fingerprint = existing is not None
 
             if existing:
+                # Backfill fingerprint on rows written before this column existed
+                # (or that had no fingerprint recorded for another reason), then
+                # bump last_seen_at so TTL keeps tracking this posting as live.
                 conn.execute(
-                    "UPDATE seen SET last_seen_at = ? WHERE content_hash = ?",
-                    (now_iso, job.content_hash),
+                    "UPDATE seen SET last_seen_at = ?, "
+                    "fingerprint = COALESCE(NULLIF(fingerprint, ''), ?) "
+                    "WHERE content_hash = ?",
+                    (now_iso, job.fingerprint, existing["content_hash"]),
                 )
                 already_seen += 1
-                logger.debug("dedup: already-seen %s @ %s", job.title, job.company)
+                if matched_by_fingerprint:
+                    already_seen_by_fingerprint += 1
+                logger.debug(
+                    "dedup: already-seen %s @ %s%s",
+                    job.title, job.company,
+                    " (by fingerprint)" if matched_by_fingerprint else "",
+                )
             else:
                 conn.execute(
                     """
-                    INSERT INTO seen (content_hash, canonical_url, title, company, source, first_seen_at, last_seen_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO seen (content_hash, canonical_url, title, company, source, first_seen_at, last_seen_at, fingerprint)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         job.content_hash,
@@ -162,6 +197,7 @@ def filter_new(
                         job.source.value,
                         now_iso,
                         now_iso,
+                        job.fingerprint,
                     ),
                 )
                 new_jobs.append(job)
@@ -170,6 +206,7 @@ def filter_new(
             "total_in": len(jobs),
             "new": len(new_jobs),
             "already_seen": already_seen,
+            "already_seen_by_fingerprint": already_seen_by_fingerprint,
             "expired_swept": expired_swept,
         }
         logger.info("dedup: %s", stats)

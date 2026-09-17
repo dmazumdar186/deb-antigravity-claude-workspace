@@ -61,6 +61,37 @@ Source: scripts/package_job_digest.py
 A Claude subscription does not provide an ANTHROPIC_API_KEY, so unattended job_digest runs default to the heuristic ranker rather than an LLM ranker.
 Source: engine/job_digest
 
+## [2026-09-14 12:00] learned job_search_v2 sheet duplicates root cause
+STANDARD_HEADERS lost the `_id` column so in-sheet dedup was a silent no-op; fixed with a title+company fingerprint (contracts.compute_fingerprint) merged in-batch, in seen.db, and cross-tab at append (565 -> 424 jobs live 2026-09-10).
+Source: execution/personal_workflows/job_search_v2/contracts.py, normalizer/dedup.py, notifier/sheet.py
+
+## [2026-09-14 12:00] learned job_search_v2 posted-date freshness unreliable at source
+WTTJ Algolia gives the update date and LinkedIn cards show the repost date; Stage 3.8 posting_verifier reads the job page and the page date wins (13/148 live jobs dropped as stale on first run).
+Source: execution/personal_workflows/job_search_v2/normalizer/posting_verifier.py
+
+## [2026-09-14 12:00] technical job_search_v2 board-specific fetch quirks
+WTTJ anti-bot returns HTTP 202 + empty body (retry once after 3s); WTTJ soft-404 is HTTP 200 with "Error 404 Page not found"; LinkedIn expired jobs 200-redirect to a `trk=expired_jd_redirect` URL; LinkedIn 429s ~3% of fetches at concurrency 8; weworkremotely.com 403s every page fetch (kept on feed pubDate, stamped unverified).
+Source: execution/personal_workflows/job_search_v2/normalizer/posting_verifier.py
+
+## [2026-09-14 12:00] learned job_search_v2 domain filter false positives from live data
+skip_domain_anchors overlapping built-in anchors double-counted one mention as two hits; software vocabulary words (instrumentation, optics, sensor, mechanical, battery, RF, kernel) are now title-only, excluded from description counting; ambiguous anchor + software-product word in the same title is rescued.
+Source: execution/personal_workflows/job_search_v2/normalizer/domain_filter.py
+
+## [2026-09-14 12:00] pattern job_search_v2 Verified stamp and acceptance gate
+Every sheet row carries `Verified` = "open · posted YYYY-MM-DD · checked YYYY-MM-DD"; the acceptance gate fails stale (>7d), closed, undated or unstamped rows and any run with skipped verification; purge_irrelevant_rows.reverify_rows re-verifies historical unstamped rows at 400 fetches/run.
+Source: execution/personal_workflows/job_search_v2/purge_irrelevant_rows.py
+
+## [2026-09-14 12:00] technical job_search_v2 verify_jobs worker isolation
+Each verify_jobs worker is wrapped in try/except so one page-fetch exception doesn't kill the cron; future page dates (>now+1 day) are ignored in favour of the source date.
+Source: execution/personal_workflows/job_search_v2/normalizer/posting_verifier.py
+
+## [2026-09-14 12:00] constraint job_search_v2 cloud sandbox limitations
+gspread (_cffi_backend/cryptography) and pdfplumber cannot import in this sandbox (tests stub gspread in sys.modules); langdetect has no wheel for Python 3.11 here so the language filter defaults to accept locally, though CI installs it fine.
+Source: execution/personal_workflows/job_search_v2/
+
+## [2026-09-14 13:15] learned job_search_v2 strict verification mode closes three unverified-link leaks
+Panel audit found blocked-host, dated-but-unconfirmed, and never-rechecked rows leaking past the verifier; strict mode (config verification.strict, default true) drops unverifiable_blocked/unconfirmed_open and rechecks stamped rows every recheck_after_days (3).
+Source: execution/personal_workflows/job_search_v2/normalizer/posting_verifier.py, purge_irrelevant_rows.py, commit 5d6f7b6
 ## [2026-09-11 10:00] learned gaia_sourcing residence gate false positives
 Firm-office phrases ("joined the Cork office of") and project/market mentions ("experience in Ireland and the UK") are not residence evidence under require_direct_evidence and must not yield a place.
 Source: execution/gtm_client_workflows/gaia_sourcing
