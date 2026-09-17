@@ -138,9 +138,12 @@ class _Doc(HTMLParser):
             self.title_text += data
 
 
+DANGEROUS_SCHEMES = ("javascript:", "data:", "vbscript:", "file:")
+
+
 def _is_local(value: str) -> bool:
     low = value.strip().lower()
-    if not low or low.startswith(("#", "mailto:", "tel:", "data:", "javascript:")):
+    if not low or low.startswith(("#", "mailto:", "tel:")):
         return False
     return not re.match(r"^(?:https?:)?//", low)
 
@@ -158,12 +161,21 @@ def _visible_text(html: str) -> str:
     return re.sub(r"\s+", " ", body)
 
 
+def _inside(child: Path, parent: Path) -> bool:
+    try:
+        return child.resolve().is_relative_to(parent.resolve())
+    except (OSError, ValueError):
+        return False
+
+
 def validate(site: Path, jobs: list[dict[str, Any]]) -> list[str]:
     """Return a list of human-readable failures. Empty list means the build passes."""
     fails: list[str] = []
     pages = sorted(p for p in site.rglob("*.html"))
     if not pages:
         return [f"no HTML pages found under {site}"]
+    board_options: list[str] = []
+    filter_links: list[tuple[str, str]] = []  # (page, href)
 
     for page in pages:
         rel = page.relative_to(site).as_posix()
@@ -187,14 +199,27 @@ def validate(site: Path, jobs: list[dict[str, Any]]) -> list[str]:
             fails.append(f"{rel}: missing <meta name=robots content=noindex,...>")
 
         for attr, value in doc.refs:
-            if value.startswith("/"):
-                fails.append(f"{rel}: absolute path {attr}=\"{value}\" (relative paths only)")
+            if "jobs/index.html?" in value or (rel.startswith("jobs/") and value.startswith("?")):
+                filter_links.append((rel, value))
+            stripped = value.strip()
+            if not stripped:
+                fails.append(f"{rel}: empty {attr} attribute")
                 continue
-            if not _is_local(value):
+            if stripped.lower().startswith(DANGEROUS_SCHEMES):
+                fails.append(f"{rel}: {attr}=\"{stripped[:60]}\" uses a forbidden scheme")
                 continue
-            target = (page.parent / value.split("#")[0].split("?")[0]).resolve()
-            if not target.exists():
-                fails.append(f"{rel}: {attr}=\"{value}\" does not resolve to a file")
+            if stripped.startswith("/"):
+                fails.append(f"{rel}: absolute path {attr}=\"{stripped}\" (relative paths only)")
+                continue
+            if not _is_local(stripped):
+                continue
+            path_part = stripped.split("#")[0].split("?")[0]
+            # A query-only or fragment-only ref points at the page itself.
+            target = page.resolve() if not path_part else (page.parent / path_part).resolve()
+            if not _inside(target, site):
+                fails.append(f"{rel}: {attr}=\"{stripped}\" escapes the site root")
+            elif not target.exists():
+                fails.append(f"{rel}: {attr}=\"{stripped}\" does not resolve to a file")
 
         for img in doc.images:
             src = img.get("src", "?")
@@ -221,13 +246,23 @@ def validate(site: Path, jobs: list[dict[str, Any]]) -> list[str]:
                 fails.append(f"{rel}: <{tag} id=\"{field_id}\"> has no <label for>")
 
         if rel not in EXEMPT_PAGES:
-            text = _visible_text(raw)
+            text = html.unescape(_visible_text(raw))
             for pattern, word in FORBIDDEN:
                 if re.search(pattern, text):
                     fails.append(f"{rel}: forbidden word on a public page: {word!r}")
 
-        if rel == "jobs/index.html" and doc.job_rows != len(jobs):
-            fails.append(f"{rel}: rendered {doc.job_rows} role rows, dataset has {len(jobs)}")
+        if rel == "jobs/index.html":
+            if doc.job_rows != len(jobs):
+                fails.append(f"{rel}: rendered {doc.job_rows} role rows, dataset has {len(jobs)}")
+            rendered = {h.strip() for h in doc.job_hrefs if h.strip()}
+            expected = {str(j["url"]).strip() for j in jobs}
+            missing = sorted(expected - rendered)
+            extra = sorted(rendered - expected)
+            if missing:
+                fails.append(f"{rel}: {len(missing)} dataset role URL(s) not on the board, e.g. {missing[0]}")
+            if extra:
+                fails.append(f"{rel}: {len(extra)} role link(s) not in the dataset, e.g. {extra[0]}")
+            board_options[:] = doc.options
         if rel == "index.html":
             if doc.featured_rows != 8:
                 fails.append(f"{rel}: expected 8 featured roles, rendered {doc.featured_rows}")
@@ -238,14 +273,32 @@ def validate(site: Path, jobs: list[dict[str, Any]]) -> list[str]:
         if rel == "team/index.html" and doc.team_rows != 5:
             fails.append(f"{rel}: expected 5 team rows, rendered {doc.team_rows}")
 
-    css = sum(p.stat().st_size for p in (site / "css").glob("*.css")) if (site / "css").is_dir() else 0
-    js = sum(p.stat().st_size for p in (site / "js").glob("*.js")) if (site / "js").is_dir() else 0
+    css = sum(p.stat().st_size for p in site.rglob("*.css"))
+    js = sum(p.stat().st_size for p in site.rglob("*.js"))
     if css > CSS_BUDGET:
         fails.append(f"CSS budget: {css} bytes exceeds {CSS_BUDGET}")
     if js > JS_BUDGET:
         fails.append(f"JS budget: {js} bytes exceeds {JS_BUDGET}")
     if (site / "js" / "motion.test.js").exists():
         fails.append("js/motion.test.js was shipped into the site (tests stay in src)")
+    # Every ?sector= / ?location= / ?type= link must select something the board
+    # can actually offer: an unencoded '&' in a sector name silently splits the
+    # query and the link lands on an unfiltered list.
+    option_keys = {o.strip().lower() for o in board_options if o.strip()}
+    for page_rel, href in filter_links:
+        query = parse_qs(urlparse(html.unescape(href)).query, keep_blank_values=True)
+        for key in ("sector", "location", "type"):
+            for value in query.get(key, []):
+                if not value.strip():
+                    fails.append(f"{page_rel}: empty ?{key}= in {href}")
+                elif key == "sector" and value.strip().lower() not in option_keys:
+                    fails.append(
+                        f"{page_rel}: ?sector={value!r} in {href} matches no option on the board"
+                    )
+        for value in query.get("q", []):
+            if not value.strip():
+                fails.append(f"{page_rel}: empty ?q= in {href}")
+
     if not (site / "robots.txt").exists():
         fails.append("robots.txt is missing")
 

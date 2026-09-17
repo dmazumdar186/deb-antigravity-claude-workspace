@@ -105,6 +105,18 @@
     ctx.strokeStyle = rgba(colour, alpha);
     ctx.lineWidth = width || 1.5;
   };
+  /* One straight stroke, in the current style. Used everywhere, so it is worth
+     a helper: masts, ticks, piers, gates and grid lines are all this shape. */
+  /* A polyline sampled across the stage: every contour, ripple and field line
+     in the scene is one of these. */
+  var poly = function (steps, at) {
+    ctx.beginPath();
+    for (var x = 0; x <= W; x += W / steps) ctx.lineTo(x, at(x));
+    ctx.stroke();
+  };
+  var seg = function (x1, y1, x2, y2) {
+    seg(x1, y1, x2, y2);
+  };
 
   /* --------------------------------------------------------- resize */
   var resize = function () {
@@ -144,24 +156,13 @@
     var x;
     /* a distant ridge behind the working horizon */
     stroke(WHITE, 0.18 * w, 1.3);
-    ctx.beginPath();
-    for (x = 0; x <= W; x += W / 48) {
-      ctx.lineTo(x, yAt(x) - H * 0.085 - Math.sin(x / W * 5.2 + 0.9) * H * 0.022);
-    }
-    ctx.stroke();
+    poly(48, function (x) { return yAt(x) - H * 0.085 - Math.sin(x / W * 5.2 + 0.9) * H * 0.022; });
     stroke(WHITE, 0.10 * w, 1.1);
-    ctx.beginPath();
-    for (x = 0; x <= W; x += W / 48) {
-      ctx.lineTo(x, yAt(x) - H * 0.155 - Math.sin(x / W * 3.4 + 2.1) * H * 0.030);
-    }
-    ctx.stroke();
-    /* contour lines */
+    poly(48, function (x) { return yAt(x) - H * 0.155 - Math.sin(x / W * 3.4 + 2.1) * H * 0.030; });
     stroke(WHITE, 0.13 * w, 1);
     ctx.setLineDash([2, 7]);
     for (i = 1; i <= 4; i += 1) {
-      ctx.beginPath();
-      for (x = 0; x <= W; x += W / 40) ctx.lineTo(x, yAt(x) - i * H * 0.042);
-      ctx.stroke();
+      poly(40, (function (n) { return function (x) { return yAt(x) - n * H * 0.042; }; }(i)));
     }
     ctx.setLineDash([]);
     /* survey ticks along the baseline, long and short alternating */
@@ -170,10 +171,7 @@
       var tx = (i + 0.5) * (W / 25);
       var ty = yAt(tx);
       var len = i % 5 === 0 ? 11 : 5;
-      ctx.beginPath();
-      ctx.moveTo(tx, ty - len);
-      ctx.lineTo(tx, ty + len);
-      ctx.stroke();
+      seg(tx, ty - len, tx, ty + len);
     }
     /* two bearing lines from a station point */
     var ax = W * 0.615;
@@ -182,10 +180,7 @@
     var by2 = yAt(bx2) + H * 0.035;
     stroke(GREEN, 0.22 * w, 1);
     ctx.setLineDash([5, 9]);
-    ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(bx2, by2);
-    ctx.stroke();
+    seg(ax, ay, bx2, by2);
     ctx.setLineDash([]);
     var ends = [[ax, ay, 4.5], [bx2, by2, 3]];
     for (i = 0; i < 2; i += 1) {
@@ -214,18 +209,15 @@
     /* field lines: the land keeps its drawing across every state */
     ctx.save();
     ctx.clip();
+    stroke(WHITE, 0.055, 1);
     for (var f = 1; f <= 6; f += 1) {
-      stroke(WHITE, 0.055, 1);
-      ctx.beginPath();
-      for (var fx = 0; fx <= W; fx += W / 30) ctx.lineTo(fx, yAt(fx) + Math.pow(f / 6, 1.9) * H * 0.46);
-      ctx.stroke();
+      poly(30, (function (n) {
+        return function (x) { return yAt(x) + Math.pow(n / 6, 1.9) * H * 0.46; };
+      }(f)));
     }
     ctx.restore();
     stroke(GREEN, 0.62, 1.5);
-    ctx.beginPath();
-    ctx.moveTo(0, yAt(0));
-    for (var x2 = W / 60; x2 <= W; x2 += W / 60) ctx.lineTo(x2, yAt(x2));
-    ctx.stroke();
+    poly(60, yAt);
   }
 
   /* Registration marks and a scale bar: the sheet the landscape is drawn on.
@@ -270,18 +262,12 @@
       var h = (0.115 + M.hashNoise(i, 21) * 0.055) * H * e;
       var hub = base - h;
       stroke(WHITE, 0.5 * w, 1.5);
-      ctx.beginPath();
-      ctx.moveTo(x, base);
-      ctx.lineTo(x, hub);
-      ctx.stroke();
+      seg(x, base, x, hub);
       stroke(GREEN, 0.62 * w, 1.5);
       var r = h * 0.44;
       for (var b = 0; b < 3; b += 1) {
         var a = spin + (b * PI2) / 3 + i * 0.7;
-        ctx.beginPath();
-        ctx.moveTo(x, hub);
-        ctx.lineTo(x + Math.cos(a) * r, hub + Math.sin(a) * r * 0.92);
-        ctx.stroke();
+        seg(x, hub, x + Math.cos(a) * r, hub + Math.sin(a) * r * 0.92);
       }
       ctx.beginPath();
       ctx.arc(x, hub, 2.4, 0, PI2);
@@ -302,10 +288,7 @@
     ctx.stroke();
     stroke(GREEN, 0.22 * w, 1);
     for (var k = 1; k <= 3; k += 1) {
-      ctx.beginPath();
-      ctx.moveTo(dx - 0.075 * W, dy - dh + k * (dh / 4));
-      ctx.lineTo(dx + dw * 0.12, dy - dh + k * (dh / 4));
-      ctx.stroke();
+      seg(dx - 0.075 * W, dy - dh + k * (dh / 4), dx + dw * 0.12, dy - dh + k * (dh / 4));
     }
   }
 
@@ -376,20 +359,18 @@
     ctx.stroke();
     for (var r = 1; r <= 3; r += 1) {
       stroke(GREEN, (0.32 - r * 0.07) * ww, 1);
-      ctx.beginPath();
-      for (var x2 = 0; x2 <= W; x2 += W / 70) {
-        var amp = 0.005 * H * r;
-        ctx.lineTo(x2, top + swell + r * 0.055 * H + Math.sin(x2 / (W / (3 + r)) + now / (1800 + r * 700)) * amp);
-      }
-      ctx.stroke();
+      poly(70, (function (n) {
+        return function (x) {
+          return top + swell + n * 0.055 * H
+            + Math.sin(x / (W / (3 + n)) + now / (1800 + n * 700)) * 0.005 * H * n;
+        };
+      }(r)));
     }
     /* flood-plain contours hugging the horizon */
     stroke(WHITE, 0.2 * ww, 1);
     ctx.setLineDash([3, 6]);
     for (var c = 1; c <= 3; c += 1) {
-      ctx.beginPath();
-      for (var x3 = 0; x3 <= W; x3 += W / 40) ctx.lineTo(x3, yAt(x3) + c * 0.024 * H);
-      ctx.stroke();
+      poly(40, (function (n) { return function (x) { return yAt(x) + n * 0.024 * H; }; }(c)));
     }
     ctx.setLineDash([]);
   }
@@ -401,24 +382,15 @@
     var top = waterTop(Math.max(ww, w));
     var gh = 0.062 * H * e;
     stroke(WHITE, 0.55 * w, 1.5);
-    ctx.beginPath();
-    ctx.moveTo(0.46 * W, top - gh);
-    ctx.lineTo(0.78 * W, top - gh);
-    ctx.stroke();
+    seg(0.46 * W, top - gh, 0.78 * W, top - gh);
     for (var g = 0; g < 6; g += 1) {
       var x = (0.46 + g * 0.064) * W;
       var gw = 0.064 * W;
       stroke(WHITE, 0.42 * w, 1.5);
-      ctx.beginPath();
-      ctx.moveTo(x, top - gh);
-      ctx.lineTo(x, top + 0.012 * H);
-      ctx.stroke();
+      seg(x, top - gh, x, top + 0.012 * H);
       var open = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(now / 2200 + g));
       stroke(GREEN, 0.45 * w, 1.2);
-      ctx.beginPath();
-      ctx.moveTo(x + 2, top - gh * open);
-      ctx.lineTo(x + gw - 2, top - gh * open);
-      ctx.stroke();
+      seg(x + 2, top - gh * open, x + gw - 2, top - gh * open);
     }
     for (var b = 0; b < 4; b += 1) {
       var bx = (0.815 + b * 0.046) * W;
@@ -481,10 +453,7 @@
     var bw = 0.26 * W;
     var deck = yAt(bx + bw / 2) - 0.075 * H * e;
     stroke(WHITE, 0.55 * w, 1.6);
-    ctx.beginPath();
-    ctx.moveTo(bx - bw * 0.1, deck);
-    ctx.lineTo(bx + bw * 1.1, deck);
-    ctx.stroke();
+    seg(bx - bw * 0.1, deck, bx + bw * 1.1, deck);
     var sag = deck + 0.055 * H * e;
     stroke(GREEN, 0.5 * w, 1.4);
     ctx.beginPath();
@@ -496,18 +465,12 @@
       var t = hg / 5;
       var hx = bx + bw * t;
       var hy = (1 - t) * (1 - t) * deck + 2 * (1 - t) * t * sag + t * t * deck;
-      ctx.beginPath();
-      ctx.moveTo(hx, deck);
-      ctx.lineTo(hx, hy);
-      ctx.stroke();
+      seg(hx, deck, hx, hy);
     }
     stroke(WHITE, 0.45 * w, 1.6);
     for (var pr = 0; pr <= 1; pr += 1) {
       var px = bx + bw * pr;
-      ctx.beginPath();
-      ctx.moveTo(px, deck);
-      ctx.lineTo(px, yAt(px));
-      ctx.stroke();
+      seg(px, deck, px, yAt(px));
     }
   }
 
@@ -537,16 +500,10 @@
     drawTrees(w);
     stroke(WHITE, 0.12 * w, 1);
     for (i = 1; i < 12; i += 1) {
-      ctx.beginPath();
-      ctx.moveTo((i / 12) * W, 0);
-      ctx.lineTo((i / 12) * W, H);
-      ctx.stroke();
+      seg((i / 12) * W, 0, (i / 12) * W, H);
     }
     for (i = 1; i < 9; i += 1) {
-      ctx.beginPath();
-      ctx.moveTo(0, (i / 9) * H);
-      ctx.lineTo(W, (i / 9) * H);
-      ctx.stroke();
+      seg(0, (i / 9) * H, W, (i / 9) * H);
     }
     stroke(WHITE, 0.55 * w, 1.5);
     for (i = 0; i < 6; i += 1) {

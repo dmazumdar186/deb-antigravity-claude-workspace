@@ -12,7 +12,7 @@ PORT="${PORT:-8731}"
 CHROME="/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell"
 [ -x "$CHROME" ] || CHROME="/opt/pw-browsers/chromium"
 if [ ! -x "$CHROME" ]; then
-  CHROME="$(find /opt/pw-browsers -maxdepth 3 -type f -name 'chrome' -o -maxdepth 3 -type f -name 'headless_shell' 2>/dev/null | head -1)"
+  CHROME="$(find /opt/pw-browsers -maxdepth 3 -type f \( -name chrome -o -name headless_shell \) 2>/dev/null | head -1)"
 fi
 if [ -z "${CHROME:-}" ] || [ ! -x "$CHROME" ]; then
   echo "No chromium binary found under /opt/pw-browsers" >&2
@@ -20,25 +20,52 @@ if [ -z "${CHROME:-}" ] || [ ! -x "$CHROME" ]; then
 fi
 echo "chromium: $CHROME"
 
-mkdir -p "$OUT"
-rm -f "$OUT"/*.png
+# Only ever clear PNGs from a shots directory under the repo's .tmp.
+case "$OUT" in
+  "$ROOT"/.tmp/*) mkdir -p "$OUT"; rm -f "$OUT"/*.png ;;
+  *) echo "Refusing to clear '$OUT': it is not under $ROOT/.tmp" >&2; exit 1 ;;
+esac
+
+# A build-unique token proves we are photographing OUR server and not something
+# else that already had the port.
+TOKEN="gaia-shots-$$-$(date +%s)"
+echo "$TOKEN" > "$SITE/_shot-token.txt"
+cleanup() {
+  kill "$SERVER" 2>/dev/null
+  rm -f "$SITE/_shot-token.txt" "$SITE/_shot-menu.html" "$SITE/_shot-outbox.html" "$SITE/_shot-stack.html"
+}
+trap cleanup EXIT
 
 python3 -m http.server "$PORT" --directory "$SITE" >/dev/null 2>&1 &
 SERVER=$!
-trap 'kill "$SERVER" 2>/dev/null' EXIT
+READY=0
 for _ in $(seq 1 40); do
-  curl -s -o /dev/null "http://127.0.0.1:$PORT/index.html" && break
+  kill -0 "$SERVER" 2>/dev/null || { echo "Server exited before it was ready (port $PORT in use?)" >&2; exit 1; }
+  if [ "$(curl -s --max-time 2 "http://127.0.0.1:$PORT/_shot-token.txt")" = "$TOKEN" ]; then
+    READY=1; break
+  fi
   sleep 0.25
 done
+if [ "$READY" != "1" ]; then
+  echo "Could not confirm our own server on port $PORT after 10s" >&2
+  exit 1
+fi
 
+FAILURES=0
 shot() { # name url width height [extra flags...]
   local name="$1" url="$2" w="$3" h="$4"; shift 4
+  rm -f "$OUT/$name.png"
   "$CHROME" --no-sandbox --disable-gpu --hide-scrollbars \
     --disable-dev-shm-usage --force-device-scale-factor=1 \
     --virtual-time-budget=6000 \
     --screenshot="$OUT/$name.png" --window-size="$w,$h" "$@" \
     "http://127.0.0.1:$PORT/$url" >/dev/null 2>&1
-  if [ -f "$OUT/$name.png" ]; then echo "  $name.png  ($w x $h)"; else echo "  $name.png  FAILED" >&2; fi
+  if [ -s "$OUT/$name.png" ]; then
+    echo "  $name.png  ($w x $h)"
+  else
+    echo "  $name.png  FAILED" >&2
+    FAILURES=$((FAILURES + 1))
+  fi
 }
 
 echo "viewport captures"
@@ -94,15 +121,17 @@ PYEOF
 shot "index-390-menu-open" "_shot-menu.html" 390 844
 for pr in 0.10 0.42 0.78; do shot "index-1440-stack-$pr" "_shot-stack.html?stack=$pr" 1440 900; done
 shot "index-1440-outbox"   "_shot-outbox.html" 1440 2400
-rm -f "$SITE/_shot-menu.html" "$SITE/_shot-outbox.html" "$SITE/_shot-stack.html"
-
 echo "reduced-motion set"
 shot "rm-index-1440" "index.html"      1440 9000  --force-prefers-reduced-motion
 shot "rm-index-390"  "index.html"      390  15000 --force-prefers-reduced-motion
 shot "rm-team-1440"  "team/index.html" 1440 2600  --force-prefers-reduced-motion
 shot "rm-jobs-1440"  "jobs/index.html" 1440 2400 --force-prefers-reduced-motion
 
-kill "$SERVER" 2>/dev/null
+cleanup
 wait "$SERVER" 2>/dev/null
 echo "saved to $OUT"
-ls -1 "$OUT" | wc -l
+ls -1 "$OUT"/*.png | wc -l
+if [ "$FAILURES" -ne 0 ]; then
+  echo "$FAILURES capture(s) failed" >&2
+  exit 1
+fi

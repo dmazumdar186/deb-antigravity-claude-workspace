@@ -27,9 +27,10 @@ if (state === 4) return 0.572 + x * 0.088 + Math.sin(x * 4.0) * 0.012 + n * 0.00
 if (state === 5) return 0.642 - Math.sin(x * 1.8 + 1.1) * 0.030 + n * 0.006;
 return 0.626 - Math.sin(x * 2.9 + 0.8) * 0.028 - Math.sin(x * 6.6) * 0.013 + n * 0.009;
 };
+var STATES = 7;
 var PROFILES = [];
 (function buildProfiles() {
-for (var s = 0; s < 7; s += 1) {
+for (var s = 0; s < STATES; s += 1) {
 var p = [];
 for (var i = 0; i < VERTS; i += 1) p.push(profileAt(s, i));
 PROFILES.push(p);
@@ -44,6 +45,13 @@ var SKY = [
 [[12, 22, 32], [30, 44, 58]],
 [[10, 26, 30], [20, 51, 42]]
 ];
+var LAST = PROFILES.length - 1;
+if (COUNT !== PROFILES.length) {
+if (window.console) {
+window.console.error('flow: ' + COUNT + ' panels but ' + PROFILES.length + ' scene states');
+}
+return;
+}
 var ctx = canvas.getContext ? canvas.getContext('2d') : null;
 if (!ctx) return;
 var W = 0;
@@ -52,8 +60,10 @@ var dpr = 1;
 var position = 0;
 var horizon = [];
 var visible = false;
+var frozen = false;
 var rafId = 0;
 var lastDraw = 0;
+var resizeRaf = 0;
 var rgba = function (c, a) {
 return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')';
 };
@@ -72,6 +82,14 @@ var stroke = function (colour, alpha, width) {
 ctx.strokeStyle = rgba(colour, alpha);
 ctx.lineWidth = width || 1.5;
 };
+var poly = function (steps, at) {
+ctx.beginPath();
+for (var x = 0; x <= W; x += W / steps) ctx.lineTo(x, at(x));
+ctx.stroke();
+};
+var seg = function (x1, y1, x2, y2) {
+seg(x1, y1, x2, y2);
+};
 var resize = function () {
 var r = stage.getBoundingClientRect();
 W = Math.max(1, Math.round(r.width));
@@ -86,8 +104,8 @@ ctx.lineJoin = 'round';
 ctx.lineCap = 'round';
 };
 function drawSky(from, to, k) {
-var a = SKY[Math.min(from, 6)];
-var b = SKY[Math.min(to, 6)];
+var a = SKY[Math.min(from, LAST)];
+var b = SKY[Math.min(to, LAST)];
 var e = M.easeOutQuart(k);
 var mix = function (i, j) { return Math.round(M.lerp(a[i][j], b[i][j], e)); };
 var top = [mix(0, 0), mix(0, 1), mix(0, 2)];
@@ -103,23 +121,13 @@ if (w <= 0.001) return;
 var i;
 var x;
 stroke(WHITE, 0.18 * w, 1.3);
-ctx.beginPath();
-for (x = 0; x <= W; x += W / 48) {
-ctx.lineTo(x, yAt(x) - H * 0.085 - Math.sin(x / W * 5.2 + 0.9) * H * 0.022);
-}
-ctx.stroke();
+poly(48, function (x) { return yAt(x) - H * 0.085 - Math.sin(x / W * 5.2 + 0.9) * H * 0.022; });
 stroke(WHITE, 0.10 * w, 1.1);
-ctx.beginPath();
-for (x = 0; x <= W; x += W / 48) {
-ctx.lineTo(x, yAt(x) - H * 0.155 - Math.sin(x / W * 3.4 + 2.1) * H * 0.030);
-}
-ctx.stroke();
+poly(48, function (x) { return yAt(x) - H * 0.155 - Math.sin(x / W * 3.4 + 2.1) * H * 0.030; });
 stroke(WHITE, 0.13 * w, 1);
 ctx.setLineDash([2, 7]);
 for (i = 1; i <= 4; i += 1) {
-ctx.beginPath();
-for (x = 0; x <= W; x += W / 40) ctx.lineTo(x, yAt(x) - i * H * 0.042);
-ctx.stroke();
+poly(40, (function (n) { return function (x) { return yAt(x) - n * H * 0.042; }; }(i)));
 }
 ctx.setLineDash([]);
 stroke(GREEN, 0.34 * w, 1.2);
@@ -127,10 +135,7 @@ for (i = 0; i < 25; i += 1) {
 var tx = (i + 0.5) * (W / 25);
 var ty = yAt(tx);
 var len = i % 5 === 0 ? 11 : 5;
-ctx.beginPath();
-ctx.moveTo(tx, ty - len);
-ctx.lineTo(tx, ty + len);
-ctx.stroke();
+seg(tx, ty - len, tx, ty + len);
 }
 var ax = W * 0.615;
 var ay = yAt(ax) - H * 0.235;
@@ -138,10 +143,7 @@ var bx2 = W * 0.965;
 var by2 = yAt(bx2) + H * 0.035;
 stroke(GREEN, 0.22 * w, 1);
 ctx.setLineDash([5, 9]);
-ctx.beginPath();
-ctx.moveTo(ax, ay);
-ctx.lineTo(bx2, by2);
-ctx.stroke();
+seg(ax, ay, bx2, by2);
 ctx.setLineDash([]);
 var ends = [[ax, ay, 4.5], [bx2, by2, 3]];
 for (i = 0; i < 2; i += 1) {
@@ -168,18 +170,15 @@ ctx.fillStyle = g;
 ctx.fill();
 ctx.save();
 ctx.clip();
-for (var f = 1; f <= 6; f += 1) {
 stroke(WHITE, 0.055, 1);
-ctx.beginPath();
-for (var fx = 0; fx <= W; fx += W / 30) ctx.lineTo(fx, yAt(fx) + Math.pow(f / 6, 1.9) * H * 0.46);
-ctx.stroke();
+for (var f = 1; f <= 6; f += 1) {
+poly(30, (function (n) {
+return function (x) { return yAt(x) + Math.pow(n / 6, 1.9) * H * 0.46; };
+}(f)));
 }
 ctx.restore();
 stroke(GREEN, 0.62, 1.5);
-ctx.beginPath();
-ctx.moveTo(0, yAt(0));
-for (var x2 = W / 60; x2 <= W; x2 += W / 60) ctx.lineTo(x2, yAt(x2));
-ctx.stroke();
+poly(60, yAt);
 }
 function drawFrame() {
 var m = Math.min(46, W * 0.04);
@@ -219,18 +218,12 @@ var base = yAt(x);
 var h = (0.115 + M.hashNoise(i, 21) * 0.055) * H * e;
 var hub = base - h;
 stroke(WHITE, 0.5 * w, 1.5);
-ctx.beginPath();
-ctx.moveTo(x, base);
-ctx.lineTo(x, hub);
-ctx.stroke();
+seg(x, base, x, hub);
 stroke(GREEN, 0.62 * w, 1.5);
 var r = h * 0.44;
 for (var b = 0; b < 3; b += 1) {
 var a = spin + (b * PI2) / 3 + i * 0.7;
-ctx.beginPath();
-ctx.moveTo(x, hub);
-ctx.lineTo(x + Math.cos(a) * r, hub + Math.sin(a) * r * 0.92);
-ctx.stroke();
+seg(x, hub, x + Math.cos(a) * r, hub + Math.sin(a) * r * 0.92);
 }
 ctx.beginPath();
 ctx.arc(x, hub, 2.4, 0, PI2);
@@ -250,10 +243,7 @@ ctx.lineTo(dx + dw, dy);
 ctx.stroke();
 stroke(GREEN, 0.22 * w, 1);
 for (var k = 1; k <= 3; k += 1) {
-ctx.beginPath();
-ctx.moveTo(dx - 0.075 * W, dy - dh + k * (dh / 4));
-ctx.lineTo(dx + dw * 0.12, dy - dh + k * (dh / 4));
-ctx.stroke();
+seg(dx - 0.075 * W, dy - dh + k * (dh / 4), dx + dw * 0.12, dy - dh + k * (dh / 4));
 }
 }
 function drawSolar(w) {
@@ -319,19 +309,17 @@ stroke(GREEN, 0.55 * ww, 1.4);
 ctx.stroke();
 for (var r = 1; r <= 3; r += 1) {
 stroke(GREEN, (0.32 - r * 0.07) * ww, 1);
-ctx.beginPath();
-for (var x2 = 0; x2 <= W; x2 += W / 70) {
-var amp = 0.005 * H * r;
-ctx.lineTo(x2, top + swell + r * 0.055 * H + Math.sin(x2 / (W / (3 + r)) + now / (1800 + r * 700)) * amp);
-}
-ctx.stroke();
+poly(70, (function (n) {
+return function (x) {
+return top + swell + n * 0.055 * H
++ Math.sin(x / (W / (3 + n)) + now / (1800 + n * 700)) * 0.005 * H * n;
+};
+}(r)));
 }
 stroke(WHITE, 0.2 * ww, 1);
 ctx.setLineDash([3, 6]);
 for (var c = 1; c <= 3; c += 1) {
-ctx.beginPath();
-for (var x3 = 0; x3 <= W; x3 += W / 40) ctx.lineTo(x3, yAt(x3) + c * 0.024 * H);
-ctx.stroke();
+poly(40, (function (n) { return function (x) { return yAt(x) + n * 0.024 * H; }; }(c)));
 }
 ctx.setLineDash([]);
 }
@@ -341,24 +329,15 @@ var e = M.easeOutQuart(w);
 var top = waterTop(Math.max(ww, w));
 var gh = 0.062 * H * e;
 stroke(WHITE, 0.55 * w, 1.5);
-ctx.beginPath();
-ctx.moveTo(0.46 * W, top - gh);
-ctx.lineTo(0.78 * W, top - gh);
-ctx.stroke();
+seg(0.46 * W, top - gh, 0.78 * W, top - gh);
 for (var g = 0; g < 6; g += 1) {
 var x = (0.46 + g * 0.064) * W;
 var gw = 0.064 * W;
 stroke(WHITE, 0.42 * w, 1.5);
-ctx.beginPath();
-ctx.moveTo(x, top - gh);
-ctx.lineTo(x, top + 0.012 * H);
-ctx.stroke();
+seg(x, top - gh, x, top + 0.012 * H);
 var open = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(now / 2200 + g));
 stroke(GREEN, 0.45 * w, 1.2);
-ctx.beginPath();
-ctx.moveTo(x + 2, top - gh * open);
-ctx.lineTo(x + gw - 2, top - gh * open);
-ctx.stroke();
+seg(x + 2, top - gh * open, x + gw - 2, top - gh * open);
 }
 for (var b = 0; b < 4; b += 1) {
 var bx = (0.815 + b * 0.046) * W;
@@ -418,10 +397,7 @@ var bx = 0.54 * W;
 var bw = 0.26 * W;
 var deck = yAt(bx + bw / 2) - 0.075 * H * e;
 stroke(WHITE, 0.55 * w, 1.6);
-ctx.beginPath();
-ctx.moveTo(bx - bw * 0.1, deck);
-ctx.lineTo(bx + bw * 1.1, deck);
-ctx.stroke();
+seg(bx - bw * 0.1, deck, bx + bw * 1.1, deck);
 var sag = deck + 0.055 * H * e;
 stroke(GREEN, 0.5 * w, 1.4);
 ctx.beginPath();
@@ -433,18 +409,12 @@ for (var hg = 1; hg <= 4; hg += 1) {
 var t = hg / 5;
 var hx = bx + bw * t;
 var hy = (1 - t) * (1 - t) * deck + 2 * (1 - t) * t * sag + t * t * deck;
-ctx.beginPath();
-ctx.moveTo(hx, deck);
-ctx.lineTo(hx, hy);
-ctx.stroke();
+seg(hx, deck, hx, hy);
 }
 stroke(WHITE, 0.45 * w, 1.6);
 for (var pr = 0; pr <= 1; pr += 1) {
 var px = bx + bw * pr;
-ctx.beginPath();
-ctx.moveTo(px, deck);
-ctx.lineTo(px, yAt(px));
-ctx.stroke();
+seg(px, deck, px, yAt(px));
 }
 }
 function drawTrees(w) {
@@ -471,16 +441,10 @@ var i;
 drawTrees(w);
 stroke(WHITE, 0.12 * w, 1);
 for (i = 1; i < 12; i += 1) {
-ctx.beginPath();
-ctx.moveTo((i / 12) * W, 0);
-ctx.lineTo((i / 12) * W, H);
-ctx.stroke();
+seg((i / 12) * W, 0, (i / 12) * W, H);
 }
 for (i = 1; i < 9; i += 1) {
-ctx.beginPath();
-ctx.moveTo(0, (i / 9) * H);
-ctx.lineTo(W, (i / 9) * H);
-ctx.stroke();
+seg(0, (i / 9) * H, W, (i / 9) * H);
 }
 stroke(WHITE, 0.55 * w, 1.5);
 for (i = 0; i < 6; i += 1) {
@@ -498,12 +462,12 @@ ctx.stroke();
 }
 function draw(now) {
 if (!W || !H) return;
-var from = Math.min(6, Math.floor(position));
-var to = Math.min(6, Math.ceil(position));
+var from = Math.min(LAST, Math.max(0, Math.floor(position)));
+var to = Math.min(LAST, Math.max(0, Math.ceil(position)));
 var k = position - from;
 horizon = M.lerpProfile(PROFILES[from], PROFILES[to], k);
 var w = [];
-for (var i = 0; i < 7; i += 1) w.push(M.stateWeight(position, i));
+for (var i = 0; i <= LAST; i += 1) w.push(M.stateWeight(position, i));
 var ww = Math.max(w[3], w[4] * 0.92);
 ctx.clearRect(0, 0, W, H);
 drawSky(from, to, k);
@@ -532,8 +496,10 @@ function show(index) {
 if (index === current) return;
 current = index;
 for (var i = 0; i < COUNT; i += 1) {
-panels[i].classList.toggle('is-on', i === index);
-panels[i].setAttribute('aria-hidden', i === index ? 'false' : 'true');
+var on = i === index;
+panels[i].classList.toggle('is-on', on);
+panels[i].setAttribute('aria-hidden', on ? 'false' : 'true');
+panels[i].inert = !on;
 if (steps[i]) {
 steps[i].classList.toggle('is-on', i === index);
 if (i === index) steps[i].setAttribute('aria-current', 'step');
@@ -553,7 +519,7 @@ if (steps[i]) steps[i].style.setProperty('--fill', s.fill[i].toFixed(3));
 }
 var scheduled = false;
 function schedule() {
-if (scheduled || !enabled()) return;
+if (scheduled || frozen || !enabled()) return;
 scheduled = true;
 requestAnimationFrame(function () { scheduled = false; frame(); });
 }
@@ -593,13 +559,25 @@ if (visible) play(); else stop();
 } else {
 visible = true;
 }
+function onResize() {
+if (resizeRaf) return;
+resizeRaf = requestAnimationFrame(function () {
+resizeRaf = 0;
+if (frozen) {
+resize();
+draw(performance.now());
+return;
+}
+start();
+});
+}
 window.addEventListener('scroll', schedule, { passive: true });
-window.addEventListener('resize', function () { start(); });
+window.addEventListener('resize', onResize);
 document.addEventListener('visibilitychange', function () {
 if (document.hidden) stop(); else play();
 });
-if (wide.addEventListener) wide.addEventListener('change', start);
-if (reduce.addEventListener) reduce.addEventListener('change', start);
+if (wide.addEventListener) wide.addEventListener('change', onResize);
+if (reduce.addEventListener) reduce.addEventListener('change', onResize);
 steps.forEach(function (step, index) {
 var btn = step.querySelector('button');
 if (!btn) return;
@@ -622,6 +600,7 @@ if (scene) {
 var at = Math.min(COUNT - 1, Math.max(0, parseInt(scene[1], 10)));
 window.removeEventListener('scroll', schedule);
 root.classList.add('flow--static');
+frozen = true;
 position = at;
 show(at);
 steps.forEach(function (step, i) { step.style.setProperty('--fill', i <= at ? '1' : '0'); });

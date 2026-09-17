@@ -645,8 +645,17 @@ def publish_text(text: str) -> str:
     containing '//' (a URL, a regex) can be damaged.
     """
     out = _BLOCK_COMMENT.sub("", text)
-    lines = [ln.rstrip() for ln in out.split("\n")]
-    return "\n".join(ln.lstrip() if ln.strip() else "" for ln in lines if ln.strip()) + "\n"
+    kept = []
+    for line in out.split("\n"):
+        bare = line.strip()
+        if not bare:
+            continue
+        # A whole-line // comment is unambiguous; an end-of-line one is not
+        # (a URL or a regex can contain "//"), so those are left alone.
+        if bare.startswith("//"):
+            continue
+        kept.append(bare)
+    return "\n".join(kept) + "\n"
 
 
 # --------------------------------------------------------------------- render

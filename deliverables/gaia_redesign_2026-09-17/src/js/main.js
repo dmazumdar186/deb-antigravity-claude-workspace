@@ -12,6 +12,30 @@
   var hdr = document.querySelector('[data-header]');
   var stack = document.querySelector('[data-stack]');
   var cards = stack ? Array.prototype.slice.call(stack.querySelectorAll('[data-card]')) : [];
+  var stackSteps = stack ? Array.prototype.slice.call(stack.querySelectorAll('[data-stack-step]')) : [];
+
+  /* One scroll progress drives both the card transforms and the step rail. */
+  function paintStack(p) {
+    var position = p * Math.max(cards.length - 1, 0);
+    cards.forEach(function (el, i) {
+      var s = M.stackCardState(p, i, cards.length);
+      var hidden = s.opacity < 0.08;
+      el.style.setProperty('--card-y', s.yPercent.toFixed(2) + '%');
+      el.style.setProperty('--card-rot', s.rotationDeg.toFixed(2) + 'deg');
+      el.style.setProperty('--card-scale', s.scale.toFixed(3));
+      el.style.setProperty('--card-opacity', s.opacity.toFixed(3));
+      el.style.zIndex = String(s.zIndex);
+      el.classList.toggle('is-front', s.isFront);
+      el.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+      el.inert = hidden;
+      var step = stackSteps[i];
+      if (!step) return;
+      step.style.setProperty('--fill', M.clamp01(position - i + 1).toFixed(3));
+      step.classList.toggle('is-on', s.isFront);
+      if (s.isFront) step.setAttribute('aria-current', 'step');
+      else step.removeAttribute('aria-current');
+    });
+  }
   if (stack) stack.style.setProperty('--stack-span', String(cards.length));
 
   var pending = false;
@@ -24,19 +48,7 @@
       hdr.style.setProperty('--page-progress', String(Math.min(1, Math.max(0, window.scrollY / range))));
     }
     if (M && stack && cards.length && desktop.matches && !reduce.matches) {
-      var p = M.sectionProgress(stack.getBoundingClientRect(), vh);
-      stack.style.setProperty('--stack-progress', p.toFixed(3));
-      for (var i = 0; i < cards.length; i += 1) {
-        var s = M.stackCardState(p, i, cards.length);
-        var el = cards[i];
-        el.style.setProperty('--card-y', s.yPercent.toFixed(2) + '%');
-        el.style.setProperty('--card-rot', s.rotationDeg.toFixed(2) + 'deg');
-        el.style.setProperty('--card-scale', s.scale.toFixed(3));
-        el.style.setProperty('--card-opacity', s.opacity.toFixed(3));
-        el.style.zIndex = String(s.zIndex);
-        el.classList.toggle('is-front', s.isFront);
-        el.setAttribute('aria-hidden', s.opacity < 0.08 ? 'true' : 'false');
-      }
+      paintStack(M.sectionProgress(stack.getBoundingClientRect(), vh));
     }
   }
   function onScroll() {
@@ -54,18 +66,8 @@
     var hook = /[?&]stack=([0-9.]+)/.exec(window.location.search || '');
     if (!hook || !stack || !cards.length || !M) return;
     if (!desktop.matches || reduce.matches) return;
-    var p = Math.min(1, Math.max(0, parseFloat(hook[1]) || 0));
     window.removeEventListener('scroll', onScroll);
-    stack.style.setProperty('--stack-progress', p.toFixed(3));
-    cards.forEach(function (el, i) {
-      var st = M.stackCardState(p, i, cards.length);
-      el.style.setProperty('--card-y', st.yPercent.toFixed(2) + '%');
-      el.style.setProperty('--card-rot', st.rotationDeg.toFixed(2) + 'deg');
-      el.style.setProperty('--card-scale', st.scale.toFixed(3));
-      el.style.setProperty('--card-opacity', st.opacity.toFixed(3));
-      el.style.zIndex = String(st.zIndex);
-      el.classList.toggle('is-front', st.isFront);
-    });
+    paintStack(Math.min(1, Math.max(0, parseFloat(hook[1]) || 0)));
   }());
 
   /* ------------------------------------------------------------ menu */

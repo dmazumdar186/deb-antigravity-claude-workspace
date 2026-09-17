@@ -56,18 +56,37 @@ class _HeadRequest(urllib.request.Request):
         return "HEAD"
 
 
-def _attempt(url: str) -> dict[str, Any]:
-    """One HEAD request. Returns {status, verdict, error}; never raises."""
-    req = _HeadRequest(url, headers={"User-Agent": UA, "Accept": "*/*"})
+def _status(url: str, *, head: bool) -> int | dict[str, Any]:
+    """HTTP status for one request, or an error row if it never got that far."""
+    headers = {"User-Agent": UA, "Accept": "*/*"}
+    if head:
+        req: urllib.request.Request = _HeadRequest(url, headers=headers)
+    else:
+        # A one-byte ranged GET: some edges (Cloudflare among them) refuse HEAD
+        # from anything that looks automated but serve GET normally, and a
+        # refused method is not evidence that the page is gone.
+        headers["Range"] = "bytes=0-0"
+        req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-            status = int(getattr(resp, "status", 0) or resp.getcode() or 0)
+            return int(getattr(resp, "status", 0) or resp.getcode() or 0)
     except urllib.error.HTTPError as exc:
-        status = int(exc.code)
+        return int(exc.code)
     except NETWORK_ERRORS as exc:
         return {"status": 0, "verdict": "failed", "error": f"{type(exc).__name__}: {str(exc)[:160]}"}
 
-    if status == 200:
+
+def _attempt(url: str) -> dict[str, Any]:
+    """One probe. HEAD first, then a ranged GET if the method was refused."""
+    status = _status(url, head=True)
+    if isinstance(status, dict):
+        return status
+    if status in INCONCLUSIVE_STATUSES:
+        retry = _status(url, head=False)
+        if isinstance(retry, dict):
+            return {"status": status, "verdict": "inconclusive", "error": "server refused the request"}
+        status = retry if retry != 405 else status
+    if status in (200, 206):
         return {"status": status, "verdict": "ok", "error": ""}
     if status in INCONCLUSIVE_STATUSES:
         return {"status": status, "verdict": "inconclusive", "error": "server refused the request"}

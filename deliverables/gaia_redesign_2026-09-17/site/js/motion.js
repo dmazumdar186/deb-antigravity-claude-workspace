@@ -52,15 +52,14 @@ return Math.min(count - 1, Math.floor(clamp01(progress) * count));
 var stackCardState = function (progress, index, count) {
 var position = clamp01(progress) * Math.max(count - 1, 0);
 var offset = index - position;
-var exit = clamp01((-offset - 0.05) / 0.85);
-var depth = clamp(0, 3, offset);
+var distance = Math.abs(offset);
 return {
-yPercent: exit > 0 ? -12 - 24 * exit : depth * 4.6,
-rotationDeg: exit > 0 ? -1.6 * exit : 0,
-scale: exit > 0 ? 1 - 0.05 * exit : Math.max(0.9, 1 - depth * 0.035),
-opacity: exit > 0 ? Math.max(0, 1 - 1.15 * exit) : Math.max(0, 1 - depth * 0.34),
-isFront: Math.min(count - 1, Math.round(position)) === index,
-zIndex: count - index
+yPercent: offset * 22,
+rotationDeg: 0,
+scale: 1 - Math.min(distance, 1) * 0.03,
+opacity: clamp01((0.62 - distance) / 0.24),
+isFront: Math.min(Math.max(count - 1, 0), Math.round(position)) === index,
+zIndex: 10 - Math.round(Math.min(distance, 9))
 };
 };
 var hashNoise = function (i, seed) {
