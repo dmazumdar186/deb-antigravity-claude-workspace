@@ -76,17 +76,23 @@
   if (toggle && menu) {
     /* The header and the footer are siblings of <main>, so inerting <main>
        alone leaves both of them tabbable behind the open menu. Inert every
-       top-level element except the menu itself. */
+       top-level element except the menu — and except the header, which carries
+       the close button and is lifted above the overlay while it is open. The
+       header's own nav is display:none at these widths, so all it exposes is
+       the logo and the toggle. */
+    var header = toggle.closest('header') || document.querySelector('[data-header]');
     var siblings = Array.prototype.filter.call(document.body.children, function (el) {
-      return el !== menu;
+      return el !== menu && el !== header;
     });
     var restoreTo = null;
     var setMenu = function (open) {
       if (open) restoreTo = document.activeElement;
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-label', (open ? toggle.dataset.labelClose : toggle.dataset.labelOpen) || 'Menu');
       menu.classList.toggle('is-open', open);
       menu.inert = !open;
       document.body.style.overflow = open ? 'hidden' : '';
+      document.body.classList.toggle('is-menu-open', open);
       siblings.forEach(function (el) { el.inert = open; });
       if (open) {
         var first = menu.querySelector('a, button');

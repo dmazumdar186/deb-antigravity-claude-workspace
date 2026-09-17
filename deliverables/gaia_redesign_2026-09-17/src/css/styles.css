@@ -262,10 +262,15 @@ p { text-wrap: pretty; }
   content: ""; display: block; width: 18px; height: 1.5px; background: var(--white);
   transform: rotate(-90deg);
 }
+/* While the menu is open the header floats above the overlay so its toggle
+   stays visible and usable as the close control. */
+body.is-menu-open .hdr { z-index: calc(var(--z-menu) + 1); background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.is-menu-open .hdr__prog { display: none; }
+
 .menu {
   position: fixed; inset: 0; z-index: var(--z-menu);
   display: grid; align-content: center; gap: 6px;
-  padding: 96px var(--gutter) 48px;
+  padding: clamp(104px, 16vh, 150px) var(--gutter) 48px;
   background: var(--navy-950);
   visibility: hidden; opacity: 0;
   transition: opacity 220ms var(--ease), visibility 220ms var(--ease);

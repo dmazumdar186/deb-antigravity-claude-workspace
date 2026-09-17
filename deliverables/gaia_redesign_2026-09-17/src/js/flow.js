@@ -114,8 +114,24 @@
     for (var x = 0; x <= W; x += W / steps) ctx.lineTo(x, at(x));
     ctx.stroke();
   };
+  /* One straight stroke in the current style: masts, ticks, piers, gates and
+     grid lines are all this shape. */
   var seg = function (x1, y1, x2, y2) {
-    seg(x1, y1, x2, y2);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  };
+  /* A glyph of one or more strokes: a flat [x, y, x, y, …] run, with a null
+     between runs to lift the pen. */
+  var path = function (pts) {
+    ctx.beginPath();
+    var up = true;
+    for (var i = 0; i < pts.length; i += 2) {
+      if (pts[i] === null) { up = true; i -= 1; continue; }
+      if (up) { ctx.moveTo(pts[i], pts[i + 1]); up = false; } else { ctx.lineTo(pts[i], pts[i + 1]); }
+    }
+    ctx.stroke();
   };
 
   /* --------------------------------------------------------- resize */
@@ -223,31 +239,13 @@
   /* Registration marks and a scale bar: the sheet the landscape is drawn on.
      Always present, so every state shares one frame. */
   function drawFrame() {
-    var m = Math.min(46, W * 0.04);
-    var pad = Math.min(40, W * 0.032);
+    var m = Math.min(18, W * 0.016);
+    var p = Math.min(40, W * 0.032);
     stroke(WHITE, 0.16, 1);
-    var corners = [[pad, pad, 1, 1], [W - pad, pad, -1, 1], [pad, H - pad, 1, -1], [W - pad, H - pad, -1, -1]];
+    var c = [[p, p, 1, 1], [W - p, p, -1, 1], [p, H - p, 1, -1], [W - p, H - p, -1, -1]];
     for (var i = 0; i < 4; i += 1) {
-      var c = corners[i];
-      ctx.beginPath();
-      ctx.moveTo(c[0], c[1] + c[3] * m * 0.4);
-      ctx.lineTo(c[0], c[1]);
-      ctx.lineTo(c[0] + c[2] * m * 0.4, c[1]);
-      ctx.stroke();
+      path([c[i][0], c[i][1] + c[i][3] * m, c[i][0], c[i][1], c[i][0] + c[i][2] * m, c[i][1]]);
     }
-    var sx = W - pad - m * 2.6;
-    var sy = pad + 24;
-    stroke(GREEN, 0.34, 1.2);
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(sx + m * 2.6, sy);
-    ctx.moveTo(sx, sy - 5);
-    ctx.lineTo(sx, sy + 5);
-    ctx.moveTo(sx + m * 1.3, sy - 4);
-    ctx.lineTo(sx + m * 1.3, sy + 4);
-    ctx.moveTo(sx + m * 2.6, sy - 5);
-    ctx.lineTo(sx + m * 2.6, sy + 5);
-    ctx.stroke();
   }
 
   /* State 1 — onshore wind and hydropower. */
@@ -280,12 +278,7 @@
     var dy = yAt(dx + dw / 2);
     var dh = 0.052 * H * e;
     stroke(WHITE, 0.45 * w, 1.5);
-    ctx.beginPath();
-    ctx.moveTo(dx, dy);
-    ctx.lineTo(dx + dw * 0.14, dy - dh);
-    ctx.lineTo(dx + dw * 0.86, dy - dh);
-    ctx.lineTo(dx + dw, dy);
-    ctx.stroke();
+    path([dx, dy, dx + dw * 0.14, dy - dh, dx + dw * 0.86, dy - dh, dx + dw, dy]);
     stroke(GREEN, 0.22 * w, 1);
     for (var k = 1; k <= 3; k += 1) {
       seg(dx - 0.075 * W, dy - dh + k * (dh / 4), dx + dw * 0.12, dy - dh + k * (dh / 4));
@@ -400,12 +393,8 @@
       stroke(GREEN, 0.6 * w, 1.4);
       ctx.strokeRect(bx, by - bh, bw, bh);
       stroke(WHITE, 0.45 * w, 1.4);
-      ctx.beginPath();
-      ctx.moveTo(bx + bw * 0.25, by - bh);
-      ctx.lineTo(bx + bw * 0.25, by - bh - 4);
-      ctx.moveTo(bx + bw * 0.75, by - bh);
-      ctx.lineTo(bx + bw * 0.75, by - bh - 4);
-      ctx.stroke();
+      path([bx + bw * 0.25, by - bh, bx + bw * 0.25, by - bh - 4, null,
+        bx + bw * 0.75, by - bh, bx + bw * 0.75, by - bh - 4]);
     }
   }
 
@@ -483,14 +472,9 @@
       var tx = (0.53 + i * 0.028) * W;
       var ty = yAt(tx);
       var th = (0.024 + M.hashNoise(i, 7) * 0.022) * H * e;
-      ctx.beginPath();
-      ctx.moveTo(tx, ty);
-      ctx.lineTo(tx, ty - th);
-      ctx.moveTo(tx, ty - th * 0.55);
-      ctx.lineTo(tx - th * 0.34, ty - th * 0.92);
-      ctx.moveTo(tx, ty - th * 0.55);
-      ctx.lineTo(tx + th * 0.34, ty - th * 0.92);
-      ctx.stroke();
+      path([tx, ty, tx, ty - th, null,
+        tx, ty - th * 0.55, tx - th * 0.34, ty - th * 0.92, null,
+        tx, ty - th * 0.55, tx + th * 0.34, ty - th * 0.92]);
     }
   }
 
@@ -512,11 +496,7 @@
       var byp = H * (0.16 + 0.10 * M.hashNoise(i, 5) + 0.012 * Math.sin(now / 900 + i));
       var sz = (0.009 + M.hashNoise(i, 9) * 0.006) * H;
       var flap = 0.45 + 0.3 * Math.sin(now / 320 + i * 1.7);
-      ctx.beginPath();
-      ctx.moveTo(bxp - sz, byp - sz * flap);
-      ctx.lineTo(bxp, byp);
-      ctx.lineTo(bxp + sz, byp - sz * flap);
-      ctx.stroke();
+      path([bxp - sz, byp - sz * flap, bxp, byp, bxp + sz, byp - sz * flap]);
     }
   }
 

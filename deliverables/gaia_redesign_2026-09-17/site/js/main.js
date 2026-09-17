@@ -60,16 +60,19 @@ paintStack(Math.min(1, Math.max(0, parseFloat(hook[1]) || 0)));
 var toggle = document.querySelector('[data-menu-toggle]');
 var menu = document.querySelector('[data-menu]');
 if (toggle && menu) {
+var header = toggle.closest('header') || document.querySelector('[data-header]');
 var siblings = Array.prototype.filter.call(document.body.children, function (el) {
-return el !== menu;
+return el !== menu && el !== header;
 });
 var restoreTo = null;
 var setMenu = function (open) {
 if (open) restoreTo = document.activeElement;
 toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+toggle.setAttribute('aria-label', (open ? toggle.dataset.labelClose : toggle.dataset.labelOpen) || 'Menu');
 menu.classList.toggle('is-open', open);
 menu.inert = !open;
 document.body.style.overflow = open ? 'hidden' : '';
+document.body.classList.toggle('is-menu-open', open);
 siblings.forEach(function (el) { el.inert = open; });
 if (open) {
 var first = menu.querySelector('a, button');

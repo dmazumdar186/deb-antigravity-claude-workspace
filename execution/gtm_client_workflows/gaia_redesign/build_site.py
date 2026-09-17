@@ -831,6 +831,11 @@ def build(src: Path, out: Path, *, skip_links: bool) -> int:
     css = sum(p.stat().st_size for p in (out / "css").glob("*.css"))
     js = sum(p.stat().st_size for p in (out / "js").glob("*.js"))
     html_bytes = sum(p.stat().st_size for p in out.rglob("*.html"))
+    for label, size, budget in (("css", css, validate_site.CSS_BUDGET), ("js", js, validate_site.JS_BUDGET)):
+        headroom = budget - size
+        if headroom < budget * 0.05:
+            print(f"WARN  {label} is {headroom} bytes under its {budget}-byte budget; little room left")
+
     print("PASS  all checks green")
     print(f"      {total} roles rendered · {len(list(out.rglob('*.html')))} pages")
     print(f"      html {html_bytes / 1024:.1f} KB · css {css / 1024:.1f} KB (budget 45) · js {js / 1024:.1f} KB (budget 30)")
