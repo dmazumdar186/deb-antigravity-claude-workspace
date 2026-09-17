@@ -127,23 +127,56 @@
   function drawIntro(w) {
     if (w <= 0.001) return;
     var i;
-    stroke(WHITE, 0.10 * w, 1);
+    var x;
+    /* a distant ridge behind the working horizon */
+    stroke(WHITE, 0.18 * w, 1.3);
+    ctx.beginPath();
+    for (x = 0; x <= W; x += W / 48) {
+      ctx.lineTo(x, yAt(x) - H * 0.085 - Math.sin(x / W * 5.2 + 0.9) * H * 0.022);
+    }
+    ctx.stroke();
+    stroke(WHITE, 0.10 * w, 1.1);
+    ctx.beginPath();
+    for (x = 0; x <= W; x += W / 48) {
+      ctx.lineTo(x, yAt(x) - H * 0.155 - Math.sin(x / W * 3.4 + 2.1) * H * 0.030);
+    }
+    ctx.stroke();
+    /* contour lines */
+    stroke(WHITE, 0.13 * w, 1);
     ctx.setLineDash([2, 7]);
-    for (i = 1; i <= 3; i += 1) {
+    for (i = 1; i <= 4; i += 1) {
       ctx.beginPath();
-      for (var x = 0; x <= W; x += W / 40) ctx.lineTo(x, yAt(x) - i * H * 0.052);
+      for (x = 0; x <= W; x += W / 40) ctx.lineTo(x, yAt(x) - i * H * 0.042);
       ctx.stroke();
     }
     ctx.setLineDash([]);
-    stroke(GREEN, 0.26 * w, 1);
-    for (i = 0; i < 9; i += 1) {
-      var tx = (i + 0.5) * (W / 9);
+    /* survey ticks along the baseline, long and short alternating */
+    stroke(GREEN, 0.34 * w, 1.2);
+    for (i = 0; i < 25; i += 1) {
+      var tx = (i + 0.5) * (W / 25);
       var ty = yAt(tx);
+      var len = i % 5 === 0 ? 11 : 5;
       ctx.beginPath();
-      ctx.moveTo(tx, ty - 7);
-      ctx.lineTo(tx, ty + 7);
+      ctx.moveTo(tx, ty - len);
+      ctx.lineTo(tx, ty + len);
       ctx.stroke();
     }
+    /* two bearing lines from a station point */
+    var px = W * 0.66;
+    var py = yAt(px) - H * 0.30;
+    stroke(GREEN, 0.20 * w, 1);
+    ctx.setLineDash([5, 8]);
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(W * 0.24, yAt(W * 0.24) + H * 0.06);
+    ctx.moveTo(px, py);
+    ctx.lineTo(W * 0.98, yAt(W * 0.98) + H * 0.02);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, PI2);
+    ctx.strokeStyle = rgba(GREEN, 0.5 * w);
+    ctx.stroke();
   }
 
   function drawGround() {
@@ -153,17 +186,60 @@
     ctx.lineTo(W, H);
     ctx.lineTo(0, H);
     ctx.closePath();
-    ctx.fillStyle = rgba(DEEP, 0.94);
+    var g = ctx.createLinearGradient(0, H * 0.5, 0, H);
+    g.addColorStop(0, 'rgba(9,19,30,1)');
+    g.addColorStop(1, 'rgba(5,11,19,1)');
+    ctx.fillStyle = g;
     ctx.fill();
-    stroke(GREEN, 0.6, 1.5);
+    /* field lines: the land keeps its drawing across every state */
+    ctx.save();
+    ctx.clip();
+    for (var f = 1; f <= 6; f += 1) {
+      stroke(WHITE, 0.055, 1);
+      ctx.beginPath();
+      for (var fx = 0; fx <= W; fx += W / 30) ctx.lineTo(fx, yAt(fx) + Math.pow(f / 6, 1.9) * H * 0.46);
+      ctx.stroke();
+    }
+    ctx.restore();
+    stroke(GREEN, 0.62, 1.5);
     ctx.beginPath();
     ctx.moveTo(0, yAt(0));
     for (var x2 = W / 60; x2 <= W; x2 += W / 60) ctx.lineTo(x2, yAt(x2));
     ctx.stroke();
   }
 
+  /* Registration marks and a scale bar: the sheet the landscape is drawn on.
+     Always present, so every state shares one frame. */
+  function drawFrame() {
+    var m = Math.min(46, W * 0.04);
+    var pad = Math.min(40, W * 0.032);
+    stroke(WHITE, 0.16, 1);
+    var corners = [[pad, pad, 1, 1], [W - pad, pad, -1, 1], [pad, H - pad, 1, -1], [W - pad, H - pad, -1, -1]];
+    for (var i = 0; i < 4; i += 1) {
+      var c = corners[i];
+      ctx.beginPath();
+      ctx.moveTo(c[0], c[1] + c[3] * m * 0.4);
+      ctx.lineTo(c[0], c[1]);
+      ctx.lineTo(c[0] + c[2] * m * 0.4, c[1]);
+      ctx.stroke();
+    }
+    var sx = W - pad - m * 2.6;
+    var sy = pad + 24;
+    stroke(GREEN, 0.34, 1.2);
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + m * 2.6, sy);
+    ctx.moveTo(sx, sy - 5);
+    ctx.lineTo(sx, sy + 5);
+    ctx.moveTo(sx + m * 1.3, sy - 4);
+    ctx.lineTo(sx + m * 1.3, sy + 4);
+    ctx.moveTo(sx + m * 2.6, sy - 5);
+    ctx.lineTo(sx + m * 2.6, sy + 5);
+    ctx.stroke();
+  }
+
   /* State 1 — onshore wind and hydropower. */
-  var MASTS = [0.40, 0.515, 0.625, 0.745, 0.875];
+  var MASTS = [0.46, 0.565, 0.665, 0.775, 0.895];
   function drawWind(w, now) {
     if (w <= 0.001) return;
     var e = M.easeOutQuart(w);
@@ -173,12 +249,12 @@
       var base = yAt(x);
       var h = (0.115 + M.hashNoise(i, 21) * 0.055) * H * e;
       var hub = base - h;
-      stroke(WHITE, 0.34 * w, 1.5);
+      stroke(WHITE, 0.5 * w, 1.5);
       ctx.beginPath();
       ctx.moveTo(x, base);
       ctx.lineTo(x, hub);
       ctx.stroke();
-      stroke(GREEN, 0.5 * w, 1.5);
+      stroke(GREEN, 0.62 * w, 1.5);
       var r = h * 0.44;
       for (var b = 0; b < 3; b += 1) {
         var a = spin + (b * PI2) / 3 + i * 0.7;
@@ -193,11 +269,11 @@
       ctx.fill();
     }
     /* hydropower: a dam wall on the left with a still reservoir behind it */
-    var dx = 0.13 * W;
-    var dw = 0.15 * W;
+    var dx = 0.285 * W;
+    var dw = 0.135 * W;
     var dy = yAt(dx + dw / 2);
     var dh = 0.052 * H * e;
-    stroke(WHITE, 0.3 * w, 1.5);
+    stroke(WHITE, 0.45 * w, 1.5);
     ctx.beginPath();
     ctx.moveTo(dx, dy);
     ctx.lineTo(dx + dw * 0.14, dy - dh);
@@ -207,7 +283,7 @@
     stroke(GREEN, 0.22 * w, 1);
     for (var k = 1; k <= 3; k += 1) {
       ctx.beginPath();
-      ctx.moveTo(dx - 0.09 * W, dy - dh + k * (dh / 4));
+      ctx.moveTo(dx - 0.075 * W, dy - dh + k * (dh / 4));
       ctx.lineTo(dx + dw * 0.12, dy - dh + k * (dh / 4));
       ctx.stroke();
     }
@@ -231,7 +307,7 @@
 
     for (var row = 0; row < 4; row += 1) {
       var depth = row / 3;
-      var y = yAt(0.5 * W) + (0.035 + depth * depth * 0.30) * H;
+      var y = yAt(0.5 * W) + (0.022 + Math.pow(depth, 1.6) * 0.20) * H;
       if (y > H * 1.05) continue;
       var sw = (0.055 + depth * 0.055) * W;
       var sh = (0.032 + depth * 0.045) * H;
@@ -247,9 +323,9 @@
         ctx.lineTo(x + sw, y - lift + sh * 0.22);
         ctx.lineTo(x + sw * 0.22, y + sh * 0.22);
         ctx.closePath();
-        ctx.fillStyle = rgba(SURF, 0.6 * w);
+        ctx.fillStyle = rgba(SURF, 0.82 * w);
         ctx.fill();
-        stroke(GREEN, 0.42 * w, 1.2);
+        stroke(GREEN, 0.6 * w, 1.2);
         ctx.stroke();
       }
     }
@@ -257,7 +333,7 @@
 
   /* States 3 and 4 share one rising water plane. */
   function waterTop(ww) {
-    return H - (0.06 + 0.24 * M.easeOutQuart(ww)) * H;
+    return H - (0.08 + 0.24 * M.easeOutQuart(ww)) * H;
   }
   function drawWater(ww, now) {
     if (ww <= 0.001) return;
@@ -271,12 +347,15 @@
     ctx.lineTo(W, H);
     ctx.lineTo(0, H);
     ctx.closePath();
-    ctx.fillStyle = rgba(SURF, 0.62 * ww);
+    var wg = ctx.createLinearGradient(0, top, 0, H);
+    wg.addColorStop(0, 'rgba(34,70,88,' + (0.92 * ww).toFixed(3) + ')');
+    wg.addColorStop(1, 'rgba(12,30,44,' + (0.95 * ww).toFixed(3) + ')');
+    ctx.fillStyle = wg;
     ctx.fill();
-    stroke(GREEN, 0.34 * ww, 1.2);
+    stroke(GREEN, 0.55 * ww, 1.4);
     ctx.stroke();
     for (var r = 1; r <= 3; r += 1) {
-      stroke(GREEN, (0.2 - r * 0.04) * ww, 1);
+      stroke(GREEN, (0.32 - r * 0.07) * ww, 1);
       ctx.beginPath();
       for (var x2 = 0; x2 <= W; x2 += W / 70) {
         var amp = 0.005 * H * r;
@@ -285,7 +364,7 @@
       ctx.stroke();
     }
     /* flood-plain contours hugging the horizon */
-    stroke(WHITE, 0.13 * ww, 1);
+    stroke(WHITE, 0.2 * ww, 1);
     ctx.setLineDash([3, 6]);
     for (var c = 1; c <= 3; c += 1) {
       ctx.beginPath();
@@ -301,34 +380,34 @@
     var e = M.easeOutQuart(w);
     var top = waterTop(Math.max(ww, w));
     var gh = 0.062 * H * e;
-    stroke(WHITE, 0.4 * w, 1.5);
+    stroke(WHITE, 0.55 * w, 1.5);
     ctx.beginPath();
-    ctx.moveTo(0.30 * W, top - gh);
-    ctx.lineTo(0.94 * W, top - gh);
+    ctx.moveTo(0.46 * W, top - gh);
+    ctx.lineTo(0.78 * W, top - gh);
     ctx.stroke();
     for (var g = 0; g < 6; g += 1) {
-      var x = (0.30 + g * 0.128) * W;
-      var gw = 0.085 * W;
-      stroke(WHITE, 0.3 * w, 1.5);
+      var x = (0.46 + g * 0.064) * W;
+      var gw = 0.064 * W;
+      stroke(WHITE, 0.42 * w, 1.5);
       ctx.beginPath();
       ctx.moveTo(x, top - gh);
       ctx.lineTo(x, top + 0.012 * H);
       ctx.stroke();
       var open = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(now / 2200 + g));
-      stroke(GREEN, 0.3 * w, 1.2);
+      stroke(GREEN, 0.45 * w, 1.2);
       ctx.beginPath();
       ctx.moveTo(x + 2, top - gh * open);
       ctx.lineTo(x + gw - 2, top - gh * open);
       ctx.stroke();
     }
     for (var b = 0; b < 4; b += 1) {
-      var bx = (0.05 + b * 0.055) * W;
-      var by = yAt(bx + 0.02 * W);
-      var bw = 0.042 * W;
+      var bx = (0.815 + b * 0.046) * W;
+      var by = yAt(bx + 0.018 * W);
+      var bw = 0.036 * W;
       var bh = 0.042 * H * e;
-      stroke(GREEN, 0.45 * w, 1.4);
+      stroke(GREEN, 0.6 * w, 1.4);
       ctx.strokeRect(bx, by - bh, bw, bh);
-      stroke(WHITE, 0.3 * w, 1.4);
+      stroke(WHITE, 0.45 * w, 1.4);
       ctx.beginPath();
       ctx.moveTo(bx + bw * 0.25, by - bh);
       ctx.lineTo(bx + bw * 0.25, by - bh - 4);
@@ -378,26 +457,38 @@
       ctx.stroke();
     }
     /* bridge span */
-    var bx = 0.50 * W;
-    var bw = 0.24 * W;
-    var deck = yAt(bx + bw / 2) - 0.055 * H * e;
-    stroke(WHITE, 0.42 * w, 1.5);
+    var bx = 0.54 * W;
+    var bw = 0.26 * W;
+    var deck = yAt(bx + bw / 2) - 0.075 * H * e;
+    stroke(WHITE, 0.55 * w, 1.6);
+    ctx.beginPath();
+    ctx.moveTo(bx - bw * 0.1, deck);
+    ctx.lineTo(bx + bw * 1.1, deck);
+    ctx.stroke();
+    var sag = deck + 0.055 * H * e;
+    stroke(GREEN, 0.5 * w, 1.4);
     ctx.beginPath();
     ctx.moveTo(bx, deck);
-    ctx.lineTo(bx + bw, deck);
+    ctx.quadraticCurveTo(bx + bw / 2, sag, bx + bw, deck);
     ctx.stroke();
-    for (var pr = 0; pr <= 2; pr += 1) {
-      var px = bx + (bw / 2) * pr;
+    stroke(WHITE, 0.32 * w, 1.2);
+    for (var hg = 1; hg <= 4; hg += 1) {
+      var t = hg / 5;
+      var hx = bx + bw * t;
+      var hy = (1 - t) * (1 - t) * deck + 2 * (1 - t) * t * sag + t * t * deck;
+      ctx.beginPath();
+      ctx.moveTo(hx, deck);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+    }
+    stroke(WHITE, 0.45 * w, 1.6);
+    for (var pr = 0; pr <= 1; pr += 1) {
+      var px = bx + bw * pr;
       ctx.beginPath();
       ctx.moveTo(px, deck);
       ctx.lineTo(px, yAt(px));
       ctx.stroke();
     }
-    stroke(GREEN, 0.3 * w, 1.2);
-    ctx.beginPath();
-    ctx.moveTo(bx, deck);
-    ctx.quadraticCurveTo(bx + bw / 2, deck - 0.035 * H * e, bx + bw, deck);
-    ctx.stroke();
   }
 
   /* State 6 — survey grid, tree line, birds. */
@@ -407,7 +498,7 @@
     var i;
     stroke(GREEN, 0.4 * w, 1.3);
     for (i = 0; i < 16; i += 1) {
-      var tx = (0.06 + i * 0.024) * W;
+      var tx = (0.53 + i * 0.028) * W;
       var ty = yAt(tx);
       var th = (0.024 + M.hashNoise(i, 7) * 0.022) * H * e;
       ctx.beginPath();
@@ -460,15 +551,19 @@
     var ww = Math.max(w[3], w[4] * 0.92);
 
     ctx.clearRect(0, 0, W, H);
+    /* Painter's order: sky, then the sheet's own drawing, then the land, then
+       what stands on it, then what covers it. Anything below the horizon has to
+       come after drawGround or the land paints over it. */
     drawSky(from, to, k);
-    drawSolar(w[2]);
     drawIntro(w[0]);
     drawGround();
+    drawSolar(w[2]);
     drawWind(w[1], now);
-    drawEcology(w[6], now);
     drawTransport(w[5]);
     drawWater(ww, now);
     drawTidal(w[4], ww, now);
+    drawEcology(w[6], now);
+    drawFrame();
   }
 
   /* --------------------------------------------------------- scroll */
@@ -570,4 +665,32 @@
   });
 
   start();
+
+  /* Deep links and review hooks.
+     index.html#state-3  scrolls to the fourth leg of the sequence.
+     index.html?scene=3  freezes the stage on that leg without scrolling, so a
+     headless renderer (which always captures from the top of the document) can
+     photograph every state of the scene. */
+  (function deepLink() {
+    if (!enabled()) return;
+    var scene = /[?&]scene=(\d+)/.exec(window.location.search || '');
+    if (scene) {
+      var at = Math.min(COUNT - 1, Math.max(0, parseInt(scene[1], 10)));
+      window.removeEventListener('scroll', schedule);
+      root.classList.add('flow--static');
+      position = at;
+      show(at);
+      steps.forEach(function (step, i) { step.style.setProperty('--fill', i <= at ? '1' : '0'); });
+      draw(performance.now());
+      return;
+    }
+    var jump = /^#state-(\d+)$/.exec(window.location.hash || '');
+    if (!jump) return;
+    var index = Math.min(COUNT - 1, Math.max(0, parseInt(jump[1], 10)));
+    var range = root.offsetHeight - window.innerHeight;
+    var top = root.offsetTop + range * (index / Math.max(COUNT - 1, 1)) * 0.92 + 4;
+    window.scrollTo({ top: top, behavior: 'auto' });
+    frame();
+    draw(performance.now());
+  }());
 }());

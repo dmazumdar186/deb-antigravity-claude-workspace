@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>A note for Keith — Gaia Talent redesign</title>
+<meta name="description" content="Why this redesign exists, what the audit found, what changed, and how to make it yours.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=Public+Sans:wght@300..600&display=swap">
+<link rel="stylesheet" href="../css/styles.css">
+<script>document.documentElement.className+=' has-js';</script>
+</head>
+<body data-contact-email="">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hdr" data-header>
+  <div class="hdr__in">
+    <a class="hdr__logo" href="../index.html" aria-label="Gaia Talent — home">
+      <img src="../assets/logo-light.svg" alt="Gaia Talent" width="250" height="74">
+    </a>
+    <nav class="hdr__nav" aria-label="Primary">
+      <a href="../jobs/index.html">Live roles</a>
+      <a href="../index.html#services">Services</a>
+      <a href="../index.html#sectors">Sectors</a>
+      <a href="../team/index.html">Team</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+    <a class="btn btn--fill" href="../index.html"><span class="btn__t">View the site</span><span class="arw" aria-hidden="true">&rarr;</span></a>
+    <button class="burger" type="button" data-menu-toggle aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
+    <div class="hdr__prog" aria-hidden="true"><i></i></div>
+  </div>
+</header>
+
+<div class="menu" id="menu" data-menu>
+  <a href="../index.html">Home</a>
+  <a href="../jobs/index.html">Live roles</a>
+  <a href="../team/index.html">Team</a>
+  <a href="../index.html#contact">Contact</a>
+</div>
+
+<main id="main">
+  <div class="phead">
+    <div class="wrap">
+      <nav class="crumb" aria-label="Breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true">/</span><span>A note for Keith</span></nav>
+      <h1>A note for Keith.</h1>
+      <p>What this is, what I found, what I changed, and how you would make it yours. Five minutes of reading. Nothing here touches gaiatalent.com.</p>
+    </div>
+  </div>
+
+  <section class="band band--mist">
+    <div class="wrap prose">
+
+      <h2 style="margin-top:0">Why I built this</h2>
+      <p>You said two things on our call that stuck. &ldquo;Speed and accuracy are the two most important elements in our work.&rdquo; And: &ldquo;cut the wheat from the chaff &mdash; is this actually a value add or is this another AI headspace thing?&rdquo; Fair question. The honest answer to a question like that is a thing you can click, not a deck.</p>
+      <p>So this is a free, no-strings redesign concept of gaiatalent.com, built on my own domain, in my own time. It is a demonstration of pace and standard, not an invoice waiting to happen. Nothing touches your live site unless and until you say so. If you like it, it is yours; if you do not, you have lost nothing but the read.</p>
+      <p>For the record: the current site is not a bad build. Hidden Depth put a modern, well-engineered WordPress theme under it &mdash; good security headers, HTTP/3, proper scroll work. My argument is not about their craft. It is about <strong>content, proof and conversion</strong>: what the site says about Gaia, what it can prove, and how easily a hiring manager gets from landing on it to talking to you.</p>
+
+      <h2>What the audit found</h2>
+      <p>I went through the live site, the sitemap, the job pages and the privacy policy. These are the things I would fix first, in order of how much they cost you.</p>
+      <ol>
+        <li><strong>All five team bio pages are blank.</strong> The links exist, the pages load, and the main content area is empty server-side. A candidate who clicks your name to see who they would be dealing with gets nothing. For a business whose pitch is &ldquo;you talk to a person&rdquo;, this is the single most expensive defect on the site.</li>
+        <li><strong>No proof anywhere on the page.</strong> No client logos, no testimonials, no placement numbers, no founding year, no address. A visitor has no way to tell a five-person specialist from a one-person shop.</li>
+        <li><strong>B Corp and Hometree are buried.</strong> You are a Certified B Corp with a B Impact Score of 87.3, and you plant a tree for every candidate placed plus ten more in their name. The tree commitment appears only in the privacy policy. The B Corp mark appears as a logo with no words around it. That is your differentiator, filed under compliance.</li>
+        <li><strong>No JobPosting structured data.</strong> Your 63 live roles carry no schema.org markup, so they are invisible to Google for Jobs and to every aggregator that reads it. That is free candidate flow you are not collecting.</li>
+        <li><strong>The blog has been frozen since 2022.</strong> 130 posts, and one of them still refers to the National Biodiversity Conference 2022 in the present tense. A stale blog reads worse than no blog.</li>
+        <li><strong>A live typo in the services copy</strong> &mdash; &ldquo;we truly understand the getting the right person&rdquo;.</li>
+        <li><strong>The hero is a stock abstract image at 242&nbsp;KB</strong>, and the stylesheet is ~298&nbsp;KB with 23 separate scripts. That is weight carried for a picture that says nothing about the work.</li>
+      </ol>
+
+      <h2>What this redesign changes</h2>
+      <ul>
+        <li><strong>The team page is real.</strong> Five people, five photographs, the actual titles. The bios are the one thing I cannot write for you &mdash; see below.</li>
+        <li><strong>The hero is your sectors, drawn.</strong> Scroll moves through wind and hydro, solar, water and flood risk, wave and tidal, transport, ecology &mdash; one continuous landscape that rearranges itself, with a genuine live role attached to each one. Nothing stock. Nothing that could belong to an insurance broker.</li>
+        <li><strong>Proof is on the page.</strong> B Corp, the score, Hometree, 35 years combined experience, 63 live roles &mdash; stated plainly, in your own words, in a band you cannot scroll past.</li>
+        <li><strong>Every role is structured data.</strong> Each of the 63 roles carries JobPosting markup and links straight to its live page on gaiatalent.com. Nothing is duplicated or rewritten.</li>
+        <li><strong>The phone comes first.</strong> Both office numbers are in the header, in the hero sequence, in the footer and in the contact band at display size. The form is secondary to them by design.</li>
+        <li><strong>The search process is stated.</strong> Brief, market map, identify, vet and screen, place and plant &mdash; so a client can see what they are buying before they ring.</li>
+        <li><strong>It is light.</strong> No framework, no icon library, no third-party scripts. The numbers are in the table below.</li>
+      </ul>
+
+      <h2>What only you can supply</h2>
+      <p>I have deliberately invented nothing. Everything on the public pages is either verbatim from your site or computed from your live job listings. These are the gaps I left open rather than fill with fiction:</p>
+      <ul>
+        <li><strong>Team bios.</strong> Two or three sentences each &mdash; what they specialise in, how long they have been at it. That fills the biggest hole on the current site.</li>
+        <li><strong>Client logos and testimonials</strong>, if you are willing to name any. Two named quotes would outperform every other change here.</li>
+        <li><strong>Placement numbers.</strong> Roles filled last year, average time to shortlist, anything you would stand over.</li>
+        <li><strong>A contact email address for the form.</strong> Yours is obfuscated on the live site and I would not guess at it. Until one is supplied, the form composes the message and hands it to the visitor to send &mdash; it never pretends to have delivered anything.</li>
+        <li><strong>Your CRO number and registered address</strong>, for the footer. Irish company-law good practice, and it is a trust signal.</li>
+        <li><strong>Which sectors to lead with.</strong> I picked six for the hero from your own list of twenty-three. You will know better which six bring in the work.</li>
+      </ul>
+
+      <h2>How it was built</h2>
+      <p>End to end in a day. Research, audit and dataset extraction were run by Claude Fable 5.1 driving a set of scripts; the design went through a six-lens review panel before a line of markup was written; the hero landscape is generative canvas drawing, not video or stock; and a Python build script renders the job data into the pages and then validates the output &mdash; relative paths, image dimensions, structured data, role counts, forbidden words &mdash; failing the build on any breach. The job links were checked against the live site: 63 of 63 role links were verified live on 2026-09-17.</p>
+      <p>I am telling you this because you asked the right question about value add. The tooling is only interesting if the result stands up on its own. Judge the result.</p>
+
+      <h2>Evidence</h2>
+      <p>Measured from the built files in this folder, not estimated. No Lighthouse score is quoted here because I have not run one on your hosting.</p>
+      <div class="tbl-wrap"><table class="tbl"><caption>Built 2026-09-17. Sizes are of the files in this folder; the compressed column is what a browser actually downloads. This note page is excluded from the page measurements above.</caption><thead><tr><th scope="col">What</th><th scope="col">On disk</th><th scope="col">Compressed</th></tr></thead><tbody><tr><th scope="row">Home page (HTML)</th><td class="num">53.5&nbsp;KB</td><td class="num">9.5&nbsp;KB</td></tr><tr><th scope="row">Live roles page (HTML)</th><td class="num">100.0&nbsp;KB</td><td class="num">11.4&nbsp;KB</td></tr><tr><th scope="row">Team page (HTML)</th><td class="num">6.9&nbsp;KB</td><td class="num">2.1&nbsp;KB</td></tr><tr><th scope="row">Stylesheet (one file)</th><td class="num">31.9&nbsp;KB</td><td class="num">7.3&nbsp;KB</td></tr><tr><th scope="row">JavaScript (four files)</th><td class="num">27.9&nbsp;KB</td><td class="num">9.4&nbsp;KB</td></tr><tr><th scope="row">Images (logos, B Corp, five portraits)</th><td class="num">262.3&nbsp;KB</td><td class="num">212.1&nbsp;KB</td></tr><tr><th scope="row">Role data (JSON)</th><td class="num">48.5&nbsp;KB</td><td class="num">5.9&nbsp;KB</td></tr><tr><th scope="row">Third-party scripts, trackers, frameworks</th><td class="num">0</td><td class="num">0</td></tr><tr><th scope="row">Web fonts</th><td class="num" colspan="2">Two families (Archivo, Public Sans), loaded from Google Fonts with <code>display=swap</code></td></tr><tr><th scope="row">Checks run on this build</th><td colspan="2">63 role records rendered and counted against the dataset; every local link and image resolved to a file that exists; every image carries alt text and explicit width and height; every form control carries a real label; all JSON-LD blocks parsed; no absolute paths, so the site runs from any subfolder; 19 unit tests over the scroll and scene maths (node --test)</td></tr></tbody></table></div>
+
+      <h2>How to make it yours</h2>
+      <ol>
+        <li><strong>Point a subdomain at it.</strong> These are plain static files &mdash; no database, no PHP. Drop them on Cloudflare Pages, Netlify or GitHub Pages, point <code>new.gaiatalent.com</code> at it, and look at it alongside the live site for a week before deciding anything.</li>
+        <li><strong>Hand it to your web team as a theme.</strong> The markup is semantic and the CSS is one file with named tokens at the top. Any WordPress developer can convert these templates into a theme; the jobs page is already generated from a JSON feed, so wiring it to Vincere is a data-mapping job, not a rebuild.</li>
+        <li><strong>Keep WordPress for the blog, use these pages for the front.</strong> The lowest-risk option: the home, roles and team pages run as static files, the existing WordPress stays at <code>/blog/</code>. Nothing you already own is thrown away.</li>
+      </ol>
+      <div class="note">
+        <p><strong>My recommendation:</strong> option one for a fortnight, then option two. Look at it on a real screen with real roles in it before committing anyone's time.</p>
+      </div>
+
+      <h2>Where the data came from</h2>
+      <p>The 63 roles, their locations, sectors and types were read from your own live job pages on 15 September 2026. Salaries are deliberately not shown: only seven of the 63 listings disclose one, and showing some but not others misleads candidates. Per-role posting dates are not shown either &mdash; the only dates available were sitemap timestamps, which are not posting dates. The page says &ldquo;as of 15 September 2026&rdquo; and nothing more precise than that is claimed.</p>
+      <p>Your sitemap listed 64 role URLs; one was a duplicate, so the real figure is 63. Every number on the site is computed from that file, not typed by hand.</p>
+
+      <p style="margin-top:44px"><a class="btn btn--fill" href="../index.html"><span class="btn__t">Look at the site</span><span class="arw" aria-hidden="true">&rarr;</span></a></p>
+    </div>
+  </section>
+</main>
+
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr__btm" style="margin-top:0;border-top:0">
+      <p>&copy; 2026 Gaia Talent.</p>
+      <p>Redesign concept by Debanjan Mazumdar &middot; September 2026</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/motion.js"></script>
+<script src="../js/main.js"></script>
+</body>
+</html>

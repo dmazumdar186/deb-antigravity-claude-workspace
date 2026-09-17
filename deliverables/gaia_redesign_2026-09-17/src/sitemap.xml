@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Present for completeness. Every page also carries robots noindex,nofollow:
-     this concept is deliberately kept out of search. -->
-<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">
+     this redesign concept is deliberately kept out of search results. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<!-- @sitemap:urls -->
 </urlset>
