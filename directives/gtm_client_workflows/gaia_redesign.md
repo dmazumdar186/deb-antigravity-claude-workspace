@@ -44,6 +44,8 @@ operator ships serious, accurate, fast work. Research and the panel decisions li
 4. Audit stack (anneal-reviewer, code-reviewer, pipeline-auditor) on the diff; fix; rebuild.
 5. `bash execution/gtm_client_workflows/gaia_redesign/publish_gh_pages.sh` (publishes only `gaia/`;
    the POC pages at `/` are untouched). Then `curl -sI` the base URL and one sub-page.
+   Optionally `bash execution/gtm_client_workflows/gaia_redesign/deploy_cloudflare.sh` for the
+   `pages.dev` mirror (token permissions: Account > Cloudflare Pages > Edit).
 6. Commit `src/`, `site/`, scripts and this directive; push branch and main.
 
 ## Exit Criteria (declarative)
@@ -64,6 +66,9 @@ operator ships serious, accurate, fast work. Research and the panel decisions li
 - `execution/gtm_client_workflows/gaia_redesign/build_site.py`
 - `execution/gtm_client_workflows/gaia_redesign/screenshot.sh`
 - `execution/gtm_client_workflows/gaia_redesign/publish_gh_pages.sh`
+- `execution/gtm_client_workflows/gaia_redesign/deploy_cloudflare.sh` — same bundle to Cloudflare Pages
+  (`https://gaia-talent-redesign.pages.dev/`); needs `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`
+  (env or `.env`; in cloud sessions add them to the environment's variables, `.env` does not exist there).
 
 ## Edge cases
 
