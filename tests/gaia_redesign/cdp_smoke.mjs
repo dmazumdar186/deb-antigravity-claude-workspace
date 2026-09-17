@@ -88,7 +88,7 @@ class CDP {
 }
 
 async function raf2() {
-  return 'await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))';
+  return 'new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))';
 }
 
 async function drive(viewport) {
@@ -113,9 +113,6 @@ async function drive(viewport) {
   }
 
   await cdp.send('Page.navigate', { url: `${BASE}/index.html` });
-  await new Promise((resolve) => {
-    const check = async (msg) => {};
-  });
   // Wait for load via Page.loadEventFired
   await new Promise((resolve) => {
     const handler = (ev) => {
@@ -130,6 +127,16 @@ async function drive(viewport) {
   return cdp;
 }
 
+async function clickElement(cdp, selector) {
+  const rect = await cdp.eval(`(() => {
+    const el = document.querySelector(${JSON.stringify(selector)});
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  })()`);
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: rect.x, y: rect.y, button: 'left', clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: rect.x, y: rect.y, button: 'left', clickCount: 1 });
+}
+
 async function shot(cdp, name) {
   const r = await cdp.send('Page.captureScreenshot', { format: 'png' });
   await mkdir(SHOT_DIR, { recursive: true });
@@ -139,8 +146,15 @@ async function shot(cdp, name) {
 }
 
 async function scrollAndSettle(cdp, y) {
-  await cdp.eval(`window.scrollTo(0, ${y})`);
-  await cdp.eval(await raf2(), true);
+  // The site sets `html { scroll-behavior: smooth }` (css/*.css:69), which turns
+  // even a scripted two-arg scrollTo() into an animated scroll. A test driver
+  // must force 'instant' or it reads state mid-animation. One combined
+  // async-IIFE eval also halves the CDP round trips vs. two separate calls.
+  await cdp.eval(
+    `(async () => { window.scrollTo({ top: ${y}, left: 0, behavior: 'instant' });
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); })()`,
+    true
+  );
   await new Promise((r) => setTimeout(r, 60)); // let the rAF-scheduled frame() run
 }
 
@@ -229,7 +243,6 @@ async function testDesktopHero() {
     const errs = cdp.pageErrors;
     check(errs.length === 0, 'no JS console errors / exceptions during desktop hero + stack run', errs.join(' | '));
     await cdp.close();
-    await closeTab((await (await fetch(`http://127.0.0.1:${CDP_PORT}/json`)).json()).find?.(() => false) || {});
   }
 }
 
@@ -251,7 +264,12 @@ async function testMobile() {
     })()`);
     check(before.expanded !== 'true', 'mobile menu starts closed (aria-expanded != true)', before.expanded);
 
-    await cdp.eval("document.querySelector('[data-menu-toggle]').click()");
+    // A programmatic element.click() does not carry the browser's native
+    // "focus the button on click" side effect (that only fires for a real
+    // pointer gesture), which would make the focus-handling assertions below
+    // pass or fail on an artifact of the driver rather than the page. Dispatch
+    // a real synthetic mouse click via CDP Input instead.
+    await clickElement(cdp, '[data-menu-toggle]');
     await new Promise((r) => setTimeout(r, 150));
     const afterOpen = await cdp.eval(`(() => {
       const t = document.querySelector('[data-menu-toggle]');
@@ -267,7 +285,7 @@ async function testMobile() {
     check(afterOpen.activeIsInMenu, 'focus moves into the open menu (first link/button)', JSON.stringify(afterOpen));
     await shot(cdp, 'mobile-390-menu-open');
 
-    await cdp.eval("document.querySelector('[data-menu-toggle]').click()");
+    await clickElement(cdp, '[data-menu-toggle]');
     await new Promise((r) => setTimeout(r, 150));
     const afterClose = await cdp.eval(`(() => {
       const t = document.querySelector('[data-menu-toggle]');
@@ -288,7 +306,11 @@ async function testReducedMotion() {
   const cdp = await drive({ width: 1440, height: 900, reducedMotion: true });
   try {
     const flowHeight = await cdp.eval("document.querySelector('[data-flow]').getBoundingClientRect().height");
-    check(flowHeight < 900 * 1.5, 'reduced-motion: hero is NOT pinned (height ~= auto, no multi-viewport track)', `height=${flowHeight}`);
+    // Pinned height is (panels + 1) * 100vh = 8 * 900 = 7200 at this viewport;
+    // the flattened/stacked layout is naturally a few viewport-heights tall
+    // (each of the 7 panels renders in flow), so the real signal is "much less
+    // than the pinned height", not an absolute cap.
+    check(flowHeight < 7200 * 0.6, 'reduced-motion: hero is NOT pinned (height far below the 7200px pinned track)', `height=${flowHeight}`);
     const stageDisplay = await cdp.eval("getComputedStyle(document.querySelector('.flow__stage')).display");
     check(stageDisplay === 'none', 'reduced-motion: canvas stage is hidden, fallback art shown instead', stageDisplay);
     const stackMinHeight = await cdp.eval("getComputedStyle(document.querySelector('.stack--pinned')).minHeight");
@@ -334,7 +356,11 @@ async function testJobsFilter() {
     check(shownCount === expectedCount, `row count after sector filter equals independently-computed count for ${JSON.stringify(target)}`, `shown=${shownCount} expected=${expectedCount}`);
 
     const url = await cdp.eval('window.location.search');
-    check(url.includes('sector=') && decodeURIComponent(url).includes(target), 'URL updated with the encoded sector value after filtering', url);
+    // URLSearchParams.toString() encodes spaces as '+' (form encoding), which
+    // decodeURIComponent does NOT convert back to a space (that's %20's job) —
+    // parse it back out through URLSearchParams itself, the same as the value.
+    const decodedSector = new URLSearchParams(url).get('sector');
+    check(url.includes('sector=') && decodedSector === target, 'URL updated with the encoded sector value after filtering', `${url}  decoded="${decodedSector}"`);
     await shot(cdp, 'jobs-filter-applied');
 
     // click every [data-clear] and confirm rows restored
@@ -365,17 +391,26 @@ async function perfFrameTime(width, height, label) {
   console.log(`\n--- PERF: canvas frame time @ ${label} ---`);
   const cdp = await drive({ width, height });
   try {
-    await cdp.eval("window.scrollTo(0, 400)");
-    const t0 = await cdp.eval('performance.now()');
-    for (let i = 0; i < 60; i++) {
-      await cdp.eval(`window.scrollTo(0, ${400 + i * 4})`);
-      await cdp.eval(await raf2(), true);
-    }
-    const t1 = await cdp.eval('performance.now()');
-    const avg = (t1 - t0) / 60;
+    // Measured entirely in-page (a single eval, one CDP round trip) so the
+    // number reflects real rAF-to-rAF pacing (scroll + draw()), not the
+    // WebSocket/IPC overhead of driving each frame from outside the page.
+    const avg = await cdp.eval(
+      `(() => new Promise((resolve) => {
+        var n = 60, i = 0, y = 400, last = performance.now(), total = 0;
+        function step(now) {
+          total += now - last; last = now;
+          window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+          y += 4; i += 1;
+          if (i < n) requestAnimationFrame(step); else resolve(total / n);
+        }
+        requestAnimationFrame((now) => { last = now; requestAnimationFrame(step); });
+      }))()`,
+      true
+    );
     const ok = avg <= 16;
-    results.push({ ok, label: `PERF canvas frame time @ ${label}: ${avg.toFixed(2)}ms/frame (threshold <=16ms)` });
-    console.log(`${ok ? 'PASS' : 'FAIL'}  PERF canvas frame time @ ${label}: ${avg.toFixed(2)}ms/frame (threshold <=16ms; note: includes CDP round-trip overhead, not a pure rAF measurement)`);
+    const label2 = `PERF canvas frame time @ ${label}: ${avg.toFixed(2)}ms/frame (threshold <=16ms; measured in-page over 60 rAFs while scrolling)`;
+    results.push({ ok, label: label2 });
+    console.log(`${ok ? 'PASS' : 'FAIL'}  ${label2}`);
   } finally {
     await cdp.close();
   }
