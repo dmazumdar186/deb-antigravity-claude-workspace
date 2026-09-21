@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+business.json
+.env
+.env.local
+*.tsbuildinfo
+.build.lock
+public/favicon.ico
+public/stock/favicon.ico
+public/stock/.gen-manifest.json

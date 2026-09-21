@@ -1,0 +1,11 @@
+{
+  "people": [
+    {
+      "name": "Victor Cruz",
+      "first_name": "Victor",
+      "last_name": "Cruz",
+      "email": "victor@example-medspa-08.test",
+      "email_status": "verified"
+    }
+  ]
+}

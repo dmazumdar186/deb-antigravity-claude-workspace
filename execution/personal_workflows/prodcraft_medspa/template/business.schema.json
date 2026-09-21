@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://prodcraft.fyi/schemas/business.schema.json",
+  "title": "ProdCraft 0.5 preview — business.json",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "name",
+    "slug",
+    "slug_suffix",
+    "city",
+    "state",
+    "address",
+    "phone",
+    "phone_href",
+    "hours",
+    "services",
+    "rating",
+    "review_count",
+    "google_maps_url",
+    "tagline",
+    "primary_color",
+    "accent_color",
+    "hero_image",
+    "preview",
+    "booking_demo"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "name": { "type": "string", "minLength": 1 },
+    "slug": { "type": "string", "minLength": 1, "pattern": "^[a-z0-9-]+$" },
+    "slug_suffix": { "type": "string", "minLength": 1, "pattern": "^[a-z0-9]+$" },
+    "city": { "type": "string", "minLength": 1 },
+    "state": { "type": "string", "minLength": 2, "maxLength": 2 },
+    "address": { "type": "string", "minLength": 1 },
+    "phone": { "type": "string", "minLength": 1 },
+    "phone_href": { "type": "string", "pattern": "^tel:\\+?[0-9]+$" },
+    "hours": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["day", "open", "close"],
+        "properties": {
+          "day": { "type": "string", "minLength": 1 },
+          "open": { "type": ["string", "null"] },
+          "close": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["name", "blurb", "icon"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "blurb": { "type": "string", "minLength": 1 },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "syringe",
+              "sparkle",
+              "laser",
+              "droplet",
+              "leaf",
+              "sun",
+              "body",
+              "needle",
+              "scale",
+              "flask"
+            ]
+          }
+        }
+      }
+    },
+    "rating": { "type": "number", "minimum": 0, "maximum": 5 },
+    "review_count": { "type": "integer", "minimum": 0 },
+    "google_maps_url": { "type": "string", "minLength": 1 },
+    "tagline": { "type": "string", "minLength": 1 },
+    "primary_color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "accent_color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "hero_image": { "type": "string", "minLength": 1 },
+    "preview": {
+      "type": "object",
+      "required": ["expires_at", "remove_url", "watermark"],
+      "properties": {
+        "expires_at": { "type": "string", "minLength": 1 },
+        "remove_url": { "type": "string", "minLength": 1 },
+        "watermark": { "type": "string", "minLength": 1 }
+      }
+    },
+    "booking_demo": { "type": "boolean" }
+  }
+}

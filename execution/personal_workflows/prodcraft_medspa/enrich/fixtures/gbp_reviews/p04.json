@@ -1,0 +1,12 @@
+{
+  "reviews": [
+    {
+      "authorAttribution": {"displayName": "Random Customer"},
+      "text": {"text": "Dr. Robert Kim gave me the best consultation, highly recommend Radiant Wellness Four!"}
+    },
+    {
+      "authorAttribution": {"displayName": "Another Visitor"},
+      "text": {"text": "Clean facility, friendly front desk, will be back."}
+    }
+  ]
+}

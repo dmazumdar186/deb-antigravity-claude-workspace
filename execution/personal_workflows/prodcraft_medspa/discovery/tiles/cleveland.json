@@ -1,0 +1,11 @@
+{
+  "metro": "cleveland",
+  "state": "OH",
+  "tiles": [
+    {"name": "Shaker Heights", "lat": 41.4726, "lng": -81.5365, "radius_m": 3000},
+    {"name": "Hudson", "lat": 41.2412, "lng": -81.4409, "radius_m": 3000},
+    {"name": "Chagrin Falls", "lat": 41.4342, "lng": -81.3868, "radius_m": 3000},
+    {"name": "Beachwood", "lat": 41.4692, "lng": -81.5057, "radius_m": 3000},
+    {"name": "Pepper Pike", "lat": 41.4762, "lng": -81.4632, "radius_m": 3000}
+  ]
+}

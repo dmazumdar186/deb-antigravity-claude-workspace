@@ -1,0 +1,9 @@
+{
+  "person": {
+    "name": "Nicole Adams",
+    "first_name": "Nicole",
+    "last_name": "Adams",
+    "email": "nicole@example-medspa-07.test",
+    "email_status": "verified"
+  }
+}

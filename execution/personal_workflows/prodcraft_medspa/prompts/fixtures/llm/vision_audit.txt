@@ -1,0 +1,1 @@
+{"dated_score": 8, "rationale": "Scores 8: cluttered nav, small body type, and a carousel hero with no distinct mobile layout.", "signals": ["cluttered navigation", "small body type", "carousel hero", "no mobile layout"]}

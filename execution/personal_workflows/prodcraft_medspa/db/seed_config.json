@@ -1,0 +1,29 @@
+{
+  "phase0": {
+    "passed": false,
+    "sends": 0,
+    "calls_booked": 0,
+    "queue_cap_locked": 5,
+    "queue_cap_open": 20,
+    "cap": 5,
+    "warmup_days": 14,
+    "warmup_start_cap": 2,
+    "queue_pick_until_passed": "score",
+    "calls_to_pass": 3
+  },
+  "proof_lines": [],
+  "sender": {
+    "name": "",
+    "physical_address": "",
+    "signature": ""
+  },
+  "touch_days": [0, 3, 7, 12],
+  "preview_expiry_days": 30,
+  "queue_pick": "random",
+  "email_policy": "deliverable_only",
+  "preview_publish_mode": "r2",
+  "min_score": 45,
+  "live_send_confirmed": false,
+  "preview_host_suffix": ".preview.prodcraft.fyi",
+  "auto_approve_previews": false
+}

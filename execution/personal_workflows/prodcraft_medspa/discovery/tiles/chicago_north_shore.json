@@ -1,0 +1,18 @@
+{
+  "metro": "chicago_north_shore",
+  "state": "IL",
+  "tiles": [
+    {"name": "Winnetka", "lat": 42.1061, "lng": -87.7392, "radius_m": 3000},
+    {"name": "Glencoe", "lat": 42.1358, "lng": -87.7579, "radius_m": 3000},
+    {"name": "Highland Park", "lat": 42.1817, "lng": -87.8003, "radius_m": 3000},
+    {"name": "Lake Forest", "lat": 42.2411, "lng": -87.8406, "radius_m": 3000},
+    {"name": "Northbrook", "lat": 42.1275, "lng": -87.8289, "radius_m": 3000},
+    {"name": "Evanston", "lat": 42.0451, "lng": -87.6877, "radius_m": 3000},
+    {"name": "Wilmette", "lat": 42.0725, "lng": -87.7273, "radius_m": 3000},
+    {"name": "Kenilworth", "lat": 42.0858, "lng": -87.7156, "radius_m": 3000},
+    {"name": "Deerfield", "lat": 42.1711, "lng": -87.8456, "radius_m": 3000},
+    {"name": "Glenview", "lat": 42.0697, "lng": -87.7878, "radius_m": 3000},
+    {"name": "Skokie", "lat": 42.0324, "lng": -87.7416, "radius_m": 3000},
+    {"name": "Lake Bluff", "lat": 42.2731, "lng": -87.8323, "radius_m": 3000}
+  ]
+}

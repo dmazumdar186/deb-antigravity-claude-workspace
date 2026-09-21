@@ -1,0 +1,19 @@
+{
+  "name": "prodcraft-preview-host",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker serving ProdCraft med-spa concept previews from R2 on wildcard *.preview.prodcraft.fyi hosts.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260908.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.9",
+    "wrangler": "^4.0.0"
+  }
+}

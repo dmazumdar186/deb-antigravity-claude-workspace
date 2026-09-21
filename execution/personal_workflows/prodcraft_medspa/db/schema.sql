@@ -1,0 +1,244 @@
+-- ProdCraft med-spa pipeline — Supabase (Postgres) schema.
+-- Apply with: psql "$SUPABASE_DB_URL" -f db/schema.sql   (or paste into the Supabase SQL editor)
+-- Idempotent: safe to re-run. Migration history: db/migrations/ (this file is the flattened current state).
+
+create extension if not exists pgcrypto;
+
+create table if not exists businesses (
+  id              uuid primary key default gen_random_uuid(),
+  place_id        text not null unique,
+  name            text not null,
+  slug            text not null unique,
+  address         text,
+  city            text,
+  suburb          text,
+  metro           text not null,
+  state           text,
+  lat             double precision,
+  lng             double precision,
+  phone           text,
+  website_url     text,
+  final_url       text,
+  rating          numeric(3,2),
+  review_count    integer,
+  primary_type    text,
+  business_status text,
+  is_chain        boolean not null default false,
+  drop_reason     text,                       -- null = kept; else why discovery dropped it (chain|closed|too_small)
+  owner_name      text,
+  owner_first     text,
+  owner_email     text,
+  email_status    text,                       -- deliverable|undeliverable|risky|unknown|null
+  email_source    text,                       -- contact_page|gbp_reviews|state_registry|apollo|findymail|hunter|generic_inbox
+  discovery_source text,                      -- places|csv:<source> (added by 0003_round2_columns.sql)
+  llm_overrides   jsonb,                      -- operator-provided per-business LLM field overrides (0003)
+  pii_purged_at   timestamptz,                -- set by Store.purge_pii()/scripts/purge_pii.py (0003)
+  do_not_contact  boolean not null default false,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+create index if not exists businesses_metro_idx on businesses (metro);
+
+create table if not exists audits (
+  id                    uuid primary key default gen_random_uuid(),
+  business_id           uuid not null references businesses(id) on delete cascade,
+  audited_at            timestamptz not null default now(),
+  score_version         text not null default '1.0',
+  psi_mobile            integer,
+  psi_desktop           integer,
+  has_website           boolean not null default true,
+  has_ssl               boolean,
+  is_mobile_friendly    boolean,
+  builder               text,
+  theme                 text,
+  theme_year            integer,
+  has_jquery_legacy     boolean,
+  booking_widget        text,                 -- vagaro|mindbody|boulevard|zenoti|acuity|calendly|square|aesthetic_record|patientnow|moxie|null
+  has_cta_above_fold    boolean,
+  has_analytics         boolean,
+  footer_year           integer,
+  vision_dated_score    integer,              -- 0..10
+  vision_rationale      text,
+  vision_model_id       text,
+  vision_prompt_sha256  text,
+  total_score           integer not null,
+  bucket                text not null,        -- qualified|borderline|skip
+  gaps                  jsonb not null default '[]'::jsonb,  -- ordered list of {signal, points, human_phrase}
+  mode                  text,                 -- full|degraded (0004): "full" only when PSI, vision,
+                                                -- and screenshots all actually ran and returned a value
+  max_measurable        integer,              -- (0004) points that could have been measured in this
+                                                -- mode, so total_score is legible without knowing mode
+  llm_cost_usd          numeric(8,4),         -- (0004) vision LLM call cost for this audit, computed
+                                                -- in audit_site.py, previously dropped on the floor
+  screenshot_mobile_url text,
+  screenshot_desktop_url text,
+  superseded            boolean default false, -- (0005) true once a later audit for the same
+                                                -- business replaces this one as "the" audit
+  superseded_reason     text,                  -- (0005) why (e.g. "re-audit", "manual correction")
+  raw                   jsonb not null default '{}'::jsonb
+);
+create index if not exists audits_business_idx on audits (business_id, audited_at desc);
+
+create table if not exists previews (
+  id             uuid primary key default gen_random_uuid(),
+  business_id    uuid not null references businesses(id) on delete cascade,
+  template_id    text not null default 'medspa-v1',
+  slug_suffix    text not null,                -- 6 chars, unguessable
+  subdomain_url  text not null unique,         -- https://{slug}-{suffix}.preview.prodcraft.fyi
+  status         text not null default 'review', -- review|approved|live|expired|takedown
+  content        jsonb not null,               -- the business.json that was rendered
+  content_hash   text not null,
+  deployed_at    timestamptz,
+  expires_at     timestamptz,
+  takedown       boolean not null default false,
+  takedown_at    timestamptz,
+  publish_mode   text not null default 'r2',   -- r2|local|mock (0003_round2_columns.sql)
+  local_build_dir text,                        -- set when publish_mode = local/mock (0003)
+  email_policy   text,                         -- email_policy in effect when this preview was built (0003)
+  min_score      integer,                      -- min_score threshold in effect when built (0003)
+  hosted_at      text,                         -- external host, when hand-hosted outside R2/Worker (0003)
+  original_host  text,                         -- pre-rehost host, if this preview's URL was later changed (0003)
+  created_at     timestamptz not null default now()
+);
+create index if not exists previews_business_idx on previews (business_id);
+
+create table if not exists outreach (
+  id                uuid primary key default gen_random_uuid(),
+  business_id       uuid not null references businesses(id) on delete cascade,
+  preview_id        uuid references previews(id),
+  audit_id          uuid references audits(id),
+  touch             integer not null check (touch between 1 and 4),
+  status            text not null default 'queued', -- queued|drafted|sent|replied|call_booked|closed_won|closed_lost|dnc
+  template_variant  text,                            -- a|b|c for touch 1
+  gap_primary       text,
+  draft_subject     text,
+  draft_body        text,
+  gmail_draft_id    text,
+  gmail_thread_id   text,
+  sent_at           timestamptz,
+  score_at_send     integer,                          -- (0004) audits.total_score at the moment
+                                                        -- this touch was sent, stamped by
+                                                        -- daily_queue.py — see CONTRACTS.md
+  queue_pick_effective text,                           -- (0005) what actually governed THIS
+                                                        -- touch-1 enqueue (random|score; may
+                                                        -- differ from config.queue_pick while
+                                                        -- phase0 hasn't passed) — daily_queue.py,
+                                                        -- see CONTRACTS.md
+  replied_at        timestamptz,
+  reply_sentiment   text,                            -- positive|neutral|negative|remove|bounce
+  reply_excerpt     text,
+  reply_summary     text,                            -- one-line LLM summary of the reply
+  reply_suggested_next_step text,                     -- LLM-suggested next action for the operator
+  notified_at       timestamptz,                      -- when notify.reply fired for this row's reply
+  test_recipient    text,                             -- set instead of the owner's real inbox while
+                                                       -- PRODCRAFT_RECIPIENT_OVERRIDE is active
+  gmail_message_id  text,                              -- the sent message's Gmail id (0003_round2_columns.sql)
+  sent_via          text,                              -- gmail_api|gmail_draft|... (0003)
+  seen_reply_ids    jsonb not null default '[]'::jsonb, -- Gmail message ids scan_replies has already
+                                                        -- processed for this row, for reply-scan dedupe (0003)
+  pii_purged_at     timestamptz,                       -- set by Store.purge_pii()/scripts/purge_pii.py (0003)
+  next_touch_at     date,
+  notes             text,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now(),
+  unique (business_id, touch)
+);
+create index if not exists outreach_queue_idx on outreach (next_touch_at, status);
+
+create table if not exists deals (
+  id                             uuid primary key default gen_random_uuid(),
+  business_id                    uuid not null references businesses(id) on delete cascade,
+  tier                           text not null,   -- founding|starter|growth|premium
+  setup_price                    numeric(10,2) not null,
+  mrr                            numeric(10,2) not null,
+  contract_signed_at             date,
+  deposit_paid_at                date,
+  baseline_online_bookings_30d   integer,
+  current_booking_tool           text,
+  live_at                        date,
+  bookings_60d                   integer,
+  guarantee_met                  boolean,         -- computed: bookings_60d > max(baseline, 5) * 2
+                                                    -- (60d vs 30d baseline; ZERO_BASELINE_FLOOR=5 in
+                                                    -- deals/deals.py stops a zero-baseline "win")
+  balance_paid_at                date,
+  care_plan_active               boolean not null default false,
+  evidence_ref                   text,            -- (0004) URL or file ref for the client's
+                                                    -- day-60 booking export/screenshot proof
+  baseline_evidence_ref          text,            -- (0004) same, for the baseline count
+  notes                          text,
+  created_at                     timestamptz not null default now()
+);
+
+create table if not exists metro_stats (
+  id             uuid primary key default gen_random_uuid(),
+  metro          text not null,
+  sampled        integer not null,
+  qualified      integer not null,
+  pct_qualified  numeric(5,2) not null,
+  ci_low         numeric(5,2) not null,   -- Wilson 95%
+  ci_high        numeric(5,2) not null,
+  score_version  text not null,
+  measured_at    timestamptz not null default now()
+);
+
+create table if not exists config (
+  key        text primary key,
+  value      jsonb not null,
+  updated_at timestamptz not null default now()
+);
+-- Seeded keys: phase0 {"passed": false, "sends": 0, "calls_booked": 0, "queue_cap_locked": 5, "queue_cap_open": 20}
+--              proof_lines []  (strings the touch-3/4 templates may cite; empty = fall back to industry stats)
+--              sender {"name": "", "physical_address": "", "signature": ""}
+
+create table if not exists events (
+  id          bigserial primary key,
+  entity      text not null,      -- business|audit|preview|outreach|deal
+  entity_id   uuid not null,
+  event       text not null,      -- e.g. status:queued->sent, takedown, expired
+  payload     jsonb not null default '{}'::jsonb,
+  created_at  timestamptz not null default now()
+);
+create index if not exists events_entity_idx on events (entity, entity_id);
+
+create table if not exists chains (
+  pattern   text primary key,     -- lowercase substring matched against business name
+  note      text
+);
+
+-- Read-only mirror for Sheets. Column set matches scripts/sync_sheets.py's V_PIPELINE_COLUMNS
+-- exactly (both LocalStore and Supabase must produce identical columns; LocalStore recomputes
+-- this same join in Python). reply_summary/reply_suggested_next_step/notified_at/test_recipient
+-- on `outreach` are added by db/migrations/0002_v_pipeline_outreach_columns.sql.
+create or replace view v_pipeline as
+select b.name, b.suburb, b.metro, b.website_url, b.owner_name, b.owner_email, b.email_status,
+       a.total_score, a.bucket, p.subdomain_url as preview_url, p.status as preview_status,
+       o.touch, o.status as outreach_status, o.sent_at, o.next_touch_at,
+       o.reply_sentiment, o.reply_summary, o.replied_at, o.test_recipient
+from businesses b
+left join lateral (select * from audits where business_id = b.id order by audited_at desc limit 1) a on true
+left join lateral (select * from previews where business_id = b.id order by created_at desc limit 1) p on true
+left join lateral (select * from outreach where business_id = b.id order by touch desc limit 1) o on true
+where b.is_chain = false and b.drop_reason is null;
+
+-- updated_at triggers
+create or replace function set_updated_at() returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end $$;
+do $$ begin
+  if not exists (select 1 from pg_trigger where tgname = 'businesses_updated_at') then
+    create trigger businesses_updated_at before update on businesses for each row execute function set_updated_at();
+  end if;
+  if not exists (select 1 from pg_trigger where tgname = 'outreach_updated_at') then
+    create trigger outreach_updated_at before update on outreach for each row execute function set_updated_at();
+  end if;
+end $$;
+
+-- Row Level Security: the pipeline uses the service key; anon gets nothing.
+alter table businesses enable row level security;
+alter table audits enable row level security;
+alter table previews enable row level security;
+alter table outreach enable row level security;
+alter table deals enable row level security;
+alter table metro_stats enable row level security;
+alter table config enable row level security;
+alter table events enable row level security;
+alter table chains enable row level security;

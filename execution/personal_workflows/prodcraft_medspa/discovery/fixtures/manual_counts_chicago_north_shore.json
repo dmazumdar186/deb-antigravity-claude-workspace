@@ -1,0 +1,9 @@
+{
+  "_note": "Synthetic manual Google Maps spot-check counts, for verify_counts.py testing only.",
+  "suburbs": {
+    "Winnetka": 12,
+    "Northbrook": 20,
+    "Evanston": 8,
+    "Highland Park": 5
+  }
+}

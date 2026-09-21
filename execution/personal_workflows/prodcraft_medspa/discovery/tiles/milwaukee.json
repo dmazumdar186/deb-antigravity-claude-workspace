@@ -1,0 +1,11 @@
+{
+  "metro": "milwaukee",
+  "state": "WI",
+  "tiles": [
+    {"name": "Whitefish Bay", "lat": 43.1145, "lng": -87.9034, "radius_m": 3000},
+    {"name": "Mequon", "lat": 43.2342, "lng": -87.9829, "radius_m": 3000},
+    {"name": "Shorewood", "lat": 43.0908, "lng": -87.8862, "radius_m": 3000},
+    {"name": "Fox Point", "lat": 43.1503, "lng": -87.8998, "radius_m": 3000},
+    {"name": "Elm Grove", "lat": 43.0417, "lng": -88.0709, "radius_m": 3000}
+  ]
+}

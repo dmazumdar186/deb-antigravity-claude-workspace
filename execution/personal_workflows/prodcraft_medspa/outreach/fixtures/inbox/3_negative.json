@@ -1,0 +1,10 @@
+{
+  "thread_id": "thread-mock-003",
+  "message_id": "msg-mock-003",
+  "owner_email": "owner3@example-medspa-3.test",
+  "from": "Marcus Webb <owner3@example-medspa-3.test>",
+  "to": "sender@prodcraft.fyi",
+  "subject": "Re: noticed something on Lakeside Aesthetics's site",
+  "raw_body_text": "We're not interested at this time, but thanks for reaching out.\n\nMarcus",
+  "received_at": "2026-09-08T11:15:00Z"
+}

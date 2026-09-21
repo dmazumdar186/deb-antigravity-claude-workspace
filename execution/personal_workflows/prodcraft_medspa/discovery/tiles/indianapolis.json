@@ -1,0 +1,11 @@
+{
+  "metro": "indianapolis",
+  "state": "IN",
+  "tiles": [
+    {"name": "Carmel", "lat": 39.9784, "lng": -86.1180, "radius_m": 3000},
+    {"name": "Zionsville", "lat": 39.9511, "lng": -86.2605, "radius_m": 3000},
+    {"name": "Fishers", "lat": 39.9568, "lng": -85.9679, "radius_m": 3000},
+    {"name": "Westfield", "lat": 40.0428, "lng": -86.1275, "radius_m": 3000},
+    {"name": "Geist", "lat": 39.8903, "lng": -85.9647, "radius_m": 3000}
+  ]
+}

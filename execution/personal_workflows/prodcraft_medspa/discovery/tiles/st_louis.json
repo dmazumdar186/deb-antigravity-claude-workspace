@@ -1,0 +1,11 @@
+{
+  "metro": "st_louis",
+  "state": "MO",
+  "tiles": [
+    {"name": "Clayton", "lat": 38.6420, "lng": -90.3234, "radius_m": 3000},
+    {"name": "Ladue", "lat": 38.6420, "lng": -90.3729, "radius_m": 3000},
+    {"name": "Town and Country", "lat": 38.6478, "lng": -90.4693, "radius_m": 3000},
+    {"name": "Chesterfield", "lat": 38.6631, "lng": -90.5771, "radius_m": 3000},
+    {"name": "Frontenac", "lat": 38.6353, "lng": -90.4085, "radius_m": 3000}
+  ]
+}

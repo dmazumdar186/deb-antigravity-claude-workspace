@@ -1,0 +1,12 @@
+{
+  "metro": "detroit",
+  "state": "MI",
+  "tiles": [
+    {"name": "Birmingham", "lat": 42.5467, "lng": -83.2113, "radius_m": 3000},
+    {"name": "Bloomfield Hills", "lat": 42.5836, "lng": -83.2455, "radius_m": 3000},
+    {"name": "Grosse Pointe", "lat": 42.3861, "lng": -82.9116, "radius_m": 3000},
+    {"name": "Northville", "lat": 42.4312, "lng": -83.4830, "radius_m": 3000},
+    {"name": "Rochester", "lat": 42.6806, "lng": -83.1341, "radius_m": 3000},
+    {"name": "Troy", "lat": 42.6064, "lng": -83.1498, "radius_m": 3000}
+  ]
+}
