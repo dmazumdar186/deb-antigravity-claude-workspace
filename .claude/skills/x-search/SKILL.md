@@ -1,7 +1,8 @@
 ---
 name: x-search
-description: Search X/Twitter for cutting-edge discussions, trends, and techniques using Grok API. Use when researching what people are talking about on X, finding trending AI techniques, discovering novel strategies, or monitoring real-time discourse on any topic.
+description: 'Search X/Twitter for cutting-edge discussions, trends, and techniques via Grok API. Use when researching what people are saying on X, finding trending AI techniques, discovering novel strategies, or monitoring real-time discourse on any topic.'
 allowed-tools: Read, Grep, Glob, Bash, Write
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

@@ -2,6 +2,8 @@
 name: code-reviewer
 description: Reviews code for bugs, security issues, and forbidden patterns. Returns PASS/FAIL verdict with severity-ranked issues and fix suggestions.
 model: claude-fable-5  # review tier -- Fable 5 (workers moved Opus/Sonnet -> Fable 5, 2026-09-21)
+effort: medium
+maxTurns: 40
 tools:
   - Read
   - Glob

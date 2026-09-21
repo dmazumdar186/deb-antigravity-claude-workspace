@@ -2,6 +2,7 @@
 name: create-proposal
 description: Create a PandaDoc proposal for a client and send follow-up email. Use when generating proposals, sales documents, or processing kickoff call transcripts into proposals.
 allowed-tools: Read, Grep, Glob, Bash, Write
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

@@ -1,7 +1,8 @@
 ---
 name: internationalize-metadata
-description: Internationalize YouTube video metadata for dubbed uploads. Use when given a language and a video description to produce localized title, description, and audio extraction. Triggers on "internationalize", "dub metadata", "localize metadata", or /internationalize-metadata.
+description: 'Internationalize YouTube metadata for dubbed uploads: from a language and video description, produce localized title, description, audio extraction. Triggers on "internationalize", "dub metadata", "localize metadata", or /internationalize-metadata.'
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

@@ -2,6 +2,7 @@
 name: job-digest
 description: Set up, preview, deploy, run, update, or debug a friend's shareable daily job-alert email (profile-driven, runs on their own GitHub Actions). Triggers on "job digest", "daily job email", "set up job alerts", /job-digest.
 user_invocable: true
+disable-model-invocation: true
 ---
 
 # Job Digest

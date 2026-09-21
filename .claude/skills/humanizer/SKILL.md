@@ -1,6 +1,6 @@
 ---
 name: humanizer
-description: Strip AI-tells from text and rewrite it in a personal voice profile so it reads as natural human writing before sending. Triggers on "humanize this", "make this sound less AI", "rewrite in my voice", "paste-ready", "make this sound like Debanjan", or when pasted AI-generated text needs to be sent somewhere.
+description: 'Strip AI-tells and rewrite text in a personal voice profile before sending. Triggers on "humanize this", "make this sound less AI", "rewrite in my voice", "paste-ready", "make this sound like Debanjan", or when pasted AI text must be sent.'
 user_invocable: true
 ---
 

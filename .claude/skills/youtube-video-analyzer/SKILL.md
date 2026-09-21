@@ -1,6 +1,6 @@
 ---
 name: youtube-video-analyzer
-description: Frame-by-frame breakdown of any YouTube video — hook, scene cuts, pacing, transcript highlights, content ideas — via PySceneDetect + vision analysis (or a free Gemini run). Use whenever the user pastes a YouTube URL and asks to analyze, break down, study, or extract ideas from it.
+description: 'Frame-by-frame breakdown of a YouTube video (hook, scene cuts, pacing, transcript highlights, content ideas) via PySceneDetect + vision or a free Gemini run. Use whenever the user pastes a YouTube URL to analyze, break down, study, or extract ideas.'
 user_invocable: true
 ---
 

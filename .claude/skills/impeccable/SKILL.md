@@ -1,6 +1,6 @@
 ---
 name: impeccable
-description: Design, redesign, critique, audit, polish, animate, or otherwise improve any frontend interface — websites, landing pages, dashboards, product UI, components, forms, onboarding, empty states. Covers UX review, visual hierarchy, accessibility, typography, spacing, layout, color, motion, micro-interactions, and design systems/tokens. Not for backend-only tasks.
+description: 'Design, redesign, critique, audit, polish, or animate any frontend interface (websites, landing pages, dashboards, product UI, components, forms, onboarding, empty states): UX, hierarchy, a11y, typography, layout, color, motion, tokens. Not backend.'
 version: 3.9.1
 user-invocable: true
 argument-hint: "[craft|shape · audit|critique · animate|bolder|colorize|delight|layout|overdrive|quieter|typeset · adapt|clarify|distill · harden|onboard|optimize|polish · init|document|extract|live] [target]"

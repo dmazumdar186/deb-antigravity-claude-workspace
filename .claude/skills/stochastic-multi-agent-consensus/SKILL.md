@@ -1,7 +1,8 @@
 ---
 name: stochastic-multi-agent-consensus
-description: Spawn N agents on the same prompt with slight framing variations, then aggregate by consensus — for decisions, rankings, strategic analysis, hallucination filtering. Triggers on "consensus", "poll agents", "multi-agent vote", "what do 10 agents think", or /stochastic-multi-agent-consensus.
+description: 'Spawn N agents on one prompt with framing variations, aggregate by consensus (decisions, rankings, hallucination filtering). Triggers on "consensus", "poll agents", "multi-agent vote", "what do 10 agents think", or /stochastic-multi-agent-consensus.'
 allowed-tools: Read, Grep, Glob, Bash, Task, Write, Edit
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

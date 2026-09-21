@@ -1,10 +1,6 @@
 ---
 name: firecrawl
-description: |
-  Firecrawl gives AI agents and apps fast, reliable web context with
-  strong search, scraping, and interaction tools. One install command
-  sets up both live CLI tools and app-integration skills. Route the
-  reader to the right usage path after install.
+description: 'Firecrawl gives AI agents fast, reliable web context: search, scraping, and interaction tools. One install command sets up live CLI tools and app-integration skills. Route the reader to the right usage path after install.'
 ---
 
 # Firecrawl

@@ -2,6 +2,7 @@
 name: youtube-tracker
 description: Daily YouTube competitor tracking and breakout discovery. Runs autonomously on GitHub Actions. Use when discussing YouTube tracking, competitor growth stats, adding/removing tracked channels, or modifying the tracker.
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

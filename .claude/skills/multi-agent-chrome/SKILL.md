@@ -1,7 +1,8 @@
 ---
 name: multi-agent-chrome
-description: Orchestrate parallel browser automation using multiple Chrome DevTools MCP instances. Use when a task requires doing the same browser action across many targets simultaneously (e.g., submitting contact forms, filling applications, scraping pages that need JS rendering). Spin up 1-5 parallel Chrome agents.
+description: 'Orchestrate parallel browser automation with 1-5 Chrome DevTools MCP instances. Use when the same browser action must run across many targets at once (submitting contact forms, filling applications, scraping JS-rendered pages).'
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

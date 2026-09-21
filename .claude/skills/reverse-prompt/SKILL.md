@@ -1,6 +1,6 @@
 ---
 name: reverse-prompt
-description: Before implementing any non-trivial build, ask the user 5+ dynamically generated clarifying questions to surface non-obvious preferences, assumptions, and constraints. Triggers on build/implementation requests, new features, new skills, new scripts, refactors, or any task that produces code or configuration.
+description: 'Before any non-trivial build, ask the user 5+ generated clarifying questions to surface hidden preferences, assumptions, constraints. Triggers on build/implementation requests, new features, skills, scripts, refactors, or tasks producing code/config.'
 allowed-tools: AskUserQuestion
 user_invocable: true
 ---

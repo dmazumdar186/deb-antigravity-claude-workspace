@@ -1,8 +1,8 @@
 ---
 name: model-chat
-description: >
-  Spawn 5+ Claude instances into a shared conversation room where they debate, disagree, and converge on solutions. Uses round-robin turns with parallel execution within each round. Triggers on "model chat", "multi-model debate", "agent debate", "spawn a chat room", or /model-chat. Pass a topic as the argument.
+description: 'Spawn 5+ Claude instances into a shared room to debate and converge; round-robin turns, parallel per round. Triggers on "model chat", "multi-model debate", "agent debate", "spawn a chat room", or /model-chat. Pass a topic as argument.'
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

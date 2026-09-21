@@ -3,6 +3,7 @@ name: modal-deploy
 description: >
   Push any workflow or skill to Modal as an HTTP endpoint. User says "push X to modal" and it deploys as a persistent web_endpoint callable via HTTP POST. Triggers on "push to modal", "deploy to modal", "modal deploy", or /modal-deploy.
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
+disable-model-invocation: true
 ---
 
 > **AM LOCKDOWN — read this before running the skill.**

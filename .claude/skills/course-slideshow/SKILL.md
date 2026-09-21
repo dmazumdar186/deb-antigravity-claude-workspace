@@ -1,11 +1,8 @@
 ---
 name: course-slideshow
-description: >
-  Generate an Excalidraw slideshow from a course outline. Parses chapter headings,
-  generates 3 diagrams per chapter via Gemini, and assembles into a single .excalidraw
-  file with vertical slideshow layout. Use when preparing course recording visuals,
-  creating annotatable slides, or invoking /course-slideshow.
+description: 'Generate an Excalidraw slideshow from a course outline (3 Gemini diagrams per chapter, vertical layout, one .excalidraw file). Use when preparing course recording visuals, creating annotatable slides, or invoking /course-slideshow.'
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

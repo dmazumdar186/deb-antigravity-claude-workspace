@@ -2,6 +2,7 @@
 name: browser-stealth
 description: Stealth browsing that bypasses bot detection. Use when sites block normal Chrome DevTools MCP (Cloudflare, CAPTCHA, anti-bot). Invoke with /browser-stealth or when a site returns a bot challenge.
 allowed-tools: Read, Bash, Glob, Grep
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 

@@ -2,6 +2,7 @@
 name: wework-booking
 description: Book WeWork hot desk slots for the next 30 days automatically. Use when booking WeWork, reserving coworking space, or scheduling desk access.
 allowed-tools: Read, Bash
+disable-model-invocation: true
 ---
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 
