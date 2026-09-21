@@ -2,7 +2,7 @@
 name: email-classifier
 description: Classify a chunk of Gmail email summaries into Action Required / Waiting On / Reference and write the result to a JSON file. Spawned in parallel by the gmail-label skill; never returns classification data in its reply.
 model: claude-fable-5  # execution tier -- mundane per-row classification (token-economy doctrine); Haiku is banned
-effort: low
+effort: medium
 maxTurns: 25
 omitClaudeMd: true
 tools:

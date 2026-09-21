@@ -292,3 +292,12 @@ claude --version  # should be 2.1.173 or later
 - `.claude/agents/*.md` — per-agent `model:` frontmatter. Should be `claude-fable-5`
   (analysis agents) or `claude-sonnet-5` (mechanical agents) per the role-based routing in
   `~/.claude/rules/model-tier.md`; Haiku is banned. Full IDs, never bare aliases.
+
+## 2026-09-21 — Effort fixed per model family (operator order)
+
+Fable 5.1 = `low`, Fable 5 = `medium`, everywhere, no exceptions unless the operator says otherwise for a
+task. Applied as `effortLevel: low` + `modelSettings` in `.claude/settings.json`, `effort:` frontmatter on all
+seven agents (`pipeline-auditor` on 5.1 → `low`; the six Fable 5 workers → `medium`), and
+`llm_client.default_effort()` which sends OpenRouter `reasoning.effort` for Fable models. Same day: Agent
+Teams env flag → `0`, `CLAUDE_CODE_SUBAGENT_MODEL=claude-fable-5`, `defaultMode: bypassPermissions`, `ask`
+list removed. **Revert:** delete `effortLevel`/`modelSettings` from settings.json and the `effort:` lines.

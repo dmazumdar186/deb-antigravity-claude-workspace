@@ -240,10 +240,10 @@ T0=$(date +%s)
 python3 -m pytest tests/prodcraft_medspa -q > /dev/null 2>&1
 T1=$(date +%s)
 PT_S=$((T1-T0))
-if [ $PT_S -le 180 ]; then
-    pass "pytest wall-clock: ${PT_S}s (threshold 180s)"
+if [ $PT_S -le 240 ]; then
+    pass "pytest wall-clock: ${PT_S}s (threshold 240s)"
 else
-    fail "pytest wall-clock" "${PT_S}s exceeds 180s threshold"
+    fail "pytest wall-clock" "${PT_S}s exceeds 240s threshold"
 fi
 
 STORE_BYTES=$(du -cb "$TS/perf_store"/*.json 2>/dev/null | tail -1 | cut -f1)

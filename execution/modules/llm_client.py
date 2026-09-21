@@ -21,6 +21,24 @@ BASE_DELAY = 1.0
 
 _OR_BASE_URL = "https://openrouter.ai/api/v1"
 
+# Operator order 2026-09-21: effort is fixed per model family, no exceptions
+# unless a caller passes `effort=` explicitly for a task. Fable 5.1 = low,
+# Fable 5 = medium. OpenRouter carries it as `reasoning: {"effort": ...}`.
+DEFAULT_EFFORT: dict[str, str] = {
+    "anthropic/claude-fable-5.1": "low",
+    "anthropic/claude-fable-5": "medium",
+}
+
+
+def default_effort(model: str) -> str | None:
+    """Effort for a model id per the workspace rule; None when the rule has no opinion."""
+    m = model.lower()
+    if m.startswith("anthropic/claude-fable-5.1") or m.startswith("anthropic/claude-fable-5-1"):
+        return DEFAULT_EFFORT["anthropic/claude-fable-5.1"]
+    if m.startswith("anthropic/claude-fable-5"):
+        return DEFAULT_EFFORT["anthropic/claude-fable-5"]
+    return None
+
 
 def _get_client(base_url: str = _OR_BASE_URL):
     if base_url not in _clients:
@@ -36,12 +54,13 @@ def _get_client(base_url: str = _OR_BASE_URL):
 def chat_completion(
     system: str,
     user_message: str,
-    # Default Sonnet 4.6 per ~/.claude/rules/model-tier.md (2026-06-14).
+    # Default worker tier Fable 5 (operator, 2026-09-21).
     # Haiku 4.5 is banned workspace-wide. AM-frozen callers that need Haiku
     # for compatibility pass `model=` explicitly.
     model: str = "anthropic/claude-fable-5",
     max_tokens: int = 150,
     base_url: str = _OR_BASE_URL,
+    effort: str | None = None,
 ) -> str:
     """Single-turn chat completion via OpenRouter (or Z.AI-direct if base_url overridden).
     Retries on rate limit / server errors."""
@@ -57,6 +76,9 @@ def chat_completion(
     extra: dict | None = None
     if model.lower().startswith("z-ai/"):
         extra = {"reasoning": {"enabled": False}}
+    resolved_effort = effort or default_effort(model)
+    if resolved_effort is not None:
+        extra = {"reasoning": {"effort": resolved_effort}}
     for attempt in range(MAX_RETRIES + 1):
         try:
             create_kwargs: dict = {

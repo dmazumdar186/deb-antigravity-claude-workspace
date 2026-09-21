@@ -18,7 +18,7 @@
 // outputs: none (side effects only — CSS custom properties + classes)
 
 import { useEffect } from 'react';
-import { activeStepIndex, drumStepState, folioCardState, heroFrame, sectionProgress } from '@/lib/motion';
+import { activeStepIndex, drumStepState, folioCardState, folioFrontIndex, heroFrame, sectionProgress } from '@/lib/motion';
 
 export default function MotionController() {
   useEffect(() => {
@@ -77,6 +77,8 @@ export default function MotionController() {
         card.style.removeProperty('--folio-scale');
         card.style.removeProperty('--folio-opacity');
         card.style.removeProperty('--folio-caption-opacity');
+        card.style.removeProperty('--folio-body-opacity');
+        card.removeAttribute('data-folio-front');
         card.style.removeProperty('z-index');
       });
       approachSteps.forEach((step) => {
@@ -144,14 +146,20 @@ export default function MotionController() {
 
       if (folioRect) {
         const progress = sectionProgress(folioRect, viewport);
+        const frontIndex = folioFrontIndex(progress, folioCards.length);
         folioCards.forEach((card, index) => {
           const state = folioCardState(progress, index, folioCards.length);
+          // Only the front card may wrap its headline to two lines (globals.css
+          // `[data-folio-front]`); back cards' tab strips must stay one line high.
+          if (index === frontIndex) card.setAttribute('data-folio-front', '');
+          else card.removeAttribute('data-folio-front');
           card.style.setProperty('--folio-x', `${state.xPercent}%`);
           card.style.setProperty('--folio-y', `${state.yPercent}%`);
           card.style.setProperty('--folio-rotation', `${state.rotationDeg}deg`);
           card.style.setProperty('--folio-scale', String(state.scale));
           card.style.setProperty('--folio-opacity', String(state.opacity));
           card.style.setProperty('--folio-caption-opacity', String(state.captionOpacity));
+          card.style.setProperty('--folio-body-opacity', String(state.bodyOpacity));
           card.style.zIndex = String(state.zIndex);
         });
       }

@@ -13,7 +13,7 @@
 ## 2. Model doctrine — all Fable, effort does the tiering (2026-09-21)
 
 - Brain `claude-fable-5-1` (orchestrator, default effort). Workers `claude-fable-5` (`CLAUDE_CODE_SUBAGENT_MODEL` in settings). Same per-token price; Sonnet/Opus workers were judged too weak; Haiku banned.
-- Cost tiers now come from `effort`, not model: mechanical agents (documenter, note-taker, email-classifier, qa, anneal-reviewer) run `effort: low` + `maxTurns`; implementation workers `medium`; only the brain and `pipeline-auditor` run high. Lower effort means fewer tool calls and less preamble, not a weaker model.
+- Effort is fixed by operator order (2026-09-21): **Fable 5.1 = `low`, Fable 5 = `medium`, everywhere, no exceptions** unless the operator specifies otherwise for a task. `modelSettings` in `.claude/settings.json` sets it per model; every agent's `effort:` frontmatter repeats it (`pipeline-auditor` on 5.1 is `low`); execution scripts pass `output_config.effort` accordingly. Lower effort means fewer tool calls and less preamble, not a weaker model.
 - Fable cannot disable thinking; thinking bills as output. Never put Fable in a tight poll loop.
 
 ## 3. Work-splitting — small units, fresh contexts

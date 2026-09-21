@@ -1,16 +1,18 @@
-"""Round-4 regression tests (2026-09-21): take_down_preview(dnc=False), the "sends vs cap" weekly
-number (send.sends_vs_cap + fit_weights line + `send.py --stats`), and the touch-2 Loom operator
-path (scripts/set_loom.py)."""
+"""Round-4 regression tests (2026-09-21): take_down_preview(dnc=...), the negative-reply opt-out
+(do_not_contact + sibling cascade), the bounce patch-by-id, the "sends vs cap" weekly number
+(send.sends_vs_cap + fit_weights line + `send.py --stats`), the under-send error alert, and the
+touch-2 Loom operator path (scripts/set_loom.py)."""
 from __future__ import annotations
 
 import json
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pytest
 
+from execution.personal_workflows.prodcraft_medspa.common import notify
 from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
 from execution.personal_workflows.prodcraft_medspa.outreach import scan_replies, send
 from execution.personal_workflows.prodcraft_medspa.preview import takedown
@@ -63,9 +65,9 @@ def test_take_down_preview_default_dnc_true_unchanged(local_store, tmp_path):
     assert local_store.get_row("outreach", row["id"])["status"] == "dnc"
 
 
-def test_scan_replies_negative_never_writes_do_not_contact(local_store, monkeypatch):
-    """The revert is gone: a negative reply must not touch `businesses.do_not_contact` at all
-    (no flip-then-revert window), while the preview still comes down."""
+def test_scan_replies_negative_sets_do_not_contact_and_takes_down(local_store, monkeypatch):
+    """Round-4 (Dario lens): a negative reply is an opt-out. The preview comes down AND
+    `businesses.do_not_contact` is stamped True, written patch-by-id (never a full-row upsert)."""
     business = _make_business(local_store, email="owner3@example-medspa-3.test")
     preview = _make_preview(local_store, business_id=business["id"])
     local_store.upsert_outreach(
@@ -81,13 +83,79 @@ def test_scan_replies_negative_never_writes_do_not_contact(local_store, monkeypa
         return orig(table, row_id, patch)
 
     monkeypatch.setattr(local_store, "update_row", _tracked)
+    monkeypatch.setattr(local_store, "upsert_business", lambda *_a, **_k: pytest.fail("full-row upsert on negative path"))
     settings = FakeSettings(PKG_ROOT / "outreach" / "fixtures")
     stats = scan_replies.scan(local_store, settings, mock=True, since_days=14, today=date(2026, 9, 10))
 
     assert stats["negative"] == 1
     assert local_store.get_row("previews", preview["id"])["status"] == "takedown"
-    assert local_store.get_business(business["id"])["do_not_contact"] is False
-    assert not any("do_not_contact" in p for p in business_writes), business_writes
+    assert local_store.get_business(business["id"])["do_not_contact"] is True
+    assert [p for p in business_writes if "do_not_contact" in p] == [{"do_not_contact": True}]
+
+
+def test_scan_replies_negative_cascades_queued_sibling_to_dnc(local_store):
+    """Round-4 item I: the opt-out cascade must close sibling rows (a queued touch 2) so no orphan
+    row is drafted later, dropped at send and counted by _drafted_pending_count."""
+    business = _make_business(local_store, email="owner3@example-medspa-3.test")
+    preview = _make_preview(local_store, business_id=business["id"])
+    t1 = local_store.upsert_outreach(
+        {"business_id": business["id"], "touch": 1, "status": "sent",
+         "sent_at": "2026-09-01T00:00:00Z", "preview_id": preview["id"]}
+    )
+    t2 = _make_outreach_row(local_store, business_id=business["id"], touch=2, status="queued", preview_id=preview["id"])
+    settings = FakeSettings(PKG_ROOT / "outreach" / "fixtures")
+    stats = scan_replies.scan(local_store, settings, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["negative"] == 1
+    assert local_store.get_row("outreach", t1["id"])["status"] == "closed_lost"
+    assert local_store.get_row("outreach", t2["id"])["status"] == "dnc"
+    open_rows = [r for r in local_store.list_outreach(business["id"]) if r["status"] not in ("closed_won", "closed_lost", "dnc")]
+    assert open_rows == []
+    assert local_store.get_business(business["id"])["do_not_contact"] is True
+
+
+def test_scan_replies_negative_without_preview_still_opts_out(local_store):
+    """No preview row at all: the flag and the cascade still happen (the opt-out does not depend
+    on there being something to unpublish)."""
+    business = _make_business(local_store, email="owner3@example-medspa-3.test")
+    local_store.upsert_outreach(
+        {"business_id": business["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-01T00:00:00Z"}
+    )
+    t2 = _make_outreach_row(local_store, business_id=business["id"], touch=2, status="drafted")
+    settings = FakeSettings(PKG_ROOT / "outreach" / "fixtures")
+    stats = scan_replies.scan(local_store, settings, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["negative"] == 1
+    assert local_store.get_business(business["id"])["do_not_contact"] is True
+    assert local_store.get_row("outreach", t2["id"])["status"] == "dnc"
+
+
+def test_scan_replies_bounce_patches_email_status_by_id(local_store, monkeypatch):
+    """Round-4 item D: the bounce path patches `email_status` by id; a full-row upsert_business
+    would overwrite whatever another process wrote to the business row in between."""
+    business = _make_business(local_store, email="owner5@example-medspa-5.test")
+    local_store.upsert_outreach(
+        {"business_id": business["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-01T00:00:00Z"}
+    )
+    patches: list[tuple] = []
+    orig = local_store.update_row
+
+    def _tracked(table, row_id, patch):
+        if table == "businesses":
+            # simulate a concurrent writer that landed between scan's read and its write
+            orig("businesses", row_id, {"owner_first": "Concurrent"})
+            patches.append((row_id, patch))
+        return orig(table, row_id, patch)
+
+    monkeypatch.setattr(local_store, "update_row", _tracked)
+    monkeypatch.setattr(local_store, "upsert_business", lambda *_a, **_k: pytest.fail("full-row upsert on bounce path"))
+    settings = FakeSettings(PKG_ROOT / "outreach" / "fixtures")
+    stats = scan_replies.scan(local_store, settings, mock=True, since_days=14, today=date(2026, 9, 10))
+
+    assert stats["bounce"] == 1
+    assert patches == [(business["id"], {"email_status": "undeliverable"})]
+    after = local_store.get_business(business["id"])
+    assert after["email_status"] == "undeliverable" and after["owner_first"] == "Concurrent"
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +242,77 @@ def test_send_stats_flag_prints_summary_and_sends_nothing(tmp_path):
     assert "sent" in out and "dropped" not in out  # no send pass ran
 
 
+def test_under_send_alert_fires_once_per_day_when_live_and_under_half_cap(local_store, monkeypatch):
+    calls: list[tuple] = []
+    monkeypatch.setattr(notify, "error", lambda service, error, count=1, environment=None: calls.append((service, error, count)) or True)
+    monkeypatch.setenv("PRODCRAFT_ENV", "test-env")
+    local_store.set_config("phase0", {"cap": 5})
+    local_store.set_config("live_send_confirmed", True)
+    _seed_sends(local_store, {"2026-09-19": 2})  # 2 of 35
+
+    line = fit_weights.under_send_alert(local_store, mock=True, today=date(2026, 9, 20))
+
+    assert line == "prodcraft_medspa / test-env / under_send_7d / sent=2 cap=35 / 1"
+    assert calls == [("prodcraft_medspa", "under_send_7d / sent=2 cap=35", 1)]
+    assert "\u2014" not in line
+    assert local_store.get_config("notify_dedupe")["under_send_7d"] == "2026-09-20"
+    # same day again: still reports the condition, but does not page twice
+    assert fit_weights.under_send_alert(local_store, mock=True, today=date(2026, 9, 20)) == line
+    assert len(calls) == 1
+    # next day: pages again
+    fit_weights.under_send_alert(local_store, mock=True, today=date(2026, 9, 21))
+    assert len(calls) == 2
+
+
+def test_under_send_alert_silent_pre_live_or_at_half_cap(local_store, monkeypatch):
+    calls: list[tuple] = []
+    monkeypatch.setattr(notify, "error", lambda *a, **k: calls.append(a) or True)
+    local_store.set_config("phase0", {"cap": 5})
+    # pre-live: even 0/35 is by design, no alert
+    assert fit_weights.under_send_alert(local_store, mock=True, today=date(2026, 9, 20)) is None
+    local_store.set_config("live_send_confirmed", True)
+    _seed_sends(local_store, {"2026-09-18": 17, "2026-09-19": 1})  # 18/35 >= 50%
+    assert fit_weights.under_send_alert(local_store, mock=True, today=date(2026, 9, 20)) is None
+    # cap 0: never divides/alerts
+    local_store.set_config("phase0", {"cap": 0})
+    assert fit_weights.under_send_alert(local_store, mock=True, today=date(2026, 9, 20)) is None
+    assert calls == []
+    assert "under_send_7d" not in (local_store.get_config("notify_dedupe", {}) or {})
+
+
+def test_fit_weights_main_pages_error_channel_on_failure(monkeypatch, tmp_path):
+    calls: list[tuple] = []
+    monkeypatch.setattr(fit_weights.notify, "error", lambda service, error, count=1, environment=None: calls.append((service, error)) or True)
+    monkeypatch.setattr(fit_weights, "touch1_outcomes", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+    monkeypatch.setattr(sys, "argv", ["fit_weights.py", "--mock", "--store-root", str(tmp_path / "store")])
+    with pytest.raises(RuntimeError):
+        fit_weights.main()
+    assert calls == [("prodcraft_medspa.fit_weights", "RuntimeError: boom")]
+
+
+def test_send_stats_pages_error_channel_on_failure(monkeypatch, tmp_path):
+    calls: list[tuple] = []
+    from execution.personal_workflows.prodcraft_medspa.common import notify as notify_mod
+    monkeypatch.setattr(notify_mod, "error", lambda service, error, count=1, environment=None: calls.append((service, error)) or True)
+    monkeypatch.setattr(send, "sends_vs_cap", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+    monkeypatch.setattr(sys, "argv", ["send.py", "--mock", "--store", "local", "--store-root", str(tmp_path / "store"), "--stats"])
+    with pytest.raises(RuntimeError):
+        send.main()
+    assert calls == [("prodcraft_medspa.send", "--stats: RuntimeError: boom")]
+
+
+def test_default_day_is_utc_not_local(monkeypatch):
+    """Round-4 item C: `send.py --stats` (no --date) and fit_weights' sends line default to the
+    UTC calendar day, matching how _sent_today_count buckets sent_at."""
+    utc_today = datetime.now(timezone.utc).date()
+    assert send._parse_date(None) == utc_today
+    assert fit_weights._utc_today() == utc_today
+    seen: list = []
+    monkeypatch.setattr(send, "sends_vs_cap", lambda st, today, **k: seen.append(today) or {"days": [], "sent": 0, "cap": 0, "window_days": 7})
+    fit_weights.sends_vs_cap_line(object(), mock=True)
+    assert seen == [utc_today]
+
+
 # ---------------------------------------------------------------------------
 # 3. set_loom.py
 # ---------------------------------------------------------------------------
@@ -217,6 +356,31 @@ def test_set_loom_records_url_and_redrafts_drafted_row(local_store):
     # idempotent: same URL again on the now-queued row changes nothing
     again = set_loom.set_loom(local_store, row["id"], GOOD)
     assert again == {**result, "redrafted": False, "changed": False}
+
+
+def test_set_loom_same_url_on_drafted_row_does_not_redraft(local_store, monkeypatch):
+    """Round-4 item J: notes.loom_url already equal to the given URL -> no patch, no redraft (a
+    clean draft rendered with that URL would otherwise be thrown away)."""
+    business = _make_business(local_store)
+    row = _make_outreach_row(
+        local_store, business_id=business["id"], touch=2, status="drafted",
+        draft_subject="Re: x", draft_body=f"see {GOOD}", gmail_draft_id="d-clean",
+        notes=json.dumps({"loom_url": GOOD}),
+    )
+    monkeypatch.setattr(set_loom.state_machine, "redraft", lambda *a, **k: pytest.fail("redraft called for an unchanged URL"))
+
+    result = set_loom.set_loom(local_store, row["id"], GOOD)
+
+    assert result["changed"] is False and result["redrafted"] is False and result["status"] == "drafted"
+    after = local_store.get_row("outreach", row["id"])
+    assert after["draft_body"] == f"see {GOOD}" and after["gmail_draft_id"] == "d-clean"
+    assert not any(e["event"] == "manual_patch" for e in local_store.list_rows("events", entity_id=row["id"]))
+
+    # a different URL on the same drafted row does patch + redraft
+    monkeypatch.undo()
+    other = "https://www.loom.com/share/other999"
+    result2 = set_loom.set_loom(local_store, row["id"], other)
+    assert result2["changed"] is True and result2["redrafted"] is True and result2["status"] == "queued"
 
 
 def test_set_loom_resolves_business_id_to_open_touch2_row(local_store):

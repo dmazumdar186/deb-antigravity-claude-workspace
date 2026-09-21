@@ -4,7 +4,7 @@ description: Touch-2 operator path. Records `notes.loom_url` (the Loom walkthrou
     parks on) for one outreach row and, when the row is `drafted`, sends it back through the
     pipeline via state_machine.redraft() so the next daily_queue run re-renders it with the real
     URL and send.py stops dropping it as `needs_operator_input`. Idempotent: re-running with the
-    same URL on an already-queued row changes nothing.
+    same URL changes nothing and never redrafts (a `drafted` row keeps its clean draft).
 inputs: --prospect-id ID (an `outreach` row id, or a `businesses` id: the latest non-terminal
     touch-2 row for that business is used), --url https://www.loom.com/share/... (https and a
     loom.com host, else exit 2), --store {local,supabase}, --store-root PATH, [--touch N] (default 2).
@@ -79,8 +79,10 @@ def set_loom(store, prospect_id: str, url: str, *, touch: int = 2) -> dict:
         notes["loom_url"] = loom_url
         row = store.manual_patch("outreach", row["id"], {"notes": json.dumps(notes)}, "set_loom")
 
+    # Round-4 item J: redraft only when the URL actually changed. A `drafted` row already
+    # rendered with this exact URL has a clean draft; redrafting would discard it for nothing.
     redrafted = False
-    if row.get("status") == "drafted":
+    if changed and row.get("status") == "drafted":
         row = state_machine.redraft(store, row["id"], "set_loom")
         redrafted = True
 
@@ -105,14 +107,13 @@ def main() -> None:
     parser.add_argument("--store-root", default=None)
     args = parser.parse_args()
 
-    try:
-        validate_loom_url(args.url)
-    except InvalidLoomUrl as exc:
-        parser.error(str(exc))  # exit 2, nothing written
-
     store = get_store(kind=args.store, root=args.store_root)
     try:
         result = set_loom(store, args.prospect_id, args.url, touch=args.touch)
+    except InvalidLoomUrl as exc:
+        # set_loom() validates before it reads or writes anything, so exit 2 here leaves the
+        # store untouched (one validation path, round-4 item F).
+        parser.error(str(exc))
     except KeyError as exc:
         print(json.dumps({"script": "set_loom", "error": str(exc)}))
         sys.exit(1)

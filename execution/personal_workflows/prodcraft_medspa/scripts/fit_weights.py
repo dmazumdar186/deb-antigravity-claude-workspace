@@ -22,7 +22,9 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import sys
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -245,13 +247,44 @@ def print_variant_table(table: dict[str, Any]) -> None:
         print(f"{variant:<18} {row['n']:>6} {rr:>12}")
 
 
+def _utc_today() -> date:
+    """Round-4 item C: the sends window is bucketed by UTC day (send._sent_today_count), so the
+    default `today` must be the UTC calendar date, not the runner's local one."""
+    return datetime.now(timezone.utc).date()
+
+
 def sends_vs_cap_line(store: Any, *, mock: bool = False, today: Any = None) -> str:
     """Round-4 weekly number: trailing-7-day sends vs the effective (warmup-ramped) cap, computed
     by outreach/send.py's `sends_vs_cap` (same counter and cap function send.py enforces)."""
-    from datetime import date as _date
-
-    summary = send_mod.sends_vs_cap(store, today or _date.today(), mock=mock)
+    summary = send_mod.sends_vs_cap(store, today or _utc_today(), mock=mock)
     return send_mod.format_sends_vs_cap(summary)
+
+
+UNDER_SEND_RATIO = 0.5
+UNDER_SEND_DEDUPE_KEY = "under_send_7d"
+
+
+def under_send_alert(store: Any, *, mock: bool = False, today: Any = None) -> str | None:
+    """Round-4 item E (Saraev/Hassabis): the weekly report's sends-vs-cap line is informational;
+    a pipeline quietly sending well under its cap for a week is an error condition and must
+    reach the error channel in the fixed `service / environment / error / count` shape:
+    `prodcraft_medspa / <env> / under_send_7d / sent=S cap=C / 1`. Fires only once
+    `config.live_send_confirmed` is true (pre-live, a 0/35 week is by design), only when the
+    7-day cap is > 0 and 7-day sends are below UNDER_SEND_RATIO of it, and at most once per UTC
+    day per store via notify.once_per_day (`config.notify_dedupe["under_send_7d"]`).
+    Returns the alert line when the condition holds (whether or not it was deduped), else None.
+    """
+    if not bool(store.get_config("live_send_confirmed", False)):
+        return None
+    today = today or _utc_today()
+    summary = send_mod.sends_vs_cap(store, today, mock=mock)
+    sent, cap = int(summary["sent"]), int(summary["cap"])
+    if cap <= 0 or sent >= UNDER_SEND_RATIO * cap:
+        return None
+    error_text = f"{UNDER_SEND_DEDUPE_KEY} / sent={sent} cap={cap}"
+    notify.once_per_day(store, UNDER_SEND_DEDUPE_KEY, "prodcraft_medspa", error_text, today)
+    env = os.environ.get("PRODCRAFT_ENV") or "local"
+    return f"prodcraft_medspa / {env} / {error_text} / 1"
 
 
 def build_telegram_lines(
@@ -321,6 +354,16 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Round-4 item B: this is the Monday cron entrypoint; any failure must page the error
+    # channel (same wrapper shape as outreach/send.py and outreach/scan_replies.py main()).
+    try:
+        _run(args)
+    except Exception as exc:  # noqa: BLE001 — top-level failure must reach the error channel
+        notify.error("prodcraft_medspa.fit_weights", f"{type(exc).__name__}: {exc}")
+        raise
+
+
+def _run(args: argparse.Namespace) -> None:
     store = get_store(kind=args.store, root=args.store_root) if args.store_root else get_store(kind=args.store)
     rows = touch1_outcomes(store, metro=args.metro, mode=args.mode)
     queue_pick = store.get_config("queue_pick")
@@ -337,6 +380,7 @@ def main() -> None:
                     print(line)
             else:
                 notify.weekly_report(lines)
+            under_send_alert(store, mock=args.mock)
         return
 
     result = compute_signal_table(rows)
@@ -365,6 +409,7 @@ def main() -> None:
                 print(line)
         else:
             notify.weekly_report(lines)
+        under_send_alert(store, mock=args.mock)
 
     print(json.dumps({"script": "fit_weights", "in": len(rows), "out": len(result["signals"]), "dropped": {}, "refused": False}))
 

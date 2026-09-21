@@ -355,16 +355,45 @@ replies workflow.
   STABLE hash of `business_id` — `["a","b","c"][int(sha1(business_id).hexdigest(), 16) % 3]` — not
   a rotating counter. A re-render of an outreach row that already has `template_variant` set
   reuses that value rather than recomputing, so a redraft never flips a business's variant.
-- **Negative reply takedown, without DNC (`scan_replies.py`)**: a `negative` reply still goes
-  `sent -> replied -> closed_lost`, and ALSO takes down every non-takendown preview linked to that
-  business via the same real unpublish path (`preview/takedown.py`'s `take_down_preview()` — R2
-  prefix delete + Worker `/remove`) the `dnc`/`remove` flow uses, called with `dnc=False` (round 4)
-  — this is explicitly **not** a do-not-contact request: `businesses.do_not_contact` is never
-  written and no other outreach rows are cascaded. `take_down_preview(store, preview, *, mock,
-  tmp_root, dnc=True)`: `dnc=True` (remove/dnc path, the default) additionally stamps
-  `do_not_contact` and closes the business's non-terminal outreach rows to `dnc`. (This amends the "closed_lost... no forced takedown" line
-  below, which still holds for every OTHER path into `closed_lost` — touch-4 grace expiry via
-  `advance.py`, etc. — a negative reply is the one exception.)
+- **Negative reply is an opt-out (`scan_replies.py`, round-4 audit, Dario lens)**: a `negative`
+  reply goes `sent -> replied -> closed_lost`, and ALSO (a) takes down every non-takendown preview
+  linked to that business via the same real unpublish path (`preview/takedown.py`'s
+  `take_down_preview()` — R2 prefix delete + Worker `/remove`, default `dnc=True`) the
+  `dnc`/`remove` flow uses, (b) stamps `businesses.do_not_contact = True` (patch-by-id via
+  `store.update_row`, never a full-row upsert), and (c) cascades every other non-terminal outreach
+  row for the business to `dnc` so no orphan touch-2/3/4 row is drafted, dropped at send and
+  counted against the cap. The preview watermark promises "Reply 'no' and this preview comes
+  down", so a negative reply is a do-not-contact request. **negative and remove now differ only in
+  Telegram routing/classification** (`reply_sentiment` "negative" vs "remove", the replying row
+  ending `closed_lost` vs `dnc`, the negative alert carrying `classified by: llm|keyword`); the
+  business-level outcome is identical. The flag + cascade hold even when no preview exists.
+  `take_down_preview(store, preview, *, mock, tmp_root, dnc=True)`: `dnc=False` still performs the
+  unpublish only (kept for callers that need an unpublish that is not an opt-out); no in-tree
+  caller passes it. (This amends the "closed_lost... no forced takedown" line below, which still
+  holds for every OTHER path into `closed_lost` — touch-4 grace expiry via `advance.py`, etc. — a
+  negative reply is the one exception.)
+- **Change log, takedown cascade semantics (round 4)**: pre-round-4 `take_down_preview()` stamped
+  `do_not_contact` and cascaded outreach rows unconditionally; round 4 put that behind the `dnc`
+  parameter (default `True`). The negative-reply path briefly shipped with `dnc=False` inside
+  round 4 and was reverted to `dnc=True` by the round-4 panel (this entry) — negative replies keep
+  `dnc=True`.
+- **Bounce path patches by id (`scan_replies.py`, round 4)**: `email_status = "undeliverable"` is
+  written with `store.update_row("businesses", id, {...})`, not `upsert_business({**row, ...})`,
+  so a column another process wrote between the read and the write is not clobbered.
+- **Cron entrypoints page on failure (round 4)**: `scripts/fit_weights.py main()` and
+  `outreach/send.py --stats` wrap their work in the same `notify.error(...)` + re-raise block as
+  `send.py`'s send pass and `scan_replies.py`. Both default `today` to the UTC calendar date
+  (`datetime.now(timezone.utc).date()`), matching how `_sent_today_count` buckets `sent_at`.
+- **Under-send alert (`scripts/fit_weights.py::under_send_alert`, round 4)**: after the weekly
+  report (both the fit and the not-enough-data paths), when `config.live_send_confirmed` is true,
+  the trailing-7-day cap is > 0 and 7-day sends are below 50% of it, one error-channel line in the
+  fixed shape `prodcraft_medspa / <env> / under_send_7d / sent=S cap=C / 1` goes out via
+  `notify.once_per_day` (dedupe key `under_send_7d` in `config.notify_dedupe`, once per UTC day).
+  Never fires pre-live.
+- **`set_loom.py` idempotency (round 4)**: when `notes.loom_url` already equals the given URL the
+  row is neither patched nor redrafted (`changed: false, redrafted: false`), so a clean `drafted`
+  draft is kept; a changed URL patches and, if the row is `drafted`, redrafts. URL validation runs
+  once, inside `set_loom()`; the CLI maps `InvalidLoomUrl` to exit 2 before anything is written.
 - **Remove reply also notifies (`scan_replies.py`)**: a `remove` reply keeps its existing
   `dnc` + takedown behavior and now ALSO posts the same Telegram alert `common.notify.reply()`
   sends for a positive/neutral reply, with `sentiment` forced to `"remove"` regardless of what the

@@ -96,7 +96,7 @@ def test_gaia_fable_pricing_in_eur():
     one_m = 1_000_000
     assert GP.cost_eur(JUDGEMENT, {"input_tokens": one_m}) == pytest.approx(9.20)
     assert GP.cost_eur(JUDGEMENT, {"output_tokens": one_m}) == pytest.approx(46.00)
-    assert GP.cost_eur(JUDGEMENT, {"cache_read_tokens": one_m}) == pytest.approx(0.92)
+    assert GP.cost_eur(JUDGEMENT, {"cache_read_tokens": one_m}) == pytest.approx(0.23)
     assert GP.cost_eur(JUDGEMENT, {"cache_write_tokens": one_m}) == pytest.approx(11.50)
 
 

@@ -37,6 +37,10 @@ export interface FolioCardState {
   scale: number;
   opacity: number;
   captionOpacity: number;
+  /** Body copy only (not the head row). Falls to 0 within the first
+   *  FOLIO_BODY_EXIT_FRACTION of the exit so the leaving card's paragraph
+   *  never ghosts through the card behind it while the card is still moving. */
+  bodyOpacity: number;
   zIndex: number;
 }
 
@@ -48,6 +52,23 @@ export const FOLIO_VISIBLE_DEPTH = 2;
  *  the `.folio-card__head` tab strip height in globals.css so each back
  *  card's index + headline row shows above the card in front of it. */
 export const FOLIO_TAB_Y_PERCENT = 13;
+/** Fraction of a card's exit travel over which its body text fades to 0
+ *  (round-4 Murati lens: mid-exit the body was still ~50% opaque and read
+ *  through the new front card). The card itself keeps moving/fading to the
+ *  end of the exit. */
+export const FOLIO_BODY_EXIT_FRACTION = 0.3;
+/** Exit starts once a card is this far behind the scrub position. */
+const FOLIO_EXIT_START = 0.08;
+
+/** Index of the card currently in front (not yet exiting) for a 0..1
+ *  progress: the first card whose offset from the scrub position is above
+ *  -FOLIO_EXIT_START. Parked exactly on card k this is k; once card k begins
+ *  its exit it is k+1. Used to give only the front card a two-line headline. */
+export function folioFrontIndex(progress: number, count: number): number {
+  if (count <= 1) return 0;
+  const position = clamp01(progress) * (count - 1);
+  return Math.min(count - 1, Math.max(0, Math.ceil(position - FOLIO_EXIT_START)));
+}
 
 /**
  * Fans a stacked folio card out and away as the sticky section's progress
@@ -64,7 +85,7 @@ export function folioCardState(progress: number, index: number, count: number): 
   const position = clamp01(progress) * Math.max(count - 1, 0);
   const offset = index - position;
   const direction = index % 2 === 0 ? 1 : -1;
-  const exit = clamp01((-offset - 0.08) / 0.82);
+  const exit = clamp01((-offset - FOLIO_EXIT_START) / 0.82);
   const depth = Math.max(0, Math.min(4, offset));
   const layer = Math.min(FOLIO_VISIBLE_DEPTH, depth);
   // Cards deeper than the last visible layer park at that layer's offset and fade out over
@@ -81,6 +102,7 @@ export function folioCardState(progress: number, index: number, count: number): 
     // imagery to carry them, so a midpoint fade-to-zero read as a blank stage); back cards'
     // tab strips dim by depth but never below 0.55 so their headlines stay readable.
     captionOpacity: exit > 0 ? 1 - exit : Math.max(0.55, 1 - depth * 0.2),
+    bodyOpacity: exit > 0 ? 1 - clamp01(exit / FOLIO_BODY_EXIT_FRACTION) : 1,
     zIndex: count - index,
   };
 }

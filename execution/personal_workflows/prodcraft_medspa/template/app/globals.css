@@ -342,6 +342,7 @@ table.hours-table th {
     --folio-scale: 1;
     --folio-opacity: 1;
     --folio-caption-opacity: 1;
+    --folio-body-opacity: 1;
     position: absolute;
     inset: 0;
     border-radius: 28px;
@@ -384,7 +385,12 @@ table.hours-table th {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  /* Round-4 (Murati lens): the body copy of an exiting card fades out within
+     the first FOLIO_BODY_EXIT_FRACTION of its exit (lib/motion.ts
+     `bodyOpacity`) so it never reads through the card behind it; the head
+     row keeps --folio-caption-opacity and the card keeps moving. */
   .folio-card__body {
+    opacity: var(--folio-body-opacity);
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -417,6 +423,23 @@ table.hours-table th {
     padding-bottom: 4px;
     font-weight: 500;
     margin-top: 8px;
+  }
+}
+
+/* Round-4 (Murati lens): between 800 and 1200px the front card's headline was
+   truncating mid-word with an ellipsis; let it wrap to two lines. Scoped to
+   the front card only (MotionController sets `data-folio-front`): back cards'
+   tab strips must stay one line high (see the .folio-card__head comment) and
+   the reduced-motion / no-JS paths never receive the attribute, so they are
+   unchanged. */
+@media (min-width: 800px) and (max-width: 1200px) {
+  .folio-card[data-folio-front] .folio-card__head h3 {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    text-overflow: clip;
   }
 }
 

@@ -1004,10 +1004,10 @@ def test_scan_replies_remove_triggers_dnc_and_takedown(local_store, monkeypatch)
     assert notes["remove_source"] == "keyword"  # --mock uses the deterministic keyword matcher
 
 
-def test_scan_replies_negative_closes_lost_and_takes_down_preview_without_dnc(local_store):
-    """item 7: negative -> closed_lost AND preview takedown via the same real unpublish path as
-    remove, but WITHOUT flipping do_not_contact (unlike remove, this isn't a do-not-contact
-    request)."""
+def test_scan_replies_negative_closes_lost_takes_down_preview_and_sets_dnc(local_store):
+    """item 7 + round-4 (Dario lens): negative -> closed_lost AND preview takedown via the same
+    real unpublish path as remove AND do_not_contact=True (the watermark promised "Reply 'no'
+    and this preview comes down", so a negative reply is an opt-out)."""
     business = _make_business(local_store, email="owner3@example-medspa-3.test")
     preview = _make_preview(local_store, business_id=business["id"])
     row = local_store.upsert_outreach(
@@ -1028,7 +1028,7 @@ def test_scan_replies_negative_closes_lost_and_takes_down_preview_without_dnc(lo
     assert updated_preview["status"] == "takedown"
 
     updated_business = local_store.get_business(business["id"])
-    assert updated_business["do_not_contact"] is False
+    assert updated_business["do_not_contact"] is True
 
 
 def test_scan_replies_bounce_sets_business_undeliverable(local_store):

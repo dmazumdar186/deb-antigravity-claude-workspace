@@ -4,6 +4,8 @@ import {
   sectionProgress,
   activeStepIndex,
   folioCardState,
+  folioFrontIndex,
+  FOLIO_BODY_EXIT_FRACTION,
   FOLIO_TAB_Y_PERCENT,
   FOLIO_VISIBLE_DEPTH,
   drumStepState,
@@ -78,6 +80,37 @@ describe('folioCardState', () => {
     expect(deep.yPercent).toBe(-FOLIO_TAB_Y_PERCENT * FOLIO_VISIBLE_DEPTH);
     expect(deep.opacity).toBe(0);
     expect(folioCardState(0, FOLIO_VISIBLE_DEPTH, count).opacity).toBeGreaterThan(0.5);
+  });
+});
+
+describe('folio exit body fade + front index (round 4)', () => {
+  it('fades the exiting body to 0 within the first 30% of the exit while the card is still moving', () => {
+    const count = 6;
+    // card 0 at progress p has offset -p*(count-1); exit = (offset*-1 - 0.08)/0.82
+    const atRest = folioCardState(0, 0, count);
+    expect(atRest.bodyOpacity).toBe(1);
+    const earlyExit = folioCardState(0.03, 0, count); // exit ~ 0.085
+    expect(earlyExit.bodyOpacity).toBeGreaterThan(0);
+    expect(earlyExit.bodyOpacity).toBeLessThan(1);
+    const pastThird = folioCardState(0.075, 0, count); // exit ~ 0.36 > FOLIO_BODY_EXIT_FRACTION
+    expect(pastThird.bodyOpacity).toBe(0);
+    expect(pastThird.opacity).toBeGreaterThan(0.6); // card itself still visible and travelling
+    expect(pastThird.captionOpacity).toBeGreaterThan(0.6);
+    expect(Math.abs(pastThird.yPercent)).toBeGreaterThan(0);
+    expect(FOLIO_BODY_EXIT_FRACTION).toBeLessThanOrEqual(0.3);
+  });
+
+  it('back cards keep full body opacity', () => {
+    for (let i = 1; i < 6; i++) expect(folioCardState(0, i, 6).bodyOpacity).toBe(1);
+  });
+
+  it('names the parked card as front and hands over once it starts exiting', () => {
+    const count = 6;
+    expect(folioFrontIndex(0, count)).toBe(0);
+    expect(folioFrontIndex(1 / (count - 1), count)).toBe(1);
+    expect(folioFrontIndex(0.5 / (count - 1), count)).toBe(1); // card 0 mid-exit
+    expect(folioFrontIndex(1, count)).toBe(count - 1);
+    expect(folioFrontIndex(0.7, 1)).toBe(0);
   });
 });
 

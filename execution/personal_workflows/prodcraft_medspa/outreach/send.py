@@ -118,8 +118,10 @@ def _preview_host_ok(preview_row: dict | None, preview_host_suffix: str) -> bool
 
 
 def _parse_date(value: str | None) -> date:
+    # Round-4 item C: default to the UTC calendar day — `_sent_today_count` buckets `sent_at`
+    # by UTC, so a local `date.today()` near midnight west of UTC would count the wrong day.
     if not value:
-        return date.today()
+        return datetime.now(timezone.utc).date()
     try:
         return datetime.strptime(value, "%Y-%m-%d").date()
     except ValueError:
@@ -706,7 +708,14 @@ def main() -> None:
     ).strip() or None
 
     if args.stats:
-        summary = sends_vs_cap(st, today, mock=args.mock)
+        # Round-4 item B: the weekly cron reads this; a failure here must page, same as run_send.
+        try:
+            summary = sends_vs_cap(st, today, mock=args.mock)
+        except Exception as exc:  # noqa: BLE001 — top-level failure must reach the error channel
+            from execution.personal_workflows.prodcraft_medspa.common import notify
+
+            notify.error("prodcraft_medspa.send", f"--stats: {type(exc).__name__}: {exc}")
+            raise
         print(json.dumps({"script": "send", "stats": "sends_vs_cap", **summary, "line": format_sends_vs_cap(summary)}))
         return
 

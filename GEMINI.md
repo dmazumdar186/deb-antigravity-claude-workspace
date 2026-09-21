@@ -15,8 +15,6 @@ LLMs are probabilistic; business logic is deterministic. This system separates t
 2. **Orchestration** — you. Routing only: read the directive, call execution scripts in order, handle errors, ask when ambiguous, update directives with learnings. Never scrape/process by hand when a script exists.
 3. **Execution** (`execution/{category}/`) — deterministic Python scripts. Shared modules in `execution/modules/`. Secrets in `.env` (gitignored).
 
-Why: 90% accuracy per manual step = 59% over 5 steps. Push complexity into deterministic code.
-
 Category map (identical subfolders for `directives/` and `execution/`): **`directives/README.md`** — read before creating any script or directive. New script → matching directive, same category, snake_case. New category only with 3+ related files, ask first.
 
 ## Operating principles
@@ -31,18 +29,19 @@ Category map (identical subfolders for `directives/` and `execution/`): **`direc
 ## Models — all Fable (set 2026-09-21)
 
 - **Brain: `claude-fable-5-1`** — session default. Plans, architects, decides, reviews diffs, delegates. It does **not** grind: exploration, implementation from an approved plan, scraping, formatting and fan-out go to worker sub-agents. Every main-session token is a judgement token. Keep the auto-loaded prefix byte-stable so 5.1 cache reads ($0.25/MTok) stay cheap.
-- **Workers: `claude-fable-5`** (same $10/$50 as 5.1; Sonnet workers judged too weak 2026-09-21). All sub-agents, Dynamic Workflow workers, execution scripts' default tier, mechanical agents and checklist audits. Mechanical work at `effort: low`, implementation `medium`; only the brain and `pipeline-auditor` (`claude-fable-5-1`) run high.
+- **Workers: `claude-fable-5`** (same $10/$50 as 5.1; Sonnet workers judged too weak 2026-09-21). All sub-agents, Dynamic Workflow workers, execution scripts' default tier, mechanical agents and checklist audits.
+- **Effort is fixed (operator order 2026-09-21): Fable 5.1 runs `low`, Fable 5 runs `medium`, everywhere, no exceptions** unless the operator says otherwise for a task. Enforced by `modelSettings` in `.claude/settings.json` and `effort:` frontmatter on every agent; `pipeline-auditor` (5.1) is `low`.
 - Sonnet/Opus/Haiku are not used. Pin full model IDs, never aliases. History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, tiers resolve via `model_registry.LAST_KNOWN_GOOD` (`'default'` = Fable 5; `'premium'` = Fable 5.1).
 
 ## Sub-agents & parallelism
 
 - Delegate multi-file exploration and implementation to sub-agents with a complete brief; keep only conclusions in main context. Tier table: `.claude/rules/sub-agent-delegation.md`. Dynamic Workflows (cheapest fan-out): `.claude/workflows/README.md`. Agent Teams are off by default (`.claude/SETTINGS_NOTES.md`).
 - Independent work fires concurrently in one tool-call batch; long verification goes `run_in_background: true`. Rule: `.claude/rules/always-parallelize.md`.
-- Adversarial plan review: global `plan-skeptic` skill (`~/.claude/skills/plan-skeptic/SKILL.md`); no workspace copy.
+- Adversarial plan review: global `plan-skeptic` skill; no workspace copy.
 
 ## Code navigation
 
-Prefer LSP (`goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`) over Grep/Glob/Read for code; `findReferences` before any rename. Grep/Glob for text/config only. Fix LSP diagnostics immediately after edits.
+Prefer LSP over Grep/Glob/Read for code; `findReferences` before any rename. Grep/Glob for text/config only. Fix LSP diagnostics after edits.
 
 ## Files & memory
 

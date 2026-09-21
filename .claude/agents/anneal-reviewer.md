@@ -2,7 +2,7 @@
 name: anneal-reviewer
 description: Audit a code diff against the workspace's known-bug-class checklist (Windows subprocess encoding, threading locks, LLM path validation, cache-aware pricing, never-bare-except). Returns PASS/FAIL with severity-ranked issues.
 model: claude-fable-5  # driving tier -- checklist-driven audit (Fable 5 since 2026-09-21)
-effort: low
+effort: medium
 maxTurns: 25
 tools:
   - Read

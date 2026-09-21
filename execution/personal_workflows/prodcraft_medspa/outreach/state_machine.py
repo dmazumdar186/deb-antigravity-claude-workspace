@@ -307,7 +307,7 @@ def reconcile_takedowns(store: Any, mock: bool = False) -> dict:
     or a manual `do_not_contact` patch made outside `_apply_dnc`), is a live preview link that
     should not still be live. Finds every such business, retries the takedown for each
     non-takendown preview via the SAME real unpublish path `_apply_dnc`/`_takedown_previews_
-    without_dnc` use (`preview/takedown.py`'s `take_down_preview`), and logs a `takedown_retry`
+    for_negative` use (`preview/takedown.py`'s `take_down_preview`), and logs a `takedown_retry`
     event per attempt. Idempotent: a preview already `status == "takedown"` (or `takedown is
     True`) is skipped, mirroring `_takedown_one_preview`'s own guard. A failed retry pages the
     operator once per preview per day (item 14) via `_notify_takedown_failure` and never aborts

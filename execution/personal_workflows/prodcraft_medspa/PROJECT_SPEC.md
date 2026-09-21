@@ -41,6 +41,11 @@ Manual volume: ~200–400 sends/month. Funnel needed for 5 closes/month:
 
 Implication: every prospect must be score ≥45, owner-named, email-verified, with a real preview. No spray.
 
+Cap caveat (round-4 audit): this table's monthly close target is not reachable under the Phase-0 cap of 5 sends/day
+counted across all touches, which reaches only ~37 new prospects/month (1.25/day x 30) and, at the reply and call
+rates above (4-20% reply, 50% call, 50% close), yields roughly 0.4-1.8 closes/month, not 3-5. The cap must be raised
+after Phase 0 (toward the ~75-100 prospects/month this table assumes) for section 2 to hold.
+
 ### 2.1 Time-to-first-call: expected 2 to 7 weeks, central estimate week 3 (measurable target)
 
 Inputs, all already in this spec or the pipeline config (`db/seed_config.json`, `outreach/daily_queue.py::effective_cap`):
@@ -58,14 +63,18 @@ Arithmetic:
   optimistic 10-13 prospects -> reached in week 1-2 -> first call in week 2-3; pessimistic 33-50 -> week 4-6 -> call in week 5-7.
 
 Target: first `call_booked` by end of week 3 (central), no later than end of week 7 (floor). Phase 0 requires
-`calls_to_pass: 3`, which at the same rates lands in weeks 4-5 (optimistic) or beyond week 12 (pessimistic).
+`calls_to_pass: 3`, i.e. 30-39 prospects at the optimistic rates, reached in weeks 4-5, plus the same one-week reply
+lag as above: weeks 5-6 (optimistic) or beyond week 12 (pessimistic).
 
 Falsifier (Karpathy lens: state what result would prove the model wrong before collecting data): zero `call_booked` by
-end of week 7 with >= 50 prospects each carried through all 4 touches falsifies the assumed reply and call rates for
+end of week 7 with >= 50 fully-touched prospects falsifies the assumed reply and call rates for
 this email/offer/asset (at a 7.5% per-prospect call rate the chance of 0 in 50 is about 2%). Note the section 3 Phase-0
 gate of 5 prospects is too small to falsify anything: at that same 7.5% rate, 0 calls from 5 has a 68% chance of
-happening by luck, so a zero at 5 triggers the rewrite by rule but is not evidence against the offer. Record the
-observed reply lag from the first replies and replace the assumption above with the measured median.
+happening by luck, so a zero at 5 triggers the rewrite by rule but is not evidence against the offer. "Fully-touched"
+for this falsifier means touch 2 was actually sent with a Loom URL (`outreach.touch = 2`, `status = sent`,
+`notes.loom_url` set) — a prospect whose touch 2 parked without a Loom does not count toward the 50, since the
+sequence being tested includes the walkthrough. Record the observed reply lag from the first replies and replace
+the assumption above with the measured median.
 
 Expected reply-rate benchmarks for reference: platform average 3.4% (Instantly 2026); web-audit outreach 4–6% (Puzzle Inbox); "concrete gap named" 15–20% top-decile (B2BLeadFinder). Follow-ups produce 42% of all replies (Instantly 2026) — manual senders skip them; the pipeline must not let you.
 

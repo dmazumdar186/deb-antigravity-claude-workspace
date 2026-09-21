@@ -4,9 +4,10 @@ description: Poll Gmail for replies to `sent` outreach rows, classify each with
     prompts/classify_reply.md, and drive outreach/state_machine.py transitions
     (remove -> dnc + takedown + Telegram notify, bounce -> undeliverable + cancel other touches,
     ooo -> push next_touch_at, positive/neutral/negative -> sent->replied, negative then ->
-    closed_lost + a preview takedown via the same real unpublish path as remove but WITHOUT
-    flipping do_not_contact — round-2 audit item 7, a negative reply is a lost deal, not a
-    do-not-contact request). Per the 2026-09-16 operator decision, a positive or neutral reply (or
+    closed_lost + do_not_contact + a preview takedown via the same real unpublish path as remove
+    — round-4 audit (Dario lens): the preview watermark promises "Reply 'no' and this preview
+    comes down", so a negative reply IS an opt-out; negative and remove differ only in Telegram
+    routing/classification, not in what happens to the business). Per the 2026-09-16 operator decision, a positive or neutral reply (or
     any reply asking for a call) posts a Telegram alert via common.notify.reply() and the operator
     takes over manually from there; this script itself never auto-replies. A remove reply also
     posts the same alert (sentiment forced to "remove") and stamps the row's
@@ -195,16 +196,20 @@ def _envelope_for_notes(envelope: dict | None) -> dict | None:
     }
 
 
-def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
-    """item 7 (round-2 audit): take down every non-takendown preview linked to `outreach_row`'s
-    business via the SAME real unpublish path state_machine.py's dnc flow uses
-    (preview/takedown.py's `take_down_preview()` — R2 prefix delete + Worker /remove), for a
-    `negative` reply.
+def _takedown_previews_for_negative(st: Any, outreach_row: dict) -> list[str]:
+    """Round-4 audit (Dario lens): a `negative` reply is an opt-out. The preview watermark
+    promises "Reply 'no' and this preview comes down", so the prospect who said no must never be
+    emailed again: stamp `businesses.do_not_contact = True`, close every other non-terminal
+    outreach row for the business to `dnc` (no orphan touch-2/3/4 row is drafted, dropped at
+    send and then counted by daily_queue._drafted_pending_count, losing a cap slot), and take
+    down every non-takendown preview via the SAME real unpublish path state_machine.py's dnc
+    flow uses (preview/takedown.py's `take_down_preview()`, default `dnc=True` -> R2 prefix
+    delete + Worker /remove + the business flag + the outreach cascade).
 
-    `take_down_preview(dnc=False)` (round-4) performs the same unpublish (R2 delete, Worker
-    /remove, `previews.status='takedown'`, the `takedown` events) but leaves
-    `businesses.do_not_contact` and the other outreach rows alone, because a negative reply is
-    NOT a do-not-contact request. Idempotent: a preview already marked takedown is skipped.
+    negative and remove now differ only in Telegram routing/classification (`reply_sentiment`
+    "negative" vs "remove", `closed_lost` vs `dnc` on the replying row); the business-level
+    outcome is identical. Idempotent: a preview already marked takedown is skipped, and when no
+    preview exists at all the flag + cascade still happen here directly.
     Returns the list of preview ids actually taken down."""
     from execution.personal_workflows.prodcraft_medspa.common import config as config_mod
     from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
@@ -222,9 +227,6 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
             p for p in _store_helpers.previews_for_business(st, business_id) if not p.get("takedown")
         ]
 
-    if not previews:
-        return []
-
     settings = config_mod.bootstrap()
     taken_down: list[str] = []
     for preview_row in previews:
@@ -235,9 +237,7 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
             )
             continue
         try:
-            take_down_preview(
-                st, preview_row, mock=isinstance(st, LocalStore), tmp_root=settings.TMP, dnc=False
-            )
+            take_down_preview(st, preview_row, mock=isinstance(st, LocalStore), tmp_root=settings.TMP)
             st.log_event(
                 "preview", preview_row.get("id"), "takedown_requested",
                 {"reason": "negative_reply", "outcome": "ok"},
@@ -256,6 +256,18 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
             state_machine._notify_takedown_failure(  # noqa: SLF001 — same package, documented internal helper
                 st, preview_row.get("id"), f"negative-reply takedown failed: {exc}"
             )
+
+    # The opt-out must hold even when there was no live preview to take down (or the takedown
+    # raised before it reached the business row): stamp + cascade directly, patch-by-id
+    # (never a full-row upsert, see the bounce path) so a concurrent writer is not clobbered.
+    if business_id:
+        business = st.get_business(business_id)
+        if business and not business.get("do_not_contact"):
+            st.update_row("businesses", business_id, {"do_not_contact": True})
+            st.log_event("business", business_id, "do_not_contact", {"reason": "negative_reply"})
+        state_machine._cancel_other_touches(  # noqa: SLF001 — same package, documented internal helper
+            st, business_id, outreach_row.get("id"), "dnc"
+        )
 
     return taken_down
 
@@ -353,7 +365,10 @@ def _handle_reply(
         st.log_event("outreach", outreach_row["id"], "bounce_detected", {"excerpt": excerpt})
         business = st.get_business(outreach_row["business_id"])
         if business:
-            st.upsert_business({**business, "email_status": "undeliverable"})
+            # round-4 item D: patch by id (mirrors preview/takedown.py) instead of round-tripping
+            # the whole row through upsert_business(), which would overwrite any column another
+            # process wrote between the read above and this write (lost update).
+            st.update_row("businesses", business["id"], {"email_status": "undeliverable"})
         state_machine._cancel_other_touches(  # noqa: SLF001 — same package, documented internal helper
             st, outreach_row.get("business_id"), outreach_row.get("id"), "closed_lost"
         )
@@ -413,12 +428,10 @@ def _handle_reply(
         # longer allows replied->closed_lost, in which case leave it replied and log why.
         try:
             updated_row = state_machine.transition(st, updated_row, "closed_lost")
-            # item 7 (round-2 audit): a negative reply takes down the preview via the SAME real
-            # unpublish path the dnc/remove flow uses (R2 prefix delete + Worker /remove) — the
-            # prospect said no, so the preview link no longer needs to stay live — but, unlike
-            # dnc/remove, this is NOT a do-not-contact request: `businesses.do_not_contact` stays
-            # untouched and other outreach rows are not cascaded to a terminal status.
-            _takedown_previews_without_dnc(st, updated_row)
+            # round-4 audit (Dario lens): a negative reply is an opt-out — the watermark promised
+            # "Reply 'no' and this preview comes down". Same real unpublish path as dnc/remove,
+            # plus `businesses.do_not_contact = True` and the sibling-outreach cascade to `dnc`.
+            _takedown_previews_for_negative(st, updated_row)
         except state_machine.IllegalTransition as exc:
             st.log_event("outreach", updated_row["id"], "closed_lost_skipped", {"reason": str(exc)})
 

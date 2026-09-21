@@ -69,11 +69,12 @@ def _host_from_preview(preview: dict) -> str:
 def take_down_preview(store, preview: dict, *, mock: bool, tmp_root: Path, dnc: bool = True) -> dict:
     """Unpublish one preview (R2 prefix delete + Worker /remove + previews row -> takedown).
 
-    `dnc=True` (default; the remove/dnc path) also stamps `businesses.do_not_contact = True` and
-    closes every non-terminal outreach row for the business to `dnc`. `dnc=False` (round-4: the
-    negative-reply path in outreach/scan_replies.py) performs the same unpublish but leaves the
-    business row and its outreach rows untouched, because a negative reply is not a
-    do-not-contact request. Idempotent-safe either way."""
+    `dnc=True` (default; every in-tree caller — the remove/dnc path AND, since the round-4
+    audit, the negative-reply path in outreach/scan_replies.py) also stamps
+    `businesses.do_not_contact = True` and closes every non-terminal outreach row for the
+    business to `dnc`. `dnc=False` performs the same unpublish but leaves the business row and
+    its outreach rows untouched; kept for callers that need an unpublish that is not an opt-out
+    (e.g. an operator-driven re-render). Idempotent-safe either way."""
     host = _host_from_preview(preview)
     # The R2 prefix segment is the host's first label — same rule the Worker uses (slugSuffixFromHost).
     prefix_label = host.split(".")[0] if host else preview.get("slug_suffix", "")
