@@ -13,8 +13,8 @@ usage:
     py execution/personalization/variant_generator.py --action recommend --mock
 
 Modes:
-    cheap     — claude-sonnet-5 (Haiku is banned).
-    balanced  — claude-sonnet-5, execution tier (default).
+    cheap     — claude-fable-5 (Haiku is banned).
+    balanced  — claude-fable-5, execution tier (default).
     premium   — claude-fable-5-1, judgement tier.
 """
 
@@ -40,8 +40,8 @@ logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 # execution tier — the rule's floor for any LLM call in this workspace.
 # OR 5-series slugs have no minor version: `claude-opus-5`, not `claude-opus-5.0`.
 MODE_TO_MODEL = {
-    "cheap": "anthropic/claude-sonnet-5",
-    "balanced": "anthropic/claude-sonnet-5",
+    "cheap": "anthropic/claude-fable-5",
+    "balanced": "anthropic/claude-fable-5",
     "premium": "anthropic/claude-fable-5.1",
 }
 DEFAULT_MODE = "balanced"
@@ -378,13 +378,13 @@ def main():
         "--mode",
         choices=list(MODE_TO_MODEL.keys()),
         default=DEFAULT_MODE,
-        help="Tier: cheap / balanced (claude-sonnet-5, default) / premium (claude-fable-5-1).",
+        help="Tier: cheap / balanced (claude-fable-5, default) / premium (claude-fable-5-1).",
     )
     parser.add_argument(
         "--model",
         default=None,
         help="Override model ID explicitly (bypasses --mode). "
-             "Use OpenRouter format (e.g. anthropic/claude-sonnet-5).",
+             "Use OpenRouter format (e.g. anthropic/claude-fable-5).",
     )
     parser.add_argument("--mock", action="store_true", help="Use mock data")
     args = parser.parse_args()

@@ -171,7 +171,7 @@ def _to_anthropic_tool_format(schema: dict) -> dict:
 # 2026-09-01: premium moved claude-fable-5 -> claude-fable-5-1; cache_read
 # dropped to 0.25/MTok (0.025x input, not the usual 0.1x). verified 2026-09-01.
 _TIER_COST_PER_M = {
-    "default":  {"input": 2.0,  "cache_read": 0.20,  "cache_write": 2.50,  "output": 10.0},   # claude-sonnet-5
+    "default":  {"input": 10.0, "cache_read": 1.00,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5 (execution tier since 2026-09-21; cache_read 0.1x on fable-5)
     "premium":  {"input": 10.0, "cache_read": 0.25,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5-1
     "gemini":   {"input": 0.0,  "cache_read": 0.0,   "cache_write": 0.0,   "output": 0.0},    # Free tier
 }

@@ -201,12 +201,11 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
     (preview/takedown.py's `take_down_preview()` — R2 prefix delete + Worker /remove), for a
     `negative` reply.
 
-    `take_down_preview()` itself unconditionally stamps `businesses.do_not_contact = True` (it was
-    written for the dnc/remove path, which IS a do-not-contact request) — a negative reply is NOT
-    one, so this wrapper reverts that one field back to its pre-call value immediately after, while
-    keeping every other real side effect (R2 delete, Worker /remove, `previews.status='takedown'`,
-    the `outreach`/`business` `takedown` events). Idempotent: a preview already marked takedown is
-    skipped. Returns the list of preview ids actually taken down."""
+    `take_down_preview(dnc=False)` (round-4) performs the same unpublish (R2 delete, Worker
+    /remove, `previews.status='takedown'`, the `takedown` events) but leaves
+    `businesses.do_not_contact` and the other outreach rows alone, because a negative reply is
+    NOT a do-not-contact request. Idempotent: a preview already marked takedown is skipped.
+    Returns the list of preview ids actually taken down."""
     from execution.personal_workflows.prodcraft_medspa.common import config as config_mod
     from execution.personal_workflows.prodcraft_medspa.common.store import LocalStore
     from execution.personal_workflows.prodcraft_medspa.preview.takedown import take_down_preview
@@ -226,11 +225,6 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
     if not previews:
         return []
 
-    was_do_not_contact = None
-    if business_id:
-        business = st.get_business(business_id)
-        was_do_not_contact = bool((business or {}).get("do_not_contact"))
-
     settings = config_mod.bootstrap()
     taken_down: list[str] = []
     for preview_row in previews:
@@ -241,7 +235,9 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
             )
             continue
         try:
-            take_down_preview(st, preview_row, mock=isinstance(st, LocalStore), tmp_root=settings.TMP)
+            take_down_preview(
+                st, preview_row, mock=isinstance(st, LocalStore), tmp_root=settings.TMP, dnc=False
+            )
             st.log_event(
                 "preview", preview_row.get("id"), "takedown_requested",
                 {"reason": "negative_reply", "outcome": "ok"},
@@ -260,13 +256,6 @@ def _takedown_previews_without_dnc(st: Any, outreach_row: dict) -> list[str]:
             state_machine._notify_takedown_failure(  # noqa: SLF001 — same package, documented internal helper
                 st, preview_row.get("id"), f"negative-reply takedown failed: {exc}"
             )
-
-    if business_id and was_do_not_contact is False:
-        # take_down_preview() just flipped do_not_contact True as a side effect of the shared
-        # unpublish path — revert it, since a negative reply is not a do-not-contact request.
-        current = st.get_business(business_id)
-        if current and current.get("do_not_contact"):
-            st.update_row("businesses", business_id, {"do_not_contact": False})
 
     return taken_down
 
@@ -534,7 +523,7 @@ def scan(st: Any, settings: Any, *, mock: bool, since_days: int, today: date | N
                         "classify_reply",
                         PROMPTS_DIR / "classify_reply.md",
                         {"reply_text": reply.get("body_text", ""), "our_last_email": our_last_email},
-                        model="claude-sonnet-5",
+                        model="claude-fable-5",
                         mock=False,
                         fixtures_root=LLM_FIXTURES_ROOT,
                     )

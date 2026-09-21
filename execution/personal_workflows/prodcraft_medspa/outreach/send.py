@@ -15,6 +15,9 @@ inputs: CLI: [--date YYYY-MM-DD] [--mock] [--store {local,supabase}] [--store-ro
     .tmp/prodcraft_medspa/sent/ instead of calling the Gmail API and records a fake message id
     `mock-<uuid>`.
 outputs: stdout JSON stat line {"script":"send","in":n,"sent":n,"cap":n,"dropped":{"cap_reached":n,
+    ...}}; with --stats instead {"script":"send","stats":"sends_vs_cap","days":[...],"sent":n,"cap":n,
+    "line":"..."} (trailing 7 days, nothing sent).
+    Original stat-line detail: {"script":"send","in":n,"sent":n,"cap":n,"dropped":{"cap_reached":n,
     "halted":n,"lint_failed":n,"dnc":n,"preview_not_approved":n,"preview_not_public":n,
     "already_replied":n,"no_email":n,"gmail_error":n}}. `cap` is the Phase-0 warmup-ramped cap
     (daily_queue.effective_cap; plain phase0.cap under --mock). `preview_not_public` counts rows
@@ -219,6 +222,48 @@ def _sent_today_count(st: Any, today: date) -> int:
         if sent_dt.astimezone(timezone.utc).date().isoformat() == today_str:
             count += 1
     return count
+
+
+SENDS_VS_CAP_DAYS = 7
+
+
+def sends_vs_cap(st: Any, today: date, *, mock: bool = False, days: int = SENDS_VS_CAP_DAYS) -> dict:
+    """Round-4 weekly number "Sends vs cap": per UTC calendar day over the trailing `days`
+    (ending `today`, inclusive), the sends across all touches (`_sent_today_count`, the same
+    counter the cap check uses) against that day's effective cap (`daily_queue.effective_cap`,
+    the warmup-ramped Phase-0 cap; plain `phase0.cap` under `mock`). Ramp logic is NOT
+    duplicated here: the cap for each past day is whatever `effective_cap` says for that date.
+    Returns {"days": [{"date", "sent", "cap"}, ...] oldest first, "sent": total, "cap": total,
+    "window_days": days}.
+    """
+    from datetime import timedelta
+
+    per_day: list[dict] = []
+    for offset in range(days - 1, -1, -1):
+        day = today - timedelta(days=offset)
+        per_day.append(
+            {
+                "date": day.isoformat(),
+                "sent": _sent_today_count(st, day),
+                "cap": int(daily_queue.effective_cap(st, day, mock=mock)),
+            }
+        )
+    return {
+        "days": per_day,
+        "sent": sum(d["sent"] for d in per_day),
+        "cap": sum(d["cap"] for d in per_day),
+        "window_days": days,
+    }
+
+
+def format_sends_vs_cap(summary: dict) -> str:
+    """One Telegram-safe line (plain hyphens, no U+2014), e.g.
+    `sends vs cap (7d): 12/35, per day 2/5 2/5 2/5 2/5 2/5 1/5 1/5`."""
+    per_day = " ".join(f"{d['sent']}/{d['cap']}" for d in summary.get("days", []))
+    return (
+        f"sends vs cap ({summary.get('window_days', SENDS_VS_CAP_DAYS)}d): "
+        f"{summary.get('sent', 0)}/{summary.get('cap', 0)}, per day {per_day or 'n/a'}"
+    )
 
 
 def _reject_header_injection(to_email: str, subject: str) -> None:
@@ -637,6 +682,12 @@ def main() -> None:
     )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Print the trailing-7-day sends-vs-cap summary (sends_vs_cap) as one JSON line and "
+        "exit without sending anything (round-4 weekly number; also reported by fit_weights.py).",
+    )
+    parser.add_argument(
         "--confirm-live-sends",
         action="store_true",
         help="Validate config.sender.physical_address (lint_draft.sender_address_is_valid) and, "
@@ -653,6 +704,11 @@ def main() -> None:
     recipient_override = (
         args.recipient_override or os.environ.get("PRODCRAFT_RECIPIENT_OVERRIDE") or ""
     ).strip() or None
+
+    if args.stats:
+        summary = sends_vs_cap(st, today, mock=args.mock)
+        print(json.dumps({"script": "send", "stats": "sends_vs_cap", **summary, "line": format_sends_vs_cap(summary)}))
+        return
 
     if args.confirm_live_sends:
         sender_cfg = st.get_config("sender", {}) or {}

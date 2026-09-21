@@ -64,7 +64,7 @@ Output JSON only (no markdown, no explanations):"""
 
     try:
         message = client.messages.create(
-            model="claude-sonnet-5"  # Haiku is banned (model-tier.md); execution tier is the floor,
+            model="claude-fable-5",  # Haiku is banned (model-tier.md); execution tier is the floor,
             max_tokens=6000,  # Increased to handle 50 records reliably
             messages=[{"role": "user", "content": prompt}]
         )

@@ -122,7 +122,7 @@ def _live_anthropic(settings) -> tuple[bool | None, str]:
 
         client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
         client.messages.create(
-            model="claude-sonnet-5", max_tokens=1, messages=[{"role": "user", "content": "hi"}]
+            model="claude-fable-5", max_tokens=1, messages=[{"role": "user", "content": "hi"}]
         )
         return True, "1-token message ok"
     except Exception as exc:  # noqa: BLE001

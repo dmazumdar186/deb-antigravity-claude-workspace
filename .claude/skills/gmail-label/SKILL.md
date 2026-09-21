@@ -18,7 +18,7 @@ Fetch inbox emails, classify them via parallel subagents into Action Required / 
 
 ## Subagent
 - `email-classifier` — defined in `.claude/agents/email-classifier.md`
-- Model: `claude-sonnet-5` (execution tier — fast, cost-efficient classification). The Task spawns below pass `model: "sonnet"` because the Task tool's model parameter takes alias values — a deliberate exception to the pin-full-IDs rule, which governs config files and code.
+- Model: `claude-fable-5` (execution tier since 2026-09-21 — workers moved Sonnet -> Fable 5). The Task spawns below pass the full ID `model: "claude-fable-5"`; the Task tool's model parameter accepts full IDs as well as aliases.
 - Each subagent reads one chunk, writes one classified output file
 
 ## Flow (Parallel — default)
@@ -41,12 +41,12 @@ Spawn 10 `email-classifier` subagents in background, one per chunk. Each subagen
 - Classifies each email
 - Writes `.tmp/chunks/classified_N.json`
 
-Use the Task tool with `run_in_background: true` and `model: "sonnet"`. Launch ALL 10 in a single message for true parallelism:
+Use the Task tool with `run_in_background: true` and `model: "claude-fable-5"`. Launch ALL 10 in a single message for true parallelism:
 
 ```
 For each chunk 0-9, spawn a Task with:
   subagent_type: "email-classifier"
-  model: "sonnet"
+  model: "claude-fable-5"
   run_in_background: true
   prompt: "Read /absolute/path/.tmp/chunks/chunk_N.json, classify each email, write results to /absolute/path/.tmp/chunks/classified_N.json"
 ```

@@ -330,7 +330,10 @@ table.hours-table th {
   .folio__stage {
     position: relative;
     width: min(68vw, 980px);
-    height: 62vh;
+    /* Leaves ~21vh above the stage: FOLIO_VISIBLE_DEPTH (2) back cards each
+       rise FOLIO_TAB_Y_PERCENT (13%) of this height so their head rows peek
+       out (2 * 13% * 58vh = ~15vh) and still clear the sticky watermark bar. */
+    height: 58vh;
   }
   .folio-card {
     --folio-x: 0%;
@@ -345,6 +348,10 @@ table.hours-table th {
     background: var(--gallery, #f2efe8);
     box-shadow: 0 40px 90px rgba(9, 10, 12, 0.4);
     opacity: var(--folio-opacity);
+    /* Top-centre origin: the depth scale shrinks a back card downward from
+       its top edge, so the head-row "tab" MotionController lifts above the
+       front card (negative --folio-y) is never pulled back under it. */
+    transform-origin: 50% 0;
     transform: translate3d(var(--folio-x), var(--folio-y), 0) rotate(var(--folio-rotation)) scale(var(--folio-scale));
     will-change: transform, opacity;
   }
@@ -352,12 +359,39 @@ table.hours-table th {
     height: 100%;
     display: flex;
     flex-direction: column;
+    color: var(--ink, #090a0c);
+    opacity: var(--folio-caption-opacity);
+  }
+  /* The tab strip. Its total height (padding + one headline line) must stay
+     inside FOLIO_TAB_Y_PERCENT (13%) of the stage height at the smallest
+     desktop viewport we support (~768px tall -> ~58px), or the next card
+     forward covers the bottom of this headline. Acceptance check:
+     tests/prodcraft_medspa/acceptance_template.py::_check_folio_back_card_headlines. */
+  .folio-card__head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 12px clamp(28px, 3.4vw, 52px) 0;
+    line-height: 1.1;
+  }
+  .folio-card__head h3 {
+    margin: 0;
+    font-size: clamp(22px, 2.3vw, 34px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .folio-card__body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     gap: 18px;
-    padding: clamp(28px, 3.4vw, 52px);
-    color: var(--ink, #090a0c);
-    opacity: var(--folio-caption-opacity);
+    padding: 12px clamp(28px, 3.4vw, 52px) clamp(28px, 3.4vw, 52px);
   }
   .folio-card__icon {
     color: var(--brand);
@@ -367,12 +401,6 @@ table.hours-table th {
     font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
     letter-spacing: 0.14em;
     color: rgba(9, 10, 12, 0.5);
-  }
-  .folio-card__body h3 {
-    margin: 8px 0 10px;
-    font-size: clamp(26px, 3vw, 44px);
-    font-weight: 500;
-    letter-spacing: -0.03em;
   }
   .folio-card__body p {
     max-width: 46ch;
@@ -428,6 +456,16 @@ table.hours-table th {
     flex-direction: column;
     gap: 10px;
   }
+  .folio-card__head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .folio-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
   .folio-card__icon {
     color: var(--brand);
   }
@@ -436,8 +474,8 @@ table.hours-table th {
     letter-spacing: 0.14em;
     color: rgba(9, 10, 12, 0.5);
   }
-  .folio-card__body h3 {
-    margin: 4px 0 6px;
+  .folio-card__head h3 {
+    margin: 0;
     font-size: 22px;
     font-weight: 500;
   }

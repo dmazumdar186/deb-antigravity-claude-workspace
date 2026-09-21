@@ -14,7 +14,7 @@ Three orchestration tiers are available. Pick by parallelism and context-sharing
 **Use when**: 1–3 independent tasks, tight result loop, total runtime under 5 minutes.
 - Fresh context per spawn. Returns once.
 - Best for: file exploration, focused review, single-file implementation.
-- Spawn pattern: `Agent(subagent_type="general-purpose", model="sonnet", description="...", prompt="...")`.
+- Spawn pattern: `Agent(subagent_type="general-purpose", model="claude-fable-5", description="...", prompt="...")`.
 
 ## Tier 2 — Dynamic Workflow (`ultracode:` keyword)
 
@@ -22,7 +22,7 @@ Three orchestration tiers are available. Pick by parallelism and context-sharing
 - Up to 16 concurrent sub-agents, 1000 total per run.
 - Resumable within the session. Saveable as `/command` in `.claude/workflows/`.
 - Best for: lead enrichment (100+ rows), competitive matrices, multi-source research, large codebase sweeps.
-- Default worker model: `claude-sonnet-5` (Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
+- Default worker model: `claude-fable-5` (since 2026-09-21 — Sonnet workers were markedly less efficient; Haiku 4.5 is banned per ~/.claude/rules/model-tier.md).
 - See `.claude/workflows/README.md` for full triggers + examples.
 
 ## Tier 3 — Agent Team (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)

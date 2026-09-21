@@ -25,6 +25,13 @@ _DICT_ONLY_OVERRIDE_PROMPTS = frozenset({"fuzzy_variables", "extract_services"})
 # Pricing per MTok (USD), per .claude/rules/python-hardening.md rule 4:
 # input / cache_read / cache_write / output, read from each model's published rate.
 PRICING: dict[str, dict[str, float]] = {
+    # 2026-09-21: execution tier moved to claude-fable-5 (cache_read 0.1x input on fable-5).
+    "claude-fable-5": {
+        "input": 10.00,
+        "cache_read": 1.00,
+        "cache_write": 12.50,
+        "output": 50.00,
+    },
     "claude-sonnet-5": {
         "input": 2.00,
         "cache_read": 0.20,

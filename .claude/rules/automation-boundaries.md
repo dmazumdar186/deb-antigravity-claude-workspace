@@ -1,3 +1,14 @@
+---
+paths:
+  - "directives/personalization/**"
+  - "directives/gtm_client_workflows/**"
+  - "directives/gtm_icp_filters/**"
+  - "directives/content/**"
+  - "execution/personalization/**"
+  - "execution/gtm_client_workflows/**"
+  - "execution/personal_workflows/prodcraft_medspa/**"
+  - ".claude/skills/instantly-*/**"
+---
 # Automation Boundaries (load when designing any GTM / client-facing automation; referenced from the personalization, gtm, and content directives)
 
 Adopted 2026-08-31 from Nick Saraev's Claude Code Marketing course

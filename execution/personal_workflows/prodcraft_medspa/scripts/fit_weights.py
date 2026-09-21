@@ -12,7 +12,9 @@ inputs: CLI: [--mock] [--store {local,supabase}] [--store-root P] [--min-sent 50
 outputs: stdout table(s) + JSON stat line; .tmp/prodcraft_medspa/fit_weights.json (per-signal
     reply rates + point-biserial r, template-variant table, metro/mode/queue_pick stamped);
     refuses (prints why, writes nothing) when sent < --min-sent. --report-telegram posts (or,
-    under --mock, prints) a compact summary via common.notify.weekly_report.
+    under --mock, prints) a compact summary via common.notify.weekly_report, including the
+    round-4 "sends vs cap (7d)" line from outreach/send.py's sends_vs_cap (also on the
+    not-enough-data path).
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from execution.personal_workflows.prodcraft_medspa.common import notify  # noqa: E402
 from execution.personal_workflows.prodcraft_medspa.common.store import get_store  # noqa: E402
+from execution.personal_workflows.prodcraft_medspa.outreach import send as send_mod  # noqa: E402
 
 # No U+2014 (em-dash) in any Telegram-bound line (workspace Telegram formatting convention);
 # build_telegram_lines() uses plain hyphens only. Guarded by test_round2_fixlearn.py.
@@ -242,11 +245,26 @@ def print_variant_table(table: dict[str, Any]) -> None:
         print(f"{variant:<18} {row['n']:>6} {rr:>12}")
 
 
+def sends_vs_cap_line(store: Any, *, mock: bool = False, today: Any = None) -> str:
+    """Round-4 weekly number: trailing-7-day sends vs the effective (warmup-ramped) cap, computed
+    by outreach/send.py's `sends_vs_cap` (same counter and cap function send.py enforces)."""
+    from datetime import date as _date
+
+    summary = send_mod.sends_vs_cap(store, today or _date.today(), mock=mock)
+    return send_mod.format_sends_vs_cap(summary)
+
+
 def build_telegram_lines(
-    result: dict[str, Any], variant_table: dict[str, Any], metro: str | None, mode: str, queue_pick: Any
+    result: dict[str, Any],
+    variant_table: dict[str, Any],
+    metro: str | None,
+    mode: str,
+    queue_pick: Any,
+    sends_line: str | None = None,
 ) -> list[str]:
     """Up to 6 content lines (weekly_report() appends the trailing env/timestamp line itself).
-    Never contains U+2014 — plain hyphens/"vs" only."""
+    Never contains U+2014 — plain hyphens/"vs" only. `sends_line` (round-4) is the
+    sends-vs-cap line; it is the 6th and last content line when given."""
     n = result["n_touch1_sent"]
     overall = result["overall_reply_rate"]
     overall_pct = "n/a" if overall is None else f"{overall * 100:.1f}%"
@@ -277,13 +295,16 @@ def build_telegram_lines(
         else "not enough per-variant data yet"
     )
 
-    return [
+    lines = [
         f"ProdCraft weekly fit: {scope}",
         f"touch-1 sent: {n}, reply rate: {overall_pct}",
         f"top signals: {top_signals}",
         variant_line,
         f"queue_pick: {queue_pick!r}",
     ]
+    if sends_line:
+        lines.append(sends_line)
+    return lines
 
 
 def main() -> None:
@@ -310,10 +331,12 @@ def main() -> None:
         print(json.dumps({"script": "fit_weights", "in": len(rows), "out": 0, "dropped": {"insufficient_sends": len(rows)}, "refused": True, "reason": reason}))
         if args.report_telegram:
             not_enough_line = f"not enough data yet: {len(rows)}/{args.min_sent} sends"
+            lines = [not_enough_line, sends_vs_cap_line(store, mock=args.mock)]
             if args.mock:
-                print(not_enough_line)
+                for line in lines:
+                    print(line)
             else:
-                notify.weekly_report([not_enough_line])
+                notify.weekly_report(lines)
         return
 
     result = compute_signal_table(rows)
@@ -333,7 +356,10 @@ def main() -> None:
     print(f"\nWrote {out_path}")
 
     if args.report_telegram:
-        lines = build_telegram_lines(result, variant_table, args.metro, args.mode, queue_pick)
+        lines = build_telegram_lines(
+            result, variant_table, args.metro, args.mode, queue_pick,
+            sends_line=sends_vs_cap_line(store, mock=args.mock),
+        )
         if args.mock:
             for line in lines:
                 print(line)

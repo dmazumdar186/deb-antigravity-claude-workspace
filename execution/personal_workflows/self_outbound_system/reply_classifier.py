@@ -35,8 +35,8 @@ log = get_logger("reply_classifier")
 # Full name pinned deliberately; bare `sonnet` aliases resolve differently per
 # provider. OpenRouter callers use DEFAULT_MODEL_OPENROUTER instead.
 # Both verified against their catalogs on 2026-08-12.
-DEFAULT_MODEL: str = "claude-sonnet-5"
-DEFAULT_MODEL_OPENROUTER: str = "anthropic/claude-sonnet-5"
+DEFAULT_MODEL: str = "claude-fable-5"
+DEFAULT_MODEL_OPENROUTER: str = "anthropic/claude-fable-5"
 
 # OOO / auto-reply patterns. English + French per directive's language gate.
 _OOO_PATTERNS = [

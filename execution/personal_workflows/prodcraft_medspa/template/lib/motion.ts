@@ -40,12 +40,25 @@ export interface FolioCardState {
   zIndex: number;
 }
 
+/** How many receding "tabs" are laid out behind the front card. Deeper cards
+ *  park at this layer's offset (hidden behind it by z-order) so the peeking
+ *  tab strips never run off the top of the sticky stage. */
+export const FOLIO_VISIBLE_DEPTH = 2;
+/** Vertical offset per depth layer, as a % of the card's own height; matches
+ *  the `.folio-card__head` tab strip height in globals.css so each back
+ *  card's index + headline row shows above the card in front of it. */
+export const FOLIO_TAB_Y_PERCENT = 13;
+
 /**
  * Fans a stacked folio card out and away as the sticky section's progress
- * carries it past its "turn". Cards below the current position sit in a
- * shallow, receding stack (small offset/scale/opacity falloff by depth);
- * once progress reaches a card's turn it exits diagonally (alternating
- * left/right by index parity) while fading and losing its caption.
+ * carries it past its "turn". Cards behind the current position sit as a
+ * shallow stack of upward-offset "tabs": each back card rises by
+ * FOLIO_TAB_Y_PERCENT per depth layer (capped at FOLIO_VISIBLE_DEPTH) so its
+ * headline row stays visible above the front card, with a small x/rotation/
+ * scale falloff for depth. Transform origin is the card's top edge (see
+ * globals.css) so scaling never pulls a tab back under the front card. Once
+ * progress reaches a card's turn it exits diagonally (alternating left/right
+ * by index parity) while fading and losing its caption.
  */
 export function folioCardState(progress: number, index: number, count: number): FolioCardState {
   const position = clamp01(progress) * Math.max(count - 1, 0);
@@ -53,16 +66,17 @@ export function folioCardState(progress: number, index: number, count: number): 
   const direction = index % 2 === 0 ? 1 : -1;
   const exit = clamp01((-offset - 0.08) / 0.82);
   const depth = Math.max(0, Math.min(4, offset));
+  const layer = Math.min(FOLIO_VISIBLE_DEPTH, depth);
   return {
-    xPercent: exit > 0 ? direction * 36 * exit : direction * depth * 2.8,
-    yPercent: exit > 0 ? -76 * exit : depth * 3.2,
-    rotationDeg: exit > 0 ? direction * 3.5 * exit : direction * depth * 0.8,
-    scale: exit > 0 ? 1 - 0.03 * exit : Math.max(0.9, 1 - depth * 0.028),
-    opacity: exit > 0 ? 1 - 0.96 * exit : Math.max(0.58, 1 - depth * 0.1),
+    xPercent: exit > 0 ? direction * 36 * exit : direction * layer * 1.2,
+    yPercent: exit > 0 ? -76 * exit : layer === 0 ? 0 : -FOLIO_TAB_Y_PERCENT * layer,
+    rotationDeg: exit > 0 ? direction * 3.5 * exit : direction * layer * 0.5,
+    scale: exit > 0 ? 1 - 0.03 * exit : 1 - layer * 0.02,
+    opacity: exit > 0 ? 1 - 0.96 * exit : Math.max(0.7, 1 - depth * 0.1),
     // The front card keeps legible text until it actually exits (text-only cards have no
-    // imagery to carry them, so a midpoint fade-to-zero read as a blank stage); deeper cards
-    // dim by depth but never below 0.35.
-    captionOpacity: exit > 0 ? 1 - exit : Math.max(0.35, 1 - depth * 0.35),
+    // imagery to carry them, so a midpoint fade-to-zero read as a blank stage); back cards'
+    // tab strips dim by depth but never below 0.55 so their headlines stay readable.
+    captionOpacity: exit > 0 ? 1 - exit : Math.max(0.55, 1 - depth * 0.2),
     zIndex: count - index,
   };
 }

@@ -14,7 +14,7 @@ outputs:     JSONL stat line in .tmp/crm_sync_runs/<tenant>.jsonl per run;
 
 Modes:
     cheap     — Gemini 2.5 Flash (default; free tier).
-    balanced  — claude-sonnet-5 (paid Anthropic; only when budget approved).
+    balanced  — claude-fable-5 (paid Anthropic; only when budget approved).
     premium   — claude-fable-5-1 (paid; explicit override only).
 
 The default sync path calls ZERO LLMs. --suggest-mapping is the only LLM path.
@@ -49,7 +49,7 @@ from mapping import to_internal, dedup_key  # noqa: E402
 # Workspace-standard model routing (currency: EUR per ~/.claude/rules/currency-eur.md).
 MODE_TO_MODEL = {
     "cheap": "gemini-2.5-flash",
-    "balanced": "claude-sonnet-5",
+    "balanced": "claude-fable-5",
     "premium": "claude-fable-5-1",
 }
 

@@ -61,10 +61,10 @@ def secret(name: str, required: bool = True) -> str:
 # vs ~EUR 4.5 on Opus 5. The RunConfig ceiling is unchanged and trips earlier.
 # ---------------------------------------------------------------------------
 
-MODEL_EXTRACT = "claude-sonnet-5"   # L5 evidence extraction (high volume)
-MODEL_PARSE = "claude-sonnet-5"     # L1 requisition parsing
+MODEL_EXTRACT = "claude-fable-5"   # L5 evidence extraction (high volume)
+MODEL_PARSE = "claude-fable-5"     # L1 requisition parsing
 MODEL_JUDGE = "claude-fable-5-1"    # L8 adversarial + tiering (judgement)
-MODEL_MOVABILITY = "claude-sonnet-5"  # L10 per-candidate rubric scoring = bulk execution (model-tier.md Exhibit D)
+MODEL_MOVABILITY = "claude-fable-5"  # L10 per-candidate rubric scoring = bulk execution (model-tier.md Exhibit D)
 MODEL_MESSAGE = "claude-fable-5-1"  # L11 -- goes out under Gaia's name (judgement)
 # 2026-09-01: MODEL_JUDGE / MODEL_MESSAGE moved claude-fable-5 -> claude-fable-5-1.
 

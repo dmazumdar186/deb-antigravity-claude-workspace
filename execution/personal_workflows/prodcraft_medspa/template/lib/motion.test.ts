@@ -4,6 +4,8 @@ import {
   sectionProgress,
   activeStepIndex,
   folioCardState,
+  FOLIO_TAB_Y_PERCENT,
+  FOLIO_VISIBLE_DEPTH,
   drumStepState,
   heroFrame,
 } from './motion';
@@ -58,6 +60,22 @@ describe('folioCardState', () => {
     const a = folioCardState(0.4, 0, 5);
     const b = folioCardState(0.4, 3, 5);
     expect(a.yPercent).not.toBe(b.yPercent);
+  });
+
+  it('lifts each back card by one tab strip per depth so its headline clears the front card', () => {
+    const count = 6;
+    const front = folioCardState(0, 0, count);
+    expect(front.yPercent).toBe(0);
+    expect(front.scale).toBe(1);
+    for (let depth = 1; depth <= FOLIO_VISIBLE_DEPTH; depth++) {
+      const back = folioCardState(0, depth, count);
+      expect(back.yPercent).toBe(-FOLIO_TAB_Y_PERCENT * depth);
+      expect(back.zIndex).toBeLessThan(front.zIndex);
+    }
+    // Deeper cards park at the last visible layer (hidden behind it by z-order),
+    // never running further off the top of the stage.
+    const deep = folioCardState(0, count - 1, count);
+    expect(deep.yPercent).toBe(-FOLIO_TAB_Y_PERCENT * FOLIO_VISIBLE_DEPTH);
   });
 });
 

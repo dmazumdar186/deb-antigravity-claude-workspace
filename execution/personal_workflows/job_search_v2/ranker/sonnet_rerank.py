@@ -43,10 +43,10 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
 load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("ranker.sonnet_rerank")
 
-DEFAULT_MODEL = "claude-sonnet-5"
+DEFAULT_MODEL = "claude-fable-5"
 RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 
-# Sonnet 5 pricing (verified 2026-08-27) — Anthropic publishes in USD per million tokens. We store
+# Fable 5 pricing (DEFAULT_MODEL moved claude-sonnet-5 -> claude-fable-5 on 2026-09-21; $10/$50 per MTok) — Anthropic publishes in USD per million tokens. We store
 # the USD rate card as the source-of-truth and convert to EUR for operator
 # display per ~/.claude/rules/currency-eur.md (Paris-based operator).
 #
@@ -56,8 +56,8 @@ RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 # subsequent cache-hit turn). Cache pricing constants intentionally omitted;
 # if a future edit adds multi-turn behavior, re-add cache_read (0.1× input)
 # and cache_write (1.25× input) per workspace Python hardening rule 4.
-PRICE_INPUT_PER_M_USD = 2.0
-PRICE_OUTPUT_PER_M_USD = 10.0
+PRICE_INPUT_PER_M_USD = 10.0
+PRICE_OUTPUT_PER_M_USD = 50.0
 # 2026-06-27 reference rate. Refresh when EUR/USD moves >5%.
 USD_TO_EUR = 0.92
 

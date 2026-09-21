@@ -1,38 +1,39 @@
 # Token Economy (Always Active)
 
-**Adopted 2026-09-01.** The operator was hitting the 5-hour usage cap constantly with Fable 5 as the everywhere-default. Usage limits are model-weighted (Fable ≈ 5x Sonnet, 2x Opus per token), and every auto-loaded file is re-sent on **every model call**. Two levers: fixed context and model weight. This rule governs both.
+**Adopted 2026-09-01, rewritten 2026-09-21** after the operator kept hitting the 5-hour cap. Evidence and sources: `docs/reference/token_usage_research_2026-09-21.md` (read it before changing this rule). Two facts drive everything: the Max plan is one rolling 5-hour + weekly pool shared by every model, sub-agent, workflow and teammate; and every auto-loaded byte (CLAUDE.md, unscoped rules, skill descriptions, MCP schemas) is re-sent on **every model call in every context**, including each sub-agent's.
 
-## Fixed context is rent
+## 1. Fixed context is rent
 
-Everything that auto-loads (CLAUDE.md, always-active rules, skill descriptions, MCP tool schemas) is paid on every single turn, in every session, forever.
+- CLAUDE.md ≤ 7,000 chars. Unscoped rules ≤ ~12k chars total; anything reference-shaped goes to `directives/` or `docs/reference/`, or gets `paths:` frontmatter so it loads only for matching files.
+- Skill `description:` ≤ ~250 chars. Operator-only skills carry `disable-model-invocation: true` so their descriptions leave the prefix entirely.
+- Register only MCP servers in active use; prefer `curl`/`gh`. Tool search keeps schemas deferred; `MAX_MCP_OUTPUT_TOKENS` stays default.
+- Keep the prefix byte-stable: cache reads are cheap only while nothing before them changes. Batch edits to CLAUDE.md, rules and settings; a model switch, MCP toggle or CLAUDE.md edit misses the cache for every open session.
+- Hooks: only SessionStart / UserPromptSubmit stdout enters context. Keep `session-start.sh` small. PostToolUse stdout on exit 0 is discarded (free, but does nothing).
 
-- CLAUDE.md stays ≤ 7,000 characters. Reference-shaped content (tables, histories, war stories, setup guides) goes to `directives/`, `docs/reference/`, or on-demand rule files — never inline in CLAUDE.md.
-- Skill frontmatter `description:` fields stay ≤ ~300 characters — enough to trigger, nothing more. The skill body loads only on invocation and can be as long as it needs.
-- New always-active rules require operator approval; prefer path-scoped auto-load (like `python-hardening.md`) or on-demand reads.
-- MCP servers: every registered server's tool schemas load into context. Register only servers in active use; prefer CLI equivalents (`gh`, `curl`) where they exist. Adding to `.mcp.json` needs operator approval.
-- Keep the auto-loaded prefix **stable**: prompt caching makes re-reads ~0.1x cost — and on Fable 5.1 **0.025x** ($0.25/MTok, near Sonnet's cache-read rate) — but any edit to CLAUDE.md/rules invalidates the cache for every session, and a miss re-bills the whole prefix at full input rate (~40-50x a 5.1 hit). Batch such edits; don't churn them mid-week.
+## 2. Model doctrine — all Fable, effort does the tiering (2026-09-21)
 
-## Model doctrine — Fable thinks, Sonnet works
+- Brain `claude-fable-5-1` (orchestrator, default effort). Workers `claude-fable-5` (`CLAUDE_CODE_SUBAGENT_MODEL` in settings). Same per-token price; Sonnet/Opus workers were judged too weak; Haiku banned.
+- Cost tiers now come from `effort`, not model: mechanical agents (documenter, note-taker, email-classifier, qa, anneal-reviewer) run `effort: low` + `maxTurns`; implementation workers `medium`; only the brain and `pipeline-auditor` run high. Lower effort means fewer tool calls and less preamble, not a weaker model.
+- Fable cannot disable thinking; thinking bills as output. Never put Fable in a tight poll loop.
 
-The operator runs Max with `claude-fable-5-1` as the orchestrator (session default; Fable 5 → 5.1 on 2026-09-01 — same $10/$50 per-token price, cache reads cut $1 → $0.25/MTok, so the doctrine got cheaper without changing shape). Cost control comes from what the brain is *allowed to spend tokens on*, never from downgrading it:
+## 3. Work-splitting — small units, fresh contexts
 
-- The main session keeps Fable for what only the top model does well: planning, architecture, root-cause reasoning, design review, high-stakes judgement.
-- **Fable never grinds.** Exploration beyond ~2-3 files → Explore sub-agent (Sonnet). Implementation from an approved plan → general-purpose sub-agent (Sonnet). Bulk per-row work → Dynamic Workflow workers (Sonnet). Fable reviews the returned diff/conclusion, not the journey. Rule of thumb: if a mid-level engineer could do the step from written instructions, it goes to a Sonnet agent.
-- This is why the fixed-context diet above matters 5x: every KB in the always-loaded prefix is re-billed at Fable weight on every orchestrator turn.
-- Audit lenses: `pipeline-auditor` on Fable (adversarial verification), `code-reviewer` on Opus, `anneal-reviewer`/`qa`/`documenter`/`note-taker` on Sonnet. Fan-out workers always Sonnet. Haiku stays banned.
-- **Low effort on Fable 5.1** is often competitive with Opus/Sonnet on cost per completed task — a legitimate middle rung for judgement-lite API calls (`execution/` scripts, not the interactive session). It does not change the worker doctrine: cap weighting is per token, so bulk volume still belongs on Sonnet.
+- **Fable never grinds.** Exploration >2-3 files, implementation from an approved plan, bulk per-row work, and every audit lens go to a worker with a complete brief up front. Workers return a ≤300-word conclusion; large output goes to a file the brain reads narrowly.
+- Cheapest to most expensive for the orchestrator's context: Dynamic Workflow (`ultracode:`; only the final value returns) < sub-agent (final text only) < Agent Team (every teammate message lands in the lead; ~proportional to team size). `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` stays `0`; enable per session only when teammates must talk to each other.
+- Scale effort to the task (Anthropic's multi-agent guidance): one worker with 3-10 calls for a lookup, 2-4 workers for a comparison, a workflow for >5 independent units. Workers own disjoint files; brief them once, fully.
+- `omitClaudeMd: true` on agents whose brief is self-contained. Use `isolation: worktree` for parallel implementers.
 
-## In-session hygiene
+## 4. In-session hygiene
 
-- `/clear` between unrelated tasks; `/compact` at milestones. A long transcript is re-sent with every subsequent turn.
-- Delegate >3-file exploration to an Explore sub-agent (fresh context, Sonnet); keep only the conclusion in main context.
-- Read narrowly: `offset`/`limit` on Read, `head_limit` on Grep, never `cat` a large file into context, never re-read a file already in context.
-- Batch independent tool calls (see `always-parallelize.md`) — fewer turns means the fixed context is re-sent fewer times.
-- Don't paste large tool outputs into replies; summarize and cite file paths.
-- Long-running jobs: `run_in_background: true`, never foreground sleep+poll loops (each poll turn re-sends the whole context).
+- `/clear` between unrelated tasks (free); `/compact <focus>` at milestones; `/rewind` beats compact; `/btw` for side questions. Don't resume a large session after >1h idle without compacting first (full-prefix cache miss).
+- Read narrowly (`offset`/`limit`, `head_limit`); never cat a large file; never re-read what is in context; `bashOutputMaxChars` caps tool output.
+- Batch independent tool calls (`always-parallelize.md`); long jobs `run_in_background: true`, never sleep-poll.
+- `/usage` shows the session, cache line and per-skill/sub-agent attribution; check it when the cap pinches. `/insights` itself bills tokens.
 
-## Measure — manage from data, not guesses
+## 5. Not levers (don't chase)
 
-- Weekly (or when limits pinch): run `python3 execution/infrastructure/token_usage_report.py` on the machine where Claude Code runs (directive: `directives/infrastructure/token_usage_report.md`). It reports burn by model/day, skill invocation counts, and sub-agent spawn counts from local transcripts.
-- Red flags in the report: Fable dominating raw token volume (delegation is failing), zero sub-agent spawns on multi-file work, skills at zero invocations for a month (archive candidates → `docs/reference/skills-archive/`).
-- Quarterly: re-measure `wc -c CLAUDE.md .claude/rules/*` and the skill-description total; re-check `.mcp.json` and claude.ai connectors against actual use.
+Account sharing or reselling is prohibited; multiple accounts are an AUP risk, not a strategy; proxies that strip `cache_control` cost more; nothing makes cached or sub-agent tokens free. The official overflow path is `/usage-credits`.
+
+## 6. Measure
+
+Weekly or when limits pinch: `python3 execution/infrastructure/token_usage_report.py` (`directives/infrastructure/token_usage_report.md`) plus `/usage`. Red flags: main session dominating volume (delegation failing), zero sub-agent spawns on multi-file work, cache-miss share ≥10%, skills unused for a month (archive to `docs/reference/skills-archive/`). Quarterly: re-measure `wc -c CLAUDE.md .claude/rules/*` and the skill-description total.

@@ -14,8 +14,8 @@ Env vars used:
     - <ENV_VAR_1> — <purpose>
 
 Modes:
-    cheap     — claude-sonnet-5, minimal sampling (Haiku is banned).
-    balanced  — claude-sonnet-5, execution tier (default).
+    cheap     — claude-fable-5, minimal sampling (Haiku is banned).
+    balanced  — claude-fable-5, execution tier (default).
     premium   — claude-fable-5-1, judgement tier, slowest.
 
 See also: directives/<category>/<name>.md
@@ -32,8 +32,8 @@ from pathlib import Path
 # Haiku 4.5 is BANNED per ~/.claude/rules/model-tier.md, so "cheap" maps to the
 # execution tier. Full names pinned; bare aliases drift across providers.
 MODE_TO_MODEL = {
-    "cheap": "claude-sonnet-5",
-    "balanced": "claude-sonnet-5",
+    "cheap": "claude-fable-5",
+    "balanced": "claude-fable-5",
     "premium": "claude-fable-5-1",
 }
 

@@ -27,7 +27,7 @@ sys.path.insert(0, str(EXEC / "gtm_client_workflows" / "gaia_sourcing"))
 
 JUDGEMENT = "claude-fable-5-1"
 JUDGEMENT_OR = "anthropic/claude-fable-5.1"
-EXECUTION = "claude-sonnet-5"
+EXECUTION = "claude-fable-5"  # 2026-09-21: workers moved Sonnet/Opus -> Fable 5
 
 
 def _module_dict(path: Path, name: str) -> dict:
@@ -68,7 +68,8 @@ def test_humanizer_premium_cost_row_is_fable_pricing():
     d = _module_dict(EXEC / "content" / "humanizer.py", "_TIER_COST_PER_M")
     # cache_read is 0.25 on fable-5.1 -- 0.025x input, not the usual 0.1x.
     assert d["premium"] == {"input": 10.0, "cache_read": 0.25, "cache_write": 12.5, "output": 50.0}
-    assert d["default"] == {"input": 2.0, "cache_read": 0.2, "cache_write": 2.5, "output": 10.0}
+    # default is claude-fable-5 since 2026-09-21 (cache_read is the usual 0.1x on fable-5).
+    assert d["default"] == {"input": 10.0, "cache_read": 1.0, "cache_write": 12.5, "output": 50.0}
 
 
 def test_gaia_roles_follow_the_tier_map():
@@ -117,5 +118,5 @@ def test_youtube_analyzer_prices_fable_in_every_table():
 
 def test_sonnet_rerank_prices_match_its_default_model():
     src = (EXEC / "personal_workflows" / "job_search_v2" / "ranker" / "sonnet_rerank.py").read_text(encoding="utf-8")
-    assert 'DEFAULT_MODEL = "claude-sonnet-5"' in src
-    assert "PRICE_INPUT_PER_M_USD = 2.0" in src and "PRICE_OUTPUT_PER_M_USD = 10.0" in src
+    assert 'DEFAULT_MODEL = "claude-fable-5"' in src
+    assert "PRICE_INPUT_PER_M_USD = 10.0" in src and "PRICE_OUTPUT_PER_M_USD = 50.0" in src

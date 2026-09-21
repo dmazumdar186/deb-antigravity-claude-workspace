@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Reviews code for bugs, security issues, and forbidden patterns. Returns PASS/FAIL verdict with severity-ranked issues and fix suggestions.
-model: claude-opus-5  # review tier -- strong review at 1/2 Fable weight (token-economy doctrine 2026-09-01)
+model: claude-fable-5  # review tier -- Fable 5 (workers moved Opus/Sonnet -> Fable 5, 2026-09-21)
 tools:
   - Read
   - Glob

@@ -5,7 +5,7 @@ description: Provider-agnostic model registry — resolves tier labels to concre
              v3: added OpenRouter resolver with strict ALLOWED_FAMILIES allowlist.
 inputs: env ANTHROPIC_API_KEY (optional), GEMINI_API_KEY (optional), OPENROUTER_API_KEY (optional);
         CLI --refresh forces a cache bypass.
-outputs: Concrete model ID string (e.g. 'claude-sonnet-5', 'gemini-2.5-flash',
+outputs: Concrete model ID string (e.g. 'claude-fable-5', 'gemini-2.5-flash',
          'anthropic/claude-sonnet-4-6'); cache written to .tmp/model_registry.json;
          INFO log lines on resolution.
 """
@@ -57,14 +57,18 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
     # 2026-09-01: premium moved claude-fable-5 -> claude-fable-5-1 (native) /
     # anthropic/claude-fable-5.1 (OpenRouter). Cache-read pricing dropped to
     # 0.25/MTok (was 1.00) — see PRICING tables in the modules that price it.
-    "anthropic": {"default": "claude-sonnet-5", "premium": "claude-fable-5-1"},
+    # 2026-09-21: default (execution) tier moved claude-sonnet-5 -> claude-fable-5 /
+    # anthropic/claude-fable-5 (OpenRouter). Operator: Sonnet workers were markedly
+    # less efficient. Sonnet 5 / Opus 5 are no longer tier targets anywhere; their
+    # pricing rows stay in the cost tables for historical transcripts only.
+    "anthropic": {"default": "claude-fable-5", "premium": "claude-fable-5-1"},
     "gemini": {"default": "gemini-2.5-flash"},
     "openrouter": {
         # Fix 14 — OR catalog uses dots for the 4.x series (4.6, 4.7), not
         # dashes (4-6, 4-7). The 5-series has no minor version, so the slug is
-        # plain `claude-opus-5` / `claude-sonnet-5`. Verified against OR's live
+        # plain `claude-fable-5` / `claude-sonnet-5`. Verified against OR's live
         # catalog 2026-08-12.
-        "default": "anthropic/claude-sonnet-5",
+        "default": "anthropic/claude-fable-5",
         "premium": "anthropic/claude-fable-5.1",
         "gemini":  "google/gemini-2.5-pro",  # for OR-only setup, Gemini tier via OR
         # GLM 5.2 — Z.AI's flagship open model, ~$1/M input tokens via OR.
@@ -88,12 +92,12 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
 # 2026-08-12. Add here BEFORE adding to model_router.ALIASES, never after.
 # ---------------------------------------------------------------------------
 _ADDITIONAL_KNOWN: frozenset[str] = frozenset({
-    # Anthropic — Opus 5 stopped being a tier target on 2026-08-27 (premium is now
-    # Fable 5), but model_router still exposes `opus` for explicit selection. The
-    # registry-coupling rule requires it to be known here, or
-    # validate_against_registry() fails on that alias.
-    "claude-opus-5",
-    "anthropic/claude-opus-5",
+    # Anthropic — Opus 5 stopped being a tier target on 2026-08-27 and Sonnet 5 on
+    # 2026-09-21; both `opus` and `sonnet` router aliases now resolve to Fable 5,
+    # which is already a LAST_KNOWN_GOOD value. Listed explicitly so the alias
+    # stays known even if the default tier moves again.
+    "claude-fable-5",
+    "anthropic/claude-fable-5",
     # OpenAI — router exposes these as `gpt` / `gpt4o` / `o1`
     "gpt-4o",
     "o1",
@@ -172,7 +176,7 @@ def _save_cache(payload: dict) -> None:
 # Anthropic resolution
 # ---------------------------------------------------------------------------
 
-# Matches IDs like claude-sonnet-5, claude-opus-5, claude-sonnet-4-6.
+# Matches IDs like claude-fable-5, claude-sonnet-5, claude-sonnet-4-6.
 # The 5-series has no minor component, so `min` is absent and defaults to 0.
 _ANTHROPIC_RE = re.compile(
     r"^claude-(?P<family>[a-z]+)-(?P<maj>\d+)(?:-(?P<min>\d+))?",
@@ -180,7 +184,7 @@ _ANTHROPIC_RE = re.compile(
 )
 
 _FAMILY_RANK_PREMIUM = ["fable", "opus", "sonnet"]  # no haiku rung: banned (model-tier.md)
-_FAMILY_RANK_DEFAULT = ["sonnet"]  # no haiku rung: banned (model-tier.md)
+_FAMILY_RANK_DEFAULT = ["fable", "sonnet"]  # 2026-09-21: Fable first; no haiku rung: banned (model-tier.md)
 
 
 def _resolve_anthropic(tier: str) -> tuple[str, str | None]:
@@ -355,7 +359,7 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
     Returns
     -------
     tuple[str, str | None]
-        (model_id, created_at_iso) where model_id is e.g. 'anthropic/claude-sonnet-5'.
+        (model_id, created_at_iso) where model_id is e.g. 'anthropic/claude-fable-5'.
 
     Raises
     ------
@@ -488,10 +492,12 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
                 return model_id, created_iso
 
     # ---------------------------------------------------------------------------
-    # Default ladder: sonnet > gpt-4o-mini > gemini-2.5-flash (no Haiku rung: banned)
+    # Default ladder: fable > sonnet > gpt-4o-mini > gemini-2.5-flash (no Haiku rung: banned)
+    # 2026-09-21: Fable rung added first (execution tier moved to Fable 5).
     # ---------------------------------------------------------------------------
     elif tier in ("default", "gemini"):
         for picker, label in [
+            (lambda p: _best_claude_family(_OR_CLAUDE_FABLE_RE, p),  "claude-fable-*"),
             (lambda p: _best_claude_family(_OR_CLAUDE_SONNET_RE, p), "claude-sonnet-*"),
             (lambda p: _best_match(_OR_GPT4O_MINI_RE, p),            "gpt-4o-mini"),
             (lambda p: _best_match(_OR_GEMINI25FLASH_RE, p),         "gemini-2.5-flash"),
@@ -566,7 +572,7 @@ def resolve_model(
     Returns
     -------
     str
-        Concrete model ID (e.g. 'claude-sonnet-5', 'anthropic/claude-sonnet-5').
+        Concrete model ID (e.g. 'claude-fable-5', 'anthropic/claude-fable-5').
         Never raises — falls back to LAST_KNOWN_GOOD on all failures.
     """
     provider = provider.lower()

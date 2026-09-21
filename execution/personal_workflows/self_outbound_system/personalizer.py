@@ -238,9 +238,10 @@ def personalize_dry_run(
 
 
 # Execution tier per ~/.claude/rules/model-tier.md: per-row generation against a
-# fixed template is throughput work, not judgement. Pinned full name deliberately
+# fixed template is throughput work, not judgement. 2026-09-21: execution tier
+# moved claude-sonnet-5 -> claude-fable-5 (variable name kept for back-compat). Pinned full name deliberately
 # -- this is a literal, it does NOT auto-update; bump it when the policy moves.
-_SONNET_MODEL = "claude-sonnet-5"
+_SONNET_MODEL = "claude-fable-5"
 
 # Gemini 2.5 Flash free-tier RPM cap. Verified 2026-07-19: 5 RPM hard limit,
 # request #6 returns 429 RESOURCE_EXHAUSTED. 13s sleep ~= 4.6 RPM safely under.

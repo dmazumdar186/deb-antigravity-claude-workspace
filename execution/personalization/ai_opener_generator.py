@@ -11,8 +11,8 @@ usage:
     py execution/personalization/ai_opener_generator.py --input .tmp/verified_leads.json --mode premium
 
 Modes:
-    cheap     — claude-sonnet-5 (Haiku is banned; see model-tier.md).
-    balanced  — claude-sonnet-5, execution tier (default).
+    cheap     — claude-fable-5 (Haiku is banned; see model-tier.md).
+    balanced  — claude-fable-5, execution tier (default).
     premium   — claude-fable-5-1, judgement tier.
 """
 
@@ -41,13 +41,13 @@ logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 # Haiku 4.5 banned per ~/.claude/rules/model-tier.md (2026-06-14). "cheap" maps
 # to Sonnet 5 — the rule's floor for user-facing LLM output.
 MODE_TO_MODEL_OPENROUTER = {
-    "cheap": "anthropic/claude-sonnet-5",
-    "balanced": "anthropic/claude-sonnet-5",
+    "cheap": "anthropic/claude-fable-5",
+    "balanced": "anthropic/claude-fable-5",
     "premium": "anthropic/claude-fable-5.1",
 }
 MODE_TO_MODEL_ANTHROPIC = {
-    "cheap": "claude-sonnet-5",
-    "balanced": "claude-sonnet-5",
+    "cheap": "claude-fable-5",
+    "balanced": "claude-fable-5",
     "premium": "claude-fable-5-1",
 }
 DEFAULT_MODE = "balanced"
@@ -203,7 +203,7 @@ def _calc_cost(model_anthropic: str, usage) -> float:
     Parameters
     ----------
     model_anthropic : str
-        Bare Anthropic model ID (e.g. 'claude-sonnet-5'). Used to look up
+        Bare Anthropic model ID (e.g. 'claude-fable-5'). Used to look up
         the 4-entry pricing table in ANTHROPIC_PRICING.
     usage : anthropic.types.Usage
         Usage object from response.usage.
@@ -405,7 +405,7 @@ def main():
         "--model",
         default=None,
         help="Override model ID explicitly (bypasses --mode). "
-             "Use OpenRouter format for OpenRouter (e.g. anthropic/claude-sonnet-5) "
+             "Use OpenRouter format for OpenRouter (e.g. anthropic/claude-fable-5) "
              "or bare name for Anthropic SDK.",
     )
     parser.add_argument("--mock", action="store_true", help="Use mock openers")

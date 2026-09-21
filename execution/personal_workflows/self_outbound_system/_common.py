@@ -21,16 +21,17 @@ from typing import Any
 # Update when EUR/USD moves >5%. See ~/.claude/rules/currency-eur.md
 USD_TO_EUR: float = 0.92
 
-# claude-sonnet-5 pricing (USD per million tokens) with cache-aware entries
-# per ~/.claude/rules/python-hardening.md rule 4. Verified against
-# platform.claude.com/docs/en/about-claude/pricing on 2026-08-12.
-# Execution tier per ~/.claude/rules/model-tier.md.
+# claude-fable-5 pricing (USD per million tokens) with cache-aware entries
+# per ~/.claude/rules/python-hardening.md rule 4. Execution tier moved
+# claude-sonnet-5 -> claude-fable-5 on 2026-09-21 (.claude/SETTINGS_NOTES.md);
+# rates per the 2026-08-27 entry there. Name kept for call-site back-compat.
 SONNET_5_PRICING_USD_PER_MTOK: dict[str, float] = {
-    "input": 2.0,
-    "cache_read": 0.20,   # 0.1x input
-    "cache_write": 2.50,  # 1.25x input
-    "output": 10.0,
+    "input": 10.0,
+    "cache_read": 1.00,   # 0.1x input
+    "cache_write": 12.50, # 1.25x input
+    "output": 50.0,
 }
+FABLE_5_PRICING_USD_PER_MTOK = SONNET_5_PRICING_USD_PER_MTOK
 
 # Gemini 2.5 Flash pricing (USD per million tokens). No cache tier in current
 # free-tier accounting; we keep the same 4-key shape for consistency.

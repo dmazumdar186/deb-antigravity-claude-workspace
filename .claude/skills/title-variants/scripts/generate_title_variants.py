@@ -23,7 +23,7 @@ load_dotenv()
 
 # Configuration
 VARIANTS_PER_TITLE = 3
-MODEL = "claude-sonnet-5"
+MODEL = "claude-fable-5"
 MAX_TOKENS = 500
 
 

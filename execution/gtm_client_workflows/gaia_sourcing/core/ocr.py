@@ -318,7 +318,7 @@ def _transcribe_anthropic(raw: bytes, pages: int, url: str) -> Optional[str]:
 
         client = _anthropic_client()
         resp = client.messages.create(
-            model="claude-sonnet-5",
+            model="claude-fable-5",
             max_tokens=16000,
             system=SYSTEM,
             messages=[{
@@ -363,14 +363,14 @@ def _transcribe_anthropic(raw: bytes, pages: int, url: str) -> Optional[str]:
         from .providers import _append_ledger, _record_spend, cost_eur, cumulative_spend_eur
 
         usage = getattr(resp, "usage", None)
-        spent = cost_eur("claude-sonnet-5", {
+        spent = cost_eur("claude-fable-5", {
             "input_tokens": getattr(usage, "input_tokens", 0) or 0,
             "output_tokens": getattr(usage, "output_tokens", 0) or 0,
             "cache_read_tokens": getattr(usage, "cache_read_input_tokens", 0) or 0,
             "cache_write_tokens": getattr(usage, "cache_creation_input_tokens", 0) or 0,
         })
         total = _record_spend(spent)
-        _append_ledger(CONFIG.campaign_id, "ocr", "claude-sonnet-5", spent)
+        _append_ledger(CONFIG.campaign_id, "ocr", "claude-fable-5", spent)
         cumulative = cumulative_spend_eur()
     except Exception as exc:
         # Never fail a completed transcription over its own bookkeeping, but

@@ -66,7 +66,14 @@ def _host_from_preview(preview: dict) -> str:
     return subdomain_url.split("//", 1)[-1].split("/", 1)[0]
 
 
-def take_down_preview(store, preview: dict, *, mock: bool, tmp_root: Path) -> dict:
+def take_down_preview(store, preview: dict, *, mock: bool, tmp_root: Path, dnc: bool = True) -> dict:
+    """Unpublish one preview (R2 prefix delete + Worker /remove + previews row -> takedown).
+
+    `dnc=True` (default; the remove/dnc path) also stamps `businesses.do_not_contact = True` and
+    closes every non-terminal outreach row for the business to `dnc`. `dnc=False` (round-4: the
+    negative-reply path in outreach/scan_replies.py) performs the same unpublish but leaves the
+    business row and its outreach rows untouched, because a negative reply is not a
+    do-not-contact request. Idempotent-safe either way."""
     host = _host_from_preview(preview)
     # The R2 prefix segment is the host's first label — same rule the Worker uses (slugSuffixFromHost).
     prefix_label = host.split(".")[0] if host else preview.get("slug_suffix", "")
@@ -89,7 +96,7 @@ def take_down_preview(store, preview: dict, *, mock: bool, tmp_root: Path) -> di
     updated = store.update_preview(preview["id"], {"status": "takedown", "takedown": True, "takedown_at": now})
 
     business_id = preview.get("business_id")
-    business = store.get_business(business_id) if business_id else None
+    business = store.get_business(business_id) if (business_id and dnc) else None
     if business:
         # update_row() patches by id instead of round-tripping the whole row through
         # upsert_business() (keyed on place_id) — avoids a lost-update window against a
@@ -98,7 +105,7 @@ def take_down_preview(store, preview: dict, *, mock: bool, tmp_root: Path) -> di
         store.update_row("businesses", business["id"], {"do_not_contact": True})
 
     outreach_closed = 0
-    for row in _find_outreach_for_business(store, business_id) if business_id else []:
+    for row in _find_outreach_for_business(store, business_id) if (business_id and dnc) else []:
         if row.get("status") in _TERMINAL_OUTREACH_STATUSES:
             continue
         store.update_outreach(row["id"], {"status": "dnc"})
@@ -106,7 +113,9 @@ def take_down_preview(store, preview: dict, *, mock: bool, tmp_root: Path) -> di
 
     store.log_event("preview", preview["id"], "takedown", {"host": host, "r2_objects_deleted": deleted})
     if business_id:
-        store.log_event("business", business_id, "takedown", {"host": host, "outreach_closed": outreach_closed})
+        store.log_event(
+            "business", business_id, "takedown", {"host": host, "outreach_closed": outreach_closed, "dnc": dnc}
+        )
 
     return {
         "preview_id": preview["id"],

@@ -112,7 +112,7 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
         ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
     "openrouter": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5"),
+        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5"),
         ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
         ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
@@ -125,12 +125,12 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     # well above the banned tier. Choose it deliberately, with --plan budget,
     # and say so in the handoff.
     "budget": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-sonnet-5"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-sonnet-5"),
+        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
     },
     "anthropic": {
-        ROLE_EXTRACT: ("anthropic", "claude-sonnet-5"),
+        ROLE_EXTRACT: ("anthropic", "claude-fable-5"),
         ROLE_JUDGE: ("anthropic", "claude-fable-5-1"),
         ROLE_MESSAGE: ("anthropic", "claude-fable-5-1"),
     },
@@ -140,9 +140,9 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     # a deliverable finished on the execution tier beats one that stops at
     # the ceiling with half the cards undrafted.
     "anthropic_budget": {
-        ROLE_EXTRACT: ("anthropic", "claude-sonnet-5"),
-        ROLE_JUDGE: ("anthropic", "claude-sonnet-5"),
-        ROLE_MESSAGE: ("anthropic", "claude-sonnet-5"),
+        ROLE_EXTRACT: ("anthropic", "claude-fable-5"),
+        ROLE_JUDGE: ("anthropic", "claude-fable-5"),
+        ROLE_MESSAGE: ("anthropic", "claude-fable-5"),
     },
 }
 
@@ -650,7 +650,7 @@ def anthropic_is_funded() -> bool:
 
         client = anthropic.Anthropic(api_key=secret("ANTHROPIC_API_KEY", required=False))
         client.messages.create(
-            model="claude-sonnet-5",
+            model="claude-fable-5",
             max_tokens=1,
             messages=[{"role": "user", "content": "."}],
         )

@@ -4,8 +4,9 @@ import Reveal from './Reveal';
 
 // components/ServicesGrid.tsx
 // description: Services as a sticky "folio" stack on desktop — one card per
-//   service, pinned in view while the section scrolls, fanning out and
-//   receding as MotionController (lib/motion.ts's folioCardState) advances
+//   service, pinned in view while the section scrolls, stacked as upward
+//   "tabs" (each back card's index + headline row peeks above the front
+//   card) and fanning out as MotionController (lib/motion.ts's folioCardState) advances
 //   with scroll progress. Below the 800px breakpoint (and with
 //   prefers-reduced-motion, and with JS disabled — see globals.css'
 //   `html:not(.has-js)` rules) it's a plain stacked reveal grid: no sticky
@@ -36,18 +37,24 @@ export default function ServicesGrid({ business }: { business: Business }) {
             return (
               <article className="folio-card" data-folio-card key={service.name}>
                 <div className="folio-card__inner">
-                  <div className="folio-card__icon">
-                    <Icon width={32} height={32} />
-                  </div>
-                  <div className="folio-card__body">
+                  {/* Head row = the "tab" strip that peeks above the card in front
+                      on desktop (see globals.css .folio-card__head + lib/motion.ts
+                      FOLIO_TAB_Y_PERCENT); index and headline live here so a back
+                      card's name is never hidden under the front card. */}
+                  <div className="folio-card__head">
                     <span className="folio-card__index">{String(i + 1).padStart(2, '0')}</span>
                     <h3>{service.name}</h3>
-                    <p>{service.blurb}</p>
                   </div>
-                  <a href="#book" className="folio-card__cta">
-                    <span>Book a consultation</span>
-                    <span aria-hidden="true">&rarr;</span>
-                  </a>
+                  <div className="folio-card__body">
+                    <div className="folio-card__icon">
+                      <Icon width={32} height={32} />
+                    </div>
+                    <p>{service.blurb}</p>
+                    <a href="#book" className="folio-card__cta">
+                      <span>Book a consultation</span>
+                      <span aria-hidden="true">&rarr;</span>
+                    </a>
+                  </div>
                 </div>
               </article>
             );

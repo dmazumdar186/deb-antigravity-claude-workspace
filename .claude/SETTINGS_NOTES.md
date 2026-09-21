@@ -174,6 +174,105 @@ reverting is safe. The one-shot stamp above means the migration script never fli
 revert back; if `.tmp/` gets wiped after a deliberate revert, recreate the stamp file
 (or delete the script) so it stays a no-op.
 
+## 2026-09-21 — Workers move Sonnet/Opus → Fable 5 (operator: Sonnet workers were markedly less efficient)
+
+Operator decision 2026-09-21: every live worker/execution-tier pin that said `claude-sonnet-5`
+or `claude-opus-5` (native) / `anthropic/claude-sonnet-5` / `anthropic/claude-opus-5`
+(OpenRouter) now resolves to **Fable 5** — `claude-fable-5` native, `anthropic/claude-fable-5`
+on OpenRouter. Judgement-tier pins (`claude-fable-5-1` / `anthropic/claude-fable-5.1`) are
+untouched. Fable 5 rates (per the 2026-08-27 entry above): $10 in / $12.50 5m-write / $1.00
+read / $50 out per MTok — the execution tier is now ~5x Sonnet per token; the operator
+accepted that for the efficiency gain. Haiku stays banned. Pricing rows for Sonnet 5 / Opus 5
+were KEPT everywhere (historical cost lookups); tier-keyed cost rows (`humanizer._TIER_COST_PER_M`
+"default", `sonnet_rerank.PRICE_*`, `self_outbound_system/_common.SONNET_5_PRICING_USD_PER_MTOK`)
+were repriced to Fable 5 because they follow the live default, and a `claude-fable-5` row was
+added to `prodcraft_medspa/common/llm.py` PRICING. `model_registry`: `default` tier → Fable 5
+on both providers, `_FAMILY_RANK_DEFAULT` and the OpenRouter default ladder gained a Fable rung
+ahead of Sonnet; `model_router` `opus` and `sonnet` aliases both resolve to Fable 5 (names kept
+for callers). Tests updated: `tests/test_model_tier_guardrails.py`, `tests/test_model_tier_sweep.py`.
+Not changed (out of scope / owned elsewhere): CLAUDE.md/AGENTS.md/GEMINI.md, `token-economy.md`,
+`dynamic-workflows.md`, directives/, the AM-frozen Haiku defaults in
+`execution/modules/outputs/auto_reply.py`, `execution/modules/reply_classifier.py`,
+`execution/gtm_client_workflows/accessory_masters_pipeline.py`, the `.ts/.mjs` sources
+(interview_iag, cv_optimizer_v2, web_app_astro_cf), and the explicit-choice launchers
+`execution/infrastructure/launchers/claude-{sonnet,opus}.*`.
+
+Files changed (70):
+- `.claude/SETTINGS_NOTES.md`
+- `.claude/agents/anneal-reviewer.md`
+- `.claude/agents/code-reviewer.md`
+- `.claude/agents/documenter.md`
+- `.claude/agents/email-classifier.md`
+- `.claude/agents/note-taker.md`
+- `.claude/agents/qa.md`
+- `.claude/rules/sub-agent-delegation.md`
+- `.claude/settings.json`
+- `.claude/skills/add-webhook/modal_webhook.py`
+- `.claude/skills/casualize-names/casualize_batch.py`
+- `.claude/skills/classify-leads/scripts/classify_leads_llm.py`
+- `.claude/skills/cross-niche-outliers/scripts/generate_title_variants.py`
+- `.claude/skills/cross-niche-outliers/scripts/scrape_cross_niche_outliers.py`
+- `.claude/skills/cross-niche-outliers/scripts/scrape_cross_niche_tubelab.py`
+- `.claude/skills/gmail-label/SKILL.md`
+- `.claude/skills/gmaps-leads/SKILL.md`
+- `.claude/skills/gmaps-leads/extract_website_contacts.py`
+- `.claude/skills/inbox-cleaner/inbox_cleaner.py`
+- `.claude/skills/instantly-autoreply/scripts/instantly_autoreply.py`
+- `.claude/skills/instantly-campaigns/SKILL.md`
+- `.claude/skills/instantly-campaigns/scripts/instantly_create_campaigns.py`
+- `.claude/skills/linkedin-response/SKILL.md`
+- `.claude/skills/scrape-leads/classify_leads_llm.py`
+- `.claude/skills/title-variants/scripts/generate_title_variants.py`
+- `.claude/skills/upwork-apply/SKILL.md`
+- `.claude/skills/upwork-apply/scripts/upwork_proposal_generator.py`
+- `.claude/skills/youtube-outliers/scripts/scrape_youtube_outliers.py`
+- `.claude/skills/youtube-outliers/scripts/update_transcripts.py`
+- `.claude/skills/youtube-video-analyzer/SKILL.md`
+- `.claude/workflows/_template.md`
+- `.claude/workflows/aso-research.md`
+- `.claude/workflows/autoresearch.md`
+- `.claude/workflows/enrich-leads.md`
+- `execution/_TEMPLATE.py`
+- `execution/_TEMPLATE_autoresearch.py`
+- `execution/content/humanizer.py`
+- `execution/gtm_client_workflows/gaia_sourcing/core/config.py`
+- `execution/gtm_client_workflows/gaia_sourcing/core/ocr.py`
+- `execution/gtm_client_workflows/gaia_sourcing/core/providers.py`
+- `execution/infrastructure/workspace_sast.py`
+- `execution/modules/llm_client.py`
+- `execution/modules/model_registry.py`
+- `execution/modules/model_router.py`
+- `execution/personal_workflows/anthropic_watch/run.py`
+- `execution/personal_workflows/cv_optimizer_local/cli.py`
+- `execution/personal_workflows/job_digest/contracts.py`
+- `execution/personal_workflows/job_digest/ranker/anthropic.py`
+- `execution/personal_workflows/job_search_llm_gate.py`
+- `execution/personal_workflows/job_search_v2/contracts.py`
+- `execution/personal_workflows/job_search_v2/ranker/sonnet_rerank.py`
+- `execution/personal_workflows/prodcraft_medspa/common/llm.py`
+- `execution/personal_workflows/prodcraft_medspa/outreach/draft_email.py`
+- `execution/personal_workflows/prodcraft_medspa/outreach/scan_replies.py`
+- `execution/personal_workflows/prodcraft_medspa/outreach/send.py`
+- `execution/personal_workflows/prodcraft_medspa/preview/extract_services.py`
+- `execution/personal_workflows/prodcraft_medspa/preview/takedown.py`
+- `execution/personal_workflows/prodcraft_medspa/scripts/doctor.py`
+- `execution/personal_workflows/prodcraft_medspa/scripts/fit_weights.py`
+- `execution/personal_workflows/prodcraft_medspa/template/components/ServicesGrid.tsx`
+- `execution/personal_workflows/prodcraft_medspa/template/lib/motion.test.ts`
+- `execution/personal_workflows/prodcraft_medspa/template/lib/motion.ts`
+- `execution/personal_workflows/self_outbound_system/_common.py`
+- `execution/personal_workflows/self_outbound_system/personalizer.py`
+- `execution/personal_workflows/self_outbound_system/reply_classifier.py`
+- `execution/personalization/ai_opener_generator.py`
+- `execution/personalization/variant_generator.py`
+- `execution/templates/crm_integration/sync.py`
+- `tests/test_model_tier_guardrails.py`
+- `tests/test_model_tier_sweep.py`
+
+**Revert (one line):** `git revert <this commit>` — or, for the registry alone, set
+`LAST_KNOWN_GOOD["anthropic"]["default"] = "claude-sonnet-5"` and
+`["openrouter"]["default"] = "anthropic/claude-sonnet-5"` in `execution/modules/model_registry.py`.
+
 ## Reverting
 
 To disable Agent Teams: remove the `env` block (or just the two new keys) from `.claude/settings.json`. Restart Claude Code. No other workspace files depend on this opt-in.

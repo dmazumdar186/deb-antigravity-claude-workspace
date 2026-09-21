@@ -501,7 +501,7 @@ def _rule_haiku_banned() -> list[dict]:
                         "message": (
                             "Claude Haiku 4.5 reference found. Haiku 4.5 is banned "
                             "workspace-wide per ~/.claude/rules/model-tier.md "
-                            "(2026-06-14). Use claude-sonnet-5 minimum."
+                            "(2026-06-14). Use claude-fable-5 (execution tier since 2026-09-21)."
                         ),
                         "tool": "workspace-native",
                     }
@@ -1622,7 +1622,7 @@ def _rule_legacy_model_pin() -> list[dict]:
                     "rule_id": "legacy-model-pin",
                     "message": (
                         "A 4.x Claude model is pinned as a default. The 5-series is the "
-                        "current tier map (claude-sonnet-5 execution / claude-fable-5-1 "
+                        "current tier map (claude-fable-5 execution / claude-fable-5-1 "
                         "judgement) per ~/.claude/rules/model-tier.md; 4.x rows belong "
                         "only in pricing tables for historical cost lookups."
                     ),
