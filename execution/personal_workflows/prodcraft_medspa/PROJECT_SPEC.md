@@ -29,30 +29,37 @@ Find every independent med spa in one Midwest metro via Google Places API, audit
 
 ## 2. Target numbers (manual mode)
 
-Manual volume: ~200–400 sends/month. Funnel needed for 5 closes/month:
+Targets are derived from the send cap, not the other way round (gap pass after the round-4 audit; the earlier
+table assumed ~300 sends and 75-100 prospects/month, which the Phase-0 cap cannot produce). Two caps exist in
+`db/seed_config.json`: Phase-0 `phase0.cap` = 5 sends/day counted across all touches (`queue_cap_locked`), and the
+post-Phase-0 cap `queue_cap_open` = 20 sends/day, unlocked once the Phase-0 gate (`calls_to_pass: 3`) is passed.
 
-| Stage | Rate | Count |
-|---|---|---|
-| Sends (all touches) | — | ~300 |
-| Unique prospects touched | ~4 touches each | ~75–100 |
-| Replies | 15–20% of prospects | 12–20 |
-| Calls booked | 50% of replies | 6–10 |
-| Closes | 50% of calls | 3–5 |
+Arithmetic (30-day month, ~4 touches per prospect, reply 4-20% of prospects, 50% of replies book, 50% of calls close):
+- Phase 0: 5/day x 30 = 150 sends -> 150 / 4 = ~37 prospects -> 1.5-7.5 replies -> 0.7-3.7 calls -> 0.4-1.9 closes/month.
+- Post-Phase-0: 20/day x 30 = 600 sends -> 600 / 4 = 150 prospects -> 6-30 replies -> 3-15 calls -> 1.5-7.5 closes/month.
 
-Implication: every prospect must be score ≥45, owner-named, email-verified, with a real preview. No spray.
+| Stage | Rate | Phase 0 (5/day) | Post-Phase-0 (20/day) |
+|---|---|---|---|
+| Sends (all touches) | cap x 30 | 150 | 600 |
+| Unique prospects touched | ~4 touches each | ~37 | ~150 |
+| Replies | 4-20% of prospects | 1.5-7.5 | 6-30 |
+| Calls booked | 50% of replies | 0.7-3.7 | 3-15 |
+| Closes | 50% of calls | 0.4-1.9 | 1.5-7.5 |
 
-Cap caveat (round-4 audit): this table's monthly close target is not reachable under the Phase-0 cap of 5 sends/day
-counted across all touches, which reaches only ~37 new prospects/month (1.25/day x 30) and, at the reply and call
-rates above (4-20% reply, 50% call, 50% close), yields roughly 0.4-1.8 closes/month, not 3-5. The cap must be raised
-after Phase 0 (toward the ~75-100 prospects/month this table assumes) for section 2 to hold.
+Monthly close target: **1 close/month during Phase 0** (the cap makes more a matter of luck), **3-5 closes/month
+after the cap opens to 20/day**, which sits inside the post-Phase-0 range only at reply rates of ~8% or better. A
+measured reply rate below 8% over >= 50 fully-touched prospects means the 3-5 target needs either a higher cap or
+a better email/offer, not more patience. Every prospect must be score >= 45, owner-named, email-verified, with a
+real preview. No spray.
 
 ### 2.1 Time-to-first-call: expected 2 to 7 weeks, central estimate week 3 (measurable target)
 
 Inputs, all already in this spec or the pipeline config (`db/seed_config.json`, `outreach/daily_queue.py::effective_cap`):
 Phase-0 cap 5 sends/day counted across all touches; warmup ramp starts at 2/day and rises linearly to 5/day over 14 days
 (2/day on days 0-4, 3/day on days 5-9, 4/day on days 10-13, 5/day from day 14); touch plan days 0/3/7/12, so from day 3
-onward roughly half of each day's cap is follow-ups. Reply rates: 15-20% of prospects (section 2 table, top-decile
-benchmark) down to 4-6% (web-audit benchmark); 50% of replies book a call (section 2 table).
+onward roughly half of each day's cap is follow-ups. Reply rates: 15-20% of prospects (top-decile benchmark, section 2 reference
+line) down to 4-6% (web-audit benchmark); 50% of replies book a call (section 2 table). Everything below uses the
+Phase-0 cap; once `queue_cap_open` (20/day) applies, cumulative prospects grow ~4x faster and the week numbers shrink.
 
 Arithmetic:
 - New prospects reached (touch 1) per week under the ramp: ~10 in week 1, ~10 in week 2, then ~9/week at the 5/day cap

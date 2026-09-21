@@ -69,8 +69,8 @@ top of each script via `common.config.bootstrap()`).
   `CLOUDFLARE_ACCOUNT_ID`, `R2_BUCKET` (default `prodcraft-previews`), `PREVIEW_BASE_DOMAIN`
   (default `preview.prodcraft.fyi`), `GMAIL_CREDENTIALS_JSON`, `GMAIL_TOKEN_JSON`, `TELEGRAM_BOT_TOKEN`,
   `TELEGRAM_CHAT_ID`, `GOOGLE_SHEETS_MIRROR_ID`, `DASHBOARD_USER`, `DASHBOARD_PASS`.
-- LLM calls go through `common/llm.py`: model pinned to `claude-sonnet-5` for extraction/classification and
-  `claude-fable-5-1` for vision scoring, `temperature=0`, records `model_id`, `prompt_sha256`, `usage` (all four
+- LLM calls go through `common/llm.py`: model pinned to `claude-fable-5-1` everywhere (extraction, classification,
+  drafting and vision scoring; operator order 2026-09-21: Fable 5.1 only, effort low, no other model), `temperature=0`, records `model_id`, `prompt_sha256`, `usage` (all four
   token counts) in the returned envelope. `--mock` returns fixture responses keyed by prompt name.
 - Error channel: any script's top-level failure calls `common.notify.error(service, error, count=1)`; shape
   `service / environment / error / count`; no-op without Telegram env (logs to stderr instead).
@@ -355,6 +355,12 @@ replies workflow.
   STABLE hash of `business_id` — `["a","b","c"][int(sha1(business_id).hexdigest(), 16) % 3]` — not
   a rotating counter. A re-render of an outreach row that already has `template_variant` set
   reuses that value rather than recomputing, so a redraft never flips a business's variant.
+- **A bare "no" is never `neutral` (gap pass, 2026-09-21)**: a reply whose only content is a decline word (`No.`,
+  `Nope`, `No thanks`, `No thank you`, `Not for us`, plus at most a signature) is classified `negative` (or `remove`
+  if it carries a remove-type word), never `neutral`. Enforced in `prompts/classify_reply.md` rule 4, in
+  `scan_replies._is_bare_no` for the keyword classifier, and by `tests/prodcraft_medspa/test_reply_gold.py`
+  against `fixtures/replies_gold.jsonl` (24 labelled replies, >= 90% agreement required; the live-LLM variant
+  runs only with `ANTHROPIC_API_KEY` and appends agreement + prompt hash + model id under `.tmp/`).
 - **Negative reply is an opt-out (`scan_replies.py`, round-4 audit, Dario lens)**: a `negative`
   reply goes `sent -> replied -> closed_lost`, and ALSO (a) takes down every non-takendown preview
   linked to that business via the same real unpublish path (`preview/takedown.py`'s

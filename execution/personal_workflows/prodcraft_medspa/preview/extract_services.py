@@ -159,7 +159,7 @@ def extract_services(
     audit: dict | None,
     *,
     mock: bool,
-    model: str = "claude-fable-5",
+    model: str = "claude-fable-5-1",
     fixtures_root: Path | None = None,
     prompt_path: Path | None = None,
 ) -> dict:
@@ -220,7 +220,7 @@ def main() -> None:
     parser.add_argument("--business", required=True, type=Path)
     parser.add_argument("--audit", type=Path, default=None)
     parser.add_argument("--mock", action="store_true")
-    parser.add_argument("--model", default="claude-fable-5")
+    parser.add_argument("--model", default="claude-fable-5-1")
     args = parser.parse_args()
 
     try:

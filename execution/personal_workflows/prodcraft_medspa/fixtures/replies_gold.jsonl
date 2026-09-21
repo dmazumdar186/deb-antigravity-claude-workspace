@@ -1,0 +1,24 @@
+{"id": "p01", "reply_text": "Sure, I have time for a quick call Thursday afternoon if that works. What number should I use?", "from": "owner@example-medspa.test", "expected_sentiment": "positive", "expected_wants_call": true}
+{"id": "p02", "reply_text": "This is actually good timing, we have been meaning to fix the site for a year. Can we hop on a call next week?", "from": "owner@example-medspa.test", "expected_sentiment": "positive", "expected_wants_call": true}
+{"id": "p03", "reply_text": "Saw the preview, it looks a lot cleaner than what we have. When can we talk?", "from": "owner@example-medspa.test", "expected_sentiment": "positive", "expected_wants_call": true}
+{"id": "p04", "reply_text": "Interested. Can you send over pricing and what the timeline looks like?", "from": "owner@example-medspa.test", "expected_sentiment": "positive", "expected_wants_call": false}
+{"id": "p05", "reply_text": "OK let's talk. I am in the clinic most days, mornings are best.", "from": "owner@example-medspa.test", "expected_sentiment": "positive", "expected_wants_call": true}
+{"id": "p06", "reply_text": "My office manager forwarded this to me. I would like to schedule a call to hear more about the guarantee.", "from": "owner@example-medspa.test", "expected_sentiment": "positive", "expected_wants_call": true}
+{"id": "n01", "reply_text": "Thanks for sending this. We are in the middle of a busy season so let me get back to you in a few weeks.", "from": "owner@example-medspa.test", "expected_sentiment": "neutral", "expected_wants_call": false}
+{"id": "n02", "reply_text": "Who built the preview and how did you get our hours? Just trying to understand what this is.", "from": "owner@example-medspa.test", "expected_sentiment": "neutral", "expected_wants_call": false}
+{"id": "n03", "reply_text": "Got it. I will take a look when I have a minute.", "from": "owner@example-medspa.test", "expected_sentiment": "neutral", "expected_wants_call": false}
+{"id": "n04", "reply_text": "Is this a monthly fee or a one time thing? Not making any decisions right now, just curious.", "from": "owner@example-medspa.test", "expected_sentiment": "neutral", "expected_wants_call": false}
+{"id": "g01", "reply_text": "No.", "from": "owner@example-medspa.test", "expected_sentiment": "negative", "expected_wants_call": false}
+{"id": "g02", "reply_text": "Nope", "from": "owner@example-medspa.test", "expected_sentiment": "negative", "expected_wants_call": false}
+{"id": "g03", "reply_text": "No thank you.\n\nSent from my iPhone", "from": "owner@example-medspa.test", "expected_sentiment": "negative", "expected_wants_call": false}
+{"id": "g04", "reply_text": "Not interested, thanks.", "from": "owner@example-medspa.test", "expected_sentiment": "negative", "expected_wants_call": false}
+{"id": "g05", "reply_text": "We already have a web person and we are not a fit for this. Please pass on this one.", "from": "owner@example-medspa.test", "expected_sentiment": "negative", "expected_wants_call": false}
+{"id": "g06", "reply_text": "We just redid our site last month, so we are all set.", "from": "owner@example-medspa.test", "expected_sentiment": "negative", "expected_wants_call": false}
+{"id": "r01", "reply_text": "Please remove the preview site and do not contact us again.", "from": "owner@example-medspa.test", "expected_sentiment": "remove", "expected_wants_call": false}
+{"id": "r02", "reply_text": "Unsubscribe.", "from": "owner@example-medspa.test", "expected_sentiment": "remove", "expected_wants_call": false}
+{"id": "r03", "reply_text": "I did not ask for this. Take down the site today or I will report it.", "from": "owner@example-medspa.test", "expected_sentiment": "remove", "expected_wants_call": false}
+{"id": "r04", "reply_text": "Stop emailing me.", "from": "owner@example-medspa.test", "expected_sentiment": "remove", "expected_wants_call": false}
+{"id": "o01", "reply_text": "Automatic reply: I am out of office until the 28th with limited access to email. For appointments please call the front desk.", "from": "owner@example-medspa.test", "expected_sentiment": "ooo", "expected_wants_call": false}
+{"id": "o02", "reply_text": "Thanks for your email. I am currently away and will respond when I return.", "from": "owner@example-medspa.test", "expected_sentiment": "ooo", "expected_wants_call": false}
+{"id": "b01", "reply_text": "Delivery Status Notification (Failure)\n\nThe email account that you tried to reach does not exist. 550 5.1.1 The email account that you tried to reach does not exist.", "from": "Mail Delivery Subsystem <mailer-daemon@googlemail.com>", "expected_sentiment": "bounce", "expected_wants_call": false}
+{"id": "b02", "reply_text": "Your message could not be delivered. Delivery failed: mailbox unavailable. permanent failure.", "from": "postmaster@example-medspa.test", "expected_sentiment": "bounce", "expected_wants_call": false}

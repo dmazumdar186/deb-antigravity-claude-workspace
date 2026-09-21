@@ -1,6 +1,6 @@
 # Extract services — business.json service list + tagline
 
-Used by: `preview/extract_services.py` (§7 of `PROJECT_SPEC.md`). Model: `claude-sonnet-5`, `temperature=0`.
+Used by: `preview/extract_services.py` (§7 of `PROJECT_SPEC.md`). Model: `claude-fable-5-1`, `temperature=0`.
 Feeds `business.json.services[]` and `business.json.tagline` (see `CONTRACTS.md`).
 
 ## Inputs

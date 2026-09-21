@@ -596,7 +596,7 @@ def test_scan_replies_live_path_persists_llm_classify_envelope(local_store, monk
                     "suggested_next_step": "book_call",
                 }
             ),
-            "model_id": "claude-sonnet-5",
+            "model_id": "claude-fable-5-1",
             "prompt_sha256": "deadbeef",
             "usage": {
                 "input_tokens": 10,
@@ -616,7 +616,7 @@ def test_scan_replies_live_path_persists_llm_classify_envelope(local_store, monk
     assert len(calls) == 1
     updated = [r for r in _store_helpers.list_all(local_store, "outreach") if r["id"] == row["id"]][0]
     notes = json.loads(updated["notes"])
-    assert notes["llm_classify"]["model_id"] == "claude-sonnet-5"
+    assert notes["llm_classify"]["model_id"] == "claude-fable-5-1"
     assert notes["llm_classify"]["prompt_sha256"] == "deadbeef"
     assert "usage" in notes["llm_classify"]
     assert notes["llm_classify"]["mock"] is False
@@ -2197,7 +2197,7 @@ def test_scan_replies_processes_all_unseen_replies_but_only_transitions_once(loc
                 {"sentiment": "positive", "wants_call": False, "remove_request": False,
                  "summary": "positive", "suggested_next_step": "book_call"}
             ),
-            "model_id": "claude-sonnet-5", "prompt_sha256": "x",
+            "model_id": "claude-fable-5-1", "prompt_sha256": "x",
             "usage": {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
             "mock": False,
         },

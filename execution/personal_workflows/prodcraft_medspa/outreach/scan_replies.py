@@ -39,6 +39,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -79,7 +81,31 @@ _BOUNCE_KEYWORDS = (
 )
 _OOO_KEYWORDS = ("out of office", "on vacation", "auto-reply", "automatic reply", "currently away")
 _NEGATIVE_KEYWORDS = ("not interested", "no thanks", "pass on this", "not a fit")
-_CALL_KEYWORDS = ("call this week", "hop on a call", "quick call", "jump on a call", "schedule a call", "when can we talk")
+_CALL_KEYWORDS = (
+    "call this week", "hop on a call", "quick call", "jump on a call", "schedule a call", "when can we talk",
+    "let's talk",  # gap pass: fixtures/replies_gold.jsonl id p05
+)
+# Gap pass (after round 4): a bare "no" is a decline, never `neutral` (CONTRACTS.md, prompt rule 4).
+# Matched against the reply's first non-empty line with punctuation stripped, so "No.", "Nope!",
+# "No thank you" and "no, thanks" all count; a longer sentence starting with "no" does not.
+_BARE_NO_RE = re.compile(r"^(no|nope|nah|no thanks|no thank you|not for us|hard pass|pass)$")
+
+# Model the live classifier runs on (one place, so a pin sweep changes it once).
+CLASSIFY_MODEL = "claude-fable-5-1"
+
+# Gap pass: the mock inbox directory can be pointed at a test-owned folder of *.json replies
+# (tests/prodcraft_medspa/test_suite_tiers.sh seeds a negative reply for a sent row this way).
+MOCK_INBOX_DIR_ENV = "PRODCRAFT_MOCK_INBOX_DIR"
+
+
+def _is_bare_no(reply_text: str) -> bool:
+    for line in (reply_text or "").splitlines():
+        stripped = re.sub(r"[^a-z' ]+", " ", line.lower()).strip()
+        stripped = re.sub(r"\s+", " ", stripped)
+        if not stripped:
+            continue
+        return bool(_BARE_NO_RE.match(stripped))
+    return False
 
 
 def _mock_classify(reply_text: str, from_header: str = "") -> dict:
@@ -110,7 +136,7 @@ def _mock_classify(reply_text: str, from_header: str = "") -> dict:
             "summary": "Automatic out-of-office reply.",
             "suggested_next_step": "wait",
         }
-    if any(kw in haystack for kw in _NEGATIVE_KEYWORDS):
+    if any(kw in haystack for kw in _NEGATIVE_KEYWORDS) or _is_bare_no(reply_text):
         return {
             "sentiment": "negative",
             "wants_call": False,
@@ -457,7 +483,8 @@ def scan(st: Any, settings: Any, *, mock: bool, since_days: int, today: date | N
     checked = 0
 
     if mock:
-        inbox = gmail_reader.load_mock_inbox(PKG_FIXTURES_ROOT)
+        inbox_override = os.environ.get(MOCK_INBOX_DIR_ENV)
+        inbox = gmail_reader.load_mock_inbox(PKG_FIXTURES_ROOT, inbox_dir=Path(inbox_override) if inbox_override else None)
         replies_by_email = {r.get("owner_email"): r for r in inbox}
     else:
         replies_by_email = {}
@@ -536,7 +563,7 @@ def scan(st: Any, settings: Any, *, mock: bool, since_days: int, today: date | N
                         "classify_reply",
                         PROMPTS_DIR / "classify_reply.md",
                         {"reply_text": reply.get("body_text", ""), "our_last_email": our_last_email},
-                        model="claude-fable-5",
+                        model=CLASSIFY_MODEL,
                         mock=False,
                         fixtures_root=LLM_FIXTURES_ROOT,
                     )

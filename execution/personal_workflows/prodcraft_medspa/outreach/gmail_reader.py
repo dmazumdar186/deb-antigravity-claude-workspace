@@ -44,9 +44,11 @@ def strip_quoted_history(body_text: str) -> str:
     return trimmed.strip()
 
 
-def load_mock_inbox(fixtures_root: Path) -> list[dict]:
-    """Load every outreach/fixtures/inbox/*.json fixture reply, sorted by filename."""
-    inbox_dir = fixtures_root / "inbox"
+def load_mock_inbox(fixtures_root: Path, inbox_dir: Path | None = None) -> list[dict]:
+    """Load every outreach/fixtures/inbox/*.json fixture reply, sorted by filename.
+    `inbox_dir` (gap pass) overrides the default `fixtures_root/inbox` so a test can feed the
+    mock scan a reply for a row the mock chain actually sent."""
+    inbox_dir = inbox_dir if inbox_dir is not None else fixtures_root / "inbox"
     if not inbox_dir.is_dir():
         return []
     records = []

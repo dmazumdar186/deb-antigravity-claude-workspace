@@ -3,9 +3,9 @@
 | File | Used by | Model tier | Output type |
 |---|---|---|---|
 | `vision_audit.md` | `audit/vision.py` | `claude-fable-5-1` | JSON (`dated_score`, `rationale`, `signals`) |
-| `extract_services.md` | `preview/extract_services.py` | `claude-sonnet-5` | JSON (`services[]`, `tagline`) |
-| `fuzzy_variables.md` | `outreach/draft_email.py` | `claude-sonnet-5` | JSON (two fuzzy-variable strings) |
-| `classify_reply.md` | `outreach/scan_replies.py` | `claude-sonnet-5` | JSON (`sentiment`, `wants_call`, `remove_request`, `summary`, `suggested_next_step`) |
+| `extract_services.md` | `preview/extract_services.py` | `claude-fable-5-1` | JSON (`services[]`, `tagline`) |
+| `fuzzy_variables.md` | `outreach/draft_email.py` | `claude-fable-5-1` | JSON (two fuzzy-variable strings) |
+| `classify_reply.md` | `outreach/scan_replies.py` | `claude-fable-5-1` | JSON (`sentiment`, `wants_call`, `remove_request`, `summary`, `suggested_next_step`) |
 | `email_touch_1_a.md` | `outreach/draft_email.py` | n/a (human-written template; fuzzy slots only) | markdown email (front-matter + subject + body) |
 | `email_touch_1_b.md` | `outreach/draft_email.py` | n/a | markdown email |
 | `email_touch_1_c.md` | `outreach/draft_email.py` | n/a | markdown email |

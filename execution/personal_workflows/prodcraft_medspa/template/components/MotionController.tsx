@@ -149,8 +149,9 @@ export default function MotionController() {
         const frontIndex = folioFrontIndex(progress, folioCards.length);
         folioCards.forEach((card, index) => {
           const state = folioCardState(progress, index, folioCards.length);
-          // Only the front card may wrap its headline to two lines (globals.css
-          // `[data-folio-front]`); back cards' tab strips must stay one line high.
+          // The 800-1200px two-line headline clamp is the pure-CSS default
+          // (globals.css); this attribute only lets the BACK cards opt down to a
+          // one-line tab strip (`html.has-js .folio-card:not([data-folio-front])`).
           if (index === frontIndex) card.setAttribute('data-folio-front', '');
           else card.removeAttribute('data-folio-front');
           card.style.setProperty('--folio-x', `${state.xPercent}%`);

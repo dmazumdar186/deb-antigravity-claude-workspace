@@ -418,7 +418,88 @@ def test_set_loom_cli_prints_one_json_line(tmp_path):
         capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=str(REPO_ROOT),
     )
     assert proc.returncode == 0, proc.stderr
-    lines = [l for l in proc.stdout.strip().splitlines() if l.strip()]
+    lines = [ln for ln in proc.stdout.strip().splitlines() if ln.strip()]
     assert len(lines) == 1
     out = json.loads(lines[0])
     assert out["script"] == "set_loom" and out["status"] == "queued" and out["redrafted"] is True
+
+
+# ---------------------------------------------------------------------------
+# Gap pass (after round 4): the under-send alert dedupes per day through the
+# SupabaseStore code path too, not just LocalStore. tests/prodcraft_medspa has no
+# in-memory Supabase double, so this builds a minimal PostgREST emulation behind
+# `SupabaseStore._request` (the same seam test_store.py's pagination tests use):
+# it serves the only two tables the alert touches, `config` (get/set_config:
+# GET ?key=eq.K, POST ?on_conflict=key merge) and `outreach` (list_rows: GET with
+# a Range header), and records every request so the assertions can prove the
+# dedupe state round-tripped through PostgREST-shaped calls.
+# ---------------------------------------------------------------------------
+
+
+class _FakePostgrest:
+    """In-memory stand-in for the PostgREST endpoints SupabaseStore hits during under_send_alert."""
+
+    def __init__(self) -> None:
+        self.config: dict[str, object] = {}
+        self.outreach: list[dict] = []
+        self.calls: list[tuple[str, str]] = []
+
+    def __call__(self, method: str, path: str, **kwargs):
+        from tests.prodcraft_medspa.test_store import _FakeResp
+
+        self.calls.append((method, path))
+        table = path.split("?", 1)[0]
+        if table == "config":
+            if method == "GET":
+                key = dict(kwargs.get("params") or [])["key"].removeprefix("eq.")
+                rows = [{"key": key, "value": self.config[key]}] if key in self.config else []
+                return _FakeResp(200, json_data=rows)
+            if method == "POST":
+                assert "on_conflict=key" in path and "merge-duplicates" in kwargs["headers"]["Prefer"]
+                body = kwargs["json"]
+                self.config[body["key"]] = body["value"]
+                return _FakeResp(201, json_data=[body])
+        if table == "outreach" and method == "GET":
+            start, end = (int(x) for x in kwargs["headers"]["Range"].split("-"))
+            return _FakeResp(200, json_data=self.outreach[start : end + 1])
+        raise AssertionError(f"unexpected PostgREST call: {method} {path}")
+
+
+def test_under_send_alert_dedupes_per_day_through_supabase_store_path(monkeypatch):
+    from tests.prodcraft_medspa.test_store import _fake_supabase_store
+
+    calls: list[tuple] = []
+    monkeypatch.setattr(notify, "error", lambda service, error, count=1, environment=None: calls.append((service, error, count)) or True)
+    monkeypatch.setenv("PRODCRAFT_ENV", "test-env")
+
+    backend = _FakePostgrest()
+    backend.config["phase0"] = {"cap": 5}
+    backend.config["live_send_confirmed"] = True
+    backend.outreach = [
+        {"id": f"o{i}", "business_id": f"b{i}", "touch": 1, "status": "sent", "sent_at": "2026-09-19T15:00:00Z"}
+        for i in range(2)
+    ]  # 2 of 35 over the trailing week
+    store = _fake_supabase_store()
+    store._request = backend  # noqa: SLF001
+
+    line = fit_weights.under_send_alert(store, mock=True, today=date(2026, 9, 20))
+
+    assert line == "prodcraft_medspa / test-env / under_send_7d / sent=2 cap=35 / 1"
+    assert calls == [("prodcraft_medspa", "under_send_7d / sent=2 cap=35", 1)]
+    # the dedupe stamp was written through set_config -> POST config?on_conflict=key
+    assert backend.config["notify_dedupe"] == {"under_send_7d": "2026-09-20"}
+    assert ("POST", "config?on_conflict=key") in backend.calls
+    assert store.get_config("notify_dedupe")["under_send_7d"] == "2026-09-20"
+
+    # same UTC day, fresh Store instance (a new cron process): reads the stamp back from
+    # PostgREST and does not page twice
+    store2 = _fake_supabase_store()
+    store2._request = backend  # noqa: SLF001
+    assert fit_weights.under_send_alert(store2, mock=True, today=date(2026, 9, 20)) == line
+    assert len(calls) == 1
+    assert backend.calls.count(("POST", "config?on_conflict=key")) == 1
+
+    # next day: pages again and re-stamps
+    fit_weights.under_send_alert(store2, mock=True, today=date(2026, 9, 21))
+    assert len(calls) == 2
+    assert backend.config["notify_dedupe"] == {"under_send_7d": "2026-09-21"}

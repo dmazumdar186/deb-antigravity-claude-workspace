@@ -238,7 +238,7 @@ def render_draft(
                 "fuzzy_variables",
                 PROMPTS_DIR / "fuzzy_variables.md",
                 variables,
-                model="claude-fable-5",
+                model="claude-fable-5-1",
                 mock=mock,
                 fixtures_root=fixtures_root or LLM_FIXTURES_ROOT,
             )

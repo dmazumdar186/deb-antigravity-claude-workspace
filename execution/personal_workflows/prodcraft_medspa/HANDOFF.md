@@ -80,8 +80,12 @@ against the same checkout at once; the build lock serializes them.
 - **Legal question, not a code fix**: publishing a look-alike site using a business's name and re-displaying Places
   data before consent, plus Illinois PIPA / CCPA exposure for scraped owner PII. Retention policy and purge path
   exist; the operator should confirm the approach with counsel before the first real send.
-- **Reply classifier has no gold set**; the keyword mock mirrors the prompt but live LLM labels are unmeasured.
-  Every remove is now Telegram-notified so mis-classifications are visible.
+- ~~Reply classifier has no gold set~~ closed in the gap pass (2026-09-21): `fixtures/replies_gold.jsonl` holds 24
+  labelled replies; `tests/prodcraft_medspa/test_reply_gold.py` holds the keyword classifier at >= 90% agreement and,
+  with `ANTHROPIC_API_KEY`, runs the live classifier and appends agreement + prompt hash + model id to
+  `.tmp/prodcraft_medspa/replies_gold_live.jsonl`. **Still open:** the live run has not happened in cloud (no key),
+  so LLM agreement is unmeasured; the keyword classifier deliberately misses two gold rows (a positive with no call
+  phrase, a soft "we are all set" decline) that only the LLM path can catch. Every remove is Telegram-notified.
 - **Sample Telegram send never observed** (no token in cloud); the error channel is not "wired up" by the rule in
   `automation-boundaries.md` until the operator sees one.
 - **Touch 2 needs a human input by design**: the Loom walkthrough URL. Every touch-2 draft parks until
@@ -96,6 +100,13 @@ against the same checkout at once; the build lock serializes them.
   and remove differ only in Telegram routing/classification. Change-log note: pre-round-4 the takedown cascade was
   unconditional; round 4 put it behind the `dnc` parameter (default `True`, no in-tree caller passes `False`), and
   negative replies keep `dnc=True`. Tests: `tests/prodcraft_medspa/test_round4.py`, `test_outreach.py`.
+- **Gap pass (2026-09-21, after round 4)** closed: under-send alert dedupe verified through the SupabaseStore
+  PostgREST path (`test_round4.py::test_under_send_alert_dedupes_per_day_through_supabase_store_path`, in-memory
+  PostgREST stub); the 800-1200px two-line front-card headline is pure CSS so no-JS and reduced-motion match
+  (`template/app/globals.css`, acceptance at 1024x768 in JS / no-JS / reduced-motion, screenshots
+  `.tmp/prodcraft_medspa/r4gap/`); spec section 2 targets now derive from the 5/day and 20/day caps; tier 3 of
+  the six-tier suite seeds a negative reply and asserts DNC + sibling dnc + preview takedown; every model pin is
+  `claude-fable-5-1` (retired rows in `common/llm.py` PRICING are keyed lookups only).
 - **Round-4 panel fixes (2026-09-21)**: `fit_weights.py main()` and `send.py --stats` page the error channel on
   failure; both default to the UTC day; the bounce path patches `email_status` by id; `fit_weights.py` emits one
   `prodcraft_medspa / <env> / under_send_7d / sent=S cap=C / 1` error line (deduped per day) when live and 7-day

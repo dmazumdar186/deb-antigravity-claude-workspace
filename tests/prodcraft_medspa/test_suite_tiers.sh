@@ -94,6 +94,63 @@ else
     fail "run_metro --mock rerun (idempotency)" "exit=$RUN2_RC; $(echo "$RUN2" | grep 'preview OK')"
 fi
 
+# Gap pass (after round 4): seed ONE mock negative reply for a row the chain actually sent and run the
+# daily loop again three days on (advance creates the touch-2 sibling first, then scan_replies
+# classifies the reply). The mock inbox is fed through PRODCRAFT_MOCK_INBOX_DIR (scan_replies.py
+# MOCK_INBOX_DIR_ENV), a test-owned folder of *.json replies keyed by owner_email, so the checked-in
+# outreach/fixtures/inbox is untouched. Expected: business do_not_contact true, the replying row
+# closed_lost, every sibling row dnc, every preview for that business status takedown.
+NEG_INBOX="$TS/neg_inbox"; mkdir -p "$NEG_INBOX"
+NEG_EMAIL=$(python3 - "$R" <<'PY'
+import json, sys
+root = sys.argv[1]
+sent = [r for r in json.load(open(f"{root}/outreach.json")) if r["status"] == "sent"]
+biz = {b["id"]: b for b in json.load(open(f"{root}/businesses.json"))}
+print(biz[sent[0]["business_id"]]["owner_email"])
+PY
+)
+cat > "$NEG_INBOX/1_negative.json" <<NEGJSON
+{"thread_id": "thread-seed-neg-001", "message_id": "msg-seed-neg-001", "owner_email": "$NEG_EMAIL",
+ "from": "Owner <$NEG_EMAIL>", "to": "sender@prodcraft.fyi", "subject": "Re: noticed something on your site",
+ "raw_body_text": "No thanks, not interested.", "received_at": "2026-09-22T09:00:00Z"}
+NEGJSON
+NEG_DATE=$(python3 -c "from datetime import date, timedelta; print(date.today() + timedelta(days=3))")
+NEG_OUT=$(PRODCRAFT_MOCK_INBOX_DIR="$NEG_INBOX" python3 "$PKG/scripts/daily.py" --mock --store local --store-root "$R" --no-send --date "$NEG_DATE" 2>&1)
+NEG_RC=$?
+NEG_CHECK=$(python3 - "$R" "$NEG_EMAIL" <<'PY'
+import json, sys
+root, email = sys.argv[1], sys.argv[2]
+biz = [b for b in json.load(open(f"{root}/businesses.json")) if b.get("owner_email") == email]
+assert len(biz) == 1, f"expected one business for {email}, got {len(biz)}"
+bid = biz[0]["id"]
+rows = [r for r in json.load(open(f"{root}/outreach.json")) if r["business_id"] == bid]
+previews = [p for p in json.load(open(f"{root}/previews.json")) if p["business_id"] == bid]
+problems = []
+if biz[0].get("do_not_contact") is not True:
+    problems.append(f"do_not_contact={biz[0].get('do_not_contact')!r}")
+replying = [r for r in rows if r["status"] == "closed_lost"]
+if len(replying) != 1:
+    problems.append(f"expected exactly one closed_lost row, got {len(replying)}")
+siblings = [r for r in rows if r["status"] != "closed_lost"]
+if not siblings:
+    problems.append("no sibling row created by advance (touch 2 expected)")
+for r in siblings:
+    if r["status"] != "dnc":
+        problems.append(f"sibling touch {r.get('touch')} status={r['status']!r} (expected dnc)")
+if not previews:
+    problems.append("business has no preview rows")
+for p in previews:
+    if p.get("status") != "takedown":
+        problems.append(f"preview {p['id'][:8]} status={p.get('status')!r} (expected takedown)")
+print("; ".join(problems) if problems else f"OK rows={len(rows)} siblings_dnc={len(siblings)} previews_takedown={len(previews)}")
+PY
+)
+if [ $NEG_RC -eq 0 ] && [ "${NEG_CHECK#OK}" != "$NEG_CHECK" ]; then
+    pass "seeded negative reply -> do_not_contact true, replying row closed_lost, siblings dnc, previews takedown ($NEG_CHECK)"
+else
+    fail "seeded negative reply cascade" "exit=$NEG_RC; $NEG_CHECK; $(echo "$NEG_OUT" | tail -5)"
+fi
+
 R_SAMPLE="$TS/sample_store"
 python3 "$PKG/db/apply_schema.py" --store local --root "$R_SAMPLE" > /dev/null 2>&1
 SAMPLE_OUT=$(python3 "$PKG/scripts/run_metro.py" --metro chicago_north_shore --mock --store local --store-root "$R_SAMPLE" --stages discovery,audit --sample-n 8 --sample-only 2>&1)

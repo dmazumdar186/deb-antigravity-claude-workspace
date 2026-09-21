@@ -1,6 +1,6 @@
 # Fuzzy variables — two personalization slots
 
-Used by: `outreach/draft_email.py`. Model: `claude-sonnet-5`, `temperature=0`.
+Used by: `outreach/draft_email.py`. Model: `claude-fable-5-1`, `temperature=0`.
 Methodology: `directives/personalization/fuzzy_variables.md`. Slots are woven into the human-written templates
 in `email_touch_1_{a,b,c}.md`, `email_touch_2.md`, `email_touch_3.md`. Read every row; never sample; vary
 wording row-to-row even when source data repeats (see distinctness rule below).

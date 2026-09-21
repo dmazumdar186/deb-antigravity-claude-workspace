@@ -1,6 +1,6 @@
 # Classify reply — inbound email triage
 
-Used by: `outreach/scan_replies.py` (30-min cron; §3 Amodei of the panel pass). Model: `claude-sonnet-5`,
+Used by: `outreach/scan_replies.py` (30-min cron; §3 Amodei of the panel pass). Model: `claude-fable-5-1`,
 `temperature=0`. Drives `outreach/state_machine.py` transitions (`sent→replied`, `replied→call_booked`,
 `*→dnc`) and the automated takedown path (`remove_request: true` triggers immediate takedown + DNC without
 waiting for a human).
@@ -22,7 +22,9 @@ waiting for a human).
 4. Otherwise classify sentiment as `positive` (interested, asking questions, wants to talk/see more),
    `neutral` (acknowledges, non-committal, asks for more time/info without declining), or `negative`
    (declines, not interested, annoyed — but does NOT contain a remove-type word, which would already have
-   matched rule 1).
+   matched rule 1). A bare `no` (`No.`, `Nope`, `No thank you`, `Not for us`, with nothing else but a
+   signature) is a decline: classify it `negative`, never `neutral`. The preview watermark promises "Reply
+   'no' and this preview comes down", so a bare no is an opt-out the pipeline must act on.
 
 `wants_call` is `true` only if the reply explicitly proposes or agrees to a call/meeting/time, or asks how to
 book one.

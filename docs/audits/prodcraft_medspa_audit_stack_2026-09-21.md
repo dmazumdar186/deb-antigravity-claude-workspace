@@ -52,11 +52,24 @@ ran as a fifth sub-agent; the six-tier suite ran in the same checkout.
 
 - Still no live path has run from code; every external service is fixture-verified. First live run needs the
   operator's secrets (HANDOFF section 7).
-- The under-send alert and `notify_dedupe` are verified on LocalStore only.
+- ~~The under-send alert and `notify_dedupe` are verified on LocalStore only.~~ closed in the Gap pass below.
 - The two-line headline is applied by a JS attribute; no-JS keeps the single-line ellipsis. No 800-1200px
   screenshot in acceptance.
-- Six-tier suite was not rerun after the fix pass on an idle machine; components were rerun individually.
+- ~~Six-tier suite was not rerun after the fix pass on an idle machine.~~ rerun in the Gap pass below: ALL CHECKS PASSED.
 - Reply classifier still has no gold set; a literal "no" that the LLM buckets as `negative` now opts out like
   `remove`, which is the safe direction.
 - Section 2 of the spec still states a monthly target the Phase-0 cap cannot meet; the caveat is stated rather
   than the target rewritten.
+
+### Gap pass (same day, after the six honest gaps above)
+
+Closed, with evidence:
+
+- Under-send dedupe on the Supabase path: `tests/prodcraft_medspa/test_round4.py::test_under_send_alert_dedupes_per_day_through_supabase_store_path` drives `SupabaseStore` through an in-memory PostgREST stub (`_FakePostgrest`, serving `config` get/upsert and `outreach` Range paging); no Supabase double existed in the tree, so the stub is new and minimal. Evidence: `pytest tests/prodcraft_medspa -q` -> 677 passed, 36 skipped (187 s).
+- Two-line 800-1200px headline is pure CSS (`template/app/globals.css`, default clamp for every card in the band; only `html.has-js` back cards opt down to one line). `acceptance_template.py` now runs the back-card headline check at 1024x768 and `_check_front_card_headline_wrap` in JS / no-JS / reduced-motion (lines >= 2 and <= 2, no ellipsis overflow). Evidence: `{"in": 4, "out": 4, "failures": [], "motion_checks": []}`; screenshots `.tmp/prodcraft_medspa/r4gap/1024x768-{js,nojs,reduced-motion}.png`. Template `npm test` 33 passed, typecheck clean, build exit 0.
+- Reply-classifier gold set: `fixtures/replies_gold.jsonl` (24 rows: 6 positive, 4 neutral, 6 negative incl. bare "No." / "Nope" / "No thank you", 4 remove, 2 ooo, 2 bounce). `tests/prodcraft_medspa/test_reply_gold.py`: keyword classifier 22/24 = 91.7% (deliberate misses: p04 positive without a call phrase, g06 soft "all set" decline); live test skipped without `ANTHROPIC_API_KEY`. CONTRACTS.md and the pipeline directive state: a bare "no" is negative or remove, never neutral.
+- PROJECT_SPEC.md section 2 rewritten from the caps: 5/day x 30 / 4 touches = ~37 prospects (0.4-1.9 closes), 20/day (`queue_cap_open`) x 30 / 4 = 150 prospects (1.5-7.5 closes); target 1 close/month in Phase 0, 3-5 after; 2.1 references the same caps; falsifier unchanged.
+- Six-tier suite tier 3 seeds a negative reply through `PRODCRAFT_MOCK_INBOX_DIR` for a row the mock chain sent, runs `daily.py --no-send --date +3d`, and asserts `do_not_contact` true, replying row `closed_lost`, sibling touch-2 row `dnc`, both previews `takedown`.
+- Model pins: every live pin in `P/**` and `tests/prodcraft_medspa/**` is `claude-fable-5-1` (`doctor.py`, `scan_replies.CLASSIFY_MODEL`, `draft_email.py`, `extract_services.py`, prompt headers, CONTRACTS.md); `common/llm.py` PRICING keeps `claude-fable-5` and `claude-sonnet-5` as keyed lookups marked `# retired 2026-09-21`; no effort setting exists in the package (the API client does not send one), so nothing to lower.
+- Six-tier suite rerun on the fixed head (`bash tests/prodcraft_medspa/test_suite_tiers.sh`): ALL CHECKS PASSED, including `PASS seeded negative reply -> do_not_contact true, replying row closed_lost, siblings dnc, previews takedown`.
+

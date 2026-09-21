@@ -20,7 +20,11 @@ description: Acceptance test for the ProdCraft 0.5-preview Next.js template's
   (no card mid-exit), each of the two visible back cards' `h3` headlines has
   zero bounding-box overlap with the front card, is the top hit-tested
   element at its own centre, and sits below the sticky watermark bar
-  (`_check_folio_back_card_headlines`).
+  (`_check_folio_back_card_headlines`), at 1440x900 and again at 1024x768;
+  and (gap pass) at 1024x768 a deliberately long headline wraps to exactly
+  two lines with no mid-word ellipsis on the front card (JS), and on every
+  card with JS disabled and under prefers-reduced-motion
+  (`_check_front_card_headline_wrap`).
 inputs: template/out/ (the built static export — run `npm run build` first)
 outputs: screenshots under .tmp/prodcraft_medspa/acceptance/{viewport}.png;
   prints a one-line JSON summary; exits non-zero on any failure.
@@ -40,7 +44,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TEMPLATE_ROOT = REPO_ROOT / "execution" / "personal_workflows" / "prodcraft_medspa" / "template"
 OUT_DIR = TEMPLATE_ROOT / "out"
-SCREENSHOT_DIR = REPO_ROOT / ".tmp" / "prodcraft_medspa" / "acceptance"
+SCREENSHOT_DIR = Path(os.environ.get("PRODCRAFT_ACCEPTANCE_SCREENSHOT_DIR", str(REPO_ROOT / ".tmp" / "prodcraft_medspa" / "acceptance")))
 
 
 def _format_expiry(expires_at: str) -> str:
@@ -293,7 +297,7 @@ def _check_mobile_folio_opacity(browser, base_url: str) -> list[str]:
     return failures
 
 
-def _check_folio_back_card_headlines(browser, base_url: str) -> list[str]:
+def _check_folio_back_card_headlines(browser, base_url: str, viewport: tuple[int, int] = (1440, 900)) -> list[str]:
     """Round-4 clip fix: while the folio stack is parked on card k (progress
     k/(count-1), so no card is mid-exit), the back cards immediately behind
     it must each show their `h3` headline fully clear of the front card.
@@ -304,16 +308,20 @@ def _check_folio_back_card_headlines(browser, base_url: str) -> list[str]:
     out of scope. Three assertions per back-card headline: its bounding box
     does not intersect the front card's box, `elementFromPoint` at its centre
     resolves inside its own card (nothing else paints over it), and its top
-    edge sits below the sticky watermark bar."""
+    edge sits below the sticky watermark bar. Run at 1440x900 and (gap pass)
+    at 1024x768, the smallest desktop viewport the tab-strip budget targets;
+    failures are prefixed with the viewport so the two passes stay apart."""
     failures: list[str] = []
     visible_depth = 2
-    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    width, height = viewport
+    tag = f"{width}x{height}"
+    context = browser.new_context(viewport={"width": width, "height": height})
     page = context.new_page()
     page.goto(f"{base_url}/", wait_until="networkidle")
 
     count = page.evaluate("document.querySelectorAll('[data-folio-card]').length")
     if count < 2:
-        failures.append(f"need at least 2 [data-folio-card] elements for the headline check, found {count}")
+        failures.append(f"[{tag}] need at least 2 [data-folio-card] elements for the headline check, found {count}")
         context.close()
         return failures
 
@@ -365,11 +373,113 @@ def _check_folio_back_card_headlines(browser, base_url: str) -> list[str]:
             [k, visible_depth],
         )
         if report.get("error"):
-            failures.append(f"folio parked on card {k}: {report['error']}")
+            failures.append(f"[{tag}] folio parked on card {k}: {report['error']}")
         for b in report.get("bad", []):
-            failures.append(f"folio parked on card {k}: {b}")
+            failures.append(f"[{tag}] folio parked on card {k}: {b}")
 
     context.close()
+    return failures
+
+
+# A headline long enough to need three lines at 1024px wide (stage ~696px, ~25px
+# type) so the two-line clamp is actually exercised, not just tolerated.
+_LONG_HEADLINE = "Laser Hair Removal, Photorejuvenation and Body Contouring Packages"
+
+_HEADLINE_REPORT_JS = """
+(args) => {
+  const [selector, maxLines] = args;
+  const out = [];
+  for (const h3 of document.querySelectorAll(selector)) {
+    const cs = window.getComputedStyle(h3);
+    const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2;
+    const rectLines = h3.getClientRects().length;
+    const lines = Math.max(1, Math.round(h3.getBoundingClientRect().height / lineHeight));
+    const overflowsX = h3.scrollWidth > h3.clientWidth + 1;
+    out.push({
+      text: (h3.textContent || '').slice(0, 24),
+      lines,
+      rectLines,
+      whiteSpace: cs.whiteSpace,
+      textOverflow: cs.textOverflow,
+      overflowsX,
+      midWordEllipsis: overflowsX && cs.textOverflow === 'ellipsis',
+      tooTall: lines > maxLines,
+    });
+  }
+  return out;
+}
+"""
+
+
+def _check_front_card_headline_wrap(browser, base_url: str, viewport: tuple[int, int] = (1024, 768)) -> list[str]:
+    """Gap pass after round 4: in the 800-1200px band a headline that does not
+    fit on one line must wrap to at most two lines and never be cut mid-word
+    with an ellipsis. Three contexts at `viewport`, each given a deliberately
+    long headline: (1) JS on, parked on card 0 and card 1, the FRONT card's
+    h3 (the back cards keep their one-line tab strip, covered by
+    `_check_folio_back_card_headlines`); (2) JS disabled (`html:not(.has-js)`)
+    and (3) prefers-reduced-motion, where every card is in document flow and
+    every h3 must get the same two-line treatment with no attribute set by
+    JS. Assertions per h3: `white-space` is not `nowrap`; if `scrollWidth`
+    exceeds `clientWidth` then `text-overflow` is not `ellipsis` (no mid-word
+    cut); line count (height / line-height) is >= 2 (it really wrapped) and
+    <= 2 (the clamp holds). Screenshots go to SCREENSHOT_DIR/{tag}-{mode}.png."""
+    failures: list[str] = []
+    width, height = viewport
+    tag = f"{width}x{height}"
+    modes = [("js", {}), ("nojs", {"java_script_enabled": False}), ("reduced-motion", {"reduced_motion": "reduce"})]
+    for mode, extra in modes:
+        context = browser.new_context(viewport={"width": width, "height": height}, **extra)
+        page = context.new_page()
+        page.goto(f"{base_url}/", wait_until="networkidle" if mode != "nojs" else "load")
+        count = page.evaluate("document.querySelectorAll('[data-folio-card]').length")
+        if count < 2:
+            failures.append(f"[{tag} {mode}] need at least 2 [data-folio-card] elements, found {count}")
+            context.close()
+            continue
+        page.evaluate(
+            "t => document.querySelectorAll('[data-folio-card] h3').forEach((h) => { h.textContent = t; })",
+            _LONG_HEADLINE,
+        )
+        if mode == "js":
+            for k in sorted({0, min(1, count - 2)}):
+                progress = k / (count - 1)
+                page.evaluate(
+                    "p => { const el = document.querySelector('[data-folio]'); "
+                    "window.scrollTo(0, el.offsetTop + (el.offsetHeight - window.innerHeight) * p); }",
+                    progress,
+                )
+                page.wait_for_timeout(300)
+                front_count = page.evaluate("document.querySelectorAll('[data-folio-card][data-folio-front]').length")
+                if front_count != 1:
+                    failures.append(f"[{tag} {mode}] parked on card {k}: expected exactly one [data-folio-front], got {front_count}")
+                report = page.evaluate(_HEADLINE_REPORT_JS, ["[data-folio-card][data-folio-front] h3", 2])
+                for r in report:
+                    if r["whiteSpace"] == "nowrap":
+                        failures.append(f"[{tag} {mode}] parked on card {k}: front h3 is white-space: nowrap")
+                    if r["midWordEllipsis"]:
+                        failures.append(f"[{tag} {mode}] parked on card {k}: front h3 overflows with text-overflow: ellipsis")
+                    if r["lines"] < 2:
+                        failures.append(f"[{tag} {mode}] parked on card {k}: front h3 did not wrap (lines={r['lines']})")
+                    if r["tooTall"]:
+                        failures.append(f"[{tag} {mode}] parked on card {k}: front h3 exceeds two lines (lines={r['lines']})")
+                if k == 0:
+                    page.screenshot(path=str(SCREENSHOT_DIR / f"{tag}-{mode}.png"))
+        else:
+            page.evaluate("window.scrollTo(0, document.querySelector('[data-folio]').offsetTop)")
+            page.wait_for_timeout(200)
+            report = page.evaluate(_HEADLINE_REPORT_JS, ["[data-folio-card] h3", 2])
+            for i, r in enumerate(report):
+                if r["whiteSpace"] == "nowrap":
+                    failures.append(f"[{tag} {mode}] card {i} h3 is white-space: nowrap")
+                if r["midWordEllipsis"]:
+                    failures.append(f"[{tag} {mode}] card {i} h3 overflows with text-overflow: ellipsis")
+                if r["lines"] < 2:
+                    failures.append(f"[{tag} {mode}] card {i} h3 did not wrap (lines={r['lines']})")
+                if r["tooTall"]:
+                    failures.append(f"[{tag} {mode}] card {i} h3 exceeds two lines (lines={r['lines']})")
+            page.screenshot(path=str(SCREENSHOT_DIR / f"{tag}-{mode}.png"))
+        context.close()
     return failures
 
 
@@ -638,6 +748,10 @@ def run() -> dict:
             motion_failures.extend(_check_reduced_motion_fallback(browser, base_url))
             motion_failures.extend(_check_mobile_folio_opacity(browser, base_url))
             motion_failures.extend(_check_folio_back_card_headlines(browser, base_url))
+            # gap pass: the same back-card check at the smallest desktop viewport, plus the
+            # front-card two-line headline in JS / no-JS / reduced-motion at 1024x768.
+            motion_failures.extend(_check_folio_back_card_headlines(browser, base_url, viewport=(1024, 768)))
+            motion_failures.extend(_check_front_card_headline_wrap(browser, base_url, viewport=(1024, 768)))
             results["motion_checks"] = motion_failures
             failures.extend(f"[motion] {f}" for f in motion_failures)
 

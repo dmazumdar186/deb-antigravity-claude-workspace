@@ -426,20 +426,33 @@ table.hours-table th {
   }
 }
 
-/* Round-4 (Murati lens): between 800 and 1200px the front card's headline was
-   truncating mid-word with an ellipsis; let it wrap to two lines. Scoped to
-   the front card only (MotionController sets `data-folio-front`): back cards'
-   tab strips must stay one line high (see the .folio-card__head comment) and
-   the reduced-motion / no-JS paths never receive the attribute, so they are
-   unchanged. */
+/* Round-4 (Murati lens) + gap pass: between 800 and 1200px the front card's
+   headline was truncating mid-word with an ellipsis. The two-line clamp is
+   now the pure-CSS DEFAULT for every desktop card in that band, so the no-JS
+   (`html:not(.has-js)`) and prefers-reduced-motion paths, where the cards sit
+   in document flow with no tab strips, get the same wrapping headline as the
+   front card without any attribute. Only while MotionController is driving
+   the stack (html.has-js, motion not reduced) do the BACK cards opt back down
+   to the one-line tab strip via `:not([data-folio-front])`: their head row
+   must stay one line high (see the .folio-card__head comment). Acceptance:
+   tests/prodcraft_medspa/acceptance_template.py::_check_front_card_headline_wrap. */
 @media (min-width: 800px) and (max-width: 1200px) {
-  .folio-card[data-folio-front] .folio-card__head h3 {
+  .folio-card__head h3 {
     white-space: normal;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     text-overflow: clip;
+  }
+}
+@media (min-width: 800px) and (max-width: 1200px) and (prefers-reduced-motion: no-preference) {
+  html.has-js .folio-card:not([data-folio-front]) .folio-card__head h3 {
+    white-space: nowrap;
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    text-overflow: ellipsis;
   }
 }
 
