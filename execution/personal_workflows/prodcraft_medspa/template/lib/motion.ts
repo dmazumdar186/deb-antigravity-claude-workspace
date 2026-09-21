@@ -67,12 +67,16 @@ export function folioCardState(progress: number, index: number, count: number): 
   const exit = clamp01((-offset - 0.08) / 0.82);
   const depth = Math.max(0, Math.min(4, offset));
   const layer = Math.min(FOLIO_VISIBLE_DEPTH, depth);
+  // Cards deeper than the last visible layer park at that layer's offset and fade out over
+  // one depth step, so two tabs never share the slot (opposite-parity x offsets would
+  // otherwise let the deeper headline peek out beside the visible one).
+  const hidden = clamp01(depth - FOLIO_VISIBLE_DEPTH);
   return {
     xPercent: exit > 0 ? direction * 36 * exit : direction * layer * 1.2,
     yPercent: exit > 0 ? -76 * exit : layer === 0 ? 0 : -FOLIO_TAB_Y_PERCENT * layer,
     rotationDeg: exit > 0 ? direction * 3.5 * exit : direction * layer * 0.5,
     scale: exit > 0 ? 1 - 0.03 * exit : 1 - layer * 0.02,
-    opacity: exit > 0 ? 1 - 0.96 * exit : Math.max(0.7, 1 - depth * 0.1),
+    opacity: exit > 0 ? 1 - 0.96 * exit : Math.max(0.7, 1 - depth * 0.1) * (1 - hidden),
     // The front card keeps legible text until it actually exits (text-only cards have no
     // imagery to carry them, so a midpoint fade-to-zero read as a blank stage); back cards'
     // tab strips dim by depth but never below 0.55 so their headlines stay readable.

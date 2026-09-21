@@ -41,6 +41,32 @@ Manual volume: ~200–400 sends/month. Funnel needed for 5 closes/month:
 
 Implication: every prospect must be score ≥45, owner-named, email-verified, with a real preview. No spray.
 
+### 2.1 Time-to-first-call: expected 2 to 7 weeks, central estimate week 3 (measurable target)
+
+Inputs, all already in this spec or the pipeline config (`db/seed_config.json`, `outreach/daily_queue.py::effective_cap`):
+Phase-0 cap 5 sends/day counted across all touches; warmup ramp starts at 2/day and rises linearly to 5/day over 14 days
+(2/day on days 0-4, 3/day on days 5-9, 4/day on days 10-13, 5/day from day 14); touch plan days 0/3/7/12, so from day 3
+onward roughly half of each day's cap is follow-ups. Reply rates: 15-20% of prospects (section 2 table, top-decile
+benchmark) down to 4-6% (web-audit benchmark); 50% of replies book a call (section 2 table).
+
+Arithmetic:
+- New prospects reached (touch 1) per week under the ramp: ~10 in week 1, ~10 in week 2, then ~9/week at the 5/day cap
+  (5 sends/day / 4 touches = 1.25 new prospects/day). Cumulative: 10, 20, 29, 38, 47, 56 by end of weeks 1-6.
+- Prospects per booked call = 1 / (reply rate * 0.5): 10-13 at 15-20% reply; 33-50 at 4-6% reply.
+- Reply lag ASSUMPTION (not measured anywhere yet): median reply lands ~1 week after touch 1, since 42% of replies come
+  from follow-ups on days 3-12. So first call = week in which cumulative prospects crosses the threshold, plus one week:
+  optimistic 10-13 prospects -> reached in week 1-2 -> first call in week 2-3; pessimistic 33-50 -> week 4-6 -> call in week 5-7.
+
+Target: first `call_booked` by end of week 3 (central), no later than end of week 7 (floor). Phase 0 requires
+`calls_to_pass: 3`, which at the same rates lands in weeks 4-5 (optimistic) or beyond week 12 (pessimistic).
+
+Falsifier (Karpathy lens: state what result would prove the model wrong before collecting data): zero `call_booked` by
+end of week 7 with >= 50 prospects each carried through all 4 touches falsifies the assumed reply and call rates for
+this email/offer/asset (at a 7.5% per-prospect call rate the chance of 0 in 50 is about 2%). Note the section 3 Phase-0
+gate of 5 prospects is too small to falsify anything: at that same 7.5% rate, 0 calls from 5 has a 68% chance of
+happening by luck, so a zero at 5 triggers the rewrite by rule but is not evidence against the offer. Record the
+observed reply lag from the first replies and replace the assumption above with the measured median.
+
 Expected reply-rate benchmarks for reference: platform average 3.4% (Instantly 2026); web-audit outreach 4–6% (Puzzle Inbox); "concrete gap named" 15–20% top-decile (B2BLeadFinder). Follow-ups produce 42% of all replies (Instantly 2026) — manual senders skip them; the pipeline must not let you.
 
 ---
@@ -310,7 +336,7 @@ Phase 0 (5 hand-built previews, 5 emails) runs after step 5. Do not build steps 
 ## 14. Known unknowns — measure, don't assume
 
 - % of med spas with score ≥45 per metro → `sample_audit.ts`.
-- Real reply rate of the built-asset email in manual mode → first 20 prospects.
+- Real reply rate of the built-asset email in manual mode → first 20 prospects. Also the median reply lag (assumed ~1 week in section 2.1) → measure from `outreach.replied_at - sent_at` on the first replies.
 - Owner-name find rate via registry vs Apollo → log `email_source`.
 - Whether `info@` replies materially worse than named inboxes for single-location spas → tag and compare.
 - Midwest agency density per capita vs coasts → count Clutch/UpCity per metro if it ever matters for pricing.

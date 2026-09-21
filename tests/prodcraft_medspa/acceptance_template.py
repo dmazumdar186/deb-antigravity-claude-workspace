@@ -16,7 +16,11 @@ description: Acceptance test for the ProdCraft 0.5-preview Next.js template's
   `prefers-reduced-motion: reduce` emulated, the hero/folio/approach sections
   render all their content visible with no transform applied at all
   (`_check_reduced_motion_fallback`) — i.e. the JS-driven motion never gates
-  content visibility.
+  content visibility. Round 4: at 1440x900, with the stack parked on a card
+  (no card mid-exit), each of the two visible back cards' `h3` headlines has
+  zero bounding-box overlap with the front card, is the top hit-tested
+  element at its own centre, and sits below the sticky watermark bar
+  (`_check_folio_back_card_headlines`).
 inputs: template/out/ (the built static export — run `npm run build` first)
 outputs: screenshots under .tmp/prodcraft_medspa/acceptance/{viewport}.png;
   prints a one-line JSON summary; exits non-zero on any failure.
@@ -289,6 +293,86 @@ def _check_mobile_folio_opacity(browser, base_url: str) -> list[str]:
     return failures
 
 
+def _check_folio_back_card_headlines(browser, base_url: str) -> list[str]:
+    """Round-4 clip fix: while the folio stack is parked on card k (progress
+    k/(count-1), so no card is mid-exit), the back cards immediately behind
+    it must each show their `h3` headline fully clear of the front card.
+
+    "Front" = the highest z-index card whose opacity is >= 0.5. The back
+    cards checked are the next FOLIO_VISIBLE_DEPTH (2) cards by document
+    order; deeper cards park behind the last visible tab at opacity 0 and are
+    out of scope. Three assertions per back-card headline: its bounding box
+    does not intersect the front card's box, `elementFromPoint` at its centre
+    resolves inside its own card (nothing else paints over it), and its top
+    edge sits below the sticky watermark bar."""
+    failures: list[str] = []
+    visible_depth = 2
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    page.goto(f"{base_url}/", wait_until="networkidle")
+
+    count = page.evaluate("document.querySelectorAll('[data-folio-card]').length")
+    if count < 2:
+        failures.append(f"need at least 2 [data-folio-card] elements for the headline check, found {count}")
+        context.close()
+        return failures
+
+    park_positions = sorted({0, min(1, count - 2)})
+    for k in park_positions:
+        progress = k / (count - 1)
+        page.evaluate(
+            "p => { const el = document.querySelector('[data-folio]'); "
+            "window.scrollTo(0, el.offsetTop + (el.offsetHeight - window.innerHeight) * p); }",
+            progress,
+        )
+        page.wait_for_timeout(300)
+        report = page.evaluate(
+            """
+            (args) => {
+              const [k, visibleDepth] = args;
+              const cards = Array.from(document.querySelectorAll('[data-folio-card]'));
+              const info = cards.map((c, i) => ({
+                i, el: c,
+                z: parseInt(window.getComputedStyle(c).zIndex, 10) || 0,
+                opacity: parseFloat(window.getComputedStyle(c).opacity),
+                rect: c.getBoundingClientRect(),
+              }));
+              const front = info.filter((c) => c.opacity >= 0.5).sort((a, b) => b.z - a.z)[0];
+              if (!front) return { error: 'no front card with opacity >= 0.5' };
+              if (front.i !== k) return { error: `expected card ${k} in front, got ${front.i}` };
+              const wm = document.querySelector('[data-watermark]');
+              const wmBottom = wm ? wm.getBoundingClientRect().bottom : 0;
+              const bad = [];
+              for (let d = 1; d <= visibleDepth; d++) {
+                const back = info[k + d];
+                if (!back) continue;
+                const h3 = back.el.querySelector('h3');
+                if (!h3) { bad.push(`card ${back.i}: no h3`); continue; }
+                const h = h3.getBoundingClientRect();
+                const f = front.rect;
+                const ix = Math.max(0, Math.min(h.right, f.right) - Math.max(h.left, f.left));
+                const iy = Math.max(0, Math.min(h.bottom, f.bottom) - Math.max(h.top, f.top));
+                const hit = document.elementFromPoint(h.left + h.width / 2, h.top + h.height / 2);
+                const own = !!hit && back.el.contains(hit);
+                if (ix * iy > 0) bad.push(`card ${back.i} h3 overlaps front card ${front.i} by ${Math.round(ix)}x${Math.round(iy)}px`);
+                if (!own) bad.push(`card ${back.i} h3 centre is painted over by ${hit ? hit.tagName + '.' + hit.className : 'nothing'}`);
+                if (h.top < wmBottom) bad.push(`card ${back.i} h3 top ${Math.round(h.top)} is above the watermark bar bottom ${Math.round(wmBottom)}`);
+                if (back.opacity < 0.5) bad.push(`card ${back.i} opacity ${back.opacity} < 0.5 while a visible back card`);
+              }
+              return { bad };
+            }
+            """,
+            [k, visible_depth],
+        )
+        if report.get("error"):
+            failures.append(f"folio parked on card {k}: {report['error']}")
+        for b in report.get("bad", []):
+            failures.append(f"folio parked on card {k}: {b}")
+
+    context.close()
+    return failures
+
+
 def run() -> dict:
     if not OUT_DIR.exists():
         raise SystemExit(
@@ -553,6 +637,7 @@ def run() -> dict:
             motion_failures.extend(_check_folio_transforms(browser, base_url))
             motion_failures.extend(_check_reduced_motion_fallback(browser, base_url))
             motion_failures.extend(_check_mobile_folio_opacity(browser, base_url))
+            motion_failures.extend(_check_folio_back_card_headlines(browser, base_url))
             results["motion_checks"] = motion_failures
             failures.extend(f"[motion] {f}" for f in motion_failures)
 

@@ -76,6 +76,8 @@ describe('folioCardState', () => {
     // never running further off the top of the stage.
     const deep = folioCardState(0, count - 1, count);
     expect(deep.yPercent).toBe(-FOLIO_TAB_Y_PERCENT * FOLIO_VISIBLE_DEPTH);
+    expect(deep.opacity).toBe(0);
+    expect(folioCardState(0, FOLIO_VISIBLE_DEPTH, count).opacity).toBeGreaterThan(0.5);
   });
 });
 
