@@ -82,13 +82,16 @@ The pipeline auto-reads these labels every cron tick. Your inbox stays clean; th
 
 ### What the pipeline does each morning (07:00 + 08:00 UTC, dual-cron for DST)
 
-1. Parallel fan-out to all 5 sources.
-2. Normalize via Pydantic v2 contracts.
-3. Persistent SQLite dedup (60-day TTL).
-4. Location filter (France + Île-de-France + Germany + Remote-EU; rejects US/APAC/India/etc.).
-5. Gemini ranker → tier A/B/C/SKIP.
-6. Drop SKIP, route others to tabs by title synonym.
-7. Append to sheet + send SMTP digest.
+1. Parallel fan-out to all live sources.
+2. Normalize via Pydantic v2 contracts, **in-batch cross-source dedup by content_hash OR fingerprint** (2026-09-10 — a fuzzy title+company key that survives gender markers, accents, legal suffixes, and recruiter "via X" wrapping, so the same posting from two boards collapses even when the exact hash differs).
+3. Persistent SQLite dedup (60-day TTL), now matched on content_hash **OR fingerprint** too.
+4. Title filter (PM/PO-only), location filter (FR/BE/DE/PL/AT/LU + remote; rejects US/APAC/India/Switzerland/UK/etc.), contract filter, EN/FR language filter.
+5. **Domain filter (new 2026-09-10)** — rejects PM/PO roles for a non-digital product (hardware, electronics, instrumentation, semiconductors, embedded/firmware, systems software, mechanical, medical devices…). The CV is software-only; a role can be the right title and still be the wrong industry.
+6. **Posting verification (new 2026-09-10)** — opens every surviving job's OWN page, reads the real posted date and whether it's still accepting applications; drops closed / stale (>7 days by default) / undatable postings instead of trusting the source's own timestamp. **Strict mode (2026-09-14, default):** a link is kept only when its page positively shows an open posting (JobPosting data or an apply control); blocked hosts get one headless-browser retry, unconfirmed pages one re-fetch, and anything still unconfirmed is dropped — nothing ships on the source date alone. Every stamped row is re-opened every 3 days and removed if it closed.
+7. Gemini ranker → tier A/B/C/SKIP; Sonnet reranks the shortlist if a credit is available.
+8. Drop SKIP, route others to tabs by title synonym.
+9. **Sheet hygiene (extended 2026-09-10)** — purges existing rows that now fail title/language/domain/location, cross-tab-dedups the whole sheet (union-find over `_id`/Link/fingerprint, keeping the row with a Status/earliest-seen/lowest-index), and re-verifies a bounded batch of historical unstamped rows (opens their Link, drops closed/stale/undatable, stamps survivors).
+10. Append to sheet — **cross-tab dedup at append time** too (a job is checked against every role tab it could land in, not just the one it's routed to) + send SMTP digest.
 
 ---
 
@@ -116,6 +119,12 @@ Same input → same output across all 3. Persistent dedup proven.
 | Ranker shows all tier-B placeholders | Quota exhausted (250 RPD free) or 503 high-demand | Pipeline degrades gracefully — placeholders are valid B-tier jobs |
 | Sheet append fails | SA lost Editor access OR sheet renamed | Verify SA email still has Editor on the spreadsheet |
 | All jobs deduped to 0 unexpectedly | GH cache picked up an old seen.db | GH-Actions → Caches → delete `job-search-v2-seen-db-*` |
+| Duplicate rows still in the sheet | Same posting seen from two sources with different URLs/tracking params, OR routed to two different tabs on different days | Should now self-heal: in-batch fingerprint merge (Stage 2), cross-tab dedup at append, and the Stage 3.9 `dedup_rows` sweep all run automatically. Manual: `purge_irrelevant_rows.py --dry-run` (dedup runs by default; `--no-dedup` to isolate) |
+| A hardware/electronics PM/PO role slipped into the sheet | Title has no hardware anchor but the description does, below the domain-filter's 2-distinct-anchor / core-requirement threshold | Check `pipeline_stats.domain_filter.rejected_sample` for near-misses; if the title itself carries a clear hardware word, add it to profile.json `hard_filters.skip_domain_anchors` rather than editing `domain_filter.py` directly |
+| Row's Verified column says "unverified (source date)" | Only possible in LENIENT mode (`--lenient-verify` / purge `--lenient`). In strict mode (default) such rows are dropped and the acceptance gate fails any that remain | Re-run the cron in strict mode; the 3-day re-check removes leftovers. Check `pipeline_stats.verification.warnings` for hosts blocking ≥80% of ≥5 attempts |
+| Digest "Verification" block shows many `blocked` drops | Headless Chromium missing on the runner (the `Install headless Chromium` workflow step failed) or a board started blocking browsers too | Check the workflow log for the Playwright install step; jobs are dropped, never shipped unverified. `pipeline_stats.verification.browser_used` tells whether the browser ran |
+| Stamped rows keep failing acceptance with "not re-confirmed open for Nd" | The Stage 3.9 re-check budget (`verification.reverify_max_fetches`, 600) is smaller than the rows due for re-check | Raise the budget or run `purge_irrelevant_rows.py` manually once; `remaining_recheck` in the run stats shows the backlog |
+| Rows look stale (age_days growing) but aren't being purged | `reverify_max_fetches` (default 400/run) backlog hasn't drained yet on a large historical sheet | Check `stats.remaining_unstamped` in the reverify output; run `purge_irrelevant_rows.py --reverify-max-fetches 1000` manually to drain faster, or wait — it drains over subsequent cron runs |
 
 ### Manual replay commands
 

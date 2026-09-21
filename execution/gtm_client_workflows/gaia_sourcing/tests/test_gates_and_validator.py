@@ -29,6 +29,7 @@ from gtm_client_workflows.gaia_sourcing.core.contracts import (  # noqa: E402
     ValidatedClaim,
 )
 from gtm_client_workflows.gaia_sourcing.layers import gates  # noqa: E402
+from gtm_client_workflows.gaia_sourcing.roles import ROLE1  # noqa: E402
 from gtm_client_workflows.gaia_sourcing.layers.validator import (  # noqa: E402
     normalize,
     validate_all,
@@ -206,6 +207,58 @@ def test_validator_survives_pdf_punctuation_mangling():
         confidence="direct",
     )
     assert validate_claim(c, _doc(mangled)) is True
+
+
+SUTTON_QUOTE = (
+    "I have over 40 years of  civil and  structural engineering consultancy\n"
+    "experience in Ireland, the UK and Canada."
+)
+SUTTON_OCR_DOC = (
+    # Observed OCR mangling from the real source PDF: capital I read as the
+    # digit 1, "Irish" read as "lrish". A quote whose leading "I" collided
+    # with this exact confusion (clm_1ed0104d35997fe1, Pearse Sutton) was
+    # being dropped as "quote_not_found" purely because of the glyph swap.
+    "1 have over 40 years of  civil and  structural engineering consultancy\n"
+    "experience in lreland, the UK and Canada."
+)
+
+
+def test_validator_survives_ocr_i_l_1_confusion():
+    """Pearse Sutton's claim clm_1ed0104d35997fe1: the source PDF's OCR layer
+    rendered "I have" as "1 have" (and "Ireland" as "lreland"). The quote is
+    true and must validate despite the OCR-mangled source text."""
+    c = Claim(
+        claim_id="clm_1ed0104d35997fe1",
+        subject_person_id="p1",
+        dimension="years_experience",
+        assertion="Over 40 years of civil and structural engineering experience",
+        evidence_quote=SUTTON_QUOTE,
+        source_doc_id="d1",
+        source_url="https://www.pleanala.ie/example.pdf",
+        confidence="direct",
+    )
+    assert validate_claim(c, _doc(SUTTON_OCR_DOC)) is True
+
+
+def test_ocr_confusion_fold_cannot_invent_a_fabricated_quote():
+    """The I/l/1 fold must not turn a false claim true: the rest of the
+    sentence still has to match character-for-character."""
+    c = Claim(
+        claim_id="c",
+        subject_person_id="p1",
+        dimension="years_experience",
+        assertion="Over 40 years of aerospace engineering experience",
+        # Same OCR-confusable leading "I"/"1", but an entirely invented rest
+        # of the sentence that never appears in the source document.
+        evidence_quote=(
+            "1 have over 40 years of aerospace engineering consultancy "
+            "experience in lreland, the UK and Canada."
+        ),
+        source_doc_id="d1",
+        source_url="https://www.pleanala.ie/example.pdf",
+        confidence="direct",
+    )
+    assert validate_claim(c, _doc(SUTTON_OCR_DOC)) is False
 
 
 def test_validator_rejects_missing_source_doc():
@@ -436,8 +489,203 @@ def test_tier_excluded_when_any_gate_fails():
 
 def test_extract_years_ignores_implausible_numbers():
     assert gates.extract_years("the 2024 years of the scheme") is None
-    assert gates.extract_years("over 26 years post graduate experience") == 26
+    # "over 26 years" states a LOWER bound -- the true minimum is 27, not
+    # the literal 26 (2026-09-13 fix; see test_gates_seniority_and_links.py
+    # for the seniority-ceiling regression this closes).
+    assert gates.extract_years("over 26 years post graduate experience") == 27
     assert gates.extract_years("no numbers here") is None
+
+
+# ---------------------------------------------------------------------------
+# 2026-09-11 adversarial-audit fixes
+# ---------------------------------------------------------------------------
+
+
+# -- Item 1: the grade ladder must scan title AND employer claims, not
+#    short-circuit on the title alone. --------------------------------------
+
+
+def test_grade_of_reads_the_highest_rung_across_title_and_employer_claims():
+    p = person(current_title="Structural Design Engineer")
+    claims = [
+        vclaim(
+            "employer",
+            "Associate Director at a Dublin consultancy",
+            "Associate Director / Lead Structural Design Engineer",
+        )
+    ]
+    grade, basis = gates._grade_of(p, claims)
+    assert grade == "associate_director"
+
+
+def test_grade_of_finds_director_stated_only_in_an_employer_claim():
+    p = person(current_title="Chartered Engineer")
+    claims = [
+        vclaim(
+            "employer",
+            "Company director",
+            "Ken is a company director and founding member",
+        )
+    ]
+    grade, basis = gates._grade_of(p, claims)
+    assert grade == "director"
+
+
+def test_grade_of_head_of_title_maps_to_director():
+    p = person(current_title="Head of Design")
+    grade, basis = gates._grade_of(p, [])
+    assert grade == "director"
+
+
+def test_grade_of_none_when_nothing_evidenced():
+    assert gates._grade_of(person(), []) is None
+
+
+# -- Item 2: chartership must mean Engineers Ireland specifically. ----------
+
+
+def test_bare_miei_alone_fails_with_specific_note():
+    result = gates.check_chartered(
+        person(), _chartership_claims("I am an MIEI member of Engineers"), {}
+    )
+    assert result.passed is False
+    assert result.note == "MIEI membership only; no CEng"
+
+
+def test_bare_ceng_alone_fails_chartered_gate():
+    """CEng with no Irish co-occurring token is not enough on its own --
+    CEng is also a UK/other-institution post-nominal."""
+    result = gates.check_chartered(
+        person(), _chartership_claims("I hold CEng status only"), {}
+    )
+    assert result.passed is False
+
+
+def test_ceng_miei_together_still_passes():
+    result = gates.check_chartered(
+        person(), _chartership_claims("Chartered Engineer, CEng MIEI"), {}
+    )
+    assert result.passed is True
+
+
+def test_ceng_with_only_uk_institution_fails_non_ie_branch():
+    result = gates.check_chartered(
+        person(), _chartership_claims("I hold CEng MICE status"), {}
+    )
+    assert result.passed is False
+    assert "non-Irish institution" in (result.note or "")
+
+
+def test_fiei_alone_still_passes():
+    result = gates.check_chartered(
+        person(), _chartership_claims("I am an FIEI member"), {}
+    )
+    assert result.passed is True
+
+
+def _chartership_claims(quote):
+    return [vclaim("chartership", quote, quote)]
+
+
+# -- Item 8: composition_violations catches a non-Irish chartership basis. --
+
+
+def test_composition_violations_flags_non_ie_chartership_basis():
+    cards = [
+        {
+            "full_name": "Weak Charter Person",
+            "current_title": "Senior Structural Engineer",
+            "current_employer": "Some Consulting Engineers",
+            "location": "Dublin",
+            "person_id": "p1",
+            "claims": [
+                {
+                    "dimension": "chartership",
+                    "assertion": "MIEI member",
+                    "evidence_quote": "I am an MIEI member",
+                    "confidence": "direct",
+                    "subject_person_id": "p1",
+                    "claim_id": "c1",
+                    "source_doc_id": "d1",
+                    "source_url": "https://example.ie/p",
+                    "quote_verified": True,
+                }
+            ],
+        }
+    ]
+    v = gates.composition_violations(cards, ROLE1)
+    assert any("Weak Charter Person" in x and "chartership" in x for x in v)
+
+
+def test_composition_violations_skips_cards_with_no_claims_field():
+    """No `claims` on the card -- skip silently, never crash."""
+    cards = [
+        {
+            "full_name": "Plain CSV Row",
+            "current_title": "Senior Structural Engineer",
+            "current_employer": "Some Consulting Engineers",
+            "location": "Dublin",
+        }
+    ]
+    v = gates.composition_violations(cards, ROLE1)
+    assert not any("Plain CSV Row" in x for x in v)
+
+
+# ---------------------------------------------------------------------------
+# Adversarial-audit fix 2026-09-11 item 4: check_discipline's exclude terms
+# must never fire from an employer/project SENTENCE mentioning the term in
+# passing -- Patrick Raggett's real shape ("acting as Health and Safety
+# Officer for O'Connor Sutton Cronin", one duty among a Civil/Structural
+# Associate Director's responsibilities) was wrongly excluded.
+# ---------------------------------------------------------------------------
+
+
+def test_discipline_exclude_never_fires_from_employer_sentence():
+    claims = [
+        vclaim("employer", "Acts as Health and Safety Officer for OCSC",
+               "acting as Health and safety Officer for O’Connor Sutton Cronin"),
+        vclaim("sector", "Expertise in transport engineering",
+               "particular expertise in all areas of transport engineering"),
+    ]
+    p = person(current_title="Civil / Structural Associate Director")
+    res = gates.check_discipline(p, claims, ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert res.passed, res.note
+
+
+def test_discipline_exclude_still_fires_from_title():
+    p = person(current_title="Health and Safety Officer")
+    res = gates.check_discipline(p, [], ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert not res.passed
+    assert res.basis == "person.title"
+
+
+def test_discipline_exclude_still_fires_from_sector_claim():
+    claims = [
+        vclaim("sector", "Works as a town planner",
+               "Qualified RTPI town planner with ten years' experience"),
+    ]
+    p = person(current_title="Engineer")
+    res = gates.check_discipline(p, claims, ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert not res.passed
+
+
+def test_discipline_exclude_never_fires_from_project_sentence():
+    claims = [
+        vclaim("project", "Worked on the town planning application review",
+               "assisted the town planning team on a review of the application"),
+        vclaim("sector", "Structural design", "structural design of steel frames"),
+    ]
+    p = person(current_title="Structural Engineer")
+    res = gates.check_discipline(p, claims, ROLE1.hard_gates[
+        [g.gate_id for g in ROLE1.hard_gates].index("discipline")
+    ].params)
+    assert res.passed, res.note
 
 
 if __name__ == "__main__":

@@ -109,6 +109,17 @@ def get_hard_filter_descriptions() -> list[str]:
     return [s.lower() for s in hf.get("skip_description_substrings", []) or [] if s]
 
 
+def get_skip_domain_anchors() -> list[str]:
+    """profile.hard_filters.skip_domain_anchors — plain lowercase substrings
+    (e.g. 'semiconductor', 'firmware') unioned into domain_filter's built-in
+    HARDWARE_TITLE_ANCHORS via its `extra_anchors` param. 2026-09-10: added
+    so the operator's non-digital-product exclusion (see profile.domain_scope)
+    is declared in profile.json rather than hardcoded only in domain_filter.py."""
+    data = _load()
+    hf = data.get("hard_filters", {}) or {}
+    return [s.lower() for s in hf.get("skip_domain_anchors", []) or [] if s]
+
+
 def get_accepted_contract_labels() -> set[str]:
     """Union of Track A + Track B contract_types, lowercased. Used by
     contract_filter to broaden acceptance beyond the ContractType enum's

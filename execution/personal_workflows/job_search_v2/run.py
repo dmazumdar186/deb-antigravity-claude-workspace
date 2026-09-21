@@ -9,12 +9,22 @@ inputs:
         --sources                : comma-separated subset of {france_travail,wttj,apec,linkedin_gmail}
         --max-pages              : passed to each source
         --posted-within-days     : passed to france_travail
+        --max-age-days           : Stage 3.8 freshness window (default config verification.max_age_days = 7):
+                                   the job's OWN page is opened, its real posted date read, and anything
+                                   older, closed / no longer accepting applications, or undatable is dropped
+        --no-verify              : skip Stage 3.8 (debugging only — never in the cron YAML)
+        --lenient-verify         : debugging only — keep blocked / unconfirmed links stamped
+                                   'unverified'. Default STRICT (config verification.strict):
+                                   a kept link is positively confirmed open on its own page
+                                   (one headless-browser retry for blocked hosts, one re-fetch
+                                   for pages without an open signal), else dropped.
     - env (live mode): FRANCE_TRAVAIL_CLIENT_ID/SECRET, GMAIL_TOKEN_PATH (linkedin_gmail),
                        SHEETS_SPREADSHEET_ID, GOOGLE_SERVICE_ACCOUNT_PATH,
                        GMAIL_SMTP_USER/APP_PASSWORD/NOTIFY_TO
 outputs:
     - .tmp/job_search_v2/runs/run_<utc-id>/{france_travail,wttj,apec,linkedin_gmail}.jsonl
     - .tmp/job_search_v2/runs/run_<utc-id>/normalized.jsonl
+    - .tmp/job_search_v2/runs/run_<utc-id>/verification.jsonl (per-job Stage 3.8 verdict + evidence)
     - .tmp/job_search_v2/runs/run_<utc-id>/summary.json
     - Append-row API call to Google Sheets v2_jobs tab (unless --dry-run)
     - Email digest via SMTP (unless --dry-run)
@@ -56,6 +66,9 @@ from execution.personal_workflows.job_search_v2.normalizer.dedup import (  # noq
 from execution.personal_workflows.job_search_v2.normalizer.contract_filter import (  # noqa: E402
     filter_by_contract,
 )
+from execution.personal_workflows.job_search_v2.normalizer.domain_filter import (  # noqa: E402
+    filter_by_domain,
+)
 from execution.personal_workflows.job_search_v2.normalizer.language_filter import (  # noqa: E402
     filter_by_language,
 )
@@ -63,12 +76,17 @@ from execution.personal_workflows.job_search_v2.normalizer.location_filter impor
     filter_by_location,
     load_config,
 )
+from execution.personal_workflows.job_search_v2.normalizer.posting_verifier import (  # noqa: E402
+    records_to_jsonl,
+    verify_jobs,
+)
 from execution.personal_workflows.job_search_v2.normalizer.normalize import (  # noqa: E402
     batch_normalize,
 )
 from execution.personal_workflows.job_search_v2.normalizer.title_filter import (  # noqa: E402
     filter_by_title,
 )
+from execution.personal_workflows.job_search_v2.profile import loader as profile_loader  # noqa: E402
 from execution.personal_workflows.job_search_v2.notifier import email as email_notifier  # noqa: E402
 from execution.personal_workflows.job_search_v2.notifier import sheet as sheet_notifier  # noqa: E402
 from execution.personal_workflows.job_search_v2.ranker import score as ranker  # noqa: E402
@@ -490,6 +508,20 @@ def main() -> int:
                         help="Skip the post-run acceptance gate (debugging only). "
                              "Normally the run EXITS NON-ZERO if the sheet ends up with "
                              "any irrelevant / non-EN-FR / out-of-scope row.")
+    parser.add_argument("--no-verify", action="store_true",
+                        help="Skip Stage 3.8 posting verification (page-level freshness + "
+                             "still-accepting-applications check). Debugging only — the live "
+                             "cron must verify every job before it reaches the sheet.")
+    parser.add_argument("--max-age-days", type=float, default=None,
+                        help="Drop any job whose real posted date is older than N days "
+                             "(default: config verification.max_age_days, 7). The posted date "
+                             "is read from the job's own page; the source's date is only a "
+                             "fallback when the page cannot be fetched.")
+    parser.add_argument("--lenient-verify", action="store_true",
+                        help="Debugging only: keep blocked-host / unconfirmed-open jobs on the source "
+                             "date (stamped 'unverified'). Default is STRICT: every kept link is "
+                             "positively confirmed open on its own page. The acceptance gate fails "
+                             "'unverified' rows while config verification.strict is true.")
     parser.add_argument("--no-ranker", action="store_true",
                         help="Skip Gemini ranking (jobs still flow through; all tier=B placeholder).")
     parser.add_argument("--no-sonnet-rerank", action="store_true",
@@ -580,10 +612,52 @@ def main() -> int:
     # (2026-06-24). Runs AFTER location because location-rejected jobs are
     # already gone; the cost is detection-per-kept-job only. A Berlin-based
     # role written in English passes here; one written in German is rejected.
-    filtered_jobs, language_stats = filter_by_language(contract_kept)
+    language_kept, language_stats = filter_by_language(contract_kept)
     logger.info("run: language_filter %s", language_stats)
 
-    # Stage 3.7: Gemini 2.5 Flash ranker (free tier)
+    # Stage 3.75: domain filter — the CV is software-only (B2B SaaS / retail
+    # tech / GenAI). PM/PO roles for NON-digital products (instrumentation,
+    # electronics, semiconductors, embedded/firmware, systems software,
+    # mechanical, medical devices…) are rejected deterministically so they
+    # never consume a ranker slot or a sheet row (operator complaint 2026-09-10).
+    domain_kept, domain_stats = filter_by_domain(
+        language_kept, extra_anchors=profile_loader.get_skip_domain_anchors(),
+    )
+    logger.info("run: domain_filter %s", domain_stats)
+
+    # Stage 3.8: posting verification — open every surviving job's OWN page and
+    # (a) read the real posted date, (b) confirm it still accepts applications.
+    # Anything closed, older than --max-age-days, or undatable is dropped BEFORE
+    # ranking. Source-provided dates are only a fallback when the page cannot be
+    # fetched (bot-blocked host). Operator complaint 2026-09-10: ≥50% of sheet
+    # rows were expired / closed / months old.
+    verification_cfg = cfg.get("verification", {}) if isinstance(cfg, dict) else {}
+    max_age_days = float(
+        args.max_age_days if args.max_age_days is not None else verification_cfg.get("max_age_days", 7)
+    )
+    verify_enabled = bool(verification_cfg.get("enabled", True)) and not args.no_verify
+    if args.mode != "live" and verify_enabled:
+        # Fixture URLs are frozen snapshots; hitting them live would fail on
+        # long-dead postings and make the fixture run non-deterministic.
+        verify_enabled = False
+        logger.info("run: posting verification disabled in %s mode", args.mode)
+    verify_strict = bool(verification_cfg.get("strict", True)) and not args.lenient_verify
+    filtered_jobs, verify_stats, verification_records = verify_jobs(
+        domain_kept,
+        max_age_days=max_age_days,
+        concurrency=int(verification_cfg.get("concurrency", 8)),
+        enabled=verify_enabled,
+        strict=verify_strict,
+        browser_fallback=bool(verification_cfg.get("browser_fallback", True)),
+    )
+    (run_dir / "verification.jsonl").write_text(
+        records_to_jsonl(verification_records), encoding="utf-8",
+    )
+    logger.info("run: posting_verifier %s", {k: v for k, v in verify_stats.items() if k != "rejected_sample"})
+    for warning in verify_stats.get("warnings", []) or []:
+        logger.warning("run: posting_verifier %s", warning)
+
+    # Stage 3.85: Gemini 2.5 Flash ranker (free tier)
     ranker_cfg = cfg.get("ranker", {}) if isinstance(cfg, dict) else {}
     ranker_enabled = bool(ranker_cfg.get("enabled", True)) and not args.no_ranker
     ranked_by_hash, ranker_stats = ranker.rank_jobs(filtered_jobs, enabled=ranker_enabled)
@@ -634,9 +708,12 @@ def main() -> int:
     def _rank_key(job):
         ranked = ranked_by_hash.get(job.content_hash) if ranked_by_hash else None
         score = ranked.score if ranked is not None else 0.0
-        # Posted_at as secondary sort: most recent first. Jobs without a posted_at
-        # land at the bottom (epoch=0).
-        ts = job.posted_at.timestamp() if job.posted_at is not None else 0.0
+        # Posted_at as secondary sort: most recent first. The VERIFIED date
+        # (read from the job's page) wins over the source's; jobs without any
+        # posted_at land at the bottom (epoch=0).
+        rec = verification_records.get(job.content_hash)
+        posted = rec.posted_at if (rec is not None and rec.posted_at is not None) else job.posted_at
+        ts = posted.timestamp() if posted is not None else 0.0
         return (-score, -ts)
 
     ranked_filtered.sort(key=_rank_key)
@@ -665,7 +742,17 @@ def main() -> int:
             if sp is None:
                 logger.warning("run: sheet hygiene skipped — cannot open sheet: %s", sheet_err)
             else:
-                purge_stats = purge_sheet(sp, dry_run=False, delete_obsolete=True)
+                purge_stats = purge_sheet(
+                    sp, dry_run=False, delete_obsolete=True,
+                    max_age_days=max_age_days,
+                    reverify_max_fetches=int(verification_cfg.get("reverify_max_fetches", 1200)),
+                    recheck_after_days=float(verification_cfg.get("recheck_after_days", 3)),
+                    strict=verify_strict,
+                    browser_fallback=bool(verification_cfg.get("browser_fallback", True)),
+                    concurrency=int(verification_cfg.get("concurrency", 8)),
+                    max_browser_retries=int(verification_cfg.get("max_browser_retries", 150)),
+                    sweep_max_seconds=float(verification_cfg.get("sweep_max_seconds", 480)),
+                )
                 if purge_stats.get("removed_rows") or purge_stats.get("deleted_tabs"):
                     logger.info("run: sheet hygiene removed %d stale rows, deleted tabs %s",
                                 purge_stats.get("removed_rows", 0), purge_stats.get("deleted_tabs"))
@@ -680,7 +767,9 @@ def main() -> int:
         ranked_by_hash=ranked_by_hash,
         routing_config=routing_cfg,
         dry_run=args.dry_run,
+        verification=verification_records,
     )
+    logger.info("run: sheet dedup %s", sheet_notifier.LAST_APPEND_STATS)
 
     # Stage 4b: refresh Top Matches + Summary dashboards. Both fully overwrite their tabs
     # on every run so they always reflect the latest pipeline state, never stale data.
@@ -706,11 +795,16 @@ def main() -> int:
         "location_by_reason": loc_stats["by_reason"],
         "contract_filter": contract_stats,
         "language_filter": language_stats,
+        "domain_filter": domain_stats,
+        "verification": {k: v for k, v in verify_stats.items() if k != "rejected_sample"},
+        "verification_rejected_sample": verify_stats.get("rejected_sample", []),
+        "after_verification": len(filtered_jobs),
         "ranker": ranker_stats,
         "sonnet_rerank": rerank_stats,
         "after_ranker_skip": len(ranked_filtered),
         "sheet_hygiene": purge_stats,
         "sheet_appended": sheet_count,
+        "sheet_dedup": dict(sheet_notifier.LAST_APPEND_STATS),
         "sheet_per_tab": per_tab_counts,
         "sheet_ok": sheet_ok,
         "top_matches_written": top_count,

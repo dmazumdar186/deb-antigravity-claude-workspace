@@ -57,6 +57,10 @@ echo
 # Link cells are URLs, Top Matches has data rows, Summary has the dashboard rows.
 echo "[phase 3/3] customer-POV synthetic (opens the live Google Sheet)"
 echo "-----------------------------------------------------------------"
+# 2026-09-14 (cron runs 256/257): the strict-mode sweep + acceptance gate spend
+# the Sheets 60-reads/min quota right before this phase; a 60 s pause lets the
+# per-minute window refill instead of burning the retry budget on 429s.
+sleep 60
 "$PYTHON" "$(dirname "$0")/customer_pov_job_search_v2.py"
 echo
 

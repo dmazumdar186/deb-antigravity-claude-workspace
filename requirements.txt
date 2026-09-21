@@ -45,10 +45,15 @@ pytest>=7.0
 # job_digest profile.yaml loader
 pyyaml>=6.0
 
+# Headless-browser fallback for job_search_v2 posting verification (Stage 3.8 strict mode)
+# and ProdCraft audit screenshots
+playwright>=1.45
+# Free local OCR for scanned PDFs (execution/gtm_client_workflows/gaia_sourcing/core/ocr.py)
+# ONNX + onnxruntime, CPU-only, no system OCR binaries required.
+rapidocr-onnxruntime>=1.4.0
 # ProdCraft med-spa pipeline (execution/personal_workflows/prodcraft_medspa/) — audit screenshots
 # (Playwright), Gmail draft creation + sync_sheets.py's Google Sheets auth, and pytest for
 # tests/prodcraft_medspa/. pytest is already pinned above (>=7.0); prodcraft's test suite runs
 # fine on it, so it is not re-pinned here.
-playwright>=1.45
 google-api-python-client>=2.0
 google-auth-oauthlib>=1.0

@@ -88,6 +88,11 @@ execution/personal_workflows/yoga_jitendra_site/_raw_assets/
 # Client-facing page password (never commit)
 deliverables/*/ACCESS_PASSWORD.txt
 
+# Gaia operator console -- rendered HTML pages that embed run/ stage data
+# (candidate PII, gate results) straight into deliverables/<campaign>/console/.
+# Regenerable via `run.py --stage console`; never source.
+deliverables/*/console/
+
 # Coverage artifacts
 execution/.coverage
 .coverage
@@ -103,3 +108,10 @@ execution/.coverage
 
 # Regenerable ad-creative PNG renders (py execution/content/ad_creative_batch.py) — keep binaries out
 deliverables/ad_creative/**/renders/
+
+# Vercel CLI link metadata (never commit)
+.vercel/
+
+# Gaia redesign: the B Corp logo is a shipped site asset (brief-sourced), not a screenshot
+!deliverables/gaia_redesign_2026-09-17/src/assets/*.png
+!deliverables/gaia_redesign_2026-09-17/site/assets/*.png

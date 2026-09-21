@@ -1,0 +1,131 @@
+{
+  "campaign": "gaia-2026-09-14",
+  "generated_at": "2026-09-11T09:00:00+00:00",
+  "brief_version": "role1_senior_structural_engineer@abc1234",
+  "brief": [
+    {
+      "role_id": "role1_senior_structural_engineer",
+      "title": "Senior Structural Engineer, TOBIN / AtkinsRéalis",
+      "overrides": {
+        "max_grade": "senior_engineer", "max_years": 15,
+        "require_direct_evidence": true, "counties": [], "treat_unknown_as": "fail"
+      },
+      "rules": [
+        {
+          "gate_id": "seniority_ceiling",
+          "label": "Seniority",
+          "rule_text": "No higher than Senior Engineer grade; Director and Associate Director are out."
+        },
+        {
+          "gate_id": "located_ie",
+          "label": "Residence",
+          "rule_text": "Lives in the Republic of Ireland, with direct evidence, not inferred from a firm's head office."
+        },
+        {
+          "gate_id": "chartered",
+          "label": "Chartership",
+          "rule_text": "Chartered Engineer (CEng) and a member of Engineers Ireland, evidenced in their own words or their employer's page."
+        }
+      ]
+    }
+  ],
+  "input": {
+    "source": "20 August 2026 delivery",
+    "rows": [
+      {"name": "Aoife Kinsella", "employer": "Kinsella Structural", "title": "Senior Structural Engineer"},
+      {"name": "Barry Nolan", "employer": "Nolan Engineering", "title": "Senior Structural Engineer"},
+      {"name": "Ciaran Whelan", "employer": "Whelan & Partners, London", "title": "Associate Director"},
+      {"name": "Deirdre Fahy", "employer": "", "title": ""}
+    ]
+  },
+  "summary": {
+    "submitted": 4,
+    "matched": 3,
+    "not_checked": 1,
+    "pass": 1,
+    "near_miss": 1,
+    "out": 1,
+    "by_rule": {"seniority_ceiling": 1, "located_ie": 1, "chartered": 1},
+    "residence": {"outside_republic": 1, "no_evidence": 0},
+    "contact": {"verified": 1, "catch_all": 1, "guess": 1, "none": 0, "unknown": 1}
+  },
+  "rows": [
+    {
+      "name": "Aoife Kinsella",
+      "employer": "Kinsella Structural",
+      "title": "Senior Structural Engineer",
+      "status": "PASS",
+      "failed": [],
+      "evidence": [
+        {"dimension": "chartered", "quote": "Aoife Kinsella CEng MIEI, Senior Structural Engineer", "source_url": "https://example.ie/aoife-linkedin"},
+        {"dimension": "location", "quote": "Based in Cork, Ireland", "source_url": "https://example.ie/aoife-firm-page"}
+      ],
+      "contact": "verified",
+      "one_line": "Meets every rule: senior grade, Cork residence, CEng MIEI."
+    },
+    {
+      "name": "Barry Nolan",
+      "employer": "Nolan Engineering",
+      "title": "Senior Structural Engineer",
+      "status": "NEAR_MISS",
+      "failed": [
+        {"gate_id": "chartered", "label": "Chartership", "reason": "No CEng or Engineers Ireland membership found in his own words or his employer's page."}
+      ],
+      "evidence": [
+        {"dimension": "location", "quote": "Based in Galway, Ireland", "source_url": "https://example.ie/barry-linkedin"}
+      ],
+      "contact": "catch_all",
+      "one_line": "Misses one rule: chartership not evidenced."
+    },
+    {
+      "name": "Ciaran Whelan",
+      "employer": "Whelan & Partners, London",
+      "title": "Associate Director",
+      "status": "OUT",
+      "failed": [
+        {"gate_id": "seniority_ceiling", "label": "Seniority", "reason": "Associate Director is above the Senior Engineer ceiling."},
+        {"gate_id": "located_ie", "label": "Residence", "reason": "Based in London, not the Republic of Ireland."}
+      ],
+      "evidence": [
+        {"dimension": "seniority", "quote": "Associate Director at Whelan & Partners, London", "source_url": "https://example.ie/ciaran-linkedin"}
+      ],
+      "contact": "guess",
+      "one_line": "Out: above the seniority ceiling and based in London, not Ireland."
+    },
+    {
+      "name": "Deirdre Fahy",
+      "employer": "",
+      "title": "",
+      "status": "NOT_CHECKED",
+      "failed": [],
+      "evidence": [],
+      "contact": "unknown",
+      "one_line": "Not checked yet. A new name takes one working day and comes back with the same proof lines."
+    }
+  ],
+  "pool": [
+    {"name": "Aoife Kinsella", "employer": "Kinsella Structural", "status": "PASS", "failed_labels": []},
+    {"name": "Barry Nolan", "employer": "Nolan Engineering", "status": "NEAR_MISS", "failed_labels": ["Chartership"]},
+    {"name": "Ciaran Whelan", "employer": "Whelan & Partners, London", "status": "OUT", "failed_labels": ["Seniority", "Residence"]},
+    {"name": "Eoin Casey", "employer": "Casey Consulting", "status": "PASS", "failed_labels": []},
+    {"name": "Fiona Brady", "employer": "Brady Infrastructure", "status": "OUT", "failed_labels": ["Seniority"]},
+    {"name": "Gerard Lynch", "employer": "Lynch & Co", "status": "NEAR_MISS", "failed_labels": ["Residence"]}
+  ],
+  "time_value": {
+    "assumptions": {
+      "minutes_per_manual_check": 15,
+      "names_per_week": 40,
+      "hourly_cost_eur": 45.0
+    },
+    "weekly": {
+      "hours_per_week": 10.0,
+      "eur_per_week": 450.0,
+      "eur_per_month": 1950.0
+    },
+    "august_list": {
+      "consultant_hours_spent": 3.25,
+      "calls_that_would_have_been_wrong": 13,
+      "emails_to_unplaceable": 4
+    }
+  }
+}

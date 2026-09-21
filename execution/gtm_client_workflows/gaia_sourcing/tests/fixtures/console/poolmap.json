@@ -1,0 +1,24 @@
+{
+  "role1_senior_structural_engineer": {
+    "role_id": "role1_senior_structural_engineer",
+    "profiles_assessed": 2,
+    "raw_claims": 11,
+    "evidence_validated": 11,
+    "passed_all_gates": 2,
+    "delivered": 2,
+    "exclusions": [],
+    "near_misses": [],
+    "client_side_sidebar": []
+  },
+  "role2_transport_major_projects_manager": {
+    "role_id": "role2_transport_major_projects_manager",
+    "profiles_assessed": 1,
+    "raw_claims": 5,
+    "evidence_validated": 5,
+    "passed_all_gates": 1,
+    "delivered": 1,
+    "exclusions": [],
+    "near_misses": [],
+    "client_side_sidebar": []
+  }
+}

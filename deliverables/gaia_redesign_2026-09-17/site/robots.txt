@@ -1,0 +1,3 @@
+# This is a private redesign concept. It must not compete with gaiatalent.com.
+User-agent: *
+Disallow: /

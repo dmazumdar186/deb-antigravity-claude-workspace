@@ -1,0 +1,486 @@
+{
+  "checked_at": "2026-09-17T16:12:14+00:00",
+  "checked_on": "2026-09-17",
+  "total": 63,
+  "ok": 59,
+  "inconclusive": [
+    {
+      "url": "https://gaiatalent.com/jobs/design-project-senior-structural-engineer/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    },
+    {
+      "url": "https://gaiatalent.com/jobs/ecological-environmental-clerk-of-works/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    },
+    {
+      "url": "https://gaiatalent.com/jobs/principal-engineer-transportation/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    },
+    {
+      "url": "https://gaiatalent.com/jobs/principal-mechanical-engineer/",
+      "status": 403,
+      "error": "server refused the request",
+      "reason": "refused"
+    }
+  ],
+  "failed": [],
+  "blocked": false,
+  "control": {
+    "url": "https://gaiatalent.com/",
+    "status": 200,
+    "verdict": "ok"
+  },
+  "results": [
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/arborist/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/associate-director-civil-environmental-engineering/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/associate-director-sustainable-infrastructure/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/associate-renewables/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/civil-engineering-technician-3/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/civil-engineering-technician-4/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/clerk-of-works-greenway-infrastructure/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/consents-manager/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/construction-quality-manager/",
+      "ok": true
+    },
+    {
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
+      "url": "https://gaiatalent.com/jobs/design-project-senior-structural-engineer/",
+      "ok": false
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/divisional-project-engineer/",
+      "ok": true
+    },
+    {
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
+      "url": "https://gaiatalent.com/jobs/ecological-environmental-clerk-of-works/",
+      "ok": false
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/environmental-consultant/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/environmental-health-safety-coordinator/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/environmental-health-safety-site-manager/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/geotechnical-engineer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/graduate-engineer-water-utilities/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/hydrogeologist/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/land-liaison-officer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/landfill-manager/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/lvia-specialist-landscape-planner/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-civil-engineer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-digital-graphic-artist-planning/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-ecologist/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-eia-consultant-energy/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-eia-consultant/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-engineer-energy/",
+      "ok": true
+    },
+    {
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
+      "url": "https://gaiatalent.com/jobs/principal-engineer-transportation/",
+      "ok": false
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-engineer-water/",
+      "ok": true
+    },
+    {
+      "status": 403,
+      "verdict": "inconclusive",
+      "reason": "refused",
+      "error": "server refused the request",
+      "url": "https://gaiatalent.com/jobs/principal-mechanical-engineer/",
+      "ok": false
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-project-manager-civil-environmental-engineering/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/principal-project-manager-sustainable-infrastructure/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/project-engineer-renewable-energy/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/project-geotechnical-design-engineer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/project-hydrogeologist-environment-planning/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/project-manager-building-infrastructure/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/project-manager-environment-planning/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/project-manager-renewable-energy/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/project-manager/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/resident-engineer-all-levels/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/resident-engineer-bridge-construction/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-bridge-engineer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-building-services-engineer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-civil-engineer-roads-and-transportation/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-ecologist-freshwater-aquatic-specialist/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-ecologist-ornithology/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-ecologist/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-eia-project-manager/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-engineer-team-lead-design-build-water-utilities/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-environmental-consultant-2/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-environmental-consultant-environmental-compliance-circular-economy/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-environmental-engineer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-environmental-impact-assessment-eia-specialist/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-flood-risk-consultant-flood-risk-hydrology/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-health-safety-consultant/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-lvia-consultant/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-principal-engineer-renewables/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-project-manager/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-project-planner/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-quantity-surveyor-building-infrastructure/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-resident-engineer/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/senior-waste-environmental-compliance-consultant-epa-licensing-compliance/",
+      "ok": true
+    },
+    {
+      "status": 200,
+      "verdict": "ok",
+      "error": "",
+      "url": "https://gaiatalent.com/jobs/structural-technician/",
+      "ok": true
+    }
+  ]
+}

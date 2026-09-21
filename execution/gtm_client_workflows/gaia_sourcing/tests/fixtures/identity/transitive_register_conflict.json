@@ -1,0 +1,8 @@
+[
+  {"source": "engineers_ireland", "source_ref": "r1", "full_name": "David Kelly",
+   "employer": "Roughan & O Donovan", "register_number": "EI-10234", "doc_ids": ["d1"]},
+  {"source": "engineers_ireland", "source_ref": "r2", "full_name": "David Kelly",
+   "employer": "Roughan & O Donovan", "doc_ids": ["d2"]},
+  {"source": "engineers_ireland", "source_ref": "r3", "full_name": "David Kelly",
+   "employer": "Roughan & O Donovan", "register_number": "EI-99001", "doc_ids": ["d3"]}
+]

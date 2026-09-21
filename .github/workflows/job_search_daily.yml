@@ -59,7 +59,7 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45  # 2026-09-14: sources ~15 min + strict verification + time-boxed sheet sweep (8 min)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -74,6 +74,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Install headless Chromium for the verification browser fallback
+        # Stage 3.8 strict verification: hosts that block plain HTTP fetches
+        # (weworkremotely.com answers 403 to httpx but serves the page to a
+        # browser) get one headless-Chromium retry before a job is dropped as
+        # unverifiable. ~60 s of setup; without it those jobs are dropped, not
+        # shipped unverified (the pipeline degrades safely).
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
 
       - name: Decode service-account JSON
         env:

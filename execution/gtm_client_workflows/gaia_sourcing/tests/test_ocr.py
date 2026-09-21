@@ -313,3 +313,158 @@ def test_documents_written_before_the_flag_existed_still_load():
     )
 
     assert doc.text_source == "text_layer"
+
+
+# ---------------------------------------------------------------------------
+# Free local OCR (rapidocr-onnxruntime) -- tried before either paid model.
+# ---------------------------------------------------------------------------
+
+SCAN_TEXT = "Chartered Engineer MIEI 15 years"
+
+
+def _make_scanned_pdf() -> bytes:
+    """Build a real image-only PDF: render text into a page, rasterise it,
+    then insert the raster as the ONLY content of a fresh page -- no text
+    layer, exactly like the oral-hearing scans this exists for.
+
+    Several lines, not just the one short phrase, so the real transcription
+    clears the same minimum-length floor the paid paths are held to.
+    """
+    import fitz
+
+    src = fitz.open()
+    page = src.new_page(width=595, height=300)
+    page.insert_text((30, 60), SCAN_TEXT, fontsize=18)
+    page.insert_text((30, 100), "Registered with Engineers Ireland since 2011.", fontsize=18)
+    page.insert_text((30, 140), "Gave evidence at the oral hearing on transport matters.", fontsize=18)
+    pix = page.get_pixmap(dpi=200)
+    img_bytes = pix.tobytes("png")
+    src.close()
+
+    out = fitz.open()
+    out_page = out.new_page(width=595, height=200)
+    out_page.insert_image(out_page.rect, stream=img_bytes)
+    raw = out.tobytes()
+    out.close()
+    return raw
+
+
+class _FakeLocalEngine:
+    """Stands in for RapidOCR: returns one line box per call, in the shape
+    RapidOCR itself returns -- [[box, text, score], ...]."""
+
+    def __init__(self, text=SCAN_TEXT, calls_ok=True):
+        self.text = text
+        self.calls_ok = calls_ok
+        self.call_count = 0
+
+    def __call__(self, img):
+        self.call_count += 1
+        if not self.calls_ok:
+            raise RuntimeError("engine exploded")
+        box = [[10.0, 10.0], [200.0, 10.0], [200.0, 30.0], [10.0, 30.0]]
+        return [[box, self.text, 0.99]], None
+
+
+def test_local_ocr_is_tried_first_and_the_paid_client_is_never_called(monkeypatch):
+    fake = _FakeLocalEngine(text=(SCAN_TEXT + ". ") * 10)
+    monkeypatch.setattr(ocr, "_local_engine", lambda: fake)
+    monkeypatch.setattr(ocr, "page_count", lambda raw: 1)
+    monkeypatch.setattr(
+        ocr, "_rasterize_and_ocr",
+        lambda raw, engine, max_pages: [engine(None)[0][0][1]] * max_pages,
+    )
+
+    def explode():
+        raise AssertionError("must not call the paid Anthropic client")
+
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.providers._anthropic_client",
+        lambda: explode())
+
+    out = ocr.transcribe_pdf(b"%PDF-fake", "https://pleanala.ie/scan.pdf")
+
+    assert out is not None
+    assert "Chartered Engineer" in out
+
+
+def test_local_ocr_floor_rejects_a_too_short_transcription(monkeypatch, capsys):
+    fake = _FakeLocalEngine(text="x")
+    monkeypatch.setattr(ocr, "_local_engine", lambda: fake)
+    monkeypatch.setattr(ocr, "page_count", lambda raw: 5)
+    monkeypatch.setattr(ocr, "_rasterize_and_ocr", lambda raw, engine, max_pages: ["x"] * max_pages)
+
+    assert ocr.transcribe_pdf_local(b"%PDF-fake", "https://pleanala.ie/x.pdf") is None
+    assert "suspiciously short" in capsys.readouterr().out
+
+
+def test_local_ocr_falls_through_to_the_paid_path_when_unavailable(monkeypatch):
+    """Local engine missing -> the existing Anthropic/Gemini fallback still
+    runs, unmodified in shape or order."""
+    monkeypatch.setattr(ocr, "_local_engine", lambda: None)
+    _client(monkeypatch, PAGE, pages=10)
+
+    out = ocr.transcribe_pdf(b"%PDF-fake", "https://pleanala.ie/x.pdf")
+
+    assert out and "Chartered Engineer" in out
+
+
+def test_ocr_local_only_skips_the_paid_path_even_when_local_fails(monkeypatch):
+    from gtm_client_workflows.gaia_sourcing.core.config import CONFIG
+
+    monkeypatch.setattr(CONFIG, "ocr_local_only", True)
+    monkeypatch.setattr(ocr, "_local_engine", lambda: None)
+    monkeypatch.setattr(ocr, "page_count", lambda raw: 5)
+
+    def explode():
+        raise AssertionError("ocr_local_only must never call a paid model")
+
+    monkeypatch.setattr(
+        "gtm_client_workflows.gaia_sourcing.core.providers._anthropic_client",
+        lambda: explode())
+
+    assert ocr.transcribe_pdf(b"%PDF-fake", "https://pleanala.ie/x.pdf") is None
+
+
+def test_local_ocr_records_no_spend():
+    """Cost 0 -- unlike the paid paths, nothing is recorded against the
+    ledger or the run's spend total."""
+    from gtm_client_workflows.gaia_sourcing.core import providers
+
+    import inspect
+    src = inspect.getsource(ocr.transcribe_pdf_local)
+    assert "_record_spend" not in src
+    assert "_append_ledger" not in src
+
+
+def test_local_ocr_engine_failure_degrades_rather_than_raises(monkeypatch, capsys):
+    fake = _FakeLocalEngine(calls_ok=False)
+    monkeypatch.setattr(ocr, "_local_engine", lambda: fake)
+    monkeypatch.setattr(ocr, "page_count", lambda raw: 1)
+
+    def explode(raw, engine, max_pages):
+        raise RuntimeError("engine exploded")
+
+    monkeypatch.setattr(ocr, "_rasterize_and_ocr", explode)
+
+    assert ocr.transcribe_pdf_local(b"%PDF-fake") is None
+    assert "failed for" in capsys.readouterr().out
+
+
+try:
+    import rapidocr_onnxruntime  # noqa: F401
+    _HAS_RAPIDOCR = True
+except ImportError:
+    _HAS_RAPIDOCR = False
+
+
+@pytest.mark.skipif(not _HAS_RAPIDOCR, reason="rapidocr_onnxruntime not installed")
+def test_the_real_local_engine_reads_a_rasterised_scan():
+    """No mocking: builds a genuine image-only PDF, runs the real engine on
+    it, and checks the transcription against the real page text."""
+    raw = _make_scanned_pdf()
+
+    out = ocr.transcribe_pdf_local(raw, "https://pleanala.ie/real-scan.pdf")
+
+    assert out is not None
+    assert "Chartered" in out

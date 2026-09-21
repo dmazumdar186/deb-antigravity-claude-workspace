@@ -1,0 +1,23 @@
+{
+  "alice_kearney": {
+    "person_id": "alice_kearney",
+    "tenure_months_current": 48,
+    "signals": ["stable tenure"],
+    "assessment": "medium",
+    "rationale": "Four years in current role; no public signal of an active job search."
+  },
+  "brian_walsh": {
+    "person_id": "brian_walsh",
+    "tenure_months_current": 14,
+    "signals": ["recent promotion"],
+    "assessment": "high",
+    "rationale": "Recently promoted; often a natural point to consider a move within 12-18 months."
+  },
+  "ciara_hennessy": {
+    "person_id": "ciara_hennessy",
+    "tenure_months_current": 96,
+    "signals": [],
+    "assessment": "unknown",
+    "rationale": "No public tenure or activity signal found."
+  }
+}

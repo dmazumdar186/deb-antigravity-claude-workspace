@@ -1,0 +1,8 @@
+[
+  {"source": "company_bio", "source_ref": "r1", "full_name": "Niamh Doyle",
+   "employer": "DBFL Consulting Engineers", "linkedin_url": "https://linkedin.com/in/niamhdoyle-a",
+   "doc_ids": ["d1"]},
+  {"source": "pdl", "source_ref": "r2", "full_name": "Niamh Doyle",
+   "employer": "DBFL Consulting Engineers", "linkedin_url": "https://linkedin.com/in/niamhdoyle-b",
+   "doc_ids": ["d2"]}
+]
