@@ -1,8 +1,8 @@
 ---
 name: qa
 description: Tests scripts by classifying risk, running safe tests, validating contracts, and reporting pass/fail with evidence.
-model: claude-fable-5  # driving tier -- test execution + contract checks (Fable 5 since 2026-09-21)
-effort: medium
+model: claude-fable-5-1
+effort: low
 maxTurns: 25
 tools:
   - Read

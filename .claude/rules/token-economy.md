@@ -10,11 +10,10 @@
 - Keep the prefix byte-stable: cache reads are cheap only while nothing before them changes. Batch edits to CLAUDE.md, rules and settings; a model switch, MCP toggle or CLAUDE.md edit misses the cache for every open session.
 - Hooks: only SessionStart / UserPromptSubmit stdout enters context. Keep `session-start.sh` small. PostToolUse stdout on exit 0 is discarded (free, but does nothing).
 
-## 2. Model doctrine — all Fable, effort does the tiering (2026-09-21)
+## 2. Model doctrine — Fable 5.1 only, effort low (2026-09-21)
 
-- Brain `claude-fable-5-1` (orchestrator, default effort). Workers `claude-fable-5` (`CLAUDE_CODE_SUBAGENT_MODEL` in settings). Same per-token price; Sonnet/Opus workers were judged too weak; Haiku banned.
-- Effort is fixed by operator order (2026-09-21): **Fable 5.1 = `low`, Fable 5 = `medium`, everywhere, no exceptions** unless the operator specifies otherwise for a task. `modelSettings` in `.claude/settings.json` sets it per model; every agent's `effort:` frontmatter repeats it (`pipeline-auditor` on 5.1 is `low`); execution scripts pass `output_config.effort` accordingly. Lower effort means fewer tool calls and less preamble, not a weaker model.
-- Fable cannot disable thinking; thinking bills as output. Never put Fable in a tight poll loop.
+- One model everywhere: `claude-fable-5-1` for the session, every sub-agent (`CLAUDE_CODE_SUBAGENT_MODEL`), workflows, audit lenses and both `model_registry` tiers. One effort everywhere: `low` (`effortLevel` + `modelSettings` in settings.json, `effort: low` on every agent, `llm_client.default_effort()` on API calls). No medium, no other model, unless the operator names one for a task.
+- Why this is the cheap shape: one model means one cache namespace, cache reads at $0.25/MTok, and low effort means fewer tool calls and less preamble per turn. Fable cannot disable thinking; thinking bills as output, so never put it in a tight poll loop.
 
 ## 3. Work-splitting — small units, fresh contexts
 

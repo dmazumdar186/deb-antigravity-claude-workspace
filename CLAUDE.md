@@ -24,14 +24,13 @@ Category map (identical subfolders for `directives/` and `execution/`): **`direc
 3. **Self-anneal when things break** — read the error, fix the script, re-test (ask first if it burns paid credits), update the directive, then spawn the documenter sub-agent (`directives/subagent/documenter.md`).
 4. **Directives are living documents** — update them with API limits, timing, edge cases; say so in the commit.
 5. **No HITL, ever (operator standing order, 2026-09-10).** Never ask the operator to do, decide, approve, or paste anything until every option is exhausted: run the commands, gates, migrations and pushes yourself; pick the sensible default and state it; retry, route around, or build the missing piece. Ask only when the action is irreversible and outside the request, or only the operator holds the input (a credential, a client's answer); batch the ask and keep working. After every completed unit of work: run the audit stack, commit, and push (branch and main) with admin rights assumed. **Permissions are pre-granted (2026-09-21):** `.claude/settings.json` runs `defaultMode: bypassPermissions`; commits, pushes, PRs, installs, deploys and tests need no prompt. If a prompt still appears, the fix is a settings rule, never a question to the operator.
-6. **Token economy** — main context stays lean; delegate; effort, not model, is the cost dial. Full rule: `.claude/rules/token-economy.md`.
+6. **Token economy** — main context stays lean; delegate; low effort everywhere. Full rule: `.claude/rules/token-economy.md`.
 
-## Models — all Fable (set 2026-09-21)
+## Models — Fable 5.1 only, effort low (set 2026-09-21)
 
-- **Brain: `claude-fable-5-1`** — session default. Plans, architects, decides, reviews diffs, delegates. It does **not** grind: exploration, implementation from an approved plan, scraping, formatting and fan-out go to worker sub-agents. Every main-session token is a judgement token. Keep the auto-loaded prefix byte-stable so 5.1 cache reads ($0.25/MTok) stay cheap.
-- **Workers: `claude-fable-5`** (same $10/$50 as 5.1; Sonnet workers judged too weak 2026-09-21). All sub-agents, Dynamic Workflow workers, execution scripts' default tier, mechanical agents and checklist audits.
-- **Effort is fixed (operator order 2026-09-21): Fable 5.1 runs `low`, Fable 5 runs `medium`, everywhere, no exceptions** unless the operator says otherwise for a task. Enforced by `modelSettings` in `.claude/settings.json` and `effort:` frontmatter on every agent; `pipeline-auditor` (5.1) is `low`.
-- Sonnet/Opus/Haiku are not used. Pin full model IDs, never aliases. History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, tiers resolve via `model_registry.LAST_KNOWN_GOOD` (`'default'` = Fable 5; `'premium'` = Fable 5.1).
+- **Every context runs `claude-fable-5-1` at `effort: low`**: the session, all sub-agents, Dynamic Workflow workers, audit lenses, and execution scripts' default and premium tiers. No other model or effort level is used unless the operator names one for a task. Enforced by `effortLevel`/`modelSettings` and `CLAUDE_CODE_SUBAGENT_MODEL` in `.claude/settings.json`, `effort: low` frontmatter on every agent, and `llm_client.default_effort()`.
+- The brain still does **not** grind: exploration, implementation from an approved plan, scraping, formatting and fan-out go to worker sub-agents with a complete brief; every main-session token is a judgement token. Keep the auto-loaded prefix byte-stable so cache reads ($0.25/MTok) stay cheap.
+- Sonnet, Opus, Haiku and Fable 5 are retired here. Pin the full ID, never an alias. History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, `model_registry.LAST_KNOWN_GOOD` resolves both tiers to Fable 5.1.
 
 ## Sub-agents & parallelism
 

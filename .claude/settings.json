@@ -5,13 +5,14 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "0",
     "teammateMode": "in-process",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-fable-5"
+    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-fable-5-1"
   },
   "autoMemoryEnabled": true,
   "effortLevel": "low",
   "modelSettings": {
-    "claude-fable-5-1": { "effortLevel": "low" },
-    "claude-fable-5": { "effortLevel": "medium" }
+    "claude-fable-5-1": {
+      "effortLevel": "low"
+    }
   },
   "awaySummaryEnabled": false,
   "bashOutputMaxChars": 20000,

@@ -1,8 +1,8 @@
 ---
 name: note-taker
 description: 'Capture learnings into .claude/notes/ after edits to directives/ or execution/. Uses the [tag] subject: detail format. Append-only; never overwrites.'
-model: claude-fable-5  # execution tier -- append-only note capture
-effort: medium
+model: claude-fable-5-1
+effort: low
 maxTurns: 25
 omitClaudeMd: true
 tools:

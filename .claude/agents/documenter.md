@@ -1,8 +1,8 @@
 ---
 name: documenter
 description: Sync the corresponding directive with the actual behavior of a script after it's edited. Reads the script, compares against the directive's inputs/outputs/edge-cases, proposes a precise diff to the directive, applies it after a brief explanation.
-model: claude-fable-5  # execution tier -- mechanical directive sync
-effort: medium
+model: claude-fable-5-1
+effort: low
 maxTurns: 25
 omitClaudeMd: true
 tools:
