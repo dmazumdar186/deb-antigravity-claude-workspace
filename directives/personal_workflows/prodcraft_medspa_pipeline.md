@@ -41,18 +41,19 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 | `audit/sample_audit.py` | Random N-business audit-only sample -> `metro_stats` row with a Wilson 95% interval. |
 | `enrich/waterfall.py` | 6-step owner-name/email waterfall + MillionVerifier verification, gated on `--min-score`. |
 | `preview/build_preview.py` | `business.json` -> template static build -> R2 upload -> Worker `/api/publish`. |
-| `preview/takedown.py` | Immediate unpublish (deletes the R2 prefix, flips `previews.takedown`) for one business id. |
+| `preview/takedown.py` | Immediate unpublish (deletes the R2 prefix, flips `previews.takedown`) for one business id. `take_down_preview(..., dnc=True)` also flags the business do-not-contact and closes its open outreach rows; `scan_replies` passes `dnc=False` for a negative reply. |
 | `preview/approve.py` | CLI twin of the dashboard approve button: `review` -> `approved` for `--preview-id ID` or `--metro X --all-review`; logs an `events` row. `run_metro.py --auto-approve` (implied by `--mock`) runs it after the preview stage. |
 | `preview/publish.py` | Worker API client (`/api/publish`, `/api/extend`, `/api/meta`) used by build_preview/takedown. Its CLI is the only way to extend a preview: `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30 [--mock]`. There is no `preview/extend.py` module. |
 | `outreach/daily_queue.py` | Today's queue: picks `config.queue_pick` (`random`, seeded by date+metro, or `score`) up to the phase0 cap, renders + lints drafts, re-renders rows whose last lint failed; `--create-drafts` also files Gmail drafts. |
-| `outreach/send.py` | Sends every lint-clean `drafted` row via Gmail (`gmail.send` scope) and transitions it to `sent`; enforces the daily cap across touches, the bounce halt, DNC, approved/live preview, and never mails a business that already replied. `--recipient-override EMAIL` (or env `PRODCRAFT_RECIPIENT_OVERRIDE`) redirects every message to the operator with a `[TEST to <owner_email>]` subject. |
+| `outreach/send.py` | `--stats` prints the trailing-7-day sends-vs-cap JSON line and exits (sends nothing). Otherwise sends every lint-clean `drafted` row via Gmail (`gmail.send` scope) and transitions it to `sent`; enforces the daily cap across touches, the bounce halt, DNC, approved/live preview, and never mails a business that already replied. `--recipient-override EMAIL` (or env `PRODCRAFT_RECIPIENT_OVERRIDE`) redirects every message to the operator with a `[TEST to <owner_email>]` subject. |
 | `outreach/scan_replies.py` | Classifies inbox replies; `remove` -> takedown + DNC; `negative` -> closed_lost; `positive`/`neutral` -> Telegram message to the operator (`notify.reply`), row marked replied, no further touches. The operator answers those threads by hand. |
 | `outreach/advance.py` | Runs due state-machine transitions (e.g. `sent` -> next touch, `sent` -> `closed_lost`). |
 | `deals/deals.py` | `record`/`golive`/`proof`/`list` — contract, baseline booking count, 60-day guarantee math. |
 | `scripts/run_metro.py` | Chains discovery -> audit -> enrich -> preview for one metro; prints the funnel table. |
 | `scripts/daily.py` | The unattended daily loop: advance -> scan_replies -> takedowns -> daily_queue -> send. `--no-send` keeps drafts only; `--recipient-override EMAIL`, `--limit N` pass through to send. |
 | `scripts/doctor.py` | Env-presence + (with `--live`) one cheap authenticated call per service, Node/Chromium/node_modules checks. |
-| `scripts/fit_weights.py` | Per-signal reply rate + point-biserial correlation from real outreach outcomes (never changes weights). |
+| `scripts/fit_weights.py` | Per-signal reply rate + point-biserial correlation from real outreach outcomes (never changes weights). `--report-telegram` posts the weekly summary; its last line is `sends vs cap (7d): S/C, per day s/c ...` (from `outreach/send.py`'s `sends_vs_cap`, warmup-ramped cap per day), also on the not-enough-data path. |
+| `scripts/set_loom.py` | Touch-2 operator path: `--prospect-id <outreach id or business id> --url https://www.loom.com/share/...` records `notes.loom_url` (https + loom.com only), redrafts a `drafted` row via `state_machine.redraft`, prints the row state as one JSON line. Idempotent. |
 | `scripts/sync_sheets.py` | Mirrors two tabs, `pipeline` (v_pipeline + outreach/reply columns) and `daily_log` (one row per send), to the Google Sheet `GOOGLE_SHEETS_MIRROR_ID`; `--mock` writes CSVs; `--xlsx PATH` also writes a workbook. |
 | `db/apply_schema.py` | Applies `db/schema.sql` and seeds chains/config into the target store. |
 
@@ -151,6 +152,11 @@ operator opts into `auto_approve_previews`.
     summary, suggested next step, preview link, Gmail thread link); answer that thread yourself. Negative replies
     close the row, remove requests take the preview down within the 30-minute scan, bounces feed the 2% halt.
     Weekly, open the Google Sheet (`pipeline` and `daily_log` tabs).
+11b. **Touch 2 parks until you record a Loom.** Record the walkthrough, then run
+    `python3 execution/personal_workflows/prodcraft_medspa/scripts/set_loom.py --store supabase --prospect-id <outreach id or business id> --url https://www.loom.com/share/...`
+    (`--store local --store-root $R` for a mock store). It validates the URL, writes `notes.loom_url`, redrafts the
+    parked row and prints its state; the next `daily.py` re-renders and sends it. `send.py` posts one Telegram line
+    per day with the parked count so you know when this is due.
 12. If a prospect replies interested but cannot meet before the preview expires, extend it:
     `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30`
     (renews `expires_at` on the Worker and the store, logs an `extended` event, warns if touch 4 already stated the
@@ -159,7 +165,9 @@ operator opts into `auto_approve_previews`.
     Config tab) and the daily cap lifts 5 -> 20. `calls_booked == 0` after the first 5 close out -> rewrite the
     email/offer per PROJECT_SPEC.md §3 step 5 before widening.
 14. Weekly: `scripts/sync_sheets.py`; after >= 50 touch-1 sends, `scripts/fit_weights.py` (rows with
-    `test_recipient` set are your own dry runs and must be excluded from any reply-rate statistic).
+    `test_recipient` set are your own dry runs and must be excluded from any reply-rate statistic). The Monday
+    Telegram report (`prodcraft_medspa_weekly.yml`) ends with `sends vs cap (7d): S/C, per day s/c ...`; the same
+    number on demand: `python3 execution/personal_workflows/prodcraft_medspa/outreach/send.py --store supabase --stats`.
 
 ### Next metro
 

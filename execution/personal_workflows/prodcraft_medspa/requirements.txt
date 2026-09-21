@@ -56,3 +56,4 @@ playwright>=1.45
 # install them so the live path is exercised instead of silently degrading in production.
 dnspython>=2.0.0
 psycopg[binary]>=3.1
+cffi>=1.17

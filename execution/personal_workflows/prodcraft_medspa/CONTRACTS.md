@@ -304,7 +304,7 @@ replies workflow.
 
 | Number | Source |
 |---|---|
-| Sends vs cap | `config.phase0.{queue_cap_locked,queue_cap_open}` vs actual `outreach` rows with `sent_at` in the trailing 7 days (not yet computed by `fit_weights.py`; read `outreach`/`config` directly until a dedicated stat lands) |
+| Sends vs cap | `outreach/send.py`'s `sends_vs_cap(st, today, mock=)`: per UTC day over the trailing 7 days (today inclusive), `_sent_today_count` (all touches) vs `daily_queue.effective_cap` for that date (warmup-ramped; plain `phase0.cap` under mock). Reported as the 6th content line of the weekly Telegram message (`fit_weights.sends_vs_cap_line`, also on the not-enough-data path, format `sends vs cap (7d): S/C, per day s/c ...`) and on demand by `send.py --stats` (one JSON line `{"script":"send","stats":"sends_vs_cap","days":[...],"sent","cap","window_days","line"}`; sends nothing) |
 | Touch-1 reply rate | `fit_weights.py`'s `overall_reply_rate` (this file's `touch1_outcomes()` / `compute_signal_table()`) |
 | Rolling bounce rate | The 30-day bounce-rate gate already enforced by `outreach/state_machine.py`'s queue halt (CONTRACTS.md "Outreach state machine") — not part of `fit_weights.json` today |
 | `pct_qualified` per metro | `metro_stats.pct_qualified` (PROJECT_SPEC.md §5.3 `sample_audit`), one row per metro |
@@ -358,9 +358,11 @@ replies workflow.
 - **Negative reply takedown, without DNC (`scan_replies.py`)**: a `negative` reply still goes
   `sent -> replied -> closed_lost`, and ALSO takes down every non-takendown preview linked to that
   business via the same real unpublish path (`preview/takedown.py`'s `take_down_preview()` — R2
-  prefix delete + Worker `/remove`) the `dnc`/`remove` flow uses — but this is explicitly **not**
-  a do-not-contact request: `businesses.do_not_contact` is left/reverted to its prior value and no
-  other outreach rows are cascaded. (This amends the "closed_lost... no forced takedown" line
+  prefix delete + Worker `/remove`) the `dnc`/`remove` flow uses, called with `dnc=False` (round 4)
+  — this is explicitly **not** a do-not-contact request: `businesses.do_not_contact` is never
+  written and no other outreach rows are cascaded. `take_down_preview(store, preview, *, mock,
+  tmp_root, dnc=True)`: `dnc=True` (remove/dnc path, the default) additionally stamps
+  `do_not_contact` and closes the business's non-terminal outreach rows to `dnc`. (This amends the "closed_lost... no forced takedown" line
   below, which still holds for every OTHER path into `closed_lost` — touch-4 grace expiry via
   `advance.py`, etc. — a negative reply is the one exception.)
 - **Remove reply also notifies (`scan_replies.py`)**: a `remove` reply keeps its existing
@@ -390,7 +392,11 @@ replies workflow.
   `daily_queue._drafted_pending_count()` excludes these rows from the daily cap count (they will
   never leave `drafted` on their own, so counting them would starve fresh drafting every day
   after) — an operator fixes the missing value (e.g. sets `notes.loom_url`) and calls
-  `state_machine.redraft()` to send it back through the pipeline.
+  `state_machine.redraft()` to send it back through the pipeline. Round 4: `scripts/set_loom.py
+  --prospect-id <outreach id | business id> --url https://www.loom.com/share/...` does both in one
+  command (URL must be https on a loom.com host, else exit 2 and nothing is written; `notes` patch
+  goes through `Store.manual_patch` with reason `set_loom`; redraft only when the row is `drafted`;
+  prints one JSON line with the resulting row state).
 - **Atomic send claim (`send.py`/`Store.claim_row`, CRITICAL item 11)**: before mailing, `send.py`
   claims `drafted -> sent` via `Store.claim_row` (see Store interface above); a failed claim
   (another process already claimed the row) is dropped as `already_claimed` and the send is

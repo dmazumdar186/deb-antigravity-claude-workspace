@@ -57,7 +57,8 @@ python3 execution/personal_workflows/prodcraft_medspa/scripts/daily.py --mock --
 Mock chain DoD: 22 found -> 16 kept -> 16 audited -> 6 qualified -> 4 verified -> 4 previews -> 4 approved ->
 4 drafted -> **4 sent** (mock .eml under `.tmp/prodcraft_medspa/sent/`); a second `daily.py` run sends 0.
 Without `--recipient-override`, `daily.py --mock` sends 0 and reports `live_send_not_confirmed` by design.
-Last full run (head 898f4c6): pytest 645 passed / 35 skipped (about 115 s); vitest 29; typecheck, build and
+Last full run (head 898f4c6): pytest 645 passed / 35 skipped (about 115 s); round 4 adds 20 tests in
+`test_round4.py` (665 passed / 35 skipped); vitest 29; typecheck, build and
 acceptance clean; `test_suite_tiers.sh` ALL CHECKS PASSED. Day-4 mock run: touch-2 rows draft, park for the
 Loom URL (`send.py` drop reason `needs_operator_input`), and send once `notes.loom_url` is recorded and the
 row is redrafted (`state_machine.redraft`).
@@ -87,8 +88,20 @@ against the same checkout at once; the build lock serializes them.
   with the parked count. Without Looms, only touch 1, 3 and 4 go out.
 - **Copy decisions left to the operator**: CTA softness, subject-line variety, proof lines (none until a founding
   client yields a before/after number).
-- `scan_replies` takes a negative reply's preview down through `take_down_preview` and then reverts the
-  `do_not_contact` flag that helper sets; a `dnc=False` parameter on the helper would be the clean fix.
+- ~~`scan_replies` negative-reply takedown reverted `do_not_contact` after the fact~~ closed in round 4:
+  `take_down_preview(..., dnc=False)` skips the business flag and the outreach cascade; the remove path keeps
+  `dnc=True` (default). Tests: `tests/prodcraft_medspa/test_round4.py`.
+- **Sends vs cap (weekly number) is computed in code now (round 4)**: `outreach/send.py`'s `sends_vs_cap()` (per
+  UTC day over the trailing 7 days, `_sent_today_count` vs `daily_queue.effective_cap`, so the warmup ramp is
+  reused, not duplicated). Surfaces as the last line of the weekly Telegram report
+  (`scripts/fit_weights.py --report-telegram`, both the fit and the not-enough-data paths) and on demand via
+  `python3 execution/personal_workflows/prodcraft_medspa/outreach/send.py --mock --store local --store-root $R --stats`
+  (JSON line, sends nothing). Still open: bounce rate and cost per business are not in the weekly message.
+- **Touch 2 Loom URL has a one-command operator path (round 4)**:
+  `python3 execution/personal_workflows/prodcraft_medspa/scripts/set_loom.py --store local --store-root $R --prospect-id <outreach id or business id> --url https://www.loom.com/share/...`
+  validates the URL (https, loom.com host), records `notes.loom_url` (a `manual_patch` event), redrafts a
+  `drafted` row via `state_machine.redraft`, and prints the row state as one JSON line; idempotent. The Loom
+  itself is still a human recording by design.
 - Prompts and README/CONTRACTS prose contain em-dashes; customer-facing email text contains none (checked for U+2014).
 - **Local-run overlap (round-3 item 11)**: `send.py`'s double-send fix is `Store.claim_row`, a compare-and-set
   PATCH-in-the-WHERE-clause on Supabase and a lock-guarded fresh-read on LocalStore — this closes the race for two
