@@ -22,3 +22,7 @@
 {"id": "o02", "reply_text": "Thanks for your email. I am currently away and will respond when I return.", "from": "owner@example-medspa.test", "expected_sentiment": "ooo", "expected_wants_call": false}
 {"id": "b01", "reply_text": "Delivery Status Notification (Failure)\n\nThe email account that you tried to reach does not exist. 550 5.1.1 The email account that you tried to reach does not exist.", "from": "Mail Delivery Subsystem <mailer-daemon@googlemail.com>", "expected_sentiment": "bounce", "expected_wants_call": false}
 {"id": "b02", "reply_text": "Your message could not be delivered. Delivery failed: mailbox unavailable. permanent failure.", "from": "postmaster@example-medspa.test", "expected_sentiment": "bounce", "expected_wants_call": false}
+{"id": "x01", "reply_text": "Please don't remove it, let's talk. Mornings are best for me.", "from": "owner@example-medspa.test", "expected_sentiment": "positive", "expected_wants_call": true}
+{"id": "x02", "reply_text": "No need to take it down yet, I want to show my partner first. Who built it?", "from": "owner@example-medspa.test", "expected_sentiment": "neutral", "expected_wants_call": false}
+{"id": "r05", "reply_text": "Take it down. We never asked for a preview.", "from": "owner@example-medspa.test", "expected_sentiment": "remove", "expected_wants_call": false}
+{"id": "r06", "reply_text": "Remove me from your list and delete the site.", "from": "owner@example-medspa.test", "expected_sentiment": "remove", "expected_wants_call": false}

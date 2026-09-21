@@ -1,6 +1,6 @@
 """Gap pass (after round 4): reply-classifier gold set.
 
-`fixtures/replies_gold.jsonl` holds 24 realistic med-spa replies (plain voice, no real names) with
+`fixtures/replies_gold.jsonl` holds 28 realistic med-spa replies (plain voice, no real names) with
 the label `prompts/classify_reply.md` should produce. Two tests:
 
 1. The deterministic keyword classifier `scan_replies._mock_classify` (what `--mock` and the
@@ -35,8 +35,8 @@ THRESHOLD = 0.90
 
 def _load_gold() -> list[dict]:
     rows = [json.loads(line) for line in GOLD_PATH.read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 24, f"gold set must hold 24 rows, found {len(rows)}"
-    assert len({r["id"] for r in rows}) == 24
+    assert len(rows) == 28, f"gold set must hold 28 rows, found {len(rows)}"
+    assert len({r["id"] for r in rows}) == 28
     for r in rows:
         assert r["expected_sentiment"] in LABELS, r
         assert r["reply_text"].strip()
@@ -110,3 +110,33 @@ def test_live_classifier_agrees_with_gold_and_records_evidence():
         f.write(json.dumps(record) + "\n")
     assert model_id == "claude-fable-5-1"
     assert agreement >= THRESHOLD, f"live agreement {agreement:.3f} < {THRESHOLD}; misses={misses}"
+
+
+@pytest.mark.parametrize(
+    "text,expect_remove",
+    [
+        ("Nope, but stop by anytime", False),
+        ("Please don't remove it, let's talk", False),
+        ("stop emailing me", True),
+        ("remove me", True),
+        ("Unsubscribe", True),
+        ("take it down", True),
+        ("Do not take it down, I like it", False),
+        ("Not asking to delete anything, just curious who built it", False),
+    ],
+)
+def test_remove_negation_guard(text, expect_remove):
+    """Final audit: negated or idiomatic remove words fall through to the other rules."""
+    got = scan_replies._mock_classify(text)  # noqa: SLF001
+    assert (got["sentiment"] == "remove") is expect_remove, (text, got)
+    assert got["remove_request"] is expect_remove
+
+
+def test_negated_remove_with_call_ask_is_positive():
+    got = scan_replies._mock_classify("Please don't remove it, let's talk")  # noqa: SLF001
+    assert got["sentiment"] == "positive" and got["wants_call"] is True
+
+
+def test_prompt_rule_1_carries_negation_guard():
+    text = PROMPT_PATH.read_text(encoding="utf-8")
+    assert "Negation guard" in text and "stop by" in text and "don't remove it" in text

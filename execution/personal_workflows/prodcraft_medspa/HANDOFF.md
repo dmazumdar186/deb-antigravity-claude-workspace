@@ -80,7 +80,7 @@ against the same checkout at once; the build lock serializes them.
 - **Legal question, not a code fix**: publishing a look-alike site using a business's name and re-displaying Places
   data before consent, plus Illinois PIPA / CCPA exposure for scraped owner PII. Retention policy and purge path
   exist; the operator should confirm the approach with counsel before the first real send.
-- ~~Reply classifier has no gold set~~ closed in the gap pass (2026-09-21): `fixtures/replies_gold.jsonl` holds 24
+- ~~Reply classifier has no gold set~~ closed in the gap pass (2026-09-21): `fixtures/replies_gold.jsonl` holds 28
   labelled replies; `tests/prodcraft_medspa/test_reply_gold.py` holds the keyword classifier at >= 90% agreement and,
   with `ANTHROPIC_API_KEY`, runs the live classifier and appends agreement + prompt hash + model id to
   `.tmp/prodcraft_medspa/replies_gold_live.jsonl`. **Still open:** the live run has not happened in cloud (no key),

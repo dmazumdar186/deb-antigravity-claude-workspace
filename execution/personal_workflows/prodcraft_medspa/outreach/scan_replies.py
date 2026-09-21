@@ -60,17 +60,23 @@ PROMPTS_DIR = Path(__file__).resolve().parents[1] / "prompts"
 LLM_FIXTURES_ROOT = PROMPTS_DIR / "fixtures"
 PKG_FIXTURES_ROOT = Path(__file__).resolve().parent / "fixtures"  # outreach/fixtures (inbox/*.json)
 
-# Same trigger words as prompts/classify_reply.md rule 1, checked in the same order.
-_REMOVE_KEYWORDS = (
-    "unsubscribe",
-    "don't contact",
-    "do not contact",
-    "take down",
-    "takedown",
-    "remove",
-    "delete",
-    "stop",
+# Same trigger words as prompts/classify_reply.md rule 1, checked in the same order. Regexes so
+# "take it down" / "take this down" count alongside "take down".
+_REMOVE_PATTERNS = (
+    r"unsubscribe",
+    r"don't contact",
+    r"do not contact",
+    r"take (?:it |this |that |the \w+ )?down",
+    r"takedown",
+    r"remove",
+    r"delete",
+    r"stop",
 )
+# Final-audit negation guard (prompt rule 1): a remove word preceded, within the same sentence and
+# a couple of words, by a negation is NOT an opt-out ("please don't remove it", "no need to take it
+# down", "not asking to delete"); neither is an idiom ("stop by", "stop in", "drop by").
+_REMOVE_NEGATION_RE = re.compile(r"\b(?:don't|dont|do not|never|not asking to|no need to)\s+(?:[\w']+\s+){0,2}$")
+_REMOVE_IDIOM_RE = re.compile(r"(?:stop (?:by|in)|drop by)\b")
 _BOUNCE_KEYWORDS = (
     "mailer-daemon",
     "undeliverable",
@@ -108,11 +114,24 @@ def _is_bare_no(reply_text: str) -> bool:
     return False
 
 
+def _has_remove_request(haystack: str) -> bool:
+    """Rule 1 with the negation/idiom guard; `haystack` is already lower-cased."""
+    for pattern in _REMOVE_PATTERNS:
+        for match in re.finditer(pattern, haystack):
+            if _REMOVE_IDIOM_RE.match(haystack, match.start()):
+                continue
+            sentence_prefix = re.split(r"[.!?\n]", haystack[: match.start()])[-1]
+            if _REMOVE_NEGATION_RE.search(sentence_prefix):
+                continue
+            return True
+    return False
+
+
 def _mock_classify(reply_text: str, from_header: str = "") -> dict:
     """Deterministic keyword classifier mirroring prompts/classify_reply.md exactly, for --mock."""
-    haystack = f"{from_header}\n{reply_text}".lower()
+    haystack = f"{from_header}\n{reply_text}".lower().replace("\u2019", "'")  # curly apostrophes
 
-    if any(kw in haystack for kw in _REMOVE_KEYWORDS):
+    if _has_remove_request(haystack):
         return {
             "sentiment": "remove",
             "wants_call": False,

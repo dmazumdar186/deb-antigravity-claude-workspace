@@ -14,7 +14,11 @@ waiting for a human).
 
 1. **`remove`** — if `{{reply_text}}` contains, in any form/casing/inflection, any of: `remove`, `take down`,
    `takedown`, `unsubscribe`, `stop`, `don't contact`, `do not contact`, `delete`. Always sets
-   `remove_request: true` regardless of anything else in the message.
+   `remove_request: true` regardless of anything else in the message. **Negation guard:** a remove word
+   that is negated within the same sentence (`don't remove it`, `do not take it down`, `please don't
+   delete`, `not asking to remove`, `no need to take it down`) or used as an idiom (`stop by`, `stop in`,
+   `drop by`) is NOT a remove request; skip rule 1 and continue with rules 2-4. Genuine opt-outs (`remove
+   me`, `unsubscribe`, `stop emailing me`, `take it down`) still match.
 2. **`bounce`** — if the sender or body indicates a delivery failure: `mailer-daemon`, `undeliverable`,
    `delivery failed`, `delivery status notification`, `550`, `permanent failure`.
 3. **`ooo`** — auto-reply / out-of-office markers: `out of office`, `on vacation`, `auto-reply`,

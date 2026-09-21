@@ -359,7 +359,7 @@ replies workflow.
   `Nope`, `No thanks`, `No thank you`, `Not for us`, plus at most a signature) is classified `negative` (or `remove`
   if it carries a remove-type word), never `neutral`. Enforced in `prompts/classify_reply.md` rule 4, in
   `scan_replies._is_bare_no` for the keyword classifier, and by `tests/prodcraft_medspa/test_reply_gold.py`
-  against `fixtures/replies_gold.jsonl` (24 labelled replies, >= 90% agreement required; the live-LLM variant
+  against `fixtures/replies_gold.jsonl` (28 labelled replies, >= 90% agreement required; the live-LLM variant
   runs only with `ANTHROPIC_API_KEY` and appends agreement + prompt hash + model id under `.tmp/`).
 - **Negative reply is an opt-out (`scan_replies.py`, round-4 audit, Dario lens)**: a `negative`
   reply goes `sent -> replied -> closed_lost`, and ALSO (a) takes down every non-takendown preview

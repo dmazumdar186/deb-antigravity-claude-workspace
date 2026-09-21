@@ -503,3 +503,45 @@ def test_under_send_alert_dedupes_per_day_through_supabase_store_path(monkeypatc
     fit_weights.under_send_alert(store2, mock=True, today=date(2026, 9, 21))
     assert len(calls) == 2
     assert backend.config["notify_dedupe"] == {"under_send_7d": "2026-09-21"}
+
+
+def test_scan_replies_live_mode_ignores_mock_inbox_dir(local_store, monkeypatch, tmp_path):
+    """Final audit: PRODCRAFT_MOCK_INBOX_DIR is a --mock-only knob. With mock=False the scan must
+    go to Gmail and never list or load the mock dir, even when the env var points at a folder
+    holding a fixture reply for a sent row."""
+    business = _make_business(local_store, email="owner-live@example-medspa.test")
+    local_store.upsert_outreach(
+        {"business_id": business["id"], "touch": 1, "status": "sent", "sent_at": "2026-09-01T00:00:00Z"}
+    )
+    inbox_dir = tmp_path / "mock_inbox"
+    inbox_dir.mkdir()
+    (inbox_dir / "1_remove.json").write_text(
+        json.dumps({"owner_email": business["owner_email"], "from": business["owner_email"],
+                    "message_id": "m-mock-1", "body_text": "Please remove the preview."}),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv(scan_replies.MOCK_INBOX_DIR_ENV, str(inbox_dir))
+
+    gmail_calls: list[dict] = []
+    monkeypatch.setattr(
+        scan_replies.gmail_reader, "search_replies",
+        lambda **kw: gmail_calls.append(kw) or [],
+    )
+    monkeypatch.setattr(
+        scan_replies.gmail_reader, "load_mock_inbox",
+        lambda *a, **k: pytest.fail("live scan consulted the mock inbox dir"),
+    )
+    orig_glob = Path.glob
+
+    def _guarded_glob(self, pattern, *a, **k):
+        if self == inbox_dir:
+            pytest.fail("live scan listed PRODCRAFT_MOCK_INBOX_DIR")
+        return orig_glob(self, pattern, *a, **k)
+
+    monkeypatch.setattr(Path, "glob", _guarded_glob)
+    settings = FakeSettings(PKG_ROOT / "outreach" / "fixtures")
+    stats = scan_replies.scan(local_store, settings, mock=False, since_days=14, today=date(2026, 9, 10))
+
+    assert gmail_calls and gmail_calls[0]["owner_email"] == business["owner_email"]
+    assert stats["remove"] == 0 and stats["checked"] == 0
+    assert local_store.get_business(business["id"]).get("do_not_contact") is not True
