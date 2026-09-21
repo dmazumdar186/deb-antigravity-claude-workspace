@@ -301,3 +301,7 @@ seven agents (`pipeline-auditor` on 5.1 → `low`; the six Fable 5 workers → `
 `llm_client.default_effort()` which sends OpenRouter `reasoning.effort` for Fable models. Same day: Agent
 Teams env flag → `0`, `CLAUDE_CODE_SUBAGENT_MODEL=claude-fable-5`, `defaultMode: bypassPermissions`, `ask`
 list removed. **Revert:** delete `effortLevel`/`modelSettings` from settings.json and the `effort:` lines.
+Accessory Masters is sealed (operator, 2026-09-21): `execution/infrastructure/api-proxy/`, `execution/modules/outputs/auto_reply.py`,
+`execution/modules/reply_classifier.py` and `execution/gtm_client_workflows/accessory_masters_pipeline.py` keep their Haiku pins and
+are reference-only; no model sweep touches them. Worker tier stays Fable 5 (explicit operator order) even though 5.1 cache reads
+are 4x cheaper; revisit only on operator request.
