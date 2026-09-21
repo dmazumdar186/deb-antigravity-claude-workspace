@@ -29,8 +29,8 @@ Env vars used:
     - ANTHROPIC_API_KEY — needed if mutate_fn calls Claude (fill in your project's vars)
 
 Modes:
-    cheap     — claude-fable-5, fast (Haiku is banned).
-    balanced  — claude-fable-5, execution tier (default).
+    cheap     — claude-fable-5-1, fast (Haiku is banned).
+    balanced  — claude-fable-5-1, execution tier (default).
     premium   — claude-fable-5-1, judgement tier, slowest.
 """
 from __future__ import annotations
@@ -47,8 +47,8 @@ from pathlib import Path
 # Haiku 4.5 is BANNED per ~/.claude/rules/model-tier.md, so "cheap" maps to the
 # execution tier. Full names pinned; bare aliases drift across providers.
 MODE_TO_MUTATOR_MODEL: dict[str, str] = {
-    "cheap": "claude-fable-5",
-    "balanced": "claude-fable-5",
+    "cheap": "claude-fable-5-1",
+    "balanced": "claude-fable-5-1",
     "premium": "claude-fable-5-1",
 }
 
@@ -271,7 +271,7 @@ def parse_args() -> argparse.Namespace:
         "--mode",
         choices=list(MODE_TO_MUTATOR_MODEL.keys()),
         default="balanced",
-        help="Mutator tier: cheap (Sonnet 5) / balanced (Sonnet 5, default) / premium (Fable 5). Haiku is banned.",
+        help="Mutator tier: cheap / balanced (default) / premium — all resolve to Fable 5.1 (2026-09-21). Haiku is banned.",
     )
     parser.add_argument(
         "--max-rounds",

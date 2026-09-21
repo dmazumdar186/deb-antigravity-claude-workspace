@@ -21,9 +21,9 @@ from typing import Any
 # Update when EUR/USD moves >5%. See ~/.claude/rules/currency-eur.md
 USD_TO_EUR: float = 0.92
 
-# claude-fable-5 pricing (USD per million tokens) with cache-aware entries
+# claude-fable-5-1 pricing (USD per million tokens) with cache-aware entries
 # per ~/.claude/rules/python-hardening.md rule 4. Execution tier moved
-# claude-sonnet-5 -> claude-fable-5 on 2026-09-21 (.claude/SETTINGS_NOTES.md);
+# claude-sonnet-5 -> claude-fable-5-1 on 2026-09-21 (.claude/SETTINGS_NOTES.md);
 # rates per the 2026-08-27 entry there. Name kept for call-site back-compat.
 SONNET_5_PRICING_USD_PER_MTOK: dict[str, float] = {
     "input": 10.0,

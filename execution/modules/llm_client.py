@@ -21,22 +21,19 @@ BASE_DELAY = 1.0
 
 _OR_BASE_URL = "https://openrouter.ai/api/v1"
 
-# Operator order 2026-09-21: effort is fixed per model family, no exceptions
-# unless a caller passes `effort=` explicitly for a task. Fable 5.1 = low,
-# Fable 5 = medium. OpenRouter carries it as `reasoning: {"effort": ...}`.
+# Operator order 2026-09-21 (later): every Fable model runs at effort `low`,
+# no `medium` anywhere, unless a caller passes `effort=` explicitly for a task.
+# OpenRouter carries it as `reasoning: {"effort": ...}`.
 DEFAULT_EFFORT: dict[str, str] = {
     "anthropic/claude-fable-5.1": "low",
-    "anthropic/claude-fable-5": "medium",
 }
 
 
 def default_effort(model: str) -> str | None:
     """Effort for a model id per the workspace rule; None when the rule has no opinion."""
     m = model.lower()
-    if m.startswith("anthropic/claude-fable-5.1") or m.startswith("anthropic/claude-fable-5-1"):
+    if "claude-fable" in m:
         return DEFAULT_EFFORT["anthropic/claude-fable-5.1"]
-    if m.startswith("anthropic/claude-fable-5"):
-        return DEFAULT_EFFORT["anthropic/claude-fable-5"]
     return None
 
 
@@ -54,10 +51,10 @@ def _get_client(base_url: str = _OR_BASE_URL):
 def chat_completion(
     system: str,
     user_message: str,
-    # Default worker tier Fable 5 (operator, 2026-09-21).
+    # Default worker tier Fable 5.1, effort low (operator, 2026-09-21).
     # Haiku 4.5 is banned workspace-wide. AM-frozen callers that need Haiku
     # for compatibility pass `model=` explicitly.
-    model: str = "anthropic/claude-fable-5",
+    model: str = "anthropic/claude-fable-5.1",
     max_tokens: int = 150,
     base_url: str = _OR_BASE_URL,
     effort: str | None = None,

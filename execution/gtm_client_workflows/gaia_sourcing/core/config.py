@@ -52,21 +52,21 @@ def secret(name: str, required: bool = True) -> str:
 # ---------------------------------------------------------------------------
 # Models -- full names pinned per ~/.claude/rules/model-tier.md.
 # Never use bare aliases; they drift across providers and CLI versions.
-# Sonnet 5 verified live against GET /v1/models on 2026-08-19. Judgement roles
-# moved to Fable 5 on 2026-08-27 (operator rule: everything that is not mundane
-# execution is Fable 5). L10 stays on Sonnet 5: it is a per-candidate rubric
-# pass, which model-tier.md Exhibit D classes as bulk execution. Cost of the
-# move, for a 38-candidate shortlist (run.py: 24 + 14): L8 + L11 = ~76 Fable 5
-# calls at ~3k in / ~2k out each = ~$0.13 per call = ~$10 (~EUR 9) per full run,
-# vs ~EUR 4.5 on Opus 5. The RunConfig ceiling is unchanged and trips earlier.
+# 2026-09-21: every role pinned to claude-fable-5-1, effort low (operator order;
+# .claude/SETTINGS_NOTES.md). History: judgement roles moved Opus 5 -> Fable 5 on
+# 2026-08-27, -> Fable 5.1 on 2026-09-01; bulk roles (L1/L5/L10) moved Sonnet 5 ->
+# Fable 5.1 on 2026-09-21. Cost note (38-candidate shortlist, run.py 24 + 14):
+# L8 + L11 = ~76 judgement calls at ~3k in / ~2k out = ~$0.13 per call = ~$10
+# (~EUR 9) per full run. The RunConfig ceiling is unchanged and trips earlier.
 # ---------------------------------------------------------------------------
 
-MODEL_EXTRACT = "claude-fable-5"   # L5 evidence extraction (high volume)
-MODEL_PARSE = "claude-fable-5"     # L1 requisition parsing
+MODEL_EXTRACT = "claude-fable-5-1"   # L5 evidence extraction (high volume)
+MODEL_PARSE = "claude-fable-5-1"     # L1 requisition parsing
 MODEL_JUDGE = "claude-fable-5-1"    # L8 adversarial + tiering (judgement)
-MODEL_MOVABILITY = "claude-fable-5"  # L10 per-candidate rubric scoring = bulk execution (model-tier.md Exhibit D)
+MODEL_MOVABILITY = "claude-fable-5-1"  # L10 per-candidate rubric scoring = bulk execution (model-tier.md Exhibit D)
 MODEL_MESSAGE = "claude-fable-5-1"  # L11 -- goes out under Gaia's name (judgement)
 # 2026-09-01: MODEL_JUDGE / MODEL_MESSAGE moved claude-fable-5 -> claude-fable-5-1.
+# 2026-09-21: MODEL_EXTRACT / MODEL_PARSE / MODEL_MOVABILITY moved claude-sonnet-5 -> claude-fable-5-1.
 
 # Pricing per MTok (USD), from ~/.claude/rules/model-tier.md, verified
 # 2026-08-27. Converted to EUR for all operator-facing output.
@@ -74,7 +74,7 @@ USD_TO_EUR = 0.92
 PRICING: dict[str, dict[str, float]] = {
     # Kept: superseded by claude-fable-5-1 on 2026-09-01, but historical run
     # records still cost-resolve against this row.
-    "claude-fable-5": {
+    "claude-fable-5": {  # retired 2026-09-21
         "input": 10.00, "cache_write": 12.50, "cache_read": 1.00, "output": 50.00
     },
     # verified 2026-09-01: same input/output as fable-5; cache_read dropped to

@@ -101,4 +101,4 @@ ANTHROPIC_API_KEY=your_key
 - Schedule requires `name` field in each schedule object
 - Timezone: Use `America/Chicago` (not all IANA values work)
 - HTML: Instantly strips plain text outside HTML tags - wrap in `<p>` tags
-- Model: Uses `claude-fable-5` for generation (execution tier; full name pinned per ~/.claude/rules/model-tier.md)
+- Model: Uses `claude-fable-5-1` for generation (execution tier; full name pinned per ~/.claude/rules/model-tier.md)

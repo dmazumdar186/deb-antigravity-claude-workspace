@@ -216,7 +216,7 @@ def summarize_transcript(text):
     """
     try:
         message = client.messages.create(
-            model="claude-fable-5",
+            model="claude-fable-5-1",
             max_tokens=1000,
             temperature=0.7,
             system="You are an expert YouTube strategist.",

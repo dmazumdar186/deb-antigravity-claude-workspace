@@ -3,7 +3,7 @@
 Upwork Proposal Generator
 
 Generates customized cover letters and project proposals for Upwork jobs.
-Uses claude-fable-5 (execution tier) for high-quality personalization.
+Uses claude-fable-5-1 (execution tier) for high-quality personalization.
 
 Usage:
     python execution/upwork_proposal_generator.py --input .tmp/upwork_jobs_batch.json
@@ -57,7 +57,7 @@ def create_apply_link(url: str) -> str:
 
 
 def generate_cover_letter(job: dict, proposal_doc_url: str, client: anthropic.Anthropic) -> str:
-    """Generate customized cover letter using claude-fable-5."""
+    """Generate customized cover letter using claude-fable-5-1."""
 
     prompt = f"""Generate a short, personalized Upwork cover letter for this job.
 
@@ -85,7 +85,7 @@ RULES:
 Return ONLY the cover letter text, nothing else. The [LINK] placeholder will be replaced."""
 
     response = client.messages.create(
-        model="claude-fable-5",
+        model="claude-fable-5-1",
         max_tokens=8000,
         thinking={
             "type": "enabled",
@@ -126,7 +126,7 @@ RULES:
 Return ONLY the cover letter text."""
 
     response = client.messages.create(
-        model="claude-fable-5",
+        model="claude-fable-5-1",
         max_tokens=500,
         messages=[{"role": "user", "content": prompt}]
     )
@@ -138,7 +138,7 @@ Return ONLY the cover letter text."""
 
 
 def generate_proposal(job: dict, client: anthropic.Anthropic) -> str:
-    """Generate project proposal using claude-fable-5."""
+    """Generate project proposal using claude-fable-5-1."""
 
     prompt = f"""Write a personalized project proposal for this Upwork job. Write as Nick - first person, conversational, direct.
 
@@ -185,7 +185,7 @@ TONE RULES:
 Return ONLY the proposal text."""
 
     response = client.messages.create(
-        model="claude-fable-5",
+        model="claude-fable-5-1",
         max_tokens=10000,
         thinking={
             "type": "enabled",

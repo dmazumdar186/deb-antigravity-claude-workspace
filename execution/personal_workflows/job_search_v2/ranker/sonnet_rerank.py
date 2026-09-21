@@ -43,10 +43,10 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
 load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("ranker.sonnet_rerank")
 
-DEFAULT_MODEL = "claude-fable-5"
+DEFAULT_MODEL = "claude-fable-5-1"
 RUBRIC_VERSION = "sonnet-rerank-v1-2026-06-23"
 
-# Fable 5 pricing (DEFAULT_MODEL moved claude-sonnet-5 -> claude-fable-5 on 2026-09-21; $10/$50 per MTok) — Anthropic publishes in USD per million tokens. We store
+# Fable 5.1 pricing (DEFAULT_MODEL moved claude-sonnet-5 -> claude-fable-5-1 on 2026-09-21; $10/$50 per MTok) — Anthropic publishes in USD per million tokens. We store
 # the USD rate card as the source-of-truth and convert to EUR for operator
 # display per ~/.claude/rules/currency-eur.md (Paris-based operator).
 #

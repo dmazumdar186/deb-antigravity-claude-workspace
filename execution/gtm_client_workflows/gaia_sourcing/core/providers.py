@@ -112,37 +112,37 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
         ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
     "openrouter": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5.1"),
         ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
         ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
     # Every role on the execution tier, for when the remaining balance will
-    # not cover the judgement tier. Fable 5 is the right model for L8 tiering and
+    # not cover the judgement tier. Fable 5.1 is the right model for L8 tiering and
     # L11 client-facing copy and this plan is a downgrade -- but the
     # cost-constraint clause in ~/.claude/rules/model-tier.md is explicit that
     # a smaller model inside budget beats a better one that 402s halfway
-    # through a stage and leaves the deliverable half-built. Sonnet-5 is still
-    # well above the banned tier. Choose it deliberately, with --plan budget,
-    # and say so in the handoff.
+    # through a stage and leaves the deliverable half-built. 2026-09-21: every
+    # plan now pins claude-fable-5.1 (effort low), so "budget" differs from
+    # "openrouter" only by name; kept for CLI back-compat.
     "budget": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5"),
+        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
     "anthropic": {
-        ROLE_EXTRACT: ("anthropic", "claude-fable-5"),
+        ROLE_EXTRACT: ("anthropic", "claude-fable-5-1"),
         ROLE_JUDGE: ("anthropic", "claude-fable-5-1"),
         ROLE_MESSAGE: ("anthropic", "claude-fable-5-1"),
     },
-    # 2026-09-11: the direct-API twin of "budget" -- every role on Sonnet 5 --
+    # 2026-09-11: the direct-API twin of "budget" -- every role on one model --
     # for the tail stages (adversarial, movability, messages) when the
     # cumulative ceiling has little headroom left. Same trade-off as "budget":
     # a deliverable finished on the execution tier beats one that stops at
     # the ceiling with half the cards undrafted.
     "anthropic_budget": {
-        ROLE_EXTRACT: ("anthropic", "claude-fable-5"),
-        ROLE_JUDGE: ("anthropic", "claude-fable-5"),
-        ROLE_MESSAGE: ("anthropic", "claude-fable-5"),
+        ROLE_EXTRACT: ("anthropic", "claude-fable-5-1"),
+        ROLE_JUDGE: ("anthropic", "claude-fable-5-1"),
+        ROLE_MESSAGE: ("anthropic", "claude-fable-5-1"),
     },
 }
 
@@ -442,11 +442,11 @@ PRICE_EUR: dict[str, dict[str, float]] = {
     # $0.50 / $6.25.
     "gemini-2.5-flash": {"input": 0.0, "output": 0.0, "cache_read": 0.0, "cache_write": 0.0},
     "anthropic/claude-sonnet-5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
-    # claude-fable-5 rows kept: historical run records still cost-resolve.
-    "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},
+    # claude-fable-5 rows kept (retired 2026-09-21): historical run records still cost-resolve.
+    "anthropic/claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},  # retired 2026-09-21
     "anthropic/claude-opus-5": {"input": 4.60, "output": 23.00, "cache_read": 0.46, "cache_write": 5.75},
     "claude-sonnet-5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
-    "claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},
+    "claude-fable-5": {"input": 9.20, "output": 46.00, "cache_read": 0.92, "cache_write": 11.50},  # retired 2026-09-21
     "claude-opus-5": {"input": 4.60, "output": 23.00, "cache_read": 0.46, "cache_write": 5.75},
     "anthropic/claude-fable-5.1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
     "claude-fable-5-1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
@@ -463,7 +463,7 @@ def cost_eur(model: str, stats: dict) -> float:
     """
     p = PRICE_EUR.get(model)
     if p is None:
-        p = {"input": 9.20, "output": 46.00}  # unknown: assume dearest (Fable 5)
+        p = {"input": 9.20, "output": 46.00}  # unknown: assume dearest (Fable 5.1)
     inp = p["input"]
     return (
         stats.get("input_tokens", 0) * inp
@@ -650,7 +650,7 @@ def anthropic_is_funded() -> bool:
 
         client = anthropic.Anthropic(api_key=secret("ANTHROPIC_API_KEY", required=False))
         client.messages.create(
-            model="claude-fable-5",
+            model="claude-fable-5-1",
             max_tokens=1,
             messages=[{"role": "user", "content": "."}],
         )

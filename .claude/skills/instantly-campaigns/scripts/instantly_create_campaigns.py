@@ -128,7 +128,7 @@ Generate the 3 campaigns now. Output ONLY the JSON array, no other text."""
 
     try:
         response = client.messages.create(
-            model="claude-fable-5",
+            model="claude-fable-5-1",
             max_tokens=16000,
             thinking={
                 "type": "enabled",
@@ -272,7 +272,7 @@ Generate 3 offers now:"""
 
     try:
         response = client.messages.create(
-            model="claude-fable-5",
+            model="claude-fable-5-1",
             max_tokens=500,
             messages=[{"role": "user", "content": prompt}]
         )

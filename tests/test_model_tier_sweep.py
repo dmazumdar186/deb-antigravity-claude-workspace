@@ -27,7 +27,7 @@ sys.path.insert(0, str(EXEC / "gtm_client_workflows" / "gaia_sourcing"))
 
 JUDGEMENT = "claude-fable-5-1"
 JUDGEMENT_OR = "anthropic/claude-fable-5.1"
-EXECUTION = "claude-fable-5"  # 2026-09-21: workers moved Sonnet/Opus -> Fable 5
+EXECUTION = "claude-fable-5-1"  # 2026-09-21 (later): every tier is Fable 5.1, effort low
 
 
 def _module_dict(path: Path, name: str) -> dict:
@@ -61,15 +61,15 @@ def test_premium_mode_is_the_judgement_tier(rel, key):
 def test_premium_mode_openrouter_slug(rel, key):
     d = _module_dict(EXEC / rel, key)
     assert d["premium"] == JUDGEMENT_OR, (rel, d)
-    assert d["balanced"] == "anthropic/" + EXECUTION, (rel, d)
+    assert d["balanced"] == JUDGEMENT_OR, (rel, d)
 
 
 def test_humanizer_premium_cost_row_is_fable_pricing():
     d = _module_dict(EXEC / "content" / "humanizer.py", "_TIER_COST_PER_M")
     # cache_read is 0.25 on fable-5.1 -- 0.025x input, not the usual 0.1x.
     assert d["premium"] == {"input": 10.0, "cache_read": 0.25, "cache_write": 12.5, "output": 50.0}
-    # default is claude-fable-5 since 2026-09-21 (cache_read is the usual 0.1x on fable-5).
-    assert d["default"] == {"input": 10.0, "cache_read": 1.0, "cache_write": 12.5, "output": 50.0}
+    # default is claude-fable-5-1 since 2026-09-21 (later order): same 0.25 cache_read.
+    assert d["default"] == {"input": 10.0, "cache_read": 0.25, "cache_write": 12.5, "output": 50.0}
 
 
 def test_gaia_roles_follow_the_tier_map():
@@ -83,10 +83,12 @@ def test_gaia_roles_follow_the_tier_map():
     for plan in ("hybrid", "openrouter"):
         for role in (GP.ROLE_JUDGE, GP.ROLE_MESSAGE):
             assert GP.PLANS[plan][role][1] == JUDGEMENT_OR, (plan, role)
-        assert GP.PLANS[plan][GP.ROLE_EXTRACT][1] != JUDGEMENT_OR, plan
+    # extract: Gemini (free) on hybrid, Fable 5.1 on the all-OR plan.
+    assert GP.PLANS["hybrid"][GP.ROLE_EXTRACT][1] == "gemini-2.5-flash"
+    assert GP.PLANS["openrouter"][GP.ROLE_EXTRACT][1] == JUDGEMENT_OR
     for role in (GP.ROLE_JUDGE, GP.ROLE_MESSAGE):
         assert GP.PLANS["anthropic"][role][1] == JUDGEMENT, role
-    assert GP.PLANS["anthropic"][GP.ROLE_EXTRACT][1] != JUDGEMENT
+    assert GP.PLANS["anthropic"][GP.ROLE_EXTRACT][1] == JUDGEMENT
     assert GP.ROUTING[GP.ROLE_JUDGE][1] == JUDGEMENT_OR
 
 
@@ -105,6 +107,7 @@ def test_registry_premium_is_fable_and_router_agrees():
     assert R.LAST_KNOWN_GOOD["anthropic"]["premium"] == JUDGEMENT
     assert R.LAST_KNOWN_GOOD["anthropic"]["default"] == EXECUTION
     assert R.LAST_KNOWN_GOOD["openrouter"]["premium"] == JUDGEMENT_OR
+    assert R.LAST_KNOWN_GOOD["openrouter"]["default"] == JUDGEMENT_OR
     assert T.validate_against_registry() == []
 
 
@@ -118,5 +121,5 @@ def test_youtube_analyzer_prices_fable_in_every_table():
 
 def test_sonnet_rerank_prices_match_its_default_model():
     src = (EXEC / "personal_workflows" / "job_search_v2" / "ranker" / "sonnet_rerank.py").read_text(encoding="utf-8")
-    assert 'DEFAULT_MODEL = "claude-fable-5"' in src
+    assert 'DEFAULT_MODEL = "claude-fable-5-1"' in src
     assert "PRICE_INPUT_PER_M_USD = 10.0" in src and "PRICE_OUTPUT_PER_M_USD = 50.0" in src

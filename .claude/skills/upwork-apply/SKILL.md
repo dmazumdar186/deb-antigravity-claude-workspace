@@ -33,7 +33,7 @@ python3 ./scripts/upwork_proposal_generator.py \
   --output .tmp/proposals.json
 ```
 
-Uses `claude-fable-5` (execution tier) for personalized cover letters.
+Uses `claude-fable-5-1` (execution tier) for personalized cover letters.
 
 ### 3. Save to Sheet
 ```bash

@@ -23,7 +23,7 @@ from .heuristic import DIMENSION_WEIGHTS, combine, tier_for
 
 logger = logging.getLogger("job_digest.ranker.anthropic")
 
-DEFAULT_MODEL = "claude-fable-5"
+DEFAULT_MODEL = "claude-fable-5-1"
 RUBRIC_VERSION = "anthropic-rerank-v1"
 MAX_TOKENS = 8000
 TIMEOUT_S = 90.0

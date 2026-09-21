@@ -257,7 +257,7 @@ Return ONLY the JSON array, no other text.
         }
 
         payload = {
-            "model": "claude-fable-5",
+            "model": "claude-fable-5-1",
             "max_tokens": 4096,
             "messages": [{"role": "user", "content": prompt}],
         }

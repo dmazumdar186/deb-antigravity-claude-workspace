@@ -33,7 +33,7 @@ Three tiers are available:
 
 | Tier | Flag | Cost | When to use |
 |---|---|---|---|
-| **default** | `--tier default` (or omit) | ~$0.03/video | `claude-fable-5` (execution tier) — standard quality, cheapest Claude path |
+| **default** | `--tier default` (or omit) | ~$0.03/video | `claude-fable-5-1` (execution tier) — standard quality, cheapest Claude path |
 | **premium** | `--tier premium` | ~$0.10/video (estimate) | Judgement tier (`claude-fable-5-1`) — richer visual analysis, more nuanced pacing notes |
 | **gemini** | `--tier gemini` | **$0.00** | Free. Gemini reads the YouTube URL natively — no frame extraction needed. Use when user wants zero spend or to compare outputs. |
 
@@ -127,7 +127,7 @@ After producing a breakdown the user may want to:
 
 | Tier | Typical cost per video |
 |---|---|
-| `--tier default` (`claude-fable-5`, execution tier) | ~$0.03 |
+| `--tier default` (`claude-fable-5-1`, execution tier) | ~$0.03 |
 | `--tier premium` (judgement tier, resolves to `claude-fable-5-1`) | ~$0.10 (estimate — 2x the Opus-era figure; the script prints actual usage) |
 | `--tier gemini` (latest Gemini Flash, free tier) | $0.00 |
 

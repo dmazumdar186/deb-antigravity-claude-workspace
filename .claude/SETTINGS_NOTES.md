@@ -305,3 +305,36 @@ Accessory Masters is sealed (operator, 2026-09-21): `execution/infrastructure/ap
 `execution/modules/reply_classifier.py` and `execution/gtm_client_workflows/accessory_masters_pipeline.py` keep their Haiku pins and
 are reference-only; no model sweep touches them. Worker tier stays Fable 5 (explicit operator order) even though 5.1 cache reads
 are 4x cheaper; revisit only on operator request.
+
+## 2026-09-21 (later) — Everything to Fable 5.1, effort low, no medium
+
+Supersedes the morning's "workers → Fable 5" and "Fable 5 = medium" orders. Every live pin is now
+`claude-fable-5-1` (OpenRouter `anthropic/claude-fable-5.1`); every effort setting is `low`; `medium`
+exists nowhere. Fable 5 is no longer a tier or doctrine mention — it survives only as `# retired 2026-09-21`
+keyed pricing rows (so historical transcripts/ledgers still cost-resolve), in the sealed Accessory Masters
+files, and in `migrate_local_model_pins.py` where it is the OLD_PIN being migrated away from.
+
+Files changed by this sweep (scope excluded CLAUDE.md/AGENTS.md/GEMINI.md, `.claude/settings.json`,
+`.claude/agents/**`, `token-economy.md`, `prodcraft_medspa/**` — swept separately):
+- `execution/modules/model_registry.py` — `LAST_KNOWN_GOOD` `default` and `premium` both → 5.1 (native +
+  OR); `_ADDITIONAL_KNOWN` holds the 5.1 IDs; `validate_against_registry()` is `[]`.
+- `execution/modules/llm_client.py` — `chat_completion(model="anthropic/claude-fable-5.1")`;
+  `DEFAULT_EFFORT` = `{"anthropic/claude-fable-5.1": "low"}`, `default_effort()` returns `low` for any
+  Fable id; `effort=` override kept.
+- `execution/modules/model_router.py` — `opus`/`sonnet` aliases → 5.1.
+- Tier maps / defaults / argparse help / docstrings: `execution/_TEMPLATE.py`, `_TEMPLATE_autoresearch.py`,
+  `templates/crm_integration/sync.py`, `personalization/{ai_opener_generator,variant_generator}.py`,
+  `content/humanizer.py` (default tier cost row now cache_read 0.25), `video/youtube_video_analyzer.py`,
+  `gtm_client_workflows/gaia_sourcing/core/{config,providers,ocr}.py`, `personal_workflows/**` (cv_optimizer,
+  anthropic_watch, job_digest, job_search_v2, job_search_llm_gate, self_outbound_system),
+  `infrastructure/{token_usage_report,workspace_sast}.py`, `templates/web_app_astro_cf/src/lib/telemetry.ts`.
+- Rules/workflows/skills: `.claude/rules/{sub-agent-delegation,dynamic-workflows}.md`, `.claude/workflows/*.md`,
+  `.claude/skills/**` (SKILL.md model lines and script pins: add-webhook, casualize-names, classify-leads,
+  cross-niche-outliers, gmail-label, gmaps-leads, inbox-cleaner, instantly-*, linkedin-response, scrape-leads,
+  title-variants, upwork-apply, youtube-outliers, youtube-video-analyzer).
+- Tests: `tests/test_model_tier_guardrails.py`, `tests/test_model_tier_sweep.py` (EXECUTION = 5.1; humanizer
+  default row 0.25; gaia extract roles on 5.1).
+
+**Revert (one line):** `git revert <this commit>` — or set `LAST_KNOWN_GOOD` default back to
+`claude-fable-5` / `anthropic/claude-fable-5` and `DEFAULT_EFFORT["anthropic/claude-fable-5"] = "medium"` in
+`llm_client.py`, then re-run `tests/test_model_tier_*.py`.

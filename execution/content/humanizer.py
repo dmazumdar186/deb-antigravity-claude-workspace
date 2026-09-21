@@ -167,11 +167,12 @@ def _to_anthropic_tool_format(schema: dict) -> dict:
 # cache_write = Anthropic: 1.25× input;  Gemini/OpenRouter: 0 (not tracked here).
 # ---------------------------------------------------------------------------
 # Rates verified against platform.claude.com/docs/en/about-claude/pricing 2026-08-27.
-# premium resolves to claude-fable-5 via the registry (2x Opus 5, 5x Sonnet 5).
+# premium resolves to claude-fable-5-1 via the registry (2x Opus 5, 5x Sonnet 5).
 # 2026-09-01: premium moved claude-fable-5 -> claude-fable-5-1; cache_read
 # dropped to 0.25/MTok (0.025x input, not the usual 0.1x). verified 2026-09-01.
+# 2026-09-21: default tier also on claude-fable-5-1 (everything Fable 5.1, effort low).
 _TIER_COST_PER_M = {
-    "default":  {"input": 10.0, "cache_read": 1.00,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5 (execution tier since 2026-09-21; cache_read 0.1x on fable-5)
+    "default":  {"input": 10.0, "cache_read": 0.25,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5-1 (execution tier since 2026-09-21; cache_read 0.025x)
     "premium":  {"input": 10.0, "cache_read": 0.25,  "cache_write": 12.50, "output": 50.0},   # claude-fable-5-1
     "gemini":   {"input": 0.0,  "cache_read": 0.0,   "cache_write": 0.0,   "output": 0.0},    # Free tier
 }
@@ -767,7 +768,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--tier",
         choices=["default", "premium", "gemini"],
         default="default",
-        help="Model tier -> default (Sonnet 5), premium (Fable 5), gemini (free Gemini)",
+        help="Model tier -> default (Fable 5.1), premium (Fable 5.1), gemini (free Gemini)",
     )
     parser.add_argument("--dry-run", action="store_true",
                         help="Skip LLM call -> show pre-pass output and cost estimate")
