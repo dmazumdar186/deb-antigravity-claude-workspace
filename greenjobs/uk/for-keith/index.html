@@ -20,6 +20,7 @@
 <body data-edition="uk" data-root="../../">
 <a class="skip" href="#main">Skip to content</a>
 <header class="hdr" data-header>
+  <div class="hdr__prog" data-progress aria-hidden="true"></div>
   <div class="wrap hdr__in">
     <a class="logo" href="../../uk/index.html" aria-label="GreenJobs UK, home">
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#b4e33d"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#0c1a12" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
@@ -49,9 +50,14 @@
 </div>
 <div class="wrap doc" style="padding-bottom:var(--pad-y)">
   <h2>Before and after, measured</h2>
+  <div class="score" aria-label="Scoreboard: live site against this demo"><div class="score__h"><span></span><span>Live site</span><span>This demo</span></div><div class="score__t"><span class="score__l">Home page HTML, bytes</span><span class="score__v"><b class="num" data-count="135741">135,741</b></span><span class="score__v score__v--after"><b class="num" data-count="111271">111,271</b></span></div><div class="score__t"><span class="score__l">Requests on the home page</span><span class="score__v"><b class="num" data-count="59">59</b></span><span class="score__v score__v--after"><b class="num" data-count="24">24</b></span></div><div class="score__t"><span class="score__l">Script files</span><span class="score__v"><b class="num" data-count="16">16</b></span><span class="score__v score__v--after"><b class="num" data-count="11">11</b></span></div><div class="score__t"><span class="score__l">Job pages with structured data</span><span class="score__v"><b class="num" data-count="0">0</b></span><span class="score__v score__v--after"><b class="num" data-count="98">98</b></span></div></div>
+  <h3 style="margin-top:32px">Requests on the home page, by type</h3>
+  <p>Each bar is one home-page load, split by what was requested. Same scale for both.</p>
+  <div class="wf"><div class="wf__row"><span class="wf__l">Live site</span><span class="wf__bar" role="img" aria-label="Live site: 98 requests (16 scripts, 3 stylesheets, 79 images)"><i class="wf__s wf__s--scripts" style="--w:16.33%" title="scripts: 16"></i><i class="wf__s wf__s--stylesheets" style="--w:3.06%" title="stylesheets: 3"></i><i class="wf__s wf__s--images" style="--w:80.61%" title="images: 79"></i></span><b class="wf__n num" data-count="98">98</b></div><p class="wf__note">16 scripts, 3 stylesheets, 79 images. Tags counted in the page's HTML on 2026-09-22, not a network trace: the table's request estimate is lower because repeated images are fetched once. "Other" is fonts, XHR and tracking where the estimate exceeds the tag count.</p><div class="wf__row"><span class="wf__l">This demo</span><span class="wf__bar" role="img" aria-label="This demo: 25 requests (5 scripts, 1 stylesheets, 14 images, 5 other)"><i class="wf__s wf__s--scripts" style="--w:5.10%" title="scripts: 5"></i><i class="wf__s wf__s--stylesheets" style="--w:1.02%" title="stylesheets: 1"></i><i class="wf__s wf__s--images" style="--w:14.29%" title="images: 14"></i><i class="wf__s wf__s--other" style="--w:5.10%" title="other: 5"></i></span><b class="wf__n num" data-count="25">25</b></div><p class="wf__note">5 scripts, 1 stylesheets, 14 images, 5 other. Counted in the built home page: every request is first-party; logos load lazily and are not in this count.</p></div>
+  <h3 style="margin-top:32px">The full table</h3>
   <p>"Before" numbers were measured on the live greenjobs.co.uk home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time; nothing in this table is typed by hand. The requests row compares an estimate for the live site (counted from its HTML, not a network trace) with a measured count for the demo.</p>
-  <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody><tr><td>Home page HTML</td><td class="n">135,741 B</td><td class="n good">57,229 B (16,243 B gzipped)</td></tr><tr><td>Requests on the home page <small class="muted">estimated (live) / measured (demo)</small></td><td class="n">59 (estimated)</td><td class="n good">22 measured, all first-party</td></tr><tr><td>External script tags</td><td class="n">16</td><td class="n good">7 own files, 54.3 KB (19.7 KB gzipped)</td></tr><tr><td>Third-party requests</td><td class="n">yes (analytics, CDN fonts/scripts)</td><td class="n good">0</td></tr><tr><td>Stylesheet</td><td class="n">3 files</td><td class="n good">1 file, 47.1 KB (10.6 KB gzipped)</td></tr><tr><td>Front-end stack</td><td>jQuery 1.11.0, Bootstrap 3, html5shiv, vendor CDN</td><td class="good">Vanilla ES2020, no framework, no build-time packages</td></tr><tr><td>Pages rendered</td><td>server-side, per request</td><td class="good">104 static pages, 98 of them job pages</td></tr></tbody></table>
-  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built 2026-09-22. Stylesheet 47.1 KB, scripts 54.3 KB before compression; budgets 60 KB each. Unit tests on the pure logic module: 13 passing, 0 failing.</p>
+  <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody><tr><td>Home page HTML</td><td class="n">135,741 B</td><td class="n good">111,271 B (35,836 B gzipped)</td></tr><tr><td>Requests on the home page <small class="muted">estimated (live) / measured (demo)</small></td><td class="n">59 (estimated)</td><td class="n good">24 measured, all first-party</td></tr><tr><td>External script tags</td><td class="n">16</td><td class="n good">11 own files, 89.7 KB (32.7 KB gzipped)</td></tr><tr><td>Third-party requests</td><td class="n">yes (analytics, CDN fonts/scripts)</td><td class="n good">0</td></tr><tr><td>Stylesheet</td><td class="n">3 files</td><td class="n good">1 file, 64.3 KB (13.9 KB gzipped)</td></tr><tr><td>Front-end stack</td><td>jQuery 1.11.0, Bootstrap 3, html5shiv, vendor CDN</td><td class="good">Vanilla ES2020, no framework, no build-time packages</td></tr><tr><td>Pages rendered</td><td>server-side, per request</td><td class="good">104 static pages, 98 of them job pages</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built 2026-09-22. Stylesheet 64.3 KB, scripts 89.7 KB before compression; budgets 72 KB and 110 KB. Unit tests on the pure logic module: 19 passing, 0 failing.</p>
 
   <h2>What was built</h2>
   <ul>
@@ -62,6 +68,15 @@
     <li><b>Maps from real geometry.</b> Natural Earth admin-1 boundaries merged into the 26 counties and 12 UK regions at build time, rendered as keyboard-operable buttons.</li>
     <li><b>Salary explorer, career compass, "Ask GreenJobs".</b> Charts drawn in-house (no library), a seven-question deterministic quiz whose result is a shareable link, and a smart-match panel that today runs entirely in the browser.</li>
     <li><b>Zero third-party requests.</b> Fonts are self-hosted; there is no analytics, no CDN, no framework, no build-time packages. Light and dark themes, reduced-motion fallbacks, WCAG 2.2 AA contrast, 44 px targets, print stylesheet on job pages.</li>
+  </ul>
+
+  <h2>What changed since the first cut</h2>
+  <ul>
+    <li><b>The film hero.</b> The home page opens on a pinned, scroll-driven sequence drawn on one canvas: the wind field gathers into the 10-region map with live counts, dissolves into the disclosed-salary bands, converges into the sector ring, and settles behind the real search box. The map points are sampled from the SVG at build time, so the page ships no extra assets and makes no extra requests. Under reduced motion it is a static page with every line of copy and the search box in reach.</li>
+    <li><b>"Your fit in ten seconds."</b> On the home and jobs pages: paste a CV or three words and the six closest live roles appear instantly, with the matched words, your position on the board's disclosed-salary strip, a small map of where the matches are, and a caveat. The matcher is the upgraded local one (title-weighted, two-word phrases, sector and place boosts). Every result is a link you can share.</li>
+    <li><b>The live ad builder.</b> On the Employers page the form renders the exact job card and job-page header as you type, previews a logo without uploading it, and reads reach from this week's data (live roles and median disclosed salary in the chosen sector). Sending still posts nothing and says so.</li>
+    <li><b>"Where this role sits."</b> Every job page with a published salary shows that range against the board's disclosed distribution, overall and in its sector, with keyboard-reachable marks and a table; roles without one get an honest line with the sector's disclosed range instead. Both show how many similar roles are live in the same region.</li>
+    <li><b>Motion that explains.</b> Numbers count up as they come into view, sparklines draw in, the map colours in region by region, a job title morphs from card to page and back, a thin bar in the header shows how far down you are. All of it is off under reduced motion and none of it moves layout.</li>
   </ul>
 
   <h2>Proposed for phase two</h2>
@@ -122,6 +137,7 @@
 </footer>
 <script src="../../js/lib.js" defer></script>
 <script src="../../js/main.js" defer></script>
+<script src="../../js/motion.js" defer></script>
 
 </body>
 </html>

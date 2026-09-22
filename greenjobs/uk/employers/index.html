@@ -20,6 +20,7 @@
 <body data-edition="uk" data-root="../../">
 <a class="skip" href="#main">Skip to content</a>
 <header class="hdr" data-header>
+  <div class="hdr__prog" data-progress aria-hidden="true"></div>
   <div class="wrap hdr__in">
     <a class="logo" href="../../uk/index.html" aria-label="GreenJobs UK, home">
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#b4e33d"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#0c1a12" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
@@ -58,16 +59,29 @@
   
 </section>
 <section class="wrap band--tight" aria-labelledby="h-post">
-  <div class="split">
-    <div><h2 id="h-post">Post a job</h2><p class="muted" style="margin-top:12px;max-width:40ch">Send a description and a logo and the team posts it for you, then emails when it is live. This preview shows what self-serve posting looks like in the redesign.</p></div>
-    <form class="preview" data-demo-form novalidate aria-label="Post a job preview">
-      <div class="row2"><div class="field"><label for="p-title">Job title</label><input class="in" id="p-title" name="title" type="text" placeholder="Senior Hydrogeologist"></div><div class="field"><label for="p-org">Organisation</label><input class="in" id="p-org" name="org" type="text"></div></div>
-      <div class="row2"><div class="field"><label for="p-loc">Location</label><input class="in" id="p-loc" name="loc" type="text" placeholder="the UK"></div><div class="field"><label for="p-sector">Sector</label><select class="in" id="p-sector" name="sector"><option value="Environmental science &amp; consulting">Environmental science &amp; consulting</option><option value="Policy, planning &amp; advisory">Policy, planning &amp; advisory</option><option value="Built environment &amp; energy efficiency">Built environment &amp; energy efficiency</option><option value="Ecology &amp; conservation">Ecology &amp; conservation</option><option value="Sustainability &amp; net zero">Sustainability &amp; net zero</option><option value="Water &amp; flood">Water &amp; flood</option><option value="Renewable energy &amp; storage">Renewable energy &amp; storage</option><option value="Energy networks &amp; utilities">Energy networks &amp; utilities</option><option value="Solar energy">Solar energy</option><option value="Waste &amp; circular economy">Waste &amp; circular economy</option><option value="Wind energy">Wind energy</option></select></div></div>
-      <div class="row2"><div class="field"><label for="p-sal">Salary (shown to candidates)</label><input class="in" id="p-sal" name="sal" type="text" placeholder="e.g. 55,000–65,000"></div><div class="field"><label for="p-type">Type</label><select class="in" id="p-type" name="type"><option>Permanent</option><option>Contract</option><option>Full Time</option><option>Part Time</option></select></div></div>
-      <div class="field"><label for="p-desc">Description</label><textarea class="in" id="p-desc" name="desc" rows="4"></textarea></div>
-      <button class="btn btn--lime" type="submit">Preview posting</button>
-      <p class="note note--live" data-demo-note tabindex="-1" hidden>Demo: self-serve posting is a phase-two feature. Today, email the team and they post it for you.</p>
+  <div class="sec-head"><div><h2 id="h-post">Post a job, and watch it appear</h2><p>Type, and the exact card candidates see on the board and the top of the job page render beside you. Reach is read from this week's live data. The send button is honest: nothing is posted from this demo.</p></div></div>
+  <div class="adb" data-adb data-reach="{&quot;Environmental science &amp; consulting&quot;:{&quot;n&quot;:46,&quot;disc&quot;:24,&quot;med&quot;:&quot;£49.8k&quot;,&quot;col&quot;:&quot;#6fa36b&quot;},&quot;Policy, planning &amp; advisory&quot;:{&quot;n&quot;:39,&quot;disc&quot;:27,&quot;med&quot;:&quot;£50k&quot;,&quot;col&quot;:&quot;#8a7a5a&quot;},&quot;Built environment &amp; energy efficiency&quot;:{&quot;n&quot;:28,&quot;disc&quot;:22,&quot;med&quot;:&quot;£51.2k&quot;,&quot;col&quot;:&quot;#7c8f5c&quot;},&quot;Ecology &amp; conservation&quot;:{&quot;n&quot;:20,&quot;disc&quot;:15,&quot;med&quot;:&quot;£49.5k&quot;,&quot;col&quot;:&quot;#2fbf9f&quot;},&quot;Sustainability &amp; net zero&quot;:{&quot;n&quot;:19,&quot;disc&quot;:12,&quot;med&quot;:&quot;£45.5k&quot;,&quot;col&quot;:&quot;#3e8e5e&quot;},&quot;Water &amp; flood&quot;:{&quot;n&quot;:16,&quot;disc&quot;:5,&quot;med&quot;:&quot;£64.8k&quot;,&quot;col&quot;:&quot;#5aa9e6&quot;},&quot;Renewable energy &amp; storage&quot;:{&quot;n&quot;:15,&quot;disc&quot;:7,&quot;med&quot;:&quot;£41k&quot;,&quot;col&quot;:&quot;#8fc73a&quot;},&quot;Energy networks &amp; utilities&quot;:{&quot;n&quot;:13,&quot;disc&quot;:2,&quot;med&quot;:&quot;£55.8k&quot;,&quot;col&quot;:&quot;#4f7f8c&quot;},&quot;Solar energy&quot;:{&quot;n&quot;:5,&quot;disc&quot;:5,&quot;med&quot;:&quot;£41k&quot;,&quot;col&quot;:&quot;#f2b544&quot;},&quot;Waste &amp; circular economy&quot;:{&quot;n&quot;:3,&quot;disc&quot;:2,&quot;med&quot;:&quot;£72.5k&quot;,&quot;col&quot;:&quot;#d9774f&quot;},&quot;Wind energy&quot;:{&quot;n&quot;:2,&quot;disc&quot;:0,&quot;med&quot;:&quot;&quot;,&quot;col&quot;:&quot;#b4e33d&quot;}}" data-sym="£" data-unit="region">
+    <form class="adb__form" data-demo-form novalidate aria-label="Post a job">
+      <div class="row2"><div class="field"><label for="p-title">Job title</label><input class="in" id="p-title" name="title" type="text" placeholder="Senior Hydrogeologist" maxlength="90"></div><div class="field"><label for="p-org">Organisation</label><input class="in" id="p-org" name="org" type="text" placeholder="Your company" maxlength="60"></div></div>
+      <div class="row2"><div class="field"><label for="p-loc">Location</label><input class="in" id="p-loc" name="loc" type="text" placeholder="the UK" maxlength="60"></div><div class="field"><label for="p-sector">Sector</label><select class="in" id="p-sector" name="sector"><option value="Environmental science &amp; consulting">Environmental science &amp; consulting</option><option value="Policy, planning &amp; advisory">Policy, planning &amp; advisory</option><option value="Built environment &amp; energy efficiency">Built environment &amp; energy efficiency</option><option value="Ecology &amp; conservation">Ecology &amp; conservation</option><option value="Sustainability &amp; net zero">Sustainability &amp; net zero</option><option value="Water &amp; flood">Water &amp; flood</option><option value="Renewable energy &amp; storage">Renewable energy &amp; storage</option><option value="Energy networks &amp; utilities">Energy networks &amp; utilities</option><option value="Solar energy">Solar energy</option><option value="Waste &amp; circular economy">Waste &amp; circular economy</option><option value="Wind energy">Wind energy</option></select></div></div>
+      <div class="row2"><div class="field"><label for="p-type">Type</label><select class="in" id="p-type" name="type"><option>Permanent</option><option>Contract</option><option>Full Time</option><option>Part Time</option><option>Fixed Term</option></select></div><div class="field"><label for="p-logo">Logo (stays on this device)</label><input class="in in--file" id="p-logo" name="logo" type="file" accept="image/*"></div></div>
+      <fieldset class="fieldset"><legend>Salary range, per year (shown to candidates)</legend><div class="row2"><div class="field"><label for="p-smin" class="vh">Minimum</label><input class="in" id="p-smin" name="smin" type="number" inputmode="numeric" min="0" step="1000" placeholder="From, e.g. 55000"></div><div class="field"><label for="p-smax" class="vh">Maximum</label><input class="in" id="p-smax" name="smax" type="number" inputmode="numeric" min="0" step="1000" placeholder="To, e.g. 65000"></div></div></fieldset>
+      <fieldset class="fieldset"><legend>Three things a candidate should know</legend>
+        <div class="field"><label for="p-b1" class="vh">Point one</label><input class="in" id="p-b1" name="b1" type="text" placeholder="What the role owns" maxlength="120"></div>
+        <div class="field"><label for="p-b2" class="vh">Point two</label><input class="in" id="p-b2" name="b2" type="text" placeholder="Who they work with" maxlength="120"></div>
+        <div class="field"><label for="p-b3" class="vh">Point three</label><input class="in" id="p-b3" name="b3" type="text" placeholder="Why it matters" maxlength="120"></div>
+      </fieldset>
+      <p class="adb__reach" data-adb-reach aria-live="polite"></p>
+      <div class="adb__actions"><button class="btn btn--lime" type="submit" data-magnet>Send for posting<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost" type="button" data-adb-fill>Fill with an example</button></div>
+      <p class="note note--live" data-demo-note tabindex="-1" hidden>Demo: self-serve posting is a phase-two feature. Nothing was sent. Today, email the team the same details and they post it for you.</p>
     </form>
+    <div class="adb__preview" data-adb-preview id="adb-preview">
+      <p class="adb__cap">On the board</p>
+      <div class="roles adb__card" data-adb-card></div>
+      <p class="adb__cap">Top of the job page</p>
+      <div class="adb__hero" data-adb-hero></div>
+    </div>
+    <button class="btn btn--fill adb__toggle" type="button" data-adb-toggle aria-expanded="false" aria-controls="adb-preview">Preview</button>
   </div>
 </section>
 
@@ -94,6 +108,7 @@
 </footer>
 <script src="../../js/lib.js" defer></script>
 <script src="../../js/main.js" defer></script>
-
+<script src="../../js/motion.js" defer></script>
+<script src="../../js/adbuilder.js" defer></script>
 </body>
 </html>
