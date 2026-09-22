@@ -192,7 +192,7 @@ The full PRD lives at `c:/Users/deban/OneDrive/Documents/Bryce Projects/Accessor
 
 ## 2026-09-22 — GreenJobs redesign (greenjobs.ie / greenjobs.co.uk)
 
-Live: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/greenjobs/ and https://greenjobs-redesign.pages.dev/ (evidence page at `/ie/for-keith/`). Directive: `directives/gtm_client_workflows/greenjobs_redesign.md`. Reply draft for Keith: `deliverables/greenjobs_redesign_2026-09-22/research/panel_pass.md` (Synthesis).
+Live (Cloudflare only, github.io retired 2026-09-22 and redirecting): https://greenjobs-redesign.pages.dev/ (evidence page at `/ie/for-keith/`). Radar POC pages: https://gaia-radar.pages.dev/ ; Gaia redesign: https://gaia-talent-redesign.pages.dev/ Directive: `directives/gtm_client_workflows/greenjobs_redesign.md`. Reply draft for Keith: `deliverables/greenjobs_redesign_2026-09-22/research/panel_pass.md` (Synthesis).
 
 **Keys.** All API keys live in the operator's local `.env` (`C:\Users\deban\OneDrive\Documents\AntiGravity Project Space\.env`): `ANTHROPIC_API_KEY`, the GLM key and `FIRECRAWL_API_KEY` are present there as of 2026-09-22. Operator standing order: paid API calls only when every free option is exhausted. Cloud sessions do not see that file. Nothing in the demo needs a key today.
 

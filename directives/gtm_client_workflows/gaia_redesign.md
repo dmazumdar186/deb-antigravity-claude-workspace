@@ -32,8 +32,8 @@ operator ships serious, accurate, fast work. Research and the panel decisions li
 - `deliverables/gaia_redesign_2026-09-17/site/` — rendered static bundle (relative paths only), tagged
   internally with a `.gaia-build` marker file (written before `copytree`, so an interrupted build still
   leaves the marker and the next run can recover instead of being refused by the empty-dir guard).
-- `gh-pages` branch, sub-path `gaia/` → **live**: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/gaia/
-  (published 2026-09-17).
+- **Live**: https://gaia-talent-redesign.pages.dev/ (Cloudflare Pages, the only host since 2026-09-22;
+  the old github.io `/gaia/` path redirects here).
 - `.tmp/gaia_redesign_shots/*.png` — screenshots at 390/768/1440 (+ reduced motion) for review; all
   scratch (token file, click-simulation HTML copies) stays under `.tmp/gaia_redesign_shots/_scratch/`,
   never inside `site/`.
@@ -61,11 +61,9 @@ operator ships serious, accurate, fast work. Research and the panel decisions li
    serve the built site on port 8899 and run `headless_shell --remote-debugging-port=9222` first; env
    `SITE_PORT`/`CDP_PORT`/`SHOT_DIR` override the defaults).
 4. Audit stack (anneal-reviewer, code-reviewer, pipeline-auditor) on the diff; fix; rebuild.
-5. `bash execution/gtm_client_workflows/gaia_redesign/publish_gh_pages.sh` (publishes only `gaia/`;
-   the POC pages at `/` are untouched; excludes `.gaia-build` and `_shot-*` from the pushed tree).
-   Then `curl -sI` the base URL and one sub-page.
-   Optionally `bash execution/gtm_client_workflows/gaia_redesign/deploy_cloudflare.sh` for the
-   `pages.dev` mirror (same `.gaia-build`/`_shot-*` exclusion; token permissions: Account > Cloudflare
+5. `bash execution/gtm_client_workflows/gaia_redesign/deploy_cloudflare.sh` (the only publish path;
+   `publish_gh_pages.sh` is retired and exits 2). Then `curl -sI` the base URL and one sub-page.
+   Cloudflare notes (same `.gaia-build`/`_shot-*` exclusion; token permissions: Account > Cloudflare
    Pages > Edit; in a **cloud session** the env vars must already exist in the container — a var added
    mid-session is invisible, so use a fresh session after adding `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`).
 6. Commit `src/`, `site/`, scripts and this directive; push branch and main.
@@ -120,7 +118,8 @@ operator ships serious, accurate, fast work. Research and the panel decisions li
 - Sitemap "posted" dates are bulk-touch dates, not posting dates: show only the page-level
   "as of" date.
 - Only 7 of 63 roles disclose salary: salaries are not shown.
-- Keith cannot open claude.ai artifact links: always send the GitHub Pages URL.
+- Keith cannot open claude.ai artifact links: always send the Cloudflare Pages URL (never github.io:
+  the operator retired it on 2026-09-22; the POC pages moved to https://gaia-radar.pages.dev/).
 - The demo duplicates Gaia's content under another domain: keep `noindex` until it moves to
   gaiatalent.com, then remove it and the `robots.txt` disallow.
 - Never add AI wording, Hidden Depth comparisons, invented proof or the CRO number to public pages —
@@ -149,7 +148,7 @@ operator ships serious, accurate, fast work. Research and the panel decisions li
 ## Changelog
 
 - 2026-09-17: created. Research (four scrape agents), six-lens panel, spec, build, publish to
-  `gh-pages:/gaia/` (now **live**: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/gaia/).
+  `gh-pages:/gaia/` (github.io retired 2026-09-22; live at https://gaia-talent-redesign.pages.dev/).
 - 2026-09-17 (Cloudflare): `deploy_cloudflare.sh` run from a cloud session with the two `CLOUDFLARE_*`
   vars present — **live**: https://gaia-talent-redesign.pages.dev/ (all four pages 200). The
   project-create step now tolerates wrangler's "already exists" error, so reruns no longer abort.

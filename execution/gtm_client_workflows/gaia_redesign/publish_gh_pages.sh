@@ -4,6 +4,13 @@
 # Default: deliverables/gaia_redesign_2026-09-17/site -> gh-pages:/gaia/
 # Never touches other paths on gh-pages (the existing POC pages at / stay byte-identical).
 set -euo pipefail
+# Operator order 2026-09-22: Cloudflare Pages only. github.io hosting is retired and gh-pages
+# now holds redirect stubs. Use deploy_cloudflare.sh. Pass --i-know-github-pages-is-retired to force.
+if [ "${1:-}" != "--i-know-github-pages-is-retired" ]; then
+  echo "retired: publish to Cloudflare with deploy_cloudflare.sh (github.io hosting is off, 2026-09-22)" >&2
+  exit 2
+fi
+shift
 ROOT="$(git rev-parse --show-toplevel)"
 SITE="${1:-$ROOT/deliverables/gaia_redesign_2026-09-17/site}"
 SUB="${2:-gaia}"

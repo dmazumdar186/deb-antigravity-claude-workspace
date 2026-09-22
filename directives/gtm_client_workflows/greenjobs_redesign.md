@@ -7,8 +7,8 @@ data, to back the €1,875 redesign proposal and to open the "move off the curre
 Companion to `gaia_redesign.md` (same pipeline pattern, different visual lane). Spec, critique and
 panel pass: `deliverables/greenjobs_redesign_2026-09-22/research/`.
 
-Live: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/greenjobs/ (GitHub Pages) and
-https://greenjobs-redesign.pages.dev/ (Cloudflare Pages). Evidence page: `<base>/ie/for-keith/`
+Live: https://greenjobs-redesign.pages.dev/ (Cloudflare Pages, the only host; github.io is retired and
+redirects here). Evidence page: `<base>/ie/for-keith/`
 (not linked from the public nav).
 
 ## Inputs
@@ -28,16 +28,15 @@ https://greenjobs-redesign.pages.dev/ (Cloudflare Pages). Evidence page: `<base>
 4. Tests: `python3 tests/greenjobs_redesign/test_build.py`; screenshots: `bash .../screenshot.sh`
    then look at every PNG in `.tmp/greenjobs_redesign_shots/`.
 5. Audit stack + panel pass (roster in `.claude/memory/panel_roster.md`); fix; rebuild.
-6. Publish: `bash .../publish_gh_pages.sh` (sub-path `greenjobs/`, other paths untouched) and
-   `bash .../deploy_cloudflare.sh` (project `greenjobs-redesign`). `curl -sI` the base URL and one
-   job page on each host.
+6. Publish: `bash .../deploy_cloudflare.sh` (project `greenjobs-redesign`). `curl -sI` the base URL and
+   one job page. `publish_gh_pages.sh` is retired (exits 2); github.io holds redirect stubs only.
 
 ## Exit criteria
 
 - Build exits 0; validator green; job pages == dataset length per edition; every apply link is the
   real listing URL; no "(0)" sector, no employer named as "hiring now" without a live role; public
   pages carry no "AI"/"Claude"/vendor names; `noindex` everywhere; 200 on `/`, `/ie/`, `/uk/`,
-  `/ie/jobs/`, one job page, `/ie/for-keith/` on both hosts.
+  `/ie/jobs/`, one job page, `/ie/for-keith/` on Cloudflare.
 
 ## Edge cases
 
