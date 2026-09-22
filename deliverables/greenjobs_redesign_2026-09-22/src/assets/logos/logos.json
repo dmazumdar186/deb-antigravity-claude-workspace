@@ -1,0 +1,296 @@
+{
+ "site:ie:greenjobslogo-small.png": {
+  "file": "greenjobslogo-small.png",
+  "source": "https://www.greenjobs.ie/images/logos/greenjobslogo-small.png",
+  "bytes": 11739,
+  "site": "ie"
+ },
+ "site:ie:conservation.svg": {
+  "file": "conservation.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/conservation.svg",
+  "bytes": 5465,
+  "site": "ie"
+ },
+ "site:ie:ecology.svg": {
+  "file": "ecology.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/ecology.svg",
+  "bytes": 4247,
+  "site": "ie"
+ },
+ "site:ie:environmental.svg": {
+  "file": "environmental.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/environmental.svg",
+  "bytes": 4741,
+  "site": "ie"
+ },
+ "site:ie:greenjobs.svg": {
+  "file": "greenjobs.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/greenjobs.svg",
+  "bytes": 3138,
+  "site": "ie"
+ },
+ "site:ie:renewable.svg": {
+  "file": "renewable.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/renewable.svg",
+  "bytes": 6134,
+  "site": "ie"
+ },
+ "site:ie:solar.svg": {
+  "file": "solar.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/solar.svg",
+  "bytes": 3298,
+  "site": "ie"
+ },
+ "site:ie:waste.svg": {
+  "file": "waste.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/waste.svg",
+  "bytes": 3425,
+  "site": "ie"
+ },
+ "site:ie:water.svg": {
+  "file": "water.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/water.svg",
+  "bytes": 3104,
+  "site": "ie"
+ },
+ "site:ie:wind.svg": {
+  "file": "wind.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/wind.svg",
+  "bytes": 2486,
+  "site": "ie"
+ },
+ "site:ie:b-corp-logo.svg": {
+  "file": "b-corp-logo.svg",
+  "source": "https://www.greenjobs.ie/images/b-corp-logo.svg",
+  "bytes": 8199,
+  "site": "ie"
+ },
+ "site:ie:leo.png": {
+  "file": "leo.png",
+  "source": "https://www.greenjobs.ie/images/logos/leo.png",
+  "bytes": 18479,
+  "site": "ie"
+ },
+ "site:ie:1fortheplanet.svg": {
+  "file": "1fortheplanet.svg",
+  "source": "https://www.greenjobs.ie/images/1fortheplanet.svg",
+  "bytes": 6007,
+  "site": "ie"
+ },
+ "Commonland": {
+  "file": "BANNER_fea_23944.jpg",
+  "source": "https://www.greenjobs.ie/jobboard/public/5104/banners/BANNER_fea_23944.jpg",
+  "bytes": 2867,
+  "site": "ie"
+ },
+ "EirGrid": {
+  "file": "BANNER_fea_23832.jpg",
+  "source": "https://www.greenjobs.ie/jobboard/public/5104/banners/BANNER_fea_23832.jpg",
+  "bytes": 4591,
+  "site": "ie"
+ },
+ "Power NI": {
+  "file": "BANNER_fea_23919.jpg",
+  "source": "https://www.greenjobs.ie/jobboard/public/5104/banners/BANNER_fea_23919.jpg",
+  "bytes": 4781,
+  "site": "ie"
+ },
+ "Gaia Talent": {
+  "file": "BANNER_fea_23057.jpg",
+  "source": "https://www.greenjobs.ie/jobboard/public/5104/banners/BANNER_fea_23057.jpg",
+  "bytes": 3895,
+  "site": "ie"
+ },
+ "Veolia": {
+  "file": "BANNER_fea_23920.jpg",
+  "source": "https://www.greenjobs.ie/jobboard/public/5104/banners/BANNER_fea_23920.jpg",
+  "bytes": 3985,
+  "site": "ie"
+ },
+ "Mattinson Partnership": {
+  "file": "Logo_18157.jpg",
+  "source": "https://www.greenjobs.ie/jobboard/public/5104/clientlogos/Logo_18157.jpg",
+  "bytes": 4836,
+  "site": "ie"
+ },
+ "site:uk:greenjobslogo-small.png": {
+  "file": "greenjobslogo-small.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/greenjobslogo-small.png",
+  "bytes": 11739,
+  "site": "uk"
+ },
+ "site:uk:conservation.svg": {
+  "file": "conservation.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/conservation.svg",
+  "bytes": 5465,
+  "site": "uk"
+ },
+ "site:uk:ecology.svg": {
+  "file": "ecology.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/ecology.svg",
+  "bytes": 4247,
+  "site": "uk"
+ },
+ "site:uk:environmental.svg": {
+  "file": "environmental.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/environmental.svg",
+  "bytes": 4741,
+  "site": "uk"
+ },
+ "site:uk:greenjobs.svg": {
+  "file": "greenjobs.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/greenjobs.svg",
+  "bytes": 3138,
+  "site": "uk"
+ },
+ "site:uk:renewable.svg": {
+  "file": "renewable.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/renewable.svg",
+  "bytes": 6134,
+  "site": "uk"
+ },
+ "site:uk:solar.svg": {
+  "file": "solar.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/solar.svg",
+  "bytes": 3298,
+  "site": "uk"
+ },
+ "site:uk:waste.svg": {
+  "file": "waste.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/waste.svg",
+  "bytes": 3425,
+  "site": "uk"
+ },
+ "site:uk:water.svg": {
+  "file": "water.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/water.svg",
+  "bytes": 3104,
+  "site": "uk"
+ },
+ "site:uk:wind.svg": {
+  "file": "wind.svg",
+  "source": "https://www.greenjobs.co.uk/images/logos/footer/wind.svg",
+  "bytes": 2486,
+  "site": "uk"
+ },
+ "site:uk:b-corp-logo.svg": {
+  "file": "b-corp-logo.svg",
+  "source": "https://www.greenjobs.co.uk/images/b-corp-logo.svg",
+  "bytes": 8199,
+  "site": "uk"
+ },
+ "site:uk:leo.png": {
+  "file": "leo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/leo.png",
+  "bytes": 18479,
+  "site": "uk"
+ },
+ "site:uk:1fortheplanet.svg": {
+  "file": "1fortheplanet.svg",
+  "source": "https://www.greenjobs.co.uk/images/1fortheplanet.svg",
+  "bytes": 6007,
+  "site": "uk"
+ },
+ "Ofwat": {
+  "file": "BANNER_fea_23259.png",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/banners/BANNER_fea_23259.png",
+  "bytes": 5405,
+  "site": "uk"
+ },
+ "CHM Recruit": {
+  "file": "BANNER_fea_14354.gif",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/banners/BANNER_fea_14354.gif",
+  "bytes": 3173,
+  "site": "uk"
+ },
+ "Thomson Environmental Consultants": {
+  "file": "BANNER_fea_22545.png",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/banners/BANNER_fea_22545.png",
+  "bytes": 490051,
+  "site": "uk"
+ },
+ "Dacorum Borough Council": {
+  "file": "Logo_83164.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_83164.jpg",
+  "bytes": 4255,
+  "site": "uk"
+ },
+ "Natural Resources Wales": {
+  "file": "Logo_72769.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_72769.jpg",
+  "bytes": 3395,
+  "site": "uk"
+ },
+ "Environmental Standards Scotland (ESS)": {
+  "file": "Logo_83391.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_83391.jpg",
+  "bytes": 5968,
+  "site": "uk"
+ },
+ "South Ken Culture Quarter": {
+  "file": "Logo_83512.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_83512.jpg",
+  "bytes": 5332,
+  "site": "uk"
+ },
+ "Welsh Government (Llywodraeth Cymru)": {
+  "file": "Logo_72328.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_72328.jpg",
+  "bytes": 4575,
+  "site": "uk"
+ },
+ "Naked Solar": {
+  "file": "Logo_83475.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_83475.jpg",
+  "bytes": 4103,
+  "site": "uk"
+ },
+ "Jacobs": {
+  "file": "Logo_83486.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_83486.jpg",
+  "bytes": 4529,
+  "site": "uk"
+ },
+ "Powercor": {
+  "file": "Logo_83508.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_83508.jpg",
+  "bytes": 4483,
+  "site": "uk"
+ },
+ "The Wildlife For All Trust": {
+  "file": "Logo_67424.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_67424.jpg",
+  "bytes": 4304,
+  "site": "uk"
+ },
+ "Arup": {
+  "file": "Logo_82141.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_82141.jpg",
+  "bytes": 5216,
+  "site": "uk"
+ },
+ "Haskoning": {
+  "file": "Logo_8729.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_8729.jpg",
+  "bytes": 4807,
+  "site": "uk"
+ },
+ "Grundon Waste Management": {
+  "file": "Logo_83466.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_83466.jpg",
+  "bytes": 6716,
+  "site": "uk"
+ },
+ "ETH Zurich": {
+  "file": "Logo_82802.jpg",
+  "source": "https://www.greenjobs.co.uk/jobboard/public/5105/clientlogos/Logo_82802.jpg",
+  "bytes": 3763,
+  "site": "uk"
+ },
+ "site:ie:greenjobslogo.png": {
+  "file": "greenjobslogo.png",
+  "source": "https://www.greenjobs.ie/images/logos/greenjobslogo.png",
+  "bytes": 19253,
+  "site": "ie"
+ }
+}

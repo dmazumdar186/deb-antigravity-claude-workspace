@@ -115,3 +115,7 @@ deliverables/ad_creative/**/renders/
 # Gaia redesign: the B Corp logo is a shipped site asset (brief-sourced), not a screenshot
 !deliverables/gaia_redesign_2026-09-17/src/assets/*.png
 !deliverables/gaia_redesign_2026-09-17/site/assets/*.png
+
+# greenjobs redesign: the site's own logos are content, not screenshot scratch
+!deliverables/greenjobs_redesign_2026-09-22/src/assets/logos/*.png
+!deliverables/greenjobs_redesign_2026-09-22/site/**/*.png
