@@ -62,7 +62,7 @@ url_for() { # edition page
     sectors) echo "$1/sectors/index.html" ;; employers) echo "$1/employers/index.html" ;; chooser) echo "index.html?choose" ;;
   esac
 }
-tall() { case "$1" in index) echo 4200 ;; jobs) echo 3200 ;; keith) echo 3600 ;; insights) echo 2600 ;; *) echo 2200 ;; esac; }
+tall() { case "$1" in index) echo 4200 ;; jobs) echo 3200 ;; keith) echo 3600 ;; insights) echo 2360 ;; *) echo 2200 ;; esac; }
 
 echo "viewport captures"
 for ed in ie uk; do
