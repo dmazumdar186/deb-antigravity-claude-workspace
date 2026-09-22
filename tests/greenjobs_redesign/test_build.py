@@ -139,6 +139,23 @@ def test_bad_id_fails_build(tmp_root: Path):
     check(rc != 0, "build: injected bad job id fails the build (non-zero exit)")
 
 
+def test_plural_and_snapshot():
+    check(build_site.plural("county") == "counties", "plural: county -> counties")
+    check(build_site.plural("region") == "regions", "plural: region -> regions")
+    check(build_site.snapshot_label("2026-09-22") == "Snapshot of 22 September 2026", "snapshot_label: ISO date -> 'Snapshot of 22 September 2026'")
+    check(build_site.median_salary([{"sal_min": 50000, "sal_max": 60000, "period": "year"}, {"sal_min": 40000, "sal_max": None, "period": "year"}, {"sal_min": None, "sal_max": None}], "€") == "€47.5k", "median_salary: midpoint median formatted like lib.js")
+
+
+def test_employers_strip_is_honest():
+    emps = [{"name": n, "url": "", "logo": "", "lw": 0, "lh": 0} for n in ["A", "B", "C", "D", "E", "F", "G", "Pad1", "Pad2"]]
+    mk = lambda names: {"site": "x.ie", "employers": emps, "jobs": [{"employer": n} for n in names]}  # noqa: E731
+    six = build_site.employers_strip(mk(["A", "B", "C", "D", "E", "F"]), "../")
+    check(six["mode"] == "hiring" and six["title"] == "Employers hiring now" and "Pad1" not in six["html"] and "G" not in six["html"].replace("Green", ""), "employers_strip: >=6 live employers -> 'hiring now' with live employers only")
+    two = build_site.employers_strip(mk(["A", "B"]), "../")
+    check(two["mode"] == "network" and two["title"] == "Employers on the GreenJobs network" and "2 of them have live roles" in two["sub"] and "Pad1" in two["html"], "employers_strip: <6 live -> network title, padded honestly")
+    check(build_site.employers_strip({"site": "x", "employers": [], "jobs": []}, "../")["html"] == "", "employers_strip: no employers -> empty html")
+
+
 def test_render_fails_loudly():
     try:
         build_site.render("<p>{{missing}}</p>", {})
@@ -203,6 +220,12 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check(any("missing width/height" in f for f in with_patch(lambda t: t.replace("</body>", '<img src="../assets/favicon.svg" alt="x"></body>'))), "faults: undimensioned image caught")
     check(any("noindex" in f for f in with_patch(lambda t: t.replace('content="noindex,nofollow"', 'content="index"'))), "faults: missing noindex caught")
     check(any("exactly one <h1>" in f for f in with_patch(lambda t: t.replace("</main>", "<h1>Two</h1></main>"))), "faults: second h1 caught")
+    check(any("countyies" in f for f in with_patch(lambda t: t.replace("</main>", "<p>14 countyies</p></main>"))), "faults: 'countyies' caught")
+    check("countyies" not in clean and "counties" in clean, "home: unit pluralised as 'counties'")
+    check("For Keith" not in clean and "for-keith" not in clean, "home: for-keith is not linked from the public shell")
+    check("Snapshot of" in clean, "home: hero carries the snapshot date")
+    check('data-lvl="' in clean and 'data-n="' in clean, "home: map regions carry data-n/data-lvl at build time")
+    check(any("Employers hiring now" in f for f in with_patch(lambda t: t.replace('data-strip="network"', 'data-strip="hiring"').replace('<div class="marq__track">', '<div class="marq__track"><div class="emp"><span>Ghost Ltd</span></div>'))), "faults: non-live employer under 'hiring now' caught")
     check(validate_site.validate(out, jobs) == [], "faults: clean build validates with zero problems after patches are reverted")
     keith = out / "ie" / "for-keith" / "index.html"
     k = keith.read_text(encoding="utf-8")

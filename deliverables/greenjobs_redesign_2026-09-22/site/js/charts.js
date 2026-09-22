@@ -23,21 +23,17 @@ return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true" 
 }
 function bars(rows, opts) {
 opts = opts || {};
-var W = 600, rh = 30, gap = 8, lw = opts.labelWidth || 170, H = rows.length * (rh + gap);
-var short = function (s) { return s.length > 26 ? s.slice(0, 25).replace(/[\s&,]+$/, '') + '…' : s; };
 var max = opts.max || Math.max.apply(null, rows.map(function (r) { return r.v; })) || 1;
-var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'list', 'aria-label': opts.label || 'Bar chart' });
-rows.forEach(function (r, i) {
-var y = i * (rh + gap), bw = Math.max(2, (r.v / max) * (W - lw - 70));
-var g = el('g', { role: 'listitem', tabindex: '0', 'aria-label': r.label + ': ' + (opts.fmt ? opts.fmt(r.v) : r.v) + (r.sub ? ', ' + r.sub : '') });
-g.appendChild(el('text', { x: lw - 12, y: y + rh / 2 + 4, 'text-anchor': 'end', class: 'cat' }, short(r.label)));
-var rect = el('rect', { x: lw, y: y + 4, width: bw, height: rh - 8, rx: 4, class: 'bar' + (r.cls ? ' ' + r.cls : '') });
-g.appendChild(rect);
-g.appendChild(el('text', { x: lw + bw + 8, y: y + rh / 2 + 4, class: 'lbl' }, opts.fmt ? opts.fmt(r.v) : String(r.v)));
-tipOn(g, '<b>' + G.esc(r.label) + '</b><span>' + G.esc(opts.fmt ? opts.fmt(r.v) : r.v) + (r.sub ? ' · ' + G.esc(r.sub) : '') + '</span>');
-svg.appendChild(g);
+var list = document.createElement('div'); list.className = 'hbars'; list.setAttribute('role', 'list'); list.setAttribute('aria-label', opts.label || 'Bar chart');
+rows.forEach(function (r) {
+var val = opts.fmt ? opts.fmt(r.v) : String(r.v), d = document.createElement('div');
+d.className = 'hbar' + (r.cls ? ' ' + r.cls : ''); d.setAttribute('role', 'listitem'); d.setAttribute('tabindex', '0');
+d.setAttribute('aria-label', r.label + ': ' + val + (r.sub ? ', ' + r.sub : ''));
+d.innerHTML = '<span class="hbar__l">' + G.esc(r.label) + '</span><i class="hbar__b" style="--w:' + Math.max(1, 100 * r.v / max).toFixed(1) + '%"></i><b class="hbar__v num">' + G.esc(val) + '</b>';
+tipOn(d, '<b>' + G.esc(r.label) + '</b><span>' + G.esc(val) + (r.sub ? ' · ' + G.esc(r.sub) : '') + '</span>');
+list.appendChild(d);
 });
-return svg;
+return list;
 }
 function columns(bins, opts) {
 opts = opts || {};
@@ -64,13 +60,13 @@ var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'treemap', role: 'li
 rects.forEach(function (r) {
 var it = r.item, g = el('g', { class: 'cell', role: 'listitem', tabindex: '0', 'data-key': it.key, 'aria-label': it.label + ': ' + it.v + (it.v === 1 ? ' role' : ' roles') });
 g.appendChild(el('rect', { x: r.x, y: r.y, width: r.w, height: r.h, fill: it.color }));
-if (r.w > 70 && r.h > 34) {
+if (r.w >= 90 && r.h > 40) {
 var dark = it.dark;
 var t = el('text', { x: r.x + 10, y: r.y + 22, fill: dark ? '#eef2ea' : '#0c1a12' });
 var words = it.label.split(' '), line = '', lines = [];
-words.forEach(function (w) { if ((line + ' ' + w).length * 7.2 > r.w - 16 && line) { lines.push(line); line = w; } else line = line ? line + ' ' + w : w; });
+words.forEach(function (w) { if ((line + ' ' + w).length * 7.8 > r.w - 16 && line) { lines.push(line); line = w; } else line = line ? line + ' ' + w : w; });
 lines.push(line);
-lines.slice(0, Math.max(1, Math.floor((r.h - 30) / 16))).forEach(function (l, i) { t.appendChild(el('tspan', { x: r.x + 10, dy: i ? 15 : 0 }, l)); });
+lines.slice(0, Math.max(1, Math.floor((r.h - 34) / 17))).forEach(function (l, i) { t.appendChild(el('tspan', { x: r.x + 10, dy: i ? 16 : 0 }, l)); });
 g.appendChild(t);
 g.appendChild(el('text', { x: r.x + 10, y: r.y + r.h - 10, class: 't2', fill: dark ? '#eef2ea' : '#0c1a12' }, it.v + (it.v === 1 ? ' role' : ' roles')));
 }

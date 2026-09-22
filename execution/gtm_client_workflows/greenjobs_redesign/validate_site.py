@@ -224,6 +224,18 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
                 fails.append(f"{rel}: job page has no apply link")
         if re.match(r"^(ie|uk)/index\.html$", rel) and 'data-wind' not in raw:
             fails.append(f"{rel}: home page has no hero canvas host")
+        hm = re.match(r"^(ie|uk)/index\.html$", rel)
+        if hm and 'data-strip="hiring"' in raw:
+            # Every logo under "Employers hiring now" must belong to an employer with a live role in this edition.
+            live = {html.unescape(j["employer"]) for j in jobs_by_edition.get(hm.group(1), [])}
+            strip = re.search(r'<div class="marq" data-marq data-strip="hiring">(.*?)</div></div>', raw, re.S)
+            names = re.findall(r'<(?:img[^>]*\balt="([^"]*)"|span>([^<]*)</span>)', strip.group(1)) if strip else []
+            for alt, span in names:
+                name = html.unescape(alt or span)
+                if name and name not in live:
+                    fails.append(f"{rel}: '{name}' is shown under \"Employers hiring now\" but has no live role in this edition")
+        if hm and "countyies" in raw:
+            fails.append(f"{rel}: 'countyies' pluralisation bug")
 
     for ed, jobs in jobs_by_edition.items():
         if job_pages.get(ed, 0) != len(jobs):

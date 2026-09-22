@@ -21,7 +21,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="hdr" data-header>
   <div class="wrap hdr__in">
-    <a class="logo" href="../../ie/index.html" aria-label="GreenJobs IE — home">
+    <a class="logo" href="../../ie/index.html" aria-label="GreenJobs IE, home">
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#b4e33d"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#0c1a12" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
       <span>Green<b>Jobs</b></span><small>IE</small>
     </a>
@@ -38,7 +38,7 @@
   <div class="menu__in">
     <div class="menu__top"><span class="logo">Green<b>Jobs</b><small>IE</small></span><button class="icobtn" type="button" data-menu-close aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <a href="../../ie/index.html">Home <span aria-hidden="true">→</span></a>
-    <a href="../../ie/jobs/index.html">Jobs</a><a href="../../ie/sectors/index.html">Sectors</a><a href="../../ie/insights/index.html">Salary explorer</a><a href="../../ie/compass/index.html">Career compass</a><a href="../../ie/employers/index.html">Employers</a><a href="../../ie/for-keith/index.html">The evidence page</a>
+    <a href="../../ie/jobs/index.html">Jobs</a><a href="../../ie/sectors/index.html">Sectors</a><a href="../../ie/insights/index.html">Salary explorer</a><a href="../../ie/compass/index.html">Career compass</a><a href="../../ie/employers/index.html">Employers</a>
     <div class="menu__foot"><div class="edsw" role="group" aria-label="Edition"><a href="../../ie/for-keith/index.html" data-edswitch="ie" aria-current="true" hreflang="en-IE">IE</a><a href="../../uk/for-keith/index.html" data-edswitch="uk" aria-current="false" hreflang="en-GB">UK</a></div><a class="btn btn--lime btn--sm" href="../../ie/employers/index.html" style="border:0;padding:8px 16px;min-height:44px;font-size:.95rem">Post a job</a></div>
   </div>
 </dialog>
@@ -49,15 +49,15 @@
 </div>
 <div class="wrap doc" style="padding-bottom:var(--pad-y)">
   <h2>Before and after, measured</h2>
-  <p>"Before" numbers were measured on the live greenjobs.ie home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time — nothing in this table is typed by hand.</p>
-  <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody><tr><td>Home page HTML</td><td class="n">189,932 B</td><td class="n good">50,340 B (14,682 B gzipped)</td></tr><tr><td>Requests on the home page</td><td class="n">44</td><td class="n good">11 (all first-party)</td></tr><tr><td>External script tags</td><td class="n">16</td><td class="n good">7 own files, 53.7 KB (19.6 KB gzipped)</td></tr><tr><td>Third-party requests</td><td class="n">yes (analytics, CDN fonts/scripts)</td><td class="n good">0</td></tr><tr><td>Stylesheet</td><td class="n">3 files</td><td class="n good">1 file, 43.9 KB (10.0 KB gzipped)</td></tr><tr><td>Front-end stack</td><td>jQuery 1.11.0, Bootstrap 3, html5shiv, vendor CDN</td><td class="good">Vanilla ES2020, no framework, no build-time packages</td></tr><tr><td>Pages rendered</td><td>server-side, per request</td><td class="good">94 static pages, 88 of them job pages</td></tr></tbody></table>
-  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built 2026-09-22. Stylesheet 43.9 KB, scripts 53.7 KB before compression; budgets 60 KB each. Unit tests on the pure logic module: 13 passing, 0 failing.</p>
+  <p>"Before" numbers were measured on the live greenjobs.ie home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time; nothing in this table is typed by hand. The requests row compares an estimate for the live site (counted from its HTML, not a network trace) with a measured count for the demo.</p>
+  <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody><tr><td>Home page HTML</td><td class="n">189,932 B</td><td class="n good">52,750 B (15,129 B gzipped)</td></tr><tr><td>Requests on the home page <small class="muted">estimated (live) / measured (demo)</small></td><td class="n">44 (estimated)</td><td class="n good">11 measured, all first-party</td></tr><tr><td>External script tags</td><td class="n">16</td><td class="n good">7 own files, 54.3 KB (19.7 KB gzipped)</td></tr><tr><td>Third-party requests</td><td class="n">yes (analytics, CDN fonts/scripts)</td><td class="n good">0</td></tr><tr><td>Stylesheet</td><td class="n">3 files</td><td class="n good">1 file, 47.1 KB (10.6 KB gzipped)</td></tr><tr><td>Front-end stack</td><td>jQuery 1.11.0, Bootstrap 3, html5shiv, vendor CDN</td><td class="good">Vanilla ES2020, no framework, no build-time packages</td></tr><tr><td>Pages rendered</td><td>server-side, per request</td><td class="good">94 static pages, 88 of them job pages</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built 2026-09-22. Stylesheet 47.1 KB, scripts 54.3 KB before compression; budgets 60 KB each. Unit tests on the pure logic module: 13 passing, 0 failing.</p>
 
   <h2>What was built</h2>
   <ul>
     <li><b>Two editions, one codebase.</b> greenjobs.ie and greenjobs.co.uk render from the same templates and scripts with their own data, currency and map. The edition switch keeps you on the same page.</li>
     <li><b>Real data only.</b> 88 live roles from 3 employers, 10 sectors with roles, 14 map regions with counts, 29 disclosed salaries. Every job page links to the real listing. No invented testimonials, prices or audience numbers.</li>
-    <li><b>Search that answers instantly.</b> Type-ahead on the home page, a filter rail with every state in the URL, list / map / saved views, a command palette (Ctrl+K), and per-job pages with JobPosting structured data — which the current site explicitly disables ("Invalid salary data, so Google Schema is disabled").</li>
+    <li><b>Search that answers instantly.</b> Type-ahead on the home page, a filter rail with every state in the URL, list / map / saved views, a command palette (Ctrl+K), and per-job pages with JobPosting structured data, which the current site explicitly disables ("Invalid salary data, so Google Schema is disabled").</li>
     <li><b>A sector taxonomy that means something.</b> The live site lists 214 sectors, most showing "(0)". The demo derives eleven sectors from what each description actually says, and never shows an empty one.</li>
     <li><b>Maps from real geometry.</b> Natural Earth admin-1 boundaries merged into the 26 counties and 12 UK regions at build time, rendered as keyboard-operable buttons.</li>
     <li><b>Salary explorer, career compass, "Ask GreenJobs".</b> Charts drawn in-house (no library), a seven-question deterministic quiz whose result is a shareable link, and a smart-match panel that today runs entirely in the browser.</li>
@@ -69,11 +69,25 @@
     <li><b>Migration off the current vendor.</b> The live boards run on a 2013-era hosted platform (jQuery 1.11, Bootstrap 3, IE8 shims, classic ASP). The demo's build already renders every page statically from JSON; the next step is a small admin that writes that JSON, and a nightly build and deploy. Cloudflare Pages hosting is free at this size.</li>
     <li><b>Applicant tracking.</b> Apply-in-place with a per-employer inbox, status changes and email notifications, replacing the redirect to a third-party form.</li>
     <li><b>Employer self-serve.</b> The "Post a job" preview on the Employers page becomes real: draft, preview, pay, publish, with the posting distributed across the network sites as today.</li>
-    <li><b>Model-backed assistant.</b> "Ask GreenJobs" keeps its interface and its contract (a query in, ranked role IDs and a one-line "why" out). The local TF-IDF matcher is swapped for a hosted model called from a Cloudflare Worker, with the key held in the Worker and never in the page. Candidates: GLM-5.3 (Z.ai) or Kimi K3 (Moonshot) via OpenRouter — both are strong at long-context matching at a fraction of frontier pricing. The Worker stub, prompt contract and rate-limit are in the repository under <code>execution/gtm_client_workflows/greenjobs_redesign/worker/</code>. Cost model: a query sends the question plus the compact live dataset (≈88 roles × ~120 tokens ≈ 12k tokens) and returns ≈300 tokens; at OpenRouter's listed rate for the chosen model on launch day, multiply (12.3k input + 0.3k output) × 1,000 for the cost per 1,000 queries, and prompt-cache the dataset portion so repeat queries within the cache window bill only the question. Verify the per-token rate on the OpenRouter model page on the day; it is not quoted here to avoid publishing a stale number.</li>
+    <li><b>Model-backed assistant (optional, last).</b> "Ask GreenJobs" keeps its interface and its contract (a query in, ranked role IDs and a one-line "why" out). The local TF-IDF matcher is swapped for a hosted language model behind a small Cloudflare function, with the key held server-side and never in the page; the vendor is chosen at phase two. The function stub, prompt contract and rate limit are already written. Cost model: a query sends the question plus the compact live dataset (about 88 roles at roughly 120 tokens each, so about 12k tokens) and returns about 300 tokens. Multiply (12.3k input + 0.3k output) by the chosen vendor's per-token rate on launch day, then by 1,000, for the cost per 1,000 queries; prompt-cache the dataset portion so repeat queries within the cache window bill only the question. The rate is not quoted here to avoid publishing a stale number.</li>
   </ul>
 
   <h2>The offer</h2>
-  <div class="offer"><p class="v">€1,875</p><p style="margin-top:8px">Fixed price for the redesign as shown here: both editions, all pages, the build pipeline, tests, validation and hosting setup. Phase-two items above are scoped and quoted separately once you choose which of them to do first.</p></div>
+  <div class="offer">
+    <p class="v">€1,875</p>
+    <p style="margin-top:8px">Fixed price. It buys, exactly:</p>
+    <ul>
+      <li>Both editions, greenjobs.ie and greenjobs.co.uk, from one codebase.</li>
+      <li>Every page type shown in this demo: home, search and map, job page, sectors, salary explorer, career compass, employers, 404 and the edition chooser.</li>
+      <li>The build pipeline that turns a JSON feed into the static site, with its validator and tests, handed over with a runbook.</li>
+      <li>Deployment on your own domains, on hosting that is free at this size.</li>
+      <li>One round of revisions after you have seen it on your domains.</li>
+      <li>Live within 15 working days of go-ahead.</li>
+    </ul>
+    <p><b>Guarantee.</b> If it is not live, and measurably faster than the current site, by the agreed date, you do not pay.</p>
+    <h3>Leaving your current vendor</h3>
+    <p>This demo is the front end of that move, not a face-lift on the old platform. It already covers the public site: every page, the search, the maps, the structured data and a build that renders the whole board from a data file in seconds. What remains is the back office: the posting and admin flow for employers, job alerts and the newsletter, applicant handling, and the DNS cutover from the current host. Those are quoted as a range after one call, once you tell me what the current platform does for you today and what it costs per year; that number sets the ceiling for everything that follows.</p>
+  </div>
 
   <h2>Notes on honesty</h2>
   <ul>
@@ -90,17 +104,17 @@
   <div class="wrap">
     <div class="ftr__brand">
       <span class="logo" style="color:#eef2ea">Green<b style="color:#b4e33d">Jobs</b><small>IE</small></span>
-      <p>The GreenJobs Network of Websites — job boards wholly dedicated to the green industry sector since 2008. 88 live roles on greenjobs.ie as of 2026-09-22.</p>
+      <p>The GreenJobs Network of Websites: job boards wholly dedicated to the green industry sector since 2008. 88 live roles on greenjobs.ie as of 2026-09-22.</p>
       <img class="bcorp" src="../../assets/logos/b-corp-logo.svg" alt="Certified B Corporation" width="96" height="163" loading="lazy">
     </div>
     <div class="ftr__grid">
-      <div><h4>Explore</h4><ul><li><a href="../../ie/jobs/index.html">Jobs</a></li><li><a href="../../ie/sectors/index.html">Sectors</a></li><li><a href="../../ie/insights/index.html">Salary explorer</a></li><li><a href="../../ie/compass/index.html">Career compass</a></li><li><a href="../../ie/employers/index.html">Employers</a></li><li><a href="../../ie/for-keith/index.html">For Keith</a></li></ul></div>
+      <div><h4>Explore</h4><ul><li><a href="../../ie/jobs/index.html">Jobs</a></li><li><a href="../../ie/sectors/index.html">Sectors</a></li><li><a href="../../ie/insights/index.html">Salary explorer</a></li><li><a href="../../ie/compass/index.html">Career compass</a></li><li><a href="../../ie/employers/index.html">Employers</a></li></ul></div>
       <div><h4>The network</h4><ul><li><a href="https://www.conservationjobsuk.com/" rel="noopener">conservationjobsuk.com</a></li><li><a href="https://www.ecologyjobsuk.com/" rel="noopener">ecologyjobsuk.com</a></li><li><a href="https://www.environmentaljobsuk.com/" rel="noopener">environmentaljobsuk.com</a></li><li><a href="https://www.greenjobs.co.uk/" rel="noopener">greenjobs.co.uk</a></li><li><a href="https://www.greenjobs.ie/" rel="noopener">greenjobs.ie</a></li><li><a href="https://www.renewableenergyjobsuk.com/" rel="noopener">renewableenergyjobsuk.com</a></li><li><a href="https://www.solarjobsuk.com/" rel="noopener">solarjobsuk.com</a></li><li><a href="https://www.wastejobsuk.com/" rel="noopener">wastejobsuk.com</a></li><li><a href="https://www.waterjobsuk.com/" rel="noopener">waterjobsuk.com</a></li><li><a href="https://www.windjobsuk.com/" rel="noopener">windjobsuk.com</a></li></ul></div>
       <div><h4>Contact</h4><ul><li>Calling From Ireland: <a href="tel:019125247">(01) 912 5247</a></li><li>Calling From Outside Ireland: <a href="tel:+442843032055">+44 28 4303 2055</a></li><li><a href="mailto:info@greenjobs.ie">info@greenjobs.ie</a></li><li>Ennis Digital Hub, Quin Road, Ennis, Co. Clare, V95 VW74</li></ul></div>
       <div><h4>Commitments</h4><p>A member of 1% for the Planet: at least 1% of annual turnover goes to environmental organisations in Ireland and the United Kingdom.</p><img src="../../assets/logos/1fortheplanet.svg" alt="1% for the Planet member" width="1065" height="446" loading="lazy" style="height:44px;width:auto;margin-top:12px;filter:brightness(1.4)"></div>
     </div>
     <div class="ftr__bottom">
-      <span>© 2008–2026 GreenJobs Ltd. Demo redesign — not the live site.</span>
+      <span>© 2008–2026 GreenJobs Ltd. Demo redesign, not the live site.</span>
       <div class="ftr__social"><a href="https://www.facebook.com/GreenJobsIreland" rel="noopener" aria-label="facebook.com"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a><a href="https://www.twitter.com/GreenJobsIRL" rel="noopener" aria-label="twitter.com"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a></div>
       <div class="edsw" role="group" aria-label="Edition"><a href="../../ie/for-keith/index.html" data-edswitch="ie" aria-current="true" hreflang="en-IE">IE</a><a href="../../uk/for-keith/index.html" data-edswitch="uk" aria-current="false" hreflang="en-GB">UK</a></div>
     </div>

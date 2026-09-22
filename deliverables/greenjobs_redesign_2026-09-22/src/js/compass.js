@@ -37,34 +37,43 @@
   function roles(sector) {
     var o = Q.map(function (q, i) { return q.opts[answers[i]] || {}; });
     var region = o[3].region, floor = o[4].floor, type = o[5].type, stage = o[6].stage;
-    var pool = jobs.filter(function (j) { return j.sectors.indexOf(sector) >= 0; });
+    var pool = jobs.filter(function (j) { return (j.sectors || []).indexOf(sector) >= 0; });
+    var hi = function (j) { return (G.annual(j) || {}).hi; };
+    var inRegion = function (j) { return !region || (j.regions || []).indexOf(region) >= 0; };
     var tries = [
-      function (j) { return (!region || j.regions.indexOf(region) >= 0) && (!floor || (G.annual(j) && G.annual(j).hi >= floor)) && (!type || j.type === type) && (!stage || stageOk(j, stage)); },
-      function (j) { return (!region || j.regions.indexOf(region) >= 0) && (!floor || !G.annual(j) || G.annual(j).hi >= floor) && (!type || j.type === type); },
-      function (j) { return (!region || j.regions.indexOf(region) >= 0); },
+      function (j) { return inRegion(j) && (!floor || hi(j) >= floor) && (!type || j.type === type) && (!stage || stageOk(j, stage)); },
+      function (j) { return inRegion(j) && (!floor || hi(j) == null || hi(j) >= floor) && (!type || j.type === type); },
+      inRegion,
       function () { return true; }
     ];
     for (var i = 0; i < tries.length; i++) { var r = pool.filter(tries[i]); if (r.length) return { list: G.sortJobs(r, 'newest').slice(0, 3), relaxed: i }; }
     return { list: [], relaxed: 3 };
   }
+  function fallback() {
+    var top = [];
+    try { top = G.scoreSectors(answers, Q, SEC).slice(0, 3); } catch (e) { top = SEC.slice(0, 3).map(function (s) { return { sector: s }; }); }
+    host.innerHTML = '<div class="prog" aria-hidden="true"><i style="transform:scaleX(1)"></i></div><div class="res"><div class="res__top"><p class="step">Your compass</p><h2 id="qh">Three sectors that fit the way you answered</h2></div>' +
+      top.map(function (s) { return '<section class="res__sec"><h3><span>' + G.esc(s.sector) + '</span></h3><a class="btn btn--sm btn--ghost" href="' + G.esc(data.jobsHref) + G.toQuery({ sector: s.sector }) + '">See live roles →</a></section>'; }).join('') +
+      '<div class="res__actions"><button type="button" class="btn btn--ghost" data-restart>Start again</button></div></div>';
+  }
   function render() {
     var pct = Math.round(100 * Math.min(step, Q.length) / Q.length);
-    if (step >= Q.length) return results();
+    if (step >= Q.length) { try { return results(); } catch (e) { return fallback(); } }
     var q = Q[step];
-    host.innerHTML = '<div class="prog" aria-hidden="true"><i style="width:' + pct + '%"></i></div><div class="q fade-in" role="group" aria-labelledby="qh"><p class="step">Question ' + (step + 1) + ' of ' + Q.length + '</p><h2 id="qh">' + G.esc(q.t) + '</h2><div class="opts">' +
+    host.innerHTML = '<div class="prog" aria-hidden="true"><i style="transform:scaleX(' + (pct / 100) + ')"></i></div><div class="q fade-in" role="group" aria-labelledby="qh"><p class="step">Question ' + (step + 1) + ' of ' + Q.length + '</p><h2 id="qh">' + G.esc(q.t) + '</h2><div class="opts">' +
       q.opts.map(function (o, i) { return '<button type="button" class="opt" data-i="' + i + '" aria-pressed="' + (answers[step] === i) + '"><span class="k">' + String.fromCharCode(65 + i) + '</span>' + G.esc(o.l) + '</button>'; }).join('') +
       '</div><div class="q__nav"><button type="button" class="btn btn--ghost' + (step ? ' is-vis' : '') + '" data-back>← Back</button>' + (answers[step] != null ? '<button type="button" class="btn btn--fill" data-next>Next →</button>' : '<span class="muted" style="align-self:center;font-size:.9rem">Pick one to continue</span>') + '</div></div>';
     var h = host.querySelector('h2'); h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true });
   }
   function results() {
     var top = G.scoreSectors(answers, Q, SEC).slice(0, 3), url = window.location.href;
-    host.innerHTML = '<div class="prog" aria-hidden="true"><i style="width:100%"></i></div><div class="res fade-in"><div class="res__top"><p class="step">Your compass</p><h2 id="qh">Three sectors that fit the way you answered</h2><p class="muted">Scored from your first three answers; the roles below also respect your location, salary floor, pattern and stage where the live data allows.</p></div>' +
+    host.innerHTML = '<div class="prog" aria-hidden="true"><i style="transform:scaleX(1)"></i></div><div class="res"><div class="res__top"><p class="step">Your compass</p><h2 id="qh">Three sectors that fit the way you answered</h2><p class="muted">Scored from your first three answers; the roles below also respect your location, salary floor, pattern and stage where the live data allows.</p></div>' +
       top.map(function (s) {
         var r = roles(s.sector), color = (data.sectors.filter(function (x) { return x.name === s.sector; })[0] || {}).color || '';
-        return '<section class="res__sec"><h3><span><i class="tag" style="padding:0;border:0;margin-right:8px;width:12px;height:12px;border-radius:50%;background:' + G.esc(color) + '"></i>' + G.esc(s.sector) + '</span><span class="score">' + s.pct + '% match</span></h3><div class="barw"><i style="width:' + s.pct + '%"></i></div>' +
+        return '<section class="res__sec"><h3><span><i class="tag" style="padding:0;border:0;margin-right:8px;width:12px;height:12px;border-radius:50%;background:' + G.esc(color) + '"></i>' + G.esc(s.sector) + '</span><span class="score">' + s.pct + '% match</span></h3><div class="barw"><i style="transform:scaleX(' + (s.pct / 100) + ')"></i></div>' +
           (r.list.length ? '<div class="res__roles">' + r.list.map(function (j) { return '<a class="row" href="' + G.esc(G.jobUrl(data.jobsHref, j.href)) + '" style="text-decoration:none"><div class="row__body"><h3>' + G.esc(j.title) + '</h3><div class="row__meta"><span>' + G.esc(j.employer) + '</span><span aria-hidden="true">·</span><span>' + G.esc(j.location) + '</span>' + (G.salaryLabel(j) ? '<span class="tag tag--sal">' + G.esc(G.salaryLabel(j)) + '</span>' : '') + '</div></div></a>'; }).join('') + '</div>' +
             (r.relaxed ? '<p class="muted" style="font-size:.85rem">' + ['', 'Loosened the career-stage filter to find these.', 'Loosened salary and pattern to find these.', 'No live match for your location; showing the latest in this sector.'][r.relaxed] + '</p>' : '')
-            : '<p class="muted">No live roles in this sector this week — set an alert below.</p>') +
+            : '<p class="muted">No live roles in this sector this week. Set an alert on the home page.</p>') +
           '<a class="btn btn--sm btn--ghost" href="' + G.esc(data.jobsHref) + G.toQuery({ sector: s.sector }) + '">All ' + G.esc(s.sector) + ' roles →</a></section>';
       }).join('') +
       '<div class="res__actions"><button type="button" class="btn btn--fill" data-share>Share this result</button><button type="button" class="btn btn--ghost" data-restart>Start again</button></div><p class="muted" style="font-size:.85rem">Your result lives in this link: <code style="word-break:break-all">' + G.esc(url) + '</code></p></div>';

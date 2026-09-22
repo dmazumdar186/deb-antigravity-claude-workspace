@@ -445,7 +445,7 @@ def sparkline_svg(vals: list[int], w: int = 120, h: int = 34) -> str:
     line = "M" + " L".join(f"{x:.1f},{y:.1f}" for x, y in pts)
     lx, ly = pts[-1]
     return (f'<svg class="spark" viewBox="0 0 {w} {h}" aria-hidden="true" focusable="false"><path class="fill" d="{line} L{lx:.1f},{h} L{pts[0][0]:.1f},{h}Z"/>'
-            f'<path d="{line}"/><circle cx="{lx:.1f}" cy="{ly:.1f}" r="3"/></svg>')
+            f'<path d="{line}" pathLength="1"/><circle cx="{lx:.1f}" cy="{ly:.1f}" r="3"/></svg>')
 
 
 def salary_label(j: dict[str, Any]) -> str:
@@ -465,6 +465,41 @@ def salary_label(j: dict[str, Any]) -> str:
     v = lo if lo is not None else hi
     prefix = "up to " if (hi is None and lo is not None and re.search(r"up to", j.get("sal_text") or "", re.I)) else ""
     return f"{prefix}{money(v)}{per}"
+
+
+ANNUAL_MULT = {"year": 1, "month": 12, "week": 52, "day": 230, "hour": 1950}  # mirrors lib.js annual()
+
+
+def median_salary(jobs: list[dict[str, Any]], sym: str) -> str:
+    """Median of annualised range midpoints, formatted like lib.js money();
+    the same figure JavaScript recomputes, so the page is right before JS runs."""
+    mids: list[float] = []
+    for j in jobs:
+        m = ANNUAL_MULT.get(j.get("period") or "year")
+        if not m or (j["sal_min"] is None and j["sal_max"] is None):
+            continue
+        lo = (j["sal_min"] if j["sal_min"] is not None else j["sal_max"]) * m
+        hi = j["sal_max"] * m if j["sal_max"] is not None else lo
+        if lo < 8000 or hi > 400000:
+            continue
+        mids.append((lo + hi) / 2)
+    if not mids:
+        return "n/a"
+    mids.sort()
+    k = len(mids) // 2
+    med = mids[k] if len(mids) % 2 else (mids[k - 1] + mids[k]) / 2
+    if med >= 1000:
+        return f"{sym}{int(med // 1000)}k" if med % 1000 == 0 else f"{sym}{round(med / 100) / 10:g}k"
+    return f"{sym}{med:g}"
+
+
+def snapshot_label(iso: str) -> str:
+    """'2026-09-22' -> 'Snapshot of 22 September 2026'."""
+    try:
+        d = date.fromisoformat(iso[:10])
+    except ValueError:
+        return f"Snapshot of {iso}"
+    return f"Snapshot of {d.day} {d.strftime('%B %Y')}"
 
 
 def ago(iso: str, today: date) -> str:
@@ -507,7 +542,7 @@ def role_card(j: dict[str, Any], root: str, jobs_dir: str, today: date) -> str:
 
 def sector_tiles(data: dict[str, Any], jobs_href: str, today: date) -> str:
     out = []
-    live = [s for s in data["sectors"] if s["n"] > 0][:8]
+    live = [s for s in data["sectors"] if s["n"] > 0][:9]
     for i, s in enumerate(live):
         in_sector = [j for j in data["jobs"] if s["name"] in j["sectors"]]
         spark = sparkline_svg(sparkline_weeks(in_sector, today))
@@ -520,11 +555,30 @@ def sector_tiles(data: dict[str, Any], jobs_href: str, today: date) -> str:
     return "".join(out)
 
 
-def employers_strip(data: dict[str, Any], root: str) -> str:
-    with_logo = [e for e in data["employers"] if e["logo"]]
-    items = with_logo if len(with_logo) >= 6 else with_logo + [e for e in data["employers"] if not e["logo"]][: max(0, 10 - len(with_logo))]
+def plural(unit: str) -> str:
+    """'county' -> 'counties', 'region' -> 'regions'."""
+    return unit[:-1] + "ies" if unit.endswith("y") and unit[-2:-1] not in "aeiou" else unit + "s"
+
+
+def employers_strip(data: dict[str, Any], root: str) -> dict[str, str]:
+    """The home-page logo strip. Only employers with at least one live role in
+    this edition may appear under "Employers hiring now"; when fewer than six
+    have live roles the strip is retitled to the network and may include the
+    featured recruiters honestly. Returns html/title/sub; html is '' when empty."""
+    live_names = {j["employer"] for j in data["jobs"]}
+    live = sorted((e for e in data["employers"] if e["name"] in live_names), key=lambda e: (not e["logo"], e["name"]))
+    if len(live) >= 6:
+        mode, items = "hiring", live[:12]
+        title, sub = "Employers hiring now", f"Organisations with live roles on {esc(data['site'])} this week."
+    else:
+        mode = "network"
+        items = live + [e for e in data["employers"] if e["name"] not in live_names][: max(0, 10 - len(live))]
+        n = len(live)
+        title = "Employers on the GreenJobs network"
+        sub = (f"Organisations that recruit through the GreenJobs network. {n} of them {'has' if n == 1 else 'have'} live roles on {esc(data['site'])} this week"
+               f"{': ' + ', '.join(esc(e['name']) for e in live) if live else ''}.")
     if not items:
-        return ""
+        return {"html": "", "title": title, "sub": sub, "mode": mode}
     cells = []
     for e in items:
         inner = (f'<img src="{root}assets/logos/{esc(e["logo"])}" alt="{esc(e["name"])}" width="{e["lw"] or 200}" height="{e["lh"] or 80}" loading="lazy" decoding="async">'
@@ -532,8 +586,9 @@ def employers_strip(data: dict[str, Any], root: str) -> str:
         url = e["url"] if str(e["url"]).startswith("http") else ""
         cells.append(f'<a class="emp" href="{esc(url)}" rel="noopener">{inner}</a>' if url else f'<div class="emp">{inner}</div>')
     track = "".join(cells)
-    return (f'<div class="marq" data-marq><div class="marq__track">{track}<span class="marq__dup" aria-hidden="true" style="display:contents">{track}</span></div></div>'
-            f'<p style="text-align:right;margin-top:8px"><button class="btn btn--sm btn--ghost" type="button" data-marq-pause aria-pressed="false">Pause</button></p>')
+    html_out = (f'<div class="marq" data-marq data-strip="{mode}"><div class="marq__track">{track}<span class="marq__dup" aria-hidden="true" style="display:contents">{track}</span></div></div>'
+                f'<p style="text-align:right;margin-top:8px"><button class="btn btn--sm btn--ghost" type="button" data-marq-pause aria-pressed="false">Pause</button></p>')
+    return {"html": html_out, "title": title, "sub": sub, "mode": mode}
 
 
 # Three facts for the home page, each traceable to a row in src/data/brief.md
@@ -557,8 +612,28 @@ def facts_block(brief: dict[str, Any], data: dict[str, Any]) -> str:
     return "".join(f'<div class="fact reveal"><h3>{esc(h)}</h3><p>{esc(p)}</p></div>' for h, p in items[:3])
 
 
-def map_svg(src: Path, ed: str) -> str:
-    return (src / "assets" / "maps" / f"{ed}.svg").read_text(encoding="utf-8").strip()
+def map_svg(src: Path, ed: str, counts: dict[str, int] | None = None) -> str:
+    """The edition map. When counts are given, every region carries data-n,
+    data-lvl (0-3 colour ramp), a stagger index and its count numeral at build
+    time, so the choropleth is coloured on first paint without JavaScript."""
+    svg = (src / "assets" / "maps" / f"{ed}.svg").read_text(encoding="utf-8").strip()
+    if counts is None:
+        return svg
+    mx = max(counts.values(), default=0)
+    idx = {"i": 0}
+
+    def region(m: re.Match[str]) -> str:
+        attrs, body = m.group(1), m.group(2)
+        name_m = re.search(r'data-region="([^"]*)"', attrs)
+        n = counts.get(html.unescape(name_m.group(1)), 0) if name_m else 0
+        lvl = "0" if n == 0 else "3" if n >= mx * 0.6 else "2" if n >= mx * 0.25 else "1"
+        cx = re.search(r'data-cx="([^"]*)"', attrs)
+        cy = re.search(r'data-cy="([^"]*)"', attrs)
+        label = f'<text x="{cx.group(1)}" y="{cy.group(1)}" dy="4">{n}</text>' if n and cx and cy else ""
+        i = idx["i"]
+        idx["i"] += 1
+        return f'<g{attrs} data-n="{n}" data-lvl="{lvl}" style="--i:{i}">{body}{label}</g>'
+    return re.sub(r'<g(\s+class="gmap__r"[^>]*)>(.*?)</g>', region, svg, flags=re.S)
 
 
 def map_list(data: dict[str, Any], jobs_href: str) -> str:
@@ -646,7 +721,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
     other_path = same_path if same_path else "index.html"
     cur = ' aria-current="page"'
     nav = "".join(f'<a href="{home}{href}"{cur if page == href.split("/")[0] else ""}>{label}</a>' for href, label in NAV)
-    menu_links = nav + f'<a href="{home}for-keith/index.html">The evidence page</a>'
+    menu_links = nav
     edsw = (f'<a href="{root}ie/{other_path if other == "ie" else same_path or "index.html"}" data-edswitch="ie" aria-current="{"true" if data["ed"] == "ie" else "false"}" hreflang="en-IE">IE</a>'
             f'<a href="{root}uk/{other_path if other == "uk" else same_path or "index.html"}" data-edswitch="uk" aria-current="{"true" if data["ed"] == "uk" else "false"}" hreflang="en-GB">UK</a>')
     net = "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}</a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http"))
@@ -670,7 +745,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         "year": str(date.today().year), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["fetched"]),
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
-        "nav_list": "".join(f'<li><a href="{home}{href}">{label}</a></li>' for href, label in NAV) + f'<li><a href="{home}for-keith/index.html">For Keith</a></li>',
+        "nav_list": "".join(f'<li><a href="{home}{href}">{label}</a></li>' for href, label in NAV),
         "onepct": onepct, "scripts": "",
     }
 
@@ -702,14 +777,15 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
 
     # ---- home
     map_counts = {r["name"]: r["n"] for r in top_regions}
+    strip = employers_strip(data, "../")
     home = page("home", 1, "index", f"GreenJobs {ed['short']} — {len(jobs)} live green roles across {ed['name']}",
                 f"Environmental, renewable energy and sustainability jobs across {ed['name']}: {len(jobs)} live roles from {n_emp} employers, searchable in a second.",
                 {
-                    "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": ed["unit"] + ("ies" if ed["unit"].endswith("y") else "s"),
+                    "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": plural(ed["unit"]),
                     "colors": esc(colors), "sector_tiles": sector_tiles(data, "jobs/index.html", today),
                     "latest": "".join(role_card(j, "../", "jobs/", today) for j in jobs[:8]),
-                    "map": map_svg(src, ed_key), "map_counts": esc(json_embed(map_counts)), "map_list": map_list(data, "jobs/index.html"), "off_map": off_map_note(data, "jobs/index.html"),
-                    "n_regions": str(len(top_regions)), "employers": employers_strip(data, "../"), "facts": facts_block(brief, data),
+                    "map": map_svg(src, ed_key, map_counts), "map_counts": esc(json_embed(map_counts)), "map_list": map_list(data, "jobs/index.html"), "off_map": off_map_note(data, "jobs/index.html"),
+                    "n_regions": str(len(top_regions)), "employers": strip["html"], "emp_title": strip["title"], "emp_sub": strip["sub"], "snapshot": esc(snapshot_label(data["fetched"])), "facts": facts_block(brief, data),
                     "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"]),
                     "n_sectors": str(sum(1 for s in data["sectors"] if s["n"])),
                     "legend": "".join(f'<span><i style="background:{s["color"]}"></i>{esc(s["name"])}</span>' for s in data["sectors"][:5]),
@@ -763,6 +839,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     write("insights/index.html", page("insights", 2, "insights", f"Green salary explorer — what {ed['name']}'s green roles pay | GreenJobs {ed['short']}",
                                       f"Disclosed salaries on GreenJobs {ed['short']}: bands, medians by sector, disclosure rates and roles by {ed['unit']}.",
                                       {"dataset": dataset_script(data, "../jobs/index.html", False), "cur": ed["sym"], "unit": ed["unit"], "n_jobs": str(len(jobs)), "n_sal": str(n_sal),
+                                       "disc_pct": str(round(100 * n_sal / max(1, len(jobs)))), "median": esc(median_salary(jobs, ed["sym"])),
                                        "fetched": esc(data["fetched"])}, same_path="insights/index.html"))
     write("compass/index.html", page("compass", 2, "compass", f"Green Career Compass — find your sector in seven questions | GreenJobs {ed['short']}",
                                      "Seven quick questions, three sectors that fit, live roles to match.",
@@ -808,7 +885,7 @@ def render_evidence(out: Path, src: Path, data_by_ed: dict[str, dict[str, Any]],
             return f"{v:,}{unit}" if isinstance(v, (int, float)) else "not measured"
         rows[ed_key] = (
             f"<tr><td>Home page HTML</td><td class=\"n\">{cell(before_html, ' B')}</td><td class=\"n good\">{home_raw:,} B ({home_gz:,} B gzipped)</td></tr>"
-            f"<tr><td>Requests on the home page</td><td class=\"n\">{cell(before_req)}</td><td class=\"n good\">{local_refs + 1} (all first-party)</td></tr>"
+            f"<tr><td>Requests on the home page <small class=\"muted\">estimated (live) / measured (demo)</small></td><td class=\"n\">{cell(before_req)} (estimated)</td><td class=\"n good\">{local_refs + 1} measured, all first-party</td></tr>"
             f"<tr><td>External script tags</td><td class=\"n\">{cell(before_scripts)}</td><td class=\"n good\">{len(js)} own files, {js_raw / 1024:.1f} KB ({js_gz / 1024:.1f} KB gzipped)</td></tr>"
             f"<tr><td>Third-party requests</td><td class=\"n\">{'yes (analytics, CDN fonts/scripts)' if perf.get('ga4') or perf.get('platform_cdn') else 'not measured'}</td><td class=\"n good\">{third}</td></tr>"
             f"<tr><td>Stylesheet</td><td class=\"n\">{len(perf.get('stylesheets') or []) or 'not measured'} files</td><td class=\"n good\">1 file, {css_raw / 1024:.1f} KB ({css_gz / 1024:.1f} KB gzipped)</td></tr>"

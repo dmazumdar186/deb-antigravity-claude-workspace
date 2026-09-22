@@ -9,11 +9,11 @@ var tm = $('[data-treemap]');
 if (tm) {
 var items = data.sectors.filter(function (s) { return s.n > 0; }).map(function (s) { return { key: s.name, label: s.name, v: s.n, color: s.color, dark: s.dark }; });
 var picked = '';
-var svg = C.treemap(items, { label: 'Live roles by sector', height: window.innerWidth < 640 ? 620 : 460, onPick: function (it) {
+var svg = C.treemap(items, { label: 'Live roles by sector', height: 460, onPick: function (it) {
 picked = picked === it.key ? '' : it.key;
 Array.prototype.forEach.call(tm.querySelectorAll('.cell'), function (c) { c.classList.toggle('is-on', c.getAttribute('data-key') === picked); });
 Array.prototype.forEach.call(doc.querySelectorAll('[data-secrow]'), function (r) { r.classList.toggle('is-dim', !!picked && r.getAttribute('data-secrow') !== picked); });
-var n = $('[data-tm-note]'); if (n) n.textContent = picked ? 'Showing ' + picked + ' — press it again to clear.' : 'Tap a block to highlight that sector in the list below.';
+var n = $('[data-tm-note]'); if (n) n.textContent = picked ? 'Showing ' + picked + '. Press it again to clear.' : 'Tap a block to highlight that sector in the list below.';
 } });
 tm.appendChild(svg);
 tm.parentNode.appendChild(C.table(['Sector', 'Live roles'], items.map(function (i) { return [i.label, String(i.v)]; })));
@@ -25,7 +25,7 @@ var mids = withSal.map(function (x) { return x.a.mid; });
 var med = G.median(mids);
 function stat(sel, v) { var e = $(sel, ins); if (e) e.textContent = v; }
 stat('[data-s-n]', String(jobs.length)); stat('[data-s-disc]', Math.round(100 * withSal.length / Math.max(1, jobs.length)) + '%');
-stat('[data-s-med]', med ? money(med) : '—'); stat('[data-s-cnt]', String(withSal.length));
+stat('[data-s-med]', med ? money(med) : 'n/a'); stat('[data-s-cnt]', String(withSal.length));
 var edges = [20000, 30000, 40000, 50000, 60000, 75000, 100000];
 var bins = G.histogram(mids, edges);
 var f1 = $('[data-fig="hist"]', ins);

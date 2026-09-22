@@ -1,15 +1,10 @@
 {{dataset}}
 <div class="wrap pagehead">
   <h1>Green salary explorer</h1>
-  <p class="lede">What the disclosed salaries on this board say — and how many roles still say nothing. Every figure below comes from the {{n_jobs}} live listings as of {{fetched}}.</p>
+  <p class="lede">What the disclosed salaries on this board say, and how many roles still say nothing. Every figure below comes from the {{n_jobs}} live listings as of {{fetched}}. All figures are in {{cur}} per year; hourly and monthly rates are annualised on full-time hours.</p>
 </div>
 <div class="wrap viz" data-insights style="padding-bottom:var(--pad-y)">
-  <div class="grid grid--4" style="margin-bottom:24px">
-    <div class="stat reveal"><span class="v num" data-s-n>—</span><span class="l">live roles</span></div>
-    <div class="stat reveal"><span class="v num" data-s-disc>—</span><span class="l">disclose a salary</span><span class="d" data-s-cnt-wrap><span data-s-cnt>—</span> roles with a figure</span></div>
-    <div class="stat reveal"><span class="v num" data-s-med>—</span><span class="l">median disclosed salary</span><span class="d">midpoint of each range, annualised</span></div>
-    <div class="stat reveal"><span class="v num">{{cur}}</span><span class="l">all figures in {{cur}} per year</span><span class="d">hourly and monthly rates annualised on full-time hours</span></div>
-  </div>
+  <p class="keyline reveal" data-keyline><strong class="num" data-s-n>{{n_jobs}}</strong> live roles · <strong class="num" data-s-disc>{{disc_pct}}%</strong> disclose a salary (<span class="num" data-s-cnt>{{n_sal}}</span> roles) · median <strong class="num" data-s-med>{{median}}</strong>, taken at the midpoint of each range.</p>
   <div class="figs">
     <figure class="fig reveal" data-fig="hist"><h3>Disclosed salaries by band</h3><p>How many roles fall in each band, using the midpoint of any range.</p></figure>
     <figure class="fig reveal" data-fig="sector"><h3>Median by sector</h3><p>Only sectors with three or more disclosed salaries are shown; a role tagged to two sectors counts in both.</p></figure>

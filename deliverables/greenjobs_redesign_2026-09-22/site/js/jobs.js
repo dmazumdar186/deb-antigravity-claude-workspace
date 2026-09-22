@@ -51,8 +51,8 @@ return '<span class="chip">' + G.esc(LABEL[k]) + (k === 'sal' ? '' : ': ' + G.es
 }).join('');
 }
 function empty(msg) {
-var pop = data.sectors.slice(0, 4).map(function (s) { return '<button class="btn btn--sm btn--ghost" type="button" data-set="sector" data-v="' + G.esc(s.name) + '">' + G.esc(s.name) + '</button>'; }).join('');
-return '<div class="empty"><h3>' + msg + '</h3><p>Try a broader search, another region, or one of the busiest sectors right now.</p><div class="sugg"><button class="btn btn--sm" type="button" data-reset>Clear all filters</button>' + pop + '</div></div>';
+var pop = data.sectors.slice(0, 4).map(function (s) { return '<button class="btn btn--sm btn--ghost" type="button" data-set="sector" data-v="' + G.esc(s.name) + '">' + G.esc(s.name) + ' · ' + s.n + '</button>'; }).join('');
+return '<div class="empty"><h3>' + msg + '</h3><p>Try a broader search, another region, or one of the busiest sectors right now.</p><div class="sugg"><button class="btn btn--sm btn--lime" type="button" data-reset>Clear all filters</button>' + pop + '</div></div>';
 }
 function render() {
 var res = G.filterJobs(jobs, st), ids = window.GJSaved.list();

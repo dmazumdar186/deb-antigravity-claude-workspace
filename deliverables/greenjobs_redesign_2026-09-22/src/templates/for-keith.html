@@ -4,7 +4,7 @@
 </div>
 <div class="wrap doc" style="padding-bottom:var(--pad-y)">
   <h2>Before and after, measured</h2>
-  <p>"Before" numbers were measured on the live {{domain}} home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time — nothing in this table is typed by hand.</p>
+  <p>"Before" numbers were measured on the live {{domain}} home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time; nothing in this table is typed by hand. The requests row compares an estimate for the live site (counted from its HTML, not a network trace) with a measured count for the demo.</p>
   <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody>{{rows}}</tbody></table>
   <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built {{built}}. Stylesheet {{css_kb}} KB, scripts {{js_kb}} KB before compression; budgets 60 KB each. Unit tests on the pure logic module: {{tests}}.</p>
 
@@ -12,7 +12,7 @@
   <ul>
     <li><b>Two editions, one codebase.</b> greenjobs.ie and greenjobs.co.uk render from the same templates and scripts with their own data, currency and map. The edition switch keeps you on the same page.</li>
     <li><b>Real data only.</b> {{n_jobs}} live roles from {{n_emp}} employers, {{n_sectors}} sectors with roles, {{n_regions}} map regions with counts, {{n_sal}} disclosed salaries. Every job page links to the real listing. No invented testimonials, prices or audience numbers.</li>
-    <li><b>Search that answers instantly.</b> Type-ahead on the home page, a filter rail with every state in the URL, list / map / saved views, a command palette (Ctrl+K), and per-job pages with JobPosting structured data — which the current site explicitly disables ("Invalid salary data, so Google Schema is disabled").</li>
+    <li><b>Search that answers instantly.</b> Type-ahead on the home page, a filter rail with every state in the URL, list / map / saved views, a command palette (Ctrl+K), and per-job pages with JobPosting structured data, which the current site explicitly disables ("Invalid salary data, so Google Schema is disabled").</li>
     <li><b>A sector taxonomy that means something.</b> The live site lists 214 sectors, most showing "(0)". The demo derives eleven sectors from what each description actually says, and never shows an empty one.</li>
     <li><b>Maps from real geometry.</b> Natural Earth admin-1 boundaries merged into the 26 counties and 12 UK regions at build time, rendered as keyboard-operable buttons.</li>
     <li><b>Salary explorer, career compass, "Ask GreenJobs".</b> Charts drawn in-house (no library), a seven-question deterministic quiz whose result is a shareable link, and a smart-match panel that today runs entirely in the browser.</li>
@@ -24,11 +24,25 @@
     <li><b>Migration off the current vendor.</b> The live boards run on a 2013-era hosted platform (jQuery 1.11, Bootstrap 3, IE8 shims, classic ASP). The demo's build already renders every page statically from JSON; the next step is a small admin that writes that JSON, and a nightly build and deploy. Cloudflare Pages hosting is free at this size.</li>
     <li><b>Applicant tracking.</b> Apply-in-place with a per-employer inbox, status changes and email notifications, replacing the redirect to a third-party form.</li>
     <li><b>Employer self-serve.</b> The "Post a job" preview on the Employers page becomes real: draft, preview, pay, publish, with the posting distributed across the network sites as today.</li>
-    <li><b>Model-backed assistant.</b> "Ask GreenJobs" keeps its interface and its contract (a query in, ranked role IDs and a one-line "why" out). The local TF-IDF matcher is swapped for a hosted model called from a Cloudflare Worker, with the key held in the Worker and never in the page. Candidates: GLM-5.3 (Z.ai) or Kimi K3 (Moonshot) via OpenRouter — both are strong at long-context matching at a fraction of frontier pricing. The Worker stub, prompt contract and rate-limit are in the repository under <code>execution/gtm_client_workflows/greenjobs_redesign/worker/</code>. Cost model: a query sends the question plus the compact live dataset (≈{{n_jobs}} roles × ~120 tokens ≈ 12k tokens) and returns ≈300 tokens; at OpenRouter's listed rate for the chosen model on launch day, multiply (12.3k input + 0.3k output) × 1,000 for the cost per 1,000 queries, and prompt-cache the dataset portion so repeat queries within the cache window bill only the question. Verify the per-token rate on the OpenRouter model page on the day; it is not quoted here to avoid publishing a stale number.</li>
+    <li><b>Model-backed assistant (optional, last).</b> "Ask GreenJobs" keeps its interface and its contract (a query in, ranked role IDs and a one-line "why" out). The local TF-IDF matcher is swapped for a hosted language model behind a small Cloudflare function, with the key held server-side and never in the page; the vendor is chosen at phase two. The function stub, prompt contract and rate limit are already written. Cost model: a query sends the question plus the compact live dataset (about {{n_jobs}} roles at roughly 120 tokens each, so about 12k tokens) and returns about 300 tokens. Multiply (12.3k input + 0.3k output) by the chosen vendor's per-token rate on launch day, then by 1,000, for the cost per 1,000 queries; prompt-cache the dataset portion so repeat queries within the cache window bill only the question. The rate is not quoted here to avoid publishing a stale number.</li>
   </ul>
 
   <h2>The offer</h2>
-  <div class="offer"><p class="v">€1,875</p><p style="margin-top:8px">Fixed price for the redesign as shown here: both editions, all pages, the build pipeline, tests, validation and hosting setup. Phase-two items above are scoped and quoted separately once you choose which of them to do first.</p></div>
+  <div class="offer">
+    <p class="v">€1,875</p>
+    <p style="margin-top:8px">Fixed price. It buys, exactly:</p>
+    <ul>
+      <li>Both editions, greenjobs.ie and greenjobs.co.uk, from one codebase.</li>
+      <li>Every page type shown in this demo: home, search and map, job page, sectors, salary explorer, career compass, employers, 404 and the edition chooser.</li>
+      <li>The build pipeline that turns a JSON feed into the static site, with its validator and tests, handed over with a runbook.</li>
+      <li>Deployment on your own domains, on hosting that is free at this size.</li>
+      <li>One round of revisions after you have seen it on your domains.</li>
+      <li>Live within 15 working days of go-ahead.</li>
+    </ul>
+    <p><b>Guarantee.</b> If it is not live, and measurably faster than the current site, by the agreed date, you do not pay.</p>
+    <h3>Leaving your current vendor</h3>
+    <p>This demo is the front end of that move, not a face-lift on the old platform. It already covers the public site: every page, the search, the maps, the structured data and a build that renders the whole board from a data file in seconds. What remains is the back office: the posting and admin flow for employers, job alerts and the newsletter, applicant handling, and the DNS cutover from the current host. Those are quoted as a range after one call, once you tell me what the current platform does for you today and what it costs per year; that number sets the ceiling for everything that follows.</p>
+  </div>
 
   <h2>Notes on honesty</h2>
   <ul>
