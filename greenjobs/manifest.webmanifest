@@ -1,0 +1,15 @@
+{
+ "name": "GreenJobs",
+ "short_name": "GreenJobs",
+ "start_url": "./index.html",
+ "display": "standalone",
+ "background_color": "#0c1a12",
+ "theme_color": "#0c1a12",
+ "icons": [
+  {
+   "src": "assets/favicon.svg",
+   "sizes": "any",
+   "type": "image/svg+xml"
+  }
+ ]
+}
