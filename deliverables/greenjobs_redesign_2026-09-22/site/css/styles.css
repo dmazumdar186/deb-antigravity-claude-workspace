@@ -617,8 +617,8 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.8em;color:#555}
 .film__steps li::before,.film__steps li::after{content:"";position:absolute;top:0;left:0;width:100%;height:2px;border-radius:2px;background:rgba(238,242,234,.2)}
 .film__steps li::after{background:var(--lime-500);transform:scaleX(var(--fill,0));transform-origin:left}
 .film__steps li.is-on{color:var(--dark-fg)}
-.film__skip{top:auto;bottom:64px;transform:translateY(200%);z-index:4}
-.film__skip:focus{transform:none}
+.film__skip{top:auto;bottom:64px;opacity:0;pointer-events:none;transform:translateY(8px);z-index:4}
+.film__skip:focus{opacity:1;pointer-events:auto;transform:none}
 .film--m [data-film-state="2"],.film--m [data-film-state="3"],.film--m [data-film-step="2"],.film--m [data-film-step="3"]{display:none}
 @media (max-width:899px){
 .film__copy{align-items:end;padding-bottom:78px}
