@@ -82,11 +82,19 @@
     var st = {};
     String(qs || '').replace(/^\?/, '').split('&').forEach(function (kv) {
       if (!kv) return;
-      var i = kv.indexOf('='), k = decodeURIComponent(kv.slice(0, i < 0 ? kv.length : i).replace(/\+/g, ' '));
-      var v = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
+      var i = kv.indexOf('='), k, v;
+      try {
+        k = decodeURIComponent(kv.slice(0, i < 0 ? kv.length : i).replace(/\+/g, ' '));
+        v = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
+      } catch (e) { return; } /* malformed escape (e.g. %E0): skip the pair */
       if (KEYS.indexOf(k) >= 0) st[k] = v;
     });
     return st;
+  }
+  /* Dataset hrefs are relative to the jobs directory; join them onto the
+     page-relative jobs index href so links resolve from any page depth. */
+  function jobUrl(jobsHref, href) {
+    return String(jobsHref || '').replace(/index\.html$/, '') + String(href || '');
   }
   function toQuery(st) {
     var parts = [];
@@ -232,6 +240,6 @@
     norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, annual: annual, median: median,
     histogram: histogram, daysAgo: daysAgo, ago: ago, parseState: parseState, toQuery: toQuery, filterJobs: filterJobs,
     sortJobs: sortJobs, suggest: suggest, buildIndex: buildIndex, smartMatch: smartMatch, scoreSectors: scoreSectors,
-    encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack
+    encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack, jobUrl: jobUrl
   };
 });

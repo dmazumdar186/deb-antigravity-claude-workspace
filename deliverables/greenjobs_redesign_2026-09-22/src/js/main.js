@@ -75,7 +75,7 @@
 
   /* ------------------------------------------------ saved jobs */
   var SKEY = 'gj-saved-' + ED;
-  function saved() { try { return JSON.parse(store(SKEY) || '[]'); } catch (e) { return []; } }
+  function saved() { try { var v = JSON.parse(store(SKEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
   function paintSaves(scope) {
     var ids = saved();
     $$('[data-save]', scope).forEach(function (b) {
@@ -130,13 +130,14 @@
       close(); sform.requestSubmit ? sform.requestSubmit() : sform.submit();
     }
     function update() {
-      if (!jobs) return;
+      if (!jobs || doc.activeElement !== qIn) return; /* data may arrive after blur: never paint then */
       items = G.suggest(jobs, qIn.value.trim(), 7); sel = -1; paint();
     }
     qIn.addEventListener('focus', function () { window.GJData().then(function (d) { jobs = d.jobs; update(); }); });
     qIn.addEventListener('input', update);
     qIn.addEventListener('keydown', function (e) {
       if (ta.hidden) return;
+      if (!items.length) return;
       if (e.key === 'ArrowDown') { sel = (sel + 1) % items.length; paint(); e.preventDefault(); }
       else if (e.key === 'ArrowUp') { sel = (sel - 1 + items.length) % items.length; paint(); e.preventDefault(); }
       else if (e.key === 'Enter' && sel >= 0) { e.preventDefault(); pick(items[sel]); }
@@ -176,29 +177,40 @@
     show: function (x, y, html) { tip.innerHTML = html; tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.classList.add('is-on'); },
     hide: function () { tip.classList.remove('is-on'); }
   };
+  /* Listeners bind once per region (data-bound); counts, onPick and labelFn
+     live on the svg and are refreshed on every call so re-renders never stack
+     handlers. The count <text> is updated (or removed) on every call too. */
   window.GJMap = function (svg, counts, onPick, labelFn) {
     if (!svg) return;
+    var S = svg._gj || (svg._gj = {});
+    S.counts = counts || {}; S.onPick = onPick; S.labelFn = labelFn;
     var max = 0;
-    Object.keys(counts).forEach(function (k) { if (counts[k] > max) max = counts[k]; });
+    Object.keys(S.counts).forEach(function (k) { if (S.counts[k] > max) max = S.counts[k]; });
     $$('.gmap__r', svg).forEach(function (g) {
-      var name = g.getAttribute('data-region'), n = counts[name] || 0;
+      var name = g.getAttribute('data-region'), n = S.counts[name] || 0;
       g.setAttribute('data-n', String(n));
       g.setAttribute('data-lvl', n === 0 ? '0' : n >= max * 0.6 ? '3' : n >= max * 0.25 ? '2' : '1');
-      g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0');
       g.setAttribute('aria-label', name + ': ' + n + (n === 1 ? ' role' : ' roles'));
-      var html = '<b>' + G.esc(name) + '</b><span>' + (labelFn ? labelFn(n) : n + (n === 1 ? ' live role' : ' live roles')) + '</span>';
-      g.addEventListener('mousemove', function (e) { window.GJTip.show(e.clientX, e.clientY, html); });
+      var text = g.querySelector('text');
+      if (n > 0) {
+        if (!text) {
+          text = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', g.getAttribute('data-cx')); text.setAttribute('y', g.getAttribute('data-cy')); text.setAttribute('dy', '4');
+          g.appendChild(text);
+        }
+        text.textContent = String(n);
+      } else if (text) g.removeChild(text);
+      if (g.getAttribute('data-bound')) return;
+      g.setAttribute('data-bound', '1');
+      g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0');
+      var html = function () { var c = S.counts[name] || 0; return '<b>' + G.esc(name) + '</b><span>' + (S.labelFn ? S.labelFn(c) : c + (c === 1 ? ' live role' : ' live roles')) + '</span>'; };
+      g.addEventListener('mousemove', function (e) { window.GJTip.show(e.clientX, e.clientY, html()); });
       g.addEventListener('mouseleave', window.GJTip.hide);
-      g.addEventListener('focus', function () { var r = g.getBoundingClientRect(); window.GJTip.show(r.left + r.width / 2, r.top + r.height / 2, html); });
+      g.addEventListener('focus', function () { var r = g.getBoundingClientRect(); window.GJTip.show(r.left + r.width / 2, r.top + r.height / 2, html()); });
       g.addEventListener('blur', window.GJTip.hide);
-      var act = function (e) { e.preventDefault(); if (onPick) onPick(name, n); };
+      var act = function (e) { e.preventDefault(); if (S.onPick) S.onPick(name, S.counts[name] || 0); };
       g.addEventListener('click', act);
       g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') act(e); });
-      if (n > 0 && !g.querySelector('text')) {
-        var t = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t.setAttribute('x', g.getAttribute('data-cx')); t.setAttribute('y', g.getAttribute('data-cy')); t.setAttribute('dy', '4');
-        t.textContent = String(n); g.appendChild(t);
-      }
     });
   };
   var homeMap = $('[data-home-map]');

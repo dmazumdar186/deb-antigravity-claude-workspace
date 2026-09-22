@@ -1,13 +1,13 @@
 'use strict';
 (function () {
-var host = document.querySelector('[data-wind]');
-if (!host || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+var host = document.querySelector('[data-wind]'), reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+if (!host || reduce.matches) return;
 var colors = ['#b4e33d', '#5aa9e6', '#f2b544', '#d9774f', '#2fbf9f'];
 try { colors = JSON.parse(host.getAttribute('data-colors')) || colors; } catch (e) {  }
 var c = document.createElement('canvas'); c.setAttribute('aria-hidden', 'true');
 host.appendChild(c);
 var ctx = c.getContext('2d', { alpha: true }), W = 0, H = 0, dpr = 1, P = [], N = 0, t = 0, raf = 0, running = false;
-var px = -1e4, py = -1e4, pv = 0;
+var px = -1e4, py = -1e4, pv = 0, visible = true;
 function size() {
 dpr = Math.min(window.devicePixelRatio || 1, 2);
 W = host.clientWidth; H = host.clientHeight;
@@ -47,14 +47,15 @@ if (p.life <= 0 || p.x < -6 || p.x > W + 6 || p.y < -6 || p.y > H + 6) spawn(p, 
 ctx.globalAlpha = 1; pv *= 0.94;
 raf = requestAnimationFrame(frame);
 }
-function start() { if (!running) { running = true; raf = requestAnimationFrame(frame); } }
+function start() { if (!running && visible && !document.hidden && !reduce.matches) { running = true; raf = requestAnimationFrame(frame); } }
 function stop() { running = false; cancelAnimationFrame(raf); }
 function point(x, y) { var r = host.getBoundingClientRect(); px = x - r.left; py = y - r.top; pv = Math.min(1.5, pv + 0.25); }
 host.addEventListener('pointermove', function (e) { point(e.clientX, e.clientY); }, { passive: true });
 host.addEventListener('pointerleave', function () { px = py = -1e4; });
 host.addEventListener('touchmove', function (e) { if (e.touches[0]) point(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
 var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 120); });
-new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) start(); else stop(); }); }, { threshold: 0.02 }).observe(host);
+new IntersectionObserver(function (es) { es.forEach(function (e) { visible = e.isIntersecting; if (visible) start(); else stop(); }); }, { threshold: 0.02 }).observe(host);
 document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else start(); });
+if (reduce.addEventListener) reduce.addEventListener('change', function () { if (reduce.matches) stop(); else start(); });
 size(); start();
 })();

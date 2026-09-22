@@ -122,6 +122,23 @@ def test_guard_output(tmp_root: Path):
     check(build_site.guard_output(SRC, nonempty) == "", "guard_output: allows a marked dir")
 
 
+def test_check_dataset_rejects_bad_ids():
+    good = {"jobs": [{"id": "abc_1-Z", "title": "T", "sectors": ["Wind energy"]}]}
+    check(build_site.check_dataset(good) == [], "check_dataset: safe id passes")
+    for bad in ("../x", "a b", "", "x/y", "a<b>"):
+        probs = build_site.check_dataset({"jobs": [{"id": bad, "title": "T", "sectors": []}]})
+        check(any("job id" in x for x in probs), f"check_dataset: id {bad!r} rejected")
+
+
+def test_bad_id_fails_build(tmp_root: Path):
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    raw["jobs"][0]["id"] = "../escape"
+    bad = tmp_root / "bad_fixture.json"
+    bad.write_text(json.dumps(raw), encoding="utf-8")
+    rc = build_site.build(SRC, tmp_root / "site_bad_id", editions=["ie"], fixture=bad)
+    check(rc != 0, "build: injected bad job id fails the build (non-zero exit)")
+
+
 def test_render_fails_loudly():
     try:
         build_site.render("<p>{{missing}}</p>", {})
@@ -247,4 +264,4 @@ try:
         failed = [label for ok, label in RESULTS if not ok]
         assert not failed, "failures: " + "; ".join(failed)
 except ImportError:
-    pass
+    pass  # pytest is optional: main() above is the canonical runner; the fixture only exists when pytest collects this file

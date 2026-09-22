@@ -11,14 +11,18 @@ var mapWrap = $('[data-jobs-map]'), mapList = $('[data-map-list]'), mapSvg = map
 var f = { q: $('#f-q'), loc: $('#f-loc'), sector: $('#f-sector'), type: $('#f-type'), sal: $('#f-sal'), sort: $('#f-sort') };
 var LABEL = { q: 'Search', loc: 'Where', sector: 'Sector', type: 'Type', sal: 'Salary disclosed' };
 var mapPick = '';
+var ON_MAP = {};
+(data.regions || []).forEach(function (r) { ON_MAP[r.name] = true; });
 function logo(j) {
 return j.logo ? '<img class="role__logo" src="' + ROOT + 'assets/logos/' + G.esc(j.logo) + '" alt="" width="' + (j.lw || 200) + '" height="' + (j.lh || 80) + '" loading="lazy">'
 : '<div class="role__logo role__logo--t" aria-hidden="true">' + G.esc((j.employer || '?').charAt(0)) + '</div>';
 }
 function hl(text, q) {
-var out = G.esc(text);
-G.tokens(q || '').forEach(function (w) { out = out.replace(new RegExp('(' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig'), '<mark>$1</mark>'); });
-return out;
+var words = G.tokens(q || '').map(function (w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).filter(Boolean);
+if (!words.length) return G.esc(text);
+return String(text == null ? '' : text).split(new RegExp('(' + words.join('|') + ')', 'ig')).map(function (piece, i) {
+return i % 2 ? '<mark>' + G.esc(piece) + '</mark>' : G.esc(piece);
+}).join('');
 }
 function row(j, q) {
 var sal = G.salaryLabel(j);
@@ -65,7 +69,10 @@ res.forEach(function (j) { (j.regions || []).forEach(function (r) { counts[r] = 
 window.GJMap(mapSvg, counts, function (name) { mapPick = mapPick === name ? '' : name; render(); });
 $$('.gmap__r', mapSvg).forEach(function (g) { g.classList.toggle('is-on', g.getAttribute('data-region') === mapPick); });
 var sub = mapPick ? res.filter(function (j) { return (j.regions || []).indexOf(mapPick) >= 0; }) : res;
-mapList.innerHTML = '<p class="muted" style="font-size:.9rem">' + (mapPick ? '<b>' + G.esc(mapPick) + '</b> · ' + sub.length + (sub.length === 1 ? ' role' : ' roles') + ' <button class="btn btn--sm btn--ghost" type="button" data-mapclear>Show all</button>' : 'Tap a region to filter. ' + res.length + ' roles across ' + Object.keys(counts).length + ' regions; roles without a fixed region are listed only in the list view.') + '</p>' + sub.slice(0, 40).map(function (j) { return row(j, st.q); }).join('');
+var off = {};
+res.forEach(function (j) { if (!(j.regions || []).some(function (r) { return ON_MAP[r]; })) (j.regions || []).forEach(function (r) { off[r] = (off[r] || 0) + 1; }); });
+var offHtml = Object.keys(off).length ? ' Not on the map: ' + Object.keys(off).map(function (r) { return '<a href="' + G.esc(G.toQuery({ loc: r, q: st.q, sector: st.sector, type: st.type, sal: st.sal, sort: st.sort })) + '">' + G.esc(r) + ' (' + off[r] + ')</a>'; }).join(', ') + '.' : '';
+mapList.innerHTML = '<p class="muted" style="font-size:.9rem">' + (mapPick ? '<b>' + G.esc(mapPick) + '</b> · ' + sub.length + (sub.length === 1 ? ' role' : ' roles') + ' <button class="btn btn--sm btn--ghost" type="button" data-mapclear>Show all</button>' : 'Tap a region to filter. ' + (res.length - Object.keys(off).reduce(function (a, r) { return a + off[r]; }, 0)) + ' of ' + res.length + ' roles sit in ' + Object.keys(counts).filter(function (r) { return ON_MAP[r]; }).length + ' mapped regions.' + offHtml) + '</p>' + sub.slice(0, 40).map(function (j) { return row(j, st.q); }).join('');
 count.innerHTML = '<b>' + res.length + '</b> ' + (res.length === 1 ? 'role' : 'roles') + ' <small>on the map</small>';
 list.hidden = true; mapWrap.hidden = false;
 } else {
@@ -133,6 +140,7 @@ if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(
 });
 pin.addEventListener('input', function () { pitems = pquery(pin.value); psel = 0; ppaint(); });
 pin.addEventListener('keydown', function (e) {
+if (!pitems.length) { if (e.key === 'Enter') e.preventDefault(); return; }
 if (e.key === 'ArrowDown') { psel = Math.min(pitems.length - 1, psel + 1); ppaint(); e.preventDefault(); }
 else if (e.key === 'ArrowUp') { psel = Math.max(0, psel - 1); ppaint(); e.preventDefault(); }
 else if (e.key === 'Enter') { e.preventDefault(); pgo(pitems[psel]); }

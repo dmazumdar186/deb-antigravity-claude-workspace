@@ -42,6 +42,17 @@ test('URL state round-trips and drops defaults', () => {
   assert.deepEqual(GJ.parseState('?bogus=1&q=a+b'), { q: 'a b' });
 });
 
+test('parseState skips malformed percent-escapes instead of throwing', () => {
+  assert.deepEqual(GJ.parseState('?q=%E0'), {});
+  assert.deepEqual(GJ.parseState('?q=%E0&loc=Cork'), { loc: 'Cork' });
+});
+
+test('jobUrl joins dataset hrefs onto the page-relative jobs base', () => {
+  assert.equal(GJ.jobUrl('../jobs/index.html', 'abc-1/index.html'), '../jobs/abc-1/index.html');
+  assert.equal(GJ.jobUrl('index.html', 'abc-1/index.html'), 'abc-1/index.html');
+  assert.equal(GJ.jobUrl('jobs/index.html', 'abc-1/index.html'), 'jobs/abc-1/index.html');
+});
+
 test('histogram bins on the left edge, last band open', () => {
   const h = GJ.histogram([25000, 30000, 44999, 45000, 120000], [20000, 30000, 45000, 60000]);
   assert.deepEqual(h.map(b => b.n), [1, 2, 1, 1]);

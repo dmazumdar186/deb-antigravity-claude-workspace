@@ -44,7 +44,7 @@ if command -v rsync >/dev/null 2>&1; then
   rsync -a --exclude='.greenjobs-build' --exclude='_shot-*' "$SITE"/ "$STAGE"/
 else
   cp -R "$SITE"/. "$STAGE"/
-  find "$STAGE" -maxdepth 1 \( -name '.greenjobs-build' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
+  find "$STAGE" \( -name '.greenjobs-build' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
 fi
 
 $WRANGLER pages deploy "$STAGE" --project-name "$PROJECT" --branch main --commit-dirty=true

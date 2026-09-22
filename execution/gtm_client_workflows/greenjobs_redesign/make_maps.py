@@ -106,7 +106,7 @@ def union_rings(rings: list[list[Point]]) -> list[list[Point]]:
                 break
             step = cands[0]
             used.add((cur, step))
-            prev, cur = cur, step
+            cur = step
             guard += 1
         if cur == a and len(ring) >= 3:
             out.append(ring)

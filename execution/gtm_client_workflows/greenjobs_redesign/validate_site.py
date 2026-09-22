@@ -260,6 +260,8 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
     for page in pages:
         raw = page.read_text(encoding="utf-8")
         rel = page.relative_to(site).as_posix()
+        if rel == "404.html":
+            continue  # the root 404 is served at any missing URL, so it is self-contained (no relative font/CSS refs)
         for font in fonts:
             if font.name not in raw:
                 fails.append(f"{rel}: does not preload {font.name}")

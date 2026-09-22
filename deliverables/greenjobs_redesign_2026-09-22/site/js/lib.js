@@ -74,11 +74,17 @@ function parseState(qs) {
 var st = {};
 String(qs || '').replace(/^\?/, '').split('&').forEach(function (kv) {
 if (!kv) return;
-var i = kv.indexOf('='), k = decodeURIComponent(kv.slice(0, i < 0 ? kv.length : i).replace(/\+/g, ' '));
-var v = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
+var i = kv.indexOf('='), k, v;
+try {
+k = decodeURIComponent(kv.slice(0, i < 0 ? kv.length : i).replace(/\+/g, ' '));
+v = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
+} catch (e) { return; }
 if (KEYS.indexOf(k) >= 0) st[k] = v;
 });
 return st;
+}
+function jobUrl(jobsHref, href) {
+return String(jobsHref || '').replace(/index\.html$/, '') + String(href || '');
 }
 function toQuery(st) {
 var parts = [];
@@ -219,6 +225,6 @@ return {
 norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, annual: annual, median: median,
 histogram: histogram, daysAgo: daysAgo, ago: ago, parseState: parseState, toQuery: toQuery, filterJobs: filterJobs,
 sortJobs: sortJobs, suggest: suggest, buildIndex: buildIndex, smartMatch: smartMatch, scoreSectors: scoreSectors,
-encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack
+encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack, jobUrl: jobUrl
 };
 });

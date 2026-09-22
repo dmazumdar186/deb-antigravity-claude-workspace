@@ -1,5 +1,33 @@
 <!doctype html>
 <html lang="en" data-theme="dark">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Page not found — GreenJobs</title>
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="assets/fonts/publicsans-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="css/styles.css"></head>
-<body><main class="choose" id="main"><div class="choose__in"><h1>Nothing grows here</h1><p class="lede" style="color:#aebfb2">That page has moved, closed, or never existed.</p><div class="choose__tiles"><a class="tile" href="ie/index.html"><h2>GreenJobs IE</h2><p>greenjobs.ie</p></a><a class="tile" href="uk/index.html"><h2>GreenJobs UK</h2><p>greenjobs.co.uk</p></a></div></div></main></body></html>
+<!-- Self-contained on purpose: GitHub Pages and Cloudflare Pages serve this one
+     file at ANY missing URL, so relative stylesheet/font/icon paths would 404
+     in turn. Styles are inline and the links below are rewritten by the inline
+     script to the deploy root it derives from location.pathname. -->
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:#0c1a12;color:#eef4ee;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{min-height:100dvh;display:grid;place-items:center;padding:48px 24px}
+.in{max-width:640px;text-align:center}
+h1{font-size:clamp(2rem,5vw,3.25rem);line-height:1.05;margin:0 0 16px;letter-spacing:-.02em}
+.lede{color:#aebfb2;margin:0 auto 32px;max-width:40ch}
+.tiles{display:grid;gap:12px;grid-template-columns:1fr}@media(min-width:560px){.tiles{grid-template-columns:1fr 1fr}}
+.tile{display:block;padding:20px 22px;border:1px solid #2a4a36;border-radius:14px;background:#12261a;color:inherit;text-decoration:none;text-align:left;min-height:44px}
+.tile:hover,.tile:focus-visible{border-color:#b4e33d;outline:none}
+.tile h2{margin:0 0 4px;font-size:1.15rem}.tile p{margin:0;color:#aebfb2;font-size:.9rem}
+.home{display:inline-block;margin-top:24px;color:#b4e33d}
+</style></head>
+<body><main id="main"><div class="in"><h1>Nothing grows here</h1><p class="lede">That page has moved, closed, or never existed.</p><div class="tiles"><a class="tile" data-ed="ie" href="ie/index.html"><h2>GreenJobs IE</h2><p>greenjobs.ie</p></a><a class="tile" data-ed="uk" href="uk/index.html"><h2>GreenJobs UK</h2><p>greenjobs.co.uk</p></a></div><a class="home" data-home href="index.html">Choose an edition</a></div></main>
+<script>
+(function () {
+  /* Deploy root = everything before the first /ie/ or /uk/ segment; else the
+     segment up to and including /greenjobs/ (GitHub Pages sub-path); else /. */
+  var p = window.location.pathname, m = p.match(/^(.*?\/)(?:ie|uk)(?:\/|$)/) || p.match(/^(.*?\/greenjobs\/)/);
+  var base = m ? m[1] : '/';
+  var a = document.querySelectorAll('[data-ed]');
+  for (var i = 0; i < a.length; i++) a[i].setAttribute('href', base + a[i].getAttribute('data-ed') + '/index.html');
+  var h = document.querySelector('[data-home]');
+  if (h) h.setAttribute('href', base + 'index.html');
+})();
+</script></body></html>

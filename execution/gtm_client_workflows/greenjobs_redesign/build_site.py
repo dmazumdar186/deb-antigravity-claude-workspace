@@ -34,8 +34,8 @@ import shutil
 import struct
 import subprocess
 import sys
-from collections import Counter, defaultdict
-from datetime import date, datetime, timedelta
+from collections import Counter
+from datetime import date
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urljoin
@@ -348,11 +348,16 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path) -> d
     }
 
 
+JOB_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
 def check_dataset(data: dict[str, Any]) -> list[str]:
     problems: list[str] = []
     if not data["jobs"]:
         problems.append("no usable jobs after normalisation")
     for j in data["jobs"]:
+        if not JOB_ID_RE.match(j["id"]):
+            problems.append(f"job id is not a safe path segment (^[A-Za-z0-9_-]+$): {j['id']!r}")
         if any(ch in j["title"] for ch in "<>"):
             problems.append(f"title contains angle brackets: {j['title']!r}")
         if "|" in " ".join(j["sectors"]):
@@ -556,9 +561,21 @@ def map_svg(src: Path, ed: str) -> str:
     return (src / "assets" / "maps" / f"{ed}.svg").read_text(encoding="utf-8").strip()
 
 
-def map_list(data: dict[str, Any], jobs_href: str, limit: int = 12) -> str:
-    rows = [r for r in data["regions"] if r["on_map"]][:limit]
+def map_list(data: dict[str, Any], jobs_href: str) -> str:
+    """Every mapped region with at least one live role (ties included)."""
+    rows = [r for r in data["regions"] if r["on_map"] and r["n"] > 0]
     return "".join(f'<a href="{jobs_href}?loc={qs(r["name"])}"><span>{esc(r["name"])}</span><b class="num">{r["n"]}</b></a>' for r in rows)
+
+
+def off_map_note(data: dict[str, Any], jobs_href: str) -> str:
+    """States the roles the map cannot place (e.g. 'Elsewhere (UK & abroad)'),
+    each linked to the jobs list filtered to that bucket. Empty when none."""
+    rows = [r for r in data["regions"] if not r["on_map"] and r["n"] > 0]
+    if not rows:
+        return ""
+    total = sum(r["n"] for r in rows)
+    links = ", ".join(f'<a href="{jobs_href}?loc={qs(r["name"])}">{esc(r["name"])} ({r["n"]})</a>' for r in rows)
+    return f' {total} {"role is" if total == 1 else "roles are"} not on the map: {links}.'
 
 
 def select(field_id: str, label: str, values: list[str], any_label: str) -> str:
@@ -691,12 +708,12 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                     "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": ed["unit"] + ("ies" if ed["unit"].endswith("y") else "s"),
                     "colors": esc(colors), "sector_tiles": sector_tiles(data, "jobs/index.html", today),
                     "latest": "".join(role_card(j, "../", "jobs/", today) for j in jobs[:8]),
-                    "map": map_svg(src, ed_key), "map_counts": esc(json_embed(map_counts)), "map_list": map_list(data, "jobs/index.html"),
+                    "map": map_svg(src, ed_key), "map_counts": esc(json_embed(map_counts)), "map_list": map_list(data, "jobs/index.html"), "off_map": off_map_note(data, "jobs/index.html"),
                     "n_regions": str(len(top_regions)), "employers": employers_strip(data, "../"), "facts": facts_block(brief, data),
                     "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"]),
                     "n_sectors": str(sum(1 for s in data["sectors"] if s["n"])),
                     "legend": "".join(f'<span><i style="background:{s["color"]}"></i>{esc(s["name"])}</span>' for s in data["sectors"][:5]),
-                }, dark_header=True, body_attrs=f' data-data="data/jobs.json"', same_path="index.html")
+                }, dark_header=True, body_attrs=' data-data="data/jobs.json"', same_path="index.html")
     write("index.html", home)
     (edir / "data").mkdir(exist_ok=True)
     (edir / "data" / "jobs.json").write_text(json.dumps({"jobs": [slim(j, False) for j in jobs]}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -760,8 +777,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     # ---- evidence page (rendered after measuring; filled in by build())
     evidence[ed_key] = {"n_jobs": len(jobs), "n_emp": n_emp, "n_sal": n_sal, "n_sectors": sum(1 for s in data["sectors"] if s["n"]), "n_regions": len(top_regions)}
 
-    # ---- 404 per edition
-    write("404.html", page("404", 1, "404", f"Page not found | GreenJobs {ed['short']}", "That page is not here.", {}, same_path="404.html"))
+    # No per-edition 404: GitHub Pages and Cloudflare Pages only ever serve the
+    # root 404.html (src/templates/404root.html), which is self-contained.
 
 
 def render_evidence(out: Path, src: Path, data_by_ed: dict[str, dict[str, Any]], tests: tuple[int, int] | None, today: date) -> dict[str, str]:

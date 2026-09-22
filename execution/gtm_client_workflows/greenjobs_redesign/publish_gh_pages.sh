@@ -33,7 +33,7 @@ if command -v rsync >/dev/null 2>&1; then
   rsync -a --exclude='.greenjobs-build' --exclude='_shot-*' "$SITE"/ "$WT/$SUB"/
 else
   cp -R "$SITE"/. "$WT/$SUB"/
-  find "$WT/$SUB" -maxdepth 1 \( -name '.greenjobs-build' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
+  find "$WT/$SUB" \( -name '.greenjobs-build' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
 fi
 touch "$WT/.nojekyll"
 cd "$WT"
