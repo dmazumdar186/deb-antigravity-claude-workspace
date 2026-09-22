@@ -51,7 +51,9 @@ https://greenjobs-redesign.pages.dev/ (Cloudflare Pages). Evidence page: `<base>
 - wrangler ≥ 4.136 delegates `pages project create` to Workers and fails: `--force` is required.
 - Sticky-footer layout stretches `main` inside a capture window taller than the page; screenshot.sh
   sets per-page heights so this is not mistaken for a layout bug.
-- The "Ask GreenJobs" panel is a local TF-IDF matcher. The Cloudflare Worker stub in `worker/` expects
+- A screenshot "before/after" slider was dropped: greenjobs.ie serves no assets to a headless browser
+  (Firecrawl token invalid in cloud), so a capture is unstyled and unfair; the comparison stays data-based.
+- The "Ask GreenJobs" / "Your fit" panel is a local TF-IDF matcher. The Cloudflare Worker stub in `worker/` expects
   `OPENROUTER_API_KEY` (or an Anthropic key) as a Worker secret; nothing model-backed is live and no
   key exists in cloud sessions. Cloud sessions have no `.env`.
 
@@ -59,3 +61,10 @@ https://greenjobs-redesign.pages.dev/ (Cloudflare Pages). Evidence page: `<base>
 
 - 2026-09-22: built, audited (anneal PASS, pipeline PASS 10/10, code review fixed, 16 design items,
   11-lens panel), published on both hosts.
+- 2026-09-22 (act two): pinned scroll film hero (canvas; wind → county map → salary bands → sector
+  ring → search; map points sampled from the SVG at build time), "Your fit in ten seconds" panel
+  (home + jobs, upgraded local matcher, salary position, mini map, shareable hash), "Where this role
+  sits" salary strip on job pages, live ad builder on Employers, count-ups/spotlights/magnetic
+  buttons/view-transition morphs, evidence page request comparison. Budgets now CSS ≤ 72 KB, JS ≤ 110 KB.
+  `capture_states.mjs` scrolls the film for screenshots; `tests/greenjobs_redesign/verify_browser.mjs`
+  checks state 4 focus and a fit query in headless Chromium. Still zero API calls, zero third-party requests.
