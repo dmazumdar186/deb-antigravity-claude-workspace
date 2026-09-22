@@ -189,3 +189,11 @@ Three runtime surfaces:
 External services: **Instantly.ai** (cold email send + warmup), **GoHighLevel** (CRM + appointments), **OpenRouter** (LLM for classification + opener generation, currently uses `claude-haiku-4.5`), **Serper.dev** (Google Maps + Places sourcing), **AnymailFinder** + **Million Verifier** (email enrichment).
 
 The full PRD lives at `c:/Users/deban/OneDrive/Documents/Bryce Projects/Accessory Masters 27 Apr 26/Accessory_Masters_PRD 12 May 26.md`. Per-feature directives live in `directives/`. Tests live in `tests/` (340 Python tests covering the original Python module pipeline; the Worker is a JS port of that logic — no JS tests yet, that's separate scope).
+
+## 2026-09-22 — GreenJobs redesign (greenjobs.ie / greenjobs.co.uk)
+
+Live: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/greenjobs/ and https://greenjobs-redesign.pages.dev/ (evidence page at `/ie/for-keith/`). Directive: `directives/gtm_client_workflows/greenjobs_redesign.md`. Reply draft for Keith: `deliverables/greenjobs_redesign_2026-09-22/research/panel_pass.md` (Synthesis).
+
+**Keys.** All API keys live in the operator's local `.env` (`C:\Users\deban\OneDrive\Documents\AntiGravity Project Space\.env`): `ANTHROPIC_API_KEY` and the GLM key are present there as of 2026-09-22. Cloud sessions do not see that file. Nothing in the demo needs a key today.
+
+**To make "Ask GreenJobs" model-backed (phase two, local session):** `cd execution/gtm_client_workflows/greenjobs_redesign/worker`, `npx wrangler secret put OPENROUTER_API_KEY` (or the Anthropic/GLM key per `worker/README.md`), `npx wrangler deploy`, then set the Worker URL in `src/config.json` and rebuild + republish. Do not ask the operator for keys; they are in the file above.
