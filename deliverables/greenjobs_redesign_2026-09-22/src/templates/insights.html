@@ -1,0 +1,19 @@
+{{dataset}}
+<div class="wrap pagehead">
+  <h1>Green salary explorer</h1>
+  <p class="lede">What the disclosed salaries on this board say — and how many roles still say nothing. Every figure below comes from the {{n_jobs}} live listings as of {{fetched}}.</p>
+</div>
+<div class="wrap viz" data-insights style="padding-bottom:var(--pad-y)">
+  <div class="grid grid--4" style="margin-bottom:24px">
+    <div class="stat reveal"><span class="v num" data-s-n>—</span><span class="l">live roles</span></div>
+    <div class="stat reveal"><span class="v num" data-s-disc>—</span><span class="l">disclose a salary</span><span class="d" data-s-cnt-wrap><span data-s-cnt>—</span> roles with a figure</span></div>
+    <div class="stat reveal"><span class="v num" data-s-med>—</span><span class="l">median disclosed salary</span><span class="d">midpoint of each range, annualised</span></div>
+    <div class="stat reveal"><span class="v num">{{cur}}</span><span class="l">all figures in {{cur}} per year</span><span class="d">hourly and monthly rates annualised on full-time hours</span></div>
+  </div>
+  <div class="figs">
+    <figure class="fig reveal" data-fig="hist"><h3>Disclosed salaries by band</h3><p>How many roles fall in each band, using the midpoint of any range.</p></figure>
+    <figure class="fig reveal" data-fig="sector"><h3>Median by sector</h3><p>Only sectors with three or more disclosed salaries are shown; a role tagged to two sectors counts in both.</p></figure>
+    <figure class="fig reveal" data-fig="disc"><h3>Who tells you the money</h3><p>Share of roles in each sector that publish a figure rather than "competitive".</p></figure>
+    <figure class="fig reveal" data-fig="region"><h3>Live roles by {{unit}}</h3><p>A role listed in two places counts in each.</p></figure>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+{{jsonld}}
+<div class="wrap job__head">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true">/</span><a href="../index.html">Jobs</a><span aria-hidden="true">/</span><a href="{{sector_link}}">{{sector}}</a></nav>
+  <h1>{{title}}</h1>
+  <div class="job__emp">{{logo}}<span>{{employer}}</span></div>
+  <div class="job__meta" style="margin-top:16px">{{meta}}</div>
+</div>
+<div class="wrap job__grid">
+  <article>
+    <!-- src:start --><div class="prose" data-source="employer">{{desc_html}}</div><!-- src:end -->
+    <p class="muted" style="margin-top:28px;font-size:.9rem">{{posted_line}} Description as published by the employer on {{domain}}; reference {{id}}.</p>
+  </article>
+  <aside class="job__aside" aria-label="Apply">
+    <a class="btn btn--lime" href="{{apply_url}}" rel="noopener">Apply on {{domain}}<span class="arw" aria-hidden="true">→</span></a>
+    <div class="job__actions"><button class="btn btn--ghost btn--sm" type="button" data-save="{{id}}" data-title="{{title}}" aria-pressed="false" aria-label="Save: {{title}}">Save</button><button class="btn btn--ghost btn--sm" type="button" data-share>Share</button></div>
+    <dl>{{dl}}</dl>
+  </aside>
+</div>
+<section class="band--alt similar" aria-labelledby="h-sim">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-sim" style="font-size:clamp(1.5rem,1.2rem + 1.4vw,2.2rem)">More in {{sector}}</h2><a class="btn btn--ghost btn--sm" href="{{sector_link}}">All {{sector}} roles<span class="arw" aria-hidden="true">→</span></a></div>
+    <div class="roles">{{similar}}</div>
+  </div>
+</section>

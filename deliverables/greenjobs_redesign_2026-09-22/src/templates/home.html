@@ -1,0 +1,68 @@
+<section class="hero" aria-labelledby="h1">
+  <div class="hero__canvas" data-wind data-colors="{{colors}}"></div>
+  <div class="hero__legend" aria-hidden="true">{{legend}}</div>
+  <div class="wrap hero__in">
+    <h1 id="h1">Work that puts the planet <em>on the payroll.</em></h1>
+    <p class="hero__lede">{{n_jobs}} live green roles across {{country}} — wind, water, waste, wildlife and the people who make the numbers add up. Search in a second, filter by {{unit}}, save what fits.</p>
+    <form class="search" data-search action="jobs/index.html" method="get" role="search" aria-label="Search live roles">
+      <div class="field"><label for="s-q">Role, skill or employer</label><input class="in" id="s-q" name="q" type="search" placeholder="Ecologist, solar, hydrogeology…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="s-ta" aria-autocomplete="list"></div>
+      <div class="field"><label for="s-loc">Where</label><input class="in" id="s-loc" name="loc" type="text" placeholder="Any {{unit}}" autocomplete="off"></div>
+      <button class="btn btn--lime" type="submit">Search<span class="arw" aria-hidden="true">→</span></button>
+      <div class="ta" id="s-ta" role="listbox" aria-label="Suggestions" data-ta hidden></div>
+    </form>
+    <p class="hero__count"><span><i class="dot" aria-hidden="true"></i><b>{{n_jobs}}</b> live roles</span><span><b>{{n_emp}}</b> employers</span><span><b>{{n_sal}}</b> with a disclosed salary</span><span>Updated {{fetched}}</span></p>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-sectors">
+  <div class="wrap">
+    <div class="sec-head"><div><h2 id="h-sectors">Where the work is</h2><p>{{n_sectors}} sectors with live roles this week. Every count is real; the line is postings over the last eight weeks.</p></div><a class="btn btn--ghost" href="sectors/index.html">All sectors<span class="arw" aria-hidden="true">→</span></a></div>
+    <div class="sectors stagger">{{sector_tiles}}</div>
+  </div>
+</section>
+
+<section class="band band--alt band--tight" aria-labelledby="h-latest">
+  <div class="wrap">
+    <div class="sec-head"><div><h2 id="h-latest">Latest roles</h2><p>The eight newest listings. Bookmark any of them — saved roles wait for you on this device.</p></div><a class="btn btn--ghost" href="jobs/index.html">All {{n_jobs}} roles<span class="arw" aria-hidden="true">→</span></a></div>
+    <div class="roles stagger">{{latest}}</div>
+  </div>
+</section>
+
+<section class="band band--dark on-dark" aria-labelledby="h-map">
+  <div class="wrap mapband" data-home-map data-counts="{{map_counts}}" data-jobs="jobs/index.html">
+    <div>
+      <h2 id="h-map">Roles by {{unit}}</h2>
+      <p class="muted" style="margin:14px 0 24px;max-width:44ch">Live roles across {{n_regions}} {{units}}. Hover or tab through the map for counts; choose one to open the filtered list.</p>
+      <div class="maplist">{{map_list}}</div>
+    </div>
+    <div class="reveal">{{map}}</div>
+  </div>
+</section>
+
+<section class="band band--tight" aria-labelledby="h-emp">
+  <div class="wrap">
+    <div class="sec-head"><div><h2 id="h-emp">Employers hiring now</h2><p>Organisations with live roles on {{domain}} this week.</p></div></div>
+    {{employers}}
+  </div>
+</section>
+
+<section class="band band--alt" aria-labelledby="h-why">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-why">Why GreenJobs</h2></div>
+    <div class="facts stagger">{{facts}}</div>
+  </div>
+</section>
+
+<section class="band band--tight" aria-labelledby="h-alert">
+  <div class="wrap">
+    <div class="alertbox reveal">
+      <div><h2 id="h-alert">The week's green roles, in your inbox</h2><p style="margin-top:12px">Up to ten job alerts by email, matched to the sectors and {{units}} you pick. Free, weekly, unsubscribe any time.</p></div>
+      <form data-demo-form novalidate>
+        <div class="row"><div class="field"><label for="al-email">Email</label><input class="in" id="al-email" name="email" type="email" placeholder="you@example.com" required></div><div class="field"><label for="al-sector">Sector</label><select class="in" id="al-sector" name="sector"><option value="">All sectors</option>{{sector_options}}</select></div></div>
+        <label class="check"><input type="checkbox" id="al-consent" name="consent"><span>Email me the weekly newsletter too</span></label>
+        <button class="btn btn--lime" type="submit">Create my alert</button>
+        <p class="note note--live" data-demo-note tabindex="-1" hidden>Demo — this form is wired to your email provider on launch. Nothing was sent.</p>
+      </form>
+    </div>
+  </div>
+</section>

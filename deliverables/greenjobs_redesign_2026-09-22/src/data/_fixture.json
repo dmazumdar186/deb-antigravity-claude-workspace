@@ -1,0 +1,300 @@
+{
+ "site": "greenjobs.ie",
+ "fetched": "2026-09-22T10:00:00Z",
+ "jobs": [
+  {
+   "id": "1001",
+   "slug": "ecologist-dublin",
+   "title": "Senior Ecologist",
+   "url": "https://www.greenjobs.ie/jobs/senior-ecologist-1001/",
+   "employer": "Fixture Environmental Ltd",
+   "location": "Dublin",
+   "region": "Dublin",
+   "country": "Ireland",
+   "type": "Permanent",
+   "salary_text": "€55,000 – €65,000 per year",
+   "salary_min": 55000,
+   "salary_max": 65000,
+   "currency": "EUR",
+   "period": "year",
+   "sectors": [
+    "Ecology & Conservation"
+   ],
+   "categories": [
+    "Ecology"
+   ],
+   "posted": "2026-09-20",
+   "closing": "2026-10-20",
+   "summary": "Lead ecological impact assessments for onshore wind and grid projects across Leinster.",
+   "description_html": "<p>Lead ecological impact assessments for onshore wind and grid projects across Leinster.</p><ul><li>Bat and bird surveys</li><li>NIS and EIAR chapters</li></ul>",
+   "logo_url": null
+  },
+  {
+   "id": "1002",
+   "slug": "solar-pm-cork",
+   "title": "Solar Project Manager",
+   "url": "https://www.greenjobs.ie/jobs/solar-project-manager-1002/",
+   "employer": "Sunrise Fixture Energy",
+   "location": "Cork",
+   "region": "",
+   "country": "Ireland",
+   "type": "Contract",
+   "salary_text": null,
+   "salary_min": null,
+   "salary_max": null,
+   "currency": null,
+   "period": null,
+   "sectors": [
+    "Renewable Energy",
+    "Solar"
+   ],
+   "categories": [
+    "Project Management"
+   ],
+   "posted": "2026-09-19",
+   "closing": null,
+   "summary": "Deliver a 60 MW ground-mounted solar portfolio from consent to energisation.",
+   "description_html": "<p>Deliver a 60 MW ground-mounted solar portfolio from consent to energisation.</p>",
+   "logo_url": null
+  },
+  {
+   "id": "1003",
+   "slug": "water-engineer-galway",
+   "title": "Water Resources Engineer",
+   "url": "https://www.greenjobs.ie/jobs/water-resources-engineer-1003/",
+   "employer": "Fixture Water Services",
+   "location": "Galway City, Co. Galway",
+   "region": null,
+   "country": "Ireland",
+   "type": "Permanent",
+   "salary_text": "€48k",
+   "salary_min": 48000,
+   "salary_max": null,
+   "currency": "EUR",
+   "period": "year",
+   "sectors": [
+    "Water"
+   ],
+   "categories": [],
+   "posted": "2026-09-18",
+   "closing": "2026-10-05",
+   "summary": "Flood-risk modelling and drainage design for public infrastructure.",
+   "description_html": "<p>Flood-risk modelling and drainage design for public infrastructure.</p>",
+   "logo_url": null
+  },
+  {
+   "id": "1004",
+   "slug": "waste-ops-remote",
+   "title": "Circular Economy Lead",
+   "url": "https://www.greenjobs.ie/jobs/circular-economy-lead-1004/",
+   "employer": "Fixture Waste Co",
+   "location": "Remote",
+   "region": "Nationwide",
+   "country": "Ireland",
+   "type": "Part-time",
+   "salary_text": "€30 per hour",
+   "salary_min": 30,
+   "salary_max": 30,
+   "currency": "EUR",
+   "period": "hour",
+   "sectors": [
+    "Waste & Recycling"
+   ],
+   "categories": [
+    "Sustainability"
+   ],
+   "posted": "2026-09-15",
+   "closing": null,
+   "summary": "Set the circularity roadmap for a national waste operator.",
+   "description_html": "<p>Set the circularity roadmap for a national waste operator.</p>",
+   "logo_url": null
+  },
+  {
+   "id": "1005",
+   "slug": "wind-tech-mayo",
+   "title": "Wind Turbine Technician",
+   "url": "https://www.greenjobs.ie/jobs/wind-turbine-technician-1005/",
+   "employer": "Fixture Wind",
+   "location": "Castlebar, Mayo",
+   "region": "Mayo",
+   "country": "Ireland",
+   "type": "Permanent",
+   "salary_text": "€42,000 – €50,000",
+   "salary_min": 42000,
+   "salary_max": 50000,
+   "currency": "EUR",
+   "period": "year",
+   "sectors": [
+    "Renewable Energy",
+    "Wind"
+   ],
+   "categories": [
+    "Engineering"
+   ],
+   "posted": "2026-09-12",
+   "closing": "2026-09-30",
+   "summary": "Scheduled and reactive maintenance on a 40-turbine fleet in the west.",
+   "description_html": "<p>Scheduled and reactive maintenance on a 40-turbine fleet in the west.</p>",
+   "logo_url": null
+  },
+  {
+   "id": "1006",
+   "slug": "sustainability-analyst-limerick",
+   "title": "Sustainability Analyst",
+   "url": "https://www.greenjobs.ie/jobs/sustainability-analyst-1006/",
+   "employer": "Fixture Environmental Ltd",
+   "location": "Limerick",
+   "region": "Munster",
+   "country": "Ireland",
+   "type": "Graduate",
+   "salary_text": "€32,000",
+   "salary_min": 32000,
+   "salary_max": 32000,
+   "currency": "EUR",
+   "period": "year",
+   "sectors": [
+    "Sustainability & ESG"
+   ],
+   "categories": [
+    "Analysis"
+   ],
+   "posted": "2026-09-10",
+   "closing": null,
+   "summary": "Carbon accounting and CSRD reporting for a manufacturing group.",
+   "description_html": "<p>Carbon accounting and CSRD reporting for a manufacturing group.</p>",
+   "logo_url": null
+  }
+ ],
+ "sectors": [
+  {
+   "name": "Renewable Energy",
+   "slug": "renewable-energy",
+   "url": "https://www.greenjobs.ie/renewable-energy-jobs/",
+   "count": 2
+  },
+  {
+   "name": "Ecology & Conservation",
+   "slug": "ecology",
+   "url": "",
+   "count": 1
+  },
+  {
+   "name": "Water",
+   "slug": "water",
+   "url": "",
+   "count": 1
+  },
+  {
+   "name": "Waste & Recycling",
+   "slug": "waste",
+   "url": "",
+   "count": 1
+  },
+  {
+   "name": "Sustainability & ESG",
+   "slug": "sustainability",
+   "url": "",
+   "count": 1
+  },
+  {
+   "name": "Solar",
+   "slug": "solar",
+   "url": "",
+   "count": 1
+  },
+  {
+   "name": "Wind",
+   "slug": "wind",
+   "url": "",
+   "count": 1
+  },
+  {
+   "name": "Nuclear Decommissioning",
+   "slug": "nuclear",
+   "url": "",
+   "count": 0
+  }
+ ],
+ "categories": [
+  {
+   "name": "Ecology",
+   "slug": "ecology",
+   "url": "",
+   "count": 1
+  }
+ ],
+ "regions": [
+  {
+   "name": "Dublin",
+   "slug": "dublin",
+   "url": "",
+   "count": 1
+  },
+  {
+   "name": "Cork",
+   "slug": "cork",
+   "url": "",
+   "count": 1
+  }
+ ],
+ "job_types": [
+  {
+   "name": "Permanent",
+   "slug": "permanent",
+   "url": "",
+   "count": 3
+  },
+  {
+   "name": "Contract",
+   "slug": "contract",
+   "url": "",
+   "count": 1
+  }
+ ],
+ "employers": [
+  {
+   "name": "Fixture Environmental Ltd",
+   "logo_url": null,
+   "url": ""
+  },
+  {
+   "name": "Sunrise Fixture Energy",
+   "logo_url": null,
+   "url": ""
+  },
+  {
+   "name": "Fixture Water Services",
+   "logo_url": null,
+   "url": ""
+  },
+  {
+   "name": "Fixture Waste Co",
+   "logo_url": null,
+   "url": ""
+  },
+  {
+   "name": "Fixture Wind",
+   "logo_url": null,
+   "url": ""
+  }
+ ],
+ "about": "GreenJobs is a fixture dataset used only to develop the build.",
+ "contact": {
+  "email": "",
+  "phone": ""
+ },
+ "network_sites": [
+  {
+   "name": "greenjobs.co.uk",
+   "url": "https://www.greenjobs.co.uk/"
+  },
+  {
+   "name": "greenjobs.ie",
+   "url": "https://www.greenjobs.ie/"
+  }
+ ],
+ "stats": {
+  "total_jobs": 6,
+  "jobs_with_salary": 5
+ }
+}

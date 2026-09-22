@@ -1,0 +1,16 @@
+name = "greenjobs-ask"
+main = "index.js"
+compatibility_date = "2026-09-01"
+
+# Secrets (never in this file): `wrangler secret put OPENROUTER_API_KEY`
+[vars]
+MODEL = "z-ai/glm-5.3"            # or "moonshotai/kimi-k3" — see for-keith/ on the demo
+ALLOWED_ORIGIN = "https://greenjobs-redesign.pages.dev"
+MAX_QUERY_CHARS = "4000"
+RATE_PER_MINUTE = "12"
+
+# Optional: a KV namespace for the per-IP rate limiter; without it the Worker
+# falls back to an in-isolate counter (best effort, per instance).
+# [[kv_namespaces]]
+# binding = "RATE"
+# id = "..."

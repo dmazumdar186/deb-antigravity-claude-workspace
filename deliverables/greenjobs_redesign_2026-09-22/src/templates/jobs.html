@@ -1,0 +1,56 @@
+{{dataset}}{{jsonld}}
+<div class="wrap pagehead">
+  <h1>Search live roles</h1>
+  <p class="lede">{{n_jobs}} green roles, filtered as you type. Everything you set lives in the address bar, so a filtered list is a link you can share.</p>
+</div>
+<div class="wrap board" data-board>
+  <aside data-rail-home>
+    <form class="rail" data-rail data-filters aria-label="Filters">
+      <h2>Filters <button type="button" data-reset>Clear</button></h2>
+      <div class="field"><label for="f-q">Keyword</label><input class="in" id="f-q" name="q" type="search" placeholder="Title, employer, skill" autocomplete="off"></div>
+      <div class="field"><label for="f-loc">{{unit}} or place</label><input class="in" id="f-loc" name="loc" type="text" list="loc-list" placeholder="Any" autocomplete="off"><datalist id="loc-list">{{loc_options}}</datalist></div>
+      {{sector_select}}
+      {{type_select}}
+      <label class="check"><input type="checkbox" id="f-sal" name="sal"><span>Salary disclosed only</span></label>
+      <div class="field"><label for="f-sort">Sort</label><select class="in" id="f-sort" name="sort"><option value="newest">Newest first</option><option value="salary">Highest salary</option><option value="az">A to Z</option></select></div>
+      <p class="muted" style="font-size:.8rem">Press <span class="kbd">Ctrl</span> <span class="kbd">K</span> to jump to any role, sector or page.</p>
+    </form>
+  </aside>
+  <section aria-label="Results">
+    <div class="toolbar">
+      <div class="toolbar__left">
+        <p class="count" data-count aria-live="polite" aria-atomic="true"><b>{{n_jobs}}</b> roles</p>
+        <button class="btn btn--sm btn--ghost" type="button" data-sheet-open style="display:inline-flex" aria-haspopup="dialog">Filters</button>
+      </div>
+      <div class="seg" role="tablist" aria-label="View">
+        <button type="button" role="tab" data-view="list" aria-selected="true">List</button>
+        <button type="button" role="tab" data-view="map" aria-selected="false">Map</button>
+        <button type="button" role="tab" data-view="saved" aria-selected="false">Saved <b data-saved-count>0</b></button>
+      </div>
+      <button class="btn btn--sm btn--ghost" type="button" data-palette-open aria-haspopup="dialog">Jump to… <span class="kbd">⌘K</span></button>
+    </div>
+    <div class="chipbar" data-chips aria-label="Active filters"></div>
+    <div class="list" data-list></div>
+    <div class="mapview" data-jobs-map hidden><div>{{map}}</div><div class="mapview__list" data-map-list></div></div>
+    <section class="ask" data-ask aria-labelledby="h-ask">
+      <div><h2 id="h-ask">Ask GreenJobs</h2><p>Paste a few lines of your CV, or describe the work you want, and get the five live roles that overlap most — with the words that matched, so nothing is a black box.</p></div>
+      <form>
+        <div class="field"><label for="ask-q" class="vh">Your CV or question</label><textarea class="in" id="ask-q" name="ask" rows="5" placeholder="e.g. Five years of Phase 1 habitat surveys and EIA chapters, looking for a senior ecology role in the west"></textarea></div>
+        <button class="btn btn--lime" type="submit">Find my matches</button>
+        <div class="ask__out" data-ask-out aria-live="polite"></div>
+      </form>
+    </section>
+  </section>
+</div>
+<dialog class="sheet" data-sheet aria-label="Filters">
+  <div class="sheet__bar"><span class="display" style="font-size:1.1rem">Filters</span><button class="icobtn" type="button" data-sheet-close aria-label="Close filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div data-sheet-slot></div>
+  <div class="sheet__apply"><button class="btn btn--fill" type="button" data-sheet-close>Show results</button></div>
+</dialog>
+<dialog class="pal" data-palette data-pages="{{pages}}" aria-label="Jump to">
+  <div class="pal__box">
+    <div class="pal__in"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><label for="pal-q" class="vh">Search roles, sectors and pages</label><input id="pal-q" type="text" placeholder="Type a role, sector or page…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list"></div>
+    <div class="pal__list" id="pal-list" role="listbox" aria-label="Results"></div>
+    <div class="pal__hint"><span><span class="kbd">↑↓</span> move</span><span><span class="kbd">↵</span> open</span><span><span class="kbd">esc</span> close</span></div>
+  </div>
+</dialog>

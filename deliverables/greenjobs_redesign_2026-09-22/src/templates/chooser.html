@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>GreenJobs — choose your edition</title>
+<meta name="description" content="GreenJobs runs two editions: greenjobs.ie for Ireland and greenjobs.co.uk for the UK.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="assets/fonts/publicsans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/styles.css">
+<script>(function(){try{var e=localStorage.getItem('gj-edition');if((e==='ie'||e==='uk')&&!/[?#]choose/.test(location.href)){location.replace(e+'/index.html');}}catch(x){}})();</script>
+</head>
+<body>
+<main class="choose" id="main">
+  <div class="choose__in">
+    <span class="logo" style="color:#eef2ea;font-size:1.6rem"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#b4e33d"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#0c1a12" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>Green<b style="color:#b4e33d">Jobs</b></span>
+    <h1>Green work, two islands. Pick your edition.</h1>
+    <p class="lede" style="color:#aebfb2">We remember your choice on this device; the header switch moves you across any time.</p>
+    <div class="choose__tiles">{{tiles}}</div>
+    <p style="color:#84958a;font-size:.85rem">© 2008–{{year}} GreenJobs Ltd · Demo redesign, not the live site</p>
+  </div>
+</main>
+</body>
+</html>

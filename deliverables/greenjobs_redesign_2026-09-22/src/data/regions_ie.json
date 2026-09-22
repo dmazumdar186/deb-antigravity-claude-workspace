@@ -1,0 +1,145 @@
+{
+ "edition": "ie",
+ "unit": "county",
+ "none_label": "Nationwide / remote",
+ "regions": {
+  "Carlow": [],
+  "Cavan": [],
+  "Clare": [
+   "Ennis",
+   "Shannon"
+  ],
+  "Cork": [
+   "Cork City",
+   "Mallow",
+   "Bantry",
+   "Cobh",
+   "Ringaskiddy",
+   "Whitegate"
+  ],
+  "Donegal": [
+   "Letterkenny"
+  ],
+  "Dublin": [
+   "Dublin City",
+   "North Dublin",
+   "South Dublin",
+   "West Dublin",
+   "Swords",
+   "Dún Laoghaire",
+   "Dun Laoghaire",
+   "Blanchardstown",
+   "Tallaght",
+   "Sandyford",
+   "Citywest",
+   "Ballsbridge",
+   "Fingal"
+  ],
+  "Galway": [
+   "Galway City",
+   "Oranmore",
+   "Tuam"
+  ],
+  "Kerry": [
+   "Tralee",
+   "Killarney"
+  ],
+  "Kildare": [
+   "Naas",
+   "Newbridge",
+   "Maynooth",
+   "Leixlip",
+   "Kilcullen"
+  ],
+  "Kilkenny": [],
+  "Laois": [
+   "Portlaoise"
+  ],
+  "Leitrim": [
+   "Carrick-on-Shannon"
+  ],
+  "Limerick": [
+   "Limerick City",
+   "Shannon Estuary"
+  ],
+  "Longford": [],
+  "Louth": [
+   "Dundalk",
+   "Drogheda"
+  ],
+  "Mayo": [
+   "Castlebar",
+   "Ballina",
+   "Westport",
+   "Belmullet"
+  ],
+  "Meath": [
+   "Navan",
+   "Ashbourne"
+  ],
+  "Monaghan": [],
+  "Offaly": [
+   "Tullamore"
+  ],
+  "Roscommon": [],
+  "Sligo": [],
+  "Tipperary": [
+   "Clonmel",
+   "Nenagh",
+   "Thurles"
+  ],
+  "Waterford": [
+   "Waterford City",
+   "Dungarvan"
+  ],
+  "Westmeath": [
+   "Athlone",
+   "Mullingar"
+  ],
+  "Wexford": [
+   "Rosslare",
+   "Enniscorthy"
+  ],
+  "Wicklow": [
+   "Bray",
+   "Arklow",
+   "Greystones"
+  ]
+ },
+ "groups": {
+  "Leinster": [
+   "Carlow",
+   "Dublin",
+   "Kildare",
+   "Kilkenny",
+   "Laois",
+   "Longford",
+   "Louth",
+   "Meath",
+   "Offaly",
+   "Westmeath",
+   "Wexford",
+   "Wicklow"
+  ],
+  "Munster": [
+   "Clare",
+   "Cork",
+   "Kerry",
+   "Limerick",
+   "Tipperary",
+   "Waterford"
+  ],
+  "Connacht": [
+   "Galway",
+   "Leitrim",
+   "Mayo",
+   "Roscommon",
+   "Sligo"
+  ],
+  "Ulster": [
+   "Cavan",
+   "Donegal",
+   "Monaghan"
+  ]
+ }
+}
