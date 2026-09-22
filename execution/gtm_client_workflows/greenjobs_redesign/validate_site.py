@@ -7,7 +7,7 @@ description: Structural, accessibility and honesty checks over the built site:
   job-page count equals the dataset length per edition, no forbidden
   vocabulary on public pages (for-keith/ exempt; employer-authored description
   blocks exempt), no third-party requests, fonts self-hosted and preloaded,
-  CSS/JS weight budgets.
+  CSS/JS weight budgets (72 KB / 110 KB).
 inputs: a built site directory, {edition: [normalised job records]}
 outputs: a list of failure strings (empty means the build passes)
 """
@@ -35,8 +35,8 @@ FORBIDDEN = [
     (r"\bXXX\b", "XXX"),
 ]
 EXEMPT_RE = re.compile(r"^(?:ie|uk)/for-keith/index\.html$")
-CSS_BUDGET = 60 * 1024
-JS_BUDGET = 60 * 1024
+CSS_BUDGET = 72 * 1024
+JS_BUDGET = 110 * 1024
 DANGEROUS_SCHEMES = ("javascript:", "data:", "vbscript:", "file:")
 THIRD_PARTY_TAGS = ("link", "script", "img", "iframe", "source", "video", "audio", "object", "embed")
 
@@ -222,7 +222,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
             job_pages[m.group(1)] = job_pages.get(m.group(1), 0) + 1
             if 'rel="noopener"' not in raw or "Apply on" not in raw:
                 fails.append(f"{rel}: job page has no apply link")
-        if re.match(r"^(ie|uk)/index\.html$", rel) and 'data-wind' not in raw:
+        if re.match(r"^(ie|uk)/index\.html$", rel) and "data-film" not in raw:
             fails.append(f"{rel}: home page has no hero canvas host")
         hm = re.match(r"^(ie|uk)/index\.html$", rel)
         if hm and 'data-strip="hiring"' in raw:

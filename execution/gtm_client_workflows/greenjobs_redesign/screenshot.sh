@@ -47,12 +47,15 @@ shot() { # name path width height [extra chrome flags...]
     --screenshot="$OUT/$name.png" --window-size="$w,$h" "$@" "http://127.0.0.1:$PORT/$path" >/dev/null 2>&1
   if [ -s "$OUT/$name.png" ]; then echo "  $name.png ($w x $h)"; else echo "  $name.png FAILED" >&2; FAILURES=$((FAILURES + 1)); fi
 }
-# First job id per edition, read from the built board's dataset.
-first_job() { python3 - "$SITE/$1/jobs/index.html" <<'PY'
+# First job id per edition (and the first with a disclosed salary), read from the built board's dataset.
+first_job() { python3 - "$SITE/$1/jobs/index.html" "${2:-any}" <<'PY'
 import re, sys, json
 raw = open(sys.argv[1], encoding="utf-8").read()
 m = re.search(r'id="gj-data">(.*?)</script>', raw, re.S)
-print(json.loads(m.group(1))["jobs"][0]["href"] if m else "")
+jobs = json.loads(m.group(1))["jobs"] if m else []
+if sys.argv[2] == "salary":
+    jobs = [j for j in jobs if j.get("sal_min") is not None and j.get("sal_max") is not None] or jobs
+print(jobs[0]["href"] if jobs else "")
 PY
 }
 url_for() { # edition page
@@ -95,5 +98,7 @@ shot "ie-jobs-filtered-1440" "ie/jobs/index.html?q=engineer&sector=Water%20%26%2
 shot "ie-jobs-empty-768" "ie/jobs/index.html?q=zzzz&theme=light" 768 1024
 shot "ie-compass-result-1440" "ie/compass/index.html?theme=light#a=0.0.0.5.0.2.1" 1440 1800
 shot "ie-compass-result-390" "ie/compass/index.html?theme=light#a=3.1.0.5.1.2.1" 390 2200
+echo "second-act captures (film states, your fit, ad builder, salary strip; Playwright, real scrolling)"
+if node "$(dirname "${BASH_SOURCE[0]}")/capture_states.mjs" "$SITE" "$OUT" "$PORT"; then :; else echo "  state captures FAILED" >&2; FAILURES=$((FAILURES + 1)); fi
 echo "saved to $OUT"; ls -1 "$OUT"/*.png | wc -l
 [ "$FAILURES" -eq 0 ] || { echo "$FAILURES capture(s) failed" >&2; exit 1; }

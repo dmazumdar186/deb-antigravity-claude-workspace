@@ -1,18 +1,53 @@
-<section class="hero" aria-labelledby="h1">
-  <div class="hero__canvas" data-wind data-colors="{{colors}}"></div>
-  <div class="hero__legend" aria-hidden="true">{{legend}}</div>
-  <div class="wrap hero__in">
-    <h1 id="h1">Work that puts the planet <em>on the payroll.</em></h1>
-    <p class="hero__lede">{{n_jobs}} live green roles across {{country}}. Wind, water, waste, wildlife, and the people who make the numbers add up. Search in a second, filter by {{unit}}, save what fits.</p>
-    <form class="search" data-search action="jobs/index.html" method="get" role="search" aria-label="Search live roles">
-      <div class="field"><label for="s-q">Role, skill or employer</label><input class="in" id="s-q" name="q" type="search" placeholder="Ecologist, solar, hydrogeology…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="s-ta" aria-autocomplete="list"></div>
-      <div class="field"><label for="s-loc">Where</label><input class="in" id="s-loc" name="loc" type="text" placeholder="Any {{unit}}" autocomplete="off"></div>
-      <button class="btn btn--lime" type="submit">Search<span class="arw" aria-hidden="true">→</span></button>
-      <div class="ta" id="s-ta" role="listbox" aria-label="Suggestions" data-ta hidden></div>
-    </form>
-    <p class="hero__count"><span><i class="dot" aria-hidden="true"></i><b>{{n_jobs}}</b> live roles</span><span><b>{{n_emp}}</b> employers</span><span><b>{{n_sal}}</b> with a disclosed salary</span><span class="hero__snap">{{snapshot}}</span></p>
+{{film_data}}
+<section class="film" data-film aria-labelledby="h1">
+  <div class="film__stage" data-film-stage>
+    <a class="skip film__skip" href="#s-q" data-film-skip>Skip to search</a>
+    <div class="film__aurora" aria-hidden="true"></div>
+    <div class="film__canvas" data-film-canvas data-colors="{{colors}}"></div>
+    <div class="film__legend" aria-hidden="true">{{legend}}</div>
+    <div class="wrap film__copy">
+      <div class="film__state is-on" data-film-state="0">
+        <h1 id="h1">Work that puts the planet <em>on the payroll.</em></h1>
+        <p class="film__lede">{{n_jobs}} live green roles across {{country}}. Wind, water, waste, wildlife, and the people who make the numbers add up.</p>
+        <p class="film__count"><span><i class="dot" aria-hidden="true"></i><b class="num" data-count="{{n_jobs}}">{{n_jobs}}</b> live roles</span><span><b class="num" data-count="{{n_emp}}">{{n_emp}}</b> employers</span><span><b class="num" data-count="{{n_sal}}">{{n_sal}}</b> with a disclosed salary</span></p>
+        <p class="film__hint" aria-hidden="true">Scroll<span class="film__hint-bar"></span></p>
+      </div>
+      <div class="film__state" data-film-state="1">
+        <h2>Every <em>{{unit}}</em>, counted.</h2>
+        <p class="film__lede">{{n_jobs}} roles across {{n_regions_lit}} {{units}} this week. The map lights up in order of where the work is; the numbers are live counts, not estimates.</p>
+        <ul class="vh">{{region_list}}</ul>
+        <a class="btn btn--ghost film__link" href="jobs/index.html?view=map">Open the map<span class="arw" aria-hidden="true">→</span></a>
+      </div>
+      <div class="film__state" data-film-state="2">
+        <h2><em>{{n_disc}}</em> of {{n_jobs}} roles say what they pay.</h2>
+        <p class="film__lede">Here is what they say. Each dot is a disclosed salary settling into its band; the median sits at {{median}}. The rest say "competitive".</p>
+        <ul class="vh">{{band_list}}</ul>
+        <a class="btn btn--ghost film__link" href="insights/index.html">Salary explorer<span class="arw" aria-hidden="true">→</span></a>
+      </div>
+      <div class="film__state" data-film-state="3">
+        <h2>{{n_sectors}} sectors. <em>No empty ones.</em></h2>
+        <p class="film__lede">Each role is tagged by what its description actually says, so every sector you can click has live work in it.</p>
+        <ul class="vh">{{sector_list}}</ul>
+        <a class="btn btn--ghost film__link" href="sectors/index.html">All sectors<span class="arw" aria-hidden="true">→</span></a>
+      </div>
+      <div class="film__state" data-film-state="4">
+        <h2>Find <em>yours.</em></h2>
+        <form class="search" data-search action="jobs/index.html" method="get" role="search" aria-label="Search live roles">
+          <div class="field"><label for="s-q">Role, skill or employer</label><input class="in" id="s-q" name="q" type="search" placeholder="Ecologist, solar, hydrogeology…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="s-ta" aria-autocomplete="list"></div>
+          <div class="field"><label for="s-loc">Where</label><input class="in" id="s-loc" name="loc" type="text" placeholder="Any {{unit}}" autocomplete="off"></div>
+          <button class="btn btn--lime" type="submit" data-magnet>Search<span class="arw" aria-hidden="true">→</span></button>
+          <div class="ta" id="s-ta" role="listbox" aria-label="Suggestions" data-ta hidden></div>
+        </form>
+        <p class="film__count"><span><b>{{n_jobs}}</b> live roles</span><span><b>{{n_emp}}</b> employers</span><span class="film__snap">{{snapshot}}</span><a href="#fit" class="film__fitlink">Or paste your CV ↓</a></p>
+      </div>
+    </div>
+    <ol class="film__steps" data-film-steps aria-hidden="true">
+      <li data-film-step="0">Wind</li><li data-film-step="1">Map</li><li data-film-step="2">Pay</li><li data-film-step="3">Sectors</li><li data-film-step="4">Search</li>
+    </ol>
   </div>
 </section>
+
+{{fit_panel}}
 
 <section class="band" aria-labelledby="h-sectors">
   <div class="wrap">

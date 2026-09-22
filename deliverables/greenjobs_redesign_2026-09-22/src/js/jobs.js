@@ -1,7 +1,7 @@
 'use strict';
 /* Jobs board: instant client-side filtering with all state in the URL, list /
-   map / saved views, mobile filter sheet, command palette (Ctrl/⌘+K) and the
-   "Ask GreenJobs" smart-match panel (local TF-IDF today; Worker later). */
+   map / saved views, mobile filter sheet and the command palette (Ctrl/⌘+K).
+   The "Your fit" panel below the list lives in fit.js. */
 (function () {
   var G = window.GJ, doc = document, $ = function (s, c) { return (c || doc).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || doc).querySelectorAll(s)); };
@@ -159,21 +159,6 @@
   pal.addEventListener('click', function (e) { if (e.target === pal) pal.close(); });
 
   /* ---- Ask GreenJobs: local smart match */
-  var ask = $('[data-ask]');
-  if (ask) {
-    var idx = null, out = $('[data-ask-out]', ask), ta = $('textarea', ask);
-    ask.addEventListener('submit', function (e) {
-      e.preventDefault();
-      idx = idx || G.buildIndex(jobs);
-      var hits = G.smartMatch(ta.value, jobs, idx, 5);
-      out.innerHTML = hits.length ? hits.map(function (h) {
-        return '<a class="hit" href="' + G.esc(h.job.href) + '"><b>' + G.esc(h.job.title) + '</b><small>' + G.esc(h.job.employer) + ' · ' + G.esc(h.job.location) + (G.salaryLabel(h.job) ? ' · ' + G.esc(G.salaryLabel(h.job)) : '') + '</small><span class="why">' + h.terms.map(function (t) { return '<span>' + G.esc(t) + '</span>'; }).join('') + '</span></a>';
-      }).join('') + '<p class="note">Matched on the highlighted terms across titles, sectors and descriptions. Demo — the launch version runs the same contract through a model behind a Worker.</p>'
-        : '<p class="note">No overlap with the live roles yet. Try naming skills, tools or a sector.</p>';
-      out.setAttribute('tabindex', '-1'); out.focus();
-    });
-  }
-
   writeForm();
   render();
 })();

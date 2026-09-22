@@ -103,3 +103,64 @@ test('daysAgo / ago', () => {
   assert.equal(GJ.ago('2026-09-22', now), 'Today');
   assert.equal(GJ.ago(null, now), '');
 });
+
+test('stem meets ecologist / ecology / ecological', () => {
+  assert.equal(GJ.stem('ecologist'), GJ.stem('ecology'));
+  assert.equal(GJ.stem('ecological'), GJ.stem('ecology'));
+  assert.equal(GJ.stem('surveys'), GJ.stem('survey'));
+  assert.equal(GJ.stem('wind'), 'wind');
+});
+
+test('fitMatch ranks title + place matches first and reports terms', () => {
+  const idx = GJ.fitIndex(J);
+  const hits = GJ.fitMatch('ecologist dublin', J, idx, 6);
+  assert.equal(hits[0].job.id, '1');
+  assert.ok(hits[0].terms.indexOf('ecologist') >= 0 && hits[0].terms.indexOf('dublin') >= 0);
+  assert.equal(GJ.fitMatch('zzzz qqqq', J, idx, 6).length, 0);
+  const bi = GJ.fitMatch('solar project', J, idx, 6);
+  assert.equal(bi[0].job.id, '2');
+  assert.ok(bi[0].score > GJ.fitMatch('project', J, idx, 6)[0].score, 'the bigram adds weight');
+});
+
+test('salaryPosition reports range, disclosure share and percentiles', () => {
+  const idx = GJ.fitIndex(J);
+  const pos = GJ.salaryPosition(GJ.fitMatch('ecologist water', J, idx, 6), J);
+  assert.equal(pos.n, 2);
+  assert.equal(pos.disclosed, 2);
+  assert.equal(pos.share, 100);
+  assert.equal(pos.lo, 55000);
+  assert.equal(pos.hi, 65000);
+  assert.equal(pos.board.n, 2);
+  assert.equal(pos.plo, 0);
+  assert.equal(pos.phi, 100);
+  const none = GJ.salaryPosition([{ job: J[1] }], J);
+  assert.equal(none.disclosed, 0);
+  assert.equal(none.lo, null);
+});
+
+test('encodeFit / decodeFit round-trip distinct terms', () => {
+  const h = GJ.encodeFit('Ecologist, Dublin. Ecologist & EIA chapters');
+  assert.equal(h, 'ecologist.dublin.eia.chapters');
+  assert.equal(GJ.decodeFit('#fit=' + h), 'ecologist dublin eia chapters');
+  assert.equal(GJ.decodeFit('#a=1'), '');
+  assert.equal(GJ.decodeFit('#fit=%E0'), '');
+});
+
+test('filmScrub holds, travels and fills the rail', () => {
+  assert.equal(GJ.filmScrub(0, 4).show, 0);
+  assert.equal(GJ.filmScrub(0, 4).g, 0);
+  const mid = GJ.filmScrub(0.92 * 0.5 / 4, 4);
+  assert.equal(mid.s, 0);
+  assert.ok(mid.g > 0 && mid.g < 1);
+  assert.equal(GJ.filmScrub(1, 4).show, 4);
+  assert.deepEqual(GJ.filmScrub(1, 4).fills, [1, 1, 1, 1, 0]);
+  assert.equal(GJ.filmScrub(0.5, 2).show, 1);
+});
+
+test('easeOutQuart and countAt', () => {
+  assert.equal(GJ.easeOutQuart(0), 0);
+  assert.equal(GJ.easeOutQuart(1), 1);
+  assert.ok(GJ.easeOutQuart(0.5) > 0.9);
+  assert.equal(GJ.countAt(0, 100, 1), 100);
+  assert.equal(GJ.countAt(0, 100, 0), 0);
+});

@@ -1,0 +1,18 @@
+<section class="band band--tight fit" id="fit" data-fit data-jobs="{{jobs_href}}" data-sym="{{sym}}" aria-labelledby="h-fit">
+  <div class="wrap">
+    <div class="sec-head"><div><h2 id="h-fit">Your fit in ten seconds</h2><p>Paste your CV, your LinkedIn headline or three words. The board answers on this device, instantly, and shows the words it matched on, so nothing is a black box.</p></div></div>
+    <div class="fit__grid">
+      <form class="fit__form" data-fit-form>
+        <div class="field"><label for="{{fit_id}}">Paste your CV, LinkedIn headline or three words</label><textarea class="in" id="{{fit_id}}" name="fit" rows="6" placeholder="e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Dublin" spellcheck="false"></textarea></div>
+        <div class="fit__try" data-fit-try><span>Try:</span><button type="button" data-fit-eg="ecologist dublin">ecologist dublin</button><button type="button" data-fit-eg="solar project manager">solar project manager</button><button type="button" data-fit-eg="water engineer flood risk">water engineer flood risk</button></div>
+        <div class="fit__actions"><button class="btn btn--lime" type="submit" data-magnet>Show my fit<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost btn--sm" type="button" data-fit-share hidden>Copy link to this result</button></div>
+      </form>
+      <div class="fit__out" data-fit-out aria-live="polite" aria-atomic="false">
+        <div class="fit__empty" data-fit-empty>
+          <p><b>{{n_jobs}}</b> live roles are indexed on this page. Type above, or pick an example, and the six that overlap most appear here with where they are and what they pay.</p>
+        </div>
+      </div>
+    </div>
+    <template data-fit-map>{{fit_map}}</template>
+  </div>
+</section>

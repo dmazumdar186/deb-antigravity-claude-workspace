@@ -236,7 +236,103 @@
     }
     return rects;
   }
+
+  /* ---------------------------------------------------------- your fit (bigram, title-weighted TF-IDF, boosts) */
+  /* Light stemmer so "ecologist", "ecology" and "ecological" meet: strip a
+     few common English suffixes from words of five letters or more. */
+  function stem(w) {
+    if (w.length < 5) return w;
+    w = w.replace(/s$/, '');
+    return w.length > 4 ? w.replace(/(ist|ical|ing|er|e|y)$/, '') : w;
+  }
+  function stems(s) { return tokens(s).map(stem); }
+  function bigrams(list) {
+    var out = [];
+    for (var i = 0; i + 1 < list.length; i++) out.push(list[i] + '_' + list[i + 1]);
+    return out;
+  }
+  function fitIndex(jobs) {
+    var df = {}, docs = jobs.map(function (j) {
+      var tf = {}, n = 0;
+      function add(words, w) { words.forEach(function (x) { tf[x] = (tf[x] || 0) + w; n += w; }); }
+      var t = stems(j.title), sm = stems(j.summary);
+      add(t, 3); add(bigrams(t), 3);
+      add(stems((j.sectors || []).join(' ')), 2);
+      add(stems([j.employer, j.location, (j.regions || []).join(' ')].join(' ')), 1.5);
+      add(sm, 1); add(bigrams(sm), 1.2); add(stems(j.text), 0.6);
+      Object.keys(tf).forEach(function (w) { df[w] = (df[w] || 0) + 1; });
+      return { tf: tf, n: n || 1, sec: stems((j.sectors || []).join(' ')), place: stems([j.location, (j.regions || []).join(' ')].join(' ')) };
+    });
+    var N = jobs.length, idf = {};
+    Object.keys(df).forEach(function (w) { idf[w] = Math.log(1 + N / df[w]); });
+    return { docs: docs, idf: idf };
+  }
+  function fitMatch(query, jobs, idx, limit) {
+    var words = tokens(query), qs = words.map(stem), orig = {}, qt = {};
+    qs.forEach(function (s, i) { qt[s] = (qt[s] || 0) + 1; if (!orig[s]) orig[s] = words[i]; });
+    bigrams(qs).forEach(function (b) { qt[b] = (qt[b] || 0) + 1; orig[b] = b.replace('_', ' '); });
+    var keys = Object.keys(qt).filter(function (w) { return idx.idf[w]; });
+    var res = jobs.map(function (j, i) {
+      var d = idx.docs[i], score = 0, hits = [], boost = 1;
+      keys.forEach(function (w) {
+        if (d.tf[w]) { var s = (d.tf[w] / d.n) * idx.idf[w] * Math.sqrt(qt[w]); score += s; hits.push({ w: w, s: s }); }
+      });
+      if (!score) return null;
+      if (qs.some(function (s) { return d.sec.indexOf(s) >= 0; })) boost *= 1.25;
+      if (qs.some(function (s) { return d.place.indexOf(s) >= 0; })) boost *= 1.3;
+      hits.sort(function (a, b) { return b.s - a.s; });
+      var seen = {}, terms = [];
+      hits.forEach(function (h) { var o = orig[h.w]; if (o && !seen[o] && terms.length < 5) { seen[o] = 1; terms.push(o); } });
+      return { job: j, score: score * boost, terms: terms, stems: hits.map(function (h) { return h.w; }).filter(function (w) { return w.indexOf('_') < 0; }) };
+    }).filter(Boolean);
+    res.sort(function (a, b) { return b.score - a.score || a.job.title.localeCompare(b.job.title); });
+    return res.slice(0, limit || 6);
+  }
+  /* Where the matches' disclosed pay sits against every disclosed salary on
+     the board. Percentiles are the share of board midpoints below a value. */
+  function salaryPosition(hits, jobs) {
+    var all = jobs.map(annual).filter(Boolean).map(function (a) { return a.mid; }).sort(function (a, b) { return a - b; });
+    var mine = hits.map(function (h) { return annual(h.job || h); }).filter(Boolean);
+    function pct(v) { var k = 0; while (k < all.length && all[k] < v) k++; return all.length ? Math.round(100 * k / all.length) : 0; }
+    var out = { n: hits.length, disclosed: mine.length, share: hits.length ? Math.round(100 * mine.length / hits.length) : 0,
+      board: { n: all.length, min: all[0] || 0, max: all[all.length - 1] || 0, median: median(all) || 0 }, lo: null, hi: null, plo: null, phi: null };
+    if (mine.length) {
+      out.lo = Math.min.apply(null, mine.map(function (a) { return a.lo; }));
+      out.hi = Math.max.apply(null, mine.map(function (a) { return a.hi; }));
+      out.plo = pct(out.lo); out.phi = pct(out.hi);
+    }
+    return out;
+  }
+  /* Shareable result: the distinct query tokens, dot-joined (a CV shrinks to
+     a dozen words), URL-safe. decodeFit reverses it to a query string. */
+  function encodeFit(q) {
+    var seen = {}, out = [];
+    tokens(q).forEach(function (w) { if (!seen[w] && out.length < 14) { seen[w] = 1; out.push(w); } });
+    return encodeURIComponent(out.join('.'));
+  }
+  function decodeFit(hash) {
+    var m = /(?:^|[#&])fit=([^&]*)/.exec(String(hash || ''));
+    if (!m) return '';
+    try { return decodeURIComponent(m[1]).split('.').filter(Boolean).join(' '); } catch (e) { return ''; }
+  }
+
+  /* ---------------------------------------------------------- motion maths (film scrub, count-up) */
+  function easeOutQuart(t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return 1 - Math.pow(1 - t, 4); }
+  /* Scroll progress p (0..1) over a film of `last`+1 states: which state is
+     shown, the within-leg progress g (15% hold, 70% travel, 15% hold) and
+     the rail fills. The last 8% of scroll is a hold on the final state. */
+  function filmScrub(p, last) {
+    p = p < 0 ? 0 : p > 1 ? 1 : p;
+    var t = Math.min(last, (p / 0.92) * last), s = Math.floor(Math.min(t, last - 0.001)), f = t - s;
+    var g = Math.min(1, Math.max(0, (f - 0.15) / 0.7));
+    var fills = [];
+    for (var i = 0; i <= last; i++) fills.push(Math.min(1, Math.max(0, t - i)));
+    return { t: t, s: s, f: f, g: g, show: f < 0.5 ? s : Math.min(last, s + 1), fills: fills };
+  }
+  function countAt(from, to, u) { return Math.round(from + (to - from) * easeOutQuart(u)); }
   return {
+    stem: stem, fitIndex: fitIndex, fitMatch: fitMatch, salaryPosition: salaryPosition, encodeFit: encodeFit, decodeFit: decodeFit,
+    easeOutQuart: easeOutQuart, filmScrub: filmScrub, countAt: countAt,
     norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, annual: annual, median: median,
     histogram: histogram, daysAgo: daysAgo, ago: ago, parseState: parseState, toQuery: toQuery, filterJobs: filterJobs,
     sortJobs: sortJobs, suggest: suggest, buildIndex: buildIndex, smartMatch: smartMatch, scoreSectors: scoreSectors,

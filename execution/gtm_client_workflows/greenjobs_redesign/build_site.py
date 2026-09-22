@@ -706,6 +706,219 @@ def dataset_script(data: dict[str, Any], jobs_href: str, with_text: bool) -> str
     return f'<script type="application/json" id="gj-data">{json_embed(payload)}</script>'
 
 
+# ------------------------------------------------------------------ film hero data (build-time geometry)
+
+_PATH_CMD = re.compile(r"([MLZ])\s*([^MLZ]*)", re.I)
+_NUM = re.compile(r"[-+]?\d*\.?\d+(?:e[-+]?\d+)?")
+
+
+def svg_polygons(d: str) -> list[list[tuple[float, float]]]:
+    """Absolute M/L/Z path data (what make_maps.py writes) -> list of rings."""
+    rings: list[list[tuple[float, float]]] = []
+    cur: list[tuple[float, float]] = []
+    for cmd, args in _PATH_CMD.findall(d):
+        nums = [float(x) for x in _NUM.findall(args)]
+        if cmd.upper() == "M":
+            if len(cur) > 2:
+                rings.append(cur)
+            cur = [(nums[i], nums[i + 1]) for i in range(0, len(nums) - 1, 2)]
+        elif cmd.upper() == "L":
+            cur += [(nums[i], nums[i + 1]) for i in range(0, len(nums) - 1, 2)]
+        else:
+            if len(cur) > 2:
+                rings.append(cur)
+            cur = []
+    if len(cur) > 2:
+        rings.append(cur)
+    return rings
+
+
+def ring_area(ring: list[tuple[float, float]]) -> float:
+    a = 0.0
+    for i, (x1, y1) in enumerate(ring):
+        x2, y2 = ring[(i + 1) % len(ring)]
+        a += x1 * y2 - x2 * y1
+    return abs(a) / 2
+
+
+def point_in_rings(x: float, y: float, rings: list[list[tuple[float, float]]]) -> bool:
+    """Even-odd rule across every ring (holes and islands both handled)."""
+    inside = False
+    for ring in rings:
+        n = len(ring)
+        for i in range(n):
+            x1, y1 = ring[i]
+            x2, y2 = ring[(i + 1) % n]
+            if (y1 > y) != (y2 > y):
+                xi = x1 + (y - y1) * (x2 - x1) / (y2 - y1)
+                if x < xi:
+                    inside = not inside
+    return inside
+
+
+def sample_map_points(svg_text: str, n: int = 2500, seed: int = 7) -> dict[str, Any]:
+    """Deterministic rejection sampling inside every region path, points
+    allotted by area (at least 6 per region so small counties still show).
+    Returns viewBox size, an ordered region list and a flat [x, y, region
+    index, ...] array of integer coordinates the film canvas can use as-is."""
+    import random
+    vb = re.search(r'viewBox="[\d.\-]+\s+[\d.\-]+\s+([\d.]+)\s+([\d.]+)"', svg_text)
+    w, h = (float(vb.group(1)), float(vb.group(2))) if vb else (600.0, 800.0)
+    regions: list[dict[str, Any]] = []
+    for m in re.finditer(r'<g\s+class="gmap__r"([^>]*)>(.*?)</g>', svg_text, re.S):
+        attrs, body = m.group(1), m.group(2)
+        name = re.search(r'data-region="([^"]*)"', attrs)
+        cx = re.search(r'data-cx="([^"]*)"', attrs)
+        cy = re.search(r'data-cy="([^"]*)"', attrs)
+        rings: list[list[tuple[float, float]]] = []
+        for pm in re.finditer(r'<path[^>]*\sd="([^"]*)"', body):
+            rings += svg_polygons(pm.group(1))
+        if not rings or not name:
+            continue
+        xs = [x for r in rings for x, _ in r]
+        ys = [y for r in rings for _, y in r]
+        regions.append({"name": html.unescape(name.group(1)), "cx": float(cx.group(1)) if cx else 0.0, "cy": float(cy.group(1)) if cy else 0.0,
+                        "rings": rings, "area": sum(ring_area(r) for r in rings), "bbox": (min(xs), min(ys), max(xs), max(ys))})
+    total_area = sum(r["area"] for r in regions) or 1.0
+    rng = random.Random(seed)
+    pts: list[int] = []
+    for ri, r in enumerate(regions):
+        want = max(6, round(n * r["area"] / total_area))
+        x0, y0, x1, y1 = r["bbox"]
+        got = tries = 0
+        while got < want and tries < want * 60:
+            tries += 1
+            x, y = rng.uniform(x0, x1), rng.uniform(y0, y1)
+            if point_in_rings(x, y, r["rings"]):
+                pts += [round(x), round(y), ri]
+                got += 1
+    return {"vb": [round(w), round(h)], "regions": [{"n": r["name"], "x": round(r["cx"]), "y": round(r["cy"])} for r in regions], "pts": pts}
+
+
+def annual_mid(j: dict[str, Any]) -> tuple[float, float, float] | None:
+    """(lo, hi, mid) per year, or None; mirrors lib.js annual()."""
+    m = ANNUAL_MULT.get(j.get("period") or "year")
+    if not m or (j.get("sal_min") is None and j.get("sal_max") is None):
+        return None
+    lo = (j["sal_min"] if j["sal_min"] is not None else j["sal_max"]) * m
+    hi = j["sal_max"] * m if j["sal_max"] is not None else lo
+    if lo < 8000 or hi > 400000:
+        return None
+    return (lo, hi, (lo + hi) / 2)
+
+
+def money_k(n: float, sym: str) -> str:
+    if n >= 1000:
+        return f"{sym}{int(n // 1000)}k" if n % 1000 == 0 else f"{sym}{round(n / 100) / 10:g}k"
+    return f"{sym}{n:g}"
+
+
+SALARY_EDGES = [20000, 30000, 40000, 50000, 60000, 75000, 100000]
+
+
+def salary_bands(jobs: list[dict[str, Any]], sym: str) -> list[dict[str, Any]]:
+    """Histogram of annualised midpoints on the insights page's edges."""
+    bands = [{"l": (money_k(e, "") + "–" + money_k(SALARY_EDGES[i + 1], "")) if i + 1 < len(SALARY_EDGES) else money_k(e, "") + "+", "lo": e, "n": 0} for i, e in enumerate(SALARY_EDGES)]
+    for j in jobs:
+        a = annual_mid(j)
+        if not a:
+            continue
+        for b in reversed(bands):
+            if a[2] >= b["lo"]:
+                b["n"] += 1
+                break
+    return [{"l": b["l"], "n": b["n"]} for b in bands]
+
+
+def film_payload(data: dict[str, Any], src: Path) -> dict[str, Any]:
+    ed = EDITIONS[data["ed"]]
+    geo = sample_map_points((src / "assets" / "maps" / f"{data['ed']}.svg").read_text(encoding="utf-8"))
+    counts = {r["name"]: r["n"] for r in data["regions"]}
+    for r in geo["regions"]:
+        r["c"] = counts.get(r["n"], 0)
+    jobs = data["jobs"]
+    n_sal = sum(1 for j in jobs if annual_mid(j))
+    return {
+        "vb": geo["vb"], "regions": geo["regions"], "pts": geo["pts"],
+        "bands": salary_bands(jobs, ed["sym"]), "n_sal": n_sal, "n_jobs": len(jobs), "sym": ed["sym"],
+        "sectors": [{"n": s["name"], "c": s["n"], "col": s["color"]} for s in data["sectors"] if s["n"] > 0][:8],
+    }
+
+
+# ------------------------------------------------------------------ "Where this role sits" (job page salary strip)
+
+def salary_strip(j: dict[str, Any], jobs: list[dict[str, Any]], sym: str, unit: str, on_map: set[str] | None = None) -> str:
+    """This role's range against the board's disclosed distribution, overall
+    and within its first sector: an SVG with keyboard-focusable marks and a
+    table alternative. Without a disclosed salary: one honest line."""
+    sector = j["sectors"][0]
+    overall = [(o, annual_mid(o)) for o in jobs if annual_mid(o)]
+    in_sector = [(o, a) for o, a in overall if sector in o["sectors"]]
+    mine = annual_mid(j)
+    same_county = [o for o in jobs if o["id"] != j["id"] and set(o["regions"]) & set(j["regions"]) and set(o["sectors"]) & set(j["sectors"])]
+    county = j["regions"][0] if j["regions"] else ""
+    where = f"within {esc(county)}" if (on_map is None or county in on_map) else f"with the same location tag ({esc(county)})"
+    sim = (f'<p class="sits__sim"><b class="num">{len(same_county)}</b> similar {"role" if len(same_county) == 1 else "roles"} {where}'
+           + (f' — <a href="../index.html?loc={qs(county)}&amp;sector={qs(sector)}">see them</a>' if same_county else "") + "</p>")
+    if not mine:
+        if in_sector:
+            lo = min(a[0] for _, a in in_sector)
+            hi = max(a[1] for _, a in in_sector)
+            line = f"This employer hasn't published a salary. {esc(sector)} roles that do: {money_k(lo, sym)}–{money_k(hi, sym)} ({len(in_sector)})."
+        else:
+            line = f"This employer hasn't published a salary, and no other live {esc(sector)} role does either."
+        return f'<section class="sits sits--none" aria-labelledby="h-sits"><div class="wrap"><h2 id="h-sits">Where this role sits</h2><p class="sits__line">{line}</p>{sim}</div></section>'
+    vals = [a[2] for _, a in overall] + [mine[0], mine[1]]
+    lo_ax, hi_ax = min(vals), max(vals)
+    lo_ax = (lo_ax // 10000) * 10000
+    hi_ax = ((hi_ax // 10000) + 1) * 10000
+    W, LH = 720, 44
+    PL, PR = 8, 8
+
+    def X(v: float) -> float:
+        return PL + (W - PL - PR) * (v - lo_ax) / max(1, hi_ax - lo_ax)
+    lanes = [("Overall", overall), (sector, in_sector)]
+    rows_svg = []
+    table_rows = []
+    y = 26
+    for label, group in lanes:
+        med = sorted(a[2] for _, a in group)
+        median = med[len(med) // 2] if len(med) % 2 else (med[len(med) // 2 - 1] + med[len(med) // 2]) / 2 if med else None
+        marks = "".join(
+            f'<g class="sits__mark" tabindex="0" role="listitem" aria-label="{esc(o["title"])}, {esc(o["employer"])}: {esc(salary_label(o))}"><circle cx="{X(a[2]):.1f}" cy="{y + 14}" r="5"/></g>'
+            for o, a in sorted(group, key=lambda t: t[1][2]))
+        medl = f'<line class="sits__med" x1="{X(median):.1f}" x2="{X(median):.1f}" y1="{y + 2}" y2="{y + 26}"/>' if median is not None else ""
+        rows_svg.append(f'<text class="sits__lbl" x="{PL}" y="{y - 6}">{esc(label)} · {len(group)} disclosed' + (f" · median {money_k(median, sym)}" if median is not None else "") + f'</text><g role="list">{marks}</g>{medl}')
+        table_rows.append(f'<tr><th scope="row">{esc(label)}</th><td class="num">{len(group)}</td><td class="num">{money_k(median, sym) if median is not None else "—"}</td></tr>')
+        y += LH + 16
+    mine_y = y
+    bar = (f'<rect class="sits__me" x="{X(mine[0]):.1f}" y="{mine_y + 6}" width="{max(6, X(mine[1]) - X(mine[0])):.1f}" height="16" rx="8"/>'
+           f'<text class="sits__lbl sits__lbl--me" x="{PL}" y="{mine_y - 6}">This role · {esc(salary_label(j))}</text>')
+    ticks = "".join(f'<text class="sits__tick" x="{X(v):.1f}" y="{mine_y + 44}" text-anchor="{"start" if v == lo_ax else "end" if v == hi_ax else "middle"}">{money_k(v, sym)}</text>'
+                    for v in sorted({lo_ax, hi_ax, (lo_ax + hi_ax) / 2}))
+    H = mine_y + 52
+    svg = (f'<svg class="sits__svg" viewBox="0 0 {W} {H}" role="img" aria-label="Salary of this role against {len(overall)} disclosed salaries on the board">'
+           f'{"".join(rows_svg)}{bar}<line class="sits__axis" x1="{PL}" x2="{W - PR}" y1="{mine_y + 30}" y2="{mine_y + 30}"/>{ticks}</svg>')
+    table = (f'<details class="sits__table"><summary>As a table</summary><table><thead><tr><th>Group</th><th class="num">Disclosed</th><th class="num">Median</th></tr></thead><tbody>{"".join(table_rows)}'
+             f'<tr><th scope="row">This role</th><td class="num">1</td><td class="num">{money_k(mine[2], sym)} (midpoint)</td></tr></tbody></table></details>')
+    return (f'<section class="sits" aria-labelledby="h-sits"><div class="wrap"><div class="sec-head"><div><h2 id="h-sits">Where this role sits</h2>'
+            f'<p>Its published range against every disclosed salary on the board, overall and in {esc(sector)}. Midpoints per role, annualised; tab through the dots.</p></div></div>'
+            f'{svg}{table}{sim}</div></section>')
+
+
+def reach_payload(data: dict[str, Any]) -> dict[str, Any]:
+    """Per-sector live count and median disclosed salary for the ad builder."""
+    ed = EDITIONS[data["ed"]]
+    out: dict[str, Any] = {}
+    for s in data["sectors"]:
+        if not s["n"]:
+            continue
+        mids = sorted(a[2] for j in data["jobs"] if s["name"] in j["sectors"] for a in [annual_mid(j)] if a)
+        med = (mids[len(mids) // 2] if len(mids) % 2 else (mids[len(mids) // 2 - 1] + mids[len(mids) // 2]) / 2) if mids else None
+        out[s["name"]] = {"n": s["n"], "disc": len(mids), "med": money_k(med, ed["sym"]) if med is not None else "", "col": s["color"]}
+    return out
+
+
 # ------------------------------------------------------------------ pages
 
 def _host(url: str) -> str:
@@ -767,7 +980,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(html_text, encoding="utf-8")
 
-    SCRIPTS = {"home": ["wind"], "jobs": ["jobs"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"]}
+    SCRIPTS = {"home": ["film", "fit"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"], "employers": ["adbuilder"]}
 
     def page(name: str, depth: int, page_key: str, title: str, desc: str, body: dict[str, str], **kw: Any) -> str:
         ctx = shell_ctx(data, depth, page_key, title, desc, brief=brief, site_base=site_base, **kw)
@@ -778,6 +991,10 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     # ---- home
     map_counts = {r["name"]: r["n"] for r in top_regions}
     strip = employers_strip(data, "../")
+    film = film_payload(data, src)
+
+    def fit_panel(jobs_href: str, fit_id: str) -> str:
+        return render(tpl["_fit"], {"jobs_href": jobs_href, "sym": ed["sym"], "fit_id": fit_id, "n_jobs": str(len(jobs)), "fit_map": map_svg(src, ed_key)})
     home = page("home", 1, "index", f"GreenJobs {ed['short']} — {len(jobs)} live green roles across {ed['name']}",
                 f"Environmental, renewable energy and sustainability jobs across {ed['name']}: {len(jobs)} live roles from {n_emp} employers, searchable in a second.",
                 {
@@ -789,10 +1006,16 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                     "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"]),
                     "n_sectors": str(sum(1 for s in data["sectors"] if s["n"])),
                     "legend": "".join(f'<span><i style="background:{s["color"]}"></i>{esc(s["name"])}</span>' for s in data["sectors"][:5]),
+                    "film_data": f'<script type="application/json" id="gj-film">{json_embed(film)}</script>',
+                    "n_regions_lit": str(sum(1 for r in film["regions"] if r["c"])),
+                    "region_list": "".join(f'<li>{esc(r["n"])}: {r["c"]}</li>' for r in sorted(film["regions"], key=lambda r: -r["c"]) if r["c"]),
+                    "band_list": "".join(f'<li>{esc(b["l"])}: {b["n"]}</li>' for b in film["bands"] if b["n"]),
+                    "sector_list": "".join(f'<li>{esc(x["n"])}: {x["c"]}</li>' for x in film["sectors"]),
+                    "n_disc": str(film["n_sal"]), "fit_panel": fit_panel("jobs/index.html", "fit-q"), "median": esc(median_salary(jobs, ed["sym"])),
                 }, dark_header=True, body_attrs=' data-data="data/jobs.json"', same_path="index.html")
     write("index.html", home)
     (edir / "data").mkdir(exist_ok=True)
-    (edir / "data" / "jobs.json").write_text(json.dumps({"jobs": [slim(j, False) for j in jobs]}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    (edir / "data" / "jobs.json").write_text(json.dumps({"jobs": [slim(j, True) for j in jobs]}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     # ---- jobs board
     pages_for_palette = json_embed([{"t": lbl, "h": "../" + href} for href, lbl in NAV] + [{"t": "Home", "h": "../index.html"}])
@@ -804,6 +1027,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                      "sector_select": select("f-sector", "Sector", [s["name"] for s in data["sectors"] if s["n"]], "All sectors"),
                      "type_select": select("f-type", "Job type", [t["name"] for t in data["types"]], "Any type"),
                      "unit": ed["unit"].title(), "map": map_svg(src, ed_key), "pages": esc(pages_for_palette), "n_jobs": str(len(jobs)),
+                     "fit_panel": fit_panel("index.html", "fit-q"),
                  }, same_path="jobs/index.html")
     write("jobs/index.html", board)
 
@@ -825,6 +1049,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                       "similar": "".join(role_card(s, "../../../", "../", today) for s in similar) or '<p class="muted">No other live roles in this sector this week.</p>',
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
                       "posted_line": esc(f"Posted {j['posted']}" + (f" · closes {j['closing']}" if j["closing"] else "")) if j["posted"] else "",
+                      "sits": salary_strip(j, jobs, ed["sym"], ed["unit"], set(data["region_table"]["regions"])),
                   }, same_path="jobs/index.html")
         write(f"jobs/{j['id']}/index.html", jp)
 
@@ -848,7 +1073,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                                        f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",
                                        {"n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sites": str(len(data["network_sites"])), "about": esc(data["about"].split("\n")[0]),
                                         "emp_points_wrap": "",
-                                        "country": esc(ed["name"]),
+                                        "country": esc(ed["name"]), "reach": esc(json_embed(reach_payload(data))), "sym": ed["sym"],
+                                        "unit": ed["unit"], "fetched": esc(data["fetched"]),
                                         "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"])}, same_path="employers/index.html"))
 
     # ---- evidence page (rendered after measuring; filled in by build())
@@ -892,11 +1118,51 @@ def render_evidence(out: Path, src: Path, data_by_ed: dict[str, dict[str, Any]],
             f"<tr><td>Front-end stack</td><td>{esc(stack_before)}</td><td class=\"good\">Vanilla ES2020, no framework, no build-time packages</td></tr>"
             f"<tr><td>Pages rendered</td><td>server-side, per request</td><td class=\"good\">{len(list((out / ed_key).rglob('*.html')))} static pages, {len(data['jobs'])} of them job pages</td></tr>"
         )
+        rows[ed_key + "_score"] = scoreboard(before_html, home_raw, before_req, local_refs + 1, before_scripts, len(js), len(data["jobs"]))
+        rows[ed_key + "_waterfall"] = waterfall(perf, home_html)
     rows["tests"] = f"{tests[0]} passing, {tests[1]} failing" if tests else "not run (node unavailable)"
     rows["built"] = today.isoformat()
     rows["css_kb"] = f"{css_raw / 1024:.1f}"
     rows["js_kb"] = f"{js_raw / 1024:.1f}"
     return rows
+
+
+def scoreboard(before_html: Any, after_html: int, before_req: Any, after_req: int, before_scripts: Any, after_scripts: int, n_jobs: int) -> str:
+    """Count-up tiles; a live-site figure that was not measured is shown as such, never invented."""
+    def tile(label: str, before: Any, after: int, unit: str = "") -> str:
+        b = f'<b class="num" data-count="{before}">{before:,}</b>{unit}' if isinstance(before, (int, float)) else '<span class="muted">not measured</span>'
+        return (f'<div class="score__t"><span class="score__l">{label}</span><span class="score__v">{b}</span>'
+                f'<span class="score__v score__v--after"><b class="num" data-count="{after}">{after:,}</b>{unit}</span></div>')
+    return (tile("Home page HTML, bytes", before_html, after_html) + tile("Requests on the home page", before_req, after_req)
+            + tile("Script files", before_scripts, after_scripts) + tile("Job pages with structured data", 0, n_jobs))
+
+
+def waterfall(perf: dict[str, Any], home_html: str) -> str:
+    """Two stacked bars from measured counts: the live home page's requests
+    by type (from its HTML, an estimate) and this demo's first-party requests
+    by type (counted in the built page). Same scale, no screenshots."""
+    live = [("scripts", len(perf.get("scripts") or [])), ("stylesheets", len(perf.get("stylesheets") or [])), ("images", int(perf.get("img_tags") or 0))]
+    total = int(perf.get("total_requests_estimate") or 0)
+    counted = sum(n for _, n in live)
+    other = max(0, total - counted)
+    live.append(("other", other))
+    total = max(total, counted)
+    refs = set(re.findall(r'(?:href|src)="([^"#?]+\.(?:css|js|woff2|png|jpg|jpeg|gif|svg|webp|json|webmanifest))', home_html))
+    demo = [("scripts", sum(1 for r in refs if r.endswith(".js"))), ("stylesheets", sum(1 for r in refs if r.endswith(".css"))),
+            ("images", sum(1 for r in refs if re.search(r"\.(png|jpe?g|gif|svg|webp)$", r) and "favicon" not in r)),
+            ("other", 1 + sum(1 for r in refs if re.search(r"\.(woff2|json|webmanifest)$", r) or "favicon" in r))]
+    mx = max(total, sum(n for _, n in demo), 1)
+
+    def bar(label: str, parts: list[tuple[str, int]], note: str) -> str:
+        tot = sum(n for _, n in parts)
+        segs = "".join(f'<i class="wf__s wf__s--{k}" style="--w:{100 * n / mx:.2f}%" title="{k}: {n}"></i>' for k, n in parts if n)
+        legend = ", ".join(f"{n} {k}" for k, n in parts if n)
+        return (f'<div class="wf__row"><span class="wf__l">{label}</span><span class="wf__bar" role="img" aria-label="{label}: {tot} requests ({legend})">{segs}</span>'
+                f'<b class="wf__n num" data-count="{tot}">{tot}</b></div><p class="wf__note">{legend}. {note}</p>')
+    if not total:
+        return '<p class="muted">Live-site request counts were not measured for this edition.</p>'
+    return ('<div class="wf">' + bar("Live site", live, "Tags counted in the page's HTML on 2026-09-22, not a network trace: the table's request estimate is lower because repeated images are fetched once. \"Other\" is fonts, XHR and tracking where the estimate exceeds the tag count.")
+            + bar("This demo", demo, "Counted in the built home page: every request is first-party; logos load lazily and are not in this count.") + "</div>")
 
 
 # ------------------------------------------------------------------ build plumbing
@@ -1086,7 +1352,10 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         e = evidence[ed_key]
         ctx["content"] = render(tpl["for-keith"], {**ctx, "rows": ev[ed_key], "tests": esc(ev["tests"]), "built": esc(ev["built"]), "css_kb": ev["css_kb"], "js_kb": ev["js_kb"],
                                                     "n_jobs": str(e["n_jobs"]), "n_emp": str(e["n_emp"]), "n_sal": str(e["n_sal"]), "n_sectors": str(e["n_sectors"]),
-                                                    "n_regions": str(e["n_regions"]), "other_ed": EDITIONS[ed_key]["other"], "domain": esc(data["site"])})
+                                                    "n_regions": str(e["n_regions"]), "other_ed": EDITIONS[ed_key]["other"], "domain": esc(data["site"]),
+                                                    "score": ev[ed_key + "_score"], "waterfall": ev[ed_key + "_waterfall"],
+                                                    "css_budget": str(validate_site.CSS_BUDGET // 1024), "js_budget": str(validate_site.JS_BUDGET // 1024),
+                                                    "n_regions_unit": EDITIONS[ed_key]["unit"]})
         (out / ed_key / "for-keith").mkdir(exist_ok=True)
         (out / ed_key / "for-keith" / "index.html").write_text(render(tpl["_shell"], ctx), encoding="utf-8")
 
