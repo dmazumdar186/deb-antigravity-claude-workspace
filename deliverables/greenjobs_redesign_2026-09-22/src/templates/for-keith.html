@@ -41,23 +41,6 @@
     <li><b>Model-backed assistant (optional, last).</b> "Ask GreenJobs" keeps its interface and its contract (a query in, ranked role IDs and a one-line "why" out). The local TF-IDF matcher is swapped for a hosted language model behind a small Cloudflare function, with the key held server-side and never in the page; the vendor is chosen at phase two. The function stub, prompt contract and rate limit are already written. Cost model: a query sends the question plus the compact live dataset (about {{n_jobs}} roles at roughly 120 tokens each, so about 12k tokens) and returns about 300 tokens. Multiply (12.3k input + 0.3k output) by the chosen vendor's per-token rate on launch day, then by 1,000, for the cost per 1,000 queries; prompt-cache the dataset portion so repeat queries within the cache window bill only the question. The rate is not quoted here to avoid publishing a stale number.</li>
   </ul>
 
-  <h2>The offer</h2>
-  <div class="offer">
-    <p class="v">€1,875</p>
-    <p style="margin-top:8px">Fixed price. It buys, exactly:</p>
-    <ul>
-      <li>Both editions, greenjobs.ie and greenjobs.co.uk, from one codebase.</li>
-      <li>Every page type shown in this demo: home, search and map, job page, sectors, salary explorer, career compass, employers, 404 and the edition chooser.</li>
-      <li>The build pipeline that turns a JSON feed into the static site, with its validator and tests, handed over with a runbook.</li>
-      <li>Deployment on your own domains, on hosting that is free at this size.</li>
-      <li>One round of revisions after you have seen it on your domains.</li>
-      <li>Live within 15 working days of go-ahead.</li>
-    </ul>
-    <p><b>Guarantee.</b> If it is not live, and measurably faster than the current site, by the agreed date, you do not pay.</p>
-    <h3>Leaving your current vendor</h3>
-    <p>This demo is the front end of that move, not a face-lift on the old platform. It already covers the public site: every page, the search, the maps, the structured data and a build that renders the whole board from a data file in seconds. What remains is the back office: the posting and admin flow for employers, job alerts and the newsletter, applicant handling, and the DNS cutover from the current host. Those are quoted as a range after one call, once you tell me what the current platform does for you today and what it costs per year; that number sets the ceiling for everything that follows.</p>
-  </div>
-
   <h2>Notes on honesty</h2>
   <ul>
     <li>Sector tags, region matches and annualised salaries are derived from the listing text by rules that are in the build script; they can be wrong on individual roles and are labelled as derived where they appear.</li>
