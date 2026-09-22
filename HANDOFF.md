@@ -194,6 +194,6 @@ The full PRD lives at `c:/Users/deban/OneDrive/Documents/Bryce Projects/Accessor
 
 Live: https://dmazumdar186.github.io/deb-antigravity-claude-workspace/greenjobs/ and https://greenjobs-redesign.pages.dev/ (evidence page at `/ie/for-keith/`). Directive: `directives/gtm_client_workflows/greenjobs_redesign.md`. Reply draft for Keith: `deliverables/greenjobs_redesign_2026-09-22/research/panel_pass.md` (Synthesis).
 
-**Keys.** All API keys live in the operator's local `.env` (`C:\Users\deban\OneDrive\Documents\AntiGravity Project Space\.env`): `ANTHROPIC_API_KEY` and the GLM key are present there as of 2026-09-22. Cloud sessions do not see that file. Nothing in the demo needs a key today.
+**Keys.** All API keys live in the operator's local `.env` (`C:\Users\deban\OneDrive\Documents\AntiGravity Project Space\.env`): `ANTHROPIC_API_KEY`, the GLM key and `FIRECRAWL_API_KEY` are present there as of 2026-09-22. Operator standing order: paid API calls only when every free option is exhausted. Cloud sessions do not see that file. Nothing in the demo needs a key today.
 
 **To make "Ask GreenJobs" model-backed (phase two, local session):** `cd execution/gtm_client_workflows/greenjobs_redesign/worker`, `npx wrangler secret put OPENROUTER_API_KEY` (or the Anthropic/GLM key per `worker/README.md`), `npx wrangler deploy`, then set the Worker URL in `src/config.json` and rebuild + republish. Do not ask the operator for keys; they are in the file above.
