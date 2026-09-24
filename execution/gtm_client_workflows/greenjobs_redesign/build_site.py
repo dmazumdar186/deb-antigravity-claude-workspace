@@ -540,17 +540,58 @@ def role_card(j: dict[str, Any], root: str, jobs_dir: str, today: date) -> str:
             f'<div class="role__meta">{chips}<time datetime="{esc(j["posted"])}">{esc(ago(j["posted"], today))}</time></div></article>')
 
 
-def sector_tiles(data: dict[str, Any], jobs_href: str, today: date) -> str:
+LEVELS: list[tuple[str, re.Pattern[str]]] = [
+    ("Director/Associate", re.compile(r"\b(director|associate director|head of|chief|partner|vice president|vp)\b", re.I)),
+    ("Senior/Principal", re.compile(r"\b(senior|principal|lead|chartered)\b", re.I)),
+    ("Graduate/Early career", re.compile(r"\b(graduate|junior|trainee|intern|internship|apprentice|entry[- ]level|assistant|placement|student)\b", re.I)),
+]
+
+
+def level_of(title: str) -> str:
+    """Career level read from the title alone (a rule, labelled as such on the
+    page): Director/Associate > Senior/Principal > Graduate/Early career, else Mid-level."""
+    for name, pat in LEVELS:
+        if pat.search(title):
+            return name
+    return "Mid-level"
+
+
+def home_row(j: dict[str, Any], root: str, jobs_dir: str, today: date) -> str:
+    """The jobs-page row (jobs.js row()) rendered at build time for the home
+    listing, plus a career-level chip."""
+    sal = salary_label(j)
+    lvl = level_of(j["title"])
+    sec = f'<span class="tag"><i style="background:{esc(j["color"] or "")}"></i>{esc(j["sectors"][0])}</span>' if j["sectors"] else ""
+    salc = f'<span class="tag tag--sal">{esc(sal)}</span>' if sal else ""
+    return (f'<article class="row" data-id="{esc(j["id"])}">{logo_img(j, root)}'
+            f'<div class="row__body"><h3><a href="{jobs_dir}{esc(j["href"])}">{esc(j["title"])}</a></h3>'
+            f'<div class="row__meta"><span>{esc(j["employer"])}</span><span aria-hidden="true">·</span><span>{esc(j["location"])}</span>'
+            f'<span class="tag tag--lvl" title="Career level, read from the title">{esc(lvl)}</span>'
+            f'{salc}{sec}</div></div>'
+            f'<div class="row__r"><time datetime="{esc(j["posted"])}">{esc(ago(j["posted"], today))}</time><span>{esc(j["type"])}</span></div>'
+            f'<button class="save" type="button" data-save="{esc(j["id"])}" data-title="{esc(j["title"])}" aria-pressed="false" aria-label="Save: {esc(j["title"])}">{SAVE_ICON}</button></article>')
+
+
+def sector_stat(in_sector: list[dict[str, Any]], sym: str) -> str:
+    """One real figure per sector tile: the median disclosed salary when at
+    least three roles disclose one, otherwise how many disclose pay."""
+    disclosed = sum(1 for j in in_sector if j["sal_min"] is not None or j["sal_max"] is not None)
+    med = median_salary(in_sector, sym) if disclosed >= 3 else "n/a"
+    if med != "n/a":
+        return f"median disclosed {med}"
+    return f"{disclosed} disclose{'s' if disclosed == 1 else ''} pay"
+
+
+def sector_tiles(data: dict[str, Any], jobs_href: str, today: date, sym: str = "€") -> str:
     out = []
     live = [s for s in data["sectors"] if s["n"] > 0][:9]
     for i, s in enumerate(live):
         in_sector = [j for j in data["jobs"] if s["name"] in j["sectors"]]
         spark = sparkline_svg(sparkline_weeks(in_sector, today))
-        disclosed = sum(1 for j in in_sector if j["sal_min"] is not None or j["sal_max"] is not None)
         out.append(
             f'<a class="sect reveal{" sect--lead" if i == 0 else ""}" href="{jobs_href}?sector={qs(s["name"])}" style="--sc:{s["color"]}">'
             f'<span class="arw" aria-hidden="true">&#8599;</span><h3>{esc(s["name"])}</h3>'
-            f'<p class="n num">{s["n"]}<small>{"role" if s["n"] == 1 else "roles"} · {disclosed} with salary</small></p>'
+            f'<p class="n num">{s["n"]}<small>{"role" if s["n"] == 1 else "roles"} · {esc(sector_stat(in_sector, sym))}</small></p>'
             f'{spark}<span class="vh">Postings over the last eight weeks</span></a>')
     return "".join(out)
 
@@ -925,6 +966,15 @@ def _host(url: str) -> str:
     return re.sub(r"^https?://(www\.)?", "", url).split("/")[0]
 
 
+def hero_bcorp(brief: dict[str, Any], root: str) -> str:
+    """The B Corp mark for the home hero (owner confirmed the wording
+    "Certified B Corporation" on 2026-09-24; no further claim is made)."""
+    if not (brief and brief.get("b_corp") and brief.get("bcorp_size")):
+        return ""
+    w, h = brief["bcorp_size"]
+    return f'<img class="hero__bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="Certified B Corporation" width="{w}" height="{h}">'
+
+
 def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str, *, dark_header: bool = False,
               body_attrs: str = "", brief: dict[str, Any] | None = None, same_path: str = "", site_base: str = "") -> dict[str, str]:
     ed = EDITIONS[data["ed"]]
@@ -941,10 +991,11 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
     contact = data["contact"] or {}
     phones = "".join(f'<li>{esc(lbl)}: <a href="tel:{esc(re.sub(r"[^+0-9]", "", num))}">{esc(num)}</a></li>' for lbl, num in (contact.get("phones") or [])[:2] if num)
     emails = "".join(f'<li><a href="mailto:{esc(e)}">{esc(e)}</a></li>' for e in dict.fromkeys(contact.get("emails") or []))
-    bcorp = onepct = ""
+    bcorp = onepct = hdr_bcorp = ""
     if brief and brief.get("b_corp") and brief.get("bcorp_size"):
         w, h = brief["bcorp_size"]
         bcorp = f'<img class="bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="Certified B Corporation" width="{w}" height="{h}" loading="lazy">'
+        hdr_bcorp = f'<span class="hdr__bcorp"><img src="{root}assets/logos/b-corp-logo.svg" alt="" width="{w}" height="{h}">Certified B Corporation</span>'
     if brief and brief.get("onepct_size"):
         w, h = brief["onepct_size"]
         onepct = f'<img src="{root}assets/logos/1fortheplanet.svg" alt="1% for the Planet member" width="{w}" height="{h}" loading="lazy" style="height:44px;width:auto;margin-top:12px;filter:brightness(1.4)">'
@@ -954,7 +1005,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
     return {
         "lang": ed["lang"], "title": esc(title), "desc": esc(desc), "root": root, "home": home, "ed": data["ed"], "ED": ed["short"],
         "domain": esc(data["site"]), "nav": nav, "menu_links": menu_links, "edsw": edsw, "hdr_cls": " hdr--dark" if dark_header else "",
-        "body_attrs": body_attrs, "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "social": social,
+        "body_attrs": body_attrs, "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
         "year": str(date.today().year), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["fetched"]),
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
@@ -999,8 +1050,11 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                 f"Environmental, renewable energy and sustainability jobs across {ed['name']}: {len(jobs)} live roles from {n_emp} employers, searchable in a second.",
                 {
                     "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": plural(ed["unit"]),
-                    "colors": esc(colors), "sector_tiles": sector_tiles(data, "jobs/index.html", today),
-                    "latest": "".join(role_card(j, "../", "jobs/", today) for j in jobs[:8]),
+                    "colors": esc(colors), "sector_tiles": sector_tiles(data, "jobs/index.html", today, ed["sym"]),
+                    "latest_rows": "".join(home_row(j, "../", "jobs/", today) for j in jobs[:8]),
+                    "hero_bcorp": hero_bcorp(brief, "../"),
+                    "inside_net": "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}<span class="arw" aria-hidden="true">↗</span></a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http")),
+                    "inside_sectors": "".join(f'<li><a href="jobs/index.html?sector={qs(s["name"])}"><i style="background:{s["color"]}" aria-hidden="true"></i>{esc(s["name"])}<b class="num">{s["n"]}</b></a></li>' for s in data["sectors"] if s["n"]),
                     "map": map_svg(src, ed_key, map_counts), "map_counts": esc(json_embed(map_counts)), "map_list": map_list(data, "jobs/index.html"), "off_map": off_map_note(data, "jobs/index.html"),
                     "n_regions": str(len(top_regions)), "employers": strip["html"], "emp_title": strip["title"], "emp_sub": strip["sub"], "snapshot": esc(snapshot_label(data["fetched"])), "facts": facts_block(brief, data),
                     "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"]),
@@ -1012,7 +1066,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                     "band_list": "".join(f'<li>{esc(b["l"])}: {b["n"]}</li>' for b in film["bands"] if b["n"]),
                     "sector_list": "".join(f'<li>{esc(x["n"])}: {x["c"]}</li>' for x in film["sectors"]),
                     "n_disc": str(film["n_sal"]), "fit_panel": fit_panel("jobs/index.html", "fit-q"), "median": esc(median_salary(jobs, ed["sym"])),
-                }, dark_header=True, body_attrs=' data-data="data/jobs.json"', same_path="index.html")
+                }, body_attrs=' data-data="data/jobs.json"', same_path="index.html")
     write("index.html", home)
     (edir / "data").mkdir(exist_ok=True)
     (edir / "data" / "jobs.json").write_text(json.dumps({"jobs": [slim(j, True) for j in jobs]}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

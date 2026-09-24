@@ -26,7 +26,7 @@
 
   <h2>What changed since the first cut</h2>
   <ul>
-    <li><b>The film hero.</b> The home page opens on a pinned, scroll-driven sequence drawn on one canvas: the wind field gathers into the {{n_regions}}-region map with live counts, dissolves into the disclosed-salary bands, converges into the sector ring, and settles behind the real search box. The map points are sampled from the SVG at build time, so the page ships no extra assets and makes no extra requests. Under reduced motion it is a static page with every line of copy and the search box in reach.</li>
+    <li><b>A light opening, then the film.</b> The home page opens on a white hero: one headline, the central search (what job, where), the live counts, a large "Post a job" beside "Find a job", the Certified B Corporation mark, and the first eight live roles with a career level read from each title. The pinned, scroll-driven sequence follows as the second section, on paper: the {{n_regions}}-region map with live counts, the disclosed-salary bands, the sector ring. The map points are sampled from the SVG at build time, so the page ships no extra assets and makes no extra requests. Under reduced motion the sequence is a static page with the map copy and every count in reach.</li>
     <li><b>"Your fit in ten seconds."</b> On the home and jobs pages: paste a CV or three words and the six closest live roles appear instantly, with the matched words, your position on the board's disclosed-salary strip, a small map of where the matches are, and a caveat. The matcher is the upgraded local one (title-weighted, two-word phrases, sector and place boosts). Every result is a link you can share.</li>
     <li><b>The live ad builder.</b> On the Employers page the form renders the exact job card and job-page header as you type, previews a logo without uploading it, and reads reach from this week's data (live roles and median disclosed salary in the chosen sector). Sending still posts nothing and says so.</li>
     <li><b>"Where this role sits."</b> Every job page with a published salary shows that range against the board's disclosed distribution, overall and in its sector, with keyboard-reachable marks and a table; roles without one get an honest line with the sector's disclosed range instead. Both show how many similar roles are live in the same {{n_regions_unit}}.</li>
@@ -44,7 +44,7 @@
   <h2>Notes on honesty</h2>
   <ul>
     <li>Sector tags, region matches and annualised salaries are derived from the listing text by rules that are in the build script; they can be wrong on individual roles and are labelled as derived where they appear.</li>
-    <li>The "Why GreenJobs" facts, the employer offer and the B Corp mark come from your own pages as fetched on 2026-09-22 (brief.md). The B Corp page does not itself state that GreenJobs is certified; the demo shows only the footer mark with its existing alt text.</li>
+    <li>The "Why GreenJobs" facts, the employer offer and the B Corp mark come from your own pages as fetched on 2026-09-22 (brief.md). The wording "Certified B Corporation" was confirmed by the owner on 2026-09-24; the demo shows the mark in the hero, the header and the footer with that wording and adds no certification date, score or other claim.</li>
     <li>Newsletter, alert and post-a-job forms send nothing and say so.</li>
     <li>Job descriptions are shown as published by employers (sanitised of scripts and styles); the word-filter that keeps machine vocabulary off the public pages does not apply inside them.</li>
   </ul>

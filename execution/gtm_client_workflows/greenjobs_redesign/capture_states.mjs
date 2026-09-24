@@ -1,6 +1,6 @@
 // Second-act state captures for the GreenJobs demo, driven by Playwright so
 // the film can be scrolled for real (chrome --screenshot cannot scroll).
-// description: Captures the four film states at 1440 (plus 390 and dark), the
+// description: Captures the three film states at 1440 (plus 390 and dark), the
 //   full home page at 1440/390/dark, the "Your fit" result and no-match
 //   states, the ad builder with a filled form (desktop, and 390 with the
 //   preview toggled), and the job salary strip. Reuses the http.server that
@@ -43,13 +43,14 @@ const fullPage = async (page) => { /* walk the page so reveals and count-ups hav
   await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
   await page.waitForTimeout(400);
 };
-for (const n of [1, 2, 3, 4]) await cap(`ie-film-${n}-1440`, 'ie/index.html?theme=light', 1440, 900, toState(n));
-await cap('ie-film-1-390', 'ie/index.html?theme=light', 390, 844, toState(1));
-await cap('ie-film-4-390', 'ie/index.html?theme=light', 390, 844, toState(4));
-await cap('uk-film-1-1440', 'uk/index.html?theme=light', 1440, 900, toState(1));
-await cap('uk-film-3-1440', 'uk/index.html?theme=light', 1440, 900, toState(3));
-await cap('dark-ie-film-3-1440', 'ie/index.html?theme=dark', 1440, 900, toState(3), { dark: true });
-await cap('dark-ie-film-0-1440', 'ie/index.html?theme=dark', 1440, 900, null, { dark: true });
+for (const n of [0, 1, 2]) await cap(`ie-film-${n}-1440`, 'ie/index.html?theme=light', 1440, 900, toState(n));
+await cap('ie-film-0-390', 'ie/index.html?theme=light', 390, 844, toState(0));
+await cap('ie-film-2-390', 'ie/index.html?theme=light', 390, 844, toState(2));
+await cap('uk-film-0-1440', 'uk/index.html?theme=light', 1440, 900, toState(0));
+await cap('uk-film-2-1440', 'uk/index.html?theme=light', 1440, 900, toState(2));
+await cap('dark-ie-film-0-1440', 'ie/index.html?theme=dark', 1440, 900, toState(0), { dark: true });
+await cap('dark-ie-film-2-1440', 'ie/index.html?theme=dark', 1440, 900, toState(2), { dark: true });
+await cap('dark-ie-hero-1440', 'ie/index.html?theme=dark', 1440, 900, null, { dark: true });
 await cap('ie-index-1440-full', 'ie/index.html?theme=light', 1440, 900, fullPage, { full: true });
 await cap('ie-index-390-full', 'ie/index.html?theme=light', 390, 844, fullPage, { full: true });
 await cap('dark-ie-index-1440-full', 'ie/index.html?theme=dark', 1440, 900, fullPage, { full: true, dark: true });

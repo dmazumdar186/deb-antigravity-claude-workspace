@@ -1,7 +1,8 @@
 // Headless-Chromium behaviour checks for the GreenJobs demo's second act.
 // description: Serves the built site, scrolls the home film with a real
-//   wheel-style scroll and asserts it reaches state 4 with a focusable search
-//   input (desktop and 390px, where the film is three states), runs the
+//   wheel-style scroll and asserts it reaches state 2 (three states at every
+//   width), checks the hero search and Post a job sit in the first 844px at
+//   390 wide, runs the
 //   "Your fit" query "ecologist dublin" and asserts Dublin ecology roles come
 //   back, checks the ad builder renders the typed title into the card, and
 //   that a job page with a salary shows the strip. Uses the globally installed
@@ -41,7 +42,7 @@ const base = `http://127.0.0.1:${PORT}/`;
 const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-gpu'] });
 try {
   // ---- film: desktop, scrolled for real
-  for (const [w, h, states] of [[1440, 900, 5], [390, 844, 3]]) {
+  for (const [w, h, states] of [[1440, 900, 3], [390, 844, 3]]) {
     const page = await browser.newPage({ viewport: { width: w, height: h } });
     await page.goto(base + 'ie/index.html', { waitUntil: 'load' });
     await page.waitForTimeout(300);
@@ -49,16 +50,17 @@ try {
     check(Array.isArray(seq) && seq.length === states, `film ${w}px: ${states} states (${JSON.stringify(seq)})`);
     check((await page.evaluate(() => window.GJFilm.state())) === 0, `film ${w}px: starts in state 0`);
     const seen = new Set();
-    const filmH = await page.evaluate(() => document.querySelector('[data-film]').getBoundingClientRect().height);
-    for (let y = 0; y <= filmH; y += Math.round(h / 3)) {
+    const film = await page.evaluate(() => { const r = document.querySelector('[data-film]').getBoundingClientRect(); return { top: r.top + scrollY, h: r.height }; });
+    for (let y = film.top; y <= film.top + film.h; y += Math.round(h / 3)) {
       await page.evaluate((yy) => window.scrollTo({ top: yy, behavior: 'instant' }), y);
       await page.waitForTimeout(90);
       seen.add(await page.evaluate(() => window.GJFilm.state()));
     }
-    check(seen.has(4), `film ${w}px: reaches state 4 by scrolling (saw ${[...seen].sort().join(',')})`);
+    check(seen.has(2), `film ${w}px: reaches state 2 by scrolling (saw ${[...seen].sort().join(',')})`);
     check([...seen].every((s) => seq.includes(s)), `film ${w}px: only states in the sequence are shown`);
-    const focusable = await page.evaluate(() => { const q = document.getElementById('s-q'); q.focus(); return document.activeElement === q && getComputedStyle(q.closest('.film__state')).opacity === '1'; });
-    check(focusable, `film ${w}px: search input is focusable and its state is visible`);
+    const hero = await page.evaluate(() => { const q = document.getElementById('s-q').getBoundingClientRect(); const b = document.querySelector('.hero .btn--post').getBoundingClientRect(); scrollTo({ top: 0, behavior: 'instant' }); const q2 = document.getElementById('s-q').getBoundingClientRect(); const b2 = document.querySelector('.hero .btn--post').getBoundingClientRect(); return { q: q2.bottom, b: b2.bottom, ok: q2.top >= 0 && q2.bottom <= innerHeight && b2.top >= 0 && b2.bottom <= innerHeight && b2.height >= 56 }; });
+    check(hero.ok, `hero ${w}px: search input (bottom ${Math.round(hero.q)}) and Post a job (bottom ${Math.round(hero.b)}, ≥56px) inside the first ${h}px`);
+    await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' })); await page.waitForTimeout(120);
     const fills = await page.evaluate(() => [...document.querySelectorAll('[data-film-step]')].filter((s) => getComputedStyle(s).display !== 'none').map((s) => s.style.getPropertyValue('--fill')));
     check(fills.length === states && fills.slice(0, -1).every((f) => Number(f) === 1), `film ${w}px: rail fills are complete at the end (${fills.join(' ')})`);
     const particles = await page.evaluate(() => window.GJFilm.particles());
@@ -66,16 +68,16 @@ try {
     // keyboard: from the top, tabbing into a later state's copy scrolls the film there
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
     await page.waitForTimeout(120);
-    await page.evaluate(() => document.querySelector('[data-film-state="4"] .btn').focus());
+    await page.evaluate(() => document.querySelector('[data-film-state="2"] .btn').focus());
     await page.waitForTimeout(150);
-    check((await page.evaluate(() => window.GJFilm.state())) === 4, `film ${w}px: focusing the search button moves the film to state 4`);
+    check((await page.evaluate(() => window.GJFilm.state())) === 2, `film ${w}px: focusing the last state's button moves the film to state 2`);
     await page.close();
   }
   // ---- reduced motion: static film, search visible
   const rm = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   await rm.goto(base + 'ie/index.html', { waitUntil: 'load' });
   check(await rm.evaluate(() => document.querySelector('[data-film]').classList.contains('film--static')), 'reduced motion: film is static');
-  check(await rm.evaluate(() => { const q = document.getElementById('s-q'); const r = q.getBoundingClientRect(); return r.height > 0 && getComputedStyle(q.closest('.film__state')).opacity === '1'; }), 'reduced motion: search box rendered and visible');
+  check(await rm.evaluate(() => { const q = document.getElementById('s-q').getBoundingClientRect(); const m = document.querySelector('[data-film-state="0"]'); const o = document.querySelector('[data-film-state="1"]'); return q.height > 0 && getComputedStyle(m).display !== 'none' && getComputedStyle(o).display === 'none'; }), 'reduced motion: hero search rendered, film shows the map state only');
   check(await rm.evaluate(() => !document.querySelector('[data-film] canvas')), 'reduced motion: no canvas created');
   await rm.close();
 
