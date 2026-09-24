@@ -176,9 +176,13 @@
     var conn = navigator.connection, save = !!(conn && conn.saveData);
     if (save || reduce.matches) { video.removeAttribute('autoplay'); video.preload = 'none'; [].slice.call(video.querySelectorAll('source')).forEach(function (s) { s.remove(); }); video.load(); host.classList.add('is-playing'); stop(); }
     else {
-      var takeOver = function () { host.classList.add('is-playing'); stop(); };
-      if (video.readyState >= 2) takeOver(); else video.addEventListener('loadeddata', takeOver, { once: true });
-      video.play().catch(function () { /* autoplay refused: the canvas stays */ });
+      var failed = false;
+      var takeOver = function () { if (failed) return; host.classList.add('is-playing'); stop(); };
+      /* The poster is the clip's own first frame, so showing it on metadata is seamless;
+         a decode error (no H.264 support) keeps the drawn scene instead. */
+      video.addEventListener('error', function () { failed = true; host.classList.remove('is-playing'); start(); }, { once: true });
+      if (video.readyState >= 1) takeOver(); else { video.addEventListener('loadedmetadata', takeOver, { once: true }); video.addEventListener('loadeddata', takeOver, { once: true }); }
+      video.play().catch(function () { /* autoplay refused: the poster stays */ });
     }
   }
   tone(); size();
