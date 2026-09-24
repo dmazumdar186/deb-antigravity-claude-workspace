@@ -4,7 +4,7 @@
 :root {
 --paper:#f6f0e6; --paper-2:#efe6d6; --paper-3:#e6dac5; --paper-4:#d4c5a8; --card-w:#fffdf9;
 --ink:#2a2521; --ink-2:#5a524b; --ink-3:#6b625a;
---honey:#d99a1c; --honey-2:#e6aa35; --honey-ink:#8a5d0a; --honey-soft:#f6e4b8;
+--honey:#a9d18e; --honey-2:#bcdca4; --honey-ink:#3f7a2e; --honey-soft:#e4f0d8;
 --terra:#c65d3b; --terra-ink:#9b4526; --sage:#6f8f6a; --sky:#5b95b8; --clay:#b7774e;
 --dark-1:#1e1a17; --dark-2:#2a2521; --dark-3:#3a332d; --dark-4:#4a423b;
 --white:#fff;
@@ -31,7 +31,7 @@
 :root {
 --paper:oklch(.955 .016 80); --paper-2:oklch(.925 .024 80); --paper-3:oklch(.885 .032 80);
 --ink:oklch(.24 .012 50); --ink-2:oklch(.42 .014 55);
---honey:oklch(.72 .15 75); --honey-2:oklch(.77 .15 78); --honey-ink:oklch(.48 .11 72);
+--honey:oklch(.80 .11 135); --honey-2:oklch(.85 .10 135); --honey-ink:oklch(.50 .12 140);
 --terra:oklch(.58 .14 38); --sage:oklch(.60 .06 145); --sky:oklch(.63 .08 235); --clay:oklch(.60 .10 50);
 }
 }
@@ -342,7 +342,7 @@ textarea.in{min-height:120px;resize:vertical}
 .fact{padding-top:20px;border-top:2px solid var(--fg)}
 .fact h3{margin-bottom:10px}
 .fact p{color:var(--fg-2);max-width:40ch}
-.alertbox{border-radius:var(--r-lg);background:var(--honey-soft);color:var(--ink);border:1px solid #ead39a;padding:clamp(28px,4vw,56px);display:grid;gap:24px;align-items:center}
+.alertbox{border-radius:var(--r-lg);background:var(--honey-soft);color:var(--ink);border:1px solid #cfe3bd;padding:clamp(28px,4vw,56px);display:grid;gap:24px;align-items:center}
 @media (min-width:860px){.alertbox{grid-template-columns:1fr 1fr}}
 .alertbox h2{font-size:clamp(1.7rem,1.2rem + 2vw,2.6rem)}
 .alertbox p{color:var(--ink-2)}
@@ -350,7 +350,7 @@ textarea.in{min-height:120px;resize:vertical}
 [data-theme="dark"] .alertbox p{color:var(--dark-fg-2)}
 .alertbox form{display:grid;gap:10px}
 .alertbox .in{background:var(--card);border-color:#dfc07a;color:var(--fg)}
-.alertbox .in:focus{border-color:var(--honey-ink);box-shadow:0 0 0 3px rgba(217,154,28,.3)}
+.alertbox .in:focus{border-color:var(--honey-ink);box-shadow:0 0 0 3px rgba(63,122,46,.3)}
 .alertbox .check input{accent-color:var(--honey-ink)}
 .alertbox .btn--lime{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .alertbox .btn--lime:hover{background:var(--dark-3);border-color:var(--dark-3)}
