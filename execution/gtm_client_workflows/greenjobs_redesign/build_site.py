@@ -58,20 +58,21 @@ EDITIONS = {
 
 # Canonical sector taxonomy. Order = priority; keywords are matched as whole
 # words (case-insensitive) against the raw sector labels, title, summary and
-# description. Colours: five data hues from the spec, the rest moss-tinted so
-# the hero field and tiles stay one system (charts use a single hue anyway).
+# description. Colours: the warm-earth data set (sky, honey, sage, clay,
+# terracotta and their deeper cuts); the third field says the swatch is dark
+# enough to carry light text.
 TAXONOMY: list[tuple[str, str, bool, list[str]]] = [
-    ("Wind energy", "#b4e33d", False, ["wind", "offshore wind", "onshore wind", "turbine", "turbines"]),
-    ("Solar energy", "#f2b544", False, ["solar", "photovoltaic", "pv"]),
-    ("Renewable energy & storage", "#8fc73a", False, ["renewable", "renewables", "battery", "storage", "hydrogen", "hydro", "hydropower", "bioenergy", "biomass", "biogas", "anaerobic", "green energy", "clean energy", "alternative energy", "marine energy", "tidal", "wave"]),
-    ("Water & flood", "#5aa9e6", False, ["water", "flood", "flooding", "drainage", "wastewater", "hydrology", "hydrogeology", "hydrogeologist", "hydrologist", "sewer", "sewerage", "catchment"]),
-    ("Waste & circular economy", "#d9774f", False, ["waste", "recycling", "circular", "circular economy", "landfill", "resource management", "reuse"]),
-    ("Ecology & conservation", "#2fbf9f", False, ["ecology", "ecologist", "ecological", "conservation", "biodiversity", "habitat", "habitats", "wildlife", "species", "ornithologist", "botanist", "botany", "arboriculture", "arboriculturist", "arborist", "nature", "rewilding", "peatland", "forestry", "woodland", "marine biology"]),
-    ("Environmental science & consulting", "#6fa36b", True, ["environmental", "environment", "eia", "eiar", "impact assessment", "contaminated land", "geo-environmental", "geoenvironmental", "air quality", "acoustics", "noise", "geologist", "geology", "environmental scientist", "environmental consultant"]),
-    ("Sustainability & net zero", "#3e8e5e", True, ["sustainability", "sustainable", "net zero", "carbon", "esg", "climate", "decarbonisation", "decarbonization", "csrd", "emissions", "greenhouse"]),
-    ("Built environment & energy efficiency", "#7c8f5c", True, ["building", "buildings", "built environment", "energy efficiency", "retrofit", "breeam", "leed", "heat pump", "heat pumps", "insulation", "mechanical", "electrical", "hvac", "facilities", "architect", "architecture", "construction", "quantity surveyor", "surveyor"]),
-    ("Energy networks & utilities", "#4f7f8c", True, ["grid", "utility", "utilities", "transmission", "distribution", "network", "networks", "substation", "energy management", "energy manager", "power", "electricity", "smart meter", "district heating"]),
-    ("Policy, planning & advisory", "#8a7a5a", True, ["policy", "planning", "planner", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education", "officer"]),
+    ("Wind energy", "#5b95b8", False, ["wind", "offshore wind", "onshore wind", "turbine", "turbines"]),
+    ("Solar energy", "#d99a1c", False, ["solar", "photovoltaic", "pv"]),
+    ("Renewable energy & storage", "#6f8f6a", False, ["renewable", "renewables", "battery", "storage", "hydrogen", "hydro", "hydropower", "bioenergy", "biomass", "biogas", "anaerobic", "green energy", "clean energy", "alternative energy", "marine energy", "tidal", "wave"]),
+    ("Water & flood", "#3f7ea6", True, ["water", "flood", "flooding", "drainage", "wastewater", "hydrology", "hydrogeology", "hydrogeologist", "hydrologist", "sewer", "sewerage", "catchment"]),
+    ("Waste & circular economy", "#b7774e", False, ["waste", "recycling", "circular", "circular economy", "landfill", "resource management", "reuse"]),
+    ("Ecology & conservation", "#5c7a57", True, ["ecology", "ecologist", "ecological", "conservation", "biodiversity", "habitat", "habitats", "wildlife", "species", "ornithologist", "botanist", "botany", "arboriculture", "arboriculturist", "arborist", "nature", "rewilding", "peatland", "forestry", "woodland", "marine biology"]),
+    ("Environmental science & consulting", "#7f9c7a", False, ["environmental", "environment", "eia", "eiar", "impact assessment", "contaminated land", "geo-environmental", "geoenvironmental", "air quality", "acoustics", "noise", "geologist", "geology", "environmental scientist", "environmental consultant"]),
+    ("Sustainability & net zero", "#a3653c", True, ["sustainability", "sustainable", "net zero", "carbon", "esg", "climate", "decarbonisation", "decarbonization", "csrd", "emissions", "greenhouse"]),
+    ("Built environment & energy efficiency", "#c65d3b", True, ["building", "buildings", "built environment", "energy efficiency", "retrofit", "breeam", "leed", "heat pump", "heat pumps", "insulation", "mechanical", "electrical", "hvac", "facilities", "architect", "architecture", "construction", "quantity surveyor", "surveyor"]),
+    ("Energy networks & utilities", "#4a86ab", True, ["grid", "utility", "utilities", "transmission", "distribution", "network", "networks", "substation", "energy management", "energy manager", "power", "electricity", "smart meter", "district heating"]),
+    ("Policy, planning & advisory", "#9a8a6a", False, ["policy", "planning", "planner", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education", "officer"]),
 ]
 PRIMARY_MIN = 2  # score a sector needs before a job carries it
 
@@ -966,6 +967,42 @@ def _host(url: str) -> str:
     return re.sub(r"^https?://(www\.)?", "", url).split("/")[0]
 
 
+HERO_DIR = "assets/hero"
+
+
+def hero_files(src: Path, ed: str) -> dict[str, str]:
+    """Drop-in hero footage for an edition: <ed>.mp4 (landscape), optional
+    <ed>-m.mp4 (portrait, under 800px) and <ed>-poster.webp|jpg. Files are
+    optional; the canvas landscape is the hero when they are absent."""
+    d = src / HERO_DIR
+    out: dict[str, str] = {}
+    if (d / f"{ed}.mp4").exists():
+        out["video"] = f"{ed}.mp4"
+    if (d / f"{ed}-m.mp4").exists():
+        out["mobile"] = f"{ed}-m.mp4"
+    for ext in ("webp", "jpg"):
+        if (d / f"{ed}-poster.{ext}").exists():
+            out["poster"] = f"{ed}-poster.{ext}"
+            break
+    return out
+
+
+def hero_video(src: Path, ed: str, root: str) -> str:
+    """The <video> for the hero scene when footage has been dropped in
+    (muted, looped, inline, poster, no preload beyond metadata). landscape.js
+    keeps the canvas playing until the first frame is ready, pauses it
+    off-screen and shows the poster only on Save-Data / reduced motion."""
+    f = hero_files(src, ed)
+    if not f.get("video"):
+        return ""
+    poster = f' poster="{root}{HERO_DIR}/{f["poster"]}"' if f.get("poster") else ""
+    sources = ""
+    if f.get("mobile"):
+        sources += f'<source src="{root}{HERO_DIR}/{f["mobile"]}" type="video/mp4" media="(max-width: 799px)">'
+    sources += f'<source src="{root}{HERO_DIR}/{f["video"]}" type="video/mp4">'
+    return f'<video class="hero__video" data-hero-video muted loop playsinline autoplay preload="metadata"{poster} aria-hidden="true" tabindex="-1">{sources}</video>'
+
+
 def hero_bcorp(brief: dict[str, Any], root: str) -> str:
     """The B Corp mark for the home hero (owner confirmed the wording
     "Certified B Corporation" on 2026-09-24; no further claim is made)."""
@@ -1010,7 +1047,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
         "nav_list": "".join(f'<li><a href="{home}{href}">{label}</a></li>' for href, label in NAV),
-        "onepct": onepct, "scripts": "",
+        "onepct": onepct, "scripts": "", "page": page, "country": esc(ed["name"]),
     }
 
 
@@ -1031,7 +1068,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(html_text, encoding="utf-8")
 
-    SCRIPTS = {"home": ["film", "fit"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"], "employers": ["adbuilder"]}
+    SCRIPTS = {"home": ["landscape", "film", "fit"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"], "employers": ["adbuilder"]}
 
     def page(name: str, depth: int, page_key: str, title: str, desc: str, body: dict[str, str], **kw: Any) -> str:
         ctx = shell_ctx(data, depth, page_key, title, desc, brief=brief, site_base=site_base, **kw)
@@ -1052,7 +1089,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                     "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": plural(ed["unit"]),
                     "colors": esc(colors), "sector_tiles": sector_tiles(data, "jobs/index.html", today, ed["sym"]),
                     "latest_rows": "".join(home_row(j, "../", "jobs/", today) for j in jobs[:8]),
-                    "hero_bcorp": hero_bcorp(brief, "../"),
+                    "hero_bcorp": hero_bcorp(brief, "../"), "hero_video": hero_video(src, ed_key, "../"),
                     "inside_net": "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}<span class="arw" aria-hidden="true">↗</span></a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http")),
                     "inside_sectors": "".join(f'<li><a href="jobs/index.html?sector={qs(s["name"])}"><i style="background:{s["color"]}" aria-hidden="true"></i>{esc(s["name"])}<b class="num">{s["n"]}</b></a></li>' for s in data["sectors"] if s["n"]),
                     "map": map_svg(src, ed_key, map_counts), "map_counts": esc(json_embed(map_counts)), "map_list": map_list(data, "jobs/index.html"), "off_map": off_map_note(data, "jobs/index.html"),
@@ -1359,6 +1396,13 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         shutil.copytree(src / "assets" / sub, out / "assets" / sub)
     for f in (src / "assets").glob("*.*"):
         shutil.copy2(f, out / "assets" / f.name)
+    hero_src = src / HERO_DIR
+    if hero_src.is_dir():
+        used = {name for ed_key in ("ie", "uk") for name in hero_files(src, ed_key).values()}
+        if used:
+            (out / HERO_DIR).mkdir(parents=True, exist_ok=True)
+            for name in sorted(used):
+                shutil.copy2(hero_src / name, out / HERO_DIR / name)
     used_logos = {j["logo"] for d in data_by_ed.values() for j in d["jobs"] if j["logo"]} | {e["logo"] for d in data_by_ed.values() for e in d["employers"] if e["logo"]}
     used_logos |= {n for k, n in (("bcorp_size", "b-corp-logo.svg"), ("onepct_size", "1fortheplanet.svg")) if brief.get(k)}
     (out / "assets" / "logos").mkdir()
@@ -1385,7 +1429,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     (out / "index.html").write_text(chooser, encoding="utf-8")
     (out / "404.html").write_text(render(tpl["404root"], {}), encoding="utf-8")
     manifest = {"name": "GreenJobs", "short_name": "GreenJobs", "start_url": "./index.html", "display": "standalone",
-                "background_color": "#0c1a12", "theme_color": "#0c1a12", "icons": [{"src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml"}]}
+                "background_color": "#f6f0e6", "theme_color": "#f6f0e6", "icons": [{"src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml"}]}
     (out / "manifest.webmanifest").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
     if site_base:
         urls = "".join(f"<url><loc>{esc(site_base)}{ed_key}/{p}</loc></url>" for ed_key in data_by_ed for p in PAGES_FOR_SITEMAP)

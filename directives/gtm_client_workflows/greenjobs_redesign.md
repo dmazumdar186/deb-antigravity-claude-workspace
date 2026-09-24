@@ -79,3 +79,15 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   buttons/view-transition morphs, evidence page request comparison. Budgets now CSS ≤ 72 KB, JS ≤ 110 KB.
   `capture_states.mjs` scrolls the film for screenshots; `tests/greenjobs_redesign/verify_browser.mjs`
   checks state 4 focus and a fit query in headless Chromium. Still zero API calls, zero third-party requests.
+- 2026-09-24 (third pass, client feedback): warm-earth palette (paper `#f6f0e6` / `#efe6d6`, ink
+  `#2a2521`, honey `#d99a1c` actions with ink text, terracotta once per section, sage/sky/clay data
+  only; warm dark theme), Fraunces headlines + Nunito text (Archivo / Public Sans removed), a
+  procedurally drawn living-landscape hero on one canvas (`js/landscape.js`: hills, river, solar
+  field, five turbines, hedgerow, clouds, birds, scroll-warmed sun, parallax; ≤ 4 ms/frame, paused
+  off-screen, static under reduced motion, CSS gradient without canvas), the film moved onto the
+  paper-2 band with 2.4–3 px ink/clay/sage/sky/honey particles, ink label pills and a radial vignette,
+  cookie banner + settings dialog and a weekly-email subscribe dialog (`js/popups.js`, localStorage,
+  `?popup=` hook for captures), and a no-code hero footage drop-in (`src/assets/hero/<ed>.mp4`,
+  `-m.mp4`, `-poster.webp|jpg`; validator checks referenced files exist). Budgets raised to CSS ≤ 80 KB,
+  JS ≤ 125 KB (measured 70 / 99). Learned: the validator's checkbox rule needs `<label for>` (a
+  wrapping label only counts when `<label>` is immediately followed by `<input>`).

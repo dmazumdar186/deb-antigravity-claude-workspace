@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Capture the built GreenJobs demo at 390 / 768 / 1024 / 1440 for home, jobs,
 # one job, insights, compass and for-keith in both editions, plus reduced-motion
-# and dark-theme sets. Serves over HTTP (not file://) so fetch() and history
+# and dark-theme sets, plus the cookie / subscribe popup states. Serves over HTTP (not file://) so fetch() and history
 # behave as in production.
 # Usage: bash execution/gtm_client_workflows/greenjobs_redesign/screenshot.sh [site_dir] [out_dir]
 set -uo pipefail
@@ -98,6 +98,13 @@ shot "ie-jobs-filtered-1440" "ie/jobs/index.html?q=engineer&sector=Water%20%26%2
 shot "ie-jobs-empty-768" "ie/jobs/index.html?q=zzzz&theme=light" 768 1024
 shot "ie-compass-result-1440" "ie/compass/index.html?theme=light#a=0.0.0.5.0.2.1" 1440 1800
 shot "ie-compass-result-390" "ie/compass/index.html?theme=light#a=3.1.0.5.1.2.1" 390 2200
+echo "popup captures (cookie banner, cookie settings, subscribe dialog)"
+shot "ie-popup-cookie-1440" "ie/index.html?theme=light&popup=cookie" 1440 900
+shot "ie-popup-cookie-390" "ie/index.html?theme=light&popup=cookie" 390 844
+shot "ie-popup-settings-1440" "ie/index.html?theme=light&popup=settings" 1440 900
+shot "ie-popup-subscribe-1440" "ie/index.html?theme=light&popup=subscribe" 1440 900
+shot "ie-popup-subscribe-390" "ie/index.html?theme=light&popup=subscribe" 390 844
+shot "dark-ie-popup-subscribe-1440" "ie/index.html?theme=dark&popup=subscribe" 1440 900
 echo "second-act captures (film states, your fit, ad builder, salary strip; Playwright, real scrolling)"
 if node "$(dirname "${BASH_SOURCE[0]}")/capture_states.mjs" "$SITE" "$OUT" "$PORT"; then :; else echo "  state captures FAILED" >&2; FAILURES=$((FAILURES + 1)); fi
 echo "saved to $OUT"; ls -1 "$OUT"/*.png | wc -l

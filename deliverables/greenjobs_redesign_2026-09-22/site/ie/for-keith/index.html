@@ -6,24 +6,24 @@
 <meta name="robots" content="noindex,nofollow">
 <title>For Keith — the evidence behind the GreenJobs redesign demo</title>
 <meta name="description" content="What was measured, what was built, what comes next.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f6f0e6">
 <meta property="og:type" content="website">
 <meta property="og:title" content="For Keith — the evidence behind the GreenJobs redesign demo">
 <meta property="og:description" content="What was measured, what was built, what comes next.">
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="../../manifest.webmanifest">
-<link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="../../assets/fonts/publicsans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../../css/styles.css">
 <script>(function(){var d=document.documentElement;d.className+=' has-js';var t=(location.search.match(/[?&]theme=(dark|light)/)||[])[1]||null;try{if(t)localStorage.setItem('gj-theme',t);else t=localStorage.getItem('gj-theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);})();</script>
 </head>
-<body data-edition="ie" data-root="../../">
+<body data-edition="ie" data-root="../../" data-page="for-keith">
 <a class="skip" href="#main">Skip to content</a>
 <header class="hdr" data-header>
   <div class="hdr__prog" data-progress aria-hidden="true"></div>
   <div class="wrap hdr__in">
     <a class="logo" href="../../ie/index.html" aria-label="GreenJobs IE, home">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#b4e33d"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#0c1a12" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#d99a1c"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#2a2521" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
       <span>Green<b>Jobs</b></span><small>IE</small>
     </a>
     <nav class="nav" aria-label="Primary"><a href="../../ie/jobs/index.html">Jobs</a><a href="../../ie/sectors/index.html">Sectors</a><a href="../../ie/insights/index.html">Salary explorer</a><a href="../../ie/compass/index.html">Career compass</a><a href="../../ie/employers/index.html">Employers</a></nav>
@@ -51,14 +51,14 @@
 </div>
 <div class="wrap doc" style="padding-bottom:var(--pad-y)">
   <h2>Before and after, measured</h2>
-  <div class="score" aria-label="Scoreboard: live site against this demo"><div class="score__h"><span></span><span>Live site</span><span>This demo</span></div><div class="score__t"><span class="score__l">Home page HTML, bytes</span><span class="score__v"><b class="num" data-count="189932">189,932</b></span><span class="score__v score__v--after"><b class="num" data-count="112513">112,513</b></span></div><div class="score__t"><span class="score__l">Requests on the home page</span><span class="score__v"><b class="num" data-count="44">44</b></span><span class="score__v score__v--after"><b class="num" data-count="13">13</b></span></div><div class="score__t"><span class="score__l">Script files</span><span class="score__v"><b class="num" data-count="16">16</b></span><span class="score__v score__v--after"><b class="num" data-count="11">11</b></span></div><div class="score__t"><span class="score__l">Job pages with structured data</span><span class="score__v"><b class="num" data-count="0">0</b></span><span class="score__v score__v--after"><b class="num" data-count="88">88</b></span></div></div>
+  <div class="score" aria-label="Scoreboard: live site against this demo"><div class="score__h"><span></span><span>Live site</span><span>This demo</span></div><div class="score__t"><span class="score__l">Home page HTML, bytes</span><span class="score__v"><b class="num" data-count="189932">189,932</b></span><span class="score__v score__v--after"><b class="num" data-count="115908">115,908</b></span></div><div class="score__t"><span class="score__l">Requests on the home page</span><span class="score__v"><b class="num" data-count="44">44</b></span><span class="score__v score__v--after"><b class="num" data-count="15">15</b></span></div><div class="score__t"><span class="score__l">Script files</span><span class="score__v"><b class="num" data-count="16">16</b></span><span class="score__v score__v--after"><b class="num" data-count="12">12</b></span></div><div class="score__t"><span class="score__l">Job pages with structured data</span><span class="score__v"><b class="num" data-count="0">0</b></span><span class="score__v score__v--after"><b class="num" data-count="88">88</b></span></div></div>
   <h3 style="margin-top:32px">Requests on the home page, by type</h3>
   <p>Each bar is one home-page load, split by what was requested. Same scale for both.</p>
-  <div class="wf"><div class="wf__row"><span class="wf__l">Live site</span><span class="wf__bar" role="img" aria-label="Live site: 84 requests (16 scripts, 3 stylesheets, 65 images)"><i class="wf__s wf__s--scripts" style="--w:19.05%" title="scripts: 16"></i><i class="wf__s wf__s--stylesheets" style="--w:3.57%" title="stylesheets: 3"></i><i class="wf__s wf__s--images" style="--w:77.38%" title="images: 65"></i></span><b class="wf__n num" data-count="84">84</b></div><p class="wf__note">16 scripts, 3 stylesheets, 65 images. Tags counted in the page's HTML on 2026-09-22, not a network trace: the table's request estimate is lower because repeated images are fetched once. "Other" is fonts, XHR and tracking where the estimate exceeds the tag count.</p><div class="wf__row"><span class="wf__l">This demo</span><span class="wf__bar" role="img" aria-label="This demo: 14 requests (5 scripts, 1 stylesheets, 3 images, 5 other)"><i class="wf__s wf__s--scripts" style="--w:5.95%" title="scripts: 5"></i><i class="wf__s wf__s--stylesheets" style="--w:1.19%" title="stylesheets: 1"></i><i class="wf__s wf__s--images" style="--w:3.57%" title="images: 3"></i><i class="wf__s wf__s--other" style="--w:5.95%" title="other: 5"></i></span><b class="wf__n num" data-count="14">14</b></div><p class="wf__note">5 scripts, 1 stylesheets, 3 images, 5 other. Counted in the built home page: every request is first-party; logos load lazily and are not in this count.</p></div>
+  <div class="wf"><div class="wf__row"><span class="wf__l">Live site</span><span class="wf__bar" role="img" aria-label="Live site: 84 requests (16 scripts, 3 stylesheets, 65 images)"><i class="wf__s wf__s--scripts" style="--w:19.05%" title="scripts: 16"></i><i class="wf__s wf__s--stylesheets" style="--w:3.57%" title="stylesheets: 3"></i><i class="wf__s wf__s--images" style="--w:77.38%" title="images: 65"></i></span><b class="wf__n num" data-count="84">84</b></div><p class="wf__note">16 scripts, 3 stylesheets, 65 images. Tags counted in the page's HTML on 2026-09-22, not a network trace: the table's request estimate is lower because repeated images are fetched once. "Other" is fonts, XHR and tracking where the estimate exceeds the tag count.</p><div class="wf__row"><span class="wf__l">This demo</span><span class="wf__bar" role="img" aria-label="This demo: 16 requests (7 scripts, 1 stylesheets, 3 images, 5 other)"><i class="wf__s wf__s--scripts" style="--w:8.33%" title="scripts: 7"></i><i class="wf__s wf__s--stylesheets" style="--w:1.19%" title="stylesheets: 1"></i><i class="wf__s wf__s--images" style="--w:3.57%" title="images: 3"></i><i class="wf__s wf__s--other" style="--w:5.95%" title="other: 5"></i></span><b class="wf__n num" data-count="16">16</b></div><p class="wf__note">7 scripts, 1 stylesheets, 3 images, 5 other. Counted in the built home page: every request is first-party; logos load lazily and are not in this count.</p></div>
   <h3 style="margin-top:32px">The full table</h3>
   <p>"Before" numbers were measured on the live greenjobs.ie home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time; nothing in this table is typed by hand. The requests row compares an estimate for the live site (counted from its HTML, not a network trace) with a measured count for the demo.</p>
-  <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody><tr><td>Home page HTML</td><td class="n">189,932 B</td><td class="n good">112,513 B (28,585 B gzipped)</td></tr><tr><td>Requests on the home page <small class="muted">estimated (live) / measured (demo)</small></td><td class="n">44 (estimated)</td><td class="n good">13 measured, all first-party</td></tr><tr><td>External script tags</td><td class="n">16</td><td class="n good">11 own files, 88.1 KB (32.2 KB gzipped)</td></tr><tr><td>Third-party requests</td><td class="n">yes (analytics, CDN fonts/scripts)</td><td class="n good">0</td></tr><tr><td>Stylesheet</td><td class="n">3 files</td><td class="n good">1 file, 66.8 KB (14.3 KB gzipped)</td></tr><tr><td>Front-end stack</td><td>jQuery 1.11.0, Bootstrap 3, html5shiv, vendor CDN</td><td class="good">Vanilla ES2020, no framework, no build-time packages</td></tr><tr><td>Pages rendered</td><td>server-side, per request</td><td class="good">94 static pages, 88 of them job pages</td></tr></tbody></table>
-  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built 2026-09-24. Stylesheet 66.8 KB, scripts 88.1 KB before compression; budgets 72 KB and 110 KB. Unit tests on the pure logic module: 19 passing, 0 failing.</p>
+  <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody><tr><td>Home page HTML</td><td class="n">189,932 B</td><td class="n good">115,908 B (29,430 B gzipped)</td></tr><tr><td>Requests on the home page <small class="muted">estimated (live) / measured (demo)</small></td><td class="n">44 (estimated)</td><td class="n good">15 measured, all first-party</td></tr><tr><td>External script tags</td><td class="n">16</td><td class="n good">12 own files, 99.2 KB (35.9 KB gzipped)</td></tr><tr><td>Third-party requests</td><td class="n">yes (analytics, CDN fonts/scripts)</td><td class="n good">0</td></tr><tr><td>Stylesheet</td><td class="n">3 files</td><td class="n good">1 file, 70.3 KB (15.2 KB gzipped)</td></tr><tr><td>Front-end stack</td><td>jQuery 1.11.0, Bootstrap 3, html5shiv, vendor CDN</td><td class="good">Vanilla ES2020, no framework, no build-time packages</td></tr><tr><td>Pages rendered</td><td>server-side, per request</td><td class="good">94 static pages, 88 of them job pages</td></tr></tbody></table>
+  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built 2026-09-24. Stylesheet 70.3 KB, scripts 99.2 KB before compression; budgets 80 KB and 125 KB. Unit tests on the pure logic module: 19 passing, 0 failing.</p>
 
   <h2>What was built</h2>
   <ul>
@@ -99,10 +99,37 @@
 </div>
 
 </main>
+<div class="cookie" data-cookie role="region" aria-label="Cookie settings" aria-hidden="true">
+  <p>This demo uses only essential storage (your theme, saved roles, and this choice). No tracking.</p>
+  <div class="cookie__act"><button class="btn btn--lime" type="button" data-cookie-accept>Accept</button><button class="btn" type="button" data-cookie-settings aria-haspopup="dialog">Settings</button></div>
+</div>
+<dialog class="gjd" data-cookie-dialog aria-labelledby="ck-h">
+  <form class="gjd__in" method="dialog">
+    <div class="gjd__top"><h2 id="ck-h">Cookie settings</h2><button class="icobtn" type="button" data-cookie-close aria-label="Close cookie settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p>Choose what this site may store on your device. Essential storage keeps your theme, saved roles and this choice; nothing else is set in this demo.</p>
+    <div class="gjd__list">
+      <div><label for="ck-essential">Essential<small>Always on: theme, saved roles, this choice</small></label><input type="checkbox" id="ck-essential" checked disabled></div>
+      <div><label for="ck-analytics">Analytics<small>Off. Not present in this demo</small></label><input type="checkbox" id="ck-analytics"></div>
+      <div><label for="ck-marketing">Marketing<small>Off</small></label><input type="checkbox" id="ck-marketing"></div>
+    </div>
+    <div class="gjd__act"><button class="btn" type="button" data-cookie-close>Cancel</button><button class="btn btn--lime" type="submit">Save choices</button></div>
+  </form>
+</dialog>
+<dialog class="gjd" data-subscribe aria-labelledby="sb-h">
+  <div class="gjd__in">
+    <div class="gjd__top"><span class="gjd__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#8a5d0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg></span><button class="icobtn" type="button" data-subscribe-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h2 id="sb-h">Get the weekly green jobs email</h2>
+    <p>The week's green roles across Ireland, once a week, free. Members can also set up to ten job alerts by email. Unsubscribe any time.</p>
+    <form data-demo-form novalidate>
+      <div class="row"><div class="field"><label for="sb-email" class="vh">Email</label><input class="in" id="sb-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email"></div><button class="btn btn--lime" type="submit">Subscribe</button></div>
+      <p class="note note--live" data-demo-note tabindex="-1" hidden>Demo: this form is wired to your email provider on launch. Nothing was sent.</p>
+    </form>
+  </div>
+</dialog>
 <footer class="ftr">
   <div class="wrap">
     <div class="ftr__brand">
-      <span class="logo" style="color:#eef2ea">Green<b style="color:#b4e33d">Jobs</b><small>IE</small></span>
+      <span class="logo" style="color:#f3ece1">Green<b style="color:#d99a1c">Jobs</b><small>IE</small></span>
       <p>The GreenJobs Network of Websites: job boards wholly dedicated to the green industry sector since 2008. 88 live roles on greenjobs.ie as of 2026-09-22.</p>
       <img class="bcorp" src="../../assets/logos/b-corp-logo.svg" alt="Certified B Corporation" width="96" height="163" loading="lazy">
     </div>
@@ -122,6 +149,7 @@
 <script src="../../js/lib.js" defer></script>
 <script src="../../js/main.js" defer></script>
 <script src="../../js/motion.js" defer></script>
+<script src="../../js/popups.js" defer></script>
 
 </body>
 </html>

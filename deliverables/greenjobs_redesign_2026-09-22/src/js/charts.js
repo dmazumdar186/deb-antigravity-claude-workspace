@@ -68,13 +68,13 @@
       g.appendChild(el('rect', { x: r.x, y: r.y, width: r.w, height: r.h, fill: it.color }));
       if (r.w >= 90 && r.h > 40) {
         var dark = it.dark;
-        var t = el('text', { x: r.x + 10, y: r.y + 22, fill: dark ? '#eef2ea' : '#0c1a12' });
+        var t = el('text', { x: r.x + 10, y: r.y + 22, fill: dark ? '#f3ece1' : '#2a2521' });
         var words = it.label.split(' '), line = '', lines = [];
         words.forEach(function (w) { if ((line + ' ' + w).length * 7.8 > r.w - 16 && line) { lines.push(line); line = w; } else line = line ? line + ' ' + w : w; });
         lines.push(line);
         lines.slice(0, Math.max(1, Math.floor((r.h - 34) / 17))).forEach(function (l, i) { t.appendChild(el('tspan', { x: r.x + 10, dy: i ? 16 : 0 }, l)); });
         g.appendChild(t);
-        g.appendChild(el('text', { x: r.x + 10, y: r.y + r.h - 10, class: 't2', fill: dark ? '#eef2ea' : '#0c1a12' }, it.v + (it.v === 1 ? ' role' : ' roles')));
+        g.appendChild(el('text', { x: r.x + 10, y: r.y + r.h - 10, class: 't2', fill: dark ? '#f3ece1' : '#2a2521' }, it.v + (it.v === 1 ? ' role' : ' roles')));
       }
       tipOn(g, '<b>' + G.esc(it.label) + '</b><span>' + it.v + (it.v === 1 ? ' role' : ' roles') + '</span>');
       var act = function (e) { e.preventDefault(); if (opts.onPick) opts.onPick(it); };

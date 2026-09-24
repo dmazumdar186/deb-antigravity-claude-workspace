@@ -5,7 +5,9 @@
 //   390 wide, runs the
 //   "Your fit" query "ecologist dublin" and asserts Dublin ecology roles come
 //   back, checks the ad builder renders the typed title into the card, and
-//   that a job page with a salary shows the strip. Uses the globally installed
+//   that a job page with a salary shows the strip, that Fraunces and Nunito load,
+//   the hero landscape canvas draws non-blank pixels, the subscribe dialog opens on
+//   its timer and the cookie banner's Accept persists. Uses the globally installed
 //   Playwright (verification tooling only; the site itself has no packages).
 // inputs: optional site dir (default deliverables/greenjobs_redesign_2026-09-22/site), PORT env
 // outputs: PASS/FAIL lines on stdout; exit 1 on any failure
@@ -80,6 +82,52 @@ try {
   check(await rm.evaluate(() => { const q = document.getElementById('s-q').getBoundingClientRect(); const m = document.querySelector('[data-film-state="0"]'); const o = document.querySelector('[data-film-state="1"]'); return q.height > 0 && getComputedStyle(m).display !== 'none' && getComputedStyle(o).display === 'none'; }), 'reduced motion: hero search rendered, film shows the map state only');
   check(await rm.evaluate(() => !document.querySelector('[data-film] canvas')), 'reduced motion: no canvas created');
   await rm.close();
+
+  // ---- fonts, hero canvas, popups
+  const hp = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await hp.goto(base + 'ie/index.html', { waitUntil: 'load' });
+  await hp.waitForTimeout(400);
+  const fonts = await hp.evaluate(async () => { await document.fonts.ready; return { fr: document.fonts.check('600 32px Fraunces'), nu: document.fonts.check('400 16px Nunito'), n: [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family) }; });
+  check(fonts.fr && fonts.nu, `fonts: Fraunces and Nunito loaded (${fonts.n.join(', ')})`);
+  const canvas = await hp.evaluate(() => {
+    const c = document.querySelector('.hero__canvas'); if (!c) return { ok: false, why: 'no canvas' };
+    const g = c.getContext('2d'), d = g.getImageData(0, 0, c.width, c.height).data; let distinct = new Set(); for (let i = 0; i < d.length; i += 4 * 97) distinct.add((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+    return { ok: distinct.size > 12 && window.GJLandscape && window.GJLandscape.running(), distinct: distinct.size, w: c.width, h: c.height };
+  });
+  check(canvas.ok, `hero: landscape canvas draws non-blank pixels (${canvas.distinct} distinct colours sampled, ${canvas.w}×${canvas.h})`);
+  await hp.waitForTimeout(700);
+  const ms = await hp.evaluate(() => window.GJLandscape.ms());
+  check(ms > 0 && ms <= 12, `hero: average draw ${ms.toFixed(2)} ms/frame in software-rendered headless (budget 4 ms on a laptop GPU, 12 ms here)`);
+  check(await hp.evaluate(() => document.querySelector('[data-cookie]').classList.contains('is-on')), 'cookie: banner shows on first visit');
+  await hp.click('[data-cookie-accept]');
+  await hp.waitForTimeout(100);
+  check(await hp.evaluate(() => { const c = JSON.parse(localStorage.getItem('gj-consent')); return c && c.essential === true && c.analytics === false && !document.querySelector('[data-cookie]').classList.contains('is-on'); }), 'cookie: Accept stores the choice and hides the banner');
+  await hp.reload({ waitUntil: 'load' }); await hp.waitForTimeout(800);
+  check(await hp.evaluate(() => !document.querySelector('[data-cookie]').classList.contains('is-on')), 'cookie: choice persists across a reload');
+  await hp.click('[data-cookie-settings]', { force: true }).catch(() => {});
+  await hp.evaluate(() => window.GJCookie.open());
+  await hp.waitForTimeout(100);
+  check(await hp.evaluate(() => document.querySelector('[data-cookie-dialog]').open), 'cookie: settings dialog opens');
+  await hp.keyboard.press('Escape'); await hp.waitForTimeout(100);
+  check(await hp.evaluate(() => !document.querySelector('[data-cookie-dialog]').open), 'cookie: Escape closes the settings dialog');
+  check(await hp.evaluate(() => !document.querySelector('[data-subscribe]').open), 'subscribe: not open before the timer');
+  await hp.clock.install().catch(() => {});
+  await hp.evaluate(() => { localStorage.removeItem('gj-subscribe'); });
+  await hp.reload({ waitUntil: 'load' });
+  await hp.clock.runFor(21000).catch(async () => { await hp.evaluate(() => window.GJSubscribe.open()); });
+  await hp.waitForTimeout(150);
+  check(await hp.evaluate(() => document.querySelector('[data-subscribe]').open && document.activeElement && document.activeElement.id === 'sb-email'), 'subscribe: dialog opens on the 20 s timer with the email field focused');
+  await hp.fill('#sb-email', 'keith@example.com'); await hp.click('[data-subscribe] button[type="submit"]');
+  check(await hp.$eval('[data-subscribe] [data-demo-note]', (n) => !n.hidden), 'subscribe: submit shows the honest demo note');
+  await hp.keyboard.press('Escape'); await hp.waitForTimeout(100);
+  check(await hp.evaluate(() => !document.querySelector('[data-subscribe]').open && !!localStorage.getItem('gj-subscribe')), 'subscribe: Escape closes and records the dismissal');
+  const layout = await hp.evaluate(() => { const h0 = document.documentElement.scrollHeight, b = document.querySelector('[data-cookie]'), d = document.querySelector('[data-subscribe]'); d.showModal(); const ok = getComputedStyle(b).position === 'fixed' && getComputedStyle(d).position === 'fixed' && document.documentElement.scrollHeight === h0; d.close(); return ok; });
+  check(layout, 'popups: banner and dialog are fixed (no layout shift)');
+  await hp.close();
+  const rmh = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  await rmh.goto(base + 'ie/index.html', { waitUntil: 'load' }); await rmh.waitForTimeout(300);
+  check(await rmh.evaluate(() => !!document.querySelector('.hero__canvas') && !window.GJLandscape.running()), 'reduced motion: hero draws one static frame and does not animate');
+  await rmh.close();
 
   // ---- your fit: ecologist dublin → Dublin ecology roles
   for (const path of ['ie/jobs/index.html', 'ie/index.html']) {

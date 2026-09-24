@@ -24,7 +24,7 @@
     var sec = F.sector.value, r = reach[sec] || {};
     return {
       id: 'preview', title: F.title.value.trim(), employer: F.org.value.trim(), location: F.loc.value.trim(), type: F.type.value,
-      sal_min: lo, sal_max: hi, cur: cur, period: 'year', sal_text: '', sectors: [sec], color: r.col || '#b4e33d', posted: today,
+      sal_min: lo, sal_max: hi, cur: cur, period: 'year', sal_text: '', sectors: [sec], color: r.col || '#d99a1c', posted: today,
       bullets: [F.b1.value.trim(), F.b2.value.trim(), F.b3.value.trim()].filter(Boolean)
     };
   }

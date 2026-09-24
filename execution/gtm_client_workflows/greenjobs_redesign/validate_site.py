@@ -7,7 +7,8 @@ description: Structural, accessibility and honesty checks over the built site:
   job-page count equals the dataset length per edition, no forbidden
   vocabulary on public pages (for-keith/ exempt; employer-authored description
   blocks exempt), no third-party requests, fonts self-hosted and preloaded,
-  CSS/JS weight budgets (72 KB / 110 KB).
+  CSS/JS weight budgets (80 KB / 125 KB), any referenced hero video and
+  poster exist in the built site.
 inputs: a built site directory, {edition: [normalised job records]}
 outputs: a list of failure strings (empty means the build passes)
 """
@@ -35,8 +36,8 @@ FORBIDDEN = [
     (r"\bXXX\b", "XXX"),
 ]
 EXEMPT_RE = re.compile(r"^(?:ie|uk)/for-keith/index\.html$")
-CSS_BUDGET = 72 * 1024
-JS_BUDGET = 110 * 1024
+CSS_BUDGET = 80 * 1024
+JS_BUDGET = 125 * 1024
 DANGEROUS_SCHEMES = ("javascript:", "data:", "vbscript:", "file:")
 THIRD_PARTY_TAGS = ("link", "script", "img", "iframe", "source", "video", "audio", "object", "embed")
 
@@ -223,7 +224,22 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
             if 'rel="noopener"' not in raw or "Apply on" not in raw:
                 fails.append(f"{rel}: job page has no apply link")
         if re.match(r"^(ie|uk)/index\.html$", rel) and "data-film" not in raw:
-            fails.append(f"{rel}: home page has no hero canvas host")
+            fails.append(f"{rel}: home page has no film canvas host")
+        if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
+            fails.append(f"{rel}: home page has no hero landscape host")
+        for vid in re.finditer(r"<video\b[^>]*>(.*?)</video>", raw, re.S):
+            # A referenced hero video (drop-in footage) must ship with the site, poster included.
+            poster = re.search(r'\bposter="([^"]+)"', vid.group(0))
+            srcs = re.findall(r'<source\b[^>]*\bsrc="([^"]+)"', vid.group(1)) + re.findall(r'<video\b[^>]*\bsrc="([^"]+)"', vid.group(0))
+            if not srcs:
+                fails.append(f"{rel}: <video> has no source")
+            for ref in srcs + ([poster.group(1)] if poster else []):
+                if not _is_local(ref) or ref.startswith("/"):
+                    fails.append(f"{rel}: hero video reference {ref!r} is not a relative local path")
+                elif not (page.parent / ref.split("?")[0]).resolve().exists():
+                    fails.append(f"{rel}: hero video reference {ref!r} does not exist in the built site")
+            if 'muted' not in vid.group(0) or 'playsinline' not in vid.group(0):
+                fails.append(f"{rel}: hero <video> must be muted and playsinline")
         hm = re.match(r"^(ie|uk)/index\.html$", rel)
         if hm and 'data-strip="hiring"' in raw:
             # Every logo under "Employers hiring now" must belong to an employer with a live role in this edition.

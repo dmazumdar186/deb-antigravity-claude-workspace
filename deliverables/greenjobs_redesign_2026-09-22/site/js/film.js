@@ -37,15 +37,15 @@ var T = {};
 function tone() {
 var dark = doc.documentElement.getAttribute('data-theme') === 'dark';
 T = dark
-? { bg: [12, 26, 18], ink: '#eef2ea', muted: '#aebfb2', chip: 'rgba(12,26,18,.82)', lit: '#b4e33d', dim: '#2f5a3f', dimA: 0.55, dot: '#b4e33d', line: 'rgba(238,242,234,.35)', onLime: '#0c1a12' }
-: { bg: [247, 245, 239], ink: '#f7f5ef', muted: '#4a5a50', chip: 'rgba(19,26,21,.84)', lit: '#7fa71c', dim: '#b9c9bd', dimA: 0.7, dot: '#7fa71c', line: 'rgba(19,26,21,.28)', onLime: '#0c1a12' };
+? { bg: [30, 26, 23], ink: '#f3ece1', muted: '#c9bfb2', chip: 'rgba(30,26,23,.86)', lit: '#d99a1c', dim: '#4a423b', dimA: 0.7, dot: '#7fb3d3', line: 'rgba(243,236,225,.35)', onLime: '#1e1a17' }
+: { bg: [239, 230, 214], ink: '#f6f0e6', muted: '#5a524b', chip: 'rgba(42,37,33,.9)', lit: '#a3653c', dim: '#b9ab8f', dimA: 0.85, dot: '#3f7ea6', line: 'rgba(42,37,33,.35)', onLime: '#2a2521' };
 }
 tone();
 new MutationObserver(function () { tone(); if (W) { ctx.fillStyle = 'rgb(' + T.bg.join(',') + ')'; ctx.fillRect(0, 0, W, H); } }).observe(doc.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 var c = doc.createElement('canvas'); c.setAttribute('aria-hidden', 'true'); cwrap.appendChild(c);
 var ctx = c.getContext('2d', { alpha: true }), W = 0, H = 0, dpr = 1, P = [], N = 0, raf = 0, running = false, visible = true;
-var layout = null, mode = 0, LIME = '#b4e33d';
-var colors = ['#b4e33d', '#5aa9e6', '#f2b544', '#d9774f', '#2fbf9f'];
+var layout = null, mode = 0, LIME = '#d99a1c', PX = narrow.matches ? 2.4 : 3;
+var colors = ['#5b95b8', '#d99a1c', '#6f8f6a', '#3f7ea6', '#b7774e'];
 try { colors = JSON.parse(host.querySelector('[data-colors]') ? host.querySelector('[data-colors]').getAttribute('data-colors') : 'null') || colors; } catch (e) {  }
 var regionsByCount = data.regions.map(function (r, i) { return { i: i, c: r.c }; }).filter(function (r) { return r.c > 0; }).sort(function (a, b) { return b.c - a.c; });
 var litRank = {}; regionsByCount.forEach(function (r, k) { litRank[r.i] = k; });
@@ -122,11 +122,11 @@ if (u > 0) { var e = G.easeOutQuart(u); p.x = p.sx + (p.tx - p.sx) * e; p.y = p.
 return false;
 }
 function text(s, x, y, opts) {
-ctx.font = opts.font || '600 12px "Public Sans", sans-serif'; ctx.fillStyle = opts.color || T.ink; ctx.textAlign = opts.align || 'center'; ctx.textBaseline = 'middle';
+ctx.font = opts.font || '600 12px "Nunito", sans-serif'; ctx.fillStyle = opts.color || T.ink; ctx.textAlign = opts.align || 'center'; ctx.textBaseline = 'middle';
 ctx.globalAlpha = opts.alpha == null ? 1 : opts.alpha; ctx.fillText(s, x, y);
 }
 function chip(s, x, y, opts) {
-ctx.font = opts.font || '600 12px "Public Sans", sans-serif';
+ctx.font = opts.font || '600 12px "Nunito", sans-serif';
 var w = ctx.measureText(s).width + 14, h = opts.h || 22, ax = opts.align === 'left' ? x : opts.align === 'right' ? x - w : x - w / 2;
 ax = Math.max(10, Math.min(W - 10 - w, ax));
 ctx.globalAlpha = opts.alpha == null ? 1 : opts.alpha; ctx.fillStyle = opts.bg || T.chip;
@@ -135,49 +135,49 @@ text(s, ax + w / 2, y + 0.5, { font: opts.font, color: opts.color, alpha: opts.a
 }
 function frameCanvas(now) {
 if (!running) return;
-ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(' + T.bg.join(',') + ',0.26)'; ctx.fillRect(0, 0, W, H);
+ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(' + T.bg.join(',') + ',0.3)'; ctx.fillRect(0, 0, W, H);
 var i, p, lp = Math.min(1, Math.max(0, scrub.t - SEQ.indexOf(mode) + 0.5));
 if (mode === 0) {
 var lit = Math.floor(lp * 1.7 * regionsByCount.length), g = layout.geo;
 for (i = 0; i < N; i++) {
 p = P[i]; var done = lerp(p, now), rk = litRank[p.rg];
 var on = rk != null && rk < lit;
-ctx.fillStyle = on ? T.lit : T.dim; ctx.globalAlpha = on ? 0.9 : T.dimA;
+ctx.fillStyle = on ? T.lit : T.dim; ctx.globalAlpha = on ? 0.95 : T.dimA;
 if (done) { p.x += Math.sin(now * 0.001 + p.ph) * 0.08; p.y += Math.cos(now * 0.0013 + p.ph) * 0.08; }
-ctx.fillRect(p.x - 1, p.y - 1, 2.2, 2.2);
+ctx.fillRect(p.x - PX / 2, p.y - PX / 2, PX, PX);
 }
 for (var r = 0; r < Math.min(lit, regionsByCount.length); r++) {
 var reg = data.regions[regionsByCount[r].i], top = r < (narrow.matches ? 3 : 6);
 var lx = g.ox + reg.x * g.sc, ly = g.oy + reg.y * g.sc;
-chip(top ? reg.n + ' ' + reg.c : String(reg.c), lx, ly, { font: top ? '700 12px "Archivo", sans-serif' : '700 11px "Archivo", sans-serif', color: top ? T.onLime : T.ink, bg: top ? LIME : T.chip, h: top ? 22 : 18 });
+chip(top ? reg.n + ' ' + reg.c : String(reg.c), lx, ly, { font: top ? '700 12px "Nunito", sans-serif' : '700 11px "Nunito", sans-serif', color: top ? T.onLime : T.ink, bg: top ? LIME : T.chip, h: top ? 22 : 18 });
 }
 } else if (mode === 1) {
 var gb = layout.geo;
 for (i = 0; i < N; i++) {
 p = P[i];
 if (lerp(p, now)) { p.y += 0.35 + (i % 5) * 0.08; if (p.y > gb.base) p.y = gb.base - Math.max(p.hgt, 2); }
-ctx.fillStyle = T.dot; ctx.globalAlpha = 0.7; ctx.fillRect(p.x - 1, p.y - 1, 2.2, 2.2);
+ctx.fillStyle = T.dot; ctx.globalAlpha = 0.8; ctx.fillRect(p.x - PX / 2, p.y - PX / 2, PX, PX);
 }
 ctx.globalAlpha = 0.5; ctx.strokeStyle = T.line; ctx.lineWidth = 1;
 ctx.beginPath(); ctx.moveTo(gb.A.x, gb.base + 4); ctx.lineTo(gb.A.x + gb.A.w, gb.base + 4); ctx.stroke();
 data.bands.forEach(function (b, k) {
 var cx = gb.A.x + k * gb.cw + gb.cw / 2, hgt = (b.n / gb.mx) * (gb.A.h - 70);
-text(b.l, cx, gb.base + 18, { color: T.muted, font: '600 11px "Public Sans", sans-serif', alpha: Math.min(1, lp * 2) });
-if (b.n) chip(String(b.n), cx, gb.base - hgt - 16, { font: '700 12px "Archivo", sans-serif', color: T.onLime, bg: LIME, alpha: Math.min(1, lp * 2), h: 20 });
+text(b.l, cx, gb.base + 18, { color: T.muted, font: '600 11px "Nunito", sans-serif', alpha: Math.min(1, lp * 2) });
+if (b.n) chip(String(b.n), cx, gb.base - hgt - 16, { font: '700 12px "Nunito", sans-serif', color: T.onLime, bg: LIME, alpha: Math.min(1, lp * 2), h: 20 });
 });
 } else {
 var gr = layout.geo;
 for (i = 0; i < N; i++) {
 p = P[i];
 if (lerp(p, now)) { p.a += 0.0007 + (i % 3) * 0.0002; p.x = gr.cx + Math.cos(p.a) * p.r; p.y = gr.cy + Math.sin(p.a) * p.r; }
-ctx.fillStyle = p.c; ctx.globalAlpha = 0.85; ctx.fillRect(p.x - 1, p.y - 1, 2.2, 2.2);
+ctx.fillStyle = p.c; ctx.globalAlpha = 0.9; ctx.fillRect(p.x - PX / 2, p.y - PX / 2, PX, PX);
 }
 gr.arcs.forEach(function (arc) {
 var lx = gr.cx + Math.cos(arc.mid) * gr.R * 1.34, ly = gr.cy + Math.sin(arc.mid) * gr.R * 1.34, left = Math.cos(arc.mid) < -0.15, right = Math.cos(arc.mid) > 0.15;
 var name = arc.s.n.length > 22 ? arc.s.n.replace(/ & .*$/, '') : arc.s.n;
-chip(name + '  ' + arc.s.c, lx, ly, { align: left ? 'right' : right ? 'left' : 'center', font: '700 11px "Archivo", sans-serif', color: T.ink, bg: T.chip, alpha: Math.min(1, lp * 2), h: 20 });
+chip(name + '  ' + arc.s.c, lx, ly, { align: left ? 'right' : right ? 'left' : 'center', font: '700 11px "Nunito", sans-serif', color: T.ink, bg: T.chip, alpha: Math.min(1, lp * 2), h: 20 });
 });
-chip(data.n_jobs + ' roles', gr.cx, gr.cy, { font: '700 14px "Archivo", sans-serif', color: T.onLime, bg: LIME, alpha: Math.min(1, lp * 2), h: 26 });
+chip(data.n_jobs + ' roles', gr.cx, gr.cy, { font: '700 14px "Nunito", sans-serif', color: T.onLime, bg: LIME, alpha: Math.min(1, lp * 2), h: 26 });
 }
 ctx.globalAlpha = 1;
 raf = requestAnimationFrame(frameCanvas);
