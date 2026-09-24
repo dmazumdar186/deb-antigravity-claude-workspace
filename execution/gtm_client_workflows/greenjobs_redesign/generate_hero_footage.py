@@ -91,12 +91,15 @@ def body_for(model: str, prompt: str, duration: int) -> dict:
 def find_ffmpeg(explicit: str | None) -> str:
     if explicit:
         return explicit
+    try:  # full static build with libx264 (the Playwright ffmpeg cannot even decode H.264)
+        import imageio_ffmpeg  # type: ignore
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        pass
     found = shutil.which("ffmpeg")
     if found:
         return found
-    for cand in Path("/opt/pw-browsers").glob("ffmpeg-*/ffmpeg-linux"):
-        return str(cand)
-    raise SystemExit("ffmpeg not found; pass --ffmpeg")
+    raise SystemExit("ffmpeg with libx264 not found: pip install imageio-ffmpeg, or pass --ffmpeg")
 
 
 def run_ffmpeg(ffmpeg: str, args: list[str]) -> None:
@@ -113,8 +116,8 @@ def cut_assets(ffmpeg: str, src: Path, out: Path, edition: str) -> None:
     poster = out / f"{edition}-poster.jpg"
     # Seamless-ish loop: play forward then a short reversed tail is avoided (looks fake); instead
     # trim to whole seconds and let the site loop with a 400 ms CSS crossfade on the poster.
-    run_ffmpeg(ffmpeg, ["-i", str(src), "-an", "-vf", "scale=1920:-2:flags=lanczos", "-c:v", "libx264",
-                        "-preset", "slow", "-crf", "24", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(land)])
+    run_ffmpeg(ffmpeg, ["-i", str(src), "-an", "-vf", "scale=1280:-2:flags=lanczos", "-c:v", "libx264",
+                        "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(land)])
     run_ffmpeg(ffmpeg, ["-i", str(src), "-an", "-vf", "crop=ih*1080/1350:ih,scale=1080:1350:flags=lanczos",
                         "-c:v", "libx264", "-preset", "slow", "-crf", "25", "-pix_fmt", "yuv420p",
                         "-movflags", "+faststart", str(port)])

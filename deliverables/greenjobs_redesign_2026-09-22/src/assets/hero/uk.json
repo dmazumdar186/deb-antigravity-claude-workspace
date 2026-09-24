@@ -1,0 +1,7 @@
+{
+  "model": "kling-video/v3.0/std/text-to-video",
+  "duration": 10,
+  "source": "1280x720 24fps, Higgsfield API, 2026-09-24",
+  "prompt": "Slow cinematic aerial drift over a chalk-downland river valley in southern England, a solar farm on one slope, a line of wind turbines on the far ridge, a restored wetland with reeds and a heron lifting off, hedgerows and a country lane. Warm late-afternoon golden hour, muted earth palette of cream, ochre and sage, gentle steady camera movement, calm, no text, no logos, no people, photoreal, steady horizon, the lower third of the frame calm and uncluttered.",
+  "estimate_usd": 0.84
+}

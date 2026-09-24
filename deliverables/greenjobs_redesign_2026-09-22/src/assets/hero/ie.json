@@ -1,0 +1,7 @@
+{
+  "model": "kling-video/v3.0/std/text-to-video",
+  "duration": 10,
+  "source": "1280x720 24fps, Higgsfield API, 2026-09-24",
+  "prompt": "Slow cinematic aerial drift over rolling green Irish hills toward a small onshore wind farm on the ridge, three turbines turning slowly, a river catching golden light in the valley below, dry-stone walls and hedgerows, a distant Atlantic coastline under soft haze, a pair of birds crossing the frame. Warm late-afternoon golden hour, muted earth palette of cream, ochre and sage, gentle steady camera movement, calm, no text, no logos, no people, photoreal, steady horizon, the lower third of the frame calm and uncluttered.",
+  "estimate_usd": 0.84
+}
