@@ -31,6 +31,18 @@ redirects here). Evidence page: `<base>/ie/for-keith/`
 6. Publish: `bash .../deploy_cloudflare.sh` (project `greenjobs-redesign`). `curl -sI` the base URL and
    one job page. `publish_gh_pages.sh` is retired (exits 2); github.io holds redirect stubs only.
 
+## Hero footage (Higgsfield)
+
+`python3 execution/gtm_client_workflows/greenjobs_redesign/generate_hero_footage.py --edition ie --env-file <path to .env> --duration 10`
+prints the free estimate; add `--go` to spend (guarded by `--max-usd`, default 1.50). It polls, downloads, and cuts
+`src/assets/hero/{ie,uk}.mp4`, `-m.mp4` (portrait) and `-poster.jpg` with ffmpeg; the next build picks them up.
+Prompts live in the script (`PROMPTS`) and in `research/hero_footage_brief.md`. Model: Kling 3.0 Standard by
+default (2026-09-24 estimate: 10 s 16:9 = 13.44 credits / $0.84; 5 s = $0.42). The key is `HF_API_TOKEN=key_id:secret`
+in the operator's `.env`; `api.higgsfield.ai` is behind Cloudflare and blocks non-browser user agents (error 1010),
+the script sets one. `not_enough_credits` (HTTP 403) means the **API console** balance, separate from the app plan,
+is below the estimate: top up at the Higgsfield API console, then re-run. On 2026-09-24 the balance was below
+4.5 credits, so nothing was generated.
+
 ## Exit criteria
 
 - Build exits 0; validator green; job pages == dataset length per edition; every apply link is the
