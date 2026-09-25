@@ -135,7 +135,7 @@ p{text-wrap:pretty}
 .hdr--dark.is-stuck{border-bottom-color:var(--dark-3)}
 .hdr__in{display:flex;align-items:center;gap:clamp(12px,2vw,28px);min-height:72px;padding-block:8px}
 .logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",serif;font-weight:700;font-size:1.35rem;letter-spacing:-.02em;line-height:1;min-height:44px}
-.logo svg{width:32px;height:32px;flex:none}
+.logo svg{width:30px;height:30px;flex:none}.ftr .logo svg path:first-child,[data-theme="dark"] .logo svg path:first-child,.hdr--dark .logo svg path:first-child{fill:#3fae63}
 .logo b{color:var(--accent-ink)}
 .hdr--dark .logo b,[data-theme="dark"] .logo b,.ftr .logo b{color:var(--brand-lt)}
 .logo small{font-family:"Nunito",sans-serif;font-weight:500;font-size:.75rem;color:var(--fg-3);letter-spacing:.02em;margin-left:2px;align-self:end;padding-bottom:1px}
