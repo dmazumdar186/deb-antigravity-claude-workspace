@@ -12,7 +12,11 @@ var picked = '';
 var svg = C.treemap(items, { label: 'Live roles by sector', height: 460, onPick: function (it) {
 picked = picked === it.key ? '' : it.key;
 Array.prototype.forEach.call(tm.querySelectorAll('.cell'), function (c) { c.classList.toggle('is-on', c.getAttribute('data-key') === picked); });
-Array.prototype.forEach.call(doc.querySelectorAll('[data-secrow]'), function (r) { r.classList.toggle('is-dim', !!picked && r.getAttribute('data-secrow') !== picked); });
+Array.prototype.forEach.call(doc.querySelectorAll('[data-secrow]'), function (r) {
+var me = r.getAttribute('data-secrow') === picked;
+r.classList.toggle('is-dim', !!picked && !me);
+if (me) { r.open = true; r.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+});
 var n = $('[data-tm-note]'); if (n) n.textContent = picked ? 'Showing ' + picked + '. Press it again to clear.' : 'Tap a block to highlight that sector in the list below.';
 } });
 tm.appendChild(svg);
@@ -48,5 +52,26 @@ var reg = data.regions.slice(0, 12).map(function (r) { return { label: r.name, v
 var f4 = $('[data-fig="region"]', ins);
 f4.appendChild(C.bars(reg, { label: 'Live roles by region', labelWidth: 200, fmt: function (v) { return String(v); } }));
 f4.appendChild(C.table([data.regionUnit || 'Region', 'Roles'], reg.map(function (r) { return [r.label, String(r.v)]; })));
+var tabs = Array.prototype.slice.call(ins.querySelectorAll('[data-chart]'));
+function showChart(k, focus) {
+if (!tabs.some(function (t) { return t.getAttribute('data-chart') === k; })) k = 'band';
+tabs.forEach(function (t) {
+var on = t.getAttribute('data-chart') === k, p = doc.getElementById(t.getAttribute('aria-controls'));
+t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
+if (p) p.hidden = !on;
+if (on && focus) t.focus();
+});
+if (window.location.hash !== '#chart=' + k) history.replaceState(null, '', window.location.pathname + window.location.search + '#chart=' + k);
+}
+tabs.forEach(function (t, i) {
+t.addEventListener('click', function () { showChart(t.getAttribute('data-chart')); });
+t.addEventListener('keydown', function (e) {
+var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? -i : e.key === 'End' ? tabs.length - 1 - i : 0;
+if (d) { e.preventDefault(); showChart(tabs[(i + d + tabs.length) % tabs.length].getAttribute('data-chart'), true); }
+});
+});
+var fromHash = function () { var m = /chart=([a-z]+)/.exec(window.location.hash); if (m) showChart(m[1]); };
+window.addEventListener('hashchange', fromHash);
+fromHash();
 }
 })();

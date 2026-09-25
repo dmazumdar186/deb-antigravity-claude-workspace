@@ -24,14 +24,23 @@ return String(text == null ? '' : text).split(new RegExp('(' + words.join('|') +
 return i % 2 ? '<mark>' + G.esc(piece) + '</mark>' : G.esc(piece);
 }).join('');
 }
+function brief(t) {
+t = String(t || '').replace(/\s+/g, ' ').trim();
+if (t.length <= 160) return t;
+var cut = t.slice(0, 160); cut = cut.slice(0, Math.max(80, cut.lastIndexOf(' ')));
+return cut.replace(/[,;:.\-–]+$/, '') + '…';
+}
 function row(j, q) {
-var sal = G.salaryLabel(j);
+var sal = G.salaryLabel(j), sum = brief(j.summary);
 return '<article class="row" data-id="' + G.esc(j.id) + '">' + logo(j) +
 '<div class="row__body"><h3><a href="' + G.esc(j.href) + '">' + hl(j.title, q) + '</a></h3>' +
 '<div class="row__meta"><span>' + G.esc(j.employer) + '</span><span aria-hidden="true">·</span><span>' + G.esc(j.location) + '</span>' +
-(sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + (j.sectors[0] ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i>' + G.esc(j.sectors[0]) + '</span>' : '') + '</div></div>' +
-'<div class="row__r"><time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time><span>' + G.esc(j.type || '') + '</span></div>' +
-'<button class="save" type="button" data-save="' + G.esc(j.id) + '" data-title="' + G.esc(j.title) + '" aria-pressed="false" aria-label="Save: ' + G.esc(j.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button></article>';
+(sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + '</div></div>' +
+'<div class="row__more"><div>' + (sum ? '<p class="row__sum">' + G.esc(sum) + '</p>' : '') +
+'<div class="row__meta">' + (j.sectors[0] ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i>' + G.esc(j.sectors[0]) + '</span>' : '') +
+(j.type ? '<span>' + G.esc(j.type) + '</span>' : '') + '<time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time>' +
+'<span class="row__act"><a class="btn btn--sm btn--lime" href="' + G.esc(j.href) + '">Apply<span class="arw" aria-hidden="true">→</span></a>' +
+'<button class="btn btn--sm btn--ghost" type="button" data-save="' + G.esc(j.id) + '" data-title="' + G.esc(j.title) + '" aria-pressed="false" aria-label="Save: ' + G.esc(j.title) + '">Save</button></span></div></div></div></article>';
 }
 function readForm() {
 st = { q: f.q.value.trim(), loc: f.loc.value.trim(), sector: f.sector.value, type: f.type.value, sal: f.sal.checked ? '1' : '', sort: f.sort.value, view: view };
@@ -97,6 +106,10 @@ else if (b.hasAttribute('data-reset')) { st = { sort: st.sort, view: view }; wri
 else if (b.hasAttribute('data-set')) set(b.getAttribute('data-set'), b.getAttribute('data-v'));
 else if (b.hasAttribute('data-mapclear')) { mapPick = ''; render(); }
 else { view = b.getAttribute('data-view'); st.view = view; render(); }
+});
+board.addEventListener('click', function (e) {
+var r = e.target.closest('.row'); if (!r || e.target.closest('a,button,[data-save]')) return;
+r.classList.toggle('is-open');
 });
 $$('[data-reset]', rail).forEach(function (b) { b.addEventListener('click', function () { st = { sort: st.sort, view: view }; writeForm(); render(); }); });
 doc.addEventListener('gj:saved', function () { if (view === 'saved') render(); else window.GJSaved.paint(board); });
