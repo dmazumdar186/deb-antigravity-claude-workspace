@@ -4,7 +4,7 @@
 :root {
 --paper:#f6f0e6; --paper-2:#efe6d6; --paper-3:#e6dac5; --paper-4:#d4c5a8; --card-w:#fffdf9;
 --ink:#2a2521; --ink-2:#5a524b; --ink-3:#6b625a;
---brand:#1f7a3d; --brand-2:#2b9450; --brand-3:#175f2f; --brand-soft:#e3f1e6; --brand-ink:#175f2f; --brand-lt:#8fd19e;
+--brand:#1f7a3d; --brand-2:#25843f; --brand-3:#175f2f; --brand-soft:#e3f1e6; --brand-ink:#175f2f; --brand-lt:#8fd19e;
 --honey:var(--brand); --honey-2:var(--brand-lt); --honey-ink:var(--brand-ink); --honey-soft:var(--brand-soft);
 --terra:#c65d3b; --terra-ink:#9b4526; --sage:#6f8f6a; --sky:#5b95b8; --clay:#b7774e;
 --dark-1:#1e1a17; --dark-2:#2a2521; --dark-3:#3a332d; --dark-4:#4a423b;
@@ -829,7 +829,7 @@ html:not(.has-js) .film__state h2{font-size:clamp(1.8rem,1.2rem + 2vw,3rem)}
 .gjd h2{font-size:clamp(1.5rem,1.2rem + 1.2vw,2rem)}
 .gjd p{color:var(--fg-2);font-size:var(--small)}
 .gjd form{display:grid;gap:10px}
-.gjd .row{display:grid;gap:10px}
+.gjd .row{display:grid;gap:10px;grid-template-columns:1fr;padding:0;border:0;background:none;box-shadow:none}
 @media (min-width:480px){.gjd .row{grid-template-columns:1fr auto}}
 .gjd__list{display:grid;gap:8px}
 .gjd__list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;min-height:52px;background:var(--bg)}

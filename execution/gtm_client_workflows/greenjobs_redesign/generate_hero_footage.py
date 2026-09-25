@@ -42,6 +42,11 @@ PROMPTS = {
     "uk": ("Slow cinematic aerial drift over a chalk-downland river valley in southern England, a "
            "solar farm on one slope, a line of wind turbines on the far ridge, a restored wetland "
            "with reeds and a heron lifting off, hedgerows and a country lane." + STYLE),
+    # Employers page band (shared by both editions): people, not landscape.
+    "employers": ("Slow cinematic tracking shot, golden hour, a small team of ecologists and renewable "
+                  "energy engineers at work in a green valley: one crouched by a stream with a clipboard, "
+                  "two in hi-vis walking a solar array, a wind turbine turning on the ridge, shallow depth of "
+                  "field, no faces in close-up, no text, no logos." + STYLE),
 }
 
 

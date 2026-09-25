@@ -103,3 +103,16 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   sector list is an accordion (`sector_rows()` in `build_site.py`); job descriptions fold after the first
   paragraph (`split_description()`). Review: `research/design_review_2026-09-25.md`. Measured CSS 77 / JS 102 KB.
   No Higgsfield/GLM calls: the cloud session holds no keys.
+- 2026-09-25 (fourth pass, act two): brand mark is the bare leaf (operator: no ink tile, favicon included).
+  Employers page opens on a Higgsfield band (`assets/hero/employers.{mp4,-m.mp4,-poster.jpg}`, Kling 3.0,
+  10 s, $0.46, prompt key `employers` in `generate_hero_footage.py`; `emp_band()` in `build_site.py`, root
+  `../../` because the page is two levels deep; poster-only under reduced motion / Save-Data, paused
+  off-screen). The cut step needs `pip install imageio-ffmpeg` in cloud. Panel pass (Jobs chair + 9 lenses
+  + GLM 5.3 via Baseten): `research/panel_pass_2026-09-25.md`. Applied: real social glyphs in the footer,
+  E.164 `tel:` links (Irish office number gets +353 in both editions), `?theme=` no longer persists, subscribe
+  dialog row no longer clipped at 390 (the generic `.row` job-card rule was leaking into `.gjd .row`),
+  `--brand-2` darkened to `#25843f` (white text 4.6:1), hero footage pauses under reduced motion, title and
+  hero pill say "on greenjobs.ie / .co.uk" rather than "across Ireland / the UK" (24 IE roles are UK-located).
+  Kept on purpose: cookie banner, subscribe dialog and the header B Corp item (all client feedback, 09-24).
+  Deferred to the post-delivery iteration: tap-to-expand on the whole row (title still navigates), salary
+  free-text labelled "Not disclosed", `<noscript>` lists, disclosure tests, mobile hero CTA order.

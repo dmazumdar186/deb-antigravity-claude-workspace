@@ -148,7 +148,7 @@ if (reduce.addEventListener) reduce.addEventListener('change', function () { if 
 new MutationObserver(function () { tone(); build(); if (reduce.matches) still(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 if (video) {
 var conn = navigator.connection, save = !!(conn && conn.saveData);
-if (save || reduce.matches) { video.removeAttribute('autoplay'); video.preload = 'none'; [].slice.call(video.querySelectorAll('source')).forEach(function (s) { s.remove(); }); video.load(); host.classList.add('is-playing'); stop(); }
+if (save || reduce.matches) { video.pause(); video.removeAttribute('autoplay'); video.preload = 'none'; [].slice.call(video.querySelectorAll('source')).forEach(function (s) { s.remove(); }); video.load(); host.classList.add('is-playing'); stop(); }
 else {
 var failed = false;
 var takeOver = function () { if (failed) return; host.classList.add('is-playing'); stop(); };

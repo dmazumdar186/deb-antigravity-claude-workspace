@@ -234,3 +234,11 @@
     d.querySelector('summary').addEventListener('click',function(){if(byHover){byHover=false;}});
   });
 })();
+
+// Employers footage band: poster only under reduced motion / Save-Data; paused off-screen.
+(function(){
+  var v=document.querySelector('[data-empband] video'); if(!v)return;
+  var save=navigator.connection&&navigator.connection.saveData;
+  if(save||matchMedia('(prefers-reduced-motion: reduce)').matches){v.removeAttribute('autoplay');v.pause();v.preload='none';return;}
+  if('IntersectionObserver' in window)new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)v.play().catch(function(){});else v.pause();});},{threshold:.1}).observe(v);
+})();

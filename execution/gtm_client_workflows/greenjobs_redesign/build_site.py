@@ -1035,6 +1035,50 @@ def hero_video(src: Path, ed: str, root: str) -> str:
     return f'<video class="hero__video" data-hero-video muted loop playsinline autoplay preload="metadata"{poster} aria-hidden="true" tabindex="-1">{sources}</video>'
 
 
+def emp_band(src: Path, root: str) -> str:
+    """Employers page footage band (Higgsfield clip `assets/hero/employers.mp4`, shared by
+    both editions); empty when the clip is absent so the page degrades to text."""
+    f = hero_files(src, "employers")
+    if not f.get("video"):
+        return ""
+    poster = f' poster="{root}{HERO_DIR}/{f["poster"]}"' if f.get("poster") else ""
+    sources = ""
+    if f.get("mobile"):
+        sources += f'<source src="{root}{HERO_DIR}/{f["mobile"]}" type="video/mp4" media="(max-width: 799px)">'
+    sources += f'<source src="{root}{HERO_DIR}/{f["video"]}" type="video/mp4">'
+    return (f'<div class="wrap"><figure class="empband" data-empband><video muted loop playsinline autoplay preload="metadata"{poster} aria-hidden="true" tabindex="-1">{sources}</video>'
+            '<figcaption><span>The people you are looking for are already out in the field.</span>'
+            f'<a class="btn btn--lime" href="#post">Post a job<span class="arw" aria-hidden="true">→</span></a></figcaption></figure></div>')
+
+
+_GLYPHS = {
+    "facebook": '<path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.6 1.6-1.6h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.3H7.4V14h2.8v8z"/>',
+    "twitter": '<path d="M17.5 3h3l-6.8 7.8L21.7 21h-6.2l-4.9-6.4L5 21H2l7.3-8.3L1.6 3h6.4l4.4 5.8zm-1.1 16.2h1.7L6.9 4.7H5.1z"/>',
+    "x.com": '<path d="M17.5 3h3l-6.8 7.8L21.7 21h-6.2l-4.9-6.4L5 21H2l7.3-8.3L1.6 3h6.4l4.4 5.8zm-1.1 16.2h1.7L6.9 4.7H5.1z"/>',
+    "linkedin": '<path d="M6.5 8.5H3V21h3.5zM4.8 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM21 13.4c0-3.6-1.9-5.2-4.5-5.2-2 0-2.9 1.1-3.4 1.9V8.5H9.6V21h3.5v-6.6c0-1.8.3-3.4 2.5-3.4 2.1 0 2.1 2 2.1 3.5V21H21z"/>',
+    "instagram": '<path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm5.1-8.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM12 3.7c2.7 0 3 0 4.1.1 2.7.1 4 1.4 4.1 4.1.1 1.1.1 1.4.1 4.1s0 3-.1 4.1c-.1 2.7-1.4 4-4.1 4.1-1.1.1-1.4.1-4.1.1s-3 0-4.1-.1c-2.7-.1-4-1.4-4.1-4.1C3.7 15 3.7 14.7 3.7 12s0-3 .1-4.1c.1-2.7 1.4-4 4.1-4.1 1.1-.1 1.4-.1 4.1-.1zM12 2C9.3 2 8.9 2 7.9 2.1 4.2 2.2 2.2 4.2 2.1 7.9 2 8.9 2 9.3 2 12s0 3.1.1 4.1c.1 3.7 2.1 5.7 5.8 5.8 1 .1 1.4.1 4.1.1s3.1 0 4.1-.1c3.7-.1 5.7-2.1 5.8-5.8.1-1 .1-1.4.1-4.1s0-3.1-.1-4.1c-.1-3.7-2.1-5.7-5.8-5.8C15.1 2 14.7 2 12 2z"/>',
+    "youtube": '<path d="M23 7.2a2.9 2.9 0 0 0-2-2C19.2 4.7 12 4.7 12 4.7s-7.2 0-9 .5a2.9 2.9 0 0 0-2 2C.5 9 .5 12 .5 12s0 3 .5 4.8a2.9 2.9 0 0 0 2 2c1.8.5 9 .5 9 .5s7.2 0 9-.5a2.9 2.9 0 0 0 2-2c.5-1.8.5-4.8.5-4.8s0-3-.5-4.8zM9.7 15.1V8.9l6 3.1z"/>',
+}
+
+
+def _social_glyph(url: str) -> str:
+    host = _host(url).lower()
+    for key, path in _GLYPHS.items():
+        if key in host:
+            return path
+    return '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.4-1.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+
+
+def _tel(num: str, cc: str) -> str:
+    """tel: href in E.164: a national number (leading 0) gets the edition's country code."""
+    digits = re.sub(r"[^+0-9]", "", num)
+    if digits.startswith("+"):
+        return digits
+    if digits.startswith("00"):
+        return "+" + digits[2:]
+    return cc + digits.lstrip("0") if digits.startswith("0") else digits
+
+
 def hero_bcorp(brief: dict[str, Any], root: str) -> str:
     """The B Corp mark for the home hero (owner confirmed the wording
     "Certified B Corporation" on 2026-09-24; no further claim is made)."""
@@ -1058,7 +1102,8 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
             f'<a href="{root}uk/{other_path if other == "uk" else same_path or "index.html"}" data-edswitch="uk" aria-current="{"true" if data["ed"] == "uk" else "false"}" hreflang="en-GB">UK</a>')
     net = "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}</a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http"))
     contact = data["contact"] or {}
-    phones = "".join(f'<li>{esc(lbl)}: <a href="tel:{esc(re.sub(r"[^+0-9]", "", num))}">{esc(num)}</a></li>' for lbl, num in (contact.get("phones") or [])[:2] if num)
+    # The office is in Ennis: a national (leading-0) number is Irish unless the label says otherwise.
+    phones = "".join(f'<li>{esc(lbl)}: <a href="tel:{esc(_tel(num, "+44" if "outside ireland" in lbl.lower() or "uk" in lbl.lower() else "+353"))}">{esc(num)}</a></li>' for lbl, num in (contact.get("phones") or [])[:2] if num)
     emails = "".join(f'<li><a href="mailto:{esc(e)}">{esc(e)}</a></li>' for e in dict.fromkeys(contact.get("emails") or []))
     bcorp = onepct = hdr_bcorp = ""
     if brief and brief.get("b_corp") and brief.get("bcorp_size"):
@@ -1069,7 +1114,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         w, h = brief["onepct_size"]
         onepct = f'<img src="{root}assets/logos/1fortheplanet.svg" alt="1% for the Planet member" width="{w}" height="{h}" loading="lazy" style="height:44px;width:auto;margin-top:12px;filter:brightness(1.4)">'
     social = "".join(
-        f'<a href="{esc(u)}" rel="noopener" aria-label="{esc(_host(u))}"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a>'
+        f'<a href="{esc(u)}" rel="noopener" aria-label="{esc(_host(u))}"><svg viewBox="0 0 24 24">{_social_glyph(u)}</svg></a>'
         for u in (data.get("social") or [])[:4])
     return {
         "lang": ed["lang"], "title": esc(title), "desc": esc(desc), "root": root, "home": home, "ed": data["ed"], "ED": ed["short"],
@@ -1115,7 +1160,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
 
     def fit_panel(jobs_href: str, fit_id: str) -> str:
         return render(tpl["_fit"], {"jobs_href": jobs_href, "sym": ed["sym"], "fit_id": fit_id, "n_jobs": str(len(jobs)), "fit_map": map_svg(src, ed_key)})
-    home = page("home", 1, "index", f"GreenJobs {ed['short']} — {len(jobs)} live green roles across {ed['name']}",
+    home = page("home", 1, "index", f"GreenJobs {ed['short']} — {len(jobs)} live green roles on {data['site']}",
                 f"Environmental, renewable energy and sustainability jobs across {ed['name']}: {len(jobs)} live roles from {n_emp} employers, searchable in a second.",
                 {
                     "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": plural(ed["unit"]),
@@ -1194,7 +1239,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     write("employers/index.html", page("employers", 2, "employers", f"Advertise a green role | GreenJobs {ed['short']}",
                                        f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",
                                        {"n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sites": str(len(data["network_sites"])), "about": esc(data["about"].split("\n")[0]),
-                                        "emp_points_wrap": "",
+                                        "emp_points_wrap": "", "emp_band": emp_band(src, "../../"),
                                         "country": esc(ed["name"]), "reach": esc(json_embed(reach_payload(data))), "sym": ed["sym"],
                                         "unit": ed["unit"], "fetched": esc(data["fetched"]),
                                         "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"])}, same_path="employers/index.html"))
@@ -1429,7 +1474,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         shutil.copy2(f, out / "assets" / f.name)
     hero_src = src / HERO_DIR
     if hero_src.is_dir():
-        used = {name for ed_key in ("ie", "uk") for name in hero_files(src, ed_key).values()}
+        used = {name for ed_key in ("ie", "uk", "employers") for name in hero_files(src, ed_key).values()}
         if used:
             (out / HERO_DIR).mkdir(parents=True, exist_ok=True)
             for name in sorted(used):
