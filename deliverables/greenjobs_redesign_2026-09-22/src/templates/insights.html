@@ -5,10 +5,11 @@
 </div>
 <div class="wrap viz" data-insights style="padding-bottom:var(--pad-y)">
   <p class="keyline reveal" data-keyline><strong class="num" data-s-n>{{n_jobs}}</strong> live roles · <strong class="num" data-s-disc>{{disc_pct}}%</strong> disclose a salary (<span class="num" data-s-cnt>{{n_sal}}</span> roles) · median <strong class="num" data-s-med>{{median}}</strong>, taken at the midpoint of each range.</p>
-  <div class="figs">
-    <figure class="fig reveal" data-fig="hist"><h3>Disclosed salaries by band</h3><p>How many roles fall in each band, using the midpoint of any range.</p></figure>
-    <figure class="fig reveal" data-fig="sector"><h3>Median by sector</h3><p>Only sectors with three or more disclosed salaries are shown; a role tagged to two sectors counts in both.</p></figure>
-    <figure class="fig reveal" data-fig="disc"><h3>Who tells you the money</h3><p>Share of roles in each sector that publish a figure rather than "competitive".</p></figure>
-    <figure class="fig reveal" data-fig="region"><h3>Live roles by {{unit}}</h3><p>A role listed in two places counts in each.</p></figure>
+    <div class="seg seg--charts" role="tablist" aria-label="Chart" data-chart-tabs><button type="button" role="tab" id="tab-band" aria-controls="panel-band" aria-selected="true" tabindex="0" data-chart="band">By band</button><button type="button" role="tab" id="tab-sector" aria-controls="panel-sector" aria-selected="false" tabindex="-1" data-chart="sector">By sector</button><button type="button" role="tab" id="tab-disc" aria-controls="panel-disc" aria-selected="false" tabindex="-1" data-chart="disc">Who discloses</button><button type="button" role="tab" id="tab-region" aria-controls="panel-region" aria-selected="false" tabindex="-1" data-chart="region">By {{unit}}</button></div>
+<div class="figs figs--tabs">
+    <figure class="fig reveal" data-fig="hist" role="tabpanel" id="panel-band" aria-labelledby="tab-band"><h3>Disclosed salaries by band</h3><p>How many roles fall in each band, using the midpoint of any range.</p></figure>
+    <figure class="fig reveal" data-fig="sector" role="tabpanel" id="panel-sector" aria-labelledby="tab-sector" hidden><h3>Median by sector</h3><p>Only sectors with three or more disclosed salaries are shown; a role tagged to two sectors counts in both.</p></figure>
+    <figure class="fig reveal" data-fig="disc" role="tabpanel" id="panel-disc" aria-labelledby="tab-disc" hidden><h3>Who tells you the money</h3><p>Share of roles in each sector that publish a figure rather than "competitive".</p></figure>
+    <figure class="fig reveal" data-fig="region" role="tabpanel" id="panel-region" aria-labelledby="tab-region" hidden><h3>Live roles by {{unit}}</h3><p>A role listed in two places counts in each.</p></figure>
   </div>
 </div>

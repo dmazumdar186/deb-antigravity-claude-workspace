@@ -573,6 +573,38 @@ def home_row(j: dict[str, Any], root: str, jobs_dir: str, today: date) -> str:
             f'<button class="save" type="button" data-save="{esc(j["id"])}" data-title="{esc(j["title"])}" aria-pressed="false" aria-label="Save: {esc(j["title"])}">{SAVE_ICON}</button></article>')
 
 
+def split_description(body_html: str) -> tuple[str, str]:
+    """Job page: the first paragraph shows; the rest folds behind a
+    "Read the full description" <details>. Splits on the first </p> that
+    leaves something behind, else at a sentence boundary past 600 chars."""
+    m = re.search(r"</p>", body_html, re.I)
+    if m and body_html[m.end():].strip():
+        lead, rest = body_html[:m.end()], body_html[m.end():]
+    elif not m and len(strip_tags(body_html)) > 600:
+        cut = body_html.find(". ", 600)
+        if cut < 0:
+            return body_html, ""
+        lead, rest = body_html[:cut + 1], body_html[cut + 1:]
+    else:
+        return body_html, ""
+    return lead, f'<details class="more"><summary><span class="more__o">Read the full description</span><span class="more__c">Show less</span></summary><div class="more__body">{rest}</div></details>'
+
+
+def sector_rows(data: dict[str, Any]) -> str:
+    """Sectors page accordion: one <details> per live sector; the summary is
+    the name and count, the body lists its roles and links to the filtered board."""
+    out = []
+    for s in data["sectors"]:
+        if s["n"] <= 0:
+            continue
+        in_s = [j for j in data["jobs"] if s["name"] in j["sectors"]]
+        links = "".join(f'<li><a href="../jobs/{esc(j["href"])}">{esc(j["title"])}</a><small>{esc(j["employer"])}</small></li>' for j in in_s[:12])
+        more = f'<li class="secrow__more">and {len(in_s) - 12} more</li>' if len(in_s) > 12 else ""
+        out.append(f'<details class="secrow" data-secrow="{esc(s["name"])}"><summary><span><i style="background:{s["color"]}"></i>{esc(s["name"])}</span><b class="num">{s["n"]}</b></summary>'
+                   f'<div class="secrow__body"><ul>{links}{more}</ul><a class="btn btn--sm btn--ghost" href="../jobs/index.html?sector={qs(s["name"])}">See all in Jobs<span class="arw" aria-hidden="true">→</span></a></div></details>')
+    return "".join(out)
+
+
 def sector_stat(in_sector: list[dict[str, Any]], sym: str) -> str:
     """One real figure per sector tile: the median disclosed salary when at
     least three roles disclose one, otherwise how many disclose pay."""
@@ -1133,10 +1165,11 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
             if v:
                 dl += f"<dt>{k}</dt><dd>{esc(v)}</dd>"
         body_html = j["description_html"] or f"<p>{esc(j['summary'])}</p>"
+        lead_html, rest_html = split_description(body_html)
         jp = page("job", 3, "jobs", f"{j['title']} — {j['employer']} | GreenJobs {ed['short']}", (j["summary"] or j["title"])[:155],
                   {
                       "jsonld": job_jsonld(j, data), "title": esc(j["title"]), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo") if j["logo"] else "",
-                      "meta": meta_tags, "dl": dl, "desc_html": body_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]),
+                      "meta": meta_tags, "dl": dl, "desc_lead": lead_html, "desc_rest": rest_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]),
                       "similar": "".join(role_card(s, "../../../", "../", today) for s in similar) or '<p class="muted">No other live roles in this sector this week.</p>',
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
                       "posted_line": esc(f"Posted {j['posted']}" + (f" · closes {j['closing']}" if j["closing"] else "")) if j["posted"] else "",
@@ -1145,9 +1178,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         write(f"jobs/{j['id']}/index.html", jp)
 
     # ---- sectors, insights, compass, employers
-    sec_rows = "".join(
-        f'<a class="secrow" data-secrow="{esc(s["name"])}" href="../jobs/index.html?sector={qs(s["name"])}"><span><i style="background:{s["color"]}"></i>{esc(s["name"])}</span><b class="num">{s["n"]}</b></a>'
-        for s in data["sectors"] if s["n"] > 0)
+    sec_rows = sector_rows(data)
     write("sectors/index.html", page("sectors", 2, "sectors", f"Sectors — where the green work is | GreenJobs {ed['short']}",
                                      f"Every sector with live roles on GreenJobs {ed['short']}, sized by count.",
                                      {"dataset": dataset_script(data, "../jobs/index.html", False), "rows": sec_rows,

@@ -222,3 +222,15 @@
   }
   window.GJsay = say;
 })();
+
+// Employer "reveal" cards: preview on hover at desktop (a closed <details> hides its body at the UA level, so CSS alone cannot).
+(function(){
+  if(!matchMedia('(hover:hover)').matches)return;
+  document.querySelectorAll('details.reveal').forEach(function(d){
+    var byHover=false;
+    d.addEventListener('mouseenter',function(){if(!d.open){d.open=true;byHover=true;}});
+    d.addEventListener('mouseleave',function(){if(byHover){d.open=false;byHover=false;}});
+    d.addEventListener('toggle',function(){if(!d.open)byHover=false;});
+    d.querySelector('summary').addEventListener('click',function(){if(byHover){byHover=false;}});
+  });
+})();

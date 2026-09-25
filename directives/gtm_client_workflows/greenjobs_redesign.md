@@ -91,3 +91,15 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   `-m.mp4`, `-poster.webp|jpg`; validator checks referenced files exist). Budgets raised to CSS ≤ 80 KB,
   JS ≤ 125 KB (measured 70 / 99). Learned: the validator's checkbox rule needs `<label for>` (a
   wrapping label only counts when `<label>` is immediately followed by `<input>`).
+- 2026-09-25 (fourth pass, operator feedback "buttons simple, logo yellow vs favicon green, inner pages
+  dense"): one brand mark (deep-green leaf `#1f7a3d` on an ink tile) shared byte-for-byte by favicon,
+  header, menu, footer and chooser; honey retired from the brand (`--honey*` now alias the `--brand*`
+  tokens; the landscape sun keeps its colour). Button system: gradient primary with inset highlight,
+  coloured glow, lift/press/focus states; ink-fill secondary; ghost; circular icon buttons; hairline +
+  two-layer shadow on cards. Progressive disclosure: job rows unfold summary/sector/type/age + Apply/Save
+  on hover, focus or tap (`.row__more`, `css/disclose.css`); salary explorer is one chart at a time behind
+  a tablist (`#chart=` deep link); employer packages are `<details class="reveal">` cards that preview on
+  hover (JS in `main.js`: a closed `<details>` hides its body at the UA level, CSS alone cannot show it);
+  sector list is an accordion (`sector_rows()` in `build_site.py`); job descriptions fold after the first
+  paragraph (`split_description()`). Review: `research/design_review_2026-09-25.md`. Measured CSS 77 / JS 102 KB.
+  No Higgsfield/GLM calls: the cloud session holds no keys.

@@ -15,6 +15,7 @@
 <link rel="preload" href="{{root}}assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{{root}}assets/fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{root}}css/styles.css">
+<link rel="stylesheet" href="{{root}}css/disclose.css">
 <script>(function(){var d=document.documentElement;d.className+=' has-js';var t=(location.search.match(/[?&]theme=(dark|light)/)||[])[1]||null;try{if(t)localStorage.setItem('gj-theme',t);else t=localStorage.getItem('gj-theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);})();</script>
 </head>
 <body data-edition="{{ed}}" data-root="{{root}}" data-page="{{page}}"{{body_attrs}}>
@@ -23,7 +24,7 @@
   <div class="hdr__prog" data-progress aria-hidden="true"></div>
   <div class="wrap hdr__in">
     <a class="logo" href="{{home}}index.html" aria-label="GreenJobs {{ED}}, home">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#d99a1c"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#2a2521" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2a2521"/><path d="M16 5c5 5 10 8.5 10 15a10 10 0 0 1-20 0c0-6.5 5-10 10-15z" fill="#1f7a3d"/><path d="M16 11v15M16 18c-2.4-.8-4.2-2.5-5-5M16 15c2.4-.8 4.2-2.5 5-5" stroke="#8fd19e" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
       <span>Green<b>Jobs</b></span><small>{{ED}}</small>
     </a>
     <nav class="nav" aria-label="Primary">{{nav}}</nav>
@@ -38,7 +39,7 @@
 </header>
 <dialog class="menu" data-menu aria-label="Menu">
   <div class="menu__in">
-    <div class="menu__top"><span class="logo">Green<b>Jobs</b><small>{{ED}}</small></span><button class="icobtn" type="button" data-menu-close aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="menu__top"><span class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2a2521"/><path d="M16 5c5 5 10 8.5 10 15a10 10 0 0 1-20 0c0-6.5 5-10 10-15z" fill="#1f7a3d"/><path d="M16 11v15M16 18c-2.4-.8-4.2-2.5-5-5M16 15c2.4-.8 4.2-2.5 5-5" stroke="#8fd19e" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>Green<b>Jobs</b><small>{{ED}}</small></span><button class="icobtn" type="button" data-menu-close aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <a href="{{home}}index.html">Home <span aria-hidden="true">→</span></a>
     {{menu_links}}
     <div class="menu__foot"><div class="edsw" role="group" aria-label="Edition">{{edsw}}</div><a class="btn btn--lime btn--sm" href="{{home}}employers/index.html" style="border:0;padding:8px 16px;min-height:44px;font-size:.95rem">Post a job</a></div>
@@ -77,7 +78,7 @@
 <footer class="ftr">
   <div class="wrap">
     <div class="ftr__brand">
-      <span class="logo" style="color:#f3ece1">Green<b style="color:#d99a1c">Jobs</b><small>{{ED}}</small></span>
+      <span class="logo" style="color:#f3ece1"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2a2521"/><path d="M16 5c5 5 10 8.5 10 15a10 10 0 0 1-20 0c0-6.5 5-10 10-15z" fill="#1f7a3d"/><path d="M16 11v15M16 18c-2.4-.8-4.2-2.5-5-5M16 15c2.4-.8 4.2-2.5 5-5" stroke="#8fd19e" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>Green<b>Jobs</b><small>{{ED}}</small></span>
       <p>The GreenJobs Network of Websites: job boards wholly dedicated to the green industry sector since 2008. {{n_jobs}} live roles on {{domain}} as of {{fetched}}.</p>
       {{bcorp}}
     </div>
