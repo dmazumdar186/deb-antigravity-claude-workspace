@@ -920,6 +920,89 @@ def reach_payload(data: dict[str, Any]) -> dict[str, Any]:
 
 
 # ------------------------------------------------------------------ pages
+AGENCY_NAMES = {"gaia talent", "mattinson partnership"}
+AGENCY_RE = re.compile(r"recruit|talent|staffing", re.I)
+REMOTE_RE = re.compile(r"\b(remote|hybrid|work(?:ing)? from home)\b", re.I)
+
+
+def _median_int(vals: list[float]) -> float | None:
+    if not vals:
+        return None
+    vals = sorted(vals)
+    h = len(vals) // 2
+    return vals[h] if len(vals) % 2 else (vals[h - 1] + vals[h]) / 2
+
+
+def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
+    """Live-now KPIs for the client dashboard, computed from the normalised dataset
+    relative to the snapshot date (so the build is deterministic)."""
+    jobs = data["jobs"]
+    n = len(jobs)
+    asof = date.fromisoformat(data["fetched"])
+
+    def d(iso: str) -> date | None:
+        try:
+            return date.fromisoformat(iso) if iso else None
+        except ValueError:
+            return None
+
+    new7 = sum(1 for j in jobs if (p := d(j["posted"])) and 0 <= (asof - p).days < 7)
+    closing7 = sum(1 for j in jobs if (c := d(j["closing"])) and 0 <= (c - asof).days <= 7)
+    sal_n = sum(1 for j in jobs if j["sal_min"] is not None or j["sal_max"] is not None)
+    med = _median_int([a[2] for j in jobs if (a := annual_mid(j))])
+    emp: dict[str, int] = {}
+    for j in jobs:
+        emp[j["employer"]] = emp.get(j["employer"], 0) + 1
+    top = max(emp.items(), key=lambda kv: (kv[1], kv[0])) if emp else ("", 0)
+    agency = sum(1 for j in jobs if j["employer"].lower() in AGENCY_NAMES or AGENCY_RE.search(j["employer"]))
+    days_close = _median_int([(c - p).days for j in jobs if (p := d(j["posted"])) and (c := d(j["closing"])) and c >= p])
+    remote = sum(1 for j in jobs if REMOTE_RE.search(" ".join((j["title"], j["location"], j["text"]))))
+    quality = [0, 0, 0, 0, 0]
+    for j in jobs:
+        score = int(j["sal_min"] is not None or j["sal_max"] is not None) + int(bool(j["closing"])) + int(bool(j["logo"])) + int(len(j["text"]) >= 400)
+        quality[score] += 1
+    return {
+        "asof": data["fetched"], "live": n, "new7": new7, "weeks": sparkline_weeks(jobs, asof, 4), "closing7": closing7,
+        "sal_n": sal_n, "sal_pct": round(100 * sal_n / max(1, n)), "sal_median": round(med) if med is not None else None,
+        "sectors": [{"l": s["name"], "v": s["n"]} for s in data["sectors"] if s["n"]],
+        "regions": [{"l": r["name"], "v": r["n"]} for r in data["regions"] if r["on_map"]][:12],
+        "top_employer": top[0], "top_share": round(100 * top[1] / max(1, n)), "employers": len(emp),
+        "agency_pct": round(100 * agency / max(1, n)), "days_to_close": round(days_close) if days_close is not None else None,
+        "remote_pct": round(100 * remote / max(1, n)), "quality": quality,
+    }
+
+
+def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str], brief: dict[str, Any], site_base: str) -> None:
+    """Client KPI dashboard at /{ed}/dashboard/: live-now tiles from the dataset plus
+    the analytics KPIs wired at launch. Not in the primary nav; linked from for-keith."""
+    ed = EDITIONS[data["ed"]]
+    k = dashboard_kpis(data)
+    sym = ed["sym"]
+    flag = k["top_share"] > 50
+    med = f'{sym}{k["sal_median"]:,}' if k["sal_median"] is not None else "n/a"
+    tiles = [
+        ("Live roles", str(k["live"]), "Listings with a page in this edition on the snapshot date.", ""),
+        ("New this week", str(k["new7"]), "Roles posted within 7 days of the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
+        ("Closing within 7 days", str(k["closing7"]), "Roles whose closing date falls within the next 7 days.", ""),
+        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints: {med}.', ""),
+        ("Top employer share", f'{k["top_share"]}%', f'{esc(k["top_employer"])} holds this share of live roles across {k["employers"]} employers.' + (" Above 50%: a concentration risk worth diversifying." if flag else ""), ""),
+        ("Agency share", f'{k["agency_pct"]}%', "Roles posted by recruiters (Gaia Talent, Mattinson Partnership, or names containing recruit, talent or staffing); the rest are direct employers.", ""),
+        ("Median days to close", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both.", ""),
+        ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose title, location or description mentions remote, hybrid or working from home (keyword-derived).", ""),
+    ]
+    tile_html = "".join(
+        f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num">{val}</b>{spark}<p class="kpi__d">{how}</p></div>'
+        for lbl, val, how, spark in tiles)
+    root = "../../"
+    ctx = shell_ctx(data, 2, "dashboard", f"KPI dashboard — what GreenJobs {ed['short']} measures | GreenJobs {ed['short']}",
+                    "Live board metrics computed from the listings, and the analytics wired at launch.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
+    ctx["scripts"] = "".join(f'<script src="{root}js/{s}.js" defer></script>' for s in ("charts", "dashboard"))
+    ctx["content"] = render(tpl["dashboard"], {**ctx, "tiles": tile_html, "unit": ed["unit"], "units": plural(ed["unit"]), "sym": sym,
+                                               "kpis": f'<script type="application/json" id="gj-dash">{json_embed(k)}</script>',
+                                               "keith": f"{root}{data['ed']}/for-keith/index.html"})
+    (out / data["ed"] / "dashboard").mkdir(parents=True, exist_ok=True)
+    (out / data["ed"] / "dashboard" / "index.html").write_text(render(tpl["_shell"], ctx), encoding="utf-8")
+
 
 def _host(url: str) -> str:
     return re.sub(r"^https?://(www\.)?", "", url).split("/")[0]
@@ -1069,6 +1152,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     write("compass/index.html", page("compass", 2, "compass", f"Green Career Compass — find your sector in seven questions | GreenJobs {ed['short']}",
                                      "Seven quick questions, three sectors that fit, live roles to match.",
                                      {"dataset": dataset_script(data, "../jobs/index.html", False)}, same_path="compass/index.html"))
+    render_dashboard(data, src, out, tpl, brief, site_base)
     write("employers/index.html", page("employers", 2, "employers", f"Advertise a green role | GreenJobs {ed['short']}",
                                        f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",
                                        {"n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sites": str(len(data["network_sites"])), "about": esc(data["about"].split("\n")[0]),
