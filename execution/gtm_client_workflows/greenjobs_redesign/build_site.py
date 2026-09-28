@@ -567,7 +567,7 @@ def home_row(j: dict[str, Any], root: str, jobs_dir: str, today: date) -> str:
     return (f'<article class="row" data-id="{esc(j["id"])}">{logo_img(j, root)}'
             f'<div class="row__body"><h3><a href="{jobs_dir}{esc(j["href"])}">{esc(j["title"])}</a></h3>'
             f'<div class="row__meta"><span>{esc(j["employer"])}</span><span aria-hidden="true">·</span><span>{esc(j["location"])}</span>'
-            f'<span class="tag tag--lvl" title="Career level, read from the title">{esc(lvl)}</span>'
+            f'<span class="tag tag--lvl" title="Career level">{esc(lvl)}</span>'
             f'{salc}{sec}</div></div>'
             f'<div class="row__r"><time datetime="{esc(j["posted"])}">{esc(ago(j["posted"], today))}</time><span>{esc(j["type"])}</span></div>'
             f'<button class="save" type="button" data-save="{esc(j["id"])}" data-title="{esc(j["title"])}" aria-pressed="false" aria-label="Save: {esc(j["title"])}">{SAVE_ICON}</button></article>')
@@ -637,10 +637,76 @@ def employers_strip(data: dict[str, Any], root: str) -> dict[str, str]:
 # (sections 1, 2/4 and 5). Used only when brief.md is present; otherwise the
 # facts are derived from the dataset itself.
 BRIEF_FACTS = [
-    ("Wholly dedicated to green work since 2008", "A job board built only for the environmental and renewable energy market — not a general board with a green filter."),
+    ("Specialist green job network since 2008", "A job board wholly dedicated to the environmental and renewable energy market, not a general board with a green filter."),
     ("One posting, the whole network", "Each job is shown across the relevant sites in the GreenJobs Network of Websites at no additional cost, so it reaches the readers who want it."),
     ("Alerts that do the searching", "Up to ten job alerts by email, a weekly jobs newsletter, saved roles and one-tap applications on any device."),
 ]
+
+
+# B Corp: brief.md section 3 supports only the mark with its alt text. The
+# explainer (Keith A3) describes what certification means; no date or score.
+BCORP_ALT = "Certified B Corporation"
+BCORP_NOTE = "B Corp: independently certified for social and environmental performance, accountability and transparency."
+
+
+def bcorp_line(brief: dict[str, Any] | None, root: str, where: str = "footer") -> str:
+    """The B Corp mark plus its one-line explainer, or '' when brief.md does
+    not carry the mark. `where` picks the wrapper class."""
+    if not (brief and brief.get("b_corp") and brief.get("bcorp_size")):
+        return ""
+    w, h = brief["bcorp_size"]
+    img = (f'<img class="bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="{BCORP_ALT}" title="{BCORP_NOTE}" '
+           f'width="{w}" height="{h}" loading="lazy">')
+    return f'<p class="bcorp-line bcorp-line--{where}">{img}<span><b>{BCORP_ALT}.</b> {BCORP_NOTE}</span></p>'
+
+
+def hero_facts(data: dict[str, Any], n_emp: int) -> str:
+    """Credibility markers for the hero facts row (Keith A2). The IE edition
+    never shows an employer count; the UK edition keeps it. Every number is
+    read from the dataset or brief-derived data."""
+    parts: list[str] = []
+    if data["ed"] == "uk" and n_emp:
+        parts.append(f'<span><b class="num">{n_emp}</b> employers hiring now</span>')
+    m = re.search(r"\b(19|20)\d{2}\b", data.get("about") or "")
+    if m:
+        parts.append(f"<span>Specialist green job network since {m.group(0)}</span>")
+    n_sites = len(data.get("network_sites") or [])
+    if n_sites:
+        parts.append(f'<span><b class="num">{n_sites}</b> specialist job sites</span>')
+    n_sectors = sum(1 for s in data["sectors"] if s["n"])
+    parts.append(f'<span>Roles across <b class="num">{n_sectors}</b> sectors</span>')
+    return "".join(parts)
+
+
+def network_inline(data: dict[str, Any]) -> str:
+    return ", ".join(f'<a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}</a>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http"))
+
+
+def keith_changes(src: Path) -> str:
+    """Render the working checklist (KEITH_CHANGES_CHECKLIST.md beside src/) as
+    a status list for the evidence page. Parses '- [ ] / [x] / [~] / [-]'
+    lines under '## ' headings; missing file -> ''."""
+    path = src.parent / "KEITH_CHANGES_CHECKLIST.md"
+    if not path.exists():
+        return ""
+    status = {" ": ("open", "Open"), "x": ("done", "Done"), "~": ("partial", "Partial"), "-": ("notdone", "Not done")}
+    out: list[str] = []
+    open_ul = False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        h = re.match(r"^##\s+(.+)", line)
+        if h:
+            if open_ul:
+                out.append("</ul>")
+            out.append(f'<h3>{esc(h.group(1))}</h3><ul class="changes">')
+            open_ul = True
+            continue
+        m = re.match(r"^\s*-\s+\[([ x~-])\]\s+(.+)", line)
+        if m and open_ul:
+            cls, label = status[m.group(1)]
+            out.append(f'<li class="chg chg--{cls}"><b>{label}</b> {esc(m.group(2))}</li>')
+    if open_ul:
+        out.append("</ul>")
+    return "".join(out)
 
 
 def facts_block(brief: dict[str, Any], data: dict[str, Any]) -> str:
@@ -1092,7 +1158,7 @@ def hero_bcorp(brief: dict[str, Any], root: str) -> str:
     if not (brief and brief.get("b_corp") and brief.get("bcorp_size")):
         return ""
     w, h = brief["bcorp_size"]
-    return f'<img class="hero__bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="Certified B Corporation" width="{w}" height="{h}">'
+    return f'<img class="hero__bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="{BCORP_ALT}" title="{BCORP_NOTE}" width="{w}" height="{h}">'
 
 
 def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str, *, dark_header: bool = False,
@@ -1109,13 +1175,21 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
             f'<a href="{root}uk/{other_path if other == "uk" else same_path or "index.html"}" data-edswitch="uk" aria-current="{"true" if data["ed"] == "uk" else "false"}" hreflang="en-GB">UK</a>')
     net = "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}</a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http"))
     contact = data["contact"] or {}
-    phones = "".join(f'<li>{esc(lbl)}: <a href="tel:{esc(re.sub(r"[^+0-9]", "", num))}">{esc(num)}</a></li>' for lbl, num in (contact.get("phones") or [])[:2] if num)
+    # Keith F3: the UK footer lists the UK number first, IE the Irish one; the
+    # numbers themselves come from brief.md / <ed>.json contact (never typed here).
+    raw_phones = [(str(lbl), str(num)) for lbl, num in (contact.get("phones") or []) if num]
+    uk_nums = [n for l, n in raw_phones if "outside" in l.lower() or n.strip().startswith("+44")]
+    ie_nums = [n for l, n in raw_phones if n not in uk_nums]
+    ordered = [("Calling from the UK", n) for n in uk_nums[:1]] + [("Calling from Ireland", n) for n in ie_nums[:1]]
+    if data["ed"] == "ie":
+        ordered.reverse()
+    phones = "".join(f'<li>{esc(lbl)}: <a href="tel:{esc(re.sub(r"[^+0-9]", "", num))}">{esc(num)}</a></li>' for lbl, num in ordered)
     emails = "".join(f'<li><a href="mailto:{esc(e)}">{esc(e)}</a></li>' for e in dict.fromkeys(contact.get("emails") or []))
     bcorp = onepct = hdr_bcorp = ""
     if brief and brief.get("b_corp") and brief.get("bcorp_size"):
         w, h = brief["bcorp_size"]
-        bcorp = f'<img class="bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="Certified B Corporation" width="{w}" height="{h}" loading="lazy">'
-        hdr_bcorp = f'<span class="hdr__bcorp"><img src="{root}assets/logos/b-corp-logo.svg" alt="" width="{w}" height="{h}">Certified B Corporation</span>'
+        bcorp = f'<img class="bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="{BCORP_ALT}" title="{BCORP_NOTE}" width="{w}" height="{h}" loading="lazy">'
+        hdr_bcorp = f'<span class="hdr__bcorp" title="{BCORP_NOTE}"><img src="{root}assets/logos/b-corp-logo.svg" alt="" width="{w}" height="{h}">{BCORP_ALT}</span>'
     if brief and brief.get("onepct_size"):
         w, h = brief["onepct_size"]
         onepct = f'<img src="{root}assets/logos/1fortheplanet.svg" alt="1% for the Planet member" width="{w}" height="{h}" loading="lazy" style="height:44px;width:auto;margin-top:12px;filter:brightness(1.4)">'
@@ -1131,6 +1205,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
         "nav_list": "".join(f'<li><a href="{home}{href}">{label}</a></li>' for href, label in NAV),
         "onepct": onepct, "scripts": "", "page": page, "country": esc(ed["name"]),
+        "head_extra": "", "bcorp_footer": bcorp_line(brief, root, "footer"),
     }
 
 
@@ -1151,7 +1226,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(html_text, encoding="utf-8")
 
-    SCRIPTS = {"home": ["landscape", "film", "fit"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"], "employers": ["adbuilder"]}
+    SCRIPTS = {"home": ["landscape"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"], "employers": ["adbuilder"]}
 
     def page(name: str, depth: int, page_key: str, title: str, desc: str, body: dict[str, str], **kw: Any) -> str:
         ctx = shell_ctx(data, depth, page_key, title, desc, brief=brief, site_base=site_base, **kw)
@@ -1162,7 +1237,19 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     # ---- home
     map_counts = {r["name"]: r["n"] for r in top_regions}
     strip = employers_strip(data, "../")
-    film = film_payload(data, src)
+    n_sectors_live = sum(1 for s in data["sectors"] if s["n"])
+    n_regions_live = sum(1 for r in top_regions if r["n"])
+    hero_sub = ("Find environmental, sustainability, renewable-energy and nature careers across Ireland." if ed_key == "ie"
+                else "Search environmental, ecology, sustainability, renewable-energy and low-carbon careers across the UK.")
+    # Keith C1/C4: the region map band is a home section on the UK edition only;
+    # the IE home reaches the county map through the Salary-insight tile.
+    region_band = "" if ed_key == "ie" else (
+        '<section class="band band--alt" aria-labelledby="h-map">'
+        f'<div class="wrap mapband" data-home-map data-counts="{esc(json_embed(map_counts))}" data-jobs="jobs/index.html"><div>'
+        '<h2 id="h-map">See where green employers are hiring</h2>'
+        '<p class="muted" style="margin:14px 0 24px;max-width:44ch">Explore current vacancies by UK region, including nationwide and remote opportunities. '
+        f'Hover or tab through the map for counts; choose one to open the filtered list.{off_map_note(data, "jobs/index.html")}</p>'
+        f'<div class="maplist">{map_list(data, "jobs/index.html")}</div></div><div class="reveal">{map_svg(src, ed_key, map_counts)}</div></div></section>')
 
     def fit_panel(jobs_href: str, fit_id: str) -> str:
         return render(tpl["_fit"], {"jobs_href": jobs_href, "sym": ed["sym"], "fit_id": fit_id, "n_jobs": str(len(jobs)), "fit_map": map_svg(src, ed_key)})
@@ -1172,20 +1259,17 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                     "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": plural(ed["unit"]),
                     "colors": esc(colors), "sector_tiles": sector_tiles(data, "jobs/index.html", today, ed["sym"]),
                     "latest_rows": "".join(home_row(j, "../", "jobs/", today) for j in jobs[:8]),
-                    "hero_bcorp": hero_bcorp(brief, "../"), "hero_video": hero_video(src, ed_key, "../"),
+                    "hero_bcorp": hero_bcorp(brief, "../"), "hero_video": hero_video(src, ed_key, "../"), "bcorp_note": BCORP_NOTE,
+                    "hero_sub": hero_sub, "hero_facts": hero_facts(data, n_emp), "region_band": region_band,
+                    "latest_title": "Latest roles" if ed_key == "ie" else "Latest UK roles",
+                    "snapshot_short": esc(snapshot_label(data["fetched"]).replace("Snapshot of", "snapshot of")),
+                    "emp_heading": "Employer proposition" if ed_key == "ie" else "Employers and advertising",
+                    "alert_title": "Email alerts: the week's green roles, in your inbox" if ed_key == "ie" else "Job alerts: the week's green roles, in your inbox",
+                    "n_disc": str(n_sal), "disc_pct": str(round(100 * n_sal / max(1, len(jobs)))), "median": esc(median_salary(jobs, ed["sym"])),
                     "inside_net": "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}<span class="arw" aria-hidden="true">↗</span></a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http")),
-                    "inside_sectors": "".join(f'<li><a href="jobs/index.html?sector={qs(s["name"])}"><i style="background:{s["color"]}" aria-hidden="true"></i>{esc(s["name"])}<b class="num">{s["n"]}</b></a></li>' for s in data["sectors"] if s["n"]),
-                    "map": map_svg(src, ed_key, map_counts), "map_counts": esc(json_embed(map_counts)), "map_list": map_list(data, "jobs/index.html"), "off_map": off_map_note(data, "jobs/index.html"),
-                    "n_regions": str(len(top_regions)), "employers": strip["html"], "emp_title": strip["title"], "emp_sub": strip["sub"], "snapshot": esc(snapshot_label(data["fetched"])), "facts": facts_block(brief, data),
+                    "n_regions": str(n_regions_live), "employers": strip["html"], "emp_title": strip["title"], "emp_sub": strip["sub"], "snapshot": esc(snapshot_label(data["fetched"])), "facts": facts_block(brief, data),
                     "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"]),
-                    "n_sectors": str(sum(1 for s in data["sectors"] if s["n"])),
-                    "legend": "".join(f'<span><i style="background:{s["color"]}"></i>{esc(s["name"])}</span>' for s in data["sectors"][:5]),
-                    "film_data": f'<script type="application/json" id="gj-film">{json_embed(film)}</script>',
-                    "n_regions_lit": str(sum(1 for r in film["regions"] if r["c"])),
-                    "region_list": "".join(f'<li>{esc(r["n"])}: {r["c"]}</li>' for r in sorted(film["regions"], key=lambda r: -r["c"]) if r["c"]),
-                    "band_list": "".join(f'<li>{esc(b["l"])}: {b["n"]}</li>' for b in film["bands"] if b["n"]),
-                    "sector_list": "".join(f'<li>{esc(x["n"])}: {x["c"]}</li>' for x in film["sectors"]),
-                    "n_disc": str(film["n_sal"]), "fit_panel": fit_panel("jobs/index.html", "fit-q"), "median": esc(median_salary(jobs, ed["sym"])),
+                    "n_sectors": str(n_sectors_live),
                 }, body_attrs=' data-data="data/jobs.json"', same_path="index.html")
     write("index.html", home)
     (edir / "data").mkdir(exist_ok=True)
@@ -1244,10 +1328,23 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                                      "Seven quick questions, three sectors that fit, live roles to match.",
                                      {"dataset": dataset_script(data, "../jobs/index.html", False)}, same_path="compass/index.html"))
     render_dashboard(data, src, out, tpl, brief, site_base)
+    emp_strip = employers_strip(data, "../../")
+    # Keith E7: UK-only credibility block. Testimonial slots are labelled
+    # placeholders (brief.md testimonials are anonymous; none is reproduced).
+    trust_block = "" if ed_key != "uk" else (
+        '<section class="wrap band--tight" aria-labelledby="h-trust"><div class="sec-head"><div><h2 id="h-trust">Trusted across the UK</h2>'
+        '<p>Client testimonials and placement figures are supplied at launch from the GreenJobs client testimonials page; the slots below are labelled until then.</p></div>'
+        '<a class="btn btn--lime" href="#rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
+        '<div class="facts">'
+        + "".join(f'<div class="fact reveal fact--slot"><h3>Testimonial {i}</h3><p class="tbc">Testimonial supplied at launch.</p></div>' for i in (1, 2, 3))
+        + '</div>'
+        f'<p class="netline" style="margin-top:24px"><b>Network coverage:</b> {network_inline(data)}</p></section>')
     write("employers/index.html", page("employers", 2, "employers", f"Advertise a green role | GreenJobs {ed['short']}",
                                        f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",
                                        {"n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sites": str(len(data["network_sites"])), "about": esc(data["about"].split("\n")[0]),
-                                        "emp_points_wrap": "",
+                                        "email": esc(next(iter(dict.fromkeys((data["contact"] or {}).get("emails") or [])), f"info@{data['site']}")),
+                                        "net_inline": network_inline(data), "employers": emp_strip["html"], "emp_sub": emp_strip["sub"],
+                                        "trust_block": trust_block,
                                         "country": esc(ed["name"]), "reach": esc(json_embed(reach_payload(data))), "sym": ed["sym"],
                                         "unit": ed["unit"], "fetched": esc(data["fetched"]),
                                         "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"])}, same_path="employers/index.html"))
@@ -1537,7 +1634,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
                                                     "n_regions": str(e["n_regions"]), "other_ed": EDITIONS[ed_key]["other"], "domain": esc(data["site"]),
                                                     "score": ev[ed_key + "_score"], "waterfall": ev[ed_key + "_waterfall"],
                                                     "css_budget": str(validate_site.CSS_BUDGET // 1024), "js_budget": str(validate_site.JS_BUDGET // 1024),
-                                                    "n_regions_unit": EDITIONS[ed_key]["unit"]})
+                                                    "n_regions_unit": EDITIONS[ed_key]["unit"], "changes": keith_changes(src)})
         (out / ed_key / "for-keith").mkdir(exist_ok=True)
         (out / ed_key / "for-keith" / "index.html").write_text(render(tpl["_shell"], ctx), encoding="utf-8")
 

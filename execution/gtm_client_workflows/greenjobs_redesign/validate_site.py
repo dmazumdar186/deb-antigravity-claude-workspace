@@ -223,7 +223,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
             job_pages[m.group(1)] = job_pages.get(m.group(1), 0) + 1
             if 'rel="noopener"' not in raw or "Apply on" not in raw:
                 fails.append(f"{rel}: job page has no apply link")
-        if re.match(r"^(ie|uk)/index\.html$", rel) and "data-film" not in raw:
+        if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
             fails.append(f"{rel}: home page has no film canvas host")
         if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
             fails.append(f"{rel}: home page has no hero landscape host")

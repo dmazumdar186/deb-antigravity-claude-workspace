@@ -224,15 +224,16 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check("countyies" not in clean and "counties" in clean, "home: unit pluralised as 'counties'")
     check("For Keith" not in clean and "for-keith" not in clean, "home: for-keith is not linked from the public shell")
     check("Snapshot of" in clean, "home: hero carries the snapshot date")
-    check('class="hero"' in clean and clean.index('class="hero"') < clean.index('data-film'), "home: opens on the light hero, film second")
+    check('class="hero"' in clean and clean.index('class="hero"') < clean.index('id="h-insight"'), "home: opens on the light hero; the compact insight band replaced the film (2026-09-28)")
     check('id="s-q"' in clean and 'btn--post' in clean and 'employers/index.html#post' in clean, "home: hero search and Post a job present")
     check(clean.count('<article class="row"') == min(8, len(jobs["ie"])) and "tag--lvl" in clean, "home: compact rows (up to eight) with career-level chips")
     check('alt="Certified B Corporation"' in clean and 'class="hero__bcorp"' in clean, "home: B Corp mark in the hero with the confirmed wording")
-    check("Wind" not in clean.split("data-film-steps")[1].split("</ol>")[0], "home: film has no wind step")
+    check("data-film-steps" not in clean, "home: the film rail is gone (compact insight band since 2026-09-28)")
     for t, lvl in (("Graduate Ecologist", "Graduate/Early career"), ("Senior Hydrogeologist", "Senior/Principal"), ("Associate Director, Planning", "Director/Associate"), ("Wind Turbine Technician", "Mid-level")):
         check(build_site.level_of(t) == lvl, f"level_of: {t!r} -> {lvl}")
     check(build_site.sector_stat([{"sal_min": None, "sal_max": None}, {"sal_min": 30000, "sal_max": None, "period": "year"}], "€") == "1 discloses pay", "sector_stat: counts disclosures under three")
-    check('data-lvl="' in clean and 'data-n="' in clean, "home: map regions carry data-n/data-lvl at build time")
+    uk_home = (out / "uk" / "index.html").read_text(encoding="utf-8")
+    check('data-lvl="' in uk_home and 'data-n="' in uk_home, "home: UK map regions carry data-n/data-lvl at build time (IE home has no map band since 2026-09-28)")
     check(any("Employers hiring now" in f for f in with_patch(lambda t: t.replace('data-strip="network"', 'data-strip="hiring"').replace('<div class="marq__track">', '<div class="marq__track"><div class="emp"><span>Ghost Ltd</span></div>'))), "faults: non-live employer under 'hiring now' caught")
     check(validate_site.validate(out, jobs) == [], "faults: clean build validates with zero problems after patches are reverted")
     keith = out / "ie" / "for-keith" / "index.html"
@@ -302,6 +303,58 @@ def test_dashboard_kpis_edge_cases():
     job = {"title": "Hybrid analyst", "location": "Remote", "text": "x" * 400, "employer": "Acme Recruitment", "posted": "2026-09-20", "closing": "2026-10-20", "sal_min": 40000, "sal_max": None, "cur": "EUR", "period": "year", "logo": "a.png"}
     k = build_site.dashboard_kpis({**data, "jobs": [job]})
     check(k["agency_pct"] == 100 and k["remote_pct"] == 100 and k["quality"][4] == 1 and k["days_to_close"] == 30 and k["sal_median"] == 40000 and k["new7"] == 1, "dashboard: agency, remote, quality, days-to-close and median computed on a single role")
+
+
+# Keith's 28 Sept notes, sections A/C/E/F: builder-speak off public pages,
+# hero credibility markers, footer phone order, employers page, home structure.
+BUILDER_SPEAK = ["The send button is honest", "actually says", "read from the title", "not estimates", "Demo:", "this demo",
+                 "small and honest", "puts the planet on the payroll", "career level read from", "Packages on request", "Every region, counted"]
+
+
+def test_keith_pages_and_copy(tmp_root: Path):
+    real = (SRC / "data" / "ie.json").exists() and (SRC / "data" / "uk.json").exists()
+    out = tmp_root / "site_keith"
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=None if real else FIXTURE)
+    check(rc == 0, "keith: build for copy checks returns 0")
+    pages = [p for p in out.rglob("index.html") if "for-keith" not in p.parts and not (p.parent.parent.name == "jobs")]
+    hits = []
+    for p in pages:
+        text = p.read_text(encoding="utf-8")
+        body = text.split('id="gj-data">')[0] if 'id="gj-data">' in text else text  # employer-authored dataset text is exempt
+        for phrase in BUILDER_SPEAK:
+            if phrase in body:
+                hits.append(f"{p.relative_to(out)}: {phrase!r}")
+    check(not hits, f"keith F1: no builder-speak on public pages ({hits[:4]})")
+    ie = (out / "ie" / "index.html").read_text(encoding="utf-8")
+    uk = (out / "uk" / "index.html").read_text(encoding="utf-8")
+    ie_hero = ie.split('class="hero__facts"')[1].split("</p>")[0]
+    uk_hero = uk.split('class="hero__facts"')[1].split("</p>")[0]
+    check("employers" not in ie_hero and "live roles" in ie_hero and "since" in ie_hero and "specialist job sites" in ie_hero and "sectors" in ie_hero,
+          "keith A2: IE hero has no employer count and carries the credibility markers")
+    check("employers hiring now" in uk_hero and "live roles" in uk_hero, "keith A2: UK hero keeps the employer count")
+    check("Work that works <em>for the planet.</em>" in ie and "across Ireland." in ie and "across the UK." in uk, "keith A1: new h1 and edition sub-line")
+    check(ie.count("bcorp-line--footer") == 1 and ie.count("independently certified") >= 3, "keith A3: B Corp explainer in hero trust, header and footer")
+    check(ie.count('class="sectors stagger"') == 1 and "data-fit" not in ie and "fit-q" not in ie, "keith C2: home has exactly one sector block and no fit panel")
+    check('id="h-map"' not in ie and 'id="h-map"' in uk and "See where green employers are hiring" in uk, "keith C1/C4: region band on UK home only, with the new heading")
+    check("data-film" not in ie and "film.js" not in ie and not (out / "js" / "film.js").exists() and "data-landscape" in ie, "keith C3: film replaced; film.js not shipped; landscape hero kept")
+    check(ie.index('id="h-latest"') < ie.index('id="h-sectors"') < ie.index('id="h-insight"') < ie.index('id="h-why"') < ie.index('id="h-emp"') < ie.index('id="h-alert"'), "keith C1: IE home section order")
+    check(uk.index('id="h-latest"') < uk.index('id="h-sectors"') < uk.index('id="h-map"') < uk.index('id="h-insight"') < uk.index('id="h-why"') < uk.index('id="h-emp"') < uk.index('id="h-alert"'), "keith C1: UK home section order")
+    check("Advertise once. Reach candidates across the GreenJobs specialist network." in ie, "keith E5: network line in the home employer section")
+    emp_ie = (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8")
+    emp_uk = (out / "uk" / "employers" / "index.html").read_text(encoding="utf-8")
+    check("Request advertising rates" in emp_ie and 'href="mailto:' in emp_ie and emp_ie.index("Request advertising rates") < emp_ie.index('id="h-reach"'), "keith E1: rate CTA high on the employers page")
+    check('<table class="evid cmp">' in emp_ie and "<th scope=\"col\">Standard</th>" in emp_ie and "Premium" in emp_ie and "Membership" in emp_ie and "Ask us" in emp_ie, "keith E4: comparison table with Standard / Premium / Membership")
+    check("Trusted across the UK" in emp_uk and "Testimonial supplied at launch" in emp_uk and "Trusted across the UK" not in emp_ie, "keith E7: UK-only trust block with labelled slots")
+    check("Preview exactly how your vacancy will appear to candidates." in emp_ie, "keith E6: one-line preview explanation")
+    check("Organisations recruiting through GreenJobs" in emp_ie, "keith E3: recruiting organisations block")
+    if real:
+        ftr_uk = uk.split('<h4>Contact</h4>')[1].split("</ul>")[0]
+        ftr_ie = ie.split('<h4>Contact</h4>')[1].split("</ul>")[0]
+        check(ftr_uk.index("Calling from the UK: ") < ftr_uk.index("Calling from Ireland: ") and "+44 28 4303 2055" in ftr_uk and "(01) 912 5247" in ftr_uk, "keith F3: UK footer lists the UK number first")
+        check(ftr_ie.index("Calling from Ireland: ") < ftr_ie.index("Calling from the UK: "), "keith F3: IE footer lists the Irish number first")
+    keith = (out / "ie" / "for-keith" / "index.html").read_text(encoding="utf-8")
+    check("Changes from your 28 September notes" in keith and 'class="changes"' in keith, "keith: evidence page lists the checklist status")
+    check('{{head_extra}}' not in ie and "Compare disclosed salaries and identify employers committed to greater pay transparency." in ie, "keith F2: salary framing on the home page; head_extra resolved")
 
 
 def main() -> int:

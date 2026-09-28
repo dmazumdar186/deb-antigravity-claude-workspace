@@ -5,7 +5,7 @@
    gj-subscribe (ISO date of the last dismissal). The subscribe dialog opens
    once per device, 20 s after load or on exit intent (desktop), never on the
    jobs / job pages while the visitor is typing, never within 7 days of a
-   dismissal. Submitting shows the honest demo note; nothing is sent. */
+   dismissal. Submitting shows the launch note; nothing is sent. */
 (function () {
   var doc = document, body = doc.body;
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }

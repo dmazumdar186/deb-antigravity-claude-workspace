@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>{{title}}</title>
 <meta name="description" content="{{desc}}">
+{{head_extra}}
 <meta name="theme-color" content="#f6f0e6">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{title}}">
@@ -48,16 +49,16 @@
 {{content}}
 </main>
 <div class="cookie" data-cookie role="region" aria-label="Cookie settings" aria-hidden="true">
-  <p>This demo uses only essential storage (your theme, saved roles, and this choice). No tracking.</p>
+  <p>This site uses only essential storage (your theme, saved roles, and this choice). No tracking.</p>
   <div class="cookie__act"><button class="btn btn--lime" type="button" data-cookie-accept>Accept</button><button class="btn" type="button" data-cookie-settings aria-haspopup="dialog">Settings</button></div>
 </div>
 <dialog class="gjd" data-cookie-dialog aria-labelledby="ck-h">
   <form class="gjd__in" method="dialog">
     <div class="gjd__top"><h2 id="ck-h">Cookie settings</h2><button class="icobtn" type="button" data-cookie-close aria-label="Close cookie settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p>Choose what this site may store on your device. Essential storage keeps your theme, saved roles and this choice; nothing else is set in this demo.</p>
+    <p>Choose what this site may store on your device. Essential storage keeps your theme, saved roles and this choice; nothing else is set on this site.</p>
     <div class="gjd__list">
       <div><label for="ck-essential">Essential<small>Always on: theme, saved roles, this choice</small></label><input type="checkbox" id="ck-essential" checked disabled></div>
-      <div><label for="ck-analytics">Analytics<small>Off. Not present in this demo</small></label><input type="checkbox" id="ck-analytics"></div>
+      <div><label for="ck-analytics">Analytics<small>Off until an analytics provider is chosen at launch</small></label><input type="checkbox" id="ck-analytics"></div>
       <div><label for="ck-marketing">Marketing<small>Off</small></label><input type="checkbox" id="ck-marketing"></div>
     </div>
     <div class="gjd__act"><button class="btn" type="button" data-cookie-close>Cancel</button><button class="btn btn--lime" type="submit">Save choices</button></div>
@@ -70,7 +71,7 @@
     <p>The week's green roles across {{country}}, once a week, free. Members can also set up to ten job alerts by email. Unsubscribe any time.</p>
     <form data-demo-form novalidate>
       <div class="row"><div class="field"><label for="sb-email" class="vh">Email</label><input class="in" id="sb-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email"></div><button class="btn btn--lime" type="submit">Subscribe</button></div>
-      <p class="note note--live" data-demo-note tabindex="-1" hidden>Demo: this form is wired to your email provider on launch. Nothing was sent.</p>
+      <p class="note note--live" data-demo-note tabindex="-1" hidden>This form connects to your email provider at launch. Nothing was sent.</p>
     </form>
   </div>
 </dialog>
@@ -79,7 +80,7 @@
     <div class="ftr__brand">
       <span class="logo" style="color:#f3ece1">Green<b style="color:#d99a1c">Jobs</b><small>{{ED}}</small></span>
       <p>The GreenJobs Network of Websites: job boards wholly dedicated to the green industry sector since 2008. {{n_jobs}} live roles on {{domain}} as of {{fetched}}.</p>
-      {{bcorp}}
+      {{bcorp_footer}}
     </div>
     <div class="ftr__grid">
       <div><h4>Explore</h4><ul>{{nav_list}}</ul></div>

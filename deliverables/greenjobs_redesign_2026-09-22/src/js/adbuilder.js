@@ -3,7 +3,7 @@
    card (board) and the top of the job page beside the form; a logo previews
    through FileReader and never leaves the device; the reach line is read
    from this week's data. Under 900px the preview sits under the form with a
-   sticky Preview toggle. Submitting shows the honest demo note (main.js). */
+   sticky Preview toggle. Submitting shows the launch note (main.js). */
 (function () {
   var G = window.GJ, doc = document, root = doc.querySelector('[data-adb]');
   if (!root) return;

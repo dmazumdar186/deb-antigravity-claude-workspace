@@ -14,6 +14,10 @@
   <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody>{{rows}}</tbody></table>
   <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built {{built}}. Stylesheet {{css_kb}} KB, scripts {{js_kb}} KB before compression; budgets {{css_budget}} KB and {{js_budget}} KB. Unit tests on the pure logic module: {{tests}}.</p>
 
+  <h2>Changes from your 28 September notes</h2>
+  <p>Read from the working checklist at build time. Ticked items passed the build validator, the unit tests and their own test case; partial items say why.</p>
+  {{changes}}
+
   <h2>What was built</h2>
   <ul>
     <li><b>Two editions, one codebase.</b> greenjobs.ie and greenjobs.co.uk render from the same templates and scripts with their own data, currency and map. The edition switch keeps you on the same page.</li>
@@ -27,8 +31,8 @@
 
   <h2>What changed since the first cut</h2>
   <ul>
-    <li><b>A light opening, then the film.</b> The home page opens on a white hero: one headline, the central search (what job, where), the live counts, a large "Post a job" beside "Find a job", the Certified B Corporation mark, and the first eight live roles with a career level read from each title. The pinned, scroll-driven sequence follows as the second section, on paper: the {{n_regions}}-region map with live counts, the disclosed-salary bands, the sector ring. The map points are sampled from the SVG at build time, so the page ships no extra assets and makes no extra requests. Under reduced motion the sequence is a static page with the map copy and every count in reach.</li>
-    <li><b>"Your fit in ten seconds."</b> On the home and jobs pages: paste a CV or three words and the six closest live roles appear instantly, with the matched words, your position on the board's disclosed-salary strip, a small map of where the matches are, and a caveat. The matcher is the upgraded local one (title-weighted, two-word phrases, sector and place boosts). Every result is a link you can share.</li>
+    <li><b>A light opening.</b> The home page opens on the living-landscape hero: one headline, the plain-English sub-line, the central search (what job, where), live credibility markers, a large "Post a job" beside "Find a job" and the Certified B Corporation mark with its explainer. The pinned map-pay-sectors film from the first cut was replaced after your 28 September notes by one compact "Salary insight" band (disclosed-salary share and median, sectors with live work, {{n_regions_unit}} map link).</li>
+    <li><b>"Quick job match."</b> On the jobs page: paste a CV or three words and the six closest live roles appear instantly, with the matched words, your position on the board's disclosed-salary strip, a small map of where the matches are, and a caveat. The matcher is the upgraded local one (title-weighted, two-word phrases, sector and place boosts). Every result is a link you can share.</li>
     <li><b>The live ad builder.</b> On the Employers page the form renders the exact job card and job-page header as you type, previews a logo without uploading it, and reads reach from this week's data (live roles and median disclosed salary in the chosen sector). Sending still posts nothing and says so.</li>
     <li><b>"Where this role sits."</b> Every job page with a published salary shows that range against the board's disclosed distribution, overall and in its sector, with keyboard-reachable marks and a table; roles without one get an honest line with the sector's disclosed range instead. Both show how many similar roles are live in the same {{n_regions_unit}}.</li>
     <li><b>Motion that explains.</b> Numbers count up as they come into view, sparklines draw in, the map colours in region by region, a job title morphs from card to page and back, a thin bar in the header shows how far down you are. All of it is off under reduced motion and none of it moves layout.</li>

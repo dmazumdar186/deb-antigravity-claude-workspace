@@ -4,10 +4,10 @@ Status key: [ ] open · [x] done · [~] partial (say why) · [-] not done (say w
 Every item ticked only after the build validator, unit tests and the item's own test case pass.
 
 ## A. Positioning & hero (both editions)
-- [ ] A1 Replace h1 "Work that puts the planet on the payroll" with "Work that works for the planet." plus plain-English sub-line: IE "Find environmental, sustainability, renewable-energy and nature careers across Ireland." UK "Search environmental, ecology, sustainability, renewable-energy and low-carbon careers across the UK."
-- [ ] A2 Remove "N employers" from the IE hero facts. Replace with credibility markers: "Specialist green job network since 2008", "10 specialist job sites", "Roles across N sectors", "Certified B Corporation". UK keeps "19 employers hiring now" (its scale is a credibility asset).
-- [ ] A3 B Corp badge gets a one-line explainer everywhere it appears.
-- [ ] A4 Employer logos on IE only if each employer has a live role (already enforced by validator) — keep.
+- [x] A1 Replace h1 "Work that puts the planet on the payroll" with "Work that works for the planet." plus plain-English sub-line: IE "Find environmental, sustainability, renewable-energy and nature careers across Ireland." UK "Search environmental, ecology, sustainability, renewable-energy and low-carbon careers across the UK."
+- [x] A2 Remove "N employers" from the IE hero facts. Replace with credibility markers: "Specialist green job network since 2008", "10 specialist job sites", "Roles across N sectors", "Certified B Corporation". UK keeps "19 employers hiring now" (its scale is a credibility asset). (network count read from data: 10 sites; B Corp shown as the mark + explainer only, per brief.md §3)
+- [x] A3 B Corp badge gets a one-line explainer everywhere it appears.
+- [x] A4 Employer logos on IE only if each employer has a live role (already enforced by validator) — keep.
 
 ## B. Classification & data accuracy
 - [ ] B1 Sector mapping: highways/road/infrastructure roles no longer land in "Sustainability & net zero" or "Built environment". Add sectors: Environmental engineering; Sustainable infrastructure & transport (incl. active travel); Climate & carbon; Health, safety & environment; Nature recovery & biodiversity (fold into Ecology name). Taxonomy consistent across salary explorer and sector stats.
@@ -19,10 +19,10 @@ Every item ticked only after the build validator, unit tests and the item's own 
 - [ ] B7 Northern Ireland is a first-class region on the UK map/list.
 
 ## C. Homepage (both editions) — shorten and reorder
-- [ ] C1 IE order: Hero+search → Latest roles → Browse by sector → Salary insight → Why GreenJobs → Employer proposition → Email alerts. UK order: Search+headline → Latest UK roles → Sector → Region → Salary → Why → Employers → Alerts.
-- [ ] C2 Remove duplicates: county/region appears once, sector once, salary once; the CV-match panel lives on the jobs page only.
-- [ ] C3 Reduce "Map, Pay, Sectors" film to one compact insights section.
-- [ ] C4 UK region heading: "See where green employers are hiring" + "Explore current vacancies by UK region, including nationwide and remote opportunities." (replaces "Every region, counted").
+- [x] C1 IE order: Hero+search → Latest roles → Browse by sector → Salary insight → Why GreenJobs → Employer proposition → Email alerts. UK order: Search+headline → Latest UK roles → Sector → Region → Salary → Why → Employers → Alerts. (IE has no standalone map band; the county map is reached via the Salary-insight tile → jobs?view=map)
+- [x] C2 Remove duplicates: county/region appears once, sector once, salary once; the CV-match panel lives on the jobs page only.
+- [x] C3 Reduce "Map, Pay, Sectors" film to one compact insights section. (film.js and its CSS removed; home ships wind.js only)
+- [x] C4 UK region heading: "See where green employers are hiring" + "Explore current vacancies by UK region, including nationwide and remote opportunities." (replaces "Every region, counted").
 
 ## D. Candidate experience (jobs page + job page)
 - [ ] D1 New filters: Workplace type (office/hybrid/remote/site-based), Career level, Salary range, Contract (permanent/contract/fixed-term/full-time/part-time), Ireland-only / UK-only toggle, Closing date, Direct employer vs recruitment agency.
@@ -31,18 +31,18 @@ Every item ticked only after the build validator, unit tests and the item's own 
 - [ ] D4 UK match examples: ecologist Bristol · sustainability consultant London · flood risk engineer Manchester · renewable energy Scotland (no "ecologist dublin" on UK).
 
 ## E. Employer conversion
-- [ ] E1 "Request advertising rates" CTA (no prices are published).
-- [ ] E2 Audience & reach block: candidate audience, newsletter reach, LinkedIn/network distribution (only figures in brief.md/data; otherwise labelled "supplied at launch").
-- [ ] E3 Organisations that have recruited through GreenJobs (from live employer list).
-- [ ] E4 Comparison table: Standard / Premium / Membership.
-- [ ] E5 Network positioning: "Advertise once. Reach candidates across the GreenJobs specialist network…" prominent on employers page and home employer section.
-- [ ] E6 Vacancy preview: demo explanation shortened to "Preview exactly how your vacancy will appear to candidates."
-- [ ] E7 UK-specific credibility signals (testimonial slots, placements, network coverage, rate-card CTA).
+- [x] E1 "Request advertising rates" CTA (no prices are published).
+- [x] E2 Audience & reach block: candidate audience, newsletter reach, LinkedIn/network distribution (only figures in brief.md/data; otherwise labelled "supplied at launch"). (no audience/newsletter/follower figures exist in brief.md; tiles read "figure supplied at launch")
+- [x] E3 Organisations that have recruited through GreenJobs (from live employer list).
+- [x] E4 Comparison table: Standard / Premium / Membership.
+- [x] E5 Network positioning: "Advertise once. Reach candidates across the GreenJobs specialist network…" prominent on employers page and home employer section.
+- [x] E6 Vacancy preview: demo explanation shortened to "Preview exactly how your vacancy will appear to candidates."
+- [~] E7 UK-specific credibility signals (testimonial slots, placements, network coverage, rate-card CTA). (partial: testimonial slots are labelled placeholders and no placement figures exist in brief.md; network coverage + rate CTA shipped)
 
 ## F. Copy & credibility
-- [ ] F1 Remove builder-speak: "Career level read from title", "Tagged by what its description actually says", "The send button is honest" → "Every vacancy is classified consistently, making it easier to compare roles, sectors and salaries."
-- [ ] F2 Salary framing: "Compare disclosed salaries and identify employers committed to greater pay transparency." (no repeated "competitive" jabs).
-- [ ] F3 UK footer contact: "Calling from the UK: +44 28 4303 2055 · Calling from Ireland: (01) 912 5247". IE keeps Ireland-first wording.
+- [x] F1 Remove builder-speak: "Career level read from title", "Tagged by what its description actually says", "The send button is honest" → "Every vacancy is classified consistently, making it easier to compare roles, sectors and salaries."
+- [x] F2 Salary framing: "Compare disclosed salaries and identify employers committed to greater pay transparency." (no repeated "competitive" jabs).
+- [x] F3 UK footer contact: "Calling from the UK: +44 28 4303 2055 · Calling from Ireland: (01) 912 5247". IE keeps Ireland-first wording. (numbers from brief.md §6; the live site labels +44 as "Calling From Outside Ireland", Keith's "Calling from the UK" wording used)
 
 ## G. SEO & technical
 - [ ] G1 JobPosting structured data on every job page (exists; verify currency/validity), canonical URLs, IE/UK hreflang pairs.
