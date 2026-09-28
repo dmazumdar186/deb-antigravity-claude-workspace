@@ -88,3 +88,25 @@ Then send the proposal as a one-page PDF Wednesday: the three lines, the year-1 
 - Irish maintenance pricing: https://www.insightmultimedia.ie/website-maintenance-costs-in-ireland-a-2026-price-guide/ , https://digimark.ie/website-maintenance-cost-ireland/ , https://www.grangewebdesign.com/blog/website-maintenance-in-ireland-what-it-actually-costs-in-2026/ , https://sevenoways.com/blog/website-maintenance-cost-ireland/
 - Redesign/rebuild pricing: https://www.jegdesign.com/website-redesign-cost-2026/ , https://skillmammoth.com/blog/website-redesign-cost , https://www.naveck.com/blog/web-development-companies-cost-ireland/
 - Job-board SaaS: https://www.capterra.com/p/204197/Niceboard/ , https://www.jobboardly.com/blog/best-job-board-software , https://www.guideflow.com/blog/job-board-software
+
+## 7. Addendum (2026-09-28, evening): what to tell Keith about his 28 Sept notes
+
+His document was split into 114 individual requests and every one was verified on the live build (`research/qa_2026-09-28/requirements_matrix_v2.md`). 100 are done. The remaining 11 are his to supply or confirm, and the site says so in his own words where a figure is missing:
+
+**Needs information from GreenJobs (7)**
+1. Candidate audience figure (monthly visitors) for the employers page.
+2. Weekly newsletter reach (subscriber count).
+3. LinkedIn and network distribution figures.
+4. Two or three UK employer testimonials, verbatim.
+5. Permission to display each employer's logo (only employers with live roles are shown today).
+6. A GB phone number, if he wants one on the UK site.
+7. Examples of UK placements or campaigns (employer, role, outcome).
+
+**Needs a decision from Keith (4)**
+8. Hero credibility line: his draft says "Roles across 10 sectors"; the site shows the live count (14) because he also asked for six new sectors. Which does he want?
+9. "Transport and active travel" is merged into "Sustainable infrastructure & transport". Keep merged or split?
+10. Membership package contents: his site never lists them, so the column reads "Ask us". What does membership include?
+11. Content hub: a salary guide exists; career-advice articles and market reports need topics or copy from him.
+
+**Paste-ready line for the LinkedIn thread**
+> Every point in your notes is now live on the demo, both editions. Eleven items need something from your side (audience figures, testimonials, logo permissions, membership contents and a couple of naming calls); they're listed on your evidence page under "Launch checklist". Send me those whenever convenient and I'll drop them in the same day.
