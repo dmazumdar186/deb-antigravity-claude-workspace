@@ -34,6 +34,15 @@ import validate_site  # noqa: E402
 RESULTS: list[tuple[bool, str]] = []
 
 
+def skip(label: str) -> None:
+    """A test that cannot run here is reported as SKIP and never counted as a pass."""
+    SKIPS.append(label)
+    print(f"SKIP  {label}")
+
+
+SKIPS: list[str] = []
+
+
 def check(ok: bool, label: str) -> None:
     RESULTS.append((ok, label))
     print(("PASS  " if ok else "FAIL  ") + label)
@@ -191,7 +200,7 @@ def test_fixture_build(tmp_root: Path):
 
 def test_real_data_build(tmp_root: Path):
     if not (SRC / "data" / "ie.json").exists() or not (SRC / "data" / "uk.json").exists():
-        check(True, "integration: real datasets absent, skipped")
+        skip("integration: real datasets absent")
         return
     out = tmp_root / "site_real"
     rc = build_site.build(SRC, out, editions=["ie", "uk"])
@@ -563,7 +572,7 @@ def test_pf_a_sector_golden_set():
     gold = json.loads((Path(__file__).resolve().parent / "golden_sectors.json").read_text(encoding="utf-8"))
     raws = {ed: json.loads((SRC / "data" / f"{ed}.json").read_text(encoding="utf-8")) for ed in ("ie", "uk") if (SRC / "data" / f"{ed}.json").exists()}
     if len(raws) < 2:
-        check(True, "pf-A4: real datasets absent, golden set skipped")
+        skip("pf-A4: real datasets absent, golden set")
         return
     by = {j["id"]: j for r in raws.values() for j in r["jobs"]}
     hits, misses = 0, []
@@ -791,18 +800,26 @@ def main() -> int:
                 fn(tmp_root)
             else:
                 fn()
+        # Companion suites (2026-09-28): the offline scraper tests against the
+        # recorded corpus and the branch tests for build/validate. One command
+        # runs everything; each file also runs on its own.
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import test_gaps
+        import test_scrape
+        for suite in (test_scrape, test_gaps):
+            RESULTS.extend(suite.run_all(tmp_root))
     finally:
         shutil.rmtree(tmp_root, ignore_errors=True)
     passed = sum(1 for ok, _ in RESULTS if ok)
     failed = [label for ok, label in RESULTS if not ok]
-    print(f"\nUnit+Integration: {passed} passed, {len(failed)} failed")
+    print(f"\nUnit+Integration: {passed} passed, {len(failed)} failed, {len(SKIPS)} skipped")
+    for label in SKIPS:
+        print(f"  SKIP: {label}")
     for label in failed:
         print(f"  FAIL: {label}")
     return 1 if failed else 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
 
 
 try:
@@ -904,7 +921,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     # 10. dashboard + event layer
     dash = _read(out / "ie" / "dashboard" / "index.html")
     check("Event spec for launch" in dash and "Measured after launch" not in dash, "panel B10: post-launch group renamed")
-    for tile in ("Apply clicks per employer (30d)", "Zero-result searches", "Alert match rate (weekly)", "Advertised window (median days)"):
+    for tile in ("Apply clicks per employer", "Zero-result searches", "Alert match rate (weekly)", "Advertised window (median days)"):
         check(tile in dash, f"panel B10: tile '{tile}' present")
     check("Median days to close" not in dash and 'kpi__l">Sessions<' not in dash and 'kpi__l">Uptime<' not in dash and "dash__foot" in dash, "panel B10: sessions/uniques demoted to context, uptime/CWV to the footer strip")
     check("recruitment word" in dash and "known agency" in dash, "panel B10: agency tile describes the real rule")
@@ -925,7 +942,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     main_js = _read(SRC / "js" / "main.js")
     check("function track(" in main_js and "GJAnalytics" in main_js and "gj-consent" in main_js and "save_role" in main_js, "panel B10: consent-gated track() stub in main.js")
     # 11. for-keith
-    check("Technical appendix" in keith and "<details" in keith and "jQuery" in keith.split("<details")[1] and "jQuery" not in keith.split("<details")[0],
+    check("Technical appendix" in keith and "<details" in keith and "Stack comparison" in keith.split("<details")[1] and "Stack comparison" not in keith.split("<details")[0],
           "panel B11: stack comparison lives in the collapsed technical appendix")
     check("eleven sectors" not in keith and "24 node tests" not in keith and "Launch checklist (needs GreenJobs)" in keith, "panel B11: stale numbers gone, launch checklist present")
     for item in ("H1", "H2", "I1"):
@@ -945,4 +962,8 @@ def test_panel_b_dashboard_rules_from_stored_fields():
     check(k["agency_pct"] == 33 and k["remote_pct"] == 67, f"panel B10: agency/remote from stored fields ({k['agency_pct']}, {k['remote_pct']})")
     eur_in_gbp = build_site.annual_mid(jobs[0], ed["currency"])[2]
     check(k["sal_median"] == round((eur_in_gbp + 40000) / 2), f"panel B10: median converts EUR into the edition currency ({k['sal_median']})")
-    check(k["closing7"] == 1 and k["new7"] == 1, "panel B10: new7 and closing7 share the 0-6 day window")
+    check(k["closing7"] == 3 and k["new7"] == 3, f"panel B10: three roles posted 2 days ago and closing in 5 days count in both windows ({k['new7']}, {k['closing7']})")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

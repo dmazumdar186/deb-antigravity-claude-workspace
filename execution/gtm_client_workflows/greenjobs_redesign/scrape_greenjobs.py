@@ -111,6 +111,9 @@ SAL_RE = re.compile(
     re.I)
 
 
+GARBLED_POUND_RE = re.compile(r"(?:\u00c2\u00a3|\u00c2\ufffd|\ufffd)(?=\s?(?:\d|k\b))")
+
+
 SAL_RE_TRAIL = re.compile(
     r"(?P<a>\d[\d,\.]*)\s*(?P<ak>k)?\s*(?P<cur>[£€$])"
     r"(?:\s*(?:-|–|to|and)\s*(?P<b>\d[\d,\.]*)\s*(?P<bk>k)?\s*[£€$])?"
@@ -121,6 +124,10 @@ def parse_salary(text: str | None):
     """Return (min, max, currency, period) from an explicit salary string."""
     if not text:
         return None, None, None, None
+    # The source site serves some adverts in the wrong encoding: "£" arrives as
+    # "Â£" or U+FFFD. Normalise before matching so a garbled upper bound is not
+    # lost (found by tests/greenjobs_redesign/test_scrape.py, 2026-09-28).
+    text = GARBLED_POUND_RE.sub("\u00a3", text)
     m = SAL_RE.search(text)
     if not m:
         m = SAL_RE_TRAIL.search(text)
