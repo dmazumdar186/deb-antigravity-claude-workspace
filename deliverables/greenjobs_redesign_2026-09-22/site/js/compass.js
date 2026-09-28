@@ -5,7 +5,7 @@ if (!host) return;
 var data = JSON.parse(doc.querySelector('#gj-data').textContent), jobs = data.jobs;
 var SEC = data.sectors.map(function (s) { return s.name; });
 var S = function () { var o = {}; for (var i = 0; i < arguments.length; i += 2) o[arguments[i]] = arguments[i + 1]; return o; };
-var W = 'Wind energy', SO = 'Solar energy', RE = 'Renewable energy & storage', WA = 'Water & flood', WS = 'Waste & circular economy', EC = 'Ecology & conservation', EN = 'Environmental science & consulting', SU = 'Sustainability & net zero', BE = 'Built environment & energy efficiency', NE = 'Energy networks & utilities', PO = 'Policy, planning & advisory';
+var W = 'Wind energy', SO = 'Solar energy', RE = 'Renewable energy & storage', WA = 'Water & flood', WS = 'Waste & circular economy', EC = 'Ecology, nature recovery & biodiversity', EN = 'Environmental science & consulting', SU = 'Sustainability & ESG', BE = 'Built environment & energy efficiency', NE = 'Energy networks & utilities', PO = 'Policy, planning & advisory';
 var regions = data.regions.slice(0, 5).map(function (r) { return r.name; });
 var Q = [
 { t: 'What would you most like your work to change?', weight: 3, opts: [

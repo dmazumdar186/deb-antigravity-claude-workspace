@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en-IE" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>KPI dashboard — what GreenJobs IE measures | GreenJobs IE</title>
+<meta name="description" content="Live board metrics computed from the listings, and the analytics wired at launch.">
+<link rel="canonical" href="https://greenjobs-redesign.pages.dev/ie/dashboard/index.html">
+<meta name="theme-color" content="#f6f0e6">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KPI dashboard — what GreenJobs IE measures | GreenJobs IE">
+<meta property="og:description" content="Live board metrics computed from the listings, and the analytics wired at launch.">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="preload" href="../../assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../css/styles.css">
+<script>(function(){var d=document.documentElement;d.className+=' has-js';var t=(location.search.match(/[?&]theme=(dark|light)/)||[])[1]||null;try{if(t)localStorage.setItem('gj-theme',t);else t=localStorage.getItem('gj-theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);})();</script>
+</head>
+<body data-edition="ie" data-root="../../" data-page="dashboard">
+<a class="skip" href="#main">Skip to content</a>
+<header class="hdr" data-header>
+  <div class="hdr__prog" data-progress aria-hidden="true"></div>
+  <div class="wrap hdr__in">
+    <a class="logo" href="../../ie/index.html" aria-label="GreenJobs IE, home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c6 6 12 10 12 18a12 12 0 0 1-24 0C4 12 10 8 16 2z" fill="#d99a1c"/><path d="M16 9v19M16 17c-3-1-5-3-6-6M16 14c3-1 5-3 6-6" stroke="#2a2521" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      <span>Green<b>Jobs</b></span><small>IE</small>
+    </a>
+    <nav class="nav" aria-label="Primary"><a href="../../ie/jobs/index.html">Jobs</a><a href="../../ie/sectors/index.html">Sectors</a><a href="../../ie/insights/index.html">Salary explorer</a><a href="../../ie/compass/index.html">Career compass</a><a href="../../ie/employers/index.html">Employers</a></nav>
+    <span class="hdr__bcorp" title="B Corp: independently certified for social and environmental performance, accountability and transparency."><img src="../../assets/logos/b-corp-logo.svg" alt="" width="96" height="163">Certified B Corporation</span>
+    <div class="hdr__tools">
+      <div class="edsw" role="group" aria-label="Edition"><a href="../../ie/dashboard/index.html" data-edswitch="ie" aria-current="true" hreflang="en-IE">IE</a><a href="../../uk/dashboard/index.html" data-edswitch="uk" aria-current="false" hreflang="en-GB">UK</a></div>
+      <button class="icobtn theme" type="button" data-theme-toggle aria-label="Switch theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <a class="btn btn--lime hdr__post" href="../../ie/employers/index.html#post">Post a job</a>
+      <button class="icobtn burger" type="button" data-menu-open aria-haspopup="dialog" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+<dialog class="menu" data-menu aria-label="Menu">
+  <div class="menu__in">
+    <div class="menu__top"><span class="logo">Green<b>Jobs</b><small>IE</small></span><button class="icobtn" type="button" data-menu-close aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <a href="../../ie/index.html">Home <span aria-hidden="true">→</span></a>
+    <a href="../../ie/jobs/index.html">Jobs</a><a href="../../ie/sectors/index.html">Sectors</a><a href="../../ie/insights/index.html">Salary explorer</a><a href="../../ie/compass/index.html">Career compass</a><a href="../../ie/employers/index.html">Employers</a>
+    <div class="menu__foot"><div class="edsw" role="group" aria-label="Edition"><a href="../../ie/dashboard/index.html" data-edswitch="ie" aria-current="true" hreflang="en-IE">IE</a><a href="../../uk/dashboard/index.html" data-edswitch="uk" aria-current="false" hreflang="en-GB">UK</a></div><a class="btn btn--lime btn--sm" href="../../ie/employers/index.html" style="border:0;padding:8px 16px;min-height:44px;font-size:.95rem">Post a job</a></div>
+  </div>
+</dialog>
+<main id="main" tabindex="-1">
+<script type="application/json" id="gj-dash">{"asof":"2026-09-22","live":88,"new7":14,"weeks":[40,12,7,14],"closing7":6,"sal_n":29,"sal_pct":33,"sal_median":52500,"sectors":[{"l":"Environmental science & consulting","v":56},{"l":"Sustainable infrastructure & transport","v":32},{"l":"Built environment & energy efficiency","v":27},{"l":"Policy, planning & advisory","v":22},{"l":"Sustainability & ESG","v":22},{"l":"Renewable energy & storage","v":15},{"l":"Health, safety & environment","v":13},{"l":"Ecology, nature recovery & biodiversity","v":12},{"l":"Water & flood","v":11},{"l":"Waste & circular economy","v":9},{"l":"Environmental engineering","v":8},{"l":"Wind energy","v":8},{"l":"Climate & carbon","v":6},{"l":"Energy networks & utilities","v":4}],"regions":[{"l":"Dublin","v":48},{"l":"Cork","v":24},{"l":"Galway","v":24},{"l":"Carlow","v":11},{"l":"Limerick","v":10},{"l":"Mayo","v":5},{"l":"Sligo","v":4},{"l":"Kildare","v":2},{"l":"Louth","v":2},{"l":"Clare","v":1},{"l":"Westmeath","v":1},{"l":"Wexford","v":1}],"top_employer":"Gaia Talent","top_share":72,"employers":3,"agency_pct":98,"days_to_close":44,"remote_pct":14,"quality":[0,0,59,6,23]}</script>
+<div class="wrap pagehead">
+  <h1>KPI dashboard</h1>
+  <p class="lede">What the board is worth this week, and how each number is measured. The top half is computed from the live listings at build time; the bottom half lists the measures the analytics provider will report once it is switched on through the cookie consent's Analytics toggle.</p>
+</div>
+<div class="wrap viz dash" data-dash style="padding-bottom:var(--pad-y)">
+  <div class="dash__bar">
+    <p class="muted">Data as of <b class="num">2026-09-22</b> · greenjobs.ie · edition switch in the header keeps you on this page.</p>
+    <button class="btn btn--ghost btn--sm" type="button" data-csv>Download CSV</button>
+  </div>
+
+  <h2 class="dash__h">Live now</h2>
+  <div class="kpis"><div class="kpi"><span class="kpi__l">Live roles</span><b class="kpi__v num">88</b><p class="kpi__d">Listings with a page in this edition on the snapshot date.</p></div><div class="kpi"><span class="kpi__l">New this week</span><b class="kpi__v num">14</b><svg class="spark" viewBox="0 0 120 34" aria-hidden="true" focusable="false"><path class="fill" d="M3.0,3.0 L41.0,22.6 L79.0,26.1 L117.0,21.2 L117.0,34 L3.0,34Z"/><path d="M3.0,3.0 L41.0,22.6 L79.0,26.1 L117.0,21.2" pathLength="1"/><circle cx="117.0" cy="21.2" r="3"/></svg><p class="kpi__d">Roles posted within 7 days of the snapshot. Line: roles posted per week over the last 4 weeks.</p></div><div class="kpi"><span class="kpi__l">Closing within 7 days</span><b class="kpi__v num">6</b><p class="kpi__d">Roles whose closing date falls within the next 7 days.</p></div><div class="kpi"><span class="kpi__l">Salary disclosure</span><b class="kpi__v num">33%</b><p class="kpi__d">Roles publishing a figure (29 of 88). Median of disclosed annualised midpoints: €52,500.</p></div><div class="kpi kpi--flag"><span class="kpi__l">Top employer share</span><b class="kpi__v num">72%</b><p class="kpi__d">Gaia Talent holds this share of live roles across 3 employers. Above 50%: a concentration risk worth diversifying.</p></div><div class="kpi"><span class="kpi__l">Agency share</span><b class="kpi__v num">98%</b><p class="kpi__d">Roles posted by recruiters (Gaia Talent, Mattinson Partnership, or names containing recruit, talent or staffing); the rest are direct employers.</p></div><div class="kpi"><span class="kpi__l">Median days to close</span><b class="kpi__v num">44</b><p class="kpi__d">Median of closing date minus posted date across roles that publish both.</p></div><div class="kpi"><span class="kpi__l">Remote or hybrid option</span><b class="kpi__v num">14%</b><p class="kpi__d">Roles whose title, location or description mentions remote, hybrid or working from home (keyword-derived).</p></div></div>
+  <div class="figs" style="margin-top:24px">
+    <figure class="fig" data-fig="sectors"><h3>Live roles by sector</h3><p>How we measure it: each role is tagged to the sectors its description talks about; a role tagged to two sectors counts in both.</p></figure>
+    <figure class="fig" data-fig="regions"><h3>Live roles by county</h3><p>How we measure it: location text matched to the counties on the map; roles listed in two places count in each.</p></figure>
+    <figure class="fig fig--wide" data-fig="quality"><h3>Listing quality score</h3><p>How we measure it: one point each for a published salary, a closing date, an employer logo and a description of 400+ characters. Higher is a listing candidates can act on.</p></figure>
+  </div>
+
+  <h2 class="dash__h">Measured after launch <span class="dash__tag">Wired at launch</span></h2>
+  <p class="muted" style="max-width:70ch">Nothing below is a live number. Each tile names the event the site sends and the target we will report against. Values fill in from launch day; a dash means "collected from launch".</p>
+  <div class="kpis kpis--wired" data-wired>
+    <div class="kpi kpi--wired"><span class="kpi__l">Sessions</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>pageview</code>. Target: <span class="kpi__t">up on the current site's monthly baseline (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Unique candidates</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>pageview</code>, de-duplicated visitors. Target: <span class="kpi__t">growth month on month (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Search to job view</span><b class="kpi__v">—</b><p class="kpi__d">Events: <code>search</code> then <code>job_view</code> in the same session. Target: <span class="kpi__t">at least 60% (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Job view to apply click</span><b class="kpi__v">—</b><p class="kpi__d">Events: <code>job_view</code> then <code>apply_click</code> (the outbound link to the employer's listing). Target: <span class="kpi__t">at least 8% (target we propose; no public benchmark cited)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Alert sign-ups</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>alert_signup</code>. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Newsletter sign-ups</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>newsletter_signup</code>. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Saved roles</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>save_role</code>. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Employer "Request rates" clicks</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>request_rates</code> on the Employers page. Target: <span class="kpi__t">every click answered within one working day (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">"Post a job" clicks</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>post_job_click</code> from the header and Employers page. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Top search terms</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>search</code> with the query as a property. Use: feeds the sector taxonomy and the landing pages.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Top landing pages</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>pageview</code>, first page of the session. Use: which sector and county pages earn organic entry.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Organic share</span><b class="kpi__v">—</b><p class="kpi__d">Referrer class of the session. Target: <span class="kpi__t">above half of sessions (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Core Web Vitals</span><b class="kpi__v">—</b><p class="kpi__d">Field data from real visits: LCP, INP, CLS. Target: <span class="kpi__t">LCP within 2.5 s, INP within 200 ms, CLS within 0.1 (the published Core Web Vitals "good" thresholds)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Uptime</span><b class="kpi__v">—</b><p class="kpi__d">External monitor, one check a minute. Target: <span class="kpi__t">at least 99.9% a month (target we propose)</span>.</p></div>
+  </div>
+
+  <h2 class="dash__h">Value to GreenJobs</h2>
+  <div class="grid grid--3 dash__value">
+    <div class="fig"><h3>Advertiser enquiries</h3><p>What it is: employers asking for rates or starting a posting. How we measure it: <code>request_rates</code> and <code>post_job_click</code> events plus the enquiry inbox, reported monthly with the sector of the enquiry.</p></div>
+    <div class="fig"><h3>Network distribution reach</h3><p>What it is: how far one posting travels across the network sites. How we measure it: sessions and apply clicks per posting, split by the referring network site, so each employer sees the reach they paid for.</p></div>
+    <div class="fig"><h3>Candidate database growth</h3><p>What it is: candidates who leave a way to be reached. How we measure it: alert and newsletter sign-ups and saved roles, net of unsubscribes, reported as a monthly running total.</p></div>
+  </div>
+  <p style="margin-top:32px"><a class="btn btn--ghost" href="../../ie/for-keith/index.html">Back to the evidence page</a></p>
+</div>
+
+</main>
+<div class="cookie" data-cookie role="region" aria-label="Cookie settings" aria-hidden="true">
+  <p>This site uses only essential storage (your theme, saved roles, and this choice). No tracking.</p>
+  <div class="cookie__act"><button class="btn btn--lime" type="button" data-cookie-accept>Accept</button><button class="btn" type="button" data-cookie-settings aria-haspopup="dialog">Settings</button></div>
+</div>
+<dialog class="gjd" data-cookie-dialog aria-labelledby="ck-h">
+  <form class="gjd__in" method="dialog">
+    <div class="gjd__top"><h2 id="ck-h">Cookie settings</h2><button class="icobtn" type="button" data-cookie-close aria-label="Close cookie settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p>Choose what this site may store on your device. Essential storage keeps your theme, saved roles and this choice; nothing else is set on this site.</p>
+    <div class="gjd__list">
+      <div><label for="ck-essential">Essential<small>Always on: theme, saved roles, this choice</small></label><input type="checkbox" id="ck-essential" checked disabled></div>
+      <div><label for="ck-analytics">Analytics<small>Off until an analytics provider is chosen at launch</small></label><input type="checkbox" id="ck-analytics"></div>
+      <div><label for="ck-marketing">Marketing<small>Off</small></label><input type="checkbox" id="ck-marketing"></div>
+    </div>
+    <div class="gjd__act"><button class="btn" type="button" data-cookie-close>Cancel</button><button class="btn btn--lime" type="submit">Save choices</button></div>
+  </form>
+</dialog>
+<dialog class="gjd" data-subscribe aria-labelledby="sb-h">
+  <div class="gjd__in">
+    <div class="gjd__top"><span class="gjd__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#8a5d0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg></span><button class="icobtn" type="button" data-subscribe-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h2 id="sb-h">Get the weekly green jobs email</h2>
+    <p>The week's green roles across Ireland, once a week, free. Members can also set up to ten job alerts by email. Unsubscribe any time.</p>
+    <form data-demo-form novalidate>
+      <div class="row"><div class="field"><label for="sb-email" class="vh">Email</label><input class="in" id="sb-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email"></div><button class="btn btn--lime" type="submit">Subscribe</button></div>
+      <p class="note note--live" data-demo-note tabindex="-1" hidden>This form connects to your email provider at launch. Nothing was sent.</p>
+    </form>
+  </div>
+</dialog>
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr__brand">
+      <span class="logo" style="color:#f3ece1">Green<b style="color:#d99a1c">Jobs</b><small>IE</small></span>
+      <p>The GreenJobs Network of Websites: job boards wholly dedicated to the green industry sector since 2008. 88 live roles on greenjobs.ie as of 2026-09-22.</p>
+      <p class="bcorp-line bcorp-line--footer"><img class="bcorp" src="../../assets/logos/b-corp-logo.svg" alt="Certified B Corporation" title="B Corp: independently certified for social and environmental performance, accountability and transparency." width="96" height="163" loading="lazy"><span><b>Certified B Corporation.</b> B Corp: independently certified for social and environmental performance, accountability and transparency.</span></p>
+    </div>
+    <div class="ftr__grid">
+      <div><h4>Explore</h4><ul><li><a href="../../ie/jobs/index.html">Jobs</a></li><li><a href="../../ie/sectors/index.html">Sectors</a></li><li><a href="../../ie/insights/index.html">Salary explorer</a></li><li><a href="../../ie/compass/index.html">Career compass</a></li><li><a href="../../ie/employers/index.html">Employers</a></li></ul></div>
+      <div><h4>The network</h4><ul><li><a href="https://www.conservationjobsuk.com/" rel="noopener">conservationjobsuk.com</a></li><li><a href="https://www.ecologyjobsuk.com/" rel="noopener">ecologyjobsuk.com</a></li><li><a href="https://www.environmentaljobsuk.com/" rel="noopener">environmentaljobsuk.com</a></li><li><a href="https://www.greenjobs.co.uk/" rel="noopener">greenjobs.co.uk</a></li><li><a href="https://www.greenjobs.ie/" rel="noopener">greenjobs.ie</a></li><li><a href="https://www.renewableenergyjobsuk.com/" rel="noopener">renewableenergyjobsuk.com</a></li><li><a href="https://www.solarjobsuk.com/" rel="noopener">solarjobsuk.com</a></li><li><a href="https://www.wastejobsuk.com/" rel="noopener">wastejobsuk.com</a></li><li><a href="https://www.waterjobsuk.com/" rel="noopener">waterjobsuk.com</a></li><li><a href="https://www.windjobsuk.com/" rel="noopener">windjobsuk.com</a></li></ul></div>
+      <div><h4>Contact</h4><ul><li>Calling from Ireland: <a href="tel:019125247">(01) 912 5247</a></li><li>Calling from the UK: <a href="tel:+442843032055">+44 28 4303 2055</a></li><li><a href="mailto:info@greenjobs.ie">info@greenjobs.ie</a></li><li>Ennis Digital Hub, Quin Road, Ennis, Co. Clare, V95 VW74</li></ul></div>
+      <div><h4>Commitments</h4><p>A member of 1% for the Planet: at least 1% of annual turnover goes to environmental organisations in Ireland and the United Kingdom.</p><img src="../../assets/logos/1fortheplanet.svg" alt="1% for the Planet member" width="1065" height="446" loading="lazy" style="height:44px;width:auto;margin-top:12px;filter:brightness(1.4)"></div>
+    </div>
+    <div class="ftr__bottom">
+      <span>© 2008–2026 GreenJobs Ltd. Demo redesign, not the live site.</span>
+      <div class="ftr__social"><a href="https://www.facebook.com/GreenJobsIreland" rel="noopener" aria-label="facebook.com"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a><a href="https://www.twitter.com/GreenJobsIRL" rel="noopener" aria-label="twitter.com"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a></div>
+      <div class="edsw" role="group" aria-label="Edition"><a href="../../ie/dashboard/index.html" data-edswitch="ie" aria-current="true" hreflang="en-IE">IE</a><a href="../../uk/dashboard/index.html" data-edswitch="uk" aria-current="false" hreflang="en-GB">UK</a></div>
+    </div>
+  </div>
+</footer>
+<script src="../../js/lib.js" defer></script>
+<script src="../../js/main.js" defer></script>
+<script src="../../js/motion.js" defer></script>
+<script src="../../js/popups.js" defer></script>
+<script src="../../js/charts.js" defer></script><script src="../../js/dashboard.js" defer></script>
+</body>
+</html>

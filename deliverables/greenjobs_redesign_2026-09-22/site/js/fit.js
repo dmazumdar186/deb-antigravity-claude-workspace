@@ -6,6 +6,7 @@ var form = panel.querySelector('[data-fit-form]'), ta = form.querySelector('text
 var empty = panel.querySelector('[data-fit-empty]'), share = panel.querySelector('[data-fit-share]'), mapTpl = panel.querySelector('template[data-fit-map]');
 var jobsHref = panel.getAttribute('data-jobs') || 'index.html', sym = panel.getAttribute('data-sym') || '€', ROOT = doc.body.getAttribute('data-root') || '';
 var cur = sym === '£' ? 'GBP' : 'EUR', jobs = null, idx = null, timer = 0, lastQ = '';
+var annual = function (j) { return G.annual(j, cur); };
 function load() {
 if (jobs) return Promise.resolve(jobs);
 return window.GJData().then(function (d) { jobs = d.jobs || []; idx = G.fitIndex(jobs); return jobs; });
@@ -21,7 +22,7 @@ function money(n) { return G.money(n, cur); }
 function strip(pos) {
 var b = pos.board, W = 400, H = 64, lo = Math.floor(b.min / 10000) * 10000, hi = Math.ceil(b.max / 10000) * 10000 || 100000;
 function X(v) { return 10 + 380 * (v - lo) / Math.max(1, hi - lo); }
-var dots = jobs.map(G.annual).filter(Boolean).map(function (a) { return '<circle cx="' + X(a.mid).toFixed(1) + '" cy="34" r="3"/>'; }).join('');
+var dots = jobs.map(annual).filter(Boolean).map(function (a) { return '<circle cx="' + X(a.mid).toFixed(1) + '" cy="34" r="3"/>'; }).join('');
 var mine = pos.lo != null ? '<rect class="fit__me" x="' + X(pos.lo).toFixed(1) + '" y="26" width="' + Math.max(8, X(pos.hi) - X(pos.lo)).toFixed(1) + '" height="16" rx="8"/>' : '';
 var med = '<line class="fit__med" x1="' + X(b.median).toFixed(1) + '" x2="' + X(b.median).toFixed(1) + '" y1="20" y2="48"/>';
 return '<svg class="fit__strip" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(pos.lo != null ? 'Roles like yours pay ' + money(pos.lo) + ' to ' + money(pos.hi) + ' against ' + b.n + ' disclosed salaries on the board' : b.n + ' disclosed salaries on the board; none of these matches publishes one') + '">' +
@@ -53,23 +54,23 @@ empty.hidden = true; share.hidden = false;
 if (!hits.length) {
 var secs = {}; jobs.forEach(function (j) { (j.sectors || []).forEach(function (s) { secs[s] = (secs[s] || 0) + 1; }); });
 var top = Object.keys(secs).sort(function (a, b) { return secs[b] - secs[a]; }).slice(0, 5);
-out.innerHTML = '<div class="fit__none"><h3>Nothing on the board overlaps with that yet.</h3><p>The board is small and honest: ' + jobs.length + ' live roles, matched on the words in their titles, sectors and descriptions. Try a skill, a tool, a place, or start from a sector:</p><div class="fit__try">' +
+out.innerHTML = '<div class="fit__none"><h3>Nothing on the board overlaps with that yet.</h3><p>' + jobs.length + ' live roles are matched on the words in their titles, sectors and descriptions. Try a skill, a tool, a place, or start from a sector:</p><div class="fit__try">' +
 top.map(function (s) { return '<button type="button" data-fit-eg="' + esc(s) + '">' + esc(s) + '</button>'; }).join('') + '</div></div>';
 return;
 }
-var pos = G.salaryPosition(hits, jobs), stemsAll = [];
+var pos = G.salaryPosition(hits, jobs, cur), stemsAll = [];
 hits.forEach(function (h) { h.stems.forEach(function (s) { if (stemsAll.indexOf(s) < 0) stemsAll.push(s); }); });
 var pay = pos.lo != null
 ? 'Roles like yours pay <b>' + esc(money(pos.lo)) + '–' + esc(money(pos.hi)) + '</b>; ' + pos.share + '% of matches disclose (' + pos.disclosed + ' of ' + pos.n + '). That range runs from the ' + pos.plo + 'th to the ' + pos.phi + 'th percentile of the ' + pos.board.n + ' disclosed salaries on the board.'
 : 'None of these ' + pos.n + ' matches publishes a salary. The board\'s ' + pos.board.n + ' disclosed salaries, for scale:';
 var list = hits.map(function (h, i) {
-var j = h.job, sal = G.salaryLabel(j);
-return '<a class="hit reveal" style="--i:' + i + '" href="' + esc(G.jobUrl(jobsHref, j.href)) + '" data-vt="' + esc(j.id) + '"><b>' + hl(j.title, h.stems) + '</b><small>' + esc(j.employer) + ' · ' + esc(j.location) + (sal ? ' · <span class="hit__sal">' + esc(sal) + '</span>' : '') + '</small><span class="why">' + chips(h.terms) + '</span></a>';
+var j = h.job, sal = G.salaryLabel(j, cur), lc = G.locLabel(j.loc_class);
+return '<a class="hit reveal" style="--i:' + i + '" href="' + esc(G.jobUrl(jobsHref, j.href)) + '" data-vt="' + esc(j.id) + '"><b>' + hl(j.title, h.stems) + '</b><small>' + esc(j.employer) + ' · ' + esc(j.location) + (lc ? ' · ' + esc(lc) : '') + (sal ? ' · <span class="hit__sal">' + esc(sal) + '</span>' : '') + '</small><span class="why">' + chips(h.terms) + '</span></a>';
 }).join('');
 out.innerHTML = '<p class="fit__sum">' + hits.length + ' of ' + jobs.length + ' roles overlap. Matched on ' + chips(hits[0].terms.slice(0, 4)) + '</p>' +
 '<div class="fit__hits">' + list + '</div>' +
 '<div class="fit__side"><div class="fit__pay"><h3>Where you sit on pay</h3><p>' + pay + '</p>' + strip(pos) + '</div>' + miniMap(hits) + '</div>' +
-'<p class="fit__caveat">Matched on words, not judgement: a role can rank high because a word repeats, and a great fit can hide behind an odd title. Pay figures are the ' + pos.disclosed + ' of ' + pos.n + ' matches that publish one, annualised at the midpoint. <a href="' + esc(jobsHref) + '?q=' + encodeURIComponent(hits[0].terms[0] || '') + '">Open the full search</a>.</p>';
+'<p class="fit__caveat">Keyword matching, not an assessment of your suitability: a role can rank high because a word repeats, and a strong match can hide behind an unusual title. Pay figures are the ' + pos.disclosed + ' of ' + pos.n + ' matches that publish one, annualised at the midpoint. <a href="' + esc(jobsHref) + '?q=' + encodeURIComponent(hits[0].terms[0] || '') + '">Open the full search</a>.</p>';
 if (window.GJMotion) window.GJMotion.refresh(out);
 }
 function run(q, fromHash) {

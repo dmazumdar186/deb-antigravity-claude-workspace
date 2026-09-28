@@ -18,30 +18,52 @@ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c
 });
 }
 var SYM = { EUR: '€', GBP: '£', USD: '$' };
+var FX_GBP_EUR = 1.17;
+var CUR_NAME = { EUR: 'euros', GBP: 'sterling', USD: 'US dollars' };
+function fxConvert(n, from, to) {
+if (from === to) return n;
+if (from === 'GBP' && to === 'EUR') return n * FX_GBP_EUR;
+if (from === 'EUR' && to === 'GBP') return n / FX_GBP_EUR;
+return n;
+}
 function money(n, cur) {
 if (n == null || isNaN(n)) return '';
 var s = SYM[cur] || '';
 if (n >= 1000) return s + (n % 1000 === 0 ? (n / 1000) + 'k' : (Math.round(n / 100) / 10) + 'k');
 return s + n;
 }
-function salaryLabel(j) {
+function salaryLabel(j, edCur) {
 if (j.sal_min == null && j.sal_max == null) return '';
 var per = { year: '', month: '/mo', hour: '/hr', day: '/day', week: '/wk' }[j.period || 'year'] || '';
-if (j.sal_min != null && j.sal_max != null && j.sal_max !== j.sal_min) {
-return money(j.sal_min, j.cur) + '–' + money(j.sal_max, j.cur).replace(/^[^\d]+/, '') + per;
+var upTo = j.sal_max == null && j.sal_min != null && j.sal_text && /up to/i.test(j.sal_text) ? 'up to ' : '';
+function fmt(lo, hi, cur) {
+if (lo != null && hi != null && hi !== lo) return money(lo, cur) + '–' + money(hi, cur).replace(/^[^\d]+/, '') + per;
+return upTo + money(lo != null ? lo : hi, cur) + per;
 }
-var v = j.sal_min != null ? j.sal_min : j.sal_max;
-return (j.sal_max == null && j.sal_min != null && j.sal_text && /up to/i.test(j.sal_text) ? 'up to ' : '') + money(v, j.cur) + per;
+var label = fmt(j.sal_min, j.sal_max, j.cur);
+if (edCur && j.cur && j.cur !== edCur && fxConvert(1, j.cur, edCur) !== 1) {
+var lo = j.sal_min != null ? Math.round(fxConvert(j.sal_min, j.cur, edCur) / 100) * 100 : null;
+var hi = j.sal_max != null ? Math.round(fxConvert(j.sal_max, j.cur, edCur) / 100) * 100 : null;
+label += ' (paid in ' + (CUR_NAME[j.cur] || j.cur) + ', about ' + fmt(lo, hi, edCur) + ')';
+}
+return label;
+}
+function currencyNote(j, edCur) {
+if (!j.cur || j.cur === edCur || (j.sal_min == null && j.sal_max == null)) return '';
+return 'Paid in ' + (CUR_NAME[j.cur] || j.cur);
 }
 var MULT = { year: 1, month: 12, week: 52, day: 230, hour: 1950 };
-function annual(j) {
+function annual(j, edCur) {
 var m = MULT[j.period || 'year'];
 if (!m || (j.sal_min == null && j.sal_max == null)) return null;
 var lo = j.sal_min != null ? j.sal_min * m : j.sal_max * m;
 var hi = j.sal_max != null ? j.sal_max * m : lo;
+if (edCur && j.cur && j.cur !== edCur) { lo = fxConvert(lo, j.cur, edCur); hi = fxConvert(hi, j.cur, edCur); }
 if (lo < 8000 || hi > 400000) return null;
 return { lo: lo, hi: hi, mid: (lo + hi) / 2 };
 }
+var LOC_LABEL = { ie: 'Ireland', uk: 'UK', ni: 'Northern Ireland', remote: 'Remote', cross: 'Ireland & UK', intl: 'International' };
+function locLabel(lc) { return LOC_LABEL[lc] || ''; }
 function median(a) {
 if (!a.length) return null;
 var s = a.slice().sort(function (x, y) { return x - y; });
@@ -69,7 +91,7 @@ var d = daysAgo(iso, now);
 if (d == null) return '';
 return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : d < 7 ? d + ' days ago' : d < 30 ? Math.round(d / 7) + ' wk ago' : Math.round(d / 30) + ' mo ago';
 }
-var KEYS = ['q', 'loc', 'sector', 'type', 'sal', 'sort', 'view'];
+var KEYS = ['q', 'loc', 'sector', 'type', 'sal', 'wp', 'level', 'ct', 'smin', 'smax', 'only', 'close', 'emp', 'sort', 'view'];
 function parseState(qs) {
 var st = {};
 String(qs || '').replace(/^\?/, '').split('&').forEach(function (kv) {
@@ -103,23 +125,51 @@ var h = haystack(j), words = tokens(q);
 if (!words.length) return h.indexOf(norm(q)) >= 0;
 return words.every(function (w) { return h.indexOf(w) >= 0; });
 }
-function filterJobs(jobs, st) {
+function daysUntil(iso, now) {
+if (!iso) return null;
+var t = Date.parse(iso);
+if (isNaN(t)) return null;
+return Math.floor((t - (now || Date.now())) / 864e5);
+}
+function filterJobs(jobs, st, opts) {
+opts = opts || {};
 var loc = norm(st.loc), sec = norm(st.sector), typ = norm(st.type);
+var smin = st.smin ? parseFloat(st.smin) : null, smax = st.smax ? parseFloat(st.smax) : null;
+if (smin != null && isNaN(smin)) smin = null;
+if (smax != null && isNaN(smax)) smax = null;
+var home = opts.home || ['ie', 'cross', 'remote'];
 var out = jobs.filter(function (j) {
 if (!matchesQ(j, st.q)) return false;
 if (loc && !(norm(j.location).indexOf(loc) >= 0 || (j.regions || []).some(function (r) { return norm(r) === loc; }))) return false;
 if (sec && !(j.sectors || []).some(function (s) { return norm(s) === sec; })) return false;
 if (typ && norm(j.type) !== typ) return false;
 if (st.sal && j.sal_min == null && j.sal_max == null) return false;
+if (st.wp && (j.workplace || 'unspecified') !== st.wp) return false;
+if (st.level && j.level !== st.level) return false;
+if (st.ct && (j.contract || []).indexOf(st.ct) < 0) return false;
+if (smin != null || smax != null) {
+var a = annual(j, opts.cur);
+if (!a) return false;
+if (smin != null && a.hi < smin) return false;
+if (smax != null && a.lo > smax) return false;
+}
+if (st.only && home.indexOf(j.loc_class) < 0) return false;
+if (st.close) {
+var d = daysUntil(j.closing, opts.now);
+if (st.close === 'open') { if (d != null && d < 0) return false; }
+else { var n = parseInt(st.close, 10); if (d == null || d < 0 || d > n) return false; }
+}
+if (st.emp === 'agency' && !j.agency) return false;
+if (st.emp === 'direct' && j.agency) return false;
 return true;
 });
-return sortJobs(out, st.sort);
+return sortJobs(out, st.sort, opts.cur);
 }
-function sortJobs(list, sort) {
+function sortJobs(list, sort, edCur) {
 var a = list.slice();
 if (sort === 'salary') {
 a.sort(function (x, y) {
-var ax = annual(x), ay = annual(y);
+var ax = annual(x, edCur), ay = annual(y, edCur);
 return (ay ? ay.hi : -1) - (ax ? ax.hi : -1);
 });
 } else if (sort === 'az') {
@@ -269,9 +319,9 @@ return { job: j, score: score * boost, terms: terms, stems: hits.map(function (h
 res.sort(function (a, b) { return b.score - a.score || a.job.title.localeCompare(b.job.title); });
 return res.slice(0, limit || 6);
 }
-function salaryPosition(hits, jobs) {
-var all = jobs.map(annual).filter(Boolean).map(function (a) { return a.mid; }).sort(function (a, b) { return a - b; });
-var mine = hits.map(function (h) { return annual(h.job || h); }).filter(Boolean);
+function salaryPosition(hits, jobs, edCur) {
+var all = jobs.map(function (j) { return annual(j, edCur); }).filter(Boolean).map(function (a) { return a.mid; }).sort(function (a, b) { return a - b; });
+var mine = hits.map(function (h) { return annual(h.job || h, edCur); }).filter(Boolean);
 function pct(v) { var k = 0; while (k < all.length && all[k] < v) k++; return all.length ? Math.round(100 * k / all.length) : 0; }
 var out = { n: hits.length, disclosed: mine.length, share: hits.length ? Math.round(100 * mine.length / hits.length) : 0,
 board: { n: all.length, min: all[0] || 0, max: all[all.length - 1] || 0, median: median(all) || 0 }, lo: null, hi: null, plo: null, phi: null };
@@ -305,7 +355,7 @@ function countAt(from, to, u) { return Math.round(from + (to - from) * easeOutQu
 return {
 stem: stem, fitIndex: fitIndex, fitMatch: fitMatch, salaryPosition: salaryPosition, encodeFit: encodeFit, decodeFit: decodeFit,
 easeOutQuart: easeOutQuart, filmScrub: filmScrub, countAt: countAt,
-norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, annual: annual, median: median,
+norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, currencyNote: currencyNote, fxConvert: fxConvert, FX_GBP_EUR: FX_GBP_EUR, locLabel: locLabel, daysUntil: daysUntil, annual: annual, median: median,
 histogram: histogram, daysAgo: daysAgo, ago: ago, parseState: parseState, toQuery: toQuery, filterJobs: filterJobs,
 sortJobs: sortJobs, suggest: suggest, buildIndex: buildIndex, smartMatch: smartMatch, scoreSectors: scoreSectors,
 encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack, jobUrl: jobUrl
