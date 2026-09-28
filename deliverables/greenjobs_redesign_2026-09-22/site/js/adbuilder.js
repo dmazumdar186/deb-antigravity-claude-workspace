@@ -72,6 +72,7 @@ render();
 }
 if (fill) fill.addEventListener('click', function () { example(); F.title.focus(); });
 if (toggle && preview) {
+Array.prototype.forEach.call(doc.querySelectorAll('[data-adb-open]'), function (a) { a.addEventListener('click', function () { if (!root.classList.contains('is-open') && getComputedStyle(toggle).display !== 'none') toggle.click(); }); });
 toggle.addEventListener('click', function () {
 var open = root.classList.toggle('is-open');
 toggle.setAttribute('aria-expanded', open ? 'true' : 'false'); toggle.textContent = open ? 'Back to the form' : 'Preview';

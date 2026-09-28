@@ -49,6 +49,9 @@ HERO_BUDGET_FILE = 2 * 1024 * 1024  # per hero file (mp4, portrait mp4, poster)
 HERO_BUDGET_TOTAL = 6 * 1024 * 1024  # every hero file together
 HERO_REQUIRED = ("{ed}.mp4", "{ed}-m.mp4")  # plus a poster: {ed}-poster.webp|jpg
 EDITIONS = ("ie", "uk")
+# Location classes an edition may show (mirrors build_site.EDITION_INCLUDES): the IE board shows every class
+# with a label (Keith B4: users exclude UK roles with the toggle); the UK board excludes Ireland-only and intl.
+EDITION_LOC = {"ie": {"ie", "uk", "ni", "remote", "cross", "intl", "unspecified"}, "uk": {"uk", "ni", "remote", "cross", "unspecified"}}
 DANGEROUS_SCHEMES = ("javascript:", "data:", "vbscript:", "file:")
 THIRD_PARTY_TAGS = ("link", "script", "img", "iframe", "source", "video", "audio", "object", "embed")
 
@@ -369,6 +372,12 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
                     fails.append(f"{rel}: '{name}' is shown under \"Employers hiring now\" but has no live role in this edition")
         if hm and "countyies" in raw:
             fails.append(f"{rel}: 'countyies' pluralisation bug")
+        em = re.match(r"^(ie|uk)/", rel)
+        if em and not EXEMPT_RE.match(rel):
+            # Edition rule: no role card (location badge) whose class is outside this edition's set.
+            outside = sorted({lc for lc in re.findall(r'<span class="tag tag--loc" data-loc="([^"]*)"', raw) if lc not in EDITION_LOC[em.group(1)]})
+            if outside:
+                fails.append(f"{rel}: role card with location class {', '.join(outside)} on the {em.group(1)} edition (outside its inclusion rule)")
 
     for ed, jobs in jobs_by_edition.items():
         if job_pages.get(ed, 0) != len(jobs):

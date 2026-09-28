@@ -208,6 +208,9 @@ test('filterJobs: workplace, level, contract, salary range, only-toggle, closing
   assert.deepEqual(ids({ smax: '50000' }, { cur: 'EUR' }), ['b']);
   assert.deepEqual(ids({ only: '1' }, { home: ['ie', 'cross', 'remote'] }), ['a', 'c']);
   assert.deepEqual(ids({ only: '1' }, { home: ['uk', 'ni', 'cross', 'remote'] }), ['b', 'c']);
+  /* an unchecked or absent toggle filters nothing */
+  assert.deepEqual(ids({ only: '' }, { home: ['ie', 'cross', 'remote'] }), ['a', 'b', 'c']);
+  assert.deepEqual(ids({ only: undefined }, {}), ['a', 'b', 'c']);
   assert.deepEqual(ids({ close: '7' }, { now: NOW }), ['a']);
   assert.deepEqual(ids({ close: 'open' }, { now: NOW }), ['a', 'c']);
   assert.deepEqual(ids({ emp: 'agency' }), ['a']);

@@ -183,6 +183,14 @@ def test_fixture_build(tmp_root: Path):
     check((out / "index.html").exists() and (out / "ie" / "jobs" / "1001" / "index.html").exists() and (out / "uk" / "jobs" / "1007" / "index.html").exists(), "integration: chooser + job pages written for both editions")
     check(not (out / "uk" / "jobs" / "1001" / "index.html").exists() and (out / "ie" / "jobs" / "1007" / "index.html").exists() and (out / "uk" / "jobs" / "1004" / "index.html").exists() and (out / "uk" / "jobs" / "1008" / "index.html").exists(),
           "integration: UK edition drops the Dublin-only role, keeps remote, London and Belfast; IE keeps the London role (B5)")
+    ie_home = (out / "ie" / "index.html").read_text(encoding="utf-8")
+    uk_home = (out / "uk" / "index.html").read_text(encoding="utf-8")
+    check("Senior Ecologist" not in uk_home and "Conservation Officer" in ie_home and "Conservation Officer" in uk_home,
+          "integration: UK home/latest never lists an Ireland-only role; the NI role is on both editions")
+    ie_jobs = json.loads((out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8").split('id="gj-data">')[1].split("</script>")[0])["jobs"]
+    check(len(ie_jobs) == 8 and "8 live" in ie_home and any(j["loc_class"] == "uk" for j in ie_jobs), f"integration: IE hero/dataset count 8 (every scraped role, the London one labelled UK), got {len(ie_jobs)}")
+    check("0 roles excluded; 1 UK-only role shown with a UK label" in (out / "ie" / "for-keith" / "index.html").read_text(encoding="utf-8") and "5 Ireland-only roles kept off greenjobs.co.uk" in (out / "uk" / "for-keith" / "index.html").read_text(encoding="utf-8"),
+          "integration: for-keith evidence table states the IE shown-with-label count and the UK excluded count")
     for req in ("sitemap.xml", "manifest.webmanifest", "robots.txt", "404.html", "ie/data/jobs.json", "assets/maps"):
         pass
     check((out / "sitemap.xml").read_text(encoding="utf-8").count("<url>") >= 2 * (6 + 6), "integration: sitemap lists pages and job pages")
@@ -210,10 +218,24 @@ def test_real_data_build(tmp_root: Path):
         pages = len(list((out / ed / "jobs").glob("*/index.html")))
         data = build_site.normalise(raw, ed, SRC, SRC / "assets" / "logos")
         check(pages == len(data["jobs"]) and pages + len(data["excluded"]) == len(raw["jobs"]), f"integration: {ed} job page count {pages} + {len(data['excluded'])} excluded == dataset {len(raw['jobs'])}")
+        check(all(j["loc_class"] in build_site.EDITION_INCLUDES[ed] for j in data["jobs"]), f"integration: {ed} edition carries only {sorted(build_site.EDITION_INCLUDES[ed])} roles")
+        keith = (out / ed / "for-keith" / "index.html").read_text(encoding="utf-8")
         if ed == "uk":
-            check(all(j["loc_class"] in ("uk", "ni", "remote", "cross") for j in data["jobs"]) and all(x["loc_class"] in ("ie", "intl") for x in data["excluded"]), "integration: UK edition carries only uk/ni/remote/cross roles; ie-only and international are excluded (B5)")
-            keith = (out / "uk" / "for-keith" / "index.html").read_text(encoding="utf-8")
-            check(f"{len(data['excluded'])} excluded" in keith, "integration: UK evidence page states the excluded count")
+            check(all(x["loc_class"] in ("ie", "intl") for x in data["excluded"]), "integration: UK edition excludes only ie-only and international roles (B5)")
+            single = sum(1 for x in data["excluded"] if x["loc_class"] == "ie")
+            check(f"{len(data['excluded'])} excluded" in keith and f"{single} Ireland-only role{'' if single == 1 else 's'} kept off greenjobs.co.uk" in keith, f"integration: UK evidence page states the excluded count ({single} Ireland-only)")
+        else:
+            uk_only = sum(1 for j in data["jobs"] if j["loc_class"] == "uk")
+            check(not data["excluded"] and f"0 roles excluded; {uk_only} UK-only role{'' if uk_only == 1 else 's'} shown with a UK label" in keith, f"integration: IE excludes nothing; evidence page states {uk_only} UK-only roles shown with a label (Keith B4)")
+            fixed = [j for j in data["jobs"] if j.get("currency_source")]
+            check(len(fixed) == len(data["corrected"]) and all(j["cur"] == "GBP" and j["loc_class"] == "uk" for j in fixed) and len(fixed) >= 15, f"integration: IE sterling correction from the greenjobs.co.uk twin applied to {len(fixed)} UK-only roles (all now GBP)")
+            page = (out / "ie" / "jobs" / fixed[0]["id"] / "index.html").read_text(encoding="utf-8")
+            check("paid in sterling, about €" in page and "Advertised in sterling on the greenjobs.co.uk listing" in page and "£" in page, "integration: corrected IE job page shows the sterling figure, the euro equivalent and the salary source")
+        for page in (out / ed).rglob("index.html"):
+            if "for-keith" in page.parts:
+                continue
+            bad = {lc for lc in re.findall(r'data-loc="([^"]*)"', page.read_text(encoding="utf-8")) if lc not in build_site.EDITION_INCLUDES[ed]}
+            check(not bad, f"integration: {page.relative_to(out)} shows no role card outside the {ed} inclusion rule ({bad})")
 
 
 def test_validator_catches_injected_faults(tmp_root: Path):
@@ -238,6 +260,14 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check(any("noindex" in f for f in with_patch(lambda t: t.replace('content="noindex,nofollow"', 'content="index"'))), "faults: missing noindex caught")
     check(any("exactly one <h1>" in f for f in with_patch(lambda t: t.replace("</main>", "<h1>Two</h1></main>"))), "faults: second h1 caught")
     check(any("countyies" in f for f in with_patch(lambda t: t.replace("</main>", "<p>14 countyies</p></main>"))), "faults: 'countyies' caught")
+    uk_home = out / "uk" / "index.html"
+    uk_clean = uk_home.read_text(encoding="utf-8")
+    uk_home.write_text(uk_clean.replace("</main>", '<article class="role"><span class="tag tag--loc" data-loc="ie">Ireland</span></article></main>'), encoding="utf-8")
+    try:
+        check(any("outside its inclusion rule" in f for f in validate_site.validate(out, jobs)), "faults: an Ireland-only role card on a UK page is caught (B5)")
+    finally:
+        uk_home.write_text(uk_clean, encoding="utf-8")
+    check(not any("outside its inclusion rule" in f for f in with_patch(lambda t: t.replace("</main>", '<span class="tag tag--loc" data-loc="uk">UK</span></main>'))), "faults: a UK role card on an IE page is allowed (IE shows every class with a label)")
     check("countyies" not in clean and "counties" in clean, "home: unit pluralised as 'counties'")
     check("For Keith" not in clean and "for-keith" not in clean, "home: for-keith is not linked from the public shell")
     check("Snapshot of" in clean, "home: hero carries the snapshot date")
@@ -267,7 +297,7 @@ def _dash_recompute(raw: dict, ed_key: str) -> dict:
     from datetime import date as _date
     asof = _date.fromisoformat(str(raw["fetched"])[:10])
     ie_p, uk_p = build_site.place_words(SRC)
-    jobs = [j for j in raw["jobs"] if build_site.loc_class(j, ie_p, uk_p) in build_site.EDITION_INCLUDES[ed_key]]  # B5: the UK board excludes ie-only/intl roles
+    jobs = [j for j in raw["jobs"] if build_site.loc_class(j, ie_p, uk_p) in build_site.EDITION_INCLUDES[ed_key]]  # B5: each board excludes the other's single-country roles and intl
     live = len(jobs)
     new7 = sum(1 for j in jobs if 0 <= (asof - _date.fromisoformat(build_site.parse_date(j["posted"]))).days < 7)
     closing7 = sum(1 for j in jobs if j.get("closing") and 0 <= (_date.fromisoformat(build_site.parse_date(j["closing"])) - asof).days <= 7)
@@ -496,13 +526,17 @@ def test_ni_region_and_facets(tmp_root: Path):
     out = tmp_root / "site_facets"
     check(build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE) == 0, "facets: fixture build passes")
     board = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
-    for fid in ("f-wp", "f-level", "f-ct", "f-smin", "f-smax", "f-only", "f-close", "f-emp"):
+    for fid in ("f-wp", "f-level", "f-ct", "f-smin", "f-smax", "f-close", "f-emp"):
         check(f'id="{fid}"' in board and (f'for="{fid}"' in board or f'<input type="checkbox" id="{fid}"' in board), f"facets: control {fid} present and labelled")
-    check("Hide UK/abroad-only roles" in board and "Hide Ireland/abroad-only roles" in (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8"), "facets: edition-aware only-toggle label (renamed, panel B8)")
+    uk_board = (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8")
+    check('id="f-only"' in board and '<input type="checkbox" id="f-only"' in board and "Hide UK/abroad-only roles" in board and "Hide Ireland/abroad-only roles" in uk_board, "facets: the hide toggle is present and labelled per edition (Keith B4: 'allow users to exclude UK opportunities')")
+    ie_lc = [x["loc_class"] for x in json.loads(re.search(r'id="gj-data">(.*?)</script>', board, re.S).group(1))["jobs"]]
+    uk_lc = [x["loc_class"] for x in json.loads(re.search(r'id="gj-data">(.*?)</script>', uk_board, re.S).group(1))["jobs"]]
+    check("uk" in ie_lc and not {"ie", "intl"} & set(uk_lc), "facets: the IE board dataset carries the London role (labelled UK client-side); the UK board carries no Ireland-only or international role")
     check("counted in each, so totals can exceed" in board and "counted in each" in (out / "ie" / "sectors" / "index.html").read_text(encoding="utf-8"), "B6: multi-count sentence on the jobs map and sectors page")
     embedded = json.loads(re.search(r'id="gj-data">(.*?)</script>', board, re.S).group(1))
     j = embedded["jobs"][0]
-    check(all(k in j for k in ("loc_class", "workplace", "level", "contract", "agency", "closing")) and embedded.get("home") == ["ie", "cross", "remote"], "facets: dataset carries the facet fields and the home classes")
+    check(all(k in j for k in ("loc_class", "workplace", "level", "contract", "agency", "closing")) and embedded.get("home") == ["ie", "cross", "remote"] and all(x["loc_class"] in build_site.EDITION_INCLUDES["ie"] for x in embedded["jobs"]), "facets: dataset carries the facet fields, the home classes, and only IE-rule roles")
     check('class="tag tag--loc"' in (out / "ie" / "index.html").read_text(encoding="utf-8"), "B3: location badge rendered on home cards")
     fit = (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8")
     check("Quick job match" in fit and "Processed on your device. Nothing is uploaded." in fit and "Keyword matching, not an assessment of your suitability" in fit, "D3: matcher renamed with the two disclosure lines (wording per panel B2)")
@@ -546,6 +580,18 @@ def test_pf_a_loc_class_probes():
     check(lc({"location": "Kyiv", "region": "Ukraine", "country": ""}) == "intl", "pf-A2: 'Ukraine' is not a UK match ('uk' is whole-word)")
     check(lc({"location": "", "region": "", "country": ""}) == "unspecified" and build_site.LOC_LABEL["unspecified"] == "Location not stated", "pf-A2: empty location + country -> 'unspecified', labelled 'Location not stated'")
     check("unspecified" in build_site.EDITION_INCLUDES["ie"] and "unspecified" in build_site.EDITION_INCLUDES["uk"], "pf-A2: unspecified roles are kept on both boards")
+    check(build_site.EDITION_INCLUDES["ie"] == {"ie", "uk", "ni", "remote", "cross", "intl", "unspecified"} and build_site.EDITION_INCLUDES["uk"] == {"uk", "ni", "remote", "cross", "unspecified"}, "pf-A2: IE shows every class with a label (Keith: 'allow users to exclude UK opportunities'); UK excludes ie-only and intl")
+    check(lc({"location": "London", "region": "London", "country": "Ireland"}, "ie") == "uk" and "uk" in build_site.EDITION_INCLUDES["ie"] and build_site.LOC_LABEL["uk"] == "UK", "pf-A2: golden probe: Mattinson-style 'London' advert on the IE site -> uk, shown on greenjobs.ie with a 'UK' label")
+    twins = {"id:1": {"id": "1", "currency": "GBP", "salary_min": 70000, "salary_max": 75000, "salary_text": "£70,000 to £75,000 per annum"},
+             "te:planner|mattinson partnership": {"id": "9", "currency": "GBP", "salary_min": 30000, "salary_max": 40000, "salary_text": "£30,000 to £40,000"}}
+    fix = build_site.sterling_correction({"id": "1", "currency": "EUR", "salary_min": 70000, "salary_max": 75000}, "uk", twins)
+    check(fix and fix["currency"] == "GBP" and fix["salary_min"] == 70000 and fix["salary_text"].startswith("£70,000"), "B2: a UK-only IE role priced in euros takes the greenjobs.co.uk twin's sterling figures (by id)")
+    check(build_site.sterling_correction({"id": "2", "title": "Planner", "employer": "Mattinson Partnership", "currency": "EUR", "salary_min": 30000, "salary_max": 40000}, "uk", twins)["currency"] == "GBP", "B2: title + employer twin accepted when the figures match")
+    check(build_site.sterling_correction({"id": "2", "title": "Planner", "employer": "Mattinson Partnership", "currency": "EUR", "salary_min": 80000, "salary_max": 100000}, "uk", twins) is None, "B2: title + employer twin with different figures is a different advert -> no correction")
+    check(build_site.sterling_correction({"id": "1", "currency": "EUR", "salary_min": 1, "salary_max": 2}, "ie", twins) is None and build_site.sterling_correction({"id": "1", "currency": "GBP"}, "uk", twins) is None and build_site.sterling_correction({"id": "1", "currency": "EUR"}, "uk", {}) is None, "B2: only uk-class euro roles with a twin are corrected; Irish roles, sterling roles and fixture builds are untouched")
+    check(build_site.salary_label({"sal_min": 70000, "sal_max": 75000, "cur": "GBP", "period": "year"}, "EUR").startswith("£70k–75k (paid in sterling, about €"), "B2: corrected role renders '£70k–75k (paid in sterling, about €…)' on the IE edition")
+    check(lc({"location": "Belfast", "region": "Ireland", "country": "Ireland"}, "ie") in build_site.EDITION_INCLUDES["ie"] and "ni" in build_site.EDITION_INCLUDES["uk"] and build_site.LOC_LABEL["ni"] == "Northern Ireland", "pf-A2: golden probe: NI roles stay on both editions, labelled 'Northern Ireland'")
+    check(lc({"location": "Dublin, London", "region": ""}) == "cross" and "cross" in build_site.EDITION_INCLUDES["ie"] and "cross" in build_site.EDITION_INCLUDES["uk"] and build_site.LOC_LABEL["cross"] == "Ireland & UK", "pf-A2: golden probe: cross-border roles stay on both editions, labelled 'Ireland & UK'")
     uk_tab = json.loads((SRC / "data" / "regions_uk.json").read_text(encoding="utf-8"))
     ed_uk = build_site.EDITIONS["uk"]
     check(build_site.resolve_regions({"region": "Country", "location": "United Kingdom (UK)"}, uk_tab, ed_uk) == [ed_uk["none"]], "pf-A2: 'United Kingdom (UK)' -> the UK-wide bucket, not 'elsewhere'")
@@ -880,7 +926,9 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     bad = []
     for p in public:
         t = _read(p)
-        stripped = re.sub(r'alt="Certified B Corporation"', "", t)
+        # 2026-09-28 visual fix: the home hero trust box now opens with the confirmed wording
+        # "<b>Certified B Corporation.</b>" beside the mark (client request); that one use is allowed too.
+        stripped = re.sub(r'alt="Certified B Corporation"|<b>Certified B Corporation\.</b>', "", t)
         if "Certified B Corporation" in stripped:
             bad.append(str(p.relative_to(out)))
     check(not bad, f"panel B3: 'Certified B Corporation' appears only as the mark's alt ({bad[:3]})")

@@ -104,11 +104,19 @@ CUR_SYM = {"EUR": "€", "GBP": "£", "USD": "$"}
 # Location class (Keith B3). Derived from the location/region text only; the
 # word "remote" may also come from title, summary or job type.
 LOC_LABEL = {"ie": "Ireland", "uk": "UK", "ni": "Northern Ireland", "remote": "Remote", "cross": "Ireland & UK", "intl": "International", "unspecified": "Location not stated"}
-# Which classes an edition's board carries (B5): UK excludes Ireland-only and
-# international roles outright; IE keeps everything and offers a toggle (B4).
+# Which classes an edition's board carries (B5). Keith, 2026-09-28: "UK-only
+# roles also appear prominently on the Irish board with salaries converted
+# into euros. I would: retain salaries in their original advertised currency;
+# clearly label UK, Ireland, remote and cross-border positions; allow users to
+# exclude UK opportunities." So the IE board keeps everything (UK roles carry
+# a "UK" badge, sterling figures come from the greenjobs.co.uk twin, see
+# sterling_twins(), and the "Hide UK/abroad-only roles" toggle hides them);
+# the UK board excludes Ireland-only and international roles outright.
 EDITION_INCLUDES = {"ie": {"ie", "uk", "ni", "remote", "cross", "intl", "unspecified"}, "uk": {"uk", "ni", "remote", "cross", "unspecified"}}
-# "Ireland only" / "UK only" toggle keeps these classes.
+# "Hide UK/abroad-only" / "Hide Ireland/abroad-only" toggle keeps these classes (B4).
 EDITION_HOME = {"ie": ["ie", "cross", "remote"], "uk": ["uk", "ni", "cross", "remote"]}
+EDITION_HOST = {"ie": "greenjobs.ie", "uk": "greenjobs.co.uk"}
+STERLING_SOURCE = "greenjobs.co.uk listing"
 UK_WORDS = ["united kingdom", "uk", "england", "scotland", "wales", "great britain", "britain", "london", "manchester", "birmingham", "leeds", "bristol", "glasgow", "edinburgh", "cardiff"]
 # Northern Ireland place words: the full alias list of the "Northern Ireland"
 # row in regions_uk.json (Enniskillen, Bangor NI, Co. Down …) when that file
@@ -580,15 +588,59 @@ def new_this_week(j: dict[str, Any], today: date) -> bool:
     return d is not None and -6 <= d <= 0
 
 
+def sterling_twins(src: Path) -> dict[str, dict[str, Any]]:
+    """Index of the greenjobs.co.uk dataset (src/data/uk.json) for
+    sterling_correction(): by id, by slug and by (title, employer), lower-cased.
+    Empty when the file is absent (fixture builds)."""
+    path = src / "data" / "uk.json"
+    if not path.is_file():
+        return {}
+    try:
+        jobs = json.loads(path.read_text(encoding="utf-8")).get("jobs") or []
+    except (OSError, ValueError):
+        return {}
+    idx: dict[str, dict[str, Any]] = {}
+    for j in jobs:
+        if j.get("currency") != "GBP" or not isinstance(j.get("salary_min"), (int, float)) and not isinstance(j.get("salary_max"), (int, float)):
+            continue
+        for key in (f"id:{str(j.get('id') or '').strip()}", f"slug:{str(j.get('slug') or '').strip().lower()}",
+                    f"te:{str(j.get('title') or '').strip().lower()}|{str(j.get('employer') or '').strip().lower()}"):
+            if not key.endswith((":", "|")):
+                idx.setdefault(key, j)
+    return idx
+
+
+def sterling_correction(j: dict[str, Any], lc: str, twins: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
+    """Keith B2: a UK-only role on greenjobs.ie is scraped with its sterling
+    figures relabelled as euros. Return the greenjobs.co.uk twin's advertised
+    figures ({salary_min, salary_max, currency, salary_text}) when the IE job
+    is loc_class uk, priced in EUR, and a twin exists by id or slug, or by
+    title + employer with the same numbers (a looser title match may be a
+    different advert). None when no twin is found: the scraped euros stay."""
+    if lc != "uk" or j.get("currency") != "EUR" or not twins:
+        return None
+    twin = twins.get(f"id:{str(j.get('id') or '').strip()}") or twins.get(f"slug:{str(j.get('slug') or '').strip().lower()}")
+    if twin is None:
+        twin = twins.get(f"te:{str(j.get('title') or '').strip().lower()}|{str(j.get('employer') or '').strip().lower()}")
+        if twin is not None and (twin.get("salary_min"), twin.get("salary_max")) != (j.get("salary_min"), j.get("salary_max")):
+            twin = None
+    if twin is None:
+        return None
+    return {"salary_min": twin.get("salary_min"), "salary_max": twin.get("salary_max"), "currency": "GBP",
+            "salary_text": repair_pounds(str(twin.get("salary_text") or "")) or "", "period": twin.get("period") or j.get("period")}
+
+
 def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, today: date | None = None) -> dict[str, Any]:
     ed = EDITIONS[ed_key]
     table = load_region_table(src, ed_key)
     ie_places, uk_places = place_words(src)
     ni_places = ni_place_words(src)
     today = build_today(raw, today)
+    twins = sterling_twins(src) if ed_key == "ie" else {}
     jobs_out: list[dict[str, Any]] = []
     excluded: list[dict[str, str]] = []
     closed: list[dict[str, str]] = []
+    corrected: list[dict[str, str]] = []
     seen_ids: set[str] = set()
     for j in raw.get("jobs") or []:
         jid = str(j.get("id") or "").strip() or slugify(j.get("slug") or j.get("title") or "")
@@ -617,6 +669,12 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
         if lc not in EDITION_INCLUDES[ed_key]:
             excluded.append({"id": jid, "title": str(j["title"]).strip(), "loc_class": lc, "location": str(j.get("location") or "")})
             continue
+        fix = sterling_correction(j, lc, twins)
+        currency_source = ""
+        if fix:
+            j = {**j, **fix}
+            currency_source = STERLING_SOURCE
+            corrected.append({"id": jid, "title": str(j["title"]).strip(), "salary_text": fix["salary_text"]})
         jobs_out.append({
             "id": jid, "slug": slugify(j.get("slug") or j.get("title")), "title": str(j["title"]).strip(),
             "employer": str(j.get("employer") or "Confidential employer").strip(), "location": str(j.get("location") or ed["none"]).strip(),
@@ -628,7 +686,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
             "summary": str(j.get("summary") or "").strip() or text[:180], "text": text[:1500], "description_html": desc,
             "logo": logo, "lw": lw, "lh": lh, "url": str(j["url"]).strip(), "href": f"{jid}/index.html",
             "loc_class": lc, "workplace": workplace_of(j), "level": level_of(j["title"]), "contract": contract_of(j),
-            "agency": is_agency(j.get("employer") or ""),
+            "agency": is_agency(j.get("employer") or ""), "currency_source": currency_source,
         })
     jobs_out.sort(key=lambda x: (x["posted"], x["title"]), reverse=True)
     sector_counts = Counter(s for j in jobs_out for s in j["sectors"])
@@ -651,7 +709,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
         "jobs": jobs_out, "sectors": sectors, "regions": regions, "types": types,
         "employers": list(employers.values()), "about": str(raw.get("about") or "").strip(),
         "contact": raw.get("contact") or {}, "network_sites": raw.get("network_sites") or [],
-        "region_table": table, "social": social_links(src, ed_key), "excluded": excluded, "closed": closed,
+        "region_table": table, "social": social_links(src, ed_key), "excluded": excluded, "closed": closed, "corrected": corrected,
     }
 
 
@@ -1879,6 +1937,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         for k, v in (("Location", j["location"]), ("Where", LOC_LABEL.get(j["loc_class"], "")), ("Workplace", WORKPLACE_LABEL[j["workplace"]] if j["workplace"] != "unspecified" else ""),
                      ("Type", j["type"]), ("Contract", ", ".join(CONTRACT_LABEL[c] for c in j["contract"])), ("Level", j["level"]),
                      ("Salary", (j["sal_text"] or (sal or "Not disclosed")) + (f" ({note.lower()}, about {sal.split('about ', 1)[1].rstrip(')')})" if note and "about " in sal else "")),
+                     ("Salary source", f"Advertised in sterling on the {j['currency_source']}" if j.get("currency_source") else ""),
                      ("Advertised by", "Recruitment agency" if j["agency"] else "Direct employer"),
                      ("Posted", j["posted"]), ("Closes", j["closing"]), ("Sector", ", ".join(j["sectors"]))):
             if v:
@@ -2006,19 +2065,28 @@ def render_evidence(out: Path, src: Path, data_by_ed: dict[str, dict[str, Any]],
 
 
 def excluded_row(data: dict[str, Any]) -> str:
-    """Evidence-table row for the edition inclusion rule (B5): how many scraped
-    roles were left off this edition's board and why. Empty for editions that
-    exclude nothing."""
+    """Evidence-table row for the edition inclusion rule (B5): what each board
+    leaves off. UK: how many scraped roles were kept off greenjobs.co.uk and
+    why. IE: nothing is excluded (Keith: "allow users to exclude UK
+    opportunities"); UK-only roles are shown with a UK label, sterling figures
+    restored from the greenjobs.co.uk twin, and the hide toggle."""
     ex = data.get("excluded") or []
-    ed = EDITIONS[data["ed"]]
-    if data["ed"] != "uk":
-        return (f"<tr><td>Roles outside {esc(ed['name'])}</td><td class=\"n\">shown, unlabelled</td>"
-                f"<td class=\"n good\">{sum(1 for j in data['jobs'] if j['loc_class'] not in ('ie', 'cross', 'remote'))} kept, each with a location badge; an \"Ireland only\" toggle hides them</td></tr>")
+    ed_key = data["ed"]
+    ed = EDITIONS[ed_key]
+    if ed_key == "ie":
+        uk_only = sum(1 for j in data["jobs"] if j["loc_class"] == "uk")
+        fixed = len(data.get("corrected") or [])
+        return (f"<tr><td>Roles outside {esc(ed['name'])} <small class=\"muted\">Keith: retain the advertised currency, label UK / Ireland / remote / cross-border, let users exclude UK opportunities</small></td>"
+                f"<td class=\"n\">shown, unlabelled, sterling relabelled as euros</td>"
+                f"<td class=\"n good\">0 roles excluded; {uk_only} UK-only role{'' if uk_only == 1 else 's'} shown with a UK label and the \"Hide UK/abroad-only roles\" toggle; "
+                f"{fixed} of them carry the sterling figures from the greenjobs.co.uk listing (the rest keep the scraped figures)</td></tr>")
     by = Counter(x["loc_class"] for x in ex)
     detail = ", ".join(f"{n} {LOC_LABEL.get(k, k)}" for k, n in by.most_common()) or "none"
     titles = "; ".join(f"{esc(x['title'])} ({esc(x['location'])})" for x in ex[:6])
+    single = by.get("ie", 0)
+    headline = f"{single} Ireland-only role{'' if single == 1 else 's'} kept off {EDITION_HOST[ed_key]}" + (f", {by['intl']} international" if by.get("intl") else "")
     return (f"<tr><td>Roles excluded by the UK inclusion rule <small class=\"muted\">shown only if located in the UK or NI, fully remote, or advertised for Ireland and the UK</small></td>"
-            f"<td class=\"n\">{len(data['jobs']) + len(ex)} listed, all counted</td><td class=\"n good\">{len(ex)} excluded ({detail}){': ' + titles if titles else ''}{'…' if len(ex) > 6 else ''}</td></tr>")
+            f"<td class=\"n\">{len(data['jobs']) + len(ex)} listed, all counted</td><td class=\"n good\">{esc(headline)}: {len(ex)} excluded ({detail}){'; ' + titles if titles else ''}{'…' if len(ex) > 6 else ''}</td></tr>")
 
 
 def scoreboard(before_html: Any, after_html: int, before_req: Any, after_req: int, before_scripts: Any, after_scripts: int, n_jobs: int) -> str:
@@ -2182,7 +2250,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         data_by_ed[ed_key] = data
         unresolved = sum(1 for j in data["jobs"] if not any(r in data["region_table"]["regions"] for r in j["regions"]))
         off_map = ", ".join(f"{r['name']} {r['n']}" for r in data["regions"] if not r["on_map"])
-        print(f"…  {ed_key}: {len(data['jobs'])} jobs, {sum(1 for s in data['sectors'] if s['n'])} sectors live, {unresolved} jobs off-map ({off_map}), {len(data['excluded'])} excluded by the edition rule, {len(data['closed'])} closed before {today}")
+        print(f"…  {ed_key}: {len(data['jobs'])} jobs, {sum(1 for s in data['sectors'] if s['n'])} sectors live, {unresolved} jobs off-map ({off_map}), {len(data['excluded'])} excluded by the edition rule, {len(data.get('corrected') or [])} sterling salaries restored from greenjobs.co.uk, {len(data['closed'])} closed before {today}")
     assert today is not None
     # hreflang pairs: only paths built in both editions (landing slugs differ per edition)
     paths_by_ed = {k: PAIRED_PATHS | {f"{spec['slug']}/index.html" for spec, _ in landing_pages(d)} for k, d in data_by_ed.items()}

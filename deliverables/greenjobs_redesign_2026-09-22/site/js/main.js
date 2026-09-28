@@ -222,5 +222,14 @@ try { counts = JSON.parse(homeMap.getAttribute('data-counts') || '{}'); } catch 
 var jobsHref = homeMap.getAttribute('data-jobs');
 window.GJMap($('svg', homeMap), counts, function (name) { window.location.href = jobsHref + G.toQuery({ loc: name }); });
 }
+var FX_SYM = { euros: '\u20ac', pounds: '\u00a3' };
+$$('.row .tag--sal').forEach(function (chip) {
+var m = /^(.*) \(paid in ([^,]+), about (.+)\)$/.exec(chip.textContent.trim());
+if (!m) return;
+chip.innerHTML = '<span class="tag__t">' + G.esc(m[1]) + '</span>';
+var fx = doc.createElement('span'); fx.className = 'tag tag--fx'; fx.title = 'Paid in ' + m[2] + ', about ' + m[3];
+fx.innerHTML = '<span class="tag__t">paid in ' + G.esc(FX_SYM[m[2]] || m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span>';
+chip.insertAdjacentElement('afterend', fx);
+});
 window.GJsay = say;
 })();

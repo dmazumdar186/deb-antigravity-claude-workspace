@@ -91,12 +91,30 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   `-m.mp4`, `-poster.webp|jpg`; validator checks referenced files exist). Budgets raised to CSS ≤ 80 KB,
   JS ≤ 125 KB (measured 70 / 99). Learned: the validator's checkbox rule needs `<label for>` (a
   wrapping label only counts when `<label>` is immediately followed by `<input>`).
+- 2026-09-28 (edition rule and sterling fix, per Keith's document): Keith wrote "UK-only roles also appear
+  prominently on the Irish board with salaries converted into euros. I would: retain salaries in their
+  original advertised currency; clearly label UK, Ireland, remote and cross-border positions; allow users
+  to exclude UK opportunities." Final rule: `EDITION_INCLUDES["ie"]` keeps every class (UK-only roles carry
+  a "UK" badge and the "Hide UK/abroad-only roles" toggle, checklist B4); `EDITION_INCLUDES["uk"]` excludes
+  Ireland-only and international roles (B5). An interim symmetric rule (IE excluding UK-only roles) was
+  built and reverted the same day; the document overrides it. The real defect was the currency: the IE
+  scrape relabels Mattinson's sterling figures as euros ("Associate Civil Engineer", London, €70,000 to
+  €75,000). `sterling_twins()` indexes `src/data/uk.json`; `sterling_correction()` gives an IE role classed
+  `uk` and priced in EUR the greenjobs.co.uk twin's GBP figures when the twin matches by id or slug, or by
+  title + employer with the same numbers (a looser title match may be a different advert), and stamps
+  `currency_source: "greenjobs.co.uk listing"`; the existing label then reads "£70k–75k (paid in sterling,
+  about €82k–88k)" and the job page adds a "Salary source" line. Roles without a twin keep the scraped
+  euros. The build log counts "sterling salaries restored from greenjobs.co.uk" (21 of 23 on the 22 Sept
+  snapshot). The for-keith evidence table states per edition: IE "0 roles excluded; 23 UK-only roles shown
+  with a UK label and the hide toggle", UK "20 Ireland-only roles kept off greenjobs.co.uk, 1
+  international". `validate_site.py` fails a page carrying a role card outside its edition's class set
+  (only the UK board excludes anything).
 - 2026-09-28 (Keith's 28 September notes + panel pass): hero footage now defaults to Kling 3.0 Pro (1080p
   source, cut to 1280x720 loops); `FX_GBP_EUR = 1.17` fixed in `build_site.py` and mirrored in `lib.js`, used
   only for salary-range filters, medians, the "Where you sit on pay" strip and the bracketed "(paid in euros,
   about £…)" equivalent, never for the displayed figure; UK edition inclusion rule (a role appears on the UK
   board only if located in the UK incl. NI, fully remote, or explicitly IE+UK; the log line counts
-  "excluded by the edition rule"); roles whose closing date is before the build date are dropped at build
+  "excluded by the edition rule"; the IE board's handling of UK-only roles is in the entry above); roles whose closing date is before the build date are dropped at build
   time and the browser shows a "Closed" chip / "This role has closed" for anything that closes after the
   build (`data.today` in the dataset); `--today YYYY-MM-DD` pins the build date (default: the dataset's
   fetched date) so "ago" labels, closed-role drops and the footer year are deterministic; `/dashboard/`

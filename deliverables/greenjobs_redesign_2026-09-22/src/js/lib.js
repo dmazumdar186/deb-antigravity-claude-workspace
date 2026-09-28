@@ -176,7 +176,8 @@
     return words.every(function (w) { return h.indexOf(w) >= 0; });
   }
   /* opts: { cur: edition currency for the salary range, home: loc classes
-     the "X only" toggle keeps, now: ms for the closing-date facet }. */
+     the "Hide X/abroad-only roles" toggle keeps, now: ms for the closing-date
+     facet }. */
   function filterJobs(jobs, st, opts) {
     opts = opts || {};
     var loc = norm(st.loc), typ = norm(st.type);

@@ -82,6 +82,7 @@
         <button type="button" role="tab" data-view="map" aria-selected="false">Map</button>
         <button type="button" role="tab" data-view="saved" aria-selected="false">Saved <b data-saved-count>0</b></button>
       </div>
+      <a class="btn btn--sm btn--ghost" href="#fit">Quick job match<span class="arw" aria-hidden="true">↓</span></a>
       <button class="btn btn--sm btn--ghost" type="button" data-palette-open aria-haspopup="dialog">Jump to… <span class="kbd">⌘K</span></button>
     </div>
     <div class="chipbar" data-chips aria-label="Active filters"></div>
@@ -105,8 +106,8 @@
     <div class="sec-head"><div><h2 id="h-fit">Quick job match</h2><p>Paste your CV, your LinkedIn headline or three words and see the live roles that share the most of your words, with the matched words shown.</p></div></div>
     <div class="fit__grid">
       <form class="fit__form" data-fit-form>
-        <div class="field"><label for="fit-q">Paste your CV, LinkedIn headline or three words</label><textarea class="in" id="fit-q" name="fit" rows="6" placeholder="e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Bristol" spellcheck="false" aria-describedby="fit-q-note"></textarea></div>
-        <p class="fit__note muted" id="fit-q-note">Processed on your device. Nothing is uploaded.<br>Keyword matching, not an assessment of your suitability.</p>
+        <div class="fit__ta"><div class="field"><label for="fit-q">Paste your CV, LinkedIn headline or three words</label><textarea class="in" id="fit-q" name="fit" rows="4" placeholder="e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Bristol" spellcheck="false" aria-describedby="fit-q-note"></textarea></div>
+        <p class="fit__note muted" id="fit-q-note"><b>Processed on your device. Nothing is uploaded.</b>Keyword matching, not an assessment of your suitability.</p></div>
         <div class="fit__try" data-fit-try><span>Try:</span><button type="button" data-fit-eg="ecologist Bristol">ecologist Bristol</button><button type="button" data-fit-eg="sustainability consultant London">sustainability consultant London</button><button type="button" data-fit-eg="flood risk engineer Manchester">flood risk engineer Manchester</button><button type="button" data-fit-eg="renewable energy Scotland">renewable energy Scotland</button></div>
         <div class="fit__actions"><button class="btn btn--lime" type="submit" data-magnet>Show matches<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost btn--sm" type="button" data-fit-share hidden>Copy shareable link</button><small class="fit__sharenote muted" data-fit-sharenote hidden>The link contains your text.</small></div>
       </form>
