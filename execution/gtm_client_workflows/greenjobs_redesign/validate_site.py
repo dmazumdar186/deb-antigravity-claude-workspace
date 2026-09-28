@@ -7,10 +7,16 @@ description: Structural, accessibility and honesty checks over the built site:
   job-page count equals the dataset length per edition, no forbidden
   vocabulary on public pages (for-keith/ exempt; employer-authored description
   blocks exempt), no third-party requests, fonts self-hosted and preloaded,
-  CSS/JS weight budgets (80 KB / 125 KB), any referenced hero video and
-  poster exist in the built site. Absolute hrefs are allowed only on
+  CSS/JS weight budgets (80 KB / 125 KB), hero footage per edition
+  (<ed>.mp4, <ed>-m.mp4, poster; HERO_BUDGET_FILE / HERO_BUDGET_TOTAL),
+  canonical + hreflang links absolute with an x-default and every alternate
+  target present in the other edition, every landing page carrying at least
+  one role card, dashboard "wired at launch" tiles free of digits outside
+  their labelled targets, and the dashboard's live tiles equal to a fresh
+  dashboard_kpis() recomputation. Absolute hrefs are allowed only on
   <link rel=canonical|alternate> (no request is made for those).
-inputs: a built site directory, {edition: [normalised job records]}
+inputs: a built site directory, {edition: [normalised job records]},
+  optionally {edition: normalised dataset} and the dashboard_kpis callable
 outputs: a list of failure strings (empty means the build passes)
 """
 
@@ -39,6 +45,10 @@ FORBIDDEN = [
 EXEMPT_RE = re.compile(r"^(?:ie|uk)/for-keith/index\.html$")
 CSS_BUDGET = 80 * 1024
 JS_BUDGET = 125 * 1024
+HERO_BUDGET_FILE = 2 * 1024 * 1024  # per hero file (mp4, portrait mp4, poster)
+HERO_BUDGET_TOTAL = 6 * 1024 * 1024  # every hero file together
+HERO_REQUIRED = ("{ed}.mp4", "{ed}-m.mp4")  # plus a poster: {ed}-poster.webp|jpg
+EDITIONS = ("ie", "uk")
 DANGEROUS_SCHEMES = ("javascript:", "data:", "vbscript:", "file:")
 THIRD_PARTY_TAGS = ("link", "script", "img", "iframe", "source", "video", "audio", "object", "embed")
 
@@ -62,6 +72,7 @@ class _Doc(HTMLParser):
         self.dataset_blocks: list[str] = []
         self._in_dataset = False
         self.external_hrefs: list[str] = []
+        self.seo_links: list[tuple[str, str, str]] = []  # (rel, hreflang, href)
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         a = {k: (v or "") for k, v in attrs}
@@ -85,8 +96,9 @@ class _Doc(HTMLParser):
                 self.dataset_blocks.append("")
         for attr in ("href", "src"):
             if attr in a:
-                if tag == "link" and a.get("rel", "").lower() in ("canonical", "alternate") and a[attr].startswith("https://"):
-                    continue  # SEO links: no request is made, an absolute URL is required
+                if tag == "link" and a.get("rel", "").lower() in ("canonical", "alternate"):
+                    self.seo_links.append((a.get("rel", "").lower(), a.get("hreflang", ""), a[attr]))
+                    continue  # SEO links: no request is made, an absolute URL is required (checked below)
                 self.refs.append((tag, attr, a[attr]))
                 if tag == "a" and a[attr].startswith("http"):
                     self.external_hrefs.append(a[attr])
@@ -150,7 +162,89 @@ def _check_labels(doc: _Doc, rel: str, fails: list[str]) -> None:
             fails.append(f"{rel}: <{tag} id=\"{field_id}\"> has no <label for> and no aria-label")
 
 
-def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> list[str]:
+def _check_seo_links(doc: _Doc, rel: str, site: Path, fails: list[str]) -> None:
+    """Canonical/alternate links: absolute https URLs, one x-default whenever
+    an alternate is present, and every alternate that points into this site
+    must resolve to a built page (the same path in the other edition)."""
+    alternates = [(hl, href) for r, hl, href in doc.seo_links if r == "alternate"]
+    for r, hl, href in doc.seo_links:
+        if not href.startswith("https://"):
+            fails.append(f"{rel}: <link rel={r}{' hreflang=' + hl if hl else ''}> href must be absolute (got {href!r})")
+    if alternates:
+        langs = [hl for hl, _ in alternates]
+        if "x-default" not in langs:
+            fails.append(f"{rel}: hreflang alternates without an x-default")
+        if len(langs) != len(set(langs)):
+            fails.append(f"{rel}: duplicate hreflang values {langs}")
+        for hl, href in alternates:
+            m = re.search(r"https://[^/]+/(?:(ie|uk)/)(.*)$", href)
+            if not m:
+                continue
+            target = site / m.group(1) / (m.group(2) or "index.html")
+            if not target.is_file():
+                fails.append(f"{rel}: hreflang={hl} points at {href}, which is not a built page")
+
+
+def _check_hero(site: Path, fails: list[str]) -> None:
+    hero = site / "assets" / "hero"
+    total = 0
+    for ed in EDITIONS:
+        if not (site / ed).is_dir():
+            continue
+        for pat in HERO_REQUIRED:
+            f = hero / pat.format(ed=ed)
+            if not f.is_file():
+                fails.append(f"assets/hero/{f.name} is missing (required per edition)")
+        if not any((hero / f"{ed}-poster.{ext}").is_file() for ext in ("webp", "jpg")):
+            fails.append(f"assets/hero/{ed}-poster.webp|jpg is missing (required per edition)")
+    for f in sorted(hero.glob("*")) if hero.is_dir() else []:
+        size = f.stat().st_size
+        total += size
+        if size > HERO_BUDGET_FILE:
+            fails.append(f"assets/hero/{f.name}: {size} bytes exceeds the per-file hero budget {HERO_BUDGET_FILE}")
+    if total > HERO_BUDGET_TOTAL:
+        fails.append(f"hero footage: {total} bytes exceeds the total hero budget {HERO_BUDGET_TOTAL}")
+
+
+def _check_dashboard(raw: str, rel: str, data: dict[str, Any] | None, kpis: Any, fails: list[str]) -> None:
+    """Wired-at-launch tiles show no live number (digits only inside the
+    labelled target or a <code> event name); the live tiles and the embedded
+    gj-dash block equal a fresh dashboard_kpis() recomputation."""
+    for tile in re.findall(r'<div class="kpi kpi--wired">(.*?)</div>', raw, re.S):
+        body = re.sub(r'<span class="kpi__t">.*?</span>', "", tile, flags=re.S)
+        body = re.sub(r"<code>[^<]*</code>", "", body)
+        body = re.sub(r'<span class="kpi__l">[^<]*</span>', "", body)  # the tile's name may carry a window ("(30d)"); its value and description may not
+        body = re.sub(r"\b\d+[- ]?(?:d|days?|weeks?|months?|h|hours?)\b", " ", body)  # a window definition ("rolling 30 days") is not a live figure
+        if re.search(r"\d", body):
+            fails.append(f"{rel}: a wired-at-launch tile carries a digit outside its labelled target: {re.sub(r'<[^>]+>', ' ', body).strip()[:80]!r}")
+            break
+    if data is None or kpis is None:
+        return
+    m = re.search(r'<script type="application/json" id="gj-dash">(.*?)</script>', raw, re.S)
+    if not m:
+        fails.append(f"{rel}: no embedded gj-dash KPI block")
+        return
+    try:
+        embedded = json.loads(m.group(1))
+    except ValueError as exc:
+        fails.append(f"{rel}: gj-dash block does not parse ({exc})")
+        return
+    fresh = json.loads(json.dumps(kpis(data)))
+    if embedded != fresh:
+        diff = [k for k in set(embedded) | set(fresh) if embedded.get(k) != fresh.get(k)]
+        fails.append(f"{rel}: embedded KPIs differ from a fresh dashboard_kpis() recomputation on {sorted(diff)}")
+    allowed = set()
+    for k, v in fresh.items():
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            allowed |= {str(v), f"{v}%", f"{v:,}"}
+    allowed |= {"n/a", "—"}
+    for val in re.findall(r'<div class="kpi(?: kpi--flag)?"><span class="kpi__l">[^<]*</span><b class="kpi__v num">([^<]*)</b>', raw):
+        bare = re.sub(r"^[€£$]", "", val.strip())
+        if bare not in allowed:
+            fails.append(f"{rel}: live tile value {val!r} is not a value of dashboard_kpis(data)")
+
+
+def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_by_edition: dict[str, dict[str, Any]] | None = None, dashboard_kpis: Any = None) -> list[str]:
     """Return a list of human-readable failures. Empty list means the build passes."""
     fails: list[str] = []
     pages = sorted(p for p in site.rglob("*.html"))
@@ -243,9 +337,13 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
             if 'rel="canonical"' not in raw:
                 fails.append(f"{rel}: no canonical link")
         if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
-            fails.append(f"{rel}: home page has no film canvas host")
-        if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
             fails.append(f"{rel}: home page has no hero landscape host")
+        _check_seo_links(doc, rel, site, fails)
+        if 'id="h-landing-roles"' in raw and not re.search(r'<article class="role\b', raw):
+            fails.append(f"{rel}: landing page carries no role card (a landing page with zero roles must not be built)")
+        dm = re.match(r"^(ie|uk)/dashboard/index\.html$", rel)
+        if dm:
+            _check_dashboard(raw, rel, (data_by_edition or {}).get(dm.group(1)), dashboard_kpis, fails)
         for vid in re.finditer(r"<video\b[^>]*>(.*?)</video>", raw, re.S):
             # A referenced hero video (drop-in footage) must ship with the site, poster included.
             poster = re.search(r'\bposter="([^"]+)"', vid.group(0))
@@ -294,6 +392,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
         fails.append(f"JS budget: {js} bytes exceeds {JS_BUDGET}")
     if list(site.rglob("*.test.js")):
         fails.append("a *.test.js file was shipped into the site (tests stay in src)")
+    _check_hero(site, fails)
     for required in ("robots.txt", "manifest.webmanifest", "sitemap.xml", "index.html", "404.html"):
         if not (site / required).exists():
             fails.append(f"{required} is missing")

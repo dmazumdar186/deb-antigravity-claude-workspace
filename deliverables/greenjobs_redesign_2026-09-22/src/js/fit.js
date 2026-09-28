@@ -3,12 +3,13 @@
    the six live roles that overlap most (lib.js fitMatch: title-weighted
    TF-IDF with two-word phrases and sector / place boosts), the matched words
    highlighted, your position on the board's disclosed-salary strip, a small
-   map of where the matches are, and one caveat. Result lives in the URL hash. */
+   map of where the matches are, and one caveat. The typed text is only written to the URL when the visitor
+   clicks "Copy shareable link"; it is never persisted by default. */
 (function () {
   var G = window.GJ, doc = document, panel = doc.querySelector('[data-fit]');
   if (!panel) return;
   var form = panel.querySelector('[data-fit-form]'), ta = form.querySelector('textarea'), out = panel.querySelector('[data-fit-out]');
-  var empty = panel.querySelector('[data-fit-empty]'), share = panel.querySelector('[data-fit-share]'), mapTpl = panel.querySelector('template[data-fit-map]');
+  var empty = panel.querySelector('[data-fit-empty]'), share = panel.querySelector('[data-fit-share]'), shareNote = panel.querySelector('[data-fit-sharenote]'), mapTpl = panel.querySelector('template[data-fit-map]');
   var jobsHref = panel.getAttribute('data-jobs') || 'index.html', sym = panel.getAttribute('data-sym') || '€', ROOT = doc.body.getAttribute('data-root') || '';
   var cur = sym === '£' ? 'GBP' : 'EUR', jobs = null, idx = null, timer = 0, lastQ = '';
   var annual = function (j) { return G.annual(j, cur); };
@@ -81,12 +82,12 @@
   }
   function run(q, fromHash) {
     q = String(q || '').trim();
-    if (!q) { out.innerHTML = ''; out.appendChild(empty); empty.hidden = false; share.hidden = true; if (!fromHash && window.location.hash.indexOf('#fit=') === 0) history.replaceState(null, '', window.location.pathname + window.location.search); lastQ = ''; return; }
+    if (!q) { out.innerHTML = ''; out.appendChild(empty); empty.hidden = false; share.hidden = true; if (shareNote) shareNote.hidden = true; if (window.location.hash.indexOf('#fit=') === 0) history.replaceState(null, '', window.location.pathname + window.location.search); lastQ = ''; return; }
     if (q === lastQ) return;
     lastQ = q;
     load().then(function () {
       render(q, G.fitMatch(q, jobs, idx, 6));
-      history.replaceState(null, '', window.location.pathname + window.location.search + '#fit=' + G.encodeFit(q));
+      if (!fromHash && window.location.hash.indexOf('#fit=') === 0) history.replaceState(null, '', window.location.pathname + window.location.search);
     });
   }
   form.addEventListener('submit', function (e) { e.preventDefault(); clearTimeout(timer); lastQ = ''; run(ta.value); out.setAttribute('tabindex', '-1'); out.focus({ preventScroll: true }); });
@@ -97,7 +98,10 @@
     if (b) { ta.value = b.getAttribute('data-fit-eg'); ta.focus(); lastQ = ''; run(ta.value); }
   });
   share.addEventListener('click', function () {
-    var url = window.location.href;
+    /* Explicit opt-in: only now does the typed text go into the address bar. */
+    var url = window.location.origin + window.location.pathname + window.location.search + '#fit=' + G.encodeFit(lastQ);
+    history.replaceState(null, '', url);
+    if (shareNote) shareNote.hidden = false;
     if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { window.GJsay('Link copied'); }, function () { window.GJsay(url); });
     else window.GJsay(url);
   });

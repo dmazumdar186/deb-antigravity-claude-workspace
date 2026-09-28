@@ -69,13 +69,14 @@
   function annual(j, edCur) {
     var m = MULT[j.period || 'year'];
     if (!m || (j.sal_min == null && j.sal_max == null)) return null;
+    if (j.cur !== 'EUR' && j.cur !== 'GBP') return null; /* no fixed rate: shown on the card, never compared */
     var lo = j.sal_min != null ? j.sal_min * m : j.sal_max * m;
     var hi = j.sal_max != null ? j.sal_max * m : lo;
     if (edCur && j.cur && j.cur !== edCur) { lo = fxConvert(lo, j.cur, edCur); hi = fxConvert(hi, j.cur, edCur); }
     if (lo < 8000 || hi > 400000) return null; /* junk guard: a "€35" typo etc. */
     return { lo: lo, hi: hi, mid: (lo + hi) / 2 };
   }
-  var LOC_LABEL = { ie: 'Ireland', uk: 'UK', ni: 'Northern Ireland', remote: 'Remote', cross: 'Ireland & UK', intl: 'International' };
+  var LOC_LABEL = { ie: 'Ireland', uk: 'UK', ni: 'Northern Ireland', remote: 'Remote', cross: 'Ireland & UK', intl: 'International', unspecified: 'Location not stated' };
   function locLabel(lc) { return LOC_LABEL[lc] || ''; }
   function median(a) {
     if (!a.length) return null;
@@ -93,12 +94,44 @@
     });
     return out;
   }
-  function daysAgo(iso, now) {
-    if (!iso) return null;
-    var t = Date.parse(iso);
-    if (isNaN(t)) return null;
-    return Math.max(0, Math.floor(((now || Date.now()) - t) / 864e5));
+  /* ---- the one calendar-day rule (mirrors build_site.days_until):
+     "today" is the build date embedded as data.today (the dataset's fetched
+     date unless the build was given --today), never the browser clock, so a
+     page reads the same on every device and in every test. setToday() pins
+     it; otherwise it is read once from the #gj-data block; only a page with
+     no dataset at all falls back to the clock. */
+  var TODAY = null;
+  function setToday(iso) { TODAY = iso ? String(iso).slice(0, 10) : null; return TODAY; }
+  function today() {
+    if (TODAY) return TODAY;
+    if (typeof document !== 'undefined' && document.getElementById) {
+      var el = document.getElementById('gj-data');
+      var m = el && /"today":"(\d{4}-\d{2}-\d{2})"/.exec(el.textContent || '');
+      if (m) return (TODAY = m[1]);
+    }
+    return null;
   }
+  /* Calendar days from `now` to an ISO date: now may be an ISO date string
+     (whole days, no time zone) or a millisecond clock value (UTC day). */
+  function dayDiff(iso, now) {
+    if (!iso) return null;
+    var t = Date.parse(String(iso).slice(0, 10));
+    if (isNaN(t)) return null;
+    var ref = now == null ? today() : now;
+    var r = ref == null ? Date.now() : typeof ref === 'string' ? Date.parse(ref.slice(0, 10)) : ref;
+    if (isNaN(r)) return null;
+    return Math.floor(t / 864e5) - Math.floor(r / 864e5);
+  }
+  function daysAgo(iso, now) {
+    var d = dayDiff(iso, now);
+    return d == null ? null : Math.max(0, -d);
+  }
+  /* Days until the closing date (negative when closed), or null. */
+  function daysUntil(iso, now) { return dayDiff(iso, now); }
+  /* Closing within n days: 0..n inclusive (today counts). */
+  function closingWithin(iso, n, now) { var d = dayDiff(iso, now); return d != null && d >= 0 && d <= n; }
+  /* Posted in the last 7 days: 0..6 days ago (today counts, day 7 does not). */
+  function newThisWeek(iso, now) { var d = daysAgo(iso, now); return d != null && d <= 6 && dayDiff(iso, now) <= 0; }
   function ago(iso, now) {
     var d = daysAgo(iso, now);
     if (d == null) return '';
@@ -142,18 +175,13 @@
     if (!words.length) return h.indexOf(norm(q)) >= 0;
     return words.every(function (w) { return h.indexOf(w) >= 0; });
   }
-  /* Days until the closing date (negative when closed), or null. */
-  function daysUntil(iso, now) {
-    if (!iso) return null;
-    var t = Date.parse(iso);
-    if (isNaN(t)) return null;
-    return Math.floor((t - (now || Date.now())) / 864e5);
-  }
   /* opts: { cur: edition currency for the salary range, home: loc classes
      the "X only" toggle keeps, now: ms for the closing-date facet }. */
   function filterJobs(jobs, st, opts) {
     opts = opts || {};
-    var loc = norm(st.loc), sec = norm(st.sector), typ = norm(st.type);
+    var loc = norm(st.loc), typ = norm(st.type);
+    /* sector accepts several values joined with "|" (any-of), as the multi-sector landing pages link */
+    var secs = norm(st.sector).split('|').map(function (x) { return x.trim(); }).filter(Boolean);
     var smin = st.smin ? parseFloat(st.smin) : null, smax = st.smax ? parseFloat(st.smax) : null;
     if (smin != null && isNaN(smin)) smin = null;
     if (smax != null && isNaN(smax)) smax = null;
@@ -161,7 +189,7 @@
     var out = jobs.filter(function (j) {
       if (!matchesQ(j, st.q)) return false;
       if (loc && !(norm(j.location).indexOf(loc) >= 0 || (j.regions || []).some(function (r) { return norm(r) === loc; }))) return false;
-      if (sec && !(j.sectors || []).some(function (s) { return norm(s) === sec; })) return false;
+      if (secs.length && !(j.sectors || []).some(function (s) { return secs.indexOf(norm(s)) >= 0; })) return false;
       if (typ && norm(j.type) !== typ) return false;
       if (st.sal && j.sal_min == null && j.sal_max == null) return false;
       if (st.wp && (j.workplace || 'unspecified') !== st.wp) return false;
@@ -177,7 +205,7 @@
       if (st.close) {
         var d = daysUntil(j.closing, opts.now);
         if (st.close === 'open') { if (d != null && d < 0) return false; }
-        else { var n = parseInt(st.close, 10); if (d == null || d < 0 || d > n) return false; }
+        else if (!closingWithin(j.closing, parseInt(st.close, 10), opts.now)) return false;
       }
       if (st.emp === 'agency' && !j.agency) return false;
       if (st.emp === 'direct' && j.agency) return false;
@@ -393,7 +421,7 @@
   return {
     stem: stem, fitIndex: fitIndex, fitMatch: fitMatch, salaryPosition: salaryPosition, encodeFit: encodeFit, decodeFit: decodeFit,
     easeOutQuart: easeOutQuart, filmScrub: filmScrub, countAt: countAt,
-    norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, currencyNote: currencyNote, fxConvert: fxConvert, FX_GBP_EUR: FX_GBP_EUR, locLabel: locLabel, daysUntil: daysUntil, annual: annual, median: median,
+    norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, currencyNote: currencyNote, fxConvert: fxConvert, FX_GBP_EUR: FX_GBP_EUR, locLabel: locLabel, daysUntil: daysUntil, closingWithin: closingWithin, newThisWeek: newThisWeek, setToday: setToday, today: today, annual: annual, median: median,
     histogram: histogram, daysAgo: daysAgo, ago: ago, parseState: parseState, toQuery: toQuery, filterJobs: filterJobs,
     sortJobs: sortJobs, suggest: suggest, buildIndex: buildIndex, smartMatch: smartMatch, scoreSectors: scoreSectors,
     encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack, jobUrl: jobUrl

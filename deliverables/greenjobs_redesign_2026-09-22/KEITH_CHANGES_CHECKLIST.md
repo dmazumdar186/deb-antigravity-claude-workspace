@@ -5,7 +5,7 @@ Every item ticked only after the build validator, unit tests and the item's own 
 
 ## A. Positioning & hero (both editions)
 - [x] A1 Replace h1 "Work that puts the planet on the payroll" with "Work that works for the planet." plus plain-English sub-line: IE "Find environmental, sustainability, renewable-energy and nature careers across Ireland." UK "Search environmental, ecology, sustainability, renewable-energy and low-carbon careers across the UK."
-- [x] A2 Remove "N employers" from the IE hero facts. Replace with credibility markers: "Specialist green job network since 2008", "10 specialist job sites", "Roles across N sectors", "Certified B Corporation". UK keeps "19 employers hiring now" (its scale is a credibility asset). (network count read from data: 10 sites; B Corp shown as the mark + explainer only, per brief.md §3)
+- [x] A2 Remove "N employers" from the IE hero facts. Replace with credibility markers: "Specialist green job network since 2008", "10 specialist job sites", "Roles across N sectors", "Certified B Corporation". UK keeps the computed employer count ("N employers hiring now", 18 on the 22 Sept snapshot; its scale is a credibility asset). (network count read from data: 10 sites; B Corp shown as the mark + explainer only, per brief.md §3)
 - [x] A3 B Corp badge gets a one-line explainer everywhere it appears.
 - [x] A4 Employer logos on IE only if each employer has a live role (already enforced by validator) — keep.
 
@@ -27,7 +27,7 @@ Every item ticked only after the build validator, unit tests and the item's own 
 ## D. Candidate experience (jobs page + job page)
 - [x] D1 New filters: Workplace type (office/hybrid/remote/site-based), Career level, Salary range, Contract (permanent/contract/fixed-term/full-time/part-time), Ireland-only / UK-only toggle, Closing date, Direct employer vs recruitment agency.
 - [x] D2 "Similar jobs" block on each vacancy page.
-- [x] D3 Rename "Your fit in ten seconds" → "Quick job match"; add beside the input: "Your information is processed on your device and is not uploaded or stored." and "This is keyword matching, not an assessment of your suitability."
+- [x] D3 Rename "Your fit in ten seconds" → "Quick job match"; add beside the input: "Processed on your device. Nothing is uploaded." and "Keyword matching, not an assessment of your suitability." (panel 2026-09-28: "not stored" dropped because the text goes into the URL only after an explicit "Copy shareable link" click)
 - [x] D4 UK match examples: ecologist Bristol · sustainability consultant London · flood risk engineer Manchester · renewable energy Scotland (no "ecologist dublin" on UK).
 
 ## E. Employer conversion
@@ -37,7 +37,7 @@ Every item ticked only after the build validator, unit tests and the item's own 
 - [x] E4 Comparison table: Standard / Premium / Membership.
 - [x] E5 Network positioning: "Advertise once. Reach candidates across the GreenJobs specialist network…" prominent on employers page and home employer section.
 - [x] E6 Vacancy preview: demo explanation shortened to "Preview exactly how your vacancy will appear to candidates."
-- [~] E7 UK-specific credibility signals (testimonial slots, placements, network coverage, rate-card CTA). (partial: testimonial slots are labelled placeholders and no placement figures exist in brief.md; network coverage + rate CTA shipped)
+- [~] E7 UK-specific credibility signals (testimonials, placements, network coverage, rate-card CTA). (partial: testimonials are collected for launch (one line on the public page, item on the for-keith launch checklist) and no placement figures exist in brief.md; network coverage + rate CTA shipped)
 
 ## F. Copy & credibility
 - [x] F1 Remove builder-speak: "Career level read from title", "Tagged by what its description actually says", "The send button is honest" → "Every vacancy is classified consistently, making it easier to compare roles, sectors and salaries."
@@ -56,5 +56,5 @@ Every item ticked only after the build validator, unit tests and the item's own 
 
 ## I. Gates
 - [x] I1 Build validator green, unit + node tests green, new tests for every item above.
-- [ ] I2 Panel pass (11 lenses), system audit, fixes applied.
+- [x] I2 Panel pass (11 lenses), system audit, fixes applied. (panel pass run 2026-09-28, fixes applied)
 - [ ] I3 Commit + push branch and main; Cloudflare deploy if token present.

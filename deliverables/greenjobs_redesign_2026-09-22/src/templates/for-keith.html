@@ -1,6 +1,6 @@
 <div class="wrap pagehead">
   <h1>For Keith: the evidence</h1>
-  <p class="lede">This is the one page on the demo that talks about how it was made. Everything else is written as if it were live.</p>
+  <p class="lede">What the redesign gives GreenJobs: faster pages, roles candidates can act on, employers who can see their reach, and a site the team can run with a weekly build. This is the one page that talks about how it was made; everything else is written as if it were live.</p>
   <p class="muted" style="margin-top:10px"><a href="../dashboard/index.html">KPI dashboard: what the site measures and how →</a></p>
 </div>
 <div class="wrap doc" style="padding-bottom:var(--pad-y)">
@@ -10,9 +10,9 @@
   <p>Each bar is one home-page load, split by what was requested. Same scale for both.</p>
   {{waterfall}}
   <h3 style="margin-top:32px">The full table</h3>
-  <p>"Before" numbers were measured on the live {{domain}} home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time; nothing in this table is typed by hand. The requests row compares an estimate for the live site (counted from its HTML, not a network trace) with a measured count for the demo.</p>
+  <p>What you gain: a home page that arrives in a fraction of the bytes and requests, so candidates on a phone see roles sooner and search engines crawl more of the board. "Before" numbers were measured on the live {{domain}} home page on 2026-09-22 (perf_*.json in the data folder). "After" numbers are read from this build's own output files at build time; nothing in this table is typed by hand. The requests row compares an estimate for the live site (counted from its HTML, not a network trace) with a measured count for the demo.</p>
   <table class="evid"><thead><tr><th>Measure</th><th class="n">Live site</th><th class="n">This demo</th></tr></thead><tbody>{{rows}}</tbody></table>
-  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built {{built}}. Stylesheet {{css_kb}} KB, scripts {{js_kb}} KB before compression; budgets {{css_budget}} KB and {{js_budget}} KB. Unit tests on the pure logic module: {{tests}}.</p>
+  <p style="margin-top:12px;font-size:.9rem" class="muted">A Lighthouse mobile run was not possible in the build environment (no scoring harness); the byte and request counts above are the inputs Lighthouse weighs most. Built {{built}}. Stylesheet {{css_kb}} KB, scripts {{js_kb}} KB before compression; budgets {{css_budget}} KB and {{js_budget}} KB. Node tests on the pure logic module: {{tests}}; the dashboard helpers have their own node suite (five tests).</p>
 
   <h2>Changes from your 28 September notes</h2>
   <p>Read from the working checklist at build time. Ticked items passed the build validator, the unit tests and their own test case; partial items say why.</p>
@@ -22,16 +22,17 @@
   <ul>
     <li><b>Two editions, one codebase.</b> greenjobs.ie and greenjobs.co.uk render from the same templates and scripts with their own data, currency and map. The edition switch keeps you on the same page.</li>
     <li><b>Real data only.</b> {{n_jobs}} live roles from {{n_emp}} employers, {{n_sectors}} sectors with roles, {{n_regions}} map regions with counts, {{n_sal}} disclosed salaries. Every job page links to the real listing. No invented testimonials, prices or audience numbers.</li>
-    <li><b>Search that answers instantly.</b> Type-ahead on the home page, a filter rail with every state in the URL, list / map / saved views, a command palette (Ctrl+K), and per-job pages with JobPosting structured data, which the current site explicitly disables ("Invalid salary data, so Google Schema is disabled").</li>
-    <li><b>A sector taxonomy that means something.</b> The live site lists 214 sectors, most showing "(0)". The demo derives eleven sectors from what each description actually says, and never shows an empty one.</li>
+    <li><b>Search that answers instantly.</b> Type-ahead on the home page, a filter rail with every state in the URL, list / map / saved views, a command palette (Ctrl+K), and per-job pages with JobPosting structured data so every role is eligible for job-search listings.</li>
+    <li><b>A sector taxonomy that means something.</b> The demo derives {{n_sectors}} sectors with live roles from what each description says, and never shows an empty one, so every sector link a candidate clicks has work behind it.</li>
     <li><b>Maps from real geometry.</b> Natural Earth admin-1 boundaries merged into the 26 counties and 12 UK regions at build time, rendered as keyboard-operable buttons.</li>
     <li><b>Salary explorer, career compass, "Ask GreenJobs".</b> Charts drawn in-house (no library), a seven-question deterministic quiz whose result is a shareable link, and a smart-match panel that today runs entirely in the browser.</li>
     <li><b>Zero third-party requests.</b> Fonts are self-hosted; there is no analytics, no CDN, no framework, no build-time packages. Light and dark themes, reduced-motion fallbacks, WCAG 2.2 AA contrast, 44 px targets, print stylesheet on job pages.</li>
+    <li><b>A KPI dashboard and an event layer.</b> <a href="../dashboard/index.html">/dashboard/</a> computes live board metrics from the listings at build time and lists the event spec for launch; every apply link, search, sign-up, rate request, post-a-job and save button already carries the event attribute, gated behind the cookie Analytics toggle, so the day a provider is connected the numbers start.</li>
   </ul>
 
   <h2>What changed since the first cut</h2>
   <ul>
-    <li><b>A light opening.</b> The home page opens on the living-landscape hero: one headline, the plain-English sub-line, the central search (what job, where), live credibility markers, a large "Post a job" beside "Find a job" and the Certified B Corporation mark with its explainer. The pinned map-pay-sectors film from the first cut was replaced after your 28 September notes by one compact "Salary insight" band (disclosed-salary share and median, sectors with live work, {{n_regions_unit}} map link).</li>
+    <li><b>A light opening.</b> The home page opens on the living-landscape hero: one headline, the plain-English sub-line, the central search (what job, where), live credibility markers, a large "Post a job" beside "Find a job" and the B Corp mark with its explainer. The pinned map-pay-sectors film from the first cut was replaced after your 28 September notes by one compact "Salary insight" band (disclosed-salary share and median, sectors with live work, {{n_regions_unit}} map link).</li>
     <li><b>"Quick job match."</b> On the jobs page: paste a CV or three words and the six closest live roles appear instantly, with the matched words, your position on the board's disclosed-salary strip, a small map of where the matches are, and a caveat. The matcher is the upgraded local one (title-weighted, two-word phrases, sector and place boosts). Every result is a link you can share.</li>
     <li><b>The live ad builder.</b> On the Employers page the form renders the exact job card and job-page header as you type, previews a logo without uploading it, and reads reach from this week's data (live roles and median disclosed salary in the chosen sector). Sending still posts nothing and says so.</li>
     <li><b>"Where this role sits."</b> Every job page with a published salary shows that range against the board's disclosed distribution, overall and in its sector, with keyboard-reachable marks and a table; roles without one get an honest line with the sector's disclosed range instead. Both show how many similar roles are live in the same {{n_regions_unit}}.</li>
@@ -40,16 +41,37 @@
 
   <h2>Proposed for phase two</h2>
   <ul>
-    <li><b>Migration off the current vendor.</b> The live boards run on a 2013-era hosted platform (jQuery 1.11, Bootstrap 3, IE8 shims, classic ASP). The demo's build already renders every page statically from JSON; the next step is a small admin that writes that JSON, and a nightly build and deploy. Cloudflare Pages hosting is free at this size.</li>
+    <li><b>Run the board from one place.</b> The demo already renders every page from a single data file; the next step is a small admin that writes that file, with a nightly build and deploy. The team edits once and both editions update.</li>
     <li><b>Applicant tracking.</b> Apply-in-place with a per-employer inbox, status changes and email notifications, replacing the redirect to a third-party form.</li>
     <li><b>Employer self-serve.</b> The "Post a job" preview on the Employers page becomes real: draft, preview, pay, publish, with the posting distributed across the network sites as today.</li>
-    <li><b>Model-backed assistant (optional, last).</b> "Ask GreenJobs" keeps its interface and its contract (a query in, ranked role IDs and a one-line "why" out). The local TF-IDF matcher is swapped for a hosted language model behind a small Cloudflare function, with the key held server-side and never in the page; the vendor is chosen at phase two. The function stub, prompt contract and rate limit are already written. Cost model: a query sends the question plus the compact live dataset (about {{n_jobs}} roles at roughly 120 tokens each, so about 12k tokens) and returns about 300 tokens. Multiply (12.3k input + 0.3k output) by the chosen vendor's per-token rate on launch day, then by 1,000, for the cost per 1,000 queries; prompt-cache the dataset portion so repeat queries within the cache window bill only the question. The rate is not quoted here to avoid publishing a stale number.</li>
+    <li><b>Model-backed assistant (optional, last).</b> "Ask GreenJobs" keeps its interface and its contract (a query in, ranked role IDs and a one-line "why" out); the local matcher is swapped for a hosted language model behind a small server function with the key held server-side. The function stub, prompt contract and rate limit are already written; the cost model is in the technical appendix.</li>
   </ul>
+
+  <h2>Launch checklist (needs GreenJobs)</h2>
+  <p>Six things only your team can supply; each one is a single email.</p>
+  <ul class="changes">
+    <li class="chg chg--open"><b>Open</b> Email provider for the weekly newsletter and job alerts (the sign-up forms connect to it at launch).</li>
+    <li class="chg chg--open"><b>Open</b> Owner of the advertising-rates inbox and the promised reply time (the dashboard reports against it).</li>
+    <li class="chg chg--open"><b>Open</b> Analytics provider, so the cookie Analytics toggle has something to switch on.</li>
+    <li class="chg chg--open"><b>Open</b> Client testimonials for the UK Employers page, verbatim from your testimonials page, with permission to name each client.</li>
+    <li class="chg chg--open"><b>Open</b> Confirmation of current B Corp status and permission to use the B Corp, 1% for the Planet and employer logos.</li>
+    <li class="chg chg--open"><b>Open</b> DNS: the record change that points greenjobs.ie and greenjobs.co.uk at the new host on launch day.</li>
+  </ul>
+
+  <details class="appendix">
+    <summary>Technical appendix</summary>
+    <ul>
+      <li><b>Stack comparison.</b> The live boards run on a hosted platform from the early 2010s (jQuery 1.11, Bootstrap 3, IE8 shims, classic ASP), which is why the before-and-after table above looks the way it does. The demo is static HTML, one stylesheet and a few small scripts, built by a Python script from JSON; free static hosting is sufficient at this size.</li>
+      <li><b>Structured data.</b> The live job pages disable JobPosting markup ("Invalid salary data, so Google Schema is disabled" appears in their source); every demo job page emits valid JobPosting JSON-LD with the currency it was advertised in.</li>
+      <li><b>Assistant cost model.</b> A query sends the question plus the compact live dataset (about {{n_jobs}} roles at roughly 120 tokens each, so about 12k tokens) and returns about 300 tokens. Multiply (12.3k input + 0.3k output) by the chosen vendor's per-token rate on launch day, then by 1,000, for the cost per 1,000 queries; cache the dataset portion so repeat queries within the cache window bill only the question. The rate is not quoted here to avoid publishing a stale number.</li>
+      <li><b>Weekly refresh.</b> Scrape, build, validate, test, deploy; the build refuses a snapshot that drops more than 30% of roles and alerts the maintainer, not GreenJobs.</li>
+    </ul>
+  </details>
 
   <h2>Notes on honesty</h2>
   <ul>
     <li>Sector tags, region matches and annualised salaries are derived from the listing text by rules that are in the build script; they can be wrong on individual roles and are labelled as derived where they appear.</li>
-    <li>The "Why GreenJobs" facts, the employer offer and the B Corp mark come from your own pages as fetched on 2026-09-22 (brief.md). The wording "Certified B Corporation" was confirmed by the owner on 2026-09-24; the demo shows the mark in the hero, the header and the footer with that wording and adds no certification date, score or other claim.</li>
+    <li>The "Why GreenJobs" facts, the employer offer and the B Corp mark come from your own pages as fetched on 2026-09-22 (brief.md). The demo shows the mark in the hero, the header and the footer with its alt text and a generic one-line definition of B Corp; it adds no certification date, score or other claim. Confirming current status and logo permissions is on the launch checklist above.</li>
     <li>Newsletter, alert and post-a-job forms send nothing and say so.</li>
     <li>Job descriptions are shown as published by employers (sanitised of scripts and styles); the word-filter that keeps machine vocabulary off the public pages does not apply inside them.</li>
   </ul>

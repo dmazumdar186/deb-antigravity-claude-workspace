@@ -10,14 +10,14 @@
     <!-- src:start --><div class="prose" data-source="employer">{{desc_html}}</div><!-- src:end -->
     <p class="muted" style="margin-top:28px;font-size:.9rem">{{posted_line}} Description as published by the employer on {{domain}}; reference {{id}}.</p>
   </article>
-  <aside class="job__aside" aria-label="Apply">
-    <a class="btn btn--lime" href="{{apply_url}}" rel="noopener">Apply on {{domain}}<span class="arw" aria-hidden="true">→</span></a>
+  <aside class="job__aside" aria-label="Apply" data-closing="{{closing}}">
+    <a class="btn btn--lime" href="{{apply_url}}" rel="noopener" data-apply data-ev="apply_click" data-ev-job="{{id}}" data-ev-employer="{{employer}}" data-ev-sector="{{sector}}" data-ev-region="{{region}}">Apply on {{domain}}<span class="arw" aria-hidden="true">→</span></a>
     <div class="job__actions"><button class="btn btn--ghost btn--sm" type="button" data-save="{{id}}" data-title="{{title}}" aria-pressed="false" aria-label="Save: {{title}}">Save</button><button class="btn btn--ghost btn--sm" type="button" data-share>Share</button></div>
     <dl>{{dl}}</dl>
   </aside>
 </div>
 {{sits}}
-<div class="job__sticky"><a class="btn btn--lime" href="{{apply_url}}" rel="noopener">Apply on {{domain}}<span class="arw" aria-hidden="true">→</span></a></div>
+<div class="job__sticky"><a class="btn btn--lime" href="{{apply_url}}" rel="noopener" data-apply data-ev="apply_click" data-ev-job="{{id}}" data-ev-employer="{{employer}}" data-ev-sector="{{sector}}" data-ev-region="{{region}}">Apply on {{domain}}<span class="arw" aria-hidden="true">→</span></a></div>
 <section class="band--alt similar" aria-labelledby="h-sim">
   <div class="wrap">
     <div class="sec-head"><div><h2 id="h-sim" style="font-size:clamp(1.5rem,1.2rem + 1.4vw,2.2rem)">Similar roles</h2><p>Same sector first, then the same area, then similar pay.</p></div><a class="btn btn--ghost btn--sm" href="{{sector_link}}">All {{sector}} roles<span class="arw" aria-hidden="true">→</span></a></div>

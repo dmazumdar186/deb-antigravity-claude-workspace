@@ -4,7 +4,7 @@
     <p class="hero__eyebrow"><i class="dot" aria-hidden="true"></i>{{n_jobs}} live green roles across {{country}} this week</p>
     <h1 id="h1">Work that works <em>for the planet.</em></h1>
     <p class="hero__lede">{{hero_sub}}</p>
-    <form class="search hero__search" data-search action="jobs/index.html" method="get" role="search" aria-label="Search live roles">
+    <form class="search hero__search" data-search data-ev="search" action="jobs/index.html" method="get" role="search" aria-label="Search live roles">
       <div class="field"><label for="s-q">What job are you looking for?</label><input class="in" id="s-q" name="q" type="search" placeholder="Ecologist, solar, hydrogeology…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="s-ta" aria-autocomplete="list"></div>
       <div class="field"><label for="s-loc">Where do you want to work?</label><input class="in" id="s-loc" name="loc" type="text" placeholder="Any {{unit}}" autocomplete="off"></div>
       <button class="btn btn--lime" type="submit" data-magnet>Find jobs<span class="arw" aria-hidden="true">→</span></button>
@@ -13,11 +13,11 @@
     <p class="hero__facts"><span><b class="num">{{n_jobs}}</b> live roles</span>{{hero_facts}}<span class="hero__snap">{{snapshot}}</span></p>
     <div class="hero__cta">
       <a class="btn btn--big" href="#latest">Find a job<span class="arw" aria-hidden="true">↓</span></a>
-      <a class="btn btn--lime btn--big btn--post" href="employers/index.html#post" data-magnet>Post a job<span class="arw" aria-hidden="true">→</span></a>
+      <a class="btn btn--lime btn--big btn--post" href="employers/index.html#post" data-magnet data-ev="post_job_click">Post a job<span class="arw" aria-hidden="true">→</span></a>
     </div>
     <div class="hero__trust">
       {{hero_bcorp}}
-      <p><b>Certified B Corporation.</b> {{bcorp_note}}</p>
+      <p>{{bcorp_note}}</p>
     </div>
   </div>
   <a class="hero__alerts" href="#h-alert"><span><b>Get weekly job alerts</b> — up to ten matches by email, free</span><span class="arw" aria-hidden="true">→</span></a>
@@ -54,14 +54,14 @@
 
 <section class="band band--alt" aria-labelledby="h-why">
   <div class="wrap">
-    <div class="sec-head"><div><h2 id="h-why">Why GreenJobs</h2><p>A job board wholly dedicated to the green industry sector, since 2008. A Certified B Corporation and a member of 1% for the Planet.</p></div></div>
+    <div class="sec-head"><div><h2 id="h-why">Why GreenJobs</h2><p>A job board wholly dedicated to the green industry sector, since 2008. Carries the B Corp mark and is a member of 1% for the Planet.</p></div></div>
     <div class="facts stagger">{{facts}}</div>
   </div>
 </section>
 
 <section class="band band--tight" aria-labelledby="h-emp">
   <div class="wrap">
-    <div class="sec-head"><div><h2 id="h-emp">{{emp_heading}}</h2><p><b>Advertise once. Reach candidates across the GreenJobs specialist network.</b> Your vacancy is automatically distributed to the most relevant environmental, ecology, renewable-energy, water, waste, wind and solar job sites.</p></div><a class="btn btn--lime" href="employers/index.html">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>
+    <div class="sec-head"><div><h2 id="h-emp">{{emp_heading}}</h2><p><b>Advertise once. Reach candidates across the GreenJobs specialist network.</b> Your vacancy is automatically distributed to the most relevant environmental, ecology, renewable-energy, water, waste, wind and solar job sites.</p></div><a class="btn btn--lime" href="employers/index.html" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>
     <div class="inside"><div><h3>The network</h3><ul class="inside__net">{{inside_net}}</ul></div></div>
     <h3 class="emp__sub">{{emp_title}}</h3>
     <p class="muted" style="margin:6px 0 18px;max-width:60ch">{{emp_sub}}</p>
@@ -76,8 +76,10 @@
       <form data-demo-form novalidate>
         <div class="row"><div class="field"><label for="al-email">Email</label><input class="in" id="al-email" name="email" type="email" placeholder="you@example.com" required></div><div class="field"><label for="al-sector">Sector</label><select class="in" id="al-sector" name="sector"><option value="">All sectors</option>{{sector_options}}</select></div></div>
         <label class="check"><input type="checkbox" id="al-consent" name="consent"><span>Email me the weekly newsletter too</span></label>
-        <button class="btn btn--lime" type="submit">Create my alert</button>
+        <p class="note" data-demo-pre>Sign-ups open at launch — this form connects to your email provider then.</p>
+        <button class="btn btn--lime" type="submit" data-ev="alert_signup">Create my alert</button>
         <p class="note note--live" data-demo-note tabindex="-1" hidden>This form connects to your email provider at launch. Nothing was sent.</p>
+        <p class="note__fallback"><a href="jobs/index.html">Meanwhile, browse all roles →</a></p>
       </form>
     </div>
   </div>

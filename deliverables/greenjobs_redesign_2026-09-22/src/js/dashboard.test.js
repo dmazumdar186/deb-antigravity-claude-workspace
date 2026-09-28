@@ -25,3 +25,20 @@ test('kpiRows flattens the payload with a header and every sector, region and sc
   assert.ok(rows.some(r => r[0] === 'Region: Dublin' && r[1] === 2));
   assert.equal(D.kpiRows({ ...k, sal_median: null, days_to_close: null }, '£')[5][1], '');
 });
+
+test('csvCell neutralises spreadsheet formula prefixes', () => {
+  assert.equal(D.csvCell('=SUM(A1)'), "'=SUM(A1)");
+  assert.equal(D.csvCell('+1'), "'+1");
+  assert.equal(D.csvCell('-5'), "'-5");
+  assert.equal(D.csvCell('@cmd'), "'@cmd");
+  assert.equal(D.csvCell('=a,b'), '"\'=a,b"');
+  assert.equal(D.csvCell(-5), "'-5");
+});
+
+test('kpiRows labels the advertised window and describes the agency rule', () => {
+  const k = { live: 1, new7: 0, closing7: 0, sal_pct: 0, sal_n: 0, sal_median: null, top_share: 100, top_employer: 'A', agency_pct: 0, days_to_close: 12, remote_pct: 0, sectors: [], regions: [], quality: [1, 0, 0, 0, 0] };
+  const rows = D.kpiRows(k, '€');
+  assert.ok(rows.some(r => r[0] === 'Advertised window (median days)' && r[1] === 12));
+  assert.ok(!rows.some(r => r[0] === 'Median days to close'));
+  assert.ok(rows.find(r => r[0] === 'Agency share %')[2].includes('recruit/talent/staffing'));
+});

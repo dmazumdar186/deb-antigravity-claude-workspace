@@ -36,8 +36,8 @@ redirects here). Evidence page: `<base>/ie/for-keith/`
 `python3 execution/gtm_client_workflows/greenjobs_redesign/generate_hero_footage.py --edition ie --env-file <path to .env> --duration 10`
 prints the free estimate; add `--go` to spend (guarded by `--max-usd`, default 1.50). It polls, downloads, and cuts
 `src/assets/hero/{ie,uk}.mp4`, `-m.mp4` (portrait) and `-poster.jpg` with ffmpeg; the next build picks them up.
-Prompts live in the script (`PROMPTS`) and in `research/hero_footage_brief.md`. Model: Kling 3.0 Standard by
-default (2026-09-24 estimate: 10 s 16:9 = 13.44 credits / $0.84; 5 s = $0.42). The key is `HF_API_TOKEN=key_id:secret`
+Prompts live in the script (`PROMPTS`) and in `research/hero_footage_brief.md`. Model: Kling 3.0 Pro by
+default since 2026-09-28 (1080p source; the 2026-09-24 Standard estimate was 10 s 16:9 = 13.44 credits / $0.84; 5 s = $0.42). The key is `HF_API_TOKEN=key_id:secret`
 in the operator's `.env`; `api.higgsfield.ai` is behind Cloudflare and blocks non-browser user agents (error 1010),
 the script sets one. `not_enough_credits` (HTTP 403) means the **API console** balance, separate from the app plan,
 is below the estimate: top up at the Higgsfield API console, then re-run. On 2026-09-24 the balance was below
@@ -91,3 +91,22 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   `-m.mp4`, `-poster.webp|jpg`; validator checks referenced files exist). Budgets raised to CSS ≤ 80 KB,
   JS ≤ 125 KB (measured 70 / 99). Learned: the validator's checkbox rule needs `<label for>` (a
   wrapping label only counts when `<label>` is immediately followed by `<input>`).
+- 2026-09-28 (Keith's 28 September notes + panel pass): hero footage now defaults to Kling 3.0 Pro (1080p
+  source, cut to 1280x720 loops); `FX_GBP_EUR = 1.17` fixed in `build_site.py` and mirrored in `lib.js`, used
+  only for salary-range filters, medians, the "Where you sit on pay" strip and the bracketed "(paid in euros,
+  about £…)" equivalent, never for the displayed figure; UK edition inclusion rule (a role appears on the UK
+  board only if located in the UK incl. NI, fully remote, or explicitly IE+UK; the log line counts
+  "excluded by the edition rule"); roles whose closing date is before the build date are dropped at build
+  time and the browser shows a "Closed" chip / "This role has closed" for anything that closes after the
+  build (`data.today` in the dataset); `--today YYYY-MM-DD` pins the build date (default: the dataset's
+  fetched date) so "ago" labels, closed-role drops and the footer year are deterministic; `/dashboard/`
+  per edition (live tiles from stored fields + "Event spec for launch" with a consent-gated `track()`
+  stub and `data-ev` attributes on apply, search, sign-up, request-rates, post-job and save controls);
+  SEO landing pages (4 per edition, only when a role matches); `/guides/` with a data-generated salary
+  guide; new facets (workplace, level, contract, salary range, closing date, agency vs direct,
+  "Hide UK/abroad-only roles"); the pinned film hero and `film.js` removed. Panel pass run 2026-09-28,
+  fixes applied (cookie copy lists every stored key; quick-job-match text stays out of the URL until
+  "Copy shareable link"; B Corp shown as mark + generic definition only; testimonial slots off the
+  public page; launch notes shown before every demo form; employers page single CTA and "Ask us"
+  membership cells; tags wrap at 390 px). Tests: `test_build.py` block `# --- panel fixes B ---`,
+  `node --test src/js/dashboard.test.js`.

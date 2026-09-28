@@ -1,10 +1,11 @@
 <div class="wrap pagehead">
   <h1>Advertise once. Reach candidates across the GreenJobs specialist network.</h1>
-  <p class="lede">Your vacancy is automatically distributed to the most relevant environmental, ecology, renewable-energy, water, waste, wind and solar job sites, at no extra cost. {{n_jobs}} live roles from {{n_emp}} employers are on {{domain}} this week.</p>
+  <p class="lede">Your vacancy is automatically distributed to the most relevant environmental, ecology, renewable-energy, water, waste, wind and solar job sites, at no extra cost. {{n_jobs}} live roles{{emp_count_phrase}} are on {{domain}} this week.</p>
   <div class="ratecta" id="rates">
-    <a class="btn btn--lime" href="mailto:{{email}}?subject=Advertising%20rates%20request" data-magnet>Request advertising rates<span class="arw" aria-hidden="true">→</span></a>
+    <a class="btn btn--lime" href="mailto:{{email}}?subject=Advertising%20rates%20request" data-magnet data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a>
     <a class="btn btn--ghost" href="#rates-form">Or send your details</a>
     <p class="note">Prices are not published. Rates are supplied by the team, with discounts for multiple postings and annual memberships.</p>
+    <p class="note note--dfy"><b>Posting is done for you.</b> Send us the job description and logo; we post it and email you when it is live. Membership packages add dedicated account management, free access to the employer self-management system and telephone training on it.</p>
   </div>
 </div>
 
@@ -24,18 +25,19 @@
 </section>
 
 <section class="wrap band--tight" aria-labelledby="h-cmp">
-  <div class="sec-head"><div><h2 id="h-cmp">Compare the options</h2><p>What each posting includes. Where a line is not confirmed in the published offer it says "Ask us" rather than a tick.</p></div><a class="btn btn--ghost" href="mailto:{{email}}?subject=Advertising%20rates%20request">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>
+  <div class="sec-head"><div><h2 id="h-cmp">Compare the options</h2><p>What each posting includes. Where a line is not confirmed in the published offer it says "Ask us" rather than a tick; membership packages are priced on request.</p></div><a class="btn btn--ghost" href="mailto:{{email}}?subject=Advertising%20rates%20request" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>
+  <p class="cmphint" aria-hidden="true">Swipe sideways to see all columns →</p>
   <div class="cmpwrap">
   <table class="evid cmp">
     <thead><tr><th scope="col">Included</th><th scope="col">Standard</th><th scope="col">Premium</th><th scope="col">Membership</th></tr></thead>
     <tbody>
-      <tr><th scope="row">Full job description and logo, live for up to 6 weeks</th><td>Included</td><td>Included</td><td>Included</td></tr>
-      <tr><th scope="row">Shown on all relevant network sites at no extra cost</th><td>Included</td><td>Included</td><td>Included</td></tr>
-      <tr><th scope="row">One weekly jobs newsletter</th><td>Included</td><td>Included</td><td>Included</td></tr>
-      <tr><th scope="row">Job alerts by email to matching candidates</th><td>Included</td><td>Included</td><td>Included</td></tr>
-      <tr><th scope="row">Company profile: logo, contact details, current vacancies</th><td>Included</td><td>Included</td><td>Included</td></tr>
-      <tr><th scope="row">Talent Finder Network</th><td>Included</td><td>Included</td><td>Included</td></tr>
-      <tr><th scope="row">Social media network</th><td>Included</td><td>Included</td><td>Included</td></tr>
+      <tr><th scope="row">Full job description and logo, live for up to 6 weeks</th><td>Included</td><td>Included</td><td class="ask">Ask us</td></tr>
+      <tr><th scope="row">Shown on all relevant network sites at no extra cost</th><td>Included</td><td>Included</td><td class="ask">Ask us</td></tr>
+      <tr><th scope="row">One weekly jobs newsletter</th><td>Included</td><td>Included</td><td class="ask">Ask us</td></tr>
+      <tr><th scope="row">Job alerts by email to matching candidates</th><td>Included</td><td>Included</td><td class="ask">Ask us</td></tr>
+      <tr><th scope="row">Company profile: logo, contact details, current vacancies</th><td>Included</td><td>Included</td><td class="ask">Ask us</td></tr>
+      <tr><th scope="row">Talent Finder Network</th><td>Included</td><td>Included</td><td class="ask">Ask us</td></tr>
+      <tr><th scope="row">Social media network</th><td>Included</td><td>Included</td><td class="ask">Ask us</td></tr>
       <tr><th scope="row">Featured job at the top of results pages</th><td class="ask">Ask us</td><td>Included</td><td class="ask">Ask us</td></tr>
       <tr><th scope="row">Job-alert sponsorship: your logo in alert emails</th><td class="ask">Ask us</td><td>Included</td><td class="ask">Ask us</td></tr>
       <tr><th scope="row">Featured employer on the home page and run of site</th><td class="ask">Ask us</td><td class="ask">Ask us</td><td class="ask">Ask us</td></tr>
@@ -63,7 +65,8 @@
         <div class="field"><label for="p-b3" class="vh">Point three</label><input class="in" id="p-b3" name="b3" type="text" placeholder="Why it matters" maxlength="120"></div>
       </fieldset>
       <p class="adb__reach" data-adb-reach aria-live="polite"></p>
-      <div class="adb__actions"><button class="btn btn--lime" type="submit" data-magnet>Request rates and post<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost" type="button" data-adb-fill>Fill with an example</button></div>
+      <p class="note" data-demo-pre>Posting opens at launch — this form connects to the GreenJobs team then.</p>
+      <div class="adb__actions"><button class="btn btn--lime" type="submit" data-magnet data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost" type="button" data-adb-fill>Fill with an example</button></div>
       <p class="note note--live" data-demo-note tabindex="-1" hidden>This form connects to the GreenJobs team at launch. Nothing was sent. Today, email <a href="mailto:{{email}}">{{email}}</a> with the same details and the team posts it for you.</p>
     </form>
     <div class="adb__preview" data-adb-preview id="adb-preview">

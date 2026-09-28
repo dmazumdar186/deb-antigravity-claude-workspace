@@ -94,6 +94,7 @@
     store(SKEY, JSON.stringify(ids));
     paintSaves();
     say(i >= 0 ? 'Removed from saved roles' : 'Saved — find it under Saved on the jobs page');
+    if (i < 0) track('save_role', { job_id: id, src_page: window.location.pathname });
     doc.dispatchEvent(new CustomEvent('gj:saved', { detail: ids }));
   });
   paintSaves();
@@ -150,6 +151,48 @@
       var st = { q: qIn.value.trim(), loc: locIn.value.trim() };
       window.location.href = sform.getAttribute('action') + G.toQuery(st);
     });
+  }
+
+  /* ------------------------------------------------ consent-gated event layer
+     track(name, props) is a no-op unless the visitor switched Analytics on in
+     the cookie settings AND a provider registered itself as window.GJAnalytics
+     (a function taking (name, props)). No provider ships with the demo, so
+     nothing is ever sent; the data-ev attributes below name the events the
+     dashboard's "Event spec for launch" lists. */
+  function consentOn() {
+    try { var c = JSON.parse(localStorage.getItem('gj-consent') || 'null'); return !!(c && c.analytics); } catch (e) { return false; }
+  }
+  function track(name, props) {
+    if (!name || !consentOn() || typeof window.GJAnalytics !== 'function') return false;
+    try { window.GJAnalytics(name, props || {}); } catch (e) { /* a provider fault never breaks the page */ }
+    return true;
+  }
+  function evProps(el) {
+    var p = { src_page: window.location.pathname }, a = el.attributes, i;
+    for (i = 0; i < a.length; i++) if (a[i].name.indexOf('data-ev-') === 0) p[a[i].name.slice(8).replace(/-/g, '_')] = a[i].value;
+    if (p.job) { p.job_id = p.job; delete p.job; }
+    return p;
+  }
+  doc.addEventListener('click', function (e) {
+    var el = e.target.closest('a[data-ev], button[data-ev]:not([type="submit"])');
+    if (el) track(el.getAttribute('data-ev'), evProps(el));
+  });
+  doc.addEventListener('submit', function (e) {
+    var f = e.target, el = f.getAttribute && f.getAttribute('data-ev') ? f : (f.querySelector ? f.querySelector('[type="submit"][data-ev]') : null);
+    if (el) track(el.getAttribute('data-ev'), evProps(el));
+  });
+  window.GJTrack = track;
+
+  /* ------------------------------------------------ closed roles (job page) */
+  var aside = $('.job__aside[data-closing]');
+  if (aside) {
+    var closing = aside.getAttribute('data-closing'), closeMs = closing ? Date.parse(closing) : NaN;
+    if (!isNaN(closeMs) && closeMs + 864e5 <= Date.now()) {
+      $$('a[data-apply]').forEach(function (a) {
+        var s = doc.createElement('span'); s.className = 'job__closed'; s.setAttribute('role', 'status'); s.textContent = 'This role has closed';
+        a.parentNode.replaceChild(s, a);
+      });
+    }
   }
 
   /* ------------------------------------------------ demo forms (never a fake success) */

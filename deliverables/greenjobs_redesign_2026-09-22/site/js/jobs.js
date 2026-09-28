@@ -12,7 +12,7 @@ var f = { q: $('#f-q'), loc: $('#f-loc'), sector: $('#f-sector'), type: $('#f-ty
 smin: $('#f-smin'), smax: $('#f-smax'), only: $('#f-only'), close: $('#f-close'), emp: $('#f-emp'), sort: $('#f-sort') };
 var CUR = data.currency || 'EUR', OPTS = { cur: CUR, home: data.home || ['ie', 'cross', 'remote'] };
 var LABEL = { q: 'Search', loc: 'Where', sector: 'Sector', type: 'Type', sal: 'Salary disclosed', wp: 'Workplace', level: 'Level', ct: 'Contract', smin: 'Min salary', smax: 'Max salary',
-only: (data.edition === 'uk' ? 'UK' : 'Ireland') + ' only', close: 'Closing', emp: 'Advertised by' };
+only: data.edition === 'uk' ? 'Hide Ireland/abroad-only roles' : 'Hide UK/abroad-only roles', close: 'Closing', emp: 'Advertised by' };
 var CHIP_KEYS = ['q', 'loc', 'sector', 'type', 'sal', 'wp', 'level', 'ct', 'smin', 'smax', 'only', 'close', 'emp'];
 function optText(sel, v) {
 var opts = sel ? Array.prototype.slice.call(sel.options) : [], hit = opts.filter(function (o) { return o.value === String(v); })[0];
@@ -38,12 +38,14 @@ return String(text == null ? '' : text).split(new RegExp('(' + words.join('|') +
 return i % 2 ? '<mark>' + G.esc(piece) + '</mark>' : G.esc(piece);
 }).join('');
 }
+var TODAY = Date.parse(data.today || '') || Date.now();
+function isClosed(j) { var t = j.closing ? Date.parse(j.closing) : NaN; return !isNaN(t) && t + 864e5 <= TODAY; }
 function row(j, q) {
-var sal = G.salaryLabel(j, CUR), lc = G.locLabel(j.loc_class);
-return '<article class="row" data-id="' + G.esc(j.id) + '">' + logo(j) +
+var sal = G.salaryLabel(j, CUR), lc = G.locLabel(j.loc_class), closed = isClosed(j);
+return '<article class="row' + (closed ? ' row--closed' : '') + '" data-id="' + G.esc(j.id) + '">' + logo(j) +
 '<div class="row__body"><h3><a href="' + G.esc(j.href) + '">' + hl(j.title, q) + '</a></h3>' +
 '<div class="row__meta"><span>' + G.esc(j.employer) + '</span><span aria-hidden="true">·</span><span>' + G.esc(j.location) + '</span>' +
-(sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (j.sectors[0] ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i>' + G.esc(j.sectors[0]) + '</span>' : '') + '</div></div>' +
+(closed ? '<span class="tag tag--closed">Closed</span>' : '') + (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (j.sectors[0] ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i>' + G.esc(j.sectors[0]) + '</span>' : '') + '</div></div>' +
 '<div class="row__r"><time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time><span>' + G.esc(j.type || '') + '</span></div>' +
 '<button class="save" type="button" data-save="' + G.esc(j.id) + '" data-title="' + G.esc(j.title) + '" aria-pressed="false" aria-label="Save: ' + G.esc(j.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button></article>';
 }

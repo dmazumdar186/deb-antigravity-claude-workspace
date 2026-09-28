@@ -12,7 +12,10 @@ description: Reads the scraped edition datasets, normalises them (canonical
 inputs: --src <src dir> (templates, css, js, assets, data/{ie,uk}.json,
   data/regions_{ie,uk}.json, data/brief.md optional), --out <site dir>,
   --edition ie|uk|both, --data-fixture <json> (tests only: renders the fixture
-  as both editions instead of the real files)
+  as both editions instead of the real files), --today YYYY-MM-DD (the build
+  date; default = the dataset's "fetched" date, so a build is reproducible:
+  every "ago" label, footer year, closing-date window and the closed-role
+  drop are computed against it and exposed to the browser as data.today)
 outputs: <out>/index.html chooser, <out>/{ie,uk}/… pages, <out>/{css,js,assets},
   <out>/.greenjobs-build marker; PASS/FAIL lines on stdout/stderr
 
@@ -36,6 +39,7 @@ import subprocess
 import sys
 from collections import Counter
 from datetime import date
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urljoin
@@ -66,8 +70,8 @@ TAXONOMY: list[tuple[str, str, bool, list[str]]] = [
     ("Solar energy", "#d99a1c", False, ["solar", "photovoltaic", "pv"]),
     ("Renewable energy & storage", "#6f8f6a", False, ["renewable", "renewables", "battery", "storage", "hydrogen", "hydro", "hydropower", "bioenergy", "biomass", "biogas", "anaerobic", "green energy", "clean energy", "alternative energy", "marine energy", "tidal", "wave"]),
     ("Water & flood", "#3f7ea6", True, ["water", "flood", "flooding", "drainage", "wastewater", "hydrology", "hydrogeology", "hydrogeologist", "hydrologist", "sewer", "sewerage", "catchment"]),
-    ("Waste & circular economy", "#b7774e", False, ["waste", "recycling", "circular", "circular economy", "landfill", "resource management", "reuse"]),
-    ("Ecology, nature recovery & biodiversity", "#5c7a57", True, ["ecology", "ecologist", "ecological", "conservation", "biodiversity", "habitat", "habitats", "wildlife", "species", "ornithologist", "ornithology", "botanist", "botany", "arboriculture", "arboriculturist", "arborist", "nature", "nature recovery", "rewilding", "peatland", "forestry", "woodland", "marine biology"]),
+    ("Waste & circular economy", "#b7774e", False, ["waste", "waste management", "recycling", "circular", "circular economy", "landfill", "resource management", "reuse", "lgv driver", "hgv driver", "refuse", "epa licensing", "epa licence", "waste licensing", "waste permitting", "waste compliance", "waste facility", "waste facilities"]),
+    ("Ecology, nature recovery & biodiversity", "#5c7a57", True, ["ecology", "ecologist", "ecological", "conservation", "biodiversity", "habitat", "habitats", "wildlife", "species", "ornithologist", "ornithology", "botanist", "botany", "arboriculture", "arboriculturist", "arborist", "nature", "nature recovery", "rewilding", "peatland", "forestry", "woodland", "marine biology", "landscape restoration", "ecosystem", "ecosystems", "land restoration", "regenerative"]),
     # Keith 2026-09-28 (B1): engineering, infrastructure, HSE and climate roles were
     # landing in "Sustainability" or "Built environment". Each now has a home, placed
     # ahead of the umbrella sectors so a tie on score resolves to the specific one.
@@ -78,10 +82,15 @@ TAXONOMY: list[tuple[str, str, bool, list[str]]] = [
     ("Environmental science & consulting", "#7f9c7a", False, ["environmental", "environment", "eia", "eiar", "impact assessment", "air quality", "acoustics", "noise", "geologist", "geology", "environmental scientist", "environmental consultant"]),
     ("Sustainability & ESG", "#a3653c", True, ["sustainability", "sustainable", "esg", "csrd", "responsible business", "corporate responsibility", "circularity"]),
     ("Built environment & energy efficiency", "#c65d3b", True, ["building", "buildings", "built environment", "energy efficiency", "retrofit", "breeam", "leed", "heat pump", "heat pumps", "insulation", "mechanical", "electrical", "hvac", "facilities", "architect", "architecture", "construction", "quantity surveyor", "surveyor"]),
-    ("Energy networks & utilities", "#4a86ab", True, ["grid", "utility", "utilities", "transmission", "distribution", "network", "networks", "substation", "energy management", "energy manager", "power", "electricity", "smart meter", "district heating"]),
-    ("Policy, planning & advisory", "#9a8a6a", False, ["policy", "planning", "planner", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education", "officer"]),
+    ("Energy networks & utilities", "#4a86ab", True, ["grid", "utility", "utilities", "transmission", "distribution", "substation", "energy network", "energy networks", "energy management", "energy manager", "power station", "electricity", "smart meter", "district heating"]),
+    ("Policy, planning & advisory", "#9a8a6a", False, ["policy", "planning", "planner", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education"]),
 ]
 PRIMARY_MIN = 2  # score a sector needs before a job carries it
+# Scoring weights (panel 08, 2026-09-28): the raw site sector labels are the
+# weakest signal (the IE site tags roles with up to nine labels, the UK site
+# with none, and the two editions must agree), the title the strongest, and
+# the employer name counts double so "Grundon Waste Management" reads as Waste.
+SECTOR_W = {"raw": 0, "title": 3, "employer": 2, "summary": 2, "body": 1}  # raw labels break ties only
 
 # Currency (Keith B2, 2026-09-28). Salaries are always shown in the currency the
 # employer advertised. When that differs from the edition's currency a label
@@ -94,22 +103,44 @@ CUR_SYM = {"EUR": "€", "GBP": "£", "USD": "$"}
 
 # Location class (Keith B3). Derived from the location/region text only; the
 # word "remote" may also come from title, summary or job type.
-LOC_LABEL = {"ie": "Ireland", "uk": "UK", "ni": "Northern Ireland", "remote": "Remote", "cross": "Ireland & UK", "intl": "International"}
+LOC_LABEL = {"ie": "Ireland", "uk": "UK", "ni": "Northern Ireland", "remote": "Remote", "cross": "Ireland & UK", "intl": "International", "unspecified": "Location not stated"}
 # Which classes an edition's board carries (B5): UK excludes Ireland-only and
 # international roles outright; IE keeps everything and offers a toggle (B4).
-EDITION_INCLUDES = {"ie": {"ie", "uk", "ni", "remote", "cross", "intl"}, "uk": {"uk", "ni", "remote", "cross"}}
+EDITION_INCLUDES = {"ie": {"ie", "uk", "ni", "remote", "cross", "intl", "unspecified"}, "uk": {"uk", "ni", "remote", "cross", "unspecified"}}
 # "Ireland only" / "UK only" toggle keeps these classes.
 EDITION_HOME = {"ie": ["ie", "cross", "remote"], "uk": ["uk", "ni", "cross", "remote"]}
 UK_WORDS = ["united kingdom", "uk", "england", "scotland", "wales", "great britain", "britain", "london", "manchester", "birmingham", "leeds", "bristol", "glasgow", "edinburgh", "cardiff"]
-NI_WORDS = ["northern ireland", "belfast", "derry", "londonderry", "antrim", "armagh", "fermanagh", "tyrone", "lisburn", "newry", "co. down", "county down"]
-FOREIGN_WORDS = ["switzerland", "zurich", "germany", "berlin", "france", "paris", "netherlands", "amsterdam", "belgium", "brussels", "spain", "italy", "denmark", "copenhagen", "norway", "sweden", "finland", "austria", "portugal", "poland", "usa", "united states", "canada", "australia", "new zealand", "india", "singapore", "europe", "worldwide", "international", "global"]
+# Northern Ireland place words: the full alias list of the "Northern Ireland"
+# row in regions_uk.json (Enniskillen, Bangor NI, Co. Down …) when that file
+# is readable at import, else this seed. Aliases that collide with a Welsh or
+# English town (Bangor, Newport) are only accepted in their qualified form.
+_NI_SEED = ["northern ireland", "belfast", "derry", "londonderry", "antrim", "armagh", "fermanagh", "tyrone", "lisburn", "newry", "co. down", "county down", "enniskillen", "bangor ni", "bangor co. down", "bangor, co. down"]
+_NI_AMBIGUOUS = {"down", "ni", "bangor", "newport"}
+
+
+def _load_ni_words() -> list[str]:
+    path = Path(__file__).resolve().parents[3] / "deliverables" / PROJECT / "src" / "data" / "regions_uk.json"
+    words = list(_NI_SEED)
+    try:
+        table = json.loads(path.read_text(encoding="utf-8"))
+        for alias in table["regions"].get("Northern Ireland", []):
+            w = alias.lower()
+            if w not in _NI_AMBIGUOUS and w not in words:
+                words.append(w)
+    except (OSError, ValueError, KeyError):
+        pass  # the seed list is enough; loc_class also receives ni_places from the src tree at build time
+    return words
+
+
+NI_WORDS = _load_ni_words()
+FOREIGN_WORDS = ["switzerland", "zurich", "germany", "berlin", "france", "paris", "netherlands", "amsterdam", "belgium", "brussels", "spain", "italy", "denmark", "copenhagen", "norway", "sweden", "finland", "austria", "portugal", "poland", "usa", "united states", "canada", "australia", "new zealand", "india", "singapore", "europe", "worldwide", "international", "global", "ukraine", "kyiv"]
 REMOTE_WORDS = ["remote", "home based", "home-based", "work from home", "working from home", "wfh"]
 
 # Recruitment agencies (Keith D1). Rule: the named agencies plus any employer
 # whose name contains a staffing word. "Consultancy" alone is not a staffing
 # word (environmental consultancies are direct employers).
 AGENCY_NAMES = {"gaia talent", "mattinson partnership", "chm recruit"}
-AGENCY_WORDS = ["recruit", "recruitment", "recruiters", "talent", "partnership", "staffing", "resourcing", "headhunt", "personnel", "appointments", "search & selection"]
+AGENCY_WORDS = ["recruit", "recruitment", "recruiters", "talent", "staffing", "resourcing", "headhunt", "personnel", "appointments", "search & selection"]  # "partnership" dropped 2026-09-28 (Mattinson is in AGENCY_NAMES)
 
 WORKPLACE_LABEL = {"office": "Office-based", "hybrid": "Hybrid", "remote": "Remote", "site": "Site-based", "unspecified": "Not stated"}
 LEVEL_ORDER = ["Graduate/Early career", "Mid-level", "Senior/Principal", "Director/Associate"]  # level_of() labels, facet order
@@ -120,6 +151,10 @@ NAV = [("jobs/index.html", "Jobs"), ("sectors/index.html", "Sectors"), ("insight
 PAGES_FOR_SITEMAP = ["index.html", "jobs/index.html", "sectors/index.html", "insights/index.html", "compass/index.html", "employers/index.html", "guides/index.html", "guides/salary-guide/index.html"]
 # Pages that exist at the same path in both editions get hreflang pairs (G1).
 SHARED_PATHS = set(PAGES_FOR_SITEMAP)
+
+# Every page path that exists in both editions gets an hreflang pair; landing
+# slugs differ per edition and job ids differ, so those carry a canonical only.
+PAIRED_PATHS = SHARED_PATHS | {"dashboard/index.html", "for-keith/index.html"}
 
 # SEO landing pages (G2): slug per edition, heading, and a predicate over the
 # normalised job. A page with no matching live role is not built.
@@ -294,17 +329,23 @@ def _word_hits(text: str, words: list[str], phrase_weight: int = 1) -> int:
 
 
 def assign_sectors(job: dict[str, Any]) -> list[str]:
+    """Up to three canonical sectors, best first. Title, employer name and
+    summary carry the weight (SECTOR_W); the raw site labels count once so
+    the IE and UK copies of one advert land in the same sector."""
     raw = " ".join(job.get("sectors") or []).lower()
     title = str(job.get("title") or "").lower()
+    employer = str(job.get("employer") or "").lower()
     summary = str(job.get("summary") or "").lower()
-    body = strip_tags(str(job.get("description_html") or ""))[:2500].lower()
-    scored: list[tuple[int, int, str]] = []
+    body = strip_tags(str(job.get("description_html") or ""))[:3000].lower()
+    scored: list[tuple[int, int, int, str]] = []
     for pos, (name, _, _, words) in enumerate(TAXONOMY):
-        score = 3 * _word_hits(raw, words, 2) + 3 * _word_hits(title, words, 2) + 2 * _word_hits(summary, words, 2) + _word_hits(body, words)
+        raw_hits = _word_hits(raw, words)
+        score = (SECTOR_W["raw"] * raw_hits + SECTOR_W["title"] * _word_hits(title, words, 2) + SECTOR_W["employer"] * _word_hits(employer, words, 2)
+                 + SECTOR_W["summary"] * _word_hits(summary, words, 2) + SECTOR_W["body"] * _word_hits(body, words))
         if score >= PRIMARY_MIN:
-            scored.append((-score, pos, name))
+            scored.append((-score, -raw_hits, pos, name))
     scored.sort()
-    picked = [name for _, _, name in scored[:3]]
+    picked = [name for *_, name in scored[:3]]
     return picked or ["Environmental science & consulting"]
 
 
@@ -312,16 +353,40 @@ def _job_text(job: dict[str, Any], body_chars: int = 2500) -> str:
     return " ".join(str(job.get(k) or "") for k in ("title", "type", "summary")).lower() + " " + strip_tags(str(job.get("description_html") or ""))[:body_chars].lower()
 
 
-def loc_class(job: dict[str, Any], ie_places: list[str] | None = None, uk_places: list[str] | None = None) -> str:
-    """ie | uk | ni | remote | cross | intl, from the location and region
-    fields (plus 'remote' anywhere). Both islands named -> cross. Neither
-    named -> remote if the role says so, else the scraped country, else intl."""
-    geo = " , ".join(str(job.get(k) or "") for k in ("location", "region")).lower()
-    has_ni = _word_hits(geo, NI_WORDS) > 0
-    has_uk = _word_hits(geo, UK_WORDS + list(uk_places or [])) > 0
-    has_ie = bool(re.search(r"(?<![a-z])ireland(?![a-z])", re.sub(r"northern\s+ireland", " ", geo))) or _word_hits(geo, ["dublin", "cork", "galway", "limerick", "waterford"] + list(ie_places or [])) > 0
-    has_remote = _word_hits(geo + " " + _job_text(job, 0), REMOTE_WORDS) > 0
-    foreign = _word_hits(geo + " " + str(job.get("country") or "").lower(), FOREIGN_WORDS) > 0
+_IRELAND_RE = re.compile(r"(?<![a-z])(?:republic of )?ireland(?![a-z])")
+
+
+def loc_class(job: dict[str, Any], ie_places: list[str] | None = None, uk_places: list[str] | None = None, ed_key: str = "", ni_places: list[str] | None = None) -> str:
+    """ie | uk | ni | remote | cross | intl | unspecified, from the location
+    and region fields (plus 'remote' anywhere). Both islands named -> cross.
+    Neither named -> remote if the role says so, else the scraped country;
+    nothing at all -> unspecified (kept on both boards, labelled as such).
+
+    On the IE edition the scraped region is the site's own facet ("Ireland" or
+    "Ireland, United Kingdom" on nearly every advert), so it is not a UK
+    signal there: a UK signal must come from the location text (panel 08)."""
+    loc = str(job.get("location") or "").lower()
+    reg = str(job.get("region") or "").lower()
+    ni_words = NI_WORDS + [w for w in (ni_places or []) if w not in NI_WORDS]
+    uk_words = UK_WORDS + list(uk_places or [])
+    ie_words = ["dublin", "cork", "galway", "limerick", "waterford"] + list(ie_places or [])
+    if ed_key == "ie":
+        reg_for_uk = ""  # the IE facet string never names a UK place on purpose
+        reg_for_ie = ""  # and a bare "Ireland" there says nothing about the advert
+    else:
+        reg_for_uk = reg_for_ie = reg
+    has_ni = _word_hits(loc + " , " + reg, ni_words) > 0
+    # NI phrases are blanked before the GB check so "Bangor, Co. Down" is not
+    # also the Welsh Bangor (the ambiguous bare aliases live in _NI_AMBIGUOUS).
+    uk_text = loc + " , " + reg_for_uk
+    for w in sorted(ni_words, key=len, reverse=True):
+        uk_text = re.sub(r"(?<![a-z0-9])" + re.escape(w) + r"(?![a-z0-9])", " ", uk_text)
+    has_uk = _word_hits(uk_text, uk_words) > 0
+    geo_ie = re.sub(r"northern\s+ireland", " ", loc + " , " + reg_for_ie)
+    has_ie = bool(_IRELAND_RE.search(geo_ie)) or _word_hits(geo_ie, ie_words) > 0
+    has_remote = _word_hits(loc + " " + reg + " " + _job_text(job, 0), REMOTE_WORDS) > 0
+    country = str(job.get("country") or "").lower()
+    foreign = _word_hits(loc + " , " + reg + " , " + country, FOREIGN_WORDS) > 0
     if has_ie and (has_uk or has_ni):
         return "cross"
     if has_ni and not has_uk:
@@ -334,26 +399,35 @@ def loc_class(job: dict[str, Any], ie_places: list[str] | None = None, uk_places
         return "remote"
     if foreign:
         return "intl"
-    country = str(job.get("country") or "").lower()
+    if not loc.strip() and not country.strip():
+        return "unspecified"
     if "ireland" in country and "northern" not in country:
         return "ie"
-    if any(w in country for w in ("united kingdom", "uk", "britain", "england", "scotland", "wales")):
+    if _word_hits(country, ["united kingdom", "uk", "britain", "great britain", "england", "scotland", "wales"]):
         return "uk"
     return "intl"
 
 
 def workplace_of(job: dict[str, Any]) -> str:
     """office | hybrid | remote | site | unspecified, from keywords in the text."""
-    t = _job_text(job)
+    t = _NOT_OFFICE_RE.sub(" ", _job_text(job))
     if _word_hits(t, ["hybrid"]):
         return "hybrid"
     if _word_hits(t, REMOTE_WORDS + ["fully remote"]):
         return "remote"
-    if _word_hits(t, ["site-based", "site based", "on-site", "on site", "resident engineer", "clerk of works", "field-based", "field based", "fieldwork", "field work"]):
+    if _word_hits(t, SITE_WORDS):
         return "site"
-    if _word_hits(t, ["office-based", "office based", "in the office", "in office", "office"]):
+    if _word_hits(t, OFFICE_WORDS) or _OFFICE_RE.search(t):
         return "office"
     return "unspecified"
+
+
+# "Microsoft Office", "Office of …" and "head office" are not workplaces
+# (panel 08: five roles incl. an EHS Site Manager read as office-based).
+_NOT_OFFICE_RE = re.compile(r"\b(?:microsoft office|ms office|office of\b|head office|office 365|box office|office suite)", re.I)
+SITE_WORDS = ["site-based", "site based", "on-site", "on site", "onsite", "site manager", "site managers", "reserve", "reserves", "patrol", "patrols", "resident engineer", "clerk of works", "field-based", "field based", "fieldwork", "field work"]
+_OFFICE_RE = re.compile(r"\bbased (?:in|at|from) (?:our|the) (?:\w+[ -]){0,2}offices?\b")  # "based in our Cork office"
+OFFICE_WORDS = ["office-based", "office based", "in the office", "in our office", "in office", "based in our office", "based at our office", "based in the office", "our offices in", "our office in"]  # bare "office" is not a signal
 
 
 def contract_of(job: dict[str, Any]) -> list[str]:
@@ -369,7 +443,9 @@ def contract_of(job: dict[str, Any]) -> list[str]:
         add("permanent")
     if _word_hits(t, ["fixed term", "fixed-term", "maternity cover", "ftc"]):
         add("fixed-term")
-    if "contract" in typ or _word_hits(t, ["contractor", "day rate", "freelance"]) or (_word_hits(t, ["contract"]) and "permanent" not in tags):
+    # "contractor" (an employer describing its business) is not a contract role (panel 08).
+    if "contract" in typ or _word_hits(t, ["day rate", "freelance", "contract role", "contract position", "contract basis", "fixed-term contract", "fixed term contract", "temporary contract", "interim"]) \
+            or re.search(r"\b\d+[- ](?:month|week|year)s?\s+(?:fixed[- ]term\s+)?contract\b", t):
         add("contract")
     if _word_hits(t, ["part time", "part-time"]) or "part" in typ:
         add("part-time")
@@ -405,17 +481,32 @@ def load_region_table(src: Path, ed: str) -> dict[str, Any]:
     return table
 
 
+# A compass region followed by a nation is that nation: "South West Wales" is
+# Wales, not the South West of England (panel 08).
+_NATION_TAIL = r"(?!\s+(?:wales|scotland|ireland))"
+# Words that mean "the whole edition": the role goes to the nationwide bucket
+# rather than the "elsewhere" one ("United Kingdom (UK)" on the UK board).
+HOME_WORDS = {"ie": ["ireland", "republic of ireland", "nationwide", "all ireland", "countrywide"],
+              "uk": ["united kingdom", "uk", "uk-wide", "uk wide", "great britain", "nationwide", "countrywide"]}
+
+
 def resolve_regions(job: dict[str, Any], table: dict[str, Any], ed: dict[str, Any]) -> list[str]:
     text = " , ".join(str(job.get(k) or "") for k in ("region", "location")).lower()
     found: list[str] = []
     for name, aliases in table["regions"].items():
         for alias in [name] + list(aliases):
-            if _word_hits(text, [alias.lower()]):
+            a = alias.lower()
+            tail = "" if any(n in a for n in ("wales", "scotland", "ireland")) else _NATION_TAIL
+            if re.search(r"(?<![a-z0-9])" + re.escape(a) + r"(?![a-z0-9])" + tail, text):
                 if name not in found:
                     found.append(name)
                 break
     if found:
         return found
+    ed_key = "ie" if ed["short"] == "IE" else "uk"
+    home_text = re.sub(r"northern\s+ireland", " ", text)
+    if _word_hits(home_text, HOME_WORDS[ed_key]):
+        return [ed["none"]]
     if _word_hits(text, ed["outside_words"]):
         return [ed["elsewhere"]]
     return [ed["none"]]
@@ -441,18 +532,75 @@ def social_links(src: Path, ed_key: str) -> list[str]:
     return out[:3]
 
 
-def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path) -> dict[str, Any]:
+# The source site serves some adverts in the wrong encoding, so "£" arrives
+# as U+FFFD (or "Â£"). Only a replacement character right before a figure
+# (optionally spaced) or a "k" amount is repaired; "�Competitive" is left.
+_GARBLED_POUND_RE = re.compile(r"(?:\ufffd|\u00c2\u00a3|\u00c2\ufffd)(?=\s?(?:\d|k\b))")
+
+
+def repair_pounds(text: str) -> str:
+    return _GARBLED_POUND_RE.sub("\u00a3", text or "")
+
+
+def build_today(raw: dict[str, Any], today: date | None = None) -> date:
+    """The build date: the --today flag, else the dataset's fetched date, else
+    the wall clock (only when the dataset carries no date)."""
+    if today:
+        return today
+    try:
+        return date.fromisoformat(str(raw.get("fetched") or "")[:10])
+    except ValueError:
+        return date.today()
+
+
+def days_until(iso: str, today: date) -> int | None:
+    """Whole calendar days from `today` to an ISO date (negative = past), or
+    None when unknown. The one closing-date rule, mirrored by lib.js daysUntil."""
+    try:
+        return (date.fromisoformat(iso) - today).days if iso else None
+    except ValueError:
+        return None
+
+
+def is_closed(j: dict[str, Any], today: date) -> bool:
+    """A role whose closing date is before the build date is closed."""
+    d = days_until(j.get("closing") or "", today)
+    return d is not None and d < 0
+
+
+def closing_within(j: dict[str, Any], today: date, n: int = 7) -> bool:
+    """Closing date within the next n days: 0..n inclusive (today counts)."""
+    d = days_until(j.get("closing") or "", today)
+    return d is not None and 0 <= d <= n
+
+
+def new_this_week(j: dict[str, Any], today: date) -> bool:
+    """Posted in the last 7 days: 0..6 days ago (today counts, day 7 does not)."""
+    d = days_until(j.get("posted") or "", today)
+    return d is not None and -6 <= d <= 0
+
+
+def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, today: date | None = None) -> dict[str, Any]:
     ed = EDITIONS[ed_key]
     table = load_region_table(src, ed_key)
     ie_places, uk_places = place_words(src)
+    ni_places = ni_place_words(src)
+    today = build_today(raw, today)
     jobs_out: list[dict[str, Any]] = []
     excluded: list[dict[str, str]] = []
+    closed: list[dict[str, str]] = []
     seen_ids: set[str] = set()
     for j in raw.get("jobs") or []:
         jid = str(j.get("id") or "").strip() or slugify(j.get("slug") or j.get("title") or "")
         if jid in seen_ids or not j.get("title") or not str(j.get("url") or "").startswith(("http://", "https://")):
             continue
         seen_ids.add(jid)
+        j = {**j, "description_html": repair_pounds(str(j.get("description_html") or "")), "summary": repair_pounds(str(j.get("summary") or "")),
+             "salary_text": repair_pounds(str(j.get("salary_text") or "")), "title": repair_pounds(str(j.get("title") or ""))}
+        closing = parse_date(j.get("closing"))
+        if is_closed({"closing": closing}, today):
+            closed.append({"id": jid, "title": str(j["title"]).strip(), "closing": closing})
+            continue
         sectors = assign_sectors(j)
         color = next(c for n, c, _, _ in TAXONOMY if n == sectors[0])
         logo = ""
@@ -465,7 +613,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path) -> d
                 lw, lh = image_size(cand)
         desc = sanitise_html(str(j.get("description_html") or ""), str(j.get("url")))
         text = strip_tags(desc)
-        lc = loc_class(j, ie_places, uk_places)
+        lc = loc_class(j, ie_places, uk_places, ed_key, ni_places)
         if lc not in EDITION_INCLUDES[ed_key]:
             excluded.append({"id": jid, "title": str(j["title"]).strip(), "loc_class": lc, "location": str(j.get("location") or "")})
             continue
@@ -476,7 +624,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path) -> d
             "sal_min": j.get("salary_min") if isinstance(j.get("salary_min"), (int, float)) else None,
             "sal_max": j.get("salary_max") if isinstance(j.get("salary_max"), (int, float)) else None,
             "cur": j.get("currency") or None, "period": j.get("period") or None, "sal_text": str(j.get("salary_text") or "").strip(),
-            "sectors": sectors, "color": color, "posted": parse_date(j.get("posted")), "closing": parse_date(j.get("closing")),
+            "sectors": sectors, "color": color, "posted": parse_date(j.get("posted")), "closing": closing,
             "summary": str(j.get("summary") or "").strip() or text[:180], "text": text[:1500], "description_html": desc,
             "logo": logo, "lw": lw, "lh": lh, "url": str(j["url"]).strip(), "href": f"{jid}/index.html",
             "loc_class": lc, "workplace": workplace_of(j), "level": level_of(j["title"]), "contract": contract_of(j),
@@ -499,11 +647,11 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path) -> d
         if j["logo"] and not rec["logo"]:
             rec.update(logo=j["logo"], lw=j["lw"], lh=j["lh"])
     return {
-        "ed": ed_key, "site": str(raw.get("site") or ed["domain"]), "fetched": str(raw.get("fetched") or date.today().isoformat())[:10],
+        "ed": ed_key, "site": str(raw.get("site") or ed["domain"]), "fetched": str(raw.get("fetched") or today.isoformat())[:10], "today": today.isoformat(),
         "jobs": jobs_out, "sectors": sectors, "regions": regions, "types": types,
         "employers": list(employers.values()), "about": str(raw.get("about") or "").strip(),
         "contact": raw.get("contact") or {}, "network_sites": raw.get("network_sites") or [],
-        "region_table": table, "social": social_links(src, ed_key), "excluded": excluded,
+        "region_table": table, "social": social_links(src, ed_key), "excluded": excluded, "closed": closed,
     }
 
 
@@ -526,6 +674,24 @@ def place_words(src: Path) -> tuple[list[str], list[str]]:
                     out.append(w)
         return out
     return words("ie", set()), words("uk", {"Northern Ireland"})
+
+
+def ni_place_words(src: Path) -> list[str]:
+    """Northern Ireland aliases from the src region table (lower-case, the
+    ambiguous short ones dropped), for loc_class."""
+    path = src / "data" / "regions_uk.json"
+    if not path.exists():
+        return []
+    table = json.loads(path.read_text(encoding="utf-8"))
+    return [w.lower() for w in table["regions"].get("Northern Ireland", []) if w.lower() not in _NI_AMBIGUOUS]
+
+
+def rnd(x: float, ndigits: int = 0) -> float:
+    """Round half away from zero like JavaScript's Math.round (Python's
+    round() is banker's: round(324.5) == 324, Math.round(324.5) == 325)."""
+    q = Decimal(1).scaleb(-ndigits)
+    v = float(Decimal(str(x)).quantize(q, rounding=ROUND_HALF_UP))
+    return int(v) if ndigits <= 0 else v
 
 
 JOB_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
@@ -637,7 +803,7 @@ def salary_label(j: dict[str, Any], ed_cur: str = "") -> str:
 
     def money(n: float, s: str = sym) -> str:
         if n >= 1000:
-            return f"{s}{int(n / 1000)}k" if n % 1000 == 0 else f"{s}{round(n / 100) / 10:g}k"
+            return f"{s}{int(n / 1000)}k" if n % 1000 == 0 else f"{s}{rnd(n / 100) / 10:g}k"
         return f"{s}{n:g}"
     lo, hi = j.get("sal_min"), j.get("sal_max")
     if lo is None and hi is None:
@@ -651,8 +817,8 @@ def salary_label(j: dict[str, Any], ed_cur: str = "") -> str:
         return f"{prefix}{money(a if a is not None else b, s)}{per}"  # type: ignore[arg-type]
     label = fmt(lo, hi, sym)
     if ed_cur and cur and cur != ed_cur and fx_convert(1, cur, ed_cur) != 1:
-        eq_lo = round(fx_convert(lo, cur, ed_cur), -2) if lo is not None else None
-        eq_hi = round(fx_convert(hi, cur, ed_cur), -2) if hi is not None else None
+        eq_lo = rnd(fx_convert(lo, cur, ed_cur), -2) if lo is not None else None
+        eq_hi = rnd(fx_convert(hi, cur, ed_cur), -2) if hi is not None else None
         label += f" (paid in {CUR_NAME.get(cur, cur)}, about {fmt(eq_lo, eq_hi, CUR_SYM.get(ed_cur, ''))})"
     return label
 
@@ -666,6 +832,7 @@ def currency_note(j: dict[str, Any], ed_cur: str) -> str:
 
 
 ANNUAL_MULT = {"year": 1, "month": 12, "week": 52, "day": 230, "hour": 1950}  # mirrors lib.js annual()
+COMPARABLE_CURRENCIES = {"EUR", "GBP"}  # the only currencies with a fixed rate; anything else is shown but never compared
 
 
 def median_salary(jobs: list[dict[str, Any]], sym: str, ed_cur: str = "") -> str:
@@ -682,9 +849,7 @@ def median_salary(jobs: list[dict[str, Any]], sym: str, ed_cur: str = "") -> str
     mids.sort()
     k = len(mids) // 2
     med = mids[k] if len(mids) % 2 else (mids[k - 1] + mids[k]) / 2
-    if med >= 1000:
-        return f"{sym}{int(med // 1000)}k" if med % 1000 == 0 else f"{sym}{round(med / 100) / 10:g}k"
-    return f"{sym}{med:g}"
+    return money_k(med, sym)
 
 
 def snapshot_label(iso: str) -> str:
@@ -710,8 +875,8 @@ def ago(iso: str, today: date) -> str:
     if d < 7:
         return f"{d} days ago"
     if d < 30:
-        return f"{round(d / 7)} wk ago"
-    return f"{round(d / 30)} mo ago"
+        return f"{rnd(d / 7)} wk ago"
+    return f"{rnd(d / 30)} mo ago"
 
 
 SAVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>'
@@ -741,8 +906,9 @@ def role_card(j: dict[str, Any], root: str, jobs_dir: str, today: date, ed_cur: 
 
 LEVELS: list[tuple[str, re.Pattern[str]]] = [
     ("Director/Associate", re.compile(r"\b(director|associate director|head of|chief|partner|vice president|vp)\b", re.I)),
-    ("Senior/Principal", re.compile(r"\b(senior|principal|lead|chartered)\b", re.I)),
-    ("Graduate/Early career", re.compile(r"\b(graduate|junior|trainee|intern|internship|apprentice|entry[- ]level|assistant|placement|student)\b", re.I)),
+    ("Senior/Principal", re.compile(r"\b(senior|principal|lead(?!-free)|chartered)\b", re.I)),  # "lead-free" is a material, not a rank
+    # "Assistant Project Manager" / "Assistant Director" are mid-level titles, not early-career ones.
+    ("Graduate/Early career", re.compile(r"\b(graduate|junior|trainee|intern|internship|apprentice|entry[- ]level|assistant(?!(?:\s+\w+){0,2}\s+(?:manager|director|head|lead|engineer|ecologist|consultant)\b)|placement|student)\b", re.I)),
 ]
 
 
@@ -801,15 +967,17 @@ def plural(unit: str) -> str:
     return unit[:-1] + "ies" if unit.endswith("y") and unit[-2:-1] not in "aeiou" else unit + "s"
 
 
-def employers_strip(data: dict[str, Any], root: str) -> dict[str, str]:
+def employers_strip(data: dict[str, Any], root: str, cap: int | None = 12) -> dict[str, str]:
     """The home-page logo strip. Only employers with at least one live role in
     this edition may appear under "Employers hiring now"; when fewer than six
     have live roles the strip is retitled to the network and may include the
-    featured recruiters honestly. Returns html/title/sub; html is '' when empty."""
+    featured recruiters honestly. `cap` limits the home strip; the employers
+    page passes None so every live employer is listed. Returns html/title/sub;
+    html is '' when empty."""
     live_names = {j["employer"] for j in data["jobs"]}
     live = sorted((e for e in data["employers"] if e["name"] in live_names), key=lambda e: (not e["logo"], e["name"]))
     if len(live) >= 6:
-        mode, items = "hiring", live[:12]
+        mode, items = "hiring", live[:cap] if cap else live
         title, sub = "Employers hiring now", f"Organisations with live roles on {esc(data['site'])} this week."
     else:
         mode = "network"
@@ -845,7 +1013,7 @@ BRIEF_FACTS = [
 # B Corp: brief.md section 3 supports only the mark with its alt text. The
 # explainer (Keith A3) describes what certification means; no date or score.
 BCORP_ALT = "Certified B Corporation"
-BCORP_NOTE = "B Corp: independently certified for social and environmental performance, accountability and transparency."
+BCORP_NOTE = "B Corps are businesses independently certified for social and environmental performance, accountability and transparency."
 
 
 def bcorp_line(brief: dict[str, Any] | None, root: str, where: str = "footer") -> str:
@@ -856,7 +1024,7 @@ def bcorp_line(brief: dict[str, Any] | None, root: str, where: str = "footer") -
     w, h = brief["bcorp_size"]
     img = (f'<img class="bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="{BCORP_ALT}" title="{BCORP_NOTE}" '
            f'width="{w}" height="{h}" loading="lazy">')
-    return f'<p class="bcorp-line bcorp-line--{where}">{img}<span><b>{BCORP_ALT}.</b> {BCORP_NOTE}</span></p>'
+    return f'<p class="bcorp-line bcorp-line--{where}">{img}<span>{BCORP_NOTE}</span></p>'
 
 
 def hero_facts(data: dict[str, Any], n_emp: int) -> str:
@@ -1019,14 +1187,20 @@ def similar_jobs(j: dict[str, Any], jobs: list[dict[str, Any]], ed_cur: str = ""
     mine = annual_mid(j, ed_cur)
     my_regions = set(j.get("regions") or [])
     my_sectors = set(j.get("sectors") or [])
-    scored: list[tuple[float, str, str, dict[str, Any]]] = []
-    for o in jobs:
+    my_key = (str(j.get("title") or "").strip().lower(), str(j.get("employer") or "").strip().lower())
+    seen_keys: set[tuple[str, str]] = {my_key}
+    scored: list[tuple[float, int, str, str, dict[str, Any]]] = []
+    for o in sorted(jobs, key=lambda o: (not o.get("posted"), "".join(chr(255 - ord(c)) for c in (o.get("posted") or "")), o.get("title") or "")):
         if o["id"] == j["id"]:
             continue
+        key = (str(o.get("title") or "").strip().lower(), str(o.get("employer") or "").strip().lower())
+        if key in seen_keys or not (my_sectors & set(o.get("sectors") or [])):
+            continue  # one card per (title, employer); a similar role shares at least one sector
+        seen_keys.add(key)
         score = 0.0
         if o["sectors"][0] == j["sectors"][0]:
             score += 4
-        elif my_sectors & set(o["sectors"]):
+        else:
             score += 1.5
         if my_regions & set(o.get("regions") or []):
             score += 2
@@ -1035,10 +1209,10 @@ def similar_jobs(j: dict[str, Any], jobs: list[dict[str, Any]], ed_cur: str = ""
         theirs = annual_mid(o, ed_cur)
         if mine and theirs:
             score += max(0.0, 1 - abs(mine[2] - theirs[2]) / max(mine[2], theirs[2], 1))
-        if score >= 1.5:
-            scored.append((-score, "" if not o["posted"] else o["posted"], o["title"], o))
-    scored.sort(key=lambda t: (t[0], t[1] and "".join(chr(255 - ord(c)) for c in t[1]), t[2]))
-    return [o for _, _, _, o in scored[:limit]]
+        posted = o.get("posted") or ""
+        scored.append((-score, 0 if posted else 1, "".join(chr(255 - ord(c)) for c in posted), o["title"], o))
+    scored.sort(key=lambda t: t[:4])  # best score, then newest first, roles without a posted date last
+    return [o for *_, o in scored[:limit]]
 
 
 def slim(j: dict[str, Any], with_text: bool) -> dict[str, Any]:
@@ -1052,6 +1226,7 @@ def slim(j: dict[str, Any], with_text: bool) -> dict[str, Any]:
 
 def dataset_script(data: dict[str, Any], jobs_href: str, with_text: bool) -> str:
     payload = {
+        "today": data["today"],  # the build date: lib.js uses it for "ago" and closing-date windows, never the browser clock
         "jobs": [slim(j, with_text) for j in data["jobs"]],
         "sectors": [s for s in data["sectors"] if s["n"] > 0],
         "regions": [r for r in data["regions"] if r["on_map"]],
@@ -1157,6 +1332,8 @@ def annual_mid(j: dict[str, Any], ed_cur: str = "") -> tuple[float, float, float
     m = ANNUAL_MULT.get(j.get("period") or "year")
     if not m or (j.get("sal_min") is None and j.get("sal_max") is None):
         return None
+    if j.get("cur") not in COMPARABLE_CURRENCIES:
+        return None  # USD or an unknown currency has no fixed rate: it never enters a median, band or salary filter
     lo = (j["sal_min"] if j["sal_min"] is not None else j["sal_max"]) * m
     hi = j["sal_max"] * m if j["sal_max"] is not None else lo
     if ed_cur and j.get("cur") and j["cur"] != ed_cur:
@@ -1167,8 +1344,9 @@ def annual_mid(j: dict[str, Any], ed_cur: str = "") -> tuple[float, float, float
 
 
 def money_k(n: float, sym: str) -> str:
+    """Mirror of lib.js money(): '€62.5k', '£30k', '€900'. Half-up rounding."""
     if n >= 1000:
-        return f"{sym}{int(n // 1000)}k" if n % 1000 == 0 else f"{sym}{round(n / 100) / 10:g}k"
+        return f"{sym}{int(n // 1000)}k" if n % 1000 == 0 else f"{sym}{rnd(n / 100) / 10:g}k"
     return f"{sym}{n:g}"
 
 
@@ -1280,9 +1458,17 @@ def reach_payload(data: dict[str, Any]) -> dict[str, Any]:
 
 
 # ------------------------------------------------------------------ pages
-AGENCY_NAMES = {"gaia talent", "mattinson partnership"}
-AGENCY_RE = re.compile(r"recruit|talent|staffing", re.I)
-REMOTE_RE = re.compile(r"\b(remote|hybrid|work(?:ing)? from home)\b", re.I)
+def job_is_agency(j: dict[str, Any]) -> bool:
+    """j["agency"] as normalise() stored it (one rule for the whole site);
+    derived from the employer name when the record has no such field."""
+    return bool(j["agency"]) if "agency" in j else is_agency(j.get("employer") or "")
+
+
+def job_is_remote_or_hybrid(j: dict[str, Any]) -> bool:
+    """j["workplace"] in (remote, hybrid) as normalise() stored it; derived
+    from the record's text otherwise."""
+    wp = j.get("workplace") or workplace_of({**j, "description_html": j.get("description_html") or j.get("text") or "", "summary": j.get("summary") or j.get("location") or ""})
+    return wp in ("remote", "hybrid")
 
 
 def _median_int(vals: list[float]) -> float | None:
@@ -1295,10 +1481,14 @@ def _median_int(vals: list[float]) -> float | None:
 
 def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
     """Live-now KPIs for the client dashboard, computed from the normalised dataset
-    relative to the snapshot date (so the build is deterministic)."""
+    relative to the snapshot date (so the build is deterministic). Agency and
+    remote/hybrid shares come from the stored j["agency"] / j["workplace"]
+    fields (one rule, shared with the board's facets); the median uses
+    annual_mid() in the edition currency so euro and sterling roles compare."""
     jobs = data["jobs"]
+    ed_cur = EDITIONS.get(data.get("ed") or "", {}).get("currency", "")
     n = len(jobs)
-    asof = date.fromisoformat(data["fetched"])
+    asof = date.fromisoformat(data.get("today") or data["fetched"])
 
     def d(iso: str) -> date | None:
         try:
@@ -1306,17 +1496,17 @@ def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
         except ValueError:
             return None
 
-    new7 = sum(1 for j in jobs if (p := d(j["posted"])) and 0 <= (asof - p).days < 7)
-    closing7 = sum(1 for j in jobs if (c := d(j["closing"])) and 0 <= (c - asof).days <= 7)
+    new7 = sum(1 for j in jobs if new_this_week(j, asof))  # 0..6 days, shared rule
+    closing7 = sum(1 for j in jobs if closing_within(j, asof, 7))  # 0..7 days, shared rule
     sal_n = sum(1 for j in jobs if j["sal_min"] is not None or j["sal_max"] is not None)
-    med = _median_int([a[2] for j in jobs if (a := annual_mid(j))])
+    med = _median_int([a[2] for j in jobs if (a := annual_mid(j, ed_cur))])
     emp: dict[str, int] = {}
     for j in jobs:
         emp[j["employer"]] = emp.get(j["employer"], 0) + 1
     top = max(emp.items(), key=lambda kv: (kv[1], kv[0])) if emp else ("", 0)
-    agency = sum(1 for j in jobs if j["employer"].lower() in AGENCY_NAMES or AGENCY_RE.search(j["employer"]))
+    agency = sum(1 for j in jobs if (j["agency"] if "agency" in j else is_agency(j.get("employer") or "")))
     days_close = _median_int([(c - p).days for j in jobs if (p := d(j["posted"])) and (c := d(j["closing"])) and c >= p])
-    remote = sum(1 for j in jobs if REMOTE_RE.search(" ".join((j["title"], j["location"], j["text"]))))
+    remote = sum(1 for j in jobs if (j["workplace"] if "workplace" in j else workplace_of(j)) in ("remote", "hybrid"))
     quality = [0, 0, 0, 0, 0]
     for j in jobs:
         score = int(j["sal_min"] is not None or j["sal_max"] is not None) + int(bool(j["closing"])) + int(bool(j["logo"])) + int(len(j["text"]) >= 400)
@@ -1334,28 +1524,30 @@ def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
 
 def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str], brief: dict[str, Any], site_base: str) -> None:
     """Client KPI dashboard at /{ed}/dashboard/: live-now tiles from the dataset plus
-    the analytics KPIs wired at launch. Not in the primary nav; linked from for-keith."""
+    the event spec for launch. Not in the primary nav; linked from for-keith."""
     ed = EDITIONS[data["ed"]]
     k = dashboard_kpis(data)
     sym = ed["sym"]
     flag = k["top_share"] > 50
     med = f'{sym}{k["sal_median"]:,}' if k["sal_median"] is not None else "n/a"
+    agency_names = ", ".join(n.title() for n in sorted(AGENCY_NAMES))
+    agency_words = ", ".join(w for w in AGENCY_WORDS if " " not in w)
     tiles = [
         ("Live roles", str(k["live"]), "Listings with a page in this edition on the snapshot date.", ""),
-        ("New this week", str(k["new7"]), "Roles posted within 7 days of the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
-        ("Closing within 7 days", str(k["closing7"]), "Roles whose closing date falls within the next 7 days.", ""),
-        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints: {med}.', ""),
+        ("New this week", str(k["new7"]), "Roles posted within the 7 days up to the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
+        ("Closing within 7 days", str(k["closing7"]), "Roles whose closing date falls within the 7 days after the snapshot.", ""),
+        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints, converted into {sym} at the fixed rate where a role is paid in the other currency: {med}.', ""),
         ("Top employer share", f'{k["top_share"]}%', f'{esc(k["top_employer"])} holds this share of live roles across {k["employers"]} employers.' + (" Above 50%: a concentration risk worth diversifying." if flag else ""), ""),
-        ("Agency share", f'{k["agency_pct"]}%', "Roles posted by recruiters (Gaia Talent, Mattinson Partnership, or names containing recruit, talent or staffing); the rest are direct employers.", ""),
-        ("Median days to close", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both.", ""),
-        ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose title, location or description mentions remote, hybrid or working from home (keyword-derived).", ""),
+        ("Agency share", f'{k["agency_pct"]}%', f"Roles the build flags as agency-posted: the employer is a known agency ({esc(agency_names)}) or its name contains a recruitment word ({esc(agency_words)}). The same flag drives the board's \"Advertised by\" filter.", ""),
+        ("Advertised window (median days)", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
+        ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose workplace field is remote or hybrid; the field is set from the full listing text by the same rule as the board's Workplace filter.", ""),
     ]
     tile_html = "".join(
         f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num">{val}</b>{spark}<p class="kpi__d">{how}</p></div>'
         for lbl, val, how, spark in tiles)
     root = "../../"
     ctx = shell_ctx(data, 2, "dashboard", f"KPI dashboard — what GreenJobs {ed['short']} measures | GreenJobs {ed['short']}",
-                    "Live board metrics computed from the listings, and the analytics wired at launch.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
+                    "Live board metrics computed from the listings, and the event spec for launch.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
     ctx["scripts"] = "".join(f'<script src="{root}js/{s}.js" defer></script>' for s in ("charts", "dashboard"))
     ctx["content"] = render(tpl["dashboard"], {**ctx, "tiles": tile_html, "unit": ed["unit"], "units": plural(ed["unit"]), "sym": sym,
                                                "kpis": f'<script type="application/json" id="gj-dash">{json_embed(k)}</script>',
@@ -1430,8 +1622,8 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
     # Keith F3: the UK footer lists the UK number first, IE the Irish one; the
     # numbers themselves come from brief.md / <ed>.json contact (never typed here).
     raw_phones = [(str(lbl), str(num)) for lbl, num in (contact.get("phones") or []) if num]
-    uk_nums = [n for l, n in raw_phones if "outside" in l.lower() or n.strip().startswith("+44")]
-    ie_nums = [n for l, n in raw_phones if n not in uk_nums]
+    uk_nums = [n for lbl, n in raw_phones if "outside" in lbl.lower() or n.strip().startswith("+44")]
+    ie_nums = [n for lbl, n in raw_phones if n not in uk_nums]
     ordered = [("Calling from the UK", n) for n in uk_nums[:1]] + [("Calling from Ireland", n) for n in ie_nums[:1]]
     if data["ed"] == "ie":
         ordered.reverse()
@@ -1441,7 +1633,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
     if brief and brief.get("b_corp") and brief.get("bcorp_size"):
         w, h = brief["bcorp_size"]
         bcorp = f'<img class="bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="{BCORP_ALT}" title="{BCORP_NOTE}" width="{w}" height="{h}" loading="lazy">'
-        hdr_bcorp = f'<span class="hdr__bcorp" title="{BCORP_NOTE}"><img src="{root}assets/logos/b-corp-logo.svg" alt="" width="{w}" height="{h}">{BCORP_ALT}</span>'
+        hdr_bcorp = f'<span class="hdr__bcorp" title="{BCORP_NOTE}"><img src="{root}assets/logos/b-corp-logo.svg" alt="{BCORP_ALT}" width="{w}" height="{h}"></span>'
     if brief and brief.get("onepct_size"):
         w, h = brief["onepct_size"]
         onepct = f'<img src="{root}assets/logos/1fortheplanet.svg" alt="1% for the Planet member" width="{w}" height="{h}" loading="lazy" style="height:44px;width:auto;margin-top:12px;filter:brightness(1.4)">'
@@ -1452,8 +1644,11 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
     if site_base:
         mine = f"{site_base}{data['ed']}/{same_path or 'index.html'}"
         head_extra = f'<link rel="canonical" href="{esc(mine)}">'
-        if same_path in SHARED_PATHS:
-            ie_url, uk_url = f"{site_base}ie/{same_path}", f"{site_base}uk/{same_path}"
+        # An hreflang pair only when the same path is built in the other
+        # edition (data["paired_paths"], computed by build()); absolute URLs,
+        # en-IE + en-GB + one x-default (the IE page).
+        if (same_path or "index.html") in data.get("paired_paths", PAIRED_PATHS):
+            ie_url, uk_url = f"{site_base}ie/{same_path or 'index.html'}", f"{site_base}uk/{same_path or 'index.html'}"
             head_extra += (f'<link rel="alternate" hreflang="en-IE" href="{esc(ie_url)}"><link rel="alternate" hreflang="en-GB" href="{esc(uk_url)}">'
                            f'<link rel="alternate" hreflang="x-default" href="{esc(ie_url)}">')
     return {
@@ -1461,7 +1656,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         "lang": ed["lang"], "title": esc(title), "desc": esc(desc), "root": root, "home": home, "ed": data["ed"], "ED": ed["short"],
         "domain": esc(data["site"]), "nav": nav, "menu_links": menu_links, "edsw": edsw, "hdr_cls": " hdr--dark" if dark_header else "",
         "body_attrs": body_attrs, "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
-        "year": str(date.today().year), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["fetched"]),
+        "year": str(data.get("today", data["fetched"])[:4]), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["fetched"]),
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
         "nav_list": "".join(f'<li><a href="{home}{href}">{label}</a></li>' for href, label in NAV),
@@ -1479,6 +1674,22 @@ def with_head_extra(html_text: str, shell_tpl: str, head_extra: str) -> str:
     return html_text.replace("</head>", head_extra + "\n</head>", 1)
 
 
+def emp_count_phrase(ed_key: str, n_emp: int) -> str:
+    """' from N employers' for the UK edition when the count is worth saying
+    (five or more); '' otherwise (Keith asked for no employer count on IE)."""
+    if ed_key != "uk" or n_emp < 5:
+        return ""
+    return f" from {n_emp} employers"
+
+
+def landing_search_href(spec: dict[str, Any], jobs_href: str = "../jobs/index.html") -> str:
+    """The 'open these N roles' link: every sector of a multi-sector landing
+    joined with '|' (lib.js filterJobs accepts any-of), or the region."""
+    if spec["kind"] == "sector":
+        return f"{jobs_href}?sector={qs('|'.join(sorted(spec['sectors'])))}"
+    return f"{jobs_href}?loc={qs(spec['region'])}"
+
+
 def landing_intro(spec: dict[str, Any], jobs: list[dict[str, Any]], ed: dict[str, Any], data: dict[str, Any]) -> str:
     """About 120 words, every figure from the live data."""
     n = len(jobs)
@@ -1491,8 +1702,9 @@ def landing_intro(spec: dict[str, Any], jobs: list[dict[str, Any]], ed: dict[str
     unit = ed["unit"]
     sectors = Counter(s for j in jobs for s in j["sectors"])
     roles = "role" if n == 1 else "roles"
-    p1 = (f"GreenJobs {ed['short']} lists {n} live {spec['topic']} {roles} in {place} this week, from {n_emp} {'employer' if n_emp == 1 else 'employers'}"
-          f"{' including ' + ', '.join(top) if top else ''}. ")
+    emp_phrase = emp_count_phrase(data["ed"], n_emp)
+    p1 = (f"GreenJobs {ed['short']} lists {n} live {spec['topic']} {roles} in {place} this week{emp_phrase}"
+          f"{(' including ' if emp_phrase else ' from ') + ', '.join(top) if top else ''}. ")
     if disclosed:
         p1 += f"{len(disclosed)} of the {n} publish a salary; the median disclosed salary is {med} a year in {ed['currency']}, taken at the midpoint of each range. "
     else:
@@ -1611,7 +1823,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                                     "fit_examples": "".join(f'<button type="button" data-fit-eg="{esc(x)}">{esc(x)}</button>' for x in FIT_EXAMPLES[ed_key]),
                                     "fit_placeholder": esc(FIT_PLACEHOLDER[ed_key])})
     home = page("home", 1, "index", f"GreenJobs {ed['short']} — {len(jobs)} live green roles across {ed['name']}",
-                f"Environmental, renewable energy and sustainability jobs across {ed['name']}: {len(jobs)} live roles from {n_emp} employers, searchable in a second.",
+                f"Environmental, renewable energy and sustainability jobs across {ed['name']}: {len(jobs)} live roles{emp_count_phrase(ed_key, n_emp)}, searchable in a second.",
                 {
                     "n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sal": str(n_sal), "country": esc(ed["name"]), "unit": ed["unit"], "units": plural(ed["unit"]),
                     "colors": esc(colors), "sector_tiles": sector_tiles(data, "jobs/index.html", today, ed["sym"]),
@@ -1630,7 +1842,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                 }, body_attrs=' data-data="data/jobs.json"', same_path="index.html")
     write("index.html", home)
     (edir / "data").mkdir(exist_ok=True)
-    (edir / "data" / "jobs.json").write_text(json.dumps({"jobs": [slim(j, True) for j in jobs]}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    (edir / "data" / "jobs.json").write_text(json.dumps({"today": data["today"], "jobs": [slim(j, True) for j in jobs]}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     # ---- jobs board
     pages_for_palette = json_embed([{"t": lbl, "h": "../" + href} for href, lbl in NAV] + [{"t": "Home", "h": "../index.html"}])
@@ -1646,8 +1858,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                      "ct_select": select_pairs("f-ct", "Contract", [(k, CONTRACT_LABEL[k]) for k in CONTRACT_LABEL if any(k in j["contract"] for j in jobs)], "Any contract"),
                      "close_select": select_pairs("f-close", "Closing date", [("7", "Closing within 7 days"), ("14", "Closing within 14 days"), ("30", "Closing within 30 days"), ("open", "Hide closed roles")], "Any closing date"),
                      "emp_select": select_pairs("f-emp", "Advertised by", [("direct", "Direct employer"), ("agency", "Recruitment agency")], "Employers and agencies"),
-                     "only_label": esc(f"{ed['name'][0].upper() + ed['name'][1:] if ed_key == 'uk' else ed['name']} only"),
-                     "only_hint": esc("Hides roles that are only advertised in the UK or abroad." if ed_key == "ie" else "Hides roles that are only advertised in Ireland or abroad."),
+                     "only_label": esc("Hide UK/abroad-only roles" if ed_key == "ie" else "Hide Ireland/abroad-only roles"),
+                     "only_hint": esc("Keeps Ireland, Northern Ireland, remote and Ireland-and-UK roles; hides roles advertised only in the UK or abroad." if ed_key == "ie" else "Keeps UK, Northern Ireland, remote and Ireland-and-UK roles; hides roles advertised only in Ireland or abroad."),
                      "cur": ed["currency"], "sym": ed["sym"], "units": plural(ed["unit"]),
                      "multi_note": esc(MULTI_COUNT_NOTE.format(units=plural(ed["unit"]))),
                      "unit": ed["unit"].title(), "map": map_svg(src, ed_key), "pages": esc(pages_for_palette), "n_jobs": str(len(jobs)),
@@ -1675,7 +1887,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         jp = page("job", 3, "jobs", f"{j['title']} — {j['employer']} | GreenJobs {ed['short']}", (j["summary"] or j["title"])[:155],
                   {
                       "jsonld": job_jsonld(j, data), "title": esc(j["title"]), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo") if j["logo"] else "",
-                      "meta": meta_tags, "dl": dl, "desc_html": body_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]),
+                      "meta": meta_tags, "dl": dl, "desc_html": body_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""),
                       "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar) or '<p class="muted">No similar live roles this week.</p>',
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
                       "posted_line": esc(f"Posted {j['posted']}" + (f" · closes {j['closing']}" if j["closing"] else "")) if j["posted"] else "",
@@ -1689,12 +1901,11 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     for spec, in_page in built_landings:
         related = "".join(f'<li><a href="../{o["slug"]}/index.html">{esc(o["h1"])}</a></li>' for o, _ in built_landings if o["slug"] != spec["slug"])
         related += '<li><a href="../guides/salary-guide/index.html">Green salary guide</a></li>'
-        query = f'?sector={qs(sorted(spec["sectors"])[0])}' if spec["kind"] == "sector" else f'?loc={qs(spec["region"])}'
         write(f"{spec['slug']}/index.html", page("landing", 2, "jobs", f"{spec['h1']} — {len(in_page)} live {'role' if len(in_page) == 1 else 'roles'} | GreenJobs {ed['short']}",
                                                   f"{len(in_page)} live {spec['topic']} roles in {spec.get('region') or ed['name']} on GreenJobs {ed['short']}, with disclosed salaries and employers.",
                                                   {"h1": esc(spec["h1"]), "intro": landing_intro(spec, in_page, ed, data), "n": str(len(in_page)),
                                                    "roles": "".join(role_card(j, "../../", "../jobs/", today, ed["currency"]) for j in in_page),
-                                                   "related": related, "jsonld": landing_jsonld(in_page, data, site_base), "search_href": f"../jobs/index.html{query}",
+                                                   "related": related, "jsonld": landing_jsonld(in_page, data, site_base), "search_href": landing_search_href(spec),
                                                    "updated": esc(snapshot_label(data["fetched"]))}, same_path=f"{spec['slug']}/index.html", switch_path="jobs/index.html"))
     guide = guide_salary_body(data, ed)
     write("guides/salary-guide/index.html", page("guide_salary", 3, "guides", f"Green salary guide {ed['short']} — what {ed['name']}'s green roles pay | GreenJobs {ed['short']}",
@@ -1724,20 +1935,17 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                                      "Seven quick questions, three sectors that fit, live roles to match.",
                                      {"dataset": dataset_script(data, "../jobs/index.html", False)}, same_path="compass/index.html"))
     render_dashboard(data, src, out, tpl, brief, site_base)
-    emp_strip = employers_strip(data, "../../")
-    # Keith E7: UK-only credibility block. Testimonial slots are labelled
-    # placeholders (brief.md testimonials are anonymous; none is reproduced).
+    emp_strip = employers_strip(data, "../../", cap=None)  # the employers page lists every live employer
+    # Keith E7: UK-only credibility block. Testimonials are collected for launch
+    # (brief.md testimonials are anonymous; none is reproduced).
     trust_block = "" if ed_key != "uk" else (
         '<section class="wrap band--tight" aria-labelledby="h-trust"><div class="sec-head"><div><h2 id="h-trust">Trusted across the UK</h2>'
-        '<p>Client testimonials and placement figures are supplied at launch from the GreenJobs client testimonials page; the slots below are labelled until then.</p></div>'
-        '<a class="btn btn--lime" href="#rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
-        '<div class="facts">'
-        + "".join(f'<div class="fact reveal fact--slot"><h3>Testimonial {i}</h3><p class="tbc">Testimonial supplied at launch.</p></div>' for i in (1, 2, 3))
-        + '</div>'
+        '<p>Client testimonials are being collected for launch.</p></div>'
+        '<a class="btn btn--lime" href="#rates" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
         f'<p class="netline" style="margin-top:24px"><b>Network coverage:</b> {network_inline(data)}</p></section>')
     write("employers/index.html", page("employers", 2, "employers", f"Advertise a green role | GreenJobs {ed['short']}",
                                        f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",
-                                       {"n_jobs": str(len(jobs)), "n_emp": str(n_emp), "n_sites": str(len(data["network_sites"])), "about": esc(data["about"].split("\n")[0]),
+                                       {"n_jobs": str(len(jobs)), "n_emp": str(n_emp), "emp_count_phrase": esc(emp_count_phrase(ed_key, n_emp)), "n_sites": str(len(data["network_sites"])), "about": esc(data["about"].split("\n")[0]),
                                         "email": esc(next(iter(dict.fromkeys((data["contact"] or {}).get("emails") or [])), f"info@{data['site']}")),
                                         "net_inline": network_inline(data), "employers": emp_strip["html"], "emp_sub": emp_strip["sub"],
                                         "trust_block": trust_block,
@@ -1747,7 +1955,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
 
     # ---- evidence page (rendered after measuring; filled in by build())
     evidence[ed_key] = {"n_jobs": len(jobs), "n_emp": n_emp, "n_sal": n_sal, "n_sectors": sum(1 for s in data["sectors"] if s["n"]), "n_regions": len(top_regions),
-                        "excluded": data.get("excluded") or [], "landings": len(built_landings)}
+                        "excluded": data.get("excluded") or [], "closed": len(data.get("closed") or []), "landings": len(built_landings)}
 
     # No per-edition 404: GitHub Pages and Cloudflare Pages only ever serve the
     # root 404.html (src/templates/404root.html), which is self-contained.
@@ -1939,7 +2147,7 @@ def load_templates(src: Path) -> dict[str, str]:
     return {p.stem: p.read_text(encoding="utf-8") for p in (src / "templates").glob("*.html")}
 
 
-def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "") -> int:
+def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None) -> int:
     if not src.is_dir():
         print(f"FAIL  source directory not found: {src}", file=sys.stderr)
         return 2
@@ -1947,7 +2155,6 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     if refusal:
         print(f"FAIL  {refusal}", file=sys.stderr)
         return 2
-    today = date.today()
     config = json.loads((src / "config.json").read_text(encoding="utf-8")) if (src / "config.json").exists() else {}
     site_base = (site_base or str(config.get("site_base") or "")).rstrip("/") + "/" if (site_base or config.get("site_base")) else ""
     tpl = load_templates(src)
@@ -1964,7 +2171,8 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
             print(f"FAIL  dataset missing: {path}", file=sys.stderr)
             return 2
         raw = json.loads(path.read_text(encoding="utf-8"))
-        data = normalise(raw, ed_key, src, logos_dir)
+        today = build_today(raw, today)  # first dataset's fetched date unless --today was given
+        data = normalise(raw, ed_key, src, logos_dir, today)
         problems = check_dataset(data)
         if problems:
             print(f"FAIL  {ed_key}.json has {len(problems)} problem(s):", file=sys.stderr)
@@ -1974,7 +2182,13 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         data_by_ed[ed_key] = data
         unresolved = sum(1 for j in data["jobs"] if not any(r in data["region_table"]["regions"] for r in j["regions"]))
         off_map = ", ".join(f"{r['name']} {r['n']}" for r in data["regions"] if not r["on_map"])
-        print(f"…  {ed_key}: {len(data['jobs'])} jobs, {sum(1 for s in data['sectors'] if s['n'])} sectors live, {unresolved} jobs off-map ({off_map}), {len(data['excluded'])} excluded by the edition rule")
+        print(f"…  {ed_key}: {len(data['jobs'])} jobs, {sum(1 for s in data['sectors'] if s['n'])} sectors live, {unresolved} jobs off-map ({off_map}), {len(data['excluded'])} excluded by the edition rule, {len(data['closed'])} closed before {today}")
+    assert today is not None
+    # hreflang pairs: only paths built in both editions (landing slugs differ per edition)
+    paths_by_ed = {k: PAIRED_PATHS | {f"{spec['slug']}/index.html" for spec, _ in landing_pages(d)} for k, d in data_by_ed.items()}
+    paired = set.intersection(*paths_by_ed.values()) if len(paths_by_ed) == 2 else set()
+    for d in data_by_ed.values():
+        d["paired_paths"] = paired
 
     # ---- copy the static tree
     if out.exists():
@@ -2036,7 +2250,10 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
 
     # ---- evidence page last (it measures the files written above)
     tests = run_node_tests(src)
-    if tests and tests[1]:
+    if tests is None:
+        print("FAIL  node tests could not run (node missing or lib.test.js absent); the build is not verified", file=sys.stderr)
+        return 1
+    if tests[1]:
         print(f"FAIL  {tests[1]} node test(s) failing", file=sys.stderr)
         return 1
     ev = render_evidence(out, src, data_by_ed, tests, today)
@@ -2056,7 +2273,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     # ---- validate
     print("…  validating")
     failures = check_built_js(out)
-    failures += validate_site.validate(out, {k: d["jobs"] for k, d in data_by_ed.items()})
+    failures += validate_site.validate(out, {k: d["jobs"] for k, d in data_by_ed.items()}, data_by_ed, dashboard_kpis)
     if failures:
         print(f"FAIL  {len(failures)} validation problem(s):", file=sys.stderr)
         for line in failures[:80]:
@@ -2082,9 +2299,10 @@ def main() -> int:
                         help="a single edition renders a partial site (cross-edition links dangle); ship 'both'")
     parser.add_argument("--data-fixture", type=Path, default=None, help="tests only: render this JSON as every edition")
     parser.add_argument("--site-base", default="", help="absolute base URL for sitemap/canonical (overrides config.json)")
+    parser.add_argument("--today", type=date.fromisoformat, default=None, help="build date YYYY-MM-DD (default: the dataset's fetched date); closed roles are dropped relative to it")
     args = parser.parse_args()
     editions = ["ie", "uk"] if args.edition == "both" else [args.edition]
-    return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base)
+    return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base, today=args.today)
 
 
 if __name__ == "__main__":

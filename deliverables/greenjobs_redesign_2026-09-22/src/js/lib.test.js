@@ -220,6 +220,61 @@ test('URL state carries every facet and Clear resets it', () => {
   const qs = GJ.toQuery(st);
   assert.deepEqual(GJ.parseState(qs), { wp: 'hybrid', level: 'Senior', ct: 'contract', smin: '30000', smax: '60000', only: '1', close: '14', emp: 'direct' });
   assert.equal(GJ.toQuery({ sort: 'newest', view: 'list' }), '');
-  assert.equal(GJ.daysUntil('2026-10-03', NOW), 4);
+  assert.equal(GJ.daysUntil('2026-10-03', NOW), 5); /* calendar days: 28 Sep -> 3 Oct */
   assert.equal(GJ.daysUntil('', NOW), null);
+});
+
+/* ---- panel fixes A (2026-09-28): build-date rule, any-of sector, currency guard */
+test('daysUntil / daysAgo use whole calendar days against the build date', () => {
+  assert.equal(GJ.daysUntil('2026-10-05', '2026-09-28'), 7);
+  assert.equal(GJ.daysUntil('2026-10-06', '2026-09-28'), 8);
+  assert.equal(GJ.daysUntil('2026-09-28', '2026-09-28'), 0);
+  assert.equal(GJ.daysUntil('2026-09-27', '2026-09-28'), -1);
+  assert.equal(GJ.daysUntil('2026-10-03', Date.parse('2026-09-28T23:59:00Z')), 5, 'a clock value counts UTC days, not 24h blocks');
+  assert.equal(GJ.daysAgo('2026-09-20', '2026-09-28'), 8);
+  assert.equal(GJ.ago('2026-09-20', '2026-09-28'), '1 wk ago');
+  assert.equal(GJ.daysUntil('nonsense', '2026-09-28'), null);
+});
+
+test('closingWithin (0..7) and newThisWeek (0..6) mirror build_site', () => {
+  const T = '2026-09-28';
+  assert.equal(GJ.closingWithin('2026-09-28', 7, T), true);
+  assert.equal(GJ.closingWithin('2026-10-05', 7, T), true);
+  assert.equal(GJ.closingWithin('2026-10-06', 7, T), false);
+  assert.equal(GJ.closingWithin('2026-09-27', 7, T), false);
+  assert.equal(GJ.closingWithin('', 7, T), false);
+  assert.equal(GJ.newThisWeek('2026-09-28', T), true);
+  assert.equal(GJ.newThisWeek('2026-09-22', T), true);
+  assert.equal(GJ.newThisWeek('2026-09-21', T), false);
+  assert.equal(GJ.newThisWeek('2026-09-29', T), false, 'a future posted date is not new');
+});
+
+test('setToday pins the build date for every date helper', () => {
+  GJ.setToday('2026-10-01');
+  assert.equal(GJ.today(), '2026-10-01');
+  assert.equal(GJ.daysUntil('2026-10-03'), 2);
+  assert.equal(GJ.ago('2026-10-01'), 'Today');
+  assert.deepEqual(GJ.filterJobs(K, { close: '7' }).map(j => j.id), ['a']);
+  GJ.setToday(null);
+  assert.equal(GJ.today(), null);
+});
+
+test('filterJobs sector accepts "|"-joined any-of values (multi-sector landing links)', () => {
+  const ids = st => GJ.filterJobs(K, st).map(j => j.id);
+  assert.deepEqual(ids({ sector: 'Ecology, nature recovery & biodiversity|Policy, planning & advisory' }), ['a', 'c']);
+  assert.deepEqual(ids({ sector: 'Policy, planning & advisory' }), ['c']);
+  assert.deepEqual(ids({ sector: 'Nope|Also nope' }), []);
+});
+
+test('annual excludes USD and unknown currencies from comparisons; the label still shows them', () => {
+  const usd = { sal_min: 50000, sal_max: 60000, cur: 'USD', period: 'year' };
+  assert.equal(GJ.annual(usd), null);
+  assert.equal(GJ.annual({ sal_min: 50000, sal_max: 60000, period: 'year' }), null);
+  assert.equal(GJ.salaryLabel(usd), '$50k–60k');
+  assert.deepEqual(GJ.filterJobs([usd].map((j, i) => Object.assign({ id: 'u', title: 'U', posted: '' }, j)), { smin: '10000' }).map(j => j.id), []);
+});
+
+test('money rounds half up like Python rnd()', () => {
+  assert.equal(GJ.money(32450, 'EUR'), '€32.5k');
+  assert.equal(GJ.locLabel('unspecified'), 'Location not stated');
 });

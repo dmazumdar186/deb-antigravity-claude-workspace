@@ -8,6 +8,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   function csvCell(v) {
     var s = v == null ? '' : String(v);
+    if (/^[=+\-@]/.test(s)) s = "'" + s; /* spreadsheet formula injection guard */
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   }
   function toCsv(rows) {
@@ -22,9 +23,9 @@
       ['Salary disclosure %', k.sal_pct, k.sal_n + ' roles publish a figure'],
       ['Median disclosed salary', k.sal_median == null ? '' : sym + k.sal_median, 'median of annualised midpoints'],
       ['Top employer share %', k.top_share, k.top_employer],
-      ['Agency share %', k.agency_pct, 'recruiter-posted roles'],
-      ['Median days to close', k.days_to_close == null ? '' : k.days_to_close, 'closing minus posted'],
-      ['Remote or hybrid %', k.remote_pct, 'keyword-derived']];
+      ['Agency share %', k.agency_pct, 'roles flagged agency by the build (known agency names or recruit/talent/staffing words in the employer name)'],
+      ['Advertised window (median days)', k.days_to_close == null ? '' : k.days_to_close, 'closing minus posted'],
+      ['Remote or hybrid %', k.remote_pct, 'workplace field is remote or hybrid']];
     (k.sectors || []).forEach(function (s) { rows.push(['Sector: ' + s.l, s.v, 'live roles']); });
     (k.regions || []).forEach(function (r) { rows.push(['Region: ' + r.l, r.v, 'live roles']); });
     (k.quality || []).forEach(function (n, i) { rows.push(['Quality score ' + i + '/4', n, 'roles']); });

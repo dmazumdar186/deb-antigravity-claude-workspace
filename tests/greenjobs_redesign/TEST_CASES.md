@@ -84,3 +84,19 @@ Reach it from the "KPI dashboard" link at the top of `/{ed}/for-keith/`. It is d
 | BD-12 | Landing pages | Open `/ie/ecology-jobs-ireland/`, `/uk/environmental-jobs-london/`. | One h1, an intro with live counts and median, the filtered cards, related links, a canonical link; a landing page with no live role does not exist (404). | |
 | BD-13 | Guides | Open `/ie/guides/` and `/ie/guides/salary-guide/`. | Bands and sector medians match the salary explorer; "Last updated" shows the snapshot date; page is noindex. | |
 | BD-14 | Quick job match | On `/uk/jobs/` scroll to "Quick job match". | The two disclosure lines sit beside the input; UK examples read "ecologist Bristol", "sustainability consultant London", "flood risk engineer Manchester", "renewable energy Scotland"; no "ecologist dublin". | |
+
+## Panel fixes B (2026-09-28) — automated in `test_build.py` block `# --- panel fixes B ---` and `node --test src/js/dashboard.test.js`
+
+| ID | Case | Steps | Expected | Result |
+|---|------|-------|----------|--------|
+| PB-1 | Cookie copy | Open cookie Settings on any page. | Lists theme, edition, saved roles, weekly-email prompt dismissal, dashboard view and the choice itself; no "nothing else". | auto |
+| PB-2 | Quick job match privacy | Type in the box on `/ie/jobs/`; watch the address bar; click "Copy shareable link". | Nothing is written to the URL while typing; after the click the `#fit=` hash appears with the note "The link contains your text." | auto + manual |
+| PB-3 | B Corp | View source of home, header, footer. | "Certified B Corporation" only as the mark's `alt`; the text is the generic B Corp definition. | auto |
+| PB-4 | UK employers testimonials | Open `/uk/employers/`. | No placeholder slots; one line "Client testimonials are being collected for launch". | auto |
+| PB-5 | Demo forms | Home alerts, subscribe dialog, employers form before typing. | Launch note visible above the button; alert/subscribe show "Meanwhile, browse all roles →". | auto |
+| PB-6 | Employers page | Open `/ie/employers/` and `/uk/employers/`. | IE lede has no employer count; every CTA reads "Request advertising rates"; done-for-you line; Membership column "Ask us" except discounts and self-management; swipe hint at ≤ 700 px. | auto |
+| PB-7 | 390 px overflow | Open `/uk/` and `/ie/jobs/` at 390 px. | No horizontal scroll; salary and sector tags wrap. | auto (CSS) + QA harness |
+| PB-8 | Toggle label | Open the filter rail on both editions. | "Hide UK/abroad-only roles" (IE) / "Hide Ireland/abroad-only roles" (UK) with the helper text. | auto |
+| PB-9 | Closed roles | Set the system clock past a role's closing date (or `data.today`). | Card shows a "Closed" chip; job page Apply becomes "This role has closed". | auto (hooks) + manual |
+| PB-10 | Dashboard | Open `/ie/dashboard/`. | "Event spec for launch" group; new tiles; agency tile states the real rule; CSV cells starting with = + - @ are prefixed with a quote; every apply link carries `data-ev`. | auto |
+| PB-11 | for-keith | Open `/ie/for-keith/`. | Benefit-led copy; technical appendix collapsed; launch checklist with six items; H1/H2/I1/I2 done; full footer address. | auto |

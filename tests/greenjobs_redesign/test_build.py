@@ -144,7 +144,7 @@ def test_plural_and_snapshot():
     check(build_site.plural("county") == "counties", "plural: county -> counties")
     check(build_site.plural("region") == "regions", "plural: region -> regions")
     check(build_site.snapshot_label("2026-09-22") == "Snapshot of 22 September 2026", "snapshot_label: ISO date -> 'Snapshot of 22 September 2026'")
-    check(build_site.median_salary([{"sal_min": 50000, "sal_max": 60000, "period": "year"}, {"sal_min": 40000, "sal_max": None, "period": "year"}, {"sal_min": None, "sal_max": None}], "€") == "€47.5k", "median_salary: midpoint median formatted like lib.js")
+    check(build_site.median_salary([{"sal_min": 50000, "sal_max": 60000, "period": "year", "cur": "EUR"}, {"sal_min": 40000, "sal_max": None, "period": "year", "cur": "EUR"}, {"sal_min": None, "sal_max": None}], "€") == "€47.5k", "median_salary: midpoint median formatted like lib.js")
 
 
 def test_employers_strip_is_honest():
@@ -182,7 +182,7 @@ def test_fixture_build(tmp_root: Path):
     check('id="gj-data"' in (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8"), "integration: dataset embedded on the board")
     job = (out / "ie" / "jobs" / "1002" / "index.html").read_text(encoding="utf-8")
     check("Not disclosed" in job and '"JobPosting"' in job and "baseSalary" not in job, "integration: null salary renders 'Not disclosed' and omits baseSalary in JSON-LD")
-    check("role__logo--t" in job or "role__logo" in job, "integration: missing logo falls back to an initial tile")
+    check("role__logo--t" in (out / "ie" / "index.html").read_text(encoding="utf-8"), "integration: missing logo falls back to an initial tile")
     css = sum(p.stat().st_size for p in (out / "css").glob("*.css"))
     js = sum(p.stat().st_size for p in (out / "js").glob("*.js"))
     check(css <= validate_site.CSS_BUDGET and js <= validate_site.JS_BUDGET, f"integration: budgets hold (css {css}, js {js})")
@@ -353,7 +353,7 @@ def test_keith_pages_and_copy(tmp_root: Path):
     emp_uk = (out / "uk" / "employers" / "index.html").read_text(encoding="utf-8")
     check("Request advertising rates" in emp_ie and 'href="mailto:' in emp_ie and emp_ie.index("Request advertising rates") < emp_ie.index('id="h-reach"'), "keith E1: rate CTA high on the employers page")
     check('<table class="evid cmp">' in emp_ie and "<th scope=\"col\">Standard</th>" in emp_ie and "Premium" in emp_ie and "Membership" in emp_ie and "Ask us" in emp_ie, "keith E4: comparison table with Standard / Premium / Membership")
-    check("Trusted across the UK" in emp_uk and "Testimonial supplied at launch" in emp_uk and "Trusted across the UK" not in emp_ie, "keith E7: UK-only trust block with labelled slots")
+    check("Trusted across the UK" in emp_uk and "Client testimonials are being collected for launch" in emp_uk and "Trusted across the UK" not in emp_ie, "keith E7: UK-only trust block, testimonials collected for launch (panel B4)")
     check("Preview exactly how your vacancy will appear to candidates." in emp_ie, "keith E6: one-line preview explanation")
     check("Organisations recruiting through GreenJobs" in emp_ie, "keith E3: recruiting organisations block")
     if real:
@@ -393,7 +393,7 @@ def test_loc_class():
     check(lc({"location": "Switzerland", "region": "Country", "country": "United Kingdom"}) == "intl", "loc_class: Switzerland -> intl")
     check(lc({"location": "Building Control Consultant (Remote - UK Wide)", "region": "United Kingdom"}) == "uk", "loc_class: remote within the UK -> uk")
     check(lc({"location": "", "region": "", "country": "Ireland"}) == "ie", "loc_class: falls back to the scraped country")
-    check(set(build_site.LOC_LABEL) == {"ie", "uk", "ni", "remote", "cross", "intl"}, "loc_class: every class has a label")
+    check(set(build_site.LOC_LABEL) == {"ie", "uk", "ni", "remote", "cross", "intl", "unspecified"}, "loc_class: every class has a label")
 
 
 def test_agency_workplace_level_contract():
@@ -489,17 +489,293 @@ def test_ni_region_and_facets(tmp_root: Path):
     board = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
     for fid in ("f-wp", "f-level", "f-ct", "f-smin", "f-smax", "f-only", "f-close", "f-emp"):
         check(f'id="{fid}"' in board and (f'for="{fid}"' in board or f'<input type="checkbox" id="{fid}"' in board), f"facets: control {fid} present and labelled")
-    check("Ireland only" in board and "UK only" in (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8"), "facets: edition-aware only-toggle label")
+    check("Hide UK/abroad-only roles" in board and "Hide Ireland/abroad-only roles" in (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8"), "facets: edition-aware only-toggle label (renamed, panel B8)")
     check("counted in each, so totals can exceed" in board and "counted in each" in (out / "ie" / "sectors" / "index.html").read_text(encoding="utf-8"), "B6: multi-count sentence on the jobs map and sectors page")
     embedded = json.loads(re.search(r'id="gj-data">(.*?)</script>', board, re.S).group(1))
     j = embedded["jobs"][0]
     check(all(k in j for k in ("loc_class", "workplace", "level", "contract", "agency", "closing")) and embedded.get("home") == ["ie", "cross", "remote"], "facets: dataset carries the facet fields and the home classes")
     check('class="tag tag--loc"' in (out / "ie" / "index.html").read_text(encoding="utf-8"), "B3: location badge rendered on home cards")
     fit = (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8")
-    check("Quick job match" in fit and "processed on your device and is not uploaded or stored" in fit and "Keyword matching, not an assessment of your suitability" in fit, "D3: matcher renamed with the two disclosure lines")
+    check("Quick job match" in fit and "Processed on your device. Nothing is uploaded." in fit and "Keyword matching, not an assessment of your suitability" in fit, "D3: matcher renamed with the two disclosure lines (wording per panel B2)")
     check("ecologist Bristol" in fit and "ecologist dublin" not in fit.lower(), "D4: UK examples, never 'ecologist dublin' on UK")
     ie_fit = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
     check("ecologist Dublin" in ie_fit and "Bristol" not in ie_fit, "D4: IE keeps Irish examples")
+
+
+# ------------------------------------------------------------- # --- panel fixes A ---
+# Panel findings 01/04/07/08/10/13 (2026-09-28): dates, classifiers, currency,
+# validator rules, scraper floor. Each item below has at least one check.
+
+def _raw_ie():
+    return json.loads((SRC / "data" / "ie.json").read_text(encoding="utf-8"))
+
+
+def test_pf_a_agency_rule():
+    check("partnership" not in build_site.AGENCY_WORDS and build_site.is_agency("Mattinson Partnership") and build_site.is_agency("CHM Recruit") and build_site.is_agency("Gaia Talent"), "pf-A1: 'partnership' is not a staffing word; the three named agencies still are agencies")
+    check(not build_site.is_agency("Great Grid Partnership") and not build_site.is_agency("Landscape Partnership Ltd"), "pf-A1: a partnership that is not a named agency is a direct employer")
+    check(build_site.job_is_agency({"agency": False, "employer": "Acme Recruitment"}) is False and build_site.job_is_agency({"employer": "Acme Recruitment"}) is True, "pf-A1: job_is_agency reads the stored field first, derives otherwise")
+    check(build_site.job_is_remote_or_hybrid({"workplace": "hybrid"}) and not build_site.job_is_remote_or_hybrid({"workplace": "site"}), "pf-A1: job_is_remote_or_hybrid reads the stored workplace")
+    src_text = (SCRIPT_DIR / "build_site.py").read_text(encoding="utf-8")
+    check(src_text.count("AGENCY_NAMES = {") == 1 and "AGENCY_RE" not in src_text, "pf-A1: AGENCY_NAMES is defined once; the dashboard's shadowing copy is gone")
+
+
+def test_pf_a_loc_class_probes():
+    ie_p, uk_p = build_site.place_words(SRC)
+    ni_p = build_site.ni_place_words(SRC)
+    lc = lambda j, ed="": build_site.loc_class(j, ie_p, uk_p, ed, ni_p)  # noqa: E731
+    raw = _raw_ie()
+    by = {j["id"]: j for j in raw["jobs"]}
+    for jid in ("11493508", "11493513"):
+        if jid in by:
+            check(lc(by[jid], "ie") == "ie", f"pf-A2: IE {jid} (Dublin, Cork; region 'Ireland, United Kingdom', no UK text) -> ie")
+    check(lc({"location": "Dublin, Cork", "region": "Ireland, United Kingdom", "country": "Ireland"}, "ie") == "ie", "pf-A2: on the IE site the region facet is not a UK signal")
+    check(lc({"location": "Dublin, London", "region": "Ireland, United Kingdom", "country": "Ireland"}, "ie") == "cross", "pf-A2: a UK place in the location still makes it cross on IE")
+    check(lc({"location": "Belfast", "region": "Ireland", "country": "Ireland"}, "ie") == "ni", "pf-A2: NI role on the IE site -> ni, not cross (bare 'Ireland' region stripped)")
+    check(lc({"location": "Enniskillen", "region": ""}) == "ni" and lc({"location": "Bangor, Co. Down", "region": ""}) == "ni" and lc({"location": "Omagh", "region": ""}) == "ni", "pf-A2: NI_WORDS carries the full alias list (Enniskillen, Bangor Co. Down, Omagh)")
+    check("enniskillen" in build_site.NI_WORDS and "down" not in build_site.NI_WORDS and "bangor" not in build_site.NI_WORDS, "pf-A2: NI_WORDS loaded from regions_uk.json without the ambiguous short aliases")
+    check(lc({"location": "Bangor", "region": "Wales"}) == "uk", "pf-A2: bare Bangor with a Welsh region is uk, not ni")
+    check(lc({"location": "Kyiv", "region": "Ukraine", "country": ""}) == "intl", "pf-A2: 'Ukraine' is not a UK match ('uk' is whole-word)")
+    check(lc({"location": "", "region": "", "country": ""}) == "unspecified" and build_site.LOC_LABEL["unspecified"] == "Location not stated", "pf-A2: empty location + country -> 'unspecified', labelled 'Location not stated'")
+    check("unspecified" in build_site.EDITION_INCLUDES["ie"] and "unspecified" in build_site.EDITION_INCLUDES["uk"], "pf-A2: unspecified roles are kept on both boards")
+    uk_tab = json.loads((SRC / "data" / "regions_uk.json").read_text(encoding="utf-8"))
+    ed_uk = build_site.EDITIONS["uk"]
+    check(build_site.resolve_regions({"region": "Country", "location": "United Kingdom (UK)"}, uk_tab, ed_uk) == [ed_uk["none"]], "pf-A2: 'United Kingdom (UK)' -> the UK-wide bucket, not 'elsewhere'")
+    check(build_site.resolve_regions({"region": "Wales", "location": "South West Wales"}, uk_tab, ed_uk) == ["Wales"], "pf-A2: 'South West Wales' -> Wales only")
+    check(build_site.resolve_regions({"region": "", "location": "Bristol, South West"}, uk_tab, ed_uk) == ["South West"], "pf-A2: a plain 'South West' still resolves")
+
+
+def test_pf_a_workplace_contract_level():
+    wp = build_site.workplace_of
+    mk = lambda title, body: {"title": title, "type": "", "summary": "", "description_html": body}  # noqa: E731
+    check(wp(mk("EHS Site Manager", "<p>Proficient in Microsoft Office.</p>")) == "site", "pf-A3: 'Microsoft Office' is not office-based; 'site manager' is site-based")
+    check(wp(mk("Analyst", "<p>Reports to the Office of the Director at head office.</p>")) == "unspecified", "pf-A3: 'Office of' / 'head office' / bare 'office' are not workplace signals")
+    check(wp(mk("Analyst", "<p>You will be office-based in Leeds.</p>")) == "office" and wp(mk("Analyst", "<p>Based in our Cork office.</p>")) == "office", "pf-A3: 'office-based' and 'based in our … office' still count")
+    check(wp(mk("Warden", "<p>Daily patrol of the nature reserve, on site.</p>")) == "site", "pf-A3: reserve / on site / patrol -> site-based")
+    ct = build_site.contract_of
+    check("contract" not in ct(mk("Engineer", "<p>Our client is a leading contractor. Permanent role.</p>")), "pf-A3: 'contractor' no longer tags a permanent role as Contract")
+    check("contract" in ct(mk("Engineer", "<p>This is a 12-month contract.</p>")) and "contract" in ct({"title": "x", "type": "Contract", "summary": "", "description_html": ""}) and "contract" in ct(mk("x", "<p>A contract role for six months.</p>")), "pf-A3: contract from the type or an explicit phrase")
+    check(build_site.level_of("Assistant Project Manager") == "Mid-level" and build_site.level_of("Assistant Director – Water") == "Director/Associate", "pf-A3: 'Assistant … Manager' is not Graduate")
+    check(build_site.level_of("Assistant Ecologist") == "Mid-level" and build_site.level_of("Graduate Ecologist") == "Graduate/Early career" and build_site.level_of("Research Assistant") == "Graduate/Early career", "pf-A3: assistant-to-a-role is mid-level; a bare assistant stays early career")
+    check(build_site.level_of("Lead-free Solder Engineer") == "Mid-level" and build_site.level_of("Team Lead – Water") == "Senior/Principal", "pf-A3: 'lead-free' is not Senior; 'Lead' as a title word is")
+
+
+def test_pf_a_sector_golden_set():
+    gold = json.loads((Path(__file__).resolve().parent / "golden_sectors.json").read_text(encoding="utf-8"))
+    raws = {ed: json.loads((SRC / "data" / f"{ed}.json").read_text(encoding="utf-8")) for ed in ("ie", "uk") if (SRC / "data" / f"{ed}.json").exists()}
+    if len(raws) < 2:
+        check(True, "pf-A4: real datasets absent, golden set skipped")
+        return
+    by = {j["id"]: j for r in raws.values() for j in r["jobs"]}
+    hits, misses = 0, []
+    for g in gold:
+        j = by.get(g["id"])
+        if not j:
+            continue
+        got = build_site.assign_sectors(j)[0]
+        if got == g["sector"]:
+            hits += 1
+        else:
+            misses.append(f"{g['id']} {g['title'][:40]!r} -> {got}")
+    n = hits + len(misses)
+    check(n >= 40 and hits / max(1, n) >= 0.9, f"pf-A4: golden sector set agreement {hits}/{n} >= 90% (misses: {misses[:5]})")
+    mk = lambda title, employer="", sectors=None: {"title": title, "employer": employer, "sectors": sectors or [], "summary": "", "description_html": ""}  # noqa: E731
+    check(build_site.assign_sectors(mk("LGV Driver", "Grundon Waste Management"))[0] == "Waste & circular economy", "pf-A4: the employer name is scored (Waste Management -> Waste)")
+    check(build_site.assign_sectors(mk("Network Officer", "Acme"))[0] == "Environmental science & consulting" and build_site.assign_sectors({**mk("Power Networks Engineer", "Acme"), "summary": "Design for energy networks."})[0] == "Energy networks & utilities", "pf-A4: bare 'network' / 'power' / 'officer' are not keywords; 'energy networks' is")
+    pairs_ie = {(j["title"], j["employer"]): build_site.assign_sectors(j)[0] for j in raws["ie"]["jobs"]}
+    pairs_uk = {(j["title"], j["employer"]): build_site.assign_sectors(j)[0] for j in raws["uk"]["jobs"]}
+    shared = set(pairs_ie) & set(pairs_uk)
+    disagree = [k for k in shared if pairs_ie[k] != pairs_uk[k]]
+    check(len(shared) >= 30 and not disagree, f"pf-A4: the {len(shared)} adverts present on both editions (same title + employer; ids differ per site) get the same primary sector ({disagree[:3]})")
+    for ed in ("ie", "uk"):
+        for j in raws[ed]["jobs"]:
+            if j["employer"] == "Commonland":
+                check(build_site.assign_sectors(j)[0] in ("Ecology, nature recovery & biodiversity", "Environmental science & consulting"), f"pf-A4: {ed} Commonland {j['title'][:30]!r} lands in Ecology / Env science")
+
+
+def test_pf_a_dates_and_closed_roles(tmp_root: Path):
+    from datetime import date as _d
+    today = _d(2026, 9, 28)
+    du = build_site.days_until
+    check(du("2026-09-28", today) == 0 and du("2026-10-05", today) == 7 and du("2026-10-06", today) == 8 and du("2026-09-27", today) == -1 and du("", today) is None, "pf-A5: days_until is whole calendar days")
+    check(build_site.closing_within({"closing": "2026-09-28"}, today) and build_site.closing_within({"closing": "2026-10-05"}, today) and not build_site.closing_within({"closing": "2026-10-06"}, today) and not build_site.closing_within({"closing": "2026-09-27"}, today), "pf-A5: closing within 7 days = 0..7 inclusive")
+    check(build_site.new_this_week({"posted": "2026-09-28"}, today) and build_site.new_this_week({"posted": "2026-09-22"}, today) and not build_site.new_this_week({"posted": "2026-09-21"}, today), "pf-A5: new this week = 0..6 days ago")
+    check(build_site.is_closed({"closing": "2026-09-27"}, today) and not build_site.is_closed({"closing": "2026-09-28"}, today) and not build_site.is_closed({"closing": ""}, today), "pf-A5: closed = closing date before the build date; closing today is still open")
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    check(build_site.build_today(raw) == _d(2026, 9, 22) and build_site.build_today(raw, today) == today and build_site.build_today({}) == _d.today(), "pf-A5: build date = --today, else fetched, else the clock")
+    data = build_site.normalise(raw, "ie", SRC, SRC / "assets" / "logos", _d(2026, 10, 1))
+    ids = {j["id"] for j in data["jobs"]}
+    check("1005" not in ids and "1003" in ids and len(data["closed"]) == 1 and data["today"] == "2026-10-01", "pf-A5: a role closing 2026-09-30 is dropped from a 2026-10-01 build; the drop is recorded")
+    out = tmp_root / "site_today"
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE, today=_d(2026, 10, 1))
+    check(rc == 0 and not (out / "ie" / "jobs" / "1005" / "index.html").exists(), "pf-A5: --today drops closed roles from the built site")
+    home = (out / "ie" / "index.html").read_text(encoding="utf-8")
+    board = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
+    check('"today":"2026-10-01"' in board and '"today":"2026-10-01"' in (out / "ie" / "data" / "jobs.json").read_text(encoding="utf-8"), "pf-A5: data.today is exposed to JavaScript")
+    check("2026-10-01" in home.split("<footer")[-1] or "2026" in home.split("<footer")[-1], "pf-A5: footer year comes from the build date")
+    check(">11 days ago<" in home or "2 wk ago" in home, "pf-A5: 'ago' labels are relative to the build date (1001 posted 2026-09-20 -> 11 days -> 2 wk ago)")
+    out2 = tmp_root / "site_today2"
+    build_site.build(SRC, out2, editions=["ie", "uk"], fixture=FIXTURE, today=_d(2026, 10, 1))
+    same = (out / "ie" / "index.html").read_text(encoding="utf-8") == (out2 / "ie" / "index.html").read_text(encoding="utf-8")
+    check(same, "pf-A5: two builds with the same --today produce identical home pages (date-deterministic)")
+
+
+def test_pf_a_currency_and_rounding():
+    check(build_site.rnd(324.5) == 325 and build_site.rnd(32450, -2) == 32500 and build_site.rnd(32449, -2) == 32400 and build_site.rnd(2.5) == 3 and build_site.rnd(-0.4) == 0, "pf-A6: rnd rounds half up like Math.round (32450 -> 32500, Python's round gives 32400)")
+    check(build_site.money_k(32450, "€") == "€32.5k" and build_site.money_k(62500, "£") == "£62.5k", "pf-A6: money_k uses half-up rounding (32450 -> €32.5k)")
+    usd = {"sal_min": 50000, "sal_max": 60000, "cur": "USD", "period": "year"}
+    none = {"sal_min": 50000, "sal_max": 60000, "cur": None, "period": "year"}
+    check(build_site.annual_mid(usd) is None and build_site.annual_mid(none) is None and build_site.annual_mid(usd, "EUR") is None, "pf-A6: USD / unknown currency never enters annual_mid")
+    check(build_site.median_salary([usd, {"sal_min": 40000, "sal_max": 40000, "cur": "EUR", "period": "year"}], "€", "EUR") == "€40k", "pf-A6: medians ignore non-EUR/GBP salaries")
+    check(build_site.salary_bands([usd], "€", "EUR") == [{"l": b["l"], "n": 0} for b in build_site.salary_bands([usd], "€", "EUR")], "pf-A6: bands ignore non-EUR/GBP salaries")
+    check(build_site.salary_label(usd) == "$50k–60k", "pf-A6: the label still shows the advertised USD figure")
+
+
+def test_pf_a_garbled_pounds():
+    fx = "Salary �30,000 to �35,000, up to �2m portfolio, paying �80k, �Competitive, Â£45,000"
+    out = build_site.repair_pounds(fx)
+    check(out == "Salary £30,000 to £35,000, up to £2m portfolio, paying £80k, �Competitive, £45,000", f"pf-A7: '�' before a digit or a k-amount becomes £; other replacement characters stay ({out!r})")
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    raw["jobs"][0]["description_html"] = "<p>Paying �50,000.</p>"
+    data = build_site.normalise(raw, "ie", SRC, SRC / "assets" / "logos")
+    j = next(x for x in data["jobs"] if x["id"] == "1001")
+    check("£50,000" in j["description_html"] and "£50,000" in j["text"], "pf-A7: normalise() repairs the description before sanitising")
+
+
+def test_pf_a_landing_links(tmp_root: Path):
+    from urllib.parse import parse_qs, urlparse
+    out = tmp_root / "site_landing2"
+    real = (SRC / "data" / "ie.json").exists() and (SRC / "data" / "uk.json").exists()
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=None if real else FIXTURE)
+    check(rc == 0, "pf-A8: build for landing-link checks")
+    for ed in ("ie", "uk"):
+        raw = json.loads((SRC / "data" / f"{ed}.json" if real else FIXTURE).read_text(encoding="utf-8"))
+        data = build_site.normalise(raw, ed, SRC, SRC / "assets" / "logos")
+        for spec, in_page in build_site.landing_pages(data):
+            page = (out / ed / spec["slug"] / "index.html").read_text(encoding="utf-8")
+            m = re.search(r'href="([^"]*)">Open these (\d+) roles', page)
+            if not m:
+                m = re.search(r'href="(\.\./jobs/index\.html\?[^"]*)"', page)
+            href = __import__("html").unescape(m.group(1))
+            q = parse_qs(urlparse(href).query)
+            n_cards = page.count('<article class="role')
+            if "sector" in q:
+                wanted = set(q["sector"][0].split("|"))
+                opened = [j for j in data["jobs"] if set(j["sectors"]) & wanted]
+                check(wanted == set(spec["sectors"]) and len(opened) == len(in_page) == n_cards, f"pf-A8: {ed}/{spec['slug']}: the search link opens every sector ({len(opened)} roles) = cards on the page ({n_cards})")
+            else:
+                opened = [j for j in data["jobs"] if q["loc"][0] in j["regions"]]
+                check(len(opened) == len(in_page) == n_cards, f"pf-A8: {ed}/{spec['slug']}: the region link opens {len(opened)} roles = cards on the page ({n_cards})")
+    check("%7C" in build_site.landing_search_href({"kind": "sector", "sectors": {"B", "A"}}) and build_site.landing_search_href({"kind": "sector", "sectors": {"B", "A"}}).endswith("sector=A%7CB"), "pf-A8: multi-sector landings link with '|'-joined sectors")
+
+
+def test_pf_a_similar_jobs_rules():
+    mk = lambda i, title, emp, sectors, posted: {"id": str(i), "title": title, "employer": emp, "sectors": sectors, "regions": ["Dublin"], "sal_min": None, "sal_max": None, "cur": None, "period": None, "posted": posted, "loc_class": "ie"}  # noqa: E731
+    me = mk(0, "Ecologist", "A", ["Ecology, nature recovery & biodiversity"], "2026-09-01")
+    pool = [mk(1, "Ecologist", "A", ["Ecology, nature recovery & biodiversity"], "2026-09-05"),  # same title+employer as me -> hidden
+            mk(2, "Senior Ecologist", "B", ["Ecology, nature recovery & biodiversity"], "2026-09-03"),
+            mk(3, "Senior Ecologist", "B", ["Ecology, nature recovery & biodiversity"], "2026-09-02"),  # duplicate of 2 -> hidden
+            mk(4, "Wind Technician", "C", ["Wind energy"], "2026-09-04"),  # same region, no shared sector -> hidden
+            mk(5, "Bat Surveyor", "D", ["Ecology, nature recovery & biodiversity"], ""),  # no posted date -> last
+            mk(6, "Botanist", "E", ["Ecology, nature recovery & biodiversity"], "2026-09-04")]
+    sim = [s["id"] for s in build_site.similar_jobs(me, pool + [me], "EUR", 6)]
+    check(sim == ["6", "2", "5"], f"pf-A9: similar jobs dedupe on (title, employer), need a shared sector, newest first, empty posted last (got {sim})")
+
+
+def test_pf_a_employer_count_phrase(tmp_root: Path):
+    check(build_site.emp_count_phrase("ie", 20) == "" and build_site.emp_count_phrase("uk", 4) == "" and build_site.emp_count_phrase("uk", 18) == " from 18 employers", "pf-A10: employer count phrase only on UK with five or more employers")
+    out = tmp_root / "site_emp"
+    real = (SRC / "data" / "ie.json").exists() and (SRC / "data" / "uk.json").exists()
+    check(build_site.build(SRC, out, editions=["ie", "uk"], fixture=None if real else FIXTURE) == 0, "pf-A10: build for employer checks")
+    ie_emp = (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8")
+    for ed in ("ie", "uk"):
+        raw = json.loads((SRC / "data" / f"{ed}.json" if real else FIXTURE).read_text(encoding="utf-8"))
+        data = build_site.normalise(raw, ed, SRC, SRC / "assets" / "logos")
+        live = {j["employer"] for j in data["jobs"]}
+        strip = build_site.employers_strip(data, "../../", cap=None)
+        listed = {__import__("html").unescape(a or b) for a, b in re.findall(r'<(?:img[^>]*\balt="([^"]*)"|span>([^<]*)</span>)', strip["html"])}
+        check(live <= listed, f"pf-A15: {ed} employers-page strip lists every live employer ({len(live)} of {len(listed)} shown)")
+        home = build_site.employers_strip(data, "../")
+        check(home["html"].count('class="emp"') <= 2 * 12 or home["mode"] == "network", f"pf-A15: {ed} home strip keeps the cap of 12")
+    check("from 0 employers" not in ie_emp, "pf-A10: IE employers page has no empty employer-count phrase")
+    for pat in re.finditer(r"from (\d+) employers", ie_emp):
+        check(False, f"pf-A10: IE employers page states an employer count ({pat.group(0)}); the other agent's template should use {{{{emp_count_phrase}}}}")
+        break
+
+
+def test_pf_a_hreflang_pairs(tmp_root: Path):
+    out = tmp_root / "site_hreflang"
+    check(build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE) == 0, "pf-A14: fixture build for hreflang checks")
+    for rel in ("ie/dashboard/index.html", "uk/dashboard/index.html", "ie/for-keith/index.html", "ie/index.html", "uk/jobs/index.html"):
+        head = (out / rel).read_text(encoding="utf-8").split("</head>")[0]
+        links = re.findall(r'<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"', head)
+        langs = [hl for hl, _ in links]
+        check(sorted(langs) == ["en-GB", "en-IE", "x-default"] and all(h.startswith("https://") for _, h in links), f"pf-A14: {rel} carries absolute en-IE + en-GB + x-default alternates ({langs})")
+        gb = dict(links).get("en-GB", "")
+        check(gb.endswith("/uk/" + rel.split("/", 1)[1]), f"pf-A14: {rel} en-GB alternate is the UK twin of the same path ({gb})")
+    landing = next(p for p in (out / "ie").glob("*-jobs-*/index.html"))
+    head = landing.read_text(encoding="utf-8").split("</head>")[0]
+    check('rel="canonical" href="https://' in head and 'rel="alternate"' not in head, "pf-A14: a landing page (slug differs per edition) has an absolute canonical and no alternate pair")
+
+
+def test_pf_a_validator_rules(tmp_root: Path):
+    out = tmp_root / "site_rules"
+    check(build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE) == 0, "pf-A11: fixture build for validator rules")
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    data_by_ed = {ed: build_site.normalise(raw, ed, SRC, SRC / "assets" / "logos") for ed in ("ie", "uk")}
+    paired = build_site.PAIRED_PATHS | set.intersection(*[{f"{s['slug']}/index.html" for s, _ in build_site.landing_pages(d)} for d in data_by_ed.values()])
+    for d in data_by_ed.values():
+        d["paired_paths"] = paired
+    jobs = {k: d["jobs"] for k, d in data_by_ed.items()}
+    V = lambda: validate_site.validate(out, jobs, data_by_ed, build_site.dashboard_kpis)  # noqa: E731
+    check(V() == [], "pf-A11: the clean build passes the extended validator")
+
+    def patched(path: Path, fn, needle: str):
+        clean = path.read_text(encoding="utf-8")
+        path.write_text(fn(clean), encoding="utf-8")
+        try:
+            return any(needle in f for f in V())
+        finally:
+            path.write_text(clean, encoding="utf-8")
+    board = out / "ie" / "jobs" / "index.html"
+    check(patched(board, lambda t: t.replace('hreflang="en-GB" href="https://greenjobs-redesign.pages.dev/uk/jobs/index.html"', 'hreflang="en-GB" href="https://greenjobs-redesign.pages.dev/uk/nope/index.html"'), "not a built page"), "pf-A11: an hreflang target missing from the other edition fails")
+    check(patched(board, lambda t: t.replace('hreflang="en-GB" href="https://greenjobs-redesign.pages.dev/uk/jobs/index.html"', 'hreflang="en-GB" href="../../uk/jobs/index.html"'), "must be absolute"), "pf-A11: a relative hreflang href fails")
+    check(patched(board, lambda t: t.replace('<link rel="alternate" hreflang="x-default" href="https://greenjobs-redesign.pages.dev/ie/jobs/index.html">', ""), "x-default"), "pf-A11: alternates without an x-default fail")
+    landing = next(p for p in (out / "ie").glob("*-jobs-*/index.html"))
+    check(patched(landing, lambda t: re.sub(r'<article class="role\b.*?</article>', "", t, flags=re.S), "no role card"), "pf-A11: a landing page with zero role cards fails")
+    dash = out / "ie" / "dashboard" / "index.html"
+    check(patched(dash, lambda t: t.replace('<b class="kpi__v">—</b>', '<b class="kpi__v">42</b>', 1), "digit outside"), "pf-A11: a live number in a wired-at-launch tile fails")
+    check(patched(dash, lambda t: re.sub(r'(id="gj-dash">\{"asof":"[^"]+","live":)(\d+)', lambda m: m.group(1) + str(int(m.group(2)) + 1), t), "differ from a fresh"), "pf-A11: an embedded KPI block that does not match dashboard_kpis(data) fails")
+    hero = out / "assets" / "hero" / "ie-m.mp4"
+    blob = hero.read_bytes()
+    hero.unlink()
+    check(any("ie-m.mp4 is missing" in f for f in V()), "pf-A11: a missing hero file fails (mp4, -m.mp4 and poster are required per edition)")
+    hero.write_bytes(b"\0" * (validate_site.HERO_BUDGET_FILE + 1))
+    check(any("per-file hero budget" in f for f in V()), "pf-A11: a hero file over 2 MB fails")
+    hero.write_bytes(blob)
+    check(validate_site.HERO_BUDGET_FILE == 2 * 1024 * 1024 and validate_site.HERO_BUDGET_TOTAL == 6 * 1024 * 1024, "pf-A11: hero budgets are 2 MB per file, 6 MB total")
+    src_text = (SCRIPT_DIR / "validate_site.py").read_text(encoding="utf-8")
+    check(src_text.count('"data-landscape" not in raw') == 1, "pf-A11: the duplicate data-landscape check is gone")
+
+
+def test_pf_a_scraper_floor(tmp_root: Path):
+    import scrape_greenjobs as sg
+    snap = tmp_root / "snap.json"
+    check(sg.snapshot_floor(str(snap)) == 0, "pf-A12: no existing snapshot -> floor 0")
+    sg.write_json_atomic(str(snap), {"jobs": [{"id": str(i)} for i in range(100)]})
+    check(snap.exists() and not list(tmp_root.glob("snap.json.tmp*")) and len(json.loads(snap.read_text(encoding="utf-8"))["jobs"]) == 100, "pf-A12: write_json_atomic writes via a temp file and renames; no temp file is left")
+    check(sg.snapshot_floor(str(snap)) == 50, "pf-A12: floor is 50% of the existing snapshot's jobs")
+    crawl_src = (SCRIPT_DIR / "scrape_greenjobs.py").read_text(encoding="utf-8")
+    check("if len(jobs) < floor:" in crawl_src and "rc = 3" in crawl_src and "os.replace(tmp, path)" in crawl_src, "pf-A12: crawl_site refuses to overwrite below the floor and main() exits non-zero")
+
+
+def test_pf_a_node_missing_fails_build(tmp_root: Path):
+    original = build_site.run_node_tests
+    build_site.run_node_tests = lambda src: None
+    try:
+        rc = build_site.build(SRC, tmp_root / "site_nonode", editions=["ie"], fixture=FIXTURE)
+    finally:
+        build_site.run_node_tests = original
+    check(rc != 0, "pf-A13: run_node_tests() returning None (node missing) fails the build")
 
 
 def main() -> int:
@@ -556,3 +832,117 @@ try:
         assert not failed, "failures: " + "; ".join(failed)
 except ImportError:
     pass  # pytest is optional: main() above is the canonical runner; the fixture only exists when pytest collects this file
+
+
+# --- panel fixes B ---
+# Panel pass 2026-09-28 (FINDINGS_LOG sections 02, 03, 05, 06, 07, 09, 11): copy,
+# consent, forms, employers page, closed roles, dashboard rules, event layer.
+
+def _read(p: Path) -> str:
+    return p.read_text(encoding="utf-8")
+
+
+def test_panel_b_copy_and_consent(tmp_root: Path):
+    out = tmp_root / "site_panel_b"
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE)
+    check(rc == 0, "panel B: fixture build passes")
+    home = _read(out / "ie" / "index.html")
+    # 1. cookie copy lists what is stored, never "nothing else"
+    check("nothing else" not in home and all(w in home for w in ("theme", "edition", "saved roles", "weekly-email prompt", "dashboard view")),
+          "panel B1: cookie dialog lists theme, edition, saved roles, subscribe prompt and dashboard view")
+    # 2. quick job match wording + share is explicit
+    jobs = _read(out / "ie" / "jobs" / "index.html")
+    check("Processed on your device. Nothing is uploaded." in jobs and "Keyword matching, not an assessment of your suitability." in jobs
+          and "Copy shareable link" in jobs and "The link contains your text." in jobs and "not uploaded or stored" not in jobs,
+          "panel B2: fit panel copy and explicit share note")
+    fit_js = _read(SRC / "js" / "fit.js")
+    check(fit_js.count("'#fit=' + G.encodeFit(") == 1 and "Explicit opt-in" in fit_js.split("'#fit=' + G.encodeFit(")[0][-400:],
+          "panel B2: fit.js writes the hash only inside the share click handler")
+    # 3. B Corp: generic definition, no text claim beyond the mark's alt on public pages
+    public = [p for p in out.rglob("index.html") if "for-keith" not in p.parts]
+    bad = []
+    for p in public:
+        t = _read(p)
+        stripped = re.sub(r'alt="Certified B Corporation"', "", t)
+        if "Certified B Corporation" in stripped:
+            bad.append(str(p.relative_to(out)))
+    check(not bad, f"panel B3: 'Certified B Corporation' appears only as the mark's alt ({bad[:3]})")
+    check("B Corps are businesses independently certified" in home, "panel B3: generic B Corp definition on the home page")
+    keith = _read(out / "ie" / "for-keith" / "index.html")
+    check("B Corp status" in keith and "logo" in keith.split("Launch checklist")[1][:1500], "panel B3/11: launch checklist asks for B Corp confirmation and logo permission")
+    # 4. UK employers: no placeholder testimonial slots on the public page
+    emp_uk = _read(out / "uk" / "employers" / "index.html")
+    check("fact--slot" not in emp_uk and "Testimonial supplied at launch" not in emp_uk and "Client testimonials are being collected for launch" in emp_uk,
+          "panel B4: UK employers page shows one collection line, no placeholder slots")
+    # 5. demo forms: pre-submit note above the button + fallback link
+    for label, page_html, needle in (("home alerts", home, "Meanwhile, browse all roles"), ("subscribe dialog", home, "data-subscribe"), ("employers", emp_uk, "Posting opens at launch")):
+        pre = page_html.find('data-demo-pre'); btn = page_html.find('type="submit"', pre)
+        check(0 <= pre < btn and "Sign-ups open at launch" in page_html and needle in page_html, f"panel B5: {label} form shows the launch note before the button")
+    check(home.count("Meanwhile, browse all roles") >= 2, "panel B5: alert and subscribe forms carry the browse-all fallback link")
+    # 6. employers page copy
+    emp_ie = _read(out / "ie" / "employers" / "index.html")
+    check(" from " not in emp_ie.split('class="lede"')[1].split("</p>")[0] and "employers are on" not in emp_ie, "panel B6: IE employers lede has no employer count")
+    check("Request rates and post" not in emp_uk and emp_uk.count("Request advertising rates") >= 3, "panel B6: one CTA label everywhere")
+    check("Send us the job description and logo; we post it and email you when it is live." in emp_uk and "account management" in emp_uk, "panel B6: done-for-you line from brief.md")
+    rows = re.findall(r"<tr><th scope=\"row\">(.*?)</th>(.*?)</tr>", emp_uk)
+    member_incl = [r for r, cells in rows if cells.count("<td") == 3 and cells.rsplit("<td", 1)[1].startswith(">Included")]
+    check(set(member_incl) == {"Multiple postings at a discounted rate", "Employer self-management system with telephone training"}, f"panel B6: Membership ticks only what brief.md confirms ({member_incl})")
+    check('class="cmphint"' in emp_uk and ".cmphint{display:none" in _read(out / "css" / "styles.css"), "panel B6: swipe hint present, hidden on wide screens")
+    # 7. tags wrap on narrow screens
+    css = _read(out / "css" / "styles.css")
+    tag_rule = re.search(r"^\.tag\{[^\n]*\}", css, re.M).group(0)
+    check(tag_rule.rfind("white-space:normal") > tag_rule.rfind("white-space:nowrap") and "max-width:100%" in tag_rule, "panel B7: .tag wraps (white-space normal wins, max-width set)")
+    # 8. toggle label
+    check("Hide UK/abroad-only roles" in jobs and "Hide Ireland/abroad-only roles" in _read(out / "uk" / "jobs" / "index.html") and "Ireland only" not in jobs.split('id="gj-data">')[0],
+          "panel B8: toggle renamed per edition")
+    # 9. closed roles: JS rule present, job page carries closing + apply hooks
+    jobs_js = _read(SRC / "js" / "jobs.js")
+    check("data.today" in jobs_js and "Date.now()" in jobs_js and "tag--closed" in jobs_js, "panel B9: card Closed chip uses data.today with Date.now() fallback")
+    job_pages = [p for p in (out / "ie" / "jobs").glob("*/index.html")]
+    jp = _read(job_pages[0])
+    check('data-closing="' in jp and jp.count("data-apply") == 2 and "This role has closed" in _read(SRC / "js" / "main.js"), "panel B9: job page exposes closing date and apply hooks; main.js swaps in the closed state")
+    # 10. dashboard + event layer
+    dash = _read(out / "ie" / "dashboard" / "index.html")
+    check("Event spec for launch" in dash and "Measured after launch" not in dash, "panel B10: post-launch group renamed")
+    for tile in ("Apply clicks per employer (30d)", "Zero-result searches", "Alert match rate (weekly)", "Advertised window (median days)"):
+        check(tile in dash, f"panel B10: tile '{tile}' present")
+    check("Median days to close" not in dash and 'kpi__l">Sessions<' not in dash and 'kpi__l">Uptime<' not in dash and "dash__foot" in dash, "panel B10: sessions/uniques demoted to context, uptime/CWV to the footer strip")
+    check("recruitment word" in dash and "known agency" in dash, "panel B10: agency tile describes the real rule")
+    for label, wanted in (("Top search terms", "target we propose"), ("Top landing pages", "target we propose")):
+        seg = dash.split(label, 1)[1][:600]
+        check('kpi__t' in seg and wanted in seg, f"panel B10: '{label}' tile has a labelled target")
+    check("prefers-reduced-motion:no-preference){.insight__tile:hover{transform" in css, "panel B10 QA: insight tile hover transform gated on no-preference")
+    for p in job_pages + list((out / "uk" / "jobs").glob("*/index.html")):
+        t = _read(p)
+        links = re.findall(r"<a [^>]*data-apply[^>]*>", t)
+        if len(links) != 2 or not all(all(k in a for k in ('data-ev="apply_click"', "data-ev-job=", "data-ev-employer=", "data-ev-sector=", "data-ev-region=")) for a in links):
+            check(False, f"panel B10: every apply link carries data-ev ({p.relative_to(out)})")
+            break
+    else:
+        check(True, "panel B10: every apply link carries data-ev with job, employer, sector and region")
+    check('data-ev="search"' in home and 'data-ev="search"' in jobs and 'data-ev="alert_signup"' in home and 'data-ev="newsletter_signup"' in home
+          and 'data-ev="request_rates"' in emp_uk and 'data-ev="post_job_click"' in home, "panel B10: search, alert, newsletter, request-rates and post-job carry data-ev")
+    main_js = _read(SRC / "js" / "main.js")
+    check("function track(" in main_js and "GJAnalytics" in main_js and "gj-consent" in main_js and "save_role" in main_js, "panel B10: consent-gated track() stub in main.js")
+    # 11. for-keith
+    check("Technical appendix" in keith and "<details" in keith and "jQuery" in keith.split("<details")[1] and "jQuery" not in keith.split("<details")[0],
+          "panel B11: stack comparison lives in the collapsed technical appendix")
+    check("eleven sectors" not in keith and "24 node tests" not in keith and "Launch checklist (needs GreenJobs)" in keith, "panel B11: stale numbers gone, launch checklist present")
+    for item in ("H1", "H2", "I1"):
+        check(re.search(r'chg--done"><b>Done</b> ' + item + r"\b", keith) is not None, f"panel B11: checklist shows {item} done")
+    check("Quin Road Business Park, Quin Road, Ennis, Co. Clare, V95 VW74, Ireland" in home, "panel B11: footer address in full per brief.md §6")
+
+
+def test_panel_b_dashboard_rules_from_stored_fields():
+    """dashboard_kpis must derive agency/remote from the stored fields and the median from annual_mid in the edition currency."""
+    ed = build_site.EDITIONS["uk"]
+    jobs = []
+    for i, (cur, lo, hi, agency, wp) in enumerate((("EUR", 50000, 50000, True, "remote"), ("GBP", 40000, 40000, False, "office"), ("GBP", None, None, False, "hybrid"))):
+        jobs.append({"id": str(i), "title": "t", "employer": "Plain Name Ltd", "location": "x", "text": "y", "posted": "2026-09-20", "closing": "2026-09-27",
+                     "sal_min": lo, "sal_max": hi, "cur": cur, "period": "year", "logo": "", "agency": agency, "workplace": wp, "sectors": [], "regions": []})
+    data = {"ed": "uk", "fetched": "2026-09-22", "jobs": jobs, "sectors": [], "regions": []}
+    k = build_site.dashboard_kpis(data)
+    check(k["agency_pct"] == 33 and k["remote_pct"] == 67, f"panel B10: agency/remote from stored fields ({k['agency_pct']}, {k['remote_pct']})")
+    eur_in_gbp = build_site.annual_mid(jobs[0], ed["currency"])[2]
+    check(k["sal_median"] == round((eur_in_gbp + 40000) / 2), f"panel B10: median converts EUR into the edition currency ({k['sal_median']})")
+    check(k["closing7"] == 1 and k["new7"] == 1, "panel B10: new7 and closing7 share the 0-6 day window")

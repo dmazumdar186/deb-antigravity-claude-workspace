@@ -21,6 +21,7 @@ import argparse
 import concurrent.futures as cf
 import html
 import json
+import math
 import logging
 import os
 import re
@@ -369,15 +370,39 @@ def crawl_site(key: str, max_jobs: int, concurrency: int, sleep_s: float, out_di
                   "jobs_with_salary_text": sum(1 for j in jobs if j["salary_text"]),
                   "featured_jobs": sum(1 for j in jobs if j["featured"])},
     }
-    with open(os.path.join(out_dir, f"{key}.json"), "w", encoding="utf-8") as fh:
-        json.dump(data, fh, ensure_ascii=False, indent=1)
-    with open(os.path.join(out_dir, f"pages_{key}.json"), "w", encoding="utf-8") as fh:
-        json.dump(pages, fh, ensure_ascii=False, indent=1)
-    with open(os.path.join(out_dir, f"perf_{key}.json"), "w", encoding="utf-8") as fh:
-        json.dump(measure_page(home, base), fh, indent=1)
+    floor = snapshot_floor(os.path.join(out_dir, f"{key}.json"))
+    if len(jobs) < floor:
+        LOG.error("%s: collected %d jobs, below the floor of %d (50%% of the existing snapshot); src/data left untouched", key, len(jobs), floor)
+        data["stats"]["rejected"] = f"{len(jobs)} jobs < floor {floor}"
+        return data
+    write_json_atomic(os.path.join(out_dir, f"{key}.json"), data)
+    write_json_atomic(os.path.join(out_dir, f"pages_{key}.json"), pages)
+    write_json_atomic(os.path.join(out_dir, f"perf_{key}.json"), measure_page(home, base))
     if assets_dir:
         download_logos(key, home, employers, base, assets_dir, sleep_s)
     return data
+
+
+def snapshot_floor(path: str, ratio: float = 0.5) -> int:
+    """Minimum job count a crawl must reach before it may replace the snapshot
+    at `path`: half of the jobs in the existing file (0 when there is none or
+    it is unreadable). Guards src/data against a broken crawl (panel 10)."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            existing = json.load(fh)
+    except (OSError, ValueError):
+        return 0
+    n = len(existing.get("jobs") or []) if isinstance(existing, dict) else 0
+    return math.ceil(n * ratio)
+
+
+def write_json_atomic(path: str, payload) -> None:
+    """Write to a temp file beside the target, then rename over it, so a crash
+    mid-write never leaves a truncated snapshot."""
+    tmp = f"{path}.tmp{os.getpid()}"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, ensure_ascii=False, indent=1)
+    os.replace(tmp, path)
 
 
 def measure_page(home: str, base: str) -> dict:
@@ -437,10 +462,13 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     os.makedirs(a.out, exist_ok=True)
+    rc = 0
     for key in (["ie", "uk"] if a.site == "both" else [a.site]):
         d = crawl_site(key, a.max_jobs, min(a.concurrency, 4), max(a.sleep, 0.3), a.out, a.assets)
         LOG.info("%s done: %s", key, d["stats"])
-    return 0
+        if d["stats"].get("rejected"):
+            rc = 3  # below the snapshot floor: nothing was written for this site
+    return rc
 
 
 if __name__ == "__main__":
