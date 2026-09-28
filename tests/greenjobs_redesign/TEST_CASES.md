@@ -65,3 +65,22 @@ Reach it from the "KPI dashboard" link at the top of `/{ed}/for-keith/`. It is d
 
 ### PC-9 Evidence page
 1. `/ie/for-keith/index.html` → "Changes from your 28 September notes" lists every checklist item with Done / Partial / Open / Not done, read from `KEITH_CHANGES_CHECKLIST.md` at build time.
+
+## Board & data (agent A — Keith B, D, G)
+
+| # | Area | Steps | Expected | Result |
+|---|------|-------|----------|--------|
+| BD-1 | Filter rail, keyboard | On `/ie/jobs/`, press Tab from the page heading. Move through Keyword, County, Sector, Job type, Workplace, Career level, Contract, Salary min/max, "Salary disclosed only", "Ireland only", Closing date, Advertised by, Sort, Clear. | Every control receives a visible focus ring; each has a label read by a screen reader (test with NVDA/VoiceOver); Space toggles the checkboxes; Enter in a text field submits without leaving the page. | |
+| BD-2 | Filters persist in the URL | Set Workplace = Hybrid, Career level = Senior, Min salary 40000, tick "Ireland only". Copy the address bar, open it in a private window. | The same filters are set, the same count shows, and the active-filter chips list each one. "Clear" empties every control and the query string. | |
+| BD-3 | Salary range compares fairly | On `/uk/jobs/` set Min salary 60000 with no Max. | Only roles whose annualised range reaches £60k (euro roles converted at 1.17) appear; every card still shows the salary in its advertised currency, with "(paid in euros, about £…)" on euro roles. | |
+| BD-4 | Location badge | Open `/uk/jobs/` and `/uk/` home rows. | Each card carries one badge: UK, Northern Ireland, Remote, Ireland & UK (no Ireland-only or International badge on the UK edition). On `/ie/jobs/` UK-located roles show "UK" and disappear when "Ireland only" is ticked. | |
+| BD-5 | Closing-date facet | Set Closing date = "Closing within 7 days", then "Hide closed roles". | The first shows only roles with a closing date in the next 7 days; the second removes roles whose closing date has passed and keeps roles with no date. | |
+| BD-6 | Agency vs direct | Set Advertised by = Recruitment agency, then Direct employer. | Gaia Talent, Mattinson Partnership and CHM Recruit roles appear only under agency; Arup, Jacobs, councils only under direct. The rule is on the job page ("Advertised by"). | |
+| BD-7 | Map view, keyboard | Switch to Map, Tab into the map, use Enter/Space on a region. | Regions are focusable buttons with the count in their accessible name; activating one filters the list; "Show all" restores it; the sentence about multi-county counting is visible under the map. | |
+| BD-8 | Reduced motion | Enable "Reduce motion" in the OS, reload `/ie/jobs/` and a job page. | No card reveal animation, no sparkline draw-in, no view-transition on the title; filters and map still work; salary strip dots are static. | |
+| BD-9 | Mobile filters (390 px wide) | Open `/ie/jobs/` at 390 px. Tap "Filters". | A sheet opens with every facet (scrollable), focus moves into it, "Show results" closes it and applies; the salary min/max sit side by side without overflow; the sheet closes on Escape. | |
+| BD-10 | Job page facts | Open any job page with a euro salary on `/uk/`. | The salary line reads in € with "paid in euros, about £…" in brackets; "Where", "Workplace", "Contract", "Level", "Advertised by" rows are present; JSON-LD (view source) has `baseSalary.currency: "EUR"` and, when a closing date exists, `validThrough`. | |
+| BD-11 | Similar roles | Open a job page in a busy sector (e.g. water). | Up to four cards under "Similar roles": same sector first, then same county/region, then similar pay; never the same role. | |
+| BD-12 | Landing pages | Open `/ie/ecology-jobs-ireland/`, `/uk/environmental-jobs-london/`. | One h1, an intro with live counts and median, the filtered cards, related links, a canonical link; a landing page with no live role does not exist (404). | |
+| BD-13 | Guides | Open `/ie/guides/` and `/ie/guides/salary-guide/`. | Bands and sector medians match the salary explorer; "Last updated" shows the snapshot date; page is noindex. | |
+| BD-14 | Quick job match | On `/uk/jobs/` scroll to "Quick job match". | The two disclosure lines sit beside the input; UK examples read "ecologist Bristol", "sustainability consultant London", "flood risk engineer Manchester", "renewable energy Scotland"; no "ecologist dublin". | |

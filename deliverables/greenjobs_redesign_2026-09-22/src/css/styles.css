@@ -910,3 +910,12 @@ h2[tabindex="-1"]:focus{outline:none}
 .kpi--wired{background:var(--bg-2);border-style:dashed}
 .kpi--wired .kpi__v{color:var(--fg-3)}
 .dash__value .fig p{max-width:none}
+
+/* === board facets (agent A) === */
+.tag--loc{background:var(--bg-2);border-color:transparent;color:var(--fg-2)}
+.tag--loc[data-loc="cross"],.tag--loc[data-loc="remote"]{color:var(--fg)}
+.tag--wp{border-style:dashed}
+.fieldset{border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:0;min-width:0}
+.fieldset>legend{padding:0 4px}
+.salrange{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fit__note{font-size:.82rem;line-height:1.45;margin:-6px 0 10px}

@@ -16,6 +16,7 @@ Run: python3 tests/greenjobs_redesign/test_build.py
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -61,7 +62,7 @@ def test_sectors():
     j2 = {"title": "Office Administrator", "sectors": [], "summary": "", "description_html": "<p>General admin.</p>"}
     check(build_site.assign_sectors(j2) == ["Environmental science & consulting"], "assign_sectors: no match falls back to the umbrella sector")
     j3 = {"title": "Ecologist", "sectors": None, "summary": None, "description_html": None}
-    check(build_site.assign_sectors(j3)[0] == "Ecology & conservation", "assign_sectors: null fields are tolerated")
+    check(build_site.assign_sectors(j3)[0] == "Ecology, nature recovery & biodiversity", "assign_sectors: null fields are tolerated")
 
 
 def test_regions():
@@ -170,7 +171,9 @@ def test_fixture_build(tmp_root: Path):
     out = tmp_root / "site_fixture"
     rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE)
     check(rc == 0, "integration: fixture build (both editions) returns 0")
-    check((out / "index.html").exists() and (out / "ie" / "jobs" / "1001" / "index.html").exists() and (out / "uk" / "jobs" / "1001" / "index.html").exists(), "integration: chooser + job pages written for both editions")
+    check((out / "index.html").exists() and (out / "ie" / "jobs" / "1001" / "index.html").exists() and (out / "uk" / "jobs" / "1007" / "index.html").exists(), "integration: chooser + job pages written for both editions")
+    check(not (out / "uk" / "jobs" / "1001" / "index.html").exists() and (out / "ie" / "jobs" / "1007" / "index.html").exists() and (out / "uk" / "jobs" / "1004" / "index.html").exists() and (out / "uk" / "jobs" / "1008" / "index.html").exists(),
+          "integration: UK edition drops the Dublin-only role, keeps remote, London and Belfast; IE keeps the London role (B5)")
     for req in ("sitemap.xml", "manifest.webmanifest", "robots.txt", "404.html", "ie/data/jobs.json", "assets/maps"):
         pass
     check((out / "sitemap.xml").read_text(encoding="utf-8").count("<url>") >= 2 * (6 + 6), "integration: sitemap lists pages and job pages")
@@ -196,7 +199,12 @@ def test_real_data_build(tmp_root: Path):
     for ed in ("ie", "uk"):
         raw = json.loads((SRC / "data" / f"{ed}.json").read_text(encoding="utf-8"))
         pages = len(list((out / ed / "jobs").glob("*/index.html")))
-        check(pages == len(raw["jobs"]), f"integration: {ed} job page count {pages} == dataset {len(raw['jobs'])}")
+        data = build_site.normalise(raw, ed, SRC, SRC / "assets" / "logos")
+        check(pages == len(data["jobs"]) and pages + len(data["excluded"]) == len(raw["jobs"]), f"integration: {ed} job page count {pages} + {len(data['excluded'])} excluded == dataset {len(raw['jobs'])}")
+        if ed == "uk":
+            check(all(j["loc_class"] in ("uk", "ni", "remote", "cross") for j in data["jobs"]) and all(x["loc_class"] in ("ie", "intl") for x in data["excluded"]), "integration: UK edition carries only uk/ni/remote/cross roles; ie-only and international are excluded (B5)")
+            keith = (out / "uk" / "for-keith" / "index.html").read_text(encoding="utf-8")
+            check(f"{len(data['excluded'])} excluded" in keith, "integration: UK evidence page states the excluded count")
 
 
 def test_validator_catches_injected_faults(tmp_root: Path):
@@ -249,7 +257,8 @@ def _dash_recompute(raw: dict, ed_key: str) -> dict:
     """Independent recomputation of the headline KPIs from the raw fixture."""
     from datetime import date as _date
     asof = _date.fromisoformat(str(raw["fetched"])[:10])
-    jobs = raw["jobs"]
+    ie_p, uk_p = build_site.place_words(SRC)
+    jobs = [j for j in raw["jobs"] if build_site.loc_class(j, ie_p, uk_p) in build_site.EDITION_INCLUDES[ed_key]]  # B5: the UK board excludes ie-only/intl roles
     live = len(jobs)
     new7 = sum(1 for j in jobs if 0 <= (asof - _date.fromisoformat(build_site.parse_date(j["posted"]))).days < 7)
     closing7 = sum(1 for j in jobs if j.get("closing") and 0 <= (_date.fromisoformat(build_site.parse_date(j["closing"])) - asof).days <= 7)
@@ -266,8 +275,8 @@ def test_dashboard_renders_per_edition(tmp_root: Path):
     rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE)
     check(rc == 0, "dashboard: fixture build passes with the dashboard page")
     raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    want = _dash_recompute(raw, "ie")
     for ed in ("ie", "uk"):
+        want = _dash_recompute(raw, ed)  # per edition: the UK board excludes ie-only/intl roles (B5)
         path = out / ed / "dashboard" / "index.html"
         check(path.exists(), f"dashboard: {ed}/dashboard/index.html written")
         html_text = path.read_text(encoding="utf-8")
@@ -355,6 +364,142 @@ def test_keith_pages_and_copy(tmp_root: Path):
     keith = (out / "ie" / "for-keith" / "index.html").read_text(encoding="utf-8")
     check("Changes from your 28 September notes" in keith and 'class="changes"' in keith, "keith: evidence page lists the checklist status")
     check('{{head_extra}}' not in ie and "Compare disclosed salaries and identify employers committed to greater pay transparency." in ie, "keith F2: salary framing on the home page; head_extra resolved")
+
+
+# ------------------------------------------------------------- Keith B/D/G (2026-09-28)
+
+def test_taxonomy_infrastructure_roles():
+    mk = lambda title, summary="", sectors=None: {"title": title, "sectors": sectors or [], "summary": summary, "description_html": ""}  # noqa: E731
+    for title in ("Highways Civil Engineer", "Assistant Road Engineer", "Senior Transport Planner", "Design Coordinator – Rail", "Active Travel Officer"):
+        s = build_site.assign_sectors(mk(title))
+        check(s[0] == "Sustainable infrastructure & transport" and "Sustainability & ESG" not in s and "Built environment & energy efficiency" not in s, f"taxonomy: {title!r} -> infrastructure, never Sustainability/Built environment (got {s})")
+    check(build_site.assign_sectors(mk("Senior Environmental Engineer", "Civil and environmental engineering design, remediation."))[0] == "Environmental engineering", "taxonomy: environmental engineer -> Environmental engineering")
+    check(build_site.assign_sectors(mk("Senior Health & Safety Consultant", "HSE audits and CDM advice"))[0] == "Health, safety & environment", "taxonomy: H&S -> Health, safety & environment")
+    check(build_site.assign_sectors(mk("Carbon Analyst", "Climate change mitigation and net zero pathways"))[0] == "Climate & carbon", "taxonomy: carbon/climate -> Climate & carbon")
+    check(build_site.assign_sectors(mk("Nature Recovery Officer", "biodiversity net gain"))[0] == "Ecology, nature recovery & biodiversity", "taxonomy: nature recovery -> renamed ecology sector")
+    names = [n for n, _, _, _ in build_site.TAXONOMY]
+    check("Ecology & conservation" not in names and "Sustainability & net zero" not in names and len(names) == len(set(names)), "taxonomy: old names retired, no duplicates")
+
+
+def test_loc_class():
+    lc = build_site.loc_class
+    check(lc({"location": "Dublin", "region": "Ireland", "country": "United Kingdom"}) == "ie", "loc_class: Dublin on the UK site -> ie (country field is not trusted)")
+    check(lc({"location": "London City", "region": "London", "country": "Ireland"}) == "uk", "loc_class: London on the IE site -> uk")
+    check(lc({"location": "Belfast", "region": "Northern Ireland"}) == "ni", "loc_class: Belfast -> ni")
+    check(lc({"location": "Belfast, Manchester", "region": ""}) == "uk", "loc_class: NI + GB city -> uk")
+    check(lc({"location": "United Kingdom (UK), Ireland (nationwide)", "region": "Country"}) == "cross", "loc_class: UK + Ireland -> cross")
+    check(lc({"location": "Dublin, London", "region": "Ireland, United Kingdom"}) == "cross", "loc_class: Dublin + London -> cross")
+    check(lc({"location": "Remote", "region": "Nationwide"}) == "remote", "loc_class: Remote -> remote")
+    check(lc({"location": "Switzerland", "region": "Country", "country": "United Kingdom"}) == "intl", "loc_class: Switzerland -> intl")
+    check(lc({"location": "Building Control Consultant (Remote - UK Wide)", "region": "United Kingdom"}) == "uk", "loc_class: remote within the UK -> uk")
+    check(lc({"location": "", "region": "", "country": "Ireland"}) == "ie", "loc_class: falls back to the scraped country")
+    check(set(build_site.LOC_LABEL) == {"ie", "uk", "ni", "remote", "cross", "intl"}, "loc_class: every class has a label")
+
+
+def test_agency_workplace_level_contract():
+    check(build_site.is_agency("Gaia Talent") and build_site.is_agency("Mattinson Partnership") and build_site.is_agency("CHM Recruit") and build_site.is_agency("Acme Recruitment Ltd"), "agency: named agencies and staffing words are agencies")
+    check(not build_site.is_agency("Arup") and not build_site.is_agency("Natural Resources Wales") and not build_site.is_agency("Green Environmental Consultancy"), "agency: direct employers (incl. a consultancy) are not agencies")
+    wp = build_site.workplace_of
+    check(wp({"title": "Ecologist", "summary": "Hybrid working, two days in the office", "description_html": ""}) == "hybrid", "workplace: hybrid beats office")
+    check(wp({"title": "Consultant (Remote - UK Wide)", "summary": "", "description_html": ""}) == "remote", "workplace: remote in title")
+    check(wp({"title": "Resident Engineer", "summary": "", "description_html": "<p>Site based role.</p>"}) == "site", "workplace: site-based")
+    check(wp({"title": "Analyst", "summary": "Office based in Cork", "description_html": ""}) == "office", "workplace: office-based")
+    check(wp({"title": "Analyst", "summary": "", "description_html": ""}) == "unspecified", "workplace: unknown -> unspecified")
+    check(build_site.level_of("Graduate Engineer") == "Graduate/Early career" and build_site.level_of("Senior Ecologist") == "Senior/Principal" and build_site.level_of("Associate Director – Water") == "Director/Associate" and build_site.level_of("Ecologist") == "Mid-level", "level_of: graduate / senior / director / mid")
+    check(set(build_site.LEVEL_ORDER) == {"Graduate/Early career", "Mid-level", "Senior/Principal", "Director/Associate"}, "level facet: options match level_of() labels")
+    ct = build_site.contract_of
+    check(ct({"type": "Permanent", "title": "", "summary": "", "description_html": ""}) == ["permanent"], "contract: type Permanent")
+    check("fixed-term" in ct({"type": "Contract", "title": "", "summary": "Maternity cover, fixed term 12 months", "description_html": ""}), "contract: fixed-term from text")
+    check("part-time" in ct({"type": "", "title": "", "summary": "24-32 hours per week, part-time", "description_html": ""}), "contract: part-time from text")
+
+
+def test_currency_label_never_converts():
+    j = {"sal_min": 5100, "sal_max": 6000, "cur": "EUR", "period": "month", "sal_text": ""}
+    check(build_site.salary_label(j) == "€5.1k–6k/mo", "currency: label in the advertised currency")
+    uk = build_site.salary_label(j, "GBP")
+    check(uk.startswith("€5.1k–6k/mo (paid in euros, about £") and "£" in uk, f"currency: on the UK edition the euro salary keeps € and gains a sterling equivalent ({uk})")
+    check(build_site.salary_label(j, "EUR") == "€5.1k–6k/mo", "currency: same currency -> no note")
+    g = {"sal_min": 50000, "sal_max": 60000, "cur": "GBP", "period": "year", "sal_text": ""}
+    ie = build_site.salary_label(g, "EUR")
+    check(ie.startswith("£50k–60k (paid in sterling, about €58.5k–70.2k)"), f"currency: sterling on IE -> euro equivalent at 1.17 ({ie})")
+    check(build_site.currency_note(g, "EUR") == "Paid in sterling" and build_site.currency_note(g, "GBP") == "", "currency: note only when currencies differ")
+    a = build_site.annual_mid(g, "EUR")
+    check(a and abs(a[0] - 58500) < 1 and abs(a[1] - 70200) < 1, "currency: annual_mid converts into the edition currency for comparison")
+    check(build_site.annual_mid(g) == (50000, 60000, 55000), "currency: annual_mid without an edition currency is untouched")
+    check(build_site.median_salary([g], "€", "EUR") == "€64.4k" and build_site.median_salary([g], "£", "GBP") == "£55k", "currency: median in the edition currency, never relabelled")
+
+
+def test_similar_jobs_and_landings(tmp_root: Path):
+    mk = lambda i, sector, region, sal: {"id": str(i), "title": f"Role {i}", "sectors": [sector], "regions": [region], "sal_min": sal, "sal_max": sal, "cur": "EUR", "period": "year", "posted": "2026-09-01", "loc_class": "ie"}  # noqa: E731
+    me = mk(0, "Water & flood", "Dublin", 50000)
+    pool = [mk(1, "Water & flood", "Dublin", 50000), mk(2, "Water & flood", "Cork", 90000), mk(3, "Wind energy", "Dublin", 50000), mk(4, "Wind energy", "Cork", None), mk(5, "Water & flood", "Galway", 52000), mk(6, "Water & flood", "Mayo", 51000)]
+    sim = build_site.similar_jobs(me, pool + [me], "EUR", 4)
+    check(len(sim) == 4 and sim[0]["id"] == "1" and all(s["id"] != "0" for s in sim) and "4" not in [s["id"] for s in sim], f"similar_jobs: at most 4, self excluded, same sector+region first, unrelated last (got {[s['id'] for s in sim]})")
+    out = tmp_root / "site_landing"
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE)
+    check(rc == 0, "landing: fixture build passes")
+    eco = out / "ie" / "ecology-jobs-ireland" / "index.html"
+    check(eco.exists() and eco.read_text(encoding="utf-8").count('class="role reveal"') == 2, "landing: IE ecology page lists exactly the ecology roles (Dublin + Belfast in the fixture)")
+    uk_eco = out / "uk" / "ecology-jobs-uk" / "index.html"
+    check(uk_eco.exists() and uk_eco.read_text(encoding="utf-8").count('class="role reveal"') == 1, "landing: UK ecology page lists only the Belfast role (Dublin excluded)")
+    built = [p for p in (out / "uk").glob("*-jobs-*/index.html")]
+    check(built and all(p.read_text(encoding="utf-8").count('class="role reveal"') >= 1 for p in built), "landing: every built landing page carries at least one role")
+    check(build_site.landing_pages({"ed": "uk", "jobs": []}) == [], "landing: no roles -> no landing page")
+    dub = out / "ie" / "environmental-jobs-dublin" / "index.html"
+    check(not dub.exists() or dub.read_text(encoding="utf-8").count('class="role reveal"') >= 1, "landing: a page is only built with at least one role")
+    site_map = (out / "sitemap.xml").read_text(encoding="utf-8")
+    check("ecology-jobs-ireland/index.html" in site_map and "guides/salary-guide/index.html" in site_map, "landing: sitemap lists landing pages and the salary guide")
+    guide = (out / "ie" / "guides" / "salary-guide" / "index.html").read_text(encoding="utf-8")
+    check("Last updated" in guide and "disclosed salaries" in guide and 'name="robots" content="noindex' in guide, "guide: salary guide has a last-updated date and stays noindex")
+    ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', eco.read_text(encoding="utf-8"), re.S).group(1))
+    check(ld["@type"] == "ItemList" and ld["itemListElement"][0]["item"]["@type"] == "JobPosting", "landing: ItemList of JobPosting JSON-LD")
+
+
+def test_hreflang_and_jsonld(tmp_root: Path):
+    out = tmp_root / "site_seo"
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE)
+    check(rc == 0, "seo: fixture build passes")
+    board = (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8")
+    check('rel="canonical" href="https://greenjobs-redesign.pages.dev/uk/jobs/index.html"' in board and 'hreflang="en-IE"' in board and 'hreflang="en-GB"' in board and 'hreflang="x-default"' in board, "seo: canonical + hreflang pair on a shared page")
+    head = board.split("</head>")[0]
+    check('rel="canonical"' in head and 'hreflang="en-IE"' in head, "seo: the links sit inside <head>")
+    job = (out / "uk" / "jobs" / "1007" / "index.html").read_text(encoding="utf-8")
+    check('rel="canonical"' in job and 'rel="alternate"' not in job.split("</head>")[0], "seo: job page has a canonical and no hreflang pair (ids differ per edition)")
+    ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', job, re.S).group(1))
+    check(ld["baseSalary"]["currency"] == "GBP" and ld["baseSalary"]["value"]["minValue"] == 45000 and ld["validThrough"].startswith("2026-10-15") and ld["jobLocation"]["address"]["addressCountry"] == "GB", "seo: JobPosting carries the job's currency, validThrough from the closing date and the country from loc_class")
+    remote = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', (out / "uk" / "jobs" / "1004" / "index.html").read_text(encoding="utf-8"), re.S).group(1))
+    check(remote.get("jobLocationType") == "TELECOMMUTE" and remote["baseSalary"]["currency"] == "EUR", "seo: remote role -> TELECOMMUTE; euro salary keeps EUR on the UK edition")
+    ie_job = (out / "ie" / "jobs" / "1007" / "index.html").read_text(encoding="utf-8")
+    check("paid in sterling, about €" in ie_job and ">UK<" in ie_job, "B2/B3: sterling role on the IE edition carries the note, the equivalent and a UK badge")
+    base = {"title": "x", "text": "", "summary": "", "employer": "e", "url": "https://x", "posted": "", "closing": "", "type": "", "period": None, "workplace": "unspecified"}
+    cross = build_site.job_jsonld_payload({**base, "location": "Dublin, London", "sal_min": 1, "sal_max": 2, "cur": None, "loc_class": "cross"}, {"ed": "ie"})
+    check(cross.get("applicantLocationRequirements") == [{"@type": "Country", "name": "Ireland"}, {"@type": "Country", "name": "United Kingdom"}], "seo: cross-border role -> applicantLocationRequirements for both countries")
+    check("baseSalary" not in build_site.job_jsonld_payload({**base, "location": "", "sal_min": 1000, "sal_max": 2000, "cur": None, "period": "year", "loc_class": "ie"}, {"ed": "ie"}), "seo: numeric salary without a currency code -> no baseSalary")
+
+
+def test_ni_region_and_facets(tmp_root: Path):
+    uk = json.loads((SRC / "data" / "regions_uk.json").read_text(encoding="utf-8"))
+    ni = uk["regions"].get("Northern Ireland") or []
+    check(all(a in ni for a in ("Belfast", "Derry", "Antrim", "Down", "Armagh", "Tyrone", "Fermanagh", "Londonderry", "NI")), "regions: Northern Ireland has the required aliases")
+    check("Northern Ireland" in json.loads((SRC / "assets" / "maps" / "regions_index.json").read_text(encoding="utf-8"))["uk"], "regions: the UK map carries a Northern Ireland polygon")
+    check(build_site.resolve_regions({"region": "", "location": "Belfast"}, uk, build_site.EDITIONS["uk"]) == ["Northern Ireland"], "regions: Belfast resolves to Northern Ireland")
+    check(all(a in uk["regions"]["East Midlands"] for a in ("Nottingham", "Leicester", "Derby", "Lincoln", "Northampton")), "regions: East Midlands aliases present")
+    out = tmp_root / "site_facets"
+    check(build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE) == 0, "facets: fixture build passes")
+    board = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
+    for fid in ("f-wp", "f-level", "f-ct", "f-smin", "f-smax", "f-only", "f-close", "f-emp"):
+        check(f'id="{fid}"' in board and (f'for="{fid}"' in board or f'<input type="checkbox" id="{fid}"' in board), f"facets: control {fid} present and labelled")
+    check("Ireland only" in board and "UK only" in (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8"), "facets: edition-aware only-toggle label")
+    check("counted in each, so totals can exceed" in board and "counted in each" in (out / "ie" / "sectors" / "index.html").read_text(encoding="utf-8"), "B6: multi-count sentence on the jobs map and sectors page")
+    embedded = json.loads(re.search(r'id="gj-data">(.*?)</script>', board, re.S).group(1))
+    j = embedded["jobs"][0]
+    check(all(k in j for k in ("loc_class", "workplace", "level", "contract", "agency", "closing")) and embedded.get("home") == ["ie", "cross", "remote"], "facets: dataset carries the facet fields and the home classes")
+    check('class="tag tag--loc"' in (out / "ie" / "index.html").read_text(encoding="utf-8"), "B3: location badge rendered on home cards")
+    fit = (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8")
+    check("Quick job match" in fit and "processed on your device and is not uploaded or stored" in fit and "Keyword matching, not an assessment of your suitability" in fit, "D3: matcher renamed with the two disclosure lines")
+    check("ecologist Bristol" in fit and "ecologist dublin" not in fit.lower(), "D4: UK examples, never 'ecologist dublin' on UK")
+    ie_fit = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
+    check("ecologist Dublin" in ie_fit and "Bristol" not in ie_fit, "D4: IE keeps Irish examples")
 
 
 def main() -> int:

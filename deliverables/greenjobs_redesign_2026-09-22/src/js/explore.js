@@ -27,7 +27,7 @@
   /* ---- insights */
   var ins = $('[data-insights]');
   if (ins) {
-    var withSal = jobs.map(function (j) { var a = G.annual(j); return a ? { j: j, a: a } : null; }).filter(Boolean);
+    var withSal = jobs.map(function (j) { var a = G.annual(j, cur); return a ? { j: j, a: a } : null; }).filter(Boolean);
     var mids = withSal.map(function (x) { return x.a.mid; });
     var med = G.median(mids);
     function stat(sel, v) { var e = $(sel, ins); if (e) e.textContent = v; }
@@ -45,7 +45,7 @@
     if (rows.length) { f2.appendChild(C.bars(rows, { fmt: money, label: 'Median disclosed salary by sector', labelWidth: 200 })); f2.appendChild(C.table(['Sector', 'Median', 'Disclosed'], rows.map(function (r) { return [r.label, money(r.v), r.sub.split(' ')[0]]; }))); }
     else f2.insertAdjacentHTML('beforeend', '<p class="note">Fewer than three disclosed salaries in any one sector this week, so no sector median is shown.</p>');
     var disc = data.sectors.filter(function (s) { return s.n >= 3; }).map(function (s) {
-      var inS = jobs.filter(function (j) { return j.sectors.indexOf(s.name) >= 0; }), d = inS.filter(function (j) { return G.annual(j); }).length;
+      var inS = jobs.filter(function (j) { return j.sectors.indexOf(s.name) >= 0; }), d = inS.filter(function (j) { return G.annual(j, cur); }).length;
       return { label: s.name, v: Math.round(100 * d / inS.length), sub: d + ' of ' + inS.length };
     }).sort(function (a, b) { return b.v - a.v; });
     var f3 = $('[data-fig="disc"]', ins);

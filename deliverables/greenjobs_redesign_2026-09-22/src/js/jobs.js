@@ -11,8 +11,22 @@
   var st = G.parseState(window.location.search), view = st.view || 'list';
   var list = $('[data-list]'), count = $('[data-count]'), chips = $('[data-chips]'), rail = $('[data-rail]'), railHome = rail.parentNode;
   var mapWrap = $('[data-jobs-map]'), mapList = $('[data-map-list]'), mapSvg = mapWrap ? $('svg', mapWrap) : null;
-  var f = { q: $('#f-q'), loc: $('#f-loc'), sector: $('#f-sector'), type: $('#f-type'), sal: $('#f-sal'), sort: $('#f-sort') };
-  var LABEL = { q: 'Search', loc: 'Where', sector: 'Sector', type: 'Type', sal: 'Salary disclosed' };
+  var f = { q: $('#f-q'), loc: $('#f-loc'), sector: $('#f-sector'), type: $('#f-type'), sal: $('#f-sal'), wp: $('#f-wp'), level: $('#f-level'), ct: $('#f-ct'),
+    smin: $('#f-smin'), smax: $('#f-smax'), only: $('#f-only'), close: $('#f-close'), emp: $('#f-emp'), sort: $('#f-sort') };
+  var CUR = data.currency || 'EUR', OPTS = { cur: CUR, home: data.home || ['ie', 'cross', 'remote'] };
+  var LABEL = { q: 'Search', loc: 'Where', sector: 'Sector', type: 'Type', sal: 'Salary disclosed', wp: 'Workplace', level: 'Level', ct: 'Contract', smin: 'Min salary', smax: 'Max salary',
+    only: (data.edition === 'uk' ? 'UK' : 'Ireland') + ' only', close: 'Closing', emp: 'Advertised by' };
+  var CHIP_KEYS = ['q', 'loc', 'sector', 'type', 'sal', 'wp', 'level', 'ct', 'smin', 'smax', 'only', 'close', 'emp'];
+  function optText(sel, v) {
+    var opts = sel ? Array.prototype.slice.call(sel.options) : [], hit = opts.filter(function (o) { return o.value === String(v); })[0];
+    return hit ? hit.textContent : String(v);
+  }
+  function chipText(k) {
+    if (k === 'sal' || k === 'only') return '';
+    if (k === 'smin' || k === 'smax') return ': ' + G.money(parseFloat(st[k]), CUR);
+    if (k === 'wp' || k === 'level' || k === 'ct' || k === 'close' || k === 'emp') return ': ' + optText(f[k], st[k]);
+    return ': ' + st[k];
+  }
   var mapPick = '';
   var ON_MAP = {};
   (data.regions || []).forEach(function (r) { ON_MAP[r.name] = true; });
@@ -31,29 +45,37 @@
     }).join('');
   }
   function row(j, q) {
-    var sal = G.salaryLabel(j);
+    var sal = G.salaryLabel(j, CUR), lc = G.locLabel(j.loc_class);
     return '<article class="row" data-id="' + G.esc(j.id) + '">' + logo(j) +
       '<div class="row__body"><h3><a href="' + G.esc(j.href) + '">' + hl(j.title, q) + '</a></h3>' +
       '<div class="row__meta"><span>' + G.esc(j.employer) + '</span><span aria-hidden="true">·</span><span>' + G.esc(j.location) + '</span>' +
-      (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + (j.sectors[0] ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i>' + G.esc(j.sectors[0]) + '</span>' : '') + '</div></div>' +
+      (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (j.sectors[0] ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i>' + G.esc(j.sectors[0]) + '</span>' : '') + '</div></div>' +
       '<div class="row__r"><time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time><span>' + G.esc(j.type || '') + '</span></div>' +
       '<button class="save" type="button" data-save="' + G.esc(j.id) + '" data-title="' + G.esc(j.title) + '" aria-pressed="false" aria-label="Save: ' + G.esc(j.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button></article>';
   }
+  function val(k) { return f[k] ? f[k].value : ''; }
   function readForm() {
-    st = { q: f.q.value.trim(), loc: f.loc.value.trim(), sector: f.sector.value, type: f.type.value, sal: f.sal.checked ? '1' : '', sort: f.sort.value, view: view };
+    st = { q: f.q.value.trim(), loc: f.loc.value.trim(), sector: f.sector.value, type: f.type.value, sal: f.sal.checked ? '1' : '', sort: f.sort.value, view: view,
+      wp: val('wp'), level: val('level'), ct: val('ct'), smin: val('smin').trim(), smax: val('smax').trim(), only: f.only && f.only.checked ? '1' : '', close: val('close'), emp: val('emp') };
   }
   function writeForm() {
     f.q.value = st.q || ''; f.loc.value = st.loc || ''; f.sector.value = st.sector || ''; f.type.value = st.type || '';
     f.sal.checked = !!st.sal; f.sort.value = st.sort || 'newest';
     if (f.sector.value !== (st.sector || '')) f.sector.value = '';
+    ['wp', 'level', 'ct', 'close', 'emp', 'smin', 'smax'].forEach(function (k) {
+      if (!f[k]) return;
+      f[k].value = st[k] || '';
+      if (f[k].tagName === 'SELECT' && f[k].value !== (st[k] || '')) { f[k].value = ''; st[k] = ''; }
+    });
+    if (f.only) f.only.checked = !!st.only;
   }
   function sync() {
     var qs = G.toQuery(st);
     history.replaceState(null, '', window.location.pathname + qs + window.location.hash);
   }
   function paintChips() {
-    chips.innerHTML = ['q', 'loc', 'sector', 'type', 'sal'].filter(function (k) { return st[k]; }).map(function (k) {
-      return '<span class="chip">' + G.esc(LABEL[k]) + (k === 'sal' ? '' : ': ' + G.esc(st[k])) + '<button type="button" data-clear="' + k + '" aria-label="Remove ' + G.esc(LABEL[k]) + ' filter">×</button></span>';
+    chips.innerHTML = CHIP_KEYS.filter(function (k) { return st[k]; }).map(function (k) {
+      return '<span class="chip">' + G.esc(LABEL[k]) + G.esc(chipText(k)) + '<button type="button" data-clear="' + k + '" aria-label="Remove ' + G.esc(LABEL[k]) + ' filter">×</button></span>';
     }).join('');
   }
   function empty(msg) {
@@ -61,11 +83,11 @@
     return '<div class="empty"><h3>' + msg + '</h3><p>Try a broader search, another region, or one of the busiest sectors right now.</p><div class="sugg"><button class="btn btn--sm btn--lime" type="button" data-reset>Clear all filters</button>' + pop + '</div></div>';
   }
   function render() {
-    var res = G.filterJobs(jobs, st), ids = window.GJSaved.list();
+    var res = G.filterJobs(jobs, st, OPTS), ids = window.GJSaved.list();
     $$('[data-view]').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-view') === view ? 'true' : 'false'); });
     paintChips();
     if (view === 'saved') {
-      var sv = G.sortJobs(jobs.filter(function (j) { return ids.indexOf(j.id) >= 0; }), st.sort);
+      var sv = G.sortJobs(jobs.filter(function (j) { return ids.indexOf(j.id) >= 0; }), st.sort, CUR);
       list.innerHTML = sv.length ? sv.map(function (j) { return row(j, ''); }).join('') : '<div class="empty"><h3>Nothing saved yet</h3><p>Tap the bookmark on any role and it will wait for you here, on this device.</p></div>';
       count.innerHTML = '<b>' + sv.length + '</b> saved <small>on this device</small>';
       list.hidden = false; if (mapWrap) mapWrap.hidden = true;
@@ -77,7 +99,7 @@
       var sub = mapPick ? res.filter(function (j) { return (j.regions || []).indexOf(mapPick) >= 0; }) : res;
       var off = {};
       res.forEach(function (j) { if (!(j.regions || []).some(function (r) { return ON_MAP[r]; })) (j.regions || []).forEach(function (r) { off[r] = (off[r] || 0) + 1; }); });
-      var offHtml = Object.keys(off).length ? ' Not on the map: ' + Object.keys(off).map(function (r) { return '<a href="' + G.esc(G.toQuery({ loc: r, q: st.q, sector: st.sector, type: st.type, sal: st.sal, sort: st.sort })) + '">' + G.esc(r) + ' (' + off[r] + ')</a>'; }).join(', ') + '.' : '';
+      var offHtml = Object.keys(off).length ? ' Not on the map: ' + Object.keys(off).map(function (r) { return '<a href="' + G.esc(G.toQuery(Object.assign({}, st, { loc: r, view: '' }))) + '">' + G.esc(r) + ' (' + off[r] + ')</a>'; }).join(', ') + '.' : '';
       mapList.innerHTML = '<p class="muted" style="font-size:.9rem">' + (mapPick ? '<b>' + G.esc(mapPick) + '</b> · ' + sub.length + (sub.length === 1 ? ' role' : ' roles') + ' <button class="btn btn--sm btn--ghost" type="button" data-mapclear>Show all</button>' : 'Tap a region to filter. ' + (res.length - Object.keys(off).reduce(function (a, r) { return a + off[r]; }, 0)) + ' of ' + res.length + ' roles sit in ' + Object.keys(counts).filter(function (r) { return ON_MAP[r]; }).length + ' mapped regions.' + offHtml) + '</p>' + sub.slice(0, 40).map(function (j) { return row(j, st.q); }).join('');
       count.innerHTML = '<b>' + res.length + '</b> ' + (res.length === 1 ? 'role' : 'roles') + ' <small>on the map</small>';
       list.hidden = true; mapWrap.hidden = false;
@@ -91,7 +113,8 @@
   }
   function set(k, v) { st[k] = v; writeForm(); render(); }
   Object.keys(f).forEach(function (k) {
-    var ev = k === 'q' || k === 'loc' ? 'input' : 'change', t;
+    if (!f[k]) return;
+    var ev = k === 'q' || k === 'loc' || k === 'smin' || k === 'smax' ? 'input' : 'change', t;
     f[k].addEventListener(ev, function () { clearTimeout(t); t = setTimeout(function () { readForm(); render(); }, ev === 'input' ? 120 : 0); });
   });
   $('[data-filters]').addEventListener('submit', function (e) { e.preventDefault(); readForm(); render(); });

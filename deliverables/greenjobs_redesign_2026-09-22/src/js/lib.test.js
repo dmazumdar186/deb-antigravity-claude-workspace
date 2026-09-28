@@ -164,3 +164,62 @@ test('easeOutQuart and countAt', () => {
   assert.equal(GJ.countAt(0, 100, 1), 100);
   assert.equal(GJ.countAt(0, 100, 0), 0);
 });
+
+/* ---- Keith B/D (2026-09-28): currency, location class, facets */
+const K = [
+  { id: 'a', title: 'Ecologist', employer: 'Gaia Talent', location: 'Dublin', regions: ['Dublin'], type: 'Permanent', sectors: ['Ecology, nature recovery & biodiversity'], sal_min: 5100, sal_max: 6000, cur: 'EUR', period: 'month', posted: '2026-09-20', closing: '2026-10-03', summary: '', loc_class: 'ie', workplace: 'hybrid', level: 'Mid-level', contract: ['permanent'], agency: true },
+  { id: 'b', title: 'Highways Civil Engineer', employer: 'Arup', location: 'London', regions: ['London'], type: 'Permanent', sectors: ['Sustainable infrastructure & transport'], sal_min: 40000, sal_max: 50000, cur: 'GBP', period: 'year', posted: '2026-09-19', closing: '2026-09-25', summary: '', loc_class: 'uk', workplace: 'office', level: 'Mid-level', contract: ['permanent', 'full-time'], agency: false },
+  { id: 'c', title: 'Labs Facilitator', employer: 'Commonland', location: 'UK, Ireland', regions: ['Nationwide / remote'], type: 'Contract', sectors: ['Policy, planning & advisory'], sal_min: null, sal_max: null, cur: null, period: null, posted: '2026-09-18', closing: '', summary: '', loc_class: 'cross', workplace: 'remote', level: 'Senior', contract: ['contract', 'part-time'], agency: false },
+];
+const NOW = Date.parse('2026-09-28T12:00:00Z');
+
+test('salaryLabel never converts the advertised currency; it adds an approximate equivalent', () => {
+  assert.equal(GJ.salaryLabel(K[0]), '€5.1k–6k/mo');
+  assert.equal(GJ.salaryLabel(K[0], 'EUR'), '€5.1k–6k/mo');
+  const uk = GJ.salaryLabel(K[0], 'GBP');
+  assert.ok(uk.startsWith('€5.1k–6k/mo (paid in euros, about £'), uk);
+  assert.ok(/£4\.4k–5\.1k\/mo\)$/.test(uk), uk);
+  assert.equal(GJ.salaryLabel(K[1], 'EUR'), '£40k–50k (paid in sterling, about €46.8k–58.5k)');
+  assert.equal(GJ.currencyNote(K[1], 'EUR'), 'Paid in sterling');
+  assert.equal(GJ.currencyNote(K[1], 'GBP'), '');
+  assert.equal(GJ.FX_GBP_EUR, 1.17);
+});
+
+test('annual compares in the edition currency but leaves the label alone', () => {
+  assert.equal(GJ.annual(K[1]).mid, 45000);
+  assert.ok(Math.abs(GJ.annual(K[1], 'EUR').mid - 45000 * 1.17) < 1e-6);
+  assert.ok(Math.abs(GJ.annual(K[0], 'GBP').lo - 5100 * 12 / 1.17) < 1e-6);
+  assert.equal(GJ.salaryLabel(K[1], 'EUR').slice(0, 8), '£40k–50k');
+});
+
+test('locLabel maps every class', () => {
+  assert.deepEqual(['ie', 'uk', 'ni', 'remote', 'cross', 'intl'].map(GJ.locLabel), ['Ireland', 'UK', 'Northern Ireland', 'Remote', 'Ireland & UK', 'International']);
+  assert.equal(GJ.locLabel(undefined), '');
+});
+
+test('filterJobs: workplace, level, contract, salary range, only-toggle, closing, agency', () => {
+  const ids = (st, opts) => GJ.filterJobs(K, st, opts).map(j => j.id);
+  assert.deepEqual(ids({ wp: 'remote' }), ['c']);
+  assert.deepEqual(ids({ level: 'Senior' }), ['c']);
+  assert.deepEqual(ids({ ct: 'part-time' }), ['c']);
+  assert.deepEqual(ids({ ct: 'permanent' }), ['a', 'b']);
+  assert.deepEqual(ids({ smin: '45000' }, { cur: 'GBP' }), ['a', 'b']);
+  assert.deepEqual(ids({ smin: '52000' }, { cur: 'GBP' }), ['a']);
+  assert.deepEqual(ids({ smax: '50000' }, { cur: 'EUR' }), ['b']);
+  assert.deepEqual(ids({ only: '1' }, { home: ['ie', 'cross', 'remote'] }), ['a', 'c']);
+  assert.deepEqual(ids({ only: '1' }, { home: ['uk', 'ni', 'cross', 'remote'] }), ['b', 'c']);
+  assert.deepEqual(ids({ close: '7' }, { now: NOW }), ['a']);
+  assert.deepEqual(ids({ close: 'open' }, { now: NOW }), ['a', 'c']);
+  assert.deepEqual(ids({ emp: 'agency' }), ['a']);
+  assert.deepEqual(ids({ emp: 'direct' }), ['b', 'c']);
+  assert.deepEqual(ids({}), ['a', 'b', 'c']);
+});
+
+test('URL state carries every facet and Clear resets it', () => {
+  const st = { wp: 'hybrid', level: 'Senior', ct: 'contract', smin: '30000', smax: '60000', only: '1', close: '14', emp: 'direct', sort: 'newest', view: 'list' };
+  const qs = GJ.toQuery(st);
+  assert.deepEqual(GJ.parseState(qs), { wp: 'hybrid', level: 'Senior', ct: 'contract', smin: '30000', smax: '60000', only: '1', close: '14', emp: 'direct' });
+  assert.equal(GJ.toQuery({ sort: 'newest', view: 'list' }), '');
+  assert.equal(GJ.daysUntil('2026-10-03', NOW), 4);
+  assert.equal(GJ.daysUntil('', NOW), null);
+});

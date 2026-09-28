@@ -163,6 +163,58 @@
    "summary": "Carbon accounting and CSRD reporting for a manufacturing group.",
    "description_html": "<p>Carbon accounting and CSRD reporting for a manufacturing group.</p>",
    "logo_url": null
+  },
+  {
+   "id": "1007",
+   "slug": "flood-risk-engineer-london",
+   "title": "Flood Risk Engineer",
+   "url": "https://www.greenjobs.co.uk/jobs/flood-risk-engineer-1007/",
+   "employer": "Fixture Water Services",
+   "location": "London",
+   "region": "London",
+   "country": "United Kingdom",
+   "type": "Permanent",
+   "salary_text": "£45,000 to £55,000 per annum",
+   "salary_min": 45000,
+   "salary_max": 55000,
+   "currency": "GBP",
+   "period": "year",
+   "sectors": [
+    "Water"
+   ],
+   "categories": [
+    "Engineering"
+   ],
+   "posted": "2026-09-17",
+   "closing": "2026-10-15",
+   "summary": "Hydraulic modelling and flood risk assessments for London boroughs. Hybrid working.",
+   "logo_url": null
+  },
+  {
+   "id": "1008",
+   "slug": "conservation-officer-belfast",
+   "title": "Conservation Officer",
+   "url": "https://www.greenjobs.co.uk/jobs/conservation-officer-1008/",
+   "employer": "Fixture Wildlife Trust",
+   "location": "Belfast",
+   "region": "Northern Ireland",
+   "country": "United Kingdom",
+   "type": "Permanent",
+   "salary_text": "£32,000",
+   "salary_min": 32000,
+   "salary_max": 32000,
+   "currency": "GBP",
+   "period": "year",
+   "sectors": [
+    "Ecology & Conservation"
+   ],
+   "categories": [
+    "Ecology"
+   ],
+   "posted": "2026-09-16",
+   "closing": null,
+   "summary": "Habitat management and biodiversity surveys across County Antrim and County Down.",
+   "logo_url": null
   }
  ],
  "sectors": [

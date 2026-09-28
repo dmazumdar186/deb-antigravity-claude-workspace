@@ -8,7 +8,8 @@ description: Structural, accessibility and honesty checks over the built site:
   vocabulary on public pages (for-keith/ exempt; employer-authored description
   blocks exempt), no third-party requests, fonts self-hosted and preloaded,
   CSS/JS weight budgets (80 KB / 125 KB), any referenced hero video and
-  poster exist in the built site.
+  poster exist in the built site. Absolute hrefs are allowed only on
+  <link rel=canonical|alternate> (no request is made for those).
 inputs: a built site directory, {edition: [normalised job records]}
 outputs: a list of failure strings (empty means the build passes)
 """
@@ -84,6 +85,8 @@ class _Doc(HTMLParser):
                 self.dataset_blocks.append("")
         for attr in ("href", "src"):
             if attr in a:
+                if tag == "link" and a.get("rel", "").lower() in ("canonical", "alternate") and a[attr].startswith("https://"):
+                    continue  # SEO links: no request is made, an absolute URL is required
                 self.refs.append((tag, attr, a[attr]))
                 if tag == "a" and a[attr].startswith("http"):
                     self.external_hrefs.append(a[attr])
@@ -223,6 +226,22 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]]) -> li
             job_pages[m.group(1)] = job_pages.get(m.group(1), 0) + 1
             if 'rel="noopener"' not in raw or "Apply on" not in raw:
                 fails.append(f"{rel}: job page has no apply link")
+            for block in doc.jsonld:
+                try:
+                    ld = json.loads(block)
+                except (json.JSONDecodeError, ValueError):
+                    continue
+                if isinstance(ld, dict) and ld.get("@type") == "JobPosting":
+                    sal = ld.get("baseSalary")
+                    if sal is not None:
+                        val = sal.get("value") or {}
+                        if sal.get("currency") not in ("EUR", "GBP", "USD") or not any(isinstance(val.get(k), (int, float)) for k in ("minValue", "maxValue", "value")):
+                            fails.append(f"{rel}: JobPosting baseSalary must carry a currency code and a numeric value")
+                    if "validThrough" in ld and not re.match(r"^\d{4}-\d{2}-\d{2}", str(ld["validThrough"])):
+                        fails.append(f"{rel}: JobPosting validThrough is not a date")
+        if re.match(r"^(ie|uk)/(?!for-keith/)[^/]+/index\.html$", rel) or re.match(r"^(ie|uk)/index\.html$", rel) or re.match(r"^(ie|uk)/guides/", rel):
+            if 'rel="canonical"' not in raw:
+                fails.append(f"{rel}: no canonical link")
         if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
             fails.append(f"{rel}: home page has no film canvas host")
         if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
