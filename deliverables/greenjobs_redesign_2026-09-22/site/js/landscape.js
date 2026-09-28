@@ -100,7 +100,7 @@ function draw(now) {
 var t = (now - t0) / 1000, u = Math.min(1, scroll / Math.max(1, H)), sunT = Math.min(1, u * 1.6);
 tx += (px - tx) * 0.06; ty += (py - ty) * 0.06;
 ctx.fillStyle = L.grad; ctx.fillRect(0, 0, W, H);
-var sx = W * 0.8 + tx * 2, sy = H * 0.17 + scroll * 0.06 + ty * 2, sr = Math.max(24, Math.min(64, W * 0.036));
+var narrow = W < 720, sx = W * (narrow ? 0.9 : 0.8) + tx * 2, sy = H * (narrow ? 0.05 : 0.17) + scroll * 0.06 + ty * 2, sr = Math.max(narrow ? 16 : 24, Math.min(64, W * 0.036));
 var glow = ctx.createRadialGradient(sx, sy, sr * 0.6, sx, sy, sr * 4.2);
 glow.addColorStop(0, T.glow); glow.addColorStop(1, 'rgba(217,154,28,0)');
 ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
@@ -121,9 +121,10 @@ ctx.save(); ctx.translate(ox, oy); ctx.strokeStyle = T.glint; ctx.lineWidth = 2;
 ctx.beginPath(); ctx.moveTo(W * 0.58, midB + 14); ctx.bezierCurveTo(W * 0.5, H * 0.72, W * 0.36, H * 0.78, W * 0.3, H * 0.84); ctx.bezierCurveTo(W * 0.25, H * 0.9, W * 0.2, H * 0.96, W * 0.16, H + 10); ctx.stroke(); ctx.restore();
 ctx.drawImage(L.near, -PAD + tx * 12, scroll * 0.34 + ty * 6, W + PAD * 2, H);
 ctx.drawImage(L.nearest, -PAD + tx * 16, scroll * 0.46 + ty * 8, W + PAD * 2, H);
-if (birds.t < 0 && Math.floor(t) % 18 === 4) { birds.t = t; birds.y = H * (0.1 + Math.random() * 0.2); }
-if (birds.t >= 0) {
-var bu = (t - birds.t) / 14, bx = -40 + bu * (W + 80), flap = Math.sin(t * 6) * 3;
+if (birds.t < 0 && !reduce.matches && Math.floor(t) % 18 === 4) { birds.t = t; birds.y = H * (0.1 + Math.random() * 0.2); }
+if (birds.t >= 0 && !reduce.matches) {
+var bu = (t - birds.t) / 14, bx = -60 + bu * (W + 120), flap = Math.sin(t * 6) * 3;
+if (bx < 30 || bx > W - 50) bx = -100;
 ctx.strokeStyle = T.bird; ctx.lineWidth = 1.6;
 [[0, 0], [18, 7]].forEach(function (o) { var x = bx + o[0], y = birds.y + o[1] + Math.sin(bu * 6 + o[0]) * 6; ctx.beginPath(); ctx.moveTo(x - 7, y + flap); ctx.quadraticCurveTo(x, y - 2, x, y + 1); ctx.quadraticCurveTo(x, y - 2, x + 7, y + flap); ctx.stroke(); });
 if (bu >= 1) birds.t = -1;

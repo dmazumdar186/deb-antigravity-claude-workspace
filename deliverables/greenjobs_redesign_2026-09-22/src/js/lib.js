@@ -178,8 +178,29 @@
   /* opts: { cur: edition currency for the salary range, home: loc classes
      the "Hide X/abroad-only roles" toggle keeps, now: ms for the closing-date
      facet }. */
+  /* The scraped "Job type" folded into Contract + Workplace (visual 31).
+     ?type= stays a URL alias: Permanent/Contract/Fixed-term/Full time/Part
+     time map onto the contract facet, Home based onto workplace=remote.
+     Returns a new state object; `type` is dropped once translated. */
+  var TYPE_ALIAS = { permanent: 'permanent', contract: 'contract', 'fixed term': 'fixed-term', 'fixed-term': 'fixed-term', 'full time': 'full-time', 'full-time': 'full-time', 'part time': 'part-time', 'part-time': 'part-time', volunteer: 'volunteer' };
+  function normaliseState(st) {
+    var out = {};
+    Object.keys(st || {}).forEach(function (k) { if (st[k] != null && st[k] !== '') out[k] = st[k]; });
+    var typ = norm(out.type);
+    if (!typ) return out;
+    if (typ === 'home based' || typ === 'home-based' || typ === 'remote') { if (!out.wp) out.wp = 'remote'; delete out.type; }
+    else if (TYPE_ALIAS[typ]) { if (!out.ct) out.ct = TYPE_ALIAS[typ]; delete out.type; }
+    return out;
+  }
+  /* A job's contract tags; datasets without the array fall back to the scraped type. */
+  function contractTags(j) {
+    if (j.contract) return j.contract;
+    var k = TYPE_ALIAS[norm(j.type)];
+    return k ? [k] : [];
+  }
   function filterJobs(jobs, st, opts) {
     opts = opts || {};
+    st = normaliseState(st);
     var loc = norm(st.loc), typ = norm(st.type);
     /* sector accepts several values joined with "|" (any-of), as the multi-sector landing pages link */
     var secs = norm(st.sector).split('|').map(function (x) { return x.trim(); }).filter(Boolean);
@@ -195,7 +216,7 @@
       if (st.sal && j.sal_min == null && j.sal_max == null) return false;
       if (st.wp && (j.workplace || 'unspecified') !== st.wp) return false;
       if (st.level && j.level !== st.level) return false;
-      if (st.ct && (j.contract || []).indexOf(st.ct) < 0) return false;
+      if (st.ct && contractTags(j).indexOf(st.ct) < 0) return false;
       if (smin != null || smax != null) {
         var a = annual(j, opts.cur);
         if (!a) return false;
@@ -289,9 +310,56 @@
       var w = q.opts[a].w;
       Object.keys(w).forEach(function (s) { if (s in score) score[s] += w[s] * (q.weight || 1); });
     });
-    var max = Math.max.apply(null, sectors.map(function (s) { return score[s]; })) || 1;
-    return sectors.map(function (s) { return { sector: s, score: score[s], pct: Math.round(100 * score[s] / max) }; })
+    /* pct is against the best score a sector could reach over the answered
+       questions, so "100% match" means every answer pointed at it (visual 16),
+       not merely that it topped the list. */
+    var possible = {};
+    sectors.forEach(function (s) { possible[s] = 0; });
+    questions.forEach(function (q, qi) {
+      if (answers[qi] == null || !q.opts[answers[qi]]) return;
+      sectors.forEach(function (s) {
+        var best = 0;
+        q.opts.forEach(function (o) { var v = (o.w || {})[s] || 0; if (v > best) best = v; });
+        possible[s] += best * (q.weight || 1);
+      });
+    });
+    return sectors.map(function (s) { return { sector: s, score: score[s], pct: Math.min(100, Math.max(0, Math.round(100 * score[s] / (possible[s] || 1)))) }; })
       .sort(function (a, b) { return b.score - a.score || a.sector.localeCompare(b.sector); });
+  }
+  /* One entry per (title, employer): the same advert carried twice in a
+     dataset (IE + UK copies, or two counties) is listed once (visual 16). */
+  function dedupeJobs(list) {
+    var seen = {}, out = [];
+    (list || []).forEach(function (j) {
+      var k = norm(j.title) + '|' + norm(j.employer);
+      if (seen[k]) return;
+      seen[k] = 1;
+      out.push(j);
+    });
+    return out;
+  }
+  /* A job's sectors with the active filter's sector(s) first, so the card
+     chip explains why the role matched (visual 23). activeSector may be
+     "a|b" as the landing pages link. */
+  function orderSectors(job, activeSector) {
+    var secs = (job && job.sectors || []).slice();
+    var active = norm(activeSector).split('|').map(function (x) { return x.trim(); }).filter(Boolean);
+    if (!active.length) return secs;
+    var first = secs.filter(function (s) { return active.indexOf(norm(s)) >= 0; });
+    return first.concat(secs.filter(function (s) { return first.indexOf(s) < 0; }));
+  }
+  /* Empty-state suggestions (visual 22): sectors counted over the roles that
+     match every other active facet (state minus `sector`), busiest first, so
+     each suggestion yields at least one role. [] when nothing else matches. */
+  function suggestSectors(jobs, st, opts) {
+    opts = opts || {};
+    var rest = normaliseState(st);
+    delete rest.sector;
+    var pool = filterJobs(jobs, rest, opts), cnt = {};
+    pool.forEach(function (j) { (j.sectors || []).forEach(function (s) { cnt[s] = (cnt[s] || 0) + 1; }); });
+    return Object.keys(cnt).map(function (s) { return { name: s, n: cnt[s] }; })
+      .sort(function (a, b) { return b.n - a.n || a.name.localeCompare(b.name); })
+      .slice(0, opts.limit || 4);
   }
   function encodeAnswers(a) { return a.map(function (v) { return v == null ? '' : v; }).join('.'); }
   function decodeAnswers(s, n) {
@@ -425,6 +493,7 @@
     norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, currencyNote: currencyNote, fxConvert: fxConvert, FX_GBP_EUR: FX_GBP_EUR, locLabel: locLabel, daysUntil: daysUntil, closingWithin: closingWithin, newThisWeek: newThisWeek, setToday: setToday, today: today, annual: annual, median: median,
     histogram: histogram, daysAgo: daysAgo, ago: ago, parseState: parseState, toQuery: toQuery, filterJobs: filterJobs,
     sortJobs: sortJobs, suggest: suggest, buildIndex: buildIndex, smartMatch: smartMatch, scoreSectors: scoreSectors,
-    encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack, jobUrl: jobUrl
+    encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack, jobUrl: jobUrl,
+    normaliseState: normaliseState, dedupeJobs: dedupeJobs, orderSectors: orderSectors, suggestSectors: suggestSectors
   };
 });

@@ -199,9 +199,26 @@
   $$('[data-demo-form]').forEach(function (f) {
     f.addEventListener('submit', function (e) {
       e.preventDefault();
-      var n = $('[data-demo-note]', f);
+      var n = $('[data-demo-note]', f), pre = $('[data-demo-pre]', f);
+      if (pre) pre.hidden = true;
       if (n) { n.hidden = false; n.focus(); }
     });
+  });
+
+  /* ------------------------------------------------ footer date, rail scroll cue, blank logo tiles */
+  $$('time[data-date-long]').forEach(function (t) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t.getAttribute('datetime') || '');
+    if (m) t.textContent = parseInt(m[3], 10) + ' ' + ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][parseInt(m[2], 10) - 1] + ' ' + m[1];
+  });
+  $$('[data-rail-home]').forEach(function (a) {
+    var r = $('.rail', a); if (!r) return;
+    var end = function () { a.classList.toggle('is-end', r.scrollHeight - r.scrollTop - r.clientHeight < 12); };
+    r.addEventListener('scroll', end, { passive: true }); window.addEventListener('resize', end); end();
+  });
+  $$('.emp img').forEach(function (img) {
+    var blank = function () { if (!img.naturalWidth || img.naturalWidth < 8 || img.naturalHeight < 8) img.parentNode.classList.add('is-blank'); };
+    img.addEventListener('error', function () { img.parentNode.classList.add('is-blank'); });
+    if (img.complete) blank(); else img.addEventListener('load', blank);
   });
 
   /* ------------------------------------------------ share */

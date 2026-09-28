@@ -165,6 +165,27 @@ def _check_labels(doc: _Doc, rel: str, fails: list[str]) -> None:
             fails.append(f"{rel}: <{tag} id=\"{field_id}\"> has no <label for> and no aria-label")
 
 
+def _check_hreflang_pairs(alternates_by_rel: dict[str, list[tuple[str, str]]], fails: list[str]) -> None:
+    """Every hreflang alternate that points into the site must land on a
+    built page whose own alternates point back (R055: the landing-page twins
+    ecology-jobs-ireland <-> ecology-jobs-uk etc. are real pairs)."""
+    for rel, alts in alternates_by_rel.items():
+        for hl, href in alts:
+            m = re.search(r"https://[^/]+/((?:ie|uk)/.*)$", href)
+            if not m:
+                continue
+            target = m.group(1) or "index.html"
+            if target.endswith("/"):
+                target += "index.html"
+            if target == rel:
+                continue
+            back = alternates_by_rel.get(target)
+            if back is None:
+                fails.append(f"{rel}: hreflang={hl} points at {href}, which is not a built page")
+            elif not any(re.search(r"https://[^/]+/" + re.escape(rel) + r"$", h) for _, h in back):
+                fails.append(f"{rel}: hreflang={hl} pair target {target} does not link back")
+
+
 def _check_seo_links(doc: _Doc, rel: str, site: Path, fails: list[str]) -> None:
     """Canonical/alternate links: absolute https URLs, one x-default whenever
     an alternate is present, and every alternate that points into this site
@@ -254,6 +275,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
     if not pages:
         return [f"no HTML pages found under {site}"]
     job_pages: dict[str, int] = {}
+    alternates_by_rel: dict[str, list[tuple[str, str]]] = {}
     for page in pages:
         rel = page.relative_to(site).as_posix()
         raw = page.read_text(encoding="utf-8")
@@ -342,6 +364,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
         if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
             fails.append(f"{rel}: home page has no hero landscape host")
         _check_seo_links(doc, rel, site, fails)
+        alternates_by_rel[rel] = [(hl, href) for r, hl, href in doc.seo_links if r == "alternate"]
         if 'id="h-landing-roles"' in raw and not re.search(r'<article class="role\b', raw):
             fails.append(f"{rel}: landing page carries no role card (a landing page with zero roles must not be built)")
         dm = re.match(r"^(ie|uk)/dashboard/index\.html$", rel)
@@ -361,15 +384,17 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
             if 'muted' not in vid.group(0) or 'playsinline' not in vid.group(0):
                 fails.append(f"{rel}: hero <video> must be muted and playsinline")
         hm = re.match(r"^(ie|uk)/index\.html$", rel)
-        if hm and 'data-strip="hiring"' in raw:
-            # Every logo under "Employers hiring now" must belong to an employer with a live role in this edition.
-            live = {html.unescape(j["employer"]) for j in jobs_by_edition.get(hm.group(1), [])}
-            strip = re.search(r'<div class="marq" data-marq data-strip="hiring">(.*?)</div></div>', raw, re.S)
-            names = re.findall(r'<(?:img[^>]*\balt="([^"]*)"|span>([^<]*)</span>)', strip.group(1)) if strip else []
-            for alt, span in names:
-                name = html.unescape(alt or span)
-                if name and name not in live:
-                    fails.append(f"{rel}: '{name}' is shown under \"Employers hiring now\" but has no live role in this edition")
+        sm = re.match(r"^(ie|uk)/(?:index|employers/index)\.html$", rel)
+        if sm and "data-strip=" in raw and sm.group(1) in jobs_by_edition:
+            # Every tile in the employer strip ("Employers hiring now" on the home page,
+            # "Organisations recruiting through GreenJobs" on the employers page) must
+            # belong to an employer with a live role in this edition (R041 / visual 7).
+            live = {html.unescape(j["employer"]) for j in jobs_by_edition.get(sm.group(1), [])}
+            for mode, inner in re.findall(r'<div class="marq" data-marq data-strip="([a-z]+)">(.*?)</div></div>', raw, re.S):
+                for alt, span in re.findall(r'<(?:img[^>]*\balt="([^"]*)"|span>([^<]*)</span>)', inner):
+                    name = html.unescape(alt or span)
+                    if name and name not in live:
+                        fails.append(f"{rel}: '{name}' is shown in the employer strip ({mode}) but has no live role in this edition")
         if hm and "countyies" in raw:
             fails.append(f"{rel}: 'countyies' pluralisation bug")
         em = re.match(r"^(ie|uk)/", rel)
@@ -402,6 +427,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
     if list(site.rglob("*.test.js")):
         fails.append("a *.test.js file was shipped into the site (tests stay in src)")
     _check_hero(site, fails)
+    _check_hreflang_pairs(alternates_by_rel, fails)
     for required in ("robots.txt", "manifest.webmanifest", "sitemap.xml", "index.html", "404.html"):
         if not (site / required).exists():
             fails.append(f"{required} is missing")

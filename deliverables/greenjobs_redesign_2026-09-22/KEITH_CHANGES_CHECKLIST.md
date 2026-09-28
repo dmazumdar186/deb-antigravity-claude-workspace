@@ -5,7 +5,7 @@ Every item ticked only after the build validator, unit tests and the item's own 
 
 ## A. Positioning & hero (both editions)
 - [x] A1 Replace h1 "Work that puts the planet on the payroll" with "Work that works for the planet." plus plain-English sub-line: IE "Find environmental, sustainability, renewable-energy and nature careers across Ireland." UK "Search environmental, ecology, sustainability, renewable-energy and low-carbon careers across the UK."
-- [x] A2 Remove "N employers" from the IE hero facts. Replace with credibility markers: "Specialist green job network since 2008", "10 specialist job sites", "Roles across N sectors", "Certified B Corporation". UK keeps the computed employer count ("N employers hiring now", 18 on the 22 Sept snapshot; its scale is a credibility asset). (network count read from data: 10 sites; B Corp shown as the mark + explainer only, per brief.md §3)
+- [x] A2 Remove "N employers" from the IE hero facts. Replace with credibility markers: "Specialist green job network since 2008", "10 specialist job sites", "Roles across N sectors" (N is the live count of sectors with at least one role — 14 per edition on 28 Sept — not the "10" in the document's example, which predates the six added sectors), "Certified B Corporation". UK keeps the computed employer count ("N employers hiring now", 18 on the 22 Sept snapshot; its scale is a credibility asset). (network count read from data: 10 sites; B Corp shown as the mark + explainer only, per brief.md §3)
 - [x] A3 B Corp badge gets a one-line explainer everywhere it appears.
 - [x] A4 Employer logos on IE only if each employer has a live role (already enforced by validator) — keep.
 

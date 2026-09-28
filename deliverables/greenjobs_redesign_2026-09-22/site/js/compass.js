@@ -34,7 +34,7 @@ return stage === 'senior' ? sen : stage === 'junior' ? !sen : !jun;
 function roles(sector) {
 var o = Q.map(function (q, i) { return q.opts[answers[i]] || {}; });
 var region = o[3].region, floor = o[4].floor, type = o[5].type, stage = o[6].stage;
-var pool = jobs.filter(function (j) { return (j.sectors || []).indexOf(sector) >= 0; });
+var pool = G.dedupeJobs(jobs.filter(function (j) { return (j.sectors || []).indexOf(sector) >= 0; }));
 var hi = function (j) { return (G.annual(j) || {}).hi; };
 var inRegion = function (j) { return !region || (j.regions || []).indexOf(region) >= 0; };
 var tries = [

@@ -281,3 +281,52 @@ test('money rounds half up like Python rnd()', () => {
   assert.equal(GJ.money(32450, 'EUR'), '€32.5k');
   assert.equal(GJ.locLabel('unspecified'), 'Location not stated');
 });
+
+test('normaliseState folds the legacy type param into contract / workplace', () => {
+  assert.deepEqual(GJ.normaliseState({ type: 'Permanent', q: 'x' }), { q: 'x', ct: 'permanent' });
+  assert.deepEqual(GJ.normaliseState({ type: 'Full Time' }), { ct: 'full-time' });
+  assert.deepEqual(GJ.normaliseState({ type: 'Home Based' }), { wp: 'remote' });
+  assert.deepEqual(GJ.normaliseState({ type: 'Contract', ct: 'fixed-term' }), { ct: 'fixed-term' });
+  const jobs = [
+    { title: 'A', employer: 'E', type: 'Permanent', contract: ['permanent'], workplace: 'office', sectors: ['S'] },
+    { title: 'B', employer: 'E', type: 'Home Based', contract: ['permanent'], workplace: 'remote', sectors: ['S'] },
+  ];
+  assert.deepEqual(GJ.filterJobs(jobs, { type: 'Home Based' }).map(j => j.title), ['B']);
+  assert.deepEqual(GJ.filterJobs(jobs, { ct: 'permanent' }).map(j => j.title).sort(), ['A', 'B']);
+});
+
+test('dedupeJobs keeps one entry per title + employer', () => {
+  const d = GJ.dedupeJobs([{ title: 'Associate – Renewables', employer: 'Gaia Talent', id: 1 }, { title: 'associate – renewables', employer: 'Gaia Talent', id: 2 }, { title: 'Associate – Renewables', employer: 'Other', id: 3 }]);
+  assert.deepEqual(d.map(j => j.id), [1, 3]);
+});
+
+test('compass pct is 100 only when every answer favoured the sector', () => {
+  const qs = [{ opts: [{ w: { A: 3 } }, { w: { B: 3 } }], weight: 2 }, { opts: [{ w: { A: 1, B: 1 } }, { w: { A: 2 } }] }];
+  const r = GJ.scoreSectors([1, 0], qs, ['A', 'B']);
+  assert.equal(r[0].sector, 'B');
+  assert.equal(r[0].pct, 100); // B: 6 + 1 of a possible 7
+  assert.equal(r[1].pct, Math.round(100 * 1 / 8)); // A: 1 of a possible 2*3 + 2
+  const r2 = GJ.scoreSectors([0, 0], qs, ['A', 'B']);
+  assert.equal(r2[0].sector, 'A');
+  assert.equal(r2[0].pct, Math.round(100 * 7 / 8)); // top of the list but not a 100% match
+  assert.ok(r2.every(x => x.pct <= 100));
+});
+
+test('orderSectors puts the active filter sector first', () => {
+  const j = { sectors: ['Health, safety & environment', 'Ecology, nature recovery & biodiversity', 'Environmental science & consulting'] };
+  assert.deepEqual(GJ.orderSectors(j, 'Ecology, nature recovery & biodiversity'), ['Ecology, nature recovery & biodiversity', 'Health, safety & environment', 'Environmental science & consulting']);
+  assert.deepEqual(GJ.orderSectors(j, 'wind energy|environmental science & consulting'), ['Environmental science & consulting', 'Health, safety & environment', 'Ecology, nature recovery & biodiversity']);
+  assert.deepEqual(GJ.orderSectors(j, ''), j.sectors);
+  assert.deepEqual(GJ.orderSectors({}, 'x'), []);
+});
+
+test('suggestSectors respects the other active facets', () => {
+  const jobs = [
+    { title: 'A', employer: 'E', workplace: 'hybrid', level: 'Mid-level', contract: [], sectors: ['Water & flood'] },
+    { title: 'B', employer: 'E', workplace: 'hybrid', level: 'Mid-level', contract: [], sectors: ['Water & flood', 'Climate & carbon'] },
+    { title: 'C', employer: 'E', workplace: 'office', level: 'Mid-level', contract: [], sectors: ['Ecology, nature recovery & biodiversity'] },
+  ];
+  assert.deepEqual(GJ.suggestSectors(jobs, { sector: 'Ecology, nature recovery & biodiversity', wp: 'hybrid', level: 'Mid-level' }), [{ name: 'Water & flood', n: 2 }, { name: 'Climate & carbon', n: 1 }]);
+  assert.deepEqual(GJ.suggestSectors(jobs, { sector: 'Wind energy', wp: 'site' }), []);
+  assert.deepEqual(GJ.suggestSectors(jobs, { sector: 'Wind energy' }, { limit: 1 }), [{ name: 'Water & flood', n: 2 }]);
+});

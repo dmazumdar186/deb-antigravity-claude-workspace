@@ -58,7 +58,7 @@
     return '<article class="row' + (closed ? ' row--closed' : '') + '" data-id="' + G.esc(j.id) + '">' + logo(j) +
       '<div class="row__body"><h3><a href="' + G.esc(j.href) + '">' + hl(j.title, q) + '</a></h3>' +
       '<div class="row__meta"><span class="row__emp">' + G.esc(j.employer) + ' <span aria-hidden="true">·</span></span><span>' + G.esc(j.location) + '</span>' +
-      (closed ? '<span class="tag tag--closed">Closed</span>' : '') + salChips(sal) + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (j.sectors[0] ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i><span class="tag__t">' + G.esc(j.sectors[0]) + '</span></span>' : '') + '</div></div>' +
+      (closed ? '<span class="tag tag--closed">Closed</span>' : '') + salChips(sal) + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (sect0(j) ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i><span class="tag__t">' + G.esc(sect0(j)) + '</span></span>' : '') + '</div></div>' +
       '<div class="row__r"><time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time><span>' + G.esc(j.type || '') + '</span></div>' +
       '<button class="save" type="button" data-save="' + G.esc(j.id) + '" data-title="' + G.esc(j.title) + '" aria-pressed="false" aria-label="Save: ' + G.esc(j.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button></article>';
   }
@@ -87,8 +87,11 @@
       return '<span class="chip">' + G.esc(LABEL[k]) + G.esc(chipText(k)) + '<button type="button" data-clear="' + k + '" aria-label="Remove ' + G.esc(LABEL[k]) + ' filter">×</button></span>';
     }).join('');
   }
+  /* lib.orderSectors puts the active filter's sector first on the card chip (visual 23);
+     lib.suggestSectors offers only sectors that still yield a role under the other facets (visual 22). */
+  function sect0(j) { return (G.orderSectors ? G.orderSectors(j, st.sector) : j.sectors)[0]; }
   function empty(msg) {
-    var pop = data.sectors.slice(0, 4).map(function (s) { return '<button class="btn btn--sm btn--ghost" type="button" data-set="sector" data-v="' + G.esc(s.name) + '">' + G.esc(s.name) + ' · ' + s.n + '</button>'; }).join('');
+    var pop = (G.suggestSectors ? G.suggestSectors(data.jobs, st) : data.sectors.slice(0, 4)).map(function (s) { return '<button class="btn btn--sm btn--ghost" type="button" data-set="sector" data-v="' + G.esc(s.name) + '">' + G.esc(s.name) + ' · ' + s.n + '</button>'; }).join('');
     return '<div class="empty"><h3>' + msg + '</h3><p>Try a broader search, another region, or one of the busiest sectors right now.</p><div class="sugg"><button class="btn btn--sm btn--lime" type="button" data-reset>Clear all filters</button>' + pop + '</div></div>';
   }
   function render() {

@@ -42,6 +42,11 @@ IE_MERGE = {
     "Laoighis": "Laois",
 }
 UK_NATION = {"SCT": "Scotland", "WLS": "Wales", "NIR": "Northern Ireland"}
+# Context shapes: drawn on a map but not a region of it. The IE map carries
+# Northern Ireland (R072 / visual 11) as one outline (Natural Earth admin-1
+# has NI's council areas, not its six counties) labelled towards the UK board.
+CTX_PREFIX = "__ctx:"
+IE_CONTEXT = {"Northern Ireland": "Northern Ireland (see greenjobs.co.uk)"}
 UK_ENGLAND = {
     "East": "East of England",
     "East Midlands": "East Midlands",
@@ -216,6 +221,15 @@ def to_svg(shapes: dict[str, list[list[Point]]], width: float, height: float, ti
         rings = shapes[name]
         d = " ".join("M" + " L".join(f"{x},{y}" for x, y in r) + "Z" for r in rings)
         cx, cy = centroid(rings)
+        if name.startswith(CTX_PREFIX):
+            label = name[len(CTX_PREFIX):]
+            note = IE_CONTEXT.get(label, label)
+            parts.append(
+                f'<g class="gmap__ctx" data-note="{note}" data-cx="{cx}" data-cy="{cy}" aria-label="{note}">'
+                f'<path d="{d}"/>'  # no <title>: the validator counts every <title> on the page
+                f'<text x="{cx}" y="{cy}"><tspan x="{cx}" dy="-2">{label}</tspan><tspan x="{cx}" dy="12">{note[len(label):].strip(" ()")}</tspan></text></g>'
+            )
+            continue
         slug = name.lower().replace(" ", "-").replace("&", "and")
         parts.append(
             f'<g class="gmap__r" data-region="{name}" data-slug="{slug}" data-cx="{cx}" data-cy="{cy}">'
@@ -251,10 +265,14 @@ def main() -> int:
         ("uk", 0.02, 0.01, "Map of the United Kingdom by region"),
     ):
         groups = collect(features, edition)
+        if edition == "ie":
+            uk_groups = collect(features, "uk")
+            for ctx_name in IE_CONTEXT:
+                groups[CTX_PREFIX + ctx_name] = uk_groups.get(ctx_name, [])
         shapes, w, h = project(groups, 600, tol, min_area)
         svg = to_svg(shapes, w, h, title)
         (args.out / f"{edition}.svg").write_text(svg, encoding="utf-8")
-        index[edition] = sorted(shapes)
+        index[edition] = sorted(n for n in shapes if not n.startswith(CTX_PREFIX))
         print(f"PASS  {edition}.svg: {len(shapes)} regions, {len(svg)} bytes, viewBox 600x{h:.0f}")
     (args.out / "regions_index.json").write_text(json.dumps(index, indent=1) + "\n", encoding="utf-8")
     return 0

@@ -14,13 +14,22 @@
   if (tm) {
     var items = data.sectors.filter(function (s) { return s.n > 0; }).map(function (s) { return { key: s.name, label: s.name, v: s.n, color: s.color, dark: s.dark }; });
     var picked = '';
+    var key = doc.createElement('ul'); key.className = 'tmkey'; key.setAttribute('aria-label', 'All sectors');
     var svg = C.treemap(items, { label: 'Live roles by sector', height: 460, onPick: function (it) {
       picked = picked === it.key ? '' : it.key;
       Array.prototype.forEach.call(tm.querySelectorAll('.cell'), function (c) { c.classList.toggle('is-on', c.getAttribute('data-key') === picked); });
+      Array.prototype.forEach.call(key.querySelectorAll('button'), function (b) { b.classList.toggle('is-on', b.getAttribute('data-key') === picked); b.setAttribute('aria-pressed', b.getAttribute('data-key') === picked ? 'true' : 'false'); });
       Array.prototype.forEach.call(doc.querySelectorAll('[data-secrow]'), function (r) { r.classList.toggle('is-dim', !!picked && r.getAttribute('data-secrow') !== picked); });
       var n = $('[data-tm-note]'); if (n) n.textContent = picked ? 'Showing ' + picked + '. Press it again to clear.' : 'Tap a block to highlight that sector in the list below.';
     } });
     tm.appendChild(svg);
+    items.forEach(function (it) {
+      var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.setAttribute('data-key', it.key); b.setAttribute('aria-pressed', 'false');
+      b.innerHTML = '<i style="background:' + G.esc(it.color) + '"></i><span>' + G.esc(it.label) + '</span><b>' + it.v + '</b>';
+      b.addEventListener('click', function () { svg._pick(it); });
+      li.appendChild(b); key.appendChild(li);
+    });
+    tm.appendChild(key);
     tm.parentNode.appendChild(C.table(['Sector', 'Live roles'], items.map(function (i) { return [i.label, String(i.v)]; })));
   }
 

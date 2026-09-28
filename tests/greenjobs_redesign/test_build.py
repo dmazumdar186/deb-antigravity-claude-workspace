@@ -15,6 +15,7 @@ Run: python3 tests/greenjobs_redesign/test_build.py
 
 from __future__ import annotations
 
+import html
 import json
 import re
 import shutil
@@ -162,7 +163,7 @@ def test_employers_strip_is_honest():
     six = build_site.employers_strip(mk(["A", "B", "C", "D", "E", "F"]), "../")
     check(six["mode"] == "hiring" and six["title"] == "Employers hiring now" and "Pad1" not in six["html"] and "G" not in six["html"].replace("Green", ""), "employers_strip: >=6 live employers -> 'hiring now' with live employers only")
     two = build_site.employers_strip(mk(["A", "B"]), "../")
-    check(two["mode"] == "network" and two["title"] == "Employers on the GreenJobs network" and "2 of them have live roles" in two["sub"] and "Pad1" in two["html"], "employers_strip: <6 live -> network title, padded honestly")
+    check(two["mode"] == "network" and two["title"] == "Employers on the GreenJobs network" and "2 of them have live roles" in two["sub"] and "Pad1" not in two["html"] and "<span>A</span>" in two["html"], "employers_strip: <6 live -> network title, live employers only, never padded (R041)")
     check(build_site.employers_strip({"site": "x", "employers": [], "jobs": []}, "../")["html"] == "", "employers_strip: no employers -> empty html")
 
 
@@ -278,10 +279,10 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check("data-film-steps" not in clean, "home: the film rail is gone (compact insight band since 2026-09-28)")
     for t, lvl in (("Graduate Ecologist", "Graduate/Early career"), ("Senior Hydrogeologist", "Senior/Principal"), ("Associate Director, Planning", "Director/Associate"), ("Wind Turbine Technician", "Mid-level")):
         check(build_site.level_of(t) == lvl, f"level_of: {t!r} -> {lvl}")
-    check(build_site.sector_stat([{"sal_min": None, "sal_max": None}, {"sal_min": 30000, "sal_max": None, "period": "year"}], "€") == "1 discloses pay", "sector_stat: counts disclosures under three")
+    check(build_site.sector_stat([{"sal_min": None, "sal_max": None}, {"sal_min": 30000, "sal_max": None, "period": "year"}], "€") == "1 disclosed salary", "sector_stat: counts disclosures under three")
     uk_home = (out / "uk" / "index.html").read_text(encoding="utf-8")
     check('data-lvl="' in uk_home and 'data-n="' in uk_home, "home: UK map regions carry data-n/data-lvl at build time (IE home has no map band since 2026-09-28)")
-    check(any("Employers hiring now" in f for f in with_patch(lambda t: t.replace('data-strip="network"', 'data-strip="hiring"').replace('<div class="marq__track">', '<div class="marq__track"><div class="emp"><span>Ghost Ltd</span></div>'))), "faults: non-live employer under 'hiring now' caught")
+    check(any("employer strip (hiring)" in f for f in with_patch(lambda t: t.replace('data-strip="network"', 'data-strip="hiring"').replace('<div class="marq__track">', '<div class="marq__track"><div class="emp"><span>Ghost Ltd</span></div>'))), "faults: non-live employer under 'hiring now' caught")
     check(validate_site.validate(out, jobs) == [], "faults: clean build validates with zero problems after patches are reverted")
     keith = out / "ie" / "for-keith" / "index.html"
     k = keith.read_text(encoding="utf-8")
@@ -338,7 +339,8 @@ def test_dashboard_renders_per_edition(tmp_root: Path):
         check("—" in wired[0] and "collected from launch" in html_text, f"dashboard: {ed} wired tiles use a neutral dash with the collected-from-launch caption")
         check("Plausible" not in html_text and "GA4" not in html_text and "analytics provider" in html_text, f"dashboard: {ed} names no analytics vendor")
         check('data-csv' in html_text and "js/dashboard.js" in html_text and "js/charts.js" in html_text, f"dashboard: {ed} ships the CSV button and scripts")
-        check(("Concentration risk" in html_text or "concentration risk" in html_text) == (k["top_share"] > 50), f"dashboard: {ed} concentration flag shown only when top employer share > 50%")
+        check(("Most roles come from one employer." in html_text) == (k["top_share"] > 50) and "concentration risk" not in html_text.lower(), f"dashboard: {ed} 'Most roles come from one employer.' shown only when top employer share > 50%")
+        check("Roles posted by recruitment agencies rather than the employer directly." in html_text, f"dashboard: {ed} agency tile reads in plain words")
     home = (out / "ie" / "index.html").read_text(encoding="utf-8")
     check("dashboard/index.html" not in home and "dashboard" not in (out / "sitemap.xml").read_text(encoding="utf-8"), "dashboard: not in the primary nav or sitemap")
     check("dashboard/index.html" in (out / "ie" / "for-keith" / "index.html").read_text(encoding="utf-8"), "dashboard: linked from the for-keith evidence page")
@@ -539,7 +541,7 @@ def test_ni_region_and_facets(tmp_root: Path):
     check(all(k in j for k in ("loc_class", "workplace", "level", "contract", "agency", "closing")) and embedded.get("home") == ["ie", "cross", "remote"] and all(x["loc_class"] in build_site.EDITION_INCLUDES["ie"] for x in embedded["jobs"]), "facets: dataset carries the facet fields, the home classes, and only IE-rule roles")
     check('class="tag tag--loc"' in (out / "ie" / "index.html").read_text(encoding="utf-8"), "B3: location badge rendered on home cards")
     fit = (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8")
-    check("Quick job match" in fit and "Processed on your device. Nothing is uploaded." in fit and "Keyword matching, not an assessment of your suitability" in fit, "D3: matcher renamed with the two disclosure lines (wording per panel B2)")
+    check("Quick job match" in fit and "Your information is processed on your device and is not uploaded or stored." in fit and "Keyword matching, not an assessment of your suitability" in fit, "D3: matcher renamed with the two disclosure lines (client sentence verbatim, R036; round 2 B)")
     check("ecologist Bristol" in fit and "ecologist dublin" not in fit.lower(), "D4: UK examples, never 'ecologist dublin' on UK")
     ie_fit = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
     check("ecologist Dublin" in ie_fit and "Bristol" not in ie_fit, "D4: IE keeps Irish examples")
@@ -769,7 +771,9 @@ def test_pf_a_hreflang_pairs(tmp_root: Path):
         check(gb.endswith("/uk/" + rel.split("/", 1)[1]), f"pf-A14: {rel} en-GB alternate is the UK twin of the same path ({gb})")
     landing = next(p for p in (out / "ie").glob("*-jobs-*/index.html"))
     head = landing.read_text(encoding="utf-8").split("</head>")[0]
-    check('rel="canonical" href="https://' in head and 'rel="alternate"' not in head, "pf-A14: a landing page (slug differs per edition) has an absolute canonical and no alternate pair")
+    twin = build_site.LANDING_PAIRS[landing.parent.name]
+    check('rel="canonical" href="https://' in head and f'hreflang="en-GB" href="https://greenjobs-redesign.pages.dev/uk/{twin}/index.html"' in head,
+          f"pf-A14 (R055): landing {landing.parent.name} has an absolute canonical and an en-GB alternate to its twin {twin}")
 
 
 def test_pf_a_validator_rules(tmp_root: Path):
@@ -915,9 +919,9 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
           "panel B1: cookie dialog lists theme, edition, saved roles, subscribe prompt and dashboard view")
     # 2. quick job match wording + share is explicit
     jobs = _read(out / "ie" / "jobs" / "index.html")
-    check("Processed on your device. Nothing is uploaded." in jobs and "Keyword matching, not an assessment of your suitability." in jobs
-          and "Copy shareable link" in jobs and "The link contains your text." in jobs and "not uploaded or stored" not in jobs,
-          "panel B2: fit panel copy and explicit share note")
+    check("Your information is processed on your device and is not uploaded or stored." in jobs and "Keyword matching, not an assessment of your suitability." in jobs
+          and "Copy shareable link" in jobs and "The link contains your search words." in jobs and "Nothing is uploaded" not in jobs,
+          "panel B2 (re-worded round 2 B / R036): fit panel uses the client sentence verbatim; share note says the link carries the search words")
     fit_js = _read(SRC / "js" / "fit.js")
     check(fit_js.count("'#fit=' + G.encodeFit(") == 1 and "Explicit opt-in" in fit_js.split("'#fit=' + G.encodeFit(")[0][-400:],
           "panel B2: fit.js writes the hash only inside the share click handler")
@@ -940,9 +944,10 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     check("fact--slot" not in emp_uk and "Testimonial supplied at launch" not in emp_uk and "Client testimonials are being collected for launch" in emp_uk,
           "panel B4: UK employers page shows one collection line, no placeholder slots")
     # 5. demo forms: pre-submit note above the button + fallback link
-    for label, page_html, needle in (("home alerts", home, "Meanwhile, browse all roles"), ("subscribe dialog", home, "data-subscribe"), ("employers", emp_uk, "Posting opens at launch")):
+    # Re-worded in round 2 B (visual 8 / R044): visitor voice, no "connects at launch" copy.
+    for label, page_html, needle in (("home alerts", home, "Meanwhile, browse all roles"), ("subscribe dialog", home, "data-subscribe"), ("employers", emp_uk, "Preview only. Rates and posting are handled by the GreenJobs team")):
         pre = page_html.find('data-demo-pre'); btn = page_html.find('type="submit"', pre)
-        check(0 <= pre < btn and "Sign-ups open at launch" in page_html and needle in page_html, f"panel B5: {label} form shows the launch note before the button")
+        check(0 <= pre < btn and "Alerts open when the new site launches." in home and needle in page_html, f"panel B5: {label} form shows the launch note before the button")
     check(home.count("Meanwhile, browse all roles") >= 2, "panel B5: alert and subscribe forms carry the browse-all fallback link")
     # 6. employers page copy
     emp_ie = _read(out / "ie" / "employers" / "index.html")
@@ -1013,5 +1018,219 @@ def test_panel_b_dashboard_rules_from_stored_fields():
     check(k["closing7"] == 3 and k["new7"] == 3, f"panel B10: three roles posted 2 days ago and closing in 5 days count in both windows ({k['new7']}, {k['closing7']})")
 
 
+
+
+# --- round 2a (2026-09-28): matrix rows R010/R087, R012, R072/R077, R055, R041; visual 11/12/16/22/23/24/29/31
+
+def _mk_job(title, summary="", body="", employer="Acme", typ="", location="Dublin", region="Ireland"):
+    return {"title": title, "employer": employer, "sectors": [], "summary": summary, "description_html": body, "type": typ, "location": location, "region": region}
+
+
+def test_r2a_secondary_sector_tags():
+    INF = "Sustainable infrastructure & transport"
+    two_body = _mk_job("Highways Civil Engineer", "Design highways and roads.", "<p>building construction</p>")
+    check(build_site.assign_sectors(two_body) == [INF], "r2a R087: two stray body hits ('building', 'construction') no longer add Built environment to a highways role")
+    explicit = _mk_job("Resident Engineer – Bridge Construction", "Bridge and highways construction supervision.", "<p>roads bridges rail</p>")
+    check(build_site.assign_sectors(explicit)[:2] == [INF, "Built environment & energy efficiency"], "r2a R010: a title/summary that says 'Construction' keeps Built environment as a secondary")
+    many = _mk_job("Civil Engineer", "roads rail bridges", "<p>policy planning sustainability esg water flood carbon</p>")
+    secs = build_site.assign_sectors(many)
+    check(secs[0] == INF and len(secs) <= 1 + build_site.MAX_SECONDARY, f"r2a R010: at most {build_site.MAX_SECONDARY} secondaries, never below a third of the primary's score ({secs})")
+    gold = json.loads((Path(__file__).resolve().parent / "golden_sectors.json").read_text(encoding="utf-8"))
+    raws = {ed: json.loads((SRC / "data" / f"{ed}.json").read_text(encoding="utf-8")) for ed in ("ie", "uk") if (SRC / "data" / f"{ed}.json").exists()}
+    if len(raws) < 2:
+        skip("r2a R010: real datasets absent, golden secondaries")
+        return
+    by = {j["id"]: j for r in raws.values() for j in r["jobs"]}
+    with_sec = [g for g in gold if "secondaries" in g and g["id"] in by]
+    misses = [f"{g['title'][:30]!r} -> {build_site.assign_sectors(by[g['id']])[1:]}" for g in with_sec if build_site.assign_sectors(by[g["id"]])[1:] != g["secondaries"]]
+    check(len(with_sec) >= 8 and not misses, f"r2a R010/R087: the {len(with_sec)} golden highways/civil roles carry exactly the expected secondary sets ({misses[:3]})")
+    forbidden = {"Built environment & energy efficiency", "Sustainability & ESG", "Policy, planning & advisory"}
+    civil = re.compile(r"\b(civil|highways?|roads?|rail|bridge)\b", re.I)
+    stray = []
+    for j in by.values():
+        if civil.search(j["title"]) and build_site.assign_sectors(j)[0] == INF:
+            for s in build_site.assign_sectors(j)[1:]:
+                if s in forbidden and not re.search(r"built environment|construction|sustainab|planner|policy", (j["title"] + " " + (j.get("summary") or "")).lower()):
+                    stray.append(f"{j['title'][:30]!r}: {s}")
+    check(not stray, f"r2a R010/R087: no civil/highways/roads/rail/bridge role carries Built environment / ESG / Policy without the title or summary saying so ({stray[:3]})")
+
+
+def test_r2a_cross_border_phrases():
+    lc = lambda j, ed="": build_site.loc_class(j, [], [], ed)  # noqa: E731
+    check(lc(_mk_job("Labs Designer & Facilitator – UK/ Ireland", location="Dublin", region="Ireland, United Kingdom"), "ie") == "cross", "r2a R012: 'UK/ Ireland' in the title -> cross on the IE edition despite a Dublin location")
+    check(lc(_mk_job("Landscape Developer – UK & Ireland", location="Dublin", region="Ireland"), "ie") == "cross" and lc(_mk_job("Landscape Developer – UK & Ireland", location="United Kingdom (UK), Ireland (nationwide)", region="Country"), "uk") == "cross", "r2a R012: 'UK & Ireland' -> cross on both editions")
+    check(lc(_mk_job("Ecologist", "Work remote from the UK or Ireland.", location="Dublin"), "ie") == "cross" and lc(_mk_job("Ecologist – Ireland/UK", location="London", region="London"), "uk") == "cross", "r2a R012: 'remote from the UK or Ireland' and 'Ireland/UK' -> cross")
+    check(lc(_mk_job("Ecologist", "Based in Dublin.", location="Dublin"), "ie") == "ie" and lc(_mk_job("UK Ecologist", location="Leeds", region="Yorkshire"), "uk") == "uk", "r2a R012: a plain Irish or British advert is unchanged")
+    for ed in ("ie", "uk"):
+        path = SRC / "data" / f"{ed}.json"
+        if not path.exists():
+            skip(f"r2a R012: {ed} dataset absent")
+            continue
+        data = build_site.normalise(json.loads(path.read_text(encoding="utf-8")), ed, SRC, SRC / "assets" / "logos")
+        cl = {j["title"]: j["loc_class"] for j in data["jobs"] if j["employer"] == "Commonland"}
+        check(len(cl) >= 2 and set(cl.values()) == {"cross"}, f"r2a R012: every Commonland role is 'cross' (Ireland & UK) on the {ed} edition ({cl})")
+
+
+def test_r2a_facts_copy_and_facets():
+    check(build_site.no_break_dash("Landscape Developer – UK & Ireland") == "Landscape Developer – UK & Ireland" and build_site.no_break_dash("Plain title") == "Plain title", "r2a visual 24: the space before an en dash becomes a no-break space in the job h1")
+    check(build_site.contract_row({"type": "Contract", "contract": ["contract"]}) == "Contract" and build_site.contract_row({"type": "Permanent", "contract": ["permanent", "full-time"]}) == "Permanent, Full-time", "r2a visual 24: one 'Contract' row when type and contract agree")
+    check(build_site.contract_row({"type": "Home Based", "contract": ["permanent"]}) == "Permanent" and build_site.contract_row({"type": "Volunteer", "contract": ["volunteer"]}) == "Volunteer", "r2a visual 31: 'Home Based' is a workplace, not a contract row value; Volunteer is a contract tag")
+    check(build_site.contract_of({"type": "Volunteer", "summary": "", "description_html": ""}) == ["volunteer"] and build_site.workplace_of({"type": "Home Based", "summary": "", "description_html": ""}) == "remote", "r2a visual 31: Volunteer -> contract tag, Home Based -> workplace remote")
+    facet = build_site.contract_facet([{"contract": ["permanent", "full-time"]}, {"contract": ["contract"]}, {"contract": []}])
+    check([f["k"] for f in facet] == ["permanent", "contract", "full-time"] and facet[0]["name"] == "Permanent" and facet[0]["n"] == 1, "r2a visual 31: contract_facet lists only carried values, in CONTRACT_LABEL order, with counts")
+    mk = lambda n: [{"sal_min": 1000 * (i + 30), "sal_max": None, "cur": "EUR", "period": "year"} for i in range(n)]  # noqa: E731
+    check(build_site.sector_stat([{"sal_min": None, "sal_max": None}], "€") == "no disclosed salaries yet" and build_site.sector_stat(mk(1) + [{"sal_min": None, "sal_max": None}], "€") == "1 disclosed salary" and build_site.sector_stat(mk(2), "€") == "2 disclosed salaries", "r2a visual 29: sector card copy 'no disclosed salaries yet' / '1 disclosed salary' / 'n disclosed salaries'")
+    ed = build_site.EDITIONS["ie"]
+    jobs = [{"sal_min": 40000, "sal_max": 50000, "cur": "GBP", "period": "year", "sectors": ["Wind energy"], "title": "A"}, {"sal_min": 40000, "sal_max": 50000, "cur": "EUR", "period": "year", "sectors": ["Wind energy"], "title": "B"}]
+    data = {"jobs": jobs, "sectors": [{"name": "Wind energy", "n": 2}], "fetched": "2026-09-22", "ed": "ie"}
+    body = build_site.guide_salary_body(data, ed)
+    check(body["fx_note"].startswith("1 of the disclosed salaries is advertised in another currency") and "converted at a fixed rate" in body["fx_note"], "r2a visual 29: the salary guide names the converted count when sterling salaries are present")
+    body0 = build_site.guide_salary_body({**data, "jobs": jobs[1:]}, ed)
+    check("no conversion was needed" in body0["fx_note"], "r2a visual 29: ... and says no conversion was needed only when every salary is in the edition currency")
+    strip = build_site.employers_strip({"site": "greenjobs.ie", "employers": [{"name": n, "url": "", "logo": "", "lw": 0, "lh": 0} for n in ["Gaia Talent", "EirGrid", "Power NI", "Veolia"]], "jobs": [{"employer": "Gaia Talent"}]}, "../")
+    check("Gaia Talent" in strip["html"] and not any(n in strip["html"] for n in ("EirGrid", "Power NI", "Veolia")), "r2a R041: the IE strip lists live employers only, never EirGrid / Power NI / Veolia")
+
+
+def test_r2a_landing_intro_length():
+    raws = {ed: SRC / "data" / f"{ed}.json" for ed in ("ie", "uk")}
+    if not all(p.exists() for p in raws.values()):
+        skip("r2a landing intro: real datasets absent")
+        return
+    for ed_key, path in raws.items():
+        data = build_site.normalise(json.loads(path.read_text(encoding="utf-8")), ed_key, SRC, SRC / "assets" / "logos")
+        for spec, jobs in build_site.landing_pages(data):
+            intro = html.unescape(build_site.landing_intro(spec, jobs, build_site.EDITIONS[ed_key], data))
+            words = len(intro.split())
+            med = build_site.median_salary(jobs, build_site.EDITIONS[ed_key]["sym"], build_site.EDITIONS[ed_key]["currency"])
+            check(words <= 80 and f"lists {len(jobs)} live" in intro and (med == "n/a" or med in intro), f"r2a: {ed_key}/{spec['slug']} intro is {words} words (<= 80) and keeps the count and median")
+
+
+def test_r2a_regions_and_pairs():
+    table = {"regions": {"London": [], "Northern Ireland": [], "East Midlands": []}}
+    data = {"regions": [{"name": "London", "n": 3, "on_map": True}, {"name": "Northern Ireland", "n": 0, "on_map": True}, {"name": "Elsewhere", "n": 2, "on_map": False}]}
+    ml = build_site.map_list(data, "jobs/index.html")
+    check('?loc=Northern%20Ireland" class="is-zero"><span>Northern Ireland</span><b class="num">0</b>' in ml and "Elsewhere" not in ml and ml.index("London") < ml.index("Northern"), "r2a R072/R077: map_list keeps a 0-role mapped region (class is-zero) after the busy ones")
+    pairs = build_site.paired_paths({"ie": {"index.html", "guides/index.html", "ecology-jobs-ireland/index.html", "environmental-jobs-dublin/index.html"}, "uk": {"index.html", "guides/index.html", "ecology-jobs-uk/index.html"}})
+    check(pairs["ie"].get("ecology-jobs-ireland/index.html") == "ecology-jobs-uk/index.html" and pairs["uk"].get("ecology-jobs-uk/index.html") == "ecology-jobs-ireland/index.html", "r2a R055: PAIRED landing slugs map to their twin in the other edition")
+    check("environmental-jobs-dublin/index.html" not in pairs["ie"] and pairs["ie"]["guides/index.html"] == "guides/index.html", "r2a R055: a landing whose twin is not built stays unpaired; guides pair with guides")
+    check(build_site.paired_paths({"ie": {"index.html"}}) == {"ie": {}}, "r2a R055: a single-edition build has no pairs")
+    ie_svg = (SRC / "assets" / "maps" / "ie.svg").read_text(encoding="utf-8")
+    ctx = re.search(r'<g class="gmap__ctx"[^>]*data-note="([^"]*)"', ie_svg)
+    check(bool(ctx) and ctx.group(1) == "Northern Ireland (see greenjobs.co.uk)" and ie_svg.count('class="gmap__r"') == 26 and "<title>" not in ie_svg, "r2a visual 11: the IE map draws Northern Ireland as a labelled context outline (not a county, no <title>)")
+    uk_svg = build_site.map_svg(SRC, "uk", {"London": 5})
+    check('data-region="Northern Ireland"' in uk_svg and re.search(r'data-region="Northern Ireland"[^>]*data-n="0"[^>]*>.*?<text[^>]*class="is-zero"[^>]*>0</text>', uk_svg, re.S) is not None, "r2a visual 12: the UK map labels a 0-role region with a muted 0")
+
+
+def test_r2a_real_build_checks(tmp_root: Path):
+    if not (SRC / "data" / "ie.json").exists() or not (SRC / "data" / "uk.json").exists():
+        skip("r2a: real datasets absent")
+        return
+    out = tmp_root / "site_r2a"
+    check(build_site.build(SRC, out, editions=["ie", "uk"]) == 0, "r2a: real-data build returns 0")
+    uk_board = (out / "uk" / "jobs" / "index.html").read_text(encoding="utf-8")
+    check('<option value="Northern Ireland">' in uk_board and '<option value="East Midlands">' in uk_board, "r2a R072/R077: the UK jobs datalist offers Northern Ireland and East Midlands at 0 roles")
+    ds = json.loads(re.search(r'id="gj-data">(.*?)</script>', uk_board, re.S).group(1))
+    check(any(r["name"] == "Northern Ireland" for r in ds["regions"]) and [c["k"] for c in ds["contracts"]][:2] == ["permanent", "contract"], "r2a R077 / visual 31: the UK dataset carries Northern Ireland in regions and the one contract facet")
+    check('id="f-type"' in uk_board and 'type="hidden"' in uk_board.split('id="f-type"')[0][-80:] and "Any type" not in uk_board, "r2a visual 31: the Job type select is gone; ?type= keeps a hidden alias field")
+    uk_home = (out / "uk" / "index.html").read_text(encoding="utf-8")
+    check('?loc=Northern%20Ireland" class="is-zero"><span>Northern Ireland</span><b class="num">0</b>' in uk_home and '?loc=East%20Midlands" class="is-zero"' in uk_home, "r2a visual 12: the UK home region list shows Northern Ireland and East Midlands at 0")
+    ie_board = (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8")
+    check('class="gmap__ctx" data-note="Northern Ireland (see greenjobs.co.uk)"' in ie_board, "r2a visual 11: the IE jobs map carries the Northern Ireland context outline")
+    for ed, slug, twin in (("ie", "ecology-jobs-ireland", "ecology-jobs-uk"), ("uk", "renewable-energy-jobs-uk", "renewable-energy-jobs-ireland"), ("ie", "sustainability-jobs-ireland", "sustainability-jobs-uk"), ("uk", "environmental-jobs-london", "environmental-jobs-dublin")):
+        page = out / ed / slug / "index.html"
+        if not page.exists():
+            skip(f"r2a R055: {ed}/{slug} not built this week")
+            continue
+        head = page.read_text(encoding="utf-8").split("</head>")[0]
+        other = "uk" if ed == "ie" else "ie"
+        check(f'hreflang="{"en-GB" if other == "uk" else "en-IE"}" href="https://greenjobs-redesign.pages.dev/{other}/{twin}/index.html"' in head and 'hreflang="x-default"' in head, f"r2a R055: {ed}/{slug} links its hreflang twin {other}/{twin}")
+    for ed, jid in (("ie", "11501646"), ("uk", "11501639")):
+        page = out / ed / "jobs" / jid / "index.html"
+        if not page.exists():
+            continue
+        html_text = page.read_text(encoding="utf-8")
+        check('data-loc="cross">Ireland &amp; UK' in html_text.split("</h1>")[1][:600], f"r2a R012: Commonland 11501646/11501639 badge is 'Ireland & UK' on {ed}")
+        check("<dt>Type</dt>" not in html_text and "<dt>Contract</dt><dd>Contract</dd>" in html_text and "Landscape Developer –" in html_text, f"r2a visual 24: one Contract row and a no-break dash in the h1 on {ed}")
+    ie_emp = (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8")
+    check(not any(n in ie_emp for n in ("EirGrid", "Power NI", "Veolia")), "r2a R041 / visual 7: the IE employers page names no organisation without a live role")
+    ie_home = (out / "ie" / "index.html").read_text(encoding="utf-8")
+    check("disclose pay" not in ie_home and "discloses pay" not in ie_home, "r2a visual 29: '0 disclose pay' copy is gone from the IE home")
+    n_sec = re.search(r"Roles across <b class=\"num\">(\d+)</b> sectors", ie_home)
+    check(bool(n_sec) and int(n_sec.group(1)) >= 12, f"r2a R006: the hero fact renders the live sector count ({n_sec.group(1) if n_sec else '?'}), not the document's '10'")
+    # validator: pair targets must link back; strip names must be live on the employers page too
+    raw = {ed: json.loads((SRC / "data" / f"{ed}.json").read_text(encoding="utf-8")) for ed in ("ie", "uk")}
+    data_by_ed = {ed: build_site.normalise(raw[ed], ed, SRC, SRC / "assets" / "logos") for ed in ("ie", "uk")}
+    paired = build_site.paired_paths({k: build_site.PAIRED_PATHS | {f"{s['slug']}/index.html" for s, _ in build_site.landing_pages(d)} for k, d in data_by_ed.items()})
+    for k, d in data_by_ed.items():
+        d["paired_paths"] = paired[k]
+    jobs = {k: d["jobs"] for k, d in data_by_ed.items()}
+    V = lambda: validate_site.validate(out, jobs, data_by_ed, build_site.dashboard_kpis)  # noqa: E731
+    check(V() == [], "r2a: the real build passes the extended validator")
+
+    def patched(path: Path, fn, needle: str):
+        clean = path.read_text(encoding="utf-8")
+        path.write_text(fn(clean), encoding="utf-8")
+        try:
+            return any(needle in f for f in V())
+        finally:
+            path.write_text(clean, encoding="utf-8")
+    landing = out / "ie" / "ecology-jobs-ireland" / "index.html"
+    if landing.exists():
+        check(patched(landing, lambda t: t.replace("/uk/ecology-jobs-uk/index.html", "/uk/jobs/index.html"), "does not link back"), "r2a R055: an hreflang alternate whose target does not link back fails validation")
+    emp_page = out / "ie" / "employers" / "index.html"
+    check(patched(emp_page, lambda t: t.replace('<div class="marq__track">', '<div class="marq__track"><div class="emp"><span>EirGrid</span></div>', 1), "no live role"), "r2a R041: a non-hiring name in the employers-page strip fails validation")
+
+
+# --- round 2 B --- (2026-09-28): visual rows 3/4/8/9/10/13/14/15/17/18/19/20/21/26/28/30/32 (templates, CSS, JS)
+
+def test_r2b_visitor_voice_and_shell(tmp_root: Path):
+    out = tmp_root / "site_r2b"
+    check(build_site.build(SRC, out, editions=["ie", "uk"]) == 0, "r2b: real-data build succeeds")
+    home = _read(out / "ie" / "index.html")
+    emp = _read(out / "ie" / "employers" / "index.html")
+    jobs = _read(out / "ie" / "jobs" / "index.html")
+    guides = _read(out / "ie" / "guides" / "index.html")
+    e404 = _read(out / "404.html")
+    css = _read(SRC / "css" / "styles.css")
+    # 8: one voice, no team-facing copy in visitor dialogs; no fake success anywhere
+    for bad in ("analytics provider is chosen", "connects to your email provider", "connects to the GreenJobs team", "Nothing was sent", "Sign-ups open at launch", "Posting opens at launch"):
+        check(bad not in home and bad not in emp, f"r2b visual 8: '{bad}' is gone from visitor-facing copy")
+    check("Off. Not used on this site." in home and home.count("Alerts open when the new site launches.") >= 2, "r2b visual 8: cookie analytics row and alert forms use the visitor sentences")
+    check(emp.count("Preview only. Rates and posting are handled by the GreenJobs team") == 2 and "Thank you" not in emp, "r2b R044: the Post-a-job preview keeps one quiet line (pre-submit + post-submit variants), no fake success")
+    # 18: hero keeps search + Post a job only
+    hero = home.split('class="hero__cta"')[1].split("</div>")[0]
+    check("Find a job" not in hero and hero.count("<a ") == 1 and "Post a job" in hero, "r2b visual 18: one secondary hero CTA (Post a job); 'Find a job' dropped")
+    # 19: footer wordmark carries the leaf and a long-form date
+    ftr = home.split('<footer class="ftr">')[1]
+    check('class="logo logo--ftr"><svg' in ftr and 'data-date-long>' in ftr, "r2b visual 19: footer logo has the leaf icon; the as-of date is formatted client-side to '22 September 2026'")
+    # 21: client sentence verbatim beside the input; share note honest about contents
+    check("Your information is processed on your device and is not uploaded or stored." in jobs and "The link contains your search words." in jobs, "r2b R036 / visual 21: fit hint verbatim, share note names the search words")
+    # 26: guides: empty heading gone, closing line once
+    check("Career advice and market reports" not in guides and guides.count("More guides follow as the data grows.") == 1, "r2b visual 26: empty guides heading hidden; one closing line")
+    # 28: audience tiles: neutral sentences, not italic placeholders
+    check("supplied at launch" not in emp and "Monthly visitor figures are published at launch." in emp and "font-style:italic" not in css.split(".tbc{")[1].split("}")[0], "r2b visual 28: audience tiles carry neutral sentences in the client's voice, no italics")
+    # 9: 404 renders inside the shell with fonts/theme and the two edition tiles
+    check('class="hdr"' in e404 and '<footer class="ftr">' in e404 and "css/styles.css" in e404 and "gj-theme" in e404 and e404.count('class="tile"') == 2 and e404.count("<h1") == 1, "r2b visual 9: 404 page uses the shell header/footer, brand stylesheet, theme, two edition tiles, one h1")
+    # 14/15: preview toggle sits before the form; sheet heading collapsed in CSS
+    check(emp.index('data-adb-toggle') < emp.index('id="rates-form"'), "r2b visual 14: the Preview toggle is in flow before the form, not floating over 'Job title'")
+    check(".sheet .rail>h2{" in css and "font-size:0" in css.split(".sheet .rail>h2{")[1].split("}")[0], "r2b visual 15: the inner 'Filters' heading is collapsed inside the sheet (Clear stays)")
+    # 10: salary reachable above career level; rail has a scroll cue
+    check(jobs.index('id="f-smin"') < jobs.index('id="f-level"') if 'id="f-level"' in jobs else True, "r2b visual 10: salary fieldset sits above Career level")
+    check("[data-rail-home]::after" in css and "scrollbar-width:thin" in css, "r2b visual 10: rail scroll cue (fade + thin scrollbar)")
+    # 3/20: dialog and alert rows no longer inherit the job-card .row rule
+    check(".gjd .row{" in css and "padding:0" in css.split(".gjd .row{")[1].split("}")[0] and ".alertbox .row{" in css and "padding:0" in css.split(".alertbox .row{")[1].split("}")[0], "r2b visual 3/20: dialog/alert .row reset (input + button stack under 421px / 520px)")
+    # 13: treemap legend + label truncation; 30: header B Corp label; 32: logo tile box
+    check(".tmkey{" in css and "tmkey" in _read(SRC / "js" / "explore.js") and "maxCh" in _read(SRC / "js" / "charts.js"), "r2b visual 13: treemap labels truncate to the tile and a legend lists every sector with its count")
+    check('content:"Certified B Corp"' in css and "@media (min-width:1024px){.hdr__bcorp::after{display:inline}}" in css, "r2b visual 30: header B Corp mark carries the text label at >=1024, mark only below")
+    check("object-fit:contain" in css.split(".emp img{")[1].split("}")[0] and ".emp.is-blank{display:none}" in css, "r2b visual 32: logo tiles are a fixed box with object-fit contain; blank logos are hidden")
+    # 17: birds never drawn on the still frame and never at the left edge
+    ls = _read(SRC / "js" / "landscape.js")
+    check("!reduce.matches" in ls.split("/* birds")[1][:300] and "bx < 30" in ls, "r2b visual 17: no stray bird glyph on the reduced-motion frame or at the hero's left edge")
+    # lib helpers wired
+    js = _read(SRC / "js" / "jobs.js")
+    check("G.orderSectors" in js and "G.suggestSectors" in js, "r2b: jobs.js uses lib.orderSectors / lib.suggestSectors from round 2 A")
+
+
+# The runner stays last so every test defined above (incl. rounds appended later) is collected.
 if __name__ == "__main__":
     raise SystemExit(main())

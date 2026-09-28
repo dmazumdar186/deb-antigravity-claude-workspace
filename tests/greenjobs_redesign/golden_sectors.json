@@ -4,14 +4,16 @@
   "edition": "ie",
   "title": "Assistant Road Engineer",
   "employer": "Gaia Talent",
-  "sector": "Sustainable infrastructure & transport"
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
  },
  {
   "id": "11501074",
   "edition": "ie",
   "title": "Design Coordinator – Rail",
   "employer": "Gaia Talent",
-  "sector": "Sustainable infrastructure & transport"
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
  },
  {
   "id": "11501045",
@@ -60,7 +62,8 @@
   "edition": "ie",
   "title": "Senior Bridge Engineer",
   "employer": "Gaia Talent",
-  "sector": "Sustainable infrastructure & transport"
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
  },
  {
   "id": "11493485",
@@ -291,7 +294,8 @@
   "edition": "uk",
   "title": "Highways Civil Engineer",
   "employer": "Mattinson Partnership",
-  "sector": "Sustainable infrastructure & transport"
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
  },
  {
   "id": "11500230",
@@ -341,5 +345,57 @@
   "title": "Energy Consultant - Electrical",
   "employer": "Arup",
   "sector": "Built environment & energy efficiency"
+ },
+ {
+  "id": "11495879",
+  "edition": "ie",
+  "title": "Project/ Senior Project Engineer – Roads and Transportation",
+  "employer": "Gaia Talent",
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
+ },
+ {
+  "id": "11493508",
+  "edition": "ie",
+  "title": "Civil Engineering Technician",
+  "employer": "Gaia Talent",
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
+ },
+ {
+  "id": "11493382",
+  "edition": "ie",
+  "title": "Principal Civil Engineer",
+  "employer": "Gaia Talent",
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
+ },
+ {
+  "id": "11492957",
+  "edition": "uk",
+  "title": "Civil Engineer / Project Manager",
+  "employer": "Haskoning",
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": []
+ },
+ {
+  "id": "11493455",
+  "edition": "ie",
+  "title": "Resident Engineer – Bridge Construction",
+  "employer": "Gaia Talent",
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": [
+   "Built environment & energy efficiency"
+  ]
+ },
+ {
+  "id": "11497629",
+  "edition": "ie",
+  "title": "Associate Civil Engineer",
+  "employer": "Mattinson Partnership",
+  "sector": "Sustainable infrastructure & transport",
+  "secondaries": [
+   "Built environment & energy efficiency"
+  ]
  }
 ]

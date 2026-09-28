@@ -13,9 +13,9 @@
 <section class="wrap band--tight" aria-labelledby="h-reach">
   <h2 id="h-reach" style="margin-bottom:28px">Audience and reach</h2>
   <div class="facts">
-    <div class="fact reveal"><h3>Candidate audience</h3><p>Thousands of visitors every month, all looking for green work; candidates register for saved roles, alerts and one-tap applications.</p><p class="tbc">Monthly figure supplied at launch.</p></div>
-    <div class="fact reveal"><h3>Weekly newsletter reach</h3><p>Every posting is featured in one weekly jobs newsletter emailed to registered candidates, plus job alerts by email to matching candidates for up to six weeks.</p><p class="tbc">Subscriber figure supplied at launch.</p></div>
-    <div class="fact reveal"><h3>Network and LinkedIn distribution</h3><p>Shown on the relevant sites in the {{n_sites}}-site network, on the Talent Finder Network and across the GreenJobs social media network: Facebook, LinkedIn groups and X for each brand.</p><p class="tbc">Follower figure supplied at launch.</p></div>
+    <div class="fact reveal"><h3>Candidate audience</h3><p>Thousands of visitors every month, all looking for green work; candidates register for saved roles, alerts and one-tap applications.</p><p class="tbc">Monthly visitor figures are published at launch.</p></div>
+    <div class="fact reveal"><h3>Weekly newsletter reach</h3><p>Every posting is featured in one weekly jobs newsletter emailed to registered candidates, plus job alerts by email to matching candidates for up to six weeks.</p><p class="tbc">Subscriber numbers are published at launch.</p></div>
+    <div class="fact reveal"><h3>Network and LinkedIn distribution</h3><p>Shown on the relevant sites in the {{n_sites}}-site network, on the Talent Finder Network and across the GreenJobs social media network: Facebook, LinkedIn groups and X for each brand.</p><p class="tbc">Network and follower numbers are published at launch.</p></div>
   </div>
   <p class="netline" style="margin-top:24px"><b>The GreenJobs network:</b> {{net_inline}}</p>
 </section>
@@ -55,6 +55,7 @@
 <section class="wrap band--tight" id="post" aria-labelledby="h-post">
   <div class="sec-head"><div><h2 id="h-post">Post a job</h2><p>Preview exactly how your vacancy will appear to candidates.</p></div></div>
   <div class="adb" data-adb data-reach="{{reach}}" data-sym="{{sym}}" data-unit="{{unit}}">
+    <button class="btn btn--fill adb__toggle" type="button" data-adb-toggle aria-expanded="false" aria-controls="adb-preview">Preview</button>
     <form class="adb__form" id="rates-form" data-demo-form novalidate aria-label="Post a job">
       <div class="row2"><div class="field"><label for="p-title">Job title</label><input class="in" id="p-title" name="title" type="text" placeholder="Senior Hydrogeologist" maxlength="90"></div><div class="field"><label for="p-org">Organisation</label><input class="in" id="p-org" name="org" type="text" placeholder="Your company" maxlength="60"></div></div>
       <div class="row2"><div class="field"><label for="p-loc">Location</label><input class="in" id="p-loc" name="loc" type="text" placeholder="{{country}}" maxlength="60"></div><div class="field"><label for="p-sector">Sector</label><select class="in" id="p-sector" name="sector">{{sector_options}}</select></div></div>
@@ -66,9 +67,9 @@
         <div class="field"><label for="p-b3" class="vh">Point three</label><input class="in" id="p-b3" name="b3" type="text" placeholder="Why it matters" maxlength="120"></div>
       </fieldset>
       <p class="adb__reach" data-adb-reach aria-live="polite"></p>
-      <p class="note" data-demo-pre>Posting opens at launch — this form connects to the GreenJobs team then.</p>
+      <p class="note" data-demo-pre>Preview only. Rates and posting are handled by the GreenJobs team.</p>
       <div class="adb__actions"><button class="btn btn--lime" type="submit" data-magnet data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost" type="button" data-adb-fill>Fill with an example</button></div>
-      <p class="note note--live" data-demo-note tabindex="-1" hidden>This form connects to the GreenJobs team at launch. Nothing was sent. Today, email <a href="mailto:{{email}}">{{email}}</a> with the same details and the team posts it for you.</p>
+      <p class="note note--live" data-demo-note tabindex="-1" hidden>Preview only. Rates and posting are handled by the GreenJobs team: email <a href="mailto:{{email}}">{{email}}</a> with these details.</p>
     </form>
     <div class="adb__preview" data-adb-preview id="adb-preview">
       <h3 class="adb__h3" id="preview">See your vacancy as candidates will</h3>
@@ -77,6 +78,5 @@
       <p class="adb__cap">Top of the job page</p>
       <div class="adb__hero" data-adb-hero></div>
     </div>
-    <button class="btn btn--fill adb__toggle" type="button" data-adb-toggle aria-expanded="false" aria-controls="adb-preview">Preview</button>
   </div>
 </section>
