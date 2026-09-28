@@ -163,7 +163,7 @@ def test_employers_strip_is_honest():
     six = build_site.employers_strip(mk(["A", "B", "C", "D", "E", "F"]), "../")
     check(six["mode"] == "hiring" and six["title"] == "Employers hiring now" and "Pad1" not in six["html"] and "G" not in six["html"].replace("Green", ""), "employers_strip: >=6 live employers -> 'hiring now' with live employers only")
     two = build_site.employers_strip(mk(["A", "B"]), "../")
-    check(two["mode"] == "network" and two["title"] == "Employers on the GreenJobs network" and "2 of them have live roles" in two["sub"] and "Pad1" not in two["html"] and "<span>A</span>" in two["html"], "employers_strip: <6 live -> network title, live employers only, never padded (R041)")
+    check(two["mode"] == "network" and two["title"] == "Employers on the GreenJobs network" and two["sub"] == "Organisations with live roles on x.ie this week." and "Pad1" not in two["html"] and "<span>A</span>" in two["html"], "employers_strip: <6 live -> network title, live employers only, never padded (R041)")
     check(build_site.employers_strip({"site": "x", "employers": [], "jobs": []}, "../")["html"] == "", "employers_strip: no employers -> empty html")
 
 
@@ -228,7 +228,7 @@ def test_real_data_build(tmp_root: Path):
         else:
             uk_only = sum(1 for j in data["jobs"] if j["loc_class"] == "uk")
             check(not data["excluded"] and f"0 roles excluded; {uk_only} UK-only role{'' if uk_only == 1 else 's'} shown with a UK label" in keith, f"integration: IE excludes nothing; evidence page states {uk_only} UK-only roles shown with a label (Keith B4)")
-            fixed = [j for j in data["jobs"] if j.get("currency_source")]
+            fixed = [j for j in data["jobs"] if j.get("currency_source") == build_site.STERLING_SOURCE]  # r3 R011: unverified euro roles carry their own source
             check(len(fixed) == len(data["corrected"]) and all(j["cur"] == "GBP" and j["loc_class"] == "uk" for j in fixed) and len(fixed) >= 15, f"integration: IE sterling correction from the greenjobs.co.uk twin applied to {len(fixed)} UK-only roles (all now GBP)")
             page = (out / "ie" / "jobs" / fixed[0]["id"] / "index.html").read_text(encoding="utf-8")
             check("paid in sterling, about €" in page and "Advertised in sterling on the greenjobs.co.uk listing" in page and "£" in page, "integration: corrected IE job page shows the sterling figure, the euro equivalent and the salary source")
@@ -837,6 +837,81 @@ def test_pf_a_node_missing_fails_build(tmp_root: Path):
     check(rc != 0, "pf-A13: run_node_tests() returning None (node missing) fails the build")
 
 
+def test_r3_visual_fixes(tmp_root: Path):
+    """Round-3 visual sweep (visual_issues_v2): N4 long dates, N5 no IE employer count,
+    R010 Built-environment secondary, R011 unverified euro source, visual 7/N3 strip tiles,
+    visual 25 agency casing, visual 28 no placeholder copy, visual 12 zero regions."""
+    check(build_site.date_long("2026-09-22") == "22 September 2026" and build_site.snapshot_label("2026-01-05") == "Snapshot of 5 January 2026", "r3 N4: date_long renders '22 September 2026'")
+    mk = lambda ed, names: {"ed": ed, "site": "greenjobs.ie" if ed == "ie" else "greenjobs.co.uk", "employers": [{"name": n, "url": "", "logo": "", "lw": 0, "lh": 0} for n in names], "jobs": [{"employer": n} for n in names]}  # noqa: E731
+    ie = build_site.employers_strip(mk("ie", ["A", "B", "C"]), "../")
+    check(not re.search(r"\d", ie["sub"]) and ie["sub"] == "Organisations with live roles on greenjobs.ie this week.", f"r3 N5: IE strip sub carries no employer count ({ie['sub']!r})")
+    uk = build_site.employers_strip(mk("uk", [f"E{i}" for i in range(4)]), "../")
+    check(not re.search(r"\d", uk["sub"]), "r3 N5: UK strip sub has no count below 10 employers")
+    check('class="mono"' in ie["html"] and ie["html"].count('class="mono"') == 6, "r3 visual 7: employers without a logo get a monogram disc in both track copies")
+    eager = build_site.employers_strip({**mk("uk", [f"E{i}" for i in range(12)]), "employers": [{"name": f"E{i}", "url": "", "logo": "x.png", "lw": 10, "lh": 10} for i in range(12)]}, "../")["html"]
+    first = eager.split('<span class="marq__dup"')[0]
+    check(first.count('loading="eager"') == 8 and first.count('loading="lazy"') == 4 and 'decoding="async"' in first, "r3 N3: first eight marquee logos load eagerly, the rest lazily")
+    j = {"currency_source": build_site.UNVERIFIED_SOURCE}
+    check(build_site.salary_source_line(j) == build_site.UNVERIFIED_NOTE and build_site.salary_source_line({"currency_source": build_site.STERLING_SOURCE}).startswith("Advertised in sterling"), "r3 R011: salary_source_line maps both sources")
+    mkj = lambda title, summary="", body="": {"title": title, "employer": "", "sectors": [], "summary": summary, "description_html": body}  # noqa: E731
+    INF = "Sustainable infrastructure & transport"
+    check(build_site.assign_sectors(mkj("Associate Civil Engineer", "roads rail bridges highways", "<p>building built environment construction</p>")) == [INF], "r3 R010: three body hits alone no longer add Built environment to a civil role")
+    check(build_site.BUILT_ENV in build_site.assign_sectors(mkj("Civil Engineer – Building Services", "roads rail highways bridges", "<p>retrofit building insulation heat pump</p>")), "r3 R010: a title hit keeps Built environment as a secondary")
+    if not (SRC / "data" / "ie.json").exists() or not (SRC / "data" / "uk.json").exists():
+        skip("r3: real datasets absent")
+        return
+    out = tmp_root / "site_r3"
+    check(build_site.build(SRC, out, editions=["ie", "uk"]) == 0, "r3: real-data build returns 0")
+    raw = json.loads((SRC / "data" / "ie.json").read_text(encoding="utf-8"))
+    by = {str(j["id"]): j for j in raw["jobs"]}
+    if "11497629" in by:
+        check(build_site.BUILT_ENV not in build_site.assign_sectors(by["11497629"]), "r3 R010: Associate Civil Engineer (Mattinson, London) no longer carries Built environment")
+    data = build_site.normalise(raw, "ie", SRC, SRC / "assets" / "logos")
+    unv = {j["id"] for j in data["jobs"] if j["currency_source"] == build_site.UNVERIFIED_SOURCE}
+    check({"11497629", "11496364"} <= unv and all(j["cur"] == "EUR" and j["loc_class"] == "uk" for j in data["jobs"] if j["id"] in unv), f"r3 R011: UK-located euro roles with no sterling twin are marked unverified ({sorted(unv)})")
+    for jid in ("11497629", "11496364"):
+        page_html = (out / "ie" / "jobs" / jid / "index.html").read_text(encoding="utf-8")
+        check(build_site.UNVERIFIED_NOTE in page_html and "Advertised in sterling" not in page_html, f"r3 R011: /ie/jobs/{jid}/ says the salary is as listed on greenjobs.ie, never invents sterling")
+    ds = json.loads((out / "ie" / "data" / "jobs.json").read_text(encoding="utf-8"))
+    check({j["id"] for j in ds["jobs"] if j.get("unverified_cur")} == unv and build_site.UNVERIFIED_NOTE in (SRC / "js" / "jobs.js").read_text(encoding="utf-8"), "r3 R011: jobs.json flags the roles and jobs.js prints the note on their cards")
+    for ed in ("ie", "uk"):
+        for rel in ("index.html", "employers/index.html"):
+            page_html = (out / ed / rel).read_text(encoding="utf-8")
+            strip_html = re.search(r'<div class="marq__track">(.*?)</div></div>', page_html, re.S)
+            if strip_html:
+                tiles = re.findall(r'<(?:a|div) class="emp"[^>]*>(.*?)</(?:a|div)>', strip_html.group(1), re.S)
+                check(tiles and all("<img" in t or 'class="mono"' in t for t in tiles), f"r3 visual 7: every {ed} {rel} strip tile has an <img> or a .mono ({len(tiles)} tiles)")
+            check(not re.search(r"\b\d+ of them ha(?:s|ve) live roles", page_html) and (ed == "uk" or not re.search(r"\b\d+ (?:organisations|employers) with live roles", page_html)), f"r3 N5: {ed} {rel} shows no employer count sentence on IE")
+    iso = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
+    bad = []
+    for f in sorted(out.rglob("index.html")):
+        rel = f.relative_to(out).as_posix()
+        if "for-keith" in rel or "evidence" in rel:
+            continue
+        t = f.read_text(encoding="utf-8")
+        t = re.sub(r"<script\b.*?</script>", "", t, flags=re.S)
+        t = re.sub(r"<(?:time|code)\b[^>]*>.*?</(?:time|code)>", "", t, flags=re.S)
+        t = re.sub(r"<[^>]+>", " ", t)  # drop attributes (datetime=, data-closing=, hrefs)
+        if iso.search(t):
+            bad.append(f"{rel}: {iso.search(t).group(0)}")
+    check(not bad, f"r3 N4: no ISO date in visible text on public pages ({bad[:4]})")
+    for ed in ("ie", "uk"):
+        dash = (out / ed / "dashboard" / "index.html").read_text(encoding="utf-8")
+        check("Chm Recruit" not in dash and "CHM Recruit" in dash, f"r3 visual 25: {ed} dashboard keeps 'CHM Recruit' casing")
+        emp = (out / ed / "employers" / "index.html").read_text(encoding="utf-8")
+        check(not re.search(r"supplied at launch|figure supplied|<em>[^<]*launch[^<]*</em>", emp, re.I), f"r3 visual 28: {ed} employers page has no italic placeholder copy")
+        home = (out / ed / "index.html").read_text(encoding="utf-8")
+        zero = re.findall(r'<g class="gmap__r is-zero"[^>]*data-region="([^"]*)"[^>]*data-n="0"', home)
+        n0 = len(re.findall(r'data-n="0"', home))
+        check(len(zero) == n0, f"r3 visual 12: every zero-count region on the {ed} home map carries is-zero ({zero})")
+    check('"cmpwrap' in (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8"), "r3 N1: package table wrapper present (desktop max-height removed in CSS)")
+    css = (SRC / "css" / "styles.css").read_text(encoding="utf-8")
+    check("max-height:min(72vh,760px)" not in css and "@media (max-width:700px){.cmpwrap{overflow-x:auto}}" in css, "r3 N1: .cmpwrap has no desktop max-height; horizontal scroll only <= 700px")
+    check(".hero__cta .btn--post{flex:0 1 260px;max-width:260px}" in css, "r3 N2: hero Post a job CTA capped at 260px")
+    check("transform:scale(1.06)" not in css and "object-fit:contain" in css.split(".emp img{")[1].split("}")[0], "r3 visual 32: marquee logos are contained with no scale bleed")
+    check(".maplist--sm" in css and 'data-map-counts' in (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8"), "r3 visual 11: compact region count list under the jobs-page map")
+
+
 def main() -> int:
     import inspect
     base = REPO / ".tmp"
@@ -1202,7 +1277,7 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     check("Find a job" not in hero and hero.count("<a ") == 1 and "Post a job" in hero, "r2b visual 18: one secondary hero CTA (Post a job); 'Find a job' dropped")
     # 19: footer wordmark carries the leaf and a long-form date
     ftr = home.split('<footer class="ftr">')[1]
-    check('class="logo logo--ftr"><svg' in ftr and 'data-date-long>' in ftr, "r2b visual 19: footer logo has the leaf icon; the as-of date is formatted client-side to '22 September 2026'")
+    check('class="logo logo--ftr"><svg' in ftr and re.search(r'<time datetime="\d{4}-\d{2}-\d{2}">\d{1,2} [A-Z][a-z]+ \d{4}</time>', ftr), "r2b visual 19: footer logo has the leaf icon; the as-of date is rendered server-side as '22 September 2026' (r3 N4: was client-side data-date-long)")
     # 21: client sentence verbatim beside the input; share note honest about contents
     check("Your information is processed on your device and is not uploaded or stored." in jobs and "The link contains your search words." in jobs, "r2b R036 / visual 21: fit hint verbatim, share note names the search words")
     # 26: guides: empty heading gone, closing line once

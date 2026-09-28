@@ -5,7 +5,7 @@
 </div>
 <div class="wrap viz dash" data-dash style="padding-bottom:var(--pad-y)">
   <div class="dash__bar">
-    <p class="muted">Data as of <b class="num">{{fetched}}</b> · {{domain}} · edition switch in the header keeps you on this page.</p>
+    <p class="muted">Data as of <b><time datetime="{{fetched}}">{{fetched_long}}</time></b> · {{domain}} · edition switch in the header keeps you on this page.</p>
     <button class="btn btn--ghost btn--sm" type="button" data-csv>Download CSV</button>
   </div>
 

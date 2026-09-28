@@ -1,7 +1,7 @@
 {{dataset}}
 <div class="wrap pagehead">
   <h1>Green salary explorer</h1>
-  <p class="lede">Compare disclosed salaries and identify employers committed to greater pay transparency. Every figure below comes from the {{n_jobs}} live listings as of {{fetched}}. All figures are in {{cur}} per year; hourly and monthly rates are annualised on full-time hours.</p>
+  <p class="lede">Compare disclosed salaries and identify employers committed to greater pay transparency. Every figure below comes from the {{n_jobs}} live listings as of <time datetime="{{fetched}}">{{fetched_long}}</time>. All figures are in {{cur}} per year; hourly and monthly rates are annualised on full-time hours.</p>
 </div>
 <div class="wrap viz" data-insights style="padding-bottom:var(--pad-y)">
   <p class="keyline reveal" data-keyline><strong class="num" data-s-n>{{n_jobs}}</strong> live roles · <strong class="num" data-s-disc>{{disc_pct}}%</strong> disclose a salary (<span class="num" data-s-cnt>{{n_sal}}</span> roles) · median <strong class="num" data-s-med>{{median}}</strong>, taken at the midpoint of each range.</p>

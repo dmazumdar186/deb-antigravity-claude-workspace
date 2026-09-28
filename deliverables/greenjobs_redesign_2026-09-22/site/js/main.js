@@ -170,17 +170,14 @@ if (pre) pre.hidden = true;
 if (n) { n.hidden = false; n.focus(); }
 });
 });
-$$('time[data-date-long]').forEach(function (t) {
-var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t.getAttribute('datetime') || '');
-if (m) t.textContent = parseInt(m[3], 10) + ' ' + ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][parseInt(m[2], 10) - 1] + ' ' + m[1];
-});
 $$('[data-rail-home]').forEach(function (a) {
 var r = $('.rail', a); if (!r) return;
-var end = function () { a.classList.toggle('is-end', r.scrollHeight - r.scrollTop - r.clientHeight < 12); };
+var end = function () { a.classList.toggle('is-over', r.scrollHeight > r.clientHeight + 12); a.classList.toggle('is-end', r.scrollHeight - r.scrollTop - r.clientHeight < 12); };
 r.addEventListener('scroll', end, { passive: true }); window.addEventListener('resize', end); end();
 });
+$$('[data-marq]').forEach(function (m) { m.classList.add('is-js'); });
 $$('.emp img').forEach(function (img) {
-var blank = function () { if (!img.naturalWidth || img.naturalWidth < 8 || img.naturalHeight < 8) img.parentNode.classList.add('is-blank'); };
+var blank = function () { if (!img.naturalWidth || img.naturalWidth < 8 || img.naturalHeight < 8) img.parentNode.classList.add('is-blank'); else img.setAttribute('data-loaded', ''); };
 img.addEventListener('error', function () { img.parentNode.classList.add('is-blank'); });
 if (img.complete) blank(); else img.addEventListener('load', blank);
 });
@@ -208,15 +205,14 @@ var name = g.getAttribute('data-region'), n = S.counts[name] || 0;
 g.setAttribute('data-n', String(n));
 g.setAttribute('data-lvl', n === 0 ? '0' : n >= max * 0.6 ? '3' : n >= max * 0.25 ? '2' : '1');
 g.setAttribute('aria-label', name + ': ' + n + (n === 1 ? ' role' : ' roles'));
+g.classList.toggle('is-zero', n === 0);
 var text = g.querySelector('text');
-if (n > 0) {
-if (!text) {
+if (!text && g.getAttribute('data-cx')) {
 text = doc.createElementNS('http://www.w3.org/2000/svg', 'text');
 text.setAttribute('x', g.getAttribute('data-cx')); text.setAttribute('y', g.getAttribute('data-cy')); text.setAttribute('dy', '4');
 g.appendChild(text);
 }
-text.textContent = String(n);
-} else if (text) g.removeChild(text);
+if (text) { text.textContent = String(n); text.classList.toggle('is-zero', n === 0); }
 if (g.getAttribute('data-bound')) return;
 g.setAttribute('data-bound', '1');
 g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0');
