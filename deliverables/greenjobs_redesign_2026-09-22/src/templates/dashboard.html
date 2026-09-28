@@ -1,0 +1,46 @@
+{{kpis}}
+<div class="wrap pagehead">
+  <h1>KPI dashboard</h1>
+  <p class="lede">What the board is worth this week, and how each number is measured. The top half is computed from the live listings at build time; the bottom half lists the measures the analytics provider will report once it is switched on through the cookie consent's Analytics toggle.</p>
+</div>
+<div class="wrap viz dash" data-dash style="padding-bottom:var(--pad-y)">
+  <div class="dash__bar">
+    <p class="muted">Data as of <b class="num">{{fetched}}</b> · {{domain}} · edition switch in the header keeps you on this page.</p>
+    <button class="btn btn--ghost btn--sm" type="button" data-csv>Download CSV</button>
+  </div>
+
+  <h2 class="dash__h">Live now</h2>
+  <div class="kpis">{{tiles}}</div>
+  <div class="figs" style="margin-top:24px">
+    <figure class="fig" data-fig="sectors"><h3>Live roles by sector</h3><p>How we measure it: each role is tagged to the sectors its description talks about; a role tagged to two sectors counts in both.</p></figure>
+    <figure class="fig" data-fig="regions"><h3>Live roles by {{unit}}</h3><p>How we measure it: location text matched to the {{units}} on the map; roles listed in two places count in each.</p></figure>
+    <figure class="fig fig--wide" data-fig="quality"><h3>Listing quality score</h3><p>How we measure it: one point each for a published salary, a closing date, an employer logo and a description of 400+ characters. Higher is a listing candidates can act on.</p></figure>
+  </div>
+
+  <h2 class="dash__h">Measured after launch <span class="dash__tag">Wired at launch</span></h2>
+  <p class="muted" style="max-width:70ch">Nothing below is a live number. Each tile names the event the site sends and the target we will report against. Values fill in from launch day; a dash means "collected from launch".</p>
+  <div class="kpis kpis--wired" data-wired>
+    <div class="kpi kpi--wired"><span class="kpi__l">Sessions</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>pageview</code>. Target: <span class="kpi__t">up on the current site's monthly baseline (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Unique candidates</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>pageview</code>, de-duplicated visitors. Target: <span class="kpi__t">growth month on month (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Search to job view</span><b class="kpi__v">—</b><p class="kpi__d">Events: <code>search</code> then <code>job_view</code> in the same session. Target: <span class="kpi__t">at least 60% (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Job view to apply click</span><b class="kpi__v">—</b><p class="kpi__d">Events: <code>job_view</code> then <code>apply_click</code> (the outbound link to the employer's listing). Target: <span class="kpi__t">at least 8% (target we propose; no public benchmark cited)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Alert sign-ups</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>alert_signup</code>. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Newsletter sign-ups</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>newsletter_signup</code>. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Saved roles</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>save_role</code>. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Employer "Request rates" clicks</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>request_rates</code> on the Employers page. Target: <span class="kpi__t">every click answered within one working day (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">"Post a job" clicks</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>post_job_click</code> from the header and Employers page. Target: <span class="kpi__t">set after the first month's baseline</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Top search terms</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>search</code> with the query as a property. Use: feeds the sector taxonomy and the landing pages.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Top landing pages</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>pageview</code>, first page of the session. Use: which sector and {{unit}} pages earn organic entry.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Organic share</span><b class="kpi__v">—</b><p class="kpi__d">Referrer class of the session. Target: <span class="kpi__t">above half of sessions (target we propose)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Core Web Vitals</span><b class="kpi__v">—</b><p class="kpi__d">Field data from real visits: LCP, INP, CLS. Target: <span class="kpi__t">LCP within 2.5 s, INP within 200 ms, CLS within 0.1 (the published Core Web Vitals "good" thresholds)</span>.</p></div>
+    <div class="kpi kpi--wired"><span class="kpi__l">Uptime</span><b class="kpi__v">—</b><p class="kpi__d">External monitor, one check a minute. Target: <span class="kpi__t">at least 99.9% a month (target we propose)</span>.</p></div>
+  </div>
+
+  <h2 class="dash__h">Value to GreenJobs</h2>
+  <div class="grid grid--3 dash__value">
+    <div class="fig"><h3>Advertiser enquiries</h3><p>What it is: employers asking for rates or starting a posting. How we measure it: <code>request_rates</code> and <code>post_job_click</code> events plus the enquiry inbox, reported monthly with the sector of the enquiry.</p></div>
+    <div class="fig"><h3>Network distribution reach</h3><p>What it is: how far one posting travels across the network sites. How we measure it: sessions and apply clicks per posting, split by the referring network site, so each employer sees the reach they paid for.</p></div>
+    <div class="fig"><h3>Candidate database growth</h3><p>What it is: candidates who leave a way to be reached. How we measure it: alert and newsletter sign-ups and saved roles, net of unsubscribes, reported as a monthly running total.</p></div>
+  </div>
+  <p style="margin-top:32px"><a class="btn btn--ghost" href="{{keith}}">Back to the evidence page</a></p>
+</div>

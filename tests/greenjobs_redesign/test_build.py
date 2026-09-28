@@ -242,6 +242,68 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     keith.write_text(k, encoding="utf-8")
 
 
+# ------------------------------------------------------------- dashboard tier
+
+def _dash_recompute(raw: dict, ed_key: str) -> dict:
+    """Independent recomputation of the headline KPIs from the raw fixture."""
+    from datetime import date as _date
+    asof = _date.fromisoformat(str(raw["fetched"])[:10])
+    jobs = raw["jobs"]
+    live = len(jobs)
+    new7 = sum(1 for j in jobs if 0 <= (asof - _date.fromisoformat(build_site.parse_date(j["posted"]))).days < 7)
+    closing7 = sum(1 for j in jobs if j.get("closing") and 0 <= (_date.fromisoformat(build_site.parse_date(j["closing"])) - asof).days <= 7)
+    sal_n = sum(1 for j in jobs if j.get("salary_min") is not None or j.get("salary_max") is not None)
+    emp: dict[str, int] = {}
+    for j in jobs:
+        emp[j["employer"]] = emp.get(j["employer"], 0) + 1
+    return {"live": live, "new7": new7, "closing7": closing7, "sal_n": sal_n, "sal_pct": round(100 * sal_n / live), "top_share": round(100 * max(emp.values()) / live), "employers": len(emp)}
+
+
+def test_dashboard_renders_per_edition(tmp_root: Path):
+    import re
+    out = tmp_root / "site_dash"
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE)
+    check(rc == 0, "dashboard: fixture build passes with the dashboard page")
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    want = _dash_recompute(raw, "ie")
+    for ed in ("ie", "uk"):
+        path = out / ed / "dashboard" / "index.html"
+        check(path.exists(), f"dashboard: {ed}/dashboard/index.html written")
+        html_text = path.read_text(encoding="utf-8")
+        check('content="noindex,nofollow"' in html_text and html_text.count("<h1") == 1, f"dashboard: {ed} page is noindex with one h1")
+        m = re.search(r'<script type="application/json" id="gj-dash">(.*?)</script>', html_text, re.S)
+        k = json.loads(m.group(1)) if m else {}
+        check(all(k.get(key) == val for key, val in want.items()), f"dashboard: {ed} headline KPIs match an independent recomputation ({want})")
+        check(sum(k["quality"]) == k["live"] and len(k["weeks"]) == 4 and k["asof"] == str(raw["fetched"])[:10], f"dashboard: {ed} quality distribution sums to live roles, 4-week trend, data-as-of date")
+        check(f'>{k["live"]}</b>' in html_text and f'>{k["sal_pct"]}%</b>' in html_text and "Data as of" in html_text, f"dashboard: {ed} tiles carry the computed numbers and the as-of line")
+        wired = re.findall(r'<div class="kpi kpi--wired">(.*?)</div>', html_text, re.S)
+        check(len(wired) >= 14, f"dashboard: {ed} has the wired-at-launch tiles ({len(wired)})")
+        for tile in wired:
+            body = re.sub(r'<span class="kpi__t">.*?</span>', "", tile, flags=re.S)
+            body = re.sub(r"<code>[^<]*</code>", "", body)
+            if re.search(r"\d", body):
+                check(False, f"dashboard: {ed} wired tile carries a digit outside a labelled target: {body[:80]!r}")
+                break
+        else:
+            check(True, f"dashboard: {ed} wired tiles show no live numbers (dashes only, targets labelled)")
+        check("—" in wired[0] and "collected from launch" in html_text, f"dashboard: {ed} wired tiles use a neutral dash with the collected-from-launch caption")
+        check("Plausible" not in html_text and "GA4" not in html_text and "analytics provider" in html_text, f"dashboard: {ed} names no analytics vendor")
+        check('data-csv' in html_text and "js/dashboard.js" in html_text and "js/charts.js" in html_text, f"dashboard: {ed} ships the CSV button and scripts")
+        check(("Concentration risk" in html_text or "concentration risk" in html_text) == (k["top_share"] > 50), f"dashboard: {ed} concentration flag shown only when top employer share > 50%")
+    home = (out / "ie" / "index.html").read_text(encoding="utf-8")
+    check("dashboard/index.html" not in home and "dashboard" not in (out / "sitemap.xml").read_text(encoding="utf-8"), "dashboard: not in the primary nav or sitemap")
+    check("dashboard/index.html" in (out / "ie" / "for-keith" / "index.html").read_text(encoding="utf-8"), "dashboard: linked from the for-keith evidence page")
+
+
+def test_dashboard_kpis_edge_cases():
+    data = {"fetched": "2026-09-22", "jobs": [], "sectors": [], "regions": []}
+    k = build_site.dashboard_kpis(data)
+    check(k["live"] == 0 and k["sal_median"] is None and k["days_to_close"] is None and k["top_share"] == 0, "dashboard: empty dataset yields zeros and n/a, no division by zero")
+    job = {"title": "Hybrid analyst", "location": "Remote", "text": "x" * 400, "employer": "Acme Recruitment", "posted": "2026-09-20", "closing": "2026-10-20", "sal_min": 40000, "sal_max": None, "cur": "EUR", "period": "year", "logo": "a.png"}
+    k = build_site.dashboard_kpis({**data, "jobs": [job]})
+    check(k["agency_pct"] == 100 and k["remote_pct"] == 100 and k["quality"][4] == 1 and k["days_to_close"] == 30 and k["sal_median"] == 40000 and k["new7"] == 1, "dashboard: agency, remote, quality, days-to-close and median computed on a single role")
+
+
 def main() -> int:
     import inspect
     base = REPO / ".tmp"
