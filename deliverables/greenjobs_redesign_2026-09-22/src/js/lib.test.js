@@ -177,10 +177,10 @@ test('salaryLabel never converts the advertised currency; it adds an approximate
   assert.equal(GJ.salaryLabel(K[0]), '€5.1k–6k/mo');
   assert.equal(GJ.salaryLabel(K[0], 'EUR'), '€5.1k–6k/mo');
   const uk = GJ.salaryLabel(K[0], 'GBP');
-  assert.ok(uk.startsWith('€5.1k–6k/mo (paid in euros, about £'), uk);
+  assert.ok(uk.startsWith('€5.1k–6k/mo (advertised in euros, about £'), uk);
   assert.ok(/£4\.4k–5\.1k\/mo\)$/.test(uk), uk);
-  assert.equal(GJ.salaryLabel(K[1], 'EUR'), '£40k–50k (paid in sterling, about €46.8k–58.5k)');
-  assert.equal(GJ.currencyNote(K[1], 'EUR'), 'Paid in sterling');
+  assert.equal(GJ.salaryLabel(K[1], 'EUR'), '£40k–50k (advertised in sterling, about €46.8k–58.5k)');
+  assert.equal(GJ.currencyNote(K[1], 'EUR'), 'Advertised in sterling');
   assert.equal(GJ.currencyNote(K[1], 'GBP'), '');
   assert.equal(GJ.FX_GBP_EUR, 1.17);
 });
@@ -298,6 +298,8 @@ test('normaliseState folds the legacy type param into contract / workplace', () 
 test('dedupeJobs keeps one entry per title + employer', () => {
   const d = GJ.dedupeJobs([{ title: 'Associate – Renewables', employer: 'Gaia Talent', id: 1 }, { title: 'associate – renewables', employer: 'Gaia Talent', id: 2 }, { title: 'Associate – Renewables', employer: 'Other', id: 3 }]);
   assert.deepEqual(d.map(j => j.id), [1, 3]);
+  const t = GJ.dedupeJobs([{ title: ' Ecologist ', employer: 'Arup ', id: 4 }, { title: 'ECOLOGIST', employer: 'arup', id: 5 }]);
+  assert.deepEqual(t.map(j => j.id), [4], 'round 4: title and employer are trimmed and lower-cased before comparing');
 });
 
 test('compass pct is 100 only when every answer favoured the sector', () => {

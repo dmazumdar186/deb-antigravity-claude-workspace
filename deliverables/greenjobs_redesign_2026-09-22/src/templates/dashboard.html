@@ -1,7 +1,7 @@
 {{kpis}}
 <div class="wrap pagehead">
   <h1>KPI dashboard</h1>
-  <p class="lede">What the board is worth this week, and how each number is measured. The top half is computed from the live listings at build time; the bottom half lists the measures the analytics provider will report once it is switched on through the cookie consent's Analytics toggle.</p>
+  <p class="lede">What the board is worth this week, and how each number is measured. The top half is live figures from this week's listings; the bottom half lists the measures reported once an analytics provider is connected and the visitor allows analytics.</p>
 </div>
 <div class="wrap viz dash" data-dash style="padding-bottom:var(--pad-y)">
   <div class="dash__bar">
@@ -17,8 +17,8 @@
     <figure class="fig fig--wide" data-fig="quality"><h3>Listing quality score</h3><p>How we measure it: one point each for a published salary, a closing date, an employer logo and a description of 400+ characters. Higher is a listing candidates can act on.</p></figure>
   </div>
 
-  <h2 class="dash__h">Event spec for launch <span class="dash__tag">Wired at launch</span></h2>
-  <p class="muted" style="max-width:70ch">Nothing below is a live number. Each tile names the event the site sends (every apply link, search form, alert and newsletter form, "Request advertising rates" and "Post a job" button and save button already carries a <code>data-ev</code> attribute) and the target we will report against. Events are only sent once the visitor switches Analytics on in the cookie settings and a provider is connected; values fill in from launch day and a dash means "collected from launch".</p>
+  <h2 class="dash__h">Measures to come <span class="dash__tag">Reported once analytics is connected</span></h2>
+  <p class="muted" style="max-width:70ch">Nothing below is a live number. Each tile names the event the site sends (every apply link, search form, alert and newsletter form, "Request advertising rates" and "Post a job" button and save button already carries a <code>data-ev</code> attribute) and the target we will report against. Events are only sent once an analytics provider is connected and the visitor allows analytics in the cookie settings; a dash means not yet collected.</p>
   <div class="kpis kpis--wired" data-wired>
     <div class="kpi kpi--wired"><span class="kpi__l">Apply clicks per employer <span class="kpi__t">(30d)</span></span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>apply_click</code> with <code>job_id</code>, <code>employer</code>, <code>sector</code>, <code>region</code> and <code>src_page</code>; grouped by employer over a rolling thirty days. Use: the reach report each advertiser receives.</p></div>
     <div class="kpi kpi--wired"><span class="kpi__l">Apply clicks by referring network site</span><b class="kpi__v">—</b><p class="kpi__d">Event: <code>apply_click</code> split by the referrer's network site, per posting. Use: shows each employer the distribution they paid for. Target: <span class="kpi__t">every posting records clicks from more than one network site (target we propose)</span>.</p></div>

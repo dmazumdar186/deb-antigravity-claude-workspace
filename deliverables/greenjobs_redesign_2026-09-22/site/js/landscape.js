@@ -100,7 +100,7 @@ function draw(now) {
 var t = (now - t0) / 1000, u = Math.min(1, scroll / Math.max(1, H)), sunT = Math.min(1, u * 1.6);
 tx += (px - tx) * 0.06; ty += (py - ty) * 0.06;
 ctx.fillStyle = L.grad; ctx.fillRect(0, 0, W, H);
-var narrow = W < 720, sx = W * (narrow ? 0.9 : 0.8) + tx * 2, sy = H * (narrow ? 0.05 : 0.17) + scroll * 0.06 + ty * 2, sr = Math.max(narrow ? 16 : 24, Math.min(64, W * 0.036));
+var narrow = W < 720, sx = W * (narrow ? 0.92 : 0.8) + tx * 2, sy = H * (narrow ? 0.16 : 0.17) + scroll * 0.06 + ty * 2, sr = Math.max(narrow ? 16 : 24, Math.min(64, W * 0.036));
 var glow = ctx.createRadialGradient(sx, sy, sr * 0.6, sx, sy, sr * 4.2);
 glow.addColorStop(0, T.glow); glow.addColorStop(1, 'rgba(217,154,28,0)');
 ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
@@ -149,7 +149,7 @@ if (reduce.addEventListener) reduce.addEventListener('change', function () { if 
 new MutationObserver(function () { tone(); build(); if (reduce.matches) still(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 if (video) {
 var conn = navigator.connection, save = !!(conn && conn.saveData);
-if (save || reduce.matches) { video.removeAttribute('autoplay'); video.preload = 'none'; [].slice.call(video.querySelectorAll('source')).forEach(function (s) { s.remove(); }); video.load(); host.classList.add('is-playing'); stop(); }
+if (save || reduce.matches) { video.removeAttribute('autoplay'); video.preload = 'none'; [].slice.call(video.querySelectorAll('source')).forEach(function (s) { s.remove(); }); video.load(); if (save) { host.classList.add('is-playing'); stop(); } }
 else {
 var failed = false;
 var takeOver = function () { if (failed) return; host.classList.add('is-playing'); stop(); };

@@ -46,19 +46,21 @@
   }
   var TODAY = Date.parse(data.today || '') || Date.now();
   function isClosed(j) { var t = j.closing ? Date.parse(j.closing) : NaN; return !isNaN(t) && t + 864e5 <= TODAY; }
-  var CUR_SYM = { euros: '\u20ac', pounds: '\u00a3', EUR: '\u20ac', GBP: '\u00a3' };
-  /* "€5.1k–6k/mo (paid in euros, about £4.4k–5.1k/mo)" -> the salary chip plus a muted "paid in €" chip. */
+  var CUR_SYM = { euros: '\u20ac', sterling: '\u00a3', pounds: '\u00a3', EUR: '\u20ac', GBP: '\u00a3' };
+  /* "€5.1k–6k/mo (advertised in euros, about £4.4k–5.1k/mo)" -> the salary chip plus a muted "advertised in €" chip
+     (the currency glyph sits in the dot slot so every chip shares one anatomy). */
   function salChips(sal) {
-    var m = /^(.*) \(paid in ([^,]+), about (.+)\)$/.exec(sal || '');
+    var m = /^(.*) \((?:paid|advertised) in ([^,]+), about (.+)\)$/.exec(sal || '');
     if (!m) return sal ? '<span class="tag tag--sal"><span class="tag__t">' + G.esc(sal) + '</span></span>' : '';
-    return '<span class="tag tag--sal"><span class="tag__t">' + G.esc(m[1]) + '</span></span><span class="tag tag--fx" title="' + G.esc('Paid in ' + m[2] + ', about ' + m[3]) + '"><span class="tag__t">paid in ' + G.esc(CUR_SYM[m[2]] || m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span></span>';
+    var sym = CUR_SYM[m[2]] || m[2];
+    return '<span class="tag tag--sal"><span class="tag__t">' + G.esc(m[1]) + '</span></span><span class="tag tag--fx" title="' + G.esc('Advertised in ' + m[2] + ', about ' + m[3]) + '"><b class="tag__cur" aria-hidden="true">' + G.esc(sym) + '</b><span class="tag__t">advertised in ' + G.esc(m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span></span>';
   }
   function row(j, q) {
     var sal = G.salaryLabel(j, CUR), lc = G.locLabel(j.loc_class), closed = isClosed(j);
     return '<article class="row' + (closed ? ' row--closed' : '') + '" data-id="' + G.esc(j.id) + '">' + logo(j) +
       '<div class="row__body"><h3><a href="' + G.esc(j.href) + '">' + hl(j.title, q) + '</a></h3>' +
       '<div class="row__meta"><span class="row__emp">' + G.esc(j.employer) + ' <span aria-hidden="true">·</span></span><span>' + G.esc(j.location) + '</span>' +
-      (closed ? '<span class="tag tag--closed">Closed</span>' : '') + salChips(sal) + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (sect0(j) ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i><span class="tag__t">' + G.esc(sect0(j)) + '</span></span>' : '') + '</div>' +
+      (closed ? '<span class="tag tag--closed">Closed</span>' : '') + salChips(sal) + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (sect0(j) ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i><span class="tag__t">' + G.esc(sect0(j)) + '</span></span>' : '') + (j.level ? '<span class="tag tag--lvl" title="Career level">' + G.esc(j.level) + '</span>' : '') + '</div>' +
       (j.unverified_cur ? '<p class="role__note">Salary as listed on greenjobs.ie; the advertiser may pay in sterling.</p>' : '') + '</div>' +
       '<div class="row__r"><time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time><span>' + G.esc(j.type || '') + '</span></div>' +
       '<button class="save" type="button" data-save="' + G.esc(j.id) + '" data-title="' + G.esc(j.title) + '" aria-pressed="false" aria-label="Save: ' + G.esc(j.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button></article>';

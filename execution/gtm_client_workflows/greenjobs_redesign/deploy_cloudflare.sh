@@ -11,6 +11,16 @@ PROJECT="${2:-greenjobs-redesign}"
 [[ "$PROJECT" =~ ^[a-z0-9][a-z0-9-]{0,57}$ ]] || { echo "invalid project name: $PROJECT" >&2; exit 1; }
 [ -f "$SITE/index.html" ] || { echo "no index.html in $SITE" >&2; exit 1; }
 
+# Deploy gate (round 4): build_site.py writes .greenjobs-build-ok (sha of the
+# tree) only after its validator passes; refuse anything else and re-run the
+# validator here so a hand-edited or stale tree never ships.
+OK="$SITE/.greenjobs-build-ok"
+[ -f "$OK" ] || { echo "refusing to deploy: $OK is missing (run build_site.py; it writes the marker only after validation passes)" >&2; exit 1; }
+if [ -n "$(find "$SITE" -type f -newer "$OK" ! -name '.greenjobs-build-ok' ! -name '_shot-*' | head -1)" ]; then
+  echo "refusing to deploy: files in $SITE are newer than $OK (rebuild)" >&2; exit 1
+fi
+python3 "$ROOT/execution/gtm_client_workflows/greenjobs_redesign/validate_site.py" "$SITE" || { echo "refusing to deploy: validate_site.py failed" >&2; exit 1; }
+
 # Load .env without exporting anything else and without echoing values.
 if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] && [ -f "$ROOT/.env" ]; then
   CLOUDFLARE_API_TOKEN="$(grep -E '^CLOUDFLARE_API_TOKEN=' "$ROOT/.env" | tail -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
@@ -41,10 +51,10 @@ STAGE="$ROOT/.tmp/cloudflare-deploy-stage"
 rm -rf "$STAGE"
 mkdir -p "$STAGE"
 if command -v rsync >/dev/null 2>&1; then
-  rsync -a --exclude='.greenjobs-build' --exclude='_shot-*' "$SITE"/ "$STAGE"/
+  rsync -a --exclude='.greenjobs-build' --exclude='.greenjobs-build-ok' --exclude='_shot-*' "$SITE"/ "$STAGE"/
 else
   cp -R "$SITE"/. "$STAGE"/
-  find "$STAGE" \( -name '.greenjobs-build' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
+  find "$STAGE" \( -name '.greenjobs-build' -o -name '.greenjobs-build-ok' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
 fi
 
 $WRANGLER pages deploy "$STAGE" --project-name "$PROJECT" --branch main --commit-dirty=true

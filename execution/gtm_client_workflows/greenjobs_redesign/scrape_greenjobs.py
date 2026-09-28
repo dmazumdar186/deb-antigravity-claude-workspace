@@ -454,8 +454,7 @@ def download_logos(key: str, home: str, employers: list, base: str, assets_dir: 
         with open(os.path.join(assets_dir, fname), "wb") as fh:
             fh.write(blob)
         manifest.setdefault(name, {"file": fname, "source": url, "bytes": len(blob), "site": key})
-    with open(manifest_path, "w", encoding="utf-8") as fh:
-        json.dump(manifest, fh, indent=1, ensure_ascii=False)
+    write_json_atomic(manifest_path, manifest)  # never a half-written logos.json (round 4)
 
 
 def main(argv=None) -> int:
@@ -474,7 +473,9 @@ def main(argv=None) -> int:
         d = crawl_site(key, a.max_jobs, min(a.concurrency, 4), max(a.sleep, 0.3), a.out, a.assets)
         LOG.info("%s done: %s", key, d["stats"])
         if d["stats"].get("rejected"):
-            rc = 3  # below the snapshot floor: nothing was written for this site
+            rc = 3  # below the snapshot floor: nothing was written for this site; with --site both one rejected site fails the whole run
+    if rc:
+        LOG.error("run rejected: at least one site fell below its snapshot floor (exit %d)", rc)
     return rc
 
 

@@ -102,8 +102,9 @@
     var url = window.location.origin + window.location.pathname + window.location.search + '#fit=' + G.encodeFit(lastQ);
     history.replaceState(null, '', url);
     if (shareNote) shareNote.hidden = false;
-    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { window.GJsay('Link copied'); }, function () { window.GJsay(url); });
-    else window.GJsay(url);
+    var status = panel.querySelector('[data-fit-status]'), sayHere = function (msg) { if (!status) return window.GJsay(msg); status.textContent = msg; clearTimeout(sayHere.t); sayHere.t = setTimeout(function () { status.textContent = ''; }, 4000); };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { sayHere('Link copied'); }, function () { sayHere(url); });
+    else sayHere(url);
   });
   var fromHash = G.decodeFit(window.location.hash);
   if (fromHash) { ta.value = fromHash; run(fromHash, true); panel.scrollIntoView({ block: 'start' }); }

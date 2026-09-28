@@ -48,7 +48,7 @@
       '<span class="btn btn--lime adb__apply" aria-hidden="true">Apply<span class="arw">→</span></span>';
     var r = reach[j.sectors[0]];
     if (r) {
-      var line = 'Roles in ' + j.sectors[0] + ' this week: ' + r.n + '; ' + (r.disc ? 'median disclosed: ' + r.med + ' (' + r.disc + ' of ' + r.n + ' publish one).' : 'none of them publishes a salary, so yours would be the first.');
+      var line = 'Roles in ' + j.sectors[0] + ' this week: ' + r.n + '; ' + (r.disc >= 3 ? 'median disclosed: ' + r.med + ' (' + r.disc + ' of ' + r.n + ' publish one).' : r.disc ? r.disc + ' of ' + r.n + ' publish a salary (too few for a median).' : 'none of them publishes a salary, so yours would be the first.');
       if (r.disc && sal) line += ' Listing a range puts this ad in the "salary disclosed" filter that candidates use.';
       else if (!sal) line += ' Add a range to appear in the salary-disclosed filter.';
       reachEl.textContent = line;

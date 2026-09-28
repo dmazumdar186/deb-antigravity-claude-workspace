@@ -72,6 +72,10 @@ lines.slice(0, keep).forEach(function (l, i) { t.appendChild(el('tspan', { x: r.
 g.appendChild(t);
 g.appendChild(el('text', { x: r.x + 10, y: r.y + r.h - 10, class: 't2', fill: dark ? '#f3ece1' : '#2a2521' }, it.v + (it.v === 1 ? ' role' : ' roles')));
 }
+else if (r.w >= 44 && r.h >= 24) {
+var mc = Math.max(3, Math.floor((r.w - 12) / 8.6)), short = it.label.split(/[\s&,]+/)[0];
+g.appendChild(el('text', { x: r.x + 6, y: r.y + 17, class: 't2', fill: it.dark ? '#f3ece1' : '#2a2521' }, (short.length > mc ? short.slice(0, mc - 1) + '\u2026' : short) + (r.w >= 70 ? ' ' + it.v : '')));
+}
 tipOn(g, '<b>' + G.esc(it.label) + '</b><span>' + it.v + (it.v === 1 ? ' role' : ' roles') + '</span>');
 var act = function (e) { e.preventDefault(); if (opts.onPick) opts.onPick(it); };
 g.addEventListener('click', act);

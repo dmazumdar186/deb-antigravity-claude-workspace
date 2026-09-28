@@ -221,7 +221,7 @@ def test_landing_zero_role_guard(tmp_root: Path):
     fx.write_text(json.dumps(raw), encoding="utf-8")
     ie = build_site.normalise(raw, "ie", SRC, SRC / "assets" / "logos")
     uk = build_site.normalise(raw, "uk", SRC, SRC / "assets" / "logos")
-    check([s["slug"] for s, _ in build_site.landing_pages(ie)] == ["ecology-jobs-ireland", "environmental-jobs-dublin"] and [len(js) for _, js in build_site.landing_pages(ie)] == [2, 1], "landing_pages: IE builds only the ecology and Dublin pages (2 and 1 roles); renewable and sustainability have zero roles and are skipped")
+    check([s["slug"] for s, _ in build_site.landing_pages(ie)] == ["ecology-jobs-ireland", "environmental-jobs-dublin"] and [len(js) for _, js in build_site.landing_pages(ie)] == [1, 1], "landing_pages: IE builds only the ecology and Dublin pages (1 and 1 roles: the Belfast role sits outside the IE home set, r4b); renewable and sustainability have zero roles and are skipped")
     check([s["slug"] for s, _ in build_site.landing_pages(uk)] == ["ecology-jobs-uk"] and [j["id"] for _, js in build_site.landing_pages(uk) for j in js] == ["1008"], "landing_pages: UK builds only the ecology page with the Belfast role (Dublin excluded, no London role)")
     check(build_site.landing_pages({"ed": "ie", "jobs": []}) == [] and build_site.landing_pages({"ed": "uk", "jobs": []}) == [], "landing_pages: no roles -> no pages on either edition")
     out = tmp_root / "site_eco"
@@ -232,7 +232,7 @@ def test_landing_zero_role_guard(tmp_root: Path):
     site_map = (out / "sitemap.xml").read_text(encoding="utf-8")
     check("ie/ecology-jobs-ireland/index.html" in site_map and "renewable-energy-jobs-ireland" not in site_map and "sustainability-jobs-uk" not in site_map, "build: the sitemap lists only the landing pages that were built")
     guides = (out / "ie" / "guides" / "index.html").read_text(encoding="utf-8")
-    check("Ecology jobs in Ireland</a> <span class=\"muted\">· 2 live</span>" in guides and "Renewable energy jobs" not in guides, "build: the guides hub links only built landing pages with their live counts")
+    check("Ecology jobs in Ireland</a> <span class=\"muted\">· 1 live</span>" in guides and "Renewable energy jobs" not in guides, "build: the guides hub links only built landing pages with their live counts")
     head = (out / "ie" / "environmental-jobs-dublin" / "index.html").read_text(encoding="utf-8").split("</head>")[0]
     check('rel="canonical" href="https://greenjobs-redesign.pages.dev/ie/environmental-jobs-dublin/index.html"' in head and 'rel="alternate"' not in head, "build: a landing page built on one edition only has a canonical and no hreflang pair")
 

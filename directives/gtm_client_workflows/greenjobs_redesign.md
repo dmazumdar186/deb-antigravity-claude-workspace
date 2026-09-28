@@ -24,11 +24,15 @@ redirects here). Evidence page: `<base>/ie/for-keith/`
 2. Maps only when geometry changes: `python3 .../make_maps.py` (Natural Earth admin-1 → `assets/maps/{ie,uk}.svg`).
 3. Build: `python3 .../build_site.py --src deliverables/greenjobs_redesign_2026-09-22/src --out deliverables/greenjobs_redesign_2026-09-22/site --edition both`
    (always `both`; a single edition leaves cross-edition links dangling). Runs node tests, validator,
-   byte budgets (CSS ≤ 60 KB, JS ≤ 60 KB). `--out` allow-list and `.greenjobs-build` marker as in Gaia.
-4. Tests: `python3 tests/greenjobs_redesign/test_build.py`; screenshots: `bash .../screenshot.sh`
+   byte budgets (CSS ≤ 80 KB, JS ≤ 125 KB). `--out` allow-list and `.greenjobs-build` marker as in Gaia;
+   `.greenjobs-build-ok` (sha256 of the tree) is written only after the validator passes and is the deploy gate.
+4. Tests: `python3 tests/greenjobs_redesign/run_all.py` (python build/validate/scrape/gaps + `node --test` lib/dashboard +
+   Playwright DOM and layout tiers; a skipped browser tier fails the run unless `--allow-skip`; prints the total
+   check count and writes it to `tests/greenjobs_redesign/COVERAGE.md`); screenshots: `bash .../screenshot.sh`
    then look at every PNG in `.tmp/greenjobs_redesign_shots/`.
 5. Audit stack + panel pass (roster in `.claude/memory/panel_roster.md`); fix; rebuild.
-6. Publish: `bash .../deploy_cloudflare.sh` (project `greenjobs-redesign`). `curl -sI` the base URL and
+6. Publish: `bash .../deploy_cloudflare.sh` (project `greenjobs-redesign`; refuses without a fresh
+   `.greenjobs-build-ok` and re-runs `validate_site.py <site>` first). `curl -sI` the base URL and
    one job page. `publish_gh_pages.sh` is retired (exits 2); github.io holds redirect stubs only.
 
 ## Hero footage (Higgsfield)
@@ -57,7 +61,12 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   B Corp footer mark links to a B Lab explainer that never states GreenJobs' own certification —
   show the mark only, claim nothing.
 - UK jobs carry no sector tags: sectors are keyword-derived (the evidence page says so).
-- greenjobs.ie shows UK-located roles with € salaries; the demo mirrors the source, never converts.
+- greenjobs.ie shows UK-located roles with sterling figures relabelled as €. Sterling rule: `sterling_correction()`
+  restores the greenjobs.co.uk twin's GBP figures when the twin matches by id, slug or title + employer AND the
+  (salary_min, salary_max) pair is numerically identical (the source relabels 1:1); several adverts share a slug,
+  so the nearest posted date wins among figure-matching twins. Roles without a twin keep the scraped euros,
+  are flagged `unverified_cur` (2 on the 22 Sept snapshot) and never enter a median, band, guide or dashboard
+  figure; the salary guide says so. Displayed figures are never converted; the bracketed equivalent uses 1.17.
 - Snapshot data goes stale within a week: the hero carries a snapshot date; re-scrape before resending.
 - wrangler ≥ 4.136 delegates `pages project create` to Workers and fails: `--force` is required.
 - Sticky-footer layout stretches `main` inside a capture window taller than the page; screenshot.sh
@@ -121,10 +130,38 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   per edition (live tiles from stored fields + "Event spec for launch" with a consent-gated `track()`
   stub and `data-ev` attributes on apply, search, sign-up, request-rates, post-job and save controls);
   SEO landing pages (4 per edition, only when a role matches); `/guides/` with a data-generated salary
-  guide; new facets (workplace, level, contract, salary range, closing date, agency vs direct,
+  guide; new facets (workplace, level, contract — the scraped job type and the text-derived tags are one merged
+  Contract facet, `contract_facet()` — salary range, closing date, agency vs direct,
   "Hide UK/abroad-only roles"); the pinned film hero and `film.js` removed. Panel pass run 2026-09-28,
   fixes applied (cookie copy lists every stored key; quick-job-match text stays out of the URL until
   "Copy shareable link"; B Corp shown as mark + generic definition only; testimonial slots off the
   public page; launch notes shown before every demo form; employers page single CTA and "Ask us"
   membership cells; tags wrap at 390 px). Tests: `test_build.py` block `# --- panel fixes B ---`,
   `node --test src/js/dashboard.test.js`.
+- 2026-09-28 (round 1, trace + QA): functional trace of every page at 1440/390 light/dark (`.tmp/trace3/acceptance.md`),
+  numbers on public pages verified against `data/*.json` (88/77 roles, 14 sectors, 10 network sites, 29/47 disclosed
+  salaries), 404 in the shell, hreflang pairs only for paths built in both editions (`paired_paths()`), Northern
+  Ireland and East Midlands listed at 0 on the UK map so they stay a location option.
+- 2026-09-28 (round 2, panel v1): secondary sector tags need `SECONDARY_MIN` and a third of the primary's score
+  (R010/R087), Built environment as a secondary needs a title hit or three body keywords, unverified euro roles
+  carry `currency_source` (R011), landing intros ≤ 80 words, employer strip lists live employers only (R041),
+  contract facet merged, quick-job-match text kept out of the URL, cookie copy lists every stored key.
+- 2026-09-28 (round 3, visual + layout suite): warm-earth visual fixes (visual 3–32), footer date rendered
+  server-side, `tests/greenjobs_redesign/layout.test.mjs` added — Playwright layout regression (R1–R12: overflow,
+  chip geometry, table bands, overlapping text, clipped controls, button rows, hero trust lines, rail scroll,
+  console/network, contrast, screenshot baseline in `layout_baseline/`), `dashboard_dom.test.mjs` for the
+  dashboard's browser half, `run_all.py` as the one test command, `test_scrape.py` against a recorded corpus,
+  `test_gaps.py` branch tests (COVERAGE.md).
+- 2026-09-28 (round 4, panel v2 + trace 3, data/build): sterling twin match requires figure equality on every
+  path with nearest posted date as tie-break (IE 11495292 £55–60k from 11495291, not the £62–67k namesake);
+  figure-fidelity test asserts all 21 restored pairs equal the IE source pairs; secondaries kept when the title,
+  the site's own energy label or the energy family (wind/solar/renewable/networks) names them, "coastal" added
+  to Water & flood, "enforcement officer" to Policy, golden `expect_secondaries` entries so drops are caught;
+  `SITE_WORDS` no longer fire on bare "onsite"/"reserves"; the scraped type wins the permanent/contract axis
+  (Bridge Engineer 11493521 → Contract only); `CROSS_RE` accepts ", - –" separators and reads only the title +
+  first 300 summary chars; `date_long(None)` → ""; `lib.js dedupeJobs` trims; unverified-currency roles excluded
+  from every median/band/guide/dashboard figure with the fx note saying so; `.greenjobs-build-ok` marker +
+  `validate_site.py` CLI + deploy gate; scraper `--site both` exits 3 when either site is rejected, `logos.json`
+  atomic; `run_all.py` SKIP semantics, total check count into COVERAGE.md; dashboard copy in the visitor voice
+  (`DASHBOARD_COPY` / `DASHBOARD_REWRITES` in `build_site.py`); IE hero now reads 15 live sectors (Solar became
+  live through the restored secondary). Tests: `test_build.py` block `# --- round 4 ---`.

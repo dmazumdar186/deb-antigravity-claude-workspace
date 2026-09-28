@@ -44,13 +44,13 @@ var label = fmt(j.sal_min, j.sal_max, j.cur);
 if (edCur && j.cur && j.cur !== edCur && fxConvert(1, j.cur, edCur) !== 1) {
 var lo = j.sal_min != null ? Math.round(fxConvert(j.sal_min, j.cur, edCur) / 100) * 100 : null;
 var hi = j.sal_max != null ? Math.round(fxConvert(j.sal_max, j.cur, edCur) / 100) * 100 : null;
-label += ' (paid in ' + (CUR_NAME[j.cur] || j.cur) + ', about ' + fmt(lo, hi, edCur) + ')';
+label += ' (advertised in ' + (CUR_NAME[j.cur] || j.cur) + ', about ' + fmt(lo, hi, edCur) + ')';
 }
 return label;
 }
 function currencyNote(j, edCur) {
 if (!j.cur || j.cur === edCur || (j.sal_min == null && j.sal_max == null)) return '';
-return 'Paid in ' + (CUR_NAME[j.cur] || j.cur);
+return 'Advertised in ' + (CUR_NAME[j.cur] || j.cur);
 }
 var MULT = { year: 1, month: 12, week: 52, day: 230, hour: 1950 };
 function annual(j, edCur) {
@@ -285,7 +285,7 @@ return sectors.map(function (s) { return { sector: s, score: score[s], pct: Math
 function dedupeJobs(list) {
 var seen = {}, out = [];
 (list || []).forEach(function (j) {
-var k = norm(j.title) + '|' + norm(j.employer);
+var k = norm(j.title).trim() + '|' + norm(j.employer).trim();  // norm lower-cases; trim so ' Title ' and 'title' are one advert
 if (seen[k]) return;
 seen[k] = 1;
 out.push(j);

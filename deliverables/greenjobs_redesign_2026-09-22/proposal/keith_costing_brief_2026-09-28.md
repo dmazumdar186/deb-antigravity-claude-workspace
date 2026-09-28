@@ -55,7 +55,7 @@ Keep it short. Give one anchor number so the Wednesday conversation with Finance
 > Two parts to the costing, so you can take it to Finance on Wednesday:
 >
 > 1. The rebuild you've seen, both IE and UK plus your polish list: a fixed fee, live on your domains within 15 working days, and you don't pay if it isn't.
-> 2. Monthly management of the three sites: from €350/month, rolling monthly after the first 3, no lock-in. That covers hosting, backups, monitoring, security and a block of change hours each month.
+> 2. Monthly management of the three sites on a rolling monthly plan after the first 3 months, no lock-in. That covers hosting, backups, monitoring, security and a block of change hours each month.
 >
 > The bigger question is moving off Strategies fully (employer posting, candidate accounts, job alerts, Broadbean feeds). I can price that as a fixed one-off so your recurring cost drops well under what you pay now. To get it right I need four things:
 > - what Strategies charges you today and when the contract renews / notice period
@@ -65,7 +65,7 @@ Keep it short. Give one anchor number so the Wednesday conversation with Finance
 >
 > I'll have the full proposal with you Wednesday morning so it lands the same day your Finance Manager is back. Happy to do 20 minutes on a call with her too if useful.
 
-Then send the proposal as a one-page PDF Wednesday: the three lines, the year-1 vs year-2 table, and the 15-day guarantee.
+Then send the proposal as a one-page PDF Wednesday: the three lines, the year-1 vs year-2 table, and the 15-day guarantee. No figure goes in the DM: prices live only in the tables above and are said in person.
 
 ## 4. Discovery answers needed before Line 2 is firm
 1. Strategies invoice amount, tier, renewal date, notice period, data-export terms.
@@ -107,6 +107,8 @@ His document was split into 114 individual requests and every one was verified o
 9. "Transport and active travel" is merged into "Sustainable infrastructure & transport". Keep merged or split?
 10. Membership package contents: his site never lists them, so the column reads "Ask us". What does membership include?
 11. Content hub: a salary guide exists; career-advice articles and market reports need topics or copy from him.
+
+**Pricing note (round 4):** the §3 DM draft no longer carries "from €350/month" or any € figure; every price stays in the §2 tables and is said in person. Keep it that way in the thread.
 
 **Paste-ready line for the LinkedIn thread**
 > Every point in your notes is now live on the demo, both editions. Eleven items need something from your side (audience figures, testimonials, logo permissions, membership contents and a couple of naming calls); they're listed on your evidence page under "Launch checklist". Send me those whenever convenient and I'll drop them in the same day.

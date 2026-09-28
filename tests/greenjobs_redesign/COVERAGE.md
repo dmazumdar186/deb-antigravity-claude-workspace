@@ -6,7 +6,7 @@
 python3 -m coverage run --include="execution/gtm_client_workflows/greenjobs_redesign/*" tests/greenjobs_redesign/test_build.py && python3 -m coverage report -m
 ```
 
-`test_build.py`'s `main()` also runs `test_scrape.py` and `test_gaps.py`, so that one command (about 8 minutes) covers everything below. `python3 tests/greenjobs_redesign/run_all.py` adds the two node tiers (`node --test` on `lib.js` + `dashboard.js`, and the Playwright DOM check `dashboard_dom.test.mjs`, which prints `SKIP` and exits 0 when Chromium or Playwright is absent). Every file also runs on its own.
+`test_build.py`'s `main()` also runs `test_scrape.py` and `test_gaps.py`, so that one command (about 8 minutes) covers everything below. `python3 tests/greenjobs_redesign/run_all.py` adds the node tier (`node --test` on `lib.js` + `dashboard.js`) and the two Playwright tiers (`dashboard_dom.test.mjs`, `layout.test.mjs`); a browser tier that cannot run prints `SKIP` and the run exits 1 unless `--allow-skip` is given. The runner prints the total check count and rewrites the "Last full run" line at the end of this file. Every file also runs on its own.
 
 JS: `cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test --experimental-test-coverage lib.test.js dashboard.test.js`
 
@@ -21,7 +21,7 @@ JS: `cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test --exper
 | `lib.js` (node --test) | 97.7% | 97.7% (unchanged) |
 | `dashboard.js` (node --test) | 57.1% | 57.1% — the DOM half (lines 35-61) now runs in real Chromium via `dashboard_dom.test.mjs`, but code executed inside the browser cannot be attributed by `node --test`'s coverage, so the figure does not move |
 
-Checks: 319 before → 532 after in the python tier (87 in `test_scrape.py`, 126 in `test_gaps.py`), plus 15 Playwright checks.
+Checks: 319 before → 532 after in the python tier (87 in `test_scrape.py`, 126 in `test_gaps.py`), plus 15 Playwright checks. Round 4 (2026-09-28): python tier 1,010 (blocks `# --- round 4 ---` and `test_r4b_landings_strip_types` add `# --- round 4 ---` adds sterling fidelity, secondary tags, workplace/contract, cross-border, unverified-currency, deploy-gate, hero-facts and dashboard-voice checks), node 40, dashboard DOM 15, layout 1,732 — 2,797 in total, as printed by `run_all.py`.
 
 ## Scraper fixture
 
@@ -68,3 +68,5 @@ Every check asserts a concrete property of the output (rendered HTML, validator 
 ## Latent test failures (pre-existing, not touched)
 
 `test_build.py` defines `test_panel_b_copy_and_consent` and `test_panel_b_dashboard_rules_from_stored_fields` *after* the `__main__` guard, so the script runner never executes them; they only run under pytest or when the module is imported. Three of their checks fail against the current templates/data (tile label `(30d)` is rendered inside a `<span>`, "jQuery" legitimately appears in the evidence table above the appendix, and the synthetic dataset yields `closing7 == 3`, not 1). Left unchanged per the "no weakening" rule; a follow-up task is queued.
+
+Last full run (run_all.py, 2026-09-28): 2797 checks — python (build + validate + scrape + gaps) pass (1010), node --test lib.js + dashboard.js pass (40), playwright dashboard DOM pass (15), playwright layout regression fail (1732).

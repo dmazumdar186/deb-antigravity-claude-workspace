@@ -9,7 +9,9 @@ if (bar && dlg) {
 var consent = null;
 try { consent = JSON.parse(store('gj-consent') || 'null'); } catch (e) { consent = null; }
 var opener = null;
-function save(obj) { store('gj-consent', JSON.stringify(obj)); bar.classList.remove('is-on'); bar.setAttribute('aria-hidden', 'true'); }
+var root = doc.documentElement;
+function fit() { root.style.setProperty('--cookie-h', bar.offsetHeight + 'px'); }
+function save(obj) { store('gj-consent', JSON.stringify(obj)); bar.classList.remove('is-on'); bar.setAttribute('aria-hidden', 'true'); root.removeAttribute('data-cookie-open'); }
 function openSettings(from) {
 opener = from || doc.activeElement;
 var cur = consent || { essential: true, analytics: false, marketing: false };
@@ -28,7 +30,8 @@ save(consent); dlg.close();
 $('[data-cookie-close]', dlg).addEventListener('click', function () { dlg.close(); });
 if (!consent || force === 'cookie' || force === 'settings') {
 bar.removeAttribute('aria-hidden');
-setTimeout(function () { bar.classList.add('is-on'); }, force ? 0 : 600);
+setTimeout(function () { bar.classList.add('is-on'); fit(); root.setAttribute('data-cookie-open', ''); }, force ? 0 : 600);
+window.addEventListener('resize', function () { if (bar.classList.contains('is-on')) fit(); });
 if (force === 'settings') setTimeout(function () { openSettings($('[data-cookie-settings]', bar)); }, 80);
 }
 window.GJCookie = { get: function () { return consent; }, open: openSettings };

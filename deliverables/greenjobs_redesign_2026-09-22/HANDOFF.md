@@ -5,10 +5,10 @@ Spec: `research/build_spec.md`. Source: `src/`. Built site: `site/` (not committ
 
 ## Status (refreshed 2026-09-28)
 
-- Build: `python3 execution/gtm_client_workflows/greenjobs_redesign/build_site.py [--today YYYY-MM-DD]` → exit 0. 165 live roles on the 22 Sept snapshot (88 IE, 77 UK after the UK inclusion rule and the closed-role drop), 195 pages, CSS 69.7 KB, JS 96.8 KB (budgets 80/125), zero third-party requests.
-- Tests: `python3 tests/greenjobs_redesign/test_build.py` (unit + integration on fixture and real data + injected faults + `# --- panel fixes B ---`), `node --test src/js/lib.test.js` (24 tests) and `node --test src/js/dashboard.test.js` (5 tests). All green at the time of writing.
+- Build: `python3 execution/gtm_client_workflows/greenjobs_redesign/build_site.py [--today YYYY-MM-DD]` → exit 0. 165 live roles on the 22 Sept snapshot (88 IE, 77 UK after the UK inclusion rule and the closed-role drop), 195 pages, CSS 76.9 KB, JS 107.5 KB (budgets 80/125), zero third-party requests. 21 of 23 UK-located IE roles get their sterling figure back from the greenjobs.co.uk twin; the 2 without a twin are flagged and kept out of every median. On success the build writes `site/.greenjobs-build-ok` (sha of the tree) — the deploy gate.
+- Tests: `python3 tests/greenjobs_redesign/run_all.py` — four tiers: python (`test_build.py` incl. `test_scrape.py` + `test_gaps.py`, 1,010 checks), `node --test` lib + dashboard (40), Playwright dashboard DOM and layout regression (skip with `SKIP` when Chromium is absent; the run then exits 1 unless `--allow-skip`). The runner prints the total (2,797 checks on 2026-09-28: 1,010 + 40 + 15 + 1,732 layout assertions over 202 page loads) and writes it to `tests/greenjobs_redesign/COVERAGE.md` ("Last full run"). All green at the time of writing.
 - Pages per edition: home, jobs, job pages, sectors, insights, compass, employers, guides + salary guide, 4 SEO landing pages, dashboard (noindex, linked from for-keith), for-keith.
-- Deployed URL: https://greenjobs-redesign.pages.dev/ (Cloudflare Pages, `deploy_cloudflare.sh`; redeploy after every rebuild). Not committed to the client repo.
+- Live URL: https://greenjobs-redesign.pages.dev/ (Cloudflare Pages, served at `/`). `deploy_cloudflare.sh` refuses to deploy without a fresh `.greenjobs-build-ok` and re-runs `validate_site.py` first; redeploy after every rebuild. Not committed to the client repo.
 - Panel pass (11 lenses) run 2026-09-28; fixes applied (see the directive changelog).
 
 ### Launch checklist (needs GreenJobs)
@@ -19,6 +19,8 @@ Spec: `research/build_spec.md`. Source: `src/`. Built site: `site/` (not committ
 4. Client testimonials, verbatim from the GreenJobs testimonials page, with permission to name clients.
 5. Confirmation of current B Corp status and permission to use the B Corp, 1% for the Planet and employer logos.
 6. DNS change pointing greenjobs.ie / greenjobs.co.uk at the new host.
+7. Flip `robots.txt` at launch: the demo ships `Disallow: /` on purpose; the launch build must allow crawling (and the sitemap is already absolute).
+8. Weekly refresh routine (not built yet; needs): a cron that runs `scrape_greenjobs.py --site both` then `build_site.py` (the scraper exits 3 and leaves `src/data` untouched when either site falls under 50% of the last snapshot); an alert to Deb on any non-zero exit; the deploy gate (`.greenjobs-build-ok` + `validate_site.py`) before `deploy_cloudflare.sh`; a diff report of roles added / closed / re-priced per edition sent with the deploy.
 
 ## What is where
 
@@ -26,9 +28,9 @@ Spec: `research/build_spec.md`. Source: `src/`. Built site: `site/` (not committ
 |---|---|
 | Build / validate | `execution/gtm_client_workflows/greenjobs_redesign/{build_site,validate_site}.py` |
 | Map geometry generator | `execution/gtm_client_workflows/greenjobs_redesign/make_maps.py` (Natural Earth 10m admin-1 → `src/assets/maps/{ie,uk}.svg`) |
-| Screenshots / publish / deploy | `execution/gtm_client_workflows/greenjobs_redesign/{screenshot,publish_gh_pages,deploy_cloudflare}.sh` |
+| Screenshots / deploy | `execution/gtm_client_workflows/greenjobs_redesign/{screenshot,deploy_cloudflare}.sh` (`publish_gh_pages.sh` retired) |
 | Worker stub (phase 2) | `execution/gtm_client_workflows/greenjobs_redesign/worker/` |
-| Tests | `tests/greenjobs_redesign/test_build.py`, `src/js/lib.test.js` |
+| Tests | `tests/greenjobs_redesign/run_all.py` (→ `test_build.py`, `test_scrape.py`, `test_gaps.py`, `dashboard_dom.test.mjs`, `layout.test.mjs`), `src/js/lib.test.js`, `src/js/dashboard.test.js`; manual cases in `tests/greenjobs_redesign/TEST_CASES.md` |
 
 ## Data caveats (surface to Keith)
 
@@ -42,6 +44,6 @@ Spec: `research/build_spec.md`. Source: `src/`. Built site: `site/` (not committ
 ## Publish when approved
 
 ```bash
-bash execution/gtm_client_workflows/greenjobs_redesign/publish_gh_pages.sh   # https://<owner>.github.io/<repo>/greenjobs/
-bash execution/gtm_client_workflows/greenjobs_redesign/deploy_cloudflare.sh  # https://greenjobs-redesign.pages.dev/
+python3 execution/gtm_client_workflows/greenjobs_redesign/build_site.py      # writes site/.greenjobs-build-ok after validation
+bash execution/gtm_client_workflows/greenjobs_redesign/deploy_cloudflare.sh  # https://greenjobs-redesign.pages.dev/ (gate: marker + validate_site.py)
 ```

@@ -4,6 +4,7 @@
   <p class="lede">{{n_jobs}} green roles, filtered as you type. Everything you set lives in the address bar, so a filtered list is a link you can share.</p>
 </div>
 <div class="wrap board" data-board>
+  <a class="skip" href="#results">Skip to results</a>
   <aside data-rail-home>
     <form class="rail" data-rail data-filters data-ev="search" aria-label="Filters">
       <h2>Filters <button type="button" data-reset>Clear</button></h2>
@@ -23,7 +24,7 @@
       <p class="muted" style="font-size:.8rem">Press <span class="kbd">Ctrl</span> <span class="kbd">K</span> to jump to any role, sector or page.</p>
     </form>
   </aside>
-  <section aria-label="Results">
+  <section id="results" aria-label="Results">
     <div class="toolbar">
       <div class="toolbar__left">
         <p class="count" data-count aria-live="polite" aria-atomic="true"><b>{{n_jobs}}</b> roles</p>

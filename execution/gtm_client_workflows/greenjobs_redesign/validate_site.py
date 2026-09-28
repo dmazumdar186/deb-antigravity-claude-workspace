@@ -22,6 +22,8 @@ outputs: a list of failure strings (empty means the build passes)
 
 from __future__ import annotations
 
+import sys
+
 import html
 import json
 import re
@@ -390,7 +392,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
             # "Organisations recruiting through GreenJobs" on the employers page) must
             # belong to an employer with a live role in this edition (R041 / visual 7).
             live = {html.unescape(j["employer"]) for j in jobs_by_edition.get(sm.group(1), [])}
-            for mode, inner in re.findall(r'<div class="marq" data-marq data-strip="([a-z]+)">(.*?)</div></div>', raw, re.S):
+            for mode, inner in re.findall(r'<div class="marq(?: marq--static)?"(?: data-marq)? data-strip="([a-z]+)">(.*?)</div></div>', raw, re.S):
                 for alt, span in re.findall(r'<(?:img[^>]*\balt="([^"]*)"|span>([^<]*)</span>)', inner):
                     name = html.unescape(alt or span)
                     if name and name not in live:
@@ -447,3 +449,41 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
             if font.name not in raw:
                 fails.append(f"{rel}: does not preload {font.name}")
     return fails
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Deploy gate (round 4): re-validate a built site against src/data and
+    confirm its .greenjobs-build-ok marker matches the tree it describes.
+    Usage: python3 validate_site.py <site_dir> [--src <src_dir>]"""
+    import argparse
+    import json
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_site  # noqa: E402
+    here = Path(__file__).resolve().parents[3] / "deliverables" / build_site.PROJECT
+    ap = argparse.ArgumentParser(description=main.__doc__)
+    ap.add_argument("site", type=Path)
+    ap.add_argument("--src", type=Path, default=here / "src")
+    a = ap.parse_args(argv)
+    site, src = a.site.resolve(), a.src.resolve()
+    marker = site / build_site.OK_MARKER
+    if not marker.is_file():
+        print(f"FAIL  {marker} missing: build_site.py writes it only after validation passes; rebuild before deploying", file=sys.stderr)
+        return 1
+    if marker.read_text(encoding="utf-8").strip() != build_site.site_tree_sha(site):
+        print(f"FAIL  {marker.name} does not match the site tree (files changed after the build); rebuild before deploying", file=sys.stderr)
+        return 1
+    data_by_ed = {}
+    for ed_key in ("ie", "uk"):
+        path = src / "data" / f"{ed_key}.json"
+        if path.exists() and (site / ed_key).is_dir():
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            data_by_ed[ed_key] = build_site.normalise(raw, ed_key, src, src / "assets" / "logos", build_site.build_today(raw, None))
+    fails = build_site.check_built_js(site) + validate(site, {k: d["jobs"] for k, d in data_by_ed.items()}, data_by_ed, build_site.dashboard_kpis)
+    for line in fails[:80]:
+        print(f"  - {line}", file=sys.stderr)
+    print("FAIL" if fails else "PASS", f" validate_site: {len(fails)} problem(s) in {site}" if fails else f" validate_site: {site} is valid and matches its {marker.name} marker")
+    return 1 if fails else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

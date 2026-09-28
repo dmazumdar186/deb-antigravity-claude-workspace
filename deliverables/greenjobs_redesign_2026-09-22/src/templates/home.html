@@ -4,7 +4,7 @@
     <p class="hero__eyebrow"><i class="dot" aria-hidden="true"></i>{{n_jobs}} live green roles across {{country}} this week</p>
     <h1 id="h1">Work that works <em>for the planet.</em></h1>
     <p class="hero__lede">{{hero_sub}}</p>
-    <form class="search hero__search" data-search data-ev="search" action="jobs/index.html" method="get" role="search" aria-label="Search live roles">
+    <form class="search hero__search" data-search data-ev="search" action="jobs/" method="get" role="search" aria-label="Search live roles">
       <div class="field"><label for="s-q">What job are you looking for?</label><input class="in" id="s-q" name="q" type="search" placeholder="Ecologist, solar, hydrogeology…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="s-ta" aria-autocomplete="list"></div>
       <div class="field"><label for="s-loc">Where do you want to work?</label><input class="in" id="s-loc" name="loc" type="text" placeholder="Any {{unit}}" autocomplete="off"></div>
       <button class="btn btn--lime" type="submit" data-magnet>Find jobs<span class="arw" aria-hidden="true">→</span></button>
@@ -16,10 +16,10 @@
     </div>
     <div class="hero__trust">
       {{hero_bcorp}}
-      <p><b>Certified B Corporation.</b> Independently verified for social and environmental performance, accountability and transparency.</p>
+      <p>B Corps are businesses independently certified for social and environmental performance, accountability and transparency.</p>
     </div>
   </div>
-  <a class="hero__alerts" href="#h-alert"><span><b>Get weekly job alerts</b> — up to ten matches by email, free</span><span class="arw" aria-hidden="true">→</span></a>
+  <a class="hero__alerts" href="#h-alert"><span><b>Job alerts:</b> up to ten job alerts by email, free.</span><span class="arw" aria-hidden="true">→</span></a>
 </section>
 
 <section class="band band--tight band--list" id="latest" aria-labelledby="h-latest">
@@ -71,13 +71,13 @@
 <section class="band band--tight" aria-labelledby="h-alert">
   <div class="wrap">
     <div class="alertbox reveal">
-      <div><h2 id="h-alert">{{alert_title}}</h2><p style="margin-top:12px">Up to ten job alerts by email, matched to the sectors and {{units}} you pick. Free, weekly, unsubscribe any time.</p></div>
+      <div><h2 id="h-alert">{{alert_title}}</h2><p style="margin-top:12px">Up to ten job alerts by email, matched to the sectors and {{units}} you pick. Free; unsubscribe any time.</p></div>
       <form data-demo-form novalidate>
         <div class="row"><div class="field"><label for="al-email">Email</label><input class="in" id="al-email" name="email" type="email" placeholder="you@example.com" required></div><div class="field"><label for="al-sector">Sector</label><select class="in" id="al-sector" name="sector"><option value="">All sectors</option>{{sector_options}}</select></div></div>
         <label class="check"><input type="checkbox" id="al-consent" name="consent"><span>Email me the weekly newsletter too</span></label>
-        <p class="note" data-demo-pre>Alerts open when the new site launches.</p>
+        <p class="note" data-demo-pre>Job alerts by email are available on {{domain}} today: <a href="https://www.{{domain}}/newsletter-signup.asp" rel="noopener">sign up on {{domain}}</a>.</p>
         <button class="btn btn--lime" type="submit" data-ev="alert_signup">Create my alert</button>
-        <p class="note note--live" data-demo-note tabindex="-1" hidden>Alerts open when the new site launches. Your address has not been stored.</p>
+        <p class="note note--live" data-demo-note tabindex="-1" hidden>Your address has not been stored. Use the link above to set up alerts today.</p>
         <p class="note__fallback"><a href="jobs/index.html">Meanwhile, browse all roles →</a></p>
       </form>
     </div>

@@ -34,7 +34,10 @@
   "edition": "ie",
   "title": "Renewable Power Generation Lead – Ireland",
   "employer": "Gaia Talent",
-  "sector": "Renewable energy & storage"
+  "sector": "Renewable energy & storage",
+  "expect_secondaries": [
+   "Solar energy"
+  ]
  },
  {
   "id": "11501029",
@@ -84,7 +87,10 @@
   "edition": "ie",
   "title": "Principal EIA Consultant – Energy",
   "employer": "Gaia Talent",
-  "sector": "Environmental science & consulting"
+  "sector": "Environmental science & consulting",
+  "expect_secondaries": [
+   "Energy networks & utilities"
+  ]
  },
  {
   "id": "11493325",
@@ -231,7 +237,10 @@
   "edition": "uk",
   "title": "Solar PV Designer",
   "employer": "Naked Solar",
-  "sector": "Solar energy"
+  "sector": "Solar energy",
+  "expect_secondaries": [
+   "Renewable energy & storage"
+  ]
  },
  {
   "id": "11492995",
@@ -266,7 +275,10 @@
   "edition": "uk",
   "title": "Lead Cable Design Engineer",
   "employer": "Arup",
-  "sector": "Energy networks & utilities"
+  "sector": "Energy networks & utilities",
+  "expect_secondaries": [
+   "Renewable energy & storage"
+  ]
  },
  {
   "id": "11500759",
@@ -330,7 +342,10 @@
   "edition": "uk",
   "title": "Renewable Power Generation Lead – Ireland",
   "employer": "Gaia Talent",
-  "sector": "Renewable energy & storage"
+  "sector": "Renewable energy & storage",
+  "expect_secondaries": [
+   "Solar energy"
+  ]
  },
  {
   "id": "11496261",
@@ -395,5 +410,15 @@
   "employer": "Mattinson Partnership",
   "sector": "Sustainable infrastructure & transport",
   "secondaries": []
+ },
+ {
+  "id": "11493046",
+  "edition": "uk",
+  "title": "Coastal Engineering Project Manager",
+  "employer": "Jacobs",
+  "sector": "Sustainable infrastructure & transport",
+  "expect_secondaries": [
+   "Water & flood"
+  ]
  }
 ]

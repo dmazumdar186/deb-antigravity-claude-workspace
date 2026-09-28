@@ -43,8 +43,16 @@
   if (menu) menu.addEventListener('click', function (e) { if (e.target === menu) menu.close(); });
 
   /* ------------------------------------------------ edition switch memory */
+  /* The switch carries the current page, query and hash to the other edition when that
+     edition has the same page (the server-rendered href is the ground truth for "exists":
+     it points at the same file when it does, at that edition's list or home when it does not). */
+  var here = (window.location.pathname.split('/' + ED + '/')[1] || '').replace(/\/$/, '/index.html') || 'index.html';
   $$('[data-edswitch]').forEach(function (a) {
-    a.addEventListener('click', function () { store('gj-edition', a.getAttribute('data-edswitch')); });
+    var to = a.getAttribute('data-edswitch');
+    a.addEventListener('click', function () { store('gj-edition', to); });
+    if (to === ED) return;
+    var target = (a.getAttribute('href') || '').split(/[?#]/)[0], rel = (target.split('/' + to + '/')[1] || '');
+    if (rel && rel === here && (window.location.search || window.location.hash)) a.setAttribute('href', target + window.location.search + window.location.hash);
   });
   store('gj-edition', ED);
 
@@ -182,6 +190,7 @@
     if (el) track(el.getAttribute('data-ev'), evProps(el));
   });
   window.GJTrack = track;
+  if (body.getAttribute('data-page') === 'job') { var jv = $('[data-ev="apply_click"][data-ev-job]'); track('job_view', { job_id: jv ? jv.getAttribute('data-ev-job') : '', src_page: window.location.pathname }); }
 
   /* ------------------------------------------------ closed roles (job page) */
   var aside = $('.job__aside[data-closing]');
@@ -277,15 +286,33 @@
     var jobsHref = homeMap.getAttribute('data-jobs');
     window.GJMap($('svg', homeMap), counts, function (name) { window.location.href = jobsHref + G.toQuery({ loc: name }); });
   }
-  /* Server-rendered rows (home, sector pages): split "€… (paid in euros, about £…)" into a salary chip plus a muted "paid in €" chip, as jobs.js does for the board. */
-  var FX_SYM = { euros: '\u20ac', pounds: '\u00a3' };
-  $$('.row .tag--sal').forEach(function (chip) {
-    var m = /^(.*) \(paid in ([^,]+), about (.+)\)$/.exec(chip.textContent.trim());
+  /* Server-rendered rows (home, sector pages): split "€… (advertised in euros, about £…)" into a salary chip plus a muted "advertised in €" chip, as jobs.js does for the board. */
+  var FX_SYM = { euros: '\u20ac', sterling: '\u00a3', pounds: '\u00a3' };
+  $$('.row .tag--sal, .role .tag--sal').forEach(function (chip) {
+    var m = /^(.*) \((?:paid|advertised) in ([^,]+), about (.+)\)$/.exec(chip.textContent.trim());
     if (!m) return;
     chip.innerHTML = '<span class="tag__t">' + G.esc(m[1]) + '</span>';
-    var fx = doc.createElement('span'); fx.className = 'tag tag--fx'; fx.title = 'Paid in ' + m[2] + ', about ' + m[3];
-    fx.innerHTML = '<span class="tag__t">paid in ' + G.esc(FX_SYM[m[2]] || m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span>';
+    var fx = doc.createElement('span'); fx.className = 'tag tag--fx'; fx.title = 'Advertised in ' + m[2] + ', about ' + m[3];
+    fx.innerHTML = '<b class="tag__cur" aria-hidden="true">' + G.esc(FX_SYM[m[2]] || m[2]) + '</b><span class="tag__t">advertised in ' + G.esc(m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span>';
     chip.insertAdjacentElement('afterend', fx);
+  });
+  /* Footer social buttons: the build emits a placeholder circle; draw the real mark for the host. */
+  var SOCIAL = [
+    [/facebook\.com/i, 'Facebook', 'M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.6 1.6-1.6h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.3H7.4V14h2.8v8z'],
+    [/(twitter|x)\.com/i, 'X (Twitter)', 'M17.5 3h3l-6.8 7.8L21.8 21h-6.2l-4.9-6.4L5.1 21h-3l7.3-8.3L1.8 3h6.4l4.4 5.8L17.5 3zm-1.1 16.2h1.7L7 4.7H5.2l11.2 14.5z'],
+    [/linkedin\.com/i, 'LinkedIn', 'M6.5 8.5H3V21h3.5V8.5zM4.75 3a2 2 0 100 4 2 2 0 000-4zM21 13.3c0-3.4-1.8-5.1-4.3-5.1-2 0-2.9 1.1-3.4 1.9V8.5H9.9V21h3.4v-6.9c0-1.8.6-2.9 2.1-2.9 1.4 0 2.1.9 2.1 2.9V21H21v-7.7z'],
+    [/instagram\.com/i, 'Instagram', 'M12 7.3a4.7 4.7 0 100 9.4 4.7 4.7 0 000-9.4zm0 7.7a3 3 0 110-6 3 3 0 010 6zm6-7.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0zM12 3c-2.4 0-2.7 0-3.7.1C5 3.2 3.2 5 3.1 8.3 3 9.3 3 9.6 3 12s0 2.7.1 3.7c.1 3.3 1.9 5.1 5.2 5.2 1 .1 1.3.1 3.7.1s2.7 0 3.7-.1c3.3-.1 5.1-1.9 5.2-5.2.1-1 .1-1.3.1-3.7s0-2.7-.1-3.7C20.8 5 19 3.2 15.7 3.1 14.7 3 14.4 3 12 3zm0 1.6c2.4 0 2.6 0 3.6.1 2.4.1 3.6 1.3 3.7 3.7.1 1 .1 1.2.1 3.6s0 2.6-.1 3.6c-.1 2.4-1.3 3.6-3.7 3.7-1 .1-1.2.1-3.6.1s-2.6 0-3.6-.1c-2.4-.1-3.6-1.3-3.7-3.7-.1-1-.1-1.2-.1-3.6s0-2.6.1-3.6c.1-2.4 1.3-3.6 3.7-3.7 1-.1 1.2-.1 3.6-.1z']
+  ];
+  $$('.ftr__social a').forEach(function (a) {
+    var hit = null; SOCIAL.forEach(function (s) { if (!hit && s[0].test(a.href)) hit = s; });
+    if (!hit) { a.remove(); return; }
+    a.setAttribute('aria-label', 'GreenJobs on ' + hit[1]);
+    a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + hit[2] + '"/></svg>';
+  });
+  $$('.ftr__social').forEach(function (w) { if (!w.children.length) w.remove(); });
+  /* Irish landline in the footer: dial-able from abroad (the scraped number is the domestic form). */
+  $$('.ftr a[href^="tel:0"]').forEach(function (a) {
+    var li = a.closest('li'); if (li && /ireland/i.test(li.textContent)) a.setAttribute('href', a.getAttribute('href').replace(/^tel:0/, 'tel:+353'));
   });
   window.GJsay = say;
 })();

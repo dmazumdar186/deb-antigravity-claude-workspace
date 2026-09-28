@@ -49,6 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import validate_site  # noqa: E402
 
 MARKER = ".greenjobs-build"
+OK_MARKER = ".greenjobs-build-ok"  # written only after validate passes; holds the sha256 of the site tree (deploy gate)
 PROJECT = "greenjobs_redesign_2026-09-22"
 
 EDITIONS = {
@@ -69,7 +70,7 @@ TAXONOMY: list[tuple[str, str, bool, list[str]]] = [
     ("Wind energy", "#5b95b8", False, ["wind", "offshore wind", "onshore wind", "turbine", "turbines"]),
     ("Solar energy", "#d99a1c", False, ["solar", "photovoltaic", "pv"]),
     ("Renewable energy & storage", "#6f8f6a", False, ["renewable", "renewables", "battery", "storage", "hydrogen", "hydro", "hydropower", "bioenergy", "biomass", "biogas", "anaerobic", "green energy", "clean energy", "alternative energy", "marine energy", "tidal", "wave"]),
-    ("Water & flood", "#3f7ea6", True, ["water", "flood", "flooding", "drainage", "wastewater", "hydrology", "hydrogeology", "hydrogeologist", "hydrologist", "sewer", "sewerage", "catchment"]),
+    ("Water & flood", "#3f7ea6", True, ["water", "flood", "flooding", "drainage", "wastewater", "coastal", "hydrology", "hydrogeology", "hydrogeologist", "hydrologist", "sewer", "sewerage", "catchment"]),
     ("Waste & circular economy", "#b7774e", False, ["waste", "waste management", "recycling", "circular", "circular economy", "landfill", "resource management", "reuse", "lgv driver", "hgv driver", "refuse", "epa licensing", "epa licence", "waste licensing", "waste permitting", "waste compliance", "waste facility", "waste facilities"]),
     ("Ecology, nature recovery & biodiversity", "#5c7a57", True, ["ecology", "ecologist", "ecological", "conservation", "biodiversity", "habitat", "habitats", "wildlife", "species", "ornithologist", "ornithology", "botanist", "botany", "arboriculture", "arboriculturist", "arborist", "nature", "nature recovery", "rewilding", "peatland", "forestry", "woodland", "marine biology", "landscape restoration", "ecosystem", "ecosystems", "land restoration", "regenerative"]),
     # Keith 2026-09-28 (B1): engineering, infrastructure, HSE and climate roles were
@@ -83,7 +84,7 @@ TAXONOMY: list[tuple[str, str, bool, list[str]]] = [
     ("Sustainability & ESG", "#a3653c", True, ["sustainability", "sustainable", "esg", "csrd", "responsible business", "corporate responsibility", "circularity"]),
     ("Built environment & energy efficiency", "#c65d3b", True, ["building", "buildings", "built environment", "energy efficiency", "retrofit", "breeam", "leed", "heat pump", "heat pumps", "insulation", "mechanical", "electrical", "hvac", "facilities", "architect", "architecture", "construction", "quantity surveyor", "surveyor"]),
     ("Energy networks & utilities", "#4a86ab", True, ["grid", "utility", "utilities", "transmission", "distribution", "substation", "energy network", "energy networks", "energy management", "energy manager", "power station", "electricity", "smart meter", "district heating"]),
-    ("Policy, planning & advisory", "#9a8a6a", False, ["policy", "planning", "planner", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education"]),
+    ("Policy, planning & advisory", "#9a8a6a", False, ["policy", "planning", "planner", "enforcement officer", "enforcement officers", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education"]),
 ]
 BUILT_ENV = "Built environment & energy efficiency"
 PRIMARY_MIN = 2  # score a sector needs before a job carries it
@@ -102,7 +103,7 @@ SECTOR_W = {"raw": 0, "title": 3, "employer": 2, "summary": 2, "body": 1}  # raw
 
 # Currency (Keith B2, 2026-09-28). Salaries are always shown in the currency the
 # employer advertised. When that differs from the edition's currency a label
-# "paid in euros/sterling" plus an approximate equivalent is added, using this
+# "advertised in euros/sterling" plus an approximate equivalent is added, using this
 # fixed rate. Comparisons (salary filter, medians, bands) annualise into the
 # edition currency at the same rate. Mirrored in lib.js (FX).
 FX_GBP_EUR = 1.17  # 1 GBP = 1.17 EUR, fixed 2026-09-28
@@ -207,6 +208,9 @@ LANDINGS: dict[str, list[dict[str, Any]]] = {
 }
 # Landing pages exist under an edition-specific slug; these are the hreflang
 # twins (R055). Every other paired path is the same path in both editions.
+# A landing page named "… in Ireland" / "… in Dublin" lists only the roles the board's "Hide UK/abroad-only"
+# toggle keeps (IE: ie/cross/remote; UK: uk/ni/cross/remote); a London role never sits under "Ecology jobs in Ireland" (round 4).
+LANDING_LOC = {k: set(v) for k, v in EDITION_HOME.items()}  # the board's "only" toggle set, so "Open these N roles" shows the same N
 LANDING_PAIRS = {"ecology-jobs-ireland": "ecology-jobs-uk", "renewable-energy-jobs-ireland": "renewable-energy-jobs-uk",
                  "sustainability-jobs-ireland": "sustainability-jobs-uk", "environmental-jobs-dublin": "environmental-jobs-london"}
 
@@ -389,8 +393,10 @@ def assign_sectors(job: dict[str, Any]) -> list[str]:
     summary = str(job.get("summary") or "").lower()
     body = strip_tags(str(job.get("description_html") or ""))[:3000].lower()
     scored: list[tuple[int, int, int, str]] = []
+    raw_named: dict[str, int] = {}
     for pos, (name, _, _, words) in enumerate(TAXONOMY):
         raw_hits = _word_hits(raw, words)
+        raw_named[name] = raw_hits
         score = (SECTOR_W["raw"] * raw_hits + SECTOR_W["title"] * _word_hits(title, words, 2) + SECTOR_W["employer"] * _word_hits(employer, words, 2)
                  + SECTOR_W["summary"] * _word_hits(summary, words, 2) + SECTOR_W["body"] * _word_hits(body, words))
         if score >= PRIMARY_MIN:
@@ -399,9 +405,29 @@ def assign_sectors(job: dict[str, Any]) -> list[str]:
     if not scored:
         return ["Environmental science & consulting"]
     primary = -scored[0][0]
-    picked = [scored[0][3]] + [name for neg, _, _, name in scored[1:] if -neg >= SECONDARY_MIN and -neg * SECONDARY_RATIO >= primary
-                              and _secondary_ok(name, title, summary, body)][:MAX_SECONDARY]
-    return picked
+    # Round 4 (panel v2): a sector whose keyword sits in the TITLE stays a
+    # secondary whatever the ratio ("Coastal Engineering PM" keeps Water,
+    # "Solar PV Designer" keeps Renewable); the ratio guard only prunes
+    # body-only hits.
+    top = scored[0][3]
+
+    def keep(name: str, score: int) -> bool:
+        if _title_hit(name, title):
+            return True  # the title names it
+        if name in ENERGY_FAMILY and raw_named.get(name) and score >= SECONDARY_MIN:
+            return True  # the source site's own energy label names it (IE adverts; the generic Sustainable/Policy labels stay ratio-gated)
+        if top in ENERGY_FAMILY and name in ENERGY_FAMILY:
+            return True  # wind / solar / renewable / networks roles overlap by nature
+        return score >= SECONDARY_MIN and score * SECONDARY_RATIO >= primary and _secondary_ok(name, title, summary, body)
+    return [top] + [name for neg, _, _, name in scored[1:] if keep(name, -neg)][:MAX_SECONDARY]
+
+
+ENERGY_FAMILY = {"Wind energy", "Solar energy", "Renewable energy & storage", "Energy networks & utilities"}
+
+
+def _title_hit(name: str, title: str) -> bool:
+    words = next(w for n, _, _, w in TAXONOMY if n == name)
+    return _word_hits(title, words) > 0
 
 
 def _secondary_ok(name: str, title: str, summary: str, body: str) -> bool:
@@ -421,8 +447,14 @@ def _job_text(job: dict[str, Any], body_chars: int = 2500) -> str:
 _IRELAND_RE = re.compile(r"(?<![a-z])(?:republic of )?ireland(?![a-z])")
 # "UK/Ireland", "UK & Ireland", "Ireland/UK", "remote from the UK or Ireland"
 # in the title or summary name both islands, whatever the scraped region says (R012).
-CROSS_RE = re.compile(r"(?<![a-z])(?:uk|united kingdom|britain|great britain)\s*(?:/|&|and|or|\+)\s*(?:the\s+)?(?:republic of\s+)?ireland(?![a-z])"
-                      r"|(?<![a-z])(?:republic of\s+)?ireland\s*(?:/|&|and|or|\+)\s*(?:the\s+)?(?:uk|united kingdom|britain|great britain)(?![a-z])", re.I)
+_CROSS_SEP = r"\s*(?:/|&|and|or|\+|,|-|–|—)\s*"  # "UK/Ireland", "UK, Ireland", "UK-Ireland", "Ireland – UK"
+CROSS_RE = re.compile(r"(?<![a-z])(?:uk|united kingdom|britain|great britain)" + _CROSS_SEP + r"(?:the\s+)?(?:republic of\s+)?ireland(?![a-z])"
+                      r"|(?<![a-z])(?:republic of\s+)?ireland" + _CROSS_SEP + r"(?:the\s+)?(?:uk|united kingdom|britain|great britain)(?![a-z])", re.I)
+CROSS_SUMMARY_CHARS = 300  # only the title and the opening of the summary count: "offices in the UK and Ireland" is employer boilerplate
+
+
+def cross_text(job: dict[str, Any]) -> str:
+    return str(job.get("title") or "") + " | " + str(job.get("summary") or "")[:CROSS_SUMMARY_CHARS]
 
 
 def loc_class(job: dict[str, Any], ie_places: list[str] | None = None, uk_places: list[str] | None = None, ed_key: str = "", ni_places: list[str] | None = None) -> str:
@@ -436,7 +468,7 @@ def loc_class(job: dict[str, Any], ie_places: list[str] | None = None, uk_places
     signal there: a UK signal must come from the location text (panel 08)."""
     loc = str(job.get("location") or "").lower()
     reg = str(job.get("region") or "").lower()
-    if CROSS_RE.search(str(job.get("title") or "") + " | " + str(job.get("summary") or "")):
+    if CROSS_RE.search(cross_text(job)):
         return "cross"
     ni_words = NI_WORDS + [w for w in (ni_places or []) if w not in NI_WORDS]
     uk_words = UK_WORDS + list(uk_places or [])
@@ -496,13 +528,29 @@ def workplace_of(job: dict[str, Any]) -> str:
 # "Microsoft Office", "Office of …" and "head office" are not workplaces
 # (panel 08: five roles incl. an EHS Site Manager read as office-based).
 _NOT_OFFICE_RE = re.compile(r"\b(?:microsoft office|ms office|office of\b|head office|office 365|box office|office suite)", re.I)
-SITE_WORDS = ["site-based", "site based", "on-site", "on site", "onsite", "site manager", "site managers", "reserve", "reserves", "patrol", "patrols", "resident engineer", "clerk of works", "field-based", "field based", "fieldwork", "field work"]
+# Round 4: bare "onsite" ("supplier onsite audit") and "reserve(s)" ("energy
+# market reserves") are not workplace signals; "nature reserve" still is.
+SITE_WORDS = ["site-based", "site based", "on-site", "on site", "site manager", "site managers", "nature reserve", "nature reserves", "patrol", "patrols", "resident engineer", "clerk of works", "field-based", "field based", "fieldwork", "field work"]
 _OFFICE_RE = re.compile(r"\bbased (?:in|at|from) (?:our|the) (?:\w+[ -]){0,2}offices?\b")  # "based in our Cork office"
 OFFICE_WORDS = ["office-based", "office based", "in the office", "in our office", "in office", "based in our office", "based at our office", "based in the office", "our offices in", "our office in"]  # bare "office" is not a signal
 
 
+TYPE_CANON = {"full time": "Full-time", "full-time": "Full-time", "part time": "Part-time", "part-time": "Part-time", "fixed term": "Fixed-term", "fixed-term": "Fixed-term",
+              "permanent": "Permanent", "contract": "Contract", "volunteer": "Volunteer", "home based": "Home Based", "home-based": "Home Based"}
+
+
+def canon_type(raw: Any) -> str:
+    """One spelling per scraped job type ("Full Time" -> "Full-time") so data, chips and CONTRACT_LABEL agree (round 4)."""
+    t = str(raw or "").strip()
+    return TYPE_CANON.get(t.lower(), t)
+
+
 def contract_of(job: dict[str, Any]) -> list[str]:
-    """Contract tags from the scraped type plus the text; a role can carry several."""
+    """Contract tags from the scraped type plus the text; a role can carry
+    several. Round 4: on the permanent / contract / fixed-term axis the
+    scraped type wins outright (a "Contract" advert whose body says
+    "permanent" is Contract only); the text decides only when the type names
+    none of them. Hours (part/full-time) and volunteer come from either."""
     typ = str(job.get("type") or "").lower()
     t = _job_text(job, 1500)
     tags: list[str] = []
@@ -510,13 +558,15 @@ def contract_of(job: dict[str, Any]) -> list[str]:
     def add(tag: str) -> None:
         if tag not in tags:
             tags.append(tag)
-    if "permanent" in typ or _word_hits(t, ["permanent"]):
+    typed_perm = "permanent" in typ
+    typed_ctr = any(w in typ for w in ("contract", "fixed term", "fixed-term", "temporary", "interim"))
+    if typed_perm or (not typed_ctr and _word_hits(t, ["permanent"])):
         add("permanent")
-    if _word_hits(t, ["fixed term", "fixed-term", "maternity cover", "ftc"]):
-        add("fixed-term")
+    if "fixed term" in typ or "fixed-term" in typ or (not typed_perm and _word_hits(t, ["fixed term", "fixed-term", "maternity cover", "ftc"])):
+        add("fixed-term")  # a refinement of Contract, so a "Contract" type still takes it from the text
     # "contractor" (an employer describing its business) is not a contract role (panel 08).
-    if "contract" in typ or _word_hits(t, ["day rate", "freelance", "contract role", "contract position", "contract basis", "fixed-term contract", "fixed term contract", "temporary contract", "interim"]) \
-            or re.search(r"\b\d+[- ](?:month|week|year)s?\s+(?:fixed[- ]term\s+)?contract\b", t):
+    if typed_ctr or (not typed_perm and (_word_hits(t, ["day rate", "freelance", "contract role", "contract position", "contract basis", "fixed-term contract", "fixed term contract", "temporary contract", "interim"])
+                                        or re.search(r"\b\d+[- ](?:month|week|year)s?\s+(?:fixed[- ]term\s+)?contract\b", t))):
         add("contract")
     if _word_hits(t, ["part time", "part-time"]) or "part" in typ:
         add("part-time")
@@ -664,31 +714,50 @@ def sterling_twins(src: Path) -> dict[str, dict[str, Any]]:
         jobs = json.loads(path.read_text(encoding="utf-8")).get("jobs") or []
     except (OSError, ValueError):
         return {}
-    idx: dict[str, dict[str, Any]] = {}
+    idx: dict[str, Any] = {}
     for j in jobs:
         if j.get("currency") != "GBP" or not isinstance(j.get("salary_min"), (int, float)) and not isinstance(j.get("salary_max"), (int, float)):
             continue
         for key in (f"id:{str(j.get('id') or '').strip()}", f"slug:{str(j.get('slug') or '').strip().lower()}",
                     f"te:{str(j.get('title') or '').strip().lower()}|{str(j.get('employer') or '').strip().lower()}"):
             if not key.endswith((":", "|")):
-                idx.setdefault(key, j)
+                idx.setdefault(key, []).append(j)  # slugs collide (3x senior-health-and-safety-consultant): keep every candidate
     return idx
+
+
+def _pick_twin(cands: list[dict[str, Any]], j: dict[str, Any]) -> dict[str, Any] | None:
+    """The candidate whose (salary_min, salary_max) equals the IE figures
+    numerically (the source site relabels 1:1), nearest posted date first."""
+    same = [t for t in cands if (t.get("salary_min"), t.get("salary_max")) == (j.get("salary_min"), j.get("salary_max"))]
+    if not same:
+        return None
+    mine = parse_date(j.get("posted"))
+
+    def gap(t: dict[str, Any]) -> int:
+        theirs = parse_date(t.get("posted"))
+        if not mine or not theirs:
+            return 10 ** 6
+        return abs((date.fromisoformat(mine) - date.fromisoformat(theirs)).days)
+    return min(same, key=gap)
 
 
 def sterling_correction(j: dict[str, Any], lc: str, twins: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
     """Keith B2: a UK-only role on greenjobs.ie is scraped with its sterling
     figures relabelled as euros. Return the greenjobs.co.uk twin's advertised
     figures ({salary_min, salary_max, currency, salary_text}) when the IE job
-    is loc_class uk, priced in EUR, and a twin exists by id or slug, or by
-    title + employer with the same numbers (a looser title match may be a
-    different advert). None when no twin is found: the scraped euros stay."""
+    is loc_class uk, priced in EUR, and a twin exists by id, slug or
+    title + employer with the same (salary_min, salary_max) numerically (the
+    source relabels 1:1); where several share a slug the nearest posted date
+    wins (round 4: IE 11495292 €55-60k -> UK 11495291 £55-60k, not the
+    £62-67k namesake). None when no twin is found: the scraped euros stay."""
     if lc != "uk" or j.get("currency") != "EUR" or not twins:
         return None
-    twin = twins.get(f"id:{str(j.get('id') or '').strip()}") or twins.get(f"slug:{str(j.get('slug') or '').strip().lower()}")
-    if twin is None:
-        twin = twins.get(f"te:{str(j.get('title') or '').strip().lower()}|{str(j.get('employer') or '').strip().lower()}")
-        if twin is not None and (twin.get("salary_min"), twin.get("salary_max")) != (j.get("salary_min"), j.get("salary_max")):
-            twin = None
+    twin = None
+    for key in (f"id:{str(j.get('id') or '').strip()}", f"slug:{str(j.get('slug') or '').strip().lower()}",
+                f"te:{str(j.get('title') or '').strip().lower()}|{str(j.get('employer') or '').strip().lower()}"):
+        twin = _pick_twin(twins.get(key) or [], j)
+        if twin is not None:
+            break
     if twin is None:
         return None
     return {"salary_min": twin.get("salary_min"), "salary_max": twin.get("salary_max"), "currency": "GBP",
@@ -745,7 +814,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
         jobs_out.append({
             "id": jid, "slug": slugify(j.get("slug") or j.get("title")), "title": str(j["title"]).strip(),
             "employer": str(j.get("employer") or "Confidential employer").strip(), "location": str(j.get("location") or ed["none"]).strip(),
-            "regions": resolve_regions(j, table, ed), "type": str(j.get("type") or "").strip(),
+            "regions": resolve_regions(j, table, ed), "type": canon_type(j.get("type")),
             "sal_min": j.get("salary_min") if isinstance(j.get("salary_min"), (int, float)) else None,
             "sal_max": j.get("salary_max") if isinstance(j.get("salary_max"), (int, float)) else None,
             "cur": j.get("currency") or None, "period": j.get("period") or None, "sal_text": str(j.get("salary_text") or "").strip(),
@@ -947,7 +1016,7 @@ def sparkline_svg(vals: list[int], w: int = 120, h: int = 34) -> str:
 def salary_label(j: dict[str, Any], ed_cur: str = "") -> str:
     """Mirror of lib.js salaryLabel for server-rendered cards. Always in the
     advertised currency; with ed_cur given and different from the job's, the
-    label gains "(paid in euros, about £…)" at the fixed rate (B2)."""
+    label gains "(advertised in euros, about £…)" at the fixed rate (B2)."""
     cur = j.get("cur") or ""
     sym = CUR_SYM.get(cur, "")
 
@@ -969,16 +1038,16 @@ def salary_label(j: dict[str, Any], ed_cur: str = "") -> str:
     if ed_cur and cur and cur != ed_cur and fx_convert(1, cur, ed_cur) != 1:
         eq_lo = rnd(fx_convert(lo, cur, ed_cur), -2) if lo is not None else None
         eq_hi = rnd(fx_convert(hi, cur, ed_cur), -2) if hi is not None else None
-        label += f" (paid in {CUR_NAME.get(cur, cur)}, about {fmt(eq_lo, eq_hi, CUR_SYM.get(ed_cur, ''))})"
+        label += f" (advertised in {CUR_NAME.get(cur, cur)}, about {fmt(eq_lo, eq_hi, CUR_SYM.get(ed_cur, ''))})"
     return label
 
 
 def currency_note(j: dict[str, Any], ed_cur: str) -> str:
-    """'Paid in euros' when the advertised currency differs from the edition's, else ''."""
+    """'Advertised in euros' when the advertised currency differs from the edition's, else ''."""
     cur = j.get("cur") or ""
     if not cur or cur == ed_cur or (j.get("sal_min") is None and j.get("sal_max") is None):
         return ""
-    return f"Paid in {CUR_NAME.get(cur, cur)}"
+    return f"Advertised in {CUR_NAME.get(cur, cur)}"
 
 
 ANNUAL_MULT = {"year": 1, "month": 12, "week": 52, "day": 230, "hour": 1950}  # mirrors lib.js annual()
@@ -1005,6 +1074,8 @@ def median_salary(jobs: list[dict[str, Any]], sym: str, ed_cur: str = "") -> str
 def date_long(iso: str) -> str:
     """'2026-09-22' -> '22 September 2026'. Every date a visitor reads goes
     through here (visual N4); ISO stays only in datetime= attributes and JSON-LD."""
+    if not iso:
+        return ""
     try:
         d = date.fromisoformat(str(iso)[:10])
     except ValueError:
@@ -1174,6 +1245,10 @@ def employers_strip(data: dict[str, Any], root: str, cap: int | None = 12) -> di
         url = e["url"] if str(e["url"]).startswith("http") else ""
         cells.append(f'<a class="emp" href="{esc(url)}" rel="noopener">{inner}</a>' if url else f'<div class="emp">{inner}</div>')
     track = "".join(cells)
+    if len(items) < 6:
+        # A short strip (the IE board has three live employers) is a static row: no duplicated
+        # logos, no scrolling, no Pause button.
+        return {"html": f'<div class="marq marq--static" data-strip="{mode}"><div class="marq__track">{track}</div></div>', "title": title, "sub": sub, "mode": mode}
     html_out = (f'<div class="marq" data-marq data-strip="{mode}"><div class="marq__track">{track}<span class="marq__dup" aria-hidden="true" style="display:contents">{track}</span></div></div>'
                 f'<p style="text-align:right;margin-top:8px"><button class="btn btn--sm btn--ghost" type="button" data-marq-pause aria-pressed="false">Pause</button></p>')
     return {"html": html_out, "title": title, "sub": sub, "mode": mode}
@@ -1527,6 +1602,8 @@ def annual_mid(j: dict[str, Any], ed_cur: str = "") -> tuple[float, float, float
     m = ANNUAL_MULT.get(j.get("period") or "year")
     if not m or (j.get("sal_min") is None and j.get("sal_max") is None):
         return None
+    if is_unverified(j):
+        return None  # round 4 (Dario): a UK-located role whose euro figure is unconfirmed never enters a median, band or guide
     if j.get("cur") not in COMPARABLE_CURRENCIES:
         return None  # USD or an unknown currency has no fixed rate: it never enters a median, band or salary filter
     lo = (j["sal_min"] if j["sal_min"] is not None else j["sal_max"]) * m
@@ -1536,6 +1613,13 @@ def annual_mid(j: dict[str, Any], ed_cur: str = "") -> tuple[float, float, float
     if lo < 8000 or hi > 400000:
         return None
     return (lo, hi, (lo + hi) / 2)
+
+
+def is_unverified(j: dict[str, Any]) -> bool:
+    """True for the UK-located IE roles whose scraped euro figure has no
+    sterling twin (normalised jobs carry currency_source, jobs.json the
+    unverified_cur flag)."""
+    return bool(j.get("unverified_cur")) or j.get("currency_source") == UNVERIFIED_SOURCE
 
 
 def money_k(n: float, sym: str) -> str:
@@ -1590,7 +1674,7 @@ def salary_strip(j: dict[str, Any], jobs: list[dict[str, Any]], sym: str, unit: 
     mine = annual_mid(j, ed_cur)
     same_county = [o for o in jobs if o["id"] != j["id"] and set(o["regions"]) & set(j["regions"]) and set(o["sectors"]) & set(j["sectors"])]
     county = j["regions"][0] if j["regions"] else ""
-    where = f"within {esc(county)}" if (on_map is None or county in on_map) else f"with the same location tag ({esc(county)})"
+    where = f"within {esc(county)}" if (on_map is None or county in on_map) else ("outside Ireland" if unit == "county" else "outside the UK")  # visitor wording for the off-map bucket
     sim = (f'<p class="sits__sim"><b class="num">{len(same_county)}</b> similar {"role" if len(same_county) == 1 else "roles"} {where}'
            + (f' — <a href="../index.html?loc={qs(county)}&amp;sector={qs(sector)}">see them</a>' if same_county else "") + "</p>")
     if not mine:
@@ -1717,6 +1801,27 @@ def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+# Visitor-voice dashboard copy (round 4). The template owner takes these as
+# {{dash_lede}} and {{dash_events}}; DASHBOARD_REWRITES maps the retired
+# developer phrasing onto them so the built page is right in the meantime.
+DASHBOARD_COPY = {
+    "dash_lede": "What the board is worth this week, and how each number is measured. Live figures from this week's listings. Reported once analytics is connected.",
+    "dash_events": "Nothing below is a live number. Each tile names the event the site records and the target it is measured against. Events are sent once an analytics provider is connected and the visitor allows analytics; values fill in from launch day and a dash means \"collected from launch\".",
+}
+DASHBOARD_REWRITES = [
+    ("The top half is computed from the live listings at build time; the bottom half lists the measures the analytics provider will report once it is switched on through the cookie consent's Analytics toggle.",
+     "Live figures from this week's listings. Reported once analytics is connected."),
+    ("computed from the live listings at build time", "Live figures from this week's listings."),
+    ("the analytics provider will report once it is switched on", "Reported once analytics is connected."),
+    ("Events are only sent once the visitor switches Analytics on in the cookie settings and a provider is connected;",
+     "Events are sent once an analytics provider is connected and the visitor allows analytics;"),
+    ("sent once the visitor switches Analytics on", "sent once an analytics provider is connected and the visitor allows analytics"),
+    (" (target we propose; no ", " (proposed target; no "),
+    (" (target we propose)", " (proposed target)"),
+    (", target we propose)", ", proposed target)"),
+]
+
+
 def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str], brief: dict[str, Any], site_base: str) -> None:
     """Client KPI dashboard at /{ed}/dashboard/: live-now tiles from the dataset plus
     the event spec for launch. Not in the primary nav; linked from for-keith."""
@@ -1732,7 +1837,7 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
         ("Live roles", str(k["live"]), "Listings with a page in this edition on the snapshot date.", ""),
         ("New this week", str(k["new7"]), "Roles posted within the 7 days up to the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
         ("Closing within 7 days", str(k["closing7"]), "Roles whose closing date falls within the 7 days after the snapshot.", ""),
-        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints, converted into {sym} at the fixed rate where a role is paid in the other currency: {med}.', ""),
+        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints, converted into {sym} at the fixed rate where a role is advertised in the other currency: {med}.', ""),
         ("Top employer share", f'{k["top_share"]}%', f'{esc(k["top_employer"])} holds this share of live roles across {k["employers"]} employers.' + (" Most roles come from one employer." if flag else ""), ""),
         ("Agency share", f'{k["agency_pct"]}%', f"Roles posted by recruitment agencies rather than the employer directly. Flagged when the employer is a known agency ({esc(agency_names)}) or its name contains a recruitment word ({esc(agency_words)}); the same flag drives the board's \"Advertised by\" filter.", ""),
         ("Advertised window (median days)", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
@@ -1743,11 +1848,17 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
         for lbl, val, how, spark in tiles)
     root = "../../"
     ctx = shell_ctx(data, 2, "dashboard", f"KPI dashboard — what GreenJobs {ed['short']} measures | GreenJobs {ed['short']}",
-                    "Live board metrics computed from the listings, and the event spec for launch.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
+                    "Live figures from this week's listings, and the measures reported once analytics is connected.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
     ctx["scripts"] = "".join(f'<script src="{root}js/{s}.js" defer></script>' for s in ("charts", "dashboard"))
-    ctx["content"] = render(tpl["dashboard"], {**ctx, "tiles": tile_html, "unit": ed["unit"], "units": plural(ed["unit"]), "sym": sym,
-                                               "kpis": f'<script type="application/json" id="gj-dash">{json_embed(k)}</script>',
-                                               "keith": f"{root}{data['ed']}/for-keith/index.html"})
+    content = render(tpl["dashboard"], {**ctx, "tiles": tile_html, "unit": ed["unit"], "units": plural(ed["unit"]), "sym": sym,
+                                        "kpis": f'<script type="application/json" id="gj-dash">{json_embed(k)}</script>',
+                                        "keith": f"{root}{data['ed']}/for-keith/index.html", **DASHBOARD_COPY})
+    # Round 4 (trace 3, P2): the page is a public URL, so the developer voice
+    # goes. The template may still carry the old sentences until it takes the
+    # {{dash_lede}} / {{dash_events}} placeholders; the bridge below rewrites them either way.
+    for old, new in DASHBOARD_REWRITES:
+        content = content.replace(old, new)
+    ctx["content"] = content
     (out / data["ed"] / "dashboard").mkdir(parents=True, exist_ok=True)
     (out / data["ed"] / "dashboard" / "index.html").write_text(render(tpl["_shell"], ctx), encoding="utf-8")
 
@@ -1886,10 +1997,12 @@ def emp_count_phrase(ed_key: str, n_emp: int) -> str:
 
 def landing_search_href(spec: dict[str, Any], jobs_href: str = "../jobs/index.html") -> str:
     """The 'open these N roles' link: every sector of a multi-sector landing
-    joined with '|' (lib.js filterJobs accepts any-of), or the region."""
+    joined with '|' (lib.js filterJobs accepts any-of), or the region. `only=1`
+    ticks the board's "Hide UK/abroad-only roles" toggle so the board opens the
+    same set the landing page lists (LANDING_LOC)."""
     if spec["kind"] == "sector":
-        return f"{jobs_href}?sector={qs('|'.join(sorted(spec['sectors'])))}"
-    return f"{jobs_href}?loc={qs(spec['region'])}"
+        return f"{jobs_href}?sector={qs('|'.join(sorted(spec['sectors'])))}&only=1"
+    return f"{jobs_href}?loc={qs(spec['region'])}&only=1"
 
 
 def landing_intro(spec: dict[str, Any], jobs: list[dict[str, Any]], ed: dict[str, Any], data: dict[str, Any]) -> str:
@@ -1932,11 +2045,12 @@ def landing_jsonld(jobs: list[dict[str, Any]], data: dict[str, Any], site_base: 
 def landing_pages(data: dict[str, Any]) -> list[tuple[dict[str, Any], list[dict[str, Any]]]]:
     """(spec, matching jobs) for every landing page of this edition that has at least one role."""
     out = []
+    pool = [j for j in data["jobs"] if j.get("loc_class", "ie" if data["ed"] == "ie" else "uk") in LANDING_LOC[data["ed"]]]
     for spec in LANDINGS[data["ed"]]:
         if spec["kind"] == "sector":
-            jobs = [j for j in data["jobs"] if set(j["sectors"]) & spec["sectors"]]
+            jobs = [j for j in pool if set(j["sectors"]) & spec["sectors"]]
         else:
-            jobs = [j for j in data["jobs"] if spec["region"] in j["regions"]]
+            jobs = [j for j in pool if spec["region"] in j["regions"]]
         if jobs:
             out.append((spec, jobs))
     return out
@@ -1960,12 +2074,14 @@ def guide_salary_body(data: dict[str, Any], ed: dict[str, Any]) -> dict[str, str
         sec_rows.append((s["name"], s["n"], len(mids), rate, money_k(med, ed["sym"]) if med is not None and len(mids) >= 3 else "—"))
     sec_html = "".join(f'<tr><th scope="row">{esc(n)}</th><td class="num">{c}</td><td class="num">{d}</td><td class="num">{r}%</td><td class="num">{m}</td></tr>' for n, c, d, r, m in sec_rows)
     foreign = sum(1 for j in disclosed if j.get("cur") and j["cur"] != cur)
+    unverified = sum(1 for j in jobs if is_unverified(j) and (j.get("sal_min") is not None or j.get("sal_max") is not None))
+    unv_note = f" {unverified} UK-located role{'' if unverified == 1 else 's'} with unconfirmed currency {'is' if unverified == 1 else 'are'} excluded from medians." if unverified else ""
     return {
         "n_jobs": str(len(jobs)), "n_disc": str(len(disclosed)), "disc_pct": str(round(100 * len(disclosed) / max(1, len(jobs)))),
         "median": esc(median_salary(jobs, ed["sym"], cur)), "cur": cur, "sym": ed["sym"], "band_rows": band_rows, "sector_rows": sec_html,
         "updated": esc(snapshot_label(data["fetched"]).replace("Snapshot of ", "")), "country": esc(ed["name"]),
-        "fx_note": (f"{foreign} of the disclosed salaries {'is' if foreign == 1 else 'are'} advertised in another currency; for the figures on this page they are converted at a fixed rate of 1 GBP = {FX_GBP_EUR} EUR (set 28 September 2026). On role cards and job pages every salary stays in the currency the employer advertised."
-                    if foreign else f"Every disclosed salary on this board is advertised in {cur}, so no conversion was needed."),
+        "fx_note": (f"{foreign} of the disclosed salaries {'is' if foreign == 1 else 'are'} advertised in another currency; for the figures on this page they are converted at a fixed rate of 1 GBP = {FX_GBP_EUR} EUR. On role cards and job pages every salary stays in the currency the employer advertised."
+                    if foreign else f"Every disclosed salary on this board is advertised in {cur}, so no conversion was needed.") + unv_note,
         "top_sector": esc(max(sec_rows, key=lambda r: (r[2], r[1]))[0]) if sec_rows else "",
     }
 
@@ -2141,7 +2257,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     # (brief.md testimonials are anonymous; none is reproduced).
     trust_block = "" if ed_key != "uk" else (
         '<section class="wrap band--tight" aria-labelledby="h-trust"><div class="sec-head"><div><h2 id="h-trust">Trusted across the UK</h2>'
-        '<p>Client testimonials are being collected for launch.</p></div>'
+        '<p>Client testimonials available on request.</p></div>'
         '<a class="btn btn--lime" href="#rates" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
         f'<p class="netline" style="margin-top:24px"><b>Network coverage:</b> {network_inline(data)}</p></section>')
     write("employers/index.html", page("employers", 2, "employers", f"Advertise a green role | GreenJobs {ed['short']}",
@@ -2325,6 +2441,19 @@ def check_built_js(site: Path) -> list[str]:
     return problems
 
 
+def site_tree_sha(site: Path) -> str:
+    """sha256 over every file in the site tree (path + bytes), markers and
+    screenshot scratch excluded, so deploy_cloudflare.sh can prove the
+    validated tree is the one it ships."""
+    import hashlib
+    h = hashlib.sha256()
+    for p in sorted(site.rglob("*")):
+        if not p.is_file() or p.name in (MARKER, OK_MARKER) or p.name.startswith("_shot-"):
+            continue
+        h.update(p.relative_to(site).as_posix().encode("utf-8") + b"\0" + p.read_bytes() + b"\0")
+    return h.hexdigest()
+
+
 def guard_output(src: Path, out: Path) -> str:
     repo = Path(__file__).resolve().parents[3]
     allowed = [repo / "deliverables", repo / ".tmp"]
@@ -2365,6 +2494,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     if refusal:
         print(f"FAIL  {refusal}", file=sys.stderr)
         return 2
+    (out / OK_MARKER).unlink(missing_ok=True)  # a failed build must never leave a deployable marker behind
     config = json.loads((src / "config.json").read_text(encoding="utf-8")) if (src / "config.json").exists() else {}
     site_base = (site_base or str(config.get("site_base") or "")).rstrip("/") + "/" if (site_base or config.get("site_base")) else ""
     tpl = load_templates(src)
@@ -2402,7 +2532,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
 
     # ---- copy the static tree
     if out.exists():
-        shutil.rmtree(out)
+        shutil.rmtree(out)  # also drops any stale OK_MARKER: nothing is deployable until validate passes again
     out.mkdir(parents=True)
     (out / MARKER).write_text("generated by build_site.py\n", encoding="utf-8")
     for name in ("css", "js"):
@@ -2492,6 +2622,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     css = sum(p.stat().st_size for p in (out / "css").glob("*.css"))
     js = sum(p.stat().st_size for p in (out / "js").glob("*.js"))
     pages = len(list(out.rglob("*.html")))
+    (out / OK_MARKER).write_text(site_tree_sha(out) + "\n", encoding="utf-8")
     print("PASS  all checks green")
     print(f"      {sum(len(d['jobs']) for d in data_by_ed.values())} roles · {pages} pages · css {css / 1024:.1f} KB (budget {validate_site.CSS_BUDGET // 1024}) · js {js / 1024:.1f} KB (budget {validate_site.JS_BUDGET // 1024})")
     if tests:

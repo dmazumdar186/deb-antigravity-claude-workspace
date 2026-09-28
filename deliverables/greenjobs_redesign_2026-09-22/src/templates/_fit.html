@@ -6,7 +6,7 @@
         <div class="fit__ta"><div class="field"><label for="{{fit_id}}">Paste your CV, LinkedIn headline or three words</label><textarea class="in" id="{{fit_id}}" name="fit" rows="4" placeholder="{{fit_placeholder}}" spellcheck="false" aria-describedby="{{fit_id}}-note"></textarea></div>
         <p class="fit__note muted" id="{{fit_id}}-note"><b>Your information is processed on your device and is not uploaded or stored.</b>Keyword matching, not an assessment of your suitability.</p></div>
         <div class="fit__try" data-fit-try><span>Try:</span>{{fit_examples}}</div>
-        <div class="fit__actions"><button class="btn btn--lime" type="submit" data-magnet>Show matches<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost btn--sm" type="button" data-fit-share hidden>Copy shareable link</button><small class="fit__sharenote muted" data-fit-sharenote hidden>The link contains your search words.</small></div>
+        <div class="fit__actions"><button class="btn btn--lime" type="submit" data-magnet>Show matches<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost btn--sm" type="button" data-fit-share hidden>Copy shareable link</button><span class="fit__status" data-fit-status role="status" aria-live="polite"></span><small class="fit__sharenote muted" data-fit-sharenote hidden>The link contains your search words.</small></div>
       </form>
       <div class="fit__out" data-fit-out aria-live="polite" aria-atomic="false">
         <div class="fit__empty" data-fit-empty>
