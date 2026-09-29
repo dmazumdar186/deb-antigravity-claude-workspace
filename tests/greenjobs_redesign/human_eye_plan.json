@@ -1,0 +1,22 @@
+{"viewports":[{"name":"1440","w":1440,"h":900},{"name":"1024","w":1024,"h":768},{"name":"390","w":390,"h":844}],
+ "themes":["light","dark"],
+ "pages":[
+  {"key":"ie/home","path":"ie/"},{"key":"uk/home","path":"uk/"},
+  {"key":"ie/home-carousel","path":"ie/","actions":[{"scroll":".cwall"},{"wait":700}]},
+  {"key":"ie/jobs","path":"ie/jobs/"},{"key":"uk/jobs","path":"uk/jobs/"},
+  {"key":"ie/jobs-map","path":"ie/jobs/?view=map"},
+  {"key":"ie/jobs-facets","path":"ie/jobs/?sector=Sustainable%20infrastructure%20%26%20transport&wp=hybrid"},
+  {"key":"ie/jobs-fit","path":"ie/jobs/","actions":[{"scroll":"#fit"},{"fill":{"sel":"#fit textarea, #fit-q, [data-fit] textarea","text":"ecologist dublin"}},{"wait":400}]},
+  {"key":"ie/job-sterling","path":"ie/jobs/11500760/"},{"key":"ie/job-unverified","path":"ie/jobs/11496364/"},{"key":"uk/job-euro","path":"uk/jobs/11501639/"},{"key":"uk/job","path":"uk/jobs/11490688/"},
+  {"key":"ie/employers","path":"ie/employers/"},{"key":"uk/employers","path":"uk/employers/"},
+  {"key":"ie/employers-table","path":"ie/employers/","actions":[{"scroll":".cmpwrap"}]},
+  {"key":"uk/employers-table","path":"uk/employers/","actions":[{"scroll":".cmpwrap"}]},
+  {"key":"ie/employers-preview","path":"ie/employers/","actions":[{"click":"[data-adb-fill]"},{"click":"[data-adb-toggle]","optional":true},{"scroll":"[data-adb-preview]"}]},
+  {"key":"uk/employers-preview","path":"uk/employers/","actions":[{"click":"[data-adb-fill]"},{"click":"[data-adb-toggle]","optional":true},{"scroll":"[data-adb-preview]"}]},
+  {"key":"ie/employers-longjd","path":"ie/employers/","actions":[{"click":"[data-adb-fill]"},{"fill":{"sel":"#p-desc","text":"Senior Ecologist – Habitats & EIA\n\nAbout the role\nYou'll lead Phase 1 & NVC surveys, HRA screening, and EcIA chapters for wind, solar & grid projects (€40m–€120m). <b>No HTML is rendered</b> & \"quotes\" stay quotes.\n\n• Manage 3–5 field ecologists\n• Own client relationships with EirGrid, ESB and local authorities\n• Chartered (CEnv/CEcol) or working towards it\n\nWhat we offer: €62,000–€74,000, hybrid (2 days Dublin), 26 days leave, CPD budget, EV scheme.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."}},{"click":"[data-adb-toggle]","optional":true},{"scroll":"[data-adb-preview]"}]},
+  {"key":"ie/sectors","path":"ie/sectors/"},{"key":"ie/insights","path":"ie/insights/"},{"key":"uk/insights","path":"uk/insights/"},
+  {"key":"ie/compass","path":"ie/compass/"},{"key":"ie/dashboard","path":"ie/dashboard/"},{"key":"ie/landing","path":"ie/ecology-jobs-ireland/"},
+  {"key":"ie/guides","path":"ie/guides/salary-guide/"},{"key":"root/404","path":"404.html"},
+  {"key":"ie/subscribe","path":"ie/?popup=subscribe"},{"key":"ie/cookie-settings","path":"ie/?popup=settings"},
+  {"key":"ie/home-reduced","path":"ie/","reduced":true,"actions":[{"scroll":".cwall"}]}
+ ]}
