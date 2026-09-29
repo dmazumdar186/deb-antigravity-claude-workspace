@@ -73,7 +73,8 @@
 
   /* ------------------------------------------------ marquee */
   $$('[data-marq]').forEach(function (m) {
-    var b = $('[data-marq-pause]', m.parentNode);
+    var host = m.parentNode.classList && m.parentNode.classList.contains('cwall') ? m.parentNode.parentNode : m.parentNode;
+    var b = $('[data-marq-pause]', host);
     if (!b) return;
     b.addEventListener('click', function () {
       var on = m.classList.toggle('is-paused');

@@ -53,7 +53,8 @@ if (el.getBoundingClientRect().top > window.innerHeight) { el.classList.add('pre
 setTimeout(function () { revs.forEach(function (el) { el.classList.remove('pre'); }); }, 4000);
 }
 $$('[data-marq]').forEach(function (m) {
-var b = $('[data-marq-pause]', m.parentNode);
+var host = m.parentNode.classList && m.parentNode.classList.contains('cwall') ? m.parentNode.parentNode : m.parentNode;
+var b = $('[data-marq-pause]', host);
 if (!b) return;
 b.addEventListener('click', function () {
 var on = m.classList.toggle('is-paused');

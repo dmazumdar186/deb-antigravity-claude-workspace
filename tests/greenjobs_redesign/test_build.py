@@ -45,6 +45,10 @@ def skip(label: str) -> None:
 SKIPS: list[str] = []
 
 
+def _wall_unique(inner: str) -> str:
+    """Drop the aria-hidden loop duplicate(s) so tile counts are per organisation."""
+    return re.sub(r'<span class="marq__dup"[^>]*>.*?</span></span>', "</span>", inner, flags=re.S)
+
 def check(ok: bool, label: str) -> None:
     RESULTS.append((ok, label))
     print(("PASS  " if ok else "FAIL  ") + label)
@@ -176,15 +180,15 @@ def test_client_wall(tmp_root: Path):
     validator catches a wrong badge, a missing wall and a short wall."""
     clients = [{"name": "Acme Water", "file": "a.png", "source": "s", "lw": 120, "lh": 60, "live": True},
                {"name": "Bee & Co", "file": "b.png", "source": "s", "lw": 120, "lh": 60, "live": False}]
-    wall = build_site.client_wall({"site": "x.ie", "clients": clients}, "../")
-    h = wall["html"]
-    check(wall["mode"] == "clients" and wall["title"] == "Organisations that recruit through the GreenJobs network" and wall["sub"] == "As published on x.ie." and 'data-strip="clients"' in h and 'data-tiles="2"' in h and 'data-live="1"' in h,
+    wall = build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": clients}, "../")
+    h = _wall_unique(wall["html"])
+    check(wall["mode"] == "clients" and wall["title"] == "Organisations GreenJobs has helped with talent attraction" and wall["sub"].startswith("Logos as shown on x.ie, ") and 'data-strip="clients"' in h and 'data-tiles="2"' in h and 'data-live="1"' in h,
           "client_wall: mode/title/sub and the data-strip=clients grid")
     check(h.count('href="https://x.ie/for-employers.asp"') == 2 and 'alt="Acme Water"' in h and 'alt="Bee &amp; Co"' in h and h.count("Hiring this week") == 1 and 'emp--live" href' in h and "../assets/logos/clients/a.png" in h,
           "client_wall: every tile links to the live for-employers page, alt = employer name, badge only on the live employer")
-    many = build_site.client_wall({"site": "x.ie", "clients": [dict(clients[1], file=f"{i}.png") for i in range(20)]}, "../")["html"]
+    many = _wall_unique(build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": [dict(clients[1], file=f"{i}.png") for i in range(20)]}, "../")["html"])
     check(many.count('loading="eager"') == build_site.CLIENT_WALL_EAGER and many.count('loading="lazy"') == 20 - build_site.CLIENT_WALL_EAGER, "client_wall: first 16 eager, the rest lazy")
-    check(build_site.client_wall({"site": "x.ie", "clients": []}, "../")["html"] == "", "client_wall: no clients -> empty html (callers fall back to employers_strip)")
+    check(build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": []}, "../")["html"] == "", "client_wall: no clients -> empty html (callers fall back to employers_strip)")
     check(build_site.norm_org("Welsh Government (Llywodraeth Cymru)") == build_site.norm_org("Welsh Government") == "welshgovernment" and build_site.norm_org("The Carbon Trust Ltd") == "carbontrust" and build_site.norm_org("Ofwat") != build_site.norm_org("Ofgem"),
           "norm_org: parentheticals, 'The' and legal suffixes dropped; distinct names stay distinct")
 
@@ -203,7 +207,7 @@ def test_client_wall(tmp_root: Path):
         for rel in ("index.html", "employers/index.html"):
             text = (out / ed / rel).read_text(encoding="utf-8")
             inner = re.search(r'<div class="cwall"[^>]*>(.*?)</div>', text, re.S)
-            tiles = re.findall(r'<a class="emp emp--c[^"]*"[^>]*>(.*?)</a>', inner.group(1), re.S) if inner else []
+            tiles = re.findall(r'<a class="emp emp--c[^"]*"[^>]*>(.*?)</a>', _wall_unique(inner.group(1)), re.S) if inner else []
             check(len(tiles) == len(expected) >= 24, f"client wall: {ed}/{rel} has {len(tiles)} tiles == clients json length {len(expected)} (>= 24)")
             check(sum(1 for t in tiles if "Hiring this week" in t) == n_live, f"client wall: {ed}/{rel} badge count == live-role matches ({n_live})")
             check(all(re.search(r'<img[^>]*\balt="[^"]+"', t) for t in tiles), f"client wall: {ed}/{rel} every tile has an <img> with alt")
@@ -226,7 +230,7 @@ def test_client_wall(tmp_root: Path):
           "client wall faults: a badge on an organisation without a live role is caught")
     check(any("client-logo wall missing" in f for f in with_patch(lambda t: re.sub(r'<div class="cwall".*?</div>', '', t, count=1, flags=re.S), {"ie": {"clients": expected}})),
           "client wall faults: a page that drops the wall while clients data exists is caught")
-    check(any("fewer than 24" in f for f in with_patch(lambda t: re.sub(r'(<div class="cwall"[^>]*>)(?:<a class="emp emp--c.*?</a>){100}', r'\1', t, count=1, flags=re.S))),
+    check(any("fewer than 24" in f for f in with_patch(lambda t: re.sub(r'(<div class="cwall"[^>]*>)(.*?)(</div>)', lambda m: m.group(1) + "".join(re.findall(r'<a class="emp emp--c.*?</a>', m.group(2), re.S)[:10]) + m.group(3), t, count=1, flags=re.S))),
           "client wall faults: a short wall (scrape came back short) is caught")
     check(any("without an <img alt>" in f for f in with_patch(lambda t: t.replace(f'alt="{build_site.esc(ghost)}"', 'alt=""', 1))), "client wall faults: a tile without alt is caught")
 
@@ -284,8 +288,9 @@ def test_real_data_build(tmp_root: Path):
         jobs_ed = json.loads((out / ed / "jobs" / "index.html").read_text(encoding="utf-8").split('id="gj-data">')[1].split("</script>")[0])["jobs"]
         live = {build_site.norm_org(j["employer"]) for j in jobs_ed}
         n_clients = len(json.loads((SRC / "data" / f"clients_{ed}.json").read_text(encoding="utf-8")))
-        badges = re.findall(r'emp--live"[^>]*><img[^>]*alt="([^"]*)"', text)
-        check(bool(wall) and int(wall.group(1)) == n_clients and int(wall.group(2)) == len(badges) == text.count("Hiring this week") and all(build_site.norm_org(html.unescape(b)) in live for b in badges),
+        utext = _wall_unique(text)
+        badges = re.findall(r'emp--live"[^>]*><img[^>]*alt="([^"]*)"', utext)
+        check(bool(wall) and int(wall.group(1)) == n_clients and int(wall.group(2)) == len(badges) == utext.count("Hiring this week") and all(build_site.norm_org(html.unescape(b)) in live for b in badges),
               f"integration: {ed} home client wall {wall and wall.group(1)} tiles == clients json {n_clients}; {len(badges)} 'Hiring this week' badges all on live employers ({badges})")
     for ed in ("ie", "uk"):
         raw = json.loads((SRC / "data" / f"{ed}.json").read_text(encoding="utf-8"))
@@ -470,7 +475,7 @@ def test_keith_pages_and_copy(tmp_root: Path):
     check('<table class="evid cmp">' in emp_ie and "<th scope=\"col\">Standard</th>" in emp_ie and "Premium" in emp_ie and "Membership" in emp_ie and "Ask us" in emp_ie, "keith E4: comparison table with Standard / Premium / Membership")
     check("Trusted across the UK" in emp_uk and "Client testimonials available on request." in emp_uk and "Trusted across the UK" not in emp_ie, "keith E7: UK-only trust block, testimonials collected for launch (panel B4)")
     check("Preview exactly how your vacancy will appear to candidates." in emp_ie, "keith E6: one-line preview explanation")
-    check("Organisations recruiting through GreenJobs" in emp_ie, "keith E3: recruiting organisations block")
+    check("Organisations GreenJobs has helped with talent attraction" in emp_ie, "keith E3: recruiting organisations block")
     if real:
         ftr_uk = uk.split('<h4>Contact</h4>')[1].split("</ul>")[0]
         ftr_ie = ie.split('<h4>Contact</h4>')[1].split("</ul>")[0]

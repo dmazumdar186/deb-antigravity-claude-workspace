@@ -1283,7 +1283,7 @@ def employers_strip(data: dict[str, Any], root: str, cap: int | None = 12) -> di
     return {"html": html_out, "title": title, "sub": sub, "mode": mode}
 
 
-CLIENT_WALL_TITLE = "Organisations that recruit through the GreenJobs network"
+CLIENT_WALL_TITLE = "Organisations GreenJobs has helped with talent attraction"
 CLIENT_WALL_EAGER = 16  # tiles loaded eagerly so the wall never opens on blank boxes; the rest lazy
 
 
@@ -1295,7 +1295,7 @@ def client_wall(data: dict[str, Any], root: str) -> dict[str, str]:
     organisation with a live role in this edition's dataset. Same return shape
     as employers_strip(); html is '' when data["clients"] is empty."""
     clients = data.get("clients") or []
-    sub = f"As published on {esc(data['site'])}."
+    sub = f"Logos as shown on {esc(data['site'])}, {esc(date_long(data.get('today') or data['fetched']))}."
     if not clients:
         return {"html": "", "title": CLIENT_WALL_TITLE, "sub": sub, "mode": "clients"}
     href = f"https://{data['site']}/for-employers.asp"
@@ -1306,7 +1306,17 @@ def client_wall(data: dict[str, Any], root: str) -> dict[str, str]:
                      f'<img src="{root}assets/logos/clients/{esc(c["file"])}" alt="{esc(c["name"])}" width="{c["lw"] or 200}" height="{c["lh"] or 80}" '
                      f'loading="{"eager" if i < CLIENT_WALL_EAGER else "lazy"}" decoding="async">{badge}</a>')
     n_live = sum(1 for c in clients if c["live"])
-    html_out = f'<div class="cwall" data-strip="clients" data-tiles="{len(clients)}" data-live="{n_live}">{"".join(cells)}</div>'
+    # Two counter-scrolling marquee rows (the carousel pattern of the first
+    # cut), each duplicated once for a seamless loop; spans keep the outer
+    # <div class="cwall"> the only div so validator/test regexes still match.
+    half = (len(cells) + 1) // 2
+    rows = []
+    for idx, chunk in enumerate((cells[:half], cells[half:])):
+        track = "".join(chunk)
+        rows.append(f'<span class="marq{" marq--rev" if idx else ""}" data-marq><span class="marq__track">{track}'
+                    f'<span class="marq__dup" aria-hidden="true" style="display:contents">{track}</span></span></span>')
+    html_out = (f'<div class="cwall" data-strip="clients" data-tiles="{len(clients)}" data-live="{n_live}">{"".join(rows)}</div>'
+                f'<p class="cwall__ctl"><button class="btn btn--sm btn--ghost" type="button" data-marq-pause aria-pressed="false">Pause</button></p>')
     return {"html": html_out, "title": CLIENT_WALL_TITLE, "sub": sub, "mode": "clients"}
 
 
