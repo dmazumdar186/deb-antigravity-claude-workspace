@@ -112,3 +112,41 @@ His document was split into 114 individual requests and every one was verified o
 
 **Paste-ready line for the LinkedIn thread**
 > Every point in your notes is now live on the demo, both editions. Eleven items need something from your side (audience figures, testimonials, logo permissions, membership contents and a couple of naming calls); they're listed on your evidence page under "Launch checklist". Send me those whenever convenient and I'll drop them in the same day.
+
+## 8. Revision after Keith's email (2026-09-29, 12:39): "very little work… hosting + integrations, guarantee what Strategies do"
+
+**What he is actually buying.** Not a rebuild first. A like-for-like replacement of Strategies' hosting (https://www.strategies.co.uk/hosting/: 99.9% uptime, daily automated backups with tested restores, firewall/DDoS/SSL, 24/7 monitoring, UK data centres, engineer access) plus: (a) the Broadbean / Idibu / LogicMelon posting integrations must keep working, (b) an integration so Gaia can post jobs easily, (c) GreenJobs staff post the ads themselves (admin console), (d) the redesign he approved.
+
+**Revised quote (say the numbers in person; the DM/email carries structure and guarantees only).**
+
+| Line | Was | Now | Why |
+|---|---|---|---|
+| A. Managed hosting & support (monthly, both boards + gaiatalent.com) | Care €350 / Grow €650 | **€450 Care / €650 Grow** | Care now carries the full Strategies-equivalent SLA below plus daily integration health checks; still under half of Strategies' "from £899" (~€1,030). |
+| B. Platform migration (one-off) | €7,500 | **€6,500** | Employer self-serve billing dropped (they post the ads). Keeps: admin posting console, candidate accounts + alerts, multiposting endpoints for Broadbean/Idibu/LogicMelon with a parallel-run acceptance test, Gaia posting integration, Strategies data export, 301 map. |
+| C. Front-end rebuild incl. his polish list | €2,750 | **€2,750** | Unchanged; already reviewed. Bundle A+B+C: waive C's second half (€1,375 off) if he commits to 12 months of A. |
+
+Year 1 (A Care + B + C, bundle): €450×12 + €6,500 + €1,375 = **€13,275** vs ~€13–17k today. Year 2+: **€5,400** vs ~€13–17k.
+
+**The guarantee table (this is what he asked for).**
+
+| Strategies promises | We commit to | How it is met |
+|---|---|---|
+| 99.9% uptime | 99.9% monthly, service credit 10% of the month's fee per 0.1% below | Cloudflare edge hosting (static + Workers), independent uptime monitor, monthly report |
+| Daily backups, tested restores | Daily off-site backups, restore drill every quarter with a written result | D1/R2 snapshots to EU object storage + Git history of every build |
+| Firewall, DDoS, SSL | Included | Cloudflare WAF + DDoS + managed SSL |
+| 24/7 monitoring | Included, alerts to Deb, 1-business-day response, 4h for a posting outage | Uptime + integration probes every 15 min |
+| UK data centres | EU/UK data residency for stored data | D1 region pinned to Western Europe; documented |
+| Integrations | Broadbean, Idibu, LogicMelon posts verified daily by a test job; Gaia integration included | Parallel run against Strategies for 30 days before DNS moves; no switch until every integration passes acceptance |
+| Exit | Full export of jobs, employers, candidates on request, no lock-in after 3 months | Data is his, standard formats |
+
+**Risk reversal.** Strategies stays live until the parallel run passes; if any integration fails acceptance, no migration fee. 15-day guarantee on the front end stands.
+
+**Ask before the number is final (4 questions).** Strategies renewal date and notice; which of Broadbean/Idibu/LogicMelon are actually in use and who owns the accounts; Gaia's CRM (Recruit CRM or Vincere) and whether it has an API/RSS feed; monthly posting volume.
+
+**Reply draft (email, in Deb's voice)**
+
+> Hi Keith, thanks, that's clear. I've read the Strategies hosting page and I can match it point for point: 99.9% uptime with a service credit if I miss it, daily backups with a tested restore every quarter, firewall/DDoS/SSL, 24/7 monitoring, EU data residency, and daily checks that Broadbean, Idibu and LogicMelon are posting correctly. I'd add the Gaia posting integration so your team can push a role from the CRM to the boards in one step.
+>
+> The way I'd de-risk it: run the new platform in parallel with Strategies for 30 days, verify every posting route with test jobs, and only move the domains once you've signed off. If an integration fails that test, you don't pay the migration fee.
+>
+> I'll send the one-page proposal with the SLA table and the monthly figure tomorrow. Four quick things so it's accurate: when does the Strategies contract renew and what's the notice period; which of Broadbean, Idibu and LogicMelon do you actually use; is Gaia on Recruit CRM or Vincere; and roughly how many ads a month go up across the two boards?
