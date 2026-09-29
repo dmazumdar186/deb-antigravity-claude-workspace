@@ -93,6 +93,8 @@ class FakeFetch:
                 self.pages[base + m.group(1)] = p.read_text(encoding="utf-8", errors="ignore")
             for p in (FIX / host).glob("*.cms.asp.html"):
                 self.pages[base + "/" + p.name[:-5]] = p.read_text(encoding="utf-8", errors="ignore")
+            if (FIX / host / "for-employers.html").exists():
+                self.pages[base + "/for-employers.asp"] = _read(host, "for-employers.html")
         self.pages.update(extra or {})
 
     def __call__(self, url: str, sleep_s: float = 0.3, binary: bool = False, retries: int = 2):
@@ -394,9 +396,65 @@ def test_homepage_snapshot_fallback(tmp_root: Path):
         sg.SITES["ie"]["snapshot"] = orig_snap
 
 
+def test_client_logos(tmp_root: Path):
+    """The /for-employers.asp client wall: parse, name derivation, download with
+    the size cap, manifest entries, clients_{site}.json, retry/skip branches."""
+    base = "https://www.greenjobs.ie"
+    page = _read("www.greenjobs.ie", "for-employers.html")
+    logos = sg.parse_client_logos(page, base)
+    check(len(logos) == 112 and logos[0] == {"name": "Aberdeen City Council", "src": "https://www.greenjobs.co.uk/images/logos/advertise/aberdeen-city-council-logo.png"},
+          f"parse_client_logos: 112 logos from the recorded IE wall, first named from its file name (got {len(logos)})")
+    check(len({l["src"] for l in logos}) == 112 and all(l["name"] for l in logos), "parse_client_logos: deduplicated by file, every logo named")
+    check(sg.parse_client_logos('<ul><li><img src="/images/logos/advertise/x-logo.png" alt="X Ltd"></li><li><img src="/images/logos/advertise/x-logo.png"></li><li><img src="/other.png"></li></ul>', base)
+          == [{"name": "X Ltd", "src": base + "/images/logos/advertise/x-logo.png"}], "parse_client_logos: alt text wins, duplicates and non-wall images dropped, relative src resolved")
+    check(sg.parse_client_logos("<html><body>no wall</body></html>", base) == [], "parse_client_logos: page without a wall -> []")
+    names = {f: sg.client_name_from_file(f) for f in ("british-geological-survey-bgs-logo.png", "carbon-repsonsible-logo.png", "Orsted.png", "department-of-housing-local-government-and-heritage-logo.png", "buckinghamshirecouncil-logo.png")}
+    check(names == {"british-geological-survey-bgs-logo.png": "British Geological Survey BGS", "carbon-repsonsible-logo.png": "Carbon Responsible", "Orsted.png": "Ørsted",
+                    "department-of-housing-local-government-and-heritage-logo.png": "Department of Housing Local Government and Heritage", "buckinghamshirecouncil-logo.png": "Buckinghamshire Council"},
+          f"client_name_from_file: acronyms, spelling fixes, small words, '-logo' suffix: {names}")
+
+    assets, out = tmp_root / "clogos", tmp_root / "cdata"
+    out.mkdir()
+    png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+    big = b"\x89PNG\r\n\x1a\n" + b"\x00" * (sg.CLIENT_LOGO_MAX_BYTES + 1)  # undecodable, so shrink_image returns None -> skipped
+    srcs = [l["src"] for l in logos]
+    fake = FakeFetch({}, extra={srcs[0]: png, srcs[1]: png, srcs[2]: big})  # srcs[3:] unreachable
+    original = _with_fetch(fake)
+    try:
+        written = sg.download_client_logos("ie", page, base, str(assets), 0, str(out))
+        check([w["file"] for w in written] == [os.path.basename(srcs[0]), os.path.basename(srcs[1])] and written[0]["name"] == "Aberdeen City Council" and written[0]["source"] == srcs[0],
+              "download_client_logos: fetched logos returned as [{name, file, source}]; unreachable and oversize ones skipped")
+        files = sorted(p.name for p in (assets / "clients").iterdir())
+        check(files == sorted(os.path.basename(s) for s in srcs[:2]) and not any(f.endswith(".tmp") or ".tmp" in f for f in files), "download_client_logos: only the fetched files on disk, no temp files left")
+        manifest = json.loads((assets / "logos.json").read_text(encoding="utf-8"))
+        rec = manifest.get("client:" + os.path.basename(srcs[0]))
+        check(rec and rec["file"] == "clients/" + os.path.basename(srcs[0]) and rec["source"] == srcs[0] and re.match(r"\d{4}-\d{2}-\d{2}$", rec.get("fetched", "")) and rec["site"] == "ie",
+              f"download_client_logos: manifest entry carries file, source URL and fetched date: {rec}")
+        cj = json.loads((out / "clients_ie.json").read_text(encoding="utf-8"))
+        check(cj == written and len(cj) == 2, "download_client_logos: clients_ie.json written atomically with the same list")
+        n_calls = len(fake.calls)
+        again = sg.download_client_logos("ie", page, base, str(assets), 0, str(out))
+        check(len(again) == 2 and srcs[0] not in fake.calls[n_calls:] and srcs[1] not in fake.calls[n_calls:], "download_client_logos: already-downloaded files are not fetched again")
+        fake.pages[base + "/for-employers.asp"] = None
+        check(sg.refresh_clients("ie", str(assets), 0, str(out)) == [] and (out / "clients_ie.json").exists(), "refresh_clients: unreachable page -> [] and the previous clients json kept")
+        fake.pages[base + "/for-employers.asp"] = "<html><body>nothing</body></html>"
+        check(sg.refresh_clients("ie", str(assets), 0, str(out)) == [], "refresh_clients: page without a wall -> []")
+        fake.pages[base + "/for-employers.asp"] = page
+        rc = sg.main(["--site", "ie", "--clients-only", "--assets", str(assets), "--out", str(out), "--sleep", "0"])
+        check(rc == 0 and not any("jobresults" in u for u in fake.calls), "main --clients-only: exit 0, refreshes the wall without crawling jobs")
+        fake.pages[base + "/for-employers.asp"] = None
+        check(sg.main(["--site", "ie", "--clients-only", "--assets", str(assets), "--out", str(out), "--sleep", "0"]) == 3, "main --clients-only: exit 3 when the wall cannot be refreshed")
+    finally:
+        sg.fetch = original  # type: ignore[assignment]
+    check(sg.shrink_image(b"not an image", "x.png") is None, "shrink_image: undecodable bytes -> None")
+
+
 def test_fixture_provenance():
     sizes = {p.relative_to(FIX).as_posix(): p.stat().st_size for p in FIX.rglob("*.html")}
-    check(len(sizes) == 12 and all(v > 20000 for v in sizes.values()), f"fixtures: 12 recorded pages, each a real page (>20 KB): {sizes}")
+    full = {k: v for k, v in sizes.items() if not k.endswith("for-employers.html")}
+    check(len(sizes) == 14 and all(v > 20000 for v in full.values()), f"fixtures: 14 recorded pages, 12 full pages (>20 KB): {sizes}")
+    check(all(_read(*k.split("/", 1)).count("<li>") == 112 and "Trimmed copy" in _read(*k.split("/", 1)) for k in sizes if k.endswith("for-employers.html")),
+          "fixtures: the two trimmed for-employers captures carry the 112-logo client wall")
     check(all("sjbimg.com" in _read(*k.split("/", 1)) for k in sizes if "home" in k), "fixtures: the homepages carry the platform CDN, so they are real captures")
 
 

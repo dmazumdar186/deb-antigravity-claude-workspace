@@ -220,7 +220,7 @@
     var end = function () { a.classList.toggle('is-over', r.scrollHeight > r.clientHeight + 12); a.classList.toggle('is-end', r.scrollHeight - r.scrollTop - r.clientHeight < 12); };
     r.addEventListener('scroll', end, { passive: true }); window.addEventListener('resize', end); end();
   });
-  $$('[data-marq]').forEach(function (m) { m.classList.add('is-js'); });
+  $$('[data-marq],[data-strip="clients"]').forEach(function (m) { m.classList.add('is-js'); });
   $$('.emp img').forEach(function (img) {
     var blank = function () { if (!img.naturalWidth || img.naturalWidth < 8 || img.naturalHeight < 8) img.parentNode.classList.add('is-blank'); else img.setAttribute('data-loaded', ''); };
     img.addEventListener('error', function () { img.parentNode.classList.add('is-blank'); });

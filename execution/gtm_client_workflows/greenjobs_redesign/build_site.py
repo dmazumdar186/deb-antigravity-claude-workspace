@@ -856,10 +856,39 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
     return {
         "ed": ed_key, "site": str(raw.get("site") or ed["domain"]), "fetched": str(raw.get("fetched") or today.isoformat())[:10], "today": today.isoformat(),
         "jobs": jobs_out, "sectors": sectors, "regions": regions, "types": types,
-        "employers": list(employers.values()), "about": str(raw.get("about") or "").strip(),
+        "employers": list(employers.values()), "clients": load_clients(src, ed_key, logos_dir, jobs_out), "about": str(raw.get("about") or "").strip(),
         "contact": raw.get("contact") or {}, "network_sites": raw.get("network_sites") or [],
         "region_table": table, "social": social_links(src, ed_key), "excluded": excluded, "closed": closed, "corrected": corrected,
     }
+
+
+norm_org = validate_site.norm_org  # shared with the validator's badge rule
+
+
+def load_clients(src: Path, ed_key: str, logos_dir: Path, jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The client-logo wall the board publishes on /for-employers.asp, from the
+    scraper's data/clients_{ed}.json: [{name, file, source, lw, lh, live}] for
+    every entry whose file exists under assets/logos/clients/. `live` marks an
+    organisation with at least one live role in this edition (by norm_org).
+    [] when the scrape has not run, so callers fall back to the live strip."""
+    path = src / "data" / f"clients_{ed_key}.json"
+    if not path.is_file():
+        return []
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    live = {norm_org(j["employer"]) for j in jobs}
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in raw if isinstance(raw, list) else []:
+        name, file = str(item.get("name") or "").strip(), str(item.get("file") or "").strip()
+        if not name or not file or file in seen or not (logos_dir / "clients" / file).is_file():
+            continue
+        seen.add(file)
+        w, h = image_size(logos_dir / "clients" / file)
+        out.append({"name": name, "file": file, "source": str(item.get("source") or ""), "lw": w, "lh": h, "live": norm_org(name) in live})
+    return out
 
 
 def logo_manifest(logos_dir: Path) -> dict[str, str]:
@@ -871,7 +900,7 @@ def logo_manifest(logos_dir: Path) -> dict[str, str]:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
-    return {str(k).lower(): str(v.get("file") or "") for k, v in raw.items() if isinstance(v, dict) and v.get("file") and not str(k).startswith("site:")}
+    return {str(k).lower(): str(v.get("file") or "") for k, v in raw.items() if isinstance(v, dict) and v.get("file") and not str(k).startswith(("site:", "client:"))}
 
 
 def place_words(src: Path) -> tuple[list[str], list[str]]:
@@ -1252,6 +1281,33 @@ def employers_strip(data: dict[str, Any], root: str, cap: int | None = 12) -> di
     html_out = (f'<div class="marq" data-marq data-strip="{mode}"><div class="marq__track">{track}<span class="marq__dup" aria-hidden="true" style="display:contents">{track}</span></div></div>'
                 f'<p style="text-align:right;margin-top:8px"><button class="btn btn--sm btn--ghost" type="button" data-marq-pause aria-pressed="false">Pause</button></p>')
     return {"html": html_out, "title": title, "sub": sub, "mode": mode}
+
+
+CLIENT_WALL_TITLE = "Organisations that recruit through the GreenJobs network"
+CLIENT_WALL_EAGER = 16  # tiles loaded eagerly so the wall never opens on blank boxes; the rest lazy
+
+
+def client_wall(data: dict[str, Any], root: str) -> dict[str, str]:
+    """The full client-logo wall (Keith E3 / A4): every organisation the board
+    itself publishes on /for-employers.asp, as a grid of uniform white tiles.
+    Each tile links to that page on the live site (not to a per-employer page);
+    the employer name is the alt text; a "Hiring this week" badge marks any
+    organisation with a live role in this edition's dataset. Same return shape
+    as employers_strip(); html is '' when data["clients"] is empty."""
+    clients = data.get("clients") or []
+    sub = f"As published on {esc(data['site'])}."
+    if not clients:
+        return {"html": "", "title": CLIENT_WALL_TITLE, "sub": sub, "mode": "clients"}
+    href = f"https://{data['site']}/for-employers.asp"
+    cells = []
+    for i, c in enumerate(clients):
+        badge = '<span class="emp__badge">Hiring this week</span>' if c["live"] else ""
+        cells.append(f'<a class="emp emp--c{" emp--live" if c["live"] else ""}" href="{esc(href)}" rel="noopener">'
+                     f'<img src="{root}assets/logos/clients/{esc(c["file"])}" alt="{esc(c["name"])}" width="{c["lw"] or 200}" height="{c["lh"] or 80}" '
+                     f'loading="{"eager" if i < CLIENT_WALL_EAGER else "lazy"}" decoding="async">{badge}</a>')
+    n_live = sum(1 for c in clients if c["live"])
+    html_out = f'<div class="cwall" data-strip="clients" data-tiles="{len(clients)}" data-live="{n_live}">{"".join(cells)}</div>'
+    return {"html": html_out, "title": CLIENT_WALL_TITLE, "sub": sub, "mode": "clients"}
 
 
 # Three facts for the home page, each traceable to a row in src/data/brief.md
@@ -2113,7 +2169,9 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
 
     # ---- home
     map_counts = {r["name"]: r["n"] for r in top_regions}
-    strip = employers_strip(data, "../")
+    # Keith E3: the client wall replaces the 3-tile live strip whenever the
+    # /for-employers.asp scrape is present; the strip stays as the fallback.
+    strip = client_wall(data, "../") if data.get("clients") else employers_strip(data, "../")
     n_sectors_live = sum(1 for s in data["sectors"] if s["n"])
     n_regions_live = sum(1 for r in top_regions if r["n"])
     hero_sub = ("Find environmental, sustainability, renewable-energy and nature careers across Ireland." if ed_key == "ie"
@@ -2252,7 +2310,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                                      "Seven quick questions, three sectors that fit, live roles to match.",
                                      {"dataset": dataset_script(data, "../jobs/index.html", False)}, same_path="compass/index.html"))
     render_dashboard(data, src, out, tpl, brief, site_base)
-    emp_strip = employers_strip(data, "../../", cap=None)  # the employers page lists every live employer
+    emp_strip = client_wall(data, "../../") if data.get("clients") else employers_strip(data, "../../", cap=None)  # client wall, else every live employer
     # Keith E7: UK-only credibility block. Testimonials are collected for launch
     # (brief.md testimonials are anonymous; none is reproduced).
     trust_block = "" if ed_key != "uk" else (
@@ -2557,6 +2615,11 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     (out / "assets" / "logos").mkdir()
     for name in sorted(used_logos):
         shutil.copy2(logos_dir / name, out / "assets" / "logos" / name)
+    used_clients = {c["file"] for d in data_by_ed.values() for c in d.get("clients") or []}
+    if used_clients:
+        (out / "assets" / "logos" / "clients").mkdir()
+        for name in sorted(used_clients):
+            shutil.copy2(logos_dir / "clients" / name, out / "assets" / "logos" / "clients" / name)
     for static in ("robots.txt",):
         if (src / static).exists():
             shutil.copy2(src / static, out / static)

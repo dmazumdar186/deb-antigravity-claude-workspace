@@ -79,6 +79,19 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
 
 ## Changelog
 
+- 2026-09-28 (client wall): `scrape_greenjobs.py` gains `parse_client_logos()` / `download_client_logos()`
+  and a `--clients-only` flag: fetches /for-employers.asp on both boards (112 logos, all served from
+  greenjobs.co.uk/images/logos/advertise/), saves them to `src/assets/logos/clients/` (dedupe by file,
+  atomic write, ≤ 200 KB — three 120×60 PNGs carry ~400 KB of ICC/XMP and are re-encoded via Pillow),
+  records `client:<file>` in `logos.json` with source + fetched date, writes `data/clients_{ie,uk}.json`.
+  `build_site.client_wall()` renders the grid (7/6/4/3 per row, white tiles, lazy after 16, hidden until
+  loaded, "Hiring this week" badge by `norm_org` match) on the home employer section and the employers
+  page of both editions; `employers_strip()` remains the fallback when no clients json exists.
+  Validator: wall required when clients data exists, ≥ 24 tiles, img+alt+file per tile, badge only with a
+  live role. Refresh: `python3 execution/gtm_client_workflows/greenjobs_redesign/scrape_greenjobs.py
+  --clients-only --assets deliverables/greenjobs_redesign_2026-09-22/src/assets/logos`. Layout baselines
+  re-recorded for home + employers only.
+
 - 2026-09-22: built, audited (anneal PASS, pipeline PASS 10/10, code review fixed, 16 design items,
   11-lens panel), published on both hosts.
 - 2026-09-22 (act two): pinned scroll film hero (canvas; wind → county map → salary bands → sector

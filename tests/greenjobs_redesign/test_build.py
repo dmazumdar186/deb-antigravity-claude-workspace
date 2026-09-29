@@ -168,6 +168,69 @@ def test_employers_strip_is_honest():
     check(build_site.employers_strip({"site": "x", "employers": [], "jobs": []}, "../")["html"] == "", "employers_strip: no employers -> empty html")
 
 
+def test_client_wall(tmp_root: Path):
+    """Keith E3 / A4: the client-logo wall. Unit: badge only on live employers,
+    eager/lazy split, link to the live for-employers page, alt = name, fallback
+    when no clients. Integration (fixture build, real clients json): tile count
+    == clients json length, badge count == live-role matches, every tile has alt;
+    validator catches a wrong badge, a missing wall and a short wall."""
+    clients = [{"name": "Acme Water", "file": "a.png", "source": "s", "lw": 120, "lh": 60, "live": True},
+               {"name": "Bee & Co", "file": "b.png", "source": "s", "lw": 120, "lh": 60, "live": False}]
+    wall = build_site.client_wall({"site": "x.ie", "clients": clients}, "../")
+    h = wall["html"]
+    check(wall["mode"] == "clients" and wall["title"] == "Organisations that recruit through the GreenJobs network" and wall["sub"] == "As published on x.ie." and 'data-strip="clients"' in h and 'data-tiles="2"' in h and 'data-live="1"' in h,
+          "client_wall: mode/title/sub and the data-strip=clients grid")
+    check(h.count('href="https://x.ie/for-employers.asp"') == 2 and 'alt="Acme Water"' in h and 'alt="Bee &amp; Co"' in h and h.count("Hiring this week") == 1 and 'emp--live" href' in h and "../assets/logos/clients/a.png" in h,
+          "client_wall: every tile links to the live for-employers page, alt = employer name, badge only on the live employer")
+    many = build_site.client_wall({"site": "x.ie", "clients": [dict(clients[1], file=f"{i}.png") for i in range(20)]}, "../")["html"]
+    check(many.count('loading="eager"') == build_site.CLIENT_WALL_EAGER and many.count('loading="lazy"') == 20 - build_site.CLIENT_WALL_EAGER, "client_wall: first 16 eager, the rest lazy")
+    check(build_site.client_wall({"site": "x.ie", "clients": []}, "../")["html"] == "", "client_wall: no clients -> empty html (callers fall back to employers_strip)")
+    check(build_site.norm_org("Welsh Government (Llywodraeth Cymru)") == build_site.norm_org("Welsh Government") == "welshgovernment" and build_site.norm_org("The Carbon Trust Ltd") == "carbontrust" and build_site.norm_org("Ofwat") != build_site.norm_org("Ofgem"),
+          "norm_org: parentheticals, 'The' and legal suffixes dropped; distinct names stay distinct")
+
+    real = json.loads((SRC / "data" / "clients_ie.json").read_text(encoding="utf-8"))
+    if not real:
+        skip("client wall: clients_ie.json empty")
+        return
+    out = tmp_root / "site_wall"
+    rc = build_site.build(SRC, out, editions=["ie", "uk"], fixture=FIXTURE)
+    check(rc == 0, "client wall: fixture build with the real clients json passes")
+    for ed in ("ie", "uk"):
+        expected = [c for c in json.loads((SRC / "data" / f"clients_{ed}.json").read_text(encoding="utf-8")) if (SRC / "assets" / "logos" / "clients" / c["file"]).is_file()]
+        jobs = json.loads((out / ed / "jobs" / "index.html").read_text(encoding="utf-8").split('id="gj-data">')[1].split("</script>")[0])["jobs"]
+        live = {build_site.norm_org(j["employer"]) for j in jobs}
+        n_live = sum(1 for c in expected if build_site.norm_org(c["name"]) in live)
+        for rel in ("index.html", "employers/index.html"):
+            text = (out / ed / rel).read_text(encoding="utf-8")
+            inner = re.search(r'<div class="cwall"[^>]*>(.*?)</div>', text, re.S)
+            tiles = re.findall(r'<a class="emp emp--c[^"]*"[^>]*>(.*?)</a>', inner.group(1), re.S) if inner else []
+            check(len(tiles) == len(expected) >= 24, f"client wall: {ed}/{rel} has {len(tiles)} tiles == clients json length {len(expected)} (>= 24)")
+            check(sum(1 for t in tiles if "Hiring this week" in t) == n_live, f"client wall: {ed}/{rel} badge count == live-role matches ({n_live})")
+            check(all(re.search(r'<img[^>]*\balt="[^"]+"', t) for t in tiles), f"client wall: {ed}/{rel} every tile has an <img> with alt")
+            check('data-strip="network"' not in text and 'data-strip="hiring"' not in text, f"client wall: {ed}/{rel} replaces the live-role strip")
+            check((out / ed / rel).exists() and all((out / ed / rel).parent.joinpath(m).resolve().is_file() for m in re.findall(r'src="([^"]*assets/logos/clients/[^"]+)"', text)), f"client wall: {ed}/{rel} every logo file copied into the build")
+    check("Confirm the client-logo wall matches current permissions" in (out / "ie" / "for-keith" / "index.html").read_text(encoding="utf-8"), "client wall: for-keith launch checklist carries the permissions item")
+    # validator: wrong badge, missing wall, short wall
+    ie_jobs = {"ie": json.loads((out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8").split('id="gj-data">')[1].split("</script>")[0])["jobs"]}
+    home = out / "ie" / "index.html"
+    clean = home.read_text(encoding="utf-8")
+    ghost = next(c["name"] for c in expected if build_site.norm_org(c["name"]) not in {build_site.norm_org(j["employer"]) for j in ie_jobs["ie"]})
+
+    def with_patch(fn, data=None):
+        home.write_text(fn(clean), encoding="utf-8")
+        fails = validate_site.validate(out, ie_jobs, data)
+        home.write_text(clean, encoding="utf-8")
+        return [f for f in fails if f.startswith("ie/index.html")]
+
+    check(any("'Hiring this week' badge but has no live role" in f for f in with_patch(lambda t: t.replace(f'alt="{build_site.esc(ghost)}"', f'alt="{build_site.esc(ghost)}"', 1).replace('decoding="async"></a>', 'decoding="async"><span class="emp__badge">Hiring this week</span></a>', 1))),
+          "client wall faults: a badge on an organisation without a live role is caught")
+    check(any("client-logo wall missing" in f for f in with_patch(lambda t: re.sub(r'<div class="cwall".*?</div>', '', t, count=1, flags=re.S), {"ie": {"clients": expected}})),
+          "client wall faults: a page that drops the wall while clients data exists is caught")
+    check(any("fewer than 24" in f for f in with_patch(lambda t: re.sub(r'(<div class="cwall"[^>]*>)(?:<a class="emp emp--c.*?</a>){100}', r'\1', t, count=1, flags=re.S))),
+          "client wall faults: a short wall (scrape came back short) is caught")
+    check(any("without an <img alt>" in f for f in with_patch(lambda t: t.replace(f'alt="{build_site.esc(ghost)}"', 'alt=""', 1))), "client wall faults: a tile without alt is caught")
+
+
 def test_render_fails_loudly():
     try:
         build_site.render("<p>{{missing}}</p>", {})
@@ -215,6 +278,15 @@ def test_real_data_build(tmp_root: Path):
     out = tmp_root / "site_real"
     rc = build_site.build(SRC, out, editions=["ie", "uk"])
     check(rc == 0, "integration: real-data build returns 0")
+    for ed in ("ie", "uk"):
+        text = (out / ed / "index.html").read_text(encoding="utf-8")
+        wall = re.search(r'<div class="cwall"[^>]*data-tiles="(\d+)" data-live="(\d+)"', text)
+        jobs_ed = json.loads((out / ed / "jobs" / "index.html").read_text(encoding="utf-8").split('id="gj-data">')[1].split("</script>")[0])["jobs"]
+        live = {build_site.norm_org(j["employer"]) for j in jobs_ed}
+        n_clients = len(json.loads((SRC / "data" / f"clients_{ed}.json").read_text(encoding="utf-8")))
+        badges = re.findall(r'emp--live"[^>]*><img[^>]*alt="([^"]*)"', text)
+        check(bool(wall) and int(wall.group(1)) == n_clients and int(wall.group(2)) == len(badges) == text.count("Hiring this week") and all(build_site.norm_org(html.unescape(b)) in live for b in badges),
+              f"integration: {ed} home client wall {wall and wall.group(1)} tiles == clients json {n_clients}; {len(badges)} 'Hiring this week' badges all on live employers ({badges})")
     for ed in ("ie", "uk"):
         raw = json.loads((SRC / "data" / f"{ed}.json").read_text(encoding="utf-8"))
         pages = len(list((out / ed / "jobs").glob("*/index.html")))
@@ -283,7 +355,8 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check(build_site.sector_stat([{"sal_min": None, "sal_max": None}, {"sal_min": 30000, "sal_max": None, "period": "year"}], "€") == "1 disclosed salary", "sector_stat: counts disclosures under three")
     uk_home = (out / "uk" / "index.html").read_text(encoding="utf-8")
     check('data-lvl="' in uk_home and 'data-n="' in uk_home, "home: UK map regions carry data-n/data-lvl at build time (IE home has no map band since 2026-09-28)")
-    check(any("employer strip (hiring)" in f for f in with_patch(lambda t: t.replace('data-strip="network"', 'data-strip="hiring"').replace('<div class="marq__track">', '<div class="marq__track"><div class="emp"><span>Ghost Ltd</span></div>'))), "faults: non-live employer under 'hiring now' caught")
+    # The IE home now carries the client wall, so the live-role strip is injected whole (the rule still guards it).
+    check(any("employer strip (hiring)" in f for f in with_patch(lambda t: t.replace("</body>", '<div class="marq marq--static" data-strip="hiring"><div class="marq__track"><div class="emp"><span>Ghost Ltd</span></div></div></div></body>'))), "faults: non-live employer under 'hiring now' caught")
     check(validate_site.validate(out, jobs) == [], "faults: clean build validates with zero problems after patches are reverted")
     keith = out / "ie" / "for-keith" / "index.html"
     k = keith.read_text(encoding="utf-8")
@@ -1014,7 +1087,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     check(not bad, f"panel B3: 'Certified B Corporation' appears only as the mark's alt ({bad[:3]})")
     check("B Corps are businesses independently certified" in home, "panel B3: generic B Corp definition on the home page")
     keith = _read(out / "ie" / "for-keith" / "index.html")
-    check("B Corp status" in keith and "logo" in keith.split("Launch checklist")[1][:1500], "panel B3/11: launch checklist asks for B Corp confirmation and logo permission")
+    check("B Corp status" in keith and "logo" in keith.rsplit("Launch checklist", 1)[1][:1500], "panel B3/11: launch checklist asks for B Corp confirmation and logo permission")
     # 4. UK employers: no placeholder testimonial slots on the public page
     emp_uk = _read(out / "uk" / "employers" / "index.html")
     check("fact--slot" not in emp_uk and "Testimonial supplied at launch" not in emp_uk and "Client testimonials available on request." in emp_uk,
@@ -1254,7 +1327,7 @@ def test_r2a_real_build_checks(tmp_root: Path):
     if landing.exists():
         check(patched(landing, lambda t: t.replace("/uk/ecology-jobs-uk/index.html", "/uk/jobs/index.html"), "does not link back"), "r2a R055: an hreflang alternate whose target does not link back fails validation")
     emp_page = out / "ie" / "employers" / "index.html"
-    check(patched(emp_page, lambda t: t.replace('<div class="marq__track">', '<div class="marq__track"><div class="emp"><span>EirGrid</span></div>', 1), "no live role"), "r2a R041: a non-hiring name in the employers-page strip fails validation")
+    check(patched(emp_page, lambda t: t.replace('alt="Aberdeen City Council"', 'alt="Aberdeen City Council"><span class="emp__badge">Hiring this week</span', 1), "no live role"), "r2a R041: a 'Hiring this week' badge on an organisation without a live role fails validation")
 
 
 # --- round 2 B --- (2026-09-28): visual rows 3/4/8/9/10/13/14/15/17/18/19/20/21/26/28/30/32 (templates, CSS, JS)

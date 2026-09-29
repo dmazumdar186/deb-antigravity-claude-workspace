@@ -6,14 +6,18 @@ description: Polite crawler for the two GreenJobs boards (sjbimg.com job-board
     with counts) from the homepage, pages through /jobboard/cands/jobresults.asp,
     fetches every job detail page, parses salary/location/dates/description, and
     captures About / Contact / network / advertising page text. Optionally
-    downloads brand and employer logos into an assets folder with a manifest.
+    downloads brand and employer logos into an assets folder with a manifest,
+    plus the client-logo wall from /for-employers.asp (the organisations the
+    board publishes as its clients) into {assets}/clients/.
 inputs: --site ie|uk|both (default both); --max-jobs N (cap per site, default 400);
     --out DIR (data output dir); --assets DIR (logo folder; omit to skip logos);
-    --concurrency N (default 4); --sleep S (default 0.3). No secrets required.
+    --concurrency N (default 4); --sleep S (default 0.3); --clients-only (refresh
+    only the client-logo wall, leaving the job snapshot untouched). No secrets.
 outputs: {out}/ie.json, {out}/uk.json (see JOB_FIELDS below), {out}/pages_{site}.json
     (plain text of informational pages for brief writing), {assets}/logos.json
     manifest plus downloaded logo files, {out}/perf_{site}.json (page-weight
-    measurements of the homepage: bytes, request counts).
+    measurements of the homepage: bytes, request counts), {out}/clients_{site}.json
+    = [{name, file, source}] with the files under {assets}/clients/ (needs --assets).
 """
 from __future__ import annotations
 
@@ -387,6 +391,7 @@ def crawl_site(key: str, max_jobs: int, concurrency: int, sleep_s: float, out_di
     write_json_atomic(os.path.join(out_dir, f"perf_{key}.json"), measure_page(home, base))
     if assets_dir:
         download_logos(key, home, employers, base, assets_dir, sleep_s)
+        data["stats"]["client_logos"] = len(refresh_clients(key, assets_dir, sleep_s, out_dir))
     return data
 
 
@@ -430,6 +435,139 @@ def measure_page(home: str, base: str) -> dict:
             "platform_cdn": "sjbimg.com" in home, "ga4": re.findall(r"gtag/js\?id=([\w-]+)", home)}
 
 
+CLIENTS_PAGE = "/for-employers.asp"
+CLIENT_LOGO_MAX_BYTES = 200 * 1024
+# Filename-derived names: acronyms the client's slugs spell in lower case, and
+# the spelling slips in the live filenames (kept as the client publishes them
+# on the wall, corrected only in the visible name).
+_ACRONYMS = {"bgs", "ukho", "weca", "mwp", "hta", "nhs", "hsbc", "gsk", "kpmg", "res", "rwe", "bre", "wwf",
+             "apem", "mko", "uk", "bvg", "jba", "suez", "atos", "wsp"}
+_SLUG_FIXES = {"repsonsible": "responsible", "orsted": "ørsted", "ennvironment": "environment", "parliment": "parliament",
+               "incoporating": "incorporating", "buckinghamshirecouncil": "buckinghamshire-council"}
+_SMALL_WORDS = {"of", "and", "for", "the", "in"}
+
+
+def client_name_from_file(fname: str) -> str:
+    """'aberdeen-city-council-logo.png' -> 'Aberdeen City Council'."""
+    stem = os.path.splitext(os.path.basename(fname))[0].lower()
+    for bad, good in _SLUG_FIXES.items():
+        stem = stem.replace(bad, good)
+    stem = re.sub(r"[-_]?logo$", "", stem)
+    words = [w for w in re.split(r"[-_]+", stem) if w]
+    out = []
+    for i, w in enumerate(words):
+        if w in _ACRONYMS:
+            out.append(w.upper())
+        elif w in _SMALL_WORDS and i:
+            out.append(w)
+        else:
+            out.append(w[:1].upper() + w[1:])
+    return " ".join(out) or stem
+
+
+def parse_client_logos(page: str, base: str) -> list:
+    """Every logo on the /for-employers.asp client wall: [{name, src}] in page
+    order, deduplicated by file name. The name is the alt text when the site
+    gives one (it does not today), else derived from the file name."""
+    m = re.search(r'<div id="clientLogos">(.*?)</ul>', page, re.S)
+    scope = m.group(0) if m else page  # no wrapper: any /logos/advertise/ image on the page
+    seen, out = set(), []
+    for tag in re.findall(r"<img\b[^>]*>", scope, re.I):
+        src = first(r'src="([^"]+)"', tag)
+        if not src or "/logos/advertise/" not in src:
+            continue
+        url = src if src.startswith("http") else (("https:" + src) if src.startswith("//") else base + src)
+        fname = os.path.basename(urllib.parse.urlparse(url).path)
+        if not fname or fname in seen:
+            continue
+        seen.add(fname)
+        alt = html.unescape(first(r'\balt="([^"]*)"', tag) or "").strip()
+        out.append({"name": alt or client_name_from_file(fname), "src": url})
+    return out
+
+
+def download_client_logos(key: str, page: str, base: str, assets_dir: str, sleep_s: float, out_dir: str) -> list:
+    """Fetch the client wall into {assets_dir}/clients/ (atomic writes, dedupe by
+    file name, <= CLIENT_LOGO_MAX_BYTES each), record each in logos.json under
+    'client:<file>' with source and fetched date, and write {out_dir}/clients_{key}.json
+    = [{name, file, source}]. Returns the list written (empty when the page is
+    unreachable; the previous clients_{key}.json is then left untouched)."""
+    logos = parse_client_logos(page, base)
+    if not logos:
+        LOG.error("%s: no client logos found on %s", key, CLIENTS_PAGE)
+        return []
+    cdir = os.path.join(assets_dir, "clients")
+    os.makedirs(cdir, exist_ok=True)
+    manifest_path = os.path.join(assets_dir, "logos.json")
+    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
+    today = time.strftime("%Y-%m-%d")
+    written = []
+    for item in logos:
+        fname = os.path.basename(urllib.parse.urlparse(item["src"]).path)
+        target = os.path.join(cdir, fname)
+        mkey = "client:" + fname
+        if not os.path.exists(target):
+            blob = fetch(item["src"], sleep_s, binary=True, retries=1)
+            if not blob:
+                LOG.warning("%s: client logo unreachable, skipped: %s", key, item["src"])
+                continue
+            if len(blob) > CLIENT_LOGO_MAX_BYTES:
+                blob = shrink_image(blob, fname)  # a few wall PNGs are 400-500 KB originals
+                if not blob or len(blob) > CLIENT_LOGO_MAX_BYTES:
+                    LOG.warning("%s: client logo over %d KB even after shrinking, skipped: %s", key, CLIENT_LOGO_MAX_BYTES // 1024, item["src"])
+                    continue
+            tmp = f"{target}.tmp{os.getpid()}"
+            with open(tmp, "wb") as fh:
+                fh.write(blob)
+            os.replace(tmp, target)
+            manifest[mkey] = {"file": "clients/" + fname, "source": item["src"], "bytes": len(blob), "site": key, "fetched": today, "name": item["name"]}
+        else:
+            rec = manifest.setdefault(mkey, {"file": "clients/" + fname, "source": item["src"], "bytes": os.path.getsize(target), "site": key, "name": item["name"]})
+            rec.setdefault("fetched", today)
+        written.append({"name": item["name"], "file": fname, "source": item["src"]})
+    write_json_atomic(manifest_path, manifest)
+    if written:
+        write_json_atomic(os.path.join(out_dir, f"clients_{key}.json"), written)
+    LOG.info("%s: client wall %d logos on the page, %d files available", key, len(logos), len(written))
+    return written
+
+
+def shrink_image(blob: bytes, fname: str, max_w: int = 480) -> bytes | None:
+    """Strip metadata (the oversize wall PNGs are 120x60 px carrying ~400 KB of
+    ICC/XMP) and downscale to at most `max_w` px wide (Pillow, when installed),
+    then re-encode optimised. None when Pillow is missing or the file cannot be
+    decoded; the caller then skips the logo."""
+    try:
+        from PIL import Image  # optional dependency
+        import io
+        im = Image.open(io.BytesIO(blob))
+        im.load()
+        if im.width > max_w:
+            im = im.resize((max_w, max(1, round(im.height * max_w / im.width))), Image.LANCZOS)
+        clean = Image.new(im.mode, im.size)  # a fresh image carries no icc_profile/xmp chunks
+        clean.paste(im)
+        im = clean
+        out = io.BytesIO()
+        if fname.lower().endswith((".jpg", ".jpeg")):
+            im.convert("RGB").save(out, "JPEG", quality=82, optimize=True)
+        else:
+            im.save(out, "PNG", optimize=True)
+        return out.getvalue()
+    except Exception as exc:  # noqa: BLE001 - any decode failure just skips the logo
+        LOG.warning("shrink failed for %s: %s", fname, exc)
+        return None
+
+
+def refresh_clients(key: str, assets_dir: str, sleep_s: float, out_dir: str) -> list:
+    """Fetch /for-employers.asp (one retry inside fetch) and run download_client_logos."""
+    base = SITES[key]["base"]
+    page = fetch(base + CLIENTS_PAGE, sleep_s, retries=1)
+    if not page:
+        LOG.error("%s: cannot fetch %s; clients_%s.json left untouched", key, CLIENTS_PAGE, key)
+        return []
+    return download_client_logos(key, page, base, assets_dir, sleep_s, out_dir)
+
+
 def download_logos(key: str, home: str, employers: list, base: str, assets_dir: str, sleep_s: float) -> None:
     os.makedirs(assets_dir, exist_ok=True)
     manifest_path = os.path.join(assets_dir, "logos.json")
@@ -465,10 +603,19 @@ def main(argv=None) -> int:
     ap.add_argument("--assets", default=None, help="logo folder; omit to skip downloads")
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--sleep", type=float, default=0.3)
+    ap.add_argument("--clients-only", action="store_true", help="refresh only the /for-employers.asp client-logo wall (needs --assets)")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     os.makedirs(a.out, exist_ok=True)
     rc = 0
+    if a.clients_only:
+        if not a.assets:
+            ap.error("--clients-only needs --assets")
+        for key in (["ie", "uk"] if a.site == "both" else [a.site]):
+            n = len(refresh_clients(key, a.assets, max(a.sleep, 0.3), a.out))
+            LOG.info("%s clients: %d", key, n)
+            rc = rc or (0 if n else 3)
+        return rc
     for key in (["ie", "uk"] if a.site == "both" else [a.site]):
         d = crawl_site(key, a.max_jobs, min(a.concurrency, 4), max(a.sleep, 0.3), a.out, a.assets)
         LOG.info("%s done: %s", key, d["stats"])

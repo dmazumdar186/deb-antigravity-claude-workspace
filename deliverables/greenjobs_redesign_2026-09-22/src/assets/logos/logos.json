@@ -292,5 +292,901 @@
   "source": "https://www.greenjobs.ie/images/logos/greenjobslogo.png",
   "bytes": 19253,
   "site": "ie"
+ },
+ "client:aberdeen-city-council-logo.png": {
+  "file": "clients/aberdeen-city-council-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/aberdeen-city-council-logo.png",
+  "bytes": 4417,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Aberdeen City Council"
+ },
+ "client:affinity-water-logo.png": {
+  "file": "clients/affinity-water-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/affinity-water-logo.png",
+  "bytes": 3026,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Affinity Water"
+ },
+ "client:aga-khan-foundation-logo.png": {
+  "file": "clients/aga-khan-foundation-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/aga-khan-foundation-logo.png",
+  "bytes": 2162,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Aga Khan Foundation"
+ },
+ "client:alexandra-palace-logo.png": {
+  "file": "clients/alexandra-palace-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/alexandra-palace-logo.png",
+  "bytes": 4439,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Alexandra Palace"
+ },
+ "client:ambition-north-wales-logo.png": {
+  "file": "clients/ambition-north-wales-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/ambition-north-wales-logo.png",
+  "bytes": 5059,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ambition North Wales"
+ },
+ "client:anthesis-logo.png": {
+  "file": "clients/anthesis-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/anthesis-logo.png",
+  "bytes": 2367,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Anthesis"
+ },
+ "client:apem-logo.png": {
+  "file": "clients/apem-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/apem-logo.png",
+  "bytes": 3682,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "APEM"
+ },
+ "client:arup-logo.png": {
+  "file": "clients/arup-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/arup-logo.png",
+  "bytes": 2633,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Arup"
+ },
+ "client:atos-logo.png": {
+  "file": "clients/atos-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/atos-logo.png",
+  "bytes": 2982,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "ATOS"
+ },
+ "client:belfast-city-council-logo.png": {
+  "file": "clients/belfast-city-council-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/belfast-city-council-logo.png",
+  "bytes": 5247,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Belfast City Council"
+ },
+ "client:bre-logo.png": {
+  "file": "clients/bre-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/bre-logo.png",
+  "bytes": 4245,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "BRE"
+ },
+ "client:bristol-zoological-society-logo.png": {
+  "file": "clients/bristol-zoological-society-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/bristol-zoological-society-logo.png",
+  "bytes": 5102,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Bristol Zoological Society"
+ },
+ "client:british-antarctic-survey-logo.png": {
+  "file": "clients/british-antarctic-survey-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/british-antarctic-survey-logo.png",
+  "bytes": 9392,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "British Antarctic Survey"
+ },
+ "client:british-geological-survey-bgs-logo.png": {
+  "file": "clients/british-geological-survey-bgs-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/british-geological-survey-bgs-logo.png",
+  "bytes": 5614,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "British Geological Survey BGS"
+ },
+ "client:buckinghamshirecouncil-logo.png": {
+  "file": "clients/buckinghamshirecouncil-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/buckinghamshirecouncil-logo.png",
+  "bytes": 3893,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Buckinghamshire Council"
+ },
+ "client:bvg-associates-logo.png": {
+  "file": "clients/bvg-associates-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/bvg-associates-logo.png",
+  "bytes": 1714,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "BVG Associates"
+ },
+ "client:carbon-intelligence-logo.png": {
+  "file": "clients/carbon-intelligence-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/carbon-intelligence-logo.png",
+  "bytes": 5841,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Carbon Intelligence"
+ },
+ "client:carbon-repsonsible-logo.png": {
+  "file": "clients/carbon-repsonsible-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/carbon-repsonsible-logo.png",
+  "bytes": 3846,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Carbon Responsible"
+ },
+ "client:carbon-trust-logo.png": {
+  "file": "clients/carbon-trust-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/carbon-trust-logo.png",
+  "bytes": 28052,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Carbon Trust"
+ },
+ "client:catalyst-logo.png": {
+  "file": "clients/catalyst-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/catalyst-logo.png",
+  "bytes": 4949,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Catalyst"
+ },
+ "client:centrica-logo.png": {
+  "file": "clients/centrica-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/centrica-logo.png",
+  "bytes": 3466,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Centrica"
+ },
+ "client:changeworks-logo.png": {
+  "file": "clients/changeworks-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/changeworks-logo.png",
+  "bytes": 4804,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Changeworks"
+ },
+ "client:city-of-london-logo.jpg": {
+  "file": "clients/city-of-london-logo.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/city-of-london-logo.jpg",
+  "bytes": 3758,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "City of London"
+ },
+ "client:city-of-westminster-logo.png": {
+  "file": "clients/city-of-westminster-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/city-of-westminster-logo.png",
+  "bytes": 3936,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "City of Westminster"
+ },
+ "client:climate-partner-logo.png": {
+  "file": "clients/climate-partner-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/climate-partner-logo.png",
+  "bytes": 3473,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Climate Partner"
+ },
+ "client:crown-estate-scotland.jpg": {
+  "file": "clients/crown-estate-scotland.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/crown-estate-scotland.jpg",
+  "bytes": 6669,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Crown Estate Scotland"
+ },
+ "client:department-for-ennvironment-food-and-rural-affairs-logo.jpg": {
+  "file": "clients/department-for-ennvironment-food-and-rural-affairs-logo.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/department-for-ennvironment-food-and-rural-affairs-logo.jpg",
+  "bytes": 3386,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Department for Environment Food and Rural Affairs"
+ },
+ "client:department-of-environment-climate-and-communications-logo.png": {
+  "file": "clients/department-of-environment-climate-and-communications-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/department-of-environment-climate-and-communications-logo.png",
+  "bytes": 6167,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Department of Environment Climate and Communications"
+ },
+ "client:department-of-housing-local-government-and-heritage-logo.png": {
+  "file": "clients/department-of-housing-local-government-and-heritage-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/department-of-housing-local-government-and-heritage-logo.png",
+  "bytes": 5250,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Department of Housing Local Government and Heritage"
+ },
+ "client:drax-logo.png": {
+  "file": "clients/drax-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/drax-logo.png",
+  "bytes": 3183,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Drax"
+ },
+ "client:eco-unesco-logo.png": {
+  "file": "clients/eco-unesco-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/eco-unesco-logo.png",
+  "bytes": 5476,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Eco Unesco"
+ },
+ "client:energia-group-logo.png": {
+  "file": "clients/energia-group-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/energia-group-logo.png",
+  "bytes": 4901,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Energia Group"
+ },
+ "client:energy-saving-trust-logo.png": {
+  "file": "clients/energy-saving-trust-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/energy-saving-trust-logo.png",
+  "bytes": 2380,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Energy Saving Trust"
+ },
+ "client:england-golf-logo.png": {
+  "file": "clients/england-golf-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/england-golf-logo.png",
+  "bytes": 3270,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "England Golf"
+ },
+ "client:environment-agency-logo.png": {
+  "file": "clients/environment-agency-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/environment-agency-logo.png",
+  "bytes": 4762,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Environment Agency"
+ },
+ "client:essex-police-logo.png": {
+  "file": "clients/essex-police-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/essex-police-logo.png",
+  "bytes": 7629,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Essex Police"
+ },
+ "client:eunomia-logo.png": {
+  "file": "clients/eunomia-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/eunomia-logo.png",
+  "bytes": 3069,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Eunomia"
+ },
+ "client:euroforest-logo.png": {
+  "file": "clients/euroforest-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/euroforest-logo.png",
+  "bytes": 5497,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Euroforest"
+ },
+ "client:fehily-timoney-logo.png": {
+  "file": "clients/fehily-timoney-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/fehily-timoney-logo.png",
+  "bytes": 2025,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Fehily Timoney"
+ },
+ "client:forest-research-logo.png": {
+  "file": "clients/forest-research-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/forest-research-logo.png",
+  "bytes": 2773,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Forest Research"
+ },
+ "client:forestry-and-land-scotland.jpg": {
+  "file": "clients/forestry-and-land-scotland.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/forestry-and-land-scotland.jpg",
+  "bytes": 5479,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Forestry and Land Scotland"
+ },
+ "client:forestry-commission-logo.png": {
+  "file": "clients/forestry-commission-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/forestry-commission-logo.png",
+  "bytes": 5542,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Forestry Commission"
+ },
+ "client:forestry-england-logo.png": {
+  "file": "clients/forestry-england-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/forestry-england-logo.png",
+  "bytes": 2640,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Forestry England"
+ },
+ "client:gatwick-airport-logo.png": {
+  "file": "clients/gatwick-airport-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/gatwick-airport-logo.png",
+  "bytes": 5532,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Gatwick Airport"
+ },
+ "client:greater-london-authority-logo.png": {
+  "file": "clients/greater-london-authority-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/greater-london-authority-logo.png",
+  "bytes": 5059,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Greater London Authority"
+ },
+ "client:green-action-trust-logo.png": {
+  "file": "clients/green-action-trust-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/green-action-trust-logo.png",
+  "bytes": 10196,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Green Action Trust"
+ },
+ "client:gsk-logo.png": {
+  "file": "clients/gsk-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/gsk-logo.png",
+  "bytes": 6571,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "GSK"
+ },
+ "client:houses-of-parliment-restoration-and-renewal-logo.png": {
+  "file": "clients/houses-of-parliment-restoration-and-renewal-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/houses-of-parliment-restoration-and-renewal-logo.png",
+  "bytes": 2928,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Houses of Parliament Restoration and Renewal"
+ },
+ "client:hsbc-logo.png": {
+  "file": "clients/hsbc-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/hsbc-logo.png",
+  "bytes": 4380,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "HSBC"
+ },
+ "client:hta-logo.png": {
+  "file": "clients/hta-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/hta-logo.png",
+  "bytes": 2344,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "HTA"
+ },
+ "client:hydroplan-logo.png": {
+  "file": "clients/hydroplan-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/hydroplan-logo.png",
+  "bytes": 13209,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Hydroplan"
+ },
+ "client:igloo3-logo.png": {
+  "file": "clients/igloo3-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/igloo3-logo.png",
+  "bytes": 6319,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Igloo3"
+ },
+ "client:jba-consulting.jpg": {
+  "file": "clients/jba-consulting.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/jba-consulting.jpg",
+  "bytes": 3323,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "JBA Consulting"
+ },
+ "client:kpmg-logo.png": {
+  "file": "clients/kpmg-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/kpmg-logo.png",
+  "bytes": 3234,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "KPMG"
+ },
+ "client:legal-and-general-logo.png": {
+  "file": "clients/legal-and-general-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/legal-and-general-logo.png",
+  "bytes": 3758,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Legal and General"
+ },
+ "client:lewis-davey-logo.png": {
+  "file": "clients/lewis-davey-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/lewis-davey-logo.png",
+  "bytes": 1773,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Lewis Davey"
+ },
+ "client:malachy-walsh-and-partners-mwp-logo.png": {
+  "file": "clients/malachy-walsh-and-partners-mwp-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/malachy-walsh-and-partners-mwp-logo.png",
+  "bytes": 6373,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Malachy Walsh and Partners MWP"
+ },
+ "client:manchester-city-council-logo.png": {
+  "file": "clients/manchester-city-council-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/manchester-city-council-logo.png",
+  "bytes": 5575,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Manchester City Council"
+ },
+ "client:manx-utilities-logo.png": {
+  "file": "clients/manx-utilities-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/manx-utilities-logo.png",
+  "bytes": 4519,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Manx Utilities"
+ },
+ "client:mattinson-partnership-logo.png": {
+  "file": "clients/mattinson-partnership-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/mattinson-partnership-logo.png",
+  "bytes": 6288,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Mattinson Partnership"
+ },
+ "client:ministry-of-defence-logo.png": {
+  "file": "clients/ministry-of-defence-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/ministry-of-defence-logo.png",
+  "bytes": 4074,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ministry of Defence"
+ },
+ "client:ministry-of-justice-logo.png": {
+  "file": "clients/ministry-of-justice-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/ministry-of-justice-logo.png",
+  "bytes": 2908,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ministry of Justice"
+ },
+ "client:mko-logo.png": {
+  "file": "clients/mko-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/mko-logo.png",
+  "bytes": 4322,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "MKO"
+ },
+ "client:national-grid-logo.png": {
+  "file": "clients/national-grid-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/national-grid-logo.png",
+  "bytes": 2685,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "National Grid"
+ },
+ "client:national-trust-logo.png": {
+  "file": "clients/national-trust-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/national-trust-logo.png",
+  "bytes": 3646,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "National Trust"
+ },
+ "client:natural-environmental-research-council-logo.png": {
+  "file": "clients/natural-environmental-research-council-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/natural-environmental-research-council-logo.png",
+  "bytes": 5239,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Natural Environmental Research Council"
+ },
+ "client:natural-resources-wales-logo.png": {
+  "file": "clients/natural-resources-wales-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/natural-resources-wales-logo.png",
+  "bytes": 14601,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Natural Resources Wales"
+ },
+ "client:nestle-waters-logo.jpg": {
+  "file": "clients/nestle-waters-logo.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/nestle-waters-logo.jpg",
+  "bytes": 6443,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Nestle Waters"
+ },
+ "client:nhs-logo.png": {
+  "file": "clients/nhs-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/nhs-logo.png",
+  "bytes": 4066,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "NHS"
+ },
+ "client:office-for-environmental-protection-logo.jpg": {
+  "file": "clients/office-for-environmental-protection-logo.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/office-for-environmental-protection-logo.jpg",
+  "bytes": 4823,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Office for Environmental Protection"
+ },
+ "client:ofwat-logo.png": {
+  "file": "clients/ofwat-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/ofwat-logo.png",
+  "bytes": 5405,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ofwat"
+ },
+ "client:Orsted.png": {
+  "file": "clients/Orsted.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/Orsted.png",
+  "bytes": 2610,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ørsted"
+ },
+ "client:pangaia-logo.png": {
+  "file": "clients/pangaia-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/pangaia-logo.png",
+  "bytes": 2037,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Pangaia"
+ },
+ "client:pukka-logo.png": {
+  "file": "clients/pukka-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/pukka-logo.png",
+  "bytes": 5180,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Pukka"
+ },
+ "client:ramboll-logo.png": {
+  "file": "clients/ramboll-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/ramboll-logo.png",
+  "bytes": 2251,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ramboll"
+ },
+ "client:res-logo.png": {
+  "file": "clients/res-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/res-logo.png",
+  "bytes": 3374,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "RES"
+ },
+ "client:ricardo-energy-and-environment-logo.png": {
+  "file": "clients/ricardo-energy-and-environment-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/ricardo-energy-and-environment-logo.png",
+  "bytes": 4260,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ricardo Energy and Environment"
+ },
+ "client:rwe-logo.png": {
+  "file": "clients/rwe-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/rwe-logo.png",
+  "bytes": 9420,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "RWE"
+ },
+ "client:ryan-hanley-logo.png": {
+  "file": "clients/ryan-hanley-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/ryan-hanley-logo.png",
+  "bytes": 1312,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Ryan Hanley"
+ },
+ "client:save-the-children-logo.png": {
+  "file": "clients/save-the-children-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/save-the-children-logo.png",
+  "bytes": 2204,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Save the Children"
+ },
+ "client:savills-logo.png": {
+  "file": "clients/savills-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/savills-logo.png",
+  "bytes": 1405,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Savills"
+ },
+ "client:scottish-government-logo.png": {
+  "file": "clients/scottish-government-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/scottish-government-logo.png",
+  "bytes": 3415,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Scottish Government"
+ },
+ "client:scottishpower-logo.png": {
+  "file": "clients/scottishpower-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/scottishpower-logo.png",
+  "bytes": 3410,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Scottishpower"
+ },
+ "client:scottish-woodlands-logo.png": {
+  "file": "clients/scottish-woodlands-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/scottish-woodlands-logo.png",
+  "bytes": 5332,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Scottish Woodlands"
+ },
+ "client:serco-logo.png": {
+  "file": "clients/serco-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/serco-logo.png",
+  "bytes": 10661,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Serco"
+ },
+ "client:severn-trent-logo.png": {
+  "file": "clients/severn-trent-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/severn-trent-logo.png",
+  "bytes": 3004,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Severn Trent"
+ },
+ "client:solar-energy-uk-logo.png": {
+  "file": "clients/solar-energy-uk-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/solar-energy-uk-logo.png",
+  "bytes": 3997,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Solar Energy UK"
+ },
+ "client:south-staffs-water-incoporating-cambridge-water-company.png": {
+  "file": "clients/south-staffs-water-incoporating-cambridge-water-company.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/south-staffs-water-incoporating-cambridge-water-company.png",
+  "bytes": 3467,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "South Staffs Water Incorporating Cambridge Water Company"
+ },
+ "client:southern-water-logo.png": {
+  "file": "clients/southern-water-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/southern-water-logo.png",
+  "bytes": 5780,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Southern Water"
+ },
+ "client:suez-logo.png": {
+  "file": "clients/suez-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/suez-logo.png",
+  "bytes": 4741,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "SUEZ"
+ },
+ "client:teagasc-logo.png": {
+  "file": "clients/teagasc-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/teagasc-logo.png",
+  "bytes": 6741,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Teagasc"
+ },
+ "client:thames-water-logo.png": {
+  "file": "clients/thames-water-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/thames-water-logo.png",
+  "bytes": 4462,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Thames Water"
+ },
+ "client:the-british-museum-logo.png": {
+  "file": "clients/the-british-museum-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/the-british-museum-logo.png",
+  "bytes": 4553,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "The British Museum"
+ },
+ "client:the-highland-council-logo.png": {
+  "file": "clients/the-highland-council-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/the-highland-council-logo.png",
+  "bytes": 6324,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "The Highland Council"
+ },
+ "client:the-royal-borough-of-kensington-and-chelsea-logo.png": {
+  "file": "clients/the-royal-borough-of-kensington-and-chelsea-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/the-royal-borough-of-kensington-and-chelsea-logo.png",
+  "bytes": 6250,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "The Royal Borough of Kensington and Chelsea"
+ },
+ "client:uk-green-building-council-logo.png": {
+  "file": "clients/uk-green-building-council-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/uk-green-building-council-logo.png",
+  "bytes": 5716,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "UK Green Building Council"
+ },
+ "client:uk-hydrographic-office-ukho-logo.jpg": {
+  "file": "clients/uk-hydrographic-office-ukho-logo.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/uk-hydrographic-office-ukho-logo.jpg",
+  "bytes": 4763,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "UK Hydrographic Office UKHO"
+ },
+ "client:united-utilities-logo.png": {
+  "file": "clients/united-utilities-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/united-utilities-logo.png",
+  "bytes": 5436,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "United Utilities"
+ },
+ "client:university-of-bristol-logo.png": {
+  "file": "clients/university-of-bristol-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/university-of-bristol-logo.png",
+  "bytes": 5632,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "University of Bristol"
+ },
+ "client:university-of-cambridge-logo.png": {
+  "file": "clients/university-of-cambridge-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/university-of-cambridge-logo.png",
+  "bytes": 5180,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "University of Cambridge"
+ },
+ "client:uplift-logo.png": {
+  "file": "clients/uplift-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/uplift-logo.png",
+  "bytes": 6062,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Uplift"
+ },
+ "client:victoria-and-albert-logo.png": {
+  "file": "clients/victoria-and-albert-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/victoria-and-albert-logo.png",
+  "bytes": 3297,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Victoria and Albert"
+ },
+ "client:wateraid-logo.png": {
+  "file": "clients/wateraid-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/wateraid-logo.png",
+  "bytes": 4533,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Wateraid"
+ },
+ "client:we-mean-business-coalition-logo.png": {
+  "file": "clients/we-mean-business-coalition-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/we-mean-business-coalition-logo.png",
+  "bytes": 5106,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "We Mean Business Coalition"
+ },
+ "client:welsh-government.jpg": {
+  "file": "clients/welsh-government.jpg",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/welsh-government.jpg",
+  "bytes": 4575,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Welsh Government"
+ },
+ "client:wessex-water-logo.png": {
+  "file": "clients/wessex-water-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/wessex-water-logo.png",
+  "bytes": 6839,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Wessex Water"
+ },
+ "client:west-of-england-combined-authority-weca-logo.png": {
+  "file": "clients/west-of-england-combined-authority-weca-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/west-of-england-combined-authority-weca-logo.png",
+  "bytes": 5275,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "West of England Combined Authority WECA"
+ },
+ "client:wood-logo.png": {
+  "file": "clients/wood-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/wood-logo.png",
+  "bytes": 3109,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Wood"
+ },
+ "client:wwf-logo.png": {
+  "file": "clients/wwf-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/wwf-logo.png",
+  "bytes": 1812,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "WWF"
+ },
+ "client:natural-england-logo.png": {
+  "file": "clients/natural-england-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/natural-england-logo.png",
+  "bytes": 2316,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Natural England"
+ },
+ "client:randa-logo.png": {
+  "file": "clients/randa-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/randa-logo.png",
+  "bytes": 3279,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Randa"
+ },
+ "client:thomson-environmental-consultants-logo.png": {
+  "file": "clients/thomson-environmental-consultants-logo.png",
+  "source": "https://www.greenjobs.co.uk/images/logos/advertise/thomson-environmental-consultants-logo.png",
+  "bytes": 4057,
+  "site": "ie",
+  "fetched": "2026-09-28",
+  "name": "Thomson Environmental Consultants"
  }
 }

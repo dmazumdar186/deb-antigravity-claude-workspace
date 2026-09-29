@@ -270,6 +270,18 @@ def _check_dashboard(raw: str, rel: str, data: dict[str, Any] | None, kpis: Any,
             fails.append(f"{rel}: live tile value {val!r} is not a value of dashboard_kpis(data)")
 
 
+MIN_CLIENT_TILES = 24  # Keith E3: the wall must look full on both editions
+
+
+def norm_org(name: str) -> str:
+    """Organisation name key for matching a client-wall logo to a live employer:
+    lower-cased, parenthetical and legal suffixes dropped, non-alphanumerics
+    removed ("Welsh Government (Llywodraeth Cymru)" == "welsh-government")."""
+    n = re.sub(r"\(.*?\)", " ", str(name or "").lower())
+    n = re.sub(r"\b(ltd|limited|plc|llp|inc|group|logo|the)\b", " ", n)
+    return re.sub(r"[^a-z0-9]+", "", n)
+
+
 def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_by_edition: dict[str, dict[str, Any]] | None = None, dashboard_kpis: Any = None) -> list[str]:
     """Return a list of human-readable failures. Empty list means the build passes."""
     fails: list[str] = []
@@ -397,6 +409,32 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
                     name = html.unescape(alt or span)
                     if name and name not in live:
                         fails.append(f"{rel}: '{name}' is shown in the employer strip ({mode}) but has no live role in this edition")
+        if sm and sm.group(1) in jobs_by_edition:
+            # The client-logo wall (Keith E3): every tile an <img> with alt and an existing
+            # file; "Hiring this week" only on an organisation with a live role (the honesty
+            # rule above, matched by build_site.norm_org); at least MIN_CLIENT_TILES tiles so a
+            # short scrape never ships a thin wall. When the edition has client data the wall
+            # must be on the page (a fallback to the 3-tile strip is a regression).
+            live_keys = {norm_org(j["employer"]) for j in jobs_by_edition.get(sm.group(1), [])}
+            walls = re.findall(r'<div class="cwall" data-strip="clients"[^>]*>(.*?)</div>', raw, re.S)
+            has_clients = bool(((data_by_edition or {}).get(sm.group(1)) or {}).get("clients"))
+            if has_clients and not walls:
+                fails.append(f"{rel}: client-logo wall missing although clients_{sm.group(1)}.json has entries")
+            for inner in walls:
+                tiles = re.findall(r'<a class="emp emp--c[^"]*"[^>]*>(.*?)</a>', inner, re.S)
+                if len(tiles) < MIN_CLIENT_TILES:
+                    fails.append(f"{rel}: client-logo wall has {len(tiles)} tiles, fewer than {MIN_CLIENT_TILES} (scrape came back short?)")
+                for tile in tiles:
+                    img = re.search(r'<img\b[^>]*>', tile)
+                    alt = re.search(r'\balt="([^"]*)"', img.group(0)) if img else None
+                    src_m = re.search(r'\bsrc="([^"]+)"', img.group(0)) if img else None
+                    if not img or not alt or not alt.group(1).strip():
+                        fails.append(f"{rel}: client-wall tile without an <img alt>: {tile[:80]!r}")
+                        continue
+                    if not src_m or not (page.parent / src_m.group(1)).resolve().is_file():
+                        fails.append(f"{rel}: client-wall logo file missing for '{html.unescape(alt.group(1))}'")
+                    if "Hiring this week" in tile and norm_org(html.unescape(alt.group(1))) not in live_keys:
+                        fails.append(f"{rel}: '{html.unescape(alt.group(1))}' carries a 'Hiring this week' badge but has no live role in this edition")
         if hm and "countyies" in raw:
             fails.append(f"{rel}: 'countyies' pluralisation bug")
         em = re.match(r"^(ie|uk)/", rel)

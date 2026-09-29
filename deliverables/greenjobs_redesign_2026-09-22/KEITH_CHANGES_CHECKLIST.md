@@ -7,7 +7,7 @@ Every item ticked only after the build validator, unit tests and the item's own 
 - [x] A1 Replace h1 "Work that puts the planet on the payroll" with "Work that works for the planet." plus plain-English sub-line: IE "Find environmental, sustainability, renewable-energy and nature careers across Ireland." UK "Search environmental, ecology, sustainability, renewable-energy and low-carbon careers across the UK."
 - [x] A2 Remove "N employers" from the IE hero facts. Replace with credibility markers: "Specialist green job network since 2008", "10 specialist job sites", "Roles across N sectors" (N is the live count of sectors with at least one role — 14 per edition on 28 Sept — not the "10" in the document's example, which predates the six added sectors), "Certified B Corporation". UK keeps the computed employer count ("N employers hiring now", 18 on the 22 Sept snapshot; its scale is a credibility asset). (network count read from data: 10 sites; B Corp shown as the mark + explainer only, per brief.md §3)
 - [x] A3 B Corp badge gets a one-line explainer everywhere it appears.
-- [x] A4 Employer logos on IE only if each employer has a live role (already enforced by validator) — keep.
+- [x] A4 Employer logos on IE only if each employer has a live role (already enforced by validator) — keep. (2026-09-28: the home/employers panel now shows the client-logo wall the board itself publishes on /for-employers.asp — 112 organisations, the current state of its logo permissions — so the "3 employers" panel is gone; the "Hiring this week" badge is still only rendered, and validated, for organisations with a live role. Launch checklist asks GreenJobs to confirm the set.)
 
 ## B. Classification & data accuracy
 - [x] B1 Sector mapping (taxonomy in build_site.py; a 0-role sector is never rendered): highways/road/infrastructure roles no longer land in "Sustainability & net zero" or "Built environment". Add sectors: Environmental engineering; Sustainable infrastructure & transport (incl. active travel); Climate & carbon; Health, safety & environment; Nature recovery & biodiversity (fold into Ecology name). Taxonomy consistent across salary explorer and sector stats.
@@ -33,7 +33,7 @@ Every item ticked only after the build validator, unit tests and the item's own 
 ## E. Employer conversion
 - [x] E1 "Request advertising rates" CTA (no prices are published).
 - [x] E2 Audience & reach block: candidate audience, newsletter reach, LinkedIn/network distribution (only figures in brief.md/data; otherwise labelled "supplied at launch"). (no audience/newsletter/follower figures exist in brief.md; tiles read "figure supplied at launch")
-- [x] E3 Organisations that have recruited through GreenJobs (from live employer list).
+- [x] E3 Organisations that have recruited through GreenJobs — the full client-logo wall scraped from greenjobs.ie/for-employers.asp (112 logos, `data/clients_{ie,uk}.json`, `assets/logos/clients/`), linked to that page, employer names as alt text, live-role badges; validator requires ≥ 24 tiles per edition. (was: the live employer list only, 3 tiles on IE)
 - [x] E4 Comparison table: Standard / Premium / Membership.
 - [x] E5 Network positioning: "Advertise once. Reach candidates across the GreenJobs specialist network…" prominent on employers page and home employer section.
 - [x] E6 Vacancy preview: demo explanation shortened to "Preview exactly how your vacancy will appear to candidates."
