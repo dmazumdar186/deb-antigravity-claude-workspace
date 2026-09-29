@@ -150,3 +150,21 @@ Year 1 (A Care + B + C, bundle): €450×12 + €6,500 + €1,375 = **€13,275*
 > The way I'd de-risk it: run the new platform in parallel with Strategies for 30 days, verify every posting route with test jobs, and only move the domains once you've signed off. If an integration fails that test, you don't pay the migration fee.
 >
 > I'll send the one-page proposal with the SLA table and the monthly figure tomorrow. Four quick things so it's accurate: when does the Strategies contract renew and what's the notice period; which of Broadbean, Idibu and LogicMelon do you actually use; is Gaia on Recruit CRM or Vincere; and roughly how many ads a month go up across the two boards?
+
+## 9. Answers to the site manager's questions (Keith's email 2026-09-29, 17:21)
+
+1. **Stats update automatically?** Yes. Every count on the site (roles per county, sector, salary bands, remote/hybrid share, employer list) is computed from the job data itself, never typed in. On the live platform that computation runs on every post, whether GreenJobs staff or a self-serve client uploads the ad. In the demo it runs on each data refresh, which is why the figures carry a "snapshot of 22 September" date.
+2. **Candidates register a CV and log in?** Yes, that stays. The platform migration (line B) includes candidate accounts: one registration, CV stored, one-click apply from then on, saved roles and alerts tied to the account. The demo has no accounts yet because it runs with no back end; what you see today is the front end only.
+3. **Compare the options: only Premium, not Standard.** Fixed today. The table now shows Premium posting and Membership only.
+4. **"Three things a candidate should know": can employers paste the full JD?** Fixed today. The Post-a-job preview now takes the full job description pasted in, and shows it exactly as candidates will see it on the board card and at the top of the job page. On the live platform this is the same posting console GreenJobs staff use.
+
+**Reply draft**
+
+> Hi Keith, thanks, good questions from the site manager.
+>
+> 1. Yes. Every figure on the site (roles by county, sector, salary, remote/hybrid, employers) is calculated from the job data, so it updates itself whenever anyone posts, whether that's your team or a client uploading directly.
+> 2. Yes. Candidates register once, store their CV, and apply with one click after that, the same as now. The demo you're looking at is the front end only, so accounts aren't switched on in it; they're part of the platform build.
+> 3. Done. The table now shows Premium and Membership only.
+> 4. Done. The Post-a-job preview now takes the full job description pasted in and shows it exactly as a candidate will see it. Try it on the Employers page with "Fill with example".
+>
+> Both changes are live on the demo now.

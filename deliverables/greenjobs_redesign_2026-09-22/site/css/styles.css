@@ -952,3 +952,4 @@ html[data-cookie-open] body{padding-bottom:var(--cookie-h,56px)}html[data-cookie
 [data-theme="dark"] .gmap__ctx path{fill:none}
 @media (prefers-reduced-motion:reduce){.cwall .marq{-webkit-mask-image:none;mask-image:none}.cwall .marq__track{animation:none;flex-wrap:wrap;width:auto;justify-content:center;gap:10px}.cwall .marq__dup{display:none!important}.cwall__ctl{display:none}}
 .no-motion .cwall .marq{-webkit-mask-image:none;mask-image:none}.no-motion .cwall .marq__track{animation:none;flex-wrap:wrap;width:auto;justify-content:center;gap:10px}.no-motion .cwall__ctl{display:none}
+.adb__desc{font-size:var(--small);color:var(--fg-2);display:grid;gap:8px;max-height:220px;overflow:auto}

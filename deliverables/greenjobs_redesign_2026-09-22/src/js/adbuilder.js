@@ -12,7 +12,7 @@
   var sym = root.getAttribute('data-sym') || '€', cur = sym === '£' ? 'GBP' : 'EUR', unit = root.getAttribute('data-unit') || 'county';
   var form = root.querySelector('form'), card = root.querySelector('[data-adb-card]'), hero = root.querySelector('[data-adb-hero]'), reachEl = root.querySelector('[data-adb-reach]');
   var toggle = root.querySelector('[data-adb-toggle]'), preview = root.querySelector('[data-adb-preview]');
-  var F = {}; ['title', 'org', 'loc', 'sector', 'type', 'smin', 'smax', 'b1', 'b2', 'b3'].forEach(function (k) { F[k] = doc.getElementById('p-' + k); });
+  var F = {}; ['title', 'org', 'loc', 'sector', 'type', 'smin', 'smax', 'desc'].forEach(function (k) { F[k] = doc.getElementById('p-' + k); });
   var logoIn = doc.getElementById('p-logo'), logoData = '';
   var IE = (doc.body.getAttribute('data-edition') || 'ie') === 'ie';
   var today = new Date().toISOString().slice(0, 10);
@@ -25,7 +25,7 @@
     return {
       id: 'preview', title: F.title.value.trim(), employer: F.org.value.trim(), location: F.loc.value.trim(), type: F.type.value,
       sal_min: lo, sal_max: hi, cur: cur, period: 'year', sal_text: '', sectors: [sec], color: r.col || '#d99a1c', posted: today,
-      bullets: [F.b1.value.trim(), F.b2.value.trim(), F.b3.value.trim()].filter(Boolean)
+      desc: F.desc.value.trim()
     };
   }
   function logo(j, cls) {
@@ -44,7 +44,7 @@
     hero.innerHTML = '<nav class="crumbs" aria-hidden="true"><span>Home</span><span>/</span><span>Jobs</span><span>/</span><span>' + G.esc(j.sectors[0]) + '</span></nav>' +
       '<p class="adb__h1">' + ph(j.title, 'Your job title') + '</p><div class="job__emp">' + logo(j, 'job__logo') + '<span>' + ph(j.employer, 'Your organisation') + '</span></div>' +
       '<div class="job__meta">' + meta + '</div>' +
-      (j.bullets.length ? '<ul class="adb__bul">' + j.bullets.map(function (b) { return '<li>' + G.esc(b) + '</li>'; }).join('') + '</ul>' : '<p class="adb__ph adb__bulph">Three things a candidate should know appear here.</p>') +
+      (j.desc ? '<div class="adb__desc">' + j.desc.split(/\n{2,}/).map(function (p) { return '<p>' + G.esc(p).replace(/\n/g, '<br>') + '</p>'; }).join('') + '</div>' : '<p class="adb__ph adb__bulph">Your full job description appears here, exactly as candidates will read it.</p>') +
       '<span class="btn btn--lime adb__apply" aria-hidden="true">Apply<span class="arw">→</span></span>';
     var r = reach[j.sectors[0]];
     if (r) {
@@ -71,9 +71,7 @@
     F.title.value = 'Senior Hydrogeologist'; F.org.value = 'Your Company Ltd'; F.loc.value = IE ? 'Galway' : 'Leeds';
     var opt = [].slice.call(F.sector.options).filter(function (o) { return /water/i.test(o.value); })[0];
     F.sector.value = opt ? opt.value : first; F.type.value = 'Permanent'; F.smin.value = '55000'; F.smax.value = '65000';
-    F.b1.value = 'Lead groundwater and flood-risk assessments for infrastructure clients';
-    F.b2.value = 'A team of eight, hybrid, two days a week on site';
-    F.b3.value = 'Chartership supported and paid for';
+    F.desc.value = 'We are looking for an experienced hydrogeologist to lead groundwater assessments for renewable-energy and infrastructure projects across ' + (IE ? 'Ireland' : 'the UK') + '.\n\nYou will manage site investigations, interpret monitoring data and author EIA chapters, working with ecologists and planners.\n\nHybrid working, 25 days leave, professional membership paid.';
     render();
   }
   if (fill) fill.addEventListener('click', function () { example(); F.title.focus(); });

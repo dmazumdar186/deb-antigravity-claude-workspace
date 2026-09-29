@@ -472,7 +472,7 @@ def test_keith_pages_and_copy(tmp_root: Path):
     emp_ie = (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8")
     emp_uk = (out / "uk" / "employers" / "index.html").read_text(encoding="utf-8")
     check("Request advertising rates" in emp_ie and 'href="mailto:' in emp_ie and emp_ie.index("Request advertising rates") < emp_ie.index('id="h-reach"'), "keith E1: rate CTA high on the employers page")
-    check('<table class="evid cmp">' in emp_ie and "<th scope=\"col\">Standard</th>" in emp_ie and "Premium" in emp_ie and "Membership" in emp_ie and "Ask us" in emp_ie, "keith E4: comparison table with Standard / Premium / Membership")
+    check('<table class="evid cmp">' in emp_ie and "<th scope=\"col\">Standard</th>" not in emp_ie and "Premium posting" in emp_ie and "Membership" in emp_ie and "Ask us" in emp_ie, "keith E4: comparison table with Standard / Premium / Membership")
     check("Trusted across the UK" in emp_uk and "Client testimonials available on request." in emp_uk and "Trusted across the UK" not in emp_ie, "keith E7: UK-only trust block, testimonials collected for launch (panel B4)")
     check("Preview exactly how your vacancy will appear to candidates." in emp_ie, "keith E6: one-line preview explanation")
     check("Organisations GreenJobs has helped with talent attraction" in emp_ie, "keith E3: recruiting organisations block")
@@ -1109,7 +1109,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     check("Request rates and post" not in emp_uk and emp_uk.count("Request advertising rates") >= 3, "panel B6: one CTA label everywhere")
     check("Send us the job description and logo; we post it and email you when it is live." in emp_uk and "account management" in emp_uk, "panel B6: done-for-you line from brief.md")
     rows = re.findall(r"<tr><th scope=\"row\">(.*?)</th>(.*?)</tr>", emp_uk)
-    member_incl = [r for r, cells in rows if cells.count("<td") == 3 and cells.rsplit("<td", 1)[1].startswith(">Included")]
+    member_incl = [r for r, cells in rows if cells.count("<td") == 2 and cells.rsplit("<td", 1)[1].startswith(">Included")]
     check(set(member_incl) == {"Multiple postings at a discounted rate", "Employer self-management system with telephone training"}, f"panel B6: Membership ticks only what brief.md confirms ({member_incl})")
     check('class="cmphint"' in emp_uk and ".cmphint{display:none" in _read(out / "css" / "styles.css"), "panel B6: swipe hint present, hidden on wide screens")
     # 7. tags wrap on narrow screens
