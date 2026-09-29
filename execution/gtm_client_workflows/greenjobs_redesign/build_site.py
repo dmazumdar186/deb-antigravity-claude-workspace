@@ -1284,7 +1284,7 @@ def employers_strip(data: dict[str, Any], root: str, cap: int | None = 12) -> di
 
 
 CLIENT_WALL_TITLE = "Organisations GreenJobs has helped with talent attraction"
-CLIENT_WALL_EAGER = 16  # tiles loaded eagerly so the wall never opens on blank boxes; the rest lazy
+CLIENT_WALL_EAGER = 10_000  # a carousel must be fully pre-loaded (752 KB total): every tile eager, never lazy
 
 
 def client_wall(data: dict[str, Any], root: str) -> dict[str, str]:

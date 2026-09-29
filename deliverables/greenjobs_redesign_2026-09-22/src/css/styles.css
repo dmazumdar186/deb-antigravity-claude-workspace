@@ -376,13 +376,16 @@ textarea.in{min-height:120px;resize:vertical}
 .cwall{display:block;margin-top:4px}
 .cwall .marq{display:block}
 .cwall .marq+.marq{margin-top:12px}
-.cwall .marq__track{display:flex;gap:16px;width:max-content;animation-duration:140s}
+.cwall .marq__track{display:flex;gap:0;width:max-content;animation:marq 160s linear infinite;will-change:transform;backface-visibility:hidden}
+.cwall .marq__track>.emp:first-child{margin-inline-start:0}
+.cwall .marq__track>.marq__dup>.emp:first-child{margin-inline-start:0}
+.cwall .emp img{transition:none}
 .cwall .marq--rev .marq__track{animation-direction:reverse}
 .cwall__ctl{text-align:right;margin-top:8px}
-.cwall .emp{position:relative;display:flex;height:84px;min-width:0;max-width:none;width:168px;flex:none;padding:12px 14px;border-radius:12px;transition:border-color .15s,box-shadow .15s}
+.cwall .emp{position:relative;display:flex;height:84px;min-width:0;max-width:none;width:168px;flex:none;margin-inline-end:16px;padding:12px 14px;border-radius:12px;transition:border-color .15s,box-shadow .15s}
 .cwall .emp:hover,.cwall .emp:focus-visible{border-color:var(--sage);box-shadow:0 2px 12px rgba(0,0,0,.08)}
 .cwall .emp img{height:auto;width:auto;max-width:100%;max-height:56px;object-fit:contain}
-.cwall.is-js .emp:has(>img:not([data-loaded])){visibility:hidden}
+
 .emp span.emp__badge{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font:700 .62rem/1.2 "Nunito",sans-serif;letter-spacing:.02em;text-transform:uppercase;color:#1f2a1f;background:#d4e6d0;border-radius:999px;padding:3px 7px;white-space:nowrap}
 .cwall .emp--live{border-color:var(--sage);padding-bottom:26px}
 .emp span{font-family:"Nunito",sans-serif;font-weight:600;color:var(--ink);font-size:1rem;white-space:nowrap}

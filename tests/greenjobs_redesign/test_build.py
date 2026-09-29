@@ -187,7 +187,7 @@ def test_client_wall(tmp_root: Path):
     check(h.count('href="https://x.ie/for-employers.asp"') == 2 and 'alt="Acme Water"' in h and 'alt="Bee &amp; Co"' in h and h.count("Hiring this week") == 1 and 'emp--live" href' in h and "../assets/logos/clients/a.png" in h,
           "client_wall: every tile links to the live for-employers page, alt = employer name, badge only on the live employer")
     many = _wall_unique(build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": [dict(clients[1], file=f"{i}.png") for i in range(20)]}, "../")["html"])
-    check(many.count('loading="eager"') == build_site.CLIENT_WALL_EAGER and many.count('loading="lazy"') == 20 - build_site.CLIENT_WALL_EAGER, "client_wall: first 16 eager, the rest lazy")
+    check(many.count('loading="eager"') == 20 and many.count('loading="lazy"') == 0, "client_wall: a carousel pre-loads every tile (no lazy images)")
     check(build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": []}, "../")["html"] == "", "client_wall: no clients -> empty html (callers fall back to employers_strip)")
     check(build_site.norm_org("Welsh Government (Llywodraeth Cymru)") == build_site.norm_org("Welsh Government") == "welshgovernment" and build_site.norm_org("The Carbon Trust Ltd") == "carbontrust" and build_site.norm_org("Ofwat") != build_site.norm_org("Ofgem"),
           "norm_org: parentheticals, 'The' and legal suffixes dropped; distinct names stay distinct")
