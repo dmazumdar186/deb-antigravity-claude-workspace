@@ -67,6 +67,15 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   so the nearest posted date wins among figure-matching twins. Roles without a twin keep the scraped euros,
   are flagged `unverified_cur` (2 on the 22 Sept snapshot) and never enter a median, band, guide or dashboard
   figure; the salary guide says so. Displayed figures are never converted; the bracketed equivalent uses 1.17.
+  Human-eye r1 #3 (2026-09-29): `salary_stats(jobs, ed)` is the single computation behind the home band, insights,
+  salary guide, guides index, dashboard and film payload; `test_r1_pages_agree_and_job_ctx` builds both editions
+  and asserts the four pages print the same count/share/bands. `sector_stat()` counts by the same rule.
+- Import normalisation (human-eye r1 #4/#19/#32): `sanitise_html` → `unwrap_bold_lines` (whole-line
+  `<strong>`/`<b>` dropped, inline kept), `bullets_to_lists` ("* ", "- ", "• " lines across `<br>`/`<p>` join one
+  `<ul>`), `collapse_blank_lines` (empty `<p>`, `<br>` runs); `tidy_text` fixes "UK/ Ireland" in title, summary and
+  location. A job with no logo file borrows its employer's, else `logo_img` prints a monogram. Job page header ctx:
+  `closed_chip` (hidden "Closed" chip) and `sal_caveat` (unverified-currency line under the chips); a location
+  chip equal to the loc badge label ("UK") is dropped. Landing intros: ≤60 words, banned-phrase test in r2a.
 - Snapshot data goes stale within a week: the hero carries a snapshot date; re-scrape before resending.
 - wrangler ≥ 4.136 delegates `pages project create` to Workers and fails: `--force` is required.
 - Sticky-footer layout stretches `main` inside a capture window taller than the page; screenshot.sh

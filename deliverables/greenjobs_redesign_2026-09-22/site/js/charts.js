@@ -35,12 +35,14 @@ list.appendChild(d);
 });
 return list;
 }
+function niceStep(max) { var raw = max / 2, p = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
 function columns(bins, opts) {
 opts = opts || {};
 var W = 600, H = 220, pb = 34, pl = 30, n = bins.length, cw = (W - pl) / n, max = Math.max.apply(null, bins.map(function (b) { return b.n; })) || 1;
 var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'list', 'aria-label': opts.label || 'Histogram' });
 var grid = el('g', { class: 'grid' });
-[0.5, 1].forEach(function (f) { var y = H - pb - f * (H - pb - 20); grid.appendChild(el('line', { x1: pl, x2: W, y1: y, y2: y })); grid.appendChild(el('text', { x: pl - 6, y: y + 4, 'text-anchor': 'end', class: 'lbl lbl--m' }, String(Math.round(max * f)))); });
+var step = niceStep(max); max = Math.ceil(max / step) * step;
+for (var tv = step; tv <= max; tv += step) { var y = H - pb - (tv / max) * (H - pb - 20); grid.appendChild(el('line', { x1: pl, x2: W, y1: y, y2: y })); grid.appendChild(el('text', { x: pl - 6, y: y + 4, 'text-anchor': 'end', class: 'lbl lbl--m' }, String(tv))); }
 svg.appendChild(grid);
 bins.forEach(function (b, i) {
 var h = (b.n / max) * (H - pb - 20), x = pl + i * cw + 4, y = H - pb - h;
@@ -61,20 +63,15 @@ rects.forEach(function (r) {
 var it = r.item, g = el('g', { class: 'cell', role: 'listitem', tabindex: '0', 'data-key': it.key, 'aria-label': it.label + ': ' + it.v + (it.v === 1 ? ' role' : ' roles') });
 g.appendChild(el('rect', { x: r.x, y: r.y, width: r.w, height: r.h, fill: it.color }));
 if (r.w >= 90 && r.h > 40) {
-var maxCh = Math.max(4, Math.floor((r.w - 16) / 8.6)), cut = function (l) { return l.length > maxCh ? l.slice(0, maxCh - 1).replace(/[\s&,]+$/, '') + '\u2026' : l; };
+var maxCh = Math.max(4, Math.floor((r.w - 16) / 8.6));
 var dark = it.dark;
 var t = el('text', { x: r.x + 10, y: r.y + 22, fill: dark ? '#f3ece1' : '#2a2521' });
 var words = it.label.split(' '), line = '', lines = [];
 words.forEach(function (w) { if ((line + ' ' + w).length > maxCh && line) { lines.push(line); line = w; } else line = line ? line + ' ' + w : w; });
 lines.push(line);
 var keep = Math.max(1, Math.floor((r.h - 34) / 17));
-lines.slice(0, keep).forEach(function (l, i) { t.appendChild(el('tspan', { x: r.x + 10, dy: i ? 16 : 0 }, cut(i === keep - 1 && lines.length > keep ? l + '\u2026' : l))); });
-g.appendChild(t);
+if (lines.length <= keep && lines.every(function (l) { return l.length <= maxCh; })) { lines.forEach(function (l, i) { t.appendChild(el('tspan', { x: r.x + 10, dy: i ? 16 : 0 }, l)); }); g.appendChild(t); }
 g.appendChild(el('text', { x: r.x + 10, y: r.y + r.h - 10, class: 't2', fill: dark ? '#f3ece1' : '#2a2521' }, it.v + (it.v === 1 ? ' role' : ' roles')));
-}
-else if (r.w >= 44 && r.h >= 24) {
-var mc = Math.max(3, Math.floor((r.w - 12) / 8.6)), short = it.label.split(/[\s&,]+/)[0];
-g.appendChild(el('text', { x: r.x + 6, y: r.y + 17, class: 't2', fill: it.dark ? '#f3ece1' : '#2a2521' }, (short.length > mc ? short.slice(0, mc - 1) + '\u2026' : short) + (r.w >= 70 ? ' ' + it.v : '')));
 }
 tipOn(g, '<b>' + G.esc(it.label) + '</b><span>' + it.v + (it.v === 1 ? ' role' : ' roles') + '</span>');
 var act = function (e) { e.preventDefault(); if (opts.onPick) opts.onPick(it); };

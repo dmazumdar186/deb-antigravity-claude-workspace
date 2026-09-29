@@ -357,7 +357,7 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check("data-film-steps" not in clean, "home: the film rail is gone (compact insight band since 2026-09-28)")
     for t, lvl in (("Graduate Ecologist", "Graduate/Early career"), ("Senior Hydrogeologist", "Senior/Principal"), ("Associate Director, Planning", "Director/Associate"), ("Wind Turbine Technician", "Mid-level")):
         check(build_site.level_of(t) == lvl, f"level_of: {t!r} -> {lvl}")
-    check(build_site.sector_stat([{"sal_min": None, "sal_max": None}, {"sal_min": 30000, "sal_max": None, "period": "year"}], "€") == "1 disclosed salary", "sector_stat: counts disclosures under three")
+    check(build_site.sector_stat([{"sal_min": None, "sal_max": None}, {"sal_min": 30000, "sal_max": None, "period": "year", "cur": "EUR"}], "€") == "1 disclosed salary", "sector_stat: counts disclosures under three")
     uk_home = (out / "uk" / "index.html").read_text(encoding="utf-8")
     check('data-lvl="' in uk_home and 'data-n="' in uk_home, "home: UK map regions carry data-n/data-lvl at build time (IE home has no map band since 2026-09-28)")
     # The IE home now carries the client wall, so the live-role strip is injected whole (the rule still guards it).
@@ -1101,7 +1101,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     # Re-worded in round 2 B (visual 8 / R044): visitor voice, no "connects at launch" copy.
     for label, page_html, needle in (("home alerts", home, "Meanwhile, browse all roles"), ("subscribe dialog", home, "data-subscribe"), ("employers", emp_uk, "Preview only. Rates and posting are handled by the GreenJobs team")):
         pre = page_html.find('data-demo-pre'); btn = page_html.find('type="submit"', pre)
-        check(0 <= pre < btn and "Job alerts by email are available on" in home and needle in page_html, f"panel B5: {label} form shows the where-to-sign-up note before the button (round 4: points at the live site, no 'opens at launch')")
+        check(0 <= pre < btn and "Job alerts are available today on" in home and needle in page_html, f"panel B5: {label} form shows the where-to-sign-up note before the button (round 4: points at the live site, no 'opens at launch')")
     check(home.count("Meanwhile, browse all roles") >= 2, "panel B5: alert and subscribe forms carry the browse-all fallback link")
     # 6. employers page copy
     emp_ie = _read(out / "ie" / "employers" / "index.html")
@@ -1128,7 +1128,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     # 10. dashboard + event layer
     dash = _read(out / "ie" / "dashboard" / "index.html")
     check(("Measures to come" in dash or "Event spec for launch" in dash) and "Measured after launch" not in dash, "panel B10: post-launch group renamed ('Measures to come' since round 4)")
-    for tile in ("Apply clicks per employer", "Zero-result searches", "Alert match rate (weekly)", "Advertised window (median days)"):
+    for tile in ("Apply clicks per employer", "Zero-result searches", "Alert match rate (weekly)", "Advertised window, days"):
         check(tile in dash, f"panel B10: tile '{tile}' present")
     check("Median days to close" not in dash and 'kpi__l">Sessions<' not in dash and 'kpi__l">Uptime<' not in dash and "dash__foot" in dash, "panel B10: sessions/uniques demoted to context, uptime/CWV to the footer strip")
     check("recruitment word" in dash and "known agency" in dash, "panel B10: agency tile describes the real rule")
@@ -1256,7 +1256,8 @@ def test_r2a_landing_intro_length():
             intro = html.unescape(build_site.landing_intro(spec, jobs, build_site.EDITIONS[ed_key], data))
             words = len(intro.split())
             med = build_site.median_salary(jobs, build_site.EDITIONS[ed_key]["sym"], build_site.EDITIONS[ed_key]["currency"])
-            check(words <= 80 and f"lists {len(jobs)} live" in intro and (med == "n/a" or med in intro), f"r2a: {ed_key}/{spec['slug']} intro is {words} words (<= 80) and keeps the count and median")
+            banned = [w for w in ("in EUR", "in GBP", "led by", "rebuilt", "live board", "snapshot", "dataset") if w in intro]
+            check(words <= 60 and not banned and f"lists {len(jobs)} live" in intro and (med == "n/a" or med in intro), f"r2a/r1 #25: {ed_key}/{spec['slug']} intro is {words} words (<= 60), plain language ({banned} absent) and keeps the count and median")
 
 
 def test_r2a_regions_and_pairs():
@@ -1349,7 +1350,7 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     # 8: one voice, no team-facing copy in visitor dialogs; no fake success anywhere
     for bad in ("analytics provider is chosen", "connects to your email provider", "connects to the GreenJobs team", "Nothing was sent", "Sign-ups open at launch", "Posting opens at launch"):
         check(bad not in home and bad not in emp, f"r2b visual 8: '{bad}' is gone from visitor-facing copy")
-    check("Off. Not used on this site." in home and home.count("Job alerts by email are available on") >= 2, "r2b visual 8: cookie analytics row and alert forms use the visitor sentences (alerts point at the live site since round 4)")
+    check("reported once analytics is connected" in home and "ck-marketing" not in home and home.count("Job alerts are available today on") >= 2, "r2b visual 8 / r1a 24+23: cookie settings show Essential + Analytics only, alert forms use the one-line visitor sentence")
     check(emp.count("Preview only. Rates and posting are handled by the GreenJobs team") == 2 and "Thank you" not in emp, "r2b R044: the Post-a-job preview keeps one quiet line (pre-submit + post-submit variants), no fake success")
     # 18: hero keeps search + Post a job only
     hero = home.split('class="hero"')[1].split('class="hero__alerts"')[0]
@@ -1464,7 +1465,7 @@ def test_r4_unverified_excluded_from_figures():
     body1 = build_site.guide_salary_body({"jobs": jobs[:2], "sectors": [{"name": "Wind energy", "n": 2}], "fetched": "2026-09-22", "ed": "ie"}, build_site.EDITIONS["ie"])
     check(body1["fx_note"].endswith("1 UK-located role with unconfirmed currency is excluded from medians."), "r4 unverified: singular form")
     k = build_site.dashboard_kpis({"jobs": [{**j, "posted": "2026-09-20", "closing": "", "logo": "", "text": "", "employer": "E", "agency": False, "workplace": "office"} for j in jobs], "sectors": [], "regions": [], "fetched": "2026-09-22", "today": "2026-09-22", "ed": "ie"})
-    check(k["sal_median"] == 45000 and k["sal_n"] == 3, "r4 unverified: dashboard median skips unverified roles while the disclosure count still counts them")
+    check(k["sal_median"] == 45000 and k["sal_n"] == 1, "r4/r1 #3 unverified: dashboard median and disclosure count both skip unverified roles (one rule with the guide)")
 
 
 def test_r4_real_build_marker_hero_notes(tmp_root: Path):
@@ -1602,7 +1603,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     check('content:"Certified B Corp"' not in css and ".hdr__bcorp::after" not in css, "r4b A: header shows the B Corp mark only (no CSS text label)")
     # B. visitor voice
     check("when the new site launches" not in home and "when the new site launches" not in uk_home, "r4b B: no 'when the new site launches' build note anywhere on home")
-    check(home.count("Job alerts by email are available on greenjobs.ie today") == 2 and 'href="https://www.greenjobs.ie/newsletter-signup.asp"' in home, "r4b B: IE alert + subscribe forms point at the live newsletter sign-up")
+    check(home.count("Job alerts are available today on <a") == 2 and 'href="https://www.greenjobs.ie/newsletter-signup.asp"' in home, "r4b B: IE alert + subscribe forms point at the live newsletter sign-up")
     check("/newsletter-signup.asp" in uk_home and "when the new site launches" not in uk_home, "r4b B: UK forms point at the live newsletter sign-up (domain follows the edition)")
     for f in (home.split('data-demo-form')[1], home.split('data-demo-form')[2]):
         check(f.find("data-demo-pre") < f.find('type="submit"') and "Your address has not been stored." in f, "r4b B: sign-up note sits above the button; post-submit line keeps 'not been stored'")
@@ -1614,7 +1615,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     check("advertised in" in main_js and 'class="tag__cur"' in main_js and "(?:paid|advertised) in" in main_js, "r4b C: server-rendered chips post-processed the same way (accepts lib.js's old or new label)")
     check(".tag__cur{" in css and "margin-top:calc(.6em - 4px)" in css.split(".tag i{")[1].split("}")[0], "r4b C: glyph slot styled; sector dot centred on the first text line")
     # D. map side list: one line per chip, no wrap inside a chip, lesser chips hidden at <=600 and 1024-1199
-    check(".mapview__list .row__meta .tag{white-space:nowrap" in css and ".mapview__list .tag__t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" in css and "(max-width:600px),(min-width:1024px) and (max-width:1199px){.mapview__list .row__meta{flex-wrap:wrap}" in css, "r4b D: map side list chips never wrap inside themselves; only location + sector at narrow widths")
+    check(".mapview__list .row__meta>.tag--loc" in css and "white-space:nowrap" in css.split(".mapview__list .row__meta>.tag--loc")[1].split("}")[0] and ".mapview__list .row__meta>.tag--sec{" in css and "white-space:normal" in css.split(".mapview__list .row__meta>.tag--sec{")[1].split("}")[0], "r4b D / r1 #2: map side list keeps the location badge on one line and lets the single sector chip wrap its text")
     # E. placeholder + insight contrast
     check('placeholder="e.g. Hydrogeologist"' in emp and "Senior Hydrogeologist" not in emp.split('id="p-title"')[1][:120], "r4b E: Post a job title placeholder fits the 1024 input")
     check("color:var(--accent-ink)" in css.split(".insight__n{")[1].split("}")[0] and '[data-theme="dark"] .insight__n{color:var(--accent)}' in css, "r4b E: insight numerals use the ink green in light theme, lime in dark")
@@ -1636,5 +1637,68 @@ def test_round4_b_copy_css_js(tmp_root: Path):
 
 
 # The runner guard stays last so every appended block above is defined before main() collects test_* functions.
+def test_r1_import_normalisation():
+    """Human-eye r1 #4/#19/#32: bullet lines become lists, whole-line bold is unwrapped, blank runs collapse, 'UK/ Ireland' is tidied."""
+    out = build_site.sanitise_html("<p>You will:</p><p> * Plan.<br> * Write reports.</p><p>* Attend meetings</p><p>Tail</p>", "https://x/")
+    check(out == "<p>You will:</p><ul><li>Plan.</li><li>Write reports.</li><li>Attend meetings</li></ul><p>Tail</p>", f"r1 #4: '* ' lines across <br> and <p> become one <ul> ({out})")
+    out = build_site.sanitise_html("<p>- one</p><p>• two</p><p>a - b</p>", "https://x/")
+    check(out == "<ul><li>one</li><li>two</li></ul><p>a - b</p>", f"r1 #4: '- ' and '• ' bullets; a dash inside a line is left alone ({out})")
+    out = build_site.sanitise_html("<div> <p><strong>Greenspaces Manager</strong></p><p><b>Permanent</b></p><p>Body with <strong>one</strong> bold word</p><p>&nbsp;</p><p><br></p><p>x<br><br><br><br>y</p></div>", "https://x/")
+    check("<strong>Greenspaces" not in out and "<b>" not in out and "<strong>one</strong>" in out, f"r1 #32: whole-line bold unwrapped, inline bold kept ({out})")
+    check("<p>&nbsp;</p>" not in out and "<p><br></p>" not in out and "<br><br><br>" not in out and out.count("<p>") == 4, f"r1 #32: empty paragraphs and >2 <br> collapse ({out})")
+    check(build_site.tidy_text("Ecologist UK/ Ireland  (Remote)") == "Ecologist UK/Ireland (Remote)" and build_site.tidy_text("Cork / Dublin") == "Cork / Dublin", "r1 #19: 'UK/ Ireland' -> 'UK/Ireland'; a spaced slash is left as written")
+    raw = {"fetched": "2026-09-22", "jobs": [{"id": "1", "title": "Ecologist UK/ Ireland", "url": "https://www.greenjobs.ie/j/1", "employer": "A", "location": "UK/ Ireland", "salary_text": "", "description_html": "<p>x</p>", "posted": "20/09/2026", "closing": ""}]}
+    data = build_site.normalise(raw, "ie", SRC, SRC / "assets" / "logos")
+    check(data["jobs"][0]["title"] == "Ecologist UK/Ireland" and data["jobs"][0]["location"] == "UK/Ireland", "r1 #19: normalise() applies the tidy to title and location")
+
+
+def test_r1_salary_stats_one_rule():
+    """Human-eye r1 #3: home band, insights, salary guide and dashboard read one salary_stats(); unverified roles are excluded everywhere."""
+    ed = build_site.EDITIONS["ie"]
+    base = {"sal_min": 40000, "sal_max": 50000, "cur": "EUR", "period": "year", "sectors": ["Wind energy"], "title": "A", "employer": "E", "posted": "2026-09-20", "closing": "", "logo": "", "text": "", "agency": False, "workplace": "office"}
+    jobs = [base, {**base, "sal_min": 60000, "sal_max": 70000, "title": "B"}, {**base, "sal_min": 90000, "sal_max": 90000, "unverified_cur": True, "title": "C"}, {**base, "sal_min": None, "sal_max": None, "cur": None, "title": "D"}]
+    st = build_site.salary_stats(jobs, ed)
+    guide = build_site.guide_salary_body({"jobs": jobs, "sectors": [{"name": "Wind energy", "n": 4}], "fetched": "2026-09-22", "ed": "ie"}, ed)
+    k = build_site.dashboard_kpis({"jobs": jobs, "sectors": [], "regions": [], "fetched": "2026-09-22", "today": "2026-09-22", "ed": "ie"})
+    check(st["n_disc"] == 2 and st["disc_pct"] == 50 and st["median"] == "€55k" and sum(b["n"] for b in st["bands"]) == 2, f"r1 #3: salary_stats counts 2 of 4 (unverified and undisclosed excluded) ({st['n_disc']}, {st['disc_pct']}%, {st['median']})")
+    check(guide["n_disc"] == "2" and guide["disc_pct"] == "50" and guide["median"] == "€55k" and k["sal_n"] == 2 and k["sal_pct"] == 50 and k["sal_median"] == 55000, "r1 #3: guide and dashboard agree with salary_stats on count, share and median")
+    check(build_site.sector_stat(jobs, "€") == "2 disclosed salaries", "r1 #3: sector tiles use the same disclosed rule")
+
+
+def test_r1_pages_agree_and_job_ctx(tmp_root: Path):
+    """Human-eye r1 #3/#4/#32 on the real IE data: the four pages print one disclosed count, share and bands; the unverified job page carries the caveat, hidden Closed chip, a logo or monogram and no duplicate chip."""
+    if not (SRC / "data" / "ie.json").exists():
+        skip("r1 pages: real dataset absent")
+        return
+    out = tmp_root / "site_r1"
+    check(build_site.build(SRC, out, editions=["ie", "uk"]) == 0, "r1: build returns 0")
+    ed = build_site.EDITIONS["ie"]
+    data = build_site.normalise(json.loads((SRC / "data" / "ie.json").read_text(encoding="utf-8")), "ie", SRC, SRC / "assets" / "logos")
+    st = build_site.salary_stats(data["jobs"], ed)
+    home = _read(out / "ie" / "index.html")
+    ins = _read(out / "ie" / "insights" / "index.html")
+    guide = _read(out / "ie" / "guides" / "salary-guide" / "index.html")
+    dash = json.loads(_read(out / "ie" / "dashboard" / "index.html").split('id="gj-dash">')[1].split("</script>")[0])
+    check(f'data-count="{st["n_disc"]}"' in home and f"({st['disc_pct']}%)" in home, f"r1 #3: home band shows {st['n_disc']} disclosed ({st['disc_pct']}%)")
+    check(f'data-s-cnt>{st["n_disc"]}<' in ins and f'data-s-disc>{st["disc_pct"]}%' in ins, f"r1 #3: insights keyline shows {st['n_disc']} / {st['disc_pct']}%")
+    check(f'<strong class="num">{st["n_disc"]}</strong> disclosed' in guide and f'<strong class="num">{st["disc_pct"]}%</strong>' in guide, f"r1 #3: salary guide shows {st['n_disc']} / {st['disc_pct']}%")
+    check(dash["sal_n"] == st["n_disc"] and dash["sal_pct"] == st["disc_pct"], f"r1 #3: dashboard KPI shows {st['n_disc']} / {st['disc_pct']}%")
+    rows = re.findall(r'<th scope="row">€[^<]*</th><td class="num">(\d+)</td>', guide)
+    check([int(x) for x in rows] == [b["n"] for b in st["bands"]], f"r1 #3: guide band counts {rows} equal salary_stats bands")
+    unv = [j for j in data["jobs"] if build_site.is_unverified(j) and build_site.salary_label(j, ed["currency"])]
+    check(bool(unv), f"r1 #4: the IE snapshot carries {len(unv)} unverified-currency role(s) with a salary")
+    for j in unv:
+        page = _read(out / "ie" / "jobs" / j["href"])
+        after_meta = page.split('class="job__meta"', 1)[1].split("</div>", 1)[1][:400]
+        check(after_meta.lstrip().startswith('<p class="job__sal-caveat') and build_site.UNVERIFIED_NOTE in after_meta, f"r1 #4: {j['id']} header carries the salary caveat directly under the chips")
+        check('data-closed-chip hidden>Closed</span>' in page, f"r1 #4: {j['id']} carries the Closed chip, hidden until the closing date passes")
+    for j in data["jobs"]:
+        page = _read(out / "ie" / "jobs" / j["href"])
+        head = page.split('class="job__meta"')[0]
+        check('class="job__logo' in head, f"r1 #32: {j['id']} shows a logo or monogram")
+        chips = re.findall(r'<span class="tag(?: tag--loc)?"[^>]*>([^<]*)</span>', page.split('class="job__meta"')[1].split("</div>")[0])
+        check(len(chips) == len({c.strip().lower() for c in chips}), f"r1 #32: {j['id']} has no duplicate chip ({chips})")
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -317,9 +317,77 @@ def sanitise_html(markup: str, base_url: str) -> str:
         return f"<{tag}{keep}>"
 
     out = re.sub(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^>]*)?)\s*/?>", clean_tag, out)
-    out = re.sub(r"(\s*<br>\s*){3,}", "<br><br>", out)
-    out = re.sub(r"<p>\s*</p>", "", out)
-    return re.sub(r"[ \t]+", " ", out).strip()
+    out = re.sub(r"[ \t]+", " ", out)
+    out = unwrap_bold_lines(out)
+    out = bullets_to_lists(out)
+    return collapse_blank_lines(out).strip()
+
+
+_BULLET_LINE = re.compile(r"^\s*(?:[*\u2022\u00b7\u25aa\u2013-]|&bull;|&#8226;)\s+(.*\S)\s*$", re.S)
+_LINE_SEPS = {"<p>", "</p>", "<br>", "<div>", "</div>"}
+
+
+def bullets_to_lists(markup: str) -> str:
+    """Lines that start with '* ', '• ' or '- ' (employers paste plain-text
+    bullets, human-eye r1 #4/#9) become a real <ul>; consecutive bullet lines
+    join one list whether they are separated by <br> or by their own <p>."""
+    tokens = re.split(r"(</?p>|<br>|</?div>)", markup or "")
+    out: list[str] = []
+    items: list[str] = []
+    held: list[str] = []
+
+    def flush() -> None:
+        if not items:
+            return
+        if out and out[-1] == "<p>":
+            out.pop()  # the list replaces the paragraph that held the bullets
+            if held and held[0] == "</p>":
+                held.pop(0)
+        out.append("<ul>" + "".join(f"<li>{i}</li>" for i in items) + "</ul>")
+        items.clear()
+
+    for t in tokens:
+        if t in _LINE_SEPS:
+            (held if items else out).append(t)
+            continue
+        m = _BULLET_LINE.match(t)
+        if m:
+            items.append(m.group(1).strip())
+            held.clear()  # separators between two bullet lines are dropped
+            continue
+        if not t.strip() and items:
+            continue
+        flush()
+        out.extend(held)
+        held.clear()
+        out.append(t)
+    flush()
+    out.extend(held)
+    return "".join(out)
+
+
+def unwrap_bold_lines(markup: str) -> str:
+    """<strong>/<b> wrapping a whole line (every line of some adverts arrives
+    bold, human-eye r1 #32) is dropped; emphasis inside a line stays."""
+    line = r"(?<=<p>)|(?<=<br>)|(?<=<li>)|^"
+    return re.sub(rf"(?:{line})\s*<(strong|b)>((?:(?!</?(?:strong|b)>).)*?)</\1>\s*(?=<br>|</p>|</li>|$)", r"\2", markup or "", flags=re.S)
+
+
+def collapse_blank_lines(markup: str) -> str:
+    """No empty paragraphs, no run of more than two <br>, no blank line
+    between paragraphs (human-eye r1 #32)."""
+    out = re.sub(r"<p>(?:\s|&nbsp;|&#160;|<br>)*</p>", "", markup or "")
+    out = re.sub(r"(<p>)(?:\s*<br>)+\s*", r"\1", out)
+    out = re.sub(r"\s*(?:<br>\s*)+(</p>)", r"\1", out)
+    out = re.sub(r"(</p>|</ul>|</ol>|</h3>)(?:\s*<br>)+\s*", r"\1", out)
+    return re.sub(r"(\s*<br>\s*){3,}", "<br><br>", out)
+
+
+def tidy_text(text: str) -> str:
+    """Import normalisation of a title or place: 'UK/ Ireland' -> 'UK/Ireland'
+    (human-eye r1 #19), one space between words."""
+    text = re.sub(r"(\w)/\s+(\w)", r"\1/\2", str(text or ""))
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def image_size(path: Path) -> tuple[int, int]:
@@ -781,8 +849,9 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
         if jid in seen_ids or not j.get("title") or not str(j.get("url") or "").startswith(("http://", "https://")):
             continue
         seen_ids.add(jid)
-        j = {**j, "description_html": repair_pounds(str(j.get("description_html") or "")), "summary": repair_pounds(str(j.get("summary") or "")),
-             "salary_text": repair_pounds(str(j.get("salary_text") or "")), "title": repair_pounds(str(j.get("title") or ""))}
+        j = {**j, "description_html": repair_pounds(str(j.get("description_html") or "")), "summary": tidy_text(repair_pounds(str(j.get("summary") or ""))),
+             "salary_text": repair_pounds(str(j.get("salary_text") or "")), "title": tidy_text(repair_pounds(str(j.get("title") or ""))),
+             "location": tidy_text(j.get("location") or "")}
         closing = parse_date(j.get("closing"))
         if is_closed({"closing": closing}, today):
             closed.append({"id": jid, "title": str(j["title"]).strip(), "closing": closing})
@@ -853,6 +922,13 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
             if cand and (logos_dir / cand).is_file():
                 rec.update(logo=cand)
                 rec["lw"], rec["lh"] = image_size(logos_dir / cand)
+    # A job whose own logo file never downloaded borrows its employer's logo
+    # (another advert or the manifest); without one the page shows a monogram
+    # (human-eye r1 #32).
+    for j in jobs_out:
+        rec = employers.get(j["employer"])
+        if not j["logo"] and rec and rec["logo"]:
+            j.update(logo=rec["logo"], lw=rec["lw"], lh=rec["lh"])
     return {
         "ed": ed_key, "site": str(raw.get("site") or ed["domain"]), "fetched": str(raw.get("fetched") or today.isoformat())[:10], "today": today.isoformat(),
         "jobs": jobs_out, "sectors": sectors, "regions": regions, "types": types,
@@ -1214,8 +1290,8 @@ def home_row(j: dict[str, Any], root: str, jobs_dir: str, today: date, ed_cur: s
 def sector_stat(in_sector: list[dict[str, Any]], sym: str) -> str:
     """One real figure per sector tile: the median disclosed salary when at
     least three roles disclose one, otherwise how many disclose pay."""
-    disclosed = sum(1 for j in in_sector if j["sal_min"] is not None or j["sal_max"] is not None)
     ed_cur = {"€": "EUR", "£": "GBP"}.get(sym, "")
+    disclosed = sum(1 for j in in_sector if annual_mid(j, ed_cur))  # same rule as salary_stats()
     med = median_salary(in_sector, sym, ed_cur) if disclosed >= 3 else "n/a"
     if med != "n/a":
         return f"median disclosed {med}"
@@ -1712,6 +1788,19 @@ def salary_bands(jobs: list[dict[str, Any]], sym: str, ed_cur: str = "") -> list
     return [{"l": b["l"], "n": b["n"]} for b in bands]
 
 
+def salary_stats(jobs: list[dict[str, Any]], ed: dict[str, Any]) -> dict[str, Any]:
+    """The one salary computation every page shares (human-eye r1 #3). A role
+    is "disclosed" only when annual_mid() accepts its figure, so unverified
+    currency, a non-comparable currency and junk amounts are excluded from the
+    count, the share, the median and the bands alike: home band, insights,
+    salary guide, guides index, dashboard and the for-keith table all read
+    this. lib.js annual() applies the same rule client-side."""
+    cur, sym = ed["currency"], ed["sym"]
+    disclosed = [j for j in jobs if annual_mid(j, cur)]
+    return {"n_jobs": len(jobs), "n_disc": len(disclosed), "disc_pct": round(100 * len(disclosed) / max(1, len(jobs))),
+            "median": median_salary(jobs, sym, cur), "bands": salary_bands(jobs, sym, cur), "disclosed": disclosed}
+
+
 def film_payload(data: dict[str, Any], src: Path) -> dict[str, Any]:
     ed = EDITIONS[data["ed"]]
     geo = sample_map_points((src / "assets" / "maps" / f"{data['ed']}.svg").read_text(encoding="utf-8"))
@@ -1719,10 +1808,10 @@ def film_payload(data: dict[str, Any], src: Path) -> dict[str, Any]:
     for r in geo["regions"]:
         r["c"] = counts.get(r["n"], 0)
     jobs = data["jobs"]
-    n_sal = sum(1 for j in jobs if annual_mid(j, ed["currency"]))
+    st = salary_stats(jobs, ed)  # one rule with the home band, insights and the guide (human-eye r1 #3)
     return {
         "vb": geo["vb"], "regions": geo["regions"], "pts": geo["pts"],
-        "bands": salary_bands(jobs, ed["sym"], ed["currency"]), "n_sal": n_sal, "n_jobs": len(jobs), "sym": ed["sym"],
+        "bands": st["bands"], "n_sal": st["n_disc"], "n_jobs": len(jobs), "sym": ed["sym"],
         "sectors": [{"n": s["name"], "c": s["n"], "col": s["color"]} for s in data["sectors"] if s["n"] > 0][:8],
     }
 
@@ -1843,7 +1932,8 @@ def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
 
     new7 = sum(1 for j in jobs if new_this_week(j, asof))  # 0..6 days, shared rule
     closing7 = sum(1 for j in jobs if closing_within(j, asof, 7))  # 0..7 days, shared rule
-    sal_n = sum(1 for j in jobs if j["sal_min"] is not None or j["sal_max"] is not None)
+    stats = salary_stats(jobs, EDITIONS.get(data.get("ed") or "", {"currency": ed_cur, "sym": ""}))
+    sal_n = stats["n_disc"]  # one rule with the home band, insights and the guide (human-eye r1 #3)
     med = _median_int([a[2] for j in jobs if (a := annual_mid(j, ed_cur))])
     emp: dict[str, int] = {}
     for j in jobs:
@@ -1906,7 +1996,7 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
         ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints, converted into {sym} at the fixed rate where a role is advertised in the other currency: {med}.', ""),
         ("Top employer share", f'{k["top_share"]}%', f'{esc(k["top_employer"])} holds this share of live roles across {k["employers"]} employers.' + (" Most roles come from one employer." if flag else ""), ""),
         ("Agency share", f'{k["agency_pct"]}%', f"Roles posted by recruitment agencies rather than the employer directly. Flagged when the employer is a known agency ({esc(agency_names)}) or its name contains a recruitment word ({esc(agency_words)}); the same flag drives the board's \"Advertised by\" filter.", ""),
-        ("Advertised window (median days)", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
+        ("Advertised window, days", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
         ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose workplace field is remote or hybrid; the field is set from the full listing text by the same rule as the board's Workplace filter.", ""),
     ]
     tile_html = "".join(
@@ -2072,11 +2162,12 @@ def landing_search_href(spec: dict[str, Any], jobs_href: str = "../jobs/index.ht
 
 
 def landing_intro(spec: dict[str, Any], jobs: list[dict[str, Any]], ed: dict[str, Any], data: dict[str, Any]) -> str:
-    """At most 80 words (visual sweep, 2026-09-28), every figure from the live data."""
+    """Plain language, at most 60 words (human-eye r1 #25), every figure from
+    the live data; no build talk ("rebuilt", "in EUR", "led by")."""
     n = len(jobs)
     n_emp = len({j["employer"] for j in jobs})
-    disclosed = [j for j in jobs if annual_mid(j, ed["currency"])]
-    med = median_salary(jobs, ed["sym"], ed["currency"])
+    stats = salary_stats(jobs, ed)
+    disclosed, med = stats["disclosed"], stats["median"]
     top = [name for name, _ in Counter(j["employer"] for j in jobs).most_common(2)]
     regions = Counter(r for j in jobs for r in j["regions"] if r in data["region_table"]["regions"])
     place = spec.get("region") or ed["name"]
@@ -2087,14 +2178,15 @@ def landing_intro(spec: dict[str, Any], jobs: list[dict[str, Any]], ed: dict[str
     p1 = (f"GreenJobs {ed['short']} lists {n} live {spec['topic']} {roles} in {place} this week{emp_phrase}"
           f"{(' including ' if emp_phrase else ' from ') + ' and '.join(top) if top else ''}. ")
     if disclosed:
-        p1 += f"{len(disclosed)} of the {n} publish a salary; the median disclosed salary is {med} a year in {ed['currency']}. "
+        p1 += f"{len(disclosed)} of them publish a salary; the median is {med} a year. "
     else:
         p1 += "None of them publishes a salary yet. "
     if spec["kind"] == "sector" and regions:
-        p1 += f"Roles span {len(regions)} {plural(unit) if len(regions) != 1 else unit}, led by {', '.join(r for r, _ in regions.most_common(2))}. "
+        top_r = [r for r, _ in regions.most_common(2)]
+        p1 += f"Most are in {' and '.join(top_r)}. " if len(regions) > 1 else f"All are in {top_r[0]}. "
     elif spec["kind"] != "sector" and sectors:
-        p1 += "Sectors: " + ", ".join(s for s, _ in sectors.most_common(3)) + ". "
-    p1 += f"Each listing links to the advert on {data['site']}; salaries stay in the currency advertised and the list is rebuilt from the live board on every update."
+        p1 += "Mainly " + ", ".join(s.lower() for s, _ in sectors.most_common(3)) + ". "
+    p1 += f"Every listing links to the original advert on {data['site']}."
     return esc(p1)
 
 
@@ -2126,8 +2218,8 @@ def guide_salary_body(data: dict[str, Any], ed: dict[str, Any]) -> dict[str, str
     """Bands, medians by sector, disclosure rate: the salary guide (G3)."""
     jobs = data["jobs"]
     cur = ed["currency"]
-    disclosed = [j for j in jobs if annual_mid(j, cur)]
-    bands = salary_bands(jobs, ed["sym"], cur)
+    stats = salary_stats(jobs, ed)
+    disclosed, bands = stats["disclosed"], stats["bands"]
     band_rows = "".join(f'<tr><th scope="row">{esc(ed["sym"])}{esc(b["l"])}</th><td class="num">{b["n"]}</td></tr>' for b in bands)
     sec_rows = []
     for s in data["sectors"]:
@@ -2143,8 +2235,8 @@ def guide_salary_body(data: dict[str, Any], ed: dict[str, Any]) -> dict[str, str
     unverified = sum(1 for j in jobs if is_unverified(j) and (j.get("sal_min") is not None or j.get("sal_max") is not None))
     unv_note = f" {unverified} UK-located role{'' if unverified == 1 else 's'} with unconfirmed currency {'is' if unverified == 1 else 'are'} excluded from medians." if unverified else ""
     return {
-        "n_jobs": str(len(jobs)), "n_disc": str(len(disclosed)), "disc_pct": str(round(100 * len(disclosed) / max(1, len(jobs)))),
-        "median": esc(median_salary(jobs, ed["sym"], cur)), "cur": cur, "sym": ed["sym"], "band_rows": band_rows, "sector_rows": sec_html,
+        "n_jobs": str(len(jobs)), "n_disc": str(stats["n_disc"]), "disc_pct": str(stats["disc_pct"]),
+        "median": esc(stats["median"]), "cur": cur, "sym": ed["sym"], "band_rows": band_rows, "sector_rows": sec_html,
         "updated": esc(snapshot_label(data["fetched"]).replace("Snapshot of ", "")), "country": esc(ed["name"]),
         "fx_note": (f"{foreign} of the disclosed salaries {'is' if foreign == 1 else 'are'} advertised in another currency; for the figures on this page they are converted at a fixed rate of 1 GBP = {FX_GBP_EUR} EUR. On role cards and job pages every salary stays in the currency the employer advertised."
                     if foreign else f"Every disclosed salary on this board is advertised in {cur}, so no conversion was needed.") + unv_note,
@@ -2160,7 +2252,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     edir.mkdir(parents=True, exist_ok=True)
     jobs = data["jobs"]
     n_emp = len({j["employer"] for j in jobs})
-    n_sal = sum(1 for j in jobs if j["sal_min"] is not None or j["sal_max"] is not None)
+    sal_st = salary_stats(jobs, ed)  # shared rule: home band, insights, guide, dashboard (human-eye r1 #3)
+    n_sal = sal_st["n_disc"]
     top_regions = [r for r in data["regions"] if r["on_map"]]
     colors = json_embed([s["color"] for s in data["sectors"][:5]])
 
@@ -2217,7 +2310,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
                     "snapshot_short": esc(snapshot_label(data["fetched"]).replace("Snapshot of", "snapshot of")),
                     "emp_heading": "Employer proposition" if ed_key == "ie" else "Employers and advertising",
                     "alert_title": "Email alerts: the week's green roles, in your inbox" if ed_key == "ie" else "Job alerts: the week's green roles, in your inbox",
-                    "n_disc": str(n_sal), "disc_pct": str(round(100 * n_sal / max(1, len(jobs)))), "median": esc(median_salary(jobs, ed["sym"], ed["currency"])),
+                    "n_disc": str(n_sal), "disc_pct": str(sal_st["disc_pct"]), "median": esc(sal_st["median"]),
                     "inside_net": "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}<span class="arw" aria-hidden="true">↗</span></a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http")),
                     "n_regions": str(n_regions_live), "employers": strip["html"], "emp_title": strip["title"], "emp_sub": strip["sub"], "snapshot": esc(snapshot_label(data["fetched"])), "facts": facts_block(brief, data),
                     "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"]),
@@ -2256,7 +2349,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         similar = similar_jobs(j, jobs, ed["currency"], 4)
         sal = salary_label(j, ed["currency"])
         note = currency_note(j, ed["currency"])
-        meta_tags = ("".join(f'<span class="tag">{esc(x)}</span>' for x in [j["location"], j["type"]] if x) + loc_badge(j)
+        loc_dup = j["location"].strip().lower() == LOC_LABEL.get(j["loc_class"], "").lower()  # "UK" + UK badge: one chip (r1 #32)
+        meta_tags = ("".join(f'<span class="tag">{esc(x)}</span>' for x in [("" if loc_dup else j["location"]), j["type"]] if x) + loc_badge(j)
                      + (f'<span class="tag tag--sal">{esc(sal)}</span>' if sal else "")
                      + (f'<span class="tag tag--wp">{esc(WORKPLACE_LABEL[j["workplace"]])}</span>' if j["workplace"] != "unspecified" else ""))
         dl = ""
@@ -2269,9 +2363,14 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
             if v:
                 dl += f"<dt>{k}</dt><dd>{esc(v)}</dd>"
         body_html = j["description_html"] or f"<p>{esc(j['summary'])}</p>"
+        # human-eye r1 #4: the unverified-currency caveat sits under the salary chip
+        # in the header ({{sal_caveat}}); {{closed_chip}} is a "Closed" chip main.js
+        # un-hides once the closing date has passed (closed roles never build).
+        sal_caveat = (f'<p class="job__sal-caveat muted" data-sal-caveat>{esc(UNVERIFIED_NOTE)}.</p>' if sal and is_unverified(j) else "")
+        closed_chip = f'<span class="tag tag--closed" data-closed-chip{"" if is_closed(j, today) else " hidden"}>Closed</span>'
         jp = page("job", 3, "jobs", f"{j['title']} — {j['employer']} | GreenJobs {ed['short']}", (j["summary"] or j["title"])[:155],
                   {
-                      "jsonld": job_jsonld(j, data), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo") if j["logo"] else "",
+                      "jsonld": job_jsonld(j, data), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo"), "sal_caveat": sal_caveat, "closed_chip": closed_chip,
                       "meta": meta_tags, "dl": dl, "desc_html": body_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
                       "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar) or '<p class="muted">No similar live roles this week.</p>',
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
@@ -2314,7 +2413,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     write("insights/index.html", page("insights", 2, "insights", f"Green salary explorer — what {ed['name']}'s green roles pay | GreenJobs {ed['short']}",
                                       f"Disclosed salaries on GreenJobs {ed['short']}: bands, medians by sector, disclosure rates and roles by {ed['unit']}.",
                                       {"dataset": dataset_script(data, "../jobs/index.html", False), "cur": ed["sym"], "unit": ed["unit"], "n_jobs": str(len(jobs)), "n_sal": str(n_sal),
-                                       "disc_pct": str(round(100 * n_sal / max(1, len(jobs)))), "median": esc(median_salary(jobs, ed["sym"], ed["currency"])),
+                                       "disc_pct": str(sal_st["disc_pct"]), "median": esc(sal_st["median"]),
                                        "fetched": esc(data["fetched"])}, same_path="insights/index.html"))
     write("compass/index.html", page("compass", 2, "compass", f"Green Career Compass — find your sector in seven questions | GreenJobs {ed['short']}",
                                      "Seven quick questions, three sectors that fit, live roles to match.",
@@ -2323,10 +2422,11 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
     emp_strip = client_wall(data, "../../") if data.get("clients") else employers_strip(data, "../../", cap=None)  # client wall, else every live employer
     # Keith E7: UK-only credibility block. Testimonials are collected for launch
     # (brief.md testimonials are anonymous; none is reproduced).
+    _emp_email = esc(next(iter(dict.fromkeys((data["contact"] or {}).get("emails") or [])), f"info@{data['site']}"))
     trust_block = "" if ed_key != "uk" else (
         '<section class="wrap band--tight" aria-labelledby="h-trust"><div class="sec-head"><div><h2 id="h-trust">Trusted across the UK</h2>'
         '<p>Client testimonials available on request.</p></div>'
-        '<a class="btn btn--lime" href="#rates" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
+        f'<a class="btn btn--lime" href="mailto:{_emp_email}?subject=Advertising%20rates%20request" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
         f'<p class="netline" style="margin-top:24px"><b>Network coverage:</b> {network_inline(data)}</p></section>')
     write("employers/index.html", page("employers", 2, "employers", f"Advertise a green role | GreenJobs {ed['short']}",
                                        f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",

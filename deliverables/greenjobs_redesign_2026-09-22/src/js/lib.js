@@ -69,6 +69,7 @@
   function annual(j, edCur) {
     var m = MULT[j.period || 'year'];
     if (!m || (j.sal_min == null && j.sal_max == null)) return null;
+    if (j.unverified_cur) return null; /* UK-located role with an unconfirmed euro figure: shown on the card, never counted (build_site.annual_mid mirrors this) */
     if (j.cur !== 'EUR' && j.cur !== 'GBP') return null; /* no fixed rate: shown on the card, never compared */
     var lo = j.sal_min != null ? j.sal_min * m : j.sal_max * m;
     var hi = j.sal_max != null ? j.sal_max * m : lo;

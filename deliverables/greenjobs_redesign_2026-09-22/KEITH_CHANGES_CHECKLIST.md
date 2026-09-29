@@ -36,7 +36,7 @@ Every item ticked only after the build validator, unit tests and the item's own 
 - [x] E3 Organisations that have recruited through GreenJobs — the full client-logo wall scraped from greenjobs.ie/for-employers.asp (112 logos, `data/clients_{ie,uk}.json`, `assets/logos/clients/`), linked to that page, employer names as alt text, live-role badges; validator requires ≥ 24 tiles per edition. (was: the live employer list only, 3 tiles on IE)
 - [x] E4 Comparison table: Standard / Premium / Membership.
 - [x] E5 Network positioning: "Advertise once. Reach candidates across the GreenJobs specialist network…" prominent on employers page and home employer section.
-- [x] E6 Vacancy preview: demo explanation shortened to "Preview exactly how your vacancy will appear to candidates."
+- [x] E6 Vacancy preview: demo explanation shortened to "See your vacancy as candidates see it." The pasted description is shown as plain text with paragraphs and bullet lines kept (not "exactly as written": pasted formatting and scripts are dropped; human-eye r1 #11).
 - [~] E7 UK-specific credibility signals (testimonials, placements, network coverage, rate-card CTA). (partial: testimonials are collected for launch (one line on the public page, item on the for-keith launch checklist) and no placement figures exist in brief.md; network coverage + rate CTA shipped)
 
 ## F. Copy & credibility

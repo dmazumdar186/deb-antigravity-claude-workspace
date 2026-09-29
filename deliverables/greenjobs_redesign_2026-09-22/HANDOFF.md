@@ -40,6 +40,8 @@ Spec: `research/build_spec.md`. Source: `src/`. Built site: `site/` (not committ
 - B Corp: the site's own mark is shown with its alt text and a generic one-line definition of B Corp; no certification claim is added in text (brief §3). Status + logo permission are on the launch checklist.
 - Prices: none published → "Packages on request".
 - Lighthouse was not run (no harness in the build environment); the evidence page says so and shows measured bytes/requests instead.
+- Salary figures: one `salary_stats()` in `build_site.py` feeds the home band, insights, salary guide and dashboard, so the four pages always print the same disclosed count, share, median and bands; the two unverified-currency roles are excluded from all of them (`lib.js annual()` mirrors this client-side). Human-eye r1 #3.
+- Import normalisation (`sanitise_html`, `tidy_text`): "* ", "- " and "• " lines become real lists, whole-line `<strong>`/`<b>` is unwrapped, empty paragraphs and runs of `<br>` collapse, "UK/ Ireland" → "UK/Ireland"; a job without its own logo file borrows its employer's, else a monogram. Human-eye r1 #4/#19/#32.
 
 ## Publish when approved
 

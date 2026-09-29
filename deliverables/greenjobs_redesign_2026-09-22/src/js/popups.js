@@ -24,7 +24,7 @@
     function openSettings(from) {
       opener = from || doc.activeElement;
       var cur = consent || { essential: true, analytics: false, marketing: false };
-      $('#ck-analytics', dlg).checked = !!cur.analytics; $('#ck-marketing', dlg).checked = !!cur.marketing;
+      $('#ck-analytics', dlg).checked = !!cur.analytics;
       dlg.showModal();
     }
     dlg.addEventListener('close', function () { if (opener && opener.focus && doc.contains(opener)) opener.focus(); });
@@ -33,7 +33,7 @@
     $('[data-cookie-settings]', bar).addEventListener('click', function (e) { openSettings(e.currentTarget); });
     $('form', dlg).addEventListener('submit', function (e) {
       e.preventDefault();
-      consent = { essential: true, analytics: $('#ck-analytics', dlg).checked, marketing: $('#ck-marketing', dlg).checked, at: new Date().toISOString() };
+      consent = { essential: true, analytics: $('#ck-analytics', dlg).checked, marketing: false, at: new Date().toISOString() };
       save(consent); dlg.close();
     });
     $('[data-cookie-close]', dlg).addEventListener('click', function () { dlg.close(); });

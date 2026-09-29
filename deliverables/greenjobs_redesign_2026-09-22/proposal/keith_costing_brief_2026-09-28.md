@@ -131,12 +131,12 @@ Year 1 (A Care + B + C, bundle): €450×12 + €6,500 + €1,375 = **€13,275*
 
 | Strategies promises | We commit to | How it is met |
 |---|---|---|
-| 99.9% uptime | 99.9% monthly, service credit 10% of the month's fee per 0.1% below | Cloudflare edge hosting (static + Workers), independent uptime monitor, monthly report |
+| 99.9% uptime | 99.9% monthly, service credit 10% of the month's fee per 0.1% below | Cloudflare edge hosting (static + Workers), independent uptime monitor (not Cloudflare's own), monthly report. Cloudflare's SLA credits do not flow to us on this plan, so the credit is backed by the operator's own margin |
 | Daily backups, tested restores | Daily off-site backups, restore drill every quarter with a written result | D1/R2 snapshots to EU object storage + Git history of every build |
 | Firewall, DDoS, SSL | Included | Cloudflare WAF + DDoS + managed SSL |
 | 24/7 monitoring | Included, alerts to Deb, 1-business-day response, 4h for a posting outage | Uptime + integration probes every 15 min |
-| UK data centres | EU/UK data residency for stored data | D1 region pinned to Western Europe; documented |
-| Integrations | Broadbean, Idibu, LogicMelon posts verified daily by a test job; Gaia integration included | Parallel run against Strategies for 30 days before DNS moves; no switch until every integration passes acceptance |
+| UK data centres | EU region preferred for stored data | D1 location hint set to Western Europe (a preference, not a guarantee) until the paid Cloudflare Data Localisation add-on is bought, which pins it; documented either way |
+| Integrations | Broadbean, Idibu, LogicMelon posts verified daily by a test job; Gaia integration included | Worker cron posts a test job through each route every day and checks it landed (a build task, not free: ~1 day in line B); parallel run against Strategies for 30 days before DNS moves; no switch until every integration passes acceptance |
 | Exit | Full export of jobs, employers, candidates on request, no lock-in after 3 months | Data is his, standard formats |
 
 **Risk reversal.** Strategies stays live until the parallel run passes; if any integration fails acceptance, no migration fee. 15-day guarantee on the front end stands.
@@ -156,15 +156,15 @@ Year 1 (A Care + B + C, bundle): €450×12 + €6,500 + €1,375 = **€13,275*
 1. **Stats update automatically?** Yes. Every count on the site (roles per county, sector, salary bands, remote/hybrid share, employer list) is computed from the job data itself, never typed in. On the live platform that computation runs on every post, whether GreenJobs staff or a self-serve client uploads the ad. In the demo it runs on each data refresh, which is why the figures carry a "snapshot of 22 September" date.
 2. **Candidates register a CV and log in?** Yes, that stays. The platform migration (line B) includes candidate accounts: one registration, CV stored, one-click apply from then on, saved roles and alerts tied to the account. The demo has no accounts yet because it runs with no back end; what you see today is the front end only.
 3. **Compare the options: only Premium, not Standard.** Fixed today. The table now shows Premium posting and Membership only.
-4. **"Three things a candidate should know": can employers paste the full JD?** Fixed today. The Post-a-job preview now takes the full job description pasted in, and shows it exactly as candidates will see it on the board card and at the top of the job page. On the live platform this is the same posting console GreenJobs staff use.
+4. **"Three things a candidate should know": can employers paste the full JD?** Fixed today. The Post-a-job preview now takes the full job description pasted in, and shows it as candidates will see it on the board card and at the top of the job page: shown as plain text with paragraphs and bullet lines kept (no pasted formatting, no scripts). On the live platform this is the same posting console GreenJobs staff use.
 
 **Reply draft**
 
 > Hi Keith, thanks, good questions from the site manager.
 >
-> 1. Yes. Every figure on the site (roles by county, sector, salary, remote/hybrid, employers) is calculated from the job data, so it updates itself whenever anyone posts, whether that's your team or a client uploading directly.
+> 1. Yes. Every figure on the site (roles by county, sector, salary, remote/hybrid, employers) is calculated from the job data, never typed in. In the demo the figures come from the 22 September snapshot; on the live platform they recompute on every post, whether that's your team or a client uploading directly.
 > 2. Yes. Candidates register once, store their CV, and apply with one click after that, the same as now. The demo you're looking at is the front end only, so accounts aren't switched on in it; they're part of the platform build.
 > 3. Done. The table now shows Premium and Membership only.
-> 4. Done. The Post-a-job preview now takes the full job description pasted in and shows it exactly as a candidate will see it. Try it on the Employers page with "Fill with example".
+> 4. Done. The Post-a-job preview now takes the full job description pasted in and shows it as a candidate will see it, as plain text with paragraphs and bullet lines kept. Try it on the Employers page with "Fill with example".
 >
 > Both changes are live on the demo now.

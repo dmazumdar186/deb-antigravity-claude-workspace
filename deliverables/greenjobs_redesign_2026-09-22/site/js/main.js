@@ -26,6 +26,7 @@ b.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch
 var hdr = $('[data-header]');
 if (hdr) {
 var onScroll = function () { hdr.classList.toggle('is-stuck', window.scrollY > 8); };
+doc.documentElement.style.setProperty('--hdr-h', hdr.offsetHeight + 'px');
 onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
 }
 var menu = $('[data-menu]');
@@ -163,6 +164,7 @@ var aside = $('.job__aside[data-closing]');
 if (aside) {
 var closing = aside.getAttribute('data-closing'), closeMs = closing ? Date.parse(closing) : NaN;
 if (!isNaN(closeMs) && closeMs + 864e5 <= Date.now()) {
+$$('[data-closed-chip]').forEach(function (c) { c.hidden = false; });
 $$('a[data-apply]').forEach(function (a) {
 var s = doc.createElement('span'); s.className = 'job__closed'; s.setAttribute('role', 'status'); s.textContent = 'This role has closed';
 a.parentNode.replaceChild(s, a);
@@ -244,7 +246,7 @@ var jobsHref = homeMap.getAttribute('data-jobs');
 window.GJMap($('svg', homeMap), counts, function (name) { window.location.href = jobsHref + G.toQuery({ loc: name }); });
 }
 var FX_SYM = { euros: '\u20ac', sterling: '\u00a3', pounds: '\u00a3' };
-$$('.row .tag--sal, .role .tag--sal').forEach(function (chip) {
+$$('.row .tag--sal, .role .tag--sal, .job__meta .tag--sal').forEach(function (chip) {
 var m = /^(.*) \((?:paid|advertised) in ([^,]+), about (.+)\)$/.exec(chip.textContent.trim());
 if (!m) return;
 chip.innerHTML = '<span class="tag__t">' + G.esc(m[1]) + '</span>';
@@ -252,6 +254,7 @@ var fx = doc.createElement('span'); fx.className = 'tag tag--fx'; fx.title = 'Ad
 fx.innerHTML = '<b class="tag__cur" aria-hidden="true">' + G.esc(FX_SYM[m[2]] || m[2]) + '</b><span class="tag__t">advertised in ' + G.esc(m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span>';
 chip.insertAdjacentElement('afterend', fx);
 });
+$$('.job__sticky-sal').forEach(function (el) { var m = /^(.*) \((?:paid|advertised) in [^,]+, about .+\)$/.exec(el.textContent.trim()); if (m) el.textContent = m[1]; });
 var SOCIAL = [
 [/facebook\.com/i, 'Facebook', 'M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.6 1.6-1.6h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.3H7.4V14h2.8v8z'],
 [/(twitter|x)\.com/i, 'X (Twitter)', 'M17.5 3h3l-6.8 7.8L21.8 21h-6.2l-4.9-6.4L5.1 21h-3l7.3-8.3L1.8 3h6.4l4.4 5.8L17.5 3zm-1.1 16.2h1.7L7 4.7H5.2l11.2 14.5z'],

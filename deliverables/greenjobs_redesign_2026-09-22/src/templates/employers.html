@@ -48,6 +48,7 @@
     </tbody>
   </table>
   </div>
+  <p class="cmpfoot">Featured employer and newsletter sponsorship are quoted per campaign.</p>
 </section>
 
 {{trust_block}}
@@ -61,14 +62,14 @@
       <div class="row2"><div class="field"><label for="p-loc">Location</label><input class="in" id="p-loc" name="loc" type="text" placeholder="{{country}}" maxlength="60"></div><div class="field"><label for="p-sector">Sector</label><select class="in" id="p-sector" name="sector">{{sector_options}}</select></div></div>
       <div class="row2"><div class="field"><label for="p-type">Type</label><select class="in" id="p-type" name="type"><option>Permanent</option><option>Contract</option><option>Full Time</option><option>Part Time</option><option>Fixed Term</option></select></div><div class="field"><label for="p-logo">Logo (stays on this device)</label><input class="in in--file" id="p-logo" name="logo" type="file" accept="image/*"></div></div>
       <fieldset class="fieldset"><legend>Salary range, per year (shown to candidates)</legend><div class="row2"><div class="field"><label for="p-smin" class="vh">Minimum</label><input class="in" id="p-smin" name="smin" type="number" inputmode="numeric" min="0" step="1000" placeholder="From, e.g. 55000"></div><div class="field"><label for="p-smax" class="vh">Maximum</label><input class="in" id="p-smax" name="smax" type="number" inputmode="numeric" min="0" step="1000" placeholder="To, e.g. 65000"></div></div></fieldset>
-      <div class="field"><label for="p-desc">Job description (paste the full text; candidates see it exactly as written)</label><textarea class="in" id="p-desc" name="desc" rows="8" placeholder="Paste the full job description here…" maxlength="12000"></textarea></div>
+      <div class="field"><label for="p-desc">Job description (paste the full text; shown as plain text, paragraphs and bullet lines kept)</label><textarea class="in" id="p-desc" name="desc" rows="8" placeholder="Paste the full job description here…" maxlength="12000"></textarea></div>
       <p class="adb__reach" data-adb-reach aria-live="polite"></p>
       <p class="note" data-demo-pre>Preview only. Rates and posting are handled by the GreenJobs team.</p>
       <div class="adb__actions"><button class="btn btn--lime" type="submit" data-magnet data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></button><button class="btn btn--ghost" type="button" data-adb-fill>Fill with an example</button></div>
       <p class="note note--live" data-demo-note tabindex="-1" hidden>Preview only. Rates and posting are handled by the GreenJobs team: email <a href="mailto:{{email}}">{{email}}</a> with these details.</p>
     </form>
     <div class="adb__preview" data-adb-preview id="adb-preview">
-      <h3 class="adb__h3" id="preview">See your vacancy as candidates will</h3>
+      <h3 class="adb__h3" id="preview">See your vacancy as candidates see it</h3>
       <p class="adb__cap">On the board</p>
       <div class="roles adb__card" data-adb-card></div>
       <p class="adb__cap">Top of the job page</p>

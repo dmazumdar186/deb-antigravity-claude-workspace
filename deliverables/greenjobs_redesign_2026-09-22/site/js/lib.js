@@ -56,6 +56,7 @@ var MULT = { year: 1, month: 12, week: 52, day: 230, hour: 1950 };
 function annual(j, edCur) {
 var m = MULT[j.period || 'year'];
 if (!m || (j.sal_min == null && j.sal_max == null)) return null;
+if (j.unverified_cur) return null;
 if (j.cur !== 'EUR' && j.cur !== 'GBP') return null;
 var lo = j.sal_min != null ? j.sal_min * m : j.sal_max * m;
 var hi = j.sal_max != null ? j.sal_max * m : lo;

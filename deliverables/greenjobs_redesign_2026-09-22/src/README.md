@@ -37,6 +37,8 @@ any hero video referenced actually shipped). On success it writes `../site/.gree
 - Sector taxonomy: `TAXONOMY` in `build_site.py` (name, colour, dark-text flag, keywords).
 - Region matching: `data/regions_<ed>.json`; regions must include every `data-region` in the map SVG.
 - Home "Why GreenJobs" facts: `BRIEF_FACTS` in `build_site.py`, each traceable to `brief.md`.
+- Salary figures on any page: read `salary_stats(jobs, ed)` (count, share, median, bands, disclosed list); never count `sal_min`/`sal_max` by hand, the shared rule excludes unverified-currency and non-comparable roles.
+- Job page header ctx keys: `{{closed_chip}}` (a "Closed" chip, `hidden` until the closing date passes) and `{{sal_caveat}}` (the unverified-currency line under the chips, empty otherwise). Imported descriptions pass through `sanitise_html`: bullet lines → `<ul>`, whole-line bold unwrapped, blank runs collapsed.
 - Maps: `python3 execution/gtm_client_workflows/greenjobs_redesign/make_maps.py` (downloads Natural Earth 10m admin-1 to `.tmp/` once).
 
 ## Hero: canvas landscape, or drop-in footage

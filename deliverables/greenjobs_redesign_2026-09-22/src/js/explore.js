@@ -44,6 +44,7 @@
     stat('[data-s-med]', med ? money(med) : 'n/a'); stat('[data-s-cnt]', String(withSal.length));
     var edges = [20000, 30000, 40000, 50000, 60000, 75000, 100000];
     var bins = G.histogram(mids, edges);
+    while (bins.length > 1 && !bins[bins.length - 1].n) bins.pop(); /* an empty open-ended top band ("100k+": 0) is noise */
     var f1 = $('[data-fig="hist"]', ins);
     f1.appendChild(C.columns(bins, { label: 'Disclosed salaries by band' }));
     f1.appendChild(C.table(['Band (' + cur + ')', 'Roles'], bins.map(function (b) { return [b.label, String(b.n)]; })));

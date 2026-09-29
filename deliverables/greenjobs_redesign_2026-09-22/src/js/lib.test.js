@@ -185,6 +185,14 @@ test('salaryLabel never converts the advertised currency; it adds an approximate
   assert.equal(GJ.FX_GBP_EUR, 1.17);
 });
 
+test('annual excludes an unverified-currency role, like build_site.annual_mid (human-eye r1 #3)', () => {
+  const u = Object.assign({}, K[1], { cur: 'EUR', unverified_cur: true });
+  assert.equal(GJ.annual(u), null);
+  assert.equal(GJ.annual(u, 'EUR'), null);
+  assert.equal(GJ.annual(Object.assign({}, u, { unverified_cur: false })).mid, 45000);
+  assert.ok(GJ.salaryLabel(u, 'EUR').length > 0, 'the label still prints');
+});
+
 test('annual compares in the edition currency but leaves the label alone', () => {
   assert.equal(GJ.annual(K[1]).mid, 45000);
   assert.ok(Math.abs(GJ.annual(K[1], 'EUR').mid - 45000 * 1.17) < 1e-6);

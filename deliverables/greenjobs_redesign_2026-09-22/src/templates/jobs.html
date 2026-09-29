@@ -1,7 +1,7 @@
 {{dataset}}{{jsonld}}
 <div class="wrap pagehead">
   <h1>Search live roles</h1>
-  <p class="lede">{{n_jobs}} green roles, filtered as you type. Everything you set lives in the address bar, so a filtered list is a link you can share.</p>
+  <p class="lede">{{n_jobs}} green roles, filtered as you type. Filter by sector, location, salary and more. Your filters stay in the link, so you can share or bookmark a search.</p>
 </div>
 <div class="wrap board" data-board>
   <a class="skip" href="#results">Skip to results</a>
@@ -35,8 +35,7 @@
         <button type="button" role="tab" data-view="map" aria-selected="false">Map</button>
         <button type="button" role="tab" data-view="saved" aria-selected="false">Saved <b data-saved-count>0</b></button>
       </div>
-      <a class="btn btn--sm btn--ghost" href="#fit">Quick job match<span class="arw" aria-hidden="true">↓</span></a>
-      <button class="btn btn--sm btn--ghost" type="button" data-palette-open aria-haspopup="dialog">Jump to… <span class="kbd">⌘K</span></button>
+      <div class="toolbar__right"><a class="btn btn--sm btn--ghost" href="#fit">Quick job match<span class="arw" aria-hidden="true">↓</span></a><button class="btn btn--sm btn--ghost" type="button" data-palette-open aria-haspopup="dialog">Jump to… <span class="kbd">⌘K</span></button></div>
     </div>
     <div class="chipbar" data-chips aria-label="Active filters"></div>
     <div class="list" data-list></div>

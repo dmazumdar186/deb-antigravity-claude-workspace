@@ -4,7 +4,28 @@
    through FileReader and never leaves the device; the reach line is read
    from this week's data. Under 900px the preview sits under the form with a
    sticky Preview toggle. Submitting shows the launch note (main.js). */
+/* Description renderer (pure; node-tested in adbuilder.test.js): CRLF normalised,
+   paragraphs split on blank lines, a single newline is <br>, lines starting with
+   "•", "-" or "*" become a <ul>. esc() escapes every character of user text. */
+function adbDescHtml(text, esc) {
+  var t = String(text || '').replace(/\r\n?/g, '\n').trim();
+  if (!t) return '';
+  return t.split(/\n\s*\n/).map(function (para) {
+    var lines = para.split('\n'), out = '', items = [];
+    var flush = function () { if (items.length) { out += '<ul>' + items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; items = []; } };
+    var plain = [];
+    var flushPlain = function () { if (plain.length) { out += '<p>' + plain.map(esc).join('<br>') + '</p>'; plain = []; } };
+    lines.forEach(function (ln) {
+      var m = /^\s*[\u2022\-\*]\s+(.*)$/.exec(ln);
+      if (m) { flushPlain(); items.push(m[1]); } else { flush(); plain.push(ln); }
+    });
+    flush(); flushPlain();
+    return out;
+  }).join('');
+}
+if (typeof module === 'object' && module.exports) module.exports = { descHtml: adbDescHtml };
 (function () {
+  if (typeof window === 'undefined') return;
   var G = window.GJ, doc = document, root = doc.querySelector('[data-adb]');
   if (!root) return;
   var reach = {};
@@ -44,7 +65,7 @@
     hero.innerHTML = '<nav class="crumbs" aria-hidden="true"><span>Home</span><span>/</span><span>Jobs</span><span>/</span><span>' + G.esc(j.sectors[0]) + '</span></nav>' +
       '<p class="adb__h1">' + ph(j.title, 'Your job title') + '</p><div class="job__emp">' + logo(j, 'job__logo') + '<span>' + ph(j.employer, 'Your organisation') + '</span></div>' +
       '<div class="job__meta">' + meta + '</div>' +
-      (j.desc ? '<div class="adb__desc">' + j.desc.split(/\n{2,}/).map(function (p) { return '<p>' + G.esc(p).replace(/\n/g, '<br>') + '</p>'; }).join('') + '</div>' : '<p class="adb__ph adb__bulph">Your full job description appears here, exactly as candidates will read it.</p>') +
+      (j.desc ? '<div class="adb__desc">' + adbDescHtml(j.desc, G.esc) + '</div>' : '<p class="adb__ph adb__bulph">Your full job description appears here as plain text, paragraphs and bullet lines kept.</p>') +
       '<span class="btn btn--lime adb__apply" aria-hidden="true">Apply<span class="arw">→</span></span>';
     var r = reach[j.sectors[0]];
     if (r) {
@@ -86,5 +107,5 @@
   }
   render();
   if (/[?&]ad=demo/.test(window.location.search)) { example(); root.scrollIntoView({ block: 'start' }); }
-  window.GJAd = { job: job, example: example };
+  window.GJAd = { job: job, example: example, descHtml: adbDescHtml };
 })();

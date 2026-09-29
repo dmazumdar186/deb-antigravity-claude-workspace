@@ -35,6 +35,7 @@
   var hdr = $('[data-header]');
   if (hdr) {
     var onScroll = function () { hdr.classList.toggle('is-stuck', window.scrollY > 8); };
+    doc.documentElement.style.setProperty('--hdr-h', hdr.offsetHeight + 'px');
     onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
   }
   var menu = $('[data-menu]');
@@ -198,6 +199,7 @@
   if (aside) {
     var closing = aside.getAttribute('data-closing'), closeMs = closing ? Date.parse(closing) : NaN;
     if (!isNaN(closeMs) && closeMs + 864e5 <= Date.now()) {
+      $$('[data-closed-chip]').forEach(function (c) { c.hidden = false; }); /* header "Closed" chip (human-eye r1 #4) */
       $$('a[data-apply]').forEach(function (a) {
         var s = doc.createElement('span'); s.className = 'job__closed'; s.setAttribute('role', 'status'); s.textContent = 'This role has closed';
         a.parentNode.replaceChild(s, a);
@@ -293,7 +295,7 @@
   }
   /* Server-rendered rows (home, sector pages): split "€… (advertised in euros, about £…)" into a salary chip plus a muted "advertised in €" chip, as jobs.js does for the board. */
   var FX_SYM = { euros: '\u20ac', sterling: '\u00a3', pounds: '\u00a3' };
-  $$('.row .tag--sal, .role .tag--sal').forEach(function (chip) {
+  $$('.row .tag--sal, .role .tag--sal, .job__meta .tag--sal').forEach(function (chip) {
     var m = /^(.*) \((?:paid|advertised) in ([^,]+), about (.+)\)$/.exec(chip.textContent.trim());
     if (!m) return;
     chip.innerHTML = '<span class="tag__t">' + G.esc(m[1]) + '</span>';
@@ -301,6 +303,8 @@
     fx.innerHTML = '<b class="tag__cur" aria-hidden="true">' + G.esc(FX_SYM[m[2]] || m[2]) + '</b><span class="tag__t">advertised in ' + G.esc(m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span>';
     chip.insertAdjacentElement('afterend', fx);
   });
+  /* Job page sticky bar: the short salary only; the conversion stays on the header chip. */
+  $$('.job__sticky-sal').forEach(function (el) { var m = /^(.*) \((?:paid|advertised) in [^,]+, about .+\)$/.exec(el.textContent.trim()); if (m) el.textContent = m[1]; });
   /* Footer social buttons: the build emits a placeholder circle; draw the real mark for the host. */
   var SOCIAL = [
     [/facebook\.com/i, 'Facebook', 'M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.6 1.6-1.6h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.3H7.4V14h2.8v8z'],

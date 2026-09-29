@@ -11,7 +11,7 @@
      location.pathname, then adds the shared stylesheet (fonts resolve relative
      to it) and points the links at the right edition. Without JS the inline
      fallback styles below keep it readable. -->
-<script>(function(){var d=document.documentElement;d.className+=' has-js';var t=null;try{t=localStorage.getItem('gj-theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);
+<script>(function(){var d=document.documentElement;d.className+=' has-js';var t=(location.search.match(/[?&]theme=(dark|light)/)||[])[1]||null;try{if(t)localStorage.setItem('gj-theme',t);else t=localStorage.getItem('gj-theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);
 var p=location.pathname,m=p.match(/^(.*?\/)(?:ie|uk)(?:\/|$)/)||p.match(/^(.*?\/greenjobs\/)/);var base=m?m[1]:'/';d.setAttribute('data-base',base);
 var l=document.createElement('link');l.rel='stylesheet';l.href=base+'css/styles.css';document.head.appendChild(l);
 var f=document.createElement('link');f.rel='icon';f.type='image/svg+xml';f.href=base+'assets/favicon.svg';document.head.appendChild(f);})();</script>

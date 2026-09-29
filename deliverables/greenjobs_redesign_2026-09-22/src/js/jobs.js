@@ -55,12 +55,14 @@
     var sym = CUR_SYM[m[2]] || m[2];
     return '<span class="tag tag--sal"><span class="tag__t">' + G.esc(m[1]) + '</span></span><span class="tag tag--fx" title="' + G.esc('Advertised in ' + m[2] + ', about ' + m[3]) + '"><b class="tag__cur" aria-hidden="true">' + G.esc(sym) + '</b><span class="tag__t">advertised in ' + G.esc(m[2]) + ' <s>\u2248 ' + G.esc(m[3]) + '</s></span></span>';
   }
-  function row(j, q) {
+  /* onMap: the map side list shows the location badge and one full sector chip (it may wrap), no salary or level chips. */
+  function row(j, q, onMap) {
     var sal = G.salaryLabel(j, CUR), lc = G.locLabel(j.loc_class), closed = isClosed(j);
+    var sec = sect0(j) ? '<span class="tag tag--sec"><i style="background:' + G.esc(j.color || '') + '"></i><span class="tag__t">' + G.esc(sect0(j)) + '</span></span>' : '';
     return '<article class="row' + (closed ? ' row--closed' : '') + '" data-id="' + G.esc(j.id) + '">' + logo(j) +
       '<div class="row__body"><h3><a href="' + G.esc(j.href) + '">' + hl(j.title, q) + '</a></h3>' +
-      '<div class="row__meta"><span class="row__emp">' + G.esc(j.employer) + ' <span aria-hidden="true">·</span></span><span>' + G.esc(j.location) + '</span>' +
-      (closed ? '<span class="tag tag--closed">Closed</span>' : '') + salChips(sal) + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + (sect0(j) ? '<span class="tag"><i style="background:' + G.esc(j.color || '') + '"></i><span class="tag__t">' + G.esc(sect0(j)) + '</span></span>' : '') + (j.level ? '<span class="tag tag--lvl" title="Career level">' + G.esc(j.level) + '</span>' : '') + '</div>' +
+      '<div class="row__meta"><span class="row__emp">' + G.esc(j.employer) + '</span><span><span class="row__sep" aria-hidden="true">· </span>' + G.esc(j.location) + '</span>' +
+      (closed ? '<span class="tag tag--closed">Closed</span>' : '') + (onMap ? '' : salChips(sal)) + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + sec + (j.level && !onMap ? '<span class="tag tag--lvl" title="Career level">' + G.esc(j.level) + '</span>' : '') + '</div>' +
       (j.unverified_cur ? '<p class="role__note">Salary as listed on greenjobs.ie; the advertiser may pay in sterling.</p>' : '') + '</div>' +
       '<div class="row__r"><time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time><span>' + G.esc(j.type || '') + '</span></div>' +
       '<button class="save" type="button" data-save="' + G.esc(j.id) + '" data-title="' + G.esc(j.title) + '" aria-pressed="false" aria-label="Save: ' + G.esc(j.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button></article>';
@@ -74,6 +76,7 @@
     f.q.value = st.q || ''; f.loc.value = st.loc || ''; f.sector.value = st.sector || ''; f.type.value = st.type || '';
     f.sal.checked = !!st.sal; f.sort.value = st.sort || 'newest';
     if (f.sector.value !== (st.sector || '')) f.sector.value = '';
+    f.sector.title = f.sector.value ? optText(f.sector, f.sector.value) : '';
     ['wp', 'level', 'ct', 'close', 'emp', 'smin', 'smax'].forEach(function (k) {
       if (!f[k]) return;
       f[k].value = st[k] || '';
@@ -115,7 +118,7 @@
       var off = {};
       res.forEach(function (j) { if (!(j.regions || []).some(function (r) { return ON_MAP[r]; })) (j.regions || []).forEach(function (r) { off[r] = (off[r] || 0) + 1; }); });
       var offHtml = Object.keys(off).length ? ' Not on the map: ' + Object.keys(off).map(function (r) { return '<a href="' + G.esc(G.toQuery(Object.assign({}, st, { loc: r, view: '' }))) + '">' + G.esc(r) + ' (' + off[r] + ')</a>'; }).join(', ') + '.' : '';
-      mapList.innerHTML = '<p class="muted" style="font-size:.9rem">' + (mapPick ? '<b>' + G.esc(mapPick) + '</b> · ' + sub.length + (sub.length === 1 ? ' role' : ' roles') + ' <button class="btn btn--sm btn--ghost" type="button" data-mapclear>Show all</button>' : 'Tap a region to filter. ' + (res.length - Object.keys(off).reduce(function (a, r) { return a + off[r]; }, 0)) + ' of ' + res.length + ' roles sit in ' + Object.keys(counts).filter(function (r) { return ON_MAP[r]; }).length + ' mapped regions.' + offHtml) + '</p>' + sub.slice(0, 40).map(function (j) { return row(j, st.q); }).join('');
+      mapList.innerHTML = '<p class="muted" style="font-size:.9rem">' + (mapPick ? '<b>' + G.esc(mapPick) + '</b> · ' + sub.length + (sub.length === 1 ? ' role' : ' roles') + ' <button class="btn btn--sm btn--ghost" type="button" data-mapclear>Show all</button>' : 'Tap a region to filter. ' + (res.length - Object.keys(off).reduce(function (a, r) { return a + off[r]; }, 0)) + ' of ' + res.length + ' roles sit in ' + Object.keys(counts).filter(function (r) { return ON_MAP[r]; }).length + ' mapped regions.' + offHtml) + '</p>' + sub.slice(0, 40).map(function (j) { return row(j, st.q, true); }).join('');
       count.innerHTML = '<b>' + res.length + '</b> ' + (res.length === 1 ? 'role' : 'roles') + ' <small>on the map</small>';
       list.hidden = true; mapWrap.hidden = false;
     } else {
