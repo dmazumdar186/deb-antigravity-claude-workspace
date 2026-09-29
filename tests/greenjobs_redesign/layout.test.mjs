@@ -392,7 +392,7 @@ try {
       const errors = [];
       const onConsole = (m) => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 120)); };
       const onErr = (e) => errors.push('pageerror: ' + String(e).slice(0, 120));
-      const onFail = (r) => errors.push('request failed: ' + r.url());
+      const onFail = (r) => { if (/\.mp4$/.test(r.url()) && /ERR_ABORTED/.test((r.failure() || {}).errorText || '')) return; /* hero preload="auto" cut off by navigation */ errors.push('request failed: ' + r.url()); };
       const onResp = (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()}: ${r.url()}`); };
       page.on('console', onConsole); page.on('pageerror', onErr); page.on('requestfailed', onFail); page.on('response', onResp);
       try {

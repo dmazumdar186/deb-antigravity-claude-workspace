@@ -60,8 +60,8 @@ try {
     }
     check(seen.has(2), `film ${w}px: reaches state 2 by scrolling (saw ${[...seen].sort().join(',')})`);
     check([...seen].every((s) => seq.includes(s)), `film ${w}px: only states in the sequence are shown`);
-    const hero = await page.evaluate(() => { const q = document.getElementById('s-q').getBoundingClientRect(); const b = document.querySelector('.hero .btn--post').getBoundingClientRect(); scrollTo({ top: 0, behavior: 'instant' }); const q2 = document.getElementById('s-q').getBoundingClientRect(); const b2 = document.querySelector('.hero .btn--post').getBoundingClientRect(); return { q: q2.bottom, b: b2.bottom, ok: q2.top >= 0 && q2.bottom <= innerHeight && b2.top >= 0 && b2.bottom <= innerHeight && b2.height >= 56 }; });
-    check(hero.ok, `hero ${w}px: search input (bottom ${Math.round(hero.q)}) and Post a job (bottom ${Math.round(hero.b)}, ≥56px) inside the first ${h}px`);
+    const hero = await page.evaluate(() => { scrollTo({ top: 0, behavior: 'instant' }); const q2 = document.getElementById('s-q').getBoundingClientRect(); return { q: q2.bottom, ok: q2.top >= 0 && q2.bottom <= innerHeight && !document.querySelector('.hero .btn--post') }; });
+    check(hero.ok, `hero ${w}px: search input (bottom ${Math.round(hero.q)}) inside the first ${h}px; no hero Post a job pill`);
     await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' })); await page.waitForTimeout(120);
     const fills = await page.evaluate(() => [...document.querySelectorAll('[data-film-step]')].filter((s) => getComputedStyle(s).display !== 'none').map((s) => s.style.getPropertyValue('--fill')));
     check(fills.length === states && fills.slice(0, -1).every((f) => Number(f) === 1), `film ${w}px: rail fills are complete at the end (${fills.join(' ')})`);

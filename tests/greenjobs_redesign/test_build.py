@@ -351,7 +351,7 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check("For Keith" not in clean and "for-keith" not in clean, "home: for-keith is not linked from the public shell")
     check("Snapshot of" in clean, "home: hero carries the snapshot date")
     check('class="hero"' in clean and clean.index('class="hero"') < clean.index('id="h-insight"'), "home: opens on the light hero; the compact insight band replaced the film (2026-09-28)")
-    check('id="s-q"' in clean and 'btn--post' in clean and 'employers/index.html#post' in clean, "home: hero search and Post a job present")
+    check('id="s-q"' in clean and 'hero__cta' not in clean and 'hdr__post' in clean, "home: hero keeps the search only; Post a job lives in the header (design review 2026-09-29)")
     check(clean.count('<article class="row"') == min(8, len(jobs["ie"])) and "tag--lvl" in clean, "home: compact rows (up to eight) with career-level chips")
     check('alt="Certified B Corporation"' in clean and 'class="hero__bcorp"' in clean, "home: B Corp mark in the hero with the confirmed wording")
     check("data-film-steps" not in clean, "home: the film rail is gone (compact insight band since 2026-09-28)")
@@ -986,7 +986,7 @@ def test_r3_visual_fixes(tmp_root: Path):
     check('"cmpwrap' in (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8"), "r3 N1: package table wrapper present (desktop max-height removed in CSS)")
     css = (SRC / "css" / "styles.css").read_text(encoding="utf-8")
     check("max-height:min(72vh,760px)" not in css and "@media (max-width:700px){.cmpwrap{overflow-x:auto}}" in css, "r3 N1: .cmpwrap has no desktop max-height; horizontal scroll only <= 700px")
-    check(".hero__cta .btn--post{flex:0 1 260px;max-width:260px}" in css, "r3 N2: hero Post a job CTA capped at 260px")
+    check(".hero__cta" not in css and ".btn--post" not in css, "r3 N2 (superseded 2026-09-29): hero Post a job pill and its CSS removed")
     check("transform:scale(1.06)" not in css and "object-fit:contain" in css.split(".emp img{")[1].split("}")[0], "r3 visual 32: marquee logos are contained with no scale bleed")
     check(".maplist--sm" in css and 'data-map-counts' in (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8"), "r3 visual 11: compact region count list under the jobs-page map")
 
@@ -1352,8 +1352,8 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     check("Off. Not used on this site." in home and home.count("Job alerts by email are available on") >= 2, "r2b visual 8: cookie analytics row and alert forms use the visitor sentences (alerts point at the live site since round 4)")
     check(emp.count("Preview only. Rates and posting are handled by the GreenJobs team") == 2 and "Thank you" not in emp, "r2b R044: the Post-a-job preview keeps one quiet line (pre-submit + post-submit variants), no fake success")
     # 18: hero keeps search + Post a job only
-    hero = home.split('class="hero__cta"')[1].split("</div>")[0]
-    check("Find a job" not in hero and hero.count("<a ") == 1 and "Post a job" in hero, "r2b visual 18: one secondary hero CTA (Post a job); 'Find a job' dropped")
+    hero = home.split('class="hero"')[1].split('class="hero__alerts"')[0]
+    check("Find a job" not in hero and "Post a job" not in hero and 'hero__search' in hero, "r2b visual 18 (superseded 2026-09-29): hero has no CTA pills, search only")
     # 19: footer wordmark carries the leaf and a long-form date
     ftr = home.split('<footer class="ftr">')[1]
     check('class="logo logo--ftr"><svg' in ftr and re.search(r'<time datetime="\d{4}-\d{2}-\d{2}">\d{1,2} [A-Z][a-z]+ \d{4}</time>', ftr), "r2b visual 19: footer logo has the leaf icon; the as-of date is rendered server-side as '22 September 2026' (r3 N4: was client-side data-date-long)")

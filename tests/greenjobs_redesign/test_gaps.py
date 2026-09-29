@@ -141,7 +141,7 @@ def test_hero_footage_variants(tmp_root: Path):
     check(build_site.hero_files(src, "ie") == {"poster": "ie-poster.webp"} and build_site.hero_video(src, "ie", "../") == "", "hero: poster only -> still no <video> (the canvas is the hero)")
     (hero / "ie.mp4").write_bytes(b"x")
     v = build_site.hero_video(src, "ie", "../")
-    check(v == '<video class="hero__video" data-hero-video muted loop playsinline autoplay preload="metadata" poster="../assets/hero/ie-poster.webp" aria-hidden="true" tabindex="-1"><source src="../assets/hero/ie.mp4" type="video/mp4"></video>', f"hero: landscape + poster -> exactly one source and the poster path ({v})")
+    check(v == '<video class="hero__video" data-hero-video muted loop playsinline autoplay preload="auto" poster="../assets/hero/ie-poster.webp" aria-hidden="true" tabindex="-1"><source src="../assets/hero/ie.mp4" type="video/mp4"></video>', f"hero: landscape + poster -> exactly one source and the poster path ({v})")
     (hero / "ie-m.mp4").write_bytes(b"x")
     (hero / "ie-poster.jpg").write_bytes(b"x")
     v = build_site.hero_video(src, "ie", "../../")

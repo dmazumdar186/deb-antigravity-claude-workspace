@@ -1955,8 +1955,8 @@ def hero_files(src: Path, ed: str) -> dict[str, str]:
 
 def hero_video(src: Path, ed: str, root: str) -> str:
     """The <video> for the hero scene when footage has been dropped in
-    (muted, looped, inline, poster, no preload beyond metadata). landscape.js
-    keeps the canvas playing until the first frame is ready, pauses it
+    (muted, looped, inline, poster, preload="auto"). landscape.js keeps the
+    canvas playing until the clip can play (canplay), then fades it in, pauses it
     off-screen and shows the poster only on Save-Data / reduced motion."""
     f = hero_files(src, ed)
     if not f.get("video"):
@@ -1966,7 +1966,7 @@ def hero_video(src: Path, ed: str, root: str) -> str:
     if f.get("mobile"):
         sources += f'<source src="{root}{HERO_DIR}/{f["mobile"]}" type="video/mp4" media="(max-width: 799px)">'
     sources += f'<source src="{root}{HERO_DIR}/{f["video"]}" type="video/mp4">'
-    return f'<video class="hero__video" data-hero-video muted loop playsinline autoplay preload="metadata"{poster} aria-hidden="true" tabindex="-1">{sources}</video>'
+    return f'<video class="hero__video" data-hero-video muted loop playsinline autoplay preload="auto"{poster} aria-hidden="true" tabindex="-1">{sources}</video>'
 
 
 def hero_bcorp(brief: dict[str, Any], root: str) -> str:
@@ -2272,7 +2272,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         jp = page("job", 3, "jobs", f"{j['title']} — {j['employer']} | GreenJobs {ed['short']}", (j["summary"] or j["title"])[:155],
                   {
                       "jsonld": job_jsonld(j, data), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo") if j["logo"] else "",
-                      "meta": meta_tags, "dl": dl, "desc_html": body_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""),
+                      "meta": meta_tags, "dl": dl, "desc_html": body_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
                       "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar) or '<p class="muted">No similar live roles this week.</p>',
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
                       "posted_line": esc(f"Posted {date_long(j['posted'])}" + (f" · closes {date_long(j['closing'])}" if j["closing"] else "")) if j["posted"] else "",

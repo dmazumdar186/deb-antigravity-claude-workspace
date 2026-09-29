@@ -154,7 +154,7 @@ else {
 var failed = false;
 var takeOver = function () { if (failed) return; host.classList.add('is-playing'); stop(); };
 video.addEventListener('error', function () { failed = true; host.classList.remove('is-playing'); start(); }, { once: true });
-if (video.readyState >= 1) takeOver(); else { video.addEventListener('loadedmetadata', takeOver, { once: true }); video.addEventListener('loadeddata', takeOver, { once: true }); }
+if (video.readyState >= 3) takeOver(); else video.addEventListener('canplay', takeOver, { once: true });
 video.play().catch(function () {  });
 }
 }

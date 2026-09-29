@@ -69,4 +69,4 @@ Every check asserts a concrete property of the output (rendered HTML, validator 
 
 `test_build.py` defines `test_panel_b_copy_and_consent` and `test_panel_b_dashboard_rules_from_stored_fields` *after* the `__main__` guard, so the script runner never executes them; they only run under pytest or when the module is imported. Three of their checks fail against the current templates/data (tile label `(30d)` is rendered inside a `<span>`, "jQuery" legitimately appears in the evidence table above the appendix, and the synthetic dataset yields `closing7 == 3`, not 1). Left unchanged per the "no weakening" rule; a follow-up task is queued.
 
-Last full run (run_all.py, 2026-09-29): 2842 checks — python (build + validate + scrape + gaps) fail (1055), node --test lib.js + dashboard.js pass (40), playwright dashboard DOM pass (15), playwright layout regression fail (1732).
+Last full run (run_all.py, 2026-09-29): 2842 checks — python (build + validate + scrape + gaps) pass (1055), node --test lib.js + dashboard.js pass (40), playwright dashboard DOM pass (15), playwright layout regression pass (1732).

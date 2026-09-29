@@ -168,6 +168,9 @@ var s = doc.createElement('span'); s.className = 'job__closed'; s.setAttribute('
 a.parentNode.replaceChild(s, a);
 });
 }
+var stk = $('.job__sticky'), own = $('a[data-apply]', aside);
+if (stk && !own) stk.parentNode.removeChild(stk);
+else if (stk) { body.classList.add('has-sticky'); if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { stk.classList.toggle('is-off', es[0].isIntersecting); }).observe(own); }
 }
 $$('[data-demo-form]').forEach(function (f) {
 f.addEventListener('submit', function (e) {

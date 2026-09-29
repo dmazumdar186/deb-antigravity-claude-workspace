@@ -203,6 +203,10 @@
         a.parentNode.replaceChild(s, a);
       });
     }
+    /* Mobile sticky apply bar (<=700px): removed for closed roles, hidden while the page's own Apply is in view */
+    var stk = $('.job__sticky'), own = $('a[data-apply]', aside);
+    if (stk && !own) stk.parentNode.removeChild(stk);
+    else if (stk) { body.classList.add('has-sticky'); if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { stk.classList.toggle('is-off', es[0].isIntersecting); }).observe(own); }
   }
 
   /* ------------------------------------------------ demo forms (never a fake success) */

@@ -179,10 +179,10 @@
     else {
       var failed = false;
       var takeOver = function () { if (failed) return; host.classList.add('is-playing'); stop(); };
-      /* The poster is the clip's own first frame, so showing it on metadata is seamless;
+      /* Fade from the poster only once the clip can play (canplay), never on bare metadata;
          a decode error (no H.264 support) keeps the drawn scene instead. */
       video.addEventListener('error', function () { failed = true; host.classList.remove('is-playing'); start(); }, { once: true });
-      if (video.readyState >= 1) takeOver(); else { video.addEventListener('loadedmetadata', takeOver, { once: true }); video.addEventListener('loadeddata', takeOver, { once: true }); }
+      if (video.readyState >= 3) takeOver(); else video.addEventListener('canplay', takeOver, { once: true });
       video.play().catch(function () { /* autoplay refused: the poster stays */ });
     }
   }
