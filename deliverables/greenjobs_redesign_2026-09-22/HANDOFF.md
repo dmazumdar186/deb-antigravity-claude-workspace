@@ -2,6 +2,7 @@
 
 Client: Keith Molony, Gaia Talent Ltd (owner of greenjobs.ie + greenjobs.co.uk).
 Spec: `research/build_spec.md`. Source: `src/`. Built site: `site/` (not committed until reviewed).
+Proposal to send (2026-09-30): `proposal/greenjobs_proposal_2026-09-30.md`; pricing rationale in `proposal/keith_costing_brief_2026-09-28.md` §8–10.
 
 ## Status (refreshed 2026-09-28)
 

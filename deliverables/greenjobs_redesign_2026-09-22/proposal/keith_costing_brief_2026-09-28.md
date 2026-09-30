@@ -168,3 +168,10 @@ Year 1 (A Care + B + C, bundle): €450×12 + €6,500 + €1,375 = **€13,275*
 > 4. Done. The Post-a-job preview now takes the full job description pasted in and shows it exactly as a candidate will see it. Try it on the Employers page with "Fill with example".
 >
 > Both changes are live on the demo now.
+
+## 10. Status (2026-09-30)
+
+- No reply from Keith since his 29 Sept 17:21 email (site-manager questions, answered in §9; fixes live on the demo).
+- The §8 promise ("one-page proposal with the SLA table and the monthly figure tomorrow") is now drafted: `proposal/greenjobs_proposal_2026-09-30.md`. Client-facing, Deb's voice, carries the A/B/C prices, the SLA match table, risk reversal, a 10-week timeline and the four discovery questions with line B bracketed until they arrive. Send as a PDF or paste into the email thread; the numbers are in the document on purpose because §8 committed to sending them in writing.
+- Still owed by Keith: the 11 items in §7 and the 4 questions in §8. Chase once, with the proposal.
+- Nothing on the demo is blocked; the launch checklist in `HANDOFF.md` is unchanged.
