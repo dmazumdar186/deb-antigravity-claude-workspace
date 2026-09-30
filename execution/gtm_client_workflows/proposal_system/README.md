@@ -24,7 +24,7 @@ python3 execution/gtm_client_workflows/proposal_system/build_proposal.py greenjo
   --track-url https://<worker>/api/track --pixel-url https://<worker>/o/greenjobs-keith-v1.gif
 ```
 
-## Deploy the tracker once
+## Deployed 2026-09-30 at https://proposal-tracker.debanjan186.workers.dev (KV 9e6b1a42…). To redeploy
 
 ```bash
 cd execution/gtm_client_workflows/proposal_system/worker
@@ -35,5 +35,5 @@ wrangler secret put PUBLISH_SECRET
 wrangler deploy
 ```
 
-Then `PROPOSAL_WORKER_URL=https://<worker> PROPOSAL_PUBLISH_SECRET=... python3 publish_proposal.py greenjobs-keith-v1`.
+Then `PROPOSAL_WORKER_URL=https://proposal-tracker.debanjan186.workers.dev PROPOSAL_PUBLISH_SECRET=... python3 publish_proposal.py greenjobs-keith-v1`.
 Health: `GET /health`. The Google Doc itself cannot fire a webhook on open; send Keith the `/p/<slug>` link (or embed the pixel URL as a linked image in the Doc) to get the Telegram ping.
