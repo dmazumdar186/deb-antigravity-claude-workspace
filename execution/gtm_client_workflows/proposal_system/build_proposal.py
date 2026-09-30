@@ -145,13 +145,23 @@ def build_docx(d: dict, out: Path) -> None:
 
 
 # ---------- HTML (tracked web copy) ----------
+# Mirrors the tracking contract of the reference proposal-system (api/track.js):
+# first open per browser in 24 h -> "opened", later loads -> "viewed".
+TRACK_JS = """<script>
+const TRACK_URL = "__TRACK_URL__", TRACK_SLUG = "__SLUG__", TRACK_CLIENT = "__CLIENT__";
+function track(event, extra) { try { fetch(TRACK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ slug: TRACK_SLUG, client: TRACK_CLIENT, event, extra }), keepalive: true }).catch(() => {}); } catch (e) {} }
+(function () { try { const key = 'proposal_opened_' + TRACK_SLUG; const last = parseInt(localStorage.getItem(key) || '0', 10); const now = Date.now();
+  if (!last || now - last > 24 * 60 * 60 * 1000) { track('opened'); localStorage.setItem(key, String(now)); } else { track('viewed'); } } catch (e) { track('opened'); } })();
+</script>"""
+
 CSS = """body{font-family:Arial,Helvetica,sans-serif;max-width:820px;margin:40px auto;padding:0 20px;color:#111;line-height:1.5}
 h1{font-size:26px;margin:28px 0 8px}h2{font-size:20px;margin:26px 0 8px}h3{font-size:16px;margin:18px 0 6px}
 table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:14px}td,th{border:1px solid #999;padding:6px 8px;vertical-align:top;text-align:left}
 .note{font-style:italic;font-size:13px;color:#444}.meta{color:#555}.sig td{height:40px}"""
 
 
-def build_html(d: dict, out: Path, pixel_url: str | None) -> None:
+def build_html(d: dict, out: Path, pixel_url: str | None, track_url: str | None = None) -> None:
     parts = [f"<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='robots' content='noindex,nofollow'>"
              f"<meta name='viewport' content='width=device-width,initial-scale=1'><title>{html.escape(d['title'])}</title><style>{CSS}</style></head><body>",
              f"<h1>{html.escape(d['title'])}</h1>",
@@ -186,6 +196,8 @@ def build_html(d: dict, out: Path, pixel_url: str | None) -> None:
                          + "<tr>" + "".join("<td>Date: ____ / ____ / ________</td>" for _ in v) + "</tr></table>")
     if pixel_url:
         parts.append(f"<img src='{html.escape(pixel_url)}' width='1' height='1' alt='' style='position:absolute;left:-9999px'>")
+    if track_url:
+        parts.append(TRACK_JS.replace("__TRACK_URL__", track_url).replace("__SLUG__", d["slug"]).replace("__CLIENT__", html.escape(d["parties"]["client"]["company"])))
     parts.append("</body></html>")
     out.write_text("\n".join(parts), encoding="utf-8")
 
@@ -226,12 +238,13 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("slug")
     ap.add_argument("--pixel-url", default=None, help="open-pixel URL to embed in the HTML copy, e.g. https://<worker>/o/<slug>.gif")
+    ap.add_argument("--track-url", default=None, help="POST endpoint for opened/viewed events, e.g. https://<worker>/api/track")
     a = ap.parse_args()
     d = load(a.slug)
     out_dir = HERE / "out" / a.slug
     out_dir.mkdir(parents=True, exist_ok=True)
     build_docx(d, out_dir / f"{a.slug}.docx")
-    build_html(d, out_dir / f"{a.slug}.html", a.pixel_url)
+    build_html(d, out_dir / f"{a.slug}.html", a.pixel_url, a.track_url)
     build_md(d, out_dir / f"{a.slug}.md")
     n_tables = sum(1 for b in d["blocks"] if "table" in b)
     print(f"built {out_dir}: docx, html, md · {len(d['blocks'])} blocks, {n_tables} tables")

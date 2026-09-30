@@ -1,0 +1,4 @@
+{
+  "_note": "base_url = the domain your Vercel project serves (custom domain or the *.vercel.app one). Only used for the URL printed after a build.",
+  "base_url": "https://proposals.yourcompany.com"
+}

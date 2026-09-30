@@ -50,6 +50,15 @@ export default {
       return json({ slug: m[1], count: log.length, opens: log });
     }
 
+    if (path === "/api/track" && request.method === "POST") {
+      // Same contract as Siva's Vercel api/track.js: {slug, client, event, extra}
+      let body = {};
+      try { body = await request.json(); } catch (e) { return json({ error: "bad json" }, 400); }
+      if (!body.slug || !body.event) return json({ error: "missing_fields" }, 400);
+      ctx.waitUntil(recordOpen(request, env, String(body.slug).slice(0, 64), String(body.event).slice(0, 32), url, body.extra));
+      return json({ ok: true }, 200);
+    }
+
     if ((m = path.match(/^\/o\/([a-z0-9_-]+)\.gif$/))) {
       ctx.waitUntil(recordOpen(request, env, m[1], "pixel", url));
       return new Response(GIF, { headers: { "content-type": "image/gif", "cache-control": "no-store, no-cache, must-revalidate, max-age=0", "pragma": "no-cache" } });
@@ -81,7 +90,7 @@ async function sha(text) {
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 12);
 }
 
-async function recordOpen(request, env, slug, kind, url) {
+async function recordOpen(request, env, slug, kind, url, extra) {
   const kv = env.PROPOSALS;
   const cf = request.cf || {};
   const ua = request.headers.get("user-agent") || "";
@@ -92,7 +101,7 @@ async function recordOpen(request, env, slug, kind, url) {
   const entry = {
     ts: now.toISOString(), kind, country: cf.country || "?", city: cf.city || "?",
     region: cf.region || "", ua: ua.slice(0, 160), ip_hash: ipHash,
-    referer: request.headers.get("referer") || "", me: isMe,
+    referer: request.headers.get("referer") || "", me: isMe, extra: extra ? String(extra).slice(0, 200) : undefined,
   };
   // Bots and link previewers (Slack, LinkedIn, WhatsApp, Telegram) fetch links too; label them.
   if (/bot|crawler|spider|preview|facebookexternalhit|linkedinbot|slackbot|telegrambot|whatsapp|curl|python-requests/i.test(ua)) entry.bot = true;
@@ -111,8 +120,12 @@ async function recordOpen(request, env, slug, kind, url) {
 
   const humanOpens = log.filter(e => !e.me && !e.bot).length || 1;
   const device = /mobile|iphone|android/i.test(ua) ? "mobile" : "desktop";
+  const icons = { opened: "📬", viewed: "👁", signed: "✍️", pay_clicked: "💳", page: "📄", pixel: "📄" };
+  const label = kind === "opened" ? "Proposal first opened" : kind === "viewed" ? "Proposal viewed again"
+    : kind === "signed" ? "Proposal SIGNED" : kind === "pay_clicked" ? "Proposal: Pay clicked" : "Proposal opened";
   const text = [
-    `📄 *Proposal opened* — \`${slug}\``,
+    `${icons[kind] || "•"} *${label}*: \`${slug}\``,
+    entry.extra ? `\`${entry.extra}\`` : null,
     `Open #${humanOpens} · ${kind}`,
     `📍 ${entry.city}, ${entry.country} · ${device}`,
     `🕒 ${now.toUTCString()}`,

@@ -1,0 +1,96 @@
+{
+  "_note": "EXAMPLE PRICES, re-check every one against the vendor page and set last_verified before sending a proposal. Put your own affiliate links in `url` if you have them. Shared tool price table for ALL cold email proposals. Update prices HERE, never in a template or a client config. `last_verified` is the date the price was checked against the vendor's live pricing page. Anything older than ~60 days should be re-checked before a proposal goes out.",
+  "last_verified": "2026-07-06",
+  "tools": [
+    {
+      "id": "instantly",
+      "name": "Instantly.ai",
+      "plan": "Growth",
+      "url": "https://instantly.ai",
+      "affiliate": false,
+      "purpose": "Email sending, warmup, campaigns",
+      "cost": 87.30,
+      "period": "mo",
+      "recurring": true
+    },
+    {
+      "id": "vayne",
+      "name": "Vayne.io",
+      "plan": "Freelance",
+      "url": "https://www.vayne.io/en",
+      "affiliate": false,
+      "purpose": "Scrape LinkedIn Sales Navigator profiles",
+      "cost": 23.20,
+      "period": "mo",
+      "recurring": true
+    },
+    {
+      "id": "zapmail",
+      "name": "Zapmail",
+      "plan": "Starter G + M",
+      "url": "https://zapmail.ai",
+      "affiliate": false,
+      "purpose": "20 mailboxes (10 Google + 10 Microsoft)",
+      "cost": 70.00,
+      "period": "mo",
+      "recurring": true
+    },
+    {
+      "id": "salesnav",
+      "name": "LinkedIn Sales Navigator Advanced",
+      "plan": "",
+      "url": "",
+      "affiliate": false,
+      "purpose": "Find decision makers*",
+      "cost": 160.00,
+      "period": "mo",
+      "recurring": true
+    },
+    {
+      "id": "claude",
+      "name": "Claude subscription",
+      "plan": "",
+      "url": "",
+      "affiliate": false,
+      "purpose": "Analysis and personalization",
+      "cost": 20.00,
+      "period": "mo",
+      "recurring": true,
+      "approx": true
+    },
+    {
+      "id": "anymailfinder",
+      "name": "Anymailfinder",
+      "plan": "Starter Yearly",
+      "url": "https://anymailfinder.com",
+      "affiliate": false,
+      "purpose": "Find &amp; verify emails (4,800 credits)",
+      "cost": 182.00,
+      "period": "yr",
+      "recurring": false
+    },
+    {
+      "id": "domains",
+      "name": "7 Sending Domains",
+      "plan": "",
+      "url": "",
+      "affiliate": false,
+      "purpose": "Protect your primary domain",
+      "cost": 91.00,
+      "period": "yr",
+      "recurring": false,
+      "approx": true
+    },
+    {
+      "id": "prewarmed",
+      "name": "Pre-warmed Mailboxes",
+      "plan": "Zapmail Growth",
+      "url": "https://zapmail.ai",
+      "affiliate": false,
+      "purpose": "12 Microsoft mailboxes + 4 domains, ready to send",
+      "cost": 156.00,
+      "period": "first mo",
+      "recurring": false
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "client": {
+    "name": "Alex Morgan",
+    "title": "Founder",
+    "company": "Northwind Coffee Co.",
+    "company_slug_base": "northwind-coffee"
+  },
+  "sender": {
+    "name": "YOUR NAME",
+    "name_first": "YOURFIRSTNAME",
+    "title": "Founder, Your Company",
+    "company": "Your Company",
+    "email": "you@yourcompany.com"
+  },
+  "project": {
+    "title": "Revenue Operations Automation for Northwind Coffee Co.",
+    "cover_brand_label": "Revenue Operations Proposal",
+    "cover_subtitle": "A 3-month engagement to replace manual bottlenecks with systems that recover revenue while you sleep.",
+    "created_date": "2026-04-18"
+  },
+  "situation": {
+    "headline": "You're leaving revenue on the table every day the ops stay manual.",
+    "lede": "Northwind is doing the hard part: you have a product people love and a loyal customer base that keeps reordering. But the infrastructure behind the brand is still stitched together with spreadsheets, copy-paste, and founder time. Every week that passes, compounding opportunities go quiet.",
+    "callout_title": "The pattern",
+    "callout_body": "growing DTC brands don't die from lack of demand. They die from operational drag — the small, repeated tasks that eat founder attention and let revenue slip through unnoticed.",
+    "close": "This proposal outlines a focused engagement to remove the four biggest drags on your revenue engine and replace them with systems that run without you."
+  },
+  "problems": [
+    {"title": "Abandoned carts going cold", "body": "Roughly 68% of carts are abandoned and your current recovery sequence is a single email sent six hours later. You're losing an estimated $8-12K per month in recoverable revenue because the flow isn't segmented by cart value, product, or whether the shopper has bought before."},
+    {"title": "Wholesale inquiries stuck in your inbox", "body": "Cafés and retailers email orders@ and wait three-plus days for a reply. You're the bottleneck. Deals worth $2K-$15K go cold because there's no intake form, no auto-reply with your wholesale deck, and no CRM capturing the lead before it disappears into Gmail."},
+    {"title": "Subscription churn you can't see coming", "body": "Subscribers cancel without warning. You have no signal for who's about to churn, no win-back flow, and no way to pause vs. cancel. Each lost subscriber is roughly $340 in lifetime value, and you're watching that number grow in Shopify with no lever to pull."},
+    {"title": "Post-purchase silence", "body": "After a customer buys, they hear from you once: the shipping notification. No brewing guide, no story, no reorder nudge, no review ask. You're skipping the highest-intent window in the customer lifecycle and it shows in your repeat-purchase rate sitting below industry benchmark."}
+  ],
+  "benefits": [
+    {"title": "Cart recovery that actually converts", "body": "A three-touch sequence segmented by cart value and customer type, triggered within 30 minutes. Conservative projection: recover 12-18% of abandoned carts, which on your volume translates to $6K-$10K in monthly revenue you're currently losing without noticing."},
+    {"title": "Wholesale pipeline on autopilot", "body": "A dedicated wholesale intake form, instant auto-reply with your deck and pricing tiers, and every inquiry landing in a CRM with clear ownership. You go from reactive inbox-checking to a pipeline where deals either close or get logged, nothing sits."},
+    {"title": "Churn signals you can act on", "body": "A churn-risk score per subscriber, a pause-instead-of-cancel flow, and a win-back sequence for the ones who leave anyway. Reducing churn by just 2 percentage points is roughly $15K in annual retained revenue on your current subscriber base."},
+    {"title": "Post-purchase that drives repeats", "body": "A five-touch post-purchase flow: shipping, brewing guide, origin story, review ask, reorder offer. Each touch tied to behavior, not just days. Target: lift repeat-purchase rate from current baseline to 32%+, the benchmark for specialty DTC coffee."}
+  ],
+  "scope": {
+    "m1_title": "Month 1 — Foundations",
+    "m1_body": "CRM setup, data audit, Shopify + Klaviyo integration, wholesale intake form + auto-reply, cart recovery v1 live by week 3.",
+    "m2_title": "Month 2 — Retention Systems",
+    "m2_body": "Churn scoring model, pause/cancel flow, win-back sequence, post-purchase 5-touch flow, review engine tied to Yotpo.",
+    "m3_title": "Month 3 — Optimization & Handoff",
+    "m3_body": "A/B tests on every flow, performance dashboard, SOP documentation, 60-minute team training, 30-day post-engagement support.",
+    "throughout": "Weekly 30-min sync, Slack channel for async questions, all work in your accounts so nothing is locked to me.",
+    "out_of_scope": "Paid ads, creative/design production, new Shopify theme work. Happy to refer trusted partners."
+  },
+  "investment": {
+    "m1_deliverable": "Foundations + cart recovery live",
+    "m1_amount": "4500",
+    "m2_deliverable": "Retention systems + post-purchase flow",
+    "m2_amount": "4500",
+    "m3_deliverable": "Optimization, dashboards, handoff",
+    "m3_amount": "4500",
+    "total_amount": "13500",
+    "roi_title": "Expected return in month one alone",
+    "roi_body": "from cart recovery and wholesale pipeline: $8K-$12K in otherwise-lost revenue. The engagement pays for itself before month two begins."
+  },
+  "agreement": {
+    "body": "Signing below kicks off Month 1. First working session within 3 business days. You'll have cart recovery live and wholesale intake running before we bill Month 2.",
+    "sender_signature_text": "YOUR NAME"
+  },
+  "payment": {
+    "stripe_url": "https://buy.stripe.com/your-stripe-payment-link-here"
+  }
+}
