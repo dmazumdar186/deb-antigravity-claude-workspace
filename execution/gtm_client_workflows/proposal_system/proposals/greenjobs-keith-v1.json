@@ -1,10 +1,9 @@
 {
  "slug": "greenjobs-keith-v1",
- "title": "GreenJobs Platform Rebuild, Migration and Managed Hosting",
- "subtitle": "Proposal and services agreement for greenjobs.ie and greenjobs.co.uk. Prepared for Keith Molony, Managing Director, GreenJobs Ltd. Prepared by Debanjan Mazumdar, Founder, ProdCraft (debanjan@prodcraft.fyi).",
- "version": "1.0 (draft for review)",
+ "title": "GreenJobs Platform Rebuild for GreenJobs Ltd",
+ "subtitle": "",
+ "version": "1.0",
  "date": "2026-09-30",
- "valid_until": "2026-10-31",
  "parties": {
   "provider": {
    "name": "Debanjan Mazumdar",
@@ -16,7 +15,7 @@
    "name": "Keith Molony",
    "title": "Managing Director",
    "company": "GreenJobs Ltd",
-   "email": "[KEITH EMAIL: to be confirmed]"
+   "email": ""
   }
  },
  "blocks": [
@@ -24,32 +23,20 @@
    "kv": [
     [
      "Prepared for",
-     "Keith Molony, Managing Director, GreenJobs Ltd (GreenJobs Limited, Ennis Digital Hub, Quin Road Business Park, Ennis, Co. Clare, V95 VW74), operator of greenjobs.ie and greenjobs.co.uk"
+     "Keith Molony, Managing Director, GreenJobs Ltd"
     ],
     [
      "Prepared by",
-     "Debanjan Mazumdar, Founder, ProdCraft, debanjan@prodcraft.fyi"
+     "Debanjan Mazumdar, Founder, ProdCraft"
     ],
     [
      "Date",
      "30 September 2026"
-    ],
-    [
-     "Proposal valid until",
-     "31 October 2026"
-    ],
-    [
-     "Currency",
-     "All figures in euro (EUR), exclusive of VAT unless stated"
-    ],
-    [
-     "Status",
-     "Version 1.0. Becomes a binding services agreement when signed by both parties (Section 07)."
     ]
    ]
   },
   {
-   "p": "This proposal contains all of the details and costs regarding the scope of work, timeline, investment and terms for the rebuild of the GreenJobs job boards, their migration off the current Strategies platform, and their ongoing managed hosting, as discussed between Keith Molony and Debanjan Mazumdar between 10 September and 29 September 2026."
+   "p": "This proposal contains all of the details and costs regarding the scope of work, investment and terms for the GreenJobs job boards (greenjobs.ie and greenjobs.co.uk), as requested by Keith Molony."
   },
   {
    "pagebreak": true
@@ -58,31 +45,49 @@
    "h1": "01. The Situation"
   },
   {
-   "h2": "You have a 2008-era platform carrying a 2026 business."
+   "h2": "Problem: a 2008-era platform is holding back a business that has outgrown it."
   },
   {
    "p": "Hi Keith,"
   },
   {
-   "p": "Thank you for the feedback on the demo and for the notes from your site manager. I have boiled down our conversations since 10 September, your 28 September change document (114 individual requests) and your two emails of 29 September into one document, so that you and your Finance Manager can see the whole picture, every number, and exactly what you would be signing."
+   "p": "I spent some time boiling down our conversations, your change document of 28 September and your two emails of 29 September into a list of areas where I think you need help. Here are what I believe to be the core problems:"
   },
   {
-   "p": "Where things stand today, from what I have measured on the live sites and what you have told me:"
+   "pagebreak": true
   },
   {
-   "bullets": [
-    "greenjobs.ie and greenjobs.co.uk run on a hosted job-board platform supplied by Strategies (strategies.co.uk). The platform is classic ASP (build tag 3.1.3), jQuery 1.11, Bootstrap 3, with Internet Explorer 8 compatibility shims still shipped to every visitor.",
-    "The Irish home page is 190 KB of HTML with about 1.03 MB of scripts, styles and key images and 1,090 links on one page. Job pages have Google JobPosting structured data switched off (\"Invalid salary data\"), so roles are invisible to Google for Jobs.",
-    "On the 22 September snapshot, salary was disclosed on 33% of Irish roles (29 of 88) and 57% of UK roles (56 of 98). Two agencies supply the large majority of listings, mostly through Broadbean, Idibu or LogicMelon multiposting.",
-    "Strategies publishes pricing \"from £899 per month\" (about €1,030) plus an 8 to 12 week delivery window for changes. Your actual invoice, tier, renewal date and notice period are not yet known to me and are listed as inputs in Section 04.",
-    "Since 22 September I have built and deployed a working front end for both editions at greenjobs-redesign.pages.dev: 195 pages on 165 live roles, every one of your change requests that is front-end work (100 of 114) implemented, and 3,047 automated checks passing at the last run on 30 September."
-   ]
+   "h1": "02. What It Is Costing You"
   },
   {
-   "p": "**What you asked for (29 September):** very little rebuild work is needed on top of what you have seen. What matters is hosting plus integrations, with a guarantee that matches what Strategies gives you today: uptime, backups, security, monitoring, and Broadbean, Idibu and LogicMelon continuing to post without interruption. You also want an easy way for your recruiters to post roles straight from their CRM, and for GreenJobs staff to post ads themselves."
+   "h2": "Four problems on the current setup."
   },
   {
-   "p": "This proposal is built around exactly that request. The rest of this document sets out the four problems the current setup is costing you, what you get in return, the scope and timeline phase by phase, the investment, and the terms."
+   "h3": "1. Paying a vendor every month with no leverage"
+  },
+  {
+   "p": "You pay Strategies a monthly fee for a hosted platform and wait 8 to 12 weeks for changes. You told me you are not convinced it is value for money and that you are considering moving off it."
+  },
+  {
+   "h3": "2. Invisible where candidates search"
+  },
+  {
+   "p": "Google JobPosting structured data is switched off on every job page, so none of your roles appear in Google for Jobs. Salary shows on only a third of Irish roles, so Premium postings do not get the reach the package promises."
+  },
+  {
+   "h3": "3. A slow, heavy site on a legacy stack"
+  },
+  {
+   "p": "Every visitor downloads about a megabyte of assets and a 190 KB page built on classic ASP, jQuery 1.11 and Internet Explorer 8 shims. Mobile visitors, the majority of job seekers, wait longest."
+  },
+  {
+   "h3": "4. Figures typed by hand, no dashboard"
+  },
+  {
+   "p": "Counts by county, sector and salary band are typed in and go stale, and you have no employer analytics or KPI view. Your site manager's first question was whether the stats update automatically."
+  },
+  {
+   "p": "The following pages cover the full scope of the project we discussed, including investment. Let me know if you have any questions by emailing me at debanjan@prodcraft.fyi."
   },
   {
    "p": "Thanks,"
@@ -94,67 +99,40 @@
    "pagebreak": true
   },
   {
-   "h1": "02. What It Is Costing You"
-  },
-  {
-   "h2": "Four problems with the current setup."
-  },
-  {
-   "h3": "Problem 01. A recurring cost with no leverage"
-  },
-  {
-   "p": "You pay a hosted platform vendor every month and are dependent on their roadmap and their 8 to 12 week delivery window for changes. Based on Strategies' public entry price of £899 per month (about €1,030) your recurring platform spend is estimated at about €1,030 per month, or roughly €12,400 per year, before any advertising. That estimate is derived from public pricing, not from your invoice, and is corrected in the final version once you share the Strategies figure."
-  },
-  {
-   "h3": "Problem 02. Roles are invisible where candidates search"
-  },
-  {
-   "p": "JobPosting structured data is disabled on every job page, so none of your roles qualify for Google for Jobs. Salary is shown on only a third of Irish roles. Candidates who start on Google never see GreenJobs, and employers who pay for a Premium posting are not getting the reach the package promises."
-  },
-  {
-   "h3": "Problem 03. A slow, heavy site on a legacy stack"
-  },
-  {
-   "p": "Every visitor downloads about a megabyte of assets and a 190 KB page built for browsers that no longer exist. Mobile visitors, who are the majority for job seekers, wait longest. The demo you reviewed serves the same content in 76.9 KB of CSS and 107.5 KB of JavaScript with zero third-party requests."
-  },
-  {
-   "h3": "Problem 04. Figures typed by hand, no dashboard"
-  },
-  {
-   "p": "Counts on the current site (roles per county, sector and salary band) are typed in and go stale. There is no employer analytics and no KPI view for you. Your site manager's first question on 29 September was whether the stats update automatically. On the new platform every figure is computed from the job data on every post."
-  },
-  {
-   "pagebreak": true
-  },
-  {
    "h1": "03. What You Get"
   },
   {
-   "h2": "Three deliverables, one recurring service."
+   "h2": "A modern GreenJobs platform you own, with the integrations kept."
   },
   {
-   "h3": "Benefit 01. Both editions rebuilt, with every front-end request already done"
+   "p": "My proposed solution to the problems above is as follows."
   },
   {
-   "p": "greenjobs.ie (euro, en-IE) and greenjobs.co.uk (sterling, en-GB) as demonstrated: jobs board with filters, list, map and saved views, one page per role with JobPosting structured data, 14-sector taxonomy, salary insights and a data-generated salary guide, career quiz, employers page with a Premium and Membership comparison table and a live post-a-job preview that accepts the full job description, four SEO landing pages, a KPI dashboard, sitemap and 404. Salaries are never converted; sterling and euro are labelled with the bracketed equivalent at 1.17. 100 of your 114 requests are live; the remaining 11 need information or a decision from you (Section 04)."
+   "h3": "1. Both editions rebuilt"
   },
   {
-   "h3": "Benefit 02. Your own platform, off Strategies, with the integrations kept"
+   "p": "greenjobs.ie and greenjobs.co.uk as demonstrated at greenjobs-redesign.pages.dev: jobs board with filters, list, map and saved views; one page per role with JobPosting structured data; 14-sector taxonomy; salary insights and salary guide; career quiz; employers page with the Premium and Membership comparison and a live post-a-job preview; four SEO landing pages; KPI dashboard. All 100 completed items from your change document are included; the remaining 11 are applied the day you supply the input."
   },
   {
-   "p": "An admin posting console for GreenJobs staff, candidate accounts with stored CV, one-click apply, saved roles and email job alerts, multiposting endpoints for Broadbean, Idibu and LogicMelon verified by a daily test job, a recruiter posting integration so a role can be pushed from a recruiter's CRM to both boards in one step, a full export of jobs, employers and candidates from Strategies, and a 301 redirect map for every indexed URL. Stack: Cloudflare Pages, Workers, D1 and R2, transactional email via Postmark or Resend. Running cost of the infrastructure itself is under €50 per month and is included in the managed hosting fee."
+   "h3": "2. Your own platform, off Strategies"
   },
   {
-   "h3": "Benefit 03. Managed hosting with a written guarantee that matches Strategies point for point"
+   "p": "Admin posting console for GreenJobs staff; candidate accounts with stored CV, one-click apply, saved roles and email job alerts; Broadbean, Idibu and LogicMelon posting kept and verified by a daily test job; a recruiter CRM posting integration; full data export from Strategies; a 301 redirect for every indexed URL."
   },
   {
-   "p": "99.9% monthly uptime with service credits, daily off-site backups with a quarterly tested restore, Cloudflare firewall, DDoS protection and managed SSL, 24/7 monitoring with alerts to me, EU-region data preference, daily posting-route checks, a monthly report, and up to 4 hours of changes each month. The full guarantee table is in Section 05."
+   "h3": "3. Hosting that matches what Strategies gives you today"
   },
   {
-   "h3": "Benefit 04. A recurring cost that drops to under half"
+   "p": "99.9% uptime, daily backups with a tested restore each quarter, firewall, DDoS protection and SSL, 24/7 monitoring, EU data region, daily integration checks and a monthly report."
   },
   {
-   "p": "From year two the total cost of both boards is €5,400 per year at the Care tier, against an estimated €12,400 today. Year one, including the one-off build and migration with the bundle credit, is €13,275, which is inside what you are estimated to spend today with no upgrade. Data is yours, in standard formats, with no lock-in after the first three months."
+   "h3": "4. Numbers that update themselves"
+  },
+  {
+   "p": "Every figure on the site is computed from the job data on every post, whether GreenJobs staff or a client uploads the ad."
+  },
+  {
+   "p": "I consider this reasonably straightforward and am confident I can do an outstanding job here for you. If I was not, I would not have put together this proposal."
   },
   {
    "pagebreak": true
@@ -163,470 +141,176 @@
    "h1": "04. Scope of Work"
   },
   {
-   "h2": "What ProdCraft will deliver, phase by phase."
-  },
-  {
-   "h3": "Phase 1. Front-end rebuild on your domains (15 working days from signature)"
+   "h2": "What ProdCraft will build."
   },
   {
    "bullets": [
-    "Deploy the IE and UK editions demonstrated at greenjobs-redesign.pages.dev to greenjobs.ie and greenjobs.co.uk on Cloudflare Pages, reading live job data from the current Strategies platform until Phase 2 replaces it.",
-    "All 100 completed items from your 28 September change document, plus the two fixes from your site manager's questions (Premium and Membership only in the comparison table; full job description in the post-a-job preview).",
-    "The 11 open items applied the same working day you supply the input or decision (listed under Client inputs below).",
-    "Remove the noindex and robots block, submit sitemaps for both editions, and switch on JobPosting structured data for every live role.",
-    "Redirect map for the current URL structure to the new one, so no indexed page returns a 404 on launch day.",
-    "Handover: a written runbook, the test register (currently 3,047 automated checks) and the source repository."
+    "Deploy the IE and UK editions to greenjobs.ie and greenjobs.co.uk on Cloudflare, including all 100 completed change-document items and the two site-manager fixes, JobPosting structured data on every role, sitemaps, and redirects for the current URLs.",
+    "Build the platform: admin posting console, candidate accounts and job alerts, newsletter send, Broadbean / Idibu / LogicMelon posting endpoints with a daily test job, recruiter CRM posting integration, Strategies data export and import, 301 redirect map, analytics.",
+    "Run the new platform in parallel with Strategies for 30 days; move DNS only after every posting route passes and you sign off in writing.",
+    "Hand over a written runbook, the test register (3,047 automated checks) and the source repository; everything runs in accounts GreenJobs owns."
    ]
   },
   {
-   "h3": "Phase 2. Platform migration off Strategies (6 to 8 weeks build, then a 30-day parallel run)"
+   "h3": "Milestones"
   },
   {
    "bullets": [
-    "Admin posting console: GreenJobs staff create, edit, feature, close and repost roles for either edition with the same preview candidates see.",
-    "Candidate accounts: one registration, CV stored, one-click apply, saved roles and email job alerts tied to the account.",
-    "Multiposting endpoints for Broadbean, Idibu and LogicMelon, each verified by a test job posted through the route every day. Only the routes you confirm are in use are built and tested.",
-    "Recruiter posting integration: push a role from a recruiter's CRM (the CRM and its API access to be confirmed at kick-off) to both boards in one step.",
-    "Weekly newsletter send and job-alert emails through Postmark or Resend, using your sender domain.",
-    "Full data export from Strategies (jobs, employers, candidates, alert subscribers) and import into the new platform, with a reconciliation report.",
-    "301 redirect map for every indexed browse, job and employer URL, and analytics on the provider you choose.",
-    "30-day parallel run: the new platform runs alongside Strategies. DNS moves only after every posting route passes acceptance and you sign off in writing."
+    "**Month 1. Front end live.** Both editions live on your domains within 15 working days of signature. If it is not live by then for reasons within my control, you do not pay for it.",
+    "**Month 2 to 3. Platform build and staging.** Posting console, accounts, alerts, integrations, data import, redirect map; staging acceptance with you and your site manager.",
+    "**Month 3 to 4. Parallel run and go-live.** 30-day parallel run, then DNS cut-over and 10 working days of daily checks.",
+    "**Throughout.** Weekly update, one business day response, 4-hour response to a posting outage, all work in your accounts so nothing is locked to me."
    ]
   },
   {
-   "h3": "Phase 3. Managed hosting and support (monthly, from Phase 1 go-live)"
+   "h3": "Timeline"
+  },
+  {
+   "p": "My proposed timeline is pragmatic and takes into account past experience building similar systems. Assuming signature on Monday 6 October 2026:"
   },
   {
    "bullets": [
-    "Care tier (€450 per month): hosting for greenjobs.ie and greenjobs.co.uk, SSL, daily backups, uptime and integration monitoring, security patches, up to 4 hours of changes per month, monthly report, and the service levels in Section 05.",
-    "Grow tier (€650 per month, optional): Care plus 10 hours per month for SEO and content (blog and salary insights), newsletter send, employer analytics, new features from a shared backlog and a quarterly review call.",
-    "Three-month minimum from the first monthly invoice, then rolling monthly with 30 days' written notice from either side. 10% discount for annual prepayment."
+    "Front end live on your domains: by Wednesday 28 October 2026 (15 working days)",
+    "Platform build and staging acceptance: 29 October to 18 December 2026",
+    "Parallel run alongside Strategies: 5 January to 3 February 2027",
+    "Go-live on the new platform: Tuesday 9 February 2027"
    ]
   },
   {
-   "h3": "Throughout"
+   "p": "Dates move day for day with the signature date and with any input from GreenJobs that arrives late (Strategies contract details, which posting routes are in use, DNS access, logo permissions, testimonials, the open decisions from your change document). Broadbean onboarding runs on Broadbean's timeline."
   },
   {
-   "p": "One weekly 30-minute call or written update, a shared change log, one business day response to any question, 4-hour response to a posting outage, and all infrastructure in accounts that GreenJobs owns so nothing is locked to ProdCraft."
+   "p": "**Out of scope:** employer self-service purchasing and card payment for job packages (GreenJobs staff post the ads); the other eight sites in the GreenJobs network; writing career-advice articles or market reports; paid advertising; any fees charged by Broadbean, Idibu, LogicMelon or Strategies. Anything else is quoted before it starts."
   },
   {
-   "h3": "Out of scope"
+   "pagebreak": true
   },
   {
-   "p": "Employer self-service purchasing and online card payment (Stripe billing) for job packages, since GreenJobs staff post the ads; the other eight sites in the GreenJobs network (ConservationJobs, EcologyJobs, EnvironmentalJobs, RenewableEnergyJobs, SolarJobs, WasteJobs, WaterJobs, WindJobs); writing career-advice articles or market reports beyond the salary guide; paid advertising; any fees charged by Broadbean, Idibu, LogicMelon or Strategies for onboarding, API access or data export; the paid Cloudflare Data Localisation add-on if a hard EU data-residency guarantee is required. Anything not listed in Phases 1 to 3 is a change request under clause 4 of the Terms."
+   "h1": "05. Investment"
   },
   {
-   "h3": "Client inputs (what ProdCraft needs from GreenJobs, and by when)"
+   "h2": "Your investment."
+  },
+  {
+   "p": "Note: this is a two-step package with a 50% deposit and the remaining balance due on go-live. \"Go-live\" is defined as the fulfilment of the scope above, and the balance is only due upon full satisfaction with the project."
   },
   {
    "table": {
     "header": [
-     "#",
-     "Input",
-     "Needed for",
-     "By"
+     "Name",
+     "Price",
+     "Qty",
+     "Subtotal"
     ],
     "rows": [
      [
+      "Front-end rebuild, greenjobs.ie and greenjobs.co.uk",
+      "€1,999",
       "1",
-      "Strategies invoice amount, tier, renewal date, notice period and data-export terms",
-      "Phase 2 price confirmation and cut-over date",
-      "Signature + 5 working days"
+      "€1,999"
      ],
      [
-      "2",
-      "Which of Broadbean, Idibu, LogicMelon (and JobAdder) are actually used, and who owns each account",
-      "Phase 2 integration list",
-      "Signature + 5 working days"
-     ],
-     [
-      "3",
-      "The recruiter CRM to integrate for posting, its plan tier and API access",
-      "Recruiter posting integration",
-      "Signature + 5 working days"
-     ],
-     [
-      "4",
-      "Monthly posting volume, number of employer accounts, candidate accounts, job-alert subscribers and newsletter list size",
-      "Sizing and migration plan",
-      "Signature + 5 working days"
-     ],
-     [
-      "5",
-      "DNS access for greenjobs.ie and greenjobs.co.uk (or a contact who can make the change on the day)",
-      "Phase 1 go-live",
-      "Signature + 5 working days"
-     ],
-     [
-      "6",
-      "Monthly visitor figure, weekly newsletter reach and LinkedIn or network figures for the employers page",
-      "Open items 1 to 3 of 11",
-      "Before Phase 1 go-live"
-     ],
-     [
-      "7",
-      "Two or three UK employer testimonials, verbatim, with permission to name them; UK placement examples",
-      "Open items 4 and 7",
-      "Before Phase 1 go-live"
-     ],
-     [
-      "8",
-      "Written permission to display each employer's logo, and to use the B Corp and 1% for the Planet marks",
-      "Open item 5; launch checklist",
-      "Before Phase 1 go-live"
-     ],
-     [
-      "9",
-      "A GB phone number for the UK site, if wanted",
-      "Open item 6",
-      "Before Phase 1 go-live"
-     ],
-     [
-      "10",
-      "Decisions: \"Roles across 10 sectors\" or the live count (14); keep \"Transport and active travel\" merged or split; Membership package contents; content-hub topics",
-      "Open items 8 to 11",
-      "Before Phase 1 go-live"
-     ],
-     [
-      "11",
-      "Email provider choice for newsletter and alerts, analytics provider, and the owner of the advertising-rates inbox",
-      "Phase 2",
-      "Phase 2 kick-off"
-     ]
-    ],
-    "caption": "Where an input arrives late, the dates in the timeline move day for day and the 15-working-day guarantee clock pauses (Terms, clause 3)."
-   }
-  },
-  {
-   "pagebreak": true
-  },
-  {
-   "h1": "Timeline"
-  },
-  {
-   "h2": "Indicative calendar, assuming signature on Monday 6 October 2026."
-  },
-  {
-   "p": "Every date below is relative to the signature date and shifts day for day if signature or a client input moves. Working days exclude Irish public holidays (26 October 2026, 25 and 26 December 2026, 1 January 2027)."
-  },
-  {
-   "table": {
-    "header": [
-     "Step",
-     "What happens",
-     "Working days",
-     "Indicative dates"
-    ],
-    "rows": [
-     [
-      "0",
-      "Signature, kick-off call, client inputs 1 to 5 requested",
-      "Day 0",
-      "Mon 6 Oct 2026"
-     ],
-     [
+      "Platform migration off Strategies",
+      "€2,999",
       "1",
-      "Phase 1: front end deployed to a staging URL on your domains, DNS prepared, redirects tested",
-      "Days 1 to 10",
-      "Tue 7 Oct to Tue 20 Oct 2026"
+      "€2,999"
      ],
      [
-      "2",
-      "Phase 1: open items applied, final human-eye pass, DNS switch, sitemaps submitted",
-      "Days 11 to 15",
-      "Wed 21 Oct to Wed 28 Oct 2026"
-     ],
-     [
-      "3",
-      "Phase 1 go-live on greenjobs.ie and greenjobs.co.uk. Milestone 1 invoiced. Managed hosting starts.",
-      "Day 15",
-      "Wed 28 Oct 2026"
-     ],
-     [
-      "4",
-      "Phase 2 build: admin console, candidate accounts, alerts, integrations, data import, redirect map",
-      "Weeks 4 to 11 (about 7.5 weeks)",
-      "Thu 29 Oct to Fri 18 Dec 2026"
-     ],
-     [
-      "5",
-      "Staging acceptance: you and your site manager test every route against a written acceptance list. Milestone 3 invoiced on sign-off.",
-      "End of week 11",
-      "By Fri 18 Dec 2026"
-     ],
-     [
-      "6",
-      "Holiday freeze (no cut-over during the Christmas posting lull)",
-      "",
-      "21 Dec 2026 to 4 Jan 2027"
-     ],
-     [
-      "7",
-      "30-day parallel run alongside Strategies; daily test job through each posting route; reconciliation of data",
-      "30 calendar days",
-      "Tue 5 Jan to Wed 3 Feb 2027"
-     ],
-     [
-      "8",
-      "Go-live: DNS moves to the new platform, Strategies notice served per its contract. Milestone 4 invoiced.",
-      "",
-      "Tue 9 Feb 2027"
-     ],
-     [
-      "9",
-      "Hypercare: daily checks and same-day fixes for 10 working days after cut-over",
-      "10 working days",
-      "9 Feb to 22 Feb 2027"
-     ]
-    ],
-    "caption": "Phase 2 is 6 to 8 weeks of build; the calendar above uses 7.5 weeks plus the holiday freeze. If your Strategies renewal date requires an earlier cut-over, the parallel run can start before Christmas and the dates compress accordingly."
-   }
-  },
-  {
-   "p": "**Dependencies outside either party's control.** Broadbean must accept the new platform as a posting destination; that onboarding runs on Broadbean's timeline. Where a route is not ready by the end of the parallel run, the cut-over waits for that route rather than going live with it missing."
-  },
-  {
-   "pagebreak": true
-  },
-  {
-   "h1": "05. Service Levels (Managed Hosting)"
-  },
-  {
-   "h2": "The guarantee you asked for, matched line by line to what Strategies promises."
-  },
-  {
-   "table": {
-    "header": [
-     "Strategies promises",
-     "ProdCraft commits to",
-     "How it is met"
-    ],
-    "rows": [
-     [
-      "99.9% uptime",
-      "99.9% availability per calendar month, measured by an independent uptime monitor. Service credit: 10% of that month's hosting fee for each 0.1% below 99.9%, capped at 100% of the month's fee.",
-      "Cloudflare edge hosting (static pages plus Workers); independent monitor polling every 60 seconds; monthly report"
-     ],
-     [
-      "Daily backups with tested restores",
-      "Daily off-site backups retained 30 days; a restore drill every quarter with a written result",
-      "D1 and R2 snapshots to EU object storage plus Git history of every build"
-     ],
-     [
-      "Firewall, DDoS protection, SSL",
-      "Included",
-      "Cloudflare WAF, DDoS protection and managed SSL"
-     ],
-     [
-      "24/7 monitoring",
-      "Included. Alerts to Debanjan around the clock. Response within 1 business day for standard requests and within 4 hours for a posting outage.",
-      "Uptime and integration probes every 15 minutes"
-     ],
-     [
-      "UK data centres",
-      "EU-region preference for stored data (D1 location hint set to Western Europe). A hard residency guarantee requires the paid Cloudflare Data Localisation add-on, billed at cost if you want it.",
-      "Documented either way in the monthly report"
-     ],
-     [
-      "Integrations",
-      "Broadbean, Idibu and LogicMelon posts verified daily by a test job; Recruiter posting integration included; no cut-over until every route passes acceptance",
-      "Worker cron posts a test job through each route every day and confirms it landed"
-     ],
-     [
-      "Exit",
-      "Full export of jobs, employers, candidates and subscribers on request in CSV or JSON, at no charge, within 10 working days. No lock-in after the three-month minimum.",
-      "Data is yours; standard formats"
-     ]
-    ],
-    "caption": "Service credits are the sole remedy for a missed availability target. Planned maintenance notified 48 hours ahead and outages caused by Cloudflare, Broadbean, Idibu, LogicMelon, DNS registrars or the client's own changes are excluded from the measurement."
-   }
-  },
-  {
-   "pagebreak": true
-  },
-  {
-   "h1": "06. Investment"
-  },
-  {
-   "h2": "Fixed fees, milestone-paid. No hourly billing."
-  },
-  {
-   "table": {
-    "header": [
-     "Milestone",
-     "Deliverable",
-     "When invoiced",
-     "Amount (EUR)"
-    ],
-    "rows": [
-     [
-      "Milestone 1",
-      "Phase 1: front-end rebuild, both editions, all polish items, live on your domains",
-      "On go-live (Phase 1), within 15 working days of signature",
-      "€2,750"
-     ],
-     [
-      "Milestone 2",
-      "Phase 2 start: platform migration, 40%",
-      "On Phase 2 kick-off",
-      "€2,600"
-     ],
-     [
-      "Milestone 3",
-      "Phase 2 staging accepted, 40%",
-      "On written staging sign-off",
-      "€2,600"
-     ],
-     [
-      "Milestone 4",
-      "Phase 2 go-live after the parallel run, 20%",
-      "On DNS cut-over",
-      "€1,300"
-     ],
-     [
-      "One-off total",
+      "Total investment",
       "",
       "",
-      "€9,250"
+      "€4,998"
      ],
      [
-      "Bundle credit",
-      "Deducted from Milestone 1 when a 12-month managed hosting commitment (Care or Grow) is signed with this agreement",
+      "50% deposit, due at signing",
       "",
-      "−€1,375"
+      "",
+      "€2,499"
      ],
      [
-      "One-off total with bundle",
+      "Balance, due on go-live",
       "",
       "",
-      "€7,875"
+      "€2,499"
      ]
     ]
    }
   },
   {
-   "table": {
-    "header": [
-     "Recurring service",
-     "Covers",
-     "Term",
-     "Amount (EUR)"
-    ],
-    "rows": [
-     [
-      "Managed hosting, Care",
-      "greenjobs.ie and greenjobs.co.uk hosting, SSL, backups, monitoring, security, 4 change hours, monthly report, Section 05 service levels",
-      "Monthly from Phase 1 go-live; 3-month minimum then rolling, 30 days' notice",
-      "€450 per month"
-     ],
-     [
-      "Managed hosting, Grow (optional)",
-      "Care plus 10 hours per month for SEO, content, newsletter, employer analytics, backlog features, quarterly review",
-      "Same",
-      "€650 per month"
-     ],
-     [
-      "Annual prepayment",
-      "Either tier paid 12 months in advance",
-      "",
-      "10% discount"
-     ]
-    ]
-   }
-  },
-  {
-   "h3": "What it adds up to"
+   "h3": "Monthly hosting and support (starts when the front end goes live)"
   },
   {
    "table": {
     "header": [
-     "Period",
-     "Calculation",
-     "Total (EUR)",
-     "Estimated spend today"
+     "Plan",
+     "What it covers",
+     "Per month"
     ],
     "rows": [
      [
-      "Year 1 (Care, bundled)",
-      "€7,875 one-off + 12 × €450",
-      "€13,275",
-      "€12,400 (estimate)"
+      "Care",
+      "Hosting for both boards, SSL, daily backups, monitoring, security patches, up to 4 hours of changes, monthly report, 99.9% uptime guarantee",
+      "€499"
      ],
      [
-      "Year 1 (Grow, bundled)",
-      "€7,875 one-off + 12 × €650",
-      "€15,675",
-      "€12,400 (estimate)"
-     ],
-     [
-      "Year 2 onward (Care)",
-      "12 × €450",
-      "€5,400 per year",
-      "€12,400 (estimate)"
-     ],
-     [
-      "Year 2 onward (Grow)",
-      "12 × €650",
-      "€7,800 per year",
-      "€12,400 (estimate)"
+      "Grow",
+      "Care plus 10 hours per month for SEO and content, newsletter send, employer analytics, new features from a shared backlog, quarterly review call",
+      "€699"
      ]
     ],
-    "caption": "\"Estimated spend today\" is derived from Strategies' public entry price of £899 per month (about €1,030). It is replaced with the real figure once the Strategies invoice is shared (client input 1)."
+    "caption": "Pick one. Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in."
    }
   },
   {
-   "p": "**Expected return.** From year two, the Care tier saves an estimated €7,000 every year against today's estimated recurring cost, while adding candidate accounts, Google for Jobs visibility, a staff posting console and a live dashboard that the current platform does not provide."
+   "h3": "Tool subscriptions"
   },
   {
-   "h3": "Payment terms"
+   "p": "All subscriptions are in your name with full ownership. No vendor lock-in."
   },
   {
-   "bullets": [
-    "All amounts are in euro and exclusive of VAT. VAT is charged where applicable under Irish and EU rules. [ProdCraft VAT registration status and number: to be inserted before signature.]",
-    "Invoices are payable within 14 days of the invoice date by bank transfer. Late payments carry statutory interest under the EU Late Payment Directive as implemented in Ireland.",
-    "Milestone 1 is invoiced only when Phase 1 is live on your domains. If Phase 1 is not live within 15 working days of signature for reasons within ProdCraft's control, the Milestone 1 fee is waived in full (Terms, clause 3).",
-    "Milestone 4 is invoiced only after the parallel run passes acceptance. If any confirmed posting route fails acceptance and cannot be fixed, the Milestone 4 fee is not charged and Milestone 2 and 3 payments are the only migration fees due (Terms, clause 3).",
-    "Monthly hosting is invoiced in advance on the first of each month, pro-rated for the first partial month from Phase 1 go-live."
-   ]
+   "table": {
+    "header": [
+     "Tool",
+     "Purpose",
+     "Cost"
+    ],
+    "rows": [
+     [
+      "Cloudflare Workers Paid plan",
+      "Hosting, database and storage for the platform",
+      "$5 per month"
+     ],
+     [
+      "Resend (Pro)",
+      "Job alerts, newsletter and transactional email",
+      "$20 per month"
+     ],
+     [
+      "Domains and DNS",
+      "greenjobs.ie and greenjobs.co.uk",
+      "Already yours"
+     ]
+    ],
+    "caption": "Tool subscriptions are billed at cost +3% to cover currency conversion and payment processing. Prices checked against the vendors' pricing pages on 30 September 2026."
+   }
+  },
+  {
+   "p": "**Expected return:** at €499 per month, year two costs €5,988 for both boards against the roughly €12,400 per year that Strategies' published price of £899 per month implies today, while adding candidate accounts, Google for Jobs visibility, a staff posting console and a live dashboard."
   },
   {
    "pagebreak": true
   },
   {
-   "h1": "07. Agreement and Terms"
+   "h1": "06. Agreement"
   },
   {
-   "h2": "Ready when you are."
+   "h2": "Terms and conditions."
   },
   {
-   "p": "Signing below starts Phase 1. The kick-off call is held within 3 business days of signature and the five Phase 2 inputs are requested on the same call. You will have both boards live on your own domains before the first migration invoice is raised."
+   "p": "ProdCraft will build the GreenJobs platform for GreenJobs Ltd according to the description laid out in this proposal. Billing starts on the signature date. The deposit is charged upfront; the balance on go-live; monthly plans are charged upfront at the start of each cycle. Cancellation of the monthly plan: 30 days' written notice; anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Response time: one business day. Additional features, extensions or other integrations separate from the listed requirements may affect the timeline and costs laid out above. If you have a question or comment, email debanjan@prodcraft.fyi."
   },
   {
-   "p": "By signing, both parties accept this proposal, including the Terms and Conditions below, as a binding services agreement between ProdCraft and the Client, and authorise ProdCraft to begin work as described above."
-  },
-  {
-   "h3": "Terms and Conditions"
-  },
-  {
-   "numbered": [
-    "**Parties.** \"ProdCraft\" means Debanjan Mazumdar trading as ProdCraft, [legal form, registered address and registration number: to be inserted], email debanjan@prodcraft.fyi. \"Client\" means GreenJobs Limited, Ennis Digital Hub, Quin Road Business Park, Ennis, Co. Clare, V95 VW74, Ireland [company registration number: to be inserted], represented by Keith Molony, Managing Director. Each is a \"party\".",
-    "**Scope and documents.** The services are those described in Sections 04 and 05. This document, once signed, is the entire agreement and replaces every earlier quote, message or draft (including the €1,875 figure discussed before 22 September 2026). If this agreement and any later purchase order conflict, this agreement prevails unless both parties sign the change.",
-    "**Guarantees.** (a) Phase 1: if the front end is not live on greenjobs.ie and greenjobs.co.uk within 15 working days of the signature date for reasons within ProdCraft's control, the Milestone 1 fee (€2,750) is waived. The 15-day clock pauses for any day on which a client input listed in Section 04 (items 5 to 10) is outstanding after its due date, and for any delay caused by the Client's DNS provider or by Strategies. (b) Phase 2: if a posting route the Client has confirmed as in use fails the parallel-run acceptance test and ProdCraft cannot make it pass, the Milestone 4 fee (€1,300) is not charged, Strategies remains in place, and the Client keeps everything built. (c) Availability: the service credits in Section 05 are the Client's sole and exclusive remedy for a missed availability target.",
-    "**Change control.** Work outside Sections 04 and 05 is quoted in writing before it starts, as a fixed fee or at €85 per hour, and proceeds only on the Client's written approval. The 4 (Care) or 14 (Grow) monthly hours cover small changes and do not roll over.",
-    "**Fees and payment.** As set out in Section 06. Invoices are due 14 days from the invoice date. ProdCraft may suspend the managed hosting service on 10 days' written notice if an invoice is more than 30 days overdue, after which the exit provisions of Section 05 still apply.",
-    "**Term and termination.** Phases 1 and 2 end on delivery. Managed hosting runs for a minimum of three months from the first monthly invoice and then month to month; either party may end it with 30 days' written notice. Either party may terminate this agreement immediately on written notice if the other commits a material breach not remedied within 14 days of notice, or becomes insolvent. On any termination the Client pays for work delivered and milestones reached, and ProdCraft delivers the full data export and the source repository within 10 working days.",
-    "**Intellectual property.** On payment of each milestone, the Client owns the deliverables of that milestone: the site content, design, configuration, data and the source code specific to GreenJobs. ProdCraft retains ownership of its pre-existing tools, libraries and generic build scripts and grants the Client a perpetual, royalty-free, non-exclusive licence to use them as part of the deliverables. The Client warrants it holds the rights to all logos, job content, testimonials and marks it asks ProdCraft to publish.",
-    "**Data protection.** For candidate and employer personal data hosted on the platform the Client is the controller and ProdCraft the processor under the GDPR. ProdCraft processes that data only on the Client's documented instructions, keeps it in the EU region as described in Section 05, applies the security measures in Section 05, assists with data-subject requests, and deletes or returns all personal data at the end of the service. A data processing agreement in the form of the standard Article 28 terms is attached as Annex A [to be attached before signature] and forms part of this agreement. The Client remains responsible for its own privacy notices and lawful basis.",
-    "**Confidentiality.** Each party keeps the other's non-public business, financial and technical information confidential, uses it only for this agreement, and returns or destroys it on request, for three years after the agreement ends. Pricing in this document is confidential to the Client and its advisers.",
-    "**Warranties.** ProdCraft will perform the services with reasonable skill and care and will correct, at no charge, any defect in a deliverable reported within 30 days of its acceptance. Except as stated in this agreement, no other warranties apply. ProdCraft does not warrant search-engine rankings; a temporary dip of 4 to 8 weeks after a platform migration is normal and is planned for by the redirect map.",
-    "**Liability.** Neither party is liable to the other for indirect or consequential loss, loss of profit or loss of data beyond the restore obligations in Section 05. Each party's total liability under this agreement in any 12-month period is capped at the fees paid by the Client under this agreement in that period. Nothing limits liability for fraud, death or personal injury caused by negligence, or anything that cannot be limited by law.",
-    "**Third parties and dependencies.** ProdCraft is not responsible for the availability, pricing or policies of Cloudflare, Postmark or Resend, Broadbean, Idibu, LogicMelon, Strategies, DNS registrars or the Client's CRM vendor, and will notify the Client of any change that affects cost or timing. Any fees those parties charge are the Client's.",
-    "**Continuity.** ProdCraft is a single-operator business. All infrastructure is in accounts the Client owns or has administrator access to, all source is in a repository the Client can access, and the runbook is kept current, so the service can be taken over by the Client or a third party at any time.",
-    "**Non-solicitation.** Not applicable. Neither party restricts the other from hiring.",
-    "**Notices.** In writing by email to debanjan@prodcraft.fyi and to [Client email], deemed received on the next business day.",
-    "**Governing law and disputes.** This agreement is governed by the laws of Ireland and the parties submit to the exclusive jurisdiction of the courts of Ireland. Before any court action the parties will meet, in person or by video, within 14 days of a written request to try to resolve the dispute. [Note for review: ProdCraft is based in France; Irish law has been chosen because the Client and the services are in Ireland. Change here if the parties prefer otherwise.]",
-    "**Signature.** This agreement may be signed electronically, including by typed name and drawn signature on the online copy, and in counterparts. Signature by the Client's authorised representative binds the contracting entity named in clause 1."
-   ]
+   "p": "By signing below, both parties indicate their acceptance of this proposal and constitute approval to begin work upon GreenJobs Ltd's deposit payment. This document is signed electronically through DocuSign."
   },
   {
    "signature": [
@@ -640,12 +324,9 @@
      "for": "GreenJobs Ltd",
      "name": "Keith Molony",
      "title": "Managing Director",
-     "email": "[Keith email]"
+     "email": ""
     }
    ]
-  },
-  {
-   "note": "Items in [square brackets] must be completed before this document is sent for signature: ProdCraft legal form, registered address, registration number and VAT status; the Client's registration number and email; Annex A (data processing agreement). Version 1.0 prepared 30 September 2026."
   }
  ]
 }
