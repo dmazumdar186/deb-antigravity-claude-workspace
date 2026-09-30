@@ -86,19 +86,19 @@ I consider this reasonably straightforward and am confident I can do an outstand
 
 #### Milestones
 
-- **Month 1. Front end live.** Both editions live on your domains within 15 working days of signature. If it is not live by then for reasons within my control, you do not pay for it.
-- **Month 2 to 3. Platform build and staging.** Posting console, accounts, alerts, integrations, data import, redirect map; staging acceptance with you and your site manager.
-- **Month 3 to 4. Parallel run and go-live.** 30-day parallel run, then DNS cut-over and 10 working days of daily checks.
+- **Week 1. Front end live.** The rebuilt boards are already built and tested (3,047 automated checks). Both editions go live on your domains within 5 working days of signature, once DNS access and logo permissions are in hand. If it is not live by then for reasons within my control, you do not pay for it.
+- **Weeks 2 to 4. Platform build and staging.** Posting console, candidate accounts, alerts, Broadbean / Idibu / LogicMelon endpoints, recruiter CRM integration, data import, redirect map; staging acceptance with you and your site manager.
+- **Weeks 5 to 6. Parallel run and go-live.** Two weeks alongside Strategies with a test job through every posting route each day, then DNS cut-over and 10 working days of daily checks.
 - **Throughout.** Weekly update, one business day response, 4-hour response to a posting outage, all work in your accounts so nothing is locked to me.
 
 #### Timeline
 
 My proposed timeline is pragmatic and takes into account past experience building similar systems. Assuming signature on Monday 6 October 2026:
 
-- Front end live on your domains: by Wednesday 28 October 2026 (15 working days)
-- Platform build and staging acceptance: 29 October to 18 December 2026
-- Parallel run alongside Strategies: 5 January to 3 February 2027
-- Go-live on the new platform: Tuesday 9 February 2027
+- Front end live on greenjobs.ie and greenjobs.co.uk: by Monday 13 October 2026 (5 working days)
+- Platform build and staging acceptance: 14 October to 3 November 2026
+- Parallel run alongside Strategies: 4 to 17 November 2026
+- Go-live on the new platform: Wednesday 18 November 2026
 
 Dates move day for day with the signature date and with any input from GreenJobs that arrives late (Strategies contract details, which posting routes are in use, DNS access, logo permissions, testimonials, the open decisions from your change document). Broadbean onboarding runs on Broadbean's timeline.
 
@@ -124,9 +124,25 @@ Note: this is a two-step package with a 50% deposit and the remaining balance du
 
 | Plan | What it covers | Per month |
 |---|---|---|
-| Care | Hosting for both boards, SSL, daily backups, monitoring, security patches, up to 4 hours of changes, monthly report, 99.9% uptime guarantee | €499 |
-| Grow | Care plus 10 hours per month for SEO and content, newsletter send, employer analytics, new features from a shared backlog, quarterly review call | €699 |
-Pick one. Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in.
+| Care | Hosting for both boards, SSL, daily backups, monitoring, security patches, up to 4 hours of changes, monthly report | €499 |
+| Grow | Everything in Care, plus 10 hours per month of growth work: SEO and content, weekly newsletter send, employer analytics and new features from a shared backlog, quarterly review call | €799 |
+Pick one; Grow includes Care. Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in.
+
+#### How each plan is measured (reported to you every month)
+
+| Metric | Care commits to | Grow adds |
+|---|---|---|
+| Uptime, both boards | 99.9% per month, measured by an independent monitor | Same |
+| Backups | Daily, 100% success; restore drill every quarter with a written result | Same |
+| Posting routes (Broadbean, Idibu, LogicMelon, CRM) | Test job through every route every day; 99% daily pass rate | Same |
+| Response time | 1 business day; 4 hours for a posting outage | Same |
+| Change hours delivered | Up to 4 hours per month | Up to 14 hours per month (4 + 10) |
+| Google for Jobs | Every live role carries valid JobPosting data | 100% of live roles indexed within 30 days of go-live |
+| Page speed | Core Web Vitals pass on both editions | Same, checked monthly |
+| Content and newsletter | Not included | 2 content pieces per month (salary insights, sector guides); newsletter sent every week |
+| Organic search sessions | Reported | Baseline measured in month 1; +20% by month 6 |
+| Applications started | Reported | Baseline measured in month 1; +20% by month 6 |
+Growth targets are set against the month-1 baseline of the new platform. Each is a target I plan to beat; the figure written here is the achievable level, not the stretch.
 
 #### Tool subscriptions
 
@@ -139,7 +155,7 @@ All subscriptions are in your name with full ownership. No vendor lock-in.
 | Domains and DNS | greenjobs.ie and greenjobs.co.uk | Already yours |
 Tool subscriptions are billed at cost +3% to cover currency conversion and payment processing. Prices checked against the vendors' pricing pages on 30 September 2026.
 
-**Expected return:** at €499 per month, year two costs €5,988 for both boards against the roughly €12,400 per year that Strategies' published price of £899 per month implies today, while adding candidate accounts, Google for Jobs visibility, a staff posting console and a live dashboard.
+**Expected return:** at €499 per month, year two costs €5,988 (Grow: €9,588) for both boards against the roughly €12,400 per year that Strategies' published price of £899 per month implies today, while adding candidate accounts, Google for Jobs visibility, a staff posting console and a live dashboard.
 
 ---
 
