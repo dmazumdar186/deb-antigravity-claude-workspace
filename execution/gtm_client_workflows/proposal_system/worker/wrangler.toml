@@ -1,0 +1,27 @@
+name = "proposal-tracker"
+main = "src/index.js"
+compatibility_date = "2026-07-14"
+
+# Serves client proposals at /p/<slug> and a 1x1 open pixel at /o/<slug>.gif.
+# Every open sends a Telegram message to the operator (time, country, city,
+# device, referrer, open count) and appends a log line to KV.
+#
+# Deploy:
+#   cd execution/gtm_client_workflows/proposal_system/worker
+#   wrangler kv namespace create PROPOSALS        # paste id below
+#   wrangler secret put TELEGRAM_BOT_TOKEN
+#   wrangler secret put TELEGRAM_CHAT_ID
+#   wrangler secret put PUBLISH_SECRET             # long random string, used by publish_proposal.py
+#   wrangler deploy
+#
+# Publish a proposal (uploads html into KV):
+#   python3 execution/gtm_client_workflows/proposal_system/publish_proposal.py greenjobs_keith_v1
+#
+# Revert:  wrangler delete proposal-tracker
+
+[vars]
+OPERATOR_NAME = "Debanjan"
+
+[[kv_namespaces]]
+binding = "PROPOSALS"
+id = "REPLACE_WITH_KV_ID"
