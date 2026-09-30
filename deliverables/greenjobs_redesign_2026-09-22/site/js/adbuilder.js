@@ -50,7 +50,7 @@ var j = job(), sal = G.salaryLabel(j), blank = !j.title && !j.employer;
 root.classList.toggle('is-blank', blank);
 var chips = (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + (j.type ? '<span class="tag tag--type">' + G.esc(j.type) + '</span>' : '');
 card.innerHTML = '<article class="role"><div class="role__top">' + logo(j, 'role__logo') + '<span class="save" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span></div>' +
-'<h3>' + ph(j.title, 'Your job title') + '</h3><p class="role__emp"><span>' + ph(j.employer, 'Your organisation') + '</span><span>' + ph(j.location, 'Location') + '</span></p>' +
+'<h3>' + ph(j.title, 'Your job title') + '</h3><p class="role__emp"><span>' + ph(j.employer, 'Your organisation') + '</span>' + (j.location ? G.sepPair(j.location) : '<span><span class="row__sep" aria-hidden="true">· </span>' + ph('', 'Location') + '</span>') + '</p>' +
 '<div class="role__meta">' + chips + '<time datetime="' + today + '">Today</time></div></article>';
 var meta = [j.location, j.type].filter(Boolean).map(function (x) { return '<span class="tag">' + G.esc(x) + '</span>'; }).join('') + (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '');
 hero.innerHTML = '<nav class="crumbs" aria-hidden="true"><span>Home</span><span>/</span><span>Jobs</span><span>/</span><span>' + G.esc(j.sectors[0]) + '</span></nav>' +
@@ -83,7 +83,7 @@ var first = Object.keys(reach)[0] || '';
 F.title.value = 'Senior Hydrogeologist'; F.org.value = 'Your Company Ltd'; F.loc.value = IE ? 'Galway' : 'Leeds';
 var opt = [].slice.call(F.sector.options).filter(function (o) { return /water/i.test(o.value); })[0];
 F.sector.value = opt ? opt.value : first; F.type.value = 'Permanent'; F.smin.value = '55000'; F.smax.value = '65000';
-F.desc.value = 'We are looking for an experienced hydrogeologist to lead groundwater assessments for renewable-energy and infrastructure projects across ' + (IE ? 'Ireland' : 'the UK') + '.\n\nYou will manage site investigations, interpret monitoring data and author EIA chapters, working with ecologists and planners.\n\nHybrid working, 25 days leave, professional membership paid.';
+F.desc.value = 'We are looking for an experienced hydrogeologist to lead groundwater assessments for renewable-energy and infrastructure projects across ' + (IE ? 'Ireland' : 'the UK') + '.\n\nYou will manage site investigations, interpret monitoring data and author EIA chapters, working with ecologists and planners.\n\n• Lead site investigations and groundwater monitoring programmes\n• Author hydrogeology chapters for EIA and planning submissions\n• Mentor two graduate hydrogeologists\n\nHybrid working, 25 days leave, professional membership paid.';
 render();
 }
 if (fill) fill.addEventListener('click', function () { example(); F.title.focus(); });

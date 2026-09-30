@@ -61,7 +61,7 @@
     var sec = sect0(j) ? '<span class="tag tag--sec"><i style="background:' + G.esc(j.color || '') + '"></i><span class="tag__t">' + G.esc(sect0(j)) + '</span></span>' : '';
     return '<article class="row' + (closed ? ' row--closed' : '') + '" data-id="' + G.esc(j.id) + '">' + logo(j) +
       '<div class="row__body"><h3><a href="' + G.esc(j.href) + '">' + hl(j.title, q) + '</a></h3>' +
-      '<div class="row__meta"><span class="row__emp">' + G.esc(j.employer) + '</span><span><span class="row__sep" aria-hidden="true">· </span>' + G.esc(j.location) + '</span>' +
+      '<div class="row__meta"><span class="row__emp">' + G.esc(j.employer) + '</span>' + G.sepPair(j.location) + '' +
       (closed ? '<span class="tag tag--closed">Closed</span>' : '') + (onMap ? '' : salChips(sal)) + (lc ? '<span class="tag tag--loc" data-loc="' + G.esc(j.loc_class) + '">' + G.esc(lc) + '</span>' : '') + sec + (j.level && !onMap ? '<span class="tag tag--lvl" title="Career level">' + G.esc(j.level) + '</span>' : '') + '</div>' +
       (j.unverified_cur ? '<p class="role__note">Salary as listed on greenjobs.ie; the advertiser may pay in sterling.</p>' : '') + '</div>' +
       '<div class="row__r"><time datetime="' + G.esc(j.posted || '') + '">' + G.esc(G.ago(j.posted)) + '</time><span>' + G.esc(j.type || '') + '</span></div>' +

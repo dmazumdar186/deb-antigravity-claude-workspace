@@ -227,7 +227,7 @@ def to_svg(shapes: dict[str, list[list[Point]]], width: float, height: float, ti
             parts.append(
                 f'<g class="gmap__ctx" data-note="{note}" data-cx="{cx}" data-cy="{cy}" aria-label="{note}">'
                 f'<path d="{d}"/>'  # no <title>: the validator counts every <title> on the page
-                f'<text x="{cx}" y="{cy}"><tspan x="{cx}" dy="-2">{label}</tspan><tspan x="{cx}" dy="12">{note[len(label):].strip(" ()")}</tspan></text></g>'
+                f'<text x="{cx}" y="{cy}" dy="4" title="{note}">{label}</text></g>'
             )
             continue
         slug = name.lower().replace(" ", "-").replace("&", "and")

@@ -38,7 +38,8 @@ return list;
 function niceStep(max) { var raw = max / 2, p = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
 function columns(bins, opts) {
 opts = opts || {};
-var W = 600, H = 220, pb = 34, pl = 30, n = bins.length, cw = (W - pl) / n, max = Math.max.apply(null, bins.map(function (b) { return b.n; })) || 1;
+var n = bins.length, narrow = n >= 6 && window.innerWidth < 480;
+var W = 600, H = 220, pb = narrow ? 50 : 34, pl = 30, cw = (W - pl) / n, max = Math.max.apply(null, bins.map(function (b) { return b.n; })) || 1;
 var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'list', 'aria-label': opts.label || 'Histogram' });
 var grid = el('g', { class: 'grid' });
 var step = niceStep(max); max = Math.ceil(max / step) * step;
@@ -49,12 +50,13 @@ var h = (b.n / max) * (H - pb - 20), x = pl + i * cw + 4, y = H - pb - h;
 var g = el('g', { role: 'listitem', tabindex: '0', 'aria-label': b.label + ': ' + b.n + (b.n === 1 ? ' role' : ' roles') });
 g.appendChild(el('rect', { x: x, y: y, width: cw - 8, height: Math.max(h, b.n ? 3 : 0), rx: 4, class: 'bar' }));
 if (b.n) g.appendChild(el('text', { x: x + (cw - 8) / 2, y: y - 6, 'text-anchor': 'middle', class: 'lbl' }, String(b.n)));
-g.appendChild(el('text', { x: x + (cw - 8) / 2, y: H - 12, 'text-anchor': 'middle', class: 'lbl lbl--m' }, b.label));
+g.appendChild(el('text', { x: x + (cw - 8) / 2, y: narrow && i % 2 ? H - 6 : narrow ? H - 26 : H - 12, 'text-anchor': 'middle', class: 'lbl lbl--m' }, b.label));
 tipOn(g, '<b>' + G.esc(b.label) + '</b><span>' + b.n + (b.n === 1 ? ' role' : ' roles') + '</span>');
 svg.appendChild(g);
 });
 return svg;
 }
+function luma(hex) { var m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return 0.3; var n = parseInt(m[1], 16), r = n >> 16, gg = (n >> 8) & 255, b = n & 255; return (0.299 * r + 0.587 * gg + 0.114 * b) / 255; }
 function treemap(items, opts) {
 opts = opts || {};
 var W = 800, H = opts.height || 460, rects = G.treemap(items, W, H);
@@ -62,16 +64,21 @@ var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'treemap', role: 'li
 rects.forEach(function (r) {
 var it = r.item, g = el('g', { class: 'cell', role: 'listitem', tabindex: '0', 'data-key': it.key, 'aria-label': it.label + ': ' + it.v + (it.v === 1 ? ' role' : ' roles') });
 g.appendChild(el('rect', { x: r.x, y: r.y, width: r.w, height: r.h, fill: it.color }));
-if (r.w >= 90 && r.h > 40) {
-var maxCh = Math.max(4, Math.floor((r.w - 16) / 8.6));
-var dark = it.dark;
-var t = el('text', { x: r.x + 10, y: r.y + 22, fill: dark ? '#f3ece1' : '#2a2521' });
+var full = it.label + ' \u00b7 ' + it.v;
+g.setAttribute('title', full + (it.v === 1 ? ' role' : ' roles'));
+if (r.w >= 48 && r.h >= 48) {
+var maxCh = Math.max(3, Math.floor((r.w - 14) / 7.6)), fill = luma(it.color) > 0.5 ? '#2a2521' : '#f3ece1';
+var t = el('text', { x: r.x + 8, y: r.y + 19, fill: fill });
 var words = it.label.split(' '), line = '', lines = [];
+words[words.length - 1] += '\u00a0\u00b7\u00a0' + it.v;
 words.forEach(function (w) { if ((line + ' ' + w).length > maxCh && line) { lines.push(line); line = w; } else line = line ? line + ' ' + w : w; });
 lines.push(line);
-var keep = Math.max(1, Math.floor((r.h - 34) / 17));
-if (lines.length <= keep && lines.every(function (l) { return l.length <= maxCh; })) { lines.forEach(function (l, i) { t.appendChild(el('tspan', { x: r.x + 10, dy: i ? 16 : 0 }, l)); }); g.appendChild(t); }
-g.appendChild(el('text', { x: r.x + 10, y: r.y + r.h - 10, class: 't2', fill: dark ? '#f3ece1' : '#2a2521' }, it.v + (it.v === 1 ? ' role' : ' roles')));
+var keep = Math.max(1, Math.floor((r.h - 22) / 15));
+var tail = '\u2026\u00a0\u00b7\u00a0' + it.v;
+lines = lines.map(function (l, i) { return l.length <= maxCh + 1 ? l : i === lines.length - 1 ? l.slice(0, Math.max(1, maxCh - tail.length)) + tail : l.slice(0, Math.max(1, maxCh - 1)) + '\u2026'; });
+if (lines.length > keep) lines = lines.slice(0, keep - 1).concat([String(it.v)]);
+lines.forEach(function (l, i) { t.appendChild(el('tspan', { x: r.x + 8, dy: i ? 15 : 0 }, l)); });
+g.appendChild(t);
 }
 tipOn(g, '<b>' + G.esc(it.label) + '</b><span>' + it.v + (it.v === 1 ? ' role' : ' roles') + '</span>');
 var act = function (e) { e.preventDefault(); if (opts.onPick) opts.onPick(it); };

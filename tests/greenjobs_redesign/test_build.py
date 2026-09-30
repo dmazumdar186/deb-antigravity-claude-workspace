@@ -309,7 +309,7 @@ def test_real_data_build(tmp_root: Path):
             fixed = [j for j in data["jobs"] if j.get("currency_source") == build_site.STERLING_SOURCE]  # r3 R011: unverified euro roles carry their own source
             check(len(fixed) == len(data["corrected"]) and all(j["cur"] == "GBP" and j["loc_class"] == "uk" for j in fixed) and len(fixed) == 21, f"integration: IE sterling correction from the greenjobs.co.uk twin applied to {len(fixed)} UK-only roles (all now GBP; exactly 21 on this snapshot)")
             page = (out / "ie" / "jobs" / fixed[0]["id"] / "index.html").read_text(encoding="utf-8")
-            check("advertised in sterling, about €" in page and "Advertised in sterling on the greenjobs.co.uk listing" in page and "£" in page, "integration: corrected IE job page shows the sterling figure, the euro equivalent and the salary source")
+            check("advertised in sterling, about €" in page and "Salary figure taken from the same advert on greenjobs.co.uk, where it is advertised in sterling." in page and "£" in page, "integration: corrected IE job page shows the sterling figure, the euro equivalent and the salary source")
         for page in (out / ed).rglob("index.html"):
             if "for-keith" in page.parts:
                 continue
@@ -416,7 +416,7 @@ def test_dashboard_renders_per_edition(tmp_root: Path):
         else:
             check(True, f"dashboard: {ed} wired tiles show no live numbers (dashes only, targets labelled)")
         check("—" in wired[0] and ("collected from launch" in html_text or "not yet collected" in html_text), f"dashboard: {ed} wired tiles use a neutral dash with the not-yet-collected caption")
-        check("Plausible" not in html_text and "GA4" not in html_text and "analytics provider" in html_text, f"dashboard: {ed} names no analytics vendor")
+        check("Plausible" not in html_text and "GA4" not in html_text and "analytics" in html_text, f"dashboard: {ed} names no analytics vendor")
         check('data-csv' in html_text and "js/dashboard.js" in html_text and "js/charts.js" in html_text, f"dashboard: {ed} ships the CSV button and scripts")
         check(("Most roles come from one employer." in html_text) == (k["top_share"] > 50) and "concentration risk" not in html_text.lower(), f"dashboard: {ed} 'Most roles come from one employer.' shown only when top employer share > 50%")
         check("Roles posted by recruitment agencies rather than the employer directly." in html_text, f"dashboard: {ed} agency tile reads in plain words")
@@ -931,7 +931,7 @@ def test_r3_visual_fixes(tmp_root: Path):
     first = eager.split('<span class="marq__dup"')[0]
     check(first.count('loading="eager"') == 8 and first.count('loading="lazy"') == 4 and 'decoding="async"' in first, "r3 N3: first eight marquee logos load eagerly, the rest lazily")
     j = {"currency_source": build_site.UNVERIFIED_SOURCE}
-    check(build_site.salary_source_line(j) == build_site.UNVERIFIED_NOTE and build_site.salary_source_line({"currency_source": build_site.STERLING_SOURCE}).startswith("Advertised in sterling"), "r3 R011: salary_source_line maps both sources")
+    check(build_site.salary_source_line(j) == build_site.UNVERIFIED_NOTE and build_site.salary_source_line({"currency_source": build_site.STERLING_SOURCE}) == build_site.STERLING_NOTE, "r3 R011: salary_source_line maps both sources")
     mkj = lambda title, summary="", body="": {"title": title, "employer": "", "sectors": [], "summary": summary, "description_html": body}  # noqa: E731
     INF = "Sustainable infrastructure & transport"
     check(build_site.assign_sectors(mkj("Associate Civil Engineer", "roads rail bridges highways", "<p>building built environment construction</p>")) == [INF], "r3 R010: three body hits alone no longer add Built environment to a civil role")
@@ -1110,7 +1110,11 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     check("Send us the job description and logo; we post it and email you when it is live." in emp_uk and "account management" in emp_uk, "panel B6: done-for-you line from brief.md")
     rows = re.findall(r"<tr><th scope=\"row\">(.*?)</th>(.*?)</tr>", emp_uk)
     member_incl = [r for r, cells in rows if cells.count("<td") == 2 and cells.rsplit("<td", 1)[1].startswith(">Included")]
-    check(set(member_incl) == {"Multiple postings at a discounted rate", "Employer self-management system with telephone training"}, f"panel B6: Membership ticks only what brief.md confirms ({member_incl})")
+    premium_incl = [r for r, cells in rows if cells.count("<td") == 2 and cells.split("<td", 2)[1].startswith(">Included")]
+    check(set(premium_incl) <= set(member_incl) and {"Multiple postings at a discounted rate", "Employer self-management system with telephone training"} <= set(member_incl), f"r2 #4: Membership ticks every Premium line plus the two membership-only rows ({member_incl})")
+    member_ask = [r for r, cells in rows if 'cmp__ask">Ask us</td></tr>' in cells + "</tr>" and cells.rsplit("<td", 1)[1].startswith(' class="cmp__ask"')]
+    check(all(r not in premium_incl for r in member_ask), f"r2 #4: Membership says 'Ask us' only where Premium does ({member_ask})")
+    check('<th scope="col">What you get</th>' in emp_uk and "Membership: a bundle of Premium postings at a discounted rate, with the self-service posting system and telephone training." in emp_uk, "r2 #4: first column header and membership footnote")
     check('class="cmphint"' in emp_uk and ".cmphint{display:none" in _read(out / "css" / "styles.css"), "panel B6: swipe hint present, hidden on wide screens")
     # 7. tags wrap on narrow screens
     css = _read(out / "css" / "styles.css")
@@ -1304,7 +1308,8 @@ def test_r2a_real_build_checks(tmp_root: Path):
         if not page.exists():
             continue
         html_text = page.read_text(encoding="utf-8")
-        check('data-loc="cross">Ireland &amp; UK' in html_text.split("</h1>")[1][:600], f"r2a R012: Commonland 11501646/11501639 badge is 'Ireland & UK' on {ed}")
+        head = html_text.split("</h1>")[1][:600]
+        check(('data-loc="cross">Ireland &amp; UK' in head) != ("Ireland" in head.split('class="tag"')[1].split("</span>")[0] if 'class="tag"' in head else False), f"r2a R012 / r2 #7: Commonland 11501646/11501639 shows 'Ireland & UK' once on {ed} (badge or location chip, not both)")
         check("<dt>Type</dt>" not in html_text and "<dt>Contract</dt><dd>Contract</dd>" in html_text and "Landscape Developer –" in html_text, f"r2a visual 24: one Contract row and a no-break dash in the h1 on {ed}")
     ie_emp = (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8")
     check(not any(n in ie_emp for n in ("EirGrid", "Power NI", "Veolia")), "r2a R041 / visual 7: the IE employers page names no organisation without a live role")
@@ -1350,7 +1355,7 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     # 8: one voice, no team-facing copy in visitor dialogs; no fake success anywhere
     for bad in ("analytics provider is chosen", "connects to your email provider", "connects to the GreenJobs team", "Nothing was sent", "Sign-ups open at launch", "Posting opens at launch"):
         check(bad not in home and bad not in emp, f"r2b visual 8: '{bad}' is gone from visitor-facing copy")
-    check("reported once analytics is connected" in home and "ck-marketing" not in home and home.count("Job alerts are available today on") >= 2, "r2b visual 8 / r1a 24+23: cookie settings show Essential + Analytics only, alert forms use the one-line visitor sentence")
+    check("Off. Helps us see which pages are useful." in home and "reported once analytics is connected" not in home and "ck-marketing" not in home and home.count("Job alerts are available today on") >= 2, "r2b visual 8 / r1a 24+23: cookie settings show Essential + Analytics only, alert forms use the one-line visitor sentence")
     check(emp.count("Preview only. Rates and posting are handled by the GreenJobs team") == 2 and "Thank you" not in emp, "r2b R044: the Post-a-job preview keeps one quiet line (pre-submit + post-submit variants), no fake success")
     # 18: hero keeps search + Post a job only
     hero = home.split('class="hero"')[1].split('class="hero__alerts"')[0]
@@ -1511,8 +1516,11 @@ def test_r4_real_build_marker_hero_notes(tmp_root: Path):
         for bad in ("computed from the live listings at build time", "analytics provider will report", "switched on through the cookie", "target we propose", "switches Analytics on"):
             check(bad not in dash, f"r4 dashboard voice: {ed} no longer says {bad!r}")
         low = dash.lower()
-        check("live figures from this week's listings" in low and "reported once analytics is connected" in low and "sent once an analytics provider is connected and the visitor allows analytics" in low, f"r4 dashboard voice: {ed} carries the visitor sentences")
-        check("Live figures from this week's listings, and the measures reported once analytics is connected." in html.unescape(dash), f"r4 dashboard voice: {ed} meta description is in the visitor voice")
+        check("live figures from this week's listings" in low and "reported once analytics is switched on" in low and "sent once analytics is switched on and you allow it" in low, f"r4 dashboard voice: {ed} carries the visitor sentences")
+        check("Live figures from this week's listings, and the measures reported once analytics is switched on." in html.unescape(dash), f"r4 dashboard voice: {ed} meta description is in the visitor voice")
+        check("edition switch in the header" not in dash and "analytics provider is connected" not in dash and "Workplace filter" not in dash and "Roles whose advert mentions remote or hybrid working." in dash, f"r2 #3: {ed} dashboard copy is in the visitor voice")
+        tiles = re.findall(r'<span class="kpi__l">([^<]*)</span>', dash)[:8]
+        check(tiles[:4] == ["Live roles", "New this week", "Closing within 7 days", "Salary disclosure"] and "Top employer share" in tiles[4:] and "Agency share" in tiles[4:], f"r2 #3: {ed} share tiles sit after the first row ({tiles})")
 
 
 def test_r4_scraper_and_runner(tmp_root: Path):
@@ -1609,7 +1617,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
         check(f.find("data-demo-pre") < f.find('type="submit"') and "Your address has not been stored." in f, "r4b B: sign-up note sits above the button; post-submit line keeps 'not been stored'")
     check("published at launch" not in emp and "looking for green work" not in emp and "Thousands of visitors" not in emp and "Candidate audience: ask us for current monthly visitor and subscriber figures." in emp, "r4b B: employer audience tiles ask for figures instead of promising them")
     check("up to ten job alerts by email, free" in home.split('class="hero__alerts"')[1].split("</a>")[0].lower() and "weekly job alerts" not in home and "ten matches" not in home, "r4b B: hero alerts strip makes no weekly-matches claim")
-    check("computed from the live listings at build time" not in dash and "Wired at launch" not in dash and "live figures from this week's listings" in dash and "once an analytics provider is connected and the visitor allows analytics" in dash, "r4b B: dashboard lede and event section in visitor voice")
+    check("computed from the live listings at build time" not in dash and "Wired at launch" not in dash and "live figures from this week's listings" in dash.lower() and "once analytics is switched on and you allow it" in dash, "r4b B: dashboard lede and event section in visitor voice")
     # C. salary chips: 'advertised in', currency glyph in the dot slot, dot centred on the first line
     check("advertised in" in jobs_js and "paid in ' +" not in jobs_js and 'class="tag__cur"' in jobs_js and "sterling: '\\u00a3'" in jobs_js, "r4b C: board chips say 'advertised in' with a currency glyph")
     check("advertised in" in main_js and 'class="tag__cur"' in main_js and "(?:paid|advertised) in" in main_js, "r4b C: server-rendered chips post-processed the same way (accepts lib.js's old or new label)")
@@ -1702,3 +1710,33 @@ def test_r1_pages_agree_and_job_ctx(tmp_root: Path):
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def test_r2_defects(tmp_root: Path):
+    """Human-eye r2 (2026-09-29): separator nowrap, normalisation, chips, map labels, 404, treemap."""
+    css = _read(SRC / "css" / "styles.css")
+    jobs_js = _read(SRC / "js" / "jobs.js")
+    check("G.sepPair(j.location)" in jobs_js and ".row__pair{white-space:nowrap}" in css and build_site.sep_pair("Carlow, Dublin, Cork") == '<span><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>Carlow,</span> Dublin, Cork</span>', "r2 #1: the separator travels with the first word of the location in one nowrap span; the rest wraps")
+    check("G.sepPair(j.location)" in _read(SRC / "js" / "adbuilder.js") and '{sep_pair(j["location"])}</p>' in Path(build_site.__file__).read_text(encoding="utf-8"), "r2 #15: preview and role cards carry the same separator as the list")
+    check('[data-theme="dark"] .cwall .marq{-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px' in css and "::after" not in css.split(".cwall{")[1].split("\n")[0], "r2 #2: dark carousel fade is a thin alpha mask on .marq, no overlay")
+    check(".hero__trust{" in css and "background:var(--paper);border:1px solid var(--line)" in css.split(".hero__trust{")[1].split("}")[0], "r2 #8: hero B Corp card is opaque with a border")
+    check("if (W >= 720) TURB.forEach" in _read(SRC / "js" / "landscape.js"), "r2 #8: turbines are skipped on narrow viewports")
+    # 7: div-per-line adverts, bold-only line breaks, facts list; 14: plain headings
+    raw = "<div><strong>Title – UK</strong></div><div><strong><br></strong></div><div><strong>Location: Remote</strong></div><div><br></div><div><strong>Hours: 32-40</strong></div><div><br></div><div>Long body paragraph that runs on for a while and ends with a full stop.</div><div><br></div><div>The Role</div><div>You will do things.</div>"
+    out = build_site.sanitise_html(raw, "https://x.test/")
+    check(out.startswith('<ul class="facts"><li>Title – UK</li><li>Location: Remote</li><li>Hours: 32-40</li></ul>') and "<strong>" not in out, f"r2 #7: bold div lines unwrap and the opening block becomes a facts list ({out[:120]!r})")
+    check("<h3>The Role</h3><p>You will do things.</p>" in out, f"r2 #14: a short capitalised line before body copy is an h3 ({out[-80:]!r})")
+    check(build_site.plain_headings("<p>Location: Remote</p><p>Body.</p>") == "<p>Location: Remote</p><p>Body.</p>", "r2 #14: 'Label: value' lines are never headings")
+    # 5 sterling source line; 6 map labels
+    check(build_site.salary_source_line({"currency_source": build_site.STERLING_SOURCE}) == build_site.STERLING_NOTE and "same advert on greenjobs.co.uk" in build_site.STERLING_NOTE, "r2 #5: sterling source line names the same advert")
+    ie_svg = _read(SRC / "assets" / "maps" / "ie.svg")
+    check("<tspan" not in ie_svg and 'title="Northern Ireland (see greenjobs.co.uk)">Northern Ireland</text>' in ie_svg and ".gmap text.is-zero{display:none}" in css, "r2 #6: single-line Northern Ireland label with a title; zero counts hidden")
+    # 9 treemap; 12 404; 4 header padding; 10 preview headings; 11 example bullets
+    charts = _read(SRC / "js" / "charts.js")
+    check("r.w >= 48 && r.h >= 48" in charts and "luma(it.color)" in charts and "g.setAttribute('title', full" in charts and ".t2" not in css, "r2 #9: every tile >= 48px gets 'Name · N' with luminance ink; small tiles keep a title")
+    check("Choose an edition" not in _read(SRC / "templates" / "404root.html") and ".ftr__brand+.ftr__bottom{border-top:0" in css, "r2 #12: 404 has no extra button and a single footer rule")
+    check(".cmp th[scope=\"col\"]:first-child{width:46%;padding-left:18px}" in css, "r2 #4: header cells padded like row cells")
+    check(".adb__h3{font-family:\"Fraunces\",serif;font-weight:550;" in css and ".adb__h1{font-family:\"Fraunces\",serif;font-weight:560;" in css, "r2 #10: preview headings match page heading weights")
+    check("• Lead site investigations" in _read(SRC / "js" / "adbuilder.js"), "r2 #11: example text carries a three-line bullet block")
+    check(".hbar__v{font-size:var(--small);font-weight:600;width:6ch;min-width:6ch" in css and "min-height:40px" in css.split(".role__meta{")[1].split("}")[0] and ".adb__card .role{min-height:0}" in css, "r2 #18/#19/#20: fixed value column, chip-row min-height, no forced preview card height")
+    check('style="max-width:760px"' in _read(SRC / "templates" / "compass.html") and ".fit .sec-head h2{margin-bottom:12px}" in css, "r2 #16: compass intro shares the quiz width; fit heading gap")

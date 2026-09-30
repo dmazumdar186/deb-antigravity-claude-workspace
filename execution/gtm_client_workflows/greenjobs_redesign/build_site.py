@@ -126,6 +126,7 @@ EDITION_INCLUDES = {"ie": {"ie", "uk", "ni", "remote", "cross", "intl", "unspeci
 EDITION_HOME = {"ie": ["ie", "cross", "remote"], "uk": ["uk", "ni", "cross", "remote"]}
 EDITION_HOST = {"ie": "greenjobs.ie", "uk": "greenjobs.co.uk"}
 STERLING_SOURCE = "greenjobs.co.uk listing"
+STERLING_NOTE = "Salary figure taken from the same advert on greenjobs.co.uk, where it is advertised in sterling."
 UNVERIFIED_SOURCE = "greenjobs.ie listing (UK-located role)"  # visual N6 / R011: euro figures scraped from greenjobs.ie for a UK-only role with no sterling twin
 UNVERIFIED_NOTE = "Salary as listed on greenjobs.ie; the advertiser may pay in sterling"
 
@@ -135,6 +136,8 @@ def salary_source_line(j: dict[str, Any]) -> str:
     src = j.get("currency_source") or ""
     if src == UNVERIFIED_SOURCE:
         return UNVERIFIED_NOTE
+    if src == STERLING_SOURCE:
+        return STERLING_NOTE
     return f"Advertised in sterling on the {src}" if src else ""
 UK_WORDS = ["united kingdom", "uk", "england", "scotland", "wales", "great britain", "britain", "london", "manchester", "birmingham", "leeds", "bristol", "glasgow", "edinburgh", "cardiff"]
 # Northern Ireland place words: the full alias list of the "Northern Ireland"
@@ -318,9 +321,49 @@ def sanitise_html(markup: str, base_url: str) -> str:
 
     out = re.sub(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^>]*)?)\s*/?>", clean_tag, out)
     out = re.sub(r"[ \t]+", " ", out)
+    out = divs_to_paragraphs(out)
     out = unwrap_bold_lines(out)
     out = bullets_to_lists(out)
-    return collapse_blank_lines(out).strip()
+    out = collapse_blank_lines(out).strip()
+    return plain_headings(facts_list(out))
+
+
+def divs_to_paragraphs(markup: str) -> str:
+    """Editors that emit one <div> per line (human-eye r2 #7) become one <p>
+    per line; a <p> that only wraps <div>s collapses into them."""
+    out = re.sub(r"</?div>", lambda m: "</p>" if m.group(0).startswith("</") else "<p>", markup or "")
+    for pat, rep in ((r"<p>(?:\s|&nbsp;|&#160;)*<p>", "<p>"), (r"</p>(?:\s|&nbsp;|&#160;)*</p>", "</p>")):
+        while re.search(pat, out):
+            out = re.sub(pat, rep, out)
+    return out
+
+
+_SHORT_LINE = re.compile(r"<p>((?:(?!</p>|<br>|<ul|<h3).){1,90}?)</p>", re.S)
+
+
+def facts_list(markup: str) -> str:
+    """An advert that opens with three or more short lines, at least one of them
+    'Label: value' ('Location: Remote', '32-40 hours per week', human-eye r2 #7),
+    renders them as one compact list."""
+    pos, items = 0, []
+    while True:
+        m = _SHORT_LINE.match(markup, pos)
+        if not m or "<" in re.sub(r"</?(?:strong|b|em|i)>", "", m.group(1)):
+            break
+        items.append(m.group(1).strip())
+        pos = m.end()
+    if len(items) < 3 or not any(":" in i for i in items):  # a 'Label: value' block, not three short sentences
+        return markup
+    return '<ul class="facts">' + "".join(f"<li>{i}</li>" for i in items) + "</ul>" + markup[pos:]
+
+
+_HEADING_LINE = re.compile(r"<p>((?:[A-Z][A-Za-z'&/-]*)(?: (?:[A-Za-z'&/-]+)){0,4})</p>(?=\s*(?:<[uo]l>|<p>[^<]{20,}))")
+
+
+def plain_headings(markup: str) -> str:
+    """'The Role', 'About You': a short capitalised line without end punctuation,
+    followed by body copy, is a heading (human-eye r2 #14)."""
+    return _HEADING_LINE.sub(lambda m: f"<h3>{m.group(1)}</h3>", markup)
 
 
 _BULLET_LINE = re.compile(r"^\s*(?:[*\u2022\u00b7\u25aa\u2013-]|&bull;|&#8226;)\s+(.*\S)\s*$", re.S)
@@ -370,7 +413,8 @@ def unwrap_bold_lines(markup: str) -> str:
     """<strong>/<b> wrapping a whole line (every line of some adverts arrives
     bold, human-eye r1 #32) is dropped; emphasis inside a line stays."""
     line = r"(?<=<p>)|(?<=<br>)|(?<=<li>)|^"
-    return re.sub(rf"(?:{line})\s*<(strong|b)>((?:(?!</?(?:strong|b)>).)*?)</\1>\s*(?=<br>|</p>|</li>|$)", r"\2", markup or "", flags=re.S)
+    out = re.sub(r"<(strong|b)>((?:\s|<br>|&nbsp;|&#160;)*)</\1>", r"\2", markup or "")  # bold wrapping only a line break
+    return re.sub(rf"(?:{line})\s*<(strong|b)>((?:(?!</?(?:strong|b)>).)*?)</\1>\s*(?=<br>|</p>|</li>|$)", r"\2", out, flags=re.S)
 
 
 def collapse_blank_lines(markup: str) -> str:
@@ -1226,13 +1270,20 @@ def loc_badge(j: dict[str, Any]) -> str:
     return f'<span class="tag tag--loc" data-loc="{esc(lc)}">{esc(LOC_LABEL.get(lc, ""))}</span>' if lc in LOC_LABEL else ""
 
 
+def sep_pair(text: str) -> str:
+    """'· Carlow, Dublin' with the separator glued to the first word (r2 #1); mirrors lib.js sepPair."""
+    words = esc(str(text or "")).split(" ")
+    head = words.pop(0)
+    return f'<span><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>{head}</span>{(" " + " ".join(words)) if words else ""}</span>'
+
+
 def role_card(j: dict[str, Any], root: str, jobs_dir: str, today: date, ed_cur: str = "") -> str:
     sal = salary_label(j, ed_cur)
     chips = (f'<span class="tag tag--sal">{esc(sal)}</span>' if sal else "") + (f'<span class="tag tag--type">{esc(j["type"])}</span>' if j["type"] else "") + loc_badge(j)
     return (f'<article class="role reveal">'
             f'<div class="role__top">{logo_img(j, root)}<button class="save" type="button" data-save="{esc(j["id"])}" data-title="{esc(j["title"])}" aria-pressed="false" aria-label="Save: {esc(j["title"])}">{SAVE_ICON}</button></div>'
             f'<h3><a href="{jobs_dir}{esc(j["href"])}">{esc(j["title"])}</a></h3>'
-            f'<p class="role__emp"><span>{esc(j["employer"])}</span><span>{esc(j["location"])}</span></p>'
+            f'<p class="role__emp"><span>{esc(j["employer"])}</span>{sep_pair(j["location"])}</p>'
             f'<div class="role__meta">{chips}<time datetime="{esc(j["posted"])}">{esc(ago(j["posted"], today))}</time></div>'
             + (f'<p class="role__note">{esc(UNVERIFIED_NOTE)}.</p>' if j.get("currency_source") == UNVERIFIED_SOURCE else "") + '</article>')
 
@@ -1961,17 +2012,19 @@ def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
 # {{dash_lede}} and {{dash_events}}; DASHBOARD_REWRITES maps the retired
 # developer phrasing onto them so the built page is right in the meantime.
 DASHBOARD_COPY = {
-    "dash_lede": "What the board is worth this week, and how each number is measured. Live figures from this week's listings. Reported once analytics is connected.",
-    "dash_events": "Nothing below is a live number. Each tile names the event the site records and the target it is measured against. Events are sent once an analytics provider is connected and the visitor allows analytics; values fill in from launch day and a dash means \"collected from launch\".",
+    "dash_lede": "What the board is worth this week, and how each number is measured. Live figures from this week's listings. Reported once analytics is switched on.",
+    "dash_events": "Nothing below is a live number. Each tile names the event the site records and the target it is measured against. Events are sent once analytics is switched on and you allow it; values fill in from launch day and a dash means \"collected from launch\".",
 }
 DASHBOARD_REWRITES = [
     ("The top half is computed from the live listings at build time; the bottom half lists the measures the analytics provider will report once it is switched on through the cookie consent's Analytics toggle.",
-     "Live figures from this week's listings. Reported once analytics is connected."),
+     "Live figures from this week's listings. Reported once analytics is switched on."),
     ("computed from the live listings at build time", "Live figures from this week's listings."),
-    ("the analytics provider will report once it is switched on", "Reported once analytics is connected."),
+    ("the analytics provider will report once it is switched on", "Reported once analytics is switched on."),
+    ("reported once an analytics provider is connected", "Reported once analytics is switched on"),
+    (" · edition switch in the header keeps you on this page.", "."),
     ("Events are only sent once the visitor switches Analytics on in the cookie settings and a provider is connected;",
-     "Events are sent once an analytics provider is connected and the visitor allows analytics;"),
-    ("sent once the visitor switches Analytics on", "sent once an analytics provider is connected and the visitor allows analytics"),
+     "Events are sent once analytics is switched on and you allow it;"),
+    ("sent once the visitor switches Analytics on", "sent once analytics is switched on and you allow it"),
     (" (target we propose; no ", " (proposed target; no "),
     (" (target we propose)", " (proposed target)"),
     (", target we propose)", ", proposed target)"),
@@ -1994,17 +2047,17 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
         ("New this week", str(k["new7"]), "Roles posted within the 7 days up to the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
         ("Closing within 7 days", str(k["closing7"]), "Roles whose closing date falls within the 7 days after the snapshot.", ""),
         ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints, converted into {sym} at the fixed rate where a role is advertised in the other currency: {med}.', ""),
+        ("Advertised window, days", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
+        ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose advert mentions remote or hybrid working.", ""),
         ("Top employer share", f'{k["top_share"]}%', f'{esc(k["top_employer"])} holds this share of live roles across {k["employers"]} employers.' + (" Most roles come from one employer." if flag else ""), ""),
         ("Agency share", f'{k["agency_pct"]}%', f"Roles posted by recruitment agencies rather than the employer directly. Flagged when the employer is a known agency ({esc(agency_names)}) or its name contains a recruitment word ({esc(agency_words)}); the same flag drives the board's \"Advertised by\" filter.", ""),
-        ("Advertised window, days", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
-        ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose workplace field is remote or hybrid; the field is set from the full listing text by the same rule as the board's Workplace filter.", ""),
     ]
     tile_html = "".join(
         f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num">{val}</b>{spark}<p class="kpi__d">{how}</p></div>'
         for lbl, val, how, spark in tiles)
     root = "../../"
     ctx = shell_ctx(data, 2, "dashboard", f"KPI dashboard — what GreenJobs {ed['short']} measures | GreenJobs {ed['short']}",
-                    "Live figures from this week's listings, and the measures reported once analytics is connected.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
+                    "Live figures from this week's listings, and the measures reported once analytics is switched on.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
     ctx["scripts"] = "".join(f'<script src="{root}js/{s}.js" defer></script>' for s in ("charts", "dashboard"))
     content = render(tpl["dashboard"], {**ctx, "tiles": tile_html, "unit": ed["unit"], "units": plural(ed["unit"]), "sym": sym,
                                         "kpis": f'<script type="application/json" id="gj-dash">{json_embed(k)}</script>',
@@ -2350,7 +2403,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         sal = salary_label(j, ed["currency"])
         note = currency_note(j, ed["currency"])
         loc_dup = j["location"].strip().lower() == LOC_LABEL.get(j["loc_class"], "").lower()  # "UK" + UK badge: one chip (r1 #32)
-        meta_tags = ("".join(f'<span class="tag">{esc(x)}</span>' for x in [("" if loc_dup else j["location"]), j["type"]] if x) + loc_badge(j)
+        badge_dup = j["loc_class"] == "cross" and re.search(r"\bUK\b|United Kingdom", j["location"]) and "Ireland" in j["location"]  # "UK, Ireland" + "Ireland & UK": one chip (r2 #7)
+        meta_tags = ("".join(f'<span class="tag">{esc(x)}</span>' for x in [("" if loc_dup else j["location"]), j["type"]] if x) + ("" if badge_dup else loc_badge(j))
                      + (f'<span class="tag tag--sal">{esc(sal)}</span>' if sal else "")
                      + (f'<span class="tag tag--wp">{esc(WORKPLACE_LABEL[j["workplace"]])}</span>' if j["workplace"] != "unspecified" else ""))
         dl = ""

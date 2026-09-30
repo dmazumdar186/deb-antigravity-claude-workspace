@@ -42,7 +42,7 @@ var farB = H * 0.56, midB = H * 0.66, nearB = H * 0.76, nstB = H * 0.86;
 L.far = layer(function (g) { hill(g, 1.3, H * 0.05, farB, T.far, T.haze); });
 L.mid = layer(function (g) {
 hill(g, 4.1, H * 0.045, midB, T.mid, null);
-TURB.forEach(function (t) {
+if (W >= 720) TURB.forEach(function (t) {
 var x = t[0] * W, y = ridge(x, 4.1, H * 0.045, midB), h = t[1] * (H / 720);
 g.strokeStyle = T.tower; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(x, y + 2); g.lineTo(x, y - h); g.stroke();
 g.strokeStyle = T.frame; g.globalAlpha = 0.28; g.lineWidth = 1; g.beginPath(); g.moveTo(x - 1.5, y + 2); g.lineTo(x - 1.5, y - h); g.stroke(); g.globalAlpha = 1;
@@ -112,7 +112,7 @@ ctx.drawImage(L.far, -PAD + tx * 4, scroll * 0.12 + ty * 2, W + PAD * 2, H);
 ctx.drawImage(L.mid, -PAD + tx * 8, scroll * 0.22 + ty * 4, W + PAD * 2, H);
 var midB = H * 0.66, oy = scroll * 0.22 + ty * 4, ox = tx * 8;
 ctx.strokeStyle = T.blade; ctx.lineCap = 'round'; ctx.lineWidth = 2.4;
-TURB.forEach(function (tb, i) {
+if (W >= 720) TURB.forEach(function (tb, i) {
 var x = tb[0] * W + ox, y = ridge(tb[0] * W, 4.1, H * 0.045, midB) - tb[1] * (H / 720) + oy, len = tb[1] * (H / 720) * 0.62, a = t * tb[2] + i;
 for (var k = 0; k < 3; k++) { var ang = a + k * 2.0944; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len); ctx.stroke(); }
 ctx.fillStyle = T.tower; ctx.beginPath(); ctx.arc(x, y, 3, 0, 6.283); ctx.fill();

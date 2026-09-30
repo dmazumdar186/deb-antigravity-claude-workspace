@@ -64,6 +64,7 @@ if (edCur && j.cur && j.cur !== edCur) { lo = fxConvert(lo, j.cur, edCur); hi = 
 if (lo < 8000 || hi > 400000) return null;
 return { lo: lo, hi: hi, mid: (lo + hi) / 2 };
 }
+function sepPair(text) { var w = esc(String(text || '')).split(' '), head = w.shift(); return '<span><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>' + head + '</span>' + (w.length ? ' ' + w.join(' ') : '') + '</span>'; }
 var LOC_LABEL = { ie: 'Ireland', uk: 'UK', ni: 'Northern Ireland', remote: 'Remote', cross: 'Ireland & UK', intl: 'International', unspecified: 'Location not stated' };
 function locLabel(lc) { return LOC_LABEL[lc] || ''; }
 function median(a) {
@@ -425,7 +426,7 @@ function countAt(from, to, u) { return Math.round(from + (to - from) * easeOutQu
 return {
 stem: stem, fitIndex: fitIndex, fitMatch: fitMatch, salaryPosition: salaryPosition, encodeFit: encodeFit, decodeFit: decodeFit,
 easeOutQuart: easeOutQuart, filmScrub: filmScrub, countAt: countAt,
-norm: norm, tokens: tokens, esc: esc, money: money, salaryLabel: salaryLabel, currencyNote: currencyNote, fxConvert: fxConvert, FX_GBP_EUR: FX_GBP_EUR, locLabel: locLabel, daysUntil: daysUntil, closingWithin: closingWithin, newThisWeek: newThisWeek, setToday: setToday, today: today, annual: annual, median: median,
+norm: norm, tokens: tokens, esc: esc, sepPair: sepPair, money: money, salaryLabel: salaryLabel, currencyNote: currencyNote, fxConvert: fxConvert, FX_GBP_EUR: FX_GBP_EUR, locLabel: locLabel, daysUntil: daysUntil, closingWithin: closingWithin, newThisWeek: newThisWeek, setToday: setToday, today: today, annual: annual, median: median,
 histogram: histogram, daysAgo: daysAgo, ago: ago, parseState: parseState, toQuery: toQuery, filterJobs: filterJobs,
 sortJobs: sortJobs, suggest: suggest, buildIndex: buildIndex, smartMatch: smartMatch, scoreSectors: scoreSectors,
 encodeAnswers: encodeAnswers, decodeAnswers: decodeAnswers, treemap: treemap, haystack: haystack, jobUrl: jobUrl,
