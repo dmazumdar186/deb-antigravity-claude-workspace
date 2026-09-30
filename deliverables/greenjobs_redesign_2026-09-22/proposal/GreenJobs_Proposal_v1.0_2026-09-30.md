@@ -1,11 +1,11 @@
 # GreenJobs Platform Rebuild, Migration and Managed Hosting
 Version 1.0 (draft for review) · 2026-09-30 · Valid until 2026-10-31
 
-Proposal and services agreement for greenjobs.ie and greenjobs.co.uk. Prepared for Keith Molony, Managing Director, Gaia Talent Ltd (owner of GreenJobs). Prepared by Debanjan Mazumdar, Founder, ProdCraft (debanjan@prodcraft.fyi).
+Proposal and services agreement for greenjobs.ie and greenjobs.co.uk. Prepared for Keith Molony, Managing Director, GreenJobs Ltd. Prepared by Debanjan Mazumdar, Founder, ProdCraft (debanjan@prodcraft.fyi).
 
 | | |
 |---|---|
-| **Prepared for** | Keith Molony, Managing Director, Gaia Talent Ltd (CRO 615983), owner of greenjobs.ie and greenjobs.co.uk |
+| **Prepared for** | Keith Molony, Managing Director, GreenJobs Ltd (GreenJobs Limited, Ennis Digital Hub, Quin Road Business Park, Ennis, Co. Clare, V95 VW74), operator of greenjobs.ie and greenjobs.co.uk |
 | **Prepared by** | Debanjan Mazumdar, Founder, ProdCraft, debanjan@prodcraft.fyi |
 | **Date** | 30 September 2026 |
 | **Proposal valid until** | 31 October 2026 |
@@ -28,11 +28,11 @@ Where things stand today, from what I have measured on the live sites and what y
 
 - greenjobs.ie and greenjobs.co.uk run on a hosted job-board platform supplied by Strategies (strategies.co.uk). The platform is classic ASP (build tag 3.1.3), jQuery 1.11, Bootstrap 3, with Internet Explorer 8 compatibility shims still shipped to every visitor.
 - The Irish home page is 190 KB of HTML with about 1.03 MB of scripts, styles and key images and 1,090 links on one page. Job pages have Google JobPosting structured data switched off ("Invalid salary data"), so roles are invisible to Google for Jobs.
-- On the 22 September snapshot, salary was disclosed on 33% of Irish roles (29 of 88) and 57% of UK roles (56 of 98). Two agencies (Gaia Talent and Mattinson Partnership) supply the large majority of listings, mostly through Broadbean, Idibu or LogicMelon multiposting.
+- On the 22 September snapshot, salary was disclosed on 33% of Irish roles (29 of 88) and 57% of UK roles (56 of 98). Two agencies supply the large majority of listings, mostly through Broadbean, Idibu or LogicMelon multiposting.
 - Strategies publishes pricing "from £899 per month" (about €1,030) plus an 8 to 12 week delivery window for changes. Your actual invoice, tier, renewal date and notice period are not yet known to me and are listed as inputs in Section 04.
 - Since 22 September I have built and deployed a working front end for both editions at greenjobs-redesign.pages.dev: 195 pages on 165 live roles, every one of your change requests that is front-end work (100 of 114) implemented, and 3,047 automated checks passing at the last run on 30 September.
 
-**What you asked for (29 September):** very little rebuild work is needed on top of what you have seen. What matters is hosting plus integrations, with a guarantee that matches what Strategies gives you today: uptime, backups, security, monitoring, and Broadbean, Idibu and LogicMelon continuing to post without interruption. You also want an easy way for Gaia to post its own roles, and for GreenJobs staff to post ads themselves.
+**What you asked for (29 September):** very little rebuild work is needed on top of what you have seen. What matters is hosting plus integrations, with a guarantee that matches what Strategies gives you today: uptime, backups, security, monitoring, and Broadbean, Idibu and LogicMelon continuing to post without interruption. You also want an easy way for your recruiters to post roles straight from their CRM, and for GreenJobs staff to post ads themselves.
 
 This proposal is built around exactly that request. The rest of this document sets out the four problems the current setup is costing you, what you get in return, the scope and timeline phase by phase, the investment, and the terms.
 
@@ -48,7 +48,7 @@ Debanjan
 
 #### Problem 01. A recurring cost with no leverage
 
-You pay a hosted platform vendor every month and are dependent on their roadmap and their 8 to 12 week delivery window for changes. Based on Strategies' public entry price of £899 per month (about €1,030) and a typical WordPress care plan for gaiatalent.com, your recurring spend is estimated at €1,100 to €1,400 per month, or €13,000 to €17,000 per year, before any advertising. That estimate is derived from public pricing, not from your invoice, and is corrected in the final version once you share the Strategies figure.
+You pay a hosted platform vendor every month and are dependent on their roadmap and their 8 to 12 week delivery window for changes. Based on Strategies' public entry price of £899 per month (about €1,030) your recurring platform spend is estimated at about €1,030 per month, or roughly €12,400 per year, before any advertising. That estimate is derived from public pricing, not from your invoice, and is corrected in the final version once you share the Strategies figure.
 
 #### Problem 02. Roles are invisible where candidates search
 
@@ -74,7 +74,7 @@ greenjobs.ie (euro, en-IE) and greenjobs.co.uk (sterling, en-GB) as demonstrated
 
 #### Benefit 02. Your own platform, off Strategies, with the integrations kept
 
-An admin posting console for GreenJobs staff, candidate accounts with stored CV, one-click apply, saved roles and email job alerts, multiposting endpoints for Broadbean, Idibu and LogicMelon verified by a daily test job, a Gaia posting integration so your team can push a role from the CRM to both boards in one step, a full export of jobs, employers and candidates from Strategies, and a 301 redirect map for every indexed URL. Stack: Cloudflare Pages, Workers, D1 and R2, transactional email via Postmark or Resend. Running cost of the infrastructure itself is under €50 per month and is included in the managed hosting fee.
+An admin posting console for GreenJobs staff, candidate accounts with stored CV, one-click apply, saved roles and email job alerts, multiposting endpoints for Broadbean, Idibu and LogicMelon verified by a daily test job, a recruiter posting integration so a role can be pushed from a recruiter's CRM to both boards in one step, a full export of jobs, employers and candidates from Strategies, and a 301 redirect map for every indexed URL. Stack: Cloudflare Pages, Workers, D1 and R2, transactional email via Postmark or Resend. Running cost of the infrastructure itself is under €50 per month and is included in the managed hosting fee.
 
 #### Benefit 03. Managed hosting with a written guarantee that matches Strategies point for point
 
@@ -82,7 +82,7 @@ An admin posting console for GreenJobs staff, candidate accounts with stored CV,
 
 #### Benefit 04. A recurring cost that drops to under half
 
-From year two the total cost of both boards plus gaiatalent.com hosting is €5,400 per year at the Care tier, against an estimated €13,000 to €17,000 today. Year one, including the one-off build and migration with the bundle credit, is €13,275, which is inside what you are estimated to spend today with no upgrade. Data is yours, in standard formats, with no lock-in after the first three months.
+From year two the total cost of both boards is €5,400 per year at the Care tier, against an estimated €12,400 today. Year one, including the one-off build and migration with the bundle credit, is €13,275, which is inside what you are estimated to spend today with no upgrade. Data is yours, in standard formats, with no lock-in after the first three months.
 
 ---
 
@@ -104,7 +104,7 @@ From year two the total cost of both boards plus gaiatalent.com hosting is €5,
 - Admin posting console: GreenJobs staff create, edit, feature, close and repost roles for either edition with the same preview candidates see.
 - Candidate accounts: one registration, CV stored, one-click apply, saved roles and email job alerts tied to the account.
 - Multiposting endpoints for Broadbean, Idibu and LogicMelon, each verified by a test job posted through the route every day. Only the routes you confirm are in use are built and tested.
-- Gaia posting integration: push a role from Gaia's CRM (Recruit CRM or Vincere, to be confirmed) to both boards in one step.
+- Recruiter posting integration: push a role from a recruiter's CRM (the CRM and its API access to be confirmed at kick-off) to both boards in one step.
 - Weekly newsletter send and job-alert emails through Postmark or Resend, using your sender domain.
 - Full data export from Strategies (jobs, employers, candidates, alert subscribers) and import into the new platform, with a reconciliation report.
 - 301 redirect map for every indexed browse, job and employer URL, and analytics on the provider you choose.
@@ -112,7 +112,7 @@ From year two the total cost of both boards plus gaiatalent.com hosting is €5,
 
 #### Phase 3. Managed hosting and support (monthly, from Phase 1 go-live)
 
-- Care tier (€450 per month): hosting for greenjobs.ie, greenjobs.co.uk and gaiatalent.com, SSL, daily backups, uptime and integration monitoring, security patches, up to 4 hours of changes per month, monthly report, and the service levels in Section 05.
+- Care tier (€450 per month): hosting for greenjobs.ie and greenjobs.co.uk, SSL, daily backups, uptime and integration monitoring, security patches, up to 4 hours of changes per month, monthly report, and the service levels in Section 05.
 - Grow tier (€650 per month, optional): Care plus 10 hours per month for SEO and content (blog and salary insights), newsletter send, employer analytics, new features from a shared backlog and a quarterly review call.
 - Three-month minimum from the first monthly invoice, then rolling monthly with 30 days' written notice from either side. 10% discount for annual prepayment.
 
@@ -122,7 +122,7 @@ One weekly 30-minute call or written update, a shared change log, one business d
 
 #### Out of scope
 
-Employer self-service purchasing and online card payment (Stripe billing) for job packages, since GreenJobs staff post the ads; the other eight sites in the GreenJobs network (ConservationJobs, EcologyJobs, EnvironmentalJobs, RenewableEnergyJobs, SolarJobs, WasteJobs, WaterJobs, WindJobs); a refresh of gaiatalent.com (available as an add-on, Section 06); writing career-advice articles or market reports beyond the salary guide; paid advertising; any fees charged by Broadbean, Idibu, LogicMelon or Strategies for onboarding, API access or data export; the paid Cloudflare Data Localisation add-on if a hard EU data-residency guarantee is required. Anything not listed in Phases 1 to 3 is a change request under clause 4 of the Terms.
+Employer self-service purchasing and online card payment (Stripe billing) for job packages, since GreenJobs staff post the ads; the other eight sites in the GreenJobs network (ConservationJobs, EcologyJobs, EnvironmentalJobs, RenewableEnergyJobs, SolarJobs, WasteJobs, WaterJobs, WindJobs); writing career-advice articles or market reports beyond the salary guide; paid advertising; any fees charged by Broadbean, Idibu, LogicMelon or Strategies for onboarding, API access or data export; the paid Cloudflare Data Localisation add-on if a hard EU data-residency guarantee is required. Anything not listed in Phases 1 to 3 is a change request under clause 4 of the Terms.
 
 #### Client inputs (what ProdCraft needs from GreenJobs, and by when)
 
@@ -130,7 +130,7 @@ Employer self-service purchasing and online card payment (Stripe billing) for jo
 |---|---|---|---|
 | 1 | Strategies invoice amount, tier, renewal date, notice period and data-export terms | Phase 2 price confirmation and cut-over date | Signature + 5 working days |
 | 2 | Which of Broadbean, Idibu, LogicMelon (and JobAdder) are actually used, and who owns each account | Phase 2 integration list | Signature + 5 working days |
-| 3 | Gaia's CRM (Recruit CRM or Vincere), plan tier and API access | Gaia posting integration | Signature + 5 working days |
+| 3 | The recruiter CRM to integrate for posting, its plan tier and API access | Recruiter posting integration | Signature + 5 working days |
 | 4 | Monthly posting volume, number of employer accounts, candidate accounts, job-alert subscribers and newsletter list size | Sizing and migration plan | Signature + 5 working days |
 | 5 | DNS access for greenjobs.ie and greenjobs.co.uk (or a contact who can make the change on the day) | Phase 1 go-live | Signature + 5 working days |
 | 6 | Monthly visitor figure, weekly newsletter reach and LinkedIn or network figures for the employers page | Open items 1 to 3 of 11 | Before Phase 1 go-live |
@@ -178,7 +178,7 @@ Phase 2 is 6 to 8 weeks of build; the calendar above uses 7.5 weeks plus the hol
 | Firewall, DDoS protection, SSL | Included | Cloudflare WAF, DDoS protection and managed SSL |
 | 24/7 monitoring | Included. Alerts to Debanjan around the clock. Response within 1 business day for standard requests and within 4 hours for a posting outage. | Uptime and integration probes every 15 minutes |
 | UK data centres | EU-region preference for stored data (D1 location hint set to Western Europe). A hard residency guarantee requires the paid Cloudflare Data Localisation add-on, billed at cost if you want it. | Documented either way in the monthly report |
-| Integrations | Broadbean, Idibu and LogicMelon posts verified daily by a test job; Gaia integration included; no cut-over until every route passes acceptance | Worker cron posts a test job through each route every day and confirms it landed |
+| Integrations | Broadbean, Idibu and LogicMelon posts verified daily by a test job; Recruiter posting integration included; no cut-over until every route passes acceptance | Worker cron posts a test job through each route every day and confirms it landed |
 | Exit | Full export of jobs, employers, candidates and subscribers on request in CSV or JSON, at no charge, within 10 working days. No lock-in after the three-month minimum. | Data is yours; standard formats |
 Service credits are the sole remedy for a missed availability target. Planned maintenance notified 48 hours ahead and outages caused by Cloudflare, Broadbean, Idibu, LogicMelon, DNS registrars or the client's own changes are excluded from the measurement.
 
@@ -200,25 +200,21 @@ Service credits are the sole remedy for a missed availability target. Planned ma
 
 | Recurring service | Covers | Term | Amount (EUR) |
 |---|---|---|---|
-| Managed hosting, Care | greenjobs.ie, greenjobs.co.uk and gaiatalent.com hosting, SSL, backups, monitoring, security, 4 change hours, monthly report, Section 05 service levels | Monthly from Phase 1 go-live; 3-month minimum then rolling, 30 days' notice | €450 per month |
+| Managed hosting, Care | greenjobs.ie and greenjobs.co.uk hosting, SSL, backups, monitoring, security, 4 change hours, monthly report, Section 05 service levels | Monthly from Phase 1 go-live; 3-month minimum then rolling, 30 days' notice | €450 per month |
 | Managed hosting, Grow (optional) | Care plus 10 hours per month for SEO, content, newsletter, employer analytics, backlog features, quarterly review | Same | €650 per month |
 | Annual prepayment | Either tier paid 12 months in advance |  | 10% discount |
-
-| Optional add-on | Covers | Amount (EUR) |
-|---|---|---|
-| gaiatalent.com refresh | Home, jobs and team pages as demonstrated at gaia-talent-redesign.pages.dev, blank bios fixed, B Corp and Hometree proof, JobPosting structured data | €1,200 when bundled with this agreement; €1,500 standalone |
 
 #### What it adds up to
 
 | Period | Calculation | Total (EUR) | Estimated spend today |
 |---|---|---|---|
-| Year 1 (Care, bundled) | €7,875 one-off + 12 × €450 | €13,275 | €13,000 to €17,000 |
-| Year 1 (Grow, bundled) | €7,875 one-off + 12 × €650 | €15,675 | €13,000 to €17,000 |
-| Year 2 onward (Care) | 12 × €450 | €5,400 per year | €13,000 to €17,000 |
-| Year 2 onward (Grow) | 12 × €650 | €7,800 per year | €13,000 to €17,000 |
-"Estimated spend today" is derived from Strategies' public entry price and a typical WordPress care plan. It is replaced with the real figure once the Strategies invoice is shared (client input 1).
+| Year 1 (Care, bundled) | €7,875 one-off + 12 × €450 | €13,275 | €12,400 (estimate) |
+| Year 1 (Grow, bundled) | €7,875 one-off + 12 × €650 | €15,675 | €12,400 (estimate) |
+| Year 2 onward (Care) | 12 × €450 | €5,400 per year | €12,400 (estimate) |
+| Year 2 onward (Grow) | 12 × €650 | €7,800 per year | €12,400 (estimate) |
+"Estimated spend today" is derived from Strategies' public entry price of £899 per month (about €1,030). It is replaced with the real figure once the Strategies invoice is shared (client input 1).
 
-**Expected return.** From year two, the Care tier saves an estimated €7,600 to €11,600 every year against today's recurring cost, while adding candidate accounts, Google for Jobs visibility, a staff posting console and a live dashboard that the current platform does not provide.
+**Expected return.** From year two, the Care tier saves an estimated €7,000 every year against today's estimated recurring cost, while adding candidate accounts, Google for Jobs visibility, a staff posting console and a live dashboard that the current platform does not provide.
 
 #### Payment terms
 
@@ -227,15 +223,6 @@ Service credits are the sole remedy for a missed availability target. Planned ma
 - Milestone 1 is invoiced only when Phase 1 is live on your domains. If Phase 1 is not live within 15 working days of signature for reasons within ProdCraft's control, the Milestone 1 fee is waived in full (Terms, clause 3).
 - Milestone 4 is invoiced only after the parallel run passes acceptance. If any confirmed posting route fails acceptance and cannot be fixed, the Milestone 4 fee is not charged and Milestone 2 and 3 payments are the only migration fees due (Terms, clause 3).
 - Monthly hosting is invoiced in advance on the first of each month, pro-rated for the first partial month from Phase 1 go-live.
-
----
-
-## Related Systems Already Built for Gaia Talent
-
-Alongside the GreenJobs work, two further systems have been built and demonstrated during this engagement. They are not part of this agreement and carry no fee unless separately agreed.
-
-- **Gaia Radar and Shortlist Check (sourcing).** A candidate-sourcing pipeline with deterministic gates for seniority, location, discipline and client conflicts, a Recruit CRM sync adapter, and a Shortlist Check tool that re-verifies a list of names against the brief. Demonstrated 20 August and 14 September 2026 at gaia-radar.pages.dev.
-- **gaiatalent.com redesign.** Home, jobs and team pages on 63 live roles with JobPosting structured data, demonstrated at gaia-talent-redesign.pages.dev. Available as the add-on in Section 06.
 
 ---
 
@@ -249,7 +236,7 @@ By signing, both parties accept this proposal, including the Terms and Condition
 
 #### Terms and Conditions
 
-1. **Parties.** "ProdCraft" means Debanjan Mazumdar trading as ProdCraft, [legal form, registered address and registration number: to be inserted], email debanjan@prodcraft.fyi. "Client" means [Gaia Talent Ltd, CRO 615983, or GreenJobs Ltd: the contracting entity to be confirmed], represented by Keith Molony, Managing Director. Each is a "party".
+1. **Parties.** "ProdCraft" means Debanjan Mazumdar trading as ProdCraft, [legal form, registered address and registration number: to be inserted], email debanjan@prodcraft.fyi. "Client" means GreenJobs Limited, Ennis Digital Hub, Quin Road Business Park, Ennis, Co. Clare, V95 VW74, Ireland [company registration number: to be inserted], represented by Keith Molony, Managing Director. Each is a "party".
 2. **Scope and documents.** The services are those described in Sections 04 and 05. This document, once signed, is the entire agreement and replaces every earlier quote, message or draft (including the €1,875 figure discussed before 22 September 2026). If this agreement and any later purchase order conflict, this agreement prevails unless both parties sign the change.
 3. **Guarantees.** (a) Phase 1: if the front end is not live on greenjobs.ie and greenjobs.co.uk within 15 working days of the signature date for reasons within ProdCraft's control, the Milestone 1 fee (€2,750) is waived. The 15-day clock pauses for any day on which a client input listed in Section 04 (items 5 to 10) is outstanding after its due date, and for any delay caused by the Client's DNS provider or by Strategies. (b) Phase 2: if a posting route the Client has confirmed as in use fails the parallel-run acceptance test and ProdCraft cannot make it pass, the Milestone 4 fee (€1,300) is not charged, Strategies remains in place, and the Client keeps everything built. (c) Availability: the service credits in Section 05 are the Client's sole and exclusive remedy for a missed availability target.
 4. **Change control.** Work outside Sections 04 and 05 is quoted in writing before it starts, as a fixed fee or at €85 per hour, and proceeds only on the Client's written approval. The 4 (Care) or 14 (Grow) monthly hours cover small changes and do not roll over.
@@ -274,11 +261,11 @@ Email: debanjan@prodcraft.fyi
 Signature: ____________
 Date: ____
 
-**Gaia Talent Ltd / GreenJobs Ltd (contracting entity to be confirmed)**
+**GreenJobs Ltd**
 Name: Keith Molony
 Title: Managing Director
 Email: [Keith email]
 Signature: ____________
 Date: ____
 
-Items in [square brackets] must be completed before this document is sent for signature: ProdCraft legal form, registered address, registration number and VAT status; the Client's contracting entity and email; Annex A (data processing agreement). Version 1.0 prepared 30 September 2026.
+Items in [square brackets] must be completed before this document is sent for signature: ProdCraft legal form, registered address, registration number and VAT status; the Client's registration number and email; Annex A (data processing agreement). Version 1.0 prepared 30 September 2026.

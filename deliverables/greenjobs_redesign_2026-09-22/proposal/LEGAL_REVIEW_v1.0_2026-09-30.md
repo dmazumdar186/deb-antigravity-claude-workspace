@@ -17,7 +17,7 @@ Send-ready **after the nine bracketed items in section 4 are filled in**. As dra
 | Quarterly restore drill with written result | §05 | Time | None needed |
 | Free full data export within 10 working days, on request, at any time | §05, cl. 6 | Time | Standard formats only |
 | 30-day defect correction after acceptance | cl. 10 | Time | Limited to defects, not new requests |
-| Liability capped at 12 months' fees | cl. 11 | Max ≈ €13,275 in year 1 | Mutual; carve-outs only where law requires |
+| Liability capped at 12 months' fees | cl. 11 | Max ≈ €13,275 in year 1 (Care, bundled) | Mutual; carve-outs only where law requires |
 
 Total fee at risk under the guarantees if everything goes wrong: **€4,050** (M1 + M4). The migration build itself (€5,200) is protected.
 
@@ -31,8 +31,7 @@ Total fee at risk under the guarantees if everything goes wrong: **€4,050** (M
 | €1,375 bundle credit for 12-month commitment | §8 line C ("waive C's second half") | yes |
 | Year 1 €13,275; year 2+ €5,400 | §8 | yes (7,875 + 5,400 = 13,275) |
 | Year 1 Grow €15,675; year 2+ Grow €7,800 | derived: 7,875 + 12×650; 12×650 | arithmetic checked |
-| €13,000 to €17,000 estimated spend today | §1 "derived" | yes, labelled as an estimate in three places |
-| gaiatalent.com add-on €1,200 bundled / €1,500 standalone | §2 Line 1 | yes |
+| €12,400 per year estimated spend today (12 × ~€1,030, Strategies' public entry price) | costing brief §1 | yes, labelled as an estimate; the earlier €13k to €17k range included a gaiatalent.com care plan, which is out of this proposal at the operator's instruction |
 | 10% annual prepay discount; 3-month minimum; rolling monthly | §2 Line 3 | yes |
 | 30-day parallel run; daily test job; no cut-over until acceptance | §8 guarantee table | yes |
 | 99.9%, 10% credit per 0.1%, daily backups, quarterly restore, 4 h posting outage, 1 business day | §8 guarantee table | yes; the 100%-of-fee cap and the exclusions are additions by this review |
@@ -49,7 +48,7 @@ Removed on purpose: the €1,875 figure appears only inside clause 2 to state th
 
 1. ProdCraft legal form, registered address and registration number (cl. 1). The record does not say whether ProdCraft is a French micro-entreprise, SAS or other.
 2. ProdCraft VAT status and number (§06 payment terms). Cross-border B2B services from France to Ireland are normally reverse-charged; confirm with your accountant and state it.
-3. The Client's contracting entity: Gaia Talent Ltd (CRO 615983) or GreenJobs Ltd (Ennis). The public GreenJobs sites never name Keith or Gaia Talent as owner; the record only has the operator's statement. Ask Keith which entity signs and pays.
+3. GreenJobs Limited's company registration number (the site gives the Ennis address but no CRO number). Confirm with Keith that GreenJobs Limited is the entity that signs and pays.
 4. Keith's email address (cover, signature block, cl. 15). Not in the record.
 5. Annex A, the Article 28 data processing agreement (cl. 8). Not drafted; use the EU standard contractual clauses for controller-to-processor or a short bespoke DPA. Without it the GDPR clause is a promise to attach, not a DPA.
 6. Governing law: Ireland is chosen because the Client, the domains and the services are Irish. If you prefer French law and courts, change cl. 16.
@@ -71,14 +70,13 @@ Removed on purpose: the €1,875 figure appears only inside clause 2 to state th
 
 ## 6. What the record does not settle (do not assert these to Keith)
 
-- Whether the Gaia Talent redesign URL was ever sent to Keith; the proposal lists it as "demonstrated" only under Related Systems and as an add-on. If it was never sent, change "demonstrated" to "built".
-- Gaia's CRM: Recruit CRM (call of 10 September) versus Vincere (gaiatalent.com privacy policy). The proposal says "to be confirmed".
+- Which recruiter CRM the posting integration targets and whether it has an API; the proposal says "to be confirmed at kick-off".
 - Whether the 28 September DM reply and the 29 September email reply were actually sent. The proposal does not depend on either.
 - Keith's Finance Manager's name and the outcome of the "Wednesday" conversation.
 - Whether Diana Lupu (Finance Administrator on the team page) is the Finance Manager.
 
 ## 7. Things this proposal deliberately does not contain
 
-- No price or terms for the sourcing engagement (Gaia Radar, Shortlist Check). Nothing was ever quoted or invoiced for it; it is mentioned as related work only, at no fee.
+- Nothing about Gaia Talent: no sourcing work, no gaiatalent.com hosting or refresh. Operator instruction of 30 September: this agreement is GreenJobs only; the €450/€650 hosting tiers now cover the two boards.
 - No non-compete or non-solicit (cl. 14 says so, to pre-empt the question).
 - No automatic renewal of a fixed term; hosting is rolling monthly after three months, which is the "no lock-in" position taken in every message to Keith.
