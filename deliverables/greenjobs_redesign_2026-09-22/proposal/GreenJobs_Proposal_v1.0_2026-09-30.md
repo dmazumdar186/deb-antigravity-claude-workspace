@@ -120,29 +120,24 @@ Note: this is a two-step package with a 50% deposit and the remaining balance du
 | 50% deposit, due at signing |  |  | €2,499 |
 | Balance, due on go-live |  |  | €2,499 |
 
-#### Monthly hosting and support (starts when the front end goes live)
+#### Monthly maintenance (starts when the front end goes live)
 
 | Plan | What it covers | Per month |
 |---|---|---|
-| Care | Hosting for both boards, SSL, daily backups, monitoring, security patches, up to 4 hours of changes, monthly report | €499 |
-| Grow | Everything in Care, plus 10 hours per month of growth work: SEO and content, weekly newsletter send, employer analytics and new features from a shared backlog, quarterly review call | €799 |
-Pick one; Grow includes Care. Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in.
+| Maintain | Hosting for both boards, SSL, daily backups, 24/7 monitoring, security patches, daily checks of every posting route, up to 6 hours of changes per month, monthly report | €999 |
+Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in.
 
-#### How each plan is measured (reported to you every month)
+#### How maintenance is measured (reported to you every month)
 
-| Metric | Care commits to | Grow adds |
-|---|---|---|
-| Uptime, both boards | 99.9% per month, measured by an independent monitor | Same |
-| Backups | Daily, 100% success; restore drill every quarter with a written result | Same |
-| Posting routes (Broadbean, Idibu, LogicMelon, CRM) | Test job through every route every day; 99% daily pass rate | Same |
-| Response time | 1 business day; 4 hours for a posting outage | Same |
-| Change hours delivered | Up to 4 hours per month | Up to 14 hours per month (4 + 10) |
-| Google for Jobs | Every live role carries valid JobPosting data | 100% of live roles indexed within 30 days of go-live |
-| Page speed | Core Web Vitals pass on both editions | Same, checked monthly |
-| Content and newsletter | Not included | 2 content pieces per month (salary insights, sector guides); newsletter sent every week |
-| Organic search sessions | Reported | Baseline measured in month 1; +20% by month 6 |
-| Applications started | Reported | Baseline measured in month 1; +20% by month 6 |
-Growth targets are set against the month-1 baseline of the new platform. Each is a target I plan to beat; the figure written here is the achievable level, not the stretch.
+| Metric | Commitment |
+|---|---|
+| Uptime, both boards | 99.9% per month, measured by an independent monitor |
+| Backups | Daily, 100% success; restore drill every quarter with a written result |
+| Posting routes (Broadbean, Idibu, LogicMelon, CRM) | Test job through every route every day; 99% daily pass rate |
+| Response time | 1 business day; 4 hours for a posting outage |
+| Change hours delivered | Up to 6 hours per month |
+| Google for Jobs | Every live role carries valid JobPosting data |
+| Page speed | Core Web Vitals pass on both editions, checked monthly |
 
 #### Tool subscriptions
 
@@ -155,7 +150,7 @@ All subscriptions are in your name with full ownership. No vendor lock-in.
 | Domains and DNS | greenjobs.ie and greenjobs.co.uk | Already yours |
 Tool subscriptions are billed at cost +3% to cover currency conversion and payment processing. Prices checked against the vendors' pricing pages on 30 September 2026.
 
-**Scope of the monthly plans:** both plans cover greenjobs.ie and greenjobs.co.uk only. If further sites are added later (for example gaiatalent.com or other sites in the GreenJobs network), the scope and the monthly fee are agreed in writing before that work starts.
+**Scope of the monthly plan:** it covers greenjobs.ie and greenjobs.co.uk only. If further sites are added later (for example gaiatalent.com or other sites in the GreenJobs network), the scope and the monthly fee are agreed in writing before that work starts.
 
 ---
 
@@ -163,7 +158,7 @@ Tool subscriptions are billed at cost +3% to cover currency conversion and payme
 
 ### Terms and conditions.
 
-ProdCraft will build the GreenJobs platform for GreenJobs Ltd according to the description laid out in this proposal. The scope is greenjobs.ie and greenjobs.co.uk; any additional site or service is quoted and agreed in writing before it starts. Billing starts on the signature date. The deposit is charged upfront; the balance on go-live; monthly plans are charged upfront at the start of each cycle. Cancellation of the monthly plan: 30 days' written notice; anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Response time: one business day. Additional features, extensions or other integrations separate from the listed requirements may affect the timeline and costs laid out above. If you have a question or comment, email debanjan@prodcraft.fyi.
+ProdCraft will build the GreenJobs platform for GreenJobs Ltd according to the description laid out in this proposal. The scope is greenjobs.ie and greenjobs.co.uk; any additional site or service is quoted and agreed in writing before it starts. Billing starts on the signature date. The deposit is charged upfront; the balance on go-live; the monthly plan is charged upfront at the start of each cycle. Cancellation of the monthly plan: 30 days' written notice; anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Response time: one business day. Additional features, extensions or other integrations separate from the listed requirements may affect the timeline and costs laid out above. If you have a question or comment, email debanjan@prodcraft.fyi.
 
 By signing below, both parties indicate their acceptance of this proposal and constitute approval to begin work upon GreenJobs Ltd's deposit payment. This document is signed electronically through DocuSign.
 
