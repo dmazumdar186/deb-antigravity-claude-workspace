@@ -1270,11 +1270,15 @@ def loc_badge(j: dict[str, Any]) -> str:
     return f'<span class="tag tag--loc" data-loc="{esc(lc)}">{esc(LOC_LABEL.get(lc, ""))}</span>' if lc in LOC_LABEL else ""
 
 
-def sep_pair(text: str) -> str:
-    """'· Carlow, Dublin' with the separator glued to the first word (r2 #1); mirrors lib.js sepPair."""
+def sep_pair(text: str, who: str = "") -> str:
+    """'Dacorum Borough [Council · Hertfordshire]': the separator is nowrap with the
+    employer's last word and the location's first word, so it never starts a line (r3 #4); mirrors lib.js sepPair."""
     words = esc(str(text or "")).split(" ")
     head = words.pop(0)
-    return f'<span><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>{head}</span>{(" " + " ".join(words)) if words else ""}</span>'
+    emp = esc(str(who or "")).split(" ")
+    last = emp.pop()
+    return (f'<span class="row__emp">{(" ".join(emp) + " ") if emp else ""}<span class="row__pair">{(last + " ") if last else ""}'
+            f'<span class="row__sep" aria-hidden="true">· </span>{head}</span>{(" " + " ".join(words)) if words else ""}</span>')
 
 
 def role_card(j: dict[str, Any], root: str, jobs_dir: str, today: date, ed_cur: str = "") -> str:
@@ -1283,7 +1287,7 @@ def role_card(j: dict[str, Any], root: str, jobs_dir: str, today: date, ed_cur: 
     return (f'<article class="role reveal">'
             f'<div class="role__top">{logo_img(j, root)}<button class="save" type="button" data-save="{esc(j["id"])}" data-title="{esc(j["title"])}" aria-pressed="false" aria-label="Save: {esc(j["title"])}">{SAVE_ICON}</button></div>'
             f'<h3><a href="{jobs_dir}{esc(j["href"])}">{esc(j["title"])}</a></h3>'
-            f'<p class="role__emp"><span>{esc(j["employer"])}</span>{sep_pair(j["location"])}</p>'
+            f'<p class="role__emp">{sep_pair(j["location"], j["employer"])}</p>'
             f'<div class="role__meta">{chips}<time datetime="{esc(j["posted"])}">{esc(ago(j["posted"], today))}</time></div>'
             + (f'<p class="role__note">{esc(UNVERIFIED_NOTE)}.</p>' if j.get("currency_source") == UNVERIFIED_SOURCE else "") + '</article>')
 
@@ -2012,7 +2016,7 @@ def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
 # {{dash_lede}} and {{dash_events}}; DASHBOARD_REWRITES maps the retired
 # developer phrasing onto them so the built page is right in the meantime.
 DASHBOARD_COPY = {
-    "dash_lede": "What the board is worth this week, and how each number is measured. Live figures from this week's listings. Reported once analytics is switched on.",
+    "dash_lede": "What the board is worth this week, and how each number is measured. Live figures from this week's listings.",
     "dash_events": "Nothing below is a live number. Each tile names the event the site records and the target it is measured against. Events are sent once analytics is switched on and you allow it; values fill in from launch day and a dash means \"collected from launch\".",
 }
 DASHBOARD_REWRITES = [
@@ -2046,14 +2050,14 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
         ("Live roles", str(k["live"]), "Listings with a page in this edition on the snapshot date.", ""),
         ("New this week", str(k["new7"]), "Roles posted within the 7 days up to the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
         ("Closing within 7 days", str(k["closing7"]), "Roles whose closing date falls within the 7 days after the snapshot.", ""),
-        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}). Median of disclosed annualised midpoints, converted into {sym} at the fixed rate where a role is advertised in the other currency: {med}.', ""),
+        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}); median of the disclosed annualised midpoints {med}.', ""),
         ("Advertised window, days", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
         ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose advert mentions remote or hybrid working.", ""),
         ("Top employer share", f'{k["top_share"]}%', f'{esc(k["top_employer"])} holds this share of live roles across {k["employers"]} employers.' + (" Most roles come from one employer." if flag else ""), ""),
-        ("Agency share", f'{k["agency_pct"]}%', f"Roles posted by recruitment agencies rather than the employer directly. Flagged when the employer is a known agency ({esc(agency_names)}) or its name contains a recruitment word ({esc(agency_words)}); the same flag drives the board's \"Advertised by\" filter.", ""),
+        ("Agency share", f'{k["agency_pct"]}%', "Roles posted by recruitment agencies rather than the employer directly.", ""),
     ]
     tile_html = "".join(
-        f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num">{val}</b>{spark}<p class="kpi__d">{how}</p></div>'
+        f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num">{val}</b>{spark}<p class="kpi__d" title="{how}">{how}</p></div>'
         for lbl, val, how, spark in tiles)
     root = "../../"
     ctx = shell_ctx(data, 2, "dashboard", f"KPI dashboard — what GreenJobs {ed['short']} measures | GreenJobs {ed['short']}",
@@ -2403,12 +2407,19 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         sal = salary_label(j, ed["currency"])
         note = currency_note(j, ed["currency"])
         loc_dup = j["location"].strip().lower() == LOC_LABEL.get(j["loc_class"], "").lower()  # "UK" + UK badge: one chip (r1 #32)
-        badge_dup = j["loc_class"] == "cross" and re.search(r"\bUK\b|United Kingdom", j["location"]) and "Ireland" in j["location"]  # "UK, Ireland" + "Ireland & UK": one chip (r2 #7)
-        meta_tags = ("".join(f'<span class="tag">{esc(x)}</span>' for x in [("" if loc_dup else j["location"]), j["type"]] if x) + ("" if badge_dup else loc_badge(j))
+        badge_dup = j["loc_class"] == "cross" and re.search(r"\bUK\b|United Kingdom", j["location"]) and "Ireland" in j["location"]  # "UK, Ireland" + "Ireland & UK": one chip, worded like the Location row (r2 #7, r4)
+        loc_chip = "" if loc_dup else f"{LOC_LABEL[j['loc_class']]} (nationwide)" if badge_dup else re.sub(r",?\s*\b(United Kingdom \(UK\)|United Kingdom|UK|Ireland|Republic of Ireland)\s*(\(nationwide\))?$", "", j["location"]).strip(" ,") or j["location"]  # r3 #5: the loc badge already says the country
+        meta_tags = ("".join(f'<span class="tag">{esc(x)}</span>' for x in [loc_chip, j["type"]] if x) + ("" if badge_dup else loc_badge(j))
                      + (f'<span class="tag tag--sal">{esc(sal)}</span>' if sal else "")
                      + (f'<span class="tag tag--wp">{esc(WORKPLACE_LABEL[j["workplace"]])}</span>' if j["workplace"] != "unspecified" else ""))
         dl = ""
-        for k, v in (("Location", j["location"]), ("Where", LOC_LABEL.get(j["loc_class"], "")), ("Workplace", WORKPLACE_LABEL[j["workplace"]] if j["workplace"] != "unspecified" else ""),
+        where = LOC_LABEL.get(j["loc_class"], "")
+        country_only = re.fullmatch(r"(UK|United Kingdom( \(UK\))?|Ireland|Republic of Ireland|Northern Ireland|Remote)", j["location"].strip(), re.I) is not None
+        names_country = re.search(r"\b(UK|United Kingdom|Ireland)\b", j["location"], re.I) is not None
+        country_only = country_only or (j["loc_class"] == "cross" and badge_dup)
+        loc_row = ((f"{where} (nationwide)" if j["loc_class"] in ("ie", "uk", "ni", "cross") else where) if (loc_dup or country_only) and where
+                   else j["location"] + (f" ({where})" if where and not names_country and "(nationwide)" not in j["location"] and j["loc_class"] != "unspecified" else "")) if j["location"].strip() else where  # r3 #5: one row
+        for k, v in (("Location", loc_row), ("Workplace", WORKPLACE_LABEL[j["workplace"]] if j["workplace"] != "unspecified" else ""),
                      ("Contract", contract_row(j)), ("Level", j["level"]),
                      ("Salary", (j["sal_text"] or (sal or "Not disclosed")) + (f" ({note.lower()}, about {sal.split('about ', 1)[1].rstrip(')')})" if note and "about " in sal else "")),
                      ("Salary source", salary_source_line(j)),
@@ -2612,8 +2623,9 @@ def waterfall(perf: dict[str, Any], home_html: str) -> str:
 _BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.S)
 
 
-def publish_text(text: str) -> str:
-    """Strip block comments, whole-line // comments and indentation from CSS/JS."""
+def publish_text(text: str, css: bool = False) -> str:
+    """Strip block comments, whole-line // comments and indentation from CSS/JS;
+    CSS also loses the line breaks after '{', '}', ';' and ',' (they carry no meaning there)."""
     out = _BLOCK_COMMENT.sub("", text)
     kept = []
     for line in out.split("\n"):
@@ -2621,7 +2633,8 @@ def publish_text(text: str) -> str:
         if not bare or bare.startswith("//"):
             continue
         kept.append(bare)
-    return "\n".join(kept) + "\n"
+    joined = "\n".join(kept) + "\n"
+    return re.sub(r"(?<=[{};,])\n", "", joined) if css else joined
 
 
 def run_node_tests(src: Path) -> tuple[int, int] | None:
@@ -2761,7 +2774,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         shutil.copytree(src / name, out / name, ignore=shutil.ignore_patterns("*.test.js", "__pycache__"))
         for path in (out / name).glob("*"):
             if path.suffix in (".css", ".js"):
-                path.write_text(publish_text(path.read_text(encoding="utf-8")), encoding="utf-8")
+                path.write_text(publish_text(path.read_text(encoding="utf-8"), css=path.suffix == ".css"), encoding="utf-8")
     (out / "assets").mkdir()
     for sub in ("fonts",):
         shutil.copytree(src / "assets" / sub, out / "assets" / sub)

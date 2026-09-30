@@ -340,3 +340,10 @@ test('suggestSectors respects the other active facets', () => {
   assert.deepEqual(GJ.suggestSectors(jobs, { sector: 'Wind energy', wp: 'site' }), []);
   assert.deepEqual(GJ.suggestSectors(jobs, { sector: 'Wind energy' }, { limit: 1 }), [{ name: 'Water & flood', n: 2 }]);
 });
+
+test('sepPair keeps the separator glued to the last employer word and the first location word (r3 #4, r4)', () => {
+  assert.equal(GJ.sepPair('Carlow, Dublin, Cork', 'Dacorum Borough Council'),
+    '<span class="row__emp">Dacorum Borough <span class="row__pair">Council <span class="row__sep" aria-hidden="true">· </span>Carlow,</span> Dublin, Cork</span>');
+  assert.equal(GJ.sepPair('Cork'), '<span class="row__emp"><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>Cork</span></span>');
+  assert.ok(!GJ.sepPair('<b>x</b>', '<i>y</i>').includes('<b>'), 'both arguments are escaped');
+});

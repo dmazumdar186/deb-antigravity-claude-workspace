@@ -48,9 +48,9 @@ function ph(v, fallback) { return v ? G.esc(v) : '<span class="adb__ph">' + fall
 function render() {
 var j = job(), sal = G.salaryLabel(j), blank = !j.title && !j.employer;
 root.classList.toggle('is-blank', blank);
-var chips = (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '') + (j.type ? '<span class="tag tag--type">' + G.esc(j.type) + '</span>' : '');
+var chips = (j.type ? '<span class="tag tag--type">' + G.esc(j.type) + '</span>' : '') + (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '');
 card.innerHTML = '<article class="role"><div class="role__top">' + logo(j, 'role__logo') + '<span class="save" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span></div>' +
-'<h3>' + ph(j.title, 'Your job title') + '</h3><p class="role__emp"><span>' + ph(j.employer, 'Your organisation') + '</span>' + (j.location ? G.sepPair(j.location) : '<span><span class="row__sep" aria-hidden="true">· </span>' + ph('', 'Location') + '</span>') + '</p>' +
+'<h3>' + ph(j.title, 'Your job title') + '</h3><p class="role__emp">' + (j.employer && j.location ? G.sepPair(j.location, j.employer) : '<span>' + ph(j.employer, 'Your organisation') + '</span><span><span class="row__sep" aria-hidden="true">· </span>' + (j.location ? G.esc(j.location) : ph('', 'Location')) + '</span>') + '</p>' +
 '<div class="role__meta">' + chips + '<time datetime="' + today + '">Today</time></div></article>';
 var meta = [j.location, j.type].filter(Boolean).map(function (x) { return '<span class="tag">' + G.esc(x) + '</span>'; }).join('') + (sal ? '<span class="tag tag--sal">' + G.esc(sal) + '</span>' : '');
 hero.innerHTML = '<nav class="crumbs" aria-hidden="true"><span>Home</span><span>/</span><span>Jobs</span><span>/</span><span>' + G.esc(j.sectors[0]) + '</span></nav>' +

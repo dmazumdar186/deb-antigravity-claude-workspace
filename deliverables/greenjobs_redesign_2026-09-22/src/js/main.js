@@ -35,7 +35,8 @@
   var hdr = $('[data-header]');
   if (hdr) {
     var onScroll = function () { hdr.classList.toggle('is-stuck', window.scrollY > 8); };
-    doc.documentElement.style.setProperty('--hdr-h', hdr.offsetHeight + 'px');
+    var hdrH = function () { doc.documentElement.style.setProperty('--hdr-h', hdr.offsetHeight + 'px'); };
+    hdrH(); window.addEventListener('resize', hdrH);
     onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
   }
   var menu = $('[data-menu]');

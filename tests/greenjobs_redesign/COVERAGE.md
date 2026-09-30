@@ -21,7 +21,7 @@ JS: `cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test --exper
 | `lib.js` (node --test) | 97.7% | 97.7% (unchanged) |
 | `dashboard.js` (node --test) | 57.1% | 57.1% — the DOM half (lines 35-61) now runs in real Chromium via `dashboard_dom.test.mjs`, but code executed inside the browser cannot be attributed by `node --test`'s coverage, so the figure does not move |
 
-Checks: 319 before → 532 after in the python tier (87 in `test_scrape.py`, 126 in `test_gaps.py`), plus 15 Playwright checks. Round 4 (2026-09-28): python tier 1,010 (blocks `# --- round 4 ---` and `test_r4b_landings_strip_types` add `# --- round 4 ---` adds sterling fidelity, secondary tags, workplace/contract, cross-border, unverified-currency, deploy-gate, hero-facts and dashboard-voice checks), node 40, dashboard DOM 15, layout 1,732 — 2,797 in total, as printed by `run_all.py`.
+Checks: 319 before → 532 after in the python tier (87 in `test_scrape.py`, 126 in `test_gaps.py`), plus 15 Playwright checks. Rounds 4-7 (2026-09-28 → 2026-09-30): python tier 1,257 (rounds 4 sterling fidelity, secondary tags, workplace/contract, cross-border, unverified-currency, deploy-gate, hero-facts and dashboard-voice checks; human-eye rounds r1-r3 added separator pairs, package table, description renderer, treemap and map checks), node 41, dashboard DOM 15, layout 1,732 — 3,045 in total, as printed by `run_all.py`.
 
 ## Scraper fixture
 
@@ -69,4 +69,4 @@ Every check asserts a concrete property of the output (rendered HTML, validator 
 
 `test_build.py` defines `test_panel_b_copy_and_consent` and `test_panel_b_dashboard_rules_from_stored_fields` *after* the `__main__` guard, so the script runner never executes them; they only run under pytest or when the module is imported. Three of their checks fail against the current templates/data (tile label `(30d)` is rendered inside a `<span>`, "jQuery" legitimately appears in the evidence table above the appendix, and the synthetic dataset yields `closing7 == 3`, not 1). Left unchanged per the "no weakening" rule; a follow-up task is queued.
 
-Last full run (run_all.py, 2026-09-29): 3039 checks — python (build + validate + scrape + gaps) pass (1251), node --test lib.js + dashboard.js pass (41), playwright dashboard DOM pass (15), playwright layout regression pass (1732).
+Last full run (run_all.py, 2026-09-30): 3047 checks — python (build + validate + scrape + gaps) fail (1258), node --test lib.js + dashboard.js pass (42), playwright dashboard DOM pass (15), playwright layout regression fail (1732).

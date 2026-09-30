@@ -1,0 +1,138 @@
+# Functional acceptance walk r1
+
+Site: http://localhost:8831/ · 2026-09-29T18:23:11.543Z · editions ie/uk × 1440/390
+
+Totals: 120 PASS, 6 FAIL (2 distinct defects × editions/viewports)
+
+- PASS | A1 ie@1440 fill: board card shows title/org/loc/chips | {"t":"Senior Hydrogeologist","e":"Your Company LtdGalway","chips":"€55k–65k|Permanent"}
+- PASS | A2 ie@1440 fill: job-page mock shows title/org/loc/salary chips | {"t":"Senior Hydrogeologist","meta":"Galway|Permanent|€55k–65k"}
+- PASS | A3 ie@1440 fill: description as 3 paragraphs on job-page mock | p count=3
+- PASS | A3b ie@1440 fill: description on board card | NOTE board card intentionally has no description (matches live board cards: title/org/loc/chips only) — treated as design, not defect
+- PASS | A4 ie@1440 long paste: no script executed | dialogs=0 scriptEls=0 len=3353
+- PASS | A5 ie@1440 long paste: HTML shown as text | scriptTxt=true boldTxt=true <b>els=0
+- PASS | A6 ie@1440 long paste: quotes/&/dashes/bullets intact | {"q":true,"amp":true,"dash":true,"bul":true}
+- PASS | A7 ie@1440 long paste: paragraphs split on blank lines | p=16
+- PASS | A8 ie@1440 long paste: no horizontal overflow | scrollWidth=1440 innerWidth=1440
+- PASS | A9 ie@1440 long paste: preview scrolls not page | overflowY=auto sh=1157 ch=220 pageH=5056
+- PASS | A10 ie@1440 Request rates submit: note shown, no false "sent" | note="Preview only. Rates and posting are handled by the GreenJobs team: email info@greenjobs.ie" url same=true
+- PASS | A11 ie@1440 mailto per edition | note=mailto:info@greenjobs.ie ctas=mailto:info@greenjobs.ie?subject=Advertising%20rates%20request,mailto:info@greenjobs.ie?subject=Advertising%20rates%20request
+- PASS | B1 ie@1440 exactly two package columns | cols=Included|Premium posting|Membership
+- PASS | B2 ie@1440 no "Standard" on page (text or CSS-generated) | bodyText=false pseudo=false sample=["\"✓\"|Included","none|Ask us"]
+- PASS | B3 ie@1440 rows align, 2 cells per row | rows=13 tdCounts=2 aligned=true
+- PASS | C1 ie@1440 home search → jobs with q & loc | http://localhost:8831/ie/jobs/?q=ecologist&loc=Dublin
+- PASS | C2 ie@1440 three facets survive reload | url=1/ie/jobs/?sector=Sustainable%20infrastructure%20%26%20transport&sal=1&wp=hybrid after={"sec":"Sustainable infrastructure & transport","wp":"hybrid","sal":true,"chips":3}
+- PASS | C3 ie@1440 Clear resets facets and URL | after={"sec":"","wp":"","sal":false,"url":"http://localhost:8831/ie/jobs/"}
+- PASS | C4 ie@1440 save role → Saved tab lists it | {"count":"1","rows":["11501648"],"pressed":"true"}
+- PASS | C5 ie@1440 Apply link is real listing URL (job 11490689) | https://www.greenjobs.ie/jobs/11490689/senior-landscape-planning-and-lvia-specialist.asp
+- PASS | C6 ie@1440 sticky bar not shown on desktop | display=none
+- PASS | C9 ie@1440 edition switch keeps page and query | href=../../uk/jobs/index.html?q=solar&wp=hybrid
+- PASS | C10 ie@1440 theme toggle persists across reload | before=light after=dark reload=dark
+- PASS | C11 ie@1440 carousel: both rows move over 1 s, opposite directions | t0=-46.2,-10257.8 t1=-110.5,-10193.5 Δ=-64.4,64.3 dirs=normal,reverse
+- PASS | C12 ie@1440 carousel: no blank tiles | emps=224 blank/hidden=0 dups=2
+- PASS | C13 ie@1440 Pause stops both rows | playState=paused,paused Δ=0.00,0.00 btn=Play
+- PASS | D1 ie@1440 reduced motion: carousel static (no animation, no movement) | anim=none wrap=wrap Δ=0.00,0.00
+- PASS | D2 ie@1440 reduced motion: all logos visible in viewport width | logos=112 notVisible=0 ex=[] dupVisible=0 scrollW=1440/1440
+- PASS | D3 ie@1440 reduced motion: no Pause button | pauseDisplay=inline-flex ctlDisplay=none
+- PASS | JS errors ie@1440 | none
+- PASS | A1 ie@390 fill: board card shows title/org/loc/chips | {"t":"Senior Hydrogeologist","e":"Your Company LtdGalway","chips":"€55k–65k|Permanent"}
+- PASS | A2 ie@390 fill: job-page mock shows title/org/loc/salary chips | {"t":"Senior Hydrogeologist","meta":"Galway|Permanent|€55k–65k"}
+- PASS | A3 ie@390 fill: description as 3 paragraphs on job-page mock | p count=3
+- PASS | A3b ie@390 fill: description on board card | NOTE board card intentionally has no description (matches live board cards: title/org/loc/chips only) — treated as design, not defect
+- PASS | A4 ie@390 long paste: no script executed | dialogs=0 scriptEls=0 len=3353
+- PASS | A5 ie@390 long paste: HTML shown as text | scriptTxt=true boldTxt=true <b>els=0
+- PASS | A6 ie@390 long paste: quotes/&/dashes/bullets intact | {"q":true,"amp":true,"dash":true,"bul":true}
+- PASS | A7 ie@390 long paste: paragraphs split on blank lines | p=16
+- PASS | A8 ie@390 long paste: no horizontal overflow | scrollWidth=390 innerWidth=390
+- PASS | A9 ie@390 long paste: preview scrolls not page | overflowY=auto sh=2102 ch=220 pageH=6582
+- PASS | A10 ie@390 Request rates submit: note shown, no false "sent" | note="Preview only. Rates and posting are handled by the GreenJobs team: email info@greenjobs.ie" url same=true
+- PASS | A11 ie@390 mailto per edition | note=mailto:info@greenjobs.ie ctas=mailto:info@greenjobs.ie?subject=Advertising%20rates%20request,mailto:info@greenjobs.ie?subject=Advertising%20rates%20request
+- PASS | B1 ie@390 exactly two package columns | cols=Included|Premium posting|Membership
+- FAIL | B2 ie@390 no "Standard" on page (text or CSS-generated) | bodyText=false pseudo=true sample=["\"Standard ✓\"|Included","\"· Premium: ask us\"|Ask us"] | shot: /home/user/deb-antigravity-claude-workspace/.tmp/human_eye/r1/func/fail_1_B2_ie_390_no_Standard_on_page_text_or_CSS_generated_.png
+- PASS | B3 ie@390 rows align, 2 cells per row | rows=13 tdCounts=2 aligned=true
+- FAIL | B4 ie@390 card layout shows both values per row | rowDisplay=block tdWidths=77,112 labels=["\"Standard ✓\"|Included","\"· Premium: ask us\"|Ask us"] | shot: /home/user/deb-antigravity-claude-workspace/.tmp/human_eye/r1/func/fail_2_B4_ie_390_card_layout_shows_both_values_per_row.png
+- PASS | C1 ie@390 home search → jobs with q & loc | http://localhost:8831/ie/jobs/?q=ecologist&loc=Dublin
+- PASS | C2 ie@390 three facets survive reload | url=1/ie/jobs/?sector=Sustainable%20infrastructure%20%26%20transport&sal=1&wp=hybrid after={"sec":"Sustainable infrastructure & transport","wp":"hybrid","sal":true,"chips":3}
+- PASS | C3 ie@390 Clear resets facets and URL | after={"sec":"","wp":"","sal":false,"url":"http://localhost:8831/ie/jobs/"}
+- PASS | C4 ie@390 save role → Saved tab lists it | {"count":"1","rows":["11501648"],"pressed":"true"}
+- PASS | C5 ie@390 Apply link is real listing URL (job 11490689) | https://www.greenjobs.ie/jobs/11490689/senior-landscape-planning-and-lvia-specialist.asp
+- PASS | C6 ie@390 sticky Apply bar visible at top of open role | display=flex is-off=false
+- PASS | C7 ie@390 sticky bar hides when page Apply in view | {"off":true,"op":"1","tr":"matrix(1, 0, 0, 1, 0, 102.3)","vis":"visible"}
+- PASS | C8 ie@390 closed role (11488772): sticky absent, closed status | {"sticky":false,"closed":true,"apply":0}
+- PASS | C9 ie@390 edition switch keeps page and query | href=../../uk/jobs/index.html?q=solar&wp=hybrid
+- PASS | C10 ie@390 theme toggle persists across reload | before=light after=dark reload=dark
+- PASS | C11 ie@390 carousel: both rows move over 1 s, opposite directions | t0=-44.0,-10260.0 t1=-108.4,-10195.6 Δ=-64.4,64.4 dirs=normal,reverse
+- PASS | C12 ie@390 carousel: no blank tiles | emps=224 blank/hidden=0 dups=2
+- PASS | C13 ie@390 Pause stops both rows | playState=paused,paused Δ=0.00,0.00 btn=Play
+- PASS | D1 ie@390 reduced motion: carousel static (no animation, no movement) | anim=none wrap=wrap Δ=0.00,0.00
+- PASS | D2 ie@390 reduced motion: all logos visible in viewport width | logos=112 notVisible=0 ex=[] dupVisible=0 scrollW=390/390
+- PASS | D3 ie@390 reduced motion: no Pause button | pauseDisplay=inline-flex ctlDisplay=none
+- PASS | JS errors ie@390 | none
+- PASS | A1 uk@1440 fill: board card shows title/org/loc/chips | {"t":"Senior Hydrogeologist","e":"Your Company LtdLeeds","chips":"£55k–65k|Permanent"}
+- PASS | A2 uk@1440 fill: job-page mock shows title/org/loc/salary chips | {"t":"Senior Hydrogeologist","meta":"Leeds|Permanent|£55k–65k"}
+- PASS | A3 uk@1440 fill: description as 3 paragraphs on job-page mock | p count=3
+- PASS | A3b uk@1440 fill: description on board card | NOTE board card intentionally has no description (matches live board cards: title/org/loc/chips only) — treated as design, not defect
+- PASS | A4 uk@1440 long paste: no script executed | dialogs=0 scriptEls=0 len=3353
+- PASS | A5 uk@1440 long paste: HTML shown as text | scriptTxt=true boldTxt=true <b>els=0
+- PASS | A6 uk@1440 long paste: quotes/&/dashes/bullets intact | {"q":true,"amp":true,"dash":true,"bul":true}
+- PASS | A7 uk@1440 long paste: paragraphs split on blank lines | p=16
+- PASS | A8 uk@1440 long paste: no horizontal overflow | scrollWidth=1440 innerWidth=1440
+- PASS | A9 uk@1440 long paste: preview scrolls not page | overflowY=auto sh=1157 ch=220 pageH=5447
+- PASS | A10 uk@1440 Request rates submit: note shown, no false "sent" | note="Preview only. Rates and posting are handled by the GreenJobs team: email info@greenjobs.co" url same=true
+- FAIL | A11 uk@1440 mailto per edition | note=mailto:info@greenjobs.co.uk ctas=mailto:info@greenjobs.co.uk?subject=Advertising%20rates%20request,mailto:info@greenjobs.co.uk?subject=Advertising%20rates%20request,#rates | shot: /home/user/deb-antigravity-claude-workspace/.tmp/human_eye/r1/func/fail_3_A11_uk_1440_mailto_per_edition.png
+- PASS | B1 uk@1440 exactly two package columns | cols=Included|Premium posting|Membership
+- PASS | B2 uk@1440 no "Standard" on page (text or CSS-generated) | bodyText=false pseudo=false sample=["\"✓\"|Included","none|Ask us"]
+- PASS | B3 uk@1440 rows align, 2 cells per row | rows=13 tdCounts=2 aligned=true
+- PASS | C1 uk@1440 home search → jobs with q & loc | http://localhost:8831/uk/jobs/?q=ecologist&loc=Leeds
+- PASS | C2 uk@1440 three facets survive reload | url=:8831/uk/jobs/?sector=Environmental%20science%20%26%20consulting&sal=1&wp=hybrid after={"sec":"Environmental science & consulting","wp":"hybrid","sal":true,"chips":3}
+- PASS | C3 uk@1440 Clear resets facets and URL | after={"sec":"","wp":"","sal":false,"url":"http://localhost:8831/uk/jobs/"}
+- PASS | C4 uk@1440 save role → Saved tab lists it | {"count":"1","rows":["11502133"],"pressed":"true"}
+- PASS | C5 uk@1440 Apply link is real listing URL (job 11466765) | https://www.greenjobs.co.uk/jobs/11466765/principal-ecologist-associate-director-ecology-london.asp
+- PASS | C6 uk@1440 sticky bar not shown on desktop | display=none
+- PASS | C9 uk@1440 edition switch keeps page and query | href=../../ie/jobs/index.html?q=solar&wp=hybrid
+- PASS | C10 uk@1440 theme toggle persists across reload | before=light after=dark reload=dark
+- PASS | C11 uk@1440 carousel: both rows move over 1 s, opposite directions | t0=-48.3,-10255.7 t1=-113.8,-10190.2 Δ=-65.5,65.5 dirs=normal,reverse
+- PASS | C12 uk@1440 carousel: no blank tiles | emps=224 blank/hidden=0 dups=2
+- PASS | C13 uk@1440 Pause stops both rows | playState=paused,paused Δ=0.00,0.00 btn=Play
+- PASS | D1 uk@1440 reduced motion: carousel static (no animation, no movement) | anim=none wrap=wrap Δ=0.00,0.00
+- PASS | D2 uk@1440 reduced motion: all logos visible in viewport width | logos=112 notVisible=0 ex=[] dupVisible=0 scrollW=1440/1440
+- PASS | D3 uk@1440 reduced motion: no Pause button | pauseDisplay=inline-flex ctlDisplay=none
+- PASS | JS errors uk@1440 | none
+- PASS | A1 uk@390 fill: board card shows title/org/loc/chips | {"t":"Senior Hydrogeologist","e":"Your Company LtdLeeds","chips":"£55k–65k|Permanent"}
+- PASS | A2 uk@390 fill: job-page mock shows title/org/loc/salary chips | {"t":"Senior Hydrogeologist","meta":"Leeds|Permanent|£55k–65k"}
+- PASS | A3 uk@390 fill: description as 3 paragraphs on job-page mock | p count=3
+- PASS | A3b uk@390 fill: description on board card | NOTE board card intentionally has no description (matches live board cards: title/org/loc/chips only) — treated as design, not defect
+- PASS | A4 uk@390 long paste: no script executed | dialogs=0 scriptEls=0 len=3353
+- PASS | A5 uk@390 long paste: HTML shown as text | scriptTxt=true boldTxt=true <b>els=0
+- PASS | A6 uk@390 long paste: quotes/&/dashes/bullets intact | {"q":true,"amp":true,"dash":true,"bul":true}
+- PASS | A7 uk@390 long paste: paragraphs split on blank lines | p=16
+- PASS | A8 uk@390 long paste: no horizontal overflow | scrollWidth=390 innerWidth=390
+- PASS | A9 uk@390 long paste: preview scrolls not page | overflowY=auto sh=2102 ch=220 pageH=6991
+- PASS | A10 uk@390 Request rates submit: note shown, no false "sent" | note="Preview only. Rates and posting are handled by the GreenJobs team: email info@greenjobs.co" url same=true
+- FAIL | A11 uk@390 mailto per edition | note=mailto:info@greenjobs.co.uk ctas=mailto:info@greenjobs.co.uk?subject=Advertising%20rates%20request,mailto:info@greenjobs.co.uk?subject=Advertising%20rates%20request,#rates | shot: /home/user/deb-antigravity-claude-workspace/.tmp/human_eye/r1/func/fail_4_A11_uk_390_mailto_per_edition.png
+- PASS | B1 uk@390 exactly two package columns | cols=Included|Premium posting|Membership
+- FAIL | B2 uk@390 no "Standard" on page (text or CSS-generated) | bodyText=false pseudo=true sample=["\"Standard ✓\"|Included","\"· Premium: ask us\"|Ask us"] | shot: /home/user/deb-antigravity-claude-workspace/.tmp/human_eye/r1/func/fail_5_B2_uk_390_no_Standard_on_page_text_or_CSS_generated_.png
+- PASS | B3 uk@390 rows align, 2 cells per row | rows=13 tdCounts=2 aligned=true
+- FAIL | B4 uk@390 card layout shows both values per row | rowDisplay=block tdWidths=77,112 labels=["\"Standard ✓\"|Included","\"· Premium: ask us\"|Ask us"] | shot: /home/user/deb-antigravity-claude-workspace/.tmp/human_eye/r1/func/fail_6_B4_uk_390_card_layout_shows_both_values_per_row.png
+- PASS | C1 uk@390 home search → jobs with q & loc | http://localhost:8831/uk/jobs/?q=ecologist&loc=Leeds
+- PASS | C2 uk@390 three facets survive reload | url=:8831/uk/jobs/?sector=Environmental%20science%20%26%20consulting&sal=1&wp=hybrid after={"sec":"Environmental science & consulting","wp":"hybrid","sal":true,"chips":3}
+- PASS | C3 uk@390 Clear resets facets and URL | after={"sec":"","wp":"","sal":false,"url":"http://localhost:8831/uk/jobs/"}
+- PASS | C4 uk@390 save role → Saved tab lists it | {"count":"1","rows":["11502133"],"pressed":"true"}
+- PASS | C5 uk@390 Apply link is real listing URL (job 11466765) | https://www.greenjobs.co.uk/jobs/11466765/principal-ecologist-associate-director-ecology-london.asp
+- PASS | C6 uk@390 sticky Apply bar visible at top of open role | display=flex is-off=false
+- PASS | C7 uk@390 sticky bar hides when page Apply in view | {"off":true,"op":"1","tr":"matrix(1, 0, 0, 1, 0, 75.9)","vis":"visible"}
+- PASS | C8 uk@390 closed role (11486742): sticky absent, closed status | {"sticky":false,"closed":true,"apply":0}
+- PASS | C9 uk@390 edition switch keeps page and query | href=../../ie/jobs/index.html?q=solar&wp=hybrid
+- PASS | C10 uk@390 theme toggle persists across reload | before=light after=dark reload=dark
+- PASS | C11 uk@390 carousel: both rows move over 1 s, opposite directions | t0=-42.9,-10261.1 t1=-107.3,-10196.7 Δ=-64.4,64.4 dirs=normal,reverse
+- PASS | C12 uk@390 carousel: no blank tiles | emps=224 blank/hidden=0 dups=2
+- PASS | C13 uk@390 Pause stops both rows | playState=paused,paused Δ=0.00,0.00 btn=Play
+- PASS | D1 uk@390 reduced motion: carousel static (no animation, no movement) | anim=none wrap=wrap Δ=0.00,0.00
+- PASS | D2 uk@390 reduced motion: all logos visible in viewport width | logos=112 notVisible=0 ex=[] dupVisible=0 scrollW=390/390
+- PASS | D3 uk@390 reduced motion: no Pause button | pauseDisplay=inline-flex ctlDisplay=none
+- PASS | JS errors uk@390 | none
+
+## Root causes
+
+- **B2/B4 (ie@390, uk@390)** — `css/styles.css` lines 713-721: the mobile card layout labels cells by `td:nth-child(n)` assuming a 3-package table. With the `<th scope=row>` as child 1, the Premium cell is `td:nth-child(2)` → rendered label `"Standard ✓"` / `"Standard: ask us"`, and the Membership cell is `td:nth-child(3)` → `"· Premium ✓"` / `"· Premium: ask us"`. So on phones every row reads "Standard ✓ · Premium: ask us"; "Standard" appears on the page and Membership is never named. Fix: shift the selectors (nth-child(2) → Premium, nth-child(3) → Membership) and delete the nth-child(4) rules.
+- **A11 (uk@1440, uk@390)** — `uk/employers/index.html` line 101 ("Trusted across the UK" section, UK-only): its `Request advertising rates` CTA is `href="#rates"` (in-page anchor to the hero) while every other rates CTA is `mailto:info@greenjobs.co.uk?subject=…`. Not wrong-edition, but inconsistent; it fires the `request_rates` event without opening mail. Low severity.
+- Note: A3b — the board-card preview intentionally carries no description (matches live list cards); logged as PASS with note, not a defect.

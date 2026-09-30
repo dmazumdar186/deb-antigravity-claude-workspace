@@ -10,9 +10,11 @@
   var money = function (v) { return G.money(Math.round(v), cur); };
 
   /* ---- sectors */
+  /* r3 #7: tiles under 150px wide carry the sector's short name; nothing is ever truncated */
+  var SHORT = { 'Sustainable infrastructure & transport': 'Infrastructure', 'Ecology, nature recovery & biodiversity': 'Ecology', 'Environmental science & consulting': 'Env. science', 'Built environment & energy efficiency': 'Built environment', 'Health, safety & environment': 'HSE', 'Energy networks & utilities': 'Energy networks', 'Policy, planning & advisory': 'Policy', 'Waste & circular economy': 'Waste', 'Renewable energy & storage': 'Renewables', 'Sustainability & ESG': 'ESG', 'Climate & carbon': 'Climate', 'Environmental engineering': 'Env. engineering', 'Water & flood': 'Water', 'Wind energy': 'Wind', 'Solar energy': 'Solar' };
   var tm = $('[data-treemap]');
   if (tm) {
-    var items = data.sectors.filter(function (s) { return s.n > 0; }).map(function (s) { return { key: s.name, label: s.name, v: s.n, color: s.color, dark: s.dark }; });
+    var items = data.sectors.filter(function (s) { return s.n > 0; }).map(function (s) { return { key: s.name, label: s.name, short: SHORT[s.name] || s.name.split(/[,&]/)[0].trim(), v: s.n, color: s.color }; });
     var picked = '';
     var key = doc.createElement('ul'); key.className = 'tmkey'; key.setAttribute('aria-label', 'All sectors');
     var svg = C.treemap(items, { label: 'Live roles by sector', height: 460, onPick: function (it) {
@@ -20,7 +22,7 @@
       Array.prototype.forEach.call(tm.querySelectorAll('.cell'), function (c) { c.classList.toggle('is-on', c.getAttribute('data-key') === picked); });
       Array.prototype.forEach.call(key.querySelectorAll('button'), function (b) { b.classList.toggle('is-on', b.getAttribute('data-key') === picked); b.setAttribute('aria-pressed', b.getAttribute('data-key') === picked ? 'true' : 'false'); });
       Array.prototype.forEach.call(doc.querySelectorAll('[data-secrow]'), function (r) { r.classList.toggle('is-dim', !!picked && r.getAttribute('data-secrow') !== picked); });
-      var n = $('[data-tm-note]'); if (n) n.textContent = picked ? 'Showing ' + picked + '. Press it again to clear.' : 'Tap a block to highlight that sector in the list below.';
+      var n = $('[data-tm-note]'); if (n) n.textContent = picked ? 'Showing ' + picked + '. Press it again to clear.' : 'Choose a block to highlight that sector in the list below.';
     } });
     tm.appendChild(svg);
     items.forEach(function (it) {
@@ -42,8 +44,10 @@
     function stat(sel, v) { var e = $(sel, ins); if (e) e.textContent = v; }
     stat('[data-s-n]', String(jobs.length)); stat('[data-s-disc]', Math.round(100 * withSal.length / Math.max(1, jobs.length)) + '%');
     stat('[data-s-med]', med ? money(med) : 'n/a'); stat('[data-s-cnt]', String(withSal.length));
+    var phone = window.innerWidth < 480;  /* r4: same seven bands as the guide and the build (SALARY_EDGES); a phone only shortens the labels to '20–30k' */
     var edges = [20000, 30000, 40000, 50000, 60000, 75000, 100000];
     var bins = G.histogram(mids, edges);
+    if (phone) bins.forEach(function (b) { b.label = Math.round(b.lo / 1000) + (b.hi ? '\u2013' + Math.round(b.hi / 1000) + 'k' : 'k+'); });
     while (bins.length > 1 && !bins[bins.length - 1].n) bins.pop(); /* an empty open-ended top band ("100k+": 0) is noise */
     var f1 = $('[data-fig="hist"]', ins);
     f1.appendChild(C.columns(bins, { label: 'Disclosed salaries by band' }));

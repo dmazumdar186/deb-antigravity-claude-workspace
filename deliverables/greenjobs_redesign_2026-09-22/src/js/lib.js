@@ -78,7 +78,8 @@
     return { lo: lo, hi: hi, mid: (lo + hi) / 2 };
   }
   /* "· Carlow, Dublin": the separator travels with the first word of the item (r2 #1), the rest wraps */
-  function sepPair(text) { var w = esc(String(text || '')).split(' '), head = w.shift(); return '<span><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>' + head + '</span>' + (w.length ? ' ' + w.join(' ') : '') + '</span>'; }
+  /* 'Dacorum Borough [Council · Hertfordshire]': the separator is nowrap with the word before and after it, so it never starts a line (r3 #4). */
+  function sepPair(text, who) { var w = esc(String(text || '')).split(' '), head = w.shift(), e = esc(String(who || '')).split(' '), last = e.pop(); return '<span class="row__emp">' + (e.length ? e.join(' ') + ' ' : '') + '<span class="row__pair">' + (last ? last + ' ' : '') + '<span class="row__sep" aria-hidden="true">· </span>' + head + '</span>' + (w.length ? ' ' + w.join(' ') : '') + '</span>'; }
   var LOC_LABEL = { ie: 'Ireland', uk: 'UK', ni: 'Northern Ireland', remote: 'Remote', cross: 'Ireland & UK', intl: 'International', unspecified: 'Location not stated' };
   function locLabel(lc) { return LOC_LABEL[lc] || ''; }
   function median(a) {

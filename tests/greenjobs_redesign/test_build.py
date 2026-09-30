@@ -124,6 +124,8 @@ def test_image_size(tmp_root: Path):
 def test_publish_text():
     out = build_site.publish_text("/* c */\n  .a { x: 1 }\n// line\nvar re = /a\\/\\/b/; // keep\n")
     check("/* c */" not in out and "// line" not in out and "// keep" in out, "publish_text: strips block + whole-line comments only")
+    css = build_site.publish_text('.a {\n  x: 1;\n}\n.b::after { content: ";" }\n.c,\n.d { y: 2 }\n', css=True)
+    check(css == '.a {x: 1;}.b::after { content: ";" }.c,.d { y: 2 }', f"publish_text(css=True): joins after {{ }} ; , only, keeps quoted ';' intact ({css!r})")
 
 
 def test_guard_output(tmp_root: Path):
@@ -976,7 +978,7 @@ def test_r3_visual_fixes(tmp_root: Path):
     check(not bad, f"r3 N4: no ISO date in visible text on public pages ({bad[:4]})")
     for ed in ("ie", "uk"):
         dash = (out / ed / "dashboard" / "index.html").read_text(encoding="utf-8")
-        check("Chm Recruit" not in dash and "CHM Recruit" in dash, f"r3 visual 25: {ed} dashboard keeps 'CHM Recruit' casing")
+        check("Chm Recruit" not in dash and "Chm Recruit" not in emp_page if (emp_page := (out / ed / "employers" / "index.html").read_text(encoding="utf-8")) else True, f"r3 visual 25: {ed} pages never title-case 'CHM Recruit' (r3 #3: the dashboard tile no longer lists agencies)")
         emp = (out / ed / "employers" / "index.html").read_text(encoding="utf-8")
         check(not re.search(r"supplied at launch|figure supplied|<em>[^<]*launch[^<]*</em>", emp, re.I), f"r3 visual 28: {ed} employers page has no italic placeholder copy")
         home = (out / ed / "index.html").read_text(encoding="utf-8")
@@ -1118,7 +1120,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     check('class="cmphint"' in emp_uk and ".cmphint{display:none" in _read(out / "css" / "styles.css"), "panel B6: swipe hint present, hidden on wide screens")
     # 7. tags wrap on narrow screens
     css = _read(out / "css" / "styles.css")
-    tag_rule = re.search(r"^\.tag\{[^\n]*\}", css, re.M).group(0)
+    tag_rule = re.search(r"(?:^|\})\.tag\{[^{}]*\}", css, re.M).group(0)  # built CSS joins rules on one line (r3 size budget)
     check(tag_rule.rfind("white-space:normal") > tag_rule.rfind("white-space:nowrap") and "max-width:100%" in tag_rule, "panel B7: .tag wraps (white-space normal wins, max-width set)")
     # 8. toggle label
     check("Hide UK/abroad-only roles" in jobs and "Hide Ireland/abroad-only roles" in _read(out / "uk" / "jobs" / "index.html") and "Ireland only" not in jobs.split('id="gj-data">')[0],
@@ -1135,7 +1137,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     for tile in ("Apply clicks per employer", "Zero-result searches", "Alert match rate (weekly)", "Advertised window, days"):
         check(tile in dash, f"panel B10: tile '{tile}' present")
     check("Median days to close" not in dash and 'kpi__l">Sessions<' not in dash and 'kpi__l">Uptime<' not in dash and "dash__foot" in dash, "panel B10: sessions/uniques demoted to context, uptime/CWV to the footer strip")
-    check("recruitment word" in dash and "known agency" in dash, "panel B10: agency tile describes the real rule")
+    check("Roles posted by recruitment agencies rather than the employer directly.</p>" in dash and "recruitment word" not in dash, "panel B10 / r3 #3: agency tile is one sentence")
     for label, wanted in (("Top search terms", "proposed target"), ("Top landing pages", "proposed target")):
         seg = dash.split(label, 1)[1][:600]
         check('kpi__t' in seg and wanted in seg, f"panel B10: '{label}' tile has a labelled target")
@@ -1355,7 +1357,7 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     # 8: one voice, no team-facing copy in visitor dialogs; no fake success anywhere
     for bad in ("analytics provider is chosen", "connects to your email provider", "connects to the GreenJobs team", "Nothing was sent", "Sign-ups open at launch", "Posting opens at launch"):
         check(bad not in home and bad not in emp, f"r2b visual 8: '{bad}' is gone from visitor-facing copy")
-    check("Off. Helps us see which pages are useful." in home and "reported once analytics is connected" not in home and "ck-marketing" not in home and home.count("Job alerts are available today on") >= 2, "r2b visual 8 / r1a 24+23: cookie settings show Essential + Analytics only, alert forms use the one-line visitor sentence")
+    check("Off. Helps us see which pages are useful." in home and "reported once analytics is connected" not in home and "ck-marketing" not in home and home.count("Job alerts are available today on") >= 1 and "You can also set up job alerts by email on" in home, "r2b visual 8 / r1a 24+23: cookie settings show Essential + Analytics only, alert forms use the one-line visitor sentence")
     check(emp.count("Preview only. Rates and posting are handled by the GreenJobs team") == 2 and "Thank you" not in emp, "r2b R044: the Post-a-job preview keeps one quiet line (pre-submit + post-submit variants), no fake success")
     # 18: hero keeps search + Post a job only
     hero = home.split('class="hero"')[1].split('class="hero__alerts"')[0]
@@ -1516,7 +1518,7 @@ def test_r4_real_build_marker_hero_notes(tmp_root: Path):
         for bad in ("computed from the live listings at build time", "analytics provider will report", "switched on through the cookie", "target we propose", "switches Analytics on"):
             check(bad not in dash, f"r4 dashboard voice: {ed} no longer says {bad!r}")
         low = dash.lower()
-        check("live figures from this week's listings" in low and "reported once analytics is switched on" in low and "sent once analytics is switched on and you allow it" in low, f"r4 dashboard voice: {ed} carries the visitor sentences")
+        check("live figures from this week's listings" in low and "reported once analytics is switched on" in low and "sent once analytics is switched on and you allow it" in low and "listings. reported once analytics" not in low, f"r4 dashboard voice / r3 #3: {ed} carries the visitor sentences; the lede no longer repeats the analytics line")
         check("Live figures from this week's listings, and the measures reported once analytics is switched on." in html.unescape(dash), f"r4 dashboard voice: {ed} meta description is in the visitor voice")
         check("edition switch in the header" not in dash and "analytics provider is connected" not in dash and "Workplace filter" not in dash and "Roles whose advert mentions remote or hybrid working." in dash, f"r2 #3: {ed} dashboard copy is in the visitor voice")
         tiles = re.findall(r'<span class="kpi__l">([^<]*)</span>', dash)[:8]
@@ -1611,7 +1613,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     check('content:"Certified B Corp"' not in css and ".hdr__bcorp::after" not in css, "r4b A: header shows the B Corp mark only (no CSS text label)")
     # B. visitor voice
     check("when the new site launches" not in home and "when the new site launches" not in uk_home, "r4b B: no 'when the new site launches' build note anywhere on home")
-    check(home.count("Job alerts are available today on <a") == 2 and 'href="https://www.greenjobs.ie/newsletter-signup.asp"' in home, "r4b B: IE alert + subscribe forms point at the live newsletter sign-up")
+    check(home.count("Job alerts are available today on <a") == 1 and home.count("You can also set up job alerts by email on <a") == 1 and home.count('href="https://www.greenjobs.ie/newsletter-signup.asp"') == 2, "r4b B / r3 #9: IE alert + subscribe forms point at the live newsletter sign-up (subscribe dialog: one quiet sentence)")
     check("/newsletter-signup.asp" in uk_home and "when the new site launches" not in uk_home, "r4b B: UK forms point at the live newsletter sign-up (domain follows the edition)")
     for f in (home.split('data-demo-form')[1], home.split('data-demo-form')[2]):
         check(f.find("data-demo-pre") < f.find('type="submit"') and "Your address has not been stored." in f, "r4b B: sign-up note sits above the button; post-submit line keeps 'not been stored'")
@@ -1716,8 +1718,8 @@ def test_r2_defects(tmp_root: Path):
     """Human-eye r2 (2026-09-29): separator nowrap, normalisation, chips, map labels, 404, treemap."""
     css = _read(SRC / "css" / "styles.css")
     jobs_js = _read(SRC / "js" / "jobs.js")
-    check("G.sepPair(j.location)" in jobs_js and ".row__pair{white-space:nowrap}" in css and build_site.sep_pair("Carlow, Dublin, Cork") == '<span><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>Carlow,</span> Dublin, Cork</span>', "r2 #1: the separator travels with the first word of the location in one nowrap span; the rest wraps")
-    check("G.sepPair(j.location)" in _read(SRC / "js" / "adbuilder.js") and '{sep_pair(j["location"])}</p>' in Path(build_site.__file__).read_text(encoding="utf-8"), "r2 #15: preview and role cards carry the same separator as the list")
+    check("G.sepPair(j.location, j.employer)" in jobs_js and ".row__pair{white-space:nowrap}" in css and build_site.sep_pair("Carlow, Dublin, Cork", "Dacorum Borough Council") == '<span class="row__emp">Dacorum Borough <span class="row__pair">Council <span class="row__sep" aria-hidden="true">· </span>Carlow,</span> Dublin, Cork</span>' and build_site.sep_pair("Cork") == '<span class="row__emp"><span class="row__pair"><span class="row__sep" aria-hidden="true">· </span>Cork</span></span>', "r2 #1 / r3 #4: the separator is nowrap with the employer's last word and the location's first word, so it never starts a line")
+    check("G.sepPair(j.location, j.employer)" in _read(SRC / "js" / "adbuilder.js") and '{sep_pair(j["location"], j["employer"])}</p>' in Path(build_site.__file__).read_text(encoding="utf-8"), "r2 #15: preview and role cards carry the same separator as the list")
     check('[data-theme="dark"] .cwall .marq{-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px' in css and "::after" not in css.split(".cwall{")[1].split("\n")[0], "r2 #2: dark carousel fade is a thin alpha mask on .marq, no overlay")
     check(".hero__trust{" in css and "background:var(--paper);border:1px solid var(--line)" in css.split(".hero__trust{")[1].split("}")[0], "r2 #8: hero B Corp card is opaque with a border")
     check("if (W >= 720) TURB.forEach" in _read(SRC / "js" / "landscape.js"), "r2 #8: turbines are skipped on narrow viewports")
