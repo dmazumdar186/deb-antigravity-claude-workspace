@@ -122,10 +122,10 @@ Note: this is a two-step package with a 50% deposit and the remaining balance du
 
 #### Monthly maintenance (starts when the front end goes live)
 
-| Plan | What it covers | Per month |
+| Plan | What is included every month | Per month |
 |---|---|---|
-| Maintain | Hosting for both boards, SSL, daily backups, 24/7 monitoring, security patches, daily checks of every posting route, up to 6 hours of changes per month, monthly report | €999 |
-Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in.
+| Maintain | Hosting and delivery for both boards on Cloudflare's global network; SSL certificates renewed automatically; daily off-site backups with a tested restore every quarter; 24/7 uptime and security monitoring with alerts to me; security patches and dependency updates applied as they are released; a test job pushed through Broadbean, Idibu, LogicMelon and the CRM route every day, with any failure fixed before your team notices; JobPosting structured data validated on every live role so Google for Jobs keeps indexing them; Core Web Vitals checked and kept green on both editions; the sitemaps, redirects and search-console health kept clean; the KPI dashboard and every site figure kept accurate; content, copy, sector and salary-band changes and small features requested by your team applied on a rolling basis; first-line support for your staff and advertisers on posting issues; a monthly report on uptime, traffic, applications, posting routes and what changed | €999 |
+Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in. Larger new features are quoted separately before they start.
 
 #### How maintenance is measured (reported to you every month)
 
@@ -135,9 +135,9 @@ Three-month minimum, then rolling monthly; cancel any time with 30 days' written
 | Backups | Daily, 100% success; restore drill every quarter with a written result |
 | Posting routes (Broadbean, Idibu, LogicMelon, CRM) | Test job through every route every day; 99% daily pass rate |
 | Response time | 1 business day; 4 hours for a posting outage |
-| Change hours delivered | Up to 6 hours per month |
 | Google for Jobs | Every live role carries valid JobPosting data |
 | Page speed | Core Web Vitals pass on both editions, checked monthly |
+| Requested changes | Applied within 2 business days of the request; urgent posting fixes the same day |
 
 #### Tool subscriptions
 
