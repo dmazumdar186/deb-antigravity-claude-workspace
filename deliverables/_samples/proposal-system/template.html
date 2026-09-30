@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{PROJECT_TITLE}}</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --accent: #d97706;
+    --accent-soft: #fdf6ec;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --success: #059669;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: #eeece6;
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    width: 8.5in;
+    height: 11in;
+    margin: 40px auto;
+    padding: 56px 72px;
+    background: var(--card);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .page-footer {
+    position: absolute;
+    bottom: 28px;
+    left: 72px;
+    right: 72px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
+  .cover {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2620 100%);
+    color: #f5f1ea;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .cover .brand {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #d4a574;
+  }
+  .cover-brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .cover-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: block;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .cover-wordmark {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #f5f1ea;
+  }
+  .cover-wordmark .accent {
+    color: #e85c2c;
+  }
+  .page-brand-row {
+    position: absolute;
+    top: 36px;
+    left: 72px;
+    right: 72px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .page-brand-row img {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+  }
+  .cover h1 {
+    font-size: 52px;
+    line-height: 1.1;
+    margin: 24px 0 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .cover .subtitle {
+    font-size: 20px;
+    color: #c8beb0;
+    max-width: 520px;
+  }
+  .cover .meta {
+    display: flex;
+    gap: 56px;
+    font-size: 13px;
+    color: #c8beb0;
+  }
+  .cover .meta strong { display: block; color: #f5f1ea; font-size: 14px; margin-top: 4px; font-weight: 500; }
+
+  h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin: 0 0 12px;
+  }
+  h3 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 32px;
+    letter-spacing: -0.01em;
+  }
+  h4 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  p { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+  .lede { font-size: 18px; color: var(--ink); margin-bottom: 28px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 36px;
+    margin-top: 32px;
+  }
+  .item { padding: 24px 0 0; border-top: 2px solid var(--ink); }
+  .item .num { font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 1px; margin-bottom: 6px; }
+  .benefit .item { border-top-color: var(--accent); }
+
+  .pricing-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  .pricing-table th, .pricing-table td {
+    padding: 18px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 15px;
+  }
+  .pricing-table th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 600;
+  }
+  .pricing-table tr.total td {
+    border-bottom: none; border-top: 2px solid var(--ink); padding-top: 20px; font-size: 17px; font-weight: 600;
+  }
+  .pricing-table .amount { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .scope-list { margin: 28px 0 0; padding: 0; list-style: none; }
+  .scope-list li {
+    padding: 14px 0 14px 32px; border-bottom: 1px solid var(--border); position: relative; color: var(--ink); font-size: 15px;
+  }
+  .scope-list li::before {
+    content: "→"; position: absolute; left: 0; top: 14px; color: var(--accent); font-weight: 600;
+  }
+  .scope-list li strong { display: block; font-weight: 600; margin-bottom: 2px; }
+  .scope-list li span { color: var(--muted); font-size: 14px; }
+
+  .callout {
+    background: var(--accent-soft); border-left: 3px solid var(--accent);
+    padding: 20px 24px; margin: 32px 0; font-size: 15px; color: var(--ink);
+  }
+
+  /* SIGNATURE SECTION */
+  .sign-panel {
+    margin-top: 24px;
+    padding: 28px 36px;
+    background: linear-gradient(180deg, #ffffff 0%, #fdfcf9 100%);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 12px 40px rgba(15,23,42,0.08);
+  }
+  .sign-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 4px;
+  }
+  .sign-col .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .sign-col .name-printed {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    letter-spacing: -0.01em;
+  }
+  .sign-col .role { font-size: 13px; color: var(--muted); }
+  .sig-line-drawn {
+    border-bottom: 1px solid #cbd5e1;
+    height: 76px;
+    margin-bottom: 14px;
+    font-family: "Snell Roundhand", "Brush Script MT", cursive;
+    font-size: 28px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    padding-left: 4px;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sig-date {
+    margin-top: 16px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .sig-date span { display:block; font-size: 14px; color: var(--ink); margin-top: 4px; text-transform: none; letter-spacing: 0; font-weight: 500; }
+
+  #sig-canvas-wrap {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fafaf7;
+    height: 140px;
+    position: relative;
+    cursor: crosshair;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+  #sig-canvas-wrap:hover { border-color: #cbd5e1; background: #ffffff; }
+  #sig-canvas-wrap.has-signature {
+    border-color: var(--success);
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--success);
+  }
+  #sig-canvas { width: 100%; height: 100%; touch-action: none; display: block; }
+  .canvas-placeholder {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: #94a3b8; font-size: 13px; pointer-events: none;
+    letter-spacing: 0.5px;
+  }
+  .canvas-placeholder::before {
+    content: "✎";
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 16px;
+    color: #cbd5e1;
+  }
+  #sig-canvas-wrap.has-signature .canvas-placeholder { display: none; }
+  .clear-sig {
+    position: absolute; top: 10px; right: 10px; font-size: 11px; background: rgba(255,255,255,0.9);
+    border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; cursor: pointer;
+    color: var(--muted); font-family: inherit; letter-spacing: 0.3px;
+    backdrop-filter: blur(6px); transition: all 0.15s ease;
+  }
+  .clear-sig:hover { background: white; color: var(--ink); border-color: #94a3b8; }
+
+  .form-field { margin: 22px 0 0; }
+  .form-field label {
+    display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--muted); margin-bottom: 8px; font-weight: 600;
+  }
+  .form-field input[type="text"] {
+    width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: #fafaf7;
+    transition: all 0.15s ease; color: var(--ink);
+  }
+  .form-field input[type="text"]:hover { background: white; border-color: #cbd5e1; }
+  .form-field input[type="text"]:focus {
+    outline: none; border-color: var(--accent); background: white;
+    box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  }
+
+  /* Custom checkbox */
+  .checkbox-row {
+    display: flex; align-items: flex-start; gap: 14px; margin: 28px 0 0;
+    padding: 18px 20px; background: var(--accent-soft); border-radius: 8px;
+    cursor: pointer; transition: background 0.15s ease;
+    border: 1px solid rgba(217,119,6,0.15);
+  }
+  .checkbox-row:hover { background: #fcebd0; }
+  .checkbox-row input {
+    appearance: none; -webkit-appearance: none;
+    width: 20px; height: 20px; border: 1.5px solid #cbd5e1; border-radius: 5px;
+    background: white; cursor: pointer; position: relative; flex-shrink: 0;
+    margin-top: 1px; transition: all 0.15s ease;
+  }
+  .checkbox-row input:hover { border-color: var(--accent); }
+  .checkbox-row input:checked {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .checkbox-row input:checked::after {
+    content: ""; position: absolute; left: 5px; top: 1px;
+    width: 6px; height: 11px; border: solid white;
+    border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+  .checkbox-row label {
+    font-size: 14px; color: var(--ink); cursor: pointer; line-height: 1.5;
+    flex: 1;
+  }
+
+  /* Buttons */
+  .action-row {
+    display: flex; gap: 10px; margin-top: 32px; flex-wrap: wrap;
+    padding-top: 28px; border-top: 1px solid var(--border);
+  }
+  .btn {
+    padding: 14px 22px; border-radius: 8px; font-size: 14.5px; font-weight: 600;
+    cursor: pointer; border: none; font-family: inherit; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.15s ease; letter-spacing: 0.1px;
+    line-height: 1;
+  }
+  .btn-primary {
+    background: var(--ink); color: white;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.08), 0 4px 12px rgba(15,23,42,0.12);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #1e293b; transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(15,23,42,0.12), 0 8px 20px rgba(15,23,42,0.16);
+  }
+  .btn-primary:disabled {
+    background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none;
+  }
+  .btn-secondary {
+    background: white; color: var(--ink); border: 1px solid var(--border);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: #fafaf7; border-color: #cbd5e1;
+  }
+  .btn-secondary:disabled {
+    background: #e2e8f0; color: #94a3b8; border-color: var(--border); cursor: not-allowed; box-shadow: none;
+  }
+  .btn-accent {
+    background: linear-gradient(180deg, #e8890a 0%, var(--accent) 100%);
+    color: white;
+    box-shadow: 0 1px 2px rgba(180,83,9,0.2), 0 4px 14px rgba(217,119,6,0.28);
+    position: relative;
+  }
+  .btn-accent:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(180,83,9,0.24), 0 8px 24px rgba(217,119,6,0.36);
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  }
+  .btn-accent:disabled {
+    background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none;
+  }
+  .btn-accent:disabled::before { display: none; }
+  .btn-accent:not(:disabled)::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    border-radius: 8px 8px 0 0;
+  }
+
+  .signed-badge {
+    display: none; margin-top: 24px; padding: 18px 22px;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1px solid rgba(5,150,105,0.2);
+    color: #065f46; font-size: 14px; border-radius: 10px;
+  }
+  .signed-badge.visible { display: flex; align-items: flex-start; gap: 14px; }
+  .signed-badge-icon {
+    width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%;
+    background: var(--success); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+  }
+  .signed-badge-body strong { display: block; font-size: 15px; margin-bottom: 2px; color: #064e3b; }
+  .signed-meta { font-size: 11px; color: #047857; margin-top: 4px; font-family: ui-monospace, Menlo, monospace; word-break: break-all; line-height: 1.5; }
+
+  /* Hide interactive elements in printed/PDF output */
+  @media print {
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; }
+    .clear-sig, .action-row, .no-print { display: none !important; }
+    #sig-canvas-wrap { border: none !important; background: transparent !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: COVER -->
+<section class="page cover">
+  <div>
+    <div class="cover-brand-wrap">
+      <img class="cover-logo" src="{{LOGO_URL}}" alt="{{SENDER_COMPANY}}" onerror="this.style.display='none'">
+      <div class="cover-wordmark">{{SENDER_COMPANY_WORDMARK}}</div>
+    </div>
+    <div class="brand">{{COVER_BRAND_LABEL}}</div>
+  </div>
+  <div>
+    <h1>{{PROJECT_TITLE}}</h1>
+    <p class="subtitle">{{COVER_SUBTITLE}}</p>
+  </div>
+  <div class="meta">
+    <div>Prepared for<strong>{{CLIENT_NAME}}, {{CLIENT_TITLE}}</strong></div>
+    <div>Prepared by<strong>{{SENDER_NAME}}</strong></div>
+    <div>Date<strong>{{CREATED_DATE}}</strong></div>
+  </div>
+</section>
+
+<!-- PAGE 2: SITUATION -->
+<section class="page">
+  <h2>01 — The Situation</h2>
+  <h3>{{SITUATION_HEADLINE}}</h3>
+  <p class="lede">{{SITUATION_LEDE}}</p>
+  <div class="callout"><strong>{{SITUATION_CALLOUT_TITLE}}:</strong> {{SITUATION_CALLOUT_BODY}}</div>
+  <p>{{SITUATION_CLOSE}}</p>
+</section>
+
+<!-- PAGE 3: PROBLEMS -->
+<section class="page">
+  <h2>02 — What's Costing You</h2>
+  <h3>Four problems bleeding revenue today.</h3>
+  <div class="grid problem">
+    <div class="item"><div class="num">PROBLEM 01</div><h4>{{PROBLEM_01_TITLE}}</h4><p>{{PROBLEM_01_BODY}}</p></div>
+    <div class="item"><div class="num">PROBLEM 02</div><h4>{{PROBLEM_02_TITLE}}</h4><p>{{PROBLEM_02_BODY}}</p></div>
+    <div class="item"><div class="num">PROBLEM 03</div><h4>{{PROBLEM_03_TITLE}}</h4><p>{{PROBLEM_03_BODY}}</p></div>
+    <div class="item"><div class="num">PROBLEM 04</div><h4>{{PROBLEM_04_TITLE}}</h4><p>{{PROBLEM_04_BODY}}</p></div>
+  </div>
+</section>
+
+<!-- PAGE 4: BENEFITS -->
+<section class="page">
+  <h2>03 — What You Get</h2>
+  <h3>Four systems that earn back their cost in month one.</h3>
+  <div class="grid benefit">
+    <div class="item"><div class="num">BENEFIT 01</div><h4>{{BENEFIT_01_TITLE}}</h4><p>{{BENEFIT_01_BODY}}</p></div>
+    <div class="item"><div class="num">BENEFIT 02</div><h4>{{BENEFIT_02_TITLE}}</h4><p>{{BENEFIT_02_BODY}}</p></div>
+    <div class="item"><div class="num">BENEFIT 03</div><h4>{{BENEFIT_03_TITLE}}</h4><p>{{BENEFIT_03_BODY}}</p></div>
+    <div class="item"><div class="num">BENEFIT 04</div><h4>{{BENEFIT_04_TITLE}}</h4><p>{{BENEFIT_04_BODY}}</p></div>
+  </div>
+</section>
+
+<!-- PAGE 5: SCOPE -->
+<section class="page">
+  <h2>04 — Scope of Work</h2>
+  <h3>What we're building across three months.</h3>
+  <ul class="scope-list">
+    <li><strong>{{SCOPE_M1_TITLE}}</strong><span>{{SCOPE_M1_BODY}}</span></li>
+    <li><strong>{{SCOPE_M2_TITLE}}</strong><span>{{SCOPE_M2_BODY}}</span></li>
+    <li><strong>{{SCOPE_M3_TITLE}}</strong><span>{{SCOPE_M3_BODY}}</span></li>
+    <li><strong>Throughout</strong><span>{{SCOPE_THROUGHOUT}}</span></li>
+  </ul>
+  <div class="callout"><strong>Out of scope:</strong> {{OUT_OF_SCOPE}}</div>
+</section>
+
+<!-- PAGE 6: INVESTMENT -->
+<section class="page">
+  <h2>05 — Investment</h2>
+  <h3>Three monthly payments. No surprises.</h3>
+  <table class="pricing-table">
+    <thead>
+      <tr><th>Milestone</th><th>Deliverable</th><th class="amount">Amount</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Month 1</td><td>{{M1_DELIVERABLE}}</td><td class="amount">${{M1_AMOUNT}}</td></tr>
+      <tr><td>Month 2</td><td>{{M2_DELIVERABLE}}</td><td class="amount">${{M2_AMOUNT}}</td></tr>
+      <tr><td>Month 3</td><td>{{M3_DELIVERABLE}}</td><td class="amount">${{M3_AMOUNT}}</td></tr>
+      <tr class="total"><td colspan="2">Total engagement</td><td class="amount">${{TOTAL_AMOUNT}}</td></tr>
+    </tbody>
+  </table>
+  <div class="callout" style="margin-top:40px;"><strong>{{ROI_TITLE}}:</strong> {{ROI_BODY}}</div>
+</section>
+
+<!-- PAGE 7: AGREEMENT & SIGNATURE -->
+<section class="page">
+  <h2>06 — Agreement</h2>
+  <h3>Ready when you are.</h3>
+  <p>{{AGREEMENT_BODY}}</p>
+  <p>By signing below, both parties indicate acceptance of this proposal and approval to begin work.</p>
+
+  <div class="sign-panel">
+    <div class="sign-row">
+      <div class="sign-col">
+        <div class="label">{{SENDER_COMPANY}}</div>
+        <div class="sig-line-drawn">{{SENDER_SIGNATURE_TEXT}}</div>
+        <div class="name-printed">{{SENDER_NAME}}</div>
+        <div class="role">{{SENDER_TITLE}}</div>
+        <div class="sig-date">Date<span>{{CREATED_DATE}}</span></div>
+      </div>
+      <div class="sign-col">
+        <div class="label">{{CLIENT_COMPANY}} — Signature</div>
+        <div id="sig-canvas-wrap">
+          <canvas id="sig-canvas"></canvas>
+          <span class="canvas-placeholder">Draw your signature</span>
+          <button class="clear-sig no-print" type="button" onclick="clearSig()">Clear</button>
+        </div>
+
+        <div class="form-field no-print">
+          <label for="printed-name">Printed Name</label>
+          <input type="text" id="printed-name" placeholder="{{CLIENT_NAME}}" value="{{CLIENT_NAME}}">
+        </div>
+
+        <div id="signed-info" style="display:none;">
+          <div class="name-printed" id="signed-name-display"></div>
+          <div class="role">{{CLIENT_TITLE}}, {{CLIENT_COMPANY}}</div>
+          <div class="sig-date">Date<span id="signed-date"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="checkbox-row no-print">
+      <input type="checkbox" id="agree-checkbox">
+      <label for="agree-checkbox">I agree to the terms outlined in this proposal and authorize {{SENDER_COMPANY}} to begin work as described above.</label>
+    </div>
+
+    <div class="action-row no-print">
+      <button class="btn btn-accent" id="pay-btn" disabled onclick="payNow()">
+        💳 Pay First Installment (${{M1_AMOUNT}})
+      </button>
+      <button class="btn btn-primary" id="accept-btn" disabled onclick="acceptAndSend()">
+        ✓ Accept &amp; Send to {{SENDER_NAME_FIRST}}
+      </button>
+      <button class="btn btn-secondary" id="download-btn" disabled onclick="downloadSigned()">
+        ⬇ Download Signed PDF
+      </button>
+    </div>
+
+    <div class="sent-note no-print" id="sent-note" style="display:none; margin-top:14px; font-weight:600; color:#0f766e;"></div>
+
+    <div class="signed-badge" id="signed-badge">
+      <div class="signed-badge-icon">✓</div>
+      <div class="signed-badge-body">
+        <strong>Agreement signed</strong>
+        <div class="signed-meta" id="signed-meta"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>{{CLIENT_COMPANY}} × {{SENDER_COMPANY}}</span>
+    <span>{{CREATED_DATE}}</span>
+  </div>
+</section>
+
+<script>
+// --- Tracking: ping /api/track on open + key events ---
+const TRACK_SLUG = "{{CLIENT_COMPANY_SLUG}}";
+const TRACK_CLIENT = "{{CLIENT_COMPANY}}";
+function track(event, extra) {
+  try {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: TRACK_SLUG, client: TRACK_CLIENT, event, extra }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch (e) {}
+}
+// First open vs subsequent views: dedupe via localStorage (24h window)
+(function() {
+  try {
+    const key = `proposal_opened_${TRACK_SLUG}`;
+    const last = parseInt(localStorage.getItem(key) || '0', 10);
+    const now = Date.now();
+    if (!last || now - last > 24 * 60 * 60 * 1000) {
+      track('opened');
+      localStorage.setItem(key, String(now));
+    } else {
+      track('viewed');
+    }
+  } catch (e) { track('opened'); }
+})();
+
+// Signature canvas
+const canvas = document.getElementById('sig-canvas');
+const wrap = document.getElementById('sig-canvas-wrap');
+const ctx = canvas.getContext('2d');
+let drawing = false, hasDrawn = false;
+
+function resizeCanvas() {
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+  ctx.strokeStyle = '#0f172a';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+}
+resizeCanvas();
+window.addEventListener('resize', () => { /* don't resize after signing */ if (!hasDrawn) resizeCanvas(); });
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  return { x, y };
+}
+function start(e) { e.preventDefault(); drawing = true; hasDrawn = true; wrap.classList.add('has-signature'); checkReady(); const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+function move(e) { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
+function end(e) { if (!drawing) return; drawing = false; }
+
+canvas.addEventListener('mousedown', start);
+canvas.addEventListener('mousemove', move);
+canvas.addEventListener('mouseup', end);
+canvas.addEventListener('mouseleave', end);
+canvas.addEventListener('touchstart', start);
+canvas.addEventListener('touchmove', move);
+canvas.addEventListener('touchend', end);
+
+function clearSig() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hasDrawn = false;
+  wrap.classList.remove('has-signature');
+  checkReady();
+}
+
+function checkReady() {
+  const name = document.getElementById('printed-name').value.trim();
+  const agreed = document.getElementById('agree-checkbox').checked;
+  const ready = hasDrawn && name && agreed;
+  document.getElementById('accept-btn').disabled = !ready;
+  document.getElementById('download-btn').disabled = !ready;
+  document.getElementById('pay-btn').disabled = !ready;
+}
+
+function payNow() {
+  track('pay_clicked');
+  window.open("{{STRIPE_PAYMENT_URL}}", "_blank", "noopener");
+}
+document.getElementById('printed-name').addEventListener('input', checkReady);
+document.getElementById('agree-checkbox').addEventListener('change', checkReady);
+
+const PDF_FILENAME = `{{CLIENT_COMPANY_SLUG}}_signed_proposal.pdf`;
+
+// Stamp the agreement as signed in the DOM (idempotent). Returns the signer name.
+function markSigned() {
+  const name = document.getElementById('printed-name').value.trim();
+  const now = new Date();
+  const localTime = now.toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+  document.getElementById('signed-name-display').textContent = name;
+  document.getElementById('signed-date').textContent = localTime;
+  document.getElementById('signed-info').style.display = 'block';
+  document.getElementById('signed-meta').textContent = `Signed by ${name} on ${localTime}`;
+  document.getElementById('signed-badge').classList.add('visible');
+  return name;
+}
+
+// Render the proposal to a jsPDF doc — one DOM .page per PDF page.
+// scale/quality default to a compressed copy (smaller = faster upload over slow links).
+// The local download passes full quality so the client's own copy stays crisp.
+async function renderPdf(scale = 1.5, quality = 0.8) {
+  document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+  try {
+    await new Promise(r => setTimeout(r, 250)); // let the DOM repaint without the controls
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'in', format: 'letter', orientation: 'portrait', compress: true });
+    const pages = document.querySelectorAll('.page');
+    for (let i = 0; i < pages.length; i++) {
+      const canvas = await html2canvas(pages[i], { scale, useCORS: true, backgroundColor: '#ffffff', logging: false });
+      const imgData = canvas.toDataURL('image/jpeg', quality);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11);
+    }
+    return pdf;
+  } finally {
+    // Always restore the action row, even if rendering throws mid-loop.
+    document.querySelectorAll('.action-row').forEach(el => el.style.display = 'flex');
+  }
+}
+
+// Primary action: accept the proposal and deliver the signed PDF straight to {{SENDER_NAME_FIRST}}.
+async function acceptAndSend() {
+  const accept = document.getElementById('accept-btn');
+  const dl = document.getElementById('download-btn');
+  const name = markSigned();
+  track('signed', `by ${name}`);
+  accept.disabled = true; dl.disabled = true;
+  accept.innerText = 'Generating…';
+
+  let pdf;
+  try {
+    pdf = await renderPdf();
+  } catch (e) {
+    accept.disabled = false; dl.disabled = false;
+    accept.innerHTML = '✓ Accept &amp; Send to {{SENDER_NAME_FIRST}}';
+    alert('Could not generate the PDF. Please use the Download button instead.');
+    return;
+  }
+
+  accept.innerText = 'Sending…';
+  const blob = pdf.output('blob');
+
+  // Vercel functions cap request bodies near 4.5 MB. If the PDF is bigger,
+  // fall back to a local download so the client can email it manually.
+  if (blob.size > 4 * 1024 * 1024) {
+    track('signed', `PDF too large to auto-send (${Math.round(blob.size / 1024)} KB) — downloaded instead`);
+    pdf.save(PDF_FILENAME);
+    showSent(false);
+    return;
+  }
+
+  try {
+    const qs = new URLSearchParams({ slug: TRACK_SLUG, client: TRACK_CLIENT, name }).toString();
+    const resp = await fetch(`/api/submit?${qs}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/pdf' },
+      body: blob,
+    });
+    const data = await resp.json().catch(() => ({ ok: false }));
+    if (data.ok) {
+      showSent(true);
+    } else {
+      pdf.save(PDF_FILENAME);
+      showSent(false);
+    }
+  } catch (e) {
+    pdf.save(PDF_FILENAME);
+    showSent(false);
+  }
+}
+
+// Secondary action: just save a local copy of the signed PDF.
+async function downloadSigned() {
+  const dl = document.getElementById('download-btn');
+  const name = markSigned();
+  track('signed', `by ${name} (downloaded)`);
+  dl.disabled = true; dl.innerText = 'Generating…';
+  try {
+    const pdf = await renderPdf(2, 0.92); // full quality for the client's own copy
+    pdf.save(PDF_FILENAME);
+  } catch (e) {
+    alert('Could not generate the PDF. Please try again.');
+  }
+  dl.disabled = false; dl.innerHTML = '⬇ Download Signed PDF';
+}
+
+// Lock the action row into a confirmed state after a successful accept.
+function showSent(delivered) {
+  document.getElementById('accept-btn').style.display = 'none';
+  const dl = document.getElementById('download-btn');
+  dl.style.display = 'inline-flex';
+  dl.disabled = false;
+  dl.innerHTML = '⬇ Download a copy';
+  const note = document.getElementById('sent-note');
+  note.style.display = 'block';
+  note.textContent = delivered
+    ? 'Sent to {{SENDER_NAME_FIRST}}. You are all set, thanks!'
+    : 'Your signed PDF downloaded. Please email it to {{SENDER_EMAIL}} to confirm.';
+}
+</script>
+</body>
+</html>
