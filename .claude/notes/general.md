@@ -30,3 +30,5 @@ Tags: [preference] [technical] [learned] [pattern] [constraint]
 - [constraint] Hosting (operator standing order, 2026-09-22): never host client-facing pages on github.io / the workspace repo name. Cloudflare Pages only (token is in the environment): gaia-radar.pages.dev (Radar POC pages), gaia-talent-redesign.pages.dev, greenjobs-redesign.pages.dev. gh-pages now holds redirect stubs; both publish_gh_pages.sh scripts exit 2.
 
 - [identity] Signature for every outward-facing deliverable and message, all projects (operator order 2026-09-30): "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi". Never use debolshop@gmail.com unless the operator explicitly asks.
+
+- [preference] Merge to main, always (operator order 2026-10-01): after every push of a feature branch, fast-forward/merge it into `main` and push `main` too. No PR wait, no asking.
