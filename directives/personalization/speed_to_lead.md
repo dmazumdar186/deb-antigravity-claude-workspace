@@ -66,3 +66,7 @@ lead is never double-messaged; failures to the error channel.
 - The responder is customer-facing: apply LLM output guard rails (max words,
   no exclamation storms, empty-response fallback) and an output-acceptance
   check on the exact rendered email/SMS.
+
+## Offer, niche, pitch
+
+See `docs/reference/speed_to_lead_offer_playbook.md` (ICP, tiers, pricing, Loom/DM scripts, 90-day plan).
