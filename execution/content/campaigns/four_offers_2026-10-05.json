@@ -1,0 +1,109 @@
+{
+  "title": "ProdCraft · four offers",
+  "dark": [4, 8, 12, 16, 20],
+  "proof_rule": "Numbers are either ProdCraft published proof points (prodcraft.fyi) or third-party studies named on the card. No invented client results.",
+  "variants": [
+
+    {"slug": "web-before-after", "layout": "beforeafter", "kicker": "Websites · clinics, brokers, trades",
+     "head": "Your website vs. the one I’d ship this week.",
+     "left": ["What you have", ["WordPress + a dozen plugins to patch", "contact form emails a dead inbox", "nobody has checked it on a phone since launch"]],
+     "right": ["What you get", ["zero-dependency static build, nothing to update", "form posts straight to your phone in under a minute", "built mobile-first, tested on both before you see it"]],
+     "note": "send me your URL — I’ll show you the concept before you pay"},
+
+    {"slug": "web-timeline", "layout": "timeline", "kicker": "Website redesign · how it runs",
+     "head": "From your URL to a live site in five days.",
+     "steps": [["Day 0", "you send the URL"], ["Day 1", "desktop + mobile concept on a preview link"], ["Day 2", "your edits, one round"], ["Day 5", "live on your domain, hosted free"]],
+     "note": "no discovery invoice, no 12-week timeline"},
+
+    {"slug": "web-cost-ledger", "layout": "ledger", "kicker": "What a static site costs to run",
+     "head": "The cheapest site is the one with nothing to break.",
+     "rows": [["$0", "hosting on Cloudflare Pages, global CDN included"], ["0", "plugins, themes or logins to keep patched"], ["1", "person who answers when something needs changing"]],
+     "note": "your repo, your domain, walk-away terms"},
+
+    {"slug": "web-mystery-shop", "layout": "terminal", "kicker": "Mystery-shop your own website",
+     "head": "Four checks. Fail one, I rebuild it.",
+     "lines": ["$ open yoursite.com  --device phone  --network 4G", "? is the phone number tap-to-call", "? does the form reach a human today", "? can a stranger tell what you do in 5 seconds", "→ any ‘no’ is a lead you paid for and lost"],
+     "note": "I run this on your site for free — reply ‘audit’"},
+
+    {"slug": "web-ninety-seconds", "layout": "margin", "kicker": "Websites for local service businesses",
+     "para": "I don’t sell pages. I sell the ninety seconds between a stranger landing on your site and them tapping call. Everything on the page either shortens that, or gets cut.",
+     "hl": "tapping call", "note": "ask for a recent concept — I’ll send the preview link"},
+
+    {"slug": "out-48k", "layout": "bignum", "kicker": "Outbound · B2B consultancies & agencies",
+     "num": "48,000", "unit": "cold emails a month, from one system",
+     "sub": "4%+ reply rate. $1M+ qualified pipeline. A 4-SDR team replaced at roughly a tenth of the cost. Every send idempotent, every reply caught.",
+     "note": "published case — stress-test it on the call"},
+
+    {"slug": "out-sdr-vs-system", "layout": "beforeafter", "kicker": "Before you hire the next SDR",
+     "head": "Four SDRs vs. one outbound system.",
+     "left": ["4 SDRs", ["~$200K/yr before tools", "ramp, churn, re-hire", "volume capped by hours"]],
+     "right": ["One system", ["~1/10 of the running cost", "48k emails/mo, zero duplicate sends", "replies land in your CRM, flagged"]],
+     "note": "I’m not against SDRs — I’m against paying them to copy-paste"},
+
+    {"slug": "out-no-blacklist", "layout": "checklist", "kicker": "Outbound that doesn’t get you blacklisted",
+     "head": "Five things inside every outbound system I ship.",
+     "items": ["Warmed inboxes on separate sending domains", "Lists verified before a single send", "First lines written from each prospect’s own website", "Reply detection: webhook + poll, nothing missed", "A kill switch per campaign, one flag"],
+     "note": "boring plumbing is why the pipeline number is real"},
+
+    {"slug": "out-pipeline-run", "layout": "terminal", "kicker": "One outbound run, start to finish",
+     "head": "From a niche + city to replies in your CRM.",
+     "lines": ["$ scrape  --source maps  --niche \"dental clinics\"  --city Dubai", "✓ emails verified, bounce risk removed", "✓ first line written from each clinic’s site", "✓ pushed to warmed inboxes, paced per domain", "→ replies tagged and synced to GHL / HubSpot"],
+     "note": "Maps, Apollo or your own list — same pipeline"},
+
+    {"slug": "out-objections", "layout": "ledger", "kicker": "The three outbound objections",
+     "head": "“But cold email is dead.”",
+     "rows": [["4%+", "reply rate on 48k sends/mo — it isn’t dead, it’s badly done"], ["0", "duplicate sends across campaigns, by design"], ["1 flag", "stops a campaign the second deliverability dips"]],
+     "note": "ask the fourth objection on the call"},
+
+    {"slug": "in-first-ring", "layout": "margin", "kicker": "Inbound · voice, chat, WhatsApp",
+     "para": "A voice agent that picks up on the first ring at 2am, asks your five qualifying questions, books the slot, and writes the transcript into your CRM before the caller hangs up. Your number. Your script.",
+     "hl": "picks up on the first ring at 2am", "note": "sandbox demo on request — hear it before you buy it"},
+
+    {"slug": "in-ten-minutes", "layout": "timeline", "kicker": "An inbound enquiry’s first ten minutes",
+     "head": "What happens after someone contacts you.",
+     "steps": [["0:00", "form, call, WhatsApp or email arrives"], ["0:05", "scored against your ICP, routed"], ["0:45", "reply in your voice, from your number"], ["10:00", "qualified, booked, CRM updated, you alerted"]],
+     "note": "no receptionist, no shared inbox, no ‘we’ll get back to you’"},
+
+    {"slug": "in-no-receptionist", "layout": "checklist", "kicker": "Inbound without a front desk",
+     "head": "Everything a receptionist does, minus the lunch break.",
+     "items": ["Answers every call, 24/7, on the first ring", "Chat + WhatsApp agent on the site, same brain", "Asks your qualifying questions, not generic ones", "Books straight into your calendar", "Transcript and summary in your CRM, every time"],
+     "note": "Vapi or Retell, GHL or HubSpot — your stack"},
+
+    {"slug": "in-before-after", "layout": "beforeafter", "kicker": "Inbound · clinics, brokers, agencies",
+     "head": "Where your enquiries go today vs. after.",
+     "left": ["Today", ["voicemail after 6pm", "leads in four inboxes", "‘we’ll call you back’ — sometimes"]],
+     "right": ["After", ["answered on the first ring, every hour", "one CRM, one timeline per lead", "qualified and booked before you see it"]],
+     "note": "the system never has a bad day"},
+
+    {"slug": "in-hear-it", "layout": "terminal", "kicker": "Hear it before you buy it",
+     "head": "Call the sandbox. Judge it yourself.",
+     "lines": ["$ call  sandbox-number  --as \"new patient, Dubai\"", "✓ picked up on the first ring", "✓ asked your 5 qualifying questions", "✓ booked a slot in the calendar", "→ transcript in the CRM before the call ended"],
+     "note": "reply ‘demo’ and I’ll send the number"},
+
+    {"slug": "s2l-sixty", "layout": "bignum", "kicker": "Speed to lead · lead-gen agencies & clinics",
+     "num": "60", "unit": "seconds from form submit to a personalised reply",
+     "sub": "SMS, WhatsApp and email, in your client’s voice, from their number. Then three qualifying questions and a booking link. 24/7.",
+     "note": "paced at ~40s — instant reads as a bot"},
+
+    {"slug": "s2l-why-speed", "layout": "ledger", "kicker": "Why speed is the cheapest lever you have",
+     "head": "Same leads. Same ads. Faster reply.",
+     "rows": [["21×", "more likely to qualify a lead contacted in 5 min vs 30 — MIT / InsideSales"], ["78%", "of buyers choose the first business that responds — Velocify"], ["42 hrs", "average B2B response time across 2,241 companies — HBR"]],
+     "note": "third-party studies, sources on the call"},
+
+    {"slug": "s2l-mystery-shop", "layout": "terminal", "kicker": "How the free audit works",
+     "head": "I fill your client’s form. Then I wait.",
+     "lines": ["$ submit  quote-form  client-site.com   10:14", "… 10:44  no reply", "… 13:14  no reply", "… 17:02  still nothing", "→ that was a paid lead. Someone’s agency got blamed."],
+     "note": "I run this on one of your clients, free — reply ‘60’"},
+
+    {"slug": "s2l-bad-leads", "layout": "beforeafter", "kicker": "Lead-gen agencies · the ‘bad leads’ call",
+     "head": "Why clients churn, and the fix.",
+     "left": ["Without", ["lead sits 3 hours in an inbox", "client calls once, gets voicemail", "“your leads are bad” — contract ends"]],
+     "right": ["With speed to lead", ["reply in under 60 seconds, every lead", "qualified in 3 questions, booked", "client sees booked calls, renews"]],
+     "note": "white-label it across every client you run ads for"},
+
+    {"slug": "s2l-guarantee", "layout": "cta", "kicker": "Speed to lead · 30-day guarantee",
+     "head": "Median reply under 60 seconds in 30 days, or the setup fee comes back.",
+     "sub": "Built for lead-gen agencies and multi-location clinics. I mystery-shop one of your clients first, free, and show you the numbers before you decide.",
+     "note": "scan or tap — the link is in the first comment"}
+  ]
+}

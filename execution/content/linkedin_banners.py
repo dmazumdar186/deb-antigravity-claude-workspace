@@ -121,6 +121,7 @@ CSS = r"""
 .dark .kicker{color:var(--brass)}
 h1{font-family:Newsreader;font-weight:500;font-size:84px;line-height:1.02;letter-spacing:-.025em;margin:22px 0 0;max-width:900px;text-wrap:balance}
 h1 em{font-style:italic;font-weight:400}
+h1.long{font-size:74px}  /* heads >48 chars: keep 3-line heads clear of the note */
 .body{flex:1;position:relative;z-index:2}
 .rail{margin-top:auto;border-top:2px solid var(--ink);padding:26px 0 48px;display:flex;align-items:center;justify-content:space-between;gap:24px;z-index:2}
 .dark .rail{border-color:var(--bone)}
@@ -136,13 +137,13 @@ h1 em{font-style:italic;font-weight:400}
 .hl{background:linear-gradient(transparent 55%,rgba(200,163,92,.55) 55%,rgba(200,163,92,.55) 92%,transparent 92%)}
 /* ledger */
 .ledger{margin-top:56px;border-top:1px solid var(--rule)}
-.ledger .row{display:grid;grid-template-columns:330px 1fr;gap:28px;align-items:baseline;padding:26px 0;border-bottom:1px solid var(--rule)}
+.ledger .row{display:grid;grid-template-columns:330px 1fr;gap:28px;align-items:baseline;padding:22px 0;border-bottom:1px solid var(--rule)}
 .ledger .n{font-family:'JetBrains Mono';font-size:62px;font-weight:500;letter-spacing:-.03em}
 .ledger .l{font-size:27px;line-height:1.3;color:var(--ink7)}
 /* bignum */
 .bignum{margin-top:40px}.bignum .n{font-family:'JetBrains Mono';font-weight:500;font-size:250px;line-height:.95;letter-spacing:-.06em}
 .bignum .u{font-family:Newsreader;font-size:52px;font-style:italic;margin-top:8px}
-.bignum .s{font-size:29px;line-height:1.4;color:var(--ink7);margin-top:44px;max-width:860px}
+.bignum .s{font-size:29px;line-height:1.4;color:var(--ink7);margin-top:24px;max-width:860px}
 /* before/after */
 .ba{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:56px;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
 .dark .ba{border-color:var(--bone)}
@@ -184,6 +185,8 @@ h1 em{font-style:italic;font-weight:400}
 .dark .btn{background:var(--brass);color:var(--ink)}
 /* hand marks */
 .scribble{position:absolute;pointer-events:none}
+.scribble.flow{position:static;display:block;margin:-4px 0 0}
+.btnwrap{position:relative;display:inline-block;margin-top:56px}.btnwrap .btn{margin-top:0}.btnwrap .scribble{left:-16px;top:-12px}
 /* animation */
 .anim .body>*{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
 .anim .body>*:nth-child(2){animation-delay:.25s}.anim .body>*:nth-child(3){animation-delay:.5s}.anim .body>*:nth-child(4){animation-delay:.75s}
@@ -197,8 +200,8 @@ PAPER = """<svg class="paper" width="100%" height="100%"><filter id="p"><feTurbu
 TICK = '<svg viewBox="0 0 60 60"><path d="M12 32 C20 38 24 46 27 46 C31 44 40 22 54 10" fill="none" stroke="#aa8638" stroke-width="5" stroke-linecap="round"/></svg>'
 
 
-def rough_underline(x, y, w, color="#c8a35c"):
-    return (f'<svg class="scribble" style="left:{x}px;top:{y}px" width="{w}" height="26" viewBox="0 0 {w} 26">'
+def rough_underline(x, y, w, color="#c8a35c", flow=False):
+    return (f'<svg class="scribble{" flow" if flow else ""}" style="left:{x}px;top:{y}px" width="{w}" height="26" viewBox="0 0 {w} 26">'
             f'<path d="M4 14 C {w*.2} 4, {w*.4} 22, {w*.6} 12 S {w*.9} 6, {w-4} 14" fill="none" stroke="{color}" stroke-width="7" stroke-linecap="round" opacity=".9"/>'
             f'<path d="M10 20 C {w*.3} 14, {w*.6} 24, {w-12} 18" fill="none" stroke="{color}" stroke-width="4" stroke-linecap="round" opacity=".55"/></svg>')
 
@@ -216,11 +219,13 @@ def esc(s):
 def body_html(v):
     L = v["layout"]
     k = f'<div class="kicker">{esc(v["kicker"])}</div>'
+    if v.get("head") and len(v["head"]) > 48:
+        k += "<style>h1{font-size:74px}</style>"
     if L == "ledger":
         rows = "".join(f'<div class="row"><div class="n">{esc(n)}</div><div class="l">{esc(l)}</div></div>' for n, l in v["rows"])
         return k + f'<h1>{esc(v["head"])}</h1><div class="ledger">{rows}</div>'
     if L == "bignum":
-        return k + f'<div class="bignum"><div class="n">{esc(v["num"])}</div><div class="u serif">{esc(v["unit"])}</div><div class="s">{esc(v["sub"])}</div></div>' + rough_underline(0, 560, 520)
+        return k + f'<div class="bignum"><div class="n">{esc(v["num"])}</div><div class="u serif">{esc(v["unit"])}</div>' + rough_underline(0, 0, 520, flow=True) + f'<div class="s">{esc(v["sub"])}</div></div>'
     if L == "beforeafter":
         def col(t, items, hot):
             return f'<div class="col{" hot" if hot else ""}"><h3>{esc(t)}</h3><ul>' + "".join(f"<li>{esc(i)}</li>" for i in items) + "</ul></div>"
@@ -244,7 +249,7 @@ def body_html(v):
     if L == "quote":
         return k + f'<p class="quote">“{esc(v["quote"])}”</p><div class="who"><i></i>Debanjan Mazumdar, Founder</div>'
     if L == "cta":
-        return k + f'<div class="cta"><h1>{esc(v["head"])}</h1><p class="sub">{esc(v["sub"])}</p><a class="btn" href="{LINKS["call"]}">Book a free build session <span>→</span></a></div>' + circle_mark(-18, 470, 560, 120)
+        return k + f'<div class="cta"><h1>{esc(v["head"])}</h1><p class="sub">{esc(v["sub"])}</p><span class="btnwrap"><a class="btn" href="{LINKS["call"]}">Book a free build session <span>→</span></a>' + circle_mark(0, 0, 584, 124) + '</span></div>'
     raise ValueError(L)
 
 
@@ -275,14 +280,25 @@ def main():
     ap.add_argument("--fonts", default=str(ROOT / ".tmp/banners/fonts"))
     ap.add_argument("--logo", default=str(ROOT / ".tmp/banners/logo.png"))
     ap.add_argument("--animate", type=int, default=3)
+    ap.add_argument("--campaign", help="JSON file {title, dark:[idx], variants:[...]} replacing the built-in VARIANTS")
     a = ap.parse_args()
+    global VARIANTS
+    title, dark_idx = "ProdCraft", {6, 9, 14, 17}  # a few ink-on-dark cards so the feed doesn't read as one template
+    if a.campaign:
+        camp = json.loads(Path(a.campaign).read_text(encoding="utf-8"))
+        VARIANTS = camp["variants"]
+        for v in VARIANTS:  # JSON lists -> tuples where layouts expect pairs
+            for key in ("rows", "steps"):
+                if key in v: v[key] = [tuple(x) for x in v[key]]
+            for key in ("left", "right"):
+                if key in v: v[key] = (v[key][0], v[key][1])
+        title = camp.get("title", title); dark_idx = set(camp.get("dark", []))
     out = Path(a.out); (out / "png").mkdir(parents=True, exist_ok=True); (out / "html").mkdir(exist_ok=True); (out / "animated").mkdir(exist_ok=True)
     fonts_dir = Path(a.fonts)
     fonts_css = (fonts_dir / "fonts_local.css").read_text().replace("url(", f"url(file://{fonts_dir}/")
     logo_uri = "data:image/png;base64," + base64.b64encode(Path(a.logo).read_bytes()).decode()
     shutil.copy(a.logo, out / "logo.png")
     qr = qr_data_uri(LINKS["call"])
-    dark_idx = {6, 9, 14, 17}  # a few ink-on-dark cards so the feed doesn't read as one template
 
     from playwright.sync_api import sync_playwright
     pages_html, captions = [], []
@@ -327,9 +343,9 @@ def main():
         pg.pdf(path=str(out / "carousel.pdf"), width=f"{W}px", height=f"{H}px", print_background=True, margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
         br.close()
 
-    (out / "captions.md").write_text("# ProdCraft LinkedIn banners — captions + links\n\nImages on LinkedIn are not clickable. Put the links in the post text or first comment; the QR on every banner opens the booking page; the PDF carousel keeps the links clickable.\n\n" + "\n".join(captions))
+    (out / "captions.md").write_text(f"# {title} LinkedIn banners — captions + links\n\nImages on LinkedIn are not clickable. Put the links in the post text or first comment; the QR on every banner opens the booking page; the PDF carousel keeps the links clickable.\n\n" + "\n".join(captions))
     grid = "".join(f'<figure><img src="png/{i:02d}_{v["slug"]}.png"><figcaption>{i:02d} · {v["slug"]}</figcaption></figure>' for i, v in enumerate(VARIANTS, 1))
-    (out / "review.html").write_text(f"<!doctype html><meta charset='utf-8'><title>ProdCraft banners</title><style>body{{font-family:Geist,system-ui;background:#f7f3ec;margin:0;padding:32px}}main{{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:28px}}img{{width:100%;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.14)}}figure{{margin:0}}figcaption{{font-family:monospace;margin-top:8px;color:#3d4148}}</style><h1>ProdCraft · LinkedIn banners · {dt.date.today()}</h1><p><a href='carousel.pdf'>carousel.pdf (clickable links)</a> · <a href='captions.md'>captions.md</a></p><main>{grid}</main>")
+    (out / "review.html").write_text(f"<!doctype html><meta charset='utf-8'><title>{title} banners</title><style>body{{font-family:Geist,system-ui;background:#f7f3ec;margin:0;padding:32px}}main{{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:28px}}img{{width:100%;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.14)}}figure{{margin:0}}figcaption{{font-family:monospace;margin-top:8px;color:#3d4148}}</style><h1>{title} · LinkedIn banners · {dt.date.today()}</h1><p><a href='carousel.pdf'>carousel.pdf (clickable links)</a> · <a href='captions.md'>captions.md</a></p><main>{grid}</main>")
     json.dump({"links": LINKS, "variants": VARIANTS}, open(out / "manifest.json", "w"), indent=1, ensure_ascii=False)
     print("wrote", out)
 
