@@ -37,3 +37,7 @@ LinkedIn never makes image pixels clickable. Three layers now cover it: (1) link
 - `Page.pdf` dies ("string longer than 0x1fffffe8") if each page inlines the fonts and the paper-noise filter. Build the PDF from the rendered PNGs with overlay anchors instead.
 - Playwright pip wheel will not find chromium: launch with `executable_path=/opt/pw-browsers/chromium-*/chrome-linux/chrome`.
 - Hand-written notes live inside `.body` (bottom-right), never in the link rail — they collide with the QR there.
+
+## Campaigns (2026-10-05)
+
+`--campaign <json>` loads variants from `execution/content/campaigns/*.json` (`title`, `dark` indices, `variants`). Four-offers set: `four_offers_2026-10-05.json`, deployed with `wrangler pages deploy <out> --project-name prodcraft-banners --branch four-offers` (copy `review.html` to `index.html` first). Layout fixes: heads >48 chars get a 74px h1 (`.card.long`); bignum underline and cta circle are now flow-anchored, not absolute.

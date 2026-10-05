@@ -121,7 +121,7 @@ CSS = r"""
 .dark .kicker{color:var(--brass)}
 h1{font-family:Newsreader;font-weight:500;font-size:84px;line-height:1.02;letter-spacing:-.025em;margin:22px 0 0;max-width:900px;text-wrap:balance}
 h1 em{font-style:italic;font-weight:400}
-h1.long{font-size:74px}  /* heads >48 chars: keep 3-line heads clear of the note */
+.long h1{font-size:74px}  /* heads >48 chars: keep 3-line heads clear of the note */
 .body{flex:1;position:relative;z-index:2}
 .rail{margin-top:auto;border-top:2px solid var(--ink);padding:26px 0 48px;display:flex;align-items:center;justify-content:space-between;gap:24px;z-index:2}
 .dark .rail{border-color:var(--bone)}
@@ -219,8 +219,6 @@ def esc(s):
 def body_html(v):
     L = v["layout"]
     k = f'<div class="kicker">{esc(v["kicker"])}</div>'
-    if v.get("head") and len(v["head"]) > 48:
-        k += "<style>h1{font-size:74px}</style>"
     if L == "ledger":
         rows = "".join(f'<div class="row"><div class="n">{esc(n)}</div><div class="l">{esc(l)}</div></div>' for n, l in v["rows"])
         return k + f'<h1>{esc(v["head"])}</h1><div class="ledger">{rows}</div>'
@@ -260,7 +258,7 @@ def card_html(v, i, logo_uri, qr_uri, fonts_css, dark, anim=False):
              f'<a class="lnk" href="{LINKS["site"]}"><b>Website</b><span>prodcraft.fyi</span></a>'
              f'<a class="lnk" href="{LINKS["github"]}"><b>Code</b><span>github.com/dmazumdar186</span></a></div>')
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>{fonts_css}{CSS}</style></head><body>
-<div class="card{' dark' if dark else ''}{' anim' if anim else ''}">{PAPER.format(seed=i + 3)}
+<div class="card{' dark' if dark else ''}{' anim' if anim else ''}{' long' if len(v.get('head') or '') > 48 else ''}">{PAPER.format(seed=i + 3)}
 <div class="top"><div class="brand"><img src="{logo_uri}" alt="ProdCraft logo"><span class="wm">ProdCraft</span></div><span class="tag">{i:02d} / 20 · Paris</span></div>
 <div class="body">{body_html(v)}{note}</div>
 <div class="rail">{links}<div class="qr"><span class="hand">scan to book →</span><img src="{qr_uri}" alt="QR: book a call"></div></div>
@@ -293,7 +291,7 @@ def main():
             for key in ("left", "right"):
                 if key in v: v[key] = (v[key][0], v[key][1])
         title = camp.get("title", title); dark_idx = set(camp.get("dark", []))
-    out = Path(a.out); (out / "png").mkdir(parents=True, exist_ok=True); (out / "html").mkdir(exist_ok=True); (out / "animated").mkdir(exist_ok=True)
+    out = Path(a.out).resolve(); (out / "png").mkdir(parents=True, exist_ok=True); (out / "html").mkdir(exist_ok=True); (out / "animated").mkdir(exist_ok=True)
     fonts_dir = Path(a.fonts)
     fonts_css = (fonts_dir / "fonts_local.css").read_text().replace("url(", f"url(file://{fonts_dir}/")
     logo_uri = "data:image/png;base64," + base64.b64encode(Path(a.logo).read_bytes()).decode()
