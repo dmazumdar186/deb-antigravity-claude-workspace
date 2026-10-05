@@ -218,8 +218,11 @@
       const bat = $('[data-battery]', el); if (bat) { bat.style.setProperty('--lvl', '.82'); const pct = $('[data-battery-pct]', bat); if (pct) { pct.dataset.count = '82'; count(pct); setTimeout(() => { pct.textContent = '82 %'; }, reduced ? 0 : 1500); } }
       if (el.matches('[data-windshield]')) setTimeout(() => el.classList.add('is-clean'), reduced ? 0 : 900);
       if (el.matches('[data-map]')) $$('circle', el).forEach((c, i) => setTimeout(() => c.classList.add('is-on'), reduced ? 0 : i * 28));
-    }), { threshold: .18, rootMargin: '0px 0px -6% 0px' });
+    }), { threshold: .01, rootMargin: '0px 0px 8% 0px' });
     reveals.forEach((el) => io.observe(el));
+    // failsafe: never leave content hidden (slow IO, throttled tabs, odd browsers)
+    const unhide = () => reveals.forEach((el) => { if (!el.classList.contains('is-in')) el.classList.add('is-in'); });
+    setTimeout(unhide, 2500); addEventListener('error', unhide, { once: true });
   } else reveals.forEach((el) => el.classList.add('is-in'));
 
   /* ---------- hero scrub: fade the cluster slightly as you leave the hero ---------- */

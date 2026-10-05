@@ -298,7 +298,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 @media (max-width:799px){.mbar{display:flex}}
 
 /* reveals (visible by default; JS lowers then restores) */
-.reveal{opacity:1;transform:none;transition:opacity .7s ease,transform .8s var(--ease)}
+.reveal{opacity:1;transform:none;transition:opacity .45s ease,transform .6s var(--ease)}
 html.has-js .reveal:not(.is-in){opacity:0;transform:translateY(22px)}
 html.has-js .reveal.is-in{opacity:1;transform:none}
 
@@ -325,6 +325,15 @@ html.has-js .reveal.is-in{opacity:1;transform:none}
 }
 @media (max-width:799px){
   html{scroll-padding-bottom:calc(var(--mbar) + 12px)}
+  /* no visibility gating on phones: content is always painted, motion is additive */
+  html.has-js .reveal:not(.is-in){opacity:1;transform:none}
+  .row a{grid-template-columns:1fr auto;grid-template-areas:"title chev" "badge badge";gap:8px 12px;padding:16px 6px 16px 10px}
+  .row .n{display:none}
+  .row a>span:nth-child(2){grid-area:title;min-width:0}
+  .row .badge{grid-area:badge;justify-self:start}
+  .row .chev{grid-area:chev}
+  .lamp-ok{display:none}
+  .chips{gap:6px}.chips button,.chip{padding:10px 14px;font-size:14px}
   body{font-size:16px}
   .hero{padding-top:88px;padding-bottom:88px}
   .hero .wrap{gap:20px}

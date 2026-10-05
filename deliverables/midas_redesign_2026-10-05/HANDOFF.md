@@ -29,3 +29,6 @@ No real booking backend, no real phone numbers/hours (per-centre), no photos, no
 
 ## Repeatable process for the next local shop
 1. Research: Wikipedia + franchise press + `site:` searches (direct scrape often 403s). 2. Brief a worker with verified facts only, same engineering rules. 3. Playwright check. 4. `wrangler pages project create <slug>-redesign --force`, deploy. 5. HANDOFF + `pour-<brand>/` pitch page. 6. Operator sends the two links via the chain's contact form.
+
+## v2.1 mobile fix (2026-10-05, operator saw it broken on a Pixel 8 Pro)
+Root causes found under Pixel 7 emulation: (1) prestation rows used the 4-column desktop grid on phones, so the number vanished and text/badge collapsed; (2) reveal fade-ins fired late (18 % threshold, 0.7 s fade) so a fling showed blank sections; (3) « diagnostiqué ✓ » labels overlapped lamp labels at 412 px. Fixes: 2-column row layout < 800 px, no visibility gating on phones, IO threshold 1 % with an 8 % look-ahead margin, a 2.5 s failsafe that unhides everything, a global error handler that drops the JS-gated styles, lamp-ok labels hidden on phones. The sandbox browser cannot reach *.pages.dev (proxy TLS), so verification was on the identical local files (CSS/JS hashes match live).
