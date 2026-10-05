@@ -6,7 +6,7 @@
 <title>Midas — Entretien et réparation auto · Concept</title>
 <meta name="description" content="Concept de refonte non officiel de midas.fr : prise de rendez-vous dès le premier écran, offre du moment, 14 familles de prestations, diagnostics gratuits.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0e0e0f">
+<meta name="theme-color" content="#FFF6DC">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
 
 <header class="header" data-header>
   <div class="wrap">
-    <a class="wordmark" href="#" aria-label="Midas — accueil">MIDAS</a>
+    <a class="logo" href="#" aria-label="Midas — accueil"><img src="assets/logo-midas.png" alt="Midas" height="34" width="113"></a>
     <button class="burger" data-menu-toggle aria-expanded="false" aria-controls="nav" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
     <nav class="nav" id="nav" data-menu aria-label="Navigation principale">
       <a href="#prestations">Prestations</a>
@@ -40,73 +40,102 @@
 <!-- 2. HERO -->
 <section class="hero" aria-labelledby="hero-title">
   <div class="wrap">
-    <div>
-      <p class="eyebrow">375 centres · RDV garanti en 24 h</p>
-      <h1 id="hero-title">Le bruit bizarre. <em>On parle sa langue.</em></h1>
-      <p class="lede">Diagnostic, devis clair, rendez-vous garanti en 24 h. Avec Midas, vous pourrez toujours avancer. Aujourd'hui, on s'occupe de vos
-        <span class="rotator" data-rotator aria-live="off"><span class="is-on">freins</span><span>pneus</span><span>batterie</span><span>révision</span><span>clim</span><span>vitrage</span></span>.</p>
-
-      <form class="widget" id="rdv" data-widget novalidate aria-labelledby="rdv-title">
-        <fieldset>
-          <legend id="rdv-title"><span>Prendre rendez-vous</span><span style="color:var(--gold)">Garanti en 24 h</span></legend>
-          <div class="steps">
-            <div class="field">
-              <label for="plate"><b>1</b>Plaque</label>
-              <input class="input plate" id="plate" name="plate" data-plate placeholder="AA-123-AA" autocomplete="off" inputmode="latin" maxlength="9" aria-describedby="plate-hint">
-            </div>
-            <div class="field">
-              <label for="service"><b>2</b>Prestation</label>
-              <select class="input" id="service" name="service" data-service>
-                <option value="">Choisir…</option>
-                <option>Freinage</option><option>Pneus</option><option>Batterie</option><option>Distribution</option><option>Entretien</option><option>Climatisation</option><option>Visibilité &amp; éclairage</option><option>Diagnostic &amp; recherche de panne</option><option>Embrayage</option><option>Amortisseurs</option><option>Installation équipement</option><option>Contrôle technique</option><option>Échappement</option><option>Vitrage Midas Glass</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="city"><b>3</b>Ville / code postal</label>
-              <input class="input" id="city" name="city" data-city placeholder="Lille, 59000…" autocomplete="off">
-            </div>
-          </div>
-          <p class="hint" id="plate-hint" data-hint>Format français : AA-123-AA.</p>
-          <div class="slots" data-slots hidden>
-            <p>4 · Créneaux disponibles sous 24 h</p>
-            <ul class="slot-list" data-slot-list></ul>
-          </div>
-          <div class="widget-foot">
-            <small>Devis en ligne, sans engagement. Concept : aucune donnée n'est envoyée.</small>
-            <button class="btn btn-gold" type="submit" data-confirm>Confirmer le rendez-vous</button>
-          </div>
-        </fieldset>
-      </form>
+    <div class="panne" data-panne>
+      <p class="panne-t"><strong>Je suis en panne</strong>Au bord de la route ? Deux gestes, rien à remplir.</p>
+      <div class="panne-btns">
+        <a class="btn btn-ink" href="tel:" data-call-near aria-label="Appeler le centre le plus proche (numéro selon votre centre)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Appeler le centre le plus proche</a>
+        <a class="btn btn-gold" href="#rdv" data-rdv-jump>Rendez-vous en 24 h</a>
+      </div>
     </div>
 
-    <div class="cluster" data-cluster aria-hidden="true">
+    <div class="hero-top">
+      <div>
+        <p class="eyebrow">375 centres · RDV garanti en 24 h</p>
+        <h1 id="hero-title">Le bruit bizarre. <em>On parle sa langue.</em></h1>
+        <p class="lede">Diagnostic, devis clair, rendez-vous garanti en 24 h. Avec Midas, vous pourrez toujours avancer. Aujourd'hui, on s'occupe de vos
+          <span class="rotator" data-rotator aria-live="off"><span class="is-on">freins</span><span>pneus</span><span>batterie</span><span>révision</span><span>clim</span><span>vitrage</span></span>.</p>
+      </div>
+      <div class="cluster" data-cluster aria-hidden="true">
       <svg viewBox="0 0 400 310" role="img"><title>Tableau de bord : six voyants s'allument puis s'éteignent une fois diagnostiqués</title>
-        <defs><linearGradient id="dash" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1e1f22"/><stop offset="1" stop-color="#0e0e0f"/></linearGradient></defs>
-        <path d="M20 250 A190 190 0 0 1 380 250 L380 290 L20 290 Z" fill="url(#dash)" stroke="#2a2b2e"/>
-        <path d="M60 240 A150 150 0 0 1 340 240" fill="none" stroke="#2a2b2e" stroke-width="2"/>
+        <defs><linearGradient id="dash" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#FBEFC8"/></linearGradient></defs>
+        <path d="M20 250 A190 190 0 0 1 380 250 L380 290 L20 290 Z" fill="url(#dash)" stroke="rgb(17 17 17 / .18)"/>
+        <path d="M60 240 A150 150 0 0 1 340 240" fill="none" stroke="rgb(17 17 17 / .18)" stroke-width="2"/>
         <g stroke="#F5C400" stroke-width="2" opacity=".5">
           <line x1="60" y1="240" x2="72" y2="233"/><line x1="200" y1="90" x2="200" y2="104"/><line x1="340" y1="240" x2="328" y2="233"/>
           <line x1="101" y1="141" x2="110" y2="150"/><line x1="299" y1="141" x2="290" y2="150"/>
         </g>
         <line class="needle" data-needle x1="200" y1="200" x2="200" y2="110" stroke="#F5C400" stroke-width="4" stroke-linecap="round" style="transform:rotate(-70deg)"/>
         <circle cx="200" cy="200" r="10" fill="#F5C400"/>
-        <text x="200" y="245" text-anchor="middle" class="lamp-label" fill="#b3b0a8">Diagnostic Midas</text>
+        <text x="200" y="245" text-anchor="middle" class="lamp-label" fill="#4F4A3A">Diagnostic Midas</text>
         <!-- lamps -->
-        <g data-lamp="moteur" transform="translate(70,60)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><path d="M-10 -6h6l3-5h8v5h5v12h-5l-3 5h-8l-3-5h-6z" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Moteur</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
-        <g data-lamp="frein" transform="translate(130,30)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><circle r="10" fill="none" stroke="#F5C400" stroke-width="3"/><path d="M-16 -8a18 18 0 0 0 0 16M16 -8a18 18 0 0 1 0 16" fill="none" stroke="#F5C400" stroke-width="3"/></g><text class="lamp-label" y="38" text-anchor="middle">Frein</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
-        <g data-lamp="batterie" transform="translate(200,14)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><rect x="-13" y="-7" width="26" height="16" rx="2" fill="none" stroke="#F5C400" stroke-width="3"/><path d="M-9 -11v4M9 -11v4" stroke="#F5C400" stroke-width="3"/></g><text class="lamp-label" y="38" text-anchor="middle">Batterie</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
-        <g data-lamp="pneu" transform="translate(270,30)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><circle r="11" fill="none" stroke="#F5C400" stroke-width="3"/><circle r="4" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Pneu</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
-        <g data-lamp="huile" transform="translate(330,60)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><path d="M-12 4h20l6-8M-6 4v-8h6" fill="none" stroke="#F5C400" stroke-width="3"/><circle cx="0" cy="-10" r="3" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Huile</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
-        <g data-lamp="clim" transform="translate(200,120)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><path d="M0 -12v24M-10 -6l20 12M-10 6l20-12" stroke="#F5C400" stroke-width="3" stroke-linecap="round"/></g><text class="lamp-label" y="38" text-anchor="middle">Clim</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="moteur" transform="translate(70,60)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#FFF6DC" stroke="#F5C400"/><path d="M-10 -6h6l3-5h8v5h5v12h-5l-3 5h-8l-3-5h-6z" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Moteur</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="frein" transform="translate(130,30)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#FFF6DC" stroke="#F5C400"/><circle r="10" fill="none" stroke="#F5C400" stroke-width="3"/><path d="M-16 -8a18 18 0 0 0 0 16M16 -8a18 18 0 0 1 0 16" fill="none" stroke="#F5C400" stroke-width="3"/></g><text class="lamp-label" y="38" text-anchor="middle">Frein</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="batterie" transform="translate(200,14)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#FFF6DC" stroke="#F5C400"/><rect x="-13" y="-7" width="26" height="16" rx="2" fill="none" stroke="#F5C400" stroke-width="3"/><path d="M-9 -11v4M9 -11v4" stroke="#F5C400" stroke-width="3"/></g><text class="lamp-label" y="38" text-anchor="middle">Batterie</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="pneu" transform="translate(270,30)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#FFF6DC" stroke="#F5C400"/><circle r="11" fill="none" stroke="#F5C400" stroke-width="3"/><circle r="4" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Pneu</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="huile" transform="translate(330,60)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#FFF6DC" stroke="#F5C400"/><path d="M-12 4h20l6-8M-6 4v-8h6" fill="none" stroke="#F5C400" stroke-width="3"/><circle cx="0" cy="-10" r="3" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Huile</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="clim" transform="translate(200,120)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#FFF6DC" stroke="#F5C400"/><path d="M0 -12v24M-10 -6l20 12M-10 6l20-12" stroke="#F5C400" stroke-width="3" stroke-linecap="round"/></g><text class="lamp-label" y="38" text-anchor="middle">Clim</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
       </svg>
     </div>
+    </div>
+
+    <form class="widget" id="rdv" data-widget novalidate aria-labelledby="rdv-title">
+      <fieldset>
+        <legend id="rdv-title"><span>Prendre rendez-vous</span><span class="g">Garanti en 24 h</span></legend>
+        <div class="steps">
+          <div class="field">
+            <label for="plate"><b>1</b>Plaque</label>
+            <input class="input plate" id="plate" name="plate" data-plate placeholder="AA-123-AA" autocomplete="off" inputmode="latin" autocapitalize="characters" enterkeyhint="next" maxlength="9" aria-describedby="plate-hint">
+          </div>
+          <div class="field">
+            <label for="service"><b>2</b>Prestation</label>
+            <select class="input" id="service" name="service" data-service>
+              <option value="">Choisir…</option>
+                <option>Freinage</option><option>Pneus</option><option>Batterie</option><option>Distribution</option><option>Entretien</option><option>Climatisation</option><option>Visibilité &amp; éclairage</option><option>Diagnostic &amp; recherche de panne</option><option>Embrayage</option><option>Amortisseurs</option><option>Installation équipement</option><option>Contrôle technique</option><option>Échappement</option><option>Vitrage Midas Glass</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="city"><b>3</b>Ville / <span class="l-long">code postal</span><abbr class="l-short" title="code postal">CP</abbr></label>
+            <input class="input" id="city" name="city" data-city placeholder="Lille, 59000…" autocomplete="off" inputmode="numeric" enterkeyhint="go" pattern="[0-9A-Za-zÀ-ÿ '\-]*">
+          </div>
+          <button class="btn btn-gold see" type="button" data-see>Voir les créneaux</button>
+        </div>
+        <p class="hint" id="plate-hint" data-hint>Format français : AA-123-AA.</p>
+        <div class="slots" data-slots hidden>
+          <p>4 · Créneaux disponibles sous 24 h</p>
+          <ul class="slot-list" data-slot-list></ul>
+        </div>
+        <div class="widget-foot">
+          <small>Devis en ligne, sans engagement. Concept : aucune donnée n'est envoyée.</small>
+          <button class="btn btn-gold" type="submit" data-confirm>Confirmer le rendez-vous</button>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <div class="road" data-road aria-hidden="true">
+    <div class="car-hero" data-car><svg class="car " viewBox="0 0 132 46" aria-hidden="true" focusable="false">
+  <defs><linearGradient id="beam-hero" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#F5C400" stop-opacity=".55"/><stop offset="1" stop-color="#F5C400" stop-opacity="0"/></linearGradient></defs>
+  <path class="beam" d="M112 19 L132 9 L132 31 L112 26 Z" fill="url(#beam-hero)"/>
+  <path class="body" d="M8 34 L12 23 Q14 19 22 18 L36 9 Q40 6 48 6 L76 6 Q84 6 90 11 L103 19 Q113 21 115 27 L115 31 Q115 34 111 34 Z" fill="#111"/>
+  <path class="win" d="M40 18 L46 11 L62 11 L62 18 Z M66 18 L66 11 L78 11 L89 18 Z" fill="#FFF6DC" opacity=".92"/>
+  <rect x="109" y="22" width="5" height="4" rx="1" fill="#F5C400"/>
+  <g transform="translate(32 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+  <g transform="translate(94 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+</svg></div>
   </div>
 </section>
 
 <!-- 3. OFFER -->
 <section class="offer section on-gold" id="offres" aria-labelledby="offer-title">
   <div class="wrap">
-    <div class="big reveal" aria-hidden="true">-30&nbsp;%</div>
+    <div class="big-wrap reveal" aria-hidden="true"><div class="big">-30&nbsp;%</div><svg class="car car-park" viewBox="0 0 132 46" aria-hidden="true" focusable="false">
+  <defs><linearGradient id="beam-offer" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#F5C400" stop-opacity=".55"/><stop offset="1" stop-color="#F5C400" stop-opacity="0"/></linearGradient></defs>
+  <path class="beam" d="M112 19 L132 9 L132 31 L112 26 Z" fill="url(#beam-offer)"/>
+  <path class="body" d="M8 34 L12 23 Q14 19 22 18 L36 9 Q40 6 48 6 L76 6 Q84 6 90 11 L103 19 Q113 21 115 27 L115 31 Q115 34 111 34 Z" fill="#111"/>
+  <path class="win" d="M40 18 L46 11 L62 11 L62 18 Z M66 18 L66 11 L78 11 L89 18 Z" fill="#FFF6DC" opacity=".92"/>
+  <rect x="109" y="22" width="5" height="4" rx="1" fill="#F5C400"/>
+  <g transform="translate(32 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+  <g transform="translate(94 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+</svg></div>
     <div class="reveal">
       <p class="eyebrow">Offre en cours</p>
       <h2 id="offer-title">-30 % sur LA Révision constructeur, les forfaits entretien et les pièces.</h2>
@@ -124,10 +153,37 @@
     <ul>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M4 6a9 9 0 0 0 0 12M20 6a9 9 0 0 1 0 12"/></svg>Freins</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg>Pneumatiques</li>
+      <li class="tk-car" aria-hidden="true"><svg class="car " viewBox="0 0 132 46" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="beam-tk1" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#F5C400" stop-opacity=".55"/><stop offset="1" stop-color="#F5C400" stop-opacity="0"/></linearGradient></defs>
+        <path class="beam" d="M112 19 L132 9 L132 31 L112 26 Z" fill="url(#beam-tk1)"/>
+        <path class="body" d="M8 34 L12 23 Q14 19 22 18 L36 9 Q40 6 48 6 L76 6 Q84 6 90 11 L103 19 Q113 21 115 27 L115 31 Q115 34 111 34 Z" fill="#111"/>
+        <path class="win" d="M40 18 L46 11 L62 11 L62 18 Z M66 18 L66 11 L78 11 L89 18 Z" fill="#FFF6DC" opacity=".92"/>
+        <rect x="109" y="22" width="5" height="4" rx="1" fill="#F5C400"/>
+        <g transform="translate(32 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+        <g transform="translate(94 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+      </svg></li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="8" width="18" height="11" rx="2"/><path d="M7 5v3M17 5v3M8 13h3M15 13h-3"/></svg>Batterie</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v18M4 7l16 10M4 17L20 7"/></svg>Climatisation</li>
+      <li class="tk-car" aria-hidden="true"><svg class="car " viewBox="0 0 132 46" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="beam-tk2" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#F5C400" stop-opacity=".55"/><stop offset="1" stop-color="#F5C400" stop-opacity="0"/></linearGradient></defs>
+        <path class="beam" d="M112 19 L132 9 L132 31 L112 26 Z" fill="url(#beam-tk2)"/>
+        <path class="body" d="M8 34 L12 23 Q14 19 22 18 L36 9 Q40 6 48 6 L76 6 Q84 6 90 11 L103 19 Q113 21 115 27 L115 31 Q115 34 111 34 Z" fill="#111"/>
+        <path class="win" d="M40 18 L46 11 L62 11 L62 18 Z M66 18 L66 11 L78 11 L89 18 Z" fill="#FFF6DC" opacity=".92"/>
+        <rect x="109" y="22" width="5" height="4" rx="1" fill="#F5C400"/>
+        <g transform="translate(32 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+        <g transform="translate(94 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+      </svg></li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h10a4 4 0 0 1 4 4v1h4M3 8h10a4 4 0 0 1 4 4"/></svg>Échappement</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M12 12l6-4"/></svg>Direction &amp; suspension</li>
+      <li class="tk-car" aria-hidden="true"><svg class="car " viewBox="0 0 132 46" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="beam-tk3" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#F5C400" stop-opacity=".55"/><stop offset="1" stop-color="#F5C400" stop-opacity="0"/></linearGradient></defs>
+        <path class="beam" d="M112 19 L132 9 L132 31 L112 26 Z" fill="url(#beam-tk3)"/>
+        <path class="body" d="M8 34 L12 23 Q14 19 22 18 L36 9 Q40 6 48 6 L76 6 Q84 6 90 11 L103 19 Q113 21 115 27 L115 31 Q115 34 111 34 Z" fill="#111"/>
+        <path class="win" d="M40 18 L46 11 L62 11 L62 18 Z M66 18 L66 11 L78 11 L89 18 Z" fill="#FFF6DC" opacity=".92"/>
+        <rect x="109" y="22" width="5" height="4" rx="1" fill="#F5C400"/>
+        <g transform="translate(32 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+        <g transform="translate(94 34)"><g class="wheel"><circle r="8.5" fill="#111"/><circle r="4.6" fill="none" stroke="#F5C400" stroke-width="2"/><path d="M0 -4.6V4.6M-4.6 0H4.6" stroke="#F5C400" stroke-width="1.6"/></g></g>
+      </svg></li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Pré-contrôle technique</li>
     </ul>
   </div>
@@ -165,29 +221,45 @@
 </section>
 
 <!-- 6. LA RÉVISION -->
-<section class="revision section" id="revision" aria-labelledby="rev-title">
+<section class="revision section dark" id="revision" aria-labelledby="rev-title">
   <div class="wrap grid">
     <div>
       <p class="eyebrow reveal">LA Révision</p>
       <h2 id="rev-title" class="reveal">La Révision. Garantie constructeur préservée depuis 2009.</h2>
       <p class="lede reveal" style="margin-top:18px">Même carnet, mêmes préconisations, pièces de qualité équivalente. Vous gardez votre garantie constructeur, et vous choisissez où vous entretenez votre voiture.</p>
       <ul class="check reveal" data-checklist aria-label="Points de contrôle">
-        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Batterie</li>
-        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Pneumatiques</li>
-        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Freinage</li>
-        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Éclairage</li>
+        <li data-point="batterie"><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Batterie<span class="k">01</span></li>
+        <li data-point="pneumatiques"><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Pneumatiques<span class="k">02</span></li>
+        <li data-point="freinage"><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Freinage<span class="k">03</span></li>
+        <li data-point="eclairage"><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Éclairage<span class="k">04</span></li>
       </ul>
+    </div>
+    <div><div class="carcheck reveal" data-spots aria-hidden="true">
+      <svg viewBox="0 0 340 140" focusable="false">
+        <line x1="10" y1="112" x2="330" y2="112" stroke="rgb(255 246 220 / .25)" stroke-width="2"/>
+        <path class="outline" d="M24 92 L34 60 Q39 50 58 48 L92 24 Q102 16 122 16 L190 16 Q210 16 224 28 L256 48 Q282 52 290 68 L292 84 Q292 92 284 92 Z"/>
+        <path class="glass" d="M102 48 L120 28 L160 28 L160 48 Z M170 48 L170 28 L198 28 L228 48 Z"/>
+        <circle class="outline" cx="82" cy="92" r="19"/><circle class="outline" cx="82" cy="92" r="8"/>
+        <circle class="outline" cx="236" cy="92" r="19"/><circle class="outline" cx="236" cy="92" r="8"/>
+        <path d="M292 72 L324 60 L324 86 L292 84 Z" fill="#F5C400" opacity=".28"/>
+        <g class="spot" data-spot="batterie" transform="translate(266 66)"><circle class="ring" r="13"/><circle class="dot" r="9"/><path class="tick" d="M-4.5 0.5l3 3 6-7"/><text class="lbl" x="-6" y="-34" text-anchor="middle">Batterie</text></g>
+        <g class="spot" data-spot="pneumatiques" transform="translate(82 92)"><circle class="ring" r="13"/><circle class="dot" r="9"/><path class="tick" d="M-4.5 0.5l3 3 6-7"/><text class="lbl" x="0" y="38" text-anchor="middle">Pneumatiques</text></g>
+        <g class="spot" data-spot="freinage" transform="translate(236 92)"><circle class="ring" r="13"/><circle class="dot" r="9"/><path class="tick" d="M-4.5 0.5l3 3 6-7"/><text class="lbl" x="0" y="38" text-anchor="middle">Freinage</text></g>
+        <g class="spot" data-spot="eclairage" transform="translate(292 82)"><circle class="ring" r="13"/><circle class="dot" r="9"/><path class="tick" d="M-4.5 0.5l3 3 6-7"/><text class="lbl" x="6" y="-36" text-anchor="middle">Éclairage</text></g>
+      </svg>
+      <small>LA Révision : quatre points clés contrôlés, dans l'ordre.</small>
     </div>
     <div class="tiles reveal" style="grid-template-columns:1fr">
       <div class="tile"><div class="num"><span data-count="35">35</span>&nbsp;%</div><p>d'écart tarifaire moyen à prestation équivalente par rapport à la concession.</p><small>Source : Midas France</small></div>
       <div class="tile"><div class="num"><span data-count="24">24</span>&nbsp;h</div><p>Rendez-vous garanti en 24 h.</p></div>
       <div class="tile"><div class="num" data-count="1976" data-from="1900">1976</div><p>En France depuis 1976. 375 centres aujourd'hui.</p></div>
     </div>
+    </div>
   </div>
 </section>
 
 <!-- 7. ÉLECTRIQUE -->
-<section class="ev section" id="electrique" aria-labelledby="ev-title">
+<section class="ev section alt" id="electrique" aria-labelledby="ev-title">
   <div class="wrap grid">
     <div>
       <p class="eyebrow reveal">Électrique &amp; hybride</p>
@@ -207,12 +279,12 @@
 </section>
 
 <!-- 8. MIDAS GLASS -->
-<section class="glass section" aria-labelledby="glass-title">
+<section class="glass-s section" aria-labelledby="glass-title">
   <div class="wrap grid">
     <div class="windshield reveal" data-windshield>
       <svg viewBox="0 0 520 300" role="img"><title>Pare-brise : impact fissuré puis vitrage net</title>
-        <path d="M40 260 Q60 60 260 40 Q460 60 480 260 Z" fill="#1e2024" stroke="#2a2b2e" stroke-width="3"/>
-        <path d="M70 250 Q90 90 260 70 Q430 90 450 250 Z" fill="#17181a"/>
+        <path d="M40 260 Q60 60 260 40 Q460 60 480 260 Z" fill="#111" stroke="#111" stroke-width="3"/>
+        <path d="M70 250 Q90 90 260 70 Q430 90 450 250 Z" fill="#2a2a2a"/>
         <g class="crack" stroke="#f6f4ee" stroke-width="2" fill="none" stroke-linecap="round">
           <circle cx="300" cy="150" r="7" fill="#f6f4ee"/>
           <path d="M300 150 L250 110 L230 118 M300 150 L340 90 L360 85 M300 150 L370 170 L400 160 M300 150 L280 210 L265 240 M300 150 L330 215 M300 150 L245 170 L210 165 M250 110 L240 95"/>
@@ -232,7 +304,7 @@
 </section>
 
 <!-- 9. RÉSEAU -->
-<section class="network section" id="centres" aria-labelledby="net-title">
+<section class="network section alt" id="centres" aria-labelledby="net-title">
   <div class="wrap grid">
     <div>
       <p class="eyebrow reveal">Le réseau</p>
@@ -294,11 +366,11 @@
 </main>
 
 <!-- 12. FOOTER -->
-<footer class="footer">
+<footer class="footer dark">
   <div class="wrap">
     <div class="grid">
       <div>
-        <a class="wordmark" href="#">MIDAS</a>
+        <a class="logo" href="#" aria-label="Midas — accueil"><img src="assets/logo-midas.png" alt="Midas" height="44" width="146"></a>
         <p style="margin-top:16px">Marque du groupe Mobivia depuis 2004. 375 centres en France, 712 dans 10 pays. Siège Midas Europe à Lesquin.</p>
       </div>
       <ul>
@@ -319,6 +391,8 @@
   <a class="btn btn-ghost" href="tel:">Appeler</a>
   <a class="btn btn-gold" href="#rdv">Prendre RDV</a>
 </div>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
 
 <dialog class="modal" data-modal aria-labelledby="modal-title">
   <form method="dialog" class="modal-card">

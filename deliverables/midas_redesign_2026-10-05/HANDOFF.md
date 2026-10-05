@@ -12,6 +12,9 @@ Target: https://www.midas.fr/ — auto-repair franchise chain, 375 centres in Fr
 - Trustpilot for centre.midas.fr is 1.7/5 (354 reviews, not solicited). Deliberately NOT shown; the concept has a per-centre reviews block ready to wire and the pitch page frames review management as the opportunity.
 - Sector best practice (auto-repair sites): phone + booking + hours above the fold, starting prices, warranty as a primary trust element, per-service pages for local SEO, mobile one-handed use. The booking widget on the first screen follows the real midas.fr flow (plaque → prestation → centre → créneau).
 
+## v2 (2026-10-05, after operator feedback)
+Cream + gold palette (black only for La Révision and footer), real Midas France logo (`assets/logo-midas.png`, from Wikimedia Commons) in header/footer/pitch page, one-line full-width booking bar (plaque · prestation · ville/CP · bouton) at ≥ 800px, « Je suis en panne » block first under the header on mobile (tap-to-call with geolocation toast, jump to RDV), scroll-driven car on a road in the hero, parked car by the -30 %, car outline with pulsing hotspots in La Révision, car glyphs in the ticker. All animations verified under iPhone 13 emulation (33/33 assertions). Screenshots `screens/v2-*.png`.
+
 ## What it is
 One page, zero dependencies, gold-on-black "touche Midas" theme, Sora font. Hero with scroll/time-driven dashboard warning lights, rotating word, working booking widget (FR plate mask, créneaux computed for the next 24 h, confirm → modal linking to midas.fr/devis). Offer band with live countdown, free-diagnostics ticker, 14 filterable prestation rows that pre-select the widget, La Révision checklist + counters, e-Révision battery bar, Midas Glass crack-to-clean SVG, France dot-field (illustration), centre search (links to midas.fr/centres-auto-midas), placeholder per-centre reviews, Pourquoi Midas strip, mobile sticky call/RDV bar. 59.6 KB HTML+CSS+JS.
 

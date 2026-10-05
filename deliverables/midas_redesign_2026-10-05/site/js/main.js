@@ -66,6 +66,26 @@
     }
   }
 
+  /* ---------- toast ---------- */
+  const toastEl = $('[data-toast]'); let toastT = null;
+  const toast = (msg) => { if (!toastEl) return; toastEl.textContent = msg; toastEl.classList.add('is-on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('is-on'), 4200); };
+
+  /* ---------- « je suis en panne » ---------- */
+  const callNear = $('[data-call-near]'), rdvJump = $('[data-rdv-jump]');
+  if (callNear) callNear.addEventListener('click', () => {
+    const msg = 'Centre le plus proche : à brancher sur l’annuaire midas.fr';
+    if ('geolocation' in navigator) {
+      toast('Recherche du centre le plus proche…');
+      navigator.geolocation.getCurrentPosition(() => toast(msg), () => toast(msg), { timeout: 6000, maximumAge: 600000 });
+    } else toast(msg);
+  });
+  if (rdvJump) rdvJump.addEventListener('click', (e) => {
+    const w = $('#rdv'), p = $('[data-plate]'); if (!w) return;
+    e.preventDefault();
+    w.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    if (p) setTimeout(() => p.focus({ preventScroll: true }), reduced ? 0 : 450);
+  });
+
   /* ---------- booking widget ---------- */
   const widget = $('[data-widget]');
   if (widget) {
@@ -116,6 +136,17 @@
       check();
     });
     if (service) service.addEventListener('change', check);
+    const see = $('[data-see]', widget);
+    if (see) see.addEventListener('click', () => {
+      if (!ready()) {
+        if (hint) { hint.textContent = 'Renseignez la plaque (AA-123-AA), la prestation et la ville.'; hint.classList.add('is-error'); }
+        const first = [plate, service, city].find((el) => el && !el.value); if (first) first.focus();
+        return;
+      }
+      if (hint) { hint.textContent = 'Choisissez un créneau, puis confirmez.'; hint.classList.remove('is-error'); }
+      if (slotsBox && slotsBox.hidden) renderSlots();
+      const s0 = $('.slot', list); if (s0) s0.focus({ preventScroll: false });
+    });
     if (city) city.addEventListener('input', check);
     widget.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -180,7 +211,10 @@
       if (!e.isIntersecting) return;
       const el = e.target; el.classList.add('is-in'); io.unobserve(el);
       $$('[data-count]', el).forEach(count);
-      if (el.matches('[data-checklist]')) $$('li', el).forEach((li, i) => setTimeout(() => li.classList.add('is-done'), reduced ? 0 : 300 + i * 350));
+      if (el.matches('[data-checklist]')) $$('li', el).forEach((li, i) => setTimeout(() => {
+        li.classList.add('is-done');
+        const spot = document.querySelector(`[data-spot="${li.dataset.point}"]`); if (spot) spot.classList.add('is-done');
+      }, reduced ? 0 : 500 + i * 550));
       const bat = $('[data-battery]', el); if (bat) { bat.style.setProperty('--lvl', '.82'); const pct = $('[data-battery-pct]', bat); if (pct) { pct.dataset.count = '82'; count(pct); setTimeout(() => { pct.textContent = '82 %'; }, reduced ? 0 : 1500); } }
       if (el.matches('[data-windshield]')) setTimeout(() => el.classList.add('is-clean'), reduced ? 0 : 900);
       if (el.matches('[data-map]')) $$('circle', el).forEach((c, i) => setTimeout(() => c.classList.add('is-on'), reduced ? 0 : i * 28));
@@ -191,7 +225,27 @@
   /* ---------- hero scrub: fade the cluster slightly as you leave the hero ---------- */
   const hero = $('.hero');
   if (hero && cluster && !reduced) {
-    const scrub = () => { const p = clamp(scrollY / Math.max(1, hero.offsetHeight * .8)); cluster.style.opacity = String(1 - p * .7); cluster.style.transform = `translateY(${p * 40}px) scale(${1 - p * .06})`; };
+    const scrub = () => { const p = clamp(scrollY / Math.max(1, hero.offsetHeight * .8)); cluster.style.opacity = String(1 - p * .5); cluster.style.transform = `translateY(${p * 24}px) scale(${1 - p * .05})`; };
     addEventListener('scroll', scrub, { passive: true }); scrub();
+  }
+
+  /* ---------- hero road: car drives left → right as you scroll through the hero ---------- */
+  const car = $('[data-car]'), road = $('[data-road]');
+  if (hero && car && road) {
+    const wheels = $$('.wheel', car);
+    const WHEEL_R = 8.5 * (car.clientWidth / 132 || .9); // px radius of the rendered wheel
+    const apply = (p) => {
+      const x = Math.round(p * Math.max(0, road.clientWidth - car.clientWidth));
+      car.style.transform = `translateX(${x}px)`; car.dataset.p = p.toFixed(3);
+      const deg = x / (2 * Math.PI * WHEEL_R) * 360;
+      wheels.forEach((w) => { w.style.transform = `rotate(${deg}deg)`; });
+    };
+    const progress = () => clamp(scrollY / Math.max(1, hero.offsetTop + hero.offsetHeight - innerHeight * .45));
+    if (reduced) { apply(.6); addEventListener('resize', () => apply(.6)); }
+    else {
+      let ticking = false;
+      const onScroll = () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { apply(progress()); ticking = false; }); };
+      addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll); apply(progress());
+    }
   }
 })();
