@@ -62,9 +62,10 @@ Serves the folder, runs desktop 1440×900, Pixel 7 and iPhone 13 emulation (touc
 reduced-motion context. Fails on: any page error, horizontal overflow, any `.reveal` element still
 `opacity:0` in the viewport 150 ms after a 2600 px fling (the Pixel 8 Pro bug), tap targets < 44 px
 on phones, inputs < 16 px font on phones, fixed bottom bar overlapping the last CTA, fonts/scripts
-from more than one third-party host. Writes `screens/check-*.png`. Then the brain **looks at** the
-mobile full-page PNG and the hero PNG (Read tool) — a DOM pass is not a visual pass. For a client
-release, also run `/human-eye-test`.
+from more than one third-party host. Writes `screens/check-*.png`. Then a **worker** (never the brain: images stay in context and are
+re-read on every later call) Reads the mobile full-page PNG and the hero PNG against the
+`/human-eye-test` checklist and returns PASS or a defect list. For a client release, run
+`/human-eye-test` in full. `/compact` after every deploy.
 
 ### 5. Deploy (brain, one command)
 ```bash
