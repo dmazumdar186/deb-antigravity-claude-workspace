@@ -50,7 +50,20 @@ def main(slug):
     t = t.replace("<h3>Four systems that earn back their cost in month one.</h3>", f"<h3>{cfg['benefits_heading']}</h3>")
     t = t.replace("Pay First Installment (${{M1_AMOUNT}})", "Pay build fee on go-live (€{{M1_AMOUNT}})").replace("Pay First Installment (€{{M1_AMOUNT}})", "Pay deposit (€{{M1_AMOUNT}})")
     # client logos on the cover (right side) + brand row on inner pages
-    client_logos = "".join(f'<img src="{data_uri(p)}" alt="" style="height:44px;width:auto;border-radius:8px;background:#fff;padding:6px 10px">' for p in cfg["logos"]["client"])
+    # client logos: GreenJobs (dark on light) on a bone card, Gaia (white-on-transparent file) on an ink card
+    gj, gaia = cfg["logos"]["client"]
+    client_logos = (f'<img src="{data_uri(gj)}" alt="GreenJobs" style="height:48px;width:auto;border-radius:10px;background:#ffffff;padding:8px 14px;box-shadow:0 2px 8px rgba(22,24,28,.12)">'
+                    f'<img src="{data_uri(gaia)}" alt="Gaia Talent" style="height:48px;width:auto;border-radius:10px;background:#16181c;padding:8px 14px;box-shadow:0 2px 8px rgba(22,24,28,.12)">')
+    # prodcraft.fyi palette on the cover: bone #f7f3ec background, ink #16181c text, Geist type
+    t = t.replace("background: linear-gradient(135deg, #1a1a1a 0%, #2d2620 100%);\n    color: #f5f1ea;", "background: #f7f3ec;\n    color: #16181c; border-top: 10px solid #16181c;")
+    t = t.replace(".cover .brand {\n    font-size: 13px;\n    letter-spacing: 3px;\n    text-transform: uppercase;\n    color: #d4a574;", ".cover .brand {\n    font-size: 13px;\n    letter-spacing: 3px;\n    text-transform: uppercase;\n    color: #3d4148;")
+    t = t.replace("color: #f5f1ea;\n  }\n  .cover-wordmark .accent {\n    color: #e85c2c;", "color: #16181c;\n  }\n  .cover-wordmark .accent {\n    color: #3d4148; font-weight: 400;")
+    t = t.replace(".cover .subtitle {\n    font-size: 20px;\n    color: #c8beb0;", ".cover .subtitle {\n    font-size: 20px;\n    color: #3d4148;")
+    t = t.replace(".cover .meta {\n    display: flex;\n    gap: 56px;\n    font-size: 13px;\n    color: #c8beb0;", ".cover .meta {\n    display: flex;\n    gap: 56px;\n    font-size: 13px;\n    color: #3d4148;")
+    t = t.replace(".cover .meta strong { display: block; color: #f5f1ea;", ".cover .meta strong { display: block; color: #16181c;")
+    t = t.replace('font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;', 'font-family: Geist, "Helvetica Neue", Helvetica, Arial, sans-serif;')
+    t = t.replace("<style>", '<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">\n<style>', 1)
+    t = t.replace("--accent: #d97706;\n    --accent-soft: #fdf6ec;", "--accent: #16181c;\n    --accent-soft: #f7f3ec;")
     t = t.replace('<div class="brand">{{COVER_BRAND_LABEL}}</div>\n  </div>',
                   '<div class="brand">{{COVER_BRAND_LABEL}}</div>\n  </div>\n  <div style="position:absolute;top:56px;right:72px;display:flex;gap:12px;align-items:center">' + client_logos + "</div>")
     # DocuSign button + download tracking + extra events

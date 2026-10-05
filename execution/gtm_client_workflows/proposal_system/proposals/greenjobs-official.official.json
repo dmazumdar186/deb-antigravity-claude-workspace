@@ -11,7 +11,7 @@
   "email": "debanjan@prodcraft.fyi"
  },
  "logos": {
-  "sender": null,
+  "sender": "execution/gtm_client_workflows/proposal_system/assets/prodcraft-logo.png",
   "client": [
    "deliverables/greenjobs_redesign_2026-09-22/src/assets/logos/greenjobslogo.png",
    "deliverables/gaia_redesign_2026-09-17/src/assets/logo-light.svg"
@@ -24,7 +24,7 @@
  "project": {
   "title": "GreenJobs Platform Rebuild for GreenJobs Ltd",
   "cover_brand_label": "Platform Proposal",
-  "cover_subtitle": "Both GreenJobs boards rebuilt, migrated to a platform you own, and maintained month to month. €1,499 on go-live, migration included, €599 a month locked for 12 months.",
+  "cover_subtitle": "Both GreenJobs boards rebuilt, migrated to a platform you own, and maintained month to month. €1,500 on go-live, migration included, €600 a month locked for 6 months.",
   "created_date": "2026-10-05"
  },
  "situation": {
@@ -87,19 +87,19 @@
   "heading": "Simple, fixed, in euro. No risk on the build.",
   "m1_label": "On go-live",
   "m1_deliverable": "Front-end rebuild, both editions, live on your domains within 5 working days. If it is not live and faster than today's site by then, you do not pay this.",
-  "m1_amount": "1,499",
+  "m1_amount": "1,500",
   "m2_label": "Included",
   "m2_deliverable": "Platform migration, in exchange for a LinkedIn post about the build, a post on the Gaia Talent and GreenJobs pages at go-live, and a short written testimonial",
   "m2_amount": "0",
   "m3_label": "Monthly",
-  "m3_deliverable": "Maintain, locked at this price for 12 months: hosting, backups, 24/7 monitoring, security, daily checks on Broadbean, Idibu, LogicMelon and your CRM route, Google for Jobs kept indexed, every figure on the site kept live, your team's content and change requests handled as they come. Covers the two boards; further sites agreed in writing first.",
-  "m3_amount": "599 / month",
-  "total_amount": "8,687 in year one, then €599 / month",
+  "m3_deliverable": "Maintain, locked at this price for 6 months: hosting, backups, 24/7 monitoring, security, daily checks on Broadbean, Idibu, LogicMelon and your CRM route, Google for Jobs kept indexed, every figure on the site kept live, your team's content and change requests handled as they come. Covers the two boards; further sites agreed in writing first.",
+  "m3_amount": "600 / month",
+  "total_amount": "8,700 in year one, then €600 / month",
   "roi_title": "Tool subscriptions, in your name, billed at cost +3%",
   "roi_body": "Cloudflare Workers Paid plan $5 per month (hosting, database, storage) and Resend Pro $20 per month (job alerts, newsletter, transactional email). Domains and DNS are already yours. Prices checked on the vendors' pages on 30 September 2026."
  },
  "agreement": {
-  "body": "ProdCraft will build and maintain the GreenJobs platform for GreenJobs Ltd according to this proposal. The build fee is invoiced on go-live of the front end; the migration is included on the terms above; the monthly plan is €599, fixed for 12 months from the day the front end goes live, charged upfront at the start of each cycle, then rolling with 30 days' written notice. Anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Additional features or integrations outside the listed scope are agreed in writing first. This offer is held until Friday 10 October 2026. Questions: debanjan@prodcraft.fyi.",
+  "body": "ProdCraft will build and maintain the GreenJobs platform for GreenJobs Ltd according to this proposal. The build fee is invoiced on go-live of the front end; the migration is included on the terms above; the monthly plan is €600, fixed for 6 months from the day the front end goes live, charged upfront at the start of each cycle, then rolling with 30 days' written notice. Anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Additional features or integrations outside the listed scope are agreed in writing first. This offer is held until Friday 10 October 2026. Questions: debanjan@prodcraft.fyi.",
   "sender_signature_text": "Debanjan Mazumdar"
  }
 }
