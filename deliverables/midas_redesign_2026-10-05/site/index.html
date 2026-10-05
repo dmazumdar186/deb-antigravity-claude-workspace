@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Midas — Entretien et réparation auto · Concept</title>
+<meta name="description" content="Concept de refonte non officiel de midas.fr : prise de rendez-vous dès le premier écran, offre du moment, 14 familles de prestations, diagnostics gratuits.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0e0e0f">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script>document.documentElement.classList.add('has-js')</script>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+
+<header class="header" data-header>
+  <div class="wrap">
+    <a class="wordmark" href="#" aria-label="Midas — accueil">MIDAS</a>
+    <button class="burger" data-menu-toggle aria-expanded="false" aria-controls="nav" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+    <nav class="nav" id="nav" data-menu aria-label="Navigation principale">
+      <a href="#prestations">Prestations</a>
+      <a href="#offres">Offres</a>
+      <a href="#revision">La Révision</a>
+      <a href="#electrique">Électrique</a>
+      <a href="#centres">Centres</a>
+      <a class="call" href="tel:" aria-label="Appeler mon centre (numéro selon votre centre)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Appeler mon centre</a>
+      <a class="btn btn-gold" href="#rdv">Prendre rendez-vous</a>
+    </nav>
+  </div>
+</header>
+
+<div class="rail" aria-hidden="true" data-rail><i></i></div>
+
+<main id="main">
+
+<!-- 2. HERO -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">375 centres · RDV garanti en 24 h</p>
+      <h1 id="hero-title">Le bruit bizarre. <em>On parle sa langue.</em></h1>
+      <p class="lede">Diagnostic, devis clair, rendez-vous garanti en 24 h. Avec Midas, vous pourrez toujours avancer. Aujourd'hui, on s'occupe de vos
+        <span class="rotator" data-rotator aria-live="off"><span class="is-on">freins</span><span>pneus</span><span>batterie</span><span>révision</span><span>clim</span><span>vitrage</span></span>.</p>
+
+      <form class="widget" id="rdv" data-widget novalidate aria-labelledby="rdv-title">
+        <fieldset>
+          <legend id="rdv-title"><span>Prendre rendez-vous</span><span style="color:var(--gold)">Garanti en 24 h</span></legend>
+          <div class="steps">
+            <div class="field">
+              <label for="plate"><b>1</b>Plaque</label>
+              <input class="input plate" id="plate" name="plate" data-plate placeholder="AA-123-AA" autocomplete="off" inputmode="latin" maxlength="9" aria-describedby="plate-hint">
+            </div>
+            <div class="field">
+              <label for="service"><b>2</b>Prestation</label>
+              <select class="input" id="service" name="service" data-service>
+                <option value="">Choisir…</option>
+                <option>Freinage</option><option>Pneus</option><option>Batterie</option><option>Distribution</option><option>Entretien</option><option>Climatisation</option><option>Visibilité &amp; éclairage</option><option>Diagnostic &amp; recherche de panne</option><option>Embrayage</option><option>Amortisseurs</option><option>Installation équipement</option><option>Contrôle technique</option><option>Échappement</option><option>Vitrage Midas Glass</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="city"><b>3</b>Ville / code postal</label>
+              <input class="input" id="city" name="city" data-city placeholder="Lille, 59000…" autocomplete="off">
+            </div>
+          </div>
+          <p class="hint" id="plate-hint" data-hint>Format français : AA-123-AA.</p>
+          <div class="slots" data-slots hidden>
+            <p>4 · Créneaux disponibles sous 24 h</p>
+            <ul class="slot-list" data-slot-list></ul>
+          </div>
+          <div class="widget-foot">
+            <small>Devis en ligne, sans engagement. Concept : aucune donnée n'est envoyée.</small>
+            <button class="btn btn-gold" type="submit" data-confirm>Confirmer le rendez-vous</button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+
+    <div class="cluster" data-cluster aria-hidden="true">
+      <svg viewBox="0 0 400 310" role="img"><title>Tableau de bord : six voyants s'allument puis s'éteignent une fois diagnostiqués</title>
+        <defs><linearGradient id="dash" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1e1f22"/><stop offset="1" stop-color="#0e0e0f"/></linearGradient></defs>
+        <path d="M20 250 A190 190 0 0 1 380 250 L380 290 L20 290 Z" fill="url(#dash)" stroke="#2a2b2e"/>
+        <path d="M60 240 A150 150 0 0 1 340 240" fill="none" stroke="#2a2b2e" stroke-width="2"/>
+        <g stroke="#F5C400" stroke-width="2" opacity=".5">
+          <line x1="60" y1="240" x2="72" y2="233"/><line x1="200" y1="90" x2="200" y2="104"/><line x1="340" y1="240" x2="328" y2="233"/>
+          <line x1="101" y1="141" x2="110" y2="150"/><line x1="299" y1="141" x2="290" y2="150"/>
+        </g>
+        <line class="needle" data-needle x1="200" y1="200" x2="200" y2="110" stroke="#F5C400" stroke-width="4" stroke-linecap="round" style="transform:rotate(-70deg)"/>
+        <circle cx="200" cy="200" r="10" fill="#F5C400"/>
+        <text x="200" y="245" text-anchor="middle" class="lamp-label" fill="#b3b0a8">Diagnostic Midas</text>
+        <!-- lamps -->
+        <g data-lamp="moteur" transform="translate(70,60)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><path d="M-10 -6h6l3-5h8v5h5v12h-5l-3 5h-8l-3-5h-6z" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Moteur</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="frein" transform="translate(130,30)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><circle r="10" fill="none" stroke="#F5C400" stroke-width="3"/><path d="M-16 -8a18 18 0 0 0 0 16M16 -8a18 18 0 0 1 0 16" fill="none" stroke="#F5C400" stroke-width="3"/></g><text class="lamp-label" y="38" text-anchor="middle">Frein</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="batterie" transform="translate(200,14)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><rect x="-13" y="-7" width="26" height="16" rx="2" fill="none" stroke="#F5C400" stroke-width="3"/><path d="M-9 -11v4M9 -11v4" stroke="#F5C400" stroke-width="3"/></g><text class="lamp-label" y="38" text-anchor="middle">Batterie</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="pneu" transform="translate(270,30)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><circle r="11" fill="none" stroke="#F5C400" stroke-width="3"/><circle r="4" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Pneu</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="huile" transform="translate(330,60)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><path d="M-12 4h20l6-8M-6 4v-8h6" fill="none" stroke="#F5C400" stroke-width="3"/><circle cx="0" cy="-10" r="3" fill="#F5C400"/></g><text class="lamp-label" y="38" text-anchor="middle">Huile</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+        <g data-lamp="clim" transform="translate(200,120)"><g class="lamp"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#17181a" stroke="#F5C400"/><path d="M0 -12v24M-10 -6l20 12M-10 6l20-12" stroke="#F5C400" stroke-width="3" stroke-linecap="round"/></g><text class="lamp-label" y="38" text-anchor="middle">Clim</text><text class="lamp-ok" y="52" text-anchor="middle">diagnostiqué ✓</text></g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 3. OFFER -->
+<section class="offer section on-gold" id="offres" aria-labelledby="offer-title">
+  <div class="wrap">
+    <div class="big reveal" aria-hidden="true">-30&nbsp;%</div>
+    <div class="reveal">
+      <p class="eyebrow">Offre en cours</p>
+      <h2 id="offer-title">-30 % sur LA Révision constructeur, les forfaits entretien et les pièces.</h2>
+      <p class="countdown" data-countdown aria-live="polite">Il reste — j — h — min</p>
+      <div><a class="btn btn-ink" href="#rdv">Profiter de l'offre</a></div>
+      <small>-30 % sur LA Révision constructeur, les forfaits entretien (hors huile 15W40) et les pièces (hors pneus, main-d'œuvre, Midas Connect, contrôle technique, carte grise et vente à emporter). Offre valable jusqu'au 10/10/2026, uniquement dans les centres participants.</small>
+    </div>
+  </div>
+</section>
+
+<!-- 4. TICKER -->
+<section class="ticker" aria-label="Diagnostics gratuits">
+  <h2 class="sr">Diagnostics gratuits</h2>
+  <div class="ticker-track" data-ticker>
+    <ul>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M4 6a9 9 0 0 0 0 12M20 6a9 9 0 0 1 0 12"/></svg>Freins</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg>Pneumatiques</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="8" width="18" height="11" rx="2"/><path d="M7 5v3M17 5v3M8 13h3M15 13h-3"/></svg>Batterie</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v18M4 7l16 10M4 17L20 7"/></svg>Climatisation</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h10a4 4 0 0 1 4 4v1h4M3 8h10a4 4 0 0 1 4 4"/></svg>Échappement</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M12 12l6-4"/></svg>Direction &amp; suspension</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Pré-contrôle technique</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5. PRESTATIONS -->
+<section class="section" id="prestations" aria-labelledby="presta-title">
+  <div class="wrap">
+    <p class="eyebrow reveal">14 familles de prestations</p>
+    <h2 id="presta-title" class="reveal">Tout ce qui se répare, se règle ou se remplace.</h2>
+    <div class="chips reveal" role="group" aria-label="Filtrer les prestations" data-filters>
+      <button class="chip" type="button" aria-pressed="true" data-filter="tout">Tout</button>
+      <button class="chip" type="button" aria-pressed="false" data-filter="securite">Sécurité</button>
+      <button class="chip" type="button" aria-pressed="false" data-filter="entretien">Entretien</button>
+      <button class="chip" type="button" aria-pressed="false" data-filter="confort">Confort</button>
+      <button class="chip" type="button" aria-pressed="false" data-filter="nouveau">Nouveau</button>
+    </div>
+    <ul class="rows" data-rows>
+      <li class="row reveal" data-cat="securite"><a href="#rdv" data-pick="Freinage"><span class="n">01</span><span><h3>Freinage</h3><span class="sub">Plaquettes · disques et plaquettes · purge liquide de frein</span></span><span class="badge">Diagnostic gratuit</span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="securite"><a href="#rdv" data-pick="Pneus"><span class="n">02</span><span><h3>Pneus</h3><span class="sub">Changement · géométrie-parallélisme</span></span><span class="badge">Diagnostic gratuit</span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="entretien"><a href="#rdv" data-pick="Batterie"><span class="n">03</span><span><h3>Batterie</h3><span class="sub">Test, remplacement, recyclage</span></span><span class="badge">Diagnostic gratuit</span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="entretien"><a href="#rdv" data-pick="Distribution"><span class="n">04</span><span><h3>Distribution</h3><span class="sub">Courroie de distribution</span></span><span></span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="entretien"><a href="#rdv" data-pick="Entretien"><span class="n">05</span><span><h3>Entretien</h3><span class="sub">Révision · vidange · entretien VE &amp; hybride · traitement éco-préventif hydrogène · AdBlue · liquide de refroidissement</span></span><span></span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="confort"><a href="#rdv" data-pick="Climatisation"><span class="n">06</span><span><h3>Climatisation</h3><span class="sub">Recharge · recherche de fuite · désinfection habitacle</span></span><span class="badge">Diagnostic gratuit</span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="securite"><a href="#rdv" data-pick="Visibilité &amp; éclairage"><span class="n">07</span><span><h3>Visibilité &amp; éclairage</h3><span class="sub">Balais d'essuie-glace · réglage phares · ampoules</span></span><span></span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="entretien"><a href="#rdv" data-pick="Diagnostic &amp; recherche de panne"><span class="n">08</span><span><h3>Diagnostic &amp; recherche de panne</h3><span class="sub">Voyant allumé · diagnostic hiver</span></span><span></span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="entretien"><a href="#rdv" data-pick="Embrayage"><span class="n">09</span><span><h3>Embrayage</h3><span class="sub">Kit embrayage, volant moteur</span></span><span></span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="securite"><a href="#rdv" data-pick="Amortisseurs"><span class="n">10</span><span><h3>Amortisseurs</h3><span class="sub">Amortisseurs · triangles · rotules</span></span><span class="badge">Diagnostic gratuit</span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="confort"><a href="#rdv" data-pick="Installation équipement"><span class="n">11</span><span><h3>Installation équipement</h3><span class="sub">Attelage · plaque d'immatriculation</span></span><span></span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="securite"><a href="#rdv" data-pick="Contrôle technique"><span class="n">12</span><span><h3>Contrôle technique</h3><span class="sub">Pré-contrôle technique</span></span><span class="badge">Diagnostic gratuit</span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="entretien"><a href="#rdv" data-pick="Échappement"><span class="n">13</span><span><h3>Échappement</h3><span class="sub">Échappement · FAP</span></span><span class="badge">Diagnostic gratuit</span><span class="chev" aria-hidden="true">→</span></a></li>
+      <li class="row reveal" data-cat="nouveau"><a href="#rdv" data-pick="Vitrage Midas Glass"><span class="n">14</span><span><h3>Vitrage « Midas Glass »</h3><span class="sub">Pare-brise, vitres latérales, lunette arrière</span></span><span class="badge new">Nouveau 2025</span><span class="chev" aria-hidden="true">→</span></a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6. LA RÉVISION -->
+<section class="revision section" id="revision" aria-labelledby="rev-title">
+  <div class="wrap grid">
+    <div>
+      <p class="eyebrow reveal">LA Révision</p>
+      <h2 id="rev-title" class="reveal">La Révision. Garantie constructeur préservée depuis 2009.</h2>
+      <p class="lede reveal" style="margin-top:18px">Même carnet, mêmes préconisations, pièces de qualité équivalente. Vous gardez votre garantie constructeur, et vous choisissez où vous entretenez votre voiture.</p>
+      <ul class="check reveal" data-checklist aria-label="Points de contrôle">
+        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Batterie</li>
+        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Pneumatiques</li>
+        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Freinage</li>
+        <li><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span>Éclairage</li>
+      </ul>
+    </div>
+    <div class="tiles reveal" style="grid-template-columns:1fr">
+      <div class="tile"><div class="num"><span data-count="35">35</span>&nbsp;%</div><p>d'écart tarifaire moyen à prestation équivalente par rapport à la concession.</p><small>Source : Midas France</small></div>
+      <div class="tile"><div class="num"><span data-count="24">24</span>&nbsp;h</div><p>Rendez-vous garanti en 24 h.</p></div>
+      <div class="tile"><div class="num" data-count="1976" data-from="1900">1976</div><p>En France depuis 1976. 375 centres aujourd'hui.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. ÉLECTRIQUE -->
+<section class="ev section" id="electrique" aria-labelledby="ev-title">
+  <div class="wrap grid">
+    <div>
+      <p class="eyebrow reveal">Électrique &amp; hybride</p>
+      <h2 id="ev-title" class="reveal">e-Révision. L'entretien pensé pour les hybrides et les électriques.</h2>
+      <p class="lede reveal" style="margin-top:18px">Lancée en 2022, l'e-Révision adapte les points de contrôle à votre motorisation : moins de vidange, plus d'attention à la batterie de traction, au freinage régénératif et au refroidissement.</p>
+      <ul class="benefits reveal">
+        <li>Contrôle de l'état de santé de la batterie de traction et de son circuit de refroidissement.</li>
+        <li>Freinage, pneus et direction vérifiés selon le poids et le couple spécifiques des VE.</li>
+        <li>Techniciens habilités, garantie constructeur préservée comme pour LA Révision.</li>
+      </ul>
+    </div>
+    <div class="battery-wrap reveal">
+      <div class="battery" data-battery role="img" aria-label="Jauge de batterie animée, illustration"><i></i><b data-battery-pct>0 %</b></div>
+      <small>Illustration — jauge animée au défilement.</small>
+    </div>
+  </div>
+</section>
+
+<!-- 8. MIDAS GLASS -->
+<section class="glass section" aria-labelledby="glass-title">
+  <div class="wrap grid">
+    <div class="windshield reveal" data-windshield>
+      <svg viewBox="0 0 520 300" role="img"><title>Pare-brise : impact fissuré puis vitrage net</title>
+        <path d="M40 260 Q60 60 260 40 Q460 60 480 260 Z" fill="#1e2024" stroke="#2a2b2e" stroke-width="3"/>
+        <path d="M70 250 Q90 90 260 70 Q430 90 450 250 Z" fill="#17181a"/>
+        <g class="crack" stroke="#f6f4ee" stroke-width="2" fill="none" stroke-linecap="round">
+          <circle cx="300" cy="150" r="7" fill="#f6f4ee"/>
+          <path d="M300 150 L250 110 L230 118 M300 150 L340 90 L360 85 M300 150 L370 170 L400 160 M300 150 L280 210 L265 240 M300 150 L330 215 M300 150 L245 170 L210 165 M250 110 L240 95"/>
+        </g>
+        <g class="shine" stroke="#F5C400" stroke-width="3" fill="none" stroke-linecap="round">
+          <path d="M120 120 Q200 80 290 85"/><path d="M110 150 Q180 115 240 115"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <p class="eyebrow reveal">Nouveau : vitrage auto</p>
+      <h2 id="glass-title" class="reveal">Midas Glass. Un impact, une fissure, on remplace ou on répare.</h2>
+      <p class="lede reveal" style="margin-top:18px">Nouvelle activité 2025 : pare-brise, vitres latérales, lunette arrière. Prise en charge dans votre centre, avec le même devis clair avant travaux.</p>
+      <div class="reveal" style="margin-top:24px"><a class="btn btn-gold" href="#rdv" data-pick="Vitrage Midas Glass">Réserver un vitrage</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. RÉSEAU -->
+<section class="network section" id="centres" aria-labelledby="net-title">
+  <div class="wrap grid">
+    <div>
+      <p class="eyebrow reveal">Le réseau</p>
+      <h2 id="net-title" class="reveal">375 centres en France, 712 dans 10 pays.</h2>
+      <p class="lede reveal" style="margin-top:18px">En France depuis 1976, marque du groupe Mobivia depuis 2004, siège Midas Europe à Lesquin. Un réseau de franchisés : votre centre a ses horaires et son numéro.</p>
+      <form class="search reveal" action="https://www.midas.fr/centres-auto-midas" method="get" data-center-search>
+        <label class="sr" for="centre-q">Ville ou code postal</label>
+        <input class="input" id="centre-q" name="q" placeholder="Ville ou code postal">
+        <button class="btn btn-gold" type="submit">Trouver mon centre</button>
+      </form>
+      <p class="hours reveal">Horaires et numéro : ceux de votre centre.</p>
+    </div>
+    <div class="map reveal" data-map>
+      <svg viewBox="0 0 300 320" role="img"><title>Illustration abstraite du réseau Midas en France, points approximatifs</title>
+        <g data-dots>
+          <circle cx="150" cy="22" r="5"/><circle cx="120" cy="28" r="5"/><circle cx="178" cy="36" r="5"/><circle cx="96" cy="46" r="5"/><circle cx="135" cy="48" r="5"/><circle cx="162" cy="58" r="5"/><circle cx="200" cy="55" r="5"/>
+          <circle cx="72" cy="70" r="5"/><circle cx="108" cy="72" r="5"/><circle cx="145" cy="76" r="5"/><circle cx="183" cy="82" r="5"/><circle cx="220" cy="78" r="5"/><circle cx="248" cy="92" r="5"/>
+          <circle cx="40" cy="96" r="5"/><circle cx="84" cy="98" r="5"/><circle cx="124" cy="100" r="5"/><circle cx="160" cy="104" r="5"/><circle cx="198" cy="108" r="5"/><circle cx="236" cy="116" r="5"/>
+          <circle cx="24" cy="122" r="5"/><circle cx="60" cy="124" r="5"/><circle cx="100" cy="126" r="5"/><circle cx="140" cy="128" r="5"/><circle cx="180" cy="132" r="5"/><circle cx="218" cy="138" r="5"/><circle cx="254" cy="142" r="5"/>
+          <circle cx="34" cy="150" r="5"/><circle cx="76" cy="152" r="5"/><circle cx="118" cy="156" r="5"/><circle cx="158" cy="158" r="5"/><circle cx="196" cy="162" r="5"/><circle cx="236" cy="166" r="5"/>
+          <circle cx="56" cy="180" r="5"/><circle cx="96" cy="182" r="5"/><circle cx="136" cy="186" r="5"/><circle cx="176" cy="188" r="5"/><circle cx="214" cy="192" r="5"/><circle cx="250" cy="196" r="5"/>
+          <circle cx="70" cy="208" r="5"/><circle cx="110" cy="210" r="5"/><circle cx="150" cy="214" r="5"/><circle cx="190" cy="218" r="5"/><circle cx="228" cy="222" r="5"/><circle cx="262" cy="224" r="5"/>
+          <circle cx="84" cy="236" r="5"/><circle cx="124" cy="240" r="5"/><circle cx="164" cy="244" r="5"/><circle cx="204" cy="246" r="5"/><circle cx="240" cy="250" r="5"/>
+          <circle cx="100" cy="264" r="5"/><circle cx="140" cy="268" r="5"/><circle cx="180" cy="270" r="5"/><circle cx="216" cy="274" r="5"/>
+          <circle cx="120" cy="290" r="5"/><circle cx="160" cy="294" r="5"/><circle cx="196" cy="296" r="5"/>
+          <circle cx="262" cy="282" r="4"/><circle cx="272" cy="300" r="4"/>
+        </g>
+        <text class="cap" x="150" y="316" text-anchor="middle">illustration</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 10. AVIS -->
+<section class="section" aria-labelledby="avis-title">
+  <div class="wrap">
+    <p class="eyebrow reveal">Avis vérifiés par centre</p>
+    <h2 id="avis-title" class="reveal">Les avis de votre centre, pas d'une moyenne nationale.</h2>
+    <div class="avis-rows">
+      <div class="avis reveal"><span>Emplacement 1</span><div class="ph" aria-hidden="true"></div><p>Emplacement avis Google du centre — à brancher</p></div>
+      <div class="avis reveal"><span>Emplacement 2</span><div class="ph" aria-hidden="true"></div><p>Emplacement avis Google du centre — à brancher</p></div>
+      <div class="avis reveal"><span>Emplacement 3</span><div class="ph" aria-hidden="true"></div><p>Emplacement avis Google du centre — à brancher</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11. POURQUOI -->
+<section class="why section on-gold" aria-labelledby="why-title">
+  <div class="wrap">
+    <h2 id="why-title" class="reveal" style="margin-bottom:40px">Pourquoi Midas</h2>
+    <div class="grid">
+      <div class="promise reveal"><p class="k">01</p><h3>RDV garanti 24 h</h3></div>
+      <div class="promise reveal"><p class="k">02</p><h3>Devis clair avant travaux</h3></div>
+      <div class="promise reveal"><p class="k">03</p><h3>Garantie constructeur préservée</h3></div>
+      <div class="promise reveal"><p class="k">04</p><h3>Diagnostics gratuits</h3></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- 12. FOOTER -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <a class="wordmark" href="#">MIDAS</a>
+        <p style="margin-top:16px">Marque du groupe Mobivia depuis 2004. 375 centres en France, 712 dans 10 pays. Siège Midas Europe à Lesquin.</p>
+      </div>
+      <ul>
+        <li><a href="#">Mentions légales</a></li><li><a href="#">CGV</a></li><li><a href="#">Données personnelles</a></li>
+      </ul>
+      <ul>
+        <li><a href="#">Franchise</a></li><li><a href="#">Recrutement</a></li><li><a href="#">Midas Pro</a></li><li><a href="pour-midas/">Pour l'équipe Midas →</a></li>
+      </ul>
+    </div>
+    <div class="legal">
+      <p>Concept non officiel réalisé par ProdCraft — aucun lien avec Midas France.</p>
+      <p>Debanjan, Founder, ProdCraft, <a href="mailto:debanjan@prodcraft.fyi">debanjan@prodcraft.fyi</a></p>
+    </div>
+  </div>
+</footer>
+
+<div class="mbar">
+  <a class="btn btn-ghost" href="tel:">Appeler</a>
+  <a class="btn btn-gold" href="#rdv">Prendre RDV</a>
+</div>
+
+<dialog class="modal" data-modal aria-labelledby="modal-title">
+  <form method="dialog" class="modal-card">
+    <h3 id="modal-title">Concept : ici, le rendez-vous part vers le centre choisi</h3>
+    <p data-modal-summary></p>
+    <p>Sur le site réel, le parcours continue sur <a href="https://www.midas.fr/devis" target="_blank" rel="noopener">midas.fr/devis</a>.</p>
+    <div class="modal-actions"><button class="btn btn-ink" value="close">Fermer</button></div>
+  </form>
+</dialog>
+
+<script src="js/main.js" defer></script>
+</body>
+</html>
