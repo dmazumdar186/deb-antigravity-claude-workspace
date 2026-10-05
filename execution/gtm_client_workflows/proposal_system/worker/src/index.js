@@ -50,6 +50,37 @@ export default {
       return json({ slug: m[1], count: log.length, opens: log });
     }
 
+    if (path === "/api/submit" && request.method === "POST") {
+      // Signed PDF from the page -> Telegram sendDocument (same contract as the reference api/submit.js)
+      const slug = (url.searchParams.get("slug") || "proposal").replace(/[^a-z0-9_-]/gi, "_");
+      const name = url.searchParams.get("name") || "unknown";
+      const buf = await request.arrayBuffer();
+      if (buf.byteLength < 100) return json({ ok: false, error: "empty_body" }, 400);
+      if (buf.byteLength > 20 * 1024 * 1024) return json({ ok: false, error: "payload_too_large" }, 413);
+      if (kv) await kv.put(`signed:${slug}:${Date.now()}`, buf, { metadata: { name } });
+      const cf = request.cf || {};
+      const ok = await telegramDocument(env, buf, `${slug}_signed.pdf`,
+        `✅ *Proposal ACCEPTED & SIGNED*: \`${slug}\`\nSigned by: *${name}*\n📍 ${cf.city || "?"}, ${cf.country || "?"} · ${new Date().toUTCString()}`);
+      ctx.waitUntil(recordOpen(request, env, slug, "signed_pdf", url, `by ${name}`));
+      return json({ ok });
+    }
+
+    if (path === "/api/stripe" && request.method === "POST") {
+      // Stripe webhook (checkout.session.completed / payment_intent.succeeded). Set STRIPE_WEBHOOK_SECRET to verify.
+      const raw = await request.text();
+      if (env.STRIPE_WEBHOOK_SECRET && !(await stripeVerify(raw, request.headers.get("stripe-signature") || "", env.STRIPE_WEBHOOK_SECRET)))
+        return json({ error: "bad signature" }, 400);
+      let ev = {}; try { ev = JSON.parse(raw); } catch (e) { return json({ error: "bad json" }, 400); }
+      const o = ev.data?.object || {};
+      if (/\.(completed|succeeded)$/.test(ev.type || "")) {
+        const amt = o.amount_total ?? o.amount_received ?? o.amount ?? 0;
+        const cur = (o.currency || "").toUpperCase();
+        const who = o.customer_details?.email || o.customer_email || o.receipt_email || "unknown";
+        await telegram(env, `💰 *PAYMENT RECEIVED*\n${(amt / 100).toFixed(2)} ${cur} from ${who}\n\`${ev.type}\` · ${new Date().toUTCString()}`);
+      }
+      return json({ received: true });
+    }
+
     if (path === "/api/track" && request.method === "POST") {
       // Same contract as Siva's Vercel api/track.js: {slug, client, event, extra}
       let body = {};
@@ -114,15 +145,18 @@ async function recordOpen(request, env, slug, kind, url, extra) {
     log.push(entry);
     if (log.length > 500) log = log.slice(-500);
     await kv.put(`opens:${slug}`, JSON.stringify(log));
-    if (dup) return; // refresh within 60 s: log it, don't ping
+    if (dup && (kind === "page" || kind === "pixel" || kind === "viewed")) return; // refresh within 60 s: log it, don't ping
   }
   if (isMe || entry.bot) return;
 
   const humanOpens = log.filter(e => !e.me && !e.bot).length || 1;
   const device = /mobile|iphone|android/i.test(ua) ? "mobile" : "desktop";
-  const icons = { opened: "📬", viewed: "👁", signed: "✍️", pay_clicked: "💳", page: "📄", pixel: "📄" };
-  const label = kind === "opened" ? "Proposal first opened" : kind === "viewed" ? "Proposal viewed again"
-    : kind === "signed" ? "Proposal SIGNED" : kind === "pay_clicked" ? "Proposal: Pay clicked" : "Proposal opened";
+  const L = { opened: ["📬", "Proposal first opened"], viewed: ["👁", "Proposal viewed again"], page: ["📄", "Proposal opened"], pixel: ["📄", "Proposal opened (pixel)"],
+    investment_viewed: ["💶", "Reached the Investment page"], agreement_viewed: ["📝", "Reached the Agreement page"], read_2_minutes: ["⏱", "Reading for 2+ minutes"],
+    pay_clicked: ["💳", "PAY button clicked (Stripe)"], docusign_clicked: ["🖋", "DocuSign button clicked"], download_clicked: ["⬇️", "Download signed PDF clicked"],
+    accept_clicked: ["✅", "Accept & Send clicked"], signed: ["✍️", "Proposal SIGNED"], signed_pdf: ["📎", "Signed PDF delivered"] };
+  const [icon, label] = L[kind] || ["•", `Proposal: ${kind}`];
+  const icons = { [kind]: icon };
   const text = [
     `${icons[kind] || "•"} *${label}*: \`${slug}\``,
     entry.extra ? `\`${entry.extra}\`` : null,
@@ -132,6 +166,25 @@ async function recordOpen(request, env, slug, kind, url, extra) {
     entry.referer ? `↩ ${entry.referer}` : null,
   ].filter(Boolean).join("\n");
   await telegram(env, text);
+}
+
+async function telegramDocument(env, buf, filename, caption) {
+  const token = env.TELEGRAM_BOT_TOKEN, chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return false;
+  const form = new FormData();
+  form.append("chat_id", chatId); form.append("caption", caption); form.append("parse_mode", "Markdown");
+  form.append("document", new Blob([buf], { type: "application/pdf" }), filename);
+  try { const r = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, { method: "POST", body: form }); return r.ok; }
+  catch (e) { console.warn("sendDocument failed", e.message); return false; }
+}
+
+async function stripeVerify(raw, header, secret) {
+  const parts = Object.fromEntries(header.split(",").map(kv => kv.split("=")));
+  if (!parts.t || !parts.v1) return false;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${parts.t}.${raw}`));
+  const hex = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, "0")).join("");
+  return hex === parts.v1;
 }
 
 async function telegram(env, text) {
