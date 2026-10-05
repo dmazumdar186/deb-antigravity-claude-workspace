@@ -1,0 +1,321 @@
+{
+ "links": {
+  "call": "https://cal.com/debanjan-mazumdar-ben5rd/30min",
+  "site": "https://prodcraft.fyi",
+  "github": "https://github.com/dmazumdar186",
+  "linkedin": "https://www.linkedin.com/in/dmazumdar/"
+ },
+ "variants": [
+  {
+   "slug": "receipts",
+   "layout": "ledger",
+   "kicker": "The receipts, not the pitch",
+   "head": "Three numbers I’d rather show you than a slide deck.",
+   "rows": [
+    [
+     "$1M+",
+     "qualified pipeline from one outbound system"
+    ],
+    [
+     "+45%",
+     "feature adoption on an enterprise GenAI product"
+    ],
+    [
+     "<30 days",
+     "median ship cycle across 5+ live AI products"
+    ]
+   ],
+   "note": "all three are live — stress-test them on the call"
+  },
+  {
+   "slug": "48k-emails",
+   "layout": "bignum",
+   "kicker": "Outbound engine · US consultancy",
+   "num": "48,000",
+   "unit": "cold emails / month",
+   "sub": "4%+ reply rate. $1M+ pipeline. A 4-SDR team replaced at roughly a tenth of the cost.",
+   "note": "Cloudflare Workers + Instantly + GHL — the whole thing is idempotent"
+  },
+  {
+   "slug": "latency",
+   "layout": "beforeafter",
+   "kicker": "Enterprise GenAI / RAG · in production",
+   "head": "Same product. Six weeks later.",
+   "left": [
+    "Before",
+    [
+     "slow p95 responses",
+     "features nobody opened",
+     "one LLM, one bill"
+    ]
+   ],
+   "right": [
+    "After",
+    [
+     "−55% p95 latency",
+     "+45% feature adoption",
+     "multi-LLM routing + eval harness"
+    ]
+   ],
+   "note": "the latency win was prompt-cache hits, not a bigger model"
+  },
+  {
+   "slug": "not-an-agency",
+   "layout": "margin",
+   "kicker": "How I work",
+   "para": "No account manager. No junior hand-offs. No “discovery phase” invoice. You talk to the person who writes the code, and the code ships in weeks, not quarters.",
+   "hl": "the person who writes the code",
+   "note": "15+ yrs · Paris · one operator"
+  },
+  {
+   "slug": "walk-away",
+   "layout": "checklist",
+   "kicker": "Terms, in plain English",
+   "head": "Walk-away terms from day one.",
+   "items": [
+    "All code in your repo, from the first commit",
+    "All credentials in your vault, never mine",
+    "No retainer lock-in, no exit fee",
+    "Documentation a mid-level engineer can run"
+   ],
+   "note": "if you can’t leave, it isn’t your system"
+  },
+  {
+   "slug": "cv-optimizer",
+   "layout": "terminal",
+   "kicker": "Live SaaS · cv-optimizer.pages.dev",
+   "lines": [
+    "$ paste cv.pdf  --locale fr  --jd job.txt",
+    "✓ langdetect: 42/42 fields in target locale",
+    "✓ recruiter-proxy eval: 95% pass",
+    "✓ golden-screenshot diff: 0 regressions",
+    "→ shipped. ships only when 95% of fields pass."
+   ],
+   "head": "Eval-first, or it doesn’t ship.",
+   "note": "Cloudflare Pages + Worker + Gemini"
+  },
+  {
+   "slug": "video-studio",
+   "layout": "timeline",
+   "kicker": "ProdCraft AI Video Studio",
+   "head": "Topic prompt to public YouTube video in eight minutes.",
+   "steps": [
+    [
+     "00:00",
+     "topic"
+    ],
+    [
+     "01:30",
+     "script + voice clone"
+    ],
+    [
+     "05:00",
+     "Remotion render"
+    ],
+    [
+     "08:00",
+     "uploaded"
+    ]
+   ],
+   "note": "≈ $0 marginal cost per video · weekly cadence"
+  },
+  {
+   "slug": "mobile-14-days",
+   "layout": "bignum",
+   "kicker": "Mobile · Expo + EAS",
+   "num": "14",
+   "unit": "days from idea to TestFlight",
+   "sub": "iOS and Android from one codebase. No Mac required. AI features (transcription, summaries, agents) wired in from day one.",
+   "note": "2-pass security audit before any store submission"
+  },
+  {
+   "slug": "operator-stack",
+   "layout": "stack",
+   "kicker": "What’s actually in the box",
+   "head": "The stack I ship on.",
+   "tags": [
+    "Claude Code",
+    "Cloudflare Workers",
+    "Modal",
+    "n8n",
+    "Supabase",
+    "Instantly",
+    "GoHighLevel",
+    "Vapi / Retell",
+    "Remotion",
+    "Expo / EAS",
+    "Gemini",
+    "MCP servers"
+   ],
+   "note": "pick what fits — nothing here is a lock-in"
+  },
+  {
+   "slug": "sdr-math",
+   "layout": "ledger",
+   "kicker": "The SDR math",
+   "head": "What one outbound system replaced.",
+   "rows": [
+    [
+     "$200K/yr",
+     "SDR headcount cost removed"
+    ],
+    [
+     "4 SDRs",
+     "worth of volume, automated"
+    ],
+    [
+     "~1/10",
+     "of the cost to run it"
+    ]
+   ],
+   "note": "reply detection + CRM sync + kill switch included"
+  },
+  {
+   "slug": "voice-agent",
+   "layout": "margin",
+   "kicker": "24/7 AI sales assistants",
+   "para": "A voice agent that picks up on the first ring, qualifies, books the slot, and writes the transcript straight into your CRM. Vapi or Retell, your number, your script.",
+   "hl": "writes the transcript straight into your CRM",
+   "note": "sandbox demo on request — hear it before you buy it"
+  },
+  {
+   "slug": "before-you-hire",
+   "layout": "beforeafter",
+   "kicker": "Before you post that job",
+   "head": "Senior AI hire vs. ProdCraft.",
+   "left": [
+    "Full-time hire",
+    [
+     "3–6 months to start",
+     "salary + equity + ramp",
+     "one person’s stack"
+    ]
+   ],
+   "right": [
+    "ProdCraft",
+    [
+     "first commit this week",
+     "walk-away terms",
+     "12+ AI systems shipped"
+    ]
+   ],
+   "note": "I’m not against hiring — I’m against waiting"
+  },
+  {
+   "slug": "shipped-list",
+   "layout": "checklist",
+   "kicker": "Systems we’ve shipped",
+   "head": "Real builds. Real metrics. Touchable demos.",
+   "items": [
+    "Always-on outbound engine — $1M+ pipeline",
+    "Enterprise GenAI adoption driver — +45%",
+    "Multi-lingual CV optimizer — live SaaS",
+    "AI video studio — 8 min to upload",
+    "14-day mobile pipeline — iOS + Android"
+   ],
+   "note": "two of these you can click on the site right now"
+  },
+  {
+   "slug": "kill-switch",
+   "layout": "terminal",
+   "kicker": "Engineering that survives Monday",
+   "lines": [
+    "sentinel: idempotent per-lead keys",
+    "dedup: cross-run, cross-campaign",
+    "kill-switch: per campaign, one flag",
+    "reply-detect: dual path (webhook + poll)",
+    "status: 48k/mo, 0 duplicate sends"
+   ],
+   "head": "Boring plumbing is the product.",
+   "note": "this is why the pipeline number is real"
+  },
+  {
+   "slug": "paris-founder",
+   "layout": "quote",
+   "kicker": "Debanjan Mazumdar · Founder, ProdCraft",
+   "quote": "I spent 15 years shipping products for other people. Now I ship AI systems for founders who are done waiting on roadmaps.",
+   "note": "Paris · EN / FR · built with Claude Code"
+  },
+  {
+   "slug": "three-things",
+   "layout": "stack",
+   "kicker": "Three things we ship, fast",
+   "head": "Outbound. Voice. Custom AI ops.",
+   "tags": [
+    "Cold-email systems",
+    "Inbox warmup",
+    "AI first lines",
+    "Voice + chat agents",
+    "Inbound qualification",
+    "RAG / document Q&A",
+    "Internal copilots",
+    "Multi-agent orchestration",
+    "Modal + Cloudflare deploys"
+   ],
+   "note": "senior operator on every call"
+  },
+  {
+   "slug": "hours-saved",
+   "layout": "bignum",
+   "kicker": "Claude Code operator stack",
+   "num": "$10K",
+   "unit": "per week in headcount cost saved",
+   "sub": "Multi-agent orchestration, MCP servers, internal copilots and audit loops that harden their own code.",
+   "note": "12+ AI systems · 100+ hrs/wk automated"
+  },
+  {
+   "slug": "objections",
+   "layout": "ledger",
+   "kicker": "The three objections, answered",
+   "head": "“But what if…”",
+   "rows": [
+    [
+     "…you leave?",
+     "you keep everything — repo, keys, docs"
+    ],
+    [
+     "…it breaks?",
+     "eval harness + kill switch on every system"
+    ],
+    [
+     "…it’s a demo?",
+     "two live products on the site, paste a CV"
+    ]
+   ],
+   "note": "ask the fourth one on the call"
+  },
+  {
+   "slug": "how-it-starts",
+   "layout": "timeline",
+   "kicker": "How a build starts",
+   "head": "From a 30-minute call to a shipped system.",
+   "steps": [
+    [
+     "Day 0",
+     "free build session"
+    ],
+    [
+     "Day 2",
+     "scoped, priced, repo created"
+    ],
+    [
+     "Week 2",
+     "first version in your stack"
+    ],
+    [
+     "Week 4",
+     "live, documented, yours"
+    ]
+   ],
+   "note": "median <30 days — the receipts above are from this process"
+  },
+  {
+   "slug": "book-call",
+   "layout": "cta",
+   "kicker": "Free build session · 30 min",
+   "head": "Bring the roadmap. Leave with a build plan.",
+   "sub": "No pitch deck. We look at your stack, pick the one system worth shipping first, and I tell you honestly if it’s not me.",
+   "note": "scan or tap — the link is in the first comment"
+  }
+ ]
+}
