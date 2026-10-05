@@ -338,3 +338,12 @@ Files changed by this sweep (scope excluded CLAUDE.md/AGENTS.md/GEMINI.md, `.cla
 **Revert (one line):** `git revert <this commit>` — or set `LAST_KNOWN_GOOD` default back to
 `claude-fable-5` / `anthropic/claude-fable-5` and `DEFAULT_EFFORT["anthropic/claude-fable-5"] = "medium"` in
 `llm_client.py`, then re-run `tests/test_model_tier_*.py`.
+
+### 2026-10-05 — MCP servers off by default (token economy)
+
+- `disabledMcpjsonServers: ["firecrawl","tavily"]` in `.claude/settings.json`. Both returned 401 in cloud
+  all session while their schemas were re-sent on every call. Re-enable per session with
+  `claude mcp` / `/mcp`, or delete the key locally when a skill needs Firecrawl (the `firecrawl` skill uses
+  the CLI, not the MCP). claude.ai connectors (Gmail, Calendar, Drive, Claude Docs) are attached at
+  https://claude.ai/customize/connectors and cannot be changed from inside a session: keep only GitHub on
+  the coding environment.

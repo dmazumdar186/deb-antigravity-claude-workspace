@@ -50,3 +50,6 @@ Pick the smallest tier that satisfies parallelism + context-share needs. Don't o
 - Don't spawn Agent Teams for one-shot work. Use a sub-agent.
 - Don't create `.claude/agents/plan-skeptic.md` — the global plan-skeptic skill at `~/.claude/skills/plan-skeptic/SKILL.md` is the source of truth.
 - Don't spawn multiple sub-agents for the same files in parallel (conflicting edits).
+
+- Visual review (screenshots) is always a worker job; the brain never Reads images (`token-economy.md` §4).
+- Brief once, completely; never poll a running worker; `omitClaudeMd: true` for self-contained briefs.

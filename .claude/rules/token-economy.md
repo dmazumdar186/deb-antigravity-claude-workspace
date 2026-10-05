@@ -24,6 +24,14 @@
 
 ## 4. In-session hygiene
 
+- **Images never enter the main context.** Screenshots, PDFs-as-images and design mocks are Read by a
+  worker that returns PASS or a defect list; the brain reads text only. One PNG costs ~1.5k tokens on
+  every later call for the rest of the session (2026-10-05: twelve PNGs ≈ a quarter of a 70k prefix).
+- **Compact at every deploy, clear at every task switch.** `/compact <what to keep>` right after a push
+  or deploy; `/clear` before an unrelated task (a skill build after a site build is unrelated).
+- **One worker per build, briefed once.** No sleep-and-check calls while it runs (every check re-sends
+  the prefix); background workers notify on completion. `omitClaudeMd: true` when the brief is complete.
+
 - `/clear` between unrelated tasks (free); `/compact <focus>` at milestones; `/rewind` beats compact; `/btw` for side questions. Don't resume a large session after >1h idle without compacting first (full-prefix cache miss).
 - Read narrowly (`offset`/`limit`, `head_limit`); never cat a large file; never re-read what is in context; `bashOutputMaxChars` caps tool output.
 - Batch independent tool calls (`always-parallelize.md`); long jobs `run_in_background: true`, never sleep-poll.

@@ -165,5 +165,9 @@
         ]
       }
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "firecrawl",
+    "tavily"
+  ]
 }
