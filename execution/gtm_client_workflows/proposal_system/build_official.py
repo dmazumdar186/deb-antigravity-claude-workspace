@@ -77,6 +77,9 @@ def main(slug):
   const io=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) return; const i=[...pages].indexOf(e.target); if(names[i]&&!seen[i]){seen[i]=1;track(names[i]);} }),{threshold:0.5});
   pages.forEach(p=>io.observe(p)); setTimeout(()=>track('read_2_minutes'),120000); })();
 // Signature canvas""")
+    t = t.replace("    if (data.ok) {\n      showSent(true);", "    if (data.ok) {\n      if (data.url) { SIGNED_URL = data.url; }\n      showSent(true);")
+    t = t.replace("const PDF_FILENAME =", "let SIGNED_URL = null;\nconst PDF_FILENAME =")
+    t = t.replace("  dl.innerHTML = '⬇ Download a copy';", "  dl.innerHTML = '⬇ Download signed contract';\n  if (SIGNED_URL) { dl.onclick = () => { track('contract_downloaded'); window.open(SIGNED_URL, '_blank', 'noopener'); }; }")
     out, missing = re.subn(r"\{\{([A-Z0-9_]+)\}\}", lambda mm: str(m.get(mm.group(1), mm.group(0))), t)
     left = re.findall(r"\{\{[A-Z0-9_]+\}\}", out)
     if left: sys.exit(f"unfilled: {sorted(set(left))}")

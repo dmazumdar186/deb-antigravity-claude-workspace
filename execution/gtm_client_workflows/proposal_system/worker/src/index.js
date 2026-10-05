@@ -57,12 +57,26 @@ export default {
       const buf = await request.arrayBuffer();
       if (buf.byteLength < 100) return json({ ok: false, error: "empty_body" }, 400);
       if (buf.byteLength > 20 * 1024 * 1024) return json({ ok: false, error: "payload_too_large" }, 413);
-      if (kv) await kv.put(`signed:${slug}:${Date.now()}`, buf, { metadata: { name } });
+      const id = String(Date.now());
+      if (kv) await kv.put(`signed:${slug}:${id}`, buf, { metadata: { name } });
+      const tok = await sha(`${slug}:${id}:${env.PUBLISH_SECRET || ""}`);
+      const dl = `${url.origin}/signed/${slug}/${id}.pdf?k=${tok}`;
       const cf = request.cf || {};
       const ok = await telegramDocument(env, buf, `${slug}_signed.pdf`,
-        `✅ *Proposal ACCEPTED & SIGNED*: \`${slug}\`\nSigned by: *${name}*\n📍 ${cf.city || "?"}, ${cf.country || "?"} · ${new Date().toUTCString()}`);
+        `✅ *Proposal ACCEPTED & SIGNED*: \`${slug}\`\nSigned by: *${name}*\n📍 ${cf.city || "?"}, ${cf.country || "?"} · ${new Date().toUTCString()}\n⬇️ [Download signed contract](${dl})`);
       ctx.waitUntil(recordOpen(request, env, slug, "signed_pdf", url, `by ${name}`));
-      return json({ ok });
+      return json({ ok, url: dl });
+    }
+
+    if ((m = path.match(/^\/signed\/([a-z0-9_-]+)\/(\d+)\.pdf$/))) {
+      // Signed contract download for either party; link carries a token derived from the publish secret.
+      const [slug2, id] = [m[1], m[2]];
+      const tok = await sha(`${slug2}:${id}:${env.PUBLISH_SECRET || ""}`);
+      if (url.searchParams.get("k") !== tok) return new Response("Not found", { status: 404 });
+      const pdf = await kv?.get(`signed:${slug2}:${id}`, "arrayBuffer");
+      if (!pdf) return new Response("Not found", { status: 404 });
+      ctx.waitUntil(recordOpen(request, env, slug2, "contract_downloaded", url));
+      return new Response(pdf, { headers: { "content-type": "application/pdf", "content-disposition": `attachment; filename="${slug2}_signed_contract.pdf"`, "cache-control": "no-store" } });
     }
 
     if (path === "/api/stripe" && request.method === "POST") {
@@ -154,7 +168,7 @@ async function recordOpen(request, env, slug, kind, url, extra) {
   const L = { opened: ["📬", "Proposal first opened"], viewed: ["👁", "Proposal viewed again"], page: ["📄", "Proposal opened"], pixel: ["📄", "Proposal opened (pixel)"],
     investment_viewed: ["💶", "Reached the Investment page"], agreement_viewed: ["📝", "Reached the Agreement page"], read_2_minutes: ["⏱", "Reading for 2+ minutes"],
     pay_clicked: ["💳", "PAY button clicked (Stripe)"], docusign_clicked: ["🖋", "DocuSign button clicked"], download_clicked: ["⬇️", "Download signed PDF clicked"],
-    accept_clicked: ["✅", "Accept & Send clicked"], signed: ["✍️", "Proposal SIGNED"], signed_pdf: ["📎", "Signed PDF delivered"] };
+    accept_clicked: ["✅", "Accept & Send clicked"], contract_downloaded: ["📥", "Signed contract downloaded"], signed: ["✍️", "Proposal SIGNED"], signed_pdf: ["📎", "Signed PDF delivered"] };
   const [icon, label] = L[kind] || ["•", `Proposal: ${kind}`];
   const icons = { [kind]: icon };
   const text = [
