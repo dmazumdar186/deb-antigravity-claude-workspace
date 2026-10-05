@@ -1,10 +1,32 @@
 {
- "client": {"name": "Keith Molony", "title": "Managing Director", "company": "GreenJobs Ltd"},
- "sender": {"name": "Debanjan Mazumdar", "title": "Founder, ProdCraft", "company": "ProdCraft", "email": "debanjan@prodcraft.fyi"},
- "logos": {"sender": null, "client": ["deliverables/greenjobs_redesign_2026-09-22/src/assets/logos/greenjobslogo.png", "deliverables/gaia_redesign_2026-09-17/src/assets/logo-light.svg"]},
+ "client": {
+  "name": "Keith Molony",
+  "title": "Managing Director",
+  "company": "GreenJobs Ltd"
+ },
+ "sender": {
+  "name": "Debanjan Mazumdar",
+  "title": "Founder, ProdCraft",
+  "company": "ProdCraft",
+  "email": "debanjan@prodcraft.fyi"
+ },
+ "logos": {
+  "sender": null,
+  "client": [
+   "deliverables/greenjobs_redesign_2026-09-22/src/assets/logos/greenjobslogo.png",
+   "deliverables/gaia_redesign_2026-09-17/src/assets/logo-light.svg"
+  ]
+ },
  "docusign_url": "https://app.docusign.com/",
- "payment": {"stripe_url": "https://buy.stripe.com/00w3cw89S7L708JcrT3Nm00"},
- "project": {"title": "GreenJobs Platform Rebuild for GreenJobs Ltd", "cover_brand_label": "Platform Proposal", "cover_subtitle": "Both GreenJobs boards rebuilt, migrated to a platform you own, and maintained month to month. All figures in euro.", "created_date": "2026-10-05"},
+ "payment": {
+  "stripe_url": "https://buy.stripe.com/00w3cw89S7L708JcrT3Nm00"
+ },
+ "project": {
+  "title": "GreenJobs Platform Rebuild for GreenJobs Ltd",
+  "cover_brand_label": "Platform Proposal",
+  "cover_subtitle": "Both GreenJobs boards rebuilt, migrated to a platform you own, and maintained month to month. €1,499 on go-live, migration included, €599 a month locked for 12 months.",
+  "created_date": "2026-10-05"
+ },
  "situation": {
   "headline": "The GreenJobs boards are ready for their next platform.",
   "lede": "You have told me you are considering moving greenjobs.ie and greenjobs.co.uk to a platform you own, with hosting and integrations you control and changes delivered on your own timetable. Since 22 September I have built and tested exactly that: 195 pages on 165 live roles, all 100 front-end items from your change document, and 3,047 automated checks passing.",
@@ -14,37 +36,70 @@
  },
  "problems_heading": "Four things the current setup leaves on the table.",
  "problems": [
-  {"title": "Owning the platform", "body": "Changes to the boards wait on a third party's timetable. On a platform you own, your team posts, edits and features roles from a console built for GreenJobs, and changes ship when you need them."},
-  {"title": "Reaching candidates where they search", "body": "Job pages do not currently carry Google JobPosting structured data, so roles do not appear in Google for Jobs. Adding it, with salary shown wherever the employer provides one, extends the reach of every Premium posting."},
-  {"title": "Speed on mobile", "body": "Current pages weigh about a megabyte per visit. The rebuilt boards serve the same content in under 200 KB with no third-party requests, which matters most to mobile visitors, the majority of job seekers."},
-  {"title": "Live figures and a dashboard", "body": "Counts by county, sector and salary band are maintained by hand today. On the new platform every figure is computed from the job data on each post, with a KPI dashboard for you and your site manager."}
+  {
+   "title": "Owning the platform",
+   "body": "Changes to the boards wait on a third party's timetable. On a platform you own, your team posts, edits and features roles from a console built for GreenJobs, and changes ship when you need them."
+  },
+  {
+   "title": "Reaching candidates where they search",
+   "body": "Job pages do not currently carry Google JobPosting structured data, so roles do not appear in Google for Jobs. Adding it, with salary shown wherever the employer provides one, extends the reach of every Premium posting."
+  },
+  {
+   "title": "Speed on mobile",
+   "body": "Current pages weigh about a megabyte per visit. The rebuilt boards serve the same content in under 200 KB with no third-party requests, which matters most to mobile visitors, the majority of job seekers."
+  },
+  {
+   "title": "Live figures and a dashboard",
+   "body": "Counts by county, sector and salary band are maintained by hand today. On the new platform every figure is computed from the job data on each post, with a KPI dashboard for you and your site manager."
+  }
  ],
  "benefits_heading": "What you get.",
  "benefits": [
-  {"title": "Both editions rebuilt", "body": "greenjobs.ie and greenjobs.co.uk as demonstrated: jobs board with filters, list, map and saved views; one page per role with JobPosting data; 14-sector taxonomy; salary insights and guide; career quiz; employers page with Premium and Membership comparison and a live post-a-job preview; four SEO landing pages; KPI dashboard."},
-  {"title": "Your own platform", "body": "Admin posting console for GreenJobs staff; candidate accounts with stored CV, one-click apply, saved roles and email job alerts; Broadbean, Idibu and LogicMelon posting kept and verified by a daily test job; recruiter CRM posting integration; full data export and import; a 301 redirect for every indexed URL."},
-  {"title": "Hosting with the guarantees you have today", "body": "99.9% uptime, daily backups with a tested restore every quarter, firewall, DDoS protection and SSL, 24/7 monitoring, EU data region, daily integration checks and a monthly report."},
-  {"title": "Numbers that update themselves", "body": "Every figure on the site is computed from the job data on every post, whether GreenJobs staff or a client uploads the ad, so nothing goes stale and nothing is typed twice."}
+  {
+   "title": "Both editions rebuilt",
+   "body": "greenjobs.ie and greenjobs.co.uk as demonstrated: jobs board with filters, list, map and saved views; one page per role with JobPosting data; 14-sector taxonomy; salary insights and guide; career quiz; employers page with Premium and Membership comparison and a live post-a-job preview; four SEO landing pages; KPI dashboard."
+  },
+  {
+   "title": "Your own platform",
+   "body": "Admin posting console for GreenJobs staff; candidate accounts with stored CV, one-click apply, saved roles and email job alerts; Broadbean, Idibu and LogicMelon posting kept and verified by a daily test job; recruiter CRM posting integration; full data export and import; a 301 redirect for every indexed URL."
+  },
+  {
+   "title": "Hosting with the guarantees you have today",
+   "body": "99.9% uptime, daily backups with a tested restore every quarter, firewall, DDoS protection and SSL, 24/7 monitoring, EU data region, daily integration checks and a monthly report."
+  },
+  {
+   "title": "Numbers that update themselves",
+   "body": "Every figure on the site is computed from the job data on every post, whether GreenJobs staff or a client uploads the ad, so nothing goes stale and nothing is typed twice."
+  }
  ],
  "scope": {
   "heading": "Six weeks from signature to go-live.",
-  "m1_title": "Week 1. Front end live", "m1_body": "Both editions live on your domains within 5 working days of signature, all 100 completed change-document items included, JobPosting data on every role, sitemaps and redirects. Indicative: live by Monday 13 October 2026 if signed by 6 October.",
-  "m2_title": "Weeks 2 to 4. Platform build and staging", "m2_body": "Posting console, candidate accounts, alerts, Broadbean / Idibu / LogicMelon endpoints, recruiter CRM integration, data import, redirect map; staging acceptance with you and your site manager. Indicative: 14 October to 3 November 2026.",
-  "m3_title": "Weeks 5 to 6. Parallel run and go-live", "m3_body": "Two weeks alongside the current platform with a test job through every posting route each day, then DNS cut-over and 10 working days of daily checks. Indicative go-live: Wednesday 18 November 2026.",
+  "m1_title": "Week 1. Front end live",
+  "m1_body": "Both editions live on your domains within 5 working days of signature, all 100 completed change-document items included, JobPosting data on every role, sitemaps and redirects. Indicative: live by Monday 13 October 2026 if signed by 6 October.",
+  "m2_title": "Weeks 2 to 4. Platform build and staging",
+  "m2_body": "Posting console, candidate accounts, alerts, Broadbean / Idibu / LogicMelon endpoints, recruiter CRM integration, data import, redirect map; staging acceptance with you and your site manager. Indicative: 14 October to 3 November 2026.",
+  "m3_title": "Weeks 5 to 6. Parallel run and go-live",
+  "m3_body": "Two weeks alongside the current platform with a test job through every posting route each day, then DNS cut-over and 10 working days of daily checks. Indicative go-live: Wednesday 18 November 2026.",
   "throughout": "Weekly update, one business day response, 4-hour response to a posting outage, and all work in accounts GreenJobs owns so nothing is locked to me. Dates move day for day with the signature date and any late input (contract details, posting routes in use, DNS access, logo permissions). Broadbean onboarding runs on Broadbean's timeline.",
   "out_of_scope": "Employer self-service purchasing and card payment for job packages (GreenJobs staff post the ads); the other eight sites in the GreenJobs network; career-advice articles or market reports; paid advertising; any fees charged by Broadbean, Idibu, LogicMelon or the current platform provider. Anything else is quoted in writing before it starts."
  },
  "investment": {
-  "heading": "Simple, fixed, in euro.",
-  "m1_label": "At signing", "m1_deliverable": "Front-end rebuild, both editions (deposit)", "m1_amount": "1,500",
-  "m2_label": "On go-live", "m2_deliverable": "Platform migration, paid only after the parallel run passes", "m2_amount": "2,999",
-  "m3_label": "Monthly", "m3_deliverable": "Maintain: hosting, backups, 24/7 monitoring, security, daily posting-route checks, Google for Jobs kept indexed, content and small changes on request, first-line support, monthly report. Three-month minimum, then rolling with 30 days' notice. Covers the two boards only; further sites are agreed in writing first.", "m3_amount": "600 / month",
-  "total_amount": "4,499 one-off + €600 / month",
+  "heading": "Simple, fixed, in euro. No risk on the build.",
+  "m1_label": "On go-live",
+  "m1_deliverable": "Front-end rebuild, both editions, live on your domains within 5 working days. If it is not live and faster than today's site by then, you do not pay this.",
+  "m1_amount": "1,499",
+  "m2_label": "Included",
+  "m2_deliverable": "Platform migration, in exchange for a LinkedIn post about the build, a post on the Gaia Talent and GreenJobs pages at go-live, and a short written testimonial",
+  "m2_amount": "0",
+  "m3_label": "Monthly",
+  "m3_deliverable": "Maintain, locked at this price for 12 months: hosting, backups, 24/7 monitoring, security, daily checks on Broadbean, Idibu, LogicMelon and your CRM route, Google for Jobs kept indexed, every figure on the site kept live, your team's content and change requests handled as they come. Covers the two boards; further sites agreed in writing first.",
+  "m3_amount": "599 / month",
+  "total_amount": "8,687 in year one, then €599 / month",
   "roi_title": "Tool subscriptions, in your name, billed at cost +3%",
   "roi_body": "Cloudflare Workers Paid plan $5 per month (hosting, database, storage) and Resend Pro $20 per month (job alerts, newsletter, transactional email). Domains and DNS are already yours. Prices checked on the vendors' pages on 30 September 2026."
  },
  "agreement": {
-  "body": "ProdCraft will build and maintain the GreenJobs platform for GreenJobs Ltd according to this proposal. The deposit is charged at signing; the migration fee on go-live; the monthly plan upfront at the start of each cycle from the day the front end goes live. Cancellation of the monthly plan: 30 days' written notice after the three-month minimum; anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Additional features or integrations outside the listed scope may affect timeline and cost and are agreed in writing first. Questions: debanjan@prodcraft.fyi.",
+  "body": "ProdCraft will build and maintain the GreenJobs platform for GreenJobs Ltd according to this proposal. The build fee is invoiced on go-live of the front end; the migration is included on the terms above; the monthly plan is €599, fixed for 12 months from the day the front end goes live, charged upfront at the start of each cycle, then rolling with 30 days' written notice. Anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Additional features or integrations outside the listed scope are agreed in writing first. This offer is held until Friday 10 October 2026. Questions: debanjan@prodcraft.fyi.",
   "sender_signature_text": "Debanjan Mazumdar"
  }
 }

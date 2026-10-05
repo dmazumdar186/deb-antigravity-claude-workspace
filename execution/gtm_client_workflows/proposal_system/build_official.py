@@ -48,7 +48,7 @@ def main(slug):
     t = t.replace("<h3>What we're building across three months.</h3>", f"<h3>{sc['heading']}</h3>")
     t = t.replace("<h3>Four problems bleeding revenue today.</h3>", f"<h3>{cfg['problems_heading']}</h3>")
     t = t.replace("<h3>Four systems that earn back their cost in month one.</h3>", f"<h3>{cfg['benefits_heading']}</h3>")
-    t = t.replace("Pay First Installment (${{M1_AMOUNT}})", "Pay deposit (€{{M1_AMOUNT}})").replace("Pay First Installment (€{{M1_AMOUNT}})", "Pay deposit (€{{M1_AMOUNT}})")
+    t = t.replace("Pay First Installment (${{M1_AMOUNT}})", "Pay build fee on go-live (€{{M1_AMOUNT}})").replace("Pay First Installment (€{{M1_AMOUNT}})", "Pay deposit (€{{M1_AMOUNT}})")
     # client logos on the cover (right side) + brand row on inner pages
     client_logos = "".join(f'<img src="{data_uri(p)}" alt="" style="height:44px;width:auto;border-radius:8px;background:#fff;padding:6px 10px">' for p in cfg["logos"]["client"])
     t = t.replace('<div class="brand">{{COVER_BRAND_LABEL}}</div>\n  </div>',
