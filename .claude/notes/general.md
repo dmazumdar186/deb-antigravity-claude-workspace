@@ -32,3 +32,5 @@ Tags: [preference] [technical] [learned] [pattern] [constraint]
 - [identity] Signature for every outward-facing deliverable and message, all projects (operator order 2026-09-30): "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi". Never use debolshop@gmail.com unless the operator explicitly asks.
 
 - [preference] Merge to main, always (operator order 2026-10-01): after every push of a feature branch, fast-forward/merge it into `main` and push `main` too. No PR wait, no asking.
+- [preference] Redesigns keep the brand's real logo (operator order 2026-10-05): never replace a client's logo with a text wordmark. Fetch the actual asset (Wikimedia Commons file page → upload.wikimedia.org URL, with an identifying User-Agent; the client site itself often 403s) and use it in header, footer and pitch page. Also: stay close to the brand's existing light/dark register (Midas = yellow + light, not yellow + black) unless asked.
+- [learned] Research tooling in cloud (2026-10-05): Firecrawl and Tavily MCP keys returned 401; WebSearch + Wikipedia API + franchise press worked. Wikipedia API rate-limits bursts — space calls ~20 s.
