@@ -48,7 +48,7 @@ def main(slug):
     t = t.replace("<h3>What we're building across three months.</h3>", f"<h3>{sc['heading']}</h3>")
     t = t.replace("<h3>Four problems bleeding revenue today.</h3>", f"<h3>{cfg['problems_heading']}</h3>")
     t = t.replace("<h3>Four systems that earn back their cost in month one.</h3>", f"<h3>{cfg['benefits_heading']}</h3>")
-    t = t.replace("Pay First Installment (${{M1_AMOUNT}})", "Pay build fee on go-live (€{{M1_AMOUNT}})").replace("Pay First Installment (€{{M1_AMOUNT}})", "Pay deposit (€{{M1_AMOUNT}})")
+    t = t.replace("Pay First Installment (${{M1_AMOUNT}})", "Pay build fee (€{{M1_AMOUNT}})").replace("Pay First Installment (€{{M1_AMOUNT}})", "Pay deposit (€{{M1_AMOUNT}})")
     # client logos on the cover (right side) + brand row on inner pages
     # client logos: GreenJobs (dark on light) on a bone card, Gaia (white-on-transparent file) on an ink card
     gj, gaia = cfg["logos"]["client"]

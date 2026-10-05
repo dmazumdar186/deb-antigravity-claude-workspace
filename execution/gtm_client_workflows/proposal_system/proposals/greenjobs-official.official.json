@@ -24,7 +24,7 @@
  "project": {
   "title": "GreenJobs Platform Rebuild for GreenJobs Ltd",
   "cover_brand_label": "Platform Proposal",
-  "cover_subtitle": "Both GreenJobs boards rebuilt, migrated to a platform you own, and maintained month to month. €1,500 on go-live, migration included, €600 a month locked for 6 months.",
+  "cover_subtitle": "Both GreenJobs boards rebuilt, migrated to a platform you own, and maintained month to month. €1,500 at signing, migration included, €600 a month locked for 6 months.",
   "created_date": "2026-10-05"
  },
  "situation": {
@@ -84,9 +84,9 @@
   "out_of_scope": "Employer self-service purchasing and card payment for job packages (GreenJobs staff post the ads); the other eight sites in the GreenJobs network; career-advice articles or market reports; paid advertising; any fees charged by Broadbean, Idibu, LogicMelon or the current platform provider. Anything else is quoted in writing before it starts."
  },
  "investment": {
-  "heading": "Simple, fixed, in euro. No risk on the build.",
-  "m1_label": "On go-live",
-  "m1_deliverable": "Front-end rebuild, both editions, live on your domains within 5 working days. If it is not live and faster than today's site by then, you do not pay this.",
+  "heading": "Simple, fixed, in euro.",
+  "m1_label": "At signing",
+  "m1_deliverable": "Front-end rebuild, both editions, live on your domains within 5 working days of signature",
   "m1_amount": "1,500",
   "m2_label": "Included",
   "m2_deliverable": "Platform migration, in exchange for a LinkedIn post about the build, a post on the Gaia Talent and GreenJobs pages at go-live, and a short written testimonial",
@@ -99,7 +99,7 @@
   "roi_body": "Cloudflare Workers Paid plan $5 per month (hosting, database, storage) and Resend Pro $20 per month (job alerts, newsletter, transactional email). Domains and DNS are already yours. Prices checked on the vendors' pages on 30 September 2026."
  },
  "agreement": {
-  "body": "ProdCraft will build and maintain the GreenJobs platform for GreenJobs Ltd according to this proposal. The build fee is invoiced on go-live of the front end; the migration is included on the terms above; the monthly plan is €600, fixed for 6 months from the day the front end goes live, charged upfront at the start of each cycle, then rolling with 30 days' written notice. Anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Additional features or integrations outside the listed scope are agreed in writing first. This offer is held until Friday 10 October 2026. Questions: debanjan@prodcraft.fyi.",
+  "body": "ProdCraft will build and maintain the GreenJobs platform for GreenJobs Ltd according to this proposal. The build fee is due at signing; the migration is included on the terms above; the monthly plan is €600, fixed for 6 months from the day the front end goes live, charged upfront at the start of each cycle, then rolling with 30 days' written notice. Anything already paid is not refunded. All infrastructure, data and source code belong to GreenJobs Ltd. Additional features or integrations outside the listed scope are agreed in writing first. This offer is held until Friday 10 October 2026. Questions: debanjan@prodcraft.fyi.",
   "sender_signature_text": "Debanjan Mazumdar"
  }
 }
