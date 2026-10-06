@@ -44,8 +44,11 @@ Jev can abstain. Env key: `OPENROUTER_API_KEY` (cloud alias `OPENROUTER_API_TOEK
 | Categorize a sheet/CSV column | `execution/google/jev_sheet_categorize.py` |
 | Triage customer inquiries with a confidence gate | `execution/crm_and_pm/jev_inquiry_triage.py` |
 | Tag competitor ads (Meta Ad Library) into a swipe file | `execution/custom_scrapers/jev_ad_library_tagger.py` |
+| Find the best short clips in a long transcript | `execution/video/jev_clip_finder.py` |
+| Score a SaaS customer base for churn / expansion | `execution/gtm_icp_filters/jev_customer_health.py` |
+| Backlinks across a site or the notes second brain | `execution/rag/jev_backlinks.py` |
 
-Remaining use cases 4-19 (clipping, churn scoring, backlinks, comment buyers, validation sets, Chrome
+Remaining use cases 7-19 (comment buyers, validation sets, Chrome
 extensions, search-by-meaning, image search, live meeting meter, zero-LLM chatbot, icon picking,
 self-assembling pages, meta use-case finder) are tracked in `directives/infrastructure/jev.md`.
 

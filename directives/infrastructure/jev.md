@@ -46,9 +46,9 @@ search-by-meaning, live meters, zero-LLM chatbots).
 | 1 | Jev in Google Sheets — fill a category column from a fixed list | ✅ `execution/google/jev_sheet_categorize.py` (`directives/google/jev_sheet_categorize.md`) |
 | 2 | Triage customer inquiries, confidence gate to a human | ✅ `execution/crm_and_pm/jev_inquiry_triage.py` (`directives/crm_and_pm/jev_inquiry_triage.md`) |
 | 3 | Analyze competitor ads (Meta Ad Library → swipe file) | ✅ `execution/custom_scrapers/jev_ad_library_tagger.py` (`directives/custom_scrapers/jev_ad_library_tagger.md`) |
-| 4 | Clip finder — score candidate moments in long video | planned (`video/`) |
-| 5 | Score & profile the customer base (healthy / attention / churn risk) | planned (`gtm_icp_filters/`) |
-| 6 | Backlinks inside a site or second brain (`.claude/notes/`) | planned (`rag/`) |
+| 4 | Clip finder — score candidate moments in long video | ✅ `execution/video/jev_clip_finder.py` (`directives/video/jev_clip_finder.md`) |
+| 5 | Score & profile the customer base (healthy / attention / churn risk) | ✅ `execution/gtm_icp_filters/jev_customer_health.py` (`directives/gtm_icp_filters/jev_customer_health.md`) |
+| 6 | Backlinks inside a site or second brain (`.claude/notes/`) | ✅ `execution/rag/jev_backlinks.py` (`directives/rag/jev_backlinks.md`) |
 | 7 | Find buyers in social comments (Apify → tag ready/question/complaint) | planned (`lead_sourcing/`) |
 | 8 | Verification with a validation set | ✅ pattern: `jev_inquiry_triage.py --validate` |
 | 9 | Let Jev pick the skill | ✅ router |
@@ -82,3 +82,4 @@ Build order: three per session, in this order, each with script + directive + of
 ## Changelog
 
 - 2026-10-06: installed (client, router, /jev, skill, use cases 1-3). Haiku slot replaced by Sonnet 5.5.
+- 2026-10-06 (session 2): use cases 4-6 (clip finder, customer health, backlinks).
