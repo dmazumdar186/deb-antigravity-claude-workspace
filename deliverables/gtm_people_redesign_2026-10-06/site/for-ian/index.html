@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>For Ian — what changed and why · GTM People concept</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+<style>
+.doc{max-width:760px;margin:0 auto;padding:40px var(--pad) 80px}
+.doc h1{font-size:clamp(34px,5vw,60px);color:var(--pd);margin:12px 0 20px}
+.doc h2{font-size:clamp(22px,2.4vw,30px);color:var(--pd);margin:44px 0 12px}
+.doc p,.doc li{color:var(--g700);font-size:16px;line-height:1.6}
+.doc ul{list-style:disc;padding-left:22px;display:grid;gap:8px}
+.doc a{color:var(--pm);border-bottom:1px solid var(--pl)}
+.doc table{width:100%;border-collapse:collapse;margin-top:12px;font-size:15px;background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden}
+.doc th,.doc td{text-align:left;padding:10px 12px;border-top:1px solid var(--g200);vertical-align:top;white-space:normal}
+.doc th{background:var(--g50);color:var(--g600);font-size:12px;letter-spacing:.08em;text-transform:uppercase;position:static;cursor:default}
+.doc td:nth-child(3){font-weight:700;color:var(--pd)}
+.doc code{background:var(--pll);color:var(--pm);padding:1px 6px;border-radius:6px;font-size:14px}
+.doc .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<main class="doc" id="main">
+<div class="top"><a class="logo" href="../"><img src="../assets/apple-touch-icon.png" width="36" height="36" alt=""><span><b>GTM.</b><small>PEOPLE</small></span></a><a class="btn btn-o btn-s" href="../">← Back to the concept</a></div>
+<p class="eyebrow">Just for your eyes · October 2026</p>
+<h1>For Ian — what changed and why.</h1>
+<p>The page at <a href="../">this address</a> is a concept on our own domain. Nothing touches gtm-people.com. Every fact on it — the specialisms, the six-step process, the TaaS tiers and fee rules, the 2026 salary bands, the eight FAQs, the 26 partners and the 25 open roles — comes from your live site and its public roles feed, copied verbatim. I invented no quotes, prices, testimonials or article titles.</p>
+<p>The one design goal was measurable: <strong>ten times less scrolling with zero content lost.</strong> Your home page is one long scroll. The concept is a "command deck": a compact hero, then a sticky row of ten tabs that swap one panel in place. Every piece of copy is still in the page (so search engines and Ctrl-F still find it), but a founder reaches pricing, the salary guide or the contact form in one tap with no scrolling at all.</p>
+
+<h2>Today / Concept</h2>
+<table>
+<tr><th>Measure</th><th>Today (gtm-people.com)</th><th>Concept</th></tr>
+<tr><td>Page height, desktop 1440×900</td><td>17,828 px (19.8 screens)</td><td>1,773 px (2.0 screens)</td></tr>
+<tr><td>Page height, mobile 390×844</td><td>36,490 px (43.2 screens)</td><td>2,941 px (3.5 screens)</td></tr>
+<tr><td>Screens scrolled to reach pricing</td><td>9.6 desktop · 20.3 mobile</td><td>0 — one tap on "TaaS Pricing"</td></tr>
+<tr><td>Screens scrolled to reach the contact form</td><td>18.4 desktop · 40.1 mobile</td><td>0 — one tap on "Contact"</td></tr>
+<tr><td>Words of copy in the page</td><td>4,373</td><td>5,005 (all of yours, plus the 25 role descriptions)</td></tr>
+<tr><td>Third-party scripts / hosts loaded</td><td>3 scripts (Google Tag Manager, Supabase CDN, Cloudflare email-decode) + 10 external hosts</td><td>0 scripts · 1 host (Google Fonts)</td></tr>
+</table>
+<p style="margin-top:10px;font-size:14px">Measured 2026-10-06 with Playwright, same viewports, default panel state. Every panel also fits one desktop screen: the tallest (Pricing) is 814 px at 1440 wide.</p>
+
+<h2>What doesn't exist on your site yet</h2>
+<ul>
+<li><strong>A fee calculator.</strong> Base salary + tier + hires per year → the fee per hire against a typical 30% agency fee, and the annual cost including your included placements. It uses your own rules (20 / 17.5 / 15%, £75k and £100k caps). On a £100,000 role at Unicorn it shows £15,000 against £30,000 — your own sentence, made interactive.</li>
+<li><strong>A roles table with comp filters.</strong> All 25 public roles in one dense, sortable table: location, role type, stage, base and OTE in the local currency, work pattern, and the description one tap away. Today a candidate scrolls 5,100 px of cards on a phone to see the same list.</li>
+<li><strong>Panel deep-links you can paste in LinkedIn DMs.</strong> <code>/#pricing</code>, <code>/#salary</code>, <code>/#roles</code>, <code>/#faq</code> open straight on that panel; back and forward work; arrow keys move between tabs.</li>
+<li><strong>Accordions instead of walls.</strong> The six client steps, four candidate steps, eight FAQs and each tier's fine print open on demand, so the page stays short without dropping a word.</li>
+<li><strong>Partner filter chips</strong> (All / For clients / For candidates) over a horizontal snap scroller for the 26 partners and JobSearchBud, with your "Your logo here?" card kept.</li>
+<li><strong>A phone-first bottom bar</strong> (Call · Hire · Roles) and tap-to-call in the header, so the number is never more than one thumb away.</li>
+</ul>
+
+<h2>Next if you want it</h2>
+<ul>
+<li>Wire the Supabase roles feed and the contact and newsletter forms (they show a "concept — not wired" notice today, nothing is sent).</li>
+<li>JobPosting structured data on every role so they appear in Google for Jobs.</li>
+<li>Real testimonials and client logos — I left them out rather than invent them.</li>
+<li>The Readiness Check as an eleventh panel, and the Insights panel fed by your real articles (three slots are marked "to wire").</li>
+<li>Real partner logos and your tracked partner links in place of the initials.</li>
+</ul>
+
+<p style="margin-top:44px">Debanjan · Founder, ProdCraft · <a href="mailto:debanjan@prodcraft.fyi">debanjan@prodcraft.fyi</a></p>
+<p style="font-size:13px;margin-top:8px" class="mute">Concept by ProdCraft — not affiliated with GTM People. GTM People is a trading name of H2 International Ltd.</p>
+</main>
+</body>
+</html>
