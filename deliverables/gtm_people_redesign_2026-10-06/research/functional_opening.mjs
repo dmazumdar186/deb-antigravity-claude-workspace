@@ -36,18 +36,22 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   await p.waitForTimeout(1900); await p.screenshot({ path: screens + 'v4-open-2.png' });
   const counted = await p.evaluate(() => document.querySelector('[data-count="2000"]').textContent);
   check('counters count up to 2,000+', counted === '2,000+', counted);
-  await p.click('[data-pill]:nth-child(3)'); await p.waitForTimeout(900);
-  check('pill 3 click → beat 3 + aria-current', (await beat(p)) === 2 && (await p.getAttribute('[data-pill]:nth-child(3)', 'aria-current')) === 'true');
+  await p.evaluate(() => document.querySelector('[data-opening]')._go(2)); await p.waitForTimeout(900);
+  check('_go(2) → beat 3', (await beat(p)) === 2);
+  const tlh = await p.evaluate(() => { const r = document.querySelector('.vis-tl').getBoundingClientRect(), st = document.querySelector('[data-stage]').getBoundingClientRect(); const sc = r.width / 560; return Math.round(330 * sc / st.height * 100); });
+  check('timeline band ≥ 55 % of stage height', tlh >= 55, tlh + '%');
   const tl = await p.evaluate(() => ({ nodes: document.querySelectorAll('.tl circle').length, vis: getComputedStyle(document.querySelector('.vis-tl')).visibility }));
   check('timeline: 6 nodes, visible on beat 3', tl.nodes === 6 && tl.vis === 'visible', JSON.stringify(tl));
   await p.evaluate(() => document.activeElement && document.activeElement.blur()); await p.waitForTimeout(800); await p.screenshot({ path: screens + 'v4-open-3.png' });
-  await p.focus('[data-pill]:nth-child(3)'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
-  check('ArrowRight → beat 4', (await beat(p)) === 3);
-  const mp = await p.evaluate(() => { const sec = document.querySelector('[data-opening]'), st = document.querySelector('[data-stage]').getBoundingClientRect(), M = sec._map; const exp = (lon, lat) => [M.x + (lon + 180) / 360 * M.w, M.y + (60 - lat) / 120 * M.h];
+  await p.evaluate(() => document.querySelector('[data-opening]')._go(3)); await p.waitForTimeout(900);
+  check('_go(3) → beat 4', (await beat(p)) === 3);
+  const mp = await p.evaluate(() => { const sec = document.querySelector('[data-opening]'), st = document.querySelector('[data-stage]').getBoundingClientRect(), M = sec._map; const exp = (lon, lat) => [M.x + (lon - M.lon0) / (M.lon1 - M.lon0) * M.w, M.y + (M.lat - lat) / (2 * M.lat) * M.h];
     const cities = { London: [-0.13, 51.5], Manchester: [-2.2, 53.5], Paris: [2.35, 48.85], 'New York': [-74, 40.7], 'San Francisco': [-122.4, 37.8] };
     const off = Object.entries(cities).map(([n, [lo, la]]) => { const e = exp(lo, la), g = sec._pins[n]; return Math.hypot(e[0] - g[0], e[1] - g[1]); });
-    return { maxOff: Math.max(...off), land: { london: sec._land(-0.13, 51.5), tokyo: [-2.2, 0, 2.2].some((a) => [-2.2, 0, 2.2].some((b) => sec._land(139.7 + a, 35.7 + b))), capeTown: sec._land(18.4, -33.9), atlantic: sec._land(-35, 30), sydney: sec._land(151.2, -33.9) }, mapW: M.w, stageW: st.width, cur: sec.dataset.cur }; });
-  check('map pins within 2 px of the equirectangular projection', mp.maxOff <= 2, 'max ' + mp.maxOff.toFixed(2) + ' px');
+    const near = (lo, la) => [-2.2, 0, 2.2].some((a) => [-2.2, 0, 2.2].some((b) => sec._land(lo + a, la + b))) ? 1 : 0; /* 110m coast at 2.2° cells: land within one cell */
+    return { maxOff: Math.max(...off), fill: Math.round(M.h / st.height * 100), land: { london: near(-0.13, 51.5), tokyo: near(139.7, 35.7), capeTown: near(18.4, -33.9), atlantic: near(-35, 30), sydney: near(151.2, -33.9) }, mapW: M.w, stageW: st.width, cur: sec.dataset.cur }; });
+  check('map pins within 2 px of the projection', mp.maxOff <= 2, 'max ' + mp.maxOff.toFixed(2) + ' px');
+  check('map band ≥ 75 % of stage height', mp.fill >= 75, mp.fill + '%');
   check('map geography: London/Tokyo/Cape Town/Sydney land, mid-Atlantic sea', mp.land.london && mp.land.tokyo && mp.land.capeTown && mp.land.sydney && !mp.land.atlantic, JSON.stringify(mp.land));
   await p.waitForTimeout(600);
   const mapPainted = await p.evaluate(() => { const c = document.querySelector('[data-pipe]'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let mint = 0, n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 40) { n++; if (d[i] < 60 && d[i + 1] > 150 && d[i + 2] > 100) mint++; } return { n, mint }; });
@@ -64,8 +68,10 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   check('every headline ≤ 2 lines at 1440', two.every((n) => n <= 2), two.join(','));
   const stg = await p.evaluate(() => { const r = document.querySelector('[data-stage]').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), w: Math.round(r.width) }; });
   check('stage fills the right column (top ≤ 160, bottom ≥ 740)', stg.top <= 160 && stg.bottom >= 740 && stg.w >= 540, JSON.stringify(stg));
-  const rail = await p.evaluate(() => { const r = document.querySelector('.pills').getBoundingClientRect(); return Math.round(innerHeight - r.bottom); });
+  const rail = await p.evaluate(() => { const r = document.querySelector('.opening__cta').getBoundingClientRect(); return Math.round(innerHeight - r.bottom); });
   check('rail 24 px from the bottom edge', rail === 24, rail + 'px');
+  const noPager = await p.evaluate(() => !document.querySelector('[data-pill]') && !document.querySelector('.cue'));
+  check('no pager, no chevron (Jobs cut)', noPager);
   await p.click('[data-start-brief]'); await p.waitForTimeout(1200);
   const sb = await p.evaluate(() => { const r = document.querySelector('[data-brief]').getBoundingClientRect(); return { inView: r.top >= 0 && r.bottom <= innerHeight, focused: document.activeElement === document.querySelector('[data-brief]'), top: Math.round(r.top) }; });
   check('"Start a brief ↓" scrolls the input into view and focuses it', sb.inView && sb.focused, JSON.stringify(sb));
@@ -92,6 +98,8 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   const gap = await p.evaluate(() => Math.round(document.querySelector('[data-pipe]').getBoundingClientRect().top - document.querySelector('.beats').getBoundingClientRect().bottom));
   check('mobile: copy → canvas gap ≤ 80 px', gap >= 0 && gap <= 80, gap + 'px');
   await p.waitForTimeout(4200);
+  const band = await p.evaluate(() => Math.round(document.querySelector('#brief').getBoundingClientRect().top - document.querySelector('.opening__cta').getBoundingClientRect().bottom));
+  check('mobile: band between CTAs and board seam ≤ 80 px (+bar)', band <= 80 + 64, band + 'px incl. 64 px bar');
   const btns = await p.evaluate(() => [...document.querySelectorAll('.opening__cta .btn')].map((e) => Math.round(e.getBoundingClientRect().height)));
   check('mobile CTA buttons single line (44–48 px tall)', btns.every((h) => h >= 44 && h <= 50), btns.join(','));
   await p.screenshot({ path: screens + 'v4-open-mobile.png' });
@@ -103,8 +111,8 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(7200);
   const vis = await p.evaluate(() => [...document.querySelectorAll('[data-beat]')].map((e) => getComputedStyle(e).visibility === 'visible' && +getComputedStyle(e).opacity > .9));
   check('reduced motion: beat 1 only, no auto-advance', vis[0] && !vis[1] && !vis[2] && !vis[3], JSON.stringify(vis));
-  await p.click('[data-pill]:nth-child(2)'); await p.waitForTimeout(200);
-  check('reduced motion: pills still work', (await beat(p)) === 1);
+  await p.evaluate(() => document.querySelector('[data-opening]')._go(1)); await p.waitForTimeout(200);
+  check('reduced motion: _go still switches beats', (await beat(p)) === 1);
   check('reduced-motion console clean', p.errs.length === 0, p.errs.join(' | '));
   await p.context().close();
 }
@@ -113,6 +121,15 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   await p.goto(base, { waitUntil: 'load' });
   const vis = await p.evaluate(() => [...document.querySelectorAll('[data-beat]')].map((e) => getComputedStyle(e).display !== 'none'));
   check('no-JS: beat 1 visible, others hidden', vis[0] && !vis[1] && !vis[2] && !vis[3], JSON.stringify(vis));
+  await p.context().close();
+}
+{ // seam: straight edge between the dark opening and the white board
+  const p = await newPage({ viewport: { width: 1280, height: 800 } });
+  await p.goto(canvas, { waitUntil: 'load' }); await p.waitForTimeout(400);
+  const y = await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; const t = document.querySelector('#brief').getBoundingClientRect().top + scrollY; scrollTo(0, t - 400); return Math.round(document.querySelector('#brief').getBoundingClientRect().top); });
+  await p.waitForTimeout(200); await p.screenshot({ path: screens + 'v4-seam.png', clip: { x: 0, y: y - 120, width: 1280, height: 240 } });
+  const seam = await p.evaluate(() => { const o = document.querySelector('#top').getBoundingClientRect(), b = document.querySelector('#brief').getBoundingClientRect(); return { oBottom: Math.round(o.bottom), bTop: Math.round(b.top), radius: getComputedStyle(document.querySelector('#top')).borderRadius, clip: getComputedStyle(document.querySelector('#top')).clipPath }; });
+  check('straight seam: opening bottom == board top, no radius/clip-path', seam.oBottom === seam.bTop && seam.radius === '0px' && seam.clip === 'none', JSON.stringify(seam));
   await p.context().close();
 }
 { // footage path (only when assets/hero.json says ready)
@@ -128,7 +145,10 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
     check('video path: canvas not running (no repaint)', before === after, before + ' vs ' + after);
     const b4 = await beat(p); await p.waitForTimeout(4300); const b5 = await beat(p);
     check('video path: beats follow the video timeline', b5 !== b4, b4 + ' → ' + b5);
-    await p.mouse.move(-10, -10); await p.screenshot({ path: screens + 'v4-video-frame.png' });
+    await p.mouse.move(-10, -10); const at = async (lo, hi) => { for (let i = 0; i < 300; i++) { const t = await p.evaluate(() => document.querySelector('[data-hero-video]').currentTime); if (t >= lo && t <= hi) return t; await p.waitForTimeout(50); } return -1; }; // python http.server has no Range support, so seek by waiting
+    const t1 = await at(1.6, 3.4); await p.screenshot({ path: screens + 'v4-video-frame.png' });
+    const t4 = await at(10.4, 11.8); await p.screenshot({ path: screens + 'v4-video-frame-4.png' });
+    const vb = await beat(p); check('video frames captured mid beat 1 and mid beat 4 (beats follow video)', t1 > 0 && t4 > 0 && vb === 3, 't=' + t1.toFixed(1) + '/' + t4.toFixed(1) + ' beat ' + vb);
     check('video path console clean', p.errs.length === 0 && p.notFound.length === 0, p.errs.concat(p.notFound).join(' | '));
   } else console.log('skip video path (hero.json ready=false)');
   await p.context().close();

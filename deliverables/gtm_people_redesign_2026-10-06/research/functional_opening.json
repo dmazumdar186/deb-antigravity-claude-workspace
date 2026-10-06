@@ -13,7 +13,7 @@
  },
  "3 frames 700 ms apart differ (canvas painted px / alpha mass)": {
   "ok": true,
-  "info": "[{\"painted\":69033,\"alpha\":4617},{\"painted\":30935,\"alpha\":1827},{\"painted\":28635,\"alpha\":1524}]"
+  "info": "[{\"painted\":77093,\"alpha\":5464},{\"painted\":46703,\"alpha\":2929},{\"painted\":40605,\"alpha\":2161}]"
  },
  "one headline visible per frame": {
   "ok": true,
@@ -21,7 +21,7 @@
  },
  "canvas has non-blank pixels": {
   "ok": true,
-  "info": "69033 painted px"
+  "info": "77093 painted px"
  },
  "beat 1 end state: five cards lit, one lifted + placed tag": {
   "ok": true,
@@ -39,29 +39,37 @@
   "ok": true,
   "info": "2,000+"
  },
- "pill 3 click → beat 3 + aria-current": {
+ "_go(2) → beat 3": {
   "ok": true,
   "info": ""
+ },
+ "timeline band ≥ 55 % of stage height": {
+  "ok": true,
+  "info": "58%"
  },
  "timeline: 6 nodes, visible on beat 3": {
   "ok": true,
   "info": "{\"nodes\":6,\"vis\":\"visible\"}"
  },
- "ArrowRight → beat 4": {
+ "_go(3) → beat 4": {
   "ok": true,
   "info": ""
  },
- "map pins within 2 px of the equirectangular projection": {
+ "map pins within 2 px of the projection": {
   "ok": true,
   "info": "max 0.00 px"
  },
+ "map band ≥ 75 % of stage height": {
+  "ok": true,
+  "info": "77%"
+ },
  "map geography: London/Tokyo/Cape Town/Sydney land, mid-Atlantic sea": {
   "ok": true,
-  "info": "{\"london\":1,\"tokyo\":true,\"capeTown\":1,\"atlantic\":0,\"sydney\":1}"
+  "info": "{\"london\":1,\"tokyo\":1,\"capeTown\":1,\"atlantic\":0,\"sydney\":1}"
  },
  "beat 4 canvas: dot world painted with mint accents": {
   "ok": true,
-  "info": "{\"n\":10093,\"mint\":407}"
+  "info": "{\"n\":9304,\"mint\":670}"
  },
  "header over the dark opening: links contrast ≥ 4.5:1": {
   "ok": true,
@@ -86,6 +94,10 @@
  "rail 24 px from the bottom edge": {
   "ok": true,
   "info": "24px"
+ },
+ "no pager, no chevron (Jobs cut)": {
+  "ok": true,
+  "info": ""
  },
  "\"Start a brief ↓\" scrolls the input into view and focuses it": {
   "ok": true,
@@ -117,7 +129,7 @@
  },
  "mobile: CTA row above the fixed bar": {
   "ok": true,
-  "info": "{\"footBottom\":646,\"barTop\":783}"
+  "info": "{\"footBottom\":766,\"barTop\":783}"
  },
  "opening tap targets ≥ 44 px": {
   "ok": true,
@@ -126,6 +138,10 @@
  "mobile: copy → canvas gap ≤ 80 px": {
   "ok": true,
   "info": "16px"
+ },
+ "mobile: band between CTAs and board seam ≤ 80 px (+bar)": {
+  "ok": true,
+  "info": "78px incl. 64 px bar"
  },
  "mobile CTA buttons single line (44–48 px tall)": {
   "ok": true,
@@ -139,7 +155,7 @@
   "ok": true,
   "info": "[true,false,false,false]"
  },
- "reduced motion: pills still work": {
+ "reduced motion: _go still switches beats": {
   "ok": true,
   "info": ""
  },
@@ -150,6 +166,10 @@
  "no-JS: beat 1 visible, others hidden": {
   "ok": true,
   "info": "[true,false,false,false]"
+ },
+ "straight seam: opening bottom == board top, no radius/clip-path": {
+  "ok": true,
+  "info": "{\"oBottom\":400,\"bTop\":400,\"radius\":\"0px\",\"clip\":\"none\"}"
  },
  "video path: hero.mp4 playing, canvas hidden": {
   "ok": true,
@@ -162,6 +182,10 @@
  "video path: beats follow the video timeline": {
   "ok": true,
   "info": "0 → 2"
+ },
+ "video frames captured mid beat 1 and mid beat 4 (beats follow video)": {
+  "ok": true,
+  "info": "t=1.6/10.4 beat 3"
  },
  "video path console clean": {
   "ok": true,

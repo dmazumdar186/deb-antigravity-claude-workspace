@@ -60,7 +60,7 @@ def pack(cols, rows, grid):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--topo", type=Path, default=ROOT / ".tmp/geo/land-110m.json")
-    ap.add_argument("--step", type=float, default=2.2); ap.add_argument("--lat", type=float, default=60)
+    ap.add_argument("--step", type=float, default=2.2); ap.add_argument("--lat", type=float, default=58)
     ap.add_argument("--write", action="store_true")
     a = ap.parse_args()
     polys = decode(json.loads(a.topo.read_text(encoding="utf-8")))
@@ -76,7 +76,7 @@ def main():
     if a.write:
         js = ROOT / "deliverables/gtm_people_redesign_2026-10-06/site/js/main.js"
         src = js.read_text(encoding="utf-8")
-        new = f"  var DOTMAP = {{ cols: {cols}, rows: {rows}, step: {a.step}, lat: {a.lat}, b64: '{b64}' }};"
+        new = f"  var DOTMAP = {{ cols: {cols}, rows: {rows}, step: {a.step}, lat: {round(rows * a.step / 2, 2)}, b64: '{b64}' }};"
         out, n = re.subn(r"  var DOTMAP = \{.*?\};", new, src, count=1, flags=re.S)
         if not n: print("DOTMAP line not found in main.js"); return 1
         js.write_text(out, encoding="utf-8"); print("main.js DOTMAP updated")

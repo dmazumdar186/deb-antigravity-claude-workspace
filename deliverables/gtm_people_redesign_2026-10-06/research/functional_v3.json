@@ -1,7 +1,7 @@
 {
  "board renders in place on load (ms since navigation)": {
   "ok": true,
-  "info": "448 ms"
+  "info": "429 ms"
  },
  "typewriter demo running on load": {
   "ok": true,
