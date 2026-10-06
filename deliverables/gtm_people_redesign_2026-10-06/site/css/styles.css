@@ -34,7 +34,7 @@ ul{margin:0;padding:0;list-style:none}
 .arrow::after{content:"→";font-weight:700}
 
 /* header */
-.hdr{position:fixed;inset:0 0 auto 0;z-index:50;height:var(--hh);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);background:rgba(255,255,255,.78);border-bottom:1px solid rgba(17,24,39,.06)}
+.hdr{position:fixed;inset:0 0 auto 0;z-index:50;height:var(--hh);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);background:rgba(255,255,255,.96);border-bottom:1px solid rgba(17,24,39,.06)}
 .hdr .wrap{display:flex;align-items:center;gap:16px;height:100%}
 .logo{display:inline-flex;align-items:center;gap:10px;color:var(--pd);min-height:44px}
 .logo img{width:36px;height:36px;border-radius:9px}
@@ -77,9 +77,9 @@ radial-gradient(60% 80% at 100% 0%,var(--pl) 0%,transparent 60%),radial-gradient
 /* panel nav */
 .pnav{position:sticky;top:var(--hh);z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--g200);border-bottom:1px solid var(--g200);height:var(--nh)}
 .pnav .wrap{height:100%}
-.tabs{display:flex;gap:2px;height:100%;align-items:stretch;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs{display:flex;gap:2px;height:100%;align-items:stretch;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scroll-padding-inline:12px}
 .tabs::-webkit-scrollbar{display:none}
-.tabs a{display:inline-flex;align-items:center;gap:6px;padding:0 13px;font-size:14px;font-weight:600;color:var(--g600);white-space:nowrap;border-bottom:2px solid transparent;min-height:44px;flex:0 0 auto}
+.tabs a{display:inline-flex;align-items:center;gap:6px;padding:0 13px;font-size:14px;font-weight:600;color:var(--g600);white-space:nowrap;border-bottom:2px solid transparent;min-height:44px;flex:0 0 auto;scroll-snap-align:start}
 .tabs a:hover{color:var(--pm);background:var(--pll)}
 .tabs a[aria-selected=true]{color:var(--pd);border-bottom-color:var(--p)}
 .tabs a .n{font-size:11px;background:var(--pl);color:var(--pm);border-radius:999px;padding:1px 6px;font-weight:700}
