@@ -13,7 +13,7 @@
  },
  "3 frames 700 ms apart differ (canvas painted px / alpha mass)": {
   "ok": true,
-  "info": "[{\"painted\":77093,\"alpha\":5464},{\"painted\":46703,\"alpha\":2929},{\"painted\":40605,\"alpha\":2161}]"
+  "info": "[{\"painted\":74667,\"alpha\":5379},{\"painted\":47818,\"alpha\":3013},{\"painted\":41672,\"alpha\":2223}]"
  },
  "one headline visible per frame": {
   "ok": true,
@@ -21,7 +21,7 @@
  },
  "canvas has non-blank pixels": {
   "ok": true,
-  "info": "77093 painted px"
+  "info": "74667 painted px"
  },
  "beat 1 end state: five cards lit, one lifted + placed tag": {
   "ok": true,
@@ -29,7 +29,7 @@
  },
  "no frame with two headlines during the 1→2 transition": {
   "ok": true,
-  "info": "max 1 over 43 samples"
+  "info": "max 1 over 44 samples"
  },
  "beats advance after beat 1 (6.5 s)": {
   "ok": true,
@@ -69,7 +69,7 @@
  },
  "beat 4 canvas: dot world painted with mint accents": {
   "ok": true,
-  "info": "{\"n\":9304,\"mint\":670}"
+  "info": "{\"n\":9221,\"mint\":621}"
  },
  "header over the dark opening: links contrast ≥ 4.5:1": {
   "ok": true,

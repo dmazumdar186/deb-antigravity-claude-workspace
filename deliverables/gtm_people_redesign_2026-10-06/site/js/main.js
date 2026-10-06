@@ -487,15 +487,33 @@
   }
   function drawMap(now, p) {
     if (!DOTS.length) return; var i, dr = m ? 1 : 1.25, t = now / 1000;
-    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); for (i = 0; i < DOTS.length; i++) if (!DOTS[i][2]) { ctx.moveTo(DOTS[i][0] + dr, DOTS[i][1]); ctx.arc(DOTS[i][0], DOTS[i][1], dr, 0, TAU); } ctx.fill();
+    var edge = MAP.x + MAP.w - 48; ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); for (i = 0; i < DOTS.length; i++) if (!DOTS[i][2] && DOTS[i][0] <= edge) { ctx.moveTo(DOTS[i][0] + dr, DOTS[i][1]); ctx.arc(DOTS[i][0], DOTS[i][1], dr, 0, TAU); } ctx.fill();
+    for (i = 0; i < DOTS.length; i++) if (!DOTS[i][2] && DOTS[i][0] > edge) { ctx.globalAlpha = Math.max(0, 1 - (DOTS[i][0] - edge) / 48); ctx.beginPath(); ctx.arc(DOTS[i][0], DOTS[i][1], dr, 0, TAU); ctx.fill(); } ctx.globalAlpha = 1; /* soft right edge: dots fade over the last 48 px */
     ctx.fillStyle = '#06D6A0'; ctx.beginPath(); for (i = 0; i < DOTS.length; i++) if (DOTS[i][2]) { ctx.moveTo(DOTS[i][0] + dr, DOTS[i][1]); ctx.arc(DOTS[i][0], DOTS[i][1], dr, 0, TAU); } ctx.fill();
-    var L = sec._pins.London, fs = m ? 10 : 13, pr = m ? 3 : 4; ctx.font = '600 ' + fs + 'px ' + getComputedStyle(sec).fontFamily; ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(6,214,160,.9)';
+    var L = sec._pins.London, fs = m ? 10 : 13, sc = m ? .6 : 1; ctx.font = '600 ' + fs + 'px ' + getComputedStyle(sec).fontFamily; ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(6,214,160,.9)';
+    /* arcs: every arc starts at London; short hops get a small bulge */
     CITIES.forEach(function (c, k) {
-      var q = sec._pins[c[0]];
-      if (k) { var g = ease((p - .08 - (k - 1) * .09) / .35); if (g > 0) { var mx = (L[0] + q[0]) / 2, my = Math.min(L[1], q[1]) - Math.abs(L[0] - q[0]) * .3 - 6; ctx.beginPath(); ctx.moveTo(L[0], L[1]); for (var s = 1; s <= 24; s++) { var u = s / 24 * g, a = 1 - u; ctx.lineTo(a * a * L[0] + 2 * a * u * mx + u * u * q[0], a * a * L[1] + 2 * a * u * my + u * u * q[1]); } ctx.stroke(); } }
+      if (!k) return; var q = sec._pins[c[0]], g = ease((p - .08 - (k - 1) * .09) / .35); if (g <= 0) return;
+      var dx = Math.abs(L[0] - q[0]), mx = (L[0] + q[0]) / 2, my = Math.min(L[1], q[1]) - Math.min(dx * .3, 60) - 4;
+      ctx.beginPath(); ctx.moveTo(L[0], L[1]); for (var s = 1; s <= 24; s++) { var u = s / 24 * g, a = 1 - u; ctx.lineTo(a * a * L[0] + 2 * a * u * mx + u * u * q[0], a * a * L[1] + 2 * a * u * my + u * u * q[1]); } ctx.stroke();
+    });
+    /* pins: UK pair small (6 px) with a dark separator ring; London pulses */
+    var OFF = [[28, 0], [-40, -40], [36, 36], [0, 22], [0, 22]], boxes = [];
+    CITIES.forEach(function (c, k) {
+      var q = sec._pins[c[0]], pr = k < 2 ? 3 : 4;
+      ctx.fillStyle = '#1B0838'; ctx.beginPath(); ctx.arc(q[0], q[1], pr + 1.5, 0, TAU); ctx.fill();
       ctx.fillStyle = k ? '#F5F3FF' : '#06D6A0'; ctx.beginPath(); ctx.arc(q[0], q[1], pr, 0, TAU); ctx.fill();
-      if (!k) { var pu = (t % 2) / 2; ctx.globalAlpha = 1 - pu; ctx.beginPath(); ctx.arc(q[0], q[1], pr + 2 + pu * 14, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
-      var off = [[14, 20, 'left'], [-10, -10, 'right'], [-4, 26, 'center'], [0, 20, 'center'], [0, 20, 'center']][k]; ctx.textAlign = off[2]; ctx.fillStyle = '#F5F3FF'; ctx.fillText(c[0], q[0] + off[0], q[1] + off[1]);
+      if (!k) { var pu = (t % 2) / 2; ctx.globalAlpha = 1 - pu; ctx.beginPath(); ctx.arc(q[0], q[1], pr + 3 + pu * 14, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
+    });
+    /* labels: offset + leader line, nudged 16 px along their own direction until boxes no longer intersect */
+    CITIES.forEach(function (c, k) {
+      var q = sec._pins[c[0]], ox = OFF[k][0] * sc, oy = OFF[k][1] * sc, w = ctx.measureText(c[0]).width, h = fs, bx, by, tries = 0, hit;
+      var place = function () { var lx = q[0] + ox, ly = q[1] + oy; bx = ox > 0 ? lx : ox < 0 ? lx - w : lx - w / 2; by = ly - h / 2; };
+      place();
+      do { hit = boxes.some(function (b) { return bx < b[0] + b[2] + 4 && bx + w + 4 > b[0] && by < b[1] + b[3] + 2 && by + h + 2 > b[1]; }); if (hit) { oy += (oy < 0 ? -16 : 16) * sc; place(); } } while (hit && ++tries < 6);
+      boxes.push([bx, by, w, h]);
+      if (ox || oy) { var ex = ox > 0 ? bx - 3 : ox < 0 ? bx + w + 3 : q[0], ey = ox ? by + h / 2 : (oy > 0 ? by - 2 : by + h + 2); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(q[0], q[1]); ctx.lineTo(ex, ey); ctx.stroke(); ctx.strokeStyle = 'rgba(6,214,160,.9)'; ctx.lineWidth = 1.6; }
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#F5F3FF'; ctx.fillText(c[0], bx, by + h / 2); ctx.textBaseline = 'alphabetic';
     });
   }
   function draw(now) { ctx.clearRect(0, 0, W, H); if (cur < 2) drawPipe(now, acc / DUR[0]); else if (cur === 3) drawMap(now, acc / DUR[3]); }

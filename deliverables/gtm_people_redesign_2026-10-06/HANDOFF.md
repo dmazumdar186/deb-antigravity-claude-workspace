@@ -111,3 +111,23 @@ Sequential beat transitions (260 ms out, 120 ms gap, in). Bottom rail: beat pill
 **Kling / Higgsfield footage (optional).** The opening is footage-ready: drop `hero.mp4` (desktop) and `hero-m.mp4` (mobile) into `site/assets/`, set `"ready": true` in `site/assets/hero.json`, redeploy. Prompts per beat: `research/hero_footage_prompts.md`; generator: `research/generate_hero_footage.py --beat 1..4` (needs `HF_API_TOKEN`, local only, not run).
 
 **Not done.** Ask-Worker still undeployed (needs `ANTHROPIC_API_KEY` in the environment). Full human-eye run on v4 before client release.
+
+## v4.1 — opening reworked after operator feedback (2026-10-06)
+
+Feedback: scroll not smooth, map not real, put the opening on violet, do the footage drop-in without a human. Reviewed through a "Steve Jobs" lens before release.
+
+**Live:** https://gtm-people-redesign.pages.dev/ — board below the opening unchanged (identity diff identical).
+
+| Change | What shipped |
+|---|---|
+| Dark stage | Opening on #1B0838→#3B0764 gradient, white type, mint accents; header turns translucent-dark over it; contrast ≥4.5:1 verified; straight seam into the white board (`screens/v4-seam.png`) |
+| Real map | Natural Earth 110m land (`research/build_dotmap.py` → 1.5 KB inline dot grid), dot-matrix world filling 78 % of stage, pins by true lon/lat (London, Manchester, Paris, NY, SF) with leader-line labels and a collision nudge, all arcs from London, faded right edge |
+| Jobs cuts | Pager dots, chevron and "Remote" ring removed; role cards appear in beat 1 only; beat 2 is counters on a near-black field; rail = "Start a brief ↓" + "Open roles" |
+| Smoothness | Hero stage is now a 12 s H.264 video (WebM for Firefox, JPEG poster) so the 800-particle canvas never runs for visitors; canvas is the fallback (`?canvas=1` forces it). Animation loop pauses when <15 % visible or tab hidden; DPR capped 1.5/1.25; sprite glow; `contain: layout paint`. Headless scroll probe p95 16.8 ms, 0 long frames before and after (`research/scroll_perf.json`); the user-visible win is the video path on real hardware |
+| Footage | Rendered here, no external key: `research/render_hero_video.mjs` drives the opening deterministically (`?record=1`, `window.__tick`) through Chromium → ffmpeg. `assets/hero.mp4` 311 KB, `hero-m.mp4` 299 KB, webm 329/323 KB, `hero.jpg` 39 KB, `hero.json` ready=true |
+
+**Verified.** site_check 0 fails · functional_v3 44/45 (density sampler only) · content probe 135/0 · board diff identical · functional_opening 47/47 (video plays, canvas idle, pins ≤2 px of projection, header contrast, mobile gap) · visual review cool 4.5, clarity 4.5, composition 4, beat 4 "SHIP" · index+css+js 149,588 B.
+
+**Kling / Higgsfield upgrade (optional).** No Kling, Higgsfield, fal or Replicate credential exists in this environment, so the footage is self-rendered. To replace it with generated film: add the provider key to the environment, run `research/generate_hero_footage.py --beat 1..4` with `research/hero_footage_prompts.md`, overwrite `hero.mp4`/`hero-m.mp4`, redeploy. Nothing else changes.
+
+**Not done.** Ask-Worker undeployed (needs `ANTHROPIC_API_KEY`). Full human-eye gate on v4.1 before client release.
