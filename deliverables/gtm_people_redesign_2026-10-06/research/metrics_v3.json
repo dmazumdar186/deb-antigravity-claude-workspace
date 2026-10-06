@@ -1,0 +1,86 @@
+{
+ "snapshot": "2026-10-06",
+ "concept_v3": {
+  "measure": {
+   "desktop": {
+    "scrollHeight": 2857,
+    "screens": 3.2,
+    "visibleWords": 5256,
+    "allWordsInDOM": 7629,
+    "pricingY": 65,
+    "salaryY": 65,
+    "contactY": 65
+   },
+   "mobile": {
+    "scrollHeight": 4553,
+    "screens": 5.4,
+    "visibleWords": 5124,
+    "allWordsInDOM": 7629,
+    "pricingY": 65,
+    "salaryY": 65,
+    "contactY": 65
+   }
+  },
+  "boardHeightDesktop": 1124,
+  "boardHeightMobile": 2412,
+  "defaultPageHeightDesktop": 2857,
+  "defaultPageHeightMobile": 4604,
+  "visibleWordsPerViewport_desktop_1440x900_every400px": {
+   "samples": 5,
+   "max": 432,
+   "median": 287,
+   "mean": 286
+  },
+  "visibleWordsPerViewport_mobile_390x844_every400px": {
+   "samples": 10,
+   "max": 153,
+   "median": 108,
+   "mean": 108
+  },
+  "scrollToFirstMatchingRolePx_after_SeriesA_London_AE": 0,
+  "interactionsToPricing": 0,
+  "pageWeightKB_html_css_js": 113,
+  "thirdPartyScriptHosts": [],
+  "note": "measure.mjs visibleWords counts every leaf element regardless of display (so it includes closed drawers); use the density sampler for visible words.",
+  "functionalChecks": {
+   "ok": 39,
+   "fail": [
+    "desktop density median below v1 deck (224) and live (190)"
+   ]
+  },
+  "pageWeightBytes_html_css_js": 113432,
+  "contentProbe": {
+   "checked": 135,
+   "missing": 0
+  }
+ },
+ "live": {
+  "scrollHeightDesktop": 17828,
+  "scrollHeightMobile": 36490,
+  "wordsRendered": 4373,
+  "visibleWordsPerViewport_desktop": {
+   "median": 190,
+   "max": 392
+  },
+  "pricingY": 8682,
+  "jobsGridY": 4450,
+  "thirdPartyScriptHosts": 3,
+  "pageWeightKB": 1004
+ },
+ "deck_v1": {
+  "scrollHeightDesktop": 1773,
+  "visibleWordsPerViewport_desktop": {
+   "median": 224,
+   "max": 267
+  },
+  "pageWeightKB": 132
+ },
+ "story_v2": {
+  "scrollHeightDesktop": 52167,
+  "scrollHeightMobile": 27515,
+  "visibleWordsPerViewport_desktop": {
+   "median": 35,
+   "max": 295
+  }
+ }
+}

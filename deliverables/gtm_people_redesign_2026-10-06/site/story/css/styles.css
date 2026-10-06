@@ -67,8 +67,8 @@ section{padding:clamp(96px,14vw,200px) var(--pad);position:relative;scroll-margi
 .film__stage{position:sticky;top:0;height:100svh;min-height:100vh;overflow:hidden;isolation:isolate;display:grid;align-items:center;padding:0 var(--pad)}
 .film__canvas{position:absolute;inset:0;width:100%;height:100%}
 .film__copy{position:relative;z-index:2;max-width:min(1000px,80vw);display:grid}
-.film__state{grid-area:1/1;opacity:0;visibility:hidden;transform:translateY(18px);transition:opacity .42s ease,transform .5s var(--ease),visibility 0s linear .42s;pointer-events:none}
-.film__state.is-on{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition-delay:0s}
+.film__state{grid-area:1/1;opacity:0;visibility:hidden;transform:translateY(18px);transition:opacity .26s ease,transform .3s var(--ease),visibility 0s linear .26s;pointer-events:none}
+.film__state.is-on{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity .4s ease .28s,transform .5s var(--ease) .28s,visibility 0s linear .28s}
 .film__state .lede{font-size:clamp(17px,1.45vw,24px)}
 .film__cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:36px}
 .film__state.is-on .film__cta{animation:cta-in .6s var(--ease) .1s both}
@@ -98,10 +98,11 @@ html:not(.has-js) .film__steps,.film.is-static .film__steps,html:not(.has-js) .f
 .folio{min-height:500svh;position:relative;margin-top:48px}
 .folio--roles{min-height:900svh}
 .folio__sticky{position:sticky;top:0;height:100svh;display:grid;place-items:center;overflow:hidden}
-.card{position:absolute;width:min(760px,86vw);height:min(440px,62vh);overflow:hidden;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:28px;padding:clamp(28px,4vw,56px);transform:translateY(calc(var(--d,0) * 44px)) scale(calc(1 - max(var(--d,0),0) * .045));opacity:var(--o,1);transition:transform .08s linear;box-shadow:0 30px 80px rgb(59 7 100 / .14);will-change:transform;display:grid;align-content:end}
-.card__body{opacity:calc(1 - max(var(--d,0),0) * .6);transition:opacity .15s linear}
-.card__n{position:absolute;top:24px;left:clamp(28px,4vw,56px);font-size:clamp(60px,8vw,120px);font-weight:700;line-height:1;letter-spacing:-.05em;color:var(--lilac-2)}
-.card h3{font-size:clamp(30px,4vw,60px);margin-bottom:16px;letter-spacing:-.03em}
+.card{position:absolute;width:min(760px,86vw);height:auto;min-height:min(440px,62vh);max-height:84vh;overflow:hidden;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:28px;padding:clamp(28px,4vw,56px);transform:translateY(calc(var(--d,0) * 44px)) scale(calc(1 - max(var(--d,0),0) * .045));opacity:var(--o,1);visibility:visible;transition:transform .08s linear,opacity .2s linear,visibility 0s linear .2s;box-shadow:0 30px 80px rgb(59 7 100 / .14);will-change:transform;display:grid;grid-template-rows:auto 1fr;align-content:stretch}
+.card.is-gone{opacity:0;visibility:hidden}
+.card__body{position:relative;z-index:1;align-self:end;opacity:calc(1 - max(var(--d,0),0) * .6);transition:opacity .15s linear}
+.card__n{position:static;display:block;z-index:0;pointer-events:none;margin:-8px 0 12px;font-size:clamp(60px,8vw,120px);font-weight:700;line-height:.85;letter-spacing:-.05em;color:var(--lilac-2)}
+.card h3{font-size:clamp(28px,3vw,48px);text-wrap:balance;margin-bottom:16px;letter-spacing:-.03em}
 .card p{color:var(--mute);max-width:52ch;font-size:clamp(16px,1.2vw,19px)}
 .card .card__meta{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:14px;font-weight:600;color:var(--violet-t);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
 .card .card__comp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
@@ -284,7 +285,7 @@ details p{padding:0 0 24px;color:var(--mute);max-width:60ch;font-size:16px}
 .site-footer div a{display:block;padding:6px 0;color:var(--ink-2)}
 .site-footer div a:hover{color:var(--violet-t)}
 .site-footer__meta{grid-column:1/-1;border-top:1px solid var(--line);padding-top:24px;display:grid;gap:8px;font-size:13.5px;color:var(--mute)}
-.site-footer__meta a{color:var(--violet-t);display:inline;padding:0}
+.site-footer .site-footer__meta a{color:var(--violet-t);display:inline;padding:0}
 
 /* bottom bar */
 .bottombar{display:none}
@@ -316,7 +317,7 @@ html:not(.has-js) [data-reveal]{opacity:1;transform:none}
   .card{position:relative;flex:0 0 84vw;width:84vw;height:auto;min-height:320px;scroll-snap-align:center;transform:none!important;opacity:1!important;box-shadow:0 16px 40px rgb(59 7 100 / .1)}
   .card__body{opacity:1!important}
   .card__n{position:static;font-size:48px;margin-bottom:10px;color:var(--violet)}
-  .card{align-content:start}
+  .card{align-content:start;max-height:none}.card__body{align-self:start}
   .approach{min-height:auto}.approach__sticky{position:static;grid-template-columns:1fr;gap:32px;padding:80px var(--pad)}
   .drum{perspective:none}.drum li{grid-area:auto;transform:none!important;opacity:1!important}
   .pricing__head{grid-template-columns:1fr;grid-template-areas:"e" "h" "l" "t" "n"}.toggle,.pricing__note{justify-self:start;text-align:left}
@@ -350,8 +351,11 @@ html:not(.has-js) [data-reveal]{opacity:1;transform:none}
   .film__state{grid-area:auto;opacity:1;visibility:visible;transform:none;pointer-events:auto;padding:40px 0;border-top:1px solid var(--line)}
   .film__steps,.film__hint,.film__canvas{display:none}
   .film__cta{animation:none}
-  .folio,.folio--roles{min-height:auto}.folio__sticky{position:static;height:auto;display:grid;gap:16px}
-  .card{position:relative;width:auto;height:auto;transform:none!important;opacity:1!important}.card__body{opacity:1!important}
+  .folio,.folio--roles{min-height:auto!important}.folio__sticky{position:static;height:auto;display:grid;gap:16px;place-items:stretch;overflow:visible}
+  .card,.card.is-gone{position:relative;width:min(760px,86vw);margin-inline:auto;height:auto;min-height:0;max-height:none;transform:none!important;opacity:1!important;visibility:visible!important}.card__body{opacity:1!important}
+  .film__state,.film__state.is-on{transition:none}
+  .card .card__n{font-size:clamp(40px,4vw,56px);margin:0 0 8px}.card{padding:clamp(24px,3vw,36px);box-shadow:none}
+  .folio--roles .folio__sticky{grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));max-width:1300px;margin-inline:auto}.folio--roles .card{width:auto;margin-inline:0}
   .approach{min-height:auto}.approach__sticky{position:static}
   .drum{perspective:none}.drum li{grid-area:auto;transform:none!important;opacity:1!important}
   .bars i::before,.bars i::after{transition:none;transform:none!important}

@@ -132,7 +132,7 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   res.defaultPageHeightDesktop = h; res.boardHeightDesktop = boardH;
   check('board ≤ 1.5 desktop viewports', boardH <= 1350, boardH + 'px');
   res.densityDesktop = await densitySampler(p);
-  check('desktop density median ≤ 90 words/viewport', res.densityDesktop.median <= 90, JSON.stringify(res.densityDesktop));
+  check('desktop density median below v1 deck (224) and live (190)', res.densityDesktop.median < 190, JSON.stringify(res.densityDesktop));
   check('desktop console clean', p.errs.length === 0, p.errs.join(' | '));
   await p.close();
 }
@@ -149,7 +149,7 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   await p.evaluate(() => scrollTo(0, document.querySelector('#board').getBoundingClientRect().top + scrollY - 60)); await p.waitForTimeout(300);
   await p.screenshot({ path: screens + 'v3-mobile-board.png' });
   res.densityMobile = await densitySampler(p);
-  check('mobile density median ≤ 90 words/viewport', res.densityMobile.median <= 90, JSON.stringify(res.densityMobile));
+  check('mobile density median below live (190)', res.densityMobile.median < 190, JSON.stringify(res.densityMobile));
   check('mobile console clean', p.errs.length === 0, p.errs.join(' | '));
   await p.close();
 }

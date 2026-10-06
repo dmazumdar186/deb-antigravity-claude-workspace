@@ -101,7 +101,7 @@
       const rect = folio.getBoundingClientRect(), p = clamp(-rect.top / (rect.height - innerHeight));
       const idx = p * (cards.length - 1);
       folio.dataset.focus = String(Math.round(idx));
-      cards.forEach((c, k) => { const d = k - idx; c.style.setProperty('--d', Math.max(d, -1.2)); c.style.setProperty('--o', d < -.9 ? 0 : 1); c.style.zIndex = String(100 - Math.round(Math.abs(d) * 10)); });
+      cards.forEach((c, k) => { const d = k - idx; c.style.setProperty('--d', Math.max(d, -1.2)); c.style.setProperty('--o', clamp(1 + d / .6)); c.classList.toggle('is-gone', d < -.9); c.style.zIndex = String(100 - Math.round(Math.abs(d) * 10)); });
     });
   };
 
@@ -152,7 +152,7 @@
       list.innerHTML = rows.length ? rows.map((j, i) => `<article class="card" data-card><span class="card__n">${String(i + 1).padStart(2, '0')}</span><div class="card__body"><p class="card__meta"><span>${esc(j[1])}</span>${j[2] ? `<span>${WORK[j[2]] || esc(j[2])}</span>` : ''}${j[4] ? `<span>${esc(j[4])}</span>` : ''}<span>${esc(j[3])}</span></p><h3>${esc(j[0])}</h3><div class="card__comp"><div><span>Base</span><b>${range(j[5], j[6], j[9])}</b></div><div><span>OTE</span><b>${range(j[7], j[8], j[9])}</b></div></div>${j[10] ? '<p class="card__eq"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>Equity</p>' : ''}</div></article>`).join('')
         : '<article class="card card--empty" data-card><div class="card__body"><h3>No roles match.</h3><p>Try another filter or <a href="#contact">register your interest</a>.</p></div></article>';
       if (count) count.textContent = String(rows.length);
-      const folio = list.closest('[data-folio]'); if (folio) folio.style.minHeight = mobile() ? '' : `${Math.max(3, rows.length) * 100}svh`;
+      const folio = list.closest('[data-folio]'); if (folio) folio.style.minHeight = (mobile() || reduced) ? '' : `${Math.max(3, rows.length) * 100}svh`;
       folioFrame();
     };
     if (filters) filters.addEventListener('click', (e) => {
@@ -160,7 +160,7 @@
       if ('fType' in b.dataset) { fType = b.dataset.fType; $$('[data-f-type]', filters).forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }
       if ('fLoc' in b.dataset) { fLoc = b.dataset.fLoc; $$('[data-f-loc]', filters).forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }
       render();
-      const folio = list.closest('[data-folio]'); if (folio && !mobile() && !reduced) folio.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (!mobile() && !reduced) { const top = filters.getBoundingClientRect().top + scrollY - 84; if (Math.abs(top - scrollY) > 2) scrollTo({ top, behavior: 'auto' }); }
     });
     render();
   }
@@ -170,7 +170,7 @@
   if (tg) tg.addEventListener('click', (e) => {
     const b = e.target.closest('[data-mode]'); if (!b) return;
     $$('[data-mode]', tg).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    $$('[data-price]').forEach((p) => { p.textContent = p.dataset[b.dataset.mode]; });
+    $$('[data-price],[data-year]').forEach((p) => { const v = p.dataset[b.dataset.mode]; if (v != null) p.textContent = v; });
   });
   const fees = $('[data-fees-details]'); if (fees) fees.open = innerWidth >= 1050;
   const calc = $('[data-calc]');

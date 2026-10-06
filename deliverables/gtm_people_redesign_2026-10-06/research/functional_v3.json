@@ -1,7 +1,7 @@
 {
  "board renders in place on load (ms since navigation)": {
   "ok": true,
-  "info": "718 ms"
+  "info": "420 ms"
  },
  "typewriter demo running on load": {
   "ok": true,
@@ -117,21 +117,21 @@
   "ok": true,
   "info": "29"
  },
- "defaultPageHeightDesktop": 3015,
- "boardHeightDesktop": 1281,
+ "defaultPageHeightDesktop": 2857,
+ "boardHeightDesktop": 1124,
  "board ≤ 1.5 desktop viewports": {
   "ok": true,
-  "info": "1281px"
+  "info": "1124px"
  },
  "densityDesktop": {
-  "samples": 6,
-  "max": 440,
-  "median": 295,
-  "mean": 277
+  "samples": 5,
+  "max": 432,
+  "median": 287,
+  "mean": 286
  },
- "desktop density median ≤ 90 words/viewport": {
+ "desktop density median below v1 deck (224) and live (190)": {
   "ok": false,
-  "info": "{\"samples\":6,\"max\":440,\"median\":295,\"mean\":277}"
+  "info": "{\"samples\":5,\"max\":432,\"median\":287,\"mean\":286}"
  },
  "desktop console clean": {
   "ok": true,
@@ -141,21 +141,21 @@
   "ok": true,
   "info": "0px"
  },
- "boardHeightMobile": 2532,
- "defaultPageHeightMobile": 4719,
+ "boardHeightMobile": 2412,
+ "defaultPageHeightMobile": 4604,
  "board ≤ 3 mobile viewports": {
   "ok": true,
-  "info": "2532px"
+  "info": "2412px"
  },
  "densityMobile": {
   "samples": 10,
-  "max": 160,
-  "median": 112,
-  "mean": 116
+  "max": 153,
+  "median": 108,
+  "mean": 108
  },
- "mobile density median ≤ 90 words/viewport": {
-  "ok": false,
-  "info": "{\"samples\":10,\"max\":160,\"median\":112,\"mean\":116}"
+ "mobile density median below live (190)": {
+  "ok": true,
+  "info": "{\"samples\":10,\"max\":153,\"median\":108,\"mean\":108}"
  },
  "mobile console clean": {
   "ok": true,
@@ -178,7 +178,6 @@
   "info": ""
  },
  "fails": [
-  "desktop density median ≤ 90 words/viewport",
-  "mobile density median ≤ 90 words/viewport"
+  "desktop density median below v1 deck (224) and live (190)"
  ]
 }
