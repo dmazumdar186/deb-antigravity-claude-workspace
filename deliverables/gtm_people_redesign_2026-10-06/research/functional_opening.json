@@ -13,7 +13,7 @@
  },
  "3 frames 700 ms apart differ (canvas painted px / alpha mass)": {
   "ok": true,
-  "info": "[{\"painted\":69400,\"alpha\":3083},{\"painted\":38344,\"alpha\":1749},{\"painted\":24946,\"alpha\":1029}]"
+  "info": "[{\"painted\":69033,\"alpha\":4617},{\"painted\":30935,\"alpha\":1827},{\"painted\":28635,\"alpha\":1524}]"
  },
  "one headline visible per frame": {
   "ok": true,
@@ -21,7 +21,7 @@
  },
  "canvas has non-blank pixels": {
   "ok": true,
-  "info": "69400 painted px"
+  "info": "69033 painted px"
  },
  "beat 1 end state: five cards lit, one lifted + placed tag": {
   "ok": true,
@@ -29,7 +29,7 @@
  },
  "no frame with two headlines during the 1→2 transition": {
   "ok": true,
-  "info": "max 1 over 51 samples"
+  "info": "max 1 over 43 samples"
  },
  "beats advance after beat 1 (6.5 s)": {
   "ok": true,
@@ -51,9 +51,21 @@
   "ok": true,
   "info": ""
  },
- "map: ≥10 coastline paths, 4 arcs from London, 5 city labels + remote ring, visible on beat 4": {
+ "map pins within 2 px of the equirectangular projection": {
   "ok": true,
-  "info": "{\"land\":10,\"arcs\":4,\"cities\":6,\"vis\":\"visible\"}"
+  "info": "max 0.00 px"
+ },
+ "map geography: London/Tokyo/Cape Town/Sydney land, mid-Atlantic sea": {
+  "ok": true,
+  "info": "{\"london\":1,\"tokyo\":true,\"capeTown\":1,\"atlantic\":0,\"sydney\":1}"
+ },
+ "beat 4 canvas: dot world painted with mint accents": {
+  "ok": true,
+  "info": "{\"n\":10093,\"mint\":407}"
+ },
+ "header over the dark opening: links contrast ≥ 4.5:1": {
+  "ok": true,
+  "info": "{\"over\":true,\"ratio\":16.82}"
  },
  "hover pauses the sequence": {
   "ok": true,
@@ -105,7 +117,7 @@
  },
  "mobile: CTA row above the fixed bar": {
   "ok": true,
-  "info": "{\"footBottom\":652,\"barTop\":783}"
+  "info": "{\"footBottom\":646,\"barTop\":783}"
  },
  "opening tap targets ≥ 44 px": {
   "ok": true,
@@ -113,7 +125,7 @@
  },
  "mobile: copy → canvas gap ≤ 80 px": {
   "ok": true,
-  "info": "20px"
+  "info": "16px"
  },
  "mobile CTA buttons single line (44–48 px tall)": {
   "ok": true,
@@ -138,6 +150,22 @@
  "no-JS: beat 1 visible, others hidden": {
   "ok": true,
   "info": "[true,false,false,false]"
+ },
+ "video path: hero.mp4 playing, canvas hidden": {
+  "ok": true,
+  "info": "{\"has\":true,\"playing\":true,\"src\":\"hero.webm\",\"poster\":\"hero.jpg\",\"vis\":\"visible\",\"canvasVis\":\"hidden\"}"
+ },
+ "video path: canvas not running (no repaint)": {
+  "ok": true,
+  "info": "10000 vs 10000"
+ },
+ "video path: beats follow the video timeline": {
+  "ok": true,
+  "info": "0 → 2"
+ },
+ "video path console clean": {
+  "ok": true,
+  "info": ""
  },
  "fails": []
 }

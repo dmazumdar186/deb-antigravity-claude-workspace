@@ -1,0 +1,30 @@
+{
+ "before": {
+  "desktop": {
+   "frames": 150,
+   "p95": 16.8,
+   "mean": 16.7,
+   "long": 0
+  },
+  "mobile": {
+   "frames": 149,
+   "p95": 16.7,
+   "mean": 16.7,
+   "long": 0
+  }
+ },
+ "after": {
+  "desktop": {
+   "frames": 138,
+   "p95": 16.8,
+   "mean": 16.7,
+   "long": 0
+  },
+  "mobile": {
+   "frames": 139,
+   "p95": 16.8,
+   "mean": 16.7,
+   "long": 0
+  }
+ }
+}
