@@ -1,0 +1,142 @@
+{
+ "snapshot": "2026-10-06",
+ "concept_v2": {
+  "measure": {
+   "desktop": {
+    "scrollHeight": 52167,
+    "screens": 58,
+    "visibleWords": 2773,
+    "allWordsInDOM": 3410,
+    "pricingY": 0,
+    "salaryY": 0,
+    "contactY": 0
+   },
+   "mobile": {
+    "scrollHeight": 27515,
+    "screens": 32.6,
+    "visibleWords": 2760,
+    "allWordsInDOM": 3410,
+    "pricingY": 0,
+    "salaryY": 0,
+    "contactY": 0
+   }
+  },
+  "sections": 14,
+  "visibleWordsPerViewport_desktop_1440x900_every400px": {
+   "samples": 129,
+   "max": 295,
+   "median": 35,
+   "mean": 61
+  },
+  "visibleWordsPerViewport_mobile_390x844": {
+   "samples": 67,
+   "max": 173,
+   "median": 63,
+   "mean": 67
+  },
+  "tallestParagraphBlockPx": 348,
+  "pageWeightKB": 152,
+  "requests": 7,
+  "thirdPartyScripts": 0,
+  "bytes": {
+   "index.html": 42971,
+   "styles.css": 27689,
+   "main.js": 18802
+  }
+ },
+ "deck_v1": {
+  "visibleWordsPerViewport_desktop": {
+   "samples": 3,
+   "max": 267,
+   "median": 224,
+   "mean": 213
+  },
+  "pageWeightKB": 132
+ },
+ "live": {
+  "sections": 11,
+  "visibleWordsPerViewport_desktop": {
+   "samples": 43,
+   "max": 392,
+   "median": 190,
+   "mean": 188
+  },
+  "tallestParagraphBlockPx": 420,
+  "pageWeightKB": 1004,
+  "requests": 41,
+  "thirdPartyScriptHosts": [
+   "static.cloudflareinsights.com",
+   "www.googletagmanager.com",
+   "cdn.jsdelivr.net"
+  ],
+  "scrollHeightDesktop": 17828,
+  "scrollHeightMobile": 36490,
+  "wordsRendered": 4384
+ },
+ "functional": {
+  "hero state changes 0\u219240%\u219280%": {
+   "ok": true,
+   "info": "Specialist early-stage SaaS recruiters\n  | Screen & qualify\n        Screened agains | Offer & close\n        One hire. Backed b"
+  },
+  "hero canvas draws": {
+   "ok": true,
+   "info": "97 sampled non-transparent px"
+  },
+  "folio focuses card 5 of 9 at mid-scroll": {
+   "ok": true,
+   "info": "focus index 4"
+  },
+  "drum shows step 4 at ~60%": {
+   "ok": true,
+   "info": "step 4, visible 4"
+  },
+  "roles filter London \u2192 11": {
+   "ok": true,
+   "info": "11"
+  },
+  "roles filter Sales count": {
+   "ok": true,
+   "info": "14"
+  },
+  "pricing toggle \u2192 \u00a3750/\u00a31,500/\u00a33,750/\u00a38,500": {
+   "ok": true,
+   "info": "\u00a3750 \u00a31,500 \u00a33,750 \u00a38,500"
+  },
+  "calculator \u00a3100k + Unicorn \u2192 \u00a315,000 vs \u00a330,000": {
+   "ok": true,
+   "info": "\u00a315,000 vs \u00a330,000"
+  },
+  "FAQ one open by default, click opens another": {
+   "ok": true,
+   "info": "1 \u2192 2"
+  },
+  "form shows \"Concept \u2014 not wired\"": {
+   "ok": true,
+   "info": "Concept \u2014 not wired"
+  },
+  "median visible words per viewport \u2264 90": {
+   "ok": true,
+   "info": "median 35, max 295"
+  },
+  "desktop console clean": {
+   "ok": true,
+   "info": ""
+  },
+  "reduced-motion: all 6 hero states stacked + readable": {
+   "ok": true,
+   "info": "{\"readable\":6,\"stacked\":true,\"pinned\":\"relative\"}"
+  },
+  "reduced-motion console clean": {
+   "ok": true,
+   "info": ""
+  },
+  "no horizontal overflow at 390": {
+   "ok": true,
+   "info": "0px"
+  },
+  "mobile console clean": {
+   "ok": true,
+   "info": ""
+  }
+ }
+}

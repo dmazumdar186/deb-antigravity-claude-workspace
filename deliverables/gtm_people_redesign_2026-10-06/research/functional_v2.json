@@ -1,0 +1,94 @@
+{
+ "hero state changes 0→40%→80%": {
+  "ok": true,
+  "info": "Specialist early-stage SaaS recruiters\n  | Screen & qualify\n        Screened agains | Offer & close\n        One hire. Backed b"
+ },
+ "hero canvas draws": {
+  "ok": true,
+  "info": "97 sampled non-transparent px"
+ },
+ "folio focuses card 5 of 9 at mid-scroll": {
+  "ok": true,
+  "info": "focus index 4"
+ },
+ "drum shows step 4 at ~60%": {
+  "ok": true,
+  "info": "step 4, visible 4"
+ },
+ "roles filter London → 11": {
+  "ok": true,
+  "info": "11"
+ },
+ "roles filter Sales count": {
+  "ok": true,
+  "info": "14"
+ },
+ "pricing toggle → £750/£1,500/£3,750/£8,500": {
+  "ok": true,
+  "info": "£750 £1,500 £3,750 £8,500"
+ },
+ "calculator £100k + Unicorn → £15,000 vs £30,000": {
+  "ok": true,
+  "info": "£15,000 vs £30,000"
+ },
+ "FAQ one open by default, click opens another": {
+  "ok": true,
+  "info": "1 → 2"
+ },
+ "form shows \"Concept — not wired\"": {
+  "ok": true,
+  "info": "Concept — not wired"
+ },
+ "sections": 14,
+ "densityDesktop": {
+  "samples": 129,
+  "max": 295,
+  "median": 35,
+  "mean": 61
+ },
+ "median visible words per viewport ≤ 90": {
+  "ok": true,
+  "info": "median 35, max 295"
+ },
+ "longestParagraphPx": 272,
+ "desktop console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "reduced-motion: all 6 hero states stacked + readable": {
+  "ok": true,
+  "info": "{\"readable\":6,\"stacked\":true,\"pinned\":\"relative\"}"
+ },
+ "reduced-motion console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "no horizontal overflow at 390": {
+  "ok": true,
+  "info": "0px"
+ },
+ "densityMobile": {
+  "samples": 67,
+  "max": 173,
+  "median": 63,
+  "mean": 67
+ },
+ "mobile console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "densityLive": {
+  "samples": 43,
+  "max": 392,
+  "median": 190,
+  "mean": 188
+ },
+ "liveSections": 11,
+ "liveLongestParagraphPx": 140,
+ "densityDeck": {
+  "samples": 3,
+  "max": 267,
+  "median": 224,
+  "mean": 213
+ }
+}

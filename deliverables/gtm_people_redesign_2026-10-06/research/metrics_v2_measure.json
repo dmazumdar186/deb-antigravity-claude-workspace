@@ -1,0 +1,20 @@
+{
+ "desktop": {
+  "scrollHeight": 52167,
+  "screens": 58,
+  "visibleWords": 2773,
+  "allWordsInDOM": 3410,
+  "pricingY": 0,
+  "salaryY": 0,
+  "contactY": 0
+ },
+ "mobile": {
+  "scrollHeight": 27515,
+  "screens": 32.6,
+  "visibleWords": 2760,
+  "allWordsInDOM": 3410,
+  "pricingY": 0,
+  "salaryY": 0,
+  "contactY": 0
+ }
+}
