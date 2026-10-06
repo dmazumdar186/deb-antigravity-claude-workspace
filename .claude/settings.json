@@ -164,6 +164,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/jev-router.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "disabledMcpjsonServers": [

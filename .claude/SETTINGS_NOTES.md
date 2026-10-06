@@ -347,3 +347,20 @@ Files changed by this sweep (scope excluded CLAUDE.md/AGENTS.md/GEMINI.md, `.cla
   the CLI, not the MCP). claude.ai connectors (Gmail, Calendar, Drive, Claude Docs) are attached at
   https://claude.ai/customize/connectors and cannot be changed from inside a session: keep only GitHub on
   the coding environment.
+
+### 2026-10-06 — Jev-routed tiers (Sonnet 5.5 / Opus 5.5 / Fable 5.1)
+
+- Supersedes "Fable 5.1 only" (2026-09-21). Jev (`directives/infrastructure/jev.md`, `/jev on`) routes each
+  prompt to a tier: `claude-sonnet-5-5` / `anthropic/claude-sonnet-5.5` (bulk), `claude-opus-5-5` /
+  `anthropic/claude-opus-5.5` (standard), `claude-fable-5-1` / `anthropic/claude-fable-5.1` (judgement; still
+  the session default and `CLAUDE_CODE_SUBAGENT_MODEL`). Haiku stays banned. Effort `low` on all three.
+- `model_registry.LAST_KNOWN_GOOD` gains a `bulk` tier (Sonnet 5.5), `default` → Opus 5.5, `premium` stays
+  Fable 5.1; `_ADDITIONAL_KNOWN` lists the new IDs; `_FAMILY_RANK_DEFAULT` = opus > sonnet, `_FAMILY_RANK_BULK`
+  = sonnet. `model_router` `opus`/`sonnet` aliases → Opus 5.5 / Sonnet 5.5. `llm_client.DEFAULT_EFFORT` covers
+  all three families (default model stays Fable 5.1). `_TEMPLATE*.py` modes: cheap/balanced/premium = Sonnet 5.5
+  / Opus 5.5 / Fable 5.1. CLAUDE.md (+ AGENTS/GEMINI mirrors), `token-economy.md` §2, `sub-agent-delegation.md`.
+- `.claude/settings.json` untouched (session model + subagent default remain Fable 5.1, effort low).
+
+**Revert (one line):** `git revert <this commit>` — or set `LAST_KNOWN_GOOD` `default`/`bulk` back to
+`claude-fable-5-1` / `anthropic/claude-fable-5.1` and the `opus`/`sonnet` router aliases to Fable 5.1, then
+re-run `tests/test_model_tier_*.py`.

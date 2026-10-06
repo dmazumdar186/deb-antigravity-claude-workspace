@@ -10,10 +10,11 @@
 - Keep the prefix byte-stable: cache reads are cheap only while nothing before them changes. Batch edits to CLAUDE.md, rules and settings; a model switch, MCP toggle or CLAUDE.md edit misses the cache for every open session.
 - Hooks: only SessionStart / UserPromptSubmit stdout enters context. Keep `session-start.sh` small. PostToolUse stdout on exit 0 is discarded (free, but does nothing).
 
-## 2. Model doctrine — Fable 5.1 only, effort low (2026-09-21)
+## 2. Model doctrine — Jev-routed tiers, effort low (2026-10-06)
 
-- One model everywhere: `claude-fable-5-1` for the session, every sub-agent (`CLAUDE_CODE_SUBAGENT_MODEL`), workflows, audit lenses and both `model_registry` tiers. One effort everywhere: `low` (`effortLevel` + `modelSettings` in settings.json, `effort: low` on every agent, `llm_client.default_effort()` on API calls). No medium, no other model, unless the operator names one for a task.
-- Why this is the cheap shape: one model means one cache namespace, cache reads at $0.25/MTok, and low effort means fewer tool calls and less preamble per turn. Fable cannot disable thinking; thinking bills as output, so never put it in a tight poll loop.
+- Three tiers, chosen per prompt by the `/jev on` router (`directives/infrastructure/jev.md`) or a script's `--mode`: `claude-sonnet-5-5` (bulk: search, reformat, lookups, per-row work), `claude-opus-5-5` (standard: routine coding/writing, implementation from a plan), `claude-fable-5-1` (judgement: the session, architecture, debugging, audits). Fable stays the session default and `CLAUDE_CODE_SUBAGENT_MODEL`; `model_registry` tiers are `bulk`/`default`/`premium`. Haiku stays banned; pin full IDs, never aliases. Supersedes "Fable 5.1 only" (2026-09-21).
+- One effort everywhere: `low` (`effortLevel` + `modelSettings` in settings.json, `effort: low` on every agent, `llm_client.default_effort()` on API calls for all three families). No medium unless the operator names it for a task.
+- Why this is the cheap shape: cheaper tiers take the mechanical volume, one effort level means fewer tool calls and less preamble per turn, and the judgement model's prefix stays cache-warm. Fable cannot disable thinking; thinking bills as output, so never put it in a tight poll loop.
 
 ## 3. Work-splitting — small units, fresh contexts
 

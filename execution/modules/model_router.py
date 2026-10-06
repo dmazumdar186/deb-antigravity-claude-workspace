@@ -48,11 +48,12 @@ ALIASES: dict[str, _Alias] = {
     # 2026-08-27: `fable` is the judgement tier. `opus` stays selectable but is no
     # longer what the premium tier resolves to.
     # 2026-09-01: fable-5 -> fable-5.1 (premium tier migration).
-    # 2026-09-21: `opus` and `sonnet` both resolve to claude-fable-5-1 (workers moved
-    # Sonnet/Opus -> Fable 5.1; the alias names survive for callers' back-compat).
+    # 2026-09-21: `opus` and `sonnet` both resolved to claude-fable-5-1.
+    # 2026-10-06: Jev-routed tiers — `sonnet` = Sonnet 5.5 (bulk), `opus` = Opus 5.5
+    # (standard), `fable` = Fable 5.1 (judgement). Haiku stays banned.
     "fable":   _Alias("anthropic", "claude-fable-5-1",   "anthropic/claude-fable-5.1",   "sensitive_ok"),
-    "opus":    _Alias("anthropic", "claude-fable-5-1",     "anthropic/claude-fable-5.1",     "sensitive_ok"),
-    "sonnet":  _Alias("anthropic", "claude-fable-5-1",     "anthropic/claude-fable-5.1",     "sensitive_ok"),
+    "opus":    _Alias("anthropic", "claude-opus-5-5",    "anthropic/claude-opus-5.5",    "sensitive_ok"),
+    "sonnet":  _Alias("anthropic", "claude-sonnet-5-5",  "anthropic/claude-sonnet-5.5",  "sensitive_ok"),
     # --- OpenAI ---
     "gpt4o":   _Alias("openai",    "gpt-4o",             "openai/gpt-4o",                "sensitive_ok"),
     "gpt":     _Alias("openai",    "gpt-4o",             "openai/gpt-4o",                "sensitive_ok"),  # convenience

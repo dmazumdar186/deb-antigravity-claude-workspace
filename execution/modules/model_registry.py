@@ -62,14 +62,25 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
     # claude-fable-5-1 / anthropic/claude-fable-5.1 with effort low everywhere.
     # Fable 5, Sonnet 5 and Opus 5 are no longer tier targets anywhere; their
     # pricing rows stay in the cost tables for historical transcripts only.
-    "anthropic": {"default": "claude-fable-5-1", "premium": "claude-fable-5-1"},
+    # 2026-10-06: Jev-routed tiers. Jev picks a tier per prompt, so three tiers:
+    #   bulk    = claude-sonnet-5-5  (mechanical: search, reformat, lookups, per-row)
+    #   default = claude-opus-5-5    (standard: routine coding/writing, impl from plan)
+    #   premium = claude-fable-5-1   (judgement: session default, architecture, audits)
+    # Haiku stays banned. Effort low everywhere. Full IDs only, never aliases.
+    "anthropic": {
+        "bulk": "claude-sonnet-5-5",
+        "default": "claude-opus-5-5",
+        "premium": "claude-fable-5-1",
+    },
     "gemini": {"default": "gemini-2.5-flash"},
     "openrouter": {
         # Fix 14 — OR catalog uses dots for the 4.x series (4.6, 4.7), not
         # dashes (4-6, 4-7). The 5-series has no minor version, so the slug is
         # plain `claude-sonnet-5`; Fable 5.1 is `claude-fable-5.1`. Verified against
         # OR's live catalog 2026-09-01.
-        "default": "anthropic/claude-fable-5.1",
+        # 2026-10-06: bulk/default/premium = Sonnet 5.5 / Opus 5.5 / Fable 5.1.
+        "bulk":    "anthropic/claude-sonnet-5.5",
+        "default": "anthropic/claude-opus-5.5",
         "premium": "anthropic/claude-fable-5.1",
         "gemini":  "google/gemini-2.5-pro",  # for OR-only setup, Gemini tier via OR
         # GLM 5.2 — Z.AI's flagship open model, ~$1/M input tokens via OR.
@@ -93,12 +104,16 @@ LAST_KNOWN_GOOD: dict[str, dict[str, str]] = {
 # 2026-08-12. Add here BEFORE adding to model_router.ALIASES, never after.
 # ---------------------------------------------------------------------------
 _ADDITIONAL_KNOWN: frozenset[str] = frozenset({
-    # Anthropic — Opus 5 stopped being a tier target on 2026-08-27 and Sonnet 5 on
-    # 2026-09-21; both `opus` and `sonnet` router aliases now resolve to Fable 5.1,
-    # which is already a LAST_KNOWN_GOOD value. Listed explicitly so the alias
-    # stays known even if the default tier moves again.
+    # Anthropic — 2026-10-06: `fable`/`opus`/`sonnet` router aliases resolve to
+    # Fable 5.1 / Opus 5.5 / Sonnet 5.5 (the Jev tier targets). All three are
+    # LAST_KNOWN_GOOD values; listed explicitly so each alias stays known even
+    # if a tier moves again. Haiku is never listed: banned.
     "claude-fable-5-1",
     "anthropic/claude-fable-5.1",
+    "claude-opus-5-5",
+    "anthropic/claude-opus-5.5",
+    "claude-sonnet-5-5",
+    "anthropic/claude-sonnet-5.5",
     # OpenAI — router exposes these as `gpt` / `gpt4o` / `o1`
     "gpt-4o",
     "o1",
@@ -185,7 +200,8 @@ _ANTHROPIC_RE = re.compile(
 )
 
 _FAMILY_RANK_PREMIUM = ["fable", "opus", "sonnet"]  # no haiku rung: banned (model-tier.md)
-_FAMILY_RANK_DEFAULT = ["fable", "sonnet"]  # 2026-09-21: Fable (5.1) first; no haiku rung: banned (model-tier.md)
+_FAMILY_RANK_DEFAULT = ["opus", "sonnet"]  # 2026-10-06: default = Opus 5.5 (Jev standard tier); no haiku rung: banned
+_FAMILY_RANK_BULK = ["sonnet"]  # 2026-10-06: bulk = Sonnet 5.5 (Jev bulk tier); no haiku rung: banned
 
 
 def _resolve_anthropic(tier: str) -> tuple[str, str | None]:
@@ -218,7 +234,7 @@ def _resolve_anthropic(tier: str) -> tuple[str, str | None]:
         else:
             unmatched.append((model_id, created_at))
 
-    family_rank = _FAMILY_RANK_PREMIUM if tier == "premium" else _FAMILY_RANK_DEFAULT
+    family_rank = {"premium": _FAMILY_RANK_PREMIUM, "bulk": _FAMILY_RANK_BULK}.get(tier, _FAMILY_RANK_DEFAULT)
 
     for preferred_family in family_rank:
         candidates = [
@@ -493,16 +509,21 @@ def _resolve_openrouter(tier: str) -> tuple[str, str | None]:
                 return model_id, created_iso
 
     # ---------------------------------------------------------------------------
-    # Default ladder: fable > sonnet > gpt-4o-mini > gemini-2.5-flash (no Haiku rung: banned)
+    # Default ladder: opus > sonnet > gpt-4o-mini > gemini-2.5-flash (no Haiku rung: banned)
     # 2026-09-21: Fable rung added first (execution tier moved to Fable 5.1).
+    # 2026-10-06: Jev tiers — default = Opus 5.5 (standard); bulk = Sonnet 5.5 ladder.
     # ---------------------------------------------------------------------------
-    elif tier in ("default", "gemini"):
+    elif tier in ("default", "bulk", "gemini"):
         for picker, label in [
-            (lambda p: _best_claude_family(_OR_CLAUDE_FABLE_RE, p),  "claude-fable-*"),
+            (lambda p: _best_claude_family(_OR_CLAUDE_OPUS_RE, p),   "claude-opus-*"),
             (lambda p: _best_claude_family(_OR_CLAUDE_SONNET_RE, p), "claude-sonnet-*"),
             (lambda p: _best_match(_OR_GPT4O_MINI_RE, p),            "gpt-4o-mini"),
             (lambda p: _best_match(_OR_GEMINI25FLASH_RE, p),         "gemini-2.5-flash"),
         ] if tier == "default" else [
+            (lambda p: _best_claude_family(_OR_CLAUDE_SONNET_RE, p), "claude-sonnet-*"),
+            (lambda p: _best_match(_OR_GPT4O_MINI_RE, p),            "gpt-4o-mini"),
+            (lambda p: _best_match(_OR_GEMINI25FLASH_RE, p),         "gemini-2.5-flash"),
+        ] if tier == "bulk" else [
             # For 'gemini' sub-tier: prefer gemini-2.5-pro specifically
             (lambda p: _best_match(_OR_GEMINI25PRO_RE, p),           "gemini-2.5-pro"),
             (lambda p: _best_match(_OR_GEMINI3_RE, p),               "gemini-3*"),

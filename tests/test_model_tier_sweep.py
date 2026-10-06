@@ -28,6 +28,13 @@ sys.path.insert(0, str(EXEC / "gtm_client_workflows" / "gaia_sourcing"))
 JUDGEMENT = "claude-fable-5-1"
 JUDGEMENT_OR = "anthropic/claude-fable-5.1"
 EXECUTION = "claude-fable-5-1"  # 2026-09-21 (later): every tier is Fable 5.1, effort low
+# 2026-10-06: Jev-routed tiers at the registry/router/template layer. Per-script
+# tier maps (gaia, humanizer, crm sync, ai_opener, ...) still hard-code Fable 5.1
+# for `balanced` and are left alone; only the templates follow the three-tier map.
+STANDARD = "claude-opus-5-5"
+STANDARD_OR = "anthropic/claude-opus-5.5"
+BULK = "claude-sonnet-5-5"
+BULK_OR = "anthropic/claude-sonnet-5.5"
 
 
 def _module_dict(path: Path, name: str) -> dict:
@@ -44,6 +51,16 @@ def _module_dict(path: Path, name: str) -> dict:
 @pytest.mark.parametrize("rel, key", [
     ("_TEMPLATE.py", "MODE_TO_MODEL"),
     ("_TEMPLATE_autoresearch.py", "MODE_TO_MUTATOR_MODEL"),
+])
+def test_template_modes_follow_jev_tiers(rel, key):
+    d = _module_dict(EXEC / rel, key)
+    assert d["premium"] == JUDGEMENT, (rel, d)
+    assert d["balanced"] == STANDARD, (rel, d)
+    assert d["cheap"] == BULK, (rel, d)
+    assert "haiku" not in " ".join(d.values())
+
+
+@pytest.mark.parametrize("rel, key", [
     ("templates/crm_integration/sync.py", "MODE_TO_MODEL"),
     ("personalization/ai_opener_generator.py", "MODE_TO_MODEL_ANTHROPIC"),
 ])
@@ -105,9 +122,13 @@ def test_gaia_fable_pricing_in_eur():
 def test_registry_premium_is_fable_and_router_agrees():
     from modules import model_registry as R, model_router as T  # noqa: PLC0415
     assert R.LAST_KNOWN_GOOD["anthropic"]["premium"] == JUDGEMENT
-    assert R.LAST_KNOWN_GOOD["anthropic"]["default"] == EXECUTION
+    assert R.LAST_KNOWN_GOOD["anthropic"]["default"] == STANDARD
+    assert R.LAST_KNOWN_GOOD["anthropic"]["bulk"] == BULK
     assert R.LAST_KNOWN_GOOD["openrouter"]["premium"] == JUDGEMENT_OR
-    assert R.LAST_KNOWN_GOOD["openrouter"]["default"] == JUDGEMENT_OR
+    assert R.LAST_KNOWN_GOOD["openrouter"]["default"] == STANDARD_OR
+    assert R.LAST_KNOWN_GOOD["openrouter"]["bulk"] == BULK_OR
+    assert T.ALIASES["opus"].native_model == STANDARD and T.ALIASES["sonnet"].native_model == BULK
+    assert "haiku" not in " ".join(R.KNOWN_MODEL_IDS)
     assert T.validate_against_registry() == []
 
 

@@ -26,11 +26,14 @@ Category map (identical subfolders for `directives/` and `execution/`): **`direc
 5. **No HITL, ever (operator standing order, 2026-09-10).** Never ask the operator to do, decide, approve, or paste anything until every option is exhausted: run the commands, gates, migrations and pushes yourself; pick the sensible default and state it; retry, route around, or build the missing piece. Ask only when the action is irreversible and outside the request, or only the operator holds the input (a credential, a client's answer); batch the ask and keep working. After every completed unit of work: run the audit stack, commit, and push (branch and main) with admin rights assumed. **Permissions are pre-granted (2026-09-21):** `.claude/settings.json` runs `defaultMode: bypassPermissions`; commits, pushes, PRs, installs, deploys and tests need no prompt. If a prompt still appears, the fix is a settings rule, never a question to the operator.
 6. **Token economy** — main context stays lean; delegate; low effort everywhere. Full rule: `.claude/rules/token-economy.md`.
 
-## Models — Fable 5.1 only, effort low (set 2026-09-21)
+## Models — Jev-routed tiers (set 2026-10-06)
 
-- **Every context runs `claude-fable-5-1` at `effort: low`**: the session, all sub-agents, Dynamic Workflow workers, audit lenses, and execution scripts' default and premium tiers. No other model or effort level is used unless the operator names one for a task. Enforced by `effortLevel`/`modelSettings` and `CLAUDE_CODE_SUBAGENT_MODEL` in `.claude/settings.json`, `effort: low` frontmatter on every agent, and `llm_client.default_effort()`.
-- The brain still does **not** grind: exploration, implementation from an approved plan, scraping, formatting and fan-out go to worker sub-agents with a complete brief; every main-session token is a judgement token. Keep the auto-loaded prefix byte-stable so cache reads ($0.25/MTok) stay cheap.
-- Sonnet, Opus, Haiku and Fable 5 are retired here. Pin the full ID, never an alias. History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, `model_registry.LAST_KNOWN_GOOD` resolves both tiers to Fable 5.1.
+- **Three tiers, effort `low` everywhere, Haiku banned.** `/jev on` (`directives/infrastructure/jev.md`) runs Jev as a per-prompt router that picks the tier; a directive's `--mode` does the same for scripts. Pin full IDs, never aliases:
+  - `claude-sonnet-5-5` (OR `anthropic/claude-sonnet-5.5`) — **bulk/fast**: search, reformat, lookups, bulk per-row work.
+  - `claude-opus-5-5` (OR `anthropic/claude-opus-5.5`) — **standard**: routine coding and writing, sub-agent implementation from a plan.
+  - `claude-fable-5-1` (OR `anthropic/claude-fable-5.1`) — **judgement**: the main session, architecture, debugging, audits, anything ambiguous. Session default and `CLAUDE_CODE_SUBAGENT_MODEL` default.
+- The brain still does **not** grind: exploration, implementation from an approved plan, scraping, formatting and fan-out go to worker sub-agents with a complete brief; every main-session token is a judgement token. Keep the auto-loaded prefix byte-stable so cache reads stay cheap.
+- Supersedes "Fable 5.1 only" (2026-09-21). History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, `model_registry.LAST_KNOWN_GOOD` maps `bulk`/`default`/`premium` to the three tiers.
 
 ## Sub-agents & parallelism
 
