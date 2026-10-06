@@ -1,7 +1,7 @@
 {
  "board renders in place on load (ms since navigation)": {
   "ok": true,
-  "info": "680 ms"
+  "info": "935 ms"
  },
  "typewriter demo running on load": {
   "ok": true,
@@ -17,15 +17,15 @@
  },
  "first three tiles start ≤ 620 px from top": {
   "ok": true,
-  "info": "349px"
+  "info": "348px"
  },
  "hero + summary + 3 tiles within 900 px": {
   "ok": true,
-  "info": "tiles end at 767px"
+  "info": "tiles end at 766px"
  },
  "px of scroll to first matching role = 0": {
   "ok": true,
-  "info": "first role top at 503px of 900"
+  "info": "first role top at 502px of 900"
  },
  "scrollToFirstRolePx": 0,
  "Market rate shows Account Executive £55k–£90k": {
@@ -133,21 +133,21 @@
   "ok": true,
   "info": "29"
  },
- "defaultPageHeightDesktop": 2350,
+ "defaultPageHeightDesktop": 3185,
  "boardHeightDesktop": 770,
  "board ≤ 1.5 desktop viewports": {
   "ok": true,
   "info": "770px"
  },
  "densityDesktop": {
-  "samples": 4,
-  "max": 237,
-  "median": 227,
-  "mean": 198
+  "samples": 6,
+  "max": 229,
+  "median": 179,
+  "mean": 155
  },
  "desktop density median ≤ 150 words/viewport": {
   "ok": false,
-  "info": "{\"samples\":4,\"max\":237,\"median\":227,\"mean\":198}"
+  "info": "{\"samples\":6,\"max\":229,\"median\":179,\"mean\":155}"
  },
  "desktop console clean": {
   "ok": true,
@@ -158,24 +158,24 @@
   "info": "0px"
  },
  "boardHeightMobile": 1711,
- "defaultPageHeightMobile": 3703,
+ "defaultPageHeightMobile": 4430,
  "board ≤ 3 mobile viewports": {
   "ok": true,
   "info": "1711px"
  },
  "mobile hero + first tile within 844 px": {
   "ok": true,
-  "info": "756px"
+  "info": "703px"
  },
  "densityMobile": {
-  "samples": 8,
-  "max": 109,
-  "median": 98,
-  "mean": 96
+  "samples": 9,
+  "max": 99,
+  "median": 89,
+  "mean": 85
  },
  "mobile density median ≤ 150 words/viewport": {
   "ok": true,
-  "info": "{\"samples\":8,\"max\":109,\"median\":98,\"mean\":96}"
+  "info": "{\"samples\":9,\"max\":99,\"median\":89,\"mean\":85}"
  },
  "mobile console clean": {
   "ok": true,

@@ -41,6 +41,8 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   check('typewriter stops on focus', stopped);
   const r1 = await roles(p);
   check('Series A London AE → London AE roles', r1.includes('Founding Client Partner') && r1.includes('Sales Executive') && r1.every((t) => !/New York|Paris|San Francisco/.test(t)), r1.length + ' roles: ' + r1.join(' | '));
+  // v4: a one-viewport brand opening sits above the brief; measure the board from the brief section, as before the opening existed
+  await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; const s = document.querySelector('#brief'); if (s) scrollTo(0, s.getBoundingClientRect().top + scrollY - 64); }); await p.waitForTimeout(150);
   const tilesTop = await p.evaluate(() => Math.round(document.querySelector('[data-tiles]').getBoundingClientRect().top));
   check('first three tiles start ≤ 620 px from top', tilesTop <= 620, tilesTop + 'px');
   const tilesBottom = await p.evaluate(() => Math.round(document.querySelector('[data-tiles]').getBoundingClientRect().bottom));
@@ -156,7 +158,7 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   const boardH = await p.evaluate(() => Math.round(document.querySelector('#board').getBoundingClientRect().height));
   res.boardHeightMobile = boardH; res.defaultPageHeightMobile = await p.evaluate(() => document.documentElement.scrollHeight);
   check('board ≤ 3 mobile viewports', boardH <= 3 * 844, boardH + 'px');
-  const firstTile = await p.evaluate(() => Math.round(document.querySelector('#t-roles').getBoundingClientRect().bottom + scrollY));
+  const firstTile = await p.evaluate(() => { const s = document.querySelector('#brief'); return Math.round(document.querySelector('#t-roles').getBoundingClientRect().bottom - (s ? s.getBoundingClientRect().top - 64 : -scrollY)); });
   check('mobile hero + first tile within 844 px', firstTile <= 844, firstTile + 'px');
   await p.evaluate(() => scrollTo(0, document.querySelector('#board').getBoundingClientRect().top + scrollY - 60)); await p.waitForTimeout(300);
   await p.screenshot({ path: screens + 'v3-mobile-board.png' });

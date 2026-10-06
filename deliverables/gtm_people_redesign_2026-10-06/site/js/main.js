@@ -399,3 +399,93 @@
   syncModeChips(); syncStage();
   if (!fromHash()) { renderBoard(); typewriter(); }
 })();
+
+/* v4 opening (2nd IIFE). Footage: no src on <video>; boot GETs assets/hero.json (shipped) and only "ready":true plays it. */
+(function () {
+  var sec = document.querySelector('[data-opening]'); if (!sec) return;
+  var $ = function (s, c) { return (c || sec).querySelector(s); }, $$ = function (s, c) { return Array.prototype.slice.call((c || sec).querySelectorAll(s)); };
+  var mq = function (q) { return !!(window.matchMedia && window.matchMedia(q).matches); };
+  var reduced = mq('(prefers-reduced-motion: reduce)'), T = 3400, TAU = Math.PI * 2;
+  var beats = $$('[data-beat]'), pills = $$('[data-pill]'); if (!beats.length) return;
+  var cur = 0, acc = 0, last = 0, raf = 0, paused = false, onScreen = true;
+  var ease = function (k) { return k < 0 ? 0 : k > 1 ? 1 : 1 - Math.pow(1 - k, 3); }, lerp = function (a, b, k) { return a + (b - a) * k; };
+
+  var fmt = function (n, suf) { return (n >= 1000 ? n.toLocaleString('en-GB') : String(n)) + suf; };
+  function counters() {
+    $$('[data-count]').forEach(function (el) {
+      var to = +el.dataset.count, suf = el.dataset.suffix || '', t0 = 0;
+      if (reduced) { el.textContent = fmt(to, suf); return; }
+      (function step(now) { if (!t0) t0 = now; var k = ease((now - t0) / 1300); el.textContent = fmt(Math.round(to * k), suf); if (k < 1 && cur === 1) requestAnimationFrame(step); else el.textContent = fmt(to, suf); })(performance.now());
+    });
+  }
+  function go(i) {
+    cur = (i + beats.length) % beats.length; acc = 0;
+    beats.forEach(function (b, k) { b.classList.toggle('is-on', k === cur); });
+    pills.forEach(function (p, k) { p.setAttribute('aria-current', k === cur ? 'true' : 'false'); p.style.setProperty('--p', k < cur ? '1' : '0'); });
+    if (cur === 1) counters();
+  }
+  pills.forEach(function (p, k) {
+    p.addEventListener('click', function () { go(k); });
+    p.addEventListener('keydown', function (e) { var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return; e.preventDefault(); go(cur + d); pills[cur].focus(); });
+  });
+  sec.addEventListener('mouseenter', function () { paused = true; }); sec.addEventListener('mouseleave', function () { paused = false; });
+  sec.addEventListener('focusin', function () { paused = true; }); sec.addEventListener('focusout', function () { paused = false; });
+
+  /* pipeline canvas: dots drift, funnel, five mint, one lands + ring; one cycle per beat */
+  var cv = $('[data-pipe]'), ctx = cv && cv.getContext ? cv.getContext('2d') : null, W = 0, H = 0, dots = [], C = {}, NK = {}, R = 0, FY = 0, LY = 0, FX0 = 0;
+  function seed() {
+    var m = W < 800, N = m ? 110 : 300; dots = [];
+    C = { x: W * (m ? .72 : .76), y: H * (m ? .3 : .3) }; R = Math.min(W * (m ? .3 : .19), H * .26);
+    NK = { x: C.x, y: H * .58 }; FY = H * .7; LY = H * .84; FX0 = C.x - 68;
+    for (var i = 0; i < N; i++) { var a = Math.random() * TAU, r = R * Math.sqrt(Math.random()); dots.push({ x0: Math.cos(a) * r, y0: Math.sin(a) * r * .8, s: .4 + Math.random() * .6, ph: Math.random() * TAU, nx: (Math.random() - .5) * 18, ny: (Math.random() - .5) * 40, f: i < 5 ? i : -1 }); }
+  }
+  function size() { if (!ctx) return; var d = Math.min(2, window.devicePixelRatio || 1); W = sec.clientWidth; H = sec.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); seed(); }
+  function draw(now) {
+    var p = acc / T, t = now / 1000, i, d, x, y, k, a, r, col;
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(124,58,237,.14)'; ctx.lineWidth = 1.5; ctx.beginPath();
+    ctx.moveTo(C.x - R, C.y + R * .5); ctx.lineTo(NK.x - 16, NK.y); ctx.moveTo(C.x + R, C.y + R * .5); ctx.lineTo(NK.x + 16, NK.y); ctx.stroke();
+    for (i = 0; i < dots.length; i++) {
+      d = dots[i]; a = .42; r = 2.2; col = '#7C3AED';
+      var cx = C.x + d.x0 + Math.sin(t * d.s + d.ph) * 7, cy = C.y + d.y0 + Math.cos(t * d.s * .8 + d.ph) * 7;
+      if (p < .3) { x = cx; y = cy; }
+      else if (p < .56) { k = ease((p - .3) / .26); x = lerp(cx, NK.x + d.nx, k); y = lerp(cy, NK.y + d.ny, k); if (d.f < 0) a *= 1 - k; r = 2.2 - k * .6; }
+      else if (d.f < 0) continue;
+      else if (p < .74) { k = ease((p - .56) / .18); x = lerp(NK.x + d.nx, FX0 + d.f * 34, k); y = lerp(NK.y + d.ny, FY, k); col = k > .4 ? '#06D6A0' : '#7C3AED'; r = 2 + 2.4 * k; a = .5 + .45 * k; }
+      else {
+        x = FX0 + d.f * 34; y = FY; col = '#06D6A0'; r = 4.4; a = .95;
+        if (d.f === 2) { k = ease((p - .74) / .14); y = lerp(FY, LY, k); r = 4.4 + 2 * k; if (p > .88) { var q = (p - .88) / .12; ctx.beginPath(); ctx.arc(x, LY, 9 + q * 36, 0, TAU); ctx.strokeStyle = 'rgba(6,214,160,' + (1 - q) * .8 + ')'; ctx.lineWidth = 2; ctx.stroke(); } }
+        else a = .95 - .55 * ease((p - .74) / .14);
+      }
+      ctx.globalAlpha = a; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function frame(now) {
+    raf = 0; if (!last) last = now; var dt = Math.min(64, now - last); last = now;
+    if (!paused && !reduced) { acc += dt; if (acc >= T) go(cur + 1); if (pills[cur]) pills[cur].style.setProperty('--p', (acc / T).toFixed(3)); }
+    if (ctx) draw(now);
+    if (onScreen && !document.hidden && !reduced) raf = requestAnimationFrame(frame); else last = 0;
+  }
+  function start() { if (!raf && onScreen && !document.hidden) raf = requestAnimationFrame(frame); }
+  size(); window.addEventListener('resize', size);
+  document.addEventListener('visibilitychange', start);
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { onScreen = es[0].isIntersecting; start(); }, { threshold: 0 }).observe(sec);
+  if (reduced && ctx) draw(0); else start();
+
+  var brief = document.getElementById('brief'), input = document.querySelector('[data-brief]');
+  function toBrief(e) { e.preventDefault(); if (!brief) return; brief.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' }); if (input) input.focus({ preventScroll: true }); }
+  var sb = $('[data-start-brief]'); if (sb) sb.addEventListener('click', toBrief);
+  var br = $('[data-browse-roles]'); if (br) br.addEventListener('click', function (e) { var look = document.querySelector('[data-nav-mode="looking"]'); if (look) look.click(); toBrief(e); if (input) input.blur(); });
+
+  var vid = $('[data-hero-video]'), src = vid && vid.querySelector('source');
+  if (vid && src && window.fetch && !reduced && !mq('(prefers-reduced-data: reduce)') && /^https?:/.test(location.protocol)) {
+    try {
+      fetch('assets/hero.json',).then(function (r) { return r.ok ? r.json() : null; }).then(function (m) {
+        if (!m || !m.ready) return;
+        var file = 'assets/' + ((window.innerWidth < 800 && m.portrait) || m.landscape || 'hero.mp4');
+        vid.src = file; var pl = vid.play(); (pl && pl.then ? pl : Promise.resolve()).then(function () { sec.classList.add('has-video'); }).catch(function () {});
+      }).catch(function () {});
+    } catch (err) { /* no footage */ }
+  }
+})();

@@ -1,0 +1,99 @@
+{
+ "opening is exactly one viewport at 1440×900": {
+  "ok": true,
+  "info": "{\"top\":0,\"h\":900,\"briefTop\":900,\"vh\":900}"
+ },
+ "board (brief section) starts right after the opening": {
+  "ok": true,
+  "info": "900 vs 900"
+ },
+ "beat 1 on at load": {
+  "ok": true,
+  "info": ""
+ },
+ "beats advance by 3.6 s+": {
+  "ok": true,
+  "info": "beat 1"
+ },
+ "counters count up to 2,000+": {
+  "ok": true,
+  "info": "2,000+"
+ },
+ "canvas has non-blank pixels": {
+  "ok": true,
+  "info": "1857 painted px"
+ },
+ "pill 3 click → beat 3 + aria-current": {
+  "ok": true,
+  "info": ""
+ },
+ "ArrowRight → beat 4": {
+  "ok": true,
+  "info": ""
+ },
+ "hover pauses the sequence": {
+  "ok": true,
+  "info": "beat 3"
+ },
+ "resumes after hover → beat 1": {
+  "ok": true,
+  "info": "beat 0"
+ },
+ "\"Start a brief ↓\" scrolls the input into view and focuses it": {
+  "ok": true,
+  "info": "{\"inView\":true,\"focused\":true,\"top\":166}"
+ },
+ "\"Browse open roles\" switches to Looking and scrolls to the brief": {
+  "ok": true,
+  "info": "{\"looking\":true,\"y\":828,\"briefTop\":72}"
+ },
+ "header has \"Why us\" → #top": {
+  "ok": true,
+  "info": ""
+ },
+ "no 4xx responses (incl. hero.mp4)": {
+  "ok": true,
+  "info": ""
+ },
+ "desktop console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "opening is one viewport at 390×844, board right after": {
+  "ok": true,
+  "info": "{\"top\":0,\"h\":844,\"briefTop\":844,\"vh\":844,\"ov\":0}"
+ },
+ "no horizontal overflow at 390": {
+  "ok": true,
+  "info": "0px"
+ },
+ "mobile: CTA row above the fixed bar": {
+  "ok": true,
+  "info": "{\"footBottom\":740,\"barTop\":783}"
+ },
+ "opening tap targets ≥ 44 px": {
+  "ok": true,
+  "info": ""
+ },
+ "mobile console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "reduced motion: beat 1 only, no auto-advance": {
+  "ok": true,
+  "info": "[true,false,false,false]"
+ },
+ "reduced motion: pills still work": {
+  "ok": true,
+  "info": ""
+ },
+ "reduced-motion console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "no-JS: beat 1 visible, others hidden": {
+  "ok": true,
+  "info": "[true,false,false,false]"
+ },
+ "fails": []
+}
