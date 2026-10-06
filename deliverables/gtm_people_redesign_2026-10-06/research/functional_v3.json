@@ -1,0 +1,184 @@
+{
+ "board renders in place on load (ms since navigation)": {
+  "ok": true,
+  "info": "718 ms"
+ },
+ "typewriter demo running on load": {
+  "ok": true,
+  "info": ""
+ },
+ "typewriter stops on focus": {
+  "ok": true,
+  "info": ""
+ },
+ "Series A London AE → London AE roles": {
+  "ok": true,
+  "info": "3 roles: Sales Executive | Founding GTM | Founding Client Partner"
+ },
+ "px of scroll to first matching role = 0": {
+  "ok": true,
+  "info": "first role top at 582px of 900"
+ },
+ "scrollToFirstRolePx": 0,
+ "Market rate shows Account Executive £55k – £90k": {
+  "ok": true,
+  "info": "Account Executive · £55k – £90k base · OTE £110k – £180k"
+ },
+ "Your fee recommends Scaleup": {
+  "ok": true,
+  "info": "Recommended: Scaleup"
+ },
+ "interactionsToPricing": 0,
+ "interactions to pricing ≤ 1": {
+  "ok": true,
+  "info": "0 (fee tile in first viewport)"
+ },
+ "calculator £100k + Unicorn → £15,000 vs £30,000": {
+  "ok": true,
+  "info": "£15,000 with us vs £30,000 at a typical 30 %-of-OTE agency"
+ },
+ "fee tile opens in place with fine print, only one open": {
+  "ok": true,
+  "info": ""
+ },
+ "roles tile opens, fee tile closes (one at a time)": {
+  "ok": true,
+  "info": ""
+ },
+ "\"All 25\" chip lists 25 roles": {
+  "ok": true,
+  "info": "25"
+ },
+ "role titles unobstructed (no numeral overlap)": {
+  "ok": true,
+  "info": "0 obstructed"
+ },
+ "SDR Seed New York → New York roles (closest 3) + SDR/BDR row + Launchpad": {
+  "ok": true,
+  "info": "No exact match — closest 3 · Strategic Account Manager / Engagement Manager | Full-Stack Software Engineer | Senior DevOps Engineer · SDR / BDR · £28k – £45k base · OTE £45k  · Recommended: Launchpad"
+ },
+ "closest 3 are all New York": {
+  "ok": true,
+  "info": ""
+ },
+ "Looking mode reorders tiles": {
+  "ok": true,
+  "info": "roles,rate,howyou,jsb,pcand,contact"
+ },
+ "Looking: roles carry Apply / Register interest": {
+  "ok": true,
+  "info": "3"
+ },
+ "stage dial Series C → Unicorn": {
+  "ok": true,
+  "info": "Recommended: Unicorn · brief=\"SDR  New York, Series C\""
+ },
+ "25 role dots, matched ones highlighted": {
+  "ok": true,
+  "info": "{\"n\":25,\"hit\":3}"
+ },
+ "share link writes #b=…&m=…": {
+  "ok": true,
+  "info": "#b=RevOps%2C%20Series%20A&m=hiring"
+ },
+ "#b= link restores the board": {
+  "ok": true,
+  "info": "RevOps, Series A · RevOps Manager · £55k – £80k base · OTE £65k – £95"
+ },
+ "#pricing opens the fee tile": {
+  "ok": true,
+  "info": ""
+ },
+ "#contact opens the Next step tile with the form": {
+  "ok": true,
+  "info": ""
+ },
+ "form → \"Concept — not wired\"": {
+  "ok": true,
+  "info": "Concept — not wired. On the live site this reaches Ian within one working day."
+ },
+ "form stage pre-filled from brief": {
+  "ok": true,
+  "info": "Series A"
+ },
+ "deep-link page console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "Agency view shows a source footnote on every tile": {
+  "ok": true,
+  "info": "7 footnotes"
+ },
+ "all Everything-index drawers open with content": {
+  "ok": true,
+  "info": "specialisms:192 how:428 jobs:1798 about:270 why-taas:102 taas:277 salary-guide:154 faq:484 insights:96 partners:863 founder:11 contact-info:125 legal:36"
+ },
+ "partners drawer lists 28 + \"Your logo here?\"": {
+  "ok": true,
+  "info": "29"
+ },
+ "defaultPageHeightDesktop": 3015,
+ "boardHeightDesktop": 1281,
+ "board ≤ 1.5 desktop viewports": {
+  "ok": true,
+  "info": "1281px"
+ },
+ "densityDesktop": {
+  "samples": 6,
+  "max": 440,
+  "median": 295,
+  "mean": 277
+ },
+ "desktop density median ≤ 90 words/viewport": {
+  "ok": false,
+  "info": "{\"samples\":6,\"max\":440,\"median\":295,\"mean\":277}"
+ },
+ "desktop console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "no horizontal overflow at 390": {
+  "ok": true,
+  "info": "0px"
+ },
+ "boardHeightMobile": 2532,
+ "defaultPageHeightMobile": 4719,
+ "board ≤ 3 mobile viewports": {
+  "ok": true,
+  "info": "2532px"
+ },
+ "densityMobile": {
+  "samples": 10,
+  "max": 160,
+  "median": 112,
+  "mean": 116
+ },
+ "mobile density median ≤ 90 words/viewport": {
+  "ok": false,
+  "info": "{\"samples\":10,\"max\":160,\"median\":112,\"mean\":116}"
+ },
+ "mobile console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "reduced motion: no typewriter, board rendered": {
+  "ok": true,
+  "info": "{\"typing\":false,\"brief\":\"Series A, London, founding AE\",\"tiles\":7}"
+ },
+ "reduced-motion console clean": {
+  "ok": true,
+  "info": ""
+ },
+ "deck/ console clean (comparison cut untouched)": {
+  "ok": true,
+  "info": ""
+ },
+ "story/ console clean (comparison cut untouched)": {
+  "ok": true,
+  "info": ""
+ },
+ "fails": [
+  "desktop density median ≤ 90 words/viewport",
+  "mobile density median ≤ 90 words/viewport"
+ ]
+}

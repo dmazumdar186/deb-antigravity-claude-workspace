@@ -1,0 +1,4 @@
+name = "gtm-people-ask"
+main = "ask.js"
+compatibility_date = "2026-09-01"
+# Secret (never in this file): wrangler secret put ANTHROPIC_API_KEY

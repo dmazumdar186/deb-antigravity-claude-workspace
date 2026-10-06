@@ -1,0 +1,28 @@
+ok   desktop_: nothing hidden after fling
+ok   desktop_: no overflow
+ok   desktop_: all reveals shown
+ok   desktop_: bottom bar clear of CTA
+ok   desktop_: console clean
+ok   pixel7_: nothing hidden after fling
+ok   pixel7_: no overflow
+ok   pixel7_: all reveals shown
+ok   pixel7_: tap targets ok
+ok   pixel7_: inputs ≥16px
+ok   pixel7_: bottom bar clear of CTA
+ok   pixel7_: console clean
+ok   iphone13_: nothing hidden after fling
+ok   iphone13_: no overflow
+ok   iphone13_: all reveals shown
+ok   iphone13_: tap targets ok
+ok   iphone13_: inputs ≥16px
+ok   iphone13_: bottom bar clear of CTA
+ok   iphone13_: console clean
+ok   pixel7-reduced_: nothing hidden after fling
+ok   pixel7-reduced_: no overflow
+ok   pixel7-reduced_: all reveals shown
+ok   pixel7-reduced_: tap targets ok
+ok   pixel7-reduced_: inputs ≥16px
+ok   pixel7-reduced_: bottom bar clear of CTA
+ok   pixel7-reduced_: console clean
+
+PASSED — 0 failure(s). Screenshots: /home/user/deb-antigravity-claude-workspace/deliverables/gtm_people_redesign_2026-10-06/screens
