@@ -1,7 +1,7 @@
 {
  "board renders in place on load (ms since navigation)": {
   "ok": true,
-  "info": "935 ms"
+  "info": "1083 ms"
  },
  "typewriter demo running on load": {
   "ok": true,
@@ -143,11 +143,11 @@
   "samples": 6,
   "max": 229,
   "median": 179,
-  "mean": 155
+  "mean": 157
  },
  "desktop density median ≤ 150 words/viewport": {
   "ok": false,
-  "info": "{\"samples\":6,\"max\":229,\"median\":179,\"mean\":155}"
+  "info": "{\"samples\":6,\"max\":229,\"median\":179,\"mean\":157}"
  },
  "desktop console clean": {
   "ok": true,

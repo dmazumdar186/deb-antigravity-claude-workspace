@@ -16,30 +16,46 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   check('opening is exactly one viewport at 1440×900', geo.top === 0 && geo.h === geo.vh, JSON.stringify(geo));
   check('board (brief section) starts right after the opening', geo.briefTop === geo.h, geo.briefTop + ' vs ' + geo.h);
   check('beat 1 on at load', (await beat(p)) === 0);
-  await p.mouse.move(5, 895); // off the section? the section fills the viewport; park the mouse outside the window
   await p.mouse.move(-10, -10);
-  await p.screenshot({ path: screens + 'v4-open-1.png' });
-  await p.waitForTimeout(700); await p.screenshot({ path: screens + 'v4-open-motion-a.png' });
-  await p.waitForTimeout(700); await p.screenshot({ path: screens + 'v4-open-motion-b.png' });
-  await p.waitForTimeout(700); await p.screenshot({ path: screens + 'v4-open-motion-c.png' });
-  await p.waitForTimeout(1600);
-  const b2 = await beat(p); check('beats advance by 3.6 s+', b2 === 1, 'beat ' + b2);
-  await p.waitForTimeout(900); await p.screenshot({ path: screens + 'v4-open-2.png' });
+  const lum = () => p.evaluate(() => { const c = document.querySelector('[data-pipe]'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0, a = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 0) { n++; a += d[i]; } return { painted: n, alpha: Math.round(a / 1000) }; });
+  const heads = () => p.evaluate(() => [...document.querySelectorAll('[data-beat]')].filter((e) => { const cs = getComputedStyle(e); return cs.visibility === 'visible' && +cs.opacity > .05; }).length);
+  await p.waitForTimeout(1100); await p.screenshot({ path: screens + 'v4-open-1.png' }); const f1 = await lum(); const h1 = await heads();
+  await p.screenshot({ path: screens + 'v4-open-motion-a.png' });
+  await p.waitForTimeout(700); const f2 = await lum(); const h2 = await heads(); await p.screenshot({ path: screens + 'v4-open-motion-b.png' });
+  await p.waitForTimeout(700); const f3 = await lum(); const h3 = await heads(); await p.screenshot({ path: screens + 'v4-open-motion-c.png' });
+  const differs = (x, y) => Math.abs(x.painted - y.painted) / Math.max(x.painted, y.painted) > .04 || Math.abs(x.alpha - y.alpha) / Math.max(x.alpha, y.alpha) > .04;
+  check('3 frames 700 ms apart differ (canvas painted px / alpha mass)', differs(f1, f2) && differs(f2, f3), JSON.stringify([f1, f2, f3]));
+  check('one headline visible per frame', h1 === 1 && h2 === 1 && h3 === 1, [h1, h2, h3].join(','));
+  check('canvas has non-blank pixels', f1.painted > 2000, f1.painted + ' painted px');
+  await p.waitForTimeout(2600); const cardsLit = await p.evaluate(() => ({ lit: document.querySelectorAll('.card.is-lit').length, up: document.querySelectorAll('.card.is-up').length, placed: document.querySelector('[data-cards]').classList.contains('is-placed') }));
+  check('beat 1 end state: five cards lit, one lifted + placed tag', cardsLit.lit === 5 && cardsLit.up === 1 && cardsLit.placed, JSON.stringify(cardsLit));
+  // transition: poll for ghost text while beat 1 -> 2
+  const seen = []; const tEnd = Date.now() + 2200; while (Date.now() < tEnd) { seen.push(await heads()); await p.waitForTimeout(40); }
+  check('no frame with two headlines during the 1→2 transition', seen.every((n) => n <= 1), 'max ' + Math.max(...seen) + ' over ' + seen.length + ' samples');
+  const b2 = await beat(p); check('beats advance after beat 1 (6.5 s)', b2 === 1, 'beat ' + b2);
+  await p.waitForTimeout(1900); await p.screenshot({ path: screens + 'v4-open-2.png' });
   const counted = await p.evaluate(() => document.querySelector('[data-count="2000"]').textContent);
   check('counters count up to 2,000+', counted === '2,000+', counted);
-  const blank = await p.evaluate(() => { const c = document.querySelector('[data-pipe]'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 0) n++; return n; });
-  check('canvas has non-blank pixels', blank > 500, blank + ' painted px');
-  await p.click('[data-pill]:nth-child(3)'); await p.waitForTimeout(600);
+  await p.click('[data-pill]:nth-child(3)'); await p.waitForTimeout(900);
   check('pill 3 click → beat 3 + aria-current', (await beat(p)) === 2 && (await p.getAttribute('[data-pill]:nth-child(3)', 'aria-current')) === 'true');
-  await p.screenshot({ path: screens + 'v4-open-3.png' });
-  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(600);
+  const tl = await p.evaluate(() => ({ nodes: document.querySelectorAll('.tl circle').length, vis: getComputedStyle(document.querySelector('.vis-tl')).visibility }));
+  check('timeline: 6 nodes, visible on beat 3', tl.nodes === 6 && tl.vis === 'visible', JSON.stringify(tl));
+  await p.evaluate(() => document.activeElement && document.activeElement.blur()); await p.waitForTimeout(800); await p.screenshot({ path: screens + 'v4-open-3.png' });
+  await p.focus('[data-pill]:nth-child(3)'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
   check('ArrowRight → beat 4', (await beat(p)) === 3);
-  await p.screenshot({ path: screens + 'v4-open-4.png' });
-  // hover pauses: mouse is over the section (focus also pauses) — wait longer than a beat
-  await p.mouse.move(700, 300); await p.waitForTimeout(4000);
+  const mp = await p.evaluate(() => ({ land: document.querySelectorAll('.map .land').length, arcs: document.querySelectorAll('.map .arc').length, cities: document.querySelectorAll('.map text').length, vis: getComputedStyle(document.querySelector('.vis-map')).visibility }));
+  check('map: land outlines, 5 arcs, 6 labels, visible on beat 4', mp.land >= 4 && mp.arcs === 5 && mp.cities === 6 && mp.vis === 'visible', JSON.stringify(mp));
+  await p.evaluate(() => document.activeElement && document.activeElement.blur()); await p.mouse.move(700, 300); await p.waitForTimeout(1200); await p.screenshot({ path: screens + 'v4-open-4.png' });
+  await p.waitForTimeout(4200);
   check('hover pauses the sequence', (await beat(p)) === 3, 'beat ' + (await beat(p)));
-  await p.evaluate(() => document.activeElement && document.activeElement.blur()); await p.mouse.move(-10, -10); await p.waitForTimeout(3800);
+  await p.mouse.move(-10, -10); await p.waitForTimeout(4800);
   check('resumes after hover → beat 1', (await beat(p)) === 0, 'beat ' + (await beat(p)));
+  const two = await p.evaluate(() => [...document.querySelectorAll('.beat .display')].map((e) => Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight))));
+  check('every headline ≤ 2 lines at 1440', two.every((n) => n <= 2), two.join(','));
+  const stg = await p.evaluate(() => { const r = document.querySelector('[data-stage]').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), w: Math.round(r.width) }; });
+  check('stage fills the right column (top ≤ 140, bottom ≥ 740)', stg.top <= 140 && stg.bottom >= 740 && stg.w >= 540, JSON.stringify(stg));
+  const rail = await p.evaluate(() => { const r = document.querySelector('.pills').getBoundingClientRect(); return Math.round(innerHeight - r.bottom); });
+  check('rail 24 px from the bottom edge', rail === 24, rail + 'px');
   await p.click('[data-start-brief]'); await p.waitForTimeout(1200);
   const sb = await p.evaluate(() => { const r = document.querySelector('[data-brief]').getBoundingClientRect(); return { inView: r.top >= 0 && r.bottom <= innerHeight, focused: document.activeElement === document.querySelector('[data-brief]'), top: Math.round(r.top) }; });
   check('"Start a brief ↓" scrolls the input into view and focuses it', sb.inView && sb.focused, JSON.stringify(sb));
@@ -59,17 +75,19 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   const geo = await p.evaluate(() => { const o = document.querySelector('#top').getBoundingClientRect(), br = document.querySelector('#brief').getBoundingClientRect(); return { top: Math.round(o.top), h: Math.round(o.height), briefTop: Math.round(br.top), vh: innerHeight, ov: document.documentElement.scrollWidth - innerWidth }; });
   check('opening is one viewport at 390×844, board right after', geo.top === 0 && geo.h === geo.vh && geo.briefTop === geo.h, JSON.stringify(geo));
   check('no horizontal overflow at 390', geo.ov <= 0, geo.ov + 'px');
-  const fit = await p.evaluate(() => { const f = document.querySelector('.opening__foot').getBoundingClientRect(), bar = document.querySelector('.mbar').getBoundingClientRect(); return { footBottom: Math.round(f.bottom), barTop: Math.round(bar.top) }; });
+  const fit = await p.evaluate(() => { const f = document.querySelector('.opening__cta').getBoundingClientRect(), bar = document.querySelector('.mbar').getBoundingClientRect(); return { footBottom: Math.round(f.bottom), barTop: Math.round(bar.top) }; });
   check('mobile: CTA row above the fixed bar', fit.footBottom <= fit.barTop, JSON.stringify(fit));
   const taps = await p.evaluate(() => [...document.querySelectorAll('#top a,#top button')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.width < 44 || r.height < 44); }).map((e) => e.className));
   check('opening tap targets ≥ 44 px', taps.length === 0, taps.join(','));
+  const btns = await p.evaluate(() => [...document.querySelectorAll('.opening__cta .btn')].map((e) => Math.round(e.getBoundingClientRect().height)));
+  check('mobile CTA buttons single line (44–48 px tall)', btns.every((h) => h >= 44 && h <= 50), btns.join(','));
   await p.screenshot({ path: screens + 'v4-open-mobile.png' });
   check('mobile console clean', p.errs.length === 0, p.errs.join(' | '));
   await p.context().close();
 }
 {
   const p = await newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
-  await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(3900);
+  await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(7200);
   const vis = await p.evaluate(() => [...document.querySelectorAll('[data-beat]')].map((e) => getComputedStyle(e).visibility === 'visible' && +getComputedStyle(e).opacity > .9));
   check('reduced motion: beat 1 only, no auto-advance', vis[0] && !vis[1] && !vis[2] && !vis[3], JSON.stringify(vis));
   await p.click('[data-pill]:nth-child(2)'); await p.waitForTimeout(200);

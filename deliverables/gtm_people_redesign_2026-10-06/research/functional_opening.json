@@ -11,7 +11,27 @@
   "ok": true,
   "info": ""
  },
- "beats advance by 3.6 s+": {
+ "3 frames 700 ms apart differ (canvas painted px / alpha mass)": {
+  "ok": true,
+  "info": "[{\"painted\":69743,\"alpha\":2530},{\"painted\":47089,\"alpha\":2042},{\"painted\":27330,\"alpha\":1143}]"
+ },
+ "one headline visible per frame": {
+  "ok": true,
+  "info": "1,1,1"
+ },
+ "canvas has non-blank pixels": {
+  "ok": true,
+  "info": "69743 painted px"
+ },
+ "beat 1 end state: five cards lit, one lifted + placed tag": {
+  "ok": true,
+  "info": "{\"lit\":5,\"up\":1,\"placed\":true}"
+ },
+ "no frame with two headlines during the 1→2 transition": {
+  "ok": true,
+  "info": "max 1 over 51 samples"
+ },
+ "beats advance after beat 1 (6.5 s)": {
   "ok": true,
   "info": "beat 1"
  },
@@ -19,17 +39,21 @@
   "ok": true,
   "info": "2,000+"
  },
- "canvas has non-blank pixels": {
-  "ok": true,
-  "info": "1857 painted px"
- },
  "pill 3 click → beat 3 + aria-current": {
   "ok": true,
   "info": ""
  },
+ "timeline: 6 nodes, visible on beat 3": {
+  "ok": true,
+  "info": "{\"nodes\":6,\"vis\":\"visible\"}"
+ },
  "ArrowRight → beat 4": {
   "ok": true,
   "info": ""
+ },
+ "map: land outlines, 5 arcs, 6 labels, visible on beat 4": {
+  "ok": true,
+  "info": "{\"land\":5,\"arcs\":5,\"cities\":6,\"vis\":\"visible\"}"
  },
  "hover pauses the sequence": {
   "ok": true,
@@ -38,6 +62,18 @@
  "resumes after hover → beat 1": {
   "ok": true,
   "info": "beat 0"
+ },
+ "every headline ≤ 2 lines at 1440": {
+  "ok": true,
+  "info": "2,2,2,2"
+ },
+ "stage fills the right column (top ≤ 140, bottom ≥ 740)": {
+  "ok": true,
+  "info": "{\"top\":123,\"bottom\":783,\"w\":605}"
+ },
+ "rail 24 px from the bottom edge": {
+  "ok": true,
+  "info": "24px"
  },
  "\"Start a brief ↓\" scrolls the input into view and focuses it": {
   "ok": true,
@@ -69,11 +105,15 @@
  },
  "mobile: CTA row above the fixed bar": {
   "ok": true,
-  "info": "{\"footBottom\":740,\"barTop\":783}"
+  "info": "{\"footBottom\":766,\"barTop\":783}"
  },
  "opening tap targets ≥ 44 px": {
   "ok": true,
   "info": ""
+ },
+ "mobile CTA buttons single line (44–48 px tall)": {
+  "ok": true,
+  "info": "44,44"
  },
  "mobile console clean": {
   "ok": true,

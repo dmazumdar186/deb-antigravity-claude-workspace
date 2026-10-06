@@ -405,9 +405,9 @@
   var sec = document.querySelector('[data-opening]'); if (!sec) return;
   var $ = function (s, c) { return (c || sec).querySelector(s); }, $$ = function (s, c) { return Array.prototype.slice.call((c || sec).querySelectorAll(s)); };
   var mq = function (q) { return !!(window.matchMedia && window.matchMedia(q).matches); };
-  var reduced = mq('(prefers-reduced-motion: reduce)'), T = 3400, TAU = Math.PI * 2;
-  var beats = $$('[data-beat]'), pills = $$('[data-pill]'); if (!beats.length) return;
-  var cur = 0, acc = 0, last = 0, raf = 0, paused = false, onScreen = true;
+  var reduced = mq('(prefers-reduced-motion: reduce)'), TAU = Math.PI * 2, DUR = [6500, 4200, 4200, 4200];
+  var beats = $$('[data-beat]'), pills = $$('[data-pill]'), stage = $('[data-stage]'), cardsBox = $('[data-cards]'), cards = $$('[data-card]'); if (!beats.length) return;
+  var cur = 0, acc = 0, last = 0, raf = 0, paused = false, onScreen = true, busy = 0;
   var ease = function (k) { return k < 0 ? 0 : k > 1 ? 1 : 1 - Math.pow(1 - k, 3); }, lerp = function (a, b, k) { return a + (b - a) * k; };
 
   var fmt = function (n, suf) { return (n >= 1000 ? n.toLocaleString('en-GB') : String(n)) + suf; };
@@ -415,63 +415,92 @@
     $$('[data-count]').forEach(function (el) {
       var to = +el.dataset.count, suf = el.dataset.suffix || '', t0 = 0;
       if (reduced) { el.textContent = fmt(to, suf); return; }
-      (function step(now) { if (!t0) t0 = now; var k = ease((now - t0) / 1300); el.textContent = fmt(Math.round(to * k), suf); if (k < 1 && cur === 1) requestAnimationFrame(step); else el.textContent = fmt(to, suf); })(performance.now());
+      el.textContent = fmt(0, suf);
+      (function step(now) { if (!t0) t0 = now; var k = ease((now - t0) / 1400); el.textContent = fmt(Math.round(to * k), suf); if (k < 1 && cur === 1) requestAnimationFrame(step); else el.textContent = fmt(to, suf); })(performance.now());
     });
   }
+  function setCards(lit, up) { cards.forEach(function (c, k) { c.classList.toggle('is-lit', k < lit); c.classList.toggle('is-up', up && k === 2); }); if (cardsBox) cardsBox.classList.toggle('is-placed', !!up); }
+  function show(n) { beats[n].classList.add('is-on'); sec.dataset.cur = n; if (n === 1) { setCards(5, false); setTimeout(function () { if (cur === 1) counters(); }, 450); } if (n === 0) setCards(0, false); }
   function go(i) {
-    cur = (i + beats.length) % beats.length; acc = 0;
-    beats.forEach(function (b, k) { b.classList.toggle('is-on', k === cur); });
-    pills.forEach(function (p, k) { p.setAttribute('aria-current', k === cur ? 'true' : 'false'); p.style.setProperty('--p', k < cur ? '1' : '0'); });
-    if (cur === 1) counters();
+    var n = (i + beats.length) % beats.length, tok = ++busy, out = beats[cur]; cur = n; acc = 0;
+    pills.forEach(function (p, k) { p.setAttribute('aria-current', k === n ? 'true' : 'false'); p.style.setProperty('--p', k < n ? '1' : '0'); });
+    beats.forEach(function (b) { if (b !== out) b.classList.remove('is-on', 'is-out'); });
+    out.classList.add('is-out');
+    setTimeout(function () { out.classList.remove('is-on', 'is-out'); if (tok !== busy) return; setTimeout(function () { if (tok === busy) show(n); }, reduced ? 0 : 120); }, reduced ? 0 : 260);
   }
   pills.forEach(function (p, k) {
-    p.addEventListener('click', function () { go(k); });
+    p.addEventListener('click', function () { if (k !== cur) go(k); });
     p.addEventListener('keydown', function (e) { var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return; e.preventDefault(); go(cur + d); pills[cur].focus(); });
   });
-  sec.addEventListener('mouseenter', function () { paused = true; }); sec.addEventListener('mouseleave', function () { paused = false; });
-  sec.addEventListener('focusin', function () { paused = true; }); sec.addEventListener('focusout', function () { paused = false; });
+  var hov = false, foc = false, upd = function () { paused = hov || foc; };
+  sec.addEventListener('mouseenter', function () { hov = true; upd(); }); sec.addEventListener('mouseleave', function () { hov = false; upd(); });
+  sec.addEventListener('focusin', function () { foc = true; upd(); }); sec.addEventListener('focusout', function () { foc = false; upd(); });
 
-  /* pipeline canvas: dots drift, funnel, five mint, one lands + ring; one cycle per beat */
-  var cv = $('[data-pipe]'), ctx = cv && cv.getContext ? cv.getContext('2d') : null, W = 0, H = 0, dots = [], C = {}, NK = {}, R = 0, FY = 0, LY = 0, FX0 = 0;
+  /* pipeline canvas: wide particle cloud -> funnel stream -> five role cards -> one placed. One cycle = beat 1 (6.5 s). */
+  var cv = $('[data-pipe]'), ctx = cv && cv.getContext ? cv.getContext('2d') : null, gc = document.createElement('canvas'), g = gc.getContext ? gc.getContext('2d') : null;
+  var W = 0, H = 0, P = [], CX = {}, m = false;
   function seed() {
-    var m = W < 800, N = m ? 110 : 300; dots = [];
-    C = { x: W * (m ? .72 : .76), y: H * (m ? .3 : .3) }; R = Math.min(W * (m ? .3 : .19), H * .26);
-    NK = { x: C.x, y: H * .58 }; FY = H * .7; LY = H * .84; FX0 = C.x - 68;
-    for (var i = 0; i < N; i++) { var a = Math.random() * TAU, r = R * Math.sqrt(Math.random()); dots.push({ x0: Math.cos(a) * r, y0: Math.sin(a) * r * .8, s: .4 + Math.random() * .6, ph: Math.random() * TAU, nx: (Math.random() - .5) * 18, ny: (Math.random() - .5) * 40, f: i < 5 ? i : -1 }); }
+    m = W < 800 || window.innerWidth < 800; var N = m ? 300 : 800; P = [];
+    for (var i = 0; i < N; i++) { var a = Math.random() * TAU, r = Math.sqrt(Math.random()); P.push({ x: .5 + Math.cos(a) * r * .46, y: .29 + Math.sin(a) * r * .2, s: .25 + Math.random() * .5, ph: Math.random() * TAU, d: Math.random(), c: i % 5, r: 1.6 + Math.random(), al: .55 + Math.random() * .35 }); }
   }
-  function size() { if (!ctx) return; var d = Math.min(2, window.devicePixelRatio || 1); W = sec.clientWidth; H = sec.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); seed(); }
-  function draw(now) {
-    var p = acc / T, t = now / 1000, i, d, x, y, k, a, r, col;
-    ctx.clearRect(0, 0, W, H);
-    ctx.strokeStyle = 'rgba(124,58,237,.14)'; ctx.lineWidth = 1.5; ctx.beginPath();
-    ctx.moveTo(C.x - R, C.y + R * .5); ctx.lineTo(NK.x - 16, NK.y); ctx.moveTo(C.x + R, C.y + R * .5); ctx.lineTo(NK.x + 16, NK.y); ctx.stroke();
-    for (i = 0; i < dots.length; i++) {
-      d = dots[i]; a = .42; r = 2.2; col = '#7C3AED';
-      var cx = C.x + d.x0 + Math.sin(t * d.s + d.ph) * 7, cy = C.y + d.y0 + Math.cos(t * d.s * .8 + d.ph) * 7;
-      if (p < .3) { x = cx; y = cy; }
-      else if (p < .56) { k = ease((p - .3) / .26); x = lerp(cx, NK.x + d.nx, k); y = lerp(cy, NK.y + d.ny, k); if (d.f < 0) a *= 1 - k; r = 2.2 - k * .6; }
-      else if (d.f < 0) continue;
-      else if (p < .74) { k = ease((p - .56) / .18); x = lerp(NK.x + d.nx, FX0 + d.f * 34, k); y = lerp(NK.y + d.ny, FY, k); col = k > .4 ? '#06D6A0' : '#7C3AED'; r = 2 + 2.4 * k; a = .5 + .45 * k; }
-      else {
-        x = FX0 + d.f * 34; y = FY; col = '#06D6A0'; r = 4.4; a = .95;
-        if (d.f === 2) { k = ease((p - .74) / .14); y = lerp(FY, LY, k); r = 4.4 + 2 * k; if (p > .88) { var q = (p - .88) / .12; ctx.beginPath(); ctx.arc(x, LY, 9 + q * 36, 0, TAU); ctx.strokeStyle = 'rgba(6,214,160,' + (1 - q) * .8 + ')'; ctx.lineWidth = 2; ctx.stroke(); } }
-        else a = .95 - .55 * ease((p - .74) / .14);
+  function size() { if (!ctx || !stage) return; var d = Math.min(2, window.devicePixelRatio || 1); W = stage.clientWidth; H = stage.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); gc.width = Math.ceil(W / 4); gc.height = Math.ceil(H / 4); seed(); }
+  function cardX(k) { var cw = m ? 40 : 56, gap = 10; return W / 2 + (k - 2) * (cw + gap); }
+  function draw(now, p) {
+    var t = now / 1000, i, d, x, y, k, al, nx = W / 2, ny = H * .6, cy = H * .89 - (m ? 20 : 28);
+    ctx.clearRect(0, 0, W, H); g.clearRect(0, 0, gc.width, gc.height);
+    var grd = ctx.createLinearGradient(0, H * .47, 0, ny + 30); grd.addColorStop(0, 'rgba(124,58,237,.55)'); grd.addColorStop(1, 'rgba(6,214,160,.9)');
+    ctx.strokeStyle = grd; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(W * .08, H * .47); ctx.quadraticCurveTo(W * .3, H * .5, nx - 22, ny); ctx.lineTo(nx - 26, ny + 30);
+    ctx.moveTo(W * .92, H * .47); ctx.quadraticCurveTo(W * .7, H * .5, nx + 22, ny); ctx.lineTo(nx + 26, ny + 30); ctx.stroke();
+    var lit = 0;
+    for (i = 0; i < P.length; i++) {
+      d = P[i]; al = d.al; var sp = cur === 0 ? 1 : .35;
+      var cx = W * d.x + Math.sin(t * d.s * sp + d.ph) * 9, cyy = H * d.y + Math.cos(t * d.s * .8 * sp + d.ph) * 7;
+      x = cx; y = cyy;
+      if (cur === 0 && p > .26 && d.d < .74) {
+        k = ease((p - .26 - d.d * .26) / .22);
+        if (k > 0) {
+          if (k < .55) { var q = k / .55; x = lerp(cx, nx + (d.d - .5) * 24, q); y = lerp(cyy, ny, q); }
+          else { var q2 = (k - .55) / .45; x = lerp(nx + (d.d - .5) * 24, cardX(d.c), q2); y = lerp(ny, cy, q2); al *= 1 - Math.max(0, (q2 - .7) / .3); if (q2 >= 1) continue; }
+          if (q2 > .85 && d.c + 1 > lit) lit = d.c + 1;
+        }
       }
-      ctx.globalAlpha = a; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+      ctx.globalAlpha = al; ctx.fillStyle = '#7C3AED'; ctx.beginPath(); ctx.arc(x, y, d.r, 0, TAU); ctx.fill();
+      g.globalAlpha = .18; g.fillStyle = '#7C3AED'; g.beginPath(); g.arc(x / 4, y / 4, 1.7, 0, TAU); g.fill();
     }
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = 1; ctx.drawImage(gc, 0, 0, W, H);
+    if (cur === 0) { var litN = p < .26 ? 0 : p < .62 ? Math.min(5, Math.max(lit, Math.floor((p - .3) / .064))) : 5; setCards(litN, p > .72); }
   }
   function frame(now) {
     raf = 0; if (!last) last = now; var dt = Math.min(64, now - last); last = now;
-    if (!paused && !reduced) { acc += dt; if (acc >= T) go(cur + 1); if (pills[cur]) pills[cur].style.setProperty('--p', (acc / T).toFixed(3)); }
-    if (ctx) draw(now);
+    if (!paused && !reduced) { acc += dt; if (acc >= DUR[cur]) go(cur + 1); if (pills[cur]) pills[cur].style.setProperty('--p', (acc / DUR[cur]).toFixed(3)); }
+    if (ctx && g && cur < 2) draw(now, acc / DUR[0]);
     if (onScreen && !document.hidden && !reduced) raf = requestAnimationFrame(frame); else last = 0;
   }
   function start() { if (!raf && onScreen && !document.hidden) raf = requestAnimationFrame(frame); }
   size(); window.addEventListener('resize', size);
   document.addEventListener('visibilitychange', start);
   if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { onScreen = es[0].isIntersecting; start(); }, { threshold: 0 }).observe(sec);
-  if (reduced && ctx) draw(0); else start();
+  if (reduced && ctx && g) { draw(0, 0); setCards(5, true); } else start();
+
+  /* map: equirectangular, lon -135..25 -> x 0..560, lat 70..10 -> y 0..420 (x3.5, y7) */
+  var map = $('[data-map]');
+  if (map) {
+    var pt = function (lon, lat) { return ((lon + 135) * 3.5).toFixed(0) + ' ' + ((70 - lat) * 7).toFixed(0); };
+    var poly = function (pts, close) { var a = pts.split(' '); var out = []; for (var i = 0; i < a.length; i += 2) out.push(pt(+a[i], +a[i + 1])); return '<path class="land" d="M' + out.join('L') + (close ? 'Z' : '') + '"/>'; };
+    var LAND = [
+      ['-125 49 -123 38 -117 32 -105 22 -97 26 -90 30 -83 29 -80 25 -81 32 -76 38 -70 42 -66 45 -60 47 -55 52 -65 60 -80 63 -95 68 -120 70 -135 60 -130 55', 1],
+      ['-5.5 50 1.5 51 0 53 -2 56 -5 58.5 -6 56 -3 54', 1], ['-10 52 -6 52 -6 55 -10 54', 1],
+      ['-9 43 -1.5 43.5 -4.5 48.5 0 49.5 4 52 8 55.5 10 57.5 5 59 5 62 14 67 25 70 25 36 16 38 12 42 8 44 3 43 0 39 -5 36 -9 37', 1],
+      ['-17 15 -16 22 -10 30 -5 35.5 0 36 10 37 25 32 25 10', 1]
+    ];
+    var CITIES = [['London', 0, 51.5, 1, 18, 4], ['Manchester', -2.2, 53.5, 0, -16, -16], ['Paris', 2.35, 48.85, 0, 14, 10], ['New York', -74, 40.7, 0, 0, 24], ['San Francisco', -122.4, 37.8, 0, 0, 24], ['Remote', -40, 30, 2, 0, 24]];
+    var html = LAND.map(function (l) { return poly(l[0], l[1]); }).join('');
+    var L = pt(0, 51.5).split(' ');
+    CITIES.forEach(function (c, i) { if (i) { var q = pt(c[1], c[2]).split(' '), mx = (+L[0] + +q[0]) / 2, my = Math.min(+L[1], +q[1]) - Math.abs(+L[0] - +q[0]) * .35 - 10; html += '<path class="arc" pathLength="1" style="--i:' + (i - 1) + '" d="M' + L.join(' ') + 'Q' + mx + ' ' + my + ' ' + q.join(' ') + '"/>'; } });
+    CITIES.forEach(function (c, i) { var q = pt(c[1], c[2]).split(' '); html += '<g style="--i:' + i + '"><circle class="halo" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (c[3] === 1 ? 16 : 12) + '"/><circle class="node' + (c[3] === 1 ? ' hub' : '') + '" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (c[3] === 1 ? 6 : 4.5) + '"' + (c[3] === 2 ? ' stroke-dasharray="2 2" fill="none" stroke="#3B0764"' : '') + '/><text x="' + (+q[0] + c[4]) + '" y="' + (+q[1] + c[5]) + '"' + (c[4] === 0 ? ' text-anchor="middle"' : c[4] < 0 ? ' text-anchor="end"' : '') + '>' + c[0] + '</text></g>'; });
+    map.innerHTML = html;
+  }
 
   var brief = document.getElementById('brief'), input = document.querySelector('[data-brief]');
   function toBrief(e) { e.preventDefault(); if (!brief) return; brief.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' }); if (input) input.focus({ preventScroll: true }); }
@@ -481,10 +510,10 @@
   var vid = $('[data-hero-video]'), src = vid && vid.querySelector('source');
   if (vid && src && window.fetch && !reduced && !mq('(prefers-reduced-data: reduce)') && /^https?:/.test(location.protocol)) {
     try {
-      fetch('assets/hero.json',).then(function (r) { return r.ok ? r.json() : null; }).then(function (m) {
-        if (!m || !m.ready) return;
-        var file = 'assets/' + ((window.innerWidth < 800 && m.portrait) || m.landscape || 'hero.mp4');
-        vid.src = file; var pl = vid.play(); (pl && pl.then ? pl : Promise.resolve()).then(function () { sec.classList.add('has-video'); }).catch(function () {});
+      fetch('assets/hero.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (mf) {
+        if (!mf || !mf.ready) return;
+        vid.src = 'assets/' + ((window.innerWidth < 800 && mf.portrait) || mf.landscape || 'hero.mp4');
+        var pl = vid.play(); (pl && pl.then ? pl : Promise.resolve()).then(function () { sec.classList.add('has-video'); }).catch(function () {});
       }).catch(function () {});
     } catch (err) { /* no footage */ }
   }
