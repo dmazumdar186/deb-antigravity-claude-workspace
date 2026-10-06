@@ -3,9 +3,13 @@
   "ok": true,
   "info": "Specialist early-stage SaaS recruiters\n  | Screen & qualify\n        Screened agains | Offer & close\n        One hire. Backed b"
  },
+ "inactive hero states fully hidden": {
+  "ok": true,
+  "info": ""
+ },
  "hero canvas draws": {
   "ok": true,
-  "info": "97 sampled non-transparent px"
+  "info": "89 sampled non-transparent px"
  },
  "folio focuses card 5 of 9 at mid-scroll": {
   "ok": true,
@@ -68,23 +72,15 @@
   "info": "0px"
  },
  "densityMobile": {
-  "samples": 67,
+  "samples": 68,
   "max": 173,
-  "median": 63,
-  "mean": 67
+  "median": 62,
+  "mean": 65
  },
  "mobile console clean": {
   "ok": true,
   "info": ""
  },
- "densityLive": {
-  "samples": 43,
-  "max": 392,
-  "median": 190,
-  "mean": 188
- },
- "liveSections": 11,
- "liveLongestParagraphPx": 140,
  "densityDeck": {
   "samples": 3,
   "max": 267,

@@ -42,3 +42,23 @@ Positioning, 9 specialisms, 6 client + 4 candidate steps, 30/60/90 check-ins, 3-
 - Contact form and newsletter not wired (shows "Concept — not wired"). Roles are a snapshot, not the live Supabase feed.
 - Hidden panels are not Ctrl-F searchable until active.
 - No testimonials or client logos (none public; not invented).
+
+## v2 — scroll-story cut (2026-10-06, after operator feedback "still too dense, more dynamic like h2recruit")
+Live: https://gtm-people-redesign.pages.dev/ is now the scroll-story. The compact tabbed cut moved to https://gtm-people-redesign.pages.dev/deck/ (own css/js/assets, untouched).
+
+What it is: the h2 Recruit engine (pinned scroll-scrubbed canvas hero with 6 copy states + progress rail, pinned card stacks, rotating drum, hover-accent lists) re-cut in GTM People's light violet/mint register, sentence-case headings, one idea per screen. Sections: film hero · proof counters · 9 specialisms card stack · 6-step drum + 30/60/90 + candidate strip · founder quote + about (dark violet) · 25 live roles card stack with filters · Why TaaS row-reveal · pricing (3 bullets + "Everything in the plan" details, fee calculator, "How our fees work" details) · salary bars · FAQ · JobSearchBud + 28 partners · insights · contact · footer.
+
+Measured (research/metrics_v2.json, functional_v2.json):
+| Metric | Live | Deck v1 | Scroll-story v2 |
+|---|---|---|---|
+| Median visible words per viewport, desktop (sampled every 400 px) | 190 | 224 | 35 |
+| Max visible words per viewport, desktop | 392 | 267 | 295 |
+| Median visible words per viewport, mobile | — | — | 62 |
+| Tallest uninterrupted text block | 420 px | — | 348 px |
+| Page weight / requests | 1,004 KB / 41 | — | ~152 KB / 7 |
+| Third-party scripts | 3 | 0 | 0 |
+| Scroll height desktop (pinned tracks count) | 17,828 px | 1,773 px | 52,167 px (hero 6×, specialisms 5×, roles 9×, drum 4×) |
+Scroll height is no longer the metric for v2: pinned tracks consume scroll while the viewport stays put; density per viewport is. Content diff vs live: every live sentence present (checked by 7-word probe); only page title, cookie banner and a select hint omitted.
+
+Verified: site_check PASSED on `/`, `/for-ian/`, `/deck/` (desktop, Pixel 7, iPhone 13, reduced motion), functional suite all green (hero states at 40/80 %, folio card 5/9, drum step 4, London → 11 roles, toggle, calculator £100k Unicorn → £15,000 vs £30,000, FAQ, form notice, reduced motion stacked), 0 console errors. Visual review: 4 minors fixed (hero crossfade residue, header opacity/scroll-margin, pricing card baselines, mobile bottom-bar padding); density rated 4/5 before the pricing trim.
+Not done: fonts only render live; partner audience split inferred; roles are a snapshot; form not wired.

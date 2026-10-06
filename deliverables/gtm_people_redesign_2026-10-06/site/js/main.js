@@ -172,6 +172,7 @@
     $$('[data-mode]', tg).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     $$('[data-price]').forEach((p) => { p.textContent = p.dataset[b.dataset.mode]; });
   });
+  const fees = $('[data-fees-details]'); if (fees) fees.open = innerWidth >= 1050;
   const calc = $('[data-calc]');
   if (calc) {
     const base = $('[data-calc-base]', calc), out = $('[data-calc-base-out]', calc), tier = $('[data-calc-tier]', calc), fee = $('[data-calc-fee]', calc), trad = $('[data-calc-trad]', calc), note = $('[data-calc-note]', calc);
