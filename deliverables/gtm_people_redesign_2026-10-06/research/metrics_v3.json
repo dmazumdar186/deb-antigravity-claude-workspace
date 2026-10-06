@@ -3,7 +3,7 @@
  "concept_v3": {
   "measure": {
    "desktop": {
-    "scrollHeight": 2857,
+    "scrollHeight": 2350,
     "screens": 3.2,
     "visibleWords": 5256,
     "allWordsInDOM": 7629,
@@ -12,7 +12,7 @@
     "contactY": 65
    },
    "mobile": {
-    "scrollHeight": 4553,
+    "scrollHeight": 3646,
     "screens": 5.4,
     "visibleWords": 5124,
     "allWordsInDOM": 7629,
@@ -21,21 +21,21 @@
     "contactY": 65
    }
   },
-  "boardHeightDesktop": 1124,
-  "boardHeightMobile": 2412,
-  "defaultPageHeightDesktop": 2857,
-  "defaultPageHeightMobile": 4604,
+  "boardHeightDesktop": 770,
+  "boardHeightMobile": 1633,
+  "defaultPageHeightDesktop": 2350,
+  "defaultPageHeightMobile": 3646,
   "visibleWordsPerViewport_desktop_1440x900_every400px": {
-   "samples": 5,
-   "max": 432,
-   "median": 287,
-   "mean": 286
+   "samples": 4,
+   "max": 219,
+   "median": 209,
+   "mean": 189
   },
   "visibleWordsPerViewport_mobile_390x844_every400px": {
-   "samples": 10,
-   "max": 153,
-   "median": 108,
-   "mean": 108
+   "samples": 8,
+   "max": 113,
+   "median": 92,
+   "mean": 91
   },
   "scrollToFirstMatchingRolePx_after_SeriesA_London_AE": 0,
   "interactionsToPricing": 0,
@@ -43,16 +43,17 @@
   "thirdPartyScriptHosts": [],
   "note": "measure.mjs visibleWords counts every leaf element regardless of display (so it includes closed drawers); use the density sampler for visible words.",
   "functionalChecks": {
-   "ok": 39,
+   "ok": 44,
    "fail": [
-    "desktop density median below v1 deck (224) and live (190)"
+    "desktop density median \u2264 150 words/viewport"
    ]
   },
-  "pageWeightBytes_html_css_js": 113432,
+  "pageWeightBytes_html_css_js": 116289,
   "contentProbe": {
    "checked": 135,
    "missing": 0
-  }
+  },
+  "densityPass": "2026-10-06 v3.1: hero controls one row, 3 hero-number tiles + 4 strips"
  },
  "live": {
   "scrollHeightDesktop": 17828,

@@ -41,40 +41,50 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   check('typewriter stops on focus', stopped);
   const r1 = await roles(p);
   check('Series A London AE → London AE roles', r1.includes('Founding Client Partner') && r1.includes('Sales Executive') && r1.every((t) => !/New York|Paris|San Francisco/.test(t)), r1.length + ' roles: ' + r1.join(' | '));
+  const tilesTop = await p.evaluate(() => Math.round(document.querySelector('[data-tiles]').getBoundingClientRect().top));
+  check('first three tiles start ≤ 620 px from top', tilesTop <= 620, tilesTop + 'px');
+  const tilesBottom = await p.evaluate(() => Math.round(document.querySelector('[data-tiles]').getBoundingClientRect().bottom));
+  check('hero + summary + 3 tiles within 900 px', tilesBottom <= 900, 'tiles end at ' + tilesBottom + 'px');
   const roleTop = await p.evaluate(() => Math.round(document.querySelector('#t-roles .role').getBoundingClientRect().top));
   const scrollToRole = Math.max(0, roleTop - 900);
   check('px of scroll to first matching role = 0', scrollToRole === 0, 'first role top at ' + roleTop + 'px of 900');
   res.scrollToFirstRolePx = scrollToRole;
-  const rate = await txt(p, '#t-rate .ans');
-  check('Market rate shows Account Executive £55k – £90k', /Account Executive/.test(rate) && /£55k – £90k/.test(rate), rate);
+  const rate = await txt(p, '#t-rate .tile-h') + ' ' + await txt(p, '#t-rate .num');
+  check('Market rate shows Account Executive £55k–£90k', /Account Executive/i.test(rate) && /£55k–£90k/.test(rate), rate);
   const feeBadge = await txt(p, '#t-fee .badge');
   check('Your fee recommends Scaleup', /Scaleup/.test(feeBadge), feeBadge);
   // pricing reachable in ≤1 interaction: it is on screen without any interaction after the brief
   const feeVisible = await p.evaluate(() => { const r = document.querySelector('#t-fee').getBoundingClientRect(); return r.top < innerHeight; });
   res.interactionsToPricing = feeVisible ? 0 : 1;
   check('interactions to pricing ≤ 1', true, feeVisible ? '0 (fee tile in first viewport)' : '1 (click Pricing)');
-  await p.click('#t-fee [data-tier="Unicorn"]'); await p.waitForTimeout(150);
-  await p.evaluate(() => { const r = document.querySelector('#t-fee [data-base]'); r.value = 100000; r.dispatchEvent(new Event('input', { bubbles: true })); }); await p.waitForTimeout(150);
-  const calc = await txt(p, '#t-fee [data-calc]');
-  check('calculator £100k + Unicorn → £15,000 vs £30,000', /£15,000/.test(calc) && /£30,000/.test(calc), calc);
   await p.screenshot({ path: screens + 'v3-board-hiring.png' });
   await p.click('#t-fee [data-toggle="fee"]'); await p.waitForTimeout(400);
   const feeOpen = await p.evaluate(() => { const m = document.querySelector('#more-fee'); return !m.hidden && m.textContent.includes('never OTE or commission') && document.querySelectorAll('.tile.is-open').length === 1; });
   check('fee tile opens in place with fine print, only one open', feeOpen);
+  await p.click('#t-fee [data-tier="Unicorn"]'); await p.waitForTimeout(200);
+  await p.evaluate(() => { const r = document.querySelector('#t-fee [data-base]'); r.value = 100000; r.dispatchEvent(new Event('input', { bubbles: true })); }); await p.waitForTimeout(150);
+  const calc = await txt(p, '#t-fee [data-calc]');
+  check('calculator £100k + Unicorn → £15,000 vs £30,000', /£15,000/.test(calc) && /£30,000/.test(calc), calc);
+  const clip = await p.evaluate(() => { const m = document.querySelector('#more-fee'), t = document.querySelector('#t-fee'); const last = m.lastElementChild.getBoundingClientRect(), tb = t.getBoundingClientRect(); return { inside: last.bottom <= tb.bottom + 1, scrollClip: m.scrollHeight - m.clientHeight, cards: m.querySelectorAll('.tier').length }; });
+  check('fee drawer: 4 tier cards, nothing clipped at the bottom', clip.inside && clip.scrollClip <= 1 && clip.cards === 4, JSON.stringify(clip));
+  await p.evaluate(() => document.querySelector('#t-fee').scrollIntoView({ block: 'start' })); await p.waitForTimeout(300);
   await p.screenshot({ path: screens + 'v3-fee-open.png' });
   await p.click('#t-roles [data-toggle="roles"]'); await p.waitForTimeout(400);
   const rolesOpen = await p.evaluate(() => { const m = document.querySelector('#more-roles'); return !m.hidden && document.querySelectorAll('.tile.is-open').length === 1 && document.querySelector('#more-fee') === null || document.querySelector('#more-fee').hidden; });
   check('roles tile opens, fee tile closes (one at a time)', rolesOpen);
-  await p.click('[data-all-roles]'); await p.waitForTimeout(300);
   const all = await p.evaluate(() => document.querySelectorAll('#more-roles .role').length);
-  check('"All 25" chip lists 25 roles', all === 25, all);
+  check('roles drawer lists all 25 roles grouped by location', all === 25 && (await p.evaluate(() => document.querySelectorAll('#more-roles h4').length)) >= 5, all);
+  await p.click('#more-roles [data-f="loc"][data-v="London"]'); await p.waitForTimeout(300);
+  const london = await p.evaluate(() => document.querySelectorAll('#more-roles .role').length);
+  check('roles drawer filter London → 11', london === 11, london);
+  await p.click('#more-roles [data-all-roles]'); await p.waitForTimeout(200);
   const overlap = await p.evaluate(() => { // no decorative numerals behind text; every role text node must be the topmost element at its centre
-    let bad = 0; for (const el of document.querySelectorAll('#t-roles .role strong')) { const r = el.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) continue; const t = document.elementFromPoint(r.left + 4, r.top + r.height / 2); if (t && t !== el && !el.contains(t)) bad++; } return bad; });
+    let bad = 0; for (const el of document.querySelectorAll('#t-roles .role strong')) { const r = el.getBoundingClientRect(); if (r.top < 70 || r.bottom > innerHeight) continue; const t = document.elementFromPoint(r.left + 4, r.top + r.height / 2); if (t && t !== el && !el.contains(t)) bad++; } return bad; });
   check('role titles unobstructed (no numeral overlap)', overlap === 0, overlap + ' obstructed');
   await p.screenshot({ path: screens + 'v3-roles-open.png' });
   // SDR Seed New York
   await type(p, 'SDR Seed New York');
-  const r2 = await roles(p); const r2badge = await txt(p, '#t-roles .badge'); const rate2 = await txt(p, '#t-rate .ans'); const fee2 = await txt(p, '#t-fee .badge');
+  const r2 = await roles(p); const r2badge = await txt(p, '#t-roles .badge'); const rate2 = await txt(p, '#t-rate .tile-h'); const fee2 = await txt(p, '#t-fee .badge');
   check('SDR Seed New York → New York roles (closest 3) + SDR/BDR row + Launchpad', r2.length === 3 && /closest/i.test(r2badge) && /SDR \/ BDR/.test(rate2) && /Launchpad/.test(fee2), r2badge + ' · ' + r2.join(' | ') + ' · ' + rate2.slice(0, 40) + ' · ' + fee2);
   const nyAll = await p.evaluate(() => [...document.querySelectorAll('#t-roles .tile-b .role-meta')].every((e) => /New York/.test(e.textContent)));
   check('closest 3 are all New York', nyAll);
@@ -82,23 +92,23 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   await p.click('[data-mode="looking"]'); await p.waitForTimeout(300);
   const order = await p.evaluate(() => [...document.querySelectorAll('[data-tile]')].map((e) => e.dataset.tile));
   check('Looking mode reorders tiles', order[0] === 'roles' && order.includes('howyou') && order.includes('jsb') && order.includes('pcand') && !order.includes('fee'), order.join(','));
-  const apply = await p.evaluate(() => document.querySelectorAll('#t-roles .role-act a').length);
-  check('Looking: roles carry Apply / Register interest', apply > 0, apply);
+  const apply = await p.evaluate(() => document.querySelectorAll('#t-roles .tile-cta').length);
+  check('Looking: one Register interest CTA on the roles tile', apply === 1, apply);
   await p.screenshot({ path: screens + 'v3-board-looking.png' });
   await p.click('[data-mode="hiring"]'); await p.waitForTimeout(200);
   // stage dial
-  await p.click('[data-stage="Series C"]'); await p.waitForTimeout(300);
+  await p.selectOption('[data-stage-select]', 'Series C'); await p.waitForTimeout(300);
   const fee3 = await txt(p, '#t-fee .badge'); const briefVal = await p.inputValue('[data-brief]');
   check('stage dial Series C → Unicorn', /Unicorn/.test(fee3), fee3 + ' · brief="' + briefVal + '"');
   // dots
   const dots = await p.evaluate(() => ({ n: document.querySelectorAll('.dot').length, hit: document.querySelectorAll('.dot.is-hit').length }));
-  check('25 role dots, matched ones highlighted', dots.n === 25 && dots.hit > 0, JSON.stringify(dots));
+  check('12 quiet dots, matched share highlighted', dots.n === 12 && dots.hit > 0, JSON.stringify(dots));
   // share link
   await type(p, 'RevOps, Series A'); await p.click('[data-share]'); await p.waitForTimeout(200);
   const hash = await p.evaluate(() => location.hash);
   check('share link writes #b=…&m=…', /^#b=RevOps/.test(hash) && /&m=hiring$/.test(hash), hash);
   const p2 = await newPage({ viewport: { width: 1440, height: 900 } }); await p2.goto(base + hash, { waitUntil: 'load' }); await p2.waitForTimeout(500);
-  const restored = await p2.inputValue('[data-brief]'); const rateR = await txt(p2, '#t-rate .ans');
+  const restored = await p2.inputValue('[data-brief]'); const rateR = await txt(p2, '#t-rate .tile-h');
   check('#b= link restores the board', restored === 'RevOps, Series A' && /RevOps Manager/.test(rateR), restored + ' · ' + rateR.slice(0, 50));
   await p2.goto(base + '#pricing', { waitUntil: 'load' }); await p2.waitForTimeout(500);
   const pricingOpen = await p2.evaluate(() => { const m = document.querySelector('#more-fee'); return m && !m.hidden; });
@@ -115,8 +125,8 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   await p2.close();
   // agency view
   await p.click('[data-agency]'); await p.waitForTimeout(200);
-  const foot = await p.evaluate(() => [...document.querySelectorAll('.tile-src')].filter((e) => getComputedStyle(e).display !== 'none').length);
-  check('Agency view shows a source footnote on every tile', foot === 7, foot + ' footnotes');
+  const foot = await p.evaluate(() => ({ total: document.querySelectorAll('.tile-src').length, visible: [...document.querySelectorAll('.tile-src')].filter((e) => getComputedStyle(e).display !== 'none').length }));
+  check('Agency view: footnote on all 7 tiles/strips, visible on the 3 open tiles', foot.total === 7 && foot.visible >= 3, JSON.stringify(foot));
   await p.screenshot({ path: screens + 'v3-agency-view.png' });
   await p.click('[data-agency]');
   // everything index drawers
@@ -126,30 +136,32 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   check('partners drawer lists 28 + "Your logo here?"', partners === 29, partners);
   await p.evaluate(() => [...document.querySelectorAll('.ix')].forEach((d) => { d.open = false; }));
   // default state metrics + density
-  await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(7000); // let the demo settle on brief 1
+  await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(800);
   const h = await p.evaluate(() => document.documentElement.scrollHeight);
   const boardH = await p.evaluate(() => Math.round(document.querySelector('#board').getBoundingClientRect().height));
   res.defaultPageHeightDesktop = h; res.boardHeightDesktop = boardH;
   check('board ≤ 1.5 desktop viewports', boardH <= 1350, boardH + 'px');
   res.densityDesktop = await densitySampler(p);
-  check('desktop density median below v1 deck (224) and live (190)', res.densityDesktop.median < 190, JSON.stringify(res.densityDesktop));
+  check('desktop density median ≤ 150 words/viewport', res.densityDesktop.median <= 150, JSON.stringify(res.densityDesktop));
   check('desktop console clean', p.errs.length === 0, p.errs.join(' | '));
   await p.close();
 }
 // ---------- mobile ----------
 {
   const p = await newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
-  await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(7000);
+  await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(800);
   await p.screenshot({ path: screens + 'v3-mobile-hero.png' });
   const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   check('no horizontal overflow at 390', ov <= 0, ov + 'px');
   const boardH = await p.evaluate(() => Math.round(document.querySelector('#board').getBoundingClientRect().height));
   res.boardHeightMobile = boardH; res.defaultPageHeightMobile = await p.evaluate(() => document.documentElement.scrollHeight);
   check('board ≤ 3 mobile viewports', boardH <= 3 * 844, boardH + 'px');
+  const firstTile = await p.evaluate(() => Math.round(document.querySelector('#t-roles').getBoundingClientRect().bottom + scrollY));
+  check('mobile hero + first tile within 844 px', firstTile <= 844, firstTile + 'px');
   await p.evaluate(() => scrollTo(0, document.querySelector('#board').getBoundingClientRect().top + scrollY - 60)); await p.waitForTimeout(300);
   await p.screenshot({ path: screens + 'v3-mobile-board.png' });
   res.densityMobile = await densitySampler(p);
-  check('mobile density median below live (190)', res.densityMobile.median < 190, JSON.stringify(res.densityMobile));
+  check('mobile density median ≤ 150 words/viewport', res.densityMobile.median <= 150, JSON.stringify(res.densityMobile));
   check('mobile console clean', p.errs.length === 0, p.errs.join(' | '));
   await p.close();
 }
@@ -158,8 +170,8 @@ const newPage = async (opts) => { const p = await b.newPage(opts); const errs = 
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(600);
-  const rm = await p.evaluate(() => ({ typing: document.querySelector('[data-brief]').classList.contains('is-typing'), brief: document.querySelector('[data-brief]').value, tiles: document.querySelectorAll('[data-tile]').length }));
-  check('reduced motion: no typewriter, board rendered', !rm.typing && rm.tiles === 7 && rm.brief.length > 0, JSON.stringify(rm));
+  const rm = await p.evaluate(() => ({ typing: document.querySelector('[data-brief]').classList.contains('is-typing'), placeholder: document.querySelector('[data-brief]').placeholder, tiles: document.querySelectorAll('[data-tile]').length }));
+  check('reduced motion: no typewriter, board rendered', !rm.typing && rm.tiles === 7 && rm.placeholder.length > 0, JSON.stringify(rm));
   check('reduced-motion console clean', errs.length === 0, errs.join(' | '));
   await ctx.close();
 }

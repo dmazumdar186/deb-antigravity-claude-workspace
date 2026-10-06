@@ -1,7 +1,7 @@
 {
  "board renders in place on load (ms since navigation)": {
   "ok": true,
-  "info": "420 ms"
+  "info": "389 ms"
  },
  "typewriter demo running on load": {
   "ok": true,
@@ -15,14 +15,22 @@
   "ok": true,
   "info": "3 roles: Sales Executive | Founding GTM | Founding Client Partner"
  },
+ "first three tiles start ≤ 620 px from top": {
+  "ok": true,
+  "info": "349px"
+ },
+ "hero + summary + 3 tiles within 900 px": {
+  "ok": true,
+  "info": "tiles end at 767px"
+ },
  "px of scroll to first matching role = 0": {
   "ok": true,
-  "info": "first role top at 582px of 900"
+  "info": "first role top at 503px of 900"
  },
  "scrollToFirstRolePx": 0,
- "Market rate shows Account Executive £55k – £90k": {
+ "Market rate shows Account Executive £55k–£90k": {
   "ok": true,
-  "info": "Account Executive · £55k – £90k base · OTE £110k – £180k"
+  "info": "Market rate · Account Executive2026 Salary Guide £55k–£90k"
  },
  "Your fee recommends Scaleup": {
   "ok": true,
@@ -33,21 +41,29 @@
   "ok": true,
   "info": "0 (fee tile in first viewport)"
  },
- "calculator £100k + Unicorn → £15,000 vs £30,000": {
-  "ok": true,
-  "info": "£15,000 with us vs £30,000 at a typical 30 %-of-OTE agency"
- },
  "fee tile opens in place with fine print, only one open": {
   "ok": true,
   "info": ""
+ },
+ "calculator £100k + Unicorn → £15,000 vs £30,000": {
+  "ok": true,
+  "info": "£15,000 with us vs £30,000 at a 30%-of-OTE agency (£100k base)"
+ },
+ "fee drawer: 4 tier cards, nothing clipped at the bottom": {
+  "ok": true,
+  "info": "{\"inside\":true,\"scrollClip\":0,\"cards\":4}"
  },
  "roles tile opens, fee tile closes (one at a time)": {
   "ok": true,
   "info": ""
  },
- "\"All 25\" chip lists 25 roles": {
+ "roles drawer lists all 25 roles grouped by location": {
   "ok": true,
   "info": "25"
+ },
+ "roles drawer filter London → 11": {
+  "ok": true,
+  "info": "11"
  },
  "role titles unobstructed (no numeral overlap)": {
   "ok": true,
@@ -55,7 +71,7 @@
  },
  "SDR Seed New York → New York roles (closest 3) + SDR/BDR row + Launchpad": {
   "ok": true,
-  "info": "No exact match — closest 3 · Strategic Account Manager / Engagement Manager | Full-Stack Software Engineer | Senior DevOps Engineer · SDR / BDR · £28k – £45k base · OTE £45k  · Recommended: Launchpad"
+  "info": "closest 3 · Strategic Account Manager / Engagement Manager | Full-Stack Software Engineer | Senior DevOps Engineer · Market rate · SDR / BDR2026 Salary Guide · Recommended: Launchpad"
  },
  "closest 3 are all New York": {
   "ok": true,
@@ -65,17 +81,17 @@
   "ok": true,
   "info": "roles,rate,howyou,jsb,pcand,contact"
  },
- "Looking: roles carry Apply / Register interest": {
+ "Looking: one Register interest CTA on the roles tile": {
   "ok": true,
-  "info": "3"
+  "info": "1"
  },
  "stage dial Series C → Unicorn": {
   "ok": true,
   "info": "Recommended: Unicorn · brief=\"SDR  New York, Series C\""
  },
- "25 role dots, matched ones highlighted": {
+ "12 quiet dots, matched share highlighted": {
   "ok": true,
-  "info": "{\"n\":25,\"hit\":3}"
+  "info": "{\"n\":12,\"hit\":1}"
  },
  "share link writes #b=…&m=…": {
   "ok": true,
@@ -83,7 +99,7 @@
  },
  "#b= link restores the board": {
   "ok": true,
-  "info": "RevOps, Series A · RevOps Manager · £55k – £80k base · OTE £65k – £95"
+  "info": "RevOps, Series A · Market rate · RevOps Manager2026 Salary Guide"
  },
  "#pricing opens the fee tile": {
   "ok": true,
@@ -105,33 +121,33 @@
   "ok": true,
   "info": ""
  },
- "Agency view shows a source footnote on every tile": {
+ "Agency view: footnote on all 7 tiles/strips, visible on the 3 open tiles": {
   "ok": true,
-  "info": "7 footnotes"
+  "info": "{\"total\":7,\"visible\":7}"
  },
  "all Everything-index drawers open with content": {
   "ok": true,
-  "info": "specialisms:192 how:428 jobs:1798 about:270 why-taas:102 taas:277 salary-guide:154 faq:484 insights:96 partners:863 founder:11 contact-info:125 legal:36"
+  "info": "specialisms:192 how:428 jobs:1846 about:270 why-taas:102 taas:277 salary-guide:154 faq:484 insights:96 partners:863 founder:11 contact-info:125 legal:36"
  },
  "partners drawer lists 28 + \"Your logo here?\"": {
   "ok": true,
   "info": "29"
  },
- "defaultPageHeightDesktop": 2857,
- "boardHeightDesktop": 1124,
+ "defaultPageHeightDesktop": 2350,
+ "boardHeightDesktop": 770,
  "board ≤ 1.5 desktop viewports": {
   "ok": true,
-  "info": "1124px"
+  "info": "770px"
  },
  "densityDesktop": {
-  "samples": 5,
-  "max": 432,
-  "median": 287,
-  "mean": 286
+  "samples": 4,
+  "max": 219,
+  "median": 209,
+  "mean": 189
  },
- "desktop density median below v1 deck (224) and live (190)": {
+ "desktop density median ≤ 150 words/viewport": {
   "ok": false,
-  "info": "{\"samples\":5,\"max\":432,\"median\":287,\"mean\":286}"
+  "info": "{\"samples\":4,\"max\":219,\"median\":209,\"mean\":189}"
  },
  "desktop console clean": {
   "ok": true,
@@ -141,21 +157,25 @@
   "ok": true,
   "info": "0px"
  },
- "boardHeightMobile": 2412,
- "defaultPageHeightMobile": 4604,
+ "boardHeightMobile": 1633,
+ "defaultPageHeightMobile": 3646,
  "board ≤ 3 mobile viewports": {
   "ok": true,
-  "info": "2412px"
+  "info": "1633px"
+ },
+ "mobile hero + first tile within 844 px": {
+  "ok": true,
+  "info": "777px"
  },
  "densityMobile": {
-  "samples": 10,
-  "max": 153,
-  "median": 108,
-  "mean": 108
+  "samples": 8,
+  "max": 113,
+  "median": 92,
+  "mean": 91
  },
- "mobile density median below live (190)": {
+ "mobile density median ≤ 150 words/viewport": {
   "ok": true,
-  "info": "{\"samples\":10,\"max\":153,\"median\":108,\"mean\":108}"
+  "info": "{\"samples\":8,\"max\":113,\"median\":92,\"mean\":91}"
  },
  "mobile console clean": {
   "ok": true,
@@ -163,7 +183,7 @@
  },
  "reduced motion: no typewriter, board rendered": {
   "ok": true,
-  "info": "{\"typing\":false,\"brief\":\"Series A, London, founding AE\",\"tiles\":7}"
+  "info": "{\"typing\":false,\"placeholder\":\"e.g. Series A, London, founding AE\",\"tiles\":7}"
  },
  "reduced-motion console clean": {
   "ok": true,
@@ -178,6 +198,6 @@
   "info": ""
  },
  "fails": [
-  "desktop density median below v1 deck (224) and live (190)"
+  "desktop density median ≤ 150 words/viewport"
  ]
 }

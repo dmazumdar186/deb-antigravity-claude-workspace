@@ -85,7 +85,7 @@
     });
     var exact = scored.filter(function (x) { return x.exact && (p.family || p.location); });
     exact.sort(function (a, b) { return b.s - a.s; });
-    if (!p.family && !p.location) return { jobs: scored.map(function (x) { return x.j; }), exact: true, all: true };
+    if (!p.family && !p.location) { scored.sort(function (a, b) { return (b.j.rt === 'Sales') - (a.j.rt === 'Sales') || b.s - a.s; }); return { jobs: scored.map(function (x) { return x.j; }), exact: true, all: true }; }
     if (exact.length) return { jobs: exact.map(function (x) { return x.j; }), exact: true };
     scored.sort(function (a, b) { return b.s - a.s; });
     return { jobs: scored.slice(0, 3).map(function (x) { return x.j; }), exact: false };
@@ -134,120 +134,108 @@
   }
 
   /* ---------------- Rendering ---------------- */
-  var board = $('[data-board]'), tilesEl = $('[data-tiles]'), input = $('[data-brief]'), summaryEl = $('[data-summary]');
-  var state = { mode: 'hiring', brief: '', parsed: parseBrief(''), open: null, intel: false, tierOverride: null, base: null, agency: false, showAll: false };
+  var board = $('[data-board]'), tilesEl = $('[data-tiles]'), stripsEl = $('[data-strips]'), input = $('[data-brief]'), summaryEl = $('[data-summary]');
+  var state = { mode: 'hiring', brief: '', parsed: parseBrief(''), open: null, intel: false, tierOverride: null, base: 100000, agency: false, filt: { loc: '', type: '', stage: '' } };
+  var LOCGROUP = function (j) { var l = j.l; return /remote/i.test(l) ? 'Remote' : /london/i.test(l) ? 'London' : /new york/i.test(l) ? 'New York' : /san francisco/i.test(l) ? 'San Francisco' : /paris/i.test(l) ? 'Paris' : l; };
 
-  function roleRow(j, looking) {
-    return '<li class="role"><div class="role-main"><strong>' + h(j.t) + '</strong><span class="role-meta">' + h(j.l) + (j.s ? ' · ' + h(j.s) : '') + (j.w ? ' · ' + h(j.w) : '') + '</span></div><div class="role-comp">' + h(comp(j)) + ' ' + equityDot(j) + '</div>' + (looking ? '<div class="role-act"><a class="btn btn-sm" href="https://gtm-people.com/jobs" target="_blank" rel="noopener">Apply / Register interest</a></div>' : '') + '</li>';
+  function roleRow(j) { return '<li class="role"><strong>' + h(j.t) + '</strong><span class="role-meta">' + h(LOCGROUP(j)) + (j.s ? ' · ' + h(j.s) : '') + '</span><span class="role-comp">' + h(range(j.b, j.c) || 'comp on request') + ' base</span></li>'; }
+  function roleFull(j) { return '<li class="role role-full"><div><strong>' + h(j.t) + '</strong><span class="role-meta">' + h(j.l) + (j.s ? ' · ' + h(j.s) : '') + ' · ' + h(j.rt) + (j.w ? ' · ' + h(j.w) : '') + '</span></div><div class="role-comp">' + h(comp(j)) + ' ' + equityDot(j) + (j.e && !/^none$/i.test(j.e) ? ' <em>' + h(j.e) + '</em>' : '') + '</div>' + (j.d ? '<p>' + h(j.d) + '</p>' : '') + '</li>'; }
+  function chipRow(name, key, opts) { return '<div class="chips chips-f" role="group" aria-label="' + name + '">' + opts.map(function (o) { var on = state.filt[key] === o[0]; return '<button type="button" class="chip' + (on ? ' is-on' : '') + '" data-f="' + key + '" data-v="' + h(o[0]) + '" aria-pressed="' + on + '">' + h(o[1]) + '</button>'; }).join('') + '</div>'; }
+  function rolesDrawer(matchList) {
+    var f = state.filt, pool = KB.jobs.filter(function (j) { return (!f.loc || LOCGROUP(j) === f.loc) && (!f.type || j.rt === f.type) && (!f.stage || j.s === f.stage); });
+    var groups = {}; pool.forEach(function (j) { var g = LOCGROUP(j); (groups[g] = groups[g] || []).push(j); });
+    var locs = [['', 'All locations']].concat(['London', 'New York', 'Remote', 'San Francisco', 'Paris'].map(function (l) { return [l, l]; }));
+    var types = [['', 'All role types']].concat(['Sales', 'SDR/BDR', 'CSM', 'Marketing', 'Partnerships', 'Other'].map(function (t) { return [t, t]; }));
+    var stages = [['', 'All stages']].concat(['Bootstrapped', 'Pre-Seed', 'Seed', 'Series A', 'Series C'].map(function (t) { return [t, t]; }));
+    return '<p class="lead">All roles are confidential — company names are disclosed at shortlist stage. Apply once and we\'ll match you to relevant opportunities as they come in.</p>' + chipRow('Location', 'loc', locs) + chipRow('Role type', 'type', types) + chipRow('Stage', 'stage', stages) + '<p class="note"><b>' + pool.length + ' of ' + KB.jobs.length + '</b> live roles' + (f.loc || f.type || f.stage ? ' · <button type="button" class="link" data-all-roles>All 25</button>' : '') + ' · <a href="https://gtm-people.com/jobs" target="_blank" rel="noopener">Not seeing the right role? Register your interest →</a></p>' + Object.keys(groups).map(function (g) { return '<h4>' + h(g) + ' <small>' + groups[g].length + '</small></h4><ul class="roles roles-exp">' + groups[g].map(roleFull).join('') + '</ul>'; }).join('');
   }
-  function roleFull(j) { return '<li class="role role-full"><div class="role-main"><strong>' + h(j.t) + '</strong><span class="role-meta">' + h(j.l) + (j.s ? ' · ' + h(j.s) : '') + ' · ' + h(j.rt) + '</span></div><div class="role-comp">' + h(comp(j)) + ' ' + equityDot(j) + (j.e && !/^none$/i.test(j.e) ? ' <em>' + h(j.e) + '</em>' : '') + '</div>' + (j.d ? '<p>' + h(j.d) + '</p>' : '') + '</li>'; }
-
   function tileRoles(p, looking) {
-    var m = matchJobs(p), list = m.jobs, N = KB.jobs.length;
-    var head = state.showAll ? 'All ' + N + ' live roles' : (m.all ? 'All ' + N + ' live roles' : (m.exact ? list.length + ' of ' + N : 'No exact match — closest 3'));
-    var shown = state.showAll ? KB.jobs : list, limit = window.innerWidth < 640 ? 3 : 4;
-    var crit = [p.familyLabel, p.locationLabel, p.stageLabel].filter(Boolean).join(' · ') || 'any role, any location';
-    return {
-      id: 'roles', title: 'Roles in play', badge: head, answer: '<p class="ans">' + (m.all ? 'Tell us the role and we\'ll narrow these.' : (m.exact ? 'Live mandates matching <b>' + h(crit) + '</b>.' : 'No live mandate matches <b>' + h(crit) + '</b> exactly — the closest three are below. Register once and we\'ll match you as roles come in.')) + '</p><ul class="roles">' + shown.slice(0, state.showAll ? N : limit).map(function (j) { return roleRow(j, looking); }).join('') + '</ul>' + (shown.length > limit && !state.showAll ? '<p class="more-note">+' + (shown.length - limit) + ' more — open the tile.</p>' : '') + '<p class="foot">Live mandates, snapshot 2026-10-06 · company names disclosed at shortlist stage.</p>',
-      more: '<p class="lead">All roles are confidential — company names are disclosed at shortlist stage. Apply once and we\'ll match you to relevant opportunities as they come in.</p><div class="chips"><button type="button" class="chip' + (state.showAll ? ' is-on' : '') + '" data-all-roles aria-pressed="' + state.showAll + '">All ' + N + '</button><a class="chip" href="https://gtm-people.com/jobs" target="_blank" rel="noopener">Not seeing the right role? Register your interest →</a></div><ul class="roles roles-exp">' + (state.showAll ? KB.jobs : list).map(roleFull).join('') + '</ul>',
-      src: 'Source: live Jobs board (25 public roles, snapshot 2026-10-06); filtered by role family, location and stage parsed from your brief.'
-    };
+    var m = matchJobs(p), list = m.jobs, N = KB.jobs.length, n = m.all ? N : list.length;
+    var crit = [p.locationLabel, p.familyLabel ? p.familyLabel.replace('Account Executives', 'AE').replace('Customer Success', 'CS').replace('GTM Leadership', 'leadership') : ''].filter(Boolean).join(' ');
+    var line = m.all ? 'live roles across UK · US · EU' : (m.exact ? crit + ' roles live' + (p.stageLabel ? ' · ' + p.stageLabel + ' and nearby' : '') : 'closest roles — no exact ' + crit + ' match yet');
+    return { id: 'roles', eyebrow: 'Roles in play', num: String(n), line: line, badge: m.all || m.exact ? n + ' of ' + N : 'closest 3',
+      body: '<ul class="roles">' + list.slice(0, 3).map(roleRow).join('') + '</ul>' + (looking ? '<a class="btn btn-sm tile-cta" href="https://gtm-people.com/jobs" target="_blank" rel="noopener">Register interest →</a>' : ''),
+      more: rolesDrawer(list), src: 'Source: live Jobs board (25 public roles, snapshot 2026-10-06) filtered by role family, location and stage parsed from your brief · company names disclosed at shortlist stage.' };
   }
-  function bars() {
-    return '<ul class="bars">' + KB.salary.map(function (r) { var m = r.base.match(/£(\d+)k\s*–\s*£(\d+)k/); var lo = m ? +m[1] : 0, hi = m ? +m[2] : 0; return '<li><div class="bar-head"><strong>' + h(r.role) + '</strong><span>' + h(r.base) + ' · ' + h(r.ote) + '</span></div><div class="bar"><span style="left:' + (lo / 180 * 100) + '%;width:' + ((hi - lo) / 180 * 100) + '%"></span></div><small>' + h(r.note) + '</small></li>'; }).join('') + '</ul>';
-  }
+  function bars() { return '<ul class="bars">' + KB.salary.map(function (r) { var m = r.base.match(/£(\d+)k\s*–\s*£(\d+)k/); var lo = m ? +m[1] : 0, hi = m ? +m[2] : 0; return '<li><div class="bar-head"><strong>' + h(r.role) + '</strong><span>' + h(r.base) + ' · ' + h(r.ote) + '</span></div><div class="bar"><span style="left:' + (lo / 180 * 100) + '%;width:' + ((hi - lo) / 180 * 100) + '%"></span></div><small>' + h(r.note) + '</small></li>'; }).join('') + '</ul>'; }
   function tileRate(p) {
     var sr = salaryRowFor(p), r = sr.row, us = (p.location === 'us' || p.location === 'newyork' || p.location === 'sf');
-    var usLine = KB.faqs[5].a.split('US:')[1];
-    return {
-      id: 'rate', title: 'Market rate', badge: '2026 Salary Guide',
-      answer: '<p class="ans">' + (sr.proxy ? 'No guide row for ' + h(p.familyLabel) + ' yet — closest benchmark: ' : '') + '<b>' + h(r.role) + '</b> · ' + h(r.base) + ' base · ' + h(r.ote) + '</p><p class="note">' + h(r.note) + '</p>' + (us ? '<p class="note"><b>US:</b>' + h(usLine) + '</p>' : '') + '',
+    var usLine = KB.faqs[5].a.split('US:')[1].split('. ')[0] + '.';
+    return { id: 'rate', eyebrow: 'Market rate · ' + r.role, num: r.base.replace(/\s/g, ''), line: 'base · ' + r.ote + ' · ' + r.note.split(' · ')[1], badge: '2026 Salary Guide',
+      body: '<p class="note">' + h(r.note.split(' · ')[0]) + (sr.proxy ? ' · closest row to ' + h(p.familyLabel) : '') + (us ? ' · <b>US:</b>' + h(usLine) : '') + '</p>',
       more: '<p class="lead">' + h(KB.salaryIntro) + '</p>' + bars() + '<p>' + h(KB.salaryCta[0]) + ' <a href="#contact" data-open="contact">' + h(KB.salaryCta[1]) + '</a></p>',
-      src: 'Source: 2026 Salary Guide row "' + r.role + '"' + (us ? ' + FAQ "What should I pay a Series A SaaS Account Executive?" (US sentence)' : '') + '.'
-    };
+      src: 'Source: 2026 Salary Guide row "' + r.role + '"' + (us ? ' + FAQ "What should I pay a Series A SaaS Account Executive?" (US sentence)' : '') + '.' };
   }
   function money(n) { return '£' + Math.round(n).toLocaleString('en-GB'); }
+  function tierNow(p) { var rec = tierFor(p); return { rec: rec, tier: state.tierOverride ? KB.tiers.filter(function (t) { return t.id === state.tierOverride; })[0] : rec }; }
+  function calcLine(tier, base) { var agency = base * 0.30, k = money(base).replace(',000', 'k'); return tier.flat ? '<b>' + money(tier.mo) + '/mo flat</b>, unlimited hires vs <b>' + money(agency) + '</b> per hire at a 30%-of-OTE agency (' + k + ' base)' : '<b>' + money(base * tier.rate) + '</b> with us vs <b>' + money(agency) + '</b> at a 30%-of-OTE agency (' + k + ' base)'; }
   function tileFee(p) {
-    var rec = tierFor(p), tier = state.tierOverride ? KB.tiers.filter(function (t) { return t.id === state.tierOverride; })[0] : rec;
-    var mult = state.intel ? 1.5 : 1, base = state.base || midBase(salaryRowFor(p).row);
-    var ours = tier.flat ? null : base * tier.rate, agency = base * 0.30;
-    var calc = tier.flat ? '<b>' + money(tier.mo) + '/mo flat</b> for unlimited hiring within capacity vs <b>' + money(agency) + '</b> per hire at a typical 30 %-of-OTE agency' : '<b>' + money(ours) + '</b> with us vs <b>' + money(agency) + '</b> at a typical 30 %-of-OTE agency';
-    return {
-      id: 'fee', title: 'Your fee', badge: 'Recommended: ' + rec.id,
-      answer: '<div class="tier-pick" role="group" aria-label="Tier">' + KB.tiers.map(function (t) { return '<button type="button" class="chip' + (t.id === tier.id ? ' is-on' : '') + '" data-tier="' + t.id + '" aria-pressed="' + (t.id === tier.id) + '">' + t.id + (t.id === rec.id ? ' ★' : '') + '</button>'; }).join('') + '</div><p class="ans"><b>' + h(tier.id) + '</b> · ' + h(tier.sub) + ' · <b>' + money(tier.mo * mult) + '/mo</b>' + (tier.flat ? '' : ' · ' + h(tier.yr)) + '</p><p class="note">' + h(tier.included) + ' · ' + h(tier.guarantee) + '</p><label class="calc"><span>Base salary <output data-base-out>' + money(base) + '</output></span><input type="range" min="30000" max="200000" step="5000" value="' + base + '" data-base aria-label="Base salary"></label><p class="ans calc-line" data-calc>' + calc + '</p><label class="switch"><input type="checkbox" data-intel' + (state.intel ? ' checked' : '') + '> <span>Recruitment + Intelligence (+50 %)</span></label>',
-      more: '<p class="lead">' + h(KB.feeNotes.intro) + '</p><p class="note">' + h(KB.feeNotes.intel) + '</p><div class="tiers">' + KB.tiers.map(function (t) { return '<div class="tier' + (t.id === rec.id ? ' is-rec' : '') + '">' + (t.popular ? '<span class="tag">Most Popular</span>' : '') + '<h4>' + h(t.id) + ' <small>' + h(t.sub) + '</small></h4><p class="price"><b>' + money(t.mo * mult) + '</b>/mo <small>' + h(t.yr) + '</small></p><ul>' + t.bullets.map(function (b) { return '<li>' + h(b) + '</li>'; }).join('') + '</ul><a class="btn btn-sm" href="#contact" data-open="contact">' + h(t.cta) + '</a></div>'; }).join('') + '</div><p class="fine">' + h(KB.feeNotes.how) + '</p><p class="fine"><b>' + h(KB.feeNotes.beyond) + '</b> ' + h(KB.feeNotes.example) + '</p>',
-      src: 'Source: Talent as a Service tiers (' + rec.id + ' = ' + (p.volume >= 3 ? '3+ hires → Partner' : (p.stageLabel || 'stage not given → Scaleup, Most Popular')) + ') + "How our fees work" fine print.'
-    };
+    var tn = tierNow(p), tier = tn.tier, rec = tn.rec, mult = state.intel ? 1.5 : 1;
+    var inc = tier.id === 'Launchpad' ? 'no included placements · then 20%' : tier.id === 'Scaleup' ? '1 placement included · then 17.5%' : tier.id === 'Unicorn' ? '2 placements included · then 15%' : 'unlimited hiring within capacity';
+    return { id: 'fee', eyebrow: 'Your fee', num: money(tier.mo * mult) + '/mo', line: tier.id + ' · ' + inc, badge: 'Recommended: ' + rec.id,
+      body: '<p class="note calc-line" data-calc>' + calcLine(tier, state.base) + '</p>',
+      more: '<div class="fee-ctl"><div class="tier-pick" role="group" aria-label="Tier">' + KB.tiers.map(function (t) { return '<button type="button" class="chip' + (t.id === tier.id ? ' is-on' : '') + '" data-tier="' + t.id + '" aria-pressed="' + (t.id === tier.id) + '">' + t.id + (t.id === rec.id ? ' ★' : '') + '</button>'; }).join('') + '</div><label class="calc"><span>Base salary <output data-base-out>' + money(state.base) + '</output></span><input type="range" min="30000" max="200000" step="5000" value="' + state.base + '" data-base aria-label="Base salary"></label><label class="switch"><input type="checkbox" data-intel' + (state.intel ? ' checked' : '') + '> <span>Recruitment + Intelligence (+50%)</span></label></div><p class="note">' + h(KB.feeNotes.intro) + ' ' + h(KB.feeNotes.intel) + '</p><div class="tiers">' + KB.tiers.map(function (t) { return '<div class="tier' + (t.id === rec.id ? ' is-rec' : '') + '">' + (t.popular ? '<span class="tag">Most Popular</span>' : '') + '<h4>' + h(t.id) + ' <small>' + h(t.sub) + '</small></h4><p class="price"><b>' + money(t.mo * mult) + '</b>/mo <small>' + h(t.yr) + '</small></p><ul>' + t.bullets.slice(0, 3).map(function (b) { return '<li>' + h(b) + '</li>'; }).join('') + '</ul><p class="tier-inc">' + h(t.included) + (t.flat ? '' : ' · ' + h(t.guarantee)) + '</p><a class="btn btn-sm" href="#contact" data-open="contact">' + h(t.cta) + '</a></div>'; }).join('') + '</div><p class="fine">' + h(KB.feeNotes.how) + '</p><p class="fine"><b>' + h(KB.feeNotes.beyond) + '</b> ' + h(KB.feeNotes.example) + '</p>',
+      src: 'Source: Talent as a Service tiers (' + rec.id + ' = ' + (p.volume >= 3 ? '3+ hires → Partner' : (p.stageLabel || 'stage not given → Scaleup, Most Popular')) + ') + "How our fees work" fine print; agency comparison uses the live £15,000-vs-£30,000 example rate.' };
   }
-  function tilePlan(p) {
+  var DAY = 86400000;
+  function fmtDate(d) { return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
+  function plan(tier, now) { var d = function (n) { return fmtDate(new Date(now.getTime() + n * DAY)); }; return [['Day 0 · ' + d(0), 'Deep brief (60 min)'], ['Day 1 · ' + d(1), 'Day-one feasibility report'], ['Days 1–3', 'Market map'], ['Day 5 · ' + d(5), 'Shortlist of 3–5'], ['Then', 'Interview support · Offer & close — we manage the counter-offer risk'], ['30 / 60 / 90', 'Check-ins with client and candidate'], ['Guarantee', tier.gMonths + '-month' + (tier.id === 'Unicorn' ? ' rolling' : '') + ' guarantee (' + tier.id + ')']]; }
+  function stripPlan(p) {
     var tier = tierFor(p), rows = plan(tier, new Date());
-    return {
-      id: 'plan', title: 'How we\'d run your search', badge: 'Shortlist in 5 days',
-      answer: '<ol class="plan">' + rows.map(function (r) { return '<li><span>' + h(r[0]) + '</span><b>' + h(r[1]) + '</b></li>'; }).join('') + '</ol>',
-      more: '<p class="lead">At Seed to Series C, every week without the right person costs revenue. Our process is built for speed without cutting corners on quality.</p><ol class="steps">' + KB.clientSteps.map(function (s) { return '<li><b>' + h(s.n) + ' ' + h(s.name) + '</b><p>' + h(s.text) + '</p></li>'; }).join('') + '</ol><h4>' + h(KB.checkins.title) + '</h4><p>' + h(KB.checkins.text) + '</p><h4>' + h(KB.taasReview.title) + '</h4><p>' + h(KB.taasReview.text) + '</p>',
-      src: 'Source: How It Works (six client steps), 30/60/90 check-ins, tier guarantee length; dates computed from today.'
-    };
+    return { id: 'plan', eyebrow: 'How we\'d run your search', line: 'Brief ' + fmtDate(new Date()) + ' → shortlist of 3–5 by ' + fmtDate(new Date(Date.now() + 5 * DAY)), badge: tier.gMonths + '-month guarantee',
+      more: '<div class="cols"><div><ol class="plan">' + rows.map(function (r) { return '<li><span>' + h(r[0]) + '</span><b>' + h(r[1]) + '</b></li>'; }).join('') + '</ol><h4>' + h(KB.checkins.title) + '</h4><p>' + h(KB.checkins.text) + '</p><h4>' + h(KB.taasReview.title) + '</h4><p>' + h(KB.taasReview.text) + '</p></div><div><p class="lead">At Seed to Series C, every week without the right person costs revenue. Our process is built for speed without cutting corners on quality.</p><ol class="steps">' + KB.clientSteps.map(function (s) { return '<li><b>' + h(s.n) + ' ' + h(s.name) + '</b><p>' + h(s.text) + '</p></li>'; }).join('') + '</ol></div></div>',
+      src: 'Source: How It Works (six client steps), 30/60/90 check-ins, tier guarantee length; dates computed from today.' };
   }
-  function tileWhy(p) {
-    var ps = pickPillars(p), aboutLine = /seriesb|seriesc|pe|seriesd/.test(p.stage || '') ? KB.about[2] : KB.about[3];
-    return {
-      id: 'why', title: 'Why this works at ' + (p.stageLabel || 'your stage'), badge: 'About',
-      answer: '<ul class="pillars">' + ps.map(function (x) { return '<li><b>' + h(x.pl.name) + '</b> ' + h(x.pl.text) + '</li>'; }).join('') + '</ul><p class="note">' + h(aboutLine) + '</p>',
-      more: '<h4>Built by someone who\'s been in the seat.</h4>' + KB.about.map(function (a) { return '<p>' + h(a) + '</p>'; }).join('') + '<ul class="pillars">' + KB.pillars.map(function (x) { return '<li><b>' + h(x.name) + '</b> ' + h(x.text) + '</li>'; }).join('') + '</ul><ul class="stats">' + KB.stats.map(function (s) { return '<li><b>' + h(s[0]) + '</b><span>' + h(s[1]) + '</span></li>'; }).join('') + '</ul><h4>Why TaaS? Traditional recruitment has the wrong incentives.</h4><p>' + h(KB.whyTaas.intro) + '</p><div class="vs"><ul class="bad"><li class="vs-h">Traditional Agency</li>' + KB.whyTaas.bad.map(function (b) { return '<li>' + h(b) + '</li>'; }).join('') + '</ul><ul class="good"><li class="vs-h">GTM People TaaS</li>' + KB.whyTaas.good.map(function (b) { return '<li>' + h(b) + '</li>'; }).join('') + '</ul></div>',
-      src: 'Source: About GTM People (pillars tagged by stage) + Why TaaS table.'
-    };
+  function stripWhy(p) {
+    var ps = pickPillars(p), first = ps[0].pl;
+    return { id: 'why', eyebrow: 'Why this works at ' + (p.stageLabel || 'your stage'), line: first.text.split(/ — |\. /)[0].replace(/[.,]$/, '') + '.', badge: ps.map(function (x) { return x.pl.name; }).join(' · '),
+      more: '<div class="cols"><div><h4>Built by someone who\'s been in the seat.</h4>' + KB.about.map(function (a) { return '<p>' + h(a) + '</p>'; }).join('') + '<ul class="pillars">' + KB.pillars.map(function (x) { return '<li><b>' + h(x.name) + '</b> ' + h(x.text) + '</li>'; }).join('') + '</ul></div><div><ul class="stats">' + KB.stats.map(function (s) { return '<li><b>' + h(s[0]) + '</b><span>' + h(s[1]) + '</span></li>'; }).join('') + '</ul><h4>Why TaaS? Traditional recruitment has the wrong incentives.</h4><p>' + h(KB.whyTaas.intro) + '</p><div class="vs"><ul class="bad"><li class="vs-h">Traditional Agency</li>' + KB.whyTaas.bad.map(function (b) { return '<li>' + h(b) + '</li>'; }).join('') + '</ul><ul class="good"><li class="vs-h">GTM People TaaS</li>' + KB.whyTaas.good.map(function (b) { return '<li>' + h(b) + '</li>'; }).join('') + '</ul></div></div></div>',
+      src: 'Source: About GTM People (pillars tagged by stage) + Why TaaS table.' };
   }
-  function tileFaq(p) {
+  function stripFaq(p) {
     var two = pickFaqs(p);
-    return {
-      id: 'faq', title: 'Questions founders at ' + (p.stageLabel || 'your stage') + ' ask', badge: '2 of 8',
-      answer: two.map(function (x) { return '<details class="qa"><summary>' + h(x.f.q) + '</summary><p>' + h(x.f.a) + '</p></details>'; }).join(''),
-      more: '<p class="lead">Answers to the questions we get asked most often by founders and hiring managers at early-stage SaaS companies.</p>' + KB.faqs.map(function (f, i) { return '<details class="qa"' + (i === two[0].i ? ' open' : '') + '><summary>' + h(f.q) + '</summary><p>' + h(f.a) + '</p></details>'; }).join(''),
-      src: 'Source: Common Questions (8 FAQs), ranked by stage, role family and location tags.'
-    };
+    return { id: 'faq', eyebrow: 'Questions founders at ' + (p.stageLabel || 'your stage') + ' ask', line: two[0].f.q, badge: '2 of 8',
+      more: '<p class="lead">Answers to the questions we get asked most often by founders and hiring managers at early-stage SaaS companies.</p><div class="cols">' + [KB.faqs.slice(0, 4), KB.faqs.slice(4)].map(function (half) { return '<div>' + half.map(function (f) { var i = KB.faqs.indexOf(f); return '<details class="qa"' + (i === two[0].i || i === two[1].i ? ' open' : '') + '><summary>' + h(f.q) + '</summary><p>' + h(f.a) + '</p></details>'; }).join('') + '</div>'; }).join('') + '</div>',
+      src: 'Source: Common Questions (8 FAQs), ranked by stage, role family and location tags.' };
   }
   function contactForm(p, looking) {
     var stages = ['Pre-Seed', 'Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Bootstrapped', 'PE Backed'];
     return '<form class="form" data-form novalidate><div class="row2"><label>First Name *<input name="first" required autocomplete="given-name"></label><label>Last Name *<input name="last" required autocomplete="family-name"></label></div><div class="row2"><label>' + (looking ? 'Current company' : 'Company *') + '<input name="company" autocomplete="organization"></label><label>Email *<input type="email" name="email" required inputmode="email" autocomplete="email"></label></div>' + (looking ? '' : '<label>Funding Stage<select name="stage"><option value="">Select…</option>' + stages.map(function (s) { return '<option' + (s === p.stageLabel ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>') + '<label>' + (looking ? 'What are you looking for?' : 'What are you hiring?') + '<textarea name="brief" rows="2">' + h(state.brief) + '</textarea></label><button class="btn" type="submit">' + (looking ? 'Register interest →' : 'Send Message →') + '</button><p class="form-note" data-form-note aria-live="polite">We respond within one working day. No hard sell — just a conversation.</p></form>';
   }
-  function tileContact(p) {
-    return {
-      id: 'contact', title: 'Next step', badge: 'One working day',
-      answer: '<p class="ans">Tell us what you\'re building and what you need. We\'ll get back to you within one working day.</p>' + contactLinks() + '<button type="button" class="btn btn-sm" data-toggle="contact">Book a 15-min call →</button>',
-      more: '<p class="lead">Tell us about your hiring need</p>' + contactForm(p, false) + '<p class="note">Based In: London, UK — placing globally.</p>',
-      src: 'Source: Get In Touch (form fields verbatim; stage and brief pre-filled from your brief).'
-    };
+  function contactLinks() { return '<ul class="contacts"><li><a href="tel:+447803236717">+44 7803 236717</a></li><li><a href="mailto:hello@gtm-people.com">hello@gtm-people.com</a></li><li><a href="https://linkedin.com/company/gtm-people-com" target="_blank" rel="noopener">linkedin.com/company/gtm-people-com</a></li><li>Based In: London, UK — placing globally</li></ul>'; }
+  function stripContact(p, looking) {
+    return { id: 'contact', eyebrow: looking ? 'Register' : 'Next step', line: looking ? 'Register once — we match you as roles come in. No spam.' : 'Tell us what you\'re building — we reply within one working day.', badge: looking ? 'No black hole' : 'One working day',
+      more: '<div class="cols"><div><p class="lead">' + (looking ? 'Register' : 'Tell us about your hiring need') + '</p>' + contactForm(p, looking) + '</div><div><p class="lead">' + (looking ? 'Looking for a role?' : 'Ready to build your GTM team?') + '</p>' + contactLinks() + '</div></div>',
+      src: 'Source: Get In Touch (form fields verbatim; stage and brief pre-filled from your brief).' };
   }
-  function contactLinks() { return '<ul class="contacts"><li><a href="tel:+447803236717">+44 7803 236717</a></li><li><a href="mailto:hello@gtm-people.com">hello@gtm-people.com</a></li><li><a href="https://linkedin.com/company/gtm-people-com" target="_blank" rel="noopener">linkedin.com/company/gtm-people-com</a></li></ul>'; }
-  /* candidate-side tiles */
-  function tileHowYou() {
-    return { id: 'howyou', title: 'How it works for you', badge: 'Intro call in 48 hours', answer: '<ol class="steps steps-sm">' + KB.candidateSteps.map(function (s) { return '<li><b>' + h(s.name) + '</b><p>' + h(s.text) + '</p></li>'; }).join('') + '</ol>', more: '', src: 'Source: How It Works — For Candidates (four steps, verbatim).' };
-  }
-  function tileJsb() {
-    return { id: 'jsb', title: 'JobSearchBud', badge: 'Founding partner', answer: '<p class="eyebrow">' + h(KB.jsb.badge) + '</p><p class="ans"><b>' + h(KB.jsb.title) + '</b></p><p>' + h(KB.jsb.text) + '</p><a class="btn btn-sm" href="https://gtm-people.com/partners" target="_blank" rel="noopener">' + h(KB.jsb.cta) + '</a>', more: '', src: 'Source: Partners & Perks — founding partner panel, verbatim.' };
-  }
-  function tilePartnersCand() {
+  function tileHowYou() { return { id: 'howyou', eyebrow: 'How it works for you', num: '48h', line: 'A consultant calls within 48 hours · ' + KB.candidateSteps.map(function (s) { return s.name; }).join(' → '), badge: '4 steps', body: '', more: '<ol class="steps cols">' + KB.candidateSteps.map(function (s) { return '<li><b>' + h(s.n) + ' ' + h(s.name) + '</b><p>' + h(s.text) + '</p></li>'; }).join('') + '</ol>', src: 'Source: How It Works — For Candidates (four steps, verbatim).' }; }
+  function stripJsb() { return { id: 'jsb', eyebrow: 'JobSearchBud', line: 'Our own AI-powered CV and job-search tool — free for GTM People candidates.', badge: 'Founding partner', more: '<p class="eyebrow">' + h(KB.jsb.badge) + '</p><p class="lead">' + h(KB.jsb.title) + '</p><p>' + h(KB.jsb.text) + '</p><a class="btn btn-sm" href="https://gtm-people.com/partners" target="_blank" rel="noopener">' + h(KB.jsb.cta) + '</a>', src: 'Source: Partners & Perks — founding partner panel, verbatim.' }; }
+  function stripPartnersCand() {
     var list = KB.partners.filter(function (p) { return KB.candidateAudience.test(p.name); });
-    return { id: 'pcand', title: 'Partners for candidates', badge: list.length + ' perks', answer: '<ul class="plist">' + list.map(function (p) { return '<li><b>' + h(p.name) + '</b> <span>' + h(p.tag) + '</span><p>' + h(p.text) + '</p></li>'; }).join('') + '</ul>', more: '<p class="lead">We partner with best-in-class providers so our clients and candidates get preferential access, discounts and support — well beyond the placement itself.</p><ul class="plist">' + KB.partners.map(function (p) { return '<li><b>' + h(p.name) + '</b> <span>' + h(p.tag) + '</span><p>' + h(p.text) + '</p></li>'; }).join('') + '</ul>', src: 'Source: Partners & Perks, filtered to "For candidates".' };
-  }
-  function tileRegister(p) {
-    return { id: 'contact', title: 'Register', badge: 'No black hole', answer: '<p class="ans">Register your details and we\'ll match you to relevant GTM opportunities as they come in — no spam, just relevant roles.</p>' + contactLinks() + '<button type="button" class="btn btn-sm" data-toggle="contact">Register interest →</button>', more: '<p class="lead">Register</p>' + contactForm(p, true), src: 'Source: "Looking for a role?" card + candidate step 01 Register.' };
+    return { id: 'pcand', eyebrow: 'Partners for candidates', line: list.map(function (p) { return p.name + ' (' + p.tag + ')'; }).join(' · '), badge: list.length + ' perks', more: '<p class="lead">We partner with best-in-class providers so our clients and candidates get preferential access, discounts and support — well beyond the placement itself.</p><ul class="plist cols">' + list.map(function (p) { return '<li><b>' + h(p.name) + '</b> <span>' + h(p.tag) + '</span><p>' + h(p.text) + '</p></li>'; }).join('') + '</ul>', src: 'Source: Partners & Perks, filtered to "For candidates".' };
   }
 
   function answer(p) {
     var looking = state.mode === 'looking';
-    var tiles = looking ? [tileRoles(p, true), tileRate(p), tileHowYou(), tileJsb(), tilePartnersCand(), tileRegister(p)] : [tileRoles(p, false), tileRate(p), tileFee(p), tilePlan(p), tileWhy(p), tileFaq(p), tileContact(p)];
-    var sum = looking ? 'Live roles' + (p.familyLabel ? ' in ' + p.familyLabel : '') + (p.locationLabel ? ' · ' + p.locationLabel : '') + ' — and what they pay.' : (p.stageLabel || p.familyLabel || p.locationLabel ? [p.stageLabel, p.locationLabel, p.familyLabel].filter(Boolean).join(' · ') + ' — here is who is in play, what it pays, what we charge, and how fast.' : 'Describe the hire and this board rewrites itself. Below: every live role, the salary guide, our fees and the five-day plan.');
-    return { summary: sum, tiles: tiles };
+    var tiles = looking ? [tileRoles(p, true), tileRate(p), tileHowYou()] : [tileRoles(p, false), tileRate(p), tileFee(p)];
+    var strips = looking ? [stripJsb(), stripPartnersCand(), stripContact(p, true)] : [stripPlan(p), stripWhy(p), stripFaq(p), stripContact(p, false)];
+    var m = matchJobs(p), sr = salaryRowFor(p).row, tier = tierFor(p);
+    var who = [p.stageLabel, p.locationLabel, p.family ? sr.role : null].filter(Boolean).join(' · ');
+    var sum = (who ? who + ' — ' : 'Any stage, any role — ') + (m.all ? '25' : m.jobs.length) + ' live role' + ((m.all ? 25 : m.jobs.length) === 1 ? '' : 's') + (m.exact ? '' : ' nearby') + ', ' + sr.base.replace(/\s/g, '').replace('–', '–') + ' base' + (looking ? ', intro call within 48 hours.' : ', ' + tier.id + ' tier from ' + money(tier.mo) + '/mo.');
+    return { summary: sum, tiles: tiles, strips: strips };
   }
 
   function renderBoard() {
     if (!tilesEl) return;
     var p = state.parsed, a = answer(p);
     if (summaryEl) summaryEl.textContent = a.summary;
-    tilesEl.innerHTML = a.tiles.map(function (t) {
-      var open = state.open === t.id, hasMore = !!t.more;
-      return '<article class="tile tile-' + t.id + (open ? ' is-open' : '') + '" id="t-' + t.id + '" data-tile="' + t.id + '"><header class="tile-h"><h2>' + h(t.title) + '</h2><span class="badge">' + h(t.badge) + '</span></header><div class="tile-b">' + t.answer + '</div>' + (hasMore ? '<button type="button" class="open" data-toggle="' + t.id + '" aria-expanded="' + open + '" aria-controls="more-' + t.id + '">' + (open ? 'Close ↑' : 'Open ↓') + '</button><div class="tile-more" id="more-' + t.id + '" role="region" aria-label="' + h(t.title) + ' — full content"' + (open ? '' : ' hidden') + '>' + t.more + '</div>' : '') + '<p class="tile-src">' + h(t.src) + '</p></article>';
+    tilesEl.innerHTML = a.tiles.map(function (t, i) {
+      var open = state.open === t.id;
+      return '<article class="tile' + (open ? ' is-open' : '') + '" id="t-' + t.id + '" data-tile="' + t.id + '" style="--i:' + i + '"><header class="tile-h"><h2 class="eyebrow">' + h(t.eyebrow) + '</h2><span class="badge">' + h(t.badge) + '</span></header><p class="num">' + h(t.num) + '</p><p class="line">' + h(t.line) + '</p><div class="tile-b">' + t.body + '</div><button type="button" class="open" data-toggle="' + t.id + '" aria-expanded="' + open + '" aria-controls="more-' + t.id + '">' + (open ? 'Close ↑' : 'Open ↓') + '</button><div class="tile-more" id="more-' + t.id + '" role="region" aria-label="' + h(t.eyebrow) + ' — full content"' + (open ? '' : ' hidden') + '>' + t.more + '</div><p class="tile-src">' + h(t.src) + '</p></article>';
+    }).join('');
+    if (stripsEl) stripsEl.innerHTML = a.strips.map(function (t, i) {
+      var open = state.open === t.id;
+      return '<article class="strip' + (open ? ' is-open' : '') + '" id="t-' + t.id + '" data-tile="' + t.id + '" style="--i:' + (i + 3) + '"><button type="button" class="strip-h" data-toggle="' + t.id + '" aria-expanded="' + open + '" aria-controls="more-' + t.id + '"><span class="eyebrow">' + h(t.eyebrow) + '</span><span class="strip-line">' + h(t.line) + '</span><span class="badge">' + h(t.badge) + '</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div class="tile-more" id="more-' + t.id + '" role="region" aria-label="' + h(t.eyebrow) + ' — full content"' + (open ? '' : ' hidden') + '>' + t.more + '<p class="tile-src">' + h(t.src) + '</p></div></article>';
     }).join('');
     board.classList.toggle('is-looking', state.mode === 'looking');
     board.classList.toggle('agency', state.agency);
@@ -266,66 +254,59 @@
       .catch(function () { /* local answer stands */ });
   }
 
-  /* ---------------- Dots (one per live role) ---------------- */
-  var dotsEl = $('[data-dots]'), dots = [];
-  function seedDots() {
-    if (!dotsEl) return;
-    dotsEl.innerHTML = KB.jobs.map(function (j, i) { return '<i class="dot" data-i="' + i + '" style="--hue:' + (j.c === 'USD' ? 260 : j.c === 'EUR' ? 200 : 160) + '"></i>'; }).join('');
-    dots = $$('.dot', dotsEl);
-    layoutDots(state.parsed);
-  }
+  /* ---------------- Dots (quiet field behind the input) ---------------- */
+  var dotsEl = $('[data-dots]'), dots = [], NDOTS = 12;
+  function seedDots() { if (!dotsEl) return; var s = ''; for (var i = 0; i < NDOTS; i++) s += '<i class="dot"></i>'; dotsEl.innerHTML = s; dots = $$('.dot', dotsEl); layoutDots(state.parsed); }
   function layoutDots(p) {
     if (!dots.length) return;
-    var m = matchJobs(p), ids = {}; m.jobs.forEach(function (j) { ids[j.id] = true; });
-    var W = dotsEl.clientWidth || 800, H = dotsEl.clientHeight || 300, cm = 0, cn = 0, nMatch = m.all ? 0 : m.jobs.length;
+    var m = matchJobs(p), hits = m.all ? 0 : Math.max(1, Math.round(NDOTS * m.jobs.length / KB.jobs.length));
+    var W = dotsEl.clientWidth || 800, H = dotsEl.clientHeight || 80;
     dots.forEach(function (d, i) {
-      var j = KB.jobs[i], hit = !m.all && ids[j.id], x, y;
-      if (m.all) { var a = i / KB.jobs.length * Math.PI * 2; x = W / 2 + Math.cos(a) * W * 0.38 * (0.75 + ((i * 7) % 5) / 10); y = H / 2 + Math.sin(a) * H * 0.42 * (0.7 + ((i * 3) % 4) / 8); }
-      else if (hit) { var cols = Math.min(nMatch, 5); x = W * (W < 800 ? 0.86 : 0.78) + ((cm % cols) - (cols - 1) / 2) * 22; y = H * 0.5 + Math.floor(cm / cols) * 22; cm++; }
-      else { x = (cn % 2 ? W * 0.04 : W * 0.96) + ((i * 13) % 7 - 3) * 5; y = H * 0.1 + (cn * 23) % (H * 0.8); cn++; }
-      d.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px) scale(' + (hit ? 1.5 : m.all ? 1 : 0.7) + ')';
-      d.classList.toggle('is-hit', !!hit);
+      var hit = i < hits, x, y;
+      if (m.all) { x = W * (0.08 + 0.84 * i / (NDOTS - 1)); y = H * (0.3 + 0.4 * ((i * 7) % 3) / 2); }
+      else if (hit) { x = W * 0.9 - (hits - 1 - i) * 10; y = H * 0.5; }
+      else { x = W * (0.04 + 0.5 * ((i * 5) % NDOTS) / NDOTS); y = H * (0.2 + 0.6 * ((i * 3) % 4) / 3); }
+      d.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+      d.classList.toggle('is-hit', hit);
     });
   }
 
-  /* ---------------- Brief input, chips, dial, typewriter ---------------- */
+  /* ---------------- Brief input, chips, stage, typewriter ---------------- */
   var typing = { timer: null, active: false };
   var EXAMPLES = ['Series A, London, founding AE', 'SDR in New York, Seed', 'VP Sales, Series B, remote UK'];
+  var PLACEHOLDER = 'Describe the hire… e.g. Series A, London, founding AE';
   function setBrief(text, fromUser) {
     state.brief = text; state.parsed = parseBrief(text);
     if (state.parsed.mode === 'looking' && fromUser) state.mode = 'looking';
-    state.showAll = false; state.tierOverride = null; state.base = null;
+    state.tierOverride = null; state.filt = { loc: '', type: '', stage: '' };
     if (input && input.value !== text) input.value = text;
-    syncDial(); syncModeChips();
+    syncStage(); syncModeChips();
     renderBoard();
   }
   var debounce;
   function onInput() { clearTimeout(debounce); var v = input.value; debounce = setTimeout(function () { setBrief(v, true); }, 120); }
-  function stopTyping() { typing.active = false; clearTimeout(typing.timer); if (input) input.classList.remove('is-typing'); }
+  function stopTyping() { typing.active = false; clearTimeout(typing.timer); if (input) { input.classList.remove('is-typing'); input.placeholder = PLACEHOLDER; } }
   function typewriter() {
     if (!input) return;
-    if (reduced) { setBrief(EXAMPLES[0]); return; }
+    if (reduced) { input.placeholder = 'e.g. ' + EXAMPLES[0]; return; }
     typing.active = true; input.classList.add('is-typing');
     var ex = 0, ch = 0;
     var step = function () {
       if (!typing.active) return;
-      var text = EXAMPLES[ex];
-      ch++;
-      var cur = text.slice(0, ch);
-      input.value = cur;
-      if (ch % 4 === 0 || ch === text.length) { state.brief = cur; state.parsed = parseBrief(cur); if (ch === text.length) { syncDial(); renderBoard(); } else layoutDots(state.parsed); }
-      if (ch < text.length) typing.timer = setTimeout(step, 38 + Math.random() * 40);
-      else if (ex < EXAMPLES.length - 1) { typing.timer = setTimeout(function () { ex++; ch = 0; if (typing.active) step(); }, 1700); }
-      else { typing.timer = setTimeout(function () { stopTyping(); setBrief(EXAMPLES[0]); }, 1700); }
+      var text = EXAMPLES[ex]; ch++;
+      input.placeholder = text.slice(0, ch) + (ch < text.length ? '|' : '');
+      if (ch < text.length) typing.timer = setTimeout(step, 40 + Math.random() * 40);
+      else if (ex < EXAMPLES.length - 1) typing.timer = setTimeout(function () { ex++; ch = 0; if (typing.active) step(); }, 1600);
+      else typing.timer = setTimeout(function () { stopTyping(); input.placeholder = 'e.g. ' + EXAMPLES[0]; }, 1600);
     };
-    setBrief(''); step();
+    step();
   }
-  function syncDial() { $$('[data-stage]').forEach(function (b) { var on = b.dataset.stage === (state.parsed.stageLabel || ''); b.classList.toggle('is-on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); b.tabIndex = on || (!state.parsed.stageLabel && b.dataset.stage === '') ? 0 : -1; }); }
+  var stageSel = $('[data-stage-select]');
+  function syncStage() { if (stageSel) { stageSel.value = state.parsed.stageLabel || ''; stageSel.classList.toggle('is-on', !!state.parsed.stageLabel); } }
   function syncModeChips() { $$('[data-mode]').forEach(function (b) { var on = b.dataset.mode === state.mode; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); }); $$('[data-nav-mode]').forEach(function (a) { a.classList.toggle('is-on', a.dataset.navMode === state.mode); }); }
   function setMode(m) { state.mode = m; state.open = null; syncModeChips(); renderBoard(); }
   function setStage(label) {
-    var txt = state.brief;
-    var stripped = txt.replace(/pre[\s-]?seed|series\s*[abcd]\+?|\bseed\b|bootstrapped|pe[\s-]?backed/ig, '').replace(/\s*[,·]\s*[,·]\s*/g, ', ').replace(/^[\s,·]+|[\s,·]+$/g, '').trim();
+    var stripped = state.brief.replace(/pre[\s-]?seed|series\s*[abcd]\+?|\bseed\b|bootstrapped|pe[\s-]?backed/ig, '').replace(/\s*[,·]\s*[,·]\s*/g, ', ').replace(/^[\s,·]+|[\s,·]+$/g, '').trim();
     setBrief(label ? (stripped ? stripped + ', ' + label : label) : stripped, true);
   }
 
@@ -335,33 +316,26 @@
     renderBoard();
     var el = $('#t-' + id); if (el && scroll !== false && state.open) el.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
   }
-  if (tilesEl) {
-    tilesEl.addEventListener('click', function (e) {
-      var t = e.target.closest('[data-toggle]'); if (t) { openTile(t.dataset.toggle); return; }
-      var tier = e.target.closest('[data-tier]'); if (tier) { state.tierOverride = tier.dataset.tier; renderBoard(); return; }
-      var all = e.target.closest('[data-all-roles]'); if (all) { state.showAll = !state.showAll; renderBoard(); return; }
-      var op = e.target.closest('[data-open]'); if (op) { e.preventDefault(); state.open = op.dataset.open; renderBoard(); var el = $('#t-' + op.dataset.open); if (el) el.scrollIntoView({ block: 'start' }); }
-    });
-    tilesEl.addEventListener('input', function (e) {
-      var r = e.target.closest('[data-base]'); if (r) { state.base = +r.value; var out = $('[data-base-out]', tilesEl), calc = $('[data-calc]', tilesEl), tile = tileFee(state.parsed); if (out) out.textContent = money(state.base); if (calc) { var tmp = doc.createElement('div'); tmp.innerHTML = tile.answer; var nc = $('[data-calc]', tmp); if (nc) calc.innerHTML = nc.innerHTML; } return; }
-      var c = e.target.closest('[data-intel]'); if (c) { state.intel = c.checked; renderBoard(); }
-    });
-    tilesEl.addEventListener('submit', function (e) {
-      var f = e.target.closest('[data-form]'); if (!f) return; e.preventDefault();
-      var note = $('[data-form-note]', f); if (note) { note.textContent = 'Concept — not wired. On the live site this reaches Ian within one working day.'; note.classList.add('is-concept'); }
-    });
+  function onBoardClick(e) {
+    var t = e.target.closest('[data-toggle]'); if (t) { openTile(t.dataset.toggle); return; }
+    var tier = e.target.closest('[data-tier]'); if (tier) { state.tierOverride = tier.dataset.tier; renderBoard(); return; }
+    var f = e.target.closest('[data-f]'); if (f) { state.filt[f.dataset.f] = state.filt[f.dataset.f] === f.dataset.v ? '' : f.dataset.v; renderBoard(); return; }
+    var all = e.target.closest('[data-all-roles]'); if (all) { state.filt = { loc: '', type: '', stage: '' }; renderBoard(); return; }
+    var op = e.target.closest('[data-open]'); if (op) { e.preventDefault(); state.open = op.dataset.open; renderBoard(); var el = $('#t-' + op.dataset.open); if (el) el.scrollIntoView({ block: 'start' }); }
   }
+  function onBoardInput(e) {
+    var r = e.target.closest('[data-base]'); if (r) { state.base = +r.value; var out = $('[data-base-out]', board), calc = $('[data-calc]', board); if (out) out.textContent = money(state.base); if (calc) calc.innerHTML = calcLine(tierNow(state.parsed).tier, state.base); return; }
+    var c = e.target.closest('[data-intel]'); if (c) { state.intel = c.checked; renderBoard(); }
+  }
+  function onBoardSubmit(e) { var f = e.target.closest('[data-form]'); if (!f) return; e.preventDefault(); var note = $('[data-form-note]', f); if (note) { note.textContent = 'Concept — not wired. On the live site this reaches Ian within one working day.'; note.classList.add('is-concept'); } }
+  if (board) { board.addEventListener('click', onBoardClick); board.addEventListener('input', onBoardInput); board.addEventListener('submit', onBoardSubmit); }
   var briefChips = $('[data-quick]');
-  if (briefChips) briefChips.addEventListener('click', function (e) { var b = e.target.closest('[data-brief-text]'); if (!b) return; stopTyping(); setBrief(b.dataset.briefText, true); if (input) input.focus(); });
+  if (briefChips) briefChips.addEventListener('click', function (e) { var b = e.target.closest('[data-brief-text]'); if (!b) return; stopTyping(); setBrief(b.dataset.briefText, true); });
   $$('[data-mode]').forEach(function (b) { b.addEventListener('click', function () { stopTyping(); setMode(b.dataset.mode); }); });
   $$('[data-nav-mode]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); stopTyping(); setMode(a.dataset.navMode); if (board) board.scrollIntoView({ block: 'start' }); }); });
-  var dial = $('[data-dial]');
-  if (dial) {
-    dial.addEventListener('click', function (e) { var b = e.target.closest('[data-stage]'); if (!b) return; stopTyping(); setStage(b.dataset.stage); });
-    dial.addEventListener('keydown', function (e) { var btns = $$('[data-stage]', dial), i = btns.indexOf(doc.activeElement); if (i < 0) return; var n = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null; if (n == null) return; e.preventDefault(); n = (n + btns.length) % btns.length; btns[n].focus(); stopTyping(); setStage(btns[n].dataset.stage); });
-  }
+  if (stageSel) stageSel.addEventListener('change', function () { stopTyping(); setStage(stageSel.value); });
   if (input) {
-    input.addEventListener('focus', function () { if (typing.active) { stopTyping(); setBrief(input.value, true); } });
+    input.addEventListener('focus', function () { if (typing.active) stopTyping(); });
     input.addEventListener('input', function () { stopTyping(); onInput(); });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); stopTyping(); setBrief(input.value, true); if (board) board.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' }); } });
   }
@@ -369,8 +343,7 @@
   if (agencyBtn) agencyBtn.addEventListener('click', function () { state.agency = !state.agency; agencyBtn.setAttribute('aria-pressed', String(state.agency)); agencyBtn.textContent = state.agency ? 'Agency view: on' : 'Agency view'; board.classList.toggle('agency', state.agency); });
   var shareBtn = $('[data-share]');
   if (shareBtn) shareBtn.addEventListener('click', function () {
-    var hash = '#b=' + encodeURIComponent(state.brief) + '&m=' + state.mode;
-    var url = location.origin + location.pathname + hash;
+    var hash = '#b=' + encodeURIComponent(state.brief) + '&m=' + state.mode, url = location.origin + location.pathname + hash;
     history.replaceState(null, '', hash);
     var done = function () { shareBtn.textContent = 'Link copied'; setTimeout(function () { shareBtn.textContent = 'Copy link to this brief'; }, 1800); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, done); else done();
@@ -380,17 +353,14 @@
   var DEEP = { pricing: 'fee', salary: 'rate', roles: 'roles', contact: 'contact' };
   function fromHash() {
     var hsh = location.hash.replace(/^#/, ''); if (!hsh) return false;
-    if (/^b=/.test(hsh)) {
-      var q = {}; hsh.split('&').forEach(function (kv) { var i = kv.indexOf('='); q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); });
-      stopTyping(); if (q.m === 'looking' || q.m === 'hiring') state.mode = q.m; setBrief(q.b || '', false); return true;
-    }
-    if (DEEP[hsh]) { stopTyping(); if (hsh === 'roles' || hsh === 'contact') { /* mode-agnostic */ } else state.mode = 'hiring'; if (!state.brief) state.brief = ''; state.open = DEEP[hsh]; syncModeChips(); renderBoard(); var el = $('#t-' + DEEP[hsh]); if (el) el.scrollIntoView({ block: 'start' }); return true; }
+    if (/^b=/.test(hsh)) { var q = {}; hsh.split('&').forEach(function (kv) { var i = kv.indexOf('='); q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); }); stopTyping(); if (q.m === 'looking' || q.m === 'hiring') state.mode = q.m; setBrief(q.b || '', false); return true; }
+    if (DEEP[hsh]) { stopTyping(); if (hsh === 'pricing' || hsh === 'salary') state.mode = 'hiring'; state.open = DEEP[hsh]; syncModeChips(); renderBoard(); var el = $('#t-' + DEEP[hsh]); if (el) el.scrollIntoView({ block: 'start' }); return true; }
     return false;
   }
   window.addEventListener('hashchange', fromHash);
   $$('a[href^="#"]').forEach(function (a) { a.addEventListener('click', function (e) { var id = a.getAttribute('href').slice(1); if (DEEP[id]) { e.preventDefault(); history.replaceState(null, '', '#' + id); fromHash(); } }); });
 
-  /* ---------------- Everything index counts ---------------- */
+  /* ---------------- Everything index (verbatim drawers from the KB) ---------------- */
   var cnt = $('[data-count-partners]'); if (cnt) cnt.textContent = '×' + (KB.partners.length + 1);
   var pl = $('[data-partner-list]'); if (pl) pl.innerHTML = KB.partners.map(function (p) { return '<li><b>' + h(p.name) + '</b> <span>' + h(p.tag) + '</span><p>' + h(p.text) + '</p></li>'; }).join('') + '<li><b>Your logo here?</b><p>We\'re building our partner ecosystem. If you offer tools, training or services for GTM teams, let\'s talk.</p><a href="https://gtm-people.com/partners" target="_blank" rel="noopener">Apply to partner →</a></li>';
   var sl = $('[data-spec-list]'); if (sl) sl.innerHTML = KB.specialisms.map(function (s) { return '<li><b>' + h(s.name) + '</b><p>' + h(s.text) + '</p></li>'; }).join('');
@@ -413,6 +383,6 @@
   /* ---------------- Boot ---------------- */
   seedDots();
   window.addEventListener('resize', function () { layoutDots(state.parsed); });
-  syncModeChips(); syncDial();
+  syncModeChips(); syncStage();
   if (!fromHash()) { renderBoard(); typewriter(); }
 })();

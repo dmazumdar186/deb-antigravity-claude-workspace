@@ -35,52 +35,44 @@
 
 <main id="main">
   <section class="hero" aria-labelledby="h1">
-    <div class="dots" data-dots aria-hidden="true"></div>
     <div class="wrap">
-      <p class="eyebrow">Specialist Early-Stage SaaS Recruiters · Seed to Series C</p>
       <h1 id="h1">Brief the hire. <em>Get the answer.</em></h1>
-      <label class="brief" for="brief">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        <span class="sr">Describe the hire</span>
-        <input id="brief" data-brief type="text" placeholder="Describe the hire… e.g. Series A, London, founding AE" autocomplete="off" autocapitalize="sentences" enterkeyhint="search" inputmode="text">
-        <a class="btn" href="#board">Answer →</a>
-      </label>
-      <div class="brief-row">
-        <div class="chips" role="group" aria-label="I am">
-          <button type="button" class="chip chip-mode is-on" data-mode="hiring" aria-pressed="true">Hiring</button>
-          <button type="button" class="chip chip-mode" data-mode="looking" aria-pressed="false">Looking for a role</button>
+      <div class="brief-wrap">
+        <div class="dots" data-dots aria-hidden="true"></div>
+        <label class="brief" for="brief">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <span class="sr">Describe the hire</span>
+          <input id="brief" data-brief type="text" placeholder="Describe the hire… e.g. Series A, London, founding AE" autocomplete="off" autocapitalize="sentences" enterkeyhint="search" inputmode="text">
+          <a class="btn" href="#board">Answer →</a>
+        </label>
+      </div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="I am">
+          <button type="button" class="seg-b is-on" data-mode="hiring" aria-pressed="true">Hiring</button>
+          <button type="button" class="seg-b" data-mode="looking" aria-pressed="false">Looking</button>
         </div>
-        <div class="chips" data-quick role="group" aria-label="Quick briefs">
+        <label class="stage-pill"><span class="sr">Stage</span><select data-stage-select aria-label="Stage"><option value="">Stage ▾</option><option>Pre-Seed</option><option>Seed</option><option>Series A</option><option>Series B</option><option>Series C</option><option>Series D+</option><option>Bootstrapped</option><option>PE Backed</option></select></label>
+        <div class="strip-x"><div class="chips" data-quick role="group" aria-label="Quick briefs">
           <button type="button" class="chip" data-brief-text="Founding AE, Series A, London">Founding AE · Series A · London</button>
           <button type="button" class="chip" data-brief-text="SDR, Seed, New York">SDR · Seed · New York</button>
           <button type="button" class="chip" data-brief-text="VP Sales, Series B, remote UK">VP Sales · Series B · Remote UK</button>
           <button type="button" class="chip" data-brief-text="RevOps, Series A">RevOps · Series A</button>
           <button type="button" class="chip" data-brief-text="CSM, London">CSM · London</button>
           <button type="button" class="chip" data-brief-text="GTM Engineer, Seed">GTM Engineer · Seed</button>
-        </div>
+        </div></div>
       </div>
-      <span class="dial-label" id="dial-label">Or pick your stage:</span>
-      <div class="dial" role="radiogroup" aria-labelledby="dial-label" data-dial>
-        <button type="button" role="radio" aria-checked="true" data-stage="">Any</button>
-        <button type="button" role="radio" aria-checked="false" data-stage="Pre-Seed">Pre-Seed</button>
-        <button type="button" role="radio" aria-checked="false" data-stage="Seed">Seed</button>
-        <button type="button" role="radio" aria-checked="false" data-stage="Series A">Series A</button>
-        <button type="button" role="radio" aria-checked="false" data-stage="Series B">Series B</button>
-        <button type="button" role="radio" aria-checked="false" data-stage="Series C">Series C</button>
-      </div>
+      <p class="summary" data-summary aria-live="polite">Describe the hire and this board rewrites itself.</p>
     </div>
   </section>
 
   <section class="board" id="board" data-board aria-label="Answer board">
     <div class="wrap">
-      <div class="board-top">
-        <p class="summary" data-summary aria-live="polite">Describe the hire and this board rewrites itself.</p>
-      </div>
       <div class="tiles" data-tiles>
-        <article class="tile tile-roles"><header class="tile-h"><h2>Roles in play</h2></header><div class="tile-b"><p class="ans">GTM People is the specialist recruitment partner for early-stage SaaS companies building their first go-to-market teams. From founding AEs to first sales leaders — we find the talent that turns traction into revenue.</p><p class="note">Turn on JavaScript to see the live roles, salary band, fee and plan for your brief — or browse everything in the index below.</p></div></article>
+        <article class="tile"><header class="tile-h"><h2 class="eyebrow">Roles in play</h2></header><p class="line">GTM People is the specialist recruitment partner for early-stage SaaS companies building their first go-to-market teams. From founding AEs to first sales leaders — we find the talent that turns traction into revenue.</p><p class="note">Turn on JavaScript to see the live roles, salary band, fee and plan for your brief — or browse everything in the index below.</p></article>
       </div>
+      <div class="strips" data-strips></div>
       <div class="board-foot">
-        <p>Every answer above is built from the live gtm-people.com copy and the 25 public roles. Nothing invented.</p>
+        <p>Built from the live gtm-people.com copy and 25 public roles — nothing invented.</p>
         <div class="board-tools">
           <button type="button" class="chip" data-share>Copy link to this brief</button>
           <button type="button" class="chip" data-agency aria-pressed="false" title="Show which live sentence each answer came from">Agency view</button>
@@ -98,7 +90,6 @@
   <section class="index" id="everything" aria-labelledby="ix-h">
     <div class="wrap">
       <h2 id="ix-h">Everything, one tap away</h2>
-      <p>Every live section of gtm-people.com, verbatim, as drawers. Nothing is lost — nothing is pushed at you unasked.</p>
 
       <details class="ix reveal" id="specialisms"><summary>Specialisms <small>×9</small></summary><div class="ix-b">
         <p class="lead">What We Do — Every GTM hire, covered.</p>
@@ -198,7 +189,7 @@
       <div><h3>Insights &amp; Company</h3><ul><li><a href="https://gtm-people.com/insights" target="_blank" rel="noopener">GTM Hiring Blog</a></li><li><a href="#salary">2026 Salary Guide</a></li><li><a href="#faq">FAQ</a></li><li><a href="#about">About</a></li><li><a href="#contact">Contact</a></li><li><a href="mailto:hello@gtm-people.com">hello@gtm-people.com</a></li><li><a href="tel:+447803236717">+44 7803 236717</a></li></ul></div>
     </div>
     <div class="legal">
-      <p>© 2026 GTM People — a trading brand of H2 International Ltd (11968625). Registered in England &amp; Wales. Registered office: 124 City Road, London, Greater London, England, EC1V 2NX. <a href="https://gtm-people.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> · <a href="https://gtm-people.com/terms" target="_blank" rel="noopener">Terms of Use</a> · <a href="https://gtm-people.com/taas-terms" target="_blank" rel="noopener">TaaS Terms</a></p>
+      <p>© 2026 GTM People — a trading brand of H2 International Ltd (11968625). Registered in England &amp; Wales. <a href="https://gtm-people.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> · <a href="https://gtm-people.com/terms" target="_blank" rel="noopener">Terms of Use</a> · <a href="https://gtm-people.com/taas-terms" target="_blank" rel="noopener">TaaS Terms</a></p>
       <p>Concept by ProdCraft — not affiliated with GTM People. Debanjan, Founder, ProdCraft, <a href="mailto:debanjan@prodcraft.fyi">debanjan@prodcraft.fyi</a>.</p>
       <p>Compare: <a href="for-ian/">For Ian</a> · <a href="deck/">compact cut</a> · <a href="story/">scroll-story cut</a></p>
     </div>
