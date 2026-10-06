@@ -87,3 +87,6 @@ Redeploy: `bash .claude/skills/site-redesign/scripts/deploy.sh deliverables/gtm_
 Worker: `cd deliverables/gtm_people_redesign_2026-10-06/worker && npx -y wrangler@4 secret put ANTHROPIC_API_KEY && npx -y wrangler@4 deploy`, then set `data-ask-url` on `<html>` in index.html and redeploy.
 
 Not done: Worker not deployed (no key); full human-eye run on v3; roles are a 2026-10-06 snapshot; form/newsletter not wired; partner audience split inferred; insights titles not public (3 "to wire" slots).
+
+### v3.1 (2026-10-06)
+Operator: quick-brief chip strip had no visible way to scroll. Added 44 px prev/next arrows (disabled at the ends), mouse-wheel → horizontal scroll, scroll-snap on chips; verified by Playwright on desktop and Pixel 7 (arrows move the strip, wheel moves it, 0 errors); site_check PASSED; redeployed.

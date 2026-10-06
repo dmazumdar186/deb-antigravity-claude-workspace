@@ -55,8 +55,14 @@ ul,ol{margin:0;padding:0;list-style:none}
 .stage-pill{flex:none;display:inline-flex}
 .stage-pill select{appearance:none;-webkit-appearance:none;min-height:42px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--vi2);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .stage-pill select.is-on{background:var(--vi);color:#fff;border-color:var(--vi)}
+.strip-wrap{flex:1;min-width:0;display:flex;align-items:center;gap:2px}
+.strip-arr{flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--vi2);cursor:pointer;transition:background .2s,opacity .2s}
+.strip-arr:hover{background:var(--pll,#F5F3FF)}
+.strip-arr[disabled]{opacity:.35;cursor:default}
 .strip-x{flex:1;min-width:0;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 40px),transparent)}
-.strip-x .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:0 40px 0 24px}
+.strip-x .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:0 40px 0 24px;scroll-behavior:smooth;scroll-snap-type:x proximity}
+.strip-x .chip{scroll-snap-align:start}
+@media (prefers-reduced-motion:reduce){.strip-x .chips{scroll-behavior:auto}}
 .strip-x .chips::-webkit-scrollbar{display:none}
 .strip-x .chip{flex:none}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
