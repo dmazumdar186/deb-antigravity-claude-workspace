@@ -139,7 +139,7 @@
   var LOCGROUP = function (j) { var l = j.l; return /remote/i.test(l) ? 'Remote' : /london/i.test(l) ? 'London' : /new york/i.test(l) ? 'New York' : /san francisco/i.test(l) ? 'San Francisco' : /paris/i.test(l) ? 'Paris' : l; };
 
   function roleRow(j) { return '<li class="role"><strong>' + h(j.t) + '</strong><span class="role-meta">' + h(LOCGROUP(j)) + (j.s ? ' · ' + h(j.s) : '') + '</span><span class="role-comp">' + h(range(j.b, j.c) || 'comp on request') + ' base</span></li>'; }
-  function roleFull(j) { return '<li class="role role-full"><div><strong>' + h(j.t) + '</strong><span class="role-meta">' + h(j.l) + (j.s ? ' · ' + h(j.s) : '') + ' · ' + h(j.rt) + (j.w ? ' · ' + h(j.w) : '') + '</span></div><div class="role-comp">' + h(comp(j)) + ' ' + equityDot(j) + (j.e && !/^none$/i.test(j.e) ? ' <em>' + h(j.e) + '</em>' : '') + '</div>' + (j.d ? '<p>' + h(j.d) + '</p>' : '') + '</li>'; }
+  function roleFull(j) { return '<li class="role role-full" data-row tabindex="0" role="button" aria-expanded="false"><div><strong>' + h(j.t) + '</strong><span class="role-meta">' + h(j.l) + (j.s ? ' · ' + h(j.s) : '') + ' · ' + h(j.rt) + (j.w ? ' · ' + h(j.w) : '') + '</span></div><div class="role-comp">' + h(comp(j)) + ' ' + equityDot(j) + (j.e && !/^none$/i.test(j.e) ? ' <em>' + h(j.e) + '</em>' : '') + '</div>' + (j.d ? '<p class="role-d">' + h(j.d) + '</p>' : '') + '</li>'; }
   function chipRow(name, key, opts) { return '<div class="chips chips-f" role="group" aria-label="' + name + '">' + opts.map(function (o) { var on = state.filt[key] === o[0]; return '<button type="button" class="chip' + (on ? ' is-on' : '') + '" data-f="' + key + '" data-v="' + h(o[0]) + '" aria-pressed="' + on + '">' + h(o[1]) + '</button>'; }).join('') + '</div>'; }
   function rolesDrawer(matchList) {
     var f = state.filt, pool = KB.jobs.filter(function (j) { return (!f.loc || LOCGROUP(j) === f.loc) && (!f.type || j.rt === f.type) && (!f.stage || j.s === f.stage); });
@@ -160,10 +160,10 @@
   function bars() { return '<ul class="bars">' + KB.salary.map(function (r) { var m = r.base.match(/£(\d+)k\s*–\s*£(\d+)k/); var lo = m ? +m[1] : 0, hi = m ? +m[2] : 0; return '<li><div class="bar-head"><strong>' + h(r.role) + '</strong><span>' + h(r.base) + ' · ' + h(r.ote) + '</span></div><div class="bar"><span style="left:' + (lo / 180 * 100) + '%;width:' + ((hi - lo) / 180 * 100) + '%"></span></div><small>' + h(r.note) + '</small></li>'; }).join('') + '</ul>'; }
   function tileRate(p) {
     var sr = salaryRowFor(p), r = sr.row, us = (p.location === 'us' || p.location === 'newyork' || p.location === 'sf');
-    var usLine = KB.faqs[5].a.split('US:')[1].split('. ')[0] + '.';
+    var usFull = KB.faqs[5].a.split('US:')[1].trim();
     return { id: 'rate', eyebrow: 'Market rate · ' + r.role, num: r.base.replace(/\s/g, ''), line: 'base · ' + r.ote + ' · ' + r.note.split(' · ')[1], badge: '2026 Salary Guide',
-      body: '<p class="note">' + h(r.note.split(' · ')[0]) + (sr.proxy ? ' · closest row to ' + h(p.familyLabel) : '') + (us ? ' · <b>US:</b>' + h(usLine) : '') + '</p>',
-      more: '<p class="lead">' + h(KB.salaryIntro) + '</p>' + bars() + '<p>' + h(KB.salaryCta[0]) + ' <a href="#contact" data-open="contact">' + h(KB.salaryCta[1]) + '</a></p>',
+      body: '<p class="note fact"><b>' + h(r.note.split(' · ')[0]) + '</b><br>' + (sr.proxy ? 'closest guide row to ' + h(p.familyLabel) : 'stage range for this row · ' + h(r.note.split(' · ')[1] || '')) + '</p>' + (us ? '<p class="note">US mid-market AE: ~$120–150k base, $240–300k OTE</p>' : ''),
+      more: '<p class="lead">' + h(KB.salaryIntro) + '</p>' + (us ? '<p><b>US:</b> ' + h(usFull) + '</p>' : '') + bars() + '<p>' + h(KB.salaryCta[0]) + ' <a href="#contact" data-open="contact">' + h(KB.salaryCta[1]) + '</a></p>',
       src: 'Source: 2026 Salary Guide row "' + r.role + '"' + (us ? ' + FAQ "What should I pay a Series A SaaS Account Executive?" (US sentence)' : '') + '.' };
   }
   function money(n) { return '£' + Math.round(n).toLocaleString('en-GB'); }
@@ -173,7 +173,7 @@
     var tn = tierNow(p), tier = tn.tier, rec = tn.rec, mult = state.intel ? 1.5 : 1;
     var inc = tier.id === 'Launchpad' ? 'no included placements · then 20%' : tier.id === 'Scaleup' ? '1 placement included · then 17.5%' : tier.id === 'Unicorn' ? '2 placements included · then 15%' : 'unlimited hiring within capacity';
     return { id: 'fee', eyebrow: 'Your fee', num: money(tier.mo * mult) + '/mo', line: tier.id + ' · ' + inc, badge: 'Recommended: ' + rec.id,
-      body: '<p class="note calc-line" data-calc>' + calcLine(tier, state.base) + '</p>',
+      body: '<p class="note calc-line" data-calc>' + calcLine(tier, state.base) + '</p><p class="note fact"><b>' + h(tier.flat ? 'Monthly · min 3 months' : tier.guarantee.replace(/^Then [\d.]+% · /, '')) + '</b><br>' + (tier.flat ? 'A GTM recruiter embedded in your team, full-time' : 'replacement guarantee on every placement at this tier') + '</p>',
       more: '<div class="fee-ctl"><div class="tier-pick" role="group" aria-label="Tier">' + KB.tiers.map(function (t) { return '<button type="button" class="chip' + (t.id === tier.id ? ' is-on' : '') + '" data-tier="' + t.id + '" aria-pressed="' + (t.id === tier.id) + '">' + t.id + (t.id === rec.id ? ' ★' : '') + '</button>'; }).join('') + '</div><label class="calc"><span>Base salary <output data-base-out>' + money(state.base) + '</output></span><input type="range" min="30000" max="200000" step="5000" value="' + state.base + '" data-base aria-label="Base salary"></label><label class="switch"><input type="checkbox" data-intel' + (state.intel ? ' checked' : '') + '> <span>Recruitment + Intelligence (+50%)</span></label></div><p class="note">' + h(KB.feeNotes.intro) + ' ' + h(KB.feeNotes.intel) + '</p><div class="tiers">' + KB.tiers.map(function (t) { return '<div class="tier' + (t.id === rec.id ? ' is-rec' : '') + '">' + (t.popular ? '<span class="tag">Most Popular</span>' : '') + '<h4>' + h(t.id) + ' <small>' + h(t.sub) + '</small></h4><p class="price"><b>' + money(t.mo * mult) + '</b>/mo <small>' + h(t.yr) + '</small></p><ul>' + t.bullets.slice(0, 3).map(function (b) { return '<li>' + h(b) + '</li>'; }).join('') + '</ul><p class="tier-inc">' + h(t.included) + (t.flat ? '' : ' · ' + h(t.guarantee)) + '</p><a class="btn btn-sm" href="#contact" data-open="contact">' + h(t.cta) + '</a></div>'; }).join('') + '</div><p class="fine">' + h(KB.feeNotes.how) + '</p><p class="fine"><b>' + h(KB.feeNotes.beyond) + '</b> ' + h(KB.feeNotes.example) + '</p>',
       src: 'Source: Talent as a Service tiers (' + rec.id + ' = ' + (p.volume >= 3 ? '3+ hires → Partner' : (p.stageLabel || 'stage not given → Scaleup, Most Popular')) + ') + "How our fees work" fine print; agency comparison uses the live £15,000-vs-£30,000 example rate.' };
   }
@@ -228,7 +228,7 @@
   function renderBoard() {
     if (!tilesEl) return;
     var p = state.parsed, a = answer(p);
-    if (summaryEl) summaryEl.textContent = a.summary;
+    if (summaryEl) { summaryEl.textContent = a.summary; summaryEl.title = a.summary; }
     tilesEl.innerHTML = a.tiles.map(function (t, i) {
       var open = state.open === t.id;
       return '<article class="tile' + (open ? ' is-open' : '') + '" id="t-' + t.id + '" data-tile="' + t.id + '" style="--i:' + i + '"><header class="tile-h"><h2 class="eyebrow">' + h(t.eyebrow) + '</h2><span class="badge">' + h(t.badge) + '</span></header><p class="num">' + h(t.num) + '</p><p class="line">' + h(t.line) + '</p><div class="tile-b">' + t.body + '</div><button type="button" class="open" data-toggle="' + t.id + '" aria-expanded="' + open + '" aria-controls="more-' + t.id + '">' + (open ? 'Close ↑' : 'Open ↓') + '</button><div class="tile-more" id="more-' + t.id + '" role="region" aria-label="' + h(t.eyebrow) + ' — full content"' + (open ? '' : ' hidden') + '>' + t.more + '</div><p class="tile-src">' + h(t.src) + '</p></article>';
@@ -302,7 +302,7 @@
     step();
   }
   var stageSel = $('[data-stage-select]');
-  function syncStage() { if (stageSel) { stageSel.value = state.parsed.stageLabel || ''; stageSel.classList.toggle('is-on', !!state.parsed.stageLabel); } }
+  function syncStage() { if (stageSel) { stageSel.value = state.parsed.stageLabel || ''; stageSel.classList.toggle('is-on', !!state.parsed.stageLabel); $$('option', stageSel).forEach(function (o) { if (o.value) o.textContent = (o.selected ? 'Stage: ' : '') + o.value; }); } }
   function syncModeChips() { $$('[data-mode]').forEach(function (b) { var on = b.dataset.mode === state.mode; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); }); $$('[data-nav-mode]').forEach(function (a) { a.classList.toggle('is-on', a.dataset.navMode === state.mode); }); }
   function setMode(m) { state.mode = m; state.open = null; syncModeChips(); renderBoard(); }
   function setStage(label) {
@@ -321,6 +321,7 @@
     var tier = e.target.closest('[data-tier]'); if (tier) { state.tierOverride = tier.dataset.tier; renderBoard(); return; }
     var f = e.target.closest('[data-f]'); if (f) { state.filt[f.dataset.f] = state.filt[f.dataset.f] === f.dataset.v ? '' : f.dataset.v; renderBoard(); return; }
     var all = e.target.closest('[data-all-roles]'); if (all) { state.filt = { loc: '', type: '', stage: '' }; renderBoard(); return; }
+    var row = e.target.closest('[data-row]'); if (row && !e.target.closest('a')) { var ex = row.getAttribute('aria-expanded') === 'true'; row.setAttribute('aria-expanded', String(!ex)); return; }
     var op = e.target.closest('[data-open]'); if (op) { e.preventDefault(); state.open = op.dataset.open; renderBoard(); var el = $('#t-' + op.dataset.open); if (el) el.scrollIntoView({ block: 'start' }); }
   }
   function onBoardInput(e) {
@@ -328,7 +329,7 @@
     var c = e.target.closest('[data-intel]'); if (c) { state.intel = c.checked; renderBoard(); }
   }
   function onBoardSubmit(e) { var f = e.target.closest('[data-form]'); if (!f) return; e.preventDefault(); var note = $('[data-form-note]', f); if (note) { note.textContent = 'Concept — not wired. On the live site this reaches Ian within one working day.'; note.classList.add('is-concept'); } }
-  if (board) { board.addEventListener('click', onBoardClick); board.addEventListener('input', onBoardInput); board.addEventListener('submit', onBoardSubmit); }
+  if (board) { board.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-row]')) { e.preventDefault(); e.target.click(); } }); board.addEventListener('click', onBoardClick); board.addEventListener('input', onBoardInput); board.addEventListener('submit', onBoardSubmit); }
   var briefChips = $('[data-quick]');
   if (briefChips) briefChips.addEventListener('click', function (e) { var b = e.target.closest('[data-brief-text]'); if (!b) return; stopTyping(); setBrief(b.dataset.briefText, true); });
   $$('[data-mode]').forEach(function (b) { b.addEventListener('click', function () { stopTyping(); setMode(b.dataset.mode); }); });

@@ -62,3 +62,28 @@ Scroll height is no longer the metric for v2: pinned tracks consume scroll while
 
 Verified: site_check PASSED on `/`, `/for-ian/`, `/deck/` (desktop, Pixel 7, iPhone 13, reduced motion), functional suite all green (hero states at 40/80 %, folio card 5/9, drum step 4, London → 11 roles, toggle, calculator £100k Unicorn → £15,000 vs £30,000, FAQ, form notice, reduced motion stacked), 0 console errors. Visual review: 4 minors fixed (hero crossfade residue, header opacity/scroll-margin, pricing card baselines, mobile bottom-bar padding); density rated 4/5 before the pricing trim.
 Not done: fonts only render live; partner audience split inferred; roles are a snapshot; form not wired.
+
+## v3 — "Brief it" (2026-10-06, after operator rejected v1 "dense" and v2 "long / copy-paste"; brainstorm in BRAINSTORM.md)
+Live: https://gtm-people-redesign.pages.dev/ (v3). Comparison cuts: /deck/ (v1 tabs), /story/ (v2 scroll-story, eye-test P1/P2 fixed). Pitch: /for-ian/ ("three cuts, one recommendation").
+
+What it is: an intent-first answer board. Headline + one large brief input (placeholder cycles example briefs); one control row (Hiring | Looking · Stage pill · scrolling example chips); a one-line answer summary; three equal hero-number tiles (Roles in play · Market rate · Your fee) and four one-line strips (How we'd run your search · Why this works at your stage · 2 FAQs for your stage · Next step / contact form). Every tile opens in place to the verbatim live content; an "Everything" index at the bottom holds the rest (specialisms, 28 partners, insights, founder, legal) in drawers. Share link `/#b=<brief>&m=hiring|looking` restores a board; `#pricing` `#roles` `#contact` deep-link. "Agency view" toggle prints the live source sentence under each tile. Client-side intent engine (`parseBrief` → stage, role family, location, seniority, volume) over a knowledge base built from the live copy + 25 live roles; `data-ask-url` on `<html>` switches to the Worker in `worker/` (Anthropic Messages, claude-fable-5-1) once `ANTHROPIC_API_KEY` exists — not deployed (no key in the cloud env).
+
+Measured (research/metrics_v3.json, functional_v3.json; live from baseline_metrics.txt; eye-test friction from qa_2026-10-06/human_eye_verdict.md):
+| | Live site | v1 deck | v2 story | v3 Brief it |
+|---|---|---|---|---|
+| Scroll to first matching role ("Series A London AE") | 3,896 px+ (then filter) | 0 (tab) | 18,729 px (20.8 screens) | 0 px (row at y≈582) |
+| Interactions to pricing | scroll 8,682 px | 1 tab | 42,791 px (47.5 screens) | 0 (fee tile first viewport) |
+| Default page height desktop / mobile | 17,828 / 36,490 | 1,773 / 2,941 | 52,167 / 27,515 | 2,350 / 3,646 |
+| Visible words per viewport, desktop median | 190 | 224 | 35 | 227 (one answer screen; mobile 92) |
+| Reviewer density / wow (1–5) | — | 2 / — | 4 / — | 4 / 4 |
+| Third-party scripts | 3 | 0 | 0 | 0 |
+| Content probe (live lines ≥ 6 words missing) | — | — | 0 | 0 |
+
+Verified: site_check PASSED (/, /for-ian/; /deck/ and /story/ 0 console errors); functional_v3 44/45 (the miss is the 150-word density gate; structural floor explained above); content probe 0 missing; visual review round 1 → 9 defects → density pass → round 2: 4/5 density, 4/5 wow, all earlier defects fixed or polished; polish round applied (chip fades, one-line US note, collapsed role descriptions, Stage prefix, supporting facts, mobile summary truncation). Live CSS md5 matches local; real fonts load on the live URL (probed from Playwright).
+
+Human-eye test on v2 (live at the time): FAIL 3 P1 / 12 P2 / 8 P3 — verdict in research/qa_2026-10-06/. P1 D-01 numeral overlap, D-02 reduced motion, D-04/06/07/08/09 fixed in /story/; D-03 friction is inherent to the pinned design and is why v3 exists. A full human-eye run on v3 is the next gate before a client release.
+
+Redeploy: `bash .claude/skills/site-redesign/scripts/deploy.sh deliverables/gtm_people_redesign_2026-10-06/site gtm-people-redesign for-ian/`
+Worker: `cd deliverables/gtm_people_redesign_2026-10-06/worker && npx -y wrangler@4 secret put ANTHROPIC_API_KEY && npx -y wrangler@4 deploy`, then set `data-ask-url` on `<html>` in index.html and redeploy.
+
+Not done: Worker not deployed (no key); full human-eye run on v3; roles are a 2026-10-06 snapshot; form/newsletter not wired; partner audience split inferred; insights titles not public (3 "to wire" slots).

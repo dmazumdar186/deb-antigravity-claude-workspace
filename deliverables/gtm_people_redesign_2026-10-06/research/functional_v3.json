@@ -1,7 +1,7 @@
 {
  "board renders in place on load (ms since navigation)": {
   "ok": true,
-  "info": "389 ms"
+  "info": "680 ms"
  },
  "typewriter demo running on load": {
   "ok": true,
@@ -141,13 +141,13 @@
  },
  "densityDesktop": {
   "samples": 4,
-  "max": 219,
-  "median": 209,
-  "mean": 189
+  "max": 237,
+  "median": 227,
+  "mean": 198
  },
  "desktop density median ≤ 150 words/viewport": {
   "ok": false,
-  "info": "{\"samples\":4,\"max\":219,\"median\":209,\"mean\":189}"
+  "info": "{\"samples\":4,\"max\":237,\"median\":227,\"mean\":198}"
  },
  "desktop console clean": {
   "ok": true,
@@ -157,25 +157,25 @@
   "ok": true,
   "info": "0px"
  },
- "boardHeightMobile": 1633,
- "defaultPageHeightMobile": 3646,
+ "boardHeightMobile": 1711,
+ "defaultPageHeightMobile": 3703,
  "board ≤ 3 mobile viewports": {
   "ok": true,
-  "info": "1633px"
+  "info": "1711px"
  },
  "mobile hero + first tile within 844 px": {
   "ok": true,
-  "info": "777px"
+  "info": "756px"
  },
  "densityMobile": {
   "samples": 8,
-  "max": 113,
-  "median": 92,
-  "mean": 91
+  "max": 109,
+  "median": 98,
+  "mean": 96
  },
  "mobile density median ≤ 150 words/viewport": {
   "ok": true,
-  "info": "{\"samples\":8,\"max\":113,\"median\":92,\"mean\":91}"
+  "info": "{\"samples\":8,\"max\":109,\"median\":98,\"mean\":96}"
  },
  "mobile console clean": {
   "ok": true,
