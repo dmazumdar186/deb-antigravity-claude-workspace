@@ -57,8 +57,15 @@ if [ -f "$WORKSPACE_DIR/CLAUDE.local.md" ]; then
     fi
 fi
 
+# ----- Jev router state (one line; directives/infrastructure/jev.md) -----
+JEV_NOTE="jev router: off"
+if [ -f "$WORKSPACE_DIR/.claude/jev/state.json" ] && ! grep -q '"enabled": *false' "$WORKSPACE_DIR/.claude/jev/state.json"; then
+    if [ -n "$OPENROUTER_API_KEY$OPENROUTER_API_TOKEN$OPENROUTER_API_TOEKN" ]; then JEV_NOTE="jev router: on (/jev status)"; else JEV_NOTE="jev router: on but no OPENROUTER key -> pass-through"; fi
+fi
+export JEV_NOTE
+
 # Export so python reads via os.environ (safer than heredoc string interp).
-export GIT_STATUS UNTRACKED_COUNT LAST_COMMIT CLAUDE_VERSION USAGE_DIGEST LOCAL_MD_NOTE
+export GIT_STATUS UNTRACKED_COUNT LAST_COMMIT CLAUDE_VERSION USAGE_DIGEST LOCAL_MD_NOTE JEV_NOTE
 
 "$PY" -c '
 import json, os
@@ -71,6 +78,7 @@ if usage:
         "Surface this digest to the user in your first reply.\n"
     )
 local_note = os.environ.get("LOCAL_MD_NOTE", "")
+jev_note = os.environ.get("JEV_NOTE", "")
 local_block = ("\n\n**Context-rent warning:** " + local_note + "\n") if local_note else ""
 body = (
     "## Workspace status (auto-injected at session start)\n\n"
@@ -78,7 +86,8 @@ body = (
     + os.environ.get("GIT_STATUS", "") + "\n```\n\n"
     "**Untracked files:** " + os.environ.get("UNTRACKED_COUNT", "?") + "\n\n"
     "**Last commit:** " + os.environ.get("LAST_COMMIT", "(none)") + "\n\n"
-    "**Claude Code CLI:** " + os.environ.get("CLAUDE_VERSION", "(unknown)") + "\n"
+    "**Claude Code CLI:** " + os.environ.get("CLAUDE_VERSION", "(unknown)") + "\n\n"
+    "**Jev:** " + jev_note + "\n"
     + usage_block + local_block
 )
 print(json.dumps({"additionalContext": body}))

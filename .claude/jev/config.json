@@ -1,0 +1,16 @@
+{
+  "model": "typesafe/jev-1.13",
+  "timeout_ms": 2500,
+  "min_confidence": 0.55,
+  "skill_min_confidence": 0.5,
+  "max_prompt_chars": 6000,
+  "min_prompt_chars": 12,
+  "skill_pick": true,
+  "log_keep": 500,
+  "routes": {
+    "tiny": {"mode": "inline", "model": "claude-fable-5-1"},
+    "bulk": {"mode": "subagent", "model": "claude-sonnet-5-5"},
+    "standard": {"mode": "subagent", "model": "claude-opus-5-5"},
+    "hard": {"mode": "inline", "model": "claude-fable-5-1"}
+  }
+}

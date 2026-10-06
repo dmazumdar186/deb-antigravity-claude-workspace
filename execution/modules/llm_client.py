@@ -23,9 +23,13 @@ _OR_BASE_URL = "https://openrouter.ai/api/v1"
 
 # Operator order 2026-09-21 (later): every Fable model runs at effort `low`,
 # no `medium` anywhere, unless a caller passes `effort=` explicitly for a task.
+# 2026-10-06: Jev-routed tiers — Sonnet 5.5 (bulk) and Opus 5.5 (standard) are
+# tier targets again; all three families run at `low`. Haiku stays banned.
 # OpenRouter carries it as `reasoning: {"effort": ...}`.
 DEFAULT_EFFORT: dict[str, str] = {
     "anthropic/claude-fable-5.1": "low",
+    "anthropic/claude-opus-5.5": "low",
+    "anthropic/claude-sonnet-5.5": "low",
 }
 
 
@@ -34,6 +38,10 @@ def default_effort(model: str) -> str | None:
     m = model.lower()
     if "claude-fable" in m:
         return DEFAULT_EFFORT["anthropic/claude-fable-5.1"]
+    if "claude-opus" in m:
+        return DEFAULT_EFFORT["anthropic/claude-opus-5.5"]
+    if "claude-sonnet" in m:
+        return DEFAULT_EFFORT["anthropic/claude-sonnet-5.5"]
     return None
 
 
