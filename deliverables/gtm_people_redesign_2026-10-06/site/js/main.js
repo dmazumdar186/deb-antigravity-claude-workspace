@@ -482,10 +482,10 @@
   if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { onScreen = es[0].isIntersecting; start(); }, { threshold: 0 }).observe(sec);
   if (reduced && ctx && g) { draw(0, 0); setCards(5, true); } else start();
 
-  /* map: equirectangular onto 560x560; lon -130..60 (x2.947/deg), lat 75..-45 (y4.667/deg). Hand-simplified coastlines. */
+  /* map: equirectangular onto 560x560; lon -142..48 (x2.947/deg), lat 75..-45 (y4.667/deg). Hand-simplified coastlines. */
   var map = $('[data-map]');
   if (map) {
-    var pt = function (lon, lat) { return ((lon + 130) * 2.947).toFixed(1) + ' ' + ((75 - lat) * 4.667).toFixed(1); };
+    var pt = function (lon, lat) { return ((lon + 142) * 2.947).toFixed(1) + ' ' + ((75 - lat) * 4.667).toFixed(1); };
     var poly = function (pts, far) { var a = pts.split(' '), out = []; for (var i = 0; i < a.length; i += 2) out.push(pt(+a[i], +a[i + 1])); return '<path class="land' + (far ? ' far' : '') + '" d="M' + out.join('L') + 'Z"/>'; };
     var LAND = [
       '-168 66 -162 60 -152 60 -140 60 -130 55 -125 49 -124 42 -122 38 -118 34 -115 30 -110 24 -105 20 -97 16 -92 15 -88 16 -84 10 -80 9 -77 8 -82 10 -87 13 -88 18 -87 21 -90 21 -91 19 -97 20 -97 26 -94 29 -90 29 -85 30 -83 28 -81 25 -80 27 -81 31 -76 35 -75 38 -74 40.5 -70 41.5 -70 43 -67 45 -64 45 -61 47 -56 47 -56 52 -60 55 -64 60 -78 62 -82 56 -95 60 -92 68 -80 70 -100 72 -120 70 -128 70 -140 70 -155 71 -165 68',

@@ -13,7 +13,7 @@
  },
  "3 frames 700 ms apart differ (canvas painted px / alpha mass)": {
   "ok": true,
-  "info": "[{\"painted\":74736,\"alpha\":3224},{\"painted\":42396,\"alpha\":1884},{\"painted\":27284,\"alpha\":1062}]"
+  "info": "[{\"painted\":72505,\"alpha\":3179},{\"painted\":39497,\"alpha\":1757},{\"painted\":28572,\"alpha\":1124}]"
  },
  "one headline visible per frame": {
   "ok": true,
@@ -21,7 +21,7 @@
  },
  "canvas has non-blank pixels": {
   "ok": true,
-  "info": "74736 painted px"
+  "info": "72505 painted px"
  },
  "beat 1 end state: five cards lit, one lifted + placed tag": {
   "ok": true,
@@ -29,7 +29,7 @@
  },
  "no frame with two headlines during the 1→2 transition": {
   "ok": true,
-  "info": "max 1 over 51 samples"
+  "info": "max 1 over 52 samples"
  },
  "beats advance after beat 1 (6.5 s)": {
   "ok": true,
@@ -67,8 +67,8 @@
   "ok": true,
   "info": "2,2,2,2"
  },
- "stage fills the right column (top ≤ 140, bottom ≥ 740)": {
-  "ok": false,
+ "stage fills the right column (top ≤ 160, bottom ≥ 740)": {
+  "ok": true,
   "info": "{\"top\":143,\"bottom\":763,\"w\":605}"
  },
  "rail 24 px from the bottom edge": {
@@ -139,7 +139,5 @@
   "ok": true,
   "info": "[true,false,false,false]"
  },
- "fails": [
-  "stage fills the right column (top ≤ 140, bottom ≥ 740)"
- ]
+ "fails": []
 }
