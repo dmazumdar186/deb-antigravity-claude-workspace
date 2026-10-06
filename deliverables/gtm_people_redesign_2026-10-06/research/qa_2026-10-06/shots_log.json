@@ -1,0 +1,4945 @@
+{
+  "shots": [
+    "home_d1440_hero_0",
+    "home_d1440_hero_40",
+    "home_d1440_hero_80",
+    "motion_hero_f1",
+    "motion_hero_f2",
+    "motion_hero_f3",
+    "home_d1440_specialisms_mid",
+    "home_d1440_drum_mid",
+    "home_d1440_founder",
+    "home_d1440_roles_card01",
+    "motion_folio_f1",
+    "motion_folio_f2",
+    "motion_folio_f3",
+    "home_d1440_roles_card08",
+    "home_d1440_roles_card20",
+    "home_d1440_roles_filter_london",
+    "home_d1440_roles_filter_sales",
+    "home_d1440_taas",
+    "home_d1440_pricing_toggle_off",
+    "home_d1440_pricing_toggle_on",
+    "home_d1440_pricing_calc_100k_unicorn",
+    "home_d1440_pricing_fees_open",
+    "home_d1440_salary",
+    "home_d1440_faq",
+    "home_d1440_partners_hover",
+    "home_d1440_contact_filled",
+    "home_d1440_contact_submitted",
+    "home_d1440_footer",
+    "home_d1440-rm_hero_0",
+    "home_d1440-rm_hero_40",
+    "home_d1440-rm_hero_80",
+    "home_d1440-rm_specialisms_mid",
+    "home_d1440-rm_drum_mid",
+    "home_d1440-rm_founder",
+    "home_d1440-rm_roles_card01",
+    "home_d1440-rm_roles_card08",
+    "home_d1440-rm_roles_card20",
+    "home_d1440-rm_roles_filter_london",
+    "home_d1440-rm_roles_filter_sales",
+    "home_d1440-rm_taas",
+    "home_d1440-rm_pricing_toggle_off",
+    "home_d1440-rm_pricing_toggle_on",
+    "home_d1440-rm_pricing_calc_100k_unicorn",
+    "home_d1440-rm_pricing_fees_open",
+    "home_d1440-rm_salary",
+    "home_d1440-rm_faq",
+    "home_d1440-rm_partners_hover",
+    "home_d1440-rm_contact_filled",
+    "home_d1440-rm_footer",
+    "home_d1024_hero_0",
+    "home_d1024_hero_40",
+    "home_d1024_hero_80",
+    "home_d1024_specialisms_mid",
+    "home_d1024_drum_mid",
+    "home_d1024_founder",
+    "home_d1024_roles_card01",
+    "home_d1024_roles_card08",
+    "home_d1024_roles_card20",
+    "home_d1024_roles_filter_london",
+    "home_d1024_roles_filter_sales",
+    "home_d1024_taas",
+    "home_d1024_pricing_toggle_off",
+    "home_d1024_pricing_toggle_on",
+    "home_d1024_pricing_calc_100k_unicorn",
+    "home_d1024_pricing_fees_open",
+    "home_d1024_salary",
+    "home_d1024_faq",
+    "home_d1024_partners_hover",
+    "home_d1024_contact_filled",
+    "home_d1024_footer",
+    "home_m390_hero_0",
+    "home_m390_hero_40",
+    "home_m390_hero_80",
+    "home_m390_specialisms_mid",
+    "home_m390_drum_mid",
+    "home_m390_founder",
+    "home_m390_roles_filters",
+    "home_m390_roles_card1_bottombar",
+    "home_m390_roles_card8",
+    "home_m390_roles_card20",
+    "home_m390_roles_filter_london",
+    "home_m390_roles_filter_sales",
+    "home_m390_taas",
+    "home_m390_pricing_toggle_off",
+    "home_m390_pricing_toggle_on",
+    "home_m390_pricing_calc_100k_unicorn",
+    "home_m390_pricing_fees_open",
+    "home_m390_salary",
+    "home_m390_faq",
+    "home_m390_partners",
+    "home_m390_contact_filled",
+    "home_m390_footer",
+    "deck_d1440_hero",
+    "deck_d1440_tab_specialisms",
+    "deck_d1440_tab_how",
+    "deck_d1440_tab_roles",
+    "deck_d1440_tab_pricing",
+    "deck_d1440_tab_salary",
+    "deck_d1440_tab_about",
+    "deck_d1440_tab_faq",
+    "deck_d1440_tab_partners",
+    "deck_d1440_tab_insights",
+    "deck_d1440_tab_contact",
+    "deck_m390_hero",
+    "deck_m390_tab_specialisms",
+    "deck_m390_tab_how",
+    "deck_m390_tab_roles",
+    "deck_m390_tab_pricing",
+    "deck_m390_tab_salary",
+    "deck_m390_tab_about",
+    "deck_m390_tab_faq",
+    "deck_m390_tab_partners",
+    "deck_m390_tab_insights",
+    "deck_m390_tab_contact",
+    "forian_d1440_top",
+    "forian_m390_top"
+  ],
+  "geometry": {
+    "d1440_pricingToggle": [
+      "Recruitment:true",
+      "Recruitment + Intelligence:false"
+    ],
+    "d1440_calc": {
+      "base": "100000",
+      "tier": "unicorn",
+      "fee": "£15,000",
+      "trad": "£30,000",
+      "note": "Saving £15,000 on this hire · 12-month rolling guarantee"
+    },
+    "formSubmit": {
+      "okHidden": true,
+      "okText": "Concept — not wired",
+      "url": "https://gtm-people-redesign.pages.dev/"
+    },
+    "d1440-rm_pricingToggle": [
+      "Recruitment:true",
+      "Recruitment + Intelligence:false"
+    ],
+    "d1440-rm_calc": {
+      "base": "100000",
+      "tier": "unicorn",
+      "fee": "£15,000",
+      "trad": "£30,000",
+      "note": "Saving £15,000 on this hire · 12-month rolling guarantee"
+    },
+    "d1024_pricingToggle": [
+      "Recruitment:true",
+      "Recruitment + Intelligence:false"
+    ],
+    "d1024_calc": {
+      "base": "100000",
+      "tier": "unicorn",
+      "fee": "£15,000",
+      "trad": "£30,000",
+      "note": "Saving £15,000 on this hire · 12-month rolling guarantee"
+    },
+    "m390_pricingToggle": [
+      "Recruitment:true",
+      "Recruitment + Intelligence:false"
+    ],
+    "m390_calc": {
+      "base": "100000",
+      "tier": "unicorn",
+      "fee": "£15,000",
+      "trad": "£30,000",
+      "note": "Saving £15,000 on this hire · 12-month rolling guarantee"
+    },
+    "deck_d1440_tabs": 10,
+    "deck_d1440_hash": "#contact",
+    "deck_m390_tabs": 10,
+    "deck_m390_hash": "#contact",
+    "forian_d1440_h": 2899,
+    "forian_m390_h": 3894
+  },
+  "friction": {
+    "d1440": {
+      "pageHeight": 52285,
+      "vh": 900,
+      "heroHeight": 6300,
+      "specialismsFolioHeight": 4500,
+      "approachHeight": 3600,
+      "rolesSectionTop": 18043,
+      "rolesFiltersTop": 18570,
+      "rolesFiltersBottom": 18703,
+      "rolesFolioTop": 18729,
+      "rolesFolioHeight": 22500,
+      "rolesFolioEnd": 41229,
+      "taasTop": 41501,
+      "pricingTop": 42791,
+      "calcTop": 43788,
+      "salaryTop": 44404,
+      "faqTop": 45845,
+      "partnersTop": 47059,
+      "contactTop": 50396,
+      "footerTop": 51481,
+      "cardCount": 25
+    },
+    "d1440_afterSalesFilter": {
+      "count": "14",
+      "folioHeight": 12600,
+      "pageHeight": 42385
+    },
+    "d1440-rm": {
+      "pageHeight": 44191,
+      "vh": 900,
+      "heroHeight": 2304,
+      "specialismsFolioHeight": 2309,
+      "approachHeight": 1693,
+      "rolesSectionTop": 9949,
+      "rolesFiltersTop": 10454,
+      "rolesFiltersBottom": 10587,
+      "rolesFolioTop": 10635,
+      "rolesFolioHeight": 22500,
+      "rolesFolioEnd": 33135,
+      "taasTop": 33407,
+      "pricingTop": 34697,
+      "calcTop": 35672,
+      "salaryTop": 36310,
+      "faqTop": 37751,
+      "partnersTop": 38965,
+      "contactTop": 42302,
+      "footerTop": 43387,
+      "cardCount": 25
+    },
+    "d1440-rm_afterSalesFilter": {
+      "count": "14",
+      "folioHeight": 12600,
+      "pageHeight": 34291
+    },
+    "d1024": {
+      "pageHeight": 45577,
+      "vh": 768,
+      "heroHeight": 5376,
+      "specialismsFolioHeight": 3840,
+      "approachHeight": 3072,
+      "rolesSectionTop": 15793,
+      "rolesFiltersTop": 16157,
+      "rolesFiltersBottom": 16290,
+      "rolesFolioTop": 16316,
+      "rolesFolioHeight": 19200,
+      "rolesFolioEnd": 35516,
+      "taasTop": 35732,
+      "pricingTop": 36808,
+      "calcTop": 38128,
+      "salaryTop": 38586,
+      "faqTop": 39818,
+      "partnersTop": 40867,
+      "contactTop": 43763,
+      "footerTop": 44728,
+      "cardCount": 25
+    },
+    "d1024_afterSalesFilter": {
+      "count": "14",
+      "folioHeight": 10752,
+      "pageHeight": 37129
+    },
+    "m390": {
+      "pageHeight": 27861,
+      "vh": 844,
+      "heroHeight": 4220,
+      "specialismsFolioHeight": 352,
+      "approachHeight": 1873,
+      "rolesSectionTop": 11253,
+      "rolesFiltersTop": 11599,
+      "rolesFiltersBottom": 11857,
+      "rolesFolioTop": 11889,
+      "rolesFolioHeight": 494,
+      "rolesFolioEnd": 12382,
+      "taasTop": 12574,
+      "pricingTop": 13963,
+      "calcTop": 16405,
+      "salaryTop": 17038,
+      "faqTop": 18446,
+      "partnersTop": 19808,
+      "contactTop": 24262,
+      "footerTop": 26194,
+      "cardCount": 25
+    },
+    "m390_afterSalesFilter": {
+      "count": "14",
+      "folioHeight": 432,
+      "pageHeight": 27799
+    }
+  },
+  "overlap": [
+    {
+      "label": "d1440-all-card1",
+      "i": 1,
+      "focused": true,
+      "title": "Strategic Account Manager / Engagement Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 29,
+      "bodyH": 354,
+      "metaTop": 29,
+      "h3Top": 64,
+      "h3H": 181,
+      "h3Lines": 3,
+      "overlapNumeralVsH3px": 8506,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 12404,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 2,
+      "focused": false,
+      "title": "Full-Stack Software Engineer",
+      "card": {
+        "h": 420,
+        "w": 726
+      },
+      "numeral": {
+        "top": 24,
+        "bottom": 134,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 85,
+      "bodyH": 280,
+      "metaTop": 85,
+      "h3Top": 119,
+      "h3H": 115,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 1900,
+      "overlapNumeralVsMeta": 2511,
+      "overlapNumeralVsBody": 6085,
+      "bodyOverflowsCard": -54
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 3,
+      "focused": false,
+      "title": "Senior DevOps Engineer",
+      "card": {
+        "h": 400,
+        "w": 692
+      },
+      "numeral": {
+        "top": 23,
+        "bottom": 128,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 136,
+      "bodyH": 212,
+      "metaTop": 136,
+      "h3Top": 168,
+      "h3H": 55,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -52
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 4,
+      "focused": false,
+      "title": "Sales Executive",
+      "card": {
+        "h": 381,
+        "w": 657
+      },
+      "numeral": {
+        "top": 22,
+        "bottom": 121,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 161,
+      "bodyH": 170,
+      "metaTop": 161,
+      "h3Top": 192,
+      "h3H": 52,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -49
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 5,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 361,
+        "w": 623
+      },
+      "numeral": {
+        "top": 21,
+        "bottom": 115,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 123,
+      "bodyH": 191,
+      "metaTop": 123,
+      "h3Top": 152,
+      "h3H": 50,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -47
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 6,
+      "focused": false,
+      "title": "Enterprise Account Executive (Founding Hire)",
+      "card": {
+        "h": 341,
+        "w": 589
+      },
+      "numeral": {
+        "top": 19,
+        "bottom": 109,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 22,
+      "bodyH": 274,
+      "metaTop": 22,
+      "h3Top": 49,
+      "h3H": 141,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 6440,
+      "overlapNumeralVsMeta": 1771,
+      "overlapNumeralVsBody": 9392,
+      "bodyOverflowsCard": -44
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 7,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 321,
+        "w": 555
+      },
+      "numeral": {
+        "top": 18,
+        "bottom": 102,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 65,
+      "bodyH": 214,
+      "metaTop": 65,
+      "h3Top": 91,
+      "h3H": 88,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 1082,
+      "overlapNumeralVsMeta": 1430,
+      "overlapNumeralVsBody": 3465,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 8,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 301,
+        "w": 521
+      },
+      "numeral": {
+        "top": 17,
+        "bottom": 96,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 128,
+      "bodyH": 135,
+      "metaTop": 128,
+      "h3Top": 152,
+      "h3H": 41,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -39
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 9,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 282,
+        "w": 486
+      },
+      "numeral": {
+        "top": 16,
+        "bottom": 90,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 188,
+      "metaTop": 57,
+      "h3Top": 80,
+      "h3H": 77,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 904,
+      "overlapNumeralVsMeta": 1195,
+      "overlapNumeralVsBody": 2896,
+      "bodyOverflowsCard": -36
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 10,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 262,
+        "w": 452
+      },
+      "numeral": {
+        "top": 15,
+        "bottom": 83,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 53,
+      "bodyH": 175,
+      "metaTop": 53,
+      "h3Top": 74,
+      "h3H": 72,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 627,
+      "overlapNumeralVsMeta": 828,
+      "overlapNumeralVsBody": 2007,
+      "bodyOverflowsCard": -34
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 11,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 242,
+        "w": 418
+      },
+      "numeral": {
+        "top": 14,
+        "bottom": 77,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 103,
+      "bodyH": 108,
+      "metaTop": 103,
+      "h3Top": 122,
+      "h3H": 33,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -31
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 12,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 222,
+        "w": 384
+      },
+      "numeral": {
+        "top": 13,
+        "bottom": 71,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 76,
+      "bodyH": 118,
+      "metaTop": 76,
+      "h3Top": 93,
+      "h3H": 31,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -29
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 13,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 202,
+        "w": 350
+      },
+      "numeral": {
+        "top": 12,
+        "bottom": 64,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 86,
+      "bodyH": 90,
+      "metaTop": 86,
+      "h3Top": 102,
+      "h3H": 28,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -26
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 14,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 183,
+        "w": 315
+      },
+      "numeral": {
+        "top": 10,
+        "bottom": 58,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 77,
+      "bodyH": 82,
+      "metaTop": 77,
+      "h3Top": 92,
+      "h3H": 25,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -24
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 15,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 163,
+        "w": 281
+      },
+      "numeral": {
+        "top": 9,
+        "bottom": 52,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 24,
+      "bodyH": 117,
+      "metaTop": 24,
+      "h3Top": 37,
+      "h3H": 67,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 540,
+      "overlapNumeralVsMeta": 286,
+      "overlapNumeralVsBody": 1018,
+      "bodyOverflowsCard": -21
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 16,
+      "focused": false,
+      "title": "Senior ML/AI Engineer",
+      "card": {
+        "h": 143,
+        "w": 247
+      },
+      "numeral": {
+        "top": 8,
+        "bottom": 46,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 49,
+      "bodyH": 76,
+      "metaTop": 49,
+      "h3Top": 60,
+      "h3H": 20,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -19
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 17,
+      "focused": false,
+      "title": "Channel Co-Sell Director",
+      "card": {
+        "h": 123,
+        "w": 213
+      },
+      "numeral": {
+        "top": 7,
+        "bottom": 39,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 52,
+      "bodyH": 55,
+      "metaTop": 52,
+      "h3Top": 62,
+      "h3H": 17,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -16
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 18,
+      "focused": false,
+      "title": "GTM Engineer",
+      "card": {
+        "h": 103,
+        "w": 179
+      },
+      "numeral": {
+        "top": 6,
+        "bottom": 33,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 28,
+      "bodyH": 62,
+      "metaTop": 28,
+      "h3Top": 43,
+      "h3H": 14,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 110,
+      "overlapNumeralVsBody": 110,
+      "bodyOverflowsCard": -13
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 19,
+      "focused": false,
+      "title": "Senior Account Executive - UK & Ireland",
+      "card": {
+        "h": 84,
+        "w": 144
+      },
+      "numeral": {
+        "top": 5,
+        "bottom": 27,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 17,
+      "bodyH": 56,
+      "metaTop": 17,
+      "h3Top": 24,
+      "h3H": 23,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 60,
+      "overlapNumeralVsMeta": 79,
+      "overlapNumeralVsBody": 192,
+      "bodyOverflowsCard": -11
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 20,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 64,
+        "w": 110
+      },
+      "numeral": {
+        "top": 4,
+        "bottom": 20,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 22,
+      "bodyH": 34,
+      "metaTop": 22,
+      "h3Top": 27,
+      "h3H": 9,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -8
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 21,
+      "focused": false,
+      "title": "Forward Deployed Engineer - AI Agents (Retail & Consumer Goods)",
+      "card": {
+        "h": 44,
+        "w": 76
+      },
+      "numeral": {
+        "top": 3,
+        "bottom": 14,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": -3,
+      "bodyH": 41,
+      "metaTop": -3,
+      "h3Top": 0,
+      "h3H": 24,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 114,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 114,
+      "bodyOverflowsCard": -6
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 22,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 24,
+        "w": 42
+      },
+      "numeral": {
+        "top": 1,
+        "bottom": 8,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 7,
+      "bodyH": 14,
+      "metaTop": 7,
+      "h3Top": 9,
+      "h3H": 7,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 5,
+      "overlapNumeralVsBody": 5,
+      "bodyOverflowsCard": -3
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 23,
+      "focused": false,
+      "title": "Commercial Account Executive",
+      "card": {
+        "h": 4,
+        "w": 8
+      },
+      "numeral": {
+        "top": 0,
+        "bottom": 1,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 1,
+      "bodyH": 3,
+      "metaTop": 1,
+      "h3Top": 2,
+      "h3H": 1,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -1
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 24,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 15,
+        "w": 27
+      },
+      "numeral": {
+        "top": 10,
+        "bottom": 15,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 2,
+      "bodyH": 7,
+      "metaTop": 8,
+      "h3Top": 6,
+      "h3H": 2,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -7
+    },
+    {
+      "label": "d1440-all-card1",
+      "i": 25,
+      "focused": false,
+      "title": "Product Marketing Manager (First PMM Hire)",
+      "card": {
+        "h": 35,
+        "w": 61
+      },
+      "numeral": {
+        "top": 24,
+        "bottom": 33,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 5,
+      "bodyH": 28,
+      "metaTop": 31,
+      "h3Top": 16,
+      "h3H": 15,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 59,
+      "overlapNumeralVsMeta": 16,
+      "overlapNumeralVsBody": 86,
+      "bodyOverflowsCard": -2
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 1,
+      "focused": false,
+      "title": "Strategic Account Manager / Engagement Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 29,
+      "bodyH": 354,
+      "metaTop": 29,
+      "h3Top": 64,
+      "h3H": 181,
+      "h3Lines": 3,
+      "overlapNumeralVsH3px": 8506,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 12404,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 2,
+      "focused": true,
+      "title": "Full-Stack Software Engineer",
+      "card": {
+        "h": 438,
+        "w": 756
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 139,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 89,
+      "bodyH": 292,
+      "metaTop": 89,
+      "h3Top": 124,
+      "h3H": 120,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 2060,
+      "overlapNumeralVsMeta": 2723,
+      "overlapNumeralVsBody": 6598,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 3,
+      "focused": false,
+      "title": "Senior DevOps Engineer",
+      "card": {
+        "h": 418,
+        "w": 722
+      },
+      "numeral": {
+        "top": 24,
+        "bottom": 133,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 142,
+      "bodyH": 221,
+      "metaTop": 142,
+      "h3Top": 175,
+      "h3H": 57,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -54
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 4,
+      "focused": false,
+      "title": "Sales Executive",
+      "card": {
+        "h": 398,
+        "w": 687
+      },
+      "numeral": {
+        "top": 23,
+        "bottom": 127,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 169,
+      "bodyH": 178,
+      "metaTop": 169,
+      "h3Top": 200,
+      "h3H": 55,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -52
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 5,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 378,
+        "w": 653
+      },
+      "numeral": {
+        "top": 21,
+        "bottom": 121,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 129,
+      "bodyH": 200,
+      "metaTop": 129,
+      "h3Top": 159,
+      "h3H": 52,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -49
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 6,
+      "focused": false,
+      "title": "Enterprise Account Executive (Founding Hire)",
+      "card": {
+        "h": 358,
+        "w": 619
+      },
+      "numeral": {
+        "top": 20,
+        "bottom": 114,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 23,
+      "bodyH": 288,
+      "metaTop": 23,
+      "h3Top": 52,
+      "h3H": 148,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 7113,
+      "overlapNumeralVsMeta": 1956,
+      "overlapNumeralVsBody": 10373,
+      "bodyOverflowsCard": -46
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 7,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 339,
+        "w": 585
+      },
+      "numeral": {
+        "top": 19,
+        "bottom": 108,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 69,
+      "bodyH": 226,
+      "metaTop": 69,
+      "h3Top": 96,
+      "h3H": 93,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 1202,
+      "overlapNumeralVsMeta": 1588,
+      "overlapNumeralVsBody": 3849,
+      "bodyOverflowsCard": -44
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 8,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 319,
+        "w": 551
+      },
+      "numeral": {
+        "top": 18,
+        "bottom": 102,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 135,
+      "bodyH": 142,
+      "metaTop": 135,
+      "h3Top": 160,
+      "h3H": 44,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -41
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 9,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 299,
+        "w": 516
+      },
+      "numeral": {
+        "top": 17,
+        "bottom": 95,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 61,
+      "bodyH": 200,
+      "metaTop": 61,
+      "h3Top": 84,
+      "h3H": 82,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 1019,
+      "overlapNumeralVsMeta": 1347,
+      "overlapNumeralVsBody": 3264,
+      "bodyOverflowsCard": -39
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 10,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 279,
+        "w": 482
+      },
+      "numeral": {
+        "top": 16,
+        "bottom": 89,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 186,
+      "metaTop": 57,
+      "h3Top": 79,
+      "h3H": 77,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 713,
+      "overlapNumeralVsMeta": 942,
+      "overlapNumeralVsBody": 2282,
+      "bodyOverflowsCard": -36
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 11,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 259,
+        "w": 448
+      },
+      "numeral": {
+        "top": 15,
+        "bottom": 83,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 110,
+      "bodyH": 116,
+      "metaTop": 110,
+      "h3Top": 131,
+      "h3H": 36,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -34
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 12,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 240,
+        "w": 414
+      },
+      "numeral": {
+        "top": 14,
+        "bottom": 76,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 82,
+      "bodyH": 127,
+      "metaTop": 82,
+      "h3Top": 101,
+      "h3H": 33,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -31
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 13,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 220,
+        "w": 380
+      },
+      "numeral": {
+        "top": 12,
+        "bottom": 70,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 93,
+      "bodyH": 98,
+      "metaTop": 93,
+      "h3Top": 111,
+      "h3H": 30,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -28
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 14,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 200,
+        "w": 345
+      },
+      "numeral": {
+        "top": 11,
+        "bottom": 64,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 85,
+      "bodyH": 89,
+      "metaTop": 85,
+      "h3Top": 101,
+      "h3H": 27,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -26
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 15,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 180,
+        "w": 311
+      },
+      "numeral": {
+        "top": 10,
+        "bottom": 57,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 27,
+      "bodyH": 130,
+      "metaTop": 27,
+      "h3Top": 41,
+      "h3H": 74,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 662,
+      "overlapNumeralVsMeta": 351,
+      "overlapNumeralVsBody": 1246,
+      "bodyOverflowsCard": -23
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 16,
+      "focused": false,
+      "title": "Senior ML/AI Engineer",
+      "card": {
+        "h": 160,
+        "w": 277
+      },
+      "numeral": {
+        "top": 9,
+        "bottom": 51,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 55,
+      "bodyH": 85,
+      "metaTop": 55,
+      "h3Top": 67,
+      "h3H": 22,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -21
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 17,
+      "focused": false,
+      "title": "Channel Co-Sell Director",
+      "card": {
+        "h": 141,
+        "w": 243
+      },
+      "numeral": {
+        "top": 8,
+        "bottom": 45,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 60,
+      "bodyH": 63,
+      "metaTop": 60,
+      "h3Top": 71,
+      "h3H": 19,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -18
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 18,
+      "focused": false,
+      "title": "GTM Engineer",
+      "card": {
+        "h": 121,
+        "w": 209
+      },
+      "numeral": {
+        "top": 7,
+        "bottom": 38,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 33,
+      "bodyH": 72,
+      "metaTop": 33,
+      "h3Top": 51,
+      "h3H": 17,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 149,
+      "overlapNumeralVsBody": 149,
+      "bodyOverflowsCard": -16
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 19,
+      "focused": false,
+      "title": "Senior Account Executive - UK & Ireland",
+      "card": {
+        "h": 101,
+        "w": 174
+      },
+      "numeral": {
+        "top": 6,
+        "bottom": 32,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 20,
+      "bodyH": 67,
+      "metaTop": 20,
+      "h3Top": 29,
+      "h3H": 28,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 88,
+      "overlapNumeralVsMeta": 116,
+      "overlapNumeralVsBody": 281,
+      "bodyOverflowsCard": -13
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 20,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 81,
+        "w": 140
+      },
+      "numeral": {
+        "top": 5,
+        "bottom": 26,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 28,
+      "bodyH": 43,
+      "metaTop": 28,
+      "h3Top": 34,
+      "h3H": 11,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -11
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 21,
+      "focused": false,
+      "title": "Forward Deployed Engineer - AI Agents (Retail & Consumer Goods)",
+      "card": {
+        "h": 61,
+        "w": 106
+      },
+      "numeral": {
+        "top": 3,
+        "bottom": 20,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": -4,
+      "bodyH": 58,
+      "metaTop": -4,
+      "h3Top": 0,
+      "h3H": 34,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 221,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 221,
+      "bodyOverflowsCard": -8
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 22,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 42,
+        "w": 72
+      },
+      "numeral": {
+        "top": 2,
+        "bottom": 13,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 12,
+      "bodyH": 24,
+      "metaTop": 12,
+      "h3Top": 15,
+      "h3H": 11,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 15,
+      "overlapNumeralVsBody": 15,
+      "bodyOverflowsCard": -5
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 23,
+      "focused": false,
+      "title": "Commercial Account Executive",
+      "card": {
+        "h": 22,
+        "w": 38
+      },
+      "numeral": {
+        "top": 1,
+        "bottom": 7,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 6,
+      "bodyH": 13,
+      "metaTop": 6,
+      "h3Top": 8,
+      "h3H": 6,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 4,
+      "overlapNumeralVsBody": 4,
+      "bodyOverflowsCard": -3
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 24,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 2,
+        "w": 3
+      },
+      "numeral": {
+        "top": 0,
+        "bottom": 1,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 1,
+      "bodyH": 1,
+      "metaTop": 1,
+      "h3Top": 1,
+      "h3H": 0,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": 0
+    },
+    {
+      "label": "d1440-all-card20",
+      "i": 25,
+      "focused": false,
+      "title": "Product Marketing Manager (First PMM Hire)",
+      "card": {
+        "h": 18,
+        "w": 31
+      },
+      "numeral": {
+        "top": 12,
+        "bottom": 17,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 2,
+      "bodyH": 14,
+      "metaTop": 16,
+      "h3Top": 8,
+      "h3H": 7,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 15,
+      "overlapNumeralVsMeta": 4,
+      "overlapNumeralVsBody": 22,
+      "bodyOverflowsCard": -1
+    },
+    {
+      "label": "d1440-london",
+      "i": 1,
+      "focused": true,
+      "title": "Sales Executive",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 187,
+      "bodyH": 196,
+      "metaTop": 187,
+      "h3Top": 222,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-london",
+      "i": 2,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 420,
+        "w": 726
+      },
+      "numeral": {
+        "top": 24,
+        "bottom": 134,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 85,
+      "bodyH": 280,
+      "metaTop": 85,
+      "h3Top": 119,
+      "h3H": 115,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 1900,
+      "overlapNumeralVsMeta": 2511,
+      "overlapNumeralVsBody": 6085,
+      "bodyOverflowsCard": -54
+    },
+    {
+      "label": "d1440-london",
+      "i": 3,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 400,
+        "w": 692
+      },
+      "numeral": {
+        "top": 23,
+        "bottom": 128,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 170,
+      "bodyH": 179,
+      "metaTop": 170,
+      "h3Top": 202,
+      "h3H": 55,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -52
+    },
+    {
+      "label": "d1440-london",
+      "i": 4,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 381,
+        "w": 657
+      },
+      "numeral": {
+        "top": 22,
+        "bottom": 121,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 77,
+      "bodyH": 254,
+      "metaTop": 77,
+      "h3Top": 108,
+      "h3H": 105,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 1644,
+      "overlapNumeralVsMeta": 2172,
+      "overlapNumeralVsBody": 5264,
+      "bodyOverflowsCard": -49
+    },
+    {
+      "label": "d1440-london",
+      "i": 5,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 361,
+        "w": 623
+      },
+      "numeral": {
+        "top": 21,
+        "bottom": 115,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 153,
+      "bodyH": 161,
+      "metaTop": 153,
+      "h3Top": 182,
+      "h3H": 50,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -47
+    },
+    {
+      "label": "d1440-london",
+      "i": 6,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 341,
+        "w": 589
+      },
+      "numeral": {
+        "top": 19,
+        "bottom": 109,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 116,
+      "bodyH": 181,
+      "metaTop": 116,
+      "h3Top": 143,
+      "h3H": 47,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -44
+    },
+    {
+      "label": "d1440-london",
+      "i": 7,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 321,
+        "w": 555
+      },
+      "numeral": {
+        "top": 18,
+        "bottom": 102,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 136,
+      "bodyH": 143,
+      "metaTop": 136,
+      "h3Top": 162,
+      "h3H": 44,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1440-london",
+      "i": 8,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 301,
+        "w": 521
+      },
+      "numeral": {
+        "top": 17,
+        "bottom": 96,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 128,
+      "bodyH": 135,
+      "metaTop": 128,
+      "h3Top": 152,
+      "h3H": 41,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -39
+    },
+    {
+      "label": "d1440-london",
+      "i": 9,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 282,
+        "w": 486
+      },
+      "numeral": {
+        "top": 16,
+        "bottom": 90,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 42,
+      "bodyH": 203,
+      "metaTop": 42,
+      "h3Top": 64,
+      "h3H": 116,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 2254,
+      "overlapNumeralVsMeta": 1195,
+      "overlapNumeralVsBody": 4245,
+      "bodyOverflowsCard": -36
+    },
+    {
+      "label": "d1440-london",
+      "i": 10,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 262,
+        "w": 452
+      },
+      "numeral": {
+        "top": 15,
+        "bottom": 83,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 89,
+      "bodyH": 139,
+      "metaTop": 89,
+      "h3Top": 110,
+      "h3H": 36,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -34
+    },
+    {
+      "label": "d1440-london",
+      "i": 11,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 242,
+        "w": 418
+      },
+      "numeral": {
+        "top": 14,
+        "bottom": 77,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 69,
+      "bodyH": 141,
+      "metaTop": 69,
+      "h3Top": 89,
+      "h3H": 67,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 331,
+      "overlapNumeralVsBody": 331,
+      "bodyOverflowsCard": -31
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 1,
+      "focused": false,
+      "title": "Strategic Account Manager / Engagement Manager",
+      "card": {
+        "h": 408,
+        "w": 1296
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 294,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 121,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 5369,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 9268,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 2,
+      "focused": false,
+      "title": "Full-Stack Software Engineer",
+      "card": {
+        "h": 347,
+        "w": 870
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6319,
+      "overlapNumeralVsMeta": 2753,
+      "overlapNumeralVsBody": 10907,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 3,
+      "focused": false,
+      "title": "Senior DevOps Engineer",
+      "card": {
+        "h": 347,
+        "w": 743
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6430,
+      "overlapNumeralVsMeta": 2801,
+      "overlapNumeralVsBody": 11099,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 4,
+      "focused": false,
+      "title": "Sales Executive",
+      "card": {
+        "h": 310,
+        "w": 517
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6663,
+      "overlapNumeralVsMeta": 2903,
+      "overlapNumeralVsBody": 11502,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 5,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 347,
+        "w": 599
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6463,
+      "overlapNumeralVsMeta": 2816,
+      "overlapNumeralVsBody": 11156,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 6,
+      "focused": false,
+      "title": "Enterprise Account Executive (Founding Hire)",
+      "card": {
+        "h": 347,
+        "w": 1293
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6769,
+      "overlapNumeralVsMeta": 2949,
+      "overlapNumeralVsBody": 11684,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 7,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 347,
+        "w": 978
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6158,
+      "overlapNumeralVsMeta": 2683,
+      "overlapNumeralVsBody": 10629,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 8,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 310,
+        "w": 667
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6586,
+      "overlapNumeralVsMeta": 2869,
+      "overlapNumeralVsBody": 11368,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 9,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 347,
+        "w": 978
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6696,
+      "overlapNumeralVsMeta": 2917,
+      "overlapNumeralVsBody": 11559,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 10,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 347,
+        "w": 783
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5369,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 9268,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 11,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 310,
+        "w": 576
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 3731,
+      "overlapNumeralVsMeta": 1626,
+      "overlapNumeralVsBody": 6440,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 12,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 347,
+        "w": 498
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 4720,
+      "overlapNumeralVsMeta": 2056,
+      "overlapNumeralVsBody": 8147,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 13,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 310,
+        "w": 494
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 4814,
+      "overlapNumeralVsMeta": 2097,
+      "overlapNumeralVsBody": 8310,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 14,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 310,
+        "w": 469
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5025,
+      "overlapNumeralVsMeta": 2189,
+      "overlapNumeralVsBody": 8674,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 15,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 371,
+        "w": 1296
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 257,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 121,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 4803,
+      "overlapNumeralVsMeta": 2092,
+      "overlapNumeralVsBody": 8290,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 16,
+      "focused": false,
+      "title": "Senior ML/AI Engineer",
+      "card": {
+        "h": 347,
+        "w": 687
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5042,
+      "overlapNumeralVsMeta": 2196,
+      "overlapNumeralVsBody": 8703,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 17,
+      "focused": false,
+      "title": "Channel Co-Sell Director",
+      "card": {
+        "h": 310,
+        "w": 757
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 4765,
+      "overlapNumeralVsMeta": 2076,
+      "overlapNumeralVsBody": 8224,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 18,
+      "focused": false,
+      "title": "GTM Engineer",
+      "card": {
+        "h": 376,
+        "w": 607
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 262,
+      "metaTop": 57,
+      "h3Top": 121,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 1962,
+      "overlapNumeralVsMeta": 5109,
+      "overlapNumeralVsBody": 8501,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 19,
+      "focused": false,
+      "title": "Senior Account Executive - UK & Ireland",
+      "card": {
+        "h": 347,
+        "w": 1139
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5048,
+      "overlapNumeralVsMeta": 2199,
+      "overlapNumeralVsBody": 8713,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 20,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 347,
+        "w": 733
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6347,
+      "overlapNumeralVsMeta": 2765,
+      "overlapNumeralVsBody": 10956,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 21,
+      "focused": false,
+      "title": "Forward Deployed Engineer - AI Agents (Retail & Consumer Goods)",
+      "card": {
+        "h": 408,
+        "w": 1296
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 294,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 121,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 4753,
+      "overlapNumeralVsMeta": 2071,
+      "overlapNumeralVsBody": 8205,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 22,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 310,
+        "w": 846
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5753,
+      "overlapNumeralVsMeta": 2506,
+      "overlapNumeralVsBody": 9930,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 23,
+      "focused": false,
+      "title": "Commercial Account Executive",
+      "card": {
+        "h": 310,
+        "w": 929
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5802,
+      "overlapNumeralVsMeta": 2528,
+      "overlapNumeralVsBody": 10016,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 24,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 310,
+        "w": 599
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6025,
+      "overlapNumeralVsMeta": 2625,
+      "overlapNumeralVsBody": 10399,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card1",
+      "i": 25,
+      "focused": false,
+      "title": "Product Marketing Manager (First PMM Hire)",
+      "card": {
+        "h": 347,
+        "w": 1271
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5808,
+      "overlapNumeralVsMeta": 2531,
+      "overlapNumeralVsBody": 10026,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 1,
+      "focused": false,
+      "title": "Strategic Account Manager / Engagement Manager",
+      "card": {
+        "h": 408,
+        "w": 1296
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 294,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 121,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 5369,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 9268,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 2,
+      "focused": false,
+      "title": "Full-Stack Software Engineer",
+      "card": {
+        "h": 347,
+        "w": 870
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6319,
+      "overlapNumeralVsMeta": 2753,
+      "overlapNumeralVsBody": 10907,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 3,
+      "focused": false,
+      "title": "Senior DevOps Engineer",
+      "card": {
+        "h": 347,
+        "w": 743
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6430,
+      "overlapNumeralVsMeta": 2801,
+      "overlapNumeralVsBody": 11099,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 4,
+      "focused": false,
+      "title": "Sales Executive",
+      "card": {
+        "h": 310,
+        "w": 517
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6663,
+      "overlapNumeralVsMeta": 2903,
+      "overlapNumeralVsBody": 11502,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 5,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 347,
+        "w": 599
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6463,
+      "overlapNumeralVsMeta": 2816,
+      "overlapNumeralVsBody": 11156,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 6,
+      "focused": false,
+      "title": "Enterprise Account Executive (Founding Hire)",
+      "card": {
+        "h": 347,
+        "w": 1293
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6769,
+      "overlapNumeralVsMeta": 2949,
+      "overlapNumeralVsBody": 11684,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 7,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 347,
+        "w": 978
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6158,
+      "overlapNumeralVsMeta": 2683,
+      "overlapNumeralVsBody": 10629,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 8,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 310,
+        "w": 667
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6586,
+      "overlapNumeralVsMeta": 2869,
+      "overlapNumeralVsBody": 11368,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 9,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 347,
+        "w": 978
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6696,
+      "overlapNumeralVsMeta": 2917,
+      "overlapNumeralVsBody": 11559,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 10,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 347,
+        "w": 783
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5369,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 9268,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 11,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 310,
+        "w": 576
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 3731,
+      "overlapNumeralVsMeta": 1626,
+      "overlapNumeralVsBody": 6440,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 12,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 347,
+        "w": 498
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 4720,
+      "overlapNumeralVsMeta": 2056,
+      "overlapNumeralVsBody": 8147,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 13,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 310,
+        "w": 494
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 4814,
+      "overlapNumeralVsMeta": 2097,
+      "overlapNumeralVsBody": 8310,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 14,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 310,
+        "w": 469
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5025,
+      "overlapNumeralVsMeta": 2189,
+      "overlapNumeralVsBody": 8674,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 15,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 371,
+        "w": 1296
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 257,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 121,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 4803,
+      "overlapNumeralVsMeta": 2092,
+      "overlapNumeralVsBody": 8290,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 16,
+      "focused": false,
+      "title": "Senior ML/AI Engineer",
+      "card": {
+        "h": 347,
+        "w": 687
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5042,
+      "overlapNumeralVsMeta": 2196,
+      "overlapNumeralVsBody": 8703,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 17,
+      "focused": false,
+      "title": "Channel Co-Sell Director",
+      "card": {
+        "h": 310,
+        "w": 757
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 4765,
+      "overlapNumeralVsMeta": 2076,
+      "overlapNumeralVsBody": 8224,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 18,
+      "focused": false,
+      "title": "GTM Engineer",
+      "card": {
+        "h": 376,
+        "w": 607
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 262,
+      "metaTop": 57,
+      "h3Top": 121,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 1962,
+      "overlapNumeralVsMeta": 5109,
+      "overlapNumeralVsBody": 8501,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 19,
+      "focused": false,
+      "title": "Senior Account Executive - UK & Ireland",
+      "card": {
+        "h": 347,
+        "w": 1139
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5048,
+      "overlapNumeralVsMeta": 2199,
+      "overlapNumeralVsBody": 8713,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 20,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 347,
+        "w": 733
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6347,
+      "overlapNumeralVsMeta": 2765,
+      "overlapNumeralVsBody": 10956,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 21,
+      "focused": false,
+      "title": "Forward Deployed Engineer - AI Agents (Retail & Consumer Goods)",
+      "card": {
+        "h": 408,
+        "w": 1296
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 294,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 121,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 4753,
+      "overlapNumeralVsMeta": 2071,
+      "overlapNumeralVsBody": 8205,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 22,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 310,
+        "w": 846
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5753,
+      "overlapNumeralVsMeta": 2506,
+      "overlapNumeralVsBody": 9930,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 23,
+      "focused": false,
+      "title": "Commercial Account Executive",
+      "card": {
+        "h": 310,
+        "w": 929
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5802,
+      "overlapNumeralVsMeta": 2528,
+      "overlapNumeralVsBody": 10016,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 24,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 310,
+        "w": 599
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6025,
+      "overlapNumeralVsMeta": 2625,
+      "overlapNumeralVsBody": 10399,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-all-card20",
+      "i": 25,
+      "focused": false,
+      "title": "Product Marketing Manager (First PMM Hire)",
+      "card": {
+        "h": 347,
+        "w": 1271
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5808,
+      "overlapNumeralVsMeta": 2531,
+      "overlapNumeralVsBody": 10026,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 1,
+      "focused": false,
+      "title": "Sales Executive",
+      "card": {
+        "h": 310,
+        "w": 517
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5369,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 9268,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 2,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 347,
+        "w": 978
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6319,
+      "overlapNumeralVsMeta": 2753,
+      "overlapNumeralVsBody": 10907,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 3,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 310,
+        "w": 667
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6430,
+      "overlapNumeralVsMeta": 2801,
+      "overlapNumeralVsBody": 11099,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 4,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 347,
+        "w": 783
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6663,
+      "overlapNumeralVsMeta": 2903,
+      "overlapNumeralVsBody": 11502,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 5,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 310,
+        "w": 576
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6463,
+      "overlapNumeralVsMeta": 2816,
+      "overlapNumeralVsBody": 11156,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 6,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 347,
+        "w": 498
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6769,
+      "overlapNumeralVsMeta": 2949,
+      "overlapNumeralVsBody": 11684,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 7,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 310,
+        "w": 494
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6158,
+      "overlapNumeralVsMeta": 2683,
+      "overlapNumeralVsBody": 10629,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 8,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 310,
+        "w": 469
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 6586,
+      "overlapNumeralVsMeta": 2869,
+      "overlapNumeralVsBody": 11368,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 9,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 371,
+        "w": 1296
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 257,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 121,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 6696,
+      "overlapNumeralVsMeta": 2917,
+      "overlapNumeralVsBody": 11559,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 10,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 347,
+        "w": 733
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 233,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 5369,
+      "overlapNumeralVsMeta": 2339,
+      "overlapNumeralVsBody": 9268,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1440-rm-london",
+      "i": 11,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 310,
+        "w": 846
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 140,
+        "fontSize": "115.2px"
+      },
+      "bodyTop": 57,
+      "bodyH": 196,
+      "metaTop": 57,
+      "h3Top": 92,
+      "h3H": 60,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 3731,
+      "overlapNumeralVsMeta": 1626,
+      "overlapNumeralVsBody": 6440,
+      "bodyOverflowsCard": -57
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 1,
+      "focused": true,
+      "title": "Strategic Account Manager / Engagement Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 151,
+      "bodyH": 247,
+      "metaTop": 151,
+      "h3Top": 186,
+      "h3H": 86,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 2,
+      "focused": false,
+      "title": "Full-Stack Software Engineer",
+      "card": {
+        "h": 420,
+        "w": 726
+      },
+      "numeral": {
+        "top": 24,
+        "bottom": 102,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 185,
+      "bodyH": 195,
+      "metaTop": 185,
+      "h3Top": 218,
+      "h3H": 41,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -40
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 3,
+      "focused": false,
+      "title": "Senior DevOps Engineer",
+      "card": {
+        "h": 400,
+        "w": 692
+      },
+      "numeral": {
+        "top": 23,
+        "bottom": 97,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 176,
+      "bodyH": 186,
+      "metaTop": 176,
+      "h3Top": 208,
+      "h3H": 39,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -38
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 4,
+      "focused": false,
+      "title": "Sales Executive",
+      "card": {
+        "h": 381,
+        "w": 657
+      },
+      "numeral": {
+        "top": 22,
+        "bottom": 92,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 199,
+      "bodyH": 145,
+      "metaTop": 199,
+      "h3Top": 230,
+      "h3H": 37,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -36
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 5,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 361,
+        "w": 623
+      },
+      "numeral": {
+        "top": 21,
+        "bottom": 88,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 159,
+      "bodyH": 168,
+      "metaTop": 159,
+      "h3Top": 187,
+      "h3H": 35,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -34
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 6,
+      "focused": false,
+      "title": "Enterprise Account Executive (Founding Hire)",
+      "card": {
+        "h": 341,
+        "w": 589
+      },
+      "numeral": {
+        "top": 19,
+        "bottom": 83,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 117,
+      "bodyH": 192,
+      "metaTop": 117,
+      "h3Top": 144,
+      "h3H": 67,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -33
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 7,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 321,
+        "w": 555
+      },
+      "numeral": {
+        "top": 18,
+        "bottom": 78,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 141,
+      "bodyH": 149,
+      "metaTop": 141,
+      "h3Top": 167,
+      "h3H": 31,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -31
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 8,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 301,
+        "w": 521
+      },
+      "numeral": {
+        "top": 17,
+        "bottom": 73,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 158,
+      "bodyH": 115,
+      "metaTop": 158,
+      "h3Top": 182,
+      "h3H": 29,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -29
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 9,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 282,
+        "w": 486
+      },
+      "numeral": {
+        "top": 16,
+        "bottom": 68,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 124,
+      "bodyH": 131,
+      "metaTop": 124,
+      "h3Top": 146,
+      "h3H": 28,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -27
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 10,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 262,
+        "w": 452
+      },
+      "numeral": {
+        "top": 15,
+        "bottom": 64,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 115,
+      "bodyH": 122,
+      "metaTop": 115,
+      "h3Top": 136,
+      "h3H": 26,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -25
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 11,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 242,
+        "w": 418
+      },
+      "numeral": {
+        "top": 14,
+        "bottom": 59,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 127,
+      "bodyH": 92,
+      "metaTop": 127,
+      "h3Top": 146,
+      "h3H": 24,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -23
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 12,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 222,
+        "w": 384
+      },
+      "numeral": {
+        "top": 13,
+        "bottom": 54,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 98,
+      "bodyH": 103,
+      "metaTop": 98,
+      "h3Top": 115,
+      "h3H": 22,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -21
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 13,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 202,
+        "w": 350
+      },
+      "numeral": {
+        "top": 12,
+        "bottom": 49,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 106,
+      "bodyH": 77,
+      "metaTop": 106,
+      "h3Top": 122,
+      "h3H": 20,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -19
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 14,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 183,
+        "w": 315
+      },
+      "numeral": {
+        "top": 10,
+        "bottom": 44,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 96,
+      "bodyH": 70,
+      "metaTop": 96,
+      "h3Top": 110,
+      "h3H": 18,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -17
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 15,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 163,
+        "w": 281
+      },
+      "numeral": {
+        "top": 9,
+        "bottom": 40,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 69,
+      "bodyH": 78,
+      "metaTop": 69,
+      "h3Top": 82,
+      "h3H": 32,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -16
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 16,
+      "focused": false,
+      "title": "Senior ML/AI Engineer",
+      "card": {
+        "h": 143,
+        "w": 247
+      },
+      "numeral": {
+        "top": 8,
+        "bottom": 35,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 63,
+      "bodyH": 66,
+      "metaTop": 63,
+      "h3Top": 74,
+      "h3H": 14,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -14
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 17,
+      "focused": false,
+      "title": "Channel Co-Sell Director",
+      "card": {
+        "h": 123,
+        "w": 213
+      },
+      "numeral": {
+        "top": 7,
+        "bottom": 30,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 64,
+      "bodyH": 47,
+      "metaTop": 64,
+      "h3Top": 74,
+      "h3H": 12,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -12
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 18,
+      "focused": false,
+      "title": "GTM Engineer",
+      "card": {
+        "h": 103,
+        "w": 179
+      },
+      "numeral": {
+        "top": 6,
+        "bottom": 25,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 39,
+      "bodyH": 55,
+      "metaTop": 39,
+      "h3Top": 54,
+      "h3H": 10,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -10
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 19,
+      "focused": false,
+      "title": "Senior Account Executive - UK & Ireland",
+      "card": {
+        "h": 84,
+        "w": 144
+      },
+      "numeral": {
+        "top": 5,
+        "bottom": 20,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 29,
+      "bodyH": 47,
+      "metaTop": 29,
+      "h3Top": 35,
+      "h3H": 16,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -8
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 20,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 64,
+        "w": 110
+      },
+      "numeral": {
+        "top": 4,
+        "bottom": 16,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 28,
+      "bodyH": 30,
+      "metaTop": 28,
+      "h3Top": 33,
+      "h3H": 6,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -6
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 21,
+      "focused": false,
+      "title": "Forward Deployed Engineer - AI Agents (Retail & Consumer Goods)",
+      "card": {
+        "h": 44,
+        "w": 76
+      },
+      "numeral": {
+        "top": 3,
+        "bottom": 11,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 15,
+      "bodyH": 25,
+      "metaTop": 15,
+      "h3Top": 19,
+      "h3H": 9,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -4
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 22,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 24,
+        "w": 42
+      },
+      "numeral": {
+        "top": 1,
+        "bottom": 6,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 13,
+      "bodyH": 9,
+      "metaTop": 13,
+      "h3Top": 15,
+      "h3H": 2,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -2
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 23,
+      "focused": false,
+      "title": "Commercial Account Executive",
+      "card": {
+        "h": 4,
+        "w": 8
+      },
+      "numeral": {
+        "top": 0,
+        "bottom": 1,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 2,
+      "bodyH": 2,
+      "metaTop": 2,
+      "h3Top": 3,
+      "h3H": 0,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": 0
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 24,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 15,
+        "w": 27
+      },
+      "numeral": {
+        "top": 12,
+        "bottom": 15,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 1,
+      "bodyH": 6,
+      "metaTop": 7,
+      "h3Top": 5,
+      "h3H": 2,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -8
+    },
+    {
+      "label": "d1024-all-card1",
+      "i": 25,
+      "focused": false,
+      "title": "Product Marketing Manager (First PMM Hire)",
+      "card": {
+        "h": 35,
+        "w": 61
+      },
+      "numeral": {
+        "top": 27,
+        "bottom": 33,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 3,
+      "bodyH": 20,
+      "metaTop": 21,
+      "h3Top": 13,
+      "h3H": 7,
+      "h3Lines": 0,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -12
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 1,
+      "focused": false,
+      "title": "Strategic Account Manager / Engagement Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 151,
+      "bodyH": 247,
+      "metaTop": 151,
+      "h3Top": 186,
+      "h3H": 86,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 2,
+      "focused": false,
+      "title": "Full-Stack Software Engineer",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 194,
+      "bodyH": 204,
+      "metaTop": 194,
+      "h3Top": 229,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 3,
+      "focused": false,
+      "title": "Senior DevOps Engineer",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 194,
+      "bodyH": 204,
+      "metaTop": 194,
+      "h3Top": 229,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 4,
+      "focused": false,
+      "title": "Sales Executive",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 230,
+      "bodyH": 168,
+      "metaTop": 230,
+      "h3Top": 265,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 5,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 194,
+      "bodyH": 204,
+      "metaTop": 194,
+      "h3Top": 229,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 6,
+      "focused": false,
+      "title": "Enterprise Account Executive (Founding Hire)",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 151,
+      "bodyH": 247,
+      "metaTop": 151,
+      "h3Top": 186,
+      "h3H": 86,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 7,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 194,
+      "bodyH": 204,
+      "metaTop": 194,
+      "h3Top": 229,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 8,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 230,
+      "bodyH": 168,
+      "metaTop": 230,
+      "h3Top": 265,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 9,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 194,
+      "bodyH": 204,
+      "metaTop": 194,
+      "h3Top": 229,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 10,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 194,
+      "bodyH": 204,
+      "metaTop": 194,
+      "h3Top": 229,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 11,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 230,
+      "bodyH": 168,
+      "metaTop": 230,
+      "h3Top": 265,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 12,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 194,
+      "bodyH": 204,
+      "metaTop": 194,
+      "h3Top": 229,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 13,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 230,
+      "bodyH": 168,
+      "metaTop": 230,
+      "h3Top": 265,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 14,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 230,
+      "bodyH": 168,
+      "metaTop": 230,
+      "h3Top": 265,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 15,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 187,
+      "bodyH": 211,
+      "metaTop": 187,
+      "h3Top": 222,
+      "h3H": 86,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 16,
+      "focused": false,
+      "title": "Senior ML/AI Engineer",
+      "card": {
+        "h": 431,
+        "w": 745
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 105,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 190,
+      "bodyH": 201,
+      "metaTop": 190,
+      "h3Top": 224,
+      "h3H": 42,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -41
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 17,
+      "focused": false,
+      "title": "Channel Co-Sell Director",
+      "card": {
+        "h": 421,
+        "w": 727
+      },
+      "numeral": {
+        "top": 24,
+        "bottom": 102,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 220,
+      "bodyH": 161,
+      "metaTop": 220,
+      "h3Top": 254,
+      "h3H": 41,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -40
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 18,
+      "focused": true,
+      "title": "GTM Engineer",
+      "card": {
+        "h": 408,
+        "w": 705
+      },
+      "numeral": {
+        "top": 23,
+        "bottom": 99,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 153,
+      "bodyH": 216,
+      "metaTop": 153,
+      "h3Top": 212,
+      "h3H": 40,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -39
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 19,
+      "focused": false,
+      "title": "Senior Account Executive - UK & Ireland",
+      "card": {
+        "h": 388,
+        "w": 670
+      },
+      "numeral": {
+        "top": 22,
+        "bottom": 94,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 133,
+      "bodyH": 218,
+      "metaTop": 133,
+      "h3Top": 164,
+      "h3H": 76,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -37
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 20,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 368,
+        "w": 636
+      },
+      "numeral": {
+        "top": 21,
+        "bottom": 89,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 162,
+      "bodyH": 171,
+      "metaTop": 162,
+      "h3Top": 191,
+      "h3H": 36,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -35
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 21,
+      "focused": false,
+      "title": "Forward Deployed Engineer - AI Agents (Retail & Consumer Goods)",
+      "card": {
+        "h": 348,
+        "w": 602
+      },
+      "numeral": {
+        "top": 20,
+        "bottom": 85,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 119,
+      "bodyH": 196,
+      "metaTop": 119,
+      "h3Top": 147,
+      "h3H": 68,
+      "h3Lines": 2,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -33
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 22,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 329,
+        "w": 568
+      },
+      "numeral": {
+        "top": 19,
+        "bottom": 80,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 172,
+      "bodyH": 125,
+      "metaTop": 172,
+      "h3Top": 198,
+      "h3H": 32,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -31
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 23,
+      "focused": false,
+      "title": "Commercial Account Executive",
+      "card": {
+        "h": 309,
+        "w": 534
+      },
+      "numeral": {
+        "top": 18,
+        "bottom": 75,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 162,
+      "bodyH": 118,
+      "metaTop": 162,
+      "h3Top": 186,
+      "h3H": 30,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -29
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 24,
+      "focused": false,
+      "title": "Account Executive",
+      "card": {
+        "h": 289,
+        "w": 499
+      },
+      "numeral": {
+        "top": 16,
+        "bottom": 70,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 151,
+      "bodyH": 110,
+      "metaTop": 151,
+      "h3Top": 174,
+      "h3H": 28,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -28
+    },
+    {
+      "label": "d1024-all-card20",
+      "i": 25,
+      "focused": false,
+      "title": "Product Marketing Manager (First PMM Hire)",
+      "card": {
+        "h": 269,
+        "w": 465
+      },
+      "numeral": {
+        "top": 15,
+        "bottom": 65,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 92,
+      "bodyH": 151,
+      "metaTop": 92,
+      "h3Top": 114,
+      "h3H": 53,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -26
+    },
+    {
+      "label": "d1024-london",
+      "i": 1,
+      "focused": true,
+      "title": "Sales Executive",
+      "card": {
+        "h": 440,
+        "w": 760
+      },
+      "numeral": {
+        "top": 25,
+        "bottom": 107,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 230,
+      "bodyH": 168,
+      "metaTop": 230,
+      "h3Top": 265,
+      "h3H": 43,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -42
+    },
+    {
+      "label": "d1024-london",
+      "i": 2,
+      "focused": false,
+      "title": "Partner Implementation Manager",
+      "card": {
+        "h": 420,
+        "w": 726
+      },
+      "numeral": {
+        "top": 24,
+        "bottom": 102,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 185,
+      "bodyH": 195,
+      "metaTop": 185,
+      "h3Top": 218,
+      "h3H": 41,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -40
+    },
+    {
+      "label": "d1024-london",
+      "i": 3,
+      "focused": false,
+      "title": "GTM Associate (SDR)",
+      "card": {
+        "h": 400,
+        "w": 692
+      },
+      "numeral": {
+        "top": 23,
+        "bottom": 97,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 210,
+      "bodyH": 153,
+      "metaTop": 210,
+      "h3Top": 241,
+      "h3H": 39,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -38
+    },
+    {
+      "label": "d1024-london",
+      "i": 4,
+      "focused": false,
+      "title": "Partner Account Manager",
+      "card": {
+        "h": 381,
+        "w": 657
+      },
+      "numeral": {
+        "top": 22,
+        "bottom": 92,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 167,
+      "bodyH": 177,
+      "metaTop": 167,
+      "h3Top": 198,
+      "h3H": 37,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -36
+    },
+    {
+      "label": "d1024-london",
+      "i": 5,
+      "focused": false,
+      "title": "Account Manager",
+      "card": {
+        "h": 361,
+        "w": 623
+      },
+      "numeral": {
+        "top": 21,
+        "bottom": 88,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 189,
+      "bodyH": 138,
+      "metaTop": 189,
+      "h3Top": 218,
+      "h3H": 35,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -34
+    },
+    {
+      "label": "d1024-london",
+      "i": 6,
+      "focused": false,
+      "title": "Founding GTM",
+      "card": {
+        "h": 341,
+        "w": 589
+      },
+      "numeral": {
+        "top": 19,
+        "bottom": 83,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 150,
+      "bodyH": 158,
+      "metaTop": 150,
+      "h3Top": 177,
+      "h3H": 33,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -33
+    },
+    {
+      "label": "d1024-london",
+      "i": 7,
+      "focused": false,
+      "title": "Sales Manager",
+      "card": {
+        "h": 321,
+        "w": 555
+      },
+      "numeral": {
+        "top": 18,
+        "bottom": 78,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 168,
+      "bodyH": 122,
+      "metaTop": 168,
+      "h3Top": 194,
+      "h3H": 31,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -31
+    },
+    {
+      "label": "d1024-london",
+      "i": 8,
+      "focused": false,
+      "title": "SDR Manager",
+      "card": {
+        "h": 301,
+        "w": 521
+      },
+      "numeral": {
+        "top": 17,
+        "bottom": 73,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 158,
+      "bodyH": 115,
+      "metaTop": 158,
+      "h3Top": 182,
+      "h3H": 29,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -29
+    },
+    {
+      "label": "d1024-london",
+      "i": 9,
+      "focused": false,
+      "title": "Senior Account Manager – Financial Data & Intelligence – London",
+      "card": {
+        "h": 282,
+        "w": 486
+      },
+      "numeral": {
+        "top": 16,
+        "bottom": 68,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 120,
+      "bodyH": 135,
+      "metaTop": 120,
+      "h3Top": 142,
+      "h3H": 55,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -27
+    },
+    {
+      "label": "d1024-london",
+      "i": 10,
+      "focused": false,
+      "title": "Founding Client Partner",
+      "card": {
+        "h": 262,
+        "w": 452
+      },
+      "numeral": {
+        "top": 15,
+        "bottom": 64,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 115,
+      "bodyH": 122,
+      "metaTop": 115,
+      "h3Top": 136,
+      "h3H": 26,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -25
+    },
+    {
+      "label": "d1024-london",
+      "i": 11,
+      "focused": false,
+      "title": "Customer Account Manager",
+      "card": {
+        "h": 242,
+        "w": 418
+      },
+      "numeral": {
+        "top": 14,
+        "bottom": 59,
+        "fontSize": "81.92px"
+      },
+      "bodyTop": 127,
+      "bodyH": 92,
+      "metaTop": 127,
+      "h3Top": 146,
+      "h3H": 24,
+      "h3Lines": 1,
+      "overlapNumeralVsH3px": 0,
+      "overlapNumeralVsMeta": 0,
+      "overlapNumeralVsBody": 0,
+      "bodyOverflowsCard": -23
+    }
+  ],
+  "console": {
+    "d1440": [],
+    "d1440-rm": [],
+    "d1024": [],
+    "m390": [],
+    "deck_d1440": [],
+    "deck_m390": [],
+    "forian_d1440": [],
+    "forian_m390": []
+  },
+  "tier2": [
+    {
+      "key": "d1440",
+      "hOverflow": 0,
+      "chipHeights": [
+        44
+      ],
+      "tierCardHeights": [
+        494,
+        494,
+        494,
+        494
+      ],
+      "btnMinH": 41,
+      "contrastSamples": [
+        ".card p rgb(75, 85, 99) on rgba(0, 0, 0, 0)",
+        ".filters__count rgb(75, 85, 99) on rgba(0, 0, 0, 0)",
+        ".eyebrow rgb(91, 33, 182) on rgba(0, 0, 0, 0)",
+        ".site-footer p rgb(75, 85, 99) on rgb(245, 243, 255)"
+      ],
+      "imgsNoAlt": 0,
+      "h1": 1,
+      "cardsOverflowingText": 0
+    },
+    {
+      "key": "d1024",
+      "hOverflow": 0,
+      "chipHeights": [
+        44
+      ],
+      "tierCardHeights": [
+        416,
+        416,
+        438,
+        438
+      ],
+      "btnMinH": 44,
+      "contrastSamples": [
+        ".card p rgb(75, 85, 99) on rgba(0, 0, 0, 0)",
+        ".filters__count rgb(75, 85, 99) on rgba(0, 0, 0, 0)",
+        ".eyebrow rgb(91, 33, 182) on rgba(0, 0, 0, 0)",
+        ".site-footer p rgb(75, 85, 99) on rgb(245, 243, 255)"
+      ],
+      "imgsNoAlt": 0,
+      "h1": 1,
+      "cardsOverflowingText": 0
+    },
+    {
+      "key": "m390",
+      "hOverflow": 0,
+      "chipHeights": [
+        44
+      ],
+      "tierCardHeights": [
+        438,
+        461,
+        461,
+        438
+      ],
+      "btnMinH": 44,
+      "contrastSamples": [
+        ".card p rgb(75, 85, 99) on rgba(0, 0, 0, 0)",
+        ".filters__count rgb(75, 85, 99) on rgba(0, 0, 0, 0)",
+        ".eyebrow rgb(91, 33, 182) on rgba(0, 0, 0, 0)",
+        ".site-footer p rgb(75, 85, 99) on rgb(245, 243, 255)"
+      ],
+      "imgsNoAlt": 0,
+      "h1": 1,
+      "cardsOverflowingText": 0
+    }
+  ]
+}

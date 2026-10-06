@@ -1,0 +1,223 @@
+{
+  "founder": {
+    "heroCtas": [
+      "Start hiring → -> #contact",
+      "Browse open roles -> #roles"
+    ],
+    "navLinks": [
+      "Specialisms -> #specialisms",
+      "How -> #how",
+      "Roles -> #roles",
+      "Pricing -> #pricing",
+      "Salary -> #salary",
+      "Contact -> #contact",
+      "+44 7803 236717 -> tel:+447803236717",
+      "Hire GTM talent → -> #contact"
+    ],
+    "afterNavRolesScrollY": 17881,
+    "filtersVisible": true,
+    "firstCardVisible": {
+      "top": 1078,
+      "bottom": 1518,
+      "fully": false
+    },
+    "londonSales": {
+      "count": "8",
+      "titles": [
+        "Sales Executive",
+        "Account Manager",
+        "Founding GTM",
+        "Sales Manager",
+        "SDR Manager",
+        "Senior Account Manager – Financial Data & Intelligence – London",
+        "Founding Client Partner",
+        "Customer Account Manager"
+      ],
+      "folioH": 7200,
+      "scrollY": 18639,
+      "filtersTop": -91
+    },
+    "cardLinks": [],
+    "pricingFromRoles": 8852,
+    "submitBtnVisible": {
+      "onTop": true,
+      "topEl": "btn btn--violet"
+    },
+    "afterSubmit": {
+      "okHidden": true,
+      "btnDisabled": false,
+      "validity": false
+    },
+    "footerExternal": [
+      "https://www.gtm-people.com/partners",
+      "https://www.gtm-people.com/insights",
+      "https://www.linkedin.com/company/gtm-people-com",
+      "https://www.gtm-people.com/resources",
+      "https://www.gtm-people.com/candidate-portal",
+      "https://www.gtm-people.com/privacy",
+      "https://www.gtm-people.com/terms",
+      "https://www.gtm-people.com/taas-terms"
+    ]
+  },
+  "candidate": {
+    "bottombar": [
+      "Call->tel:+447803236717",
+      "Hire->#contact",
+      "Roles->#roles"
+    ],
+    "scrollYAfterRolesTap": 11101,
+    "rolesHeadTop": 152,
+    "filtersInView": {
+      "top": 498,
+      "bottom": 756,
+      "vh": 844
+    },
+    "sdrNY": {
+      "count": "0",
+      "html": "No roles match.\n\nTry another filter or register your interest."
+    },
+    "anyNY": {
+      "count": "8",
+      "titles": [
+        "Strategic Account Manager / Engagement Manager",
+        "Full-Stack Software Engineer",
+        "Senior DevOps Engineer",
+        "Account Executive",
+        "Enterprise Account Executive (Founding Hire)",
+        "Partner Implementation Manager",
+        "Senior ML/AI Engineer",
+        "Product Marketing Manager (First PMM Hire)"
+      ]
+    },
+    "sdrAnywhere": {
+      "count": "1",
+      "titles": [
+        "GTM Associate (SDR)"
+      ]
+    },
+    "cardCTA": 0,
+    "registerLink": "#contact",
+    "contactDistanceFromRoles": 12880,
+    "candidateFormFields": [
+      "first",
+      "last",
+      "company",
+      "email",
+      "stage",
+      "need"
+    ],
+    "salaryMentionsSDR": true,
+    "salaryUS": false,
+    "salaryText": "2026 SALARY GUIDE\n\nWhat does GTM talent cost at your stage?\n\nUK market rates for B2B SaaS go-to-market roles. Ranges reflect Seed to Series C benchmarks — London-weighted, based on live placement data.\n\nSDR / BDR\n\n£28k – £45k · OTE £45k – £75k\n\nSeed → Series B · 60/40 base:variable\nAccount Executive\n\n£55k – £90k · OTE £110k – £180k\n\nSeries A → Series C · 50/50 split\nCustomer Success Manager\n\n£45k – £70k · OTE £60k – £95k\n\nSeed → Series B · expansion-based variable\nRevOps Manager\n\n£55k – £80k · OTE £65k – £95k\n\nSeries A → Series C · system-bonus weighted\nHead of Sales\n\n£80k – £120k · OTE £150k ",
+    "menuLinks": [
+      "Specialisms",
+      "How",
+      "Roles",
+      "Pricing",
+      "Salary",
+      "Contact",
+      "+44 7803 236717",
+      "Hire GTM talent →"
+    ]
+  },
+  "ian": {
+    "forIanText": "Skip to content GTM People ← Back to the concept JUST FOR YOUR EYES · OCTOBER 2026 For Ian — what changed and why. The page at this address is a concept on our own domain. Nothing touches gtm-people.com. Every fact on it — the specialisms, the six-step process, the TaaS tiers and fee rules, the 2026 salary bands, the eight FAQs, the 28 partners and the 25 open roles — comes from your live site and its public roles feed, copied verbatim. I invented no quotes, prices, testimonials or article titles. The design goal was measurable: the same story, with far less on screen at any one moment. Your home page is one long scroll of fifteen different layouts. The concept tells it as a scroll-story — one idea per screen, with pinned sections that swap their content in place as you scroll — so the reader never meets a wall of text, yet nothing is cut. Two cuts / is the scroll-story: one idea per screen; the hero, the specialisms and the open roles are pinned and change under your thumb. /deck/ is the compact tabbed cut: two desktop screens, ten tabs, every panel one tap away. Both carry the same copy. Tell me which direction you'd back and I'll take that one to a finished build. Today / Concept MEASURE TODAY (GTM-PEOPLE.COM) CONCEPT (SCROLL-STORY · DECK) Distinct section layouts 15 13 (14 sections; the card stack is used twice) · 10 panels in one layout Words visible per screen, desktop (median · max, sampled every 400 px) 190 · 392 35 · 295 Words of your copy carried over 4,373 on the page 3,410 — every sentence of the site copy; the 25 roles shown as title, location, stage and comp (descriptions stay disclosed at shortlist) · deck 5,005 incl. descriptions Third-party scripts 3 (Google Tag Manager, Supabase CDN, Cloudflare Insights) 0 · one host for fonts Largest text wall (tallest run of consecutive paragraphs, desktop) 420 px — the About block 348 px — the same About block, kept word for word Scrolling to reach pricing via the menu No menu link — 9.6 screens desktop, 20.3 mobile 0 — \"Pricing\" in the header on both cuts Page weight (first load, desktop) 1,004 KB · 41 requests 152 KB · 7 requests (89 KB of that is the page itself) · deck 132 KB Page height, desktop / mobile 17,828 px / 36,490 px 52,167 px / 27,515 px — on purpose: pinned sections turn scroll into a controller, so height is track length, not reading length · deck 1,773 / 2,941 px Measured 2026-10-06 with Playwright at 1440×900 and 390×844, default state, after the fonts loaded. Numbers are in research",
+    "forIanLinks": [
+      "Skip to content -> #main",
+      "GTM People -> ../",
+      "← Back to the concept -> ../",
+      "this address -> ../",
+      "/ -> ../",
+      "/deck/ -> ../deck/",
+      "debanjan@prodcraft.fyi -> mailto:debanjan@prodcraft.fyi"
+    ],
+    "forIanH1": 1,
+    "linkStatus": {
+      "https://gtm-people-redesign.pages.dev/for-ian/#main": 200,
+      "https://gtm-people-redesign.pages.dev/": 200,
+      "https://gtm-people-redesign.pages.dev/deck/": 200
+    },
+    "deckText": "Skip to content GTM. PEOPLE Specialisms Open Roles About Call +44 7803 236717 Hire GTM Talent → Specialist Early-Stage SaaS Recruiters We hire your Founding GTM team. GTM People is the specialist recruitment partner for early-stage SaaS companies building their first go-to-market teams. From founding AEs to first sales leaders — we find the talent that turns traction into revenue. Start Hiring → Browse Open Roles 1,999+ GTM & Sales Placements 20+yrs Specialist Experience 100+ SaaS & Tech Clients 5d Days to First Shortlist MARKET MAP SHORTLIST OF 5 · DAY 5 1 HIRE Day-one feasibility 3–5 briefed candidates 3-month guarantee Specialisms How it works Roles 25 TaaS Pricing Salary Guide About FAQ Partners Insights Contact WHAT WE DO Every GTM hire, covered. We specialise in placing go-to-market talent at SaaS companies from Seed through to Series C — the critical growth stage where the right hire changes everything. Hire GTM Talent → Founding Sales Your first AE, SDR or sales leader. The hire that defines your revenue trajectory — we've done this over 50 times. Learn more Account Executives Closers who thrive in ambiguity. Mid-market and enterprise AEs at every stage, from first quota-ca",
+    "deckPanelsVisibleOnLoad": [
+      "specialisms:true:block",
+      "how:false:none",
+      "roles:false:none",
+      "pricing:false:none",
+      "salary:false:none",
+      "about:false:none",
+      "faq:false:none",
+      "partners:false:none",
+      "insights:false:none",
+      "contact:false:none"
+    ],
+    "deckPricingHash": "#pricing",
+    "deckReloadKeepsTab": "tab-pricing",
+    "deckRolesClaims": " Open RolesCurrent GTM OpportunitiesAll roles are confidential — company names are disclosed at shortlist stage. Apply once and we'll match you to relevant opportunities as they come in. Snapshot of the public roles feed, 2026-10-06. Not seeing the right role? Register your interest → Location All LocationsLondonNew YorkRemoteSan FranciscoParis Role type All Role TypesSalesSDR/BDRCSMMarketingPartn",
+    "deckConceptLabel": true,
+    "proofClaims": "0+ GTM & SALES PLACEMENTS 0+ yrs SPECIALIST EXPERIENCE 0+ SAAS & TECH CLIENTS 0 days TO FIRST SHORTLIST",
+    "conceptDisclosures": [
+      "Concept — not wired",
+      "Concept — not wired",
+      "debanjan@prodcraft.fyi"
+    ],
+    "founderText": "“Revenue is a hiring problem. We fix it.” — Ian Harwood, Founder ABOUT GTM PEOPLE Built by someone who's been in the seat. GTM People was founded by Ian Harwood — a specialist GTM recruiter with over 20 years of experience placing sales, marketing, RevOps, and CS leaders across the UK and Europe. After over two decades placing GTM talent — first at generalist agencies, then building a specialist SaaS-focused recruitment desk — Ian saw the same problem repeated with every early-stage client: they were getting a generalist recruitment process applied to a highly specialist hiring challenge. Early-stage SaaS hiring is different. The profile that succeeds at a 30-person Series A looks nothing like the person who thrives at a 300-person Series C. The motivation, the risk appetite, the skills that matter — completely different. Most recruiters don't know the difference. We do, because we've sp",
+    "taasText": "WHY TAAS? Traditional recruitment has the wrong incentives. A traditional agency gets paid once — when you make the hire. That means their interest ends the moment the contract is signed. TaaS flips the model. TRADITIONAL AGENCY GTM PEOPLE TAAS Per-hire fee creates pressure to fill fast, not well Monthly retainer means we care about long-term quality No incentive to care what happens after placement Your talent partner stays embedded in your team Candidates often oversold to get the fee Candidates are briefed fully — no surprises after joining Every search starts from scratch Pipeline always warm — next hire is faster than the last You're a transaction, not a relationship 3-month guarantee on every placement",
+    "pricingTiers": [
+      "Launchpad Per hire £500/mo £5,000 / year Dedicated search & active headhunt 3–5 curated candidates per role Quarterly talent report + competitor watchlist Everything in the plan Get started",
+      "MOST POPULAR Scaleup Monthly retainer £1,000/mo £10,000 / year Dedicated talent partner embedded with your team Competitor watchlist + compensation benchmarking Priority sourcing & market mapping Everything in the plan Talk to us →",
+      "Unicorn Strategic partner £2,500/mo £30,000 / year Full GTM talent partnership + executive search Salary benchmarking & market data 2 included placements / year (up to £100k base) — or 3 up to £75k Everything in the plan Let's talk",
+      "Partner Embedded £8,500/mo Monthly · min 3 months A GTM recruiter embedded in your team, full-time Unlimited hiring within capacity Same flat price whatever tier you're on Everything in the plan Enquire"
+    ],
+    "insightsText": "INSIGHTS & RESOURCES GTM hiring intelligence for SaaS founders. Email Get free insights → Free GTM hiring insights + report snippets in your inbox — one email a month, no spam. Want the full picture? Our Quarterly GTM Salary & Market Report goes deeper on UK & US comp, hiring trends and benchmarks — best price per quarter when you subscribe, or buy a single report. Register interest → ARTICLE To wire — live feed ARTICLE To wire — live feed ARTICLE To wire — live feed View all articles →",
+    "title": "GTM People — We hire your founding GTM team · Concept",
+    "metaDesc": "Concept redesign of gtm-people.com as a scroll-story. The specialist recruitment partner for early-stage SaaS companies building their first go-to-market teams."
+  },
+  "reducedMotion": {
+    "folioMinHeightInline": "2500svh",
+    "folioH": 22500,
+    "lastCardBottomRelFolio": 8907,
+    "blankPx": 13593,
+    "cardWidths": [
+      1296,
+      870,
+      743,
+      517,
+      599,
+      1293,
+      978,
+      667,
+      978,
+      783,
+      576,
+      498,
+      494,
+      469,
+      1296,
+      687,
+      757,
+      607,
+      1139,
+      733,
+      1296,
+      846,
+      929,
+      599,
+      1271
+    ],
+    "specFolio": {
+      "h": 2309,
+      "blank": 0,
+      "widths": [
+        712,
+        712,
+        712,
+        712,
+        712,
+        712,
+        712,
+        712,
+        712
+      ]
+    }
+  }
+}
