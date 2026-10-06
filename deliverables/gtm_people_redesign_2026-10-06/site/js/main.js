@@ -22,13 +22,14 @@
   const ids = panels.map((p) => p.id);
   let current = null;
   const headerOffset = () => { const h = $('.hdr'), n = $('.pnav'); return (h ? h.offsetHeight : 0) + (n ? n.offsetHeight : 0); };
-  const activate = (id, { push = true, focus = false, scroll = true } = {}) => {
+  const activate = (id, { push = true, focus = false, scroll = true, instant = false } = {}) => {
     if (!ids.includes(id)) id = ids[0];
     if (!id) return;
     panels.forEach((p) => { p.hidden = p.id !== id; });
-    tabs.forEach((t) => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; if (on) { t.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduced ? 'auto' : 'smooth' }); if (focus) t.focus(); } });
+    const tabsEl = $('[data-tabs]');
+    tabs.forEach((t) => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; if (on) { if (tabsEl) tabsEl.scrollTo({ left: t.offsetLeft - (tabsEl.clientWidth - t.offsetWidth) / 2, behavior: reduced || instant ? 'auto' : 'smooth' }); if (focus) t.focus({ preventScroll: true }); } });
     if (push && location.hash !== '#' + id) history.pushState({ panel: id }, '', '#' + id);
-    if (scroll && deck) { const top = deck.getBoundingClientRect().top + scrollY - headerOffset(); if (Math.abs(scrollY - top) > 4 && scrollY < top || scrollY > top) scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' }); }
+    if (scroll) { const panel = document.getElementById(id); if (panel) { const top = panel.getBoundingClientRect().top + scrollY - headerOffset() - 4; scrollTo({ top: Math.max(0, top), behavior: reduced || instant ? 'auto' : 'smooth' }); } }
     current = id;
     $$('.panel:not([hidden]) .reveal').forEach((el, i) => setTimeout(() => el.classList.add('is-in'), mobile() || reduced ? 0 : 40 * i));
   };
@@ -48,7 +49,7 @@
     const pre = a.getAttribute('data-prefill'), need = $('[data-need]');
     if (pre && need && !need.value) { need.value = pre; }
   });
-  const fromHash = (push) => { const id = location.hash.replace('#', ''); if (ids.includes(id)) activate(id, { push, scroll: id !== ids[0] || !!location.hash }); else if (!current) activate(ids[0], { push: false, scroll: false }); };
+  const fromHash = (push) => { const id = location.hash.replace('#', ''); if (ids.includes(id)) activate(id, { push, scroll: true, instant: !current }); else if (!current) activate(ids[0], { push: false, scroll: false }); };
   addEventListener('popstate', () => fromHash(false));
   addEventListener('hashchange', () => fromHash(false));
   fromHash(false);
@@ -60,6 +61,8 @@
     reveals.forEach((el) => io.observe(el));
     setTimeout(() => reveals.forEach((el) => el.classList.add('is-in')), 2500);
   } else reveals.forEach((el) => el.classList.add('is-in'));
+
+  const dia = $('.diagram'); if (dia) setTimeout(() => dia.classList.add('is-done'), reduced ? 0 : 1500);
 
   /* ---------- hero counters ---------- */
   if (!reduced) $$('[data-count]').forEach((el) => {

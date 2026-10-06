@@ -65,11 +65,12 @@ radial-gradient(60% 80% at 100% 0%,var(--pl) 0%,transparent 60%),radial-gradient
 .diagram text{font-family:var(--font);font-weight:700;fill:var(--pd)}
 .diagram .cap{font-size:11px;font-weight:600;fill:var(--g600);letter-spacing:.08em}
 .diagram .lane{stroke:var(--pl);stroke-width:1.5;fill:none}
-.diagram .flow{stroke:var(--p);stroke-width:1.5;fill:none;stroke-dasharray:420;stroke-dashoffset:420;animation:dash 1.4s var(--ease) forwards}
-.diagram .c{fill:var(--pl);stroke:var(--p);stroke-width:1.5;opacity:0;animation:pop .5s var(--ease) forwards}
+.diagram .flow{stroke:var(--p);stroke-width:1.5;fill:none;stroke-dasharray:420;stroke-dashoffset:420;animation:dash .8s var(--ease) forwards}
+.diagram .c{fill:var(--pl);stroke:var(--p);stroke-width:1.5;opacity:0;animation:pop .35s var(--ease) forwards}
 .diagram .c.s{fill:#fff;stroke:var(--pm)}
 .diagram .c.h{fill:var(--a);stroke:var(--ad);stroke-width:2}
-.diagram .lbl{opacity:0;animation:pop .5s var(--ease) forwards}
+.diagram .lbl{opacity:0;animation:pop .35s var(--ease) forwards}
+.diagram.is-done .c,.diagram.is-done .lbl{opacity:1;animation:none}.diagram.is-done .flow{stroke-dashoffset:0;animation:none}
 @keyframes dash{to{stroke-dashoffset:0}}
 @keyframes pop{to{opacity:1}}
 
@@ -85,7 +86,7 @@ radial-gradient(60% 80% at 100% 0%,var(--pl) 0%,transparent 60%),radial-gradient
 
 /* deck */
 .deck{background:var(--g50);border-bottom:1px solid var(--g200)}
-.panel{padding:24px 0 26px}
+.panel{padding:24px 0 26px;scroll-margin-top:calc(var(--hh) + var(--nh) + 4px)}
 .panel[hidden]{display:none}
 .phead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px;flex-wrap:wrap}
 .phead h2{margin-top:6px;color:var(--pd);font-size:clamp(24px,2.5vw,36px)}
@@ -216,6 +217,8 @@ tr:hover td{background:var(--pll)}
 .cl{display:grid;gap:6px}
 .cl a,.cl div{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--g200);border-radius:12px;padding:10px 12px;color:var(--g900);font-weight:600;font-size:14px;min-height:44px}
 .cl svg{width:18px;height:18px;stroke:var(--pm);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.cl .note.rolecard{display:grid;gap:6px;justify-items:start;font-weight:500;line-height:1.45}
+.cl .note.rolecard b{font-size:15px}
 .cl small{display:block;color:var(--g600);font-weight:500;font-size:12px}
 .form{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:16px}
 .form .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
