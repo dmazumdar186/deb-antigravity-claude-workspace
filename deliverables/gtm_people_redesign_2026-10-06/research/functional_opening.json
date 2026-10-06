@@ -13,7 +13,7 @@
  },
  "3 frames 700 ms apart differ (canvas painted px / alpha mass)": {
   "ok": true,
-  "info": "[{\"painted\":72505,\"alpha\":3179},{\"painted\":39497,\"alpha\":1757},{\"painted\":28572,\"alpha\":1124}]"
+  "info": "[{\"painted\":69400,\"alpha\":3083},{\"painted\":38344,\"alpha\":1749},{\"painted\":24946,\"alpha\":1029}]"
  },
  "one headline visible per frame": {
   "ok": true,
@@ -21,7 +21,7 @@
  },
  "canvas has non-blank pixels": {
   "ok": true,
-  "info": "72505 painted px"
+  "info": "69400 painted px"
  },
  "beat 1 end state: five cards lit, one lifted + placed tag": {
   "ok": true,
@@ -29,7 +29,7 @@
  },
  "no frame with two headlines during the 1→2 transition": {
   "ok": true,
-  "info": "max 1 over 52 samples"
+  "info": "max 1 over 51 samples"
  },
  "beats advance after beat 1 (6.5 s)": {
   "ok": true,
@@ -105,7 +105,7 @@
  },
  "mobile: CTA row above the fixed bar": {
   "ok": true,
-  "info": "{\"footBottom\":766,\"barTop\":783}"
+  "info": "{\"footBottom\":652,\"barTop\":783}"
  },
  "opening tap targets ≥ 44 px": {
   "ok": true,

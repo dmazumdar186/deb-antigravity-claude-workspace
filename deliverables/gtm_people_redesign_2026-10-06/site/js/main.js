@@ -482,10 +482,10 @@
   if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { onScreen = es[0].isIntersecting; start(); }, { threshold: 0 }).observe(sec);
   if (reduced && ctx && g) { draw(0, 0); setCards(5, true); } else start();
 
-  /* map: equirectangular onto 560x560; lon -142..48 (x2.947/deg), lat 75..-45 (y4.667/deg). Hand-simplified coastlines. */
+  /* map: equirectangular onto 560x221; lon -170..180, lat 80..-58 (1.6 px/deg). Hand-simplified coastlines. */
   var map = $('[data-map]');
   if (map) {
-    var pt = function (lon, lat) { return ((lon + 142) * 2.947).toFixed(1) + ' ' + ((75 - lat) * 4.667).toFixed(1); };
+    var pt = function (lon, lat) { return ((lon + 170) * 1.6).toFixed(1) + ' ' + ((80 - lat) * 1.6).toFixed(1); };
     var poly = function (pts, far) { var a = pts.split(' '), out = []; for (var i = 0; i < a.length; i += 2) out.push(pt(+a[i], +a[i + 1])); return '<path class="land' + (far ? ' far' : '') + '" d="M' + out.join('L') + 'Z"/>'; };
     var LAND = [
       '-168 66 -162 60 -152 60 -140 60 -130 55 -125 49 -124 42 -122 38 -118 34 -115 30 -110 24 -105 20 -97 16 -92 15 -88 16 -84 10 -80 9 -77 8 -82 10 -87 13 -88 18 -87 21 -90 21 -91 19 -97 20 -97 26 -94 29 -90 29 -85 30 -83 28 -81 25 -80 27 -81 31 -76 35 -75 38 -74 40.5 -70 41.5 -70 43 -67 45 -64 45 -61 47 -56 47 -56 52 -60 55 -64 60 -78 62 -82 56 -95 60 -92 68 -80 70 -100 72 -120 70 -128 70 -140 70 -155 71 -165 68',
@@ -501,12 +501,12 @@
       '114 -22 122 -18 130 -12 137 -12 142 -11 146 -19 153 -27 150 -37 140 -38 131 -32 124 -34 115 -34'
     ];
     /* name, lon, lat, hub, label dx, dy, anchor */
-    var CITIES = [['London', -0.13, 51.5, 1, 12, 4, ''], ['Manchester', -2.2, 53.5, 0, -9, -5, 'end'], ['Paris', 2.35, 48.85, 0, 9, 13, ''], ['New York', -74, 40.7, 0, 0, 21, 'middle'], ['San Francisco', -122.4, 37.8, 0, 2, 21, 'middle']];
+    var CITIES = [['London', -0.13, 51.5, 1, 10, 4, ''], ['Manchester', -2.2, 53.5, 0, -10, -10, 'end'], ['Paris', 2.35, 48.85, 0, 7, 12, ''], ['New York', -74, 40.7, 0, 0, 21, 'middle'], ['San Francisco', -122.4, 37.8, 0, 2, 21, 'middle']];
     var html = FAR.map(function (l) { return poly(l, 1); }).join('') + LAND.map(function (l) { return poly(l); }).join('');
     var L = pt(-0.13, 51.5).split(' ');
-    CITIES.forEach(function (c, i) { if (i) { var q = pt(c[1], c[2]).split(' '), mx = (+L[0] + +q[0]) / 2, my = Math.min(+L[1], +q[1]) - Math.abs(+L[0] - +q[0]) * .3 - 6; html += '<path class="arc" pathLength="1" style="--i:' + (i - 1) + '" d="M' + L.join(' ') + 'Q' + mx + ' ' + my + ' ' + q.join(' ') + '"/>'; } });
-    CITIES.forEach(function (c, i) { var q = pt(c[1], c[2]).split(' '), hub = c[3] === 1; html += '<g style="--i:' + i + '"><circle class="halo" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (hub ? 14 : 10) + '"/><circle class="node' + (hub ? ' hub' : '') + '" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (hub ? 5.5 : 4) + '"/><text x="' + (+q[0] + c[4]) + '" y="' + (+q[1] + c[5]) + '"' + (c[6] ? ' text-anchor="' + c[6] + '"' : '') + '>' + c[0] + '</text></g>'; });
-    html += '<g><circle class="ring" cx="78" cy="470" r="26"/><circle class="node hub" cx="78" cy="470" r="4"/><text x="78" y="516" text-anchor="middle">Remote UK/EU/US</text></g>';
+    CITIES.forEach(function (c, i) { if (i) { var q = pt(c[1], c[2]).split(' '), mx = (+L[0] + +q[0]) / 2, my = Math.min(+L[1], +q[1]) - Math.abs(+L[0] - +q[0]) * .3 - 4; html += '<path class="arc" pathLength="1" style="--i:' + (i - 1) + '" d="M' + L.join(' ') + 'Q' + mx + ' ' + my + ' ' + q.join(' ') + '"/>'; } });
+    CITIES.forEach(function (c, i) { var q = pt(c[1], c[2]).split(' '), hub = c[3] === 1; html += '<g style="--i:' + i + '"><circle class="halo" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (hub ? 11 : 8) + '"/><circle class="node' + (hub ? ' hub' : '') + '" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (hub ? 4 : 3) + '"/><text x="' + (+q[0] + c[4]) + '" y="' + (+q[1] + c[5]) + '"' + (c[6] ? ' text-anchor="' + c[6] + '"' : '') + '>' + c[0] + '</text></g>'; });
+    html += '<g><circle class="ring" cx="60" cy="170" r="18"/><circle class="node hub" cx="60" cy="170" r="3"/><text x="60" y="205" text-anchor="middle">Remote UK/EU/US</text></g>';
     map.innerHTML = html;
   }
 

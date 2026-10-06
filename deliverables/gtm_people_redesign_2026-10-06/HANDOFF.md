@@ -90,3 +90,24 @@ Not done: Worker not deployed (no key); full human-eye run on v3; roles are a 20
 
 ### v3.1 (2026-10-06)
 Operator: quick-brief chip strip had no visible way to scroll. Added 44 px prev/next arrows (disabled at the ends), mouse-wheel → horizontal scroll, scroll-snap on chips; verified by Playwright on desktop and Pixel 7 (arrows move the strip, wheel moves it, 0 errors); site_check PASSED; redeployed.
+
+## v4 — brand opening (2026-10-06)
+
+**Live:** https://gtm-people-redesign.pages.dev/ (board unchanged below; pitch page `for-ian/`).
+
+**What it is.** A cinematic four-beat opening above the untouched "Brief it" board, answering the brief "show why the company is great before the tool". No video dependency; all canvas + CSS, zero third-party scripts.
+
+| Beat | Headline idea | Stage |
+|---|---|---|
+| 1 | GTM hiring, done in days | 800-particle pipeline (300 mobile) funnelling into five mint role cards (AE / SDR / CS / RevOps / VP); one lifts with "Placed · day 5" |
+| 2 | Founder track record | Dimmed stage, 64 px counters on white pills |
+| 3 | The process | Horizontal 6-node timeline colouring in, "Day 5" tag |
+| 4 | Seed to Series C. Based in London, placing globally. | Hand-authored equirectangular coastlines, true lon/lat pins (London, Manchester, Paris, NY, SF), dashed "Remote UK/EU/US" ring |
+
+Sequential beat transitions (260 ms out, 120 ms gap, in). Bottom rail: beat pills + "Start a brief ↓" + "Open roles". Reduced-motion: static beat 1 frame. Mobile: stage directly under copy, rail under cards.
+
+**Verified.** site_check 0 failures · functional_v3 44/45 (density sampler, structural floor, unchanged) · content probe 135 live sentences / 0 missing · board identity diff identical to v3.1 · functional_opening 35/35 (frame delta, no two headlines visible, mobile gap ≤80 px) · visual review cool 4/5, clarity 4/5, composition 4/5, no blockers · index+css+js 145,603 B (cap 150 KB).
+
+**Kling / Higgsfield footage (optional).** The opening is footage-ready: drop `hero.mp4` (desktop) and `hero-m.mp4` (mobile) into `site/assets/`, set `"ready": true` in `site/assets/hero.json`, redeploy. Prompts per beat: `research/hero_footage_prompts.md`; generator: `research/generate_hero_footage.py --beat 1..4` (needs `HF_API_TOKEN`, local only, not run).
+
+**Not done.** Ask-Worker still undeployed (needs `ANTHROPIC_API_KEY` in the environment). Full human-eye run on v4 before client release.
