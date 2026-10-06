@@ -30,7 +30,7 @@ ul,ol{margin:0;padding:0;list-style:none}
 .nav a:hover,.nav a.is-on{background:var(--bg2)}
 .hdr-cta{display:flex;gap:8px;align-items:center}
 .tel{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;text-decoration:none;color:var(--vi3);font-weight:600;font-size:15px}
-@media (max-width:999px){.nav{display:none}.tel span{display:none}}
+@media (max-width:999px){.nav{display:none}.tel span{display:none}.tel{min-width:44px;justify-content:center}.brand{min-height:44px}}
 @media (max-width:640px){.hdr-cta .btn{display:none}}
 
 /* hero / brief line */
@@ -57,7 +57,7 @@ ul,ol{margin:0;padding:0;list-style:none}
 .dial button{min-height:38px;min-width:44px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--vi2);font-size:14px;white-space:nowrap}
 .dial button.is-on{background:var(--vi);color:#fff}
 .dial-label{font-size:13px;color:var(--mute);margin:14px 10px 0 0;display:inline-block}
-@media (max-width:799px){.hero{padding:18px 0 14px;min-height:0}.hero h1{font-size:24px;margin:4px 0 10px}.eyebrow{font-size:11px}[data-quick]{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:4px;scrollbar-width:none}[data-quick] .chip{flex:none}.dial-label{display:block;margin-top:10px}.dial{margin-top:6px}.board{padding-top:12px}.tile{padding:14px 14px 12px;gap:8px}.plan li{gap:8px}.role{padding:6px 10px}.m-hide{display:none}.plan{font-size:13px;gap:3px}.tile-h h2{font-size:16px}.ans{font-size:14px}.contacts{gap:0 12px}.contacts a{min-height:40px}.steps p,.pillars{font-size:13px}.qa summary{min-height:42px}.open{min-height:40px}.tiles{gap:10px}.brief{padding:4px 4px 4px 12px;border-radius:14px}.brief .btn{display:none}.brief input{font-size:16px;min-height:46px}.chip{min-height:44px}.dial button{min-height:44px}.brief-row .chips+.chips{padding-left:0;border:0}}
+@media (max-width:799px){.tier-pick .chip,.board-foot .chip{min-height:44px}.calc input{min-height:44px;font-size:16px}.switch input{width:22px;height:22px;font-size:16px}.hero{padding:18px 0 14px;min-height:0}.hero h1{font-size:24px;margin:4px 0 10px}.eyebrow{font-size:11px}[data-quick]{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:4px;scrollbar-width:none}[data-quick] .chip{flex:none}.dial-label{display:block;margin-top:10px}.dial{margin-top:6px}.board{padding-top:12px}.tile{padding:14px 14px 12px;gap:8px}.plan li{gap:8px}.role{padding:6px 10px}.m-hide{display:none}.plan{font-size:13px;gap:3px}.tile-h h2{font-size:16px}.ans{font-size:14px}.contacts{gap:0 12px}.contacts a{min-height:40px}.steps p,.pillars{font-size:13px}.qa summary{min-height:42px}.open{min-height:40px}.tiles{gap:10px}.brief{padding:4px 4px 4px 12px;border-radius:14px}.brief .btn{display:none}.brief input{font-size:16px;min-height:46px}.chip{min-height:44px}.dial button{min-height:44px}.brief-row .chips+.chips{padding-left:0;border:0}}
 
 /* board */
 .board{padding:18px 0 28px;background:#fff}
@@ -237,3 +237,4 @@ ul,ol{margin:0;padding:0;list-style:none}
 }
 .board-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-top:10px}
 .board-foot p{font-size:13px;color:var(--mute)}.board-foot .chip{min-height:34px;font-size:13px}
+@media (max-width:799px){.tiles .chip,.board-foot .chip,.tier-pick .chip{min-height:44px}.calc input[type=range]{min-height:44px;font-size:16px}}

@@ -145,7 +145,7 @@
   function tileRoles(p, looking) {
     var m = matchJobs(p), list = m.jobs, N = KB.jobs.length;
     var head = state.showAll ? 'All ' + N + ' live roles' : (m.all ? 'All ' + N + ' live roles' : (m.exact ? list.length + ' of ' + N : 'No exact match — closest 3'));
-    var shown = state.showAll ? KB.jobs : list, limit = window.innerWidth < 640 ? 3 : 6;
+    var shown = state.showAll ? KB.jobs : list, limit = window.innerWidth < 640 ? 3 : 4;
     var crit = [p.familyLabel, p.locationLabel, p.stageLabel].filter(Boolean).join(' · ') || 'any role, any location';
     return {
       id: 'roles', title: 'Roles in play', badge: head, answer: '<p class="ans">' + (m.all ? 'Tell us the role and we\'ll narrow these.' : (m.exact ? 'Live mandates matching <b>' + h(crit) + '</b>.' : 'No live mandate matches <b>' + h(crit) + '</b> exactly — the closest three are below. Register once and we\'ll match you as roles come in.')) + '</p><ul class="roles">' + shown.slice(0, state.showAll ? N : limit).map(function (j) { return roleRow(j, looking); }).join('') + '</ul>' + (shown.length > limit && !state.showAll ? '<p class="more-note">+' + (shown.length - limit) + ' more — open the tile.</p>' : '') + '<p class="foot">Live mandates, snapshot 2026-10-06 · company names disclosed at shortlist stage.</p>',
@@ -161,7 +161,7 @@
     var usLine = KB.faqs[5].a.split('US:')[1];
     return {
       id: 'rate', title: 'Market rate', badge: '2026 Salary Guide',
-      answer: '<p class="ans">' + (sr.proxy ? 'No guide row for ' + h(p.familyLabel) + ' yet — closest benchmark: ' : '') + '<b>' + h(r.role) + '</b> · ' + h(r.base) + ' base · ' + h(r.ote) + '</p><p class="note">' + h(r.note) + '</p>' + (us ? '<p class="note"><b>US:</b>' + h(usLine) + '</p>' : '') + '<p class="foot">UK market rates, London-weighted, from live placement data.</p>',
+      answer: '<p class="ans">' + (sr.proxy ? 'No guide row for ' + h(p.familyLabel) + ' yet — closest benchmark: ' : '') + '<b>' + h(r.role) + '</b> · ' + h(r.base) + ' base · ' + h(r.ote) + '</p><p class="note">' + h(r.note) + '</p>' + (us ? '<p class="note"><b>US:</b>' + h(usLine) + '</p>' : '') + '',
       more: '<p class="lead">' + h(KB.salaryIntro) + '</p>' + bars() + '<p>' + h(KB.salaryCta[0]) + ' <a href="#contact" data-open="contact">' + h(KB.salaryCta[1]) + '</a></p>',
       src: 'Source: 2026 Salary Guide row "' + r.role + '"' + (us ? ' + FAQ "What should I pay a Series A SaaS Account Executive?" (US sentence)' : '') + '.'
     };
@@ -201,7 +201,7 @@
     var two = pickFaqs(p);
     return {
       id: 'faq', title: 'Questions founders at ' + (p.stageLabel || 'your stage') + ' ask', badge: '2 of 8',
-      answer: two.map(function (x, n) { return '<details class="qa"' + (n ? '' : ' open') + '><summary>' + h(x.f.q) + '</summary><p>' + h(x.f.a) + '</p></details>'; }).join(''),
+      answer: two.map(function (x) { return '<details class="qa"><summary>' + h(x.f.q) + '</summary><p>' + h(x.f.a) + '</p></details>'; }).join(''),
       more: '<p class="lead">Answers to the questions we get asked most often by founders and hiring managers at early-stage SaaS companies.</p>' + KB.faqs.map(function (f, i) { return '<details class="qa"' + (i === two[0].i ? ' open' : '') + '><summary>' + h(f.q) + '</summary><p>' + h(f.a) + '</p></details>'; }).join(''),
       src: 'Source: Common Questions (8 FAQs), ranked by stage, role family and location tags.'
     };
@@ -213,7 +213,7 @@
   function tileContact(p) {
     return {
       id: 'contact', title: 'Next step', badge: 'One working day',
-      answer: '<p class="ans">Tell us what you\'re building and what you need. We\'ll get back to you within one working day.</p>' + contactLinks() + '<p class="note">We respond within one working day. No hard sell — just a conversation.</p><button type="button" class="btn btn-sm" data-toggle="contact">Book a 15-min call →</button>',
+      answer: '<p class="ans">Tell us what you\'re building and what you need. We\'ll get back to you within one working day.</p>' + contactLinks() + '<button type="button" class="btn btn-sm" data-toggle="contact">Book a 15-min call →</button>',
       more: '<p class="lead">Tell us about your hiring need</p>' + contactForm(p, false) + '<p class="note">Based In: London, UK — placing globally.</p>',
       src: 'Source: Get In Touch (form fields verbatim; stage and brief pre-filled from your brief).'
     };
