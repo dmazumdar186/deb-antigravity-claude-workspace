@@ -44,7 +44,7 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   await p.focus('[data-pill]:nth-child(3)'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
   check('ArrowRight → beat 4', (await beat(p)) === 3);
   const mp = await p.evaluate(() => ({ land: document.querySelectorAll('.map .land').length, arcs: document.querySelectorAll('.map .arc').length, cities: document.querySelectorAll('.map text').length, vis: getComputedStyle(document.querySelector('.vis-map')).visibility }));
-  check('map: land outlines, 5 arcs, 6 labels, visible on beat 4', mp.land >= 4 && mp.arcs === 5 && mp.cities === 6 && mp.vis === 'visible', JSON.stringify(mp));
+  check('map: ≥10 coastline paths, 4 arcs from London, 5 city labels + remote ring, visible on beat 4', mp.land >= 10 && mp.arcs === 4 && mp.cities === 6 && mp.vis === 'visible', JSON.stringify(mp));
   await p.evaluate(() => document.activeElement && document.activeElement.blur()); await p.mouse.move(700, 300); await p.waitForTimeout(1200); await p.screenshot({ path: screens + 'v4-open-4.png' });
   await p.waitForTimeout(4200);
   check('hover pauses the sequence', (await beat(p)) === 3, 'beat ' + (await beat(p)));
@@ -53,7 +53,7 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   const two = await p.evaluate(() => [...document.querySelectorAll('.beat .display')].map((e) => Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight))));
   check('every headline ≤ 2 lines at 1440', two.every((n) => n <= 2), two.join(','));
   const stg = await p.evaluate(() => { const r = document.querySelector('[data-stage]').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), w: Math.round(r.width) }; });
-  check('stage fills the right column (top ≤ 140, bottom ≥ 740)', stg.top <= 140 && stg.bottom >= 740 && stg.w >= 540, JSON.stringify(stg));
+  check('stage fills the right column (top ≤ 160, bottom ≥ 740)', stg.top <= 160 && stg.bottom >= 740 && stg.w >= 540, JSON.stringify(stg));
   const rail = await p.evaluate(() => { const r = document.querySelector('.pills').getBoundingClientRect(); return Math.round(innerHeight - r.bottom); });
   check('rail 24 px from the bottom edge', rail === 24, rail + 'px');
   await p.click('[data-start-brief]'); await p.waitForTimeout(1200);
@@ -79,6 +79,9 @@ const beat = (p) => p.evaluate(() => [...document.querySelectorAll('[data-beat]'
   check('mobile: CTA row above the fixed bar', fit.footBottom <= fit.barTop, JSON.stringify(fit));
   const taps = await p.evaluate(() => [...document.querySelectorAll('#top a,#top button')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.width < 44 || r.height < 44); }).map((e) => e.className));
   check('opening tap targets ≥ 44 px', taps.length === 0, taps.join(','));
+  const gap = await p.evaluate(() => Math.round(document.querySelector('[data-pipe]').getBoundingClientRect().top - document.querySelector('.beats').getBoundingClientRect().bottom));
+  check('mobile: copy → canvas gap ≤ 80 px', gap >= 0 && gap <= 80, gap + 'px');
+  await p.waitForTimeout(4200);
   const btns = await p.evaluate(() => [...document.querySelectorAll('.opening__cta .btn')].map((e) => Math.round(e.getBoundingClientRect().height)));
   check('mobile CTA buttons single line (44–48 px tall)', btns.every((h) => h >= 44 && h <= 50), btns.join(','));
   await p.screenshot({ path: screens + 'v4-open-mobile.png' });

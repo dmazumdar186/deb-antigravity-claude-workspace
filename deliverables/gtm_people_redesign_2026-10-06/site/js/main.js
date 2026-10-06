@@ -441,32 +441,31 @@
   var W = 0, H = 0, P = [], CX = {}, m = false;
   function seed() {
     m = W < 800 || window.innerWidth < 800; var N = m ? 300 : 800; P = [];
-    for (var i = 0; i < N; i++) { var a = Math.random() * TAU, r = Math.sqrt(Math.random()); P.push({ x: .5 + Math.cos(a) * r * .46, y: .29 + Math.sin(a) * r * .2, s: .25 + Math.random() * .5, ph: Math.random() * TAU, d: Math.random(), c: i % 5, r: 1.6 + Math.random(), al: .55 + Math.random() * .35 }); }
+    for (var i = 0; i < N; i++) { var a = Math.random() * TAU, r = Math.sqrt(Math.random()); P.push({ x: .5 + Math.cos(a) * r * .46, y: .27 + Math.sin(a) * r * .19, s: .25 + Math.random() * .5, ph: Math.random() * TAU, d: Math.random(), c: i % 5, r: 1.6 + Math.random(), al: .75 + Math.random() * .2 }); }
   }
   function size() { if (!ctx || !stage) return; var d = Math.min(2, window.devicePixelRatio || 1); W = stage.clientWidth; H = stage.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); gc.width = Math.ceil(W / 4); gc.height = Math.ceil(H / 4); seed(); }
   function cardX(k) { var cw = m ? 40 : 56, gap = 10; return W / 2 + (k - 2) * (cw + gap); }
   function draw(now, p) {
-    var t = now / 1000, i, d, x, y, k, al, nx = W / 2, ny = H * .6, cy = H * .89 - (m ? 20 : 28);
+    var t = now / 1000, i, d, x, y, k, al, ch = m ? 40 : 56, nx = W / 2, top = H * .89 - ch, ny = top - 38, cy = top + ch / 2, dim = cur === 1 ? .25 : 1;
     ctx.clearRect(0, 0, W, H); g.clearRect(0, 0, gc.width, gc.height);
-    var grd = ctx.createLinearGradient(0, H * .47, 0, ny + 30); grd.addColorStop(0, 'rgba(124,58,237,.55)'); grd.addColorStop(1, 'rgba(6,214,160,.9)');
-    ctx.strokeStyle = grd; ctx.lineWidth = 2; ctx.beginPath();
-    ctx.moveTo(W * .08, H * .47); ctx.quadraticCurveTo(W * .3, H * .5, nx - 22, ny); ctx.lineTo(nx - 26, ny + 30);
-    ctx.moveTo(W * .92, H * .47); ctx.quadraticCurveTo(W * .7, H * .5, nx + 22, ny); ctx.lineTo(nx + 26, ny + 30); ctx.stroke();
+    var grd = ctx.createLinearGradient(0, H * .44, 0, top - 8); grd.addColorStop(0, 'rgba(124,58,237,.55)'); grd.addColorStop(1, 'rgba(6,214,160,.9)');
+    ctx.globalAlpha = dim; ctx.strokeStyle = grd; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(W * .08, H * .44); ctx.quadraticCurveTo(W * .3, H * .47, nx - 22, ny); ctx.lineTo(nx - 26, top - 8);
+    ctx.moveTo(W * .92, H * .44); ctx.quadraticCurveTo(W * .7, H * .47, nx + 22, ny); ctx.lineTo(nx + 26, top - 8); ctx.stroke();
     var lit = 0;
     for (i = 0; i < P.length; i++) {
-      d = P[i]; al = d.al; var sp = cur === 0 ? 1 : .35;
+      d = P[i]; al = d.al * dim; var sp = cur === 0 ? 1 : .35;
       var cx = W * d.x + Math.sin(t * d.s * sp + d.ph) * 9, cyy = H * d.y + Math.cos(t * d.s * .8 * sp + d.ph) * 7;
       x = cx; y = cyy;
       if (cur === 0 && p > .26 && d.d < .74) {
         k = ease((p - .26 - d.d * .26) / .22);
         if (k > 0) {
           if (k < .55) { var q = k / .55; x = lerp(cx, nx + (d.d - .5) * 24, q); y = lerp(cyy, ny, q); }
-          else { var q2 = (k - .55) / .45; x = lerp(nx + (d.d - .5) * 24, cardX(d.c), q2); y = lerp(ny, cy, q2); al *= 1 - Math.max(0, (q2 - .7) / .3); if (q2 >= 1) continue; }
-          if (q2 > .85 && d.c + 1 > lit) lit = d.c + 1;
+          else { var q2 = (k - .55) / .45; x = lerp(nx + (d.d - .5) * 24, cardX(d.c), q2); y = lerp(ny, cy, q2); if (y >= top - 2) { if (d.c + 1 > lit) lit = d.c + 1; continue; } }
         }
       }
       ctx.globalAlpha = al; ctx.fillStyle = '#7C3AED'; ctx.beginPath(); ctx.arc(x, y, d.r, 0, TAU); ctx.fill();
-      g.globalAlpha = .18; g.fillStyle = '#7C3AED'; g.beginPath(); g.arc(x / 4, y / 4, 1.7, 0, TAU); g.fill();
+      g.globalAlpha = .22 * dim; g.fillStyle = '#A78BFA'; g.beginPath(); g.arc(x / 4, y / 4, 1.8, 0, TAU); g.fill();
     }
     ctx.globalAlpha = 1; ctx.drawImage(gc, 0, 0, W, H);
     if (cur === 0) { var litN = p < .26 ? 0 : p < .62 ? Math.min(5, Math.max(lit, Math.floor((p - .3) / .064))) : 5; setCards(litN, p > .72); }
@@ -483,22 +482,31 @@
   if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { onScreen = es[0].isIntersecting; start(); }, { threshold: 0 }).observe(sec);
   if (reduced && ctx && g) { draw(0, 0); setCards(5, true); } else start();
 
-  /* map: equirectangular, lon -135..25 -> x 0..560, lat 70..10 -> y 0..420 (x3.5, y7) */
+  /* map: equirectangular onto 560x560; lon -130..60 (x2.947/deg), lat 75..-45 (y4.667/deg). Hand-simplified coastlines. */
   var map = $('[data-map]');
   if (map) {
-    var pt = function (lon, lat) { return ((lon + 135) * 3.5).toFixed(0) + ' ' + ((70 - lat) * 7).toFixed(0); };
-    var poly = function (pts, close) { var a = pts.split(' '); var out = []; for (var i = 0; i < a.length; i += 2) out.push(pt(+a[i], +a[i + 1])); return '<path class="land" d="M' + out.join('L') + (close ? 'Z' : '') + '"/>'; };
+    var pt = function (lon, lat) { return ((lon + 130) * 2.947).toFixed(1) + ' ' + ((75 - lat) * 4.667).toFixed(1); };
+    var poly = function (pts, far) { var a = pts.split(' '), out = []; for (var i = 0; i < a.length; i += 2) out.push(pt(+a[i], +a[i + 1])); return '<path class="land' + (far ? ' far' : '') + '" d="M' + out.join('L') + 'Z"/>'; };
     var LAND = [
-      ['-125 49 -123 38 -117 32 -105 22 -97 26 -90 30 -83 29 -80 25 -81 32 -76 38 -70 42 -66 45 -60 47 -55 52 -65 60 -80 63 -95 68 -120 70 -135 60 -130 55', 1],
-      ['-5.5 50 1.5 51 0 53 -2 56 -5 58.5 -6 56 -3 54', 1], ['-10 52 -6 52 -6 55 -10 54', 1],
-      ['-9 43 -1.5 43.5 -4.5 48.5 0 49.5 4 52 8 55.5 10 57.5 5 59 5 62 14 67 25 70 25 36 16 38 12 42 8 44 3 43 0 39 -5 36 -9 37', 1],
-      ['-17 15 -16 22 -10 30 -5 35.5 0 36 10 37 25 32 25 10', 1]
+      '-168 66 -162 60 -152 60 -140 60 -130 55 -125 49 -124 42 -122 38 -118 34 -115 30 -110 24 -105 20 -97 16 -92 15 -88 16 -84 10 -80 9 -77 8 -82 10 -87 13 -88 18 -87 21 -90 21 -91 19 -97 20 -97 26 -94 29 -90 29 -85 30 -83 28 -81 25 -80 27 -81 31 -76 35 -75 38 -74 40.5 -70 41.5 -70 43 -67 45 -64 45 -61 47 -56 47 -56 52 -60 55 -64 60 -78 62 -82 56 -95 60 -92 68 -80 70 -100 72 -120 70 -128 70 -140 70 -155 71 -165 68',
+      '-45 60 -40 65 -22 70 -20 76 -40 78 -60 76 -55 70 -50 65',
+      '-5.7 50 -3 50.7 1.4 51.2 1.7 52.7 0 53.5 -1.5 55 -2 56.5 -3.5 58.5 -5 58.6 -6 57 -5.5 56 -4.8 54.8 -3 54 -3.2 53.4 -4.5 53 -5.2 51.7 -3 51.5',
+      '-10 51.5 -6 52 -6 54 -7.5 55.3 -10 54',
+      '-9 43.5 -1.8 43.4 -1.3 46 -2.5 47.5 -4.7 48.5 -1.5 49.5 1.5 50.9 4.3 51.5 4.7 53 8.5 53.6 8.6 56 10.5 57.6 12.5 56 10.8 55 12 54.5 14 54 18.5 54.6 21 55.2 24 57 24 59.5 28 59.5 30 60 40 55 40 45 37 45 33 45 28 44 28 41 26 40 23 37 21 38 20 40 19 42 14 45 12.5 44 16 40 18.5 40 16 38 15.7 38.2 12 42 10 44 8.5 44.3 6 43 3 43 0 40 -2 36.7 -5.5 36 -9 37 -9.5 39',
+      '5.5 58.3 7 58 10.5 59.2 11 58.5 12.5 56 14 55.5 16.5 56.5 18.5 59.5 17 60 18 63 22 65.5 25 65.5 21 63 22 60.5 28 60 30 63 29 70 22 70.5 15 68.5 12 65.5 7 63 5 61.5'
+    ], FAR = [
+      '-78 8 -75 10 -62 10 -52 5 -50 0 -35 -5 -39 -13 -40 -22 -48 -26 -53 -34 -58 -39 -65 -45 -72 -50 -74 -40 -71 -30 -70 -18 -77 -10 -80 -3 -78 2',
+      '-17 15 -17 21 -13 27 -10 30 -6 35.8 0 36 10 37.3 11 33 20 32 25 31.5 32 31 35 28 43 12 51 12 41 -2 40 -10 35 -20 33 -27 28 -33 20 -35 17 -29 12 -17 13 -6 9 4 -4 5 -8 4 -13 8',
+      '30 60 60 70 100 75 130 72 160 70 180 66 170 60 160 55 155 50 142 46 135 35 130 30 121 30 121 24 110 20 107 10 104 1 100 8 98 15 90 22 80 15 77 8 72 20 67 24 57 25 60 22 55 27 49 30 49 26 56 26 58 22 44 13 43 15 35 28 35 36 30 41 28 41 28 44 33 45 37 45 40 45 40 55',
+      '114 -22 122 -18 130 -12 137 -12 142 -11 146 -19 153 -27 150 -37 140 -38 131 -32 124 -34 115 -34'
     ];
-    var CITIES = [['London', 0, 51.5, 1, 18, 4], ['Manchester', -2.2, 53.5, 0, -16, -16], ['Paris', 2.35, 48.85, 0, 14, 10], ['New York', -74, 40.7, 0, 0, 24], ['San Francisco', -122.4, 37.8, 0, 0, 24], ['Remote', -40, 30, 2, 0, 24]];
-    var html = LAND.map(function (l) { return poly(l[0], l[1]); }).join('');
-    var L = pt(0, 51.5).split(' ');
-    CITIES.forEach(function (c, i) { if (i) { var q = pt(c[1], c[2]).split(' '), mx = (+L[0] + +q[0]) / 2, my = Math.min(+L[1], +q[1]) - Math.abs(+L[0] - +q[0]) * .35 - 10; html += '<path class="arc" pathLength="1" style="--i:' + (i - 1) + '" d="M' + L.join(' ') + 'Q' + mx + ' ' + my + ' ' + q.join(' ') + '"/>'; } });
-    CITIES.forEach(function (c, i) { var q = pt(c[1], c[2]).split(' '); html += '<g style="--i:' + i + '"><circle class="halo" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (c[3] === 1 ? 16 : 12) + '"/><circle class="node' + (c[3] === 1 ? ' hub' : '') + '" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (c[3] === 1 ? 6 : 4.5) + '"' + (c[3] === 2 ? ' stroke-dasharray="2 2" fill="none" stroke="#3B0764"' : '') + '/><text x="' + (+q[0] + c[4]) + '" y="' + (+q[1] + c[5]) + '"' + (c[4] === 0 ? ' text-anchor="middle"' : c[4] < 0 ? ' text-anchor="end"' : '') + '>' + c[0] + '</text></g>'; });
+    /* name, lon, lat, hub, label dx, dy, anchor */
+    var CITIES = [['London', -0.13, 51.5, 1, 12, 4, ''], ['Manchester', -2.2, 53.5, 0, -9, -5, 'end'], ['Paris', 2.35, 48.85, 0, 9, 13, ''], ['New York', -74, 40.7, 0, 0, 21, 'middle'], ['San Francisco', -122.4, 37.8, 0, 2, 21, 'middle']];
+    var html = FAR.map(function (l) { return poly(l, 1); }).join('') + LAND.map(function (l) { return poly(l); }).join('');
+    var L = pt(-0.13, 51.5).split(' ');
+    CITIES.forEach(function (c, i) { if (i) { var q = pt(c[1], c[2]).split(' '), mx = (+L[0] + +q[0]) / 2, my = Math.min(+L[1], +q[1]) - Math.abs(+L[0] - +q[0]) * .3 - 6; html += '<path class="arc" pathLength="1" style="--i:' + (i - 1) + '" d="M' + L.join(' ') + 'Q' + mx + ' ' + my + ' ' + q.join(' ') + '"/>'; } });
+    CITIES.forEach(function (c, i) { var q = pt(c[1], c[2]).split(' '), hub = c[3] === 1; html += '<g style="--i:' + i + '"><circle class="halo" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (hub ? 14 : 10) + '"/><circle class="node' + (hub ? ' hub' : '') + '" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (hub ? 5.5 : 4) + '"/><text x="' + (+q[0] + c[4]) + '" y="' + (+q[1] + c[5]) + '"' + (c[6] ? ' text-anchor="' + c[6] + '"' : '') + '>' + c[0] + '</text></g>'; });
+    html += '<g><circle class="ring" cx="78" cy="470" r="26"/><circle class="node hub" cx="78" cy="470" r="4"/><text x="78" y="516" text-anchor="middle">Remote UK/EU/US</text></g>';
     map.innerHTML = html;
   }
 
