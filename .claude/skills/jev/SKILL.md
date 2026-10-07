@@ -47,8 +47,11 @@ Jev can abstain. Env key: `OPENROUTER_API_KEY` (cloud alias `OPENROUTER_API_TOEK
 | Find the best short clips in a long transcript | `execution/video/jev_clip_finder.py` |
 | Score a SaaS customer base for churn / expansion | `execution/gtm_icp_filters/jev_customer_health.py` |
 | Backlinks across a site or the notes second brain | `execution/rag/jev_backlinks.py` |
+| Find buyers in social comments (TikTok / IG / YouTube) | `execution/lead_sourcing/jev_comment_buyers.py` |
+| Validate any question set on a labelled CSV, pick a threshold | `execution/infrastructure/jev_validate.py` (`modules/jev_eval.py`) |
+| Pick / benchmark the right skill for a prompt | `execution/infrastructure/jev_skill_pick.py` |
 
-Remaining use cases 7-19 (comment buyers, validation sets, Chrome
+Remaining use cases 11-19 (email gate, Chrome
 extensions, search-by-meaning, image search, live meeting meter, zero-LLM chatbot, icon picking,
 self-assembling pages, meta use-case finder) are tracked in `directives/infrastructure/jev.md`.
 

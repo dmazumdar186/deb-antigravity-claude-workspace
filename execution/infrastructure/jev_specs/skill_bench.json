@@ -1,0 +1,25 @@
+{
+  "description": "Labelled skill-pick benchmark for jev_skill_pick.py bench. expected = skill name from .claude/skills/*/SKILL.md frontmatter, or 'none'.",
+  "cases": [
+    {"prompt": "Find 200 dentists in Austin from Google Maps with emails and put them in a sheet", "expected": "gmaps-leads"},
+    {"prompt": "Set up a new cold email campaign in Instantly with two subject line variants", "expected": "instantly-campaigns"},
+    {"prompt": "Triage my inbox: tag everything as action required, waiting on, or reference", "expected": "gmail-label"},
+    {"prompt": "Here's a youtube link https://youtu.be/abc123 — break it down scene by scene, hook and pacing", "expected": "youtube-video-analyzer"},
+    {"prompt": "Which videos went viral in my niche this month? I want to see competitor outliers", "expected": "youtube-outliers"},
+    {"prompt": "Make this paragraph sound less like ChatGPT wrote it before I post it", "expected": "humanizer"},
+    {"prompt": "Draw a flowchart of our onboarding process in Excalidraw", "expected": "excalidraw-flowchart"},
+    {"prompt": "Reply to this LinkedIn DM from Sarah thanking me for the post", "expected": "linkedin-response"},
+    {"prompt": "Turn 'ACME Holdings Inc.' style company names into casual names for my email openers", "expected": "casualize-names"},
+    {"prompt": "Add a Modal endpoint that fires when Stripe sends a payment event", "expected": "add-webhook"},
+    {"prompt": "Search PubMed for recent papers on GLP-1 and muscle loss and summarise them", "expected": "literature-research"},
+    {"prompt": "Redesign acmeplumbing.com as a modern static site and deploy it to Cloudflare Pages", "expected": "site-redesign"},
+    {"prompt": "Give me 10 title variations for my next video based on what outliers did", "expected": "title-variants"},
+    {"prompt": "Make a generative flow-field art piece in p5.js with a seed slider", "expected": "algorithmic-art"},
+    {"prompt": "Plan a YouTube course outline on Claude Code for agencies with hooks and sections", "expected": "outline-generator"},
+    {"prompt": "Generate 30 Facebook ad variants for our new protein bar", "expected": "ad-creative"},
+    {"prompt": "Tag these 5,000 support tickets as bug / billing / feature request with Jev", "expected": "jev"},
+    {"prompt": "thanks, that's all for now", "expected": "none"},
+    {"prompt": "Rename the variable `cnt` to `count` in utils.py", "expected": "none"},
+    {"prompt": "What does HTTP status 418 mean?", "expected": "none"}
+  ]
+}

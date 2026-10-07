@@ -1,0 +1,18 @@
+{
+  "state_fields": ["platform", "post", "comment"],
+  "question_name": "intent",
+  "question": {
+    "type": "choice",
+    "instructions": "What is the main intent of this comment on our post?",
+    "criteria": {
+      "ready_to_buy": "wants to purchase, sign up, asks for price/link/DM to buy now",
+      "question": "asks for information or clarification, no clear buying intent yet",
+      "complaint": "unhappy about the product, service, delivery or brand",
+      "praise": "compliments, thanks or positive feedback with no question",
+      "spam": "self-promotion, bots, scams, links unrelated to the post",
+      "other": "anything else: jokes, tags of friends, off-topic chatter"
+    }
+  },
+  "label_field": "label",
+  "id_field": "id"
+}

@@ -1,9 +1,6 @@
 ---
 name: test-suite
-description: |
-  Run comprehensive multi-tier testing on any project, system, script, or
-  feature the user has built or is building. Triggers when the user says
-  "run tests", "test this", "QA this", or asks for validation of new work.
+description: Run comprehensive multi-tier testing on any project, system, script, or feature the user has built or is building. Triggers when the user says "run tests", "test this", "QA this", or asks for validation of new work.
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write, Agent
 user_invocable: true
 ---

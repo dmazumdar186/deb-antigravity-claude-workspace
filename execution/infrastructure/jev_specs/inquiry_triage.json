@@ -1,0 +1,18 @@
+{
+  "state_fields": ["subject", "body", "from", "channel"],
+  "question_name": "category",
+  "question": {
+    "type": "choice",
+    "instructions": "Which category best describes this customer inquiry?",
+    "criteria": {
+      "billing": "invoices, charges, refunds, subscription or payment problems",
+      "bug": "something is broken, errors, crashes, unexpected behaviour in the product",
+      "question": "how-to or informational question about using the product",
+      "feature_request": "asks for new functionality or an improvement that does not exist yet",
+      "complaint": "dissatisfied or angry about service, people or experience; not a bug report",
+      "spam": "unsolicited marketing, scams, irrelevant or automated junk"
+    }
+  },
+  "label_field": "label",
+  "id_field": "id"
+}
