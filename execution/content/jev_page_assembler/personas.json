@@ -1,0 +1,78 @@
+{
+ "cold-google-mobile": {
+  "label": "Cold Google searcher on mobile",
+  "referrer": "https://www.google.com/",
+  "utm_source": "",
+  "utm_campaign": "",
+  "device": "mobile",
+  "locale": "en-US",
+  "hour_local": 13,
+  "returning": false,
+  "pages_seen": [],
+  "query_terms": "how to automate weekly reports"
+ },
+ "linkedin-cto": {
+  "label": "LinkedIn ad click from a CTO",
+  "referrer": "https://www.linkedin.com/",
+  "utm_source": "linkedin",
+  "utm_campaign": "cto-security-q4",
+  "device": "desktop",
+  "locale": "en-GB",
+  "hour_local": 10,
+  "returning": false,
+  "pages_seen": [],
+  "query_terms": "job title: CTO"
+ },
+ "returning-pricing": {
+  "label": "Returning visitor who saw pricing",
+  "referrer": "",
+  "utm_source": "",
+  "utm_campaign": "",
+  "device": "desktop",
+  "locale": "en-US",
+  "hour_local": 15,
+  "returning": true,
+  "pages_seen": [
+   "/pricing",
+   "/pricing",
+   "/features"
+  ],
+  "query_terms": ""
+ },
+ "newsletter-reader": {
+  "label": "Newsletter reader",
+  "referrer": "",
+  "utm_source": "newsletter",
+  "utm_campaign": "weekly-digest",
+  "device": "desktop",
+  "locale": "en-US",
+  "hour_local": 8,
+  "returning": false,
+  "pages_seen": [],
+  "query_terms": ""
+ },
+ "competitor-comparison": {
+  "label": "Competitor-comparison searcher",
+  "referrer": "https://www.google.com/",
+  "utm_source": "google",
+  "utm_campaign": "",
+  "device": "desktop",
+  "locale": "en-US",
+  "hour_local": 11,
+  "returning": false,
+  "pages_seen": [],
+  "query_terms": "zapier alternative vs comparison"
+ },
+ "late-night-mobile": {
+  "label": "Late-night mobile browser",
+  "referrer": "https://t.co/",
+  "utm_source": "twitter",
+  "utm_campaign": "",
+  "device": "mobile",
+  "locale": "en-US",
+  "hour_local": 1,
+  "returning": false,
+  "pages_seen": [],
+  "query_terms": ""
+ }
+}

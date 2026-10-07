@@ -59,11 +59,11 @@ search-by-meaning, live meters, zero-LLM chatbots).
 | 14 | Image search by content (needs captions; prompt log is the metadata) | ✅ `execution/image_generation/jev_image_search.py` (`directives/image_generation/jev_image_search.md`) |
 | 15 | Live checker for speech (meeting action-item / risk meter) | ✅ `execution/voice_agents/jev_live_meter.py` (`directives/voice_agents/jev_live_meter.md`) |
 | 16 | Chatbot with zero LLM calls over transcripts/docs | ✅ `execution/rag/jev_chatbot.py` + `jev_chatbot_ui.html` (`directives/rag/jev_chatbot.md`) |
-| 17 | Smarter app UI (icon picking from text) | planned (`mobile_apps/`) |
-| 18 | Self-assembling pages from a component library | planned |
-| 19 | Find your own use cases (shipwithjev.com + past sessions) | planned |
+| 17 | Smarter app UI (icon picking from text) | ✅ `execution/mobile_apps/jev_icon_pick.py` + demo + RN hook (`directives/mobile_apps/jev_icon_pick.md`) |
+| 18 | Self-assembling pages from a component library | ✅ `execution/content/jev_page_assembler/` (`directives/content/jev_page_assembler.md`) |
+| 19 | Find your own use cases (shipwithjev.com + past sessions) | ✅ `execution/infrastructure/jev_use_case_finder.py` (`directives/infrastructure/jev_use_case_finder.md`) |
 
-Build order: three per session, in this order, each with script + directive + offline test + one live run.
+All 19 built (2026-10-06/07), each with script + directive + offline test + one live run. New use cases: run `jev_use_case_finder.py rank` and add rows here.
 
 ## Exit criteria
 
@@ -86,3 +86,4 @@ Build order: three per session, in this order, each with script + directive + of
 - 2026-10-07: use cases 7-9 (comment buyers, validation harness, skill-pick bench).
 - 2026-10-07 (session 2): use cases 11-13 (email gate, Chrome feed filter extension, search by meaning).
 - 2026-10-07 (session 3): use cases 14-16 (image search, live meeting meter, zero-LLM chatbot).
+- 2026-10-07 (session 4): use cases 17-19 (icon picking, self-assembling pages, use-case finder). All 19 done.

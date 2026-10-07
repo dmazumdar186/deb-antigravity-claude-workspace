@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jev icon picker demo (use case 17)</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:560px;margin:40px auto;padding:0 16px;color:#1d2433;background:#f7f8fa}
+h1{font-size:20px}.tabs button{border:0;padding:8px 14px;margin-right:4px;border-radius:8px;background:#e4e7ee;cursor:pointer}
+.tabs button.on{background:#1d2433;color:#fff}input{width:100%;box-sizing:border-box;font-size:18px;padding:12px;border:1px solid #ccd;border-radius:10px;margin:14px 0}
+.row{display:flex;gap:14px;min-height:120px}.card{flex:1;background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px #0001}
+.card svg{width:44px;height:44px;stroke:#2d6cdf;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card .fb{width:44px;height:44px;border-radius:50%;background:#2d6cdf;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.card:first-child{outline:2px solid #2d6cdf}.p{font-size:13px;color:#667}small{color:#667}details{margin-top:24px}
+</style></head><body>
+<h1>Type a habit, Jev picks the icon</h1>
+<div class="tabs"><button id="t-habit" class="on">Habit</button><button id="t-mood">Mood</button></div>
+<input id="q" placeholder="e.g. drink more water" autocomplete="off">
+<div class="row" id="out"></div>
+<p><small id="meta"></small></p>
+<details><summary>OpenRouter key (stored in this browser's localStorage only)</summary>
+<input id="k" type="password" placeholder="sk-or-..."><small>Demo only. In a shipped app the key lives behind a proxy, never in the client.</small></details>
+<script>
+var ICONS = {"droplet": "water, hydration, drink more water, drinking", "glass-water": "glass of water, drinking water, hydrate", "coffee": "coffee, tea, caffeine, morning drink, cafe", "wine": "wine, alcohol, drinks, bar", "cigarette-off": "quit smoking, no cigarettes, stop vaping", "dumbbell": "exercise, gym, strength training, lifting weights, workout", "footprints": "walking, steps, step count, hike", "bike": "cycling, bike ride, bicycle", "activity": "running, jogging, cardio, heart rate, fitness activity", "heart-pulse": "health, heart, blood pressure, vitals", "pill": "medicine, pills, vitamins, take medication, supplements", "apple": "healthy eating, fruit, diet, nutrition, eat vegetables", "salad": "salad, vegetables, eat greens, healthy meal", "utensils": "meals, eating, food, cooking dinner, lunch", "chef-hat": "cooking, cook at home, recipes, baking", "moon": "sleep, bedtime, night, go to bed early, rest", "bed": "sleep, nap, bed, make the bed", "alarm-clock": "wake up early, alarm, morning routine", "sun": "sunshine, outdoors, morning, get daylight, weather sunny", "brain": "meditation, mindfulness, mental health, focus, think", "flower": "meditation, calm, yoga, relaxation, gratitude", "smile-plus": "gratitude, kindness, be nice to someone", "toothbrush": "brush teeth, floss, dental hygiene", "shower-head": "shower, bath, hygiene, cold shower", "scale": "weight, weigh yourself, lose weight", "book-open": "reading, read a book, study, learn", "graduation-cap": "school, course, studying, exam, education", "languages": "learn a language, Spanish, French, vocabulary, Duolingo", "pen-line": "writing, journal, diary, notes, write", "notebook": "journal, notebook, planning, notes", "code": "coding, programming, software, practice code", "laptop": "computer work, laptop, office work, emails", "briefcase": "work, job, career, business, meeting", "calendar": "schedule, plan the week, appointments, calendar", "check-square": "to-do, tasks, checklist, get things done", "target": "goals, focus, aim, objective", "timer": "pomodoro, time tracking, focus session, deadline", "music": "music, practice instrument, piano, guitar, listen to songs", "palette": "art, painting, drawing, creativity", "camera": "photography, take photos, camera", "mic": "podcast, singing, voice, record audio", "piggy-bank": "save money, savings, budget", "wallet": "spending, money, wallet, expenses", "credit-card": "credit card, payments, bills", "shopping-cart": "groceries, shopping, buy", "home": "home, house, chores at home", "sparkles": "clean, tidy up, declutter, cleaning", "trash-2": "take out the trash, garbage, throw away", "shirt": "laundry, clothes, outfit", "sprout": "plants, water the plants, gardening, growth", "dog": "dog, walk the dog, pet, puppy", "cat": "cat, feed the cat, pet", "baby": "baby, children, kids, parenting", "phone": "call someone, phone call, call mom", "phone-off": "less screen time, no phone, digital detox, social media break", "message-circle": "text, message friends, chat, reply", "users": "friends, family, socialize, meet people", "heart": "love, partner, date night, relationship, romance", "gift": "gift, birthday, present, celebration", "gamepad-2": "video games, gaming, play", "tv": "TV, watch a show, movies, Netflix", "plane": "travel, flight, trip, vacation", "car": "drive, car, commute", "tent": "camping, outdoors, nature trip", "mountain": "hiking, climbing, mountains, adventure", "waves": "swimming, beach, ocean, surf", "trophy": "achievement, win, competition, milestone", "star": "favorite, highlight, special, rating", "flame": "streak, motivation, burn calories, energy", "church": "prayer, faith, church, spirituality", "smile": "happy mood, good day, joyful, content, felt great", "laugh": "very happy, ecstatic, fun, laughing, amazing day", "meh": "neutral mood, okay day, so-so, nothing special, bored", "frown": "sad mood, bad day, down, disappointed, unhappy", "angry": "angry, frustrated, annoyed, irritated mood", "annoyed": "stressed, anxious, overwhelmed, tense mood", "cloud-rain": "gloomy, depressed, rainy weather, melancholy", "zap": "energized, productive, excited, high energy", "battery-low": "tired, exhausted, drained, low energy, burnt out", "thermometer": "sick, fever, ill, unwell, cold"};
+var MOODS = {"laugh": "very happy, ecstatic, fun, laughing, amazing day", "smile": "happy mood, good day, joyful, content, felt great", "meh": "neutral mood, okay day, so-so, nothing special, bored", "frown": "sad mood, bad day, down, disappointed, unhappy", "angry": "angry, frustrated, annoyed, irritated mood", "battery-low": "tired, exhausted, drained, low energy, burnt out"};
+var SVG = {"droplet": "<path d=\"M12 3C9 8 6 11 6 15a6 6 0 0 0 12 0c0-4-3-7-6-12z\"/>", "glass-water": "<path d=\"M6 3h12l-2 18H8L6 3z\"/><path d=\"M7 9h10\"/>", "coffee": "<path d=\"M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z\"/><path d=\"M16 11h2a2 2 0 0 1 0 4h-2\"/>", "dumbbell": "<path d=\"M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12\"/>", "footprints": "<ellipse cx=\"8\" cy=\"8\" rx=\"3\" ry=\"5\"/><ellipse cx=\"16\" cy=\"15\" rx=\"3\" ry=\"5\"/>", "activity": "<path d=\"M2 12h4l3-8 6 16 3-8h4\"/>", "pill": "<rect x=\"3\" y=\"9\" width=\"18\" height=\"6\" rx=\"3\"/><path d=\"M12 9v6\"/>", "apple": "<path d=\"M12 7c-4-2-8 1-7 6 1 5 4 8 7 7 3 1 6-2 7-7 1-5-3-8-7-6z\"/><path d=\"M12 7c0-2 1-4 3-4\"/>", "moon": "<path d=\"M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z\"/>", "bed": "<path d=\"M3 18V7M3 12h18v6M21 18v-3\"/><rect x=\"5\" y=\"9\" width=\"5\" height=\"3\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2\"/>", "brain": "<path d=\"M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a3 3 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1\"/>", "book-open": "<path d=\"M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2zM22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z\"/>", "pen-line": "<path d=\"M4 20h16M15 4l5 5-10 10H5v-5z\"/>", "piggy-bank": "<ellipse cx=\"11\" cy=\"13\" rx=\"8\" ry=\"6\"/><path d=\"M19 12h2M8 19v2M14 19v2M10 7h3\"/>", "phone": "<path d=\"M5 3h4l2 5-3 2a11 11 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z\"/>", "dog": "<circle cx=\"12\" cy=\"13\" r=\"6\"/><path d=\"M6 10L4 5l4 2M18 10l2-5-4 2\"/><circle cx=\"10\" cy=\"12\" r=\".5\"/><circle cx=\"14\" cy=\"12\" r=\".5\"/>", "sprout": "<path d=\"M12 21V11M12 11C12 7 9 5 5 5c0 4 3 6 7 6zM12 13c0-3 3-5 7-5 0 3-3 5-7 5\"/>", "heart": "<path d=\"M12 20s-8-5-8-11a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 6-8 11-8 11z\"/>", "smile": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 14a5 5 0 0 0 8 0M9 9h.01M15 9h.01\"/>", "laugh": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M7 13h10a5 5 0 0 1-10 0zM9 9h.01M15 9h.01\"/>", "meh": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 15h8M9 9h.01M15 9h.01\"/>", "frown": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M16 16a5 5 0 0 0-8 0M9 9h.01M15 9h.01\"/>", "angry": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M16 16a5 5 0 0 0-8 0M7 8l3 2M17 8l-3 2\"/>", "battery-low": "<rect x=\"2\" y=\"7\" width=\"17\" height=\"10\" rx=\"2\"/><path d=\"M22 11v2M6 11v2\"/>", "zap": "<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\"/>"};
+var INSTR = {habit:"The user is naming a habit to track in a habit-tracker app. Which icon best represents that habit? Judge by meaning, not by shared words.",
+  mood:"The user is describing their day or how they feel in a mood-journal app. Which icon best represents their overall mood? Judge by the feeling, not by activities mentioned."};
+var mode = "habit", timer = null, ctrl = null;
+var $ = function(id){return document.getElementById(id);};
+$("k").value = localStorage.getItem("jev_or_key") || "";
+$("k").oninput = function(){localStorage.setItem("jev_or_key", $("k").value.trim());};
+function setMode(m){mode=m;$("t-habit").className=m=="habit"?"on":"";$("t-mood").className=m=="mood"?"on":"";
+  $("q").placeholder=m=="habit"?"e.g. drink more water":"e.g. long day but dinner with friends was lovely";$("out").innerHTML="";schedule();}
+$("t-habit").onclick=function(){setMode("habit");};$("t-mood").onclick=function(){setMode("mood");};
+function icon(name){return SVG[name]?'<svg viewBox="0 0 24 24">'+SVG[name]+'</svg>':'<span class="fb">'+name.slice(0,6)+'</span>';}
+function batches(names){var b=[];for(var i=0;i<names.length;i+=39)b.push(names.slice(i,i+39));return b;}
+function ask(text,set,names,signal){
+  var opts={};names.forEach(function(n){opts[n]=set[n];});opts.none="no icon fits; the text is unrelated to every listed icon";
+  return fetch("https://openrouter.ai/api/alpha/decisions",{method:"POST",signal:signal,
+    headers:{"Authorization":"Bearer "+localStorage.getItem("jev_or_key"),"Content-Type":"application/json"},
+    body:JSON.stringify({model:"typesafe/jev-1.13",state:{app:mode+" app icon picker",user_typed:text},
+      questions:{icon:{type:"choice",instructions:INSTR[mode],criteria:opts}}})})
+  .then(function(r){if(!r.ok)throw new Error("http "+r.status);return r.json();})
+  .then(function(d){return (d.answers&&d.answers.icon&&d.answers.icon.probabilities)||{};});
+}
+function rank(p,set){return Object.keys(p).filter(function(k){return set[k];}).sort(function(a,b){return p[b]-p[a];});}
+function run(text){
+  if(ctrl)ctrl.abort();ctrl=new AbortController();var sig=ctrl.signal,t0=performance.now();
+  var set=mode=="habit"?ICONS:MOODS,b=batches(Object.keys(set));
+  Promise.all(b.map(function(n){return ask(text,set,n,sig);})).then(function(ps){
+    if(ps.length==1)return ps[0];
+    var fin=[];ps.forEach(function(p){fin=fin.concat(rank(p,set).slice(0,3));});
+    return ask(text,set,fin,sig);
+  }).then(function(p){
+    var top=rank(p,set).slice(0,3);
+    if(!top.length||(p.none||0)>p[top[0]]){$("out").innerHTML="";$("meta").textContent="no icon fits";return;}
+    $("out").innerHTML=top.map(function(n){return '<div class="card">'+icon(n)+'<div>'+n+'</div><div class="p">'+Math.round(p[n]*100)+'%</div></div>';}).join("");
+    $("meta").textContent=Math.round(performance.now()-t0)+" ms, "+b.length+(b.length>1?" batches + final":" call");
+  }).catch(function(){ if(!sig.aborted){$("out").innerHTML="";$("meta").textContent="";} });
+}
+function schedule(){clearTimeout(timer);var t=$("q").value.trim();
+  if(t.length<3||!localStorage.getItem("jev_or_key")){$("out").innerHTML="";return;}
+  timer=setTimeout(function(){run(t);},250);}
+$("q").oninput=schedule;
+</script></body></html>

@@ -1,0 +1,29 @@
+{
+  "description": "Use case 17 bench: free text -> icon from DEFAULT_ICONS in execution/mobile_apps/jev_icon_pick.py. expected may be a list of acceptable icons.",
+  "cases": [
+    {"text": "drink more water", "expected": ["droplet", "glass-water"]},
+    {"text": "8 glasses a day", "expected": ["glass-water", "droplet"]},
+    {"text": "hit the gym", "expected": "dumbbell"},
+    {"text": "read 20 pages", "expected": "book-open"},
+    {"text": "lights out by 11pm", "expected": ["moon", "bed"]},
+    {"text": "morning jog", "expected": ["activity", "footprints"]},
+    {"text": "10k steps", "expected": ["footprints", "activity"]},
+    {"text": "take my vitamins", "expected": "pill"},
+    {"text": "meditate for ten minutes", "expected": ["brain", "flower"]},
+    {"text": "practice Spanish", "expected": "languages"},
+    {"text": "put 5 dollars aside", "expected": ["piggy-bank", "wallet"]},
+    {"text": "no instagram after dinner", "expected": "phone-off"},
+    {"text": "walk Rex", "expected": "dog"},
+    {"text": "floss", "expected": "toothbrush"},
+    {"text": "call grandma on sundays", "expected": "phone"},
+    {"text": "water the ferns", "expected": "sprout"},
+    {"text": "write in my journal", "expected": ["pen-line", "notebook"]},
+    {"text": "eat a vegetable with every meal", "expected": ["salad", "apple"]},
+    {"text": "went for a run and felt great", "expected": ["smile", "laugh", "zap"], "mode": "mood"},
+    {"text": "my boss yelled at me and I could not stop fuming", "expected": "angry", "mode": "mood"},
+    {"text": "barely slept, dragged myself through the day", "expected": "battery-low", "mode": "mood"},
+    {"text": "nothing much happened, just an ordinary Tuesday", "expected": "meh", "mode": "mood"},
+    {"text": "asdf qwerty zzz", "expected": "none"},
+    {"text": "the mitochondria is the powerhouse of the cell", "expected": "none"}
+  ]
+}

@@ -1,0 +1,491 @@
+{
+ "source": "bundled: RoboNuggets 19 + Hugging Face 18 practical JEV use cases + video industry list",
+ "updated": "2026-10-07",
+ "use_cases": [
+  {
+   "id": "rn01_sheets_categorize",
+   "title": "Jev in Google Sheets",
+   "category": "data_ops",
+   "description": "Fill a category column from a fixed list in a spreadsheet",
+   "inputs": [
+    "spreadsheet rows",
+    "category list"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "rn02_inquiry_triage",
+   "title": "Triage customer inquiries",
+   "category": "support",
+   "description": "Route inquiries by category with a confidence gate to a human",
+   "inputs": [
+    "inbound messages"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "rn03_competitor_ads",
+   "title": "Analyze competitor ads",
+   "category": "marketing",
+   "description": "Tag Meta Ad Library ads into a swipe file by hook and angle",
+   "inputs": [
+    "ad library export"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn04_clip_finder",
+   "title": "Clip finder",
+   "category": "content",
+   "description": "Score candidate moments in long video for short clips",
+   "inputs": [
+    "transcript with timestamps"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn05_customer_health",
+   "title": "Score customer base",
+   "category": "sales",
+   "description": "Profile customers as healthy, needs attention or churn risk",
+   "inputs": [
+    "customer records"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn06_backlinks",
+   "title": "Backlinks in a second brain",
+   "category": "knowledge",
+   "description": "Suggest internal links between notes or site pages",
+   "inputs": [
+    "notes or pages"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn07_comment_buyers",
+   "title": "Find buyers in social comments",
+   "category": "lead_gen",
+   "description": "Tag comments as ready to buy, question or complaint",
+   "inputs": [
+    "scraped comments"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn08_validation_set",
+   "title": "Verification with a validation set",
+   "category": "quality",
+   "description": "Measure Jev accuracy against labelled examples",
+   "inputs": [
+    "labelled examples"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "rn09_pick_skill",
+   "title": "Let Jev pick the skill",
+   "category": "agents",
+   "description": "Choose which agent skill fits a prompt",
+   "inputs": [
+    "skill list",
+    "prompt"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "rn10_pick_model",
+   "title": "Let Jev pick the model",
+   "category": "agents",
+   "description": "Route each prompt to the cheapest capable model tier",
+   "inputs": [
+    "prompt",
+    "model tiers"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "rn11_email_gate",
+   "title": "Jev in front of AI agents",
+   "category": "agents",
+   "description": "Gate inbound email to reply, brand deal or spam before an agent runs",
+   "inputs": [
+    "inbox"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn12_chrome_extension",
+   "title": "Chrome extensions",
+   "category": "consumer",
+   "description": "Filter feed slop or unclutter pages in the browser",
+   "inputs": [
+    "page text"
+   ],
+   "effort": 3
+  },
+  {
+   "id": "rn13_search_by_meaning",
+   "title": "Search by meaning",
+   "category": "knowledge",
+   "description": "Pick the paragraph that answers a query",
+   "inputs": [
+    "documents"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn14_image_search",
+   "title": "Image search by content",
+   "category": "knowledge",
+   "description": "Find images by caption or prompt metadata",
+   "inputs": [
+    "image captions"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn15_live_speech",
+   "title": "Live checker for speech",
+   "category": "meetings",
+   "description": "Flag action items or risk live in a meeting transcript",
+   "inputs": [
+    "live transcript"
+   ],
+   "effort": 3
+  },
+  {
+   "id": "rn16_zero_llm_chatbot",
+   "title": "Chatbot with zero LLM calls",
+   "category": "support",
+   "description": "Answer from transcripts or docs by picking passages",
+   "inputs": [
+    "docs or transcripts"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "rn17_icon_pick",
+   "title": "Smarter app UI",
+   "category": "apps",
+   "description": "Pick an icon from text in an app UI",
+   "inputs": [
+    "icon set"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "rn18_page_assembler",
+   "title": "Self-assembling pages",
+   "category": "content",
+   "description": "Assemble pages from a component library by picking blocks",
+   "inputs": [
+    "component library"
+   ],
+   "effort": 3
+  },
+  {
+   "id": "rn19_find_use_cases",
+   "title": "Find your own use cases",
+   "category": "meta",
+   "description": "Rank Jev use cases for your business and past sessions",
+   "inputs": [
+    "profile",
+    "catalog"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf01_verify_completion",
+   "title": "Verify agent completion",
+   "category": "agents",
+   "description": "Check whether an agent actually finished the task",
+   "inputs": [
+    "agent transcript",
+    "task"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf02_select_tool",
+   "title": "Select tool",
+   "category": "agents",
+   "description": "Pick the right tool for an agent step",
+   "inputs": [
+    "tool list",
+    "step"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf03_route_model_code_person",
+   "title": "Route to model, code or person",
+   "category": "agents",
+   "description": "Decide whether a step goes to an LLM, deterministic code or a human",
+   "inputs": [
+    "task description"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf04_pick_skill_hf",
+   "title": "Pick skill",
+   "category": "agents",
+   "description": "Choose a skill from a library for a request",
+   "inputs": [
+    "skill list"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf05_confidence_gate",
+   "title": "Confidence gate",
+   "category": "quality",
+   "description": "Escalate low-confidence outputs to review",
+   "inputs": [
+    "model output"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf06_filter_rag",
+   "title": "Filter RAG passages",
+   "category": "rag",
+   "description": "Drop irrelevant retrieved passages before generation",
+   "inputs": [
+    "query",
+    "passages"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf07_rerank",
+   "title": "Rerank",
+   "category": "rag",
+   "description": "Rerank retrieved candidates by relevance",
+   "inputs": [
+    "query",
+    "candidates"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "hf08_citation_check",
+   "title": "Citation check",
+   "category": "quality",
+   "description": "Check that a claim is supported by its cited source",
+   "inputs": [
+    "claim",
+    "source text"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "hf09_entity_alignment",
+   "title": "Entity alignment",
+   "category": "data_ops",
+   "description": "Decide whether two records refer to the same entity",
+   "inputs": [
+    "record pairs"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "hf10_screen_io",
+   "title": "Screen I/O",
+   "category": "safety",
+   "description": "Screen agent inputs and outputs for policy issues",
+   "inputs": [
+    "inputs",
+    "outputs"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf11_rubric_eval",
+   "title": "Rubric eval",
+   "category": "quality",
+   "description": "Score outputs against a rubric",
+   "inputs": [
+    "outputs",
+    "rubric"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf12_semantic_code_issues",
+   "title": "Semantic code issues",
+   "category": "engineering",
+   "description": "Flag code that does not match its stated intent",
+   "inputs": [
+    "diffs"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "hf13_checklist_check",
+   "title": "Checklist check",
+   "category": "quality",
+   "description": "Verify a deliverable meets each checklist item",
+   "inputs": [
+    "deliverable",
+    "checklist"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf14_inbox_triage",
+   "title": "Inbox triage",
+   "category": "support",
+   "description": "Sort inbox messages into action, waiting, reference",
+   "inputs": [
+    "inbox"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "hf15_large_taxonomy",
+   "title": "Large taxonomy",
+   "category": "data_ops",
+   "description": "Classify into a large hierarchical taxonomy",
+   "inputs": [
+    "items",
+    "taxonomy"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "hf16_select_extracted",
+   "title": "Select extracted candidates",
+   "category": "data_ops",
+   "description": "Pick the correct value among extracted candidates",
+   "inputs": [
+    "extraction candidates"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "hf17_combine_dimensions",
+   "title": "Combine scored dimensions",
+   "category": "quality",
+   "description": "Score several dimensions and combine into one decision",
+   "inputs": [
+    "items",
+    "dimensions"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "hf18_semantic_features",
+   "title": "Semantic features",
+   "category": "data_ops",
+   "description": "Turn text into typed features for downstream models",
+   "inputs": [
+    "text rows"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "in01_invoice_fraud",
+   "title": "Invoice fraud flags",
+   "category": "finance",
+   "description": "Flag suspicious invoices for review",
+   "inputs": [
+    "invoices"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "in02_spam",
+   "title": "Spam detection",
+   "category": "safety",
+   "description": "Classify messages as spam or legitimate",
+   "inputs": [
+    "messages"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "in03_moderation",
+   "title": "Content moderation",
+   "category": "safety",
+   "description": "Moderate user content against a policy",
+   "inputs": [
+    "user content",
+    "policy"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "in04_refund_triage",
+   "title": "Refund triage",
+   "category": "support",
+   "description": "Approve, deny or escalate refund requests",
+   "inputs": [
+    "refund requests"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "in05_churn",
+   "title": "Churn prediction",
+   "category": "sales",
+   "description": "Flag accounts likely to churn from notes and usage",
+   "inputs": [
+    "account notes"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "in06_seo_audit",
+   "title": "SEO audit",
+   "category": "marketing",
+   "description": "Check pages against an SEO checklist",
+   "inputs": [
+    "page content"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "in07_doc_classification",
+   "title": "Document classification",
+   "category": "data_ops",
+   "description": "Classify documents by type",
+   "inputs": [
+    "documents"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "in08_support_calls",
+   "title": "Support call transcripts",
+   "category": "support",
+   "description": "Tag call transcripts by issue and sentiment",
+   "inputs": [
+    "call transcripts"
+   ],
+   "effort": 2
+  },
+  {
+   "id": "in09_app_icon_ux",
+   "title": "App icon UX",
+   "category": "apps",
+   "description": "Pick UI icons and labels from text",
+   "inputs": [
+    "icon set"
+   ],
+   "effort": 1
+  },
+  {
+   "id": "in10_feed_filters",
+   "title": "Feed filters",
+   "category": "consumer",
+   "description": "Filter social feeds by user preference",
+   "inputs": [
+    "feed items"
+   ],
+   "effort": 2
+  }
+ ]
+}

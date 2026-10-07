@@ -56,7 +56,10 @@ Jev can abstain. Env key: `OPENROUTER_API_KEY` (cloud alias `OPENROUTER_API_TOEK
 | Index and search images by what is in them | `execution/image_generation/jev_image_search.py` |
 | Live meeting meter: decisions, actions, risks, claims to check | `execution/voice_agents/jev_live_meter.py` |
 | Zero-LLM chatbot over a folder of docs / transcripts | `execution/rag/jev_chatbot.py` |
+| Pick an app icon from what the user typed | `execution/mobile_apps/jev_icon_pick.py` |
+| Self-assembling landing page per visitor | `execution/content/jev_page_assembler/` |
+| Find new Jev use cases for this business / in past sessions | `execution/infrastructure/jev_use_case_finder.py` |
 
-Remaining use cases 17-19 (icon picking, self-assembling pages, meta use-case finder) are tracked in `directives/infrastructure/jev.md`.
+All 19 RoboNuggets use cases are built; the status table and build log live in `directives/infrastructure/jev.md`. To find the next one: `python3 execution/infrastructure/jev_use_case_finder.py rank`.
 
 Cost ledger: `.tmp/jev_ledger.jsonl` (every script appends one row). Directive: `directives/infrastructure/jev.md`.

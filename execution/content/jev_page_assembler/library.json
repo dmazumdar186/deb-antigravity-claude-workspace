@@ -1,0 +1,124 @@
+{
+ "theme": {
+  "calm-light": {
+   "description": "soft light palette, friendly rounded sans; for consumers, small business, mobile casual readers",
+   "when": "cold search, newsletter readers, daytime",
+   "css": ":root{--bg:#fbfaf7;--fg:#1f2a2e;--accent:#2f7d6d;--muted:#5b6b70;--card:#ffffff;--font:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--radius:14px}",
+   "html": ""
+  },
+  "bold-dark": {
+   "description": "high-contrast dark palette, punchy; for technical users, developers, late-night browsing",
+   "when": "night hours, dev/tech referrers, comparison shoppers",
+   "css": ":root{--bg:#0f1115;--fg:#f2f4f8;--accent:#ff6b3d;--muted:#a3abb8;--card:#1a1d24;--font:'Helvetica Neue',Arial,sans-serif;--radius:6px}",
+   "html": ""
+  },
+  "enterprise-neutral": {
+   "description": "neutral grey/blue, serif headings, restrained; for executives, CTOs, procurement, LinkedIn traffic",
+   "when": "LinkedIn, enterprise campaigns, security queries",
+   "css": ":root{--bg:#f4f6f9;--fg:#14213d;--accent:#1d4ed8;--muted:#4b5563;--card:#ffffff;--font:Georgia,'Times New Roman',serif;--radius:4px}",
+   "html": ""
+  }
+ },
+ "hero": {
+  "founder-story": {
+   "description": "personal founder narrative: why we built {{product}}; builds trust with first-time, curious visitors",
+   "when": "newsletter, cold awareness",
+   "html": "<section class=\"hero\"><h1>Why we built {{product}}</h1><p>The founders of {{brand}} lived this problem for years. Here is what we learned and what we made.</p></section>"
+  },
+  "outcome-stat": {
+   "description": "big measurable outcome number up front; for buyers who want results fast",
+   "when": "paid ads, buyer stage",
+   "html": "<section class=\"hero\"><h1>Teams using {{product}} save 11 hours a week</h1><p>{{brand}} turns busywork into a checklist that runs itself.</p></section>"
+  },
+  "product-demo": {
+   "description": "shows how the product works step by step; for evaluators and technical users comparing tools",
+   "when": "comparison searches, returning evaluators",
+   "html": "<section class=\"hero\"><h1>See {{product}} in 60 seconds</h1><ol><li>Connect your tools</li><li>Pick a workflow</li><li>Watch it run</li></ol></section>"
+  },
+  "social-proof": {
+   "description": "leads with who already uses it and ratings; for cautious or skeptical visitors",
+   "when": "competitor comparisons, enterprise",
+   "html": "<section class=\"hero\"><h1>Trusted by 2,000+ teams</h1><p>{{product}} by {{brand}} is rated 4.8/5 by people who switched from spreadsheets.</p></section>"
+  }
+ },
+ "primary_cta": {
+  "book-call": {
+   "description": "book a sales call; for high-intent buyers and enterprise decision makers",
+   "when": "CTO, pricing viewers",
+   "html": "<a class=\"cta\" href=\"#book\" role=\"button\">Book a 20-minute call</a>"
+  },
+  "start-trial": {
+   "description": "start a free trial immediately; for hands-on evaluators and developers",
+   "when": "comparison, technical",
+   "html": "<a class=\"cta\" href=\"#trial\" role=\"button\">Start your free {{product}} trial</a>"
+  },
+  "download-guide": {
+   "description": "download a free guide; low commitment for early researchers",
+   "when": "cold search, late night, newsletter",
+   "html": "<a class=\"cta\" href=\"#guide\" role=\"button\">Get the free guide</a>"
+  },
+  "see-pricing": {
+   "description": "go see pricing; for visitors comparing cost or ready to decide",
+   "when": "comparison, returning",
+   "html": "<a class=\"cta\" href=\"#pricing\" role=\"button\">See {{product}} pricing</a>"
+  }
+ },
+ "proof": {
+  "logos": {
+   "description": "row of customer company names; quick credibility for skimmers",
+   "when": "mobile, cold",
+   "html": "<section class=\"proof\" aria-label=\"Customers\"><h2>Used by teams at</h2><ul class=\"logos\"><li>Northwind</li><li>Acme Co</li><li>Globex</li><li>Initech</li></ul></section>"
+  },
+  "testimonial": {
+   "description": "one quote from a real customer; emotional trust for individuals and small teams",
+   "when": "newsletter, founder-story",
+   "html": "<section class=\"proof\"><h2>What customers say</h2><blockquote><p>\"{{product}} gave me my Fridays back.\"</p><footer>Priya, ops lead</footer></blockquote></section>"
+  },
+  "case-study-numbers": {
+   "description": "case study with hard ROI numbers; for analytical buyers, executives, comparison shoppers",
+   "when": "CTO, comparison",
+   "html": "<section class=\"proof\"><h2>Case study: Globex</h2><dl><dt>Hours saved / month</dt><dd>480</dd><dt>Payback period</dt><dd>6 weeks</dd></dl></section>"
+  }
+ },
+ "form": {
+  "email-only": {
+   "description": "single email field; lowest friction capture for researchers and mobile visitors",
+   "when": "mobile, cold, guide CTA",
+   "html": "<form class=\"form\" action=\"#\" method=\"post\"><label for=\"f-email\">Work email</label><input id=\"f-email\" name=\"email\" type=\"email\" required autocomplete=\"email\"><button type=\"submit\">Send it to me</button></form>"
+  },
+  "qualify-3-fields": {
+   "description": "email, company size, timeline; for buyer-stage visitors booking a call",
+   "when": "enterprise, pricing viewers",
+   "html": "<form class=\"form\" action=\"#\" method=\"post\"><label for=\"q-email\">Work email</label><input id=\"q-email\" name=\"email\" type=\"email\" required><label for=\"q-size\">Company size</label><select id=\"q-size\" name=\"size\"><option>1-10</option><option>11-200</option><option>200+</option></select><label for=\"q-when\">When do you want to start?</label><select id=\"q-when\" name=\"timeline\"><option>This month</option><option>This quarter</option><option>Just exploring</option></select><button type=\"submit\">Request a call</button></form>"
+  },
+  "none": {
+   "description": "no form; when the CTA itself is the action (trial, pricing) or the visitor should not be asked for data yet",
+   "when": "trial, pricing CTAs",
+   "html": ""
+  }
+ },
+ "faq": {
+  "pricing-objections": {
+   "description": "FAQ about price, contracts, cancellation and refunds; for cost-sensitive and comparison visitors",
+   "when": "pricing, comparison",
+   "html": "<section class=\"faq\"><h2>Pricing questions</h2><details><summary>Is there a contract?</summary><p>No. {{product}} is month to month.</p></details><details><summary>Can I cancel anytime?</summary><p>Yes, in one click.</p></details></section>"
+  },
+  "security-objections": {
+   "description": "FAQ about security, SSO, compliance and data residency; for enterprise and technical leaders",
+   "when": "CTO, enterprise",
+   "html": "<section class=\"faq\"><h2>Security questions</h2><details><summary>Do you support SSO?</summary><p>Yes, SAML and OIDC.</p></details><details><summary>Where is data stored?</summary><p>EU or US, your choice. {{brand}} is SOC 2 Type II.</p></details></section>"
+  }
+ },
+ "footer": {
+  "minimal": {
+   "description": "minimal footer with copyright only; for mobile and focused pages",
+   "when": "mobile",
+   "html": "<footer class=\"site-footer\"><p>&copy; {{brand}}</p></footer>"
+  },
+  "full-links": {
+   "description": "footer with product, security and contact links; for desktop and enterprise visitors",
+   "when": "desktop, enterprise",
+   "html": "<footer class=\"site-footer\"><nav aria-label=\"Footer\"><a href=\"#pricing\">Pricing</a> <a href=\"#security\">Security</a> <a href=\"#contact\">Contact</a></nav><p>&copy; {{brand}} - {{product}}</p></footer>"
+  }
+ }
+}
