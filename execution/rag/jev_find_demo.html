@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jev Find - search by meaning</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
+  aside { padding: 16px; background: #f4f4f6; border-right: 1px solid #ddd; overflow: auto; }
+  main { padding: 16px 32px; overflow: auto; }
+  label { display: block; font-weight: 600; margin-top: 12px; }
+  input, textarea, button { width: 100%; box-sizing: border-box; font: inherit; margin-top: 4px; }
+  textarea { height: 220px; }
+  button { padding: 8px; cursor: pointer; }
+  #doc p { padding: 6px 10px; border-radius: 6px; transition: background .3s; }
+  #doc p.hit { background: #fff3a8; outline: 2px solid #e0b800; }
+  #doc p.near { background: #f3f0d8; }
+  #status { margin-top: 12px; font-size: 13px; color: #444; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<aside>
+  <label for="key">OpenRouter key (stored in localStorage)</label>
+  <input id="key" type="password" placeholder="sk-or-...">
+  <label for="q">Find by meaning</label>
+  <input id="q" placeholder="e.g. when the bees almost disappeared">
+  <button id="go">Find</button>
+  <label for="src">Article (edit freely; blank lines split paragraphs)</label>
+  <textarea id="src"></textarea>
+  <div id="status">Ready.</div>
+</aside>
+<main><div id="doc"></div></main>
+<script>
+"use strict";
+const ENDPOINT = "https://openrouter.ai/api/alpha/decisions";
+const MODEL = "typesafe/jev-1.13";
+const BATCH = 25, PREVIEW = 160, ABSTAIN = 0.2;
+
+const SAMPLE = [
+  "The history of beekeeping in the valley begins with a single monk who kept hives behind the chapel wall.",
+  "For centuries, families traded honey for salt and cloth at the autumn market, and the hives were counted as part of a dowry.",
+  "In the 1890s a railway line reached the valley, and with it came sugar that was cheaper than honey, so many hives were abandoned.",
+  "The winter of 1947 was the coldest on record. Snow lay on the ground until May and most colonies starved in their boxes.",
+  "By 1950 only three keepers remained. One of them, Anna Riedl, began splitting her surviving colonies every spring to rebuild the stock.",
+  "Riedl kept careful notebooks: weights of each hive, flowering dates, and the temper of every queen. Those notebooks are now in the town museum.",
+  "In the 1970s farmers switched to a new seed treatment. Within five seasons the keepers reported foragers that never came home.",
+  "The local paper ran a series called The Silent Meadow, describing whole apiaries found empty with food still in the combs.",
+  "A university team set up monitoring stations and traced the losses to dust from planting machines drifting onto wildflowers.",
+  "After a long campaign, the regional council banned the treatment near flowering margins, and losses fell by two thirds within three years.",
+  "Today the valley hosts more than two hundred hives. Most are kept by hobbyists who learned at the evening classes in the old school.",
+  "The classes cover swarm control, varroa treatment, and how to read a frame: brood, pollen, nectar and capped honey each have their place.",
+  "Pricing at the cooperative is simple. Members pay a flat fee per hive each year, which covers the extractor, jars and the shared truck.",
+  "Honey from the valley has a protected origin label since 2011, which means it must be extracted and jarred within the district.",
+  "Visitors can tour the museum on weekends. Children are allowed to try on veils and look into an observation hive behind glass.",
+  "The festival in late August closes with a parade where each village carries a straw skep decorated with ribbons and flowers.",
+  "Climate shifts are the new worry. Early springs wake the colonies before the willows flower, and they burn through their stores.",
+  "Keepers now feed fondant in March when needed and plant early-flowering shrubs along the river path to bridge the gap."
+].join("\n\n");
+
+const $ = (id) => document.getElementById(id);
+$("key").value = localStorage.getItem("jev_key") || "";
+$("key").addEventListener("change", () => localStorage.setItem("jev_key", $("key").value.trim()));
+$("src").value = SAMPLE;
+
+function chunks() {
+  return $("src").value.split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean);
+}
+function renderDoc(list) {
+  const doc = $("doc");
+  doc.innerHTML = "";
+  list.forEach((t, i) => { const p = document.createElement("p"); p.id = "c" + i; p.textContent = t; doc.appendChild(p); });
+}
+renderDoc(chunks());
+$("src").addEventListener("input", () => renderDoc(chunks()));
+
+async function decide(key, state, questions) {
+  try {
+    const r = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json", "X-Title": "jev-find-demo" },
+      body: JSON.stringify({ model: MODEL, state: state, questions: questions })
+    });
+    if (!r.ok) return { error: "HTTP " + r.status, answers: {} };
+    const d = await r.json();
+    return { answers: d.answers || {}, cost: (d.usage && d.usage.cost) || 0 };
+  } catch (e) {
+    return { error: String(e), answers: {} };   // fail open
+  }
+}
+
+// Mirrors execution/rag/jev_find.py: stage 1 = one choice(+none) + one noul per batch of <= 25,
+// in parallel; stage 2 = one choice over the winners with full text.
+async function findByMeaning(key, query, list) {
+  const state = { task: "find-by-meaning search inside a document", query: query };
+  const batches = [];
+  for (let i = 0; i < list.length; i += BATCH) batches.push([...Array(Math.min(BATCH, list.length - i)).keys()].map((k) => k + i));
+  let calls = 0, cost = 0;
+  const stage1 = await Promise.all(batches.map(async (idxs) => {
+    const opts = {};
+    idxs.forEach((i) => { opts[String(i)] = list[i].slice(0, PREVIEW); });
+    opts.none = "none of these passages is about what the query is looking for";
+    const r = await decide(key, state, {
+      best: { type: "choice", instructions: "Which passage is the one the reader is looking for? The words may not match; judge by meaning.", criteria: opts },
+      any: { type: "noul", instructions: "Does any option in this batch answer the query?",
+             criteria: { true: "at least one passage is clearly about what the query describes", false: "no passage is about what the query describes" } }
+    });
+    calls++; cost += r.cost || 0;
+    const b = r.answers.best || {}, anyP = Number((r.answers.any || {}).noul ?? 1);
+    if (!b.choice || b.choice === "none" || anyP < ABSTAIN || !(b.choice in opts)) return null;
+    return { i: Number(b.choice), p: Number((b.probabilities || {})[b.choice] ?? b.confidence ?? 0) * anyP };
+  }));
+  let winners = stage1.filter(Boolean).sort((a, b) => b.p - a.p).slice(0, BATCH);
+  if (winners.length > 1) {
+    const opts = {};
+    winners.forEach((w) => { opts[String(w.i)] = list[w.i]; });
+    const r = await decide(key, state, { best: { type: "choice", instructions: "Which passage best answers what the reader is looking for? Judge by meaning.", criteria: opts } });
+    calls++; cost += r.cost || 0;
+    const probs = (r.answers.best || {}).probabilities;
+    if (probs) winners = winners.map((w) => ({ i: w.i, p: Number(probs[String(w.i)] || 0) })).sort((a, b) => b.p - a.p);
+  }
+  return { winners: winners, batches: batches.length, calls: calls, cost: cost };
+}
+
+$("go").addEventListener("click", async () => {
+  const key = $("key").value.trim(), query = $("q").value.trim();
+  if (!key || !query) { $("status").textContent = "Enter a key and a query."; return; }
+  localStorage.setItem("jev_key", key);
+  const list = chunks();
+  renderDoc(list);
+  $("status").textContent = "Asking Jev...";
+  const t0 = performance.now();
+  const res = await findByMeaning(key, query, list);
+  const ms = Math.round(performance.now() - t0);
+  if (!res.winners.length) { $("status").textContent = "No match (Jev abstained or the call failed). " + ms + " ms"; return; }
+  res.winners.slice(1, 3).forEach((w) => $("c" + w.i).classList.add("near"));
+  const top = $("c" + res.winners[0].i);
+  top.classList.add("hit");
+  top.scrollIntoView({ behavior: "smooth", block: "center" });
+  $("status").textContent = "Best: paragraph " + (res.winners[0].i + 1) + " (p=" + res.winners[0].p.toFixed(2) + ")\n" +
+    list.length + " chunks, " + res.batches + " batches, " + res.calls + " calls, " + ms + " ms, $" + res.cost.toFixed(6);
+});
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") $("go").click(); });
+</script>
+</body>
+</html>

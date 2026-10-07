@@ -53,9 +53,9 @@ search-by-meaning, live meters, zero-LLM chatbots).
 | 8 | Verification with a validation set | ✅ `execution/infrastructure/jev_validate.py` + `execution/modules/jev_eval.py` (`directives/infrastructure/jev_validate.md`) |
 | 9 | Let Jev pick the skill | ✅ router + `execution/infrastructure/jev_skill_pick.py` bench (`directives/infrastructure/jev_skill_pick.md`) |
 | 10 | Let Jev pick the model (`/jev`) | ✅ router |
-| 11 | Jev in front of AI agents (email gate: reply / brand deal / spam) | planned (`google/`, extend gmail-label) |
-| 12 | Chrome extensions (feed slop filter, unclutter) | planned (`infrastructure/`) |
-| 13 | Search by meaning (paragraph picker) | planned |
+| 11 | Jev in front of AI agents (email gate: reply / brand deal / spam) | ✅ `execution/google/jev_email_gate.py` (`directives/google/jev_email_gate.md`) |
+| 12 | Chrome extensions (feed slop filter, unclutter) | ✅ `execution/infrastructure/jev_feed_filter_extension/` (`directives/infrastructure/jev_feed_filter_extension.md`) |
+| 13 | Search by meaning (paragraph picker) | ✅ `execution/rag/jev_find.py` + `jev_find_demo.html` (`directives/rag/jev_find.md`) |
 | 14 | Image search by content (needs captions; prompt log is the metadata) | planned (`image_generation/`) |
 | 15 | Live checker for speech (meeting action-item / risk meter) | planned (`voice_agents/`) |
 | 16 | Chatbot with zero LLM calls over transcripts/docs | planned (`rag/`) |
@@ -84,3 +84,4 @@ Build order: three per session, in this order, each with script + directive + of
 - 2026-10-06: installed (client, router, /jev, skill, use cases 1-3). Haiku slot replaced by Sonnet 5.5.
 - 2026-10-06 (session 2): use cases 4-6 (clip finder, customer health, backlinks).
 - 2026-10-07: use cases 7-9 (comment buyers, validation harness, skill-pick bench).
+- 2026-10-07 (session 2): use cases 11-13 (email gate, Chrome feed filter extension, search by meaning).

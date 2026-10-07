@@ -50,9 +50,10 @@ Jev can abstain. Env key: `OPENROUTER_API_KEY` (cloud alias `OPENROUTER_API_TOEK
 | Find buyers in social comments (TikTok / IG / YouTube) | `execution/lead_sourcing/jev_comment_buyers.py` |
 | Validate any question set on a labelled CSV, pick a threshold | `execution/infrastructure/jev_validate.py` (`modules/jev_eval.py`) |
 | Pick / benchmark the right skill for a prompt | `execution/infrastructure/jev_skill_pick.py` |
+| Gate an inbox before an agent reads it | `execution/google/jev_email_gate.py` |
+| Chrome extension: fold feed slop, hide ads/banners | `execution/infrastructure/jev_feed_filter_extension/` |
+| Find a passage by meaning in a file, URL or folder | `execution/rag/jev_find.py` |
 
-Remaining use cases 11-19 (email gate, Chrome
-extensions, search-by-meaning, image search, live meeting meter, zero-LLM chatbot, icon picking,
-self-assembling pages, meta use-case finder) are tracked in `directives/infrastructure/jev.md`.
+Remaining use cases 14-19 (image search, live meeting meter, zero-LLM chatbot, icon picking, self-assembling pages, meta use-case finder) are tracked in `directives/infrastructure/jev.md`.
 
 Cost ledger: `.tmp/jev_ledger.jsonl` (every script appends one row). Directive: `directives/infrastructure/jev.md`.

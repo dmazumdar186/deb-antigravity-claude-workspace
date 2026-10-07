@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Jev Feed Filter",
+  "version": "1.0.0",
+  "description": "Folds AI slop in X / LinkedIn feeds and hides ads and cookie banners (Unclutter), decided by Jev via OpenRouter.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["https://openrouter.ai/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "options_page": "options.html",
+  "action": { "default_popup": "popup.html", "default_title": "Jev Feed Filter" },
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*", "https://www.linkedin.com/feed/*", "https://linkedin.com/feed/*"],
+      "js": ["content_feed.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_unclutter.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
