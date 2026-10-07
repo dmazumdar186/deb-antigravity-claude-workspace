@@ -119,3 +119,8 @@ deliverables/ad_creative/**/renders/
 # greenjobs redesign: the site's own logos are content, not screenshot scratch
 !deliverables/greenjobs_redesign_2026-09-22/src/assets/logos/*.png
 !deliverables/greenjobs_redesign_2026-09-22/site/**/*.png
+
+# Jev local indexes (written next to the corpus)
+.jev_chat_index.json
+.jev_image_index.json
+.jev_backlinks.json

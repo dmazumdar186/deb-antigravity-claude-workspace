@@ -256,7 +256,8 @@ def _state(query: str) -> dict[str, Any]:
 
 
 def find(query: str, chunks: list[dict[str, Any]], *, top: int = 5, workers: int = 8,
-         per_file: bool = False, mark_sentence: bool = True) -> dict[str, Any]:
+         per_file: bool = False, mark_sentence: bool = True,
+         abstain_below: float = ABSTAIN_BELOW) -> dict[str, Any]:
     """Two-stage Jev ranking. Returns {hits, summary}. Fails open (empty hits + errors)."""
     t0 = time.perf_counter()
     stats = _Stats()
@@ -268,9 +269,12 @@ def find(query: str, chunks: list[dict[str, Any]], *, top: int = 5, workers: int
         if not r.ok:
             return None
         pick = r.choice("best")
+        if pick == "none" and abstain_below <= 0:  # no-abstain mode: best real option wins
+            real = {k: v for k, v in r.probabilities("best").items() if k != "none"}
+            pick = max(real, key=real.get) if real and max(real.values()) >= 0.05 else "none"
         if pick == "none" or not pick.isdigit() or int(pick) not in idxs:
             return None
-        if r.noul("any", 1.0) < ABSTAIN_BELOW:
+        if r.noul("any", 1.0) < abstain_below:
             return None
         prob = r.probabilities("best").get(pick, r.confidence("best"))
         return int(pick), prob * r.noul("any", 1.0)

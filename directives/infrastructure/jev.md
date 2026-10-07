@@ -56,9 +56,9 @@ search-by-meaning, live meters, zero-LLM chatbots).
 | 11 | Jev in front of AI agents (email gate: reply / brand deal / spam) | ✅ `execution/google/jev_email_gate.py` (`directives/google/jev_email_gate.md`) |
 | 12 | Chrome extensions (feed slop filter, unclutter) | ✅ `execution/infrastructure/jev_feed_filter_extension/` (`directives/infrastructure/jev_feed_filter_extension.md`) |
 | 13 | Search by meaning (paragraph picker) | ✅ `execution/rag/jev_find.py` + `jev_find_demo.html` (`directives/rag/jev_find.md`) |
-| 14 | Image search by content (needs captions; prompt log is the metadata) | planned (`image_generation/`) |
-| 15 | Live checker for speech (meeting action-item / risk meter) | planned (`voice_agents/`) |
-| 16 | Chatbot with zero LLM calls over transcripts/docs | planned (`rag/`) |
+| 14 | Image search by content (needs captions; prompt log is the metadata) | ✅ `execution/image_generation/jev_image_search.py` (`directives/image_generation/jev_image_search.md`) |
+| 15 | Live checker for speech (meeting action-item / risk meter) | ✅ `execution/voice_agents/jev_live_meter.py` (`directives/voice_agents/jev_live_meter.md`) |
+| 16 | Chatbot with zero LLM calls over transcripts/docs | ✅ `execution/rag/jev_chatbot.py` + `jev_chatbot_ui.html` (`directives/rag/jev_chatbot.md`) |
 | 17 | Smarter app UI (icon picking from text) | planned (`mobile_apps/`) |
 | 18 | Self-assembling pages from a component library | planned |
 | 19 | Find your own use cases (shipwithjev.com + past sessions) | planned |
@@ -85,3 +85,4 @@ Build order: three per session, in this order, each with script + directive + of
 - 2026-10-06 (session 2): use cases 4-6 (clip finder, customer health, backlinks).
 - 2026-10-07: use cases 7-9 (comment buyers, validation harness, skill-pick bench).
 - 2026-10-07 (session 2): use cases 11-13 (email gate, Chrome feed filter extension, search by meaning).
+- 2026-10-07 (session 3): use cases 14-16 (image search, live meeting meter, zero-LLM chatbot).
