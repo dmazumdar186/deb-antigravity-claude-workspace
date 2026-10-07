@@ -177,6 +177,7 @@ def pick_icon(text: str, icons: dict[str, str] | None = None, *, top_k: int = 3,
             out["calls"] += 1
             if not r.ok:
                 errors.append(r.error or "no answer")
+        if not r.ok:
             return {}
         probs = r.probabilities("icon")
         if not probs and r.choice("icon"):
