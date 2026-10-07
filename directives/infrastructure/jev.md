@@ -63,6 +63,8 @@ search-by-meaning, live meters, zero-LLM chatbots).
 | 18 | Self-assembling pages from a component library | ✅ `execution/content/jev_page_assembler/` (`directives/content/jev_page_assembler.md`) |
 | 19 | Find your own use cases (shipwithjev.com + past sessions) | ✅ `execution/infrastructure/jev_use_case_finder.py` (`directives/infrastructure/jev_use_case_finder.md`) |
 
+| 20 | Confidence gate on the audit stack (escalate weak audit reports; Stop hook) | ✅ `execution/infrastructure/jev_audit_gate.py` (`directives/infrastructure/jev_audit_gate.md`) |
+
 All 19 built (2026-10-06/07), each with script + directive + offline test + one live run. New use cases: run `jev_use_case_finder.py rank` and add rows here.
 
 ## Exit criteria
@@ -87,3 +89,4 @@ All 19 built (2026-10-06/07), each with script + directive + offline test + one 
 - 2026-10-07 (session 2): use cases 11-13 (email gate, Chrome feed filter extension, search by meaning).
 - 2026-10-07 (session 3): use cases 14-16 (image search, live meeting meter, zero-LLM chatbot).
 - 2026-10-07 (session 4): use cases 17-19 (icon picking, self-assembling pages, use-case finder). All 19 done.
+- 2026-10-07 (session 5): #20 from the use-case finder's quick-win list — Jev confidence gate on the audit stack, wired into the Stop hook.

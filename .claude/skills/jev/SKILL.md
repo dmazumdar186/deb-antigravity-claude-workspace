@@ -59,6 +59,7 @@ Jev can abstain. Env key: `OPENROUTER_API_KEY` (cloud alias `OPENROUTER_API_TOEK
 | Pick an app icon from what the user typed | `execution/mobile_apps/jev_icon_pick.py` |
 | Self-assembling landing page per visitor | `execution/content/jev_page_assembler/` |
 | Find new Jev use cases for this business / in past sessions | `execution/infrastructure/jev_use_case_finder.py` |
+| Gate an audit report before claiming done (`/jev gate <file>`) | `execution/infrastructure/jev_audit_gate.py` |
 
 All 19 RoboNuggets use cases are built; the status table and build log live in `directives/infrastructure/jev.md`. To find the next one: `python3 execution/infrastructure/jev_use_case_finder.py rank`.
 

@@ -40,7 +40,7 @@ fi
 
 # Delegate the JSONL parsing to python; keeping bash minimal avoids
 # quoting nightmares on Windows.
-"$PY" -c '
+OUT="$("$PY" -c '
 import json, os, re, sys
 
 path = os.environ.get("CLAUDE_TRANSCRIPT_PATH", "")
@@ -139,6 +139,45 @@ payload = {
     }
 }
 print(json.dumps(payload))
-' 2>/dev/null
+' 2>/dev/null)"
 
+# ── Jev audit gate (2026-10-07, directives/infrastructure/jev_audit_gate.md) ──
+# Score the last 3 sub-agent hand-back reports; weak ones add a warning line.
+# Skipped when Jev is toggled off. Fail-safe: any error leaves OUT untouched.
+GATE=""
+ROOT="$(cd "$(dirname "$0")/../.." 2>/dev/null && pwd)"
+STATE_FILE="$ROOT/.claude/jev/state.json"
+if ! grep -Eq '"enabled"[[:space:]]*:[[:space:]]*false' "$STATE_FILE" 2>/dev/null; then
+    GATE="$(timeout 3 "$PY" "$ROOT/execution/infrastructure/jev_audit_gate.py" transcript \
+        --path "$TRANSCRIPT" --last 3 --json 2>/dev/null)"
+fi
+if [ -n "$GATE" ]; then
+    MERGED="$(GATE_JSON="$GATE" HOOK_OUT="$OUT" "$PY" -c '
+import json, os
+g = json.loads(os.environ.get("GATE_JSON") or "{}")
+res = g.get("results") or []
+bad = [r for r in res if r.get("decision") in ("review", "reject")]
+out = os.environ.get("HOOK_OUT", "").strip()
+if not bad:
+    print(out)
+    raise SystemExit(0)
+why = []
+for r in bad:
+    why.extend(r.get("reasons") or [r.get("decision", "")])
+why = "; ".join(dict.fromkeys(w for w in why if w))[:300]
+line = ("\n> **Jev audit gate:** %d of %d recent audit reports scored below the acceptance bar - %s. "
+        "Re-run the auditor with explicit evidence before claiming done.\n" % (len(bad), len(res), why))
+try:
+    payload = json.loads(out) if out else {}
+except ValueError:
+    payload = {}
+hso = payload.setdefault("hookSpecificOutput", {"hookEventName": "Stop"})
+hso.setdefault("hookEventName", "Stop")
+hso["additionalContext"] = (hso.get("additionalContext") or "") + line
+print(json.dumps(payload))
+' 2>/dev/null)"
+    [ -n "$MERGED" ] && OUT="$MERGED"
+fi
+
+[ -n "$OUT" ] && printf '%s\n' "$OUT"
 exit 0
