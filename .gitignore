@@ -124,3 +124,6 @@ deliverables/ad_creative/**/renders/
 .jev_chat_index.json
 .jev_image_index.json
 .jev_backlinks.json
+
+# Session download drops (lead PII, never committed)
+downloads/
