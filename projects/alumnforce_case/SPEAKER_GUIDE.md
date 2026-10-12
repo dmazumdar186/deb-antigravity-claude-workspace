@@ -82,5 +82,5 @@ Use the list on slide 14. Add one on the business: which tenants refuse AI today
 ## Honesty notes
 
 - Token prices in the deck are deliberately an order of magnitude. If asked for a number, say you will take it from the gateway logs, not from memory.
-- The demo-instance findings are from one admin session on the demo. Say what you saw, not more. A test list (id 783, 'Liste - 12/10/2026 - 16:58') was created during exploration; delete it or mention it.
+- The demo-instance findings are from one admin session on the demo. Say what you saw, not more.
 - The 25 duplicates were found by a matching rule you tuned by hand; say so if asked how.
