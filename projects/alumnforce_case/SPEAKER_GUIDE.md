@@ -144,6 +144,18 @@ Ask: which tenants have already said no to AI and why; how criteria and permissi
 - A "Campagne de mise à jour" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
 - The brief says about 60 criteria; the demo shows about 43. Say "the demo shows around 43; I assume production instances expose more".
 
+## Before you send: the verification checklist Annex A commits you to
+
+Annex A says you verified these yourself. Do them, or edit Annex A to what you actually did.
+
+1. Run `bash tools/build.sh`? Not needed. Run the Annex B snippet in README.md on the CSV and confirm 49 rows.
+2. Open the CSV in a spreadsheet: check 525 rows, the eight spellings of London, the 25 rows M0501 to M0525.
+3. Read the twelve verbatims and decide whether you agree with the coding on slide 3.
+4. Log into the demo instance yourself, open Utilisateurs → Listes → Créer une liste → Ajouter un filtre, and confirm there is no last-login criterion and that Communication → Campagne de mise à jour exists.
+5. Read every slide once as yourself; change any position you would not defend.
+
+Disclose if asked: an automated browser session explored the demo with your account and created then deleted one empty test list. Consider changing the demo password you shared.
+
 ## Honesty notes
 
 - Token prices in the deck are deliberately an order of magnitude. If asked for a number, say you will take it from the gateway logs, not from memory.

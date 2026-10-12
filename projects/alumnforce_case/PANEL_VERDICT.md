@@ -1,0 +1,28 @@
+# Panel verdict — AlumnForce case deliverable (2026-10-12)
+
+Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on the deck, the SQL, the speaker guide and the CSV. Before the roster pass, six executive lenses (hiring panel, CEO, CTO, CSO, CMO, CIO) ran three rounds; their findings are folded into the same deck. Status per lens: CLEAR = no high or medium gap left after fixes; the honest gaps are what no lens could verify and the candidate must own.
+
+| # | Lens | Highest finding | Fix applied | Status |
+|---|------|-----------------|-------------|--------|
+| 1 | Karpathy, measurement | Master Finance count wrong (21/50 vs 19/47), 69 % computed on undeduplicated rows, "latest date" false, targets without derivation | Figures recomputed on n = 500 after a corrected dedup; targets labelled "initial guess, reset on week-4 baseline"; demo count marked illustrative; coding of verbatims shown with coder = 1 | CLEAR (re-verified against the CSV) |
+| 2 | Cherny, tooling craft | PDF not reproducible from README; auto-fit bake not idempotent | `tools/autofit.js`, `tools/measure.js`, `tools/build.sh` committed; bake strips before writing; README rebuild section; REGEXP dropped from snippet | CLEAR |
+| 3 | D. Amodei, honesty and law | Annex A claimed verifications the candidate had not done; competitor claims unhedged; "scrubbed" stated as a guarantee; password in scratch scripts | Annex A rewritten to what AI did and what the candidate verifies before sending (present tense, commitments); checklist and disclosure in the speaker guide; claims hedged; DPO sentence softened; scripts, session cookies and screenshots deleted | CLEAR on high; Annex A is true only once the checklist is done |
+| 4 | Research rigor | Dedup rule collapsed Martin into Martinez (26 drops, 499 members); `promo <= 2026` fails on text import; bounds and null handling undefined; eval metrics and model pinning unspecified | Rule requires same start date (25 drops, 500 members, result still 49, verified on typed and text imports); half-open bounds; null → à réactiver; eval definitions, kappa, negative recall, model id, temperature 0, prompt version pinned | CLEAR (SQL re-run by the lens) |
+| 5 | Hormozi, offer | Dream outcome and proof absent from slide 1; time delay understated | Outcome tile rewritten; 2 / 26 / 49 / 6 on slides 1 and 13; "one quarter plus four weeks of measurement"; add-on reverts to included under 10 % reactivation | CLEAR |
+| 6 | Saraev, automation | Thresholds never validated against a manually graded list; reactivation text author unstated | Weeks 1–2 hand-grading of 100 members on 2 tenants, 80 % agreement gate; fixed tenant-editable template, no model copy; per-tenant config table with owner and change log | CLEAR |
+| 7 | Daniela Amodei, people | Alerts without owners; one-way member contest; edit rate as surveillance | Owners on slide 10; contest SLA, 12-month freeze, one reactivation per quarter, suppression after "not me"; metrics aggregate, pseudonymised, disclosed at flag-on; member wording specified | CLEAR |
+| 8 | Sutskever, failure modes | Wrong-but-valid filter sets bounded only by the admin; drift detection trigger-based | Sanity bounds in the validator (radius cap, type table, count-vs-tenant alert), diff view, hard timeout; nightly replay against the live endpoint with a 5-point alert; provider version logged; cannot-map share tracked | CLEAR |
+| 9 | Murati, UX | "Cannot map" behaviour unspecified; member-facing wording absent; vocabulary drift | One rule for partial mapping (inline fragment, never blank); member copy "Profil mis à jour il y a 4 ans · Confirmer / Corriger"; two names only (Segments fiables, Fiabilité); chips above the table; generated name example | CLEAR |
+| 10 | Brockman, reliability | No locks, rollback, runbook, rotation or dead-man alarm | Annex D: per-tenant lock and watermark, 36 h dead-man, alias-swap reindex with canary, expand/contract migration, upsert backfill proven by double run, 90-day dual-key rotation, one-page runbook with owners | CLEAR |
+| 11 | Hassabis, systems | Feedback edges ended in dashboards; nothing recalibrated | Annex D loop table: edits → eval candidates; "not me" → status flip and threshold calibration; cannot-map → roadmap; tenant overrides promoted globally; campaign outcomes stored by segment × status; flywheel metric named | CLEAR |
+
+## Honest gaps (kept, not papered over)
+
+- Dev-week estimate (36 core), token cost, 80k-instance backfill duration, and the "~43 criteria / 31 lists" demo observations rest on one session and one estimate; the Lead Developer's numbers win.
+- Competitor claims (Hivebrite, Graduway) are hedged, not verified.
+- Legal positions are what the candidate would check with a DPO, not advice; the tenant decides its basis.
+- The 2 y / 4 y / 1 y thresholds are initial and lopsided on this synthetic file (43 of 49 à réactiver); hand-grading in weeks 1–2 is the test.
+- The eval set (100 + 30) is a gate, not a drift detector; nightly replay covers drift, but p95 latency and the scrub false-flag rate are unmeasured until built.
+- Whether the demo instance's terms permit automated access was not checked; one empty list was created and deleted under the candidate's account.
+- Annex A now lists what the candidate must verify personally; until they do, those lines are commitments, not facts.
+- Visual QA was done by an agent reading rendered pages at 55 dpi; slides 6, 8, 9 and 13 are dense (body text at 85–88 % of base size).

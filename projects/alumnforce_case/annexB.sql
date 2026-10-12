@@ -4,7 +4,7 @@
 -- 0. DÉDOUBLONNAGE. Le brief annonce 500 membres ; le fichier en contient 525.
 --    Les 25 lignes M0501..M0525 sont des doublons de personnes déjà présentes
 --    (nom en MAJUSCULES ou composé, prénom tronqué "Man.", e-mail gmail, même poste et même date de début).
---    Règle : même prénom (3 premières lettres), nom contenu l'un dans l'autre, même date de début OU même poste.
+--    Règle : même prénom (3 premières lettres), nom contenu l'un dans l'autre, ET même date de début de poste.
 --    On conserve la fiche la plus récemment mise à jour.
 CREATE TABLE membres AS
 WITH p AS (
@@ -19,7 +19,7 @@ doublons AS (
     ON a.member_id <> b.member_id
    AND a.pn = b.pn
    AND (instr(a.nn, b.nn) > 0 OR instr(b.nn, a.nn) > 0)
-   AND (a.date_debut_poste = b.date_debut_poste OR a.poste = b.poste)
+   AND a.date_debut_poste = b.date_debut_poste          -- même date de début : évite Martin/Martinez (même poste, dates différentes)
    AND (a.date_maj_profil > b.date_maj_profil
         OR (a.date_maj_profil = b.date_maj_profil AND a.member_id < b.member_id))
 )
@@ -47,10 +47,11 @@ SELECT m.*,
     ELSE 'non' END                                                            AS finance_src,
   -- FRAÎCHEUR : ce que les données permettent réellement de dire sur "est-ce encore vrai ?"
   --   A = profil mis à jour < 2 ans OU connexion < 1 an ; B = mis à jour entre 2 et 4 ans ; C = plus vieux
-  -- 61 rows carry a last-login date in the future (export defect): a future date is ignored, never trusted
-  CASE WHEN date_maj_profil >= date('2026-10-12','-2 years')
-         OR (derniere_connexion >= date('2026-10-12','-1 year') AND derniere_connexion <= '2026-10-12') THEN 'A'
-       WHEN date_maj_profil >= date('2026-10-12','-4 years') THEN 'B'
+  -- 60 members carry a last-login date in the future (export defect): a future date is ignored, never trusted
+  -- Bornes : A = [0, 2 ans) depuis la mise à jour OU [0, 1 an) depuis la connexion ; B = [2, 4 ans) ; C = 4 ans et plus ou date absente
+  CASE WHEN date_maj_profil > date('2026-10-12','-2 years')
+         OR (derniere_connexion > date('2026-10-12','-1 year') AND derniere_connexion <= '2026-10-12') THEN 'A'
+       WHEN date_maj_profil > date('2026-10-12','-4 years') THEN 'B'
        ELSE 'C' END                                                          AS fraicheur
 FROM membres m;
 
@@ -62,5 +63,5 @@ WHERE ville_norm = 'London'                                   -- "à Londres" : 
   AND (pays_norm = 'GB')                                      -- garde-fou pays : exclut un London (Ontario) si le pays est renseigné
   AND finance_src <> 'non'                                    -- "dans la finance" : 3 sources réconciliées
   AND date_debut_poste <= date('2026-10-12','-3 years')       -- "depuis plus de trois ans" : proxy = ancienneté dans le poste actuel
-  AND promo <= 2026                                           -- "diplômés" : tous le sont ici (promos 2005-2024)
+  AND CAST(promo AS INTEGER) <= 2026                          -- "diplômés" : tous le sont ici (promos 2005-2024) ; CAST pour un import texte
 ORDER BY fraicheur, date_debut_poste;
