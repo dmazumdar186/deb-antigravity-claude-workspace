@@ -1,0 +1,50 @@
+member_id,poste,entreprise,finance_src,ville,pays,date_debut_poste,date_maj_profil,derniere_connexion,cotisant,fraicheur
+M0502,M&A Associate,Amundi,finance:declare,Londres (Royaume-Uni),UK,2015-12-06,2026-06-13,2021-02-19,non,A
+M0495,Risk Manager,Rothschild & Co,finance:entreprise,"London, UK",Royaume-Uni,2019-07-28,2023-05-20,2023-05-13,oui,B
+M0133,Trésorier,Crédit Agricole CIB,finance:declare,LONDON,UK,2020-02-22,2023-04-14,2023-02-01,non,B
+M0253,IB Analyst,,finance:poste,Londres,United Kingdom,2022-01-03,2023-03-23,2023-01-28,non,B
+M0095,Financial Analyst,Société Générale,finance:entreprise,LONDON,United Kingdom,2022-06-11,2022-12-06,2022-12-06,non,B
+M0067,Equity Research Analyst,,finance:poste,"London, UK",Royaume-Uni,2023-09-21,2024-03-24,2024-11-09,non,B
+M0287,Quant,,finance:poste,LONDON,Royaume-Uni,2014-06-01,2018-10-14,2018-08-21,non,C
+M0271,PM - Asset Management,Goldman Sachs,finance:declare,Londres (Royaume-Uni),UK,2015-05-22,2015-10-09,2016-05-26,non,C
+M0387,Gérant OPCVM,Amundi,finance:entreprise,london,United Kingdom,2015-09-18,2015-12-19,2017-01-05,oui,C
+M0299,Contrôleur de gestion,J.P. Morgan,finance:declare,london,United Kingdom,2016-07-04,2016-07-15,2016-08-19,oui,C
+M0284,Analyste financier,Morgan Stanley,finance:entreprise,"London, UK",,2017-02-04,2019-05-31,2019-03-29,oui,C
+M0166,CFO,AXA IM,finance:declare,Londres,,2017-06-17,2019-04-15,2019-03-10,non,C
+M0198,Compliance Officer (banking),J.P. Morgan,finance:entreprise,Londres (Royaume-Uni),,2017-07-14,2019-12-10,2019-09-07,oui,C
+M0260,Portfolio Manager,UBS,finance:declare,London - Canary Wharf,United Kingdom,2017-11-22,2018-01-20,2018-11-13,non,C
+M0274,Trader,,finance:poste,London - Canary Wharf,,2017-11-25,2018-10-06,2018-08-09,non,C
+M0003,Equity Research Analyst,Amundi,finance:declare,Londres,United Kingdom,2017-12-23,2019-09-29,2019-09-07,non,C
+M0211,Risk Manager,,finance:poste,Greater London,Royaume-Uni,2017-12-25,2019-06-08,2019-05-10,oui,C
+M0158,Gestionnaire de portefeuille,HSBC,finance:declare,Londres,United Kingdom,2018-03-16,2018-04-05,2019-02-15,non,C
+M0315,Sr. Financial Analyst,Crédit Agricole CIB,finance:declare,london,,2018-03-24,2018-07-17,2019-08-10,oui,C
+M0438,Professeur de finance,Renault,finance:poste,"London, UK",,2018-04-07,2018-08-11,2019-02-10,non,C
+M0199,CFO,,finance:declare,Greater London,Royaume-Uni,2018-05-03,2018-10-01,2019-05-13,non,C
+M0093,Analyste Financier Senior,Morgan Stanley,finance:entreprise,Londres (Royaume-Uni),UK,2018-05-24,2018-05-26,2018-10-21,oui,C
+M0061,Asset Manager,Deutsche Bank,finance:declare,london,,2018-06-03,2018-08-04,2018-11-09,non,C
+M0020,Trésorier,Natixis,finance:entreprise,"London, UK",United Kingdom,2018-06-09,2018-09-07,2018-12-06,non,C
+M0479,Investment Banking Analyst,Société Générale,finance:entreprise,London,United Kingdom,2018-10-05,2019-02-14,2019-10-01,non,C
+M0092,Gérant OPCVM,Deutsche Bank,finance:declare,Greater London,Royaume-Uni,2018-11-01,2019-04-26,2020-01-31,oui,C
+M0358,"Associate, Investment Banking",J.P. Morgan,finance:declare,LONDON,Royaume-Uni,2018-11-26,2019-12-05,2019-11-04,oui,C
+M0359,"Associate, Investment Banking",Société Générale,finance:declare,LONDON,Royaume-Uni,2018-12-01,2022-07-18,2022-04-10,oui,C
+M0394,Private Equity Associate,Lazard,finance:entreprise,Greater London,,2018-12-15,2019-05-29,2019-03-25,oui,C
+M0474,Sr. Financial Analyst,Goldman Sachs,finance:entreprise,london,,2019-02-18,2019-06-28,2019-10-11,non,C
+M0349,Professeur de finance,BCG,finance:poste,london,UK,2019-04-12,2020-04-11,2020-02-02,non,C
+M0163,Financial Analyst,Amundi,finance:declare,London,UK,2019-04-27,2021-03-25,2021-01-29,non,C
+M0295,Auditeur financier,Crédit Agricole CIB,finance:declare,London - Canary Wharf,United Kingdom,2019-04-28,2019-06-11,2019-06-22,non,C
+M0228,Auditeur financier,Amundi,finance:declare,London,Royaume-Uni,2019-05-09,2019-09-03,2020-05-11,oui,C
+M0246,M&A Associate,Barclays,finance:declare,Londres (Royaume-Uni),UK,2019-10-08,2020-02-02,2020-04-01,non,C
+M0115,Analyste Financier Senior,Barclays,finance:entreprise,Londres (Royaume-Uni),UK,2019-11-14,2021-05-22,2021-02-16,non,C
+M0342,Directeur financier,Deutsche Bank,finance:declare,Londres (Royaume-Uni),United Kingdom,2020-01-12,2021-02-01,2021-01-24,non,C
+M0208,Head of Finance,Rothschild & Co,finance:entreprise,Londres (Royaume-Uni),Royaume-Uni,2020-04-07,2022-01-30,2021-11-06,oui,C
+M0035,Head of Finance,UBS,finance:entreprise,LONDON,UK,2020-06-21,2020-12-23,2021-09-27,non,C
+M0147,Responsable comptable et financier,Barclays,finance:entreprise,Londres,Royaume-Uni,2021-03-23,2021-09-16,2021-07-26,non,C
+M0236,Private Equity Associate,Barclays,finance:declare,London - Canary Wharf,Royaume-Uni,2021-09-03,2021-10-18,2022-11-16,non,C
+M0194,Analyste financier,Goldman Sachs,finance:entreprise,"London, UK",UK,2021-12-23,2022-02-26,2022-04-26,non,C
+M0231,Chargé d'affaires entreprises,,finance:declare,london,UK,2022-02-04,2022-02-20,2021-12-22,non,C
+M0321,Financial Analyst,,finance:declare,Londres (Royaume-Uni),Royaume-Uni,2022-02-07,2022-07-28,2022-09-27,non,C
+M0096,Assistant(e) administratif et financier,Orange,finance:poste,Londres (Royaume-Uni),United Kingdom,2022-02-15,2022-06-06,2021-05-22,non,C
+M0151,M&A Associate,Morgan Stanley,finance:entreprise,Greater London,UK,2022-03-07,2022-05-27,2022-11-25,non,C
+M0404,Contrôleur de gestion,BNP Paribas,finance:declare,Greater London,United Kingdom,2022-04-13,2022-06-15,2022-12-20,non,C
+M0264,Contrôleur financier,Morgan Stanley,finance:declare,london,UK,2022-05-19,2022-10-11,2023-11-14,non,C
+M0329,Contrôleur de gestion,Rothschild & Co,finance:entreprise,london,United Kingdom,2022-06-10,2022-09-03,2022-10-20,non,C

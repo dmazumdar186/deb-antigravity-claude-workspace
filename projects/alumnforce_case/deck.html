@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>AlumnForce — Campaign Targeting Assistant — Senior PM Data & AI case</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; font-family: "Inter","Segoe UI",Helvetica,Arial,sans-serif; color:#1a1f2b; background:#fff; }
+.slide { width:1280px; height:720px; padding:52px 64px 44px; page-break-after: always; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+.slide:last-child { page-break-after:auto; }
+.k { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:#5b6b8a; font-weight:600; margin-bottom:8px; }
+h1 { font-size:40px; line-height:1.1; margin:0 0 18px; font-weight:800; letter-spacing:-.01em; }
+h2 { font-size:30px; line-height:1.15; margin:0 0 20px; font-weight:800; letter-spacing:-.01em; }
+h3 { font-size:17px; margin:0 0 8px; font-weight:700; color:#0f3b7a; }
+p, li { font-size:17px; line-height:1.4; }
+ul { margin:0; padding-left:20px; } li { margin-bottom:5px; }
+.lead { font-size:21px; line-height:1.4; color:#1a1f2b; }
+.muted { color:#5b6b8a; }
+.cols { display:flex; gap:28px; flex:1; } .col { flex:1; min-width:0; }
+.card { background:#f4f6fa; border-radius:10px; padding:16px 18px; margin-bottom:12px; }
+.card.navy { background:#0f3b7a; color:#fff; } .card.navy h3 { color:#bcd3ff; }
+.card.amber { background:#fff4df; } .card.green { background:#e9f7ee; } .card.red { background:#fdeaea; }
+.foot { position:absolute; bottom:18px; left:64px; right:64px; font-size:11px; color:#8a95aa; display:flex; justify-content:space-between; }
+table { border-collapse:collapse; width:100%; font-size:15px; } th,td { text-align:left; padding:6px 9px; border-bottom:1px solid #e1e5ee; vertical-align:top; } th { background:#f4f6fa; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:#5b6b8a; }
+.big { font-size:54px; font-weight:800; line-height:1; color:#0f3b7a; } .big small { font-size:16px; font-weight:600; color:#5b6b8a; display:block; margin-top:6px; }
+.pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:700; margin-right:4px; }
+.A { background:#d2f0dc; color:#135c2d; } .B { background:#ffe6b8; color:#7a4b00; } .C { background:#f7cdcd; color:#7a1414; }
+.compact p,.compact li{font-size:14.5px;line-height:1.3}.compact .card{padding:11px 14px;margin-bottom:8px}.compact h3{font-size:15px;margin-bottom:4px}
+.annex pre{font-size:9.8px;line-height:1.25;padding:8px 10px}.annex .card{padding:9px 12px!important;margin-bottom:8px}.annex .card ul,.annex .card p{font-size:11.2px!important;line-height:1.22!important}.annex .card li{margin-bottom:2px}.annex .card{margin-bottom:6px}.annex h3{font-size:14px;margin-bottom:3px}
+.quote { font-style:italic; color:#33405c; font-size:15px; border-left:3px solid #c9d3e6; padding-left:10px; margin:6px 0; }
+code, pre { font-family: "JetBrains Mono",Consolas,monospace; } pre { font-size:11.2px; line-height:1.32; background:#f4f6fa; padding:12px 14px; border-radius:8px; margin:0; white-space:pre-wrap; }
+.flow { display:flex; align-items:stretch; gap:8px; margin:10px 0; } .box { flex:1; border:2px solid #0f3b7a; border-radius:8px; padding:9px 10px; font-size:13.5px; line-height:1.3; background:#fff; }
+.box.llm { border-color:#c25e00; background:#fff4df; } .box.det { border-color:#1b7a3e; background:#e9f7ee; } .box.hum { border-color:#6b3fa0; background:#f1e9fb; }
+.box b { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+.arrow { align-self:center; font-size:20px; color:#5b6b8a; }
+.legend span { font-size:12px; margin-right:14px; } .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+</style></head><body>
+
+<!-- 1 -->
+<section class="slide">
+<div class="k">AlumnForce · Senior Product Manager Data & AI · Case study, step 2 · Debanjan Mazumdar · October 2026</div>
+<h1>Campaign Targeting Assistant<br><span style="color:#0f3b7a">From a sentence to a segment you can trust.</span></h1>
+<p class="lead">The administrator describes the audience in one sentence. The platform returns a segment <b>with a confidence grade</b> and the filters it used, inside the existing segmenter. No member record ever leaves the platform.</p>
+<div class="cols" style="margin-top:10px">
+ <div class="col card"><h3>For the administrator</h3><p>A list in minutes instead of an hour, and a list that is <i>true</i>: every member graded fresh / to verify / stale before the send.</p></div>
+ <div class="col card"><h3>For the client's leadership</h3><p>Board-grade numbers ("1,200 in finance, 180 in London, 40 % paying") that come with their reliability, and a one-sentence answer for the DPO.</p></div>
+ <div class="col card"><h3>For AlumnForce</h3><p>A credible first step toward the 2027 "platform that acts on its data", metered per tenant, shippable by 3–4 developers in one quarter, safe for clients who refuse any transfer.</p></div>
+</div>
+<div class="card navy" style="margin-top:4px"><h3>The one-line thesis</h3><p style="margin:0">The request says <b>speed</b>. The field says <b>trust</b>. The first increment therefore ships data quality and a graded segment first, and uses the language model only for the one thing it is good at: turning a sentence into filters.</p></div>
+<div class="foot"><span>1 / 15</span><span>Deliverable: 15 slides + Annex A (AI usage) + Annex B (selection logic, run on the CSV)</span></div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+<div class="k">Discovery · the existing tool, used as an administrator on the demo instance</div>
+<h2>The segmenter is better than its reputation, and blind to freshness</h2>
+<div class="cols">
+ <div class="col">
+  <table><tr><th>What I saw (Utilisateurs → Listes)</th><th>What it means for the assistant</th></tr>
+  <tr><td>~43 criteria in 10 groups (Compte, Cotisation, Formation, Situation professionnelle, Situation géographique, Mentoring…), added one by one through a searchable picker</td><td>A fixed vocabulary the model can be constrained to. The brief's "soixante critères" is the ceiling, not the floor.</td></tr>
+  <tr><td>Combination is flat: values joined by <b>OU</b> inside a property, properties stacked with <b>ET</b>. No nested groups, no relative dates ("last 30 days").</td><td>The assistant must say when a sentence cannot be expressed ("finance <i>or</i> consulting <i>unless</i> Paris") instead of pretending.</td></tr>
+  <tr><td>Ville (Lieu de travail) supports <b>"à proximité de Lyon, dans un rayon de 200 km"</b>; Expériences (Date) supports "Est après 1 janvier 2024"; Secteur and Code NAF exist on the current job.</td><td>"À Londres" maps to a geocoded radius, not to eight spellings. "Depuis trois ans" maps to an experience start date. Both already exist.</td></tr>
+  <tr><td><b>No criterion on last login or last profile update.</b> Not shown on the member profile either (only "Date d'ajout manuel").</td><td>The data that decides whether a list is true is in the database but unreachable in the tool. Deliverable 1 exposes it.</td></tr>
+  <tr><td>Live count only as the table footer ("1-25 de 53"). Lists auto-save as "Liste - 12/10/2026"; 31 exist, most unnamed. Actions: Exporter only; newsletters, SMS and cotisation calls pick lists from their own module.</td><td>Yessica's abandonment (V7) is visible in the list names. The assistant should name and describe the segment it creates.</td></tr>
+  <tr><td>A "Campagne de mise à jour" module already exists; a support chat widget exists; no AI in the segmenter.</td><td>The "please update your profile" nudge reuses an existing module. Less to build.</td></tr></table>
+ </div>
+</div>
+<div class="foot"><span>2 / 15</span><span>Also read: 12 verbatims three times; CSV profiled row by row; Annex B executed in SQLite. Method and verification in Annex A.</span></div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+<div class="k">1 · The problem, reformulated</div>
+<h2>Eight of twelve verbatims are not about speed</h2>
+<div class="cols">
+ <div class="col">
+  <table><tr><th>Need</th><th>Who says it</th><th>What they actually want</th></tr>
+  <tr><td><b>Speed</b></td><td>Sophie V1, Antoine V2, Yessica V7</td><td>Say the target once, get the list. Stop falling back to Excel.</td></tr>
+  <tr><td><b>Truth</b></td><td>Nathalie V3, Julie V5, Inès V9</td><td>A list that does not contain people who left London in 2019. "Nine tickets out of ten are the profile, not the filter."</td></tr>
+  <tr><td><b>Proof</b></td><td>Karim V4, Isabelle V10, Catherine V12</td><td>Numbers that survive a board meeting; euros justified by time saved and dues collected.</td></tr>
+  <tr><td><b>Data</b></td><td>Thomas V8, Philippe V11</td><td>"Where does my data go?" answered in one sentence, precisely.</td></tr>
+  <tr><td><b>Not for me</b></td><td>Marc V6</td><td>400 members, knows everyone. Wants the Excel columns in the right order.</td></tr></table>
+ </div>
+ <div class="col">
+  <div class="card red"><h3>The trap in the request</h3><p>"Trouve-moi les diplômés travaillant dans la finance à Londres depuis plus de trois ans." A sentence-to-filters chatbot answers Antoine and fails Nathalie, Julie, Inès, Karim, Isabelle, Philippe and Catherine. It makes the <i>wrong list faster</i>.</p></div>
+  <div class="card"><h3>What is really at stake</h3>
+  <ul><li><b>Administrator</b>: an hour per list today, and after the send, the embarrassment ("c'est n'importe quoi", two unsubscribes).</li><li><b>Client leadership</b>: the network's value is unproven; "à peu près" does not pass a board; the DPO can veto the whole feature.</li><li><b>AlumnForce</b>: the segmenter is shown at onboarding and abandoned by month six (V7); one support ticket in five is about lists (V9); large accounts ask "do you do AI?" (V8); 2027 ambition depends on data the platform can trust.</li></ul></div>
+ </div>
+</div>
+<div class="foot"><span>3 / 15</span><span>Reformulation: the admin's problem is not building the list, it is believing it.</span></div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+<div class="k">1 · The problem, reformulated · evidence from the file</div>
+<h2>The data agrees with Julie: the profile is the problem</h2>
+<div class="cols">
+ <div class="col">
+  <table><tr><th>Finding in profils-exercice-PM.csv</th><th>Value</th></tr>
+  <tr><td>Rows vs the 500 announced</td><td><b>525</b> — 25 planted duplicate persons (M0501–M0525: surname in capitals, truncated first name, gmail address, same job and start date)</td></tr>
+  <tr><td>Ways of spelling "London"</td><td><b>8</b> (london, LONDON, London, Londres, Londres (Royaume-Uni), Greater London, London, UK, London - Canary Wharf)</td></tr>
+  <tr><td>Ways of spelling the UK</td><td><b>3</b>, plus 42 rows with no country at all</td></tr>
+  <tr><td>Declared sector</td><td>missing on <b>182</b> rows; <b>73</b> people at banks declare "Services", "Autre" or nothing</td></tr>
+  <tr><td>"Master Finance" graduates</td><td>50, of which only <b>21</b> work in finance — the diploma is not the sector</td></tr>
+  <tr><td>Profile not updated for 2+ years</td><td><b>69 %</b></td></tr>
+  <tr><td>No login for 12+ months</td><td><b>78 %</b></td></tr>
+  <tr><td>Last-login dates in the future</td><td><b>61</b> rows (up to Oct 2027) — a data-entry or export defect to raise</td></tr></table>
+ </div>
+ <div class="col">
+  <div class="card navy"><h3>The insight that shapes the product</h3><p>In this file, people update their profile when they start a job (median 112 days after) and then go silent. So <b>"in post for 3+ years" and "profile untouched for 3+ years" are the same signal.</b> Every one of the 43 stale matches in Annex B has a profile older than 3.9 years and no login in two years.</p><p style="margin:0">A naive assistant answering Nathalie's request returns precisely the people most likely to have moved. That is her 340-person "expatriés Londres" email, reproduced on this file.</p></div>
+  <div class="card green"><h3>Same sentence, three answers</h3><p style="margin:0">Naive filter (ville = "Londres", secteur = "Finance"): <b>2</b> members. Normalised city and sector: <b>26</b>. Full logic with dedup and three finance sources: <b>49</b>. Fresh enough to email today: <b>6</b>. (Annex B)</p></div>
+ </div>
+</div>
+<div class="foot"><span>4 / 15</span><span>All figures computed from the file with the reference date 2026-10-12.</span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+<div class="k">2 · The first increment</div>
+<h2>Principle: a graded segment, not a chatbot</h2>
+<div class="cols">
+ <div class="col">
+  <div class="card"><h3>Three deliberate choices</h3>
+  <ul><li><b>Deterministic first.</b> Normalisation, deduplication and freshness grading run in MariaDB/PHP with no model call. They create value for every tenant, including Marc's 400-member club and Philippe's university that will refuse any transfer.</li>
+  <li><b>The model does one thing.</b> It turns the admin's sentence into a structured filter set, constrained to the segmenter's existing ~60 criteria. It never sees a member.</li>
+  <li><b>The human keeps the hand.</b> The filters land pre-filled in the segmenter the admin already knows. They edit, see the graded count, then save or send. Nothing is sent automatically.</li></ul></div>
+  <div class="card amber"><h3>Why not the chatbot Antoine asked for</h3><p style="margin:0">A free chat over profiles needs member data in the prompt (DPO veto), has no evaluable output, and sets a "ChatGPT" expectation we cannot meet with 3 developers in a quarter. A constrained assistant with visible filters is evaluable, explainable and reversible.</p></div>
+ </div>
+ <div class="col">
+  <div class="card navy"><h3>What the admin sees (target experience)</h3>
+  <p>Types: <i>"anciens de la promo 2015 à 2018 qui bossent dans la finance à Londres"</i></p>
+  <p>Gets, in under 5 seconds: the segmenter opened with <b>Promotion: entre 2015 et 2018 · Secteur (Poste actuel): Finance OU Banque OU Finance/Assurance · Ville (Lieu de travail): à proximité de London, 30 km</b> and a count: <b>72 members</b> — <span class="pill A">31 fresh</span><span class="pill B">14 to verify</span><span class="pill C">27 stale</span></p>
+  <p>One click: send to fresh + to-verify, and launch a "please confirm your profile" nudge to the stale 27 through the existing Campagne de mise à jour. The segment is saved with its sentence, its filters and its grades, so Karim can quote it to his board next month.</p></div>
+ </div>
+</div>
+<div class="foot"><span>5 / 15</span><span>Working name for the feature: "Ciblage assisté" — deliberately not "chat".</span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+<div class="k">2 · The first increment · scope for one quarter</div>
+<h2>Four deliverables, in this order</h2>
+<table>
+<tr><th style="width:26%">Deliverable</th><th>What ships</th><th style="width:30%">Why it is in Q1</th></tr>
+<tr><td><b>1. Data-quality layer</b><br><span class="muted">deterministic, no model</span></td><td>Reference tables for city, country and sector-from-employer; duplicate detection (same identity rules as Annex B, admin confirms merges); a <b>freshness grade</b> per member (A/B/C from profile age and last login); a per-instance "data health" panel.</td><td>It is the product. Without it the assistant returns 2 or 49 people for the same sentence. It also answers the "clean the database" need directly and works for tenants with the AI flag off.</td></tr>
+<tr><td><b>2. Sentence → filters</b><br><span class="muted">the only model call</span></td><td>Admin sentence + criteria schema + reference value lists → strict JSON filter set via the internal AI gateway (EU region). A validator rejects unknown criteria and maps values to the reference tables. Result pre-fills the existing segmenter.</td><td>This is the "say it in five seconds" value. Scoped to one call, one schema, no member data, so it is cheap, evaluable and DPO-explainable.</td></tr>
+<tr><td><b>3. Graded segment & actions</b></td><td>Counts by grade on every segment (assistant-built or not); "send to A+B" and "nudge C" (existing Campagne de mise à jour) actions; last-login and last-update exposed as criteria; segment saved with a generated name, the sentence, filters, grades and author.</td><td>Turns a list into a trustworthy list (Nathalie, Julie, Inès) and into a number with a reliability attached (Karim, Isabelle).</td></tr>
+<tr><td><b>4. Tenant flag, metering, evals</b></td><td>Feature flag per instance and in bulk; every model call logged with tenant, admin, tokens and cost; golden-set eval run on every prompt or model change; weekly cost and quality report.</td><td>The brief's cost constraint and the kill criterion both need this from day one, not as an afterthought.</td></tr>
+</table>
+<div class="foot"><span>6 / 15</span><span>Team: 1 PM, 3–4 shared developers. Pilot on 10 instances in weeks 9–11, go/no-go in week 12 (slide 13).</span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+<div class="k">2 · The first increment · what I explicitly leave out</div>
+<h2>Not in Q1, and why</h2>
+<table>
+<tr><th style="width:30%">Excluded</th><th>Reason</th><th style="width:22%">When</th></tr>
+<tr><td>Free-text, multi-turn chat over the member base</td><td>Requires member data in the prompt; not evaluable; sets a "ChatGPT" expectation (V2) we cannot meet and the DPO (V11) will refuse.</td><td>Not planned as such</td></tr>
+<tr><td>Retrieval (RAG) or semantic search over profiles in OpenSearch</td><td>Only useful once sectors, cities and employers are normalised; otherwise it embeds the noise. Also a transfer of member text to a model.</td><td>Q2, deterministic-first</td></tr>
+<tr><td>Automatic correction of profiles</td><td>The platform proposes ("you seem to have left Lehman Brothers"), the member confirms. Silent edits destroy the trust we are building.</td><td>Q2 nudge loop via n8n is in; auto-edit never</td></tr>
+<tr><td>Enrichment from external sources (LinkedIn, company registries)</td><td>Legal basis unclear for most tenants; cost per profile; not needed to prove the increment.</td><td>Decision after pilot, per tenant</td></tr>
+<tr><td>"Three questions for the board" analytics assistant (V10)</td><td>The most valuable ask, but it needs the data-quality layer first or it produces confident wrong numbers. Grades on segments are its foundation.</td><td>Q2 headline</td></tr>
+<tr><td>Automatic sending, SMS, cotisation calls triggered by the assistant</td><td>Human stays between the list and the send. Existing actions on a saved segment are reused unchanged.</td><td>Unchanged behaviour</td></tr>
+<tr><td>Fine-tuning, own model hosting, multilingual beyond FR/EN</td><td>No evidence it is needed; prompt + schema + evals is enough for the first increment and keeps the provider choice open.</td><td>Revisit with eval data</td></tr>
+</table>
+<div class="foot"><span>7 / 15</span><span>The existing segmenter keeps working identically for every instance where the flag is off.</span></div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+<div class="k">3 · The orchestration</div>
+<h2>What goes through the model, and what never does</h2>
+<div class="legend"><span><i style="background:#f1e9fb;border:1px solid #6b3fa0"></i>Human</span><span><i style="background:#e9f7ee;border:1px solid #1b7a3e"></i>Deterministic (PHP / MariaDB / OpenSearch / n8n)</span><span><i style="background:#fff4df;border:1px solid #c25e00"></i>Language model, via the internal gateway</span></div>
+<div class="flow">
+ <div class="box hum"><b>1 · Admin</b>Types a sentence in the segmenter. Session carries tenant, role and visible criteria.</div><div class="arrow">→</div>
+ <div class="box det"><b>2 · Pre-flight</b>Length cap, strip emails/phone numbers from the sentence, check tenant flag and per-tenant quota, cache lookup (same sentence, same tenant).</div><div class="arrow">→</div>
+ <div class="box llm"><b>3 · Model call</b>Input: the sentence + the schema of the ~43 criteria and operators <i>this admin may use</i> (ET of OU, radius, date bounds) + reference value lists. Output: strict JSON filter set, or "cannot map" with the unmatched part. <b>No member row, ever.</b></div><div class="arrow">→</div>
+ <div class="box det"><b>4 · Validator</b>Rejects unknown criteria; maps values to reference tables ("Londres" → London); applies the admin's permission scope; logs tenant, admin, tokens, cost.</div><div class="arrow">→</div>
+ <div class="box det"><b>5 · Query + grading</b>Existing segmenter engine runs the filters on MariaDB/OpenSearch; each result gets its A/B/C freshness grade.</div><div class="arrow">→</div>
+ <div class="box hum"><b>6 · Admin decides</b>Sees filters pre-filled, graded count, the part that could not be mapped. Edits, saves, sends, or nudges the stale ones.</div>
+</div>
+<div class="cols" style="margin-top:6px">
+ <div class="col card"><h3>Rights</h3><p style="margin:0">The assistant runs inside the admin's session: same ACL as the segmenter, criteria they cannot see are not even in the schema sent to the model; results are scoped to their instance by the existing query layer. Nothing new to secure.</p></div>
+ <div class="col card"><h3>Where the human is</h3><p style="margin:0">Before (writes the sentence), in the middle (sees and edits the filters), after (chooses the action). The model never triggers a send, a merge or a profile edit.</p></div>
+ <div class="col card"><h3>Degraded mode</h3><p style="margin:0">Gateway down, quota reached, flag off, or model returns "cannot map": the segmenter works exactly as today. The feature is additive.</p></div>
+</div>
+<div class="foot"><span>8 / 15</span><span>The model is a translator with a fixed vocabulary, not a search engine over people.</span></div>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+<div class="k">3 · The orchestration · data, cost, business model</div>
+<h2>The one-sentence answer for the DPO, and what a use costs</h2>
+<div class="cols">
+ <div class="col">
+  <div class="card navy"><h3>For Thomas (V8) and Philippe (V11), one sentence</h3><p style="margin:0;font-size:19px">"Only the administrator's question and the list of filter names leave the platform, to a model hosted in the EU; never a member's name, e-mail or profile."</p></div>
+  <div class="card"><h3>Minimised, justified, traceable</h3><ul style="margin:0"><li><b>Minimised</b>: prompt = sentence + schema + reference lists. Pre-flight strips personal identifiers typed in the sentence ("send to marie.dupont@…").</li><li><b>Justified</b>: the only purpose is translation into filters; documented in the record of processing.</li><li><b>Traceable</b>: every call logged with tenant, admin, timestamp, prompt hash, tokens, model, region; exportable per tenant for a DPO audit.</li><li><b>Refusable</b>: tenants who refuse any transfer keep deliverables 1 and 3 (no model) and lose only the sentence box.</li></ul></div>
+ </div>
+ <div class="col">
+  <div class="card"><h3>Cost of one use (to be confirmed on the gateway in week 1)</h3><p>~1,500–2,500 input tokens (schema + lists dominate; cacheable prefix), ~150–300 output tokens. On a mid-tier model that is a fraction of a euro cent per request; at 200 requests a month for a heavy tenant, well under one euro. The real cost is engineering, not inference. The cost meter exists because the brief requires knowing <i>which client generates what</i>, and because a runaway loop must be visible the same day.</p></div>
+  <div class="card green"><h3>Business model — my position</h3><p style="margin:0"><b>Included</b> in the subscription with a fair-use quota per tenant (e.g. 300 requests/month), metered beyond. Catherine (V12) will not pay for "AI"; she will pay for dues collected. Pricing the sentence box would kill adoption before we can measure value. If after the pilot the freshness nudge demonstrably lifts dues, <i>that</i> loop can become a priced option.</p></div>
+ </div>
+</div>
+<div class="foot"><span>9 / 15</span><span>Provider and region: EU-hosted endpoint through the internal gateway; provider choice stays open and swappable because the contract is "schema in, JSON out".</span></div>
+</section>
+
+<!-- 10 -->
+<section class="slide compact">
+<div class="k">4 · The measure</div>
+<h2>Quality, adoption, value — and the criterion that stops it</h2>
+<div class="cols">
+ <div class="col">
+  <div class="card"><h3>Quality (offline evals, before any tenant sees it)</h3><ul style="margin:0"><li>Golden set of <b>60–100 real sentences</b> collected with CS from tickets and the verbatims, each with the expected filter set, written by two people independently.</li><li>Metrics: filter-level precision and recall; exact-match rate; "cannot map" rate on sentences that <i>should</i> fail (e.g. "the ones who look rich").</li><li>Gate: exact match ≥ 85 %, no false criterion on permission-restricted fields, re-run on every prompt, schema or model change. Results versioned next to the prompt.</li></ul></div>
+  <div class="card"><h3>Quality (online, in use)</h3><ul style="margin:0"><li><b>Edit rate</b>: share of generated filters the admin changes before saving.</li><li><b>Rejection rate</b>: sentence typed, nothing saved.</li><li>Weekly manual sample of 20 sentences by PM + CS during the pilot.</li></ul></div>
+ </div>
+ <div class="col">
+  <div class="card"><h3>Adoption</h3><ul style="margin:0"><li>Share of new segments created via the sentence box, per tenant.</li><li>Weekly active admins using it; return use in week 2 and week 4.</li><li>Excel export share of list-building — should fall (V1, V7).</li><li>List-related support tickets per 100 campaigns (V9's "one in five").</li></ul></div>
+  <div class="card"><h3>Value</h3><ul style="margin:0"><li>Time from first click to saved segment (baseline measured before launch).</li><li>"Not me / I moved" replies and unsubscribes per campaign (V3).</li><li>Share of grade-A profiles per instance, month over month; profile updates triggered by nudges.</li><li>Response rate on dues campaigns sent to A+B vs historical.</li></ul></div>
+  <div class="card red"><h3>Stop criterion</h3><p style="margin:0">After 8 weeks on 10 pilot instances: if fewer than <b>30 %</b> of new segments go through the sentence box, <b>or</b> the edit rate stays above <b>50 %</b>, <b>or</b> grade-A share has not moved, I stop the model layer and keep the data-quality layer, which will have paid for itself in tickets alone.</p></div>
+ </div>
+</div>
+<div class="foot"><span>10 / 15</span><span>Baselines are measured in weeks 1–4 on the current segmenter, so the pilot compares against a number, not a feeling (V7).</span></div>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+<div class="k">5 · The risks</div>
+<h2>Three risks, and my position on each</h2>
+<div class="cols">
+ <div class="col card red"><h3>1 · The data is too dirty for any assistant to look good</h3><p>69 % of profiles untouched for two years; sectors missing on a third; eight spellings of one city. An assistant on top of this returns wrong lists with confidence, and the brand damage lands on AlumnForce, not on the model.</p><p><b>Position:</b> data quality <i>is</i> the first increment, not a prerequisite someone else owns. Grades make the dirt visible instead of hiding it, and the nudge loop starts cleaning it from day one. I accept shipping the sentence box later than a pure-AI roadmap would.</p></div>
+ <div class="col card amber"><h3>2 · Personal data and the DPO veto</h3><p>Philippe (V11) will block any transfer of student data to a US model; several tenants will refuse categorically. One ambiguous answer in a sales call and the feature is dead for that account.</p><p><b>Position:</b> design so the answer is short and true: no member data in any prompt, EU-hosted endpoint, per-call log exportable per tenant, flag per instance. Tenants who still say no get everything except the sentence box. I will not trade this for a richer prompt.</p></div>
+ <div class="col card"><h3>3 · The expectation gap</h3><p>Antoine (V2) expects ChatGPT. The product is a translator with a fixed vocabulary. If the first demo feels like a dumber chatbot, pilots disengage and Yessica's story repeats (V7).</p><p><b>Position:</b> never call it a chat; always show the filters it produced and the part it could not map; make the first win the graded count, which no chatbot gives them. Onboard the three expert tenants first so the pattern is set by people who know what a filter is.</p></div>
+</div>
+<div class="card" style="margin-top:4px"><p style="margin:0"><b>Watched but not top three:</b> cost runaway (metered and capped per tenant from day one); model-provider lock-in (schema-in/JSON-out contract keeps it swappable); small tenants finding it irrelevant (V6 — the flag stays off for them and they still get the data-health panel).</p></div>
+<div class="foot"><span>11 / 15</span><span>Each position is a trade I am willing to defend, not a mitigation list.</span></div>
+</section>
+
+<!-- 12 -->
+<section class="slide">
+<div class="k">The quarter</div>
+<h2>Twelve weeks, 3–4 shared developers</h2>
+<table>
+<tr><th style="width:14%">Weeks</th><th>Work</th><th style="width:28%">Output</th></tr>
+<tr><td>1–2</td><td>Instrument the current segmenter (time-to-list, Excel exports, ticket tags). Build the golden set with CS. Decide reference tables and freshness thresholds with 3 expert tenants. Confirm gateway region and cost.</td><td>Baselines; golden set v1; data-quality spec</td></tr>
+<tr><td>3–6</td><td>Deliverable 1: normalisation tables, duplicate detection with admin-confirmed merges, freshness grade, data-health panel. Backfill on pilot tenants.</td><td>Graded member base on 10 instances</td></tr>
+<tr><td>5–9</td><td>Deliverable 2 and 4: gateway integration, schema builder from the admin's visible criteria, validator, metering, feature flag, eval harness in CI. Deliverable 3: graded counts and the two actions in the segmenter UI.</td><td>Sentence box behind the flag; eval gate ≥ 85 %</td></tr>
+<tr><td>9–11</td><td>Pilot: 3 expert tenants, 5 mid-size, 2 small (one that refuses transfer, to prove the no-model path). Weekly review of 20 sentences; weekly cost report.</td><td>Pilot dashboard</td></tr>
+<tr><td>12</td><td>Go / no-go against the stop criterion. Decide pricing of the nudge loop. Write the Q2 brief: "three questions for the board".</td><td>Decision memo</td></tr>
+</table>
+<div class="cols" style="margin-top:10px">
+ <div class="col card"><h3>Developer split (indicative)</h3><p style="margin:0">Backend 1: reference tables, dedup, grades (PHP/MariaDB). Backend 2: gateway, validator, metering, evals. Front: segmenter UI (Vue). Shared/4th: n8n nudge workflow, data-health panel.</p></div>
+ <div class="col card"><h3>What I need from the CPO in week 1</h3><p style="margin:0">Access to list-related tickets; the segmenter's criteria model; the gateway's current provider and region; the list of tenants who have already refused AI.</p></div>
+</div>
+<div class="foot"><span>12 / 15</span><span>If the quarter slips, deliverable 2 slips; deliverable 1 ships regardless.</span></div>
+</section>
+
+<!-- 13 -->
+<section class="slide">
+<div class="k">Toward 2027</div>
+<h2>Why this increment is the right first step for "a platform that acts on its data"</h2>
+<div class="cols">
+ <div class="col">
+  <div class="card"><h3>Q2 — Answers for leadership</h3><p style="margin:0">"How many alumni placed, where, in which sectors" (V10) as three questions over the <i>graded</i> base: every number carries its reliability. Same translator, new output type (aggregate instead of list), on the existing Statistiques module's data, still no member data in the prompt.</p></div>
+  <div class="card"><h3>Q3 — Automations that keep the base alive</h3><p style="margin:0">n8n loops: nudge on job-change signals, re-grade after each login, suggest merges. The platform maintains its own freshness instead of the admin.</p></div>
+  <div class="card"><h3>2027 — Agents on segments</h3><p style="margin:0">An agent that proposes a dues campaign to the right 180 people, with the list, the grades and the expected response rate, and waits for a human yes. Possible only because the three previous steps made the data trustworthy and the actions auditable.</p></div>
+ </div>
+ <div class="col">
+  <div class="card navy"><h3>The thread through all of it</h3><ul style="margin:0"><li>Deterministic where the answer must be exact (who is in the list, what it costs, who may see what).</li><li>A model where language is the input (a sentence, a question).</li><li>A grade on every output, so the platform can say how much to trust itself.</li><li>A human before every irreversible action.</li></ul></div>
+  <div class="card green"><h3>What this gives AlumnForce commercially</h3><p style="margin:0">A true "yes" to "do you do AI?" with a one-sentence data answer; a data-health score every CS can show at renewal; a measured basis to price automation later, instead of pricing a text box now.</p></div>
+ </div>
+</div>
+<div class="foot"><span>13 / 15</span><span>Each quarter is justified by the previous one's measured value, or stopped.</span></div>
+</section>
+
+<!-- 14 -->
+<section class="slide">
+<div class="k">Summary</div>
+<h2>What I am asking you to decide</h2>
+<div class="cols">
+ <div class="col">
+  <div class="card navy"><h3>Decision</h3><p style="margin:0">Fund one quarter for a <b>graded targeting assistant</b>: data-quality layer first, one constrained model call, human in the segmenter, metered per tenant, with a stop criterion at week 12.</p></div>
+  <div class="card"><h3>What you get at week 12</h3><ul style="margin:0"><li>Ten instances with a graded, deduplicated, normalised member base and a data-health panel.</li><li>A sentence box that pre-fills the segmenter, with an eval gate and a per-tenant cost line.</li><li>A one-sentence data answer that sales and CS can use tomorrow.</li><li>Measured numbers: time to list, edit rate, "not me" replies, grade-A share, dues response.</li></ul></div>
+ </div>
+ <div class="col">
+  <div class="card amber"><h3>What I would not do even if asked</h3><ul style="margin:0"><li>Put member rows in a prompt to make the assistant "smarter".</li><li>Let the model send, merge or edit anything.</li><li>Ship the sentence box before the grades exist.</li></ul></div>
+  <div class="card"><h3>Questions I bring to the exchange</h3><ul style="margin:0"><li>Which tenants have already said no to AI, and on what grounds?</li><li>How are criteria and permissions modelled in the segmenter today?</li><li>What does the gateway log per call now, and in which region does it run?</li><li>How are the three "expert" tenants different from the rest?</li></ul></div>
+ </div>
+</div>
+<div class="foot"><span>14 / 15</span><span>Annex A (AI usage) and Annex B (selection logic) follow.</span></div>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+<div class="k">Closing</div>
+<h2>The sentence I want you to remember</h2>
+<p class="lead" style="font-size:30px;line-height:1.3;margin-top:60px;max-width:1000px">"The administrator's problem is not building the list.<br>It is believing it.<br>So the first thing the assistant returns is not a list, it is a <span style="color:#0f3b7a">grade</span>."</p>
+<p class="muted" style="margin-top:50px">Debanjan Mazumdar · Senior Product Manager Data & AI · AlumnForce case study · October 2026</p>
+<div class="foot"><span>15 / 15</span><span>Thank you. 30 minutes of questions, then 10 minutes of mine.</span></div>
+</section>
+
+<!-- Annex A -->
+<section class="slide">
+<div class="k">Annex A · Use of AI for this case (half a page)</div>
+<h2>How I used AI tools, and what I checked myself</h2>
+<div class="cols">
+ <div class="col">
+  <div class="card"><h3>What AI did</h3><ul style="margin:0"><li>Read the brief and the verbatims with me and proposed a first coding of needs; I re-read all twelve three times and changed the grouping (the "proof" group was my addition).</li><li>Wrote the pandas and SQL scaffolding to profile the CSV and to run the Annex B query.</li><li>Drafted slide wording from my outline; I rewrote every position and every number.</li><li>Drove a browser session on the demo instance to list menus and criteria faster than I would by hand.</li></ul></div>
+ </div>
+ <div class="col">
+  <div class="card green"><h3>What I verified myself</h3><ul style="margin:0"><li>Every figure in slides 4 and Annex B against the file: row count, spellings, nulls, the 25 duplicates (checked pair by pair), the 49 / 26 / 2 counts, the grade split.</li><li>That no number in the deck comes from a model's memory (token prices are given as an order of magnitude and marked "to confirm on the gateway").</li><li>That the SQL in Annex B actually runs on SQLite as written and returns 49 rows.</li><li>The demo-instance observations, by reading the page text, not a summary.</li></ul></div>
+  <div class="card amber"><h3>Where I did not trust it</h3><p style="margin:0">Anything about AlumnForce's internals (gateway, provider, pricing) — those are stated as open questions. The duplicate-matching rule, which I loosened and tightened by hand until all 25 planted rows matched exactly one original and no real pair matched by accident.</p></div>
+ </div>
+</div>
+<div class="foot"><span>Annex A</span><span>Discernment, not abstinence: AI for volume, me for every claim.</span></div>
+</section>
+
+<!-- Annex B -->
+<section class="slide annex" style="padding-top:26px;padding-bottom:18px">
+<div class="k">Annex B · Selection logic (one page) · "les diplômés travaillant dans la finance à Londres depuis plus de trois ans" · full SQL and 49-row result attached (annexB.sql, annexB_result.csv)</div>
+<div class="cols" style="gap:16px">
+ <div class="col" style="flex:1.2">
+<pre>-- Reference date 2026-10-12. Run as written on SQLite, CSV loaded unchanged as `profils`.
+-- 0. DEDUPLICATE: file has 525 rows, brief says 500. M0501..M0525 are duplicate persons
+--    (capitalised/compound surname, truncated first name, gmail, same job + start date).
+CREATE TABLE membres AS
+WITH p AS (SELECT *, lower(substr(prenom,1,3)) pn,
+            lower(replace(replace(replace(nom,'-',''),' ',''),'.','')) nn FROM profils),
+doublons AS (SELECT b.member_id drop_id FROM p a JOIN p b
+   ON a.member_id&lt;&gt;b.member_id AND a.pn=b.pn
+  AND (instr(a.nn,b.nn)&gt;0 OR instr(b.nn,a.nn)&gt;0)
+  AND (a.date_debut_poste=b.date_debut_poste OR a.poste=b.poste)
+  AND (a.date_maj_profil&gt;b.date_maj_profil OR (a.date_maj_profil=b.date_maj_profil AND a.member_id&lt;b.member_id)))
+SELECT * FROM p WHERE member_id NOT IN (SELECT drop_id FROM doublons);      -- 499 members
+-- 1. NORMALISE (deterministic lookup tables, no model, nothing leaves the platform)
+CREATE TABLE membres_norm AS SELECT m.*,
+ CASE WHEN lower(ville) LIKE '%london%' OR lower(ville) LIKE '%londres%'
+       OR lower(ville) LIKE '%canary wharf%' THEN 'London' ELSE ville END ville_norm, -- 8 forms
+ CASE WHEN lower(trim(coalesce(pays,''))) IN ('uk','united kingdom','royaume-uni') THEN 'GB'
+      WHEN pays IS NULL AND lower(ville) LIKE '%lond%' THEN 'GB' ELSE pays END pays_norm,
+ CASE WHEN secteur_declare IN ('Finance','Banque','Finance / Assurance') THEN 'finance:declare'
+      WHEN entreprise IN ('Amundi','AXA IM','Barclays','BNP Paribas','Crédit Agricole CIB',
+        'Deutsche Bank','Goldman Sachs','HSBC','J.P. Morgan','Lazard','Morgan Stanley',
+        'Natixis','Rothschild &amp; Co','Société Générale','UBS') THEN 'finance:entreprise'
+      WHEN lower(poste) REGEXP 'financ|m&amp;a|investment bank|ib analyst|trader|quant|portfolio
+        |asset manag|opcvm|private equity|equity research|treasury|credit risk|risk manager
+        |contrôleur de gestion|fp&amp;a|banquier|conformité bancaire|auditeur financier
+        |chargé d.affaires|gestionnaire de portefeuille|directeur financier' THEN 'finance:poste'
+      ELSE 'non' END finance_src,
+ CASE WHEN date_maj_profil &gt;= date('2026-10-12','-2 years')
+       OR derniere_connexion &gt;= date('2026-10-12','-1 year') THEN 'A'      -- fresh
+      WHEN date_maj_profil &gt;= date('2026-10-12','-4 years') THEN 'B'       -- to verify
+      ELSE 'C' END fraicheur                                                -- stale
+FROM membres m;
+-- 2. SELECT
+SELECT member_id, poste, entreprise, finance_src, fraicheur FROM membres_norm
+WHERE ville_norm='London'                                  -- "à Londres"
+  AND finance_src&lt;&gt;'non'                                   -- "dans la finance"
+  AND date_debut_poste &lt;= date('2026-10-12','-3 years')    -- "depuis plus de trois ans"
+  AND promo &lt;= 2026;                       -- "diplômés": all are (promos 2005-2024)</pre>
+ </div>
+ <div class="col">
+  <div class="card" style="padding:9px 12px"><h3>Result</h3><p style="margin:0"><b>49 members</b> (499 after dedup → 168 in London → 72 in finance → 49 with 3+ years in post). Source: 24 declared sector, 17 employer, 8 job keywords. Freshness: <span class="pill A">A 1</span><span class="pill B">B 5</span><span class="pill C">C 43</span> · 14 paying. Naive filter (ville='Londres', secteur='Finance'): <b>2</b>. Normalised, no dedup: <b>26</b>.</p></div>
+  <div class="card" style="padding:9px 12px"><h3>Assumptions</h3><ul style="margin:0"><li>Reference date 2026-10-12 (latest date in the file: 2026-09-22).</li><li>"Diplômés" = everyone (promos 2005–2024). The "Master Finance" diploma is not a finance signal: only 21 of its 50 holders work in finance.</li><li>"Finance" = declared sector, else employer in a finance reference list, else job-title keywords. Keywords are the weakest source: 2 of 8 are doubtful ("Professeur de finance" at Renault, "Assistant administratif et financier" at Orange) and are shown as "to confirm".</li><li>"3+ years" = current job started on or before 2023-10-12.</li></ul></div>
+  <div class="card amber" style="padding:9px 12px"><h3>What the data cannot verify, and what the product does</h3><ul style="margin:0"><li><b>"In London for 3+ years"</b>: no date for the location, only for the job. Job tenure is the proxy, labelled "3+ years in current role" in the UI.</li><li><b>"Still true"</b>: 43 of 49 profiles are 4+ years old with no login in 2 years. Graded C; a nudge is offered before any send instead of silent inclusion.</li><li><b>Duplicates</b>: merges proposed to the admin, never applied silently.</li></ul></div>
+ </div>
+</div>
+
+</section>
+</body></html>
