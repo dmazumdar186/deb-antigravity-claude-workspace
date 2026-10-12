@@ -1,5 +1,5 @@
 -- Annexe B — Logique de sélection. Date de référence : 2026-10-12.
--- Exécuté tel quel sur SQLite, profils-exercice-PM.csv chargé sans modification dans la table `profils`.
+-- Runs as written on SQLite (LIKE only, no REGEXP). For MariaDB replace date(d,'-N years') by DATE_SUB(d, INTERVAL N YEAR). CSV loaded unchanged as `profils`.
 
 -- 0. DÉDOUBLONNAGE. Le brief annonce 500 membres ; le fichier en contient 525.
 --    Les 25 lignes M0501..M0525 sont des doublons de personnes déjà présentes
@@ -32,7 +32,7 @@ SELECT m.*,
   CASE WHEN lower(ville) LIKE '%london%' OR lower(ville) LIKE '%londres%' OR lower(ville) LIKE '%canary wharf%'
        THEN 'London' ELSE ville END                                          AS ville_norm,
   -- le pays existe sous 3 graphies et manque 42 fois ; on le déduit de la ville quand il manque
-  CASE WHEN lower(trim(coalesce(pays,''))) IN ('uk','united kingdom','royaume-uni') THEN 'GB'
+  CASE WHEN lower(trim(coalesce(pays,''))) IN ('uk','united kingdom','royaume-uni','england','angleterre') THEN 'GB'
        WHEN pays IS NULL AND (lower(ville) LIKE '%london%' OR lower(ville) LIKE '%londres%') THEN 'GB'
        ELSE pays END                                                         AS pays_norm,
   -- "finance" réconcilié à partir de 3 sources, par ordre de confiance :
@@ -42,12 +42,14 @@ SELECT m.*,
     WHEN entreprise IN ('Amundi','AXA IM','Barclays','BNP Paribas','Crédit Agricole CIB','Deutsche Bank','Goldman Sachs',
                         'HSBC','J.P. Morgan','Lazard','Morgan Stanley','Natixis','Rothschild & Co','Société Générale','UBS')
          THEN 'finance:entreprise'
-    WHEN lower(poste) REGEXP 'financ|m&a|investment bank|ib analyst|trader|quant|portfolio|asset manag|opcvm|private equity|equity research|treasury|credit risk|risk manager|contrôleur de gestion|fp&a|banquier|conformité bancaire|auditeur financier|chargé d.affaires|gestionnaire de portefeuille|directeur financier'
+    WHEN (lower(poste) LIKE '%financ%' OR lower(poste) LIKE '%m&a%' OR lower(poste) LIKE '%investment bank%' OR lower(poste) LIKE '%ib analyst%' OR lower(poste) LIKE '%trader%' OR lower(poste) LIKE '%quant%' OR lower(poste) LIKE '%portfolio%' OR lower(poste) LIKE '%asset manag%' OR lower(poste) LIKE '%opcvm%' OR lower(poste) LIKE '%private equity%' OR lower(poste) LIKE '%equity research%' OR lower(poste) LIKE '%treasury%' OR lower(poste) LIKE '%credit risk%' OR lower(poste) LIKE '%risk manager%' OR lower(poste) LIKE '%contrôleur de gestion%' OR lower(poste) LIKE '%fp&a%' OR lower(poste) LIKE '%banquier%' OR lower(poste) LIKE '%conformité bancaire%' OR lower(poste) LIKE '%auditeur financier%' OR lower(poste) LIKE '%chargé d''affaires%' OR lower(poste) LIKE '%gestionnaire de portefeuille%' OR lower(poste) LIKE '%directeur financier%')
          THEN 'finance:poste'
     ELSE 'non' END                                                            AS finance_src,
   -- FRAÎCHEUR : ce que les données permettent réellement de dire sur "est-ce encore vrai ?"
   --   A = profil mis à jour < 2 ans OU connexion < 1 an ; B = mis à jour entre 2 et 4 ans ; C = plus vieux
-  CASE WHEN date_maj_profil >= date('2026-10-12','-2 years') OR derniere_connexion >= date('2026-10-12','-1 year') THEN 'A'
+  -- 61 rows carry a last-login date in the future (export defect): a future date is ignored, never trusted
+  CASE WHEN date_maj_profil >= date('2026-10-12','-2 years')
+         OR (derniere_connexion >= date('2026-10-12','-1 year') AND derniere_connexion <= '2026-10-12') THEN 'A'
        WHEN date_maj_profil >= date('2026-10-12','-4 years') THEN 'B'
        ELSE 'C' END                                                          AS fraicheur
 FROM membres m;
@@ -57,6 +59,7 @@ SELECT member_id, poste, entreprise, finance_src, ville, pays, date_debut_poste,
        derniere_connexion, cotisant, fraicheur
 FROM membres_norm
 WHERE ville_norm = 'London'                                   -- "à Londres" : ville normalisée
+  AND (pays_norm = 'GB')                                      -- garde-fou pays : exclut un London (Ontario) si le pays est renseigné
   AND finance_src <> 'non'                                    -- "dans la finance" : 3 sources réconciliées
   AND date_debut_poste <= date('2026-10-12','-3 years')       -- "depuis plus de trois ans" : proxy = ancienneté dans le poste actuel
   AND promo <= 2026                                           -- "diplômés" : tous le sont ici (promos 2005-2024)
