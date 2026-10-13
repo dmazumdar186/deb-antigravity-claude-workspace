@@ -20,7 +20,7 @@ Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on
 
 ## Honest gaps (kept, not papered over)
 
-- Dev-week estimate (36 core), token cost, 80k-instance backfill duration, and the "~43 criteria / 31 lists" demo observations rest on one session and one estimate; the Lead Developer's numbers win.
+- Dev-week estimate (36 core), token cost, 80k-instance backfill duration, and the "~45 criteria / 31 lists" demo observations rest on one session and one estimate; the Lead Developer's numbers win.
 - Competitor claims (Hivebrite, Graduway) are hedged, not verified.
 - Legal positions are what the candidate would check with a DPO, not advice; the tenant decides its basis.
 - The 2 y / 4 y / 1 y thresholds are initial and lopsided on this synthetic file (43 of 49 to reactivate); hand-grading in weeks 1–2 is the test.
