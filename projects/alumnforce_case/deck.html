@@ -342,7 +342,7 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 -- Column names are the dataset's own (French); everything else is English.
 -- 0. DEDUPLICATE: file has 525 rows, brief says 500. M0501..M0525 are duplicate persons
 --    (capitalised/compound surname, truncated first name, gmail, same job + start date).
-CREATE TABLE members AS
+CREATE TABLE members AS            -- (preceded by DROP TABLE IF EXISTS in the attached file)
 WITH p AS (SELECT *, lower(substr(prenom,1,3)) fn,
             lower(replace(replace(replace(nom,'-',''),' ',''),'.','')) ln FROM profils),
 duplicates AS (SELECT b.member_id drop_id FROM p a JOIN p b

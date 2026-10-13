@@ -15,12 +15,12 @@ Deliverable for the AlumnForce recruitment case: frame a natural-language campai
 
 Input file expected by the SQL: `profils-exercice-PM.csv`, 526 lines including the header (525 rows, 500 members after deduplication). The raw input CSV and the brief PDF are not committed (they were provided by AlumnForce and stay in the shared folder).
 
-## Key numbers (all computed from profils-exercice-PM.csv, reference date 2026-10-12)
+## Key numbers (computed from profils-exercice-PM.csv, reference date 2026-10-12, on the 500 members after deduplication unless stated)
 
 - 525 rows for 500 announced members: M0501–M0525 are duplicate persons.
-- 8 spellings of London; 3 of the UK plus 42 missing countries; sector missing on 182 rows.
-- 69 % of profiles untouched for 2+ years; 78 % no login for 12+ months; 61 last-login dates in the future.
-- "Finance in London for 3+ years": naive filter 2, normalised 26, full logic 49, fresh enough to email 6.
+- 8 spellings of London; 3 of the UK plus 41 missing countries; sector missing on 174 members.
+- 68 % of profiles untouched for 2+ years; 77 % no login for 12+ months (89 % if the 60 future-dated logins are treated as unknown).
+- "Finance in London for 3+ years": naive filter 2 (file as delivered, with tenure), normalised 26, full logic 49, current or to-confirm 6 (1 current).
 
 ## Rebuilding the PDF
 
@@ -31,13 +31,17 @@ cd projects/alumnforce_case && npm i playwright && CHROME=/path/to/chromium bash
 ## Re-running Annex B
 
 ```bash
-python3 - <<'PY'
-import sqlite3, pandas as pd, re
+python3 -I - <<'PY'
+import sqlite3, pandas as pd, re, sys
+from pathlib import Path
+csv, sql = Path('profils-exercice-PM.csv'), Path('annexB.sql')
+for f in (csv, sql):
+    if not f.exists(): sys.exit(f"missing {f}: run this from the folder holding the CSV and annexB.sql")
 con = sqlite3.connect(':memory:')
-pd.read_csv('profils-exercice-PM.csv').to_sql('profils', con, index=False)
-body = re.sub(r'--[^\n]*', '', open('annexB.sql').read())
+pd.read_csv(csv, encoding='utf-8').to_sql('profils', con, index=False)
+body = re.sub(r'--[^\n]*', '', sql.read_text(encoding='utf-8'))
 stmts = [s for s in body.split(';') if s.strip()]
 for s in stmts[:-1]: con.execute(s)
 print(len(pd.read_sql(stmts[-1], con)))   # 49
 PY
-```
+````
