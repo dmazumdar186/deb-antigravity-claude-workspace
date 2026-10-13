@@ -129,7 +129,7 @@ Weeks 1 to 2: baselines, golden set, thresholds validated by CS hand-grading 100
 - **Edit rate is above 50 percent at week 12.** Sentence box stops; the quarter still delivered the reliability layer, which pays back in tickets and renewals.
 - **Reactivation moves under 10 percent at week 17.** The priced add-on idea is dropped; status and criteria stay because they cost nothing to run.
 - **A provider silently updates its model.** Nightly replay catches a 5-point drop; release blocked; provider version logged per call; prompt and model id pinned.
-- **The brief's "sixty criteria" are really 43.** The schema is smaller, prompts are cheaper, and the "cannot map" path matters more; nothing else changes.
+- **The brief's "sixty criteria" are really 45.** The schema is smaller, prompts are cheaper, and the "cannot map" path matters more; nothing else changes.
 - **An 80,000-member reindex takes longer than a night.** Alias-swap reindex with canary tenants; waves slow down; nothing is user-visible because the alias flips only when the new index is verified.
 - **Admins type names in the sentence.** Scrubbed if an exact full-name match exists; otherwise placeholder, logged, shown back. Residual risk is stated in the DPO sentence, not hidden.
 

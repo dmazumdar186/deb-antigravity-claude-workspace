@@ -29,9 +29,16 @@ Ran the README snippet with `python3 -I` on `profils-exercice-PM.csv` (the deliv
 
 Re-read in full. Coding on slide 3 confirmed as the presenter's judgement: speed V1, V2, V7; truth V3, V5, V9; proof V4, V10, V12; data V8, V11; not for me V6. One alternative reading noted: V7 (Yessica) is about adoption rather than speed; it does not change the "eight of twelve" count because it stays outside truth, proof and data either way.
 
-## 4. Open the demo instance — see below
+## 4. Open the demo instance — PASS (read-only session, nothing created)
 
-Read-only session, no list created. Facts to confirm: Users → Lists criteria picker has no last-login or last-profile-update criterion; Communication menu contains the Profile Update Campaign module; no leftover test list.
+Logged in as the presenter's admin account; opened the existing list "Tous les alumni" in edit mode and its criteria picker.
+
+| Check | Observed | Deck says |
+|---|---|---|
+| Criteria picker | 45 criteria under 9 group headers (Account, Preferences, Dues, Education, Mentoring, Mentoring programmes, Company forums, Professional situation, Geographic situation) | corrected from "~43 in 10" to "~45 in 9" |
+| Last login / last profile update criterion | none; the only "last" item is "Last activity (Mentoring)" | none |
+| Profile Update Campaign module | present under Communication | present |
+| Saved lists | 31 ("1-25 of 31", "26-31 of 31"); newest "List - 10/10/2026 - 16:29"; no test list from 12/10/2026 | 31 |
 
 ## 5. Read every slide once as the presenter — PASS with four fixes applied
 

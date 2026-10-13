@@ -137,12 +137,12 @@ Ask: which tenants have already said no to AI and why; how criteria and permissi
 
 ## What you saw on the demo (say it as your own observation)
 
-- Users → Lists: about 43 criteria in 10 groups, picker with search, values joined by OR inside a property, properties stacked with AND, no nesting, no relative dates.
+- Users → Lists: about 45 criteria in 9 groups, picker with search, values joined by OR inside a property, properties stacked with AND, no nesting, no relative dates.
 - City (workplace) has a geocoded radius operator; Experience (date) has before/after; Sector and the NAF industry code exist on the current job.
 - No criterion and no profile field for last login or last profile update. That is the gap the reliability status fills.
 - 31 saved lists, most auto-named "List - date". Actions on a list: Export only; campaigns pick lists from their own module.
 - A "Campagne de mise current" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
-- The brief says about 60 criteria; the demo shows about 43. Say "the demo shows around 43; I assume production instances expose more".
+- The brief says about 60 criteria; the demo shows about 45. Say "the demo shows around 43; I assume production instances expose more".
 
 ## Before you send: the verification checklist Annex A commits you to
 
