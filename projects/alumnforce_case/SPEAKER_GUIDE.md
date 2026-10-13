@@ -1,6 +1,6 @@
 # Speaker guide — AlumnForce case, 20-minute presentation + 30-minute Q&A
 
-Deck: 15 slides + Annex A (AI usage), Annex B (selection logic), Annex C (technical and compliance sheet). Feature name in the deck: **Segments fiables**; sentence box: **Ciblage par phrase**; reliability words: **À jour / À confirmer / À réactiver**. Never say "chat", "grade" or "stale" in the room.
+Deck: 15 slides + Annex A (AI usage), Annex B (selection logic), Annex C (technical and compliance sheet). Feature name in the deck: **Trusted Segments**; the natural-language input is "the sentence box"; reliability words: **Current / To confirm / To reactivate**. Never say "chat", "grade" or "stale" in the room.
 
 Audience: the CPO and a Lead Developer. Frédéric (founder) framed the role as senior AI PM who can clean the database, run AI evals, and think about LangChain-style orchestration. Bootstrap phase: every slide should sound like it costs little and proves something.
 
@@ -51,10 +51,10 @@ The assistant runs in the admin's session. The model receives the tenant's crite
 The validator rejects any criterion not in the schema and any value not in the reference tables. The admin sees the unmapped part as text. The model cannot invent a filter that reaches the database.
 
 **"Isn't data cleaning a different project?"**
-It is the same project. Without normalisation the assistant returns 2 or 49 people for the same sentence. The à jour / à confirmer / à réactiver split turns dirt into something the admin can act on. And the deterministic layer ships to tenants who refuse AI entirely, so it is also the commercial hedge.
+It is the same project. Without normalisation the assistant returns 2 or 49 people for the same sentence. The current / to confirm / to reactivate split turns dirt into something the admin can act on. And the deterministic layer ships to tenants who refuse AI entirely, so it is also the commercial hedge.
 
 **"How would you dedupe in production?"**
-Blocking keys first (name prefix plus promo), then a scored candidate list inside each block (name similarity, same start date, same employer), proposed to the admin with the score. Never auto-merge. Annex B's one-off rule requires the same start date because a looser "or same job" variant merged Martin into Martinez. Tune thresholds on the pilot tenants' confirmed and rejected merges.
+Blocking keys first (name prefix plus class year), then a scored candidate list inside each block (name similarity, same start date, same employer), proposed to the admin with the score. Never auto-merge. Annex B's one-off rule requires the same start date because a looser "or same job" variant merged Martin into Martinez. Tune thresholds on the pilot tenants' confirmed and rejected merges.
 
 **"What about OpenSearch and semantic search?"**
 Q2 at the earliest, after normalisation. Embedding eight spellings of London just embeds the noise. And it moves member text toward a model, which needs its own DPO conversation.
@@ -95,10 +95,10 @@ Answer honestly. If you did not, say which question you would have asked: which 
 A global service owned by product, with per-tenant overrides that admins can edit; overrides never overwrite source fields.
 
 **"Dedup at 80,000 members is O(n²)."**
-Blocking keys first (name prefix plus promo), scored candidates within a block, reviewed by the admin. The Annex B rule is a one-off for a 525-row file and says so.
+Blocking keys first (name prefix plus class year), scored candidates within a block, reviewed by the admin. The Annex B rule is a one-off for a 525-row file and says so.
 
 **"Why n8n and not Symfony Messenger?"**
-The reactivation step reuses the existing Campagne de mise à jour module, so Q1 needs neither. n8n appears in Q3 for cross-module loops because it already exists in the stack and CS can read it.
+The reactivation step reuses the existing Campagne de mise current module, so Q1 needs neither. n8n appears in Q3 for cross-module loops because it already exists in the stack and CS can read it.
 
 **"Is 85 percent on 100 sentences meaningful?"**
 It is a gate with a confidence interval of roughly plus or minus seven points. The online edit rate on real admins is the number I trust more.
@@ -118,7 +118,7 @@ The placeholder goes to the model, the validator re-substitutes the original tex
 **"Relative dates: evaluated when?"**
 At query time, on the tenant's clock. Campaign modules resolve the member set at send time. Exports are snapshots and carry the resolution date.
 
-**"Custom criteria labels like 'Donateurs > 10 k€' go to the model. Is a label never confidential?"**
+**"Custom criteria labels like 'Donors > €10k' go to the model. Is a label never confidential?"**
 Standard criteria names are AlumnForce's vocabulary. Tenant-defined labels are sent as typed ids unless the tenant opts its labels in. The tenant decides, per instance, in the same place it switches the flag.
 
 **"You compute the status for all 350 tenants before any DPIA is written?"**
@@ -137,11 +137,11 @@ Ask: which tenants have already said no to AI and why; how criteria and permissi
 
 ## What you saw on the demo (say it as your own observation)
 
-- Utilisateurs → Listes: about 43 criteria in 10 groups, picker with search, values joined by OU inside a property, properties stacked with ET, no nesting, no relative dates.
-- Ville (Lieu de travail) has a geocoded radius operator; Expériences (Date) has before/after; Secteur and Code NAF exist on the current job.
+- Users → Lists: about 43 criteria in 10 groups, picker with search, values joined by OR inside a property, properties stacked with AND, no nesting, no relative dates.
+- City (workplace) has a geocoded radius operator; Experience (date) has before/after; Sector and the NAF industry code exist on the current job.
 - No criterion and no profile field for last login or last profile update. That is the gap the reliability status fills.
-- 31 saved lists, most auto-named "Liste - date". Actions on a list: Exporter only; campaigns pick lists from their own module.
-- A "Campagne de mise à jour" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
+- 31 saved lists, most auto-named "List - date". Actions on a list: Export only; campaigns pick lists from their own module.
+- A "Campagne de mise current" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
 - The brief says about 60 criteria; the demo shows about 43. Say "the demo shows around 43; I assume production instances expose more".
 
 ## Before you send: the verification checklist Annex A commits you to
@@ -151,7 +151,7 @@ Annex A says you verified these yourself. Do them, or edit Annex A to what you a
 1. Run `bash build/build.sh`? Not needed. Run the Annex B snippet in README.md on the CSV and confirm 49 rows.
 2. Open the CSV in a spreadsheet: check 525 rows, the eight spellings of London, the 25 rows M0501 to M0525.
 3. Read the twelve verbatims and decide whether you agree with the coding on slide 3.
-4. Log into the demo instance yourself, open Utilisateurs → Listes → Créer une liste → Ajouter un filtre, and confirm there is no last-login criterion and that Communication → Campagne de mise à jour exists.
+4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Campagne de mise current exists.
 5. Read every slide once as yourself; change any position you would not defend.
 
 Disclose if asked: an automated browser session explored the demo with your account and created then deleted one empty test list. Consider changing the demo password you shared.

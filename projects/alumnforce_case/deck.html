@@ -41,14 +41,16 @@ section[data-zoom="0.83"] > *:not(.foot){zoom:0.83}
 section[data-zoom="0.88"] > *:not(.foot){zoom:0.88}
 section[data-zoom="0.85"] > *:not(.foot){zoom:0.85}
 section[data-zoom="0.95"] > *:not(.foot){zoom:0.95}
+section[data-zoom="0.86"] > *:not(.foot){zoom:0.86}
 section[data-zoom="0.9"] > *:not(.foot){zoom:0.9}
+section[data-zoom="0.87"] > *:not(.foot){zoom:0.87}
 section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 </style></head><body>
 <!-- 1 -->
 <section class="slide" data-zoom="0.94">
 <div class="k">AlumnForce · Senior Product Manager Data & AI · Case study, step 2 · Debanjan Mazumdar · October 2026</div>
-<h1>Segments fiables<br><span style="color:#0f3b7a">Describe your audience. Get a segment you can trust, without a single member record leaving the platform.</span></h1>
-<p class="lead">The administrator types one sentence. The platform returns the filters it used, inside the existing segmenter, and a <b>reliability split</b> on every member: à jour, à confirmer, à réactiver. The model only translates the sentence; the data stays home. Proof on their own file: the same sentence returns <b>2</b> (naive filter), <b>26</b> (normalised), <b>49</b> (full logic) members, of whom only <b>6</b> are à jour or à confirmer and worth e-mailing today.</p>
+<h1>Trusted Segments<br><span style="color:#0f3b7a">Describe your audience. Get a segment you can trust, without a single member record leaving the platform.</span></h1>
+<p class="lead">The administrator types one sentence. The platform returns the filters it used, inside the existing segmenter, and a <b>reliability split</b> on every member: current, to confirm, to reactivate. The model only translates the sentence; the data stays home. Proof on their own file: the same sentence returns <b>2</b> (naive filter), <b>26</b> (normalised), <b>49</b> (full logic) members, of whom only <b>6</b> are current or to-confirm and worth e-mailing today.</p>
 <div class="cols" style="margin-top:6px">
  <div class="col card"><h3>For the administrator</h3><p style="margin:0">A list in minutes instead of an hour, and a list that is true: the people who moved are flagged before the send, not after.</p></div>
  <div class="col card"><h3>For the client's leadership</h3><p style="margin:0">Dues campaigns reach people who still exist; board numbers carry their reliability; one hour per list becomes minutes; the DPO gets a one-sentence answer to instruct on.</p></div>
@@ -62,13 +64,13 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 <section class="slide">
 <div class="k">Discovery · the existing tool, used as an administrator on the demo instance</div>
 <h2>The segmenter is better than its reputation, and blind to reliability</h2>
-<table><tr><th style="width:52%">What I saw (Utilisateurs → Listes)</th><th>What it means for the assistant</th></tr>
-<tr><td>~43 criteria in 10 groups (Compte, Cotisation, Formation, Situation professionnelle, Situation géographique, Mentoring…), added one by one through a searchable picker</td><td>A fixed vocabulary the model can be constrained to. The brief's "soixante critères" is the ceiling, not the floor.</td></tr>
-<tr><td>Combination is flat: values joined by <b>OU</b> inside a property, properties stacked with <b>ET</b>. No nested groups, no relative dates ("last 30 days").</td><td>The assistant must say when a sentence cannot be expressed ("finance <i>or</i> consulting <i>unless</i> Paris") instead of pretending. Saved segments built on "3 years ago" silently age: a relative-date operator is needed.</td></tr>
-<tr><td>Ville (Lieu de travail) supports <b>"à proximité de Lyon, dans un rayon de 200 km"</b>; Expériences (Date) supports "Est après 1 janvier 2024"; Secteur and Code NAF exist on the current job.</td><td>"À Londres" maps to a geocoded radius, not to eight spellings. "Depuis trois ans" maps to an experience start date. Both already exist.</td></tr>
-<tr><td><b>No criterion on last login or last profile update.</b> Not shown on the member profile either (only "Date d'ajout manuel").</td><td>The data that decides whether a list is true is in the database but unreachable in the tool. Exposing it is an engine change, not a UI tweak (slide 6).</td></tr>
-<tr><td>Live count only as the table footer ("1-25 de 53"). Lists auto-save as "Liste - 12/10/2026"; 31 exist, most unnamed. Actions: Exporter only; newsletters, SMS and cotisation calls pick lists from their own module.</td><td>Yessica's abandonment (V7) is visible in the list names. The assistant should name and describe the segment it creates.</td></tr>
-<tr><td>A "Campagne de mise à jour" module already exists; a support chat widget exists; no AI in the segmenter.</td><td>The "please update your profile" step reuses an existing module. Less to build.</td></tr></table>
+<table><tr><th style="width:52%">What I saw (Users → Lists on the demo instance)</th><th>What it means for the assistant</th></tr>
+<tr><td>~43 criteria in 10 groups (Account, Dues, Education, Professional situation, Geographic situation, Mentoring…), added one by one through a searchable picker</td><td>A fixed vocabulary the model can be constrained to. The brief's "around sixty criteria" is the ceiling, not the floor.</td></tr>
+<tr><td>Combination is flat: values joined by <b>OR</b> inside a property, properties stacked with <b>AND</b>. No nested groups, no relative dates ("last 30 days").</td><td>The assistant must say when a sentence cannot be expressed ("finance <i>or</i> consulting <i>unless</i> Paris") instead of pretending. Saved segments built on "3 years ago" silently age: a relative-date operator is needed.</td></tr>
+<tr><td>City (workplace) supports <b>"within 200 km of Lyon"</b>; Experience (date) supports "is after 1 January 2024"; Sector and the NAF industry code exist on the current job.</td><td>"In London" maps to a geocoded radius, not to eight spellings. "For three years" maps to an experience start date. Both already exist.</td></tr>
+<tr><td><b>No criterion on last login or last profile update.</b> Not shown on the member profile either (only a "manually added on" date).</td><td>The data that decides whether a list is true is in the database but unreachable in the tool. Exposing it is an engine change, not a UI tweak (slide 6).</td></tr>
+<tr><td>Live count only as the table footer ("1-25 de 53"). Lists auto-save as "List - 12/10/2026"; 31 exist, most unnamed. Actions: Export only; newsletters, SMS and dues calls pick lists from their own module.</td><td>Yessica's abandonment (V7) is visible in the list names. The assistant should name and describe the segment it creates.</td></tr>
+<tr><td>A Profile Update Campaign module already exists; a support chat widget exists; no AI in the segmenter.</td><td>The "please update your profile" step reuses an existing module. Less to build.</td></tr></table>
 <div class="foot"><span>2 / 15</span><span>Also: 12 verbatims coded by need; CSV profiled row by row; Annex B executed in SQLite. Method and verification in Annex A.</span></div>
 </section>
 
@@ -86,9 +88,9 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
   <tr><td><b>Not for me</b></td><td>Marc V6</td><td>400 members, knows everyone. Wants the Excel columns in the right order.</td></tr></table>
  </div>
  <div class="col">
-  <div class="card red"><h3>The trap in the request</h3><p style="margin:0">"Trouve-moi les diplômés travaillant dans la finance à Londres depuis plus de trois ans." A sentence-to-filters chatbot answers Antoine and fails Nathalie, Julie, Inès, Karim, Isabelle, Philippe and Catherine. It makes the <i>wrong list faster</i>.</p></div>
+  <div class="card red"><h3>The trap in the request</h3><p style="margin:0">"Find me the graduates working in finance in London for more than three years." A sentence-to-filters chatbot answers Antoine and fails Nathalie, Julie, Inès, Karim, Isabelle, Philippe and Catherine. It makes the <i>wrong list faster</i>.</p></div>
   <div class="card"><h3>What is really at stake</h3>
-  <ul style="margin:0"><li><b>Administrator</b>: an hour per list today, and after the send, the embarrassment ("c'est n'importe quoi", two unsubscribes).</li><li><b>Client leadership</b>: the network's value is unproven; "à peu près" does not pass a board; the DPO can veto the whole feature.</li><li><b>AlumnForce</b>: the segmenter is shown at onboarding and abandoned by month six (V7); one support ticket in five is about lists (V9); large accounts ask "do you do AI?" (V8); the 2027 ambition depends on data the platform can trust.</li></ul></div>
+  <ul style="margin:0"><li><b>Administrator</b>: an hour per list today, and after the send, the embarrassment ("this is nonsense", two unsubscribes).</li><li><b>Client leadership</b>: the network's value is unproven; "roughly" does not pass a board; the DPO can veto the whole feature.</li><li><b>AlumnForce</b>: the segmenter is shown at onboarding and abandoned by month six (V7); one support ticket in five is about lists (V9); large accounts ask "do you do AI?" (V8); the 2027 ambition depends on data the platform can trust.</li></ul></div>
  </div>
 </div>
 <div class="foot"><span>3 / 15</span><span>Coding is mine alone (one coder): speed 3, truth 3, proof 3, data 2, not for me 1; "eight" = truth + proof + data.</span></div>
@@ -111,8 +113,8 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
   <tr><td>Last-login dates in the future</td><td><b>60</b> members (up to Oct 2027): an export or integrity defect, routed to a data-integrity ticket owned by the data owner, and ignored so it can never count as "recent"</td></tr></table>
  </div>
  <div class="col">
-  <div class="card navy"><h3>The insight that shapes the product</h3><p>In this file, profile updates cluster just after a job start (median 112 days, interquartile 50–165; 2 % precede it) and then stop: a correlation, read as "people update when they move, then go silent". So <b>"in post for 3+ years" and "profile untouched for 3+ years" are the same signal.</b> All 43 "à réactiver" matches in Annex B have a profile older than 3.9 years and no login in two years.</p><p style="margin:0">A naive assistant answering Nathalie's request returns precisely the people most likely to have moved. That is her 340-person "expatriés Londres" email, reproduced on this file.</p></div>
-  <div class="card green"><h3>Same sentence, three answers</h3><p style="margin:0">Naive filter (ville = "Londres", secteur = "Finance", job started 3+ years ago): <b>2</b> members. Normalised city and sector: <b>26</b>. Full logic with dedup and three finance sources: <b>49</b>. À jour or à confirmer, the only ones to e-mail today: <b>6</b>, of which 1 à jour. Naive count on the file as delivered (3 without the tenure clause); the rest on the deduplicated base. (Annex B)</p></div>
+  <div class="card navy"><h3>The insight that shapes the product</h3><p>In this file, profile updates cluster just after a job start (median 112 days, interquartile 50–165; 2 % precede it) and then stop: a correlation, read as "people update when they move, then go silent". So <b>"in post for 3+ years" and "profile untouched for 3+ years" are the same signal.</b> All 43 "to reactivate" matches in Annex B have a profile older than 3.9 years and no login in two years.</p><p style="margin:0">A naive assistant answering Nathalie's request returns precisely the people most likely to have moved. That is her 340-person "London expats" email, reproduced on this file.</p></div>
+  <div class="card green"><h3>Same sentence, three answers</h3><p style="margin:0">Naive filter (city value "Londres", sector value "Finance", job started 3+ years ago): <b>2</b> members. Normalised city and sector: <b>26</b>. Full logic with dedup and three finance sources: <b>49</b>. Current or to-confirm, the only ones to e-mail today: <b>6</b>, of which 1 current. Naive count on the file as delivered (3 without the tenure clause); the rest on the deduplicated base. (Annex B)</p></div>
  </div>
 </div>
 <div class="foot"><span>4 / 15</span><span>All figures computed from the file with the reference date 2026-10-12.</span></div>
@@ -128,13 +130,13 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
   <ul style="margin:0"><li><b>Deterministic first.</b> Normalisation, duplicate detection and the reliability split run in MariaDB/PHP with no model call. They create value for every tenant, including Marc's 400-member club and Philippe's university that will refuse any transfer.</li>
   <li><b>The model does one thing.</b> It turns the admin's sentence into a structured filter set, constrained to the segmenter's existing criteria. It never sees a member.</li>
   <li><b>The human keeps the hand.</b> The filters land pre-filled in the segmenter the admin already knows. They edit, see the split, then save or send. Nothing is sent automatically.</li></ul></div>
-  <div class="card amber"><h3>Vocabulary, chosen on purpose</h3><p style="margin:0">Not "chat", not "grade", not "stale": those read as a reproach to the client's data stewardship. Two names only: the tab is <b>Segments fiables</b>, the chips are <b>Fiabilité</b>: <span class="pill A">À jour</span><span class="pill B">À confirmer</span><span class="pill C">À réactiver</span>. Admin vocabulary never reaches members: on their own profile they see "Profil mis à jour il y a 4 ans · Confirmer / Corriger", one button, no label.</p></div>
+  <div class="card amber"><h3>Vocabulary, chosen on purpose</h3><p style="margin:0">Not "chat", not "grade", not "stale": those read as a reproach to the client's data stewardship. Two names only: the tab is <b>Trusted Segments</b>, the chips are <b>Reliability</b>: <span class="pill A">Current</span><span class="pill B">To confirm</span><span class="pill C">To reactivate</span>. Admin vocabulary never reaches members: on their own profile they see "Profile last updated 4 years ago · Confirm / Correct", one button, no label.</p></div>
  </div>
  <div class="col">
   <div class="card navy"><h3>What the admin sees (the demo must end on this)</h3>
-  <p>Types: <i>"anciens de la promo 2015 à 2018 qui bossent dans la finance à Londres"</i></p>
-  <p>Gets, in under 5 seconds: the segmenter opened with <b>Promotion: entre 2015 et 2018 · Secteur (Poste actuel): Finance OU Banque OU Finance/Assurance · Ville (Lieu de travail): à proximité de London, 30 km</b>, the part it could not map shown inline under the box ("Ajoutez ce critère à la main"), never a blank page, and three clickable chips above the table (illustrative numbers): <b>72 members</b> — <span class="pill A">31 à jour</span><span class="pill B">14 à confirmer</span><span class="pill C">27 à réactiver</span></p>
-  <p style="margin:0">One click: send to à jour + à confirmer; "Réactiver 27 membres" opens a pre-filled Campagne de mise à jour (fixed, tenant-editable text, no model-written copy) and returns here. The segment is saved as "Finance · Londres · promos 2015-2018" with the sentence as description, so Karim can quote it to his board next month.</p></div>
+  <p>Types: <i>"alumni from the 2015 to 2018 classes who work in finance in London"</i></p>
+  <p>Gets, in under 5 seconds: the segmenter opened with <b>Class year: between 2015 and 2018 · Sector (current job): Finance OR Banking OR Finance/Insurance · City (workplace): within 30 km of London</b>, the part it could not map shown inline under the box ("Add this criterion by hand"), never a blank page, and three clickable chips above the table (illustrative numbers): <b>72 members</b> — <span class="pill A">31 current</span><span class="pill B">14 to confirm</span><span class="pill C">27 to reactivate</span></p>
+  <p style="margin:0">One click: send to current + to-confirm; "Reactivate 27 members" opens a pre-filled Profile Update Campaign (the existing module; fixed, tenant-editable text, no model-written copy) and returns here. The segment is saved as "Finance · London · classes 2015-2018" with the sentence as description, so Karim can quote it to his board next month.</p></div>
   <div class="card"><h3>Why not the chatbot Antoine asked for</h3><p style="margin:0">A free chat over profiles needs member data in the prompt (DPO veto), has no evaluable output, and sets a "ChatGPT" expectation 3 developers cannot meet in a quarter. A constrained assistant with visible filters is evaluable, explainable and reversible.</p></div>
  </div>
 </div>
@@ -147,9 +149,9 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 <h2>Four deliverables, a 36 dev-week core and a pre-named cut</h2>
 <table>
 <tr><th style="width:23%">Deliverable</th><th>What ships</th><th style="width:9%">Dev-wks</th><th style="width:24%">Why Q1</th></tr>
-<tr><td><b>1. Reliability layer</b><br><span class="muted">deterministic · core</span></td><td>Reliability status per member (profile age, last login; future dates ignored), nightly column plus OpenSearch field; <b>new segmenter criteria</b> "Dernière mise à jour du profil" and "Dernière connexion"; relative-date operator in the engine; split counts on every segment; status shown on the member's profile, contestable. Global reference tables (city geocode, country, employer→sector) with per-tenant overrides, <code>*_norm</code> columns, idempotent chunked backfill.</td><td>16</td><td>The heaviest item and the product itself. Needs an engine criterion type and a per-tenant reindex; planned, not assumed.</td></tr>
+<tr><td><b>1. Reliability layer</b><br><span class="muted">deterministic · core</span></td><td>Reliability status per member (profile age, last login; future dates ignored), nightly column plus OpenSearch field; <b>new segmenter criteria</b> "Last profile update" and "Last login"; relative-date operator in the engine; split counts on every segment; status shown on the member's profile, contestable. Global reference tables (city geocode, country, employer→sector) with per-tenant overrides, <code>*_norm</code> columns, idempotent chunked backfill.</td><td>16</td><td>The heaviest item and the product itself. Needs an engine criterion type and a per-tenant reindex; planned, not assumed.</td></tr>
 <tr><td><b>2. Sentence → filters</b><br><span class="muted">one model call · core</span></td><td>Gateway integration; filter contract (Annex C); validator that maps values locally and returns the unmapped part; prompt cache keyed on sentence + tenant + taxonomy hash + schema hash + prompt version + role; Vue pre-fill of the existing segmenter.</td><td>11</td><td>The "say it in five seconds" value, scoped to one schema and zero member data.</td></tr>
-<tr><td><b>3a. Actions</b><br><span class="muted">core</span></td><td>"Send to à jour + à confirmer"; "Réactiver" = pre-filled Campagne de mise à jour (existing module, fixed tenant-editable text); cooldown one reactivation per member per quarter, suppression after "not me" or opt-out.</td><td>2</td><td>The priced lever and the week-17 decision depend on it; it stays in the core.</td></tr>
+<tr><td><b>3a. Actions</b><br><span class="muted">core</span></td><td>"Send to current + to-confirm"; "Reactivate" = pre-filled Profile Update Campaign (existing module, fixed tenant-editable text); cooldown one reactivation per member per quarter, suppression after "not me" or opt-out.</td><td>2</td><td>The priced lever and the week-17 decision depend on it; it stays in the core.</td></tr>
 <tr><td><b>3b. Hygiene</b><br><span class="muted">stretch</span></td><td>Duplicate <b>detection report</b> per tenant (candidate pairs, score, exportable); stable export column order (Marc, V6). No merge UI.</td><td>3</td><td>Valuable at renewal, not needed to decide the quarter. Merge is multi-module and irreversible: Q2 with an undo window.</td></tr>
 <tr><td><b>4. Flags, metering, evals</b><br><span class="muted">core</span></td><td>Two flags in a central store, <code>reliability</code> and <code>nl_targeting</code>, per instance and in bulk, both off by default; per-call log (tenant, pseudonymised admin, prompt hash, redacted sentence, tokens, cost, model, region); kill switch; record/replay eval harness in CI plus nightly replay against the live endpoint; campaign outcomes stored by segment × status; per-tenant assistant config table (thresholds, radius, allow-list, prompt version) with owner and change log.</td><td>7</td><td>The brief's cost constraint and the stop criteria need this from day one.</td></tr>
 </table>
@@ -172,7 +174,7 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 <tr><td>Automatic correction of profiles</td><td>The platform asks ("still at Lehman Brothers?"), the member confirms. Silent edits destroy the trust we are building.</td><td>Never as auto-edit</td></tr>
 <tr><td>Enrichment from external sources (LinkedIn, company registries)</td><td>Legal basis unclear for most tenants; cost per profile; not needed to prove the increment.</td><td>Decision after pilot, per tenant</td></tr>
 <tr><td>"Three questions for the board" analytics assistant (V10)</td><td>The most valuable ask, but it needs the reliability layer first or it produces confident wrong numbers.</td><td>Q2 headline</td></tr>
-<tr><td>Automatic sending, SMS, cotisation calls triggered by the assistant</td><td>Human stays between the list and the send. Existing actions on a saved segment are reused unchanged.</td><td>Unchanged behaviour</td></tr>
+<tr><td>Automatic sending, SMS, dues calls triggered by the assistant</td><td>Human stays between the list and the send. Existing actions on a saved segment are reused unchanged.</td><td>Unchanged behaviour</td></tr>
 <tr><td>Fine-tuning, own model hosting, multilingual beyond FR/EN</td><td>No evidence it is needed; prompt + schema + evals is enough and keeps the provider swappable.</td><td>Revisit with eval data</td></tr>
 </table>
 <div class="foot"><span>7 / 15</span><span>Each exclusion has an owner-level reason, not a capacity excuse.</span></div>
@@ -206,7 +208,7 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 <div class="cols">
  <div class="col">
   <div class="card navy"><h3>For Thomas (V8) and Philippe (V11), one sentence</h3><p style="margin:0;font-size:18px">"Only the administrator's question, scrubbed of identifiers and full names, and the names of the filters leave the platform, to a model hosted in the EU under a no-retention, no-training contract. No member profile is ever sent; residual hits in the question are logged and reviewed."</p></div>
-  <div class="card"><h3>The file behind the sentence (Annex C has the questionnaire rows)</h3><ul style="margin:0"><li><b>Roles</b>: tenant controller, AlumnForce processor, model provider a sub-processor with 30-day notice; DPA with zero retention, no training; EU hosting <i>and</i> jurisdiction stated.</li><li><b>DPIA</b>: AlumnForce supplies a screening memo and a balancing-test template; each tenant, as controller, records its own basis and decision; the status can be disabled per tenant.</li><li><b>Reliability status is derived personal data.</b> Computed per tenant only after the flag is on, never for all 350 by default. Likely basis: the tenant's legitimate interest in accurate records, the tenant's call. Shown to the member on their profile, contestable in one click (tenant admin answers within 10 business days; a contest freezes the status as "confirmé" for 12 months); template notice clause. Not an export field, though a status-filtered export reveals it, and the notice says so. Reactivation honours opt-outs and the tenant's basis for contacting silent members.</li><li><b>Logs</b>: pseudonymised admin, prompt hash and redacted sentence, 12 months, tenant-scoped export, deleted on offboarding; saved sentences follow the same policy.</li></ul></div>
+  <div class="card"><h3>The file behind the sentence (Annex C has the questionnaire rows)</h3><ul style="margin:0"><li><b>Roles</b>: tenant controller, AlumnForce processor, model provider a sub-processor with 30-day notice; DPA with zero retention, no training; EU hosting <i>and</i> jurisdiction stated.</li><li><b>DPIA</b>: AlumnForce supplies a screening memo and a balancing-test template; each tenant, as controller, records its own basis and decision; the status can be disabled per tenant.</li><li><b>Reliability status is derived personal data.</b> Computed per tenant only after the flag is on, never for all 350 by default. Likely basis: the tenant's legitimate interest in accurate records, the tenant's call. Shown to the member on their profile, contestable in one click (tenant admin answers within 10 business days; a contest freezes the status as "confirmed" for 12 months); template notice clause. Not an export field, though a status-filtered export reveals it, and the notice says so. Reactivation honours opt-outs and the tenant's basis for contacting silent members.</li><li><b>Logs</b>: pseudonymised admin, prompt hash and redacted sentence, 12 months, tenant-scoped export, deleted on offboarding; saved sentences follow the same policy.</li></ul></div>
  </div>
  <div class="col">
   <div class="card"><h3>Cost of one use (confirmed on the gateway in week 1)</h3><p style="margin:0">~1,500–2,500 input tokens (schema and taxonomies, in a cached prefix), ~150–300 output: a fraction of a euro cent per request on a mid-tier model, under one euro a month for a heavy tenant. Per-admin rate limit, per-tenant quota with soft block and CS alert. The cost that matters is engineering (slide 13).</p></div>
@@ -228,8 +230,8 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
   <div class="card"><h3>Adoption (per tenant, visible to CS, not only to me)</h3><ul style="margin:0"><li>Share of new segments created via the sentence box; weekly active admins; return use in weeks 2 and 4.</li><li>Excel export share of list-building (should fall); list-related tickets per 100 campaigns (target −30 % on pilot tenants, tagged from week 1).</li></ul></div>
  </div>
  <div class="col">
-  <div class="card"><h3>Value</h3><ul style="margin:0"><li>Time from first click to saved segment (baseline weeks 1–4).</li><li>"Not me / I moved" replies and unsubscribes per campaign (V3).</li><li>Share of "à jour" profiles per tenant month over month; profile updates triggered by reactivation campaigns.</li><li>Response rate on dues campaigns sent to à jour + à confirmer vs historical.</li></ul></div>
-  <div class="card red"><h3>Stop criteria, one per layer, two dates</h3><ul style="margin:0"><li><b>Sentence box, week 12</b> (3 pilot weeks, leading indicators): stop if fewer than <b>30 %</b> of new segments on the 7 non-expert tenants use it, <b>or</b> edit rate stays above <b>50 %</b>, <b>or</b> the eval gate is not met. Keep the reliability layer.</li><li><b>Reactivation loop, week 17</b> (30 days after the first campaign): stop it if fewer than <b>10 %</b> of "à réactiver" profiles move to "à jour". Keep the status and criteria, which cost nothing to run.</li><li>Expert tenants are reported separately so three power users cannot carry the number.</li><li><b>Owners</b>: quota and anomaly alerts → CS on-call, one business day; eval gate or nightly replay failure → PM blocks release, Lead Developer notified; integrity tickets → data owner, weekly.</li></ul></div>
+  <div class="card"><h3>Value</h3><ul style="margin:0"><li>Time from first click to saved segment (baseline weeks 1–4).</li><li>"Not me / I moved" replies and unsubscribes per campaign (V3).</li><li>Share of "current" profiles per tenant month over month; profile updates triggered by reactivation campaigns.</li><li>Response rate on dues campaigns sent to current + to-confirm vs historical.</li></ul></div>
+  <div class="card red"><h3>Stop criteria, one per layer, two dates</h3><ul style="margin:0"><li><b>Sentence box, week 12</b> (3 pilot weeks, leading indicators): stop if fewer than <b>30 %</b> of new segments on the 7 non-expert tenants use it, <b>or</b> edit rate stays above <b>50 %</b>, <b>or</b> the eval gate is not met. Keep the reliability layer.</li><li><b>Reactivation loop, week 17</b> (30 days after the first campaign): stop it if fewer than <b>10 %</b> of "to reactivate" profiles move to "current". Keep the status and criteria, which cost nothing to run.</li><li>Expert tenants are reported separately so three power users cannot carry the number.</li><li><b>Owners</b>: quota and anomaly alerts → CS on-call, one business day; eval gate or nightly replay failure → PM blocks release, Lead Developer notified; integrity tickets → data owner, weekly.</li></ul></div>
  </div>
 </div>
 <div class="foot"><span>10 / 15</span><span>Baselines are measured on the current segmenter before launch, so the pilot compares against a number, not a feeling (V7).</span></div>
@@ -268,18 +270,18 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 </section>
 
 <!-- 13 -->
-<section class="slide" data-zoom="0.85">
+<section class="slide" data-zoom="0.86">
 <div class="k">Money</div>
 <h2>What pays for the quarter, and what we charge</h2>
 <div class="cols">
  <div class="col">
   <div class="card navy"><h3>Three levers, one primary</h3><ul style="margin:0"><li><b>Retention (primary)</b>: 350 installed tenants, segmenter abandoned by month six (V7). A reliability score at renewal is a CS argument I have not seen a competitor make.</li><li><b>New logo</b>: "do you do AI?" (V8) answered with the sentence on slide 9 and Annex C.</li><li><b>Upsell</b>: the reactivation loop, the only thing tied to dues collected (V12).</li></ul></div>
-  <div class="card"><h3>Payback, as formulas with the baselines measured in weeks 1–4</h3><ul style="margin:0"><li><b>Cost</b>: 36–39 developer-weeks at your loaded rate; inference rounds to zero.</li><li><b>Tickets</b>: list tickets/month × avoidable share (target 30 %) × CS cost per ticket.</li><li><b>Admin time</b>: segments/month × minutes saved × admin cost; the client's gain, so it feeds renewal, not margin.</li><li><b>Dues</b>: profiles moved to "à jour" × response uplift × average dues.</li><li><b>Breakeven I accept</b>: engineering recovered within four quarters from ticket savings and retained ARR across the pilot and the first 50-tenant wave, before any upsell.</li></ul></div>
+  <div class="card"><h3>Payback, as formulas with the baselines measured in weeks 1–4</h3><ul style="margin:0"><li><b>Cost</b>: 36–39 developer-weeks at your loaded rate; inference rounds to zero.</li><li><b>Tickets</b>: list tickets/month × avoidable share (target 30 %) × CS cost per ticket.</li><li><b>Admin time</b>: segments/month × minutes saved × admin cost; the client's gain, so it feeds renewal, not margin.</li><li><b>Dues</b>: profiles moved to "current" × response uplift × average dues.</li><li><b>Breakeven I accept</b>: engineering recovered within four quarters from ticket savings and retained ARR across the pilot and the first 50-tenant wave, before any upsell.</li></ul></div>
  </div>
  <div class="col">
-  <div class="card green"><h3>Packaging hypothesis, tested in the pilot</h3><ul style="margin:0"><li><b>Included for all</b>: status, criteria, split counts, duplicate report, score at renewal.</li><li><b>Included with fair use</b>: the sentence box, 300 requests/month, soft block and CS alert beyond. Catherine will not pay for a text box (V12).</li><li><b>Priced add-on</b>: the reactivation loop, tested on the 3 expert tenants as a flat monthly fee per member tier, a fraction of the dues it demonstrably recovers, reverting to included if reactivation stays under 10 %. Proof on the client's own file: 2 → 26 → 49 → 6 à jour or à confirmer.</li></ul></div>
-  <div class="card"><h3>Renewal pack, generated per tenant each quarter</h3><p style="margin:0">Score and its delta, hours saved, "not me" replies before and after, dues response of à jour + à confirmer sends vs historical, and an attribution line (reactivations sent → profiles updated → dues recovered) so the uplift is credited to the platform. Isabelle's "prove the value of the network" (V10) as a by-product.</p></div>
-  <div class="card amber"><h3>Competitive line</h3><p style="margin:0">Hivebrite, Graduway and similar market AI search and assistants; to my knowledge none scores a segment's reliability or states in one sentence what leaves the platform (to verify in week 1). Press hypothesis: "une IA à qui l'on n'envoie aucun profil, hébergée en Europe". The sentence box is copyable in a month; a normalised, reliability-scored, consented base per tenant is not.</p></div>
+  <div class="card green"><h3>Packaging hypothesis, tested in the pilot</h3><ul style="margin:0"><li><b>Included for all</b>: status, criteria, split counts, duplicate report, score at renewal.</li><li><b>Included with fair use</b>: the sentence box, 300 requests/month, soft block and CS alert beyond. Catherine will not pay for a text box (V12).</li><li><b>Priced add-on</b>: the reactivation loop, tested on the 3 expert tenants as a flat monthly fee per member tier, a fraction of the dues it demonstrably recovers, reverting to included if reactivation stays under 10 %. Proof on the client's own file: 2 → 26 → 49 → 6 current or to-confirm.</li></ul></div>
+  <div class="card"><h3>Renewal pack, generated per tenant each quarter</h3><p style="margin:0">Score and its delta, hours saved, "not me" replies before and after, dues response of current + to-confirm sends vs historical, and an attribution line (reactivations sent → profiles updated → dues recovered) so the uplift is credited to the platform. Isabelle's "prove the value of the network" (V10) as a by-product.</p></div>
+  <div class="card amber"><h3>Competitive line</h3><p style="margin:0">Hivebrite, Graduway and similar market AI search and assistants; to my knowledge none scores a segment's reliability or states in one sentence what leaves the platform (to verify in week 1). Press hypothesis: "an AI that is never sent a profile, hosted in Europe". The sentence box is copyable in a month; a normalised, reliability-scored, consented base per tenant is not.</p></div>
  </div>
 </div>
 <div class="foot"><span>13 / 15</span><span>Numbers in the formulas are targets to measure, not forecasts; I will not quote a euro figure I have not seen.</span></div>
@@ -296,8 +298,8 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
   <div class="card"><h3>2027 — Agents on segments</h3><p style="margin:0">An agent proposes a dues campaign to the right 180 people, with the list, the split and the expected response rate, and waits for a human yes. Possible only because the three previous steps made the data trustworthy and the actions auditable.</p></div>
  </div>
  <div class="col">
-  <div class="card navy"><h3>Decision I am asking for</h3><p style="margin:0">Fund one quarter, plus four weeks of measurement, for <b>Segments fiables</b>: reliability layer first, one constrained model call, human in the segmenter, metered per tenant, two flags, one stop criterion per layer, decided at week 12 and week 17.</p></div>
-  <div class="card"><h3>What you get at week 12</h3><ul style="margin:0"><li>Ten tenants with a reliability-scored, normalised base, a duplicate report and a reliability score.</li><li>A sentence box that pre-fills the segmenter, with an eval gate and a per-tenant cost line.</li><li>A one-sentence data answer and a questionnaire-ready sheet that Sales and CS can use tomorrow.</li><li>Measured numbers: time to list, edit rate, "not me" replies, "à jour" share, dues response.</li></ul></div>
+  <div class="card navy"><h3>Decision I am asking for</h3><p style="margin:0">Fund one quarter, plus four weeks of measurement, for <b>Trusted Segments</b>: reliability layer first, one constrained model call, human in the segmenter, metered per tenant, two flags, one stop criterion per layer, decided at week 12 and week 17.</p></div>
+  <div class="card"><h3>What you get at week 12</h3><ul style="margin:0"><li>Ten tenants with a reliability-scored, normalised base, a duplicate report and a reliability score.</li><li>A sentence box that pre-fills the segmenter, with an eval gate and a per-tenant cost line.</li><li>A one-sentence data answer and a questionnaire-ready sheet that Sales and CS can use tomorrow.</li><li>Measured numbers: time to list, edit rate, "not me" replies, "current" share, dues response.</li></ul></div>
   <div class="card amber"><h3>What I would not do even if asked</h3><ul style="margin:0"><li>Put member rows or employer lists in a prompt to make the assistant "smarter".</li><li>Let the model send, merge or edit anything.</li><li>Ship the sentence box before the reliability split exists.</li></ul></div>
  </div>
 </div>
@@ -324,7 +326,7 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
   <div class="card"><h3>What AI did (most of the volume)</h3><ul style="margin:0"><li>Read the brief and verbatims with me and proposed the coding of needs; drafted every slide from my outline and rewrote them through three review rounds.</li><li>Wrote and ran the pandas and SQL that profile the CSV and produce Annex B; found the 25 apparent duplicates and tuned the matching rule until each matched exactly one original.</li><li>Drove an automated browser session on the demo instance as my admin account to list menus and criteria; it created one empty test list and deleted it. Screenshots were used for layout checks only; none appear here.</li><li>Played eleven reviewers (measurement, tooling, safety and law, rigor, offer, automation, people, failure modes, UX, reliability, strategy) against the draft and listed their honest gaps.</li></ul></div>
  </div>
  <div class="col">
-  <div class="card green"><h3>What I verify myself before sending</h3><ul style="margin:0"><li>I re-run Annex B on the CSV and check the 49 rows, the 2 / 26 / 49 / 6 cascade and the slide-4 figures against the file.</li><li>I read all twelve verbatims and the brief in full; the coding on slide 3 is my judgement.</li><li>I open the demo instance myself and confirm the segmenter criteria, the absence of a last-login criterion and the Campagne de mise à jour module.</li><li>I decide every position, exclusion, threshold and stop criterion; AI proposes, I choose.</li></ul></div>
+  <div class="card green"><h3>What I verify myself before sending</h3><ul style="margin:0"><li>I re-run Annex B on the CSV and check the 49 rows, the 2 / 26 / 49 / 6 cascade and the slide-4 figures against the file.</li><li>I read all twelve verbatims and the brief in full; the coding on slide 3 is my judgement.</li><li>I open the demo instance myself and confirm the segmenter criteria, the absence of a last-login criterion and the Profile Update Campaign module.</li><li>I decide every position, exclusion, threshold and stop criterion; AI proposes, I choose.</li></ul></div>
   <div class="card amber"><h3>Where I did not trust it</h3><p style="margin:0">Anything about AlumnForce internals, competitors, provider contracts and legal bases is stated as an assumption or a question, not a fact. Token costs are an order of magnitude. Payback is formulas, not euros. Where a review lens could not verify something, its honest gap is kept rather than papered over.</p></div>
  </div>
 </div>
@@ -332,57 +334,58 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 </section>
 
 <!-- Annex B -->
-<section class="slide annex" style="padding-top:26px;padding-bottom:18px" data-zoom="0.88">
-<div class="k">Annex B · Selection logic (one page) · "les diplômés travaillant dans la finance à Londres depuis plus de trois ans" · full SQL and 49-row result attached (annexB.sql, annexB_result.csv)</div>
+<section class="slide annex" style="padding-top:26px;padding-bottom:18px" data-zoom="0.87">
+<div class="k">Annex B · Selection logic (one page) · the brief's request: "graduates working in finance in London for more than three years" · full SQL and 49-row result attached (annexB.sql, annexB_result.csv)</div>
 <div class="cols" style="gap:16px">
  <div class="col" style="flex:1.2">
 <pre>-- Reference date 2026-10-12. Runs as written on SQLite (LIKE only, no REGEXP); for MariaDB replace date(d,'-N years') by DATE_SUB(d, INTERVAL N YEAR).
+-- Column names are the dataset's own (French); everything else is English.
 -- 0. DEDUPLICATE: file has 525 rows, brief says 500. M0501..M0525 are duplicate persons
 --    (capitalised/compound surname, truncated first name, gmail, same job + start date).
-CREATE TABLE membres AS
-WITH p AS (SELECT *, lower(substr(prenom,1,3)) pn,
-            lower(replace(replace(replace(nom,'-',''),' ',''),'.','')) nn FROM profils),
-doublons AS (SELECT b.member_id drop_id FROM p a JOIN p b
-   ON a.member_id&lt;&gt;b.member_id AND a.pn=b.pn
-  AND (instr(a.nn,b.nn)&gt;0 OR instr(b.nn,a.nn)&gt;0)
-  AND a.date_debut_poste=b.date_debut_poste                 -- same start date: Martin ≠ Martinez
+CREATE TABLE members AS
+WITH p AS (SELECT *, lower(substr(prenom,1,3)) fn,
+            lower(replace(replace(replace(nom,'-',''),' ',''),'.','')) ln FROM profils),
+duplicates AS (SELECT b.member_id drop_id FROM p a JOIN p b
+   ON a.member_id&lt;&gt;b.member_id AND a.fn=b.fn
+  AND (instr(a.ln,b.ln)&gt;0 OR instr(b.ln,a.ln)&gt;0)
+  AND a.date_debut_poste=b.date_debut_poste                 -- same start date: Martin is not Martinez
   AND (a.date_maj_profil&gt;b.date_maj_profil OR (a.date_maj_profil=b.date_maj_profil AND a.member_id&lt;b.member_id)))
-SELECT * FROM p WHERE member_id NOT IN (SELECT drop_id FROM doublons);      -- 500 members
+SELECT * FROM p WHERE member_id NOT IN (SELECT drop_id FROM duplicates);    -- 500 members
 -- 1. NORMALISE (deterministic lookup tables, no model, nothing leaves the platform)
-CREATE TABLE membres_norm AS SELECT m.*,
+CREATE TABLE members_norm AS SELECT m.*,
  CASE WHEN lower(ville) LIKE '%london%' OR lower(ville) LIKE '%londres%'
-       OR lower(ville) LIKE '%canary wharf%' THEN 'London' ELSE ville END ville_norm, -- 8 forms
+       OR lower(ville) LIKE '%canary wharf%' THEN 'London' ELSE ville END city_norm,   -- 8 spellings
  CASE WHEN lower(trim(coalesce(pays,''))) IN ('uk','united kingdom','royaume-uni','england','angleterre') THEN 'GB'
-      WHEN pays IS NULL AND lower(ville) LIKE '%lond%' THEN 'GB' ELSE pays END pays_norm,
- CASE WHEN secteur_declare IN ('Finance','Banque','Finance / Assurance') THEN 'finance:declare'
+      WHEN pays IS NULL AND lower(ville) LIKE '%lond%' THEN 'GB' ELSE pays END country_norm,
+ CASE WHEN secteur_declare IN ('Finance','Banque','Finance / Assurance') THEN 'finance:declared'
       WHEN entreprise IN ('Amundi','AXA IM','Barclays','BNP Paribas','Crédit Agricole CIB',
         'Deutsche Bank','Goldman Sachs','HSBC','J.P. Morgan','Lazard','Morgan Stanley',
-        'Natixis','Rothschild &amp; Co','Société Générale','UBS') THEN 'finance:entreprise'
+        'Natixis','Rothschild &amp; Co','Société Générale','UBS') THEN 'finance:employer'
       WHEN lower(poste) LIKE '%financ%' OR lower(poste) LIKE '%m&amp;a%' OR lower(poste) LIKE '%investment bank%'
         OR lower(poste) LIKE '%trader%' OR lower(poste) LIKE '%quant%' OR lower(poste) LIKE '%portfolio%'
         OR lower(poste) LIKE '%asset manag%' OR lower(poste) LIKE '%opcvm%' OR lower(poste) LIKE '%private equity%'
         OR lower(poste) LIKE '%equity research%' OR lower(poste) LIKE '%treasury%' OR lower(poste) LIKE '%credit risk%'
         OR lower(poste) LIKE '%risk manager%' OR lower(poste) LIKE '%contrôleur de gestion%' OR lower(poste) LIKE '%fp&amp;a%'
         OR lower(poste) LIKE '%banquier%' OR lower(poste) LIKE '%conformité bancaire%' OR lower(poste) LIKE '%auditeur financier%'
-        OR lower(poste) LIKE '%gestionnaire de portefeuille%' OR lower(poste) LIKE '%directeur financier%' THEN 'finance:poste'
-      ELSE 'non' END finance_src,
+        OR lower(poste) LIKE '%gestionnaire de portefeuille%' OR lower(poste) LIKE '%directeur financier%' THEN 'finance:title'
+      ELSE 'none' END finance_src,                       -- job-title keywords are French because the data is
  -- bounds: A = [0, 2 y) since update OR [0, 1 y) since login; B = [2, 4 y); C = 4 y+ or no date
- CASE WHEN date_maj_profil &gt; date('2026-10-12','-2 years')                             -- à jour
+ CASE WHEN date_maj_profil &gt; date('2026-10-12','-2 years')                             -- current
        OR (derniere_connexion &gt; date('2026-10-12','-1 year') AND derniere_connexion &lt;= '2026-10-12') THEN 'A'
-      WHEN date_maj_profil &gt; date('2026-10-12','-4 years') THEN 'B'                    -- à confirmer
-      ELSE 'C' END fraicheur                                                            -- à réactiver
-FROM membres m;
+      WHEN date_maj_profil &gt; date('2026-10-12','-4 years') THEN 'B'                    -- to confirm
+      ELSE 'C' END reliability                                                          -- to reactivate
+FROM members m;
 -- 2. SELECT
-SELECT member_id, poste, entreprise, finance_src, fraicheur FROM membres_norm
-WHERE ville_norm='London' AND pays_norm='GB'              -- "à Londres" (country gate: not London, Ontario)
-  AND finance_src&lt;&gt;'non'                                   -- "dans la finance"
-  AND date_debut_poste &lt;= date('2026-10-12','-3 years')    -- "depuis plus de trois ans"
-  AND CAST(promo AS INTEGER) &lt;= 2026;      -- "diplômés": all are (promos 2005-2024); CAST survives a text import</pre>
+SELECT member_id, poste, entreprise, finance_src, reliability FROM members_norm
+WHERE city_norm='London' AND country_norm='GB'            -- "in London" (country gate: not London, Ontario)
+  AND finance_src&lt;&gt;'none'                                 -- "working in finance"
+  AND date_debut_poste &lt;= date('2026-10-12','-3 years')    -- "for more than three years"
+  AND CAST(promo AS INTEGER) &lt;= 2026;      -- "graduates": all are (class years 2005-2024); CAST survives a text import</pre>
  </div>
  <div class="col">
-  <div class="card" style="padding:9px 12px"><h3>Result</h3><p style="margin:0"><b>49 members</b> (500 after dedup → 168 in London → 72 in finance → 49 with 3+ years in post). Source: 24 declared sector, 17 employer, 8 job keywords. Reliability: <span class="pill A">À jour 1</span><span class="pill B">À confirmer 5</span><span class="pill C">À réactiver 43</span> · 14 paying. Naive filter (ville='Londres', secteur='Finance', 3+ years in post) on the file as delivered: <b>2</b>. Normalised, no dedup: <b>26</b>. "6 to e-mail" = à jour + à confirmer; strictly à jour: 1.</p></div>
-  <div class="card" style="padding:9px 12px"><h3>Assumptions</h3><ul style="margin:0"><li>Reference date 2026-10-12 (latest non-future date in the file: 2026-10-06).</li><li>"Diplômés" = everyone (promos 2005–2024). The "Master Finance" diploma is not a finance signal: only 19 of its 47 holders (after dedup) work in finance by any of the three sources.</li><li>"Finance" = declared sector, else employer in a finance reference list, else job-title keywords. Keywords are the weakest source: 3 of 8 are doubtful ("Professeur de finance" at BCG and at Renault, "Assistant administratif et financier" at Orange); in the product, Code NAF comes first and keyword matches are shown "à confirmer".</li><li>"3+ years" = current job started on or before 2023-10-12.</li><li>Dedup rule (same first-name prefix, surname contained, same start date) drops exactly the 25 apparent duplicates; an earlier "or same job" variant also collapsed Martin into Martinez, which is why production uses a scored candidate list with blocking keys, reviewed by the admin.</li></ul></div>
-  <div class="card amber" style="padding:9px 12px"><h3>What the data cannot verify, and what the product does</h3><ul style="margin:0"><li><b>"In London for 3+ years"</b>: no date for the location, only for the job. Job tenure is the proxy, labelled "3+ years in current role" in the UI.</li><li><b>"Still true"</b>: 43 of 49 profiles are 4+ years old with no login in 2 years. Marked "à réactiver"; a Campagne de mise à jour is offered before any send instead of silent inclusion.</li></ul></div>
+  <div class="card" style="padding:9px 12px"><h3>Result</h3><p style="margin:0"><b>49 members</b> (500 after dedup → 168 in London → 72 in finance → 49 with 3+ years in post). Source: 24 declared sector, 17 employer, 8 job keywords. Reliability: <span class="pill A">Current 1</span><span class="pill B">To confirm 5</span><span class="pill C">To reactivate 43</span> · 14 paying. Naive filter (city value 'Londres', sector value 'Finance', 3+ years in post) on the file as delivered: <b>2</b>. Normalised, no dedup: <b>26</b>. "6 to e-mail" = current + to confirm; strictly current: 1.</p></div>
+  <div class="card" style="padding:9px 12px"><h3>Assumptions</h3><ul style="margin:0"><li>Reference date 2026-10-12 (latest non-future date in the file: 2026-10-06).</li><li>"Graduates" = everyone (class years 2005–2024). The "Master in Finance" diploma is not a finance signal: only 19 of its 47 holders (after dedup) work in finance by any of the three sources.</li><li>"Finance" = declared sector, else employer in a finance reference list, else job-title keywords. Keywords are the weakest source: 3 of 8 are doubtful ("Professeur de finance" at BCG and at Renault, "Assistant administratif et financier" at Orange); in the product, the NAF industry code comes first and keyword matches are shown "to confirm".</li><li>"3+ years" = current job started on or before 2023-10-12.</li><li>Dedup rule (same first-name prefix, surname contained, same start date) drops exactly the 25 apparent duplicates; an earlier "or same job" variant also collapsed Martin into Martinez, which is why production uses a scored candidate list with blocking keys, reviewed by the admin.</li></ul></div>
+  <div class="card amber" style="padding:9px 12px"><h3>What the data cannot verify, and what the product does</h3><ul style="margin:0"><li><b>"In London for 3+ years"</b>: no date for the location, only for the job. Job tenure is the proxy, labelled "3+ years in current role" in the UI.</li><li><b>"Still true"</b>: 43 of 49 profiles are 4+ years old with no login in 2 years. Marked "to reactivate"; a Profile Update Campaign is offered before any send instead of silent inclusion.</li></ul></div>
  </div>
 </div>
 </section>
@@ -395,12 +398,12 @@ WHERE ville_norm='London' AND pays_norm='GB'              -- "à Londres" (count
 <pre>// Filter contract: model output, validated server-side (JSON schema enforced; 1 repair retry, then "cannot map")
 {
   "filters": [
-    {"criterion": "promotion",         "op": "between", "values": [2015, 2018]},
-    {"criterion": "sector_current_job","op": "in",      "values": ["Finance","Banque","Finance / Assurance"]},
+    {"criterion": "class_year",         "op": "between", "values": [2015, 2018]},
+    {"criterion": "sector_current_job","op": "in",      "values": ["Finance","Banking","Finance / Insurance"]},
     {"criterion": "city_workplace",    "op": "near",    "place_text": "London", "radius_km": 30},
     {"criterion": "experience_start",  "op": "before",  "relative": {"years": 3}}
   ],
-  "unmapped": ["qui ont répondu au dernier sondage"]
+  "unmapped": ["who answered the last survey"]
 }
 // Rules
 // - the tenant's full criteria schema is sent (names/operators only); the validator strips criteria outside the admin's role
@@ -411,16 +414,16 @@ WHERE ville_norm='London' AND pays_norm='GB'              -- "à Londres" (count
 // - cache key = hash(scrubbed sentence) + tenant + taxonomy hash + schema hash + prompt version + model id + role; TTL 24 h
 // - place_text resolved by the segmenter's existing geocoder (the radius operator already uses one); nothing new leaves
 // - scrub placeholders (e.g. {{P1}} for "Goldman Sachs") are re-substituted locally in the validator before employer/city
-//   resolution, so "ceux qui bossent chez X" maps; round-trip cases are in the eval set
+//   resolution, so "those who work at X" maps; round-trip cases are in the eval set
 // - relative dates evaluated at query time on the tenant clock; campaigns resolve at send time; exports are dated snapshots
 // - log row = tenant, pseudonymised admin, prompt hash, redacted sentence, tokens in/out, cost, model, region, latency
 // Reliability status (nightly batch, MariaDB column + OpenSearch field, per-tenant reindex)
 //   computed per tenant after the reliability flag is on (post DPIA decision); nightly thereafter
 //   thresholds 2 y / 4 y / 1 y are initial (update lag median 112 d in the sample); validated by hand-grading in weeks 1-2
 //   members with no update date and no login -> C; future dates ignored
-//   A "à jour"       profile updated < 2 y  OR  last login < 1 y (future dates ignored)
-//   B "à confirmer"  profile updated 2–4 y
-//   C "à réactiver"  older; exposed as two criteria + counts; shown to the member on their profile, contestable
+//   A "current"        profile updated < 2 y  OR  last login < 1 y (future dates ignored)
+//   B "to confirm"     profile updated 2–4 y
+//   C "to reactivate"  older; exposed as two criteria + counts; shown to the member on their profile, contestable
 // Backfill: chunked, idempotent, *_norm columns only; 80k-member instance measured on staging before any wave
 // Failure modes: gateway down / quota / flag off / timeout / schema mismatch -> segmenter unchanged, event logged;
 //   partial cannot-map -> mapped filters applied, fragment shown inline
@@ -461,18 +464,18 @@ WHERE ville_norm='London' AND pays_norm='GB'              -- "à Londres" (count
   <tr><td>Taxonomy or reference change</td><td>Taxonomy hash bump → cache purge → targeted re-normalise job; recorded in the CHANGELOG.</td></tr>
   <tr><td>Gateway credentials</td><td>Per-instance, dual-key rotation every 90 days, automated.</td></tr>
   <tr><td>Runbook (one page, 6 am)</td><td>Symptom → check → action → owner: eval replay drop → flag off for new tenants, PM decides; provider degraded → kill switch (Lead Developer); quota storm → CS on-call; stale status → re-run tenant job.</td></tr>
-  <tr><td>Members</td><td>Contest answered by the tenant admin within 10 business days and freezes the status as "confirmé" for 12 months (relief, never a downgrade); one reactivation per member per quarter; suppression after "not me" or opt-out; CS script for "why am I flagged".</td></tr></table>
+  <tr><td>Members</td><td>Contest answered by the tenant admin within 10 business days and freezes the status as "confirmed" for 12 months (relief, never a downgrade); one reactivation per member per quarter; suppression after "not me" or opt-out; CS script for "why am I flagged".</td></tr></table>
  </div>
  <div class="col">
   <table style="font-size:11.5px"><tr><th>Measurement</th><th>Decision it feeds (no dead ends)</th></tr>
   <tr><td>Admin edits a generated filter</td><td>Sentence + output + correction become weekly eval candidates; golden set grows from production; edit-rate target tightens each quarter.</td></tr>
-  <tr><td>"Not me" reply (a contest is the opposite: it freezes "confirmé")</td><td>Member flips to à réactiver with suppression; share of à jour members saying "not me" recalibrates the 2 y / 4 y thresholds.</td></tr>
+  <tr><td>"Not me" reply (a contest is the opposite: it freezes "confirmed")</td><td>Member flips to to-reactivate with suppression; share of current members saying "not me" recalibrates the 2 y / 4 y thresholds.</td></tr>
   <tr><td>"Cannot map" fragment</td><td>Logged per tenant; ranked list is the criteria and operator roadmap (relative dates were found by hand this time).</td></tr>
   <tr><td>Tenant override of employer → sector</td><td>Confirmed by N tenants → promoted to the global table; 350 instances teach one table.</td></tr>
   <tr><td>Campaign outcome by segment × status</td><td>Stored from Q1; the 2027 agent's "expected response rate" is computed from it, not asserted.</td></tr>
   <tr><td>Nightly replay against the live endpoint</td><td>5-point drop → release blocked, provider version compared, prompt pinned.</td></tr>
   <tr><td>Reactivation text</td><td>Two fixed, tenant-editable variants compared on update rate; the priced lever improves or is dropped.</td></tr></table>
-  <div class="card navy" style="padding:9px 12px;margin-top:8px"><h3>Flywheel metric</h3><p style="margin:0">Profiles moved from à réactiver to à jour per month across enabled tenants, with edit rate falling alongside. If both move, the loop compounds; if neither does, the stop criteria fire.</p></div>
+  <div class="card navy" style="padding:9px 12px;margin-top:8px"><h3>Flywheel metric</h3><p style="margin:0">Profiles moved from to-reactivate to current per month across enabled tenants, with edit rate falling alongside. If both move, the loop compounds; if neither does, the stop criteria fire.</p></div>
  </div>
 </div>
 </section>
