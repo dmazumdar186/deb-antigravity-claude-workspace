@@ -11,7 +11,7 @@ Audience: the CPO and a Lead Developer. Frédéric (founder) framed the role as 
 | 0–2 | 1 | Open with the data line: "Same sentence on your file: 2, 26 or 49 people, and 6 you can safely email." Then the thesis: you asked for speed, your users asked for trust, so the platform returns how far to trust the list. |
 | 2–4 | 2–3 | How you read the material. The 8-of-12 verbatims point. |
 | 4–7 | 4 | The data slide. Land the 525-vs-500 and the "tenure = staleness" insight. Then the 2 / 26 / 49 / 6 line. This is the memorable moment. |
-| 7–11 | 5–7 | The increment, sized in dev-weeks with a 35 dev-week core and a pre-named cut, then the exclusions. The panel grades the "no". |
+| 7–11 | 5–7 | The increment, sized in dev-weeks with a 36 dev-week core and a pre-named cut, then the exclusions. The panel grades the "no". |
 | 11–14 | 8–9 | Orchestration diagram. Say the DPO sentence out loud, slowly. |
 | 14–17 | 10–11 | One stop criterion per layer, two dates (week 12, week 17), then the three risks. |
 | 17–19 | 12–13 | Execution (two-step pilot, waves) and money (levers, payback formulas, packaging hypothesis), quickly. |
@@ -22,7 +22,7 @@ Rehearse 17 minutes; you will run over.
 ## The five lines to memorise
 
 1. "The administrator's problem is not building the list, it is believing it."
-2. "In this file, three years in post and three years without a profile update are the same signal."
+2. "In this file, three years in post and three years without a profile update are the same signal: the people you want are the ones to reactivate first."
 3. "Same sentence: 2, 26 or 49 people, and 6 you can safely email."
 4. "Only the administrator's question and the list of filter names leave the platform. Never a member."
 5. "If under 30 percent of segments use it after three pilot weeks, or admins rewrite more than half of what it produces, I stop the sentence box at week 12 and keep the reliability layer."
@@ -45,16 +45,16 @@ Open, and I keep it open: the contract is schema in, JSON out, so any EU-hosted 
 The prompt is the sentence plus a schema and value lists, roughly two thousand tokens with a cacheable prefix. I give an order of magnitude and confirm it on the gateway in week one. The expensive part is engineering, which is why the metering exists from day one.
 
 **"How do you handle permissions?"**
-The assistant runs in the admin's session. The schema sent to the model only contains the criteria that admin can see, and the query runs through the existing segmenter engine, which already scopes to the instance. We add nothing new to secure.
+The assistant runs in the admin's session. The model receives the tenant's criteria names and operators, never data, so the cached prefix is shared per tenant; the validator then strips any criterion the role may not use, unit-tested; the query runs through the existing segmenter engine, which already scopes to the instance. What is new to secure is the gateway credential and the per-call log, both covered in Annex C.
 
 **"What if the model hallucinates a criterion?"**
 The validator rejects any criterion not in the schema and any value not in the reference tables. The admin sees the unmapped part as text. The model cannot invent a filter that reaches the database.
 
 **"Isn't data cleaning a different project?"**
-It is the same project. Without normalisation the assistant returns 2 or 49 people for the same sentence. Grades turn dirt into something the admin can act on. And the deterministic layer ships to tenants who refuse AI entirely, so it is also the commercial hedge.
+It is the same project. Without normalisation the assistant returns 2 or 49 people for the same sentence. The à jour / à confirmer / à réactiver split turns dirt into something the admin can act on. And the deterministic layer ships to tenants who refuse AI entirely, so it is also the commercial hedge.
 
 **"How would you dedupe in production?"**
-Same rules as Annex B as a scoring function (name similarity, same employer or start date, same email domain pattern), proposing merges to the admin with a confidence score. Never auto-merge. Tune thresholds on the pilot tenants' confirmed and rejected merges.
+Blocking keys first (name prefix plus promo), then a scored candidate list inside each block (name similarity, same start date, same employer), proposed to the admin with the score. Never auto-merge. Annex B's one-off rule requires the same start date because a looser "or same job" variant merged Martin into Martinez. Tune thresholds on the pilot tenants' confirmed and rejected merges.
 
 **"What about OpenSearch and semantic search?"**
 Q2 at the earliest, after normalisation. Embedding eight spellings of London just embeds the noise. And it moves member text toward a model, which needs its own DPO conversation.
@@ -71,7 +71,7 @@ Deliverable 2 (the sentence box). Deliverable 1 ships regardless because it has 
 ## Questions added after the six-lens review (be ready)
 
 **"Your capacity math: our developers are shared."**
-I plan on three effective FTE, 36 dev-weeks, and confirm it in week 1. The core is 35: reliability layer, sentence box, flags and metering. Deliverable 3 is the stretch. Below three FTE, the box pre-fills through a saved-list import instead of live Vue state. The reliability criteria and metering never move.
+I plan on three effective FTE, 36 dev-weeks, and confirm it in week 1. The core is 36: reliability layer, sentence box, the two actions, flags and metering. Deliverable 3b (duplicate report, export order) is the stretch. Below three FTE, the box pre-fills through a saved-list import instead of live Vue state. The reliability criteria and metering never move.
 
 **"Your pilot is three weeks and your stop criterion says eight."**
 Two layers, two speeds. Week 12 decides the sentence box on leading indicators: eval gate, adoption and edit rate over three weeks. Week 17 decides the reactivation loop, thirty days after the first campaign. The quarter still ends with a decision.
@@ -139,7 +139,7 @@ Ask: which tenants have already said no to AI and why; how criteria and permissi
 
 - Utilisateurs → Listes: about 43 criteria in 10 groups, picker with search, values joined by OU inside a property, properties stacked with ET, no nesting, no relative dates.
 - Ville (Lieu de travail) has a geocoded radius operator; Expériences (Date) has before/after; Secteur and Code NAF exist on the current job.
-- No criterion and no profile field for last login or last profile update. That is the gap the grade fills.
+- No criterion and no profile field for last login or last profile update. That is the gap the reliability status fills.
 - 31 saved lists, most auto-named "Liste - date". Actions on a list: Exporter only; campaigns pick lists from their own module.
 - A "Campagne de mise à jour" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
 - The brief says about 60 criteria; the demo shows about 43. Say "the demo shows around 43; I assume production instances expose more".
