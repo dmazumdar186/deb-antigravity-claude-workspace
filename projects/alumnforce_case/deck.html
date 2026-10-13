@@ -35,7 +35,7 @@ code, pre { font-family: "JetBrains Mono",Consolas,monospace; } pre { font-size:
 .legend span { font-size:12px; margin-right:14px; } .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
 /*autofit*/
 section[data-zoom="0.94"] > *:not(.foot){zoom:0.94}
-section[data-zoom="0.99"] > *:not(.foot){zoom:0.99}
+section[data-zoom="0.97"] > *:not(.foot){zoom:0.97}
 section[data-zoom="0.92"] > *:not(.foot){zoom:0.92}
 section[data-zoom="0.83"] > *:not(.foot){zoom:0.83}
 section[data-zoom="0.88"] > *:not(.foot){zoom:0.88}
@@ -97,7 +97,7 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 </section>
 
 <!-- 4 -->
-<section class="slide" data-zoom="0.99">
+<section class="slide" data-zoom="0.97">
 <div class="k">1 · The problem, reformulated · evidence from the file</div>
 <h2>The data agrees with Julie: the profile is the problem <span class="muted" style="font-size:16px;font-weight:600">(n = 500 after deduplication unless stated)</span></h2>
 <div class="cols">
@@ -106,8 +106,8 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
   <tr><td>Rows vs the 500 announced</td><td><b>525</b> — 25 apparent duplicate persons (M0501–M0525: surname in capitals, truncated first name, gmail address, same job and start date), 500 after deduplication</td></tr>
   <tr><td>Ways of spelling "London"</td><td><b>8</b> (london, LONDON, London, Londres, Londres (Royaume-Uni), Greater London, London, UK, London - Canary Wharf)</td></tr>
   <tr><td>Ways of spelling the UK</td><td><b>3</b>, plus 41 members with no country at all</td></tr>
-  <tr><td>Declared sector</td><td>missing on <b>174</b> members; <b>70 of 127</b> people at banks declare "Services", "Autre" or nothing</td></tr>
-  <tr><td>"Master Finance" graduates</td><td>47, of which only <b>19</b> work in finance (declared sector, employer or job title) — the diploma is not the sector</td></tr>
+  <tr><td>Declared sector</td><td>missing on <b>174</b> members; <b>70 of 127</b> people at banks declare "Services", "Other" or nothing</td></tr>
+  <tr><td>"Master in Finance" graduates</td><td>47, of which only <b>19</b> work in finance (declared sector, employer or job title) — the diploma is not the sector</td></tr>
   <tr><td>Profile not updated for 2+ years</td><td><b>68 %</b></td></tr>
   <tr><td>No login for 12+ months</td><td><b>77 %</b> (89 % if the 60 future-dated logins are treated as unknown)</td></tr>
   <tr><td>Last-login dates in the future</td><td><b>60</b> members (up to Oct 2027): an export or integrity defect, routed to a data-integrity ticket owned by the data owner, and ignored so it can never count as "recent"</td></tr></table>
@@ -244,7 +244,7 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 <div class="cols">
  <div class="col card red"><h3>1 · The data is too dirty for any assistant to look good</h3><p>68 % of profiles untouched for two years; sectors missing on a third; eight spellings of one city. An assistant on top of this returns wrong lists with confidence, and the brand damage lands on AlumnForce, not on the model.</p><p style="margin:0"><b>Position:</b> the reliability layer <i>is</i> the first increment, not a prerequisite someone else owns. The split makes the dirt visible instead of hiding it, and reactivation starts cleaning it from day one. I accept shipping the sentence box later than a pure-AI roadmap would.</p></div>
  <div class="col card amber"><h3>2 · Personal data and the DPO veto</h3><p>Philippe (V11) will block any transfer of student data to a US model; several tenants will refuse categorically; the reliability status itself is profiling if nobody says so. One ambiguous answer in a sales call and the feature is dead for that account.</p><p style="margin:0"><b>Position:</b> design so the answer is short and true: scrubbed sentence only, closed taxonomies, EU endpoint under a no-retention contract, status visible and contestable by the member, per-tenant flag and audit export. Tenants who still say no get everything except the sentence box. I will not trade this for a richer prompt.</p></div>
- <div class="col card"><h3>3 · The expectation gap</h3><p>Antoine (V2) expects ChatGPT. The product is a translator with a fixed vocabulary. If the first demo feels like a dumber chatbot, pilots disengage and Yessica's story repeats (V7).</p><p style="margin:0"><b>Position:</b> never call it a chat; always show the filters and the unmapped part; make the first win the split, which no chatbot gives them; end every demo on "6 you can safely email". Onboard the three expert tenants first so the pattern is set by people who know what a filter is.</p></div>
+ <div class="col card"><h3>3 · The expectation gap</h3><p>Antoine (V2) expects ChatGPT. The product is a translator with a fixed vocabulary. If the first demo feels like a dumber chatbot, pilots disengage and Yessica's story repeats (V7).</p><p style="margin:0"><b>Position:</b> never call it a chat; always show the filters and the unmapped part; make the first win the split, which no chatbot gives them; end every demo on "6 current or to-confirm you can e-mail". Onboard the three expert tenants first so the pattern is set by people who know what a filter is.</p></div>
 </div>
 <div class="card" style="margin-top:4px"><p style="margin:0"><b>Watched but not top three:</b> cost runaway (metered, capped, kill switch); provider lock-in (schema-in/JSON-out contract); scope slip (deliverable 3 and the Vue pre-fill are the first to move); small tenants finding it irrelevant (V6: flags off, they still get the duplicate report and a reliability score at renewal).</p></div>
 <div class="foot"><span>11 / 15</span><span>Each position is a trade I am willing to defend, not a mitigation list.</span></div>
@@ -293,7 +293,7 @@ section[data-zoom="0.91"] > *:not(.foot){zoom:0.91}
 <h2>Each quarter funds the next, or stops</h2>
 <div class="cols">
  <div class="col">
-  <div class="card"><h3>Q2 — Answers for leadership</h3><p style="margin:0">"How many alumni placed, where, in which sectors" (V10) as three questions over the reliable base, on the existing Statistiques module's data: every number carries its reliability. Same translator, aggregate output, still no member data in the prompt. Funded as the renewal argument for client directions. Also: merge UI with undo window, data-health panel.</p></div>
+  <div class="card"><h3>Q2 — Answers for leadership</h3><p style="margin:0">"How many alumni placed, where, in which sectors" (V10) as three questions over the reliable base, on the existing Statistics module's data: every number carries its reliability. Same translator, aggregate output, still no member data in the prompt. Funded as the renewal argument for client directions. Also: merge UI with undo window, data-health panel.</p></div>
   <div class="card"><h3>Q3 — Automations that keep the base alive</h3><p style="margin:0">n8n loops: reactivate on job-change signals, re-evaluate status after each login, propose merges. Funded by the priced reactivation loop if the pilot proved it.</p></div>
   <div class="card"><h3>2027 — Agents on segments</h3><p style="margin:0">An agent proposes a dues campaign to the right 180 people, with the list, the split and the expected response rate, and waits for a human yes. Possible only because the three previous steps made the data trustworthy and the actions auditable.</p></div>
  </div>
@@ -420,18 +420,18 @@ WHERE city_norm='London' AND country_norm='GB'            -- "in London" (countr
 // Reliability status (nightly batch, MariaDB column + OpenSearch field, per-tenant reindex)
 //   computed per tenant after the reliability flag is on (post DPIA decision); nightly thereafter
 //   thresholds 2 y / 4 y / 1 y are initial (update lag median 112 d in the sample); validated by hand-grading in weeks 1-2
-//   members with no update date and no login -> C; future dates ignored
-//   A "current"        profile updated < 2 y  OR  last login < 1 y (future dates ignored)
+//   members with no update date and no login -&gt; C; future dates ignored
+//   A "current"        profile updated &lt; 2 y  OR  last login &lt; 1 y (future dates ignored)
 //   B "to confirm"     profile updated 2–4 y
 //   C "to reactivate"  older; exposed as two criteria + counts; shown to the member on their profile, contestable
 // Backfill: chunked, idempotent, *_norm columns only; 80k-member instance measured on staging before any wave
-// Failure modes: gateway down / quota / flag off / timeout / schema mismatch -> segmenter unchanged, event logged;
-//   partial cannot-map -> mapped filters applied, fragment shown inline
+// Failure modes: gateway down / quota / flag off / timeout / schema mismatch -&gt; segmenter unchanged, event logged;
+//   partial cannot-map -&gt; mapped filters applied, fragment shown inline
 // Config: per-tenant assistant_config (thresholds, radius cap, allow-list, prompt version, taxonomy hash) with owner;
 //   CHANGELOG row per prompt/schema/taxonomy bump: version, eval delta, incidents; taxonomy bump purges cache
 // Eval harness: record/replay fixtures in CI; live run on prompt or model diff; nightly replay vs live endpoint
 //   exact match = canonicalised filter set (sorted criteria, sorted values) equal to label; P/R per (criterion, op, values) tuple
-//   2 annotators, Cohen's kappa >= 0.8; negative-set recall >= 95 %; 100 labelled + 30 negative
+//   2 annotators, Cohen's kappa &gt;= 0.8; negative-set recall &gt;= 95 %; 100 labelled + 30 negative
 //   pinned: model id, temperature 0, prompt version; live runs k=3, flake budget 2 %</pre>
  </div>
  <div class="col">
