@@ -5,10 +5,12 @@ const strip = h => h.replace(/\/\*autofit\*\/[\s\S]*?(?=<\/style>)/, '').replace
 (async () => {
   const src = strip(fs.readFileSync('deck.html', 'utf8'));
   const tmp = path.join(os.tmpdir(), 'deck_unbaked_' + process.pid + '.html'); fs.writeFileSync(tmp, src);
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+  let b, zooms;
+  try {
+  b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
   const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
   await p.goto('file://' + tmp);
-  const zooms = await p.evaluate(() => {
+  zooms = await p.evaluate(() => {
     const out = [];
     document.querySelectorAll('section.slide').forEach((s, i) => {
       const top = () => s.getBoundingClientRect().top; const foot = s.querySelector('.foot');
@@ -21,9 +23,10 @@ const strip = h => h.replace(/\/\*autofit\*\/[\s\S]*?(?=<\/style>)/, '').replace
     });
     return out;
   });
-  await b.close(); fs.unlinkSync(tmp);
+  } finally { if (b) await b.close(); fs.rmSync(tmp, { force: true }); }
   console.log(zooms.map(x => `${x.slide}: zoom ${x.zoom} bottom ${x.bottom}/${x.limit}`).join('\n'));
   const secs = src.split(/(?=<section class="slide)/); let k = 0;
+  if (secs.length - 1 !== zooms.length) throw new Error(`section split (${secs.length - 1}) != DOM slides (${zooms.length})`);
   for (let i = 1; i < secs.length; i++) { const z = zooms[k++].zoom; if (z < 1) secs[i] = secs[i].replace(/^<section class="slide([^"]*)"([^>]*)>/, (m, c, rest) => `<section class="slide${c}"${rest} data-zoom="${z}">`); }
   const rules = [...new Set(zooms.filter(z => z.zoom < 1).map(z => z.zoom))].map(z => `section[data-zoom="${z}"] > *:not(.foot){zoom:${z}}`).join('\n');
   fs.writeFileSync('deck.html', secs.join('').replace('</style>', `/*autofit*/\n${rules}\n</style>`));

@@ -148,7 +148,7 @@ Ask: which tenants have already said no to AI and why; how criteria and permissi
 
 Annex A says you verified these yourself. Do them, or edit Annex A to what you actually did.
 
-1. Run `bash build/build.sh`? Not needed. Run the Annex B snippet in README.md on the CSV and confirm 49 rows.
+1. Run `bash tools/build.sh`? Not needed. Run the Annex B snippet in README.md on the CSV and confirm 49 rows.
 2. Open the CSV in a spreadsheet: check 525 rows, the eight spellings of London, the 25 rows M0501 to M0525.
 3. Read the twelve verbatims and decide whether you agree with the coding on slide 3.
 4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Campagne de mise current exists.

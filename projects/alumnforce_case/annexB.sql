@@ -8,6 +8,7 @@
 --    Rule: same first name (first 3 letters), surnames contained one in the other, AND same job start date.
 --    An earlier "or same job" variant also merged Martin into Martinez, so the start date is required.
 --    The most recently updated record is kept.
+DROP TABLE IF EXISTS members;
 CREATE TABLE members AS
 WITH p AS (
   SELECT *,
@@ -28,6 +29,7 @@ duplicates AS (
 SELECT * FROM p WHERE member_id NOT IN (SELECT drop_id FROM duplicates);
 
 -- 1. NORMALISATION: deterministic, by lookup table. No model call, nothing leaves the platform.
+DROP TABLE IF EXISTS members_norm;
 CREATE TABLE members_norm AS
 SELECT m.*,
   -- "London" appears in 8 spellings (london, LONDON, Londres, Greater London, London - Canary Wharf, ...)
