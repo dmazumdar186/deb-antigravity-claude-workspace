@@ -51,7 +51,9 @@
       "Bash(ls C:\\Users\\deban\\dev\\**)",
       "Bash(dir C:\\Users\\deban\\dev\\**)",
       "Bash(git -C C:\\Users\\deban\\dev\\humanizer\\* *)",
-      "Bash(cd C:\\Users\\deban\\dev\\humanizer\\* && *)"
+      "Bash(cd C:\\Users\\deban\\dev\\humanizer\\* && *)",
+      "Bash(git add deliverables/**)",
+      "Bash(git add deliverables/*)"
     ],
     "deny": [
       "Bash(rm -rf *)",

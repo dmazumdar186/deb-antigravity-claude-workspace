@@ -1,0 +1,151 @@
+{
+  "threshold": 0.5,
+  "files": {
+    "san_francisco.csv": {
+      "rows": 839,
+      "on_target": 289,
+      "off_target": 550,
+      "categories": {
+        "other": 248,
+        "staffing_recruiting": 254,
+        "other_consulting": 147,
+        "hr_consulting": 68,
+        "hr_tech": 122
+      },
+      "off_target_industries": {
+        "Information Technology & Services": 239,
+        "Venture Capital & Private Equity": 42,
+        "Management Consulting": 37,
+        "Human Resources": 21,
+        "Research": 17,
+        "Hospital & Health Care": 16,
+        "Accounting": 13,
+        "Professional Training & Coaching": 12,
+        "Financial Services": 12,
+        "Events Services": 10
+      }
+    },
+    "seattle.csv": {
+      "rows": 289,
+      "on_target": 115,
+      "off_target": 174,
+      "categories": {
+        "other": 67,
+        "other_consulting": 73,
+        "staffing_recruiting": 100,
+        "hr_tech": 23,
+        "hr_consulting": 26
+      },
+      "off_target_industries": {
+        "Information Technology & Services": 39,
+        "Management Consulting": 22,
+        "Marketing & Advertising": 9,
+        "Professional Training & Coaching": 8,
+        "Hospital & Health Care": 8,
+        "Human Resources": 6,
+        "Sports": 5,
+        "Events Services": 4,
+        "Security & Investigations": 4,
+        "Insurance": 4
+      }
+    },
+    "san_diego.csv": {
+      "rows": 291,
+      "on_target": 125,
+      "off_target": 166,
+      "categories": {
+        "staffing_recruiting": 110,
+        "other_consulting": 80,
+        "hr_consulting": 25,
+        "other": 67,
+        "hr_tech": 9
+      },
+      "off_target_industries": {
+        "Information Technology & Services": 28,
+        "Management Consulting": 22,
+        "Marketing & Advertising": 13,
+        "Professional Training & Coaching": 9,
+        "Venture Capital & Private Equity": 8,
+        "Research": 7,
+        "Human Resources": 5,
+        "Financial Services": 5,
+        "Events Services": 5,
+        "Biotechnology": 5
+      }
+    },
+    "san_francisco__hq_outside_metro.csv": {
+      "rows": 279,
+      "on_target": 100,
+      "off_target": 179,
+      "categories": {
+        "hr_tech": 49,
+        "staffing_recruiting": 91,
+        "other_consulting": 55,
+        "other": 65,
+        "hr_consulting": 19
+      },
+      "off_target_industries": {
+        "Information Technology & Services": 72,
+        "Management Consulting": 15,
+        "Financial Services": 10,
+        "Marketing & Advertising": 8,
+        "Hospital & Health Care": 8,
+        "Human Resources": 8,
+        "Venture Capital & Private Equity": 8,
+        "Research": 7,
+        "Logistics & Supply Chain": 3,
+        "E-learning": 3
+      }
+    },
+    "seattle__hq_outside_metro.csv": {
+      "rows": 101,
+      "on_target": 38,
+      "off_target": 63,
+      "categories": {
+        "staffing_recruiting": 32,
+        "hr_consulting": 10,
+        "other": 26,
+        "other_consulting": 22,
+        "hr_tech": 11
+      },
+      "off_target_industries": {
+        "Information Technology & Services": 21,
+        "Management Consulting": 6,
+        "Human Resources": 6,
+        "Marketing & Advertising": 3,
+        "Sports": 2,
+        "Venture Capital & Private Equity": 2,
+        "Mechanical Or Industrial Engineering": 2,
+        "Research": 2,
+        "Events Services": 2,
+        "Entertainment": 2
+      }
+    },
+    "san_diego__hq_outside_metro.csv": {
+      "rows": 96,
+      "on_target": 43,
+      "off_target": 53,
+      "categories": {
+        "staffing_recruiting": 39,
+        "hr_consulting": 7,
+        "other": 19,
+        "other_consulting": 24,
+        "hr_tech": 7
+      },
+      "off_target_industries": {
+        "Information Technology & Services": 11,
+        "Management Consulting": 8,
+        "Professional Training & Coaching": 5,
+        "Hospital & Health Care": 4,
+        "Financial Services": 3,
+        "Staffing & Recruiting": 2,
+        "Sports": 2,
+        "Marketing & Advertising": 2,
+        "Insurance": 2,
+        "Law Practice": 1
+      }
+    }
+  },
+  "cost_usd": 0.07046894400000009,
+  "jev_errors": 0
+}
