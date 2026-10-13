@@ -28,6 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "execution"))
 
 from modules.pipeline_utils import (  # noqa: E402
+    load_leads,
     export_csv,
     generate_run_id,
     now_iso,
@@ -221,8 +222,33 @@ def find_email(website: str) -> str:
     return ""
 
 
-def enrich(leads: list[dict]) -> None:
-    for lead in leads:
+def enrich_one(lead: dict) -> None:
+    if lead.get("_enriched"):
+        return
+    try:
+        _enrich_one(lead)
+    except (requests.RequestException, ValueError, KeyError) as exc:  # one bad lead never stops the run
+        logger.warning("enrich failed for %s: %s", lead.get("first_name") or lead.get("name"), exc)
+    lead["_enriched"] = True
+
+
+def enrich(leads: list[dict], checkpoint: Path | None = None, workers: int = 8) -> None:
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    todo = [l for l in leads if not l.get("_enriched")]
+    logger.info("enrich: %d leads to do (%d already done), %d workers", len(todo), len(leads) - len(todo), workers)
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(enrich_one, l): l for l in todo}
+        for _ in as_completed(futures):
+            done += 1
+            if done % 25 == 0 or done == len(todo):
+                logger.info("enrich: %d/%d (%d with email)", done, len(todo), sum(1 for l in leads if l.get("email")))
+                if checkpoint:
+                    save_leads(leads, checkpoint)
+
+
+def _enrich_one(lead: dict) -> None:
+    if True:
         w = lead.get("website") or ""
         if "instagram.com" in w:
             lead["instagram"], lead["website"] = w, ""
@@ -372,6 +398,8 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--mock", action="store_true")
     ap.add_argument("--enrich", action="store_true")
+    ap.add_argument("--resume", help="skip scraping; load this JSON (a checkpoint) and continue enrich/jev")
+    ap.add_argument("--workers", type=int, default=8, help="parallel enrichment threads")
     ap.add_argument("--jev", action="store_true")
     ap.add_argument("--sheet", default="")
     ap.add_argument("--out", default=str(ROOT / ".tmp" / "fr_instructors.json"))
@@ -379,6 +407,11 @@ def main() -> int:
 
     if args.mock:
         leads = get_mock_data()
+    elif args.resume:
+        leads = load_leads(args.resume)
+        logger.info("resumed %d leads from %s", len(leads), args.resume)
+        if args.enrich:
+            enrich(leads, checkpoint=Path(args.out), workers=args.workers)
     else:
         run_id = generate_run_id()
         sources = {s.strip() for s in args.sources.split(",") if s.strip()}
@@ -397,8 +430,9 @@ def main() -> int:
         leads = dedup(leads)
         if args.limit:
             leads = leads[: args.limit]
+        save_leads(leads, Path(args.out))  # raw scrape lands on disk before the slow enrichment starts
         if args.enrich:
-            enrich(leads)
+            enrich(leads, checkpoint=Path(args.out), workers=args.workers)
     leads = dedup(leads)
     if args.limit:
         leads = leads[: args.limit]

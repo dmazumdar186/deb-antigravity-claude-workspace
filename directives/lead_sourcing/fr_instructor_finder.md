@@ -37,3 +37,12 @@ JSON + CSV with columns source, name, first_name, discipline, city, price_eur_h,
 - Meetup find pages are JS-rendered: needs Playwright + Chromium (`/opt/pw-browsers` in cloud; do not run `playwright install`). Any Meetup failure is logged and skipped. Selectors are best-effort and may need updating.
 - Jev `noul` answers have no confidence field; P(independent) ≥ 0.6 → True, ≤ 0.4 → False, else blank. Segment uses the chosen option's probability ≥ 0.6.
 - `--sheet` without `GOOGLE_SERVICE_ACCOUNT_PATH` logs a warning and skips (cloud sessions).
+
+## Run log
+
+- **2026-10-13 — yoga × 10 cities** (Paris, Lyon, Marseille, Toulouse, Nice, Nantes, Bordeaux, Lille, Montpellier, Strasbourg), `--pages 3 --sources superprof,maps --enrich --jev --workers 10`: 674 raw → 535 deduped leads (263 Superprof, 272 Maps), 494 with a site, 299 with an email (139 same-domain), 307 Serper queries ≈ $0.31, ~8 min wall clock. Sheet export: 510 rows after name+city dedup, 229 usable emails.
+- First attempt was serial and died at the 30-min background limit with nothing saved → enrichment is now a 8-10 thread pool with a checkpoint to `--out` every 25 leads; `--resume <json>` skips scraping and continues enrich/Jev from a checkpoint.
+
+## Outreach workbook
+
+`execution/lead_sourcing/instructor_sheet_export.py --input .tmp/yoga_fr.json --out .tmp/yoga_teachers_fr.xlsx` → one tab per city, columns `First name | Last name | Email | Website exists (yes/no/not sure) | Website | Found on`. Rules: Superprof gives first names only; Maps business names stay whole in column A unless they look like a person; social-only presence = "no" (the pitch); a site found by first-name search = "not sure"; an off-domain email on a guessed site is dropped. In the cloud session (no service account) upload the .xlsx through the Google Drive connector; Drive converts it to a Google Sheet and keeps the tabs. Locally, `--sheet <id>` pushes a flat tab via the service account instead.
