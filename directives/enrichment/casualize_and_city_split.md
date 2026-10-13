@@ -38,5 +38,5 @@ columns for personalization. Run `email_mx_verify.py` (or `million_verifier.py` 
 - Cloud sessions lack `openai` by default: `pip install openai` before running.
 
 ## Run log
-- 2026-10-13 Bay Area recruitment list (1,900 rows → 1,895 after dedupe, 1,731 companies, cities SF / Seattle /
+- 2026-10-13 Bay Area recruitment list, then `jev_recruitment_icp_filter.py` to flag off-target rows (1,900 rows → 1,895 after dedupe, 1,731 companies, cities SF / Seattle /
   San Diego). Sonnet, 44 batches, ~2 min.
