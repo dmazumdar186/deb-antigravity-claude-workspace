@@ -1,18 +1,18 @@
 # Briefing — the AlumnForce case, explained to its presenter
 
-You contracted the work; this is the handover. It explains the problem, what was built and why, what was rejected and why, how the answer moves if an assumption moves, and the questions the panel (a CPO and a Lead Developer) can ask, with answers. Read it once end to end, then rehearse with SPEAKER_GUIDE.md.
+You contracted the work, this is the handover. It covers the problem, what got built and why, what got rejected and why, how the answer shifts if an assumption shifts, and the questions the panel (a CPO and a Lead Developer) can throw at you, with answers. Read it once end to end, then rehearse with SPEAKER_GUIDE.md.
 
 ---
 
 ## 1. The problem, as AlumnForce stated it
 
-AlumnForce is a B2B2C SaaS: about 350 schools, universities and alumni associations each run their own isolated instance to manage their alumni community. Instances range from 400 to 80,000 members. Each is run by one to three administrators.
+AlumnForce is a B2B2C SaaS. About 350 schools, universities and alumni associations each run their own isolated instance to manage their alumni community. Instances go from 400 to 80,000 members, and each one is run by one to three admins.
 
-Their admin tool includes a **segmenter**: build an audience from about sixty criteria (class year, degree, location, employer, job function, dues status, event participation), then use it for a newsletter, an SMS campaign, a dues call or an export.
+Their admin tool has a **segmenter**. You build an audience from about 60 criteria (class year, degree, location, employer, job function, dues status, event participation), then use it for a newsletter, an SMS campaign, a dues call or an export.
 
-The observed problem: administrators can describe their target in one sentence, but translating it into filters is slow and reserved for experts. Many fall back to exporting to Excel.
+The problem we saw: admins can describe their target in one sentence, but turning it into filters is slow and only the experts actually do it. Most just export to Excel instead.
 
-Product leadership wants a **campaign targeting assistant**: the admin types "find me the graduates working in finance in London for more than three years" and gets a usable segment. Your mission: frame this product and propose the first increment to ship within one quarter, with one PM (you) and three to four developers who are shared with other projects.
+Product leadership wants a **campaign targeting assistant**. The admin types something like "find me the graduates working in finance in London for more than three years" and gets back a segment they can actually use. Your job: frame the product and propose the first increment we can ship in one quarter. Team is one PM (you) and 3-4 developers, and they're shared with other projects.
 
 Constraints they imposed:
 - Multi-tenant: 350 isolated instances; features activate per instance or in bulk via feature flags.
@@ -21,7 +21,7 @@ Constraints they imposed:
 - Cost: every model call costs money; they must know what a use costs and which client generated it. Business model (included, option, pay-per-use) is open.
 - The existing segmenter must keep working identically for instances where the feature is off.
 
-Deliverable: 15 slides maximum answering five questions (problem reformulated; first increment with explicit exclusions; orchestration; measurement with a stop criterion; three risks) plus Annex A (how you used AI) and Annex B (SQL for the London finance query on the 500-member CSV, with assumptions and the count). One hour: 20 minutes you, 30 minutes their questions, 10 minutes yours.
+Deliverable: max 15 slides, answering five questions — problem reformulated, first increment with explicit exclusions, orchestration, measurement with a stop criterion, three risks. Plus Annex A (how you used AI) and Annex B (SQL for the London finance query on the 500-member CSV, with assumptions and the count). One hour total: 20 min you, 30 min their questions, 10 min yours.
 
 ## 2. The problem, as the material actually reveals it
 
@@ -34,7 +34,7 @@ The brief says "speed". The twelve verbatims and the data say "trust". This refr
 - Data (2): Thomas needs a one-sentence answer to "where does my data go"; Philippe, a university CIO, says a US model gets a "no" from his DPO unless told precisely what leaves.
 - Not for me (1): Marc runs a 400-member association and wants the Excel export columns in the right order.
 
-Eight of twelve are about truth, proof or data. A pure natural-language-to-filters chatbot satisfies Antoine and makes the wrong list faster for everyone else.
+Eight of the twelve are about truth, proof or data. A pure natural-language-to-filters chatbot keeps Antoine happy, and for everyone else it just makes the wrong list faster.
 
 **The data confirms it.** The CSV is announced as 500 members and holds 525 rows. Twenty-five rows (M0501 to M0525) are duplicate persons: surname in capitals or compound, truncated first name, gmail address, same job and start date. After deduplication, 500 members, which matches the brief. On those 500:
 - London is spelled eight ways; the UK three ways plus 41 missing countries.
@@ -43,26 +43,26 @@ Eight of twelve are about truth, proof or data. A pure natural-language-to-filte
 - 68 percent of profiles untouched for two or more years; 77 percent no login in twelve months (89 percent if the 60 future-dated logins are treated as unknown).
 - 60 last-login dates are in the future, up to October 2027: an export or integrity defect.
 
-**The insight that makes the solution specific to this company:** profile updates cluster just after a job start (median 112 days, interquartile 50 to 165) and then stop. In this data, "in post for three or more years" and "profile untouched for three or more years" are the same signal. A naive assistant answering the brief's own example sentence returns exactly the people most likely to have moved. Nathalie's disaster is reproduced on their own file: the same sentence gives 2 members (naive filter), 26 (normalised), 49 (full logic), of whom only 6 are current or to-confirm, and only 1 strictly current.
+**The insight that makes this specific to this company:** profile updates cluster right after a job start (median 112 days, interquartile 50 to 165) and then stop. So in this data, "in post for three or more years" and "profile untouched for three or more years" are actually the same signal. A naive assistant answering the brief's own example sentence returns exactly the people most likely to have moved. I mean, Nathalie's disaster reproduces on their own file: the same sentence gives 2 members with the naive filter, 26 normalised, 49 with the full logic. Of those 49, only 6 are current or to-confirm, and only 1 is strictly current.
 
 ## 3. What we built, decision by decision, and why
 
 ### 3.1 The product principle: a reliability split, not a chatbot
 Every segment returns three counts: **Current** (profile updated within two years or login within one year), **To confirm** (updated two to four years ago), **To reactivate** (older, or no date). The admin acts on each: send, confirm, reactivate.
 
-Why: the admin's problem is believing the list, not building it. A number with its reliability attached answers Nathalie, Julie, Inès (truth), Karim and Isabelle (proof), and gives Catherine a dues lever. No competitor we know of does this; it is the part that is hard to copy because it requires a normalised, reliability-scored base per tenant.
+Why: the admin's problem is believing the list, not building it. A number with its reliability attached answers Nathalie, Julie and Inès (truth), Karim and Isabelle (proof), and gives Catherine a lever on dues. No competitor we know of does this. It's also the hard part to copy — you need a normalised, reliability-scored base per tenant.
 
-Why the words: "grade" and "stale" read as a verdict on the client's data stewardship; "to reactivate" is an action. Admin vocabulary never reaches members: they see "Profile last updated 4 years ago · Confirm / Correct".
+Why these words: "grade" and "stale" read like a verdict on how the client looks after their data. "to reactivate" is an action. Admin vocabulary never reaches members, they just see "Profile last updated 4 years ago · Confirm / Correct".
 
 ### 3.2 Deterministic first, model second
 Normalisation (city geocode, country, employer to sector), duplicate detection and the reliability status run in MariaDB and PHP with no model call. The model does exactly one thing: translate the admin's sentence into a structured filter set constrained to the segmenter's existing criteria.
 
-Why: three reasons that each stand alone. The dirt is the product problem, so it must be fixed first or the assistant returns 2 or 49 people for the same sentence. Tenants who refuse any transfer (Philippe) still get the full deterministic layer. And a one-call translator with no member data in the prompt is evaluable, explainable and cheap.
+Why: three reasons, each one stands on its own. The dirt is the actual product problem, so it has to be fixed first, otherwise the assistant returns 2 or 49 people for the same sentence. Tenants who refuse any transfer (Philippe) still get the full deterministic layer. And a one-call translator with no member data in the prompt — you can evaluate it, you can explain it, and it's cheap.
 
 ### 3.3 Human in the existing segmenter
 Generated filters pre-fill the existing segmenter UI next to the admin's own sentence (a diff view). The unmapped part is shown inline ("Add this criterion by hand"), never a blank page. The admin edits, saves, sends or reactivates. The model never sends, merges or edits anything.
 
-Why: the segmenter already exists and is known; replacing it would widen scope and break the "identical when flag off" constraint. A visible filter set is the bound on the model's worst output: a valid but wrong filter set is caught by a human reading the filters and the count before any send.
+Why: the segmenter already exists and people know it. Replacing it widens scope and breaks the "identical when flag off" constraint. The visible filter set is what bounds the model's worst output — if it produces a valid but wrong filter set, a human reading the filters and the count catches it before anything gets sent.
 
 ### 3.4 Scope: four deliverables, a 36 dev-week core, a pre-named cut
 - D1 Reliability layer (16 dev-weeks): status column computed nightly, OpenSearch field and per-tenant reindex, two new segmenter criteria (last profile update, last login), a relative-date operator in the engine, reference tables with per-tenant overrides written to separate normalised columns, idempotent chunked backfill, status shown on the member's own profile.
@@ -71,7 +71,11 @@ Why: the segmenter already exists and is known; replacing it would widen scope a
 - D3b Hygiene (3, stretch): duplicate detection report, stable export column order.
 - D4 Flags, metering, evals (7): two flags, per-call log, kill switch, record/replay eval harness plus nightly live replay, campaign outcomes stored by segment and status, per-tenant config table.
 
-Why D1 is the heaviest and first: the two reliability criteria do not exist in the engine today (verified on the demo instance), so this is an engine change plus a reindex, not a UI tweak. Why D3a is in the core: the reactivation loop is the only priced lever and the subject of the week-17 decision; it cannot live in the stretch cut. Why 3 effective FTE: developers are shared; the plan states the assumption and names what drops below it (D3b, then live Vue pre-fill replaced by a saved-list import).
+D1 is the heaviest and goes first because the two reliability criteria don't exist in the engine today, verified on the demo instance. So this is an engine change plus a reindex, not a UI tweak.
+
+D3a sits in the core because the reactivation loop is the only priced lever and it's what the week-17 decision is actually about. It can't live in the stretch cut.
+
+Why 3 effective FTE: developers are shared. The plan states that assumption and names what drops if we go below it — D3b first, then live Vue pre-fill gets replaced by a saved-list import.
 
 ### 3.5 Two flags, both off by default
 `reliability` (status, criteria, counts) and `nl_targeting` (the sentence box). Why: the brief requires the segmenter to be identical where the feature is off, and the status is derived personal data that each tenant must decide on before it is computed for them. Tenants that refuse AI can still turn on reliability.
@@ -81,7 +85,16 @@ Only the admin's sentence, scrubbed of e-mails, phones and exact full-name match
 
 The DPO sentence: "Only the administrator's question, scrubbed of identifiers and full names, and the names of the filters leave the platform, to a model hosted in the EU under a no-retention, no-training contract. No member profile is ever sent; residual hits in the question are logged and reviewed."
 
-The legal file: tenant is controller, AlumnForce processor, provider a sub-processor listed with 30-day notice; DPIA screening memo and balancing-test template supplied by AlumnForce, decision recorded by each tenant; reliability status treated as derived personal data, visible and contestable by the member (contest answered within 10 business days and freezes the status as confirmed for 12 months); logs pseudonymised, 12-month retention, tenant-scoped export; one reactivation per member per quarter; suppression after a "not me" reply or opt-out. Annex C holds the security-questionnaire rows.
+The legal file, as it stands:
+
+- Roles: tenant is controller, AlumnForce is processor, the provider is a sub-processor on the list with 30-day notice.
+- DPIA: AlumnForce supplies the screening memo and the balancing-test template. Each tenant records its own decision.
+- Reliability status is derived personal data. The member can see it and contest it. We answer a contest within 10 business days, and the status is then frozen as confirmed for 12 months.
+- Logs are pseudonymised, kept 12 months, exportable per tenant.
+- One reactivation per member per quarter.
+- A "not me" reply or an opt-out means suppression.
+
+Security-questionnaire rows are in Annex C.
 
 ### 3.7 Cost and business model
 One request is roughly 1,500 to 2,500 input tokens (schema and taxonomies in a cached prefix) and 150 to 300 output tokens: a fraction of a euro cent on a mid-tier model, under a euro a month for a heavy tenant. The cost that matters is engineering (36 to 39 dev-weeks). Position: reliability layer included for all (retention tool at renewal); sentence box included with fair use (300 requests a month, soft block and CS alert); the reactivation loop is the only priced add-on, tested on the three expert tenants as a flat monthly fee per member tier, reverting to included if reactivation stays under 10 percent. Primary lever is retention across 350 installed tenants; "do you do AI?" is the new-logo answer; reactivation is the only upsell because it is the only thing tied to dues.
@@ -122,16 +135,16 @@ Weeks 1 to 2: baselines, golden set, thresholds validated by CS hand-grading 100
 ## 5. Sensitivities: if one thing changes, what moves
 
 - **Developers are 2.5 FTE, not 3.** D3b drops; live Vue pre-fill becomes a saved-list import; reliability criteria and metering never move. If the engine has no criterion-type extension point and the relative-date operator costs six weeks, that operator drops first (saved segments carry an "as of" date and re-resolve on open), then the Vue pre-fill.
-- **The gateway points to a US provider today.** The sentence box launches only once an EU-hosted endpoint is behind the gateway, with the legal entity and transfer mechanism named. The reliability layer does not wait.
-- **A tenant refuses all transfer.** It keeps the reliability layer, the duplicate report and the score; loses only the sentence box. The pilot deliberately includes one such tenant.
-- **Hand-grading in weeks 1 to 2 disagrees with the 2-year / 4-year thresholds.** Thresholds move before the nightly job ships; the rule is a config value per tenant, not code.
+- **The gateway points to a US provider today.** The sentence box doesn't launch until there's an EU-hosted endpoint behind the gateway, with the legal entity and transfer mechanism actually named. The reliability layer doesn't wait on that, it goes now.
+- **A tenant refuses all transfer.** It still gets the reliability layer, the duplicate report and the score. It only loses the sentence box. The pilot deliberately includes one tenant like this.
+- **Hand-grading in weeks 1 to 2 doesn't match the 2-year / 4-year thresholds.** Thresholds will move before the nightly job ships, so the rule is a config value per tenant, not code.
 - **Exact match stays below 85 percent.** The box does not go to pilot tenants; prompt and schema iterate on record/replay fixtures; if the ceiling is structural, the candidate pre-fills only the mapped criteria and marks the rest.
-- **Edit rate is above 50 percent at week 12.** Sentence box stops; the quarter still delivered the reliability layer, which pays back in tickets and renewals.
+- **Edit rate is above 50 percent at week 12.** So sentence box stops. The quarter still shipped the reliability layer though, and that one pays back in tickets and renewals.
 - **Reactivation moves under 10 percent at week 17.** The priced add-on idea is dropped; status and criteria stay because they cost nothing to run.
-- **A provider silently updates its model.** Nightly replay catches a 5-point drop; release blocked; provider version logged per call; prompt and model id pinned.
-- **The brief's "sixty criteria" are really 45.** The schema is smaller, prompts are cheaper, and the "cannot map" path matters more; nothing else changes.
-- **An 80,000-member reindex takes longer than a night.** Alias-swap reindex with canary tenants; waves slow down; nothing is user-visible because the alias flips only when the new index is verified.
-- **Admins type names in the sentence.** Scrubbed if an exact full-name match exists; otherwise placeholder, logged, shown back. Residual risk is stated in the DPO sentence, not hidden.
+- **A provider silently updates its model.** Nightly replay catches a 5-point drop, release gets blocked. Provider version is logged per call, prompt and model id are pinned.
+- **The brief says "sixty criteria" — it's actually 45.** Smaller schema, cheaper prompts, and the "cannot map" path matters more. Nothing else changes.
+- **An 80,000-member reindex won't finish in one night.** So: alias-swap reindex, canary tenants first, then waves that slow down. Nothing is user-visible, the alias only flips once the new index is verified.
+- **Admins type names in the sentence.** If there's an exact full-name match, it gets scrubbed. Otherwise it becomes a placeholder, gets logged, and is shown back. The residual risk is stated in the DPO sentence, not hidden.
 
 ## 6. The panel's questions, with answers
 
@@ -180,8 +193,8 @@ Use section 5. The two they will most likely raise: shared developers (answer: 3
 - The thresholds are lopsided on this synthetic file (43 of 49 to reactivate); hand-grading is the test.
 - The eval set is a gate, not a drift detector on its own; the nightly replay covers drift but 130 items have about plus or minus 7 points of noise.
 - Annex A commits you to five verifications; do them before sending or the annex is false.
-- The demo exploration was an automated browser session under your account that created and deleted one empty list; disclose if asked and change the password.
+- The demo exploration was an automated browser session running under your account. It created one empty list and deleted it, that's all. If anyone asks, say so. And change the password.
 
 ## 8. The 20 minutes, in one paragraph
 
-Open with the data line (2, 26, 49, 6), then the thesis: they asked for speed, their users asked for trust, so the platform returns how far to trust the list. Show the segmenter as it is and what it cannot see. Show the verbatims coded and the data table. State the principle and the demo ending on "6 you can safely e-mail". Size the quarter, name the cut, list the exclusions with reasons. Walk the orchestration diagram and say the DPO sentence slowly. Measurement with two dates, three risks with positions. Execution, money, 2027 in three minutes. Close with the decision ask and the two sentences on slide 15.
+Start with the data line: 2, 26, 49, 6. Then the thesis — they asked for speed, their users asked for trust, so what the platform gives back is how far to trust the list. Show the segmenter as it actually is, and what it can't see. Show the coded verbatims and the data table. State the principle, run the demo, end it on "6 you can safely e-mail". Size the quarter, name the cut, list the exclusions and why each one is out. Walk the orchestration diagram, then say the DPO sentence slowly. Measurement with two dates. Three risks, each with a position. Execution, money, 2027 — three minutes, not more. Close with the decision ask and the two sentences on slide 15.

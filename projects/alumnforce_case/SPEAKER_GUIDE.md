@@ -1,8 +1,8 @@
 # Speaker guide — AlumnForce case, 20-minute presentation + 30-minute Q&A
 
-Deck: 15 slides + Annex A (AI usage), Annex B (selection logic), Annex C (technical and compliance sheet). Feature name in the deck: **Trusted Segments**; the natural-language input is "the sentence box"; reliability words: **Current / To confirm / To reactivate**. Never say "chat", "grade" or "stale" in the room.
+Deck is 15 slides plus three annexes: A is AI usage, B is selection logic, C is the technical and compliance sheet. In the deck the feature is called **Trusted Segments**. The natural-language input is "the sentence box". Reliability words are **Current / To confirm / To reactivate**, nothing else. And in the room, never say "chat", "grade" or "stale".
 
-Audience: the CPO and a Lead Developer. Frédéric (founder) framed the role as senior AI PM who can clean the database, run AI evals, and think about LangChain-style orchestration. Bootstrap phase: every slide should sound like it costs little and proves something.
+Audience is the CPO and a Lead Developer. Frédéric (founder) pitched the role as senior AI PM — someone who can clean the database, run AI evals, and think about LangChain-style orchestration. They're bootstrapping, so every slide should sound cheap and prove something.
 
 ## Timing (20 minutes)
 
@@ -30,40 +30,40 @@ Rehearse 17 minutes; you will run over.
 ## Likely questions and answers
 
 **"Why not just a chatbot like Antoine asked?"**
-Three reasons: it needs member data in the prompt (DPO veto), its output cannot be evaluated against a golden set, and it sets an expectation we cannot meet with 3 developers. A translator with a fixed vocabulary is evaluable and explainable.
+Three reasons. It needs member data in the prompt, so DPO vetoes it. Its output can't be checked against a golden set. And it sets an expectation we can't meet with 3 developers. A translator with a fixed vocabulary we can actually evaluate and explain.
 
 **"What about LangChain / LangGraph? Would you use it?"**
-For this increment, no. One model call with a JSON schema and a deterministic validator is a function, not a graph. A framework adds a dependency in a PHP shop for no gain. I would reconsider in Q2 if we chain calls (question to aggregate query to narrative), and even then I would prefer a thin internal orchestrator behind the gateway so the provider stays swappable. What I keep from the LangChain world is the discipline: typed tool schemas, tracing of every call, evals in CI.
+Not for this increment. One model call with a JSON schema and a deterministic validator is a function, not a graph. Pulling a framework into a PHP shop adds a dependency and gives us nothing back. I'd look at it again in Q2 if we start chaining calls (question → aggregate query → narrative), and even then I'd rather have a thin internal orchestrator sitting behind the gateway so the provider stays swappable. What I actually keep from the LangChain world is the discipline: typed tool schemas, trace every call, evals in CI.
 
 **"How do you run evals concretely?"**
 A golden set of 60 to 100 sentences with expected filter JSON, written by two people independently so the labels are not one person's bias. Metric at the filter level: precision and recall per criterion, plus exact-match rate. Also a negative set of sentences that must return "cannot map" (discriminatory or impossible requests). Run in CI on every prompt, schema or model change; results versioned next to the prompt. Online: edit rate and rejection rate, plus a weekly manual sample of 20.
 
 **"Which model and provider?"**
-Open, and I keep it open: the contract is schema in, JSON out, so any EU-hosted mid-tier model works. I would start with the cheapest model that passes the 85 percent eval gate. Region in the EU is non-negotiable for the DPO answer.
+Open, and I want to keep it open. The contract is schema in, JSON out, so any EU-hosted mid-tier model works. I'd start with the cheapest one that clears the 85 percent eval gate. EU region is non-negotiable though, that's the DPO answer.
 
 **"Why is the cost so low? Are you sure?"**
-The prompt is the sentence plus a schema and value lists, roughly two thousand tokens with a cacheable prefix. I give an order of magnitude and confirm it on the gateway in week one. The expensive part is engineering, which is why the metering exists from day one.
+The prompt is the sentence plus a schema and value lists — roughly 2,000 tokens, with a cacheable prefix. I give an order of magnitude and confirm it on the gateway in week one. The expensive part is engineering, that's why the metering is there from day one.
 
 **"How do you handle permissions?"**
-The assistant runs in the admin's session. The model receives the tenant's criteria names and operators, never data, so the cached prefix is shared per tenant; the validator then strips any criterion the role may not use, unit-tested; the query runs through the existing segmenter engine, which already scopes to the instance. What is new to secure is the gateway credential and the per-call log, both covered in Annex C.
+The assistant runs in the admin's session. The model only sees the tenant's criteria names and operators, never data, so the cached prefix is shared per tenant. Then the validator strips any criterion the role isn't allowed to use — that part is unit-tested. The query itself goes through the existing segmenter engine, which already scopes to the instance. What's actually new to secure is the gateway credential and the per-call log. Both are covered in Annex C.
 
 **"What if the model hallucinates a criterion?"**
-The validator rejects any criterion not in the schema and any value not in the reference tables. The admin sees the unmapped part as text. The model cannot invent a filter that reaches the database.
+It can't. The validator rejects any criterion that isn't in the schema and any value that isn't in the reference tables. Whatever doesn't map, the admin just sees as text. So the model can't invent a filter that actually reaches the database.
 
 **"Isn't data cleaning a different project?"**
-It is the same project. Without normalisation the assistant returns 2 or 49 people for the same sentence. The current / to confirm / to reactivate split turns dirt into something the admin can act on. And the deterministic layer ships to tenants who refuse AI entirely, so it is also the commercial hedge.
+No, same project. Without normalisation the assistant gives you 2 or 49 people for the same sentence. The current / to confirm / to reactivate split is what turns dirt into something the admin can actually act on. And the deterministic layer ships to tenants who refuse AI entirely, so it's the commercial hedge too.
 
 **"How would you dedupe in production?"**
-Blocking keys first (name prefix plus class year), then a scored candidate list inside each block (name similarity, same start date, same employer), proposed to the admin with the score. Never auto-merge. Annex B's one-off rule requires the same start date because a looser "or same job" variant merged Martin into Martinez. Tune thresholds on the pilot tenants' confirmed and rejected merges.
+Blocking keys first — name prefix plus class year. Then inside each block, a scored candidate list: name similarity, same start date, same employer. Show it to the admin with the score. Never auto-merge. The one-off rule in Annex B requires the same start date because the looser "or same job" variant actually merged Martin into Martinez. Thresholds get tuned on the pilot tenants' confirmed and rejected merges.
 
 **"What about OpenSearch and semantic search?"**
-Q2 at the earliest, after normalisation. Embedding eight spellings of London just embeds the noise. And it moves member text toward a model, which needs its own DPO conversation.
+Q2 at the earliest, and only after normalisation. Embed eight spellings of London and you've just embedded the noise. It also means member text moves toward a model, that needs its own DPO conversation.
 
 **"Pricing?"**
-Included with a fair-use quota, metered beyond. Catherine will not pay for AI, she pays for dues. If the nudge loop lifts dues measurably, that loop can be priced.
+Included, with a fair-use quota. Metered past that. Catherine won't pay for AI, she pays for dues. If the nudge loop lifts dues in a measurable way, then that loop can actually be priced.
 
 **"What would you do in week one?"**
-Instrument the current segmenter for baselines, get the ticket data, build the golden set with CS, decide freshness thresholds with the three expert tenants, confirm gateway region and per-call logging.
+Instrument the current segmenter first, so we actually have baselines. Then get the ticket data and build the golden set with CS. Decide freshness thresholds with the three expert tenants. And confirm gateway region and per-call logging.
 
 **"You are the only PM with shared developers. What slips?"**
 Deliverable 2 (the sentence box). Deliverable 1 ships regardless because it has value alone.
@@ -71,61 +71,61 @@ Deliverable 2 (the sentence box). Deliverable 1 ships regardless because it has 
 ## Questions added after the six-lens review (be ready)
 
 **"Your capacity math: our developers are shared."**
-I plan on three effective FTE, 36 dev-weeks, and confirm it in week 1. The core is 36: reliability layer, sentence box, the two actions, flags and metering. Deliverable 3b (duplicate report, export order) is the stretch. Below three FTE, the box pre-fills through a saved-list import instead of live Vue state. The reliability criteria and metering never move.
+I'm planning on 3 effective FTE, 36 dev-weeks, and I confirm that in week 1. The 36 is the core: reliability layer, sentence box, the two actions, flags and metering. Deliverable 3b (duplicate report, export order) is the stretch. If we drop below 3 FTE, the box pre-fills from a saved-list import instead of live Vue state. Reliability criteria and metering don't move.
 
 **"Your pilot is three weeks and your stop criterion says eight."**
 Two layers, two speeds. Week 12 decides the sentence box on leading indicators: eval gate, adoption and edit rate over three weeks. Week 17 decides the reactivation loop, thirty days after the first campaign. The quarter still ends with a decision.
 
 **"You send the full criteria schema to the model and strip by role afterwards. Why?"**
-Because the schema is criteria names, not data, and sharing it per tenant keeps the cached prefix cheap. Role stripping is deterministic and unit-tested, which is more reliable than asking the model to respect permissions.
+The schema is just criteria names, not data. Sharing it per tenant keeps the cached prefix cheap. And role stripping is deterministic, it's unit-tested — that's more reliable than asking the model to respect permissions, right?
 
 **"The gateway points to a US provider today."**
-Then the sentence box launches only once an EU-hosted endpoint is behind the gateway, with the provider's legal entity and transfer mechanism named. The reliability layer does not wait for that.
+Right, so the sentence box doesn't launch until an EU-hosted endpoint is behind the gateway, with the provider's legal entity and transfer mechanism actually named. The reliability layer doesn't wait on that.
 
 **"GDPR says stale data should be deleted, you say reactivate."**
-Reactivation is the accuracy principle in action: we ask the person to confirm or correct. Retention and deletion stay the tenant's policy, and the status makes the candidates for deletion visible for the first time.
+Reactivation is actually the accuracy principle in practice: we ask the person to confirm or correct. Retention and deletion stay the tenant's policy. The status just makes the deletion candidates visible, which they weren't before.
 
 **"Can the Vue segmenter be pre-filled, or is that a rewrite?"**
 To confirm in week 1 with the Lead Developer. If live state pre-fill is expensive, the fallback is creating a saved list with the generated filters and opening it, which the current UI already supports.
 
 **"Did you email us a question during the week?"**
-Answer honestly. If you did not, say which question you would have asked: which tenants have already refused AI, and whether the gateway runs in the EU today.
+Be honest here. If you didn't, say what you would have asked. For me it's two things: which tenants have already refused AI, and whether the gateway actually runs in the EU today.
 
 **"Who maintains reference tables across 350 tenants?"**
-A global service owned by product, with per-tenant overrides that admins can edit; overrides never overwrite source fields.
+One global service, product owns it. Each tenant gets overrides that admins can edit, but overrides never overwrite the source fields.
 
 **"Dedup at 80,000 members is O(n²)."**
-Blocking keys first (name prefix plus class year), scored candidates within a block, reviewed by the admin. The Annex B rule is a one-off for a 525-row file and says so.
+Blocking keys first — name prefix plus class year. Then score candidates within a block, admin reviews them. The Annex B rule is a one-off for a 525-row file, and it says so.
 
 **"Why n8n and not Symfony Messenger?"**
 The reactivation step reuses the existing Campagne de mise current module, so Q1 needs neither. n8n appears in Q3 for cross-module loops because it already exists in the stack and CS can read it.
 
 **"Is 85 percent on 100 sentences meaningful?"**
-It is a gate with a confidence interval of roughly plus or minus seven points. The online edit rate on real admins is the number I trust more.
+It's a gate, nothing more — the confidence interval is roughly plus or minus 7 points. The number I actually trust is the online edit rate on real admins.
 
 **"Which competitors?"**
-Hivebrite, Graduway and similar market AI search and assistants. To my knowledge none scores the reliability of a segment or states in one sentence what leaves the platform. I will verify against their current releases in week 1 rather than assert it.
+Hivebrite, Graduway and similar all market AI search and assistants. As far as I know, none of them scores how reliable a segment is, or says in one sentence what actually leaves the platform. I'll check this against their current releases in week 1 rather than just assert it.
 
 **"Which renewals are at risk in the next nine months, and do they get the score first?"**
-Yes. The pilot cohort includes every renewal already flagged at risk and three top-decile ARR accounts, and the waves start with at-risk renewals.
+Yes. The pilot cohort is every renewal already flagged at risk plus three top-decile ARR accounts, and the waves start with the at-risk renewals.
 
 **"The sentence box is a copyable feature."**
-Agreed. The sentence box is the illustration. The asset is the normalised, reliability-scored, consented base per tenant, which takes quarters to build and is what the renewal pack sells.
+Yes, agreed. The sentence box is the illustration, not the asset. The asset is the normalised, reliability-scored, consented base per tenant — that takes quarters to build, and that is what the renewal pack actually sells.
 
 **"If employer names become placeholders, how does 'chez Goldman Sachs' ever map?"**
-The placeholder goes to the model, the validator re-substitutes the original text locally before employer and city resolution. The round trip is in the eval set, because it is the most common sentence shape.
+The model only sees the placeholder. The validator swaps the original text back in locally, before employer and city resolution. That round trip is actually in the eval set, it's the most common sentence shape we get.
 
 **"Relative dates: evaluated when?"**
-At query time, on the tenant's clock. Campaign modules resolve the member set at send time. Exports are snapshots and carry the resolution date.
+At query time, on the tenant's clock. Campaign modules resolve the member set at send time. Exports are snapshots, they carry the resolution date with them.
 
 **"Custom criteria labels like 'Donors > €10k' go to the model. Is a label never confidential?"**
-Standard criteria names are AlumnForce's vocabulary. Tenant-defined labels are sent as typed ids unless the tenant opts its labels in. The tenant decides, per instance, in the same place it switches the flag.
+Standard criteria names are AlumnForce's vocabulary. Tenant-defined labels are different, they go out as typed ids unless the tenant opts its labels in. That's a per-instance call, the tenant makes it in the same place it switches the flag.
 
 **"You compute the status for all 350 tenants before any DPIA is written?"**
-No. Normalisation columns are backfilled for everyone because they derive nothing new. The reliability status is computed per tenant only after it has recorded its decision and switched the flag.
+No. Normalisation columns get backfilled for everyone, they don't derive anything new. Reliability status is different — it's computed per tenant, and only after that tenant has recorded its decision and switched the flag.
 
 **"The engine has no criterion-type extension point and the relative-date operator costs six weeks. What do you cut?"**
-The relative-date operator first: saved segments then carry an "as of" date and the box re-resolves on open. Then the live Vue pre-fill, replaced by the saved-list import. Never the status column, the two criteria or the metering.
+The relative-date operator, first. Saved segments carry an "as of" date instead and the box re-resolves when you open it. Next the live Vue pre-fill goes, the saved-list import replaces it. The status column, the two criteria and the metering don't get cut. Those stay.
 
 ## Developer split (removed from slide 12 for space)
 
@@ -133,11 +133,13 @@ Backend 1: status column, criteria, reindex, reference tables. Backend 2: gatewa
 
 ## Your 10 minutes of questions
 
-Ask: which tenants have already said no to AI and why; how criteria and permissions are modelled in the segmenter; what the gateway logs today and where it runs; how the three expert tenants differ from the rest. Add one on the business: which tenants refuse AI today and what share of ARR they represent. And one on the team: who owns data quality today, if anyone.
+Questions to ask: which tenants have already said no to AI, and why. How criteria and permissions are modelled in the segmenter. What the gateway logs today and where it actually runs. How the three expert tenants differ from the rest.
+
+Add one business question: which tenants refuse AI today and what share of ARR that is. And one on the team: who owns data quality right now, if anyone does.
 
 ## What you saw on the demo (say it as your own observation)
 
-- Users → Lists: about 45 criteria in 9 groups, picker with search, values joined by OR inside a property, properties stacked with AND, no nesting, no relative dates.
+- Users → Lists: roughly 45 criteria across 9 groups, picker with search. Values inside a property are OR'd, properties stack with AND. No nesting, no relative dates.
 - City (workplace) has a geocoded radius operator; Experience (date) has before/after; Sector and the NAF industry code exist on the current job.
 - No criterion and no profile field for last login or last profile update. That is the gap the reliability status fills.
 - 31 saved lists, most auto-named "List - date". Actions on a list: Export only; campaigns pick lists from their own module.
@@ -154,7 +156,7 @@ Annex A says you verified these yourself. Do them, or edit Annex A to what you a
 4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Campagne de mise current exists.
 5. Read every slide once as yourself; change any position you would not defend.
 
-Disclose if asked: an automated browser session explored the demo with your account and created then deleted one empty test list. Consider changing the demo password you shared.
+If anyone asks, say it: an automated browser session went through the demo using your account. It created one empty test list and deleted it. Nothing else. Also, you shared the demo password — I'd change it.
 
 ## Honesty notes
 
