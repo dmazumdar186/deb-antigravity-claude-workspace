@@ -42,3 +42,48 @@ Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on
 | `python3 execution/infrastructure/workspace_sast.py --changed --quiet` | exit 0, no findings |
 | Visual reviewer on qa20 renders (19 pages, 55 dpi plus 130 dpi crops of page 18) | PASS: no cut text, no footer collision, Annex C status, backfill and failure-mode lines fully visible |
 | Demo instance, read-only session | 45 criteria in 9 groups; no last-login or profile-update criterion; "Campagne de mise à jour" present under Communication; 31 lists; no test list dated 12/10/2026 |
+
+## Per-lens evidence: fix phrases present in deck.html (or file present), counted with grep on 2026-10-13
+
+| Lens | Phrase or file | Count |
+|---|---|---|
+| 1 Karpathy | `89 % if the 60 future-dated` | 1 |
+| 1 Karpathy | `3 of 8 are doubtful` | 1 |
+| 1 Karpathy | `n = 500 after deduplication` | 1 |
+| 1 Karpathy | `initial guess, reset on the week-4 baseline` | 1 |
+| 2 Cherny | `tools/autofit.js` | 1 |
+| 2 Cherny | `tools/build.sh` | 1 |
+| 3 D. Amodei | `What I verify myself before sending` | 1 |
+| 3 D. Amodei | `to my knowledge` | 1 |
+| 3 D. Amodei | `residual hits in the question are logged` | 1 |
+| 4 Rigor | `same start date` | 2 |
+| 4 Rigor | `CAST(promo AS INTEGER)` | 1 |
+| 4 Rigor | `Cohen's kappa` | 1 |
+| 4 Rigor | `temperature 0` | 1 |
+| 4 Rigor | `[0, 2 y)` | 1 |
+| 5 Hormozi | `2 → 26 → 49 → 6` | 1 |
+| 5 Hormozi | `plus four weeks of measurement` | 1 |
+| 5 Hormozi | `reverting to included if reactivation stays under 10 %` | 1 |
+| 6 Saraev | `CS grades 100 members on 2 tenants` | 1 |
+| 6 Saraev | `fixed, tenant-editable text` | 1 |
+| 6 Saraev | `assistant config table` | 1 |
+| 7 Daniela | `10 business days` | 2 |
+| 7 Daniela | `one reactivation per member per quarter` | 2 |
+| 7 Daniela | `aggregate and pseudonymised` | 1 |
+| 7 Daniela | `Profile last updated 4 years ago` | 1 |
+| 8 Sutskever | `radius cap` | 2 |
+| 8 Sutskever | `replayed nightly against the live endpoint` | 1 |
+| 8 Sutskever | `cannot-map share` | 1 |
+| 8 Sutskever | `hard timeout` | 1 |
+| 9 Murati | `Add this criterion by hand` | 1 |
+| 9 Murati | `Finance · London · classes 2015-2018` | 1 |
+| 9 Murati | `Reactivate 27 members` | 1 |
+| 9 Murati | `Trusted Segments` | 3 |
+| 10 Brockman | `dead-man alarm` | 1 |
+| 10 Brockman | `Alias-swap` | 1 |
+| 10 Brockman | `dual-key rotation` | 1 |
+| 10 Brockman | `Runbook` | 1 |
+| 11 Hassabis | `weekly eval candidates` | 1 |
+| 11 Hassabis | `recalibrates the 2 y / 4 y thresholds` | 1 |
+| 11 Hassabis | `promoted to the global table` | 1 |
+| 11 Hassabis | `Flywheel metric` | 1 |
