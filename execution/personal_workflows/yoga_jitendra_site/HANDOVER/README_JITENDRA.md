@@ -39,8 +39,9 @@ Open **About (French)** or **About (English)**. The **Gallery** list is the set 
 
 - Every save is kept forever. If you break something, open the same page in the editor, scroll the **History** panel (or go to GitHub → the repository → *Commits*) and restore an earlier version.
 - Changes take 2 to 3 minutes to appear. If after 10 minutes nothing changed: Cloudflare → **Workers & Pages** → **yogaavecjitendra** → **Deployments**. A red deployment means the last save had a problem. Click **Retry**, or undo the last change in the editor.
-- The site shows the Google reviews that were saved in it. New Google reviews do not appear automatically; you can add them under **Recommendations**.
-- The newsletter sign-up box and the "leave a review" form are switched off. Nothing to do.
+- The site shows every review approved so far (file `src/content/reviews-seed.json`, also editable in GitHub). New Google reviews do not appear automatically unless a developer sets up the `cron/` worker.
+- The private statistics dashboard (`/dashboard/`), the "leave a review" form and the newsletter box only work after the optional Cloudflare storage step (a KV namespace bound as `DASHBOARD_KV` plus a `DASHBOARD_PASS` secret; login name `jitendra`). Without it the public site is complete and nothing breaks.
+- Everything from the project is in this repository: `docs/` (SEO and dashboard notes, project history), `deliverables/ads/` (16 ready ad creatives), `data/kv/` (your reviews and, if exported, subscribers and statistics), `cron/` (the Google-review sync worker).
 
 ## If you ever want a developer
 
