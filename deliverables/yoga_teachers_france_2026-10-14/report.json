@@ -1,0 +1,688 @@
+{
+  "input": ".tmp/yoga_fr/input.csv",
+  "output": ".tmp/yoga_fr/Yoga_Teachers_France_instantly_ready.csv",
+  "rows_in": 229,
+  "rows_out": 195,
+  "duplicates_removed": 34,
+  "names_found": 113,
+  "names_blank": 82,
+  "name_source": {
+    "llm": 85,
+    "website_deep": 26,
+    "website": 0,
+    "email": 0,
+    "raw": 2,
+    "none": 82
+  },
+  "deep_pass_names_found": 28,
+  "deep_pass_rows": [
+    {
+      "email": "contact@lapalmazen.com",
+      "first_name": "Ania",
+      "confidence": 0.6,
+      "original_name": "La Palma Zen Yoga"
+    },
+    {
+      "email": "hello@namayogabordeaux.com",
+      "first_name": "Sîtâ",
+      "confidence": 0.6,
+      "original_name": "Nāma Yoga"
+    },
+    {
+      "email": "contact@yogapop.fr",
+      "first_name": "Philippe",
+      "confidence": 0.6,
+      "original_name": "Yoga Pop Bordeaux (Jardin Public)"
+    },
+    {
+      "email": "atelier.yoga.vauban@gmail.com",
+      "first_name": "Laurence",
+      "confidence": 0.6,
+      "original_name": "Atelier de Yoga et de Sophrologie - AYS"
+    },
+    {
+      "email": "contact@fauves-yoga.com",
+      "first_name": "Alice",
+      "confidence": 0.6,
+      "original_name": "Fauves Yoga Lyon"
+    },
+    {
+      "email": "info@inclusive-yoga.fr",
+      "first_name": "Daphné",
+      "confidence": 0.6,
+      "original_name": "INCLUSIVE YOGA Croix-Rousse"
+    },
+    {
+      "email": "info@oyogastudio.com",
+      "first_name": "Vanessa",
+      "confidence": 0.6,
+      "original_name": "O Yoga"
+    },
+    {
+      "email": "contact@onlyoga.fr",
+      "first_name": "Stéphane",
+      "confidence": 0.6,
+      "original_name": "ONLYOGA"
+    },
+    {
+      "email": "hello@figyogaclub.com",
+      "first_name": "Laura",
+      "confidence": 0.6,
+      "original_name": "FIG YOGA CLUB - Yoga Marseille"
+    },
+    {
+      "email": "hotyogamarseille@gmail.com",
+      "first_name": "Juliette",
+      "confidence": 0.6,
+      "original_name": "HOT YOGA STUDIO MARSEILLE"
+    },
+    {
+      "email": "contact@soi-mouvement.fr",
+      "first_name": "Pauline",
+      "confidence": 0.6,
+      "original_name": "Pauline"
+    },
+    {
+      "email": "contact@resourceyoga.fr",
+      "first_name": "Carine",
+      "confidence": 0.6,
+      "original_name": "ReSource Yoga"
+    },
+    {
+      "email": "assoc.shakti@gmail.com",
+      "first_name": "Jean-Marie",
+      "confidence": 0.6,
+      "original_name": "Shakti Association"
+    },
+    {
+      "email": "yogivibe@gmail.com",
+      "first_name": "Joëlle",
+      "confidence": 0.6,
+      "original_name": "Yogivibe Studio Yoga Montpellier - Salle de Yoga, cours en ligne, formations RYT200 et retraites"
+    },
+    {
+      "email": "contact@chezjune.fr",
+      "first_name": "Victoria",
+      "confidence": 0.6,
+      "original_name": "Chez June — Yoga, Pilates & Reformer Nantes"
+    },
+    {
+      "email": "hello@lavidayoganantes.fr",
+      "first_name": "Elisa",
+      "confidence": 0.6,
+      "original_name": "La Vida Yoga Nantes"
+    },
+    {
+      "email": "info@lucia-yoga.fr",
+      "first_name": "Lucie",
+      "confidence": 0.6,
+      "original_name": "Lucia Yoga"
+    },
+    {
+      "email": "contact@sattvicelement.com",
+      "first_name": "Nicole",
+      "confidence": 0.6,
+      "original_name": "Sattvic Element Yoga Nantes"
+    },
+    {
+      "email": "yogaianice@gmail.com",
+      "first_name": "Rocío",
+      "confidence": 0.6,
+      "original_name": "Cours de yoga \"Yogaia\" à Nice"
+    },
+    {
+      "email": "contact@laparenthesenice.com",
+      "first_name": "Charlotte",
+      "confidence": 0.6,
+      "original_name": "Studio Pilates et Yoga La Parenthèse Nice"
+    },
+    {
+      "email": "bonjour@atelierlacanopee.com",
+      "first_name": "Hortense",
+      "confidence": 0.6,
+      "original_name": "La Canopée - Yoga Paris"
+    },
+    {
+      "email": "contact@thespaceparis.com",
+      "first_name": "Louise",
+      "confidence": 0.6,
+      "original_name": "The Space Paris - Nation"
+    },
+    {
+      "email": "studio@camsyoga.fr",
+      "first_name": "Camille",
+      "confidence": 0.6,
+      "original_name": "🧘 Cam's Yoga - Studio de yoga en ligne"
+    },
+    {
+      "email": "contact@yogami-strasbourg.com",
+      "first_name": "Assel",
+      "confidence": 0.6,
+      "original_name": "Yogami - Studio de Yoga"
+    },
+    {
+      "email": "ecole@yogaetmeditation.fr",
+      "first_name": "Erling",
+      "confidence": 0.6,
+      "original_name": "L'Ecole de Yoga et de Méditation"
+    },
+    {
+      "email": "hello@sattvayogatoulouse.fr",
+      "first_name": "Faty",
+      "confidence": 0.6,
+      "original_name": "SATTVA YOGA SHALA"
+    }
+  ],
+  "website": {
+    "live": 187,
+    "redirect": 4,
+    "dead": 4,
+    "": 0
+  },
+  "send_recommended": {
+    "yes": 145,
+    "no": 50
+  },
+  "llm": {
+    "used": true,
+    "model": "anthropic/claude-sonnet-5.5",
+    "est_tokens_in": 6683,
+    "est_tokens_out": 182,
+    "est_cost_usd": 0.0228,
+    "batches_failed": 0
+  },
+  "blank_first_name_rows": [
+    {
+      "email": "cocoonyoga@yahoo.fr",
+      "original_name": "COCOON YOGA",
+      "company": "Cocoon Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@yogaiyengarbordeaux.fr",
+      "original_name": "Centre de Yoga Iyengar de Bordeaux Chartons CYIB",
+      "company": "Yoga Iyengar Bordeaux",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@registreyogameditation.fr",
+      "original_name": "Josie Yoga Club",
+      "company": "Josie Yoga Club",
+      "send_recommended": "no"
+    },
+    {
+      "email": "puppyyogabordeaux@outlook.com",
+      "original_name": "Puppy Yoga Bordeaux",
+      "company": "Puppy Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "yogabss@gmail.com",
+      "original_name": "Yoga Bordeaux Saint Seurin",
+      "company": "Yoga Saint Seurin",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@yoga-inthecity.fr",
+      "original_name": "Yoga in the city",
+      "company": "Yoga In the City",
+      "send_recommended": "no"
+    },
+    {
+      "email": "hello@studio-inspir.com",
+      "original_name": "INSPIR",
+      "company": "Inspir",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "jade@gmail.com",
+      "original_name": "Nomeia Studios Lille | Pilates & Yoga✨",
+      "company": "Nomeia",
+      "send_recommended": "no"
+    },
+    {
+      "email": "exemple@monsite.com",
+      "original_name": "Olá yoga",
+      "company": "Olá yoga",
+      "send_recommended": "no"
+    },
+    {
+      "email": "sensesyoga@outlook.fr",
+      "original_name": "SENSES Yoga Lille",
+      "company": "Senses Yoga",
+      "send_recommended": "no"
+    },
+    {
+      "email": "sahajayogalille@gmail.com",
+      "original_name": "Sahaja Yoga Lille",
+      "company": "Sahaja Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@aloyastudio.fr",
+      "original_name": "Yoga Lille",
+      "company": "Aloya",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@yogastudiolille.fr",
+      "original_name": "Yoga Studio Lille",
+      "company": "Yoga Studio Lille",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "salut@yogalite.fr",
+      "original_name": "YogaLite - Ecole de Yoga traditionnel",
+      "company": "YogaLite",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@yogaiyengar-lyon.com",
+      "original_name": "Centre de Yoga Iyengar",
+      "company": "Yoga Iyengar Lyon",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "ecole.yoga.mysore@gmail.com",
+      "original_name": "Ecole De Yoga De Mysore",
+      "company": "École de Mysore",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "thomas.kaluzny@osteopol.ch",
+      "original_name": "Giliane",
+      "company": "",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@hathalyoga.com",
+      "original_name": "Hathalyoga",
+      "company": "Hathalyoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "small.studiolyon@gmail.com",
+      "original_name": "SMALL Yoga Pilates",
+      "company": "Small",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@centresesam.fr",
+      "original_name": "Sésam",
+      "company": "Sésam",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@thegoodflow-yoga.com",
+      "original_name": "The Good Flow Yoga",
+      "company": "The Good Flow",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info.lyon@yoga-room.fr",
+      "original_name": "Yoga",
+      "company": "Yoga Room",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "yogacittalyon@gmail.com",
+      "original_name": "Yoga Citta",
+      "company": "Yoga Citta",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "hello@bloomyogamarseille.com",
+      "original_name": "Bloom yoga studio & café",
+      "company": "Bloom",
+      "send_recommended": "no"
+    },
+    {
+      "email": "yogahamsamarseille@gmail.com",
+      "original_name": "Ecole de Yoga-Hamsa",
+      "company": "Hamsa",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info@yoga-marseille.fr",
+      "original_name": "Holys Espace Yoga Marseille",
+      "company": "Holys",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@muse-studio.fr",
+      "original_name": "Muse – Studio de Pilates, Reformer & Yoga à Marseille",
+      "company": "Muse",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "studiotribumarseille@gmail.com",
+      "original_name": "Studio Tribu • café cantine, yoga & soins",
+      "company": "Tribu",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "marion.rinaudo@gmail.com",
+      "original_name": "YAMA Yoga",
+      "company": "Yama",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "e.poutchko@gmail.com",
+      "original_name": "yoga et cetera",
+      "company": "Yoga et Cetera",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info@arjuna-shala.com",
+      "original_name": "Arjuna Shala",
+      "company": "Arjuna Shala",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info@yoga-montpellier.com",
+      "original_name": "Centre de Yoga Iyengar des Arceaux",
+      "company": "Yoga Iyengar des Arceaux",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "dalayayoga@gmail.com",
+      "original_name": "Dalaya – Centre de Yoga Iyengar®",
+      "company": "Dalaya",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info.studioyoga@gmail.com",
+      "original_name": "Ginkgo Studio Yoga Pilates",
+      "company": "Ginkgo",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@joy-yoga-healthyfood.fr",
+      "original_name": "JOY Yoga",
+      "company": "Joy",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "prog@tropisme.coop",
+      "original_name": "Mathilde",
+      "company": "Tropisme",
+      "send_recommended": "no"
+    },
+    {
+      "email": "abc@xyz.com",
+      "original_name": "YOGA La Maison de L'Alchimiste",
+      "company": "La Maison de l'Alchimiste",
+      "send_recommended": "no"
+    },
+    {
+      "email": "bonjour@lintuitive.fr",
+      "original_name": "Yoga",
+      "company": "L'intuitive",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "gydibm@gmail.com",
+      "original_name": "Yoga Gym Swing Méditation TaïChi QiQong - GydIBM",
+      "company": "Gydibm",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "savellidomi@gmail.com",
+      "original_name": "YogaShala",
+      "company": "YogaShala",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "omsweetom.gymrelax@gmail.com",
+      "original_name": "Ôm",
+      "company": "Om Sweet Om",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@ashtanga-yoga-nantes.fr",
+      "original_name": "Ashtanga Yoga Nantes",
+      "company": "Ashtanga Yoga Nantes",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "hathayoganantes@gmail.com",
+      "original_name": "Hatha YOGA Nantes",
+      "company": "Hatha Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "support@readymag.com",
+      "original_name": "Manie Yoga",
+      "company": "Manie Yoga",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@wyldside.fr",
+      "original_name": "Michela",
+      "company": "Wyldside",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@navayoga.fr",
+      "original_name": "NAVA YOGA Nantes",
+      "company": "Nava Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "webmaster@sagaaryoga.fr",
+      "original_name": "Sagaar Yoga",
+      "company": "Sagaar Yoga",
+      "send_recommended": "no"
+    },
+    {
+      "email": "yogallonville@gmail.com",
+      "original_name": "YOGALLONVILLE",
+      "company": "Yogallonville",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@yogaetpresence.com",
+      "original_name": "Yoga & Présence",
+      "company": "Yoga & Présence",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info@yogagymtao.com",
+      "original_name": "Yoga Gym Tao - Cours de yoga qi gong do in",
+      "company": "Yoga Gym Tao",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@animaflowstudio.fr",
+      "original_name": "Avi",
+      "company": "Anima Flow",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "natarajacentre@gmail.com",
+      "original_name": "Cours de Yoga - Centre Nataraja",
+      "company": "Nataraja",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "partenaire@abctalk.fr",
+      "original_name": "Fassio",
+      "company": "",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@gayoga.fr",
+      "original_name": "GäYoGa - Yoga et Pilates à Nice",
+      "company": "GäYoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "studios@bookday.io",
+      "original_name": "Infinity Flow Studio de yoga",
+      "company": "Infinity Flow",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@latelier-yoga.com",
+      "original_name": "L'Atelier Yoga",
+      "company": "L'Atelier Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info@lahouseofpulse.com",
+      "original_name": "La House of Pulse",
+      "company": "House of Pulse",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "premyoganice@gmail.com",
+      "original_name": "Prem Yoga",
+      "company": "Prem Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "namaste@superstudio.yoga",
+      "original_name": "SuperStudio Yoga",
+      "company": "SuperStudio",
+      "send_recommended": "no"
+    },
+    {
+      "email": "info.yogalight@gmail.com",
+      "original_name": "Yoga Light",
+      "company": "Yoga Light",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "info@sankara.fr",
+      "original_name": "Cours de Yoga Paris, Sankara",
+      "company": "Sankara",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "fredkayoga@gmail.com",
+      "original_name": "FredKa Yoga Paris",
+      "company": "FredKa Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@homeyogaparis.fr",
+      "original_name": "Home Yoga Paris",
+      "company": "Home Yoga",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@jivamuktiyoga.fr",
+      "original_name": "Jivamukti Yoga Paris",
+      "company": "Jivamukti",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@yogaparis.fr",
+      "original_name": "Studio Yoga République",
+      "company": "Yoga République",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@yogavillageparis.com",
+      "original_name": "YOGA VILLAGE",
+      "company": "Yoga Village",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@yay-studio.fr",
+      "original_name": "Yay Vinaigriers : le Yoga pour tous",
+      "company": "Yay",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "yogaugura@gmail.com",
+      "original_name": "Yoga Paris",
+      "company": "YogAugura",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "yogainparis@yahoo.fr",
+      "original_name": "YogainParis",
+      "company": "Yoga in Paris",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "n.ehlig@alacampagne.fr",
+      "original_name": "Centre de Yoga Iyengar de Strasbourg",
+      "company": "Yoga Iyengar Strasbourg",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@vitality.fr",
+      "original_name": "Cours de Yoga - Yogavitality",
+      "company": "Yoga Vitality",
+      "send_recommended": "no"
+    },
+    {
+      "email": "oxa.yoga@protonmail.com",
+      "original_name": "Oxa Yoga Strasbourg",
+      "company": "Oxa Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "yogiz.strasbourg@gmail.com",
+      "original_name": "YOGIZ",
+      "company": "Yogiz",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@anakenaproductions.fr",
+      "original_name": "Anakena -studio Malabar princess",
+      "company": "Anakena",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "ashtangayogashalatoulouse@gmail.com",
+      "original_name": "Ashtanga Yoga Shala Toulouse",
+      "company": "Ashtanga Yoga Shala",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "hello@associationsouffleduyoga.fr",
+      "original_name": "Association Souffle du Yoga 🙏 Cours & Ateliers",
+      "company": "Souffle du Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "hello@contraste-yoga.fr",
+      "original_name": "Contraste Yoga Studio - Cours de yoga Saint-Cyprien",
+      "company": "Contraste",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "jean.dupont@gmail.com",
+      "original_name": "Dharamsal Yoga Toulouse",
+      "company": "Dharamsal",
+      "send_recommended": "no"
+    },
+    {
+      "email": "contact@ekayoga.fr",
+      "original_name": "EKA Yoga",
+      "company": "Eka Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "contact@mamzen.fr",
+      "original_name": "Elia",
+      "company": "mam'ZEN",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "j.maisonyoga@gmail.com",
+      "original_name": "Maison Yoga",
+      "company": "Maison Yoga",
+      "send_recommended": "yes"
+    },
+    {
+      "email": "yogatoutcourt@gmail.com",
+      "original_name": "Yogatoutcourt",
+      "company": "Yogatoutcourt",
+      "send_recommended": "yes"
+    }
+  ]
+}
