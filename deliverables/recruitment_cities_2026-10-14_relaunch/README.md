@@ -25,3 +25,17 @@ Kept rows: status `safe`, is_safe_to_send `true`, score 93-98, not catch-all, MX
 
 ## Residual risk
 No SMTP mailbox probe was possible (port 25 blocked in cloud; no Million Verifier key in env). One original bounce (`kyle@openreq.co`) was verifier-safe and still bounced, so expect a small residual rate (~0.5-1%), well under Instantly's 3% pause threshold. In Instantly, keep "Verify leads on upload" on and disable "Send to catch-all" for this campaign.
+
+## City split (one file per campaign)
+
+| City | Country | Leads | File |
+|---|---|---|---|
+| Dubai | United Arab Emirates | 287 | `by_city/dubai_LAUNCH.csv` |
+| Singapore | Singapore | 248 | `by_city/singapore_LAUNCH.csv` |
+| Seattle | United States | 147 | `by_city/seattle_LAUNCH.csv` |
+| San Diego | United States | 125 | `by_city/san_diego_LAUNCH.csv` |
+| Hong Kong | Hong Kong | 120 | `by_city/hong_kong_LAUNCH.csv` |
+| Kuala Lumpur | Malaysia | 28 | `by_city/kuala_lumpur_LAUNCH.csv` |
+| Shanghai | China | 22 | `by_city/shanghai_LAUNCH.csv` |
+
+Total 977 = master file row count. Each file re-read after writing: unique emails, no overlap between files, zero overlap with the bounce list, every row verifier-safe and not catch-all.
