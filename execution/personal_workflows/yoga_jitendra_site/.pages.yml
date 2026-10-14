@@ -1,0 +1,923 @@
+# Pages CMS configuration - log in at https://app.pagescms.org with GitHub.
+media:
+  input: public/assets
+  output: /assets
+  extensions:
+  - jpg
+  - jpeg
+  - png
+  - webp
+  - avif
+  - gif
+  - svg
+  - mp4
+  - webm
+  - mov
+  - mp3
+  - m4a
+content:
+- name: hero_fr
+  label: Home page (French)
+  description: Texts and photos of the "Home page" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/hero.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: headline
+    label: Headline
+    type: string
+  - name: subhead
+    label: Subhead
+    type: text
+  - name: primary_cta
+    label: Primary cta
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: action
+      label: Action
+      type: string
+  - name: secondary_cta
+    label: Secondary cta
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: href
+      label: Href
+      type: string
+  - name: featured_in_label
+    label: Featured in label
+    type: string
+  - name: featured_in
+    label: Featured in
+    type: string
+    list: true
+  - name: clients_label
+    label: Clients label
+    type: string
+  - name: clients
+    label: Clients
+    type: object
+    fields:
+    - name: name
+      label: Name
+      type: string
+    - name: logo
+      label: Logo
+      type: image
+    list: true
+  - name: hero_image
+    label: Hero image
+    type: image
+  - name: hero_image_alt
+    label: Hero image alt
+    type: string
+  - name: portrait_image
+    label: Portrait image
+    type: image
+  - name: portrait_alt
+    label: Portrait alt
+    type: string
+- name: hero_en
+  label: Home page (English)
+  description: Texts and photos of the "Home page" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/hero.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: headline
+    label: Headline
+    type: string
+  - name: subhead
+    label: Subhead
+    type: text
+  - name: primary_cta
+    label: Primary cta
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: action
+      label: Action
+      type: string
+  - name: secondary_cta
+    label: Secondary cta
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: href
+      label: Href
+      type: string
+  - name: featured_in_label
+    label: Featured in label
+    type: string
+  - name: featured_in
+    label: Featured in
+    type: string
+    list: true
+  - name: clients_label
+    label: Clients label
+    type: string
+  - name: clients
+    label: Clients
+    type: object
+    fields:
+    - name: name
+      label: Name
+      type: string
+    - name: logo
+      label: Logo
+      type: image
+    list: true
+  - name: hero_image
+    label: Hero image
+    type: image
+  - name: hero_image_alt
+    label: Hero image alt
+    type: string
+  - name: portrait_image
+    label: Portrait image
+    type: image
+  - name: portrait_alt
+    label: Portrait alt
+    type: string
+- name: about_fr
+  label: About page (French)
+  description: Texts and photos of the "About page" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/about.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: paragraphs
+    label: Paragraphs
+    type: text
+    list: true
+  - name: markers
+    label: Markers
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: value
+      label: Value
+      type: string
+    list: true
+  - name: portrait_image
+    label: Portrait image
+    type: image
+  - name: portrait_alt
+    label: Portrait alt
+    type: string
+- name: about_en
+  label: About page (English)
+  description: Texts and photos of the "About page" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/about.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: paragraphs
+    label: Paragraphs
+    type: text
+    list: true
+  - name: markers
+    label: Markers
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: value
+      label: Value
+      type: string
+    list: true
+  - name: portrait_image
+    label: Portrait image
+    type: image
+  - name: portrait_alt
+    label: Portrait alt
+    type: string
+- name: offerings_fr
+  label: Offerings / classes (French)
+  description: Texts and photos of the "Offerings / classes" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/offerings.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: tiles
+    label: Tiles
+    type: object
+    fields:
+    - name: kicker
+      label: Kicker
+      type: string
+    - name: title
+      label: Title
+      type: string
+    - name: blurb
+      label: Blurb
+      type: string
+    - name: meta
+      label: Meta
+      type: string
+    - name: image
+      label: Image
+      type: image
+    - name: image_alt
+      label: Image alt
+      type: string
+    - name: video
+      label: Video
+      type: image
+    - name: video_poster
+      label: Video poster
+      type: image
+    - name: images
+      label: Images
+      type: object
+      fields:
+      - name: src
+        label: Src
+        type: image
+      - name: alt
+        label: Alt
+        type: string
+      list: true
+    list: true
+- name: offerings_en
+  label: Offerings / classes (English)
+  description: Texts and photos of the "Offerings / classes" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/offerings.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: tiles
+    label: Tiles
+    type: object
+    fields:
+    - name: kicker
+      label: Kicker
+      type: string
+    - name: title
+      label: Title
+      type: string
+    - name: blurb
+      label: Blurb
+      type: string
+    - name: meta
+      label: Meta
+      type: string
+    - name: image
+      label: Image
+      type: image
+    - name: image_alt
+      label: Image alt
+      type: string
+    - name: video
+      label: Video
+      type: image
+    - name: video_poster
+      label: Video poster
+      type: image
+    - name: images
+      label: Images
+      type: object
+      fields:
+      - name: src
+        label: Src
+        type: image
+      - name: alt
+        label: Alt
+        type: string
+      list: true
+    list: true
+- name: schedule_fr
+  label: Schedule & prices (French)
+  description: Texts and photos of the "Schedule & prices" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/schedule.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: location_label
+    label: Location label
+    type: string
+  - name: location_line1
+    label: Location line1
+    type: string
+  - name: location_line2
+    label: Location line2
+    type: string
+  - name: map_link
+    label: Map link
+    type: string
+  - name: map_link_label
+    label: Map link label
+    type: string
+  - name: notes
+    label: Notes
+    type: text
+    list: true
+  - name: gallery_aria_label
+    label: Gallery aria label
+    type: string
+  - name: gallery_prev_label
+    label: Gallery prev label
+    type: string
+  - name: gallery_next_label
+    label: Gallery next label
+    type: string
+  - name: gallery_pause_label
+    label: Gallery pause label
+    type: string
+  - name: gallery_play_label
+    label: Gallery play label
+    type: string
+  - name: gallery_slide_announce
+    label: Gallery slide announce
+    type: string
+  - name: gallery
+    label: Gallery
+    type: object
+    fields:
+    - name: src
+      label: Src
+      type: image
+    - name: alt
+      label: Alt
+      type: string
+    list: true
+- name: schedule_en
+  label: Schedule & prices (English)
+  description: Texts and photos of the "Schedule & prices" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/schedule.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: location_label
+    label: Location label
+    type: string
+  - name: location_line1
+    label: Location line1
+    type: string
+  - name: location_line2
+    label: Location line2
+    type: string
+  - name: map_link
+    label: Map link
+    type: string
+  - name: map_link_label
+    label: Map link label
+    type: string
+  - name: notes
+    label: Notes
+    type: string
+    list: true
+  - name: gallery_aria_label
+    label: Gallery aria label
+    type: string
+  - name: gallery_prev_label
+    label: Gallery prev label
+    type: string
+  - name: gallery_next_label
+    label: Gallery next label
+    type: string
+  - name: gallery_pause_label
+    label: Gallery pause label
+    type: string
+  - name: gallery_play_label
+    label: Gallery play label
+    type: string
+  - name: gallery_slide_announce
+    label: Gallery slide announce
+    type: string
+  - name: gallery
+    label: Gallery
+    type: object
+    fields:
+    - name: src
+      label: Src
+      type: image
+    - name: alt
+      label: Alt
+      type: string
+    list: true
+- name: contact_fr
+  label: Contact details (French)
+  description: Texts and photos of the "Contact details" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/contact.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: primary_cta
+    label: Primary cta
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: action
+      label: Action
+      type: string
+  - name: phone_label
+    label: Phone label
+    type: string
+  - name: phone_display
+    label: Phone display
+    type: string
+  - name: phone_href
+    label: Phone href
+    type: string
+  - name: email_label
+    label: Email label
+    type: string
+  - name: email_display
+    label: Email display
+    type: string
+  - name: address_label
+    label: Address label
+    type: string
+  - name: address_line1
+    label: Address line1
+    type: string
+  - name: address_line2
+    label: Address line2
+    type: string
+  - name: whatsapp_prefill
+    label: Whatsapp prefill
+    type: string
+  - name: desktop_note
+    label: Desktop note
+    type: string
+- name: contact_en
+  label: Contact details (English)
+  description: Texts and photos of the "Contact details" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/contact.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: primary_cta
+    label: Primary cta
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: action
+      label: Action
+      type: string
+  - name: phone_label
+    label: Phone label
+    type: string
+  - name: phone_display
+    label: Phone display
+    type: string
+  - name: phone_href
+    label: Phone href
+    type: string
+  - name: email_label
+    label: Email label
+    type: string
+  - name: email_display
+    label: Email display
+    type: string
+  - name: address_label
+    label: Address label
+    type: string
+  - name: address_line1
+    label: Address line1
+    type: string
+  - name: address_line2
+    label: Address line2
+    type: string
+  - name: whatsapp_prefill
+    label: Whatsapp prefill
+    type: string
+  - name: desktop_note
+    label: Desktop note
+    type: string
+- name: press_fr
+  label: Press (French)
+  description: Texts and photos of the "Press" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/press.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: quote
+    label: Quote
+    type: text
+  - name: date
+    label: Date
+    type: string
+  - name: cta_label
+    label: Cta label
+    type: string
+  - name: cta_href
+    label: Cta href
+    type: string
+- name: press_en
+  label: Press (English)
+  description: Texts and photos of the "Press" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/press.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: subtitle
+    label: Subtitle
+    type: string
+  - name: quote
+    label: Quote
+    type: text
+  - name: date
+    label: Date
+    type: string
+  - name: cta_label
+    label: Cta label
+    type: string
+  - name: cta_href
+    label: Cta href
+    type: string
+- name: lineage_fr
+  label: Lineage / tradition (French)
+  description: Texts and photos of the "Lineage / tradition" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/lineage.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: paragraphs_before
+    label: Paragraphs before
+    type: text
+    list: true
+  - name: shloka
+    label: Shloka
+    type: object
+    fields:
+    - name: devanagari
+      label: Devanagari
+      type: string
+    - name: translit
+      label: Translit
+      type: string
+    - name: translation
+      label: Translation
+      type: string
+    - name: source
+      label: Source
+      type: string
+  - name: paragraphs_after
+    label: Paragraphs after
+    type: text
+    list: true
+  - name: ashtanga_label
+    label: Ashtanga label
+    type: string
+  - name: ashtanga
+    label: Ashtanga
+    type: object
+    fields:
+    - name: sanskrit
+      label: Sanskrit
+      type: string
+    - name: gloss
+      label: Gloss
+      type: string
+    list: true
+- name: lineage_en
+  label: Lineage / tradition (English)
+  description: Texts and photos of the "Lineage / tradition" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/lineage.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: paragraphs_before
+    label: Paragraphs before
+    type: text
+    list: true
+  - name: shloka
+    label: Shloka
+    type: object
+    fields:
+    - name: devanagari
+      label: Devanagari
+      type: string
+    - name: translit
+      label: Translit
+      type: string
+    - name: translation
+      label: Translation
+      type: string
+    - name: source
+      label: Source
+      type: string
+  - name: paragraphs_after
+    label: Paragraphs after
+    type: text
+    list: true
+  - name: ashtanga_label
+    label: Ashtanga label
+    type: string
+  - name: ashtanga
+    label: Ashtanga
+    type: object
+    fields:
+    - name: sanskrit
+      label: Sanskrit
+      type: string
+    - name: gloss
+      label: Gloss
+      type: string
+    list: true
+- name: recommendations_fr
+  label: Recommendations (French)
+  description: Texts and photos of the "Recommendations" section in French. Edit the French and English versions separately.
+  type: file
+  path: src/content/recommendations.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: quotes
+    label: Quotes
+    type: object
+    fields:
+    - name: quote
+      label: Quote
+      type: text
+    - name: author
+      label: Author
+      type: string
+    - name: context
+      label: Context
+      type: string
+    list: true
+- name: recommendations_en
+  label: Recommendations (English)
+  description: Texts and photos of the "Recommendations" section in English. Edit the French and English versions separately.
+  type: file
+  path: src/content/recommendations.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Eyebrow
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: quotes
+    label: Quotes
+    type: object
+    fields:
+    - name: quote
+      label: Quote
+      type: text
+    - name: author
+      label: Author
+      type: string
+    - name: context
+      label: Context
+      type: string
+    list: true
+- name: clients
+  label: Clients (logos)
+  description: Company logos shown in the "They trusted me" carousel, shared by both languages. Upload a logo and type the company name.
+  type: file
+  path: src/content/clients.json
+  format: json
+  fields:
+  - name: clients
+    label: Clients
+    type: object
+    fields:
+    - name: name
+      label: Name
+      type: string
+    - name: logo
+      label: Logo
+      type: image
+    - name: url
+      label: Url
+      type: string
+    list: true
+- name: i18n_ui_fr
+  label: Buttons & menus (French)
+  description: Small interface texts (menu, buttons, footer) in French.
+  type: file
+  path: src/content/i18n_ui.fr.json
+  format: json
+  fields:
+  - name: lang_toggle_aria
+    label: Lang toggle aria
+    type: string
+  - name: nav_about
+    label: Nav about
+    type: string
+  - name: nav_offerings
+    label: Nav offerings
+    type: string
+  - name: nav_schedule
+    label: Nav schedule
+    type: string
+  - name: nav_testimonials
+    label: Nav testimonials
+    type: string
+  - name: nav_press
+    label: Nav press
+    type: string
+  - name: nav_contact
+    label: Nav contact
+    type: string
+  - name: book_cta
+    label: Book cta
+    type: string
+  - name: audio_on
+    label: Audio on
+    type: string
+  - name: audio_off
+    label: Audio off
+    type: string
+  - name: footer_tagline
+    label: Footer tagline
+    type: string
+  - name: footer_credit
+    label: Footer credit
+    type: string
+  - name: socials_label
+    label: Socials label
+    type: string
+  - name: socials
+    label: Socials
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: href
+      label: Href
+      type: string
+    list: true
+- name: i18n_ui_en
+  label: Buttons & menus (English)
+  description: Small interface texts (menu, buttons, footer) in English.
+  type: file
+  path: src/content/i18n_ui.en.json
+  format: json
+  fields:
+  - name: lang_toggle_aria
+    label: Lang toggle aria
+    type: string
+  - name: nav_about
+    label: Nav about
+    type: string
+  - name: nav_offerings
+    label: Nav offerings
+    type: string
+  - name: nav_schedule
+    label: Nav schedule
+    type: string
+  - name: nav_testimonials
+    label: Nav testimonials
+    type: string
+  - name: nav_press
+    label: Nav press
+    type: string
+  - name: nav_contact
+    label: Nav contact
+    type: string
+  - name: book_cta
+    label: Book cta
+    type: string
+  - name: audio_on
+    label: Audio on
+    type: string
+  - name: audio_off
+    label: Audio off
+    type: string
+  - name: footer_tagline
+    label: Footer tagline
+    type: string
+  - name: footer_credit
+    label: Footer credit
+    type: string
+  - name: socials_label
+    label: Socials label
+    type: string
+  - name: socials
+    label: Socials
+    type: object
+    fields:
+    - name: label
+      label: Label
+      type: string
+    - name: href
+      label: Href
+      type: string
+    list: true
