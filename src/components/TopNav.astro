@@ -1,0 +1,45 @@
+---
+import fr from '../content/i18n_ui.fr.json';
+import en from '../content/i18n_ui.en.json';
+import contactFr from '../content/contact.fr.json';
+import contactEn from '../content/contact.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+const c = lang === 'en' ? contactEn : contactFr;
+
+// wa.me proxied via /wa-out (tap counting). Phone number is server-resolved.
+const waHref = `/wa-out?source=topnav&text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=topnav_${lang}`;
+
+// FR is served at "/", EN is served at "/en/". The FR/EN buttons in the header
+// are real navigation links — one URL per language, per Google Search Central's
+// guidance on multilingual sites (no more JS class-swap on one URL).
+const frHref = '/';
+const enHref = '/en/';
+---
+<header class="sticky top-0 z-40 w-full backdrop-blur bg-[rgba(244,237,225,0.75)] border-b border-[rgba(46,42,38,0.08)]">
+  <nav class="max-w-[1140px] mx-auto flex items-center justify-between py-3 px-5">
+    <a href="#top" class="flex items-center gap-2 text-ink-900">
+      <span class="inline-block w-2 h-2 rounded-full bg-[color:var(--terracotta)] breathing-dot" style="margin:0"></span>
+      <span class="font-serif text-lg tracking-tight">Yoga avec Jitendra</span>
+    </a>
+
+    <div class="flex items-center gap-2 md:gap-5 text-sm">
+      <a href="#about"      class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_about}</a>
+      <a href="#offerings"  class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_offerings}</a>
+      <a href="#schedule"   class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_schedule}</a>
+      <a href="#contact"    class="hidden md:inline-block text-[color:var(--ink-soft)] hover:text-ink-900">{t.nav_contact}</a>
+
+      <div class="flex items-center gap-1 text-xs font-medium border border-[rgba(46,42,38,0.16)] rounded-full px-1 py-0.5" aria-label={t.lang_toggle_aria}>
+        <a href={frHref} class={`px-2 py-0.5 rounded-full ${lang === 'fr' ? 'lang-active' : ''}`} aria-current={lang === 'fr' ? 'page' : undefined} hreflang="fr">FR</a>
+        <a href={enHref} class={`px-2 py-0.5 rounded-full ${lang === 'en' ? 'lang-active' : ''}`} aria-current={lang === 'en' ? 'page' : undefined} hreflang="en">EN</a>
+      </div>
+
+      <a href={waHref} class="btn btn-primary text-sm py-2 px-4" data-cta="topnav_book">{t.book_cta}</a>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .lang-active { background: var(--terracotta); color: #FBF7EE; }
+</style>

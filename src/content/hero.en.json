@@ -1,0 +1,32 @@
+{
+  "eyebrow": "Hatha Yoga · Paris",
+  "headline": "Breathe. Move. Land.",
+  "subhead": "Traditional Hatha Yoga taught in the Indian lineage, in French and English. Paris 16 studio, at your home, at your office, or outdoors.",
+  "primary_cta": {
+    "label": "Book a session",
+    "action": "whatsapp"
+  },
+  "secondary_cta": {
+    "label": "Discover the method",
+    "href": "#about"
+  },
+  "featured_in_label": "Featured in",
+  "featured_in": [
+    "L'Hebdo du Vendredi",
+    "Superprof · 5 ★",
+    "MeetUp · 5.0",
+    "TrainMe",
+    "GIO France",
+    "Centre Tapovan"
+  ],
+  "clients_label": "Trusted by",
+  "clients": [
+    { "name": "TotalEnergies",       "logo": "/assets/logos/totalenergies.svg" },
+    { "name": "SEMMARIS · Rungis",   "logo": "/assets/logos/semmaris-rungis.svg" },
+    { "name": "Emmaüs Solidarité",   "logo": "/assets/logos/emmaus-solidarite.svg" }
+  ],
+  "hero_image": "/assets/images/meditation-portrait.jpg",
+  "hero_image_alt": "Jitendra in lotus meditation in a Paris park",
+  "portrait_image": "/assets/images/portrait-namaste.jpg",
+  "portrait_alt": "Jitendra Kumar, Hatha Yoga teacher, in namaste salutation"
+}

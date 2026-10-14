@@ -1,0 +1,260 @@
+---
+// SourceDonut — pie/donut showing which discovery channel drove the clicks.
+//
+// Per plan §3.3, the donut shows CLICKS (not WA-taps) because clicks is the
+// only metric all four sources contribute to. Degraded sources appear with
+// a hatched fill + "no data" annotation so the chart never silently drops
+// a category.
+//
+// Hydrates from CustomEvent('dashboarddata') like TimeSeriesChart.
+//
+// 2026-08-04 fix: same bare-specifier fix as TimeSeriesChart.astro — inline
+// `<script type="module" define:vars>` blocks cannot resolve
+// `import ApexCharts from 'apexcharts'` in the browser, which is why "Where
+// clicks come from" has been blank since V0.1 shipped. Initial data now
+// flows via `data-init` JSON attribute; the hoisted `<script>` gets Astro-
+// bundled and the import resolves.
+
+interface Props {
+  labels: string[];
+  values: number[];
+  degraded_source_indices?: number[];
+}
+const { labels, values, degraded_source_indices = [] } = Astro.props;
+const initJson = JSON.stringify({
+  labels: Array.isArray(labels) ? labels : [],
+  values: Array.isArray(values) ? values : [],
+  degraded_source_indices: Array.isArray(degraded_source_indices) ? degraded_source_indices : [],
+});
+---
+<section class="donut-block yj-card" data-reveal>
+  <header class="donut-head">
+    <p class="yj-eyebrow"><span class="breathing-dot" aria-hidden="true"></span><span>Discovery mix</span></p>
+    <h2 class="yj-title-lg">Where clicks come from</h2>
+  </header>
+  <div class="chart-host-wrap">
+    <div
+      id="source-donut-chart"
+      class="chart-host chart-host--donut"
+      data-init={initJson}
+      aria-label="Donut chart: click share by discovery channel"
+    ></div>
+    <div class="chart-skeleton" aria-hidden="true">
+      <div class="yj-skeleton donut-skeleton-ring" aria-hidden="true"></div>
+    </div>
+  </div>
+  <footer class="chart-foot">
+    <span class="chart-source-dot" aria-hidden="true"></span>
+    <span class="yj-caption">Google Search Console · Google Business Profile · Bing · On-site beacon</span>
+  </footer>
+</section>
+
+<script>
+  import ApexCharts from 'apexcharts';
+
+  const INK_SOFT = 'rgba(74, 66, 59, 0.7)';
+  const TERRACOTTA = '#c9744a';
+  const SAGE = '#6b7a5a';
+  const INK = '#2e2a26';
+  const SAND = 'rgba(217, 199, 167, 0.9)';
+  const PALETTE = [TERRACOTTA, SAGE, INK, SAND];
+
+  function buildOptions(labels: string[], values: number[], degradedIndices: number[]) {
+    // Fill non-degraded slices from the palette; degraded slices get a
+    // pale sand fill and appear in the legend with a "pending" note.
+    // 2026-08-04: for the case where GBP is permanently degraded (Google
+    // denied API access), the "no data yet" wording is misleading — nothing
+    // is coming. We surface it as "(pending API approval)" so the client
+    // reads the state truthfully. Other transient-degraded sources still
+    // read as "(no data yet)".
+    const GBP_LABEL = 'Google Maps';
+    const colors = (labels || []).map((_, i) =>
+      degradedIndices.includes(i) ? 'rgba(217, 199, 167, 0.35)' : PALETTE[i % PALETTE.length]
+    );
+    const totalClicks = (values || []).reduce((a, b) => a + (b || 0), 0);
+    const decoratedLabels = (labels || []).map((l, i) => {
+      if (!degradedIndices.includes(i)) return l;
+      if (l === GBP_LABEL) return `${l} (pending API approval)`;
+      return `${l} (no data yet)`;
+    });
+    return {
+      chart: {
+        type: 'donut',
+        height: 300,
+        background: 'transparent',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        animations: { enabled: true, speed: 500 },
+      },
+      series: values || [],
+      labels: decoratedLabels,
+      colors,
+      stroke: { width: 0 },
+      dataLabels: {
+        enabled: totalClicks > 0,
+        style: { fontSize: '11px', fontFamily: 'Inter', fontWeight: 500, colors: ['#fff'] },
+        formatter: (val: number) => val >= 5 ? `${val.toFixed(0)}%` : '',
+        dropShadow: { enabled: false },
+      },
+      legend: {
+        position: 'bottom',
+        fontSize: '12px',
+        labels: { colors: INK_SOFT },
+        markers: { radius: 3 },
+        itemMargin: { horizontal: 10, vertical: 4 },
+      },
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '58%',
+            labels: {
+              show: true,
+              total: {
+                show: true,
+                label: 'Total clicks',
+                fontSize: '11px',
+                fontFamily: 'Inter',
+                color: INK_SOFT,
+                formatter: () => totalClicks.toLocaleString('en-US'),
+              },
+              value: {
+                fontSize: '20px',
+                fontFamily: 'Fraunces, serif',
+                color: INK,
+              },
+            },
+          },
+        },
+      },
+      tooltip: {
+        y: { formatter: (v: number | null) => (v == null ? '—' : `${v.toLocaleString('en-US')} clicks`) },
+      },
+      noData: {
+        text: 'No clicks recorded yet — see the status banner above for the reason.',
+        align: 'center',
+        verticalAlign: 'middle',
+        style: { color: INK, fontSize: '15px' },
+      },
+    };
+  }
+
+  function initDonut() {
+    const el = document.getElementById('source-donut-chart') as HTMLDivElement | null;
+    if (!el) return;
+    let initialLabels: string[] = [];
+    let initialValues: number[] = [];
+    let initialDegraded: number[] = [];
+    try {
+      const raw = el.dataset.init;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        initialLabels = Array.isArray(parsed.labels) ? parsed.labels : [];
+        initialValues = Array.isArray(parsed.values) ? parsed.values : [];
+        initialDegraded = Array.isArray(parsed.degraded_source_indices) ? parsed.degraded_source_indices : [];
+      }
+    } catch (err) {
+      console.warn('source-donut init JSON parse failed (rendering empty chart)', err);
+    }
+
+    const chart = new ApexCharts(el, buildOptions(initialLabels, initialValues, initialDegraded));
+    chart.render().then(() => {
+      // Slice 3 (2026-08-05): fade the skeleton ring once the chart paints.
+      el.parentElement?.classList.add('chart-mounted');
+    }).catch(() => {
+      el.parentElement?.classList.add('chart-mounted');
+    });
+
+    window.addEventListener('dashboarddata', (ev: Event) => {
+      const rollup = (ev as CustomEvent).detail?.rollup;
+      if (!rollup?.source_split) return;
+      const { labels: newLabels, values: newValues, degraded_source_indices: newDeg } = rollup.source_split;
+      chart.updateOptions(buildOptions(newLabels || [], newValues || [], newDeg || []));
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDonut);
+  } else {
+    initDonut();
+  }
+</script>
+
+<style>
+  .donut-block {
+    padding: var(--yj-space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-3);
+  }
+  .donut-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .donut-head .yj-eyebrow { margin: 0; display: inline-flex; align-items: center; }
+  .donut-head .yj-title-lg { margin: 0; }
+  .chart-host-wrap {
+    position: relative;
+    min-height: 300px;
+    width: 100%;
+    margin-top: var(--yj-space-2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .chart-host {
+    min-height: 300px;
+    width: 100%;
+  }
+  .chart-host--donut {
+    /* Donut naturally centres via ApexCharts's own layout; nothing to
+       add beyond the shared min-height. */
+  }
+  .chart-skeleton {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity var(--yj-dur-slow) var(--yj-ease);
+  }
+  .chart-host-wrap.chart-mounted .chart-skeleton {
+    opacity: 0;
+  }
+  .donut-skeleton-ring {
+    /* A ring silhouette that hints "donut coming here." Sized to match
+       ApexCharts' donut default so it doesn't visibly resize on mount. */
+    width: 180px;
+    height: 180px;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at center,
+        var(--yj-surface-1) 0,
+        var(--yj-surface-1) 52px,
+        var(--yj-surface-3) 53px,
+        var(--yj-surface-2) 88px,
+        var(--yj-surface-3) 90px,
+        transparent 91px);
+    animation: none;
+  }
+  .chart-foot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: var(--yj-space-3);
+    border-top: 1px solid var(--yj-border-subtle);
+    margin-top: var(--yj-space-3);
+  }
+  .chart-source-dot {
+    width: 5px; height: 5px;
+    border-radius: 999px;
+    background: var(--yj-brand);
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+  /* Site-wide body face is Inter — see HARDENING.md row #6 for the
+     intentional operator acknowledgement pending brand refresh. */
+  :global(.chart-host .apexcharts-legend-text) {
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+</style>

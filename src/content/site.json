@@ -1,0 +1,8 @@
+{
+  "_comment": "Site-wide settings editable in Pages CMS. ambient_audio.file must live in public/assets/audio/. volume is 0 to 1.",
+  "ambient_audio": {
+    "enabled": true,
+    "file": "/assets/audio/bansuri-studio.mp3",
+    "volume": 0.5
+  }
+}

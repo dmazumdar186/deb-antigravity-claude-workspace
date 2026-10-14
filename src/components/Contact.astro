@@ -1,0 +1,63 @@
+---
+import fr from '../content/contact.fr.json';
+import en from '../content/contact.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+
+// wa.me links are now proxied through /wa-out so taps can be counted in
+// KV by the dashboard aggregator. The phone number is NOT accepted from
+// the querystring — it's server-resolved by an in-file allowlist keyed
+// on `source`. See functions/wa-out.ts. UTM params retained for GSC
+// referrer tracking parity with the pre-V0.1 links.
+const waHref = `/wa-out?source=contact&text=${encodeURIComponent(t.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=contact_${lang}`;
+---
+<section id="contact" class="section">
+  <div class="section-inner">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+      <div class="md:col-span-6">
+        <p class="eyebrow mb-4" data-reveal>
+          <span class="breathing-dot"></span>
+          <span>{t.eyebrow}</span>
+        </p>
+        <h2 class="text-4xl md:text-5xl mb-4" data-reveal>
+          {t.title}
+        </h2>
+        <p class="text-lg text-[color:var(--ink-soft)] mb-6 max-w-prose2" data-reveal>
+          {t.subtitle}
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3" data-reveal>
+          <a href={waHref} class="btn btn-primary" data-cta="contact_whatsapp">{t.primary_cta.label} →</a>
+          <a href={t.phone_href} class="btn btn-ghost" data-cta="contact_phone">{t.phone_display}</a>
+        </div>
+        <p class="mt-5 text-sm text-[color:var(--ink-soft)] italic max-w-md" data-reveal>
+          {t.desktop_note}
+        </p>
+      </div>
+
+      <div class="md:col-span-6" data-reveal>
+        <div class="card space-y-4">
+          <div>
+            <div class="eyebrow mb-1">
+              {t.phone_label}
+            </div>
+            <a href={t.phone_href} class="font-serif text-xl text-ink-900 hover:text-[color:var(--terracotta)]">{t.phone_display}</a>
+          </div>
+          <div class="pt-4 border-t border-[rgba(46,42,38,0.08)]">
+            <div class="eyebrow mb-1">
+              {t.email_label}
+            </div>
+            <span class="font-serif text-xl text-ink-900 break-all select-all">{t.email_display}</span>
+          </div>
+          <div class="pt-4 border-t border-[rgba(46,42,38,0.08)]">
+            <div class="eyebrow mb-1">
+              {t.address_label}
+            </div>
+            <div class="font-serif text-xl leading-snug text-ink-900">{t.address_line1}</div>
+            <div class="text-[color:var(--ink-soft)]">{t.address_line2}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

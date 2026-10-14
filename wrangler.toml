@@ -1,0 +1,8 @@
+# Cloudflare Pages config. The dashboard, review form and newsletter need a KV
+# namespace: in the Cloudflare dashboard create one (Workers & Pages → KV),
+# then bind it to this Pages project as DASHBOARD_KV (Settings → Bindings),
+# and set the secret DASHBOARD_PASS (Settings → Variables and Secrets).
+# The public website itself works without any of this.
+name = "yogaavecjitendra"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "./dist"

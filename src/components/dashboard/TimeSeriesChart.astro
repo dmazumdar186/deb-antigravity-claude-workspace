@@ -1,0 +1,274 @@
+---
+// TimeSeriesChart — the main dashboard line chart.
+//
+// Renders impressions / clicks / WA-taps over the selected time range,
+// styled to the parent site's cream + terracotta + sage palette. Uses
+// ApexCharts (self-bundled, no CDN — CSP-safe on CF Pages).
+//
+// The chart is initialized client-side on mount from the initial data
+// prop (server-rendered from the fallback JSON), then updated by the
+// dashboard hydration script when /api/dashboard-data responds and on
+// every range-pill click via the CustomEvent('dashboardrange') bus.
+//
+// 2026-08-04 fix: the initial data used to be handed to the client via
+// `<script type="module" define:vars>`, which Astro emits as an INLINE
+// module script. Browsers cannot resolve `import ApexCharts from
+// 'apexcharts'` (bare specifier) in an inline module — the import
+// throws `Failed to resolve module specifier "apexcharts"` and the
+// chart never renders. That is the root cause of "How the numbers
+// moved" being blank since V0.1 shipped on 2026-07-21.
+//
+// The fix: hand initial data to the client via a `data-init` JSON
+// attribute on the host div, then use a HOISTED `<script>` (no
+// define:vars) that Astro properly bundles — ApexCharts becomes a real
+// `_astro/*.js` chunk and the import resolves. Same pattern applied
+// to SourceDonut.astro and Sparkline.astro in the same commit.
+//
+// Contract with dashboard.astro:
+//   - The div's id is stable so the hydration script can find it.
+//   - It listens for CustomEvent('dashboarddata', { detail: { rollup } })
+//     on window and calls chart.updateSeries()/updateOptions() with the
+//     new time_series field.
+
+interface Series {
+  name: string;
+  data: number[];
+}
+interface Props {
+  labels: string[];
+  series: Series[];
+}
+const { labels, series } = Astro.props;
+const initJson = JSON.stringify({
+  labels: Array.isArray(labels) ? labels : [],
+  series: Array.isArray(series) ? series : [],
+});
+---
+<section class="time-series-block yj-card" data-reveal>
+  <header class="time-series-head">
+    <p class="yj-eyebrow"><span class="breathing-dot" aria-hidden="true"></span><span>Trend</span></p>
+    <h2 class="yj-title-lg">How the numbers moved</h2>
+  </header>
+  <div class="chart-host-wrap">
+    <div
+      id="time-series-chart"
+      class="chart-host"
+      data-init={initJson}
+      aria-label="Trend chart: impressions, clicks and WhatsApp taps"
+    ></div>
+    <div class="chart-skeleton" aria-hidden="true">
+      <div class="yj-skeleton chart-skeleton-bar" style="width: 96%; height: 60%; margin-top: 12%;"></div>
+    </div>
+  </div>
+  <footer class="chart-foot">
+    <span class="chart-source-dot" aria-hidden="true"></span>
+    <span class="yj-caption">Google Search Console · Bing · Google Business Profile · On-site beacon</span>
+  </footer>
+</section>
+
+<script>
+  import ApexCharts from 'apexcharts';
+
+  const CREAM = '#f4ede1';
+  const INK = '#2e2a26';
+  const INK_SOFT = 'rgba(74, 66, 59, 0.7)';
+  const TERRACOTTA = '#c9744a';
+  const SAGE = '#6b7a5a';
+  const SAND = 'rgba(217, 199, 167, 0.6)';
+
+  interface Series { name: string; data: number[]; }
+
+  function buildOptions(labels: string[], series: Series[]) {
+    return {
+      chart: {
+        type: 'area',
+        height: 320,
+        background: 'transparent',
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        animations: { enabled: true, speed: 500 },
+        fontFamily: 'Inter, system-ui, sans-serif',
+      },
+      series: series || [],
+      colors: [TERRACOTTA, SAGE, INK],
+      stroke: { curve: 'smooth', width: 2 },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          opacityFrom: 0.35,
+          opacityTo: 0.03,
+          stops: [0, 90, 100],
+        },
+      },
+      dataLabels: { enabled: false },
+      grid: {
+        borderColor: SAND,
+        strokeDashArray: 3,
+        xaxis: { lines: { show: false } },
+        padding: { left: 12, right: 12 },
+      },
+      xaxis: {
+        categories: labels || [],
+        labels: {
+          style: { colors: INK_SOFT, fontSize: '11px' },
+          rotate: 0,
+          // Defensive: v may be undefined, non-string, or a short string.
+          // Return '' instead of throwing so the axis renders even for
+          // partially-populated windows.
+          formatter: (v: unknown) =>
+            typeof v === 'string' && v.length >= 5 ? v.slice(5) : String(v ?? ''),
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        labels: {
+          style: { colors: INK_SOFT, fontSize: '11px' },
+          formatter: (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(0)),
+        },
+      },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        fontSize: '12px',
+        labels: { colors: INK_SOFT },
+        markers: { radius: 3 },
+        itemMargin: { horizontal: 12 },
+      },
+      tooltip: {
+        theme: 'light',
+        style: { fontSize: '12px' },
+        y: { formatter: (v: number | null) => v == null ? '—' : v.toLocaleString('en-US') },
+      },
+      noData: {
+        text: 'No trend data yet — see the status banner above for the reason.',
+        align: 'center',
+        verticalAlign: 'middle',
+        style: { color: INK, fontSize: '15px' },
+      },
+    };
+  }
+
+  function initTimeSeries() {
+    const el = document.getElementById('time-series-chart') as HTMLDivElement | null;
+    if (!el) return;
+    let initialLabels: string[] = [];
+    let initialSeries: Series[] = [];
+    try {
+      const raw = el.dataset.init;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        initialLabels = Array.isArray(parsed.labels) ? parsed.labels : [];
+        initialSeries = Array.isArray(parsed.series) ? parsed.series : [];
+      }
+    } catch (err) {
+      console.warn('time-series init JSON parse failed (rendering empty chart)', err);
+    }
+
+    const chart = new ApexCharts(el, buildOptions(initialLabels, initialSeries));
+    chart.render().then(() => {
+      // Slice 3 (2026-08-05): mark the wrapper as mounted so the skeleton
+      // shimmer overlay fades out. Wrap in a .then so we only hide the
+      // skeleton once ApexCharts has painted actual bars.
+      el.parentElement?.classList.add('chart-mounted');
+    }).catch(() => {
+      // Even if render() rejects, drop the skeleton — the chart's own
+      // noData message is more helpful than a permanent shimmer.
+      el.parentElement?.classList.add('chart-mounted');
+    });
+
+    // Listen for hydration events from the dashboard controller.
+    window.addEventListener('dashboarddata', (ev: Event) => {
+      const rollup = (ev as CustomEvent).detail?.rollup;
+      if (!rollup?.time_series) return;
+      chart.updateOptions({
+        xaxis: { categories: rollup.time_series.labels || [] },
+      });
+      chart.updateSeries(rollup.time_series.series || []);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTimeSeries);
+  } else {
+    initTimeSeries();
+  }
+</script>
+
+<style>
+  .time-series-block {
+    padding: var(--yj-space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-3);
+  }
+  .time-series-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .time-series-head .yj-eyebrow {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+  .time-series-head .yj-title-lg {
+    margin: 0;
+  }
+  /* The wrap positions the chart + skeleton overlay in the same layout box
+     so the skeleton fills the exact space ApexCharts will paint into.
+     Prevents the "skeleton is smaller than the chart, chart pops in and
+     everything shifts" flash. */
+  .chart-host-wrap {
+    position: relative;
+    min-height: 320px;
+    width: 100%;
+    margin-top: var(--yj-space-2);
+  }
+  .chart-host {
+    /* ApexCharts sets its own inline height via the height option; give the
+       container a min-height so the layout doesn't jump before render. */
+    min-height: 320px;
+    width: 100%;
+  }
+  .chart-skeleton {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity var(--yj-dur-slow) var(--yj-ease);
+  }
+  .chart-host-wrap.chart-mounted .chart-skeleton {
+    opacity: 0;
+  }
+  .chart-skeleton-bar {
+    background: linear-gradient(180deg,
+      var(--yj-surface-3) 0%,
+      var(--yj-surface-2) 100%);
+    border-radius: var(--yj-radius-md);
+    animation: none;
+  }
+  .chart-foot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: var(--yj-space-3);
+    border-top: 1px solid var(--yj-border-subtle);
+    margin-top: var(--yj-space-3);
+  }
+  .chart-source-dot {
+    width: 5px; height: 5px;
+    border-radius: 999px;
+    background: var(--yj-brand);
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+  /* Overrides for ApexCharts elements that inherit our body font at the
+     wrong weight. Site-wide body face is Inter — see HARDENING.md row #6
+     for the intentional operator acknowledgement pending brand refresh. */
+  :global(.chart-host .apexcharts-legend-text) {
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+</style>

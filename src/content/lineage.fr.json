@@ -1,0 +1,28 @@
+{
+  "eyebrow": "La tradition",
+  "title": "Une lignée qui traverse les millénaires.",
+  "paragraphs_before": [
+    "Le yoga naît en Inde, transmis de bouche à oreille par les rishis et les munis — sages retirés dans les forêts et les montagnes, qui écoutaient le silence pour comprendre le vivant. La pratique est plus vieille que l'écriture elle-même."
+  ],
+  "shloka": {
+    "devanagari": "योगश्चित्तवृत्तिनिरोधः",
+    "translit": "Yogaḥ citta-vṛtti-nirodhaḥ",
+    "translation": "Le yoga est l'apaisement des fluctuations du mental.",
+    "source": "— Patañjali, Yoga Sūtra I.2"
+  },
+  "paragraphs_after": [
+    "Ce que Jitendra transmet aujourd'hui à Paris — le souffle, la posture, le silence — appartient à cette lignée continue. Rien n'est inventé. Tout est retrouvé.",
+    "L'ashtanga — les huit membres de Patañjali : yama, niyama, āsana, prāṇāyāma, pratyāhāra, dhāraṇā, dhyāna, samādhi — reste la carte."
+  ],
+  "ashtanga_label": "Les huit membres · Aṣṭāṅga",
+  "ashtanga": [
+    { "sanskrit": "Yama",       "gloss": "l'éthique envers les autres" },
+    { "sanskrit": "Niyama",     "gloss": "la discipline envers soi" },
+    { "sanskrit": "Āsana",      "gloss": "la posture juste" },
+    { "sanskrit": "Prāṇāyāma",  "gloss": "la maîtrise du souffle" },
+    { "sanskrit": "Pratyāhāra", "gloss": "le retrait des sens" },
+    { "sanskrit": "Dhāraṇā",    "gloss": "la concentration" },
+    { "sanskrit": "Dhyāna",     "gloss": "la méditation" },
+    { "sanskrit": "Samādhi",    "gloss": "l'unité" }
+  ]
+}

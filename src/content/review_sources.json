@@ -1,0 +1,12 @@
+{
+  "_comment": "Verified-source links rendered at the bottom of /reviews pages. Shared FR/EN (URLs don't translate; only the section header does). Each entry: {key, name, url, tone}. `tone` maps to icon svg + brand color hint in ReviewSources.astro. Add / remove / re-order freely — one JSON entry per source.",
+  "sources": [
+    { "key": "google",         "name": "Google",                       "url": "https://www.google.com/search?sca_esv=533d19b5c4962365&authuser=0&hl=en&gl=fr&output=search&q=Yoga+Avec+Jitendra&ludocid=14092612847233323851&lsig=AB86z5X7UGnz1woEZohVwK5FOwGO&ved=1i%3A4%2Ct%3A109124%2Ce%3A3%2Cp%3ALClSarTABtyZkdUPy7CJCQ%3A250", "tone": "google" },
+    { "key": "superprof",      "name": "Superprof",                    "url": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html", "tone": "superprof" },
+    { "key": "meetup",         "name": "Meetup — Paris Hatha Yoga",    "url": "https://www.meetup.com/paris-hatha-yoga/feedback-overview/", "tone": "meetup" },
+    { "key": "airbnb",         "name": "Airbnb Experiences",           "url": "https://www.airbnb.ca/services/6760719?s=67&unique_share_id=c88c61a2-e950-4b27-8c91-f8849af7289b", "tone": "airbnb" },
+    { "key": "instagram",      "name": "Instagram — @yogaavecjitendra", "url": "https://www.instagram.com/yogaavecjitendra/", "tone": "instagram" },
+    { "key": "instagram_post_1", "name": "Instagram · publication",    "url": "https://www.instagram.com/p/DSpp7dlDqr5/", "tone": "instagram_post" },
+    { "key": "instagram_post_2", "name": "Instagram · publication",    "url": "https://www.instagram.com/p/DR2OfDDjNle/", "tone": "instagram_post" }
+  ]
+}

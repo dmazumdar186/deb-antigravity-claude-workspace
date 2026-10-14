@@ -1,0 +1,108 @@
+{
+  "launch_date": "2026-07-11",
+  "as_of": "2026-07-21T00:00:00+02:00",
+  "_comment": "Build-time fallback for the dashboard. Frontend hydrates from /api/dashboard-data on load — this file only shows before the first fetch completes OR when the API is unreachable. Everything under 'initial_rollup' mirrors the aggregator's rollup shape (plan §3.3) so the frontend has one code path.",
+  "initial_rollup": {
+    "range": "7d",
+    "as_of": "2026-07-21T00:00:00+02:00",
+    "computed_ms": 0,
+    "sources_healthy": [],
+    "sources_degraded": ["gsc", "gbp", "bing", "cfwa"],
+    "hero_tiles": {
+      "reach": {
+        "label": "People who found you on Google",
+        "value": null,
+        "delta_pct": null,
+        "sparkline": [],
+        "top_queries": [],
+        "source": "Google Search Console"
+      },
+      "interest": {
+        "label": "Clicks on your site",
+        "value": null,
+        "delta_pct": null,
+        "sparkline": [],
+        "top_pages": [],
+        "source": "Google Search Console + Bing"
+      },
+      "conversation": {
+        "label": "WhatsApp taps from your site",
+        "value": 0,
+        "delta_pct": null,
+        "sparkline": [],
+        "source": "On-site beacon (/wa-out proxy)"
+      },
+      "subscribers": {
+        "label": "Newsletter subscribers (KV-only fallback)",
+        "value": 0,
+        "delta_pct": null,
+        "sparkline": [],
+        "source": "Newsletter opt-in popup"
+      }
+    },
+    "funnel": [
+      { "label": "Impressions",   "value": 0, "source": "GSC + Bing" },
+      { "label": "Clicks",        "value": 0, "source": "GSC + Bing" },
+      { "label": "WhatsApp taps", "value": 0, "source": "On-site beacon" }
+    ],
+    "time_series": { "labels": [], "series": [] },
+    "source_split": {
+      "labels": ["Google Search", "Google Maps", "Bing", "Direct/referrer"],
+      "values": [0, 0, 0, 0],
+      "unit": "clicks",
+      "degraded_source_indices": [0, 1, 2, 3]
+    },
+    "_delta_threshold": 10
+  },
+  "milestones": [
+    {
+      "date": "2026-07-11",
+      "title": "Site v2 went live",
+      "detail": "Ahrefs Site Audit health score: 86 / 100",
+      "state": "done"
+    },
+    {
+      "date": "2026-07-12",
+      "title": "Google finished indexation",
+      "detail": "Sitemap accepted; coverage crawl in progress",
+      "state": "done"
+    },
+    {
+      "date": "2026-07-21",
+      "title": "Dashboard V0.1 pipeline deployed",
+      "detail": "Cloudflare Worker cron + KV rollups + ApexCharts + range toggle live. LIVE-PROBATIONARY day 0/5.",
+      "state": "done"
+    },
+    {
+      "date": "2026-07-22",
+      "title": "First Google impressions expected",
+      "detail": "Original 15 Jul target slipped; GSC coverage still crawling. Re-dated with a one-week buffer.",
+      "state": "expected"
+    },
+    {
+      "date": "2026-07-30",
+      "title": "First Google review target",
+      "detail": "Goal: three reviews in month one",
+      "state": "goal"
+    }
+  ],
+  "next_move": {
+    "week_of": "2026-07-21",
+    "title": "Ask three happy students for a Google review",
+    "body": "Superprof shows two reviews. Local yoga teachers in Paris 16 average around fifteen. Three fresh Google reviews would visibly lift your Map Pack ranking and help new students trust you before they message.",
+    "cta_label": "Draft a review-request WhatsApp",
+    "cta_href": "/wa-out?source=next_move_review_request"
+  },
+  "self_report_history": [],
+  "provenance": {
+    "sources": [
+      { "name": "Google Search Console", "cadence": "Snapshot daily", "verified": true },
+      { "name": "Google Business Profile", "cadence": "Snapshot daily (pending API approval)", "verified": true },
+      { "name": "Ahrefs Site Audit", "cadence": "Weekly re-crawl", "verified": true },
+      { "name": "Bing Webmaster Tools", "cadence": "Snapshot daily", "verified": true },
+      { "name": "Cloudflare Web Analytics", "cadence": "Live", "verified": true },
+      { "name": "On-site /wa-out beacon", "cadence": "Live", "verified": true },
+      { "name": "Self-report form", "cadence": "Monthly", "verified": true }
+    ]
+  }
+}

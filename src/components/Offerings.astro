@@ -1,0 +1,148 @@
+---
+import fr from '../content/offerings.fr.json';
+import en from '../content/offerings.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+---
+<section id="offerings" class="section">
+  <div class="section-inner">
+    <header class="max-w-3xl mb-12">
+      <p class="eyebrow mb-4" data-reveal>
+        <span class="breathing-dot"></span>
+        <span>{t.eyebrow}</span>
+      </p>
+      <h2 class="text-4xl md:text-5xl mb-4" data-reveal>
+        <span>{t.title}</span>
+      </h2>
+      <p class="text-lg text-[color:var(--ink-soft)]" data-reveal>
+        <span>{t.subtitle}</span>
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+      {t.tiles.map((tile) => (
+        <article class="card flex flex-col overflow-hidden" data-reveal>
+          <div class="relative aspect-[4/3] -m-6 mb-4 overflow-hidden rounded-t-[1.25rem]">
+            {tile.video ? (
+              <video
+                src={tile.video}
+                poster={tile.video_poster ?? tile.image}
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-label={tile.image_alt}
+                class="w-full h-full object-cover"
+              />
+            ) : tile.images && tile.images.length > 1 ? (
+              <div class="crossfade" data-crossfade aria-label={tile.image_alt} role="img">
+                {tile.images.map((im, k) => (
+                  <img
+                    src={im.src}
+                    alt={im.alt}
+                    width="800"
+                    height="600"
+                    loading="lazy"
+                    decoding="async"
+                    class={`crossfade-img${k === 0 ? ' is-active' : ''}`}
+                    data-k={k}
+                  />
+                ))}
+              </div>
+            ) : (
+              <img src={tile.image} alt={tile.image_alt}
+                   width="800" height="600" loading="lazy" decoding="async"
+                   class="w-full h-full object-cover" />
+            )}
+          </div>
+          <p class="eyebrow mb-2">
+            <span>{tile.kicker}</span>
+          </p>
+          <h3 class="font-serif text-xl mb-2 text-ink-900 leading-snug">
+            <span>{tile.title}</span>
+          </h3>
+          <p class="text-[15px] text-[color:var(--ink-soft)] leading-relaxed mb-4">
+            <span>{tile.blurb}</span>
+          </p>
+          <p class="mt-auto pt-3 border-t border-[rgba(46,42,38,0.08)] text-sm font-medium text-[color:var(--terracotta)]">
+            <span>{tile.meta}</span>
+          </p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Crossfade for tiles with `images: [...]`.
+     JS-driven (see script below) — toggles `.is-active` on one image at a time.
+     CSS handles the fade with a slow opacity transition. Rock-solid; no
+     animation-delay + infinite-iteration quirks. */
+  .crossfade {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .crossfade-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+  }
+  .crossfade-img.is-active { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    /* Users who ask for less motion get the first frame only, no fade. */
+    .crossfade-img { transition: none; }
+  }
+</style>
+
+<script is:inline>
+  /* Drive the .crossfade tiles. Every 5s of dwell, we swap `.is-active` between
+     images; CSS handles the 2s ease-in-out opacity crossfade. Pauses when the
+     tile scrolls out of view (IntersectionObserver) so it's not chewing CPU
+     for content nobody's looking at. */
+  (function () {
+    var DWELL_MS = 5000;
+    var groups = document.querySelectorAll('[data-crossfade]');
+    if (!groups.length) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    groups.forEach(function (el) {
+      var imgs = el.querySelectorAll('.crossfade-img');
+      if (imgs.length < 2) return;
+      var idx = 0, timer = null, visible = false;
+
+      function tick() {
+        imgs[idx].classList.remove('is-active');
+        idx = (idx + 1) % imgs.length;
+        imgs[idx].classList.add('is-active');
+      }
+      function play() {
+        if (timer) return;
+        timer = setInterval(tick, DWELL_MS);
+      }
+      function pause() {
+        if (!timer) return;
+        clearInterval(timer);
+        timer = null;
+      }
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            visible = e.isIntersecting;
+            if (visible) play(); else pause();
+          });
+        }, { threshold: 0.1 }).observe(el);
+      } else {
+        play();
+      }
+    });
+  })();
+</script>

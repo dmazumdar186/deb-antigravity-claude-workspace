@@ -1,0 +1,18 @@
+{
+  "eyebrow": "About the teacher",
+  "title": "Jitendra Kumar",
+  "subtitle": "Born in northern India. Based in Paris.",
+  "paragraphs": [
+    "Jitendra grew up immersed in the yoga tradition. In France for ten years, he teaches a structured practice that meets each student where they are — where gesture stays tied to lineage.",
+    "Certified in Hatha Yoga after 500 hours at Centre Tapovan Paris, he deepens the practice through the study of Sanskrit and the foundational texts. His method rests on grounding: bodily stability to quiet the nervous system, alignment, and the building of strength — so that energy can circulate freely.",
+    "He also teaches at L'école châlonnaise « Au pied du cerisier » and in yoga teacher-training programmes at Tapovan Open University in Normandy."
+  ],
+  "markers": [
+    { "label": "In France for", "value": "10 years" },
+    { "label": "Hatha Yoga training", "value": "500 h · Tapovan Paris" },
+    { "label": "Studies", "value": "Sanskrit · traditional texts" },
+    { "label": "Teaches in", "value": "Paris · Châlons · Normandy" }
+  ],
+  "portrait_image": "/assets/images/portrait-namaste.jpg",
+  "portrait_alt": "Jitendra Kumar, Hatha Yoga teacher, in namaste"
+}

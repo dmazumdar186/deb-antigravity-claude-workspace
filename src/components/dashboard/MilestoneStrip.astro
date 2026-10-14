@@ -1,0 +1,137 @@
+---
+interface Milestone {
+  date: string;
+  title: string;
+  detail?: string;
+  state: 'done' | 'expected' | 'goal';
+}
+interface Props {
+  milestones: Milestone[];
+}
+const { milestones } = Astro.props;
+
+function fmtDate(iso: string): string {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+---
+<ol class="milestones">
+  {milestones.map((m) => (
+    <li class={`milestone milestone-${m.state}`} data-reveal>
+      <span class="milestone-dot" aria-hidden="true"></span>
+      <div class="milestone-body">
+        <div class="milestone-head">
+          <span class="milestone-date">{fmtDate(m.date)}</span>
+          <span class="milestone-title">{m.title}</span>
+          <span class={`milestone-badge milestone-badge-${m.state}`}>{m.state}</span>
+        </div>
+        {m.detail && <p class="milestone-detail">{m.detail}</p>}
+      </div>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .milestones {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .milestones::before {
+    content: '';
+    position: absolute;
+    top: 0.55rem;
+    bottom: 0.55rem;
+    left: 0.42rem;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      rgba(201, 116, 74, 0.4),
+      rgba(217, 199, 167, 0.2)
+    );
+  }
+  .milestone {
+    position: relative;
+  }
+  .milestone-dot {
+    position: absolute;
+    top: 0.35rem;
+    left: -1.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--cream-100);
+    border: 2px solid var(--terracotta);
+    transform: translateX(-1px);
+  }
+  .milestone-expected .milestone-dot {
+    border-color: var(--sage);
+    background: var(--cream-100);
+  }
+  .milestone-goal .milestone-dot {
+    border-color: rgba(46, 42, 38, 0.2);
+    border-style: dashed;
+    background: var(--cream-100);
+  }
+  .milestone-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .milestone-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .milestone-date {
+    /* Inherits Inter from body. */
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 500;
+    min-width: 4.5rem;
+  }
+  .milestone-title {
+    /* Intentional Fraunces on a span title, matches parent site's serif hierarchy. */
+    font-family: var(--font-display, 'Fraunces'), 'Cormorant Garamond', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .milestone-badge {
+    /* Inherits Inter from body. */
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .milestone-badge-done {
+    background: rgba(201, 116, 74, 0.14);
+    color: var(--terracotta);
+  }
+  .milestone-badge-expected {
+    background: rgba(107, 122, 90, 0.14);
+    color: var(--sage);
+  }
+  .milestone-badge-goal {
+    background: rgba(46, 42, 38, 0.06);
+    color: var(--ink-soft);
+    border: 1px dashed rgba(46, 42, 38, 0.2);
+  }
+  .milestone-detail {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin: 0.2rem 0 0;
+    line-height: 1.5;
+  }
+</style>

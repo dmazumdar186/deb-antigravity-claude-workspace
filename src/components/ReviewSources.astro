@@ -1,0 +1,190 @@
+---
+// ReviewSources.astro — verified-source chip grid.
+//
+// Displayed at the bottom of /reviews pages. Client asked to "add all
+// these links in the bottom so that review can be justified." Each chip
+// = one place a visitor can go to see the reviews at the source of
+// record. Icons are inline SVG so we ship zero external requests.
+//
+// Sources are read from src/content/review_sources.json (shared FR/EN).
+// Add / re-order sources = one JSON edit, no code change.
+//
+// Contract:
+//   <ReviewSources lang="fr" sources={sourcesArray} title="Vérifiez à la source" />
+
+interface Source {
+  key: string;
+  name: string;
+  url: string;
+  tone?: string;
+}
+
+interface Props {
+  lang?: 'fr' | 'en';
+  sources: Source[];
+  title?: string;
+  subtitle?: string;
+}
+
+const { lang = 'fr', sources, title, subtitle } = Astro.props;
+
+const t = lang === 'en'
+  ? {
+      defaultTitle: 'Verify these reviews at the source',
+      defaultSubtitle: 'Every review below can be checked on the platform where it was posted.',
+      linkOutAria: (name: string) => `Open ${name} in a new tab`,
+    }
+  : {
+      defaultTitle: 'Vérifiez ces avis à la source',
+      defaultSubtitle: 'Chaque avis ci-dessus est consultable sur la plateforme d\'origine.',
+      linkOutAria: (name: string) => `Ouvrir ${name} dans un nouvel onglet`,
+    };
+
+const heading = title ?? t.defaultTitle;
+const sub = subtitle ?? t.defaultSubtitle;
+---
+<section class="rs-block" data-review-sources aria-labelledby="rs-heading">
+  <header class="rs-head">
+    <h2 id="rs-heading" class="rs-heading">{heading}</h2>
+    <p class="rs-sub">{sub}</p>
+  </header>
+
+  <ul class="rs-grid">
+    {sources.map((s) => (
+      <li class="rs-item">
+        <a
+          class={`rs-chip rs-chip--${s.tone ?? 'default'}`}
+          href={s.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t.linkOutAria(s.name)}
+          data-rs-source={s.key}
+        >
+          <span class="rs-icon" aria-hidden="true">
+            {s.tone === 'google' && (
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21.35 11.1H12v3.2h5.35c-.23 1.4-1.5 4.1-5.35 4.1a5.9 5.9 0 010-11.8c1.86 0 3.11.79 3.83 1.47l2.6-2.51C16.87 3.87 14.66 3 12 3a9 9 0 100 18c5.2 0 8.63-3.66 8.63-8.81 0-.6-.07-1.06-.28-1.09z"/></svg>
+            )}
+            {s.tone === 'superprof' && (
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 2l2.39 6.9H21l-5.55 4.03L17.78 20 12 15.9 6.22 20l2.33-7.07L3 8.9h6.61L12 2z"/></svg>
+            )}
+            {s.tone === 'meetup' && (
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 4h2v10a2 2 0 004 0V4h2v10a4 4 0 01-8 0V4zm10 0h2v14a2 2 0 01-2 2h-1v-2h1V4z"/></svg>
+            )}
+            {s.tone === 'airbnb' && (
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 2c-2 0-3.5 1.2-4.5 3.2L2 17.1c-.8 1.7-.4 3.6.9 4.4 1.2.7 2.7.3 3.7-.9L12 13l5.4 7.6c1 1.2 2.5 1.6 3.7.9 1.3-.8 1.7-2.7.9-4.4L16.5 5.2C15.5 3.2 14 2 12 2zm0 3.8c.8 0 1.5.5 2 1.5l1.8 3.6c-1.2.9-2.3 2.1-3.8 4.1-1.5-2-2.6-3.2-3.8-4.1L10 7.3c.5-1 1.2-1.5 2-1.5z"/></svg>
+            )}
+            {s.tone === 'instagram' && (
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="1.7" d="M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4z"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor"/></svg>
+            )}
+            {s.tone === 'instagram_post' && (
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="1.7" d="M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4z"/><path fill="currentColor" d="M10 8l6 4-6 4V8z"/></svg>
+            )}
+            {(!s.tone || s.tone === 'default') && (
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="1.7" d="M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg>
+            )}
+          </span>
+          <span class="rs-label">{s.name}</span>
+          <span class="rs-arrow" aria-hidden="true">↗</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .rs-block {
+    margin-top: 4rem;
+    padding: 2rem 1.5rem;
+    background: rgba(255, 253, 249, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(46, 42, 38, 0.06);
+  }
+  .rs-head {
+    max-width: 640px;
+    margin: 0 auto 1.75rem;
+    text-align: center;
+  }
+  .rs-heading {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.55rem;
+    margin: 0 0 0.5rem;
+    line-height: 1.2;
+    color: var(--ink-900, #2e2a26);
+  }
+  .rs-sub {
+    color: var(--ink-soft, #6b6560);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .rs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: 960px;
+    margin-inline: auto;
+  }
+  .rs-item { display: contents; }
+  .rs-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 1px solid rgba(46, 42, 38, 0.10);
+    border-radius: 10px;
+    color: var(--ink-900, #2e2a26);
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+    min-height: 48px;
+  }
+  .rs-chip:hover,
+  .rs-chip:focus-visible {
+    background: rgba(192, 91, 62, 0.05);
+    border-color: rgba(192, 91, 62, 0.35);
+    outline: none;
+  }
+  .rs-chip:active { transform: translateY(1px); }
+  .rs-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    color: var(--ink-soft, #6b6560);
+    flex-shrink: 0;
+  }
+  .rs-chip:hover .rs-icon,
+  .rs-chip:focus-visible .rs-icon {
+    color: var(--terracotta, #c05b3e);
+  }
+  .rs-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rs-arrow {
+    color: var(--ink-soft, #6b6560);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  /* Brand tone hints — subtle, not loud. */
+  .rs-chip--google      .rs-icon { color: #4285f4; }
+  .rs-chip--superprof   .rs-icon { color: #f5a623; }
+  .rs-chip--meetup      .rs-icon { color: #ed1c40; }
+  .rs-chip--airbnb      .rs-icon { color: #ff5a5f; }
+  .rs-chip--instagram   .rs-icon,
+  .rs-chip--instagram_post .rs-icon { color: #c74a6b; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rs-chip, .rs-icon { transition: none; }
+  }
+</style>

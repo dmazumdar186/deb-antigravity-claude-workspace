@@ -1,0 +1,166 @@
+---
+interface Entry {
+  month: string;
+  new_students: number;
+  recurring_students: number;
+  avg_revenue_eur: number;
+  submitted_at?: string;
+}
+interface Props {
+  history: Entry[];
+  form_href: string;
+}
+const { history, form_href } = Astro.props;
+const latest = history.length > 0 ? history[history.length - 1] : null;
+
+function fmtMonth(ym: string): string {
+  const [y, m] = ym.split('-').map((n) => parseInt(n, 10));
+  const d = new Date(y, (m || 1) - 1, 1);
+  return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+}
+---
+<section class="self-report" data-reveal>
+  <p class="self-report-eyebrow">
+    <span class="breathing-dot"></span>
+    <span>Your monthly snapshot</span>
+  </p>
+  <h3 class="self-report-title">
+    {latest ? `Reported for ${fmtMonth(latest.month)}` : 'Log your first month'}
+  </h3>
+
+  {latest ? (
+    <div class="self-report-numbers">
+      <div class="report-metric">
+        <span class="report-value">{latest.new_students}</span>
+        <span class="report-label">new students</span>
+      </div>
+      <div class="report-metric">
+        <span class="report-value">{latest.recurring_students}</span>
+        <span class="report-label">recurring students</span>
+      </div>
+      <div class="report-metric">
+        <span class="report-value">&euro;{latest.avg_revenue_eur}</span>
+        <span class="report-label">avg per session</span>
+      </div>
+    </div>
+  ) : (
+    <p class="self-report-empty">
+      Three numbers, thirty seconds. Enough to close the loop between Google traffic and real students in the room.
+    </p>
+  )}
+
+  <a href={form_href} class="btn btn-ghost self-report-cta">
+    {latest ? 'Log another month' : 'Log this month'} &rarr;
+  </a>
+
+  {history.length > 1 && (
+    <details class="self-report-history">
+      <summary>Show earlier months ({history.length - 1})</summary>
+      <ul class="self-report-history-list">
+        {history.slice(0, -1).reverse().map((h) => (
+          <li>
+            <span class="history-month">{fmtMonth(h.month)}</span>
+            <span class="history-numbers">
+              {h.new_students} new &middot; {h.recurring_students} recurring &middot; &euro;{h.avg_revenue_eur} avg
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
+  )}
+</section>
+
+<style>
+  .self-report {
+    background: var(--cream-100);
+    border: 1px solid rgba(46, 42, 38, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+  }
+  .self-report-eyebrow {
+    /* Inherits Inter from body. */
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 500;
+    margin: 0 0 0.75rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  .self-report-title {
+    /* h3 inherits Fraunces from global.css. */
+    font-weight: 500;
+    font-size: 1.25rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    margin: 0 0 1.25rem;
+  }
+  .self-report-numbers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .report-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .report-value {
+    /* Intentional Fraunces on the display number. */
+    font-family: var(--font-display, 'Fraunces'), 'Cormorant Garamond', Georgia, serif;
+    font-weight: 500;
+    font-size: 2rem;
+    color: var(--terracotta);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .report-label {
+    /* Inherits Inter from body. */
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .self-report-empty {
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 55ch;
+    margin: 0 0 1.5rem;
+  }
+  .self-report-cta {
+    text-decoration: none;
+  }
+  .self-report-history {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+    font-size: 0.9rem;
+  }
+  .self-report-history summary {
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+  }
+  .self-report-history-list {
+    list-style: none;
+    padding: 0.75rem 0 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .self-report-history-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--ink-soft);
+  }
+  .history-month {
+    font-weight: 500;
+    color: var(--ink);
+  }
+</style>

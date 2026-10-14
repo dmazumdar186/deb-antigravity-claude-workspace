@@ -1,0 +1,331 @@
+---
+import '../styles/global.css';
+import { loadReviews, pickBody } from '../lib/reviews.mjs';
+import NewsletterPopup from '../components/NewsletterPopup.astro';
+import AmbientAudio from '../components/AmbientAudio.astro';
+import siteSettings from '../content/site.json';
+const ambient = siteSettings.ambient_audio || {};
+const ambientEnabled = ambient.enabled !== false && !!ambient.file;
+const ambientVolume = Math.min(1, Math.max(0, Number(ambient.volume ?? 0.5)));
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: 'fr' | 'en';
+  pathFr?: string;
+  pathEn?: string;
+  noindex?: boolean;
+  dashboard?: boolean;
+}
+
+const {
+  title,
+  description,
+  lang = 'fr',
+  pathFr = '/',
+  pathEn = '/en/',
+  noindex = false,
+  dashboard = false,
+} = Astro.props;
+
+// Reviews are injected into the LocalBusiness JSON-LD as aggregateRating +
+// a slice of Review objects. Cap at 6 in-schema; the full list lives on
+// /reviews/. This gives Google search rich-snippet stars on the SERP.
+const { reviews: allReviews, count: reviewCount, average_rating: reviewAvg } = loadReviews();
+const reviewSchemaItems = allReviews.slice(0, 6).map((r) => ({
+  '@type': 'Review',
+  reviewRating: {
+    '@type': 'Rating',
+    ratingValue: r.rating,
+    bestRating: 5,
+    worstRating: 1,
+  },
+  author: { '@type': 'Person', name: r.name },
+  reviewBody: pickBody(r, lang),
+  // 2026-08-04 — do NOT emit a datePublished we can't prove. A silent-now
+  // fingerprint (verified import with submitted_at===approved_at±60s) leaks
+  // "juillet 2026" into Google's rich-snippet cache; that's the exact
+  // client complaint. Omit the field for unknown-provenance rows so search
+  // engines don't cache a lie. Known rows keep it — those drive the
+  // rich-snippet recency signal.
+  datePublished: r.date_provenance === 'unknown'
+    ? undefined
+    : ((r.submitted_at || '').slice(0, 10) || undefined),
+  inLanguage: r.lang || undefined,
+}));
+
+const isNoindex = noindex || dashboard;
+
+const SITE = 'https://yogaavecjitendra.fr';
+const canonicalUrl = `${SITE}${lang === 'en' ? pathEn : pathFr}`;
+const frUrl = `${SITE}${pathFr}`;
+const enUrl = `${SITE}${pathEn}`;
+
+const defaultDescFr = 'Hatha Yoga traditionnel indien à Paris avec Jitendra Kumar — studio à Passy (Paris 16), à domicile, en entreprise, en plein air. Certifié Tapovan 500h.';
+const defaultDescEn = 'Traditional Indian Hatha Yoga in Paris with Jitendra Kumar — Passy studio (Paris 16), at-home, corporate, outdoor. 500-hour Tapovan certification.';
+const desc = description ?? (lang === 'en' ? defaultDescEn : defaultDescFr);
+
+// Schema.org — LocalBusiness + Person (Jitendra) + 4 Services (studio/domicile/entreprise/plein-air)
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'HealthAndBeautyBusiness',
+      '@id': `${SITE}/#business`,
+      name: 'Yoga avec Jitendra',
+      image: `${SITE}/assets/images/portrait-namaste.jpg`,
+      url: SITE,
+      telephone: '+33758255583',
+      email: 'jitendranitrr13@gmail.com',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '22 rue Eugène Manuel',
+        addressLocality: 'Paris',
+        postalCode: '75016',
+        addressCountry: 'FR',
+      },
+      areaServed: [
+        { '@type': 'City', name: 'Paris' },
+        { '@type': 'City', name: 'Boulogne-Billancourt' },
+        { '@type': 'City', name: 'Neuilly-sur-Seine' },
+        { '@type': 'City', name: 'Levallois-Perret' },
+        { '@type': 'City', name: 'Issy-les-Moulineaux' },
+        { '@type': 'City', name: 'Saint-Cloud' },
+      ],
+      founder: { '@id': `${SITE}/#jitendra` },
+      sameAs: [
+        'https://www.instagram.com/yogaavecjitendra/',
+        'https://www.linkedin.com/company/yogaavecjitendra/',
+        'https://www.meetup.com/paris-hatha-yoga/',
+        'https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html',
+        'https://sites.google.com/view/yogaavecjitendra/home',
+        'https://maps.app.goo.gl/LFy4eJncWWdt69Lo9',
+      ],
+      ...(reviewCount > 0 && reviewAvg !== null
+        ? {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: reviewAvg,
+              reviewCount,
+              bestRating: 5,
+              worstRating: 1,
+            },
+            review: reviewSchemaItems,
+          }
+        : {}),
+    },
+    {
+      '@type': 'Person',
+      '@id': `${SITE}/#jitendra`,
+      name: 'Jitendra Kumar',
+      image: `${SITE}/assets/images/portrait-namaste.jpg`,
+      jobTitle: lang === 'en' ? 'Hatha Yoga teacher (Indian lineage)' : 'Professeur de Hatha Yoga (lignée indienne)',
+      worksFor: { '@id': `${SITE}/#business` },
+      hasCredential: {
+        '@type': 'EducationalOccupationalCredential',
+        credentialCategory: 'certification',
+        name: 'Hatha Yoga 500h · Centre Tapovan Paris',
+      },
+      knowsLanguage: ['fr', 'en', 'hi'],
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#studio`,
+      serviceType: lang === 'en' ? 'Studio Hatha Yoga · Passy (Paris 16)' : 'Cours de Hatha Yoga au studio · Passy (Paris 16)',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'City', name: 'Paris' },
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#domicile`,
+      serviceType: lang === 'en' ? 'At-home Hatha Yoga · Paris + inner suburbs' : 'Cours de Hatha Yoga à domicile · Paris et proche banlieue',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'AdministrativeArea', name: 'Île-de-France' },
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#entreprise`,
+      serviceType: lang === 'en' ? 'Corporate / office Hatha Yoga · bilingual FR/EN' : 'Cours de Hatha Yoga en entreprise · bilingue FR/EN',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'AdministrativeArea', name: 'Île-de-France' },
+    },
+    {
+      '@type': 'Service',
+      '@id': `${SITE}/#plein-air`,
+      serviceType: lang === 'en' ? 'Outdoor Hatha Yoga · Champ-de-Mars, Bois de Boulogne' : 'Hatha Yoga en plein air · Champ-de-Mars, Bois de Boulogne',
+      provider: { '@id': `${SITE}/#business` },
+      areaServed: { '@type': 'City', name: 'Paris' },
+    },
+  ],
+};
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <title>{title}</title>
+  <meta name="description" content={desc} />
+  {isNoindex && <meta name="robots" content="noindex, follow" />}
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={desc} />
+  <meta property="og:image" content={`${SITE}/assets/images/meditation-portrait.jpg`} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'fr_FR'} />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap"
+  />
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Preload the real hero image so LCP lands quickly (fixed from champ-de-mars-eiffel.jpg — meditation-portrait.jpg is the current hero). -->
+  <link rel="preload" as="image" href="/assets/images/meditation-portrait.jpg" fetchpriority="high" />
+
+  <!-- Bilingual SEO — canonical per route + reciprocal hreflang. -->
+  <link rel="canonical" href={canonicalUrl} />
+  <link rel="alternate" hreflang="fr" href={frUrl} />
+  <link rel="alternate" hreflang="en" href={enUrl} />
+  <link rel="alternate" hreflang="x-default" href={frUrl} />
+
+  {/* JSON-LD injection: escape `<` in the stringified payload so a review
+      body containing `</script>` cannot break out of this block. Reviews
+      are moderated but the moderator surface is plain-text — a `</script>
+      <script>evil</script>` payload looks like a harmless typo to a
+      human. Cheap, load-bearing escape. */}
+  {!dashboard && <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />}
+
+  {/* Cloudflare Web Analytics (cookieless, GDPR-safe, free). The site_token
+      below is public by design (it ships in every page's HTML for every
+      visitor to see). To rotate, set PUBLIC_CF_WA_TOKEN in the build env
+      (overrides this default) or update the value here. Not included on the
+      dashboard route to avoid vanity metrics polluting the public site's
+      numbers. */}
+  {!dashboard && (
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon={`{"token": "${import.meta.env.PUBLIC_CF_WA_TOKEN || '9a1473aafbd24daba793995956244a87'}"}`}
+    />
+  )}
+</head>
+<body class="min-h-screen antialiased">
+  {!dashboard && ambientEnabled && (
+    <audio
+      id="om-audio"
+      src={ambient.file}
+      data-volume={ambientVolume}
+      preload="metadata"
+      loop
+      aria-hidden="true"
+    />
+  )}
+  {/* bansuri-studio.mp3 = "bansuri flute" by PoshPony, Pixabay Content
+      License (commercial use OK, no attribution required):
+      https://pixabay.com/music/world-bansuri-flute-406082/
+      Alternate candidate lives at /assets/audio/bansuri-raga-alt.mp3
+      ("Indian Bansuri Flute Tarana Raga Music" by boopul, id 525950). */}
+  {/* Mute toggle must ship on EVERY public page, not just the homepages —
+      audio autostarts site-wide (first gesture), so a visitor landing on
+      /reviews from Google needs a way to silence it (panel finding
+      2026-09-01). */}
+  {!dashboard && ambientEnabled && <AmbientAudio lang={lang} />}
+  <slot />
+
+  {/* Newsletter opt-in popup. Public site only — never on /dashboard/*.
+      Component self-suppresses per-visitor for 30 days via localStorage,
+      respects DNT + crawler UAs. See src/components/NewsletterPopup.astro
+      + docs/gdpr_newsletter_popup_assessment.md. Backend today = KV-only
+      fallback (Brevo swap pending). */}
+  {!dashboard && <NewsletterPopup lang={lang} />}
+
+  <!-- Motion One: fade-up reveals; skipped under prefers-reduced-motion -->
+  <script type="module">
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      import('https://cdn.jsdelivr.net/npm/motion@11.18.0/+esm').then(({ animate, inView }) => {
+        document.querySelectorAll('[data-reveal]').forEach((el) => {
+          inView(el, () => {
+            animate(el, { opacity: [0, 1], transform: ['translateY(16px)', 'translateY(0)'] }, { duration: 0.9, easing: [0.16, 1, 0.3, 1] });
+            el.classList.add('is-visible');
+          }, { amount: 0.25 });
+        });
+      }).catch(() => {
+        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
+      });
+    } else {
+      document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
+    }
+  </script>
+
+  {!dashboard && (
+  <script is:inline>
+    (function() {
+      var omEl = document.getElementById('om-audio');
+      var toggle = document.querySelector('[data-audio-toggle]');
+      var playing = false, started = false;
+
+      /* Client A/B: ?audio=alt swaps in the alternate Pixabay track
+         (bansuri-raga-alt.mp3) for this page view only. */
+      try {
+        if (omEl && new URLSearchParams(location.search).get('audio') === 'alt') {
+          omEl.src = '/assets/audio/bansuri-raga-alt.mp3';
+        }
+      } catch (e) {}
+
+      var userMuted = false;
+      try { userMuted = localStorage.getItem('yj_muted') === '1'; } catch (e) {}
+
+      function start() {
+        if (started || userMuted) return;
+        if (omEl) {
+          omEl.volume = parseFloat(omEl.getAttribute('data-volume') || '0.5');
+          omEl.currentTime = 0;
+          var p = omEl.play();
+          if (p && typeof p.catch === 'function') p.catch(function() {});
+        }
+        playing = true; started = true;
+        if (toggle) { toggle.classList.remove('is-muted'); toggle.setAttribute('aria-pressed', 'true'); }
+      }
+
+      function stop() {
+        if (omEl) { try { omEl.pause(); } catch (e) {} }
+        playing = false;
+        if (toggle) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
+      }
+
+      if (toggle) {
+        if (userMuted) { toggle.classList.add('is-muted'); toggle.setAttribute('aria-pressed', 'false'); }
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (playing) {
+            stop();
+            userMuted = true;
+            try { localStorage.setItem('yj_muted', '1'); } catch (e) {}
+          } else {
+            userMuted = false;
+            try { localStorage.setItem('yj_muted', '0'); } catch (e) {}
+            started = false;
+            start();
+          }
+        });
+      }
+
+      var events = ['pointerdown', 'touchstart', 'keydown', 'click'];
+      function firstGesture(e) {
+        if (e && e.target && e.target.closest && e.target.closest('[data-audio-toggle]')) return;
+        events.forEach(function(ev) { window.removeEventListener(ev, firstGesture); });
+        if (!userMuted) start();
+      }
+      events.forEach(function(ev) { window.addEventListener(ev, firstGesture, { passive: true }); });
+    })();
+  </script>
+  )}
+</body>
+</html>

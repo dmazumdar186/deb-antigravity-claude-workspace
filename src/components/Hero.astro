@@ -1,0 +1,73 @@
+---
+import fr from '../content/hero.fr.json';
+import en from '../content/hero.en.json';
+import contactFr from '../content/contact.fr.json';
+import contactEn from '../content/contact.en.json';
+import HeroBackdrop from './HeroBackdrop.astro';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+const c = lang === 'en' ? contactEn : contactFr;
+
+// Client logos moved to a dedicated ClientsStrip section between About
+// and Lineage (2026-08-06, operator ask) — all-visible, in color,
+// backgrounds stripped. Hero stays focused on headline + CTA + portrait.
+// wa.me proxied via /wa-out (tap counting). Phone number is server-resolved.
+const waHref = `/wa-out?source=hero&text=${encodeURIComponent(c.whatsapp_prefill)}&utm_source=site&utm_medium=whatsapp&utm_content=hero_${lang}`;
+---
+<section id="top" class="section" style="position: relative; overflow: hidden;">
+  <HeroBackdrop />
+  <div class="section-inner" style="position: relative; z-index: 1;">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+      <!-- Copy -->
+      <div class="md:col-span-7">
+        <p class="eyebrow mb-6" data-reveal>
+          <span class="breathing-dot"></span>
+          <span>{t.eyebrow}</span>
+        </p>
+        <h1 class="text-5xl md:text-6xl lg:text-7xl leading-[1.02] mb-6 headline-reveal">
+          {t.headline.split(' ').map((w, i) => (
+            <span class="word" style={`animation-delay: ${i * 0.18}s;`}>{w}&nbsp;</span>
+          ))}
+        </h1>
+        <p class="text-lg md:text-xl text-[color:var(--ink-soft)] max-w-2xl leading-relaxed mb-8" data-reveal>
+          {t.subhead}
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 mb-10" data-reveal>
+          <a href={waHref} class="btn btn-primary" data-cta="hero_primary">{t.primary_cta.label} →</a>
+          <a href={t.secondary_cta.href} class="btn btn-ghost" data-cta="hero_secondary">{t.secondary_cta.label}</a>
+        </div>
+
+        <!-- Featured-in strip -->
+        <div class="pt-8 border-t border-[rgba(46,42,38,0.08)]" data-reveal>
+          <p class="eyebrow mb-3">{t.featured_in_label}</p>
+          <div class="flex flex-wrap gap-2">
+            {t.featured_in.map((label) => (<span class="pill">{label}</span>))}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hero image (meditation portrait — Jitendra's lotus in a Paris park) -->
+      <div class="md:col-span-5" data-reveal>
+        <div class="frame aspect-[4/5] relative bg-cream-100">
+          <img
+            src={t.hero_image}
+            alt={t.hero_image_alt}
+            width="1600" height="2000"
+            loading="eager" decoding="async"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+          <div class="absolute bottom-4 left-4 right-4">
+            <div class="rounded-xl bg-[rgba(28,26,23,0.72)] backdrop-blur-md px-4 py-3 border border-white/10 text-cream-100">
+              <div class="font-serif text-base leading-tight">Jitendra Kumar</div>
+              <div class="text-[11px] uppercase tracking-[0.15em] text-cream-100/70 mt-1">
+                {lang === 'en' ? 'Meditation · Paris park' : 'Méditation · Parc parisien'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

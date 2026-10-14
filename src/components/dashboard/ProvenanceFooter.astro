@@ -1,0 +1,114 @@
+---
+interface Source {
+  name: string;
+  cadence: string;
+  verified: boolean;
+  note?: string;
+}
+interface Props {
+  sources: Source[];
+  as_of: string;
+}
+const { sources, as_of } = Astro.props;
+
+const asOfLabel = new Date(as_of).toLocaleString('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Paris',
+});
+---
+<footer class="provenance" data-reveal>
+  <p class="provenance-eyebrow">
+    <span class="breathing-dot"></span>
+    <span>What we measure and where it comes from</span>
+  </p>
+  <ul class="provenance-list">
+    {sources.map((s) => (
+      <li class="provenance-item">
+        <span class={`prov-dot ${s.verified ? 'is-live' : 'is-pending'}`} aria-hidden="true"></span>
+        <span class="prov-name">{s.name}</span>
+        <span class="prov-sep" aria-hidden="true">&middot;</span>
+        <span class="prov-cadence">{s.cadence}</span>
+        {s.note && <span class="prov-note">({s.note})</span>}
+      </li>
+    ))}
+  </ul>
+  <p class="prov-synced">Last synced {asOfLabel} Paris. Honest about what we do not yet know.</p>
+</footer>
+
+<style>
+  .provenance {
+    margin-top: var(--yj-space-8);
+    padding: var(--yj-space-5) 0 0;
+    border-top: 1px solid var(--yj-border-subtle);
+  }
+  .provenance-eyebrow {
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-eyebrow);
+    letter-spacing: var(--yj-tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--yj-brand);
+    font-weight: 500;
+    margin: 0 0 var(--yj-space-4);
+    display: inline-flex;
+    align-items: center;
+  }
+  .provenance-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--yj-space-4);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--yj-space-2) var(--yj-space-5);
+  }
+  .provenance-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-body);
+    color: var(--yj-ink-soft);
+    padding: 0.3rem 0;
+  }
+  .prov-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    margin-right: 0.35rem;
+  }
+  .prov-dot.is-live {
+    background: var(--yj-success);
+    box-shadow: 0 0 0 3px var(--yj-success-soft);
+  }
+  .prov-dot.is-pending {
+    background: transparent;
+    border: 1.5px dashed var(--yj-brand);
+    box-shadow: 0 0 0 3px var(--yj-brand-soft);
+  }
+  .prov-name {
+    color: var(--yj-ink);
+    font-weight: 500;
+  }
+  .prov-sep {
+    color: var(--yj-ink-faint);
+  }
+  .prov-cadence {
+    color: var(--yj-ink-soft);
+  }
+  .prov-note {
+    font-style: italic;
+    color: var(--yj-ink-muted);
+    font-size: var(--yj-size-caption);
+  }
+  .prov-synced {
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-ink-muted);
+    margin: var(--yj-space-4) 0 0;
+    letter-spacing: 0.01em;
+  }
+</style>
