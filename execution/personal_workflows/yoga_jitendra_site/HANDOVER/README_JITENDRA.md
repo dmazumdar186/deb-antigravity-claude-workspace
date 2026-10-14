@@ -31,9 +31,36 @@ Same as a photo: **Media** → **videos** → upload an MP4 (keep it under 50 MB
 
 Click the page in the left menu, edit the text boxes, **Save**. The schedule, offers, contact details, press mentions and recommendations each have their own page in the menu.
 
-## Photos in the gallery
+## Where each photo lives
 
-Open **About (French)** or **About (English)**. The **Gallery** list is the set of photos shown. Use the **+** button to add one, the trash icon to remove one, and drag to reorder.
+| Photo on the site | Page in the editor | Field |
+|---|---|---|
+| Big photo at the top | Home (French) / Home (English) | Hero image |
+| Your portrait | Home | Portrait image |
+| One photo per offer (studio, home, online, corporate) | Offerings | Images → Image |
+| The sliding photo gallery | Schedule | Gallery |
+| Logos of companies | Clients (logos) | Logo |
+
+## Add or remove photos in the gallery
+
+1. Editor → **Schedule (French)** → scroll to **Gallery**.
+2. **Add a photo:** click **+ Add** at the bottom of the list → in the new row click **Src** → **Select** → choose a photo you uploaded in Media → type a short description in **Alt** (what the photo shows; this is read by Google and by blind visitors).
+3. **Remove a photo:** hover the row → click the trash icon.
+4. **Reorder:** drag the row by its handle.
+5. **Save.** Repeat in **Schedule (English)** so both languages match.
+
+There is no limit on the number of photos. 6 to 12 looks best.
+
+## Change the background music
+
+1. To use a different track: **Media** → folder **audio** → **Upload** an MP3 (keep it under 5 MB; use royalty-free music, for example from pixabay.com/music, otherwise the site can be taken down for copyright).
+2. Editor → **Ambient sound (site settings)**:
+   - **Play ambient music**: tick to have music, untick for a silent site.
+   - **Music file (MP3)**: click → **Select** → choose the track.
+   - **Volume (0 to 1)**: 0.2 is soft, 0.5 is the current level, 1 is loudest.
+3. **Save.** The music starts on a visitor's first click or scroll, loops, and the little sound button at the bottom of the page lets them mute it.
+
+The two tracks already there are `bansuri-studio.mp3` (current) and `bansuri-raga-alt.mp3` (a second flute recording); both are licensed for this site (see the `licenses` folder).
 
 ## Things that are OK to know
 

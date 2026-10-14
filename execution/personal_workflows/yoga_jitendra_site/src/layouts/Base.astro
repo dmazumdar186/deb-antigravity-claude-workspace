@@ -3,6 +3,10 @@ import '../styles/global.css';
 import { loadReviews, pickBody } from '../lib/reviews.mjs';
 import NewsletterPopup from '../components/NewsletterPopup.astro';
 import AmbientAudio from '../components/AmbientAudio.astro';
+import siteSettings from '../content/site.json';
+const ambient = siteSettings.ambient_audio || {};
+const ambientEnabled = ambient.enabled !== false && !!ambient.file;
+const ambientVolume = Math.min(1, Math.max(0, Number(ambient.volume ?? 0.5)));
 
 interface Props {
   title: string;
@@ -213,10 +217,11 @@ const structuredData = {
   )}
 </head>
 <body class="min-h-screen antialiased">
-  {!dashboard && (
+  {!dashboard && ambientEnabled && (
     <audio
       id="om-audio"
-      src="/assets/audio/bansuri-studio.mp3"
+      src={ambient.file}
+      data-volume={ambientVolume}
       preload="metadata"
       loop
       aria-hidden="true"
@@ -231,7 +236,7 @@ const structuredData = {
       audio autostarts site-wide (first gesture), so a visitor landing on
       /reviews from Google needs a way to silence it (panel finding
       2026-09-01). */}
-  {!dashboard && <AmbientAudio lang={lang} />}
+  {!dashboard && ambientEnabled && <AmbientAudio lang={lang} />}
   <slot />
 
   {/* Newsletter opt-in popup. Public site only — never on /dashboard/*.
@@ -280,7 +285,7 @@ const structuredData = {
       function start() {
         if (started || userMuted) return;
         if (omEl) {
-          omEl.volume = 0.5;
+          omEl.volume = parseFloat(omEl.getAttribute('data-volume') || '0.5');
           omEl.currentTime = 0;
           var p = omEl.play();
           if (p && typeof p.catch === 'function') p.catch(function() {});

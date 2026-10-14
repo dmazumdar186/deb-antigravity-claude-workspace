@@ -16,6 +16,26 @@ media:
   - mp3
   - m4a
 content:
+- name: site
+  label: Ambient sound (site settings)
+  description: The background flute music. Upload a new MP3 to Media > audio, pick it here, set the volume (0 = silent, 1 = loudest) or switch it off.
+  type: file
+  path: src/content/site.json
+  format: json
+  fields:
+  - name: ambient_audio
+    label: Ambient audio
+    type: object
+    fields:
+    - name: enabled
+      label: Play ambient music
+      type: boolean
+    - name: file
+      label: Music file (MP3)
+      type: image
+    - name: volume
+      label: Volume (0 to 1)
+      type: number
 - name: hero_fr
   label: Home page (French)
   description: Texts and photos of the "Home page" section in French. Edit the French and English versions separately.
