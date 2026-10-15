@@ -31,3 +31,5 @@ No FR version of the concept; no real application form (links to misb.fr); no Ly
 
 ## v2 (2026-10-15, after eye review)
 Open leaflet fits the hero column at 1440 (panel = column/3, max 230 px) with paper edges and hinge gradients; closed cover 1.32x, centred, navy gradient behind title; mobile bottom bar hidden until the hero CTAs scroll out; tighter mobile hero (leaflet top visible on Pixel 7 first screen); eyebrow on one line; header logo 56/44 px; pitch button solid navy; the Lyon opening is stated via the verbatim blog title "MISB Lyon ouvre ses portes !" (27 Feb 2026). site_check PASS, leaflet suite 17/17, 0 console errors, 82.0 KB.
+
+Note: `social/src/img/` (45 MB raw photo copies from misb.fr) is gitignored; re-create it by copying from `site/assets/img/` or re-downloading per `research/facts.md` section 10 before running `src/build.py`.
