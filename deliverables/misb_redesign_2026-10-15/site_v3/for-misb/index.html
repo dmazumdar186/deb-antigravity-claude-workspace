@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>08 — Why this concept · MISB prospectus concept by ProdCraft</title>
+<meta name="description" content="Chapter 08 of the MISB concept prospectus: what it is, today versus concept, six findings from the live site written as opportunities, and what does not exist yet.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b1a2b">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="hdr">
+  <a class="hdr__logo" href="../" aria-label="MISB — back to the prospectus"><img class="hdr__logo-dark" src="../assets/img/misblogo.png" alt="MISB — Mash International School of Business" width="56" height="40"></a>
+  <p class="hdr__chapter"><span data-chapter-no>08</span><span class="hdr__rule" style="--prog:1"></span><span>Why this concept</span></p>
+  <a class="btn btn--ink hdr__cta" href="../#programs">Back to the prospectus</a>
+</header>
+
+<main class="doc" id="doc">
+  <section class="doc__cover">
+    <p class="eyebrow eyebrow--cream">Chapter 08 · Why this concept</p>
+    <h1 class="h2">The prospectus, rebuilt as a website.</h1>
+    <p class="lead lead--cream">A pitch for Mash International School of Business, Paris &amp; Lyon. One document, eight numbered chapters, every published fact kept — in about two screens of pinned chapters instead of ten.</p>
+    <div class="doc__meta">
+      <p><span>Prepared for</span>MISB, Paris &amp; Lyon</p>
+      <p><span>Prepared by</span>Debanjan, ProdCraft</p>
+      <p><span>Date</span>15 October 2026</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="chapter-mark"><span>08.1</span> — What it is</p>
+    <h2 class="h2">A school prospectus you scroll through, not a brochure you scroll past.</h2>
+    <p>Business-school prospectuses are designed documents: a dark cover, numbered chapters, one idea per spread, a fold-out of campus life, and a back page that tells you how to apply. The concept at <a href="../">the cover</a> carries that DNA on the web. The cover is pinned and scrubbed by scroll — four beats, each a published fact — over a generative Paris → Lyon journey (a self-rendered film, with a live canvas as the fallback; the slot is ready for Kling footage). Chapter 01 is the fold-out, done properly: a tri-fold spread that opens as you scroll, Paris on the left, the five real photo albums in the middle, Lyon on the right. Chapters 02–07 are a command deck — one panel area, six tabs, deep-linkable — so programs, work-study, the Career Center, the Student HUB, admissions and contact each sit a single tap away, never a scroll away.</p>
+    <p>Everything written on the concept is copied verbatim from misb.fr as of 15 October 2026. Where the live site contradicts itself, the concept shows the published figures side by side and footnotes the contradiction rather than choosing one.</p>
+  </section>
+
+  <section>
+    <p class="chapter-mark"><span>08.2</span> — Today / Concept</p>
+    <h2 class="h2">Measured, not argued.</h2>
+    <table class="tbl">
+      <thead><tr><th>Dimension</th><th>misb.fr today (measured 15 Oct 2026)</th><th>Concept</th></tr></thead>
+      <tbody>
+        <tr><td>Home page scroll height, desktop 1440 px</td><td>9,011 px (10 viewports)</td><td>Pinned cover + fold-out + one deck; the deck is one viewport tall per chapter</td></tr>
+        <tr><td>Home page scroll height, mobile 390 px</td><td>14,528 px (17 viewports)</td><td>2.5-viewport cover, swipe fold-out, tabbed deck</td></tr>
+        <tr><td>Navigation</td><td>5 mega-menus, 40+ links, Material-icon ligature words in the DOM</td><td>8 numbered chapters; 6 tabs; one "Apply now"</td></tr>
+        <tr><td>Hero</td><td>10.4 MB looping MP4, 1600×450 fallback image</td><td>≤ 400 KB self-rendered film + 5 KB canvas fallback, poster JPG, pauses offscreen</td></tr>
+        <tr><td>Third-party scripts / fonts</td><td>YouTube embeds, icon fonts, template assets</td><td>Zero third-party hosts; two self-hosted fonts</td></tr>
+        <tr><td>Programs at a glance</td><td>Program pages 100–150 KB each; fees fragmented across tables; no intake dates</td><td>Six program cards with duration, entry, rhythm, fees as published, each linking to its misb.fr page</td></tr>
+      </tbody>
+    </table>
+    <p class="foot">Live measurements by headless Chromium on https://www.misb.fr/en (research/live_metrics_v3.json). Concept measurements in research/functional_v3.json.</p>
+  </section>
+
+  <section>
+    <p class="chapter-mark"><span>08.3</span> — Six findings, written as opportunities</p>
+    <h2 class="h2">What the live site already tells us.</h2>
+    <ul class="finds">
+      <li><strong>Make the two campuses legible.</strong> Lyon is published at three addresses (75 Rue de la Villette 69003; 34 Rue Antoine Primat, Villeurbanne; a Paris head office) and Paris as both 75019 and 75015. One address per campus, one map link, one Metro line — the concept uses the footer addresses and says so.</li>
+      <li><strong>Publish one work-study rhythm.</strong> The same Bac+3 pathway is described as 3 days company / 2 days college, 2 days school / 3 days company, and 1 day class / 4 days company. Apprentices and employers plan around this number; the concept footnotes all three until the school confirms one.</li>
+      <li><strong>Reconcile the proof numbers.</strong> "+100 partner companies / +50 years of experience" on the Career Center page sits next to "+3 companies / +5 years" on the partner page, while the RNCP indicators say "first cohort in progress". Honest, consistent counters are a trust asset.</li>
+      <li><strong>Explain the fee grid once.</strong> Bachelor RNCP fees differ by specialisation (€8 300 / €6 300 vs €5,100 / €4,700) without explanation, and the €30 / €300 fees live in the legal page. One fee table with the residence rule up front removes a question from every admissions call.</li>
+      <li><strong>Retire the template leftovers.</strong> "leading business school in the Yvelines", a BTS schedule, a mediation email at another school's domain, a gym photo on the Lyon page, a Blade route printed as a link, "Details about old-lyon in lyon gallery will go here." Each is a one-line fix that protects the trust the accreditation copy earns.</li>
+      <li><strong>Show real people, consistently.</strong> The gallery albums, the two directors and the six testimonials are the school's strongest assets; the program tiles are stock posters with French titles baked into the pixels. The concept uses only MISB photography as plates and keeps the testimonials verbatim.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="chapter-mark"><span>08.4</span> — What doesn't exist yet</p>
+    <h2 class="h2">Honest gaps, so the concept stays honest.</h2>
+    <ul class="list">
+      <li><strong>A content calendar.</strong> The news feed runs 73 posts, mostly French pop-culture pieces on an English site; the institutional posts (graduation, Lyon opening, alternance launch) deserve a rhythm of their own.</li>
+      <li><strong>Lyon photography.</strong> One campus interior and an entrance sign exist; the three other Lyon albums are empty placeholders. The fold-out's right panel is ready for a shoot.</li>
+      <li><strong>Named partners.</strong> Five logos with alt text "Partner" and no company names. A named partner strip with a build-time assertion replaces the counters the moment the names are confirmed.</li>
+      <li><strong>Intake dates.</strong> Only "Spring / Autumn" is published. A dated next intake turns the admissions chapter into a deadline.</li>
+      <li><strong>A brochure PDF behind no form.</strong> The brochure sits behind a form; a direct PDF link is the single most-clicked prospectus action.</li>
+    </ul>
+    <p>The matching social set for this concept lives at <a href="https://misb-social.pages.dev/" rel="noopener">misb-social.pages.dev</a>.</p>
+  </section>
+
+  <section class="sig">
+    <p class="eyebrow">Signature</p>
+    <strong>Debanjan</strong>
+    <p>Founder, ProdCraft · <a href="mailto:debanjan@prodcraft.fyi">debanjan@prodcraft.fyi</a></p>
+    <p><a class="btn btn--ink" href="../">Open the prospectus</a></p>
+  </section>
+</main>
+
+<footer class="ftr">
+  <img src="../assets/img/footerWhite.svg" alt="MISB" width="44" height="44">
+  <p>Unofficial concept by <a href="https://prodcraft.fyi" rel="noopener">ProdCraft</a> — not affiliated with MISB. Facts and wording as published on <a href="https://www.misb.fr" rel="noopener">misb.fr</a>, 15 Oct 2026.</p>
+</footer>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

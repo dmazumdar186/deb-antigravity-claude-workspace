@@ -1,0 +1,173 @@
+{
+  "date": "2026-10-15",
+  "pass": 29,
+  "total": 29,
+  "desktopHeight": 6321,
+  "mobileHeight": 5464,
+  "panelHeightsDesktop": {
+    "programs": 759,
+    "workstudy": 701,
+    "career": 691,
+    "hub": 831,
+    "admissions": 609,
+    "contact": 489
+  },
+  "panelHeightsMobile": {
+    "programs": 1739,
+    "workstudy": 1739,
+    "career": 1259,
+    "hub": 1671,
+    "admissions": 1184,
+    "contact": 782
+  },
+  "sizes": {
+    "html": 37421,
+    "css": 28610,
+    "js": 13831,
+    "backdrop": 5142
+  },
+  "results": [
+    {
+      "name": "cover beats change at 25/50/75% of the track",
+      "ok": true,
+      "info": "0,1,2,3"
+    },
+    {
+      "name": "video plays (or canvas fallback runs)",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"http://localhost:8793/assets/hero.webm\",\"canvasVisible\":false}"
+    },
+    {
+      "name": "fold-out hinge transform changes with scroll",
+      "ok": true,
+      "info": "matrix3d(-0.766044, 0, 0.64278 → matrix3d(0.34202, 0, 0.939693, → matrix(1, 0, 0, 1, 0, 0)"
+    },
+    {
+      "name": "fold-out fully open by track end",
+      "ok": true,
+      "info": "{\"tf\":\"matrix(1, 0, 0, 1, 0, 0)\",\"fold\":\"1.0000\",\"open\":true}"
+    },
+    {
+      "name": "each chapter tab switches the panel and updates the hash",
+      "ok": true,
+      "info": "workstudy:workstudy#workstudy | career:career#career | hub:hub#hub | admissions:admissions#admissions | contact:contact#contact | programs:programs#programs"
+    },
+    {
+      "name": "back button restores the previous panel",
+      "ok": true,
+      "info": "contact #contact"
+    },
+    {
+      "name": "header chapter indicator follows the deck",
+      "ok": true,
+      "info": "07 Contact"
+    },
+    {
+      "name": "keyboard ArrowRight wraps to Programs",
+      "ok": true,
+      "info": "programs"
+    },
+    {
+      "name": "deep link /#hub opens Student HUB",
+      "ok": true
+    },
+    {
+      "name": "gallery dialog opens and closes",
+      "ok": true,
+      "info": "{\"open\":true,\"n\":8,\"title\":\"Petit Palais · 16 Oct\"}"
+    },
+    {
+      "name": "career counters settle on the exact published values",
+      "ok": true,
+      "info": "+100,+50,100%"
+    },
+    {
+      "name": "cover end: beat 04 held into the overlap, photo plate shown, fold-out arrived by track end (no empty viewport)",
+      "ok": true,
+      "info": "{\"beatOn\":true,\"beatOpacity\":\"1\",\"bodyOpacity\":\"0.9\",\"foldTop\":0,\"enter\":\"0.050\",\"plate\":\"1\",\"enterAtEnd\":\"1.000\"}"
+    },
+    {
+      "name": "fade sequence: cover text at 0 before chapter headline passes 0.1",
+      "ok": true,
+      "info": "{\"foldText\":\"0.111\",\"coverBody\":\"0\",\"coverVis\":\"hidden\",\"logoHidden\":\"visible\"}"
+    },
+    {
+      "name": "deck panels ≤ 1 viewport (900) on desktop",
+      "ok": true,
+      "info": "{\"programs\":759,\"workstudy\":701,\"career\":691,\"hub\":831,\"admissions\":609,\"contact\":489}"
+    },
+    {
+      "name": "desktop page height ≤ 9,000 px",
+      "ok": true,
+      "info": "6321 px"
+    },
+    {
+      "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
+      "ok": true,
+      "info": "{\"html\":37421,\"css\":28610,\"js\":13831,\"backdrop\":5142}"
+    },
+    {
+      "name": "desktop: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mobile cover beats",
+      "ok": true,
+      "info": "0,1,2,3"
+    },
+    {
+      "name": "mobile uses the portrait video (hero-m.mp4) or canvas",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"src\":\"hero-m.webm\"}"
+    },
+    {
+      "name": "mobile fold-out is a horizontal snap-scroll (no 3D)",
+      "ok": true,
+      "info": "{\"snap\":\"x mandatory\",\"overflow\":\"auto\",\"scrollW\":1180,\"clientW\":372,\"tf\":\"none\",\"scrolledTo\":404}"
+    },
+    {
+      "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
+      "ok": true,
+      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"chapter-mark\",\"bg\":\"rgb(238, 236, 230)\",\"hdrBg\":\"rgb(238, 236, 230)\"}"
+    },
+    {
+      "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
+      "ok": true,
+      "info": "{\"panelW\":372,\"vw\":412,\"docW\":412,\"padB\":100,\"barH\":65,\"overlap\":210}"
+    },
+    {
+      "name": "mobile bottom bar appears after the cover CTA scrolls out",
+      "ok": true
+    },
+    {
+      "name": "mobile page height ≤ 12,000 px",
+      "ok": true,
+      "info": "5464 px"
+    },
+    {
+      "name": "mobile deck panels ≤ 2 viewports (1830)",
+      "ok": true,
+      "info": "{\"programs\":1739,\"workstudy\":1739,\"career\":1259,\"hub\":1671,\"admissions\":1184,\"contact\":782}"
+    },
+    {
+      "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
+      "ok": true,
+      "info": "{\"tabIn\":true,\"fade\":\"56px\",\"lastBottom\":739,\"barTop\":774}"
+    },
+    {
+      "name": "Pixel 7: no horizontal overflow",
+      "ok": true,
+      "info": "0 px"
+    },
+    {
+      "name": "mobile: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "pitch page: 0 console errors, signature present",
+      "ok": true
+    }
+  ]
+}
