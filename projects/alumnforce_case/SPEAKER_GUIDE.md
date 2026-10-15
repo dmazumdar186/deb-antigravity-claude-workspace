@@ -11,7 +11,7 @@ Audience is the CPO and a Lead Developer. Frédéric (founder) pitched the role 
 | 0–2 | 1 | Open with the data line: "Same sentence on your file: 2, 26 or 49 people, and 6 you can safely email." Then the thesis: you asked for speed, your users asked for trust, so the platform returns how far to trust the list. |
 | 2–4 | 2–3 | How you read the material. The 8-of-12 verbatims point. |
 | 4–7 | 4 | The data slide. Land the 525-vs-500 and the "tenure = staleness" insight. Then the 2 / 26 / 49 / 6 line. This is the memorable moment. |
-| 7–11 | 5–7 | The increment, sized in dev-weeks with a 36 dev-week core and a pre-named cut, then the exclusions. The panel grades the "no". |
+| 7–11 | 5–7 | The increment, sized in dev-weeks with a 26 dev-week core and a pre-named cut, then the exclusions. The panel grades the "no". |
 | 11–14 | 8–9 | Orchestration diagram. Say the DPO sentence out loud, slowly. |
 | 14–17 | 10–11 | One stop criterion per layer, two dates (week 12, week 17), then the three risks. |
 | 17–19 | 12–13 | Execution (two-step pilot, waves) and money (levers, payback formulas, packaging hypothesis), quickly. |
@@ -71,7 +71,7 @@ Deliverable 2 (the sentence box). Deliverable 1 ships regardless because it has 
 ## Questions added after the six-lens review (be ready)
 
 **"Your capacity math: our developers are shared."**
-I'm planning on 3 effective FTE, 36 dev-weeks, and I confirm that in week 1. The 36 is the core: reliability layer, sentence box, the two actions, flags and metering. Deliverable 3b (duplicate report, export order) is the stretch. If we drop below 3 FTE, the box pre-fills from a saved-list import instead of live Vue state. Reliability criteria and metering don't move.
+The brief says shared, so I plan on roughly half of 3–4 developers: 24–28 dev-weeks, confirmed in week 1. The core is 26: reliability tag, sentence box, the two actions, flags and metering. The duplicate report and the relative-date engine operator are Q2. Below 24 dev-weeks the box pre-fills from a saved-list import instead of live Vue state. The reliability tag and metering don't move.
 
 **"Your pilot is three weeks and your stop criterion says eight."**
 Two layers, two speeds. Week 12 decides the sentence box on leading indicators: eval gate, adoption and edit rate over three weeks. Week 17 decides the reactivation loop, thirty days after the first campaign. The quarter still ends with a decision.
@@ -124,7 +124,7 @@ Standard criteria names are AlumnForce's vocabulary. Tenant-defined labels are d
 **"You compute the status for all 350 tenants before any DPIA is written?"**
 No. Normalisation columns get backfilled for everyone, they don't derive anything new. Reliability status is different — it's computed per tenant, and only after that tenant has recorded its decision and switched the flag.
 
-**"The engine has no criterion-type extension point and the relative-date operator costs six weeks. What do you cut?"**
+**"Are you asking for an engine change in Q1?"**
 The relative-date operator, first. Saved segments carry an "as of" date instead and the box re-resolves when you open it. Next the live Vue pre-fill goes, the saved-list import replaces it. The status column, the two criteria and the metering don't get cut. Those stay.
 
 ## Developer split (removed from slide 12 for space)
