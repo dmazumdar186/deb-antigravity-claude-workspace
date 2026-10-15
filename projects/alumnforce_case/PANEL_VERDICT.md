@@ -1,8 +1,14 @@
 # Panel verdict — AlumnForce case deliverable (2026-10-12; final rounds 2026-10-13 and 2026-10-15)
 
-**Round 5 (2026-10-15), after the capacity re-size and the Annex B alignment: recruiter panel and all eleven lenses CLEAR; visual QA PASS on 19 + 8 pages; independent pipeline audit round 2 passed 7/7 tests.** Root cause of the reported 48 vs 49: the SQL printed on the Annex B slide had dropped two job-title keywords present in the attached file; both now carry the identical 22-keyword list and return 49 (1 / 5 / 43). Capacity re-planned at 24–28 effective dev-weeks on shared developers with a 26 dev-week core; deliverable 1 is a nightly tag plus two date fields and a status keyword on native OpenSearch date filters (no new criterion type, no cluster refactor); the duplicate report and the relative-date engine operator moved to Q2; saved segments store the relative duration and the shared list loader re-resolves it on open and at send time; Annex A states that the five checks were run by an agent on the candidate's instruction with the record attached.
+**Round 5 (2026-10-15).** Status: recruiter panel CLEAR; lenses 1–11 CLEAR; visual QA PASS (qa27: 19 pages, qa_pres3: 8 pages); pipeline audit round 2: 7/7 PASS. Evidence: "Round 5 evidence" table at the end of this file and VERIFICATION.md "Round 5 additions".
+- 48 vs 49: the slide-printed SQL lacked `ib analyst` and `chargé d''affaires`; measured 48 (1/4/43) vs 49 (1/5/43); keyword lists now identical (22 = 22), both return 49 (VERIFICATION.md).
+- Capacity: `24–28 effective dev-weeks` ×1, `26 dev-week core` ×1 in deck.html; `36 dev` ×0 across deck, presentation, guide, briefing, README.
+- Deliverable 1: `reliability_status` ×2, `terms aggregation` ×1, no new criterion type; `support ticket in Q1` ×1.
+- Scope: duplicate report and relative-date operator Q2 (`duplicate report when it ships in Q2` ×1, `the duplicate report follows in Q2` ×1).
+- Saved segments: `re-resolved by the shared list loader` ×1, `fixed date` ×2, `90-day-stale segment fixture` ×1, `Computed on 15/10/2026` ×1.
+- Annex A: `two automated browser sessions` ×1, `by an agent on my instruction` ×1, `VERIFICATION.md` ×1.
 
-**Round 4 (2026-10-13): recruiter panel (CPO + Lead Developer) and all eleven roster lenses returned CLEAR on the current deck, with low-only notes; visual QA PASS on all 19 pages.** Items closed in that round: naive-count basis defined (2 with the tenure clause on the file as delivered, 3 without), 77 % login figure footnoted with the 89 % basis, "6" stated as current + to confirm with 1 current, 3 of 8 doubtful keyword matches, contest freezes status (10 business days) and never downgrades, autofit made idempotent (identical md5 on repeated runs), speaker guide aligned with the deck on permissions, dev-weeks and dedup.
+**Round 4 (2026-10-13).** Recruiter panel and lenses 1–11 CLEAR; visual QA PASS on 19 pages. Items closed, each with a grep row below: naive-count basis (`3 without the tenure clause`), login basis (`89 % if the 60 future-dated`), `6` as current + to confirm (`of which 1 current`), `3 of 8 are doubtful`, contest flow (`10 business days`), autofit idempotency (identical md5 on repeated runs, VERIFICATION.md), guide alignment.
 
 Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on the deck, the SQL, the speaker guide and the CSV. Before the roster pass, six executive lenses (hiring panel, CEO, CTO, CSO, CMO, CIO) ran three rounds; their findings are folded into the same deck. Status per lens: CLEAR = no high or medium gap left after fixes; the honest gaps are what no lens could verify and the candidate must own.
 
@@ -89,3 +95,27 @@ Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on
 | 11 Hassabis | `recalibrates the 2 y / 4 y thresholds` | 1 |
 | 11 Hassabis | `promoted to the global table` | 1 |
 | 11 Hassabis | `Flywheel metric` | 1 |
+
+## Round 5 evidence: grep counts in deck.html (2026-10-15)
+
+| Lens | Phrase | Count |
+|---|---|---|
+| recruiter panel | `reliability_status` | 2 |
+| recruiter panel | `terms aggregation` | 1 |
+| recruiter panel | `support ticket in Q1` | 1 |
+| recruiter panel | `26 dev-week core` | 1 |
+| recruiter panel | `24–28 effective dev-weeks` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `duplicate report when it ships in Q2` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `the duplicate report follows in Q2` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `two variants compared on update rate` | 1 |
+| lens 8 / 9 (saved-segment dates) | `re-resolved by the shared list loader` | 1 |
+| lens 8 / 9 (saved-segment dates) | `fixed date` | 2 |
+| lens 8 / 9 (saved-segment dates) | `Computed on 15/10/2026` | 1 |
+| lens 8 / 9 (saved-segment dates) | `90-day-stale segment fixture` | 1 |
+| lens 3 (Annex A honesty) | `two automated browser sessions` | 1 |
+| lens 3 (Annex A honesty) | `by an agent on my instruction` | 1 |
+| lens 3 (Annex A honesty) | `VERIFICATION.md` | 1 |
+| lens 10 (mapping rides reindex) | `ride the alias-swap reindex` | 1 |
+| tooling | md5 of committed deck.html | `7869b531793a` |
+| guide | `operator, first` occurrences | 0 |
+| guide | `duplicate report is Q2` in developer split | 1 |

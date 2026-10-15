@@ -78,3 +78,27 @@ The demo instance was explored twice by automated browser sessions under the pre
 | Visual QA (qa27, 19 pages; qa_pres3, 8 pages; qa28 page 17) | PASS, nothing "too small" |
 | Independent pipeline audit, round 2 | 7/7 PASS; two low wording items fixed ("26 dev-week core" in this file; "14 of the 49 are paying members") |
 | Eleven roster lenses + recruiter panel, round 5 | all CLEAR after fixes (duplicate report Q2 everywhere; status keyword in the index; relative dates re-resolved by the shared loader; Annex A honesty; guide cut order) |
+
+## Round 5 evidence: grep counts in deck.html (2026-10-15)
+
+| Lens | Phrase | Count |
+|---|---|---|
+| recruiter panel | `reliability_status` | 2 |
+| recruiter panel | `terms aggregation` | 1 |
+| recruiter panel | `support ticket in Q1` | 1 |
+| recruiter panel | `26 dev-week core` | 1 |
+| recruiter panel | `24–28 effective dev-weeks` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `duplicate report when it ships in Q2` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `the duplicate report follows in Q2` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `two variants compared on update rate` | 1 |
+| lens 8 / 9 (saved-segment dates) | `re-resolved by the shared list loader` | 1 |
+| lens 8 / 9 (saved-segment dates) | `fixed date` | 2 |
+| lens 8 / 9 (saved-segment dates) | `Computed on 15/10/2026` | 1 |
+| lens 8 / 9 (saved-segment dates) | `90-day-stale segment fixture` | 1 |
+| lens 3 (Annex A honesty) | `two automated browser sessions` | 1 |
+| lens 3 (Annex A honesty) | `by an agent on my instruction` | 1 |
+| lens 3 (Annex A honesty) | `VERIFICATION.md` | 1 |
+| lens 10 (mapping rides reindex) | `ride the alias-swap reindex` | 1 |
+| tooling | md5 of committed deck.html | `7869b531793a` |
+| guide | `operator, first` occurrences | 0 |
+| guide | `duplicate report is Q2` in developer split | 1 |
