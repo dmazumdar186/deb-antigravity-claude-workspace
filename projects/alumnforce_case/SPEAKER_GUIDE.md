@@ -11,7 +11,7 @@ Audience is the CPO and a Lead Developer. Frédéric (founder) pitched the role 
 | 0–2 | 1 | Open with the data line: "Same sentence on your file: 2, 26 or 49 people, and 6 you can safely email." Then the thesis: you asked for speed, your users asked for trust, so the platform returns how far to trust the list. |
 | 2–4 | 2–3 | How you read the material. The 8-of-12 verbatims point. |
 | 4–7 | 4 | The data slide. Land the 525-vs-500 and the "tenure = staleness" insight. Then the 2 / 26 / 49 / 6 line. This is the memorable moment. |
-| 7–11 | 5–7 | The increment, sized in dev-weeks with a 36 dev-week core and a pre-named cut, then the exclusions. The panel grades the "no". |
+| 7–11 | 5–7 | The increment, sized in dev-weeks with a 26 dev-week core and a pre-named cut, then the exclusions. The panel grades the "no". |
 | 11–14 | 8–9 | Orchestration diagram. Say the DPO sentence out loud, slowly. |
 | 14–17 | 10–11 | One stop criterion per layer, two dates (week 12, week 17), then the three risks. |
 | 17–19 | 12–13 | Execution (two-step pilot, waves) and money (levers, payback formulas, packaging hypothesis), quickly. |
@@ -71,7 +71,7 @@ Deliverable 2 (the sentence box). Deliverable 1 ships regardless because it has 
 ## Questions added after the six-lens review (be ready)
 
 **"Your capacity math: our developers are shared."**
-I'm planning on 3 effective FTE, 36 dev-weeks, and I confirm that in week 1. The 36 is the core: reliability layer, sentence box, the two actions, flags and metering. Deliverable 3b (duplicate report, export order) is the stretch. If we drop below 3 FTE, the box pre-fills from a saved-list import instead of live Vue state. Reliability criteria and metering don't move.
+The brief says shared, so I plan on roughly half of 3–4 developers: 24–28 dev-weeks, confirmed in week 1. The core is 26: reliability tag, sentence box, the two actions, flags and metering. The duplicate report and the relative-date engine operator are Q2. Below 24 dev-weeks the box pre-fills from a saved-list import instead of live Vue state. The reliability tag and metering don't move.
 
 **"Your pilot is three weeks and your stop criterion says eight."**
 Two layers, two speeds. Week 12 decides the sentence box on leading indicators: eval gate, adoption and edit rate over three weeks. Week 17 decides the reactivation loop, thirty days after the first campaign. The quarter still ends with a decision.
@@ -98,7 +98,7 @@ One global service, product owns it. Each tenant gets overrides that admins can 
 Blocking keys first — name prefix plus class year. Then score candidates within a block, admin reviews them. The Annex B rule is a one-off for a 525-row file, and it says so.
 
 **"Why n8n and not Symfony Messenger?"**
-The reactivation step reuses the existing Campagne de mise current module, so Q1 needs neither. n8n appears in Q3 for cross-module loops because it already exists in the stack and CS can read it.
+The reactivation step reuses the existing Profile Update Campaign module, so Q1 needs neither. n8n appears in Q3 for cross-module loops because it already exists in the stack and CS can read it.
 
 **"Is 85 percent on 100 sentences meaningful?"**
 It's a gate, nothing more — the confidence interval is roughly plus or minus 7 points. The number I actually trust is the online edit rate on real admins.
@@ -124,12 +124,12 @@ Standard criteria names are AlumnForce's vocabulary. Tenant-defined labels are d
 **"You compute the status for all 350 tenants before any DPIA is written?"**
 No. Normalisation columns get backfilled for everyone, they don't derive anything new. Reliability status is different — it's computed per tenant, and only after that tenant has recorded its decision and switched the flag.
 
-**"The engine has no criterion-type extension point and the relative-date operator costs six weeks. What do you cut?"**
-The relative-date operator, first. Saved segments carry an "as of" date instead and the box re-resolves when you open it. Next the live Vue pre-fill goes, the saved-list import replaces it. The status column, the two criteria and the metering don't get cut. Those stay.
+**"Are you asking for an engine change in Q1?"**
+No. Q1 adds two date fields and a status keyword to the OpenSearch mapping and exposes them through the date filter the engine already has, plus a nightly tag. The relative-date operator is Q2 with its own rehearsal. If capacity still falls short, the live Vue pre-fill goes first and becomes a saved-list import. The reliability tag and metering never move.
 
 ## Developer split (removed from slide 12 for space)
 
-Backend 1: status column, criteria, reindex, reference tables. Backend 2: gateway, validator, metering, evals. Front: segmenter pre-fill and split (Vue). Shared: backfill, actions, duplicate report.
+Backend 1: status column, criteria, reindex, reference tables. Backend 2: gateway, validator, metering, evals. Front: segmenter pre-fill and split (Vue). Shared: backfill, actions (duplicate report is Q2).
 
 ## Your 10 minutes of questions
 
@@ -143,23 +143,28 @@ Add one business question: which tenants refuse AI today and what share of ARR t
 - City (workplace) has a geocoded radius operator; Experience (date) has before/after; Sector and the NAF industry code exist on the current job.
 - No criterion and no profile field for last login or last profile update. That is the gap the reliability status fills.
 - 31 saved lists, most auto-named "List - date". Actions on a list: Export only; campaigns pick lists from their own module.
-- A "Campagne de mise current" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
-- The brief says about 60 criteria; the demo shows about 45. Say "the demo shows around 43; I assume production instances expose more".
+- A "Profile Update Campaign" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
+- The brief says about 60 criteria; the demo shows about 45. Say "the demo shows about 45; I assume production instances expose more".
 
-## Before you send: the verification checklist Annex A commits you to
+## The verification checklist behind Annex A
 
-Annex A says you verified these yourself. Do them, or edit Annex A to what you actually did.
+Annex A says these were run by an agent on your instruction and reviewed by you. VERIFICATION.md is the record. If you want to redo any step yourself before sending, here they are.
 
 1. Run `bash tools/build.sh`? Not needed. Run the Annex B snippet in README.md on the CSV and confirm 49 rows.
 2. Open the CSV in a spreadsheet: check 525 rows, the eight spellings of London, the 25 rows M0501 to M0525.
 3. Read the twelve verbatims and decide whether you agree with the coding on slide 3.
-4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Campagne de mise current exists.
+4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Profile Update Campaign exists.
 5. Read every slide once as yourself; change any position you would not defend.
 
-If anyone asks, say it: an automated browser session went through the demo using your account. It created one empty test list and deleted it. Nothing else. Also, you shared the demo password — I'd change it.
+If anyone asks, say it: two automated browser sessions went through the demo using your account. The first created one empty test list and deleted it; the second was read-only. The five Annex A checks were run by an agent on your instruction and are recorded in VERIFICATION.md. Also, you shared the demo password — I'd change it.
 
 ## Honesty notes
 
 - Token prices in the deck are deliberately an order of magnitude. If asked for a number, say you will take it from the gateway logs, not from memory.
 - The demo-instance findings are from one admin session on the demo. Say what you saw, not more.
 - The 25 duplicates were found by a matching rule you tuned by hand; say so if asked how.
+
+
+## Production labels are French
+
+The deck is English. In the product the status words will be French UI strings; decide them with CS in week 1 and keep the same rule: an action word for the third status, never a verdict, and nothing admin-side shown to members.

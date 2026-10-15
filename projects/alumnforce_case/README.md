@@ -24,6 +24,10 @@ Input file expected by the SQL: `profils-exercice-PM.csv`, 526 lines including t
 - 68 % of profiles untouched for 2+ years; 77 % no login for 12+ months (89 % if the 60 future-dated logins are treated as unknown).
 - "Finance in London for 3+ years": naive filter 2 (file as delivered, with tenure), normalised 26, full logic 49, current or to-confirm 6 (1 current).
 
+## What to send
+
+Send four files together, because Annex A refers to them: `deck.pdf`, `annexB.sql`, `annexB_result.csv`, `VERIFICATION.md`. Present from `presentation.pdf`. Keep `SPEAKER_GUIDE.md` and `BRIEFING.md` for yourself.
+
 ## Rebuilding the PDF
 
 ```bash

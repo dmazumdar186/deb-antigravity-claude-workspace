@@ -64,18 +64,18 @@ Generated filters pre-fill the existing segmenter UI next to the admin's own sen
 
 Why: the segmenter already exists and people know it. Replacing it widens scope and breaks the "identical when flag off" constraint. The visible filter set is what bounds the model's worst output — if it produces a valid but wrong filter set, a human reading the filters and the count catches it before anything gets sent.
 
-### 3.4 Scope: four deliverables, a 36 dev-week core, a pre-named cut
-- D1 Reliability layer (16 dev-weeks): status column computed nightly, OpenSearch field and per-tenant reindex, two new segmenter criteria (last profile update, last login), a relative-date operator in the engine, reference tables with per-tenant overrides written to separate normalised columns, idempotent chunked backfill, status shown on the member's own profile.
-- D2 Sentence to filters (11): gateway integration, filter contract, validator, prompt cache, Vue pre-fill.
+### 3.4 Scope: four deliverables, a 26 dev-week core, a pre-named cut
+- D1 Reliability layer (9 dev-weeks): lightweight nightly tag (one MariaDB column, one OpenSearch date field), two new criteria exposed through the existing date-filter type, per-tenant reindex, reference tables with per-tenant overrides, idempotent chunked backfill, status visible on the member's profile. No new criterion type, no cluster refactor.
+- D2 Sentence to filters (9): gateway integration, filter contract, validator, prompt cache, Vue pre-fill; "3 years" resolved to an absolute date at save time, the segment stores its "as of" date and re-resolves on open.
 - D3a Actions (2, core): send to current plus to-confirm; "Reactivate N members" opens the existing Profile Update Campaign module pre-filled.
-- D3b Hygiene (3, stretch): duplicate detection report, stable export column order.
-- D4 Flags, metering, evals (7): two flags, per-call log, kill switch, record/replay eval harness plus nightly live replay, campaign outcomes stored by segment and status, per-tenant config table.
+- D3b Hygiene (3 + 4, stretch / Q2): duplicate detection report, stable export column order, and the relative-date engine operator as a proper migration.
+- D4 Flags, metering, evals (6): two flags, per-call log, kill switch, record/replay eval harness plus nightly live replay, campaign outcomes stored by segment and status, per-tenant config table.
 
 D1 is the heaviest and goes first because the two reliability criteria don't exist in the engine today, verified on the demo instance. So this is an engine change plus a reindex, not a UI tweak.
 
 D3a sits in the core because the reactivation loop is the only priced lever and it's what the week-17 decision is actually about. It can't live in the stretch cut.
 
-Why 3 effective FTE: developers are shared. The plan states that assumption and names what drops if we go below it — D3b first, then live Vue pre-fill gets replaced by a saved-list import.
+Why 24–28 dev-weeks: the brief says 3–4 developers shared with other tracks, so I plan on roughly half their time and confirm it in week 1. The core is 26. D3b and the relative-date operator are already Q2; below 24 the live Vue pre-fill becomes a saved-list import. The reliability tag and metering never move.
 
 ### 3.5 Two flags, both off by default
 `reliability` (status, criteria, counts) and `nl_targeting` (the sentence box). Why: the brief requires the segmenter to be identical where the feature is off, and the status is derived personal data that each tenant must decide on before it is computed for them. Tenants that refuse AI can still turn on reliability.
@@ -97,7 +97,7 @@ The legal file, as it stands:
 Security-questionnaire rows are in Annex C.
 
 ### 3.7 Cost and business model
-One request is roughly 1,500 to 2,500 input tokens (schema and taxonomies in a cached prefix) and 150 to 300 output tokens: a fraction of a euro cent on a mid-tier model, under a euro a month for a heavy tenant. The cost that matters is engineering (36 to 39 dev-weeks). Position: reliability layer included for all (retention tool at renewal); sentence box included with fair use (300 requests a month, soft block and CS alert); the reactivation loop is the only priced add-on, tested on the three expert tenants as a flat monthly fee per member tier, reverting to included if reactivation stays under 10 percent. Primary lever is retention across 350 installed tenants; "do you do AI?" is the new-logo answer; reactivation is the only upsell because it is the only thing tied to dues.
+One request is roughly 1,500 to 2,500 input tokens (schema and taxonomies in a cached prefix) and 150 to 300 output tokens: a fraction of a euro cent on a mid-tier model, under a euro a month for a heavy tenant. The cost that matters is engineering (26 to 28 dev-weeks). Position: reliability layer included for all (retention tool at renewal); sentence box included with fair use (300 requests a month, soft block and CS alert); the reactivation loop is the only priced add-on, tested on the three expert tenants as a flat monthly fee per member tier, reverting to included if reactivation stays under 10 percent. Primary lever is retention across 350 installed tenants; "do you do AI?" is the new-logo answer; reactivation is the only upsell because it is the only thing tied to dues.
 
 ### 3.8 Measurement and the stop criteria
 Offline: 100 labelled sentences from tickets and verbatims, two annotators, Cohen's kappa at least 0.8, plus 30 negative sentences that must return "cannot map" (impossible, discriminatory, injection, widening attacks). Gate: canonicalised exact match at least 85 percent with its roughly plus or minus 7 point interval stated, negative-set recall at least 95 percent. Replayed nightly against the live endpoint with an alert on a 5-point drop, because providers update silently. Online: edit rate per segment, rejection rate and cannot-map share per sentence, all aggregate and pseudonymised, disclosed to admins at flag-on. Value: time to list, "not me" replies, share of current profiles, dues response of current plus to-confirm sends versus historical.
@@ -136,7 +136,7 @@ Weeks 1 to 2: baselines, golden set, thresholds validated by CS hand-grading 100
 
 - **Developers are 2.5 FTE, not 3.** D3b drops; live Vue pre-fill becomes a saved-list import; reliability criteria and metering never move. If the engine has no criterion-type extension point and the relative-date operator costs six weeks, that operator drops first (saved segments carry an "as of" date and re-resolve on open), then the Vue pre-fill.
 - **The gateway points to a US provider today.** The sentence box doesn't launch until there's an EU-hosted endpoint behind the gateway, with the legal entity and transfer mechanism actually named. The reliability layer doesn't wait on that, it goes now.
-- **A tenant refuses all transfer.** It still gets the reliability layer, the duplicate report and the score. It only loses the sentence box. The pilot deliberately includes one tenant like this.
+- **A tenant refuses all transfer.** It still gets the reliability layer and the score (the duplicate report follows in Q2). It only loses the sentence box. The pilot deliberately includes one tenant like this.
 - **Hand-grading in weeks 1 to 2 doesn't match the 2-year / 4-year thresholds.** Thresholds will move before the nightly job ships, so the rule is a config value per tenant, not code.
 - **Exact match stays below 85 percent.** The box does not go to pilot tenants; prompt and schema iterate on record/replay fixtures; if the ceiling is structural, the candidate pre-fills only the mapped criteria and marks the rest.
 - **Edit rate is above 50 percent at week 12.** So sentence box stops. The quarter still shipped the reliability layer though, and that one pays back in tickets and renewals.
@@ -173,7 +173,7 @@ Weeks 1 to 2: baselines, golden set, thresholds validated by CS hand-grading 100
 Use section 4. If pressed on LangChain: it is a dependency in a PHP shop for one function call; keep the disciplines (typed schemas, tracing, evals in CI), not the framework. If pressed on RAG: embed normalised data, not noise, and that is a Q2 conversation with its own DPO question.
 
 ### What-ifs
-Use section 5. The two they will most likely raise: shared developers (answer: 3 effective FTE assumed, confirmed week 1, pre-named cut) and a US provider today (answer: reliability layer does not wait; sentence box waits for an EU endpoint).
+Use section 5. The two they will most likely raise: shared developers (answer: about half of 3–4 shared developers assumed, confirmed week 1, pre-named cut) and a US provider today (answer: reliability layer does not wait; sentence box waits for an EU endpoint).
 
 ### Decision points
 - *Why is the duplicate report stretch but reactivation core?* Reactivation is the priced lever and the week-17 criterion; the report is a renewal nicety.
@@ -192,8 +192,8 @@ Use section 5. The two they will most likely raise: shared developers (answer: 3
 - Competitor claims are hedged, not verified.
 - The thresholds are lopsided on this synthetic file (43 of 49 to reactivate); hand-grading is the test.
 - The eval set is a gate, not a drift detector on its own; the nightly replay covers drift but 130 items have about plus or minus 7 points of noise.
-- Annex A commits you to five verifications; do them before sending or the annex is false.
-- The demo exploration was an automated browser session running under your account. It created one empty list and deleted it, that's all. If anyone asks, say so. And change the password.
+- Annex A says the five verifications were run by an agent on your instruction and that you reviewed the record. Read VERIFICATION.md once before sending so that sentence is true; redo any step yourself if you want to.
+- The demo was explored by two automated browser sessions under your account: the first created one empty test list and deleted it; the second was read-only. Annex A says so. The Annex A checks were run by an agent on your instruction and recorded in VERIFICATION.md; say that plainly if asked. And change the password.
 
 ## 8. The 20 minutes, in one paragraph
 

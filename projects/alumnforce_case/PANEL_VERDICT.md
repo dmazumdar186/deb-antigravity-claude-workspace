@@ -1,6 +1,14 @@
-# Panel verdict — AlumnForce case deliverable (2026-10-12, final round 2026-10-13)
+# Panel verdict — AlumnForce case deliverable (2026-10-12; final rounds 2026-10-13 and 2026-10-15)
 
-**Final round (2026-10-13): recruiter panel (CPO + Lead Developer) and all eleven roster lenses returned CLEAR on the current deck, with low-only notes; visual QA PASS on all 19 pages.** Items closed in that round: naive-count basis defined (2 with the tenure clause on the file as delivered, 3 without), 77 % login figure footnoted with the 89 % basis, "6" stated as current + to confirm with 1 current, 3 of 8 doubtful keyword matches, contest freezes status (10 business days) and never downgrades, autofit made idempotent (identical md5 on repeated runs), speaker guide aligned with the deck on permissions, dev-weeks and dedup.
+**Round 5 (2026-10-15).** Status: recruiter panel CLEAR; lenses 1–11 CLEAR; visual QA PASS (qa27: 19 pages, qa_pres3: 8 pages); pipeline audit round 2: 7/7 PASS. Evidence: "Round 5 evidence" table at the end of this file and VERIFICATION.md "Round 5 additions".
+- 48 vs 49: the slide-printed SQL lacked `ib analyst` and `chargé d''affaires`; measured 48 (1/4/43) vs 49 (1/5/43); keyword lists now identical (22 = 22), both return 49 (VERIFICATION.md).
+- Capacity: `24–28 effective dev-weeks` ×1, `26 dev-week core` ×1 in deck.html; `36 dev` ×0 across deck, presentation, guide, briefing, README.
+- Deliverable 1: `reliability_status` ×2, `terms aggregation` ×1, no new criterion type; `support ticket in Q1` ×1.
+- Scope: duplicate report and relative-date operator Q2 (`duplicate report when it ships in Q2` ×1, `the duplicate report follows in Q2` ×1).
+- Saved segments: `re-resolved by the shared list loader` ×1, `fixed date` ×2, `90-day-stale segment fixture` ×1, `Computed on 15/10/2026` ×1.
+- Annex A: `two automated browser sessions` ×1, `by an agent on my instruction` ×1, `VERIFICATION.md` ×1.
+
+**Round 4 (2026-10-13).** Recruiter panel and lenses 1–11 CLEAR; visual QA PASS on 19 pages. Items closed, each with a grep row below: naive-count basis (`3 without the tenure clause`), login basis (`89 % if the 60 future-dated`), `6` as current + to confirm (`of which 1 current`), `3 of 8 are doubtful`, contest flow (`10 business days`), autofit idempotency (identical md5 on repeated runs, VERIFICATION.md), guide alignment.
 
 Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on the deck, the SQL, the speaker guide and the CSV. Before the roster pass, six executive lenses (hiring panel, CEO, CTO, CSO, CMO, CIO) ran three rounds; their findings are folded into the same deck. Status per lens: CLEAR = no high or medium gap left after fixes; the honest gaps are what no lens could verify and the candidate must own.
 
@@ -20,7 +28,7 @@ Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on
 
 ## Honest gaps (kept, not papered over)
 
-- Dev-week estimate (36 core), token cost, 80k-instance backfill duration, and the "~45 criteria / 31 lists" demo observations rest on one session and one estimate; the Lead Developer's numbers win.
+- Dev-week estimate (26 core), token cost, 80k-instance backfill duration, and the "~45 criteria / 31 lists" demo observations rest on one session and one estimate; the Lead Developer's numbers win.
 - Competitor claims (Hivebrite, Graduway) are hedged, not verified.
 - Legal positions are what the candidate would check with a DPO, not advice; the tenant decides its basis.
 - The 2 y / 4 y / 1 y thresholds are initial and lopsided on this synthetic file (43 of 49 to reactivate); hand-grading in weeks 1–2 is the test.
@@ -37,8 +45,8 @@ Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on
 | `node tools/measure.js \| grep -c OVER` | `0` |
 | `python3 -c "import pypdf;print(len(pypdf.PdfReader('deck.pdf').pages))"` | `19` |
 | README Annex B snippet with `python3 -I` on profils-exercice-PM.csv | `rows: 49`, split `{'C': 43, 'B': 5, 'A': 1}`, sources `{'finance:declared': 24, 'finance:employer': 17, 'finance:title': 8}`, members after dedup `500`, naive `2`, normalised no dedup `26`, ids identical to annexB_result.csv `True` |
-| `grep -c` of fix phrases in deck.html: "Trusted Segments" / "To reactivate" / "36 dev-week core" / "nightly replay" / "10 business days" / "radius cap" / "flake budget 2 %" / "same start date" / "89 % if the 60 future-dated" / "3 of 8 are doubtful" / "Add this criterion by hand" / "Profile last updated 4 years ago" | 3 / 2 / 1 / 3 / 2 / 2 / 1 / 2 / 1 / 1 / 1 / 1 (all present) |
-| `grep -rl "Test@1234" .` and `ls \| grep -c png` in the committed folder | `0` and `0` (no credential, no screenshot) |
+| `grep -c` of fix phrases in deck.html: "Trusted Segments" / "To reactivate" / "26 dev-week core" / "nightly replay" / "10 business days" / "radius cap" / "flake budget 2 %" / "same start date" / "89 % if the 60 future-dated" / "3 of 8 are doubtful" / "Add this criterion by hand" / "Profile last updated 4 years ago" | 3 / 2 / 1 / 3 / 2 / 2 / 1 / 2 / 1 / 1 / 1 / 1 (all present) |
+| `grep -rl "<demo password>" .` and `ls \| grep -c png` in the committed folder | `0` and `0` (no credential, no screenshot) |
 | `python3 execution/infrastructure/workspace_sast.py --changed --quiet` | exit 0, no findings |
 | Visual reviewer on qa20 renders (19 pages, 55 dpi plus 130 dpi crops of page 18) | PASS: no cut text, no footer collision, Annex C status, backfill and failure-mode lines fully visible |
 | Demo instance, read-only session | 45 criteria in 9 groups; no last-login or profile-update criterion; "Campagne de mise à jour" present under Communication; 31 lists; no test list dated 12/10/2026 |
@@ -87,3 +95,27 @@ Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on
 | 11 Hassabis | `recalibrates the 2 y / 4 y thresholds` | 1 |
 | 11 Hassabis | `promoted to the global table` | 1 |
 | 11 Hassabis | `Flywheel metric` | 1 |
+
+## Round 5 evidence: grep counts in deck.html (2026-10-15)
+
+| Lens | Phrase | Count |
+|---|---|---|
+| recruiter panel | `reliability_status` | 2 |
+| recruiter panel | `terms aggregation` | 1 |
+| recruiter panel | `support ticket in Q1` | 1 |
+| recruiter panel | `26 dev-week core` | 1 |
+| recruiter panel | `24–28 effective dev-weeks` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `duplicate report when it ships in Q2` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `the duplicate report follows in Q2` | 1 |
+| lens 5 / 11 (duplicate report Q2) | `two variants compared on update rate` | 1 |
+| lens 8 / 9 (saved-segment dates) | `re-resolved by the shared list loader` | 1 |
+| lens 8 / 9 (saved-segment dates) | `fixed date` | 2 |
+| lens 8 / 9 (saved-segment dates) | `Computed on 15/10/2026` | 1 |
+| lens 8 / 9 (saved-segment dates) | `90-day-stale segment fixture` | 1 |
+| lens 3 (Annex A honesty) | `two automated browser sessions` | 1 |
+| lens 3 (Annex A honesty) | `by an agent on my instruction` | 1 |
+| lens 3 (Annex A honesty) | `VERIFICATION.md` | 1 |
+| lens 10 (mapping rides reindex) | `ride the alias-swap reindex` | 1 |
+| tooling | md5 of committed deck.html | `7869b531793a` |
+| guide | `operator, first` occurrences | 0 |
+| guide | `duplicate report is Q2` in developer split | 1 |

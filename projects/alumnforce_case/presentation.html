@@ -113,12 +113,12 @@ p { font-size:24px; line-height:1.4; margin:0; }
 <h2>Reliability layer first, sentence box second</h2>
 <div class="tl">
  <div class="seg"><b>Weeks 1–2</b><h3>Baselines</h3><p>Instrument today's segmenter. Golden set of 100 sentences. Thresholds hand-checked by CS. Legal file opened.</p></div>
- <div class="seg d"><b>Weeks 3–7</b><h3>Reliability layer</h3><p>Status per member, two new criteria, normalised reference tables, flags and metering. The heaviest and most valuable part.</p></div>
+ <div class="seg d"><b>Weeks 3–7</b><h3>Reliability layer</h3><p>Nightly reliability tag, two new criteria on native date filters, reference tables, flags and metering. No engine refactor.</p></div>
  <div class="seg"><b>Weeks 6–9</b><h3>Sentence box</h3><p>Gateway, filter contract, validator, pre-fill. Eval gate at 85 % before any tenant sees it.</p></div>
  <div class="seg"><b>Weeks 8–12</b><h3>Pilot, 10 tenants</h3><p>Reliability from week 8, sentence box from week 10. Expert, mid and small tenants, one refusing transfer.</p></div>
  <div class="seg"><b>Weeks 12 · 17</b><h3>Two decisions</h3><p>Week 12: keep or stop the sentence box. Week 17: keep or stop the reactivation loop.</p></div>
 </div>
-<p class="sub" style="margin-top:20px">36 developer-weeks of core on 3 shared developers. If capacity drops, the duplicate report goes first. The reliability criteria never move.</p>
+<p class="sub" style="margin-top:20px">26 developer-weeks of core, planned on roughly half of 3–4 shared developers (24–28 effective). Duplicate report and relative-date operator are already Q2. The reliability tag never moves.</p>
 <div class="foot"><span>6 / 8</span><span>Not in Q1: free-text chat, RAG over profiles, auto-correction, external enrichment, merge UI. Each with a reason in the full deck.</span></div>
 </section>
 
