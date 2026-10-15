@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Trusted Segments — presentation</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; font-family:"Inter","Segoe UI",Helvetica,Arial,sans-serif; color:#1a1f2b; background:#fff; }
+.slide { width:1280px; height:720px; padding:64px 80px 56px; page-break-after:always; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+.slide:last-child { page-break-after:auto; }
+.k { font-size:14px; letter-spacing:.16em; text-transform:uppercase; color:#5b6b8a; font-weight:700; margin-bottom:14px; }
+h1 { font-size:58px; line-height:1.05; margin:0 0 22px; font-weight:800; letter-spacing:-.02em; }
+h2 { font-size:44px; line-height:1.08; margin:0 0 26px; font-weight:800; letter-spacing:-.02em; max-width:1050px; }
+p { font-size:24px; line-height:1.4; margin:0; }
+.sub { font-size:26px; color:#33405c; max-width:1000px; }
+.foot { position:absolute; bottom:22px; left:80px; right:80px; font-size:13px; color:#8a95aa; display:flex; justify-content:space-between; }
+.navy { background:#0f3b7a; color:#fff; } .navy .k { color:#bcd3ff; } .navy .sub { color:#dbe6ff; } .navy .foot { color:#9db4dd; }
+.row { display:flex; gap:28px; flex:1; align-items:stretch; }
+.tile { flex:1; background:#f4f6fa; border-radius:16px; padding:26px 28px; display:flex; flex-direction:column; justify-content:center; }
+.tile h3 { font-size:22px; margin:0 0 10px; color:#0f3b7a; font-weight:800; }
+.tile p { font-size:20px; line-height:1.4; color:#33405c; }
+.num { font-size:92px; font-weight:800; line-height:1; color:#0f3b7a; letter-spacing:-.03em; }
+.num small { display:block; font-size:19px; font-weight:600; color:#5b6b8a; margin-top:10px; letter-spacing:0; }
+.bars { display:flex; gap:26px; align-items:flex-end; flex:1; padding:10px 0 0; }
+.bar { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:12px; }
+.bar .v { font-size:54px; font-weight:800; color:#0f3b7a; line-height:1; }
+.bar .b { width:100%; border-radius:12px 12px 4px 4px; background:#c9d7ee; }
+.bar.hot .b { background:#0f3b7a; } .bar.ok .b { background:#1b7a3e; } .bar.ok .v { color:#1b7a3e; }
+.bar .l { font-size:19px; font-weight:700; text-align:center; color:#1a1f2b; } .bar .s { font-size:16px; color:#5b6b8a; text-align:center; line-height:1.3; min-height:44px; }
+.pill { display:inline-block; padding:10px 22px; border-radius:999px; font-size:24px; font-weight:800; margin-right:14px; }
+.A { background:#d2f0dc; color:#135c2d; } .B { background:#ffe6b8; color:#7a4b00; } .C { background:#f7cdcd; color:#7a1414; }
+.flow { display:flex; gap:14px; align-items:stretch; flex:1; }
+.box { flex:1; border-radius:14px; padding:20px 18px; font-size:19px; line-height:1.35; display:flex; flex-direction:column; justify-content:center; }
+.box b { display:block; font-size:14px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; }
+.hum { background:#f1e9fb; border:2px solid #6b3fa0; } .det { background:#e9f7ee; border:2px solid #1b7a3e; } .llm { background:#fff4df; border:2px solid #c25e00; }
+.arrow { align-self:center; font-size:30px; color:#8a95aa; }
+.tl { display:flex; gap:14px; flex:1; align-items:stretch; }
+.tl .seg { flex:1; border-radius:14px; padding:22px 20px; background:#f4f6fa; display:flex; flex-direction:column; }
+.tl .seg b { font-size:15px; letter-spacing:.1em; text-transform:uppercase; color:#5b6b8a; } .tl .seg h3 { margin:8px 0 10px; font-size:23px; color:#0f3b7a; } .tl .seg p { font-size:18px; color:#33405c; }
+.tl .seg.d { background:#0f3b7a; color:#fff; } .tl .seg.d b,.tl .seg.d h3,.tl .seg.d p { color:#fff; }
+.quote { font-size:38px; line-height:1.25; font-weight:700; max-width:1080px; }
+.legend { font-size:16px; color:#5b6b8a; margin-top:14px; } .legend i { display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-2px; margin:0 6px 0 14px; }
+</style></head><body>
+
+<!-- 1 -->
+<section class="slide navy">
+<div class="k">AlumnForce · Senior PM Data &amp; AI · Debanjan Mazumdar · October 2026</div>
+<h1>Trusted Segments</h1>
+<p class="sub">Describe your audience in one sentence. Get a segment you can trust. No member record ever leaves the platform.</p>
+<div style="flex:1"></div>
+<p class="sub" style="font-size:30px;font-weight:700;color:#fff;margin-bottom:28px">You asked for speed. Your users asked for trust.<br>So the platform returns not just a list, but how far to trust it.</p>
+<div class="foot"><span>1 / 8</span><span>Full case study, annexes and SQL: deck.pdf</span></div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+<div class="k">The problem, reformulated</div>
+<h2>Eight of twelve verbatims are not about speed</h2>
+<div class="row">
+ <div class="tile"><div class="num">3<small>want speed</small></div><p>"Saying it takes five seconds, doing it takes an hour."</p></div>
+ <div class="tile" style="background:#fdeaea"><div class="num" style="color:#7a1414">3<small>want a true list</small></div><p>"340 London expats. Twenty had moved back years ago. Two unsubscribed."</p></div>
+ <div class="tile" style="background:#fff4df"><div class="num" style="color:#7a4b00">3<small>want proof</small></div><p>"'Roughly' does not pass a board."</p></div>
+ <div class="tile" style="background:#e9f7ee"><div class="num" style="color:#135c2d">2<small>want a data answer</small></div><p>"Tell me exactly what leaves the platform."</p></div>
+</div>
+<p class="sub" style="margin-top:22px">A chatbot that turns a sentence into filters serves the first three people. It makes the <b>wrong list faster</b> for everyone else.</p>
+<div class="foot"><span>2 / 8</span><span>One member says "not for me": 400 people, knows everyone, wants the Excel columns in order.</span></div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+<div class="k">The evidence · their own 500-member file</div>
+<h2>Same sentence, four answers</h2>
+<p class="sub">"Graduates working in finance in London for more than three years"</p>
+<div class="bars">
+ <div class="bar"><div class="v">2</div><div class="b" style="height:24px"></div><div class="l">Naive filter</div><div class="s">city = "Londres", sector = "Finance", exact text</div></div>
+ <div class="bar"><div class="v">26</div><div class="b" style="height:150px"></div><div class="l">Normalised</div><div class="s">8 spellings of London and 3 sector labels merged</div></div>
+ <div class="bar hot"><div class="v">49</div><div class="b" style="height:280px"></div><div class="l">Full logic</div><div class="s">duplicates removed, employer and job title used as finance signals</div></div>
+ <div class="bar ok"><div class="v">6</div><div class="b" style="height:50px"></div><div class="l">Worth e-mailing today</div><div class="s">profile or login recent enough to trust</div></div>
+</div>
+<div class="foot"><span>3 / 8</span><span>68 % of profiles untouched for 2+ years · 525 rows for 500 announced members · 8 spellings of London</span></div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+<div class="k">The insight</div>
+<h2>In this data, "three years in post" and "three years without an update" are the same signal</h2>
+<div class="row">
+ <div class="tile" style="flex:1.3"><p style="font-size:24px">People update their profile when they start a job (median 112 days later) and then go silent. A naive assistant answering the brief's own example returns exactly the people <b>most likely to have moved</b>.</p><p style="font-size:24px;margin-top:16px">That is the 340-person London e-mail disaster, reproduced on their own file.</p></div>
+ <div class="tile" style="flex:1;background:#0f3b7a;color:#fff"><h3 style="color:#bcd3ff">So every segment gets a reliability split</h3><div style="margin:10px 0 18px"><span class="pill A">Current</span><span class="pill B">To confirm</span><span class="pill C">To reactivate</span></div><p style="color:#dbe6ff">Three words, three actions: send, confirm, reactivate. Members never see a label, only "Profile last updated 4 years ago · Confirm / Correct".</p></div>
+</div>
+<div class="foot"><span>4 / 8</span><span>Of the 49 matches: 1 current · 5 to confirm · 43 to reactivate</span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+<div class="k">How it works</div>
+<h2>One model call, everything else deterministic</h2>
+<div class="flow">
+ <div class="box hum"><b>Admin</b>Types one sentence in the existing segmenter.</div><div class="arrow">→</div>
+ <div class="box det"><b>Scrub</b>Names, e-mails and phones removed before anything leaves.</div><div class="arrow">→</div>
+ <div class="box llm"><b>Model</b>Sentence + criteria names → filters. Never a member, never a profile.</div><div class="arrow">→</div>
+ <div class="box det"><b>Validate</b>Unknown criteria rejected. Places geocoded locally. Sanity bounds.</div><div class="arrow">→</div>
+ <div class="box det"><b>Query + split</b>Existing engine runs the filters. Each member carries its reliability.</div><div class="arrow">→</div>
+ <div class="box hum"><b>Admin decides</b>Sees filters, count and split. Sends, confirms or reactivates. Nothing automatic.</div>
+</div>
+<div class="legend"><i style="background:#f1e9fb;border:1px solid #6b3fa0"></i>Human <i style="background:#e9f7ee;border:1px solid #1b7a3e"></i>Deterministic <i style="background:#fff4df;border:1px solid #c25e00"></i>Language model (EU-hosted, no retention)</div>
+<p class="sub" style="margin-top:22px;font-weight:700">For the DPO, one sentence: only the administrator's scrubbed question and the names of the filters leave the platform. Never a member's profile.</p>
+<div class="foot"><span>5 / 8</span><span>Flag off = segmenter identical to today. Tenants who refuse any transfer keep everything except the sentence box.</span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+<div class="k">The first increment · one quarter</div>
+<h2>Reliability layer first, sentence box second</h2>
+<div class="tl">
+ <div class="seg"><b>Weeks 1–2</b><h3>Baselines</h3><p>Instrument today's segmenter. Golden set of 100 sentences. Thresholds hand-checked by CS. Legal file opened.</p></div>
+ <div class="seg d"><b>Weeks 3–7</b><h3>Reliability layer</h3><p>Status per member, two new criteria, normalised reference tables, flags and metering. The heaviest and most valuable part.</p></div>
+ <div class="seg"><b>Weeks 6–9</b><h3>Sentence box</h3><p>Gateway, filter contract, validator, pre-fill. Eval gate at 85 % before any tenant sees it.</p></div>
+ <div class="seg"><b>Weeks 8–12</b><h3>Pilot, 10 tenants</h3><p>Reliability from week 8, sentence box from week 10. Expert, mid and small tenants, one refusing transfer.</p></div>
+ <div class="seg"><b>Weeks 12 · 17</b><h3>Two decisions</h3><p>Week 12: keep or stop the sentence box. Week 17: keep or stop the reactivation loop.</p></div>
+</div>
+<p class="sub" style="margin-top:20px">36 developer-weeks of core on 3 shared developers. If capacity drops, the duplicate report goes first. The reliability criteria never move.</p>
+<div class="foot"><span>6 / 8</span><span>Not in Q1: free-text chat, RAG over profiles, auto-correction, external enrichment, merge UI. Each with a reason in the full deck.</span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+<div class="k">Measure, money, risk</div>
+<h2>How we know it works, and what pays for it</h2>
+<div class="row">
+ <div class="tile"><h3>Stop criteria</h3><p>Sentence box stops at week 12 if under 30 % of new segments use it or admins rewrite more than half of what it produces.</p><p style="margin-top:12px">Reactivation stops at week 17 if fewer than 10 % of "to reactivate" profiles come back.</p></div>
+ <div class="tile"><h3>Money</h3><p>Reliability included for everyone: the renewal argument for 350 tenants.</p><p style="margin-top:12px">Sentence box included with fair use. Only the reactivation loop is priced, because only it is tied to dues collected.</p></div>
+ <div class="tile" style="background:#fdeaea"><h3 style="color:#7a1414">Three risks, three positions</h3><p>Dirty data: the reliability layer <i>is</i> the product.</p><p style="margin-top:8px">DPO veto: no member data in any prompt, ever.</p><p style="margin-top:8px">"We wanted ChatGPT": show the filters, end every demo on "6 you can e-mail".</p></div>
+</div>
+<div class="foot"><span>7 / 8</span><span>Every threshold is an initial guess, reset on the week-4 baseline. Payback is formulas on measured baselines, not forecasts.</span></div>
+</section>
+
+<!-- 8 -->
+<section class="slide navy">
+<div class="k">The decision</div>
+<h2 style="color:#fff">Fund one quarter plus four weeks of measurement for Trusted Segments</h2>
+<p class="quote" style="margin-top:36px">"The administrator's problem is not building the list. It is believing it. So the first thing the platform returns is how far to trust it."</p>
+<div style="flex:1"></div>
+<p class="sub">Full reasoning, exclusions, orchestration, legal file, SQL and operations: deck.pdf, 15 slides and four annexes.</p>
+<div class="foot"><span>8 / 8</span><span>Debanjan Mazumdar · Senior Product Manager Data &amp; AI</span></div>
+</section>
+</body></html>

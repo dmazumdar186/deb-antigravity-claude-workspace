@@ -7,6 +7,8 @@ Deliverable for the AlumnForce recruitment case: frame a natural-language campai
 | File | What it is |
 |---|---|
 | `deck.pdf` | The deliverable: 15 slides + Annex A (AI usage), B (selection logic), C (technical and compliance sheet), D (operations and feedback loop). 19 pages. Send this one. |
+| `presentation.pdf` | The 8-slide visual version for presenting live: large type, one idea per slide, numbers only where they change a decision. Points to deck.pdf for the detail. |
+| `presentation.html` | Source of the presentation (1280×720, no auto-fit needed). Render with the same Chromium print command as the deck. |
 | `deck.html` | Source of the deck (self-contained HTML, 1280×720). Rebuild with `bash tools/build.sh` (see below). |
 | `tools/` | `autofit.js` (per-slide zoom so nothing overflows, bakes `data-zoom` into the HTML), `measure.js` (overflow check), `build.sh` (the exact Chromium print command). |
 | `annexB.sql` | The Annex B query, runnable as written on SQLite with the CSV loaded as table `profils`. Returns 49 rows. |
