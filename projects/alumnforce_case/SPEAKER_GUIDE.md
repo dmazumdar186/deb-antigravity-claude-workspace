@@ -146,9 +146,9 @@ Add one business question: which tenants refuse AI today and what share of ARR t
 - A "Campagne de mise current" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
 - The brief says about 60 criteria; the demo shows about 45. Say "the demo shows around 43; I assume production instances expose more".
 
-## Before you send: the verification checklist Annex A commits you to
+## The verification checklist behind Annex A
 
-Annex A says you verified these yourself. Do them, or edit Annex A to what you actually did.
+Annex A says these were run by an agent on your instruction and reviewed by you. VERIFICATION.md is the record. If you want to redo any step yourself before sending, here they are.
 
 1. Run `bash tools/build.sh`? Not needed. Run the Annex B snippet in README.md on the CSV and confirm 49 rows.
 2. Open the CSV in a spreadsheet: check 525 rows, the eight spellings of London, the 25 rows M0501 to M0525.
@@ -156,10 +156,15 @@ Annex A says you verified these yourself. Do them, or edit Annex A to what you a
 4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Campagne de mise current exists.
 5. Read every slide once as yourself; change any position you would not defend.
 
-If anyone asks, say it: an automated browser session went through the demo using your account. It created one empty test list and deleted it. Nothing else. Also, you shared the demo password — I'd change it.
+If anyone asks, say it: two automated browser sessions went through the demo using your account. The first created one empty test list and deleted it; the second was read-only. The five Annex A checks were run by an agent on your instruction and are recorded in VERIFICATION.md. Also, you shared the demo password — I'd change it.
 
 ## Honesty notes
 
 - Token prices in the deck are deliberately an order of magnitude. If asked for a number, say you will take it from the gateway logs, not from memory.
 - The demo-instance findings are from one admin session on the demo. Say what you saw, not more.
 - The 25 duplicates were found by a matching rule you tuned by hand; say so if asked how.
+
+
+## Production labels are French
+
+The deck is English. In the product the status words will be French UI strings; decide them with CS in week 1 and keep the same rule: an action word for the third status, never a verdict, and nothing admin-side shown to members.

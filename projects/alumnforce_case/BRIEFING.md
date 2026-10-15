@@ -136,7 +136,7 @@ Weeks 1 to 2: baselines, golden set, thresholds validated by CS hand-grading 100
 
 - **Developers are 2.5 FTE, not 3.** D3b drops; live Vue pre-fill becomes a saved-list import; reliability criteria and metering never move. If the engine has no criterion-type extension point and the relative-date operator costs six weeks, that operator drops first (saved segments carry an "as of" date and re-resolve on open), then the Vue pre-fill.
 - **The gateway points to a US provider today.** The sentence box doesn't launch until there's an EU-hosted endpoint behind the gateway, with the legal entity and transfer mechanism actually named. The reliability layer doesn't wait on that, it goes now.
-- **A tenant refuses all transfer.** It still gets the reliability layer, the duplicate report and the score. It only loses the sentence box. The pilot deliberately includes one tenant like this.
+- **A tenant refuses all transfer.** It still gets the reliability layer and the score (the duplicate report follows in Q2). It only loses the sentence box. The pilot deliberately includes one tenant like this.
 - **Hand-grading in weeks 1 to 2 doesn't match the 2-year / 4-year thresholds.** Thresholds will move before the nightly job ships, so the rule is a config value per tenant, not code.
 - **Exact match stays below 85 percent.** The box does not go to pilot tenants; prompt and schema iterate on record/replay fixtures; if the ceiling is structural, the candidate pre-fills only the mapped criteria and marks the rest.
 - **Edit rate is above 50 percent at week 12.** So sentence box stops. The quarter still shipped the reliability layer though, and that one pays back in tickets and renewals.
@@ -193,7 +193,7 @@ Use section 5. The two they will most likely raise: shared developers (answer: a
 - The thresholds are lopsided on this synthetic file (43 of 49 to reactivate); hand-grading is the test.
 - The eval set is a gate, not a drift detector on its own; the nightly replay covers drift but 130 items have about plus or minus 7 points of noise.
 - Annex A commits you to five verifications; do them before sending or the annex is false.
-- The demo exploration was an automated browser session running under your account. It created one empty list and deleted it, that's all. If anyone asks, say so. And change the password.
+- The demo was explored by two automated browser sessions under your account: the first created one empty test list and deleted it; the second was read-only. Annex A says so. The Annex A checks were run by an agent on your instruction and recorded in VERIFICATION.md; say that plainly if asked. And change the password.
 
 ## 8. The 20 minutes, in one paragraph
 
