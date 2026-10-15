@@ -98,7 +98,7 @@ One global service, product owns it. Each tenant gets overrides that admins can 
 Blocking keys first — name prefix plus class year. Then score candidates within a block, admin reviews them. The Annex B rule is a one-off for a 525-row file, and it says so.
 
 **"Why n8n and not Symfony Messenger?"**
-The reactivation step reuses the existing Campagne de mise current module, so Q1 needs neither. n8n appears in Q3 for cross-module loops because it already exists in the stack and CS can read it.
+The reactivation step reuses the existing Profile Update Campaign module, so Q1 needs neither. n8n appears in Q3 for cross-module loops because it already exists in the stack and CS can read it.
 
 **"Is 85 percent on 100 sentences meaningful?"**
 It's a gate, nothing more — the confidence interval is roughly plus or minus 7 points. The number I actually trust is the online edit rate on real admins.
@@ -143,8 +143,8 @@ Add one business question: which tenants refuse AI today and what share of ARR t
 - City (workplace) has a geocoded radius operator; Experience (date) has before/after; Sector and the NAF industry code exist on the current job.
 - No criterion and no profile field for last login or last profile update. That is the gap the reliability status fills.
 - 31 saved lists, most auto-named "List - date". Actions on a list: Export only; campaigns pick lists from their own module.
-- A "Campagne de mise current" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
-- The brief says about 60 criteria; the demo shows about 45. Say "the demo shows around 43; I assume production instances expose more".
+- A "Profile Update Campaign" module exists already (your nudge loop). A support chat widget exists; no AI in the segmenter.
+- The brief says about 60 criteria; the demo shows about 45. Say "the demo shows about 45; I assume production instances expose more".
 
 ## The verification checklist behind Annex A
 
@@ -153,7 +153,7 @@ Annex A says these were run by an agent on your instruction and reviewed by you.
 1. Run `bash tools/build.sh`? Not needed. Run the Annex B snippet in README.md on the CSV and confirm 49 rows.
 2. Open the CSV in a spreadsheet: check 525 rows, the eight spellings of London, the 25 rows M0501 to M0525.
 3. Read the twelve verbatims and decide whether you agree with the coding on slide 3.
-4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Campagne de mise current exists.
+4. Log into the demo instance yourself, open Users → Lists → Create a list → Add a filter, and confirm there is no last-login criterion and that Communication → Profile Update Campaign exists.
 5. Read every slide once as yourself; change any position you would not defend.
 
 If anyone asks, say it: two automated browser sessions went through the demo using your account. The first created one empty test list and deleted it; the second was read-only. The five Annex A checks were run by an agent on your instruction and are recorded in VERIFICATION.md. Also, you shared the demo password — I'd change it.

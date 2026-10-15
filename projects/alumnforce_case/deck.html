@@ -42,6 +42,7 @@ section[data-zoom="0.83"] > *:not(.foot){zoom:0.83}
 section[data-zoom="0.95"] > *:not(.foot){zoom:0.95}
 section[data-zoom="0.86"] > *:not(.foot){zoom:0.86}
 section[data-zoom="0.9"] > *:not(.foot){zoom:0.9}
+section[data-zoom="0.99"] > *:not(.foot){zoom:0.99}
 </style></head><body>
 <!-- 1 -->
 <section class="slide" data-zoom="0.94">
@@ -315,7 +316,7 @@ section[data-zoom="0.9"] > *:not(.foot){zoom:0.9}
 </section>
 
 <!-- Annex A -->
-<section class="slide">
+<section class="slide" data-zoom="0.99">
 <div class="k">Annex A · Use of AI for this case (half a page)</div>
 <h2>How AI was used, and what was checked</h2>
 <div class="cols">
@@ -323,7 +324,7 @@ section[data-zoom="0.9"] > *:not(.foot){zoom:0.9}
   <div class="card"><h3>What AI did (most of the volume)</h3><ul style="margin:0"><li>Read the brief and verbatims with me and proposed the coding of needs; drafted every slide from my outline and rewrote them through five review rounds.</li><li>Wrote and ran the pandas and SQL that profile the CSV and produce Annex B; found the 25 apparent duplicates and tuned the matching rule until each matched exactly one original.</li><li>Ran two automated browser sessions on the demo instance under my admin account: the first listed menus and criteria and created then deleted one empty test list; the second was read-only and re-checked the criteria picker, the Profile Update Campaign module and the list count. No screenshot appears here.</li><li>Played a recruiter panel and eleven reviewers (measurement, tooling, honesty and law, rigor, offer, automation, people, failure modes, UX, reliability, strategy) against each draft, then re-ran them until clear.</li></ul></div>
  </div>
  <div class="col">
-  <div class="card green"><h3>What was verified, and by whom</h3><ul style="margin:0"><li>Annex B re-run on the CSV: 49 rows, the 2 / 26 / 49 / 6 cascade and every slide-4 figure, by an agent on my instruction and by two independent reviewers; the record with commands and outputs is attached (VERIFICATION.md).</li><li>The SQL printed on the Annex B page and the attached file were checked to be identical and to return the same 49.</li><li>The demo-instance facts (45 criteria in 9 groups, no last-login criterion, Profile Update Campaign present) by the read-only session.</li><li>Every position, exclusion, threshold and stop criterion is my decision; AI proposed, I chose.</li></ul></div>
+  <div class="card green"><h3>What was verified, and by whom</h3><ul style="margin:0"><li>Annex B re-run on the CSV: 49 rows, the 2 / 26 / 49 / 6 cascade and every slide-4 figure, by an agent on my instruction and again by two review lenses (measurement, rigor) that re-ran the SQL; the record with commands and outputs is attached (VERIFICATION.md).</li><li>The SQL printed on the Annex B page and the attached file were checked to be identical and to return the same 49.</li><li>The demo-instance facts (45 criteria in 9 groups, no last-login criterion, Profile Update Campaign present) by the read-only session.</li><li>Every position, exclusion, threshold and stop criterion is my decision; AI proposed, I chose.</li></ul></div>
   <div class="card amber"><h3>Where I did not trust it</h3><p style="margin:0">Anything about AlumnForce internals, competitors, provider contracts and legal bases is stated as an assumption or a question, not a fact. Token costs are an order of magnitude. Payback is formulas, not euros. Where a review lens could not verify something, its honest gap is kept rather than papered over.</p></div>
  </div>
 </div>
@@ -336,7 +337,7 @@ section[data-zoom="0.9"] > *:not(.foot){zoom:0.9}
 <div class="cols" style="gap:16px">
  <div class="col" style="flex:1.2">
 <pre>-- Reference date 2026-10-12. Runs as written on SQLite (LIKE only, no REGEXP); for MariaDB replace date(d,'-N years') by DATE_SUB(d, INTERVAL N YEAR).
--- Identical to the attached annexB.sql (same keyword list); column names are the dataset's own (French).
+-- Same logic and keyword list as the attached annexB.sql; column names are the dataset's own (French).
 -- 0. DEDUPLICATE: file has 525 rows, brief says 500. M0501..M0525 are duplicate persons
 --    (capitalised/compound surname, truncated first name, gmail, same job + start date).
 CREATE TABLE members AS            -- (preceded by DROP TABLE IF EXISTS in the attached file)
@@ -353,7 +354,7 @@ CREATE TABLE members_norm AS SELECT m.*,
  CASE WHEN lower(ville) LIKE '%london%' OR lower(ville) LIKE '%londres%'
        OR lower(ville) LIKE '%canary wharf%' THEN 'London' ELSE ville END city_norm,   -- 8 spellings
  CASE WHEN lower(trim(coalesce(pays,''))) IN ('uk','united kingdom','royaume-uni','england','angleterre') THEN 'GB'
-      WHEN pays IS NULL AND lower(ville) LIKE '%lond%' THEN 'GB' ELSE pays END country_norm,
+      WHEN pays IS NULL AND (lower(ville) LIKE '%london%' OR lower(ville) LIKE '%londres%') THEN 'GB' ELSE pays END country_norm,
  CASE WHEN secteur_declare IN ('Finance','Banque','Finance / Assurance') THEN 'finance:declared'
       WHEN entreprise IN ('Amundi','AXA IM','Barclays','BNP Paribas','Crédit Agricole CIB',
         'Deutsche Bank','Goldman Sachs','HSBC','J.P. Morgan','Lazard','Morgan Stanley',
