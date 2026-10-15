@@ -60,10 +60,21 @@ The demo instance was explored twice by automated browser sessions under the pre
 | `node tools/measure.js \| grep -c OVER` | `0` |
 | `python3 -c "import pypdf;print(len(pypdf.PdfReader('deck.pdf').pages))"` | `19` |
 | README Annex B snippet with `python3 -I` on profils-exercice-PM.csv | `rows: 49`, split `{'C': 43, 'B': 5, 'A': 1}`, sources `{'finance:declared': 24, 'finance:employer': 17, 'finance:title': 8}`, members after dedup `500`, naive `2`, normalised no dedup `26`, ids identical to annexB_result.csv `True` |
-| `grep -c` of fix phrases in deck.html: "Trusted Segments" / "To reactivate" / "36 dev-week core" / "nightly replay" / "10 business days" / "radius cap" / "flake budget 2 %" / "same start date" / "89 % if the 60 future-dated" / "3 of 8 are doubtful" / "Add this criterion by hand" / "Profile last updated 4 years ago" | 3 / 2 / 1 / 3 / 2 / 2 / 1 / 2 / 1 / 1 / 1 / 1 (all present) |
+| `grep -c` of fix phrases in deck.html: "Trusted Segments" / "To reactivate" / "26 dev-week core" / "nightly replay" / "10 business days" / "radius cap" / "flake budget 2 %" / "same start date" / "89 % if the 60 future-dated" / "3 of 8 are doubtful" / "Add this criterion by hand" / "Profile last updated 4 years ago" | 3 / 2 / 1 / 3 / 2 / 2 / 1 / 2 / 1 / 1 / 1 / 1 (all present) |
 | `grep -rl "<demo password>" .` and `ls \| grep -c png` in the committed folder | `0` and `0` (no credential, no screenshot) |
 | `python3 execution/infrastructure/workspace_sast.py --changed --quiet` | exit 0, no findings |
 | Visual reviewer on qa20 renders (19 pages, 55 dpi plus 130 dpi crops of page 18) | PASS: no cut text, no footer collision, Annex C status, backfill and failure-mode lines fully visible |
 | Demo instance, read-only session | 45 criteria in 9 groups; no last-login or profile-update criterion; "Campagne de mise à jour" present under Communication; 31 lists; no test list dated 12/10/2026 |
 | Anneal review of tooling (static) then fixes | measure.js exits 2 on overflow / 1 on failure; build.sh guards node, Chromium, playwright and fails on overflow; autofit wraps browser and temp file in try/finally and asserts section count; README snippet uses UTF-8 and exits with a message on a missing file (tested in an empty directory); SQL idempotent on a persistent database; README key numbers reconciled to the deduplicated base |
 | `bash tools/build.sh` end to end after the fixes | `deck.pdf rebuilt, no overflow`; `node tools/measure.js` exit 0; autofit md5 `a7c235dd7821` before and after a second run; no `deck_unbaked_*` left in the temp dir |
+
+## Round 5 additions (2026-10-15)
+
+| Command | Output |
+|---|---|
+| SQL as printed on the Annex B slide (extracted from deck.html, entities unescaped) vs attached annexB.sql, both on profils.csv | both `49`, split `{'C': 43, 'B': 5, 'A': 1}`, sources `{'declared': 24, 'employer': 17, 'title': 8}`; keyword lists identical (22 each); the earlier slide copy lacked `ib analyst` and `chargé d'affaires` and gave 48 (1 / 4 / 43), which explains the discrepancy reported by the presenter |
+| `grep -c "36 dev"` across deck.html, presentation.html, guide, briefing, README | `0` (only "36 h" dead-man alarm and a CSS margin remain) |
+| `node tools/measure.js` after the re-size | `0` OVER, exit 0 |
+| Visual QA (qa27, 19 pages; qa_pres3, 8 pages; qa28 page 17) | PASS, nothing "too small" |
+| Independent pipeline audit, round 2 | 7/7 PASS; two low wording items fixed ("26 dev-week core" in this file; "14 of the 49 are paying members") |
+| Eleven roster lenses + recruiter panel, round 5 | all CLEAR after fixes (duplicate report Q2 everywhere; status keyword in the index; relative dates re-resolved by the shared loader; Annex A honesty; guide cut order) |

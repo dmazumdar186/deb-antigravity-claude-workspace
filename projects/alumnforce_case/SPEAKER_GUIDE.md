@@ -125,11 +125,11 @@ Standard criteria names are AlumnForce's vocabulary. Tenant-defined labels are d
 No. Normalisation columns get backfilled for everyone, they don't derive anything new. Reliability status is different — it's computed per tenant, and only after that tenant has recorded its decision and switched the flag.
 
 **"Are you asking for an engine change in Q1?"**
-The relative-date operator, first. Saved segments carry an "as of" date instead and the box re-resolves when you open it. Next the live Vue pre-fill goes, the saved-list import replaces it. The status column, the two criteria and the metering don't get cut. Those stay.
+No. Q1 adds two date fields and a status keyword to the OpenSearch mapping and exposes them through the date filter the engine already has, plus a nightly tag. The relative-date operator is Q2 with its own rehearsal. If capacity still falls short, the live Vue pre-fill goes first and becomes a saved-list import. The reliability tag and metering never move.
 
 ## Developer split (removed from slide 12 for space)
 
-Backend 1: status column, criteria, reindex, reference tables. Backend 2: gateway, validator, metering, evals. Front: segmenter pre-fill and split (Vue). Shared: backfill, actions, duplicate report.
+Backend 1: status column, criteria, reindex, reference tables. Backend 2: gateway, validator, metering, evals. Front: segmenter pre-fill and split (Vue). Shared: backfill, actions (duplicate report is Q2).
 
 ## Your 10 minutes of questions
 

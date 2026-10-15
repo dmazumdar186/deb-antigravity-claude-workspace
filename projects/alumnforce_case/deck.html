@@ -42,7 +42,6 @@ section[data-zoom="0.83"] > *:not(.foot){zoom:0.83}
 section[data-zoom="0.95"] > *:not(.foot){zoom:0.95}
 section[data-zoom="0.86"] > *:not(.foot){zoom:0.86}
 section[data-zoom="0.9"] > *:not(.foot){zoom:0.9}
-section[data-zoom="0.87"] > *:not(.foot){zoom:0.87}
 </style></head><body>
 <!-- 1 -->
 <section class="slide" data-zoom="0.94">
@@ -332,7 +331,7 @@ section[data-zoom="0.87"] > *:not(.foot){zoom:0.87}
 </section>
 
 <!-- Annex B -->
-<section class="slide annex" style="padding-top:26px;padding-bottom:18px" data-zoom="0.87">
+<section class="slide annex" style="padding-top:26px;padding-bottom:18px" data-zoom="0.86">
 <div class="k">Annex B · Selection logic (one page) · the brief's request: "graduates working in finance in London for more than three years" · full SQL and 49-row result attached (annexB.sql, annexB_result.csv)</div>
 <div class="cols" style="gap:16px">
  <div class="col" style="flex:1.2">
@@ -381,7 +380,7 @@ WHERE city_norm='London' AND country_norm='GB'            -- "in London" (countr
   AND CAST(promo AS INTEGER) &lt;= 2026;      -- "graduates": all are (class years 2005-2024); CAST survives a text import</pre>
  </div>
  <div class="col">
-  <div class="card" style="padding:9px 12px"><h3>Result</h3><p style="margin:0"><b>49 members</b> (500 after dedup → 168 in London → 72 in finance → 49 with 3+ years in post). Source: 24 declared sector, 17 employer, 8 job keywords. Reliability: <span class="pill A">Current 1</span><span class="pill B">To confirm 5</span><span class="pill C">To reactivate 43</span> · 14 paying. Naive filter (city value 'Londres', sector value 'Finance', 3+ years in post) on the file as delivered: <b>2</b>. Normalised, no dedup: <b>26</b>. "6 to e-mail" = current + to confirm; strictly current: 1.</p></div>
+  <div class="card" style="padding:9px 12px"><h3>Result</h3><p style="margin:0"><b>49 members</b> (500 after dedup → 168 in London → 72 in finance → 49 with 3+ years in post). Source: 24 declared sector, 17 employer, 8 job keywords. Reliability: <span class="pill A">Current 1</span><span class="pill B">To confirm 5</span><span class="pill C">To reactivate 43</span> · 14 of the 49 are paying members. Naive filter (city value 'Londres', sector value 'Finance', 3+ years in post) on the file as delivered: <b>2</b>. Normalised, no dedup: <b>26</b>. "6 to e-mail" = current + to confirm; strictly current: 1.</p></div>
   <div class="card" style="padding:9px 12px"><h3>Assumptions</h3><ul style="margin:0"><li>Reference date 2026-10-12 (latest non-future date in the file: 2026-10-06).</li><li>"Graduates" = everyone (class years 2005–2024). The "Master in Finance" diploma is not a finance signal: only 19 of its 47 holders (after dedup) work in finance by any of the three sources.</li><li>"Finance" = declared sector, else employer in a finance reference list, else job-title keywords. Keywords are the weakest source: 3 of 8 are doubtful ("Professeur de finance" at BCG and at Renault, "Assistant administratif et financier" at Orange); in the product, the NAF industry code comes first and keyword matches are shown "to confirm".</li><li>"3+ years" = current job started on or before 2023-10-12.</li><li>Dedup rule (same first-name prefix, surname contained, same start date) drops exactly the 25 apparent duplicates; an earlier "or same job" variant also collapsed Martin into Martinez, which is why production uses a scored candidate list with blocking keys, reviewed by the admin.</li></ul></div>
   <div class="card amber" style="padding:9px 12px"><h3>What the data cannot verify, and what the product does</h3><ul style="margin:0"><li><b>"In London for 3+ years"</b>: no date for the location, only for the job. Job tenure is the proxy, labelled "3+ years in current role" in the UI.</li><li><b>"Still true"</b>: 43 of 49 profiles are 4+ years old with no login in 2 years. Marked "to reactivate"; a Profile Update Campaign is offered before any send instead of silent inclusion.</li></ul></div>
  </div>

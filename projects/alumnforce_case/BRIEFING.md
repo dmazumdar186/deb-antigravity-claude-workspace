@@ -192,7 +192,7 @@ Use section 5. The two they will most likely raise: shared developers (answer: a
 - Competitor claims are hedged, not verified.
 - The thresholds are lopsided on this synthetic file (43 of 49 to reactivate); hand-grading is the test.
 - The eval set is a gate, not a drift detector on its own; the nightly replay covers drift but 130 items have about plus or minus 7 points of noise.
-- Annex A commits you to five verifications; do them before sending or the annex is false.
+- Annex A says the five verifications were run by an agent on your instruction and that you reviewed the record. Read VERIFICATION.md once before sending so that sentence is true; redo any step yourself if you want to.
 - The demo was explored by two automated browser sessions under your account: the first created one empty test list and deleted it; the second was read-only. Annex A says so. The Annex A checks were run by an agent on your instruction and recorded in VERIFICATION.md; say that plainly if asked. And change the password.
 
 ## 8. The 20 minutes, in one paragraph
