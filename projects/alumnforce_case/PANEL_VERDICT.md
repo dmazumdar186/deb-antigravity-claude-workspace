@@ -38,7 +38,7 @@ Roster: `.claude/memory/panel_roster.md`, all eleven lenses run as sub-agents on
 | `python3 -c "import pypdf;print(len(pypdf.PdfReader('deck.pdf').pages))"` | `19` |
 | README Annex B snippet with `python3 -I` on profils-exercice-PM.csv | `rows: 49`, split `{'C': 43, 'B': 5, 'A': 1}`, sources `{'finance:declared': 24, 'finance:employer': 17, 'finance:title': 8}`, members after dedup `500`, naive `2`, normalised no dedup `26`, ids identical to annexB_result.csv `True` |
 | `grep -c` of fix phrases in deck.html: "Trusted Segments" / "To reactivate" / "36 dev-week core" / "nightly replay" / "10 business days" / "radius cap" / "flake budget 2 %" / "same start date" / "89 % if the 60 future-dated" / "3 of 8 are doubtful" / "Add this criterion by hand" / "Profile last updated 4 years ago" | 3 / 2 / 1 / 3 / 2 / 2 / 1 / 2 / 1 / 1 / 1 / 1 (all present) |
-| `grep -rl "Test@1234" .` and `ls \| grep -c png` in the committed folder | `0` and `0` (no credential, no screenshot) |
+| `grep -rl "<demo password>" .` and `ls \| grep -c png` in the committed folder | `0` and `0` (no credential, no screenshot) |
 | `python3 execution/infrastructure/workspace_sast.py --changed --quiet` | exit 0, no findings |
 | Visual reviewer on qa20 renders (19 pages, 55 dpi plus 130 dpi crops of page 18) | PASS: no cut text, no footer collision, Annex C status, backfill and failure-mode lines fully visible |
 | Demo instance, read-only session | 45 criteria in 9 groups; no last-login or profile-update criterion; "Campagne de mise à jour" present under Communication; 31 lists; no test list dated 12/10/2026 |
