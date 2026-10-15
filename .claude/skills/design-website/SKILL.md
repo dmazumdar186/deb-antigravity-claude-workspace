@@ -2,7 +2,10 @@
 name: design-website
 description: Generate a premium mockup website for a prospect using the buildinamsterdam.com template style. Use when user asks to design a website, create a mockup, or build a prospect website.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+disable-model-invocation: true
 ---
+> **Superseded 2026-10-15 for prospect concepts — use `site-redesign`.** This Sheet-driven template generator stays only for bulk Sheet runs invoked explicitly by the operator.
+
 > **Demo Library Skill** — This skill is from a demo library. Some configuration values use placeholders (e.g. `{{USER_NAME}}`, `{{COMMUNITY_ID}}`). If something doesn't work, check for placeholder values and replace them with your own information first.
 
 # Design Website

@@ -1,97 +1,85 @@
 ---
 name: site-redesign
-description: Redesign an existing website or build one from scratch as a zero-dependency static concept, test it on desktop + mobile, deploy to Cloudflare Pages and hand over a pitch page. Triggers on "redesign <site>", "rebuild their website", "build a site for", /site-redesign.
+description: Prospectus-style concept site (scrubbed cover, deck), eye-reviewed, deployed + pitch. Triggers: "redesign <site>", "rebuild their website", "build a site for", "website concept", "mockup website", "design a website", "pitch site", /site-redesign.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch
 user_invocable: true
 ---
 
-# Site redesign — research → build → test → deploy → pitch
+# Site redesign — the prospectus renderer (standard since MISB v3, 2026-10-15)
 
-Consolidated 2026-10-05 from GAIA Talent, GreenJobs, h2 Recruit and Midas France. One invocation
-takes a URL (or a brief for a from-scratch build) to a live `*.pages.dev` link plus a pitch page the
-operator can forward. The operator never runs a command; the brain routes, workers build.
+One of the operator's main freelance offers. Every redesign is built the way MISB v3 was built
+(`deliverables/misb_redesign_2026-10-15/site_v3/`), never the way v2 was (a static page the operator
+called "designed in 2015, not sellable"). The reference the operator always gives:
+https://proposals.papayalabs.app/evolution-exhibits-6yry74 — a designed document, not a web page.
+Recipe with mechanics: `reference/concept_recipe.md`. Rules: `reference/build_rules.md`.
 
 ## Inputs
-- `$ARGUMENTS`: target URL or brand name, optional language (`fr`, `en-GB`…), optional prospect name
-  for the pitch page (`for-<name>/` or `pour-<name>/`), optional theme hints from the operator.
-- Env: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (present in the cloud env). Chromium at
-  `/opt/pw-browsers` for Playwright.
+- `$ARGUMENTS`: URL or brand, optional language (`fr`, `en-GB`), prospect name for `for-<name>/`,
+  theme hints. Env: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `OPENROUTER_API_KEY` (or the
+  `OPENROUTER_API_TOEKN` alias), optional `HF_API_TOKEN`. Chromium at `/opt/pw-browsers`, ffmpeg.
 
 ## Outputs
-- `deliverables/<slug>_redesign_<YYYY-MM-DD>/site/` — `index.html`, `css/styles.css`, `js/main.js`,
-  `assets/` (real logo, favicon), `<pitch>/index.html`. Plus `screens/` and `HANDOFF.md`.
-- Live: `https://<slug>-redesign.pages.dev/` (noindex). Never github.io, never an artifact link.
-- A 4–5 line outreach message in the prospect's language, signed
-  "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi".
+- `deliverables/<slug>_redesign_<date>/site/` (index, `css/`, `js/` incl. `backdrop.js`, `assets/`
+  with real logo, photos, `hero.mp4|webm`, `hero-m.*`, `hero.jpg`, `hero.json`), `for-<name>/`
+  pitch, `research/` (facts, `glm_log.md`, `live_metrics.json`, `functional.json`), `screens/`,
+  `HANDOFF.md`. Live at `https://<slug>-redesign.pages.dev/` (noindex). Optional social set link.
 
-## Process (brain does steps 1, 4-gate, 7; workers do 2, 3, 5)
+## The standard (non-negotiable)
+Build a **prospectus / concept-art renderer**, every element below present:
+- **(a) Cover** — pinned, scroll-scrubbed (`400svh` desktop / `250svh` mobile), 3–5 verbatim fact
+  beats with a progress rail, photo plates (real photos, desktop), generative backdrop written by GLM
+  from public facts only (Kimi K3 fallback), self-rendered to a hosted hero video (Chromium + ffmpeg)
+  with canvas fallback and a Kling-ready `hero.json` slot.
+- **(b) Signature pinned scroll object** carrying real information — fold-out prospectus, card stack
+  or drum, picked per brand. Paper, crease and grain treatment when it is a print metaphor.
+  Horizontal snap-scroll under 800 px; **no 3D on phones**.
+- **(c) Command deck** — sticky chapter nav switching one panel; every fact in DOM (`hidden` +
+  `inert` when inactive); hash deep links, back/forward, arrow keys; ≤ 1 viewport per panel desktop.
+- **(d) Designed-document DNA** — numbered chapters "01 —", paper `#EEECE6`, white cards, amber
+  small caps, one accent, serif display + one sans.
+- **(e) Measured** — live site vs concept scroll height (desktop + mobile) in the pitch table, via
+  `scripts/measure_live.mjs` on the live site.
+- **(f) Real** — brand's real logo and photos only, verbatim facts, contradictions footnoted.
 
-### 1. Research (brain, one batched message, ≤ 10 calls)
-- Try the site directly (`curl -A "Mozilla/5.0"`, WebFetch). Big chains 403 bots — fall back to
-  `WebSearch` with `site:<domain>` queries, Wikipedia (facts + logo file), franchise/trade press,
-  review platforms (Trustpilot, Custplace, Google). Firecrawl/Tavily MCP keys are often invalid in
-  cloud (401); don't retry them more than once.
-- Collect ONLY verifiable facts: services, live offers with exact wording and end dates, promises
-  (guarantees, SLAs), network size, founding year, parent group, slogan, booking flow, phone/hours
-  model, review score. Write them into the worker brief. Invent nothing; placeholders are labelled.
-- **Logo:** fetch the real asset (Wikimedia Commons file page → `upload.wikimedia.org` URL with an
-  identifying User-Agent; or the site's own `/favicon`, `og:image`). Never a text wordmark.
-- Sector best practice: one `WebSearch` "<sector> website best practices conversion <year>". Fold the
-  top 5 into the brief (e.g. garages: phone + booking + hours above the fold, starting prices,
-  warranty as trust, per-service pages, one-handed mobile).
-- Read `reference/build_rules.md` before briefing.
+**Banned:** a long single-column marketing page of stacked sections; timer-driven hero widgets
+bolted beside a headline; stock photos; text wordmarks; emoji icons; third-party JS.
 
-### 2. Build (one `general-purpose` worker, foreground, complete brief)
-Use `reference/worker_brief_template.md`. The brief must contain: palette (stay in the brand's own
-register — Midas is yellow+light, not yellow+black), the fact list, the section list in order, the
-engineering rules, the verification commands, and the report format. The worker verifies with
-Playwright before reporting (section 4). Budget: index+css+js ≤ 120 KB, zero third-party JS.
+## Process (brain: 1, 4 verdict, 6–7; workers: 2, 3, 5)
+1. **Research** (one batched message): fetch the site (`curl -A`, WebFetch; 403 → `WebSearch
+   site:`, Wikipedia, press), download real logo + photos, collect verbatim facts and
+   contradictions, run `measure_live.mjs <url>`, one sector best-practice search. Pick the signature
+   object and the 3–5 cover beats. Read `reference/build_rules.md`.
+2. **Brief + build** (one worker, `reference/worker_brief_template.md`, complete brief): worker runs
+   `gen_backdrop.py` → reviews the module → builds site + pitch → `render_hero_video.mjs` → adapts
+   `functional_template.mjs` → `site_check.mjs` → screens. Budget index+css+js ≤ 150 KB,
+   backdrop ≤ 12 KB, zero third-party JS.
+3. **Pitch page** `for-<name>/`: what it is, Today/Concept table (6 rows incl. measured heights),
+   what does not exist yet, next, signature "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi".
+4. **Two mandatory eye-review rounds**: a reviewer agent (Opus, `omitClaudeMd`) Reads every PNG in
+   `screens/` against the checklist in `concept_recipe.md` and returns SHIP or a numbered defect
+   list. Fix every item, re-screenshot, round 2. **Ship only on SHIP.** Images never enter the brain.
+5. **Deploy**: `bash scripts/deploy.sh <site-dir> <slug>-redesign for-<name>/`. Sandbox Chromium
+   cannot open `*.pages.dev`; verification is on identical local files — say so.
+6. **Handoff + commit**: `HANDOFF.md` (links, facts + sources, measurements, review rounds, Kling
+   slot, not done), commit, push branch, fast-forward and push `main`. `/compact` after deploy.
+7. **Reply**: both links first, what changed, how it was verified, caveats, outreach message in the
+   prospect's language.
 
-### 3. Pitch page (same worker)
-`for-<name>/` (EN) or `pour-<name>/` (FR): what it is (concept on our domain, nothing touches
-their site, facts from public sources), a "Today / Concept" table (6 rows), "what doesn't exist on
-your site yet" (2–3 items), "next if you want it", signature. Mirror
-`deliverables/h2recruit_redesign_2026-09-30/site/for-ian/index.html` and
-`deliverables/midas_redesign_2026-10-05/site/pour-midas/index.html`.
-
-### 4. Test gate (worker runs, brain reads the summary; nothing deploys red)
-```bash
-node .claude/skills/site-redesign/scripts/site_check.mjs --site <site-dir> [--mobile-only-reveal]
-```
-Serves the folder, runs desktop 1440×900, Pixel 7 and iPhone 13 emulation (touch), and a
-reduced-motion context. Fails on: any page error, horizontal overflow, any `.reveal` element still
-`opacity:0` in the viewport 150 ms after a 2600 px fling (the Pixel 8 Pro bug), tap targets < 44 px
-on phones, inputs < 16 px font on phones, fixed bottom bar overlapping the last CTA, fonts/scripts
-from more than one third-party host. Writes `screens/check-*.png`. Then a **worker** (never the brain: images stay in context and are
-re-read on every later call) Reads the mobile full-page PNG and the hero PNG against the
-`/human-eye-test` checklist and returns PASS or a defect list. For a client release, run
-`/human-eye-test` in full. `/compact` after every deploy.
-
-### 5. Deploy (brain, one command)
-```bash
-bash .claude/skills/site-redesign/scripts/deploy.sh <site-dir> <slug>-redesign
-```
-Creates the Pages project if missing (`--force` once, wrangler 4.136+), deploys, curls the live URL
-and the pitch page for 200, compares live CSS/JS md5 to local. Cloudflare's CDN can serve the old
-stylesheet for ~1 min; the script polls. Note: the sandbox Chromium cannot reach `*.pages.dev`
-through the proxy — verification is on identical local files, say so in the handoff.
-
-### 6. Handoff + commit (brain)
-Write `HANDOFF.md` (live URLs, target, research facts with sources, what it is, verified, redeploy
-line, not done, next steps). `git add deliverables/<dir>`, commit, push the branch, fast-forward
-`main`, push `main` (operator order 2026-10-01). Never commit `.tmp/` or screenshots over 2 MB.
-
-### 7. Reply to the operator
-Both links first. Then: what changed, what was verified and how, caveats, the outreach message in
-the prospect's language. Offer the next shop as the same loop.
+## Models & tools
+| Job | Tool |
+|---|---|
+| Creative modules (backdrop canvas, generative motifs) | GLM 5.3 via OpenRouter (`z-ai/glm-5.3` → `glm-5.2`); fallback `moonshotai/kimi-k3`. Public facts only — no names, emails, phones, client data (`directives/infrastructure/glm_5_2_integration.md`) |
+| Hero footage | Kling 3.0 via Higgsfield when `HF_API_TOKEN` exists (`execution/gtm_client_workflows/greenjobs_redesign/generate_hero_footage.py`, estimate first); else self-render with `scripts/render_hero_video.mjs` |
+| Judgement (brief, verdicts, handoff) | Fable 5.1 (session) |
+| Build worker | Opus 5.5, effort low |
+| Eye reviewer | Opus 5.5, reads PNGs, returns text only |
+| Gates | `scripts/site_check.mjs`, `scripts/functional_template.mjs`, `scripts/measure_live.mjs` |
 
 ## Feedback loop
-Operator feedback on a live concept → reproduce under emulation **before** changing anything
-(Pixel 7 for Android reports, iPhone 13 for iOS), name the root cause, fix, re-run step 4, redeploy,
-append a `vN` block to `HANDOFF.md`. Record any new rule in `reference/build_rules.md`.
+Operator feedback → reproduce under emulation (Pixel 7 / iPhone 13) before touching code → root
+cause → fix → functional + site_check + one reviewer round → redeploy → `vN` block in `HANDOFF.md`
+→ new rule in `reference/build_rules.md`. A rejected concept is rebuilt from the recipe, not patched.
 
 ## Related
-- `/human-eye-test` — release gate with reviewer agents reading every PNG.
-- `/impeccable` — design critique/polish on an existing surface.
-- `design-website` (legacy) — Sheet-driven buildinamsterdam template generator; superseded by this
-  skill for prospect concepts.
+`/human-eye-test` (full release gate) · `/impeccable` (polish) · `directives/gtm_client_workflows/
+site_redesign_concepts.md` (SOP) · `design-website` (superseded; bulk Sheet runs only).

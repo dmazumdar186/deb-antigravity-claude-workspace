@@ -49,3 +49,24 @@
   (wrangler ≥ 4.136 otherwise delegates to Workers and fails). `--commit-dirty=true` on deploy.
 - Poll the live CSS for a marker after deploy; the CDN lags ~30–60 s.
 - `pkill` in a `&&` chain aborts the chain when nothing matches — run it on its own line.
+
+## Concept standard (2026-10-15, MISB v2 → v3) — every line was a reviewer finding or an operator rejection
+- A static single-column page of stacked sections is rejected on sight; build the prospectus renderer (`concept_recipe.md`).
+- No timer-driven widget bolted beside a headline; the signature object is scroll-driven and carries real facts.
+- Counters write the exact integer on their final frame; screenshot only after the animation settles.
+- The cover never ends on an empty dark viewport: the next object overlaps the last 20 % of the track.
+- Cover text reaches opacity 0 before the next chapter headline passes 0.1 (no ghosting).
+- Once the next object has entered, the cover gets `visibility:hidden; pointer-events:none`.
+- One logo on screen: header logo hidden while over the cover.
+- No empty space above the deck tab row; first panel starts directly under the sticky nav.
+- Fold/stack panels are content-sized (3:4), never half-empty; add creases, grain, warm edge for print metaphors.
+- Mobile: no dark band behind paper sections — header is opaque paper over fold and deck.
+- Mobile: panels are `100vw − 2·gutter`, horizontal snap-scroll, no 3D transforms, no overflow.
+- Mobile: bottom bar hidden until the cover CTA scrolls out; `scroll-padding-bottom` + 100 px padding so it never covers content.
+- Tab rows that scroll show a fade mask and centre the active tab.
+- Intro sentences are complete and verbatim; never cut mid-sentence to fit a panel — use `<details>` for overflow.
+- Pitch cover text passes 4.5:1 on the dark gradient (`.doc p` override on cream).
+- Link labels are words, never raw URL slugs.
+- Measured heights (live vs concept, desktop + mobile) are in the pitch table, from `scripts/measure_live.mjs`.
+- GLM/Kimi receive public facts only (place names, colours, API spec); Kling via Higgsfield only with `HF_API_TOKEN`, else self-render.
+- Two reviewer rounds on PNGs are mandatory; nothing deploys before SHIP.
