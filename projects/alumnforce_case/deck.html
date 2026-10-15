@@ -37,7 +37,7 @@ code, pre { font-family: "JetBrains Mono",Consolas,monospace; } pre { font-size:
 section[data-zoom="0.94"] > *:not(.foot){zoom:0.94}
 section[data-zoom="0.97"] > *:not(.foot){zoom:0.97}
 section[data-zoom="0.88"] > *:not(.foot){zoom:0.88}
-section[data-zoom="0.79"] > *:not(.foot){zoom:0.79}
+section[data-zoom="0.81"] > *:not(.foot){zoom:0.81}
 section[data-zoom="0.83"] > *:not(.foot){zoom:0.83}
 section[data-zoom="0.95"] > *:not(.foot){zoom:0.95}
 section[data-zoom="0.86"] > *:not(.foot){zoom:0.86}
@@ -142,22 +142,22 @@ section[data-zoom="0.87"] > *:not(.foot){zoom:0.87}
 </section>
 
 <!-- 6 -->
-<section class="slide" data-zoom="0.79">
+<section class="slide" data-zoom="0.81">
 <div class="k">2 · The first increment · scope, sized</div>
 <h2>Four deliverables, a 26 dev-week core sized for shared developers</h2>
 <table>
 <tr><th style="width:23%">Deliverable</th><th>What ships</th><th style="width:9%">Dev-wks</th><th style="width:24%">Why Q1</th></tr>
-<tr><td><b>1. Reliability layer</b><br><span class="muted">deterministic · core</span></td><td>Nightly tag: reliability status per member (profile age, last login; future dates ignored) in one MariaDB column and, in OpenSearch, two date fields plus one <code>reliability_status</code> keyword; <b>two new criteria</b> "Last profile update" and "Last login" through the <i>existing</i> date filter, split counts as one terms aggregation: no new criterion type, no cluster refactor; status visible to the member, contest via support ticket in Q1. Reference tables with per-tenant overrides, <code>*_norm</code> columns, idempotent backfill.</td><td>9</td><td>The product itself, on native OpenSearch date filters: a mapping update and a per-tenant reindex, not an engine migration.</td></tr>
-<tr><td><b>2. Sentence → filters</b><br><span class="muted">one model call · core</span></td><td>Gateway integration; filter contract (Annex C); validator that maps values locally and returns the unmapped part; "3 years" stored as a relative duration plus its resolution date; the shared list loader used by the segmenter and the campaign modules re-resolves it on open and at send time; a manual date edit freezes it and says "fixed date" (no new engine operator in Q1); prompt cache keyed on sentence, tenant, taxonomy, schema, prompt version, role; Vue pre-fill.</td><td>9</td><td>The "five seconds" value: one schema, zero member data.</td></tr>
+<tr><td><b>1. Reliability layer</b><br><span class="muted">deterministic · core</span></td><td>Nightly tag: reliability status per member (profile age, last login; future dates ignored) in one MariaDB column and, in OpenSearch, two date fields plus a <code>reliability_status</code> keyword; <b>two new criteria</b> through the <i>existing</i> date filter; split = one terms aggregation; no new criterion type, no cluster refactor; member sees the status, contests via support ticket in Q1. Reference tables with per-tenant overrides, <code>*_norm</code> columns, idempotent backfill.</td><td>9</td><td>Native date filters: a mapping update and a reindex, not an engine migration.</td></tr>
+<tr><td><b>2. Sentence → filters</b><br><span class="muted">one model call · core</span></td><td>Gateway; filter contract (Annex C); validator maps values locally, returns the unmapped part; "3 years" stored as a relative duration and re-resolved by the shared list loader on open and at send time, a manual date edit freezes it as "fixed date" (no engine operator in Q1); prompt cache keyed on sentence, tenant, taxonomy, schema, prompt version, role; Vue pre-fill.</td><td>9</td><td>The "five seconds" value: one schema, zero member data.</td></tr>
 <tr><td><b>3a. Actions</b><br><span class="muted">core</span></td><td>"Send to current + to-confirm"; "Reactivate" = pre-filled Profile Update Campaign (existing module; fixed, tenant-editable text in two variants compared on update rate); one reactivation per member per quarter; suppression after "not me" or opt-out.</td><td>2</td><td>The priced lever and the week-17 decision depend on it.</td></tr>
-<tr><td><b>3b. Hygiene</b><br><span class="muted">stretch / Q2</span></td><td>Duplicate <b>detection report</b> (candidate pairs, score, exportable); stable export column order (Marc, V6); relative-date operator as a proper engine change. No merge UI.</td><td>3 + 4</td><td>Not needed to decide the quarter; the operator is an engine migration and gets its own Q2 rehearsal.</td></tr>
-<tr><td><b>4. Flags, metering, evals</b><br><span class="muted">core</span></td><td>Two flags, <code>reliability</code> and <code>nl_targeting</code>, per instance and in bulk, off by default; per-call log (tenant, pseudonymised admin, prompt hash, redacted sentence, tokens, cost, model, region); kill switch; record/replay evals in CI plus nightly replay against the live endpoint; campaign outcomes by segment × status; per-tenant config table (thresholds, radius, allow-list, prompt version) with owner and change log.</td><td>6</td><td>Cost tracking and stop criteria need it from day one.</td></tr>
+<tr><td><b>3b. Hygiene</b><br><span class="muted">stretch / Q2</span></td><td>Duplicate <b>detection report</b>; stable export column order (Marc, V6); relative-date operator as an engine change. No merge UI.</td><td>3 + 4</td><td>Not needed to decide the quarter; the operator is an engine migration and gets its own Q2 rehearsal.</td></tr>
+<tr><td><b>4. Flags, metering, evals</b><br><span class="muted">core</span></td><td>Two flags, <code>reliability</code> and <code>nl_targeting</code>, per instance and in bulk, off by default; per-call log (tenant, pseudonymised admin, prompt hash, redacted sentence, tokens, cost, model, region); kill switch; record/replay evals plus nightly live replay; campaign outcomes by segment × status; per-tenant config table with owner and change log.</td><td>6</td><td>Cost tracking and stop criteria need it from day one.</td></tr>
 </table>
 <div class="cols" style="margin-top:6px">
  <div class="col card green" style="margin:0"><h3>Capacity check</h3><p style="margin:0">3–4 developers <b>shared</b> with other tracks, so I plan on roughly half their time: <b>24–28 effective dev-weeks</b>, confirmed in week 1. Core = 1, 2, 3a, 4 = 26. 3b and the relative-date operator are Q2 unless capacity appears; below 24, the box pre-fills from a saved-list import instead of live Vue state. The reliability tag and metering never move.</p></div>
  <div class="col card" style="margin:0"><h3>Flag-off promise, kept</h3><p style="margin:0">Both flags off: nothing changes in the segmenter; the status column exists but no criterion, count or box is shown. <code>*_norm</code> columns never overwrite source fields.</p></div>
 </div>
-<div class="foot"><span>6 / 15</span><span>No engine criterion type, no cluster refactor, no new operator in Q1: native date filters and a nightly tag. Dev-weeks are mine to be challenged; the Lead Developer's number wins.</span></div>
+<div class="foot"><span>6 / 15</span><span>No new criterion type, no cluster refactor, no new operator in Q1. Dev-weeks are mine to be challenged; the Lead Developer's number wins.</span></div>
 </section>
 
 <!-- 7 -->
