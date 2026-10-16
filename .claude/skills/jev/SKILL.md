@@ -60,7 +60,8 @@ Jev can abstain. Env key: `OPENROUTER_API_KEY` (cloud alias `OPENROUTER_API_TOEK
 | Self-assembling landing page per visitor | `execution/content/jev_page_assembler/` |
 | Find new Jev use cases for this business / in past sessions | `execution/infrastructure/jev_use_case_finder.py` |
 | Gate an audit report before claiming done (`/jev gate <file>`) | `execution/infrastructure/jev_audit_gate.py` |
+| Lead pipeline: qualify, signals, hygiene, suppress, replies, inbound, LinkedIn diff (`/jev-leads`) | `execution/gtm_icp_filters/jev_leads.py` |
 
-All 19 RoboNuggets use cases are built; the status table and build log live in `directives/infrastructure/jev.md`. To find the next one: `python3 execution/infrastructure/jev_use_case_finder.py rank`.
+All 19 RoboNuggets use cases are built (plus #20 audit gate, #21 jev-leads); the status table and build log live in `directives/infrastructure/jev.md`. To find the next one: `python3 execution/infrastructure/jev_use_case_finder.py rank`.
 
 Cost ledger: `.tmp/jev_ledger.jsonl` (every script appends one row). Directive: `directives/infrastructure/jev.md`.

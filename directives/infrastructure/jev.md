@@ -62,10 +62,10 @@ search-by-meaning, live meters, zero-LLM chatbots).
 | 17 | Smarter app UI (icon picking from text) | ✅ `execution/mobile_apps/jev_icon_pick.py` + demo + RN hook (`directives/mobile_apps/jev_icon_pick.md`) |
 | 18 | Self-assembling pages from a component library | ✅ `execution/content/jev_page_assembler/` (`directives/content/jev_page_assembler.md`) |
 | 19 | Find your own use cases (shipwithjev.com + past sessions) | ✅ `execution/infrastructure/jev_use_case_finder.py` (`directives/infrastructure/jev_use_case_finder.md`) |
-
 | 20 | Confidence gate on the audit stack (escalate weak audit reports; Stop hook) | ✅ `execution/infrastructure/jev_audit_gate.py` (`directives/infrastructure/jev_audit_gate.md`) |
+| 21 | Lead pipeline gates: ICP qualify, signals, hygiene, suppression, reply/inbound triage, LinkedIn diff | ✅ `execution/gtm_icp_filters/jev_leads.py` (`directives/gtm_icp_filters/jev_leads.md`, playbook `docs/reference/jev_leads_playbook.md`) |
 
-All 19 built (2026-10-06/07), each with script + directive + offline test + one live run. New use cases: run `jev_use_case_finder.py rank` and add rows here.
+All 21 built (1-19 on 2026-10-06/07, #20 2026-10-07, #21 jev-leads 2026-10-16), each with script + directive + offline test + one live run. New use cases: run `jev_use_case_finder.py rank` and add rows here.
 
 ## Exit criteria
 
@@ -90,3 +90,4 @@ All 19 built (2026-10-06/07), each with script + directive + offline test + one 
 - 2026-10-07 (session 3): use cases 14-16 (image search, live meeting meter, zero-LLM chatbot).
 - 2026-10-07 (session 4): use cases 17-19 (icon picking, self-assembling pages, use-case finder). All 19 done.
 - 2026-10-07 (session 5): #20 from the use-case finder's quick-win list — Jev confidence gate on the audit stack, wired into the Stop hook.
+- 2026-10-16: #21 jev-leads (skill `/jev-leads`, script, directive, playbook): Jev gates for the whole lead pipeline (qualify, signals, hygiene, suppress, replies, inbound, diff).
