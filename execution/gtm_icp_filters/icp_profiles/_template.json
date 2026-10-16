@@ -13,6 +13,18 @@
     "hiring": "true when ...",
     "job_change": "true when ..."
   },
-  "customers": ["Customer name or domain"],
-  "competitors": "Prose: what a competitor looks like."
+  "customers": [
+    "Customer name or domain"
+  ],
+  "competitors": "Prose: what a competitor looks like.",
+  "fit_weights": {
+    "role_fit": 0.35,
+    "likely_buyer": 0.3,
+    "company_fit": 0.25,
+    "seniority": 0.1
+  },
+  "fit_cutoffs": {
+    "go": 70,
+    "hold": 45
+  }
 }

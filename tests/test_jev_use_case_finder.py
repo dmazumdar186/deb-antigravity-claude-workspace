@@ -22,7 +22,7 @@ def test_built_flags_from_jev_md(tmp_path):
     assert built == {1, 19}
     assert f.is_built({"id": "rn01_x"}, built) and not f.is_built({"id": "rn02_x"}, built)
     assert not f.is_built({"id": "hf01_x"}, built)
-    assert len(f.built_numbers()) == 19  # live directive: all 19 built
+    assert len(f.built_numbers()) >= 19  # live directive: 19 RoboNuggets + later additions (#20, #21)
 
 
 def test_rank_math_exclusion_quick_wins(monkeypatch):

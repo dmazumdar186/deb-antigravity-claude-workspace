@@ -112,6 +112,17 @@ def score(instructions: str, levels: list[str]) -> dict[str, Any]:
 
 # ---- the call ---------------------------------------------------------------------------
 
+MAX_RETRY_AFTER_S = 5.0
+
+
+def _retry_after_s(resp: Any) -> float:
+    """Seconds to wait after a 429: the retry-after header (default 1.0), capped at 5 s."""
+    try:
+        val = float((getattr(resp, "headers", None) or {}).get("retry-after") or 1.0)
+    except (TypeError, ValueError):
+        val = 1.0
+    return max(0.0, min(val, MAX_RETRY_AFTER_S))
+
 def decide(
     state: str | dict[str, Any] | list[Any],
     questions: dict[str, dict[str, Any]],
@@ -122,6 +133,7 @@ def decide(
 ) -> JevResult:
     """Ask Jev every question in `questions` about `state` in ONE request.
 
+    HTTP 429 sleeps min(retry-after or 1 s, 5 s) and retries once.
     Fails open: any exception, HTTP error or malformed body returns a JevResult with
     `error` set and empty answers. Never raises. State longer than JEV_MAX_STATE_CHARS
     is truncated (strings) so the 32k context is not blown.
@@ -137,21 +149,25 @@ def decide(
     if session_id:
         body["session_id"] = session_id[:256]
     t0 = time.perf_counter()
-    try:
-        resp = requests.post(
-            JEV_ENDPOINT,
-            headers={
-                "Authorization": f"Bearer {key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://github.com/dmazumdar186/deb-antigravity-claude-workspace",
-                "X-Title": "deb-antigravity-claude-workspace",
-            },
-            data=json.dumps(body),
-            timeout=timeout_s,
-        )
-    except requests.RequestException as exc:
-        return JevResult(error=f"request failed: {exc.__class__.__name__}: {exc}",
-                         latency_ms=int((time.perf_counter() - t0) * 1000))
+    for attempt in range(2):
+        try:
+            resp = requests.post(
+                JEV_ENDPOINT,
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://github.com/dmazumdar186/deb-antigravity-claude-workspace",
+                    "X-Title": "deb-antigravity-claude-workspace",
+                },
+                data=json.dumps(body),
+                timeout=timeout_s,
+            )
+        except requests.RequestException as exc:
+            return JevResult(error=f"request failed: {exc.__class__.__name__}: {exc}",
+                             latency_ms=int((time.perf_counter() - t0) * 1000))
+        if resp.status_code != 429 or attempt:
+            break
+        time.sleep(_retry_after_s(resp))  # one retry on rate limit, then fail open below
     latency = int((time.perf_counter() - t0) * 1000)
     if resp.status_code != 200:
         return JevResult(error=f"HTTP {resp.status_code}: {resp.text[:300]}", latency_ms=latency)
