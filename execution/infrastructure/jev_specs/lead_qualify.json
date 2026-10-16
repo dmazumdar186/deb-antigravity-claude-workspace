@@ -1,0 +1,16 @@
+{
+  "state_fields": ["name", "title", "company", "industry", "company_size", "website_summary"],
+  "question_name": "decision",
+  "question": {
+    "type": "choice",
+    "instructions": "Should we contact this B2B lead now, given their role, company and fit with a B2B SaaS buyer profile?",
+    "criteria": {
+      "go": "fits the ideal customer profile and holds a buying role; contact now",
+      "hold": "partial fit or missing information; revisit later",
+      "skip": "off-profile, excluded (agency, student, tiny company) or wrong role",
+      "none": "not enough information to judge at all"
+    }
+  },
+  "label_field": "label",
+  "id_field": "id"
+}

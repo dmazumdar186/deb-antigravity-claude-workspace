@@ -1,0 +1,18 @@
+{
+  "offer": "InboxLift is a cold-email deliverability platform: automated mailbox warm-up, inbox placement tests and domain-health monitoring, so outbound teams land in the primary inbox and book more meetings from the same send volume.",
+  "icp": "B2B SaaS companies with 20-500 employees in North America, UK or EU, Seed to Series C, running an outbound sales motion with at least 3 SDRs/AEs sending cold email.",
+  "personas": {
+    "economic_buyer": "VP Sales, Head of Sales, CRO or founder-led sales; owns pipeline budget",
+    "champion": "Sales Ops / RevOps manager or Head of Sales Development; owns the outbound tool stack",
+    "user": "SDR, BDR or AE who sends cold email daily"
+  },
+  "exclusions": "Lead-gen and cold-email agencies, freelancers, students, recruiters, companies under 5 employees, B2C and e-commerce brands, government and education.",
+  "timing": "Do not reach out in late December, during a public layoff or acquisition, or within 90 days of a customer churning from us.",
+  "signals": {
+    "funding": "true when the company raised Seed to Series B in the last 6 months and is B2B",
+    "hiring": "true when the posted role contacts prospects directly (SDR, BDR, AE, head of sales development). Account managers and sales engineers are false",
+    "job_change": "true when the person took a new, more senior role in sales or revenue operations in the last 90 days"
+  },
+  "customers": ["Northwind Analytics", "Brightpath CRM", "Quillstack"],
+  "competitors": "Other deliverability or warm-up tools (warm-up networks, inbox placement testers), cold-email sending platforms that bundle warm-up, and cold-email agencies that resell deliverability services."
+}

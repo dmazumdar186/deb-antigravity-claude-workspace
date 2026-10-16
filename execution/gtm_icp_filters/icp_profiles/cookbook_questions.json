@@ -1,0 +1,563 @@
+{
+ "_attribution": "Verbatim from bcharleson/jev-gtm-cookbook (MIT License, (c) bcharleson). Source: cookbook/requests/*.json. Recipes 01 and 13 have no request file; their questions live in src/questions.js and are included as recipe 01-13-shared.",
+ "recipes": [
+  {
+   "recipe": "01-13-shared (src/questions.js, QUESTION_VERSION 1)",
+   "state_fields": [
+    "ideal_customer.what_we_sell",
+    "ideal_customer.target_roles",
+    "ideal_customer.target_companies",
+    "ideal_customer.not_a_fit",
+    "connection.current_position",
+    "connection.current_company",
+    "connection.company_description (optional)",
+    "previous.position (optional)",
+    "previous.company (optional)"
+   ],
+   "questions": [
+    {
+     "name": "persona",
+     "type": "choice",
+     "instructions": "Which group best describes the role in `connection.current_position`?",
+     "criteria": "<icp.personas: {key: description}, include an 'other' option>"
+    },
+    {
+     "name": "seniority",
+     "type": "score",
+     "instructions": "How senior is the role in `connection.current_position`?",
+     "criteria": [
+      "A student, intern, or someone not currently working in a professional role",
+      "An individual contributor who does the work and does not manage people or a budget",
+      "A manager or team lead who runs a team and influences what that team buys",
+      "A director, head of department or vice president who owns the budget for their function",
+      "A founder, owner, partner or C-level executive who makes final buying decisions"
+     ]
+    },
+    {
+     "name": "role_fit",
+     "type": "score",
+     "instructions": "How closely does the role in `connection.current_position` match the buyers described in `ideal_customer.target_roles`, given what is sold in `ideal_customer.what_we_sell`?",
+     "criteria": [
+      "The role has nothing to do with the target roles or with the problem the product solves",
+      "The role sits in a neighbouring function and would only hear about the problem second-hand",
+      "The role works inside the target function and deals with the problem day to day",
+      "The role is one of the target roles and would own the decision to solve the problem"
+     ]
+    },
+    {
+     "name": "company_fit",
+     "type": "choice",
+     "instructions": "Judging from `connection.current_company` and, if given, `connection.company_description`, does the company match `ideal_customer.target_companies`?",
+     "criteria": {
+      "fits": "The company is recognisably the kind of company described as a target",
+      "does_not_fit": "The company is recognisably outside the target, or matches `ideal_customer.not_a_fit`",
+      "cannot_tell": "The information given does not reveal what the company does or how big it is"
+     }
+    },
+    {
+     "name": "likely_buyer",
+     "type": "noul",
+     "instructions": "Would the person in this role plausibly take part in deciding whether to buy what is described in `ideal_customer.what_we_sell`?",
+     "criteria": {
+      "true": "They own, approve or strongly influence this kind of purchase",
+      "false": "They would not be involved in this kind of purchase, or they match `ideal_customer.not_a_fit`"
+     }
+    }
+   ],
+   "note": "When previous is present, the 02 questions (change_type, new_budget_owner, current_role_buys; CHANGE_QUESTION_VERSION 2) are added to the same call, with `connection` in place of `current`.",
+   "scoring": {
+    "fit_0_100": "round(100 * sum(w_i*part_i)/sum(w_i)); parts: role_fit=score/3, seniority=score/4, likely_buyer=noul, company_fit=P(fits)",
+    "default_weights": {
+     "role_fit": 0.4,
+     "likely_buyer": 0.25,
+     "seniority": 0.2,
+     "company_fit": 0.15
+    },
+    "cutoffs": {
+     "fit": 60,
+     "reach_out": 0.6,
+     "review": 0.4
+    },
+    "skip_if_title_matches": [
+     "student",
+     "intern",
+     "retired",
+     "seeking",
+     "open to work",
+     "unemployed"
+    ]
+   }
+  },
+  {
+   "recipe": "02-job-change-interpretation",
+   "state_fields": [
+    "current",
+    "previous",
+    "what_we_sell"
+   ],
+   "questions": [
+    {
+     "name": "change_type",
+     "type": "choice",
+     "instructions": "Compare the role in `previous` with the role in `current`. What kind of change is this?",
+     "criteria": {
+      "moved_up": "A step up in seniority, scope or responsibility",
+      "moved_sideways": "A different job at a similar level of seniority",
+      "same_job_reworded": "The same job and employer written differently, such as an abbreviation being spelled out or a team name added",
+      "moved_down_or_unclear": "A step down, a gap in employment, or not enough information to say"
+     }
+    },
+    {
+     "name": "new_budget_owner",
+     "type": "noul",
+     "instructions": "Does the role in `current` own a budget for `what_we_sell` that the role in `previous` did not?",
+     "criteria": {
+      "true": "The new role runs the function that would buy this, and the old role did not",
+      "false": "Buying power for this is unchanged, lower, or was already there before"
+     }
+    },
+    {
+     "name": "current_role_buys",
+     "type": "noul",
+     "instructions": "Is the role in `current` one whose holder decides whether to buy `what_we_sell`?",
+     "criteria": {
+      "true": "They run sales, revenue, growth or the whole company, so they would own this decision",
+      "false": "Their function does not buy this, even if the role is senior"
+     }
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "03-reply-classification",
+   "state_fields": [
+    "our_email",
+    "reply"
+   ],
+   "questions": [
+    {
+     "name": "intent",
+     "type": "choice",
+     "instructions": "What is the sender of `reply` telling us, in response to the cold email in `our_email`?",
+     "criteria": {
+      "interested": "Wants to talk, asks for a meeting, times or more information",
+      "not_now": "Open to it but explicitly later, or asks to be contacted again at a future time",
+      "referral": "Points us to a different person who handles this",
+      "objection": "Engages but pushes back on price, fit, timing or an existing vendor",
+      "not_interested": "Declines without asking to be removed",
+      "out_of_office": "An automatic away or out-of-office message",
+      "unsubscribe": "Asks to stop receiving emails or to be removed"
+     }
+    },
+    {
+     "name": "wants_removal",
+     "type": "noul",
+     "instructions": "Does `reply` ask, in any wording, to stop being contacted or to be removed from the list?",
+     "criteria": {
+      "true": "Any request to stop, remove, unsubscribe or not be contacted again",
+      "false": "No request to stop contact"
+     }
+    },
+    {
+     "name": "names_another_person",
+     "type": "noul",
+     "instructions": "Does `reply` name or point to a different person we should contact instead?",
+     "criteria": null
+    }
+   ],
+   "case_count": 5
+  },
+  {
+   "recipe": "04-inbound-lead-routing",
+   "state_fields": [
+    "lead",
+    "routing_policy"
+   ],
+   "questions": [
+    {
+     "name": "route",
+     "type": "choice",
+     "instructions": "Given the form submission in `lead` and the routing rules in `routing_policy`, where should this lead go?",
+     "criteria": {
+      "account_executive": "A qualified buyer with a real, near-term need",
+      "sdr_qualify": "Possibly a buyer, but the need, authority or timing is unclear",
+      "nurture": "Early research or a small company that is not ready to buy",
+      "partner_or_vendor": "Someone trying to sell to us, partner with us, or recruit",
+      "junk": "Spam, a test, a student, or nonsense"
+     }
+    },
+    {
+     "name": "urgency",
+     "type": "score",
+     "instructions": "How soon does the person in `lead` need a solution, based on what they wrote?",
+     "criteria": [
+      "No need stated, or just browsing",
+      "Exploring options with no timeline",
+      "Planning to act this quarter",
+      "Needs something now, with a deadline or a pain happening today"
+     ]
+    },
+    {
+     "name": "is_vendor_pitch",
+     "type": "noul",
+     "instructions": "Is the person in `lead` trying to sell something to us rather than buy from us?",
+     "criteria": null
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "05-connection-request-intent",
+   "state_fields": [
+    "invitation_message",
+    "what_we_sell"
+   ],
+   "questions": [
+    {
+     "name": "intent",
+     "type": "choice",
+     "instructions": "What does the sender of `invitation_message` want from us?",
+     "criteria": {
+      "pitching_us": "Wants to sell us a product or service",
+      "potential_buyer": "Describes a problem that `what_we_sell` solves, or asks about our services",
+      "peer_or_community": "Same industry, shared group or event, wants to connect as a peer",
+      "recruiting_or_job": "Hiring, or looking for a job",
+      "unclear": "Too short or generic to tell"
+     }
+    },
+    {
+     "name": "worth_a_reply",
+     "type": "noul",
+     "instructions": "Given `what_we_sell`, is `invitation_message` worth a personal reply?",
+     "criteria": {
+      "true": "A potential buyer, a warm intro or a relevant peer",
+      "false": "A pitch, spam, or nothing to respond to"
+     }
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "06-account-icp-scoring",
+   "state_fields": [
+    "company",
+    "exclusions",
+    "target_size"
+   ],
+   "questions": [
+    {
+     "name": "sells_b2b",
+     "type": "score",
+     "instructions": "How clearly does `company.description` show that this company sells to other businesses?",
+     "criteria": [
+      "Sells only to consumers, or the description says nothing about customers",
+      "Mostly consumers, with some business customers",
+      "Sells to both businesses and consumers",
+      "Sells mainly or only to businesses"
+     ]
+    },
+    {
+     "name": "needs_outbound",
+     "type": "score",
+     "instructions": "How much does the business in `company.description` depend on a sales team reaching new customers directly?",
+     "criteria": [
+      "Customers find and buy on their own, such as self-serve apps or retail",
+      "Mostly inbound or partner-led, with a small sales team",
+      "A sales team closes deals, but most leads come in by themselves",
+      "Growth depends on salespeople contacting buyers who did not ask first"
+     ]
+    },
+    {
+     "name": "size_fit",
+     "type": "choice",
+     "instructions": "Using `company.employees`, where does this company fall relative to `target_size`?",
+     "criteria": {
+      "too_small": null,
+      "in_range": null,
+      "too_large": null,
+      "unknown": "Size not given"
+     }
+    },
+    {
+     "name": "excluded",
+     "type": "noul",
+     "instructions": "Does the company in `company` match any of the exclusions in `exclusions`?",
+     "criteria": null
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "07-hiring-signals",
+   "state_fields": [
+    "job_post"
+   ],
+   "questions": [
+    {
+     "name": "building_outbound",
+     "type": "noul",
+     "instructions": "Does `job_post` show the company is building or rebuilding a team whose job is to contact prospective customers directly?",
+     "criteria": {
+      "true": "Hiring SDRs, BDRs, outbound AEs, or a leader to build that team",
+      "false": "Any other kind of hire, including account management for existing customers"
+     }
+    },
+    {
+     "name": "first_hire_in_function",
+     "type": "noul",
+     "instructions": "Does `job_post` suggest this is one of the first hires in this function at the company?",
+     "criteria": null
+    },
+    {
+     "name": "seniority_of_hire",
+     "type": "choice",
+     "instructions": "What level is the role in `job_post`?",
+     "criteria": {
+      "individual_contributor": null,
+      "manager": null,
+      "director_or_vp": null,
+      "executive": null
+     }
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "08-personalization-fact-check",
+   "state_fields": [
+    "first_line",
+    "source"
+   ],
+   "questions": [
+    {
+     "name": "supported",
+     "type": "choice",
+     "instructions": "Do the facts that `first_line` relies on appear in `source`? Ignore greetings and well-wishes; judge only the factual claim.",
+     "criteria": {
+      "supported": "The source states or clearly implies the claim",
+      "contradicted": "The source says something that conflicts with the claim",
+      "unsupported": "The source does not mention it; the claim may be invented"
+     }
+    },
+    {
+     "name": "sounds_creepy",
+     "type": "noul",
+     "instructions": "Does `first_line` bring up the recipient's private life?",
+     "criteria": {
+      "true": "Mentions health, illness, family members, children, relationships, religion or other personal matters, even if the person shared them publicly",
+      "false": "Refers only to their job, company, industry or professional achievements"
+     }
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "09-first-message-scoring",
+   "state_fields": [
+    "message",
+    "prospect"
+   ],
+   "questions": [
+    {
+     "name": "about_them",
+     "type": "score",
+     "instructions": "How much is `message` about `prospect` and their situation, rather than about the sender?",
+     "criteria": [
+      "Entirely about the sender, their product or their company",
+      "Mostly about the sender, with a generic nod to the prospect's industry or role",
+      "Refers to something specific about the prospect, but most of the message is the pitch",
+      "Built around something specific to the prospect, with the offer secondary"
+     ]
+    },
+    {
+     "name": "pitches_first_line",
+     "type": "noul",
+     "instructions": "Does the first sentence of `message` pitch a product, service or meeting?",
+     "criteria": null
+    },
+    {
+     "name": "reads_as_template",
+     "type": "noul",
+     "instructions": "Would `prospect` recognise `message` as a mass template sent to many people?",
+     "criteria": {
+      "true": "Generic flattery, merge-field phrasing, or lines that could be sent to anyone",
+      "false": "Could only have been written to this person"
+     }
+    },
+    {
+     "name": "clear_ask",
+     "type": "noul",
+     "instructions": "Does `message` end with one clear, low-effort question or request?",
+     "criteria": null
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "10-learn-from-inbox",
+   "state_fields": [
+    "opener"
+   ],
+   "questions": [
+    {
+     "name": "about_them",
+     "type": "score",
+     "instructions": "How much is `opener` about the recipient and their situation, rather than about the sender?",
+     "criteria": [
+      "Entirely about the sender, their product or their company",
+      "Mostly about the sender, with a generic nod to the recipient's industry or role",
+      "Refers to something specific about the recipient, but most of the message is the pitch",
+      "Built around something specific to the recipient, with the offer secondary"
+     ]
+    },
+    {
+     "name": "pitches_first_line",
+     "type": "noul",
+     "instructions": "Does the first sentence of `opener` pitch a product, service or meeting?",
+     "criteria": null
+    },
+    {
+     "name": "asks_a_question",
+     "type": "noul",
+     "instructions": "Does `opener` ask the recipient a genuine question about their situation?",
+     "criteria": null
+    },
+    {
+     "name": "references_a_trigger",
+     "type": "noul",
+     "instructions": "Does `opener` mention a specific recent event about the recipient, such as a new role, a post, a hire or a launch?",
+     "criteria": null
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "11-cold-icp-conversations",
+   "state_fields": [
+    "me",
+    "thread"
+   ],
+   "questions": [
+    {
+     "name": "buying_interest",
+     "type": "noul",
+     "instructions": "At any point in `thread`, did the other person show interest in buying, evaluating or learning about what `me` offers?",
+     "criteria": {
+      "true": "Asked about pricing, services, a call, or described a problem we solve",
+      "false": "Networking, small talk, hiring, or a pitch to us"
+     }
+    },
+    {
+     "name": "who_owes_reply",
+     "type": "choice",
+     "instructions": "Looking at the last message in `thread`, who should reply next?",
+     "criteria": {
+      "me": "The other person asked something or is waiting on us",
+      "them": "We asked something and are waiting on them",
+      "nobody": "The conversation reached a natural end"
+     }
+    },
+    {
+     "name": "topic",
+     "type": "choice",
+     "instructions": "What is `thread` mainly about?",
+     "criteria": {
+      "sales_conversation": "A possible deal for what `me` offers",
+      "networking": "Getting to know each other, intros, events",
+      "hiring_or_job": "Recruiting or job seeking",
+      "pitch_to_me": "The other person selling to us",
+      "other": null
+     }
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "12-warm-intro-finder",
+   "state_fields": [
+    "connection",
+    "target_account"
+   ],
+   "questions": [
+    {
+     "name": "path_to_buyer",
+     "type": "choice",
+     "instructions": "At the company in `target_account`, how is the person in `connection` related to the buyer described in `target_account.buyer`?",
+     "criteria": {
+      "is_the_buyer": "Their role is the buyer role, or one that owns this decision",
+      "leads_the_buyer": "Senior to the buyer, such as a founder, CEO or the executive the buyer reports to",
+      "same_team": "Works in the buyer's function, below or beside them",
+      "other_team": "Works elsewhere in the company and would have to find the buyer",
+      "unclear": "The title does not say enough"
+     }
+    },
+    {
+     "name": "intro_strength",
+     "type": "score",
+     "instructions": "How well placed is the person in `connection` to introduce us to the buyer in `target_account.buyer`?",
+     "criteria": [
+      "Works in an unrelated part of the company and likely does not know the buyer",
+      "Works nearby and may know the buyer by name",
+      "Works with the buyer regularly and could make a warm introduction",
+      "Is the buyer, or directly manages them, so no introduction is needed"
+     ]
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "14-social-signal-triage",
+   "state_fields": [
+    "post",
+    "what_we_sell"
+   ],
+   "questions": [
+    {
+     "name": "action",
+     "type": "choice",
+     "instructions": "Given `what_we_sell`, what should we do about `post`?",
+     "criteria": {
+      "engage": "The author describes a specific problem of their own, happening now, that we solve",
+      "monitor": "About our market or a debate on the topic, but the author states no problem of their own",
+      "ignore": "Unrelated, a tutorial, a job post, or someone promoting their own product"
+     }
+    },
+    {
+     "name": "author_is_buyer",
+     "type": "noul",
+     "instructions": "Does `post` suggest its author would be the one to buy `what_we_sell`?",
+     "criteria": null
+    },
+    {
+     "name": "self_promotion",
+     "type": "noul",
+     "instructions": "Is `post` mainly promoting the author's own product, service or content?",
+     "criteria": null
+    }
+   ],
+   "case_count": 4
+  },
+  {
+   "recipe": "15-pick-the-follow-up",
+   "state_fields": [
+    "templates",
+    "thread"
+   ],
+   "questions": [
+    {
+     "name": "next_step",
+     "type": "choice",
+     "instructions": "Given `thread`, which of our follow-ups in `templates` should we send next, or should we stop?",
+     "criteria": {
+      "bump": "They have not replied yet and it has been a few days; a short nudge fits",
+      "case_study": "They showed mild interest or asked how it works; proof would help",
+      "breakup": "Several follow-ups got no reply; a final polite close fits",
+      "answer_manually": "They asked a specific question that a template cannot answer",
+      "stop": "They declined, asked to stop, or the conversation is over"
+     }
+    }
+   ],
+   "case_count": 5
+  }
+ ]
+}

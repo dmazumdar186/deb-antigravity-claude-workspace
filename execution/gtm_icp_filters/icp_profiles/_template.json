@@ -1,0 +1,18 @@
+{
+  "offer": "One paragraph: what we sell and the outcome the buyer gets.",
+  "icp": "Prose: who buys (industry, company size, geography, role, stage).",
+  "personas": {
+    "economic_buyer": "Who owns the budget, e.g. VP/Head of Sales.",
+    "champion": "Who pushes for it internally, e.g. Sales Ops / RevOps manager.",
+    "user": "Who uses it day to day, e.g. SDRs."
+  },
+  "exclusions": "Prose: who we never contact (agencies, students, <5 employees ...).",
+  "timing": "Prose: when to reach out or not (holidays, mid-fundraise, just churned ...).",
+  "signals": {
+    "funding": "true when ...",
+    "hiring": "true when ...",
+    "job_change": "true when ..."
+  },
+  "customers": ["Customer name or domain"],
+  "competitors": "Prose: what a competitor looks like."
+}
