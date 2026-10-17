@@ -39,3 +39,4 @@ Tags: [preference] [technical] [learned] [pattern] [constraint]
 - [preference] Model tiers (operator order 2026-10-06): Jev routes each prompt to Sonnet 5.5 (bulk) / Opus 5.5 (standard) / Fable 5.1 (judgement). Haiku is never used; where a tutorial says Haiku, use Sonnet. `/jev off` before confidential prompts (prompt text goes to OpenRouter/TypeSafe).
 
 - [site-redesign] 2026-10-15: v3 prospectus renderer is the standard; v2-style static pages banned.
+- [learned] Code review (2026-10-17): Boris Cherny's `plugins/code-review` (anthropics/claude-code) and his later `/code-review low|medium` tweets map to the built-in `/code-review` skill already in this CLI. `agent-review` skill archived; its validate-then-report + false-positive list folded into `code-reviewer`. See `docs/reference/code_review_boris_comparison.md`.

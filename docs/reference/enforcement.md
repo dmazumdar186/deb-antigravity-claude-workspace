@@ -28,3 +28,7 @@ When bypassing, add a `**Enforcement bypass**: <one-line reason>` line to `HANDO
 
 - New SAST rules go in `execution/infrastructure/workspace_sast.py` as `_rule_<name>()` functions and register in `_NATIVE_RULES`. Anything returning severity `high` or `critical` will start blocking pushes on the next commit.
 - Hook config lives in `.claude/settings.json` (Stop, PreToolUse, PostToolUse, SessionStart). The `Stop` array holds the verdict-table check alongside the tada notification.
+
+## Code review tool of record (2026-10-17)
+
+Diff-level review uses the built-in `/code-review low` (Boris Cherny's daily tool; zero prefix cost). The workspace `code-reviewer` agent adds forbidden-pattern and data-safety checks. Comparison and rationale: `docs/reference/code_review_boris_comparison.md`.

@@ -39,7 +39,7 @@ working skill until you capture your own from a booking request.
 
 ## Runs as-is
 
-`add-webhook`, `agent-review`, `algorithmic-art`, `browser-stealth`, `casualize-names`, `classify-leads`, `cross-niche-outliers`, `design-website`, `diagram-generator`, `excalidraw-flowchart`, `generate-report`, `gmail-inbox`, `gmail-label`, `instantly-campaigns`, `internationalize-metadata`, `literature-research`, `local-server`, `model-chat`, `onboarding-kickoff`, `pan-3d-transition`, `prompt-contract`, `recreate-thumbnails`, `reverse-prompt`, `scrape-leads`, `stochastic-multi-agent-consensus`, `thumbnail-generator`, `title-variants`, `upwork-apply`, `video-edit`, `video-to-action`, `x-search`, `youtube-outliers`
+`add-webhook`, `algorithmic-art`, `browser-stealth`, `casualize-names`, `classify-leads`, `cross-niche-outliers`, `design-website`, `diagram-generator`, `excalidraw-flowchart`, `generate-report`, `gmail-inbox`, `gmail-label`, `instantly-campaigns`, `internationalize-metadata`, `literature-research`, `local-server`, `model-chat`, `onboarding-kickoff`, `pan-3d-transition`, `prompt-contract`, `recreate-thumbnails`, `reverse-prompt`, `scrape-leads`, `stochastic-multi-agent-consensus`, `thumbnail-generator`, `title-variants`, `upwork-apply`, `video-edit`, `video-to-action`, `x-search`, `youtube-outliers`
 
 ## Merged, not overwritten
 
@@ -49,7 +49,7 @@ was taken; the existing frontmatter was kept because it carries
 need. `allowed-tools` is the union of both — which is how `agent-review`
 gained `Task`, the one tool a skill about spawning sub-agents should have.
 
-- `agent-review`
+- `agent-review` (archived 2026-10-17 → `docs/reference/skills-archive/`; use built-in `/code-review`)
 - `prompt-contract`
 - `reverse-prompt`
 

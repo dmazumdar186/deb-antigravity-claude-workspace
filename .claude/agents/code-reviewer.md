@@ -77,15 +77,24 @@ These are auto-FAIL if found:
 - Over-abstraction for one-time operations
 - Unused imports or variables from a previous iteration
 
-### Step 5: Self-Verify
+### Step 5: Validate Every Finding (high-signal filter)
 
-Before finalizing, review your own findings:
-- Is each issue real, or am I misreading the code?
-- Did I check how the function is actually called before flagging an unused parameter?
-- Am I suggesting style changes that don't prevent bugs? Remove those.
-- Would a developer find each suggestion actionable?
+Pattern from Anthropic's `code-review` plugin (Boris Cherny): findings are generated first, then each one is
+re-checked as if by a separate validator before it is reported. For every candidate finding, re-open the code
+and confirm it with high confidence. Report only when one of these holds:
+- The code will fail to parse, import, or run (syntax, type, unresolved reference, missing import).
+- The code will definitely produce wrong results regardless of input (clear logic error).
+- A forbidden pattern from Step 3, or an unambiguous rule you can quote from CLAUDE.md / `.claude/rules/`.
 
-Remove any finding you're not confident about. Flag uncertain ones as "Potential issue" rather than definitive.
+Never report (these are false positives):
+- Pre-existing issues outside the files or diff you were asked to review.
+- Something that looks wrong but is correct once the caller is read.
+- Pedantic nits a senior engineer would not raise; style, docstrings, type hints.
+- Anything a linter or `ruff` will catch.
+- Potential issues that depend on a specific input or state you cannot show.
+- Issues explicitly silenced in code (a lint-ignore comment).
+
+If you are not certain a finding is real, drop it. False positives erode trust and cost a fix cycle.
 
 ## Output Format
 
@@ -108,8 +117,6 @@ For each file reviewed:
 ### Minor Notes (non-blocking)
 - Same format
 
-### What's Done Well
-- (1-2 things the code does right, if any)
 ```
 
 If reviewing multiple files, give each its own section. End with:
@@ -125,5 +132,5 @@ Critical issues to fix before shipping: (count)
 - Every issue MUST include a concrete fix direction, not just "this is wrong."
 - Don't suggest adding docstrings, type hints, or comments unless they hide a bug.
 - Don't rewrite the code. Flag the problem, explain why, suggest the fix.
-- Acknowledge good patterns when you see them. Reviews shouldn't be purely negative.
 - If you find zero issues, say PASS with confidence. Don't invent problems to justify your existence.
+- Diff-only review with no workspace rules needed? The caller should have used the built-in `/code-review low` instead; this agent exists for the forbidden-pattern and data-safety checks above.
