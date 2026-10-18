@@ -42,7 +42,7 @@ directives, skills, hooks, agents, and MCP servers intact.
 - `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/rules/`,
   `.claude/workflows/`, `.claude/notes/`
 - `.mcp.json` — github / firecrawl / tavily / 21st MCP servers, keyed by `${GITHUB_PAT}`,
-  `${FIRECRAWL_API_KEY}`, `${TAVILY_API_KEY}`, `${API_KEY_21ST}` from the cloud environment vars
+  `${FIRECRAWL_API_KEY}`, `${TAVILY_API_KEY}`, `${DEV_API_KEY}` from the cloud environment vars
   (21st: `directives/infrastructure/twentyfirst_dev.md`)
 
 ## What does NOT carry over (local-only by design)

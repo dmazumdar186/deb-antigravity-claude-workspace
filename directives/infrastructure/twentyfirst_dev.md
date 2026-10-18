@@ -3,7 +3,7 @@
 **Created 2026-10-18.** 21st.dev is a registry of ~12k React + TypeScript + Tailwind + shadcn/ui
 components, templates and themes. Components are copied into the repo (no runtime dependency).
 Wired in as the `21st` server in `.mcp.json` (HTTP, `https://21st.dev/api/mcp`, header
-`x-api-key: ${API_KEY_21ST}`), so it is available to every client that reads that file: Claude Code
+`x-api-key: ${DEV_API_KEY}`), so it is available to every client that reads that file: Claude Code
 CLI, cloud sessions, and the Claude browser extension.
 
 ## Goal
@@ -13,7 +13,7 @@ interactive components and visual inspiration, without replacing original design
 
 ## Inputs
 
-- `API_KEY_21ST` — create at https://21st.dev/mcp. Local: `.env`. Cloud: environment variables
+- `DEV_API_KEY` — create at https://21st.dev/mcp. Local: `.env`. Cloud: environment variables
   box (`directives/infrastructure/claude_code_web.md`). Missing key → server fails to connect;
   the session still works, just without the tools.
 - Re-print the config any time with `npx @21st-dev/cli@latest init --client claude` (`--write`
