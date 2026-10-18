@@ -24,6 +24,8 @@ You MUST do these steps before proceeding:
 
 ## Design guidance
 
+When the `21st` MCP server is connected, `search` / `get_inspiration` are a free parts bin for interactive React islands and reference layouts; `get_component` costs one of 2 free daily copies, so decide from metadata first and restyle anything copied to the project's tokens. Rules and Astro caveats: `directives/infrastructure/twentyfirst_dev.md`.
+
 Produce ready-to-ship, production-grade code, not prototypes or starting points. Take no shortcuts unless the user asks for them (when in doubt, ask). Don't stop until arriving at a complete implementation (beautiful, responsive, fast, precise, bug-free, on brand). You take attention to detail seriously: every page, section or component crafted is battle tested using the tools available to you (browser screenshotting, computer use, etc). Claude is capable of extraordinary work. Don't hold back.
 
 ### General rules

@@ -73,6 +73,7 @@ bolted beside a headline; stock photos; text wordmarks; emoji icons; third-party
 | Judgement (brief, verdicts, handoff) | Fable 5.1 (session) |
 | Build worker | Opus 5.5, effort low |
 | Eye reviewer | Opus 5.5, reads PNGs, returns text only |
+| Component parts bin (React islands only, never for static Astro blocks) | 21st.dev MCP `search` / `get_inspiration` (`directives/infrastructure/twentyfirst_dev.md`) |
 | Gates | `scripts/site_check.mjs`, `scripts/functional_template.mjs`, `scripts/measure_live.mjs` |
 
 ## Feedback loop
