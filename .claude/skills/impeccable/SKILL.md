@@ -77,6 +77,13 @@ Produce ready-to-ship, production-grade code, not prototypes or starting points.
   - **Full palette**: 3–4 named roles, each used deliberately. Brand campaigns; product data viz.
   - **Drenched**: the surface IS the color. Brand heroes, campaign pages.
 
+### 21st.dev components (product register only, noted 2026-10-18)
+
+21st.dev (YC W26) is a React + TypeScript + Tailwind registry on shadcn/ui primitives, with a Claude Code plugin (`claude plugin marketplace add 21st-dev/magic-mcp` then `/plugin install 21st`) and an agent skill (`npx skills add 21st-dev/skill`). Installs run through the shadcn CLI and need a paid membership; browsing and 2 copies per day are free.
+- **Use it** for `reference/product.md` work on a React/Tailwind stack: dashboards, admin, forms, chat and agent UI (its Agent Elements registry). Treat each component as a starting point: retheme to the project's tokens (step 3), then run the slop test.
+- **Never** for brand-register work or the `site-redesign` prospectus pipeline (vanilla HTML/CSS/JS, 150 KB budget, no third-party JS, no stacked marketplace sections). There, open a component page, use "Copy prompt", and have a worker rebuild the idea in vanilla code.
+- Not installed in this workspace; add the MCP to `.mcp.json` only when a project needs it and the membership exists.
+
 ### Absolute bans
 
 Match-and-refuse. If you're about to write any of these, rewrite the element with different structure.
