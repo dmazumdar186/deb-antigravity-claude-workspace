@@ -8,3 +8,21 @@
       in_progress
       in_progress
       in_progress
+      in_progress
+      in_progress
+      in_progress
+      in_progress
+      in_progress
+      in_progress
+      in_progress
+      in_progress
+      in_progress
+      completed
+…  downloaded prodcraft-raw.mp4: 5726 KB
+ffmpeg failed: [Parsed_crop_0 @ 0x55dc53a49680] Invalid too big or non positive size for width '1024' or height '1280'
+[Parsed_crop_0 @ 0x55dc53a49680] Failed to configure input pad on Parsed_crop_0
+[vf#0:0 @ 0x55dc5391e540] Error reinitializing filters!
+Failed to inject frame into filter network: Invalid argument
+Error while filtering: Invalid argument
+[out#0/mp4 @ 0x55dc53962d80] Nothing was written into output file, because at least one of its streams received no packets.
+

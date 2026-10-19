@@ -5,15 +5,15 @@
  "poster": "hero.jpg",
  "seconds": 10,
  "fps": 30,
- "source": "kling-video/v3.0 via Higgsfield, 2026-10-19",
+ "source": "kling-video/v3.0 via Higgsfield, 2026-10-19; landscape 16:9 cropped, portrait native 9:16",
  "sizes": {
   "hero": {
    "mp4": 618007,
    "webm": 149711
   },
   "hero-m": {
-   "mp4": 623548,
-   "webm": 171883
+   "mp4": 296214,
+   "webm": 77834
   }
  }
 }
