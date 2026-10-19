@@ -20,10 +20,10 @@
     "stack": 881,
     "how": 853,
     "recs": 1063,
-    "contact": 561
+    "contact": 584
   },
   "sizes": {
-    "html": 36711,
+    "html": 37106,
     "css": 45609,
     "js": 18552,
     "backdrop": 5387
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":36711,\"css\":45609,\"js\":18552,\"backdrop\":5387}"
+      "info": "{\"html\":37106,\"css\":45609,\"js\":18552,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -150,12 +150,12 @@
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
       "ok": true,
-      "info": "{\"who\":1369,\"systems\":1791,\"build\":1158,\"stack\":881,\"how\":853,\"recs\":1063,\"contact\":561}"
+      "info": "{\"who\":1369,\"systems\":1791,\"build\":1158,\"stack\":881,\"how\":853,\"recs\":1063,\"contact\":584}"
     },
     {
       "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
       "ok": true,
-      "info": "{\"tabIn\":true,\"fade\":\"40px\",\"lastBottom\":629,\"barTop\":774}"
+      "info": "{\"tabIn\":true,\"fade\":\"40px\",\"lastBottom\":628,\"barTop\":774}"
     },
     {
       "name": "Pixel 7: no horizontal overflow",
