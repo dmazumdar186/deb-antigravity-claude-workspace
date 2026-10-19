@@ -74,7 +74,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,summary:focus-visi
 .cplate--portrait{width:auto;max-width:calc(var(--s) * 250)}
 .cplate--portrait img{width:auto;max-width:100%;aspect-ratio:4/5;object-position:center 20%;max-height:calc(100svh - var(--hdr) - var(--s) * 280 - calc(var(--s) * 60))}
 .cplate img{max-height:calc(100svh - var(--hdr) - var(--s) * 280 - calc(var(--s) * 60))}
-.cplate figcaption{margin:8px 2px 2px;font:500 calc(var(--s) * 10.5)/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.cplate figcaption{width:0;min-width:100%;box-sizing:border-box;margin:8px 2px 2px;font:500 calc(var(--s) * 10.5)/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
 .cover[data-cur="0"] [data-plate="1"],.cover[data-cur="1"] [data-plate="1"],.cover[data-cur="2"] [data-plate="2"],.cover[data-cur="3"] [data-plate="3"],.cover[data-cur="4"] [data-plate="4"]{opacity:1;transform:none}
 .cover__body{position:relative;z-index:2;padding:calc(var(--hdr) + 24px) var(--gutter) calc(var(--s) * 44 + 15vh);max-width:calc(var(--s) * 980)}
 @media (min-width:2560px){.cover__body{max-width:calc(var(--s) * 1100)}}
@@ -381,3 +381,6 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 .deck,.dp{scroll-margin-top:calc(var(--hdr) + 66px)}
 @media (max-width:767px){.hdr:not(.over){background:#f7f3ec;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (max-width:767px) and (min-height:780px){.cover__pin{grid-template-rows:1fr auto;align-content:stretch}.cover__body{align-self:start;padding-top:20vh}}
+
+/* short viewports (landscape phones, small landscape tablets): no room for a plate beside the copy */
+@media (max-height:640px) and (min-width:768px){.cover__plates{display:none}}
