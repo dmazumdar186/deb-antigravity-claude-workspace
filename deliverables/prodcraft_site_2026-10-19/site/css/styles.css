@@ -532,3 +532,20 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 @media (min-width:2200px){.hdr__cta{font-size:calc(var(--s) * 14);min-height:calc(var(--s) * 44);padding:0 calc(var(--s) * 22)}}
 /* flat ledgers: heading clears the fixed header even at the section's own offset */
 @media (max-width:767px),(orientation:portrait) and (min-width:768px),(max-height:500px) and (min-width:768px){.fold__pin{padding-top:calc(var(--hdr) + 20px)!important}}
+/* ================= round 3 ================= */
+@media (orientation:portrait) and (min-width:768px){
+  .cover{margin-bottom:0}
+  .fold__pin{padding-bottom:32px}
+  .fold__head{display:block;width:min(680px,100%);margin:0 auto 20px}
+  .turn{display:none!important}
+  .fold__spread{flex-direction:column;align-items:stretch;gap:24px;overflow:visible;scroll-snap-type:none;width:min(680px,calc(100% - 2 * var(--gutter)));margin:0 auto;padding:0}
+  .panel{flex:none;width:100%;height:auto}
+}
+@media (max-width:767px),(max-height:500px) and (min-width:768px){.fold__spread{align-items:flex-start}.panel{height:auto}}
+@media (max-width:767px){.fold__pin{padding-top:48px!important}.dp > :last-child{margin-bottom:81px}}
+.deck__panels{min-height:0!important;justify-content:flex-start;padding:20px 0 40px}
+.dp h2{scroll-margin-top:calc(var(--hdr) + var(--navh,66px) + 12px)}
+/* round 5 — plate never below 220 px where height allows; 2-line captions */
+@media (min-width:768px) and (min-height:700px) and (orientation:landscape){.cplate--portrait{min-width:calc(222px + var(--s) * 12)}}
+.cplate figcaption{font-size:clamp(10px,.6vw,13px);letter-spacing:.08em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media (orientation:portrait) and (min-width:768px){.deck__panels{padding:20px 0 48px}}
