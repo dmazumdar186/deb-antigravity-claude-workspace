@@ -70,10 +70,11 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,summary:focus-visi
 .cover__grain{position:absolute;inset:0;pointer-events:none;background:radial-gradient(110% 80% at 75% 15%,rgba(200,163,92,.10),transparent 60%),linear-gradient(to top,rgba(22,24,28,.85),transparent 55%)}
 .cover__plates{position:absolute;inset:0;z-index:1;pointer-events:none}
 .cplate{position:absolute;right:var(--gutter);top:auto;bottom:calc(var(--s) * 280);width:calc(var(--s) * 340);margin:0;padding:calc(var(--s) * 6);border:1px solid rgba(247,243,236,.5);background:rgba(247,243,236,.05);opacity:0;transform:translateX(40px) scale(.96);transition:opacity .45s var(--ease),transform .45s var(--ease)}
-.cplate img{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top}
-.cplate--portrait{width:auto;max-width:calc(var(--s) * 250)}
-.cplate--portrait img{width:auto;max-width:100%;aspect-ratio:4/5;object-position:center 20%;max-height:calc(100svh - var(--hdr) - var(--s) * 280 - calc(var(--s) * 60))}
-.cplate img{max-height:calc(100svh - var(--hdr) - var(--s) * 280 - calc(var(--s) * 60))}
+/* Frame is derived from the image: width = min(design width, what the available height allows at the fixed ratio); the img is always 100% of the frame, so photo and border coincide on every screen. */
+.cplate{--avail:calc(100svh - var(--hdr) - var(--s) * 280 - var(--s) * 72);width:min(calc(var(--s) * 340),calc(var(--avail) * 16 / 10))}
+.cplate img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;object-position:top}
+.cplate--portrait{width:min(calc(var(--s) * 250),calc(var(--avail) * 4 / 5))}
+.cplate--portrait img{aspect-ratio:4/5;object-position:center 20%}
 .cplate figcaption{width:0;min-width:100%;box-sizing:border-box;margin:8px 2px 2px;font:500 calc(var(--s) * 10.5)/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
 .cover[data-cur="0"] [data-plate="1"],.cover[data-cur="1"] [data-plate="1"],.cover[data-cur="2"] [data-plate="2"],.cover[data-cur="3"] [data-plate="3"],.cover[data-cur="4"] [data-plate="4"]{opacity:1;transform:none}
 .cover__body{position:relative;z-index:2;padding:calc(var(--hdr) + 24px) var(--gutter) calc(var(--s) * 44 + 15vh);max-width:calc(var(--s) * 980)}
