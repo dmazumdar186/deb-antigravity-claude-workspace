@@ -493,3 +493,42 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 .plate img{object-fit:contain;object-position:center;background:transparent}
 .plate--dark{background:#16181c}.plate--paper{background:#f7f3ec}
 .cplate img{object-position:center}
+/* ================= round 2 (portrait ≥768 + small items) ================= */
+/* 3 — receipt fills its frame */
+.plate,.plate--dark,.plate--paper{flex:none;padding:0;border:0;background:none;box-shadow:0 1px 0 var(--line)}
+.plate img{width:100%;height:auto;aspect-ratio:16/10;object-fit:cover}
+.ledger-rows--plate{margin-top:auto}
+/* 1 — portrait tablets/TV: contained snap row with arrows + dots */
+@media (orientation:portrait) and (min-width:768px){
+  .fold__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+  .turn{display:flex}
+  .fold__spread{margin:0 calc(-1 * var(--gutter));padding:0 var(--gutter) 12px;scroll-padding-inline:var(--gutter);width:auto;max-width:none}
+  .panel{flex:0 0 min(520px,78vw);scroll-snap-align:start}
+  .fold__pin{padding:28px var(--gutter) 40px}
+}
+@media (max-height:500px) and (min-width:568px){.fold__spread{padding-inline:24px;scroll-padding-inline:24px;margin-inline:calc(-1 * var(--gutter))}}
+/* 2 — portrait cover: centred body, plate beside the headline, rail under it */
+@media (orientation:portrait) and (min-width:768px){
+  .cover{--ph:calc(var(--pw) * 1.25 + 44px);--stack:calc(var(--ph) + 24px + 210px)}
+  .cover__pin{align-items:center;align-content:center}
+  .cover__body{align-self:center;padding:calc(var(--hdr) + 16px) var(--gutter) 24px}
+  .cover__beats{display:grid;min-height:0}
+  .beat{position:relative;grid-area:1/1;inset:auto}
+  .cplate,.cplate--portrait{top:calc(50% - var(--stack) / 2);bottom:auto;width:var(--pw)}
+  .rail{position:absolute;right:var(--gutter);top:calc(50% - var(--stack) / 2 + var(--ph) + 24px);width:var(--pw);padding:0}
+  .cover__hint{bottom:24px}
+}
+/* 5 — short landscape stages: one step smaller, never cut mid-row */
+@media (max-height:640px) and (min-width:768px) and (orientation:landscape){
+  .panel{gap:5px;padding:12px}
+  .panel .h3{font-size:16px}.panel__big{font-size:40px;padding-top:8px}.panel__metric{font-size:12px}
+  .ledger-rows{font-size:11.5px}.ledger-rows li{padding:4px 0}.panel__quote{display:none}
+  .panel{-webkit-mask-image:linear-gradient(#000 92%,transparent);mask-image:linear-gradient(#000 92%,transparent)}
+}
+/* 6 — deck heading never under the tab row; last card clears the bar */
+.dp__head,.dp .chapter-mark{scroll-margin-top:calc(var(--hdr) + var(--navh,66px) + 12px)}
+@media (max-width:767px){.dp > :last-child{margin-bottom:24px}}
+/* 7 — 4K header pill scales like the logo */
+@media (min-width:2200px){.hdr__cta{font-size:calc(var(--s) * 14);min-height:calc(var(--s) * 44);padding:0 calc(var(--s) * 22)}}
+/* flat ledgers: heading clears the fixed header even at the section's own offset */
+@media (max-width:767px),(orientation:portrait) and (min-width:768px),(max-height:500px) and (min-width:768px){.fold__pin{padding-top:calc(var(--hdr) + 20px)!important}}

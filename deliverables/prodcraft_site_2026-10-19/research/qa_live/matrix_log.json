@@ -2,7 +2,7 @@
  {
   "tag": "phone-390x844",
   "w": 390,
-  "h": 4494,
+  "h": 4582,
   "overflowX": false,
   "plate": {
    "top": 0,
@@ -29,7 +29,7 @@
  {
   "tag": "phone-412x915",
   "w": 412,
-  "h": 4560,
+  "h": 4648,
   "overflowX": false,
   "plate": {
    "top": 0,
@@ -56,7 +56,7 @@
  {
   "tag": "phone-360x640",
   "w": 360,
-  "h": 4194,
+  "h": 4282,
   "overflowX": false,
   "plate": {
    "top": 0,
@@ -83,7 +83,7 @@
  {
   "tag": "phone-land-844x390",
   "w": 844,
-  "h": 2669,
+  "h": 2680,
   "overflowX": false,
   "plate": {
    "top": 0,
@@ -110,7 +110,7 @@
  {
   "tag": "tablet-s-600x960",
   "w": 600,
-  "h": 4405,
+  "h": 4580,
   "overflowX": false,
   "plate": {
    "top": 0,
@@ -164,14 +164,14 @@
  {
   "tag": "ipad-820x1180",
   "w": 820,
-  "h": 4791,
+  "h": 4911,
   "overflowX": false,
   "plate": {
-   "top": 593.640625,
-   "bottom": 898,
+   "top": 317.75,
+   "bottom": 622.109375,
    "w": 213.1875,
    "imgW": 199.1875,
-   "imgTop": 600.640625,
+   "imgTop": 324.75,
    "visible": true
   },
   "hdrBottom": 64,
@@ -218,14 +218,14 @@
  {
   "tag": "ipadpro-1024x1366",
   "w": 1024,
-  "h": 5464,
+  "h": 5491,
   "overflowX": false,
   "plate": {
-   "top": 721.125,
-   "bottom": 1084,
+   "top": 381.5,
+   "bottom": 744.375,
    "w": 260,
    "imgW": 246,
-   "imgTop": 728.125,
+   "imgTop": 388.5,
    "visible": true
   },
   "hdrBottom": 64,
@@ -464,11 +464,11 @@
   "h": 7680,
   "overflowX": false,
   "plate": {
-   "top": 1275.125,
-   "bottom": 1638,
+   "top": 658.5,
+   "bottom": 1021.375,
    "w": 260,
    "imgW": 246,
-   "imgTop": 1282.125,
+   "imgTop": 665.5,
    "visible": true
   },
   "hdrBottom": 64,

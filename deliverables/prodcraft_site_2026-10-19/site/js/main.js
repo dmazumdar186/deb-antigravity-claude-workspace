@@ -46,7 +46,7 @@
     applyCover(clamp(-r.top / track, 0, 1));
     if (hdr) { var out = parseFloat(cover.style.getPropertyValue('--out') || '0'); hdr.classList.toggle('over', r.bottom > 64 && out < 1); }
     cover.classList.add('is-moving'); clearTimeout(moveTimer); moveTimer = setTimeout(function () { cover.classList.remove('is-moving'); }, 900);
-    if (r.bottom > window.innerHeight * 0.5) setChapter('00', 'Cover');
+    if (r.bottom > window.innerHeight * 0.5 && !cover.classList.contains('is-out')) setChapter('00', 'Cover');
   }
   if (canvas && BD()) {
     try { BD().init(canvas, { seed: 20261019, dpr: reduced ? 1 : (window.innerWidth < 768 ? 1.25 : 1.5), reducedMotion: reduced, autoplay: !REC }); backdropOn = true; } catch (err) { backdropOn = false; }
@@ -80,7 +80,7 @@
     if (!fold || !spread) return;
     var r = fold.getBoundingClientRect(), track = fold.offsetHeight - window.innerHeight;
     if (mbar) mbar.classList.toggle('is-on', !!(cover && cover.classList.contains('is-out')) || r.top < 0);
-    if (flat()) { var mo = clamp((window.innerHeight * 0.85 - r.top) / (window.innerHeight * 0.15), 0, 1); if (cover) { cover.style.setProperty('--out', mo.toFixed(3)); cover.classList.toggle('is-out', mo >= 1); } if (mbar) mbar.classList.toggle('is-on', mo >= 1); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) setChapter('01', 'The ledger'); return; }
+    if (flat()) { if (r.top < window.innerHeight * 0.7 && r.bottom > window.innerHeight * 0.3) setChapter('01', 'The ledger'); var mo = clamp((window.innerHeight * 0.85 - r.top) / (window.innerHeight * 0.15), 0, 1); if (cover) { cover.style.setProperty('--out', mo.toFixed(3)); cover.classList.toggle('is-out', mo >= 1); } if (mbar) mbar.classList.toggle('is-on', mo >= 1); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) setChapter('01', 'The ledger'); return; }
     if (track <= 0) return;
     var p = clamp(-r.top / track, 0, 1), e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
     if (!reduced) spread.style.setProperty('--fold', e.toFixed(4));
@@ -102,10 +102,14 @@
   if (sheets.length) {
     if (desktopFold()) turn(0);
     var tp = $('[data-turn-prev]'), tn = $('[data-turn-next]');
-    if (tp) tp.addEventListener('click', function () { turn(sheetI - 1); });
-    if (tn) tn.addEventListener('click', function () { turn(sheetI + 1); });
-    dots.forEach(function (d, k) { d.addEventListener('click', function () { turn(k); }); });
-    if (spread) spread.addEventListener('keydown', function (e) { if (!desktopFold()) return; if (e.key === 'ArrowRight') { e.preventDefault(); turn(sheetI + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); turn(sheetI - 1); } });
+    var cards = $$('.panel', spread);
+    function step(dir) { if (!spread) return; var c = cards[0], w = c ? c.getBoundingClientRect().width + 14 : 300; spread.scrollBy({ left: dir * w, behavior: reduced ? 'auto' : 'smooth' }); }
+    function flatDots() { if (!spread || !cards[3]) return; var half = spread.scrollLeft + spread.clientWidth / 2 > cards[3].offsetLeft ? 1 : 0; dots.forEach(function (d, k) { d.setAttribute('aria-selected', k === half ? 'true' : 'false'); }); }
+    if (spread) spread.addEventListener('scroll', function () { if (flat()) flatDots(); }, { passive: true });
+    if (tp) tp.addEventListener('click', function () { if (flat()) step(-1); else turn(sheetI - 1); });
+    if (tn) tn.addEventListener('click', function () { if (flat()) step(1); else turn(sheetI + 1); });
+    dots.forEach(function (d, k) { d.addEventListener('click', function () { if (flat()) { var c = cards[k * 3]; if (c && spread) spread.scrollTo({ left: c.offsetLeft - spread.offsetLeft - parseFloat(getComputedStyle(spread).paddingLeft), behavior: reduced ? 'auto' : 'smooth' }); } else turn(k); }); });
+    if (spread) spread.addEventListener('keydown', function (e) { var f = flat(); if (e.key === 'ArrowRight') { e.preventDefault(); if (f) step(1); else turn(sheetI + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); if (f) step(-1); else turn(sheetI - 1); } });
   }
 
   /* ---------- scroll loop ---------- */

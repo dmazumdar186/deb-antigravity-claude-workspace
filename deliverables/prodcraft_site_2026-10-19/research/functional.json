@@ -3,7 +3,7 @@
   "pass": 33,
   "total": 33,
   "desktopHeight": 5964,
-  "mobileHeight": 4389,
+  "mobileHeight": 4477,
   "panelHeightsDesktop": {
     "who": 458,
     "systems": 822,
@@ -14,18 +14,18 @@
     "contact": 583
   },
   "panelHeightsMobile": {
-    "who": 1288,
-    "systems": 1710,
-    "build": 1077,
-    "stack": 800,
-    "how": 772,
-    "recs": 982,
-    "contact": 480
+    "who": 1312,
+    "systems": 1734,
+    "build": 1101,
+    "stack": 824,
+    "how": 796,
+    "recs": 1006,
+    "contact": 504
   },
   "sizes": {
-    "html": 35957,
-    "css": 39927,
-    "js": 16154,
+    "html": 36450,
+    "css": 42734,
+    "js": 17185,
     "backdrop": 5387
   },
   "results": [
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":35957,\"css\":39927,\"js\":16154,\"backdrop\":5387}"
+      "info": "{\"html\":36450,\"css\":42734,\"js\":17185,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -131,7 +131,7 @@
     {
       "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
       "ok": true,
-      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"h2\",\"bg\":\"rgb(247, 243, 236)\",\"hdrBg\":\"rgb(247, 243, 236)\"}"
+      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"fold__pin\",\"bg\":\"rgb(247, 243, 236)\",\"hdrBg\":\"rgb(247, 243, 236)\"}"
     },
     {
       "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
@@ -145,17 +145,17 @@
     {
       "name": "mobile page height ≤ 12,000 px",
       "ok": true,
-      "info": "4389 px"
+      "info": "4477 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
       "ok": true,
-      "info": "{\"who\":1288,\"systems\":1710,\"build\":1077,\"stack\":800,\"how\":772,\"recs\":982,\"contact\":480}"
+      "info": "{\"who\":1312,\"systems\":1734,\"build\":1101,\"stack\":824,\"how\":796,\"recs\":1006,\"contact\":504}"
     },
     {
       "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
       "ok": true,
-      "info": "{\"tabIn\":true,\"fade\":\"40px\",\"lastBottom\":710,\"barTop\":774}"
+      "info": "{\"tabIn\":true,\"fade\":\"40px\",\"lastBottom\":686,\"barTop\":774}"
     },
     {
       "name": "Pixel 7: no horizontal overflow",
