@@ -1,0 +1,19 @@
+{
+ "ready": true,
+ "landscape": "hero.mp4",
+ "portrait": "hero-m.mp4",
+ "poster": "hero.jpg",
+ "seconds": 10,
+ "fps": 30,
+ "source": "kling-video/v3.0 via Higgsfield, 2026-10-19",
+ "sizes": {
+  "hero": {
+   "mp4": 204255,
+   "webm": 146537
+  },
+  "hero-m": {
+   "mp4": 97497,
+   "webm": 66122
+  }
+ }
+}

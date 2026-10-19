@@ -1,0 +1,189 @@
+{
+  "date": "2026-10-19",
+  "pass": 32,
+  "total": 32,
+  "desktopHeight": 5918,
+  "mobileHeight": 4307,
+  "panelHeightsDesktop": {
+    "who": 458,
+    "systems": 822,
+    "build": 411,
+    "stack": 339,
+    "how": 328,
+    "recs": 486,
+    "contact": 583
+  },
+  "panelHeightsMobile": {
+    "who": 1288,
+    "systems": 1710,
+    "build": 1077,
+    "stack": 800,
+    "how": 772,
+    "recs": 982,
+    "contact": 480
+  },
+  "sizes": {
+    "html": 35647,
+    "css": 28452,
+    "js": 15028,
+    "backdrop": 5387
+  },
+  "results": [
+    {
+      "name": "cover beats change at 25/50/75% of the track",
+      "ok": true,
+      "info": "0,1,2,3,4"
+    },
+    {
+      "name": "video plays (or canvas fallback runs)",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"http://localhost:8793/assets/hero.webm\",\"canvasVisible\":false}"
+    },
+    {
+      "name": "fold-out hinge transform changes with scroll",
+      "ok": true,
+      "info": "matrix3d(-0.766044, 0, 0.64278 → matrix3d(0.34202, 0, 0.939693, → matrix(1, 0, 0, 1, 0, 0)"
+    },
+    {
+      "name": "fold-out fully open by track end",
+      "ok": true,
+      "info": "{\"tf\":\"matrix(1, 0, 0, 1, 0, 0)\",\"fold\":\"1.0000\",\"open\":true}"
+    },
+    {
+      "name": "each chapter tab switches the panel and updates the hash",
+      "ok": true,
+      "info": "systems:systems#systems | build:build#build | stack:stack#stack | how:how#how | recs:recs#recs | contact:contact#contact | who:who#who"
+    },
+    {
+      "name": "back button restores the previous panel",
+      "ok": true,
+      "info": "contact #contact"
+    },
+    {
+      "name": "header chapter indicator follows the deck",
+      "ok": true,
+      "info": "08 Contact"
+    },
+    {
+      "name": "keyboard ArrowRight wraps to the first chapter",
+      "ok": true,
+      "info": "who"
+    },
+    {
+      "name": "deep link /#<id> opens the panel",
+      "ok": true
+    },
+    {
+      "name": "gallery dialog opens and closes",
+      "ok": true,
+      "info": "{\"open\":true,\"n\":1,\"title\":\"SaaS GTM recruiter, London — concept\"}"
+    },
+    {
+      "name": "counters settle on the exact published values",
+      "ok": true,
+      "info": "$1M+,+45%,<30 days,$1M+,$200K/yr,+45%,−55%,95%,8 min,14 days,$10K/wk,12+,21,977,1,900,68%"
+    },
+    {
+      "name": "cover end: last beat held into the overlap, photo plate shown, fold-out arrived by track end (no empty viewport)",
+      "ok": true,
+      "info": "{\"beatOn\":true,\"beatOpacity\":\"1\",\"bodyOpacity\":\"0.9\",\"foldTop\":0,\"enter\":\"0.050\",\"plate\":\"1\",\"enterAtEnd\":\"1.000\"}"
+    },
+    {
+      "name": "fade sequence: cover text at 0 before chapter headline passes 0.1",
+      "ok": true,
+      "info": "{\"foldText\":\"0.111\",\"coverBody\":\"0\",\"coverVis\":\"hidden\",\"logoHidden\":\"visible\"}"
+    },
+    {
+      "name": "deck panels ≤ 1 viewport (900) on desktop",
+      "ok": true,
+      "info": "{\"who\":458,\"systems\":822,\"build\":411,\"stack\":339,\"how\":328,\"recs\":486,\"contact\":583}"
+    },
+    {
+      "name": "desktop page height ≤ 9,000 px",
+      "ok": true,
+      "info": "5918 px"
+    },
+    {
+      "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
+      "ok": true,
+      "info": "{\"html\":35647,\"css\":28452,\"js\":15028,\"backdrop\":5387}"
+    },
+    {
+      "name": "desktop: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mobile cover beats",
+      "ok": true,
+      "info": "0,1,2,3,4"
+    },
+    {
+      "name": "mobile uses the portrait video (hero-m.mp4) or canvas",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"src\":\"hero-m.webm\"}"
+    },
+    {
+      "name": "mobile fold-out is a horizontal snap-scroll (no 3D)",
+      "ok": true,
+      "info": "{\"snap\":\"x mandatory\",\"overflow\":\"auto\",\"scrollW\":2332,\"clientW\":412,\"tf\":\"none\",\"scrolledTo\":384}"
+    },
+    {
+      "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
+      "ok": true,
+      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"MAIN\",\"bg\":\"rgb(247, 243, 236)\",\"hdrBg\":\"rgb(247, 243, 236)\"}"
+    },
+    {
+      "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
+      "ok": true,
+      "info": "{\"panelW\":372,\"vw\":412,\"docW\":412,\"padB\":100,\"barH\":65,\"overlap\":210}"
+    },
+    {
+      "name": "mobile bottom bar appears after the cover CTA scrolls out",
+      "ok": true
+    },
+    {
+      "name": "mobile page height ≤ 12,000 px",
+      "ok": true,
+      "info": "4307 px"
+    },
+    {
+      "name": "mobile deck panels ≤ 2 viewports (1830)",
+      "ok": true,
+      "info": "{\"who\":1288,\"systems\":1710,\"build\":1077,\"stack\":800,\"how\":772,\"recs\":982,\"contact\":480}"
+    },
+    {
+      "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
+      "ok": true,
+      "info": "{\"tabIn\":true,\"fade\":\"56px\",\"lastBottom\":628,\"barTop\":774}"
+    },
+    {
+      "name": "Pixel 7: no horizontal overflow",
+      "ok": true,
+      "info": "0 px"
+    },
+    {
+      "name": "mobile: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "/book present in _redirects and no cal.com in HTML",
+      "ok": true
+    },
+    {
+      "name": "no gmail anywhere in the site",
+      "ok": true
+    },
+    {
+      "name": "persona switch changes 08 headline and hash",
+      "ok": true,
+      "info": "{\"h\":\"Stop reading. Start the pipeline.\",\"hash\":\"#02-sales\",\"q\":\"?for=sales\",\"pressed\":\"true\",\"first\":\"outbound\"}"
+    },
+    {
+      "name": "404 page serves",
+      "ok": true,
+      "info": "Nothing shipped here."
+    }
+  ]
+}
