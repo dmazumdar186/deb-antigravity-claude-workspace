@@ -132,6 +132,25 @@
     if (spread) spread.addEventListener('keydown', function (e) { var f = flat(); if (e.key === 'ArrowRight') { e.preventDefault(); if (f) step(1); else turn(sheetI + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); if (f) step(-1); else turn(sheetI - 1); } });
   }
 
+  /* ---------- ledger control bar (horizontal row only: phones, landscape phones) ---------- */
+  var lctl = $('[data-lctl]');
+  if (lctl && spread) {
+    var lp = $('[data-lctl-prev]', lctl), ln = $('[data-lctl-next]', lctl), lt = $('[data-lctl-n]', lctl), lb = $('[data-lctl-bar]', lctl), ldots = $$('.lctl__dots i', lctl), lcards = $$('.panel', spread);
+    var unit = function () { var c = lcards[0], c2 = lcards[1]; return c && c2 ? c2.getBoundingClientRect().left - c.getBoundingClientRect().left : (c ? c.offsetWidth : 300); };
+    var lsync = function () {
+      var u = unit() || 1, max = spread.scrollWidth - spread.clientWidth, i = max > 2 && spread.scrollLeft >= max - 2 ? lcards.length - 1 : Math.round(spread.scrollLeft / u);
+      i = clamp(i, 0, lcards.length - 1);
+      ldots.forEach(function (d, k) { d.classList.toggle('is-on', k === i); });
+      if (lt) lt.textContent = (i + 1) + ' / ' + lcards.length;
+      if (lb) lb.style.transform = 'scaleX(' + (max > 0 ? clamp(spread.scrollLeft / max, 0, 1) : 0).toFixed(3) + ')';
+      if (lp) lp.disabled = spread.scrollLeft <= 2; if (ln) ln.disabled = max <= 2 || spread.scrollLeft >= max - 2;
+    };
+    var lgo = function (d) { spread.scrollBy({ left: d * unit(), behavior: reduced ? 'auto' : 'smooth' }); };
+    if (lp) lp.addEventListener('click', function () { lgo(-1); }); if (ln) ln.addEventListener('click', function () { lgo(1); });
+    spread.addEventListener('scroll', function () { requestAnimationFrame(lsync); }, { passive: true });
+    window.addEventListener('resize', lsync); lsync();
+  }
+
   /* ---------- scroll loop ---------- */
   var ticking = false;
   function onScroll() { if (ticking) return; ticking = true; requestAnimationFrame(function () { ticking = false; foldScroll(); coverScroll(); syncVideo(); deckChapter(); }); }

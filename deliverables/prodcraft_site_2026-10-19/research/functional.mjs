@@ -140,6 +140,15 @@ const mb2 = await p.evaluate(() => { const panel = [...document.querySelectorAll
 t('mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content', md.tabIn && md.fade !== 'auto' && parseFloat(md.fade) > 0 && mb2.lastBottom < mb2.barTop, JSON.stringify({ ...md, ...mb2 }));
 const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
 t('Pixel 7: no horizontal overflow', ov <= 0, ov + ' px');
+// ledger control bar
+for (const dev of ['Pixel 7', 'iPhone 13']) {
+  const q = await mk({ ...devices[dev] }); await q.goto(base, { waitUntil: 'load' }); await q.waitForTimeout(800);
+  await q.evaluate(() => document.querySelector('#ledger').scrollIntoView()); await q.waitForTimeout(500);
+  const st = () => q.evaluate(() => ({ vis: getComputedStyle(document.querySelector('[data-lctl]')).display !== 'none', n: document.querySelector('[data-lctl-n]').textContent, dot: [...document.querySelectorAll('.lctl__dots i')].findIndex((d) => d.classList.contains('is-on')), prevDis: document.querySelector('[data-lctl-prev]').disabled }));
+  const s0 = await st(); await q.click('[data-lctl-next]'); await q.waitForTimeout(900); const s1 = await st();
+  t(`${dev}: ledger control present, Prev disabled at start, Next advances dot and n / 6`, s0.vis && s0.prevDis && s0.n === '1 / 6' && s0.dot === 0 && s1.n === '2 / 6' && s1.dot === 1 && !s1.prevDis, JSON.stringify([s0, s1]));
+  await q.close();
+}
 t('mobile: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
 await p.close();
 // production assertions (replace the pitch-page ones)

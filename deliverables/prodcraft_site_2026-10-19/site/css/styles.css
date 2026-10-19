@@ -570,3 +570,20 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 @media (max-width:900px){.cover__kicker .kk-city{display:none}}
 @media (max-width:479px){.cover__kicker .kk-est{display:none}}
 .nb{white-space:nowrap}
+/* ledger control bar — only where the ledger is a horizontal row */
+.lctl{display:none}
+@media (max-width:767px),(max-height:500px) and (min-width:768px) and (orientation:landscape){
+  .lctl{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 0 0}
+  .lctl__btn{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer;transition:background-color .2s,border-color .2s,color .2s}
+  .lctl__btn:active,.lctl__btn:focus-visible{background:var(--gold);border-color:var(--gold)}
+  .lctl__btn:disabled{opacity:.35;cursor:default;background:var(--card);border-color:var(--line)}
+  .lctl__mid{flex:1;display:grid;justify-items:center;gap:6px;min-width:0}
+  .lctl__dots{display:flex;gap:6px}
+  .lctl__dots i{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background-color .2s,transform .2s}
+  .lctl__dots i.is-on{background:var(--gold);transform:scale(1.35)}
+  .lctl__n{font:500 12px/1 var(--mono);letter-spacing:.08em;color:var(--ink-2)}
+  .lctl__bar{display:block;width:100%;max-width:220px;height:1px;background:var(--line);overflow:hidden}
+  .lctl__bar span{display:block;height:100%;background:var(--gold);transform:scaleX(0);transform-origin:left}
+  .fold__spread{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+}
+@media (hover:hover){.lctl__btn:not(:disabled):hover{background:var(--gold);border-color:var(--gold)}}
