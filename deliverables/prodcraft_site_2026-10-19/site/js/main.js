@@ -123,6 +123,8 @@
     if (desktopFold()) turn(0);
     var tp = $('[data-turn-prev]'), tn = $('[data-turn-next]');
     var cards = $$('.panel', spread);
+    function markCapped(){ cards.forEach(function(c){ c.classList.toggle('is-capped', c.scrollHeight > c.clientHeight + 2); }); }
+    markCapped(); window.addEventListener('resize', markCapped); window.addEventListener('load', markCapped);
     function step(dir) { if (!spread) return; var c = cards[0], w = c ? c.getBoundingClientRect().width + 14 : 300; spread.scrollBy({ left: dir * w, behavior: reduced ? 'auto' : 'smooth' }); }
     function flatDots() { if (!spread || !cards[3]) return; var half = spread.scrollLeft + spread.clientWidth / 2 > cards[3].offsetLeft ? 1 : 0; dots.forEach(function (d, k) { d.setAttribute('aria-selected', k === half ? 'true' : 'false'); }); }
     if (spread) spread.addEventListener('scroll', function () { if (flat()) flatDots(); }, { passive: true });

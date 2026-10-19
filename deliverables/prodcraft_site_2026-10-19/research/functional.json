@@ -3,7 +3,7 @@
   "pass": 40,
   "total": 40,
   "desktopHeight": 5960,
-  "mobileHeight": 4570,
+  "mobileHeight": 4556,
   "panelHeightsDesktop": {
     "who": 458,
     "systems": 822,
@@ -24,8 +24,8 @@
   },
   "sizes": {
     "html": 37608,
-    "css": 48605,
-    "js": 20126,
+    "css": 48615,
+    "js": 20366,
     "backdrop": 5387
   },
   "results": [
@@ -37,7 +37,7 @@
     {
       "name": "video plays (or canvas fallback runs)",
       "ok": true,
-      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"http://localhost:8794/assets/hero.webm\",\"canvasVisible\":false}"
+      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"https://prodcraft.fyi/assets/hero.webm\",\"canvasVisible\":false}"
     },
     {
       "name": "fold-out hinge transform changes with scroll",
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":37608,\"css\":48605,\"js\":20126,\"backdrop\":5387}"
+      "info": "{\"html\":37608,\"css\":48615,\"js\":20366,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -145,7 +145,7 @@
     {
       "name": "mobile page height ≤ 12,000 px",
       "ok": true,
-      "info": "4570 px"
+      "info": "4556 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",

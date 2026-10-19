@@ -606,5 +606,5 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 @media (max-height:500px) and (min-width:768px) and (orientation:landscape){.panel{max-height:calc(100svh - var(--hdr) - 175px)}}
 @media (max-width:767px),(max-height:500px) and (min-width:768px) and (orientation:landscape){
   .fold__spread{align-items:stretch}
-  .panel{-webkit-mask-image:linear-gradient(#000 calc(100% - 32px),transparent);mask-image:linear-gradient(#000 calc(100% - 32px),transparent);padding-bottom:28px}
+  .panel.is-capped{-webkit-mask-image:linear-gradient(#000 calc(100% - 32px),transparent);mask-image:linear-gradient(#000 calc(100% - 32px),transparent);padding-bottom:28px}
 }
