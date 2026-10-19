@@ -587,3 +587,20 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
   .fold__spread{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
 }
 @media (hover:hover){.lctl__btn:not(:disabled):hover{background:var(--gold);border-color:var(--gold)}}
+/* control-bar review: next card peeks on phones; cards capped so the bar is in the first ledger screen */
+@media (max-width:767px){
+  .fold__spread{scroll-padding-inline:var(--gutter);align-items:flex-start}
+  .panel{flex:0 0 86vw;max-height:calc(100svh - var(--hdr) - 150px);overflow-y:auto;overscroll-behavior:contain}
+  .lctl{margin-top:12px}
+}
+@media (max-height:500px) and (min-width:768px) and (orientation:landscape){
+  .fold__spread{align-items:flex-start}
+  .panel{max-height:calc(100svh - var(--hdr) - 96px);overflow-y:auto}
+  .fold__pin{padding-top:calc(var(--hdr) + 8px)!important}
+  .fold__head{margin-bottom:8px}
+  .lctl{margin-top:8px}
+}
+@media (max-width:767px){.panel{max-height:calc(100svh - var(--hdr) - 240px)}}
+@media (max-width:767px) and (min-height:800px){.panel{max-height:calc(100svh - var(--hdr) - 200px)}}
+@media (max-height:500px) and (min-width:768px) and (orientation:landscape){.fold__pin{padding-top:12px!important}.fold__head .h2{font-size:22px}.panel{max-height:calc(100svh - var(--hdr) - 150px)}}
+@media (max-height:500px) and (min-width:768px) and (orientation:landscape){.panel{max-height:calc(100svh - var(--hdr) - 175px)}}

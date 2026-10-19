@@ -3,7 +3,7 @@
   "pass": 35,
   "total": 35,
   "desktopHeight": 5960,
-  "mobileHeight": 4558,
+  "mobileHeight": 4556,
   "panelHeightsDesktop": {
     "who": 458,
     "systems": 822,
@@ -24,7 +24,7 @@
   },
   "sizes": {
     "html": 37608,
-    "css": 47143,
+    "css": 48307,
     "js": 20126,
     "backdrop": 5387
   },
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":37608,\"css\":47143,\"js\":20126,\"backdrop\":5387}"
+      "info": "{\"html\":37608,\"css\":48307,\"js\":20126,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -126,7 +126,7 @@
     {
       "name": "mobile fold-out is a horizontal snap-scroll (no 3D)",
       "ok": true,
-      "info": "{\"snap\":\"x mandatory\",\"overflow\":\"auto\",\"scrollW\":2332,\"clientW\":412,\"tf\":\"none\",\"scrolledTo\":384}"
+      "info": "{\"snap\":\"x mandatory\",\"overflow\":\"auto\",\"scrollW\":2226,\"clientW\":412,\"tf\":\"none\",\"scrolledTo\":357}"
     },
     {
       "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
@@ -136,7 +136,7 @@
     {
       "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
       "ok": true,
-      "info": "{\"panelW\":372,\"vw\":412,\"docW\":412,\"padB\":100,\"barH\":65,\"overlap\":210}"
+      "info": "{\"panelW\":354,\"vw\":412,\"docW\":412,\"padB\":100,\"barH\":65,\"overlap\":210}"
     },
     {
       "name": "mobile bottom bar appears after the cover CTA scrolls out",
@@ -145,7 +145,7 @@
     {
       "name": "mobile page height ≤ 12,000 px",
       "ok": true,
-      "info": "4558 px"
+      "info": "4556 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
