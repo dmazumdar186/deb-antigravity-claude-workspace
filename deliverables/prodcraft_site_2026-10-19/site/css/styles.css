@@ -568,3 +568,4 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 @media (min-width:768px){.cover__kicker{text-wrap:balance}}
 @media (max-width:767px){.cover__kicker{display:block;text-wrap:wrap;white-space:normal;line-height:1.5}.cover__kicker .cover__avatar{display:inline-block;vertical-align:middle;margin-right:8px}}
 @media (max-width:900px){.cover__kicker .kk-city{display:none}}
+@media (max-width:479px){.cover__kicker .kk-est{display:none}}
