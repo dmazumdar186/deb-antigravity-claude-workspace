@@ -61,7 +61,7 @@
     fetch('assets/hero.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (mf) {
       if (!mf || !mf.ready) return;
       if (mf.poster) vid.poster = 'assets/' + mf.poster;
-      if (reduced || saveData) return;
+      if (reduced || saveData) { cover.classList.add('has-poster'); return; }
       var f = (window.innerWidth < 768 && mf.portrait) || mf.landscape || 'hero.mp4';
       vid.addEventListener('playing', function () { cover.classList.add('has-video'); if (BD() && backdropOn) BD().pause(); }, { once: true });
       vid.addEventListener('error', function () { cover.classList.remove('has-video'); if (BD() && backdropOn) BD().resume(); }, { once: true });
@@ -75,14 +75,14 @@
   function foldScroll() {
     if (!fold || !spread) return;
     var r = fold.getBoundingClientRect(), track = fold.offsetHeight - window.innerHeight;
-    if (mbar) mbar.classList.toggle('is-on', r.top < window.innerHeight * 0.5);
-    if (window.innerWidth < 768) { var mo = clamp((window.innerHeight * 0.85 - r.top) / (window.innerHeight * 0.15), 0, 1); if (cover) { cover.style.setProperty('--out', mo.toFixed(3)); cover.classList.toggle('is-out', mo >= 1); } if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) setChapter('01', 'The ledger'); return; }
+    if (mbar) mbar.classList.toggle('is-on', !!(cover && cover.classList.contains('is-out')) || r.top < 0);
+    if (window.innerWidth < 768) { var mo = clamp((window.innerHeight * 0.85 - r.top) / (window.innerHeight * 0.15), 0, 1); if (cover) { cover.style.setProperty('--out', mo.toFixed(3)); cover.classList.toggle('is-out', mo >= 1); } if (mbar) mbar.classList.toggle('is-on', mo >= 1); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) setChapter('01', 'The ledger'); return; }
     if (track <= 0) return;
     var p = clamp(-r.top / track, 0, 1), e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
     if (!reduced) spread.style.setProperty('--fold', e.toFixed(4));
     fold.classList.toggle('is-open', p > 0.9);
     var en = clamp(p / 0.3, 0, 1), out = clamp(en / 0.5, 0, 1);
-    fold.style.setProperty('--enter', en.toFixed(3)); fold.style.setProperty('--tenter', clamp((en - 0.55) / 0.45, 0, 1).toFixed(3));
+    fold.style.setProperty('--enter', en.toFixed(3)); fold.style.setProperty('--tenter', clamp((en - 0.55) / 0.2, 0, 1).toFixed(3));
     if (cover) { cover.style.setProperty('--out', out.toFixed(3)); cover.classList.toggle('is-out', out >= 1); }
     if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) setChapter('01', 'The ledger');
   }
@@ -152,6 +152,7 @@
 
   function fromHash(scroll) {
     var h = location.hash.replace('#', ''), m = /^02-(\w+)$/.exec(h);
+    if (!(m && PERSONAS[m[1]]) && /^\d\d-/.test(h) && ids.indexOf(h.slice(3)) > -1) h = h.slice(3);
     if (m && PERSONAS[m[1]]) { setPersona(m[1], false); show('who', false, scroll); return true; }
     if (ids.indexOf(h) > -1) { show(h, false, scroll); return true; }
     return false;
@@ -160,7 +161,7 @@
   window.addEventListener('hashchange', function () { fromHash(true); });
   function deckChapter() { if (!deck) return; var r = deck.getBoundingClientRect(); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.3) { var p = $('#' + current); if (p) setChapter(p.dataset.chapter, p.dataset.chapterName); } }
   var qf = /[?&]for=(\w+)/.exec(location.search); if (qf) setPersona(qf[1], false);
-  if (!fromHash(true)) show(ids[0], false, false);
+  if (location.hash && fromHash(false)) { var jump = function () { if (!deck) return; var html = root.style.scrollBehavior; root.style.scrollBehavior = 'auto'; window.scrollTo(0, deck.getBoundingClientRect().top + window.pageYOffset - 64); root.style.scrollBehavior = html; onScroll(); }; if (document.readyState === 'complete') jump(); else window.addEventListener('load', function () { requestAnimationFrame(jump); }); } else show(ids[0], false, false);
 
   /* ---------- plate dialog ---------- */
   var PLATES = { misb: 'Private business school, Paris — prospectus concept', gtm: 'SaaS GTM recruiter, London — concept', midas: 'Franchise auto-service brand, France — concept', greenjobs: 'GreenJobs — greenjobs.ie / .co.uk' };

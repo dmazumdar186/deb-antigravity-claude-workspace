@@ -3,13 +3,13 @@
   "pass": 32,
   "total": 32,
   "desktopHeight": 5918,
-  "mobileHeight": 4307,
+  "mobileHeight": 4360,
   "panelHeightsDesktop": {
     "who": 458,
     "systems": 822,
-    "build": 411,
-    "stack": 339,
-    "how": 328,
+    "build": 770,
+    "stack": 770,
+    "how": 770,
     "recs": 486,
     "contact": 583
   },
@@ -23,9 +23,9 @@
     "contact": 480
   },
   "sizes": {
-    "html": 35647,
-    "css": 28452,
-    "js": 15028,
+    "html": 36247,
+    "css": 31620,
+    "js": 15650,
     "backdrop": 5387
   },
   "results": [
@@ -91,12 +91,12 @@
     {
       "name": "fade sequence: cover text at 0 before chapter headline passes 0.1",
       "ok": true,
-      "info": "{\"foldText\":\"0.111\",\"coverBody\":\"0\",\"coverVis\":\"hidden\",\"logoHidden\":\"visible\"}"
+      "info": "{\"foldText\":\"0.25\",\"coverBody\":\"0\",\"coverVis\":\"hidden\",\"logoHidden\":\"visible\"}"
     },
     {
       "name": "deck panels ≤ 1 viewport (900) on desktop",
       "ok": true,
-      "info": "{\"who\":458,\"systems\":822,\"build\":411,\"stack\":339,\"how\":328,\"recs\":486,\"contact\":583}"
+      "info": "{\"who\":458,\"systems\":822,\"build\":770,\"stack\":770,\"how\":770,\"recs\":486,\"contact\":583}"
     },
     {
       "name": "desktop page height ≤ 9,000 px",
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":35647,\"css\":28452,\"js\":15028,\"backdrop\":5387}"
+      "info": "{\"html\":36247,\"css\":31620,\"js\":15650,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -131,7 +131,7 @@
     {
       "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
       "ok": true,
-      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"MAIN\",\"bg\":\"rgb(247, 243, 236)\",\"hdrBg\":\"rgb(247, 243, 236)\"}"
+      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"h2\",\"bg\":\"rgb(247, 243, 236)\",\"hdrBg\":\"rgb(247, 243, 236)\"}"
     },
     {
       "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
@@ -145,7 +145,7 @@
     {
       "name": "mobile page height ≤ 12,000 px",
       "ok": true,
-      "info": "4307 px"
+      "info": "4360 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
@@ -155,7 +155,7 @@
     {
       "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
       "ok": true,
-      "info": "{\"tabIn\":true,\"fade\":\"56px\",\"lastBottom\":628,\"barTop\":774}"
+      "info": "{\"tabIn\":true,\"fade\":\"56px\",\"lastBottom\":627,\"barTop\":774}"
     },
     {
       "name": "Pixel 7: no horizontal overflow",
