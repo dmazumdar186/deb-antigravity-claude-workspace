@@ -62,7 +62,7 @@
       if (!mf || !mf.ready) return;
       if (mf.poster) vid.poster = 'assets/' + mf.poster;
       if (reduced || saveData) { cover.classList.add('has-poster'); return; }
-      var f = (window.innerWidth < 768 && mf.portrait) || mf.landscape || 'hero.mp4';
+      var f = ((window.innerWidth < 768 || mq('(orientation: portrait)')) && mf.portrait) || mf.landscape || 'hero.mp4';
       vid.addEventListener('playing', function () { cover.classList.add('has-video'); if (BD() && backdropOn) BD().pause(); }, { once: true });
       vid.addEventListener('error', function () { cover.classList.remove('has-video'); if (BD() && backdropOn) BD().resume(); }, { once: true });
       vid.innerHTML = '<source src="assets/' + f + '" type="video/mp4"><source src="assets/' + f.replace(/\.mp4$/, '.webm') + '" type="video/webm">';
@@ -71,12 +71,16 @@
     document.addEventListener('visibilitychange', syncVideo);
   }
 
-  /* ---------- 01 ledger: hinge scrub + sheet turn ---------- */
+  /* ---------- 01 ledger: hinge scrub + sheet turn (flat snap row on phones, portrait tablets/TV and landscape phones) ---------- */
+  function flat() { return window.innerWidth < 768 || mq('(orientation: portrait)') || window.innerHeight <= 500; }
+  var navEl = $('[data-deck-nav]');
+  function navVar() { if (navEl) root.style.setProperty('--navh', navEl.offsetHeight + 'px'); }
+  navVar(); window.addEventListener('resize', navVar);
   function foldScroll() {
     if (!fold || !spread) return;
     var r = fold.getBoundingClientRect(), track = fold.offsetHeight - window.innerHeight;
     if (mbar) mbar.classList.toggle('is-on', !!(cover && cover.classList.contains('is-out')) || r.top < 0);
-    if (window.innerWidth < 768) { var mo = clamp((window.innerHeight * 0.85 - r.top) / (window.innerHeight * 0.15), 0, 1); if (cover) { cover.style.setProperty('--out', mo.toFixed(3)); cover.classList.toggle('is-out', mo >= 1); } if (mbar) mbar.classList.toggle('is-on', mo >= 1); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) setChapter('01', 'The ledger'); return; }
+    if (flat()) { var mo = clamp((window.innerHeight * 0.85 - r.top) / (window.innerHeight * 0.15), 0, 1); if (cover) { cover.style.setProperty('--out', mo.toFixed(3)); cover.classList.toggle('is-out', mo >= 1); } if (mbar) mbar.classList.toggle('is-on', mo >= 1); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) setChapter('01', 'The ledger'); return; }
     if (track <= 0) return;
     var p = clamp(-r.top / track, 0, 1), e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
     if (!reduced) spread.style.setProperty('--fold', e.toFixed(4));
@@ -94,7 +98,7 @@
     dots.forEach(function (d, k) { d.setAttribute('aria-selected', k === sheetI ? 'true' : 'false'); });
     if (spread) spread.dataset.sheet = sheetI;
   }
-  function desktopFold() { return window.innerWidth >= 768; }
+  function desktopFold() { return !flat(); }
   if (sheets.length) {
     if (desktopFold()) turn(0);
     var tp = $('[data-turn-prev]'), tn = $('[data-turn-next]');

@@ -30,7 +30,9 @@ for (const [tag, w, h, touch] of VP) {
   const H = await p.evaluate(() => document.documentElement.scrollHeight);
   const cover = await p.evaluate(() => { const c = document.querySelector('[data-cover]'); return c ? c.offsetHeight : 0; });
   await p.evaluate(y => scrollTo(0, y), Math.round(cover * 0.55)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-2-cover55.png` });
-  await p.evaluate(y => scrollTo(0, y), Math.round(cover * 1.25)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-3-ledger.png` });
+  const fy = (f) => p.evaluate((f) => { const l = document.querySelector('#ledger'); return Math.round(l.offsetTop + Math.max(0, l.offsetHeight - innerHeight) * f); }, f);
+  await p.evaluate(y => scrollTo(0, y), await fy(0.6)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-3-ledger.png` });
+  await p.evaluate(y => scrollTo(0, y), await fy(0.95)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-6-ledger95.png` });
   const deck = await p.evaluate(() => { const d = document.querySelector('#deck'); return d ? d.getBoundingClientRect().top + scrollY : 0; });
   await p.evaluate(y => scrollTo(0, y), Math.round(deck)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-4-deck.png` });
   const tabs = await p.$$('[data-deck-nav] button, [data-deck-nav] a'); if (tabs[1]) { await tabs[1].click().catch(() => {}); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-5-deck-systems.png` }); }

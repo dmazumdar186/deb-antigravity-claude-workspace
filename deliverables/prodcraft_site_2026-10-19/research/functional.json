@@ -2,14 +2,14 @@
   "date": "2026-10-19",
   "pass": 32,
   "total": 32,
-  "desktopHeight": 5918,
-  "mobileHeight": 4360,
+  "desktopHeight": 5964,
+  "mobileHeight": 4389,
   "panelHeightsDesktop": {
     "who": 458,
     "systems": 822,
-    "build": 770,
-    "stack": 770,
-    "how": 770,
+    "build": 411,
+    "stack": 339,
+    "how": 328,
     "recs": 486,
     "contact": 583
   },
@@ -23,9 +23,9 @@
     "contact": 480
   },
   "sizes": {
-    "html": 36435,
-    "css": 32195,
-    "js": 15731,
+    "html": 36479,
+    "css": 39686,
+    "js": 16103,
     "backdrop": 5387
   },
   "results": [
@@ -96,17 +96,17 @@
     {
       "name": "deck panels ≤ 1 viewport (900) on desktop",
       "ok": true,
-      "info": "{\"who\":458,\"systems\":822,\"build\":770,\"stack\":770,\"how\":770,\"recs\":486,\"contact\":583}"
+      "info": "{\"who\":458,\"systems\":822,\"build\":411,\"stack\":339,\"how\":328,\"recs\":486,\"contact\":583}"
     },
     {
       "name": "desktop page height ≤ 9,000 px",
       "ok": true,
-      "info": "5918 px"
+      "info": "5964 px"
     },
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":36435,\"css\":32195,\"js\":15731,\"backdrop\":5387}"
+      "info": "{\"html\":36479,\"css\":39686,\"js\":16103,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -145,7 +145,7 @@
     {
       "name": "mobile page height ≤ 12,000 px",
       "ok": true,
-      "info": "4360 px"
+      "info": "4389 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
@@ -155,7 +155,7 @@
     {
       "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
       "ok": true,
-      "info": "{\"tabIn\":true,\"fade\":\"56px\",\"lastBottom\":627,\"barTop\":774}"
+      "info": "{\"tabIn\":true,\"fade\":\"40px\",\"lastBottom\":710,\"barTop\":774}"
     },
     {
       "name": "Pixel 7: no horizontal overflow",
