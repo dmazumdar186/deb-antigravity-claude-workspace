@@ -21,6 +21,13 @@ g.PROMPTS["prodcraft"] = (
 )
 if not os.environ.get("HF_API_TOKEN") and os.environ.get("HIGGSFIELD_API_KEY"):
     os.environ["HF_API_TOKEN"] = os.environ["HIGGSFIELD_API_KEY"]
+if os.environ.get("KLING_PORTRAIT"):
+    _orig = g.body_for
+    def _body(model, prompt, duration):
+        b = _orig(model, prompt, duration)
+        if "aspect_ratio" in b: b["aspect_ratio"] = "9:16"
+        return b
+    g.body_for = _body  # PORTRAIT: native 9:16 generation
 if "--edition" not in sys.argv:
     sys.argv += ["--edition", "prodcraft"]
 sys.exit(g.main())
