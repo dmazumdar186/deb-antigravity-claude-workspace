@@ -14,9 +14,9 @@
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero-m.webm",
@@ -41,9 +41,9 @@
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero-m.webm",
@@ -68,9 +68,9 @@
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero-m.webm",
@@ -95,9 +95,9 @@
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -122,9 +122,9 @@
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero-m.webm",
@@ -149,9 +149,9 @@
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -167,18 +167,18 @@
   "h": 9509,
   "overflowX": false,
   "plate": {
-   "top": 317.75,
-   "bottom": 620.734375,
-   "w": 213.1875,
-   "imgW": 199.1875,
-   "imgTop": 324.75,
+   "top": 319.234375,
+   "bottom": 623.359375,
+   "w": 213,
+   "imgW": 199,
+   "imgTop": 326.234375,
    "visible": true
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero-m.webm",
@@ -194,18 +194,18 @@
   "h": 5433,
   "overflowX": false,
   "plate": {
-   "top": 161,
-   "bottom": 510,
+   "top": 203.859375,
+   "bottom": 554.234375,
    "w": 250,
    "imgW": 236,
-   "imgTop": 168,
+   "imgTop": 210.859375,
    "visible": true
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -221,18 +221,18 @@
   "h": 10141,
   "overflowX": false,
   "plate": {
-   "top": 381.5,
-   "bottom": 743,
-   "w": 260,
-   "imgW": 246,
-   "imgTop": 388.5,
+   "top": 395.234375,
+   "bottom": 745.609375,
+   "w": 250,
+   "imgW": 236,
+   "imgTop": 402.234375,
    "visible": true
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero-m.webm",
@@ -248,18 +248,18 @@
   "h": 6260,
   "overflowX": false,
   "plate": {
-   "top": 365,
-   "bottom": 714,
+   "top": 375.859375,
+   "bottom": 726.234375,
    "w": 250,
    "imgW": 236,
-   "imgTop": 372,
+   "imgTop": 382.859375,
    "visible": true
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -275,18 +275,18 @@
   "h": 4878,
   "overflowX": false,
   "plate": {
-   "top": 109,
-   "bottom": 458,
+   "top": 151.859375,
+   "bottom": 502.234375,
    "w": 250,
    "imgW": 236,
-   "imgTop": 116,
+   "imgTop": 158.859375,
    "visible": true
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -302,18 +302,18 @@
   "h": 5408,
   "overflowX": false,
   "plate": {
-   "top": 163.765625,
-   "bottom": 533.359375,
-   "w": 266.640625,
-   "imgW": 251.859375,
-   "imgTop": 171.15625,
+   "top": 210.46875,
+   "bottom": 582.609375,
+   "w": 266,
+   "imgW": 251.21875,
+   "imgTop": 217.859375,
    "visible": true
   },
   "hdrBottom": 68.25,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -329,18 +329,18 @@
   "h": 5596,
   "overflowX": false,
   "plate": {
-   "top": 241,
-   "bottom": 590,
+   "top": 283.859375,
+   "bottom": 634.234375,
    "w": 250,
    "imgW": 236,
-   "imgTop": 248,
+   "imgTop": 290.859375,
    "visible": true
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -356,18 +356,18 @@
   "h": 5297,
   "overflowX": false,
   "plate": {
-   "top": 90.578125,
-   "bottom": 426.875,
-   "w": 237.671875,
-   "imgW": 220.015625,
-   "imgTop": 99.40625,
+   "top": 105.515625,
+   "bottom": 494,
+   "w": 274,
+   "imgW": 256.34375,
+   "imgTop": 114.34375,
    "visible": true
   },
   "hdrBottom": 83.625,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -383,18 +383,18 @@
   "h": 6587,
   "overflowX": false,
   "plate": {
-   "top": 210.359375,
-   "bottom": 666.703125,
-   "w": 333.296875,
-   "imgW": 315.328125,
-   "imgTop": 219.34375,
+   "top": 230.203125,
+   "bottom": 693.140625,
+   "w": 333,
+   "imgW": 315.03125,
+   "imgTop": 239.1875,
    "visible": true
   },
   "hdrBottom": 85.3125,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -410,18 +410,18 @@
   "h": 8731,
   "overflowX": false,
   "plate": {
-   "top": 309.078125,
-   "bottom": 888.9375,
-   "w": 444.40625,
-   "imgW": 421.09375,
-   "imgTop": 320.734375,
+   "top": 314.3125,
+   "bottom": 934.171875,
+   "w": 444,
+   "imgW": 420.6875,
+   "imgTop": 325.96875,
    "visible": true
   },
   "hdrBottom": 113.765625,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -437,18 +437,18 @@
   "h": 12767,
   "overflowX": false,
   "plate": {
-   "top": 478.4375,
-   "bottom": 1333.390625,
-   "w": 666.609375,
-   "imgW": 632.640625,
-   "imgTop": 495.421875,
+   "top": 491.375,
+   "bottom": 1416.125,
+   "w": 666,
+   "imgW": 632.03125,
+   "imgTop": 508.359375,
    "visible": true
   },
   "hdrBottom": 170.640625,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero.webm",
@@ -464,18 +464,18 @@
   "h": 12360,
   "overflowX": false,
   "plate": {
-   "top": 658.5,
-   "bottom": 1020,
-   "w": 260,
-   "imgW": 246,
-   "imgTop": 665.5,
+   "top": 672.234375,
+   "bottom": 1022.609375,
+   "w": 250,
+   "imgW": 236,
+   "imgTop": 679.234375,
    "visible": true
   },
   "hdrBottom": 64,
   "icon": [
-   "https://prodcraft.fyi/favicon.ico",
-   "https://prodcraft.fyi/favicon-32.png",
-   "https://prodcraft.fyi/favicon-48.png"
+   "http://localhost:8793/favicon.ico",
+   "http://localhost:8793/favicon-32.png",
+   "http://localhost:8793/favicon-48.png"
   ],
   "video": {
    "src": "hero-m.webm",

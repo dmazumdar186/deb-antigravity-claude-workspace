@@ -23,9 +23,9 @@
     "contact": 561
   },
   "sizes": {
-    "html": 36450,
-    "css": 44370,
-    "js": 17185,
+    "html": 36492,
+    "css": 44726,
+    "js": 18524,
     "backdrop": 5387
   },
   "results": [
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":36450,\"css\":44370,\"js\":17185,\"backdrop\":5387}"
+      "info": "{\"html\":36492,\"css\":44726,\"js\":18524,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",

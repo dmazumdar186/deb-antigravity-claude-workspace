@@ -29,6 +29,10 @@ for (const [tag, w, h, touch] of VP) {
   await p.screenshot({ path: `${OUT}/${tag}-1-cover0.png` });
   const H = await p.evaluate(() => document.documentElement.scrollHeight);
   const cover = await p.evaluate(() => { const c = document.querySelector('[data-cover]'); return c ? c.offsetHeight : 0; });
+  const cyp = (f) => p.evaluate((f) => { const c = document.querySelector('[data-cover]'); return Math.round(c.offsetTop + (c.offsetHeight - innerHeight) * f); }, f);
+  await p.evaluate(y => scrollTo(0, y), await cyp(0.3)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-1b-cover30.png` });
+  await p.evaluate(y => scrollTo(0, y), await cyp(0.8)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-2b-cover80.png` });
+  await p.evaluate(y => scrollTo(0, y), await cyp(1.0)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-2c-cover100.png` });
   await p.evaluate(y => scrollTo(0, y), Math.round(cover * 0.55)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-2-cover55.png` });
   const fy = (f) => p.evaluate((f) => { const l = document.querySelector('#ledger'); return Math.round(l.offsetTop + Math.max(0, l.offsetHeight - innerHeight) * f); }, f);
   await p.evaluate(y => scrollTo(0, y), await fy(0.6)); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/${tag}-3-ledger.png` });

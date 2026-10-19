@@ -71,6 +71,26 @@
     document.addEventListener('visibilitychange', syncVideo);
   }
 
+  /* ---------- cover plates: frame width derived from the stage height (frame = image + caption), hidden if < 140 px ---------- */
+  var aside = $('.cover__aside'), pstage = $('.cover__plates', aside || document), railEl = $('.rail');
+  function sizePlates() {
+    if (!aside || !pstage || !cover) return;
+    var cs = getComputedStyle(aside); if (cs.display === 'contents' || cs.display === 'none') return;
+    cover.classList.remove('no-plates');
+    var H = pstage.clientHeight; if (H < 140) { cover.classList.add('no-plates'); return; }
+    $$('.cplate', pstage).forEach(function (f) {
+      var img = $('img', f), cap = $('figcaption', f), fs = getComputedStyle(f), pad = parseFloat(fs.paddingLeft) * 2 + 2;
+      var ratio = f.classList.contains('cplate--portrait') ? 0.8 : 1.6;
+      f.style.width = ''; var maxW = parseFloat(getComputedStyle(f).maxWidth) || 340;
+      f.style.width = maxW + 'px'; var capH = cap ? cap.offsetHeight : 0;
+      var imgH = H - capH - pad; var w = Math.min(maxW, imgH * ratio + pad);
+      f.style.width = Math.max(0, Math.floor(w)) + 'px';
+      if (w < 100) cover.classList.add('no-plates');
+    });
+  }
+  sizePlates(); window.addEventListener('resize', sizePlates); window.addEventListener('load', sizePlates);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizePlates);
+
   /* ---------- 01 ledger: hinge scrub + sheet turn (flat snap row on phones, portrait tablets/TV and landscape phones) ---------- */
   function flat() { return window.innerWidth < 768 || mq('(orientation: portrait)') || window.innerHeight <= 500; }
   var navEl = $('[data-deck-nav]');
