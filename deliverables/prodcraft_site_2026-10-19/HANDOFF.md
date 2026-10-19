@@ -45,3 +45,8 @@ npx -y wrangler@4 pages deploy deliverables/prodcraft_site_2026-10-19/site --pro
 2. Optional: regenerate the portrait Kling clip natively in 9:16 (~$0.70) instead of the upscaled crop.
 3. `www.prodcraft.fyi` already resolves to the same project; DNS lives outside this account, nothing to change.
 4. Deck-who "SELECT" persona state is not persisted across visits (deliberate: no cookies, no storage).
+
+## v2.1 (2026-10-19, after operator feedback) — LIVE
+- **Headshot plate clipped under the fixed header** on wide-short desktops (operator screenshot at ~1882×832): the plate is now capped by `max-height: 100svh − header − rail offset`, width follows the 4:5 ratio; checked at 1280×720, 1366×768, 1440×900, 1882×832, 1920×1080, 2560×1440, 3840×2160 (`research/plate_clip_check.mjs`, all clear the header by ≥ 20 px).
+- **Native 9:16 Kling clip** for the mobile cover (`research/kling_portrait/`, $0.71, `KLING_PORTRAIT=1 research/gen_kling_hero.py`), with a light top-down gradient (18 % → 50 %) so cream type stays legible while the gold diagram stays visible; frame-reviewed PASS; iPhone 13 plays `hero-m.webm` 720×1280. hero.json updated. Total media spend this build: $1.42 Kling + $0.01 GLM.
+- functional 32/32, site_check 0 failures after both changes; deployed to `prodcraft` (live) and `prodcraft-site` (staging).
