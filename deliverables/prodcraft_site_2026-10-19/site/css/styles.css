@@ -563,3 +563,7 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
   .cover__pin{grid-template-rows:auto auto!important;align-content:center!important;padding-bottom:56px}
   .cover__body{align-self:auto!important;padding-top:calc(var(--hdr) + 16px)!important;padding-bottom:0!important}
 }
+
+/* kicker: balanced wrap, never an orphan word */
+.cover__kicker{text-wrap:balance}
+@media (max-width:900px){.cover__kicker .kk-city{display:none}}
