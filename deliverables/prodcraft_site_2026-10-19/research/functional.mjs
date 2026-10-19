@@ -149,6 +149,12 @@ for (const dev of ['Pixel 7', 'iPhone 13']) {
   t(`${dev}: ledger control present, Prev disabled at start, Next advances dot and n / 6`, s0.vis && s0.prevDis && s0.n === '1 / 6' && s0.dot === 0 && s1.n === '2 / 6' && s1.dot === 1 && !s1.prevDis, JSON.stringify([s0, s1]));
   await q.close();
 }
+for (const [w, h] of [[360, 640], [390, 844], [412, 915], [600, 960], [844, 390]]) {
+  const q = await mk({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true }); await q.goto(base, { waitUntil: 'load' }); await q.waitForTimeout(700);
+  await q.evaluate(() => document.querySelector('#ledger').scrollIntoView()); await q.waitForTimeout(500);
+  const g = await q.evaluate(() => { const bar = document.querySelector('[data-lctl]').getBoundingClientRect(); const vis = [...document.querySelectorAll('.panel')].map((x) => x.getBoundingClientRect()).filter((r) => r.right > 0 && r.left < innerWidth); return Math.round(bar.top - Math.max(...vis.map((r) => r.bottom))); });
+  t(`${w}x${h}: ledger bar ≤ 24 px under the cards`, g >= 0 && g <= 24, g + ' px'); await q.close();
+}
 t('mobile: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
 await p.close();
 // production assertions (replace the pitch-page ones)

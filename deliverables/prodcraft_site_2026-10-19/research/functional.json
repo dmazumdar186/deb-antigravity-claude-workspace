@@ -1,9 +1,9 @@
 {
   "date": "2026-10-19",
-  "pass": 35,
-  "total": 35,
+  "pass": 40,
+  "total": 40,
   "desktopHeight": 5960,
-  "mobileHeight": 4556,
+  "mobileHeight": 4570,
   "panelHeightsDesktop": {
     "who": 458,
     "systems": 822,
@@ -24,7 +24,7 @@
   },
   "sizes": {
     "html": 37608,
-    "css": 48307,
+    "css": 48605,
     "js": 20126,
     "backdrop": 5387
   },
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":37608,\"css\":48307,\"js\":20126,\"backdrop\":5387}"
+      "info": "{\"html\":37608,\"css\":48605,\"js\":20126,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -145,7 +145,7 @@
     {
       "name": "mobile page height ≤ 12,000 px",
       "ok": true,
-      "info": "4556 px"
+      "info": "4570 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
@@ -171,6 +171,31 @@
       "name": "iPhone 13: ledger control present, Prev disabled at start, Next advances dot and n / 6",
       "ok": true,
       "info": "[{\"vis\":true,\"n\":\"1 / 6\",\"dot\":0,\"prevDis\":true},{\"vis\":true,\"n\":\"2 / 6\",\"dot\":1,\"prevDis\":false}]"
+    },
+    {
+      "name": "360x640: ledger bar ≤ 24 px under the cards",
+      "ok": true,
+      "info": "20 px"
+    },
+    {
+      "name": "390x844: ledger bar ≤ 24 px under the cards",
+      "ok": true,
+      "info": "20 px"
+    },
+    {
+      "name": "412x915: ledger bar ≤ 24 px under the cards",
+      "ok": true,
+      "info": "20 px"
+    },
+    {
+      "name": "600x960: ledger bar ≤ 24 px under the cards",
+      "ok": true,
+      "info": "20 px"
+    },
+    {
+      "name": "844x390: ledger bar ≤ 24 px under the cards",
+      "ok": true,
+      "info": "18 px"
     },
     {
       "name": "mobile: 0 console errors",
