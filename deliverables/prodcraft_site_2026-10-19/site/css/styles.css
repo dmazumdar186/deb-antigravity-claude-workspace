@@ -69,9 +69,9 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,summary:focus-visi
 .cover.has-video .cover__video{display:block}.cover.has-video .cover__canvas{display:none}
 .cover__grain{position:absolute;inset:0;pointer-events:none;background:radial-gradient(110% 80% at 75% 15%,rgba(200,163,92,.10),transparent 60%),linear-gradient(to top,rgba(22,24,28,.85),transparent 55%)}
 .cover__plates{position:absolute;inset:0;z-index:1;pointer-events:none}
-.cplate{position:absolute;right:var(--gutter);top:auto;bottom:calc(var(--s) * 310);width:calc(var(--s) * 340);margin:0;padding:calc(var(--s) * 6);border:1px solid rgba(247,243,236,.5);background:rgba(247,243,236,.05);opacity:0;transform:translateX(40px) scale(.96);transition:opacity .45s var(--ease),transform .45s var(--ease)}
+.cplate{position:absolute;right:var(--gutter);top:auto;bottom:min(calc(var(--s) * 310),36vh);width:calc(var(--s) * 340);margin:0;padding:calc(var(--s) * 6);border:1px solid rgba(247,243,236,.5);background:rgba(247,243,236,.05);opacity:0;transform:translateX(40px) scale(.96);transition:opacity .45s var(--ease),transform .45s var(--ease)}
 /* Frame is derived from the image: width = min(design width, what the available height allows at the fixed ratio); the img is always 100% of the frame, so photo and border coincide on every screen. */
-.cplate{--avail:calc(100svh - var(--hdr) - var(--s) * 310 - var(--s) * 72);width:min(calc(var(--s) * 340),calc(var(--avail) * 16 / 10))}
+.cplate{--avail:calc(100svh - var(--hdr) - min(calc(var(--s) * 310),36vh) - var(--s) * 72);width:min(calc(var(--s) * 340),calc(var(--avail) * 16 / 10))}
 .cplate img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;object-position:top}
 .cplate--portrait{width:min(calc(var(--s) * 250),calc(var(--avail) * 4 / 5))}
 .cplate--portrait img{aspect-ratio:4/5;object-position:center 20%}
@@ -547,5 +547,8 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 .dp h2{scroll-margin-top:calc(var(--hdr) + var(--navh,66px) + 12px)}
 /* round 5 — plate never below 220 px where height allows; 2-line captions */
 @media (min-width:768px) and (min-height:700px) and (orientation:landscape){.cplate--portrait{min-width:calc(222px + var(--s) * 12)}}
-.cplate figcaption{font-size:clamp(10px,.6vw,13px);letter-spacing:.08em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cplate figcaption{font-size:clamp(10.5px,calc(var(--s) * 10.5),30px);letter-spacing:.08em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media (orientation:portrait) and (min-width:768px){.deck__panels{padding:20px 0 48px}}
+
+/* 4K: ledger controls and plate caption scale with the page like everything else */
+@media (min-width:2200px){.fold button{font-size:1rem;min-width:3rem;min-height:3rem}.fold .eyebrow,.fold .chapter-mark{font-size:.75rem}.cplate figcaption{padding:.4rem .6rem}}
