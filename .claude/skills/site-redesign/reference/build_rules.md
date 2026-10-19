@@ -78,3 +78,9 @@
 - Rail items: only the current beat carries `--p`; reset the others to 0 on every scroll frame (stale fills showed gold on 01 and 04 at scroll 0).
 - Wide screens (1920/2560/3840): header, kicker, hint, rail and micro-type scale with `clamp()` on vw; deck sections use `scroll-margin-top` = real header + tab bar; vertically centre short panels.
 - Generated footage goes through a frame review (text/hands/desk band/lower-third calm) before it is used behind type.
+- **Live trust gate (prodcraft v2.2, 2026-10-19):** after deploy, shoot the live domain at the 18-viewport matrix (phones, landscape phone, small tablet, iPad/iPad Pro both ways, laptops, 1080p/1440p/4K, portrait TV) × 6 states and have reviewers read every PNG by device class; local screenshots alone shipped a clipped headshot, a generic favicon and a plate-over-headline on landscape iPads.
+- Never derive an icon or favicon from the logo "in the spirit of"; ship the real logo files (favicon.ico, 32/48 png, apple-touch-icon 180, manifest icons).
+- Image plates: the frame is derived from the image (width = min(design, available-height × ratio); img 100 % of the frame; caption `width:0;min-width:100%`); assert frame = image numerically at every viewport; hide plates where the height budget is < 120 px.
+- Portrait ≥ 768 px (iPads, portrait TV) is its own class: centred cover body, stacked content-sized signature object, no pinned horizontal row.
+- ≥ 2200 px: rem scaling + 88 vw container, or cream sections read as a phone site on a TV.
+- Third-party screenshots/logos of unsigned prospects never appear on the operator's own site; use typographic receipt plates and sector descriptions.
