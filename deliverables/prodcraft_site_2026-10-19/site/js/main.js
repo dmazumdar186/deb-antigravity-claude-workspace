@@ -197,7 +197,7 @@
   function openPlate(key, btn) {
     if (!PLATES[key] || !dlg || !galGrid) return;
     if (galTitle) galTitle.textContent = PLATES[key]; galGrid.innerHTML = '';
-    var img = document.createElement('img'); img.src = 'assets/receipts/' + key + '.svg'; img.alt = PLATES[key] + ' — receipt'; img.width = 1600; img.height = 1000; galGrid.appendChild(img);
+    var img = document.createElement('img'); img.src = 'assets/receipts/' + key + '.svg'; img.alt = PLATES[key] + ' — receipt'; img.width = 1600; img.height = 1000; img.dataset.minFont = '84'; galGrid.appendChild(img);
     opener = btn || null;
     if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
   }

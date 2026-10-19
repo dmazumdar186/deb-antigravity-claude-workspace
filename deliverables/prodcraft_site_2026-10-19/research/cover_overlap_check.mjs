@@ -25,6 +25,8 @@ for (const [w, h] of VP) {
         const fb = box(f); parts.push(['plate' + f.dataset.plate, fb]);
         const i = f.querySelector('img'), ib = box(i), pad = parseFloat(getComputedStyle(f).paddingLeft);
         if (Math.abs(fb.w - 2 * pad - 2 - ib.w) > 1.5) errs.push('frame≠image plate' + f.dataset.plate);
+        if (i.dataset.minFont) { const px = +i.dataset.minFont * ib.w / 1600; if (px < 10) errs.push('receipt text ' + px.toFixed(1) + 'px < 10 in plate' + f.dataset.plate); }
+        for (const el of f.querySelectorAll('figcaption, figcaption *')) { const fs = parseFloat(getComputedStyle(el).fontSize); if (fs < 10) errs.push('caption ' + fs + 'px'); }
         if (fb.t < hdr + 6 || fb.b > innerHeight + 0.5) errs.push('plate' + f.dataset.plate + ' outside stage ' + Math.round(fb.t) + '/' + Math.round(fb.b));
       }
       for (let x = 0; x < parts.length; x++) {

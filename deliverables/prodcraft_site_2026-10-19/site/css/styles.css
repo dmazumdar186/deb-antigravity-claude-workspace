@@ -557,3 +557,9 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 @media (max-width:767px),(max-height:500px) and (min-width:568px){.cover__aside{display:contents}}
 @media (min-width:768px){.cover__pin{grid-template-rows:minmax(0,1fr)}.cover__aside{height:100%;max-height:100%}}
 @media (min-width:768px) and (max-height:900px) and (orientation:landscape){.cover__body{padding-bottom:calc(var(--s) * 30 + 6vh)}.cover__aside .rail{padding-bottom:calc(var(--s) * 36)}.rail{gap:calc(var(--s) * 8)}}
+/* phones: rail padded to the gutter and following the copy */
+@media (max-width:767px){
+  .cover__aside .rail,.rail{padding:0 var(--gutter) 0!important;margin-top:18px;box-sizing:border-box;width:100%}
+  .cover__pin{grid-template-rows:auto auto!important;align-content:center!important;padding-bottom:56px}
+  .cover__body{align-self:auto!important;padding-top:calc(var(--hdr) + 16px)!important;padding-bottom:0!important}
+}
