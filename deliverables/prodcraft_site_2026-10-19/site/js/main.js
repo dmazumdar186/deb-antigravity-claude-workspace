@@ -119,7 +119,7 @@
     tabs.forEach(function (t) { var on = t.dataset.tab === id; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
     var p = $('#' + id); if (p) { setChapter(p.dataset.chapter, p.dataset.chapterName); $$('[data-count]', p).forEach(count); }
     if (push && location.hash !== '#' + id) history.pushState({ tab: id }, '', location.pathname + location.search + '#' + id);
-    if (scroll && deck) { var top = deck.getBoundingClientRect().top + window.pageYOffset - 64; if (window.pageYOffset > top + 40 || window.pageYOffset < top - 40) window.scrollTo({ top: top, behavior: reduced ? 'auto' : 'smooth' }); }
+    if (scroll && deck) { var top = deck.getBoundingClientRect().top + window.pageYOffset - (hdr ? hdr.offsetHeight : 64); if (window.pageYOffset > top + 40 || window.pageYOffset < top - 40) window.scrollTo({ top: top, behavior: reduced ? 'auto' : 'smooth' }); }
     if (nav) { var a = $('[data-tab="' + id + '"]', nav), ul = nav.querySelector('ul'); if (a && ul && ul.scrollWidth > ul.clientWidth + 2) ul.scrollTo({ left: a.offsetLeft - (ul.clientWidth - a.offsetWidth) / 2, behavior: reduced ? 'auto' : 'smooth' }); }
     return true;
   }
@@ -161,7 +161,7 @@
   window.addEventListener('hashchange', function () { fromHash(true); });
   function deckChapter() { if (!deck) return; var r = deck.getBoundingClientRect(); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.3) { var p = $('#' + current); if (p) setChapter(p.dataset.chapter, p.dataset.chapterName); } }
   var qf = /[?&]for=(\w+)/.exec(location.search); if (qf) setPersona(qf[1], false);
-  if (location.hash && fromHash(false)) { var jump = function () { if (!deck) return; var html = root.style.scrollBehavior; root.style.scrollBehavior = 'auto'; window.scrollTo(0, deck.getBoundingClientRect().top + window.pageYOffset - 64); root.style.scrollBehavior = html; onScroll(); }; if (document.readyState === 'complete') jump(); else window.addEventListener('load', function () { requestAnimationFrame(jump); }); } else show(ids[0], false, false);
+  if (location.hash && fromHash(false)) { var jump = function () { if (!deck) return; var html = root.style.scrollBehavior; root.style.scrollBehavior = 'auto'; window.scrollTo(0, deck.getBoundingClientRect().top + window.pageYOffset - (hdr ? hdr.offsetHeight : 64)); root.style.scrollBehavior = html; onScroll(); }; if (document.readyState === 'complete') jump(); else window.addEventListener('load', function () { requestAnimationFrame(jump); }); } else show(ids[0], false, false);
 
   /* ---------- plate dialog ---------- */
   var PLATES = { misb: 'Private business school, Paris — prospectus concept', gtm: 'SaaS GTM recruiter, London — concept', midas: 'Franchise auto-service brand, France — concept', greenjobs: 'GreenJobs — greenjobs.ie / .co.uk' };

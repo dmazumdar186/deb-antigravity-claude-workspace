@@ -377,3 +377,6 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
 @media (max-width:767px){.hdr.over .hdr__logo img{background:var(--cream);border-radius:9px;padding:2px}}
 
 .hdr.over .hdr__brand{display:flex}
+.deck,.dp{scroll-margin-top:calc(var(--hdr) + 66px)}
+@media (max-width:767px){.hdr:not(.over){background:#f7f3ec;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (max-width:767px) and (min-height:780px){.cover__pin{grid-template-rows:1fr auto;align-content:stretch}.cover__body{align-self:start;padding-top:20vh}}

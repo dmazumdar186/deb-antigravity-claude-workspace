@@ -24,8 +24,8 @@
   },
   "sizes": {
     "html": 36247,
-    "css": 31620,
-    "js": 15650,
+    "css": 31944,
+    "js": 15704,
     "backdrop": 5387
   },
   "results": [
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":36247,\"css\":31620,\"js\":15650,\"backdrop\":5387}"
+      "info": "{\"html\":36247,\"css\":31944,\"js\":15704,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
