@@ -127,3 +127,7 @@ deliverables/ad_creative/**/renders/
 
 # Session download drops (lead PII, never committed)
 downloads/
+
+# prodcraft.fyi v2 production site: logo/OG PNGs must ship
+!deliverables/prodcraft_site_2026-10-19/site/assets/*.png
+!deliverables/prodcraft_site_2026-10-19/site/assets/**/*.png
