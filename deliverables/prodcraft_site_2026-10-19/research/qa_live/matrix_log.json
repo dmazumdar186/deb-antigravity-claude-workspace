@@ -110,7 +110,7 @@
  {
   "tag": "tablet-s-600x960",
   "w": 600,
-  "h": 4451,
+  "h": 4405,
   "overflowX": false,
   "plate": {
    "top": 0,
@@ -194,11 +194,11 @@
   "h": 5437,
   "overflowX": false,
   "plate": {
-   "top": 189.625,
-   "bottom": 540,
+   "top": 159.625,
+   "bottom": 510,
    "w": 250,
    "imgW": 236,
-   "imgTop": 196.625,
+   "imgTop": 166.625,
    "visible": true
   },
   "hdrBottom": 64,
@@ -248,11 +248,11 @@
   "h": 6643,
   "overflowX": false,
   "plate": {
-   "top": 393.625,
-   "bottom": 744,
+   "top": 363.625,
+   "bottom": 714,
    "w": 250,
    "imgW": 236,
-   "imgTop": 400.625,
+   "imgTop": 370.625,
    "visible": true
   },
   "hdrBottom": 64,
@@ -275,11 +275,11 @@
   "h": 5004,
   "overflowX": false,
   "plate": {
-   "top": 137.625,
-   "bottom": 488,
+   "top": 107.625,
+   "bottom": 458,
    "w": 250,
    "imgW": 236,
-   "imgTop": 144.625,
+   "imgTop": 114.625,
    "visible": true
   },
   "hdrBottom": 64,
@@ -302,11 +302,11 @@
   "h": 5614,
   "overflowX": false,
   "plate": {
-   "top": 192.421875,
-   "bottom": 565.359375,
+   "top": 160.421875,
+   "bottom": 533.359375,
    "w": 266.640625,
    "imgW": 251.859375,
-   "imgTop": 199.8125,
+   "imgTop": 167.8125,
    "visible": true
   },
   "hdrBottom": 68.25,
@@ -329,11 +329,11 @@
   "h": 5849,
   "overflowX": false,
   "plate": {
-   "top": 269.625,
-   "bottom": 620,
+   "top": 239.625,
+   "bottom": 590,
    "w": 250,
    "imgW": 236,
-   "imgTop": 276.625,
+   "imgTop": 246.625,
    "visible": true
   },
   "hdrBottom": 64,
@@ -356,11 +356,11 @@
   "h": 5394,
   "overflowX": false,
   "plate": {
-   "top": 112.5625,
-   "bottom": 466.09375,
-   "w": 230.671875,
-   "imgW": 213.015625,
-   "imgTop": 121.390625,
+   "top": 93.359375,
+   "bottom": 426.875,
+   "w": 199.296875,
+   "imgW": 181.640625,
+   "imgTop": 102.1875,
    "visible": true
   },
   "hdrBottom": 83.625,
@@ -383,11 +383,11 @@
   "h": 6980,
   "overflowX": false,
   "plate": {
-   "top": 243.390625,
-   "bottom": 706.703125,
+   "top": 203.390625,
+   "bottom": 666.703125,
    "w": 333.296875,
    "imgW": 315.328125,
-   "imgTop": 252.375,
+   "imgTop": 212.375,
    "visible": true
   },
   "hdrBottom": 85.3125,
@@ -410,11 +410,11 @@
   "h": 9276,
   "overflowX": false,
   "plate": {
-   "top": 328.3125,
-   "bottom": 942.265625,
+   "top": 274.984375,
+   "bottom": 888.9375,
    "w": 444.40625,
    "imgW": 421.09375,
-   "imgTop": 339.96875,
+   "imgTop": 286.640625,
    "visible": true
   },
   "hdrBottom": 113.765625,
@@ -437,11 +437,11 @@
   "h": 13842,
   "overflowX": false,
   "plate": {
-   "top": 498.25,
-   "bottom": 1413.390625,
+   "top": 418.25,
+   "bottom": 1333.390625,
    "w": 666.609375,
    "imgW": 632.640625,
-   "imgTop": 515.234375,
+   "imgTop": 435.234375,
    "visible": true
   },
   "hdrBottom": 170.640625,

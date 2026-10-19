@@ -168,12 +168,12 @@
   if (location.hash && fromHash(false)) { var jump = function () { if (!deck) return; var html = root.style.scrollBehavior; root.style.scrollBehavior = 'auto'; window.scrollTo(0, deck.getBoundingClientRect().top + window.pageYOffset - (hdr ? hdr.offsetHeight : 64)); root.style.scrollBehavior = html; onScroll(); }; if (document.readyState === 'complete') jump(); else window.addEventListener('load', function () { requestAnimationFrame(jump); }); } else show(ids[0], false, false);
 
   /* ---------- plate dialog ---------- */
-  var PLATES = { misb: 'Private business school, Paris — prospectus concept', gtm: 'SaaS GTM recruiter, London — concept', midas: 'Franchise auto-service brand, France — concept', greenjobs: 'GreenJobs — greenjobs.ie / .co.uk' };
+  var PLATES = { 'sites-10x': 'SaaS GTM recruiter, London — concept, spec work', 'board-195': 'Green-jobs board, Ireland & UK — concept, spec work', 'school-6321': 'Private business school, Paris — concept, spec work', 'auto-33': 'Franchise auto-service brand, France — concept, spec work' };
   var dlg = $('[data-gallery]'), galGrid = $('[data-gal-grid]'), galTitle = $('[data-gal-title]'), opener = null;
   function openPlate(key, btn) {
     if (!PLATES[key] || !dlg || !galGrid) return;
     if (galTitle) galTitle.textContent = PLATES[key]; galGrid.innerHTML = '';
-    var img = document.createElement('img'); img.src = 'assets/plates/' + key + '.webp'; img.alt = PLATES[key] + ' — screenshot at 1440 px'; img.width = 1200; img.height = 750; galGrid.appendChild(img);
+    var img = document.createElement('img'); img.src = 'assets/receipts/' + key + '.svg'; img.alt = PLATES[key] + ' — receipt'; img.width = 1600; img.height = 1000; galGrid.appendChild(img);
     opener = btn || null;
     if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
   }

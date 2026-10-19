@@ -24,7 +24,7 @@ const TAB_ORDER = ['systems', 'build', 'stack', 'how', 'recs', 'contact', 'who']
 const FIRST_TAB = 'who'; const LAST_TAB = 'contact'; const LAST_TAB_LABEL = /08 Contact/;
 const DEEP_LINK = 'stack';
 const COUNTER_TAB = 'systems'; const COUNTERS_EXPECTED = '$1M+,+45%,<30 days,$1M+,$200K/yr,+45%,−55%,95%,8 min,14 days,$10K/wk,12+,21,977,1,900,68%';
-const GALLERY_BTN = '[data-plate-open="gtm"]'; const GALLERY = '[data-gallery]'; const GAL_GRID = '[data-gal-grid] img'; const GAL_TITLE = '[data-gal-title]'; const GAL_COUNT = 1;
+const GALLERY_BTN = '[data-plate-open="sites-10x"]'; const GALLERY = '[data-gallery]'; const GAL_GRID = '[data-gal-grid] img'; const GAL_TITLE = '[data-gal-title]'; const GAL_COUNT = 1;
 const HDR_LOGO = '.hdr__logo'; const MBAR = '[data-mbar]';
 const PAPER_RGB = 'rgb(247, 243, 236)';
 const CHAPTER_NO = '[data-chapter-no]'; const CHAPTER_NAME = '[data-chapter-name]';
@@ -147,6 +147,7 @@ import { readFileSync } from 'node:fs';
 const html = readFileSync(SITE_DIR + 'index.html', 'utf8'), redir = readFileSync(SITE_DIR + '_redirects', 'utf8');
 const allText = ['index.html', '404.html', 'css/styles.css', 'js/main.js', '_redirects', '_headers', 'sitemap.xml', 'robots.txt'].map((f) => readFileSync(SITE_DIR + f, 'utf8')).join('\n');
 t('/book present in _redirects and no cal.com in HTML', /^\/book https:\/\/cal\.com\/\S+ 302$/m.test(redir) && /^\/call \/book 301$/m.test(redir) && !/cal\.com/.test(html) && /href="\/book"/.test(html));
+t('no third-party brand names or plates/ screenshots in the site', !/greenjobs|gaia talent|\bmisb\b|midas|gtm people|plates\//i.test(allText) && !/redesign\.pages\.dev/.test(html), (allText.match(/greenjobs|gaia talent|\bmisb\b|midas|gtm people|plates\//i) || ['none'])[0]);
 t('no gmail anywhere in the site', !/gmail/i.test(allText) && SIGNATURE_RE.test(html));
 p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(600);
 await p.evaluate(() => document.querySelector('#deck').scrollIntoView()); await p.click('[data-tab="who"]'); await p.waitForTimeout(200);

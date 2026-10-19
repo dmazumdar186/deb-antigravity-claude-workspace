@@ -489,3 +489,7 @@ html.rec .cover__body,html.rec .rail,html.rec .cover__plates{visibility:hidden}
   .deck__nav ul{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);padding-right:40px}
   .deck__nav::after{content:"›";position:absolute;top:0;right:0;bottom:0;width:40px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;font:400 26px/1 var(--display);color:var(--ink);background:none;pointer-events:none}
 }
+/* typographic receipt plates (no third-party screenshots) */
+.plate img{object-fit:contain;object-position:center;background:transparent}
+.plate--dark{background:#16181c}.plate--paper{background:#f7f3ec}
+.cplate img{object-position:center}

@@ -1,7 +1,7 @@
 {
   "date": "2026-10-19",
-  "pass": 32,
-  "total": 32,
+  "pass": 33,
+  "total": 33,
   "desktopHeight": 5964,
   "mobileHeight": 4389,
   "panelHeightsDesktop": {
@@ -23,9 +23,9 @@
     "contact": 480
   },
   "sizes": {
-    "html": 36479,
-    "css": 39686,
-    "js": 16103,
+    "html": 35957,
+    "css": 39927,
+    "js": 16154,
     "backdrop": 5387
   },
   "results": [
@@ -76,7 +76,7 @@
     {
       "name": "gallery dialog opens and closes",
       "ok": true,
-      "info": "{\"open\":true,\"n\":1,\"title\":\"SaaS GTM recruiter, London — concept\"}"
+      "info": "{\"open\":true,\"n\":1,\"title\":\"SaaS GTM recruiter, London — concept, spec work\"}"
     },
     {
       "name": "counters settle on the exact published values",
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":36479,\"css\":39686,\"js\":16103,\"backdrop\":5387}"
+      "info": "{\"html\":35957,\"css\":39927,\"js\":16154,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -170,6 +170,11 @@
     {
       "name": "/book present in _redirects and no cal.com in HTML",
       "ok": true
+    },
+    {
+      "name": "no third-party brand names or plates/ screenshots in the site",
+      "ok": true,
+      "info": "none"
     },
     {
       "name": "no gmail anywhere in the site",
