@@ -84,3 +84,6 @@
 - Portrait ≥ 768 px (iPads, portrait TV) is its own class: centred cover body, stacked content-sized signature object, no pinned horizontal row.
 - ≥ 2200 px: rem scaling + 88 vw container, or cream sections read as a phone site on a TV.
 - Third-party screenshots/logos of unsigned prospects never appear on the operator's own site; use typographic receipt plates and sector descriptions.
+- **First-screen changes are never numeric-only (prodcraft v2.3, 2026-10-19):** any CSS touching the cover ships only after a reviewer reads the re-shot cover frames at 0/30/55/80/100 % across the matrix. Elements that share a column (plate + rail) live in one flex column, never independent offsets; assert non-intersection of their boxes at every viewport × progress.
+- **Serve locally with the real `_headers`** (`qa_live/serve_csp.mjs`): a CSP-blocked inline style or script is invisible on `http.server` and a console error on every live viewport. No `style=""` attributes in shipped HTML.
+- **Reviewer hygiene:** ≤ 40 images per reviewer context; require the count of files actually read in every report; if a reviewer reports a media/request limit, discard its verdicts and spawn a fresh reviewer for the unread files.

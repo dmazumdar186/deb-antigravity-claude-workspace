@@ -23,8 +23,8 @@
     "contact": 561
   },
   "sizes": {
-    "html": 36727,
-    "css": 45585,
+    "html": 36711,
+    "css": 45609,
     "js": 18552,
     "backdrop": 5387
   },
@@ -37,7 +37,7 @@
     {
       "name": "video plays (or canvas fallback runs)",
       "ok": true,
-      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"http://localhost:8793/assets/hero.webm\",\"canvasVisible\":false}"
+      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"http://localhost:8794/assets/hero.webm\",\"canvasVisible\":false}"
     },
     {
       "name": "fold-out hinge transform changes with scroll",
@@ -106,7 +106,7 @@
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":36727,\"css\":45585,\"js\":18552,\"backdrop\":5387}"
+      "info": "{\"html\":36711,\"css\":45609,\"js\":18552,\"backdrop\":5387}"
     },
     {
       "name": "desktop: 0 console errors",

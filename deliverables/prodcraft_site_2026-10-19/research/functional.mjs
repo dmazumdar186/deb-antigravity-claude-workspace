@@ -2,7 +2,7 @@
 /* functional_template.mjs — the 29-assertion Playwright suite from MISB v3, with every site-specific selector
    and value lifted into the constants below. A worker copies this file to <deliverable>/research/functional.mjs,
    edits ONLY the CONFIG block (≈ 5 minutes), keeps every assertion NAME, and runs:
-     python3 -m http.server 8793 --directory <site> &  node functional.mjs http://localhost:8793/
+     python3 -m http.server 8793 --directory <site> &  node functional.mjs http://localhost:8794/
    outputs: functional.json next to the script (pass/total, page heights, panel heights, sizes, results); exit 0 only on N/N.
    usage: node functional_template.mjs <url> | --help */
 const argv = process.argv.slice(2);
