@@ -1,0 +1,191 @@
+
+ProdCraft · The senior AI engineer your roadmap is missing
+ProdCraft
+Services
+Systems
+Contact
+ Book a free build session 
+ProdCraft
+AI builds, shipped.
+ The senior AI engineer your roadmap is missing. 
+ Without the FTE, the agency timeline, or the slide-deck demos. Built with Claude Code. Live in your stack in weeks. 
+ Book a free build session 
+→
+ See what we've shipped 
+DM
+Debanjan Mazumdar
+Founder · lead engineer · Paris · 15+ yrs
+The receipts
+$1M+
+qualified pipeline generated
+from 48,000+ cold emails/mo at 4%+ reply, one fully-automated outbound system
++45%
+feature adoption
+with −55% latency (p95) · enterprise GenAI/RAG in production
+<30 days
+median ship cycle
+across 5+ live AI products built end-to-end: SaaS · mobile · video · agents
+What we build
+Three things we ship, fast.
+Senior operator on every call. No agency overhead. Walk-away day one.
+Cold-email & outbound systems
+Instantly / SmartLead pipelines, GHL CRM, reply detection, deliverability hardening, sequences that compound.
+Inbox warmup + domain rotation
+AI-personalized first lines
+Reply classification + auto-routing
+Pipeline reporting in your CRM
+ Talk outbound 
+→
+24/7 AI sales assistants
+Voice + chat (Vapi / Retell / Bland), inbound qualification, outbound dialers, calls transcribed straight into your CRM.
+Inbound lead qualification
+Outbound dialing + follow-up
+Live transcript → CRM sync
+Sandbox demo on request
+ Hear a sample call 
+→
+Custom AI operations
+Agents, RAG, document workflows, internal copilots, n8n / Modal automations — anything Claude Code can ship in days.
+Multi-agent orchestration
+Document Q&A + RAG stacks
+Internal Slack / Teams copilots
+Modal + Cloudflare deploys
+ Show me an example 
+→
+Systems we've shipped
+Real builds. Real metrics. Touchable demos.
+Two are live below — paste a CV into the optimizer, play the latest video from our channel. The rest you can stress-test on the intro call.
+Email
+The Always-On Outbound Engine
+High-velocity cold-email + GHL CRM + reply automation for a US outbound consultancy.
+$1M+
+pipeline generated
+$200K/yr
+SDR headcount replaced
+how it works ↓
+collapse ↑
+Stack: Cloudflare Workers + KV + Instantly + GHL. Idempotent sentinel keys, cross-run dedup, per-campaign kill switch, dual-path reply detection. Replaces a 4-SDR team at ~1/10th the cost.
+48,000+
+ emails/mo · 4%+ reply
+GenAI
+Enterprise Adoption Driver
+Production GenAI / RAG product for a US enterprise SaaS.
++45%
+feature adoption
+−55%
+p95 latency
+how it works ↓
+collapse ↑
+PM-led from problem framing to shipped feature. Multi-LLM routing, eval harness, prompt-cache-aware cost model, per-tenant config. The latency win came from prompt-cache hits + tenant-aware routing.
+SaaS
+live ↗
+Multi-Lingual CV Optimizer
+Live SaaS that re-writes a CV in the target locale + tunes for a pasted job description. Paste a CV right here.
+EN / FR
+live locales
+95%
+recruiter-pass rate
+how it works ↓
+collapse ↑
+Cloudflare Pages + Worker + Gemini backend. Per-field langdetect validators, recruiter-proxy eval, golden-screenshot diff. Eval-first development — ships only when 95% of fields pass.
+Video
+live ↗
+ProdCraft AI Video Studio
+Script → voice → Remotion → upload, fully automated. Weekly cadence, near-zero marginal cost.
+8 min
+topic → upload
+~$0
+marginal cost / video
+how it works ↓
+collapse ↑
+Voice clone via Chatterbox HF Space, visual generation via Gemini, render via Remotion, upload via YouTube Data API. From topic prompt to public video in eight minutes.
+Mobile
+The 14-Day Shipping Pipeline
+Expo + EAS Build → TestFlight & Play Store, AI features wired in (transcription, summaries, agents).
+14 days
+idea → TestFlight
+iOS + Android
+one codebase
+how it works ↓
+collapse ↑
+Per-app registry, EAS cloud builds (no Mac required), 5-principle app design framework, 2-pass security audit. Backend tracks: Cloudflare Worker + Modal cron OR Supabase.
+Agents
+Claude Code Operator Stack
+Multi-agent orchestration, MCP servers, internal copilots, anneal audit loops for self-hardening code.
+$10K/wk
+headcount cost saved
+12+
+AI systems shipped
+how it works ↓
+collapse ↑
+Dynamic workflows, agent teams, sub-agent delegation per task complexity. Anneal: iterative audit loop until convergence. MCP servers for custom integrations.
+The stack
+What we actually use to ship.
+No theory. These are the tools running the systems above, right now, in production.
+AI models
+Claude
+Gemini
+GPT
+Vapi / Retell
+Whisper
+Build & deploy
+Claude Code
+Cloudflare Workers
+Cloudflare Pages
+Modal
+Expo + EAS Build
+Remotion
+Ops & GTM
+Instantly
+SmartLead
+GHL
+n8n
+Anymailfinder
+Million Verifier
+How we work
+Three things you don't have to worry about.
+"Will this take six months?"
+Ship in days, not months.
+Claude Code + senior product instincts = 5× the throughput of a typical agency. First working slice in week one.
+"Do I get a sales rep, a PM, and a junior dev?"
+You get one senior operator on every call.
+15 years of product. The same operator writes the prompts, codes the system, deploys it, and watches the metrics. No relay race.
+"What if I want to fire you?"
+All code, all credentials — yours. Day one.
+Repo in your GitHub. Keys in your accounts. Walk away whenever. We work to be re-hired, not to be locked in.
+Recommendations
+From people we've shipped with.
+"
+Debanjan caught a silent bug that was killing 83% of our outbound leads before they ever hit an inbox — then rebuilt our entire pipeline around the fix: sourcing, AI personalization, reply classification, CRM routing. Deep technical chops, total transparency, ruthlessly results-focused. I'd hire him again tomorrow.
+"
+Jitendra Kumar
+Founder & CEO · InfoTNT
+verify ↗
+"
+'Yes, we can do it' — and then he actually ships it. The rare operator who's frank about risks the moment he sees them, builds team capability while delivering, and you can hand him any organizational task and trust the outcome.
+"
+Ramesh Babar
+Project Manager · Zensar Technologies
+verify ↗
+"
+I brought Debanjan in to build a two-sided marketplace with me, and it was one of the smoothest builds I've been part of. He took it from zero — Stripe Connect, the full payment flow, the entire platform — and we cleared $85k in transactions inside the first three months. What stuck with me wasn't just the speed; it's that he sweats the edge cases and ships things that don't break. I'd work with him again in a heartbeat.
+"
+Siva Devavarapu
+Founder · Papaya Labs
+verify ↗
+Stop reading. Start shipping.
+Book 30 minutes. We'll show you what's possible.
+No deck. No sales pitch. Grab 30 minutes and we scope a first build on the call.
+ Book a free build session 
+→
+ Or email a brief 
+↗
+ Email ↗
+ LinkedIn ↗
+ Malt ↗
+ Upwork ↗
+ ProdCraft ↗
+© 2026 ProdCraft · An AI-build studio by Debanjan Mazumdar · Paris
+Services
+Systems
+Contact
