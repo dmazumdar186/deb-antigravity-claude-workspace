@@ -37,7 +37,7 @@
   }
   function applyCover(p) {
     var n = beatOf(p); setBeat(n);
-    var seg = (p - EDGES[n]) / (Math.min(1, EDGES[n + 1]) - EDGES[n]); if (railItems[n]) railItems[n].style.setProperty('--p', clamp(seg, 0, 1).toFixed(3));
+    var seg = (p - EDGES[n]) / (Math.min(1, EDGES[n + 1]) - EDGES[n]); railItems.forEach(function (r, k) { r.style.setProperty('--p', k === n ? clamp(seg, 0, 1).toFixed(3) : '0'); });
     if (backdropOn && BD()) BD().setProgress(p);
   }
   function coverScroll() {

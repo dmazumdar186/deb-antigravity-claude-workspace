@@ -70,3 +70,11 @@
 - Measured heights (live vs concept, desktop + mobile) are in the pitch table, from `scripts/measure_live.mjs`.
 - GLM/Kimi receive public facts only (place names, colours, API spec); Kling via Higgsfield only with `HF_API_TOKEN`, else self-render.
 - Two reviewer rounds on PNGs are mandatory; nothing deploys before SHIP.
+
+## prodcraft.fyi v2 (2026-10-19) — production site, not a concept
+- A production build of the operator's own site is indexable (no `noindex`), has canonical/OG/sitemap/robots/_headers/404, and no `for-<name>/` page.
+- The cover must carry the brand at scroll 0: when the header logo is hidden over the cover, the cover (or the header while over the cover) shows the logo + wordmark; the reviewer's first-3-seconds test fails on a cover with no brand and no face.
+- Mobile cover: CTAs directly under the copy, scroll hint always present; on phones ≥ 780 px tall pin the copy ~20vh from the top (Pixel 7 showed 35 % empty haze).
+- Rail items: only the current beat carries `--p`; reset the others to 0 on every scroll frame (stale fills showed gold on 01 and 04 at scroll 0).
+- Wide screens (1920/2560/3840): header, kicker, hint, rail and micro-type scale with `clamp()` on vw; deck sections use `scroll-margin-top` = real header + tab bar; vertically centre short panels.
+- Generated footage goes through a frame review (text/hands/desk band/lower-third calm) before it is used behind type.

@@ -1,0 +1,2 @@
+prev prod deployment: c06736d0-9a6f-44b4-a68f-fc4935ff6bd3 https://c06736d0.prodcraft.pages.dev 2026-06-25T13:02:40.753206Z
+prod branch: main
