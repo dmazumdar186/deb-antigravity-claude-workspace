@@ -1,0 +1,18 @@
+{
+  "request_id": "cb6ff1fd-def9-4d19-9f99-c363b24e8696",
+  "model": "kling-video/v3.0/std/text-to-video",
+  "duration": 10,
+  "estimate": {
+    "type": "estimate",
+    "credits": "11.424",
+    "usd": "0.714",
+    "discount": {
+      "percentage": "15.00",
+      "credits": "2.016",
+      "usd": "0.126"
+    }
+  },
+  "prompt": "Macro cinematic shot of a dark charcoal paper page in low warm light. Thin gold metallic ink lines slowly draw themselves across the page into a clean system diagram: small nodes connected by hairlines, a few nodes glowing softly, tiny gold particles drifting along the lines like data. Slow steady camera drift to the right, shallow depth of field, soft paper grain, no text, no letters, no logos, no people, no hands, minimal and calm, palette of charcoal black, bone white and muted gold, the lower third of the frame calm and uncluttered.",
+  "video_url": "https://d3u0tzju9qaucj.cloudfront.net/8e6cbbce-d7e2-45b2-8d2f-830d040b3146/3f9ad034-7905-4576-954c-e25b772c229d.mp4",
+  "generated": "2026-10-19"
+}
