@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parity check: .claude/hooks/jev-router.sh vs the exact argv jev-router-mod runs.
+"""Parity check: docs/reference/hooks-archive/2026-10-22/jev-router.sh vs the exact argv jev-router-mod runs.
 
 For each prompt in tests/mods/jev-samples.json, feed the same hook JSON to both and compare stdout.
 Usage: python3 tests/mods/jev_router_parity.py
@@ -14,7 +14,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MOD_ARGV = ["python3", "execution/infrastructure/jev_router.py", "hook"]  # = ARGV in hooks/register.tsx
-SHELL_ARGV = ["bash", ".claude/hooks/jev-router.sh"]
+# The archived script locates the repo as ../.. of its own folder, so run a copy from .tmp/hooks/.
+_ARCHIVED = ROOT / "docs/reference/hooks-archive/2026-10-22/jev-router.sh"
+_SHELL_COPY = ROOT / ".tmp/hooks/jev-router.sh"
+_SHELL_COPY.parent.mkdir(parents=True, exist_ok=True)
+_SHELL_COPY.write_text(_ARCHIVED.read_text())
+SHELL_ARGV = ["bash", str(_SHELL_COPY)]
 TIMEOUT_S = 10
 
 

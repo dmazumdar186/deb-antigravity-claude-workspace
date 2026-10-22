@@ -21,7 +21,7 @@ search-by-meaning, live meters, zero-LLM chatbots).
 
 ## Level 1 — the router (`/jev on|off|status|test|pick`)
 
-- Hook: `UserPromptSubmit` → `.claude/hooks/jev-router.sh` → `execution/infrastructure/jev_router.py hook`.
+- Hook: `UserPromptSubmit` → `.claude/mods/jev-router-mod` (shell hook archived in `docs/reference/hooks-archive/2026-10-22/`) → `execution/infrastructure/jev_router.py hook`.
 - One Jev call per prompt with two questions: **tier** (tiny / bulk / standard / hard) and **skill**
   (menu = every `.claude/skills/*/SKILL.md` name + description, plus `none`).
 - Injected context (only when confidence ≥ `min_confidence`):

@@ -40,7 +40,7 @@ Jev can abstain. Env key: `OPENROUTER_API_KEY` (cloud alias `OPENROUTER_API_TOEK
 ## Installed workspace uses
 | Use | Entry point |
 |---|---|
-| Model tier + skill routing per prompt (Level 1) | `/jev on|off|status|test`, hook `.claude/hooks/jev-router.sh` |
+| Model tier + skill routing per prompt (Level 1) | `/jev on|off|status|test`, mod `.claude/mods/jev-router-mod` (shell hook archived 2026-10-22) |
 | Categorize a sheet/CSV column | `execution/google/jev_sheet_categorize.py` |
 | Triage customer inquiries with a confidence gate | `execution/crm_and_pm/jev_inquiry_triage.py` |
 | Tag competitor ads (Meta Ad Library) into a swipe file | `execution/custom_scrapers/jev_ad_library_tagger.py` |

@@ -37,7 +37,7 @@ directives, skills, hooks, agents, and MCP servers intact.
 - `CLAUDE.md`, `directives/`, `execution/`, `tests/`
 - `.claude/settings.json` (model pin `claude-fable-5-1`, permissions, hooks config)
 - `.claude/hooks/` — **all hooks are Linux-portable as of 2026-08-31** (they
-  resolve `py` → `python3` automatically; `notify-done.sh` no-ops without
+  resolve `py` → `python3` automatically; `done-notify-mod` (ex `notify-done.sh`, archived 2026-10-22) toasts without
   PowerShell)
 - `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/rules/`,
   `.claude/workflows/`, `.claude/notes/`
@@ -82,7 +82,7 @@ directives, skills, hooks, agents, and MCP servers intact.
 ## Edge cases / learnings
 
 - 2026-08-31: hooks called `py` (Windows launcher) and would have errored on every
-  Bash call in cloud sessions (`safety-guard.sh` is PreToolUse:Bash). Fixed with a
+  Bash call in cloud sessions (`safety-guard-mod` replaced `safety-guard.sh` 2026-10-22; both are PreToolUse:Bash). Fixed with a
   portable resolver: `PY="$(command -v py || command -v python3 || command -v python)"`.
 - The repo is **PUBLIC**. Never commit `.env`, `.env` values, deliverables with
   personal data, or user-global rules. `.env.example` (names only) is the
