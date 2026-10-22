@@ -1,5 +1,6 @@
-// session-ledger-mod contract: its own $.state, plus an ambient mirror of
-// safety-guard-mod's `ledger` state contract (read cross-plugin, never written).
+// session-ledger-mod contract: its own $.state. safety-guard-mod's `ledger` contract comes
+// from that plugin (listed under `dependencies`); the engine lays it beside this mod's types.
+// SafetyGuardLedgerEntry below only names the row shape this mod reads.
 export type SessionLedgerHook = { tool: string; outcome: 'ok' | 'isError' | 'deny' }
 export type SessionLedgerHandoff = { path: string; fileCount: number }
 export type SafetyGuardLedgerEntry = {
@@ -18,9 +19,6 @@ declare module 'claude-code' {
       directives: string[]
       firstPrompt: string
       handoff: SessionLedgerHandoff | null
-    }
-    'safety-guard-mod': {
-      ledger: SafetyGuardLedgerEntry[]
     }
   }
 }
