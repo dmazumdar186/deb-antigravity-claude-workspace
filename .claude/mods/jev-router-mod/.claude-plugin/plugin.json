@@ -1,0 +1,7 @@
+{
+  "name": "jev-router-mod",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Runs the Jev prompt router (execution/infrastructure/jev_router.py hook) on each typed prompt, attaches its routing line as model context, and shows the route in a one-line band.",
+  "types": "./types/index.d.ts"
+}

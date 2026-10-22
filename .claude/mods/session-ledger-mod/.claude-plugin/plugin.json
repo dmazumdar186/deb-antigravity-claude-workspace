@@ -1,0 +1,13 @@
+{
+  "name": "session-ledger-mod",
+  "version": "0.1.0",
+  "description": "Pane ledger of files edited, tool outcomes, safety-guard rewrites and directives touched; writes a handoff file.",
+  "types": "./types/index.d.ts",
+  "dependencies": [
+    "safety-guard-mod"
+  ],
+  "author": {
+    "name": "Debanjan Mazumdar"
+  },
+  "license": "MIT"
+}

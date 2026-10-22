@@ -134,27 +134,27 @@ tier "TIER 2: Integration Tests (component interactions)"
 
 # 2.1 safety-guard.sh blocks rm -rf (exit 2)
 EXIT=0
-echo '{"tool_input":{"command":"rm -rf /"}}' | bash .claude/hooks/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
+echo '{"tool_input":{"command":"rm -rf /"}}' | bash docs/reference/hooks-archive/2026-10-22/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
 [[ "$EXIT" -eq 2 ]] && pass "safety-guard.sh blocks 'rm -rf' (exit 2)" || fail "safety-guard.sh did NOT block 'rm -rf' (exit $EXIT)"
 
 # 2.2 safety-guard.sh blocks git push --force
 EXIT=0
-echo '{"tool_input":{"command":"git push --force origin main"}}' | bash .claude/hooks/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
+echo '{"tool_input":{"command":"git push --force origin main"}}' | bash docs/reference/hooks-archive/2026-10-22/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
 [[ "$EXIT" -eq 2 ]] && pass "safety-guard.sh blocks 'git push --force' (exit 2)" || fail "safety-guard.sh did NOT block 'git push --force' (exit $EXIT)"
 
 # 2.3 safety-guard.sh blocks DROP TABLE
 EXIT=0
-echo '{"tool_input":{"command":"psql -c DROP TABLE users"}}' | bash .claude/hooks/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
+echo '{"tool_input":{"command":"psql -c DROP TABLE users"}}' | bash docs/reference/hooks-archive/2026-10-22/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
 [[ "$EXIT" -eq 2 ]] && pass "safety-guard.sh blocks 'DROP TABLE' (exit 2)" || fail "safety-guard.sh did NOT block 'DROP TABLE' (exit $EXIT)"
 
 # 2.4 safety-guard.sh allows safe command (git status)
 EXIT=0
-echo '{"tool_input":{"command":"git status"}}' | bash .claude/hooks/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
+echo '{"tool_input":{"command":"git status"}}' | bash docs/reference/hooks-archive/2026-10-22/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
 [[ "$EXIT" -eq 0 ]] && pass "safety-guard.sh allows 'git status' (exit 0)" || fail "safety-guard.sh blocked 'git status' (exit $EXIT)"
 
 # 2.5 safety-guard.sh allows safe command (ls)
 EXIT=0
-echo '{"tool_input":{"command":"ls -la"}}' | bash .claude/hooks/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
+echo '{"tool_input":{"command":"ls -la"}}' | bash docs/reference/hooks-archive/2026-10-22/safety-guard.sh >/dev/null 2>&1 || EXIT=$?
 [[ "$EXIT" -eq 0 ]] && pass "safety-guard.sh allows 'ls -la' (exit 0)" || fail "safety-guard.sh blocked 'ls -la' (exit $EXIT)"
 
 # 2.6 format-python.sh reformats bad .py file

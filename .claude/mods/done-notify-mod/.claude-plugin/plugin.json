@@ -1,0 +1,5 @@
+{
+  "name": "done-notify-mod",
+  "version": "0.1.0",
+  "description": "Toasts elapsed time and token usage when a turn ends, a notification is raised, or a question waits; also sends a native notification."
+}

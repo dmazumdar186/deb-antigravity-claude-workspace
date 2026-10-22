@@ -131,3 +131,7 @@ downloads/
 # prodcraft.fyi v2 production site: logo/OG PNGs must ship
 !deliverables/prodcraft_site_2026-10-19/site/assets/*.png
 !deliverables/prodcraft_site_2026-10-19/site/assets/**/*.png
+
+# Engine-written mod artifacts (claude plugin hot-reload)
+.claude/mods/*/tsconfig.json
+.claude/mods/*/.claude-plugin/types/

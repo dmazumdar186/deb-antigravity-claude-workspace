@@ -364,3 +364,31 @@ Files changed by this sweep (scope excluded CLAUDE.md/AGENTS.md/GEMINI.md, `.cla
 **Revert (one line):** `git revert <this commit>` — or set `LAST_KNOWN_GOOD` `default`/`bulk` back to
 `claude-fable-5-1` / `anthropic/claude-fable-5.1` and the `opus`/`sonnet` router aliases to Fable 5.1, then
 re-run `tests/test_model_tier_*.py`.
+
+## 2026-10-22 — permissions.defaultMode `bypassPermissions` → `auto` (branch `mods-rollout`)
+
+- `.claude/settings.json` `permissions.defaultMode`: `bypassPermissions` → `auto`. Allow and
+  deny lists unchanged. `auto` lets the harness approve routine calls itself and ask only on
+  genuinely ambiguous ones; the mods rollout (`state/mods-baseline-2026-10-22.md`,
+  `tests/mods/eval-2026-10-22.md`) measures the resulting HITL count.
+- **Revert (one line):** set `"defaultMode": "bypassPermissions"` back in `permissions`.
+
+## 2026-10-22 — mods cutover (branch `mods-rollout`)
+
+Hook entries removed from `.claude/settings.json` and their scripts moved to
+`docs/reference/hooks-archive/2026-10-22/`:
+
+| Removed hook | Replaced by mod |
+|---|---|
+| PreToolUse Bash → `safety-guard.sh` | `.claude/mods/safety-guard-mod` (rewrite → silent block → 20 s auto-Block band) |
+| Stop / Notification / Pre+PostToolUse AskUserQuestion → `notify-done.sh` | `.claude/mods/done-notify-mod` (toast: turn time + tokens; no wav files) |
+| UserPromptSubmit → `jev-router.sh` | `.claude/mods/jev-router-mod` (same python call, informational band) |
+
+New: `.claude/mods/session-ledger-mod` (pane + auto-handoff), community mods `context-meter`,
+`quota-watch`, `tool-timing` (MIT, whyashthakker/awesome-claude-code-mods, vetted: no network).
+Eval: `tests/mods/eval-2026-10-22.md`. Baseline: `state/mods-baseline-2026-10-22.md`.
+
+**Disable a mod:** `/plugin` → select it → toggle off (or delete its folder under `.claude/mods/`).
+**Revert the cutover:** `git revert` the cutover commit; the archived scripts and hook entries come back.
+**Loading:** in a cloud session the folder is symlinked into `~/.claude/dev-mods/<session>/`; locally
+pass `--plugin-dir .claude/mods/<mod>` or set `CLAUDE_CODE_PLUGIN_DIRS` (see `directives/infrastructure/claude_code_web.md`).
