@@ -1,18 +1,18 @@
 # CV audit — CV MAZUMDAR Debanjan FR.pdf vs 10 FR JDs
 
-Pages: 2 · words: 697 · mean ATS: 8.73/10 · min ATS: 6.42 · gate: FAIL
+Pages: 2 · words: 740 · mean ATS: 8.72/10 · min ATS: 6.42 · gate: FAIL
 
-Core terms (≥5 of 10 JDs): discovery, ia, management, produit, ingénieur
+Core terms (≥5 of 10 JDs): ia, discovery, management, produit, ingénieur
 
 | # | JD | Type | ATS | must | tools | core | fmt | panel fit (c/h/r) | call | Jev call p |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Senior Product Manager - CDI Paris - Theodo — Theodo (AI Build practice) | senior_pm | **8.73** | 0.75 | 1.0 | 1.0 | 1.0 | - | - | - |
+| 1 | Senior Product Manager - CDI Paris - Theodo — Theodo (AI Build practice) | senior_pm | **8.46** | 0.69 | 1.0 | 1.0 | 1.0 | - | - | - |
 | 2 | Senior Product Manager - F/H/NB — Yespark Group | senior_pm | **6.42** | 0.42 | 0.67 | 1.0 | 1.0 | - | - | - |
 | 3 | Senior Product Manager H/F - CDI — Converteo | senior_pm | **8.95** | 0.9 | 0.71 | 1.0 | 1.0 | - | - | - |
 | 4 | Senior Product Manager — Evaneos | senior_pm | **7.93** | 0.72 | 0.67 | 1.0 | 1.0 | - | - | - |
 | 5 | Product Owner / Product Manager Senior (H/F) — Thiga | senior_pm | **10.0** | 1.0 | 1.0 | 1.0 | 1.0 | - | - | - |
 | 6 | Senior Product Manager IA H/F — Saint-Gobain Distribution Bâtiment France | senior_ai_pm | **8.17** | 0.83 | 0.5 | 1.0 | 1.0 | - | - | - |
-| 7 | Product Manager Outillage IA H/F — EDF | senior_ai_pm | **8.08** | 0.75 | 0.67 | 1.0 | 1.0 | - | - | - |
+| 7 | Product Manager Outillage IA H/F — EDF | senior_ai_pm | **8.29** | 0.79 | 0.67 | 1.0 | 1.0 | - | - | - |
 | 8 | AI Product Manager - CDI - Paris — Hubvisory | senior_ai_pm | **10.0** | 1.0 | 1.0 | 1.0 | 1.0 | - | - | - |
 | 9 | Lead Product Manager - CDI Paris - Theodo Data & IA — Theodo Data & AI | senior_ai_pm | **9.0** | 0.8 | 1.0 | 1.0 | 1.0 | - | - | - |
 | 10 | IA & Data Portfolio Product Manager H/F (freelance) — TEKsystems | senior_ai_pm | **10.0** | 1.0 | 1.0 | 1.0 | 1.0 | - | - | - |
@@ -21,7 +21,7 @@ Core terms (≥5 of 10 JDs): discovery, ia, management, produit, ingénieur
 
 **JD 1 — Senior Product Manager - CDI Paris - Theodo (Theodo (AI Build practice))**
 - must-have not met (0.56): Usage quotidien de l'IA pour prototyper, rédiger des specs, petites modifications en prod → missing words: quotidien, rédiger, petites, modifications
-- must-have not met (0.5): Problem solving → missing words: solving
+- must-have not met (0.0): Problem solving → missing words: problem, solving
 - must-have not met (0.33): Relationnel avec interlocuteurs seniors → missing words: relationnel, interlocuteurs
 - must-have not met (0.33): Posture client first → missing words: posture, first
 
@@ -51,7 +51,7 @@ Core terms (≥5 of 10 JDs): discovery, ia, management, produit, ingénieur
 
 **JD 7 — Product Manager Outillage IA H/F (EDF)**
 - must-have not met (0.25): Animation d'équipe, gestion de projets complexes → missing words: animation, projets, complexes
-- must-have not met (0.25): Culture d'innovation, intérêt fort pour l'IA → missing words: culture, innovation, intérêt
+- must-have not met (0.5): Culture d'innovation, intérêt fort pour l'IA → missing words: culture, intérêt
 - tools missing: Mistral (plateforme)
 
 **JD 9 — Lead Product Manager - CDI Paris - Theodo Data & IA (Theodo Data & AI)**
@@ -61,9 +61,9 @@ Core terms (≥5 of 10 JDs): discovery, ia, management, produit, ingénieur
 
 ## Gate result
 
-- ATS 8.73 < 9.0 on JD 1 (Senior Product Manager - CDI Paris - Theodo — Theodo (AI Build practice))
+- ATS 8.46 < 9.0 on JD 1 (Senior Product Manager - CDI Paris - Theodo — Theodo (AI Build practice))
 - ATS 6.42 < 9.0 on JD 2 (Senior Product Manager - F/H/NB — Yespark Group)
 - ATS 8.95 < 9.0 on JD 3 (Senior Product Manager H/F - CDI — Converteo)
 - ATS 7.93 < 9.0 on JD 4 (Senior Product Manager — Evaneos)
 - ATS 8.17 < 9.0 on JD 6 (Senior Product Manager IA H/F — Saint-Gobain Distribution Bâtiment France)
-- ATS 8.08 < 9.0 on JD 7 (Product Manager Outillage IA H/F — EDF)
+- ATS 8.29 < 9.0 on JD 7 (Product Manager Outillage IA H/F — EDF)

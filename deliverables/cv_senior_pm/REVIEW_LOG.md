@@ -2,8 +2,8 @@
 
 Deliverables (this folder):
 
-- `CV MAZUMDAR Debanjan EN.pdf` — generic English CV, 2 pages, 635 words, 18 bold figures.
-- `CV MAZUMDAR Debanjan FR.pdf` — generic French CV, 2 pages, 701 words, 19 bold figures.
+- `CV MAZUMDAR Debanjan EN.pdf` — generic English CV, 2 pages, ~675 words, 18 bold figures.
+- `CV MAZUMDAR Debanjan FR.pdf` — generic French CV, 2 pages, ~740 words, 19 bold figures.
 - `audit/` — machine-readable panel verdicts (round 6) and the baseline audit of the CV you uploaded.
 - `jd_research/` — the 20 postings used as the yardstick (index + keyword tables). Raw posting text stays in `.tmp/` (third-party content, not committed).
 
@@ -115,6 +115,19 @@ The loop was stopped at round 6 because rounds 5 and 6 produced the same scores 
 | "Looking for a senior PM or AI PM role in a product team that ships." | "Paris-based, bilingual English and French, remote-friendly." | Objective statements are out of fashion in France; logistics are what the recruiter needs to know. |
 
 What stays deliberately machine-free: no first person, no adjectives without a number, British spelling in English, French typography (espace before %, « K$ »), dates and employers unchanged, two pages, selectable text.
+
+## 4b. Round 7–8 addendum (facts supplied by the candidate after round 6)
+
+Added on 2026-10-22 after confirmation: product-led growth, pricing and packaging, Figma and Mixpanel at Wiser and InfoTnT; Jira and Confluence since IDrive; JTBD / Outcome-Driven Innovation since Evolent. Placed in the role bullets where they happened and in the skills rows; no new metrics were attached to them.
+
+| Metric (round 8) | English CV | French CV |
+|---|---|---|
+| Keyword ATS mean / postings at 9+ | 9.18 / 7 of 10 | 8.69 / 4 of 10 |
+| Postings where all three personas would call | 8 of 10 | 8 of 9 scored (one panel call errored) |
+| "Too verbose" flags | 0 | 0 |
+| Mean "reads human" | 6.7 | 6.9 |
+
+Brevo moved from 8.64 to 9.6 (Figma was its missing must-have) and Doctolib from 8.33 to 9.0 on keywords, but the Doctolib panel still declines: it wants a named conversion, ARR or CAC result, which the CV does not carry. Mistral is unchanged for the same reason (inference economics).
 
 ## 5. Reproduce
 

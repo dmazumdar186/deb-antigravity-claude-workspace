@@ -167,9 +167,10 @@ def build_story():
         [
             "Responsable du périmètre IA de bout en bout : assistant RAG sur APIs OpenAI et "
             "Anthropic, recommandation, alerting, sur une plateforme utilisée par des "
-            "distributeurs et des marques. Cadrage et recherche utilisateur avec les clients, "
-            "roadmap avec le CPO, PRD, lancement, suivi de l'adoption. Adoption en hausse de "
-            "<b>45 %</b> après la deuxième version ; latence p95 en baisse de <b>55 %</b>.",
+            "distributeurs et des marques. Cadrage et entretiens JTBD avec les clients, roadmap "
+            "avec le CPO, PRD et parcours Figma, pricing et packaging de l'offre IA, lancement "
+            "product-led, adoption suivie dans Mixpanel. Adoption en hausse de <b>45 %</b> "
+            "après la deuxième version ; latence p95 en baisse de <b>55 %</b>.",
 
             "Pilotage du déploiement GenAI de l'entreprise avec un budget de <b>150 K$</b> : "
             "build vs. buy entre OpenAI, Anthropic et Google, go/no-go avec le CPO et les "
@@ -200,10 +201,11 @@ def build_story():
         'Product Manager, Produits Data &amp; Recommandation — InfoTnT',
         'SaaS B2B · Paris | Juin 2021 – Nov. 2022',
         [
-            "Mise en place d'une discovery continue (entretiens clients, JTBD, analytics "
-            "d'usage) et d'une roadmap priorisée dans une équipe qui n'avait ni l'une ni "
-            "l'autre. Cycles d'itération plus courts et score d'adéquation produit-marché en "
-            "hausse de <b>25 %</b>.",
+            "Mise en place d'une discovery continue (entretiens clients, JTBD / Outcome-Driven "
+            "Innovation, analytics Mixpanel), d'un travail de product-led growth et de pricing, "
+            "et d'une roadmap priorisée dans une équipe qui n'avait rien de tout cela. Cycles "
+            "d'itération plus courts et score d'adéquation produit-marché en hausse de "
+            "<b>25 %</b>.",
         ]
     ):
         st.append(item)
@@ -222,8 +224,9 @@ def build_story():
         [
             "Quatre ans de Product Owner sur des produits plateforme et data, jusqu'à "
             "<b>3</b> squads Scrum en parallèle : backlog, objectifs de sprint, cadre SLA/SLO, "
-            "revues de risques RAID, alignement OKR–roadmap. Chez Avaya, vélocité en hausse de "
-            "<b>30 %</b> ; chez Evolent, travail sous contraintes de conformité santé.",
+            "revues de risques RAID, alignement OKR–roadmap dans Jira et Confluence. Chez Avaya, "
+            "vélocité en hausse de <b>30 %</b> ; chez Evolent, premiers usages de JTBD / "
+            "Outcome-Driven Innovation, sous contraintes de conformité santé.",
         ]
     ):
         st.append(item)
@@ -240,9 +243,10 @@ def build_story():
         Spacer(1, 5),
         _skill_row(
             'Produit',
-            'Discovery continue et recherche utilisateur • OKR, KPI et mesure d’impact • Vision '
-            '&amp; roadmap • Cadrage du problème • Priorisation et arbitrages • PRD • A/B tests • '
-            'Analytics (SQL, Mixpanel, Amplitude) • Go-to-market • Delivery et run',
+            'Discovery continue et recherche utilisateur, JTBD / Outcome-Driven Innovation • OKR, KPI et mesure d’impact • '
+            'Vision &amp; roadmap • Product-led growth, pricing et packaging • Priorisation et '
+            'arbitrages • PRD • A/B tests • Analytics (SQL, Mixpanel, Amplitude) • Go-to-market • '
+            'Delivery et run',
         ),
         _skill_row(
             'IA &amp; data',
@@ -251,8 +255,8 @@ def build_story():
         ),
         _skill_row(
             'Technique',
-            'Python, SQL • APIs et produits plateforme • Cloudflare Workers • CI/CD • '
-            'Prototypage avec Claude Code',
+            'Python, SQL • APIs et produits plateforme • Figma • Jira, Confluence • Cloudflare '
+            'Workers • CI/CD • Prototypage avec Claude Code',
         ),
         _skill_row(
             'Collaboration',

@@ -169,8 +169,9 @@ def build_story():
         [
             "Own the AI product area end to end: a RAG assistant on OpenAI and Anthropic APIs, "
             "recommendations and smart alerting on a platform used by retail and brand "
-            "customers. Problem framing and user research with customers, roadmap with the "
-            "CPO, PRDs, launch, adoption tracking. Feature adoption up <b>45%</b> after the "
+            "customers. Problem framing and JTBD interviews with customers, roadmap with the "
+            "CPO, PRDs and Figma flows, pricing and packaging of the AI tier, product-led "
+            "launch, adoption tracked in Mixpanel. Feature adoption up <b>45%</b> after the "
             "assistant's second release; p95 latency down <b>55%</b>.",
 
             "Ran the company-wide GenAI rollout with a <b>$150K</b> budget: build-vs-buy "
@@ -202,9 +203,10 @@ def build_story():
         'Product Manager, Data &amp; Recommendation Products — InfoTnT',
         'B2B SaaS · Paris | Jun 2021 – Nov 2022',
         [
-            "Introduced continuous discovery (customer interviews, JTBD, usage analytics) and a "
-            "prioritised roadmap to a team that had neither. Shorter iteration cycles and a "
-            "<b>25%</b> higher product-market-fit survey score.",
+            "Introduced continuous discovery (customer interviews, JTBD / Outcome-Driven "
+            "Innovation, Mixpanel usage analytics), product-led growth and pricing work, and "
+            "a prioritised roadmap to a team that had none of it. Shorter iteration cycles and "
+            "a <b>25%</b> higher product-market-fit survey score.",
         ]
     ):
         st.append(item)
@@ -223,8 +225,9 @@ def build_story():
         [
             "Four years as Product Owner on platform and data products, up to <b>3</b> Scrum "
             "squads at a time: backlog, sprint goals, SLA/SLO framework, RAID risk reviews, "
-            "OKR-to-roadmap alignment. At Avaya, delivery velocity rose <b>30%</b>; at Evolent "
-            "the work ran under healthcare compliance and privacy rules.",
+            "OKR-to-roadmap alignment in Jira and Confluence. At Avaya, delivery velocity rose "
+            "<b>30%</b>; at Evolent, first use of JTBD / Outcome-Driven Innovation, under "
+            "healthcare compliance and privacy rules.",
         ]
     ):
         st.append(item)
@@ -241,9 +244,10 @@ def build_story():
         Spacer(1, 5),
         _skill_row(
             'Product',
-            'Continuous discovery and user research • OKRs and outcome metrics • Strategy &amp; '
-            'roadmap • Problem framing • Prioritisation and trade-offs • PRDs • A/B tests • '
-            'Analytics (SQL, Mixpanel, Amplitude) • Go-to-market',
+            'Continuous discovery and user research, JTBD / Outcome-Driven Innovation • OKRs and outcome metrics • '
+            'Strategy &amp; roadmap • Product-led growth, pricing and packaging • Prioritisation '
+            'and trade-offs • PRDs • A/B tests • Analytics (SQL, Mixpanel, Amplitude) • '
+            'Go-to-market',
         ),
         _skill_row(
             'AI &amp; data',
@@ -252,8 +256,8 @@ def build_story():
         ),
         _skill_row(
             'Technical',
-            'Python, SQL • APIs and platform products • Cloudflare Workers • CI/CD • '
-            'Prototyping with Claude Code',
+            'Python, SQL • APIs and platform products • Figma • Jira, Confluence • Cloudflare '
+            'Workers • CI/CD • Prototyping with Claude Code',
         ),
         _skill_row(
             'Ways of working',
