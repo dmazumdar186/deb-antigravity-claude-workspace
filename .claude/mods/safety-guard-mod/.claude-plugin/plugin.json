@@ -1,0 +1,6 @@
+{
+  "name": "safety-guard-mod",
+  "version": "0.1.0",
+  "description": "Guards Bash calls: rewrites destructive commands to safe forms, blocks hard-dangerous ones, asks via a band for the rest.",
+  "types": "./types/index.d.ts"
+}
