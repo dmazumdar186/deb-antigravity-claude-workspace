@@ -204,8 +204,13 @@ def build_story():
             "Workers, <b>32</b> boîtes mail, SLA <b>3 h</b>) : <b>1 M$+</b> de pipeline "
             "qualifié, ~<b>200 K$/an</b> de travail manuel remplacé.",
 
-            "Co-lancé une marketplace Stripe Connect (React, Node, Postgres) : <b>85 K$</b> "
-            "traités le premier trimestre.",
+            "Fait du prototypage rapide un outil commercial : <b>6</b> sites de prospects "
+            "reconstruits en concepts live avec deck de pitch en <b>4 semaines</b> (design "
+            "niveau Figma, Cloudflare Pages).",
+
+            "Conçu un système de sourcing de candidats pour un client recrutement (collecte "
+            "multi-sources, vérification des preuves, sync Recruit CRM) : <b>≥90 %</b> de "
+            "précision sur jeu étiqueté.",
         ]
     ):
         st.append(item)

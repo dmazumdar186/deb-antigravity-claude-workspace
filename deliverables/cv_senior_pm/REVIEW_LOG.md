@@ -17,7 +17,7 @@ v1 (pushed earlier today) was not the job. It had researched 20 job descriptions
 |---|---|
 | No research on CV framing | Research pass on 2025–2026 PM CV guidance (Aced/Exponent, Leland, Resume Worded, HRLens, Enhancv, Huntr, FinalRound, StylingCV, CV Compiler, moncvhub, attractivecv, Hellowork, APEC Profil guide). Notes with URLs in `jd_research/cv_framing_research.md`. |
 | Prose bullets, no verbs | Every bullet is past-tense action verb + what + result + metric, two lines max (checked by script: 0 bullets over 2 lines). |
-| Four roles merged into one line | Every role has its own entry: Wiser (5), ProdCraft (3), InfoTnT (3), Pitney Bowes (2), Evolent (2), Avaya (2), IDrive/TCS (1). |
+| Four roles merged into one line | Every role has its own entry: Wiser (5), ProdCraft (4), InfoTnT (3), Pitney Bowes (2), Evolent (2), Avaya (2), IDrive/TCS (1). |
 | 15 years not visible | Header: "15 years in software, 11 in product". Summary opens on it. |
 | Weak summary | 5-line summary: who, years, domain progression, signature results (+45% adoption, +18% ARPU, $150K rollout), engineering background, target roles. Plus a one-line "Selected impact" strip. |
 | Page 2 half empty | Both CVs fill two pages (visual QA below). |
@@ -99,6 +99,10 @@ What would make it 10/10 rather than 9: a baseline for two or three headline num
 - Bullets over two lines: 0 (EN), 0 (FR), measured on the rendered PDF text.
 - Pages: 2 and 2; text selectable; single column; no photo (ATS-safe).
 - Visual QA by a vision worker on 80-dpi renders: PASS on both; page 2 about 70% used; no title split across the page break; only note is the template's skills-label indent, shared with the uploaded CV.
+
+## 4b. Addendum (operator request after v2)
+
+Replaced the Stripe Connect marketplace bullet under ProdCraft with two bullets drawn from the workspace's own deliverables: six live concept website redesigns with pitch decks shipped between 17 Sept and 15 Oct 2026 (Gaia, GreenJobs, H2Recruit, Midas, MISB, GTM People), framed as rapid prototyping used as a sales tool alongside Figma; and the Gaia candidate sourcing system (multi-source harvest, evidence validation, adversarial review, Recruit CRM sync, ≥90% grade precision on the labelled set per its directive, no-contact rule). The $85K marketplace figure is no longer on the CV.
 
 ## 5. Reproduce
 

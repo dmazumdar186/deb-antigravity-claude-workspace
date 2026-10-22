@@ -204,8 +204,13 @@ def build_story():
             "<b>32</b> inboxes, <b>3-hour</b> SLA) that sourced a <b>$1M+</b> qualified "
             "pipeline and replaced ~<b>$200K/yr</b> of manual work.",
 
-            "Co-launched a Stripe Connect marketplace (React, Node, Postgres), processing "
-            "<b>$85K</b> in the first quarter.",
+            "Turned rapid prototyping into a sales tool: rebuilt <b>6</b> prospects' websites "
+            "as live concept redesigns with pitch decks in <b>4 weeks</b> (research, Figma-grade "
+            "design, Cloudflare Pages), each opening a client conversation.",
+
+            "Designed a candidate sourcing system for a recruitment client (multi-source "
+            "harvest, evidence checks, Recruit CRM sync): <b>≥90%</b> grade precision on a "
+            "labelled set.",
         ]
     ):
         st.append(item)
