@@ -1,0 +1,311 @@
+[
+ {
+  "id": "01",
+  "url": "https://jobs.lever.co/brevo/b3cc667c-dc00-40c6-8546-865942f96131",
+  "title": "Senior Product Manager",
+  "company": "Brevo",
+  "sector": "B2B SaaS (CRM / marketing automation)",
+  "type": "senior_pm",
+  "years_required": "not stated",
+  "must_have": [
+   "Own mid-market product line end to end, lead a pod",
+   "Write and defend a pitch (problem, appetite, no-gos, success metrics)",
+   "Prototyping/design: Figma and design-system literacy",
+   "Usage data interpretation (Amplitude, funnel, retention) and discovery interviews",
+   "Tech-credible; reads AI-generated code; AI tools by default",
+   "Fluent in English and in French"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "Figma",
+   "Amplitude",
+   "Claude",
+   "Naos design system",
+   "hill charts"
+  ],
+  "soft_skills": [
+   "go-getter, initiative",
+   "pushes through ambiguity",
+   "single point of accountability",
+   "cross-functional coordination"
+  ],
+  "language": "en",
+  "file": "01_brevo_senior_product_manager.txt"
+ },
+ {
+  "id": "02",
+  "url": "https://jobs.lever.co/pigment/270ef023-99ec-48c7-8b90-c638600aefef",
+  "title": "Senior Product Manager",
+  "company": "Pigment",
+  "sector": "B2B SaaS (business planning / FP&A, AI agents)",
+  "type": "senior_pm",
+  "years_required": "not stated",
+  "must_have": [
+   "Prior experience as a Product Manager in SaaS B2B or Finance",
+   "Customer-driven",
+   "Analytical and data-savvy, comfortable with data modeling",
+   "Technical acumen to engage engineers",
+   "Exceptional written/spoken communication",
+   "Own product domain with 1-2 squads, strategy and discovery"
+  ],
+  "nice_to_have": [
+   "Cross-functional background: product marketing, sales engineering, project management"
+  ],
+  "tools_named": [],
+  "soft_skills": [
+   "team player",
+   "aligning diverse stakeholders",
+   "proactive, self-driven, autonomous, organized"
+  ],
+  "language": "en",
+  "file": "02_pigment_senior_product_manager.txt"
+ },
+ {
+  "id": "03",
+  "url": "https://jobs.ashbyhq.com/pennylane/a4555925-195a-4a59-9367-fcaf27f2113d",
+  "title": "Senior Product Manager",
+  "company": "Pennylane",
+  "sector": "Fintech / B2B SaaS (accounting, finance)",
+  "type": "senior_pm",
+  "years_required": "not stated",
+  "must_have": [
+   "Strong user research skills and product sense",
+   "Structured communication to convince and get buy-in",
+   "Navigate and simplify complex problems",
+   "Hands-on, willing to step outside traditional PM role",
+   "Past PM experience at a scale-up or large tech company (required)"
+  ],
+  "nice_to_have": [
+   "Accounting experience not required; curiosity about accounting"
+  ],
+  "tools_named": [
+   "OKRs",
+   "continuous discovery",
+   "MVP approach"
+  ],
+  "soft_skills": [
+   "buy-in and influence",
+   "build relationships with commercial teams",
+   "mentoring new PMs"
+  ],
+  "language": "en",
+  "file": "03_pennylane_senior_product_manager.txt"
+ },
+ {
+  "id": "04",
+  "url": "https://careers.datadoghq.com/detail/8028422/?gh_jid=8028422",
+  "title": "Senior Product Manager - Application Performance Monitoring",
+  "company": "Datadog",
+  "sector": "B2B SaaS (observability / developer infrastructure)",
+  "type": "senior_pm",
+  "years_required": "5+",
+  "must_have": [
+   "+5 years as a Product Manager, ideally developer-focused SaaS or infrastructure",
+   "Track record owning a product area end to end",
+   "Experience leading production-level AI projects (ML-driven insights, automated workflows)",
+   "Prior engineering experience or deep expertise in modern software development and distributed systems",
+   "Excellent written/verbal communication; influence senior and executive stakeholders",
+   "Customer-focused, detail-oriented"
+  ],
+  "nice_to_have": [
+   "Experience mentoring other PMs",
+   "Cloud applications, distributed tracing, performance analysis, microservices, profiling",
+   "Fluency in programming languages"
+  ],
+  "tools_named": [
+   "AI for prototyping"
+  ],
+  "soft_skills": [
+   "influence executives",
+   "mentoring",
+   "thrive in fast-moving environments"
+  ],
+  "language": "en",
+  "file": "04_datadog_senior_product_manager_application_perform.txt"
+ },
+ {
+  "id": "05",
+  "url": "https://job-boards.greenhouse.io/doctolib/jobs/7996931003",
+  "title": "Senior Product Manager - Product Led Growth - Paris",
+  "company": "Doctolib",
+  "sector": "B2B SaaS / healthtech",
+  "type": "senior_pm",
+  "years_required": "not stated",
+  "must_have": [
+   "Owned a PLG conversion, ARR or CAC metric as primary objective in B2B SaaS at scale",
+   "Scaled product-led growth alongside a sales motion",
+   "Reads data, defines funnel measurement, decides via experiments",
+   "Pricing, packaging, eligibility, freemium judgement in regulated environment",
+   "Sets direction for teams not managed (cross-functional)",
+   "Fluent in English"
+  ],
+  "nice_to_have": [
+   "Owned both product-led and marketing-led growth (lifecycle, attribution, lead scoring)",
+   "Multi-country pricing/packaging",
+   "Regulated or healthcare context"
+  ],
+  "tools_named": [
+   "experiments / A/B"
+  ],
+  "soft_skills": [
+   "influence without authority",
+   "cross-team delivery with PMMs"
+  ],
+  "language": "en",
+  "file": "05_doctolib_senior_product_manager_product_led_growth.txt"
+ },
+ {
+  "id": "06",
+  "url": "https://jobs.ashbyhq.com/frontcareers/ef22a4eb-df20-4ba5-acd4-1c4bbd341935",
+  "title": "Senior Product Manager - AI",
+  "company": "Front",
+  "sector": "B2B SaaS (customer operations, AI Copilot)",
+  "type": "senior_ai_pm",
+  "years_required": "7+",
+  "must_have": [
+   "7+ years in product management in a technology-driven environment",
+   "Design thinking and systems thinking",
+   "Product intuition and taste",
+   "Ownership mindset",
+   "Customer empathy",
+   "Excellent communication, manage senior and executive stakeholders",
+   "Execution-oriented, prioritization",
+   "Demonstrated fluency with AI: used or built AI tooling, understands nuances of AI products"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "AI tooling"
+  ],
+  "soft_skills": [
+   "executive stakeholder management",
+   "motivate team",
+   "inspire action cross-functionally"
+  ],
+  "language": "en",
+  "file": "06_front_senior_product_manager_ai.txt"
+ },
+ {
+  "id": "07",
+  "url": "https://jobs.ashbyhq.com/photoroom/7c34d35a-c405-4d19-bd6a-38f8dd2081a7",
+  "title": "Staff Product Manager, Agentic & AI Platform",
+  "company": "Photoroom",
+  "sector": "GenAI visual platform for e-commerce (B2B/B2C, API)",
+  "type": "senior_ai_pm",
+  "years_required": "10+",
+  "must_have": [
+   "10+ years as a PM with multiple launches",
+   "Built platform, infrastructure or developer-facing products (APIs, SDKs, ML infrastructure)",
+   "Shipped agentic or model-backed product to production: evals, guardrails, non-deterministic output, cost per call",
+   "Uses Claude or equivalent daily",
+   "Product taste",
+   "Data-fluent, pulls data himself",
+   "Thrives in small, high-autonomy remote async teams"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "Claude",
+   "MCP",
+   "AI gateway",
+   "evals",
+   "observability"
+  ],
+  "soft_skills": [
+   "clarity from ambiguity",
+   "prioritise across internal teams, say no with reasons",
+   "autonomy"
+  ],
+  "language": "en",
+  "file": "07_photoroom_staff_product_manager_agentic_ai_platfor.txt"
+ },
+ {
+  "id": "08",
+  "url": "https://jobs.ashbyhq.com/mistral.ai/47b4bbb7-d5a5-4ac1-84d9-ae56d5521c64",
+  "title": "Lead Product Manager, Inference",
+  "company": "Mistral AI",
+  "sector": "AI infrastructure / GenAI cloud platform",
+  "type": "senior_ai_pm",
+  "years_required": "not stated",
+  "must_have": [
+   "Deep product experience in tech and infrastructure; brought inference, cloud infra or large-scale distributed systems to market",
+   "Engineering background before PM",
+   "Took an infra/inference product from early stage to material revenue",
+   "Player-coach disposition",
+   "Fluency in unit economics, gross margin, token pricing and GPU capacity",
+   "Prototype with AI coding tools, write own specs"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "AI coding tools",
+   "Studio (developer platform)"
+  ],
+  "soft_skills": [
+   "low ego",
+   "comfort with ambiguity",
+   "credibility with executives, engineers, customers",
+   "hire/mentor PMs"
+  ],
+  "language": "en",
+  "file": "08_mistral_ai_lead_product_manager_inference.txt"
+ },
+ {
+  "id": "09",
+  "url": "https://job-boards.greenhouse.io/intercom/jobs/7464291",
+  "title": "Staff AI Product Manager",
+  "company": "Intercom (Fin, part of Salesforce)",
+  "sector": "B2B SaaS (AI customer agent)",
+  "type": "senior_ai_pm",
+  "years_required": "not stated",
+  "must_have": [
+   "Strong AI and technical fluency; built or worked deeply with AI/ML products, ideally generative AI",
+   "Discuss model behaviour, evaluation, prompts, architectures, trade-offs",
+   "Excellent product judgment",
+   "Problem framing and customer insight",
+   "Ship and iterate AI systems with success metrics and evaluation",
+   "Care about safety and reliability"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "LLMs",
+   "prompts",
+   "evaluation"
+  ],
+  "soft_skills": [
+   "influence widely",
+   "structure from ambiguity",
+   "communication and leadership"
+  ],
+  "language": "en",
+  "file": "09_intercom_staff_ai_product_manager.txt"
+ },
+ {
+  "id": "10",
+  "url": "https://job-boards.greenhouse.io/intercom/jobs/8264267",
+  "title": "Senior Product Manager (Service Agent Team)",
+  "company": "Intercom (Fin, part of Salesforce)",
+  "sector": "B2B SaaS (AI customer agent / messaging)",
+  "type": "senior_ai_pm",
+  "years_required": "none stated (no minimum years)",
+  "must_have": [
+   "Customer focus and problem framing using data and qualitative inputs",
+   "Compelling roadmaps",
+   "Excellent product judgment",
+   "Build world-class product with engineering and design",
+   "AI Tech: understand AI systems and LLMs, assess feasibility and trade-offs",
+   "Technical fluency (APIs, SaaS infrastructure, low-code, architecture)",
+   "Outcome orientation"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "LLMs",
+   "APIs",
+   "low-code tooling"
+  ],
+  "soft_skills": [
+   "influence and drive alignment",
+   "high ownership",
+   "excellent communicator"
+  ],
+  "language": "en",
+  "file": "10_intercom_senior_product_manager_service_agent_team.txt"
+ }
+]

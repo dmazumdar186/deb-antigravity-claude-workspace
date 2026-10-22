@@ -1,0 +1,318 @@
+[
+ {
+  "id": 1,
+  "url": "https://jobs.lever.co/theodo/d65d7571-82d6-4db8-9c30-e2945cc1a021",
+  "title": "Senior Product Manager - CDI Paris - Theodo",
+  "company": "Theodo (AI Build practice)",
+  "sector": "Conseil / ESN produit",
+  "type": "senior_pm",
+  "years_required": "4 ans min., dont 2 ans en PM",
+  "must_have": [
+   "Diplôme grande école ingénieur ou commerce",
+   "Maîtrise de la discovery (recherche utilisateur, cadrage d'hypothèses, vision)",
+   "Pilotage delivery Lean (backlog, user stories, sprints)",
+   "Run post-livraison (You build it, you run it)",
+   "Mesure de la valeur métier / expérimentations",
+   "Usage quotidien de l'IA pour prototyper, rédiger des specs, petites modifications en prod",
+   "Problem solving",
+   "Relationnel avec interlocuteurs seniors",
+   "Posture client first"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "Lean Tech System"
+  ],
+  "soft_skills": [
+   "problem solving",
+   "excellent relationnel",
+   "client first",
+   "envie d'apprendre",
+   "challenger et être challengé"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 2,
+  "url": "https://la-french-tech.welcomekit.co/companies/yespark/jobs/senior-product-manager-f-h-nb_paris",
+  "title": "Senior Product Manager - F/H/NB",
+  "company": "Yespark Group",
+  "sector": "Marketplace B2C / mobilité (parking)",
+  "type": "senior_pm",
+  "years_required": "> 7 ans (champ Expérience de l'annonce)",
+  "must_have": [
+   "Expériences solides de PM sur produit B2C, idéalement marketplace/e-commerce, avec résultats chiffrés",
+   "Discovery réelle (interviews, analyse de tunnel de conversion)",
+   "Réflexe business (euros, conversion, revenu)",
+   "Recul stratégique : marché, concurrence, modèle économique, vision posée",
+   "Convictions défendables",
+   "Contributeur individuel reportant au CPO",
+   "OKR, AB tests, mesure d'impact"
+  ],
+  "nice_to_have": [
+   "Expérience internationale, anglais à l'aise"
+  ],
+  "tools_named": [
+   "Claude (accès pour tous)",
+   "OKR",
+   "AB tests"
+  ],
+  "soft_skills": [
+   "influence sans management",
+   "coopération",
+   "humilité",
+   "audace",
+   "communication proactive",
+   "transmission des réflexes produit"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 3,
+  "url": "https://jobs.converteo.com/jobs/3140339-senior-product-manager-h-f-cdi",
+  "title": "Senior Product Manager H/F - CDI",
+  "company": "Converteo",
+  "sector": "Conseil data / IA",
+  "type": "senior_pm",
+  "years_required": "5 ans min.",
+  "must_have": [
+   "Bac+5 école d'ingénieur, commerce ou université",
+   "Product management maîtrisé (discovery et delivery)",
+   "Outils de gestion produit",
+   "Culture méthodologique (Scrum, ShapeUp, SAFe, Design Thinking, Lean Startup, Design Sprint)",
+   "Affinités design UX/UI",
+   "Vision, roadmap, priorisation alignée OKR",
+   "Stratégie data-driven, KPI"
+  ],
+  "nice_to_have": [
+   "Anglais opérationnel",
+   "Expériences hors product management, profils atypiques",
+   "Histoires entrepreneuriales"
+  ],
+  "tools_named": [
+   "Jira",
+   "Figma",
+   "Productboard",
+   "Scrum",
+   "ShapeUp",
+   "SAFe",
+   "OKR"
+  ],
+  "soft_skills": [
+   "goût de la data et des chiffres",
+   "organisation et rigueur",
+   "travail en équipes multidisciplinaires",
+   "autonomie",
+   "pensée hors cadre",
+   "éthique"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 4,
+  "url": "https://isai.welcomekit.co/companies/evaneos/jobs/senior-product-manager_paris_EVANE_jerLR3N",
+  "title": "Senior Product Manager",
+  "company": "Evaneos",
+  "sector": "Voyage / marketplace",
+  "type": "senior_pm",
+  "years_required": "5 ans+",
+  "must_have": [
+   "Product Management en environnement complexe (marketplace ou B2C digital)",
+   "Discovery orientée data et insights",
+   "Transformer un enjeu flou en quarter priorisé",
+   "Dynamiques marketplace (supply/demand/conversion/repeat)",
+   "Usage de l'IA dans le craft PM, conception/évaluation de surfaces produit IA/agentiques",
+   "Création d'alignement entre parties prenantes",
+   "Anglais fluent"
+  ],
+  "nice_to_have": [
+   "Avoir livré une feature IA en production"
+  ],
+  "tools_named": [
+   "Claude Code",
+   "pipeline agentique",
+   "personal OS"
+  ],
+  "soft_skills": [
+   "influence",
+   "itération et feedback",
+   "remise en question",
+   "orienté action (ship, learn, adjust)"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 5,
+  "url": "https://jobs.lever.co/thiga/0eef1dc7-333a-4d37-9811-651ece7147aa",
+  "title": "Product Owner / Product Manager Senior (H/F)",
+  "company": "Thiga",
+  "sector": "Conseil produit",
+  "type": "senior_pm",
+  "years_required": "5 ans en Product Management (profil) / 4 ans min. PO/PM (formations & expériences)",
+  "must_have": [
+   "Expérience Product Management variée (startups, scale-ups, grands groupes, conseil)",
+   "Discovery et delivery maîtrisés",
+   "Accompagnement d'équipes produit, formation, ateliers",
+   "Esprit analytique et stratégique",
+   "Très bon anglais"
+  ],
+  "nice_to_have": [
+   "IA générative intégrée au workflow (prompt engineering, analyse de données, rédaction)"
+  ],
+  "tools_named": [
+   "frameworks de discovery et delivery"
+  ],
+  "soft_skills": [
+   "transmettre et conseiller",
+   "vulgariser",
+   "curiosité",
+   "veille"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 6,
+  "url": "https://www.meteojob.com/jobs/57453852",
+  "title": "Senior Product Manager IA H/F",
+  "company": "Saint-Gobain Distribution Bâtiment France",
+  "sector": "Distribution matériaux de construction",
+  "type": "senior_ai_pm",
+  "years_required": "5/6 ans en Product Management data/IA ou pilotage de projets IA",
+  "must_have": [
+   "Bac+5 business, commerce, ingénieur ou data, forte appétence technique",
+   "Identifier et prioriser les opportunités IA",
+   "Cadrage métier, data, IA, technique",
+   "Coordination métiers, data, DSI, management",
+   "Suivi de performance et mesure du ROI",
+   "Analyse de données SQL / Power BI"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "SQL",
+   "Power BI"
+  ],
+  "soft_skills": [
+   "influence et alignement des parties prenantes",
+   "communication et pédagogie",
+   "bon jugement business",
+   "orientation résultat"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 7,
+  "url": "https://www.hellowork.com/fr-fr/emplois/84389260.html",
+  "title": "Product Manager Outillage IA H/F",
+  "company": "EDF",
+  "sector": "Énergie",
+  "type": "senior_ai_pm",
+  "years_required": "7 ans (profil recherché) ; 5 ans min. (champ annonce)",
+  "must_have": [
+   "Bac+5 ingénieur ou équivalent",
+   "Product Manager / PO de produits complexes",
+   "Animation d'équipe, gestion de projets complexes",
+   "Conception de produits IT et run",
+   "Culture d'innovation, intérêt fort pour l'IA",
+   "Pilotage cycle de vie, budget, performance économique"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "Mistral (plateforme)",
+   "RAG as a Service",
+   "socle IA générative"
+  ],
+  "soft_skills": [
+   "structurer et prioriser",
+   "anticiper les risques",
+   "animation et pilotage opérationnel et budgétaire",
+   "force de proposition"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 8,
+  "url": "https://www.collective.work/jobs/fr/ai-product-manager-cdi-paris-pdo5",
+  "title": "AI Product Manager - CDI - Paris",
+  "company": "Hubvisory",
+  "sector": "Conseil produit / IA",
+  "type": "senior_ai_pm",
+  "years_required": "3 à 6 ans (idéalement)",
+  "must_have": [
+   "Expérience concrète sur produits intégrant de l'IA",
+   "Fondamentaux discovery, stratégie produit, delivery",
+   "Roadmap, backlog, KPI",
+   "Principes ML / IA générative",
+   "Lien besoins business et contraintes techniques"
+  ],
+  "nice_to_have": [
+   "APIs, bases de données, environnements Data",
+   "Cabinet de conseil, scale-up, produits IA en production"
+  ],
+  "tools_named": [
+   "ML",
+   "IA générative",
+   "agents IA"
+  ],
+  "soft_skills": [
+   "curieux",
+   "autonome",
+   "pragmatique",
+   "challenger avec diplomatie",
+   "communiquer et défendre ses choix"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 9,
+  "url": "https://jobs.lever.co/theodo/19caf3ab-861b-4641-8e6d-33469b4f1da8",
+  "title": "Lead Product Manager - CDI Paris - Theodo Data & IA",
+  "company": "Theodo Data & AI",
+  "sector": "Conseil data / IA",
+  "type": "senior_ai_pm",
+  "years_required": "5+ ans d'expérience dont 4 ans en product management",
+  "must_have": [
+   "Diplôme grande école d'ingénieur",
+   "Stratégie produit avec le client, architecture produit, EPICs, arbitrage",
+   "Coordination de plusieurs squads, délai/budget/qualité",
+   "Aisance top management et grands comptes",
+   "Négociation et management"
+  ],
+  "nice_to_have": [],
+  "tools_named": [],
+  "soft_skills": [
+   "client first",
+   "négociation",
+   "gestion de conflit",
+   "feedback exigeant",
+   "envie d'apprendre"
+  ],
+  "language": "fr"
+ },
+ {
+  "id": 10,
+  "url": "https://www.hellowork.com/fr-fr/emplois/84654075.html",
+  "title": "IA & Data Portfolio Product Manager H/F (freelance)",
+  "company": "TEKsystems",
+  "sector": "Services aux entreprises (mission freelance)",
+  "type": "senior_ai_pm",
+  "years_required": "3 ans min. (champ annonce)",
+  "must_have": [
+   "PM senior arbitrant plusieurs initiatives Data & IA",
+   "Pilotage de portefeuille Data & IA",
+   "Priorisation cas d'usage par valeur, ROI, faisabilité",
+   "Produits en production et non seulement POC",
+   "Build vs buy"
+  ],
+  "nice_to_have": [],
+  "tools_named": [
+   "LLM",
+   "RAG",
+   "agents IA",
+   "IA générative"
+  ],
+  "soft_skills": [
+   "communiquer avec métiers et équipes Data/IA",
+   "démontrer la valeur business"
+  ],
+  "language": "fr"
+ }
+]

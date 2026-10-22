@@ -195,10 +195,13 @@ Last updated: 2026-10-22
 | `personal_workflows/cv_builder_en.py` | Generate an ATS-optimized, English-language PDF CV for Debanjan Mazumdar | --company (str), --role (str) via CLI args | .tmp/cv_{company}_debanjan_mazumdar_en.pdf |
 | `personal_workflows/cv_builder_pm_en.py` | Generate the ATS-optimized, English-language, GENERIC Senior-Product-Manager PDF | --out (path; default .tmp/cv_pm_master_debanjan_mazumdar_en.pdf) | the PDF at --out (exactly 2 pages) |
 | `personal_workflows/cv_builder_pm_fr.py` | Generate the ATS-optimized, French-language, GENERIC Senior-Product-Manager PDF CV | --out (path; default .tmp/cv_pm_master_debanjan_mazumdar.pdf) | the PDF at --out (exactly 2 pages) |
+| `personal_workflows/cv_builder_senior_pm_en.py` | Generate the English GENERIC Senior Product Manager / Senior AI Product Manager PDF CV | --out (path; default .tmp/cv_senior_pm_debanjan_mazumdar_en.pdf) | the PDF at --out (exactly 2 pages) |
+| `personal_workflows/cv_builder_senior_pm_fr.py` | Generate the French GENERIC Senior Product Manager / Senior Product Manager IA PDF CV | --out (path; default .tmp/cv_senior_pm_debanjan_mazumdar_fr.pdf) | the PDF at --out (exactly 2 pages) |
 | `personal_workflows/cv_builder_skott.py` | Generate the French 2-page CV "CV MAZUMDAR Debanjan.pdf" targeted at the | --output (optional path; default "<workspace root>/CV MAZUMDAR Debanjan.pdf") | the PDF at the output path; prints page count sanity hint |
 | `personal_workflows/cv_optimizer_local/cli.py` | — | — | — |
 | `personal_workflows/cv_optimizer_local/tests/front_door.py` | — | — | — |
 | `personal_workflows/cv_optimizer_v2/tests/front_door.py` | — | — | — |
+| `personal_workflows/cv_panel_audit.py` | Score a CV PDF against a folder of researched job descriptions (ATS 0-10 per JD, | --cv PDF, --jd-dir folder containing index.json + NN_*.txt (from the JD research | <out>.md report, <out>.json raw scores; stdout summary; exit code 0 pass / 1 fail. |
 | `personal_workflows/interview_iag/tests/acceptance_agentup.py` | — | — | — |
 | `personal_workflows/interview_iag/tests/g_eval_scoring.py` | — | — | — |
 | `personal_workflows/interview_iag/tests/live_5_turn_flow.py` | — | — | — |
