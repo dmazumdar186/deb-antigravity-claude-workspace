@@ -1,0 +1,12 @@
+[
+  "What model ID does the bulk tier map to in model_registry?",
+  "Reformat these 200 city names into title case and remove duplicates",
+  "The jev router hook throws KeyError 'routes' on startup, why is it failing?",
+  "/jev status",
+  "Should the webhook layer move from Modal to Cloudflare Workers long term? Weigh the trade-offs.",
+  "Write a Python script that exports my Instantly campaign stats to a CSV",
+  "thanks",
+  "Please go through every row of the leads spreadsheet, normalise the company names, strip legal suffixes like Inc and LLC, fix capitalisation, dedupe by domain, and then write the cleaned rows back to a new tab called cleaned. Keep the original tab untouched, log how many rows changed, and tell me if any domains look like personal email providers so I can drop them.                                 ",
+  "He said \"ship it\" — but then:\n  1) the 'deploy' failed\n  2) logs show \\n escapes\nWhat now?",
+  "Use the gmail-label skill to triage my inbox"
+]
