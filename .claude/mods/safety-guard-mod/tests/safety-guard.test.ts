@@ -122,3 +122,26 @@ test('band shows and auto-selects Block after 20 s', async ($, on) => {
   expect(seen.length).toBe(0)
   expect(writes.filter(w => w.key === 'ledger').at(-1)?.value.at(-1)).toMatchObject({ kind: 'ask', outcome: 'block' })
 })
+
+// Eval row: HITL prompts in a scripted 30-tool-call session (target <= 1).
+// 20 safe, 4 rewritable, 5 hard-blocked, 1 ambiguous (the only command that may raise the band).
+test('eval: scripted 30-call session raises at most one band', async ($, on) => {
+  const { clock, writes } = world(on)
+  const script = [
+    ...SAFE,
+    ...SAFE,
+    DANGEROUS[0][0], DANGEROUS[4][0], DANGEROUS[5][0], DANGEROUS[6][0],
+    DANGEROUS[1][0], DANGEROUS[2][0], DANGEROUS[7][0], DANGEROUS[8][0], DANGEROUS[9][0],
+    'psql -c "DELETE FROM users"',
+  ]
+  expect(script.length).toBe(30)
+  for (const command of script) {
+    const p = $.tool.call({ tool: 'Bash', command })
+    await clock.settle()
+    await clock.advance(21_000)
+    await p
+  }
+  const prompts = writes.filter(w => w.key === 'pending' && w.value).length
+  console.log('EVAL hitl prompts=' + prompts + ' of 30 calls')
+  expect(prompts).toBeLessThanOrEqual(1)
+})
