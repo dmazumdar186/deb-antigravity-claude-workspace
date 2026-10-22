@@ -364,3 +364,11 @@ Files changed by this sweep (scope excluded CLAUDE.md/AGENTS.md/GEMINI.md, `.cla
 **Revert (one line):** `git revert <this commit>` — or set `LAST_KNOWN_GOOD` `default`/`bulk` back to
 `claude-fable-5-1` / `anthropic/claude-fable-5.1` and the `opus`/`sonnet` router aliases to Fable 5.1, then
 re-run `tests/test_model_tier_*.py`.
+
+## 2026-10-22 — permissions.defaultMode `bypassPermissions` → `auto` (branch `mods-rollout`)
+
+- `.claude/settings.json` `permissions.defaultMode`: `bypassPermissions` → `auto`. Allow and
+  deny lists unchanged. `auto` lets the harness approve routine calls itself and ask only on
+  genuinely ambiguous ones; the mods rollout (`state/mods-baseline-2026-10-22.md`,
+  `tests/mods/eval-2026-10-22.md`) measures the resulting HITL count.
+- **Revert (one line):** set `"defaultMode": "bypassPermissions"` back in `permissions`.

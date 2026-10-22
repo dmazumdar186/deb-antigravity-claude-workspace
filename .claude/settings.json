@@ -61,7 +61,7 @@
       "Bash(git push -f *)",
       "Bash(git reset --hard *)"
     ],
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "auto"
   },
   "attribution": {
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
