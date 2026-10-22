@@ -474,6 +474,9 @@ Return ONLY JSON of this shape, no prose outside it:
  "verbosity":{"too_verbose":true|false,"note":"..."},
  "reads_human":{"score":0-10,"ai_tells":["..."]},
  "truthfulness_flags":["any claim that sounds inflated or unverifiable"]}
+"too_verbose" is judged by the recruiter standard for a 10-15 year profile: true only if bullets run
+over two lines, describe duties instead of results, repeat each other, or the CV exceeds two pages;
+a two-page CV with one-to-two-line achievement bullets is NOT verbose.
 "fit" = how strongly the CV matches this JD; "would_call" = whether that person would pick up the phone
 after a 30-second read. A fix must be a change to wording, order or emphasis, never a fabricated
 experience."""

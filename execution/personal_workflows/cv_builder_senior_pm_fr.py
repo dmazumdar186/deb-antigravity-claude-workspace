@@ -92,18 +92,18 @@ S = {
     'name':      _s(fontName=FONT_BOLD, fontSize=21, textColor=NAVY, leading=25, spaceAfter=2),
     'subtitle':  _s(fontSize=9.2, textColor=TEAL, leading=12.5, spaceAfter=3),
     'contact':   _s(fontSize=7.9, textColor=MDGRY, leading=11, spaceAfter=0),
-    'accroche':  _s(fontSize=9.2, alignment=TA_JUSTIFY, leading=14.1),
+    'accroche':  _s(fontSize=8.5, alignment=TA_JUSTIFY, leading=12.6),
     'role':      _s(fontName=FONT_BOLD, fontSize=9.1, textColor=NAVY, leading=11.8, spaceAfter=1),
-    'employer':  _s(fontSize=9, textColor=MDGRY, leading=12.4, spaceAfter=3),
-    'bullet':    _s(fontSize=9, alignment=TA_JUSTIFY, leading=13.6,
+    'employer':  _s(fontSize=8.5, textColor=MDGRY, leading=12.6, spaceAfter=3),
+    'bullet':    _s(fontSize=8.5, alignment=TA_JUSTIFY, leading=12.6,
                     leftIndent=11, bulletIndent=0, spaceAfter=2.2, bulletFontName=FONT),
-    'oneliner':  _s(fontSize=8.9, textColor=MDGRY, leading=12.4, spaceAfter=3),
+    'oneliner':  _s(fontSize=8.5, textColor=MDGRY, leading=12.6, spaceAfter=3),
     'skill_cat': _s(fontName=FONT_BOLD, fontSize=8.2, textColor=NAVY, leading=10.8, spaceAfter=0),
-    'skill_val': _s(fontSize=8.9, alignment=TA_JUSTIFY, leading=13.2, spaceAfter=4),
+    'skill_val': _s(fontSize=8.5, alignment=TA_JUSTIFY, leading=12.6, spaceAfter=4),
     'edu_title': _s(fontName=FONT_BOLD, fontSize=8.8, textColor=DKGRY, leading=11.8, spaceAfter=1),
     'edu_sub':   _s(fontSize=8.0, textColor=MDGRY, leading=10.8, spaceAfter=5),
     'lang':      _s(fontSize=8.3, leading=11.6, spaceAfter=2),
-    'project':   _s(fontSize=8.9, alignment=TA_JUSTIFY, leading=13.2,
+    'project':   _s(fontSize=8.5, alignment=TA_JUSTIFY, leading=12.6,
                     leftIndent=11, bulletIndent=0, spaceAfter=2.2, bulletFontName=FONT),
 }
 
@@ -132,14 +132,16 @@ def build_story():
     st += [
         Paragraph('Debanjan Mazumdar', S['name']),
         Paragraph(
-            'Senior Product Manager — Produits IA &amp; Data | SaaS B2B | PM depuis 2021, PO 2015–19',
+            'Senior Product Manager — Produits IA, Data &amp; Growth | SaaS B2B | '
+            '<b>15 ans</b> de logiciel, <b>11</b> en produit',
             S['subtitle']
         ),
         Spacer(1, 3),
         Paragraph(
             'debanjan186@gmail.com • +33 7 55 80 76 58 • Paris'
             ' • ' + _link('https://linkedin.com/in/dmazumdar/', 'linkedin.com/in/dmazumdar')
-            + ' • ' + _link('https://github.com/dmazumdar186', 'github.com/dmazumdar186'),
+            + ' • ' + _link('https://github.com/dmazumdar186', 'github.com/dmazumdar186')
+            + ' • ' + _link('https://prodcraft.fyi', 'prodcraft.fyi'),
             S['contact']
         ),
         Spacer(1, 5),
@@ -148,13 +150,16 @@ def build_story():
     ]
 
     st.append(_accroche(
-        "Senior Product Manager produits IA et data. Discovery continue et entretiens clients "
-        "d'abord, puis une roadmap avec des objectifs mesurables et un lancement suivi. PM "
-        "depuis 2021, sur la GenAI chez Wiser Solutions depuis 2022 ; avant cela quatre ans de "
-        "Product Owner et cinq ans d'ingénieur logiciel, en scale-up, grand groupe (Avaya, "
-        "TCS) et conseil. Prototype avec Claude Code avant d'écrire la spec ; travaille les "
-        "arbitrages avec les développeurs et la roadmap avec le CPO.",
-        "Basé à Paris, bilingue français-anglais, ouvert au télétravail.",
+        "Senior Product Manager, <b>15 ans</b> dans le logiciel B2B dont <b>11</b> à porter des "
+        "produits de bout en bout : Product Owner sur des plateformes d'entreprise, puis Senior "
+        "PM produits IA, data et growth. Quatre ans de GenAI chez Wiser Solutions : assistant "
+        "RAG lancé (<b>+45 %</b> d'adoption), offre IA pricée (<b>+18 %</b> d'ARPU), déploiement "
+        "groupe de <b>150 K$</b> piloté. Diplôme d'ingénieur ; prototype dans Claude Code avant "
+        "d'écrire la spec. Vise un poste de Senior PM, Senior PM IA ou Growth PM en SaaS B2B, "
+        "Paris ou télétravail.",
+        "<b>Résultats clés :</b> +45 % d'adoption • +18 % d'ARPU • +32 % de conversion "
+        "essai-payant • −55 % de latence p95 • 1 M$+ de pipeline • ~200 K$/an de coûts "
+        "supprimés",
     ))
     st.append(Spacer(1, 8))
 
@@ -165,34 +170,42 @@ def build_story():
         'Senior Product Manager, IA &amp; Data Intelligence — Wiser Solutions',
         'SaaS B2B · Retail &amp; Digital-Commerce Intelligence · Paris | Nov. 2022 – Aujourd’hui',
         [
-            "Responsable du périmètre IA de bout en bout : assistant RAG sur APIs OpenAI et "
-            "Anthropic, recommandation, alerting, sur une plateforme utilisée par des "
-            "distributeurs et des marques. Cadrage et entretiens JTBD avec les clients, roadmap "
-            "avec le CPO, PRD et parcours Figma, pricing et packaging de l'offre IA, lancement "
-            "product-led, adoption suivie dans Mixpanel. Adoption en hausse de <b>45 %</b> "
-            "après la deuxième version ; latence p95 en baisse de <b>55 %</b>.",
+            "Lancé un assistant RAG sur APIs OpenAI et Anthropic, des entretiens JTBD et "
+            "parcours Figma jusqu'à la mise en production : <b>+45 %</b> d'adoption, "
+            "<b>−55 %</b> de latence p95.",
 
-            "Pilotage du déploiement GenAI de l'entreprise avec un budget de <b>150 K$</b> : "
-            "build vs. buy entre OpenAI, Anthropic et Google, go/no-go avec le CPO et les "
-            "directions métier, acculturation de chaque BU. Adoption en hausse de <b>40 %</b> "
-            "dans les BU, CSAT en hausse de <b>20 %</b>.",
+            "Défini le pricing et le packaging de l'offre IA (upsell product-led, tunnel "
+            "Mixpanel) : <b>+18 %</b> d'ARPU.",
 
-            "Coordination de <b>5</b> squads (tech, design, data) entre Paris, les États-Unis "
-            "et l'Inde sur une seule roadmap priorisée, sans lien hiérarchique.",
+            "Piloté le déploiement GenAI du groupe (budget <b>150 K$</b>) : build vs. buy, "
+            "go/no-go avec le CPO et les directions métier, acculturation des BU. Adoption BU "
+            "<b>+40 %</b>, CSAT <b>+20 %</b>.",
 
-            "A/B tests et feature flags, analytics d'usage et de conversion (Mixpanel, "
-            "Amplitude), jeux d'évaluation LLM et garde-fous, RGPD dès la conception.",
+            "Aligné <b>5</b> squads (tech, design, data) entre Paris, les États-Unis et l'Inde "
+            "sur une seule roadmap priorisée, sans lien hiérarchique : ambiguïté en sprint "
+            "<b>−25 %</b>, prévisibilité du delivery <b>+25 à 30 %</b>.",
+
+            "Instauré des gates d'évaluation LLM, garde-fous et coût par appel comme critères "
+            "de release ; mené A/B tests et lancements sous feature flags, RGPD dès la "
+            "conception.",
         ]
     ):
         st.append(item)
 
     for item in _exp_entry(
         'Fondateur &amp; Consultant Produit IA — ' + _link('https://prodcraft.fyi', 'ProdCraft'),
-        'Studio produit IA indépendant, Paris (en parallèle de Wiser) | Janv. 2026 – Aujourd’hui',
+        'Studio produit IA indépendant, Paris (soirs et week-ends, en parallèle de Wiser) | '
+        'Janv. 2026 – Aujourd’hui',
         [
-            "Activité annexe, soirs et week-ends : <b>12</b> petits produits IA pour des "
-            "clients, dont un pipeline outbound agentique sur Cloudflare Workers qui a remplacé "
-            "environ <b>200 K$/an</b> de travail manuel, et une marketplace Stripe Connect.",
+            "Livré <b>12+</b> produits IA pour des clients, médiane <b>&lt;30 jours</b> du brief "
+            "à la production, en portant discovery, PRD, MVP et release gate.",
+
+            "Construit un pipeline outbound agentique (classification Claude, Cloudflare "
+            "Workers, <b>32</b> boîtes mail, SLA <b>3 h</b>) : <b>1 M$+</b> de pipeline "
+            "qualifié, ~<b>200 K$/an</b> de travail manuel remplacé.",
+
+            "Co-lancé une marketplace Stripe Connect (React, Node, Postgres) : <b>85 K$</b> "
+            "traités le premier trimestre.",
         ]
     ):
         st.append(item)
@@ -201,80 +214,114 @@ def build_story():
         'Product Manager, Produits Data &amp; Recommandation — InfoTnT',
         'SaaS B2B · Paris | Juin 2021 – Nov. 2022',
         [
-            "Mise en place d'une discovery continue (entretiens clients, JTBD / Outcome-Driven "
-            "Innovation, analytics Mixpanel), d'un travail de product-led growth et de pricing, "
-            "et d'une roadmap priorisée dans une équipe qui n'avait rien de tout cela. Cycles "
-            "d'itération plus courts et score d'adéquation produit-marché en hausse de "
-            "<b>25 %</b>.",
+            "Mis en place le product-led growth (essai self-serve, tests de pricing, tunnel "
+            "Mixpanel) : <b>+32 %</b> de conversion essai-payant.",
+
+            "Structuré la discovery continue (entretiens clients, JTBD / Outcome-Driven "
+            "Innovation, analytics d'usage) et une roadmap priorisée : cycles d'itération "
+            "<b>−35 %</b>, score d'adéquation produit-marché <b>+25 %</b>.",
+
+            "Rédigé les PRD et parcours Figma du moteur de recommandation ; tenu le backlog "
+            "dans Jira et Confluence.",
         ]
     ):
         st.append(item)
 
     st.append(Paragraph(
         '<b>2019 – 2021 :</b> MSc International Strategic Business (Bac+5), Toulouse Business '
-        'School, Paris (temps plein).',
+        'School, Paris (temps plein, pause carrière pour études).',
         S['oneliner']
     ))
     st.append(Spacer(1, 4))
 
     for item in _exp_entry(
-        'Senior Product Owner — Avaya (2015–18) · Evolent (2018–19) · Pitney Bowes (2019)',
-        'Communications d’entreprise · SaaS santé (secteur réglementé) · SaaS logistique · Pune | '
-        '2015 – 2019',
+        'Senior Data Product Owner — Pitney Bowes',
+        'SaaS Shipping &amp; Logistics · Pune | Avr. 2019 – Sept. 2019',
         [
-            "Quatre ans de Product Owner sur des produits plateforme et data, jusqu'à "
-            "<b>3</b> squads Scrum en parallèle : backlog, objectifs de sprint, cadre SLA/SLO, "
-            "revues de risques RAID, alignement OKR–roadmap dans Jira et Confluence. Chez Avaya, "
-            "vélocité en hausse de <b>30 %</b> ; chez Evolent, premiers usages de JTBD / "
-            "Outcome-Driven Innovation, sous contraintes de conformité santé.",
+            "Réduit le time-to-market de <b>20 %</b> sur une release de plateforme data via "
+            "cartographie des dépendances, cadence Scrum et revues de risques RAID.",
+
+            "Tenu backlog et objectifs de sprint dans Jira pour une équipe data distribuée.",
         ]
     ):
         st.append(item)
 
-    st.append(Paragraph(
-        '<b>2010 – 2015 :</b> Ingénieur logiciel, Tata Consultancy Services, puis QA / Release '
-        'Coordinator, IDrive. Systèmes distribués et gestion des releases.',
-        S['oneliner']
-    ))
-    st.append(Spacer(1, 7))
+    for item in _exp_entry(
+        'Senior Data Product Owner — Evolent International',
+        'SaaS Santé (secteur réglementé, payeurs et soignants US) · Pune | Juin 2018 – Févr. 2019',
+        [
+            "Amélioré la scalabilité de la plateforme de <b>30 %</b> en instaurant un cadre "
+            "SLA/SLO et une gouvernance QA sur les produits data.",
+
+            "Adopté JTBD / Outcome-Driven Innovation pour la discovery, sous contraintes de "
+            "conformité et de confidentialité santé.",
+        ]
+    ):
+        st.append(item)
+
+    for item in _exp_entry(
+        'Senior Product Owner, Plateforme Communications — Avaya India',
+        'Logiciel d’entreprise · Pune | Juil. 2015 – Mars 2018',
+        [
+            "Augmenté la vélocité de <b>30 %</b> et réduit l'instabilité des exigences de "
+            "<b>25 %</b> sur <b>3</b> squads Scrum par la discipline Scrum et l'alignement "
+            "OKR–roadmap.",
+
+            "Tenu backlog et critères d'acceptation des APIs de la plateforme (Confluence).",
+        ]
+    ):
+        st.append(item)
+
+    for item in _exp_entry(
+        'QA / Release Coordinator — IDrive · Ingénieur logiciel — Tata Consultancy Services',
+        'Sauvegarde cloud · Services IT · Bengaluru | 2010 – 2015',
+        [
+            "Coordonné trains de release et validation QA d'un produit de sauvegarde cloud "
+            "(Jira, Confluence) ; développé des composants de systèmes distribués chez TCS.",
+        ]
+    ):
+        st.append(item)
+
+    st.append(Spacer(1, 4))
 
     competences = [
         SectionHeader('Compétences'),
         Spacer(1, 5),
         _skill_row(
             'Produit',
-            'Discovery continue et recherche utilisateur, JTBD / Outcome-Driven Innovation • OKR, KPI et mesure d’impact • '
-            'Vision &amp; roadmap • Product-led growth, pricing et packaging • Priorisation et '
-            'arbitrages • PRD • A/B tests • Analytics (SQL, Mixpanel, Amplitude) • Go-to-market • '
-            'Delivery et run',
+            'Stratégie &amp; roadmap • Discovery continue, JTBD / ODI • Product-led growth, '
+            'pricing &amp; packaging • Priorisation (RICE) • PRD &amp; user stories • A/B tests • '
+            'OKR • Go-to-market • Delivery et run',
         ),
         _skill_row(
             'IA &amp; data',
-            'Produits LLM (OpenAI, Anthropic, Google) • RAG et agents • Build vs. buy • '
-            'Principes ML • Pipelines data • IA responsable (RGPD, AI Act)',
+            'Produits LLM (OpenAI, Anthropic, Google) • RAG, agents • Évaluation LLM &amp; '
+            'garde-fous • Coût par appel, routage de modèles • Build vs. buy • Principes ML • '
+            'Pipelines data • IA responsable (RGPD, AI Act)',
         ),
         _skill_row(
-            'Technique',
-            'Python, SQL • APIs et produits plateforme • Figma • Jira, Confluence • Cloudflare '
-            'Workers • CI/CD • Prototypage avec Claude Code',
+            'Outils',
+            'Figma • Mixpanel, Amplitude • Jira, Confluence • SQL, Python • Claude Code • '
+            'Cloudflare Workers, Modal • n8n, Make',
         ),
         _skill_row(
-            'Collaboration',
-            'Binôme tech et design • Direction et clients • Influence sans autorité '
-            'hiérarchique • Conduite du changement • Agile (Scrum, Kanban)',
+            'Leadership',
+            'Squads pluridisciplinaires (tech, design, data) • Direction et clients • Influence '
+            'sans autorité hiérarchique • Conduite du changement &amp; adoption IA • Agile '
+            '(Scrum, Kanban)',
         ),
-        Spacer(1, 7),
+        Spacer(1, 6),
     ]
     st.append(KeepTogether(competences[:3]))
     st.extend(competences[3:])
 
     st.append(SectionHeader('Formation'))
     st.append(Spacer(1, 5))
+    st.append(Paragraph('MSc International Strategic Business (Bac+5)', S['edu_title']))
+    st.append(Paragraph('Toulouse Business School, Paris | 2019–2021', S['edu_sub']))
     st.append(Paragraph('Diplôme d’ingénieur en informatique (BE Information Technology)',
                         S['edu_title']))
     st.append(Paragraph('CMR Institute of Technology, Bengaluru | 2006–2010', S['edu_sub']))
-    st.append(Paragraph('MSc International Strategic Business (Bac+5)', S['edu_title']))
-    st.append(Paragraph('Toulouse Business School, Paris | 2019–2021', S['edu_sub']))
 
     st.append(SectionHeader('Langues'))
     st.append(Spacer(1, 5))
@@ -283,14 +330,18 @@ def build_story():
         '<b>Hindi / Bengali</b> : langues maternelles',
         S['lang']
     ))
-    st.append(Spacer(1, 7))
+    st.append(Spacer(1, 6))
 
-    st.append(Paragraph(
-        'Open source : ' + _link('https://github.com/dmazumdar186/anneal', 'Anneal') +
-        ', une release gate qui audite le code généré par IA (' +
-        _link('https://github.com/dmazumdar186', 'github.com/dmazumdar186') + ').',
-        S['oneliner']
-    ))
+    st.append(SectionHeader('Projets open source'))
+    st.append(Spacer(1, 5))
+    for p in [
+        _link('https://github.com/dmazumdar186/anneal', '<b>Anneal</b>') +
+        ' : release gate qui audite le code généré par IA via des boucles audit-fix et '
+        'red-vs-blue.',
+        _link('https://github.com/dmazumdar186/cv-optimizer-agent', '<b>CV Optimizer</b>') +
+        ' (SaaS en ligne) : score un CV face à une offre et le réécrit ; construit eval-first.',
+    ]:
+        st.append(Paragraph('<bullet>•</bullet>' + p, S['project']))
 
     return st
 

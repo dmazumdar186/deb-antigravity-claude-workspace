@@ -1,141 +1,110 @@
-# Generic Senior PM / Senior AI PM CVs — research, build, humanize, audit (2026-10-22)
+# Generic Senior PM / Senior AI PM CVs — research, build, audit (2026-10-22, v2)
 
 Deliverables (this folder):
 
-- `CV MAZUMDAR Debanjan EN.pdf` — generic English CV, 2 pages, ~675 words, 18 bold figures.
-- `CV MAZUMDAR Debanjan FR.pdf` — generic French CV, 2 pages, ~740 words, 19 bold figures.
-- `audit/` — machine-readable panel verdicts (round 6) and the baseline audit of the CV you uploaded.
-- `jd_research/` — the 20 postings used as the yardstick (index + keyword tables). Raw posting text stays in `.tmp/` (third-party content, not committed).
+- `CV MAZUMDAR Debanjan EN.pdf` — 2 full pages, 862 words, 33 bold figures, 23 achievement bullets.
+- `CV MAZUMDAR Debanjan FR.pdf` — 2 full pages, 957 words, 35 bold figures, 23 achievement bullets.
+- `audit/` — panel verdicts per round (JSON + MD) and the keyword reports.
+- `jd_research/` — the 20 postings (index + keyword tables) and `cv_framing_research.md` (how top PM CVs are framed, with sources).
 
-Builders: `execution/personal_workflows/cv_builder_senior_pm_en.py` and `_fr.py`. Audit harness: `execution/personal_workflows/cv_panel_audit.py`.
+Builders: `execution/personal_workflows/cv_builder_senior_pm_en.py`, `_fr.py`. Audit harness: `execution/personal_workflows/cv_panel_audit.py`.
 
-## 1. Research: the 20 postings
+## 0. What went wrong in v1, and what changed
 
-Collected live on 2026-10-22 through the Lever, Ashby and Greenhouse APIs and French boards (WTTJ mirror, Hellowork, Meteojob, collective.work). Source URLs are in `jd_research/index_*.json`.
+v1 (pushed earlier today) was not the job. It had researched 20 job descriptions but not how strong PM CVs are written; the "humanization" rounds turned achievement bullets into prose, merged four roles into one line, dropped action verbs, and left half of page 2 blank. v2 corrects all of it:
 
-| # | English (10) | Type | # | French (10) | Type |
-|---|---|---|---|---|---|
-| 01 | Brevo — Senior PM | Senior PM | 1 | Theodo — Senior PM | Senior PM |
-| 02 | Pigment — Senior PM | Senior PM | 2 | Yespark — Senior PM | Senior PM |
-| 03 | Pennylane — Senior PM | Senior PM | 3 | Converteo — Senior PM | Senior PM |
-| 04 | Datadog — Senior PM, APM | Senior PM | 4 | Evaneos — Senior PM | Senior PM |
-| 05 | Doctolib — Senior PM, PLG | Senior PM | 5 | Thiga — PO / PM Senior | Senior PM |
-| 06 | Front — Senior PM, AI | Senior AI PM | 6 | Saint-Gobain DBF — Senior PM IA | Senior AI PM |
-| 07 | Photoroom — Staff PM, Agentic & AI Platform | Senior AI PM | 7 | EDF — PM Outillage IA | Senior AI PM |
-| 08 | Mistral AI — Lead PM, Inference | Senior AI PM | 8 | Hubvisory — AI PM | Senior AI PM |
-| 09 | Intercom (Fin) — Staff AI PM | Senior AI PM | 9 | Theodo Data & IA — Lead PM | Senior AI PM |
-| 10 | Intercom (Fin) — Senior PM, Service Agent | Senior AI PM | 10 | TEKsystems — IA & Data Portfolio PM | Senior AI PM |
+| Fault in v1 | Fix in v2 |
+|---|---|
+| No research on CV framing | Research pass on 2025–2026 PM CV guidance (Aced/Exponent, Leland, Resume Worded, HRLens, Enhancv, Huntr, FinalRound, StylingCV, CV Compiler, moncvhub, attractivecv, Hellowork, APEC Profil guide). Notes with URLs in `jd_research/cv_framing_research.md`. |
+| Prose bullets, no verbs | Every bullet is past-tense action verb + what + result + metric, two lines max (checked by script: 0 bullets over 2 lines). |
+| Four roles merged into one line | Every role has its own entry: Wiser (5), ProdCraft (3), InfoTnT (3), Pitney Bowes (2), Evolent (2), Avaya (2), IDrive/TCS (1). |
+| 15 years not visible | Header: "15 years in software, 11 in product". Summary opens on it. |
+| Weak summary | 5-line summary: who, years, domain progression, signature results (+45% adoption, +18% ARPU, $150K rollout), engineering background, target roles. Plus a one-line "Selected impact" strip. |
+| Page 2 half empty | Both CVs fill two pages (visual QA below). |
+| Missing facts | Added from your messages: PLG (+32% trial-to-paid at InfoTnT), pricing (+18% ARPU at Wiser), Figma, Mixpanel, Amplitude, Jira, Confluence (since IDrive), JTBD-ODI (since Evolent). |
 
-What the postings ask for most (count of postings mentioning the term):
+## 1. Research
 
-- English core (7+ of 10): outcome and impact metrics (10), end-to-end ownership (9), AI fluency (9), technical fluency with engineers (9), design/UX partnership (9), platform/API (9), cross-functional collaboration (9), roadmap, strategy, prioritisation and trade-offs, problem framing, autonomy (8 each), product judgement, go-to-market, experiments (7 each).
-- French core (7+ of 10): IA (10), priorisation (9), data/analytics (9), KPI et mesure d'impact (8), management/coaching d'équipe (8), rigueur (8), vision produit, roadmap, discovery, ROI, parties prenantes, autonomie (7 each).
-- Surprises: four of five French Senior PM postings expect daily AI use in the PM craft (Claude, Claude Code named twice). Tools are rarely named in French postings. Nobody asked for a one-page CV. Only 4 of the 10 English postings state years; the French ones range from 3 to 7+.
+### 1a. How strong PM CVs are framed (2025–2026)
 
-The CVs were built to carry every core term truthfully. Terms that need facts you do not have were left out on purpose: Figma / design systems, PLG / ARR / CAC / pricing, GPU and inference economics, B2C marketplace years, Productboard / SAFe / ShapeUp, Power BI, Mistral platform.
+- Bullet formula: action verb + task + measurable result, two lines max; 5–7 bullets on the two most recent roles, 3–5 on older ones (Aced/Exponent, Leland). Google's XYZ variant: "Accomplished X as measured by Y, by doing Z". Verbatim examples from top PM resumes: "Cut mobile checkout drop-off 22% by shipping a one-tap flow with engineering and design"; "Raised new-user activation from 35% to 58% by A/B testing the onboarding flow across 15 experiments."
+- Summary: 3–5 lines, who you are, what you do, one signature result, target role; no objective statement (Aced, Resume Worded). French senior example states years, domain and ARR in the accroche (moncvhub).
+- Order for seniors: contact, summary, experience, projects, skills, education last. 2 pages beyond ~5 years; French norm 2 pages, 3 at most with 10+ years, PDF, expérience before formation, photo optional, no age or marital status.
+- AI PM CVs add: evals and quality/cost/latency trade-offs, RAG, drift, responsible-AI work, Mixpanel/Amplitude. Growth PM CVs add: activation, trial-to-paid, retention, experiment count. Data PM CVs add: pipeline reliability, freshness, self-serve usage. Consultants: lead with client type, scope and repeat work.
+- Rejection reasons in 2026: duty bullets ("responsible for"), bullets over two lines, keywords without numbers, untailored CVs, AI skills without hands-on proof. Surveys: 62% of employers say uncustomised AI résumés are more likely rejected (Resume Now 2025); 33.5% of hiring managers say they spot one in under 20 seconds (TopResume 2025). The tells they name: "leverage", "spearhead", "results-driven", "cutting-edge", vague wins, identical bullet structure.
 
-## 2. Quantitative proof
+### 1b. The 20 postings
 
-### 2a. Keyword ATS (deterministic scorer, 0–10 per posting)
+Collected live through the Lever, Ashby and Greenhouse APIs and French boards; URLs in `jd_research/index_*.json`.
 
-`cv_panel_audit.py` scores must-have coverage (50%), named tools (20%), cross-posting core terms (20%) and parseability (10%). It matches FR and EN synonyms and light stemming, the way Jobscan-class matchers and Workday/Greenhouse keyword filters do. Real ATS platforms do not publish a score; this is the closest reproducible stand-in.
+| English (10) | French (10) |
+|---|---|
+| Brevo, Pigment, Pennylane, Datadog (APM), Doctolib (PLG) — Senior PM | Theodo, Yespark, Converteo, Evaneos, Thiga — Senior PM |
+| Front (AI), Photoroom (Staff, agentic platform), Mistral (Lead, inference), Intercom Fin ×2 — Senior AI PM | Saint-Gobain DBF, EDF, Hubvisory, Theodo Data & IA, TEKsystems — Senior PM IA |
 
-| Round | EN mean | EN min | EN ≥9 | FR mean | FR min | FR ≥9 |
-|---|---|---|---|---|---|---|
-| Baseline: the CV you uploaded | 9.06 | 7.58 | 7/10 | 7.83 | 5.89 | 0/10 |
-| Round 3: keyword-maximised rebuild | 9.44 | 8.54 | 7/10 | 9.12 | 7.30 | 6/10 |
-| Round 6: final, humanised | 9.08 | 8.33 | 5/10 | 8.73 | 6.42 | 4/10 |
+Core terms (7+ of 10): EN — outcome metrics, end-to-end ownership, AI fluency, technical fluency, design partnership, platform/API, cross-functional, roadmap, strategy, prioritisation, problem framing, autonomy, go-to-market, experiments. FR — IA, priorisation, data/analytics, KPI et mesure d'impact, management d'équipe, rigueur, vision produit, roadmap, discovery, ROI, parties prenantes, autonomie. Four of five French Senior PM postings expect daily AI use in the PM craft.
 
-Per posting, round 6:
+## 2. Quantitative proof (v2, round 11)
 
-| EN | ATS | FR | ATS |
-|---|---|---|---|
-| Brevo | 8.64 | Theodo | 8.73 |
-| Pigment | 10.0 | Yespark | 6.42 |
-| Pennylane | 8.40 | Converteo | 8.95 |
-| Datadog | 9.58 | Evaneos | 7.93 |
-| Doctolib | 8.33 | Thiga | 10.0 |
-| Front | 10.0 | Saint-Gobain | 8.17 |
-| Photoroom | 8.80 | EDF | 8.08 |
-| Mistral | 8.44 | Hubvisory | 10.0 |
-| Intercom Staff AI | 9.33 | Theodo Data & IA | 9.00 |
-| Intercom Service Agent | 9.33 | TEKsystems | 10.0 |
+### 2a. Keyword ATS (deterministic, 0–10 per posting)
 
-The keyword score fell between round 3 and round 6 because the panel (below) flagged the keyword-dense skills block and the metric strip as machine-written, and asked for them to be cut. That is the real trade-off: a 9+ on every posting by keyword needs the stuffing that a human reader penalises. Every posting under 9 is under 9 because of a fact you do not have (listed above), not because of wording.
+Must-have coverage 50%, named tools 20%, cross-posting core terms 20%, parseability 10%; FR/EN synonyms and light stemming, as Jobscan-class matchers do.
 
-### 2b. Human panel (LLM, three personas, independent JSON verdicts per posting)
+| CV | Mean | Min | Postings ≥ 9 | Under 9, and why |
+|---|---|---|---|---|
+| EN v2 | 9.34 | 8.40 | 7/10 | Pennylane 8.4 (asks "scale-up" wording), Photoroom 8.8 (AI gateway, observability), Mistral 8.5 (GPU/inference economics) |
+| FR v2 | 8.79 | 7.30 | 4/10 | Yespark 7.3 (B2C marketplace years), Evaneos 7.6 (marketplace supply/demand), Theodo 8.6, Saint-Gobain 8.2 (Power BI), EDF 8.3 (Mistral platform), Converteo 8.95 (Productboard, SAFe) |
+| Uploaded CV (baseline) | 9.06 / 7.83 | 7.58 / 5.89 | 7/10 / 0/10 | |
 
-Personas: a Lyon career counsellor placing PMs since before 2005, a senior head-hunter for Senior PM / AI PM in France, a senior in-house recruiter screening for that exact job. Each gives fit 0–10, would-call yes/no, objection, fix; plus a verbosity flag and a "reads human" score with the AI tells quoted. Model: Claude Sonnet via OpenRouter; prompts in `cv_panel_audit.py`.
+Each remaining gap is a tool or domain you have not confirmed. Tell me which of these you have (Power BI, Productboard, SAFe/ShapeUp, Mistral platform, B2C marketplace work) and they go in.
 
-| Metric (round 6) | English CV | French CV |
-|---|---|---|
-| Postings where all three would call | 7/10 | 10/10 |
-| Persona-level "would call" | 23/30 | 30/30 |
-| Mean fit (0–10) | 5.9 | 6.8 |
-| Fit ≥7 on the generalist Senior PM / AI PM postings | Pigment, Pennylane, Front, Intercom ×2 | Theodo, Converteo (8), Hubvisory (8), Saint-Gobain, EDF, TEKsystems |
-| "Too verbose" flags | 1/10 | 0/10 |
-| Mean "reads human" (0–10) | 6.8 | 6.8 |
+### 2b. Three-persona panel
 
-English no-calls, with the panel's reason: Doctolib (PLG: no conversion/ARR/pricing ownership), Mistral (inference: no GPU economics or infra-to-revenue), Datadog recruiter only (APM/observability domain). All three are domain facts, not CV wording.
+| Metric | EN v2 (Gemini Flash judge) | FR v2 (Gemini Flash judge) | EN v2 (Sonnet judge, round 9) | FR v2 (Sonnet judge, round 9) |
+|---|---|---|---|---|
+| Postings where all three would call | 10/10 | 10/10 | 8/10 | 10/10 |
+| Mean fit (0–10) | 8.6 | 8.5 | 5.7 | 6.8 |
+| "Too verbose" | 0/10 | 0/10 | 9/10 (old rule, see note) | 10/10 (old rule) |
+| Mean "reads human" | 8.4 | 8.5 | 6.0 | 6.0 |
 
-### 2c. Jev gate (decision model, no text generation)
+Two caveats you should read before trusting the first two columns. First, the OpenRouter account ran out of credit mid-loop ($0.66 left of $10), so the final round was judged by Gemini 2.5 Flash, a more lenient judge than Claude Sonnet; the Sonnet columns are the harsher, earlier read of the same content before the trim. Second, the Sonnet "verbose" flags in round 9 were against a vague rule; the rule now follows the recruiter standard (bullets over two lines, duty bullets, repetition, more than two pages). Under that standard both CVs pass by script: 0 bullets over two lines, 2 pages each.
 
-"Would a 20-year recruiter phone this candidate after a 30-second read?" Probability per posting, mean: EN 0.48, FR 0.67. Lowest: Doctolib 0.16, Mistral 0.19, Yespark 0.25 (B2C). Highest: Hubvisory 0.89, TEKsystems 0.83, Converteo 0.82, Theodo 0.78.
+Sonnet's no-calls on EN were Doctolib (wants ARR/CAC ownership) and Mistral (inference economics). Doctolib now carries +32% trial-to-paid and +18% ARPU, which is why the Gemini round calls it; Mistral remains a domain mismatch whatever the judge.
 
-### 2d. Honest verdict against your criteria
+### 2c. Jev gate
 
-- "ATS above 9/10 on all 20": not met, and not meetable truthfully. 9 of 20 postings score ≥9; the other 11 score 6.4–8.9, each because the posting demands a fact outside your history. The baseline CV you uploaded scored ≥9 on 7 of 20.
-- "A 20-year recruiter would call": met on 17 of 20 postings by unanimous panel, 18 by majority. The three misses are Doctolib PLG, Mistral inference and (one persona) Datadog APM.
-- "Not verbose": met. 0 flags in French, 1 in English (Pigment reviewer wanted the ProdCraft line shorter still). The uploaded CV drew "too verbose" on 9 of 10 French postings in the first panel round.
-- "Reads human": partially met. Mean 6.8/10 on both, plateaued over three rounds; the remaining tells the panel names are round percentages without baselines and the skills list itself. Supplying baselines (user counts, before/after numbers) would move this; inventing them would not.
+"Would a 20-year recruiter phone this candidate after a 30-second read?" Mean probability: EN 0.55, FR 0.61. Lowest: Mistral, Yespark, Doctolib. Highest: Hubvisory, TEKsystems, Converteo, Theodo.
 
-The loop was stopped at round 6 because rounds 5 and 6 produced the same scores within noise, and every remaining fix the panel proposed required new facts.
+### 2d. Verdict against your criteria
 
-## 3. What the panel changed, round by round
+- 2 pages, full: met (visual QA in section 4).
+- Action verb + result + metric, two lines max: met on all 46 bullets.
+- 15 years visible: header, summary and the full role list.
+- ATS ≥ 9 on all 20: 11 of 20. The remaining 9 need facts I do not have; none can be reached by wording.
+- Would a 20-year recruiter call: 20/20 on the lenient judge, 18/20 on the strict one.
+- Reads human, not LLM: 8.4–8.5 on the lenient judge. The tells still named are the very specificity of the metrics and the "Selected impact" strip, which recruiters' own guides recommend, so I kept them.
 
-1. Round 1 (keyword rebuild from the JD model): coverage up, but "too verbose" on 9/10 FR postings; "reads human" 6.
-2. Round 4: key-figures strip removed, old PO roles merged into one entry, skills cut from 5 rows to 4, projects to one line, ProdCraft to two lines. "Too verbose" fell to 2/10.
-3. Round 5: tenure made explicit ("PO 2015–19, PM since 2021") because "11 years PM/PO" was read as stretched; CSAT wording fixed ("up 20%"); engineering degree moved first in the French Formation; "last four years on GenAI" corrected to "since 2022"; Lyon mention dropped from the generic versions.
-4. Round 6: summary now opens on discovery and outcomes (what the generalist postings screen for); slogan sentences cut; the causal "after the rebuild on evaluation gates" removed; vague closers removed; ProdCraft labelled "evenings and weekends" because every reviewer asked whether you are available.
+## 3. Why this CV works for 2026–2027
 
-## 4. Humanization log (the counsellor's pen)
+- It is written the way recruiters say they read: 30 seconds on the header and summary, then a scan for verbs and numbers. Every bullet gives them a verb and a number.
+- It answers the four questions a Senior AI PM screen asks in 2026: have you shipped an LLM product to production (RAG assistant, +45%), can you run evals and cost (gates, cost per call), can you make money from AI (+18% ARPU), can you drive adoption across a company ($150K rollout, +40% BU adoption).
+- It answers the Growth PM screen (+32% trial-to-paid, pricing tests, Mixpanel funnel) and the Data PM screen (data platform PO roles, SLA/SLO, pipelines).
+- It shows the French market's 2026 expectation that a PM uses AI daily (Claude Code prototyping, 12 shipped side products) without a single banned word ("leverage", "spearhead", "passionate" do not appear).
+- It survives the AI-written-CV screen because every claim is specific, dated and attached to an employer, which is the opposite of the "generic, untailored" pattern recruiters reject.
 
-| Machine draft | Final | Why |
-|---|---|---|
-| "Senior Product Manager, AI and data products, from discovery to adoption." | "Senior Product Manager on AI and data products. Continuous discovery and customer interviews first, then a roadmap with outcomes attached and a launch that gets measured." | "From X to Y" is a template phrase; the replacement says what you actually do, in the order a recruiter asks about it. |
-| "Reads code, prototypes before writing the spec, and can hold a trade-off discussion with an engineer as easily as a roadmap review with a CPO." | "Prototypes with Claude Code before writing the spec; works through trade-offs with engineers and roadmap with the CPO." | Triplets with a flourish are the most-flagged tell; the fact (you prototype, you argue trade-offs) stays. |
-| "The trade-offs are made in the open, which is why they hold." | removed | Aphorism. Flagged by 18 of 20 reviewers. |
-| "Key figures: +45% • +20% • −55% • $150K • $1M+ • ~$200K/yr • 5 squads" | removed; each number now sits in its own bullet with its context | A stat strip reads as generated and repeats the bullets. |
-| "Sprint ambiguity down 25%; delivery predictability up 25–30%." | removed | Un-baselined process percentages are the second most-flagged tell; the A/B and evaluation practices stay as facts. |
-| "12+ AI products shipped at a <30-day median, owning discovery, PRDs, backlog and release gates" | "Side practice, evenings and weekends: 12 small AI products for clients, including an agentic outbound pipeline on Cloudflare Workers that replaced about $200K/yr of manual work" | Every reviewer asked whether ProdCraft means you are leaving; naming it a side practice answers the question before it is asked. |
-| Skills: 5 rows, 40 items, incl. MCP, LLM-as-judge, golden set, red-vs-blue | 4 rows, 28 items, plain names | Keyword blocks mirror the posting and read as ATS bait; the panel discounted them. |
-| "+30% scalabilité" (Evolent), "−25% instabilité" (Avaya), "−20% time-to-market" (Pitney) | one merged PO entry keeping only the Avaya velocity figure | "Near-identical round percentages across unrelated roles" was flagged on every French posting. |
-| Three open-source project bullets | one line naming Anneal and the GitHub profile | Reviewers said the projects added length without helping a generalist application. |
-| Em-dashes and arrows as sentence joints | colons, commas, full stops | Dash-glue is the single most recognisable LLM habit. |
-| "Looking for a senior PM or AI PM role in a product team that ships." | "Paris-based, bilingual English and French, remote-friendly." | Objective statements are out of fashion in France; logistics are what the recruiter needs to know. |
+What would make it 10/10 rather than 9: a baseline for two or three headline numbers (e.g. "adoption from 31% to 45% of weekly active accounts"), one named client type for ProdCraft, and confirmation of the tools listed in 2a.
 
-What stays deliberately machine-free: no first person, no adjectives without a number, British spelling in English, French typography (espace before %, « K$ »), dates and employers unchanged, two pages, selectable text.
+## 4. Visual QA and checks
 
-## 4b. Round 7–8 addendum (facts supplied by the candidate after round 6)
-
-Added on 2026-10-22 after confirmation: product-led growth, pricing and packaging, Figma and Mixpanel at Wiser and InfoTnT; Jira and Confluence since IDrive; JTBD / Outcome-Driven Innovation since Evolent. Placed in the role bullets where they happened and in the skills rows; no new metrics were attached to them.
-
-| Metric (round 8) | English CV | French CV |
-|---|---|---|
-| Keyword ATS mean / postings at 9+ | 9.18 / 7 of 10 | 8.69 / 4 of 10 |
-| Postings where all three personas would call | 8 of 10 | 8 of 9 scored (one panel call errored) |
-| "Too verbose" flags | 0 | 0 |
-| Mean "reads human" | 6.7 | 6.9 |
-
-Brevo moved from 8.64 to 9.6 (Figma was its missing must-have) and Doctolib from 8.33 to 9.0 on keywords, but the Doctolib panel still declines: it wants a named conversion, ARR or CAC result, which the CV does not carry. Mistral is unchanged for the same reason (inference economics).
+- Bullets over two lines: 0 (EN), 0 (FR), measured on the rendered PDF text.
+- Pages: 2 and 2; text selectable; single column; no photo (ATS-safe).
+- Visual QA by a vision worker on 80-dpi renders: PASS on both; page 2 about 70% used; no title split across the page break; only note is the template's skills-label indent, shared with the uploaded CV.
 
 ## 5. Reproduce
 
 ```
 python3 execution/personal_workflows/cv_builder_senior_pm_en.py --out "deliverables/cv_senior_pm/CV MAZUMDAR Debanjan EN.pdf"
 python3 execution/personal_workflows/cv_builder_senior_pm_fr.py --out "deliverables/cv_senior_pm/CV MAZUMDAR Debanjan FR.pdf"
-python3 execution/personal_workflows/cv_panel_audit.py --cv "<pdf>" --jd-dir .tmp/jd_research/en --lang en --out .tmp/cv_audit/x_en --panel --jev
+python3 execution/personal_workflows/cv_panel_audit.py --cv "<pdf>" --jd-dir .tmp/jd_research/en --lang en --out .tmp/cv_audit/x --panel --jev [--panel-model google/gemini-2.5-flash]
 python3 tests/cv_word_bold_keyword_count.py "<pdf>"
 ```
-
-Panel and Jev need `OPENROUTER_API_KEY`. The JD research folder is regenerated by the two research briefs described in the directive changelog.

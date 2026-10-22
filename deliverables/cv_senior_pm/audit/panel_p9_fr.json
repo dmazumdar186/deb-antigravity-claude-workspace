@@ -1,0 +1,890 @@
+{
+  "ats": [
+    {
+      "id": "1",
+      "title": "Senior Product Manager - CDI Paris - Theodo",
+      "company": "Theodo (AI Build practice)",
+      "type": "senior_pm",
+      "ats_score": 8.55,
+      "must_have_score": 0.71,
+      "must_have_gaps": [
+        {
+          "requirement": "Maîtrise de la discovery (recherche utilisateur, cadrage d'hypothèses, vision)",
+          "coverage": 0.5,
+          "missing": [
+            "recherche",
+            "utilisateur",
+            "hypothèses"
+          ]
+        },
+        {
+          "requirement": "Usage quotidien de l'IA pour prototyper, rédiger des specs, petites modifications en prod",
+          "coverage": 0.56,
+          "missing": [
+            "quotidien",
+            "rédiger",
+            "petites",
+            "modifications"
+          ]
+        },
+        {
+          "requirement": "Problem solving",
+          "coverage": 0.0,
+          "missing": [
+            "problem",
+            "solving"
+          ]
+        },
+        {
+          "requirement": "Relationnel avec interlocuteurs seniors",
+          "coverage": 0.33,
+          "missing": [
+            "relationnel",
+            "interlocuteurs"
+          ]
+        }
+      ],
+      "tools_score": 1.0,
+      "tools_missing": [],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 4,
+      "years_ok": true
+    },
+    {
+      "id": "2",
+      "title": "Senior Product Manager - F/H/NB",
+      "company": "Yespark Group",
+      "type": "senior_pm",
+      "ats_score": 7.3,
+      "must_have_score": 0.59,
+      "must_have_gaps": [
+        {
+          "requirement": "Réflexe business (euros, conversion, revenu)",
+          "coverage": 0.4,
+          "missing": [
+            "réflexe",
+            "euros",
+            "revenu"
+          ]
+        },
+        {
+          "requirement": "Recul stratégique : marché, concurrence, modèle économique, vision posée",
+          "coverage": 0.5,
+          "missing": [
+            "recul",
+            "concurrence",
+            "économique",
+            "posée"
+          ]
+        },
+        {
+          "requirement": "Convictions défendables",
+          "coverage": 0.0,
+          "missing": [
+            "convictions",
+            "défendables"
+          ]
+        },
+        {
+          "requirement": "Contributeur individuel reportant au CPO",
+          "coverage": 0.25,
+          "missing": [
+            "contributeur",
+            "individuel",
+            "reportant"
+          ]
+        }
+      ],
+      "tools_score": 0.67,
+      "tools_missing": [
+        "Claude (accès pour tous)"
+      ],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 7,
+      "years_ok": true
+    },
+    {
+      "id": "3",
+      "title": "Senior Product Manager H/F - CDI",
+      "company": "Converteo",
+      "type": "senior_pm",
+      "ats_score": 8.95,
+      "must_have_score": 0.9,
+      "must_have_gaps": [
+        {
+          "requirement": "Affinités design UX/UI",
+          "coverage": 0.33,
+          "missing": [
+            "affinités",
+            "ux/ui"
+          ]
+        }
+      ],
+      "tools_score": 0.71,
+      "tools_missing": [
+        "ShapeUp",
+        "SAFe"
+      ],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 5,
+      "years_ok": true
+    },
+    {
+      "id": "4",
+      "title": "Senior Product Manager",
+      "company": "Evaneos",
+      "type": "senior_pm",
+      "ats_score": 7.62,
+      "must_have_score": 0.66,
+      "must_have_gaps": [
+        {
+          "requirement": "Product Management en environnement complexe (marketplace ou B2C digital)",
+          "coverage": 0.57,
+          "missing": [
+            "environnement",
+            "complexe",
+            "b2c"
+          ]
+        },
+        {
+          "requirement": "Transformer un enjeu flou en quarter priorisé",
+          "coverage": 0.2,
+          "missing": [
+            "transformer",
+            "enjeu",
+            "flou",
+            "quarter"
+          ]
+        },
+        {
+          "requirement": "Dynamiques marketplace (supply/demand/conversion/repeat)",
+          "coverage": 0.33,
+          "missing": [
+            "dynamiques",
+            "supply/demand/conversion/repeat"
+          ]
+        },
+        {
+          "requirement": "Création d'alignement entre parties prenantes",
+          "coverage": 0.5,
+          "missing": [
+            "parties",
+            "prenantes"
+          ]
+        }
+      ],
+      "tools_score": 0.67,
+      "tools_missing": [
+        "personal OS"
+      ],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 5,
+      "years_ok": true
+    },
+    {
+      "id": "5",
+      "title": "Product Owner / Product Manager Senior (H/F)",
+      "company": "Thiga",
+      "type": "senior_pm",
+      "ats_score": 10.0,
+      "must_have_score": 1.0,
+      "must_have_gaps": [],
+      "tools_score": 1.0,
+      "tools_missing": [],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 5,
+      "years_ok": true
+    },
+    {
+      "id": "6",
+      "title": "Senior Product Manager IA H/F",
+      "company": "Saint-Gobain Distribution Bâtiment France",
+      "type": "senior_ai_pm",
+      "ats_score": 8.58,
+      "must_have_score": 0.92,
+      "must_have_gaps": [
+        {
+          "requirement": "Identifier et prioriser les opportunités IA",
+          "coverage": 0.5,
+          "missing": [
+            "identifier",
+            "opportunités"
+          ]
+        }
+      ],
+      "tools_score": 0.5,
+      "tools_missing": [
+        "Power BI"
+      ],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 5,
+      "years_ok": true
+    },
+    {
+      "id": "7",
+      "title": "Product Manager Outillage IA H/F",
+      "company": "EDF",
+      "type": "senior_ai_pm",
+      "ats_score": 8.29,
+      "must_have_score": 0.79,
+      "must_have_gaps": [
+        {
+          "requirement": "Animation d'équipe, gestion de projets complexes",
+          "coverage": 0.25,
+          "missing": [
+            "animation",
+            "gestion",
+            "complexes"
+          ]
+        },
+        {
+          "requirement": "Culture d'innovation, intérêt fort pour l'IA",
+          "coverage": 0.5,
+          "missing": [
+            "culture",
+            "intérêt"
+          ]
+        }
+      ],
+      "tools_score": 0.67,
+      "tools_missing": [
+        "Mistral (plateforme)"
+      ],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 7,
+      "years_ok": true
+    },
+    {
+      "id": "8",
+      "title": "AI Product Manager - CDI - Paris",
+      "company": "Hubvisory",
+      "type": "senior_ai_pm",
+      "ats_score": 10.0,
+      "must_have_score": 1.0,
+      "must_have_gaps": [],
+      "tools_score": 1.0,
+      "tools_missing": [],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 3,
+      "years_ok": true
+    },
+    {
+      "id": "9",
+      "title": "Lead Product Manager - CDI Paris - Theodo Data & IA",
+      "company": "Theodo Data & AI",
+      "type": "senior_ai_pm",
+      "ats_score": 9.0,
+      "must_have_score": 0.8,
+      "must_have_gaps": [
+        {
+          "requirement": "Diplôme grande école d'ingénieur",
+          "coverage": 0.5,
+          "missing": [
+            "grande",
+            "école"
+          ]
+        },
+        {
+          "requirement": "Négociation et management",
+          "coverage": 0.5,
+          "missing": [
+            "négociation"
+          ]
+        }
+      ],
+      "tools_score": 1.0,
+      "tools_missing": [],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 5,
+      "years_ok": true
+    },
+    {
+      "id": "10",
+      "title": "IA & Data Portfolio Product Manager H/F (freelance)",
+      "company": "TEKsystems",
+      "type": "senior_ai_pm",
+      "ats_score": 10.0,
+      "must_have_score": 1.0,
+      "must_have_gaps": [],
+      "tools_score": 1.0,
+      "tools_missing": [],
+      "core_score": 1.0,
+      "core_missing": [],
+      "format_score": 1.0,
+      "format_failed": [],
+      "years_required": 3,
+      "years_ok": true
+    }
+  ],
+  "panel": {
+    "1": {
+      "counsellor": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "Strong on discovery and AI, but the JD is a client-facing consultancy role (business partner to client Heads of Product, 'You build it, you run it'). The CV is entirely in-house SaaS and shows no client-facing or agency experience at Wiser. The ProdCraft line ('12+ produits IA pour des clients') is the only consulting signal and sits as a side activity. The 2019-2021 gap is explained, but the Bac+5 from Toulouse Business School is not a 'grande école' in the usual sense.",
+        "fix": "Move 'Livré 12+ produits IA pour des clients, médiane <30 jours' higher in the summary as proof of client-facing delivery. Reword the Wiser bullet on go/no-go with the CPO and business directors as 'partenaire de direction produit'. Put the engineering degree first in the Formation section."
+      },
+      "headhunter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The profile is solid (11 years in product, RAG launch, A/B tests, Claude Code prototyping) and matches the JD's daily AI use. But the chronology is hard to read, with 5 roles in India before 2019 and few Paris-market employers a French client would recognise. The ProdCraft work 'in the evenings and weekends' raises a question about availability and exclusivity for a CDI. The CV targets three different roles (Senior PM, AI PM, Growth PM), which dilutes focus for this application.",
+        "fix": "Narrow the headline to 'Senior Product Manager IA' for this application. Say plainly in one line that ProdCraft is a side activity compatible with a CDI, or move it lower. Shorten the pre-2019 roles to one line each."
+      },
+      "recruiter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "Meets the 4+ years and 2+ years PM requirements easily. Discovery (JTBD, interviews), backlog, sprints and AI use all match. Gaps against the JD: no explicit 'run' / production-incident ownership, no review decks or stakeholder rituals for client executives, and no mention of consulting or ESN experience. The skills list does include 'Delivery et run', but no bullet backs it up.",
+        "fix": "Add evidence for run to an existing Wiser bullet, e.g. production monitoring and drift handling, framed as 'You build it, you run it'. Mention the stakeholder decks and go/no-go syntheses used with the CPO. Use the JD's terms (Lean, discovery, run, business partner) in the summary."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "The CV runs long. The summary, the 'Résultats clés' line and the bullets repeat the same metrics (+45 %, +18 %, 1 M$). The pre-2019 roles and the three open-source projects add length without helping this application. The skills section is dense with tools."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Very dense metric stacking, with a percentage in almost every bullet",
+          "'Résultats clés' banner repeating figures already in the bullets",
+          "Uniform bullet structure: past participle + object + colon + metric",
+          "Buzzword strings such as 'Squads pluridisciplinaires • Influence sans autorité hiérarchique'",
+          "Self-referential items such as a CV Optimizer among the projects"
+        ]
+      },
+      "truthfulness_flags": [
+        "1 M$+ de pipeline qualifié from a personal outbound pipeline: how it is attributed and measured is unclear",
+        "~200 K$/an de travail manuel remplacé: unverifiable estimate",
+        "12+ AI products delivered for clients, median <30 days, while holding a full-time job: a lot to claim for evenings and weekends",
+        "85 K$ traités on the marketplace is volume processed, not revenue, and could be misread",
+        "The Wiser metrics (+45 % adoption, +18 % ARPU, +25-30 % predictability) have no baseline or period",
+        "Pitney Bowes (5 months) and Evolent (8 months) as 'Senior' roles with precise percentage gains look inflated for such short stints",
+        "15 years of software and 11 in product is hard to reconcile with the QA/release coordinator and engineer roles listed up to 2015"
+      ]
+    },
+    "2": {
+      "counsellor": {
+        "fit": 5,
+        "would_call": true,
+        "objection": "The CV is positioned as 'SaaS B2B' and 'Produits IA, Data & Growth', and even the target line reads 'Senior PM, Senior PM IA ou Growth PM en SaaS B2B'. Yespark wants B2C marketplace or e-commerce experience, with euros, conversion and field discovery. The only marketplace line is 'Co-lancé une marketplace Stripe Connect : 85 K$', a side project with no two-sided supply/demand story. The 2019-2021 gap for studies is explained, but Pune IC roles from 2015-2019 carry little weight.",
+        "fix": "Rewrite the headline and summary toward conversion, revenue and discovery rather than 'SaaS B2B'. Move the Stripe Connect marketplace and the +32% trial-to-paid conversion higher. Remove 'SaaS B2B' from the target-role line and name the Yespark-style scope: marketplace, conversion funnel, growth."
+      },
+      "headhunter": {
+        "fit": 5,
+        "would_call": true,
+        "objection": "Strong profile for an AI PM role, but this is a B2C marketplace with a hardware bridge (access boxes, plate reading). There is no B2C consumer experience, no supply-side owner management, and no physical-world product. The 'Retail & Digital-Commerce Intelligence' line is B2B analytics, not e-commerce. The 'ProdCraft' side business 'soirs et week-ends' may raise questions about focus, though the AI-native culture at Yespark helps.",
+        "fix": "Lead with the conversion funnel work ('+32 % de conversion essai-payant', Mixpanel funnel, A/B tests) and frame the marketplace project as two-sided (payers vs. sellers). Mention Claude Code fluency in the summary, since Yespark gives everyone Claude. Put the full 'Résultats clés' line in business terms (revenue, conversion) before AI metrics."
+      },
+      "recruiter": {
+        "fit": 5,
+        "would_call": true,
+        "objection": "The checklist asks for a B2C PM, marketplace/e-commerce, hands-on interviews, euros and conversion, and a vision you set yourself. The CV shows 11 years in product, French and English at C2, and JTBD interviews, but all of it is B2B SaaS. There is no B2C line anywhere, and the metrics are in percentages and dollars, not euros. Several older roles (Pitney Bowes 5 months, Evolent 8 months) look short.",
+        "fix": "Surface the discovery lines ('entretiens JTBD', 'discovery continue') at the top of each recent role. Add the vision you set ('Défini le pricing et le packaging', roadmap priorisée) explicitly as 'vision'. Compress Pitney Bowes, Evolent and Avaya into one short line to focus on the last three roles."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "Dense: about two pages with a long skills block, an open-source section and a summary that repeats the key results twice. Compress the older roles and merge the KPI strip into the summary."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Heavily stacked metric strip ('Résultats clés') with six percentages and dollar figures",
+          "Uniform bullet rhythm of 'Verbe + outil + pourcentage'",
+          "Buzzword-dense skills block (LLM-as-judge, golden set, garde-fous, routage de modèles)",
+          "Self-referential line 'prototype dans Claude Code, lit le code, écrit la spec'"
+        ]
+      },
+      "truthfulness_flags": [
+        "'1 M$+ de pipeline qualifié' from an outbound pipeline built in a side business is unverifiable without attribution",
+        "'12+ produits IA livrés, médiane <30 jours' in a side project since Jan 2026 sounds inflated",
+        "'~200 K$/an de travail manuel remplacé' is an estimate, not a measured saving",
+        "'Aligné 5 squads... prévisibilité +25 à 30 %' has no stated measurement method",
+        "'15 ans de logiciel, 11 en produit' counts QA/Release Coordinator and Product Owner roles as product, which may be generous",
+        "'85 K$ traités' by a marketplace is volume processed, not revenue, and the candidate's actual role is only 'co-lancé'"
+      ]
+    },
+    "3": {
+      "counsellor": {
+        "fit": 8,
+        "would_call": true,
+        "objection": "The CV is aimed at SaaS B2B product roles, not consulting. The JD is for a consultant embedded in client teams, and nothing shows client-facing consulting beyond the side studio ProdCraft. The summary line 'Vise un poste de Senior PM, Senior PM IA ou Growth PM en SaaS B2B' tells Converteo that consulting is not the target.",
+        "fix": "Rewrite the summary target line to name product consulting and AI/data transformation for large clients. Move ProdCraft client delivery ('12+ produits IA pour des clients') and the cross-BU GenAI rollout higher. Add a one-line framing of autonomy in client environments."
+      },
+      "headhunter": {
+        "fit": 8,
+        "would_call": true,
+        "objection": "The profile is strong on AI, data and discovery/delivery, with quantified results and 5+ years of product experience. Two things worry me. The 2019–2021 gap is covered by the MSc, but the jump from Senior PO roles in India to PM in Paris reads as a title inflation risk. Also, ProdCraft 'evenings and weekends' alongside a full-time job may raise exclusivity questions for a consultancy CDI.",
+        "fix": "Keep titles as they are, but state the scope of each early role plainly. Describe ProdCraft as a side project with no conflict of interest and say it can be wound down or kept, as appropriate. Lead with the Wiser achievements that map to the JD: roadmap/OKR, discovery, KPIs, delivery."
+      },
+      "recruiter": {
+        "fit": 8,
+        "would_call": true,
+        "objection": "The JD keywords are largely present: Jira, Figma, Scrum, OKR, JTBD, A/B tests, Bac+5, English and French. Productboard, ShapeUp, SAFe and Design Sprint are missing, and the skills section reads as a wall of keywords. The metrics are many and dense, and some are hard to verify in 30 seconds. The experience of 11 years in product counts Product Owner roles as product.",
+        "fix": "Add the JD's methodology terms only where they are true. Cut the skills section down to the JD's priorities. Reduce the headline metrics from six to three or four. Mention explicitly that user interface design is done with a designer in Figma."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "Dense for a 30-second read: a six-metric banner, long skill lists, three open-source projects, and early-career bullets that add little. Cutting the older roles and projects to one line each would help."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Heavy stacking of metrics and percentages in every bullet",
+          "Uniform bullet structure of verb + tool + result",
+          "Buzzword-dense skills lists and phrases like 'prototype dans Claude Code, lit le code, écrit la spec'",
+          "Header banner of 'Résultats clés' feels templated"
+        ]
+      },
+      "truthfulness_flags": [
+        "+45 % adoption, +18 % ARPU and −55 % p95 latency: plausible, but no baselines or timeframes are given",
+        "'12+ produits IA livrés pour des clients, médiane <30 jours' for a side studio run on evenings and weekends since January 2026 sounds inflated",
+        "'1 M$+ de pipeline qualifié' and '~200 K$/an de travail manuel remplacé' from an outbound pipeline are hard to verify and attribute",
+        "'Aligné 5 squads … sans lien hiérarchique' with +25 to 30 % delivery predictability: the measurement method is unclear",
+        "The 'Senior Data Product Owner' titles at Pitney Bowes (5 months) and Evolent (8 months) are short stints and may be hard to substantiate",
+        "11 years in product relies on counting Product Owner and possibly QA/release coordination roles; the 2010–2015 role is not product",
+        "'Ingénieur de formation' is accurate as a BE degree, but the equivalence to a French engineering school may be questioned"
+      ]
+    },
+    "4": {
+      "counsellor": {
+        "fit": 6,
+        "would_call": true,
+        "objection": "The headline reads 'SaaS B2B' and 'Growth PM en SaaS B2B', while Evaneos is a B2C travel marketplace. Nothing on the CV shows B2C traveller experience or supply/demand/conversion/repeat dynamics. The 'marketplace Stripe Connect (85 K$ traités)' line is a side project run evenings and weekends, so it is thin evidence.",
+        "fix": "Rewrite the headline and summary to lead with 'Senior PM IA, data & growth' and drop the 'SaaS B2B' positioning. Move the Stripe Connect marketplace and the conversion/PLG results (+32% trial-to-paid, +18% ARPU) higher, and phrase them in supply/demand/conversion terms."
+      },
+      "headhunter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The AI profile is excellent and matches the JD's AI-native requirement point by point: RAG assistant in production, LLM eval gates, Claude Code, and cost per call. But the CV shows no B2C or marketplace ownership at Wiser or InfoTnT. The 11 years in product is padded by early Product Owner roles, and a freelance studio of 12+ products running in parallel with a full-time job raises questions about availability and focus.",
+        "fix": "Open with the production AI feature and its measurable results. Cut or shorten the 2010-2018 roles to one line. Describe ProdCraft as a side practice and name the marketplace work explicitly. Add one line on a user-facing consumer-style flow, such as conversion funnels at scale."
+      },
+      "recruiter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The CV clearly meets the 5+ years, AI in production, data-first (Mixpanel, SQL) and fluent English requirements. But the missing marketplace/B2C context is a screening gap. The French is bilingual, yet the target role line ('Senior PM, Senior PM IA ou Growth PM en SaaS B2B') signals a different target from this job. The 2019-2021 career break and the 2010-2018 history in Pune add length without relevance.",
+        "fix": "Tailor the target line to 'Senior PM, marketplace / produits IA grand public'. Put 'assistant RAG en production' and 'prototype dans Claude Code' in the first three lines. Compress the pre-2019 roles."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "The CV runs long. The pre-2019 roles (Avaya, Evolent, Pitney Bowes, IDrive/TCS) add little for a Senior PM role. The skills section lists many tools, and the key-results strip duplicates the bullets."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Dense metric strip with many round percentages",
+          "Uniform bullet structure of 'Verb + tool list + metric'",
+          "Buzzword-heavy skills stack (RAG, agents, LLM-as-judge, red-vs-blue)",
+          "'Prototype dans Claude Code, lit le code, écrit la spec' reads like a tagline"
+        ]
+      },
+      "truthfulness_flags": [
+        "12+ AI products delivered for clients, median under 30 days, in evenings and weekends since January 2026: ambitious and hard to verify",
+        "$1M+ qualified pipeline from an outbound agentic pipeline, with no stated attribution method",
+        "~$200K/year of manual work replaced is an estimate with no baseline",
+        "'15 years of software, 11 in product' counts QA, release coordinator and Product Owner roles as product",
+        "+45% adoption and -55% p95 latency are given without baseline or timeframe",
+        "Aligning 5 squads across Paris, the US and India with no reporting line, and the group GenAI rollout for a $150K budget, claim a broad scope that may be inflated"
+      ]
+    },
+    "5": {
+      "counsellor": {
+        "fit": 6,
+        "would_call": true,
+        "objection": "The CV reads as an in-house, hands-on builder profile (\"Vise un poste de Senior PM, Senior PM IA ou Growth PM en SaaS B2B\"). Thiga is a consulting firm that sells coaching, audits and product maturity. The summary never mentions consulting, training or coaching, so the stated target contradicts this role. The one coaching-like line, \"acculturation de chaque BU\", is buried in a bullet.",
+        "fix": "Rewrite the summary target to include product consulting and team enablement. Move \"acculturation de chaque BU\" and \"Aligné 5 squads... sans lien hiérarchique\" higher. Reframe ProdCraft as client-facing advisory work (12+ client engagements) and add any workshops or training actually delivered."
+      },
+      "headhunter": {
+        "fit": 6,
+        "would_call": true,
+        "objection": "Strong GenAI and delivery credentials that match the JD's generative-AI wish. But there is no evidence of audits, org transformation, conference talks or publications, all of which Thiga values. The ProdCraft claims (\"12+ produits IA\", \"1 M$+ de pipeline\") look side-project-like and slightly inflated for evenings and weekends since Jan 2026. The Pune-era roles are short (Pitney Bowes 5 months, Evolent 8 months).",
+        "fix": "Lead with the 'Piloté le déploiement GenAI du groupe' bullet as a transformation case. Add a line on talks, writing or mentoring if they exist (prodcraft.fyi may count). Shorten or merge the early short stints, and tone down ProdCraft metrics to what can be defended in an interview."
+      },
+      "recruiter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The experience requirement is clearly met (11 years in product, 5+ as PM/PO). English is C2 and GenAI usage is explicit. Discovery (JTBD/ODI) and delivery are both covered. Missing against the JD: no explicit coaching or training of product teams and no consulting-firm background. Thiga's 'case study' stage will test that.",
+        "fix": "Add a short 'Coaching & transmission' line or bullet that draws on existing facts (acculturation of BUs, discovery frameworks introduced at InfoTnT and Evolent). Name the frameworks introduced for teams. Mirror JD vocabulary such as 'maturité produit', 'discovery et delivery', 'ateliers'."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "Dense, about 1.5 to 2 pages with a long skills block and a metrics strip that repeats the bullets. Early career (2010-2018) and the three open-source projects could be trimmed. The 'Résultats clés' line duplicates content."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Heavy metric stacking, with nearly every bullet ending in a percentage",
+          "Parallel verb-first bullets with a uniform cadence",
+          "Buzzword-dense skills lists (LLM-as-judge, golden set, drift)",
+          "Slogan-like summary fragment: 'prototype dans Claude Code, lit le code, écrit la spec'",
+          "Round numbers repeated (25 %, 30 %, 20 %)"
+        ]
+      },
+      "truthfulness_flags": [
+        "12+ AI products delivered for clients, median under 30 days, in evenings and weekends since Jan 2026: hard to verify",
+        "1 M$+ qualified pipeline and ~200 K$/year of manual work replaced from a side project: unverifiable and likely inflated",
+        "85 K$ processed in the first quarter by a marketplace the candidate 'co-launched': the role and scope are unclear",
+        "Wiser tenure listed as 'Aujourd'hui' alongside a parallel founder role: possible conflict or time-capacity doubt",
+        "'15 ans de logiciel, 11 en produit' depends on counting the 2015 start and a 2019-2021 MSc gap: the arithmetic invites questions",
+        "Precise percentage gains (+25 à 30 % de prévisibilité, −25 % d'ambiguïté) with no stated measurement method"
+      ]
+    },
+    "6": {
+      "counsellor": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The CV is positioned for B2B SaaS and Growth PM roles ('Vise un poste de Senior PM, Senior PM IA ou Growth PM en SaaS B2B'). The JD is an internal AI PM role serving business lines (logistics, sales, digital) in a building-materials distributor. Nothing on the CV shows work with non-tech business units, process mapping or ROI measurement in a traditional industry. Genuine LLM/GenAI experience only dates from Nov 2022, which is about 3 to 4 years, short of the 5-6 years requested.",
+        "fix": "Rewrite the summary to speak to internal business transformation: lead with 'Piloté le déploiement GenAI du groupe (150 K$), go/no-go avec les directions métier, acculturation de chaque BU'. Remove 'Growth PM' from the target line. Add the stated 'Bac+5 ingénieur' and ROI wording in the first three lines."
+      },
+      "headhunter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "Strong, quantified AI product profile: RAG assistant (+45% adoption, -55% p95 latency), LLM evaluation gates, build vs. buy. However, the profile is a SaaS vendor PM, not a PM serving a Data Science team on use-case discovery. There is no clear Data Scientist collaboration, Power BI mention or data scoping. Salary 60-75K€ is probably aligned, but the ProdCraft side business (12+ products, evenings and weekends) raises questions about availability and conflict of interest for an employer.",
+        "fix": "Move the group GenAI deployment bullet to the top of the Wiser section. Add Power BI only if truly used; otherwise stress SQL/Python and data scoping. Reduce ProdCraft to one line or clarify it as a side project with no conflict. Reword to show collaboration with data scientists on exploration and performance criteria."
+      },
+      "recruiter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "Ticks most boxes: engineering degree plus Bac+5, SQL, AI PM for 4 years, stakeholder alignment across 5 squads without authority, good French. Gaps against the checklist: no Power BI, no ROI/KPI-tracking wording, no logistics, retail-distribution or process-mapping experience, and AI PM tenure under the 5-6 years requested. Career timeline is also dense (2010-2015 QA/release, 2019-2021 study break) and the headline '15 ans de logiciel' may appear inflated for AI.",
+        "fix": "Mirror the JD vocabulary: 'cadrage métier/data/IA/technique', 'mesure du ROI', 'indicateurs de performance', 'pilote et déploiement'. Add the ROI figure (e.g. ~200 K$/an économisés) under the Wiser role if attributable. Rename the headline to '4 ans en produits IA, 11 ans en produit' for honesty and clarity."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "The CV is dense, with a long summary, a 'Résultats clés' strip, a long skills block, three open-source projects and a side business. It likely runs over 1.5 pages. Cut older roles (2010-2018) to one line each, drop the open-source section and trim skills lists."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Heavy metric stacking in every bullet (+45%, +18%, -55%, +25 à 30%)",
+          "Tool-name and keyword density ('LLM-as-judge', 'golden set', 'JTBD / ODI', 'RAG, agents')",
+          "Uniform bullet structure of verb + artefact + metric",
+          "'Résultats clés' strip reads like an optimised summary",
+          "Open-source projects named 'CV Optimizer' and 'Anneal' suggest tooling-driven CV tailoring"
+        ]
+      },
+      "truthfulness_flags": [
+        "12+ AI products delivered for clients with a median under 30 days, in evenings and weekends since Jan 2026, sounds very ambitious and is hard to verify",
+        "1 M$+ qualified pipeline and ~200 K$/an manual work replaced from an outbound pipeline built by one person need substantiation",
+        "'15 ans de logiciel' includes QA/release coordination, so the PM seniority is closer to 11 years",
+        "'Senior' titles at Pitney Bowes (5 months) and Evolent (8 months) are short stints",
+        "Ambiguity -25% and delivery predictability +25 à 30% are hard to measure",
+        "85 K$ processed on the Stripe marketplace in a quarter does not clarify the candidate's own share or role"
+      ]
+    },
+    "7": {
+      "counsellor": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The CV is positioned for SaaS B2B, Senior PM or Growth PM roles ('Vise un poste de Senior PM, Senior PM IA ou Growth PM en SaaS B2B'), not for an internal platform role at a large energy group. The strongest match is the line 'Piloté le déploiement GenAI du groupe sur un budget de 150 K$'. There is no sign of internal-platform, run or crisis-management experience, which this role requires. The 2019-2021 gap is explained, but the 2010-2015 line is thin.",
+        "fix": "Rewrite the headline and summary around 'Product Manager plateforme IA générative / RAG as a Service'. Put the group GenAI deployment and the RAG assistant first. Remove or shorten the Growth PM and SaaS B2B targeting. Add a line on run, incident handling and internal-client support, if it is true."
+      },
+      "headhunter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The RAG assistant, the build-vs-buy decision across OpenAI, Anthropic and Google, and the LLM evaluation gates are all directly relevant. But there is no Mistral experience, and no sign of an internal platform serving many BUs as a service. The ProdCraft side business, with its marketplace and outbound pipeline, looks unfocused for a corporate platform role. The 150 K$ budget is small next to EDF's scale. The salary band (65-80K€) seems compatible with a Senior PM profile.",
+        "fix": "Move the ProdCraft items below the main experience and cut the marketplace and outbound pipeline lines. Stress platform and multi-BU service delivery and budget ownership. Mention any sovereign or open-weight model work (Mistral) only if it is real."
+      },
+      "recruiter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The 7+ years as PM/PO, the Bac+5 and the engineering degree are all clear matches. 'Aligné 5 squads... sans lien hiérarchique' covers the team-animation requirement only partly. Run, budget steering, complaint and irritant handling, and REX (lessons-learned) practice are not visible. The 2010-2015 roles are QA and release coordination rather than product. The CV is entirely in startup language (ARPU, PLG, conversion) with no large-enterprise vocabulary.",
+        "fix": "Add EDF-relevant keywords in context: 'RAG as a Service', 'socle technique IA générative', 'pilotage budgétaire', 'run', 'REX', 'gestion des irritants'. Show the budget and run responsibilities explicitly, and put the growth metrics lower."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "The CV is dense. The key-results strip repeats the bullets, and the open-source projects and ProdCraft section add noise for this role. It could be cut to 2 pages with a tighter summary."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Uniform bullet pattern of verb plus tool plus metric",
+          "Heavy stacking of percentages",
+          "Buzzword strings such as 'LLM-as-judge', 'golden set', 'drift'",
+          "Tagline-style summary 'prototype dans Claude Code, lit le code, écrit la spec'"
+        ]
+      },
+      "truthfulness_flags": [
+        "12+ AI products delivered with a median under 30 days, in a side business running only since Jan 2026",
+        "1 M$+ qualified pipeline and ~200 K$/yr of manual work replaced, from a self-built outbound pipeline: hard to verify",
+        "'Adoption BU +40 %, CSAT +20 %' and 'prévisibilité du delivery +25 à 30 %' are not backed by a stated baseline or measurement method",
+        "15 years in software against 11 in product: the QA/Release Coordinator and TCS engineer years are counted as software, not product",
+        "Pitney Bowes (5 months) and Evolent (8 months) are listed as Senior Data PO with sizable metrics that look inflated for such short tenures"
+      ]
+    },
+    "8": {
+      "counsellor": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The JD targets 3-6 years of experience in a consulting setting (Hubvisory places PMs with LVMH, Sephora, TF1). This CV says '15 ans de logiciel, 11 en produit' and aims at 'Senior PM, Senior PM IA ou Growth PM en SaaS B2B', so it looks overqualified and oriented to in-house SaaS rather than consulting. The 2019-2021 career break is labelled as a study break, but the Pitney Bowes stint of only 5 months and Evolent of 8 months look like churn.",
+        "fix": "Rewrite the headline and the closing line of the summary toward 'AI Product Manager, missions de conseil auprès de grands comptes', and cite the ProdCraft client work (12+ products) and the group GenAI rollout across BUs as evidence of consulting-style work. Drop 'Growth PM' from the targets and fold the early short roles into a single line."
+      },
+      "headhunter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The AI substance is strong: 'assistant RAG sur APIs OpenAI et Anthropic', 'gates d'évaluation LLM (jeu golden, LLM-as-judge)', and the 150 K$ build-vs-buy. But the seniority and likely salary expectation sit above a 3-6 year consulting band, and 'Vise un poste de Senior PM... ou télétravail' signals a lack of commitment to a Paris CDI. The ProdCraft side business on evenings and weekends could raise a conflict and availability question for a CDI.",
+        "fix": "Remove 'ou télétravail' and state Paris, CDI explicitly. Lead the summary with the Wiser RAG assistant and the group GenAI deployment. Add one line on how ProdCraft is run alongside a full-time job, so the exclusivity question is answered up front."
+      },
+      "recruiter": {
+        "fit": 8,
+        "would_call": true,
+        "objection": "Almost every JD criterion is explicitly covered: discovery with JTBD, roadmap, KPIs, backlog, ML and GenAI production work, working with Data and Tech teams, APIs, SQL and Python. The worry is that there is no consulting or client-facing experience at an ESN or consultancy as such, and 'prototype dans Claude Code' is a tool detail that may read as odd for a PM. The skills block is dense with tool names.",
+        "fix": "Add a short line near the top showing client-facing exposure, such as 'ateliers de discovery et de cadrage avec les directions métier'. Shorten the tools list to what matches the JD. Move 'Ingénieur de formation' ahead of the Claude Code remark."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "The CV runs long for a French CV. The older roles (Avaya, IDrive/TCS, Pitney Bowes, Evolent) and the three open-source projects could be cut to one line each, and the stacked 'Résultats clés' banner repeats figures already in the bullets."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Dense metric banner repeating the same figures as the bullets",
+          "Uniform bullet rhythm of verb + tool + percentage",
+          "Buzzword-heavy skills block ('LLM-as-judge', 'garde-fous', 'release gate', 'eval-first')",
+          "Many round, tidy figures (+25 à 30 %, −25 %, −35 %, +25 %)",
+          "Projects that look like self-promotional showcases (Anneal, CV Optimizer)"
+        ]
+      },
+      "truthfulness_flags": [
+        "12+ AI products delivered for clients with a median under 30 days, alongside a full-time job and starting only in Jan. 2026, is ambitious and hard to verify",
+        "1 M$+ of qualified pipeline and ~200 K$/year of manual work replaced from a self-built outbound pipeline have no stated baseline or attribution",
+        "85 K$ processed in the first quarter on the Stripe Connect marketplace, with 'co-lancé' leaving the candidate's own role unclear",
+        "Précise gains such as 'prévisibilité du delivery +25 à 30 %' and 'ambiguïté en sprint −25 %' have no visible measurement method",
+        "'Quatre ans de GenAI' at Wiser from Nov. 2022 is plausible, but the summary stretches it to cover all of the role",
+        "'15 ans de logiciel, 11 en produit' depends on counting the QA/Release Coordinator and engineer years, plus the 2019-2021 study break"
+      ]
+    },
+    "9": {
+      "counsellor": {
+        "fit": 6,
+        "would_call": true,
+        "objection": "The CV is positioned as 'Senior PM, Senior PM IA ou Growth PM en SaaS B2B', not as a Lead PM for a consulting firm. Nothing shows client-facing delivery for external grands comptes, which is the core of the Theodo role. The strongest line, 'Aligné 5 squads... sans lien hiérarchique', is internal. The 2019-2021 gap and the early India roles blur the 'plus de 4 ans en PM' reading, and the engineering degree is from an Indian institute, not a 'grande école d'ingénieur'.",
+        "fix": "Rewrite the headline and summary to 'Lead / Senior Product Manager IA & Data', foregrounding multi-squad coordination, top-management stakeholders and ProdCraft's client delivery as consulting-style experience. Drop 'Growth PM' and 'télétravail' from the target line. Put the engineering degree first in Formation and label the 2019-2021 MSc period clearly."
+      },
+      "headhunter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The AI and data profile is strong: RAG launch, a 150 K$ GenAI rollout with build vs. buy and a go/no-go with the CPO, LLM evaluation gates. But the CV leans SaaS and growth (ARPU, PLG, Mixpanel), while Theodo sells project delivery to enterprise clients on time, budget and quality. There is no line on budget ownership of client projects, no mention of managing or coaching PMs, and no consulting or ESN client names. ProdCraft's '12+ produits IA pour des clients' is promising but vague.",
+        "fix": "Move the ProdCraft client delivery and the 5-squad alignment up. Name client types and sectors, and add team size, budget and timeline for 2-3 projects. If true, state any PM mentoring explicitly. Reword the 150 K$ rollout as 'pilotage de programme, gouvernance, arbitrages des trade-offs avec direction'."
+      },
+      "recruiter": {
+        "fit": 6,
+        "would_call": true,
+        "objection": "The 4+ years of PM is met on paper (Wiser, InfoTnT, plus earlier PO roles). The 'grande école d'ingénieur' criterion is questionable, and the French market may not recognise the degree. There is no consulting or ESN employer in recent years. The side activity ProdCraft (evenings and weekends) raises availability and exclusivity questions for a CDI. Nothing is said about managing PMs, which the role may require.",
+        "fix": "Add a short line on the ProdCraft status and availability (e.g. 'activité annexe, compatible CDI' only if true). Put 'Ingénieur (Bac+5 équivalent)' in the summary. Label the PM years explicitly (e.g. 'PM depuis 2021, PO depuis 2015') so the 4+ years are easy to count."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "The CV is dense, with a key-results ribbon, a long skills block and three open-source projects that repeat claims already made. Trim the Skills section and the older roles (Avaya, IDrive/TCS) to one line each, and cut the open-source section to one or two items to fit two pages."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Compressed, metric-heavy bullets with a result at the end of each ('+45 %', '−55 %', '+18 %')",
+          "Repeated trio formulations ('tech, design, data'; 'JTBD / ODI')",
+          "Buzzword-stacked skills list (RAG, agents, LLM-as-judge, model routing)",
+          "Summary fragment 'prototype dans Claude Code, lit le code, écrit la spec' reads as a slogan",
+          "Metric ribbon duplicating bullet content"
+        ]
+      },
+      "truthfulness_flags": [
+        "'Livré 12+ produits IA pour des clients, médiane <30 jours' since Jan. 2026, in evenings and weekends only: a very high volume for the time available and hard to verify",
+        "'1 M$+ de pipeline qualifié' from an outbound pipeline: how it was measured and attributed is unclear",
+        "'~200 K$/an de travail manuel remplacé': an estimate without basis shown",
+        "'85 K$ traités le premier trimestre' for the marketplace: GMV, not revenue, and the 'co-lancé' role is unclear",
+        "'Prédictibilité du delivery +25 à 30 %' and 'ambiguïté en sprint −25 %': how these were measured is unspecified",
+        "'15 ans de logiciel, 11 en produit' counts QA/release coordination and PO roles, which may stretch the 'product' label",
+        "The 2019-2021 MSc is full-time but sits in the middle of an overlapping timeline with the Pitney Bowes end date (Sept. 2019), so the dates should be checked"
+      ]
+    },
+    "10": {
+      "counsellor": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The CV is positioned on 'SaaS B2B, Growth PM', whereas the JD is about piloting a portfolio of Data and AI products inside a company. The line 'Vise un poste de Senior PM, Senior PM IA ou Growth PM' dilutes the message. The portfolio dimension (arbitrating several initiatives at once) is only implicit, in the 5-squad and group-deployment bullets. The 2019-2021 break and the 2010-2015 section (QA coordinator) raise questions.",
+        "fix": "Rewrite the headline and summary around 'Senior PM IA & Data, pilotage multi-produits en production'. Remove 'Growth PM' from the target line. Bring the 150 K$ group deployment and the 5-squad roadmap to the top as proof of portfolio arbitration."
+      },
+      "headhunter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "The core stack matches (RAG, LLM evals, build vs buy, drift monitoring, GDPR/AI Act). However, the CV shows a single AI product in production at Wiser and a product-vendor background, not a Data & AI portfolio at a large account. The freelance mission requires proven governance and data platform experience, which is thin and dated (Evolent 2018, Pitney Bowes 2019). The side business ProdCraft, run evenings and weekends alongside a full-time job, raises availability questions for a freelance mission, and '12+ products in <30 days' reads as POC-style work.",
+        "fix": "Add an explicit line on data governance, data quality and platform work (Evolent SLA/SLO, QA governance) near the top. State clearly which items are in production and used by whom. Present ProdCraft as a secondary activity and state availability and freelance status (day rate, notice period)."
+      },
+      "recruiter": {
+        "fit": 7,
+        "would_call": true,
+        "objection": "Keywords are well covered: RAG, agents, LLM-as-judge, build vs buy, roadmap, backlog, KPIs, GDPR. Gaps against the JD: no explicit 'Data Governance', 'Data Quality', 'Data Platform' or 'portfolio management' wording, and no mention of ML collaboration with data scientists and engineers. Business ROI is shown through ARPU and adoption, but there is no ROI-based use-case prioritisation. The summary has a lot of metrics in a row.",
+        "fix": "Add the JD terms wherever they are truthful: 'gouvernance data', 'qualité des données', 'portefeuille', 'collaboration avec Data Scientists et Data Engineers'. Rephrase one Wiser bullet around prioritising use cases by value, ROI and feasibility (RICE is already listed in Skills)."
+      },
+      "verbosity": {
+        "too_verbose": true,
+        "note": "The CV is dense, with a header, summary, key-results strip, six roles, skills, three open-source projects and languages. The key-results strip repeats the bullets. The 2010-2015 entry and the open-source projects could be shortened to keep it to two pages with the Wiser section dominant."
+      },
+      "reads_human": {
+        "score": 6,
+        "ai_tells": [
+          "Compact, metric-heavy bullets in an identical pattern: 'verb + object : +X %'",
+          "Key-results strip repeating figures already in the bullets",
+          "Tidy triplets ('tech, design, data', 'Direction et clients')",
+          "Phrases like 'prototype dans Claude Code, lit le code, écrit la spec' sound slogan-like",
+          "Skills section reads as a keyword list mirroring typical AI PM postings"
+        ]
+      },
+      "truthfulness_flags": [
+        "'12+ produits IA livrés pour des clients, médiane <30 jours' built on evenings and weekends since Jan 2026 is hard to verify and may be seen as small POCs",
+        "'1 M$+ de pipeline qualifié' and '~200 K$/an de travail manuel remplacé' attributed to an outbound pipeline are unverifiable and look inflated",
+        "'Senior PM' title and 11 years in product include Product Owner roles in India since 2015, and the QA/release coordinator role could be read as stretching 'product' experience",
+        "'+25 à 30 %' delivery predictability and '-25 %' sprint ambiguity are hard to measure and source",
+        "The 'Senior Data Product Owner' stint at Pitney Bowes lasted only 5 months, so its claimed 20 % time-to-market gain looks thin",
+        "The Evolent role lasted 8 months and claims a 30 % scalability gain",
+        "'Adoption BU +40 %' and 'CSAT +20 %' do not state the baseline or how they were measured"
+      ]
+    }
+  },
+  "jev": {
+    "1": {
+      "call_p": 0.76,
+      "verbose_p": 0.43,
+      "fit": 3.58,
+      "cost": 0.000167412
+    },
+    "2": {
+      "call_p": 0.21,
+      "verbose_p": 0.48,
+      "fit": 1.62,
+      "cost": 0.000179508
+    },
+    "3": {
+      "call_p": 0.8,
+      "verbose_p": 0.43,
+      "fit": 3.69,
+      "cost": 0.000177786
+    },
+    "4": {
+      "call_p": 0.5,
+      "verbose_p": 0.4,
+      "fit": 2.89,
+      "cost": 0.00019803
+    },
+    "5": {
+      "call_p": 0.49,
+      "verbose_p": 0.47,
+      "fit": 2.61,
+      "cost": 0.000152586
+    },
+    "6": {
+      "call_p": 0.6,
+      "verbose_p": 0.51,
+      "fit": 3.21,
+      "cost": 0.000127512
+    },
+    "7": {
+      "call_p": 0.68,
+      "verbose_p": 0.48,
+      "fit": 3.51,
+      "cost": 0.000137046
+    },
+    "8": {
+      "call_p": 0.8,
+      "verbose_p": 0.46,
+      "fit": 3.89,
+      "cost": 0.000158508
+    },
+    "9": {
+      "call_p": 0.53,
+      "verbose_p": 0.43,
+      "fit": 2.87,
+      "cost": 0.000179088
+    },
+    "10": {
+      "call_p": 0.83,
+      "verbose_p": 0.48,
+      "fit": 3.89,
+      "cost": 0.000121548
+    }
+  },
+  "core": [
+    "ia",
+    "discovery",
+    "management",
+    "produit",
+    "ingénieur"
+  ],
+  "fails": [
+    "ATS 8.55 < 9.0 on JD 1 (Senior Product Manager - CDI Paris - Theodo — Theodo (AI Build practice))",
+    "ATS 7.3 < 9.0 on JD 2 (Senior Product Manager - F/H/NB — Yespark Group)",
+    "ATS 8.95 < 9.0 on JD 3 (Senior Product Manager H/F - CDI — Converteo)",
+    "ATS 7.62 < 9.0 on JD 4 (Senior Product Manager — Evaneos)",
+    "ATS 8.58 < 9.0 on JD 6 (Senior Product Manager IA H/F — Saint-Gobain Distribution Bâtiment France)",
+    "ATS 8.29 < 9.0 on JD 7 (Product Manager Outillage IA H/F — EDF)",
+    "counsellor fit 7 < 8.0 on JD 1",
+    "headhunter fit 7 < 8.0 on JD 1",
+    "recruiter fit 7 < 8.0 on JD 1",
+    "too verbose per panel on JD 1: The CV runs long. The summary, the 'Résultats clés' line and the bullets repeat the same metrics (+45 %, +18 %, 1 M$). The pre-2019 roles and the three open-source projects add length without helping this application. The skills section is dense with tools.",
+    "reads_human 6 < 8 on JD 1: ['Very dense metric stacking, with a percentage in almost every bullet', \"'Résultats clés' banner repeating figures already in the bullets\", 'Uniform bullet structure: past participle + object + colon + metric', \"Buzzword strings such as 'Squads pluridisciplinaires • Influence sans autorité hiérarchique'\", 'Self-referential items such as a CV Optimizer among the projects']",
+    "counsellor fit 5 < 8.0 on JD 2",
+    "headhunter fit 5 < 8.0 on JD 2",
+    "recruiter fit 5 < 8.0 on JD 2",
+    "too verbose per panel on JD 2: Dense: about two pages with a long skills block, an open-source section and a summary that repeats the key results twice. Compress the older roles and merge the KPI strip into the summary.",
+    "reads_human 6 < 8 on JD 2: [\"Heavily stacked metric strip ('Résultats clés') with six percentages and dollar figures\", \"Uniform bullet rhythm of 'Verbe + outil + pourcentage'\", 'Buzzword-dense skills block (LLM-as-judge, golden set, garde-fous, routage de modèles)', \"Self-referential line 'prototype dans Claude Code, lit le code, écrit la spec'\"]",
+    "too verbose per panel on JD 3: Dense for a 30-second read: a six-metric banner, long skill lists, three open-source projects, and early-career bullets that add little. Cutting the older roles and projects to one line each would help.",
+    "reads_human 6 < 8 on JD 3: ['Heavy stacking of metrics and percentages in every bullet', 'Uniform bullet structure of verb + tool + result', \"Buzzword-dense skills lists and phrases like 'prototype dans Claude Code, lit le code, écrit la spec'\", \"Header banner of 'Résultats clés' feels templated\"]",
+    "counsellor fit 6 < 8.0 on JD 4",
+    "headhunter fit 7 < 8.0 on JD 4",
+    "recruiter fit 7 < 8.0 on JD 4",
+    "too verbose per panel on JD 4: The CV runs long. The pre-2019 roles (Avaya, Evolent, Pitney Bowes, IDrive/TCS) add little for a Senior PM role. The skills section lists many tools, and the key-results strip duplicates the bullets.",
+    "reads_human 6 < 8 on JD 4: ['Dense metric strip with many round percentages', \"Uniform bullet structure of 'Verb + tool list + metric'\", 'Buzzword-heavy skills stack (RAG, agents, LLM-as-judge, red-vs-blue)', \"'Prototype dans Claude Code, lit le code, écrit la spec' reads like a tagline\"]",
+    "counsellor fit 6 < 8.0 on JD 5",
+    "headhunter fit 6 < 8.0 on JD 5",
+    "recruiter fit 7 < 8.0 on JD 5",
+    "too verbose per panel on JD 5: Dense, about 1.5 to 2 pages with a long skills block and a metrics strip that repeats the bullets. Early career (2010-2018) and the three open-source projects could be trimmed. The 'Résultats clés' line duplicates content.",
+    "reads_human 6 < 8 on JD 5: ['Heavy metric stacking, with nearly every bullet ending in a percentage', 'Parallel verb-first bullets with a uniform cadence', 'Buzzword-dense skills lists (LLM-as-judge, golden set, drift)', \"Slogan-like summary fragment: 'prototype dans Claude Code, lit le code, écrit la spec'\", 'Round numbers repeated (25 %, 30 %, 20 %)']",
+    "counsellor fit 7 < 8.0 on JD 6",
+    "headhunter fit 7 < 8.0 on JD 6",
+    "recruiter fit 7 < 8.0 on JD 6",
+    "too verbose per panel on JD 6: The CV is dense, with a long summary, a 'Résultats clés' strip, a long skills block, three open-source projects and a side business. It likely runs over 1.5 pages. Cut older roles (2010-2018) to one line each, drop the open-source section and trim skills lists.",
+    "reads_human 6 < 8 on JD 6: ['Heavy metric stacking in every bullet (+45%, +18%, -55%, +25 à 30%)', \"Tool-name and keyword density ('LLM-as-judge', 'golden set', 'JTBD / ODI', 'RAG, agents')\", 'Uniform bullet structure of verb + artefact + metric', \"'Résultats clés' strip reads like an optimised summary\", \"Open-source projects named 'CV Optimizer' and 'Anneal' suggest tooling-driven CV tailoring\"]",
+    "counsellor fit 7 < 8.0 on JD 7",
+    "headhunter fit 7 < 8.0 on JD 7",
+    "recruiter fit 7 < 8.0 on JD 7",
+    "too verbose per panel on JD 7: The CV is dense. The key-results strip repeats the bullets, and the open-source projects and ProdCraft section add noise for this role. It could be cut to 2 pages with a tighter summary.",
+    "reads_human 6 < 8 on JD 7: ['Uniform bullet pattern of verb plus tool plus metric', 'Heavy stacking of percentages', \"Buzzword strings such as 'LLM-as-judge', 'golden set', 'drift'\", \"Tagline-style summary 'prototype dans Claude Code, lit le code, écrit la spec'\"]",
+    "counsellor fit 7 < 8.0 on JD 8",
+    "headhunter fit 7 < 8.0 on JD 8",
+    "too verbose per panel on JD 8: The CV runs long for a French CV. The older roles (Avaya, IDrive/TCS, Pitney Bowes, Evolent) and the three open-source projects could be cut to one line each, and the stacked 'Résultats clés' banner repeats figures already in the bullets.",
+    "reads_human 6 < 8 on JD 8: ['Dense metric banner repeating the same figures as the bullets', 'Uniform bullet rhythm of verb + tool + percentage', \"Buzzword-heavy skills block ('LLM-as-judge', 'garde-fous', 'release gate', 'eval-first')\", 'Many round, tidy figures (+25 à 30 %, −25 %, −35 %, +25 %)', 'Projects that look like self-promotional showcases (Anneal, CV Optimizer)']",
+    "counsellor fit 6 < 8.0 on JD 9",
+    "headhunter fit 7 < 8.0 on JD 9",
+    "recruiter fit 6 < 8.0 on JD 9",
+    "too verbose per panel on JD 9: The CV is dense, with a key-results ribbon, a long skills block and three open-source projects that repeat claims already made. Trim the Skills section and the older roles (Avaya, IDrive/TCS) to one line each, and cut the open-source section to one or two items to fit two pages.",
+    "reads_human 6 < 8 on JD 9: [\"Compressed, metric-heavy bullets with a result at the end of each ('+45 %', '−55 %', '+18 %')\", \"Repeated trio formulations ('tech, design, data'; 'JTBD / ODI')\", 'Buzzword-stacked skills list (RAG, agents, LLM-as-judge, model routing)', \"Summary fragment 'prototype dans Claude Code, lit le code, écrit la spec' reads as a slogan\", 'Metric ribbon duplicating bullet content']",
+    "counsellor fit 7 < 8.0 on JD 10",
+    "headhunter fit 7 < 8.0 on JD 10",
+    "recruiter fit 7 < 8.0 on JD 10",
+    "too verbose per panel on JD 10: The CV is dense, with a header, summary, key-results strip, six roles, skills, three open-source projects and languages. The key-results strip repeats the bullets. The 2010-2015 entry and the open-source projects could be shortened to keep it to two pages with the Wiser section dominant.",
+    "reads_human 6 < 8 on JD 10: [\"Compact, metric-heavy bullets in an identical pattern: 'verb + object : +X %'\", 'Key-results strip repeating figures already in the bullets', \"Tidy triplets ('tech, design, data', 'Direction et clients')\", \"Phrases like 'prototype dans Claude Code, lit le code, écrit la spec' sound slogan-like\", 'Skills section reads as a keyword list mirroring typical AI PM postings']"
+  ]
+}
