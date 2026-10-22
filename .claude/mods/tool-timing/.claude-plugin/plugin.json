@@ -1,0 +1,10 @@
+{
+  "name": "tool-timing",
+  "version": "1.0.0",
+  "description": "Measure observed tool latency, call counts, and failures.",
+  "author": {
+    "name": "Yash Thakker"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/whyashthakker/awesome-claude-code-mods"
+}
