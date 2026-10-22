@@ -205,8 +205,8 @@ def build_story():
             "qualifié, ~<b>200 K$/an</b> de travail manuel remplacé.",
 
             "Fait du prototypage rapide un outil commercial : <b>6</b> sites de prospects "
-            "reconstruits en concepts live avec deck de pitch en <b>4 semaines</b> (design "
-            "niveau Figma, Cloudflare Pages).",
+            "reconstruits en concepts live avec deck de pitch, chacun de l'URL au site en ligne "
+            "en <b>48 heures</b> (design niveau Figma, Cloudflare Pages).",
 
             "Conçu un système de sourcing de candidats pour un client recrutement (collecte "
             "multi-sources, vérification des preuves, sync Recruit CRM) : <b>≥90 %</b> de "

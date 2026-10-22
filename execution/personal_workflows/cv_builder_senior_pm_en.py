@@ -205,8 +205,8 @@ def build_story():
             "pipeline and replaced ~<b>$200K/yr</b> of manual work.",
 
             "Turned rapid prototyping into a sales tool: rebuilt <b>6</b> prospects' websites "
-            "as live concept redesigns with pitch decks in <b>4 weeks</b> (research, Figma-grade "
-            "design, Cloudflare Pages), each opening a client conversation.",
+            "as live concept redesigns with pitch decks, each from URL to live site in "
+            "<b>48 hours</b> (research, Figma-grade design, Cloudflare Pages).",
 
             "Designed a candidate sourcing system for a recruitment client (multi-source "
             "harvest, evidence checks, Recruit CRM sync): <b>≥90%</b> grade precision on a "

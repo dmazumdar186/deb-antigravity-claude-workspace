@@ -102,7 +102,7 @@ What would make it 10/10 rather than 9: a baseline for two or three headline num
 
 ## 4b. Addendum (operator request after v2)
 
-Replaced the Stripe Connect marketplace bullet under ProdCraft with two bullets drawn from the workspace's own deliverables: six live concept website redesigns with pitch decks shipped between 17 Sept and 15 Oct 2026 (Gaia, GreenJobs, H2Recruit, Midas, MISB, GTM People), framed as rapid prototyping used as a sales tool alongside Figma; and the Gaia candidate sourcing system (multi-source harvest, evidence validation, adversarial review, Recruit CRM sync, ≥90% grade precision on the labelled set per its directive, no-contact rule). The $85K marketplace figure is no longer on the CV.
+Replaced the Stripe Connect marketplace bullet under ProdCraft with two bullets drawn from the workspace's own deliverables: six live concept website redesigns with pitch decks (each URL to live site in 48 hours, per the operator) shipped between 17 Sept and 15 Oct 2026 (Gaia, GreenJobs, H2Recruit, Midas, MISB, GTM People), framed as rapid prototyping used as a sales tool alongside Figma; and the Gaia candidate sourcing system (multi-source harvest, evidence validation, adversarial review, Recruit CRM sync, ≥90% grade precision on the labelled set per its directive, no-contact rule). The $85K marketplace figure is no longer on the CV.
 
 ## 5. Reproduce
 
