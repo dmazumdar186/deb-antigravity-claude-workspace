@@ -1,0 +1,10 @@
+{
+  "name": "context-meter",
+  "version": "1.0.0",
+  "description": "See the current context window fill and remaining tokens.",
+  "author": {
+    "name": "Yash Thakker"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/whyashthakker/awesome-claude-code-mods"
+}
