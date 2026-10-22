@@ -1,0 +1,10 @@
+{
+  "name": "quota-watch",
+  "version": "1.0.0",
+  "description": "Inspect reported plan windows and their reset times.",
+  "author": {
+    "name": "Yash Thakker"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/whyashthakker/awesome-claude-code-mods"
+}
