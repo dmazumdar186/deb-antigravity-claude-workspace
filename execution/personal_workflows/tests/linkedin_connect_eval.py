@@ -234,6 +234,25 @@ def c22_sync_from_report(d):
     return slugs == ["p0", "p1", "p2"] and "+1 ledger row" in r.stdout, f"{slugs}; {r.stdout.strip()}"
 
 
+def c23_lock_blocks_overlap(d):
+    seed_master(d, 3)
+    r1 = run(d, "lock", "acquire"); r2 = run(d, "lock", "acquire")
+    (d / "run.lock").write_text((dt.datetime.now() - dt.timedelta(minutes=200)).isoformat(timespec="seconds") + "|x")
+    r3 = run(d, "lock", "acquire"); r4 = run(d, "lock", "release"); r5 = run(d, "lock", "acquire")
+    return (r1.returncode, r2.returncode, r3.returncode, r4.returncode, r5.returncode) == (0, 4, 0, 0, 0) and "stale" in r3.stderr, \
+        f"exits {r1.returncode},{r2.returncode},{r3.returncode},{r4.returncode},{r5.returncode}"
+
+
+def c24_health_invariants(d):
+    seed_master(d, 5)
+    ledger(d, [(TODAY, "p0", "sent"), (TODAY, "p1", "skipped")])
+    ok = run(d, "health")
+    ledger(d, [(TODAY, "p0", "sent"), (YESTERDAY, "p0", "skipped"), (TODAY, "ghost", "sent")])
+    bad = run(d, "health", "--json")
+    return ok.returncode == 0 and "HEALTHY" in ok.stdout and bad.returncode == 1 and '"no_double_terminal_rows": false' in bad.stdout \
+        and '"no_orphan_ledger_rows": false' in bad.stdout, f"clean exit {ok.returncode}, broken exit {bad.returncode}"
+
+
 def make_c20(master: Path | None):
     def c20_real_master(d):
         if not master or not master.exists():
@@ -255,7 +274,7 @@ def main() -> int:
              c05_non_profile_urls_rejected, c06_decoy_url_column, c07_cp1252, c08_idempotent, c09_cap_25,
              c10_limit_zero, c11_26th_refused, c12_duplicate_mark, c13_retry_semantics, c14_topup_after_skips,
              c15_weekly_trim, c16_report_four_fields, c17_orphan_warning, c18_shuffle_deterministic,
-             c19_empty_master, make_c20(Path(a.data) if a.data else None), c21_alias_redirect, c22_sync_from_report]
+             c19_empty_master, make_c20(Path(a.data) if a.data else None), c21_alias_redirect, c22_sync_from_report, c23_lock_blocks_overlap, c24_health_invariants]
     lines = ["| # | Case | Result | Evidence |", "|---|---|---|---|"]
     passed = total = 0
     for i, fn in enumerate(cases, 1):

@@ -27,11 +27,13 @@ Every day, send connection requests to the next 25 unsent people from a consolid
 | `mark <slug-or-url> --status sent\|skipped\|already_connected\|pending\|withdrawn\|retry [--note] [--canonical <slug>]` | Append to ledger; `--canonical` records the redirected slug in `aliases.csv` so consolidate and mark treat it as the same person. Refuses the 26th `sent` of the day (exit 3). Refuses a second entry for the same slug. |
 | `report [--date]` | Four-field table of that day's sends followed by a ```ledger block with every row marked that day, so the emailed report alone can rebuild the ledger. |
 | `status` | Counts. |
+| `lock acquire\|release\|show` | Run lock; `acquire` exits 4 while a live (<120 min) lock exists. |
+| `health [--json]` | Invariant check (exit 1 on breach); must be HEALTHY before any send. |
 
 ## Daily procedure (Cowork, `/linkedin-connect`)
 
 0. **Pull state, no git.** `Q="python execution/personal_workflows/linkedin_connect_queue.py --data-dir data/linkedin_connect"`. (a) With the Drive connector, find the folder `linkedin_connect`, download every `ledger_*.csv` and `aliases.csv` into `data/linkedin_connect/drive/`, then `$Q sync --aliases drive/aliases.csv` and `$Q sync --ledger <each snapshot>`. (b) `$Q consolidate --in <every prospect CSV in the repo root and the campaign subfolders, excluding *bounce*>`. If the Drive connector is unavailable, fall back to the newest "LinkedIn connects" email: `$Q sync --ledger <saved report .md>`; the cloud reconcile task keeps Drive current.
-1. `$Q plan --shuffle` → list of ≤25. If it prints "0 to do", go to step 5.
+1. `$Q lock acquire` (exit 4 → stop, another slot is running). `$Q health` (UNHEALTHY → guardrail 2). Then `$Q plan --shuffle` → list of ≤25. If it prints "0 to do", release the lock and stop quietly (a later slot on an already-finished day).
 2. For each person in the printed order:
    a. Navigate to `linkedin_url` in the logged-in tab. Wait for the profile to render; read the primary action button.
    b. **Normal case (13 of 14 on the first run): header shows `Follow` / `Message` / `More`, and `Connect` is inside the `More` menu.** Open More → Connect → in the dialog choose **Send without a note**. Confirmation is either the alert "Invitation sent to <First>." or the header button flipping to "Pending, click to withdraw invitation" — both are readable from the accessibility tree; no screenshot needed → `mark <slug> --status sent`.
@@ -44,13 +46,33 @@ Every day, send connection requests to the next 25 unsent people from a consolid
 4. Stop at 25 `sent` regardless of how many were skipped; the script enforces it, don't argue with exit 3.
 5. `$Q report` → paste the four-column table in the session **and** email the whole report file (table + ledger block) with the Gmail connector to the operator, subject `LinkedIn connects <date> (<n> sent)`.
 6. **Push state, no git.** Upload `ledger.csv` to the Drive folder as `ledger_<YYYY-MM-DDTHHMM>.csv` (text/csv, no conversion) and, if aliases changed, upload a fresh `aliases.csv` after trashing the old one. Trash ledger snapshots older than the newest 7. If the Drive connector is unavailable, say so: the emailed ledger block is the fallback transport and the 10:27 CET cloud task uploads it.
-7. `$Q status` → one line to the operator: remaining count and days left at 25/day. No commit, no push.
+7. `$Q status` → one line to the operator: remaining count and days left at 25/day. `$Q lock release`. No commit, no push.
 
-## Scheduling
+## Scheduling — "runs when I log in", not "runs at 8"
 
-- Cowork scheduled task, daily, in the operator's working hours (vary the minute; LinkedIn traffic at 03:00 looks like a bot). Prompt: `/linkedin-connect`.
-- Also runs on demand when the operator opens Claude and says so. The queue file makes a second run on the same day a no-op beyond finishing the unfinished rows.
-- Weekends are allowed (operator asked Mon–Sun). If acceptance rate drops below ~25 % over two weeks, cut to 15/day or pause; LinkedIn weights low acceptance as spam.
+The browser step can only happen while the operator's PC is awake and Chrome is logged in, and the operator logs in at unpredictable hours and time zones. So the schedule is **slots, not a time**: Cowork scheduled tasks at **08:00, 10:00, 12:00, 14:00, 16:00, 18:00, 20:00, 22:00 machine-local time**, each with the same prompt (`/linkedin-connect`). Every run is idempotent: the first slot after login does the day's work; every later slot syncs state, sees `0 to do`, and exits in under a minute. Local time follows the laptop, so CET, IST or GMT needs no change. If Cowork offers "run missed tasks when the computer wakes", turn it on; the slots still cover the case where it does not.
+
+**Guardrails (all enforced in the script, not by the LLM):**
+1. **Run lock** — step 1 begins with `$Q lock acquire`; exit 4 means another slot is mid-run → stop immediately, send nothing. Locks older than 120 min are treated as a crashed run and taken over. `lock release` is the last step of every run, success or failure.
+2. **Health gate before sending** — `$Q health` must print HEALTHY before `plan`. UNHEALTHY → send nothing, email the health output to the operator with subject `LinkedIn connects <date> HEALTH FAIL`, release the lock, stop. Invariants: master present, no person with two final statuses, today's sent ≤ 25, 7-day sent ≤ 100, valid statuses, no orphan rows, lock not stale.
+3. **State is Drive-first** — ledger snapshots in Drive are the truth; the local ledger is a cache rebuilt by `sync` at every run. (Validated the hard way 2026-10-23: a branch switch deleted the local `data/` dir; the Drive snapshot + emailed report rebuilt it byte-identically.)
+4. **Daily cap and dedupe in code** — `mark` refuses the 26th send (exit 3) and any second final status for a slug; `plan` never queues a slug with a final status.
+5. **Stop triggers** (step 3) end the day on LinkedIn's own warning signals; the email-required dialog is a skip, not a stop.
+6. **Every day produces exactly one of three emails**: `LinkedIn connects <date> (<n> sent)`, `... HEALTH FAIL`, or nothing (PC never logged in). The 21:27 Europe/Paris cloud check turns "nothing" into a one-line message in the operator's Claude session, so a silent day is impossible.
+7. **Pacing**: 45–120 s between profiles, feed detour every ~8, ≤25/day, ≤100/7 days. If acceptance rate falls under 25 % over two weeks, cut to 15/day.
+
+**Failure matrix**
+
+| Failure | Detected by | Outcome |
+|---|---|---|
+| PC asleep all day | 21:27 cloud check finds no email | One line in the operator's session; next login continues from the same queue |
+| Two slots overlap | `lock acquire` exit 4 | Second slot exits without sending |
+| Cowork crashes mid-run | stale lock (>120 min) | Next slot takes over; `retry` rows re-queue tomorrow; `sent` rows already in local ledger are re-synced to Drive by the next slot |
+| Drive connector missing in Cowork | step 0 fallback | Ledger pulled from the newest emailed report; cloud check uploads to Drive |
+| Local data dir lost | `health` master_present FAIL | consolidate + sync rebuild it; no sends until HEALTHY |
+| Ledger corrupted / double rows | `health` FAIL | No sends; HEALTH FAIL email; operator session message |
+| LinkedIn captcha / limit / restriction | step 3 stop | Day ends; verbatim text in the run email |
+| Renderer freeze | navigate timeout | New tab, close old, continue |
 
 ## Monthly loop (dataset)
 
@@ -63,9 +85,9 @@ Export connections from LinkedIn (Settings → Data privacy → Get a copy of yo
 - A `sent` the browser could not confirm as `Pending`, or a profile that failed to load, is marked `retry` (non-terminal: out of today's queue, eligible from tomorrow). `skipped` is final.
 - Columns are picked by content: the column whose values contain `linkedin.com/in/` wins, so Apollo exports with a separate `Company Linkedin` column and a `Company Website` column resolve correctly. `/company/`, `/pub/` and Sales Navigator URLs are not connectable and are counted as "no URL".
 - Dataset loaded 2026-10-23: 15 Apollo CSVs, 11,126 rows → 4,959 unique people (6,163 cross-file duplicates removed, 4 rows without a profile URL). Five more CSVs on the operator's machine (Bay Area recruitment, recruitment_gb_fr_ne_ge_be, Recruitment_Cities CLEAN_relaunch, the two campaign folders) join automatically at the next local run via step 0b.
-- Eval set: `execution/personal_workflows/tests/linkedin_connect_eval.py --data data/linkedin_connect/master.csv` (22 cases, deterministic table; results in `docs/reference/linkedin_connect/`). Run after any script change.
+- Eval set: `execution/personal_workflows/tests/linkedin_connect_eval.py --data data/linkedin_connect/master.csv` (24 cases, deterministic table; results in `docs/reference/linkedin_connect/`). Run after any script change.
 - **Browser hygiene (2026-10-23 run):** the Chrome renderer froze once (navigate and screenshot timed out, `find` still worked). Fix: open a new tab, close the frozen one, re-navigate; no double send resulted. The tab-group id can change mid-run ("not in Claude's tab group") → re-run the tabs-context tool. Gaps used were 59–119 s with one feed detour after profile 8.
 - **Why Drive, not git (2026-10-23):** the repo is public (the first dataset commit exposed the prospect list; removed from HEAD the same day, history rewrite pending operator confirmation) and the Cowork shell has no GitHub credential. The daily loop touches git only to read the script. Code still ships via `git pull` on the operator's machine; if the local checkout is dirty, read the script from a worktree of origin/main instead of pulling.
-- **Cloud reconcile task** ("LinkedIn connect: Drive ledger reconcile", daily 10:27 Europe/Paris, fresh cloud session): if the Drive folder has no ledger snapshot dated today, it reads today's "LinkedIn connects" email, rebuilds the rows from its ledger block and uploads the snapshot. It never touches LinkedIn.
+- **Cloud reconcile task** ("LinkedIn connect: Drive ledger reconcile", daily 21:27 Europe/Paris, fires into the building session): if the Drive folder has no ledger snapshot dated today, it reads today's "LinkedIn connects" email, rebuilds the rows from its ledger block and uploads the snapshot; if there is no email either, it writes one line in the operator's session saying the PC never ran today. It never touches LinkedIn.
 - The repo lives inside OneDrive on the operator's machine, which produces stale `.git/index.lock` files. Removing that file when no git process is running is safe and expected.
 - Cloud session cannot run steps 2–3. If asked there, run `plan`/`report` and tell the operator to finish in Cowork.

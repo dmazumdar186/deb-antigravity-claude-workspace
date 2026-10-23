@@ -16,6 +16,10 @@ Subcommands
   sync --ledger f [--aliases f]         union rows from another copy of the ledger/aliases (Drive copy,
                                         another machine); never drops a row
   status                                counts: master / sent / remaining / today
+  lock acquire|release|show             run lock so two scheduled slots never send concurrently
+                                        (acquire exits 4 if a live lock < LOCK_TTL_MIN old exists)
+  health [--json]                       invariants: no double terminal rows, today's sent <= cap,
+                                        master present, lock not stale; exit 1 on any breach
 
 State lives in --data-dir (default .tmp/linkedin_connect, gitignored):
   master.csv   ledger.csv   aliases.csv   queue_YYYY-MM-DD.csv   report_YYYY-MM-DD.md
@@ -41,6 +45,7 @@ STATUSES = ("sent", "skipped", "already_connected", "pending", "withdrawn", "ret
 # to load) keeps the person out of today's queue and eligible from tomorrow.
 TERMINAL = frozenset(STATUSES) - {"retry"}
 ENCODINGS = ("utf-8-sig", "cp1252", "latin-1")
+LOCK_TTL_MIN = 120  # a run never legitimately exceeds this; older locks are treated as crashed runs
 
 _SLUG_RE = re.compile(r"linkedin\.com/in/([^/?#\s]+)", re.I)
 
@@ -123,6 +128,7 @@ class Store:
         self.master = data_dir / "master.csv"
         self.ledger = data_dir / "ledger.csv"
         self.aliases = data_dir / "aliases.csv"
+        self.lock = data_dir / "run.lock"
 
     def load_aliases(self) -> dict[str, str]:
         """redirected slug -> master slug (LinkedIn canonicalises some profile URLs on load)."""
@@ -354,6 +360,70 @@ def cmd_sync(store: Store, ledger_path: str | None, aliases_path: str | None) ->
     return 0
 
 
+def _lock_age_min(store: Store) -> float | None:
+    if not store.lock.exists():
+        return None
+    try:
+        ts = dt.datetime.fromisoformat(store.lock.read_text(encoding="utf-8").strip().split("|")[0])
+    except ValueError:
+        return float("inf")
+    return (dt.datetime.now() - ts).total_seconds() / 60
+
+
+def cmd_lock(store: Store, action: str) -> int:
+    age = _lock_age_min(store)
+    if action == "show":
+        print("no lock" if age is None else f"lock age {age:.0f} min ({'stale' if age > LOCK_TTL_MIN else 'live'})")
+        return 0
+    if action == "release":
+        store.lock.unlink(missing_ok=True)
+        print("lock released")
+        return 0
+    if age is not None and age <= LOCK_TTL_MIN:
+        print(f"REFUSED: another run holds the lock ({age:.0f} min old); exit without sending", file=sys.stderr)
+        return 4
+    if age is not None:
+        print(f"[warn] stale lock ({age:.0f} min) from a crashed run, taking over", file=sys.stderr)
+    store.dir.mkdir(parents=True, exist_ok=True)
+    store.lock.write_text(f"{dt.datetime.now().isoformat(timespec='seconds')}|{os.uname().nodename if hasattr(os, 'uname') else os.environ.get('COMPUTERNAME', '')}", encoding="utf-8")
+    print("lock acquired")
+    return 0
+
+
+def cmd_health(store: Store, as_json: bool) -> int:
+    import json
+    master, ledger = store.load_master(), store.load_ledger()
+    day = _today()
+    term: dict[str, int] = {}
+    for r in ledger:
+        if r["status"] in TERMINAL:
+            term[r["slug"]] = term.get(r["slug"], 0) + 1
+    doubles = sorted(s for s, n in term.items() if n > 1)
+    slugs = {r["slug"] for r in master}
+    sent_today = len(_sent_on(ledger, day))
+    age = _lock_age_min(store)
+    checks = {
+        "master_present": len(master) > 0,
+        "no_double_terminal_rows": not doubles,
+        "sent_today_within_cap": sent_today <= DAILY_CAP,
+        "week_within_soft_cap": _sent_last_7_days(ledger) <= WEEKLY_SOFT_CAP,
+        "ledger_statuses_valid": all(r["status"] in STATUSES for r in ledger),
+        "no_orphan_ledger_rows": all(r["slug"] in slugs for r in ledger) if master else True,
+        "lock_not_stale": age is None or age <= LOCK_TTL_MIN,
+    }
+    out = {"date": day, "ok": all(checks.values()), "checks": checks, "sent_today": sent_today,
+           "cap": DAILY_CAP, "remaining": sum(1 for r in master if r["slug"] not in term),
+           "doubles": doubles[:10], "lock_age_min": None if age is None else round(age)}
+    if as_json:
+        print(json.dumps(out, indent=1))
+    else:
+        print(("HEALTHY" if out["ok"] else "UNHEALTHY") + f": sent today {sent_today}/{DAILY_CAP}, remaining {out['remaining']}")
+        for k, v in checks.items():
+            if not v:
+                print(f"  FAIL {k}" + (f" {doubles[:5]}" if k == "no_double_terminal_rows" else ""))
+    return 0 if out["ok"] else 1
+
+
 def cmd_status(store: Store) -> int:
     master, ledger = store.load_master(), store.load_ledger()
     done = {r["slug"] for r in ledger}
@@ -383,6 +453,8 @@ def main(argv: list[str] | None = None) -> int:
     r = sub.add_parser("report"); r.add_argument("--date"); r.add_argument("--out")
     sub.add_parser("status")
     y = sub.add_parser("sync"); y.add_argument("--ledger"); y.add_argument("--aliases")
+    lk = sub.add_parser("lock"); lk.add_argument("action", choices=("acquire", "release", "show"))
+    h = sub.add_parser("health"); h.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     store = Store(Path(a.data_dir))
     if a.cmd == "consolidate":
@@ -395,6 +467,10 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_report(store, a.date, a.out)
     if a.cmd == "sync":
         return cmd_sync(store, a.ledger, a.aliases)
+    if a.cmd == "lock":
+        return cmd_lock(store, a.action)
+    if a.cmd == "health":
+        return cmd_health(store, a.json)
     return cmd_status(store)
 
 
