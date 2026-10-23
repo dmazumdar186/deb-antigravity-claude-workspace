@@ -361,10 +361,15 @@ def cmd_sync(store: Store, ledger_path: str | None, aliases_path: str | None) ->
 
 
 def _lock_age_min(store: Store) -> float | None:
+    """Minutes since the lock was taken; None if no live lock. A released lock is a file whose
+    first field is 'released' (we never delete files: Windows device shells may lack delete rights)."""
     if not store.lock.exists():
         return None
+    first = store.lock.read_text(encoding="utf-8").strip().split("|")[0]
+    if first == "released" or not first:
+        return None
     try:
-        ts = dt.datetime.fromisoformat(store.lock.read_text(encoding="utf-8").strip().split("|")[0])
+        ts = dt.datetime.fromisoformat(first)
     except ValueError:
         return float("inf")
     return (dt.datetime.now() - ts).total_seconds() / 60
@@ -376,7 +381,8 @@ def cmd_lock(store: Store, action: str) -> int:
         print("no lock" if age is None else f"lock age {age:.0f} min ({'stale' if age > LOCK_TTL_MIN else 'live'})")
         return 0
     if action == "release":
-        store.lock.unlink(missing_ok=True)
+        store.dir.mkdir(parents=True, exist_ok=True)
+        store.lock.write_text(f"released|{dt.datetime.now().isoformat(timespec='seconds')}", encoding="utf-8")
         print("lock released")
         return 0
     if age is not None and age <= LOCK_TTL_MIN:
