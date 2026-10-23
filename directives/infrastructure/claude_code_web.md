@@ -41,6 +41,8 @@ directives, skills, hooks, agents, and MCP servers intact.
   PowerShell)
 - `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/rules/`,
   `.claude/workflows/`, `.claude/notes/`
+- `.claude/mods/` — installed on session start as plugins from the repo's own marketplace
+  (`.claude-plugin/marketplace.json` + `enabledPlugins` in `.claude/settings.json`, 2026-10-23)
 - `.mcp.json` — github / firecrawl / tavily MCP servers, keyed by `${GITHUB_PAT}`,
   `${FIRECRAWL_API_KEY}`, `${TAVILY_API_KEY}` from the cloud environment vars
 

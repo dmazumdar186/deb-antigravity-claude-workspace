@@ -392,3 +392,15 @@ Eval: `tests/mods/eval-2026-10-22.md`. Baseline: `state/mods-baseline-2026-10-22
 **Revert the cutover:** `git revert` the cutover commit; the archived scripts and hook entries come back.
 **Loading:** in a cloud session the folder is symlinked into `~/.claude/dev-mods/<session>/`; locally
 pass `--plugin-dir .claude/mods/<mod>` or set `CLAUDE_CODE_PLUGIN_DIRS` (see `directives/infrastructure/claude_code_web.md`).
+
+## 2026-10-23 — mods load in cloud sessions via marketplace + enabledPlugins
+
+The 2026-10-22 note said cloud sessions symlink `.claude/mods` into `~/.claude/dev-mods/<session>/`.
+That folder does not exist in a fresh cloud container; the mods were not loading there.
+Fix: the repo is now a plugin marketplace (`.claude-plugin/marketplace.json`, name `deb-workspace-mods`,
+sources `./.claude/mods/<mod>`), and `.claude/settings.json` carries `extraKnownMarketplaces` +
+`enabledPlugins` for all seven, so any session that clones the repo installs them on start. Also installed
+once at user scope from this cloud session (`claude plugin install <mod>@deb-workspace-mods --scope user`),
+which plugin sync carries to the account's other sessions. Verify in a new session: the `jev → <tier>` band
+above the prompt. Update a mod: edit under `.claude/mods/`, bump `version` in its `plugin.json`, push main,
+then `claude plugin update deb-workspace-mods` (or `/reload-plugins`).
