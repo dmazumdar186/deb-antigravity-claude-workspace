@@ -1,0 +1,53 @@
+{
+  "name": "deb-workspace-mods",
+  "owner": {
+    "name": "Debanjan Mazumdar"
+  },
+  "metadata": {
+    "description": "Workspace mods (function-hook plugins) for deb-antigravity-claude-workspace; loaded in every session via .claude/settings.json"
+  },
+  "plugins": [
+    {
+      "name": "jev-router-mod",
+      "source": "./.claude/mods/jev-router-mod",
+      "description": "Runs the Jev prompt router (execution/infrastructure/jev_router.py hook) on each typed prompt, attaches its routing line as model context, and shows the route in a one-line band.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "safety-guard-mod",
+      "source": "./.claude/mods/safety-guard-mod",
+      "description": "Guards Bash calls: rewrites destructive commands to safe forms, blocks hard-dangerous ones, asks via a band for the rest.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "done-notify-mod",
+      "source": "./.claude/mods/done-notify-mod",
+      "description": "Toasts elapsed time and token usage when a turn ends, a notification is raised, or a question waits; also sends a native notification.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "session-ledger-mod",
+      "source": "./.claude/mods/session-ledger-mod",
+      "description": "Pane ledger of files edited, tool outcomes, safety-guard rewrites and directives touched; writes a handoff file.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "context-meter",
+      "source": "./.claude/mods/context-meter",
+      "description": "See the current context window fill and remaining tokens.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "quota-watch",
+      "source": "./.claude/mods/quota-watch",
+      "description": "Inspect reported plan windows and their reset times.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "tool-timing",
+      "source": "./.claude/mods/tool-timing",
+      "description": "Measure observed tool latency, call counts, and failures.",
+      "version": "1.0.0"
+    }
+  ]
+}
