@@ -211,6 +211,16 @@ def c19_empty_master(d):
     return r.returncode == 2, f"exit {r.returncode}"
 
 
+def c21_alias_redirect(d):
+    seed_master(d, 2)
+    run(d, "mark", "p0", "--status", "sent", "--canonical", "https://www.linkedin.com/in/p0-canonical/")
+    write(d / "fresh.csv", "Name,Company,Title,LinkedIn\nP0,Co0,Role0,https://www.linkedin.com/in/p0-canonical/\n")
+    r = run(d, "consolidate", "--in", str(d / "fresh.csv"))
+    n = len(master_rows(d))
+    r2 = run(d, "mark", "p0-canonical", "--status", "sent")
+    return n == 2 and "1 duplicates merged" in r.stdout and "not marking again" in r2.stdout, f"{n} people; {r.stdout.strip()[:60]}"
+
+
 def make_c20(master: Path | None):
     def c20_real_master(d):
         if not master or not master.exists():
@@ -232,7 +242,7 @@ def main() -> int:
              c05_non_profile_urls_rejected, c06_decoy_url_column, c07_cp1252, c08_idempotent, c09_cap_25,
              c10_limit_zero, c11_26th_refused, c12_duplicate_mark, c13_retry_semantics, c14_topup_after_skips,
              c15_weekly_trim, c16_report_four_fields, c17_orphan_warning, c18_shuffle_deterministic,
-             c19_empty_master, make_c20(Path(a.data) if a.data else None)]
+             c19_empty_master, make_c20(Path(a.data) if a.data else None), c21_alias_redirect]
     lines = ["| # | Case | Result | Evidence |", "|---|---|---|---|"]
     passed = total = 0
     for i, fn in enumerate(cases, 1):

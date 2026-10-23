@@ -9,12 +9,13 @@ LinkedIn ID). The browser step is done by Cowork on the operator's own logged-in
 Subcommands
   consolidate --in a.csv b.csv [...]   merge CSVs into master.csv (idempotent, re-runnable)
   plan [--limit 25]                     write/print today's queue (re-prints if it already exists)
-  mark SLUG --status sent|skipped|already_connected|pending|withdrawn|retry [--note ..]
+  mark SLUG --status sent|skipped|already_connected|pending|withdrawn|retry [--note ..] [--canonical SLUG2]
+                                        --canonical records the slug LinkedIn redirected to, as an alias
   report [--date YYYY-MM-DD] [--out f]  markdown report of what was sent that day
   status                                counts: master / sent / remaining / today
 
 State lives in --data-dir (default .tmp/linkedin_connect, gitignored):
-  master.csv   ledger.csv   queue_YYYY-MM-DD.csv   report_YYYY-MM-DD.md
+  master.csv   ledger.csv   aliases.csv   queue_YYYY-MM-DD.csv   report_YYYY-MM-DD.md
 """
 from __future__ import annotations
 
@@ -118,6 +119,19 @@ class Store:
         self.dir = data_dir
         self.master = data_dir / "master.csv"
         self.ledger = data_dir / "ledger.csv"
+        self.aliases = data_dir / "aliases.csv"
+
+    def load_aliases(self) -> dict[str, str]:
+        """redirected slug -> master slug (LinkedIn canonicalises some profile URLs on load)."""
+        return {r["alias"]: r["slug"] for r in read_csv(self.aliases)} if self.aliases.exists() else {}
+
+    def add_alias(self, alias: str, slug: str) -> None:
+        new = not self.aliases.exists()
+        with self.aliases.open("a", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh)
+            if new:
+                w.writerow(["alias", "slug"])
+            w.writerow([alias, slug])
 
     def load_master(self) -> list[dict[str, str]]:
         return read_csv(self.master) if self.master.exists() else []
@@ -140,6 +154,7 @@ class Store:
 
 def cmd_consolidate(store: Store, paths: list[str]) -> int:
     existing = {r["slug"]: r for r in store.load_master()}
+    aliases = store.load_aliases()
     added = skipped_nourl = dupes = 0
     for p in paths:
         path = Path(p)
@@ -159,6 +174,7 @@ def cmd_consolidate(store: Store, paths: list[str]) -> int:
             if not slug:
                 skipped_nourl += 1
                 continue
+            slug = aliases.get(slug, slug)  # a fresh export may carry the redirected slug
             name = r.get(c_name, "") if c_name else ""
             if not name and (c_first or c_last):
                 name = " ".join(x for x in (r.get(c_first, ""), r.get(c_last, "")) if x)
@@ -249,9 +265,15 @@ def cmd_plan(store: Store, limit: int, shuffle: bool) -> int:
     return 0
 
 
-def cmd_mark(store: Store, slug: str, status: str, note: str) -> int:
+def cmd_mark(store: Store, slug: str, status: str, note: str, canonical: str | None = None) -> int:
     slug = slug_of(slug) or slug.lower()
     master = {r["slug"]: r for r in store.load_master()}
+    aliases = store.load_aliases()
+    slug = aliases.get(slug, slug)
+    if canonical:
+        canonical = slug_of(canonical) or canonical.lower()
+        if canonical != slug and canonical not in aliases and canonical not in master:
+            store.add_alias(canonical, slug)
     if slug not in master:
         print(f"unknown slug {slug!r} (not in master.csv)", file=sys.stderr)
         return 2
@@ -316,6 +338,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--shuffle", action="store_true", help="randomise pick order (seeded by date)")
     m = sub.add_parser("mark"); m.add_argument("slug"); m.add_argument("--status", choices=STATUSES, required=True)
     m.add_argument("--note", default="")
+    m.add_argument("--canonical", help="slug LinkedIn redirected to; stored as an alias of SLUG")
     r = sub.add_parser("report"); r.add_argument("--date"); r.add_argument("--out")
     sub.add_parser("status")
     a = ap.parse_args(argv)
@@ -325,7 +348,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "plan":
         return cmd_plan(store, a.limit, a.shuffle)
     if a.cmd == "mark":
-        return cmd_mark(store, a.slug, a.status, a.note)
+        return cmd_mark(store, a.slug, a.status, a.note, a.canonical)
     if a.cmd == "report":
         return cmd_report(store, a.date, a.out)
     return cmd_status(store)
