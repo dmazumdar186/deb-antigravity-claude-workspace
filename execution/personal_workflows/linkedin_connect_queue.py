@@ -9,7 +9,7 @@ LinkedIn ID). The browser step is done by Cowork on the operator's own logged-in
 Subcommands
   consolidate --in a.csv b.csv [...]   merge CSVs into master.csv (idempotent, re-runnable)
   plan [--limit 25]                     write/print today's queue (re-prints if it already exists)
-  mark SLUG --status sent|skipped|already_connected|pending|withdrawn [--note ..]
+  mark SLUG --status sent|skipped|already_connected|pending|withdrawn|retry [--note ..]
   report [--date YYYY-MM-DD] [--out f]  markdown report of what was sent that day
   status                                counts: master / sent / remaining / today
 
@@ -22,16 +22,21 @@ import argparse
 import csv
 import datetime as dt
 import os
+import random
 import re
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 DAILY_CAP = 25
 WEEKLY_SOFT_CAP = 100  # LinkedIn's own weekly ceiling is ~100; warn before we get near it
 FIELDS = ("slug", "name", "company", "position", "linkedin_url", "source_file")
 LEDGER_FIELDS = ("ts", "date", "slug", "name", "status", "note")
-STATUSES = ("sent", "skipped", "already_connected", "pending", "withdrawn")
-TERMINAL = set(STATUSES)  # any ledger entry means: never queue again
+STATUSES = ("sent", "skipped", "already_connected", "pending", "withdrawn", "retry")
+# Any status but "retry" is terminal: never queue again. "retry" (unconfirmed click, page failed
+# to load) keeps the person out of today's queue and eligible from tomorrow.
+TERMINAL = frozenset(STATUSES) - {"retry"}
+ENCODINGS = ("utf-8-sig", "cp1252", "latin-1")
 
 _SLUG_RE = re.compile(r"linkedin\.com/in/([^/?#\s]+)", re.I)
 
@@ -63,9 +68,12 @@ def _find(headers: list[str], key: str) -> str | None:
 def slug_of(url: str) -> str | None:
     if not url:
         return None
-    m = _SLUG_RE.search(url.strip())
+    url = url.strip()
+    if re.search(r"linkedin\.com/(pub|sales|company|school)/", url, re.I):
+        return None  # old /pub/, Sales Navigator, company pages: not a connectable /in/ profile
+    m = _SLUG_RE.search(url)
     if m:
-        return m.group(1).strip().lower().rstrip("/")
+        return unquote(m.group(1)).strip().lower().rstrip("/") or None
     # bare slug typed into the column
     token = url.strip().strip("/").lower()
     if token and "/" not in token and " " not in token and "." not in token:
@@ -74,8 +82,27 @@ def slug_of(url: str) -> str | None:
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8-sig") as fh:
-        return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in csv.DictReader(fh)]
+    raw = path.read_bytes()
+    text = None
+    for enc in ENCODINGS:
+        try:
+            text = raw.decode(enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    assert text is not None
+    rows = list(csv.DictReader(text.splitlines()))
+    return [{(k or "").strip(): (v or "").strip() for k, v in row.items() if k is not None} for row in rows]
+
+
+def pick_url_column(headers: list[str], rows: list[dict[str, str]]) -> str | None:
+    """The column whose values most often contain a linkedin.com/in URL; alias names as fallback."""
+    best, best_n = None, 0
+    for h in headers:
+        n = sum(1 for r in rows[:200] if "linkedin.com/in/" in (r.get(h, "") or "").lower())
+        if n > best_n:
+            best, best_n = h, n
+    return best or _find(headers, "linkedin_url")
 
 
 def write_csv(path: Path, rows: list[dict], fields: tuple[str, ...]) -> None:
@@ -121,7 +148,7 @@ def cmd_consolidate(store: Store, paths: list[str]) -> int:
             print(f"[warn] {path}: empty", file=sys.stderr)
             continue
         headers = list(rows[0].keys())
-        c_url, c_name = _find(headers, "linkedin_url"), _find(headers, "name")
+        c_url, c_name = pick_url_column(headers, rows), _find(headers, "name")
         c_first, c_last = _find(headers, "first"), _find(headers, "last")
         c_co, c_pos = _find(headers, "company"), _find(headers, "position")
         if not c_url:
@@ -143,6 +170,8 @@ def cmd_consolidate(store: Store, paths: list[str]) -> int:
                 "linkedin_url": f"https://www.linkedin.com/in/{slug}/",
                 "source_file": path.name,
             }
+            if not rec["name"]:
+                rec["name"] = slug.replace("-", " ").title()
             if slug in existing:
                 dupes += 1
                 # fill blanks from the later file, never overwrite
@@ -176,7 +205,19 @@ def _print_rows(rows: list[dict]) -> None:
         print(f"{i:2d}. {r['name'] or '(no name)'} | {r['company']} | {r['position']} | {r['linkedin_url']}")
 
 
-def cmd_plan(store: Store, limit: int) -> int:
+def _blocked(ledger: list[dict], day: str) -> set[str]:
+    """Slugs that must not be queued today: any terminal status, or a retry logged today."""
+    out = set()
+    for r in ledger:
+        if r["status"] in TERMINAL or (r["status"] == "retry" and r["date"] == day):
+            out.add(r["slug"])
+    return out
+
+
+def cmd_plan(store: Store, limit: int, shuffle: bool) -> int:
+    if limit < 1:
+        print("--limit must be >= 1", file=sys.stderr)
+        return 2
     limit = min(limit, DAILY_CAP)
     day = _today()
     ledger = store.load_ledger()
@@ -184,22 +225,26 @@ def cmd_plan(store: Store, limit: int) -> int:
     if not master:
         print("master.csv is empty; run consolidate first", file=sys.stderr)
         return 2
-    done = {r["slug"] for r in ledger}
-    qp = store.queue_path(day)
-    if qp.exists():
-        queue = [r for r in read_csv(qp) if r["slug"] not in done]
-        print(f"queue for {day} already exists; {len(queue)} still to do:")
-        _print_rows(queue)
-        return 0
+    blocked = _blocked(ledger, day)
     already = len(_sent_on(ledger, day))
     room = max(0, limit - already)
     week = _sent_last_7_days(ledger)
     if week + room > WEEKLY_SOFT_CAP:
         room = max(0, WEEKLY_SOFT_CAP - week)
         print(f"[warn] weekly soft cap: {week} sent in last 7 days, trimming today to {room}", file=sys.stderr)
-    queue = [r for r in master if r["slug"] not in done][:room]
+    qp = store.queue_path(day)
+    queue = [r for r in read_csv(qp) if r["slug"] not in blocked] if qp.exists() else []
+    queued = {r["slug"] for r in queue} | ({r["slug"] for r in read_csv(qp)} if qp.exists() else set())
+    # top up: people still to do must be able to fill the remaining room
+    if len(queue) < room:
+        pool = [r for r in master if r["slug"] not in blocked and r["slug"] not in queued]
+        if shuffle:
+            random.Random(day).shuffle(pool)  # deterministic per day
+        queue.extend(pool[:room - len(queue)])
+    queue = queue[:room]
     write_csv(qp, queue, FIELDS)
-    print(f"queue for {day}: {len(queue)} people ({len(master) - len(done) - len(queue)} remain after today)")
+    remaining = sum(1 for r in master if r["slug"] not in blocked) - len(queue)
+    print(f"queue for {day}: {len(queue)} to do, {already} already sent today, {remaining} remain after today")
     _print_rows(queue)
     return 0
 
@@ -211,8 +256,8 @@ def cmd_mark(store: Store, slug: str, status: str, note: str) -> int:
         print(f"unknown slug {slug!r} (not in master.csv)", file=sys.stderr)
         return 2
     ledger = store.load_ledger()
-    if any(r["slug"] == slug for r in ledger):
-        print(f"{slug}: already in ledger, not marking again")
+    if any(r["slug"] == slug and r["status"] in TERMINAL for r in ledger):
+        print(f"{slug}: already in ledger with a final status, not marking again")
         return 0
     day = _today()
     if status == "sent" and len(_sent_on(ledger, day)) >= DAILY_CAP:
@@ -250,7 +295,13 @@ def cmd_status(store: Store) -> int:
     master, ledger = store.load_master(), store.load_ledger()
     done = {r["slug"] for r in ledger}
     by = {s: sum(1 for r in ledger if r["status"] == s) for s in STATUSES}
+    slugs = {r["slug"] for r in master}
+    orphans = [r["slug"] for r in ledger if r["slug"] not in slugs]
+    bad = [r for r in ledger if r["status"] not in STATUSES]
+    done = {r["slug"] for r in ledger if r["status"] in TERMINAL}
     print(f"master: {len(master)}  handled: {len(done)}  remaining: {len(master) - len(done)}")
+    if orphans or bad:
+        print(f"[warn] ledger integrity: {len(orphans)} orphan slug(s), {len(bad)} bad status row(s)", file=sys.stderr)
     print(f"today sent: {len(_sent_on(ledger, _today()))}/{DAILY_CAP}  last 7 days: {_sent_last_7_days(ledger)}/{WEEKLY_SOFT_CAP}")
     print("by status: " + ", ".join(f"{k}={v}" for k, v in by.items()))
     return 0
@@ -262,6 +313,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("consolidate"); c.add_argument("--in", dest="inputs", nargs="+", required=True)
     p = sub.add_parser("plan"); p.add_argument("--limit", type=int, default=DAILY_CAP)
+    p.add_argument("--shuffle", action="store_true", help="randomise pick order (seeded by date)")
     m = sub.add_parser("mark"); m.add_argument("slug"); m.add_argument("--status", choices=STATUSES, required=True)
     m.add_argument("--note", default="")
     r = sub.add_parser("report"); r.add_argument("--date"); r.add_argument("--out")
@@ -271,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "consolidate":
         return cmd_consolidate(store, a.inputs)
     if a.cmd == "plan":
-        return cmd_plan(store, a.limit)
+        return cmd_plan(store, a.limit, a.shuffle)
     if a.cmd == "mark":
         return cmd_mark(store, a.slug, a.status, a.note)
     if a.cmd == "report":
