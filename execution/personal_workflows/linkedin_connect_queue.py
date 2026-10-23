@@ -11,7 +11,10 @@ Subcommands
   plan [--limit 25]                     write/print today's queue (re-prints if it already exists)
   mark SLUG --status sent|skipped|already_connected|pending|withdrawn|retry [--note ..] [--canonical SLUG2]
                                         --canonical records the slug LinkedIn redirected to, as an alias
-  report [--date YYYY-MM-DD] [--out f]  markdown report of what was sent that day
+  report [--date YYYY-MM-DD] [--out f]  markdown report of that day: four-field table + a machine-readable
+                                        ledger block (every row marked that day) for reconciliation
+  sync --ledger f [--aliases f]         union rows from another copy of the ledger/aliases (Drive copy,
+                                        another machine); never drops a row
   status                                counts: master / sent / remaining / today
 
 State lives in --data-dir (default .tmp/linkedin_connect, gitignored):
@@ -304,12 +307,50 @@ def cmd_report(store: Store, day: str | None, out: str | None) -> int:
         m = master.get(r["slug"], {})
         lines.append(f"| {i} | {m.get('name', r['name'])} | {m.get('company', '')} | "
                      f"{m.get('position', '')} | [{r['slug']}](https://www.linkedin.com/in/{r['slug']}/) |")
+    marked = [r for r in store.load_ledger() if r["date"] == day]
+    lines += ["", "<!-- ledger-block: every row marked this day; paste into `sync --ledger` to reconcile -->",
+              "```ledger", ",".join(LEDGER_FIELDS)]
+    for r in marked:
+        lines.append(",".join('"%s"' % (r.get(k, "") or "").replace('"', '""') for k in LEDGER_FIELDS))
+    lines.append("```")
     text = "\n".join(lines) + "\n"
     path = Path(out) if out else store.dir / f"report_{day}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
     print(text)
     print(f"[written {path}]", file=sys.stderr)
+    return 0
+
+
+def _extract_ledger_block(path: Path) -> list[dict[str, str]]:
+    """Accept a plain ledger CSV or a report .md containing a ```ledger block."""
+    text = path.read_text(encoding="utf-8")
+    if "```ledger" in text:
+        text = text.split("```ledger", 1)[1].split("```", 1)[0].strip()
+    rows = list(csv.DictReader(text.splitlines()))
+    return [r for r in rows if r.get("slug") and r.get("status") in STATUSES]
+
+
+def cmd_sync(store: Store, ledger_path: str | None, aliases_path: str | None) -> int:
+    added = 0
+    if ledger_path:
+        mine = store.load_ledger()
+        seen = {(r["slug"], r["status"], r["date"]) for r in mine}
+        for r in _extract_ledger_block(Path(ledger_path)):
+            key = (r["slug"], r["status"], r["date"])
+            if key in seen:
+                continue
+            if r["status"] in TERMINAL and any(m["slug"] == r["slug"] and m["status"] in TERMINAL for m in mine):
+                continue  # already final here; keep ours
+            store.append_ledger({k: r.get(k, "") for k in LEDGER_FIELDS})
+            mine.append(r); seen.add(key); added += 1
+    a_added = 0
+    if aliases_path:
+        have = store.load_aliases()
+        for r in read_csv(Path(aliases_path)):
+            if r.get("alias") and r.get("slug") and r["alias"] not in have:
+                store.add_alias(r["alias"], r["slug"]); have[r["alias"]] = r["slug"]; a_added += 1
+    print(f"sync: +{added} ledger row(s), +{a_added} alias(es); ledger now {len(store.load_ledger())} rows")
     return 0
 
 
@@ -341,6 +382,7 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--canonical", help="slug LinkedIn redirected to; stored as an alias of SLUG")
     r = sub.add_parser("report"); r.add_argument("--date"); r.add_argument("--out")
     sub.add_parser("status")
+    y = sub.add_parser("sync"); y.add_argument("--ledger"); y.add_argument("--aliases")
     a = ap.parse_args(argv)
     store = Store(Path(a.data_dir))
     if a.cmd == "consolidate":
@@ -351,6 +393,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_mark(store, a.slug, a.status, a.note, a.canonical)
     if a.cmd == "report":
         return cmd_report(store, a.date, a.out)
+    if a.cmd == "sync":
+        return cmd_sync(store, a.ledger, a.aliases)
     return cmd_status(store)
 
 

@@ -221,6 +221,19 @@ def c21_alias_redirect(d):
     return n == 2 and "1 duplicates merged" in r.stdout and "not marking again" in r2.stdout, f"{n} people; {r.stdout.strip()[:60]}"
 
 
+def c22_sync_from_report(d):
+    seed_master(d, 6)
+    ledger(d, [(TODAY, "p0", "sent"), (TODAY, "p1", "skipped")])
+    run(d, "report", "--out", str(d / "rep.md"))
+    other = d.parent / "other"; other.mkdir()
+    shutil.copy(d / "master.csv", other / "master.csv")
+    ledger(other, [(TODAY, "p0", "sent"), (TODAY, "p2", "sent")])
+    r = run(other, "sync", "--ledger", str(d / "rep.md"))
+    rows = ledger_rows(other)
+    slugs = sorted(r["slug"] for r in rows)
+    return slugs == ["p0", "p1", "p2"] and "+1 ledger row" in r.stdout, f"{slugs}; {r.stdout.strip()}"
+
+
 def make_c20(master: Path | None):
     def c20_real_master(d):
         if not master or not master.exists():
@@ -242,7 +255,7 @@ def main() -> int:
              c05_non_profile_urls_rejected, c06_decoy_url_column, c07_cp1252, c08_idempotent, c09_cap_25,
              c10_limit_zero, c11_26th_refused, c12_duplicate_mark, c13_retry_semantics, c14_topup_after_skips,
              c15_weekly_trim, c16_report_four_fields, c17_orphan_warning, c18_shuffle_deterministic,
-             c19_empty_master, make_c20(Path(a.data) if a.data else None), c21_alias_redirect]
+             c19_empty_master, make_c20(Path(a.data) if a.data else None), c21_alias_redirect, c22_sync_from_report]
     lines = ["| # | Case | Result | Evidence |", "|---|---|---|---|"]
     passed = total = 0
     for i, fn in enumerate(cases, 1):

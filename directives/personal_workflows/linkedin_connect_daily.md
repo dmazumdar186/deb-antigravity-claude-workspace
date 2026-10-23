@@ -10,9 +10,10 @@ Every day, send connection requests to the next 25 unsent people from a consolid
 
 ## Inputs
 
-- One or more CSVs from the operator. Any column names work if a LinkedIn profile URL column exists; name (or first+last), company and title/headline are picked up by alias (`ALIASES` in the script).
-- Data dir: **`data/linkedin_connect/`** (repo-tracked so Cowork on the Windows machine and cloud sessions share one master + ledger; pass `--data-dir data/linkedin_connect`, or set `LINKEDIN_CONNECT_DIR`). Script default is `.tmp/linkedin_connect/` for throwaway runs. **Pull before, commit + push after every run** or two machines will double-send. Holds `master.csv`, `ledger.csv`, `queue_<date>.csv`, `report_<date>.md`. **Back it up**: copy `master.csv` + `ledger.csv` to Google Drive weekly; losing the ledger means risking duplicate requests.
-- Operator's Chrome, logged in to LinkedIn, Claude in Chrome extension connected.
+- **Prospect CSVs** (Apollo exports; any column names work if a profile-URL column exists). They live on the operator's machine in the repo root and campaign subfolders ("Bay Area Recruitment Campaign 13 Oct 26/", "Recruitment City Wise/", "Campaign 24 Sep 26 Wellness/"). **Every run consolidates all of them again** (idempotent), so a new CSV dropped there is picked up with no further action. Files whose name contains `bounce` are email bounces, not people: skip them.
+- **Shared state = Google Drive folder `linkedin_connect`** (owner's My Drive; find it with the Drive connector by title). Holds `ledger_<ISO datetime>.csv` snapshots (one per run, full copy) and `aliases.csv`. This is the only cross-machine state; **nothing under `data/linkedin_connect/` is ever committed** (repo is public; path is gitignored). No git credentials are needed in the daily loop.
+- **Local working dir** `data/linkedin_connect/` (gitignored): `master.csv` rebuilt from the CSVs, `ledger.csv` synced from Drive, `queue_<date>.csv`, `report_<date>.md`.
+- Operator's Chrome logged in to LinkedIn, Claude in Chrome extension connected (Cowork).
 
 ## Tools / Scripts
 
@@ -20,15 +21,17 @@ Every day, send connection requests to the next 25 unsent people from a consolid
 
 | Command | Does |
 |---|---|
-| `consolidate --in a.csv b.csv ...` | Merge into `master.csv`, slug-normalised (`linkedin.com/in/<slug>` lowercased), dedupe, fill blanks from later files. Re-runnable; new CSVs just add. |
+| `consolidate --in a.csv b.csv ...` | Merge into `master.csv`, slug-normalised, dedupe across files and against `aliases.csv`, fill blanks from later files. Re-runnable; new CSVs just add. |
+| `sync --ledger f [--aliases f]` | Union rows from another ledger copy (a Drive snapshot, or a report `.md` with its ```ledger block) into the local ledger. Idempotent, never drops a row. Run it on every Drive snapshot before `plan`. |
 | `plan [--limit 25]` | Write today's queue (or reprint the unfinished part). Hard cap 25, weekly soft cap 100 trims the day. Skips anyone with a final status; tops the queue back up after skips; `--shuffle` randomises order, seeded by date. |
 | `mark <slug-or-url> --status sent\|skipped\|already_connected\|pending\|withdrawn\|retry [--note] [--canonical <slug>]` | Append to ledger; `--canonical` records the redirected slug in `aliases.csv` so consolidate and mark treat it as the same person. Refuses the 26th `sent` of the day (exit 3). Refuses a second entry for the same slug. |
-| `report [--date]` | Markdown table of that day's sends, four fields + profile link. |
+| `report [--date]` | Four-field table of that day's sends followed by a ```ledger block with every row marked that day, so the emailed report alone can rebuild the ledger. |
 | `status` | Counts. |
 
 ## Daily procedure (Cowork, `/linkedin-connect`)
 
-1. `git pull`, then `python execution/personal_workflows/linkedin_connect_queue.py --data-dir data/linkedin_connect plan --shuffle` → list of ≤25. If it prints "0 still to do", go to step 6.
+0. **Pull state, no git.** `Q="python execution/personal_workflows/linkedin_connect_queue.py --data-dir data/linkedin_connect"`. (a) With the Drive connector, find the folder `linkedin_connect`, download every `ledger_*.csv` and `aliases.csv` into `data/linkedin_connect/drive/`, then `$Q sync --aliases drive/aliases.csv` and `$Q sync --ledger <each snapshot>`. (b) `$Q consolidate --in <every prospect CSV in the repo root and the campaign subfolders, excluding *bounce*>`. If the Drive connector is unavailable, fall back to the newest "LinkedIn connects" email: `$Q sync --ledger <saved report .md>`; the cloud reconcile task keeps Drive current.
+1. `$Q plan --shuffle` → list of ≤25. If it prints "0 to do", go to step 5.
 2. For each person in the printed order:
    a. Navigate to `linkedin_url` in the logged-in tab. Wait for the profile to render; read the primary action button.
    b. **Normal case (13 of 14 on the first run): header shows `Follow` / `Message` / `More`, and `Connect` is inside the `More` menu.** Open More → Connect → in the dialog choose **Send without a note**. Confirmation is either the alert "Invitation sent to <First>." or the header button flipping to "Pending, click to withdraw invitation" — both are readable from the accessibility tree; no screenshot needed → `mark <slug> --status sent`.
@@ -39,8 +42,9 @@ Every day, send connection requests to the next 25 unsent people from a consolid
    e. Wait a random **45–120 s** before the next profile (`Bash sleep`). Every ~8 profiles, open the LinkedIn feed or a notifications page once and scroll for a few seconds, then continue.
 3. **Stop immediately** and mark nothing further if any of these appear: a captcha or "let's do a quick security check", "you've reached the weekly invitation limit", "we've restricted your account", or two consecutive page-load failures on different profiles. Report the trigger verbatim to the operator. Do not retry that day. (The email-required dialog is **not** a stop trigger; see 2c2.)
 4. Stop at 25 `sent` regardless of how many were skipped; the script enforces it, don't argue with exit 3.
-5. `report` → paste the table in the session **and** send it with the Gmail connector to debolshop@gmail.com, subject `LinkedIn connects <date> (<n> sent)`. Four columns only; nothing else goes in the mail.
-6. `status` → one line to the operator: remaining count and days left at 25/day. Then `git add data/linkedin_connect && git commit -m "linkedin connects <date>" && git push`.
+5. `$Q report` → paste the four-column table in the session **and** email the whole report file (table + ledger block) with the Gmail connector to the operator, subject `LinkedIn connects <date> (<n> sent)`.
+6. **Push state, no git.** Upload `ledger.csv` to the Drive folder as `ledger_<YYYY-MM-DDTHHMM>.csv` (text/csv, no conversion) and, if aliases changed, upload a fresh `aliases.csv` after trashing the old one. Trash ledger snapshots older than the newest 7. If the Drive connector is unavailable, say so: the emailed ledger block is the fallback transport and the 10:27 CET cloud task uploads it.
+7. `$Q status` → one line to the operator: remaining count and days left at 25/day. No commit, no push.
 
 ## Scheduling
 
@@ -50,7 +54,7 @@ Every day, send connection requests to the next 25 unsent people from a consolid
 
 ## Monthly loop (dataset)
 
-Export connections from LinkedIn (Settings → Data privacy → Get a copy of your data → Connections). Run `/jev-leads diff` on it against last month's export to see who accepted; join to `ledger.csv` by slug for the acceptance rate. Save the export as next month's snapshot.
+Export connections from LinkedIn (Settings → Data privacy → Get a copy of your data → Connections). Run `/jev-leads diff` on it against last month's export to see who accepted; join to the newest Drive ledger snapshot by slug for the acceptance rate. Save the export to the Drive folder as next month's snapshot.
 
 ## Edge cases / learnings
 
@@ -58,10 +62,10 @@ Export connections from LinkedIn (Settings → Data privacy → Get a copy of yo
 - Rows without a LinkedIn URL are dropped at consolidate time and counted in the summary; the operator gets that count, not a silent drop.
 - A `sent` the browser could not confirm as `Pending`, or a profile that failed to load, is marked `retry` (non-terminal: out of today's queue, eligible from tomorrow). `skipped` is final.
 - Columns are picked by content: the column whose values contain `linkedin.com/in/` wins, so Apollo exports with a separate `Company Linkedin` column and a `Company Website` column resolve correctly. `/company/`, `/pub/` and Sales Navigator URLs are not connectable and are counted as "no URL".
-- Dataset loaded 2026-10-23: 15 Apollo CSVs, 11,126 rows → 4,959 unique people (6,163 cross-file duplicates removed, 4 rows without a profile URL). At 25/day that is ~199 days.
-- Eval set: `execution/personal_workflows/tests/linkedin_connect_eval.py --data data/linkedin_connect/master.csv` (20 cases, deterministic table). Run after any script change.
+- Dataset loaded 2026-10-23: 15 Apollo CSVs, 11,126 rows → 4,959 unique people (6,163 cross-file duplicates removed, 4 rows without a profile URL). Five more CSVs on the operator's machine (Bay Area recruitment, recruitment_gb_fr_ne_ge_be, Recruitment_Cities CLEAN_relaunch, the two campaign folders) join automatically at the next local run via step 0b.
+- Eval set: `execution/personal_workflows/tests/linkedin_connect_eval.py --data data/linkedin_connect/master.csv` (22 cases, deterministic table; results in `docs/reference/linkedin_connect/`). Run after any script change.
 - **Browser hygiene (2026-10-23 run):** the Chrome renderer froze once (navigate and screenshot timed out, `find` still worked). Fix: open a new tab, close the frozen one, re-navigate; no double send resulted. The tab-group id can change mid-run ("not in Claude's tab group") → re-run the tabs-context tool. Gaps used were 59–119 s with one feed detour after profile 8.
-- **Dirty local checkout:** if `git pull --ff-only` fails on local modifications, do not stash the operator's files. Use a worktree of origin/main (`git worktree add --detach <dir> origin/main`), run there, and remove it afterwards (`git worktree remove <dir>`). The ledger commit lives in the shared `.git` either way.
-- **Push from Cowork needs a credential.** The Cowork shell has no credential helper or `gh`. Until a fine-grained GitHub token (contents: read/write on this repo) is set as `GH_TOKEN` in Cowork's environment and `git config credential.helper` points at it, step 6 ends with the commit local and the run report tells the operator; the next cloud session reconciles the ledger from the report. Never skip the commit.
+- **Why Drive, not git (2026-10-23):** the repo is public (the first dataset commit exposed the prospect list; removed from HEAD the same day, history rewrite pending operator confirmation) and the Cowork shell has no GitHub credential. The daily loop touches git only to read the script. Code still ships via `git pull` on the operator's machine; if the local checkout is dirty, read the script from a worktree of origin/main instead of pulling.
+- **Cloud reconcile task** ("LinkedIn connect: Drive ledger reconcile", daily 10:27 Europe/Paris, fresh cloud session): if the Drive folder has no ledger snapshot dated today, it reads today's "LinkedIn connects" email, rebuilds the rows from its ledger block and uploads the snapshot. It never touches LinkedIn.
 - The repo lives inside OneDrive on the operator's machine, which produces stale `.git/index.lock` files. Removing that file when no git process is running is safe and expected.
 - Cloud session cannot run steps 2–3. If asked there, run `plan`/`report` and tell the operator to finish in Cowork.

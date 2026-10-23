@@ -135,3 +135,6 @@ downloads/
 # Engine-written mod artifacts (claude plugin hot-reload)
 .claude/mods/*/tsconfig.json
 .claude/mods/*/.claude-plugin/types/
+
+# LinkedIn connect dataset: PII. Ledger/aliases live in Google Drive folder linkedin_connect; master is rebuilt locally. Never in this public repo.
+data/linkedin_connect/
