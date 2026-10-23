@@ -8,6 +8,20 @@
     "CLAUDE_CODE_SUBAGENT_MODEL": "claude-fable-5-1"
   },
   "autoMemoryEnabled": true,
+  "extraKnownMarketplaces": {
+    "deb-workspace-mods": {
+      "source": { "source": "github", "repo": "dmazumdar186/deb-antigravity-claude-workspace" }
+    }
+  },
+  "enabledPlugins": {
+    "jev-router-mod@deb-workspace-mods": true,
+    "safety-guard-mod@deb-workspace-mods": true,
+    "done-notify-mod@deb-workspace-mods": true,
+    "session-ledger-mod@deb-workspace-mods": true,
+    "context-meter@deb-workspace-mods": true,
+    "quota-watch@deb-workspace-mods": true,
+    "tool-timing@deb-workspace-mods": true
+  },
   "effortLevel": "low",
   "modelSettings": {
     "claude-fable-5-1": {
