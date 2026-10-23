@@ -48,6 +48,12 @@
       "source": "./.claude/mods/tool-timing",
       "description": "Measure observed tool latency, call counts, and failures.",
       "version": "1.0.0"
+    },
+    {
+      "name": "linkedin-connect",
+      "source": "./.claude/plugins/linkedin-connect",
+      "description": "Daily LinkedIn connection-request routine, self-contained skill for Cowork scheduled runs",
+      "version": "1.0.0"
     }
   ]
 }
