@@ -20,7 +20,8 @@
     "session-ledger-mod@deb-workspace-mods": true,
     "context-meter@deb-workspace-mods": true,
     "quota-watch@deb-workspace-mods": true,
-    "tool-timing@deb-workspace-mods": true
+    "tool-timing@deb-workspace-mods": true,
+    "linkedin-connect@deb-workspace-mods": true
   },
   "effortLevel": "low",
   "modelSettings": {
