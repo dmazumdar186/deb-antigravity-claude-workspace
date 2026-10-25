@@ -21,6 +21,17 @@ BOOK_URL = "https://cal.com/debanjan-mazumdar-ben5rd/30min"
 DEMO_URL = "https://cv-optimizer.pages.dev"
 CTA_ON_IMAGE = {"Book session", "Soft invitation", "Demo link"}
 MAX_HAND = 8
+MAX_HEADLINE = 140  # longer headlines WARN; font floor stays 62px
+NBH = "\u2011"  # non-breaking hyphen; hoisted so no backslash sits inside an f-string expression (<3.12)
+CTA_TEXT = {"Book session": "30-minute session · link in the post",
+            "Soft invitation": "More in the post",
+            "Demo link": "Live demo · cv-optimizer.pages.dev"}
+# Non-numeric receipt rows for case_receipt weeks rendered with a fallback line.
+# Verbatim words from the pack copy (fallback line / companion angle); never invented facts.
+RECEIPT_FALLBACK = {
+    15: [("step 01", "reply routing"), ("step 02", "lead ownership"), ("step 03", "follow-up")],
+    25: [("surface", "checkout"), ("risk", "payment edge cases"), ("decision", "onboarding")],
+}
 
 FAMILY_OF = {
     "minimal_editorial": "minimal_editorial", "three_questions": "minimal_editorial",
@@ -162,6 +173,17 @@ def choose_families(weeks: list[dict]) -> tuple[list[str], list[str]]:
     return fams, warns
 
 
+def receipt_rows(w: dict, sup: str, numeric_ok: bool) -> list[tuple[str, str]]:
+    """Rows printed on a case_receipt card (also stored in messages.json so the validator gates them)."""
+    rows = [("case", w["theme"].lower())]
+    if not numeric_ok:
+        fb = RECEIPT_FALLBACK.get(w["week"])
+        if fb:
+            return rows + fb
+        return rows + [(f"step {i + 1:02d}", s) for i, s in enumerate(fragments(sup)[:3])]
+    return rows + [("evidence", "verified")] + [(f"note {i + 1:02d}", s) for i, s in enumerate(fragments(sup)[:3])]
+
+
 def visual(w: dict, fam: str, sup: str, numeric_ok: bool) -> str:
     steps = fragments(sup)
     if fam == "annotated_workflow":
@@ -199,26 +221,23 @@ def visual(w: dict, fam: str, sup: str, numeric_ok: bool) -> str:
                      else '<span class="c"># expected: pass on the edge case, not just the demo</span>')
         return f'<div class="code t">{chr(10).join(lines)}</div><div class="illus">Illustrative pseudo-code</div>'
     if fam == "case_receipt":
-        rows = [("case", esc(w["theme"].lower())), ("evidence", "verified" if numeric_ok else "non-numeric")]
-        rows += [(f"note {i + 1:02d}", esc(s)) for i, s in enumerate(steps[:3])]
-        body = "".join(f'<div class="row"><span>{k}</span><span>{v}</span></div>' for k, v in rows)
+        body = "".join(f'<div class="row"><span>{esc(k)}</span><span>{esc(v)}</span></div>' for k, v in receipt_rows(w, sup, numeric_ok))
         return f'<div class="rcpt t">{body}<div class="row tot"><span>takeaway</span><span>see post</span></div></div>'
     return ""
 
 
 def cta_line(w: dict) -> str:
-    c = w["cta"]
-    if c not in CTA_ON_IMAGE:
-        return ""
-    txt = {"Book session": "30-minute session · link in the post",
-           "Soft invitation": "More in the post",
-           "Demo link": "Live demo · cv-optimizer.pages.dev"}[c]
-    return f'<div class="cta t">{esc(txt)}</div>'
+    txt = cta_text(w)
+    return f'<div class="cta t">{esc(txt)}</div>' if txt else ""
+
+
+def cta_text(w: dict) -> str:
+    return CTA_TEXT.get(w["cta"], "") if w["cta"] in CTA_ON_IMAGE else ""
 
 
 def card_html(w: dict, fam: str, sup: str, numeric_ok: bool, fonts_css: str, hand: bool) -> str:
     hp = headline_px(w["headline"], fam)
-    head = f'<h1 class="t" style="font-size:{hp}px">{esc(w["headline"]).replace("-", "\u2011")}</h1>'
+    head = f'<h1 class="t" style="font-size:{hp}px">{esc(w["headline"]).replace("-", NBH)}</h1>'
     supp = f'<p class="sup t">{esc(sup)}</p>'
     dark = " dark" if fam in DARK_FAMILIES else ""
     vis = visual(w, fam, sup, numeric_ok)
@@ -314,16 +333,22 @@ def main() -> int:
         pg = br.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
         for w, fam in zip(weeks, fams):
             ok, mine = claim_ok(w["week"], claims)
-            sup = w["supporting_line"] if ok or "fallback_supporting_line" not in w else w["fallback_supporting_line"]
+            sup = w["supporting_line"] if ok else w.get("fallback_supporting_line", "")
             head_ok = ok or not any(any(m in w["headline"] for m in c["match"]) for c in mine)
-            if not head_ok:
-                print(f"WARN week {w['week']:02d}: headline carries an unapproved number; card not rendered", file=sys.stderr)
+            if len(w["headline"]) > MAX_HEADLINE:
+                print(f"WARN week {w['week']:02d}: headline {len(w['headline'])} chars > {MAX_HEADLINE}", file=sys.stderr)
+            if not head_ok or not sup:
+                why = "headline carries an unapproved number" if not head_ok else "unapproved claim and no fallback_supporting_line"
+                print(f"WARN week {w['week']:02d}: {why}; card not rendered", file=sys.stderr)
+                rows.append({**w, "layout": fam, "verdict": "blocked", "blocked_reason": why, "file": None, "html": None})
                 continue
             hand = fam == "founder_note" and hand_used < MAX_HAND
             hand_used += hand
             name = f"{w['week']:02d}_week_{slugify(w['headline'])}"
             row = {**w, "layout": fam, "rendered_supporting_line": sup, "used_fallback": sup != w["supporting_line"],
-                   "handwritten": hand, "file": f"png/{name}.png", "html": f"html/{name}.html"}
+                   "handwritten": hand, "cta_text": cta_text(w),
+                   "receipt_rows": [list(x) for x in receipt_rows(w, sup, ok)] if fam == "case_receipt" else [],
+                   "evidence": ("verified" if ok else "non-numeric") if fam == "case_receipt" else None, "file": f"png/{name}.png", "html": f"html/{name}.html"}
             rows.append(row)
             if only and w["week"] not in only:
                 continue
@@ -346,7 +371,9 @@ def main() -> int:
         dist[r["layout"]] = dist.get(r["layout"], 0) + 1
     manifest = {"generated": dt.datetime.now().isoformat(timespec="seconds"), "size": [W, H], "count": len(all_pngs),
                 "layouts": dist, "repeat_warnings": warns, "handwritten": hand_used,
-                "fallback_weeks": [r["week"] for r in rows if r["used_fallback"]], "published": False}
+                "fallback_weeks": [r["week"] for r in rows if r.get("used_fallback")],
+                "blocked_weeks": [r["week"] for r in rows if r.get("verdict") == "blocked"],
+                "non_numeric_receipts": [r["week"] for r in rows if r.get("evidence") == "non-numeric"], "published": False}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, indent=2))
     return 0

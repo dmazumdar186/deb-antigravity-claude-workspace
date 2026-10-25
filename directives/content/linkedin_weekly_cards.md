@@ -48,3 +48,10 @@ PUBLISHABLE = claims pass + no overflow + Jev review >= 24/30 (six criteria x 0-
 - Rhetorical numbers ("40-slide", W08) need an approved registry entry or the numeric gate fails them.
 - First run: Jev scored the bank median 19.3/30, 1 of 50 >= 24 (cost $0.0019). Jev is harsh on headline-only state; treat as a ranking, have the operator score manually before publish.
 - Playwright `file://` URIs need absolute paths (`.resolve()`).
+- (2026-10-25 audit) Claim gate is exact, not substring: a token passes only if its normalised form (strip `$ , + − - %` and spaces, lowercase) equals the numeric core of an approved match phrase for that week AND the full phrase is in the text. Word numbers (one..ninety, dozen, hundred, thousand, million, billion, double, triple, half, quarter) and `²³¹¼½¾` are numeric tokens too; idiomatic counts in pack copy ("one real case", "three tabs") are registry entries of `type: rhetoric` (`wNN_word_count_idiom`).
+- Gated fields = everything that reaches the image: headline, rendered supporting line, theme, CTA text (`30-minute` is a registry match), receipt row values. Fixed template labels (`note 01`, `wk 15`) are not gated.
+- NUM_RE pitfalls: a trailing "." was eaten ("15."), and the `m` suffix ate "01 May" -> "01 M"; suffixes now need a non-letter after them.
+- Unapproved claim + no `fallback_supporting_line` (or unapproved number in the headline) -> no card; messages.json gets a `verdict: blocked` row and the validator FAILs it.
+- case_receipt with fallback renders `RECEIPT_FALLBACK` rows (pack's own words, W15 reply routing/lead ownership/follow-up, W25 checkout/payment edge cases/onboarding); "evidence: non-numeric" lives only in manifest `non_numeric_receipts`. New case_receipt numeric weeks need a RECEIPT_FALLBACK entry.
+- No backslashes inside f-string `{}` (SyntaxError on cloud Python 3.11); `NBH` is module-level.
+- `--weeks` subset: unrendered html is skipped with a note, not an overflow FAIL. Headlines > 140 chars WARN.

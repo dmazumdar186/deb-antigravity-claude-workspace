@@ -1,36 +1,29 @@
 {
   "summary": {
     "weeks": 50,
-    "publishable": 1,
+    "publishable": 0,
     "claims_fail": [],
     "overflow_fail": [],
-    "score_ge_24": 1,
-    "unscored": 0,
-    "score_min": 13.6,
-    "score_median": 19.3,
-    "score_max": 24.1,
-    "jev_cost_usd": 0.001888,
-    "jev_error": null
+    "score_ge_24": 0,
+    "unscored": 50,
+    "score_min": null,
+    "score_median": null,
+    "score_max": null,
+    "jev_cost_usd": 0.0,
+    "jev_error": "skipped (--no-jev)"
   },
   "weeks": [
     {
       "week": 1,
       "layout": "minimal_editorial",
       "verdict": "HOLD",
-      "score": 18.2,
-      "scores": {
-        "reader": 3.02,
-        "situation": 0.87,
-        "point_of_view": 3.17,
-        "useful": 2.7,
-        "voice": 4.07,
-        "visual_clarity": 4.33
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.2/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -39,20 +32,13 @@
       "week": 2,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 19.5,
-      "scores": {
-        "reader": 3.78,
-        "situation": 2.03,
-        "point_of_view": 3.18,
-        "useful": 2.86,
-        "voice": 3.4,
-        "visual_clarity": 4.25
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -61,20 +47,13 @@
       "week": 3,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 18.0,
-      "scores": {
-        "reader": 2.52,
-        "situation": 1.5,
-        "point_of_view": 2.06,
-        "useful": 3.74,
-        "voice": 3.92,
-        "visual_clarity": 4.22
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.0/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -82,20 +61,15 @@
     {
       "week": 4,
       "layout": "annotated_workflow",
-      "verdict": "PUBLISHABLE",
-      "score": 24.1,
-      "scores": {
-        "reader": 3.69,
-        "situation": 3.97,
-        "point_of_view": 4.12,
-        "useful": 4.1,
-        "voice": 3.74,
-        "visual_clarity": 4.48
-      },
-      "score_source": "jev",
+      "verdict": "HOLD",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
-      "reasons": [],
+      "reasons": [
+        "unscored (Jev unavailable, no manual score)"
+      ],
       "pending_claims": [],
       "used_fallback": false
     },
@@ -103,20 +77,13 @@
       "week": 5,
       "layout": "founder_note",
       "verdict": "HOLD",
-      "score": 18.5,
-      "scores": {
-        "reader": 4.08,
-        "situation": 0.79,
-        "point_of_view": 3.82,
-        "useful": 1.22,
-        "voice": 4.27,
-        "visual_clarity": 4.32
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -125,20 +92,13 @@
       "week": 6,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 19.9,
-      "scores": {
-        "reader": 3.16,
-        "situation": 0.53,
-        "point_of_view": 3.54,
-        "useful": 4.22,
-        "voice": 3.93,
-        "visual_clarity": 4.47
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.9/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -147,20 +107,13 @@
       "week": 7,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 17.1,
-      "scores": {
-        "reader": 3.1,
-        "situation": 1.73,
-        "point_of_view": 1.77,
-        "useful": 3.21,
-        "voice": 3.23,
-        "visual_clarity": 4.1
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.1/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -169,20 +122,13 @@
       "week": 8,
       "layout": "offer_card",
       "verdict": "HOLD",
-      "score": 19.8,
-      "scores": {
-        "reader": 3.0,
-        "situation": 1.56,
-        "point_of_view": 4.24,
-        "useful": 2.01,
-        "voice": 4.37,
-        "visual_clarity": 4.6
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.8/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -191,20 +137,13 @@
       "week": 9,
       "layout": "before_after",
       "verdict": "HOLD",
-      "score": 19.1,
-      "scores": {
-        "reader": 3.18,
-        "situation": 0.33,
-        "point_of_view": 3.63,
-        "useful": 3.77,
-        "voice": 3.82,
-        "visual_clarity": 4.39
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.1/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -213,20 +152,13 @@
       "week": 10,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 21.7,
-      "scores": {
-        "reader": 3.65,
-        "situation": 2.43,
-        "point_of_view": 3.88,
-        "useful": 3.89,
-        "voice": 3.59,
-        "visual_clarity": 4.27
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 21.7/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -235,20 +167,13 @@
       "week": 11,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 21.3,
-      "scores": {
-        "reader": 3.6,
-        "situation": 1.25,
-        "point_of_view": 3.99,
-        "useful": 4.42,
-        "voice": 3.74,
-        "visual_clarity": 4.34
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 21.3/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -257,20 +182,13 @@
       "week": 12,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 18.3,
-      "scores": {
-        "reader": 2.16,
-        "situation": 1.11,
-        "point_of_view": 3.87,
-        "useful": 3.61,
-        "voice": 3.72,
-        "visual_clarity": 3.8
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.3/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -279,20 +197,13 @@
       "week": 13,
       "layout": "code_to_outcome",
       "verdict": "HOLD",
-      "score": 20.4,
-      "scores": {
-        "reader": 2.53,
-        "situation": 1.31,
-        "point_of_view": 3.7,
-        "useful": 4.09,
-        "voice": 4.26,
-        "visual_clarity": 4.53
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.4/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -301,20 +212,13 @@
       "week": 14,
       "layout": "code_to_outcome",
       "verdict": "HOLD",
-      "score": 17.2,
-      "scores": {
-        "reader": 2.45,
-        "situation": 1.93,
-        "point_of_view": 2.81,
-        "useful": 2.56,
-        "voice": 3.02,
-        "visual_clarity": 4.46
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.2/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -323,20 +227,13 @@
       "week": 15,
       "layout": "case_receipt",
       "verdict": "HOLD",
-      "score": 20.4,
-      "scores": {
-        "reader": 3.75,
-        "situation": 2.15,
-        "point_of_view": 3.13,
-        "useful": 3.7,
-        "voice": 3.56,
-        "visual_clarity": 4.14
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.4/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [
         "w15_outbound_baseline:pending_verification"
@@ -347,20 +244,13 @@
       "week": 16,
       "layout": "before_after",
       "verdict": "HOLD",
-      "score": 18.9,
-      "scores": {
-        "reader": 3.28,
-        "situation": 0.56,
-        "point_of_view": 3.22,
-        "useful": 4.03,
-        "voice": 3.55,
-        "visual_clarity": 4.25
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.9/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -369,20 +259,13 @@
       "week": 17,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 17.5,
-      "scores": {
-        "reader": 3.19,
-        "situation": 2.4,
-        "point_of_view": 1.0,
-        "useful": 3.52,
-        "voice": 3.24,
-        "visual_clarity": 4.12
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -391,20 +274,13 @@
       "week": 18,
       "layout": "founder_note",
       "verdict": "HOLD",
-      "score": 19.3,
-      "scores": {
-        "reader": 4.07,
-        "situation": 0.22,
-        "point_of_view": 4.1,
-        "useful": 2.29,
-        "voice": 4.24,
-        "visual_clarity": 4.35
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.3/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -413,20 +289,13 @@
       "week": 19,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 23.2,
-      "scores": {
-        "reader": 3.67,
-        "situation": 3.33,
-        "point_of_view": 4.28,
-        "useful": 3.97,
-        "voice": 3.53,
-        "visual_clarity": 4.47
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 23.2/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -435,20 +304,13 @@
       "week": 20,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 21.4,
-      "scores": {
-        "reader": 3.5,
-        "situation": 1.96,
-        "point_of_view": 3.72,
-        "useful": 3.84,
-        "voice": 4.0,
-        "visual_clarity": 4.39
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 21.4/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [
         "ownership_handover_terms:pending_verification"
@@ -459,20 +321,13 @@
       "week": 21,
       "layout": "minimal_editorial",
       "verdict": "HOLD",
-      "score": 18.6,
-      "scores": {
-        "reader": 2.45,
-        "situation": 0.1,
-        "point_of_view": 3.47,
-        "useful": 4.3,
-        "voice": 3.86,
-        "visual_clarity": 4.47
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.6/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -481,20 +336,13 @@
       "week": 22,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 19.9,
-      "scores": {
-        "reader": 3.64,
-        "situation": 0.9,
-        "point_of_view": 3.32,
-        "useful": 3.89,
-        "voice": 3.6,
-        "visual_clarity": 4.5
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.9/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -503,20 +351,13 @@
       "week": 23,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 17.5,
-      "scores": {
-        "reader": 2.43,
-        "situation": 0.44,
-        "point_of_view": 4.13,
-        "useful": 2.74,
-        "voice": 3.39,
-        "visual_clarity": 4.38
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -525,20 +366,13 @@
       "week": 24,
       "layout": "minimal_editorial",
       "verdict": "HOLD",
-      "score": 23.8,
-      "scores": {
-        "reader": 3.66,
-        "situation": 2.61,
-        "point_of_view": 4.17,
-        "useful": 4.4,
-        "voice": 4.41,
-        "visual_clarity": 4.56
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 23.8/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -547,20 +381,13 @@
       "week": 25,
       "layout": "case_receipt",
       "verdict": "HOLD",
-      "score": 13.6,
-      "scores": {
-        "reader": 2.71,
-        "situation": 0.77,
-        "point_of_view": 1.96,
-        "useful": 1.63,
-        "voice": 2.89,
-        "visual_clarity": 3.6
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 13.6/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [
         "w25_marketplace_85k:pending_permission"
@@ -571,20 +398,13 @@
       "week": 26,
       "layout": "code_to_outcome",
       "verdict": "HOLD",
-      "score": 18.6,
-      "scores": {
-        "reader": 2.08,
-        "situation": 2.01,
-        "point_of_view": 2.94,
-        "useful": 3.18,
-        "voice": 4.12,
-        "visual_clarity": 4.29
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.6/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -593,20 +413,13 @@
       "week": 27,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 18.7,
-      "scores": {
-        "reader": 3.3,
-        "situation": 0.86,
-        "point_of_view": 3.76,
-        "useful": 3.04,
-        "voice": 3.24,
-        "visual_clarity": 4.48
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.7/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -615,20 +428,13 @@
       "week": 28,
       "layout": "before_after",
       "verdict": "HOLD",
-      "score": 20.5,
-      "scores": {
-        "reader": 2.79,
-        "situation": 1.53,
-        "point_of_view": 3.95,
-        "useful": 3.63,
-        "voice": 4.24,
-        "visual_clarity": 4.36
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -637,20 +443,13 @@
       "week": 29,
       "layout": "code_to_outcome",
       "verdict": "HOLD",
-      "score": 19.0,
-      "scores": {
-        "reader": 2.76,
-        "situation": 1.32,
-        "point_of_view": 3.98,
-        "useful": 3.25,
-        "voice": 3.67,
-        "visual_clarity": 4.05
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.0/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [
         "w29_wiser_numbers:blocked"
@@ -661,20 +460,13 @@
       "week": 30,
       "layout": "before_after",
       "verdict": "HOLD",
-      "score": 18.7,
-      "scores": {
-        "reader": 3.16,
-        "situation": 0.82,
-        "point_of_view": 3.62,
-        "useful": 3.62,
-        "voice": 3.28,
-        "visual_clarity": 4.18
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.7/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -683,20 +475,13 @@
       "week": 31,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 19.2,
-      "scores": {
-        "reader": 1.95,
-        "situation": 1.85,
-        "point_of_view": 3.46,
-        "useful": 3.79,
-        "voice": 3.87,
-        "visual_clarity": 4.33
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.2/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -705,20 +490,13 @@
       "week": 32,
       "layout": "founder_note",
       "verdict": "HOLD",
-      "score": 19.5,
-      "scores": {
-        "reader": 4.47,
-        "situation": 0.35,
-        "point_of_view": 3.51,
-        "useful": 2.67,
-        "voice": 4.15,
-        "visual_clarity": 4.33
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -727,20 +505,13 @@
       "week": 33,
       "layout": "code_to_outcome",
       "verdict": "HOLD",
-      "score": 20.0,
-      "scores": {
-        "reader": 2.99,
-        "situation": 0.66,
-        "point_of_view": 3.71,
-        "useful": 4.3,
-        "voice": 4.03,
-        "visual_clarity": 4.27
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.0/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -749,20 +520,13 @@
       "week": 34,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 21.4,
-      "scores": {
-        "reader": 3.84,
-        "situation": 2.12,
-        "point_of_view": 3.8,
-        "useful": 3.65,
-        "voice": 3.8,
-        "visual_clarity": 4.2
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 21.4/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -771,20 +535,13 @@
       "week": 35,
       "layout": "case_receipt",
       "verdict": "HOLD",
-      "score": 20.7,
-      "scores": {
-        "reader": 3.08,
-        "situation": 2.38,
-        "point_of_view": 3.51,
-        "useful": 3.65,
-        "voice": 3.71,
-        "visual_clarity": 4.38
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.7/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -793,20 +550,13 @@
       "week": 36,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 19.9,
-      "scores": {
-        "reader": 3.46,
-        "situation": 2.02,
-        "point_of_view": 3.44,
-        "useful": 3.47,
-        "voice": 3.4,
-        "visual_clarity": 4.16
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.9/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -815,20 +565,13 @@
       "week": 37,
       "layout": "before_after",
       "verdict": "HOLD",
-      "score": 20.9,
-      "scores": {
-        "reader": 3.49,
-        "situation": 1.29,
-        "point_of_view": 4.27,
-        "useful": 3.94,
-        "voice": 3.52,
-        "visual_clarity": 4.36
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.9/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -837,20 +580,13 @@
       "week": 38,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 17.7,
-      "scores": {
-        "reader": 2.8,
-        "situation": 0.14,
-        "point_of_view": 2.53,
-        "useful": 3.52,
-        "voice": 4.26,
-        "visual_clarity": 4.41
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.7/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -859,20 +595,13 @@
       "week": 39,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 21.6,
-      "scores": {
-        "reader": 3.25,
-        "situation": 3.84,
-        "point_of_view": 3.39,
-        "useful": 2.68,
-        "voice": 4.19,
-        "visual_clarity": 4.24
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 21.6/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -881,20 +610,13 @@
       "week": 40,
       "layout": "founder_note",
       "verdict": "HOLD",
-      "score": 15.7,
-      "scores": {
-        "reader": 3.4,
-        "situation": 0.21,
-        "point_of_view": 1.39,
-        "useful": 2.16,
-        "voice": 4.2,
-        "visual_clarity": 4.3
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 15.7/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -903,20 +625,13 @@
       "week": 41,
       "layout": "minimal_editorial",
       "verdict": "HOLD",
-      "score": 18.4,
-      "scores": {
-        "reader": 2.79,
-        "situation": 3.54,
-        "point_of_view": 1.61,
-        "useful": 3.08,
-        "voice": 3.39,
-        "visual_clarity": 3.98
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.4/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -925,20 +640,13 @@
       "week": 42,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 17.5,
-      "scores": {
-        "reader": 2.17,
-        "situation": 1.58,
-        "point_of_view": 2.04,
-        "useful": 4.3,
-        "voice": 3.25,
-        "visual_clarity": 4.14
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -947,20 +655,13 @@
       "week": 43,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 20.9,
-      "scores": {
-        "reader": 3.45,
-        "situation": 1.73,
-        "point_of_view": 3.71,
-        "useful": 3.94,
-        "voice": 3.96,
-        "visual_clarity": 4.13
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.9/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -969,20 +670,13 @@
       "week": 44,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 18.5,
-      "scores": {
-        "reader": 2.94,
-        "situation": 0.3,
-        "point_of_view": 3.4,
-        "useful": 3.72,
-        "voice": 3.83,
-        "visual_clarity": 4.28
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.5/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -991,20 +685,13 @@
       "week": 45,
       "layout": "code_to_outcome",
       "verdict": "HOLD",
-      "score": 20.7,
-      "scores": {
-        "reader": 3.28,
-        "situation": 2.67,
-        "point_of_view": 3.7,
-        "useful": 2.68,
-        "voice": 4.1,
-        "visual_clarity": 4.31
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.7/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -1013,20 +700,13 @@
       "week": 46,
       "layout": "offer_card",
       "verdict": "HOLD",
-      "score": 18.2,
-      "scores": {
-        "reader": 2.38,
-        "situation": 2.18,
-        "point_of_view": 3.91,
-        "useful": 1.97,
-        "voice": 3.7,
-        "visual_clarity": 4.08
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.2/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [
         "w46_cv_optimizer_demo:pending_verification"
@@ -1037,20 +717,13 @@
       "week": 47,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 17.0,
-      "scores": {
-        "reader": 2.91,
-        "situation": 1.14,
-        "point_of_view": 1.87,
-        "useful": 3.18,
-        "voice": 3.58,
-        "visual_clarity": 4.36
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.0/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [
         "ownership_handover_terms:pending_verification"
@@ -1061,20 +734,13 @@
       "week": 48,
       "layout": "offer_card",
       "verdict": "HOLD",
-      "score": 21.4,
-      "scores": {
-        "reader": 3.07,
-        "situation": 3.83,
-        "point_of_view": 2.88,
-        "useful": 3.19,
-        "voice": 3.93,
-        "visual_clarity": 4.54
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 21.4/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -1083,20 +749,13 @@
       "week": 49,
       "layout": "offer_card",
       "verdict": "HOLD",
-      "score": 20.2,
-      "scores": {
-        "reader": 3.41,
-        "situation": 0.9,
-        "point_of_view": 3.14,
-        "useful": 4.55,
-        "voice": 3.7,
-        "visual_clarity": 4.51
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 20.2/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -1105,20 +764,13 @@
       "week": 50,
       "layout": "minimal_editorial",
       "verdict": "HOLD",
-      "score": 19.3,
-      "scores": {
-        "reader": 2.85,
-        "situation": 0.59,
-        "point_of_view": 4.04,
-        "useful": 3.0,
-        "voice": 4.19,
-        "visual_clarity": 4.62
-      },
-      "score_source": "jev",
+      "score": null,
+      "scores": null,
+      "score_source": "unscored",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.3/30 < 24"
+        "unscored (Jev unavailable, no manual score)"
       ],
       "pending_claims": [],
       "used_fallback": false

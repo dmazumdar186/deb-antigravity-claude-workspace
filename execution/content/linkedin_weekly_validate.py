@@ -16,7 +16,10 @@ sys.path.insert(0, str(ROOT))
 from execution.content.linkedin_weekly_cards import SAFE, H, W, chromium_path  # noqa: E402
 
 LEDGER = ROOT / ".tmp" / "jev_ledger.jsonl"
-NUM_RE = re.compile(r"[$€£]?\d[\d,.]*\s*(?:%|[kKmM]\+?|\+)?")
+NUM_RE = re.compile(r"[$€£]?\d(?:[\d,.]*\d)?\s*(?:%|[kKmM](?![a-zA-Z])\+?|\+)?|[²³¹¼½¾]")
+WORD_NUM_RE = re.compile(r"\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|"
+                         r"sixty|seventy|eighty|ninety|dozen|hundred|thousand|million|billion|double|triple|half|quarter)\b", re.I)
+NORM_RE = re.compile(r"[$,+\u2212\-%\s]")
 GATE = 24
 LEVELS = ["0 absent", "1 weak", "2 partial", "3 adequate", "4 strong", "5 excellent"]
 CRITERIA = {
@@ -33,18 +36,47 @@ def numeric_tokens(text: str) -> list[str]:
     return [m.group(0).strip() for m in NUM_RE.finditer(text)]
 
 
+def norm(s: str) -> str:
+    return NORM_RE.sub("", s).lower()
+
+
+def token_ok(tok: str, text: str, week: int, claims: list[dict]) -> bool:
+    """Exact normalised match: tok equals the numeric core of an approved match phrase for this week that appears in full in text."""
+    low, word = text.lower(), tok.isalpha()
+    for c in claims:
+        if c["status"] != "approved" or week not in c["weeks"]:
+            continue
+        for m in c.get("match", []):
+            if m.lower() not in low:
+                continue
+            if word and tok.lower() in re.findall(r"[a-z]+", m.lower()):
+                return True
+            core = NUM_RE.search(m)
+            if not word and core and norm(tok) == norm(core.group(0)):
+                return True
+    return False
+
+
+def gated_texts(row: dict) -> dict[str, str]:
+    """Every copy field that reaches the image."""
+    t = {"headline": row["headline"], "supporting_line": row.get("rendered_supporting_line", row["supporting_line"]),
+         "theme": row.get("theme", ""), "cta": row.get("cta_text", "")}
+    for i, (_k, v) in enumerate(row.get("receipt_rows", [])):
+        t[f"receipt_{i}"] = v  # labels (case/note NN) are fixed template text; values carry the copy
+    return t
+
+
 def check_claims(row: dict, claims: list[dict]) -> list[str]:
     """Return failure reasons for the copy that actually rendered (headline + rendered supporting line)."""
+    if row.get("verdict") == "blocked":
+        return [f"blocked: {row.get('blocked_reason', 'not rendered')}"]
     reasons = []
-    texts = {"headline": row["headline"], "supporting_line": row.get("rendered_supporting_line", row["supporting_line"])}
-    for field, text in texts.items():
+    for field, text in gated_texts(row).items():
         for c in claims:
             if c["status"] == "retired" and any(m.lower() in text.lower() for m in c.get("match", [])):
                 reasons.append(f"{field}: retired value '{c['claim_text']}'")
-        for tok in numeric_tokens(text):
-            ok = any(c["status"] == "approved" and row["week"] in c["weeks"] and any(tok in m for m in c.get("match", []))
-                     for c in claims)
-            if not ok:
+        for tok in numeric_tokens(text) + WORD_NUM_RE.findall(text):
+            if not token_ok(tok, text, row["week"], claims):
                 reasons.append(f"{field}: number '{tok}' has no approved claim for week {row['week']}")
     return reasons
 
@@ -61,10 +93,15 @@ def check_overflow(out: Path, rows: list[dict]) -> dict[int, list[str]]:
     with sync_playwright() as p:
         br = p.chromium.launch(executable_path=chromium_path())
         pg = br.new_page(viewport={"width": W, "height": H})
+        base = out.resolve()
         for r in rows:
+            if not r.get("html"):
+                continue  # blocked week; reported as a claims FAIL
             f = (out / r["html"]).resolve()
+            if not f.is_relative_to(base):
+                raise ValueError(f"html path escapes out dir: {r['html']}")
             if not f.exists():
-                res[r["week"]] = ["html missing (not rendered)"]
+                print(f"note: week {r['week']:02d} html absent (not in --weeks subset); overflow skipped", file=sys.stderr)
                 continue
             pg.goto(f.as_uri())
             pg.wait_for_timeout(80)
@@ -111,7 +148,8 @@ def main() -> int:
     manual = json.loads(Path(a.scores).read_text(encoding="utf-8")) if a.scores else {}
 
     overflow = check_overflow(out, rows)
-    scores, cost, jerr = ({}, 0.0, "skipped (--no-jev)") if a.no_jev else jev_scores(rows)
+    live = [r for r in rows if r.get("verdict") != "blocked"]
+    scores, cost, jerr = ({}, 0.0, "skipped (--no-jev)") if a.no_jev else jev_scores(live)
 
     report, hard_fail = [], False
     for r in rows:

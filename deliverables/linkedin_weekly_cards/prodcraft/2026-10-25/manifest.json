@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-25T12:51:53",
+  "generated": "2026-10-25T12:57:01",
   "size": [
     1080,
     1350
@@ -21,6 +21,11 @@
   ],
   "handwritten": 4,
   "fallback_weeks": [
+    15,
+    25
+  ],
+  "blocked_weeks": [],
+  "non_numeric_receipts": [
     15,
     25
   ],

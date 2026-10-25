@@ -13,6 +13,9 @@
       "rendered_supporting_line": "The exceptions hide in the handoffs—not in the happy-path flowchart.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/01_week_before_you_automate_it_follow_one.png",
       "html": "html/01_week_before_you_automate_it_follow_one.html"
     },
@@ -29,6 +32,9 @@
       "rendered_supporting_line": "The system matters most after someone answers.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/02_week_a_sent_email_is_an_activity.png",
       "html": "html/02_week_a_sent_email_is_an_activity.html"
     },
@@ -45,6 +51,9 @@
       "rendered_supporting_line": "A product has to handle missing fields, strange inputs and wrong answers.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/03_week_an_ai_demo_works_on_the.png",
       "html": "html/03_week_an_ai_demo_works_on_the.html"
     },
@@ -61,6 +70,9 @@
       "rendered_supporting_line": "Close the loop: update the record, assign an owner, show the next step.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/04_week_if_a_human_still_copies_the.png",
       "html": "html/04_week_if_a_human_still_copies_the.html"
     },
@@ -77,6 +89,9 @@
       "rendered_supporting_line": "Product decisions make more sense when you see what it takes to ship them.",
       "used_fallback": false,
       "handwritten": true,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/05_week_i_moved_closer_to_the_code.png",
       "html": "html/05_week_i_moved_closer_to_the_code.html"
     },
@@ -93,6 +108,9 @@
       "rendered_supporting_line": "Sometimes a rule, an API call and one human check are enough.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/06_week_not_every_ai_idea_deserves_an.png",
       "html": "html/06_week_not_every_ai_idea_deserves_an.html"
     },
@@ -109,6 +127,9 @@
       "rendered_supporting_line": "Escalation is part of the experience—not a failure state.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/07_week_a_voice_assistant_needs_to_know.png",
       "html": "html/07_week_a_voice_assistant_needs_to_know.html"
     },
@@ -125,6 +146,9 @@
       "rendered_supporting_line": "We’ll map the current steps and decide whether automation is worth it.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "More in the post",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/08_week_bring_one_repetitive_task_not_a.png",
       "html": "html/08_week_bring_one_repetitive_task_not_a.html"
     },
@@ -141,6 +165,9 @@
       "rendered_supporting_line": "Name what should change for the user after the feature ships.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/09_week_a_roadmap_item_is_not_a.png",
       "html": "html/09_week_a_roadmap_item_is_not_a.html"
     },
@@ -157,6 +184,9 @@
       "rendered_supporting_line": "Who acts when the model is uncertain, the API fails or the customer needs a person?",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/10_week_a_workflow_without_an_owner_is.png",
       "html": "html/10_week_a_workflow_without_an_owner_is.html"
     },
@@ -173,6 +203,9 @@
       "rendered_supporting_line": "Data quality and deliverability set the ceiling before copy gets a chance.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/11_week_more_sends_wont_fix_a_weak.png",
       "html": "html/11_week_more_sends_wont_fix_a_weak.html"
     },
@@ -189,6 +222,9 @@
       "rendered_supporting_line": "If the source documents are stale or contradictory, retrieval won’t fix that.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/12_week_rag_can_retrieve_the_wrong_truth.png",
       "html": "html/12_week_rag_can_retrieve_the_wrong_truth.html"
     },
@@ -205,6 +241,9 @@
       "rendered_supporting_line": "Keep real questions and past failures as regression tests.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/13_week_one_good_answer_is_not_an.png",
       "html": "html/13_week_one_good_answer_is_not_an.html"
     },
@@ -221,6 +260,9 @@
       "rendered_supporting_line": "Deduplication prevents the same lead or invoice from being processed twice.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/14_week_the_boring_code_can_protect_the.png",
       "html": "html/14_week_the_boring_code_can_protect_the.html"
     },
@@ -238,6 +280,26 @@
       "rendered_supporting_line": "Reply routing, lead ownership and follow-up are where outbound becomes an operation.",
       "used_fallback": true,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [
+        [
+          "case",
+          "outbound proof"
+        ],
+        [
+          "step 01",
+          "reply routing"
+        ],
+        [
+          "step 02",
+          "lead ownership"
+        ],
+        [
+          "step 03",
+          "follow-up"
+        ]
+      ],
+      "evidence": "non-numeric",
       "file": "png/15_week_the_work_after_send_is_where.png",
       "html": "html/15_week_the_work_after_send_is_where.html"
     },
@@ -254,6 +316,9 @@
       "rendered_supporting_line": "Production adds permissions, support, cost controls and failure handling.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/16_week_a_pilot_isnt_a_product_yet.png",
       "html": "html/16_week_a_pilot_isnt_a_product_yet.html"
     },
@@ -270,6 +335,9 @@
       "rendered_supporting_line": "Test interruptions, unclear requests, silence and requests for a person.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/17_week_if_the_call_gets_unusual_can.png",
       "html": "html/17_week_if_the_call_gets_unusual_can.html"
     },
@@ -286,6 +354,9 @@
       "rendered_supporting_line": "I want fewer repetitive decisions and clearer ownership.",
       "used_fallback": false,
       "handwritten": true,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/18_week_i_dont_want_ai_in_every.png",
       "html": "html/18_week_i_dont_want_ai_in_every.html"
     },
@@ -302,6 +373,9 @@
       "rendered_supporting_line": "Classify it, assign it and make the next action visible.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/19_week_a_reply_in_a_shared_inbox.png",
       "html": "html/19_week_a_reply_in_a_shared_inbox.html"
     },
@@ -318,6 +392,9 @@
       "rendered_supporting_line": "The repo, cloud account, credentials and runbook should be yours.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "More in the post",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/20_week_your_software_should_not_depend_on.png",
       "html": "html/20_week_your_software_should_not_depend_on.html"
     },
@@ -334,6 +411,9 @@
       "rendered_supporting_line": "What decision gets easier? What work disappears? What new risk appears?",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/21_week_start_with_the_task_not_the.png",
       "html": "html/21_week_start_with_the_task_not_the.html"
     },
@@ -350,6 +430,9 @@
       "rendered_supporting_line": "Track qualified conversations and next steps—not only sends and opens.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/22_week_a_reply_rate_alone_wont_tell.png",
       "html": "html/22_week_a_reply_rate_alone_wont_tell.html"
     },
@@ -366,6 +449,9 @@
       "rendered_supporting_line": "Show the evidence—or say the system cannot verify it.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/23_week_a_confident_answer_with_no_source.png",
       "html": "html/23_week_a_confident_answer_with_no_source.html"
     },
@@ -382,6 +468,9 @@
       "rendered_supporting_line": "If someone must copy the result by hand, close the loop.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/24_week_automation_should_remove_a_step_not.png",
       "html": "html/24_week_automation_should_remove_a_step_not.html"
     },
@@ -399,6 +488,26 @@
       "rendered_supporting_line": "In a partner marketplace build, payment edge cases mattered as much as the checkout.",
       "used_fallback": true,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [
+        [
+          "case",
+          "marketplace / case study"
+        ],
+        [
+          "surface",
+          "checkout"
+        ],
+        [
+          "risk",
+          "payment edge cases"
+        ],
+        [
+          "decision",
+          "onboarding"
+        ]
+      ],
+      "evidence": "non-numeric",
       "file": "png/25_week_a_marketplace_is_more_than_a.png",
       "html": "html/25_week_a_marketplace_is_more_than_a.html"
     },
@@ -415,6 +524,9 @@
       "rendered_supporting_line": "Version prompts and rerun the failures you already know about.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/26_week_every_prompt_change_can_break_something.png",
       "html": "html/26_week_every_prompt_change_can_break_something.html"
     },
@@ -431,6 +543,9 @@
       "rendered_supporting_line": "Create the task, update the record or notify the right person.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/27_week_the_useful_part_of_an_ai.png",
       "html": "html/27_week_the_useful_part_of_an_ai.html"
     },
@@ -447,6 +562,9 @@
       "rendered_supporting_line": "Test the real task, with messy inputs and the people who will use it.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/28_week_a_green_test_suite_doesnt_mean.png",
       "html": "html/28_week_a_green_test_suite_doesnt_mean.html"
     },
@@ -463,6 +581,9 @@
       "rendered_supporting_line": "Routing, caching and evaluation can matter as much as the model choice.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/29_week_the_latency_fix_wasnt_use_a.png",
       "html": "html/29_week_the_latency_fix_wasnt_use_a.html"
     },
@@ -479,6 +600,9 @@
       "rendered_supporting_line": "If you can’t point to the source, don’t put it in the email.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/30_week_personalization_should_be_a_fact_not.png",
       "html": "html/30_week_personalization_should_be_a_fact_not.html"
     },
@@ -495,6 +619,9 @@
       "rendered_supporting_line": "Make failures visible, recover safely and give the human enough context.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/31_week_a_failed_tool_call_should_not.png",
       "html": "html/31_week_a_failed_tool_call_should_not.html"
     },
@@ -511,6 +638,9 @@
       "rendered_supporting_line": "Scope one painful workflow before debating frameworks.",
       "used_fallback": false,
       "handwritten": true,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/32_week_the_stack_is_the_easy_part.png",
       "html": "html/32_week_the_stack_is_the_easy_part.html"
     },
@@ -527,6 +657,9 @@
       "rendered_supporting_line": "Can this work with our data, our users and our constraints?",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/33_week_a_prototype_should_answer_one_risky.png",
       "html": "html/33_week_a_prototype_should_answer_one_risky.html"
     },
@@ -543,6 +676,9 @@
       "rendered_supporting_line": "Every alert needs a next action, an escalation path and a runbook.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/34_week_if_an_alert_has_no_owner.png",
       "html": "html/34_week_if_an_alert_has_no_owner.html"
     },
@@ -559,6 +695,26 @@
       "rendered_supporting_line": "Measure cost per successful task, not just cost per token.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [
+        [
+          "case",
+          "ai reliability"
+        ],
+        [
+          "evidence",
+          "verified"
+        ],
+        [
+          "note 01",
+          "Measure cost per successful task"
+        ],
+        [
+          "note 02",
+          "not just cost per token"
+        ]
+      ],
+      "evidence": "verified",
       "file": "png/35_week_the_cheapest_model_can_be_expensive.png",
       "html": "html/35_week_the_cheapest_model_can_be_expensive.html"
     },
@@ -575,6 +731,9 @@
       "rendered_supporting_line": "Routing and CRM hygiene are part of the product.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/36_week_the_fastest_response_is_useless_if.png",
       "html": "html/36_week_the_fastest_response_is_useless_if.html"
     },
@@ -591,6 +750,9 @@
       "rendered_supporting_line": "Decide in advance which cases need a person.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/37_week_human_review_isnt_the_problem_surprise.png",
       "html": "html/37_week_human_review_isnt_the_problem_surprise.html"
     },
@@ -607,6 +769,9 @@
       "rendered_supporting_line": "Keep the scope narrow; keep the acceptance criteria real.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/38_week_the_first_version_should_be_small.png",
       "html": "html/38_week_the_first_version_should_be_small.html"
     },
@@ -623,6 +788,9 @@
       "rendered_supporting_line": "A webhook fires twice. A record changes late. A reply arrives out of order.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/39_week_the_hardest_automation_bugs_live_between.png",
       "html": "html/39_week_the_hardest_automation_bugs_live_between.html"
     },
@@ -639,6 +807,9 @@
       "rendered_supporting_line": "What is the user trying to get done—and what gets in the way?",
       "used_fallback": false,
       "handwritten": true,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/40_week_after_15_years_in_product_i.png",
       "html": "html/40_week_after_15_years_in_product_i.html"
     },
@@ -655,6 +826,9 @@
       "rendered_supporting_line": "A good voice assistant makes the handoff easier, not awkward.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/41_week_can_i_speak_to_a_person.png",
       "html": "html/41_week_can_i_speak_to_a_person.html"
     },
@@ -671,6 +845,9 @@
       "rendered_supporting_line": "Show dates, source ownership and what happens when two documents disagree.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/42_week_your_document_assistant_needs_a_plan.png",
       "html": "html/42_week_your_document_assistant_needs_a_plan.html"
     },
@@ -687,6 +864,9 @@
       "rendered_supporting_line": "Data access, integrations, permissions and ownership often decide the schedule.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/43_week_a_timeline_is_not_a_plan.png",
       "html": "html/43_week_a_timeline_is_not_a_plan.html"
     },
@@ -703,6 +883,9 @@
       "rendered_supporting_line": "It is removing unnecessary handoffs while keeping checks that catch real failures.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/44_week_speed_is_not_skipping_the_controls.png",
       "html": "html/44_week_speed_is_not_skipping_the_controls.html"
     },
@@ -719,6 +902,9 @@
       "rendered_supporting_line": "Pause safely when deliverability drops or an integration starts misbehaving.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/45_week_outbound_needs_an_off_switch.png",
       "html": "html/45_week_outbound_needs_an_off_switch.html"
     },
@@ -735,6 +921,9 @@
       "rendered_supporting_line": "Try the multilingual CV optimizer with a real role and your own criteria.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "Live demo · cv-optimizer.pages.dev",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/46_week_a_live_demo_beats_a_paragraph.png",
       "html": "html/46_week_a_live_demo_beats_a_paragraph.html"
     },
@@ -751,6 +940,9 @@
       "rendered_supporting_line": "Documentation, access and a clear runbook are part of delivery.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "More in the post",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/47_week_a_good_build_should_leave_your.png",
       "html": "html/47_week_a_good_build_should_leave_your.html"
     },
@@ -767,6 +959,9 @@
       "rendered_supporting_line": "We’ll map the workflow and decide whether automation is worth the complexity.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "30-minute session · link in the post",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/48_week_bring_me_the_task_that_lives.png",
       "html": "html/48_week_bring_me_the_task_that_lives.html"
     },
@@ -783,6 +978,9 @@
       "rendered_supporting_line": "A job title and a tech stack are not a business case.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "More in the post",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/49_week_before_hiring_for_an_ai_project.png",
       "html": "html/49_week_before_hiring_for_an_ai_project.html"
     },
@@ -799,6 +997,9 @@
       "rendered_supporting_line": "Bring a repetitive task; leave with a clearer decision on what to build—or not build.",
       "used_fallback": false,
       "handwritten": false,
+      "cta_text": "30-minute session · link in the post",
+      "receipt_rows": [],
+      "evidence": null,
       "file": "png/50_week_no_ai_pitch_deck_one_real.png",
       "html": "html/50_week_no_ai_pitch_deck_one_real.html"
     }

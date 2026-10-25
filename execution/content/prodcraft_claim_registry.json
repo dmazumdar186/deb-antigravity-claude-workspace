@@ -6,7 +6,7 @@
     "blocked",
     "retired"
   ],
-  "rule": "A numeric token in headline/supporting_line must match a `match` pattern of an approved claim listing that week. Retired matches always fail.",
+  "rule": "A numeric token (digits, superscripts/fractions, or number words) in any field that reaches the image (headline, rendered supporting line, theme, CTA text, receipt rows) must normalise-equal the numeric core of a `match` phrase of an approved claim listing that week, and that full phrase must appear in the text. Retired matches always fail.",
   "claims": [
     {
       "id": "w15_outbound_baseline",
@@ -102,7 +102,8 @@
       "attribution": "",
       "disclosure_permission": "n/a",
       "approved_wording": "Not a 40-slide AI strategy.",
-      "notes": "Approved as rhetoric so the numeric gate passes; not a metric."
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
     },
     {
       "id": "cta_30min_session",
@@ -112,7 +113,9 @@
         50
       ],
       "claim_text": "30-minute session CTA",
-      "match": [],
+      "match": [
+        "30-minute"
+      ],
       "status": "approved",
       "source": "https://cal.com/debanjan-mazumdar-ben5rd/30min",
       "date_range": "live as of 2026-10-25",
@@ -265,6 +268,207 @@
       "disclosure_permission": "",
       "approved_wording": "",
       "notes": "Stretched value: extrapolated. Never publish."
+    },
+    {
+      "id": "w01_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        1
+      ],
+      "claim_text": "one real case (count/idiom, not a metric)",
+      "match": [
+        "one real case"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "one real case",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w06_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        6
+      ],
+      "claim_text": "one human check (count/idiom, not a metric)",
+      "match": [
+        "one human check"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "one human check",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w08_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        8
+      ],
+      "claim_text": "one repetitive task (count/idiom, not a metric)",
+      "match": [
+        "one repetitive task"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "one repetitive task",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w13_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        13
+      ],
+      "claim_text": "One good answer (count/idiom, not a metric)",
+      "match": [
+        "One good answer"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "One good answer",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w32_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        32
+      ],
+      "claim_text": "one painful workflow (count/idiom, not a metric)",
+      "match": [
+        "one painful workflow"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "one painful workflow",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w33_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        33
+      ],
+      "claim_text": "one risky question (count/idiom, not a metric)",
+      "match": [
+        "one risky question"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "one risky question",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w35_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        35
+      ],
+      "claim_text": "three retries (count/idiom, not a metric)",
+      "match": [
+        "three retries"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "three retries",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w42_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        42
+      ],
+      "claim_text": "two documents (count/idiom, not a metric)",
+      "match": [
+        "two documents"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "two documents",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w48_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        48
+      ],
+      "claim_text": "three tabs, one person’s head (count/idiom, not a metric)",
+      "match": [
+        "three tabs",
+        "one person’s head"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "three tabs; one person’s head",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w50_word_count_idiom",
+      "type": "rhetoric",
+      "weeks": [
+        50
+      ],
+      "claim_text": "One real workflow (count/idiom, not a metric)",
+      "match": [
+        "One real workflow"
+      ],
+      "status": "approved",
+      "source": "pack copy (verbatim)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "idiomatic count word, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "One real workflow",
+      "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
     }
   ]
 }
