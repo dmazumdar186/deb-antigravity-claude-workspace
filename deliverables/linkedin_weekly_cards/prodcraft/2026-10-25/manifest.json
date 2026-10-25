@@ -1,10 +1,22 @@
 {
-  "generated": "2026-10-25T13:15:46",
+  "generated": "2026-10-25T16:07:48",
   "size": [
     1080,
     1350
   ],
   "count": 10,
+  "weeks": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
   "layouts": {
     "minimal_editorial": 5,
     "annotated_workflow": 14,
@@ -19,7 +31,7 @@
     "week 24: annotated_workflow would repeat 3x; reassigned to minimal_editorial",
     "week 50: offer_card would repeat 3x; reassigned to minimal_editorial"
   ],
-  "handwritten": 4,
+  "handwritten": 0,
   "fallback_weeks": [
     15,
     25
@@ -30,12 +42,12 @@
     25
   ],
   "fonts_loaded": [
-    "Caveat",
     "Geist",
     "JetBrains Mono",
     "Newsreader"
   ],
   "logo": true,
+  "logo_style": "ink",
   "index": "index.html",
   "zip": "prodcraft_weekly_cards_batch1.zip",
   "published": false

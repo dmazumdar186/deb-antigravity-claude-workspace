@@ -63,6 +63,8 @@ def gated_texts(row: dict) -> dict[str, str]:
          "theme": row.get("theme", ""), "cta": row.get("cta_text", "")}
     for i, (_k, v) in enumerate(row.get("receipt_rows", [])):
         t[f"receipt_{i}"] = v  # labels (case/note NN) are fixed template text; values carry the copy
+    for i, v in enumerate(row.get("visual_words", [])):
+        t[f"visual_{i}"] = v  # words drawn on the diagram; list numerals 01/02/03 and "wk NN" are fixed labels, not gated
     return t
 
 

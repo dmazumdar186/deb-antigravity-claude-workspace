@@ -6,9 +6,9 @@
     "overflow_fail": [],
     "score_ge_24": 1,
     "unscored": 0,
-    "score_min": 17.0,
+    "score_min": 16.9,
     "score_median": 19.3,
-    "score_max": 24.0,
+    "score_max": 24.2,
     "jev_cost_usd": 0.000378,
     "jev_error": null
   },
@@ -17,20 +17,20 @@
       "week": 1,
       "layout": "minimal_editorial",
       "verdict": "HOLD",
-      "score": 18.2,
+      "score": 18.3,
       "scores": {
-        "reader": 3.01,
-        "situation": 0.89,
+        "reader": 3.09,
+        "situation": 0.96,
         "point_of_view": 3.13,
-        "useful": 2.75,
-        "voice": 4.06,
-        "visual_clarity": 4.35
+        "useful": 2.73,
+        "voice": 4.02,
+        "visual_clarity": 4.4
       },
       "score_source": "jev",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.2/30 < 24"
+        "score 18.3/30 < 24"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -41,12 +41,12 @@
       "verdict": "HOLD",
       "score": 19.3,
       "scores": {
-        "reader": 3.77,
-        "situation": 2.0,
-        "point_of_view": 3.05,
-        "useful": 2.73,
-        "voice": 3.45,
-        "visual_clarity": 4.3
+        "reader": 3.78,
+        "situation": 2.04,
+        "point_of_view": 3.03,
+        "useful": 2.8,
+        "voice": 3.42,
+        "visual_clarity": 4.25
       },
       "score_source": "jev",
       "claims_pass": true,
@@ -61,20 +61,20 @@
       "week": 3,
       "layout": "failure_checklist",
       "verdict": "HOLD",
-      "score": 17.8,
+      "score": 17.9,
       "scores": {
-        "reader": 2.48,
-        "situation": 1.45,
-        "point_of_view": 2.01,
-        "useful": 3.62,
-        "voice": 3.97,
-        "visual_clarity": 4.29
+        "reader": 2.53,
+        "situation": 1.39,
+        "point_of_view": 2.1,
+        "useful": 3.66,
+        "voice": 3.95,
+        "visual_clarity": 4.28
       },
       "score_source": "jev",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.8/30 < 24"
+        "score 17.9/30 < 24"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -83,14 +83,14 @@
       "week": 4,
       "layout": "annotated_workflow",
       "verdict": "PUBLISHABLE",
-      "score": 24.0,
+      "score": 24.2,
       "scores": {
-        "reader": 3.68,
-        "situation": 3.98,
-        "point_of_view": 4.08,
-        "useful": 4.08,
-        "voice": 3.62,
-        "visual_clarity": 4.53
+        "reader": 3.7,
+        "situation": 3.96,
+        "point_of_view": 4.1,
+        "useful": 4.13,
+        "voice": 3.69,
+        "visual_clarity": 4.58
       },
       "score_source": "jev",
       "claims_pass": true,
@@ -103,20 +103,20 @@
       "week": 5,
       "layout": "founder_note",
       "verdict": "HOLD",
-      "score": 18.3,
+      "score": 18.5,
       "scores": {
-        "reader": 4.0,
-        "situation": 0.75,
-        "point_of_view": 3.79,
-        "useful": 1.26,
-        "voice": 4.17,
-        "visual_clarity": 4.34
+        "reader": 4.17,
+        "situation": 0.72,
+        "point_of_view": 3.8,
+        "useful": 1.21,
+        "voice": 4.23,
+        "visual_clarity": 4.39
       },
       "score_source": "jev",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 18.3/30 < 24"
+        "score 18.5/30 < 24"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -125,20 +125,20 @@
       "week": 6,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 19.9,
+      "score": 19.7,
       "scores": {
-        "reader": 3.16,
-        "situation": 0.61,
-        "point_of_view": 3.49,
-        "useful": 4.24,
-        "voice": 3.92,
-        "visual_clarity": 4.52
+        "reader": 3.19,
+        "situation": 0.55,
+        "point_of_view": 3.42,
+        "useful": 4.14,
+        "voice": 3.91,
+        "visual_clarity": 4.5
       },
       "score_source": "jev",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.9/30 < 24"
+        "score 19.7/30 < 24"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -147,20 +147,20 @@
       "week": 7,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 17.0,
+      "score": 16.9,
       "scores": {
-        "reader": 3.12,
-        "situation": 1.56,
-        "point_of_view": 1.82,
-        "useful": 3.17,
+        "reader": 3.13,
+        "situation": 1.48,
+        "point_of_view": 1.85,
+        "useful": 3.16,
         "voice": 3.21,
-        "visual_clarity": 4.16
+        "visual_clarity": 4.11
       },
       "score_source": "jev",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 17.0/30 < 24"
+        "score 16.9/30 < 24"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -171,12 +171,12 @@
       "verdict": "HOLD",
       "score": 19.9,
       "scores": {
-        "reader": 3.05,
-        "situation": 1.56,
-        "point_of_view": 4.19,
+        "reader": 3.02,
+        "situation": 1.64,
+        "point_of_view": 4.2,
         "useful": 2.07,
-        "voice": 4.37,
-        "visual_clarity": 4.63
+        "voice": 4.39,
+        "visual_clarity": 4.61
       },
       "score_source": "jev",
       "claims_pass": true,
@@ -191,20 +191,20 @@
       "week": 9,
       "layout": "before_after",
       "verdict": "HOLD",
-      "score": 19.2,
+      "score": 19.1,
       "scores": {
         "reader": 3.22,
-        "situation": 0.33,
-        "point_of_view": 3.7,
-        "useful": 3.83,
-        "voice": 3.78,
-        "visual_clarity": 4.34
+        "situation": 0.28,
+        "point_of_view": 3.63,
+        "useful": 3.74,
+        "voice": 3.83,
+        "visual_clarity": 4.38
       },
       "score_source": "jev",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 19.2/30 < 24"
+        "score 19.1/30 < 24"
       ],
       "pending_claims": [],
       "used_fallback": false
@@ -213,20 +213,20 @@
       "week": 10,
       "layout": "annotated_workflow",
       "verdict": "HOLD",
-      "score": 21.6,
+      "score": 21.9,
       "scores": {
-        "reader": 3.71,
-        "situation": 2.34,
-        "point_of_view": 3.91,
-        "useful": 3.85,
-        "voice": 3.54,
-        "visual_clarity": 4.29
+        "reader": 3.68,
+        "situation": 2.46,
+        "point_of_view": 3.92,
+        "useful": 3.95,
+        "voice": 3.62,
+        "visual_clarity": 4.3
       },
       "score_source": "jev",
       "claims_pass": true,
       "overflow": [],
       "reasons": [
-        "score 21.6/30 < 24"
+        "score 21.9/30 < 24"
       ],
       "pending_claims": [],
       "used_fallback": false

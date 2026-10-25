@@ -22,9 +22,15 @@ SAFE = 96  # mobile-safe margin; validator checks every text box stays inside it
 BOOK_URL = "https://cal.com/debanjan-mazumdar-ben5rd/30min"
 DEMO_URL = "https://cv-optimizer.pages.dev"
 CTA_ON_IMAGE = {"Book session", "Soft invitation", "Demo link"}
-MAX_HAND = 8
 LOGO = ROOT / "execution/content/assets/prodcraft_logo.png"
-BRAND_FONTS = ("Newsreader", "Geist", "JetBrains Mono", "Caveat")
+LOGO_STYLES = {"ink": ROOT / "execution/content/assets/prodcraft_logo_ink.png",
+               "brass": ROOT / "execution/content/assets/prodcraft_logo_brass.png", "color": LOGO}
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+BRAND_FONTS = ("Newsreader", "Geist", "JetBrains Mono")  # Caveat retired 2026-10-25 (no handwritten mark)
+FOOT_LABEL = "ProdCraft · weekly notes"  # series label; prodcraft.fyi never appears on non-offer weeks
+WJ = "\u2060"  # word joiner: keeps an em dash with the word that follows it
+NBSP = "\u00a0"
+URL_RE = re.compile(r"""url\(\s*["']?(?!data:|file:|https?:)([^"')]+)["']?\s*\)""")
 MAX_HEADLINE = 140  # longer headlines WARN; font floor stays 62px
 NBH = "\u2011"  # non-breaking hyphen; hoisted so no backslash sits inside an f-string expression (<3.12)
 CTA_TEXT = {"Book session": "30-minute session · link in the post",
@@ -69,56 +75,85 @@ PAIR_LABELS = {"pilot_vs_production": ("Pilot", "Production"), "good_bad_example
 DARK_FAMILIES = {"code_to_outcome"}
 
 CSS = r"""
-:root{--paper:#f3f1ec;--ink:#17191d;--ink2:#474b53;--brass:#a8843a;--hair:rgba(23,25,29,.18);--grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>")}
+:root{--paper:#f3f1ec;--ink:#17191d;--ink2:#474b53;--brass:#a8843a;--hair:rgba(23,25,29,.25);--grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>")}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{font-family:Geist,Inter,system-ui,sans-serif;font-feature-settings:"ss01","cv11"}
-.card{position:relative;width:1080px;height:1350px;overflow:hidden;background:var(--paper);color:var(--ink);padding:96px;display:flex;flex-direction:column}
+.card{position:relative;width:1080px;height:1350px;overflow:hidden;background:var(--paper);color:var(--ink)}
 .card:after{content:"";position:absolute;inset:0;background:var(--grain);opacity:.07;pointer-events:none;mix-blend-mode:multiply}
-.card.dark{background:var(--ink);color:#f3f1ec;--ink2:#c3bfb6;--hair:rgba(243,241,236,.2);--brass:#c9a35a}
+.card.dark{background:var(--ink);color:#f3f1ec;--ink2:#c3bfb6;--hair:rgba(243,241,236,.25);--brass:#c9a35a}
 .card.dark:after{opacity:.05;mix-blend-mode:screen}
-.serif{font-family:Newsreader,'Bitstream Charter',FreeSerif,Georgia,serif}
-.mono{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:18px;letter-spacing:.02em;color:var(--ink2);font-variant-numeric:tabular-nums}
-.hand{font-family:Caveat,'Bitstream Charter',cursive;font-weight:500}
-/* brand row: mark + wordmark baseline-aligned, week label right */
-.top{height:48px;display:flex;justify-content:space-between;align-items:flex-end}
-.brand{display:flex;align-items:flex-end;gap:14px}
-.brand img{height:48px;width:auto;display:block}
-.brand span{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-weight:500;font-size:28px;line-height:1;letter-spacing:-.005em;padding-bottom:6px}
-.top .mono{line-height:1;padding-bottom:7px}
-.main{flex:1;display:flex;flex-direction:column;min-height:0;margin-top:64px}
-h1{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizing:auto;font-weight:500;line-height:1.05;letter-spacing:-.018em;margin:0;text-wrap:pretty;max-width:888px}
-.sup{font-size:36px;line-height:1.3;color:var(--ink2);margin:0;max-width:28ch;text-wrap:pretty}
-.rule{width:56px;height:3px;background:var(--brass);border:0;margin:32px 0 24px}
-.vis{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;margin-top:56px}
-.vis svg{display:block;width:100%;height:auto;max-height:100%}
-.cta{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:18px;letter-spacing:.02em;color:var(--ink2);border-top:1px solid var(--hair);padding-top:20px;margin-top:40px}
-.gap{flex:1}
-/* minimal + founder + offer: headline up, support pushed down, air in between */
-.main{justify-content:center;padding-bottom:120px}
-.main:has(.vis){padding-bottom:96px}
-.kick{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:18px;letter-spacing:.02em;color:var(--brass);margin-bottom:24px}
-.sig{font-size:40px;line-height:1.3;color:var(--ink);margin-top:40px}
-.note{display:flex;align-items:flex-start;gap:48px}.note .sup{flex:0 1 auto}.note .sig{margin:8px 0 0;flex:0 0 auto;transform:rotate(-3deg);transform-origin:left bottom}
-/* checklist: square mono boxes, hairline rows */
+.serif,.it{font-family:Newsreader,'Bitstream Charter',FreeSerif,Georgia,serif}
+.it{font-style:italic;font-weight:400}
+.mono{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:15px;letter-spacing:.08em;color:var(--ink2);font-variant-numeric:tabular-nums}
+.up{text-transform:uppercase}
+/* grid: lockup y96 · kicker y232 · headline bottom-anchored at y712 · content 720-1120 · footer rule y1210 */
+.top{position:absolute;left:96px;right:96px;top:96px;height:40px;display:flex;justify-content:space-between;align-items:flex-end}
+.brand{display:flex;align-items:flex-end;gap:12px}
+.brand img{height:40px;width:auto;display:block;margin-bottom:8px}
+.brand span{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-weight:500;font-size:26px;line-height:1;letter-spacing:-.005em;padding-bottom:6px}
+.top .mono{line-height:1;padding-bottom:4px}
+.kick{position:absolute;left:96px;top:232px}
+.head{position:absolute;left:96px;right:96px;bottom:638px}
+h1{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizing:auto;font-weight:500;font-size:84px;line-height:1.05;letter-spacing:-.018em;margin:0;max-width:888px}
+.content{position:absolute;left:96px;right:96px;top:720px;height:400px;padding-top:32px;display:flex;flex-direction:column;justify-content:flex-start}
+.sup{font-size:36px;line-height:1.3;color:var(--ink2);margin:0;max-width:640px;text-wrap:pretty;font-weight:400}
+.sup+.vis,.vis+.sup{margin-top:36px}
+.vis{flex:0 0 auto}
+.vis svg{display:block;width:100%;height:auto}
+.foot{position:absolute;left:96px;right:96px;top:1210px;border-top:1px solid var(--hair);padding-top:22px;display:flex;justify-content:space-between}
+.foot .n{color:var(--brass)}.foot .n.q{color:var(--ink2)}
+/* founder note */
+.sig{font-size:30px;line-height:1.3;color:var(--brass);margin-top:32px}
+/* strip: boxes sized to content + 48px, 1.5px ink, 48px joins, no arrowheads */
+.strip{display:flex;align-items:center}
+.bx{border:1.5px solid var(--ink);padding:12px 24px;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:20px;letter-spacing:.02em;color:var(--ink);line-height:1.2;white-space:nowrap}
+.bx.b{border-color:var(--brass);color:var(--brass)}
+.join{width:48px;height:1.5px;background:var(--ink);flex:0 0 48px}
+/* chain: 10px nodes on a 1.5px spine, boxes left-aligned */
+.chain{position:relative;padding-left:40px;margin:0;list-style:none}
+.chain:before{content:"";position:absolute;left:4.25px;top:32px;bottom:32px;width:1.5px;background:var(--ink)}
+.chain li{position:relative;height:64px;display:flex;align-items:center;margin-bottom:20px}
+.chain li:last-child{margin-bottom:0}
+.chain li:before{content:"";position:absolute;left:-40px;top:27px;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper)}
+.chain li:last-child:before{background:var(--brass);border-color:var(--brass)}
+.chain .bx{font-family:Geist,Inter,system-ui,sans-serif;font-size:30px;letter-spacing:0;padding:12px 24px}
+/* numbered list: mono numerals, 1px rules */
+.ls{list-style:none;padding:0;margin:0;border-top:1px solid var(--hair)}
+.ls li{display:flex;gap:28px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--hair);font-size:34px;line-height:1.25;color:var(--ink)}
+.ls .num{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:18px;letter-spacing:.04em;color:var(--ink2);flex:0 0 40px;font-variant-numeric:tabular-nums}
+.stem{font-size:36px;line-height:1.3;color:var(--ink2);margin:0 0 20px}
+.ls.c li{padding:10px 0;font-size:30px}.ls.c+.stem,.c .stem{margin-bottom:14px}.vis.c{margin-top:28px}
+/* two columns */
+.two{display:grid;grid-template-columns:1fr 1fr;column-gap:48px}
+.two .col{padding-top:20px;border-top:1px solid var(--hair)}
+.two .lab{margin-bottom:18px}
+.two .v{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizing:auto;font-weight:400;font-size:36px;line-height:1.25;margin:0;color:var(--ink)}
+.two .v.m{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:22px;letter-spacing:.02em;line-height:1.5}
+/* italic statement */
+.quote{font-size:44px;line-height:1.25;margin:0;color:var(--ink);max-width:888px}
+.cap{margin-top:24px;font-size:20px;letter-spacing:.04em}
+/* checklist (generic weeks): 36px squares, 1.5px stroke */
 .check{list-style:none;padding:0;margin:0;border-top:1px solid var(--hair)}
-.check li{display:flex;gap:28px;align-items:flex-start;padding:30px 0;border-bottom:1px solid var(--hair);font-size:34px;line-height:1.3}
-.box{flex:0 0 32px;height:32px;border:2px solid var(--ink);margin-top:7px}
-/* before/after: two columns divided by a hairline, no boxes */
-.ba{display:grid;grid-template-columns:1fr 1fr;column-gap:48px;padding-top:32px;border-top:1px solid var(--hair)}
-.col .k{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:18px;letter-spacing:.02em;color:var(--ink2);margin-bottom:20px}
+.check li{display:flex;gap:28px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--hair);font-size:34px;line-height:1.25}
+.box{flex:0 0 36px;height:36px;border:1.5px solid var(--ink);margin-top:3px}
+/* before/after (generic weeks) */
+.ba{display:grid;grid-template-columns:1fr 1fr;column-gap:48px;padding-top:24px;border-top:1px solid var(--hair)}
+.col .k{margin-bottom:18px}
 .col p{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizing:auto;font-weight:400;font-size:36px;line-height:1.2;margin:0;text-wrap:pretty}
 .col.a p{color:var(--ink2)}
 .col.b{border-left:1px solid var(--hair);padding-left:48px}
 /* code */
-.code{border:1px solid var(--hair);padding:32px;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:22px;line-height:1.6;color:#f3f1ec;white-space:pre-wrap;overflow:hidden}
+.code{border:1px solid var(--hair);padding:24px;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:22px;line-height:1.6;color:#f3f1ec;white-space:pre-wrap;overflow:hidden}
 .code .c{color:#9a968e}.code .k{color:var(--brass)}
-.illus{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:18px;color:var(--ink2);margin-top:16px}
-/* receipt: tabular mono rows, no dashed box */
+.illus{margin-top:16px}
+/* receipt */
 .rcpt{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:22px;line-height:1.5;max-width:720px;border-top:1px solid var(--hair)}
 .rcpt .row{display:flex;justify-content:space-between;gap:24px;border-bottom:1px solid var(--hair);padding:12px 0}
 .rcpt .row span:last-child{text-align:right}
 .rcpt .tot{font-weight:600;border:0;padding-top:20px}
 """
+FIT_JS = """<script>(function(){var h=document.querySelector('h1');if(!h)return;var s=[[84,2],[76,3],[68,4]];
+for(var i=0;i<s.length;i++){h.style.fontSize=s[i][0]+'px';var n=Math.round(h.getBoundingClientRect().height/(s[i][0]*1.05));if(n<=s[i][1])break;}})();</script>"""
 
 
 def esc(s: str) -> str:
@@ -136,16 +171,6 @@ def fragments(text: str) -> list[str]:
     parts = re.split(r"\s*[:;—]\s*|,\s*(?:and\s+|or\s+)?|\s+and\s+|\s+or\s+|\s+then\s+", t)
     parts = [p.strip(" .") for p in parts if p and len(p.strip(" .")) > 1]
     return parts[:5]
-
-
-def headline_px(head: str, family: str) -> int:
-    n = len(head)
-    base = 92 if n <= 40 else 84 if n <= 58 else 74 if n <= 75 else 66
-    if family == "minimal_editorial":
-        base += 4
-    if family in {"annotated_workflow", "failure_checklist", "code_to_outcome", "before_after"}:
-        base -= 4
-    return base
 
 
 def claim_ok(week: int, claims: list[dict]) -> tuple[bool, list[dict]]:
@@ -206,12 +231,12 @@ def _cap(s: str) -> str:
 
 
 def flow_svg(steps: list[str], kind: str) -> str:
-    """Workflow diagrams: 2px ink strokes, mono labels, no fills, no shadows. Three shapes: chain, branch, lanes."""
+    """Workflow diagrams (generic weeks): 1.5px ink strokes, 10px nodes, no arrowheads, no fills, no shadows. Shapes: chain, branch, lanes."""
     width, px, pad, gapv = 888, 34, 30, 48
     style = ('<style>text{font-family:Geist,Inter,system-ui,sans-serif;fill:#17191d}'
              '.m{font-family:"JetBrains Mono","DejaVu Sans Mono",monospace;fill:#474b53;letter-spacing:.02em}'
-             '.ac{fill:#a8843a}rect,line,path,circle{stroke:#17191d;stroke-width:2;fill:none}</style>')
-    defs = '<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" stroke="#17191d" stroke-width="1.6" fill="none"/></marker></defs>'
+             '.ac{fill:#a8843a}rect,line,path,circle{stroke:#17191d;stroke-width:1.5;fill:none}</style>')
+    defs = ""
     body, y = [], 0
     if kind == "branch" and len(steps) >= 3:
         # peers: the support line lists alternatives side by side; joined by "+" so no hierarchy is invented
@@ -250,7 +275,7 @@ def flow_svg(steps: list[str], kind: str) -> str:
         body.append(f'<circle cx="{spine / 2:.0f}" cy="{y + h / 2:.0f}" r="5"{" style=\"fill:#a8843a;stroke:#a8843a\"" if i == len(steps) - 1 else ""}/>')
         body.append(_svg_text(spine + pad, y + pad + px * .9, lines, px))
         if i < len(steps) - 1:
-            body.append(f'<line x1="{spine / 2:.0f}" y1="{y + h / 2 + 5:.0f}" x2="{spine / 2:.0f}" y2="{y + h + gapv + 0.5 * (len(_wrap(_cap(steps[i + 1]), width - spine - 2 * pad, px)) * px * 1.28 + 2 * pad - px * .28) - 7:.0f}" marker-end="url(#ah)"/>')
+            body.append(f'<line x1="{spine / 2:.0f}" y1="{y + h / 2 + 5:.0f}" x2="{spine / 2:.0f}" y2="{y + h + gapv + 0.5 * (len(_wrap(_cap(steps[i + 1]), width - spine - 2 * pad, px)) * px * 1.28 + 2 * pad - px * .28) - 7:.0f}"/>')
         y += h + gapv
     return f'<svg viewBox="0 0 {width} {y - gapv + 3:.0f}" xmlns="http://www.w3.org/2000/svg">{style}{defs}{"".join(body)}</svg>'
 
@@ -265,8 +290,8 @@ def visual(w: dict, fam: str, sup: str, numeric_ok: bool) -> str:
         return flow_svg(steps, kind)
     if fam == "failure_checklist":
         items = steps if len(steps) >= 2 else [sup]
-        lis = "".join(f'<li class="t"><span class="box"></span><span>{esc(_cap(s))}</span></li>' for s in items)
-        return f'<ul class="check">{lis}</ul>'
+        lis = "".join(f'<li class="t"><span class="num">{i + 1:02d}</span><span>{esc(_cap(s))}</span></li>' for i, s in enumerate(items))
+        return f'<ul class="ls">{lis}</ul>'
     if fam == "before_after":
         heads = [s.strip() for s in re.split(r"(?<=\.)\s+", w["headline"]) if s.strip()]
         left_k, right_k = PAIR_LABELS.get(w["visual_direction"], ("Usually", "Instead"))
@@ -278,8 +303,8 @@ def visual(w: dict, fam: str, sup: str, numeric_ok: bool) -> str:
         else:
             half = max(1, len(steps) // 2)
             a, b = ", ".join(steps[:half]) or sup, ", ".join(steps[half:]) or sup
-        return (f'<div class="ba"><div class="col a t"><div class="k">{left_k}</div><p>{esc(a)}</p></div>'
-                f'<div class="col b t"><div class="k">{right_k}</div><p>{esc(b)}</p></div></div>')
+        return (f'<div class="ba"><div class="col a t"><div class="k mono up">{left_k}</div><p>{esc(a)}</p></div>'
+                f'<div class="col b t"><div class="k mono up">{right_k}</div><p>{esc(b)}</p></div></div>')
     if fam == "code_to_outcome":
         lines = ['<span class="c"># illustrative sketch, not production code</span>']
         named = [slugify(s, 4) for s in steps] if len(steps) >= 2 else ["read_input", "check_rule", "write_result"]
@@ -289,46 +314,106 @@ def visual(w: dict, fam: str, sup: str, numeric_ok: bool) -> str:
             lines.append(f'<span class="k">step</span>("{esc(name)}")')
         lines.append('<span class="c"># outcome: explained in the post</span>' if w["visual_direction"] != "test_case_card"
                      else '<span class="c"># expected: pass on the edge case, not just the demo</span>')
-        return f'<div class="code t">{chr(10).join(lines)}</div><div class="illus">illustrative pseudo-code</div>'
+        return f'<div class="code t">{chr(10).join(lines)}</div><div class="illus mono">illustrative pseudo-code</div>'
     if fam == "case_receipt":
         body = "".join(f'<div class="row"><span>{esc(k)}</span><span>{esc(v)}</span></div>' for k, v in receipt_rows(w, sup, numeric_ok))
         return f'<div class="rcpt t">{body}<div class="row tot"><span>takeaway</span><span>see post</span></div></div>'
     return ""
 
 
-def cta_line(w: dict) -> str:
+def cta_line(w: dict) -> str:  # kept for callers; the CTA now lives in the footer label
     txt = cta_text(w)
-    return f'<div class="cta t">{esc(txt)}</div>' if txt else ""
+    return esc(txt) if txt else ""
 
 
 def cta_text(w: dict) -> str:
     return CTA_TEXT.get(w["cta"], "") if w["cta"] in CTA_ON_IMAGE else ""
 
 
-def card_html(w: dict, fam: str, sup: str, numeric_ok: bool, fonts_css: str, hand: bool, logo_uri: str) -> str:
-    hp = headline_px(w["headline"], fam)
-    head = f'<h1 class="t" style="font-size:{hp}px">{esc(w["headline"]).replace("-", NBH)}</h1>'
-    supp = f'<p class="sup t">{esc(sup)}</p>'
+def typeset(text: str) -> str:
+    """Escape, non-breaking hyphens, keep an em dash with the following word, no single-word widow."""
+    t = esc(text).replace("-", NBH).replace("—", "—" + WJ)
+    if t.count(" ") >= 2:
+        head, tail = t.rsplit(" ", 1)
+        t = head + NBSP + tail
+    return t
+
+
+def _list(stem: str, items: list[str], compact: bool = False) -> str:
+    lis = "".join(f'<li class="t"><span class="num">{i + 1:02d}</span><span>{esc(x)}</span></li>' for i, x in enumerate(items))
+    c = " c" if compact else ""
+    return f'<div class="{c.strip()}"><p class="stem t">{esc(stem)}</p><ul class="ls{c}">{lis}</ul></div>'
+
+
+def _two(lk: str, lv: str, rk: str, rv: str, mono: bool = False) -> str:
+    m = " m" if mono else ""
+    return (f'<div class="two"><div class="col"><div class="lab mono up t">{esc(lk)}</div><p class="v{m} t">{esc(lv)}</p></div>'
+            f'<div class="col"><div class="lab mono up t">{esc(rk)}</div><p class="v{m} t">{esc(rv)}</p></div></div>')
+
+
+def custom_visual(w: dict, sup: str) -> dict | None:
+    """Reviewed visuals for weeks 01-10. Words come only from supporting_line + companion_post (never invented).
+    Returns {"vis": html, "sup": "above"|"below"|"none", "words": [gated strings], "brass": bool(visual carries the brass)}."""
+    k = w["week"]
+    if k == 1:
+        steps = [("happy path", ""), ("handoff", " b"), ("exception", "")]
+        strip = '<span class="join"></span>'.join(f'<span class="bx t{c}">{t}</span>' for t, c in steps)
+        return {"vis": f'<div class="strip">{strip}</div>', "sup": "above", "words": [t for t, _ in steps], "brass": True}
+    if k == 2:
+        return {"vis": _two("activity", "sent", "progress", "classified · routed · followed up"), "sup": "below",
+                "words": ["activity", "sent", "progress", "classified · routed · followed up"], "brass": False}
+    if k == 3:
+        stem, items = "A product has to handle:", ["Missing fields", "Strange inputs", "Wrong answers"]
+        return {"vis": _list(stem, items), "sup": "none", "words": [stem] + items, "brass": False}
+    if k == 4:
+        steps = fragments(sup)[:4]
+        lis = "".join(f'<li><span class="bx t">{esc(_cap(x))}</span></li>' for x in steps)
+        return {"vis": f'<ul class="chain">{lis}</ul>', "sup": "none", "words": [], "brass": True}
+    if k == 5:
+        sig = "— Debanjan, ProdCraft"
+        return {"vis": f'<div class="sig it t">{esc(sig)}</div>', "sup": "above", "words": [sig], "brass": True}
+    if k == 6:
+        q, cap = "a rule + an API call + one human check", "…are enough."
+        return {"vis": f'<p class="quote it t">{esc(q)}</p><div class="cap mono t">{esc(cap)}</div>', "sup": "none",
+                "words": [q, cap], "brass": False}
+    if k == 7:
+        stem, items = "A handoff should preserve:", ["caller context", "reason", "transcript"]
+        return {"vis": _list(stem, items, compact=True), "sup": "above", "words": [stem] + items, "brass": False}
+    if k == 8:
+        return {"vis": "", "sup": "above", "words": [], "brass": False}
+    if k == 9:
+        words = ["roadmap item", "[ feature ships ]", "outcome", "[ what changes for the user ]"]
+        return {"vis": _two(*words, mono=True), "sup": "above", "words": words, "brass": False}
+    if k == 10:
+        stem, items = "Who acts when:", ["the model is uncertain", "the API fails", "the customer needs a person"]
+        return {"vis": _list(stem, items), "sup": "none", "words": [stem] + items, "brass": False}
+    return None
+
+
+def card_html(w: dict, fam: str, sup: str, numeric_ok: bool, fonts_css: str, hand: bool, logo_uri: str) -> tuple[str, list[str]]:
+    """Return (html, visual_words). Grid: lockup y96, kicker y232, headline bottom y712, content 720-1120, footer y1210."""
+    head = f'<div class="head"><h1 class="t">{typeset(w["headline"])}</h1></div>'
+    supp = f'<p class="sup t">{typeset(sup)}</p>'
     dark = " dark" if fam in DARK_FAMILIES else ""
-    vis = visual(w, fam, sup, numeric_ok)
-    if fam == "annotated_workflow" and not vis:
-        dark += " f-minimal_editorial"  # centred text block, same as the editorial family
-    if fam == "founder_note":
-        inner = head + '<div class="rule"></div>' + (f'<div class="note">{supp}<div class="sig hand t">— Debanjan</div></div>' if hand else supp)
-    elif fam == "offer_card":
-        k = "demo" if w["cta"] == "Demo link" else "brief" if w["visual_direction"] == "brief_template" else "working session"
-        inner = f'<div class="kick t">{k}</div>' + head + '<div class="rule"></div>' + supp
-    elif fam == "minimal_editorial":
-        inner = head + '<div class="rule"></div>' + supp
+    cv = custom_visual(w, sup)
+    if cv:
+        vis, mode, words, brass_vis = cv["vis"], cv["sup"], cv["words"], cv["brass"]
     else:
-        if fam in {"failure_checklist", "annotated_workflow", "code_to_outcome"} and len(fragments(sup)) >= 3 and vis:
-            supp = ""  # the diagram already carries the supporting line verbatim; avoid saying it twice
-        inner = head + (f'<div class="rule"></div>{supp}' if supp else "") + (f'<div class="vis">{vis}</div>' if vis else "")
+        vis, words, brass_vis = visual(w, fam, sup, numeric_ok), [], fam in {"annotated_workflow", "case_receipt"}
+        mode = "none" if fam in {"failure_checklist", "annotated_workflow", "code_to_outcome"} and len(fragments(sup)) >= 3 and vis else "above"
+        if fam == "founder_note":
+            sig = "— Debanjan, ProdCraft"
+            vis, words, brass_vis = f'<div class="sig it t">{esc(sig)}</div>', [sig], True
+    visb = f'<div class="vis">{vis}</div>' if vis else ""
+    content = {"above": supp + visb, "below": visb + supp, "none": visb or supp}[mode]
     brand = (f'<span class="brand"><img src="{logo_uri}" alt=""><span class="t">ProdCraft</span></span>' if logo_uri
              else '<span class="brand"><span class="t">ProdCraft</span></span>')
-    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{fonts_css}{CSS}</style></head><body>
+    label = cta_text(w) or FOOT_LABEL
+    return (f"""<!doctype html><html><head><meta charset="utf-8"><style>{fonts_css}{CSS}</style></head><body>
 <div class="card f-{fam}{dark}"><div class="top">{brand}<span class="mono t">wk {w["week"]:02d}</span></div>
-<div class="main">{inner}</div>{cta_line(w)}</div></body></html>"""
+<div class="kick mono up t">{esc(w["theme"])}</div>{head}
+<div class="content">{content}</div>
+<div class="foot"><span class="mono t">{esc(label)}</span><span class="mono n{" q" if brass_vis else ""} t">{w["week"]:02d}</span></div></div>{FIT_JS}</body></html>""", words)
 
 
 def chromium_path() -> str | None:
@@ -340,7 +425,8 @@ def chromium_path() -> str | None:
 def load_fonts(fonts_dir: Path) -> str:
     css = fonts_dir / "fonts_local.css"
     if css.exists():
-        return css.read_text(encoding="utf-8").replace("url(", f"url(file://{fonts_dir.resolve()}/")
+        base = fonts_dir.resolve().as_uri()
+        return URL_RE.sub(lambda m: f'url("{base}/{m.group(1)}")', css.read_text(encoding="utf-8"))
     print(f"WARN WARN WARN fonts: {css} missing; cards will render in system fallbacks and will NOT look like the brand. "
           "Restore .tmp/banners/fonts/ (see directives/content/linkedin_banners.md) before shipping.", file=sys.stderr)
     return ""
@@ -353,29 +439,31 @@ def verify_fonts(pg) -> list[str]:
 
 
 def parse_weeks(spec: str) -> set[int]:
-    """'1-10,15' -> {1..10, 15}; '' -> empty set (= all)."""
+    """'1-10,15' -> {1..10, 15}; '' -> empty set (= all). Raises argparse.ArgumentTypeError on anything outside 1..50 or lo > hi."""
     out: set[int] = set()
     for part in spec.split(","):
         part = part.strip()
         if not part:
             continue
-        if "-" in part:
-            lo, hi = part.split("-", 1)
-            out.update(range(int(lo), int(hi) + 1))
-        else:
-            out.add(int(part))
+        m = re.fullmatch(r"(\d+)(?:-(\d+))?", part)
+        if not m:
+            raise argparse.ArgumentTypeError(f"--weeks: '{part}' is not N or N-M")
+        lo, hi = int(m.group(1)), int(m.group(2) or m.group(1))
+        if not 1 <= lo <= hi <= 50:
+            raise argparse.ArgumentTypeError(f"--weeks: '{part}' must satisfy 1 <= lo <= hi <= 50")
+        out.update(range(lo, hi + 1))
     return out
 
 
 def logo_data_uri(path: Path) -> str:
-    if not path.exists():
-        print(f"WARN logo {path} missing; wordmark only", file=sys.stderr)
+    if not path.is_file() or not path.read_bytes().startswith(PNG_MAGIC):
+        print(f"WARN logo {path} missing or not a PNG; wordmark only", file=sys.stderr)
         return ""
     return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
 
 
 def review_page(out: Path, rows: list[dict], pngs: list[Path], batch: str, zip_name: str) -> None:
-    """Contact-sheet index for the review link: every card at 540px with meta + PNG download; no trackers."""
+    """Contact-sheet index for the review link: every card at 540px with caption (angle, CTA, guardrail) + PNG download; no trackers."""
     by_file = {r.get("file"): r for r in rows}
     weeks = [by_file[f"png/{p.name}"]["week"] for p in pngs if f"png/{p.name}" in by_file]
     rng = f"weeks {min(weeks)}–{max(weeks)}" if weeks else "no weeks"
@@ -384,10 +472,14 @@ def review_page(out: Path, rows: list[dict], pngs: list[Path], batch: str, zip_n
         r = by_file.get(f"png/{p.name}")
         if not r:
             continue
+        link = BOOK_URL if r["cta"] == "Book session" else DEMO_URL if r["cta"] == "Demo link" else ""
         cards.append(
             f'<figure><img src="png/{esc(p.name)}" width="540" height="675" alt="week {r["week"]:02d}" loading="lazy">'
-            f'<figcaption><b>wk {r["week"]:02d}</b> · {esc(r["theme"])}<br><span class="m">{esc(r["layout"])}</span>'
-            f'<br><a href="png/{esc(p.name)}" download>Download PNG</a></figcaption></figure>')
+            f'<figcaption><b>wk {r["week"]:02d}</b> · {esc(r["theme"])} <span class="m">{esc(r["layout"])}</span>'
+            f'<p class="cap"><b>Angle</b> {esc(r["companion_post"])}</p>'
+            f'<p class="cap"><b>CTA</b> {esc(r["cta"])}{(" · " + esc(link)) if link else ""}</p>'
+            f'<p class="cap"><b>Guardrail</b> {esc(r["publish_guardrail"])}</p>'
+            f'<a href="png/{esc(p.name)}" download>Download PNG</a></figcaption></figure>')
     title = f"ProdCraft · weekly cards · {batch} ({rng})"
     html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title><style>
@@ -397,7 +489,7 @@ p{{margin:0 0 32px;color:#474b53}}p a{{color:#17191d}}
 .grid{{display:grid;grid-template-columns:repeat(auto-fill,540px);gap:48px 32px}}
 figure{{margin:0}}img{{display:block;width:540px;height:675px;border:1px solid rgba(23,25,29,.18)}}
 figcaption{{padding-top:12px}}.m{{font-family:"JetBrains Mono",monospace;font-size:13px;color:#474b53}}
-figcaption a{{color:#17191d}}
+figcaption a{{color:#17191d}}figcaption .cap{{margin:8px 0;font-size:14px;color:#474b53}}figcaption .cap b{{color:#17191d;font-weight:500}}
 </style></head><body>
 <h1>{esc(title)}</h1>
 <p>PNGs are 1080×1350 (4:5), LinkedIn image-post ready, under 5 MB each. <a href="{esc(zip_name)}" download>Download all (zip)</a> · {len(cards)} cards</p>
@@ -431,8 +523,9 @@ def captions(rows: list[dict]) -> str:
 
 def contact_sheet(pngs: list[Path], dest: Path) -> None:
     from PIL import Image
-    tw, th, cols = 216, 270, 10
-    rows = (len(pngs) + cols - 1) // cols
+    tw, th = 216, 270
+    cols = 5 if len(pngs) <= 10 else 10
+    rows = max(1, (len(pngs) + cols - 1) // cols)
     sheet = Image.new("RGB", (cols * tw, rows * th), "#ddd")
     for i, p in enumerate(pngs):
         with Image.open(p) as im:
@@ -446,22 +539,27 @@ def main() -> int:
     ap.add_argument("--claims", default=str(ROOT / "execution/content/prodcraft_claim_registry.json"))
     ap.add_argument("--out", default=str(ROOT / "deliverables/linkedin_weekly_cards/prodcraft" / dt.date.today().isoformat()))
     ap.add_argument("--fonts", default=str(ROOT / ".tmp/banners/fonts"))
-    ap.add_argument("--logo", default=str(LOGO), help="PNG mark, embedded as data URI, rendered 48px tall (never stretched)")
-    ap.add_argument("--weeks", default="", help="weeks to render, ranges and lists: 1-10,15 (default all)")
+    ap.add_argument("--logo", default="", help="PNG mark override (default: the --logo-style asset), embedded as data URI, 40px tall")
+    ap.add_argument("--logo-style", choices=sorted(LOGO_STYLES), default="ink", help="ink (flat one-colour, default), brass, or the original colour raster")
+    ap.add_argument("--weeks", default="", type=parse_weeks, help="weeks to render, ranges and lists: 1-10,15 (default all)")
     ap.add_argument("--batch", default="", help="label for index.html/zip, e.g. 'batch 1' (default: batch N from the first week)")
     a = ap.parse_args()
 
     weeks = json.loads(Path(a.messages).read_text(encoding="utf-8"))["weeks"]
     claims = json.loads(Path(a.claims).read_text(encoding="utf-8"))["claims"]
+    only: set[int] = a.weeks
+    missing_weeks = sorted(only - {w["week"] for w in weeks})
+    if missing_weeks:
+        print(f"ERROR --weeks {missing_weeks} not found in {a.messages}", file=sys.stderr)
+        return 2
     fams, warns = choose_families(weeks)
     for wn in warns:
         print("WARN", wn, file=sys.stderr)
-    only = parse_weeks(a.weeks)
     out = Path(a.out).resolve()
     (out / "png").mkdir(parents=True, exist_ok=True)
     (out / "html").mkdir(exist_ok=True)
     fonts_css = load_fonts(Path(a.fonts))
-    logo_uri = logo_data_uri(Path(a.logo))
+    logo_uri = logo_data_uri(Path(a.logo) if a.logo else LOGO_STYLES[a.logo_style])
     fonts_seen: set[str] = set()
 
     from playwright.sync_api import sync_playwright
@@ -480,18 +578,17 @@ def main() -> int:
                 print(f"WARN week {w['week']:02d}: {why}; card not rendered", file=sys.stderr)
                 rows.append({**w, "layout": fam, "verdict": "blocked", "blocked_reason": why, "file": None, "html": None})
                 continue
-            hand = fam == "founder_note" and hand_used < MAX_HAND
-            hand_used += hand
             name = f"{w['week']:02d}_week_{slugify(w['headline'])}"
+            doc, words = card_html(w, fam, sup, ok, fonts_css, False, logo_uri)
             row = {**w, "layout": fam, "rendered_supporting_line": sup, "used_fallback": sup != w["supporting_line"],
-                   "handwritten": hand, "cta_text": cta_text(w),
+                   "handwritten": False, "cta_text": cta_text(w), "visual_words": words,
                    "receipt_rows": [list(x) for x in receipt_rows(w, sup, ok)] if fam == "case_receipt" else [],
                    "evidence": ("verified" if ok else "non-numeric") if fam == "case_receipt" else None, "file": f"png/{name}.png", "html": f"html/{name}.html"}
             rows.append(row)
             if only and w["week"] not in only:
                 continue
             f = out / "html" / f"{name}.html"
-            f.write_text(card_html(w, fam, sup, ok, fonts_css, hand, logo_uri), encoding="utf-8")
+            f.write_text(doc, encoding="utf-8")
             pg.goto(f.as_uri())
             fonts_seen.update(verify_fonts(pg))
             pg.wait_for_timeout(120)
@@ -505,27 +602,34 @@ def main() -> int:
     else:
         print(f"fonts loaded: {sorted(fonts_seen)}", file=sys.stderr)
 
+    # this run's PNGs are the batch: stale png/html from other weeks are removed so zip, sheet and manifest agree
+    keep = {p.name for p in pngs} | {p.with_suffix(".html").name for p in pngs}
+    for stale in [*(out / "png").glob("*.png"), *(out / "html").glob("*.html")]:
+        if stale.name not in keep:
+            stale.unlink()
+            print(f"note: removed stale {stale.relative_to(out)}", file=sys.stderr)
     (out / "messages.json").write_text(json.dumps({"weeks": rows}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (out / "captions.md").write_text(captions(rows), encoding="utf-8")
     (out / "proof_checklist.md").write_text(proof_checklist(weeks, claims), encoding="utf-8")
-    all_pngs = sorted((out / "png").glob("*.png"))
-    contact_sheet(all_pngs, out / "contact_sheet.png")
+    run_pngs = sorted(pngs)
+    contact_sheet(run_pngs, out / "contact_sheet.png")
     rendered_weeks = sorted(only) if only else [r["week"] for r in rows]
     batch = a.batch or f"batch {(min(rendered_weeks) - 1) // 10 + 1}"
     zip_name = f"prodcraft_weekly_cards_{batch.replace(' ', '')}.zip"
     with zipfile.ZipFile(out / zip_name, "w", zipfile.ZIP_DEFLATED) as zf:
-        for pth in all_pngs:
+        for pth in run_pngs:
             zf.write(pth, f"png/{pth.name}")
-    review_page(out, rows, all_pngs, batch, zip_name)
+    review_page(out, rows, run_pngs, batch, zip_name)
     dist: dict[str, int] = {}
     for r in rows:
         dist[r["layout"]] = dist.get(r["layout"], 0) + 1
-    manifest = {"generated": dt.datetime.now().isoformat(timespec="seconds"), "size": [W, H], "count": len(all_pngs),
-                "layouts": dist, "repeat_warnings": warns, "handwritten": hand_used,
+    manifest = {"generated": dt.datetime.now().isoformat(timespec="seconds"), "size": [W, H], "count": len(run_pngs),
+                "weeks": [int(p.name[:2]) for p in run_pngs], "layouts": dist, "repeat_warnings": warns, "handwritten": hand_used,
                 "fallback_weeks": [r["week"] for r in rows if r.get("used_fallback")],
                 "blocked_weeks": [r["week"] for r in rows if r.get("verdict") == "blocked"],
                 "non_numeric_receipts": [r["week"] for r in rows if r.get("evidence") == "non-numeric"],
-                "fonts_loaded": sorted(fonts_seen), "logo": bool(logo_uri), "index": "index.html", "zip": zip_name, "published": False}
+                "fonts_loaded": sorted(fonts_seen), "logo": bool(logo_uri), "logo_style": a.logo_style if not a.logo else "custom",
+                "index": "index.html", "zip": zip_name, "published": False}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, indent=2))
     return 0
