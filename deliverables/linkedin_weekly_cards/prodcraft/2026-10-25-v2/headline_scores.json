@@ -12,24 +12,24 @@
       "week": 1,
       "headline": "Founders: 12 emails by hand, 4% replies.",
       "scores": {
-        "stop": 2.78,
+        "stop": 2.79,
         "self_relevance": 0.65,
         "curiosity": 0.8,
-        "generic": 0.35,
+        "generic": 0.36,
         "mechanism": "recognition",
-        "mechanism_confidence": 0.15,
+        "mechanism_confidence": 0.16,
         "runs": 5
       },
       "pass": false,
       "original": {
         "headline": "Before you automate it, follow one real case.",
         "scores": {
-          "stop": 2.68,
-          "self_relevance": 0.39,
+          "stop": 2.72,
+          "self_relevance": 0.4,
           "curiosity": 0.89,
           "generic": 0.81,
           "mechanism": "contrarian",
-          "mechanism_confidence": 0.78,
+          "mechanism_confidence": 0.79,
           "runs": 5
         }
       }
@@ -40,48 +40,48 @@
       "scores": {
         "stop": 3.09,
         "self_relevance": 0.79,
-        "curiosity": 0.89,
+        "curiosity": 0.88,
         "generic": 0.35,
         "mechanism": "curiosity",
-        "mechanism_confidence": 0.4,
+        "mechanism_confidence": 0.43,
         "runs": 5
       },
       "pass": true,
       "original": {
         "headline": "A sent email is an activity. A useful reply is progress.",
         "scores": {
-          "stop": 2.76,
+          "stop": 2.77,
           "self_relevance": 0.64,
           "curiosity": 0.43,
-          "generic": 0.75,
+          "generic": 0.76,
           "mechanism": "recognition",
-          "mechanism_confidence": 0.73,
+          "mechanism_confidence": 0.75,
           "runs": 5
         }
       }
     },
     {
       "week": 3,
-      "headline": "The demo you approved: 4 of 8 failed.",
+      "headline": "Your AI demo passed. 4 of 8 French CVs failed.",
       "scores": {
-        "stop": 3.17,
-        "self_relevance": 0.69,
-        "curiosity": 0.9,
-        "generic": 0.37,
-        "mechanism": "recognition",
-        "mechanism_confidence": 0.42,
+        "stop": 2.37,
+        "self_relevance": 0.4,
+        "curiosity": 0.83,
+        "generic": 0.21,
+        "mechanism": "curiosity",
+        "mechanism_confidence": 0.29,
         "runs": 5
       },
-      "pass": true,
+      "pass": false,
       "original": {
         "headline": "An AI demo works on the happy path.",
         "scores": {
-          "stop": 2.62,
-          "self_relevance": 0.54,
+          "stop": 2.63,
+          "self_relevance": 0.55,
           "curiosity": 0.73,
-          "generic": 0.8,
+          "generic": 0.79,
           "mechanism": "recognition",
-          "mechanism_confidence": 0.86,
+          "mechanism_confidence": 0.84,
           "runs": 5
         }
       }
@@ -90,10 +90,10 @@
       "week": 4,
       "headline": "Your reps retype into GoHighLevel. Still.",
       "scores": {
-        "stop": 2.86,
-        "self_relevance": 0.72,
-        "curiosity": 0.81,
-        "generic": 0.36,
+        "stop": 2.87,
+        "self_relevance": 0.73,
+        "curiosity": 0.82,
+        "generic": 0.34,
         "mechanism": "recognition",
         "mechanism_confidence": 0.96,
         "runs": 5
@@ -102,26 +102,26 @@
       "original": {
         "headline": "If a human still copies the answer into the CRM, the workflow isn’t finished.",
         "scores": {
-          "stop": 2.95,
-          "self_relevance": 0.59,
-          "curiosity": 0.73,
+          "stop": 2.97,
+          "self_relevance": 0.6,
+          "curiosity": 0.74,
           "generic": 0.82,
           "mechanism": "recognition",
-          "mechanism_confidence": 0.93,
+          "mechanism_confidence": 0.94,
           "runs": 5
         }
       }
     },
     {
       "week": 5,
-      "headline": "The PM you hired can't read code. Nor I.",
+      "headline": "Your PM can't read code. I had to learn.",
       "scores": {
-        "stop": 2.86,
-        "self_relevance": 0.58,
-        "curiosity": 0.85,
-        "generic": 0.35,
-        "mechanism": "recognition",
-        "mechanism_confidence": 0.26,
+        "stop": 2.46,
+        "self_relevance": 0.4,
+        "curiosity": 0.83,
+        "generic": 0.4,
+        "mechanism": "contrarian",
+        "mechanism_confidence": 0.55,
         "runs": 5
       },
       "pass": false,
@@ -140,14 +140,14 @@
     },
     {
       "week": 6,
-      "headline": "CEOs: that agent you approved? One regex.",
+      "headline": "CEOs: that 'agent'? One regex, a 0.6 gate.",
       "scores": {
-        "stop": 2.48,
-        "self_relevance": 0.73,
-        "curiosity": 0.89,
-        "generic": 0.65,
-        "mechanism": "recognition",
-        "mechanism_confidence": 0.36,
+        "stop": 1.93,
+        "self_relevance": 0.44,
+        "curiosity": 0.82,
+        "generic": 0.37,
+        "mechanism": "contrarian",
+        "mechanism_confidence": 0.16,
         "runs": 5
       },
       "pass": false,
@@ -155,9 +155,9 @@
         "headline": "Not every AI idea deserves an agent.",
         "scores": {
           "stop": 2.77,
-          "self_relevance": 0.43,
+          "self_relevance": 0.44,
           "curiosity": 0.79,
-          "generic": 0.8,
+          "generic": 0.81,
           "mechanism": "contrarian",
           "mechanism_confidence": 0.89,
           "runs": 5
@@ -166,26 +166,26 @@
     },
     {
       "week": 7,
-      "headline": "Phone bot talks over callers. Six hand-offs.",
+      "headline": "A dental phone bot says 'operator' first.",
       "scores": {
-        "stop": 2.91,
-        "self_relevance": 0.55,
-        "curiosity": 0.83,
-        "generic": 0.37,
+        "stop": 1.62,
+        "self_relevance": 0.27,
+        "curiosity": 0.78,
+        "generic": 0.48,
         "mechanism": "recognition",
-        "mechanism_confidence": 0.8,
+        "mechanism_confidence": 0.35,
         "runs": 5
       },
       "pass": false,
       "original": {
         "headline": "A voice assistant needs to know when to stop talking.",
         "scores": {
-          "stop": 1.9,
-          "self_relevance": 0.27,
-          "curiosity": 0.7,
-          "generic": 0.79,
+          "stop": 1.86,
+          "self_relevance": 0.28,
+          "curiosity": 0.69,
+          "generic": 0.8,
           "mechanism": "recognition",
-          "mechanism_confidence": 0.25,
+          "mechanism_confidence": 0.3,
           "runs": 5
         }
       }
@@ -195,63 +195,63 @@
       "headline": "Bring me one task. Keep the 40 slides.",
       "scores": {
         "stop": 3.06,
-        "self_relevance": 0.63,
-        "curiosity": 0.54,
-        "generic": 0.51,
+        "self_relevance": 0.64,
+        "curiosity": 0.55,
+        "generic": 0.5,
         "mechanism": "recognition",
-        "mechanism_confidence": 0.47,
+        "mechanism_confidence": 0.5,
         "runs": 5
       },
       "pass": false,
       "original": {
         "headline": "Bring one repetitive task. Not a 40-slide AI strategy.",
         "scores": {
-          "stop": 2.98,
-          "self_relevance": 0.53,
-          "curiosity": 0.72,
-          "generic": 0.47,
+          "stop": 3.01,
+          "self_relevance": 0.54,
+          "curiosity": 0.71,
+          "generic": 0.46,
           "mechanism": "recognition",
-          "mechanism_confidence": 0.5,
+          "mechanism_confidence": 0.51,
           "runs": 5
         }
       }
     },
     {
       "week": 9,
-      "headline": "Your roadmap: 'add AI'. The PRD: 3 hours.",
+      "headline": "Your 'add AI' line vs 3 hours to a human.",
       "scores": {
-        "stop": 3.09,
-        "self_relevance": 0.74,
-        "curiosity": 0.69,
-        "generic": 0.6,
+        "stop": 2.97,
+        "self_relevance": 0.64,
+        "curiosity": 0.8,
+        "generic": 0.51,
         "mechanism": "recognition",
-        "mechanism_confidence": 0.96,
+        "mechanism_confidence": 0.67,
         "runs": 5
       },
       "pass": false,
       "original": {
         "headline": "A roadmap item is not a business outcome.",
         "scores": {
-          "stop": 3.05,
-          "self_relevance": 0.54,
+          "stop": 3.03,
+          "self_relevance": 0.53,
           "curiosity": 0.73,
           "generic": 0.77,
           "mechanism": "recognition",
-          "mechanism_confidence": 0.38,
+          "mechanism_confidence": 0.37,
           "runs": 5
         }
       }
     },
     {
       "week": 10,
-      "headline": "Founders: your script retried twice. Who?",
+      "headline": "Founders: API down overnight. Who acts?",
       "scores": {
-        "stop": 2.31,
-        "self_relevance": 0.58,
+        "stop": 2.89,
+        "self_relevance": 0.5,
         "curiosity": 0.88,
-        "generic": 0.45,
+        "generic": 0.47,
         "mechanism": "curiosity",
-        "mechanism_confidence": 0.59,
+        "mechanism_confidence": 0.46,
         "runs": 5
       },
       "pass": false,
@@ -260,10 +260,10 @@
         "scores": {
           "stop": 2.7,
           "self_relevance": 0.51,
-          "curiosity": 0.61,
-          "generic": 0.75,
+          "curiosity": 0.62,
+          "generic": 0.76,
           "mechanism": "recognition",
-          "mechanism_confidence": 0.74,
+          "mechanism_confidence": 0.73,
           "runs": 5
         }
       }
@@ -272,7 +272,7 @@
   "candidates": {},
   "summary": {
     "weeks": 10,
-    "pass": 2,
+    "pass": 1,
     "target": [
       [
         "self_relevance",
@@ -291,30 +291,30 @@
       ]
     ],
     "stop_range": [
-      2.31,
-      3.17
+      1.62,
+      3.09
     ],
     "self_relevance_range": [
-      0.55,
+      0.27,
       0.79
     ],
     "generic_range": [
-      0.35,
-      0.65
+      0.21,
+      0.51
     ],
     "original_stop_range": [
-      1.9,
-      3.05
+      1.86,
+      3.03
     ],
     "original_self_relevance_range": [
-      0.27,
+      0.28,
       0.64
     ],
     "original_generic_range": [
-      0.47,
+      0.46,
       0.82
     ],
-    "jev_cost_usd": 0.003335,
+    "jev_cost_usd": 0.003337,
     "jev_error": null
   }
 }

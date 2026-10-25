@@ -502,7 +502,9 @@
         "800 sends",
         "24,000 emails",
         "30 to 60",
-        "to 60"
+        "to 60",
+        "800 a day",
+        "24,000 a month"
       ],
       "status": "approved",
       "source": "directives/gtm_client_workflows/accessory_masters_prd.md (internal path; public attribution: a US outbound consultancy):25-27",
@@ -616,12 +618,11 @@
       "weeks": [
         5
       ],
-      "claim_text": "cv-optimizer-agent 15 commits 2026-04-12..04-14; 3 of 4 public repos have more test functions than commits",
+      "claim_text": "cv-optimizer-agent 15 commits 2026-04-12..04-14; humanizer (3 commits / 90 test fns) and anneal (50 / 184) have more test functions than commits",
       "match": [
         "15 commits",
         "three days",
-        "three of my four",
-        "four public repos"
+        "two of my public repos"
       ],
       "status": "approved",
       "source": "https://github.com/dmazumdar186/{cv-optimizer-agent,humanizer,anneal,youtube-video-analyzer} git log depth-50 (artefact bank repos_cloned)",
@@ -631,7 +632,7 @@
       "attribution": "ProdCraft / Debanjan Mazumdar",
       "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
       "approved_wording": "15 commits",
-      "notes": "humanizer 3 commits/90 tests, anneal 50/184, youtube-video-analyzer 11/34 exceed; cv-optimizer-agent 15/12 does not, hence 'three of my four'"
+      "notes": "only humanizer and anneal are relied on ('two of my public repos'); cv-optimizer-agent 15/12 does not qualify"
     },
     {
       "id": "w06_confidence_gate",
@@ -764,7 +765,8 @@
       "match": [
         "Three failure cases",
         "half the evaluation set",
-        "Six-slide"
+        "Six-slide",
+        "Each one has"
       ],
       "status": "approved",
       "source": "batch 1 v2 copy",
@@ -806,7 +808,8 @@
       "match": [
         "One regex",
         "which one",
-        "Seven-slide"
+        "Seven-slide",
+        "Six-slide"
       ],
       "status": "approved",
       "source": "batch 1 v2 copy",

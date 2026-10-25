@@ -8,15 +8,15 @@ Posting notes apply to every week: personal profile, not the company page. No li
 **Original headline:** Before you automate it, follow one real case.  
 **Card fact (image only, not in caption):** A dozen emails a day, typed by hand. 4% replied. Then the tool.
 
-**Caption** (972 chars):
+**Caption** (984 chars):
 
 Before I automated a founder's outbound, I read how he did it by hand.
 
-The brief came from a US outbound consultancy. The founder had been finding sellers himself: a cold email at a time, a short blunt message, no sequence, no tool. It worked. It just could not scale past what a single person can type in a morning.
+The client was a US outbound consultancy. The founder had been finding sellers himself: a cold email at a time, a short blunt message, no tool. It worked: 12 emails a day, 4% replies, counted as replies per hand-sent email. It could not scale past what a single person can type in a morning.
 
-Most automation projects start with the tool. This started with his sent folder. Reading those emails told me what the machine had to keep: the bluntness, the single question, the fact that a reply went to a person who knew the deal. It also showed where the exceptions lived. Not in the send step. In what happened after someone wrote back.
+Most automation projects start with the tool. This started with his sent folder. Reading those emails told me what the machine had to keep: the bluntness, the single question, the fact that a reply went to a person who knew the deal. It also showed where the exceptions lived. Not in the send step; after someone wrote back.
 
-So the first thing we built was not a sender. It was a stop point: the daily run reads a kill switch before any step executes, because a system that cannot be halted is not something a founder should hand his reputation to.
+So the first thing we built was not a sender. It was a stop point: the daily run reads a kill switch before any step executes, because a system that cannot be halted should not carry a founder's reputation.
 
 What was the last process you automated without first watching someone do it by hand?
 
@@ -30,29 +30,29 @@ What was the last process you automated without first watching someone do it by 
 **Original headline:** A sent email is an activity. A useful reply is progress.  
 **Card fact (image only, not in caption):** An out-of-office match returns confidence 0.99 at €0.00. No model is called.
 
-**Caption** (987 chars):
+**Caption** (973 chars):
 
 A sent email is activity. Only a classified reply is pipeline.
 
-The client PRD for a US outbound consultancy set the target at 24,000 emails a month across 32 inboxes. Success was not written as sends. It was written as 30 to 60 positive conversations a month, booked calls tracked in the CRM, and every positive reply in front of a person fast enough to act on.
+The client PRD for a US outbound consultancy set the target at 800 sends a day across 32 inboxes, about 24,000 a month. Success was not written as sends. It was written as 30 to 60 positive conversations a month, booked calls tracked in the CRM, and every positive reply in front of a person fast enough to act on.
 
 So the system that matters is the one that runs after someone answers. Each reply is sorted into a bucket: hot, positive, neutral, negative, or auto-reply. Out-of-office and unsubscribe replies are caught by plain regex before any language model sees them. Anything that looks like a buyer creates a tagged contact and an opportunity at a named pipeline stage, so a human sees it with context, not in a shared inbox.
 
-Volume is a cost line. Replies are the product. Keep them in separate columns and the dashboard stops lying.
+Volume is a cost line. Replies are the product. Keep them in separate columns.
 
 Which number does your team report on Monday: sends, or replies that someone actually acted on?
 
-**Alt text:** Editor fragment of reply_classifier.py: regex catches out-of-office replies before any model call, the auto_reply_or_OOO line marked in brass. Headline: Founders: 32 inboxes, 800 sends. Who replied?
+**Alt text:** Editor fragment of reply_classifier.py: regex catches out-of-office replies before any model call, the auto_reply_or_OOO line marked in brass. Headline: 32 inboxes, 800 sends. Who replied?
 
 **Posting notes:** Format: single image (4:5 PNG). Link: none. CTA: Ask a practical question, not “agree?”. Measure: impressions · saves · profile views at 48 h · inbound DMs.
 
 ## Week 03 — AI reliability — carousel
 
-**Headline (on image):** The demo you approved: 4 of 8 failed.  
+**Headline (on image):** Your AI demo passed. 4 of 8 French CVs failed.  
 **Original headline:** An AI demo works on the happy path.  
 **Card fact (image only, not in caption):** An empty reply body classifies as neutral with 0.0 confidence. It is a test, not a crash.
 
-**Caption** (929 chars):
+**Caption** (958 chars):
 
 An AI demo shows the happy path. A product has to survive everything else.
 
@@ -64,11 +64,11 @@ Strange inputs. A reply classifier gets phone numbers, bare signatures, blank bo
 
 Wrong answers. A CV optimiser produced French bullets with English connective syntax. A per-field language check caught it across half the evaluation set and forced a model change before a single candidate saw it.
 
-None of these appeared in the demo. All of them appeared in the first week of real traffic.
+None of these appeared in the demo. Each one has a named test now, and the test file is where a buyer should look first.
 
 Which failure would embarrass you most: a crash, a strange input handled wrongly, or a confident wrong answer?
 
-**Alt text:** Six-slide document: the demo you approved, 4 of 8 real cases failed. Cases: a null provider response, a blank reply body, English grammar inside French CV bullets. Each became a test.
+**Alt text:** Six-slide document: your AI demo passed, 4 of 8 French CVs failed. Cases: a null provider response, a blank reply body, English grammar inside French CV bullets. Each became a test.
 
 **Posting notes:** Format: document post (upload the PDF, 6 pages). Link: none. CTA: No CTA. Measure: impressions · saves · profile views at 48 h · inbound DMs.
 
@@ -96,11 +96,11 @@ Where in your funnel does a human still carry data from one tool to the next by 
 
 ## Week 05 — Founder perspective — face
 
-**Headline (on image):** The PM you hired can't read code. Nor I.  
+**Headline (on image):** Your PM can't read code. I had to learn.  
 **Original headline:** I moved closer to the code because handoffs hide too much.  
 **Card fact (image only, not in caption):** cv-optimizer-agent: 15 commits, first to usable in three days.
 
-**Caption** (991 chars):
+**Caption** (984 chars):
 
 For 15 years I wrote the requirements. Then I started reading the commits.
 
@@ -108,17 +108,17 @@ Engineer, then QA and release coordinator, then product owner, then AI product m
 
 The moment it changed: a GenAI rollout where I owned the eval thresholds as a PM. Go/no-go gates, rollback plans, API contracts, all in the PRD. But the questions that mattered, what happens when the model returns nothing, when the provider rate-limits, when the answer is fluent and wrong, were only answerable by someone reading the code. So I started reading it, then writing it.
 
-The detail only I would know: three of my four public repos now have more test functions than commits, because the first thing I learned from engineers was to write the failure case down before the feature.
+The detail only I would know: two of my public repos now have more test functions than commits, because the first thing I learned from engineers was to write the failure case down before the feature.
 
 When did a document last hide the thing that decided your project?
 
-**Alt text:** Debanjan Mazumdar, cut out on paper, beside the headline 'The PM you hired can't read code. I couldn't.' A note reads: the commit log does not flatter anyone.
+**Alt text:** Debanjan Mazumdar, cut out on paper, beside the headline 'Your PM can't read code. I had to learn.' A note reads: the commit log does not flatter anyone.
 
 **Posting notes:** Format: single image (4:5 PNG). Link: none. CTA: No CTA. Measure: impressions · saves · profile views at 48 h · inbound DMs.
 
 ## Week 06 — AI product strategy — carousel
 
-**Headline (on image):** CEOs: that agent you approved? One regex.  
+**Headline (on image):** CEOs: that 'agent'? One regex, a 0.6 gate.  
 **Original headline:** Not every AI idea deserves an agent.  
 **Card fact (image only, not in caption):** Under 0.6 confidence, or on any error, the email goes to a human, never to the agent.
 
@@ -140,13 +140,13 @@ Each branch closes with a human check. The client that calls the decision model 
 
 Which branch did your last AI project actually need, and which one did the vendor sell you?
 
-**Alt text:** Seven-slide document: CEOs, your agent is a regex and a 0.6 gate. Branches: a rule (regex), a workflow (confidence gate to a human), retrieval, an agent; one human check closes each.
+**Alt text:** Six-slide document: CEOs, that 'agent'? One regex, a 0.6 gate. Branches: a rule (regex), a workflow (confidence gate to a human), an agent; one human check closes each.
 
-**Posting notes:** Format: document post (upload the PDF, 7 pages). Link: none. CTA: Invite thoughtful counterexamples. Measure: impressions · saves · profile views at 48 h · inbound DMs.
+**Posting notes:** Format: document post (upload the PDF, 6 pages). Link: none. CTA: Invite thoughtful counterexamples. Measure: impressions · saves · profile views at 48 h · inbound DMs.
 
 ## Week 07 — Voice AI — carousel
 
-**Headline (on image):** Phone bot talks over callers. Six hand-offs.  
+**Headline (on image):** A dental phone bot says 'operator' first.  
 **Original headline:** A voice assistant needs to know when to stop talking.  
 **Card fact (image only, not in caption):** 'If you'd rather speak to a human, just say operator at any time' is in the greeting, before any question.
 
@@ -164,7 +164,7 @@ Escalation is part of the experience. Designing it last is how a bot ends up arg
 
 What is the exit word in your customer-facing automation, and does it work on the first try?
 
-**Alt text:** Six-slide document: your phone bot talks over callers, six hand-offs. The exit word in the greeting, six transfer reasons, handoff means no tools, and what the human receives.
+**Alt text:** Six-slide document: a dental phone bot says 'operator' first. The exit word in the greeting, six transfer reasons, handoff means no tools, and what the human receives.
 
 **Posting notes:** Format: document post (upload the PDF, 6 pages). Link: none. CTA: No CTA. Measure: impressions · saves · profile views at 48 h · inbound DMs.
 
@@ -172,7 +172,7 @@ What is the exit word in your customer-facing automation, and does it work on th
 
 **Headline (on image):** Bring me one task. Keep the 40 slides.  
 **Original headline:** Bring one repetitive task. Not a 40-slide AI strategy.  
-**Card fact (image only, not in caption):** A session ends with a printed funnel table, discovery to preview, before any outreach is scoped.
+**Card fact (image only, not in caption):** You leave with a written map of steps, handoffs and exceptions.
 
 **Caption** (994 chars):
 
@@ -192,15 +192,15 @@ Which task would you bring: the one that annoys you most, or the one that costs 
 
 ## Week 09 — Product delivery — artefact
 
-**Headline (on image):** Your roadmap: 'add AI'. The PRD: 3 hours.  
+**Headline (on image):** Your 'add AI' line vs 3 hours to a human.  
 **Original headline:** A roadmap item is not a business outcome.  
 **Card fact (image only, not in caption):** Success metric as written: all positive replies surfaced to the team within 3 hours.
 
-**Caption** (930 chars):
+**Caption** (910 chars):
 
 'Build outbound' is a roadmap item. '30 to 60 conversations a month' is an outcome.
 
-The PRD for a US outbound consultancy did not list features. Its success section read like observations: positive conversations per month, booked calls tracked in the CRM, every positive reply surfaced to the team fast enough to answer the same day. You can check each of them on a Monday without asking an engineer.
+The PRD for a US outbound consultancy did not list features. Its success section read like observations: positive conversations per month, booked calls tracked in the CRM, every positive reply surfaced to the team within 3 hours. You can check each of them on a Monday without asking an engineer.
 
 Rewriting a vague AI roadmap item works the same way. 'Add an AI assistant' becomes 'a rep sees the next step on every positive reply without opening the inbox'.
 
@@ -214,7 +214,7 @@ What is the last roadmap item your team shipped where nobody can say what change
 
 ## Week 10 — Operations — carousel
 
-**Headline (on image):** Founders: your script retried twice. Who?  
+**Headline (on image):** Founders: API down overnight. Who acts?  
 **Original headline:** A workflow without an owner is just a script.  
 **Card fact (image only, not in caption):** MAX_RETRIES = 2. After that the client raises, so a person sees it.
 
@@ -236,6 +236,6 @@ Audit trail: every step writes a structured line to a dated run log, so 'what ha
 
 Who in your company acts when the model is uncertain, the API fails, or a customer needs a person?
 
-**Alt text:** Seven-slide document: your automation retried twice, then who acts? Owners: kill switch before step one, retry then raise, abort on a repeated finding, release does not resume, a dated run log.
+**Alt text:** Seven-slide document: founders, API down overnight, who acts? Owners: kill switch before step one, retry then raise, abort on a repeated finding, release does not resume, a dated run log.
 
 **Posting notes:** Format: document post (upload the PDF, 7 pages). Link: none. CTA: No CTA. Measure: impressions · saves · profile views at 48 h · inbound DMs.

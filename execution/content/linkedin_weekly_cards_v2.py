@@ -1,5 +1,5 @@
 """
-description: Render the ProdCraft weekly LinkedIn cards, batch 1 v2 (panel spec 2026-10-25): three recurring layouts on one grid (hook in the top 20%, Newsreader headline >= 96px/line, artefact zone 520-1150, footer rule y1210). face = headshot cut-out on paper + one Caveat margin note; artefact = code/config payload as an editor fragment with the brass line; carousel = 5-7 document slides (1080x1350 PNG + one PDF). Extends linkedin_weekly_cards.py (fonts, chromium, logo, slug, contact sheet are imported from it). Never publishes.
+description: Render the ProdCraft weekly LinkedIn cards, batch 1 v2 (panel spec 2026-10-25): three recurring layouts on one grid (hook in the top 20%, Newsreader headline >= 96px/line, artefact zone 520-1150, footer rule y1210). face = headshot cut-out on paper (three crops) + one italic brass margin note; artefact = code/config payload as an editor fragment with the brass line; carousel = 5-7 document slides (1080x1350 PNG + one PDF). Extends linkedin_weekly_cards.py (fonts, chromium, logo, slug, contact sheet are imported from it). Never publishes.
 inputs: --messages execution/content/prodcraft_batch1_v2_messages.json; --out <dir> (default deliverables/linkedin_weekly_cards/prodcraft/<date>-v2); --fonts <dir with fonts_local.css>; --cutout <rgba png> (default .tmp/banners/headshot_cutout.png, built by headshot_cutout.py when missing); --weeks 1-10; --batch <label>; env PW_CHROME
 outputs: <out>/png/NN_week_slug.png (single cards), <out>/carousels/NN/slide_k.png + <out>/carousels/NN_week_slug.pdf, <out>/html/*.html (cards and slides, for the validator), <out>/thumbs/*.png (400px review thumbnails), <out>/captions.md, <out>/messages_v2.json, <out>/contact_sheet.png, <out>/manifest.json, <out>/index.html, <out>/prodcraft_weekly_cards_<batch>.zip; exit 1 if any headline needs more than two lines or a figure/brass budget is missed
 """
@@ -50,15 +50,19 @@ h1{position:absolute;left:96px;top:160px;width:888px;font-family:Newsreader,'Bit
 .foot .n{color:var(--brass)}
 /* face */
 .face .fact{top:520px;width:430px;font-size:36px;line-height:1.28}
-.face .fig{position:absolute;bottom:140px;left:380px;height:760px;width:auto;display:block}
-.note{position:absolute;left:100px;top:844px;width:420px;padding-bottom:8px;font-family:Caveat,cursive;font-weight:500;font-size:40px;line-height:1.15;color:var(--ink2);transform:rotate(-2.2deg);transform-origin:left top}
-.note:before{content:"";position:absolute;left:-4px;top:-18px;width:120px;height:2px;background:var(--brass);transform:rotate(-1deg)}
+.figclip{position:absolute;left:0;top:0;width:1080px;height:1200px;overflow:hidden}
+.face .fig{position:absolute;width:auto;display:block}
+.note{position:absolute;left:96px;top:844px;width:420px;padding-top:22px;font-family:Newsreader,serif;font-style:italic;font-weight:400;font-size:34px;line-height:1.2;color:var(--brass)}
+.note:before{content:"";position:absolute;left:0;top:0;width:120px;height:1.5px;background:var(--brass)}
 /* artefact: editor fragment */
+.zone{position:absolute;left:72px;top:496px;width:936px}
+.zone .pane{position:static;width:936px;height:auto;max-height:654px}
+.zone .src{position:static;display:inline-block;margin:14px 0 0 24px}
 .pane{position:absolute;left:72px;top:496px;width:936px;height:654px;background:var(--pane);border:1px solid var(--hair);overflow:hidden;box-shadow:0 1px 0 rgba(23,25,29,.06)}
 .tabs{height:56px;border-bottom:1px solid var(--hair);display:flex;align-items:stretch;padding-left:24px}
 .tab{display:flex;align-items:center;gap:12px;padding:0 20px;font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--ink);background:var(--paper);border-left:1px solid var(--hair);border-right:1px solid var(--hair);margin-bottom:-1px;border-bottom:1px solid var(--paper)}
 .tab .dir{color:var(--ink2)}.tab .dot{width:10px;height:10px;border-radius:50%;background:var(--brass);opacity:.9}
-pre{margin:0;padding:22px 0 22px 0;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:24px;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4}
+pre{margin:0;padding:24px 0 24px 0;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:24px;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4}
 pre .ln{display:block;padding:0 36px 0 60px;text-indent:-28px;min-height:36px}
 pre .ln.hot{background:rgba(168,132,58,.16);box-shadow:inset 6px 0 0 var(--brass)}
 pre .c{color:var(--ink2)}pre .s{color:var(--slate)}pre .k{font-weight:600}pre .h{font-weight:600}
@@ -74,6 +78,7 @@ pre .c{color:var(--ink2)}pre .s{color:var(--slate)}pre .k{font-weight:600}pre .h
 .slide.q .hd{top:420px}.slide.q h2{font-size:76px;line-height:1.1}
 .slide.hook .body{position:absolute;left:96px;top:400px;width:888px;margin:0;font-family:Newsreader,serif;font-size:42px;line-height:1.3;color:var(--ink)}
 .slide .cta{position:absolute;left:96px;top:1120px;font-size:17px;letter-spacing:.1em}
+.fill{position:absolute;left:96px;top:720px;width:888px;border-top:1.5px solid var(--brass);padding-top:18px;font-size:17px;letter-spacing:.14em}
 """
 FIT_JS = """<script>window.fitHead=function(){var h=document.querySelector('h1,.slide h2.fit');if(!h)return null;var steps=%s;
 for(var i=0;i<steps.length;i++){h.style.fontSize=steps[i][0]+'px';h.style.lineHeight=steps[i][1];h.style.letterSpacing=steps[i][2]+'em';var lh=steps[i][0]*steps[i][1];
@@ -141,10 +146,15 @@ def foot(week: int, label: str = FOOT_LABEL, numeral: str | None = None) -> str:
     return f'<div class="foot"><span class="mono t">{esc(label)}</span><span class="mono n t">{esc(numeral if numeral is not None else f"{week:02d}")}</span></div>'
 
 
+FACE_CROPS = {  # three crops of the one headshot: img height, left, top; all clipped at y1200 so the footer rule never crosses the jacket
+    1: {"h": 760, "left": 380, "top": 440}, 5: {"h": 900, "left": 360, "top": 364}, 8: {"h": 860, "left": 480, "top": 340}}
+
+
 def face_html(r: dict, logo_uri: str, cutout_uri: str) -> str:
     cta = r.get("cta_line")
+    c = FACE_CROPS.get(r["week"], FACE_CROPS[1])
     return (f'{top(logo_uri, r["week"])}<h1 class="t">{head_text(r["headline"])}</h1>'
-            f'<img class="fig" src="{cutout_uri}" alt="">'
+            f'<div class="figclip"><img class="fig" src="{cutout_uri}" alt="" style="height:{c["h"]}px;left:{c["left"]}px;top:{c["top"]}px"></div>'
             f'<p class="fact t">{esc(r["card_fact"])}</p>'
             f'<div class="note t">{esc(r["annotation"])}</div>'
             f'{foot(r["week"], cta or FOOT_LABEL)}')
@@ -154,15 +164,16 @@ def artefact_html(r: dict, logo_uri: str) -> tuple[str, bool]:
     a = r["artefact"]
     p, hot = pane(a["code"], a["tab"], a["lang"], a.get("brass", ""), 16)
     return (f'{top(logo_uri, r["week"])}<h1 class="t">{head_text(r["headline"])}</h1>'
-            f'<p class="fact t">{esc(r["card_fact"])}</p>{p}'
-            f'<div class="src mono t">verbatim · {esc(a["tab"])}</div>{foot(r["week"])}'), hot
+            f'<p class="fact t">{esc(r["card_fact"])}</p><div class="zone">{p}'
+            f'<div class="src mono t">verbatim · {esc(a["tab"])}</div></div>{foot(r["week"])}'), hot
 
 
 def slide_html(r: dict, s: dict, i: int, n: int, logo_uri: str) -> tuple[str, bool]:
     wk = r["week"]
     pos = f"{i + 1} / {n}"
+    fill = f'<div class="fill mono up t">{esc(r["theme"])} · {esc(pos)}</div>'
     if s["kind"] == "hook":
-        inner = f'{top(logo_uri, wk)}<h1 class="t">{head_text(s["title"])}</h1><p class="body t">{esc(s["body"])}</p>{foot(wk, FOOT_LABEL, pos)}'
+        inner = f'{top(logo_uri, wk)}<h1 class="t">{head_text(s["title"])}</h1><p class="body t">{esc(s["body"])}</p>{fill}{foot(wk, FOOT_LABEL, pos)}'
         return frame_slide(inner, "hook"), True
     if s["kind"] == "question":
         cta = f'<div class="cta mono up t">{esc(r["cta_line"])}</div>' if r.get("cta_line") else ""
@@ -175,7 +186,7 @@ def slide_html(r: dict, s: dict, i: int, n: int, logo_uri: str) -> tuple[str, bo
         lang = "python" if tab.endswith(".py") else "prompt" if tab.endswith(".md") else "python"
         p, hot = pane(code, tab, lang, s.get("brass", ""), 12)
         return frame_slide(f'{top(logo_uri, wk)}{hd}{p}{foot(wk, FOOT_LABEL, pos)}', "point"), hot
-    return frame_slide(f'{top(logo_uri, wk)}{hd}{foot(wk, FOOT_LABEL, pos)}', "point nocode"), True
+    return frame_slide(f'{top(logo_uri, wk)}{hd}{fill}{foot(wk, FOOT_LABEL, pos)}', "point nocode"), True
 
 
 def frame_slide(inner: str, cls: str) -> str:
@@ -312,7 +323,7 @@ def main() -> int:
             pg.wait_for_timeout(120)
             pg.screenshot(path=str(dest), clip={"x": 0, "y": 0, "width": W, "height": H})
             fig = pg.evaluate("() => { const f = document.querySelector('.fig'); if (!f) return null; const r = f.getBoundingClientRect();"
-                              " const vis = (Math.min(r.right, 1080) - Math.max(r.left, 0)) * (Math.min(r.bottom, 1350) - Math.max(r.top, 0)); return vis / (1080 * 1350); }")
+                              " const vis = (Math.min(r.right, 1080) - Math.max(r.left, 0)) * (Math.min(r.bottom, 1200) - Math.max(r.top, 0)); return vis / (1080 * 1350); }")
             return {"html": f"html/{name}.html", "head_px": fit[0] if fit else None, "head_lines": fit[1] if fit else None, "figure_share": fig}
 
         for r in weeks:
@@ -382,6 +393,12 @@ def main() -> int:
         sj = json.loads(Path(a.scores).read_text(encoding="utf-8"))
         scores = {str(w["week"]): w["scores"] for w in sj.get("weeks", []) if w.get("scores")}
         (out / "headline_scores.json").write_text(json.dumps(sj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    def ship(row: dict) -> dict:  # internal repo paths never leave the workspace; the artefact bank keeps them
+        r2 = {k: v for k, v in row.items() if k != "artefact_source"}
+        if r2.get("artefact"):
+            r2["artefact"] = {k: v for k, v in r2["artefact"].items() if k != "source"}
+        return r2
+    rows = [ship(r) for r in rows]
     (out / "messages_v2.json").write_text(json.dumps({"weeks": rows, "grid": {"lockup_y": 96, "headline_top": 160, "headline_steps": HEAD_STEPS, "zone": [520, 1150], "footer_rule_y": 1210},
                                                         "contrast_ink_on_paper": round(contrast(INK, PAPER), 1)}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (out / "captions.md").write_text(captions_md(rows), encoding="utf-8")
