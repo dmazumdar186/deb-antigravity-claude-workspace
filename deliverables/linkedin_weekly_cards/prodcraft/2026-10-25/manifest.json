@@ -1,0 +1,28 @@
+{
+  "generated": "2026-10-25T12:51:53",
+  "size": [
+    1080,
+    1350
+  ],
+  "count": 50,
+  "layouts": {
+    "minimal_editorial": 5,
+    "annotated_workflow": 14,
+    "failure_checklist": 9,
+    "founder_note": 4,
+    "offer_card": 4,
+    "before_after": 5,
+    "code_to_outcome": 6,
+    "case_receipt": 3
+  },
+  "repeat_warnings": [
+    "week 24: annotated_workflow would repeat 3x; reassigned to minimal_editorial",
+    "week 50: offer_card would repeat 3x; reassigned to minimal_editorial"
+  ],
+  "handwritten": 4,
+  "fallback_weeks": [
+    15,
+    25
+  ],
+  "published": false
+}

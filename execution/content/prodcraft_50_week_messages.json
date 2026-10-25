@@ -1,0 +1,508 @@
+{
+  "source": "docs/reference/prodcraft_linkedin_50_week_messaging_pack_2026-10-25.md",
+  "note": "Copy is verbatim from the pack section 5. fallback_supporting_line is used when the week's numeric claim is not approved.",
+  "weeks": [
+    {
+      "week": 1,
+      "theme": "Product judgment",
+      "headline": "Before you automate it, follow one real case.",
+      "supporting_line": "The exceptions hide in the handoffs—not in the happy-path flowchart.",
+      "companion_post": "Tell a short story about shadowing a real workflow before deciding what to automate. Show the steps and the surprise.",
+      "visual_direction": "minimal_editorial",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 2,
+      "theme": "Outbound systems",
+      "headline": "A sent email is an activity. A useful reply is progress.",
+      "supporting_line": "The system matters most after someone answers.",
+      "companion_post": "Explain how replies get classified, routed and followed up. Keep volume separate from qualified opportunities.",
+      "visual_direction": "large_type_plus_flow",
+      "cta": "Ask a practical question, not “agree?”",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 3,
+      "theme": "AI reliability",
+      "headline": "An AI demo works on the happy path.",
+      "supporting_line": "A product has to handle missing fields, strange inputs and wrong answers.",
+      "companion_post": "Share three failure cases you now test before trusting an AI workflow. Do not invent an incident; use real examples from your work.",
+      "visual_direction": "failure_case_checklist",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 4,
+      "theme": "Operations",
+      "headline": "If a human still copies the answer into the CRM, the workflow isn’t finished.",
+      "supporting_line": "Close the loop: update the record, assign an owner, show the next step.",
+      "companion_post": "Map a before/after handoff without claiming time savings you have not measured.",
+      "visual_direction": "workflow_diagram",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 5,
+      "theme": "Founder perspective",
+      "headline": "I moved closer to the code because handoffs hide too much.",
+      "supporting_line": "Product decisions make more sense when you see what it takes to ship them.",
+      "companion_post": "Describe a real moment from your product career that changed how you work. Add a specific detail only you would know.",
+      "visual_direction": "founder_note",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 6,
+      "theme": "AI product strategy",
+      "headline": "Not every AI idea deserves an agent.",
+      "supporting_line": "Sometimes a rule, an API call and one human check are enough.",
+      "companion_post": "Give a decision test for choosing between rules, a workflow, RAG and an agent.",
+      "visual_direction": "decision_tree",
+      "cta": "Invite thoughtful counterexamples",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 7,
+      "theme": "Voice AI",
+      "headline": "A voice assistant needs to know when to stop talking.",
+      "supporting_line": "Escalation is part of the experience—not a failure state.",
+      "companion_post": "Explain what a good human handoff should preserve: caller context, reason and transcript.",
+      "visual_direction": "call_flow",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 8,
+      "theme": "Trust / offer",
+      "headline": "Bring one repetitive task. Not a 40-slide AI strategy.",
+      "supporting_line": "We’ll map the current steps and decide whether automation is worth it.",
+      "companion_post": "Explain what happens in a ProdCraft discovery/build session and what you will not promise before scoping.",
+      "visual_direction": "simple_offer_card",
+      "cta": "Soft invitation",
+      "publish_guardrail": "Use this CTA only if the 30-minute session and described process are currently offered."
+    },
+    {
+      "week": 9,
+      "theme": "Product delivery",
+      "headline": "A roadmap item is not a business outcome.",
+      "supporting_line": "Name what should change for the user after the feature ships.",
+      "companion_post": "Show how you would rewrite a vague AI roadmap item as an observable user or business change.",
+      "visual_direction": "before_after",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 10,
+      "theme": "Operations",
+      "headline": "A workflow without an owner is just a script.",
+      "supporting_line": "Who acts when the model is uncertain, the API fails or the customer needs a person?",
+      "companion_post": "Walk through ownership across the workflow: trigger, automation, exception, human and audit trail.",
+      "visual_direction": "swimlane",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 11,
+      "theme": "Outbound systems",
+      "headline": "More sends won’t fix a weak list.",
+      "supporting_line": "Data quality and deliverability set the ceiling before copy gets a chance.",
+      "companion_post": "Share a pre-flight checklist: source quality, domain health, validation, audience fit and stop conditions.",
+      "visual_direction": "checklist_card",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 12,
+      "theme": "RAG / knowledge",
+      "headline": "RAG can retrieve the wrong truth very quickly.",
+      "supporting_line": "If the source documents are stale or contradictory, retrieval won’t fix that.",
+      "companion_post": "Explain document ownership, freshness, citations and what to do when sources conflict.",
+      "visual_direction": "annotated_document",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 13,
+      "theme": "AI evaluation",
+      "headline": "One good answer is not an evaluation set.",
+      "supporting_line": "Keep real questions and past failures as regression tests.",
+      "companion_post": "Show a tiny example of a test set: input, expected behaviour, failure mode and release threshold.",
+      "visual_direction": "test_case_card",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 14,
+      "theme": "Build note",
+      "headline": "The boring code can protect the whole business process.",
+      "supporting_line": "Deduplication prevents the same lead or invoice from being processed twice.",
+      "companion_post": "Describe idempotency in plain English, with a harmless example from an automation.",
+      "visual_direction": "code_to_outcome",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 15,
+      "theme": "Outbound proof",
+      "headline": "The work after send is where outbound gets operational.",
+      "supporting_line": "In the documented baseline: about 24,000 emails a month and a 4% reply rate.",
+      "companion_post": "Only publish the numbers if send logs and reply definitions are verified. Explain reply routing and lead ownership—not just volume.",
+      "visual_direction": "evidence_receipt",
+      "cta": "No CTA",
+      "publish_guardrail": "VERIFY against actual send logs and exact reply-rate denominator before publishing; use 24,000/month baseline only if still accurate.",
+      "fallback_supporting_line": "Reply routing, lead ownership and follow-up are where outbound becomes an operation."
+    },
+    {
+      "week": 16,
+      "theme": "Product strategy",
+      "headline": "A pilot isn’t a product yet.",
+      "supporting_line": "Production adds permissions, support, cost controls and failure handling.",
+      "companion_post": "Use a pilot-to-production checklist with one concrete example per category.",
+      "visual_direction": "pilot_vs_production",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 17,
+      "theme": "Voice AI",
+      "headline": "If the call gets unusual, can the assistant recover?",
+      "supporting_line": "Test interruptions, unclear requests, silence and requests for a person.",
+      "companion_post": "Describe a voice-agent test plan and the exact handoff conditions you would require.",
+      "visual_direction": "call_test_matrix",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 18,
+      "theme": "Founder perspective",
+      "headline": "I don’t want AI in every workflow.",
+      "supporting_line": "I want fewer repetitive decisions and clearer ownership.",
+      "companion_post": "Explain one kind of task you would not automate and why. Be specific about risk or low frequency.",
+      "visual_direction": "founder_note",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 19,
+      "theme": "GTM engineering",
+      "headline": "A reply in a shared inbox is a handoff waiting to fail.",
+      "supporting_line": "Classify it, assign it and make the next action visible.",
+      "companion_post": "Show a simple reply-routing taxonomy: interested, objection, referral, unsubscribe, out of office and needs review.",
+      "visual_direction": "routing_map",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 20,
+      "theme": "Trust / build terms",
+      "headline": "Your software should not depend on your consultant staying forever.",
+      "supporting_line": "The repo, cloud account, credentials and runbook should be yours.",
+      "companion_post": "Explain what a clean handover includes. Only promise terms that your contracts and actual process support.",
+      "visual_direction": "ownership_checklist",
+      "cta": "Soft invitation",
+      "publish_guardrail": "Publish only if contract and actual delivery process guarantee these ownership/handover terms."
+    },
+    {
+      "week": 21,
+      "theme": "AI product strategy",
+      "headline": "Start with the task, not the model.",
+      "supporting_line": "What decision gets easier? What work disappears? What new risk appears?",
+      "companion_post": "Apply those three questions to one real use case, without turning the post into a tool comparison.",
+      "visual_direction": "three_questions",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 22,
+      "theme": "Outbound systems",
+      "headline": "A reply rate alone won’t tell you whether outbound works.",
+      "supporting_line": "Track qualified conversations and next steps—not only sends and opens.",
+      "companion_post": "Show the measurement chain from delivered message to reply, qualified conversation, meeting and opportunity. Clearly mark estimates.",
+      "visual_direction": "funnel_diagram",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 23,
+      "theme": "AI reliability",
+      "headline": "A confident answer with no source is a product problem.",
+      "supporting_line": "Show the evidence—or say the system cannot verify it.",
+      "companion_post": "Describe when source links, citations or a refusal are more useful than a fluent answer.",
+      "visual_direction": "source_trace",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 24,
+      "theme": "Operations",
+      "headline": "Automation should remove a step, not add another dashboard.",
+      "supporting_line": "If someone must copy the result by hand, close the loop.",
+      "companion_post": "Pick one workflow and mark every manual handoff that remains after the proposed automation.",
+      "visual_direction": "annotated_workflow",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 25,
+      "theme": "Marketplace / case study",
+      "headline": "A marketplace is more than a checkout page.",
+      "supporting_line": "A partner build processed $85K in its first three months; payment edge cases mattered too.",
+      "companion_post": "Use only with permission and accurate attribution to the partner agency. Explain one concrete payment or onboarding decision.",
+      "visual_direction": "case_receipt",
+      "cta": "No CTA",
+      "publish_guardrail": "Confirm partner permission, attribution and $85K / three-month figure before publishing.",
+      "fallback_supporting_line": "In a partner marketplace build, payment edge cases mattered as much as the checkout."
+    },
+    {
+      "week": 26,
+      "theme": "AI engineering",
+      "headline": "Every prompt change can break something that used to work.",
+      "supporting_line": "Version prompts and rerun the failures you already know about.",
+      "companion_post": "Explain a lightweight prompt regression process. Avoid suggesting that evaluation guarantees correctness.",
+      "visual_direction": "version_diff",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 27,
+      "theme": "Operations",
+      "headline": "The useful part of an AI assistant is what happens after the answer.",
+      "supporting_line": "Create the task, update the record or notify the right person.",
+      "companion_post": "Show a simple end-to-end chain from request to action to confirmation and exception handling.",
+      "visual_direction": "workflow_diagram",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 28,
+      "theme": "Product delivery",
+      "headline": "A green test suite doesn’t mean the feature is useful.",
+      "supporting_line": "Test the real task, with messy inputs and the people who will use it.",
+      "companion_post": "Contrast a technical pass with a user outcome; propose a small acceptance test.",
+      "visual_direction": "two_column_comparison",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 29,
+      "theme": "AI case study",
+      "headline": "The latency fix wasn’t “use a bigger model.”",
+      "supporting_line": "Routing, caching and evaluation can matter as much as the model choice.",
+      "companion_post": "Use the Wiser-related experience only if disclosure is permitted; explain the mechanism and confirm every numeric result before adding it.",
+      "visual_direction": "engineering_note",
+      "cta": "No CTA",
+      "publish_guardrail": "Do not publish numerical Wiser outcomes unless supported by source documents and disclosure permission."
+    },
+    {
+      "week": 30,
+      "theme": "Outbound systems",
+      "headline": "Personalization should be a fact, not a guess.",
+      "supporting_line": "If you can’t point to the source, don’t put it in the email.",
+      "companion_post": "Show how you would distinguish verified company facts from inferred or fabricated personalization.",
+      "visual_direction": "good_bad_example",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 31,
+      "theme": "AI reliability",
+      "headline": "A failed tool call should not look like a successful answer.",
+      "supporting_line": "Make failures visible, recover safely and give the human enough context.",
+      "companion_post": "Describe status handling, retries, timeouts and the user-facing fallback.",
+      "visual_direction": "system_state_diagram",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 32,
+      "theme": "Founder perspective",
+      "headline": "The stack is the easy part. Choosing what not to build is harder.",
+      "supporting_line": "Scope one painful workflow before debating frameworks.",
+      "companion_post": "Tell a short story about reducing scope or choosing a simpler solution. Use a real example.",
+      "visual_direction": "founder_note",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 33,
+      "theme": "Product delivery",
+      "headline": "A prototype should answer one risky question.",
+      "supporting_line": "Can this work with our data, our users and our constraints?",
+      "companion_post": "Offer a three-question prototype brief: assumption, evidence, decision.",
+      "visual_direction": "experiment_card",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 34,
+      "theme": "Operations",
+      "headline": "If an alert has no owner, it’s just another notification.",
+      "supporting_line": "Every alert needs a next action, an escalation path and a runbook.",
+      "companion_post": "Show a sample alert-to-resolution sequence, including what happens outside business hours.",
+      "visual_direction": "incident_flow",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 35,
+      "theme": "AI reliability",
+      "headline": "The cheapest model can be expensive if it needs three retries.",
+      "supporting_line": "Measure cost per successful task, not just cost per token.",
+      "companion_post": "Explain the trade-off between model price, retries, latency and human review. Use measured costs only.",
+      "visual_direction": "cost_breakdown",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 36,
+      "theme": "GTM / CRM",
+      "headline": "The fastest response is useless if it reaches the wrong person.",
+      "supporting_line": "Routing and CRM hygiene are part of the product.",
+      "companion_post": "Show the minimum fields and ownership rules needed to route an inbound or outbound reply.",
+      "visual_direction": "crm_routing_map",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 37,
+      "theme": "AI product strategy",
+      "headline": "Human review isn’t the problem. Surprise review is.",
+      "supporting_line": "Decide in advance which cases need a person.",
+      "companion_post": "Define escalation triggers such as low confidence, sensitive data, high-value actions or contradictory sources.",
+      "visual_direction": "decision_matrix",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 38,
+      "theme": "Build note",
+      "headline": "The first version should be small enough to learn from.",
+      "supporting_line": "Keep the scope narrow; keep the acceptance criteria real.",
+      "companion_post": "Explain what you would include—and explicitly exclude—from a first release for one use case.",
+      "visual_direction": "scope_card",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 39,
+      "theme": "Operations",
+      "headline": "The hardest automation bugs live between systems.",
+      "supporting_line": "A webhook fires twice. A record changes late. A reply arrives out of order.",
+      "companion_post": "Use a real or clearly labelled illustrative sequence to explain deduplication, retries and reconciliation.",
+      "visual_direction": "sequence_diagram",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 40,
+      "theme": "Founder perspective",
+      "headline": "After 15 years in product, I still start with the same question.",
+      "supporting_line": "What is the user trying to get done—and what gets in the way?",
+      "companion_post": "Personal reflection connecting product management to hands-on building. Avoid generic career inspiration.",
+      "visual_direction": "founder_note",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 41,
+      "theme": "Voice AI",
+      "headline": "“Can I speak to a person?” is a core test case.",
+      "supporting_line": "A good voice assistant makes the handoff easier, not awkward.",
+      "companion_post": "Write the exact handoff behaviour you would test and what context must follow the caller.",
+      "visual_direction": "conversation_snippet",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 42,
+      "theme": "RAG / knowledge",
+      "headline": "Your document assistant needs a plan for stale documents.",
+      "supporting_line": "Show dates, source ownership and what happens when two documents disagree.",
+      "companion_post": "Give readers a four-point document hygiene checklist before any RAG build.",
+      "visual_direction": "document_checklist",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 43,
+      "theme": "Product delivery",
+      "headline": "A timeline is not a plan until the risks are visible.",
+      "supporting_line": "Data access, integrations, permissions and ownership often decide the schedule.",
+      "companion_post": "Share a scoping template that names assumptions, dependencies, unknowns and a first milestone.",
+      "visual_direction": "project_map",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 44,
+      "theme": "Trust / delivery",
+      "headline": "Speed is not skipping the controls.",
+      "supporting_line": "It is removing unnecessary handoffs while keeping checks that catch real failures.",
+      "companion_post": "Explain the minimum release safeguards you believe every automation needs. Distinguish must-haves from context-dependent choices.",
+      "visual_direction": "release_checklist",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 45,
+      "theme": "GTM engineering",
+      "headline": "Outbound needs an off switch.",
+      "supporting_line": "Pause safely when deliverability drops or an integration starts misbehaving.",
+      "companion_post": "Explain stop conditions and monitoring in a responsible outbound system; avoid presenting volume as the goal.",
+      "visual_direction": "control_panel",
+      "cta": "No CTA",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 46,
+      "theme": "Proof / product",
+      "headline": "A live demo beats a paragraph saying “production-ready.”",
+      "supporting_line": "Try the multilingual CV optimizer with a real role and your own criteria.",
+      "companion_post": "Show a short screen recording of the live tool, the input, the output and one limitation. Link to the demo in the post text.",
+      "visual_direction": "annotated_screenshot",
+      "cta": "Demo link",
+      "publish_guardrail": "Verify demo still works and show a real screen recording; do not overstate evaluation claims."
+    },
+    {
+      "week": 47,
+      "theme": "Trust / handover",
+      "headline": "A good build should leave your team more capable.",
+      "supporting_line": "Documentation, access and a clear runbook are part of delivery.",
+      "companion_post": "Show what the handover checklist includes and what the client owns afterwards. Promise only what your engagement terms guarantee.",
+      "visual_direction": "handover_checklist",
+      "cta": "Soft invitation",
+      "publish_guardrail": "Publish only if contract and actual delivery process guarantee these ownership/handover terms."
+    },
+    {
+      "week": 48,
+      "theme": "Offer",
+      "headline": "Bring me the task that lives in three tabs and one person’s head.",
+      "supporting_line": "We’ll map the workflow and decide whether automation is worth the complexity.",
+      "companion_post": "Describe the 30-minute session: map current state, identify risks, decide whether to prototype. Avoid implying a guaranteed build plan for every case.",
+      "visual_direction": "simple_offer_card",
+      "cta": "Book session",
+      "publish_guardrail": "Use this CTA only if the 30-minute session and described process are currently offered."
+    },
+    {
+      "week": 49,
+      "theme": "Offer / qualification",
+      "headline": "Before hiring for an AI project, define the result you’re buying.",
+      "supporting_line": "A job title and a tech stack are not a business case.",
+      "companion_post": "Give a short brief template: user, problem, current cost, desired change, constraints and success measure.",
+      "visual_direction": "brief_template",
+      "cta": "Soft invitation",
+      "publish_guardrail": "none"
+    },
+    {
+      "week": 50,
+      "theme": "Offer / wrap-up",
+      "headline": "No AI pitch deck. One real workflow.",
+      "supporting_line": "Bring a repetitive task; leave with a clearer decision on what to build—or not build.",
+      "companion_post": "End the series by explaining how ProdCraft scopes a small first step and when you would advise a client not to automate.",
+      "visual_direction": "simple_offer_card",
+      "cta": "Book session",
+      "publish_guardrail": "Use this CTA only if the 30-minute session and described process are currently offered."
+    }
+  ]
+}

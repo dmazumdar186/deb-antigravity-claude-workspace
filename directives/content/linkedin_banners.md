@@ -1,5 +1,7 @@
 # LinkedIn Banners — ProdCraft editorial set
 
+
+> **Superseded for new posts (2026-10-25)** by `directives/content/linkedin_weekly_cards.md`: these 20 cards read as over-commercialised (QR + three-link footer + CTA on every card) and several numbers are stretched per `metrics_canonical.md`; the weekly cards enforce a claim registry.
 Script: `execution/content/linkedin_banners.py`. Replaces the 2026-08-31 `/ad-creative` output (dark indigo gradient, Manrope, pill CTA, no logo, no proof, no links) which the operator rejected as "looks AI-generated".
 
 ## Goal

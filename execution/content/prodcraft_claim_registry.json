@@ -1,0 +1,270 @@
+{
+  "statuses": [
+    "approved",
+    "pending_verification",
+    "pending_permission",
+    "blocked",
+    "retired"
+  ],
+  "rule": "A numeric token in headline/supporting_line must match a `match` pattern of an approved claim listing that week. Retired matches always fail.",
+  "claims": [
+    {
+      "id": "w15_outbound_baseline",
+      "weeks": [
+        15
+      ],
+      "claim_text": "about 24,000 emails a month and a 4% reply rate",
+      "match": [
+        "24,000",
+        "4%"
+      ],
+      "status": "pending_verification",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "MISSING: reply-rate denominator (sent vs delivered vs unique leads)",
+      "definition": "emails sent per month; replies / ? ",
+      "attribution": "ProdCraft outbound system (US consultancy)",
+      "disclosure_permission": "",
+      "approved_wording": "",
+      "notes": "Needs send logs and exact reply definition before the numeric line may render."
+    },
+    {
+      "id": "w25_marketplace_85k",
+      "weeks": [
+        25
+      ],
+      "claim_text": "$85K processed in first three months",
+      "match": [
+        "$85K",
+        "85K",
+        "$85k"
+      ],
+      "status": "pending_permission",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "first 3 months post-launch (dates MISSING)",
+      "denominator": "n/a",
+      "definition": "gross transaction value processed",
+      "attribution": "Siva / Papaya Labs partner build (NDA, anonymized)",
+      "disclosure_permission": "MISSING: written attribution permission from Siva / Papaya Labs",
+      "approved_wording": "",
+      "notes": "Partner build under NDA; needs attribution permission."
+    },
+    {
+      "id": "w29_wiser_numbers",
+      "weeks": [
+        29
+      ],
+      "claim_text": "numeric Wiser latency/adoption outcomes",
+      "match": [],
+      "status": "blocked",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "",
+      "definition": "",
+      "attribution": "Wiser Solutions",
+      "disclosure_permission": "MISSING",
+      "approved_wording": "",
+      "notes": "Card is non-numeric; any Wiser number added later is blocked."
+    },
+    {
+      "id": "w40_15_years",
+      "weeks": [
+        40
+      ],
+      "claim_text": "15 years in product",
+      "match": [
+        "15 years"
+      ],
+      "status": "approved",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md (career table)",
+      "date_range": "2010-present",
+      "denominator": "n/a",
+      "definition": "years in data-intensive product/tech roles",
+      "attribution": "Debanjan Mazumdar",
+      "disclosure_permission": "self",
+      "approved_wording": "After 15 years in product",
+      "notes": "Measured."
+    },
+    {
+      "id": "w08_40_slide",
+      "weeks": [
+        8
+      ],
+      "claim_text": "40-slide AI strategy (rhetorical, not a metric)",
+      "match": [
+        "40-slide"
+      ],
+      "status": "approved",
+      "source": "pack section 5",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech, no measured claim",
+      "attribution": "",
+      "disclosure_permission": "n/a",
+      "approved_wording": "Not a 40-slide AI strategy.",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric."
+    },
+    {
+      "id": "cta_30min_session",
+      "weeks": [
+        8,
+        48,
+        50
+      ],
+      "claim_text": "30-minute session CTA",
+      "match": [],
+      "status": "approved",
+      "source": "https://cal.com/debanjan-mazumdar-ben5rd/30min",
+      "date_range": "live as of 2026-10-25",
+      "denominator": "n/a",
+      "definition": "30-minute booking link",
+      "attribution": "ProdCraft",
+      "disclosure_permission": "self",
+      "approved_wording": "Book a 30-minute session",
+      "notes": "Live 30-min booking; re-check before each publish."
+    },
+    {
+      "id": "ownership_handover_terms",
+      "weeks": [
+        20,
+        47
+      ],
+      "claim_text": "client owns repo, cloud account, credentials, runbook",
+      "match": [],
+      "status": "pending_verification",
+      "source": "contract template (MISSING)",
+      "date_range": "",
+      "denominator": "n/a",
+      "definition": "handover terms",
+      "attribution": "ProdCraft",
+      "disclosure_permission": "self",
+      "approved_wording": "",
+      "notes": "Non-numeric, card renders; confirm contract terms before publishing."
+    },
+    {
+      "id": "w46_cv_optimizer_demo",
+      "weeks": [
+        46
+      ],
+      "claim_text": "live multilingual CV optimizer demo",
+      "match": [],
+      "status": "pending_verification",
+      "source": "https://cv-optimizer.pages.dev",
+      "date_range": "verify at publish time",
+      "denominator": "n/a",
+      "definition": "demo reachable and working",
+      "attribution": "ProdCraft",
+      "disclosure_permission": "self",
+      "approved_wording": "",
+      "notes": "Verify demo works at publish time; record a real screen capture."
+    },
+    {
+      "id": "retired_1",
+      "weeks": [],
+      "claim_text": "48k",
+      "match": [
+        "48k",
+        "48,000",
+        "48 000"
+      ],
+      "status": "retired",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "",
+      "definition": "",
+      "attribution": "",
+      "disclosure_permission": "",
+      "approved_wording": "",
+      "notes": "Stretched value: 48,000/month is 2x the 24,000 baseline. Never publish."
+    },
+    {
+      "id": "retired_2",
+      "weeks": [],
+      "claim_text": "$1M+",
+      "match": [
+        "$1M",
+        "1M+"
+      ],
+      "status": "retired",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "",
+      "definition": "",
+      "attribution": "",
+      "disclosure_permission": "",
+      "approved_wording": "",
+      "notes": "Stretched value: pipeline is modeled, not measured. Never publish."
+    },
+    {
+      "id": "retired_3",
+      "weeks": [],
+      "claim_text": "+45%",
+      "match": [
+        "45%"
+      ],
+      "status": "retired",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "",
+      "definition": "",
+      "attribution": "",
+      "disclosure_permission": "",
+      "approved_wording": "",
+      "notes": "Stretched value: source says +30%. Never publish."
+    },
+    {
+      "id": "retired_4",
+      "weeks": [],
+      "claim_text": "-55%",
+      "match": [
+        "55%"
+      ],
+      "status": "retired",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "",
+      "definition": "",
+      "attribution": "",
+      "disclosure_permission": "",
+      "approved_wording": "",
+      "notes": "Stretched value: source says -40%. Never publish."
+    },
+    {
+      "id": "retired_5",
+      "weeks": [],
+      "claim_text": "$10K/wk",
+      "match": [
+        "$10K",
+        "10K/w"
+      ],
+      "status": "retired",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "",
+      "definition": "",
+      "attribution": "",
+      "disclosure_permission": "",
+      "approved_wording": "",
+      "notes": "Stretched value: extrapolated. Never publish."
+    },
+    {
+      "id": "retired_6",
+      "weeks": [],
+      "claim_text": "100+hrs",
+      "match": [
+        "100+ h",
+        "100+hrs",
+        "100+ hrs"
+      ],
+      "status": "retired",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md",
+      "date_range": "",
+      "denominator": "",
+      "definition": "",
+      "attribution": "",
+      "disclosure_permission": "",
+      "approved_wording": "",
+      "notes": "Stretched value: extrapolated. Never publish."
+    }
+  ]
+}
