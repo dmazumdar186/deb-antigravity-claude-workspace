@@ -1,0 +1,416 @@
+{
+ "generated": "2026-10-25",
+ "pack": "execution/content/prodcraft_50_week_messages.json (weeks 1-10)",
+ "rules": "status=real: verbatim from the cited source line. status=illustrative: reframed campaign figure; real basis stated in `figure`. Workspace git history is a shallow clone (75 commits since 2026-10-19), so no workspace first-commit date is available; public repo dates come from depth-50 clones.",
+ "repos_cloned": {
+  "cv-optimizer-agent": "15 commits 2026-04-12..04-14, 12 test fns",
+  "humanizer": "3 commits 2026-05-19..06-12, 90 test fns / README says 107",
+  "anneal": "50 commits 2026-05-14..08-27, 184 test fns / CHANGELOG says 136 at v0.1",
+  "youtube-video-analyzer": "11 commits 2026-05-18..06-30, 34 test fns / README says 114, CI matrix py3.12+3.14 on windows-latest"
+ },
+ "not_found": [
+  "GitHub profile repo list (curl returned no repo anchors; only the 4 named repos were cloned)",
+  "a logged eval result backing '95% fields pass' (banner copy only)",
+  "a send-volume log line from a live Instantly run (directive and PRD figures only)",
+  "video pipeline wall-clock timings beyond banner copy ('eight minutes')",
+  "mobile registry has one placeholder app, no shipped-app data"
+ ],
+ "face_weeks": {
+  "choice": [
+   "05",
+   "01",
+   "08"
+  ],
+  "reason": "05 is the founder-perspective week by design (first-person career turn). 01 is a first-person shadowing story ('I followed one case'). 08 is the session invitation spoken by the person on the call ('bring one task; we map it')."
+ },
+ "carousel_weeks": {
+  "03": [
+   "Slide 1 — An AI demo works on the happy path.",
+   "Slide 2 — Case 1, missing field: content=None → return \"\" (llm_client.py)",
+   "Slide 3 — Case 2, strange input: empty body → neutral, 0.0 confidence (test_reply_classifier.py)",
+   "Slide 4 — Case 3, wrong answer: 4 of 8 FR cases leaked English (anthropic.ts)",
+   "Slide 5 — Each case became a test before trust.",
+   "Slide 6 — A product has to handle missing fields, strange inputs and wrong answers."
+  ],
+  "06": [
+   "Slide 1 — Not every AI idea deserves an agent.",
+   "Slide 2 — Rule: regex strips 'Certainly!' before any token (humanizer.py)",
+   "Slide 3 — Workflow: route(confidence<0.6) → human (jev_email_gate.py)",
+   "Slide 4 — RAG: when the answer must cite a source you own",
+   "Slide 5 — Agent: only when steps are unknown in advance",
+   "Slide 6 — One human check closes each branch.",
+   "Slide 7 — Sometimes a rule, an API call and one human check are enough."
+  ],
+  "07": [
+   "Slide 1 — A voice assistant needs to know when to stop talking.",
+   "Slide 2 — First sentence: 'say operator at any time' (create_assistant.py)",
+   "Slide 3 — Six transfer reasons, one transfer line (system_prompt.md)",
+   "Slide 4 — HANDOFF MEANS NO TOOLS",
+   "Slide 5 — What the human receives: caller context, reason, transcript",
+   "Slide 6 — Escalation is part of the experience—not a failure state."
+  ],
+  "10": [
+   "Slide 1 — A workflow without an owner is just a script.",
+   "Slide 2 — Trigger: KILL_SWITCH read before step one (run.py)",
+   "Slide 3 — Automation: retry twice, then raise (llm_client.py)",
+   "Slide 4 — Exception: same finding 3 rounds → abort (anneal base.py)",
+   "Slide 5 — Human: release does NOT auto-resume (killswitch.py)",
+   "Slide 6 — Audit trail: JSONL run log per day",
+   "Slide 7 — Who acts when the model is uncertain, the API fails or the customer needs a person?"
+  ]
+ },
+ "artefacts": [
+  {
+   "week": 1,
+   "type": "screenshot_text",
+   "title": "The manual case before the machine",
+   "payload": "Aleksandar has been finding sellers manually — sending cold emails one by one with a short, blunt message: \"Want to sell your business?\" It works. He gets a 4% reply rate… But it doesn't scale. He can send maybe a dozen emails a day by hand.",
+   "figure": "4% reply rate; ~12 emails/day by hand",
+   "source": "directives/gtm_client_workflows/accessory_masters_prd.md:15",
+   "status": "real",
+   "caption_fact": "The outbound engine started by documenting one founder's hand-sent emails (a dozen a day, 4% replies) before any automation was scoped.",
+   "why_it_fits": "The headline is 'follow one real case first'; this PRD paragraph is literally that case."
+  },
+  {
+   "week": 1,
+   "type": "config",
+   "title": "Kill switch read before step one",
+   "payload": "kill = env.get(\"KILL_SWITCH\", \"0\").strip()\nif kill == \"1\":\n    msg = \"KILL_SWITCH=1 in env — halting run.py immediately. No sub-steps executed.\"\n    log.error(msg)\n    print(msg)\n    return 2",
+   "figure": null,
+   "source": "execution/personal_workflows/self_outbound_system/run.py:172-177",
+   "status": "real",
+   "caption_fact": "The daily orchestrator checks a kill switch before any source/enrich/send step runs.",
+   "why_it_fits": "Shadowing the handoffs surfaced the need for a stop point before the happy path even starts."
+  },
+  {
+   "week": 1,
+   "type": "metric",
+   "title": "Wrong-mechanism rejections are failures",
+   "payload": "# Reject verdict correct but WRONG mechanism — the shared-oracle trap.\n# A mutation of this same lead with the reason-specific defensive check\n# missing would slip through undetected.\n\"verdict\": \"FAIL_REASON_MISMATCH\",",
+   "figure": null,
+   "source": "execution/personal_workflows/self_outbound_system/acceptance.py:84-95",
+   "status": "real",
+   "caption_fact": "The acceptance harness fails a lead rejection when the reason is wrong, even if the verdict is right.",
+   "why_it_fits": "The exceptions hid in the handoff between filters, not in the pass/fail flowchart."
+  },
+  {
+   "week": 2,
+   "type": "code",
+   "title": "Deterministic layer before the LLM",
+   "payload": "# Deterministic layer FIRST — catches ~95% of cheap cases without LLM\nooo_hits = _matches_any(text, _OOO_PATTERNS)\nif ooo_hits:\n    return {\n        \"class\": \"auto_reply_or_OOO\",\n        \"confidence\": 0.99,\n        \"explanation\": \"deterministic OOO pattern matched\",\n        \"detected_intent_signals\": ooo_hits,\n        \"cost_eur_estimate\": 0.0,\n    }",
+   "figure": "5 reply buckets: hot / positive / neutral / negative / auto_reply_or_OOO",
+   "source": "execution/personal_workflows/self_outbound_system/reply_classifier.py:98-107 (buckets: line 3)",
+   "status": "real",
+   "caption_fact": "Replies are sorted into five buckets, and out-of-office and unsubscribe replies are caught by regex before any model is called.",
+   "why_it_fits": "A sent email is activity; this is the code that decides which replies count as progress."
+  },
+  {
+   "week": 2,
+   "type": "metric",
+   "title": "Volume with its denominator",
+   "payload": "24,000 emails per month (~800/day across 32 inboxes)\n1%+ reply rate (240+ replies/month)\n30-60 positive conversations per month",
+   "figure": "24,000 emails/month over 32 inboxes; 30-60 positive conversations",
+   "source": "directives/gtm_client_workflows/accessory_masters_prd.md:25-27",
+   "status": "real",
+   "caption_fact": "The client PRD set the target at 24,000 emails a month across 32 inboxes, with success defined as 30-60 positive conversations, not sends.",
+   "why_it_fits": "Keeps volume and qualified opportunities as separate numbers, exactly as the companion post asks."
+  },
+  {
+   "week": 2,
+   "type": "code",
+   "title": "Positive reply routed into the CRM",
+   "payload": "def route_positive_reply(\n    …\n    pipeline_id: str | None,\n    stage_id: str | None,\n    tags: list[str] | None = None,\n    source: str = \"cold email pipeline\",\n    …\n    tags=tags or [\"cold email\", \"positive reply\"],",
+   "figure": null,
+   "source": "execution/modules/outputs/ghl.py:142-177",
+   "status": "real",
+   "caption_fact": "A positive reply creates a tagged GoHighLevel contact and an opportunity at a named pipeline stage.",
+   "why_it_fits": "Shows the follow-up path after someone answers."
+  },
+  {
+   "week": 2,
+   "type": "metric",
+   "title": "48,000 emails/month (public headline)",
+   "payload": "48,000+ emails / month · 4%+ reply rate",
+   "figure": "48k/mo is 2× the 24k/mo real baseline (32 inboxes, ~800/day); 4% reply is real",
+   "source": "execution/personal_workflows/personal_brand/metrics_canonical.md (Outbound table)",
+   "status": "illustrative",
+   "caption_fact": "The public 48k headline is a 2× stretch of the 24,000/month real baseline across 32 inboxes; the 4% reply rate is real.",
+   "why_it_fits": "If volume is quoted, quote 24k/32 inboxes as real and treat 48k as the canonical public headline."
+  },
+  {
+   "week": 3,
+   "type": "eval",
+   "title": "Model failed 4 of 8 FR cases",
+   "payload": "Deep-eval on 2026-06-14 then exposed Haiku producing English connective syntax in bullets under FR JDs (langdetect flagged experience[1].bullets[1] across 4 of 8 cases).",
+   "figure": "4 of 8 cases flagged",
+   "source": "execution/personal_workflows/cv_optimizer_v2/worker/src/anthropic.ts:17-19",
+   "status": "real",
+   "caption_fact": "A per-field language check caught English leaking into French CV bullets in 4 of 8 eval cases, which forced a model change.",
+   "why_it_fits": "A real 'wrong answer' failure case that is now tested before trust."
+  },
+  {
+   "week": 3,
+   "type": "code",
+   "title": "Empty response is a case, not a crash",
+   "payload": "# Defensive extraction: some providers (notably GLM via OR on long\n# outputs) can return message.content=None alongside a non-empty\n# finish_reason. Treat empty as empty rather than AttributeError.\nif not resp.choices:\n    return \"\"\nmsg = resp.choices[0].message\ncontent = getattr(msg, \"content\", None) or \"\"",
+   "figure": null,
+   "source": "execution/modules/llm_client.py:100-106",
+   "status": "real",
+   "caption_fact": "The shared LLM client treats a null model response as an empty string instead of a crash.",
+   "why_it_fits": "The 'missing fields' failure case, in code."
+  },
+  {
+   "week": 3,
+   "type": "code",
+   "title": "Tests for empty body and strange input",
+   "payload": "def test_empty_body_returns_neutral():\n    result = classify(\"\", dry_run=True)\n    assert result[\"class\"] == \"neutral\"\n    assert result[\"confidence\"] == 0.0\n\ndef test_phone_number_hot_pattern():\n    result = classify(\"Please call me at +33 6 12 34 56 78 tomorrow.\", dry_run=True)\n    assert result[\"class\"] == \"hot\"",
+   "figure": "3,316 test functions in workspace (grep 'def test_'); 31 in self_outbound_system/tests",
+   "source": "execution/personal_workflows/self_outbound_system/tests/test_reply_classifier.py:59-68",
+   "status": "real",
+   "caption_fact": "The reply classifier has tests for an empty body, a stop request and a phone number in the reply text.",
+   "why_it_fits": "Three failure cases: missing input, strange input, wrong answer."
+  },
+  {
+   "week": 3,
+   "type": "eval",
+   "title": "95% field-pass gate (prior banner claim)",
+   "payload": "✓ langdetect: 42/42 fields in target locale\n✓ recruiter-proxy eval: 95% pass\n→ shipped. ships only when 95% of fields pass.",
+   "figure": "95% pass (banner copy); real basis: per-field stopword validator + 4/8 eval failure",
+   "source": "execution/content/linkedin_banners.py:52-54 (VARIANTS 'cv-optimizer'); basis execution/personal_workflows/cv_optimizer_v2/worker/src/lang_validator.ts:1-18",
+   "status": "illustrative",
+   "caption_fact": "A per-field language validator runs on every generated CV; the '95% pass' figure is campaign copy, not a logged eval result found in the repo.",
+   "why_it_fits": "Use only if the caption says 'illustrative'; prefer the 4-of-8 artefact."
+  },
+  {
+   "week": 4,
+   "type": "code",
+   "title": "Dedup key is identity, not state",
+   "payload": "def dedup_key(record: dict[str, Any]) -> str:\n    \"\"\"Stable key for KV / SQLite dedup. Provider + type + id.\n\n    Never include the watermark — a record's identity does not change when its\n    fields do. The watermark drives incremental sync; the dedup_key drives\n    'have I already seen this?'.\n    \"\"\"\n    prov = record.get(\"_provider\") or \"unknown\"\n    rtype = record.get(\"record_type\") or \"unknown\"\n    rid = record.get(\"internal_id\") or \"missing\"\n    return f\"{prov}:{rtype}:{rid}\"",
+   "figure": null,
+   "source": "execution/templates/crm_integration/mapping.py:160-171",
+   "status": "real",
+   "caption_fact": "The CRM sync keys every record as provider:type:id so a re-run updates instead of duplicating.",
+   "why_it_fits": "Closing the loop means the record is updated, not copied in twice by a human."
+  },
+  {
+   "week": 4,
+   "type": "config",
+   "title": "60-day dedup TTL",
+   "payload": "dedup_ttl_seconds: int = Field(default=60 * 60 * 24 * 60, gt=0)  # 60 days\nkv_dedup_binding: str = Field(default=\"WEBHOOK_DEDUP\")",
+   "figure": "60-day TTL",
+   "source": "execution/templates/crm_integration/config/schema.py:58-65",
+   "status": "real",
+   "caption_fact": "Webhook deduplication is held in a KV namespace with a 60-day TTL.",
+   "why_it_fits": "The 'idempotency keys, 60-day dedup TTL' CV bullet has a config line behind it."
+  },
+  {
+   "week": 4,
+   "type": "cv_bullet",
+   "title": "Serverless stack with idempotency keys",
+   "payload": "Architected a serverless event-driven stack (Cloudflare Workers + KV cron, Instantly webhooks, GoHighLevel CRM, scheduled Modal jobs) with idempotency keys, 60-day dedup TTL and LLM guardrails",
+   "figure": null,
+   "source": "execution/personal_workflows/cv_builder_en.py:189-191",
+   "status": "real",
+   "caption_fact": "The CV states the outbound stack writes to GoHighLevel with idempotency keys and a 60-day dedup TTL.",
+   "why_it_fits": "Before/after handoff: reply → CRM record, no human copy-paste."
+  },
+  {
+   "week": 5,
+   "type": "cv_bullet",
+   "title": "Fifteen years, from engineer to AI PM",
+   "payload": "2010 – 2015 : Software Engineer (Tata Consultancy Services, Bengaluru | Nov. 2010 – Mar. 2013) → QA Engineer / Release Coordinator (IDrive India, Bengaluru | Apr. 2013 – Jul. 2015)\n…\nAI Product Manager — Wiser Solutions, Paris | Nov. 2022 – Present\nAI Product Engineer (Freelance) — Dec. 2025 – Mar. 2026",
+   "figure": "15 years (2010–present)",
+   "source": "execution/personal_workflows/cv_builder_en.py:163,182,252-257; metrics_canonical.md 'Experience: 15 years'",
+   "status": "real",
+   "caption_fact": "The career runs engineer → QA/release → product owner → AI PM → freelance AI product engineer, 2010 to now.",
+   "why_it_fits": "'I moved closer to the code' is visible in the timeline itself."
+  },
+  {
+   "week": 5,
+   "type": "cv_bullet",
+   "title": "Wiser: eval thresholds in a PM bullet",
+   "payload": "Shipped production GenAI capabilities (triage, recommendation, RAG support, smart alerts) … by orchestrating OpenAI/Claude multi-agent systems (MCP, A2A) with eval thresholds and prompt-cache-aware cost control",
+   "figure": "+40% BU adoption, +20% CSAT (real per metrics_canonical); +45%/−55% are stretched values",
+   "source": "execution/personal_workflows/cv_builder_en.py:165-172; execution/personal_workflows/personal_brand/metrics_canonical.md (Wiser table)",
+   "status": "real",
+   "caption_fact": "The Wiser Solutions GenAI rollout reached +40% BU adoption and +20% CSAT, with eval thresholds owned by the PM.",
+   "why_it_fits": "A product decision only made sense once he saw what shipping it took."
+  },
+  {
+   "week": 5,
+   "type": "timeline",
+   "title": "Public repos shipped in weeks",
+   "payload": "cv-optimizer-agent: 15 commits, 2026-04-12 → 2026-04-14\nhumanizer: 3 commits, 2026-05-19 → 2026-06-12 (107 tests claimed, 90 test fns counted)\nanneal: 50 commits, 2026-05-14 → 2026-08-27 (184 test fns counted)",
+   "figure": "4 public repos; first commit 2026-04-12",
+   "source": "https://github.com/dmazumdar186/{cv-optimizer-agent,humanizer,anneal,youtube-video-analyzer} (git log, depth-50 clone)",
+   "status": "real",
+   "caption_fact": "Four public repos were pushed between April and August 2026, each from first commit to usable in under a month.",
+   "why_it_fits": "Specific detail only the builder would know: the commit dates."
+  },
+  {
+   "week": 6,
+   "type": "code",
+   "title": "Regex before any token is spent",
+   "payload": "RE_OPENING_FLUFF = re.compile(\n    r\"^(Certainly!?|Absolutely!?|Great question!?|Sure!|Of course!?|\"\n…\nRE_EM_DASH = re.compile(r\"\\s*[—–]\\s*\")\n…\n    \"delve\", \"leverage\", \"robust\", \"comprehensive\", \"key takeaways\",",
+   "figure": null,
+   "source": "https://github.com/dmazumdar186/humanizer/blob/main/humanizer.py#L70-L96",
+   "status": "real",
+   "caption_fact": "The humanizer strips AI-tell phrases with regex in a deterministic pre-pass; the model only sees what rules could not fix.",
+   "why_it_fits": "A rule handled the obvious cases; no agent needed."
+  },
+  {
+   "week": 6,
+   "type": "code",
+   "title": "Fail open, retry once, never raise",
+   "payload": "\"\"\"Ask Jev every question in `questions` about `state` in ONE request.\n\nHTTP 429 sleeps min(retry-after or 1 s, 5 s) and retries once.\nFails open: any exception, HTTP error or malformed body returns a JevResult with\n`error` set and empty answers. Never raises.\n\"\"\"",
+   "figure": null,
+   "source": "execution/modules/jev_client.py:134-139",
+   "status": "real",
+   "caption_fact": "The decision-model client retries once on rate limit and otherwise fails open with an error field rather than raising.",
+   "why_it_fits": "'An API call and one human check' is enough when the client degrades predictably."
+  },
+  {
+   "week": 6,
+   "type": "config",
+   "title": "Route by confidence: agent, human, skip",
+   "payload": "def route(bucket, confidence, is_scam, human_sent, min_confidence=0.6, error=None):\n    if error or not bucket:\n        return \"human\"\n    if is_scam >= SCAM_THRESHOLD:\n        return \"human\" if human_sent >= HUMAN_SENT_THRESHOLD else \"archive_or_skip\"\n    if confidence < min_confidence:\n        return \"human\"\n    if bucket in AGENT_BUCKETS:\n        return \"agent\"\n    return \"archive_or_skip\"",
+   "figure": "min confidence 0.6; scam threshold 0.5",
+   "source": "execution/google/jev_email_gate.py:58-61,104-114 (signature condensed)",
+   "status": "real",
+   "caption_fact": "Email triage sends anything under 0.6 confidence, or any error, to a human instead of the agent.",
+   "why_it_fits": "The decision test in nine lines: rule → gate → agent, with the human as the default."
+  },
+  {
+   "week": 7,
+   "type": "config",
+   "title": "Handoff means no tools",
+   "payload": "**HANDOFF MEANS NO TOOLS.** When the caller says \"operator\", \"human\", \"speak to someone\", or you transfer for any reason (emergency, English-only mismatch, hostile caller, repeated unclear audio after 2 spell-back tries, tool failure), your response is **ONLY the transfer line**. Do **NOT** call `list_slots`. Do **NOT** call `book_slot`.",
+   "figure": "2 spell-back tries; 2 slot attempts max before transfer",
+   "source": "execution/voice_agents/gemini_live_dental_fr/system_prompt.md:37,88",
+   "status": "real",
+   "caption_fact": "The dental voice agent's prompt names six transfer reasons and forbids any tool call once the transfer line is spoken.",
+   "why_it_fits": "Knowing when to stop talking is written as a hard rule, not a fallback."
+  },
+  {
+   "week": 7,
+   "type": "config",
+   "title": "Escape word in the first sentence",
+   "payload": "\"Hi, you've reached {CLINIC_NAME}. I'm Lisa, your assistant. \"\n\"This call is handled by an AI. If you'd rather speak to a human, just say \\\"operator\\\" at any time. \"\n\"For an emergency with severe pain, say \\\"emergency\\\". \"\n\"How can I help you today?\"",
+   "figure": null,
+   "source": "execution/voice_agents/vapi_dental_fr/create_assistant.py:61-66",
+   "status": "real",
+   "caption_fact": "The greeting discloses the AI and gives the caller the word 'operator' before any question is asked.",
+   "why_it_fits": "Escalation is part of the experience from the first second."
+  },
+  {
+   "week": 7,
+   "type": "code",
+   "title": "Duplicate booking returns, does not crash",
+   "payload": "r = await cx.post(f\"{CAL_API_BASE}/bookings\", headers=_cal_headers(), json=payload)\nif r.status_code == 409:\n    return {\"status\": \"duplicate\", \"reason\": r.text[:200]}\nr.raise_for_status()",
+   "figure": null,
+   "source": "execution/voice_agents/vapi_dental_fr/app.py:165-168",
+   "status": "real",
+   "caption_fact": "A Cal.com 409 on booking is surfaced to the agent as 'duplicate' with the reason, so the caller hears context instead of silence.",
+   "why_it_fits": "Caller context and reason are preserved even on the failure path."
+  },
+  {
+   "week": 8,
+   "type": "screenshot_text",
+   "title": "One task, mapped as a funnel",
+   "payload": "| `scripts/run_metro.py` | Chains discovery -> audit -> enrich -> preview for one metro; prints the funnel table. |",
+   "figure": null,
+   "source": "directives/personal_workflows/prodcraft_medspa_pipeline.md:52",
+   "status": "real",
+   "caption_fact": "A build session for one metro produces a printed funnel table, discovery through preview, before any outreach is scoped.",
+   "why_it_fits": "'Bring one repetitive task' is how the pipeline's own directive is organised."
+  },
+  {
+   "week": 8,
+   "type": "screenshot_text",
+   "title": "What is not promised before scoping",
+   "payload": "\"_demo_status\": \"sandbox_owed\",\n\"_demo_note\": \"Sandbox Vapi demo to be built; tile copy is honest about 'on request' until live.\"",
+   "figure": null,
+   "source": "execution/personal_workflows/portfolio_site/src/content/services.en.json (tile 2)",
+   "status": "real",
+   "caption_fact": "The site's own content file flags the voice demo as 'on request' until a live sandbox exists.",
+   "why_it_fits": "Shows the discipline of not promising what has not been built."
+  },
+  {
+   "week": 8,
+   "type": "screenshot_text",
+   "title": "Three objections, three answers",
+   "payload": "Will this take six months? → Ship in days, not months. First working slice in week one.\nDo I get a sales rep, a PM, and a junior dev? → You get one senior operator on every call.\nWhat if I want to fire you? → All code, all credentials — yours. Day one.",
+   "figure": null,
+   "source": "execution/personal_workflows/portfolio_site/src/content/how_i_work.en.json",
+   "status": "real",
+   "caption_fact": "The how-we-work section answers three buyer objections, including walk-away terms from day one.",
+   "why_it_fits": "What happens in a session and what is not promised, in the client's words."
+  },
+  {
+   "week": 9,
+   "type": "metric",
+   "title": "Success metrics written as observations",
+   "payload": "- 30-60 positive conversations per month (prospects interested in selling)\n- Booked calls tracked in GoHighLevel\n- All positive replies surfaced to the team within 3 hours",
+   "figure": "30-60 positive conversations/month; 3-hour surfacing",
+   "source": "directives/gtm_client_workflows/accessory_masters_prd.md:23-30",
+   "status": "real",
+   "caption_fact": "The PRD's success metrics are observable: conversations per month, calls tracked in the CRM, replies surfaced within 3 hours.",
+   "why_it_fits": "A roadmap item ('build outbound') rewritten as what changes for the team."
+  },
+  {
+   "week": 9,
+   "type": "cv_bullet",
+   "title": "Discovery that changed the cycle",
+   "payload": "Led product discovery for a data-driven recommendation engine (quant/qual, JTBD) → −35 % iteration cycles, +25 % post-launch fit",
+   "figure": "−35% iteration cycles; +25% post-launch fit",
+   "source": "execution/personal_workflows/cv_builder_en.py:206-207",
+   "status": "real",
+   "caption_fact": "At InfoTnT the recommendation-engine roadmap item was measured by iteration cycles and post-launch fit, not shipped features.",
+   "why_it_fits": "Names what should change after the feature ships."
+  },
+  {
+   "week": 9,
+   "type": "cv_bullet",
+   "title": "Adoption and CSAT, not 'GenAI launched'",
+   "payload": "Drove +40 % BU adoption and +20 % CSAT on the global GenAI rollout by authoring AI PRDs (API/data contracts, GDPR/privacy-by-design) … with go/no-go gates and rollback plans",
+   "figure": "+40% BU adoption; +20% CSAT (both marked real in metrics_canonical)",
+   "source": "execution/personal_workflows/cv_builder_en.py:170-173",
+   "status": "real",
+   "caption_fact": "The Wiser GenAI rollout was judged on BU adoption and CSAT, with go/no-go gates and rollback plans in the PRDs.",
+   "why_it_fits": "The outcome, not the roadmap line."
+  },
+  {
+   "week": 10,
+   "type": "code",
+   "title": "Retry, then raise to an owner",
+   "payload": "except RateLimitError as e:\n    last_exc = e\n    if attempt < MAX_RETRIES:\n        delay = BASE_DELAY * (2 ** attempt)\n        logger.warning(\"Rate limited (attempt %d/%d), retrying in %.1fs\", …)\n        time.sleep(delay)\nexcept APIStatusError as e:\n    last_exc = e\n    if e.status_code >= 500 and attempt < MAX_RETRIES:\n        …\n    else:\n        raise",
+   "figure": "MAX_RETRIES = 2",
+   "source": "execution/modules/llm_client.py:19,111-124",
+   "status": "real",
+   "caption_fact": "The LLM client retries rate limits and 5xx errors twice with backoff, then raises so a human sees it.",
+   "why_it_fits": "'Who acts when the API fails?' First the retry loop, then the owner."
+  },
+  {
+   "week": 10,
+   "type": "config",
+   "title": "Kill switch: engage pauses, release does not resume",
+   "payload": "description: One-shot kill switch. --engage sets KILL_SWITCH=1 in the workspace .env and calls instantly_client.py --action pause. --release sets KILL_SWITCH=0 but does NOT auto-resume Instantly (operator must resume in UI + verify canary green).",
+   "figure": null,
+   "source": "execution/personal_workflows/self_outbound_system/killswitch.py:3",
+   "status": "real",
+   "caption_fact": "Releasing the kill switch does not resume sending; a human must resume and confirm the canary is green.",
+   "why_it_fits": "Audit trail plus a named human step between exception and restart."
+  },
+  {
+   "week": 10,
+   "type": "code",
+   "title": "Loop aborts when the same finding repeats",
+   "payload": "def finding_fingerprint(f: Finding) -> str:\n    \"\"\"Return a stable 16-hex-char hash of (severity, file, summary).\n\n    Used by the loop to detect oscillation: if the same fingerprint appears\n    in three consecutive rounds without being fixed, the loop aborts.\n    \"\"\"",
+   "figure": "3 consecutive rounds",
+   "source": "https://github.com/dmazumdar186/anneal/blob/main/src/anneal/audit/base.py#L63-L68",
+   "status": "real",
+   "caption_fact": "anneal fingerprints every finding and aborts its fix loop if one repeats for three rounds, handing control back to a person.",
+   "why_it_fits": "The model is uncertain → the script stops and an owner decides."
+  }
+ ]
+}
