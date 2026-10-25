@@ -1,6 +1,6 @@
 """
-description: Validation gate for the ProdCraft weekly LinkedIn cards: numeric-claim check against the claim registry, Playwright text-overflow check on rendered HTML, and a Jev-scored six-part 30-point review (>=24 + claims pass = PUBLISHABLE).
-inputs: --out <render dir with messages.json + html/> (default latest deliverables/linkedin_weekly_cards/prodcraft/<date>); --weeks 1-10 (optional subset); --claims execution/content/prodcraft_claim_registry.json; --scores <json {week: {criterion: 0-5}}> manual fallback; --no-jev; env OPENROUTER_API_KEY or OPENROUTER_API_TOEKN; env PW_CHROME (optional)
+description: Validation gate for the ProdCraft weekly LinkedIn cards: numeric-claim check against the claim registry, Playwright text-overflow check on rendered HTML, and a Jev-scored six-part 30-point review (>=24 + claims pass = PUBLISHABLE). A v2 dir (messages_v2.json, from linkedin_weekly_cards_v2.py) is detected automatically: the claim gate then runs over headline, card_fact, annotation, caption, cta line and every carousel slide's title/body (verbatim code panes and fixed kicker labels are exempt), and the overflow check covers every slide plus a two-line headline check.
+inputs: --out <render dir with messages.json or messages_v2.json + html/> (default latest deliverables/linkedin_weekly_cards/prodcraft/<date>); --weeks 1-10 (optional subset); --claims execution/content/prodcraft_claim_registry.json; --scores <json {week: {criterion: 0-5}}> manual fallback; --no-jev; env OPENROUTER_API_KEY or OPENROUTER_API_TOEKN; env PW_CHROME (optional)
 outputs: <out>/validation_report.md, <out>/validation_report.json, one ledger row in .tmp/jev_ledger.jsonl (caller linkedin_weekly_validate); exit 1 if any week fails claims or overflows
 """
 from __future__ import annotations
@@ -58,7 +58,14 @@ def token_ok(tok: str, text: str, week: int, claims: list[dict]) -> bool:
 
 
 def gated_texts(row: dict) -> dict[str, str]:
-    """Every copy field that reaches the image."""
+    """Every copy field that reaches the image (v2 rows: plus caption, card fact, note, CTA line and slide text)."""
+    if row.get("format"):
+        t = {"headline": row["headline"], "card_fact": row["card_fact"], "caption": row.get("caption", ""),
+             "annotation": row.get("annotation", ""), "cta_line": row.get("cta_line", ""), "alt_text": row.get("alt_text", "")}
+        for i, sl in enumerate(row.get("slides", [])):  # kicker ("case 1 · ...") is a fixed label; code is a verbatim quoted artefact
+            t[f"slide_{i + 1}_title"] = sl.get("title", "")
+            t[f"slide_{i + 1}_body"] = sl.get("body", "")
+        return {k: v for k, v in t.items() if v}
     t = {"headline": row["headline"], "supporting_line": row.get("rendered_supporting_line", row["supporting_line"]),
          "theme": row.get("theme", ""), "cta": row.get("cta_text", "")}
     for i, (_k, v) in enumerate(row.get("receipt_rows", [])):
@@ -85,7 +92,8 @@ def check_claims(row: dict, claims: list[dict]) -> list[str]:
 
 def check_overflow(out: Path, rows: list[dict]) -> dict[int, list[str]]:
     from playwright.sync_api import sync_playwright
-    js = """([W,H,S]) => { const bad=[]; document.querySelectorAll('.t, .vis, .main').forEach((el,i)=>{
+    js = """([W,H,S]) => { const bad=[]; const h1=document.querySelector('h1'); if (h1 && h1.dataset.lines && +h1.dataset.lines>2) bad.push('h1 '+h1.dataset.lines+' lines');
+      document.querySelectorAll('.t, .vis, .main, .pane').forEach((el,i)=>{
       const r=el.getBoundingClientRect(); const tag=(el.className||el.tagName)+'#'+i;
       if (el.scrollHeight>el.clientHeight+2 || el.scrollWidth>el.clientWidth+2) bad.push(tag+' scroll '+el.scrollHeight+'>'+el.clientHeight);
       if (el.classList.contains('t') && (r.left<S-1||r.top<S-1||r.right>W-S+1||r.bottom>H-S+1)) bad.push(tag+' outside safe box '+[r.left,r.top,r.right,r.bottom].map(Math.round));
@@ -99,15 +107,19 @@ def check_overflow(out: Path, rows: list[dict]) -> dict[int, list[str]]:
         for r in rows:
             if not r.get("html"):
                 continue  # blocked week; reported as a claims FAIL
-            f = (out / r["html"]).resolve()
-            if not f.is_relative_to(base):
-                raise ValueError(f"html path escapes out dir: {r['html']}")
-            if not f.exists():
-                print(f"note: week {r['week']:02d} html absent (not in --weeks subset); overflow skipped", file=sys.stderr)
-                continue
-            pg.goto(f.as_uri())
-            pg.wait_for_timeout(80)
-            res[r["week"]] = pg.evaluate(js, [W, H, SAFE])
+            found: list[str] = []
+            for rel in [r["html"], *r.get("slides_html", [])[1:]]:
+                f = (out / rel).resolve()
+                if not f.is_relative_to(base):
+                    raise ValueError(f"html path escapes out dir: {rel}")
+                if not f.exists():
+                    print(f"note: week {r['week']:02d} {rel} absent (not in --weeks subset); overflow skipped", file=sys.stderr)
+                    continue
+                pg.goto(f.as_uri())
+                pg.wait_for_timeout(150)
+                pg.evaluate("window.fitHead && window.fitHead()")
+                found += [f"{Path(rel).stem}: {x}" for x in pg.evaluate(js, [W, H, SAFE])]
+            res[r["week"]] = found
         br.close()
     return res
 
@@ -115,7 +127,8 @@ def check_overflow(out: Path, rows: list[dict]) -> dict[int, list[str]]:
 def jev_scores(rows: list[dict]) -> tuple[dict[int, dict[str, float] | None], float, str | None]:
     from execution.modules import jev_client as jev
     qs = {k: jev.score(v, LEVELS) for k, v in CRITERIA.items()}
-    states = [{k: r[k] for k in ("headline", "companion_post", "theme", "visual_direction")} | {"supporting_line": r.get("rendered_supporting_line", r["supporting_line"])} for r in rows]
+    states = [{k: r[k] for k in ("headline", "companion_post", "theme", "visual_direction")} | {"supporting_line": r.get("rendered_supporting_line", r["supporting_line"])}
+              | ({"caption": r["caption"], "card_fact": r["card_fact"]} if r.get("format") else {}) for r in rows]  # v2: the finished caption is scored, not the angle
     results = jev.decide_many(states, qs, workers=8)
     cost, err, out = 0.0, None, {}
     for r, res in zip(rows, results):
@@ -131,7 +144,7 @@ def jev_scores(rows: list[dict]) -> tuple[dict[int, dict[str, float] | None], fl
 
 def latest_out() -> Path:
     base = ROOT / "deliverables/linkedin_weekly_cards/prodcraft"
-    dirs = sorted(d for d in base.glob("*") if (d / "messages.json").exists())
+    dirs = sorted(d for d in base.glob("*") if (d / "messages.json").exists() or (d / "messages_v2.json").exists())
     if not dirs:
         raise SystemExit(f"no rendered output under {base}; run linkedin_weekly_cards.py first")
     return dirs[-1]
@@ -146,7 +159,8 @@ def main() -> int:
     ap.add_argument("--weeks", default="", help="validate only these weeks, ranges and lists: 1-10,15 (default all)")
     a = ap.parse_args()
     out = Path(a.out).resolve() if a.out else latest_out()
-    rows = json.loads((out / "messages.json").read_text(encoding="utf-8"))["weeks"]
+    msg = out / "messages_v2.json" if (out / "messages_v2.json").exists() else out / "messages.json"
+    rows = json.loads(msg.read_text(encoding="utf-8"))["weeks"]
     only = parse_weeks(a.weeks)
     if only:
         rows = [r for r in rows if r["week"] in only]

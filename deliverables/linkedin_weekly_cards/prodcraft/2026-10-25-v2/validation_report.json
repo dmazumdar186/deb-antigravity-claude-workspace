@@ -1,0 +1,231 @@
+{
+  "summary": {
+    "weeks": 10,
+    "publishable": 3,
+    "claims_fail": [],
+    "overflow_fail": [],
+    "score_ge_24": 3,
+    "unscored": 0,
+    "score_min": 22.1,
+    "score_median": 23.7,
+    "score_max": 25.3,
+    "jev_cost_usd": 0.000486,
+    "jev_error": null
+  },
+  "weeks": [
+    {
+      "week": 1,
+      "layout": "face",
+      "verdict": "HOLD",
+      "score": 22.1,
+      "scores": {
+        "reader": 3.82,
+        "situation": 4.7,
+        "point_of_view": 1.59,
+        "useful": 3.77,
+        "voice": 4.18,
+        "visual_clarity": 4.02
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [
+        "score 22.1/30 < 24"
+      ],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 2,
+      "layout": "artefact",
+      "verdict": "PUBLISHABLE",
+      "score": 24.4,
+      "scores": {
+        "reader": 4.12,
+        "situation": 4.53,
+        "point_of_view": 3.36,
+        "useful": 4.27,
+        "voice": 4.07,
+        "visual_clarity": 4.03
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 3,
+      "layout": "carousel",
+      "verdict": "HOLD",
+      "score": 22.9,
+      "scores": {
+        "reader": 2.86,
+        "situation": 4.78,
+        "point_of_view": 3.09,
+        "useful": 4.43,
+        "voice": 4.67,
+        "visual_clarity": 3.07
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [
+        "score 22.9/30 < 24"
+      ],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 4,
+      "layout": "artefact",
+      "verdict": "PUBLISHABLE",
+      "score": 25.3,
+      "scores": {
+        "reader": 4.0,
+        "situation": 4.84,
+        "point_of_view": 3.35,
+        "useful": 4.38,
+        "voice": 4.48,
+        "visual_clarity": 4.25
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 5,
+      "layout": "face",
+      "verdict": "HOLD",
+      "score": 23.6,
+      "scores": {
+        "reader": 4.06,
+        "situation": 4.65,
+        "point_of_view": 3.99,
+        "useful": 2.89,
+        "voice": 4.24,
+        "visual_clarity": 3.79
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [
+        "score 23.6/30 < 24"
+      ],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 6,
+      "layout": "carousel",
+      "verdict": "HOLD",
+      "score": 23.7,
+      "scores": {
+        "reader": 3.74,
+        "situation": 3.69,
+        "point_of_view": 3.77,
+        "useful": 4.69,
+        "voice": 4.35,
+        "visual_clarity": 3.47
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [
+        "score 23.7/30 < 24"
+      ],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 7,
+      "layout": "carousel",
+      "verdict": "PUBLISHABLE",
+      "score": 24.1,
+      "scores": {
+        "reader": 3.66,
+        "situation": 4.71,
+        "point_of_view": 3.27,
+        "useful": 4.54,
+        "voice": 4.28,
+        "visual_clarity": 3.63
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 8,
+      "layout": "face",
+      "verdict": "HOLD",
+      "score": 23.6,
+      "scores": {
+        "reader": 3.42,
+        "situation": 4.04,
+        "point_of_view": 3.8,
+        "useful": 3.71,
+        "voice": 4.53,
+        "visual_clarity": 4.06
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [
+        "score 23.6/30 < 24"
+      ],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 9,
+      "layout": "artefact",
+      "verdict": "HOLD",
+      "score": 23.9,
+      "scores": {
+        "reader": 3.56,
+        "situation": 4.32,
+        "point_of_view": 3.43,
+        "useful": 4.14,
+        "voice": 4.28,
+        "visual_clarity": 4.14
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [
+        "score 23.9/30 < 24"
+      ],
+      "pending_claims": [],
+      "used_fallback": false
+    },
+    {
+      "week": 10,
+      "layout": "carousel",
+      "verdict": "HOLD",
+      "score": 22.7,
+      "scores": {
+        "reader": 4.04,
+        "situation": 4.21,
+        "point_of_view": 2.9,
+        "useful": 4.45,
+        "voice": 4.24,
+        "visual_clarity": 2.84
+      },
+      "score_source": "jev",
+      "claims_pass": true,
+      "overflow": [],
+      "reasons": [
+        "score 22.7/30 < 24"
+      ],
+      "pending_claims": [],
+      "used_fallback": false
+    }
+  ]
+}

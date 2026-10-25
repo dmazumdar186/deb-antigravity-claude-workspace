@@ -469,6 +469,423 @@
       "disclosure_permission": "n/a",
       "approved_wording": "One real workflow",
       "notes": "Approved as rhetoric so the word-number gate passes; not a metric."
+    },
+    {
+      "id": "w01_dozen_by_hand",
+      "weeks": [
+        1
+      ],
+      "claim_text": "a dozen (12) hand-sent emails a day, 4% reply rate",
+      "match": [
+        "12 emails",
+        "A dozen emails",
+        "4%"
+      ],
+      "status": "approved",
+      "source": "directives/gtm_client_workflows/accessory_masters_prd.md (internal path; public attribution: a US outbound consultancy):15",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "replies over hand-sent emails (PRD wording)",
+      "definition": "emails the founder sent by hand per day; replies / sent",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "12 emails",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w02_volume_denominator",
+      "weeks": [
+        2
+      ],
+      "claim_text": "24,000 emails a month, ~800/day across 32 inboxes, 30-60 positive conversations",
+      "match": [
+        "32 inboxes",
+        "800 sends",
+        "24,000 emails",
+        "30 to 60",
+        "to 60"
+      ],
+      "status": "approved",
+      "source": "directives/gtm_client_workflows/accessory_masters_prd.md (internal path; public attribution: a US outbound consultancy):25-27",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "per month / per day across 32 inboxes",
+      "definition": "target volume and success definition as written in the client PRD",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "32 inboxes",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w02_ooo_confidence",
+      "weeks": [
+        2
+      ],
+      "claim_text": "deterministic OOO match returns confidence 0.99 and cost_eur_estimate 0.0",
+      "match": [
+        "0.99",
+        "€0.00"
+      ],
+      "status": "approved",
+      "source": "execution/personal_workflows/self_outbound_system/reply_classifier.py:98-107",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "literal return values in code",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "0.99",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w03_4_of_8",
+      "weeks": [
+        3
+      ],
+      "claim_text": "langdetect flagged 4 of 8 FR eval cases",
+      "match": [
+        "4 of 8",
+        "of 8"
+      ],
+      "status": "approved",
+      "source": "execution/personal_workflows/cv_optimizer_v2/worker/src/anthropic.ts:17-19",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "8 FR evaluation cases",
+      "definition": "eval cases flagged / eval cases run",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "4 of 8",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w03_zero_confidence",
+      "weeks": [
+        3
+      ],
+      "claim_text": "empty body classifies neutral with confidence 0.0",
+      "match": [
+        "0.0 confidence"
+      ],
+      "status": "approved",
+      "source": "execution/personal_workflows/self_outbound_system/tests/test_reply_classifier.py:59-68",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "asserted test value",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "0.0 confidence",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w04_60_day_ttl",
+      "weeks": [
+        4
+      ],
+      "claim_text": "60-day dedup TTL",
+      "match": [
+        "60-day"
+      ],
+      "status": "approved",
+      "source": "execution/templates/crm_integration/config/schema.py:58-65",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "dedup_ttl_seconds default",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "60-day",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w05_15_years",
+      "weeks": [
+        5
+      ],
+      "claim_text": "15 years in product",
+      "match": [
+        "15 years"
+      ],
+      "status": "approved",
+      "source": "execution/personal_workflows/personal_brand/metrics_canonical.md (career table)",
+      "date_range": "2010-present",
+      "denominator": "n/a",
+      "definition": "years in data-intensive product/tech roles, 2010-present",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "15 years",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w05_public_repos",
+      "weeks": [
+        5
+      ],
+      "claim_text": "cv-optimizer-agent 15 commits 2026-04-12..04-14; 3 of 4 public repos have more test functions than commits",
+      "match": [
+        "15 commits",
+        "three days",
+        "three of my four",
+        "four public repos"
+      ],
+      "status": "approved",
+      "source": "https://github.com/dmazumdar186/{cv-optimizer-agent,humanizer,anneal,youtube-video-analyzer} git log depth-50 (artefact bank repos_cloned)",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "commit counts and test-function counts (grep 'def test_')",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "15 commits",
+      "notes": "humanizer 3 commits/90 tests, anneal 50/184, youtube-video-analyzer 11/34 exceed; cv-optimizer-agent 15/12 does not, hence 'three of my four'"
+    },
+    {
+      "id": "w06_confidence_gate",
+      "weeks": [
+        6
+      ],
+      "claim_text": "min confidence 0.6 routes to a human",
+      "match": [
+        "0.6"
+      ],
+      "status": "approved",
+      "source": "execution/google/jev_email_gate.py:58-61,104-114",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "route() min_confidence default",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "0.6",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w07_six_transfer_reasons",
+      "weeks": [
+        7
+      ],
+      "claim_text": "six transfer reasons; 2 spell-back tries",
+      "match": [
+        "Six hand-offs",
+        "six hand-offs",
+        "Six transfer reasons",
+        "six transfer reasons",
+        "2 spell-back"
+      ],
+      "status": "approved",
+      "source": "execution/voice_agents/gemini_live_dental_fr/system_prompt.md:37,88",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "reasons enumerated in the HANDOFF rule (operator request, emergency, English-only mismatch, hostile caller, unclear audio after 2 spell-backs, tool failure)",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "Six hand-offs",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w09_prd_success_metrics",
+      "weeks": [
+        9
+      ],
+      "claim_text": "30-60 positive conversations/month; positive replies surfaced within 3 hours",
+      "match": [
+        "3 hours",
+        "30 to 60",
+        "to 60"
+      ],
+      "status": "approved",
+      "source": "directives/gtm_client_workflows/accessory_masters_prd.md (internal path; public attribution: a US outbound consultancy):23-30",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "PRD success metrics as written",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "3 hours",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w10_max_retries",
+      "weeks": [
+        10
+      ],
+      "claim_text": "MAX_RETRIES = 2",
+      "match": [
+        "MAX_RETRIES = 2"
+      ],
+      "status": "approved",
+      "source": "execution/modules/llm_client.py:19",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "constant in code",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "MAX_RETRIES = 2",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w10_three_rounds",
+      "weeks": [
+        10
+      ],
+      "claim_text": "same fingerprint three consecutive rounds aborts the loop",
+      "match": [
+        "three rounds",
+        "three consecutive rounds"
+      ],
+      "status": "approved",
+      "source": "https://github.com/dmazumdar186/anneal/blob/main/src/anneal/audit/base.py#L63-L68",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "docstring rule",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "three rounds",
+      "notes": "artefact bank status=real"
+    },
+    {
+      "id": "w02_v2_word_idioms",
+      "weeks": [
+        2
+      ],
+      "claim_text": "number words used as idiom / slide count, not a metric",
+      "match": [
+        "the one that"
+      ],
+      "status": "approved",
+      "source": "batch 1 v2 copy",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech or literal slide count",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "the one that",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
+    },
+    {
+      "id": "w03_v2_word_idioms",
+      "weeks": [
+        3
+      ],
+      "claim_text": "number words used as idiom / slide count, not a metric",
+      "match": [
+        "Three failure cases",
+        "half the evaluation set",
+        "Six-slide"
+      ],
+      "status": "approved",
+      "source": "batch 1 v2 copy",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech or literal slide count",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "Three failure cases",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
+    },
+    {
+      "id": "w04_v2_word_idioms",
+      "weeks": [
+        4
+      ],
+      "claim_text": "number words used as idiom / slide count, not a metric",
+      "match": [
+        "one tool"
+      ],
+      "status": "approved",
+      "source": "batch 1 v2 copy",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech or literal slide count",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "one tool",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
+    },
+    {
+      "id": "w06_v2_word_idioms",
+      "weeks": [
+        6
+      ],
+      "claim_text": "number words used as idiom / slide count, not a metric",
+      "match": [
+        "One regex",
+        "which one",
+        "Seven-slide"
+      ],
+      "status": "approved",
+      "source": "batch 1 v2 copy",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech or literal slide count",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "One regex",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
+    },
+    {
+      "id": "w07_v2_word_idioms",
+      "weeks": [
+        7
+      ],
+      "claim_text": "number words used as idiom / slide count, not a metric",
+      "match": [
+        "one transfer line",
+        "Six-slide"
+      ],
+      "status": "approved",
+      "source": "batch 1 v2 copy",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech or literal slide count",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "one transfer line",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
+    },
+    {
+      "id": "w08_v2_word_idioms",
+      "weeks": [
+        8
+      ],
+      "claim_text": "number words used as idiom / slide count, not a metric",
+      "match": [
+        "40 slides",
+        "one task",
+        "day one",
+        "the one that"
+      ],
+      "status": "approved",
+      "source": "batch 1 v2 copy",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech or literal slide count",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "40 slides",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
+    },
+    {
+      "id": "w10_v2_word_idioms",
+      "weeks": [
+        10
+      ],
+      "claim_text": "number words used as idiom / slide count, not a metric",
+      "match": [
+        "step one",
+        "the same one",
+        "one structured line",
+        "Seven-slide",
+        "If one repeats"
+      ],
+      "status": "approved",
+      "source": "batch 1 v2 copy",
+      "date_range": "batch 1 v2, 2026-10-25",
+      "denominator": "n/a",
+      "definition": "rhetorical figure of speech or literal slide count",
+      "attribution": "ProdCraft / Debanjan Mazumdar",
+      "disclosure_permission": "self (operator standing permission for tangential articulation of real data, 2026-10-25)",
+      "approved_wording": "step one",
+      "notes": "Approved as rhetoric so the numeric gate passes; not a metric.",
+      "type": "rhetoric"
     }
   ]
 }

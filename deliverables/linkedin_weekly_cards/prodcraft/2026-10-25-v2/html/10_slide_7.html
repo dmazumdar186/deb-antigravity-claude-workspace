@@ -1,0 +1,435 @@
+<!doctype html><html><head><meta charset="utf-8"><style>/* cyrillic-ext */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f0.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f1.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f2.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f3.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f4.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f5.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f6.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f7.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f8.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f4.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f5.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f6.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f7.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f8.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f4.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f5.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f6.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f7.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f8.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f19.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f20.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f21.woff2") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f22.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f23.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f24.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f19.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f20.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f21.woff2") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f22.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f23.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f24.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f31.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f32.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f33.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f34.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f35.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f36.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f34.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f35.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f36.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f34.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f35.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("file:///home/user/deb-antigravity-claude-workspace/.tmp/banners/fonts/f36.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root{--paper:#f3f1ec;--pane:#ebe8e1;--ink:#17191d;--ink2:#474b53;--brass:#a8843a;--slate:#3b5b7a;--hair:rgba(23,25,29,.22);
+--grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>")}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:Geist,Inter,system-ui,sans-serif;font-feature-settings:"ss01","cv11"}
+.card{position:relative;width:1080px;height:1350px;overflow:hidden;background:var(--paper);color:var(--ink)}
+.card:after{content:"";position:absolute;inset:0;background:var(--grain);opacity:.06;pointer-events:none;mix-blend-mode:multiply}
+.serif{font-family:Newsreader,'Bitstream Charter',FreeSerif,Georgia,serif;font-optical-sizing:auto}
+.mono{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:15px;letter-spacing:.08em;color:var(--ink2);font-variant-numeric:tabular-nums}
+.up{text-transform:uppercase}
+/* grid v2: lockup y96 (40px) · headline top y160, <=2 lines of >=96px · zone 520-1150 · footer rule y1210 */
+.top{position:absolute;left:96px;right:96px;top:96px;height:40px;display:flex;justify-content:space-between;align-items:flex-end}
+.brand{display:flex;align-items:flex-end;gap:12px}
+.brand img{height:40px;width:auto;display:block}
+.brand span{font-family:Newsreader,serif;font-weight:500;font-size:26px;line-height:1;padding-bottom:5px}
+.top .mono{line-height:1;padding-bottom:4px}
+h1{position:absolute;left:96px;top:160px;width:888px;font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizing:auto;font-weight:500;font-size:92px;line-height:1.05;letter-spacing:-.022em;margin:0;text-wrap:balance}
+.fact{position:absolute;left:96px;top:392px;width:888px;margin:0;font-family:Newsreader,serif;font-weight:400;font-size:34px;line-height:1.25;color:var(--ink);text-wrap:pretty}
+.fact b{font-weight:500}
+.foot{position:absolute;left:96px;right:96px;top:1210px;border-top:1px solid var(--hair);padding-top:22px;display:flex;justify-content:space-between}
+.foot .n{color:var(--brass)}
+/* face */
+.face .fact{top:520px;width:430px;font-size:36px;line-height:1.28}
+.face .fig{position:absolute;bottom:140px;left:380px;height:760px;width:auto;display:block}
+.note{position:absolute;left:100px;top:844px;width:420px;padding-bottom:8px;font-family:Caveat,cursive;font-weight:500;font-size:40px;line-height:1.15;color:var(--ink2);transform:rotate(-2.2deg);transform-origin:left top}
+.note:before{content:"";position:absolute;left:-4px;top:-18px;width:120px;height:2px;background:var(--brass);transform:rotate(-1deg)}
+/* artefact: editor fragment */
+.pane{position:absolute;left:72px;top:496px;width:936px;height:654px;background:var(--pane);border:1px solid var(--hair);overflow:hidden;box-shadow:0 1px 0 rgba(23,25,29,.06)}
+.tabs{height:56px;border-bottom:1px solid var(--hair);display:flex;align-items:stretch;padding-left:24px}
+.tab{display:flex;align-items:center;gap:12px;padding:0 20px;font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--ink);background:var(--paper);border-left:1px solid var(--hair);border-right:1px solid var(--hair);margin-bottom:-1px;border-bottom:1px solid var(--paper)}
+.tab .dir{color:var(--ink2)}.tab .dot{width:10px;height:10px;border-radius:50%;background:var(--brass);opacity:.9}
+pre{margin:0;padding:22px 0 22px 0;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:24px;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4}
+pre .ln{display:block;padding:0 36px 0 60px;text-indent:-28px;min-height:36px}
+pre .ln.hot{background:rgba(168,132,58,.16);box-shadow:inset 6px 0 0 var(--brass)}
+pre .c{color:var(--ink2)}pre .s{color:var(--slate)}pre .k{font-weight:600}pre .h{font-weight:600}
+.md pre .h{font-weight:600}
+.src{position:absolute;left:96px;top:1164px;font-size:15px}
+/* carousel slides */
+.hd{position:absolute;left:96px;top:160px;width:888px}
+.kick{display:block;font-size:17px;letter-spacing:.14em;margin-bottom:20px}
+.slide h2{margin:0;font-family:Newsreader,serif;font-weight:500;font-size:68px;line-height:1.08;letter-spacing:-.018em;text-wrap:balance}
+.slide .body{margin:36px 0 0;font-size:33px;line-height:1.35;color:var(--ink2);text-wrap:pretty}
+.slide.nocode .body{font-size:40px;line-height:1.3;color:var(--ink);margin-top:56px}
+.slide .pane{left:96px;width:888px;top:560px;height:590px}
+.slide.q .hd{top:420px}.slide.q h2{font-size:76px;line-height:1.1}
+.slide.hook .body{position:absolute;left:96px;top:400px;width:888px;margin:0;font-family:Newsreader,serif;font-size:42px;line-height:1.3;color:var(--ink)}
+.slide .cta{position:absolute;left:96px;top:1120px;font-size:17px;letter-spacing:.1em}
+</style></head><body><div class="card "><div class="slide q"><div class="top"><span class="brand"><img src="data:image/png;base64,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" alt=""><span class="t">ProdCraft</span></span><span class="mono t">wk 10</span></div><div class="hd"><h2 class="t">Who in your company acts when the model is uncertain, the API fails, or a customer needs a person?</h2></div><div class="foot"><span class="mono t">ProdCraft · weekly notes</span><span class="mono n t">7 / 7</span></div></div></div></body></html>

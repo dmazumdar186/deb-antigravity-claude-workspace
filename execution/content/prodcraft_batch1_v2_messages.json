@@ -1,0 +1,376 @@
+{
+  "source": "execution/content/prodcraft_50_week_messages.json (weeks 1-10) + execution/content/prodcraft_artefact_bank.json",
+  "note": "Batch 1 v2 (panel spec 2026-10-25). headline rewritten within the panel rules; headline_original preserved. All figures come from the artefact bank; none is illustrative. Client name withheld: 'a US outbound consultancy'.",
+  "reader": "founder / CEO / CSO / head of GTM scrolling LinkedIn on a phone",
+  "weeks": [
+    {
+      "week": 1,
+      "theme": "Product judgment",
+      "format": "face",
+      "visual_direction": "face_card",
+      "headline": "Founders: 12 emails by hand, 4% replies.",
+      "headline_original": "Before you automate it, follow one real case.",
+      "supporting_line": "The exceptions hide in the handoffs—not in the happy-path flowchart.",
+      "card_fact": "A dozen emails a day, typed by hand. 4% replied. Then the tool.",
+      "caption": "Before I automated a founder's outbound, I read how he did it by hand.\n\nThe brief came from a US outbound consultancy. The founder had been finding sellers himself: a cold email at a time, a short blunt message, no sequence, no tool. It worked. It just could not scale past what a single person can type in a morning.\n\nMost automation projects start with the tool. This started with his sent folder. Reading those emails told me what the machine had to keep: the bluntness, the single question, the fact that a reply went to a person who knew the deal. It also showed where the exceptions lived. Not in the send step. In what happened after someone wrote back.\n\nSo the first thing we built was not a sender. It was a stop point: the daily run reads a kill switch before any step executes, because a system that cannot be halted is not something a founder should hand his reputation to.\n\nWhat was the last process you automated without first watching someone do it by hand?",
+      "alt_text": "Debanjan Mazumdar, cut out on paper, beside the headline 'Founders: 12 emails by hand, 4% replies.' A note reads: read his sent folder before writing a line of code.",
+      "companion_post": "Tell a short story about shadowing a real workflow before deciding what to automate. Show the steps and the surprise.",
+      "cta": "No CTA",
+      "publish_guardrail": "none",
+      "annotation": "read his sent folder before writing a line of code",
+      "artefact_source": "directives/gtm_client_workflows/accessory_masters_prd.md:15"
+    },
+    {
+      "week": 2,
+      "theme": "Outbound systems",
+      "format": "artefact",
+      "visual_direction": "artefact_card",
+      "headline": "32 inboxes, 800 sends. Who replied?",
+      "headline_original": "A sent email is an activity. A useful reply is progress.",
+      "supporting_line": "The system matters most after someone answers.",
+      "card_fact": "An out-of-office match returns confidence 0.99 at €0.00. No model is called.",
+      "caption": "A sent email is activity. Only a classified reply is pipeline.\n\nThe client PRD for a US outbound consultancy set the target at 24,000 emails a month across 32 inboxes. Success was not written as sends. It was written as 30 to 60 positive conversations a month, booked calls tracked in the CRM, and every positive reply in front of a person fast enough to act on.\n\nSo the system that matters is the one that runs after someone answers. Each reply is sorted into a bucket: hot, positive, neutral, negative, or auto-reply. Out-of-office and unsubscribe replies are caught by plain regex before any language model sees them. Anything that looks like a buyer creates a tagged contact and an opportunity at a named pipeline stage, so a human sees it with context, not in a shared inbox.\n\nVolume is a cost line. Replies are the product. Keep them in separate columns and the dashboard stops lying.\n\nWhich number does your team report on Monday: sends, or replies that someone actually acted on?",
+      "alt_text": "Editor fragment of reply_classifier.py: regex catches out-of-office replies before any model call, the auto_reply_or_OOO line marked in brass. Headline: Founders: 32 inboxes, 800 sends. Who replied?",
+      "companion_post": "Explain how replies get classified, routed and followed up. Keep volume separate from qualified opportunities.",
+      "cta": "Ask a practical question, not “agree?”",
+      "publish_guardrail": "none",
+      "artefact": {
+        "tab": "self_outbound_system / reply_classifier.py",
+        "lang": "python",
+        "source": "execution/personal_workflows/self_outbound_system/reply_classifier.py:98-107 (buckets: line 3)",
+        "code": "# Deterministic layer FIRST — catches ~95% of cheap cases without LLM\nooo_hits = _matches_any(text, _OOO_PATTERNS)\nif ooo_hits:\n    return {\n        \"class\": \"auto_reply_or_OOO\",\n        \"confidence\": 0.99,\n        \"explanation\": \"deterministic OOO pattern matched\",\n        \"detected_intent_signals\": ooo_hits,\n        \"cost_eur_estimate\": 0.0,\n    }",
+        "brass": "auto_reply_or_OOO"
+      }
+    },
+    {
+      "week": 3,
+      "theme": "AI reliability",
+      "format": "carousel",
+      "visual_direction": "document_carousel",
+      "headline": "The demo you approved: 4 of 8 failed.",
+      "headline_original": "An AI demo works on the happy path.",
+      "supporting_line": "A product has to handle missing fields, strange inputs and wrong answers.",
+      "card_fact": "An empty reply body classifies as neutral with 0.0 confidence. It is a test, not a crash.",
+      "caption": "An AI demo shows the happy path. A product has to survive everything else.\n\nThree failure cases I now test before trusting any AI workflow, all from my own code.\n\nMissing fields. A provider can return a null message body with a normal finish reason. The shared client used to crash on it; now an empty answer is an empty string, logged, not an exception.\n\nStrange inputs. A reply classifier gets phone numbers, bare signatures, blank bodies. Each odd input became a named test before the classifier went live.\n\nWrong answers. A CV optimiser produced French bullets with English connective syntax. A per-field language check caught it across half the evaluation set and forced a model change before a single candidate saw it.\n\nNone of these appeared in the demo. All of them appeared in the first week of real traffic.\n\nWhich failure would embarrass you most: a crash, a strange input handled wrongly, or a confident wrong answer?",
+      "alt_text": "Six-slide document: the demo you approved, 4 of 8 real cases failed. Cases: a null provider response, a blank reply body, English grammar inside French CV bullets. Each became a test.",
+      "companion_post": "Share three failure cases you now test before trusting an AI workflow. Do not invent an incident; use real examples from your work.",
+      "cta": "No CTA",
+      "publish_guardrail": "none",
+      "slides": [
+        {
+          "kind": "hook",
+          "title": "The demo you approved: 4 of 8 failed.",
+          "body": "Three failure cases from my own code, each now a test before trust."
+        },
+        {
+          "kind": "point",
+          "kicker": "case 1 · missing field",
+          "title": "The provider returned nothing.",
+          "body": "A null message body with a normal finish reason used to crash the shared client. Now empty is empty.",
+          "code": "# Defensive extraction: some providers (notably GLM via OR on long\n# outputs) can return message.content=None alongside a non-empty\n# finish_reason. Treat empty as empty rather than AttributeError.\nif not resp.choices:\n    return \"\"\nmsg = resp.choices[0].message\ncontent = getattr(msg, \"content\", None) or \"\"",
+          "brass": "content = getattr(msg, \"content\", None) or \"\"",
+          "tab": "modules / llm_client.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "case 2 · strange input",
+          "title": "A blank reply. A phone number. A signature.",
+          "body": "Each odd input became a named test before the classifier touched live replies.",
+          "code": "def test_empty_body_returns_neutral():\n    result = classify(\"\", dry_run=True)\n    assert result[\"class\"] == \"neutral\"\n    assert result[\"confidence\"] == 0.0\n\ndef test_phone_number_hot_pattern():\n    result = classify(\"Please call me at +33 6 12 34 56 78 tomorrow.\", dry_run=True)\n    assert result[\"class\"] == \"hot\"",
+          "brass": "assert result[\"confidence\"] == 0.0",
+          "tab": "tests / test_reply_classifier.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "case 3 · wrong answer",
+          "title": "Fluent French. English grammar underneath.",
+          "body": "A per-field language check flagged English connective syntax in French CV bullets across 4 of 8 evaluation cases. The model was swapped before a candidate saw it.",
+          "code": "Deep-eval on 2026-06-14 then exposed Haiku producing English connective syntax in bullets under FR JDs (langdetect flagged experience[1].bullets[1] across 4 of 8 cases).",
+          "brass": "4 of 8 cases",
+          "tab": "cv_optimizer_v2 / worker / src / anthropic.ts"
+        },
+        {
+          "kind": "point",
+          "kicker": "the rule",
+          "title": "Each case became a test before trust.",
+          "body": "Missing fields, strange inputs, wrong answers. None of them appeared in the demo. All of them appeared in the first week of real traffic."
+        },
+        {
+          "kind": "question",
+          "title": "Which failure would embarrass you most: a crash, a strange input handled wrongly, or a confident wrong answer?"
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "theme": "Operations",
+      "format": "artefact",
+      "visual_direction": "artefact_card",
+      "headline": "Your reps retype into GoHighLevel. Still.",
+      "headline_original": "If a human still copies the answer into the CRM, the workflow isn’t finished.",
+      "supporting_line": "Close the loop: update the record, assign an owner, show the next step.",
+      "card_fact": "Dedup key = provider:type:id. The watermark never goes in: identity does not change when fields do.",
+      "caption": "If a rep still pastes the reply into the CRM, the automation is not finished.\n\nThe before: an outbound tool sends, a reply lands in a shared inbox, someone copies the name and the message into GoHighLevel, picks a stage, forgets the tag. Now and then the same lead is created twice.\n\nThe after: the webhook that receives the reply writes the record itself, assigns the owner and sets the next step. The part that makes this safe is boring. Writes are idempotent, so a replayed webhook or a re-run of the sync updates the existing record instead of cloning it. Dedup entries live in a key-value store with a 60-day expiry, long enough to outlast any retry storm.\n\nNobody measured hours saved on this, so I will not claim them. What changed is observable: the rep opens the CRM and the next step is already there, with an owner and a tag, before anyone has typed anything.\n\nWhere in your funnel does a human still carry data from one tool to the next by hand?",
+      "alt_text": "Editor fragment of mapping.py: dedup_key builds provider:type:id and never includes the watermark; the return line marked in brass. Headline: Your reps retype replies into GoHighLevel. Still.",
+      "companion_post": "Map a before/after handoff without claiming time savings you have not measured.",
+      "cta": "No CTA",
+      "publish_guardrail": "none",
+      "artefact": {
+        "tab": "templates / crm_integration / mapping.py",
+        "lang": "python",
+        "source": "execution/templates/crm_integration/mapping.py:160-171",
+        "code": "def dedup_key(record: dict[str, Any]) -> str:\n    \"\"\"Stable key for KV / SQLite dedup. Provider + type + id.\n\n    Never include the watermark — a record's identity does not change when its\n    fields do. The watermark drives incremental sync; the dedup_key drives\n    'have I already seen this?'.\n    \"\"\"\n    prov = record.get(\"_provider\") or \"unknown\"\n    rtype = record.get(\"record_type\") or \"unknown\"\n    rid = record.get(\"internal_id\") or \"missing\"\n    return f\"{prov}:{rtype}:{rid}\"",
+        "brass": "return f\"{prov}:{rtype}:{rid}\""
+      }
+    },
+    {
+      "week": 5,
+      "theme": "Founder perspective",
+      "format": "face",
+      "visual_direction": "face_card",
+      "headline": "The PM you hired can't read code. Nor I.",
+      "headline_original": "I moved closer to the code because handoffs hide too much.",
+      "supporting_line": "Product decisions make more sense when you see what it takes to ship them.",
+      "card_fact": "cv-optimizer-agent: 15 commits, first to usable in three days.",
+      "caption": "For 15 years I wrote the requirements. Then I started reading the commits.\n\nEngineer, then QA and release coordinator, then product owner, then AI product manager, then freelance AI product engineer. It is the slow realisation that every handoff hides something, and that the hidden thing usually decides whether the product works.\n\nThe moment it changed: a GenAI rollout where I owned the eval thresholds as a PM. Go/no-go gates, rollback plans, API contracts, all in the PRD. But the questions that mattered, what happens when the model returns nothing, when the provider rate-limits, when the answer is fluent and wrong, were only answerable by someone reading the code. So I started reading it, then writing it.\n\nThe detail only I would know: three of my four public repos now have more test functions than commits, because the first thing I learned from engineers was to write the failure case down before the feature.\n\nWhen did a document last hide the thing that decided your project?",
+      "alt_text": "Debanjan Mazumdar, cut out on paper, beside the headline 'The PM you hired can't read code. I couldn't.' A note reads: the commit log does not flatter anyone.",
+      "companion_post": "Describe a real moment from your product career that changed how you work. Add a specific detail only you would know.",
+      "cta": "No CTA",
+      "publish_guardrail": "none",
+      "annotation": "the commit log does not flatter anyone",
+      "artefact_source": "https://github.com/dmazumdar186/{cv-optimizer-agent,humanizer,anneal,youtube-video-analyzer} (git log, depth-50 clone)"
+    },
+    {
+      "week": 6,
+      "theme": "AI product strategy",
+      "format": "carousel",
+      "visual_direction": "document_carousel",
+      "headline": "CEOs: that agent you approved? One regex.",
+      "headline_original": "Not every AI idea deserves an agent.",
+      "supporting_line": "Sometimes a rule, an API call and one human check are enough.",
+      "card_fact": "Under 0.6 confidence, or on any error, the email goes to a human, never to the agent.",
+      "caption": "Not every AI idea deserves an agent. Most deserve a rule and a human.\n\nThe decision test I use, with the code behind each branch.\n\nA rule, when the bad cases are enumerable. The humanizer strips openers like 'Certainly!' and the usual AI vocabulary with regular expressions before any token is spent.\n\nA workflow, when the steps are known and only the judgement is fuzzy. Email triage asks a small decision model to bucket each message, and anything below the confidence floor, or any error, goes to a person rather than to the agent.\n\nRetrieval, when the answer must cite a source you own.\n\nAn agent, only when the steps are not known in advance and the cost of a wrong step is recoverable.\n\nEach branch closes with a human check. The client that calls the decision model retries once on a rate limit and otherwise fails open with an error field. It never raises, so the person always gets a turn.\n\nWhich branch did your last AI project actually need, and which one did the vendor sell you?",
+      "alt_text": "Seven-slide document: CEOs, your agent is a regex and a 0.6 gate. Branches: a rule (regex), a workflow (confidence gate to a human), retrieval, an agent; one human check closes each.",
+      "companion_post": "Give a decision test for choosing between rules, a workflow, RAG and an agent.",
+      "cta": "Invite thoughtful counterexamples",
+      "publish_guardrail": "none",
+      "slides": [
+        {
+          "kind": "hook",
+          "title": "CEOs: that agent you approved? One regex.",
+          "body": "A decision test for rules, workflows, retrieval and agents, with the code behind each branch."
+        },
+        {
+          "kind": "point",
+          "kicker": "branch 1 · a rule",
+          "title": "When the bad cases are enumerable.",
+          "body": "The humanizer strips AI openers and vocabulary with regular expressions before a single token is spent.",
+          "code": "RE_OPENING_FLUFF = re.compile(\n    r\"^(Certainly!?|Absolutely!?|Great question!?|Sure!|Of course!?|\"\n…\nRE_EM_DASH = re.compile(r\"\\s*[—–]\\s*\")\n…\n    \"delve\", \"leverage\", \"robust\", \"comprehensive\", \"key takeaways\",",
+          "brass": "RE_OPENING_FLUFF",
+          "tab": "humanizer / humanizer.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "branch 2 · a workflow",
+          "title": "When the steps are known, only the judgement is fuzzy.",
+          "body": "Email triage buckets each message with a small decision model. Under 0.6 confidence, or any error, a person gets it.",
+          "code": "def route(bucket, confidence, is_scam, human_sent, min_confidence=0.6, error=None):\n    if error or not bucket:\n        return \"human\"\n    if is_scam >= SCAM_THRESHOLD:\n        return \"human\" if human_sent >= HUMAN_SENT_THRESHOLD else \"archive_or_skip\"\n    if confidence < min_confidence:\n        return \"human\"\n    if bucket in AGENT_BUCKETS:\n        return \"agent\"\n    return \"archive_or_skip\"",
+          "brass": "if confidence < min_confidence:",
+          "tab": "google / jev_email_gate.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "branch 3 · retrieval",
+          "title": "When the answer must cite a source you own.",
+          "body": "Not a chatbot over the internet. A lookup over your contracts, your runbooks, your tickets, with the citation shown."
+        },
+        {
+          "kind": "point",
+          "kicker": "branch 4 · an agent",
+          "title": "Only when the steps are not known in advance.",
+          "body": "And only when a wrong step is recoverable. The model client retries once on a rate limit, then fails open with an error field. It never raises.",
+          "code": "\"\"\"Ask Jev every question in `questions` about `state` in ONE request.\n\nHTTP 429 sleeps min(retry-after or 1 s, 5 s) and retries once.\nFails open: any exception, HTTP error or malformed body returns a JevResult with\n`error` set and empty answers. Never raises.\n\"\"\"",
+          "brass": "Fails open",
+          "tab": "modules / jev_client.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "every branch",
+          "title": "One human check closes each branch.",
+          "body": "Sometimes a rule, an API call and one human check are enough."
+        },
+        {
+          "kind": "question",
+          "title": "Which branch did your last AI project actually need, and which one did the vendor sell you?"
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "theme": "Voice AI",
+      "format": "carousel",
+      "visual_direction": "document_carousel",
+      "headline": "Phone bot talks over callers. Six hand-offs.",
+      "headline_original": "A voice assistant needs to know when to stop talking.",
+      "supporting_line": "Escalation is part of the experience—not a failure state.",
+      "card_fact": "'If you'd rather speak to a human, just say operator at any time' is in the greeting, before any question.",
+      "caption": "A voice agent that cannot stop talking is a liability, not a receptionist.\n\nI built a phone assistant for a dental clinic. The hardest part was not booking; it was leaving.\n\nThe greeting discloses the AI and hands the caller an exit word before any question is asked. The prompt lists the reasons to transfer: the caller asks for a person, an emergency, a language mismatch, a hostile caller, unclear audio after repeated spell-backs, a tool failure. When any of them fires, the only allowed response is the transfer line.\n\nThe handoff carries what the human needs: who is calling, why the agent stopped, and the transcript. If the calendar reports a duplicate booking, the agent hears 'duplicate' with the reason, so the caller gets an explanation instead of silence.\n\nEscalation is part of the experience. Designing it last is how a bot ends up arguing with a patient.\n\nWhat is the exit word in your customer-facing automation, and does it work on the first try?",
+      "alt_text": "Six-slide document: your phone bot talks over callers, six hand-offs. The exit word in the greeting, six transfer reasons, handoff means no tools, and what the human receives.",
+      "companion_post": "Explain what a good human handoff should preserve: caller context, reason and transcript.",
+      "cta": "No CTA",
+      "publish_guardrail": "none",
+      "slides": [
+        {
+          "kind": "hook",
+          "title": "Phone bot talks over callers. Six hand-offs.",
+          "body": "What a voice agent for a dental clinic has to preserve when it stops talking."
+        },
+        {
+          "kind": "point",
+          "kicker": "rule 1 · the exit word",
+          "title": "The exit word comes before the first question.",
+          "body": "The greeting discloses the AI and hands the caller the word 'operator' before asking anything.",
+          "code": "\"Hi, you've reached {CLINIC_NAME}. I'm Lisa, your assistant. \"\n\"This call is handled by an AI. If you'd rather speak to a human, just say \\\"operator\\\" at any time. \"\n\"For an emergency with severe pain, say \\\"emergency\\\". \"\n\"How can I help you today?\"",
+          "brass": "say \\\"operator\\\" at any time",
+          "tab": "voice_agents / vapi_dental_fr / create_assistant.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "rule 2 · six reasons",
+          "title": "Six transfer reasons, one transfer line.",
+          "body": "Caller asks for a person. Emergency. Language mismatch. Hostile caller. Unclear audio after 2 spell-back tries. Tool failure."
+        },
+        {
+          "kind": "point",
+          "kicker": "rule 3 · no tools",
+          "title": "HANDOFF MEANS NO TOOLS.",
+          "body": "Once the transfer line is spoken, the agent may not look up a slot or book anything. The only allowed response is the transfer itself.",
+          "code": "**HANDOFF MEANS NO TOOLS.** When the caller says \"operator\", \"human\", \"speak to someone\", or you transfer for any reason (emergency, English-only mismatch, hostile caller, repeated unclear audio after 2 spell-back tries, tool failure), your response is **ONLY the transfer line**. Do **NOT** call `list_slots`. Do **NOT** call `book_slot`.",
+          "brass": "ONLY the transfer line",
+          "tab": "voice_agents / gemini_live_dental_fr / system_prompt.md"
+        },
+        {
+          "kind": "point",
+          "kicker": "rule 4 · what the human receives",
+          "title": "Caller context, reason, transcript.",
+          "body": "Even on the failure path: a duplicate booking comes back as 'duplicate' with the reason, so the caller hears an explanation instead of silence.",
+          "code": "r = await cx.post(f\"{CAL_API_BASE}/bookings\", headers=_cal_headers(), json=payload)\nif r.status_code == 409:\n    return {\"status\": \"duplicate\", \"reason\": r.text[:200]}\nr.raise_for_status()",
+          "brass": "\"status\": \"duplicate\"",
+          "tab": "voice_agents / vapi_dental_fr / app.py"
+        },
+        {
+          "kind": "question",
+          "title": "What is the exit word in your customer-facing automation, and does it work on the first try?"
+        }
+      ]
+    },
+    {
+      "week": 8,
+      "theme": "Trust / offer",
+      "format": "face",
+      "visual_direction": "face_card",
+      "headline": "Bring me one task. Keep the 40 slides.",
+      "headline_original": "Bring one repetitive task. Not a 40-slide AI strategy.",
+      "supporting_line": "We’ll map the current steps and decide whether automation is worth it.",
+      "card_fact": "A session ends with a printed funnel table, discovery to preview, before any outreach is scoped.",
+      "caption": "Bring one repetitive task to a 30-minute session. Leave the strategy deck at home.\n\nWhat happens in a session. You describe a task your team repeats every week: the spreadsheet someone rebuilds, the replies someone sorts, the calls someone screens. We map the current steps on the call, mark where a person decides and where a person merely copies, and decide together whether automation is worth it. Sometimes it is not, and I say so.\n\nWhat I will not promise before scoping: a timeline, a price, or an outcome I have not measured. My own site lists the voice demo as 'on request' because the sandbox is not live yet, and I would rather lose a lead than describe a demo that does not exist.\n\nWhat you keep either way: a written map of the task, the handoffs and the exception cases, which is useful even if you build it with someone else. All code and credentials are yours from day one if we do build.\n\nWhich task would you bring: the one that annoys you most, or the one that costs you most?",
+      "alt_text": "Debanjan Mazumdar, cut out on paper, beside the headline 'Bring me one task. Keep the 40 slides.' A note reads: bring the ugly spreadsheet, not the deck. Footer: 30-minute session.",
+      "companion_post": "Explain what happens in a ProdCraft discovery/build session and what you will not promise before scoping.",
+      "cta": "Soft invitation",
+      "publish_guardrail": "Use this CTA only if the 30-minute session and described process are currently offered.",
+      "annotation": "bring the ugly spreadsheet, not the deck",
+      "artefact_source": "directives/personal_workflows/prodcraft_medspa_pipeline.md:52",
+      "cta_line": "30-minute session · details in the post"
+    },
+    {
+      "week": 9,
+      "theme": "Product delivery",
+      "format": "artefact",
+      "visual_direction": "artefact_card",
+      "headline": "Your roadmap: 'add AI'. The PRD: 3 hours.",
+      "headline_original": "A roadmap item is not a business outcome.",
+      "supporting_line": "Name what should change for the user after the feature ships.",
+      "card_fact": "Success metric as written: all positive replies surfaced to the team within 3 hours.",
+      "caption": "'Build outbound' is a roadmap item. '30 to 60 conversations a month' is an outcome.\n\nThe PRD for a US outbound consultancy did not list features. Its success section read like observations: positive conversations per month, booked calls tracked in the CRM, every positive reply surfaced to the team fast enough to answer the same day. You can check each of them on a Monday without asking an engineer.\n\nRewriting a vague AI roadmap item works the same way. 'Add an AI assistant' becomes 'a rep sees the next step on every positive reply without opening the inbox'.\n\nEarlier in my career a recommendation engine was judged on iteration cycles and post-launch fit, not on whether it shipped. The cycles dropped by about a third and fit rose after launch. The roadmap item was the engine; the outcome was the team changing how it planned.\n\nWhat is the last roadmap item your team shipped where nobody can say what changed afterwards?",
+      "alt_text": "Markdown fragment of a client PRD, success metrics section: positive conversations per month, booked calls in the CRM, all positive replies surfaced within 3 hours, that line marked in brass.",
+      "companion_post": "Show how you would rewrite a vague AI roadmap item as an observable user or business change.",
+      "cta": "No CTA",
+      "publish_guardrail": "none",
+      "artefact": {
+        "tab": "gtm_client_workflows / outbound_prd.md",
+        "lang": "markdown",
+        "source": "directives/gtm_client_workflows/accessory_masters_prd.md:23-30 (client file name withheld)",
+        "code": "## Success metrics\n\n- 30-60 positive conversations per month (prospects interested in selling)\n- Booked calls tracked in GoHighLevel\n- All positive replies surfaced to the team within 3 hours",
+        "brass": "within 3 hours"
+      }
+    },
+    {
+      "week": 10,
+      "theme": "Operations",
+      "format": "carousel",
+      "visual_direction": "document_carousel",
+      "headline": "Founders: your script retried twice. Who?",
+      "headline_original": "A workflow without an owner is just a script.",
+      "supporting_line": "Who acts when the model is uncertain, the API fails or the customer needs a person?",
+      "card_fact": "MAX_RETRIES = 2. After that the client raises, so a person sees it.",
+      "caption": "A workflow without an owner is a script that will fail at the worst moment.\n\nOwnership across my daily outbound run.\n\nTrigger: before any step executes, the orchestrator reads a kill switch. If it is set, nothing runs and the log says why.\n\nAutomation: the model client retries rate limits and server errors with backoff, then raises. A retry loop that never gives up is not resilience; it is a hidden outage.\n\nException: the audit loop fingerprints every finding. If the same one keeps coming back without being fixed, the loop aborts instead of oscillating.\n\nHuman: releasing the kill switch does not resume sending. A person resumes in the sending tool and checks the canary is green first. Stopping is cheap; restarting should cost a decision.\n\nAudit trail: every step writes a structured line to a dated run log, so 'what happened on Tuesday' has an answer that is not a Slack thread.\n\nWho in your company acts when the model is uncertain, the API fails, or a customer needs a person?",
+      "alt_text": "Seven-slide document: your automation retried twice, then who acts? Owners: kill switch before step one, retry then raise, abort on a repeated finding, release does not resume, a dated run log.",
+      "companion_post": "Walk through ownership across the workflow: trigger, automation, exception, human and audit trail.",
+      "cta": "No CTA",
+      "publish_guardrail": "none",
+      "slides": [
+        {
+          "kind": "hook",
+          "title": "Founders: your script retried twice. Who?",
+          "body": "Ownership across a daily outbound run: trigger, automation, exception, human, audit trail."
+        },
+        {
+          "kind": "point",
+          "kicker": "owner 1 · trigger",
+          "title": "The kill switch is read before step one.",
+          "body": "If it is set, nothing runs and the log says why.",
+          "code": "kill = env.get(\"KILL_SWITCH\", \"0\").strip()\nif kill == \"1\":\n    msg = \"KILL_SWITCH=1 in env — halting run.py immediately. No sub-steps executed.\"\n    log.error(msg)\n    print(msg)\n    return 2",
+          "brass": "if kill == \"1\":",
+          "tab": "self_outbound_system / run.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "owner 2 · automation",
+          "title": "Retry with backoff, then raise.",
+          "body": "Rate limits and server errors get MAX_RETRIES = 2 with backoff. A loop that never gives up is a hidden outage.",
+          "code": "except RateLimitError as e:\n    last_exc = e\n    if attempt < MAX_RETRIES:\n        delay = BASE_DELAY * (2 ** attempt)\n        logger.warning(\"Rate limited (attempt %d/%d), retrying in %.1fs\", …)\n        time.sleep(delay)\nexcept APIStatusError as e:\n    last_exc = e\n    if e.status_code >= 500 and attempt < MAX_RETRIES:\n        …\n    else:\n        raise",
+          "brass": "raise",
+          "tab": "modules / llm_client.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "owner 3 · exception",
+          "title": "The same finding three rounds running: abort.",
+          "body": "The audit loop fingerprints every finding. If one repeats for three consecutive rounds without a fix, it stops instead of oscillating.",
+          "code": "def finding_fingerprint(f: Finding) -> str:\n    \"\"\"Return a stable 16-hex-char hash of (severity, file, summary).\n\n    Used by the loop to detect oscillation: if the same fingerprint appears\n    in three consecutive rounds without being fixed, the loop aborts.\n    \"\"\"",
+          "brass": "three consecutive rounds",
+          "tab": "anneal / src / anneal / audit / base.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "owner 4 · human",
+          "title": "Release does not resume.",
+          "body": "Releasing the kill switch sets it to zero and stops there. A person resumes sending and checks the canary is green first.",
+          "code": "description: One-shot kill switch. --engage sets KILL_SWITCH=1 in the workspace .env and calls instantly_client.py --action pause. --release sets KILL_SWITCH=0 but does NOT auto-resume Instantly (operator must resume in UI + verify canary green).",
+          "brass": "does NOT auto-resume",
+          "tab": "self_outbound_system / killswitch.py"
+        },
+        {
+          "kind": "point",
+          "kicker": "owner 5 · audit trail",
+          "title": "A dated run log, one structured line per step.",
+          "body": "So 'what happened on Tuesday' has an answer that is not a Slack thread."
+        },
+        {
+          "kind": "question",
+          "title": "Who in your company acts when the model is uncertain, the API fails, or a customer needs a person?"
+        }
+      ]
+    }
+  ]
+}

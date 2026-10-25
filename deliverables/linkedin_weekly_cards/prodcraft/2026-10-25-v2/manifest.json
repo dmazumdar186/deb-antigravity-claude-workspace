@@ -1,0 +1,65 @@
+{
+  "generated": "2026-10-25T17:55:36",
+  "size": [
+    1080,
+    1350
+  ],
+  "weeks": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "formats": {
+    "face": [
+      1,
+      5,
+      8
+    ],
+    "artefact": [
+      2,
+      4,
+      9
+    ],
+    "carousel": [
+      3,
+      6,
+      7,
+      10
+    ]
+  },
+  "headline_px": {
+    "1": 92,
+    "2": 92,
+    "3": 88,
+    "4": 92,
+    "5": 92,
+    "6": 92,
+    "7": 92,
+    "8": 92,
+    "9": 88,
+    "10": 92
+  },
+  "figure_share": {
+    "1": 0.36488340192043894,
+    "5": 0.36488340192043894,
+    "8": 0.36488340192043894
+  },
+  "brass_share_max": 0.004934608198703154,
+  "contrast_ink_on_paper": 15.6,
+  "fonts_loaded": [
+    "Geist",
+    "JetBrains Mono",
+    "Newsreader"
+  ],
+  "problems": [],
+  "zip": "prodcraft_weekly_cards_batch1_v2.zip",
+  "index": "index.html",
+  "published": false
+}
