@@ -1,6 +1,6 @@
 """
 description: Validation gate for the ProdCraft weekly LinkedIn cards: numeric-claim check against the claim registry, Playwright text-overflow check on rendered HTML, and a Jev-scored six-part 30-point review (>=24 + claims pass = PUBLISHABLE).
-inputs: --out <render dir with messages.json + html/> (default latest deliverables/linkedin_weekly_cards/prodcraft/<date>); --claims execution/content/prodcraft_claim_registry.json; --scores <json {week: {criterion: 0-5}}> manual fallback; --no-jev; env OPENROUTER_API_KEY or OPENROUTER_API_TOEKN; env PW_CHROME (optional)
+inputs: --out <render dir with messages.json + html/> (default latest deliverables/linkedin_weekly_cards/prodcraft/<date>); --weeks 1-10 (optional subset); --claims execution/content/prodcraft_claim_registry.json; --scores <json {week: {criterion: 0-5}}> manual fallback; --no-jev; env OPENROUTER_API_KEY or OPENROUTER_API_TOEKN; env PW_CHROME (optional)
 outputs: <out>/validation_report.md, <out>/validation_report.json, one ledger row in .tmp/jev_ledger.jsonl (caller linkedin_weekly_validate); exit 1 if any week fails claims or overflows
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from execution.content.linkedin_weekly_cards import SAFE, H, W, chromium_path  # noqa: E402
+from execution.content.linkedin_weekly_cards import SAFE, H, W, chromium_path, parse_weeks  # noqa: E402
 
 LEDGER = ROOT / ".tmp" / "jev_ledger.jsonl"
 NUM_RE = re.compile(r"[$€£]?\d(?:[\d,.]*\d)?\s*(?:%|[kKmM](?![a-zA-Z])\+?|\+)?|[²³¹¼½¾]")
@@ -141,9 +141,13 @@ def main() -> int:
     ap.add_argument("--claims", default=str(ROOT / "execution/content/prodcraft_claim_registry.json"))
     ap.add_argument("--scores", default="", help="manual scores JSON {week: {criterion: 0-5}} used when Jev fails")
     ap.add_argument("--no-jev", action="store_true")
+    ap.add_argument("--weeks", default="", help="validate only these weeks, ranges and lists: 1-10,15 (default all)")
     a = ap.parse_args()
     out = Path(a.out).resolve() if a.out else latest_out()
     rows = json.loads((out / "messages.json").read_text(encoding="utf-8"))["weeks"]
+    only = parse_weeks(a.weeks)
+    if only:
+        rows = [r for r in rows if r["week"] in only]
     claims = json.loads(Path(a.claims).read_text(encoding="utf-8"))["claims"]
     manual = json.loads(Path(a.scores).read_text(encoding="utf-8")) if a.scores else {}
 

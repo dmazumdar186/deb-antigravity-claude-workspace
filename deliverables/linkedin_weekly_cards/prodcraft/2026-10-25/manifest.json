@@ -1,10 +1,10 @@
 {
-  "generated": "2026-10-25T12:57:01",
+  "generated": "2026-10-25T13:15:46",
   "size": [
     1080,
     1350
   ],
-  "count": 50,
+  "count": 10,
   "layouts": {
     "minimal_editorial": 5,
     "annotated_workflow": 14,
@@ -29,5 +29,14 @@
     15,
     25
   ],
+  "fonts_loaded": [
+    "Caveat",
+    "Geist",
+    "JetBrains Mono",
+    "Newsreader"
+  ],
+  "logo": true,
+  "index": "index.html",
+  "zip": "prodcraft_weekly_cards_batch1.zip",
   "published": false
 }

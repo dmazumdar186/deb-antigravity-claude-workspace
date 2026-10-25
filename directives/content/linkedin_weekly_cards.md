@@ -11,19 +11,22 @@ One 1080x1350 feed card per week: headline + one supporting line + at most one d
 
 - `execution/content/prodcraft_50_week_messages.json` — source of truth, copy verbatim from the pack. `fallback_supporting_line` only on weeks with a numeric claim (W15, W25).
 - `execution/content/prodcraft_claim_registry.json` — every numeric/contractual claim: status, source, date range, denominator, definition, attribution, disclosure permission, approved wording, `match` patterns.
-- Fonts: `.tmp/banners/fonts/fonts_local.css` if present, else system fallbacks (Charter/FreeSerif, Inter, JetBrains Mono).
+- Fonts: `.tmp/banners/fonts/fonts_local.css` (Newsreader, Geist, JetBrains Mono, Caveat; `url(` rewritten to `file://`). Missing fonts print a loud WARN and the run reports `fonts_loaded` in `manifest.json` from `document.fonts` — anything short of all four means the cards are in fallback faces; do not ship them.
+- Logo: `execution/content/assets/prodcraft_logo.png` (508×508 RGBA), embedded as a data URI at 48px tall next to the Newsreader wordmark; `--logo` overrides. Never stretched or recoloured. (The prodcraft.fyi logo URL 404s; nothing is fetched.)
 
 ## Run
 
 ```
 python3 execution/content/linkedin_weekly_cards.py            # all 50 -> deliverables/linkedin_weekly_cards/prodcraft/<date>/
-python3 execution/content/linkedin_weekly_cards.py --weeks 15,25
-python3 execution/content/linkedin_weekly_validate.py [--out <dir>] [--scores manual.json] [--no-jev]
+python3 execution/content/linkedin_weekly_cards.py --weeks 1-10 --out deliverables/linkedin_weekly_cards/prodcraft/2026-10-25   # batch 1; ranges and lists accepted
+python3 execution/content/linkedin_weekly_validate.py [--out <dir>] [--weeks 1-10] [--scores manual.json] [--no-jev]
 ```
 
 ## Outputs (`deliverables/linkedin_weekly_cards/prodcraft/<date>/`)
 
-`png/NN_week_slug.png`, `html/`, `messages.json` (rendered copy + layout), `captions.md` (angle, CTA, link only for offer/demo weeks, guardrail), `proof_checklist.md`, `contact_sheet.png` (10x5), `manifest.json`, `validation_report.md|json`.
+`png/NN_week_slug.png`, `html/`, `messages.json` (rendered copy + layout for all 50, so a `--weeks` subset never shifts the family assignment), `captions.md` (angle, CTA, link only for offer/demo weeks, guardrail), `proof_checklist.md`, `contact_sheet.png`, `manifest.json`, `index.html` (review contact sheet: 540px cards, week/theme/family, per-PNG download, zip link, no trackers), `prodcraft_weekly_cards_<batchN>.zip` (PNGs only), `validation_report.md|json`.
+
+Design system (2026-10-25, after the "looks AI-generated" rejection): paper `#f3f1ec` with a faint SVG grain, ink `#17191d`, one brass accent per card (`#a8843a`: the 56×3 rule, or the end-dot of a diagram), 96px margins on an 8px grid, every block left-aligned and optically centred on the artboard. Headline Newsreader 500, optical sizing, leading 1.05, −0.018em; support Geist 400 36px, ≤28ch; labels JetBrains Mono 18px. Diagrams are inline SVG, 2px ink strokes, no fills, no shadows, no emoji; a support line with fewer than 3 clauses renders as an editorial card instead of an invented flow. Checklists use 32px square boxes; before/after splits an "X is not Y" headline into its own halves; founder_note carries one Caveat phrase ("— Debanjan") beside the support line.
 
 ## Claim governance (pack section 4)
 
