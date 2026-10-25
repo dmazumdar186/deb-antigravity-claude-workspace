@@ -23,12 +23,13 @@ BOOK_URL = "https://cal.com/debanjan-mazumdar-ben5rd/30min"
 DEMO_URL = "https://cv-optimizer.pages.dev"
 CTA_ON_IMAGE = {"Book session", "Soft invitation", "Demo link"}
 LOGO = ROOT / "execution/content/assets/prodcraft_logo.png"
-LOGO_STYLES = {"ink": ROOT / "execution/content/assets/prodcraft_logo_ink.png",
-               "brass": ROOT / "execution/content/assets/prodcraft_logo_brass.png", "color": LOGO}
+LOGO_STYLES = {"ink": ROOT / "execution/content/assets/prodcraft_logo_ink_2x.png",  # 96px-tall LANCZOS downsample of _ink.png, alpha cleaned
+               "brass": ROOT / "execution/content/assets/prodcraft_logo_brass_2x.png", "color": LOGO}
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 BRAND_FONTS = ("Newsreader", "Geist", "JetBrains Mono")  # Caveat retired 2026-10-25 (no handwritten mark)
+SENTENCE_LINES = {2}  # headlines whose two sentences fit as two lines at 76px (reviewer item, 2026-10-25)
 FOOT_LABEL = "ProdCraft · weekly notes"  # series label; prodcraft.fyi never appears on non-offer weeks
-WJ = "\u2060"  # word joiner: keeps an em dash with the word that follows it
+WJ = "\u2060"  # word joiner: keeps an em dash with the word before it (break falls after the dash)
 NBSP = "\u00a0"
 URL_RE = re.compile(r"""url\(\s*["']?(?!data:|file:|https?:)([^"')]+)["']?\s*\)""")
 MAX_HEADLINE = 140  # longer headlines WARN; font floor stays 62px
@@ -92,23 +93,23 @@ body{font-family:Geist,Inter,system-ui,sans-serif;font-feature-settings:"ss01","
 .brand img{height:40px;width:auto;display:block;margin-bottom:8px}
 .brand span{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-weight:500;font-size:26px;line-height:1;letter-spacing:-.005em;padding-bottom:6px}
 .top .mono{line-height:1;padding-bottom:4px}
-.kick{position:absolute;left:96px;top:232px}
+.kick{display:block;font-size:15px;letter-spacing:.12em;margin-bottom:40px}
 .head{position:absolute;left:96px;right:96px;bottom:638px}
 h1{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizing:auto;font-weight:500;font-size:84px;line-height:1.05;letter-spacing:-.018em;margin:0;max-width:888px}
 .content{position:absolute;left:96px;right:96px;top:720px;height:400px;padding-top:32px;display:flex;flex-direction:column;justify-content:flex-start}
-.sup{font-size:36px;line-height:1.3;color:var(--ink2);margin:0;max-width:640px;text-wrap:pretty;font-weight:400}
+.sup{font-size:36px;line-height:44px;color:var(--ink2);margin:0;max-width:640px;text-wrap:pretty;font-weight:400}
 .sup+.vis,.vis+.sup{margin-top:36px}
 .vis{flex:0 0 auto}
 .vis svg{display:block;width:100%;height:auto}
 .foot{position:absolute;left:96px;right:96px;top:1210px;border-top:1px solid var(--hair);padding-top:22px;display:flex;justify-content:space-between}
 .foot .n{color:var(--brass)}.foot .n.q{color:var(--ink2)}
 /* founder note */
-.sig{font-size:30px;line-height:1.3;color:var(--brass);margin-top:32px}
+.sig{font-size:28px;line-height:1.3;color:var(--brass);margin-top:32px}
 /* strip: boxes sized to content + 48px, 1.5px ink, 48px joins, no arrowheads */
-.strip{display:flex;align-items:center}
-.bx{border:1.5px solid var(--ink);padding:12px 24px;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:20px;letter-spacing:.02em;color:var(--ink);line-height:1.2;white-space:nowrap}
+.strip{display:flex;align-items:center;justify-content:space-between}
+.bx{border:1.5px solid var(--ink);padding:12px 24px;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:17px;letter-spacing:.02em;color:var(--ink);line-height:1.2;white-space:nowrap}
 .bx.b{border-color:var(--brass);color:var(--brass)}
-.join{width:48px;height:1.5px;background:var(--ink);flex:0 0 48px}
+.join{height:1.5px;background:var(--ink);flex:1 1 48px}
 /* chain: 10px nodes on a 1.5px spine, boxes left-aligned */
 .chain{position:relative;padding-left:40px;margin:0;list-style:none}
 .chain:before{content:"";position:absolute;left:4.25px;top:32px;bottom:32px;width:1.5px;background:var(--ink)}
@@ -120,18 +121,18 @@ h1{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizin
 /* numbered list: mono numerals, 1px rules */
 .ls{list-style:none;padding:0;margin:0;border-top:1px solid var(--hair)}
 .ls li{display:flex;gap:28px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--hair);font-size:34px;line-height:1.25;color:var(--ink)}
-.ls .num{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:18px;letter-spacing:.04em;color:var(--ink2);flex:0 0 40px;font-variant-numeric:tabular-nums}
+.ls .num{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:15px;letter-spacing:.04em;color:var(--ink2);flex:0 0 40px;font-variant-numeric:tabular-nums}
 .stem{font-size:36px;line-height:1.3;color:var(--ink2);margin:0 0 20px}
-.ls.c li{padding:10px 0;font-size:30px}.ls.c+.stem,.c .stem{margin-bottom:14px}.vis.c{margin-top:28px}
+.ls.c li{padding:10px 0;font-size:30px}.ls.c+.stem,.c .stem{margin-bottom:14px}.vis.c{margin-top:32px}
 /* two columns */
 .two{display:grid;grid-template-columns:1fr 1fr;column-gap:48px}
-.two .col{padding-top:20px;border-top:1px solid var(--hair)}
+.two .col{padding-top:32px;border-top:1px solid var(--hair)}
 .two .lab{margin-bottom:18px}
 .two .v{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizing:auto;font-weight:400;font-size:36px;line-height:1.25;margin:0;color:var(--ink)}
 .two .v.m{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;font-size:22px;letter-spacing:.02em;line-height:1.5}
 /* italic statement */
 .quote{font-size:44px;line-height:1.25;margin:0;color:var(--ink);max-width:888px}
-.cap{margin-top:24px;font-size:20px;letter-spacing:.04em}
+.quote{font-size:40px}.quote+.quote{margin-top:24px}
 /* checklist (generic weeks): 36px squares, 1.5px stroke */
 .check{list-style:none;padding:0;margin:0;border-top:1px solid var(--hair)}
 .check li{display:flex;gap:28px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--hair);font-size:34px;line-height:1.25}
@@ -152,8 +153,9 @@ h1{font-family:Newsreader,'Bitstream Charter',FreeSerif,serif;font-optical-sizin
 .rcpt .row span:last-child{text-align:right}
 .rcpt .tot{font-weight:600;border:0;padding-top:20px}
 """
-FIT_JS = """<script>(function(){var h=document.querySelector('h1');if(!h)return;var s=[[84,2],[76,3],[68,4]];
-for(var i=0;i<s.length;i++){h.style.fontSize=s[i][0]+'px';var n=Math.round(h.getBoundingClientRect().height/(s[i][0]*1.05));if(n<=s[i][1])break;}})();</script>"""
+FIT_JS = """<script>window.fitHead=function(){var h=document.querySelector('h1');if(!h)return 0;var s=[[84,2],[76,3],[68,4]];
+for(var i=0;i<s.length;i++){h.style.fontSize=s[i][0]+'px';var n=Math.round(h.getBoundingClientRect().height/(s[i][0]*1.05));if(n<=s[i][1]&&h.scrollWidth<=h.clientWidth+1)return s[i][0];}return 68;};
+window.fitHead();document.fonts.ready.then(window.fitHead);</script>"""
 
 
 def esc(s: str) -> str:
@@ -330,9 +332,12 @@ def cta_text(w: dict) -> str:
     return CTA_TEXT.get(w["cta"], "") if w["cta"] in CTA_ON_IMAGE else ""
 
 
-def typeset(text: str) -> str:
-    """Escape, non-breaking hyphens, keep an em dash with the following word, no single-word widow."""
-    t = esc(text).replace("-", NBH).replace("—", "—" + WJ)
+def typeset(text: str, sentences: bool = False) -> str:
+    """Escape, non-breaking hyphens, em dash stays with the word before it, no single-word widow.
+    sentences=True glues each sentence into one unbreakable line (used when two sentences fit as two lines)."""
+    t = esc(text).replace("-", NBH).replace("—", WJ + "—")
+    if sentences:
+        return " ".join(part.replace(" ", NBSP) for part in re.split(r"(?<=\.)\s+", t))
     if t.count(" ") >= 2:
         head, tail = t.rsplit(" ", 1)
         t = head + NBSP + tail
@@ -360,7 +365,7 @@ def custom_visual(w: dict, sup: str) -> dict | None:
         strip = '<span class="join"></span>'.join(f'<span class="bx t{c}">{t}</span>' for t, c in steps)
         return {"vis": f'<div class="strip">{strip}</div>', "sup": "above", "words": [t for t, _ in steps], "brass": True}
     if k == 2:
-        return {"vis": _two("activity", "sent", "progress", "classified · routed · followed up"), "sup": "below",
+        return {"vis": _two("activity", "sent", "progress", "classified · routed · followed up").replace("routed · followed", "routed<br>followed"), "sup": "below",
                 "words": ["activity", "sent", "progress", "classified · routed · followed up"], "brass": False}
     if k == 3:
         stem, items = "A product has to handle:", ["Missing fields", "Strange inputs", "Wrong answers"]
@@ -374,7 +379,7 @@ def custom_visual(w: dict, sup: str) -> dict | None:
         return {"vis": f'<div class="sig it t">{esc(sig)}</div>', "sup": "above", "words": [sig], "brass": True}
     if k == 6:
         q, cap = "a rule + an API call + one human check", "…are enough."
-        return {"vis": f'<p class="quote it t">{esc(q)}</p><div class="cap mono t">{esc(cap)}</div>', "sup": "none",
+        return {"vis": f'<p class="quote it t">{esc(q)}</p><p class="quote it t">{esc(cap)}</p>', "sup": "none",
                 "words": [q, cap], "brass": False}
     if k == 7:
         stem, items = "A handoff should preserve:", ["caller context", "reason", "transcript"]
@@ -382,8 +387,8 @@ def custom_visual(w: dict, sup: str) -> dict | None:
     if k == 8:
         return {"vis": "", "sup": "above", "words": [], "brass": False}
     if k == 9:
-        words = ["roadmap item", "[ feature ships ]", "outcome", "[ what changes for the user ]"]
-        return {"vis": _two(*words, mono=True), "sup": "above", "words": words, "brass": False}
+        words = ["roadmap item", "feature ships", "outcome", "what changes for the user"]
+        return {"vis": _two(*words), "sup": "above", "words": words, "brass": False}
     if k == 10:
         stem, items = "Who acts when:", ["the model is uncertain", "the API fails", "the customer needs a person"]
         return {"vis": _list(stem, items), "sup": "none", "words": [stem] + items, "brass": False}
@@ -392,7 +397,8 @@ def custom_visual(w: dict, sup: str) -> dict | None:
 
 def card_html(w: dict, fam: str, sup: str, numeric_ok: bool, fonts_css: str, hand: bool, logo_uri: str) -> tuple[str, list[str]]:
     """Return (html, visual_words). Grid: lockup y96, kicker y232, headline bottom y712, content 720-1120, footer y1210."""
-    head = f'<div class="head"><h1 class="t">{typeset(w["headline"])}</h1></div>'
+    kick = "WORKING SESSION · more in the post" if w["week"] == 8 else w["theme"].upper()
+    head = f'<div class="head"><div class="kick mono t">{esc(kick)}</div><h1 class="t">{typeset(w["headline"], sentences=w["week"] in SENTENCE_LINES)}</h1></div>'
     supp = f'<p class="sup t">{typeset(sup)}</p>'
     dark = " dark" if fam in DARK_FAMILIES else ""
     cv = custom_visual(w, sup)
@@ -408,10 +414,10 @@ def card_html(w: dict, fam: str, sup: str, numeric_ok: bool, fonts_css: str, han
     content = {"above": supp + visb, "below": visb + supp, "none": visb or supp}[mode]
     brand = (f'<span class="brand"><img src="{logo_uri}" alt=""><span class="t">ProdCraft</span></span>' if logo_uri
              else '<span class="brand"><span class="t">ProdCraft</span></span>')
-    label = cta_text(w) or FOOT_LABEL
+    label = FOOT_LABEL
     return (f"""<!doctype html><html><head><meta charset="utf-8"><style>{fonts_css}{CSS}</style></head><body>
 <div class="card f-{fam}{dark}"><div class="top">{brand}<span class="mono t">wk {w["week"]:02d}</span></div>
-<div class="kick mono up t">{esc(w["theme"])}</div>{head}
+{head}
 <div class="content">{content}</div>
 <div class="foot"><span class="mono t">{esc(label)}</span><span class="mono n{" q" if brass_vis else ""} t">{w["week"]:02d}</span></div></div>{FIT_JS}</body></html>""", words)
 
@@ -492,7 +498,7 @@ figcaption{{padding-top:12px}}.m{{font-family:"JetBrains Mono",monospace;font-si
 figcaption a{{color:#17191d}}figcaption .cap{{margin:8px 0;font-size:14px;color:#474b53}}figcaption .cap b{{color:#17191d;font-weight:500}}
 </style></head><body>
 <h1>{esc(title)}</h1>
-<p>PNGs are 1080×1350 (4:5), LinkedIn image-post ready, under 5 MB each. <a href="{esc(zip_name)}" download>Download all (zip)</a> · {len(cards)} cards</p>
+<p>PNGs are 1080×1350 (4:5), LinkedIn image-post ready, under 5 MB each. <a href="{esc(zip_name)}" download>Download all (zip)</a> · <a href="contact_sheet.png">contact sheet</a> · {len(cards)} cards</p>
 <div class="grid">{"".join(cards)}</div></body></html>
 """
     (out / "index.html").write_text(html_doc, encoding="utf-8")
@@ -590,7 +596,8 @@ def main() -> int:
             f = out / "html" / f"{name}.html"
             f.write_text(doc, encoding="utf-8")
             pg.goto(f.as_uri())
-            fonts_seen.update(verify_fonts(pg))
+            fonts_seen.update(verify_fonts(pg))  # awaits document.fonts.ready
+            pg.evaluate("window.fitHead && window.fitHead()")  # headline size by line count, measured in the brand face
             pg.wait_for_timeout(120)
             png = out / "png" / f"{name}.png"
             pg.screenshot(path=str(png), clip={"x": 0, "y": 0, "width": W, "height": H})
