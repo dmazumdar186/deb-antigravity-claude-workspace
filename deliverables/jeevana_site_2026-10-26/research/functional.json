@@ -1,5 +1,5 @@
 {
- "date": "2026-10-26T17:56:24.787Z",
+ "date": "2026-10-26T18:00:17.751Z",
  "film": {
   "standin": false,
   "seconds": 52,
@@ -11,7 +11,7 @@
   {
    "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
    "ok": true,
-   "detail": "ct=5.55"
+   "detail": "ct=5.54"
   },
   {
    "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
@@ -120,16 +120,10 @@
    "name": "no_empty_band_over_25pct (19 viewports × s0/s7/hold)",
    "ok": false,
    "detail": [
-    "iphone-se/s7=0.41",
-    "galaxy-s8/s7=0.42",
-    "iphone-13/s7=0.42",
-    "pixel-7/s7=0.42",
-    "iphone-15-pro-max/s7=0.40",
-    "small-tablet/s7=0.36",
-    "ipad-portrait/s7=0.35",
-    "ipad-pro-portrait/s7=0.35",
-    "tv-portrait/s7=0.39",
-    "pixel-7-device/s7=0.42"
+    "iphone-13/s7=0.25",
+    "pixel-7/s7=0.26",
+    "iphone-15-pro-max/s7=0.26",
+    "tv-portrait/s7=0.26"
    ]
   },
   {
@@ -210,7 +204,7 @@
    "detail": [
     "/js/i18n.js?v=823b26cc",
     "/js/breath.js?v=1fa8403f",
-    "/js/main.js?v=283e149a",
+    "/js/main.js?v=cbe45099",
     "https://static.cloudflareinsights.com/beacon.min.js"
    ]
   },
@@ -248,7 +242,7 @@
    "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
    "ok": true,
    "detail": {
-    "index_css_js_kb": 89.3,
+    "index_css_js_kb": 90.1,
     "breath_kb": 3.8,
     "film_mb": 5.06,
     "film_m_mb": 2.39
@@ -261,7 +255,7 @@
   }
  ],
  "measurements": {
-  "autoplay_ct_at_6s": 5.553,
+  "autoplay_ct_at_6s": 5.535,
   "scrub_1440x900": {
    "1": {
     "currentTime": 51.61,
@@ -305,29 +299,29 @@
   },
   "bands": {
    "iphone-se": {
-    "s0": 0.049,
-    "s7": 0.41,
+    "s0": 0.041,
+    "s7": 0.202,
     "hold": 0.062
    },
    "galaxy-s8": {
-    "s0": 0.09,
-    "s7": 0.419,
-    "hold": 0.084
+    "s0": 0.083,
+    "s7": 0.228,
+    "hold": 0.085
    },
    "iphone-13": {
-    "s0": 0.148,
-    "s7": 0.422,
-    "hold": 0.117
+    "s0": 0.13,
+    "s7": 0.251,
+    "hold": 0.119
    },
    "pixel-7": {
-    "s0": 0.164,
-    "s7": 0.424,
-    "hold": 0.133
+    "s0": 0.146,
+    "s7": 0.261,
+    "hold": 0.134
    },
    "iphone-15-pro-max": {
-    "s0": 0.144,
-    "s7": 0.398,
-    "hold": 0.167
+    "s0": 0.143,
+    "s7": 0.258,
+    "hold": 0.16
    },
    "phone-landscape": {
     "s0": 0.138,
@@ -335,14 +329,14 @@
     "hold": 0.138
    },
    "small-tablet": {
-    "s0": 0.061,
-    "s7": 0.362,
-    "hold": 0.07
+    "s0": 0.059,
+    "s7": 0.198,
+    "hold": 0.071
    },
    "ipad-portrait": {
-    "s0": 0.044,
-    "s7": 0.354,
-    "hold": 0.043
+    "s0": 0.042,
+    "s7": 0.186,
+    "hold": 0.045
    },
    "ipad-landscape": {
     "s0": 0.138,
@@ -350,9 +344,9 @@
     "hold": 0.138
    },
    "ipad-pro-portrait": {
-    "s0": 0.033,
-    "s7": 0.349,
-    "hold": 0.073
+    "s0": 0.03,
+    "s7": 0.182,
+    "hold": 0.057
    },
    "ipad-pro-landscape": {
     "s0": 0.138,
@@ -390,18 +384,18 @@
     "hold": 0.138
    },
    "tv-portrait": {
-    "s0": 0.153,
-    "s7": 0.389,
-    "hold": 0.181
+    "s0": 0.151,
+    "s7": 0.264,
+    "hold": 0.171
    },
    "pixel-7-device": {
-    "s0": 0.134,
-    "s7": 0.417,
-    "hold": 0.1
+    "s0": 0.114,
+    "s7": 0.239,
+    "hold": 0.101
    }
   },
   "sizes": {
-   "index_css_js_kb": 89.3,
+   "index_css_js_kb": 90.1,
    "breath_kb": 3.8,
    "film_mb": 5.06,
    "film_m_mb": 2.39

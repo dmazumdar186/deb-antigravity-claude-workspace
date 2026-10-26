@@ -228,8 +228,9 @@ html:not([lang="fr"]) [data-lang-block="en"] { display: block; }
   .sutra__iast { font-size: 1.05rem; margin-bottom: .2rem; }
   .sutra blockquote { font-size: 1.1rem; }
   .sutra figcaption { margin-top: .25rem; }
-  .sutra--lg .sutra__dev { font-size: clamp(1.4rem, 6vw, 3rem); }
-  .sutra--lg .sutra__iast { font-size: clamp(1.4rem, 6vw, 3rem); }
+  .sutra--lg .sutra__dev { font-size: clamp(1.6rem, 8vw, 3.6rem); }
+  .sutra--lg blockquote { font-size: clamp(1.3rem, 5.6vw, 2.6rem); }
+  .sutra--lg .sutra__iast { font-size: clamp(1.6rem, 7.6vw, 3.4rem); }
 }
 @media (max-width: 799px) {
   .cover { height: 1000vh; height: calc(10 * 100svh); }
