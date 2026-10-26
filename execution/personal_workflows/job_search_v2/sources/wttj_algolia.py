@@ -29,7 +29,6 @@ care about consent modals.
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import html as html_lib
 import json
 import logging

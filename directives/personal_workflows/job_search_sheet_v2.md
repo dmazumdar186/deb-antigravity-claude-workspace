@@ -2,13 +2,17 @@
 
 **Paired script:** [execution/personal_workflows/job_search_v2/](../../execution/personal_workflows/job_search_v2/)
 **Replaces:** `execution/personal_workflows/job_search_sheet.py` (v1) — see [JOB_SEARCH_SHEET_AUDIT.md](../../JOB_SEARCH_SHEET_AUDIT.md) for the v1 audit.
-**Last synced to implementation:** 2026-09-10 (dedup hardening + domain filter + posting verifier, driven by 3 operator complaints: duplicate rows, ≥50% expired/closed/stale rows, hardware-domain PM/PO roles leaking through). Prior sync: 2026-09-01 (PM/PO-ONLY rework: engineer/consultant/freelance-builder roles removed end-to-end; scope = FR/BE/DE/PL/AT/LU + remote; tabs = PM / AI PM / PO / AI PO; automatic sheet-hygiene purge added to run.py).
+**Last synced to implementation:** 2026-10-26 (one-table email, Fit /5 column, GitHub + prodcraft.fyi profile evidence, WTTJ office-duplicate collapse, freshness = newest of source/page date, third-language gate, listing-page-as-closed, zero-new runs are no-ops). Prior sync: 2026-09-10 (dedup hardening + domain filter + posting verifier, driven by 3 operator complaints: duplicate rows, ≥50% expired/closed/stale rows, hardware-domain PM/PO roles leaking through). Prior sync: 2026-09-01 (PM/PO-ONLY rework: engineer/consultant/freelance-builder roles removed end-to-end; scope = FR/BE/DE/PL/AT/LU + remote; tabs = PM / AI PM / PO / AI PO; automatic sheet-hygiene purge added to run.py).
 
 ---
 
 ## Goal
 
 Produce a daily Google Sheet + one email of **genuinely relevant** jobs for Debanjan Mazumdar, scored against his real profile (below), with junk (wrong role / wrong language / wrong location / internship) filtered out BEFORE it reaches the sheet, and an unskippable acceptance gate that fails the run if any junk lands.
+
+## Output contract — the operator sees one table (operator order 2026-10-26)
+
+The daily email body is exactly one table: **Company | Job title | Location | Link**, one row per job appended to the sheet that run, sorted by Fit. No heading, no counts, no per-source block, no tier breakdown, no verification stats, no "Top 5", no sheet link, no footer. Subject `Job Search — <n> new jobs for <date>`; n = rows. Zero new jobs → no email. Everything operational stays in the run log, the GitHub step summary and the sheet's Summary tab. A second same-day fire that finds nothing new is a no-op run (acceptance passes with an empty Top Matches), never an alarm. Changing these columns, the cadence or the channel needs the operator's word; see CLAUDE.md principle 7.
 
 ## Candidate profile — TWO tracks (single source of truth for the ranker)
 
@@ -28,7 +32,7 @@ Produce a daily Google Sheet + one email of **genuinely relevant** jobs for Deba
 
 ## Inputs
 
-- **env:** `FRANCE_TRAVAIL_CLIENT_ID/SECRET`, `GMAIL_SMTP_USER/APP_PASSWORD/NOTIFY_TO`, `SHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_PATH`, `GEMINI_API_KEY` (or Sheets-cell fallback, see below), optional `ANTHROPIC_API_KEY` (Sonnet rerank, gated on credit).
+- **env:** `FRANCE_TRAVAIL_CLIENT_ID/SECRET`, `GMAIL_SMTP_USER/APP_PASSWORD/NOTIFY_TO`, `SHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_PATH`, `GEMINI_API_KEY` (or Sheets-cell fallback, see below), optional `ANTHROPIC_API_KEY` (Sonnet rerank, gated on credit), optional `GITHUB_TOKEN` + `GITHUB_SEED_REPOS` (profile GitHub evidence; public API without them), `GMAIL_NOTIFY_TO` (digest recipient), `JOB_SEARCH_V2_INSECURE_TLS` (debug only, never in CI).
 - **CLI flags** (run.py): `--mode {live,fixture}`, `--dry-run`, `--sources`, `--max-pages`, `--posted-within-days`, `--no-location-filter`, `--no-ranker`, `--no-sonnet-rerank`, `--sonnet-rerank-top-n`, `--max-digest-jobs`, `--min-hours-between-emails`, `--no-acceptance`, `--no-verify` (skip Stage 3.8 posting verification, debugging only), `--max-age-days` (Stage 3.8 freshness window override; default from config `verification.max_age_days`, 7).
 - **CLI flags** (`purge_irrelevant_rows.py`): `--dry-run`, `--tabs`, `--keep-obsolete-tabs`, `--dedup/--no-dedup` (default on), `--reverify/--no-reverify` (default on), `--max-age-days` (default 7), `--reverify-max-fetches` (default 400).
 - **config** (`config/job_search_v2.json`): new `verification` block — `enabled`, `max_age_days` (7), `concurrency` (8).

@@ -23,7 +23,6 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 import httpx
 from dotenv import load_dotenv, find_dotenv

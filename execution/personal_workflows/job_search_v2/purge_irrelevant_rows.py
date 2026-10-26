@@ -478,7 +478,7 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
                             break
                         part = todo_unstamped[start:start + chunk]
                         for n, res in zip(part, pool.map(
-                                lambda i: _row_verdict(rows[i][link_i].strip(), now, max_age_days, fetch, strict=strict), part)):
+                                lambda i, _rows=rows, _li=link_i: _row_verdict(_rows[i][_li].strip(), now, max_age_days, fetch, strict=strict), part), strict=True):
                             verdicts[n] = res
                         done_unstamped.extend(part)
                 deferred = len(todo_unstamped) - len(done_unstamped)
@@ -514,7 +514,7 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
                             break
                         part = todo_recheck[start:start + chunk]
                         for n, res in zip(part, pool.map(
-                                lambda i: _recheck_verdict(rows[i][link_i].strip(), now, fetch, strict=strict), part)):
+                                lambda i, _rows=rows, _li=link_i: _recheck_verdict(_rows[i][_li].strip(), now, fetch, strict=strict), part), strict=True):
                             rechecks[n] = res
                         done_recheck.extend(part)
                 stats["remaining_recheck"] += len(todo_recheck) - len(done_recheck)

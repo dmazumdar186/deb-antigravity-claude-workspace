@@ -61,7 +61,7 @@
           "id": "email_one_table",
           "kind": "grep",
           "file": "execution/personal_workflows/job_search_v2/notifier/email.py",
-          "must_match": "\\|[^\\n]*(Title|Company|Role)[^\\n]*\\|",
+          "must_match": "\"Company\", \"Job title\", \"Location\", \"Link\"",
           "must_not_match": "Top 5",
           "label": "email body = one table"
         },

@@ -1,15 +1,15 @@
 {
   "system": "linkedin_connect",
   "date": "2026-10-26",
-  "generated_at": "2026-10-26T08:28:36+00:00",
-  "overall": 4.7,
+  "generated_at": "2026-10-26T08:31:36+00:00",
+  "overall": 5.0,
   "lenses": {
     "architecture": {
-      "score": 3,
+      "score": 5,
       "evidence": [
         "directive present",
         "directive lag 0d",
-        "env keys 0/1 documented (missing LINKEDIN_CONNECT_DIR)",
+        "env keys 1/1 documented",
         "no machine payload in deliverables"
       ],
       "metrics": {
@@ -18,9 +18,7 @@
         "env_keys": [
           "LINKEDIN_CONNECT_DIR"
         ],
-        "env_missing": [
-          "LINKEDIN_CONNECT_DIR"
-        ],
+        "env_missing": [],
         "payload_leaks": []
       }
     },
@@ -56,20 +54,18 @@
       "evidence": [
         "Drive snapshot 1d old",
         "report email 1d old",
-        "last day 25/25 sent"
+        "unknown: sent/quota"
       ],
       "metrics": {
         "snapshot_age_days": 1.0,
         "report_email_age_days": 1.0,
-        "last_day_sent": 25,
-        "last_day_quota": 25,
+        "last_day_sent": null,
+        "last_day_quota": null,
         "slots_per_day": 3,
-        "slot_times": [
-          "08:00",
-          "12:00",
-          "18:00"
-        ],
-        "gaps": []
+        "slot_times": null,
+        "gaps": [
+          "sent/quota"
+        ]
       }
     },
     "algorithm": {
@@ -121,46 +117,38 @@
     {
       "id": "report_email_time",
       "label": "one email/day at 20:00",
-      "status": "met",
-      "note": "20:00"
+      "status": "unknown",
+      "note": "fact report_email_time not supplied"
     }
   ],
   "facts": {
-    "slots_per_day": 3,
-    "slot_times": [
-      "08:00",
-      "12:00",
-      "18:00"
-    ],
-    "slot_tz": "Europe/Paris",
-    "report_email_time": "20:00",
-    "report_email_by": "cloud scheduled task",
     "last_drive_snapshot": "2026-10-25",
+    "report_emails_10d": 3,
     "last_report_email": "2026-10-25",
-    "last_day_sent": 25,
-    "last_day_quota": 25
+    "sent_last_day": 25,
+    "slots_per_day": 3
   },
   "fixes": [],
   "comparison": {
     "deltas": {
-      "architecture": null,
-      "data": null,
-      "code_health": null,
-      "operations": null,
-      "algorithm": null,
-      "security": null
+      "architecture": 2,
+      "data": 0,
+      "code_health": 0,
+      "operations": 0,
+      "algorithm": 0,
+      "security": 0
     },
     "dropped": [],
     "unmet": [],
     "degraded": false,
     "prev_scores": {
-      "architecture": null,
-      "data": null,
-      "code_health": null,
-      "operations": null,
-      "algorithm": null,
-      "security": null
+      "architecture": 3,
+      "data": 5,
+      "code_health": 5,
+      "operations": 5,
+      "algorithm": 5,
+      "security": 5
     }
   },
-  "previous_date": null
+  "previous_date": "2026-10-26"
 }

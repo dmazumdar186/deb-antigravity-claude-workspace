@@ -23,10 +23,9 @@ import re
 import sys
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
-from typing import Optional
 
 import httpx
 from dotenv import load_dotenv, find_dotenv

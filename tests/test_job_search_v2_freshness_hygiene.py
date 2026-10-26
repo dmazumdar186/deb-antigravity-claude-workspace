@@ -12,6 +12,8 @@ fetch_returning pattern from tests/test_job_search_v2_posting_verifier.py.
 """
 from __future__ import annotations
 
+from datetime import date as _date
+import datetime as dt
 import json
 import os
 import subprocess
@@ -594,16 +596,16 @@ def test_purge_sheet_reverify_false_skips_it(monkeypatch):
 
 @pytest.mark.parametrize("stamp,want_clean", acc.STAMP_CORPUS)
 def test_check_verified_stamp_corpus(stamp, want_clean):
-    got = acc.check_verified_stamp(stamp)
+    got = acc.check_verified_stamp(stamp, today=_date(2026, 9, 10))
     assert (got is None) == want_clean
 
 
 def test_check_verified_stamp_7_days_exactly_allowed():
-    assert acc.check_verified_stamp("open · posted 2026-09-03 · checked 2026-09-10") is None
+    assert acc.check_verified_stamp("open · posted 2026-09-03 · checked 2026-09-10", today=_date(2026, 9, 10)) is None
 
 
 def test_check_verified_stamp_8_days_is_violation():
-    v = acc.check_verified_stamp("open · posted 2026-09-02 · checked 2026-09-10")
+    v = acc.check_verified_stamp("open · posted 2026-09-02 · checked 2026-09-10", today=_date(2026, 9, 10))
     assert v is not None
     assert "stale" in v
 
@@ -633,9 +635,10 @@ def test_check_row_hardware_title_flags_non_software_domain():
 
 
 def test_check_row_clean_software_row_with_fresh_stamp_no_violations():
+    today = _date.today()
+    stamp = f"open · posted {today - dt.timedelta(days=1):%Y-%m-%d} · checked {today:%Y-%m-%d}"
     violations = acc._check_row(
-        "PM", "Senior Product Manager", "Paris, France", "https://boards.example/jobs/1",
-        "open · posted 2026-09-09 · checked 2026-09-10",
+        "PM", "Senior Product Manager", "Paris, France", "https://boards.example/jobs/1", stamp,
     )
     assert violations == []
 

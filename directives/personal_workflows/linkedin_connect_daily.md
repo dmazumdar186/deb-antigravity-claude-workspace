@@ -10,6 +10,8 @@ Every day, send connection requests to the next 25 unsent people from a consolid
 
 ## Inputs
 
+- **env:** `LINKEDIN_CONNECT_DIR` (optional; default data dir when `--data-dir` is not passed, `.tmp/linkedin_connect`). No API keys: the browser step uses the operator's own Chrome session.
+
 - **Prospect CSVs** (Apollo exports; any column names work if a profile-URL column exists). They live on the operator's machine in the repo root and campaign subfolders ("Bay Area Recruitment Campaign 13 Oct 26/", "Recruitment City Wise/", "Campaign 24 Sep 26 Wellness/"). **Every run consolidates all of them again** (idempotent), so a new CSV dropped there is picked up with no further action. Files whose name contains `bounce` are email bounces, not people: skip them.
 - **Shared state = Google Drive folder `linkedin_connect`** (owner's My Drive; find it with the Drive connector by title). Holds `ledger_<ISO datetime>.csv` snapshots (one per run, full copy) and `aliases.csv`. This is the only cross-machine state; **nothing under `data/linkedin_connect/` is ever committed** (repo is public; path is gitignored). No git credentials are needed in the daily loop.
 - **Local working dir** `data/linkedin_connect/` (gitignored): `master.csv` rebuilt from the CSVs, `ledger.csv` synced from Drive, `queue_<date>.csv`, `report_<date>.md`.

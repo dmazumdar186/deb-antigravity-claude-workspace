@@ -34,7 +34,7 @@ import re
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import httpx
@@ -200,8 +200,6 @@ def _try_playwright(search_url: str, query_params: dict, max_pages: int) -> list
             page = context.new_page()
             for page_num in range(1, max_pages + 1):
                 params = {**query_params, "page": page_num}
-                qs = "&".join(f"{k}={httpx.URL('').copy_set_param(k, str(v)).query.decode()}" for k, v in params.items())
-                # Simpler: build via httpx URL
                 url = str(httpx.URL(search_url).copy_merge_params(params))
                 logger.info("wttj: playwright loading page %d (%s)", page_num, url)
                 page.goto(url, wait_until="networkidle", timeout=20000)

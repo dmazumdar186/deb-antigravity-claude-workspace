@@ -1,15 +1,15 @@
 {
   "system": "job_search_v2",
   "date": "2026-10-26",
-  "generated_at": "2026-10-26T08:28:28+00:00",
-  "overall": 3.8,
+  "generated_at": "2026-10-26T08:31:28+00:00",
+  "overall": 4.3,
   "lenses": {
     "architecture": {
-      "score": 4,
+      "score": 5,
       "evidence": [
         "directive present",
         "directive lag 0d",
-        "env keys 8/12 documented (missing GITHUB_SEED_REPOS, GITHUB_TOKEN, GMAIL_NOTIFY_TO, JOB_SEARCH_V2_INSECURE_TLS)",
+        "env keys 12/12 documented",
         "no machine payload in deliverables"
       ],
       "metrics": {
@@ -29,12 +29,7 @@
           "JOB_SEARCH_V2_INSECURE_TLS",
           "SHEETS_SPREADSHEET_ID"
         ],
-        "env_missing": [
-          "GITHUB_SEED_REPOS",
-          "GITHUB_TOKEN",
-          "GMAIL_NOTIFY_TO",
-          "JOB_SEARCH_V2_INSECURE_TLS"
-        ],
+        "env_missing": [],
         "payload_leaks": []
       }
     },
@@ -54,13 +49,13 @@
       }
     },
     "code_health": {
-      "score": 0,
+      "score": 2,
       "evidence": [
-        "ruff 13 findings",
+        "ruff 0 findings",
         "bare/swallowed excepts 7, functions >120 lines 12, TODO/FIXME 0"
       ],
       "metrics": {
-        "ruff_errors": 13,
+        "ruff_errors": 0,
         "bare_excepts": 7,
         "long_functions": 12,
         "todo_fixme": 0,
@@ -76,7 +71,7 @@
         "runs": 10,
         "success_rate": 0.7,
         "median_minutes": 38.1,
-        "last_success_age_h": 19.5,
+        "last_success_age_h": 19.6,
         "gaps": []
       }
     },
@@ -132,8 +127,8 @@
     {
       "id": "email_one_table",
       "label": "email body = one table",
-      "status": "unmet",
-      "note": "table header not found"
+      "status": "met",
+      "note": ""
     },
     {
       "id": "daily_success_rate",
@@ -148,31 +143,36 @@
       "note": "fact wttj_jobs_last_day not supplied"
     }
   ],
-  "facts": {},
+  "facts": {
+    "emails_10d": 9,
+    "last_email": "2026-10-25",
+    "email_is_one_table": false,
+    "wttj_jobs_last_email": 0,
+    "note": "facts measured on the pre-fix email of 2026-10-25; fix ships today"
+  },
   "fixes": [],
   "comparison": {
     "deltas": {
-      "architecture": null,
-      "data": null,
-      "code_health": null,
-      "operations": null,
-      "algorithm": null,
-      "security": null
+      "architecture": 1,
+      "data": 0,
+      "code_health": 2,
+      "operations": 0,
+      "algorithm": 0,
+      "security": 0
     },
     "dropped": [],
     "unmet": [
-      "email body = one table",
       "daily run success >= 90%"
     ],
     "degraded": true,
     "prev_scores": {
-      "architecture": null,
-      "data": null,
-      "code_health": null,
-      "operations": null,
-      "algorithm": null,
-      "security": null
+      "architecture": 4,
+      "data": 5,
+      "code_health": 0,
+      "operations": 4,
+      "algorithm": 5,
+      "security": 5
     }
   },
-  "previous_date": null
+  "previous_date": "2026-10-26"
 }

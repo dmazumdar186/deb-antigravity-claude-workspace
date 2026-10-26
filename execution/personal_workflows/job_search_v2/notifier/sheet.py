@@ -285,7 +285,6 @@ def _discover_role_tabs(sp, routing_config: dict | None) -> list[str]:
     so the same posting landing in "PM" one day and "AI PM" the next (routing
     config tweak, borderline title) never got caught.
     """
-    import gspread  # type: ignore
 
     routing_config = routing_config or {"fallback_tab": "PM", "titles": {}}
     tabs: set[str] = {routing_config.get("fallback_tab", "PM")}

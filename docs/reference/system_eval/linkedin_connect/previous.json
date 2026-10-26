@@ -1,0 +1,156 @@
+{
+  "system": "linkedin_connect",
+  "date": "2026-10-26",
+  "generated_at": "2026-10-26T08:29:50+00:00",
+  "overall": 4.7,
+  "lenses": {
+    "architecture": {
+      "score": 3,
+      "evidence": [
+        "directive present",
+        "directive lag 0d",
+        "env keys 0/1 documented (missing LINKEDIN_CONNECT_DIR)",
+        "no machine payload in deliverables"
+      ],
+      "metrics": {
+        "directive_exists": true,
+        "directive_synced": true,
+        "env_keys": [
+          "LINKEDIN_CONNECT_DIR"
+        ],
+        "env_missing": [
+          "LINKEDIN_CONNECT_DIR"
+        ],
+        "payload_leaks": []
+      }
+    },
+    "data": {
+      "score": 5,
+      "evidence": [
+        "schema constants present",
+        "eval pass (24/24)"
+      ],
+      "metrics": {
+        "checks": {
+          "schema_constants": true,
+          "eval": true
+        }
+      }
+    },
+    "code_health": {
+      "score": 5,
+      "evidence": [
+        "ruff 0 findings",
+        "bare/swallowed excepts 0, functions >120 lines 0, TODO/FIXME 0"
+      ],
+      "metrics": {
+        "ruff_errors": 0,
+        "bare_excepts": 0,
+        "long_functions": 0,
+        "todo_fixme": 0,
+        "py_files": 1
+      }
+    },
+    "operations": {
+      "score": 5,
+      "evidence": [
+        "Drive snapshot 1d old",
+        "report email 1d old",
+        "unknown: sent/quota"
+      ],
+      "metrics": {
+        "snapshot_age_days": 1.0,
+        "report_email_age_days": 1.0,
+        "last_day_sent": null,
+        "last_day_quota": null,
+        "slots_per_day": 3,
+        "slot_times": null,
+        "gaps": [
+          "sent/quota"
+        ]
+      }
+    },
+    "algorithm": {
+      "score": 5,
+      "evidence": [
+        "ranking/caps/filters tests 24/24 pass"
+      ],
+      "metrics": {
+        "passed": 24,
+        "total": 24,
+        "rc": 0
+      }
+    },
+    "security": {
+      "score": 5,
+      "evidence": [
+        "0 secret findings, 0 allow-listed",
+        "pip-audit n/a",
+        "1 env keys, 4 connectors"
+      ],
+      "metrics": {
+        "secret_findings": [],
+        "pip_audit_vulns": null,
+        "env_keys": [
+          "LINKEDIN_CONNECT_DIR"
+        ],
+        "connectors": [
+          "Google Drive",
+          "Gmail",
+          "Claude in Chrome (LinkedIn)",
+          "Claude cloud scheduled tasks"
+        ]
+      }
+    }
+  },
+  "targets": [
+    {
+      "id": "report_one_table",
+      "label": "report = one table",
+      "status": "met",
+      "note": ""
+    },
+    {
+      "id": "slots_per_day",
+      "label": "slots/day = 3",
+      "status": "met",
+      "note": "3"
+    },
+    {
+      "id": "report_email_time",
+      "label": "one email/day at 20:00",
+      "status": "unknown",
+      "note": "fact report_email_time not supplied"
+    }
+  ],
+  "facts": {
+    "last_drive_snapshot": "2026-10-25",
+    "report_emails_10d": 3,
+    "last_report_email": "2026-10-25",
+    "sent_last_day": 25,
+    "slots_per_day": 3
+  },
+  "fixes": [],
+  "comparison": {
+    "deltas": {
+      "architecture": 0,
+      "data": 0,
+      "code_health": 0,
+      "operations": 0,
+      "algorithm": 0,
+      "security": 0
+    },
+    "dropped": [],
+    "unmet": [],
+    "degraded": false,
+    "prev_scores": {
+      "architecture": 3,
+      "data": 5,
+      "code_health": 5,
+      "operations": 5,
+      "algorithm": 5,
+      "security": 5
+    }
+  },
+  "previous_date": "2026-10-26"
+}
