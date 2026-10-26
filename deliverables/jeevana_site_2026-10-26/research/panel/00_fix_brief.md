@@ -22,7 +22,7 @@ Decisions by the brain marked ►. Scope: backend, legal, ops, measurement. Visu
 8. `export.ts`: rate limit 10 / 10 min per IP; constant-time compare on equal-length padded strings; CSV with both
    lists; note the ~1,000-row KV read limit in the runbook.
 9. Notification (lens 6, the launch blocker "nobody hears"): implement `notify()` in `_lib.ts`: if secret
-   `BREVO_API_KEY` is set, POST a transactional email to `NOTIFY_TO` (default jeevanagogula.gj22@gmail.com) on every
+   `BREVO_API_KEY` is set, POST a transactional email to `NOTIFY_TO` (default Jeevana.yogawellness@gmail.com) on every
    registration and subscription (subject "Nouvelle inscription — <name>"), failures logged and never block the
    visitor's success; if the secret is unset, `console.log` only. ► Operator action recorded in to_wire: create a free
    Brevo account, add the sender, set `BREVO_API_KEY` with `wrangler pages secret put`. Visitor confirmation email

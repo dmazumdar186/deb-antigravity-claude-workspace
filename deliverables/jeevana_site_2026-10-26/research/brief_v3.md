@@ -7,7 +7,7 @@ Jev routing on. Fresh team: this brief is the only context you get; v1/v2 code i
 
 ## 1. What the site is
 A production site for Jeevana Gogula, yoga teacher in Paris (facts in `research/brief.md` §"Verified facts"; contact
-+33 7 54 28 72 10; Instagram jeevana.gogula; email jeevanagogula.gj22@gmail.com; everything else `research/to_wire.md`).
++33 7 54 28 72 10; Instagram jeevana.gogula; email Jeevana.yogawellness@gmail.com; everything else `research/to_wire.md`).
 Purpose: top-of-funnel marketing, class registration, voluntary newsletter (email, optional phone, consent). EN with FR.
 Cultural line: traditional yoga (Yoga Sūtras 1.2 and 2.46, the twelve Sūrya Namaskāra mantras with plain glosses, from
 `research/content_fixture.json`), never religious symbolism. Footer credit "Designed by Debanjan Mazumdar · ProdCraft"

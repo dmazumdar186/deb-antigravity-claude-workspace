@@ -23,3 +23,5 @@ Every slot below ships empty or generic-true; nothing was invented.
 Wired: phone / WhatsApp +33 7 54 28 72 10 (Contact row + mobile bar only); KV `JEEVANA_KV` (id in wrangler.toml);
 Cloudflare Web Analytics beacon token f7ff1290…bc05; first-party counters `/api/event` (allowlist) + `/api/stats`.
 Runbook: `/api/export` pages KV lists; beyond ~1,000 rows per list, export per `?type=news|reg`.
+
+**Email (operator, 2026-10-26, supersedes the brief):** Jeevana.yogawellness@gmail.com — use everywhere (mailto, JSON-LD, privacy page controller contact, NOTIFY_TO default). The earlier Gmail address is retired.

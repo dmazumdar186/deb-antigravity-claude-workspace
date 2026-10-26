@@ -38,7 +38,7 @@ everything they need **within three scrolls**. Dynamic, not static (the previous
 
 ## Verified facts (only these; everything else is "to wire")
 - Name: Jeevana Gogula. Brand: **Jeevana** (spelled J-E-E-V-A-N-A). City: Paris.
-- Email: jeevanagogula.gj22@gmail.com. Instagram: https://www.instagram.com/jeevana.gogula/
+- Email: Jeevana.yogawellness@gmail.com. Instagram: https://www.instagram.com/jeevana.gogula/
 - Phone, WhatsApp, Facebook, studio address, prices, timetable, custom domain: **not yet supplied** →
   build the slots, label them in `research/to_wire.md`, never invent values. No reviews, no press, no invented
   credentials, no "500 hours" claims. About copy must stay generic-true: she teaches yoga in Paris; describe the
@@ -100,7 +100,7 @@ cover (−160svh / −25svh). Mobile: horizontal snap-scroll, no 3D. Paper, grai
 04 **Register / S'inscrire** — the registration form: name, email, phone (optional), class choice (select from
    schedule.json or "any"), level, message, consent checkbox (required, GDPR wording FR/EN), honeypot field,
    submits to `/api/register` (Pages Function, below). Success state inline; failure shows a mailto fallback
-   to jeevanagogula.gj22@gmail.com with a prefilled subject.
+   to Jeevana.yogawellness@gmail.com with a prefilled subject.
 05 **Contact** — email (mailto), Instagram (real link), WhatsApp + phone + Facebook as `[data-wire]` buttons
    hidden until `js/contact.json` carries a value (ship empty values; must never render a dead link).
 Each panel ≤ 900 px desktop, ≤ 1,830 px mobile. Header chapter indicator 00 → 01 → active panel.

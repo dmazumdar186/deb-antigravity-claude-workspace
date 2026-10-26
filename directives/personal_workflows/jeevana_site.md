@@ -13,7 +13,7 @@ deities, no Om logo, no temple motifs). Footer signature "Designed by Debanjan M
 ## Inputs
 - `deliverables/jeevana_site_2026-10-26/_raw_assets/` — 22 photos from the operator's Drive folder (gitignored,
   third-party faces stay out of git). Map and roles: `research/photos.md`.
-- Facts: name, email jeevanagogula.gj22@gmail.com, Instagram jeevana.gogula, phone/WhatsApp +33 7 54 28 72 10.
+- Facts: name, email Jeevana.yogawellness@gmail.com, Instagram jeevana.gogula, phone/WhatsApp +33 7 54 28 72 10.
   Everything else is a slot (`research/to_wire.md`): bio, address, timetable, prices, Facebook, domain.
 - Env: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `OPENROUTER_API_KEY` (backdrop regen only).
 

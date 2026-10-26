@@ -1,13 +1,21 @@
 #!/usr/bin/env node
-// Cache-busting: rewrites css/styles.css?v= and js/*.js?v= in every shipped HTML with a short content hash. Idempotent.
-// usage: node research/stamp.mjs   (run before deploy)
-import { readFileSync, writeFileSync } from 'node:fs'; import { createHash } from 'node:crypto'; import { join } from 'node:path';
-const site = new URL('../site/', import.meta.url).pathname;
-const h = (f) => createHash('sha256').update(readFileSync(join(site, f))).digest('hex').slice(0, 8);
-const assets = ['css/styles.css', 'js/main.js', 'js/i18n.js'];
+// Cache busting + film install. Idempotent. Run before every check/deploy and again when the final film lands.
+// 1. copies research/film/{hero.mp4,hero-m.mp4,poster.jpg} into site/assets/film/ and writes site/assets/film/hero.json
+//    = research/film/hero.json + "v" {file: short hash} (the scrub engine appends ?v= to each file);
+// 2. rewrites ?v=<hash> on css/styles.css, js/*.js, assets/film/hero.json and assets/film/poster.jpg in every shipped HTML.
+// usage: node research/stamp.mjs
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs'; import { createHash } from 'node:crypto'; import { join } from 'node:path';
+const site = new URL('../site/', import.meta.url).pathname; const film = new URL('./film/', import.meta.url).pathname;
+const hf = (p) => createHash('sha256').update(readFileSync(p)).digest('hex').slice(0, 8);
+mkdirSync(join(site, 'assets/film'), { recursive: true });
+const meta = JSON.parse(readFileSync(join(film, 'hero.json'), 'utf8')); meta.v = {};
+for (const k of ['landscape', 'portrait', 'poster']) { copyFileSync(join(film, meta[k]), join(site, 'assets/film', meta[k])); meta.v[k] = hf(join(film, meta[k])); }
+writeFileSync(join(site, 'assets/film/hero.json'), JSON.stringify(meta, null, 1) + '\n');
+const assets = ['css/styles.css', 'js/main.js', 'js/i18n.js', 'js/breath.js', 'assets/film/hero.json', 'assets/film/' + meta.poster];
+const h = (a) => hf(join(site, a));
 for (const page of ['index.html', 'privacy/index.html', '404.html']) {
   let s = readFileSync(join(site, page), 'utf8');
   for (const a of assets) s = s.replace(new RegExp('(["/])' + a.replace(/[.]/g, '\\.') + '(\\?v=[0-9a-f]+)?"', 'g'), `$1${a}?v=${h(a)}"`);
   writeFileSync(join(site, page), s);
 }
-console.log('stamped', assets.map((a) => a + '=' + h(a)).join(' '));
+console.log('stamped', assets.map((a) => a + '=' + h(a)).join(' '), 'film', JSON.stringify(meta.v));
