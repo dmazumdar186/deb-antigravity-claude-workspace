@@ -49,3 +49,13 @@ Brief: `research/brief_v3.md`. Not deployed, not committed (builder run). Reject
   last film frame — Eiffel photo removed (operator may overrule); one carried breath ring top-right 96 px in chapters; chapter 02
   register = inline sheet; cover CTAs = serif underlined link + plain link; dialog with cream scrim, no shadow, text "No thanks".
 - Mobile bar now appears only after the cover has left (it covered the rail at the hold).
+
+## Round 2 + final film (2026-10-26)
+- Film: `research/film_omni/` (final, identity-locked, 3:4, 52.42 s) preferred by fit_film/prep_assets/stamp (omni > dawn > film).
+  fit_film widens it to 1330×1108 by extending the empty plate's edge columns (feathers fall on sky, never on her) and encodes
+  BT.709-tagged (an untagged 601 encode shifted the sky ~5 levels in Chromium). hero.mp4 5.76 MB, hero-phone.mp4 1.94 MB.
+- Chapters: three different stills (01 lunge full-bleed off the left, 02 head-to-hands crop dissolving into paper, 03 standing
+  figure at 33 % height in extended sky), four-edge feather min(300 px, 44 %); scroll-filled ring beside each chapter number;
+  register = inline sheet; newsletter = borderless bottom sheet; all submits are underlined serif links.
+- Eyebrow is "Yoga in Paris" (one Jeevana wordmark on the cover); rail heading "The twelve breaths" ≤ 1366 px; 4K type scale;
+  feather 160 px ≥ 1920 px; static page loads all media and collapses the scrub space.

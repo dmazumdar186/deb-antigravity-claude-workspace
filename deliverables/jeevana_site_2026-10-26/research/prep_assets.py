@@ -35,7 +35,7 @@ def extend(im, top, bottom, side):  # extend the film's own sky outward (edge ro
 im, k = frame(3); W, H = im.size
 c1 = extend(im, int(.12 * H), int(.06 * H), int(.22 * W)); save(c1, 'still-01'); log['still-01'] = {'keyframe': k, 'size': c1.size}
 im, k = frame(0); W, H = im.size; b = boxes[0]['box']; cx = (b[0] + b[2]) / 2
-cw = .50 * W; x0 = int(cx * W - cw / 2); y0 = int(max(0, b[1] - .06) * H); c2 = im.crop((x0, y0, int(x0 + cw), int(.48 * H))); save(c2, 'still-02'); log['still-02'] = {'keyframe': k, 'size': c2.size, 'crop': [x0, y0]}
+cw = .72 * W; x0 = int(max(0, cx * W - cw / 2)); y0 = int(max(0, b[1] - .06) * H); c2 = im.crop((x0, y0, int(x0 + cw), int(.48 * H))); c2a = np.asarray(c2).astype(np.float32); ramp = np.clip((np.arange(c2a.shape[0]) - .62 * c2a.shape[0]) / (.38 * c2a.shape[0]), 0, 1)[:, None, None]; c2 = Image.fromarray((c2a * (1 - ramp) + np.array([243, 238, 228], np.float32) * ramp).astype(np.uint8)); save(c2, 'still-02'); log['still-02'] = {'keyframe': k, 'size': c2.size, 'crop': [x0, y0]}
 im, k = frame(11); W, H = im.size; b = boxes[min(k, 11)]['box']
 a = np.asarray(im).astype(np.float32); figh = (b[3] - b[1]) * H; HH = int(figh / .33); top = HH - H; WW = int(W * 1.25); pad = (WW - W) // 2
 c = np.zeros((HH, WW, 3), np.float32); c[top:, pad:pad + W] = a

@@ -23,10 +23,14 @@
  "poster": "poster.jpg",
  "plate": "dawn",
  "identity": "omni-reference",
+ "final": true,
+ "weak_legs": {
+  "08": "head touches the left edge ~1 s, hair blob; best of 3 Omni takes; planned retake with a re-shot lunge keyframe"
+ },
  "v": {
   "poster": "fb89c4b3",
-  "landscape": "a7724198",
-  "phone": "4e564061"
+  "landscape": "4469225b",
+  "phone": "aed0f66f"
  },
  "wide": {
   "width": 1330,
