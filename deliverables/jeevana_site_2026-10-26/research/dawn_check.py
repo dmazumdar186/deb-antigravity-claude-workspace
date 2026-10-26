@@ -50,14 +50,14 @@ for s in m['shots']:
         out.setdefault('rightcol', []).append({'tag': tag, 'dE': round(redge, 2)})
         out['seam'].append({'tag': tag, 'pairs': n, 'dE': round(dmax, 2)}); out['step'].append({'tag': tag, 'step': round(smax, 3)})
     elif s['kind'] == 'panelstep':
-        l, t, r, b = s['rect']; smax = 0; fe = int(s.get('feather', 160))  # profile: 30 px outside to the end of the feather inside
+        l, t, r, b = s['rect']; smax = 0; fe = 40  # profile: 30 px outside to 40 px inside the panel edge (the outer quarter of the feather)
         for f in (.2, .4, .6, .8):
             for edge, axis, sign in ((l, 'x', 1), (r, 'x', -1), (t, 'y', 1), (b, 'y', -1)):
                 if axis == 'x':
                     y = t + (b - t) * f; xs = range(int(edge - 30 * sign), int(edge + fe * sign), sign); prof = np.array([L(x, y) for x in xs if 0 <= x < W])
                 else:
                     x = l + (r - l) * f; ys = range(int(edge - 30 * sign), int(edge + fe * sign), sign); prof = np.array([L(x, y) for y in ys if 0 <= y < H])
-                if len(prof) > 20: smax = max(smax, max(abs(prof[i:i + 9].mean() - prof[i - 9:i].mean()) for i in range(9, len(prof) - 9)))
+                if len(prof) > 20 and 0 < edge < (W if axis == 'x' else H) - 1:  # edges at the viewport boundary (full bleed) have no visible edge smax = max(smax, max(abs(prof[i:i + 9].mean() - prof[i - 9:i].mean()) for i in range(9, len(prof) - 9)))
         out.setdefault('panelstep', []).append({'tag': tag, 'step': round(smax, 3)})
     elif s['kind'] == 'panelalpha':
         A, B, C = [np.asarray(Image.open(q).convert('RGB')).astype(float) for q in s['pngs']]; l, t, r, b = s['rect']; res = []

@@ -15,5 +15,15 @@
   "status_url": "https://api.higgsfield.ai/requests/160fa007-6f9d-4370-9566-c73327051ae3/status",
   "cancel_url": "https://api.higgsfield.ai/requests/160fa007-6f9d-4370-9566-c73327051ae3/cancel",
   "expires_after": 604800
+ },
+ "final": {
+  "status": "completed",
+  "request_id": "160fa007-6f9d-4370-9566-c73327051ae3",
+  "status_url": "https://api.higgsfield.ai/requests/160fa007-6f9d-4370-9566-c73327051ae3/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/160fa007-6f9d-4370-9566-c73327051ae3/cancel",
+  "expires_at": "2026-11-02T21:22:00.181018+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/160fa007-6f9d-4370-9566-c73327051ae3/088b8a80-5828-49b2-963b-b09066a207f3.mp4"
+  }
  }
 }

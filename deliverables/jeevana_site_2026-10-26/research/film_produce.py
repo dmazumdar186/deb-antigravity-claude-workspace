@@ -61,6 +61,11 @@ def leg_body(n, base, duration, aspect):
     extra = {}
     rp = Path(os.environ.get("RETAKE_PROMPTS", "")) if os.environ.get("RETAKE_PROMPTS") else None
     if rp and rp.exists(): extra = json.loads(rp.read_text())
+    refs = [u for u in os.environ.get("REF_URLS", "").split(",") if u]
+    if refs:  # Kling Omni first-last-frame with identity references
+        return {"prompt": "The woman in the reference images, the same face throughout. " + f"She moves slowly from {POSES[n-1]} into {POSES[n]}." + STYLE + extra.get(str(n), ""),
+                "first_frame_url": f"{base}/frame-{n:02d}.jpg", "last_frame_url": f"{base}/frame-{n+1:02d}.jpg",
+                "mode": "std", "duration": duration, "aspect_ratio": aspect, "image_urls": refs}
     return {"prompt": f"The same woman moves slowly from {POSES[n-1]} into {POSES[n]}." + STYLE + extra.get(str(n), ""),
             "duration": duration, "aspect_ratio": aspect, "sound": "off",
             "image_url": f"{base}/frame-{n:02d}.jpg", "last_image_url": f"{base}/frame-{n+1:02d}.jpg", "cfg_scale": 0.7}
