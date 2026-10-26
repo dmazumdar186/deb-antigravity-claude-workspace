@@ -165,8 +165,9 @@ def save(key, A, out):
     pal = Image.fromarray(idx, 'P'); pal.putpalette(list(INK) * len(lv))
     pal.info['transparency'] = bytes(lv.tolist())
     pp = out / f'{key}.png'; pal.save(pp, optimize=True, transparency=bytes(lv.tolist()))
-    for q2 in (24, 16, 12, 8):                      # budget: <= 600 KB, fewer tone levels if needed
+    for q2 in (24, 16, 12, 8, -1):                      # budget: <= 600 KB, fewer tone levels if needed
         if pp.stat().st_size <= 600_000: break
+        if q2 < 0: A = cv2.medianBlur(A, 3); q2 = 12   # very wide frames: drop grain speckle
         mx = int(A.max()) or 1; A = (np.round(A / mx * (q2 - 1)) / (q2 - 1) * mx).astype(np.uint8)
         lv = np.unique(A); idx = np.searchsorted(lv, A).astype(np.uint8)
         pal = Image.fromarray(idx, 'P'); pal.putpalette(list(INK) * len(lv))

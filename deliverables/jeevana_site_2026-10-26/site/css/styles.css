@@ -136,7 +136,8 @@ html:not(.has-js) .beat[data-beat="1"],html:not(.has-js) .ctas{opacity:1;transfo
 /* ---------- phones and portrait screens: copy on top, figure on the page, CTAs at the bottom ---------- */
 @media (max-width:799px),(orientation:portrait){
   .cover{height:calc(10 * 100vh);height:calc(10 * 100svh)}
-  .cover__copy{left:var(--gutter);right:var(--gutter);width:auto;top:calc(var(--hdr) + 2px);bottom:auto;display:block}
+  .cover__copy{display:contents}
+  .beats{position:absolute;z-index:2;left:var(--gutter);right:var(--gutter);top:calc(var(--hdr) + 2px)}
   .beat{align-self:start}
   .beat .kicker{margin-bottom:4px;font-size:10px}
   .cover__h{font-size:clamp(26px,6.4vw,120px);line-height:1}
@@ -146,8 +147,7 @@ html:not(.has-js) .beat[data-beat="1"],html:not(.has-js) .ctas{opacity:1;transfo
   .sutra__dev{font-size:clamp(14px,2.9vw,52px);line-height:1.35}
   .sutra__tr{margin-top:0;font-size:clamp(13px,2.6vw,48px);line-height:1.25}
   .sutra__tr--lg{font-size:clamp(14px,2.9vw,52px)}
-  .ctas{position:absolute;left:0;right:0;top:auto;flex-direction:row;opacity:1;transform:none;pointer-events:auto}
-  .cover__copy .ctas{position:fixed;left:var(--gutter);right:var(--gutter);bottom:calc(24px + env(safe-area-inset-bottom))}
+  .ctas{position:absolute;z-index:3;left:var(--gutter);right:var(--gutter);bottom:calc(24px + env(safe-area-inset-bottom));flex-direction:row;opacity:1;transform:none;pointer-events:auto}
   .ctas .btn{flex:1 1 0;min-height:44px;padding:10px 12px;font-size:14px}
   .rail{display:none}
   .railm{display:grid;position:absolute;z-index:2;left:var(--gutter);right:var(--gutter);top:calc(var(--ground,.78) * 100% + 10px);justify-items:center;gap:1px;text-align:center;font:400 12px/1.35 var(--sans);color:var(--ink-2)}
@@ -157,7 +157,6 @@ html:not(.has-js) .beat[data-beat="1"],html:not(.has-js) .ctas{opacity:1;transfo
   .cover__hint{bottom:calc(24px + 44px + 8px + env(safe-area-inset-bottom));min-height:20px;gap:0;font-size:10px}
   .cover__hint i{display:none}
 }
-@media (max-width:799px),(orientation:portrait){.cover:not(.is-active) .cover__copy .ctas{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom) - var(--ctab,0px))}}
 @media (orientation:portrait) and (min-width:768px){.railm{font-size:clamp(13px,1.6vw,36px)}.cover__hint{font-size:clamp(11px,1vw,24px)}}
 @media (orientation:landscape) and (max-height:560px){
   :root{--hdr:52px}
