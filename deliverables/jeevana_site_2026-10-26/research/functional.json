@@ -1,5 +1,5 @@
 {
- "date": "2026-10-26T18:19:00.437Z",
+ "date": "2026-10-26T19:27:14.093Z",
  "film": {
   "standin": false,
   "seconds": 52,
@@ -11,7 +11,7 @@
   {
    "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
    "ok": true,
-   "detail": "ct=5.54"
+   "detail": "ct=5.17"
   },
   {
    "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
@@ -68,11 +68,10 @@
    "detail": []
   },
   {
-   "name": "film_paper_matches_page (16 samples, 4 per side, ΔE76 < 3)",
+   "name": "film_window_edge_alpha_le_0.08 (16 boundary points, A−B / C−B)",
    "ok": true,
    "detail": {
-    "max": 1.4210426950312927,
-    "mean": 1.246067145145994,
+    "max": 0.03879310344827586,
     "n": 16
    }
   },
@@ -237,7 +236,7 @@
    "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
    "ok": true,
    "detail": {
-    "index_css_js_kb": 91.1,
+    "index_css_js_kb": 91.7,
     "breath_kb": 3.8,
     "film_mb": 5.06,
     "film_m_mb": 2.39
@@ -250,7 +249,7 @@
   }
  ],
  "measurements": {
-  "autoplay_ct_at_6s": 5.537,
+  "autoplay_ct_at_6s": 5.17,
   "scrub_1440x900": {
    "1": {
     "currentTime": 51.61,
@@ -287,9 +286,8 @@
     "expected": 42.23
    }
   },
-  "paper_match_dE": {
-   "max": 1.4210426950312927,
-   "mean": 1.246067145145994,
+  "window_edge_alpha": {
+   "max": 0.03879310344827586,
    "n": 16
   },
   "bands": {
@@ -390,7 +388,7 @@
    }
   },
   "sizes": {
-   "index_css_js_kb": 91.1,
+   "index_css_js_kb": 91.7,
    "breath_kb": 3.8,
    "film_mb": 5.06,
    "film_m_mb": 2.39
