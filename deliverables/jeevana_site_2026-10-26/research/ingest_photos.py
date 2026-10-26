@@ -82,6 +82,8 @@ def estimate_focus(img: Image.Image) -> tuple[str, list[float]]:
 FIG_KEYS = ["sn-01", "sn-02", "sn-03", "sn-04", "sn-05", "sn-06", "photo-05", "alt-09", "sn-12", "portrait", "photo-03"]
 FIG_KEEP_CONTACT = {"photo-05", "sn-06", "sn-05", "photo-03"}  # prone / seated: keep the hand/knee contact row
 FIG_HEIGHTS = [2400, 1600, 1000]
+PENCIL_KEYS = {"portrait"}  # art direction 2026-10-26: graphite renders only for the About portrait (A grade)
+WASH_HEIGHTS = [1600, 1000]  # the wash is shown at ~18 % opacity: no need for the 2400 variant
 
 
 def hires_cutout(key: str, meta: dict, cut: Image.Image, raw_dir: pathlib.Path, height: int = 2400) -> Image.Image:
@@ -154,7 +156,7 @@ def touch_up(key: str, im: Image.Image, ground: float) -> Image.Image:
     return im
 
 
-def contour_path(im: Image.Image, target_h: int = 260) -> tuple[str, list[int]]:
+def contour_path(im: Image.Image, target_h: int = 420) -> tuple[str, list[int]]:
     """Single simplified outer contour of the alpha (potrace), in a viewBox of the figure's own size."""
     import numpy as np
     import potrace
@@ -167,14 +169,16 @@ def contour_path(im: Image.Image, target_h: int = 260) -> tuple[str, list[int]]:
         sizes = ndimage.sum(small, lab, range(1, n + 1))
         small = lab == (int(np.argmax(sizes)) + 1)
     small = ndimage.binary_fill_holes(small)
-    plist = potrace.Bitmap(small).trace(turdsize=30, alphamax=1.2, opttolerance=0.6)
+    pad = 4  # potracer fills dark (False) pixels: trace the inverted, padded mask so the figure is the filled shape
+    small = np.pad(small, pad)
+    plist = potrace.Bitmap(~small).trace(turdsize=40, alphamax=1.0, opttolerance=0.5)
     curve = max(plist, key=lambda c: len(c.segments)) if len(plist) else None
     if curve is None:
         return "", [im.width, im.height]
     f = 1 / sc
 
     def pt(p):
-        return f"{p.x * f:.0f} {p.y * f:.0f}"
+        return f"{(p.x - pad) * f:.0f} {(p.y - pad) * f:.0f}"
     d = [f"M{pt(curve.start_point)}"]
     for seg in curve.segments:
         if seg.is_corner:
@@ -217,7 +221,16 @@ def ingest_figs(cut_dir: pathlib.Path, pencil_dir: pathlib.Path | None, out: pat
             name = f"{key}@{hh}.webp"
             v.save(out / name, "WEBP", quality=92, method=6, exact=False)
             srcset.append([name, v.width, v.height])
-        if key in pmeta or (pencil_dir and (pencil_dir / f"{key}.png").exists()):
+        # flat graphite wash: the cut-out's own luminance, desaturated, alpha kept (drawn states S0-S8)
+        wset = []
+        L = hi.convert("L")
+        wash = Image.merge("RGBA", (L, L, L, hi.getchannel("A")))
+        for hh in [x for x in WASH_HEIGHTS if x <= full_h] or [full_h]:
+            v = wash if hh == full_h else wash.resize((round(wash.width * hh / full_h), hh), Image.LANCZOS)
+            name = f"{key}-wash@{hh}.webp"
+            v.save(out / name, "WEBP", quality=88, method=6)
+            wset.append([name, v.width, v.height])
+        if key in PENCIL_KEYS and pencil_dir and (pencil_dir / f"{key}.png").exists():
             with Image.open(pencil_dir / f"{key}.png") as pr:
                 pen = pr.convert("RGBA")
             # map the cut-out crop (in hi-res px) back to the pencil canvas by the shared aspect
@@ -234,8 +247,8 @@ def ingest_figs(cut_dir: pathlib.Path, pencil_dir: pathlib.Path | None, out: pat
         d, vb = contour_path(hi)
         contours[key] = {"vb": vb, "d": d}
         man["fig"][key] = {"w": hi.width, "h": hi.height, "ground": ground,
-                           "srcset": srcset, "pencil": pset}
-        print(f"{key}: {hi.width}x{hi.height} ground {ground} variants {[x[2] for x in srcset]} pencil {len(pset)} contour {len(d)} B")
+                           "srcset": srcset, "wash": wset, "pencil": pset}
+        print(f"{key}: {hi.width}x{hi.height} ground {ground} variants {[x[2] for x in srcset]} wash {len(wset)} pencil {len(pset)} contour {len(d)} B")
     (out / "contours.json").write_text(json.dumps(contours, separators=(",", ":")), encoding="utf-8")
     manifest.write_text(json.dumps(man, indent=1) + "\n", encoding="utf-8")
     return 0

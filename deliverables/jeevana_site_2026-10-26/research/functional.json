@@ -1,241 +1,688 @@
 {
-  "date": "2026-10-26",
-  "pass": 43,
-  "total": 43,
-  "desktopHeight": 6465,
-  "mobileHeight": 4844,
-  "panelHeightsDesktop": {
-    "about": 859,
-    "classes": 366,
-    "register": 573,
-    "contact": 340
+ "date": "2026-10-26",
+ "pass": 85,
+ "total": 85,
+ "playwright": "1.63.0",
+ "pillow": "12.3.0",
+ "sizes": {
+  "html": 23910,
+  "css": 35832,
+  "js": 29638,
+  "i18n": 15650
+ },
+ "results": [
+  {
+   "name": "index+css+js ≤ 150 KB",
+   "ok": true,
+   "info": {
+    "kb": 102.6
+   }
   },
-  "panelHeightsMobile": {
-    "about": 1395,
-    "classes": 622,
-    "register": 837,
-    "contact": 489
+  {
+   "name": "no style=\"\" attributes in shipped HTML (index, privacy, 404)",
+   "ok": true,
+   "info": [
+    0,
+    0,
+    0
+   ]
   },
-  "sizes": {
-    "html": 24072,
-    "css": 35319,
-    "js": 22824,
-    "i18n": 14654,
-    "backdrop": 4926
+  {
+   "name": "fonts self-hosted: no Google Fonts link, @font-face from /assets/fonts, CSP font-src self",
+   "ok": true,
+   "info": {
+    "ext": []
+   }
   },
-  "results": [
-    {
-      "name": "autoplay advances the frame index without scrolling (frame ≥ 3 after 3 s)",
-      "ok": true,
-      "info": "{\"i\":3,\"mode\":\"on\",\"y\":0}"
+  {
+   "name": "Cloudflare beacon present with the supplied token; CSP allows it (script + connect)",
+   "ok": true
+  },
+  {
+   "name": "contours: one outer path per figure (single M), each ≤ 6 KB",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "srcset never upscales: every variant ≤ the figure's native height; wash layer for every cover key",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "phone appears exactly twice in index.html (Contact row + mobile bar); JSON-LD Person without telephone",
+   "ok": true
+  },
+  {
+   "name": "named timing constants at the top of main.js",
+   "ok": true
+  },
+  {
+   "name": "backdrop canvas retired (no backdrop.js, no <canvas> in the cover); Kling slot ships dormant (hero.json ready:false)",
+   "ok": true
+  },
+  {
+   "name": "content fixture: i18n.js matches the 12 triples + 2 sūtras (EN + FR); IAST unified; EN/FR key parity",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "unsubscribe flow (mocked KV): token stored (24 bytes hex), re-subscribe keeps consent_ts/token/phone, GET deletes the record, FR page, second use 404",
+   "ok": true,
+   "info": {
+    "s": [
+     200,
+     200,
+     200,
+     404
+    ]
+   }
+  },
+  {
+   "name": "event beacon allowlist: known name counts (ev:<date>:<name> = 2), unknown 400 with nothing stored; /api/stats 401 without auth, 30-day JSON with it",
+   "ok": true,
+   "info": {
+    "evk": [
+     "ev:2026-10-26:wa_tap"
+    ]
+   }
+  },
+  {
+   "name": "backend hardening: 8 KB cap → 413, missing KV → 503 JSON, KV failure → rate limiter allows + 500 logged with {service,route}, reg: records expire in 24 months with consent_text",
+   "ok": true,
+   "info": [
+    413,
+    503,
+    500
+   ]
+  },
+  {
+   "name": "middleware: 404 for /wrangler.toml, /functions/*, /research/*, *.ts; passes /",
+   "ok": true,
+   "info": [
+    404,
+    404,
+    404,
+    404,
+    200
+   ]
+  },
+  {
+   "name": "notify(): BREVO_API_KEY unset → console.log only, visitor still gets 200",
+   "ok": true
+  },
+  {
+   "name": "S0: sn-01 contour draws itself (dashoffset > 0 at 0.4 s → 0 by 4 s), graphite wash fades in, rail 01 lights — no scroll",
+   "ok": true,
+   "info": {
+    "a": {
+     "intro": "drawing",
+     "off": "0.967608px",
+     "key": "sn-01",
+     "rev": "0.000",
+     "d": 2764
     },
-    {
-      "name": "scroll takes over (autoplay stops, frame = floor(p*12))",
-      "ok": true,
-      "info": "{\"i\":6,\"mode\":\"off\",\"after1s\":6}"
-    },
-    {
-      "name": "rail mantra text changes with frame",
-      "ok": true,
-      "info": "{\"m6\":\"Om Hiraṇyagarbhāya Namaḥ\",\"m\":\"Om Savitre Namaḥ\",\"tr\":\"to the stimulating power\",\"no\":\"10\"}"
-    },
-    {
-      "name": "photo swap: frames 01–02 render the real webp",
-      "ok": true,
-      "info": "[{\"i\":0,\"src\":\"sn-01.webp\",\"nw\":900,\"op\":\"1\"},{\"i\":1,\"src\":\"sn-02.webp\",\"nw\":900,\"op\":\"1\"}]"
-    },
-    {
-      "name": "a frame without a manifest entry holds the previous real image (no empty, no drawn figure)",
-      "ok": true,
-      "info": "{\"i\":2,\"src\":\"sn-02.webp\",\"nw\":900,\"hold\":true,\"drawn\":0,\"rail\":\"Pādahastāsana\"}"
-    },
-    {
-      "name": "cover beats change at 25/50/75% of the track",
-      "ok": true,
-      "info": "0,1,2"
-    },
-    {
-      "name": "video plays (or canvas fallback runs)",
-      "ok": true,
-      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"hero.mp4\",\"canvasVisible\":false}"
-    },
-    {
-      "name": "fold-out hinge transform changes with scroll",
-      "ok": true,
-      "info": "matrix3d(0.819152, 0, -0.57357 → matrix3d(0.994801, 0, -0.10183 → matrix(1, 0, 0, 1, 0, 0)"
-    },
-    {
-      "name": "fold-out fully open by track end",
-      "ok": true,
-      "info": "{\"tf\":\"matrix(1, 0, 0, 1, 0, 0)\",\"fold\":\"1.0000\",\"open\":true}"
-    },
-    {
-      "name": "each chapter tab switches the panel and updates the hash",
-      "ok": true,
-      "info": "classes:classes#classes | register:register#register | contact:contact#contact | about:about#about"
-    },
-    {
-      "name": "back button restores the previous panel",
-      "ok": true,
-      "info": "contact #contact"
-    },
-    {
-      "name": "header chapter indicator follows the deck",
-      "ok": true,
-      "info": "05 Contact"
-    },
-    {
-      "name": "keyboard ArrowRight wraps to the first chapter",
-      "ok": true,
-      "info": "about"
-    },
-    {
-      "name": "deep link /#register opens the Register panel",
-      "ok": true,
-      "info": "register"
-    },
-    {
-      "name": "gallery dialog opens and closes",
-      "ok": true,
-      "info": "{\"open\":true,\"n\":11,\"title\":\"Photographs\"}"
-    },
-    {
-      "name": "counters settle on the exact published values",
-      "ok": true,
-      "info": "12,8,4"
-    },
-    {
-      "name": "cover end: last beat + CTAs held to p=1, photo plate shown, fold entering in the last 20 % (no empty viewport)",
-      "ok": true,
-      "info": "{\"beatOn\":true,\"beatOpacity\":\"1\",\"bodyOpacity\":\"1\",\"ctas\":[true,true],\"foldTopVh\":0.8,\"plate\":\"1\"}"
-    },
-    {
-      "name": "fade sequence: cover text at 0 before chapter headline passes 0.1",
-      "ok": true,
-      "info": "{\"foldText\":\"1\",\"headTopVh\":0.5,\"coverBody\":\"0\"}"
-    },
-    {
-      "name": "one brand element visible at p = 0 / .5 / 1",
-      "ok": true,
-      "info": "1,1,1"
-    },
-    {
-      "name": "no cover text or rail element intersects the plate (1440, p 0/.5/1)",
-      "ok": true,
-      "info": "[[],[],[]]"
-    },
-    {
-      "name": "deck panels ≤ 1 viewport (900) on desktop",
-      "ok": true,
-      "info": "{\"about\":859,\"classes\":366,\"register\":573,\"contact\":340}"
-    },
-    {
-      "name": "desktop page height ≤ 7,000 px",
-      "ok": true,
-      "info": "6465 px"
-    },
-    {
-      "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
-      "ok": true,
-      "info": "{\"html\":24072,\"css\":35319,\"js\":22824,\"i18n\":14654,\"backdrop\":4926}"
-    },
-    {
-      "name": "dead-link guard: zero href=\"#\" / empty tel: links in DOM (phone + WhatsApp live)",
-      "ok": true,
-      "info": "{\"bad\":[],\"tel\":[\"tel:+33754287210\",\"tel:+33754287210\"],\"wa\":2}"
-    },
-    {
-      "name": "i18n switch flips html[lang] and ≥ 20 strings",
-      "ok": true,
-      "info": "{\"lang\":\"fr\",\"changed\":98,\"title\":\"Jeevana — Yoga à Paris\",\"stored\":\"fr\",\"tag\":\"Yoga à Paris\"}"
-    },
-    {
-      "name": "register form posts to /api/register and shows success (mocked fetch)",
-      "ok": true,
-      "info": "{\"ok\":true,\"err\":false,\"posted\":{\"name\":\"Test Person\",\"email\":\"test@example.com\",\"phone\":\"\",\"class\":\"any\",\"level\":\"new\",\"message\":\"\",\"website\":\"\",\"consent\":true,\"lang\":\"en\",\"source_url\":\"/\"}}"
-    },
-    {
-      "name": "desktop: 0 console errors",
-      "ok": true,
-      "info": ""
-    },
-    {
-      "name": "newsletter dialog opens after deck activation, closes on Esc, never reopens after close",
-      "ok": true,
-      "info": "{\"onCoverOpen\":false,\"open\":true,\"focusIn\":true,\"seen\":true,\"nClosed\":true,\"reopen\":false}"
-    },
-    {
-      "name": "newsletter page: 0 console errors",
-      "ok": true,
-      "info": ""
-    },
-    {
-      "name": "mobile cover beats",
-      "ok": true,
-      "info": "0,1,2"
-    },
-    {
-      "name": "mobile uses the portrait video (hero-m.mp4) or canvas",
-      "ok": true,
-      "info": "{\"hasVideo\":true,\"src\":\"hero-m.mp4\"}"
-    },
-    {
-      "name": "mobile fold-out is a horizontal snap-scroll (no 3D)",
-      "ok": true,
-      "info": "{\"snap\":\"x mandatory\",\"overflow\":\"auto\",\"scrollW\":1180,\"clientW\":412,\"tf\":\"none\",\"scrolledTo\":384}"
-    },
-    {
-      "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
-      "ok": true,
-      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"fold__pin\",\"bg\":\"rgb(243, 238, 228)\",\"hdrBg\":\"rgb(243, 238, 228)\"}"
-    },
-    {
-      "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
-      "ok": true,
-      "info": "{\"panelW\":372,\"vw\":412,\"docW\":412,\"padB\":116,\"barH\":69,\"overlap\":168}"
-    },
-    {
-      "name": "mobile bottom bar appears after the cover CTA scrolls out",
-      "ok": true
-    },
-    {
-      "name": "mobile page height ≤ 9,000 px",
-      "ok": true,
-      "info": "4844 px"
-    },
-    {
-      "name": "mobile deck panels ≤ 2 viewports (1830)",
-      "ok": true,
-      "info": "{\"about\":1395,\"classes\":622,\"register\":837,\"contact\":489}"
-    },
-    {
-      "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
-      "ok": true,
-      "info": "{\"tabIn\":true,\"fade\":\"48px\",\"lastBottom\":715,\"barTop\":770}"
-    },
-    {
-      "name": "Pixel 7: no horizontal overflow",
-      "ok": true,
-      "info": "0 px"
-    },
-    {
-      "name": "mobile: 0 console errors",
-      "ok": true,
-      "info": ""
-    },
-    {
-      "name": "CTAs visible at p = 1 on 390 px (iPhone 13)",
-      "ok": true,
-      "info": "[true,true]"
-    },
-    {
-      "name": "iPhone 13: 0 console errors",
-      "ok": true,
-      "info": ""
-    },
-    {
-      "name": "pitch page: 0 console errors, signature present (production: 404.html carries it; no pitch page ships)",
-      "ok": true
+    "c": {
+     "intro": "done",
+     "off": 0,
+     "tone": 0.18,
+     "lit": true,
+     "y": 0
     }
-  ]
+   }
+  },
+  {
+   "name": "S0: photograph hidden under the drawing (reveal = 0)",
+   "ok": true
+  },
+  {
+   "name": "autoplay reaches S3 within 12 s of load (no scroll), then holds",
+   "ok": true,
+   "info": {
+    "s3": 3
+   }
+  },
+  {
+   "name": "autoplay holds at S3",
+   "ok": true
+  },
+  {
+   "name": "scroll takes over from the current state (no jump back to S0), then follows the track",
+   "ok": true,
+   "info": {
+    "kept": 3,
+    "s6": 6,
+    "ap": "off"
+   }
+  },
+  {
+   "name": "one state drives figure, rail and mobile counter: data-state = s, rail data-pos = railm data-pos = position, at 13 states (EN + FR)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "GLOSS: desktop rail and mobile counter show the i18n mantra + gloss of the current position (EN + FR)",
+   "ok": true
+  },
+  {
+   "name": "rail mantra text changes with the state",
+   "ok": true
+  },
+  {
+   "name": "headline: \"Twelve breaths.\" beat at S0–S3, Sūtra 2.46 from S4; CTAs from S9 (EN + FR)",
+   "ok": true
+  },
+  {
+   "name": "reveal mask: --reveal = 0 for S ≤ 8, rises across S9–S10, = 1 at S11/S12; the photograph carries a linear-gradient mask",
+   "ok": true,
+   "info": [
+    [
+     1,
+     0
+    ],
+    [
+     4,
+     0
+    ],
+    [
+     8,
+     0
+    ],
+    [
+     9,
+     0.333
+    ],
+    [
+     10,
+     0.667
+    ],
+    [
+     11,
+     1
+    ],
+    [
+     12,
+     1
+    ]
+   ]
+  },
+  {
+   "name": "paper stage (#F3EEE4), no dark plate; sun = radial gradient, blur ≥ 40 px, no hard disc; no CSS filter on the photograph",
+   "ok": true,
+   "info": {
+    "bg": "rgb(243, 238, 228)",
+    "sunBg": "radial-gradient(closest-side, rgba(196, 115, 26, 0.1), rgba(196, 115, 26, 0.05) 55%, rgba(196, 115, 26, 0))",
+    "blur": 40,
+    "round": 0,
+    "fig": "none"
+   }
+  },
+  {
+   "name": "desktop: 0 console errors",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "S11 on 1440×900 @2×: the photograph is the ≥ 1600 variant and ≥ 1.5× the rendered height (currentSrc)",
+   "ok": true,
+   "info": {
+    "src": "http://localhost:8794/assets/fig/sn-12@1600.webp",
+    "nh": 651,
+    "h": 648,
+    "key": "sn-12"
+   }
+  },
+  {
+   "name": "figure height ≥ .70 of the stage desktop / ≥ .58 phones at every state, or width-capped at 56 % / 92 % of the stage (19 viewports × 13 states)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "feet row within 1 % of the ground line (86 % desktop / 78 % phones) at every state (19 × 13)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "no text box intersects the figure bbox at any state (cover copy, rail, counter, CTAs, hint, header) (19 × 13)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 matrix: 0 console errors on all 19 viewports",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §1a cover CTAs: bottom ≤ vh−24, opacity 1, hit-testable at p=1 (19 viewports)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §1b drum top ≥ CTA bottom + 16 px at p=1 (19)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §1c the photograph (sn-12, reveal 1) shown at p=1, opacity ≥ .95 (19)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §1d track end + 1 vh: drum heading opacity 1, three plates ≥ .95 (19)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §4d exactly one brand element visible, language toggle at the inline end (19 × S0/S5/S11)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §4a no visible chapter indicator over the cover (19 × S0/S5/S11)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §1e ?static=1: S11 photograph (reveal 1) + Sūtra 2.46 + CTAs, all 4 deck panels visible, every section at full opacity",
+   "ok": true,
+   "info": {
+    "st": "11",
+    "rev": 1,
+    "vis": 4,
+    "ctas": 1,
+    "beat": "1",
+    "h": 4198
+   }
+  },
+  {
+   "name": "R3 §1e page-full ?static=1: no empty band > 60 % vh",
+   "ok": true,
+   "info": {
+    "band": 0
+   }
+  },
+  {
+   "name": "reduced motion: S11 static (no pinned track), all copy, deck panels static",
+   "ok": true,
+   "info": {
+    "st": "11",
+    "vis": 4,
+    "h": 900,
+    "ih": 900
+   }
+  },
+  {
+   "name": "no-JS: the photograph of position 12 + Sūtra 2.46 + CTAs, cover one viewport tall",
+   "ok": true,
+   "info": {
+    "im": true,
+    "b1": 1,
+    "cta": 1,
+    "h": 900
+   }
+  },
+  {
+   "name": "i18n switch flips html[lang] and ≥ 20 strings, choice stored",
+   "ok": true,
+   "info": {
+    "changed": 99
+   }
+  },
+  {
+   "name": "each chapter tab switches the panel and updates the hash",
+   "ok": true
+  },
+  {
+   "name": "keyboard ArrowRight wraps to the first chapter",
+   "ok": true
+  },
+  {
+   "name": "back button restores the previous panel",
+   "ok": true
+  },
+  {
+   "name": "counters settle on the exact published values",
+   "ok": true
+  },
+  {
+   "name": "header chapter indicator follows the deck",
+   "ok": true,
+   "info": {
+    "no": "02",
+    "vis": "visible"
+   }
+  },
+  {
+   "name": "R3 §4b tab row top − header bottom ≤ 8 px on every deck view (desktop)",
+   "ok": true,
+   "info": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "R3 §4c no text box under the header/tab row after show(id) (desktop)",
+   "ok": true,
+   "info": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "deck panels ≤ 1 viewport (900) on desktop",
+   "ok": true,
+   "info": [
+    776,
+    385,
+    573,
+    412
+   ]
+  },
+  {
+   "name": "R3 §8a \"Price on request\" once, one line spanning the three offerings, warm accent",
+   "ok": true,
+   "info": {
+    "n": 1,
+    "lines": 1,
+    "span": true,
+    "color": "rgb(154, 90, 18)"
+   }
+  },
+  {
+   "name": "R3 §8b contact: full-width hairline list, phone + WhatsApp in one row, footer = email + Instagram + Privacy (no number)",
+   "ok": true,
+   "info": {
+    "rows": 3,
+    "full": true,
+    "rule": true,
+    "phoneRows": 1,
+    "wa": true,
+    "footPhone": false,
+    "footLinks": [
+     "mailto:jeevanagogula.gj22@gmail.com",
+     "https://www.instagram.com/jeevana.gogula/",
+     "/privacy/"
+    ]
+   }
+  },
+  {
+   "name": "R3 §8d cover rail: no \"A traditional sequence…\" dek",
+   "ok": true
+  },
+  {
+   "name": "footer: ProdCraft credit links prodcraft.fyi with rel=noopener, no mailto; Privacy link",
+   "ok": true
+  },
+  {
+   "name": "dead-link guard: zero href=\"#\" / empty tel: links in DOM (phone + WhatsApp live)",
+   "ok": true
+  },
+  {
+   "name": "F24 newsletter dialog stays closed while focus is in the register form and while Register is active (> delay)",
+   "ok": true
+  },
+  {
+   "name": "newsletter dialog opens after deck activation, closes on Esc, never reopens after close",
+   "ok": true
+  },
+  {
+   "name": "newsletter dialog: email required, phone optional (tel), consent required, \"No thanks\"",
+   "ok": true,
+   "info": {
+    "email": true,
+    "phone": true,
+    "consent": true,
+    "no": true
+   }
+  },
+  {
+   "name": "newsletter page: 0 console errors",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "F26 inline error text under invalid fields (name, email, consent), EN and FR",
+   "ok": true,
+   "info": {
+    "er": [
+     "Please fill in this field.",
+     "Please fill in this field.",
+     "Please tick the box to agree."
+    ],
+    "erFr": [
+     "Merci de remplir ce champ.",
+     "Merci de remplir ce champ.",
+     "Merci de cocher la case pour accepter."
+    ]
+   }
+  },
+  {
+   "name": "F26 failed submit: mailto fallback body carries the typed fields; 429 shows the WhatsApp fallback line",
+   "ok": true,
+   "info": {
+    "err": true,
+    "mail": "mailto:jeevanagogula.gj22@gmail.com?subject=Registration — Jeevana Yoga&body=My registration (the form did not go through):\nname: Test Person\nemail: test@example.com\nclass: any\nlevel: new",
+    "wa": true
+   }
+  },
+  {
+   "name": "register form posts to /api/register and shows success (mocked fetch)",
+   "ok": true
+  },
+  {
+   "name": "desktop page height beyond the 14-vh cover track ≤ 3,400 px (v1 budget 7,000 − its 4-vh cover)",
+   "ok": true,
+   "info": {
+    "total": 14673,
+    "rest": 2973
+   }
+  },
+  {
+   "name": "desktop deck/forms: 0 console errors (besides the injected 429)",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "deep link /#register opens the Register panel",
+   "ok": true
+  },
+  {
+   "name": "drum hinge transform changes with scroll",
+   "ok": true
+  },
+  {
+   "name": "drum fully open by track end (rise 1: no transform, opacity 1)",
+   "ok": true,
+   "info": [
+    "matrix(1, 0, 0, 1, 0, 0)",
+    "matrix(1, 0, 0, 1, 0, 0)",
+    "matrix(1, 0, 0, 1, 0, 0)"
+   ]
+  },
+  {
+   "name": "R3 §8c drum: captions opacity 1 once a card is ≥ 30 % visible, third card ≥ .9 when in view at track end, rotateY ≤ 35°",
+   "ok": true,
+   "info": [
+    [
+     2.4,
+     1,
+     0.65
+    ],
+    [
+     0,
+     1,
+     0.6
+    ],
+    [
+     16.2,
+     1,
+     0.51
+    ],
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     1
+    ]
+   ]
+  },
+  {
+   "name": "phones: copy block above the figure, reduced rail \"03 / 12 · Pādahastāsana · Exhale\" + mantra under it, CTAs above the safe area, scroll hint centred",
+   "ok": true,
+   "info": {
+    "txt": "03 / 12 · Pādahastāsana · Exhale Om Sūryāya Namaḥ — to the one who induces activity",
+    "below": true,
+    "rail": "none",
+    "copyTop": true,
+    "cta": true,
+    "hint": true
+   }
+  },
+  {
+   "name": "mobile drum is a horizontal snap-scroll (no 3D), plates fit the viewport",
+   "ok": true,
+   "info": {
+    "snap": "x mandatory",
+    "ox": "auto",
+    "t3": true,
+    "fit": true,
+    "first": 12,
+    "coverHidden": true,
+    "bar": false,
+    "hdrBg": "rgb(243, 238, 228)"
+   }
+  },
+  {
+   "name": "R3 §4b mobile-foldout: drum first element top − header bottom ≤ 24 px; cover hidden, opaque paper header",
+   "ok": true,
+   "info": {
+    "snap": "x mandatory",
+    "ox": "auto",
+    "t3": true,
+    "fit": true,
+    "first": 12,
+    "coverHidden": true,
+    "bar": false,
+    "hdrBg": "rgb(243, 238, 228)"
+   }
+  },
+  {
+   "name": "R3 §8e mobile bar: off while the drum is on screen",
+   "ok": true
+  },
+  {
+   "name": "R3 §8e mobile bar: on in the deck, ≤ 55 px tall",
+   "ok": true,
+   "info": {
+    "on": true,
+    "h": 55
+   }
+  },
+  {
+   "name": "mobile deck: tab fade mask present; tab row under the header (≤ 8 px)",
+   "ok": true,
+   "info": {
+    "mask": true,
+    "gap": 0.359375
+   }
+  },
+  {
+   "name": "mobile deck panels ≤ 2 viewports (1830)",
+   "ok": true,
+   "info": [
+    1187,
+    605,
+    837,
+    410
+   ]
+  },
+  {
+   "name": "mobile page height beyond the 10-vh cover track ≤ 7,300 px (v1 budget 9,000 − its cover)",
+   "ok": true,
+   "info": {
+    "total": 10171,
+    "rest": 2620
+   }
+  },
+  {
+   "name": "Pixel 7: no horizontal overflow",
+   "ok": true,
+   "info": {
+    "ov": 0
+   }
+  },
+  {
+   "name": "Pixel 7: 0 console errors",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "iPhone 13: 0 console errors",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "R3 §6 4K: nav ≥ 22 px, rail gloss ≥ 20 px, html ≥ 24 px, rail content fills ≥ 70 % of its column",
+   "ok": true,
+   "info": {
+    "nav": 22,
+    "gloss": 44.16,
+    "html": 31.9872,
+    "fill": 0.9005638134290108
+   }
+  },
+  {
+   "name": "privacy page (desktop): 0 console errors; publisher, host address, purposes, retention 24 months, processor, rights, no cookies; FR block toggles",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "privacy page (Pixel 7): 0 console errors; publisher, host address, purposes, retention 24 months, processor, rights, no cookies; FR block toggles",
+   "ok": true,
+   "info": []
+  },
+  {
+   "name": "404 page: 0 console errors (besides its own 404 status), signature present, honours the saved language (fr)",
+   "ok": true,
+   "info": {
+    "h": "Cette page se repose.",
+    "sig": "https://prodcraft.fyi/",
+    "lang": "fr"
+   }
+  },
+  {
+   "name": "no external request on load except the Cloudflare beacon (all pages, all runs)",
+   "ok": true,
+   "info": [
+    "https://static.cloudflareinsights.com/beacon.min.js"
+   ]
+  }
+ ]
 }

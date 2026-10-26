@@ -12,3 +12,20 @@
   round adds a middleware 404 for it.
 - Pending on this deploy: visual round 3 (review_round2.md), ops/legal round (panel/00_fix_brief.md), round-3 eye
   review, then redeploy.
+
+## v2 build — 2026-10-26 (brief_v2 "Twelve breaths, drawn then real"; not deployed, not committed)
+- Cover rewritten: paper stage, cut-out figure on a ground line (86 % desktop / 78 % phones), 13 scrubbed states
+  (14·100vh desktop, 10·100svh phones), S0 contour self-draws at load, autoplay S1→S3, S9–S11 wipe to the photograph.
+  Drawing layer per art direction (2026-10-26): traced contour + 18 % graphite wash; pencil renders only for the About portrait.
+  Backdrop canvas, hero videos and the v1 `assets/img` set deleted; Kling slot dormant in `assets/film/hero.json`.
+- Figures: `research/ingest_photos.py --cutouts _raw_assets/cutouts_v2 --pencil _raw_assets/pencil --out site/assets/fig`
+  re-applies each cut-out mask to the full-resolution original (×2.4, native pixels, never upscaled), touch-up pass,
+  webp q92 srcset + wash + contours.json + manifest.json.
+- Ops/legal: fonts self-hosted, `_middleware.ts`, unsubscribe / event / stats endpoints, notify() via Brevo, privacy page,
+  `research/stamp.mjs` + `research/deploy.sh` (deploy from inside `site/`).
+- Owners: site, domain and export login = Debanjan (ProdCraft) until handover; data controller and data requests =
+  Jeevana (jeevanagogula.gj22@gmail.com).
+- Operator to record before the domain goes live: Jeevana's written OK on the photos, the phone number and the copy: ______
+- Open slots: `research/to_wire.md`. KV id in `site/wrangler.toml` unchanged.
+- Skill change: `.claude/skills/site-redesign/scripts/site_check.mjs` gained `--allow-hosts` (permitted third parties
+  such as the Cloudflare beacon); run with `--allow-hosts cloudflareinsights.com`.

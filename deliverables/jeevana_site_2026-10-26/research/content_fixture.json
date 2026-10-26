@@ -1,0 +1,138 @@
+{
+ "positions": [
+  {
+   "n": 1,
+   "dev": "प्रणामासन",
+   "iast": "Praṇāmāsana",
+   "mantra": "Om Mitrāya Namaḥ",
+   "gloss_en": "to the friend of all",
+   "gloss_fr": "à l'ami de tous",
+   "breath_en": "Exhale",
+   "breath_fr": "Expirer"
+  },
+  {
+   "n": 2,
+   "dev": "हस्त उत्तानासन",
+   "iast": "Hasta Uttānāsana",
+   "mantra": "Om Ravaye Namaḥ",
+   "gloss_en": "to the shining one",
+   "gloss_fr": "à celui qui rayonne",
+   "breath_en": "Inhale",
+   "breath_fr": "Inspirer"
+  },
+  {
+   "n": 3,
+   "dev": "पादहस्तासन",
+   "iast": "Pādahastāsana",
+   "mantra": "Om Sūryāya Namaḥ",
+   "gloss_en": "to the one who induces activity",
+   "gloss_fr": "à celui qui suscite l'activité",
+   "breath_en": "Exhale",
+   "breath_fr": "Expirer"
+  },
+  {
+   "n": 4,
+   "dev": "अश्व सञ्चलनासन",
+   "iast": "Aśva Sañcālanāsana",
+   "mantra": "Om Bhānave Namaḥ",
+   "gloss_en": "to the one who illumines",
+   "gloss_fr": "à celui qui illumine",
+   "breath_en": "Inhale",
+   "breath_fr": "Inspirer"
+  },
+  {
+   "n": 5,
+   "dev": "पर्वतासन",
+   "iast": "Parvatāsana",
+   "mantra": "Om Khagāya Namaḥ",
+   "gloss_en": "to the one who moves through the sky",
+   "gloss_fr": "à celui qui traverse le ciel",
+   "breath_en": "Exhale",
+   "breath_fr": "Expirer"
+  },
+  {
+   "n": 6,
+   "dev": "अष्टाङ्ग नमस्कार",
+   "iast": "Aṣṭāṅga Namaskāra",
+   "mantra": "Om Pūṣṇe Namaḥ",
+   "gloss_en": "to the giver of strength",
+   "gloss_fr": "à celui qui donne la force",
+   "breath_en": "Retain the breath",
+   "breath_fr": "Retenir le souffle"
+  },
+  {
+   "n": 7,
+   "dev": "भुजङ्गासन",
+   "iast": "Bhujaṅgāsana",
+   "mantra": "Om Hiraṇyagarbhāya Namaḥ",
+   "gloss_en": "to the golden cosmic self",
+   "gloss_fr": "au soi cosmique doré",
+   "breath_en": "Inhale",
+   "breath_fr": "Inspirer"
+  },
+  {
+   "n": 8,
+   "dev": "पर्वतासन",
+   "iast": "Parvatāsana",
+   "mantra": "Om Marīcaye Namaḥ",
+   "gloss_en": "to the rays of light",
+   "gloss_fr": "aux rayons de lumière",
+   "breath_en": "Exhale",
+   "breath_fr": "Expirer"
+  },
+  {
+   "n": 9,
+   "dev": "अश्व सञ्चलनासन",
+   "iast": "Aśva Sañcālanāsana",
+   "mantra": "Om Ādityāya Namaḥ",
+   "gloss_en": "to the son of Aditi",
+   "gloss_fr": "au fils d'Aditi",
+   "breath_en": "Inhale",
+   "breath_fr": "Inspirer"
+  },
+  {
+   "n": 10,
+   "dev": "पादहस्तासन",
+   "iast": "Pādahastāsana",
+   "mantra": "Om Savitre Namaḥ",
+   "gloss_en": "to the stimulating power",
+   "gloss_fr": "à la puissance qui stimule",
+   "breath_en": "Exhale",
+   "breath_fr": "Expirer"
+  },
+  {
+   "n": 11,
+   "dev": "हस्त उत्तानासन",
+   "iast": "Hasta Uttānāsana",
+   "mantra": "Om Arkāya Namaḥ",
+   "gloss_en": "to the one who is fit to be praised",
+   "gloss_fr": "à celui qui est digne de louange",
+   "breath_en": "Inhale",
+   "breath_fr": "Inspirer"
+  },
+  {
+   "n": 12,
+   "dev": "प्रणामासन",
+   "iast": "Praṇāmāsana",
+   "mantra": "Om Bhāskarāya Namaḥ",
+   "gloss_en": "to the one who leads to enlightenment",
+   "gloss_fr": "à celui qui mène à l'éveil",
+   "breath_en": "Exhale",
+   "breath_fr": "Expirer"
+  }
+ ],
+ "sutras": {
+  "1.2": {
+   "dev": "योगश्चित्तवृत्तिनिरोधः",
+   "iast": "yogaś citta-vṛtti-nirodhaḥ",
+   "en": "Yoga is the stilling of the movements of the mind.",
+   "fr": "Le yoga est l'apaisement des mouvements du mental."
+  },
+  "2.46": {
+   "dev": "स्थिरसुखमासनम्",
+   "iast": "sthira-sukham āsanam",
+   "en": "The posture is steady and at ease.",
+   "fr": "La posture est stable et confortable."
+  }
+ }
+}

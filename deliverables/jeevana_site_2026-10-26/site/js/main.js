@@ -1,7 +1,8 @@
 /* Jeevana — one IIFE. Cover "Twelve breaths, drawn then real": 13 scrubbed states (S0 draws itself at load,
    S1–S8 the drawing moves, S9–S11 the drawing takes colour, S12 hold). Drum, deck, i18n, forms, dialog, events.
-   One `state` variable drives figure, rail and copy. Figures, pencil layers and contours come from
-   assets/fig/manifest.json + contours.json: dropping pencil files in and re-running the ingest needs no HTML edit. */
+   One `state` variable drives figure, rail and copy. The drawing (S0–S8) = one traced contour (contours.json,
+   self-drawing at S0, quiet re-draw on each state change) + a flat graphite wash (<key>-wash@…webp, ~18 %).
+   Everything comes from assets/fig/manifest.json + contours.json: a re-run of the ingest needs no HTML edit. */
 (function () {
   'use strict';
   /* ---------- named constants (fix brief D17) ---------- */
@@ -10,7 +11,7 @@
   var HOLD_IN = 0.15, LEG_W = 0.7, CROSS_AT = 0.5; // Evolution scrub: 15 / 70 / 15, swap at 50 % of the leg
   var REVEAL_FROM = 8, REVEAL_TO = 11;        // photograph wipes in across S9–S11
   var CTA_FROM = 9, BEAT2_FROM = 4;           // CTAs from S9, Sūtra 2.46 from S4
-  var S0_LINE_MS = 2200, S0_TONE_MS = 1200, S0_LIT_MS = 100; // contour reveal, tone fade, rail 01
+  var REDRAW_MS = 900, S0_LINE_MS = 2200, S0_TONE_MS = 1200, S0_LIT_MS = 100; // contour reveal, tone fade, rail 01
   var AUTO_LEG_MS = 2600, AUTO_TO = 3;        // autoplay S1→S3 at breathing pace, then hold
   var COVER_END = 0.8, COVER_OUT = 0.5, MBAR_AT = 0.5; // hint off at p > .8; cover hidden once the drum top < 50 % vh
   var FOLD_OPEN = 0.9, REVEAL_FAILSAFE_MS = 2500, DIALOG_DECK_MS = 1200, DIALOG_TIME_MS = 35000;
@@ -35,6 +36,7 @@
   var sent = {};
   function ev(name, once) {
     if (once && sent[name]) return; sent[name] = 1;
+    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return; // no counts from local previews
     try { var b = new Blob([JSON.stringify({ name: name })], { type: 'application/json' }); if (navigator.sendBeacon) navigator.sendBeacon('/api/event', b); } catch (e) { /* counts are best effort */ }
   }
   d.addEventListener('click', function (e) { var a = e.target && e.target.closest ? e.target.closest('[data-ev]') : null; if (a) ev(a.getAttribute('data-ev')); });
@@ -106,15 +108,20 @@
     var r = rec(key); if (!r) return;
     slot.setAttribute('data-key', key);
     var ph = $('[data-fig-photo]', slot), dr = $('[data-fig-draw]', slot), ln = $('[data-fig-line] path', slot), sv = $('[data-fig-line]', slot);
-    var pencil = r.pencil && r.pencil.length;
-    slot.classList.toggle('is-pencil', !!pencil);
     place(slot, key);
     if (ph) { ph.setAttribute('srcset', srcset(r.srcset)); ph.setAttribute('src', FIG + r.srcset[r.srcset.length - 1][0]); ph.width = r.w; ph.height = r.h; }
-    if (dr) { var list = pencil ? r.pencil : r.srcset; dr.setAttribute('srcset', srcset(list)); dr.setAttribute('src', FIG + list[list.length - 1][0]); }
+    if (dr) { var list = r.wash && r.wash.length ? r.wash : r.srcset; dr.setAttribute('srcset', srcset(list)); dr.setAttribute('src', FIG + list[list.length - 1][0]); }
     var c = CONT[key];
     if (sv && ln && c && c.d) { sv.setAttribute('viewBox', '0 0 ' + c.vb[0] + ' ' + c.vb[1]); ln.setAttribute('d', c.d); }
+    if (introDone) redraw(slot);
   }
-  function prefetch(key) { var r = rec(key), s = slots[0]; if (!r || !s) return; var im = new Image(); im.sizes = $('img', s).getAttribute('sizes') || '50vw'; im.srcset = srcset(r.srcset); if (r.pencil && r.pencil.length) { var p2 = new Image(); p2.sizes = im.sizes; p2.srcset = srcset(r.pencil); } }
+  function redraw(slot) { // quiet re-draw of the contour on every state change
+    slot.classList.remove('is-redraw'); slot.style.setProperty('--draw', '1'); void slot.offsetWidth;
+    slot.classList.add('is-redraw');
+    w.requestAnimationFrame(function () { w.requestAnimationFrame(function () { slot.style.setProperty('--draw', '0'); }); });
+    clearTimeout(slot._rd); slot._rd = setTimeout(function () { slot.classList.remove('is-redraw'); }, REDRAW_MS + 100);
+  }
+  function prefetch(key) { var r = rec(key), s = slots[0]; if (!r || !s) return; var sz = $('img', s).getAttribute('sizes') || '50vw'; [r.srcset, r.wash].forEach(function (l) { if (!l || !l.length) return; var im = new Image(); im.sizes = sz; im.srcset = srcset(l); }); }
 
   /* ---------- the one state ---------- */
   var curState = -1, curKey = '', front = 0, autoS = 0, contT = 0;
@@ -226,8 +233,7 @@
     if (still) pf = 1;
     fold.style.setProperty('--tenter', (still ? 1 : clamp((enter - 0.55) / 0.45, 0, 1)).toFixed(3));
     $$('.plate', spread).forEach(function (pl, i) {
-      var rise = still ? 1 : clamp((Math.max(enter - 0.5, 0) * 2 * 0.5 + pf) - i * 0.08, 0, 1);
-      rise = still ? 1 : easeQ(clamp(rise, 0, 1));
+      var rise = still ? 1 : easeQ(clamp((enter - 0.3 - i * 0.08) / 0.5, 0, 1)); // settled once the drum reaches the top
       pl.style.setProperty('--rise', rise.toFixed(3));
       pl.style.setProperty('--cap', (rise >= 0.3 ? 1 : rise / 0.3).toFixed(3));
     });
@@ -428,6 +434,8 @@
     Promise.all([getJSON(FIG + 'manifest.json'), getJSON(FIG + 'contours.json')]).then(function (a) {
       if (a[0] && a[0].fig) MAN = a[0];
       CONT = a[1] || {};
+      var pr = rec('portrait'), ab = $('.about__img');
+      if (pr && pr.pencil && pr.pencil.length && ab) { ab.setAttribute('srcset', srcset(pr.pencil)); ab.setAttribute('src', FIG + pr.pencil[pr.pencil.length - 1][0]); ab.classList.add('is-pencil'); }
       if (w.scrollY > 4) { autoOn = false; finishIntro(); coverScroll(); }
       else intro();
       onScroll();

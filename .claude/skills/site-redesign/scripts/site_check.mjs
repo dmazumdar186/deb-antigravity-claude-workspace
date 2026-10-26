@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /* site_check.mjs — desktop + mobile + reduced-motion gate for static concept sites.
-   usage: node site_check.mjs --site <dir> [--port 8787] [--pages /,/pour-x/] [--fling 2600]
+   usage: node site_check.mjs --site <dir> [--port 8787] [--pages /,/pour-x/] [--fling 2600] [--allow-hosts a.com,b.com]
+   --allow-hosts: third-party hosts the brief permits (e.g. the Cloudflare Web Analytics beacon); their requests
+   and the console errors they raise on localhost (CORS on the RUM endpoint) are not counted.
    exit 0 = pass. Needs playwright (npm i playwright@1.56) and PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers. */
 import { spawn } from 'node:child_process';
 import { mkdirSync, existsSync } from 'node:fs';
@@ -12,6 +14,8 @@ const site = resolve(arg('--site', 'site'));
 const port = Number(arg('--port', '8787'));
 const pages = arg('--pages', '/').split(',').filter(Boolean);
 const fling = Number(arg('--fling', '2600'));
+const allowHosts = arg('--allow-hosts', '').split(',').filter(Boolean);
+const allowed = (txt) => allowHosts.some((h) => txt.includes(h));
 const out = join(site, '..', 'screens'); mkdirSync(out, { recursive: true });
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= '/opt/pw-browsers';
 const require = createRequire(import.meta.url);
@@ -39,7 +43,7 @@ try {
     for (const path of pages) {
       const p = await ctx.newPage(); const errs = []; const hosts = new Set();
       p.on('pageerror', (e) => errs.push(e.message));
-      p.on('console', (m) => { if (m.type() === 'error' && !/ERR_CERT|fonts\.g/.test(m.text())) errs.push(m.text()); });
+      p.on('console', (m) => { if (m.type() === 'error' && !/ERR_CERT|fonts\.g/.test(m.text()) && !allowed(m.text() + ((m.location() || {}).url || ''))) errs.push(m.text()); });
       p.on('request', (r) => { const u = new URL(r.url()); if (!u.host.startsWith('localhost')) hosts.add(u.host); });
       const tag = `${c.name}${path.replace(/\//g, '_') || '_'}`;
       const resp = await p.goto(base + path, { waitUntil: 'load' });
@@ -75,7 +79,7 @@ try {
       if (mobile) { m.smallTaps.length ? fail(`${tag}: tap targets <40px: ${m.smallTaps.join(' | ')}`) : ok(`${tag}: tap targets ok`); m.smallInputs.length ? fail(`${tag}: inputs <16px: ${m.smallInputs.join(' | ')}`) : ok(`${tag}: inputs ≥16px`); }
       if (m.overlap) fail(`${tag}: fixed bottom bar overlaps the form CTA by ${m.overlap}`); else ok(`${tag}: bottom bar clear of CTA`);
       errs.length ? fail(`${tag}: ${errs.length} console/page error(s): ${errs[0].slice(0, 140)}`) : ok(`${tag}: console clean`);
-      const third = [...hosts].filter((h) => !/fonts\.(googleapis|gstatic)\.com/.test(h)); if (third.length) fail(`${tag}: third-party hosts: ${third.join(', ')}`);
+      const third = [...hosts].filter((h) => !/fonts\.(googleapis|gstatic)\.com/.test(h) && !allowed(h)); if (third.length) fail(`${tag}: third-party hosts: ${third.join(', ')}`);
       if (c.name === 'desktop' || c.name === 'pixel7') await p.screenshot({ path: join(out, `check-${tag}-full.png`), fullPage: true });
       await p.screenshot({ path: join(out, `check-${tag}-top.png`) });
       await p.close();
