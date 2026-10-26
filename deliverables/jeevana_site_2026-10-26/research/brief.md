@@ -46,17 +46,19 @@ everything they need **within three scrolls**. Dynamic, not static (the previous
 - Footer signature (verbatim, linked): "Designed by Debanjan Mazumdar · ProdCraft" → https://prodcraft.fyi
   (plus `mailto:debanjan@prodcraft.fyi`).
 
-## Photos — the ingest contract (operator's folder is on their Windows machine, not reachable here)
-Create `research/ingest_photos.py` (python3, Pillow or ffmpeg): `--src <folder> --out site/assets/img`.
-It (1) lists images, (2) writes `site/assets/img/manifest.json` with `{file,w,h,orientation}`, (3) resizes to
-webp ≤ 1600 px (and `-m` ≤ 900 px portrait crops), (4) accepts an optional `--sequence a.jpg,b.jpg,…` that
-renames the chosen frames to `sn-01.webp … sn-12.webp` (the 12 Surya Namaskar positions) and others to
-`photo-01.webp…`, (5) prints a table. Until it runs, the site ships **placeholder frames that are not stock**:
-12 procedural silhouette SVGs of the 12 positions (Pranamasana, Hasta Uttanasana, Padahastasana,
-Ashwa Sanchalanasana, Dandasana/Parvatasana, Ashtanga Namaskara, Bhujangasana, Parvatasana,
-Ashwa Sanchalanasana, Padahastasana, Hasta Uttanasana, Pranamasana), drawn as elegant single-line ink
-figures (stroke-only, cream on cover ink), saved as `assets/sn/sn-01.svg…sn-12.svg`. `main.js` prefers
-`assets/img/sn-NN.webp` when `manifest.json` lists it, else the SVG. The swap must need **zero HTML edits**.
+## Photos — REAL photos are in `_raw_assets/` (see `research/photos.md`); operator order: no caricature, no generic placeholder art
+Create `research/ingest_photos.py` (python3, Pillow): `--src <folder> --out site/assets/img [--sequence name=file,…]`.
+It lists images, writes `site/assets/img/manifest.json` `{frames:{"sn-01":{file,w,h},…}, photos:[…]}`, resizes to
+webp ≤ 1600 px long edge (quality 82) plus `-m` ≤ 1000 px variants, and renames by the sequence map. Run it NOW with:
+`--sequence sn-01=pranamasana-side.jpg,sn-02=hasta-uttanasana-side.jpg,portrait=pranamasana-front.jpg,photo-01=chakrasana-eiffel.jpg`.
+Frames 03–12 are not yet supplied (the operator will paste more). Rule for a missing frame: **never draw a figure**;
+the cover keeps the last real frame on screen with a slow 1.04→1.0 breathing scale and a soft crop shift, and the
+rail/mantra text for that position changes as usual. When `manifest.json` gains `sn-NN`, the frame appears with
+zero HTML edits. Show the real photos large: full-bleed on desktop (object-fit cover, focal point on the body,
+keep her face and feet in frame at 16:9 — use `object-position` per frame from manifest `focus`), portrait on
+phones. Keep the watch and surroundings as they are; no retouching beyond resize and a subtle warm grade via CSS
+(`filter: saturate(.92) contrast(1.03)`), never a heavy overlay — the sky and skyline are part of the brand (Paris).
+The Eiffel photo is the signature drum's first plate and the OG image.
 
 ## Cover (pinned, scrubbed `400svh` desktop / `250svh` mobile) — "Twelve breaths"
 - At scroll 0, **before any scroll**, the sequence runs on its own: an autoplay of the 12 frames
@@ -85,7 +87,7 @@ figures (stroke-only, cream on cover ink), saved as `assets/sn/sn-01.svg…sn-12
 - Header logo hidden over the cover; cover shows monogram + "Jeevana". Scroll hint always present.
 
 ## 01 — Signature object (pinned `300svh`): "The practice" — a **card drum** of her other photos
-Three rotating plates (photo-01..06 or placeholder ink figures) with captions: "Hatha", "Vinyasa", "Breath &
+Three rotating plates: photo-01 (Eiffel), portrait, and a text plate (Yoga Sūtra 1.2) until more photos arrive with captions: "Hatha", "Vinyasa", "Breath &
 stillness" (generic, true descriptions of what a yoga class contains; no claims about her lineage). Overlaps the
 cover (−160svh / −25svh). Mobile: horizontal snap-scroll, no 3D. Paper, grain, warm edge.
 
@@ -130,7 +132,7 @@ Desktop total ≤ 7,000 px (operator: "within three scrolls" = cover track, drum
    ≥ 3 after 3 s); scroll takes over; rail mantra text changes with frame; i18n switch flips `html[lang]`
    and ≥ 20 strings; newsletter dialog opens after deck activation, closes on Esc, never reopens after close;
    register form posts and shows success with mocked fetch; dead-link guard: zero `href="#"`/empty `tel:`
-   links in DOM; photo swap: with a fake `manifest.json` listing `sn-01.webp`, the img src switches.
+   links in DOM; photo swap: frames 01–02 render the real webp; a frame without a manifest entry holds the previous real image (no empty, no drawn figure).
    Run → `research/functional.json`, must be N/N.
 2. `node .claude/skills/site-redesign/scripts/site_check.mjs --site <abs>/site --pages /` exit 0.
 3. Serve with real `_headers` (see prodcraft `qa_live/serve_csp.mjs` if present; else write
