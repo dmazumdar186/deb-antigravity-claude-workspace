@@ -13,6 +13,8 @@ const meta = JSON.parse(readFileSync(join(film, 'hero.json'), 'utf8')); meta.v =
 copyFileSync(join(film, meta.poster), join(site, 'assets/film', meta.poster)); meta.v.poster = hf(join(film, meta.poster));
 meta.phone = 'hero-phone.mp4'; delete meta.portrait;
 for (const k of ['landscape', 'phone']) meta.v[k] = hf(join(site, 'assets/film', meta[k]));
+// figure extents per keyframe (top, bottom as fraction of the 3:4 frame) for the portrait layout
+try { meta.fig = JSON.parse(readFileSync(join(film, 'figure_boxes.json'), 'utf8')).landscape.map((b) => [b.box[1], b.box[3]]); } catch { /* engine falls back to global extents */ }
 writeFileSync(join(site, 'assets/film/hero.json'), JSON.stringify(meta, null, 1) + '\n');
 const assets = ['css/styles.css', 'js/main.js', 'js/i18n.js', 'js/breath.js', 'assets/film/hero.json', 'assets/film/' + meta.poster];
 const h = (a) => hf(join(site, a));

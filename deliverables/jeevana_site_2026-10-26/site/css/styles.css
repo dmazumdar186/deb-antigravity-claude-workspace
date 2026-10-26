@@ -211,7 +211,7 @@ html:not([lang="fr"]) [data-lang-block="en"] { display: block; }
   .copy { left: var(--g); right: var(--g); top: var(--hdr); transform: none; width: auto; padding-bottom: .4rem; }
   .copy::before { content: ''; position: absolute; z-index: -1; inset: calc(var(--hdr) * -1) calc(var(--g) * -1) -1.6rem; background: linear-gradient(to bottom, var(--paper) 72%, rgba(243, 238, 228, 0)); }
   .copy__state { align-self: start; }
-  .film { top: var(--film-top, 34svh); height: var(--film-h, 56svh); aspect-ratio: 3 / 4; }
+  .film { top: var(--film-top, 34svh); height: var(--film-h, 56svh); aspect-ratio: 3 / 4; transition: top .9s var(--ease); }
   .cover__breath { width: 140vw; height: 140vw; top: 62%; }
   .rail { left: var(--g); right: var(--g); top: auto; bottom: max(10px, env(safe-area-inset-bottom)); transform: none; width: auto; display: flex; align-items: center; justify-content: space-between; gap: .8rem; }
   .rail__label, .rail__note, .rail__list { display: none; }

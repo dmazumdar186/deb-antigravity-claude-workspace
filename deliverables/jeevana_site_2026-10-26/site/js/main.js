@@ -104,18 +104,25 @@
     if (st === shown) return; shown = st; railText();
     var c = copyOf(st); engine.copy = c;
     copyStates.forEach(function (el) { el.classList.toggle('is-on', Number(el.getAttribute('data-copy-state')) === c); });
+    placeFilm();
   }
   function setPos(x) { pos = clamp(x, 0, LAST); engine.pos = pos; var st = stateOf(pos); engine.state = st; show(st, pos); }
-  function measureCopy() { // portrait class: 3:4 film between the copy (top) and the rail (bottom); paper may pass under both, the figure never
-    if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) return;
-    var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); });
-    var c = $('[data-copy]'), rail = $('[data-rail]'), V = stage.clientHeight || W.innerHeight, Wd = stage.clientWidth || W.innerWidth;
-    var C = Math.ceil(h + (c ? c.offsetTop : 0)) + 12, Rt = rail ? V - rail.offsetTop + 8 : 60;
-    var H = Math.min(Wd * 4 / 3, (V - Rt - C) / (FIG_BOT - FIG_TOP));
-    var T = C - FIG_TOP * H, spare = (V - Rt) - (T + FIG_BOT * H); if (spare > 0) T += spare / 2;
-    stage.style.setProperty('--film-top', Math.round(T) + 'px'); stage.style.setProperty('--film-h', Math.round(H) + 'px');
+  var filmH = 0, copyTop = 0, railTop = 0, maxCopy = 0;
+  function figOf(st) { var f = meta && meta.fig && meta.fig[st]; return f && f.length === 2 ? f : [FIG_TOP, FIG_BOT]; }
+  function placeFilm() { // portrait class: the window glides so the current figure sits centred between copy and rail, never under either
+    if (!filmH || !stage) return; var V = stage.clientHeight || W.innerHeight, on = $('.copy__state.is-on');
+    var C = copyTop + (on ? on.offsetHeight : maxCopy) + 12, f = figOf(Math.max(0, shown)), H = filmH;
+    var lo = C - f[0] * H, hi = railTop - f[1] * H, T = ((C + railTop) / 2) - ((f[0] + f[1]) / 2) * H;
+    T = hi >= lo ? clamp(T, lo, hi) : lo; stage.style.setProperty('--film-top', Math.round(T) + 'px');
   }
-
+  function measureCopy() { // portrait class: 3:4 film between the copy (top) and the rail (bottom); paper may pass under both, the figure never
+    if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) { filmH = 0; return; }
+    var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); }); maxCopy = h;
+    var c = $('[data-copy]'), rail = $('[data-rail]'), V = stage.clientHeight || W.innerHeight, Wd = stage.clientWidth || W.innerWidth;
+    copyTop = c ? c.offsetTop : 0; railTop = rail ? rail.offsetTop - 8 : V - 60;
+    filmH = Math.min(Wd * 4 / 3, (railTop - copyTop - h - 12) / (FIG_BOT - FIG_TOP));
+    stage.style.setProperty('--film-h', Math.round(filmH) + 'px'); placeFilm();
+  }
   var raf = 0;
   function seekTick() {
     if (raf) return;
@@ -165,7 +172,7 @@
     if (!video || !film) return;
     var url = video.getAttribute('data-src');
     fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('hero.json ' + r.status); return r.json(); }).then(function (m) {
-      if (!m || !m.ready) return; meta = m; K = keyframes(m); engine.K = K; engine.meta = m;
+      if (!m || !m.ready) return; meta = m; placeFilm(); K = keyframes(m); engine.K = K; engine.meta = m;
       var phone = W.innerWidth <= PHONE_MAX && m.phone, file = phone ? m.phone : m.landscape, v = m.v && m.v[phone ? 'phone' : 'landscape'];
       var src = '/assets/film/' + file + (v ? '?v=' + v : ''); engine.src = src;
       return fetch(src).then(function (r) { if (!r.ok) throw new Error('film ' + r.status); return r.blob(); })
