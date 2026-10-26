@@ -1,0 +1,36 @@
+{
+ "frames": {
+  "sn-01": {
+   "file": "sn-01.webp",
+   "mfile": "sn-01-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "50% 42%"
+  },
+  "sn-02": {
+   "file": "sn-02.webp",
+   "mfile": "sn-02-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "50% 42%"
+  }
+ },
+ "photos": [
+  {
+   "name": "photo-01",
+   "file": "photo-01.webp",
+   "mfile": "photo-01-m.webp",
+   "w": 1200,
+   "h": 1600,
+   "focus": "50% 42%"
+  },
+  {
+   "name": "portrait",
+   "file": "portrait.webp",
+   "mfile": "portrait-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "50% 42%"
+  }
+ ]
+}
