@@ -767,8 +767,19 @@ def main() -> int:
 
     failed = total_violations > 0
     if top_count == 0:
-        print("[FAIL] Top Matches is EMPTY — system surfaced zero strong jobs.")
-        failed = True
+        # 2026-10-26: the Top Matches tab is rebuilt from THIS run's candidates.
+        # A run that found nothing new (the second same-day fire 40 min after
+        # the first, a weekend) legitimately leaves it empty; failing the run
+        # opened a GitHub alarm issue every afternoon (run 40194632179). Only
+        # fail when the run actually had new candidates and still surfaced none.
+        _cur = load_current_run_stats() or {}
+        _new = int(_cur.get("after_dedup_new", -1) or 0)
+        if _new == 0 and _cur.get("mode") == "live":
+            print("[OK]   Top Matches is empty because this run had 0 new jobs "
+                  "(no-op run, e.g. second same-day fire); not a failure.")
+        else:
+            print("[FAIL] Top Matches is EMPTY — system surfaced zero strong jobs.")
+            failed = True
 
     # --- Layer 3: silent-degradation alarm (pipeline quality, not per-row). ---
     print()
