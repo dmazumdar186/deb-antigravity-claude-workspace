@@ -10,9 +10,9 @@
  },
  "submit": {
   "status": "queued",
-  "request_id": "fc683b49-35f0-4f94-840c-b5def033bf8b",
-  "status_url": "https://api.higgsfield.ai/requests/fc683b49-35f0-4f94-840c-b5def033bf8b/status",
-  "cancel_url": "https://api.higgsfield.ai/requests/fc683b49-35f0-4f94-840c-b5def033bf8b/cancel",
+  "request_id": "0bfc5ba2-8fb2-4525-b5c6-9e36c720bfea",
+  "status_url": "https://api.higgsfield.ai/requests/0bfc5ba2-8fb2-4525-b5c6-9e36c720bfea/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/0bfc5ba2-8fb2-4525-b5c6-9e36c720bfea/cancel",
   "expires_after": 604800
  }
 }
