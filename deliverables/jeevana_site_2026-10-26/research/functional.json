@@ -1,0 +1,226 @@
+{
+  "date": "2026-10-26",
+  "pass": 40,
+  "total": 40,
+  "desktopHeight": 5952,
+  "mobileHeight": 5239,
+  "panelHeightsDesktop": {
+    "about": 705,
+    "classes": 522,
+    "register": 673,
+    "contact": 364
+  },
+  "panelHeightsMobile": {
+    "about": 1388,
+    "classes": 853,
+    "register": 924,
+    "contact": 509
+  },
+  "sizes": {
+    "html": 23773,
+    "css": 28324,
+    "js": 21215,
+    "i18n": 14342,
+    "backdrop": 4814
+  },
+  "results": [
+    {
+      "name": "autoplay advances the frame index without scrolling (frame ≥ 3 after 3 s)",
+      "ok": true,
+      "info": "{\"i\":3,\"mode\":\"on\",\"y\":0}"
+    },
+    {
+      "name": "scroll takes over (autoplay stops, frame = floor(p*12))",
+      "ok": true,
+      "info": "{\"i\":6,\"mode\":\"off\",\"after1s\":6}"
+    },
+    {
+      "name": "rail mantra text changes with frame",
+      "ok": true,
+      "info": "{\"m6\":\"Om Hiraṇyagarbhāya Namaḥ\",\"m\":\"Om Savitre Namaḥ\",\"tr\":\"to the stimulating power\",\"no\":\"10\"}"
+    },
+    {
+      "name": "photo swap: frames 01–02 render the real webp",
+      "ok": true,
+      "info": "[{\"i\":0,\"src\":\"sn-01.webp\",\"nw\":900,\"op\":\"1\"},{\"i\":1,\"src\":\"sn-02.webp\",\"nw\":900,\"op\":\"1\"}]"
+    },
+    {
+      "name": "a frame without a manifest entry holds the previous real image (no empty, no drawn figure)",
+      "ok": true,
+      "info": "{\"i\":2,\"src\":\"sn-02.webp\",\"nw\":900,\"hold\":true,\"drawn\":0,\"rail\":\"Pādahastāsana\"}"
+    },
+    {
+      "name": "cover beats change at 25/50/75% of the track",
+      "ok": true,
+      "info": "0,1,2"
+    },
+    {
+      "name": "video plays (or canvas fallback runs)",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"hero.mp4\",\"canvasVisible\":false}"
+    },
+    {
+      "name": "fold-out hinge transform changes with scroll",
+      "ok": true,
+      "info": "matrix3d(-0.5, 0, 0.866025, 0, → matrix3d(-0.5, 0, -0.866025, 0 → matrix(1, 0, 0, 1, 0, 0)"
+    },
+    {
+      "name": "fold-out fully open by track end",
+      "ok": true,
+      "info": "{\"tf\":\"matrix(1, 0, 0, 1, 0, 0)\",\"fold\":\"1.0000\",\"open\":true}"
+    },
+    {
+      "name": "each chapter tab switches the panel and updates the hash",
+      "ok": true,
+      "info": "classes:classes#classes | register:register#register | contact:contact#contact | about:about#about"
+    },
+    {
+      "name": "back button restores the previous panel",
+      "ok": true,
+      "info": "contact #contact"
+    },
+    {
+      "name": "header chapter indicator follows the deck",
+      "ok": true,
+      "info": "05 Contact"
+    },
+    {
+      "name": "keyboard ArrowRight wraps to the first chapter",
+      "ok": true,
+      "info": "about"
+    },
+    {
+      "name": "deep link /#register opens the Register panel",
+      "ok": true,
+      "info": "register"
+    },
+    {
+      "name": "gallery dialog opens and closes",
+      "ok": true,
+      "info": "{\"open\":true,\"n\":3,\"title\":\"Photographs\"}"
+    },
+    {
+      "name": "counters settle on the exact published values",
+      "ok": true,
+      "info": "12,8,4"
+    },
+    {
+      "name": "cover end: last beat held into the overlap, photo plate shown, fold-out arrived by track end (no empty viewport)",
+      "ok": true,
+      "info": "{\"beatOn\":true,\"beatOpacity\":\"1\",\"bodyOpacity\":\"1\",\"foldTop\":0,\"enter\":\"0.050\",\"plate\":\"1\",\"enterAtEnd\":\"1.000\"}"
+    },
+    {
+      "name": "fade sequence: cover text at 0 before chapter headline passes 0.1",
+      "ok": true,
+      "info": "{\"foldText\":\"0.222\",\"coverBody\":\"0\",\"coverVis\":\"hidden\",\"logoHidden\":\"visible\"}"
+    },
+    {
+      "name": "deck panels ≤ 1 viewport (900) on desktop",
+      "ok": true,
+      "info": "{\"about\":705,\"classes\":522,\"register\":673,\"contact\":364}"
+    },
+    {
+      "name": "desktop page height ≤ 7,000 px",
+      "ok": true,
+      "info": "5952 px"
+    },
+    {
+      "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
+      "ok": true,
+      "info": "{\"html\":23773,\"css\":28324,\"js\":21215,\"i18n\":14342,\"backdrop\":4814}"
+    },
+    {
+      "name": "dead-link guard: zero href=\"#\" / empty tel: links in DOM (phone + WhatsApp live)",
+      "ok": true,
+      "info": "{\"bad\":[],\"tel\":[\"tel:+33754287210\",\"tel:+33754287210\",\"tel:+33754287210\"],\"wa\":2}"
+    },
+    {
+      "name": "i18n switch flips html[lang] and ≥ 20 strings",
+      "ok": true,
+      "info": "{\"lang\":\"fr\",\"changed\":104,\"title\":\"Jeevana — Yoga à Paris\",\"stored\":\"fr\",\"tag\":\"Yoga à Paris\"}"
+    },
+    {
+      "name": "register form posts to /api/register and shows success (mocked fetch)",
+      "ok": true,
+      "info": "{\"ok\":true,\"err\":false,\"posted\":{\"name\":\"Test Person\",\"email\":\"test@example.com\",\"phone\":\"\",\"class\":\"any\",\"level\":\"new\",\"message\":\"\",\"website\":\"\",\"consent\":true,\"lang\":\"en\",\"source_url\":\"/\"}}"
+    },
+    {
+      "name": "desktop: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "newsletter dialog opens after deck activation, closes on Esc, never reopens after close",
+      "ok": true,
+      "info": "{\"onCoverOpen\":false,\"open\":true,\"focusIn\":true,\"seen\":true,\"nClosed\":true,\"reopen\":false}"
+    },
+    {
+      "name": "newsletter page: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mobile cover beats",
+      "ok": true,
+      "info": "0,1,2"
+    },
+    {
+      "name": "mobile uses the portrait video (hero-m.mp4) or canvas",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"src\":\"hero-m.mp4\"}"
+    },
+    {
+      "name": "mobile fold-out is a horizontal snap-scroll (no 3D)",
+      "ok": true,
+      "info": "{\"snap\":\"x mandatory\",\"overflow\":\"auto\",\"scrollW\":1180,\"clientW\":412,\"tf\":\"none\",\"scrolledTo\":384}"
+    },
+    {
+      "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
+      "ok": true,
+      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"MAIN\",\"bg\":\"rgb(243, 238, 228)\",\"hdrBg\":\"rgb(243, 238, 228)\"}"
+    },
+    {
+      "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
+      "ok": true,
+      "info": "{\"panelW\":372,\"vw\":413,\"docW\":413,\"padB\":116,\"barH\":69,\"overlap\":210}"
+    },
+    {
+      "name": "mobile bottom bar appears after the cover CTA scrolls out",
+      "ok": true
+    },
+    {
+      "name": "mobile page height ≤ 9,000 px",
+      "ok": true,
+      "info": "5239 px"
+    },
+    {
+      "name": "mobile deck panels ≤ 2 viewports (1830)",
+      "ok": true,
+      "info": "{\"about\":1388,\"classes\":853,\"register\":924,\"contact\":509}"
+    },
+    {
+      "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
+      "ok": true,
+      "info": "{\"tabIn\":true,\"fade\":\"48px\",\"lastBottom\":718,\"barTop\":773}"
+    },
+    {
+      "name": "Pixel 7: no horizontal overflow",
+      "ok": true,
+      "info": "0 px"
+    },
+    {
+      "name": "mobile: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "iPhone 13: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "pitch page: 0 console errors, signature present (production: 404.html carries it; no pitch page ships)",
+      "ok": true
+    }
+  ]
+}

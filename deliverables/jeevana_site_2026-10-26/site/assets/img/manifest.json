@@ -5,32 +5,161 @@
    "mfile": "sn-01-m.webp",
    "w": 900,
    "h": 1600,
-   "focus": "50% 42%"
+   "focus": "50% 48%",
+   "src": "_DAV5297.jpg"
   },
   "sn-02": {
    "file": "sn-02.webp",
    "mfile": "sn-02-m.webp",
    "w": 900,
    "h": 1600,
-   "focus": "50% 42%"
+   "focus": "45% 46%",
+   "src": "_DAV5303.jpg"
+  },
+  "sn-03": {
+   "file": "sn-03.webp",
+   "mfile": "sn-03-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "44% 40%",
+   "src": "_DAV5307.jpg"
+  },
+  "sn-04": {
+   "file": "sn-04.webp",
+   "mfile": "sn-04-m.webp",
+   "w": 891,
+   "h": 1600,
+   "focus": "48% 39%",
+   "src": "_DAV5343.jpg"
+  },
+  "sn-05": {
+   "file": "sn-05.webp",
+   "mfile": "sn-05-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "46% 46%",
+   "src": "_DAV5320.jpg"
+  },
+  "sn-06": {
+   "file": "sn-06.webp",
+   "mfile": "sn-06-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "45% 45%",
+   "src": "_DAV5332.jpg"
+  },
+  "sn-07": {
+   "file": "sn-07.webp",
+   "mfile": "sn-07-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "47% 40%",
+   "src": "_DAV5337.jpg"
+  },
+  "sn-08": {
+   "file": "sn-08.webp",
+   "mfile": "sn-08-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "46% 46%",
+   "src": "_DAV5320.jpg"
+  },
+  "sn-09": {
+   "file": "sn-09.webp",
+   "mfile": "sn-09-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "47% 37%",
+   "src": "_DAV5310.jpg"
+  },
+  "sn-10": {
+   "file": "sn-10.webp",
+   "mfile": "sn-10-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "44% 40%",
+   "src": "_DAV5307.jpg"
+  },
+  "sn-11": {
+   "file": "sn-11.webp",
+   "mfile": "sn-11-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "45% 46%",
+   "src": "_DAV5303.jpg"
+  },
+  "sn-12": {
+   "file": "sn-12.webp",
+   "mfile": "sn-12-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "48% 49%",
+   "src": "_DAV5300.jpg"
   }
  },
  "photos": [
-  {
-   "name": "photo-01",
-   "file": "photo-01.webp",
-   "mfile": "photo-01-m.webp",
-   "w": 1200,
-   "h": 1600,
-   "focus": "50% 42%"
-  },
   {
    "name": "portrait",
    "file": "portrait.webp",
    "mfile": "portrait-m.webp",
    "w": 900,
    "h": 1600,
-   "focus": "50% 42%"
+   "focus": "48% 56%",
+   "src": "_DAV5356.jpg"
+  },
+  {
+   "name": "photo-01",
+   "file": "photo-01.webp",
+   "mfile": "photo-01-m.webp",
+   "w": 1200,
+   "h": 1600,
+   "focus": "57% 59%",
+   "src": "IMG-20260810-WA0005.jpg"
+  },
+  {
+   "name": "photo-02",
+   "file": "photo-02.webp",
+   "mfile": "photo-02-m.webp",
+   "w": 1200,
+   "h": 1600,
+   "focus": "50% 70%",
+   "src": "IMG-20260810-WA0004.jpg"
+  },
+  {
+   "name": "photo-03",
+   "file": "photo-03.webp",
+   "mfile": "photo-03-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "50% 49%",
+   "src": "_DAV5352.jpg"
+  },
+  {
+   "name": "photo-04",
+   "file": "photo-04.webp",
+   "mfile": "photo-04-m.webp",
+   "w": 954,
+   "h": 1600,
+   "focus": "52% 47%",
+   "src": "_DAV5346.jpg"
+  },
+  {
+   "name": "photo-05",
+   "file": "photo-05.webp",
+   "mfile": "photo-05-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "55% 61%",
+   "src": "_DAV5340.jpg"
+  },
+  {
+   "name": "photo-06",
+   "file": "photo-06.webp",
+   "mfile": "photo-06-m.webp",
+   "w": 900,
+   "h": 1600,
+   "focus": "52% 47%",
+   "src": "_DAV5325.jpg"
   }
  ]
 }

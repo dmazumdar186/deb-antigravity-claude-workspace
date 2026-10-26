@@ -1,0 +1,602 @@
+{
+ "files": [
+  "cover-autoplay-0s.png",
+  "cover-autoplay-4s.png",
+  "cover-0.png",
+  "cover-50.png",
+  "cover-100.png",
+  "cover-fade.png",
+  "foldout-mid.png",
+  "foldout-open.png",
+  "deck-about.png",
+  "deck-classes.png",
+  "deck-register.png",
+  "deck-contact.png",
+  "page-full.png",
+  "lang-fr-cover.png",
+  "mobile-cover.png",
+  "mobile-cover-60.png",
+  "mobile-foldout.png",
+  "mobile-deck.png",
+  "iphone-se-cover-0.png",
+  "iphone-se-cover-50.png",
+  "iphone-se-cover-100.png",
+  "galaxy-s8-cover-0.png",
+  "galaxy-s8-cover-50.png",
+  "galaxy-s8-cover-100.png",
+  "iphone-13-cover-0.png",
+  "iphone-13-cover-50.png",
+  "iphone-13-cover-100.png",
+  "pixel-7-cover-0.png",
+  "pixel-7-cover-50.png",
+  "pixel-7-cover-100.png",
+  "iphone-15-pro-max-cover-0.png",
+  "iphone-15-pro-max-cover-50.png",
+  "iphone-15-pro-max-cover-100.png",
+  "phone-landscape-cover-0.png",
+  "phone-landscape-cover-50.png",
+  "phone-landscape-cover-100.png",
+  "small-tablet-cover-0.png",
+  "small-tablet-cover-50.png",
+  "small-tablet-cover-100.png",
+  "ipad-portrait-cover-0.png",
+  "ipad-portrait-cover-50.png",
+  "ipad-portrait-cover-100.png",
+  "ipad-landscape-cover-0.png",
+  "ipad-landscape-cover-50.png",
+  "ipad-landscape-cover-100.png",
+  "ipad-pro-portrait-cover-0.png",
+  "ipad-pro-portrait-cover-50.png",
+  "ipad-pro-portrait-cover-100.png",
+  "ipad-pro-landscape-cover-0.png",
+  "ipad-pro-landscape-cover-50.png",
+  "ipad-pro-landscape-cover-100.png",
+  "laptop-1280-cover-0.png",
+  "laptop-1280-cover-50.png",
+  "laptop-1280-cover-100.png",
+  "laptop-1440-cover-0.png",
+  "laptop-1440-cover-50.png",
+  "laptop-1440-cover-100.png",
+  "laptop-1536-cover-0.png",
+  "laptop-1536-cover-50.png",
+  "laptop-1536-cover-100.png",
+  "desktop-1080p-cover-0.png",
+  "desktop-1080p-cover-50.png",
+  "desktop-1080p-cover-100.png",
+  "desktop-1440p-cover-0.png",
+  "desktop-1440p-cover-50.png",
+  "desktop-1440p-cover-100.png",
+  "desktop-4k-cover-0.png",
+  "desktop-4k-cover-50.png",
+  "desktop-4k-cover-100.png",
+  "tv-portrait-cover-0.png",
+  "tv-portrait-cover-50.png",
+  "tv-portrait-cover-100.png"
+ ],
+ "geometryIssues": [],
+ "consoleErrors": [],
+ "geo": {
+  "iphone-se": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "galaxy-s8": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "iphone-13": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "pixel-7": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "iphone-15-pro-max": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "phone-landscape": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "small-tablet": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "ipad-portrait": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "ipad-landscape": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "ipad-pro-portrait": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "ipad-pro-landscape": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "laptop-1280": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "laptop-1440": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "laptop-1536": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "desktop-1080p": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "desktop-1440p": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "desktop-4k": {
+   "0": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": false,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "tv-portrait": {
+   "0": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": null,
+    "textHdr": false,
+    "railHdr": false
+   }
+  }
+ }
+}
