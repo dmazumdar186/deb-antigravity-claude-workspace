@@ -1,0 +1,30 @@
+{
+ "leg": 8,
+ "body": {
+  "prompt": "The same woman moves slowly from Parvat\u0101sana, downward-facing V, hips high into A\u015bva Sa\u00f1c\u0101lan\u0101sana, low lunge with the other leg. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, a quiet glow near the horizon, first light, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing. She stays centred in the frame the whole time, never leaves the frame; from downward dog the left foot steps forward between the hands into a low lunge, arms rise forward in profile, head keeps facing the same direction.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/dawn/frame-08.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/dawn/frame-09.jpg",
+  "cfg_scale": 0.7
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "604b0860-c90d-450b-acdd-d6e209c0803c",
+  "status_url": "https://api.higgsfield.ai/requests/604b0860-c90d-450b-acdd-d6e209c0803c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/604b0860-c90d-450b-acdd-d6e209c0803c/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "604b0860-c90d-450b-acdd-d6e209c0803c",
+  "status_url": "https://api.higgsfield.ai/requests/604b0860-c90d-450b-acdd-d6e209c0803c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/604b0860-c90d-450b-acdd-d6e209c0803c/cancel",
+  "expires_at": "2026-11-02T19:31:58.964049+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/604b0860-c90d-450b-acdd-d6e209c0803c/c466155d-f15f-4c3f-b462-7c922997b22d.mp4"
+  }
+ }
+}
