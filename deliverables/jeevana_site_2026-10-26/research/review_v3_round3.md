@@ -11,3 +11,13 @@
    run of ≥ 12 identical rows between y 150 and 450 (sample luminance).
 3. dialog sheet: hard top edge slicing the chapter still at y≈518 → feather the sheet's top edge (mask-image 64 px) or
    start it below the still; assert no luminance step > 6 % along the sheet's top edge.
+4. Eye pass confirms item 1 is systemic, not a capture artefact only: phone-landscape s7 shows Praṇāmāsana under "08
+   Parvatāsana"; laptop-1280 and desktop-4k at hold show the s0 frame under "12/12", while phones/iPads/1440p show the
+   closing frontal pose. Root-cause the seek path per viewport (blob fetch not complete? eased seek capped? `seeked`
+   never firing on some sizes? a different `<video>` element per breakpoint not driven?). Fix so that the film time is
+   driven identically on every viewport, and assert item 1 on ALL 19 viewports × s0/s7/hold, after `seeked`.
+5. Streaks in the sky around the feather on iPad landscape, laptop, 1440p, 4K (and faint striping on phones at 30–40 %
+   height) = the same banding family as item 2: dither the stage (noise overlay over the whole stage), build the feather
+   mask with a smooth radial alpha (no stepped stops), re-encode the film with grain-preserving settings; assert item 2's
+   no-run-of-identical-rows check at x = 200 and at the window's left feather column on 1440p and 4K.
+6. Minor: ring centre drifts 10–25 px between states → pin its centre; 4K mantra/sloka italic lines ≥ 24 px.
