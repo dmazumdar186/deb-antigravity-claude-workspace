@@ -79,3 +79,13 @@ Decisions by the brain marked ►. Scope: backend, legal, ops, measurement. Visu
 ## Verify
 functional N/N (new: fonts self-hosted / no external request; privacy page 0 console errors; unsubscribe flow with a
 mocked KV; event beacon allowlist; content fixture), site_check on `/` and `/privacy/`, 0 console errors.
+
+## F. Lenses 2 and 9 (landed after the first cut)
+24. Newsletter dialog never opens while focus is inside any form or while the Register panel is active; re-arm when
+    the visitor leaves the form (assert in functional.mjs: focus a register input, wait > delay, dialog stays closed).
+25. Autoplay prefetch: on frame n, `new Image().src` = frame n+1 (and n+2) so slow 4G never skips a frame; the first
+    frame stays preloaded.
+26. Inline error text under invalid fields (EN/FR), not only a mark; after a failed submit the mailto fallback carries
+    the typed fields in the body; 404 page honours the saved language.
+27. Directive and docs: full ingest command incl. `--zoom` for sn-03/sn-10 in `photos.md`; serve + URL before
+    functional/screens; one working directory (repo root); `wrangler pages secret list` as the check; "43" not "40".

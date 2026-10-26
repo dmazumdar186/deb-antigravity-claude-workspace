@@ -18,10 +18,11 @@ deities, no Om logo, no temple motifs). Footer signature "Designed by Debanjan M
 - Env: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `OPENROUTER_API_KEY` (backdrop regen only).
 
 ## Tools / scripts
-- `research/ingest_photos.py --src _raw_assets --out site/assets/img --sequence sn-01=… ` — EXIF-transposed
+- `research/ingest_photos.py` — full command (with the `--sequence` map and the `--zoom` for sn-03/sn-10) is recorded
+  verbatim in `research/photos.md`; EXIF-transposed
   webp ≤ 1600 px + `-m` variants + `manifest.json` with per-frame `focus`. Swapping a frame = re-run, no HTML edit.
 - `.claude/skills/site-redesign/scripts/{gen_backdrop.py,render_hero_video.mjs,site_check.mjs,deploy.sh}`.
-- `research/functional.mjs` (40 assertions incl. autoplay, scrub takeover, i18n, newsletter dialog, register
+- `research/functional.mjs` (43+ assertions incl. autoplay, scrub takeover, i18n, newsletter dialog, register
   mock, dead-link guard), `research/serve_csp.mjs` (serves with real `_headers`), `research/screens.mjs`
   (18-viewport cover matrix × 0/50/100 + named states).
 - Backend: Cloudflare Pages Functions `site/functions/api/{subscribe,register,export}.ts`, KV `JEEVANA_KV`
@@ -35,10 +36,18 @@ deities, no Om logo, no temple motifs). Footer signature "Designed by Debanjan M
 ## Steps
 1. Edit content: `site/js/i18n.js` (all strings EN/FR), `site/js/schedule.json` (timetable rows),
    `site/js/contact.json` (phone, whatsapp, facebook; empty = hidden, never a dead link).
-2. `node research/functional.mjs` → N/N; `node .claude/skills/site-redesign/scripts/site_check.mjs --site site --pages /`.
-3. `node research/screens.mjs` → reviewer agents read `screens/` (≤ 40 PNGs each); ship only on SHIP.
-4. `bash .claude/skills/site-redesign/scripts/deploy.sh deliverables/jeevana_site_2026-10-26/site jeevana-yoga`.
-5. Secrets once: `npx wrangler@4 pages secret put EXPORT_USER --project-name jeevana-yoga` (and `EXPORT_PASS`).
+   All paths below are relative to the deliverable root `deliverables/jeevana_site_2026-10-26/`; skill scripts are
+   under the repo root.
+2. Serve with the real headers: `node research/serve_csp.mjs site 8794 &` then
+   `node research/functional.mjs http://localhost:8794/` → N/N (never run it without the URL: exit 2), and
+   `node <repo>/.claude/skills/site-redesign/scripts/site_check.mjs --site site --pages /,/privacy/`.
+3. `node research/screens.mjs http://localhost:8794/` → reviewer agents read `screens/` (≤ 40 PNGs each); ship only on SHIP.
+4. Deploy **from `site/`** so the Pages Functions and `wrangler.toml` are picked up:
+   `cd site && npx -y wrangler@4 pages deploy . --project-name jeevana-yoga --branch main --commit-dirty=true`;
+   then probe `curl -s -X POST https://jeevana-yoga.pages.dev/api/register -d '{}'` → expect a 400 JSON body (a 405
+   or HTML means the Functions did not deploy).
+5. Secrets once: `npx wrangler@4 pages secret put EXPORT_USER --project-name jeevana-yoga` (and `EXPORT_PASS`,
+   `BREVO_API_KEY`, `NOTIFY_TO`); check with `npx wrangler@4 pages secret list --project-name jeevana-yoga`.
 
 ## Edge cases / learnings
 - The operator's local folder (Windows OneDrive) is unreachable from cloud sessions; a Drive folder shared
