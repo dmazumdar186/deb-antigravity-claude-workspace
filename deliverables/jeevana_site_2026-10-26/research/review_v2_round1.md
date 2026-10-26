@@ -51,3 +51,20 @@
 
 ## Re-verify
 All functional assertions + the new ones above; fresh screens (named + 19 viewports × s0/s5/s11/hold). Report ≤ 250 words.
+
+## G. Desktop / pages reviewer (added)
+17. Register success: 70 px gap appears between header and tab row after the swap → keep the tab row at `top: var(--header-h)`,
+    scroll to the panel top after swapping; assert gap ≤ 8 px in both states.
+18. About portrait clipped (hard edges at the right hand and bottom) → column `overflow: visible` or scale-to-fit with margin;
+    assert the image box is fully inside the panel (covered by D9: colour photo, hands inside the frame).
+19. Rail at 1440p/4K stretches apart (`space-between`) → `justify-content:flex-start` + `gap: clamp(.6rem, 1vh, 1.6rem)`;
+    assert the rail block height ≤ 70 % of its column and gaps ≤ 2.5 rem.
+20. 4K chrome: logo, wordmark, toggle, eyebrow keep 1080p sizes (eyebrow ≈ 6 px on a TV) → clamp()/root step at ≥ 2560; assert
+    eyebrow ≥ 18 px and nav ≥ 22 px at 3840.
+21. s5 (and other wide poses) nearly touches the rail on laptops/desktops → figure `max-width: calc(railLeft − 64px)`; assert
+    figure right edge ≤ rail left − 48 px at every state and viewport.
+22. Portrait tablets/TV at s5: figure edge to edge + 40–50 % empty band → cap width at 85 vw and the E11 text layout; TV
+    empty band at y 1570–1840 → compose the caption/CTAs with `auto 1fr auto` rows.
+23. Classes: one hairline-list row per class (name · description · price), not a card grid; Contact: content vertically
+    centred in the panel (or newsletter row follows); assert no panel has an empty area > 35 % of the viewport.
+24. s0 toes: doubled/squiggly contour → mask smoothing per A3; assert no sub-path < 2 % height.
