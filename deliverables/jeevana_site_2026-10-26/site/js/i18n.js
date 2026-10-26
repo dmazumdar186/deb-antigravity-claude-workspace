@@ -86,7 +86,17 @@
     'foot.privacy': 'Privacy · Mentions légales',
     'err.req': 'Please fill in this field.', 'err.email': 'Please enter a valid email address.', 'err.consent': 'Please tick the box to agree.',
     'err.wa': 'or message Jeevana on WhatsApp', 'mail.body': 'My registration (the form did not go through):',
-    'nf.h': 'This page is resting.', 'nf.p': 'The page you asked for does not exist.', 'nf.home': 'Jeevana — Yoga in Paris'
+    'nf.h': 'This page is resting.', 'nf.p': 'The page you asked for does not exist.', 'nf.home': 'Jeevana — Yoga in Paris',
+    'nav.practice': 'The practice', 'nav.contact': 'Contact',
+    'rail.note': 'a traditional sequence, taught as breath and movement', 'rail.now': 'Now',
+    'ch1.no': '01', 'ch1.h': 'The practice', 'ch1.lead': 'Every class holds three things: posture, movement and breath.',
+    'ch1.i1.h': 'The breath sets the pace', 'ch1.i1.p': 'Each movement rides an inhale or an exhale. The breath sets the pace, not the clock.',
+    'ch1.i2.h': 'A sequence', 'ch1.i2.p': 'Each class follows the traditional order of posture, breath and rest, and adapts to the body in the room.',
+    'ch1.i3.h': 'Stillness', 'ch1.i3.p': 'Breathing practice and a closing rest, where the class settles.',
+    'ch1.i4.h': 'Beginners welcome', 'ch1.i4.p': 'Beginners are welcome. Every posture has an adaptation.',
+    'ch2.no': '02', 'ch2.h': 'Classes & registration', 'ch2.offers': 'Offers', 'ch2.tt': 'Timetable',
+    'ch3.no': '03', 'ch3.h': 'Contact', 'eiffel.cap': 'Champ-de-Mars, Paris', 'mbar.wa': 'WhatsApp',
+    'alt.film': 'Jeevana moving through Sūrya Namaskāra', 'alt.still': 'Jeevana in the sequence, a still from the film', 'news.close': 'Close'
   };
   var fr = {
     'title': 'Jeevana — Yoga à Paris',
@@ -157,7 +167,17 @@
     'foot.privacy': 'Confidentialité · Mentions légales',
     'err.req': 'Merci de remplir ce champ.', 'err.email': 'Merci d\'indiquer une adresse e-mail valide.', 'err.consent': 'Merci de cocher la case pour accepter.',
     'err.wa': 'ou écrivez à Jeevana sur WhatsApp', 'mail.body': 'Mon inscription (le formulaire n\'est pas passé) :',
-    'nf.h': 'Cette page se repose.', 'nf.p': 'La page demandée n\'existe pas.', 'nf.home': 'Jeevana — Yoga à Paris'
+    'nf.h': 'Cette page se repose.', 'nf.p': 'La page demandée n\'existe pas.', 'nf.home': 'Jeevana — Yoga à Paris',
+    'nav.practice': 'La pratique', 'nav.contact': 'Contact',
+    'rail.note': 'une séquence traditionnelle, enseignée comme souffle et mouvement', 'rail.now': 'Maintenant',
+    'ch1.no': '01', 'ch1.h': 'La pratique', 'ch1.lead': 'Chaque cours réunit trois choses : la posture, le mouvement et le souffle.',
+    'ch1.i1.h': 'Le souffle donne le rythme', 'ch1.i1.p': 'Chaque mouvement suit une inspiration ou une expiration. C\'est le souffle qui donne le rythme, pas l\'horloge.',
+    'ch1.i2.h': 'Une séquence', 'ch1.i2.p': 'Chaque cours suit l\'ordre traditionnel de la posture, du souffle et du repos, et s\'adapte au corps de chacun.',
+    'ch1.i3.h': 'L\'immobilité', 'ch1.i3.p': 'Un travail du souffle et une relaxation finale, où le cours se pose.',
+    'ch1.i4.h': 'Débutants bienvenus', 'ch1.i4.p': 'Les débutants sont les bienvenus. Chaque posture a son adaptation.',
+    'ch2.no': '02', 'ch2.h': 'Cours et inscription', 'ch2.offers': 'Formules', 'ch2.tt': 'Planning',
+    'ch3.no': '03', 'ch3.h': 'Contact', 'eiffel.cap': 'Champ-de-Mars, Paris', 'mbar.wa': 'WhatsApp',
+    'alt.film': 'Jeevana enchaînant Sūrya Namaskāra', 'alt.still': 'Jeevana dans la séquence, une image du film', 'news.close': 'Fermer'
   };
   var k;
   for (k in S) { if (Object.prototype.hasOwnProperty.call(S, k)) { en[k] = S[k]; fr[k] = S[k]; } }
