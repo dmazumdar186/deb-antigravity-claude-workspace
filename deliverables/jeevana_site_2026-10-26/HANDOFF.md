@@ -59,3 +59,13 @@ Brief: `research/brief_v3.md`. Not deployed, not committed (builder run). Reject
   register = inline sheet; newsletter = borderless bottom sheet; all submits are underlined serif links.
 - Eyebrow is "Yoga in Paris" (one Jeevana wordmark on the cover); rail heading "The twelve breaths" ≤ 1366 px; 4K type scale;
   feather 160 px ≥ 1920 px; static page loads all media and collapses the scrub space.
+
+## Operator verdict, end of day 2026-10-26 — v1/v2/v3 all rejected. Stop.
+Tomorrow's brief, in the operator's words: refer to **Yoga avec Jitendra** (`execution/personal_workflows/yoga_jitendra_site/`,
+live https://yoga-jitendra.pages.dev) and build Jeevana's site nearly the same way, with dynamic elements, where the
+rendered background looks good WITH the photographs. Use only the best few photos (as with Jitendra), enhanced in quality.
+"We play with what was done right once." Do not reuse the v3 film-cover concept or the prospectus skeleton.
+Assets to carry: `_raw_assets/` (22 originals), `_raw_assets/cutouts_v3/` (best cut-outs), `research/photos.md`,
+`research/content_fixture.json` (sūtras + 12 mantras, EN/FR), `site/functions/` + `site/wrangler.toml` (KV live),
+`site/privacy/`, fonts, contact facts (email Jeevana.yogawellness@gmail.com, +33 7 54 28 72 10, Instagram).
+Spend today: Higgsfield $16.19 (films in `research/film*`), OpenRouter ≈ $0.02. Production still serves deploy 1.
