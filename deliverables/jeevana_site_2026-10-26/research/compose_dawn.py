@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CUT = ROOT / "_raw_assets" / "cutouts_v3"
 W, H = 1080, 1440
 FIG_H, GROUND_Y, MAX_W = 0.72, 0.86, 0.88
+NARROW = {"sn-09": 0.64}   # wide poses: keep clear of the frame edges so Kling never pushes the head out
 SUN = (0.14, 0.80)                       # low-left, fraction of canvas
 # knobs
 RIM_OPACITY, RIM_PX, RIM_RGB = 0.28, 1.5, (236, 178, 104)       # ochre, sun side only
@@ -82,11 +83,11 @@ def fix_cutout(rgba):
     return np.dstack([rgb.clip(0, 255), al * 255])
 
 
-def place(rgba, ground):
+def place(rgba, ground, name=""):
     h, w = rgba.shape[:2]
     ys, xs = np.nonzero(rgba[..., 3] > 20)
     top, gy = ys.min(), ground * h
-    s = min(FIG_H * H / (gy - top), MAX_W * W / (xs.max() - xs.min()))
+    s = min(FIG_H * H / (gy - top), NARROW.get(name, MAX_W) * W / (xs.max() - xs.min()))
     big = cv2.resize(rgba, (round(w * s), round(h * s)), interpolation=cv2.INTER_AREA)
     cx = (xs.min() + xs.max()) / 2 * s
     ox, oy = round(W / 2 - cx), round(GROUND_Y * H - gy * s)
@@ -97,7 +98,7 @@ def place(rgba, ground):
 
 def compose(name, bg, seed):
     rgba, g = load(name)
-    fig = place(fix_cutout(rgba), g)
+    fig = place(fix_cutout(rgba), g, name)
     rgb, al = fig[..., :3], fig[..., 3] / 255
     gy = int(GROUND_Y * H)
     img = bg.copy()

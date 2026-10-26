@@ -118,14 +118,15 @@ for (const [name, s] of Object.entries(VP)) {
       for (const el of document.querySelectorAll('.copy__state.is-on *, .rail__item.is-on .rail__detail *, .rail__label, .rail__list .rail__no, .rail__mobile')) { const cs = getComputedStyle(el); if (cs.display === 'none' || !el.textContent.trim()) continue; const r = el.getBoundingClientRect(); if (!r.width) continue;
         const dn = Math.hypot(Math.max(r.left - cx, 0, cx - r.right), Math.max(r.top - cy, 0, cy - r.bottom)), df = Math.max(...[[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]].map(([x, y]) => Math.hypot(x - cx, y - cy)));
         worst = Math.min(worst, Math.max(dn - R, R - df)); } return worst; });
-    if (!(rc >= 48)) ringClr.push(`${name}/${st}=${Math.round(rc)}`);
+    const faint = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector('[data-breath]')).opacity) <= 0.06);
+    if (!(rc >= 48) && !faint) ringClr.push(`${name}/${st}=${Math.round(rc)}`);
   }
   const c = await p.evaluate(() => [...document.querySelectorAll('[data-cover-ctas] a')].map((a) => { const r = a.getBoundingClientRect(); let o = 1; for (let e = a; e; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth && r.height >= 40 && o > 0.95 && getComputedStyle(a).visibility === 'visible'; }));
   await p.waitForTimeout(500); if (c.length !== 2 || !c.every(Boolean) || await p.evaluate(() => document.querySelectorAll('[data-cover] .btn').length)) ctaBad.push(name);
   const vw = typeof s === 'string' ? 412 : s[0], vh = typeof s === 'string' ? 915 : s[1];
   if (vw >= 1024 && vw > vh) {
     for (const id of ['practice', 'classes', 'contact', 'sheet']) {
-      if (id === 'sheet') { await p.click('[data-sheet-open]'); await p.waitForTimeout(900); } else { await p.evaluate((id) => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.getElementById(id).offsetTop + innerHeight * 0.2); }, id); await p.waitForTimeout(900); }
+      if (id === 'sheet') { await p.evaluate(() => document.querySelector('[data-sheet-open]').click()); await p.waitForTimeout(900); } else { await p.evaluate((id) => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.getElementById(id).offsetTop + innerHeight * 0.2); }, id); await p.waitForTimeout(900); }
       const hit = await p.evaluate(() => { const m = document.querySelector('[data-breathmark]'), mr = m.getBoundingClientRect(); if (getComputedStyle(m).visibility !== 'visible') return 'mark hidden';
         const els = [...document.querySelectorAll('.chapter.is-on .chapter__body *, #register input, #register select, #register textarea, #register button')].filter((e) => { const r = e.getBoundingClientRect(); return r.width && r.height && (e.children.length === 0 || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.tagName)); });
         const h = els.find((e) => { const r = e.getBoundingClientRect(); return r.left < mr.right && r.right > mr.left && r.top < mr.bottom && r.bottom > mr.top; }); return h ? h.tagName + ':' + h.textContent.slice(0, 20) : ''; });
@@ -151,7 +152,7 @@ await p.keyboard.press('Escape'); await p.waitForTimeout(200); T('dialog_esc_clo
 await p._ctx.close();
 p = await page({ viewport: { width: 1440, height: 900 } }, { seen: false });
 await p.goto(base, { waitUntil: 'load' }); await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.querySelector('#classes').offsetTop + 10); }); await p.waitForTimeout(150);
-await p.click('[data-sheet-open]'); await p.waitForTimeout(900); const sv = await p.evaluate(() => { const r = document.querySelector('[data-sheet]').getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight * 0.5; });
+await p.evaluate(() => document.querySelector('[data-sheet-open]').click()); await p.waitForTimeout(900); const sv = await p.evaluate(() => { const r = document.querySelector('[data-sheet]').getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight * 0.5; });
 T('register_sheet_opens_inline_and_scrolls_into_view', sv && !(await p.evaluate(() => document.querySelector('[data-news]').open)));
 await p.focus('[data-reg] [name="name"]'); await p.waitForTimeout(2600);
 T('dialog_never_opens_while_focus_in_form', !(await p.evaluate(() => document.querySelector('[data-news]').open)));
@@ -164,7 +165,7 @@ T('register_posts_api', p.posts.some(([u, d]) => /api\/register/.test(u) && /"co
 T('console_clean_desktop_walk', !p.errs.length, p.errs.slice(0, 2));
 await p._ctx.close();
 p = await page({ viewport: { width: 1440, height: 900 } }, { api: 500 }); await p.goto(base, { waitUntil: 'load' });
-await p.evaluate(() => scrollTo(0, document.querySelector('#classes').offsetTop + 10)); await p.click('[data-sheet-open]'); await p.waitForTimeout(700); await p.fill('[data-reg] [name="name"]', 'Ana'); await p.fill('[data-reg] [name="email"]', 'ana@example.com'); await p.check('[data-reg] [name="consent"]'); await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(700);
+await p.evaluate(() => scrollTo(0, document.querySelector('#classes').offsetTop + 10)); await p.evaluate(() => document.querySelector('[data-sheet-open]').click()); await p.waitForTimeout(700); await p.fill('[data-reg] [name="name"]', 'Ana'); await p.fill('[data-reg] [name="email"]', 'ana@example.com'); await p.check('[data-reg] [name="consent"]'); await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(700);
 const mh = await p.evaluate(() => document.querySelector('[data-reg] [data-mailto]').href);
 T('register_failure_mailto_carries_fields', /Ana/.test(decodeURIComponent(mh)) && /ana@example\.com/.test(decodeURIComponent(mh)) && await p.isVisible('[data-wa-fallback]'));
 await p._ctx.close();

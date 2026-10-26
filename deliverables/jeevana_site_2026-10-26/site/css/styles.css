@@ -69,6 +69,7 @@ ul, ol { padding: 0; list-style: none; }
 .cover__stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; isolation: isolate; }
 .cover__breath { position: absolute; z-index: 2; left: var(--ring-x, 50%); top: var(--ring-y, 50%); width: var(--ring-s, 60vh); height: var(--ring-s, 60vh); transform: translate(-50%, -50%); pointer-events: none; }
 html:not(.has-js) .cover__breath { display: none; }
+.cover__breath.is-faint { opacity: .06; z-index: 0; }
 .film, .film__glow { position: absolute; z-index: 1; top: 0; left: 50%; height: 100%; aspect-ratio: 3 / 4; transform: translateX(-50%); }
 .film { background: var(--paper);
   -webkit-mask-image: radial-gradient(ellipse 78% 74% at 50% 48%, #000 58%, transparent 100%), linear-gradient(to right, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent), linear-gradient(to bottom, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent);

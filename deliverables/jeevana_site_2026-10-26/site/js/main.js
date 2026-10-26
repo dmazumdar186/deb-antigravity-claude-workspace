@@ -120,7 +120,8 @@
     var f = film.getBoundingClientRect(), s0 = stage.getBoundingClientRect(), cx = f.left + f.width / 2, cy = f.top + f.height / 2;
     var obs = copyStates.concat([$('[data-rail]')]).filter(Boolean), d = Infinity;
     obs.forEach(function (el) { var r = el.getBoundingClientRect(); if (!r.width || !r.height) return; var dx = Math.max(r.left - cx, 0, cx - r.right), dy = Math.max(r.top - cy, 0, cy - r.bottom); d = Math.min(d, Math.sqrt(dx * dx + dy * dy)); });
-    var R0 = Math.min(f.width, f.height) * 0.5, Rr = Math.max(40, Math.min(R0, (d - RING_CLEAR) / 1.151));
+    var R0 = Math.min(f.width, f.height) * 0.5, Rfit = (d - RING_CLEAR) / 1.151, faint = Rfit < R0 * 0.45, Rr = faint ? R0 * 0.8 : Math.min(R0, Rfit);
+    cv.classList.toggle('is-faint', faint); // jury item 3: where the ring cannot clear the copy it sits at 6 % behind type
     var S = Rr / 0.36; stage.style.setProperty('--ring-s', Math.round(S) + 'px');
     stage.style.setProperty('--ring-x', Math.round(cx - s0.left) + 'px'); stage.style.setProperty('--ring-y', Math.round(cy - s0.top) + 'px');
   }
