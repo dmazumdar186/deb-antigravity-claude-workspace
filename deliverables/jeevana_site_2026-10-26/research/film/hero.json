@@ -1,0 +1,16 @@
+{
+ "ready": true,
+ "standin": true,
+ "legs": 1,
+ "leg_seconds": 5.0,
+ "xfade": 0.35,
+ "seconds": 5.04,
+ "keyframes_s": [
+  0,
+  5.04
+ ],
+ "aspect": "3:4",
+ "landscape": "hero.mp4",
+ "portrait": "hero-m.mp4",
+ "poster": "poster.jpg"
+}

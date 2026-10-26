@@ -32,7 +32,7 @@ POSES = ["Praṇāmāsana, standing, palms together at the chest",
          "Praṇāmāsana, standing, palms together at the chest"]
 STYLE = (" One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in "
          "frame, feet on the same ground line. Plain warm cream paper studio background, soft even daylight, no props, no "
-         "text, no other people. Photoreal, her face, hair, clothing and body unchanged throughout. Calm editorial pacing.")
+         "text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing.")
 
 def call(method, url, key, body=None, timeout=60):
     data = json.dumps(body).encode() if body is not None else None
