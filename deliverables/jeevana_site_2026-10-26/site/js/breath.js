@@ -33,7 +33,7 @@
   function draw(t) {
     if (!ctx) return;
     if (tgt !== null) { var dt = Math.min(200, Math.max(0, t - (lastT || t))); lvl += (tgt - lvl) * (1 - Math.exp(-dt / 220)); } else lvl = api.breath(t); lastT = t;
-    var b = lvl, cx = W / 2, cy = H * (0.5 - 0.04 * p), R = 0.36 * Math.min(W, H);
+    var b = lvl, cx = W / 2, cy = H * 0.5, R = 0.36 * Math.min(W, H);
     var rot = p * 0.6, s = 1 + 0.04 * b, hb = 1 + 0.3 * b;
     G.cx = cx; G.cy = cy; G.r = R * s; G.rMax = R * 1.04;
     ctx.clearRect(0, 0, W, H);

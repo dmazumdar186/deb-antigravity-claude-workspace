@@ -108,12 +108,29 @@ print(json.dumps({'max':max(res) if res else None,'n':len(res)}))`]).toString();
   await p._ctx.close();
 }
 // 6/7 CTAs at p=1 + empty band, 19 viewports
+const syncBad = [], italBad = [], bandRows = []; M.sync = {};
+const settle = async (p, k) => { try { await p.waitForFunction(([t]) => { const e = window.__jv, v = document.querySelector('[data-film-video]'); return e && e.ready && !e.seeking && Math.abs(v.currentTime - t) <= 0.3; }, [K[k]], { timeout: 20000, polling: 100 }); return true; } catch { return false; } };
 const ctaBad = [], bandBad = [], chBad = [], ringClr = [], brandBad = [], gutBad = [], ringIn = [], ringConst = [], headBad = []; M.bands = {};
 for (const [name, s] of Object.entries(VP)) {
   p = await page(spec(s)); await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150); M.bands[name] = {}; const radii = [];
   const vw = typeof s === 'string' ? 412 : s[0], vh = typeof s === 'string' ? 915 : s[1];
   for (const [st, pp] of [['s0', 0.05 / 12], ['s7', 7.05 / 12], ['hold', 1]]) {
-    await scrollP(p, pp); await p.waitForTimeout(1200); const g = await geo(p, st === 's0' ? 0 : st === 's7' ? 7 : 11); M.bands[name][st] = +g.band.toFixed(3);
+    await scrollP(p, pp); const kk = st === 's0' ? 0 : st === 's7' ? 7 : 11; const okS = await settle(p, kk); await p.waitForTimeout(500);
+    const sy = await p.evaluate((K) => { const ct = document.querySelector('[data-film-video]').currentTime; let best = 0; K.forEach((t, i) => { if (Math.abs(t - ct) < Math.abs(K[best] - ct)) best = i; }); return { ct: +ct.toFixed(2), fromTime: best, rail: [...document.querySelectorAll('.rail__item')].findIndex((e) => e.classList.contains('is-on')) }; }, K);
+    M.sync[`${name}/${st}`] = sy.ct; if (!okS || sy.fromTime !== kk || sy.rail !== kk) syncBad.push(`${name}/${st}: ct ${sy.ct} (want ${K[kk]}), rail ${sy.rail}`);
+    if (name === 'desktop-4k') { const it = await p.evaluate(() => [...document.querySelectorAll('[data-stage] *')].filter((e) => getComputedStyle(e).fontStyle === 'italic' && e.textContent.trim() && e.getBoundingClientRect().width && getComputedStyle(e).visibility === 'visible').map((e) => parseFloat(getComputedStyle(e).fontSize)).filter((f) => f < 24)); if (it.length) italBad.push(`${st}: ${it.join(',')}`); }
+    if ((name === 'desktop-1440p' && st === 's0') || (name === 'desktop-4k' && st === 's0')) { const fr = await p.evaluate(() => { const f = document.querySelector('[data-film]').getBoundingClientRect(); return [f.left, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--feather')) || 80]; }); const png = `/tmp/band-${name}.png`; mkdirSync('/tmp', { recursive: true }); await p.screenshot({ path: png, scale: 'css' });
+      const runs = JSON.parse(execFileSync('python3', ['-c', `
+import json,numpy as np
+from PIL import Image
+a=np.asarray(Image.open('${png}').convert('L')).astype(int)
+def run(x,y0,y1):
+  col=a[y0:y1,int(x)]; best=cur=1
+  for i in range(1,len(col)):
+    cur=cur+1 if col[i]==col[i-1] else 1; best=max(best,cur)
+  return best
+print(json.dumps({'x200':run(200,150,450),'feather':run(${fr[0]}+${fr[1]}/2,150,450)}))`]).toString()); M['band_' + name] = runs; if ((name === 'desktop-1440p' && runs.x200 >= 12) || runs.feather >= 12) bandRows.push(`${name}: ${JSON.stringify(runs)}`); }
+    const g = await geo(p, kk); M.bands[name][st] = +g.band.toFixed(3);
     if (g.band > 0.25) bandBad.push(`${name}/${st}=${g.band.toFixed(2)}`);
     const rc = await p.evaluate(() => { const cv = document.querySelector('[data-breath]').getBoundingClientRect(), G = window.JeevanaBackdrop.geom(); const cx = cv.left + G.cx, cy = cv.top + G.cy, R = G.rMax; let worst = Infinity;
       for (const el of document.querySelectorAll('.copy__state.is-on *, .rail__item.is-on .rail__detail *, .rail__label, .rail__list .rail__no, .rail__mobile')) { const cs = getComputedStyle(el); if (cs.display === 'none' || !el.textContent.trim()) continue; const r = el.getBoundingClientRect(); if (!r.width) continue;
@@ -122,7 +139,7 @@ for (const [name, s] of Object.entries(VP)) {
     const faint = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector('[data-breath]')).opacity) <= 0.06);
     if (!(rc >= 48) && !faint) ringClr.push(`${name}/${st}=${Math.round(rc)}`);
     const rg = await p.evaluate(() => { const cv = document.querySelector('[data-breath]').getBoundingClientRect(), G = window.JeevanaBackdrop.geom(); return { l: cv.left + G.cx - G.rMax, r: cv.left + G.cx + G.rMax, R: G.rMax, W: innerWidth }; });
-    radii.push(rg.R); if (rg.l < 0 || rg.r > rg.W || 2 * rg.R > 0.85 * rg.W + 1) ringIn.push(`${name}/${st}`);
+    radii.push(rg.R); (p.__cx ||= []).push([rg.l + rg.R, await p.evaluate(() => { const cv = document.querySelector('[data-breath]').getBoundingClientRect(); return cv.top + window.JeevanaBackdrop.geom().cy; })]); if (rg.l < 0 || rg.r > rg.W || 2 * rg.R > 0.85 * rg.W + 1) ringIn.push(`${name}/${st}`);
     if (st !== 's7') { const nb = await p.evaluate(() => { let n = 0; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let t; (t = w.nextNode());) { if (!/Jeevana\b/.test(t.textContent) || /@|\./.test(t.textContent)) continue; const el = t.parentElement; let ok = true; for (let e = el; e && e !== document; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) { ok = false; break; } } const r = el.getBoundingClientRect(); if (ok && r.width && r.bottom > 0 && r.top < innerHeight && !el.closest('dialog,.sr,.skip')) n++; } return n; }); if (nb !== 1) brandBad.push(`${name}/${st}=${nb}`); }
     if (st === 's7' && (vw < vh || vw <= 1366)) { const fl = await p.evaluate(() => { const f = document.querySelector('[data-film]').getBoundingClientRect(); return [f.left, f.right, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--feather')) || 80]; });
       const L = Math.max(0, fl[0]) + (fl[0] >= 0 ? fl[2] : 0), Rr = Math.min(vw, fl[1]) - (fl[1] <= vw ? fl[2] : 0);
@@ -130,6 +147,7 @@ for (const [name, s] of Object.entries(VP)) {
     const hd = await p.evaluate(() => { const h = document.querySelector('.rail__label'), n = document.querySelector('.rail__list'); if (!h || getComputedStyle(h).display === 'none' || getComputedStyle(n).display === 'none') return false; const a = h.getBoundingClientRect(), b = n.getBoundingClientRect(); return a.bottom > b.top && a.top < b.bottom; }); if (hd) headBad.push(`${name}/${st}`);
   }
   if (Math.max(...radii) > Math.min(...radii) * 1.02) ringConst.push(`${name}: ${radii.map(Math.round).join('/')}`);
+  { const c = p.__cx; const dx = Math.max(...c.map((q) => q[0])) - Math.min(...c.map((q) => q[0])), dy = Math.max(...c.map((q) => q[1])) - Math.min(...c.map((q) => q[1])); if (dx > 2 || dy > 2) ringConst.push(`${name}: centre drifts ${Math.round(dx)}/${Math.round(dy)} px`); }
   if (name === 'desktop-4k') { const fs = await p.evaluate(() => [parseFloat(getComputedStyle(document.querySelector('.rail__no')).fontSize), parseFloat(getComputedStyle(document.querySelector('.hdr__nav > a')).fontSize)]); M.fourK = fs; if (fs[0] < 18 || fs[1] < 22) headBad.push(`4k numerals ${fs[0]} nav ${fs[1]}`); }
   const c = await p.evaluate(() => [...document.querySelectorAll('[data-cover-ctas] a')].map((a) => { const r = a.getBoundingClientRect(); let o = 1; for (let e = a; e; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth && r.height >= 40 && o > 0.95 && getComputedStyle(a).visibility === 'visible'; }));
   await p.waitForTimeout(500); if (c.length !== 2 || !c.every(Boolean) || await p.evaluate(() => document.querySelectorAll('[data-cover] .btn').length)) ctaBad.push(name);
@@ -139,13 +157,16 @@ for (const [name, s] of Object.entries(VP)) {
   if (p.errs.length) chBad.push(name + ' errors: ' + p.errs[0]);
   await p._ctx.close();
 }
+T('film_time_matches_state_after_seeked (19 vp × s0/s7/hold, |ct − keyframes_s[state]| ≤ 0.3 s, rail = state from time)', !syncBad.length, syncBad);
+T('no_sky_banding (no run ≥ 12 identical rows, x = 200 on 1440p and the left feather column on 1440p + 4K)', !bandRows.length, bandRows.concat([M['band_desktop-1440p'], M['band_desktop-4k']]));
+T('4k_italics_ge_24px', !italBad.length, italBad);
 T('ctas_visible_at_p1 (19 viewports)', !ctaBad.length, ctaBad);
 T('no_empty_band_over_25pct (19 viewports × s0/s7/hold)', !bandBad.length, bandBad);
 T('breath_ring_clears_copy_and_rail_by_48px (19 viewports × s0/s7/hold)', !ringClr.length, ringClr);
 T('one_brand_wordmark_on_cover (19 vp × s0/hold)', !brandBad.length, brandBad);
 T('wide_pose_keeps_6pct_gutters_clear_of_feather (s7, portrait + landscape ≤ 1366)', !gutBad.length, gutBad);
 T('ring_inside_viewport_and_le_85pct_width (19 vp × 3 states)', !ringIn.length, ringIn);
-T('ring_size_constant_across_states (±2 %, 19 vp)', !ringConst.length, ringConst);
+T('ring_size_and_centre_constant_across_states (±2 %, ≤ 2 px, 19 vp)', !ringConst.length, ringConst);
 T('rail_heading_clear_of_numerals_and_4k_type_scale (numerals ≥ 18 px, nav ≥ 22 px at 3840)', !headBad.length, headBad.concat([M.fourK]));
 T('chapters_fit_one_viewport (landscape viewports ≥ 1024 px)', !chBad.length, chBad);
 // dawn stage (operator 2026-10-26): seam colour, luminance step, stage = plate, type contrast — 19 viewports × p 0/.5/1
@@ -218,6 +239,16 @@ T('chapters_fit_one_viewport (landscape viewports ≥ 1024 px)', !chBad.length, 
     const d = document.querySelector('[data-news]'), f = d.querySelector('form'); const bd = [d, f].filter((e) => { const cs = getComputedStyle(e); return ['Top', 'Right', 'Bottom', 'Left'].some((x) => parseFloat(cs['border' + x + 'Width']) >= 1 && cs['border' + x + 'Style'] !== 'none'); }).length;
     return { dark, bd, shadow: getComputedStyle(d).boxShadow, sheet: d.getBoundingClientRect().bottom >= innerHeight - 1 }; });
   T('newsletter_sheet_no_border_no_shadow_no_dark_buttons', !ui.dark.length && !ui.bd && ui.shadow === 'none' && ui.sheet, ui);
+  { await p.evaluate(() => { const c = document.getElementById('classes'); scrollTo(0, c.offsetTop + 20); }); await p.waitForTimeout(500); const dt = await p.evaluate(() => document.querySelector('[data-news]').getBoundingClientRect().top); await p.screenshot({ path: '/tmp/jvr2/dlg.png', scale: 'css' });
+    const st = JSON.parse(execFileSync('python3', ['-c', `
+import json,numpy as np
+from PIL import Image
+a=np.asarray(Image.open('/tmp/jvr2/dlg.png').convert('RGB')).astype(float)/255; a=np.where(a>.04045,((a+.055)/1.055)**2.4,a/12.92); L=a@[.2126,.7152,.0722]; H,W=L.shape
+t=int(${dt}); best=0
+for f in (.15,.35,.5,.65,.85):
+  x=int(W*f); pr=L[max(0,t-30):min(H,t+160),x]
+  for i in range(9,len(pr)-9): best=max(best,abs(pr[i:i+9].mean()-pr[i-9:i].mean()))
+print(json.dumps(round(float(best),3)))`]).toString()); T('newsletter_sheet_top_edge_feathered (step ≤ 6 %)', st <= 0.06, st); }
   await p._ctx.close();
   // success frame
   p = await page(D); await p.goto(base, { waitUntil: 'load' }); await p.evaluate(() => scrollTo(0, document.querySelector('#classes').offsetTop + 10)); await p.evaluate(() => document.querySelector('[data-sheet-open]').click()); await p.waitForTimeout(800);

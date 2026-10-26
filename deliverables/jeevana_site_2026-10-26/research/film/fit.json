@@ -1,11 +1,11 @@
 {
  "hero.mp4": {
   "crf": 25,
-  "bytes": 6042599
+  "bytes": 6121117
  },
  "hero-phone.mp4": {
-  "crf": 25,
-  "bytes": 2036473
+  "crf": 22,
+  "bytes": 3559260
  },
  "wide": {
   "width": 1330,

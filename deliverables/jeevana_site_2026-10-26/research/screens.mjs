@@ -24,7 +24,9 @@ async function page(opts, { seen = true, lang = 'en' } = {}) {
 const shot = async (p, name, full = false) => { if (only && !only.test(name)) return; await p.screenshot({ path: out + name + '.png', fullPage: full }); files.push(name + '.png'); };
 const yFor = (p, s) => p.evaluate((s) => { const c = document.querySelector('[data-cover]'); const span = c.offsetHeight - innerHeight; const pp = s === 'hold' ? 1 : (s + 0.05) / 12; return Math.round(c.offsetTop + span * pp); }, s);
 const scroll = (p, y) => p.evaluate((y) => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, y); }, y);
-const fresh = async (p, s, wait = 1600) => { await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150); await scroll(p, await yFor(p, s)); await p.waitForTimeout(wait); };
+const KF = JSON.parse((await import('node:fs')).readFileSync(new URL('../site/assets/film/hero.json', import.meta.url), 'utf8')).keyframes_s;
+const settle = (p, s) => p.waitForFunction(([t]) => { const e = window.__jv, v = document.querySelector('[data-film-video]'); return e && e.ready && !e.seeking && Math.abs(v.currentTime - t) <= 0.3; }, [KF[s === 'hold' ? 11 : s]], { timeout: 20000, polling: 100 }).catch(() => {});
+const fresh = async (p, s, wait = 700) => { await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150); await scroll(p, await yFor(p, s)); await settle(p, s); await p.waitForTimeout(wait); }; // shots only after seeked + within 0.3 s
 const toSel = async (p, sel, wait = 1200) => { await p.evaluate((sel) => { document.documentElement.style.scrollBehavior = 'auto'; const e = document.querySelector(sel); scrollTo(0, e.getBoundingClientRect().top + scrollY + (e.offsetHeight > innerHeight * 1.2 ? innerHeight * 0.25 : 0)); }, sel); await p.waitForTimeout(wait); };
 const D = { viewport: { width: 1440, height: 900 } };
 let p = await page(D);
@@ -47,7 +49,7 @@ await p._ctx.close();
 for (const [name, s] of Object.entries(VP)) {
   if (only && !only.test('vp-' + name)) continue;
   p = await page(spec(s));
-  for (const st of [0, 7, 'hold']) { if (st === 0) { await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(150); await scroll(p, await yFor(p, 0)); await p.waitForTimeout(900); } else await fresh(p, st, 1400); await shot(p, `vp-${name}-${st === 'hold' ? 'hold' : 's' + st}`); }
+  for (const st of [0, 7, 'hold']) { if (st === 0) { await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(150); await scroll(p, await yFor(p, 0)); await settle(p, 0); await p.waitForTimeout(500); } else await fresh(p, st, 1400); await shot(p, `vp-${name}-${st === 'hold' ? 'hold' : 's' + st}`); }
   await p._ctx.close();
 }
 await b.close();

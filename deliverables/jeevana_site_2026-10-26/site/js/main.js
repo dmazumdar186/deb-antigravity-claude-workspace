@@ -126,7 +126,7 @@
     cv.classList.toggle('is-faint', faint); // where the ring cannot clear the copy it sits at 6 % behind type
     stage.style.setProperty('--ring-s', Math.round(Rr / 0.36) + 'px');
     stage.style.setProperty('--fl', Math.round(f.left - s0.left) + 'px'); stage.style.setProperty('--fr', Math.round(s0.right - f.right) + 'px'); stage.style.setProperty('--fc', Math.round(cx - s0.left) + 'px');
-    stage.style.setProperty('--ring-x', Math.round(cx - s0.left) + 'px'); stage.style.setProperty('--ring-y', Math.round((filmH ? topFor(Math.max(0, shown)) + filmH / 2 : cy - s0.top)) + 'px');
+    stage.style.setProperty('--ring-x', Math.round(cx - s0.left) + 'px'); stage.style.setProperty('--ring-y', Math.round((filmH ? topFor(0) + filmH / 2 : cy - s0.top)) + 'px'); // pinned: one centre for every state
   }
   function setPos(x) { pos = clamp(x, 0, LAST); engine.pos = pos; var st = stateOf(pos); engine.state = st; show(st, pos); }
   var filmH = 0, copyTop = 0, railTop = 0, maxCopy = 0;
@@ -156,7 +156,7 @@
       raf = 0; if (!video || autoplaying) return;
       if (video.readyState < 1) { seekTick(); return; }
       var d = target - video.currentTime; if (Math.abs(d) < SEEK_EPS && !seeking) return;
-      if (!seeking) { seeking = true; video.currentTime = (Math.abs(d) < 0.05 || Math.abs(d) > JUMP) ? target : video.currentTime + d * LERP; }
+      if (!seeking) { seeking = true; engine.seeking = true; video.currentTime = (Math.abs(d) < 0.05 || Math.abs(d) > JUMP) ? target : video.currentTime + d * LERP; }
       seekTick();
     });
   }
@@ -168,6 +168,7 @@
     if (mbar) mbar.classList.toggle('is-shown', !!cover && cover.getBoundingClientRect().bottom < W.innerHeight * 0.6); // only once the cover has left (never over the rail)
     if (p >= COVER_DONE) ev('cover_complete', true);
     if (W.JeevanaBackdrop && !staticMode) W.JeevanaBackdrop.setProgress(p);
+    if (film) film.classList.toggle('is-pending', !engine.ready && shown > 0); // never show the s0 poster under another state while the film loads
     var oc = !cover || cover.getBoundingClientRect().bottom > 0; if (oc !== onCover) { onCover = oc; ringBreath(); }
     if (!engine.ready || staticMode) return;
     if (p > 0 && autoplaying) stopAutoplay();
@@ -206,7 +207,7 @@
       return fetch(src).then(function (r) { if (!r.ok) throw new Error('film ' + r.status); return r.blob(); })
         .then(function (b) { video.src = URL.createObjectURL(b); }, function () { video.src = src; })
         .then(function () {
-          video.addEventListener('seeked', function () { seeking = false; });
+          video.addEventListener('seeked', function () { seeking = false; engine.seeking = false; engine.seekedAt = video.currentTime; });
           video.addEventListener('loadeddata', function () {
             film.classList.add('is-live'); engine.ready = true;
             if (progress() > 0) { scrolled = true; frame(); } else { setPos(0); W.setTimeout(startAutoplay, AUTOPLAY_DELAY); }
