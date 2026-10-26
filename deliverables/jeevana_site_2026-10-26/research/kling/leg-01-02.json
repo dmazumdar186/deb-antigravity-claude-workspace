@@ -9,10 +9,6 @@
   "end_image_url": "https://jeevana-frames.pages.dev/sn-02.jpg"
  },
  "submit": {
-  "status": "queued",
-  "request_id": "0bfc5ba2-8fb2-4525-b5c6-9e36c720bfea",
-  "status_url": "https://api.higgsfield.ai/requests/0bfc5ba2-8fb2-4525-b5c6-9e36c720bfea/status",
-  "cancel_url": "https://api.higgsfield.ai/requests/0bfc5ba2-8fb2-4525-b5c6-9e36c720bfea/cancel",
-  "expires_after": 604800
+  "detail": "not_enough_credits"
  }
 }

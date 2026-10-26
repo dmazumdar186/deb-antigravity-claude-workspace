@@ -67,6 +67,7 @@ def render(src, height, seed):
         m = keep[lab]; al = al * m
     ys = np.where(m.any(1))[0]; fig_h = (ys[-1] - ys[0] + 1) if len(ys) else h
     L = (0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2])
+    L = cv2.bilateralFilter(L.astype(np.float32), 9, 0.08, 5)   # kill sensor speckle before CLAHE
     L = np.where(al > 0.02, L, 1.0)
     # 1. lift darks ~1.5 EV (shadow-weighted so highlights don't clip)
     g = 2 ** P['lift_ev']
@@ -86,6 +87,8 @@ def render(src, height, seed):
         lo, hi = np.percentile(t[m > 0], [3, 99])
         t = np.clip((t - lo) / max(hi - lo, 0.1), 0, 1)
     t = t * t * (3 - 2 * t)                         # S-curve
+    br = np.clip((Es - 0.7) / 0.2, 0, 1)            # soften clipped-highlight shapes (jacket)
+    t = t * (1 - br) + cv2.GaussianBlur(t, (0, 0), 4) * br
     # 5. hatching along isophotes
     Lb = cv2.GaussianBlur(lifted, (0, 0), 4)
     gx = cv2.Sobel(Lb, cv2.CV_32F, 1, 0, ksize=3); gy = cv2.Sobel(Lb, cv2.CV_32F, 0, 1, ksize=3)
@@ -116,7 +119,7 @@ def render(src, height, seed):
     lit = np.clip((inner - 0.62) / 0.25, 0, 1)
     breaks = cv2.GaussianBlur(rng.random((h, w)).astype(np.float32), (0, 0), 25)
     breaks = np.clip((breaks - breaks.mean()) * 8 + 0.6, 0, 1)
-    silw = sil * (1 - 0.9 * lit * (1 - 0.5 * breaks)) * 0.85
+    silw = sil * (1 - 0.9 * lit * (1 - 0.5 * breaks)) * (0.85 - 0.35 * dark_garm)
     cont = np.maximum(can, silw)
     cont = cv2.GaussianBlur(cont, (0, 0), 0.5)
     tone = 1 - (1 - tone) * (1 - P['contour_op'] * np.clip(cont * 1.6, 0, 1))
@@ -124,8 +127,11 @@ def render(src, height, seed):
     if m.any():
         Eh = cv2.GaussianBlur(Es, (0, 0), 5)
         thr = np.percentile(Eh[m > 0], 100 - P['paper_pct'])
-        r = np.clip((Eh - (thr - 0.10)) / 0.14, 0, 1)
+        r = np.clip((Eh - (thr - 0.10)) / 0.18, 0, 1)
+        r *= np.clip((cv2.GaussianBlur(lifted, (0, 0), 5) - 0.82) / 0.1, 0, 1)   # only truly bright stuff
         tone *= 1 - r * r * (3 - 2 * r)
+    dg = cv2.GaussianBlur((L < 0.22).astype(np.float32), (0, 0), 20)   # no white stripes inside dark garments
+    tone = np.maximum(tone, dg * 0.55 * cv2.GaussianBlur(tone, (0, 0), 15))
     # 9. cap darkness, paper grain in tonal areas
     tone = np.clip(tone, 0, 1) * P['max_dark']
     tt = tooth(h, w, rng)
@@ -136,7 +142,7 @@ def render(src, height, seed):
     fa = np.maximum(fa, silw * 0.9)
     tone = tone * np.clip(fa, 0, 1)
     # 11. contact shadow
-    if len(ys):
+    if len(ys) and ys[-1] < h - 3:                  # figure not cropped by the frame bottom
         bot = ys[-1]; foot = m[max(0, bot - int(0.04 * fig_h)):bot + 1].any(0)
         xs = np.where(foot)[0]
         if len(xs):
@@ -159,6 +165,12 @@ def save(key, A, out):
     pal = Image.fromarray(idx, 'P'); pal.putpalette(list(INK) * len(lv))
     pal.info['transparency'] = bytes(lv.tolist())
     pp = out / f'{key}.png'; pal.save(pp, optimize=True, transparency=bytes(lv.tolist()))
+    for q2 in (24, 16, 12, 8):                      # budget: <= 600 KB, fewer tone levels if needed
+        if pp.stat().st_size <= 600_000: break
+        mx = int(A.max()) or 1; A = (np.round(A / mx * (q2 - 1)) / (q2 - 1) * mx).astype(np.uint8)
+        lv = np.unique(A); idx = np.searchsorted(lv, A).astype(np.uint8)
+        pal = Image.fromarray(idx, 'P'); pal.putpalette(list(INK) * len(lv))
+        pal.save(pp, optimize=True, transparency=bytes(lv.tolist()))
     f = A.astype(np.float32)[..., None] / 255
     prev = (np.array(PAPER) * (1 - f) + np.array(INK) * f).astype(np.uint8)
     jp = out / f'{key}-on-paper.jpg'; Image.fromarray(prev).save(jp, quality=88)
