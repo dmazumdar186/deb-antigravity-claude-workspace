@@ -11,10 +11,10 @@ Subcommands
   plan [--limit 25]                     write/print today's queue (re-prints if it already exists)
   mark SLUG --status sent|skipped|already_connected|pending|withdrawn|retry [--note ..] [--canonical SLUG2]
                                         --canonical records the slug LinkedIn redirected to, as an alias
-  report [--date YYYY-MM-DD] [--out f]  markdown report of that day: four-field table + a machine-readable
-                                        ledger block (every row marked that day) for reconciliation
-  sync --ledger f [--aliases f]         union rows from another copy of the ledger/aliases (Drive copy,
-                                        another machine); never drops a row
+  report [--date YYYY-MM-DD] [--out f]  the operator's report: ONE markdown table (first name, name,
+                                        company, position, LinkedIn ID) and nothing else
+  sync --ledger f [--aliases f]         union rows from another copy of the ledger/aliases (Drive snapshot;
+                                        pre-2026-10-26 report .md with a ledger block still accepted)
   status                                counts: master / sent / remaining / today
   lock acquire|release|show             run lock so two scheduled slots never send concurrently
                                         (acquire exits 4 if a live lock < LOCK_TTL_MIN old exists)
@@ -303,33 +303,44 @@ def cmd_mark(store: Store, slug: str, status: str, note: str, canonical: str | N
     return 0
 
 
+def _first_name(full: str) -> str:
+    parts = (full or "").split()
+    return parts[0] if parts else ""
+
+
+def _cell(v: str) -> str:
+    """One markdown table cell: collapse whitespace/newlines, escape pipes so a row never splits."""
+    return " ".join((v or "").split()).replace("|", "\\|")
+
+
 def cmd_report(store: Store, day: str | None, out: str | None) -> int:
+    """The operator's report: ONE markdown table, nothing else (operator order 2026-10-26).
+
+    Columns: # | First name | Name | Company | Position | LinkedIn ID. No title, no counts, no
+    status note, no ledger dump; diagnostics go to stderr only. The slot uploads this file to Drive as
+    report_<date>.md and the 20:00 Europe/Paris cloud task emails its body. Machine state travels via
+    the Drive ledger snapshot, never via this report."""
     day = day or _today()
     master = {r["slug"]: r for r in store.load_master()}
     sent = _sent_on(store.load_ledger(), day)
-    lines = [f"# LinkedIn connection requests sent {day}", "", f"{len(sent)} request(s) sent.", "",
-             "| # | Name | Company | Position | LinkedIn ID |", "|---|---|---|---|---|"]
+    lines = ["| # | First name | Name | Company | Position | LinkedIn ID |",
+             "|---|---|---|---|---|---|"]
     for i, r in enumerate(sent, 1):
         m = master.get(r["slug"], {})
-        lines.append(f"| {i} | {m.get('name', r['name'])} | {m.get('company', '')} | "
-                     f"{m.get('position', '')} | [{r['slug']}](https://www.linkedin.com/in/{r['slug']}/) |")
-    marked = [r for r in store.load_ledger() if r["date"] == day]
-    lines += ["", "<!-- ledger-block: every row marked this day; paste into `sync --ledger` to reconcile -->",
-              "```ledger", ",".join(LEDGER_FIELDS)]
-    for r in marked:
-        lines.append(",".join('"%s"' % (r.get(k, "") or "").replace('"', '""') for k in LEDGER_FIELDS))
-    lines.append("```")
+        name = m.get("name") or r["name"]
+        lines.append(f"| {i} | {_cell(_first_name(name))} | {_cell(name)} | {_cell(m.get('company', ''))} | "
+                     f"{_cell(m.get('position', ''))} | [{r['slug']}](https://www.linkedin.com/in/{r['slug']}/) |")
     text = "\n".join(lines) + "\n"
     path = Path(out) if out else store.dir / f"report_{day}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-    print(text)
-    print(f"[written {path}]", file=sys.stderr)
+    print(text, end="")
+    print(f"[written {path}; {len(sent)} sent on {day}]", file=sys.stderr)
     return 0
 
 
 def _extract_ledger_block(path: Path) -> list[dict[str, str]]:
-    """Accept a plain ledger CSV or a report .md containing a ```ledger block."""
+    """Accept a plain ledger CSV, or a legacy (pre-2026-10-26) report .md with a ```ledger block."""
     text = path.read_text(encoding="utf-8")
     if "```ledger" in text:
         text = text.split("```ledger", 1)[1].split("```", 1)[0].strip()

@@ -1,5 +1,5 @@
 {
   "name": "linkedin-connect",
-  "version": "1.0.0",
-  "description": "Daily LinkedIn connection-request routine for Debanjan: 25/day from the laptop's logged-in Chrome, ledger in Google Drive, four-field report by email. Self-contained; needs no repo checkout."
+  "version": "1.1.0",
+  "description": "Daily LinkedIn connection-request routine for Debanjan: 25/day from the laptop's logged-in Chrome, ledger in Google Drive, one-table report emailed at 20:00 by a cloud task. Self-contained; needs no repo checkout."
 }

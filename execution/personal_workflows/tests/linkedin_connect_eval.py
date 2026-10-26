@@ -28,7 +28,7 @@ YESTERDAY = (dt.date.today() - dt.timedelta(days=1)).isoformat()
 
 def run(data_dir: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run([sys.executable, "-I", str(SCRIPT), "--data-dir", str(data_dir), *args],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def write(path: Path, text: str, enc: str = "utf-8") -> Path:
@@ -183,12 +183,17 @@ def c15_weekly_trim(d):
 
 
 def c16_report_four_fields(d):
+    """Operator contract (2026-10-26): the report is ONE table and nothing else."""
     seed_master(d, 4)
     ledger(d, [(TODAY, "p0", "sent"), (TODAY, "p1", "skipped"), (YESTERDAY, "p2", "sent")])
     r = run(d, "report")
-    lines = [l for l in r.stdout.splitlines() if l.startswith("| ") and not l.startswith("| #")]
-    cols = lines[0].count("|") - 1 if lines else 0
-    return len(lines) == 1 and cols == 5 and "p0" in lines[0] and "1 request(s)" in r.stdout, f"{len(lines)} rows, {cols} cols"
+    out = [ln for ln in r.stdout.splitlines() if ln.strip()]
+    rows = [ln for ln in out if ln.startswith("| ") and not ln.startswith("| #")]
+    non_table = [ln for ln in out if not ln.startswith("|")]
+    cols = rows[0].count("|") - 1 if rows else 0
+    ok = (len(rows) == 1 and cols == 6 and "p0" in rows[0] and not non_table
+          and "```" not in r.stdout and "skipped" not in r.stdout and "ts,date" not in r.stdout)
+    return ok, f"{len(rows)} rows, {cols} cols, {len(non_table)} non-table lines"
 
 
 def c17_orphan_warning(d):
@@ -222,16 +227,32 @@ def c21_alias_redirect(d):
 
 
 def c22_sync_from_report(d):
+    """Report carries no ledger any more; reconcile from a ledger CSV copy (Drive snapshot shape)."""
     seed_master(d, 6)
     ledger(d, [(TODAY, "p0", "sent"), (TODAY, "p1", "skipped")])
     run(d, "report", "--out", str(d / "rep.md"))
     other = d.parent / "other"; other.mkdir()
     shutil.copy(d / "master.csv", other / "master.csv")
     ledger(other, [(TODAY, "p0", "sent"), (TODAY, "p2", "sent")])
-    r = run(other, "sync", "--ledger", str(d / "rep.md"))
+    r0 = run(other, "sync", "--ledger", str(d / "rep.md"))
+    r = run(other, "sync", "--ledger", str(d / "ledger.csv"))
     rows = ledger_rows(other)
     slugs = sorted(r["slug"] for r in rows)
-    return slugs == ["p0", "p1", "p2"] and "+1 ledger row" in r.stdout, f"{slugs}; {r.stdout.strip()}"
+    return slugs == ["p0", "p1", "p2"] and "+1 ledger row" in r.stdout and "+0 ledger row" in r0.stdout, f"{slugs}; {r.stdout.strip()}"
+
+
+def c25_report_pipe_safe(d):
+    """A pipe or newline inside a master field must not split the table row."""
+    seed_master(d, 2)
+    rows = list(csv.DictReader((d / "master.csv").open(encoding="utf-8")))
+    rows[0]["company"] = "Foo | Bar\nInc"; rows[0]["name"] = "  Zoë   Muñoz "
+    with (d / "master.csv").open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=rows[0].keys()); w.writeheader(); w.writerows(rows)
+    ledger(d, [(TODAY, rows[0]["slug"], "sent")])
+    r = run(d, "report")
+    row = [ln for ln in r.stdout.splitlines() if ln.startswith("| 1 ")]
+    cells = row[0].count("|") - 1 - row[0].count("\\|") if row else 0
+    return cells == 6 and "| Zoë | Zoë Muñoz |" in row[0] and "\\|" in row[0], f"{cells} cells: {row[0] if row else r.stderr}"
 
 
 def c23_lock_blocks_overlap(d):
@@ -274,7 +295,7 @@ def main() -> int:
              c05_non_profile_urls_rejected, c06_decoy_url_column, c07_cp1252, c08_idempotent, c09_cap_25,
              c10_limit_zero, c11_26th_refused, c12_duplicate_mark, c13_retry_semantics, c14_topup_after_skips,
              c15_weekly_trim, c16_report_four_fields, c17_orphan_warning, c18_shuffle_deterministic,
-             c19_empty_master, make_c20(Path(a.data) if a.data else None), c21_alias_redirect, c22_sync_from_report, c23_lock_blocks_overlap, c24_health_invariants]
+             c19_empty_master, make_c20(Path(a.data) if a.data else None), c21_alias_redirect, c22_sync_from_report, c23_lock_blocks_overlap, c24_health_invariants, c25_report_pipe_safe]
     lines = ["| # | Case | Result | Evidence |", "|---|---|---|---|"]
     passed = total = 0
     for i, fn in enumerate(cases, 1):
